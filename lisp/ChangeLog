@@ -8,6 +8,37 @@
 	* format.el (format-write-file): Add optional argument CONFIRM
 	and make it behave like the analogous argument to `write-file'.
 
+2004-04-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Doc fix.
+	(ebnf-version): New version number (4.2).
+	(ebnf-syntax): Customization and docstring fix.
+	(ebnf-eliminate-empty-rules, ebnf-optimize, ebnf-otz-initialize): Put
+	autoloaded funs before first use.
+	(ebnf-style-database): Add dtd entry.
+	(ebnf-syntax-alist): Add dtd initialization.
+	(ebnf-token-sequence): New fun.
+	(ebnf-comment-table): Add new comment action character.
+	(ebnf-dtd-parser, ebnf-dtd-initialize): Autoloaded funs from ebnf-dtd.
+
+	* progmodes/ebnf-dtd.el: New file, implement a parser for DTD (Data
+	Type Definition for XML).
+
+	* progmodes/ebnf-abn.el (ebnf-abn-concatenation): Code simplification:
+	call ebnf-token-sequence.
+
+	* progmodes/ebnf-bnf.el (ebnf-sequence): Code simplification: call
+	ebnf-token-sequence.
+
+	* progmodes/ebnf-ebx.el (ebnf-ebx-concatenation): Code simplification:
+	call ebnf-token-sequence.
+
+	* progmodes/ebnf-iso.el (ebnf-iso-single-definition): Code
+	simplification: call ebnf-token-sequence.
+
+	* progmodes/ebnf-yac.el (ebnf-yac-sequence): Code simplification: call
+	ebnf-token-sequence.
+
 2004-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* calendar/timeclock.el (timeclock-relative)

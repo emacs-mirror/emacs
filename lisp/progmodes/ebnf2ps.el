@@ -5,9 +5,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/03/30 21:49:21 vinicius>
+;; Time-stamp: <2004/04/04 21:40:30 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.1
+;; Version: 4.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -27,8 +27,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "4.1"
-  "ebnf2ps.el, v 4.1 <2004/03/18 vinicius>
+(defconst ebnf-version "4.2"
+  "ebnf2ps.el, v 4.2 <2004/04/04 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -177,8 +177,35 @@ Please send all bug fixes and enhancements to
 ;;   (global-set-key '(control f22) 'ebnf-despool)
 ;;
 ;;
+;; Invoking Ebnf2ps in Batch
+;; -------------------------
+;;
+;; It's possible also to run ebnf2ps in batch, this is useful when, for
+;; example, you have a directory with a lot of files containing the EBNF to be
+;; translated to PostScript.
+;;
+;; To run ebnf2ps in batch type, for example:
+;;
+;;    emacs -batch -l setup-ebnf2ps.el -f ebnf-eps-directory
+;;
+;; Where setup-ebnf2ps.el should be a file containing:
+;;
+;;    ;; set load-path if ebnf2ps isn't installed in your Emacs environment
+;;    (setq load-path (append (list "/dir/of/ebnf2ps") load-path))
+;;    (require 'ebnf2ps)
+;;    ;; insert here your ebnf2ps settings
+;;    (setq ebnf-terminal-shape 'bevel)
+;;    ;; etc.
+;;
+;;
 ;; EBNF Syntax
 ;; -----------
+;;
+;; BNF (Backus Naur Form) notation is defined like languages, and like
+;; languages there are rules about name formation and syntax.  In this section
+;; it's defined a BNF syntax that it's called simply EBNF (Extended BNF).
+;; ebnf2ps package also deal with other BNF notation.  Please, see the variable
+;; `ebnf-syntax' documentation below in this section.
 ;;
 ;; The current EBNF that ebnf2ps accepts has the following constructions:
 ;;
@@ -324,6 +351,10 @@ Please send all bug fixes and enhancements to
 ;;		     `http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 ;;		     ("Extensible Markup Language (XML) 1.0 (Third Edition)")
 ;;
+;;    `dtd'		ebnf2ps recognizes the syntax described in the URL:
+;;			`http://www.w3.org/TR/2004/REC-xml-20040204/'
+;;		     ("Extensible Markup Language (XML) 1.0 (Third Edition)")
+;;
 ;; Any other value is treated as `ebnf'.
 ;;
 ;; The default value is `ebnf'.
@@ -395,6 +426,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; ebnf2ps accepts the following actions in comments:
 ;;
+;;    ;^	same as form feed.  See section Form Feed above.
+;;
 ;;    ;>	the next production starts in the same line as the current one.
 ;;		It is useful when `ebnf-horizontal-orientation' is nil.
 ;;
@@ -459,8 +492,8 @@ Please send all bug fixes and enhancements to
 ;; Only the ;> will take effect, that is, A and B will be drawn in the same
 ;; line.
 ;;
-;; In ISO EBNF the above actions are specified as (*>*), (*<*), (*[EPS*) and
-;; (*]EPS*).  The first example above should be written:
+;; In ISO EBNF the above actions are specified as (*^*), (*>*), (*<*), (*[EPS*)
+;; and (*]EPS*).  The first example above should be written:
 ;;
 ;;    A = t;
 ;;    C = x;
@@ -1687,10 +1720,14 @@ Valid values are:
 		`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 		(\"Extensible Markup Language (XML) 1.0 (Third Edition)\")
 
+   `dtd'	ebnf2ps recognizes the syntax described in the URL:
+		`http://www.w3.org/TR/2004/REC-xml-20040204/'
+		(\"Extensible Markup Language (XML) 1.0 (Third Edition)\")
+
 Any other value is treated as `ebnf'."
   :type '(radio :tag "Syntax"
 		(const ebnf) (const abnf)  (const iso-ebnf)
-		(const yacc) (const ebnfx))
+		(const yacc) (const ebnfx) (const dtd))
   :group 'ebnf-syntactic)
 
 
@@ -1882,6 +1919,21 @@ The following optimizations are done:
 The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
   :type 'boolean
   :group 'ebnf-optimization)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; To make this file smaller, some commands go in a separate file.
+;; But autoload them here to make the separation invisible.
+;; Autoload is here to avoid compilation gripes.
+
+(autoload 'ebnf-eliminate-empty-rules "ebnf-otz"
+  "Eliminate empty rules.")
+
+(autoload 'ebnf-optimize              "ebnf-otz"
+  "Syntactic chart optimizer.")
+
+(autoload 'ebnf-otz-initialize        "ebnf-otz"
+  "Initialize optimizer.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2406,6 +2458,10 @@ See also `ebnf-syntax-buffer'."
     (ebnfx
      default
      (ebnf-syntax                      . 'ebnfx))
+    ;; dtd default
+    (dtd
+     default
+     (ebnf-syntax                      . 'dtd))
     )
   "Style database.
 
@@ -4664,7 +4720,8 @@ killed after process termination."
     (yacc      ebnf-yac-parser  ebnf-yac-initialize)
     (abnf      ebnf-abn-parser  ebnf-abn-initialize)
     (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize)
-    (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize))
+    (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize)
+    (dtd       ebnf-dtd-parser  ebnf-dtd-initialize))
   "Alist associating ebnf syntax with a parser and a initializer.")
 
 
@@ -5661,6 +5718,20 @@ killed after process termination."
 						   (cons seq body)
 						 body))))))))
 
+
+(defun ebnf-token-sequence (sequence)
+  (cond
+   ;; null sequence
+   ((null sequence)
+    (ebnf-make-empty))
+   ;; sequence with only one element
+   ((= (length sequence) 1)
+    (car sequence))
+   ;; a real sequence
+   (t
+    (ebnf-make-sequence (nreverse sequence)))
+   ))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables used by parsers
@@ -5671,6 +5742,7 @@ killed after process termination."
     ;; Override special comment character:
     (aset table ?< 'newline)
     (aset table ?> 'keep-line)
+    (aset table ?^ 'form-feed)
     table)
   "Vector used to map characters to a special comment token.")
 
@@ -5709,14 +5781,11 @@ killed after process termination."
 (autoload 'ebnf-ebx-initialize        "ebnf-ebx"
   "Initializations for EBNFX parser.")
 
-(autoload 'ebnf-eliminate-empty-rules "ebnf-otz"
-  "Eliminate empty rules.")
+(autoload 'ebnf-dtd-parser            "ebnf-dtd"
+  "DTD parser.")
 
-(autoload 'ebnf-optimize              "ebnf-otz"
-  "Syntactic chart optimizer.")
-
-(autoload 'ebnf-otz-initialize        "ebnf-otz"
-  "Initialize optimizer.")
+(autoload 'ebnf-dtd-initialize        "ebnf-dtd"
+  "Initializations for DTD parser.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
