@@ -183,10 +183,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (unibyte-syntax . "latin-5")
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "latin-5-postfix")
-	     (documentation . "\
-These languages are supported with the Latin-5 (ISO-8859-9) character set:
- Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
- Ukranian."))				; says ISO 8859-1
+	     (documentation . "Support for Turkish language."))
  '("European"))
 
 
