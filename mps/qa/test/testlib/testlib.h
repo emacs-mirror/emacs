@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.4) $
 test_lib.h
    various handy things for reporting errors &c
 */
@@ -24,6 +24,7 @@ void fail(void);
 /* report: print variable and value to stdout
 */
 
+void report_res(const char *str, mps_res_t res);
 void report(const char *str, const char *format, ...);
 void vreport(const char *str, const char *format, va_list args);
 
