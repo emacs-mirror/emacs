@@ -574,7 +574,7 @@ documents - you must insert literal tabs by hand.")
 ;; but it *did* have an asterisk in the docstring!
 (defcustom sh-builtins
   '((bash sh-append posix
-	  "." "alias" "bg" "bind" "builtin" "compgen" "complete"
+	  "." "alias" "bg" "bind" "builtin" "caller" "compgen" "complete"
           "declare" "dirs" "disown" "enable" "fc" "fg" "help" "history"
           "jobs" "kill" "let" "local" "popd" "printf" "pushd" "shopt"
           "source" "suspend" "typeset" "unalias")
@@ -791,6 +791,10 @@ See `sh-feature'.")
   :group 'sh-indentation)
 (defvar sh-heredoc-face 'sh-heredoc-face)
 
+(defface sh-escaped-newline '((t :inherit font-lock-string-face))
+  "Face used for (non-escaped) backslash at end of a line in Shell-script mode."
+  :group 'sh-script
+  :version "22.1")
 
 (defvar sh-font-lock-keywords
   '((csh sh-append shell
@@ -815,7 +819,7 @@ See `sh-feature'.")
     ;; The next entry is only used for defining the others
     (shell sh-append executable-font-lock-keywords
            ;; Using font-lock-string-face here confuses sh-get-indent-info.
-           ("\\\\$" 0 font-lock-warning-face)
+           ("\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\)$" 3 'sh-escaped-newline)
 	   ("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
 	   ("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face))
