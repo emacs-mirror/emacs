@@ -1229,20 +1229,19 @@ and the meta character is unread so that it applies to editing the string."
 	   (let (window)
 	     (cancel-kbd-macro-events)
 	     (apply 'isearch-unread keylist)
-	     ;; Properly handle scroll-bar and mode-line clicks
-	     ;; for which a dummy prefix event was generated as (aref key 0).
-	     (and (> (length key) 1)
-		  (symbolp (aref key 0))
-		  (listp (aref key 1))
-		  (not (numberp (posn-point (event-start (aref key 1)))))
-		  ;; Convert the event back into its raw form,
-		  ;; with the dummy prefix implicit in the mouse event,
-		  ;; so it will get split up once again.
-		  (progn (setq unread-command-events
-			       (cdr unread-command-events))
-			 (setq main-event (car unread-command-events))
-			 (setcar (cdr (event-start main-event))
-				 (car (nth 1 (event-start main-event))))))
+
+	     ;; Properly handle scroll-bar and mode-line clicks for
+	     ;; which a dummy prefix event was generated as (aref key
+	     ;; 0).  Note that we don't have to modify the event
+	     ;; anymore in 21 because read_key_sequence no longer modifies
+	     ;; events to produce fake prefix keys.
+	     (when (and (> (length key) 1)
+			(symbolp (aref key 0))
+			(listp (aref key 1))
+			(not (numberp (posn-point 
+				       (event-start (aref key 1))))))
+	       (setq main-event (pop unread-command-events)))
+
 	     ;; If we got a mouse click, maybe it was read with the buffer
 	     ;; it was clicked on.  If so, that buffer, not the current one,
 	     ;; is in isearch mode.  So end the search in that buffer.
