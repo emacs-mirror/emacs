@@ -1,9 +1,14 @@
+Francesco Potorti`  <pot@gnu.org>
+
+	* programs.texi (Tags): Mention that file names are tags.  Change by
+	Philippe Waroquiers  <wao@gull.tact.cfmu.eurocontrol.be>.
+
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (mostlyclean, maintainer-clean): Delete more files.
 
 2001-02-24  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff.texi: Fixed some typos.
 
 2001-02-19  Bill Wohler  <wohler@newt.com>
@@ -31,11 +36,11 @@
 	* programs.texi: Fix typo.
 
 2001-02-12  Michael Kifer <kifer@cs.sunysb.edu>
-	
+
 	* viper.texi: Fixed typos.
-	
+
 	* ediff.texi: Added ediff-coding-system-for-read.
-	
+
 2001-02-11  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.texi (Pterodactyl Gnus): Added.
@@ -52,11 +57,11 @@
 	and layout of the remaining six.
 
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff.texi: add credits.
-	
+
 	* viper.texi: small fixes; added credits
-	
+
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faq.texi: Many changes to make it consistent with Emacs 21.
@@ -107,10 +112,10 @@
 	`nnmail-split-fancy-with-parent'.
 
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff.texi: Replaced @command with @code & acknowledgements.
 	* viper.texi: Acknowledgements.
-	
+
 2000-10-28  John Wiegley  <johnw@gnu.org>
 
 	* eshell.texi: Further editing, and finished the "bugs" section.
@@ -235,9 +240,9 @@
 
 2000-08-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* faq.texi (Disabling backups): Replace reference to 
+	* faq.texi (Disabling backups): Replace reference to
 	non-existent initial-dired-omit-files-p with something that works.
-	
+
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* programs.texi (Documentation): Add an xref to WoMan's own
@@ -272,15 +277,15 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-mode.texi: Documented the change of cpp-macro. 
+	* cc-mode.texi: Documented the change of cpp-macro.
 
-	* cc-mode.texi: Updated doc for c-lineup-multi-inher. 
+	* cc-mode.texi: Updated doc for c-lineup-multi-inher.
 
 	* cc-mode.texi: Documented the special behavior of
 	c-special-indent-hook as a style variable.  Don't talk about
 	doing (c-make-styles-buffer-local t) in a mode hook, since
 	that's already too late to work right.
-	
+
 2000-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mule.texi (Recognize Coding): Document the variable
@@ -357,12 +362,12 @@
 	trouble.texi: Fix markup; mostly replace @code with @env.
 
 	* ebrowse.texi: Use @command.  Change title page.
-	
+
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ebrowse.texi: Various markup and index fixes.  Changes for
 	MS-DOS.
-	
+
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INFO_TARGETS): Add info/ebrowse.
@@ -465,10 +470,10 @@
 	* gnus.texi: POP server may be specified in nnmail-spool-file.
 
 1999-11-24  Michael Kifer <kifer@cs.sunysb.edu>
-	
+
 	* ediff.texi: Describe the new format for
 	ediff-combination-pattern.
-	
+
 1999-11-20  Paul Eggert  <eggert@twinsun.com>
 
 	* mule.texi: Describe the relationship between
@@ -487,11 +492,11 @@
 	* misc.texi, gnus.texi:  Fix complaints from makeinfo 4.0.
 
 1999-11-01  Michael Kifer <kifer@cs.sunysb.edu>
-	
+
         * ediff.texi: minor fixes.
-	
+
         * viper.texi: minor fixes.
-	
+
 1999-10-23  Dave Love  <fx@gnu.org>
 
 	* autotype.texi: New file.
@@ -514,11 +519,11 @@
 	(../info/ada-mode, ada-mode.dvi): New targets.
 
 	* ada-mode.texi: Set file name to ../info/ada-mode.
-	
+
 1999-10-07  Emmanuel Briot  <briot@gnat.com>
 
 	* ada-xref.texi: New file.
-	
+
 1999-09-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Add faq.
@@ -532,7 +537,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.7 released.
-	
+
 2000-05-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* info.texi: Clarify description of Info-directory-list,
@@ -541,16 +546,16 @@ line.  Change logs above this notice are those for the 21.x code line.
 2000-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.6 released.
-	
+
 1999-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.5 released.
-	
+
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.texi: Add coding tag.  Fixes for makeinfo 4.0.
 
-	* dired-x.texi, sc.texii, cc-mode.texi, mh-e.texi: Fixes for 
+	* dired-x.texi, sc.texii, cc-mode.texi, mh-e.texi: Fixes for
 	makeinfo 4.0.
 
 1999-07-12  Richard Stallman  <rms@gnu.org>
@@ -577,7 +582,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 	* Makefile.in (INFO_TARGETS): Delete customize.info.
 	(DVI_TARGETS): Delete customize.dvi.
 	(../info/customize, customize.dvi): Targets deleted.
-	
+
 1998-11-18  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* customize.texi: File deleted.
@@ -611,7 +616,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 	* Makefile.in (EMACSSOURCES): Add mule.texi.
 	Add msdog.texi, ack.texi.  Remove gnu1.texi.
-	
+
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
 
 	* Makefile.in (ENVADD): Enviroment vars to pass to texi2dvi.  Use
@@ -679,7 +684,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 	* Makefile.in (All info targets): Specify $(srcdir) in input files.
 	Specify -I option.
 	(All dvi targets): Set the TEXINPUTS variable.
-	
+
 1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
 	* Version 19.31 released.

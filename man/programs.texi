@@ -1886,9 +1886,9 @@ of the tag's definition.
 
   Just what names from the described files are recorded in the tags table
 depends on the programming language of the described file.  They
-normally include all functions and subroutines, and may also include
-global variables, data types, and anything else convenient.  Each name
-recorded is called a @dfn{tag}.
+normally include all file names, functions and subroutines, and may
+also include global variables, data types, and anything else
+convenient.  Each name recorded is called a @dfn{tag}.
 
 @cindex C++ class browser, tags
 @cindex tags, C++
