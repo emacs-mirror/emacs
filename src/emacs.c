@@ -1428,7 +1428,6 @@ main (argc, argv, envp)
       syms_of_macros ();
       syms_of_marker ();
       syms_of_minibuf ();
-      syms_of_mocklisp ();
       syms_of_process ();
 #ifndef macintosh
       /* Called before init_window_once for Mac OS.  */
