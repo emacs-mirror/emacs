@@ -2608,6 +2608,14 @@ make_lispy_event (event)
 #endif
 	      {
 		Lisp_Object items, item;
+		int hpos;
+		int i;
+
+		/* Activate the menu bar on the down event.  If the
+		   up event comes in before the menu code can deal with it,
+		   just ignore it.  */
+		if (! (event->modifiers & down_modifier))
+		  return Qnil;
 
 #ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
@@ -2616,9 +2624,6 @@ make_lispy_event (event)
 
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
-		int hpos;
-		int i;
-
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
 		for (i = 0; i < XVECTOR (items)->size; i += 3)
