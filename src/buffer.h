@@ -1,5 +1,6 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -824,13 +825,20 @@ extern Lisp_Object Vtransient_mark_mode;
 /* Overlays */
 
 /* 1 if the OV is an overlay object.  */
+
 #define OVERLAY_VALID(OV) (OVERLAYP (OV))
 
 /* Return the marker that stands for where OV starts in the buffer.  */
+
 #define OVERLAY_START(OV) (XOVERLAY (OV)->start)
 
 /* Return the marker that stands for where OV ends in the buffer.  */
+
 #define OVERLAY_END(OV) (XOVERLAY (OV)->end)
+
+/* Return the plist of overlay OV.  */
+
+#define OVERLAY_PLIST(OV) XOVERLAY ((OV))->plist
 
 /* Return the actual buffer position for the marker P.
    We assume you know which buffer it's pointing into.  */
