@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.9) $
+ * $HopeName: MMsrc!poolamc.c(trunk.10) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.9) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.10) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -77,10 +77,9 @@ static Bool AMCSegHasNailBoard(Seg seg)
 static AMCNailBoard AMCSegNailBoard(Seg seg)
 {
   void *p;
+
   p = SegP(seg);
-
   AVER(AMCSegHasNailBoard(seg));
-
   return PARENT(AMCNailBoardStruct, type, p);
 }
 
@@ -92,7 +91,6 @@ static AMCGen AMCSegGen(Seg seg)
   void *p;
 
   p = SegP(seg);
-
   if(AMCSegHasNailBoard(seg)) {
     AMCNailBoard nailBoard = AMCSegNailBoard(seg);
     return nailBoard->gen;
@@ -292,7 +290,6 @@ static Res AMCSegCreateNailBoard(Seg seg, Pool pool)
   board->sig = AMCNailBoardSig;
   AVERT(AMCNailBoard, board);
   SegSetP(seg, &board->type); /* design.mps.poolamc.fix.nail.distinguish */
-
   return ResOK;
 
 failMarkTable:
@@ -449,7 +446,6 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
 
   AVERT(AMC, amc);
   EVENT_PP(AMCInit, pool, amc);
-
   return ResOK;
 }
 
@@ -484,11 +480,10 @@ static void AMCFinish(Pool pool)
   /* @@@@ Make sure that segments aren't buffered by forwarding buffers. */
   /* This is a hack which allows the pool to be destroyed */
   /* while it is collecting.  Note that there aren't any mutator */
-  /* buffers by this time */
+  /* buffers by this time. */
   ring = &amc->genRing;
   RING_FOR(node, ring, nextNode) {
     AMCGen gen = RING_ELT(AMCGen, amcRing, node);
-
     BufferDetach(gen->forward, pool);
   }
 
@@ -534,7 +529,6 @@ static Res AMCBufferInit(Pool pool, Buffer buffer, va_list args)
   buffer->p = amc->nursery;
   buffer->i = FALSE;                    /* mutator buffer */
   EVENT_PP(AMCBufferInit, amc, buffer);
-
   return ResOK;
 }
 
@@ -735,8 +729,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  trace->condemned += SegSize(seg);
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  trace->condemned += SegSize(seg);
 
   gen = AMCSegGen(seg);
   AVERT(AMCGen, gen);
@@ -753,9 +747,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       amc = PoolPoolAMC(pool);
       AVERT(AMC, amc);
       res = AMCGenCreate(&newGen, amc);
-      if(res != ResOK) {
+      if(res != ResOK)
         return res;
-      }
       gen->forward->p = newGen;
     }
   }
@@ -819,7 +812,6 @@ static Res AMCAct(Pool pool, Action action)
   /* Make sure the generation collection time gets updated even */
   /* if the collection is empty. */
   gen->collected = ArenaMutatorAllocSize(arena);
-
   return ResOK;
 
 failStart:
@@ -1140,9 +1132,8 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* nail board). */
     if(SegNailed(seg) == TraceSetEMPTY) {
       res = AMCSegCreateNailBoard(seg, pool);
-      if(res != ResOK) {
+      if(res != ResOK)
         return res;
-      }
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
@@ -1183,7 +1174,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       }
       res = ResOK;
       goto returnRes;
-    } else if (ss->rank == RankWEAK) {
+    } else if(ss->rank == RankWEAK) {
       /* object is not preserved (neither moved, nor nailed) */
       /* hence, reference should be splatted */
       goto updateReference;
@@ -1254,7 +1245,6 @@ returnRes:
   if(SegNailed(seg) != TraceSetEMPTY) {
     ShieldCover(arena, seg);
   }
-
   return res;
 }
 
@@ -1377,8 +1367,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
     init = limit;
 
   res = WriteF(stream,
-               "AMC Seg $P {\n", (WriteFP)seg,
-               "  base  $A\n", base,
+               "AMC Seg $P {\n", (WriteFP)seg, "  base  $A\n", base,
                "  Map\n",
                NULL);
   if(res != ResOK)
