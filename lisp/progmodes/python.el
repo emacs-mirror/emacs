@@ -1712,7 +1712,7 @@ lines count as headers.
   (set (make-local-variable 'indent-line-function) #'python-indent-line)
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function) 'python-fill-paragraph)
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-current-defun)
   ;; Fixme: Generalize to do all blocks?
