@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.7) $
+# $HopeName: MMQA_harness!script:version(trunk.8) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
-$HARNESS_VERSION="2.5";
+$HARNESS_VERSION="2.6";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -19,4 +19,5 @@ $HARNESS_VERSION="2.5";
 #         Added mmqa_arena_create function.
 #  2.5 -- Added quoting for -Dparm=value options to compiler. Needed
 #         because some tests have e.g. value = (size_t)1024.
+#  2.6 -- "qa help install" added, after drj asked for it
 #
