@@ -146,6 +146,46 @@
   :mime-charset 'cp855)
 (define-coding-system-alias 'ibm855 'cp855)
 
+;; (set-language-info-alist
+;;  "Windows-1251" `((coding-system windows-1251)
+;; 		  (coding-priority windows-1251)
+;; 		  (nonascii-translation
+;; 		   . ,(get 'decode-windows-1252 'translation-table))
+;; 		  (input-method . "russian-typewriter") ; fixme?
+;; 		  (features code-pages)
+;; 		  (documentation . "Support for windows-1251 character set."))
+;;  '("Cyrillic"))
+
+(set-language-info-alist
+ "Tajik" `((coding-system cyrillic-koi8-t)
+	   (coding-priority cyrillic-koi8-t)
+	   (nonascii-translation . cyrillic-koi8-t)
+	   (input-method . "russian-typewriter") ; fixme?
+	   (features code-pages)
+	   (documentation . "Support for Tajik using KOI8-T."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Bulgarian" `((coding-system windows-1251)
+	       (coding-priority windows-1251)
+	       (nonascii-translation . windows-1251)
+	       (input-method . "bulgarian-standard")
+	       (features code-pages)
+	       (documentation
+		. "Support for Bulgrian with windows-1251 character set."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Belarusian" `((coding-system windows-1251)
+		(coding-priority windows-1251)
+		(nonascii-translation . windows-1251)
+		(input-method . "belarusian")
+		(features code-pages)
+		(documentation
+		 . "Support for Belarusian with windows-1251 character set.
+(The name Belarusian replaced Byelorussian in the eraly 1990s.)"))
+ '("Cyrillic"))
+
 (provide 'cyrillic)
 
 ;;; cyrillic.el ends here
