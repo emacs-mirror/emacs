@@ -60,6 +60,7 @@
    "\\)")
   "Regexp matching a composable sequence of Devanagari characters.")
 
+;;;###autoload
 (defun devanagari-compose-region (from to)
   (interactive "r")
   (save-excursion
