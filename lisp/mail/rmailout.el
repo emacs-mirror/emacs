@@ -189,17 +189,33 @@ to set the `filed' attribute, and not to display a message.
 
 The optional fourth argument FROM-GNUS is set when called from GNUS."
   (interactive
-   (list (setq rmail-default-file
-	       (read-file-name
-		(concat "Output message to Unix mail file"
-			(if rmail-default-file
-			    (concat " (default "
-				    (file-name-nondirectory rmail-default-file)
-				    "): " )
-			  ": "))			
-		(and rmail-default-file (file-name-directory rmail-default-file))
-		rmail-default-file))
-	 (prefix-numeric-value current-prefix-arg)))
+   (let ((default-file
+	   (let (answer tail)
+	     (setq tail rmail-output-file-alist)
+	     ;; Suggest a file based on a pattern match.
+	     (while (and tail (not answer))
+	       (save-excursion
+		 (goto-char (point-min))
+		 (if (re-search-forward (car (car tail)) nil t)
+		     (setq answer (eval (cdr (car tail)))))
+		 (setq tail (cdr tail))))
+	     ;; If not suggestions, use same file as last time.
+	     (or answer rmail-default-file))))
+     (list (setq rmail-default-file
+		 (let ((read-file
+			(read-file-name
+			 (concat "Output message to Unix mail file: (default "
+				 (file-name-nondirectory default-file)
+				 ") ")
+			 (file-name-directory default-file)
+			 default-file)))
+		   (if (file-directory-p read-file)
+		       (expand-file-name (file-name-nondirectory default-file)
+					 read-file)
+		     (expand-file-name
+		      (or read-file default-file)
+		      (file-name-directory default-file)))))
+	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
