@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003, 04  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
+;; Maintainer: FSF
 ;; Created: Nov 2003
 ;; Keywords: languages
 
@@ -1045,11 +1046,15 @@ Used as line-number hook function in `python-compilation-regexp-alist'."
     (cons (point-marker)
 	  (if (and (markerp python-orig-start)
 		   (marker-buffer python-orig-start))
-	      (with-current-buffer (marker-buffer python-orig-start)
-		(goto-char python-orig-start)
-		(forward-line (1- line)))
-	    (list (if (stringp python-orig-start) python-orig-start file)
-		  line nil)))))
+	      (let ((start python-orig-start))
+		(with-current-buffer (marker-buffer python-orig-start)
+		  (goto-char start)
+		  (forward-line (1- line))
+		  (point-marker)))
+	    (list (if (stringp python-orig-start)
+		      (list python-orig-start default-directory)
+		    file)
+		  line col)))))
 
 (defvar python-preoutput-result nil
   "Data from output line last `_emacs_out' line seen by the preoutput filter.")
@@ -1242,17 +1247,17 @@ module-qualified names."
 	;; (set (make-local-variable 'compilation-old-error-list) nil)
 	(let ((comint-input-filter-functions
 	       (delete 'python-input-filter comint-input-filter-functions)))
+	  (set (make-local-variable 'python-orig-start) nil)
+	  ;; Fixme: I'm not convinced by this logic from python-mode.el.
 	  (python-send-string
 	   (if (string-match "\\.py\\'" file-name)
 	       ;; Fixme: make sure the directory is in the path list
 	       (let ((module (file-name-sans-extension
 			      (file-name-nondirectory file-name))))
-		 (set (make-local-variable 'python-orig-start) nil)
 		 (format "\
 if globals().has_key(%S): reload(%s)
 else: import %s
 " module module module))
-	     (set (make-local-variable 'python-orig-start) file-name)
 	     (format "execfile('%s')" file-name))))
 	(set-marker compilation-parsing-end end)
 	(setq compilation-last-buffer (current-buffer))))))
