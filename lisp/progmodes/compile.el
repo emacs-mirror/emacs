@@ -100,8 +100,7 @@ will be parsed and highlighted as soon as you try to move to them."
 			 (error nil))
 		       1)
 		(format "%s %s -e " grep-program required-options)
-	      (format "%s %s " grep-program required-options))))
-   (put 'grep-command 'standard-value (list (custom-quote grep-command))))
+	      (format "%s %s " grep-program required-options)))))
   (unless grep-find-use-xargs
     (setq grep-find-use-xargs
 	  (if (and
@@ -111,9 +110,7 @@ will be parsed and highlighted as soon as you try to move to them."
                (equal (call-process "xargs" nil nil nil
                                     "-0" "-e" "echo")
 		     0))
-	      'gnu))
-    (put 'grep-find-use-xargs 'standard-value
-	 (list (custom-quote grep-find-use-xargs))))
+	      'gnu)))
   (unless grep-find-command
     (setq grep-find-command
 	  (cond ((eq grep-find-use-xargs 'gnu)
@@ -124,9 +121,7 @@ will be parsed and highlighted as soon as you try to move to them."
                          find-program grep-command))
 		(t (cons (format "%s . -type f -exec %s {} %s \\;"
 				 find-program grep-command null-device)
-			 (+ 22 (length grep-command))))))
-    (put 'grep-find-command 'standard-value
-	 (list (custom-quote grep-find-command))))
+			 (+ 22 (length grep-command)))))))
   (unless grep-tree-command
     (setq grep-tree-command
 	  (let* ((glen (length grep-program))
@@ -138,9 +133,7 @@ will be parsed and highlighted as soon as you try to move to them."
 		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
 			   find-program gcmd))
 		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
-			     find-program gcmd null-device)))))
-    (put 'grep-tree-command 'standard-value
-	 (list (custom-quote grep-tree-command)))))
+			     find-program gcmd null-device)))))))
 
 (defcustom grep-command nil
   "The default grep command for \\[grep].
@@ -150,14 +143,12 @@ include it when specifying `grep-command'.
 
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
-  :type 'string
-  :get '(lambda (symbol)
-	  (or grep-command
-	      (progn (grep-compute-defaults) grep-command)))
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :group 'compilation)
 
 (defcustom grep-use-null-device 'auto-detect
-  "If non-nil, append the value of `null-device' to grep commands.
+  "If t, append the value of `null-device' to `grep' commands.
 This is done to ensure that the output of grep includes the filename of
 any match in the case where only a single file is searched, and is not
 necessary if the grep program used supports the `-H' option.
@@ -165,20 +156,17 @@ necessary if the grep program used supports the `-H' option.
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
   :type 'boolean
-  :get '(lambda (symbol)
-	  (if (and grep-use-null-device (not (eq grep-use-null-device t)))
-	      (progn (grep-compute-defaults) grep-use-null-device)
-	    grep-use-null-device))
+  :type '(choice (const :tag "Do Not Append Null Device" nil)
+		 (const :tag "Append Null Device" t)
+		 (other :tag "Not Set" auto-detect))
   :group 'compilation)
 
 (defcustom grep-find-command nil
   "The default find command for \\[grep-find].
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
-  :type 'string
-  :get (lambda (symbol)
-	 (or grep-find-command
-	     (progn (grep-compute-defaults) grep-find-command)))
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :group 'compilation)
 
 (defcustom grep-tree-command nil
@@ -191,11 +179,9 @@ The following place holders should be present in the string:
  <F> - find options to limit the files matched
  <C> - place to put -i if case insensitive grep
  <R> - the regular expression searched for."
-  :type 'string
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :version "21.4"
-  :get (lambda (symbol)
-	 (or grep-tree-command
-	     (progn (grep-compute-defaults) grep-tree-command)))
   :group 'compilation)
 
 (defcustom grep-tree-files-aliases '(
