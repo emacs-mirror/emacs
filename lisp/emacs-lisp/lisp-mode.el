@@ -277,7 +277,8 @@ With argument, insert value in current buffer after the defun."
 		(end-of-defun)
 		(beginning-of-defun)
 		(read (current-buffer)))))
-    (if (eq (car form) 'defvar)
+    (if (and (eq (car form) 'defvar)
+	     (cdr-safe (cdr-safe form)))
 	(setq form (cons 'defconst (cdr form))))
     (prin1 (eval form))))
 
