@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
+;; Maintainer: FSF
 ;; Created: 15 Dec 1992
 ;; Keywords: tools, lisp
 
@@ -39,12 +40,6 @@
 ;; generation of trace output won't interfere with what you are currently
 ;; doing.
 
-;; How to get the latest trace.el:
-;; ===============================
-;; You can get the latest version of this file either via anonymous ftp from 
-;; ftp.cs.buffalo.edu (128.205.32.9) with pathname /pub/Emacs/trace.el,
-;; or send email to hans@cs.buffalo.edu and I'll mail it to you.
-
 ;; Requirement:
 ;; ============
 ;; trace.el needs advice.el version 2.0 or later which you can get from the
@@ -72,10 +67,6 @@
 ;;    (autoload 'trace-function-background "trace" "Trace a function" t)
 ;;
 ;; or explicitly load it with (require 'trace) or (load "trace").
-
-;; Comments, suggestions, bug reports
-;; ==================================
-;; are strongly appreciated, please email them to hans@cs.buffalo.edu.
 
 ;; Usage:
 ;; ======
@@ -221,42 +212,42 @@
   (ad-make-advice
    trace-advice-name nil t
    (cond (background
-	  (` (advice
-	      lambda ()
-	      (let ((trace-level (1+ trace-level))
-		    (trace-buffer (get-buffer-create (, buffer))))
-		(save-excursion
-		  (set-buffer trace-buffer)
-		  (goto-char (point-max))
-		  ;; Insert a separator from previous trace output:
-		  (if (= trace-level 1) (insert trace-separator))
-		  (insert
-		   (trace-entry-message
-		    '(, function) trace-level ad-arg-bindings)))
-		ad-do-it
-		(save-excursion
-		  (set-buffer trace-buffer)
-		  (goto-char (point-max))
-		  (insert
-		   (trace-exit-message
-		    '(, function) trace-level ad-return-value)))))))
-	 (t (` (advice
-		lambda ()
-		(let ((trace-level (1+ trace-level))
-		      (trace-buffer (get-buffer-create (, buffer))))
-		  (pop-to-buffer trace-buffer)
-		  (goto-char (point-max))
-		  ;; Insert a separator from previous trace output:
-		  (if (= trace-level 1) (insert trace-separator))
-		  (insert
-		   (trace-entry-message
-		    '(, function) trace-level ad-arg-bindings))
-		  ad-do-it
-		  (pop-to-buffer trace-buffer)
-		  (goto-char (point-max))
-		  (insert
-		   (trace-exit-message
-		    '(, function) trace-level ad-return-value)))))))))
+	  `(advice
+	   lambda ()
+	   (let ((trace-level (1+ trace-level))
+		 (trace-buffer (get-buffer-create ,buffer)))
+	     (save-excursion
+	       (set-buffer trace-buffer)
+	       (goto-char (point-max))
+	       ;; Insert a separator from previous trace output:
+	       (if (= trace-level 1) (insert trace-separator))
+	       (insert
+		(trace-entry-message
+		 ',function trace-level ad-arg-bindings)))
+	     ad-do-it
+	     (save-excursion
+	       (set-buffer trace-buffer)
+	       (goto-char (point-max))
+	       (insert
+		(trace-exit-message
+		 ',function trace-level ad-return-value))))))
+	 (t `(advice
+	     lambda ()
+	     (let ((trace-level (1+ trace-level))
+		   (trace-buffer (get-buffer-create ,buffer)))
+	       (pop-to-buffer trace-buffer)
+	       (goto-char (point-max))
+	       ;; Insert a separator from previous trace output:
+	       (if (= trace-level 1) (insert trace-separator))
+	       (insert
+		(trace-entry-message
+		 ',function trace-level ad-arg-bindings))
+	       ad-do-it
+	       (pop-to-buffer trace-buffer)
+	       (goto-char (point-max))
+	       (insert
+		(trace-exit-message
+		 ',function trace-level ad-return-value))))))))
 
 (defun trace-function-internal (function buffer background)
   ;; Adds trace advice for FUNCTION and activates it.
