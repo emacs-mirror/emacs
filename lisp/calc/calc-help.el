@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Colin Walters <walters@debian.org>
@@ -571,7 +571,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Group, \",\"; Normal, Fix, Sci, Eng, \".\"; Over"
      "Radix, Zeros, 2, 8, 0, 6; Hms; Date; Complex, I, J"
      "Why; Line-nums, line-Breaks; <, =, > (justify); Plain"
-     "\" (strings); Truncate, [, ]; SPC (refresh), RET"
+     "\" (strings); Truncate, [, ]; SPC (refresh), RET, @"
      "SHIFT + language: Normal, One-line, Big, Unformatted"
      "SHIFT + language: C, Pascal, Fortran; TeX, Eqn"
      "SHIFT + language: Mathematica, W=Maple")
