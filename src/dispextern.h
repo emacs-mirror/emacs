@@ -25,10 +25,23 @@ Boston, MA 02111-1307, USA.  */
 #define DISPEXTERN_H_INCLUDED
 
 #ifdef HAVE_X_WINDOWS
+
 #include <X11/Xlib.h>
 #ifdef USE_X_TOOLKIT
 #include <X11/Intrinsic.h>
 #endif /* USE_X_TOOLKIT */
+
+#else /* !HAVE_X_WINDOWS */
+
+/* X-related stuff used by non-X gui code. */
+
+typedef struct {
+  unsigned long pixel;
+  unsigned short red, green, blue;
+  char flags;
+  char pad;
+} XColor;
+
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
@@ -99,7 +112,7 @@ extern int trace_redisplay_p;
 
 #endif /* GLYPH_DEBUG == 0 */
 
-     
+
 
 /***********************************************************************
 			    Text positions
@@ -108,7 +121,7 @@ extern int trace_redisplay_p;
 /* Starting with Emacs 20.3, characters from strings and buffers have
    both a character and a byte position associated with them.  The
    following structure holds such a pair of positions.  */
-     
+
 struct text_pos
 {
   /* Character position.  */
@@ -164,7 +177,7 @@ struct text_pos
 
 #define SET_MARKER_FROM_TEXT_POS(MARKER, POS) \
      set_marker_both ((MARKER), Qnil, CHARPOS ((POS)), BYTEPOS ((POS)))
-     
+
 /* Value is non-zero if character and byte positions of POS1 and POS2
    are equal.  */
 
@@ -211,7 +224,7 @@ struct display_pos
 enum glyph_type
 {
   /* Glyph describes a character.  */
-  CHAR_GLYPH, 	
+  CHAR_GLYPH,
 
   /* Glyph describes a composition sequence.  */
   COMPOSITE_GLYPH,
@@ -242,7 +255,7 @@ struct glyph
   int charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or
-     a string, if the glyph was produced from characters which came from 
+     a string, if the glyph was produced from characters which came from
      a buffer or a string; or 0 if the glyph was inserted by redisplay
      for its own purposes such as padding.  */
   Lisp_Object object;
@@ -321,7 +334,7 @@ struct glyph
       unsigned ascent  : 16;
     }
     stretch;
-    
+
     /* Used to compare all bit-fields above in one step.  */
     unsigned val;
   } u;
@@ -334,7 +347,7 @@ struct glyph
      (GLYPH_FROM_CHAR_GLYPH ((GLYPH)) == SPACEGLYPH)
 
 /* Are glyphs *X and *Y displayed equal?  */
-     
+
 #define GLYPH_EQUAL_P(X, Y)					\
      ((X)->type == (Y)->type					\
       && (X)->u.val == (Y)->u.val				\
@@ -354,7 +367,7 @@ struct glyph
 
 /* Fill a character glyph GLYPH.  CODE, FACE_ID, PADDING_P correspond
    to the bits defined for the typedef `GLYPH' in lisp.h.  */
-     
+
 #define SET_CHAR_GLYPH(GLYPH, CODE, FACE_ID, PADDING_P)	\
      do							\
        {						\
@@ -366,7 +379,7 @@ struct glyph
 
 /* Fill a character type glyph GLYPH from a glyph typedef FROM as
    defined in lisp.h.  */
-     
+
 #define SET_CHAR_GLYPH_FROM_GLYPH(GLYPH, FROM)			\
      SET_CHAR_GLYPH ((GLYPH),					\
 	 	     FAST_GLYPH_CHAR ((FROM)),			\
@@ -376,14 +389,14 @@ struct glyph
 /* Construct a glyph code from a character glyph GLYPH.  If the
    character is multibyte, return -1 as we can't use glyph table for a
    multibyte character. */
-     
+
 #define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
   ((GLYPH).u.ch < 256						\
    ? ((GLYPH).u.ch | ((GLYPH).face_id << CHARACTERBITS))	\
    : -1)
 
 /* Is GLYPH a padding glyph?  */
-     
+
 #define CHAR_GLYPH_PADDING_P(GLYPH) (GLYPH).padding_p
 
 
@@ -544,7 +557,7 @@ enum glyph_row_area
 
    Each row is partitioned into three areas.  The start and end of
    each area is recorded in a pointer as shown below.
-   
+
    +--------------------+-------------+---------------------+
    |  left margin area  |  text area  |  right margin area  |
    +--------------------+-------------+---------------------+
@@ -552,13 +565,13 @@ enum glyph_row_area
    glyphs[LEFT_MARGIN_AREA]           glyphs[RIGHT_MARGIN_AREA]
 			|                                   |
 			glyphs[TEXT_AREA]                   |
-			                      glyphs[LAST_AREA]   
+			                      glyphs[LAST_AREA]
 
    Rows in frame matrices reference glyph memory allocated in a frame
    glyph pool (see the description of struct glyph_pool).  Rows in
    window matrices on frames having frame matrices reference slices of
    the glyphs of corresponding rows in the frame matrix.
-   
+
    Rows in window matrices on frames having no frame matrices point to
    glyphs allocated from the heap via xmalloc;
    glyphs[LEFT_MARGIN_AREA] is the start address of the allocated
@@ -646,7 +659,7 @@ struct glyph_row
 
   /* 1 means the overlay arrow is on this line.  */
   unsigned overlay_arrow_p : 1;
-  
+
   /* 1 means that this row displays a continued line, i.e. it has a
      continuation mark at the right side.  */
   unsigned continued_p : 1;
@@ -686,7 +699,7 @@ struct glyph_row
      of more than one glyph.  Some glyphs have been put in this row,
      the rest are put in rows below this one.  */
   unsigned ends_in_middle_of_char_p : 1;
-  
+
   /* 1 means this line starts in the middle of a character consisting
      of more than one glyph.  Some glyphs have been put in the
      previoius row, the rest are put in this row.  */
@@ -717,7 +730,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 #define MATRIX_ROW(MATRIX, ROW)	  ((MATRIX)->rows + (ROW))
 #endif
 
-/* Return a pointer to the row reserved for the mode line in MATRIX.  
+/* Return a pointer to the row reserved for the mode line in MATRIX.
    Row MATRIX->nrows - 1 is always reserved for the mode line.  */
 
 #define MATRIX_MODE_LINE_ROW(MATRIX) \
@@ -742,29 +755,29 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      (MATRIX_ROW ((MATRIX), (ROW))->glyphs[TEXT_AREA])
 
 /* Return the number of used glyphs in the text area of a row.  */
-     
+
 #define MATRIX_ROW_USED(MATRIX, ROW) \
      (MATRIX_ROW ((MATRIX), (ROW))->used[TEXT_AREA])
 
 /* Return the character/ byte position at which the display of ROW
    starts.  */
-     
+
 #define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->start.pos.charpos)
 #define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->start.pos.bytepos)
 
 /* Return character/ byte position at which ROW ends.  */
-     
+
 #define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->end.pos.charpos)
 #define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->end.pos.bytepos)
 
 /* Return the vertical position of ROW in MATRIX.  */
-     
+
 #define MATRIX_ROW_VPOS(ROW, MATRIX) ((ROW) - (MATRIX)->rows)
 
 /* Return the last glyph row + 1 in MATRIX on window W reserved for
    text.  If W has a mode line, the last row in the matrix is reserved
    for it.  */
-     
+
 #define MATRIX_BOTTOM_TEXT_ROW(MATRIX, W)		\
      ((MATRIX)->rows					\
       + (MATRIX)->nrows					\
@@ -772,46 +785,46 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 
 /* Non-zero if the face of the last glyph in ROW's text area has
    to be drawn to the end of the text area.  */
-     
+
 #define MATRIX_ROW_EXTENDS_FACE_P(ROW) ((ROW)->fill_line_p)
 
 /* Set and query the enabled_p flag of glyph row ROW in MATRIX.  */
-     
+
 #define SET_MATRIX_ROW_ENABLED_P(MATRIX, ROW, VALUE) \
      (MATRIX_ROW ((MATRIX), (ROW))->enabled_p = (VALUE) != 0)
-     
+
 #define MATRIX_ROW_ENABLED_P(MATRIX, ROW) \
      (MATRIX_ROW ((MATRIX), (ROW))->enabled_p)
 
 /* Non-zero if ROW displays text.  Value is non-zero if the row is
    blank but displays a line end.  */
-     
+
 #define MATRIX_ROW_DISPLAYS_TEXT_P(ROW) ((ROW)->displays_text_p)
 
 /* Non-zero if ROW is not completely visible in window W.  */
-     
+
 #define MATRIX_ROW_PARTIALLY_VISIBLE_P(ROW)	\
      ((ROW)->height != (ROW)->visible_height)
 
 /* Non-zero if ROW is partially visible at the top of window W.  */
-     
+
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P(W, ROW)		\
      (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))			\
       && (ROW)->y < WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
 
 /* Non-zero if ROW is partially visible at the bottom of window W.  */
-     
+
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P(W, ROW)		      \
      (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))				      \
       && (ROW)->y + (ROW)->height > WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE ((W)))
 
 /* Return the bottom Y + 1 of ROW.   */
-     
+
 #define MATRIX_ROW_BOTTOM_Y(ROW) ((ROW)->y + (ROW)->height)
 
 /* Is ROW the last visible one in the display described by the
    iterator structure pointed to by IT?.  */
-     
+
 #define MATRIX_ROW_LAST_VISIBLE_P(ROW, IT) \
      (MATRIX_ROW_BOTTOM_Y ((ROW)) >= (IT)->last_visible_y)
 
@@ -835,7 +848,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      ((ROW)->end.overlay_string_index >= 0)
 
 /* Non-zero if ROW starts in the middle of a character.  See above.  */
-     
+
 #define MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P(ROW)	\
      ((ROW)->start.dpvec_index >= 0			\
       || (ROW)->starts_in_middle_of_char_p		\
@@ -981,14 +994,14 @@ extern struct glyph_row scratch_glyph_row;
        * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
 
 /* Height of the display region of W, including a mode line, if any.  */
-     
+
 #define WINDOW_DISPLAY_PIXEL_HEIGHT(W)					\
      (XFASTINT ((W)->height)						\
       * CANON_Y_UNIT (XFRAME (WINDOW_FRAME ((W)))))
 
 /* Height in pixels of the mode line.  May be zero if W doesn't have a
    mode line.  */
-     
+
 #define WINDOW_DISPLAY_MODE_LINE_HEIGHT(W)	\
      (WINDOW_WANTS_MODELINE_P ((W))		\
       ? CURRENT_MODE_LINE_HEIGHT (W)		\
@@ -996,27 +1009,27 @@ extern struct glyph_row scratch_glyph_row;
 
 /* Height in pixels of the top line.  Zero if W doesn't have a top
    line.  */
-     
+
 #define WINDOW_DISPLAY_HEADER_LINE_HEIGHT(W)	\
      (WINDOW_WANTS_HEADER_LINE_P ((W))		\
       ? CURRENT_HEADER_LINE_HEIGHT (W)		\
       : 0)
 
 /* Pixel height of window W without mode line.  */
-     
+
 #define WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE(W)	\
      (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
       - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W)))
 
 /* Pixel height of window W without mode and top line.  */
-     
+
 #define WINDOW_DISPLAY_TEXT_HEIGHT(W)		\
      (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
       - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W))	\
       - WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
 
 /* Left edge of W in pixels relative to its frame.  */
-     
+
 #define WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X(W)				\
      (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
       + (WINDOW_LEFT_MARGIN ((W))					\
@@ -1024,54 +1037,54 @@ extern struct glyph_row scratch_glyph_row;
       + FRAME_LEFT_FLAGS_AREA_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
 
 /* Right edge of window W in pixels, relative to its frame.  */
-     
+
 #define WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X(W)		\
      (WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W))		\
       + WINDOW_DISPLAY_PIXEL_WIDTH ((W)))
 
 /* Top edge of W in pixels relative to its frame.  */
-     
+
 #define WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y(W)				\
      (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
       + (XFASTINT ((W)->top)						\
          * CANON_Y_UNIT (XFRAME (WINDOW_FRAME ((W))))))
 
 /* Bottom edge of window W relative to its frame.  */
-     
+
 #define WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y(W)		\
      (WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W))		\
       + WINDOW_DISPLAY_PIXEL_HEIGHT ((W)))
-     
+
 /* Convert window W relative pixel X to frame pixel coordinates.  */
-     
+
 #define WINDOW_TO_FRAME_PIXEL_X(W, X) \
      ((X) + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W)))
 
 /* Convert window W relative pixel Y to frame pixel coordinates.  */
-     
+
 #define WINDOW_TO_FRAME_PIXEL_Y(W, Y) \
      ((Y) + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W)))
 
 /* Convert frame relative pixel X to window relative pixel X.  */
-     
+
 #define FRAME_TO_WINDOW_PIXEL_X(W, X) \
      ((X) - WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W)))
 
 /* Convert frame relative pixel X to window relative pixel Y.  */
-     
+
 #define FRAME_TO_WINDOW_PIXEL_Y(W, Y) \
      ((Y) - WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W)))
 
 /* Width of left margin area in pixels.  */
-     
+
 #define WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH(W)		\
      (NILP ((W)->left_margin_width)			\
       ? 0						\
       : (XINT ((W)->left_margin_width)			\
 	 * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
-	    
+
 /* Width of right marginal area in pixels.  */
-     
+
 #define WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH(W)	\
      (NILP ((W)->right_margin_width)			\
       ? 0						\
@@ -1079,7 +1092,7 @@ extern struct glyph_row scratch_glyph_row;
 	 * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
 
 /* Width of text area in pixels.  */
-     
+
 #define WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH(W)		\
      (WINDOW_DISPLAY_PIXEL_WIDTH ((W))			\
       - WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
@@ -1112,7 +1125,7 @@ extern struct glyph_row scratch_glyph_row;
       : (((AREA) == LEFT_MARGIN_AREA)			\
 	 ? WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
 	 : WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH ((W))))
-     
+
 /* Value is non-zero if window W has a mode line.  */
 
 #define WINDOW_WANTS_MODELINE_P(W)					\
@@ -1131,11 +1144,11 @@ extern struct glyph_row scratch_glyph_row;
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->header_line_format))
 
-     
+
 /***********************************************************************
 				Faces
  ***********************************************************************/
-     
+
 /* Indices of face attributes in Lisp face vectors.  Slot zero is the
    symbol `face'.  */
 
@@ -1193,11 +1206,11 @@ struct face
   int id;
 
 #ifdef HAVE_WINDOW_SYSTEM
-  
-  /* If non-zero, a GC we can use without modification to draw 
+
+  /* If non-zero, a GC we can use without modification to draw
      characters in this face.  */
   GC gc;
-  
+
   /* Font used for this face, or null if the font could not be loaded
      for some reason.  This points to a `font' slot of a struct
      font_info, and we should not call XFreeFont on it because the
@@ -1218,7 +1231,7 @@ struct face
   /* Pixel value of foreground color for X frames.  Color index
      for tty frames.  */
   unsigned long foreground;
-  
+
   /* Pixel value or color index of background color.  */
   unsigned long background;
 
@@ -1246,10 +1259,10 @@ struct face
      Otherwise, a specific font is loaded from the set of fonts
      specified by the fontset given by the family attribute of the face.  */
   int fontset;
-  
+
   /* Pixmap width and height.  */
   unsigned int pixmap_w, pixmap_h;
-  
+
   /* Non-zero means characters in this face have a box that thickness
      around them.  If it is negative, the absolute value indicates the
      thickness, and the horizontal lines of box (top and bottom) are
@@ -1298,7 +1311,7 @@ struct face
   /* 1 means that either no color is specified for underlining or that
      specified color couldn't be loaded.  Use the foreground color
      when drawing in that case. */
-  unsigned underline_defaulted_p : 1; 
+  unsigned underline_defaulted_p : 1;
 
   /* 1 means that either no color is specified for the corresponding
      attribute or that the specified color couldn't be loaded.
@@ -1374,7 +1387,7 @@ struct face_cache
 {
   /* Hash table of cached realized faces.  */
   struct face **buckets;
-  
+
   /* Back-pointer to the frame this cache belongs to.  */
   struct frame *f;
 
@@ -1419,7 +1432,7 @@ struct face_cache
 /* Return the id of the realized face on frame F that is like the face
    with id ID but is suitable for displaying character CHAR.
    This macro is only meaningful for multibyte character CHAR.  */
-   
+
 #define FACE_FOR_CHAR(F, FACE, CHAR)	\
   (SINGLE_BYTE_CHAR_P (CHAR)		\
    ? (FACE)->ascii_face->id		\
@@ -1649,7 +1662,7 @@ struct it
 
   /* Stack pointer.  */
   int sp;
-  
+
   /* Setting of buffer-local variable selective-display-ellipsis.  */
   unsigned selective_display_ellipsis_p : 1;
 
@@ -1674,7 +1687,7 @@ struct it
   /* Non-null means that the current character is the first in a run
      of characters with box face.  */
   unsigned start_of_box_run_p : 1;
-  
+
   /* Non-zero means that the current character is the last in a run
      of characters with box face.  */
   unsigned end_of_box_run_p : 1;
@@ -1768,7 +1781,7 @@ struct it
   /* Number of glyphs needed for the last character requested via
      produce_glyphs.  This is 1 except for tabs.  */
   int nglyphs;
-  
+
   /* Width of the display element in pixels.  Result of
      produce_glyphs.  */
   int pixel_width;
@@ -1878,7 +1891,7 @@ struct redisplay_interface
   /* Produce glyphs/get display metrics for the display element IT is
      loaded with.  */
   void (*produce_glyphs) P_ ((struct it *it));
-  
+
   /* Write or insert LEN glyphs from STRING at the nominal output
      position.  */
   void (*write_glyphs) P_ ((struct glyph *string, int len));
@@ -1887,7 +1900,7 @@ struct redisplay_interface
   /* Clear from nominal output position to X.  X < 0 means clear
      to right end of display.  */
   void (*clear_end_of_line) P_ ((int x));
-  
+
   /* Function to call to scroll the display as described by RUN on
      window W.  */
   void (*scroll_run_hook) P_ ((struct window *w, struct run *run));
@@ -1908,7 +1921,7 @@ struct redisplay_interface
      have to update the mouse hightlight.  */
   void (*update_window_end_hook) P_ ((struct window *w, int cursor_on_p,
 				      int mouse_face_overwritten_p));
-  
+
   /* Move cursor to row/column position VPOS/HPOS, pixel coordinates
      Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
      are window-relative pixel positions.  */
