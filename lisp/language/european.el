@@ -569,7 +569,7 @@ but it selects the Dutch tutorial."))
  'mac-roman 4 ?M
  "Mac Roman Encoding (MIME:MACINTOSH)."
  '(decode-mac-roman . encode-mac-roman)
- '((safe-chars . mac-roman-encoder)
+ '((safe-chars . (get 'mac-roman-encoder 'translation-table))
    (valid-codes (0 . 255))
    (mime-charset . macintosh)))		; per IANA, rfc1345
 
