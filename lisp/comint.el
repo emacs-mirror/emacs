@@ -1940,13 +1940,9 @@ This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-chars
-  (cond
-   ((eq system-type 'ms-dos)
-    "~/A-Za-z0-9_^$!#%&{}@`'.()-")
-   ((eq system-type 'windows-nt)
-    "~/A-Za-z0-9_^$!#%&{}@`'.,:()-")
-   (t   
-    "~/A-Za-z0-9+@:_.$#%,={}-"))
+  (if (memq system-type '(ms-dos windows-nt))
+      "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
+    "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 Note that all non-ASCII characters are considered valid in a file name
 regardless of what this variable says.
