@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.6 2000/10/08 21:43:06 fx Exp $
+@c $Id: mh-e.texi,v 1.4 2001/02/19 02:21:28 wohler Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -13,17 +13,17 @@
 @end direntry
 
 @c Version variables.
-@set EDITION 1.2
+@set EDITION 1.3
 @set VERSION 5.0.2
-@set UPDATED 22 August 1995
-@set UPDATE-MONTH August 1995
+@set UPDATED 18 February 2001
+@set UPDATE-MONTH February 2001
 
 @ifinfo
 This is Edition @value{EDITION}, last updated @value{UPDATED}, of
 @cite{mh-e, The Emacs Interface to MH}, for mh-e, Version
 @value{VERSION}.
 
-Copyright 1995 Free Software Foundation, Inc.
+Copyright 1995, 2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -57,7 +57,7 @@ license to the document, as described in section 6 of the license.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995, 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -91,9 +91,8 @@ MH}, last updated @value{UPDATED} for mh-e Version @value{VERSION}.
 * Odds and Ends::               Getting mh-e, reporting bugs, mailing
                                 list and FAQ.
 * History::                     The authors speak up!
-* Changes to mh-e::             Actual changes between Versions 3 and beyond.
 * Copying::                     The GNU General Public License
-* Command Index::              
+* Command Index::               
 * Variable Index::              
 * Concept Index::               
 @end menu
@@ -114,19 +113,19 @@ GNU Emacs and MH@.  Now I'm fully hooked on both of them.
 
 @cindex history
 
-The mh-e package is distributed with GNU Emacs, @footnote{Note that mh-e
-is supported with MH 6 and either @w{Emacs 18} or @w{Emacs 19}.
+The mh-e package is distributed with GNU Emacs, @footnote{Note that
+mh-e is supported with MH 6 and @w{Emacs 18} through @w{Emacs 21}.
 Reportedly, large parts of it work with @w{MH 5} and also with
-Lucid/XEmacs and Epoch, but there are no guarantees.  It is also
-distributed with Lucid/XEmacs, as well as with MH itself.} so you shouldn't
-have to do anything special to use it.  But it's important to note a
-brief history of mh-e.  @w{Version 3} was prevalent through the @w{Emacs
-18} and early @w{Emacs 19} years.  Then @w{Version 4} came out (@w{Emacs
-19.23}), which introduced several new and changed commands.  Finally,
-@w{Version 5.0} was released, which fixed some bugs and
-incompatibilities.  This is the version covered by this manual.
-@ref{Getting Started} will help you decide which version you
-have.
+Lucid/XEmacs and Epoch, but there are no guarantees. It is also
+distributed with Lucid/XEmacs, as well as with MH itself.} so you
+shouldn't have to do anything special to use it. But it's important to
+note a brief history of mh-e. @w{Version 3} was prevalent through the
+@w{Emacs 18} and early @w{Emacs 19} years. Then @w{Version 4} came out
+(@w{Emacs 19.23}), which introduced several new and changed commands.
+Finally, @w{Version 5.0} was released, which fixed some bugs and
+incompatibilities, and was incorporated into @w{Emacs 19.29}. This is
+the version covered by this manual. @ref{Getting Started} will help
+you decide which version you have.
 
 If you don't already use GNU Emacs but want to learn more, you can read
 an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
@@ -208,8 +207,10 @@ Press the space bar.
 @item TAB
 Press the @key{TAB} key.
 @item DEL
-Press the @key{DELETE} key.  This may also be a Backspace key, depending
-on your keyboard or Emacs configuration.
+Press the @key{DELETE} key.
+@item BS
+Press the @key{BACKSPACE} key. @footnote{If you are using Version 20
+or earlier of Emacs, you will need to use the @key{DEL} key.}
 @end table
 
 @cindex Emacs, prefix argument
@@ -304,9 +305,7 @@ If these tests reveal a non-existent or old version of mh-e, please
 consider obtaining a new version.  You can have your system
 administrator upgrade the system-wide version, or you can install your
 own personal version.  It's really quite easy; instructions for getting
-and installing mh-e are in @ref{Getting mh-e}.  In the meantime, see
-@ref{Changes to mh-e}, which compares the old and new names of commands,
-functions, variables, and buffers.
+and installing mh-e are in @ref{Getting mh-e}.
 
 @cindex @code{install-mh}
 @cindex MH commands, @code{install-mh}
@@ -525,7 +524,7 @@ field, where you can type your login name again.  You can move around
 with the arrow keys or with @kbd{C-p} (@code{previous-line}), @kbd{C-n}
 (@code{next-line}), @kbd{C-b} (@code{backward-char}), and @kbd{C-f}
 (@code{forward-char}) and can delete the previous character with
-@key{DEL}.  When you're finished editing your message, send it with
+@key{BS}.  When you're finished editing your message, send it with
 @kbd{C-c C-c} as before.
 
 @cindex folder
@@ -680,7 +679,7 @@ Display a message (@code{mh-show}).
 @item SPC
 Go to next page in message (@code{mh-page-msg}).
 
-@item DEL
+@item BS
 Go to previous page in message (@code{mh-previous-page}).
 
 @item , (comma)
@@ -689,7 +688,7 @@ Display a message with all header fields (@code{mh-header-display}).
 @item M-SPC
 Go to next message in digest (@code{mh-page-digest}).
 
-@item M-DEL
+@item M-BS
 Go to previous message in digest (@code{mh-page-digest-backwards}).
 
 @item M-b
@@ -725,11 +724,12 @@ Toggle between MH-Folder and MH-Folder Show modes (@code{mh-toggle-showing}).
 @findex @code{mh-show}
 @findex @code{mh-page-msg}
 @findex @code{mh-previous-page}
+@findex @code{mh-header-display}
 
 The @kbd{RET} (@code{mh-show}) command displays the message that the
 cursor is on.  If the message is already displayed, it scrolls to the
 beginning of the message.  Use @key{SPC} (@code{mh-page-msg}) and
-@key{DEL} (@code{mh-previous-page}) to move forwards and backwards one
+@key{BS} (@code{mh-previous-page}) to move forwards and backwards one
 page at a time through the message.  You can give either of these
 commands a prefix argument that specifies the number of lines to scroll
 (such as @kbd{10 SPC}).  mh-e normally hides a lot of the
@@ -751,10 +751,10 @@ command.
 
 A digest is a message that contains other messages.  Special mh-e
 commands let you read digests conveniently.  You can use @key{SPC} and
-@key{DEL} to page through the digest as if it were a normal message, but
+@key{BS} to page through the digest as if it were a normal message, but
 if you wish to skip to the next message in the digest, use @kbd{M-SPC}
 (@code{mh-page-digest}).  To return to a previous message, use
-@kbd{M-DEL} (@code{mh-page-digest-backwards}).
+@kbd{M-BS} (@code{mh-page-digest-backwards}).
 
 @cindex @code{burst}
 @cindex MH commands, @code{burst}
@@ -788,16 +788,16 @@ Textual}.
 @cindex MIME
 @cindex @code{show}
 @cindex MH commands, @code{show}
-@cindex @code{mhn}
-@cindex MH commands, @code{mhn}
+@cindex @code{mhshow}
+@cindex MH commands, @code{mhshow}
 
 MH has the ability to read @dfn{@sc{mime}} (Multipurpose Internet Mail
 Extensions) messages.  Unfortunately, mh-e does not yet have this
-ability, so you have to use the MH commands @code{show} or @code{mhn}
+ability, so you have to use the MH commands @code{show} or @code{mhshow}
 from the shell to read @sc{mime} messages.  @footnote{You can call them
 directly from Emacs if you're running the X Window System: type @kbd{M-!
-xterm -e mhn @var{message-number}}.  You can leave out the @code{xterm
--e} if you use @code{mhn -list} or @code{mhn -store}.}
+xterm -e mhshow @var{message-number}}.  You can leave out the @code{xterm
+-e} if you use @code{mhlist} or @code{mhstore}.}
 
 @node Moving Around,  , Viewing, Reading Mail
 @subsection Moving Around
@@ -1463,7 +1463,7 @@ packed, or deleted.  Here's a list of the available commands to do these
 things:
 
 @c Stephen thinks that ? should be documented here, since it also shows
-@c which folders a message will be refiled to.
+@c which folders a message will be refiled to. XXX
 
 @table @kbd
 @item i
@@ -1629,6 +1629,7 @@ use the @kbd{M-f} (@code{mh-visit-folder}) command to visit the folder.
 You are prompted for the folder name.
 
 @findex @code{mh-list-folders}
+@findex @code{mh-kill-folder}
 @findex @code{mh-visit-folder}
 @findex @code{mh-sort-folder}
 @findex @code{mh-pack-folder}
@@ -1928,7 +1929,7 @@ You can see which sequences a message is in with the @kbd{?}
 (@code{mh-msg-is-in-seq}) command.
 @c Doesn't work:
 @c use a prefix argument to query a
-@c message other than the current one (as in @kbd{C-u ? 42 RET}).
+@c message other than the current one (as in @kbd{C-u ? 42 RET}). XXX
 Or, you can list all sequences in a selected folder (default is current
 folder) with @kbd{M-q} (@code{mh-list-sequences}).
 
@@ -1962,22 +1963,18 @@ command dealing with sequences is @code{mark}.
 
 @findex @code{mh-version}
 
-One other command worth noting is @kbd{M-x mh-version}.  Since there
-were a few changes in command letters between @w{Versions 3} and 4, use
-this command to see which version you are running.  This command didn't
-exist before @w{Version 4}, so the message @samp{[No match]}
-indicates that it's time to upgrade (@pxref{Getting mh-e}).  In the
-meantime, use the older commands that are listed in @ref{Changes to
-mh-e}.  The output of @kbd{M-x mh-version} should also be included with
-any bug report you send (@pxref{Bug Reports}).
+One other command worth noting is @kbd{M-x mh-version}. You can
+compare the version this command prints to the latest release
+(@pxref{Getting mh-e}). The output of @kbd{M-x mh-version} should
+always be included with any bug report you submit (@pxref{Bug Reports}).
 
 @node    Customizing mh-e, Odds and Ends, Using mh-e, Top
 @chapter Customizing mh-e
 
 Until now, we've talked about the mh-e commands as they work ``out of the
-box.''  Of course, it is also possible to reconfigure mh-e
-@c to fit the needs of even the most demanding user. ???
-beyond recognition.  The following sections describe all of the
+box.''  Of course, it is also possible to reconfigure mh-e 
+to fit the needs of even the most demanding user.
+The following sections describe all of the
 customization variables, show the defaults, and make recommendations for
 customization.  The outline of this chapter is identical to that of
 @ref{Using mh-e}, to make it easier to find the variables you'd need to
@@ -2216,6 +2213,7 @@ quotes, and there should be a
 trailing slash (@samp{/}).  See the example in @ref{Getting Started}.
 
 @vindex @code{mh-do-not-confirm}
+@findex @code{mh-kill-folder}
 
 If you never make mistakes, and you do not like confirmations for your
 actions, you can set @code{mh-do-not-confirm} to a non-@code{nil} value to
@@ -3284,8 +3282,8 @@ mh-e context, so you might use it to modify the window setup.
 
 @node Customizing Searching,  , Customizing Moving Mail, Customizing mh-e
 @section Searching Through Messages
-@cindex searching
 
+@cindex searching
 @vindex @code{mh-pick-mode-hook}
 @vindex @code{mh-partial-folder-mode-line-annotation}
 
@@ -3324,22 +3322,28 @@ point out some additional sources of information.
 @appendixsec Bug Reports
 
 @cindex bugs
-@cindex Gildea, Stephen
+@cindex Wohler, Bill
+@cindex SourceForge
 
-The current maintainer of mh-e is Stephen Gildea
-<@i{gildea@@lcs.mit.edu}>.  Please mail bug reports directly to him, as
-well as any praise or suggestions.  Please include the output of
+The current maintainer of mh-e is Bill Wohler
+<@i{wohler@@newt.com}>. Bug reports should be filed at
+@uref{https://sourceforge.net/bugs/?group_id=13357, SourceForge}.
+Please include the output of
 @kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug report you send.
 
 @node Mailing List, MH FAQ, Bug Reports, Odds and Ends
 @appendixsec mh-e Mailing List
 
 @cindex mailing list
+@cindex SourceForge
 
-There is a mailing list, @i{mh-e@@x.org}, for discussion of mh-e and
-announcements of new versions.  Send a ``subscribe'' message to
-@i{mh-e-request@@x.org} to be added.  Do not report bugs on this list;
-mail them directly to the maintainer (@pxref{Bug Reports}).
+There are actually several mailing lists for mh-e. They are
+@i{mh-e-users@@lists.sourceforge.net},
+@i{mh-e-announce@@lists.sourceforge.net}, and
+@i{mh-e-devel@@lists.sourceforge.net}. You can subscribe or view the
+archives at @uref{https://sourceforge.net/mail/?group_id=13357,
+SourceForge}. Do not report bugs on these lists; please submit them
+via SourceForge (@pxref{Bug Reports}).
 
 @node MH FAQ, Getting mh-e, Mailing List, Odds and Ends
 @appendixsec MH FAQ
@@ -3353,60 +3357,33 @@ incredible wealth of material about MH itself which you will find
 useful.  The subject of the FAQ is @cite{MH Frequently Asked Questions
 (FAQ) with Answers}.
 
-The FAQ can be also obtained by anonymous @code{ftp} or via the
-World Wide Web (WWW)@.  It is located at:
-
-@ifclear html
-@example
-ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1
-http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html
-@end example
-@end ifclear
-
-@ifset html
-@example
-<A HREF="ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1">ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1</A>
-<A HREF="http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html">http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html</A>
-@end example
-@end ifset
-
-Otherwise, you can use mail.  Send mail to @i{mail-server@@rtfm.mit.edu}
-containing the following:
-
-@example
-send usenet/news.answers/mail/mh-faq/part1
-@end example
+The FAQ is available via the World Wide Web (WWW) at
+@uref{http://www.faqs.org/faqs/mail/mh-faq/part1/preamble.html, faqs.org}.
 
 @node Getting mh-e,  , MH FAQ, Odds and Ends
 @appendixsec Getting mh-e
 
 @cindex obtaining mh-e
 
-If you're running a pre-4.0 version of mh-e, please consider upgrading.
-You can either have your system administrator upgrade your Emacs, or
-just the files for mh-e.
+The version of mh-e in the current version of Emacs should be up to
+date. It is most likely to be more up to date than the copy that comes
+with the the MH distribution in @file{miscellany/mh-e}.
 
-The MH distribution contains a copy of mh-e in @file{miscellany/mh-e}.
-Make sure it is at least @w{Version 4.0}.
+New mh-e releases will appear at
+@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
+SourceForge} before they appear in an Emacs release. You can read the
+release notes on that page to determine if the given release of mh-e
+is already installed in your version of Emacs.
 
-The latest version of mh-e can be obtained via anonymous @code{ftp} from
-@samp{ftp.x.org}.  The file containing mh-e is currently
-@ifclear html
-@file{/misc/mh-e/mh-e-@value{VERSION}.tar.Z}.
-@end ifclear
-@ifset html
-@file{<A HREF="ftp://ftp.x.org/misc/mh-e/mh-e-@value{VERSION}.tar.Z">/misc/mh-e/mh-e-@value{VERSION}.tar.Z</A>}
-@end ifset
-I suggest that you
-extract the files from @file{mh-e-@value{VERSION}.tar.Z} in the
-following fashion:
+If you go this route, I suggest that you extract the files from
+@file{mh-e-@var{m.n}.tgz} in the following fashion:
 
 @example
 @group
 % @kbd{cd}                                  # @r{Start in your home directory}
 % @kbd{mkdir lib lib/emacs}                 # @r{Create directory for mh-e}
 % @kbd{cd lib/emacs}
-% @kbd{zcat @var{path/to/}mh-e-@value{VERSION}.tar.Z | tar xvf -}    # @r{Extract files}
+% @kbd{zcat @var{path/to/}mh-e-@var{m.n}.tgz | tar xvf -}    # @r{Extract files}
 @end group
 @end example
 
@@ -3428,16 +3405,21 @@ new version with the command @kbd{M-x mh-version} after running any mh-e
 command.  The distribution comes with a file called @file{MH-E-NEWS} so
 you can see what's new.
 
-@node    History, Changes to mh-e, Odds and Ends, Top
+@node    History, Copying, Odds and Ends, Top
 @appendix History of mh-e
 
+@cindex Gildea, Stephen
+@cindex Larus, Jim
+@cindex Reid, Brian
+@cindex SourceForge
 @cindex history of mh-e
 
-mh-e was originally written by Brian Reid in 1983 and has changed hands
-twice since then.  Jim Larus wanted to do something similar for GNU
-Emacs, and ended up completely rewriting it that same year.  In 1989,
-Stephen Gildea picked it up and is now currently improving and
-maintaining it.
+mh-e was originally written by Brian Reid in 1983 and has changed
+hands several times since then. Jim Larus wanted to do something
+similar for GNU Emacs, and ended up completely rewriting it that same
+year. In 1989, Stephen Gildea picked it up and added many improvements.
+Bill Wohler then took over in 2000 and moved its development to
+@uref{http://sourceforge.net/, SourceForge}.
 
 @menu
 * From Brian Reid::             
@@ -3561,104 +3543,9 @@ inconsistencies that required a new major version to fix, and so version
 
 Stephen Gildea, June 1994
 
-@node Changes to mh-e, Copying, History, Top
-@appendix Changes to mh-e
-
-@cindex @code{mh-e}: comparison between versions
-
-mh-e had a fairly major facelift between @w{Versions 3} and 4.  The
-differences between @w{Versions 4} and 5 from the user's viewpoint are
-relatively minor.  The prompting order for the folder and message number
-in a couple of functions had been switched inadvertently in @w{Version
-4}.  @w{Version 5} switches the order back.  The @file{+inbox} folder is
-no longer hard-coded, but rather uses the @samp{Inbox} MH Profile entry.
-See the file @file{etc/MH-E-NEWS} in the Emacs distribution for more
-details on the changes.
-
-This section documents the changes between @w{Version 3} and newer
-versions so that you'll know which commands to use (or which commands
-you won't have) in case you're stuck with an old version.
-
-The following tables summarize the changes to buffer names, commands
-and variables.
-
-@unnumberedsec Buffer Mode Names
-
-@example
-@group
-@b{Version 3}           @b{Version 4}
-
-mh-e folder        MH-Folder
-mh-e scan          MH-Folder
-mh-e show          MH-Folder Show
-Fundamental        MH-Show
-mh-e letter        MH-Letter
-mh-e letter        MH-Pick
-@end group
-@end example
-
-@page
-
-@unnumberedsec Commands
-
-@example
-@group
-           @b{Version 3}                        @b{Version 4}
-
-@b{Function}               @b{Command}   @b{Command}          @b{Function}
-
-mh-first-msg           <          M-<               mh-first-msg
--                      -          M->               mh-last-msg
-mh-show                .          RET               mh-show
--                      -          ,                 mh-header-display
-mh-reply               a          r                 mh-reply
-mh-redistribute        r          M-d               mh-redistribute
-mh-unshar-msg          -          M-n               mh-store-msg
-mh-write-msg-to-file   M-o        C-o               mh-write-msg-to-file
-mh-delete-msg-from-seq C-u M-%    M-#               mh-delete-seq
--                      -          M-q               mh-list-sequences
-mh-quit                b          q                 mh-quit
--                      -          C-C C-f C-r       mh-to-field (@samp{From:})
--                      -          C-C C-f C-d       mh-to-field (@samp{Dcc:})
-@end group
-@end example
-
-@unnumberedsec Variables
-
-@example
-@group
-          @b{Version 3}                           @b{Version 4}
-
-@b{Variable}              @b{Value}             @b{Value}           @b{Variable}
-
-mh-show-buffer-      "@{%%b@}  %s/%d"    "@{show-%s@} %d"  mh-show-buffer-
-mode-line-buffer-id                                    mode-line-buffer-id
-mh-unshar-default-   ""                nil             mh-store-default-
-directory                                              directory
-@end group
-@end example
-
-
-@unnumberedsec New Variables
-
-@example
-@group
-mail-citation-hook                           mh-new-draft-cleaned-headers
-mail-header-separator                        mh-pick-mode-hook
-mh-auto-folder-collect                       mh-refile-msg-hook
-mh-comp-formfile                             mh-scan-prog
-mh-repl-formfile                             mh-send-prog
-mh-delete-msg-hook                           mh-show-hook
-mh-forward-subject-format                    mh-show-mode-hook
-mh-inc-prog                                  mh-signature-file-name
-mh-mime-content-types                        mh-sortm-args
-mh-default-folder-for-message-function       mh-repl-formfile
-mh-mhn-args
-@end group
-@end example
-
-@node Copying, Command Index, Changes to mh-e, Top
+@node Copying, Command Index, History, Top
 @appendix GNU GENERAL PUBLIC LICENSE
+
 @center Version 2, June 1991
 
 @display
