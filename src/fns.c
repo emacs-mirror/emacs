@@ -1815,7 +1815,10 @@ See also the function `nreverse', which is used more often.  */)
   Lisp_Object new;
 
   for (new = Qnil; CONSP (list); list = XCDR (list))
-    new = Fcons (XCAR (list), new);
+    {
+      QUIT;
+      new = Fcons (XCAR (list), new);
+    }
   if (!NILP (list))
     wrong_type_argument (Qconsp, list);
   return new;
