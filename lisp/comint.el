@@ -274,7 +274,7 @@ See variable `comint-scroll-show-maximum-output' and function
 		 (const others))
   :group 'comint)
 
-(defcustom comint-scroll-show-maximum-output nil
+(defcustom comint-scroll-show-maximum-output t
   "*Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
