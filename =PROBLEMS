@@ -63,12 +63,6 @@ This means that the file `etc/DOC-...' doesn't properly correspond
 with the Emacs executable.  Redumping Emacs and then installing the
 corresponding pair of files should fix the problem.
 
-* M-x shell immediately responds "Process shell exited abnormally with code 1".
-
-This is often due to inability to run the program `env'.
-This should be in the `etc' subdirectory of the directory
-where Emacs is installed, and it should be marked executable.
-
 * Trouble using ptys on AIX.
 
 People often instll the pty devices on AIX incorrectly.
@@ -168,14 +162,6 @@ it only if it is undefined.
 Or you could set TERMCAP only when you set TERM--which should not
 happen in a non-login shell.
 
-* Error compiling sysdep.c, "sioctl.h: no such file or directory".
-
-Among USG systems with TIOCGWINSZ, some require sysdep.c to include
-the file sioctl.h; on others, sioctl.h does not exist.  We don't know
-how to distinguish these two kind of systems, so currently we try to
-include sioctl.h on all of them.  If this #include gets an error, just
-delete it.
-
 * X Windows doesn't work if DISPLAY uses a hostname.
 
 People have reported kernel bugs in certain systems that cause Emacs
@@ -256,10 +242,6 @@ I have also seen character \177 changed into \377.  I do not know
 what transfer means caused this problem.  Various network
 file transfer programs are suspected of clobbering the high bit.
 
-The only verified ways to transfer GNU Emacs are `tar', kermit (in
-binary mode on Unix), and rcp or internet ftp between two Unix systems,
-or chaosnet cftp using raw mode.
-
 If you have a copy of Emacs that has been damaged in its
 nonprinting characters, you can fix them:
 
@@ -312,6 +294,9 @@ You may have forgotten to recompile them into .elc files.
 Then the old .elc files will be loaded, and your changes
 will not be seen.  To fix this, do M-x byte-recompile-directory
 and specify the directory that contains the Lisp files.
+
+Emacs should print a warning when loading a .elc file which is older
+than the corresponding .el file.
 
 * The dumped Emacs (xemacs) crashes when run, trying to write pure data.
 
@@ -451,25 +436,14 @@ concentrator with a properly designed one.  In the mean time,
 some drastic measures can make Emacs semi-work.
 
 One drastic measure to ignore C-s and C-q, while sending enough
-padding that the terminal will not really lose any output.
-Ignoring C-s and C-q can be done by using keyboard-translate-table
-to map them into an undefined character such as C-^ or C-\.  Sending
-lots of padding is done by changing the termcap entry.  Here is how
-to make such a keyboard-translate-table:
+padding that the terminal will not really lose any output.  To make
+such an adjustment, you need only invoke the function
+enable-flow-control-on with a list of terminal types in your own
+.emacs file.  As arguments, give it the names of one or more terminal
+types you use which require flow control adjustments.
+Here's an example:
 
-    (let ((the-table (make-string 128 0)))
-      ;; Default is to translate each character into itself.
-      (let ((i 0))
-	(while (< i 128)
-	  (aset the-table i i)
-	  (setq i (1+ i))))
-      ;; Swap C-s with C-\
-      (aset the-table ?\C-\\ ?\C-s)
-      (aset the-table ?\C-s ?\C-\\)
-      ;; Swap C-q with C-^
-      (aset the-table ?\C-^ ?\C-q)
-      (aset the-table ?\C-q ?\C-^)
-      (setq keyboard-translate-table the-table))
+(enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
 
 An even more drastic measure is to make Emacs use flow control.
 To do this, evaluate the Lisp expression (set-input-mode nil t).
@@ -691,23 +665,6 @@ causes it.
 	    else
 	    {
 
-* ld complains because `alloca' is not defined on your system.
-
-Alloca is a library function in 4.2bsd, which is used very heavily by
-GNU Emacs.  Use of malloc instead is very difficult, as you would have
-to arrange for the storage to be freed, and do so even in the case of
-a longjmp happening inside a subroutine.  Many subroutines in Emacs
-can do longjmp.
-
-If your system does not support alloca, try defining the symbol
-C_ALLOCA in the m-...h file for that machine.  This will enable the use
-in Emacs of a portable simulation for alloca.  But you will find that
-Emacs's performance and memory use improve if you write a true
-alloca in assembler language.
-
-alloca (N) should return the address of an N-byte block of memory
-added dynamically to the current stack frame.
-
 * Vax C compiler bugs affecting Emacs.
 
 You may get one of these problems compiling Emacs:
@@ -778,10 +735,10 @@ of machine defines NO_UNION_TYPE.  That is the recommended setting now.
 
 * C compilers lose on returning unions
 
-I hear that some C compilers cannot handle returning
-a union type.  Most of the functions in GNU Emacs return
-type Lisp_Object, which is currently defined as a union.
+I hear that some C compilers cannot handle returning a union type.
+Most of the functions in GNU Emacs return type Lisp_Object, which is
+defined as a union on some rare architectures.
 
 This problem will not happen if the m-...h file for your type
-of machine defines NO_UNION_TYPE.  That is the recommended setting now.
+of machine defines NO_UNION_TYPE.
 
