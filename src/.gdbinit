@@ -12,6 +12,14 @@ end
 # machine-description files.
 set $data_seg_bits = 0
 
+define mips
+set $data_seg_bits = 0x10000000
+end
+document mips
+Set up the xfoo macros to deal with the MIPS processor.
+Specifically, this sets $data_seg_bits to the right thing.
+end
+
 define xtype
 output (enum Lisp_Type) (($ >> 24) & 0x7f)
 echo \n
