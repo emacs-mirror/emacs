@@ -1,3 +1,7 @@
+2001-02-08  Dave Love  <fx@gnu.org>
+
+	* tasks.texi: Updated.
+
 2001-02-03  Andrew Innes  <andrewi@gnu.org>
 
 	* PROBLEMS: Add note about need to specify extra compiler flags
