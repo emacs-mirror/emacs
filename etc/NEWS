@@ -1411,6 +1411,11 @@ appointments, paydays or anything else using a sexp.
 year and day number, and moves to that date. Negative day numbers
 count backward from the end of the year.
 
++++
+** The new Calendar function `calendar-goto-iso-week' (g w)
+prompts for a year and a week number, and moves to the first
+day of that ISO week.
+
 ---
 ** The functions `holiday-easter-etc' and `holiday-advent' now take
 arguments, and only report on the specified holiday rather than all.
