@@ -1,3 +1,9 @@
+2001-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* speedbar.el (speedbar-supported-extension-expressions): Add .g
+	to the extension list, for antlr-mode.  From Christoph Wedler
+	<Christoph.Wedler@sap.com>.
+
 2001-07-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-prefix-map): Moved back to vc-hooks.el.
