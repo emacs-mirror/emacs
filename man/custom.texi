@@ -1879,12 +1879,12 @@ events, if it has no binding).
 elapse between clicks and still allow them to be grouped as a multiple
 click.  Its value is in units of milliseconds.  If the value is
 @code{nil}, double clicks are not detected at all.  If the value is
-@code{t}, then there is no time limit.
+@code{t}, then there is no time limit.  The default is 500.
 
 @vindex double-click-fuzz
   The variable @code{double-click-fuzz} specifies how much the mouse
 can move between clicks still allow them to be grouped as a multiple
-click.  Its value is in units of pixels.
+click.  Its value is in units of pixels; the default is 3.
 
   The symbols for mouse events also indicate the status of the modifier
 keys, with the usual prefixes @samp{C-}, @samp{M-}, @samp{H-},
