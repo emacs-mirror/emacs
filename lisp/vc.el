@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.354 2003/05/26 10:33:00 spiegel Exp $
+;; $Id: vc.el,v 1.355 2003/05/31 16:47:57 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -418,7 +418,7 @@
 ;;   Rename file OLD to NEW, both in the working area and in the
 ;;   repository.  If this function is not provided, the renaming
 ;;   will be done by (vc-delete-file old) and (vc-register new).
-;;   
+;;
 
 ;;; Code:
 
@@ -1747,12 +1747,12 @@ and past information to determine the current status of a file.
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
 only stays local for hosts that match it.  Alternatively, the value
-can be a list of regular expressions where the first element is the 
-symbol `except'; then VC always stays local except for hosts matched 
+can be a list of regular expressions where the first element is the
+symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
 	  (const :tag "Don't stay local" nil)
-	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
+	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
 		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
 		(regexp :format " stay local,\n%t: %v" :tag "if it matches")
 		(repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
@@ -2671,7 +2671,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
   (let ((buf (get-file-buffer file))
         (backend (vc-backend file)))
     (unless backend
-      (error "File %s is not under version control" 
+      (error "File %s is not under version control"
              (file-name-nondirectory file)))
     (unless (vc-find-backend-function backend 'delete-file)
       (error "Deleting files under %s is not supported in VC" backend))
@@ -2707,7 +2707,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	(error "Already editing new file name"))
     (if (file-exists-p new)
 	(error "New file already exists"))
-    (let ((state (vc-state file)))
+    (let ((state (vc-state old)))
       (unless (memq state '(up-to-date edited))
 	(error "Please %s files before moving them"
 	       (if (stringp state) "check in" "update"))))
