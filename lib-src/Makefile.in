@@ -269,7 +269,7 @@ distclean: clean
 maintainer-clean: distclean
 	true
 
-extraclean: realclean
+extraclean: maintainer-clean
 	-rm -f *~ \#*
 
 unlock:
