@@ -1,5 +1,8 @@
 2002-02-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* hexl.el (hexl-options): Doc fix.
+	Update Commentary section.
+
 	* textmodes/sgml-mode.el (sgml-specials, sgml-quick-keys):
 	Doc fixes.
 
