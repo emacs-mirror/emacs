@@ -1,5 +1,8 @@
 2001-03-09  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/characters.el: Add category `j' for
+	katakana-jisx0201.   Fix syntaxes of katakana-jisx0201.
+
 	* international/mule-conf.el (no-conversion): Fix docstring.
 	(raw-text): Fix docstring.
 
