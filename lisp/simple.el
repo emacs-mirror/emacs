@@ -3450,6 +3450,13 @@ Unibyte strings are converted to multibyte for comparison."
   'sendmail-user-agent-compose
   'mail-send-and-exit)
 
+(defun rfc822-goto-eoh ()
+  ;; Go to header delimiter line in a mail message, following RFC822 rules
+  (goto-char (point-min))
+  (while (looking-at "^[^: \n]+:\\|^[ \t]")
+    (forward-line 1))
+  (point))
+
 (defun sendmail-user-agent-compose (&optional to subject other-headers continue
 					      switch-function yank-action
 					      send-actions)
@@ -3465,9 +3472,7 @@ Unibyte strings are converted to multibyte for comparison."
 	continue
 	(error "Message aborted"))
     (save-excursion
-      (goto-char (point-min))
-      (search-forward mail-header-separator)
-      (beginning-of-line)
+      (rfc822-goto-eoh)
       (while other-headers
 	(if (not (member (car (car other-headers)) '("in-reply-to" "cc")))
 	    (insert (car (car other-headers)) ": "
