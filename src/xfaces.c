@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -2114,7 +2114,7 @@ face_numeric_swidth (width)
 
 Lisp_Object
 generate_ascii_font (name, ascii_spec)
-     Lisp_Object name;
+     Lisp_Object name, ascii_spec;
 {
   struct font_name font;
   char *p;
