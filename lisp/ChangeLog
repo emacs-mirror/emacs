@@ -1,3 +1,8 @@
+2002-03-07  Miles Bader  <miles@gnu.org>
+
+	* pcomplete.el (pcomplete-entries): Expand environment variables
+	in filename.
+
 2002-03-10  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* play/mpuz.el: Use defface instead of facemenu-get-face.
