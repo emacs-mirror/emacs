@@ -673,7 +673,8 @@ Otherwise, list elements are:\n\
  8. File modes, as a string of ten letters or dashes as in ls -l.\n\
  9. t iff file's gid would change if file were deleted and recreated.\n\
 10. inode number.  If inode number is larger than the Emacs integer,\n\
-  this is a list of two integers: first the high, then the low 16 bits.\n\
+  this is a cons cell containing two integers: first the high part,\n\
+  then the low 16 bits.\n\
 11. Device number.\n\
 \n\
 If file does not exist, returns nil.")
