@@ -1,3 +1,8 @@
+2003-07-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Set
+	current-language-environment to the correct string.
+
 2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Print line number correctly in a region.  Reported by
