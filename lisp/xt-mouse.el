@@ -38,12 +38,14 @@
 
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
+(defvar xterm-mouse-last)
+
 (defun xterm-mouse-translate (event)
   ;; Read a click and release event from XTerm.
   (save-excursion
     (save-window-excursion
       (deactivate-mark)
-      (let* ((last)
+      (let* ((xterm-mouse-last)
 	     (down (xterm-mouse-event))
 	     (down-command (nth 0 down))
 	     (down-data (nth 1 down))
@@ -73,7 +75,7 @@
 		     ;; Generate a drag event.
 		     (if (symbolp down-where)
 			 0
-		       (list (intern (concat "drag-mouse-" (+ 1 last)))
+		       (list (intern (concat "drag-mouse-" (+ 1 xterm-mouse-last)))
 			     down-data click-data))
 		     )))
 	    (if (and (symbolp down-where)
@@ -115,8 +117,8 @@
 		    (point))
 		where))
 	 (mouse (intern (if (eq type 3)
-			    (concat "mouse-" (+ 1 last))
-			  (setq last type)
+			    (concat "mouse-" (+ 1 xterm-mouse-last))
+			  (setq xterm-mouse-last type)
 			  (concat "down-mouse-" (+ 1 type))))))
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
