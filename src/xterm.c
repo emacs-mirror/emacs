@@ -2208,6 +2208,12 @@ show_mouse_face (hl)
   /* If we turned the cursor off, turn it back on.  */
   if (cursor_off)
     x_display_cursor (f, 1);
+
+  /* Change the mouse cursor according to the value of HL.  */
+  if (hl > 0)
+    XDefineCursor (XDISPLAY FRAME_X_WINDOW (f), f->display.x->cross_cursor);
+  else
+    XDefineCursor (XDISPLAY FRAME_X_WINDOW (f), f->display.x->text_cursor);
 }
 
 /* Clear out the mouse-highlighted active region.
