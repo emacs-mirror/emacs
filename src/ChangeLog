@@ -1,3 +1,10 @@
+2000-11-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (lookup_named_face): If default face isn't realized,
+	try to realize it.  Return -1 if not successful.
+	(Fx_list_fonts): Handle case that face cannot be determined.
+	(Fface_font): Likewise.
+
 2000-11-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (displayed_window_lines): Detect partially
