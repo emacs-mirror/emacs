@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/04/24 12:23:14 vinicius>
-;; Version:	5.2
+;; Time-stamp:	<2000/05/12 19:56:11 vinicius>
+;; Version:	5.2.1
 
-(defconst ps-print-version "5.2"
-  "ps-print.el, v 5.2 <2000/04/24 vinicius>
+(defconst ps-print-version "5.2.1"
+  "ps-print.el, v 5.2.1 <2000/05/12 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -195,10 +195,10 @@ Please send all bug fixes and enhancements to
 ;; See definition of `call-process-region' for calling conventions.  The fourth
 ;; and the sixth arguments are both nil.
 ;;
-;; If you're using NTEmacs, don't forget to customize the following variables:
-;; `ps-printer-name', `ps-lpr-command', `ps-lpr-switches' and
-;; `ps-spool-config'.  See these variables documentation in the code or by
-;; typing, for example, C-h v ps-printer-name RET.
+;; If you're using Emacs for Windows 95/98/NT or MS-DOS, don't forget to
+;; customize the following variables: `ps-printer-name', `ps-lpr-command',
+;; `ps-lpr-switches' and `ps-spool-config'.  See these variables documentation
+;; in the code or by typing, for example, C-h v ps-printer-name RET.
 ;;
 ;;
 ;; The Page Layout
@@ -603,7 +603,7 @@ Please send all bug fixes and enhancements to
 ;;      one line
 ;;    3 one line
 ;;      one line
-;;    4 one line
+;;    5 one line
 ;;      one line
 ;;      ...
 ;;
@@ -618,6 +618,34 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Any other value is treated as `zebra'.
 ;; The default value is 1, so each line number is printed.
+;;
+;; The variable `ps-line-number-start' specifies the starting point in the
+;; interval given by `ps-line-number-step'.  For example, if
+;; `ps-line-number-step' is set to 3 and `ps-line-number-start' is set to 3, the
+;; printing will look like:
+;;
+;;      one line
+;;      one line
+;;    3 one line
+;;      one line
+;;      one line
+;;    6 one line
+;;      one line
+;;      one line
+;;    9 one line
+;;      one line
+;;      ...
+;;
+;; The values for `ps-line-number-start':
+;;
+;;    * If `ps-line-number-step' is an integer, must be between 1 and the value
+;;	of `ps-line-number-step' inclusive.
+;;
+;;    * If `ps-line-number-step' is set to `zebra', must be between 1 and the
+;;	value of `ps-zebra-strip-height' inclusive.
+;;
+;; The default value is 1, so the line number of the first line of each interval
+;; is printed.
 ;;
 ;;
 ;; Zebra Stripes
@@ -1100,6 +1128,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to Paul Furnanz <pfurnanz@synopsys.com> for XEmacs compatibility
+;; suggestion for `ps-postscript-code-directory' variable.
+;;
 ;; Thanks to David X Callaway <dxc@xprt.net> for helping debugging PostScript
 ;; level 1 compatibility.
 ;;
@@ -1341,7 +1372,7 @@ For more information about PostScript, see:
    PostScript Language Reference Manual (2nd edition)
    Adobe Systems Incorporated"
   :type '(choice :tag "User Defined Prologue"
-		 string symbol (const :tag "none" nil))
+		 (const :tag "none" nil) string symbol)
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-prologue-header nil
@@ -1369,7 +1400,7 @@ For more information about PostScript document comments, see:
    Adobe Systems Incorporated
    Appendix G: Document Structuring Conventions -- Version 3.0"
   :type '(choice :tag "Prologue Header"
-		 string symbol (const :tag "none" nil))
+		 (const :tag "none" nil) string symbol)
   :group 'ps-print-miscellany)
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
@@ -1616,7 +1647,7 @@ For example, `ps-line-number-step' is set to 2, the printing will look like:
      one line
    3 one line
      one line
-   4 one line
+   5 one line
      one line
      ...
 
@@ -1633,6 +1664,35 @@ Any other value is treated as `zebra'."
   :type '(choice :tag "Line Number Step"
 		 (integer :tag "Step Interval")
 		 (const :tag "Synchronize Zebra" zebra))
+  :group 'ps-print-miscellany)
+
+(defcustom ps-line-number-start 1
+  "*Specify the starting point in the interval given by `ps-line-number-step'.
+
+For example, if `ps-line-number-step' is set to 3 and `ps-line-number-start' is set to 3, the
+printing will look like:
+
+      one line
+      one line
+    3 one line
+      one line
+      one line
+    6 one line
+      one line
+      one line
+    9 one line
+      one line
+      ...
+
+The values for `ps-line-number-start':
+
+   * If `ps-line-number-step' is an integer, must be between 1 and the value
+     of `ps-line-number-step' inclusive.
+
+   * If `ps-line-number-step' is set to `zebra', must be between 1 and the
+     value of `ps-zebra-strip-height' inclusive.  Use this combination if you
+     wish that line number be relative to zebra stripes."
+  :type '(integer :tag "Start Step Interval")
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-background-image nil
@@ -1666,17 +1726,19 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print an EPS image on all pages do:
 
    '((\"~/images/EPS-image.ps\"))"
-  :type '(repeat (list (file   :tag "EPS File")
-		       (choice :tag "X" (const :tag "default" nil) number string)
-		       (choice :tag "Y" (const :tag "default" nil) number string)
-		       (choice :tag "X Scale" (const :tag "default" nil) number string)
-		       (choice :tag "Y Scale" (const :tag "default" nil) number string)
-		       (choice :tag "Rotation" (const :tag "default" nil) number string)
-		       (repeat :tag "Pages" :inline t
-			       (radio (integer :tag "Page")
-				      (cons :tag "Range"
-					    (integer :tag "From")
-					    (integer :tag "To"))))))
+  :type '(repeat
+	  (list
+	   (file   :tag "EPS File")
+	   (choice :tag "X" (const :tag "default" nil) number string)
+	   (choice :tag "Y" (const :tag "default" nil) number string)
+	   (choice :tag "X Scale" (const :tag "default" nil) number string)
+	   (choice :tag "Y Scale" (const :tag "default" nil) number string)
+	   (choice :tag "Rotation" (const :tag "default" nil) number string)
+	   (repeat :tag "Pages" :inline t
+		   (radio (integer :tag "Page")
+			  (cons :tag "Range"
+				(integer :tag "From")
+				(integer :tag "To"))))))
   :group 'ps-print-background)
 
 (defcustom ps-print-background-text nil
@@ -1714,18 +1776,20 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print text \"Preliminary\" on all pages do:
 
    '((\"Preliminary\"))"
-  :type '(repeat (list (string :tag "Text")
-		       (choice :tag "X" (const :tag "default" nil) number string)
-		       (choice :tag "Y" (const :tag "default" nil) number string)
-		       (choice :tag "Font" (const :tag "default" nil) string)
-		       (choice :tag "Fontsize" (const :tag "default" nil) number string)
-		       (choice :tag "Gray" (const :tag "default" nil) number string)
-		       (choice :tag "Rotation" (const :tag "default" nil) number string)
-		       (repeat :tag "Pages" :inline t
-			       (radio (integer :tag "Page")
-				      (cons :tag "Range"
-					    (integer :tag "From")
-					    (integer :tag "To"))))))
+  :type '(repeat
+	  (list
+	   (string :tag "Text")
+	   (choice :tag "X" (const :tag "default" nil) number string)
+	   (choice :tag "Y" (const :tag "default" nil) number string)
+	   (choice :tag "Font" (const :tag "default" nil) string)
+	   (choice :tag "Fontsize" (const :tag "default" nil) number string)
+	   (choice :tag "Gray" (const :tag "default" nil) number string)
+	   (choice :tag "Rotation" (const :tag "default" nil) number string)
+	   (repeat :tag "Pages" :inline t
+		   (radio (integer :tag "Page")
+			  (cons :tag "Range"
+				(integer :tag "From")
+				(integer :tag "To"))))))
   :group 'ps-print-background)
 
 ;;; Horizontal layout
@@ -2219,7 +2283,10 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :type 'boolean
   :group 'ps-print-headers)
 
-(defcustom ps-postscript-code-directory data-directory
+(defcustom ps-postscript-code-directory
+  (or (and (fboundp 'locate-data-directory) ; xemacs
+           (locate-data-directory "ps-print"))
+      data-directory)			; emacs
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -2385,6 +2452,7 @@ The table depends on the current ps-print setup."
       ps-zebra-color         %s
       ps-line-number         %s
       ps-line-number-step    %s
+      ps-line-number-start   %S
 
       ps-default-fg %s
       ps-default-bg %s
@@ -2444,6 +2512,7 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-zebra-color)
    ps-line-number
    (ps-print-quote ps-line-number-step)
+   ps-line-number-start
    (ps-print-quote ps-default-fg)
    (ps-print-quote ps-default-bg)
    (ps-print-quote ps-use-face-background)
@@ -2569,6 +2638,7 @@ The table depends on the current ps-print setup."
 (defvar ps-showline-count 1)
 
 (defvar ps-control-or-escape-regexp nil)
+(defvar ps-n-up-on nil)
 
 (defvar ps-background-pages nil)
 (defvar ps-background-all-pages nil)
@@ -3855,7 +3925,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	(tumble (if ps-landscape-mode (not ps-spool-tumble) ps-spool-tumble))
 	(n-up (ps-n-up-printing))
 	(n-up-filling (ps-n-up-filling)))
-    (and (> ps-n-up-printing 1) (setq tumble (not tumble)))
+    (and ps-n-up-on (setq tumble (not tumble)))
     (ps-output
      ps-adobe-tag
      "%%Title: " (buffer-name)		; Take job name from name of
@@ -3939,7 +4009,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output (format "/PrintLineStep    %d def\n"
 		       (if (integerp ps-line-number-step)
 			   ps-line-number-step
-			 1))
+			 ps-zebra-stripe-height))
+	       (format "/PrintLineStart   %d def\n" ps-line-number-start)
 	       (format "/ZebraHeight      %d def\n" ps-zebra-stripe-height)
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
@@ -4020,7 +4091,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		 "\n%%EndFeature\n")))
   (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n")
   (and ps-banner-page-when-duplexing
-       (ps-output "\n%%Page: 0 0\nsave showpage restore\n")))
+       (ps-output "\n%%Page: banner 0\nsave showpage restore\n")))
 
 
 (defun ps-format-color (color &optional default)
@@ -4104,6 +4175,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (and (integerp ps-line-number-step)
        (<= ps-line-number-step 0)
        (setq ps-line-number-step 1))
+  (setq ps-n-up-on           (> ps-n-up-printing 1)
+	ps-line-number-start (max 1 (min ps-line-number-start
+					 (if (integerp ps-line-number-step)
+					     ps-line-number-step
+					   ps-zebra-stripe-height))))
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
@@ -4181,9 +4257,12 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-page-order (1+ ps-page-order))
   (and (> ps-page-order 1)
        (ps-output "EndSheet\n"))
-  (ps-output (format "\n%%%%Page: %d %d\n"
-		     ps-page-postscript ps-page-order))
-  (ps-output (format "%d BeginSheet\nBeginDSCPage\n" ps-n-up-printing)))
+  (ps-output (if ps-n-up-on
+		 (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
+			 ps-page-order ps-page-postscript ps-page-order)
+	       (format "\n%%%%Page: %d %d\n"
+		       ps-page-postscript ps-page-order))
+	     (format "%d BeginSheet\nBeginDSCPage\n" ps-n-up-printing)))
 
 
 (defsubst ps-header-page ()
@@ -4567,7 +4646,7 @@ If FACE is not a valid face name, it is used default face."
   (goto-char to))
 
 
-(defun ps-xemacs-face-kind-p (face kind kind-regex kind-list)
+(defun ps-xemacs-face-kind-p (face kind kind-regex)
   (let* ((frame-font (or (face-font-instance face)
 			 (face-font-instance 'default)))
 	 (kind-cons (and frame-font
@@ -4575,9 +4654,7 @@ If FACE is not a valid face name, it is used default face."
 			       (font-instance-properties frame-font))))
 	 (kind-spec (cdr-safe kind-cons))
 	 (case-fold-search t))
-    (or (and kind-spec (string-match kind-regex kind-spec))
-	;; Kludge-compatible:
-	(memq face kind-list))))
+    (and kind-spec (string-match kind-regex kind-spec))))
 
 
 (cond ((eq ps-print-emacs-type 'emacs)  ; emacs
@@ -4594,12 +4671,13 @@ If FACE is not a valid face name, it is used default face."
 					; lucid
       (t				; epoch
        (defun ps-face-bold-p (face)
-	 (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold"
-				ps-bold-faces))
+	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
+	     (memq face ps-bold-faces))) ; Kludge-compatible
 
        (defun ps-face-italic-p (face)
-	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
-	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces)))
+	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
+	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
+	     (memq face ps-italic-faces))) ; Kludge-compatible
        ))
 
 
@@ -4879,7 +4957,7 @@ If FACE is not a valid face name, it is used default face."
 				total-lines total-pages) t))))
 
 
-(defconst ps-printer-name-option
+(defvar ps-printer-name-option
   (cond (ps-windows-system
 	 "-P")
 	(ps-lp-system
