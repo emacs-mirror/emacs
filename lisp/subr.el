@@ -210,18 +210,14 @@ If N is bigger than the length of X, return X."
 	   x))))
 
 (defun delete-dups (list)
-  "Destructively return LIST, with `equal' duplicates removed.
-LIST must be a proper list.  The value of LIST after a call to
-this function is undefined.  Use \(setq LIST (delete-dups LIST))
-if you want to store the return value in LIST.  Of several
-`equal' occurrences of an element in LIST, the last one is kept."
-  (while (member (car list) (cdr list))
-    (pop list))
+  "Destructively remove `equal' duplicates from LIST.
+Store the result in LIST and return it.  LIST must be a proper list.
+Of several `equal' occurrences of an element in LIST, the first
+one is kept."
   (let ((tail list))
     (while tail
-      (while (member (cadr tail) (cddr tail))
-	(setcdr tail (cddr tail)))
-      (pop tail)))
+      (setcdr tail (delete (car tail) (cdr tail)))
+      (setq tail (cdr tail))))
   list)
 
 (defun number-sequence (from &optional to inc)
