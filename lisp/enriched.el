@@ -209,21 +209,23 @@ Commands:
 		   (list 'buffer-display-table buffer-display-table
 			 'indent-line-function indent-line-function
 			 'use-hard-newlines    use-hard-newlines
-			 'default-properties   default-properties))
+			 'default-text-properties default-text-properties))
 	     (make-local-variable 'indent-line-function)
 	     (make-local-variable 'use-hard-newlines)
-	     (make-local-variable 'default-properties)
+	     (make-local-variable 'default-text-properties)
 	     (setq indent-line-function 'indent-to-left-margin
 		   buffer-display-table  enriched-display-table
 		   use-hard-newlines     t)
-	     (let ((sticky (get-text-property-default 'front-sticky))
+	     (let ((sticky (plist-get default-text-properties 'front-sticky))
 		   (p enriched-par-props))
 	       (while p
 		 (if (not (memq (car p) sticky))
 		     (setq sticky (cons (car p) sticky)))
 		 (setq p (cdr p)))
 	       (if sticky
-		   (put-text-property-default 'front-sticky sticky)))
+		   (setq default-text-properties
+			 (plist-put default-text-properties
+				    'front-sticky sticky))))
 	     (run-hooks 'enriched-mode-hooks)))
     (set-buffer-modified-p mod)
     (force-mode-line-update)))
