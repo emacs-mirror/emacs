@@ -849,11 +849,12 @@ in ALIST."
 Lines containing only comments are considered empty."
   (interactive)
   (let ((previous (save-excursion
-		    (while (progn
-			     (line-move -1)
-			     (back-to-indentation)
-			     (or (eolp)
-				 (eq (following-char) ?#))))
+		    (while (and (not (bobp))
+				(progn
+				  (forward-line -1)
+				  (back-to-indentation)
+				  (or (eolp)
+				      (eq (following-char) ?#)))))
 		    (current-column)))
 	current)
     (save-excursion
