@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- specific language support for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Authors:    1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
@@ -55,6 +55,8 @@
 ;; keywords introducing class definitions.  language specific
 (defconst c-C-class-key "\\(struct\\|union\\)")
 (defconst c-C++-class-key "\\(class\\|struct\\|union\\)")
+(defconst c-C-extra-toplevel-key "\\(extern\\)[^_]")
+(defconst c-C++-extra-toplevel-key "\\(extern\\|namespace\\)[^_]")
 
 (defconst c-ObjC-class-key
   (concat
@@ -75,6 +77,9 @@
 
 (defvar c-class-key c-C-class-key)
 (make-variable-buffer-local 'c-class-key)
+
+(defvar c-extra-toplevel-key c-C-extra-toplevel-key)
+(make-variable-buffer-local 'c-extra-toplevel-key)
 
 
 ;; regexp describing access protection clauses.  language specific
@@ -115,13 +120,6 @@
    ;; since it is considered the end of //-comments.
    "[ \t\n]*" c-symbol-key))
 
-(defconst c-Java-method-key
-  (concat
-   "^\\s *[+-]\\s *"
-   "\\(([^)]*)\\)?"			; return type
-   ;; \\s- in java syntax table does not include \n
-   ;; since it is considered the end of //-comments.
-   "[ \t\n]*" c-symbol-key))
 
 
 ;; comment starter definitions for various languages.  language specific
@@ -255,8 +253,12 @@ For use with the variable `java-mode-hook'."
 Currently, this function simply applies any style and offset settings
 found in the file's Local Variable list.  It first applies any style
 setting found in `c-file-style', then it applies any offset settings
-it finds in `c-file-offsets'."
+it finds in `c-file-offsets'.
+
+Note that the style variables are always made local to the buffer."
   ;; apply file styles and offsets
+  (if (or c-file-style c-file-offsets)
+      (c-make-styles-buffer-local t))
   (and c-file-style
        (c-set-style c-file-style))
   (and c-file-offsets
@@ -335,15 +337,15 @@ it finds in `c-file-offsets'."
   (define-key c-mode-base-map ";"         'c-electric-semi&comma)
   (define-key c-mode-base-map "#"         'c-electric-pound)
   (define-key c-mode-base-map ":"         'c-electric-colon)
-  ;; Lucid Emacs 19.9 defined these two, the second of which was
-  ;; commented out...
-  ;; (define-key c-mode-base-map "\e{" 'c-insert-braces)
-  ;; Commented out electric square brackets because nobody likes them.
-  ;; (define-key c-mode-base-map "[" 'c-insert-brackets)
-  (define-key c-mode-base-map "\C-c\C-m"  'c-mark-function)
+  ;; Separate M-BS from C-M-h.  The former should remain
+  ;; backward-kill-word.
+  (define-key c-mode-base-map [(control meta h)] 'c-mark-function)
   (define-key c-mode-base-map "\e\C-q"    'c-indent-exp)
   (define-key c-mode-base-map "\ea"       'c-beginning-of-statement)
   (define-key c-mode-base-map "\ee"       'c-end-of-statement)
+  ;; RMS says don't make these the default.
+;;  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
+;;  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
   (define-key c-mode-base-map "\C-c\C-n"  'c-forward-conditional)
   (define-key c-mode-base-map "\C-c\C-p"  'c-backward-conditional)
   (define-key c-mode-base-map "\C-c\C-u"  'c-up-conditional)
