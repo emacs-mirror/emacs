@@ -1,12 +1,16 @@
+2004-10-30  Stefan  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (custom-deps, autoloads): Fix *-hooks -> *-hook.
+
 2004-10-30  Juri Linkov  <juri@jurta.org>
 
 	* help.el (function-called-at-point):
-	* help-fns.el (variable-at-point): read -> intern.
+	* help-fns.el (variable-at-point): Read -> intern.
 
 2004-10-30  Simon Josefsson  <jas@extundo.com>
 
-	* progmodes/autoconf.el (autoconf-font-lock-keywords): Recognize
-	AS_* too.
+	* progmodes/autoconf.el (autoconf-font-lock-keywords):
+	Recognize AS_* too.
 
 2004-10-29  Simon Josefsson  <jas@extundo.com>
 
@@ -75,8 +79,8 @@
 
 2004-10-28  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (utf-translate-cjk-charsets): Add
-	katakana-jisx0201.
+	* international/utf-8.el (utf-translate-cjk-charsets):
+	Add katakana-jisx0201.
 
 	* international/subst-jis.el: Add data for JISX0201.
 
