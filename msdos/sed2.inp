@@ -57,3 +57,5 @@ s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "-"/
 s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
+s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
+s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
