@@ -1,3 +1,7 @@
+2003-10-03  Boyd Lynn Gerber  <gerberb@zenez.com>  (tiny change)
+
+	* configure.in (*-sysv5uw*, *-sysv5OpenUNIX*): New configurations.
+
 2003-05-03  Dave Love  <fx@gnu.org>
 
 	* configure.in: When we have -llockfile, define HAVE_LIBMAIL, not
