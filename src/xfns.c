@@ -1927,21 +1927,15 @@ x_window (f, window_prompting, minibuffer_only)
     char *tem, shell_position[32];
     Arg al[2];
     int ac = 0;
-    int ibw;
     int menubar_size 
       = (f->display.x->menubar_widget
 	 ? (f->display.x->menubar_widget->core.height
 	    + f->display.x->menubar_widget->core.border_width)
 	 : 0);
 
-    XtVaGetValues (pane_widget,
-                   XtNinternalBorderWidth, &ibw,
-                   NULL);
-    menubar_size += ibw;
-
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
-        int ibw;
+        short ibw;
         XtVaGetValues (pane_widget, XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
