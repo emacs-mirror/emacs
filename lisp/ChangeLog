@@ -1,3 +1,41 @@
+2002-04-03  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* solar.el (solar-spring-or-summer-season): Deleted.
+	(solar-northern-spring-or-summer-season): New variable.
+	(solar-sunrise-and-sunset, solar-moment, solar-sunrise-sunset):
+	Rewritten.
+
+	* solar.el (diary-sabbath-candles-minutes): New variable.
+	(diary-sabbath-candles): Use it instead of fixed 18 minutes.
+
+	* calendar.el (update-calendar-mode-line): Force mode-line update.
+	Make date under the cursor available as `date' in
+	calendar-mode-line-format.
+	Eval items in calendar-mode-line-format list.
+
+	* cal-tex.el (cal-tex-hook, cal-tex-year-hook, cal-tex-month-hook,
+	cal-tex-week-hook, cal-tex-daily-hook): Add doc strings.
+
+	* cal-tex.el (cal-tex-latexify-list): Fix doc string.
+
+	* cal-tex.el (cal-tex-insert-day-names): LaTeXify day names.
+	(cal-tex-cursor-week-iso, cal-tex-week-hours, cal-tex-weekly4-box)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-daily-page, cal-tex-mini-calendar): LaTeXify day names.
+
+	* cal-tex.el: Change all instances (interactive "P") to
+	(interactive "p").
+	(cal-tex-cursor-month): Add hfill and newline at end of month that
+	ended on Saturday.
+	(cal-tex-preamble): Change to LaTeX2e.
+	(cal-tex-cursor-filofax-year): Don't use default month names in
+	LaTeX macros in case user changes them.
+	(cal-tex-month-name): New function.  Used throughout in case user
+	has done something funny with month names.
+
+	* cal-hebrew.el (holiday-rosh-hashanah-etc): Spelling correction.
+	(diary-rosh-hodesh): Spelling correction.
+
 2002-04-03  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-lexical-context)
