@@ -87,7 +87,7 @@
 (defcustom rmail-movemail-program nil
   "If non-nil, name of program for fetching new mail."
   :group 'rmail-retrieve
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defcustom rmail-pop-password nil
   "*Password to use when reading mail from a POP server, if required."
