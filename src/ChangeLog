@@ -1,5 +1,8 @@
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap)
+	(w32_init_fringe, w32_reset_fringes): Fix bootstrap (NULL rif).
+
 	* dispextern.h (valid_fringe_bitmap_p): Fix prototype.
 
 	* fringe.c (Vfringe_bitmaps): New variable.
