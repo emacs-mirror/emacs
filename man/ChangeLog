@@ -1,3 +1,13 @@
+2005-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mule.texi (Single-Byte Character Support): Delete mention
+	of iso-acc.el and iso-transl.el.
+
+	* calc.texi: Remove praise of non-free software.
+
+	* idlwave.texi: Don't say where to get IDL or its non-free manual.
+	(Installation): Node deleted.
+
 2005-03-23  Lute Kamstra  <lute@gnu.org>
 
 	* search.texi (Non-ASCII Isearch): Rename from Non-Ascii Isearch.
