@@ -275,6 +275,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "u" 'vc-revert-buffer)
       (define-key vc-prefix-map "v" 'vc-next-action)
       (define-key vc-prefix-map "=" 'vc-diff)
+      (define-key vc-prefix-map "~" 'vc-version-other-window)
       ))
 
 (provide 'vc-hooks)
