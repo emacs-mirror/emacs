@@ -1,3 +1,12 @@
+2004-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* cus-start.el: Handle charset-map-path, not
+	charset-map-directory.
+
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): Optimize for ASCII only case.
+
 2004-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el: Add map #x00A6 <-> #xFFE4 to translation

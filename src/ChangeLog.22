@@ -1,3 +1,14 @@
+2004-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* emacs.c (main): Call init_charset after syms_of_XXX.
+
+	* charset.c (Vcharset_map_directory): Deleted.
+	(Vcharset_map_path): New variable
+	(load_charset_map_from_file): Use Vcharset_map_path instead.
+	(init_charset): Initialize Vcharset_map_path.
+	(syms_of_charset): Delete declaration of "charset-map-directory",
+	add declaration of "charset-map-path".
+
 2004-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (string_char_to_byte): Optimize for ASCII only string.
