@@ -3,9 +3,9 @@
 ;;; Copyright (C) 1996, 97, 98 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.7
+;; Version: 0.7.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.112 1998/06/16 12:53:18 kwzh Exp kwzh $
+;; X-RCS: $Id: speedbar.el,v 1.4 1998/07/10 16:48:06 kwzh Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -807,6 +807,9 @@ to toggle this value.")
     (define-key speedbar-key-map [mode-line down-mouse-1]
       'speedbar-emacs-popup-kludge)
 
+    ;; We can't switch buffers with the buffer mouse menu.  Lets hack it.
+    (define-key speedbar-key-map [C-down-mouse-1] 'speedbar-hack-buffer-menu)
+
     ;; Lastly, we want to track the mouse.  Play here
     (define-key speedbar-key-map [mouse-movement] 'speedbar-track-mouse)
    ))
@@ -1006,6 +1009,10 @@ supported at a time.
 	  (select-frame speedbar-frame)
 	  (switch-to-buffer speedbar-buffer)
 	  (set-window-dedicated-p (selected-window) t))
+	(if (or (null window-system) (eq window-system 'pc))
+	    (progn
+	      (select-frame speedbar-frame)
+	      (set-frame-name "Speedbar")))
 	(speedbar-set-timer speedbar-update-speed)))))
 
 ;;;###autoload
@@ -1113,7 +1120,8 @@ in the selected file.
     (setq frame-title-format "Speedbar")
     ;; Set this up special just for the speedbar buffer
     ;; Terminal minibuffer stuff does not require this.
-    (if (and window-system (null default-minibuffer-frame))
+    (if (and window-system (not (eq window-system 'pc))
+	     (null default-minibuffer-frame))
 	(progn
 	  (make-local-variable 'default-minibuffer-frame)
 	  (setq default-minibuffer-frame speedbar-attached-frame)))
@@ -1220,6 +1228,9 @@ redirected into a window on the attached frame."
 	 (mapcar (function (lambda (hook) (funcall hook buffer)))
 		 temp-buffer-show-hook))))
 
+(defvar speedbar-previous-menu nil
+  "The menu before the last `speedbar-reconfigure-keymaps' was called.")
+
 (defun speedbar-reconfigure-keymaps ()
   "Reconfigure the menu-bar in a speedbar frame.
 Different menu items are displayed depending on the current display mode
@@ -1271,11 +1282,14 @@ and the existence of packages."
 			 ;; This creates a small keymap we can glom the
 			 ;; menu adjustments into.
 			 (speedbar-make-specialized-keymap)))
+      ;; Delete the old menu if applicable.
+      (if speedbar-previous-menu (easy-menu-remove speedbar-previous-menu))
+      (setq speedbar-previous-menu md)
+      ;; Now add the new menu
       (if (not speedbar-xemacsp)
 	  (easy-menu-define speedbar-menu-map (current-local-map)
 			    "Speedbar menu" md)
-	(if (and (not (assoc "Speedbar" mode-popup-menu)))
-	    (easy-menu-add md (current-local-map)))
+	(easy-menu-add md (current-local-map))
 	(set-buffer-menubar (list md))))))
 
 
@@ -1374,6 +1388,26 @@ Must be bound to event E."
     (if (< emacs-major-version 20)
 	(mouse-major-mode-menu e)
       (mouse-major-mode-menu e nil))))
+
+(defun speedbar-hack-buffer-menu (e)
+  "Control mouse 1 is buffer menu.
+This hack overrides it so that the right thing happens in the main
+Emacs frame, not in the speedbar frame.
+Argument E is the event causing this activity."
+  (interactive "e")
+  (let ((fn (lookup-key global-map (if speedbar-xemacsp
+				              '(control button1)
+				     [C-down-mouse-1])))
+	(newbuff nil))
+    (unwind-protect
+	(save-excursion
+	  (set-window-dedicated-p (selected-window) nil)
+	  (call-interactively fn)
+	  (setq newbuff (current-buffer)))
+      (switch-to-buffer " SPEEDBAR")
+      (set-window-dedicated-p (selected-window) t))
+    (speedbar-with-attached-buffer
+     (switch-to-buffer newbuff))))
 
 (defun speedbar-next (arg)
   "Move to the next ARGth line in a speedbar buffer."
@@ -1487,20 +1521,23 @@ Assumes that the current buffer is the speedbar buffer"
 (defun speedbar-refresh ()
   "Refresh the current speedbar display, disposing of any cached data."
   (interactive)
-  (let ((dl speedbar-shown-directories))
+  (let ((dl speedbar-shown-directories)
+	(dm (and (boundp 'deactivate-mark) deactivate-mark)))
     (while dl
       (adelete 'speedbar-directory-contents-alist (car dl))
-      (setq dl (cdr dl))))
-  (if (<= 1 speedbar-verbosity-level) (message "Refreshing speedbar..."))
-  (speedbar-update-contents)
-  (speedbar-stealthy-updates)
-  ;; Reset the timer in case it got really hosed for some reason...
-  (speedbar-set-timer speedbar-update-speed)
-  (if (<= 1 speedbar-verbosity-level)
-      (progn
-	(message "Refreshing speedbar...done")
-	(sit-for 0)
-	(message nil))))
+      (setq dl (cdr dl)))
+    (if (<= 1 speedbar-verbosity-level) (message "Refreshing speedbar..."))
+    (speedbar-update-contents)
+    (speedbar-stealthy-updates)
+    ;; Reset the timer in case it got really hosed for some reason...
+    (speedbar-set-timer speedbar-update-speed)
+    (if (<= 1 speedbar-verbosity-level)
+	(progn
+	  (message "Refreshing speedbar...done")
+	  (sit-for 0)
+	  (message nil)))
+    ;; Protect the highlighted region.
+    (if (boundp 'deactivate-mark) (setq deactivate-mark dm))))
 
 (defun speedbar-item-load ()
   "Load the item under the cursor or mouse if it is a Lisp file."
@@ -2646,7 +2683,10 @@ updated."
 		))
 	    (setq speedbar-last-selected-file newcf))
 	  (if (not sucf-recursive)
-	      (speedbar-position-cursor-on-line))
+	      (progn
+		(speedbar-center-buffer-smartly)
+		(speedbar-position-cursor-on-line)
+		))
 	  (set-buffer lastb)
 	  (select-frame lastf)
 	  )))
@@ -2771,6 +2811,7 @@ that will occur on your system."
   (or
    ;; RCS file name
    (file-exists-p (concat path "RCS/" name ",v"))
+   (file-exists-p (concat path "RCS/" name))
    ;; Local SCCS file name
    (file-exists-p (concat path "SCCS/p." name))
    ;; Remote SCCS file name
@@ -3176,8 +3217,8 @@ expanded.  INDENT is the current indentation level."
   "Speedbar click handler for default directory buttons.
 TEXT is the button clicked on.  TOKEN is the directory to follow.
 INDENT is the current indentation level and is unused."
-  (if (string-match "^[A-Z]:$" token)
-      (setq default-directory (concat token "\\"))
+  (if (string-match "^[A-z]:$" token)
+      (setq default-directory (concat token (char-to-string directory-sep-char)))
     (setq default-directory token))
   ;; Because we leave speedbar as the current buffer,
   ;; update contents will change directory without
@@ -3274,7 +3315,7 @@ frame instead."
 This assumes that the cursor is on a file, or tag of a file which the user is
 interested in."
   (if (<= (count-lines (point-min) (point-max))
-	  (window-height (selected-window)))
+	  (1- (window-height (selected-window))))
       ;; whole buffer fits
       (let ((cp (point)))
 	(goto-char (point-min))
@@ -3631,7 +3672,8 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 						      (point))))))
 	      (if (and (get-buffer text)
 		       (y-or-n-p (format "Kill buffer %s? " text)))
-		  (kill-buffer text)))))))
+		  (kill-buffer text))
+	      (speedbar-refresh))))))
 
 (defun speedbar-buffer-revert-buffer ()
   "Revert the buffer the cursor is on in the speedbar buffer."
