@@ -68,6 +68,7 @@ main (argc, argv)
   char string[BUFSIZ];
 
   char *getenv (), *getwd ();
+  char *getcwd ();
   int geteuid ();
 
   if (argc < 2)
