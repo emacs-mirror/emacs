@@ -46,8 +46,8 @@ With arg N, insert N newlines."
 	  (forward-char -1)))
     (while (> arg 0)
       (save-excursion
-        (insert ?\n))
-      (if do-fill-prefix (insert fill-prefix))
+        (insert ?\n)
+	(if do-fill-prefix (insert fill-prefix)))
       (setq arg (1- arg)))
     (if flag (forward-char 1))))
 
