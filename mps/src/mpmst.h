@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.16) $
+ * $HopeName: MMsrc!mpmst.h(trunk.17) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -194,7 +194,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
 
 #define VMSig           ((Sig)0x519FEE33)
 
-#ifdef VM_RM			/* impl.h.config */
+#ifdef VM_RM                    /* impl.h.config */
 
 typedef struct VMStruct {       /* Real Memory fake VM; impl.c.vmrm */
   Sig sig;                      /* design.mps.sig */
@@ -214,7 +214,18 @@ typedef struct VMStruct {       /* Win32 VM structure; impl.c.vmnt */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
 
-#elif defined(MPS_OS_O1) || defined(MPS_OS_S7) || defined(MPS_OS_IR)
+#elif defined(MPS_OS_O1) 
+
+typedef struct VMStruct {       /* DEC UNIX VM structure; impl.c.vmo1 */
+  Sig sig;                      /* design.mps.sig */
+  Align align;                  /* page size */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+  int none_fd;                  /* fildes for reserved memory */
+} VMStruct;
+
+#elif defined(MPS_OS_S7) || defined(MPS_OS_IR)
 
 /* These platforms use vman, since no platform specific VM */
 
