@@ -2099,12 +2099,12 @@ Then you'll be asked about a number of files to recover."
 	(insert "Move to the session you want to recover,\n")
 	(insert "then type C-c C-c to select it.\n\n")))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-  (define-key (current-local-map) "\C-c\C-c" 'multiple-recover-finish))
+  (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish))
 
-(defun multiple-recover-finish ()
+(defun recover-session-finish ()
   "Choose one saved session to recover auto-save files from.
 This command is used in the special Dired buffer created by
-M-x multiple-recover."
+\\[recover-session]."
   (interactive)
   ;; Get the name of the session file to recover from.
   (let ((file (dired-get-filename))
@@ -2115,18 +2115,17 @@ M-x multiple-recover."
 	  (set-buffer buffer)
 	  (erase-buffer)
 	  (insert-file-contents file)
-	  (while (not (eobp))
-	    ;; Look at each file entry.
-	    (and (not (eolp))
-		 (let ((edited-file
-			(buffer-substring (point)
-					  (save-excursion (end-of-line) (point)))))
-		   ;; Offer to recover it.
-		   (if (y-or-n-p (format "Recover %s? " edited-file))
-		       (save-excursion
-			 (recover-file edited-file)))))
-	    ;; Skip to the next entry.
-	    (forward-line 2)))
+	  (map-y-or-n-p  "Recover %s? "
+			 (lambda (file) (save-excursion (recover-file file)))
+			 (lambda ()
+			   (if (eobp)
+			       nil
+			     (prog1
+				 (buffer-substring-no-properties
+				  (point) (progn (end-of-line) (point)))
+			       (while (and (eolp) (not (eobp)))
+				 (forward-line 2)))))
+			 '("file" "files" "recover")))
       (kill-buffer buffer))))
 
 (defun kill-some-buffers ()
