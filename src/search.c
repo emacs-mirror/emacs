@@ -880,13 +880,14 @@ search_command (string, bound, noerror, count, direction, RE, posix)
     {
       CHECK_NUMBER_COERCE_MARKER (bound, 1);
       lim = XINT (bound);
-      lim_byte = CHAR_TO_BYTE (lim);
       if (n > 0 ? lim < PT : lim > PT)
 	error ("Invalid search bound (wrong side of point)");
       if (lim > ZV)
 	lim = ZV, lim_byte = ZV_BYTE;
-      if (lim < BEGV)
+      else if (lim < BEGV)
 	lim = BEGV, lim_byte = BEGV_BYTE;
+      else
+	lim_byte = CHAR_TO_BYTE (lim);
     }
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
