@@ -1,5 +1,8 @@
 2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacs.c (bug_reporting_address): New function.
+	Use it when displaying usage message.
+
 	* minibuf.c (read_minibuf): Remove unused external declaration of
 	variable `Qread_only'.
 
