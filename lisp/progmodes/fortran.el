@@ -853,6 +853,7 @@ except that ] is never special and \ quotes ^, - or \."
   (skip-chars-backward chars)
   (delete-region (point) (progn (skip-chars-forward chars) (point))))
 
+(put 'fortran-electric-line-number 'delete-selection t)
 (defun fortran-electric-line-number (arg)
   "Self insert, but if part of a Fortran line number indent it automatically.
 Auto-indent does not happen if a numeric ARG is used."
