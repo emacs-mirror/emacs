@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.33 2002/12/26 14:38:20 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.34 2003/01/03 15:27:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -413,7 +413,7 @@ whether to remove it."
                                        ;; use current workfile version
                                        workrev
                                      ;; REV is t ...
-                                     (if (vc-branch-p workrev)
+                                     (if (not (vc-trunk-p workrev))
                                          ;; ... go to head of current branch
                                          (vc-branch-part workrev)
                                        ;; ... go to head of trunk
