@@ -31,7 +31,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.25";
+char pot_etags_version[] = "@(#) pot revision number is 11.26";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1044,6 +1044,7 @@ process_file (file)
 	  filename = relative_filename (file, tagfiledir);
 	}
       fprintf (tagf, "\f\n%s,%d\n", filename, total_size_of_entries (head));
+      free (filename);
       put_entries (head);
       free_tree (head);
       head = NULL;
@@ -3448,7 +3449,7 @@ readline_internal (linebuffer, stream)
 	}
       if (c == '\n')
 	{
-	  if (p[-1] == '\r' && p > buffer)
+	  if (p > buffer && p[-1] == '\r')
 	    {
 	      *--p = '\0';
 	      chars_deleted = 2;
