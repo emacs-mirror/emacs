@@ -66,6 +66,7 @@ of the evaluator.
 You may call with no args, or you may pass nil as the first arg and
 any other args you like.  In that case, the list of args after the
 first will be printed into the backtrace buffer."
+  (interactive)
   (message "Entering debugger...")
   (let (debugger-value
 	(debug-on-error nil)
