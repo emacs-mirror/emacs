@@ -173,7 +173,29 @@ Support for Chinese CNS character sets.  Note that EUC-TW coding system
 accepts Big5 for input also (which is then converted to CNS)."))
  '("Chinese"))
 
-;; Fixme: GBK coding system
+;;; Chinese GBK
+
+(define-coding-system 'chinese-gbk
+  "GBK encoding for Chinese (MIME:GBK)."
+  :coding-type 'charset
+  :mnemonic ?c
+  :charset-list '(chinese-gbk)
+  :mime-charset 'gbk)
+(define-coding-system-alias 'gbk 'chinese-gbk)
+(define-coding-system-alias 'cp936 'chinese-gbk)
+(define-coding-system-alias 'windows-936 'chinese-gbk)
+
+(set-language-info-alist
+ "Chinese-GBK" '((charset chinese-gbk)
+		  (coding-system chinese-gbk)
+		  (coding-priority gbk iso-2022-cn chinese-big5
+				   chinese-iso-8bit) ; fixme?
+		  (input-method . "chinese-py-punct") ; fixme?
+		  (features china-util)
+		  (documentation . "Support for Chinese GBK character set."))
+ '("Chinese"))
+
+;; Fixme: add HKSCS, GB18030
 
 (provide 'chinese)
 
