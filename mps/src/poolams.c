@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.33) $
+ * $HopeName: MMsrc!poolams.c(trunk.34) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.33) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.34) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -121,6 +121,32 @@ failAlloc:
   return res;
 }
 
+
+/* AMSSegSizePolicy
+ *
+ * Picks a segment size.  This policy simply rounds the size
+ * up to the arena alignment. */
+static Res AMSSegSizePolicy(Size *sizeReturn,
+                            Pool pool, Size size, RankSet rankSet)
+{
+  Arena arena;
+
+  AVER(sizeReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(size > 0);
+  AVER(RankSetCheck(rankSet));
+
+  arena = PoolArena(pool);
+
+  size = SizeAlignUp(size, ArenaAlign(arena));
+  if(size == 0) {
+    /* overflow */
+    return ResMEMORY;
+  }
+  *sizeReturn = size;
+  return ResOK;
+}
+
 static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
                           SegPref segPref, RankSet rankSet,
                           Bool withReservoirPermit)
@@ -143,9 +169,9 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   AVERT(AMS,ams);
   arena = PoolArena(pool);
 
-  size = SizeAlignUp(size, ArenaAlign(arena));
-  if(size == 0)
-    return ResMEMORY; /* overflow in alignment computation */
+  res = ams->segSize(&size, pool, size, rankSet);
+  if(res != ResOK)
+    goto failSize;
 
   res = ArenaAlloc(&p, arena, ams->groupSize);
   if(res != ResOK)
@@ -182,6 +208,7 @@ failInit:
 failSeg:
   ArenaFree(arena, group, ams->groupSize);
 failGroup:
+failSize:
   return res;
 }
 
@@ -289,6 +316,7 @@ Res AMSInit(Pool pool, va_list arg)
 
   /* The next seven might be overridden by a subclass. */
   ams->iterate = AMSIterate; /* should be done using a format variant */
+  ams->segSize = AMSSegSizePolicy;
   ams->allocRing = AMSPoolRing;
   ams->groupsDestroy = AMSGroupsDestroy;
   ams->groupSize = sizeof(AMSGroupStruct);

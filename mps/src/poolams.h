@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.6) $
+ * $HopeName: MMsrc!poolams.h(trunk.7) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -27,7 +27,11 @@ typedef Ring (*AMSRingFunction)(AMS ams, RankSet rankSet, Size size);
 /* AMSGroupsDestroyFunction is the type of the method to destroy all */
 /* groups of an AMS pool. */
 typedef void (*AMSGroupsDestroyFunction)(AMS ams);
-
+/* AMSSegSizePolicyFunction is the type of the method which picks */
+/* a segment (group) size given an object size. */
+typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
+                                        Pool pool, Size size,
+					RankSet rankSet);
 /* AMSObjectFunction is the type of the method that an */
 /* AMSIterateFunction applies to each object in a group. */
 typedef Res (*AMSObjectFunction)(
@@ -51,6 +55,7 @@ typedef struct AMSStruct {
   Size size;                   /* total segment size of the pool */
   Size lastReclaimed;          /* size after last reclaim */
   AMSIterateFunction iterate;  /* iterator function */
+  AMSSegSizePolicyFunction segSize; /* SegSize policy */
   RingStruct groupRing;        /* ring of groups in the pool */
   AMSRingFunction allocRing;   /* fn to get the ring to allocate from */
   AMSGroupsDestroyFunction groupsDestroy;
