@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
-;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: Jamie Zawinski <jwz@lucid.com>
@@ -546,7 +546,7 @@ With arg N, put point N/10 of the way from the true end.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
-  (interactive "P")
+  (interactive "p")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'end-of-buffer)
   (end-of-buffer arg))
