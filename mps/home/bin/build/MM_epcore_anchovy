@@ -2,7 +2,7 @@
 #
 # Build and test MM (the MMsrc compound) at tip of branch MM_epcore_anchovy
 # 
-# $HopeName$
+# $HopeName: HOMEmm!bin:build:MM_epcore_anchovy(trunk.1) $
 
 
 script="`basename $0`"
@@ -67,6 +67,13 @@ MPS_TELEMETRY_CONTROL=-1
 build_lib mmsw.a
 
 do_tests testrunep
+
+### Then clean up and do the others.
+
+gnumake -rf $platform.gmk clean ||
+  die "Unable to clean up trunk"
+
+do_tests testrun
 
 
 # If the tests succeeded, delete the junk
