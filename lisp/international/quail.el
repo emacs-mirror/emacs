@@ -381,8 +381,8 @@ If it is nil, the current key is shown.
 
 DOCSTRING is the documentation string of this package.  The command
 `describe-input-method' shows this string while replacing the form
-\\<VAR> in the string by the value of VAR.  That value should be a
-string.  For instance, the form \\<quail-translation-docstring> is
+\\=\\<VAR> in the string by the value of VAR.  That value should be a
+string.  For instance, the form \\=\\<quail-translation-docstring> is
 replaced by a description about how to select a translation from a
 list of candidates.
 
