@@ -139,21 +139,17 @@ delete any existing frames that the frame configuration doesn't mention.
 (defun number-to-register (arg char)
   "Store a number in a register.
 Two args, NUMBER and REGISTER (a character, naming the register).
-If NUMBER is nil, digits in the buffer following point are read
-to get the number to store.
+If NUMBER is nil, a decimal number is read from the buffer starting
+at point, and point moves to the end of that number.
 Interactively, NUMBER is the prefix arg (none means nil)."
   (interactive "P\ncNumber to register: ")
   (set-register char 
 		(if arg
 		    (prefix-numeric-value arg)
-		  (if (looking-at "[0-9][0-9]*")
-		      (save-excursion
-		       (save-restriction
-			(narrow-to-region (point)
-					  (progn (skip-chars-forward "0-9")
-						 (point)))
-			(goto-char (point-min))
-			(read (current-buffer))))
+		  (if (looking-at "\\s-*-?[0-9]+")
+		      (progn
+			(goto-char (match-end 0))
+			(string-to-int (match-string 0)))
 		    0))))
 
 (defun increment-register (arg char)
