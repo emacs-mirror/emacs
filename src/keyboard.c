@@ -1429,7 +1429,8 @@ bind_polling_period (n)
 #endif
 }
 
-/* Applying the control modifier to CHARACTER.  */
+/* Apply the control modifier to CHARACTER.  */
+
 int
 make_ctrl_char (c)
      int c;
@@ -3161,7 +3162,11 @@ make_lispy_switch_frame (frame)
    SYMBOL's name of the end of the modifiers; the string from this
    position is the unmodified symbol name.
 
+   If MODIFIER_END is -1, parse *only* a modifier; expect
+   the symbol name to be just one modifier, with no dash.
+
    This doesn't use any caches.  */
+
 static int
 parse_modifiers_uncached (symbol, modifier_end)
      Lisp_Object symbol;
@@ -3170,87 +3175,117 @@ parse_modifiers_uncached (symbol, modifier_end)
   struct Lisp_String *name;
   int i;
   int modifiers;
+  int just_one = ((int *) (-1) == modifier_end);
 
   CHECK_SYMBOL (symbol, 1);
   
   modifiers = 0;
   name = XSYMBOL (symbol)->name;
 
-
   for (i = 0; i+2 <= name->size; )
-    switch (name->data[i])
-      {
-#define SINGLE_LETTER_MOD(bit)					\
-        if (name->data[i+1] != '-')				\
-	  goto no_more_modifiers;				\
-	modifiers |= bit;					\
-	i += 2;
+    {
+      int this_mod_end = 0;
+      int this_mod = 0;
 
-      case 'A':
-	SINGLE_LETTER_MOD (alt_modifier);
-	break;
+      /* See if the name continues with a modifier word.
+	 Check that the word appears, but don't check what follows it.
+	 Set this_mod and this_mod_end to record what we find.  */
 
-      case 'C':
-	SINGLE_LETTER_MOD (ctrl_modifier);
-	break;
+      switch (name->data[i])
+	{
+#define SINGLE_LETTER_MOD(BIT)				\
+	  (this_mod_end = i + 1, this_mod = BIT)
 
-      case 'H':
-	SINGLE_LETTER_MOD (hyper_modifier);
-	break;
+#define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
+	  if (i + LEN <= name->size			\
+	      && ! strncmp (name->data + i, NAME, LEN))	\
+	    {						\
+	      this_mod_end = i + LEN;			\
+	      this_mod = BIT;				\
+	      break;					\
+	    }
 
-      case 'M':
-	SINGLE_LETTER_MOD (meta_modifier);
-	break;
+	case 'A':
+	  SINGLE_LETTER_MOD (alt_modifier);
+	  break;
 
-      case 'S':
-	SINGLE_LETTER_MOD (shift_modifier);
-	break;
+	case 'a':
+	  MULTI_LETTER_MOD (alt_modifier, "alt", 3);
+	  break;
 
-      case 's':
-	SINGLE_LETTER_MOD (super_modifier);
-	break;
+	case 'C':
+	  SINGLE_LETTER_MOD (ctrl_modifier);
+	  break;
 
-      case 'd':
-	if (i + 5 > name->size)
-	  goto no_more_modifiers;
-	if (! strncmp (name->data + i, "drag-", 5))
-	  {
-	    modifiers |= drag_modifier;
-	    i += 5;
-	  }
-	else if (! strncmp (name->data + i, "down-", 5))
-	  {
-	    modifiers |= down_modifier;
-	    i += 5;
-	  }
-	else if (i + 7 <= name->size
-		 && ! strncmp (name->data + i, "double-", 7))
-	  {
-	    modifiers |= double_modifier;
-	    i += 7;
-	  }
-	else
-	  goto no_more_modifiers;
-	break;
+	case 'c':
+	  MULTI_LETTER_MOD (ctrl_modifier, "ctrl", 4);
+	  MULTI_LETTER_MOD (ctrl_modifier, "control", 7);
+	  break;
 
-      case 't':
-	if (i + 7 > name->size)
-	  goto no_more_modifiers;
-	if (! strncmp (name->data + i, "triple-", 7))
-	  {
-	    modifiers |= triple_modifier;
-	    i += 7;
-	  }
-	else
-	  goto no_more_modifiers;
-	break;
+	case 'H':
+	  SINGLE_LETTER_MOD (hyper_modifier);
+	  break;
 
-      default:
-	goto no_more_modifiers;
+	case 'h':
+	  MULTI_LETTER_MOD (hyper_modifier, "hyper", 5);
+	  break;
+
+	case 'M':
+	  SINGLE_LETTER_MOD (meta_modifier);
+	  break;
+
+	case 'm':
+	  MULTI_LETTER_MOD (meta_modifier, "meta", 4);
+	  break;
+
+	case 'S':
+	  SINGLE_LETTER_MOD (shift_modifier);
+	  break;
+
+	case 's':
+	  MULTI_LETTER_MOD (shift_modifier, "shift", 5);
+	  MULTI_LETTER_MOD (super_modifier, "super", 5);
+	  SINGLE_LETTER_MOD (super_modifier);
+	  break;
+
+	case 'd':
+	  MULTI_LETTER_MOD (drag_modifier, "drag", 4);
+	  MULTI_LETTER_MOD (down_modifier, "down", 4);
+	  MULTI_LETTER_MOD (double_modifier, "double", 6);
+	  break;
+
+	case 't':
+	  MULTI_LETTER_MOD (triple_modifier, "triple", 6);
+	  break;
 
 #undef SINGLE_LETTER_MOD
-      }
- no_more_modifiers:
+#undef MULTI_LETTER_MOD
+	}
+
+      /* If we are looking for just a modifier, return now.
+	 Return 0 if we didn't find one; return the
+	 modifier bit if we did find one.  */
+      if (just_one)
+	{
+	  if (this_mod_end == name->size)
+	    return this_mod;
+	  else
+	    return 0;
+	}
+
+      /* If we found no modifier, stop looking for them.  */
+      if (this_mod_end == 0)
+	break;
+
+      /* Check there is a dash after the modifier, so that it
+	 really is a modifier.  */
+      if (this_mod_end >= name->size || name->data[this_mod_end] != '-')
+	break;
+
+      /* This modifier is real; look for another.  */
+      modifiers |= this_mod;
+      i = this_mod_end + 1;
+    }
 
   /* Should we include the `click' modifier?  */
   if (! (modifiers & (down_modifier | drag_modifier
@@ -3265,7 +3300,6 @@ parse_modifiers_uncached (symbol, modifier_end)
 
   return modifiers;
 }
-
 
 /* Return a symbol whose name is the modifier prefixes for MODIFIERS
    prepended to the string BASE[0..BASE_LEN-1].
@@ -3582,6 +3616,79 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
   /* Apply modifiers to that symbol.  */
   return apply_modifiers (modifiers, value);
 }
+
+/* Convert a list that represents an event type,
+   such as (ctrl meta backspace), into the usual representation of that
+   event type as a number or a symbol.  */
+
+Lisp_Object
+convert_event_type_list (event)
+     Lisp_Object event;
+{
+  Lisp_Object base;
+  int modifiers = 0;
+  Lisp_Object rest;
+
+  base = Qnil;
+  rest = event;
+  while (CONSP (rest))
+    {
+      Lisp_Object elt;
+      int this = 0;
+
+      elt = XCONS (rest)->car;
+
+      if (SYMBOLP (elt))
+	this = parse_modifiers_uncached (elt, -1);
+
+      if (this != 0)
+	modifiers |= this;
+      else if (!NILP (base))
+	error ("Two bases given in one event");
+      else
+	base = elt;
+
+      rest = XCONS (rest)->cdr;
+    }
+
+  if (INTEGERP (base))
+    {
+      if (modifiers & ctrl_modifier)
+	return make_number ((modifiers & ~ ctrl_modifier)
+			    | make_ctrl_char (XINT (base)));
+      else
+	return make_number (modifiers | XINT (base));
+    }
+  else if (SYMBOLP (base))
+    return apply_modifiers (modifiers, base);
+  else
+    error ("Invalid base event");
+}
+
+/* Return 1 if EVENT is a list whose elements are all integers or symbols.
+   Such a list is not valid as an event,
+   but it can be a Lucid-style event type list.  */
+
+int
+lucid_event_type_list_p (object)
+     Lisp_Object object;
+{
+  Lisp_Object tail;
+
+  if (! CONSP (object))
+    return 0;
+
+  for (tail = object; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object elt;
+      elt = XCONS (tail)->car;
+      if (! (INTEGERP (elt) || SYMBOLP (elt)))
+	return 0;
+    }
+
+  return NILP (tail);
+}
+
 
 
 /* Store into *addr a value nonzero if terminal input chars are available.
