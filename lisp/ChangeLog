@@ -1,3 +1,8 @@
+2003-07-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-translate-key): Update
+	quail-current-str correctly.
+
 2003-07-21  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/sh-script.el (sh-mode-syntax-table): Change syntax of
