@@ -13,7 +13,10 @@ Configuring:
     environment variables, as is customary for use with Windows compilers.
 
 (2) Choose the directory into which Emacs will be installed, and
-    edit makefile.def to define INSTALL_DIR to be this directory.  Note 
+    edit makefile.def to define INSTALL_DIR to be this directory.  
+    (Alternatively, if you have INSTALL_DIR set as an environment
+    variable, the build process will ignore the value in makefile.def
+    and use the value of the environment variable instead.)  Note 
     that if it is not installed in the directory in which it is built,
     the ~16 MB of lisp files will be copied into the installation directory.
 
