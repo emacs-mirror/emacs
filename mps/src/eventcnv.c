@@ -1,7 +1,7 @@
 /* impl.c.eventcnv: Simple event log converter
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventcnv.c(trunk.1) $
+ * $HopeName: MMsrc!eventcnv.c(trunk.2) $
  */
 
 #include "config.h"
@@ -10,7 +10,6 @@
 
 #include "eventcom.h"
 #include "eventpro.h"
-#include "misc.h"
 #include "mpmtypes.h"
 
 #include <stddef.h> /* for size_t */
@@ -35,9 +34,9 @@ static Word eventTime; /* current event time */
 
 /* event counters */
 
-typedef unsigned long eventCountArray[EventCodeMAX];
-static unsigned long bucketEventCount[EventCodeMAX];
-static unsigned long totalEventCount[EventCodeMAX];
+typedef unsigned long eventCountArray[EventCodeMAX+1];
+static unsigned long bucketEventCount[EventCodeMAX+1];
+static unsigned long totalEventCount[EventCodeMAX+1];
 
 
 static char *prog; /* program name */
@@ -49,7 +48,7 @@ static Bool verbose = FALSE;
 /* style: '\0' for human-readable, 'L' for Lisp, 'C' for CDF. */
 static char style = '\0';
 static Bool reportEvents = FALSE;
-static Bool eventEnabled[EventCodeMAX];
+static Bool eventEnabled[EventCodeMAX+1];
 static Bool partialLog = FALSE;
 static Word bucketSize = 0;
 
@@ -61,7 +60,7 @@ static void error(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: ", prog);
+  fprintf(stderr, "%s: @%lu ", prog, (ulong)eventTime);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
@@ -75,7 +74,7 @@ static void error(const char *format, ...)
 static void usage(void)
 {
   fprintf(stderr,
-          "Usage: %s [-f logfile] [-^] [-p] [-v] [-e events] [-b size]"
+          "Usage: %s [-f logfile] [-p] [-v] [-e events] [-b size]"
           " [-S[LC]] [-?]\nSee guide.mps.telemetry for instructions.",
           prog);
 }
@@ -105,14 +104,14 @@ static void parseEventSpec(const char *arg)
   Bool enabled = TRUE;
 
   end = arg + strlen(arg);
-  for(i = 0; i < EventCodeMAX; ++i)
+  for(i = 0; i <= EventCodeMAX; ++i)
     eventEnabled[i] = FALSE;
   do {
     arglen = strcspn(arg, "+-");
     strncpy(name, arg, arglen); name[arglen] = '\0';
     if (strcmp(name, "all") == 0) {
-      for(i = 0; i < EventCodeMAX; ++i)
-        eventEnabled[i] = TRUE;
+      for(i = 0; i <= EventCodeMAX; ++i)
+        eventEnabled[i] = EventCodeIsValid(i);
     } else
       eventEnabled[EventName2Code(name)] = enabled;
     enabled = (arg[arglen] == '+'); arg += arglen + 1;
@@ -185,9 +184,13 @@ static char *parseArgs(int argc, char *argv[])
 
 /* processEvent -- process event */
 
-static void processEvent(Event event, Word etime)
+static void processEvent(EventProc proc, Event event, Word etime)
 {
-  EventRecord(event, etime);
+  Res res;
+
+  res = EventRecord(proc, event, etime);
+  if (res != ResOK)
+    error("Can't record event: error %d.", res);
   switch(event->any.code) {
   case EventArenaCreate:	/* arena */
     break;
@@ -221,14 +224,14 @@ static void printStr(EventString str, Bool quotes)
 
 /* printAddr -- print an Addr or its label */
 
-static void printAddr(Addr addr)
+static void printAddr(EventProc proc, Addr addr)
 {
   Word label;
 
-  label = AddrLabel(addr);
+  label = AddrLabel(proc, addr);
   if (label != 0 && addr != 0) {
     /* We assume labelling zero is meant to record a point in time */
-    EventString sym = LabelText(label);
+    EventString sym = LabelText(proc, label);
     if (sym != NULL) {
       putchar(' ');
       printStr(sym, (style == 'C'));
@@ -248,7 +251,7 @@ static void reportEventResults(eventCountArray eventCounts)
   EventCode i;
   unsigned long total = 0;
   
-  for(i = 0; i < EventCodeMAX; ++i) {
+  for(i = 0; i <= EventCodeMAX; ++i) {
     total += eventCounts[i];
     if (eventEnabled[i])
       switch (style) {
@@ -304,7 +307,7 @@ static void clearBucket(void)
 {
   EventCode i;
 
-  for(i = 0; i < EventCodeMAX; ++i)
+  for(i = 0; i <= EventCodeMAX; ++i)
     bucketEventCount[i] = 0;
 }
 
@@ -318,13 +321,14 @@ static void clearBucket(void)
  * some event types that are handled specially.
  */
 
-static void printArg(void *arg, char argType, char *styleConv)
+static void printArg(EventProc proc,
+                     void *arg, char argType, char *styleConv)
 {
   switch (argType) {
   case 'A': {
     if (style != 'L') {
       if (style == 'C') putchar(',');
-      printAddr(*(Addr *)arg);
+      printAddr(proc, *(Addr *)arg);
     } else
       printf(styleConv, (ulong)*(Addr *)arg);
   } break;
@@ -359,27 +363,34 @@ static void printArg(void *arg, char argType, char *styleConv)
 
 #define RELATION(name, code, always, kind, format) \
   case code: { \
-    printArg(EVENT_##format##_FIELD_PTR(event, i), \
+    printArg(proc, EVENT_##format##_FIELD_PTR(event, i), \
              eventFormat[i], styleConv); \
   } break;
 
 
-static Res readLog(char *filename)
+static void readLog(EventProc proc)
 {
-  FILE *input;
+  EventCode c;
   Word bucketLimit = bucketSize;
   char *styleConv = NULL; /* suppress uninit warning */
 
-  if (strcmp(filename, "-") == 0)
-    input = stdin;
-  else {
-    input = fopen(filename, "rb");
-    if (input == NULL)
-      error("unable to open \"%s\"\n", filename);
+  /* Print event count header. */
+  if (reportEvents) {
+    if (style == '\0') {
+      printf("  bucket:");
+      for(c = 0; c <= EventCodeMAX; ++c)
+        if (eventEnabled[c])
+          printf("  %04X", (unsigned)c);
+      printf("   all\n");
+    }
   }
 
+  /* Init event counts. */
+  for(c = 0; c <= EventCodeMAX; ++c)
+    totalEventCount[c] = 0;
   clearBucket();
 
+  /* Init style. */
   switch (style) {
   case '\0':
     styleConv = " %8lX"; break;
@@ -391,19 +402,21 @@ static Res readLog(char *filename)
     error("Unknown style code '%c'", style);
   }
 
-  while (TRUE) {
+  while (TRUE) { /* loop for each event */
     char *eventFormat;
     int argCount, i;
     Event event;
     EventCode code;
     Res res;
 
-    res = EventRead(&event, input);
-    if (res != ResOK) error("Truncated file");
-    if (event == NULL) break;
+    /* Read and parse event. */
+    res = EventRead(&event, proc);
+    if (res == ResFAIL) break; /* eof */
+    if (res != ResOK) error("Truncated log");
     eventTime = event->any.clock;
     code = EventGetCode(event);
 
+    /* Output bucket, if necessary, and update counters */
     if (bucketSize != 0 && eventTime >= bucketLimit) {
       reportBucketResults(bucketLimit-1);
       clearBucket();
@@ -416,11 +429,11 @@ static Res readLog(char *filename)
       ++totalEventCount[code];
     }
 
+    /* Output event. */
     if (verbose) {
       eventFormat = EventCode2Format(code);
       argCount = strlen(eventFormat);
       if (eventFormat[0] == '0') argCount = 0;
-      assert(argCount < eventArgsMAX);
 
       if (style == 'L') putchar('(');
 
@@ -429,7 +442,7 @@ static Res readLog(char *filename)
         printf("%-19s", EventCode2Name(code));
       } break;
       case 'C':
-        printf("%lu", (ulong)code);
+        printf("%u", (unsigned)code);
         break;
       }
  
@@ -446,7 +459,7 @@ static Res readLog(char *filename)
      case EventLabel: {
        switch (style) {
        case '\0': case 'C': {
-         EventString sym = LabelText(event->aw.w1);
+         EventString sym = LabelText(proc, event->aw.w1);
          printf((style == '\0') ? " %08lX " : ", %lu, ",
                 (ulong)event->aw.a0);
          if (sym != NULL) {
@@ -478,11 +491,11 @@ static Res readLog(char *filename)
                   (uint)event->pddwww.w4, (uint)event->pddwww.w5,
                   mean, stddev);
          }
-         printAddr((Addr)event->pddwww.p0);
+         printAddr(proc, (Addr)event->pddwww.p0);
        } break;
        case 'C': {
          putchar(',');
-         printAddr((Addr)event->pddwww.p0);
+         printAddr(proc, (Addr)event->pddwww.p0);
          printf(", %.10G, %.10G, %u, %u, %u",
                 event->pddwww.d1, event->pddwww.d2,
                 (uint)event->pddwww.w3, (uint)event->pddwww.w4,
@@ -502,7 +515,7 @@ static Res readLog(char *filename)
        /* class is a Pointer, but we label them, so call printAddr */
        if (style != 'L') {
          if (style == 'C') putchar(',');
-         printAddr((Addr)event->ppp.p2);
+         printAddr(proc, (Addr)event->ppp.p2);
        } else
          printf(styleConv, (ulong)event->ppp.p2);
      } break;
@@ -519,75 +532,91 @@ static Res readLog(char *filename)
       putchar('\n');
       fflush(stdout);
     }
-    processEvent(event, eventTime);
-    EventDestroy(event);
+    processEvent(proc, event, eventTime);
+    EventDestroy(proc, event);
   } /* while(!feof(input)) */
 
+  /* report last bucket (partial) */
   if (bucketSize != 0) {
     reportBucketResults(eventTime);
   }
-  return ResOK;
+  if (reportEvents) {
+    /* report totals */
+    switch (style) {
+    case '\0': {
+      printf("\n     run:");
+    } break;
+    case 'L': {
+      printf("(t");
+    } break;
+    case 'C': {
+      printf("%lu", eventTime+1);
+    } break;
+    }
+    reportEventResults(totalEventCount);
+
+    /* explain event codes */
+    if (style == '\0') {
+      printf("\n");
+      for(c = 0; c <= EventCodeMAX; ++c)
+        if (eventEnabled[c])
+          printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
+      if (bucketSize == 0)
+        printf("\nevent clock stopped at %lu\n", (ulong)eventTime);
+    }
+  }
 }
+
+
+/* logReader -- reader function for a file log */
+
+static FILE *input;
+
+static Res logReader(void *file, void *p, size_t len)
+{
+  size_t n;
+
+  n = fread(p, 1, len, (FILE *)file);
+  return (n < len) ? (feof((FILE *)file) ? ResFAIL : ResIO) : ResOK;
+}
+
+
+/* CHECKCONV -- check t2 can be cast to t1 without loss */
+
+#define CHECKCONV(t1, t2) \
+  (sizeof(t1) >= sizeof(t2))
 
 
 /* main */
 
 int main(int argc, char *argv[])
 {
-  char *name;
-  Res result;
-  EventCode i;
+  char *filename;
+  EventProc proc;
+  Res res;
 
-  name = parseArgs(argc,argv);
+  assert(CHECKCONV(ulong, Word));
+  assert(CHECKCONV(ulong, Addr));
+  assert(CHECKCONV(ulong, void *));
+  assert(CHECKCONV(unsigned, EventCode));
+  assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
 
-  EventProcInit(partialLog);
+  filename = parseArgs(argc, argv);
 
-  for(i = 0; i < EventCodeMAX; ++i)
-    totalEventCount[i] = 0;
-  if (reportEvents) {
-    if (style == '\0') {
-      printf("  bucket:");
-      for(i = 0; i < EventCodeMAX; ++i)
-        if (eventEnabled[i])
-          printf("  %04X", (unsigned)i);
-      printf("   all\n");
-    }
+  if (strcmp(filename, "-") == 0)
+    input = stdin;
+  else {
+    input = fopen(filename, "rb");
+    if (input == NULL)
+      error("unable to open \"%s\"\n", filename);
   }
 
-  result = readLog(name);
-  switch(result) {
-  case ResOK:
-    break;   
-  case ResIO:
-    printf("Log file prematurely terminated.\n");
-    break;
-  default:
-    printf("Mystery error.\n");
-  }
+  res = EventProcInit(&proc, partialLog, logReader, (void *)input);
+  if (res != ResOK)
+    error("Can't init EventProc module: error %d.", res);
 
-  if (reportEvents) {
-    switch (style) {
-    case '\0': {
-      printf("\n     run:");
-      reportEventResults(totalEventCount);
-      printf("\n");
-      for(i = 0; i < EventCodeMAX; ++i)
-        if (eventEnabled[i])
-          printf(" %04X %s\n", (unsigned)i, EventCode2Name(i));
-      if (bucketSize == 0)
-        printf("\nevent clock stopped at %lu\n", (ulong)eventTime);
-    } break;
-    case 'L': {
-      printf("(t");
-      reportEventResults(totalEventCount);
-    } break;
-    case 'C': {
-      printf("%lu", eventTime+1);
-      reportEventResults(totalEventCount);
-    } break;
-    }
-  }
+  readLog(proc);
 
-  EventProcFinish();
+  EventProcFinish(proc);
   return EXIT_SUCCESS;
 }
