@@ -1,7 +1,7 @@
 /*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.17) $
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!vmw3.c(trunk.18) $
+ *  Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
  *
@@ -55,7 +55,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmw3.c(trunk.17) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmw3.c(trunk.18) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -135,7 +135,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   AVERT(VM, vm);
 
-  EVENT4(VMCreate, vm, space, vm->base, vm->limit);
+  EVENT_PPAA(VMCreate, vm, space, vm->base, vm->limit);
 
   *spaceReturn = space;
   return ResOK;
@@ -161,7 +161,7 @@ void VMDestroy(Space space)
 
   b = VirtualFree((LPVOID)space, (DWORD)0, MEM_RELEASE);
   AVER(b != 0);
-  EVENT1(VMDestroy, vm);
+  EVENT_P(VMDestroy, vm);
 }
 
 
@@ -222,7 +222,7 @@ Res VMMap(Space space, Addr base, Addr limit)
 
   vm->mapped += AddrOffset(base, limit);
 
-  EVENT3(VMMap, vm, base, limit);
+  EVENT_PAA(VMMap, vm, base, limit);
 
   return ResOK;
 }
@@ -248,5 +248,5 @@ void VMUnmap(Space space, Addr base, Addr limit)
   AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 
-  EVENT3(VMUnmap, vm, base, limit);
+  EVENT_PAA(VMUnmap, vm, base, limit);
 }

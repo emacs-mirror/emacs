@@ -1,8 +1,8 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName: MMsrc!ossu.h(trunk.4) $
+ *  $HopeName: MMsrc!ossu.h(trunk.5) $
  *
- *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
+ *  Copyright (C) 1994,1995,1997 Harlequin Group, all rights reserved
  *
  *  This header defines some things which are part of the ANSI standard but
  *  missing from the C compiler / environment.
@@ -48,6 +48,7 @@ extern int fprintf (FILE *stream, const char *format, ...);
 extern int vfprintf (FILE *stream, const char *format, va_list arg);
 extern int vsprintf (char *s, const char *format, va_list arg);
 extern int fputs (const char *s, FILE *stream);
+extern int puts(const char *);
 extern int fscanf (FILE *stream, const char *format, ...);
 extern int sscanf (const char *s, const char *format, ...);
 extern int fseek (FILE *stream, long int offset, int whence);
