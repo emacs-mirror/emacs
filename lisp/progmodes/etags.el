@@ -1084,7 +1084,7 @@ unless it has one in the tags table."
       (let ((first-time t))
 	(while (visit-tags-table-buffer (not first-time))
 	  (setq first-time nil)
-	  (funcall tags-apropos-function))))))
+	  (funcall tags-apropos-function regexp))))))
 
 ;;; XXX Kludge interface.
 
