@@ -3,7 +3,8 @@
 	* international/mule.el (decode-char): Fix conditions.
 	(encode-char): Handle eight-bit-control too.
 	(transform-make-coding-system-args): New function.
-	(make-coding-system): Accept XEmacs style arguments.
+	(make-coding-system): Accept XEmacs style arguments for CCL base
+	coding system.
 
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
