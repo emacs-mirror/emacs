@@ -920,6 +920,9 @@ with @kbd{C-M-c} to proceed to the next occurrence.
 to redisplay the screen.  Then you must type another character to
 specify what to do with this occurrence.
 
+@item e
+to let you edit the replacement string.
+
 @item C-h
 to display a message summarizing these options.  Then you must type
 another character to specify what to do with this occurrence.
