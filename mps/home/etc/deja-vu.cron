@@ -1,4 +1,4 @@
-# $HopeName$
+# $HopeName: HOMEmm/!etc:crontab(trunk.5)$
  0 21  *  *  *  sh -c ". etc/shenv && overnight checkout"
 15 21  *  *  *  sh -c "./bin/tidy"
 30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_alloc_0"
@@ -8,3 +8,4 @@
 30 23  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_zoned"
  0  1  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/trunk"
 30  1  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk"
+ 0  2  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_debug"
