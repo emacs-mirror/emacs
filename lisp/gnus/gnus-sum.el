@@ -619,6 +619,17 @@ is not run if `gnus-visual' is nil."
   :group 'gnus-summary-visual
   :type 'hook)
 
+;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+(defcustom gnus-structured-field-decoder 'identity
+  "Function to decode non-ASCII characters in structured field for summary."
+  :group 'gnus-various
+  :type 'function)
+
+(defcustom gnus-unstructured-field-decoder 'identity
+  "Function to decode non-ASCII characters in unstructured field for summary."
+  :group 'gnus-various
+  :type 'function)
+
 (defcustom gnus-parse-headers-hook
   (list 'gnus-decode-rfc1522)
   "*A hook called before parsing the headers."
@@ -4144,12 +4155,18 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	    (progn
 	      (goto-char p)
 	      (if (search-forward "\nsubject: " nil t)
-		  (nnheader-header-value) "(none)"))
+		  ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+		  (funcall
+		   gnus-unstructured-field-decoder (nnheader-header-value))
+		"(none)"))
 	    ;; From.
 	    (progn
 	      (goto-char p)
 	      (if (search-forward "\nfrom: " nil t)
-		  (nnheader-header-value) "(nobody)"))
+		  ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+		  (funcall
+		   gnus-structured-field-decoder (nnheader-header-value))
+		"(nobody)"))
 	    ;; Date.
 	    (progn
 	      (goto-char p)
@@ -4284,8 +4301,11 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	  (setq header
 		(vector
 		 number			; number
-		 (gnus-nov-field)	; subject
-		 (gnus-nov-field)	; from
+		 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+		 (funcall
+		  gnus-unstructured-field-decoder (gnus-nov-field)) ; subject
+		 (funcall
+		  gnus-structured-field-decoder (gnus-nov-field))   ; from
 		 (gnus-nov-field)	; date
 		 (setq id (or (gnus-nov-field)
 			      (nnheader-generate-fake-message-id))) ; id
