@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.69) $
+ * $HopeName: MMsrc!mpsi.c(trunk.70) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -53,7 +53,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.69) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.70) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1361,6 +1361,19 @@ void mps_message_type_enable(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   MessageTypeEnable(arena, type);
+
+  ArenaLeave(arena);
+}
+
+void mps_message_type_disable(mps_arena_t mps_arena,
+                              mps_message_type_t mps_type)
+{
+  Arena arena = (Arena)mps_arena;
+  MessageType type = (MessageType)mps_type;
+
+  ArenaEnter(arena);
+
+  MessageTypeDisable(arena, type);
 
   ArenaLeave(arena);
 }
