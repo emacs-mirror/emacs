@@ -1,6 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5615,10 +5616,26 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	{
 	  /* The source text ends in invalid codes.  Let's just
 	     make them valid buffer contents, and finish conversion.  */
-	  inserted += len_byte;
-	  inserted_byte += len_byte;
-	  while (len_byte--)
-	    *dst++ = *src++;
+	  if (multibyte_p)
+	    {
+	      unsigned char *start = dst;
+	      
+	      inserted += len_byte;
+	      while (len_byte--)
+		{
+		  int c = *src++;
+		  dst += CHAR_STRING (c, dst);
+		}
+
+	      inserted_byte += dst - start;
+	    }
+	  else
+	    {
+	      inserted += len_byte;
+	      inserted_byte += len_byte;
+	      while (len_byte--)
+		*dst++ = *src++;
+	    }
 	  break;
 	}
       if (result == CODING_FINISH_INTERRUPT)
