@@ -463,7 +463,7 @@ which will run faster and do exactly what you probably want."
 	    (replace-match next-replacement nocasify literal)
 	    (setq replace-count (1+ replace-count)))
 	(undo-boundary)
-	(let (done replaced key)
+	(let (done replaced key def)
 	  ;; Loop reading commands until one of them sets done,
 	  ;; which means it has finished handling this occurrence.
 	  (while (not done)
