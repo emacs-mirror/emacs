@@ -331,11 +331,7 @@ be automatic inheritance."
 (defun derived-mode-merge-syntax-tables (old new)
   "Merge an old syntax table into a new one.
 Where the new table already has an entry, nothing is copied from the old one."
-  (map-char-table
-   (function (lambda (key value)
-	       (or (char-table-range new key)
-		   (set-char-table-range new key value))))
-   old))
+  (set-char-table-parent new old))
 
 ;; Merge an old abbrev table into a new one.
 ;; This function requires internal knowledge of how abbrev tables work,
