@@ -110,6 +110,7 @@ UNICODE=${srcdir}/quail/sgml-input.elc ${srcdir}/quail/rfc1345.elc \
 
 SLAVIC= \
 	${srcdir}/quail/czech.elc \
+	${srcdir}/quail/croatian.elc \
 	${srcdir}/quail/slovak.elc
 
 GREEK=${srcdir}/quail/greek.elc
