@@ -853,6 +853,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "%u" 'dired-upcase)
     (define-key map "%l" 'dired-downcase)
     (define-key map "%d" 'dired-flag-files-regexp)
+    (define-key map "%g" 'dired-mark-files-containing-regexp)
     (define-key map "%m" 'dired-mark-files-regexp)
     (define-key map "%r" 'dired-do-rename-regexp)
     (define-key map "%C" 'dired-do-copy-regexp)
@@ -987,6 +988,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       '("Flag..." . dired-flag-files-regexp))
     (define-key map [menu-bar regexp mark]
       '("Mark..." . dired-mark-files-regexp))
+    (define-key map [menu-bar regexp mark]
+      '("Mark Containing..." . dired-mark-files-containing-regexp))
 
     (define-key map [menu-bar mark]
       (cons "Mark" (make-sparse-keymap "Mark")))
@@ -2146,6 +2149,32 @@ object files--just `.o' will mark more than you might think."
 	  (not (eolp))			; empty line
 	  (let ((fn (dired-get-filename nil t)))
 	    (and fn (string-match regexp (file-name-nondirectory fn)))))
+     "matching file")))
+
+(defun dired-mark-files-containing-regexp (regexp &optional marker-char)
+  "Mark all files with contents containing REGEXP for use in later commands.
+A prefix argument means to unmark them instead.
+`.' and `..' are never marked."
+  (interactive
+   (list (dired-read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
+				    " files containing (regexp): "))
+	 (if current-prefix-arg ?\040)))
+  (let ((dired-marker-char (or marker-char dired-marker-char)))
+    (dired-mark-if
+     (and (not (looking-at dired-re-dot))
+	  (not (eolp))			; empty line
+	  (let ((fn (dired-get-filename nil t)))
+	    (and fn (save-excursion
+		      ;; For now we do it inside emacs
+		      ;; Grep might be better if there are a lot of files
+		      (message "Checking %s" fn)
+		      (let* ((prebuf (get-file-buffer fn)))
+			(find-file fn)
+			(goto-char (point-min))
+			(prog1 
+			    (re-search-forward regexp nil t)
+			  (if (not prebuf) (kill-buffer nil))))
+		      ))))
      "matching file")))
 
 (defun dired-flag-files-regexp (regexp)
