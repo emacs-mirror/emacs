@@ -509,20 +509,20 @@
 (modify-category-entry (make-char 'tibetan-1-column) ?q)
 
 (let ((deflist	'(;; chars             syntax category
-		  ("$(7"!(B-$(7"J(B"        	"w"	?0) ; consonant
-		  ("$(7#!(B-$(7#J#P#Q(B"          "w"     ?0) ;
+		  ("$(7"!(B-$(7"J"K(B"        	"w"	?0) ; consonant
+		  ("$(7#!(B-$(7#J#K#L#M!"!#(B"       "w"     ?0) ;
 		  ("$(7$!(B-$(7$e(B"              "w"     ?0) ;
 		  ("$(7%!(B-$(7%u(B"              "w"     ?0) ;
 		  ("$(7"S"["\"]"^"a(B"       "w"	?2) ; upper vowel
 		  ("$(7"_"c"d"g"h"i"j"k"l(B" "w"	?2) ; upper modifier
-		  ("$(7!I"Q"U"e!e!g(B"       "w"	?3) ; lowel vowel/modifier
+		  ("$(7!I"Q"R"U"e!e!g(B"       "w"	?3) ; lowel vowel/modifier
 		  ("$(7!P(B-$(7!Y!Z(B-$(7!c(B"	        "w"	?6) ; digit
 		  ("$(7!;!=(B-$(7!B!D"`(B"        "."     ?|) ; line-break char
 		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?|) ;
 		  ("$(7!8!;!=(B-$(7!B!D"`!m!d(B"  "."     ?>) ; prohibition
 		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?>) ;
 		  ("$(7!0(B-$(7!:!l#R#S"f(B"      "."     ?<) ; prohibition
-		  ("$(7!C!E(B-$(7!H!J(B-$(7!O!f!h(B-$(7!k!n!o(B" "." ?q) ; others
+		  ("$(7!C!E(B-$(7!H!J(B-$(7!O!f!h(B-$(7!k!n!o#O#P(B-$(7#`(B" "." ?q) ; others
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
