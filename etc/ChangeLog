@@ -1,3 +1,7 @@
+2000-05-03  Dave Love  <fx@gnu.org>
+
+	* letter.xbm: New file.
+
 2000-04-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin0.ps: PostScript level 1 compatibility.
