@@ -2,6 +2,11 @@ This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
 
+* Emacs reports a BadAtom error (from X) running on Solaris 7 or 8.
+
+This happens when Emacs was built on some other version of Solaris.
+Rebuild it on Solaris 8.
+
 * Mule-UCS loads very slowly.
 
 Changes to Emacs internals interact badly with Mule-UCS's `un-define'
@@ -456,7 +461,7 @@ If this is the problem, you can configure the jpeg library with the
 shared version of libjpeg, which you need to install.  Finally, rerun
 the Emacs configure script, which should now find the jpeg library.
 Alternatively, modify the generated src/Makefile to link the .a file
-explicitly.
+explicitly, and edit src/config.h to define HAVE_JPEG.
 
 * Building Emacs over NFS fails with ``Text file busy''.
 

@@ -85,8 +85,11 @@ read-only, the Emacs buffer is now read-only too.  Type C-x C-q if you
 want to make the buffer writable.  (As root, you will in fact be able
 to alter the file.)
 
+** The new command `revert-buffer-with-coding-system' (C-x RET r)
+revisits the current file using a coding system that you specify.
+
 ---
-** ps-print can now print Unicode characters.
+** `ps-print' can now print Unicode characters.
 
 Printing text with characters from the mule-unicode-* sets works with
 ps-print, provided that you have installed the appropriate BDF fonts.
@@ -1016,6 +1019,9 @@ much pure storage it will approximately need.
 to examine a file being visited and deduce the proper coding system
 for it.  (If the coding system is detected incorrectly for a specific
 file, you can put a `coding:' tags to override it.)
+
+** The new function `merge-coding-systems' fills in unspecified aspects
+of one coding system from another coding system.
 
 ** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
