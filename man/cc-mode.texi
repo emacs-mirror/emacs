@@ -7,7 +7,7 @@
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  ../info/cc-mode.info
+@setfilename  ../info/ccmode
 @settitle     CC Mode Version 5 Documentation
 @footnotestyle end
 
