@@ -1,5 +1,8 @@
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/flyspell.el (mail-mode-flyspell-verify): Spell-check
+	in Subject line.
+
 	* mail/mailabbrev.el (mail-abbrevs-enable, mail-abbrevs-disable):
 	Use mail-mode-hook instead of mail-setup-hook.  Otherwise
 	continuing an interrupted message with C-u C-x m for instence,

@@ -1,3 +1,9 @@
+2000-12-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_by_lines): Don't do optimizations if NEED_Y_P
+	is zero.  It's not worth the complexity.
+	(invisible_text_between_p): Put in #if 0 because unused.
+
 2000-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_backspace_delete_keys_p): Check library and server
