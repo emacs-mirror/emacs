@@ -2529,7 +2529,7 @@ Currently the only supported coded character set is `ucs' (ISO/IEC
 translated through the char table `utf-8-translation-table-for-decode'.
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
-and CODE-POINT to a character.   Currently not supported and just ignored."
+and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
     (let ((c (cond

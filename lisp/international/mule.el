@@ -306,7 +306,7 @@ Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
-and CODE-POINT to a character.   Currently not supported and just ignored."
+and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond ((eq ccs 'ucs)
 	 (cond ((< code-point 160)
 		code-point)
