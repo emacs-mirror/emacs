@@ -1,3 +1,8 @@
+2000-11-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_PNG): Check for the presence of
+	png_get_channels to rule out older PNG libs.
+
 2000-11-20  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix last change.

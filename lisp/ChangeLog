@@ -1,3 +1,7 @@
+2000-11-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (.SUFFIXES): Add .SUFFIXES.
+
 2000-11-21  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/advice.el (ad-special-forms): Correct the conditional
