@@ -500,7 +500,7 @@ to invocation.")
       (ediff-visible-region)
       
       (run-hooks 'startup-hooks)
-      (ediff-arrange-autosave-in-merge-jobs merge-buffer-file)
+      (ediff-arrange-auto-save-in-merge-jobs merge-buffer-file)
 
       (ediff-refresh-mode-lines)
       (setq buffer-read-only t)
@@ -552,7 +552,7 @@ to invocation.")
     
 ;; This executes in control buffer and sets auto-save, visited file name, etc,
 ;; in the merge buffer
-(defun ediff-arrange-autosave-in-merge-jobs (merge-buffer-file)
+(defun ediff-arrange-auto-save-in-merge-jobs (merge-buffer-file)
   (if (not ediff-merge-job)
       ()
     (if (stringp merge-buffer-file)
