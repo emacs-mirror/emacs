@@ -2194,7 +2194,7 @@ The locations are of the format used in `Info-history', i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
   (let ((where '())
 	(cmd-desc (concat "^\\* +" (regexp-quote (symbol-name command))
-			  ":\\s *\\(.*\\)\\.$"))
+			  "\\( <[0-9]+>\\)?:\\s *\\(.*\\)\\.$"))
 	(info-file "emacs"))		;default
     ;; Determine which info file this command is documented in.
     (if (get command 'info-file)
@@ -2213,36 +2213,30 @@ The locations are of the format used in `Info-history', i.e.
 	    (if (string-match regexp (symbol-name command))
 		(setq info-file file file-list nil))
 	    (setq file-list (cdr file-list))))))
-    (save-excursion
-      (condition-case nil
-	  (Info-find-node info-file "Command Index")
-	;; Some manuals may not have a separate Command Index node,
-	;; so try other variations as well.
-	(error
-	 (condition-case nil
-	     (Info-find-node info-file "Function Index")
-	   (error
-	    (condition-case nil
-		(Info-find-node info-file "Function and Variable Index")
-	      (error
-	       (condition-case nil
-		   (Info-find-node info-file "Concept Index")
-		 (error
-		  (condition-case nil
-		      (Info-find-node info-file "Index")
-		    (error
-		     (message "Info file `%s' seems to lack an Index"
-			      info-file)
-		     (sit-for 2)))))))))))
-      ;; Take the index node off the Info history.
-      (setq Info-history (cdr Info-history))
-      (goto-char (point-max))
-      (while (re-search-backward cmd-desc nil t)
-	(setq where (cons (list Info-current-file
-				(match-string-no-properties 1)
+    (Info-find-node info-file "Top")
+    (or (and (search-forward "\n* menu:" nil t)
+	     (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t))
+	(error "Info file `%s' appears to lack an index" info-file))
+    (goto-char (match-beginning 1))
+    ;; Bind Info-history to nil, to prevent the index nodes from
+    ;; getting into the node history.
+    (let ((Info-history nil)
+	  (exact nil)
+	  node found)
+      (Info-goto-node (Info-extract-menu-node-name))
+      (while
+	  (progn
+	    (goto-char (point-min))
+	    (while (re-search-forward cmd-desc nil t)
+	      (setq where
+		    (cons (list Info-current-file
+				(match-string-no-properties 2)
 				0)
 			  where)))
-      where)))
+	    (and (setq node (Info-extract-pointer "next" t))
+		 (string-match "\\<Index\\>" node)))
+	(Info-goto-node node)))
+    where))
 
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
@@ -2262,13 +2256,17 @@ the variable `Info-file-list-for-emacs'."
 	  ;; FIXME It would be cool if this could use a buffer other
 	  ;; than *info*.
 	  (pop-to-buffer "*info*")
-	  (Info-find-node (car (car where))
-			  (car (cdr (car where))))
+	  ;; Bind Info-history to nil, to prevent the last Index node
+	  ;; visited by Info-find-emacs-command-nodes from being
+	  ;; pushed onto the history.
+	  (let ((Info-history nil))
+	    (Info-find-node (car (car where))
+			    (car (cdr (car where)))))
 	  (if (> num-matches 1)
 	      (progn
-		;; Info-find-node already pushed (car where) onto
-		;; Info-history.  Put the other nodes that were found on
-		;; the history.
+		;; (car where) will be pushed onto Info-history
+		;; when/if they go to another node.  Put the other
+		;; nodes that were found on the history.
 		(setq Info-history (nconc (cdr where) Info-history))
 		(message "Found %d other entr%s.  Use %s to see %s."
 			 (1- num-matches)
