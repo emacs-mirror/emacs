@@ -163,6 +163,9 @@ name, and the LINE-IDX'th subexpression gives the line number.")
   '(("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
+(defvar grep-command "grep -n "
+  "Last grep command used in \\{grep}; default for next grep.")
+
 ;;;###autoload
 (defvar compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
@@ -240,7 +243,7 @@ This command uses a special history list for its arguments, so you can
 easily repeat a grep command."
   (interactive
    (list (read-from-minibuffer "Run grep (like this): "
-			       "grep -n " nil nil 'grep-history)))
+			       grep-command nil nil 'grep-history)))
   (compile-internal (concat command-args " /dev/null")
 		    "No more grep hits" "grep"
 		    ;; Give it a simpler regexp to match.
@@ -857,8 +860,7 @@ See variables `compilation-parse-errors-function' and
       (set-window-point w (car next-error))
       (set-window-start w (car next-error)))))
 
-;;;###autoload
-(define-key ctl-x-map "`" 'next-error)
+;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
 ;; Find a buffer for file FILENAME.
 ;; Search the directories in compilation-search-path.
