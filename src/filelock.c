@@ -38,13 +38,14 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 
 #include <time.h>
-#include <utmp.h>
 #include <errno.h>
 #ifndef errno
 extern int errno;
 #endif
 
 #ifdef CLASH_DETECTION
+
+#include <utmp.h>
   
 /* The strategy: to lock a file FN, create a symlink .#FN in FN's
    directory, with link data `user@host.pid'.  This avoids a single
