@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.30 $")
+(defconst ange-ftp-version "$Revision: 1.31 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1975,6 +1975,9 @@ and NOWAIT."
   ;; capability.
   (let ((cmd0 (car cmd))
 	(cmd1 (nth 1 cmd))
+	(ange-ftp-this-user user)
+	(ange-ftp-this-host host)
+	(ange-ftp-this-msg msg)
 	cmd2 cmd3 host-type fix-name-func)
 
     (cond
@@ -2006,9 +2009,7 @@ and NOWAIT."
 		cmd1 (format "\"%s %s\"" cmd3 cmd1))))
      
      ;; First argument is the remote name
-     ((let ((ange-ftp-this-user user)
-	    (ange-ftp-this-host host)
-	    (ange-ftp-this-msg msg))
+     ((progn
 	(setq fix-name-func (or (cdr (assq host-type
 					   ange-ftp-fix-name-func-alist))
 				'identity))
@@ -5090,7 +5091,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;;; ------------------------------------------------------------
 
 ;; Since CMS doesn't have any full file name syntax, we have to fudge
-;; things with cd's. We actually send too many cd's, but is dangerous
+;; things with cd's. We actually send too many cd's, but it's dangerous
 ;; to try to remember the current minidisk, because if the connection
 ;; is closed and needs to be reopened, we will find ourselves back in
 ;; the default minidisk. This is fairly likely since CMS ftp servers
