@@ -210,13 +210,19 @@ executable."
    (let* ((name (read-string "Name or file name of interpreter: "))
 	  (arg (read-string (format "Argument for %s: " name))))
      (list name arg (eq executable-query 'function) t)))
+
   (setq interpreter (if (file-name-absolute-p interpreter)
 			interpreter
 		      (or (executable-find interpreter)
-			  (error "Interpreter %s not recognized" interpreter)))
-	argument (concat interpreter
+			  (error "Interpreter %s not recognized"
+				 interpreter))))
+
+  (setq argument (concat (if (string-match "\\`/:" interpreter)
+			     (replace-match "" nil nil interpreter)
+			   interpreter)
 			 (and argument (string< "" argument) " ")
 			 argument))
+
   (or buffer-read-only
       (if buffer-file-name
 	  (string-match executable-magicless-file-regexp
@@ -253,7 +259,7 @@ executable."
 ;;;	      (eq executable-insert t)
 ;;;	      (set-buffer-modified-p buffer-modified-p))
 	  )))
-  interpreter)
+    interpreter)
 
 
 
