@@ -1,5 +1,7 @@
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fsave_window_excursion): Doc fix.
+
 	* xfns.c (x_defined_color): Rewritten to use
 	x_allocate_nearest_color.
 

@@ -1,3 +1,9 @@
+2000-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* arc-mode.el (archive-zip-update): Add `-P' for pkzip.
+
+	* emacs-lisp/re-builder.el: Remove RCS Id, remove history comment.
+
 2000-03-12  Detlev Zundel <detlev.zundel@stud.uni-karlsruhe.de>
 
 	* emacs-lisp/re-builder.el (reb-re-syntax): Fix typo in `:type'.
