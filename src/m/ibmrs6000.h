@@ -151,11 +151,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    which most machines don't have.  We use the name .inp instead of .imp
    because .inp is a better convention to use in make-dist for naming
    random input files.  */
+#ifdef AIX4
+#define LD_SWITCH_MACHINE -Wl,-bnodelcsect
+#else /* not AIX4 */
 #ifdef HAVE_AIX_SMT_EXP
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp,-bI:/usr/lpp/X11/bin/smt.exp
 #else
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
 #endif
+#endif /* not AIX4 */
 
 /* AIX supposedly doesn't use this interface, but on the RS/6000
    it apparently does.  */
