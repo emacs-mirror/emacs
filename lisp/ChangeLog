@@ -10,8 +10,8 @@
 	* replace.el (occur-next-error, occur-1): Hook into the next-error
 	framework.
 
-	* compile.el (compilation-start): Set next-error-last-buffer so
-	next-error knows where to jump.
+	* progmodes/compile.el (compilation-start):
+	Set next-error-last-buffer so next-error knows where to jump.
 	(compilation-setup): Set the buffer-local variable
 	next-error-function to 'compilation-next-error-function.
 	(compilation-buffer-p, compilation-buffer-internal-p): Use an
