@@ -1,3 +1,38 @@
+2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* eshell/em-alias.el (eshell-alias-initialize): Do not use
+	make-local-hook.
+
+	* eshell/em-cmpl.el (eshell-cmpl-initialize): Likewise.
+
+	* eshell/em-dirs.el (eshell-dirs-initialize): Likewise.
+
+	* eshell/em-glob.el (eshell-glob-initialize): Likewise.
+
+	* eshell/em-hist.el (eshell-hist-initialize): Likewise.
+
+	* eshell/em-pred.el (eshell-pred-initialize): Likewise.
+
+	* eshell/em-prompt.el (eshell-prompt-initialize): Likewise.
+
+	* eshell/em-rebind.el (eshell-rebind-initialize): Likewise.
+
+	* eshell/em-smart.el (eshell-smart-initialize): Likewise.
+
+	* eshell/em-unix.el (eshell-unix-initialize): Likewise.
+
+	* eshell/esh-cmd.el (eshell-cmd-initialize): Likewise.
+
+	* eshell/esh-ext.el (eshell-ext-initialize): Likewise.
+
+	* eshell/esh-io.el (eshell-io-initialize): Likewise.
+
+	* eshell/esh-mode.el (eshell-mode): Likewise.
+
+	* eshell/esh-test.el (eshell-show-usage-metrics): Likewise.
+
+	* eshell/esh-var.el (eshell-var-initialize): Likewise.
+
 2002-02-16  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-hist.el (eshell-hist-initialize): When in the
@@ -725,7 +760,6 @@
 
 	* progmodes/perl-mode.el (perl-mode-abbrev-table): Restore definition.
 
->>>>>>> 1.3409
 2002-01-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): Fix previous change.
@@ -918,7 +952,6 @@
 	(eudc-display-mail): New function.
 	(eudc-bob-play-sound-at-point): Remove XEmacs case.
 
->>>>>>> 1.3356
 2002-01-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/autoload.el (make-autoload):
@@ -1758,7 +1791,6 @@
 	* apropos.el (apropos-print): SPACING is now nil or a separator string.
 	(apropos-documentation, apropos-value): Pass a suitable string.
 
->>>>>>> 1.3337
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-free-space-program, dired-free-space-args):
