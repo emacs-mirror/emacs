@@ -484,14 +484,19 @@ in the selected frame."
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive)
-  (display-buffer (Buffer-menu-buffer t)))
+  (let ((pop-up-windows t)
+	same-window-buffer-names
+	same-window-regexps)
+    (display-buffer (Buffer-menu-buffer t))))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))
-	(pop-up-windows t))
+	(pop-up-windows t)
+	same-window-buffer-names
+	same-window-regexps)
     (delete-other-windows)
     (switch-to-buffer (other-buffer))
     (pop-to-buffer buff)
