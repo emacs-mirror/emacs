@@ -18,12 +18,12 @@
    Note GCC automatically passes -a archive to ld, and it has its own
    conflicting -a.  */
 #ifdef __GNUC__
-#define LD_SWITCH_SYSTEM  -L/usr/lib/X11R5 -L/usr/lib/X11R4 -Xlinker -a -Xlinker archive
+#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive
 
 /* No need to specify roundabout way of linking temacs.  */
 #define ORDINARY_LINK
 #else
-#define LD_SWITCH_SYSTEM -a archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM -a archive
 #endif
 
 #if 0 /* This should no longer be necessary now that
