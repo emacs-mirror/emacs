@@ -1,3 +1,11 @@
+2004-04-30  Alex Schroeder  <alex@gnu.org>
+
+	* xml.el (xml-debug-print-internal): Don't add newline and
+	indentation to text nodes and write empty elements as empty tags
+	instead of opening and closing tags.
+	(xml-debug-print): Take optional indent-string argument.
+	(xml-print): Alias for xml-debug-print.
+
 2004-04-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-fill): Use local var `bol' rather
