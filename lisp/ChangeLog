@@ -1,3 +1,8 @@
+2000-07-24  Dave Love  <fx@gnu.org>
+
+	* mouse.el (popup-menu): Set last-command-event.
+	(mouse-major-mode-menu-prefix): Declare.
+
 2000-07-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/flyspell.el: Update to author's version 1.5d.
