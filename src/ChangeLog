@@ -1,3 +1,8 @@
+2001-06-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* composite.c (Ffind_composition_internal): Check POS
+	for validity.
+
 2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* editfns.c (Fmessage_box): If the frame is not under a window

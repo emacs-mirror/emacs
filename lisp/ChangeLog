@@ -1,3 +1,8 @@
+2001-06-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* antlr-mode.el (antlr-mode): Check that `c-Java-access-key' is
+	bound.  Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
+
 2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bs.el (bs--get-name, bs--get-file-name): Add help-echo to
