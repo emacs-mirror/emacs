@@ -294,7 +294,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -315,7 +315,7 @@ LIBXMENU= -lXMenu
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -366,7 +366,11 @@ LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #endif /* not LIBXT_STATIC */
 
 #else /* not USE_X_TOOLKIT */
+#ifdef HAVE_X_SM
+LIBXT=-lSM -lICE
+#else
 LIBXT=
+#endif
 #endif /* not USE_X_TOOLKIT */
 
 #if HAVE_XPM
@@ -549,7 +553,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o
 
 
 #ifdef TERMINFO
@@ -1128,6 +1132,7 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
 xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
   coding.h ccl.h buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
+xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h lisp.h termhooks.h
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
 atimer.o: atimer.c atimer.h systime.h $(config_h)
