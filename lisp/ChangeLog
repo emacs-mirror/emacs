@@ -10,16 +10,16 @@
 
 1999-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* viper*el: replaced old-style backquotes.
+	* viper*el: Replaced old-style backquotes.
 	
-	* ediff*el: replaced old-style backquotes.
+	* ediff*el: Replaced old-style backquotes.
 	
 	* ediff-merge
 	(ediff-looks-like-combined-merge,ediff-get-combined-region):
-	changed to support the new format for ediff-combination-pattern.
+	Changed to support the new format for ediff-combination-pattern.
 	
 	* ediff-diff (ediff-set-fine-overlays-in-one-buffer):
-	changed to support the new format for ediff-combination-pattern.
+	Changed to support the new format for ediff-combination-pattern.
 	
 1999-11-24  Dave Love  <fx@gnu.org>
 
