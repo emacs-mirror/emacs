@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -119,8 +119,17 @@ for the regexp; the part that matches gets displayed in this font."
 (defvar apropos-mode-hook nil
   "*Hook run when mode is turned on.")
 
+(defvar apropos-show-scores nil
+  "*Show apropos scores if non-nil.")
+
 (defvar apropos-regexp nil
   "Regexp used in current apropos run.")
+
+(defvar apropos-orig-regexp nil
+  "Regexp as entered by user.")
+
+(defvar apropos-all-regexp nil
+  "Regexp matching apropos-all-words.")
 
 (defvar apropos-files-scanned ()
   "List of elc files already scanned in current run of `apropos-documentation'.")
@@ -130,6 +139,20 @@ for the regexp; the part that matches gets displayed in this font."
 
 (defvar apropos-item ()
   "Current item in or for `apropos-accumulator'.")
+
+(defvar apropos-synonyms '(
+  ("find" "open" "edit")
+  ("kill" "cut")
+  ("yank" "paste"))
+  "List of synonyms known by apropos.
+Each element is a list of words where the first word is the standard emacs
+term, and the rest of the words are alternative terms.")
+
+(defvar apropos-words ()
+  "Current list of words.")
+
+(defvar apropos-all-words ()
+  "Current list of words and synonyms.")
 
 
 ;;; Button types used by apropos
@@ -219,6 +242,87 @@ before finding a label."
     (and label button)))
 
 
+(defun apropos-words-to-regexp (words wild)
+  "Make regexp matching any two of the words in WORDS."
+  (concat "\\("
+	  (mapconcat 'identity words "\\|")
+	  "\\)" wild
+	  (if (cdr words) 
+	      (concat "\\("
+		      (mapconcat 'identity words "\\|")
+		      "\\)")
+	    "")))
+
+(defun apropos-rewrite-regexp (regexp)
+  "Rewrite a list of words to a regexp matching all permutations.
+If REGEXP is already a regexp, don't modify it."
+  (setq apropos-orig-regexp regexp)
+  (setq apropos-words () apropos-all-words ())
+  (if (string-equal (regexp-quote regexp) regexp)
+      ;; We don't actually make a regexp matching all permutations.
+      ;; Instead, for e.g. "a b c", we make a regexp matching
+      ;; any combination of two or more words like this:
+      ;; (a|b|c).*(a|b|c) which may give some false matches,
+      ;; but as long as it also gives the right ones, that's ok.
+      (let ((words (split-string regexp "[ \t]+")))
+	(dolist (word words)
+	  (let ((syn apropos-synonyms) (s word) (a word))
+	    (while syn
+	      (if (member word (car syn))
+		  (progn
+		    (setq a (mapconcat 'identity (car syn) "\\|"))
+		    (if (member word (cdr (car syn)))
+			(setq s a))
+		    (setq syn nil))
+		(setq syn (cdr syn))))
+	    (setq apropos-words (cons s apropos-words)
+		  apropos-all-words (cons a apropos-all-words))))
+	(setq apropos-all-regexp (apropos-words-to-regexp apropos-all-words ".+"))
+	(apropos-words-to-regexp apropos-words ".*?"))
+    (setq apropos-all-regexp regexp)))
+
+(defun apropos-calc-scores (str words)
+  "Return apropos scores for string STR matching WORDS.
+Value is a list of offsets of the words into the string."
+  (let ((scores ())
+	i)
+    (if words
+	(dolist (word words scores)
+	  (if (setq i (string-match word str))
+	      (setq scores (cons i scores))))
+      ;; Return list of start and end position of regexp
+      (string-match apropos-regexp str)
+      (list (match-beginning 0) (match-end 0)))))
+
+(defun apropos-score-str (str)
+  "Return apropos score for string STR."
+  (if str
+      (let ((score 0)
+	    (l (length str))
+	    i)
+	(dolist (s (apropos-calc-scores str apropos-all-words) score)
+	  (setq score (+ score 1000 (- (/ l 10)) (/ (* (- l s) 1000) l)))))
+      0))
+
+(defun apropos-score-doc (doc)
+  "Return apropos score for documentation string DOC."
+  (if doc
+      (let ((score 0)
+	    (l (length doc))
+	    i)
+	(dolist (s (apropos-calc-scores doc apropos-all-words) score)
+	  (setq score (+ score 50 (/ (* (- l s) 50) l)))))
+      0))
+	  
+(defun apropos-score-symbol (symbol &optional weight)
+  "Return apropos score for SYMBOL."
+  (setq symbol (symbol-name symbol))
+  (let ((score 0)
+	(l (length symbol))
+	i)
+    (dolist (s (apropos-calc-scores symbol apropos-words) (* score (or weight 3)))
+      (setq score (+ score (- 60 l) (/ (* (- l s) 60) l))))))
+
 ;;;###autoload
 (define-derived-mode apropos-mode fundamental-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
@@ -235,7 +339,7 @@ normal variables."
                               (if (or current-prefix-arg apropos-do-all)
 				  "variable"
 				"user option")
-                              " (regexp): "))
+                              " (regexp or words): "))
                      current-prefix-arg))
   (apropos-command regexp nil
 		   (if (or do-all apropos-do-all)
@@ -260,8 +364,9 @@ satisfy the predicate VAR-PREDICATE."
 				   (if (or current-prefix-arg
 					   apropos-do-all)
 				       "or function ")
-				   "(regexp): "))
+				   "(regexp or words): "))
 		     current-prefix-arg))
+  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
 	   (print-help-return-message 'identity))))
@@ -276,21 +381,27 @@ satisfy the predicate VAR-PREDICATE."
 	    (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
 	(setq tem (cdr tem))))
     (let ((p apropos-accumulator)
-	  doc symbol)
+	  doc symbol score)
       (while p
 	(setcar p (list
 		   (setq symbol (car p))
+		   (setq score (apropos-score-symbol symbol))
 		   (unless var-predicate
 		     (if (functionp symbol)
 			 (if (setq doc (documentation symbol t))
-			     (substring doc 0 (string-match "\n" doc))
+			     (progn
+			       (setq score (+ score (apropos-score-doc doc))) 
+			       (substring doc 0 (string-match "\n" doc)))
 			   "(not documented)")))
 		   (and var-predicate
 			(funcall var-predicate symbol)
 			(if (setq doc (documentation-property
 				       symbol 'variable-documentation t))
-			    (substring doc 0
-				       (string-match "\n" doc))))))
+			     (progn
+			       (setq score (+ score (apropos-score-doc doc)))
+			       (substring doc 0
+					  (string-match "\n" doc)))))))
+	(setcar (cdr (car p)) score)
 	(setq p (cdr p))))
     (and (apropos-print t nil)
 	 message
@@ -303,7 +414,8 @@ satisfy the predicate VAR-PREDICATE."
 With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also
 show unbound symbols and key bindings, which is a little more
 time-consuming.  Returns list of symbols and documentation found."
-  (interactive "sApropos symbol (regexp): \nP")
+  (interactive "sApropos symbol (regexp or words): \nP")
+  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
   (setq apropos-accumulator
 	(apropos-internal apropos-regexp
 			  (and (not do-all)
@@ -323,6 +435,7 @@ time-consuming.  Returns list of symbols and documentation found."
     (while p
       (setcar p (list
 		 (setq symbol (car p))
+		 0
 		 (when (fboundp symbol)
 		   (if (setq doc (condition-case nil
 				     (documentation symbol t)
@@ -370,21 +483,29 @@ time-consuming.  Returns list of symbols and documentation found."
 With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also looks
 at the function and at the names and values of properties.
 Returns list of symbols and values found."
-  (interactive "sApropos value (regexp): \nP")
+  (interactive "sApropos value (regexp or words): \nP")
+  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
    (let (f v p)
      (mapatoms
       (lambda (symbol)
 	(setq f nil v nil p nil)
-	(or (memq symbol '(apropos-regexp do-all apropos-accumulator
-					  symbol f v p))
+	(or (memq symbol '(apropos-regexp
+			   apropos-orig-regexp apropos-all-regexp
+			   apropos-words apropos-all-words
+			   do-all apropos-accumulator
+			   symbol f v p))
 	    (setq v (apropos-value-internal 'boundp symbol 'symbol-value)))
 	(if do-all
 	    (setq f (apropos-value-internal 'fboundp symbol 'symbol-function)
 		  p (apropos-format-plist symbol "\n    " t)))
 	(if (or f v p)
-	    (setq apropos-accumulator (cons (list symbol f v p)
+	    (setq apropos-accumulator (cons (list symbol 
+						  (+ (apropos-score-str f)
+						     (apropos-score-str v)
+						     (apropos-score-str p))
+						  f v p)
 					    apropos-accumulator))))))
   (apropos-print nil "\n----------------\n"))
 
@@ -396,11 +517,12 @@ With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also use
 documentation that is not stored in the documentation file and show key
 bindings.
 Returns list of symbols and documentation found."
-  (interactive "sApropos documentation (regexp): \nP")
+  (interactive "sApropos documentation (regexp or words): \nP")
+  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
   (let ((standard-input (get-buffer-create " apropos-temp"))
-	f v)
+	f v sf sv)
     (unwind-protect
 	(save-excursion
 	  (set-buffer standard-input)
@@ -413,16 +535,24 @@ Returns list of symbols and documentation found."
 		 (if (integerp v) (setq v))
 		 (setq f (apropos-documentation-internal f)
 		       v (apropos-documentation-internal v))
+		 (setq sf (apropos-score-doc f)
+		       sv (apropos-score-doc v))
 		 (if (or f v)
 		     (if (setq apropos-item
 			       (cdr (assq symbol apropos-accumulator)))
 			 (progn
 			   (if f
-			       (setcar apropos-item f))
+			       (progn
+				 (setcar (nthcdr 1 apropos-item) f)
+				 (setcar apropos-item (+ (car apropos-item) sf))))
 			   (if v
-			       (setcar (cdr apropos-item) v)))
+			       (progn
+				 (setcar (nthcdr 2 apropos-item) v)
+				 (setcar apropos-item (+ (car apropos-item) sv)))))
 		       (setq apropos-accumulator
-			     (cons (list symbol f v)
+			     (cons (list symbol 
+					 (+ (apropos-score-symbol symbol 2) sf sv)
+					 f v)
 				   apropos-accumulator)))))))
 	  (apropos-print nil "\n----------------\n"))
       (kill-buffer standard-input))))
@@ -444,7 +574,7 @@ Returns list of symbols and documentation found."
   (if (consp doc)
       (apropos-documentation-check-elc-file (car doc))
     (and doc
-	 (string-match apropos-regexp doc)
+	 (string-match apropos-all-regexp doc)
 	 (progn
 	   (if apropos-match-face
 	       (put-text-property (match-beginning 0)
@@ -488,20 +618,25 @@ Returns list of symbols and documentation found."
       (beginning-of-line 2)
       (if (save-restriction
 	    (narrow-to-region (point) (1- sepb))
-	    (re-search-forward apropos-regexp nil t))
+	    (re-search-forward apropos-all-regexp nil t))
 	  (progn
 	    (setq beg (match-beginning 0)
 		  end (point))
 	    (goto-char (1+ sepa))
-	    (or (setq type (if (eq ?F (preceding-char))
-			       1	; function documentation
-			     2)		; variable documentation
-		      symbol (read)
-		      beg (- beg (point) 1)
-		      end (- end (point) 1)
-		      doc (buffer-substring (1+ (point)) (1- sepb))
-		      apropos-item (assq symbol apropos-accumulator))
-		(setq apropos-item (list symbol nil nil)
+	    (or (and (setq type (if (eq ?F (preceding-char))
+				    2	; function documentation
+				  3)		; variable documentation
+			   symbol (read)
+			   beg (- beg (point) 1)
+			   end (- end (point) 1)
+			   doc (buffer-substring (1+ (point)) (1- sepb))
+			   apropos-item (assq symbol apropos-accumulator))
+		     (setcar (cdr apropos-item)
+			     (+ (cadr apropos-item) (apropos-score-doc doc))))
+		(setq apropos-item (list symbol 
+					 (+ (apropos-score-symbol symbol 2)
+					    (apropos-score-doc doc))
+					 nil nil)
 		      apropos-accumulator (cons apropos-item
 						apropos-accumulator)))
 	    (if apropos-match-face
@@ -525,7 +660,7 @@ Returns list of symbols and documentation found."
 	(if (save-restriction
 	      ;; match ^ and $ relative to doc string
 	      (narrow-to-region beg end)
-	      (re-search-forward apropos-regexp nil t))
+	      (re-search-forward apropos-all-regexp nil t))
 	    (progn
 	      (goto-char (+ end 2))
 	      (setq doc (buffer-substring beg end)
@@ -543,14 +678,19 @@ Returns list of symbols and documentation found."
 		      (get symbol 'variable-documentation)
 		    (and (fboundp symbol) (apropos-safe-documentation symbol)))
 		  (progn
-		    (or (setq apropos-item (assq symbol apropos-accumulator))
-			(setq apropos-item (list symbol nil nil)
+		    (or (and (setq apropos-item (assq symbol apropos-accumulator))
+			     (setcar (cdr apropos-item)
+				     (+ (cadr apropos-item) (apropos-score-doc doc))))
+			(setq apropos-item (list symbol
+						 (+ (apropos-score-symbol symbol 2)
+						    (apropos-score-doc doc))
+						 nil nil)
 			      apropos-accumulator (cons apropos-item
 							apropos-accumulator)))
 		    (if apropos-match-face
 			(put-text-property beg end 'face apropos-match-face
 					   doc))
-		    (setcar (nthcdr (if this-is-a-variable 2 1)
+		    (setcar (nthcdr (if this-is-a-variable 3 2)
 				    apropos-item)
 			    doc)))))))))
 
@@ -582,7 +722,8 @@ Will return nil instead."
 (defun apropos-print (do-keys spacing)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
-Each element should have the format (SYMBOL FN-DOC VAR-DOC [PLIST-DOC]).
+Each element should have the format 
+ (SYMBOL SCORE FN-DOC VAR-DOC [PLIST-DOC WIDGET-DOC FACE-DOC GROUP-DOC]).
 The return value is the list that was in `apropos-accumulator', sorted
 alphabetically by symbol name; but this function also sets
 `apropos-accumulator' to nil before returning.
@@ -590,10 +731,12 @@ alphabetically by symbol name; but this function also sets
 If SPACING is non-nil, it should be a string;
 separate items with that string."
   (if (null apropos-accumulator)
-      (message "No apropos matches for `%s'" apropos-regexp)
+      (message "No apropos matches for `%s'" apropos-orig-regexp)
     (setq apropos-accumulator
 	  (sort apropos-accumulator (lambda (a b)
-				      (string-lessp (car a) (car b)))))
+				      (or (> (cadr a) (cadr b))
+					  (and (= (cadr a) (cadr b))
+					       (string-lessp (car a) (car b)))))))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
@@ -622,6 +765,8 @@ separate items with that string."
 			      ;; changed the variable!
 			      ;; Just say `no' to variables containing faces!
 			      'face apropos-symbol-face)
+	  (if apropos-show-scores
+	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
 	       (commandp symbol)
@@ -667,18 +812,18 @@ separate items with that string."
 		 (put-text-property (- (point) 3) (point)
 				    'face apropos-keybinding-face)))
 	  (terpri)
-	  (apropos-print-doc 1
+	  (apropos-print-doc 2
 			     (if (commandp symbol)
 				 'apropos-command
 			       (if (apropos-macrop symbol)
 				   'apropos-macro
 				 'apropos-function))
 			     t)
-	  (apropos-print-doc 2 'apropos-variable t)
-	  (apropos-print-doc 6 'apropos-group t)
-	  (apropos-print-doc 5 'apropos-face t)
-	  (apropos-print-doc 4 'apropos-widget t)
-	  (apropos-print-doc 3 'apropos-plist nil))
+	  (apropos-print-doc 3 'apropos-variable t)
+	  (apropos-print-doc 7 'apropos-group t)
+	  (apropos-print-doc 6 'apropos-face t)
+	  (apropos-print-doc 5 'apropos-widget t)
+	  (apropos-print-doc 4 'apropos-plist nil))
 	(setq buffer-read-only t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
