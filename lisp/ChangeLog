@@ -1,5 +1,26 @@
 2002-07-12  Richard M. Stallman  <rms@gnu.org>
 
+	* net/ange-ftp.el (ange-ftp-write-region):
+	Don't bind executing-kbd-macro; instead, pass non-nil VISIT arg
+	to ange-ftp-real-write-region.
+
+	* replace.el (flush-lines, keep-lines): Convert REND to a marker.
+
+	* help-fns.el (help-with-tutorial): Display completion list right away.
+
+	* ediff-ptch.el (ediff-test-patch-utility): Catch error and return nil.
+
+	* startup.el (command-line): Set memory-signal-data.
+	(fancy-splash-text, normal-splash-screen):
+	Mention "Read the Emacs Manual" or C-h r.
+	Rearrange the initial help to put the help cmds on left
+	and the actions (exit, undo) on the right.  Other small
+	text clarifications.
+	(fancy-splash-text, actions page): Add blank line to balance help page.
+
+	* help.el (help-map): Add binding for info-emacs-manual.
+	(print-help-return-message): Doc fix.
+
 	* strokes.el (strokes-help): Call print-help-return-message
 	while inside with-output-to-temp-buffer.
 
