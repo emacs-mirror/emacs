@@ -1,3 +1,8 @@
+2002-04-27  Miles Bader  <miles@gnu.org>
+
+	* faces.el (read-face-name): Format the prompt correctly when
+	there's no default.
+
 2002-04-26  Andrew Choi  <akochoi@shaw.ca>
 
 	* term/mac-win.el: Don't call ediff-toggle-multiframe.  Set
