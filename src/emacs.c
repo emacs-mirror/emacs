@@ -563,6 +563,7 @@ main (argc, argv, envp)
       keys_of_macros ();
       keys_of_minibuf ();
       keys_of_window ();
+      keys_of_frame ();
     }
 
   if (!initialized)
