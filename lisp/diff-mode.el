@@ -69,13 +69,13 @@
   :group 'tools
   :group 'diff)
 
-(defcustom diff-jump-to-old-file-flag nil
+(defcustom diff-jump-to-old-file nil
   "*Non-nil means `diff-goto-source' jumps to the old file.
 Else, it jumps to the new file."
   :group 'diff-mode
   :type '(boolean))
 
-(defcustom diff-update-on-the-fly-flag t
+(defcustom diff-update-on-the-fly t
   "*Non-nil means hunk headers are kept up-to-date on-the-fly.
 When editing a diff file, the line numbers in the hunk headers
 need to be kept consistent with the actual diff.  This can
@@ -894,7 +894,7 @@ This mode runs `diff-mode-hook'.
 
   ;; setup change hooks
   (toggle-read-only t)
-  (if (not diff-update-on-the-fly-flag)
+  (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
@@ -915,7 +915,7 @@ This mode runs `diff-mode-hook'.
   nil " Diff" nil
   ;; FIXME: setup font-lock
   ;; setup change hooks
-  (if (not diff-update-on-the-fly-flag)
+  (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
@@ -1038,7 +1038,7 @@ If TEXT isn't found, nil is returned."
 (defun diff-find-source-location (&optional other-file reverse)
   "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED)."
   (save-excursion
-    (let* ((other (diff-xor other-file diff-jump-to-old-file-flag))
+    (let* ((other (diff-xor other-file diff-jump-to-old-file))
 	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
 	   (hunk (buffer-substring (point)
 				   (save-excursion (diff-end-of-hunk) (point))))
@@ -1056,7 +1056,7 @@ If TEXT isn't found, nil is returned."
 	   (buf (find-file-noselect file)))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
-	(setq diff-jump-to-old-file-flag other))
+	(setq diff-jump-to-old-file other))
       (with-current-buffer buf
 	(goto-line (string-to-number line))
 	(let* ((orig-pos (point))
@@ -1084,7 +1084,7 @@ If TEXT isn't found, nil is returned."
 (defun diff-apply-hunk (&optional reverse)
   "Apply the current hunk to the source file and go to the next.
 By default, the new source file is patched, but if the variable
-`diff-jump-to-old-file-flag' is non-nil, then the old source file is
+`diff-jump-to-old-file' is non-nil, then the old source file is
 patched instead (some commands, such as `diff-goto-source' can change
 the value of this variable when given an appropriate prefix argument).
 
@@ -1130,10 +1130,10 @@ With a prefix argument, try to REVERSE the hunk."
 
 (defun diff-goto-source (&optional other-file)
   "Jump to the corresponding source line.
-`diff-jump-to-old-file-flag' (or its opposite if the OTHER-FILE prefix arg
+`diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
 is given) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
-  then `diff-jump-to-old-file-flag' is also set, for the next invocations."
+  then `diff-jump-to-old-file' is also set, for the next invocations."
   (interactive "P")
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
