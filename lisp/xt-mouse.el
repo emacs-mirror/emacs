@@ -138,15 +138,17 @@
 		       (t
 			(setq xterm-mouse-last type)
 			(format "down-mouse-%d" (+ 1 type))))))
-	 (w (window-at x y)))
+	 (w (window-at x y))
+         (ltrb (window-edges w))
+         (left (nth 0 ltrb))
+         (top (nth 1 ltrb)))
+
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
     (if w
-	(list mouse (posn-at-x-y x (if menu-bar-mode (- y 1) y) w))
+	(list mouse (posn-at-x-y (- x left) (- y top) w))
       (list mouse
-	    (append (list nil 'menu-bar)
-		    (nthcdr 2 (posn-at-x-y
-			       x (if menu-bar-mode (- y 1) y) w)))))))
+	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w)))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
