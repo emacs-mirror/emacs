@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files.
 
-;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 2001, 
+;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 
 ;;               1994, 1995, 1996, 1997, 1998, 2000, 2001
 ;;    Free Software Foundation, Inc.
 
@@ -89,8 +89,8 @@ If optional argument HERE is non-nil, insert info at point."
 (if texinfo-format-syntax-table
     nil
   (setq texinfo-format-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\" "." texinfo-format-syntax-table)
-  (modify-syntax-entry ?\\ "." texinfo-format-syntax-table)
+  (modify-syntax-entry ?\" " " texinfo-format-syntax-table)
+  (modify-syntax-entry ?\\ " " texinfo-format-syntax-table)
   (modify-syntax-entry ?@ "\\" texinfo-format-syntax-table)
   (modify-syntax-entry ?\^q "\\" texinfo-format-syntax-table)
   (modify-syntax-entry ?\[ "." texinfo-format-syntax-table)
