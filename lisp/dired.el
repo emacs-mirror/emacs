@@ -867,7 +867,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "M" 'dired-do-chmod)
     (define-key map "O" 'dired-do-chown)
     (define-key map "P" 'dired-do-print)
-    (define-key map "Q" 'dired-do-query-replace)
+    (define-key map "Q" 'dired-do-query-replace-regexp)
     (define-key map "R" 'dired-do-rename)
     (define-key map "S" 'dired-do-symlink)
     (define-key map "X" 'dired-do-shell-command)
@@ -1119,7 +1119,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       (cons "Operate" (make-sparse-keymap "Operate")))
 
     (define-key map [menu-bar operate query-replace]
-      '(menu-item "Query Replace in Files..." dired-do-query-replace
+      '(menu-item "Query Replace in Files..." dired-do-query-replace-regexp
 		  :help "Replace regexp in marked files"))
     (define-key map [menu-bar operate search]
       '(menu-item "Search Files..." dired-do-search
