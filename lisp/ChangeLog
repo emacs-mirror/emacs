@@ -1,3 +1,8 @@
+2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Display a
+	message while converting to Babyl.
+
 2003-10-16  Vadim Nasardinov  <vadimn@redhat.com>  (tiny change)
 
 	* allout.el (allout-mode): Doc fix.

@@ -1,3 +1,8 @@
+2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* numbers.texi (Integer Basics): Add index entries for reading
+	numbers in hex, octal, and binary.
+
 2003-10-16  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Mode Line Format): Mention force-mode-line-update's
