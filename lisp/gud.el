@@ -541,7 +541,7 @@ Obeying it means displaying in another window the specified file and line."
     ;; Arrange for the current prompt to get deleted.
     (save-excursion
       (set-buffer current-gud-buffer)
-      (goto-char (process-marker proc))
+      (goto-char (process-mark proc))
       (beginning-of-line)
       (if (looking-at comint-prompt-regexp)
 	  (set-marker gud-delete-prompt-marker (point))))
