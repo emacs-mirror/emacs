@@ -203,12 +203,17 @@ static int echoing;
 
 static struct kboard *ok_to_echo_at_next_pause;
 
-/* The kboard currently echoing, or null for none.  Set in echo_now to
-   the kboard echoing.  Reset to 0 in cancel_echoing.  If non-null,
-   and a current echo area message exists, we know that it comes from
-   echoing.  */
+/* The kboard last echoing, or null for none.  Reset to 0 in
+   cancel_echoing.  If non-null, and a current echo area message
+   exists, and echo_message_buffer is eq to the current message
+   buffer, we know that the message comes from echo_kboard.  */
 
 static struct kboard *echo_kboard;
+
+/* The buffer used for echoing.  Set in echo_now, reset in
+   cancel_echoing.  */
+
+static Lisp_Object echo_message_buffer;
 
 /* Nonzero means disregard local maps for the menu bar.  */
 static int inhibit_local_menu_bar_menus;
@@ -770,10 +775,13 @@ echo_now ()
     }
 
   echoing = 1;
-  echo_kboard = current_kboard;
   message2_nolog (current_kboard->echobuf, strlen (current_kboard->echobuf),
 		  ! NILP (current_buffer->enable_multibyte_characters));
   echoing = 0;
+
+  /* Record in what buffer we echoed, and from which kboard.  */
+  echo_message_buffer = echo_area_buffer[0];
+  echo_kboard = current_kboard;
 
   if (waiting_for_input && !NILP (Vquit_flag))
     quit_throw_to_read_char ();
@@ -787,8 +795,9 @@ cancel_echoing ()
   current_kboard->immediate_echo = 0;
   current_kboard->echoptr = current_kboard->echobuf;
   current_kboard->echo_after_prompt = -1;
-  ok_to_echo_at_next_pause = 0;
-  echo_kboard = 0;
+  ok_to_echo_at_next_pause = NULL;
+  echo_kboard = NULL;
+  echo_message_buffer = Qnil;
 }
 
 /* Return the length of the current echo string.  */
@@ -2078,19 +2087,43 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
-  /* Message turns off echoing unless more keystrokes turn it on again. */
-  if (/* There is a current message.  */
+  /* Message turns off echoing unless more keystrokes turn it on again.
+     
+     The code in 20.x for the condition was
+
+     1. echo_area_glyphs && *echo_area_glyphs
+     2. && echo_area_glyphs != current_kboard->echobuf
+     3. && ok_to_echo_at_next_pause != echo_area_glyphs
+
+     (1) means there's a current message displayed
+     
+     (2) means it's not the message from echoing from the current
+     kboard.
+     
+     (3) There's only one place in 20.x where ok_to_echo_at_next_pause
+     is set to a non-null value.  This is done in read_char and it is
+     set to echo_area_glyphs after a call to echo_char.  That means
+     ok_to_echo_at_next_pause is either null or
+     current_kboard->echobuf with the appropriate current_kboard at
+     that time.
+
+     So, condition (3) means in clear text ok_to_echo_at_next_pause
+     must be either null, or the current message isn't from echoing at
+     all, or it's from echoing from a different kboard than the
+     current one.  */
+  
+  if (/* There currently something in the echo area  */
       !NILP (echo_area_buffer[0])
-      /* And we're not echoing from this kboard.  */
-      && echo_kboard != current_kboard
-      /* And it's either not ok to echo (ok_to_echo == NULL), or the
-	 last char echoed was from a different kboard.  */
-      && ok_to_echo_at_next_pause != echo_kboard)
+      && (/* And it's either not from echoing.  */
+	  !EQ (echo_area_buffer[0], echo_message_buffer)
+	  /* Or it's an echo from a different kboard.  */
+	  || echo_kboard != current_kboard
+	  /* Or we explicitly allow overwriting whatever there is.  */
+	  || ok_to_echo_at_next_pause == NULL))
     cancel_echoing ();
   else
-    /* If already echoing, continue.  */
     echo_dash ();
-
+      
   /* Try reading a character via menu prompting in the minibuf.
      Try this before the sit-for, because the sit-for
      would do the wrong thing if we are supposed to do
