@@ -1374,6 +1374,17 @@ regexp short cuts work.  FP is the function defun information."
 	      "Second line should not have indentation"
 	      (match-beginning 1)
 	      (match-end 1)))))
+     ;; * Check for '(' in column 0.
+     (save-excursion
+       (when (re-search-forward "^(" e t)
+	 (if (checkdoc-autofix-ask-replace (match-beginning 0)
+					   (match-end 0)
+					   "Escape this '('? "
+					   "\\(")
+	     nil
+	   (checkdoc-create-error
+	    "Open parenthesis in column 0 should be escaped"
+	    (match-beginning 0) (match-end 0)))))
      ;; * Do not start or end a documentation string with whitespace.
      (let (start end)
        (if (or (if (looking-at "\"\\([ \t\n]+\\)")
