@@ -192,7 +192,7 @@ Otherwise filenames are omitted."
   :type 'boolean
   :group 'makefile)
 
-(defcustom makefile-cleanup-continuations t
+(defcustom makefile-cleanup-continuations nil
   "*If non-nil, automatically clean up continuation lines when saving.
 A line is cleaned up by removing all whitespace following a trailing
 backslash.  This is done silently.
@@ -567,6 +567,8 @@ Makefile mode can be configured by modifying the following variables:
   (kill-all-local-variables)
   (add-hook 'write-file-functions
 	    'makefile-warn-suspicious-lines nil t)
+  (add-hook 'write-file-functions
+	    'makefile-warn-continuations nil t)
   (add-hook 'write-file-functions
 	    'makefile-cleanup-continuations nil t)
   (make-local-variable 'makefile-target-table)
@@ -1384,9 +1386,17 @@ and generates the overview, one line per target name."
 	(goto-char (point-min))
 	(if (re-search-forward "^\\(\t+$\\| +\t\\)" nil t)
 	    (not (y-or-n-p
-		  (format "Suspicious line %d. Save anyway "
+		  (format "Suspicious line %d. Save anyway? "
 			  (count-lines (point-min) (point)))))))))
-	  
+
+(defun makefile-warn-continuations ()
+  (if (eq major-mode 'makefile-mode)
+      (save-excursion
+	(goto-char (point-min))
+	(if (re-search-forward "\\\\[ \t]+$")
+	    (not (y-or-n-p
+		  (format "Suspicious continuation in line %d. Save anyway? "
+			  (count-lines (point-min) (point)))))))))
 
 
 ;;; ------------------------------------------------------------
