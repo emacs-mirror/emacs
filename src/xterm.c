@@ -4585,6 +4585,8 @@ x_new_font (f, fontname)
 
 	      if (dashes >= 13)
 		full_name = name;
+
+	      break;
 	    }
 
 	  XFree (atom);
