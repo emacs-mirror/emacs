@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.26) $
+ * $HopeName: MMsrc!poolams.c(trunk.27) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.26) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.27) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -857,9 +857,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           /* d.m.p.fix.to-black */
           Addr next;
 
-          ShieldExpose(PoolArena(pool), seg);
           next = (*group->ams->format->skip)(ref);
-          ShieldCover(PoolArena(pool), seg);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
           AMSRangeWhiteBlacken(group, i, AMS_ADDR_INDEX(group, next));
@@ -1144,8 +1142,8 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSReclaim,
   AMSBenefit,
   PoolCollectAct,
-  PoolNoRampBegin,
-  PoolNoRampEnd,
+  PoolTrivRampBegin,
+  PoolTrivRampEnd,
   PoolNoWalk,
   AMSDescribe,
   PoolClassSig               /* impl.h.mpm.class.end-sig */
