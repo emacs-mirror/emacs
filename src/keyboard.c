@@ -1168,6 +1168,8 @@ command_loop_1 ()
       before_command_key_count = this_command_key_count;
       before_command_echo_length = echo_length ();
 
+      this_command = Qnil;
+
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
 			     Qnil, 0, 1);
