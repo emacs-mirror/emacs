@@ -1,3 +1,7 @@
+2000-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/cmacexp.el: Change Francesco's email address.
+
 2000-10-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* window.el (fit-window-to-buffer): Adjust point of the window
