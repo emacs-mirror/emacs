@@ -49,7 +49,7 @@
   "Enable use of flow control; let user type C-s as C-\\ and C-q as C-^."
   (interactive)
   ;; Tell emacs to pass C-s and C-q to OS.
-  (set-input-mode nil t nil)
+  (set-input-mode nil t (nth 2 (current-input-mode)))
   ;; Initialize translate table, saving previous mappings, if any.
   (let ((the-table (make-string 128 0)))
     (let ((i 0)
