@@ -879,7 +879,7 @@ all of which are called before Emacs is actually killed.")
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 
-  exit ((XTYPE (arg) == Lisp_Int) ? XINT (arg)
+  exit (INTEGERP (arg) ? XINT (arg)
 #ifdef VMS
 	: 1
 #else
