@@ -1,5 +1,8 @@
 2001-01-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* mouse-drag.el (mouse-drag-safe-scroll): Bind
+	scroll-preserve-screen-position to nil.
+
 	* isearch.el (isearch-old-signal-hook): New variable.
 	(isearch-mode): Set signal-hook-function to isearch-done.
 	(isearch-done): Restore old signal-hook-function.
