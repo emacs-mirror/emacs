@@ -140,22 +140,16 @@
 
 (defun gomoku-mode ()
   "Major mode for playing Gomoku against Emacs.
-You and Emacs play in turn by marking a free square. You mark it with X
-and Emacs marks it with O. The winner is the first to get five contiguous
+You and Emacs play in turn by marking a free square.  You mark it with X
+and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
-You play by moving the cursor over the square you choose and hitting RET,
-x, .. or whatever has been set locally.
+
+You play by moving the cursor over the square you choose and hitting \\[gomoku-human-plays].
 
 Other useful commands:
-
-C-c r	Indicate that you resign,
-C-c t	Take back your last move,
-C-c e	Ask for Emacs to play (thus passing).
-
-Commands:
 \\{gomoku-mode-map}
-Entry to this mode calls the value of gomoku-mode-hook
-if that value is non-nil."
+Entry to this mode calls the value of `gomoku-mode-hook' if that value
+is non-nil."
   (interactive)
   (setq major-mode 'gomoku-mode
 	mode-name "Gomoku")
@@ -190,7 +184,7 @@ if that value is non-nil."
 
 (defvar gomoku-draw-limit nil
   ;; This is usually set to 70% of the number of squares.
-  "After how many moves will Emacs offer a draw ?")
+  "After how many moves will Emacs offer a draw?")
 
 
 (defun gomoku-xy-to-index (x y)
@@ -316,7 +310,7 @@ if that value is non-nil."
 ;; winning or loosing.
 
 (defconst gomoku-winning-threshold OOOOscore
-  "Threshold score beyond which an emacs move is winning.")
+  "Threshold score beyond which an Emacs move is winning.")
 
 (defconst gomoku-loosing-threshold XXXXscore
   "Threshold score beyond which a human move is winning.")
@@ -421,7 +415,7 @@ if that value is non-nil."
 
 (defun gomoku-nb-qtuples (i j)
   "Return the number of qtuples containing square I,J."
-  ;; This fonction is complicated because we have to deal
+  ;; This function is complicated because we have to deal
   ;; with ugly cases like 3 by 6 boards, but it works.
   ;; If you have a simpler (and correct) solution, send it to me. Thanks !
   (let ((left  (min 4 (1- i)))
@@ -648,34 +642,34 @@ that DVAL has been added on SQUARE."
       (setq message
 	    (cond
 	     (gomoku-human-took-back
-	      "OK, you won this one. I, for one, never take my moves back...")
+	      "OK, you won this one.  I, for one, never take my moves back...")
 	     (gomoku-emacs-played-first
 	      "OK, you won this one... so what ?")
 	     (t
-	      "OK, you won this one. Now, let me play first just once."))))
+	      "OK, you won this one.  Now, let me play first just once."))))
      ((eq result 'human-resigned)
       (setq gomoku-number-of-wins (1+ gomoku-number-of-wins))
-      (setq message "So you resign... That's just one more win for me."))
+      (setq message "So you resign.  That's just one more win for me."))
      ((eq result 'nobody-won)
       (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
       (setq message
 	    (cond
 	     (gomoku-human-took-back
-	      "This is a draw. I, for one, never take my moves back...")
+	      "This is a draw.  I, for one, never take my moves back...")
 	     (gomoku-emacs-played-first
-	      "This is a draw... Just chance, I guess.")
+	      "This is a draw.  Just chance, I guess.")
 	     (t
-	      "This is a draw. Now, let me play first just once."))))
+	      "This is a draw.  Now, let me play first just once."))))
      ((eq result 'draw-agreed)
       (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
       (setq message
 	    (cond
 	     (gomoku-human-took-back
-	      "Draw agreed. I, for one, never take my moves back...")
+	      "Draw agreed.  I, for one, never take my moves back...")
 	     (gomoku-emacs-played-first
-	      "Draw agreed. You were lucky.")
+	      "Draw agreed.  You were lucky.")
 	     (t
-	      "Draw agreed. Now, let me play first just once."))))
+	      "Draw agreed.  Now, let me play first just once."))))
      ((eq result 'crash-game)
       (setq message
 	    "Sorry, I have been interrupted and cannot resume that game...")))
@@ -701,12 +695,13 @@ that DVAL has been added on SQUARE."
 If a game is in progress, this command allow you to resume it.
 If optional arguments N and M are given, an N by M board is used.
 
-You and Emacs play in turn by marking a free square. You mark it with X
+You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O. The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
-You play by moving the cursor over the square you choose and hitting RET,
-x, .. or whatever has been set locally.
-Use C-h m for more info."
+
+You play by moving the cursor over the square you choose and hitting
+\\<gomoku-mode-map>\\[gomoku-human-plays].
+Use \\[describe-mode] for more info."
   (interactive)
   (gomoku-switch-to-window)
   (cond
@@ -1067,7 +1062,7 @@ If the game is finished, this command requests for another game."
 	   t))))
 
 (defun gomoku-cross-winning-qtuple ()
-  "Cross winning qtuple, as found by gomoku-find-filled-qtuple."
+  "Cross winning qtuple, as found by `gomoku-find-filled-qtuple'."
   (gomoku-cross-qtuple gomoku-winning-qtuple-beg
 		       gomoku-winning-qtuple-end
 		       gomoku-winning-qtuple-dx
