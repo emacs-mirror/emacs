@@ -389,7 +389,7 @@ movemail: movemail.o pop.o $(GETOPTDEPS)
 movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
 
-pop.o: ${srcdir}/pop.c
+pop.o: ${srcdir}/pop.c  ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
 cvtmail: ${srcdir}/cvtmail.c
