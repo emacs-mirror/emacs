@@ -1189,10 +1189,6 @@ punctuation characters like '-'."
 (defvar sh-indent-supported-here nil
   "Non-nil if we support indentation for the current buffer's shell type.")
 
-(defconst sh-electric-rparen-needed
-  '((sh . t))
-  "Non-nil if the shell type needs an electric handling of case alternatives.")
-
 (defconst sh-var-list
   '(
     sh-basic-offset sh-first-lines-indent sh-indent-after-case
