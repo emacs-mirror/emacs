@@ -1303,14 +1303,16 @@ calc-kill calc-kill-region calc-yank))))
 		 (select-window swin)))))))
   (message "(Calculator reset)"))
 
-
+;; What a pain; scroll-left behaves differently when called non-interactively.
 (defun calc-scroll-left (n)
   (interactive "P")
-  (scroll-left (or n (/ (window-width) 2))))
+  (setq prefix-arg (or n (/ (window-width) 2)))
+  (call-interactively #'scroll-left))
 
 (defun calc-scroll-right (n)
   (interactive "P")
-  (scroll-right (or n (/ (window-width) 2))))
+  (setq prefix-arg (or n (/ (window-width) 2)))
+  (call-interactively #'scroll-right))
 
 (defun calc-scroll-up (n)
   (interactive "P")
