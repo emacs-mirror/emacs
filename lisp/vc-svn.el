@@ -62,7 +62,7 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.1"
+  :version "21.4"
   :group 'vc)
 
 (defcustom vc-svn-diff-switches nil
@@ -72,12 +72,12 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.1"
+  :version "21.4"
   :group 'vc)
 
 (defcustom vc-svn-header (or (cdr (assoc 'SVN vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
-  :version "21.1"
+  :version "21.4"
   :type '(repeat string)
   :group 'vc)
 
@@ -86,27 +86,7 @@ A string or list of strings passed to the checkin program by
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $SVNREAD set)."
   :type 'boolean
-  :version "21.1"
-  :group 'vc)
-
-(defcustom vc-svn-stay-local t
-  "*Non-nil means use local operations when possible for remote repositories.
-This avoids slow queries over the network and instead uses heuristics
-and past information to determine the current status of a file.
-
-The value can also be a regular expression or list of regular
-expressions to match against the host name of a repository; then VC
-only stays local for hosts that match it.  Alternatively, the value
-can be a list of regular expressions where the first element is the 
-symbol `except'; then VC always stays local except for hosts matched 
-by these regular expressions."
-  :type '(choice (const :tag "Always stay local" t)
-                (const :tag "Don't stay local" nil)
-                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
-                       (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
-                       (regexp :format " stay local,\n%t: %v" :tag "if it matches")
-                       (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
-  :version "21.1"
+  :version "21.4"
   :group 'vc)
 
 ;;;
@@ -134,7 +114,7 @@ by these regular expressions."
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
-  (setq localp (or localp (vc-svn-stay-local-p file)))
+  (setq localp (or localp (vc-stay-local-p file)))
   (with-temp-buffer
     (cd (file-name-directory file))
     (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
@@ -147,7 +127,7 @@ by these regular expressions."
 
 (defun vc-svn-dir-state (dir &optional localp)
   "Find the SVN state of all files in DIR."
-  (setq localp (or localp (vc-svn-stay-local-p dir)))
+  (setq localp (or localp (vc-stay-local-p dir)))
   (let ((default-directory dir))
     ;; Don't specify DIR in this command, the default-directory is
     ;; enough.  Otherwise it might fail with remote repositories.
@@ -167,31 +147,6 @@ by these regular expressions."
   "SVN-specific version of `vc-checkout-model'."
   ;; It looks like Subversion has no equivalent of CVSREAD.
   'implicit)
-
-(defun vc-svn-mode-line-string (file)
-  "Return string for placement into the modeline for FILE.
-Compared to the default implementation, this function does two things:
-Handle the special case of a SVN file that is added but not yet
-committed and support display of sticky tags."
-  (let* ((state   (vc-state file))
-	 (rev     (vc-workfile-version file))
-	 (sticky-tag (vc-file-getprop file 'vc-svn-sticky-tag))
- 	 (sticky-tag-printable (and sticky-tag
-				    (not (string= sticky-tag ""))
- 				    (concat "[" sticky-tag "]"))))
-    (cond ((string= rev "0")
-	   ;; A file that is added but not yet committed.
-	   "SVN @@")
-	  ((or (eq state 'up-to-date)
-	       (eq state 'needs-patch))
-	   (concat "SVN-" rev sticky-tag-printable))
-          ((stringp state)
-	   (concat "SVN:" state ":" rev sticky-tag-printable))
-          (t
-           ;; Not just for the 'edited state, but also a fallback
-           ;; for all other states.  Think about different symbols
-           ;; for 'needs-patch and 'needs-merge.
-           (concat "SVN:" rev sticky-tag-printable)))))
 
 (defun vc-svn-dired-state-info (file)
   "SVN-specific version of `vc-dired-state-info'."
@@ -378,7 +333,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (insert "Working file: " (file-relative-name file) "\n"))
     (vc-svn-command
      t
-     (if (and (vc-svn-stay-local-p file) (fboundp 'start-process)) 'async 0)
+     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
      file "log")))
 
 (defun vc-svn-diff (file &optional oldvers newvers)
@@ -396,7 +351,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; Even if it's empty, it's locally modified.
 	1)
     (let* ((switches (vc-switches 'SVN 'diff))
-	   (async (and (vc-svn-stay-local-p file)
+	   (async (and (vc-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
       (apply 'vc-svn-command "*vc-diff*"
@@ -417,7 +372,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Diff all files at and below DIR."
   (with-current-buffer "*vc-diff*"
     (setq default-directory dir)
-    (if (vc-svn-stay-local-p dir)
+    (if (vc-stay-local-p dir)
         ;; local diff: do it filewise, and only for files that are modified
         (vc-file-tree-walk
          dir
@@ -492,7 +447,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;;
 
 ;; Subversion makes backups for us, so don't bother.
-;; (defalias 'vc-svn-make-version-backups-p 'vc-svn-stay-local-p
+;; (defalias 'vc-svn-make-version-backups-p 'vc-stay-local-p
 ;;   "Return non-nil if version backups should be made for FILE.")
 
 (defun vc-svn-check-headers ()
@@ -517,59 +472,18 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
            (append vc-svn-global-switches
                    flags))))
 
-(defun vc-svn-stay-local-p (file)
-  "Return non-nil if VC should stay local when handling FILE.
-See `vc-svn-stay-local'."
-  (when vc-svn-stay-local
-    (let* ((dirname (if (file-directory-p file)
-			(directory-file-name file)
-		      (file-name-directory file)))
-	   (prop
-	    (or (vc-file-getprop dirname 'vc-svn-stay-local-p)
-		(vc-file-setprop
-		 dirname 'vc-svn-stay-local-p
-		 (let ((rootname (expand-file-name ".svn/entries" dirname)))
-		   (cond
-		    ((not (file-readable-p rootname)) 'no)
-		    ((stringp vc-svn-stay-local)
-		     (with-temp-buffer
-		       (let ((coding-system-for-read
-			      (or file-name-coding-system
-				  default-file-name-coding-system)))
-			 (vc-insert-file rootname))
-		       (goto-char (point-min))
-		       (when (re-search-forward
-			      (concat "name=\"svn:this_dir\"[\n\t ]*"
-				      "url=\"\\([^\"]+\\)\"") nil t)
-			 (let ((hostname (match-string 1)))
-			   (if (not hostname)
-			       'no
-			     (let* ((stay-local t)
-				    (rx
-				     (cond
-				      ;; vc-svn-stay-local: rx
-				      ((stringp vc-svn-stay-local)
-				       vc-svn-stay-local)
-				      ;; vc-svn-stay-local: '( [except] rx ... )
-				      ((consp vc-svn-stay-local)
-				       (mapconcat
-					'identity
-					(if (not (eq (car vc-svn-stay-local)
-						     'except))
-					    vc-svn-stay-local
-					  (setq stay-local nil)
-					  (cdr vc-svn-stay-local))
-					"\\|")))))
-			       (if (not rx)
-				   'yes
-				 (if (not (string-match rx hostname))
-				     (setq stay-local (not stay-local)))
-				 (if stay-local
-				     'yes
-				   'no))))))))
-		    ;; vc-svn-stay-local is neither nil nor list nor string.
-		    (t 'yes)))))))
-      (if (eq prop 'yes) t nil))))
+(defun vc-svn-repository-hostname (dirname)
+  (with-temp-buffer
+    (let ((coding-system-for-read
+	   (or file-name-coding-system
+	       default-file-name-coding-system)))
+      (vc-insert-file (expand-file-name ".svn/entries" dirname)))
+    (goto-char (point-min))
+    (when (re-search-forward
+	   (concat "name=\"svn:this_dir\"[\n\t ]*"
+		   "\\([-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
+		   "url=\"\\([^\"]+\\)\"") nil t)
+      (match-string 2))))
 
 (defun vc-svn-parse-status (localp)
   "Parse output of \"svn status\" command in the current buffer.
