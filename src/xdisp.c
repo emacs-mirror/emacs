@@ -3211,7 +3211,7 @@ display_string (w, vpos, string, length, hpos, truncate,
     end = desired_glyphs->glyphs[vpos] + maxcol;
 
   /* Store 0 in charstart for these columns.  */
-  for (i = hpos; i < end - p1start + hpos; i++)
+  for (i = (hpos >= 0 ? hpos : 0); i < end - p1start + hpos; i++)
     desired_glyphs->charstarts[vpos][i] = 0;
 
   if (maxcol >= 0 && mincol > maxcol)
