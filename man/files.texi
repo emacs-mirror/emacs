@@ -980,7 +980,9 @@ zero or negative argument; with no argument, it toggles.
   Emacs does auto-saving periodically based on counting how many characters
 you have typed since the last time auto-saving was done.  The variable
 @code{auto-save-interval} specifies how many characters there are between
-auto-saves.  By default, it is 300.
+auto-saves.  By default, it is 300.  Emacs doesn't accept values that are
+too small: if you customize @code{auto-save-interval} to a value less
+than 20, Emacs will behave as if the value is 20.
 
 @vindex auto-save-timeout
   Auto-saving also takes place when you stop typing for a while.  The
