@@ -1,7 +1,11 @@
+2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* man.el (Man-build-section-alist): Remove last Man-match-substring.
+
 2001-11-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* textmodes/paragraphs.el (mark-paragraph): Clarify doc.  Clarify
-	error message.  Suggestion from Richard Stallman.
+	* textmodes/paragraphs.el (mark-paragraph): Clarify doc.
+	Clarify error message.  Suggestion from Richard Stallman.
 
 2001-11-29  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
