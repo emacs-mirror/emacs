@@ -72,7 +72,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EMACS_GET_TIME(time)					\
 {								\
-  EMACS_TIME dummy;						\
+  struct timezone dummy;					\
   gettimeofday (&(time), &dummy);				\
 }
 
