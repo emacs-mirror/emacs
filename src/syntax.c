@@ -609,7 +609,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 
 	case Sendcomment:
 	  if (SYNTAX_FLAGS_COMMENT_STYLE (syntax) == comstyle
-	      && (SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax)
+	      && ((com2end && SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax))
 		  || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested)
 	    /* This is the same style of comment ender as ours. */
 	    {
