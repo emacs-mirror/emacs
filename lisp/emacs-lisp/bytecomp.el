@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.48 $")
+(defconst byte-compile-version "$Revision: 2.49 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -220,10 +220,10 @@ if you change this variable."
       (setq filename (byte-compiler-base-file-name filename))
       (setq filename (file-name-sans-versions filename))
       (cond ((eq system-type 'vax-vms)
-		 (concat (substring filename 0 (string-match ";" filename)) "c"))
-		((string-match emacs-lisp-file-regexp filename)
-		 (concat (substring filename 0 (match-beginning 0)) ".elc"))
-		(t (concat filename ".elc")))))
+	     (concat (substring filename 0 (string-match ";" filename)) "c"))
+	    ((string-match emacs-lisp-file-regexp filename)
+	     (concat (substring filename 0 (match-beginning 0)) ".elc"))
+	    (t (concat filename ".elc")))))
 
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
