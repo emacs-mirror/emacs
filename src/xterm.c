@@ -2199,8 +2199,9 @@ static void x_scroll_bar_report_motion ();
    again. */
 
 static void
-XTmouse_position (fp, bar_window, part, x, y, time)
+XTmouse_position (fp, insist, bar_window, part, x, y, time)
      FRAME_PTR *fp;
+     int insist;
      Lisp_Object *bar_window;
      enum scroll_bar_part *part;
      Lisp_Object *x, *y;
@@ -2321,6 +2322,9 @@ XTmouse_position (fp, bar_window, part, x, y, time)
 	      }
 	  }
 
+	if (f1 == 0 && insist)
+	  f1 = selected_frame;
+
 	if (f1)
 	  {
 	    int ignore1, ignore2;
@@ -2329,7 +2333,8 @@ XTmouse_position (fp, bar_window, part, x, y, time)
 
 	    pixel_to_glyph_coords (f1, win_x, win_y, &ignore1, &ignore2,
 				   &last_mouse_glyph,
-				   FRAME_X_DISPLAY_INFO (f1)->grabbed);
+				   FRAME_X_DISPLAY_INFO (f1)->grabbed
+				   || insist);
 
 	    *bar_window = Qnil;
 	    *part = 0;
