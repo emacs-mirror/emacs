@@ -4443,6 +4443,7 @@ read_key_sequence (keybuf, bufsize, prompt)
   /* Nonzero if we seem to have got the beginning of a binding
      in function_key_map.  */
   int function_key_possible = 0;
+  int key_translation_possible = 0;
 
   int junk;
 
@@ -4494,6 +4495,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   starting_buffer = current_buffer;
   function_key_possible = 0;
+  key_translation_possible = 0;
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -4555,10 +4557,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	     && fkey_start < t
 	     /* mock input is never part of a function key's sequence.  */
 	     && mock_input <= fkey_start)
-	 || (first_binding >= nmaps
-	     && keytran_start < t
-	     /* mock input is never part of a function key's sequence.  */
-	     && mock_input <= keytran_start)
+	 || (keytran_start < t && key_translation_possible)
 	 /* Don't return in the middle of a possible function key sequence,
 	    if the only bindings we found were via case conversion.
 	    Thus, if ESC O a has a function-key-map translation
@@ -5014,6 +5013,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  fkey_start = fkey_end = t;
 		  fkey_map = Vfunction_key_map;
 
+		  /* Do pass the results through key-translation-map.  */
+		  keytran_start = keytran_end = 0;
+		  keytran_map = Vkey_translation_map;
+
 		  goto replay_sequence;
 		}
 	      
@@ -5078,6 +5081,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  error ("Function in key-translation-map returns invalid key sequence");
 	      }
 
+	    key_translation_possible = ! NILP (keytran_next);
+
 	    /* If keybuf[keytran_start..keytran_end] is bound in the
 	       key translation map and it's a suffix of the current
 	       sequence (i.e. keytran_end == t), replace it with
@@ -5108,6 +5113,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 		keytran_start = keytran_end = t;
 		keytran_map = Vkey_translation_map;
 
+		/* Don't pass the results of key-translation-map
+		   through function-key-map.  */
+		fkey_start = fkey_end = t;
+		fkey_map = Vkey_translation_map;
+
 		goto replay_sequence;
 	      }
 
@@ -5119,6 +5129,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      {
 		keytran_end = ++keytran_start;
 		keytran_map = Vkey_translation_map;
+		key_translation_possible = 0;
 	      }
 	  }
       }
@@ -5128,6 +5139,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
       if (first_binding == nmaps && ! function_key_possible
+	  && ! key_translation_possible
 	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
 		< XSTRING (current_buffer->downcase_table)->size)
