@@ -1,5 +1,7 @@
 2004-05-09  Jason Rumney  <jasonr@gnu.org>
 
+	* term/w32-win.el: Require code-pages.
+
 	* international/mule-cmds.el (set-locale-environment): On
 	MS-Windows use ansi code-page for default coding-systems.
 	Set up paper sizes for Windows 3 letter languages.
