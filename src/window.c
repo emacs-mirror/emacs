@@ -4475,7 +4475,7 @@ displayed_window_lines (w)
 
   bottom_y = it.current_y + it.max_ascent + it.max_descent;
 
-  if (bottom_y > it.current_y && bottom_y < it.last_visible_y)
+  if (bottom_y > it.current_y && bottom_y <= it.last_visible_y)
     /* Hit a line without a terminating newline.  */
     it.vpos++;
 
