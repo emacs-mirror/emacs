@@ -1,5 +1,9 @@
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (x_face_list_fonts): Don't BLOCK_INPUT around the 
+	call to x_list_fonts.  Call x_list_fonts with SIZE -1 only
+	if SCALABLE_FONTS_P is set.
+	
 	* xfaces.c (x_face_list_fonts): Call x_list_fonts with SIZE -1,
 	so that scalable fonts are included.
 
