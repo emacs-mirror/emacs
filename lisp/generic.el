@@ -197,6 +197,7 @@ a one or two character string or a cons pair. If the entry is a character
 or a one-character string, it is added to the mode's syntax table with
 `comment-start' syntax.  If the entry is a cons pair, the elements of the
 pair are considered to be `comment-start' and `comment-end' respectively.
+\(The latter should be nil if you want comments to end at end of line.)
 Note that Emacs has limitations regarding comment characters.
 
 KEYWORD-LIST is a list of keywords to highlight with `font-lock-keyword-face'.
