@@ -1366,7 +1366,7 @@ spaces are put between sequence elements, etc.")
 	}
       keys = vector;
     }
-  else if (VECTORP (keys))
+  else if (!VECTORP (keys))
     keys = wrong_type_argument (Qarrayp, keys);
 
   /* In effect, this computes
