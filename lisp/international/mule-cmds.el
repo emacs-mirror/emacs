@@ -1820,7 +1820,7 @@ of buffer-file-coding-system set by this function."
     ("lv" . "Latvian") ; Latvian, Lettish
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
-    ("mk" . "Latin-5") ; Macedonian
+    ("mk" . "Cyrillic-ISO") ; Macedonian
     ; ml Malayalam
     ; mn Mongolian
     ; mo Moldavian
@@ -1844,7 +1844,7 @@ of buffer-file-coding-system set by this function."
     ; rn Kirundi
     ("ro" . "Romanian")
     ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
-    ("ru" . "Latin-5") ; Russian
+    ("ru" . "Cyrillic-ISO") ; Russian
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
@@ -1914,7 +1914,7 @@ of buffer-file-coding-system set by this function."
     ("cz" . "Czech") ; e.g. Solaris 2.6
     ("ee" . "Latin-4") ; Estonian, e.g. X11R6.4
     ("iw" . "Hebrew") ; e.g. X11R6.4
-    ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
+    ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
