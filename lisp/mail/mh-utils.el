@@ -1,9 +1,9 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
-;; Time-stamp: <95/02/10 14:20:14 gildea>
+;; Time-stamp: <95/10/22 17:58:16 gildea>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
-;; This file is part of GNU Emacs.
+;; This file is part of mh-e, part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.4 1995/04/10 00:19:38 kwzh Exp kwzh $
+;; $Id: mh-utils.el,v 1.5 1995/04/25 22:27:45 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -95,6 +95,7 @@ Nil means don't use mhl to format messages when showing; mhl is still used,
 with the default format file, to format messages when printing them.
 The format used should specify a non-zero value for overflowoffset so
 the message continues to conform to RFC 822 and mh-e can parse the headers.")
+(put 'mhl-formfile 'info-file "mh-e")
 
 (defvar mh-default-folder-for-message-function nil
   "Function to select a default folder for refiling or Fcc.
@@ -158,6 +159,8 @@ First argument is folder name.  Second is message number.")
 (defvar mh-show-buffer nil)		;Buffer that displays message for this folder.
 
 (defvar mh-folder-filename nil)		;Full path of directory for this folder.
+  
+(defvar mh-msg-count nil)		;Number of msgs in buffer.
 
 (defvar mh-showing nil)			;If non-nil, show the message in a separate window.
 
@@ -421,7 +424,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 
 (defun mh-delete-line (lines)
   ;; Delete version of kill-line.
-  (delete-region (point) (save-excursion (forward-line lines) (point))))
+  (delete-region (point) (progn (forward-line lines) (point))))
 
 
 (defun mh-notate (msg notation offset)
@@ -437,34 +440,59 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 	  (insert notation)))))
 
 
+(defun mh-find-msg-get-num (step)
+  ;; Return the message number of the message on the current scan line
+  ;; or one nearby.  Jumps over non-message lines, such as inc errors.
+  ;; STEP tells whether to search forward or backward if we have to search.
+  (or (mh-get-msg-num nil)
+      (let ((msg-num nil)
+	    (nreverses 0))
+	(while (and (not msg-num)
+		    (< nreverses 2))
+	  (cond ((eobp)
+		 (setq step -1)
+		 (setq nreverses (1+ nreverses)))
+		((bobp)
+		 (setq step 1)
+		 (setq nreverses (1+ nreverses))))
+	  (forward-line step)
+	  (setq msg-num (mh-get-msg-num nil)))
+	msg-num)))
+
 (defun mh-goto-msg (number &optional no-error-if-no-message dont-show)
   "Position the cursor at message NUMBER.
 Optional non-nil second argument means return nil instead of
-signaling an error if message does not exist.
+signaling an error if message does not exist; in this case,
+the cursor is positioned near where the message would have been.
 Non-nil third argument means not to show the message."
   (interactive "NGo to message: ")
   (setq number (prefix-numeric-value number)) ;Emacs 19
-  (let ((cur-msg (mh-get-msg-num nil))
-	(starting-place (point))
-	(msg-pattern (mh-msg-search-pat number)))
-    (cond ((cond ((and cur-msg (= cur-msg number)) t)
-		 ((and cur-msg
-		       (< cur-msg number)
-		       (re-search-forward msg-pattern nil t)) t)
-		 ((and cur-msg
-		       (> cur-msg number)
-		       (re-search-backward msg-pattern nil t)) t)
-		 (t			; Do thorough search of buffer
-		  (goto-char (point-max))
-		  (re-search-backward msg-pattern nil t)))
-	    (beginning-of-line)
-	    (if (not dont-show) (mh-maybe-show number))
-	    t)
-	  (t
-	   (goto-char starting-place)
-	   (if (not no-error-if-no-message)
-	       (error "No message %d" number))
-	   nil))))
+  ;; This basic routine tries to be as fast as possible,
+  ;; using a binary search and minimal regexps.
+  (let ((cur-msg (mh-find-msg-get-num -1))
+	(jump-size mh-msg-count))
+    (while (and (> jump-size 1)
+		cur-msg
+		(not (eq cur-msg number)))
+      (cond ((< cur-msg number)
+	     (setq jump-size (min (- number cur-msg)
+				  (ash (1+ jump-size) -1)))
+	     (forward-line jump-size)
+	     (setq cur-msg (mh-find-msg-get-num 1)))
+	    (t
+	     (setq jump-size (min (- cur-msg number)
+				  (ash (1+ jump-size) -1)))
+	     (forward-line (- jump-size))
+	     (setq cur-msg (mh-find-msg-get-num -1)))))
+    (if (eq cur-msg number)
+	(progn
+	  (beginning-of-line)
+	  (or dont-show
+	      (mh-maybe-show number)
+	      t))
+      (if (not no-error-if-no-message)
+	  (error "No message %d" number)))))
+
 
 (defun mh-msg-search-pat (n)
   ;; Return a search pattern for message N in the scan listing.
@@ -484,6 +512,7 @@ Non-nil third argument means not to show the message."
 	     (end-of-line)
 	     (buffer-substring start (point)))))))
 
+(defvar mua-paradigm "MH-E")		;from mua.el
 
 (defun mh-find-path ()
   ;; Set mh-progs and mh-lib.
@@ -527,6 +556,7 @@ Non-nil third argument means not to show the message."
       (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
       (if mh-previous-seq
 	  (setq mh-previous-seq (intern mh-previous-seq)))
+      (setq mua-paradigm "MH-E")
       (run-hooks 'mh-find-path-hook))))
 
 (defun mh-find-progs ()
@@ -565,13 +595,17 @@ Non-nil third argument means not to show the message."
     (setq path (cdr path)))
   (car path))
 
+(defvar mh-no-install nil)		;do not run install-mh
+
 (defun mh-install (profile error-val)
   ;; Called to do error recovery if we fail to read the profile file.
   ;; If possible, initialize the MH environment.
   (if (or (getenv "MH")
-	  (file-exists-p profile))
-      (error "Cannot read MH profile \"%s\": %s"
-	     profile (car (cdr (cdr error-val)))))
+	  (file-exists-p profile)
+	  mh-no-install)
+      (signal (car error-val)
+	      (list (format "Cannot read MH profile \"%s\"" profile)
+		    (car (cdr (cdr error-val))))))
   ;; The "install-mh" command will output a short note which
   ;; mh-exec-cmd will display to the user.
   ;; The MH 5 version of install-mh might try prompt the user
@@ -582,8 +616,9 @@ Non-nil third argument means not to show the message."
   (condition-case err
       (insert-file-contents profile)
     (file-error
-     (error "Cannot read MH profile \"%s\": %s"
-	    profile (car (cdr (cdr err)))))))
+     (signal (car err)			;re-signal with more specific msg
+	     (list (format "Cannot read MH profile \"%s\"" profile)
+		   (car (cdr (cdr err))))))))
 
 
 (defun mh-set-folder-modified-p (flag)
@@ -658,6 +693,9 @@ Non-nil third argument means not to show the message."
 	     (run-hooks 'mh-folder-list-change-hook))
 	    (new-file-p
 	     (error "Folder %s is not created" folder-name))
+	    ((not (file-directory-p (mh-expand-file-name folder-name)))
+	     (error "\"%s\" is not a directory"
+		    (mh-expand-file-name folder-name)))
 	    ((and (null (assoc read-name mh-folder-list))
 		  (null (assoc (concat read-name "/") mh-folder-list)))
 	     (setq mh-folder-list (cons (list read-name) mh-folder-list))
@@ -692,7 +730,7 @@ Non-nil third argument means not to show the message."
   ;; Call mh-set-folder-list to wait for the result.
   (cond
    ((not mh-make-folder-list-process)
-    (mh-find-progs)
+    (mh-find-path)
     (let ((process-connection-type nil))
       (setq mh-make-folder-list-process
 	    (start-process "folders" nil (expand-file-name "folders" mh-progs)
@@ -707,32 +745,35 @@ Non-nil third argument means not to show the message."
 (defun mh-make-folder-list-filter (process output)
   ;; parse output from "folders -fast"
   (let ((position 0)
-	(line-end t)
-	new-folder)
-    (while line-end
-      (setq line-end (string-match "\n" output position))
-      (cond
-       (line-end			;make sure got complete line
-	(setq new-folder (format "+%s%s"
-				 mh-folder-list-partial-line
-				 (substring output position line-end)))
-	(setq mh-folder-list-partial-line "")
-	;; is new folder a subfolder of previous?
-	(if (and mh-folder-list-temp
-		 (string-match (regexp-quote
-				(concat (car (car mh-folder-list-temp)) "/"))
-			       new-folder))
-	    ;; append slash to parent folder for better completion
-	    ;; (undone by mh-prompt-for-folder)
+	line-end
+	new-folder
+	(prevailing-match-data (match-data)))
+    (unwind-protect
+	;; make sure got complete line
+	(while (setq line-end (string-match "\n" output position))
+	  (setq new-folder (format "+%s%s"
+				   mh-folder-list-partial-line
+				   (substring output position line-end)))
+	  (setq mh-folder-list-partial-line "")
+	  ;; is new folder a subfolder of previous?
+	  (if (and mh-folder-list-temp
+		   (string-match
+		    (regexp-quote
+		     (concat (car (car mh-folder-list-temp)) "/"))
+		    new-folder))
+	      ;; append slash to parent folder for better completion
+	      ;; (undone by mh-prompt-for-folder)
+	      (setq mh-folder-list-temp
+		    (cons
+		     (list new-folder)
+		     (cons
+		      (list (concat (car (car mh-folder-list-temp)) "/"))
+		      (cdr mh-folder-list-temp))))
 	    (setq mh-folder-list-temp
 		  (cons (list new-folder)
-			(cons
-			 (list (concat (car (car mh-folder-list-temp)) "/"))
-			 (cdr mh-folder-list-temp))))
-	  (setq mh-folder-list-temp
-		(cons (list new-folder)
-		      mh-folder-list-temp)))
-	(setq position (1+ line-end)))))
+			mh-folder-list-temp)))
+	  (setq position (1+ line-end)))
+      (store-match-data prevailing-match-data))
     (setq mh-folder-list-partial-line (substring output position))))
 
 
@@ -903,6 +944,9 @@ Non-nil third argument means not to show the message."
 
 (and (not noninteractive)
      mh-auto-folder-collect
-     (mh-make-folder-list-background))
+     (let ((mh-no-install t))		;only get folders if MH installed
+       (condition-case err
+	   (mh-make-folder-list-background)
+	 (file-error))))		;so don't complain if not installed
 
 ;;; mh-utils.el ends here
