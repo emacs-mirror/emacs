@@ -127,6 +127,7 @@ option, or to set an equivalent one."
 
 (defconst c-macro-buffer-name "*Macroexpansion*")
 
+;;;###autoload
 (defun c-macro-expand (start end subst)
   "Expand C macros in the region, using the C preprocessor.
 Normally display output in temp buffer, but
