@@ -1,3 +1,9 @@
+2004-11-04  Richard M. Stallman  <rms@gnu.org>
+
+	* spam.el (spam group): Add :version.
+
+	* pgg-def.el (pgg group): Add :version.
+
 2004-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art. (gnus-article-edit-article): Don't associate the
