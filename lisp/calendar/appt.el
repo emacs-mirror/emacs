@@ -391,12 +391,14 @@ The following variables control appointment notification:
 	 (this-window (selected-window))
 	 (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
 
-    (appt-select-lowest-window)
     (if (cdr (assq 'unsplittable (frame-parameters)))
 	;; In an unsplittable frame, use something somewhere else.
 	(display-buffer appt-disp-buf)
-      ;; Otherwise, split the bottom window and use the lower part.
-      (split-window)
+      (unless (or (special-display-p (buffer-name appt-disp-buf))
+		  (same-window-p (buffer-name appt-disp-buf)))
+	;; By default, split the bottom window and use the lower part.
+	(appt-select-lowest-window)
+	(split-window))
       (pop-to-buffer appt-disp-buf))
     (setq mode-line-format 
 	  (concat "-------------------- Appointment in "
