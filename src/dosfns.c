@@ -44,7 +44,7 @@ Changes the number of rows to 25.")
   if (!inhibit_window_system)
     return Qnil;
 #endif
-  if (have_mouse) mouse_off ();
+  mouse_off ();
   regs.x.ax = 3;
   int86 (0x10, &regs, &regs);
   regs.x.ax = 0x1101;
@@ -72,7 +72,7 @@ Changes the number of rows to 43 (EGA) or 50 (VGA).")
   if (!inhibit_window_system)
     return Qnil;
 #endif
-  if (have_mouse) mouse_off ();
+  mouse_off ();
   regs.x.ax = 3;
   int86 (0x10, &regs, &regs);
   regs.x.ax = 0x1112;
@@ -159,6 +159,7 @@ you should call `unfocus-frame' afterwards.")
      Lisp_Object frame, x, y;
 {
   mouse_moveto (XINT (x), XINT (y));
+  return Qnil;
 }
 
 /* Function to translate colour names to integers.  See lisp/term/pc-win.el
@@ -166,6 +167,41 @@ you should call `unfocus-frame' afterwards.")
 
 Lisp_Object Qmsdos_color_translate;
 #endif
+
+
+DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
+  "Initialize and enable mouse if available.")
+  ()
+{
+  if (have_mouse) {
+	have_mouse = 1;
+	mouse_init ();
+    return Qt;
+  }
+  return Qnil;
+}
+
+DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
+  "Enable mouse if available.")
+  ()
+{
+  if (have_mouse)
+    {
+	  have_mouse = 1;
+	  mouse_on ();
+    }
+  return have_mouse ? Qt : Qnil;
+}
+
+DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, "",
+  "Disable mouse if available.")
+  ()
+{
+  mouse_off ();
+  if (have_mouse) have_mouse = -1;
+  return Qnil;
+}
+
 
 
 int dos_country_code;
@@ -228,6 +264,9 @@ syms_of_dosfns ()
   defsubr (&Smode25);
   defsubr (&Smode4350);
   defsubr (&Sint86);
+  defsubr (&Smsdos_mouse_init);
+  defsubr (&Smsdos_mouse_enable);
+  defsubr (&Smsdos_mouse_disable);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
   defsubr (&Sset_mouse_position);
