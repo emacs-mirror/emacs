@@ -843,10 +843,12 @@ specifies the character set for the major languages of Western Europe."
   (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
   (unless default-enable-multibyte-characters
-    (or (member (downcase language)
+    (or (member (downcase language-name)
 		'("latin-1" "latin-2" "latin-3" "latin-4" "latin-5"))
-	(error "Language environment `%s' not supported in unibyte mode"))
-    (standard-display-european 1 (downcase language)))
+	(error "Language environment `%s' not supported in unibyte mode"
+	       language-name))
+    (set-terminal-coding-system (intern (downcase language-name)))
+    (standard-display-european-internal))
 
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
@@ -857,6 +859,17 @@ specifies the character set for the major languages of Western Europe."
   (funcall (get-language-info language-name 'setup-function))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
+
+(defun standard-display-european-internal ()
+  ;; Actually set up direct output of non-ASCII characters.
+  (standard-display-8bit 160 255)
+  ;; Make non-line-break space display as a plain space.
+  ;; Most X fonts do the wrong thing for code 160.
+  (aset standard-display-table 160 [32])
+  ;; Most Windows programs send out apostrophe's as \222.  Most X fonts
+  ;; don't contain a character at that position.  Map it to the ASCII
+  ;; apostrophe.
+  (aset standard-display-table 146 [39]))
 
 (defun set-language-environment-coding-systems (language-name)
   "Do various coding system setups for language environment LANGUAGE-NAME."
