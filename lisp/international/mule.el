@@ -777,8 +777,7 @@ LIST is a list of coding categories ordered by priority."
     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . no-conversion))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
-A file whose name matches REGEXP is decoded on reading
-and encoded on writing by CODING-SYSTEM.
+A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
 
 The settings in this variable have higher priority than `coding:' tag
 in the file contents (see the function `set-auto-coding')
