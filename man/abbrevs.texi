@@ -20,7 +20,7 @@ words in the buffer that start with those letters.  @xref{Dynamic
 Abbrevs}.
 
 `Hippie' expansion generalizes abbreviation expansion.
-@xref{Hippie Expand, `Hippie' Expansion, autotype, Features for
+@xref{Hippie Expand, , `Hippie' Expansion, autotype, Features for
 Automatic Typing}.
 
 @menu
