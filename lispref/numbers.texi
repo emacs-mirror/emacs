@@ -62,7 +62,7 @@ initial sign and optional final period.
  1.              ; @r{The integer 1.}
 +1               ; @r{Also the integer 1.}
 -1               ; @r{The integer @minus{}1.}
- 268435457       ; @r{Also the integer 1, due to overflow.}
+ 536870913       ; @r{Also the integer 1, due to overflow.}
  0               ; @r{The integer 0.}
 -0               ; @r{The integer 0.}
 @end example
