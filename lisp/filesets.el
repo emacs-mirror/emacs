@@ -2496,6 +2496,7 @@ We apologize for the inconvenience."))
 (defun filesets-exit ()
   (filesets-menu-cache-file-save-maybe))
 
+;;;###autoload
 (defun filesets-init ()
   "Filesets initialization.
 Set up hooks, load the cache file -- if existing -- and build the menu."
