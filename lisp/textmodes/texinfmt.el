@@ -924,9 +924,8 @@ lower types.")
           (error "Duplicate node name: %s" name)
         (setq texinfo-node-names (cons (list tem) texinfo-node-names))))
     (setq texinfo-footnote-number 0)
-    (or (bolp)
-        (insert ?\n))
-    (insert "\^_\nFile: " texinfo-format-filename
+    ;; insert "\n\^_" unconditionally since this is what info is looking for
+    (insert "\n\^_\nFile: " texinfo-format-filename
             ", Node: " name)
     (if next
         (insert ", Next: " next))
