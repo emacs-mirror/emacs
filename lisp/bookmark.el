@@ -680,7 +680,7 @@ for a file, defaulting to the file defined by variable
     (save-window-excursion
       (if (>= baud-rate 9600)
           (message (format "Saving bookmarks to file %s." file)))
-      (set-buffer (let ((enable-local-eval nil))
+      (set-buffer (let ((enable-local-variables nil))
                     (find-file-noselect file)))
       (goto-char (point-min))
       (delete-region (point-min) (point-max))
@@ -724,7 +724,7 @@ explicitly."
         (save-window-excursion
           (if (and (null no-msg) (>= baud-rate 9600))
               (message (format "Loading bookmarks from %s..." file)))
-          (set-buffer (let ((enable-local-eval nil))
+          (set-buffer (let ((enable-local-variables nil))
                         (find-file-noselect file)))
           (goto-char (point-min))
           (let ((blist (car (read-from-string
