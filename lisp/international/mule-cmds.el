@@ -264,7 +264,7 @@ wrong, use this command again to toggle back to the right mode."
   ;; We have to decode the file in any environment.
   (let ((default-enable-multibyte-characters t)
 	(coding-system-for-read 'iso-2022-7bit))
-    (find-file-read-only (expand-file-name "HELLO" data-directory))))
+    (view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)
   "Execute an I/O command using the specified coding system."
