@@ -132,7 +132,7 @@ two lists will NOT be killed if it is also present in this list."
   :group 'midnight)
 
 
-(defcustom clean-buffer-list-kill-never-regexps '("^ \*Minibuf-.*\*$")
+(defcustom clean-buffer-list-kill-never-regexps '("^ \\*Minibuf-.*\\*$")
   "*List of regexp saying which buffers will never be killed at midnight.
 See also `clean-buffer-list-kill-never-buffer-names'.
 Killing is done by `clean-buffer-list'.
@@ -145,7 +145,7 @@ two lists will NOT be killed if it also matches anything in this list."
 (defun midnight-find (el ls test &optional key)
   "A stopgap solution to the absence of `find' in ELisp."
   (dolist (rr ls)
-    (when (funcall test el (if key (funcall key rr) rr))
+    (when (funcall test (if key (funcall key rr) rr) el)
       (return rr))))
 
 (defun clean-buffer-list-delay (name)
