@@ -5,7 +5,7 @@
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.1 1999/05/12 11:49:30 fx Exp fx $
+;; Version: $Id: todo-mode.el,v 1.43 2000/07/04 11:15:24 fx Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.1 1999/05/12 11:49:30 fx Exp fx $
+;;      $Id: todo-mode.el,v 1.43 2000/07/04 11:15:24 fx Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -729,7 +729,7 @@ between each category."
   (or nof-priorities (setq nof-priorities todo-show-priorities))
   (if (listp nof-priorities)            ;universal argument
       (setq nof-priorities (car nof-priorities)))
-  (let ((todo-print-buffer-name "*Tmp*")
+  (let ((todo-print-buffer-name todo-tmp-buffer-name)
         ;;(todo-print-category-number 0)
         (todo-category-break (if category-pr-page "" ""))
         (cat-end
