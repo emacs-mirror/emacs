@@ -460,7 +460,8 @@ characters which may be a part of the name of a mail-alias.")
 	     ;; the mail-mode-header-syntax-table.
 
 	     (set-syntax-table mail-mode-header-syntax-table)
-	     (or (eq (char-syntax last-command-char) ?_)
+	     (or (not (integerp last-command-char))
+		 (eq (char-syntax last-command-char) ?_)
 		 (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
 		   ;; Use this table so that abbrevs can have hyphens in them.
 		   (set-syntax-table mail-abbrev-syntax-table)
