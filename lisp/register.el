@@ -195,6 +195,13 @@ The Lisp value REGISTER is a character."
 	  (prin1 (cdr val))
 	  (princ "."))
 
+	 ((and (consp val) (eq (car val) 'file-query))
+	  (princ "a file-query reference:\nfile ")
+	  (prin1 (car (cdr val)))
+	  (princ ",\nposition ")
+	  (princ (car (cdr (cdr val))))
+	  (princ "."))
+
 	 ((consp val)
 	  (princ "the rectangle:\n")
 	  (while val
