@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.12) $
+ * $HopeName: MMsrc!mpstd.h(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -168,6 +168,19 @@
 #define MPS_OS_O1
 #define MPS_ARCH_AL
 #define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_SHORT     unsigned
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
+/* From the cc(1) man page on schiele */
+
+#elif defined(__osf__) && defined(__alpha) && defined(__DECC)
+#define MPS_PF_O1ALCC
+#define MPS_OS_O1
+#define MPS_ARCH_AL
+#define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
 #define MPS_T_SHORT     unsigned
 #define MPS_WORD_WIDTH  64
