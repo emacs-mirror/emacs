@@ -4674,8 +4674,8 @@ choose_write_coding_system (start, end, filename,
       if (!force_raw_text
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	/* Confirm that VAL can surely encode the current region.  */
-	val = call4 (Vselect_safe_coding_system_function,
-		     start, end, val, filename);
+	val = call5 (Vselect_safe_coding_system_function,
+		     start, end, val, Qnil, filename);
 
       setup_coding_system (Fcheck_coding_system (val), coding);
       if (coding->eol_type == CODING_EOL_UNDECIDED
