@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 6 April 1995
+@set lastupdate 10 March 1996
 @c %**end of header
 
 @setchapternewpage off
@@ -93,12 +93,11 @@ A manual for programming X-window applications.
 Manuals for various X window managers.
 
 @item
-Reference cards for those manuals that don't have them: Gawk, C
+Reference cards for those manuals that don't have them: C
 Compiler, Make, Texinfo, Termcap and maybe the C Library.
 
 @item
-Many utilities need documentation, including @code{grep}, @code{cpio},
-and other small utilities.
+Many utilities need documentation, including @code{grep} and others.
 @end itemize
 
 @node Unix-Related Projects
@@ -213,11 +212,6 @@ An emulator for Macintosh graphics calls on top of X Windows.
 A music playing and editing system.
 
 @item
-A "disk jockey" program to keep track of a collection of recorded music
-samples (songs, etc), and queue up a sequence of them for playing.  This
-program could use rplay to do the actual playing.
-
-@item
 A program to edit dance notation (such as labanotation) and display
 dancers moving on the screen.
 
@@ -258,16 +252,6 @@ send them to @code{gnu@@prep.ai.mit.edu}.
 
 @itemize @bullet
 @item
-[This seems to be being done:]
-A program to convert Postscript to plain ASCII text.  Ghostscript will
-soon have a mode to output all the text strings in a document, each with
-its coordinates.  You could write a program to start with this output
-and ``layout the page'' in ASCII.  The program will be both easier and
-more useful if you don't worry pedantically about how the output text
-should be formatted.  Instead, try to make it look reasonable as plain
-ASCII.
-
-@item
 A program to convert compiled programs represented in OSF ANDF
 (``Architecture Neutral Distribution Format'') into ANSI C.
 
@@ -276,6 +260,10 @@ An imitation of Page Maker or Ventura Publisher.
 
 @item
 An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
+
+@item
+A text-based Web browser, somewhat like Lynx (which, unfortunately,
+is not free software).
 
 @item
 A program to reformat Fortran programs in a way that is pretty.
@@ -290,7 +278,7 @@ A general ledger program.
 
 @item
 A program to typeset C code for printing.
-For ideas on what to do, see the forthcoming book,
+For ideas on what to do, see the book,
 
 @display
 Human Factors and Typography for More Readable Programs,
@@ -320,7 +308,7 @@ Software to replace card catalogues in libraries.
 Grammar and style checking programs.
 
 @item
-An implementation of the S language (an interpreted languages used for
+An implementation of the S language (an interpreted language used for
 statistics).
 
 @item
@@ -329,16 +317,7 @@ A translator from Scheme to C.
 @item
 Optical character recognition programs; especially if suitable for
 scanning documents with multiple fonts and capturing font info as well
-as character codes.  This may not be very difficult if you let it
-@emph{train} on part of the individual document to be scanned, so as to
-learn what fonts are in use in that document.  We would particularly
-like to scan the Century Dictionary, an unabridged dictionary now in the
-public domain.
-
-You don't need scanning hardware to work on OCR.  We can send you
-bitmaps you can use as test data.
-
-We may soon have an OCR program, but it will need lots of additional work.
+as character codes.  Work is being done on this, but more help is needed.
 
 @item
 A program to scan a line drawing and convert it to Postscript.
@@ -356,9 +335,6 @@ Software suitable for creating virtual reality user interfaces.
 CAD software, such as a vague imitation of Autocad.
 
 @item
-Software for displaying molecules.
-
-@item
 Software for comparing DNA sequences, and finding matches and
 alignments.
 @end itemize
@@ -367,9 +343,9 @@ alignments.
 @chapter Compilers for Other Batch Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
-Algol 60, Algol 68, PL/I, or whatever, to be used with the code
-generation phases of the GNU C compiler.  (C++ and Objective C are done,
-Fortran is now in beta test, and Ada and Pascal are being worked on.
+Algol 60, Algol 68, PL/I, Cobol, or whatever, to be used with the code
+generation phases of the GNU C compiler.  (C++, Objective C and Fortran
+are done; Ada, Pascal and Java are being worked on.
 
 @c Fortran status is here so gnu@prep and the volunteer coordinators
 @c don't have to answer the question -len
