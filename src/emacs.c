@@ -1114,6 +1114,7 @@ sort_args (argc, argv)
   int to = 1;
   int from;
   int i;
+  int end_of_options = argc;
 
   /* Categorize all the options,
      and figure out which argv elts are option arguments.  */
@@ -1125,6 +1126,19 @@ sort_args (argc, argv)
 	{
 	  int match, thislen;
 	  char *equals;
+
+	  /* If we have found "--", don't consider
+	     any more arguments as options.  */
+	  if (argv[from][1] == '-')
+	    {
+	      /* Leave the "--", and everything following it, at the end.  */
+	      for (; from < argc; from++)
+		{
+		  priority[from] = -100;
+		  options[from] = -1;
+		}
+	      break;
+	    }
 
 	  /* Look for a match with a known old-fashioned option.  */
 	  for (i = 0; i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
