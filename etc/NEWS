@@ -14,11 +14,6 @@ so we will look at it
 
 * Installation Changes in Emacs 21.4
 
-** There is a new user option `mail-default-directory' that allows you
-to specify the value of `default-directory' for mail buffers.  This
-directory is used for auto-save files of mail buffers.  It defaults to
-"~/".
-
 ** Emacs can now be built without sound support.
 
 ** Emacs now supports new configure options `--program-prefix',
@@ -56,6 +51,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 
 * Changes in Emacs 21.4
+
+** There is a new user option `mail-default-directory' that allows you
+to specify the value of `default-directory' for mail buffers.  This
+directory is used for auto-save files of mail buffers.  It defaults to
+"~/".
 
 ---
 ** ps-print can now print Unicode characters.
