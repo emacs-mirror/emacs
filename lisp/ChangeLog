@@ -1,3 +1,8 @@
+2004-08-30  John Paul Wallington  <jpw@gnu.org>
+
+	* textmodes/tex-mode.el (tex-validate-buffer): Use distinct
+	strings rather than programatically constructing message.
+
 2004-08-30  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (prin1-char): Don't turn S-a into A.
