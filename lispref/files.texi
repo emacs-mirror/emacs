@@ -1384,9 +1384,9 @@ and work properly on all systems without change.
 
 @menu
 * File Name Components::  The directory part of a file name, and the rest.
+* Relative File Names::   Some file names are relative to a current directory.
 * Directory Names::       A directory's name as a directory
                             is different from its name as a file.
-* Relative File Names::   Some file names are relative to a current directory.
 * File Name Expansion::   Converting relative file names to absolute ones.
 * Unique File Names::     Generating names for temporary files.
 * File Name Completion::  Finding the completions for a given file name.
@@ -1420,10 +1420,13 @@ in Emacs omits the version number, so that version numbers in Emacs are
 found mostly in directory lists.
 
 @defun file-name-directory filename
-This function returns the directory part of @var{filename} (or
-@code{nil} if @var{filename} does not include a directory part).  On
-most systems, the function returns a string ending in a slash.  On VMS,
-it returns a string ending in one of the three characters @samp{:},
+This function returns the directory part of @var{filename}, as a
+directory name (@pxref{Directory Names}), or @code{nil} if
+@var{filename} does not include a directory part.
+
+On GNU and Unix systems, a string returned by this function always
+ends in a slash.  On MSDOS it can also end in a colon.  On VMS, it
+returns a string ending in one of the three characters @samp{:},
 @samp{]}, or @samp{>}.
 
 @example
@@ -1455,11 +1458,27 @@ This function returns the nondirectory part of @var{filename}.
      @result{} "foo"
 @end group
 @group
+(file-name-nondirectory "lewis/")
+     @result{} ""
+@end group
+@group
 ;; @r{The following example is accurate only on VMS.}
 (file-name-nondirectory "[X]FOO.TMP")
      @result{} "FOO.TMP"
 @end group
 @end example
+@end defun
+
+@defun file-name-extension filename &optional period
+This function returns @var{filename}'s final ``extension,'' if any,
+after applying @code{file-name-sans-versions} to remove any
+version/backup part.  It returns @code{nil} for extensionless file
+names such as @file{foo}.  If @var{period} is non-nil, then the
+returned value includes the period that delimits the extension, and if
+@var{filename} has no extension, the value is @code{""}.  If the last
+component of a file name begins with a @samp{.}, that @samp{.} doesn't
+count as the beginning of an extension, so, for example,
+@file{.emacs}'s ``extension'' is @code{nil}, not @samp{.emacs}.
 @end defun
 
 @defun file-name-sans-versions filename &optional keep-backup-version
@@ -1525,111 +1544,6 @@ value of @code{?/}.
 @end defvar
 @end ignore
 
-@defun file-name-extension filename &optional period
-This function returns @var{filename}'s final ``extension,'' if any,
-after applying @code{file-name-sans-versions} to remove any
-version/backup part.  It returns @code{nil} for extensionless file
-names such as @file{foo}.  If @var{period} is non-nil, then the
-returned value includes the period that delimits the extension, and if
-@var{filename} has no extension, the value is @code{""}.  If the last
-component of a file name begins with a @samp{.}, that @samp{.} doesn't
-count as the beginning of an extension, so, for example,
-@file{.emacs}'s ``extension'' is @code{nil}, not @samp{.emacs}.
-@end defun
-
-@node Directory Names
-@comment  node-name,  next,  previous,  up
-@subsection Directory Names
-@cindex directory name
-@cindex file name of directory
-
-  A @dfn{directory name} is the name of a directory.  A directory is a
-kind of file, and it has a file name, which is related to the directory
-name but not identical to it.  (This is not quite the same as the usual
-Unix terminology.)  These two different names for the same entity are
-related by a syntactic transformation.  On most systems, this is simple:
-a directory name ends in a slash (or backslash), whereas the directory's
-name as a file lacks that slash.  On VMS, the relationship is more
-complicated.
-
-  The difference between a directory name and its name as a file is
-subtle but crucial.  When an Emacs variable or function argument is
-described as being a directory name, a file name of a directory is not
-acceptable.
-
-  The following two functions convert between directory names and file
-names.  They do nothing special with environment variable substitutions
-such as @samp{$HOME}, and the constructs @samp{~}, and @samp{..}.
-
-@defun file-name-as-directory filename
-This function returns a string representing @var{filename} in a form
-that the operating system will interpret as the name of a directory.  On
-most systems, this means appending a slash to the string (if it does not
-already end in one).  On VMS, the function converts a string of the form
-@file{[X]Y.DIR.1} to the form @file{[X.Y]}.
-
-@example
-@group
-(file-name-as-directory "~rms/lewis")
-     @result{} "~rms/lewis/"
-@end group
-@end example
-@end defun
-
-@defun directory-file-name dirname
-This function returns a string representing @var{dirname} in a form that
-the operating system will interpret as the name of a file.  On most
-systems, this means removing the final slash (or backslash) from the
-string.  On VMS, the function converts a string of the form @file{[X.Y]}
-to @file{[X]Y.DIR.1}.
-
-@example
-@group
-(directory-file-name "~lewis/")
-     @result{} "~lewis"
-@end group
-@end example
-@end defun
-
-@cindex directory name abbreviation
-  Directory name abbreviations are useful for directories that are
-normally accessed through symbolic links.  Sometimes the users recognize
-primarily the link's name as ``the name'' of the directory, and find it
-annoying to see the directory's ``real'' name.  If you define the link
-name as an abbreviation for the ``real'' name, Emacs shows users the
-abbreviation instead.
-
-@defvar directory-abbrev-alist
-The variable @code{directory-abbrev-alist} contains an alist of
-abbreviations to use for file directories.  Each element has the form
-@code{(@var{from} . @var{to})}, and says to replace @var{from} with
-@var{to} when it appears in a directory name.  The @var{from} string is
-actually a regular expression; it should always start with @samp{^}.
-The function @code{abbreviate-file-name} performs these substitutions.
-
-You can set this variable in @file{site-init.el} to describe the
-abbreviations appropriate for your site.
-
-Here's an example, from a system on which file system @file{/home/fsf}
-and so on are normally accessed through symbolic links named @file{/fsf}
-and so on.
-
-@example
-(("^/home/fsf" . "/fsf")
- ("^/home/gp" . "/gp")
- ("^/home/gd" . "/gd"))
-@end example
-@end defvar
-
-  To convert a directory name to its abbreviation, use this
-function:
-
-@defun abbreviate-file-name dirname
-This function applies abbreviations from @code{directory-abbrev-alist}
-to its argument, and substitutes @samp{~} for the user's home
-directory.
-@end defun
-
 @node Relative File Names
 @subsection Absolute and Relative File Names
 @cindex absolute file name
@@ -1665,6 +1579,133 @@ Unix syntax and VMS syntax.
      @result{} t
 @end group
 @end example
+@end defun
+
+@node Directory Names
+@comment  node-name,  next,  previous,  up
+@subsection Directory Names
+@cindex directory name
+@cindex file name of directory
+
+  A @dfn{directory name} is the name of a directory.  A directory is
+actually a kind of file, so it has a file name, which is related to
+the directory name but not identical to it.  (This is not quite the
+same as the usual Unix terminology.)  These two different names for
+the same entity are related by a syntactic transformation.  On GNU and
+Unix systems, this is simple: a directory name ends in a slash (or
+backslash), whereas the directory's name as a file lacks that slash.
+On MSDOS and VMS, the relationship is more complicated.
+
+  The difference between a directory name and its name as a file is
+subtle but crucial.  When an Emacs variable or function argument is
+described as being a directory name, a file name of a directory is not
+acceptable.  When @code{file-name-directory} returns a string, that is
+always a directory name.
+
+  The following two functions convert between directory names and file
+names.  They do nothing special with environment variable substitutions
+such as @samp{$HOME}, and the constructs @samp{~}, and @samp{..}.
+
+@defun file-name-as-directory filename
+This function returns a string representing @var{filename} in a form
+that the operating system will interpret as the name of a directory.  On
+most systems, this means appending a slash to the string (if it does not
+already end in one).  On VMS, the function converts a string of the form
+@file{[X]Y.DIR.1} to the form @file{[X.Y]}.
+
+@example
+@group
+(file-name-as-directory "~rms/lewis")
+     @result{} "~rms/lewis/"
+@end group
+@end example
+@end defun
+
+@defun directory-file-name dirname
+This function returns a string representing @var{dirname} in a form that
+the operating system will interpret as the name of a file.  On most
+systems, this means removing the final slash (or backslash) from the
+string.  On VMS, the function converts a string of the form @file{[X.Y]}
+to @file{[X]Y.DIR.1}.
+
+@example
+@group
+(directory-file-name "~lewis/")
+     @result{} "~lewis"
+@end group
+@end example
+@end defun
+
+  Given a directory name, you can combine it with a relative file name
+using @code{concat}:
+
+@example
+(concat @var{dirname} @var{relfile})
+@end example
+
+@noindent
+Be sure to verify that the file name is relative before doing that.
+If you use an absolute file name, the results could be syntactically
+invalid or refer to the wrong file.
+
+  If you want to use a directory file name in making such a
+combination, you must first convert it to a directory name using
+@code{file-name-as-directory}:
+
+@example
+(concat (file-name-as-directory @var{dirfile}) @var{relfile})
+@end example
+
+@noindent
+Don't try concatenating a slash by hand, as in
+
+@example
+;;; @r{Wrong!}
+(concat @var{dirfile} "/" @var{relfile})
+@end example
+
+@noindent
+because this is not portable.  Always use
+@code{file-name-as-directory}.
+
+@cindex directory name abbreviation
+  Directory name abbreviations are useful for directories that are
+normally accessed through symbolic links.  Sometimes the users recognize
+primarily the link's name as ``the name'' of the directory, and find it
+annoying to see the directory's ``real'' name.  If you define the link
+name as an abbreviation for the ``real'' name, Emacs shows users the
+abbreviation instead.
+
+@defvar directory-abbrev-alist
+The variable @code{directory-abbrev-alist} contains an alist of
+abbreviations to use for file directories.  Each element has the form
+@code{(@var{from} . @var{to})}, and says to replace @var{from} with
+@var{to} when it appears in a directory name.  The @var{from} string is
+actually a regular expression; it should always start with @samp{^}.
+The function @code{abbreviate-file-name} performs these substitutions.
+
+You can set this variable in @file{site-init.el} to describe the
+abbreviations appropriate for your site.
+
+Here's an example, from a system on which file system @file{/home/fsf}
+and so on are normally accessed through symbolic links named @file{/fsf}
+and so on.
+
+@example
+(("^/home/fsf" . "/fsf")
+ ("^/home/gp" . "/gp")
+ ("^/home/gd" . "/gd"))
+@end example
+@end defvar
+
+  To convert a directory name to its abbreviation, use this
+function:
+
+@defun abbreviate-file-name filename
+This function applies abbreviations from @code{directory-abbrev-alist}
+to its argument, and substitutes @samp{~} for the user's home
+directory.  You can use it for directory names and for file names,
+because it recognizes abbreviations even as part of the name.
 @end defun
 
 @node File Name Expansion
