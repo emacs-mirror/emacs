@@ -8509,7 +8509,6 @@ redisplay_window (window, just_this_one_p)
   struct it it;
   /* Record it now because it's overwritten.  */
   int current_matrix_up_to_date_p = 0;
-  int really_switched_buffer = 0;
   int temp_scroll_step = 0;
   int count = specpdl_ptr - specpdl;
 
@@ -8562,15 +8561,9 @@ redisplay_window (window, just_this_one_p)
 
   /* Otherwise set up data on this window; select its buffer and point
      value.  */
-  if (update_mode_line)
-    {
-      /* Really select the buffer, for the sake of buffer-local
-         variables.  */
-      set_buffer_internal_1 (XBUFFER (w->buffer));
-      really_switched_buffer = 1;
-    }
-  else
-    set_buffer_temp (XBUFFER (w->buffer));
+  /* Really select the buffer, for the sake of buffer-local
+     variables.  */
+  set_buffer_internal_1 (XBUFFER (w->buffer));
   SET_TEXT_POS (opoint, PT, PT_BYTE);
 
   current_matrix_up_to_date_p
@@ -8710,13 +8703,6 @@ redisplay_window (window, just_this_one_p)
       if (!update_mode_line
 	  || ! NILP (Vwindow_scroll_functions))
 	{
-	  if (!really_switched_buffer)
-	    {
-	      set_buffer_temp (old);
-	      set_buffer_internal_1 (XBUFFER (w->buffer));
-	      really_switched_buffer = 1;
-	    }
-	  
 	  update_mode_line = 1;
 	  w->update_mode_line = Qt;
 	  startp = run_window_scroll_functions (window, startp);
@@ -9045,12 +9031,6 @@ redisplay_window (window, just_this_one_p)
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
     {
-      if (!really_switched_buffer)
-	{
-	  set_buffer_temp (old);
-	  set_buffer_internal_1 (XBUFFER (w->buffer));
-	  really_switched_buffer = 1;
-	}
       update_mode_line = 1;
       w->update_mode_line = Qt;
     }
@@ -9206,13 +9186,6 @@ redisplay_window (window, just_this_one_p)
       
       old_selected_frame = selected_frame;
       
-      if (!really_switched_buffer)
-	{
-	  set_buffer_temp (old);
-	  set_buffer_internal_1 (XBUFFER (w->buffer));
-	  really_switched_buffer = 1;
-	}
-      
       XSETFRAME (selected_frame, f);
       display_mode_lines (w);
       selected_frame = old_selected_frame;
@@ -9321,10 +9294,7 @@ redisplay_window (window, just_this_one_p)
 
   /* Restore current_buffer and value of point in it.  */
   TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
-  if (really_switched_buffer)
-    set_buffer_internal_1 (old);
-  else
-    set_buffer_temp (old);
+  set_buffer_internal_1 (old);
   TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
 
   unbind_to (count, Qnil);
