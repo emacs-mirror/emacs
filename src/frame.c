@@ -89,6 +89,7 @@ Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qvisible;
+Lisp_Object Qbuffer_predicate;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -177,6 +178,7 @@ make_frame (mini_p)
   f->menu_bar_items = Qnil;
   f->menu_bar_vector = Qnil;
   f->menu_bar_items_used = 0;
+  f->buffer_predicate = Qnil;
 
   root_window = make_window ();
   if (mini_p)
@@ -1342,6 +1344,8 @@ See `redirect-frame-focus'.")
 
 
 
+/* Return the value of frame parameter PROP in frame FRAME.  */
+
 Lisp_Object
 get_frame_param (frame, prop)
      register struct frame *frame;
@@ -1354,6 +1358,17 @@ get_frame_param (frame, prop)
     return tem;
   return Fcdr (tem);
 }
+
+/* Return the buffer-predicate of the selected frame.  */
+
+Lisp_Object
+frame_buffer_predicate ()
+{
+  return selected_frame->buffer_predicate;
+}
+
+/* Modify the alist in *ALISTPTR to associate PROP with VAL.
+   If the alist already has an element for PROP, we change it.  */
 
 void
 store_in_alist (alistptr, prop, val)
@@ -1381,6 +1396,9 @@ store_frame_param (f, prop, val)
     f->param_alist = Fcons (Fcons (prop, val), f->param_alist);
   else
     Fsetcdr (tem, val);
+
+  if (EQ (prop, Qbuffer_predicate))
+    f->buffer_predicate = val;
 
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
@@ -1466,19 +1484,16 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
-#if 1
     x_set_frame_parameters (f, alist);
-#else
+  else
+#endif
     for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
       {
 	elt = Fcar (tail);
 	prop = Fcar (elt);
 	val = Fcdr (elt);
-	x_set_frame_param (f, prop, val, get_frame_param (f, prop));
 	store_frame_param (f, prop, val);
       }
-#endif
-#endif
 
   return Qnil;
 }
@@ -1754,6 +1769,8 @@ syms_of_frame ()
   staticpro (&Qx);
   Qvisible = intern ("visible");
   staticpro (&Qvisible);
+  Qbuffer_predicate = intern ("buffer-predicate");
+  staticpro (&Qbuffer_predicate);
 
   staticpro (&Vframe_list);
 
