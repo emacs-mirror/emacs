@@ -581,6 +581,10 @@ This does not change the name of the visited file (if any).")
   register Lisp_Object tem, buf;
 
   CHECK_STRING (name, 0);
+
+  if (XSTRING (name)->size == 0)
+    error ("Empty string is invalid as a buffer name");
+
   tem = Fget_buffer (name);
   /* Don't short-circuit if UNIQUE is t.  That is a useful way to rename
      the buffer automatically so you can create another with the original name.
@@ -2591,7 +2595,7 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.")
+accomplishing an equivalent result by using other variables.");
   Vbefore_change_function = Qnil;
 
   DEFVAR_LISP ("after-change-function", &Vafter_change_function,
@@ -2608,7 +2612,7 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.")
+accomplishing an equivalent result by using other variables.");
   Vafter_change_function = Qnil;
 
   DEFVAR_LISP ("before-change-functions", &Vbefore_change_functions,
@@ -2623,7 +2627,7 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.")
+accomplishing an equivalent result by using other variables.");
   Vbefore_change_functions = Qnil;
 
   DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
@@ -2640,7 +2644,7 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.")
+accomplishing an equivalent result by using other variables.");
 
   Vafter_change_functions = Qnil;
 
