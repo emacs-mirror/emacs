@@ -1,3 +1,12 @@
+2001-01-03  Paul Eggert  <eggert@twinsun.com>
+
+	* lib-src/rcs2log: Avoid security hole allowing attacker to
+	cause user of rcs2log to overwrite arbitrary files, fixing
+	a bug reported by Morten Welinder.
+
+	Don't put "exit 1" at the end of the exit trap; it's
+	ineffective in POSIX shells.
+
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (yyerror): Changed to take two arguments.  Prototype

@@ -1,5 +1,14 @@
 2001-01-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fwindow_end): Doc fix.
+
+2001-01-03  Dave Love  <fx@gnu.org>
+
+	* dired.c (Ffile_attributes): Fix last change, removing BSD4_3
+	kluge.
+
+2001-01-03  Gerd Moellmann  <gerd@gnu.org>
+
 	* xdisp.c (try_window_reusing_current_matrix): Fix bug setting
 	the enabled_p flag of the glyph row at window_end_vpos to 0.
 	(handle_single_display_prop): Fix last change.
