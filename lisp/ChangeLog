@@ -1,3 +1,30 @@
+2005-01-15  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-with-file): Use Lisp mode in temp buffer.
+	In non-temp buffer, switch syntax table temporarily.
+
+	* emacs-lisp/lisp-mode.el (indent-pp-sexp): Doc fix.
+
+	* replace.el (occur-accumulate-lines, occur-engine): Avoid warnings.
+
+	* tar-mode.el (tar-extract): Bind buffer-undo-list to t.
+
+	* imenu.el (imenu--split-menu): Copy menulist before sorting.
+	(imenu--generic-function): Use START, not BEG, as pos of definition.
+
+	* simple.el (just-one-space): Argument specifies number of spaces.
+
+	* simple.el (eval-expression-print-format): Avoid warning
+	about edebug-active.
+
+2005-01-15  "James R. Van Zandt"  <jrvz@comcast.net>  (Tiny change)
+
+	* progmodes/sh-script.el: Code copied from make-mode.el
+	with small changes,
+	(sh-mode-map): Bind C-c C-\.
+	(sh-backslash-column, sh-backslash-align): New variables.
+	(sh-backslash-region, sh-append-backslash): New functions.
+	
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mail/rmail.el: Updated to work with movemail from GNU Mailutils
