@@ -1,3 +1,9 @@
+2000-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-goto-menu) [next-tag, next-tag-otherw]:
+	Don't call ring-empty-p unless tags-location-ring is bound.
+	From Noah Friedman <friedman@splode.com>.
+
 2000-02-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el (hs-flag-region): No longer use

@@ -1,3 +1,8 @@
+2000-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_write_glyphs): Allocate a larger screen_buf as data
+	produced for CODING_MODE_LAST_BLOCK requires.
+
 2000-02-18  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (echo_keystrokes): Remove declaration.
