@@ -1164,9 +1164,23 @@ then the value includes only maps for prefixes that start with PREFIX.")
   if (!NILP (prefix))
     prefixlen = XINT (Flength (prefix));
 
-  maps = Fcons (Fcons (Fmake_vector (make_number (0), Qnil),
-		       get_keymap (startmap)),
-		Qnil);
+  if (!NILP (prefix))
+    {
+      /* If a prefix was specified, start with the keymap (if any) for
+	 that prefix, so we don't waste time considering other prefixes.  */
+      Lisp_Object tem;
+      tem = Flookup_key (startmap, prefix, Qt);
+      /* If PREFIX is reasonable, Flookup_key should give a keymap or nil.
+	 For any other value it is ok to get an error here.  */
+      if (!NILP (tem))
+	maps = Fcons (Fcons (prefix, get_keymap (tem)), Qnil);
+      else
+	return Qnil;
+    }
+  else
+    maps = Fcons (Fcons (Fmake_vector (make_number (0), Qnil),
+			 get_keymap (startmap)),
+		  Qnil);
 
   /* For each map in the list maps,
      look at any other maps it points to,
