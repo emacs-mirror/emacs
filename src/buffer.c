@@ -5319,7 +5319,7 @@ Automatically becomes buffer-local when set in any fashion.\n\
 \n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table, see\n\
-`set-window-display-table' and `window-display-table'.
+`set-window-display-table' and `window-display-table'.\n\
 \n\
 The display table is a char-table created with `make-display-table'.\n\
 A char-table is an array indexed by character codes.  Normal array\n\
