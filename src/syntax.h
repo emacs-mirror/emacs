@@ -25,10 +25,11 @@ extern Lisp_Object Fsyntax_table_p (), Fsyntax_table (), Fset_syntax_table ();
    be used in all new buffers.  */
 #define Vstandard_syntax_table buffer_defaults.syntax_table
 
-/* A syntax table is a Lisp vector of length 0400, whose elements are integers.
+/* A syntax table is a chartable whose elements are cons cells
+   (CODE+FLAGS . MATCHING-CHAR).  MATCHING-CHAR can be nil if the char
+   is not a kind of parenthesis.
 
-The low 8 bits of the integer is a code, as follows:
-*/
+   The low 8 bits of CODE+FLAGS is a code, as follows:  */
 
 enum syntaxcode
   {
@@ -49,46 +50,97 @@ enum syntaxcode
     Smax	 /* Upper bound on codes that are meaningful */
   };
 
-#define RAW_SYNTAX(table, c) \
-  ((enum syntaxcode) (XINT (XVECTOR (table)->contents[(unsigned char) (c)]) & 0377))
+/* Fetch the syntax entry for char C from table TABLE.
+   This returns the whole entry (normally a cons cell)
+   and does not do any kind of inheritance.  */
 
-#ifdef __GNUC__
-#define SYNTAX(c)						\
- ({ unsigned char character = c;				\
-    enum syntaxcode syntax					\
-      = RAW_SYNTAX (current_buffer->syntax_table, character);	\
-    if (syntax == Sinherit)					\
-      syntax = RAW_SYNTAX (Vstandard_syntax_table, character);	\
-    syntax; })
+#if 1
+#define RAW_SYNTAX_ENTRY(table, c)				\
+  (XCHAR_TABLE (table)->contents[(unsigned char) (c)])
+
+#define SET_RAW_SYNTAX_ENTRY(table, c, val)			\
+  (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))
 #else
-#define SYNTAX(c)						\
- (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
-  ? RAW_SYNTAX (Vstandard_syntax_table, c)			\
-  : RAW_SYNTAX (current_buffer->syntax_table, c))
+#define RAW_SYNTAX_ENTRY(table, c)				\
+  ((c) >= 128							\
+   ? raw_syntax_table_lookup (table, c)				\
+   : XCHAR_TABLE (table)->contents[(unsigned char) (c)])
+
+#define SET_RAW_SYNTAX_ENTRY(table, c, val)			\
+  ((c) >= 128							\
+   ? set_raw_syntax_table_lookup (table, c, (val))		\
+   : XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))
 #endif
 
-/* The next 8 bits of the number is a character,
- the matching delimiter in the case of Sopen or Sclose. */
-
-#define RAW_SYNTAX_MATCH(table, c) \
-  ((XINT (XVECTOR (table)->contents[(unsigned char) (c)]) >> 8) & 0377)
+/* Extract the information from the entry for character C
+   in syntax table TABLE.  Do inheritance.  */
 
 #ifdef __GNUC__
-#define SYNTAX_MATCH(c)							    \
- ({ unsigned char character = c;					    \
-    enum syntaxcode syntax						    \
-      = RAW_SYNTAX (current_buffer->syntax_table, character);		    \
-    int matcher;							    \
-    if (syntax == Sinherit)						    \
-      matcher = RAW_SYNTAX_MATCH (Vstandard_syntax_table, character);	    \
-    else								    \
-      matcher = RAW_SYNTAX_MATCH (current_buffer->syntax_table, character); \
-    matcher; })
+#define SYNTAX_ENTRY(c)							\
+  ({ Lisp_Object temp, table;						\
+     unsigned char cc = (c);						\
+     table = current_buffer->syntax_table;				\
+     while (!NILP (table))						\
+       {								\
+	 temp = RAW_SYNTAX_ENTRY (table, cc);				\
+	 if (!NILP (temp))						\
+	   break;							\
+	 table = XCHAR_TABLE (table)->parent;				\
+       }								\
+     temp; })
+
+#define SYNTAX(c)							\
+  ({ Lisp_Object temp;							\
+     temp = SYNTAX_ENTRY (c);						\
+     (CONSP (temp)							\
+      ? (enum syntaxcode) (XINT (XCONS (temp)->car) & 0xff)		\
+      : wrong_type_argument (Qconsp, temp)); })
+
+#define SYNTAX_WITH_FLAGS(c)						\
+  ({ Lisp_Object temp;							\
+     temp = SYNTAX_ENTRY (c);						\
+     (CONSP (temp)							\
+      ? XINT (XCONS (temp)->car)					\
+      : wrong_type_argument (Qconsp, temp)); })
+
+#define SYNTAX_MATCH(c)							\
+  ({ Lisp_Object temp;							\
+     temp = SYNTAX_ENTRY (c);						\
+     (CONSP (temp)							\
+      ? XINT (XCONS (temp)->cdr)					\
+      : wrong_type_argument (Qconsp, temp)); })
 #else
-#define SYNTAX_MATCH(c)						\
- (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
-  ? RAW_SYNTAX_MATCH (Vstandard_syntax_table, c)			\
-  : RAW_SYNTAX_MATCH (current_buffer->syntax_table, c))
+extern Lisp_Object syntax_temp;
+extern Lisp_Object syntax_parent_lookup ();
+
+#define SYNTAX_ENTRY(c)							\
+  (syntax_temp								\
+     = RAW_SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+   (NILP (syntax_temp)							\
+    ? (syntax_temp							\
+       = syntax_parent_lookup (current_buffer->syntax_table, (c)))	\
+    : syntax_temp))
+
+#define SYNTAX(c)							\
+  (syntax_temp								\
+     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+   (CONSP (syntax_temp)							\
+    ? (enum syntaxcode) (XINT (XCONS (syntax_temp)->car) & 0xff)	\
+    : wrong_type_argument (Qconsp, syntax_temp)) })
+
+#define SYNTAX_WITH_FLAGS(c)						\
+  (syntax_temp								\
+     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+   (CONSP (syntax_temp)							\
+    ? XINT (XCONS (syntax_temp)->car)					\
+    : wrong_type_argument (Qconsp, syntax_temp)) })
+
+#define SYNTAX_MATCH(c)							\
+  (syntax_temp								\
+     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+   (CONSP (syntax_temp)							\
+    ? XINT (XCONS (syntax_temp)->cdr)					\
+    : wrong_type_argument (Qconsp, syntax_temp)) })
 #endif
 
 /* Then there are six single-bit flags that have the following meanings:
@@ -107,71 +159,18 @@ enum syntaxcode
   Style a is always the default.
   */
 
-#define SYNTAX_CHOOSE_TABLE(c)					\
- (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
-  ? Vstandard_syntax_table : current_buffer->syntax_table)
+#define SYNTAX_COMSTART_FIRST(c) ((SYNTAX_WITH_FLAGS (c) >> 16) & 1)
 
-#ifdef __GNUC__
+#define SYNTAX_COMSTART_SECOND(c) ((SYNTAX_WITH_FLAGS (c) >> 17) & 1)
 
-#define SYNTAX_COMSTART_FIRST(c)			\
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 16) & 1;	\
-   })
+#define SYNTAX_COMEND_FIRST(c) ((SYNTAX_WITH_FLAGS (c) >> 18) & 1)
 
-#define SYNTAX_COMSTART_SECOND(c) \
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 17) & 1;	\
-   })
+#define SYNTAX_COMEND_SECOND(c) ((SYNTAX_WITH_FLAGS (c) >> 19) & 1)
 
-#define SYNTAX_COMEND_FIRST(c) \
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 18) & 1;	\
-   })
-
-#define SYNTAX_COMEND_SECOND(c) \
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 19) & 1;	\
-   })
-
-#define SYNTAX_PREFIX(c) \
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 20) & 1;	\
-   })
+#define SYNTAX_PREFIX(c) ((SYNTAX_WITH_FLAGS (c) >> 20) & 1)
 
 /* extract the comment style bit from the syntax table entry */
-#define SYNTAX_COMMENT_STYLE(c) \
-  ({ unsigned char ch = c;				\
-     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
-     (XINT (XVECTOR (table)->contents[ch]) >> 21) & 1;	\
-   })
-
-#else
-
-#define SYNTAX_COMSTART_FIRST(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 16) & 1)
-
-#define SYNTAX_COMSTART_SECOND(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 17) & 1)
-
-#define SYNTAX_COMEND_FIRST(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 18) & 1)
-
-#define SYNTAX_COMEND_SECOND(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 19) & 1)
-
-#define SYNTAX_PREFIX(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 20) & 1)
-
-/* extract the comment style bit from the syntax table entry */
-#define SYNTAX_COMMENT_STYLE(c) \
-  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 21) & 1)
-
-#endif
+#define SYNTAX_COMMENT_STYLE(c) ((SYNTAX_WITH_FLAGS (c) >> 21) & 1)
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
