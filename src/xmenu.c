@@ -339,7 +339,7 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
      Window parent;		
      int startx, starty;	/* upper left corner position BROKEN */
      char **line_list[];   	/* list of strings for items */
-     int *enable_list[];   	/* list of strings for items */
+     int *enable_list[];   	/* enable flags of lines */
      char *pane_list[];		/* list of pane titles */
      Lisp_Object *prefixes;	/* Prefix key for each pane */
      char *title;
