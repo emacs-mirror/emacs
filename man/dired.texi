@@ -243,7 +243,7 @@ Equivalent to @kbd{f}.
 @kindex a @r{(Dired)}
 @findex dired-find-alternate-file
 Like @kbd{f}, but replaces the contents of the Dired buffer with
-that of an alternate file or directory.
+that of an alternate file or directory (@code{dired-find-alternate-file}).
 
 @item o
 @kindex o @r{(Dired)}
@@ -355,7 +355,9 @@ Remove all marks from all the files in this Dired buffer
 @findex dired-unmark-all-files
 Remove all marks that use the character @var{markchar}
 (@code{dired-unmark-all-files}).  The argument is a single
-character---do not use @key{RET} to terminate it.
+character---do not use @key{RET} to terminate it.  See the description
+of the @kbd{* c} command below, which lets you change the character that
+marks files.
 
 With a numeric argument, this command queries about each marked file,
 asking whether to remove its mark.  You can answer @kbd{y} meaning yes,
@@ -381,19 +383,20 @@ Toggle all marks (@code{dired-do-toggle}): files marked with @samp{*}
 become unmarked, and unmarked files are marked with @samp{*}.  Files
 marked in any other way are not affected.
 
-@item * c @var{old} @var{new}
+@item * c @var{old-markchar} @var{new-markchar}
 @kindex * c @r{(Dired)}
 @findex dired-change-marks
-Replace all marks that use the character @var{old} with marks that use
-the character @var{new} (@code{dired-change-marks}).  This command is
-the primary way to create or use marks other than @samp{*} or @samp{D}.
-The arguments are single characters---do not use @key{RET} to terminate
-them.
+Replace all marks that use the character @var{old-markchar} with marks
+that use the character @var{new-markchar} (@code{dired-change-marks}).
+This command is the primary way to create or use marks other than
+@samp{*} or @samp{D}.  The arguments are single characters---do not use
+@key{RET} to terminate them.
 
 You can use almost any character as a mark character by means of this
-command, to distinguish various classes of files.  If @var{old} is a
-space (@samp{ }), then the command operates on all unmarked files; if
-@var{new} is a space, then the command unmarks the files it acts on.
+command, to distinguish various classes of files.  If @var{old-markchar}
+is a space (@samp{ }), then the command operates on all unmarked files;
+if @var{new-markchar} is a space, then the command unmarks the files it
+acts on.
 
 To illustrate the power of this command, here is how to put @samp{D}
 flags on all the files that have no marks, while unflagging all those
@@ -615,11 +618,13 @@ creates the directory if it does not already exist.
 
 @findex dired-do-shell-command
 @kindex ! @r{(Dired)}
-The dired command @kbd{!} (@code{dired-do-shell-command}) reads a shell
+@kindex X @r{(Dired)}
+The Dired command @kbd{!} (@code{dired-do-shell-command}) reads a shell
 command string in the minibuffer and runs that shell command on all the
-specified files.  You can specify the files to operate on in the usual
-ways for Dired commands (@pxref{Operating on Files}).  There are two
-ways of applying a shell command to multiple files:
+specified files.  @kbd{X} is a synonym for @kbd{!}.  You can specify the
+files to operate on in the usual ways for Dired commands
+(@pxref{Operating on Files}).  There are two ways of applying a shell
+command to multiple files:
 
 @itemize @bullet
 @item
@@ -805,8 +810,8 @@ C-@key{SPC}} takes you back to the old position in the buffer (the line
 describing that subdirectory).
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
-subdirectory's contents.  Use @kbd{k} to delete the subdirectory.
-@xref{Dired Updating}.
+subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
+line to delete the subdirectory.  @xref{Dired Updating}.
 
 @node Subdirectory Motion
 @section Moving Over Subdirectories
