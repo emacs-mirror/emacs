@@ -185,12 +185,18 @@ Several are for Debian GNU/Linux in particular.
    <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
    Extended coding systems for Mule, specifically for reading and
    writing UTF-8 encoded Unicode.  This does more than the built-in
-   utf-8 coding system.
+   utf-8 coding system, specifically covering a lot of Far Eastern
+   characters.  (See the entry in PROBLEMS concerning slow startup of
+   Mule-UCS.)
 
- * Mailcrypt:
-   <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
-   PGP and GPG support.  PGP isn't free software, but GPG, the GNU
-   Privacy Guard, is a free replacement <URL:http://www.gnupg.org/>.
+   Alternatively, various additions and patches for Emacs 21.2 which
+   use and improve the Unicode support are currently available under
+   <URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>.
+
+ * Mailcrypt: PGP and GPG support
+   <URL:http://mailcrypt.sourceforge.net/>
+   PGP isn't free software, but GPG, the GNU Privacy Guard, is a free
+   replacement <URL:http://www.gnupg.org/>.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
