@@ -1,5 +1,10 @@
 2002-10-06  Dave Love  <fx@gnu.org>
 
+	* language/chinese.el (chinese-gb18030, gb18030) 
+	("Chinese-GB18030"): New.
+
+	* international/mule-cmds.el (locale-language-names): Add GB18030.
+
 	* international/swedish.el: Don't require latin-1.
 
 2002-10-05  Dave Love  <fx@gnu.org>

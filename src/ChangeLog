@@ -1,3 +1,7 @@
+2002-10-06  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Remove latin-N.
+
 2002-10-05  Dave Love  <fx@gnu.org>
 
 	* xfns.c (x_window, x_window): Use use_xim.
