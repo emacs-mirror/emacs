@@ -1,3 +1,7 @@
+2005-04-02  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Coding System Basics): Another wording cleanup.
+
 2005-04-01  Richard M. Stallman  <rms@gnu.org>
 
 	* nonascii.texi (Coding System Basics): Clarify previous change.
