@@ -1,5 +1,10 @@
 2004-06-17  Juanma Barranquero  <lektu@terra.es>
 
+	* files.el (parse-colon-path, cd): Mention in docstring that the
+	path separator is colon in GNU-like systems.
+
+	* newcomment.el (comment-region-internal): Fix docstring.
+
 	* emacs-lisp/ewoc.el (ewoc-create, ewoc-map, ewoc-locate)
 	(ewoc-invalidate, ewoc-collect): Doc fixes.
 	(ewoc--create-node, ewoc--delete-node-internal):

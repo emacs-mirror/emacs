@@ -1,3 +1,10 @@
+2004-06-16  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, EMACSSOURCES):
+	Add emacs-xtra.
+	($(infodir)/emacs-xtra, emacs-xtra.dvi): New dependencies.
+	(clean): Add emacs-xtra and flymake.  Remove redundancies.
+
 2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/emacs-xtra):
