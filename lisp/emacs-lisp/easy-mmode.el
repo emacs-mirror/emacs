@@ -133,13 +133,6 @@ BODY contains code that will be executed each time the mode is (dis)activated.
       (setq group
 	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
 							 mode-name)))))
-    ;; Add default properties to LIGHTER.
-    (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
-		(get-text-property 0 'keymap lighter))
-      (setq lighter
-	    (propertize lighter
-			'local-map mode-line-minor-mode-keymap
-			'help-echo "mouse-3: minor mode menu")))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -227,9 +220,9 @@ With zero or negative ARG turn mode off.
 			       (symbol-value ',keymap-sym))))
        
        ;; If the mode is global, call the function according to the default.
-       ,(if (and globalp (null init-value))
-	    `(if (and load-file-name ,mode)
-		 (eval-after-load load-file-name '(,mode 1)))))))
+       ,(if globalp
+	    `(if (and load-file-name (not (equal ,init-value ,mode)))
+		 (eval-after-load load-file-name '(,mode (if ,mode 1 -1))))))))
 
 ;;;
 ;;; make global minor mode
