@@ -543,7 +543,7 @@ is visible (and the real data of the buffer is hidden)."
 (define-key tar-mode-map [menu-bar operate copy]
   '("Copy to..." . tar-copy))
 (define-key tar-mode-map [menu-bar operate expunge]
-  '("Expunge marked files" . tar-expunge))
+  '("Expunge Marked Files" . tar-expunge))
 
 ;; tar mode is suitable only for specially formatted data.
 (put 'tar-mode 'mode-class 'special)
