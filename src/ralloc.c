@@ -59,8 +59,8 @@ static void r_alloc_init ();
 
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
-/* System call to set the break value. */
-extern POINTER sbrk ();
+/* Function to set the real break value. */
+static POINTER (*real_morecore) ();
 
 /* The break value, as seen by malloc (). */
 static POINTER virtual_break_value;
@@ -77,70 +77,6 @@ static POINTER page_break_value;
 #define ALIGNED(addr) (((unsigned int) (addr) & (PAGE - 1)) == 0)
 #define ROUNDUP(size) (((unsigned int) (size) + PAGE - 1) & ~(PAGE - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(PAGE - 1)))
-
-/* Managing "almost out of memory" warnings.  */
-
-/* Level of warnings issued. */
-static int warnlevel;
-
-/* Function to call to issue a warning;
-   0 means don't issue them.  */
-static void (*warn_function) ();
-
-static void
-check_memory_limits (address)
-     POINTER address;
-{
-  SIZE data_size = address - data_space_start;
-  int five_percent = lim_data / 20;
-
-  switch (warnlevel)
-    {
-    case 0: 
-      if (data_size > five_percent * 15)
-	{
-	  warnlevel++;
-	  (*warn_function) ("Warning: past 75% of memory limit");
-	}
-      break;
-
-    case 1: 
-      if (data_size > five_percent * 17)
-	{
-	  warnlevel++;
-	  (*warn_function) ("Warning: past 85% of memory limit");
-	}
-      break;
-
-    case 2: 
-      if (data_size > five_percent * 19)
-	{
-	  warnlevel++;
-	  (*warn_function) ("Warning: past 95% of memory limit");
-	}
-      break;
-
-    default:
-      (*warn_function) ("Warning: past acceptable memory limits");
-      break;
-    }
-
-  /* If we go down below 70% full, issue another 75% warning
-     when we go up again.  */
-  if (data_size < five_percent * 14)
-    warnlevel = 0;
-  /* If we go down below 80% full, issue another 85% warning
-     when we go up again.  */
-  else if (warnlevel > 1 && data_size < five_percent * 16)
-    warnlevel = 1;
-  /* If we go down below 90% full, issue another 95% warning
-     when we go up again.  */
-  else if (warnlevel > 2 && data_size < five_percent * 18)
-    warnlevel = 2;
-
-  if (EXCEEDS_LISP_PTR (address))
-    memory_full ();
-}
 
 /* Functions to get and return memory from the system.  */
 
@@ -160,10 +96,7 @@ obtain (size)
     {
       SIZE get = ROUNDUP (size - already_available);
 
-      if (warn_function)
-	check_memory_limits (page_break_value);
-
-      if (((int) sbrk (get)) < 0)
+      if ((*real_morecore) (get) == 0)
 	return 0;
 
       page_break_value += get;
@@ -202,8 +135,8 @@ relinquish (size)
   
   if (new_page_break != page_break_value)
     {
-      if (((int) (sbrk ((char *) new_page_break
-			- (char *) page_break_value))) < 0)
+      if ((*real_morecore) ((char *) new_page_break
+			    - (char *) page_break_value) == 0)
 	abort ();
 
       page_break_value = new_page_break;
@@ -373,7 +306,7 @@ r_alloc_sbrk (size)
   POINTER ptr;
 
   if (! use_relocatable_buffers)
-    return sbrk (size);
+    return (*real_morecore) (size);
 
   if (size > 0)
     {
@@ -499,38 +432,16 @@ r_alloc_init ()
     return;
 
   r_alloc_initialized = 1;
+  real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
 
-  virtual_break_value = break_value = sbrk (0);
-  if (break_value == (POINTER)NULL)
+  virtual_break_value = break_value = (*real_morecore) (0);
+  if (break_value == NULL)
     abort ();
-#if 0 /* The following is unreasonable because warn_func may be 0.  */
-    (*warn_func)("memory initialization got 0 from sbrk(0).");
-#endif
 
   page_break_value = (POINTER) ROUNDUP (break_value);
   /* Clear the rest of the last page; this memory is in our address space
      even though it is after the sbrk value.  */
   bzero (break_value, (page_break_value - break_value));
   use_relocatable_buffers = 1;
-
-  lim_data = 0;
-  warnlevel = 0;
-
-  get_lim_data ();
-}
-
-/* This is the name Emacs expects to call.  */
-
-void
-memory_warnings (start, warn_func)
-     POINTER start;
-     void (*warn_func) ();
-{
-  if (start)
-    data_space_start = start;
-  else
-    data_space_start = start_of_data ();
-
-  warn_function = warn_func;
 }
