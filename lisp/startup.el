@@ -76,8 +76,8 @@ the startup message unless he personally acts to inhibit it."
 (defvar command-switch-alist nil
   "Alist of command-line switches.
 Elements look like (SWITCH-STRING . HANDLER-FUNCTION).
-HANDLER-FUNCTION receives switch name as sole arg;
-remaining command-line args are in the variable `command-line-args-left'.")
+HANDLER-FUNCTION receives the switch string as its sole argument;
+the remaining command-line args are in the variable `command-line-args-left'.")
 
 (defvar command-line-args-left nil
   "List of command-line args not yet processed.")
