@@ -295,6 +295,19 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      val = Qnil;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &process_coding);
+#ifdef MSDOS
+	/* On MSDOS, if the user did not ask for binary,
+	   treat it as "text" which means doing CRLF conversion.  */
+	/* FIXME: this probably should be moved into the guts of
+	   `Ffind_operation_coding_system' for the case of `call-process'.  */
+	if (NILP (Vbinary_process_output))
+	  {
+	    process_coding.eol_type = CODING_EOL_CRLF;
+	    if (process_coding.type == coding_type_no_conversion)
+	      /* FIXME: should we set type to undecided?  */
+	      process_coding.type = coding_type_emacs_mule;
+	  }
+#endif
       }
   }
 
