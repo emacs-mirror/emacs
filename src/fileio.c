@@ -2526,7 +2526,7 @@ The value is an integer.")
   realmask = umask (0);
   umask (realmask);
 
-  XSET (value, Lisp_Int, (~ realmask) & 0777);
+  XSETINT (value, (~ realmask) & 0777);
   return value;
 }
 
@@ -2817,7 +2817,7 @@ and (2) it puts less data in the undo list.")
     register Lisp_Object temp;
 
     /* Make sure point-max won't overflow after this insertion.  */
-    XSET (temp, Lisp_Int, total);
+    XSETINT (temp, total);
     if (total != XINT (temp))
       error ("maximum buffer size exceeded");
   }
@@ -3699,7 +3699,7 @@ Non-nil second argument means save only current buffer.")
 			 XSTRING (b->name)->data);
 		/* Turn off auto-saving until there's a real save,
 		   and prevent any more warnings.  */
-		XSET (b->save_length, Lisp_Int, -1);
+		XSETINT (b->save_length, -1);
 		Fsleep_for (make_number (1), Qnil);
 		continue;
 	      }
