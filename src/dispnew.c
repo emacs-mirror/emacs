@@ -1251,10 +1251,12 @@ line_hash_code (row)
 
           while (glyph < end)
             {
-	      GLYPH g = GLYPH_FROM_CHAR_GLYPH (*glyph);
+	      int c = glyph->u.ch;
+	      int face_id = glyph->face_id;
 	      if (must_write_spaces)
-	        g -= SPACEGLYPH;
-	      hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + g;
+	        c -= SPACEGLYPH;
+	      hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
+	      hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
 	      ++glyph;
 	    }
 
@@ -1312,7 +1314,8 @@ line_draw_cost (matrix, vpos)
 	{
 	  GLYPH g = GLYPH_FROM_CHAR_GLYPH (*beg);
 	  
-	  if (GLYPH_SIMPLE_P (glyph_table_base, glyph_table_len, g))
+	  if (g < 0
+	      || GLYPH_SIMPLE_P (glyph_table_base, glyph_table_len, g))
 	    len += 1;
 	  else
 	    len += GLYPH_LENGTH (glyph_table_base, g);
@@ -3074,7 +3077,7 @@ direct_output_for_insert (g)
       last = glyph_row->glyphs[TEXT_AREA] + glyph_row->used[TEXT_AREA] - 1;
       if (last->type == STRETCH_GLYPH
 	  || (last->type == CHAR_GLYPH
-	      && last->u.ch.code == ' '))
+	      && last->u.ch == ' '))
 	return 0;
     }
 
@@ -4765,7 +4768,7 @@ count_match (str1, end1, str2, end2)
   
   while (p1 < end1
 	 && p2 < end2
-	 && GLYPH_FROM_CHAR_GLYPH (*p1) == GLYPH_FROM_CHAR_GLYPH (*p2))
+	 && GLYPH_CHAR_AND_FACE_EQUAL_P (p1, p2))
     ++p1, ++p2;
   
   return p1 - str1;
