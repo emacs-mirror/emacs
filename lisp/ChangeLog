@@ -1,5 +1,9 @@
 2002-10-23  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (risky-local-variable-p): New function.
+	(hack-one-local-variable): Call it.
+	(compile-command): Use `stringp' for `safe-local-variable' property.
+
 	* progmodes/compile.el (compile-internal): Update process-environment
 	before calling start-process.
 
