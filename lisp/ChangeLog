@@ -1,5 +1,7 @@
 2001-01-26  Dave Love  <fx@gnu.org>
 
+	* time-stamp.el: Doc fixes.
+
 	* progmodes/delphi.el (delphi-comment-face, delphi-string-face) 
 	(delphi-keyword-face, delphi-other-face): Fix :type.
 
