@@ -1,3 +1,8 @@
+2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* dired.el (dired-insert-directory): Never add "--dired" when
+	listing remote directories.
+
 2002-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-hooks.el: Put back the autoloads (for compatibility with XEmacs).
