@@ -1,6 +1,6 @@
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* xfns.c (x_report_frame_params): Makes the scroll-bar-width frame
+	* xfns.c (x_report_frame_params): Make the scroll-bar-width frame
 	parameter have a numeric value all the time.
 
 	* w32fns.c (x_report_frame_params): Likewise.
