@@ -307,7 +307,10 @@ Return (USAGE . DOC) or nil if there's no usage info."
 	       (setq doc (cdr usage)) (car usage))
 	      (t "[Missing arglist.  Please make a bug report.]")))
       (terpri)
-      (let ((obsolete (get function 'byte-obsolete-info)))
+      (let ((obsolete (and
+		       ;; function might be a lambda construct.
+		       (symbolp function)
+		       (get function 'byte-obsolete-info))))
 	(when obsolete
 	  (terpri)
 	  (princ "This function is obsolete")
