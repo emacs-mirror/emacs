@@ -3628,10 +3628,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef X_IO_BUG
   if (! event_found)
     /* On some systems, an X bug causes Emacs to get no more events
-       when the window is destroyed.  Detect that.  */
+       when the window is destroyed.  Detect that.  (1994.)  */
     XNoOp (x_current_display);
 #endif /* X_IO_BUG */
 
+#if 0 /* This fails for serial-line connections to the X server, 
+	 because the characters arrive one by one, and a partial
+	 command makes select return but gives nothing to read.
+	 We'll have to hope that the bug that this tried to fix
+	 in 1988 has been fixed in Xlib or the X server.  */
 #ifdef HAVE_SELECT
   if (expected && ! event_found)
     {
@@ -3652,6 +3657,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	kill (getpid (), SIGHUP);
     }
 #endif /* HAVE_SELECT */
+#endif /* 0 */
 
 #ifndef HAVE_X11
   if (updating_frame == 0)
