@@ -22,9 +22,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO is sort of like SVR3.  */
 #include "usg5-3.h"
 
+#if 0 /* Turned off rather than make the Lisp code check for this. -- rms.
+	 I am assuming that (at least most of) the tests for usg-unix-v
+	 do the right thing for sco3.2v4 also.  Things that *might* be wrong
+	 as a result of turning off these lines include the values of
+	 ange-ftp-remote-shell-file-name (now remsh)
+	 dired-chown-program (now just chown)
+	 lpr-command (now lp)
+	 nntp-buggy-select (now t)
+	 rmail-spool-directory (now /usr/mail?)
+	 and the actions of the function print-region-1.  */
+
 /* SYSTEM_TYPE should indicate the kind of system you are using.  */
 #undef SYSTEM_TYPE
 #define SYSTEM_TYPE "SCO 3.2v4"
+#endif
 
 /* SCO supports job control.  */
 #undef NOMULTIPLEJOBS
