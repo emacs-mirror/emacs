@@ -5328,6 +5328,8 @@ decode_coding_string (str, coding, nocopy)
   to_byte = STRING_BYTES (XSTRING (str));
 
   saved_coding_symbol = Qnil;
+  coding->src_multibyte = STRING_MULTIBYTE (str);
+  coding->dst_multibyte = 1;
   if (CODING_REQUIRE_DETECTION (coding))
     {
       /* See the comments in code_convert_region.  */
@@ -5350,9 +5352,10 @@ decode_coding_string (str, coding, nocopy)
 	}
     }
 
-  coding->src_multibyte = 0;
-  coding->dst_multibyte = (coding->type != coding_type_no_conversion
-			   && coding->type != coding_type_raw_text);
+  if (coding->type == coding_type_no_conversion
+      || coding->type == coding_type_raw_text)
+    coding->dst_multibyte = 0;
+
   require_decoding = CODING_REQUIRE_DECODING (coding);
 
   if (STRING_MULTIBYTE (str))
@@ -5361,6 +5364,7 @@ decode_coding_string (str, coding, nocopy)
       str = Fstring_as_unibyte (str);
       to_byte = STRING_BYTES (XSTRING (str));
       nocopy = 1;
+      coding->src_multibyte = 0;
     }
 
   /* Try to skip the heading and tailing ASCIIs.  */
