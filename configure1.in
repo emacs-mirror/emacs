@@ -1438,7 +1438,6 @@ fi
 #### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 ]
-AC_SUBST(configuration)
 AC_SUBST(version)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
@@ -1466,6 +1465,7 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 
+AC_DEFINE_UNQUOTED(CONFIGURATION,  "\"${configuration}\"")
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
