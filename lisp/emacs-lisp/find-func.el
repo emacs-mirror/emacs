@@ -115,7 +115,7 @@ defined is searched in PATH instead of `load-path' (see
 		 (nth 1 def))
 		((describe-function-find-file function))))
     (if (null library)
-	(error (format "`%s' is not in `load-history'" function)))
+	(error "`%s' is not in `load-history'" function))
     (if (string-match "\\(\\.elc?\\'\\)" library)
 	(setq library (substring library 0 (match-beginning 1))))
     (let* ((path (or path find-function-source-path))
@@ -135,7 +135,8 @@ defined is searched in PATH instead of `load-path' (see
 	(set-buffer (find-file-noselect filename))
 	(save-match-data
 	  (let (;; avoid defconst, defgroup, defvar (any others?)
-		(regexp (format "^\\s-*(def[^cgv\W]\\w+\\s-+%s\\s-" function))
+		(regexp (format "^\\s-*(def[^cgv\W]\\w+\\s-+%s\\s-"
+				(regexp-quote (symbol-name function))))
 		(syntable (syntax-table)))
 	    (set-syntax-table emacs-lisp-mode-syntax-table)
 	    (goto-char (point-min))
