@@ -806,8 +806,8 @@ EOF
     i?86:*:5:7*)
 	UNAME_REL=`(/bin/uname -X|egrep Release|sed -e 's/.*= //')`
 	(/bin/uname -X|egrep i80486 >/dev/null) && UNAME_MACHINE=i486
-	(/bin/uname -X|egrep '^Machine.*Pentium' >/dev/null && UNAME_MACHINE=i586
-	(/bin/uname -X|egrep '^Machine.*Pent.*II' >/dev/null && UNAME_MACHINE=i686
+	(/bin/uname -X|egrep '^Machine.*Pentium' >/dev/null) && UNAME_MACHINE=i586
+	(/bin/uname -X|egrep '^Machine.*Pent.*II' >/dev/null) && UNAME_MACHINE=i686
 	(/bin/uname -X|egrep '^Machine.*Pentium Pro' >/dev/null) && UNAME_MACHINE=i585
 	echo ${UNAME_MACHINE}-${UNAME_SYSTEM}${UNAME_VERSION}-sysv${UNAME_RELEASE}
 	exit 0 ;;
