@@ -389,7 +389,7 @@ subshell is initiated, `tex-shell-hook' is run."
 ^\\\\[a-z]*space\\>\\|^\\\\[a-z]*skip\\>\\|\
 ^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
 ^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
-  (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
+  (setq paragraph-separate "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
 ^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
@@ -462,7 +462,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 ^\\\\[a-z]*space\\>\\|^\\\\[a-z]*skip\\>\\|\
 ^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
 ^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
-  (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
+  (setq paragraph-separate "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
 ^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
