@@ -5856,14 +5856,10 @@ A nil width parameter means no margin.  */)
 {
   struct window *w = decode_window (window);
 
-  /* TODO: It doesn't make sense to use FLOATs here, since
-     the rest of the code assumes they are integers.
-     So don't allow floats!  ++KFS */
-
   if (!NILP (left))
-    CHECK_NUMBER_OR_FLOAT (left);
+    CHECK_NUMBER (left);
   if (!NILP (right))
-    CHECK_NUMBER_OR_FLOAT (right);
+    CHECK_NUMBER (right);
 
   /* Check widths < 0 and translate a zero width to nil.
      Margins that are too wide have to be checked elsewhere.  */
@@ -6447,6 +6443,11 @@ In the latter case, FUNCTION is called with BUFFER as the first argument,
 followed by OTHER-ARGS--it can display BUFFER in any way it likes.
 All this is done by the function found in `special-display-function'.
 
+If the specified frame parameters include (same-buffer . t), the
+buffer is displayed in the currently selected window.  Otherwise, if
+they include (same-frame . t), the buffer is displayed in a new window
+in the currently selected frame.
+
 If this variable appears \"not to work\", because you add a name to it
 but that buffer still appears in the selected window, look at the
 values of `same-window-buffer-names' and `same-window-regexps'.
@@ -6466,6 +6467,11 @@ In the first case, FRAME-PARAMETERS are used to create the frame.
 In the latter case, FUNCTION is called with the buffer as first argument,
 followed by OTHER-ARGS--it can display the buffer in any way it likes.
 All this is done by the function found in `special-display-function'.
+
+If the specified frame parameters include (same-buffer . t), the
+buffer is displayed in the currently selected window.  Otherwise, if
+they include (same-frame . t), the buffer is displayed in a new window
+in the currently selected frame.
 
 If this variable appears \"not to work\", because you add a regexp to it
 but the matching buffers still appear in the selected window, look at the
