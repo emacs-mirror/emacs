@@ -99,7 +99,6 @@ to future sessions."
      ;; Must have been disabled by default.
      (goto-char (point-max))
      (insert "\n(put '" (symbol-name command) " 'disabled nil)\n"))
-   (setq foo (buffer-modified-p))
    (save-buffer)))
 
 ;;;###autoload
