@@ -1,6 +1,6 @@
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (x_set_mouse_face_gc): If the last use mouse face
+	* xterm.c (x_set_mouse_face_gc): If the last used mouse face
 	has gone in the meantime, use face MOUSE_FACE_ID.
 	
 	* xterm.c (x_connection_closed) [USE_X_TOOLKIT]: If
