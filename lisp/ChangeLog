@@ -1,3 +1,8 @@
+2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (inferior-python-mode-map): Remove erroneous
+	C-c C-z binding.
+
 2004-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Fix previous change.  Don't make
@@ -29,12 +34,12 @@
 
 	* term/w32-win.el: Require code-pages.
 
-	* international/mule-cmds.el (set-locale-environment): On
-	MS-Windows use ansi code-page for default coding-systems.
+	* international/mule-cmds.el (set-locale-environment):
+	On MS-Windows use ansi code-page for default coding-systems.
 	Set up paper sizes for Windows 3 letter languages.
 
-	* international/code-pages.el (cp932, cp936, cp949, cp950): Add
-	aliases.  Also add cp125* if not already defined.
+	* international/code-pages.el (cp932, cp936, cp949, cp950):
+	Add aliases.  Also add cp125* if not already defined.
 
 2004-05-09  Juanma Barranquero  <lektu@terra.es>
 
@@ -62,17 +67,17 @@
 
 2004-05-08  John Wiegley  <johnw@newartisans.com>
 
-	* iswitchb.el (iswitchb-use-virtual-buffers): Added support for
+	* iswitchb.el (iswitchb-use-virtual-buffers): Add support for
 	"virtual buffers" (off by default), which makes it possible to
 	switch to the "virtual" buffers of recently visited files.  When a
 	buffer name search fails, and this option is on, iswitchb will
 	look at the list of recently visited files, and permit matching
 	against those names.  When the user hits RET on a match, it will
 	revisit that file.
-	(iswitchb-read-buffer): Added two optional arguments, which makes
+	(iswitchb-read-buffer): Add two optional arguments, which makes
 	isearchb.el possible.
-	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match,
-	iswitchb-next-match): Added support for virtual buffers.
+	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match)
+	(iswitchb-next-match): Add support for virtual buffers.
 
 	* isearchb.el: This module extends iswitchb to provide "as you
 	type" buffer selection.
@@ -108,8 +113,7 @@
 
 	* help-fns.el (help-do-arg-highlight): Temporarily set ?\- to be a
 	word constituent so FOO-ARG is not recognized as an arg.
-	(help-highlight-arguments): Don't skip lists in mandatory
-	arguments.
+	(help-highlight-arguments): Don't skip lists in mandatory arguments.
 
 	* simple.el (next-error): Fix typo in docstring.
 	(open-line): Make argument names match their use in docstring.
@@ -127,11 +131,11 @@
 
 	Version 2.0.40 of Tramp released.
 
-	* net/tramp.el (tramp-completion-mode, tramp-md5-function): Use
-	symbol-function to invoke functions only known on some Emacs
+	* net/tramp.el (tramp-completion-mode, tramp-md5-function):
+	Use symbol-function to invoke functions only known on some Emacs
 	flavors.  This avoids byte-compiler warnings.  Reported by Kevin
 	Scaldeferri <kevin@scaldeferri.com>.
-	(tramp-do-copy-or-rename-file-via-buffer): Renamed from
+	(tramp-do-copy-or-rename-file-via-buffer): Rename from
 	tramp-do-copy-or-rename-via-buffer (without `file'), to make it
 	consistent with the other tramp-do-* functions.
 	(tramp-do-copy-or-rename-file): Calls adjusted.
@@ -145,8 +149,7 @@
 	(tramp-read-passwd): Construct the key for the password cache in a
 	way that works for multi methods, too.
 	(tramp-bug): Add backup-directory-alist and
-	bkup-backup-directory-info to bug reports, with Tramp
-	counterparts.
+	bkup-backup-directory-info to bug reports, with Tramp counterparts.
 
 2004-05-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -157,8 +160,8 @@
 	(tramp-do-copy-or-rename-file-out-of-band): Asynchronous process
 	used instead of a synchronous one.  Allows password entering.
 	(tramp-action-out-of-band): New defun.
-	(tramp-open-connection-rsh, tramp-method-out-of-band-p): Remove
-	restriction with password from doc string.
+	(tramp-open-connection-rsh, tramp-method-out-of-band-p):
+	Remove restriction with password from doc string.
 	(tramp-bug): Add variables `tramp-terminal-prompt-regexp',
 	`tramp-out-of-band-prompt-regexp',
 	`tramp-actions-copy-out-of-band', `password-cache' and
@@ -172,15 +175,14 @@
 	Schwab <schwab@suse.de>.
 	(tramp-do-copy-or-rename-file-via-buffer): Set permissions of the
 	new file.
-	(tramp-handle-file-local-copy, tramp-handle-write-region): The
-	permissions of the temporary file are set if filename exists.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	The permissions of the temporary file are set if filename exists.
 	Reported by Ted Stern <stern@cray.com>.
 	(tramp-backup-directory-alist)
 	(tramp-bkup-backup-directory-info): New defcustoms.
-	(tramp-file-name-handler-alist): Add entry for
-	`find-backup-file-name'.
-	(tramp-handle-find-backup-file-name): New function.  Implements
-	Tramp's find-backup-file-name.
+	(tramp-file-name-handler-alist): Add entry for `find-backup-file-name'.
+	(tramp-handle-find-backup-file-name): New function.
+	Implements Tramp's find-backup-file-name.
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry
 	for `find-backup-file-name'.
@@ -197,8 +199,7 @@
 	* subr.el (lambda): Add arglist description to docstring.
 	(declare): Fix typo in docstring.
 	(open-network-stream): Fix docstring.
-	(process-kill-without-query): Fix docstring and add obsolescence
-	info.
+	(process-kill-without-query): Fix docstring and add obsolescence info.
 	(last, butlast, nbutlast): Make arguments match their use in docstring.
 	(insert-buffer-substring-no-properties): Likewise.
 	(insert-buffer-substring-as-yank): Likewise.
