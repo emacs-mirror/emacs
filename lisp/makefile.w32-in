@@ -1,6 +1,5 @@
-#  Hacked up Nmake makefile for GNU Emacs
-#   Geoff Voelker (voelker@cs.washington.edu)
-#  Copyright (c) 1994 Free Software Foundation, Inc.
+#  Makefile for GNU Emacs on the Microsoft W32 API.
+#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #  
