@@ -2192,6 +2192,7 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
 	break;
       case SB_ENDSCROLL:
       default:
+	SetScrollPos (SCROLL_BAR_WIN32_WINDOW (bar), SB_CTL, y, TRUE);
 	return FALSE;
       }
 
