@@ -1,3 +1,7 @@
+2000-11-29  Miles Bader  <miles@gnu.org>
+
+	* message.el (message-header-lines): Fontify tag.
+
 2000-11-27  Dave Love  <fx@gnu.org>
 
 	* nnlistserv.el: Ignore errors when requiring nnweb and avoid a
