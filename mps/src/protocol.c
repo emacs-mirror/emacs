@@ -1,23 +1,20 @@
 /* impl.c.pool: PROTOCOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!protocol.c(MMdevel_tony_inheritance.2) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
- *
- * READERSHIP
- *
- * .readership: any MPS developer
+ * $HopeName: MMsrc!protocol.c(trunk.2) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
  * .design: See design.mps.protocol
- *
  */
 
 #include "mpm.h"
 
 
-SRCID(protocol, "$HopeName: MMsrc!protocol.c(MMdevel_tony_inheritance.2) $");
+SRCID(protocol, "$HopeName: MMsrc!protocol.c(trunk.2) $");
 
+
+/* ProtocolClassCheck -- check a protocol class */
 
 Bool ProtocolClassCheck(ProtocolClass class)
 {
@@ -28,6 +25,9 @@ Bool ProtocolClassCheck(ProtocolClass class)
   return TRUE;
 }
 
+
+/* ProtocolInstCheck -- check a protocol instance */
+
 Bool ProtocolInstCheck(ProtocolInst inst)
 {
   CHECKS(ProtocolInst, inst);
@@ -36,14 +36,11 @@ Bool ProtocolInstCheck(ProtocolInst inst)
 }
 
 
-/* ProtocolIsSubclass
+/* ProtocolIsSubclass -- a predicate for testing subclass relationships
  *
- * A predicate for testing subclass relationships.
- * A protocol class is always a subclass of itself.
- * This is implemented via the coerceClass method 
- * proivided by each class.
+ * A protocol class is always a subclass of itself.  This is implemented
+ * via the coerceClass method provided by each class.
  */
-
 Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
 {
   ProtocolClass coerced;
@@ -60,19 +57,17 @@ Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
 }
 
 
-/* ProtocolCoerceClassMethod
+/* ProtocolCoerceClass -- the default method for coerceClass
  *
  * This default method must be inherited by any subclass
  * which does not perform a multiple inheritance.
  */
-
-
 static Bool ProtocolCoerceClass(ProtocolClass *coerceResult, 
                                 ProtocolClass proClass,
                                 ProtocolClass super)
 {
   ProtocolClass p = proClass;
-  ProtocolClass root = (ProtocolClass)EnsureProtocolClass();
+  ProtocolClass root = ProtocolClassGet();
 
   AVERT(ProtocolClass, proClass);
   AVERT(ProtocolClass, super);
@@ -89,18 +84,17 @@ static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
 }
 
 
-/* ProtocolCoerceInstMethod
+/* ProtocolCoerceInst -- the default method for coerceInst
  *
  * This default method must be inherited by any subclass
  * which does not perform a multiple inheritance.
  */
-
 static Bool ProtocolCoerceInst(ProtocolInst *coerceResult, 
                                ProtocolInst proInst,
                                ProtocolClass super)
 {
   ProtocolClass p = proInst->class;
-  ProtocolClass root = (ProtocolClass)EnsureProtocolClass();
+  ProtocolClass root = ProtocolClassGet();
 
   AVERT(ProtocolInst, proInst);
   AVERT(ProtocolClass, super);
