@@ -1323,7 +1323,7 @@ command_loop_1 ()
 		       /* Try this optimization only on ascii keystrokes.  */
 		       && INTEGERP (last_command_char))
 		{
-		  unsigned char c = XINT (last_command_char);
+		  unsigned int c = XINT (last_command_char);
 		  int value;
 
 		  if (NILP (Vexecuting_macro)
