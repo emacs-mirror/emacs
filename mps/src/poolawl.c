@@ -767,7 +767,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
 
 static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
-                         FormatScanMethod scan, Addr base, Addr limit)
+                         Format format, Addr base, Addr limit)
 {
   Res res;
   Bool dependent;       /* is there a dependent object? */
@@ -777,7 +777,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   AVERT(Arena, arena);
   AVERT(AWL, awl);
   AVERT(ScanState, ss);
-  AVER(FUNCHECK(scan));
+  AVERT(Format, format);
   AVER(base != 0);
   AVER(base < limit);
 
@@ -789,8 +789,9 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
-
-  res = (*scan)(ss, base, limit);
+  base = AddrAdd(base, format->headerSize);
+  limit = AddrAdd(base, format->headerSize);
+  res = (*format->scan)(ss, base, limit);
   if(res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
 
@@ -811,6 +812,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   Arena arena;
   AWL awl;
   AWLSeg awlseg;
+  Format format;
 
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
@@ -821,6 +823,8 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AVERT(AWL, awl);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
+
+  format = pool->format;
 
   awlseg = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -847,12 +851,14 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
       p = AddrAdd(p, pool->alignment);
       continue;
     }
+    p = AddrAdd(p, format->headerSize);
     /* design.mps.poolawl.fun.scan.object-end */
     objectLimit = (*pool->format->skip)(p);
+    objectLimit = AddrSub(objectLimit, format->headerSize);
     /* design.mps.poolawl.fun.scan.scan */
     if(scanAllObjects ||
          (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
-      Res res = awlScanObject(arena, awl, ss, pool->format->scan,
+      Res res = awlScanObject(arena, awl, ss, pool->format,
                               p, objectLimit);
       if(res != ResOK) {
         return res;
@@ -980,6 +986,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLSeg awlseg;
   Index i;
   Count oldFree;
+  Format format;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
 
@@ -991,6 +998,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   awlseg = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
+
+  format = pool->format;
 
   /* The following line is necessary to avoid a spurious AWL collection */
   /* after an AMC Gen1 collection */
@@ -1016,7 +1025,10 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
         continue;
       }
     }
-    q = AddrAlignUp(pool->format->skip(p), pool->alignment);
+    q = format->skip(AddrAdd(p, format->headerSize));
+    q = AddrSub(q, format->headerSize);
+
+    q = AddrAlignUp(q, pool->alignment);
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
     if(BTGet(awlseg->mark, i)) {
@@ -1139,6 +1151,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   AWL awl;
   AWLSeg awlseg;
   Addr object, base, limit;
+  Format format;
 
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -1150,6 +1163,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   awlseg = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
 
+  format = pool->format;
   base = SegBase(seg);
   object = base;
   limit = SegLimit(seg);
@@ -1178,7 +1192,10 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
       object = AddrAdd(object, pool->alignment);
       continue;
     }
-    next = AddrAlignUp((*pool->format->skip)(object), pool->alignment);
+    object = AddrAdd(object, format->headerSize);
+    next = format->skip(object);
+    next = AddrSub(next, format->headerSize);
+    next = AddrAlignUp(next, pool->alignment);
     if(BTGet(awlseg->mark, i) && BTGet(awlseg->scanned, i)) {
       (*f)(object, pool->format, pool, p, s);
     }
