@@ -948,8 +948,11 @@ If `enable-local-variables' is nil, this function does not check for a
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
 	   (let ((temp inhibit-first-line-modes-regexps)
 		 (name (file-name-sans-versions buffer-file-name)))
-	     (if (string-match inhibit-first-line-modes-suffixes name)
-		 (setq name (substring name 0 (match-beginning 0))))
+	     (while (let ((sufs inhibit-first-line-modes-suffixes))
+		      (while (and sufs (not (string-match (car sufs) name)))
+			(setq sufs (cdr sufs)))
+		      sufs)
+	       (setq name (substring name 0 (match-beginning 0))))
 	     (while (and temp
 			 (not (string-match (car temp) name)))
 	       (setq temp (cdr temp)))
