@@ -2011,9 +2011,16 @@ START and END specify the portion of the current buffer to be copied."
 	 (region-beginning) (region-end)))
   (let ((oldbuf (current-buffer)))
     (save-excursion
-      (set-buffer (get-buffer-create buffer))
-      (barf-if-buffer-read-only)
-      (insert-buffer-substring oldbuf start end))))
+      (let* ((append-to (get-buffer-create buffer))
+	     (windows (get-buffer-window-list append-to t t))
+	     point)
+	(set-buffer append-to)
+	(setq point (point))
+	(barf-if-buffer-read-only)
+	(insert-buffer-substring oldbuf start end)
+	(dolist (window windows)
+	  (when (= (window-point window) point)
+	    (set-window-point window (point))))))))
 
 (defun prepend-to-buffer (buffer start end)
   "Prepend to specified buffer the text of the region.
