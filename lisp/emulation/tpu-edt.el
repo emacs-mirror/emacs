@@ -2367,12 +2367,18 @@ If FILE is nil, try to load a default file.  The default file names are
 	(tpu-xkeys-file
 	 (setq file (expand-file-name tpu-xkeys-file)))
 	(tpu-lucid-emacs19-p
-	 (setq file (expand-file-name "~/.tpu-lucid-keys")))
+	 (setq file (convert-standard-filename
+		     (expand-file-name "~/.tpu-lucid-keys"))))
 	(tpu-emacs19-p
-	 (setq file (expand-file-name "~/.tpu-keys"))
+	 (setq file (convert-standard-filename
+		     (expand-file-name "~/.tpu-keys")))
 	 (and (not (file-exists-p file))
-	      (file-exists-p (expand-file-name "~/.tpu-gnu-keys"))
-	      (tpu-copy-keyfile (expand-file-name "~/.tpu-gnu-keys") file))))
+	      (file-exists-p
+	       (convert-standard-filename
+		(expand-file-name "~/.tpu-gnu-keys")))
+	      (tpu-copy-keyfile
+	       (convert-standard-filename
+		(expand-file-name "~/.tpu-gnu-keys") file)))))
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
