@@ -225,7 +225,8 @@ your own function which is called when `font-lock-mode' is toggled via
 	(push (list 'face 'font-lock-face) char-property-alias-alist)))
     ;; Only do hard work if the mode has specified stuff in
     ;; `font-lock-defaults'.
-    (when font-lock-defaults
+    (when (and font-lock-defaults
+	       (not font-lock-core-only))
       (add-hook 'after-change-functions 'font-lock-after-change-function t t)
       (font-lock-turn-on-thing-lock)
       ;; Fontify the buffer if we have to.
@@ -247,7 +248,8 @@ your own function which is called when `font-lock-mode' is toggled via
 	(setcdr elt (remq 'font-lock-face (cdr elt)))
 	(when (null (cdr elt))
 	  (setq char-property-alias-alist (delq elt char-property-alias-alist)))))
-    (when font-lock-defaults
+    (when (and font-lock-defaults
+	       (not font-lock-core-only))
       (remove-hook 'after-change-functions 'font-lock-after-change-function t)
       (font-lock-unfontify-buffer)
       (font-lock-turn-off-thing-lock))))
@@ -269,11 +271,13 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (make-local-variable 'font-lock-multiline)
     (let ((defaults (or font-lock-defaults
 			(assq major-mode font-lock-defaults-alist))))
+      ;; Variable alist?
+      (dolist (x (nthcdr 5 defaults))
+	(set (make-local-variable (car x)) (cdr x)))
       (when (and defaults
 		 ;; Detect if this is a simple mode, which doesn't use
 		 ;; any syntactic fontification functions.
-		 (not (cdr (assq 'font-lock-core-only
-				 (nthcdr 5 defaults)))))
+		 (not font-lock-core-only))
 	(require 'font-lock)
 	(font-lock-set-defaults-1)))))
 
