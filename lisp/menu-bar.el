@@ -1,4 +1,8 @@
-;;; menu-bar.el --- Define a default menu bar.
+;;; menu-bar.el --- define a default menu bar.
+
+;; Author: RMS
+;; Keywords: internals
+
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
 (setq menu-bar-help-menu (make-sparse-keymap "Help"))
@@ -199,4 +204,4 @@ and selects that window."
     (setq default-frame-alist
 	  (cons '(menu-bar-lines . 1) default-frame-alist)))
 
-;;; end of menu-bar.el
+;;; menu-bar.el ends here
