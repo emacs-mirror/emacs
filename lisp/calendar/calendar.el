@@ -1860,7 +1860,7 @@ the inserted text.  Value is always t."
 (defun redraw-calendar ()
   "Redraw the calendar display."
   (interactive)
-  (let ((cursor-date (calendar-cursor-to-date)))
+  (let ((cursor-date (calendar-cursor-to-nearest-date)))
     (generate-calendar-window displayed-month displayed-year)
     (calendar-cursor-to-visible-date cursor-date)))
 
