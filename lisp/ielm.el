@@ -102,7 +102,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.9 $" 11 -2)
+   (substring "$Revision: 1.10 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -369,6 +369,8 @@ simply inserts a newline."
   (set-marker (process-mark (get-buffer-process (current-buffer))) pos))
 
 ;;; Major mode
+
+(put 'inferior-emacs-lisp-mode 'mode-class 'special)
 
 (defun inferior-emacs-lisp-mode nil
   "Major mode for interactively evaluating Emacs Lisp expressions.
