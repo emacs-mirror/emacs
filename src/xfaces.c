@@ -778,7 +778,7 @@ clear_font_table (f)
   Lisp_Object rest, frame;
   int i;
 
-  xassert (FRAME_X_P (f));
+  xassert (FRAME_X_P (c->f));
 
   used = (char *) alloca (dpyinfo->n_fonts * sizeof *used);
   bzero (used, dpyinfo->n_fonts * sizeof *used);
