@@ -6586,7 +6586,16 @@ read_avail_input (expected)
 {
   register int i;
   int nread = 0;
+  int err;
   struct display *d;
+
+  if (interrupt_input_blocked)
+    {
+      interrupt_input_pending = 1;
+      return -1;
+    }
+
+  BLOCK_INPUT;
 
   /* Loop through the available displays, and call their input hooks. */
   d = display_list;
@@ -6625,6 +6634,10 @@ read_avail_input (expected)
                       discard = 1;
                   }
               }
+            else if (nr == -1)          /* Not OK to read input now. */
+              {
+                err = 1;
+              }
             else if (nr == -2)          /* Non-transient error. */
               {
                 /* The display device terminated; it should be closed. */
@@ -6652,6 +6665,11 @@ read_avail_input (expected)
 
       d = next;
     }
+
+  if (err && !nread)
+    nread = -1;
+
+  UNBLOCK_INPUT;
 
   return nread;
 }
