@@ -1112,7 +1112,7 @@ one optional arguments, diff-number to refine.")
 	      )))
       (store-match-data data))))
       
-;; This is shell-command-filter from simple.el in FSF Emacs.
+;; This is shell-command-filter from simple.el in Emacs.
 ;; Copied here because XEmacs doesn't have it.
 (defun ediff-process-filter (proc string)
   ;; Do save-excursion by hand so that we can leave point numerically unchanged

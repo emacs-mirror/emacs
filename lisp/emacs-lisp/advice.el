@@ -230,7 +230,7 @@
 
 ;; @@ Terminology:
 ;; ===============
-;; - Emacs, Emacs-19: FSF's version of Emacs with major version 19
+;; - Emacs, Emacs-19: Emacs as released by the GNU Project
 ;; - Lemacs: Lucid's version of Emacs with major version 19
 ;; - v18: Any Emacs with major version 18 or built as an extension to that
 ;;        (such as Epoch)
