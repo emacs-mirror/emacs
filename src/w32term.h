@@ -252,6 +252,10 @@ extern int unibyte_display_via_language_environment;
 
 struct w32_display_info *x_display_info_for_name ();
 
+Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
+					Lisp_Object, Lisp_Object,
+					Lisp_Object, Lisp_Object));
+
 extern struct w32_display_info *w32_term_init ();
 
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
@@ -719,6 +723,8 @@ struct face;
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
+Lisp_Object vga_stdcolor_name (int);
+
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 

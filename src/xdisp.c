@@ -11002,7 +11002,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  aggressive = current_buffer->scroll_up_aggressively;
 	  height = WINDOW_BOX_TEXT_HEIGHT (w);
 	  if (NUMBERP (aggressive))
-	    amount_to_scroll = XFLOATINT (aggressive) * height;
+	    {
+	      double float_amount = XFLOATINT (aggressive) * height;
+	      amount_to_scroll = float_amount;
+	      if (amount_to_scroll == 0 && float_amount > 0)
+		amount_to_scroll = 1;
+	    }
 	}
 
       if (amount_to_scroll <= 0)
@@ -11060,7 +11065,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	      aggressive = current_buffer->scroll_down_aggressively;
 	      height = WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (NUMBERP (aggressive))
-		amount_to_scroll = XFLOATINT (aggressive) * height;
+		{
+		  double float_amount = XFLOATINT (aggressive) * height;
+		  amount_to_scroll = float_amount;
+		  if (amount_to_scroll == 0 && float_amount > 0)
+		    amount_to_scroll = 1;
+		}
 	    }
 
 	  if (amount_to_scroll <= 0)

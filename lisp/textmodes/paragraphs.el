@@ -171,7 +171,7 @@ followed by two spaces, unless it's inside some sort of quotes or
 parenthesis.  See Info node `Sentences'."
   (or sentence-end
       (concat (if sentence-end-without-period "\\w  \\|")
-              "\\([.?!][]\"')}]*"
+              "\\([.?!][]\"'\xd0c9)}]*"
               (if sentence-end-double-space
                   "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
               "\\|[" sentence-end-without-space "]+\\)"

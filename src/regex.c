@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+   Copyright (C) 1993,94,95,96,97,98,99,2000,04  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -217,7 +217,7 @@ char *realloc ();
 /* Define the syntax stuff for \<, \>, etc.  */
 
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
-enum syntaxcode { Swhitespace = 0, Sword = 1 };
+enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 # ifdef SWITCH_ENUM_BUG
 #  define SWITCH_ENUM_CAST(x) ((int)(x))
@@ -398,7 +398,7 @@ init_syntax_once ()
      if (ISALNUM (c))
 	re_syntax_table[c] = Sword;
 
-   re_syntax_table['_'] = Sword;
+   re_syntax_table['_'] = Ssymbol;
 
    done = 1;
 }
@@ -654,6 +654,9 @@ typedef enum
 
   wordbound,	/* Succeeds if at a word boundary.  */
   notwordbound,	/* Succeeds if not at a word boundary.	*/
+
+  symbeg,       /* Succeeds if at symbol beginning.  */
+  symend,       /* Succeeds if at symbol end.  */
 
 	/* Matches any character whose syntax is specified.  Followed by
 	   a byte which contains a syntax code, e.g., Sword.  */
@@ -1093,6 +1096,14 @@ print_partial_compiled_pattern (start, end)
 
 	case wordend:
 	  fprintf (stderr, "/wordend");
+
+	case symbeg:
+	  printf ("/symbeg");
+	  break;
+
+	case symend:
+	  printf ("/symend");
+	  break;
 
 	case syntaxspec:
 	  fprintf (stderr, "/syntaxspec");
@@ -3398,6 +3409,19 @@ regex_compile (pattern, size, syntax, bufp)
 	      BUF_PUSH (wordend);
 	      break;
 
+	    case '_':
+	      if (syntax & RE_NO_GNU_OPS)
+		goto normal_char;
+              laststart = b;
+              PATFETCH (c);
+              if (c == '<')
+                BUF_PUSH (symbeg);
+              else if (c == '>')
+                BUF_PUSH (symend);
+              else
+                FREE_STACK_RETURN (REG_BADPAT);
+              break;
+
 	    case 'b':
 	      if (syntax & RE_NO_GNU_OPS)
 		goto normal_char;
@@ -3890,6 +3914,8 @@ analyse_first (p, pend, fastmap, multibyte)
 	case notwordbound:
 	case wordbeg:
 	case wordend:
+	case symbeg:
+	case symend:
 	  continue;
 
 
@@ -4654,14 +4680,20 @@ mutually_exclusive_p (bufp, p1, p2)
       break;
 
     case wordend:
-    case notsyntaxspec:
+      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == Sword);
+    case symend:
       return ((re_opcode_t) *p1 == syntaxspec
-	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+              && (p1[1] == Ssymbol || p1[1] == Sword));
+    case notsyntaxspec:
+      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == p2[1]);
 
     case wordbeg:
-    case syntaxspec:
+      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == Sword);
+    case symbeg:
       return ((re_opcode_t) *p1 == notsyntaxspec
-	      && p1[1] == (op2 == wordbeg ? Sword : p2[1]));
+              && (p1[1] == Ssymbol || p1[1] == Sword));
+    case syntaxspec:
+      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == p2[1]);
 
     case wordbound:
       return (((re_opcode_t) *p1 == notsyntaxspec
@@ -5799,6 +5831,92 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		     returns 0.	 */
 		  if ((s2 == Sword) && !WORD_BOUNDARY_P (c1, c2))
 	  goto fail;
+		}
+	    }
+	  break;
+
+	case symbeg:
+	  DEBUG_PRINT1 ("EXECUTING symbeg.\n");
+
+	  /* We FAIL in one of the following cases: */
+
+	  /* Case 1: D is at the end of string.	 */
+	  if (AT_STRINGS_END (d))
+	    goto fail;
+	  else
+	    {
+	      /* C1 is the character before D, S1 is the syntax of C1, C2
+		 is the character at D, and S2 is the syntax of C2.  */
+	      re_wchar_t c1, c2;
+	      int s1, s2;
+#ifdef emacs
+	      int offset = PTR_TO_OFFSET (d);
+	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      UPDATE_SYNTAX_TABLE (charpos);
+#endif
+	      PREFETCH ();
+	      c2 = RE_STRING_CHAR (d, dend - d);
+	      s2 = SYNTAX (c2);
+	
+	      /* Case 2: S2 is neither Sword nor Ssymbol. */
+	      if (s2 != Sword && s2 != Ssymbol)
+		goto fail;
+
+	      /* Case 3: D is not at the beginning of string ... */
+	      if (!AT_STRINGS_BEG (d))
+		{
+		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+#ifdef emacs
+		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
+#endif
+		  s1 = SYNTAX (c1);
+
+		  /* ... and S1 is Sword or Ssymbol.  */
+		  if (s1 == Sword || s1 == Ssymbol)
+		    goto fail;
+		}
+	    }
+	  break;
+
+	case symend:
+	  DEBUG_PRINT1 ("EXECUTING symend.\n");
+
+	  /* We FAIL in one of the following cases: */
+
+	  /* Case 1: D is at the beginning of string.  */
+	  if (AT_STRINGS_BEG (d))
+	    goto fail;
+	  else
+	    {
+	      /* C1 is the character before D, S1 is the syntax of C1, C2
+		 is the character at D, and S2 is the syntax of C2.  */
+	      re_wchar_t c1, c2;
+	      int s1, s2;
+#ifdef emacs
+	      int offset = PTR_TO_OFFSET (d) - 1;
+	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      UPDATE_SYNTAX_TABLE (charpos);
+#endif
+	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      s1 = SYNTAX (c1);
+
+	      /* Case 2: S1 is neither Ssymbol nor Sword.  */
+	      if (s1 != Sword && s1 != Ssymbol)
+		goto fail;
+
+	      /* Case 3: D is not at the end of string ... */
+	      if (!AT_STRINGS_END (d))
+		{
+		  PREFETCH_NOLIMIT ();
+		  c2 = RE_STRING_CHAR (d, dend - d);
+#ifdef emacs
+		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
+#endif
+		  s2 = SYNTAX (c2);
+
+		  /* ... and S2 is Sword or Ssymbol.  */
+		  if (s2 == Sword || s2 == Ssymbol)
+                    goto fail;
 		}
 	    }
 	  break;

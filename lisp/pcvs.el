@@ -764,7 +764,7 @@ before calling the real function `" (symbol-name fun-1) "'.\n")
 	     (interactive)
 	     (cvs-mode! ',fun-1)))))
 
-     (t (error "unknown style %s in `defun-cvs-mode'" style)))))
+     (t (error "Unknown style %s in `defun-cvs-mode'" style)))))
 
 (defun-cvs-mode cvs-mode-kill-process ()
   "Kill the temporary buffer and associated process."

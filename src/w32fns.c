@@ -8090,7 +8090,7 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
 			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
 #else
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
 
 #endif
 	{
@@ -8170,7 +8170,7 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
 			 (WPARAM) vk_code, (LPARAM) new_state.i))
 #else
   if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state.i))
+			 (WPARAM) vk_code, (LPARAM) new_state))
 #endif
     {
       MSG msg;

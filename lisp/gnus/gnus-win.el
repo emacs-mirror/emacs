@@ -1,5 +1,5 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
+;; Copyright (C) 1996, 97, 98, 1999, 2000, 02, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -516,7 +516,7 @@ should have point."
 	(unless buffer
 	  (error "Invalid buffer type: %s" type))
 	(if (and (setq buf (get-buffer (gnus-window-to-buffer-helper buffer)))
-		 (setq win (get-buffer-window buf t)))
+		 (setq win (get-buffer-window buf 0)))
 	    (if (memq 'point split)
 		(setq all-visible win))
 	  (setq all-visible nil)))

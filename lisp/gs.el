@@ -39,12 +39,14 @@
 (defvar gs-options
   '("-q"
     ;"-dNOPAUSE"
+    "-dSAFER"
     "-dBATCH"
     "-sDEVICE=<device>"
     "<file>")
   "List of command line arguments to pass to Ghostscript.
 Arguments may contain place-holders `<file>' for the name of the
 input file, and `<device>' for the device to use.")
+(put 'gs-options 'risky-local-variable t)
 
 (defun gs-options (device file)
   "Return a list of command line options with place-holders replaced.
@@ -54,7 +56,6 @@ FILE is the value to substitute for the place-holder `<file>'."
 	      (setq option (replace-regexp-in-string "<device>" device option)
 		    option (replace-regexp-in-string "<file>" file option)))
 	  gs-options))
-
 
 ;; The GHOSTVIEW property (taken from gv 3.5.8).
 ;;

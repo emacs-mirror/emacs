@@ -1502,7 +1502,7 @@ FUN will not be called for @String entries."
         (save-excursion
           (if (or (and (not bibtex-sort-ignore-string-entries)
                        (string-equal "string" (downcase entry-type)))
-                  (assoc-ignore-case entry-type bibtex-entry-field-alist))
+                  (assoc-string entry-type bibtex-entry-field-alist t))
               (funcall fun key beg end)))
         (goto-char end)))))
 
@@ -1771,9 +1771,10 @@ Formats current entry according to variable `bibtex-entry-format'."
         (re-search-forward bibtex-entry-type)
         (let ((beg-type (1+ (match-beginning 0)))
               (end-type (match-end 0)))
-          (setq entry-list (assoc-ignore-case (buffer-substring-no-properties
-                                               beg-type end-type)
-                                              bibtex-entry-field-alist))
+          (setq entry-list (assoc-string (buffer-substring-no-properties
+					  beg-type end-type)
+					 bibtex-entry-field-alist
+					 t))
 
           ;; unify case of entry name
           (when (memq 'unify-case format)
@@ -1846,8 +1847,8 @@ Formats current entry according to variable `bibtex-entry-format'."
             (if (memq 'opts-or-alts format)
                 (cond ((and empty-field
                             (or opt-alt
-                                (let ((field (assoc-ignore-case
-                                              field-name req-field-list)))
+                                (let ((field (assoc-string
+                                              field-name req-field-list t)))
                                   (or (not field)       ; OPT field
                                       (nth 3 field))))) ; ALT field
                        ;; Either it is an empty ALT field. Then we have checked
@@ -1918,15 +1919,17 @@ Formats current entry according to variable `bibtex-entry-format'."
               ;; if empty field, complain
               (if (and empty-field
                        (memq 'required-fields format)
-                       (assoc-ignore-case field-name req-field-list))
+                       (assoc-string field-name req-field-list t))
                   (error "Mandatory field `%s' is empty" field-name))
 
               ;; unify case of field name
               (if (memq 'unify-case format)
-                  (let ((fname (car (assoc-ignore-case
-                                     field-name (append (nth 0 (nth 1 entry-list))
-                                                        (nth 1 (nth 1 entry-list))
-                                                        bibtex-user-optional-fields)))))
+                  (let ((fname (car (assoc-string
+                                     field-name
+				     (append (nth 0 (nth 1 entry-list))
+					     (nth 1 (nth 1 entry-list))
+					     bibtex-user-optional-fields)
+				     t))))
                     (if fname
                         (progn
                           (delete-region beg-name end-name)
@@ -2258,8 +2261,8 @@ Return alist of keys if parsing was completed, `aborted' otherwise."
                                     ;; This is a crossref.
                                     (buffer-substring-no-properties
                                      (1+ (match-beginning 3)) (1- (match-end 3))))
-                                   ((assoc-ignore-case (bibtex-type-in-head)
-                                                       bibtex-entry-field-alist)
+                                   ((assoc-string (bibtex-type-in-head)
+						  bibtex-entry-field-alist t)
                                     ;; This is an entry.
                                     (match-string-no-properties bibtex-key-in-head)))))
                     (if (and (stringp key)
@@ -2314,7 +2317,7 @@ Return alist of strings if parsing was completed, `aborted' otherwise."
                 ;; user has aborted by typing a key --> return `aborted'
                 (throw 'userkey 'aborted))
             (setq key (bibtex-reference-key-in-string bounds))
-            (if (not (assoc-ignore-case key strings))
+            (if (not (assoc-string key strings t))
                 (push (cons key (bibtex-text-in-string bounds t))
                       strings))
             (goto-char (bibtex-end-of-text-in-string bounds)))
@@ -2654,7 +2657,7 @@ non-nil.
 More specifically, the return value is a cons pair (REQUIRED . OPTIONAL),
 where REQUIRED and OPTIONAL are lists of the required and optional field
 names for ENTRY-TYPE according to `bibtex-entry-field-alist'."
-  (let ((e (assoc-ignore-case entry-type bibtex-entry-field-alist))
+  (let ((e (assoc-string entry-type bibtex-entry-field-alist t))
         required optional)
     (unless e
       (error "Bibtex entry type %s not defined" entry-type))
@@ -2721,10 +2724,10 @@ according to `bibtex-entry-field-alist', but are not yet present."
                         (substring (cdr (assoc "=type=" fields-alist))
                                    1)))) ; don't want @
       (dolist (field (car field-list))
-        (unless (assoc-ignore-case (car field) fields-alist)
+        (unless (assoc-string (car field) fields-alist t)
           (bibtex-make-field field)))
       (dolist (field (cdr field-list))
-        (unless (assoc-ignore-case (car field) fields-alist)
+        (unless (assoc-string (car field) fields-alist t)
           (bibtex-make-optional-field field))))))
 
 (defun bibtex-parse-entry ()
@@ -2792,7 +2795,7 @@ Move point to the end of the last field."
 	  (let* ((name (buffer-substring
 			(if (looking-at "ALT\\|OPT") (match-end 0) (point))
 			(bibtex-end-of-name-in-field bounds)))
-		 (text (assoc-ignore-case name other)))
+		 (text (assoc-string name other t)))
 	    (goto-char (bibtex-start-of-text-in-field bounds))
 	    (if (not (and (looking-at bibtex-empty-field-re) text))
 		(goto-char (bibtex-end-of-field bounds))
@@ -2825,9 +2828,10 @@ Move point to the end of the last field."
            (field-list (bibtex-field-list (progn (re-search-backward
                                                   bibtex-entry-maybe-empty-head nil t)
                                                  (bibtex-type-in-head))))
-           (comment (assoc-ignore-case field-name
-                                       (append (car field-list)
-                                               (cdr field-list)))))
+           (comment (assoc-string field-name
+				  (append (car field-list)
+					  (cdr field-list))
+				  t)))
       (if comment
           (message (nth 1 comment))
         (message "No comment available")))))
@@ -3235,8 +3239,8 @@ Returns t if test was successful, nil otherwise."
                  (let* ((entry-list (progn
                                       (goto-char beg)
                                       (bibtex-search-entry nil end)
-                                      (assoc-ignore-case (bibtex-type-in-head)
-                                                         bibtex-entry-field-alist)))
+                                      (assoc-string (bibtex-type-in-head)
+						    bibtex-entry-field-alist t)))
                         (req (copy-sequence (elt (elt entry-list 1) 0)))
                         (creq (copy-sequence (elt (elt entry-list 2) 0)))
                         crossref-there bounds)
@@ -3252,8 +3256,8 @@ Returns t if test was successful, nil otherwise."
                            (push (list (bibtex-current-line)
                                        "Questionable month field")
                                  error-list))
-                       (setq req (delete (assoc-ignore-case field-name req) req)
-                             creq (delete (assoc-ignore-case field-name creq) creq))
+                       (setq req (delete (assoc-string field-name req t) req)
+                             creq (delete (assoc-string field-name creq t) creq))
                        (if (equal field-name "crossref")
                            (setq crossref-there t))))
                    (if crossref-there

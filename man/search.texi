@@ -724,6 +724,18 @@ determines which characters these are.  @xref{Syntax}.
 @item \W
 matches any character that is not a word-constituent.
 
+@item \_<
+matches the empty string, but only at the beginning of a symbol.  A
+symbol is a sequence of one or more word or symbol constituent
+characters.  @samp{\_<} matches at the beginning of the buffer only if
+a symbol-constituent character follows.
+
+@item \_>
+matches the empty string, but only at the end of a symbol.  A symbol
+is a sequence of one or more word or symbol constituent characters.
+@samp{\_>} matches at the end of the buffer only if the contents end
+with a symbol-constituent character.
+
 @item \s@var{c}
 matches any character whose syntax is @var{c}.  Here @var{c} is a
 character that designates a particular syntax class: thus, @samp{w}

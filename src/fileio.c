@@ -6198,10 +6198,13 @@ provides a file dialog box.  */)
 
   if (NILP (dir))
     dir = current_buffer->directory;
+  if (NILP (Ffile_name_absolute_p (dir)))
+    dir = Fexpand_file_name (dir, Qnil);
   if (NILP (default_filename))
-    default_filename = !NILP (initial)
-      ? Fexpand_file_name (initial, dir)
-      : current_buffer->filename;
+    default_filename
+      = (!NILP (initial)
+	 ? Fexpand_file_name (initial, dir)
+	 : current_buffer->filename);
 
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");

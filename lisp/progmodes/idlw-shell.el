@@ -1823,8 +1823,8 @@ Change the default directory for the process buffer to concur."
        'hide 'wait)
       ;; If we don't know anything about the class, update shell routines
       (if (and idlwave-shell-get-object-class
-	       (not (assoc-ignore-case idlwave-shell-get-object-class
-				       (idlwave-class-alist))))
+	       (not (assoc-string idlwave-shell-get-object-class
+				  (idlwave-class-alist) t)))
 	  (idlwave-shell-maybe-update-routine-info))
       idlwave-shell-get-object-class)))
 
