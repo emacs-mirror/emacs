@@ -24,13 +24,20 @@
 
 ;;; Comments:
 
-;; Enable mouse support when running inside an xterm. 
+;; Enable mouse support when running inside an xterm or Linux console.
 
 ;; This is actually useful when you are running X11 locally, but is
 ;; working on remote machine over a modem line or through a gateway.
 
 ;; It works by translating xterm escape codes into generic emacs mouse
 ;; events so it should work with any package that uses the mouse.
+
+;; The xterm mouse escape codes are supposedly also supported by the
+;; Linux console, but I have not been able to verify this.
+
+;; You don't have to turn off xterm mode to use the normal xterm mouse
+;; functionality, it is still available by holding down the SHIFT key
+;; when you press the mouse button.
 
 ;;; Todo:
 
