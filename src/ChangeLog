@@ -1,3 +1,37 @@
+2000-07-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.h (struct coding_system): Member safe_charset deleted.
+
+	* coding.c (Qsafe_charsets): This variable deleted.
+	(Qsafe_chars, Vchar_coding_system_table, Qchar_coding_system): New
+	variables.
+	(coding_safe_chars): New function.
+	(CODING_SAFE_CHAR_P): New macro.
+	(CHARSET_OK): New arg C.  Call CODING_SAFE_CHAR_P instead of
+	checking safe_charsets member of the coding system.  Caller
+	changed.
+	(detect_coding_iso2022): New local variable safe_chars.
+	(DECODE_DESIGNATION): Call CODING_SAFE_CHAR_P instead of checking
+	safe_charsets member of the coding system.
+	(decode_coding_iso2022): New local variable safe_chars.
+	(ENCODE_ISO_CHARACTER_DIMENSION1): Don't check unsafe chars here.
+	(ENCODE_ISO_CHARACTER_DIMENSION2): Likewise.
+	(ENCODE_ISO_CHARACTER): Arguments changed.  Caller changed.
+	(ENCODE_UNSAFE_CHARACTER): New macro.
+	(encode_coding_iso2022): New local variable safe_chars.  Check
+	unsafe chars.
+	(setup_coding_system): Delete the code to initialize
+	coding->safe_charses
+	(intersection, find_safe_codings): New functions.
+	(Ffind_coding_systems_region_internal): New function.
+	(syms_of_coding): Defsubr it.  Initialize Qsafe_chars,
+	Qsafe_cding_system.  Make Vchar_coding_system_table a Lisp
+	variable and initialize it.
+
+	* fns.c (char_table_ref_and_index): New function.
+
+	* lisp.h (char_table_ref_and_index): Add prototype.
+
 2000-07-26  Sam Steingold  <sds@gnu.org>
 
 	* editfns.c (lisp_time_argument): Added third argument `usec'.

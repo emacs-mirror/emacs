@@ -1,5 +1,42 @@
 2000-07-27  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule.el (register-char-codings): New function.
+	(make-coding-system): Handle `safe-chars' specification in the arg
+	PROPERTY.
+
+	* international/mule-cmds.el
+	(find-coding-systems-region-subset-p): This function deleted.
+	(sort-coding-systems-predicate): New variable.
+	(sort-coding-systems): New function.
+	(find-coding-systems-region): Use
+	find-coding-systems-region-internal.
+	(find-coding-systems-string): Use find-coding-systems-region.
+	(find-coding-systems-for-charsets): Check
+	char-coding-system-table.
+	(select-safe-coding-system-accept-default-p): New variable.
+	(select-safe-coding-system): Mostly rewritten.  New argument
+	ACCEPT-DEFAULT-P.
+	(select-message-coding-system): Call select-safe-coding-system
+	with ACCEPT-DEFAULT-P arg.
+	(reset-language-environment): Reset default-sendmail-coding-system
+	to the default value iso-latin-1.
+	(set-language-environment): Don't set the obsolete variable
+	charset-origin-alist.
+
+	* international/codepage.el (cp-coding-system-for-codepage-1):
+	Give `safe-chars' property to make-coding-system.
+
+	* mail/sendmail.el (sendmail-send-it): Improve the way to avoid
+	calling select-message-coding-system twice.
+
+	* language/cyrillic.el (cyrillic-koi8): Use `safe-chars' property
+	instead of `safe-charsets'.
+	(cyrillic-alternativnyj): Likewise.
+	(ccl-encode-alternativnyj): Don't check the charset
+	cyrillic-iso8859-5.
+
+2000-07-27  Kenichi Handa  <handa@etl.go.jp>
+
 	* composite.el (compose-chars-after): Preserve match data.
 
 2000-07-26  Sam Steingold  <sds@gnu.org>
