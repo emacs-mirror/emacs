@@ -873,15 +873,22 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 
+(defgroup 'fancy-splash-screen
+  "Fancy splash screen when Emacs starts."
+  :group 'initialization)
+
+
 (defcustom fancy-splash-delay 5
   "Delay in seconds between splash screens."
-  :group 'splash-screen
+  :group 'fancy-splash-screen
+  :version "21.1"
   :type 'integer)
 
 
 (defcustom fancy-splash-image "splash.xpm"
   "The image to show in the splash screens."
-  :group 'splash-screen
+  :group 'fancy-splash-screen
+  :version "21.1"
   :type 'file)
 
 
