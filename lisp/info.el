@@ -214,19 +214,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (setq temp-downcase
 		    (expand-file-name (downcase filename) (car dirs)))
 	      ;; Try several variants of specified name.
-	      (catch 'foundit
-		(mapcar
-		 (function
-		  (lambda (x)
-		    (if (file-exists-p (concat temp (car x)))
-			(progn
-			  (setq found temp)
-			  (throw 'foundit nil)))
-		    (if (file-exists-p (concat temp-downcase (car x)))
-			(progn
-			  (setq found temp-downcase)
-			  (throw 'foundit nil)))))
-		 Info-suffix-list))
+	      (let ((suffix-list Info-suffix-list))
+		(while (and suffix-list (not found))
+		  (cond ((file-exists-p
+			  (concat temp (car (car suffix-list))))
+			 (setq found temp))
+			((file-exists-p
+			  (concat temp-downcase (car (car suffix-list))))
+			 (setq found temp-downcase)))
+		  (setq suffix-list (cdr suffix-list))))
 	      (setq dirs (cdr dirs)))))
 	(if found
 	    (setq filename found)
