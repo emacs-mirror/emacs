@@ -779,6 +779,8 @@ EmacsFrameResize (widget)
   change_frame_size (f, rows, columns, 0, 1);
   update_wm_hints (ew); 
   update_various_frame_slots (ew);
+
+  cancel_mouse_face (f);
 }
 
 static Boolean
