@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
    Copyright (C) 1996, 1997, 2001 Free Software Foundation.
-   
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
@@ -168,7 +168,7 @@ unsigned
 empty_clipboard ()
 {
   __dpmi_regs regs;
-  
+
   /* Calls Int 2Fh/AX=1702h
      Return Values   AX == 0: Error occurred
 			<> 0: OK, Clipboard emptied */
@@ -399,7 +399,7 @@ get_clipboard_data (Format, Data, Size, Raw)
 	 the next loop by an additional test.  */
       register unsigned char *lcdp =
 	last_clipboard_text == NULL ? &null_char : last_clipboard_text;
-	
+
       /* Copy data from low memory, remove CR
 	 characters before LF if needed.  */
       _farsetsel (_dos_ds);
@@ -486,10 +486,8 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
      Lisp_Object string, frame;
 {
   unsigned ok = 1, put_status = 0;
-  int nbytes;
+  int nbytes, charset_info, no_crlf_conversion;
   unsigned char *src, *dst = NULL;
-  int charset_info;
-  int no_crlf_conversion;
 
   CHECK_STRING (string);
 
@@ -606,8 +604,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   unsigned data_size, truelen;
   unsigned char *htext;
   Lisp_Object ret = Qnil;
-  int no_crlf_conversion;
-  int require_encoding = 0;
+  int no_crlf_conversion, require_encoding = 0;
 
   if (NILP (frame))
     frame = Fselected_frame ();
@@ -685,9 +682,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
 
  unblock:
   UNBLOCK_INPUT;
-  
+
  done:
-  
+
   return (ret);
 }
 
@@ -736,7 +733,7 @@ and t is the same as `SECONDARY'.  */)
   return Qnil;
 }
 
-void 
+void
 syms_of_win16select ()
 {
   defsubr (&Sw16_set_clipboard_data);
