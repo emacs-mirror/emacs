@@ -34,8 +34,6 @@
 (require 'message)
 (require 'gnus-util)
 (require 'gnus)
-(require 'w3)
-(require 'url)
 (require 'nnmail)
 (eval-when-compile
   (ignore-errors
