@@ -2335,7 +2335,7 @@ EndDSCPage\n"))
 (defun ps-basic-plot-string (from to &optional bg-color)
   (let* ((wrappoint (ps-find-wrappoint from to ps-avg-char-width))
 	 (to (car wrappoint))
-	 (string (buffer-substring from to)))
+	 (string (buffer-substring-no-properties from to)))
     (ps-output-string string)
     (ps-output " S\n")
     wrappoint))
@@ -2858,7 +2858,7 @@ EndDSCPage\n"))
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
+	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
       "Subject ???")))
 
 ;; Look in an article or mail message for the From: line.  Sorta-kinda
@@ -2868,7 +2868,7 @@ EndDSCPage\n"))
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "^From:[ \t]+\\(.*\\)$" nil t)
-	(let ((fromstring (buffer-substring (match-beginning 1) (match-end 1))))
+	(let ((fromstring (buffer-substring-no-properties (match-beginning 1) (match-end 1))))
 	  (cond
 
 	   ;; Try first to match addresses that look like
@@ -2941,7 +2941,7 @@ EndDSCPage\n"))
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
+	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
       "File ???")))
 
 ;; Look in an article or mail message for the Subject: line.  To be
@@ -2950,7 +2950,7 @@ EndDSCPage\n"))
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
+	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
       "Node ???")))
 
 (defun ps-info-mode-hook ()
