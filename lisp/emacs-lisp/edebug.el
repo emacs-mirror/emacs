@@ -327,22 +327,13 @@ A lambda list keyword is a symbol that starts with `&'."
 (defun edebug-window-list ()
   "Return a list of windows, in order of `next-window'."
   ;; This doesn't work for epoch.
-  (let* ((first-window (selected-window))
-	 (window-list (list first-window))
-	 (next (next-window first-window)))
-    (while (not (eq next first-window))
-      (setq window-list (cons next window-list))
-      (setq next (next-window next)))
+  (let (window-list)
+    (walk-windows (lambda (w) (setq window-list (cons w window-list))))
     (nreverse window-list)))
 
 (defun edebug-window-live-p (window)
   "Return non-nil if WINDOW is visible."
-  (let* ((first-window (selected-window))
-	 (next (next-window first-window t)))
-    (while (not (or (eq next window) 
-		    (eq next first-window)))
-      (setq next (next-window next t)))
-    (eq next window)))
+  (some-window (lambda (w) (eq w window))))
 
 ;; Not used.
 '(defun edebug-two-window-p ()
@@ -433,17 +424,13 @@ Return the result of the last expression in BODY."
 
 (defun edebug-get-displayed-buffer-points ()
   ;; Return a list of buffer point pairs, for all displayed buffers.
-  (save-excursion
-    (let* ((first-window (selected-window))
-	   (next (next-window first-window))
-	   (buffer-point-list nil)
-	   buffer)
-      (while (not (eq next first-window))
-	(set-buffer (setq buffer (window-buffer next)))
-	(setq buffer-point-list
-	      (cons (cons buffer (point)) buffer-point-list))
-	(setq next (next-window next)))
-      buffer-point-list)))
+  (let (list)
+    (walk-windows (lambda (w)
+		    (unless (eq w (selected-window))
+		      (setq list (cons (cons (window-buffer w)
+					     (window-point w))
+				       list)))))
+    list))
 
 
 (defun edebug-set-buffer-points (buffer-points)
