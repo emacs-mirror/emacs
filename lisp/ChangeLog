@@ -1,5 +1,11 @@
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/fortune.el: Undo change of 2001-07-13.
+	Fix autoload cookies.  Add types to defcustoms.
+	(fortune) <defgroup>: Add :link.
+	(fortune-from-region): Use eq, not eql.
+	From Dave Love <fx@gnu.org>.
+	
 	* play/animate.el (animate-birthday-present): Function removed.
 	
 	* play/animate.el: New file.

@@ -1,5 +1,9 @@
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (toplevel) [STDC_HEADERS]: Include float.h.
+	(MAX_10_EXP): New macro.
+	(Fformat): Use it.
+
 	* coding.c (code_convert_region): Handle the multibyte case if
 	decoding ends with CODING_FINISH_INSUFFICIENT_SRC.
 
