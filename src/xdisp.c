@@ -2051,7 +2051,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   p1start = p1;
   charstart = desired_glyphs->charstarts[vpos] + hpos;
   /* In case we don't ever write anything into it...  */
-  *charstart = -1;
+  desired_glyphs->charstarts[vpos][XFASTINT (w->left)] = -1;
   end = ZV;
   leftmargin = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
   endp = leftmargin + width;
@@ -2280,12 +2280,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		 And don't clobber anything to the left of that.  */
 	      if (p1prev < leftmargin)
 		{
-		  charstart[0] = pos;
-		  p2x = charstart;
+		  p2x = charstart + (leftmargin - p1start);
+		  *p2x = pos;
 		}
 
 	      /* This loop skips over the char p2x initially points to.  */
-	      while (++p2x != p2)
+	      while (++p2x < p2)
 		*p2x = -1;
 	    }
 	}
@@ -2307,7 +2307,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* Add 1 in the endtest to compensate for the fact that ENDP was
      made from WIDTH, which is 1 less than the window's actual
      internal width.  */
-  for (i = p1 - p1start + 1; i < endp - p1start + 1; i++)
+  i = p1 - p1start + 1;
+  if (p1 < leftmargin)
+    i += leftmargin - p1;
+  for (; i < endp - p1start + 1; i++)
     charstart[i] = 0;
 
   /* Handle continuation in middle of a character */
