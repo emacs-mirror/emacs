@@ -1,5 +1,12 @@
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c, term.c, xmenu.c, xrdb.c, emacs.c, macros.c,
+	* keymap.c, insdel.c, marker.c, minibuf.c, fileio.c, dired.c,
+	* indent.c, search.c, alloc.c, data.c: Avoid some more compiler
+	warnings.
+	
+	* marker.c (byte_char_debug_check): Return void.
+
 	* xfns.c (Fx_create_frame): Set default frame parameter value
 	for tool-bar-lines to 1.
 
