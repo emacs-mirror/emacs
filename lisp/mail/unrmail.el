@@ -56,85 +56,91 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	(rmail-display-summary nil)
 	(rmail-delete-after-output nil)
 	(temp-buffer (get-buffer-create " unrmail")))
-    (rmail file)
+;    (rmail file)
     ;; Default the directory of TO-FILE based on where FILE is.
     (setq to-file (expand-file-name to-file default-directory))
     (condition-case ()
 	(delete-file to-file)
       (file-error nil))
     (message "Writing messages to %s..." to-file)
-    (save-restriction
-      (widen)
-      (while (<= message-count rmail-total-messages)
-	(let ((beg (rmail-msgbeg message-count))
-	      (end (rmail-msgbeg (1+ message-count)))
-	      (from-buffer (current-buffer))
-	      (coding (or rmail-file-coding-system 'raw-text))
-	      label-line attrs keywords
-	      header-beginning mail-from)
+    (if (save-restriction
 	  (save-excursion
-	    (goto-char (rmail-msgbeg message-count))
-	    (setq header-beginning (point))
-	    (search-forward "\n*** EOOH ***\n")
-	    (forward-line -1)
-	    (search-forward "\n\n")
-	    (save-restriction
-	      (narrow-to-region header-beginning (point))
-	      (setq mail-from
-		    (or (mail-fetch-field "Mail-From")
-			(concat "From "
-				(mail-strip-quoted-names (or (mail-fetch-field "from")
-							     (mail-fetch-field "really-from")
-							     (mail-fetch-field "sender")
-							     "unknown"))
-				" " (current-time-string))))))
-	  (with-current-buffer temp-buffer
-	    (setq buffer-undo-list t)
-	    (erase-buffer)
-	    (setq buffer-file-coding-system coding)
-	    (insert-buffer-substring from-buffer beg end)
+	    (widen)
 	    (goto-char (point-min))
-	    (forward-line 1)
-	    (setq label-line
-		  (buffer-substring (point)
-				    (progn (forward-line 1)
-					   (point))))
-	    (forward-line -1)
-	    (search-forward ",,")
-	    (unless (eolp)
-	      (setq keywords
+	    (not (looking-at "BABYL OPTIONS"))))
+	(write-region (point-min) (point-max) to-file t 'nomsg)
+      (save-restriction
+	(widen)
+	(while (<= message-count rmail-total-messages)
+	  (let ((beg (rmail-msgbeg message-count))
+		(end (rmail-msgbeg (1+ message-count)))
+		(from-buffer (current-buffer))
+		(coding (or rmail-file-coding-system 'raw-text))
+		label-line attrs keywords
+		header-beginning mail-from)
+	    (save-excursion
+	      (goto-char (rmail-msgbeg message-count))
+	      (setq header-beginning (point))
+	      (search-forward "\n*** EOOH ***\n")
+	      (forward-line -1)
+	      (search-forward "\n\n")
+	      (save-restriction
+		(narrow-to-region header-beginning (point))
+		(setq mail-from
+		      (or (mail-fetch-field "Mail-From")
+			  (concat "From "
+				  (mail-strip-quoted-names (or (mail-fetch-field "from")
+							       (mail-fetch-field "really-from")
+							       (mail-fetch-field "sender")
+							       "unknown"))
+				  " " (current-time-string))))))
+	    (with-current-buffer temp-buffer
+	      (setq buffer-undo-list t)
+	      (erase-buffer)
+	      (setq buffer-file-coding-system coding)
+	      (insert-buffer-substring from-buffer beg end)
+	      (goto-char (point-min))
+	      (forward-line 1)
+	      (setq label-line
 		    (buffer-substring (point)
-				      (progn (end-of-line)
-					     (1- (point)))))
-	      (setq keywords
-		    (replace-regexp-in-string ", " "," keywords)))
+				      (progn (forward-line 1)
+					     (point))))
+	      (forward-line -1)
+	      (search-forward ",,")
+	      (unless (eolp)
+		(setq keywords
+		      (buffer-substring (point)
+					(progn (end-of-line)
+					       (1- (point)))))
+		(setq keywords
+		      (replace-regexp-in-string ", " "," keywords)))
 
-	    (setq attrs
-		  (list
-		   (if (string-match ", answered," label-line) ?A ?-)
-		   (if (string-match ", deleted," label-line) ?D ?-)
-		   (if (string-match ", edited," label-line) ?E ?-)
-		   (if (string-match ", filed," label-line) ?F ?-)
-		   (if (string-match ", resent," label-line) ?R ?-)
-		   (if (string-match ", unseen," label-line) ?\  ?-)
-		   (if (string-match ", stored," label-line) ?S ?-)))
-	    (unrmail-unprune)
-	    (goto-char (point-min))
-	    (insert mail-from "\n")
-	    (insert "X-BABYL-V6-ATTRIBUTES: " (apply 'string attrs) "\n")
-	    (when keywords
-	      (insert "X-BABYL-V6-KEYWORDS: " keywords "\n"))
-	    (goto-char (point-min))
-	    ;; ``Quote'' "\nFrom " as "\n>From "
-	    ;;  (note that this isn't really quoting, as there is no requirement
-	    ;;   that "\n[>]+From " be quoted in the same transparent way.)
-	    (let ((case-fold-search nil))
-	      (while (search-forward "\nFrom " nil t)
-		(forward-char -5)
-		(insert ?>)))
-	    (write-region (point-min) (point-max) to-file t
-			  'nomsg)))
-	(setq message-count (1+ message-count))))
+	      (setq attrs
+		    (list
+		     (if (string-match ", answered," label-line) ?A ?-)
+		     (if (string-match ", deleted," label-line) ?D ?-)
+		     (if (string-match ", edited," label-line) ?E ?-)
+		     (if (string-match ", filed," label-line) ?F ?-)
+		     (if (string-match ", resent," label-line) ?R ?-)
+		     (if (string-match ", unseen," label-line) ?\  ?-)
+		     (if (string-match ", stored," label-line) ?S ?-)))
+	      (unrmail-unprune)
+	      (goto-char (point-min))
+	      (insert mail-from "\n")
+	      (insert "X-BABYL-V6-ATTRIBUTES: " (apply 'string attrs) "\n")
+	      (when keywords
+		(insert "X-BABYL-V6-KEYWORDS: " keywords "\n"))
+	      (goto-char (point-min))
+	      ;; ``Quote'' "\nFrom " as "\n>From "
+	      ;;  (note that this isn't really quoting, as there is no requirement
+	      ;;   that "\n[>]+From " be quoted in the same transparent way.)
+	      (let ((case-fold-search nil))
+		(while (search-forward "\nFrom " nil t)
+		  (forward-char -5)
+		  (insert ?>)))
+	      (write-region (point-min) (point-max) to-file t
+			    'nomsg)))
+	  (setq message-count (1+ message-count)))))
     (message "Writing messages to %s...done" to-file)))
 
 (defun unrmail-unprune ()
