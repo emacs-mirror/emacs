@@ -81,7 +81,7 @@
      (concat "\\<\\("
 ;	     ("BEGIN" "END" "break" "continue" "delete" "exit" "for"
 ;	      "getline" "if" "next" "print" "printf" "return" "while")
-	     "BEGIN\\|END\\|break\\|continue\\|delete\\|exit\\|for\\|"
+	     "BEGIN\\|END\\|break\\|continue\\|delete\\|exit\\|else\\|for\\|"
 	     "getline\\|if\\|next\\|printf?\\|return\\|while"
 	     "\\)\\>")
      ;;
