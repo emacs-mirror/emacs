@@ -549,16 +549,16 @@ alarm (int seconds)
   return 0;
 }
 
-int 
+void 
 unrequest_sigio (void) 
 { 
-  return 0;
+  return;
 }
 
-int 
+void
 request_sigio (void) 
 { 
-  return 0;
+  return;
 }
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
