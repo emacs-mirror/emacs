@@ -30,7 +30,7 @@ addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
 		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
-		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
 
 # Since Windows 95 does not support multiple commands on one command line
 # (e.g., in for loops), we cannot use for loops any more.
@@ -70,11 +70,11 @@ install:	all emacs.bat
 		$(INSTALL_CMD)
 		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
-		- $(ADDPM) $(INSTALL_DIR)\bin\emacs.bat $(EMACS_ICON_PATH)
+		- $(ADDPM) $(INSTALL_DIR)
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
-		echo SameDirTest > ..\same-dir.tst
-		if not exist $(INSTALL_DIR)\same-dir.tst $(MAKE) -f makefile.nt real_install
+		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
+		if not exist ..\same-dir.tst $(MAKE) -f makefile.nt real_install
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
 
@@ -89,24 +89,24 @@ fast_install:
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
-		echo SameDirTest > ..\same-dir.tst
-		if not exist $(INSTALL_DIR)\same-dir.tst $(CP) ..\bin\emacs.exe $(INSTALL_DIR)\bin
-		if not exist $(INSTALL_DIR)\same-dir.tst $(CP) ..\bin\etags.exe $(INSTALL_DIR)\bin
-		if not exist $(INSTALL_DIR)\same-dir.tst $(CP) ..\bin\ctags.exe $(INSTALL_DIR)\bin
-		if not exist $(INSTALL_DIR)\same-dir.tst nmake -f $(MAKE) real_install
+		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
+		if not exist ..\same-dir.tst $(CP) ..\bin\emacs.exe $(INSTALL_DIR)\bin
+		if not exist ..\same-dir.tst $(CP) ..\bin\etags.exe $(INSTALL_DIR)\bin
+		if not exist ..\same-dir.tst $(CP) ..\bin\ctags.exe $(INSTALL_DIR)\bin
+		if not exist ..\same-dir.tst nmake -f $(MAKE) real_install
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
 
 real_install:
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
-		echo SameDirTest > ..\same-dir.tst
+		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		- mkdir $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\info
 		- mkdir $(INSTALL_DIR)\lock
 		- mkdir $(INSTALL_DIR)\data
-		if not exist $(INSTALL_DIR)\nt\same-dir.tst $(CP_DIR) ..\etc $(INSTALL_DIR)\etc
-		if not exist $(INSTALL_DIR)\nt\same-dir.tst $(CP_DIR) ..\info $(INSTALL_DIR)\info
+		if not exist ..\same-dir.tst $(CP_DIR) ..\etc $(INSTALL_DIR)\etc
+		if not exist ..\same-dir.tst $(CP_DIR) ..\info $(INSTALL_DIR)\info
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
 
@@ -114,10 +114,13 @@ real_install:
 # Maintenance
 # 
 CLEAN_CMD	= $(MAKE) -f makefile.nt clean
-clean:;		- del /q /s *~
+clean:;		- del /q /s *~ *.pdb
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 		- $(DEL_TREE) ..\bin
+		- del ..\etc\DOC
+		- del ..\etc\DOC-X
+		- del emacs.bat
 		cd ..\lib-src
 		$(CLEAN_CMD)
 		cd ..\src
