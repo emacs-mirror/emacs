@@ -840,118 +840,121 @@ The current buffer should be the desired compilation output buffer."
   (compile-reinitialize-errors reparse nil (and (not reparse)
 						(if (< move 1) 0 (1- move))))
   (let (next-errors next-error)
-    (save-excursion
-      (set-buffer compilation-last-buffer)
-      ;; compilation-error-list points to the "current" error.
-      (setq next-errors 
-	    (if (> move 0)
-		(nthcdr (1- move)
-			compilation-error-list)
-	      ;; Zero or negative arg; we need to move back in the list.
-	      (let ((n (1- move))
-		    (i 0)
-		    (e compilation-old-error-list))
-		;; See how many cdrs away the current error is from the start.
-		(while (not (eq e compilation-error-list))
-		  (setq i (1+ i)
-			e (cdr e)))
-		(if (> (- n) i)
-		    (error "Moved back past first error")
-		  (nthcdr (+ i n) compilation-old-error-list))))
-	    next-error (car next-errors))
-      (while
-	  (if (null next-error)
-	      (progn
-		(and move (/= move 1)
-		     (error (if (> move 0)
-				"Moved past last error")
-			    "Moved back past first error"))
-		;; Forget existing error messages if compilation has finished.
-		(if (not (and (get-buffer-process (current-buffer))
-			      (eq (process-status
-				   (get-buffer-process
-				    (current-buffer)))
-				  'run)))
-		    (compilation-forget-errors))
-		(error (concat compilation-error-message
-			       (and (get-buffer-process (current-buffer))
-				    (eq (process-status
-					 (get-buffer-process
-					  (current-buffer)))
-					'run)
+    (catch 'no-next-error
+      (save-excursion
+	(set-buffer compilation-last-buffer)
+	;; compilation-error-list points to the "current" error.
+	(setq next-errors 
+	      (if (> move 0)
+		  (nthcdr (1- move)
+			  compilation-error-list)
+		;; Zero or negative arg; we need to move back in the list.
+		(let ((n (1- move))
+		      (i 0)
+		      (e compilation-old-error-list))
+		  ;; See how many cdrs away the current error is from the start.
+		  (while (not (eq e compilation-error-list))
+		    (setq i (1+ i)
+			  e (cdr e)))
+		  (if (> (- n) i)
+		      (error "Moved back past first error")
+		    (nthcdr (+ i n) compilation-old-error-list))))
+	      next-error (car next-errors))
+	(while
+	    (if (null next-error)
+		(progn
+		  (and move (/= move 1)
+		       (error (if (> move 0)
+				  "Moved past last error")
+			      "Moved back past first error"))
+		  ;; Forget existing error messages if compilation has finished.
+		  (if (not (and (get-buffer-process (current-buffer))
+				(eq (process-status
+				     (get-buffer-process
+				      (current-buffer)))
+				    'run)))
+		      (compilation-forget-errors))
+		  (if silent
+		      (throw 'no-next-error nil)
+		    (error (concat compilation-error-message
+				   (and (get-buffer-process (current-buffer))
+					(eq (process-status
+					     (get-buffer-process
+					      (current-buffer)))
+					    'run)
 					" yet")))))
-	    (setq compilation-error-list (cdr next-errors))
-	    (if (null (cdr next-error))
-		;; This error is boring.  Go to the next.
-		t
-	      (or (markerp (cdr next-error))
-		  ;; This error has a filename/lineno pair.
-		  ;; Find the file and turn it into a marker.
-		  (let* ((fileinfo (car (cdr next-error)))
-			 (buffer (compilation-find-file (cdr fileinfo)
-							(car fileinfo)
-							(car next-error))))
-		    (if (null buffer)
-			;; We can't find this error's file.
-			;; Remove all errors in the same file.
-			(progn
-			  (setq next-errors compilation-old-error-list)
-			  (while next-errors
-			    (and (consp (cdr (car next-errors)))
-				 (equal (car (cdr (car next-errors)))
-					fileinfo)
-				 (progn
-				   (set-marker (car (car next-errors)) nil)
-				   (setcdr (car next-errors) nil)))
-			    (setq next-errors (cdr next-errors)))
-			  ;; Look for the next error.
-			  t)
-		      ;; We found the file.  Get a marker for this error.
-		      ;; compilation-old-error-list is a buffer-local
-		      ;; variable, so we must be careful to extract its value
-		      ;; before switching to the source file buffer.
-		      (let ((errors compilation-old-error-list)
-			    (last-line (nth 1 (cdr next-error)))
-			    (column (nth 2 (cdr next-error))))
-			(set-buffer buffer)
-			(save-excursion
-			  (save-restriction
-			    (widen)
-			    (goto-line last-line)
-			    (if column
-				(move-to-column column)
-			      (beginning-of-line))
-			    (setcdr next-error (point-marker))
-			    ;; Make all the other error messages referring
-			    ;; to the same file have markers into the buffer.
-			    (while errors
-			      (and (consp (cdr (car errors)))
-				   (equal (car (cdr (car errors))) fileinfo)
-				   (let* ((this (nth 1 (cdr (car errors))))
-					  (column (nth 2 (cdr (car errors))))
-					  (lines (- this last-line)))
-				     (if (eq selective-display t)
-					 ;; When selective-display is t,
-					 ;; each C-m is a line boundary,
-					 ;; as well as each newline.
-					 (if (< lines 0)
-					     (re-search-backward "[\n\C-m]"
-								 nil 'end
-								 (- lines))
-					   (re-search-forward "[\n\C-m]"
-							      nil 'end
-							      lines))
-				       (forward-line lines))
-				     (if column
-					 (move-to-column column))
-				     (setq last-line this)
-				     (setcdr (car errors) (point-marker))))
-			      (setq errors (cdr errors)))))))))
-	      ;; If we didn't get a marker for this error, or this
-	      ;; marker's buffer was killed, go on to the next one.
-	      (or (not (markerp (cdr next-error)))
-		  (not (marker-buffer (cdr next-error))))))
-	(setq next-errors compilation-error-list
+	      (setq compilation-error-list (cdr next-errors))
+	      (if (null (cdr next-error))
+		  ;; This error is boring.  Go to the next.
+		  t
+		(or (markerp (cdr next-error))
+		    ;; This error has a filename/lineno pair.
+		    ;; Find the file and turn it into a marker.
+		    (let* ((fileinfo (car (cdr next-error)))
+			   (buffer (compilation-find-file (cdr fileinfo)
+							  (car fileinfo)
+							  (car next-error))))
+		      (if (null buffer)
+			  ;; We can't find this error's file.
+			  ;; Remove all errors in the same file.
+			  (progn
+			    (setq next-errors compilation-old-error-list)
+			    (while next-errors
+			      (and (consp (cdr (car next-errors)))
+				   (equal (car (cdr (car next-errors)))
+					  fileinfo)
+				   (progn
+				     (set-marker (car (car next-errors)) nil)
+				     (setcdr (car next-errors) nil)))
+			      (setq next-errors (cdr next-errors)))
+			    ;; Look for the next error.
+			    t)
+			;; We found the file.  Get a marker for this error.
+			;; compilation-old-error-list is a buffer-local
+			;; variable, so we must be careful to extract its value
+			;; before switching to the source file buffer.
+			(let ((errors compilation-old-error-list)
+			      (last-line (nth 1 (cdr next-error)))
+			      (column (nth 2 (cdr next-error))))
+			  (set-buffer buffer)
+			  (save-excursion
+			    (save-restriction
+			      (widen)
+			      (goto-line last-line)
+			      (if column
+				  (move-to-column column)
+				(beginning-of-line))
+			      (setcdr next-error (point-marker))
+			      ;; Make all the other error messages referring
+			      ;; to the same file have markers into the buffer.
+			      (while errors
+				(and (consp (cdr (car errors)))
+				     (equal (car (cdr (car errors))) fileinfo)
+				     (let* ((this (nth 1 (cdr (car errors))))
+					    (column (nth 2 (cdr (car errors))))
+					    (lines (- this last-line)))
+				       (if (eq selective-display t)
+					   ;; When selective-display is t,
+					   ;; each C-m is a line boundary,
+					   ;; as well as each newline.
+					   (if (< lines 0)
+					       (re-search-backward "[\n\C-m]"
+								   nil 'end
+								   (- lines))
+					     (re-search-forward "[\n\C-m]"
+								nil 'end
+								lines))
+					 (forward-line lines))
+				       (if column
+					   (move-to-column column))
+				       (setq last-line this)
+				       (setcdr (car errors) (point-marker))))
+				(setq errors (cdr errors)))))))))
+		;; If we didn't get a marker for this error, or this
+		;; marker's buffer was killed, go on to the next one.
+		(or (not (markerp (cdr next-error)))
+		    (not (marker-buffer (cdr next-error))))))
+	  (setq next-errors compilation-error-list
 		next-error (car next-errors)))))
 
     ;; Skip over multiple error messages for the same source location,
