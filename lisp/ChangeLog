@@ -1,3 +1,12 @@
+2005-02-23  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/appt.el (appt-time-msg-list): 3rd elt of each
+	appointment says it was explicitly made.
+	(appt-add): Set the 3rd element.
+	(appt-make-list): Preserve explicit appointments.
+
+	* subr.el (find-tag-default): Catch errors in forward-sexp.
+
 2005-02-23  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-isearch-search): New defcustom.
