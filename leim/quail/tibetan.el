@@ -32,80 +32,109 @@
 ;;; Code:
 
 (require 'quail)
+(require 'tibet-util)
 
-;;;
-;;; Functions for making some composite punctuations.
-;;;
+;; Now quail-current-key is set to Tibetan-Roman transcription.  We
+;; set quail-current-str to the corresponding Tibetan string (composed
+;; if necessary).  Both Wylie and TibKey input methods use this
+;; function.
 
-(defun tibetan-quail-bzhi-shad (&rest ignore)
-  (quail-delete-region)
-  (quail-delete-overlays)
-  (insert (compose-chars ?$(7!>(B '(mr . ml) ?\x20 '(mr . ml) ?$(7!>(B))
-  (throw 'quail-tag nil))
+(defun quail-tibetan-update-translation (control-flag)
+  (if (numberp control-flag)
+      ;; Non-composable-character typed.
+      (setq quail-current-str
+	    (buffer-substring (overlay-start quail-overlay)
+			      (overlay-end quail-overlay))
+	    unread-command-events
+	    (string-to-list
+	     (substring quail-current-key control-flag)))
+    ;; Special treatment of "-d..." and "-y...".
+    (if (string-match "^-[dy]" quail-current-key)
+	(setq quail-current-key (substring quail-current-key 1)))
+    (let ((str (tibetan-transcription-to-tibetan quail-current-key)))
+      ;; If quail-current-key is for punctuations, it can't be
+      ;; transcribed by tibetan-transcription-to-tibetan, thus STR
+      ;; contains ASCII string now.  In that case, use the current
+      ;; characters set in quail-current-str.
+      (if (> (aref str 0) 255)
+	  (setq quail-current-str (tibetan-compose-string str))
+	(or quail-current-str
+	    (setq quail-current-str quail-current-key)))))
+  control-flag)
 
-(defun tibetan-quail-nyi-zla (&rest ignore)
-  (quail-delete-region)
-  (quail-delete-overlays)
-  (insert (compose-chars ?$(7#R(B '(mr . ml) ?$(7#S(B))
-  (throw 'quail-tag nil))
+;;; Wylie transcription based input methods.
 
-(defun tibetan-quail-nyi-zla-phur-shad (&rest ignore)
-  (quail-delete-region)
-  (quail-delete-overlays)
-  (insert (compose-chars ?$(7#R(B '(mr . ml) ?$(7#S(B '(bc . tl) ?$(7!I(B))
-  (throw 'quail-tag nil))
+;; Special alist for `$(7"A(B'.  It must be treated as a subjoined
+;; consonant if it follows a consonant.
+(defconst tibetan-wylie-quote-alist '(("'" . ?$(7"A(B)))
 
-(defun tibetan-quail-nyi-zla-double (&rest ignore)
-  (quail-delete-region)
-  (quail-delete-overlays)
-  (insert (compose-chars ?$(7#R(B '(mr . ml) ?$(7#S(B '(mr . ml) ?$(7#S(B))
-  (throw 'quail-tag nil))
+;; Special alist to avoid default stacking.
+(defconst tibetan-wylie-non-stacking-alist
+  '(("-d" . "$(7"2(B")
+    ("-y" . "$(7"B(B")))
 
-(defun tibetan-quail-nyi-zla-triple (&rest ignore)
-  (quail-delete-region)
-  (quail-delete-overlays)
-  (insert (compose-chars ?$(7#R(B '(mr . ml) ?$(7#S(B '(mr . ml) ?$(7#S(B '(mr . ml) ?$(7#S(B))
-  (throw 'quail-tag nil))
+;; Punctuations are not transcribed.
 
-;;;
-;;; Setting-ups for Extended Wylie input.
-;;;
-
-(defun quail-tibetan-input-wylie (key &rest ignore)
-  (let (pc)
-    (quail-delete-region)
-    (quail-delete-overlays)
-    (setq pc (char-before (overlay-start quail-overlay))
-	  quail-current-str (tibetan-composition pc key))
-    (if (not (bobp))
-	(progn
-	  (delete-char -1)
-	  (insert (aref quail-current-str 0))
-	  (setq quail-current-str (substring quail-current-str 1))))
-    (move-overlay quail-overlay (point) (point))
-    (insert quail-current-str)
-    (throw 'quail-tag nil)))
-
+(defconst tibetan-wylie-punctuation-alist
+   '(("."  . " ")
+     (":"  . "$(8"`(B")
+     (" "  . "$(8!;(B")
+     ("/"  . "$(8!=(B")
+     ("//" . "$(7!>(B")
+     ("////" . ["$(7!>(B $(7!>(B"])
+     ("$"  . "$(8!?(B")
+     ("/\"" . "$(8!@(B")			; Not defined in Ext. Wylie.
+     ("&"  . "$(8!@(B")
+     (";"  . "$(8!A(B")
+     ("%"  . "$(8!D(B")
+     ("!"  . "$(7!8(B")
+     ("<"  . "$(7!l(B")
+     (">"  . "$(7!m(B")
+     ("@"  . "$(7"f(B")
+     ("*"  . ["$(7!4!5(B"])
+     ("#"  . ["$(7!4!5!5(B"])
+     ("^"  . "$(7!6(B")
+     ("0" . "$(7!P(B")
+     ("1" . "$(7!Q(B")
+     ("2" . "$(7!R(B")
+     ("3" . "$(7!S(B")
+     ("4" . "$(7!T(B")
+     ("5" . "$(7!U(B")
+     ("6" . "$(7!V(B")
+     ("7" . "$(7!W(B")
+     ("8" . "$(7!X(B")
+     ("9" . "$(7!Y(B")
+     ("-0" . "$(7!c(B")
+     ("-1" . "$(7!Z(B")
+     ("-2" . "$(7![(B")
+     ("-3" . "$(7!\(B")
+     ("-4" . "$(7!](B")
+     ("-5" . "$(7!^(B")
+     ("-6" . "$(7!_(B")
+     ("-7" . "$(7!`(B")
+     ("-8" . "$(7!a(B")
+     ("-9" . "$(7!b(B")
+     ("|"  . "$(7!1!2!3!9!:!B!C!E!F!G!H!I!J!K!L!M!N!O!d!f!h!j!k!n!o(B")))
 
 (quail-define-package "tibetan-wylie" "Tibetan" "TIBw" t
 "Tibetan character input by Extended Wylie key assignment.
 
     +-------------------------------------+
-    |2$(7"!`#T(B1$(8!;(B k |2$(7""`#T(B1$(8!;(B kh |2$(7"#`#T(B1$(8!;(B g  |2$(7"$`#T(B1$(8!;(B gh |2$(7"%`#T(B1$(8!;(B ng|   $(7"S(B i          $(8!=(B        /
-    |2$(7"&`#T(B1$(8!;(B c |2$(7"'`#T(B1$(8!;(B ch |2$(7"(`#T(B1$(8!;(B j  |       |$(7"*$(8!;(B ny|   $(7"U(B u          $(7!>(B       //
-    |$(7"+$(8!;(B T |$(7",$(8!;(B TH |$(7"-$(8!;(B D  |$(7".$(8!;(B DH |$(7"/$(8!;(B N |   $(7"[(B e          2$(7!>P(B P$(7!>(B1    ////
+    |$(7"!$(8!;(B k |$(7""$(8!;(B kh |$(7"#$(8!;(B g  |$(7"$$(8!;(B gh |$(7"%$(8!;(B ng|   $(7"S(B i          $(8!=(B        /
+    |$(7"&$(8!;(B c |$(7"'$(8!;(B ch |$(7"($(8!;(B j  |       |$(7"*$(8!;(B ny|   $(7"U(B u          $(7!>(B       //
+    |$(7"+$(8!;(B T |$(7",$(8!;(B TH |$(7"-$(8!;(B D  |$(7".$(8!;(B DH |$(7"/$(8!;(B N |   $(7"[(B e          $(7!>(B $(7!>(B    ////
     |$(7"0$(8!;(B t |$(7"1$(8!;(B th |$(7"2$(8!;(B d  |$(7"3$(8!;(B dh |$(7"4$(8!;(B n |   $(7"](B o          $(7!A(B       ;
     |$(7"5$(8!;(B p |$(7"6$(8!;(B ph |$(7"7$(8!;(B b  |$(7"8$(8!;(B bh |$(7"9$(8!;(B m |   $(7"\(B ai (ee, E) $(8!?(B        $
     |$(7":$(8!;(B ts|$(7";$(8!;(B tsh|$(7"<$(8!;(B dz |$(7"=$(8!;(B dzh|$(7">$(8!;(B w |   $(7"^(B au (oo, O) $(8!@(B        &
-    |$(7"?$(8!;(B zh|$(7"@$(8!;(B z  |$(7"A$(8!;(B '  |       |$(7"B$(8!;(B y |   $(7"a(B I          2$(7#RP#SP#S(B1   *
-    |$(7"C$(8!;(B r |$(7"D$(8!;(B l  |$(7"E$(8!;(B sh |$(7"F$(8!;(B SH |$(7"G$(8!;(B s |   $(7"`(B :          2$(7#RP#SP#SP#S(B1 #
+    |$(7"?$(8!;(B zh|$(7"@$(8!;(B z  |$(7"A$(8!;(B '  |       |$(7"B$(8!;(B y |   $(7"a(B I          $(7#R#S#S(B   *
+    |$(7"C$(8!;(B r |$(7"D$(8!;(B l  |$(7"E$(8!;(B sh |$(7"F$(8!;(B SH |$(7"G$(8!;(B s |   $(7"`(B :          $(7#R#S#S#S(B #
     |$(7"H$(8!;(B h |$(7"I$(8!;(B A  |$(7"J$(8!;(B kSH|       |      |   $(7"_(B M           $(7!l(B $(7!m(B   < >
     +-------------------------------------+   $(8!D(B  %
     (The consonant $(7"I$(8!;(B must be typed explicitly.)
 
   NOT SPECIFIED IN EXT. WYLIE:
     +--------------------------------------------------------+
-    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|2$(7#RP#S_!I(B1 = ^|
+    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|$(7#R#S!I(B = ^|
     +--------------------------------------------------------+
     |$(7"i(B = x |$(7"j(B = X |$(7"g(B = v |$(7"h(B = V |$(7"k(B = q |$(7"l(B = Q |
     +-----------------------------------------------+
@@ -120,127 +149,40 @@
 
   Tsheg is assigned to SPC. Space is assigned to period '.'.
 "
- nil nil nil)
+ nil nil nil nil nil nil nil nil
+ 'quail-tibetan-update-translation)
 
-(quail-define-rules
- ("."    ?\x20)
- ("k"    quail-tibetan-input-wylie)
- ("g"    quail-tibetan-input-wylie)
- ("c"    quail-tibetan-input-wylie)
- ("j"    quail-tibetan-input-wylie)
- ("T"    quail-tibetan-input-wylie)
- ("D"    quail-tibetan-input-wylie)
- ("N"    quail-tibetan-input-wylie)
- ("t"    quail-tibetan-input-wylie)
- ("d"    quail-tibetan-input-wylie)
- ("n"    quail-tibetan-input-wylie)
- ("p"    quail-tibetan-input-wylie)
- ("b"    quail-tibetan-input-wylie)
- ("m"    quail-tibetan-input-wylie)
- ("w"    quail-tibetan-input-wylie)
- ("z"    quail-tibetan-input-wylie)
- ("'"    quail-tibetan-input-wylie)
- ("y"    quail-tibetan-input-wylie)
- ("r"    quail-tibetan-input-wylie)
- ("l"    quail-tibetan-input-wylie)
- ("SH"   quail-tibetan-input-wylie)
- ("s"    quail-tibetan-input-wylie)
- ("h"    quail-tibetan-input-wylie)
- ("H"    quail-tibetan-input-wylie)
- ("A"    quail-tibetan-input-wylie)
- ("+k"   quail-tibetan-input-wylie)
- ("+g"   quail-tibetan-input-wylie)
- ("+c"   quail-tibetan-input-wylie)
- ("+j"   quail-tibetan-input-wylie)
- ("+T"   quail-tibetan-input-wylie)
- ("+D"   quail-tibetan-input-wylie)
- ("+N"   quail-tibetan-input-wylie)
- ("+t"   quail-tibetan-input-wylie)
- ("+d"   quail-tibetan-input-wylie)
- ("+n"   quail-tibetan-input-wylie)
- ("+p"   quail-tibetan-input-wylie)
- ("+b"   quail-tibetan-input-wylie)
- ("+m"   quail-tibetan-input-wylie)
- ("+w"   quail-tibetan-input-wylie)
- ("+z"   quail-tibetan-input-wylie)
- ("+'"   quail-tibetan-input-wylie)
- ("+y"   quail-tibetan-input-wylie)
- ("+r"   quail-tibetan-input-wylie)
- ("+l"   quail-tibetan-input-wylie)
- ("+SH"  quail-tibetan-input-wylie)
- ("+s"   quail-tibetan-input-wylie)
- ("+h"   quail-tibetan-input-wylie)
- ("+H"   quail-tibetan-input-wylie)
- ("+A"   quail-tibetan-input-wylie)
- ("-d"  ?$(7"2(B)				; To avoid default stacking
- ("-y"  ?$(7"B(B)				; Idem.
- ("a"    quail-tibetan-input-wylie)	; invisible vowel sign
- ("i"    quail-tibetan-input-wylie)
- ("u"    quail-tibetan-input-wylie)
- ("e"    quail-tibetan-input-wylie)
- ("o"    quail-tibetan-input-wylie)
- ("I"    quail-tibetan-input-wylie)
- ("E"    quail-tibetan-input-wylie)
- ("O"    quail-tibetan-input-wylie)
- ("M"    quail-tibetan-input-wylie)
- ("~"    quail-tibetan-input-wylie)
- ("`"    quail-tibetan-input-wylie)
- (","    quail-tibetan-input-wylie)
- ("x"    quail-tibetan-input-wylie)
- ("X"    quail-tibetan-input-wylie)
- ("v"    quail-tibetan-input-wylie)
- ("V"    quail-tibetan-input-wylie)
- ("q"    quail-tibetan-input-wylie)
- ("Q"    quail-tibetan-input-wylie)
- ("_o"    quail-tibetan-input-wylie)
- ("_O"    quail-tibetan-input-wylie)
-;;; ("_/"    quail-tibetan-input-wylie)
- (":"   ?$(8"`(B)
- (" "   ?$(8!;(B)
- ("/"   ?$(8!=(B)
- ("//"  ?$(7!>(B)
- ("////" tibetan-quail-bzhi-shad)
- ("$"   ?$(8!?(B)
- ("/\"" ?$(8!@(B)				; Not defined in Ext. Wylie.
- ("&"   ?$(8!@(B)
- (";"   ?$(8!A(B)
- ("%"   ?$(8!D(B)
- ("!"   ?$(7!8(B)
- ("<"   ?$(7!l(B)
- (">"   ?$(7!m(B)
- ("@"   ?$(7"f(B)
- ("*" tibetan-quail-nyi-zla-double)
- ("#" tibetan-quail-nyi-zla-triple)
- ("^" tibetan-quail-nyi-zla-phur-shad)
- ("0" ?$(7!P(B)
- ("1" ?$(7!Q(B)
- ("2" ?$(7!R(B)
- ("3" ?$(7!S(B)
- ("4" ?$(7!T(B)
- ("5" ?$(7!U(B)
- ("6" ?$(7!V(B)
- ("7" ?$(7!W(B)
- ("8" ?$(7!X(B)
- ("9" ?$(7!Y(B)
- ("-0" ?$(7!c(B)
- ("-1" ?$(7!Z(B)
- ("-2" ?$(7![(B)
- ("-3" ?$(7!\(B)
- ("-4" ?$(7!](B)
- ("-5" ?$(7!^(B)
- ("-6" ?$(7!_(B)
- ("-7" ?$(7!`(B)
- ("-8" ?$(7!a(B)
- ("-9" ?$(7!b(B)
- ("|"  "$(7!1!2!3!9!:!B!C!E!F!G!H!I!J!K!L!M!N!O!d!f!h!j!k!n!o(B")
- )
+;; Here we build up a Quail map for a Tibtan sequence the whole of
+;; which can be one composition.
+;;
+;; A Tibetan syllable is typically structured as follows:
+;;      [P] C [c+] V [M] [S [s]]
+;;          ^^^^^^^^^^^^
+;; where P:prefix, C:base consonant, c:subjoined consonant,
+;; V:vowel, M:vowel modifier, S:suffix, s:post suffix.
+;; In this pattern, the part indicated by "^^^" can be one composition.
+
+(quail-install-map
+ (quail-map-from-table
+  '((base-state (tibetan-consonant-transcription-alist . sq-state)
+		(tibetan-precomposed-transcription-alist . s-state)
+		(tibetan-wylie-non-stacking-alist . sq-state)
+		tibetan-subjoined-transcription-alist
+		tibetan-vowel-transcription-alist
+		tibetan-modifier-transcription-alist
+		tibetan-wylie-punctuation-alist)
+    (sq-state (tibetan-wylie-quote-alist . s-state)
+	      (tibetan-subjoined-transcription-alist . s-state))
+    (s-state (tibetan-subjoined-transcription-alist . s-state)
+	     (tibetan-vowel-transcription-alist . m-state))
+    (m-state tibetan-modifier-transcription-alist))))
 
 ;;;
-;;; Setting-ups for TibKey input
+;;; TibKey key alignment based input method
 ;;;
 
 (defconst tibetan-tibkey-to-transcription-alist
-  '(
+  '(;; consonant
     ("`" . "`")				; sna ldan
     ("~" . "~")				; sna ldan + nada
     ("q" . "k")				; ka
@@ -292,7 +234,7 @@
     ("," . "s")				; sa
     ("." . "h")				; ha
     ("/" . "A")				; Aa
-    ;;subjoined
+    ;; subjoined
     ("hq" . "+k")			; ka
     ("hQ" ."+kSH")			; kSHa
     ("hw" . "+kh")			; kha
@@ -329,30 +271,118 @@
     ("h," . "+s")			; sa
     ("h." . "+h")			; ha
     ("h/" . "+A")			; Aa
+    ;; Special rule for `$(7"B(B' to avoid stacking.
+    ("E" . "-y")
     ))
 
-(defun quail-tibetan-input-tibkey (key &rest ignore)
-  (let (trans pc)
-    (setq trans (cdr (assoc key tibetan-tibkey-to-transcription-alist)))
-    (quail-delete-region)
-    (quail-delete-overlays)
-    (setq pc (char-before (overlay-start quail-overlay))
-	  quail-current-str (tibetan-composition pc trans))
-    (if (not (bobp))
-	(progn
-	  (delete-char -1)
-	  (insert (aref quail-current-str 0))
-	  (setq quail-current-str (substring quail-current-str 1))))
-    (move-overlay quail-overlay (point) (point))
-    (insert quail-current-str)
-    (throw 'quail-tag nil)))
+(defconst tibetan-consonant-tibkey-alist nil)
+(defconst tibetan-subjoined-tibkey-alist nil)
+(defconst tibetan-vowel-tibkey-alist nil)
+(defconst tibetan-modifier-tibkey-alist nil)
+(defconst tibetan-non-stacking-tibkey-alist nil)
 
+(let ((type-list '("consonant" "subjoined" "vowel" "modifier" "non-stacking"))
+      (tail tibetan-tibkey-to-transcription-alist)
+      elt)
+  (while tail
+    (setq elt (car tail) tail (cdr tail))
+    (let ((types type-list)
+	  type transcription trans-alist tibkey-alist)
+      (while types
+	(setq type (car types) types (cdr types))
+	(setq trans-alist
+	      (if (string= type "non-stacking")
+		  'tibetan-wylie-non-stacking-alist
+		(intern (format "tibetan-%s-transcription-alist" type)))
+	      transcription
+	      (cdr (assoc (cdr elt) (symbol-value trans-alist))))
+	(when transcription
+	  (setq tibkey-alist (intern (format "tibetan-%s-tibkey-alist" type)))
+	  (set tibkey-alist
+	       (cons (cons (car elt) transcription)
+		     (symbol-value tibkey-alist)))))
+      (or tibkey-alist
+	  (error "No Tibetan transcription for %s" (cdr elt))))))
 
+(defconst tibetan-punctuation-tibkey-alist
+  '(("1" . "$(7!Q(B")
+    ("!" . ["$(7#R#S#S#S(B"])		; nyi zla long
+    ("2" . "$(7!R(B")
+    ("@" . "$(7#S(B")			; nyi zla simple
+    ("3" . "$(7!S(B")
+;;; ("#" )
+    ("4" . "$(7!T(B")
+;;; ("$" )
+    ("5" . "$(7!U(B")
+    ("%" . "$(8!D(B")
+    ("6" . "$(7!V(B")
+    ("^" . "$(7!1(B")
+    ("7" . "$(7!W(B")
+    ("8" . "$(7!X(B")
+;;; ("*" ) ; avagraha, not supported yet
+    ("9" . "$(7!Y(B")
+    ("(" . "$(7!l(B")
+    ("0" . "$(7!P(B")
+    (")" . "$(7!m(B")
+;;; ("-" ) ; enphatic, not yet supported 
+;;; ("_" ) ; id.
+;;; ("=" ) ; special sign, not yet supported
+    ("+" . "$(8!A(B")
+    ("\\" . "$(8!?(B")
+    ("|" . "$(7!8(B")
+    ("I" . "$(7"f(B")				; avagraha
+    (":" . "$(8"`(B")
+;;; (">" ?$(8!;(B) ; to be assigned to SPC
+    (">" . " ")
+    ("?" . "$(8!=(B")
+    ("??" . "$(7!>(B")
+    ("????" . ["$(7!>(B $(7!>(B"])
+    (" " . "$(8!;(B")
+    ))
+
+;; Convert TibKey string to Tibetan-Roman transcription string.
+;; If there's no proper conversion, return nil.
+(defun quail-tibkey-to-transcription (tibkey)
+  (let ((len (length tibkey))
+	(i 0)
+	(trans-list nil))
+    (while (< i len)
+      (let ((last len)
+	    trans)
+	(while (and (not trans) (> last i))
+	  (or (setq trans (cdr (assoc (substring tibkey i last)
+				      tibetan-tibkey-to-transcription-alist)))
+	      (setq last (1- last))))
+	(if trans
+	    (setq trans-list (cons trans trans-list)
+		  i last)
+	  (setq trans-list nil i len))))
+    (apply 'concat (nreverse trans-list))))
+
+(defvar quail-tibkey-characters nil)
+
+(defun quail-tibkey-update-translation (control-flag)
+  (if (integerp control-flag)
+      ;; Non-composable-character typed.
+      (setq quail-current-str
+	    (buffer-substring (overlay-start quail-overlay)
+			      (overlay-end quail-overlay))
+	    unread-command-events
+	    (string-to-list
+	     (substring quail-current-key control-flag)))
+    (let ((transcription (quail-tibkey-to-transcription quail-current-key)))
+      (if (> (length transcription) 0)
+	  (let ((quail-current-key transcription))
+	    (setq control-flag
+		  (quail-tibetan-update-translation control-flag)))
+	(or quail-current-str
+	    (setq quail-current-str quail-current-key)))))
+  control-flag)
 
 (quail-define-package "tibetan-tibkey" "Tibetan" "TIBt" t
 "Tibetan character input by TibKey key assignment.
 
-(This implementation is still incomplete.
+\(This implementation is still incomplete.
  Therefore, the following key assignment is a provisional one.)
 
   [NOT SHIFTED]
@@ -371,7 +401,7 @@
   [SHIFTED]
 
   +----------------------------------------------------------+
-  |~$(7"c(B|!2$(7#RP#S(B1|@$(7#S(B|#  |$  |%$(8!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
+  |~$(7"c(B|!$(7#R#S(B|@$(7#S(B|#  |$  |%$(8!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
   +----------------------------------------------------------+
      |Q$(7"J(B|W$(7#T(B|E  |R  |T$(7"a(B|Y  |U  |I$(7"f(B|O$(7"+(B|P$(7",(B|{$(7"-(B|}$(7"/(B|
      +-----------------------------------------------+
@@ -394,136 +424,17 @@
        current implementation (especially special signs). I hope
        I'll complete in a future revision.
 "
- nil t)
+ nil nil nil nil nil nil nil nil
+ 'quail-tibkey-update-translation)
 
-(quail-define-rules
- ("`" quail-tibetan-input-tibkey)	; sna ldan, not supported yet
- ("~" quail-tibetan-input-tibkey)	; sna ldan + nada
- ("1" ?$(7!Q(B)
- ("!" tibetan-quail-nyi-zla)		; nyi zla long
- ("2" ?$(7!R(B)
- ("@" ?$(7#S(B)				; nyi zla simple
- ("3" ?$(7!S(B)
-;;; ("#" )
- ("4" ?$(7!T(B)
-;;; ("$" )
- ("5" ?$(7!U(B)
- ("%" ?$(8!D(B)
- ("6" ?$(7!V(B)
- ("^" ?$(7!1(B)
- ("7" ?$(7!W(B)
- ("8" ?$(7!X(B)
-;;; ("*" ) ; avagraha, not supported yet
- ("9" ?$(7!Y(B)
- ("(" ?$(7!l(B)
- ("0" ?$(7!P(B)
- (")" ?$(7!m(B)
-;;; ("-" ) ; enphatic, not yet supported 
-;;; ("_" ) ; id.
-;;; ("=" ) ; special sign, not yet supported
- ("+" ?$(8!A(B)
- ("\\" ?$(8!?(B)
- ("|" ?$(7!8(B)
- ("q" quail-tibetan-input-tibkey)	; ka
- ("Q" quail-tibetan-input-tibkey)	; kSHa
- ("w" quail-tibetan-input-tibkey)	; kha
- ("e" quail-tibetan-input-tibkey)	; ga
- ("E" ?$(7"B(B)
- ("r" quail-tibetan-input-tibkey)	; nga
- ("t" quail-tibetan-input-tibkey)	; ca
- ("T" quail-tibetan-input-tibkey)	; gi gu log
- ("y" quail-tibetan-input-tibkey)	; cha
- ("u" quail-tibetan-input-tibkey)	; ja
- ("i" quail-tibetan-input-tibkey)	; nya
- ("I" ?$(7"f(B)				; avagraha
- ("o" quail-tibetan-input-tibkey)	; ta
- ("O" quail-tibetan-input-tibkey)	; Ta
- ("p" quail-tibetan-input-tibkey)	; tha
- ("P" quail-tibetan-input-tibkey)	; THa
- ("[" quail-tibetan-input-tibkey)	; da 
- ("{" quail-tibetan-input-tibkey)	; Da
- ("]" quail-tibetan-input-tibkey)	; na
- ("}" quail-tibetan-input-tibkey)	; Na
- ("a" quail-tibetan-input-tibkey)	; pa 
- ("A" quail-tibetan-input-tibkey)	; Vowel sign a
- ("s" quail-tibetan-input-tibkey)	; pha
- ("d" quail-tibetan-input-tibkey)	; ba
-;;; ("D" ) ; special sign, not supported yet
- ("f" quail-tibetan-input-tibkey)	; ma
- ("F" quail-tibetan-input-tibkey)	; anusvara
- ("g" quail-tibetan-input-tibkey)	; zhabs kyu
- ("G" quail-tibetan-input-tibkey)	; gi gu
- ("H" quail-tibetan-input-tibkey)	; viraama
- ("j" quail-tibetan-input-tibkey)	; naro
- ("J" quail-tibetan-input-tibkey)	; 'greng bu
- ("k" quail-tibetan-input-tibkey);;tsa
-;;; ("K" ) ; tsadru, not supported yet
- ("l" quail-tibetan-input-tibkey)	; tsha
- (";" quail-tibetan-input-tibkey)       ; dza
- (":" ?$(8"`(B)
- ("'" quail-tibetan-input-tibkey)	; wa
- ("\"" quail-tibetan-input-tibkey)	; wa zur
- ("z" quail-tibetan-input-tibkey)	; zha
- ("x" quail-tibetan-input-tibkey)	; za
- ("c" quail-tibetan-input-tibkey)	; 'a
- ("C" quail-tibetan-input-tibkey)	; 'a chung
- ("v" quail-tibetan-input-tibkey)	; ya
- ("V" quail-tibetan-input-tibkey)	; ya btags
- ("b" quail-tibetan-input-tibkey)	; ra
- ("B" quail-tibetan-input-tibkey)	; ra btags
- ("n" quail-tibetan-input-tibkey)	; la
- ("N" quail-tibetan-input-tibkey)	; la btags
- ("m" quail-tibetan-input-tibkey)	; sha
- ("M" quail-tibetan-input-tibkey)	; SHa
- ("," quail-tibetan-input-tibkey)	; sa
- ("." quail-tibetan-input-tibkey)	; ha
-;;; (">" ?$(8!;(B) ; to be assigned to SPC
- (">" ?\x20)
- ("/" quail-tibetan-input-tibkey)	; Aa
- ("?" ?$(8!=(B)
- ("??" ?$(7!>(B)
- ("????" tibetan-quail-bzhi-shad)
- (" " ?$(8!;(B)
- ;;subjoined
- ("hq" quail-tibetan-input-tibkey)	; ka
- ("hQ" quail-tibetan-input-tibkey)	; kSHa
- ("hw" quail-tibetan-input-tibkey)	; kha
- ("he" quail-tibetan-input-tibkey)	; ga
- ("hr" quail-tibetan-input-tibkey)	; nga
- ("ht" quail-tibetan-input-tibkey)	; ca
- ("hy" quail-tibetan-input-tibkey)	; cha
- ("hu" quail-tibetan-input-tibkey)	; ja
- ("hi" quail-tibetan-input-tibkey)	; nya
- ("ho" quail-tibetan-input-tibkey)	; ta
- ("hO" quail-tibetan-input-tibkey)	; Ta
- ("hp" quail-tibetan-input-tibkey)	; tha
- ("hP" quail-tibetan-input-tibkey)	; THa
- ("h[" quail-tibetan-input-tibkey)	; da 
- ("h{" quail-tibetan-input-tibkey)	; Da
- ("h]" quail-tibetan-input-tibkey)	; na
- ("h}" quail-tibetan-input-tibkey)	; Na
- ("ha" quail-tibetan-input-tibkey)	; pa 
- ("hs" quail-tibetan-input-tibkey)	; pha
- ("hd" quail-tibetan-input-tibkey)	; ba
- ("hf" quail-tibetan-input-tibkey)	; ma
- ("hk" quail-tibetan-input-tibkey)	; tsa
- ("hl" quail-tibetan-input-tibkey)	; tsha
- ("h;" quail-tibetan-input-tibkey)      ; dza
- ("h'" quail-tibetan-input-tibkey)	; wa
- ("hz" quail-tibetan-input-tibkey)	; zha
- ("hx" quail-tibetan-input-tibkey)	; za
- ("hc" quail-tibetan-input-tibkey)	; 'a
- ("hv" quail-tibetan-input-tibkey)	; ya
- ("hb" quail-tibetan-input-tibkey)	; ra
- ("hn" quail-tibetan-input-tibkey)	; la
- ("hm" quail-tibetan-input-tibkey)	; sha
- ("hM" quail-tibetan-input-tibkey)	; SHa
- ("h," quail-tibetan-input-tibkey)	; sa
- ("h." quail-tibetan-input-tibkey)	; ha
- ("h/" quail-tibetan-input-tibkey)	; Aa
- )
-
-;;; quail/tibetan.el ends here.
-
-
-
+(quail-install-map
+ (quail-map-from-table
+  '((base-state (tibetan-consonant-tibkey-alist . s-state)
+		(tibetan-non-stacking-tibkey-alist . s-state)
+		tibetan-subjoined-tibkey-alist
+		tibetan-vowel-tibkey-alist
+		tibetan-modifier-tibkey-alist
+		tibetan-punctuation-tibkey-alist)
+    (s-state (tibetan-subjoined-tibkey-alist . s-state)
+	     (tibetan-vowel-tibkey-alist . m-state))
+    (m-state tibetan-modifier-tibkey-alist))))
