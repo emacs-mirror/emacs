@@ -248,21 +248,9 @@ THINGS TO DO
    Update: Some of these errors may have been caused by having more
    file handles than FD_SETSIZE.
 
-** Make parts of struct tty_output accessible from Lisp.  The device
-   name and the type is sufficient.
-
-** Export delete_tty to the Lisp environment, for emacsclient.
-
-** Make sure C-g goes to the right frame.  This is hard, as SIGINT
-   doesn't have a tty parameter. :-(
-
 ** Find out why does Emacs abort when it wants to close its
    controlling tty.  Hint: chan_process[] array.  Hey, maybe
    noninterrupt-IO would work, too?
-
-** Implement support for starting an interactive Emacs session without
-   an initial frame.  (The user would connect to it and open frames
-   later, with emacsclient.)  Not necessarily a good idea.
 
 ** Support raw secondary terminals.  (Note that SIGIO works only on
    the controlling terminal.) Hint: extend read_input_waiting() for
@@ -273,6 +261,18 @@ THINGS TO DO
 
 ** Issue with SIGIO: it needs to be disabled during redisplay.  See if
    fcntl() kernel behaviour could be emulated by emacsclient.
+
+** Make parts of struct tty_output accessible from Lisp.  The device
+   name and the type is sufficient.
+
+** Export delete_tty to the Lisp environment, for emacsclient.
+
+** Make sure C-g goes to the right frame.  This is hard, as SIGINT
+   doesn't have a tty parameter. :-(
+
+** Implement support for starting an interactive Emacs session without
+   an initial frame.  (The user would connect to it and open frames
+   later, with emacsclient.)  Not necessarily a good idea.
 
 ** Move optimalization parameters (costs) from union output_data to
    a backend-neutral per-device structure.

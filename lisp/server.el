@@ -187,7 +187,7 @@ are done with it in the server.")
       (setq server-clients (delq client server-clients))
       (let ((frame (assq (car client) server-frames)))
 	(setq server-frames (delq frame server-frames))
-	(when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
+	(when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
       (dolist (buf (cdr client))
 	(with-current-buffer buf
 	  ;; Remove PROC from the clients of each buffer.
@@ -267,6 +267,11 @@ Prefix arg means just kill any existing server communications subprocess."
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
       (server-buffer-done buffer)))
+  ;; Delete any remaining opened frames of the previous server.
+  (while server-frames
+    (let ((frame (cadar server-frames)))
+      (setq server-frames (cdr server-frames))
+      (when frame-live-p frame (delete-frame frame 'force))))
   (unless leave-dead
     (if server-process
 	(server-log (message "Restarting server")))
@@ -382,7 +387,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (progn
 	    (let ((frame (assq (car client) server-frames)))
 	      (setq server-frames (delq frame server-frames))
-	      (when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
+	      (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
 	    (delete-process proc)
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
@@ -471,7 +476,7 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	(unless (cdr client)
 	  (let ((frame (assq (car client) server-frames)))
 	    (setq server-frames (delq frame server-frames))
-	    (when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
+	    (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
 	  (delete-process (car client))
 	  (server-log "Close" (car client))
 	  (setq server-clients (delq client server-clients))))
