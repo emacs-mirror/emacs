@@ -1,5 +1,11 @@
 2000-11-11  Kenichi Handa  <handa@etl.go.jp>
 
+	* syssignal.h: Pay attention to BROKEN_SIGAIO and BROKEN_SIGPTY.
+
+	* m/ibmrs6000.h (BROKEN_SIGAIO, BROKEN_SIGPTY, BROKEN_SIGPOLL):
+	Defined these macros.
+	(NLIST_STRUCT): Avoid re-defining it.
+
 	* s/hpux10.h (C_SWITCH_X_SYSTEM): Include -I/usr/include/X11R6 and
 	-I/usr/contrib/X11R6/include.
 	(LD_SWITCH_X_DEFAULT): Include -L/usr/lib/X11R6.
