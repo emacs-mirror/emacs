@@ -485,6 +485,9 @@ Lisp_Object Vcharset_revision_alist;
 /* Default coding systems used for process I/O.  */
 Lisp_Object Vdefault_process_coding_system;
 
+/* Char table for translating Quail and self-inserting input.  */
+Lisp_Object Vtranslation_table_for_input;
+
 /* Global flag to tell that we can't call post-read-conversion and
    pre-write-conversion functions.  Usually the value is zero, but it
    is set to 1 temporarily while such functions are running.  This is
@@ -6888,8 +6891,7 @@ Return the corresponding character code in Big5.  */)
   return val;
 }
 
-DEFUN ("set-terminal-coding-system-internal",
-       Fset_terminal_coding_system_internal,
+DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
        Sset_terminal_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
      (coding_system)
@@ -6908,8 +6910,7 @@ DEFUN ("set-terminal-coding-system-internal",
   return Qnil;
 }
 
-DEFUN ("set-safe-terminal-coding-system-internal",
-       Fset_safe_terminal_coding_system_internal,
+DEFUN ("set-safe-terminal-coding-system-internal", Fset_safe_terminal_coding_system_internal,
        Sset_safe_terminal_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
      (coding_system)
@@ -6927,16 +6928,15 @@ DEFUN ("set-safe-terminal-coding-system-internal",
   return Qnil;
 }
 
-DEFUN ("terminal-coding-system",
-       Fterminal_coding_system, Sterminal_coding_system, 0, 0, 0,
+DEFUN ("terminal-coding-system", Fterminal_coding_system,
+       Sterminal_coding_system, 0, 0, 0,
        doc: /* Return coding system specified for terminal output.  */)
      ()
 {
   return terminal_coding.symbol;
 }
 
-DEFUN ("set-keyboard-coding-system-internal",
-       Fset_keyboard_coding_system_internal,
+DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
        Sset_keyboard_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
      (coding_system)
@@ -6949,8 +6949,8 @@ DEFUN ("set-keyboard-coding-system-internal",
   return Qnil;
 }
 
-DEFUN ("keyboard-coding-system",
-       Fkeyboard_coding_system, Skeyboard_coding_system, 0, 0, 0,
+DEFUN ("keyboard-coding-system", Fkeyboard_coding_system,
+       Skeyboard_coding_system, 0, 0, 0,
        doc: /* Return coding system specified for decoding keyboard input.  */)
      ()
 {
@@ -7560,6 +7560,10 @@ The other way to read escape sequences in a file without decoding is
 to explicitly specify some coding system that doesn't use ISO2022's
 escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
+
+  DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
+	       doc: /* Char table for translating self-inserting characters.  */);
+    Vtranslation_table_for_input = Qnil;
 }
 
 char *
