@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.25) $
+ * $HopeName: MMsrc!arena.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.25) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.26) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1270,31 +1270,43 @@ Ref ArenaRead(Arena arena, Addr addr)
  * arena.c, it's just a matter of convenience.
  */
 
+#define FormattedObjectsStepClosureSig ((Sig)0x519F05C1)
+
 typedef struct FormattedObjectsStepClosureStruct *FormattedObjectsStepClosure;
 typedef struct FormattedObjectsStepClosureStruct {
+  Sig sig;
   mps_formatted_objects_stepper_t f;
-  Pool pool;
   void *p;
-  unsigned long s;
+  size_t s;
 } FormattedObjectsStepClosureStruct;
 
-
-static void ArenaFormattedObjectsStep(Addr object, Format format,
-                                      void *p, unsigned long s)
+static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
 {
-  FormattedObjectsStepClosure c = p;
+  CHECKS(FormattedObjectsStepClosure, c);
+  CHECKL(FUNCHECK(c->f));
+  /* p and s fields are arbitrary closures which cannot be checked */
+  return TRUE;
+}
+
+static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
+                                      void *p, Size s)
+{
+  FormattedObjectsStepClosure c;
   /* Can't check object */
-  /* Checking format would be too painful */
+  AVERT(Format, format);
+  AVERT(Pool, pool);
+  c = p;
+  AVERT(FormattedObjectsStepClosure, c);
   AVER(s == 0);
 
-  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)c->pool, 
+  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool, 
           c->p, c->s);
 }
 
 /* so called because it walk all formatted objects in an arena */
 static void ArenaFormattedObjectsWalk(Arena arena,
                                       FormattedObjectsStepMethod f,
-	            	              void *p, unsigned long s)
+	            	              void *p, Size s)
 {
   Seg seg;
   FormattedObjectsStepClosure c;
@@ -1305,7 +1317,9 @@ static void ArenaFormattedObjectsWalk(Arena arena,
   /* p and s are arbitrary closure and can't be checked */
   AVER(p != NULL);
   AVER(s == 0);
+
   c = p;
+  AVERT(FormattedObjectsStepClosure, c);
 
   if(SegFirst(&seg, arena)) {
     Addr base;
@@ -1314,8 +1328,7 @@ static void ArenaFormattedObjectsWalk(Arena arena,
       base = SegBase(seg);
       pool = SegPool(seg);
       if(pool->class->attr & AttrFMT) {
-        c->pool = pool;
-	PoolWalk(pool, seg, f, p, s);
+        PoolWalk(pool, seg, f, p, s);
       }
     } while(SegNext(&seg, arena, base));
   }
@@ -1324,7 +1337,7 @@ static void ArenaFormattedObjectsWalk(Arena arena,
 void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
                                       mps_formatted_objects_stepper_t f,
 			              void *p,
-			              unsigned long s)
+			              size_t s)
 {
   Arena arena = (Arena)mps_arena;
   FormattedObjectsStepClosureStruct c;
@@ -1333,6 +1346,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
   AVERT(Arena, arena);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures, hence can't be checked */
+  c.sig = FormattedObjectsStepClosureSig;
   c.f = f;
   c.p = p;
   c.s = s;
