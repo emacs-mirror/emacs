@@ -1,5 +1,8 @@
 2000-09-18  Miles Bader  <miles@gnu.org>
 
+	* faces.el (header-line): Change defaults to be less confusing
+	when mixed with mode-lines.
+
 	* info.el (Info-fontify-node): Make a few cleanups.
 	Add extra `help-echo' and `local-map' props to node xrefs.
 	Use header-specific faces for node-names & xrefs.
