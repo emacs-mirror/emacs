@@ -491,10 +491,6 @@ the user from the mailer."
 ;;;		 (progn
 ;;;		   (forward-line 1)
 ;;;		   (insert "Sender: " (user-login-name) "\n")))
-	    ;; "S:" is an abbreviation for "Subject:".
-	    (goto-char (point-min))
-	    (if (re-search-forward "^S:" delimline t)
-		(replace-match "Subject:"))
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
