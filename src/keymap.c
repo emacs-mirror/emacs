@@ -1840,7 +1840,6 @@ push_key_description (c, p)
     {
       unsigned char work[4], *str;
       int i = CHAR_STRING (c, work, str);
-
       bcopy (str, p, i);
       p += i;
     }
@@ -1856,14 +1855,34 @@ Control characters turn into C-whatever, etc.")
   (key)
      Lisp_Object key;
 {
-  char tem[20];
-
   key = EVENT_HEAD (key);
 
   if (INTEGERP (key))		/* Normal character */
     {
-      *push_key_description (XUINT (key), tem) = 0;
-      return build_string (tem);
+      unsigned int charset, c1, c2;
+
+      if (SINGLE_BYTE_CHAR_P (XINT (key)))
+	charset = 0;
+      else
+	SPLIT_NON_ASCII_CHAR (XINT (key), charset, c1, c2);
+
+      if (charset
+	  && ((c1 >= 0 && c1 < 32)
+	      || (c2 >= 0 && c2 < 32)))
+	{
+	  /* Handle a generic character.  */
+	  Lisp_Object name;
+	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
+	  CHECK_STRING (name, 0);
+	  return concat2 (build_string ("Character set "), name);
+	}
+      else
+	{
+	  char tem[20];
+
+	  *push_key_description (XUINT (key), tem) = 0;
+	  return build_string (tem);
+	}
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
     return Fsymbol_name (key);
