@@ -41,7 +41,7 @@ sub compiler_settings {
    "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
    "-Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align ".
    "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
-  if ($PLATFORM == "sos8gp") {
+  if ($PLATFORM eq "sos8gp") {
    $cc_opts = "-pg ".$cc_opts;
   }
   $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
