@@ -150,25 +150,25 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  Integers were the only kind of number in Emacs version 18.  The range
-of values for integers is @minus{}8388608 to 8388607 (24 bits; i.e.,
+  The range of values for integers in Emacs Lisp is @minus{}134217728 to
+134217727 (28 bits; i.e.,
 @ifinfo
--2**23
+-2**27
 @end ifinfo
 @tex
-$-2^{23}$
+$-2^{27}$
 @end tex
 to
 @ifinfo
-2**23 - 1)
+2**27 - 1)
 @end ifinfo
 @tex
-$2^{23}-1$)
+$2^{28}-1$)
 @end tex
-on most machines, but is 25 or 26 bits on some systems.  It is important
-to note that the Emacs Lisp arithmetic functions do not check for
-overflow.  Thus @code{(1+ 8388607)} is @minus{}8388608 on 24-bit
-implementations.@refill
+on most machines.  (Some machines may provide a wider range.)  It is
+important to note that the Emacs Lisp arithmetic functions do not check
+for overflow.  Thus @code{(1+ 134217727)} is @minus{}134217728 on most
+machines.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
@@ -181,8 +181,8 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also The integer 1.}
 +1               ; @r{Also the integer 1.}
-16777217         ; @r{Also the integer 1!} 
-                 ; @r{  (on a 24-bit or 25-bit implementation)}
+268435457        ; @r{Also the integer 1!} 
+                 ; @r{  (on a 28-bit implementation)}
 @end group
 @end example
 
