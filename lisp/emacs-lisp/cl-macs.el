@@ -1058,7 +1058,7 @@ Valid clauses are:
 	  (let* ((spec (caar specs)) (nspecs nil)
 		 (expr (cadr (cl-pop specs)))
 		 (temp (cdr (or (assq spec loop-destr-temps)
-				(car (cl-push (cons spec (or (last spec 0)
+				(car (cl-push (cons spec (or (last* spec 0)
 							     (gensym)))
 					      loop-destr-temps))))))
 	    (cl-push (list temp expr) new)
