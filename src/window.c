@@ -620,20 +620,20 @@ DEFUN ("window-display-table", Fwindow_display_table, Swindow_display_table,
    Ignore the specified tables if they are not valid;
    if no valid table is specified, return 0.  */
 
-struct Lisp_Vector *
+struct Lisp_Char_Table *
 window_display_table (w)
      struct window *w;
 {
   Lisp_Object tem;
   tem = w->display_table;
-  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
-    return XVECTOR (tem);
+  if (DISP_TABLE_P (tem))
+    return XCHAR_TABLE (tem);
   tem = XBUFFER (w->buffer)->display_table;
-  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
-    return XVECTOR (tem);
+  if (DISP_TABLE_P (tem))
+    return XCHAR_TABLE (tem);
   tem = Vstandard_display_table;
-  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
-    return XVECTOR (tem);
+  if (DISP_TABLE_P (tem))
+    return XCHAR_TABLE (tem);
   return 0;
 }
 
