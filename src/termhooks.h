@@ -153,12 +153,21 @@ struct input_event {
   unsigned long timestamp;
 };
 
-/* Bits in the modifiers member of the input_event structure.  */
+/* Bits in the modifiers member of the input_event structure.
+   Note that reorder_modifiers assumes that the bits are in canonical
+   order.  */
 enum {
-  shift_modifier = 1,
-  ctrl_modifier = 2,
-  meta_modifier = 4,
-  up_modifier = 8,		/* This only applies to mouse buttons.  */
+  up_modifier	=   1,		/* This only applies to mouse buttons.  */
+  alt_modifier	=   2,		/* Under X, the XK_Alt_[LR] keysyms.  */
+  ctrl_modifier	=   4,
+  hyper_modifier=   8,		/* Under X, the XK_Hyper_[LR] keysyms.  */
+  meta_modifier	=  16,		/* Under X, the XK_Meta_[LR] keysyms.  */
+  shift_modifier=  32,
+  super_modifier=  64,		/* Under X, the XK_Super_[LR] keysyms.  */
+  down_modifier = 128,		/* The window-system independent code finds
+				   it handy to have this modifier, but
+				   it is ignored in the event queue.  */
+  drag_modifier = 256,		/* Same as down_modifier.  */
   last_modifier			/* This should always be one more than the
 				   highest modifier bit defined.  */
 };
