@@ -2264,6 +2264,7 @@ scroll_command (n, direction)
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
   "Scroll text of current window upward ARG lines; or near full screen if no ARG.\n\
 A near full screen is `next-screen-context-lines' less than a full screen.\n\
+Negative ARG means scroll downward.\n\
 When calling from a program, supply a number as argument or nil.")
   (n)
      Lisp_Object n;
@@ -2275,6 +2276,7 @@ When calling from a program, supply a number as argument or nil.")
 DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
   "Scroll text of current window downward ARG lines; or near full screen if no ARG.\n\
 A near full screen is `next-screen-context-lines' less than a full screen.\n\
+Negative ARG means scroll upward.\n\
 When calling from a program, supply a number as argument or nil.")
   (n)
      Lisp_Object n;
@@ -2286,7 +2288,7 @@ When calling from a program, supply a number as argument or nil.")
 DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
   "Scroll next window upward ARG lines; or near full screen if no ARG.\n\
 The next window is the one below the current one; or the one at the top\n\
-if the current one is at the bottom.\n\
+if the current one is at the bottom.  Negative ARG means scroll downward.\n\
 When calling from a program, supply a number as argument or nil.\n\
 \n\
 If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
