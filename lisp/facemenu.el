@@ -412,7 +412,7 @@ These special properties include `invisible', `intangible' and `read-only'."
   "Read a color using the minibuffer."
   (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
-				  (if (eq 'x window-system)
+				  (if (or (eq window-system 'x) (eq window-system 'win32))
 				      (mapcar 'list (x-defined-colors))))
 			      nil t)))
     (if (equal "" col)
@@ -426,7 +426,7 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list
 of colors that the current display can handle."
   (interactive)
-  (if (and (null list) (eq 'x window-system))
+  (if (and (null list) (or (eq window-system 'x) (eq window-system 'win32)))
       (progn
 	(setq list (x-defined-colors))
 	;; Delete duplicate colors.
@@ -461,7 +461,7 @@ This function queries the window-system server to find out what the
 color names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
-	((and (eq 'x window-system)
+	((and (or (eq window-system 'x) (eq window-system 'win32))
 	      (equal (x-color-values a) (x-color-values b))))))
 
 (defun facemenu-add-face (face start end)
@@ -523,10 +523,10 @@ or nil if given a bad color."
 		 (color (substring name 3)))
 	    (cond ((string-match "^fg:" name)
 		   (set-face-foreground face color)
-		   (and (eq 'x window-system) (x-color-defined-p color)))
+		   (and (or (eq window-system 'x) (eq window-system 'win32)) (x-color-defined-p color)))
 		  ((string-match "^bg:" name)
 		   (set-face-background face color)
-		   (and (eq 'x window-system) (x-color-defined-p color)))
+		   (and (or (eq window-system 'x) (eq window-system 'win32)) (x-color-defined-p color)))
 		  (t))))
       symbol))
 
