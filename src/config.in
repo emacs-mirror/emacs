@@ -803,6 +803,8 @@ Boston, MA 02111-1307, USA.  */
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
 
+/* Define if we should use crti.o and crtn.o.  */
+#undef HAVE_CRTIN
 
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
@@ -857,7 +859,7 @@ Boston, MA 02111-1307, USA.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#ifdef __GNUC__
+#if defined (__GNUC__) && defined (OPTIMIZE)
 #define INLINE __inline__
 #else
 #define INLINE
