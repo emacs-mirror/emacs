@@ -66,6 +66,8 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
+void set_frame_menubar ();
+
 static Lisp_Object w32_dialog_show ();
 static Lisp_Object w32menu_show ();
 
@@ -79,6 +81,7 @@ static HMENU create_menu_items ();
 /* Initialize the menu_items structure if we haven't already done so.
    Also mark it as currently empty.  */
 
+#if 0
 static void 
 init_menu_items (lpmm)
      menu_map * lpmm;
@@ -91,17 +94,6 @@ init_menu_items (lpmm)
     }
   
   lpmm->menu_items_used = 0;
-}
-
-/* Call when finished using the data for the current menu
-   in menu_items.  */
-
-static void 
-discard_menu_items (lpmm)
-     menu_map * lpmm;
-{
-  lpmm->menu_items = Qnil;
-  lpmm->menu_items_allocated = lpmm->menu_items_used = 0;
 }
 
 /* Make the menu_items vector twice as large.  */
@@ -120,6 +112,39 @@ grow_menu_items (lpmm)
   
   lpmm->menu_items = new;
 }
+#endif
+
+/* Call when finished using the data for the current menu
+   in menu_items.  */
+
+static void 
+discard_menu_items (lpmm)
+     menu_map * lpmm;
+{
+#if 0
+  lpmm->menu_items = Qnil;
+#endif
+  lpmm->menu_items_allocated = lpmm->menu_items_used = 0;
+}
+
+/* Is this item a separator? */
+static int
+name_is_separator (name)
+     Lisp_Object name;
+{
+  int isseparator = (((char *)XSTRING (name)->data)[0] == 0);
+
+  if (!isseparator)
+    {
+      /* Check if name string consists of only dashes ('-') */
+      char *string = (char *)XSTRING (name)->data;
+      while (*string == '-') string++;
+      isseparator = (*string == 0);
+    }
+
+  return isseparator;
+}
+
 
 /* Indicate boundary between left and right.  */
 
@@ -137,28 +162,40 @@ add_left_right_boundary (hmenu)
    of the keyboard equivalent for this item (or nil if none).  */
 
 static void 
-add_menu_item (lpmm, hmenu, name, enable, key)
+add_menu_item (lpmm, hmenu, name, enable, key, equiv)
      menu_map * lpmm;
      HMENU hmenu;
      Lisp_Object name;
      UINT enable;
      Lisp_Object key;
+     Lisp_Object equiv;
 {
   UINT fuFlags;
+  Lisp_Object out_string;
   
-  if (NILP (name) 
-      || ((char *) XSTRING (name)->data)[0] == 0
-      || strcmp ((char *) XSTRING (name)->data, "--") == 0)
+  if (NILP (name) || name_is_separator (name))
     fuFlags = MF_SEPARATOR;
-  else if (enable)
-    fuFlags = MF_STRING;
-  else
-    fuFlags = MF_STRING | MF_GRAYED;
-  
+  else 
+    {
+      if (enable)
+	fuFlags = MF_STRING;
+      else
+	fuFlags = MF_STRING | MF_GRAYED;
+
+      if (!NILP (equiv))
+	{
+	  out_string = concat2 (name, make_string ("\t", 1));
+	  out_string = concat2 (out_string, equiv);
+	}
+      else
+	out_string = name;
+    }
+
   AppendMenu (hmenu,
 	      fuFlags,
 	      lpmm->menu_items_used + 1,
-	      (fuFlags == MF_SEPARATOR)?NULL: (char *) XSTRING (name)->data);
+	      (fuFlags == MF_SEPARATOR)?NULL: 
+	      (char *) XSTRING (out_string)->data);
   
   lpmm->menu_items_used++;
 #if 0
@@ -316,16 +353,18 @@ keymap_panes (lpmm, keymaps, nmaps, notreal)
      int notreal;
 {
   int mapno;
-  
-  //    init_menu_items (lpmm);
-  
+
+#if 0  
+  init_menu_items (lpmm);
+#endif  
+
   if (nmaps > 1) 
     {
       HMENU hmenu;
       
       if (!notreal) 
 	{
-	  hmenu = CreateMenu ();
+	  hmenu = CreatePopupMenu ();
 	    
 	  if (!hmenu) return (NULL);
 	} 
@@ -376,11 +415,11 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
   Lisp_Object pending_maps;
   Lisp_Object tail, item, item1, item_string, table;
   HMENU hmenu;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   
   if (!notreal) 
     {
-      hmenu = CreateMenu ();
+      hmenu = CreatePopupMenu ();
       if (hmenu == NULL) return NULL;
     } 
   else 
@@ -427,7 +466,12 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 		  GCPRO4 (keymap, pending_maps, def, prefix);
 		  
 		  def = menu_item_equiv_key (item_string, item1, &descrip);
-		  enabled = menu_item_enabled_p (def, notreal);
+		  {
+		    struct gcpro gcpro1;
+		    GCPRO1 (descrip);
+		    enabled = menu_item_enabled_p (def, notreal);
+		    UNGCPRO;
+		  }
 		    
 		  UNGCPRO;
 		  
@@ -445,7 +489,7 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 		    {
 		      Lisp_Object submap;
 
-		      GCPRO4 (keymap, pending_maps, item, item_string);
+		      GCPRO5 (keymap, pending_maps, item, item_string, descrip);
 		      
 		      submap = get_keymap_1 (def, 0, 1);
 		      
@@ -459,7 +503,8 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 					     hmenu,
 					     item_string,
 					     !NILP (enabled),
-					     Fcons (XCONS (item)->car, prefix));
+					     Fcons (XCONS (item)->car, prefix),
+					     descrip);
 			    }
 			}
 		      else
@@ -510,11 +555,16 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 			 aside from that, must protect whatever might be
 			 a string.  Since there's no GCPRO5, we refetch
 			 item_string instead of protecting it.  */
-		      GCPRO4 (keymap, pending_maps, def, descrip);
+		      GCPRO3 (keymap, pending_maps, def);
 		      descrip = def = Qnil;
 		      
 		      def = menu_item_equiv_key (item_string, item1, &descrip);
-		      enabled = menu_item_enabled_p (def, notreal);
+		      {
+		        struct gcpro gcpro1;
+		        GCPRO1 (descrip);
+		        enabled = menu_item_enabled_p (def, notreal);
+		        UNGCPRO;
+		      }
 		      
 		      UNGCPRO;
 		      
@@ -528,7 +578,7 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 			{
 			  Lisp_Object submap;
 			  
-			  GCPRO4 (keymap, pending_maps, descrip, item_string);
+			  GCPRO5 (keymap, pending_maps, descrip, item_string, descrip);
 			    
 			  submap = get_keymap_1 (def, 0, 1);
 			  
@@ -542,7 +592,8 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
 						 hmenu,
 						 item_string,
 						 !NILP (enabled),
-						 character);
+						 character,
+						 descrip);
 				}
 			    }
 			  else
@@ -609,29 +660,49 @@ list_of_panes (lpmm, menu)
   Lisp_Object tail;
   HMENU hmenu;
   
-  hmenu = CreateMenu ();
-  if (hmenu == NULL) return NULL;
+  if (XFASTINT (Flength (menu)) > 1)
+    {
+      hmenu = CreatePopupMenu ();
+      if (hmenu == NULL) return NULL;
   
-  //    init_menu_items (lpmm);
+/*       init_menu_items (lpmm); */
   
-  for (tail = menu; !NILP (tail); tail = Fcdr (tail))
+      for (tail = menu; !NILP (tail); tail = Fcdr (tail))
+	{
+	  Lisp_Object elt, pane_name, pane_data;
+	  HMENU new_hmenu;
+
+	  elt = Fcar (tail);
+	  pane_name = Fcar (elt);
+	  CHECK_STRING (pane_name, 0);
+	  pane_data = Fcdr (elt);
+	  CHECK_CONS (pane_data, 0);
+
+	  if (XSTRING (pane_name)->data[0] == 0)
+	    {
+	      list_of_items (hmenu, lpmm, pane_data);
+	    }
+	  else
+	    {
+	      new_hmenu = list_of_items (NULL, lpmm, pane_data);
+	      if (new_hmenu == NULL) goto error;
+
+	      AppendMenu (hmenu, MF_POPUP, (UINT)new_hmenu,
+		          (char *) XSTRING (pane_name)->data);
+	    }
+	}
+    }
+  else
     {
       Lisp_Object elt, pane_name, pane_data;
-      HMENU new_hmenu;
-
-      elt = Fcar (tail);
+    
+      elt = Fcar (menu);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name, 0);
       pane_data = Fcdr (elt);
       CHECK_CONS (pane_data, 0);
-
-      new_hmenu = list_of_items (lpmm, pane_data);
-      if (new_hmenu == NULL) goto error;
-
-      AppendMenu (hmenu, MF_POPUP, (UINT)new_hmenu,
-		  (char *) XSTRING (pane_name)->data);
+      hmenu = list_of_items (NULL, lpmm, pane_data);
     }
-
   return (hmenu);
   
  error:
@@ -643,21 +714,24 @@ list_of_panes (lpmm, menu)
 /* Push the items in a single pane defined by the alist PANE.  */
 
 static HMENU 
-list_of_items (lpmm, pane)
+list_of_items (hmenu, lpmm, pane)
+     HMENU hmenu;
      menu_map * lpmm;
      Lisp_Object pane;
 {
   Lisp_Object tail, item, item1;
-  HMENU hmenu;
 
-  hmenu = CreateMenu ();
-  if (hmenu == NULL) return NULL;
+  if (hmenu == NULL)
+    {
+      hmenu = CreatePopupMenu ();
+      if (hmenu == NULL) return NULL;
+    }
 
   for (tail = pane; !NILP (tail); tail = Fcdr (tail))
     {
       item = Fcar (tail);
       if (STRINGP (item))
-	add_menu_item (lpmm, hmenu, item, Qnil, Qnil);
+	add_menu_item (lpmm, hmenu, item, 0, Qnil, Qnil);
       else if (NILP (item))
 	add_left_right_boundary ();
       else
@@ -665,7 +739,7 @@ list_of_items (lpmm, pane)
 	  CHECK_CONS (item, 0);
 	  item1 = Fcar (item);
 	  CHECK_STRING (item1, 1);
-	  add_menu_item (lpmm, hmenu, item1, Qt, Fcdr (item));
+	  add_menu_item (lpmm, hmenu, item1, 1, Fcdr (item), Qnil);
 	}
     }
 
@@ -770,7 +844,7 @@ get_single_keymap_event (keymap, lpnum)
 {
   Lisp_Object pending_maps;
   Lisp_Object tail, item, item1, item_string, table;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   
   pending_maps = Qnil;
   
@@ -828,7 +902,7 @@ get_single_keymap_event (keymap, lpnum)
 		    {
 		      Lisp_Object submap;
 		      
-		      GCPRO4 (keymap, pending_maps, item, item_string);
+		      GCPRO5 (keymap, pending_maps, item, item_string, descrip);
 		      
 		      submap = get_keymap_1 (def, 0, 1);
 		      
@@ -887,7 +961,7 @@ get_single_keymap_event (keymap, lpnum)
 			 aside from that, must protect whatever might be
 			 a string.  Since there's no GCPRO5, we refetch
 			 item_string instead of protecting it.  */
-		      GCPRO4 (keymap, pending_maps, def, descrip);
+		      GCPRO3 (keymap, pending_maps, def);
 		      descrip = def = Qnil;
 
 		      def = menu_item_equiv_key (item_string, item1, &descrip);
@@ -904,7 +978,7 @@ get_single_keymap_event (keymap, lpnum)
 			{
 			  Lisp_Object submap;
 			  
-			  GCPRO4 (keymap, pending_maps, descrip, item_string);
+			  GCPRO5 (keymap, pending_maps, descrip, item_string, descrip);
 			  
 			  submap = get_keymap_1 (def, 0, 1);
 			    
@@ -1072,7 +1146,7 @@ get_menu_event (menu, lpnum)
     {
       keymap = get_keymap (menu);
 	
-      event = get_keymap_event (menu, 1, lpnum);
+      event = get_keymap_event (&keymap, 1, lpnum);
     }
   else if (!NILP (tem))
     {
@@ -1162,8 +1236,8 @@ cached information about equivalent key sequences.")
 	  unsigned long time;
 	  
 	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, 1, &bar_window, 
-				    &part, &x, &y, &time);
+	    (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, 
+				    &time);
 	  if (new_f != 0)
 	    XSETFRAME (window, new_f);
 	  else
@@ -1368,15 +1442,41 @@ get_frame_menubar_event (f, num)
   
   for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
-      Lisp_Object event;
-	
-      event = get_menu_event (XVECTOR (items)->contents[i + 2], &num);
+      Lisp_Object event, binding;
+      binding = XVECTOR (items)->contents[i + 2];
 
-      if (num <= 0)
+      /* Check to see if this might be a menubar button.  It might be
+         if it is not a keymap, it is a cons cell, its car is not a
+         keymap, and its cdr is nil.  */
+      if (NILP (Fkeymapp (binding))
+	  && CONSP (binding)
+	  && NILP (Fkeymapp (XCONS (binding)->car))
+	  && NILP (XCONS (binding)->cdr))
 	{
-	  UNGCPRO;
-	  UNBLOCK_INPUT;
-	  return (Fcons (XVECTOR (items)->contents[i], event));
+	  /* The fact that we have to check that this is a string here
+             is the reason we don't do all this rigamarole in
+             get_menu_event.  */
+	  if (XTYPE (XVECTOR (items)->contents[i + 1]) == Lisp_String)
+	    {
+	      /* This was a menubar button.  */
+	      if (--num <= 0)
+		{
+		  UNGCPRO;
+		  UNBLOCK_INPUT;
+		  return (Fcons (XVECTOR (items)->contents[i], Qnil));
+		}
+	    }
+	}
+      else
+	{
+	  event = get_menu_event (binding, &num);
+
+	  if (num <= 0)
+	    {
+	      UNGCPRO;
+	      UNBLOCK_INPUT;
+	      return (Fcons (XVECTOR (items)->contents[i], event));
+	    }
 	}
     }
   
@@ -1386,20 +1486,55 @@ get_frame_menubar_event (f, num)
   return (Qnil);
 }
 
+/* Activate the menu bar of frame F.
+   This is called from keyboard.c when it gets the
+   menu_bar_activate_event out of the Emacs event queue.
+
+   To activate the menu bar, we signal to the input thread that it can
+   return from the WM_INITMENU message, allowing the normal Windows
+   processing of the menus.
+
+   But first we recompute the menu bar contents (the whole tree).
+
+   This way we can safely execute Lisp code.  */
+   
+x_activate_menubar (f)
+     FRAME_PTR f;
+{
+  set_frame_menubar (f, 0, 1);
+
+  /* Lock out further menubar changes while active.  */
+  f->output_data.w32->menubar_active = 1;
+
+  /* Signal input thread to return from WM_INITMENU.  */
+  complete_deferred_msg (FRAME_W32_WINDOW (f), WM_INITMENU, 0);
+}
+
 void 
-set_frame_menubar (f, first_time)
+set_frame_menubar (f, first_time, deep_p)
      FRAME_PTR f;
      int first_time;
+     int deep_p;
 {
   Lisp_Object tail, items;
   HMENU hmenu;
   int i;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   menu_map mm;
   int count = specpdl_ptr - specpdl;
 
   struct buffer *prev = current_buffer;
   Lisp_Object buffer;
+
+  /* We must not change the menubar when actually in use.  */
+  if (f->output_data.w32->menubar_active)
+    return;
+
+#if 0  /* I don't see why this should be needed */
+  /* Ensure menubar is up to date when about to be used.  */
+  if (f->output_data.w32->pending_menu_activation && !deep_p)
+    deep_p = 1;
+#endif
 
   buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
   specbind (Qinhibit_quit, Qt);
@@ -1432,16 +1567,25 @@ set_frame_menubar (f, first_time)
   if (NILP (items))
     items = FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
   
+  hmenu = f->output_data.w32->menubar_widget;
+  if (!hmenu)
+    {
   hmenu = CreateMenu ();
-  
   if (!hmenu) goto error;
+    }
+  else
+    {
+      /* Delete current contents.  */
+      while (DeleteMenu (hmenu, 0, MF_BYPOSITION))
+	;
+    }
   
   discard_menu_items (&mm);
   UNBLOCK_INPUT;
 
   for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
-      Lisp_Object string;
+      Lisp_Object string, binding;
       int keymaps;
       CHAR *error;
       HMENU new_hmenu;
@@ -1449,27 +1593,58 @@ set_frame_menubar (f, first_time)
       string = XVECTOR (items)->contents[i + 1];
       if (NILP (string))
 	break;
+
+      binding = XVECTOR (items)->contents[i + 2];
+
+      if (NILP (Fkeymapp (binding))
+	  && CONSP (binding)
+	  && NILP (Fkeymapp (XCONS (binding)->car))
+	  && NILP (XCONS (binding)->cdr))
+	{
+	  /* This is a menubar button.  */
+	  Lisp_Object descrip, def;
+	  Lisp_Object enabled, item;
+	  item = Fcons (string, Fcar (binding));
+	  descrip = def = Qnil;
+	  UNGCPRO;
+	  GCPRO4 (items, item, def, string);
+
+	  def = menu_item_equiv_key (string, item, &descrip);
+	  enabled = menu_item_enabled_p (def, 0);
+
+	  UNGCPRO;
+	  GCPRO1 (items);
+
+	  add_menu_item (&mm, hmenu, string, enabled, def, Qnil);
+	}
+      else
+	{
+	  /* Input must not be blocked here because we call general
+	     Lisp code and internal_condition_case_1.  */
+	  new_hmenu = create_menu_items (&mm, binding, 0);
       
-      /* Input must not be blocked here
-	 because we call general Lisp code and internal_condition_case_1.  */
-      new_hmenu = create_menu_items (&mm,
-				     XVECTOR (items)->contents[i + 2],
-				     0);
+	  if (!new_hmenu)
+	    continue;
       
-      if (!new_hmenu)
-	continue;
-      
-      BLOCK_INPUT;
-      AppendMenu (hmenu, MF_POPUP, (UINT)new_hmenu,
-		  (char *) XSTRING (string)->data);
-      UNBLOCK_INPUT;
+	  BLOCK_INPUT;
+	  AppendMenu (hmenu, MF_POPUP, (UINT)new_hmenu,
+		      (char *) XSTRING (string)->data);
+	  UNBLOCK_INPUT;
+	}
     }
   
   BLOCK_INPUT;
   {
-    HMENU old = GetMenu (FRAME_W32_WINDOW (f));
+    HMENU old = f->output_data.w32->menubar_widget;
     SetMenu (FRAME_W32_WINDOW (f), hmenu);
-    DestroyMenu (old);
+    f->output_data.w32->menubar_widget = hmenu;
+    /* Causes flicker when menu bar is updated 
+    DrawMenuBar (FRAME_W32_WINDOW (f)); */
+
+    /* Force the window size to be recomputed so that the frame's text
+       area remains the same, if menubar has just been created.  */
+    if (old == NULL)
+      x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
   }
   
  error:
@@ -1488,6 +1663,7 @@ free_frame_menubar (f)
   {
     HMENU old = GetMenu (FRAME_W32_WINDOW (f));
     SetMenu (FRAME_W32_WINDOW (f), NULL);
+    f->output_data.w32->menubar_widget = NULL;
     DestroyMenu (old);
   }
     
@@ -1501,7 +1677,7 @@ void
 initialize_frame_menubar (f)
      FRAME_PTR f;
 {
-  set_frame_menubar (f, 1);
+  set_frame_menubar (f, 1, 1);
 }
 
 #if 0
@@ -1590,7 +1766,7 @@ else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
     
     if (!hmenu || strcmp (pane_string, ""))
       {
-	HMENU new_hmenu = CreateMenu ();
+	HMENU new_hmenu = CreatePopupMenu ();
 	
 	if (!new_hmenu) 
 	  {
@@ -1620,10 +1796,9 @@ else
     enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
     //	  descrip = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 
-    if (((char *) XSTRING (item_name)->data)[0] == 0
-	|| strcmp ((char *) XSTRING (item_name)->data, "--") == 0)
+    if (name_is_separator (item_name))
       fuFlags = MF_SEPARATOR;
-    else if (NILP (enable) || !XUINT(enable))
+    else if (NILP (enable) || !XUINT (enable))
       fuFlags = MF_STRING | MF_GRAYED;
     else
       fuFlags = MF_STRING;
@@ -1701,14 +1876,16 @@ w32menu_show (f, x, y, menu, hmenu, error)
       return Qnil;
     }
 #endif
-  
+
   /* Display the menu.  */
-  menu_selection = TrackPopupMenu (hmenu,
-				   0x10,
-				   pos.x, pos.y,
-				   0,
-				   FRAME_W32_WINDOW (f),
-				   NULL);
+  menu_selection = SendMessage (FRAME_W32_WINDOW (f), 
+				WM_EMACS_TRACKPOPUPMENU,
+				(WPARAM)hmenu, (LPARAM)&pos);
+
+  /* Clean up extraneous mouse events which might have been generated
+     during the call. */
+  discard_mouse_events ();
+
   if (menu_selection == -1)
     {
       *error = "Invalid menu specification";
@@ -1721,7 +1898,7 @@ w32menu_show (f, x, y, menu, hmenu, error)
 #if 1
   if (menu_selection > 0)
     {
-      return get_menu_event (menu, menu_selection);
+      return get_menu_event (menu, &menu_selection);
     }
 #else
   if (menu_selection > 0 && menu_selection <= lpmm->menu_items_used)
@@ -1729,7 +1906,7 @@ w32menu_show (f, x, y, menu, hmenu, error)
       return (XVECTOR (lpmm->menu_items)->contents[menu_selection - 1]);
     }
 #endif
-  
+
   return Qnil;
 }
 
