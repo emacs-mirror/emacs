@@ -57,9 +57,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_UNION_TYPE
 
-/* crt0.c should use the vax-bsd style of entry, with no dummy args.  */
+/* crt0.c should use the vax-bsd style of entry.
+   Ralph Sobek <Ralph.Sobek@cerfacs.fr> says must ignore one arg.  */
 
-#define CRT0_DUMMIES
+#define CRT0_DUMMIES ignore,
 
 /* crt0.c should define a symbol `start' and do .globl with a dot.  */
 
@@ -95,9 +96,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Define neither one if an assembler-language alloca
    in the file alloca.s should be used.  */
 
-/*#define C_ALLOCA*/
+/* #define C_ALLOCA */
 #define HAVE_ALLOCA
 
+/* Must use the system's termcap.  It does special things.  */
+  
+#define LIBS_TERMCAP -ltermcap
+  
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
