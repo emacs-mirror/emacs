@@ -525,7 +525,24 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return newdef;
 }
 
+/* This name should be removed once it is eliminated from elsewhere.  */
+
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
+  "Set SYMBOL's function definition to NEWVAL, and return NEWVAL.\n\
+Associates the function with the current load file, if any.")
+  (sym, newdef)
+     register Lisp_Object sym, newdef;
+{
+  CHECK_SYMBOL (sym, 0);
+  if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (sym)->function, Qunbound))
+    Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
+			     Vautoload_queue);
+  XSYMBOL (sym)->function = newdef;
+  LOADHIST_ATTACH (sym);
+  return newdef;
+}
+
+DEFUN ("define-function", Fdefine_function, Sdefine_function, 2, 2, 0,
   "Set SYMBOL's function definition to NEWVAL, and return NEWVAL.\n\
 Associates the function with the current load file, if any.")
   (sym, newdef)
@@ -2154,6 +2171,7 @@ syms_of_data ()
   defsubr (&Sfboundp);
   defsubr (&Sfset);
   defsubr (&Sdefalias);
+  defsubr (&Sdefine_function);
   defsubr (&Ssetplist);
   defsubr (&Ssymbol_value);
   defsubr (&Sset);
