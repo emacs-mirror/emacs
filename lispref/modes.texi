@@ -274,7 +274,7 @@ recommended way to define one is to use @code{define-derived-mode},
 but this is not required.  Such a mode should use
 @code{delay-mode-hooks} around its entire body, including the call to
 the parent mode command and the final call to @code{run-mode-hooks}.
-(Using @code{define-derived-mode} does this automatically.) 
+(Using @code{define-derived-mode} does this automatically.)
 
 @item
 If something special should be done if the user switches a buffer from
@@ -1101,7 +1101,7 @@ See the command \\[hungry-electric-delete]."
 @end smallexample
 
 @node Mode Line Format
-@section Mode Line Format
+@section Mode-Line Format
 @cindex mode line
 
   Each Emacs window (aside from minibuffer windows) typically has a mode
@@ -1166,37 +1166,39 @@ actually appears.
 
 @node Mode Line Data
 @subsection The Data Structure of the Mode Line
-@cindex mode line construct
+@cindex mode-line construct
 
-  The mode line contents are controlled by a data structure of lists,
+  The mode-line contents are controlled by a data structure of lists,
 strings, symbols, and numbers kept in buffer-local variables.  The data
-structure is called a @dfn{mode line construct}, and it is built in
-recursive fashion out of simpler mode line constructs.  The same data
+structure is called a @dfn{mode-line construct}, and it is built in
+recursive fashion out of simpler mode-line constructs.  The same data
 structure is used for constructing frame titles (@pxref{Frame Titles})
 and header lines (@pxref{Header Lines}).
 
 @defvar mode-line-format
-The value of this variable is a mode line construct with overall
-responsibility for the mode line format.  The value of this variable
-controls which other variables are used to form the mode line text, and
+The value of this variable is a mode-line construct with overall
+responsibility for the mode-line format.  The value of this variable
+controls which other variables are used to form the mode-line text, and
 where they appear.
 
 If you set this variable to @code{nil} in a buffer, that buffer does not
 have a mode line.  (This feature was added in Emacs 21.)
 @end defvar
 
-  A mode line construct may be as simple as a fixed string of text, but
+  A mode-line construct may be as simple as a fixed string of text, but
 it usually specifies how to use other variables to construct the text.
-Many of these variables are themselves defined to have mode line
+Many of these variables are themselves defined to have mode-line
 constructs as their values.
 
   The default value of @code{mode-line-format} incorporates the values
-of variables such as @code{mode-name} and @code{minor-mode-alist}.
-Because of this, very few modes need to alter @code{mode-line-format}
-itself.  For most purposes, it is sufficient to alter some of the
-variables that @code{mode-line-format} refers to.
+of variables such as @code{mode-line-position} and
+@code{mode-line-modes} (which in turn incorporates the values of the
+variables @code{mode-name} and @code{minor-mode-alist}).  Because of
+this, very few modes need to alter @code{mode-line-format} itself.  For
+most purposes, it is sufficient to alter some of the variables that
+@code{mode-line-format} either directly or indirectly refers to.
 
-  A mode line construct may be a list, a symbol, or a string.  If the
+  A mode-line construct may be a list, a symbol, or a string.  If the
 value is a list, each element may be a list, a symbol, or a string.
 
   The mode line can display various faces, if the strings that control
@@ -1207,14 +1209,14 @@ mode line (@pxref{Standard Faces}).
 @table @code
 @cindex percent symbol in mode line
 @item @var{string}
-A string as a mode line construct is displayed verbatim in the mode line
+A string as a mode-line construct is displayed verbatim in the mode line
 except for @dfn{@code{%}-constructs}.  Decimal digits after the @samp{%}
 specify the field width for space filling on the right (i.e., the data
 is left justified).  @xref{%-Constructs}.
 
 @item @var{symbol}
-A symbol as a mode line construct stands for its value.  The value of
-@var{symbol} is used as a mode line construct, in place of @var{symbol}.
+A symbol as a mode-line construct stands for its value.  The value of
+@var{symbol} is used as a mode-line construct, in place of @var{symbol}.
 However, the symbols @code{t} and @code{nil} are ignored, as is any
 symbol whose value is void.
 
@@ -1224,26 +1226,34 @@ displayed verbatim: the @code{%}-constructs are not recognized.
 @item (@var{string} @var{rest}@dots{}) @r{or} (@var{list} @var{rest}@dots{})
 A list whose first element is a string or list means to process all the
 elements recursively and concatenate the results.  This is the most
-common form of mode line construct.
+common form of mode-line construct.
 
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
 @var{form}, and use the result as a string to display.
 (This feature is new as of Emacs 21.)
 
+@item (:propertize @var{elt} @var{props}@dots{})
+A list whose first element is the symbol @code{:propertize} says to
+process the mode-line construct @var{elt} recursively and add the text
+properties specified by @var{props} to the result.  The argument
+@var{props} should consist of zero or more pairs @var{text-property}
+@var{value}.  (This feature is new as of Emacs 21.4.)
+@c FIXME: This might be Emacs 21.5.
+
 @item (@var{symbol} @var{then} @var{else})
 A list whose first element is a symbol that is not a keyword specifies a
 conditional.  Its meaning depends on the value of @var{symbol}.  If the
 value is non-@code{nil}, the second element, @var{then}, is processed
-recursively as a mode line element.  But if the value of @var{symbol} is
+recursively as a mode-line element.  But if the value of @var{symbol} is
 @code{nil}, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode line element displays nothing if
+You may omit @var{else}; then the mode-line element displays nothing if
 the value of @var{symbol} is @code{nil}.
 
 @item (@var{width} @var{rest}@dots{})
 A list whose first element is an integer specifies truncation or
 padding of the results of @var{rest}.  The remaining elements
-@var{rest} are processed recursively as mode line constructs and
+@var{rest} are processed recursively as mode-line constructs and
 concatenated together.  Then the result is space filled (if
 @var{width} is positive) or truncated (to @minus{}@var{width} columns,
 if @var{width} is negative) on the right.
@@ -1275,7 +1285,7 @@ directory.
 @end group
 @group
    ;; @r{Note that this is evaluated while making the list.}
-   ;; @r{It makes a mode line construct which is just a string.}
+   ;; @r{It makes a mode-line construct which is just a string.}
    (getenv "HOST")
 @end group
    ":"
@@ -1332,8 +1342,8 @@ Changing this variable does not force an update of the mode line.
 
 @defvar mode-line-frame-identification
 This variable identifies the current frame.  The default value is
-@code{" "} if you are using a window system which can show multiple
-frames, or @code{"-%F "} on an ordinary terminal which shows only one
+@code{"  "} if you are using a window system which can show multiple
+frames, or @code{"-%F  "} on an ordinary terminal which shows only one
 frame at a time.
 @end defvar
 
@@ -1343,22 +1353,72 @@ default value is @code{("%12b")}, which displays the buffer name, padded
 with spaces to at least 12 columns.
 @end defvar
 
-@defvar global-mode-string
-This variable holds a mode line spec that appears in the mode line by
-default, just after the buffer name.  The command @code{display-time}
-sets @code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time and
-load information.
+@defvar mode-line-position
+This variable indicates the position in the buffer.  Here is a
+simplified version of its default value.  The actual default value
+also specifies addition of the @code{help-echo} text property.
 
-The @samp{%M} construct substitutes the value of
-@code{global-mode-string}, but that is obsolete, since the variable is
-included in the mode line from @code{mode-line-format}.
+@example
+@group
+((-3 . "%p")
+ (size-indication-mode (8 " of %I"))
+@end group
+@group
+ (line-number-mode
+  ((column-number-mode
+    (10 " (%l,%c)")
+    (6 " L%l")))
+  ((column-number-mode
+    (5 " C%c")))))
+@end group
+@end example
+
+This means that @code{mode-line-position} displays at least the buffer
+percentage and possibly the buffer size, the line number and the column
+number.
 @end defvar
+
+@defvar vc-mode
+The variable @code{vc-mode}, buffer-local in each buffer, records
+whether the buffer's visited file is maintained with version control,
+and, if so, which kind.  Its value is a string that appears in the mode
+line, or @code{nil} for no version control.
+@end defvar
+
+@defvar mode-line-modes
+This variable displays the buffer's major and minor modes.  Here is a
+simplified version of its default value.  The real default value also
+specifies addition of text properties.
+
+@example
+@group
+("%[(" mode-name
+ mode-line-process minor-mode-alist
+ "%n" ")%]--")
+@end group
+@end example
+
+So @code{mode-line-modes} normally also displays the recursive editing
+level, information on the process status and whether narrowing is in
+effect.
+@end defvar
+
+  The following three variables are used in @code{mode-line-modes}:
 
 @defvar mode-name
 This buffer-local variable holds the ``pretty'' name of the current
 buffer's major mode.  Each major mode should set this variable so that the
 mode name will appear in the mode line.
+@end defvar
+
+@defvar mode-line-process
+This buffer-local variable contains the mode-line information on process
+status in modes used for communicating with subprocesses.  It is
+displayed immediately following the major mode name, with no intervening
+space.  For example, its value in the @samp{*shell*} buffer is
+@code{(":%s")}, which allows the shell to display its status along
+with the major mode as: @samp{(Shell:run)}.  Normally this variable
+is @code{nil}.
 @end defvar
 
 @defvar minor-mode-alist
@@ -1370,51 +1430,28 @@ the @code{minor-mode-alist} should be a two-element list:
 (@var{minor-mode-variable} @var{mode-line-string})
 @end example
 
-More generally, @var{mode-line-string} can be any mode line spec.  It
-appears in the mode line when the value of @var{minor-mode-variable} is
-non-@code{nil}, and not otherwise.  These strings should begin with
+More generally, @var{mode-line-string} can be any mode-line spec.  It
+appears in the mode line when the value of @var{minor-mode-variable}
+is non-@code{nil}, and not otherwise.  These strings should begin with
 spaces so that they don't run together.  Conventionally, the
-@var{minor-mode-variable} for a specific mode is set to a non-@code{nil}
-value when that minor mode is activated.
-
-The default value of @code{minor-mode-alist} is:
-
-@example
-@group
-minor-mode-alist
-@result{} ((vc-mode vc-mode)
-    (abbrev-mode " Abbrev")
-    (overwrite-mode overwrite-mode)
-    (auto-fill-function " Fill")
-    (defining-kbd-macro " Def")
-    (isearch-mode isearch-mode))
-@end group
-@end example
+@var{minor-mode-variable} for a specific mode is set to a
+non-@code{nil} value when that minor mode is activated.
 
 @code{minor-mode-alist} itself is not buffer-local.  Each variable
 mentioned in the alist should be buffer-local if its minor mode can be
 enabled separately in each buffer.
 @end defvar
 
-@defvar mode-line-process
-This buffer-local variable contains the mode line information on process
-status in modes used for communicating with subprocesses.  It is
-displayed immediately following the major mode name, with no intervening
-space.  For example, its value in the @samp{*shell*} buffer is
-@code{(":%s")}, which allows the shell to display its status along
-with the major mode as: @samp{(Shell:run)}.  Normally this variable
-is @code{nil}.
-@end defvar
+@defvar global-mode-string
+This variable holds a mode-line spec that appears in the mode line by
+default, just after the buffer name.  The command @code{display-time}
+sets @code{global-mode-string} to refer to the variable
+@code{display-time-string}, which holds a string containing the time and
+load information.
 
-  Some variables are used by @code{minor-mode-alist} to display
-a string for various minor modes when enabled.  This is a typical
-example:
-
-@defvar vc-mode
-The variable @code{vc-mode}, buffer-local in each buffer, records
-whether the buffer's visited file is maintained with version control,
-and, if so, which kind.  Its value is a string that appears in the mode
-line, or @code{nil} for no version control.
+The @samp{%M} construct substitutes the value of
+@code{global-mode-string}, but that is obsolete, since the variable is
+included in the mode line from @code{mode-line-format}.
 @end defvar
 
   The variable @code{default-mode-line-format} is where
@@ -1425,7 +1462,9 @@ This variable holds the default @code{mode-line-format} for buffers
 that do not override it.  This is the same as @code{(default-value
 'mode-line-format)}.
 
-The default value of @code{default-mode-line-format} is this list:
+Here is a simplified version of the default value of
+@code{default-mode-line-format}.  The real default value also
+specifies addition of text properties.
 
 @example
 @group
@@ -1436,23 +1475,13 @@ The default value of @code{default-mode-line-format} is this list:
  mode-line-buffer-identification
 @end group
  "   "
- global-mode-string
+ mode-line-position
+ (vc-mode vc-mode)
+ "   "
 @group
- "   %[("
- ;; @r{@code{mode-line-mode-name} is a function}
- ;; @r{that copies the mode name and adds text}
- ;; @r{properties to make it mouse-sensitive.}
- (:eval (mode-line-mode-name))
- mode-line-process
- minor-mode-alist
- "%n"
- ")%]--"
-@end group
-@group
+ mode-line-modes
  (which-func-mode ("" which-func-format "--"))
- (line-number-mode "L%l--")
- (column-number-mode "C%c--")
- (-3 . "%p")
+ (global-mode-string ("--" global-mode-string))
  "-%-")
 @end group
 @end example
@@ -1564,29 +1593,33 @@ The value of @code{global-mode-string}.  Currently, only
 
 @node Properties in Mode
 @subsection Properties in the Mode Line
+@cindex text properties in the mode line
 
   Starting in Emacs 21, certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associate help strings with the text, and
 @code{local-map} can make the text mouse-sensitive.
 
-  There are three ways to specify text properties for text in the mode
+  There are four ways to specify text properties for text in the mode
 line:
 
 @enumerate
 @item
-Put a string with the @code{local-map} property directly into the
-mode-line data structure.
+Put a string with a text property directly into the mode-line data
+structure.
 
 @item
-Put a @code{local-map} property on a mode-line %-construct
-such as @samp{%12b}; then the expansion of the %-construct
-will have that same text property.
+Put a text property on a mode-line %-construct such as @samp{%12b}; then
+the expansion of the %-construct will have that same text property.
+
+@item
+Use a @code{(:propertize @var{elt} @var{props}@dots{})} construct to
+give @var{elt} a text property specified by @var{props}.
 
 @item
 Use a list containing @code{:eval @var{form}} in the mode-line data
-structure, and make @var{form} evaluate to a string that has a
-@code{local-map} property.
+structure, and make @var{form} evaluate to a string that has a text
+property.
 @end enumerate
 
   You use the @code{local-map} property to specify a keymap.  Like any
@@ -1601,7 +1634,7 @@ keymap can only take real effect for mouse clicks.
 
   Starting in Emacs 21, a window can have a @dfn{header line} at the
 top, just as it can have a mode line at the bottom.  The header line
-feature works just like the mode line feature, except that it's
+feature works just like the mode-line feature, except that it's
 controlled by different variables.
 
 @tindex header-line-format
@@ -1621,11 +1654,11 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
 @node Emulating Mode Line
-@subsection Emulating Mode Line Formatting
+@subsection Emulating Mode-Line Formatting
 
   You can use the function @code{format-mode-line} to compute
 the text that would appear in a mode line or header line
-based on certain mode line specification.
+based on certain mode-line specification.
 
 @defun format-mode-line &optional format window no-props
 This function formats a line of text according to @var{format} as if
@@ -2214,7 +2247,7 @@ fontification, you may use the special character property
 @code{font-lock-face} (@pxref{Special Properties}).  This property
 acts just like the explicit @code{face} property, but its activation
 is toggled when the user calls @kbd{M-x font-lock-mode}.  Using
-@code{font-lock-face} is especially conveninent for special modes
+@code{font-lock-face} is especially convenient for special modes
 which construct their text programmatically, such as
 @code{list-buffers} and @code{occur}.
 
