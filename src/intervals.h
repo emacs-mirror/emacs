@@ -113,12 +113,10 @@ Boston, MA 02111-1307, USA.  */
    The choice of macros is dependent on the type needed.  Don't add
    casts to get around this, it will break some development work in
    progress.  */
-#define SET_INTERVAL_PARENT(i,p) (eassert (!BUFFERP ((Lisp_Object)(p)) && !STRINGP ((Lisp_Object)(p))),(i)->up_obj = 0, (i)->up.interval = (p))
-#define SET_INTERVAL_OBJECT(i,o) (eassert ((o) != 0), eassert (BUFFERP (o) || STRINGP (o)),(i)->up_obj = 1, (i)->up.obj = (o))
+#define SET_INTERVAL_PARENT(i,p) (eassert (!INT_LISPLIKE (p)),(i)->up_obj = 0, (i)->up.interval = (p))
+#define SET_INTERVAL_OBJECT(i,o) (eassert (!INTEGERP (o)), eassert (BUFFERP (o) || STRINGP (o)),(i)->up_obj = 1, (i)->up.obj = (o))
 #define INTERVAL_PARENT(i) (eassert((i) != 0 && (i)->up_obj == 0),(i)->up.interval)
-/* Because XSETFASTINT has to be used, this can't simply be
-   value-returning.  */
-#define GET_INTERVAL_OBJECT(d,s) (eassert((s)->up_obj == 1),XSETFASTINT ((d), (s)->up.obj))
+#define GET_INTERVAL_OBJECT(d,s) (eassert((s)->up_obj == 1), (d) = (s)->up.obj)
 
 /* Make the parent of D be whatever the parent of S is, regardless of
    type.  This is used when balancing an interval tree.  */

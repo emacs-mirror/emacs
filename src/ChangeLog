@@ -1,5 +1,12 @@
 2000-04-05  Ken Raeburn  <raeburn@gnu.org>
 
+	* intervals.h (SET_INTERVAL_PARENT): Use INT_LISPLIKE to test for
+	a pointer that looks like a lisp object.
+	(SET_INTERVAL_OBJECT): Don't explicitly compare the object with
+	zero, instead see whether it's an integer object, since they can't
+	have intervals.
+	(GET_INTERVAL_OBJECT): Simply assign to the destination.
+
 	* dispnew.c (allocate_matrices_for_frame_redisplay,
 	direct_output_forward_char): Use X(U)INT and make_number as needed
 	to convert between (unsigned) int values and lisp integers.
