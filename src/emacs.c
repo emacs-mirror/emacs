@@ -646,6 +646,22 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   init_signals ();
 #endif
 
+  /* Don't catch SIGHUP if dumping.  */
+  if (1
+#ifndef CANNOT_DUMP
+      && initialized
+#endif
+      )
+    {
+      sigblockx (SIGHUP);
+      /* In --batch mode, don't catch SIGHUP if already ignored.
+	 That makes nohup work.  */
+      if (! noninteractive
+	  || signal (SIGHUP, SIG_IGN) != SIG_IGN)
+	signal (SIGHUP, fatal_error_signal);
+      sigunblockx (SIGHUP);
+    }
+
   if (
 #ifndef CANNOT_DUMP
       ! noninteractive || initialized
@@ -654,10 +670,9 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #endif
       )
     {
-      /* Don't catch these signals in batch mode if not initialized.
+      /* Don't catch these signals in batch mode if dumping.
 	 On some machines, this sets static data that would make
 	 signal fail to work right when the dumped Emacs is run.  */
-      signal (SIGHUP, fatal_error_signal);
       signal (SIGQUIT, fatal_error_signal);
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
