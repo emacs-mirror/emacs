@@ -400,6 +400,45 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
       marker = m->chain;
     }
 }
+
+/* Adjust all markers for a byte combining of NBYTES at char position
+   FROM and byte position FROM_BYTE.  */
+
+static void
+adjust_markers_for_combining (from, from_byte, nbytes)
+     register int from, from_byte, nbytes;
+{
+  Lisp_Object marker;
+  register struct Lisp_Marker *m;
+  register int bytepos;
+  register int to_byte = from_byte + nbytes;
+
+  marker = BUF_MARKERS (current_buffer);
+
+  while (!NILP (marker))
+    {
+      m = XMARKER (marker);
+      bytepos = m->bytepos;
+
+      if (bytepos >= to_byte)
+	{
+	  record_marker_adjustment (marker,  - nbytes);
+	  m->charpos -= nbytes;
+	}
+      else if (bytepos > from_byte)
+	{
+	  record_marker_adjustment (marker,  from - m->charpos);
+	  m->charpos = from;
+	  m->bytepos = to_byte;
+	}
+      else if (bytepos == from_byte)
+	{
+	  m->bytepos = to_byte;
+	}
+
+      marker = m->chain;
+    }
+}
 
 /* Adjust all markers for calling record_delete for combining bytes.
    whose range in bytes is FROM_BYTE to TO_BYTE.
@@ -594,14 +633,6 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 	  record_marker_adjustment (marker, from - m->charpos);
 	  m->charpos = from;
 	  m->bytepos = from_byte;
-	}
-      else if (m->bytepos == from_byte)
-	{
-	  if (combined_before_bytes)
-	    {
-	      DEC_BOTH (m->charpos, m->bytepos);
-	      INC_BOTH (m->charpos, m->bytepos);
-	    }
 	}
 
       marker = m->chain;
@@ -1013,7 +1044,7 @@ combine_bytes (pos, pos_byte, nbytes)
      int pos, pos_byte, nbytes;
 {
   /* Adjust all markers.  */
-  adjust_markers_for_delete (pos, pos_byte, pos + nbytes, pos_byte);
+  adjust_markers_for_combining (pos, pos_byte, nbytes);
 
   adjust_overlays_for_delete (pos, nbytes);
 
@@ -1576,7 +1607,7 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 					from_byte + combined_after_bytes);
 
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (from, deletion);
+	record_delete (from + len, deletion);
     }
 
   if (combined_before_bytes)
@@ -1705,6 +1736,7 @@ replace_range (from, to, new, prepare, inherit, markers)
   int adjusted_inschars;
   INTERVAL intervals;
   int outgoing_insbytes = insbytes;
+  Lisp_Object deletion;
 
   CHECK_MARKERS ();
 
@@ -1756,23 +1788,17 @@ replace_range (from, to, new, prepare, inherit, markers)
   if (to < GPT)
     gap_left (to, to_byte, 0);
 
-  {
-    Lisp_Object deletion;
-    deletion = Qnil;
+  deletion = Qnil;
 
-    if (! EQ (current_buffer->undo_list, Qt))
-      deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+  if (! EQ (current_buffer->undo_list, Qt))
+    deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
-    if (markers)
-      /* Relocate all markers pointing into the new, larger gap
-	 to point at the end of the text before the gap.
-	 Do this before recording the deletion,
-	 so that undo handles this after reinserting the text.  */
-      adjust_markers_for_delete (from, from_byte, to, to_byte);
-
-    if (! EQ (current_buffer->undo_list, Qt))
-      record_delete (from, deletion);
-  }
+  if (markers)
+    /* Relocate all markers pointing into the new, larger gap
+       to point at the end of the text before the gap.
+       Do this before recording the deletion,
+       so that undo handles this after reinserting the text.  */
+    adjust_markers_for_delete (from, from_byte, to, to_byte);
 
   GAP_SIZE += nbytes_del;
   ZV -= nchars_del;
@@ -1832,7 +1858,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 					from + combined_after_bytes,
 					from_byte + combined_after_bytes);
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (from, deletion);
+	record_delete (from + inschars, deletion);
     }
 
   if (combined_before_bytes)
@@ -1849,8 +1875,13 @@ replace_range (from, to, new, prepare, inherit, markers)
 	record_delete (from - 1, deletion);
     }
 
-  record_insert (from - !!combined_before_bytes,
-		 inschars - combined_before_bytes + !!combined_before_bytes);
+  if (! EQ (current_buffer->undo_list, Qt))
+    {
+      record_delete (from - !!combined_before_bytes, deletion);
+      record_insert (from - !!combined_before_bytes,
+		     (inschars - combined_before_bytes
+		      + !!combined_before_bytes));
+    }
 
   GAP_SIZE -= outgoing_insbytes;
   GPT += inschars;
