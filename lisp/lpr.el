@@ -129,7 +129,7 @@ and print the result."
 (defcustom print-region-function nil
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'lpr)
 
 (defcustom lpr-page-header-program "pr"
