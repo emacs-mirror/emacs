@@ -1,6 +1,6 @@
 ;;; sregex.el --- symbolic regular expressions
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
 ;; Maintainer: Bob Glickstein <bobg+sregex@zanshin.com>
@@ -48,7 +48,7 @@
 ;; to overcome operator precedence; that also happens automatically.
 ;; For example:
 
-;;   (sregexq (opt (or "Bob" "Robert")))  =>  "\\(Bob\\|Robert\\)?"
+;;   (sregexq (opt (or "Bob" "Robert")))  =>  "\\(?:Bob\\|Robert\\)?"
 
 ;; It *is* possible to group parts of the expression in order to refer
 ;; to them with numbered backreferences:
@@ -56,14 +56,6 @@
 ;;   (sregexq (group (or "Go" "Run"))
 ;;            ", Spot, "
 ;;            (backref 1))             =>  "\\(Go\\|Run\\), Spot, \\1"
-
-;; If `sregexq' needs to introduce its own grouping parentheses, it
-;; will automatically renumber your backreferences:
-
-;;   (sregexq (opt "resent-")
-;;            (group (or "to" "cc" "bcc"))
-;;            ": "
-;;            (backref 1))  =>  "\\(resent-\\)?\\(to\\|cc\\|bcc\\): \\2"
 
 ;; `sregexq' is a macro.  Each time it is used, it constructs a simple
 ;; Lisp expression that then invokes a moderately complex engine to
@@ -99,47 +91,6 @@
 ;;        (digits '(1+ (char (?0 . ?9)))))
 ;;    (sregex 'bol dotstar ":" whitespace digits))  =>  "^.*:\\s-+[0-9]+"
 
-;; This package also provides sregex-specific versions of the Emacs
-;; functions `replace-match', `match-string',
-;; `match-string-no-properties', `match-beginning', `match-end', and
-;; `match-data'.  In each case, the sregex version's name begins with
-;; `sregex-' and takes one additional optional parameter, an sregex
-;; "info" object.  Each of these functions is concerned with numbered
-;; submatches.  Since sregex may renumber submatches, alternate
-;; versions of these functions are needed that know how to adjust the
-;; supplied number.
-
-;; The sregex info object for the most recently evaluated sregex can
-;; be obtained with `sregex-info'; so if you precompute your sregexes
-;; and you plan to use `replace-match' or one of the others with it,
-;; you need to record the info object for later use:
-
-;;   (let* ((regex (sregexq (opt "resent-")
-;;                          (group (or "to" "cc" "bcc"))
-;;                          ":"))
-;;          (regex-info (sregex-info)))
-;;     ...
-;;     (if (re-search-forward regex ...)
-;;         (let ((which (sregex-match-string 1 nil regex-info)))
-;;           ...)))
-
-;; In this example, `regex' is "\\(resent-\\)?\\(to\\|cc\\|bcc\\):",
-;; so the call to (sregex-match-string 1 ...) is automatically turned
-;; into a call to (match-string 2 ...).
-
-;; If the sregex info argument to `sregex-replace-match',
-;; `sregex-match-string', `sregex-match-string-no-properties',
-;; `sregex-match-beginning', `sregex-match-end', or
-;; `sregex-match-data' is omitted, the current value of (sregex-info)
-;; is used.
-
-;; You can do your own sregex submatch renumbering with
-;; `sregex-backref-num'.
-
-;; Finally, `sregex-save-match-data' is like `save-match-data' but
-;; also saves and restores the information maintained by
-;; `sregex-info'.
-
 ;; To use this package in a Lisp program, simply (require 'sregex).
 
 ;; Here are the clauses allowed in an `sregex' or `sregexq'
@@ -165,23 +116,21 @@
 
 ;; - (sequence CLAUSE ...)
 
-;;   Groups the given CLAUSEs; may or may not use "\\(" and "\\)".
-;;   Clauses groups by `sequence' do not count for purposes of
+;;   Groups the given CLAUSEs; may or may not use "\\(?:" and "\\)".
+;;   Clauses grouped by `sequence' do not count for purposes of
 ;;   numbering backreferences.  Use `sequence' in situations like
 ;;   this:
 
 ;;     (sregexq (or "dog" "cat"
 ;;                  (sequence (opt "sea ") "monkey")))
-;;                                  =>  "dog\\|cat\\|\\(sea \\)?monkey"
+;;                                  =>  "dog\\|cat\\|\\(?:sea \\)?monkey"
 
 ;;   where a single `or' alternate needs to contain multiple
 ;;   subclauses.
 
 ;; - (backref N)
 ;;   Matches the same string previously matched by the Nth "group" in
-;;   the same sregex.  N is a positive integer.  In the resulting
-;;   regex, N may be adjusted to account for automatically introduced
-;;   groups.
+;;   the same sregex.  N is a positive integer.
 
 ;; - (or CLAUSE ...)
 ;;   Matches any one of the CLAUSEs by separating them with "\\|".
@@ -276,158 +225,37 @@
 
 ;;; To do:
 
-;; Make (sregexq (or "a" (sequence "b" "c"))) return "a\\|bc" instead
-;; of "a\\|\\(bc\\)"
-
 ;; An earlier version of this package could optionally translate the
 ;; symbolic regex into other languages' syntaxes, e.g. Perl.  For
 ;; instance, with Perl syntax selected, (sregexq (or "ab" "cd")) would
 ;; yield "ab|cd" instead of "ab\\|cd".  It might be useful to restore
 ;; such a facility.
 
-;;; Bugs:
+;; - handle multibyte chars in sregex--char-aux
+;; - add support for character classes ([:blank:], ...)
+;; - add support for non-greedy operators *? and +?
+;; - bug: (sregexq (opt (opt ?a))) returns "a??" which is a non-greedy "a?"
 
-;; The (regex REGEX) form can confuse the code that distinguishes
-;; introduced groups from user-specified groups.  Try to avoid using
-;; grouping within a `regex' form.  Failing that, try to avoid using
-;; backrefs if you're using `regex'.
+;;; Bugs:
 
 ;;; Code:
 
-(defsubst sregex--value-unitp  (val) (nth 0 val))
-(defsubst sregex--value-groups (val) (nth 1 val))
-(defsubst sregex--value-tree   (val) (nth 2 val))
+(eval-when-compile (require 'cl))
 
-(defun sregex--make-value (unitp groups tree)
-  (list unitp groups tree))
-
-(defvar sregex--current-sregex nil
-  "Global state for `sregex-info'.")
-
-(defun sregex-info ()
-  "Return extra information about the latest call to `sregex'.
-This extra information is needed in order to adjust user-requested
-backreference numbers to numbers suitable for the generated regexp.
-See e.g. `sregex-match-string' and `sregex-backref-num'."
-  sregex--current-sregex)
-
-; (require 'advice)
-; (defadvice save-match-data (around sregex-save-match-data protect)
-;   (let ((sregex--saved-sregex sregex--current-sregex))
-;     (unwind-protect
-;         ad-do-it
-;       (setq sregex--current-sregex sregex--saved-sregex))))
-(defmacro sregex-save-match-data (&rest forms)
-  "Like `save-match-data', but also saves and restores `sregex-info' data."
-  `(let ((sregex--saved-sregex sregex--current-sregex))
-     (unwind-protect
-         (save-match-data ,@forms)
-       (setq sregex--current-sregex sregex--saved-sregex))))
-
-(defun sregex-replace-match (replacement
-                             &optional fixedcase literal string subexp sregex)
-  "Like `replace-match', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  The SUBEXP argument is adjusted
-to allow for \"introduced groups\".  If the extra argument is omitted
-or nil, it defaults to the current value of (sregex-info)."
-  (replace-match replacement fixedcase literal string
-                 (and subexp
-                      (sregex-backref-num subexp sregex))))
-
-(defun sregex-match-string (count &optional in-string sregex)
-  "Like `match-string', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  The COUNT argument is adjusted to
-allow for \"introduced groups\".  If the extra argument is omitted or
-nil, it defaults to the current value of (sregex-info)."
-  (match-string (and count
-                     (sregex-backref-num count sregex))
-                in-string))
-
+;; Compatibility code for when we didn't have shy-groups
+(defvar sregex--current-sregex nil)
+(defun sregex-info () nil)
+(defmacro sregex-save-match-data (&rest forms) (cons 'save-match-data forms))
+(defun sregex-replace-match (r &optional f l str subexp x)
+  (replace-match r f l str subexp))
+(defun sregex-match-string (c &optional i x) (match-string c i))
 (defun sregex-match-string-no-properties (count &optional in-string sregex)
-  "Like `match-string-no-properties', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  The COUNT argument is adjusted to
-allow for \"introduced groups\".  If the extra argument is omitted or
-nil, it defaults to the current value of (sregex-info)."
-  (match-string-no-properties
-   (and count
-        (sregex-backref-num count sregex))
-   in-string))
+  (match-string-no-properties count in-string))
+(defun sregex-match-beginning (count &optional sregex) (match-beginning count))
+(defun sregex-match-end (count &optional sregex) (match-end count))
+(defun sregex-match-data (&optional sregex) (match-data))
+(defun sregex-backref-num (n &optional sregex) n)
 
-(defun sregex-match-beginning (count &optional sregex)
-  "Like `match-beginning', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  The COUNT argument is adjusted to
-allow for \"introduced groups\".  If the extra argument is omitted or
-nil, it defaults to the current value of (sregex-info)."
-  (match-beginning (sregex-backref-num count sregex)))
-
-(defun sregex-match-end (count &optional sregex)
-  "Like `match-end', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  The COUNT argument is adjusted to
-allow for \"introduced groups\".  If the extra argument is omitted or
-nil, it defaults to the current value of (sregex-info)."
-  (match-end (sregex-backref-num count sregex)))
-
-(defun sregex-match-data (&optional sregex)
-  "Like `match-data', for a regexp made with `sregex'.
-This takes one additional optional argument, the `sregex' info, which
-can be obtained with `sregex-info'.  \"Introduced groups\" are removed
-from the result.  If the extra argument is omitted or nil, it defaults
-to the current value of (sregex-info)."
-  (let* ((data (match-data))
-         (groups (sregex--value-groups (or sregex
-                                           sregex--current-sregex)))
-         (result (list (car (cdr data))
-                       (car data))))
-    (setq data (cdr (cdr data)))
-    (while data
-      (if (car groups)
-          (setq result (append (list (car (cdr data))
-                                     (car data))
-                               result)))
-      (setq groups (cdr groups)
-            data (cdr (cdr data))))
-    (reverse result)))
-
-(defun sregex--render-tree (tree sregex)
-  (let ((key (car tree)))
-    (cond ((eq key 'str)
-           (cdr tree))
-          ((eq key 'or)
-           (mapconcat '(lambda (x)
-                         (sregex--render-tree x sregex))
-                      (cdr tree)
-                      "\\|"))
-          ((eq key 'sequence)
-           (apply 'concat
-                  (mapcar '(lambda (x)
-                             (sregex--render-tree x sregex))
-                          (cdr tree))))
-          ((eq key 'group)
-           (concat "\\("
-                   (sregex--render-tree (cdr tree) sregex)
-                   "\\)"))
-          ((eq key 'opt)
-           (concat (sregex--render-tree (cdr tree) sregex)
-                   "?"))
-          ((eq key '0+)
-           (concat (sregex--render-tree (cdr tree) sregex)
-                   "*"))
-          ((eq key '1+)
-           (concat (sregex--render-tree (cdr tree) sregex)
-                   "+"))
-          ((eq key 'backref)
-           (let ((num (sregex-backref-num (cdr tree) sregex)))
-             (if (> num 9)
-                 (error "sregex: backref number %d too high after adjustment"
-                        num)
-               (concat "\\" (int-to-string num)))))
-          (t (error "sregex internal error: unknown tree type %S"
-                    key)))))
 
 (defun sregex (&rest exps)
   "Symbolic regular expression interpreter.
@@ -443,10 +271,7 @@ subexpressions:
         (whitespace '(1+ (syntax ?-)))
         (digits '(1+ (char (?0 . ?9)))))
     (sregex 'bol dotstar \":\" whitespace digits))  =>  \"^.*:\\\\s-+[0-9]+\""
-  (progn
-    (setq sregex--current-sregex (sregex--sequence exps nil))
-    (sregex--render-tree (sregex--value-tree sregex--current-sregex)
-                         sregex--current-sregex)))
+  (sregex--sequence exps nil))
 
 (defmacro sregexq (&rest exps)
   "Symbolic regular expression interpreter.
@@ -546,22 +371,20 @@ Here are the clauses allowed in an `sregex' or `sregexq' expression:
 - (sequence CLAUSE ...)
 
   Groups the given CLAUSEs; may or may not use \"\\\\(\" and \"\\\\)\".
-  Clauses groups by `sequence' do not count for purposes of
+  Clauses grouped by `sequence' do not count for purposes of
   numbering backreferences.  Use `sequence' in situations like
   this:
 
     (sregexq (or \"dog\" \"cat\"
                  (sequence (opt \"sea \") \"monkey\")))
-                                 =>  \"dog\\\\|cat\\\\|\\\\(sea \\\\)?monkey\"
+                                 =>  \"dog\\\\|cat\\\\|\\\\(?:sea \\\\)?monkey\"
 
   where a single `or' alternate needs to contain multiple
   subclauses.
 
 - (backref N)
   Matches the same string previously matched by the Nth \"group\" in
-  the same sregex.  N is a positive integer.  In the resulting
-  regex, N may be adjusted to account for automatically introduced
-  groups.
+  the same sregex.  N is a positive integer.
 
 - (or CLAUSE ...)
   Matches any one of the CLAUSEs by separating them with \"\\\\|\".
@@ -639,10 +462,7 @@ Here are the clauses allowed in an `sregex' or `sregexq' expression:
   This is a \"trapdoor\" for including ordinary regular expression
   strings in the result.  Some regular expressions are clearer when
   written the old way: \"[a-z]\" vs. (sregexq (char (?a . ?z))), for
-  instance.  However, using this can confuse the code that
-  distinguishes introduced groups from user-specified groups.  Avoid
-  using grouping within a `regex' form.  Failing that, avoid using
-  backrefs if you're using `regex'.
+  instance.
 
 Each CHAR-CLAUSE that is passed to (char ...) and (not-char ...)
 has one of the following forms:
@@ -659,290 +479,128 @@ has one of the following forms:
   `(apply 'sregex ',exps))
 
 (defun sregex--engine (exp combine)
-  (let* ((val (cond ((stringp exp)
-                     (sregex--make-value (or (not (eq combine 'suffix))
-                                             (= (length exp) 1))
-                                         nil
-                                         (cons 'str
-                                               (regexp-quote exp))))
-                    ((symbolp exp)
-                     (funcall (intern (concat "sregex--"
-                                              (symbol-name exp)))
-                              combine))
-                    ((consp exp)
-                     (funcall (intern (concat "sregex--"
-                                              (symbol-name (car exp))))
-                              (cdr exp)
-                              combine))
-                    (t (error "Invalid expression: %s" exp))))
-         (unitp (sregex--value-unitp val))
-         (groups (sregex--value-groups val))
-         (tree (sregex--value-tree val)))
-    (if (and combine (not unitp))
-        (sregex--make-value t
-                            (cons nil groups)
-                            (cons 'group tree))
-      (sregex--make-value unitp groups tree))))
+  (cond
+   ((stringp exp)
+    (if (and combine
+	     (eq combine 'suffix)
+	     (/= (length exp) 1))
+	(concat "\\(?:" (regexp-quote exp) "\\)")
+      (regexp-quote exp)))
+   ((symbolp exp)
+    (ecase exp
+      (any ".")
+      (bol "^")
+      (eol "$")
+      (wordchar "\\w")
+      (not-wordchar "\\W")
+      (bot "\\`")
+      (eot "\\'")
+      (point "\\=")
+      (word-boundary "\\b")
+      (not-word-boundary "\\B")
+      (bow "\\<")
+      (eow "\\>")))
+   ((consp exp)
+    (funcall (intern (concat "sregex--"
+			     (symbol-name (car exp))))
+	     (cdr exp)
+	     combine))
+   (t (error "Invalid expression: %s" exp))))
 
 (defun sregex--sequence (exps combine)
-  (if (= (length exps) 1)
-      (sregex--engine (car exps) combine)
-    (let ((groups nil)
-          (trees nil))                  ;grows in reverse
-      (while exps
-        (let ((val (sregex--engine (car exps) 'concat)))
-          (setq groups (append groups
-                               (sregex--value-groups val))
-                trees (cons (sregex--value-tree val) trees)
-                exps (cdr exps))))
-      (setq trees (nreverse trees))
+  (if (= (length exps) 1) (sregex--engine (car exps) combine)
+    (let ((re (mapconcat
+	       (lambda (e) (sregex--engine e 'concat))
+	       exps "")))
       (if (eq combine 'suffix)
-          (sregex--make-value t
-                              (cons nil groups)
-                              (cons 'group
-                                    (cons 'sequence trees)))
-        (sregex--make-value (not (eq combine 'suffix))
-                            groups
-                            (cons 'sequence trees))))))
-
-(defun sregex--group (exps combine)
-  (let ((val (sregex--sequence exps nil)))
-    (sregex--make-value t
-                        (cons t (sregex--value-groups val))
-                        (cons 'group (sregex--value-tree val)))))
-
-(defun sregex-backref-num (n &optional sregex)
-  "Adjust backreference number N according to SREGEX.
-When `sregex' introduces parenthesized groups that the user didn't ask
-for, the numbering of the groups that the user *did* ask for gets all
-out of whack.  This function accounts for introduced groups.  Example:
-
-  (sregexq (opt \"ab\")
-           (group (or \"c\" \"d\")))  =>  \"\\\\(ab\\\\)?\\\\(c\\\\|d\\\\)\"
-  (setq info (sregex-info))
-  (sregex-backref-num 1 info)  =>  2
-
-The SREGEX parameter is optional and defaults to the current value of
-`sregex-info'."
-  (let ((groups (sregex--value-groups (or sregex
-                                          sregex--current-sregex)))
-        (result 0))
-    (while (and groups (> n 0))
-      (if (car groups)
-          (setq n (1- n)))
-      (setq result (1+ result)
-            groups (cdr groups)))
-    result))
-
-(defun sregex--backref (exps combine)
-  (sregex--make-value t nil (cons 'backref (car exps))))
-
-(defun sregex--any (combine)
-  (sregex--make-value t nil '(str . ".")))
-
-(defun sregex--opt (exps combine)
-  (let ((val (sregex--sequence exps 'suffix)))
-    (sregex--make-value t
-                        (sregex--value-groups val)
-                        (cons 'opt (sregex--value-tree val)))))
-
-(defun sregex--0+ (exps combine)
-  (let ((val (sregex--sequence exps 'suffix)))
-    (sregex--make-value t
-                        (sregex--value-groups val)
-                        (cons '0+ (sregex--value-tree val)))))
-(defun sregex--1+ (exps combine)
-  (let ((val (sregex--sequence exps 'suffix)))
-    (sregex--make-value t
-                        (sregex--value-groups val)
-                        (cons '1+ (sregex--value-tree val)))))
-
-(defun sregex--repeat (exps combine)
-  (let ((min (or (car exps) 0))
-        (max (car (cdr exps))))
-    (setq exps (cdr (cdr exps)))
-    (cond ((zerop min)
-           (cond ((equal max 0)         ;degenerate
-                  (sregex--make-value t nil nil))
-                 ((equal max 1)
-                  (sregex--opt exps combine))
-                 ((not max)
-                  (sregex--0+ exps combine))
-                 (t (sregex--sequence (make-list max
-                                               (cons 'opt exps))
-                                    combine))))
-          ((= min 1)
-           (cond ((equal max 1)
-                  (sregex--sequence exps combine))
-                 ((not max)
-                  (sregex--1+ exps combine))
-                 (t (sregex--sequence (append exps
-                                             (make-list (1- max)
-                                                        (cons 'opt exps)))
-                                      combine))))
-          (t (sregex--sequence (append exps
-                                     (list (append (list 'repeat
-                                                         (1- min)
-                                                         (and max
-                                                              (1- max)))
-                                                   exps)))
-                               combine)))))
+          (concat "\\(?:" re "\\)")
+        re))))
 
 (defun sregex--or (exps combine)
-  (if (= (length exps) 1)
-      (sregex--engine (car exps) combine)
-    (let ((groups nil)
-          (trees nil))
-      (while exps
-        (let ((val (sregex--engine (car exps) 'or)))
-          (setq groups (append groups
-                               (sregex--value-groups val))
-                trees (cons (sregex--value-tree val) trees)
-                exps (cdr exps))))
-      (sregex--make-value (eq combine 'or)
-                          groups
-                          (cons 'or (nreverse trees))))))
+  (if (= (length exps) 1) (sregex--engine (car exps) combine)
+    (let ((re (mapconcat
+	       (lambda (e) (sregex--engine e 'or))
+	       exps "\\|")))
+      (if (not (eq combine 'or))
+          (concat "\\(?:" re "\\)")
+        re))))
 
-(defmacro sregex--char-range-aux ()
-  '(if start
-       (let (startc endc)
-         (if (and (<= 32 start)
-                  (<= start 127))
-             (setq startc (char-to-string start)
-                   endc (char-to-string end))
-           (setq startc (format "\\%03o" start)
-                 endc (format "\\%03o" end)))
-         (if (> end start)
-             (if (> end (+ start 1))
-                 (setq class (concat class startc "-" endc))
-               (setq class (concat class startc endc)))
-           (setq class (concat class startc))))))
+(defun sregex--group (exps combine) (concat "\\(" (sregex--sequence exps nil) "\\)"))
 
-(defmacro sregex--char-range (rstart rend)
-  `(let ((i ,rstart)
-         start end)
-     (while (<= i ,rend)
-       (if (aref chars i)
-           (progn
-             (if start
-                 (setq end i)
-               (setq start i
-                     end i))
-             (aset chars i nil))
-         (sregex--char-range-aux)
-         (setq start nil
-               end nil))
-       (setq i (1+ i)))
-     (sregex--char-range-aux)))
+(defun sregex--backref (exps combine) (concat "\\" (int-to-string (car exps))))
+(defun sregex--opt (exps combine) (concat (sregex--sequence exps 'suffix) "?"))
+(defun sregex--0+ (exps combine) (concat (sregex--sequence exps 'suffix) "*"))
+(defun sregex--1+ (exps combine) (concat (sregex--sequence exps 'suffix) "+"))
+
+(defun sregex--char (exps combine) (sregex--char-aux nil exps))
+(defun sregex--not-char (exps combine) (sregex--char-aux t exps))
+
+(defun sregex--syntax (exps combine) (format "\\s%c" (car exps)))
+(defun sregex--not-syntax (exps combine) (format "\\S%c" (car exps)))
+
+(defun sregex--regex (exps combine)
+  (if combine (concat "\\(?:" (car exps) "\\)") (car exps)))
+
+(defun sregex--repeat (exps combine)
+  (let* ((min (or (pop exps) 0))
+	 (minstr (number-to-string min))
+	 (max (pop exps)))
+    (concat (sregex--sequence exps 'suffix)
+	    (concat "\\{" minstr ","
+		    (when max (number-to-string max)) "\\}"))))
+
+(defun sregex--char-range (start end)
+  (let ((startc (char-to-string start))
+	(endc (char-to-string end)))
+    (cond
+     ((> end (+ start 2)) (concat startc "-" endc))
+     ((> end (+ start 1)) (concat startc (char-to-string (1+ start)) endc))
+     ((> end start) (concat startc endc))
+     (t startc))))
 
 (defun sregex--char-aux (complement args)
-  (let ((chars (make-vector 256 nil)))
-    (while args
-      (let ((arg (car args)))
-        (cond ((integerp arg)
-               (aset chars arg t))
-              ((stringp arg)
-               (mapcar (function
-                        (lambda (c)
-                          (aset chars c t)))
-                       arg))
-              ((consp arg)
-               (let ((start (car arg))
-                     (end (cdr arg)))
-                 (if (> start end)
-                     (let ((tmp start))
-                       (setq start end
-                             end tmp)))
-                 ;; now start <= end
-                 (let ((i start))
-                   (while (<= i end)
-                     (aset chars i t)
-                     (setq i (1+ i))))))))
-      (setq args (cdr args)))
+  ;; regex-opt does the same, we should join effort.
+  (let ((chars (make-bool-vector 256 nil))) ; Yeah, right!
+    (dolist (arg args)
+      (cond ((integerp arg) (aset chars arg t))
+	    ((stringp arg) (mapcar (lambda (c) (aset chars c t)) arg))
+	    ((consp arg)
+	     (let ((start (car arg))
+		   (end (cdr arg)))
+	       (when (> start end)
+		 (let ((tmp start)) (setq start end) (setq end tmp)))
+	       ;; now start <= end
+	       (let ((i start))
+		 (while (<= i end)
+		   (aset chars i t)
+		   (setq i (1+ i))))))))
     ;; now chars is a map of the characters in the class
-    (let ((class "")
-          (caret (aref chars ?^)))
+    (let ((caret (aref chars ?^))
+	  (dash (aref chars ?-))
+	  (class (if (aref chars ?\]) "]" "")))
       (aset chars ?^ nil)
-      (if (aref chars ?\])
-          (progn
-            (setq class (concat class "]"))
-            (aset chars ?\] nil)))
-      (if (aref chars ?-)
-          (progn
-            (setq class (concat class "-"))
-            (aset chars ?- nil)))
-      (if (aref chars ?\\)
-          (progn
-            (setq class (concat class "\\\\"))
-            (aset chars ?\\ nil)))
+      (aset chars ?- nil)
+      (aset chars ?\] nil)
 
-      (sregex--char-range ?A ?Z)
-      (sregex--char-range ?a ?z)
-      (sregex--char-range ?0 ?9)
+      (let (start end)
+	(dotimes (i 256)
+	  (if (aref chars i)
+	      (progn
+		(unless start (setq start i))
+		(setq end i)
+		(aset chars i nil))
+	    (when start
+	      (setq class (concat class (sregex--char-range start end)))
+	      (setq start nil))))
+	(if start
+	    (setq class (concat class (sregex--char-range start end)))))
 
-      (let ((i 32))
-        (while (< i 128)
-          (if (aref chars i)
-              (progn
-                (setq class (concat class (char-to-string i)))
-                (aset chars i nil)))
-          (setq i (1+ i))))
-
-      (sregex--char-range 0 31)
-      (sregex--char-range 128 255)
-        
-      (let ((i 0))
-        (while (< i 256)
-          (if (aref chars i)
-              (setq class (concat class (format "\\%03o" i))))
-          (setq i (1+ i))))
-
-      (if caret
-          (setq class (concat class "^")))
-      (concat "[" (if complement "^") class "]"))))
-
-(defun sregex--char (exps combine)
-  (sregex--make-value t nil (cons 'str (sregex--char-aux nil exps))))
-(defun sregex--not-char (exps combine)
-  (sregex--make-value t nil (cons 'str (sregex--char-aux t exps))))
-
-(defun sregex--bol (combine)
-  (sregex--make-value t nil '(str . "^")))
-(defun sregex--eol (combine)
-  (sregex--make-value t nil '(str . "$")))
-
-(defun sregex--wordchar (combine)
-  (sregex--make-value t nil '(str . "\\w")))
-(defun sregex--not-wordchar (combine)
-  (sregex--make-value t nil '(str . "\\W")))
-
-(defun sregex--syntax (exps combine)
-  (sregex--make-value t nil (cons 'str (format "\\s%c" (car exps)))))
-(defun sregex--not-syntax (exps combine)
-  (sregex--make-value t nil (cons 'str (format "\\S%c" (car exps)))))
-
-(defun sregex--bot (combine)
-  (sregex--make-value t nil (cons 'str "\\`")))
-(defun sregex--eot (combine)
-  (sregex--make-value t nil (cons 'str "\\'")))
-
-(defun sregex--point (combine)
-  (sregex--make-value t nil '(str . "\\=")))
-
-(defun sregex--word-boundary (combine)
-  (sregex--make-value t nil '(str . "\\b")))
-(defun sregex--not-word-boundary (combine)
-  (sregex--make-value t nil '(str . "\\B")))
-
-(defun sregex--bow (combine)
-  (sregex--make-value t nil '(str . "\\<")))
-(defun sregex--eow (combine)
-  (sregex--make-value t nil '(str . "\\>")))
-
-
-;; trapdoor - usage discouraged
-(defun sregex--regex (exps combine)
-  (sregex--make-value nil nil (car exps)))
+      (if (> (length class) 0)
+	  (setq class (concat class (if caret "^") (if dash "-")))
+	(setq class (concat class (if dash "-") (if caret "^"))))
+      (if (and (not complement) (= (length class) 1))
+	  (regexp-quote class)
+	(concat "[" (if complement "^") class "]")))))
 
 (provide 'sregex)
 
