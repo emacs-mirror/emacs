@@ -1697,6 +1697,79 @@ enum prop_idx
   LAST_PROP_IDX
 };
 
+/* For BIDI */
+#define BIDI_MAXLEVEL 64
+
+/* Data type for describing the bidirectional character types.  */
+typedef enum {
+  UNKNOWN_BT,
+  STRONG_L,	/* strong left-to-right */
+  STRONG_R,	/* strong right-to-left */
+  STRONG_AL,	/* arabic right-to-left letter */
+  LRE,		/* left-to-right embedding */
+  LRO,		/* left-to-right override */
+  RLE,		/* right-to-left embedding */
+  RLO,		/* right-to-left override */
+  PDF,		/* pop directional format */
+  WEAK_EN,	/* european number */
+  WEAK_ES,	/* european number separator */
+  WEAK_ET,	/* european number terminator */
+  WEAK_AN,	/* arabic number */
+  WEAK_CS,	/* common separator */
+  WEAK_NSM,	/* non-spacing mark */
+  WEAK_BN,	/* boundary neutral */
+  NEUTRAL_B,	/* paragraph separator */
+  NEUTRAL_S,	/* segment separator */
+  NEUTRAL_WS,	/* whitespace */
+  NEUTRAL_ON	/* other neutrals */
+} bidi_type_t;
+
+/* The basic directionality data type.  */
+typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
+
+/* Data type for storing information about characters we need to
+   remember.  */
+struct bidi_saved_info {
+  int bytepos, charpos;		/* character's buffer position */
+  bidi_type_t type;		/* character bidi type */
+  bidi_type_t orig_type;	/* original type of the character, after W1 */
+  bidi_type_t pristine_type;	/* type as we found it in the buffer */
+};
+
+/* Data type for keeping track of saved embedding levels and override
+   status information.  */
+struct bidi_stack {
+  int level;
+  bidi_dir_t override;
+};
+
+/* Data type for iterating over bidi text.  */
+struct bidi_it {
+  int bytepos;			/* iterator's position in buffer */
+  int charpos;
+  int ch;			/* the character itself */
+  int ch_len;			/* the length of its multibyte sequence */
+  bidi_type_t type;		/* type of this character */
+  bidi_type_t orig_type;	/* original type, after overrides and W1 */
+  bidi_type_t pristine_type;	/* original type, as found in the buffer */
+  int resolved_level;		/* final resolved level of this character */
+  int invalid_levels;		/* how many PDFs should we ignore */
+  int invalid_rl_levels;	/* how many PDFs from RLE/RLO should ignore */
+  int new_paragraph;		/* if non-zero, a new paragraph begins here */
+  int prev_was_pdf;		/* if non-zero, prev char was PDF */
+  struct bidi_saved_info prev;	/* info about the previous character */
+  struct bidi_saved_info last_strong; /* last-seen strong directional char */
+  struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
+  struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
+  struct bidi_saved_info next_for_ws; /* character after sequence of ws */
+  int next_en_pos;		/* position of next EN char for ET */
+  int ignore_bn_limit;		/* position until which we should ignore BNs */
+  bidi_dir_t sor;		/* direction of start-of-run in effect */
+  int scan_dir;			/* direction of text scan */
+  int stack_idx;		/* index of current data on the stack */
+  struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
+};
+
 
 struct it
 {
@@ -1965,6 +2038,12 @@ struct it
   /* Horizontal matrix position reached in move_it_in_display_line.
      Only set there, not in display_line.  */
   int hpos;
+
+  /* 1 means we need bidi processing.  */
+  int bidi_p;
+
+  /* For iterating over bidi text.  */
+  struct bidi_it bidi_it;
 };
 
 
@@ -2426,6 +2505,12 @@ extern EMACS_INT tool_bar_button_relief;
 /***********************************************************************
 			  Function Prototypes
  ***********************************************************************/
+
+/* Defined in bidi.c */
+
+extern void bidi_init_it P_ ((int pos, bidi_dir_t dir,
+			      struct bidi_it *bidi_it));
+extern void bidi_get_next_char_visually P_ ((struct bidi_it *bidi_it));
 
 /* Defined in xdisp.c */
 
