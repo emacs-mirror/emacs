@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: gnus.el,v 3.15 93/05/10 19:49:20 umerin Locked $
+;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.14 1993/05/16 22:40:14 rms Exp roland $
 
 ;; This file is part of GNU Emacs.
 
@@ -597,10 +597,6 @@ field; if stringp, use this; if non-nil, strip of the local host name.")
 (defvar gnus-use-generic-path nil
   "*If nil, use the NNTP server name in the Path: field; if stringp,
 use this; if non-nil, use no host name (user name only)")
-
-(defvar gnus-info-directory Info-directory
-  "*A directory placing an Info file of GNUS.")
-
 
 ;; Internal variables.
 
@@ -5813,8 +5809,7 @@ configuration list is got from the variable gnus-window-configuration."
 	((eq major-mode 'gnus-summary-mode)
 	 (gnus-configure-windows '(0 1 0)) ;Take all windows.
 	 (pop-to-buffer gnus-summary-buffer)))
-  (let ((Info-directory (expand-file-name gnus-info-directory nil)))
-    (Info-goto-node (car (cdr (assq major-mode gnus-info-nodes))))))
+  (Info-goto-node (car (cdr (assq major-mode gnus-info-nodes)))))
 
 (defun gnus-overload-functions (&optional overloads)
   "Overload functions specified by optional argument OVERLOADS.
