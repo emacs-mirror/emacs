@@ -1,3 +1,15 @@
+2001-11-14  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-internal, vc-coding-system-for-diff)
+	(vc-default-diff-tree): New functions.
+	(vc-version-diff): Use them.  As a result, coding systems are now
+	set up properly for all sorts of diffs, and tree diffs can now
+	also be done locally.
+	(vc-diff): With a prefix argument, don't require that it's called
+	from a buffer under version control.
+
+	* vc-cvs.el (vc-cvs-diff-tree): New function.
+
 2001-11-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Handle a nil comment-padding.
