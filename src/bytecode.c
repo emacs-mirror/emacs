@@ -544,20 +544,47 @@ If the third argument is incorrect, Emacs may crash.")
 	    break;
 	  }
 
-	case Bvarset+7:
-	  op = FETCH2;
+	case Bvarset:
+	case Bvarset+1:
+	case Bvarset+2:
+	case Bvarset+3:
+	case Bvarset+4:
+	case Bvarset+5:
+	  op -= Bvarset;
 	  goto varset;
 
-	case Bvarset: case Bvarset+1: case Bvarset+2: case Bvarset+3:
-	case Bvarset+4: case Bvarset+5:
-	  op -= Bvarset;
+	case Bvarset+7:
+	  op = FETCH2;
 	  goto varset;
 
 	case Bvarset+6:
 	  op = FETCH;
 	varset:
-	  set_internal (vectorp[op], POP, current_buffer, 0);
-	  /* Fset (vectorp[op], POP); */
+	  {
+	    Lisp_Object sym, val;
+	    extern int keyword_symbols_constant_flag;
+	      
+	    sym = vectorp[op];
+	    val = POP;
+
+	    /* Inline the most common case.  */
+	    if (SYMBOLP (sym)
+		&& !EQ (val, Qunbound)
+		&& !MISCP (XSYMBOL (sym)->value)
+		/* I think this should either be checked in the byte
+		   compiler, or there should be a flag indicating that
+		   a symbol might be constant in Lisp_Symbol, instead
+		   of checking this here over and over again. --gerd.  */
+		&& !EQ (sym, Qnil)
+		&& !EQ (sym, Qt)
+		&& !(XSYMBOL (sym)->name->data[0] == ':'
+		     && EQ (XSYMBOL (sym)->obarray, initial_obarray)
+		     && keyword_symbols_constant_flag
+		     && !EQ (val, sym)))
+	      XSYMBOL (sym)->value = val;
+	    else
+	      set_internal (sym, val, current_buffer, 0);
+	  }
 	  break;
 
 	case Bdup:
