@@ -2024,7 +2024,7 @@ push_key_description (c, p, force_multibyte)
     {
       *p++ = c;
     }
-  else if (CHARACTERP (c))
+  else if (CHARACTERP (make_number (c)))
     {
       if (NILP (current_buffer->enable_multibyte_characters))
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
