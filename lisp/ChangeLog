@@ -3,6 +3,12 @@
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
 	file-name clashes on 8+3 filesystems.
 
+	* Makefile.in (DONTCOMPILE, bootstrap-clean): Rename
+	loaddefs-boot.el to ldefs-boot.el
+
+	* makefile.w32-in (DONTCOMPILE, bootstrap-clean-CMD)
+	(bootstrap-clean-SH): Rename loaddefs-boot.el to ldefs-boot.el
+
 2003-10-02  Andreas Schwab  <schwab@suse.de>
 
 	* loaddefs-boot.el: Regenerated.
