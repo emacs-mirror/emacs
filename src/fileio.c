@@ -468,9 +468,11 @@ directory_file_name (src, dst)
 		  && (ptr[rlen] == ']' || ptr[rlen] == '>')
 		  && ptr[rlen - 1] == '.')
 		{
-		  ptr[rlen - 1] = ']';
-		  ptr[rlen] = '\0';
-		  return directory_file_name (ptr, dst);
+		  char * buf = (char *) alloca (strlen (ptr) + 1);
+		  strcpy (buf, ptr);
+		  buf[rlen - 1] = ']';
+		  buf[rlen] = '\0';
+		  return directory_file_name (buf, dst);
 		}
 	      else
 		dst[slen - 1] = ':';
