@@ -562,6 +562,9 @@ IBM RS/6000 (rs6000-ibm-aix*)
   fail because libXbsd isn't found.  This is a compiler bug;
   re-configure Emacs so that it isn't compiled with `-O5'.
 
+  On AIX 4.3.x and 4.4, compiling with /bin/c89 fails because it
+  treats certain warnings as errors.  Use `cc' instead.
+
   At last report, Emacs didn't run well on terminals.  Informed
   persons say that the tty VMIN and VTIME settings have been
   corrupted; if you have a fix, please send it to us.
