@@ -186,7 +186,10 @@ For emacs-lisp-mode for example PATTERN would look like:
   (\"*Vars*\" \"^\\\\s-*(def\\\\(var\\\\|const\\\\)\\\\s-+\\\\([-A-Za-z0-9+]+\\\\)\" 2)
   (\"*Types*\" \"^\\\\s-*(def\\\\(type\\\\|struct\\\\|class\\\\|ine-condition\\\\)\\\\s-+\\\\([-A-Za-z0-9+]+\\\\)\" 2))
 
-The variable is buffer-local.")
+The variable is buffer-local.
+
+The variable `imenu-case-fold-search' determines whether or not the
+regexp matches are case sensitive.")
 
 ;;;###autoload
 (make-variable-buffer-local 'imenu-generic-expression)
@@ -679,6 +682,15 @@ Their results are gathered into an index alist."
 ;;; Generic index gathering function.
 ;;;
 
+(defvar imenu-case-fold-search t
+  "Defines whether `imenu--generic-function' should fold case when matching.
+
+This buffer-local variable should be set (only) by initialization code
+for modes which use `imenu--generic-function'.  If it is not set, that
+function will use the current value of `case-fold-search' to match
+patterns.")
+(make-variable-buffer-local 'imenu-case-fold-search)
+
 (defun imenu--generic-function (patterns)
 ;; Built on some ideas that Erik Naggum <erik@naggum.no> once posted
 ;; to comp.emacs
@@ -719,7 +731,8 @@ pattern.
 		  (function (lambda (pattern) (identity (cadr pattern)))) 
 		  patterns "\\)\\|\\(") 
 		 "\\)"))
-	prev-pos)
+	prev-pos
+        (case-fold-search imenu-case-fold-search))
 
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
