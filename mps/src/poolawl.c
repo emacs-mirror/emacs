@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.44) $
+ * $HopeName: MMsrc!poolawl.c(trunk.45) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -46,7 +46,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.44) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.45) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -607,6 +607,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 
   if(buffer == NULL) {
     AWLRangeWhiten(group, 0, group->grains);
+    trace->condemned += SegSize(seg);
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(group->seg);
@@ -615,6 +616,11 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
                    awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
     AWLRangeWhiten(group, awlIndexOfAddr(base, awl, BufferLimit(buffer)),
                    group->grains);
+    /* We didn't condemn the buffer, subtract it from the count. */
+    /* @@@@ We could subtract all the free grains. */
+    trace->condemned += SegSize(seg)
+                        - AddrOffset(BufferScanLimit(buffer),
+                                     BufferLimit(buffer));
   }
 
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
