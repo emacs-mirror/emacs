@@ -735,7 +735,8 @@ main (argc, argv, envp)
      buffers and strings.  We need to handle this before calling
      init_lread, init_editfns and other places that generate Lisp strings
      from text in the environment.  */
-  if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args))
+  if ((argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args)) 
+      || getenv ("EMACS_UNIBYTE"))
     {
       Lisp_Object symbol;
       symbol = intern ("default-enable-multibyte-characters");
@@ -784,7 +785,7 @@ main (argc, argv, envp)
       printf ("\
 Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
-      [--version] [--no-site-file] [--unibyte]\n\
+      [--version] [--no-site-file]\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
       [+linenum] file-to-visit  [--kill]\n\
 Report bugs to bug-gnu-emacs@prep.ai.mit.edu.  First, please see\n\
