@@ -45,14 +45,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define WRETCODE(w) w.w_retcode
 #define WCOREDUMP(w) w.w_coredump
 
-#ifdef HPUX
+#if defined (HPUX) || defined (convex)
 /* HPUX version 7 has broken definitions of these.  */
+/* pvogel@convex.com says the convex does too.  */
 #undef WTERMSIG
 #undef WSTOPSIG
 #undef WIFSTOPPED
 #undef WIFSIGNALED
 #undef WIFEXITED
-#endif
+#endif /* HPUX | convex */
 
 #ifndef WTERMSIG
 #define WTERMSIG(w) w.w_termsig
