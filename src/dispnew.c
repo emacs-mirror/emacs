@@ -1613,7 +1613,7 @@ update_line (frame, vpos)
       if (! current_frame->highlight[vpos])
 	{
 	  if (!must_write_spaces)
-	    while (obody[olen - 1] == SPACEGLYPH && olen > 0)
+	    while (olen > 0 && obody[olen - 1] == SPACEGLYPH)
 	      olen--;
 	}
       else
