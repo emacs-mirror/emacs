@@ -481,9 +481,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 			   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
       ;; Else a new buffer
       (setq default-directory
-	    (if (file-directory-p dirname)
-		dirname
-	      (file-name-directory dirname)))
+	    ;; We can do this unconditionally
+	    ;; because dired-noselect ensures that the name
+	    ;; is passed in directory name syntax
+	    ;; if it was the name of a directory at all.
+	    (file-name-directory dirname))
       (or switches (setq switches dired-listing-switches))
       (dired-mode dirname switches)
       (if mode (funcall mode))
