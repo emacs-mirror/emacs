@@ -1,3 +1,9 @@
+2004-09-27  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmailsum.el (rmail-make-summary-line): Function deleted.
+	(rmail-new-summary): Make it work once again as in old version.
+	(rmail-summary-get-summary): Call rmail-summary-line-decoder.
+
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail): Error if file is Babyl format.
