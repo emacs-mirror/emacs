@@ -1,3 +1,19 @@
+2000-03-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (free_image_cache): Free the cache structure itself
+	last, after all its members have been freed.
+
+	* lisp.h (xstrdup): Add prototype.
+
+	* alloc.c (xstrdup): Moved here from xfaces.c.
+	(allocating_for_lisp): Variable removed.
+	(lisp_malloc): Block input around the calls to malloc and
+	mem_insert.
+
+	* xfaces.c (realize_tty_face): Use find_symbol_value instead
+	of Fsymbol_value.
+	(xstrdup): Moved to alloc.c.
+
 2000-03-29  Ken Raeburn  <raeburn@gnu.org>
 
 	* scroll.c (CHECK_BOUNDS): Renamed from CHECK.
