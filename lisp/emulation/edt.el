@@ -332,7 +332,8 @@ Accepts a prefix argument for the number of paragraphs."
 Accepts a prefix argument of the number of characters to invert."
   (interactive "p")
   (while (> num 0)
-    (funcall (if (<= ?a (following-char))
+    (funcall (if (let ((ch (following-char)))
+		   (= ch (downcase ch)))
 		 'upcase-region 'downcase-region)
 	     (point) (1+ (point)))
     (forward-char 1)
