@@ -320,6 +320,8 @@ Turning on C++ mode calls the value of the variable `c++-mode-hook' with
 no args if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
+  ;; This code depends on the old C mode.
+  (require 'c-mode)
   (use-local-map c++-mode-map)
   (set-syntax-table c++-mode-syntax-table)
   (setq major-mode 'c++-mode
@@ -801,7 +803,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		(if (= (char-after (car contain-stack)) ?{)
 		    (save-excursion
 		      (goto-char (car contain-stack))
-		      (setq val (+ c-indent-level (current-column))))
+		      (setq val (calculate-c-indent-after-brace)))
 		  (setq val (calculate-c++-indent
 			     (if (car indent-stack)
 				 (- (car indent-stack))))))
