@@ -24,3 +24,8 @@
 #endif /* GCC */
 
 #define HAVE_VFORK
+
+/* Gregory Neil Shapiro <gshapiro@hhmi.org> reports the Motif header files
+   are in this directory on Solaris 2.4.  Let's guess that's true
+   for some earlier versions too.  */
+#define C_SWITCH_X_SYSTEM -I/usr/dt/include
