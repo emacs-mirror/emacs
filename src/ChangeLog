@@ -1,3 +1,8 @@
+2004-06-06  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* macfns.c (x_create_tip_frame): Fix Mac OS X 10.1 compilation
+	problem due to newly defined variable.
+
 2004-06-06  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Fdisplay_supports_face_attributes_p): Give up
