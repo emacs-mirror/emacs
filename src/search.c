@@ -2093,7 +2093,8 @@ The match found must start at or after that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
@@ -2109,7 +2110,8 @@ The match found must not extend after that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
@@ -2128,7 +2130,8 @@ The match found must start at or after that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
@@ -2145,7 +2148,8 @@ The match found must not extend after that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.")
   (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
