@@ -140,6 +140,13 @@ typedef unsigned reg_syntax_t;
    stored in the pattern buffer, so changing this does not affect
    already-compiled regexps.  */
 extern reg_syntax_t re_syntax_options;
+
+#ifdef emacs
+/* In Emacs, this is the string or buffer in which we
+   are matching.  It is used for looking up syntax properties.  */
+extern Lisp_Object re_match_object;
+#endif
+
 
 /* Define combinations of the above bits for the standard possibilities.
    (The [[[ comments delimit what gets put into the Texinfo file, so
@@ -348,6 +355,10 @@ struct re_pattern_buffer
 
         /* If true, an anchor at a newline matches.  */
   unsigned newline_anchor : 1;
+
+  /* If true, multi-byte form in the `buffer' should be recognized as a
+     multibyte character. */
+  unsigned multibyte : 1;
 
 /* [[[end pattern_buffer]]] */
 };
