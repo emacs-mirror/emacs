@@ -445,6 +445,7 @@ end of the buffer."
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
     (define-key map "g" 'revert-buffer)
+    (define-key map "q" 'delete-window)
     map)
   "Keymap for `occur-mode'.")
 
@@ -679,27 +680,50 @@ See also `multi-occur'."
 			   (buffer-list))))))
 
 (defun occur-1 (regexp nlines bufs)
-  (let ((occur-buf (get-buffer-create "*Occur*")))
+  (let ((occur-buf (get-buffer-create "*Occur*"))
+	(made-temp-buf nil)
+	(active-bufs (delq nil (mapcar #'(lambda (buf)
+					   (when (buffer-live-p buf) buf))
+				       bufs))))
+    ;; Handle the case where one of the buffers we're searching is the
+    ;; *Occur* buffer itself.
+    (when (memq occur-buf bufs)
+      (setq occur-buf (with-current-buffer occur-buf
+			(clone-buffer "*Occur-temp*"))
+	    made-temp-buf t))
     (with-current-buffer occur-buf
       (setq buffer-read-only nil)
       (occur-mode)
       (erase-buffer)
       (let ((count (occur-engine
-		    regexp bufs occur-buf
+		    regexp active-bufs occur-buf
 		    (or nlines list-matching-lines-default-context-lines)
 		    (and case-fold-search
 			 (isearch-no-upper-case-p regexp t))
 		    nil nil nil nil)))
-	(message "Searched %d buffers; %s matches for `%s'" (length bufs)
-		 (if (zerop count)
-		     "no"
-		   (format "%d" count))
-		 regexp)
+	(let* ((diff (- (length bufs) (length active-bufs)))
+	       (msg (concat
+		     (format "Searched %d buffers" (- (length bufs) diff))
+		     "%s; "
+		     (format "%s matches for `%s'"
+			     (if (zerop count)
+				 "no"
+			       (format "%d" count))
+			     regexp))))
+	  (message msg (if (zerop diff)
+			   ""
+			 (format " (%d killed)" diff))))
+	;; If we had to make a temporary buffer, make it the *Occur*
+	;; buffer now.
+	(when made-temp-buf
+	  (with-current-buffer (get-buffer "*Occur*")
+	    (kill-this-buffer))
+	  (rename-buffer "*Occur*"))
+	(setq occur-revert-arguments (list regexp nlines bufs)
+	      buffer-read-only t)
 	(if (> count 0)
 	    (display-buffer occur-buf)
-	  (kill-buffer occur-buf)))
-      (setq occur-revert-arguments (list regexp nlines bufs)
-	    buffer-read-only t))))
+	  (kill-buffer occur-buf))))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
