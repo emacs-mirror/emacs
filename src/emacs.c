@@ -501,6 +501,7 @@ main (argc, argv, envp)
     {
       malloc_set_state (malloc_state_ptr);
       free (malloc_state_ptr);
+      r_alloc_reinit ();
     }
 #endif
 
@@ -577,7 +578,7 @@ main (argc, argv, envp)
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
 
-#ifdef HAVE_SETRLIMIT
+#if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
   /* Extend the stack space available.  */
   if (!getrlimit (RLIMIT_STACK, &rlim))
     {
@@ -598,7 +599,7 @@ main (argc, argv, envp)
 
       setrlimit (RLIMIT_STACK, &rlim);
     }
-#endif
+#endif /* HAVE_SETRLIMIT and RLIMIT_STACK */
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
