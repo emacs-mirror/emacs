@@ -1,3 +1,7 @@
+2003-07-06  Jason Rumney  <jasonr@gnu.org>
+
+	* alloc.c (struct ablock): Only include padding when there is some.
+
 2003-07-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* alloc.c (ALIGN): Add casts to simplify usage.
