@@ -20,6 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#if defined (USG5) || defined (BSD_SYSTEM) || defined (LINUX)
+#include <fcntl.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -29,6 +33,10 @@ Boston, MA 02111-1307, USA.  */
 
 #if !defined (S_ISLNK) && defined (S_IFLNK)
 #  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
+#endif
+
+#if !defined (S_ISFIFO) && defined (S_IFIFO)
+#  define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
 #endif
 
 #if !defined (S_ISREG) && defined (S_IFREG)
@@ -2616,6 +2624,8 @@ See also `file-exists-p' and `file-attributes'.")
   Lisp_Object absname;
   Lisp_Object handler;
   int desc;
+  int flags;
+  struct stat statbuf;
 
   CHECK_STRING (filename, 0);
   absname = Fexpand_file_name (filename, Qnil);
@@ -2632,7 +2642,18 @@ See also `file-exists-p' and `file-attributes'.")
     return Qt;
   return Qnil;
 #else /* not DOS_NT */
-  desc = open (XSTRING (absname)->data, O_RDONLY);
+  flags = O_RDONLY;
+#if defined (S_ISFIFO) && defined (O_NONBLOCK)
+  /* Opening a fifo without O_NONBLOCK can wait.
+     We don't want to wait.  But we don't want to mess wth O_NONBLOCK
+     except in the case of a fifo, on a system which handles it.  */
+  desc = stat (XSTRING (absname)->data, &statbuf);
+  if (desc < 0)
+    return Qnil;
+  if (S_ISFIFO (statbuf.st_mode))
+    flags |= O_NONBLOCK;
+#endif
+  desc = open (XSTRING (absname)->data, flags);
   if (desc < 0)
     return Qnil;
   close (desc);
