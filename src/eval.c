@@ -1207,6 +1207,7 @@ See also the function `condition-case'.")
   extern int gc_in_progress;
   extern int waiting_for_input;
   Lisp_Object debugger_value;
+  Lisp_Object string;
 
   quit_error_check ();
   immediate_quit = 0;
@@ -1266,7 +1267,14 @@ See also the function `condition-case'.")
   /* If no handler is present now, try to run the debugger,
      and if that fails, throw to top level.  */
   find_handler_clause (Qerror, conditions, error_symbol, data, &debugger_value);
-  Fthrow (Qtop_level, Qt);
+  if (catchlist != 0)
+    Fthrow (Qtop_level, Qt);
+
+  if (! EQ (data, memory_signal_data))
+    data = Fcons (error_symbol, data);
+
+  string = Ferror_message_string (data);
+  fatal (XSTRING (string)->data, 0, 0);
 }
 
 /* Return nonzero iff LIST is a non-nil atom or
