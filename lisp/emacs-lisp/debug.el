@@ -267,7 +267,20 @@ That buffer should be current already."
 	 (prin1 (if (eq (car debugger-args) 'nil)
 		    (cdr debugger-args) debugger-args)
 		(current-buffer))
-	 (insert ?\n))))
+	 (insert ?\n)))
+  (debugger-make-xrefs))
+
+(defun debugger-make-xrefs (&optional buffer)
+  "Create cross-references in the debugger buffer."
+  (interactive "b")
+  (save-excursion
+    (set-buffer (or buffer (current-buffer)))
+    (goto-char (point-min))
+    (let ((buffer-read-only nil))
+      (while (re-search-forward "^[* ] (?\\(\\(\\sw\\|\\s_\\)+\\)" nil t)
+        (let* ((sym (intern-soft (match-string 1)))
+               (file (symbol-file sym)))
+          (when file (help-xref-button 1 'help-function-def sym file)))))))
 
 (defun debugger-step-through ()
   "Proceed, stepping through subexpressions of this expression.
@@ -441,8 +454,7 @@ Applies to the frame whose line point is on in the backtrace."
   (debugger-env-macro (eval-expression exp)))
 
 (defvar debugger-mode-map nil)
-(if debugger-mode-map
-    nil
+(unless debugger-mode-map
   (let ((loop ? ))
     (setq debugger-mode-map (make-keymap))
     (suppress-keymap debugger-mode-map)
@@ -459,6 +471,8 @@ Applies to the frame whose line point is on in the backtrace."
     (define-key debugger-mode-map "e" 'debugger-eval-expression)
     (define-key debugger-mode-map " " 'next-line)
     (define-key debugger-mode-map "R" 'debugger-record-expression)
+    (define-key debugger-mode-map [RET] 'help-follow)
+    (define-key debugger-mode-map [mouse-2] 'push-button)
     ))
 
 
