@@ -1,3 +1,10 @@
+2000-09-08  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (default_face_vector): Function removed.
+	(Finternal_merge_in_global_face): Restore old global/local
+	attribute override order.  Use inline loop instead of calling
+	default_face_vector.
+
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* ralloc.c (obtain, relinquish, relinquish, r_alloc_size_in_use)
