@@ -71,9 +71,9 @@ With argument t, set the random number seed from the current time and pid.")
 	 it's possible to get a quotient larger than limit; discarding
 	 these values eliminates the bias that would otherwise appear
 	 when using a large limit.  */
-      denominator = (unsigned long)0x80000000 / XFASTINT (limit);
+      denominator = (unsigned long)0xc0000000 / XFASTINT (limit);
       do
-	val = (random () & 0x7fffffff) / denominator;
+	val = (random () & 0x3fffffff) / denominator;
       while (val >= limit);
     }
   else
