@@ -1,3 +1,7 @@
+2001-10-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* master.el: New file.
+
 2001-10-11  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-lapcode)
