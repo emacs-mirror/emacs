@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2001-07-15 12:35:58 pavel>
+;; Maintainer's Time-stamp: <2001-09-20 11:57:46 gildea>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -503,7 +503,7 @@ and all time-stamp-format compatibility."
 	  "%%")
 	 ((eq cur-char ?a)		;day of week
 	  (if change-case
-	      (format-time-string "%#A" time)
+	      (format-time-string "%#a" time)
 	    (or alt-form (not (string-equal field-width ""))
 		(time-stamp-conv-warn "%a" "%:a"))
 	    (if (and alt-form (not (string-equal field-width "")))
@@ -517,7 +517,7 @@ and all time-stamp-format compatibility."
 	    (format-time-string "%#A" time)))
 	 ((eq cur-char ?b)		;month name
 	  (if change-case
-	      (format-time-string "%#B" time)
+	      (format-time-string "%#b" time)
 	    (or alt-form (not (string-equal field-width ""))
 		(time-stamp-conv-warn "%b" "%:b"))
 	    (if (and alt-form (not (string-equal field-width "")))
