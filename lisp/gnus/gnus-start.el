@@ -371,6 +371,9 @@ Can be used to turn version control on or off."
   :group 'gnus-newsrc
   :type 'hook)
 
+(defvar gnus-startup-file-coding-system 'binary
+  "*Coding system for startup file.")
+
 ;;; Internal variables
 
 (defvar gnus-newsrc-file-version nil)
@@ -409,7 +412,9 @@ Can be used to turn version control on or off."
 		   (file-exists-p (concat file ".el"))
 		   (file-exists-p (concat file ".elc")))
 	       (condition-case var
-		   (load file nil t)
+		   (let ((coding-system-for-read
+			  gnus-startup-file-coding-system))
+		     (load file nil t))
 		 (error
 		  (error "Error in %s: %s" file var)))))))))
 
@@ -1842,7 +1847,8 @@ If FORCE is non-nil, the .newsrc file is read."
     (gnus-message 5 "Reading %s..." ding-file)
     (let (gnus-newsrc-assoc)
       (condition-case nil
-	  (load ding-file t t t)
+	  (let ((coding-system-for-read gnus-startup-file-coding-system))
+	    (load ding-file t t t))
 	(error
 	 (ding)
 	 (unless (gnus-yes-or-no-p
