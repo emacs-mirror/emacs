@@ -1,3 +1,7 @@
+2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* minibuf.c (Ftry_completion): Doc fix.
+
 2000-01-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (Fclear_this_command_keys): Clear recent_keys
