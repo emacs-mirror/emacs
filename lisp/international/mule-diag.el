@@ -215,12 +215,14 @@ but contains full information about each character sets."
 	  (princ "\n")))
       (let ((charsets (coding-system-get coding-system 'safe-charsets)))
 	(when charsets
-	  (princ "This coding system is mainly for the following charsets:\n")
-	  (princ " ")
-	  (while charsets
+	  (if (eq charsets t)
+	      (princ "This coding system can encode charsets:\n")	      
+	    (princ "This coding system encode the following charsets:\n")
 	    (princ " ")
-	    (princ (car charsets))
-	    (setq charsets (cdr charsets)))))
+	    (while charsets
+	      (princ " ")
+	      (princ (car charsets))
+	      (setq charsets (cdr charsets))))))
       (save-excursion
 	(set-buffer standard-output)
 	(help-mode)))))
