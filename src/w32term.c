@@ -3728,14 +3728,14 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   for (i = 0; i < width; ++i)
     w32_fill_area (f, hdc, gc.foreground,
 		   left_x + i * left_p, top_y + i,
-		   (right_x + 1 - i * right_p) - (left_x + i * left_p) + 1, 1);
+		   right_x - left_x - i * (left_p + right_p ) + 1, 1);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     left_x + i, top_y + i, 1,
-		     (bottom_y - i) - (top_y + i) + 2);
+		     bottom_y - top_y - 2 * i + 1);
 
   if (raised_p)
     gc.foreground = f->output_data.w32->black_relief.gc->foreground;
@@ -3746,14 +3746,14 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   for (i = 0; i < width; ++i)
     w32_fill_area (f, hdc, gc.foreground, 
 		   left_x + i * left_p, bottom_y - i,
-		   (right_x - i * right_p) - (left_x + i * left_p) + 2, 1);
+		   right_x - left_x - i * (left_p + right_p) + 1, 1);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     right_x - i, top_y + i + 1, 1,
-		     (bottom_y - i) - (top_y + i));
+		     bottom_y - top_y - 2 * i - 1);
 
   w32_set_clip_rectangle (hdc, NULL);
   
