@@ -474,6 +474,9 @@ other commands which modify the text cause refilling.
   The current implementation is preliminary and probably not robust.
 We expect to improve on it.
 
+  To toggle the use of Refill Mode in the current buffer, type
+@kbd{M-x refill-mode}.
+
 @node Fill Commands
 @subsection Explicit Fill Commands
 
