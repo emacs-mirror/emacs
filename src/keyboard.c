@@ -451,6 +451,7 @@ Lisp_Object Qmouse_click;
 #ifdef WINDOWSNT
 Lisp_Object Qmouse_wheel;
 #endif
+Lisp_Object Qdrag_n_drop;
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -3291,6 +3292,7 @@ static Lisp_Object mouse_syms;
 #ifdef WINDOWSNT
 static Lisp_Object mouse_wheel_syms;
 #endif
+static Lisp_Object drag_n_drop_syms;
 
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
@@ -3722,7 +3724,15 @@ static char *lispy_mouse_wheel_names[] =
 {
   "mouse-wheel"
 };
+
 #endif /* WINDOWSNT */
+
+/* drag-n-drop events are generated when a set of selected files are
+   dragged from another application and dropped onto an Emacs window.  */
+static char *lispy_drag_n_drop_names[] =
+{
+  "drag-n-drop"
+};
 
 /* Scroll bar parts.  */
 Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
@@ -4216,6 +4226,78 @@ make_lispy_event (event)
 	}
       }
 #endif /* WINDOWSNT */
+
+    case drag_n_drop:
+      {
+	int part;
+	FRAME_PTR f;
+	Lisp_Object window;
+	Lisp_Object posn;
+	Lisp_Object head, position;
+	Lisp_Object files;
+	int row, column;
+
+	/* The frame_or_window field should be a cons of the frame in
+	   which the event occurred and a list of the filenames
+	   dropped.  */
+	if (! CONSP (event->frame_or_window))
+	  abort ();
+
+	f = XFRAME (XCONS (event->frame_or_window)->car);
+	files = XCONS (event->frame_or_window)->cdr;
+
+	/* Ignore mouse events that were made on frames that
+	   have been deleted.  */
+	if (! FRAME_LIVE_P (f))
+	  return Qnil;
+	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
+			       &column, &row, NULL, 1);
+	window = window_from_coordinates (f, column, row, &part);
+
+	if (!WINDOWP (window))
+	  {
+	    window = XCONS (event->frame_or_window)->car;
+	    posn = Qnil;
+	  }
+	else
+	  {
+	    int pixcolumn, pixrow;
+	    column -= XINT (XWINDOW (window)->left);
+	    row -= XINT (XWINDOW (window)->top);
+	    glyph_to_pixel_coords (f, column, row, &pixcolumn, &pixrow);
+	    XSETINT (event->x, pixcolumn);
+	    XSETINT (event->y, pixrow);
+
+	    if (part == 1)
+	      posn = Qmode_line;
+	    else if (part == 2)
+	      posn = Qvertical_line;
+	    else
+	      XSETINT (posn,
+		       buffer_posn_from_coords (XWINDOW (window),
+						column, row));
+	  }
+
+	{
+	  Lisp_Object head, position;
+
+	  position
+	    = Fcons (window,
+		     Fcons (posn,
+			    Fcons (Fcons (event->x, event->y),
+				   Fcons (make_number (event->timestamp),
+					  Qnil))));
+
+	  head = modify_event_symbol (0, event->modifiers,
+				      Qdrag_n_drop, Qnil,
+				      lispy_drag_n_drop_names,
+				      &drag_n_drop_syms, 1);
+	  return Fcons (head,
+			Fcons (position,
+			       Fcons (files,
+				      Qnil)));
+	}
+      }
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
@@ -8553,6 +8635,8 @@ syms_of_keyboard ()
   Qmouse_wheel = intern ("mouse-wheel");
   staticpro (&Qmouse_wheel);
 #endif
+  Qdrag_n_drop = intern ("drag-n-drop");
+  staticpro (&Qdrag_n_drop);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
@@ -8666,6 +8750,9 @@ syms_of_keyboard ()
 #ifdef WINDOWSNT
   mouse_wheel_syms = Qnil;
   staticpro (&mouse_wheel_syms);
+  
+  drag_n_drop_syms = Qnil;
+  staticpro (&drag_n_drop_syms);
 #endif
 
   unread_switch_frame = Qnil;
