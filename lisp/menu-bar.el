@@ -594,7 +594,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
 			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
-			nil
+			"Uniquify a buffer name by adding parent directory names until unique"
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
