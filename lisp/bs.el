@@ -187,7 +187,7 @@ return a string representing the column's value."
       (setq ele (cdr ele)))
     (concat res "$\\)")))
 
-;;; Font-Lock-Settings
+;; Font-Lock-Settings
 (defvar bs-mode-font-lock-keywords
   (list ;; header in font-lock-type-face
    (list (bs--make-header-match-string)
@@ -1511,7 +1511,7 @@ name of buffer configuration."
   (setq bs--marked-buffers nil)
   (bs--show-with-configuration (bs--configuration-name-for-prefix-arg arg)))
 
-;;; Now provide feature bs
+;; Now provide feature bs
 (provide 'bs)
 
 ;;; bs.el ends here
