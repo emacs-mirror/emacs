@@ -53,6 +53,13 @@ See the files mac/README and mac/INSTALL for build instructions.
 * Changes in Emacs 21.4
 
 ---
+** ps-print can now print Unicode characters.
+
+Printing text with characters from the mule-unicode-* sets works with
+ps-print, provided that you have installed the appropriate BDF fonts.
+See the file INSTALL for URLs where you can find these fonts.
+
+---
 ** The new options `buffers-menu-show-directories' and
 `buffers-menu-show-status' let you control how buffers are displayed
 in the menu dropped down when you click "Buffers" from the menu bar.
