@@ -21,6 +21,10 @@
 
 2002-03-14  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/debug.el: Require `button'.
+	(debugger-mode-map): Set the parent keymap to `button-buffer-map',
+	to get TAB and <backtab> bindings.
+
 	* net/rlogin.el (rlogin-carriage-filter): Function removed.
 	(rlogin): Don't install the `rlogin-carriage-filter' filter, as
 	comint removes carriage returns itself now.

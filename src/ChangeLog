@@ -1,3 +1,16 @@
+2002-03-14  Miles Bader  <miles@gnu.org>
+
+	* intervals.c (adjust_for_invis_intang): New function.
+	(set_point_both): Use `adjust_for_invis_intang' to do most of the
+	work for dealing with invisible+intangible regions.  Do so before
+	and after both forward and backward movements, to handle both
+	front-sticky and rear-sticky cases.
+	* textprop.c (text_property_stickiness): Function moved here from
+	`editfns.c'.
+	* intervals.h (text_property_stickiness): New declaration.
+	* editfns.c (char_property_eq): Function removed.
+	(text_property_stickiness): Function moved to `textprop.c'.
+
 2002-03-13  Jason Rumney  <jasonr@gnu.org>
 
 	* config.in: Add STRFTIME_NO_POSIX2.
