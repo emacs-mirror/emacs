@@ -101,7 +101,9 @@ struct input_event {
 				   was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
-    mouse_click,		/* The button number is in .code.
+    mouse_click,		/* The button number is in .code; it must
+				   be >= 0 and < NUM_MOUSE_BUTTONS, defined
+				   below.
 				   .modifiers holds the state of the
 				   modifier keys.
 				   .x and .y give the mouse position,
@@ -153,25 +155,38 @@ struct input_event {
   unsigned long timestamp;
 };
 
+/* This is used in keyboard.c, to tell how many buttons we will need
+   to track the positions of.  */
+#define NUM_MOUSE_BUTTONS (5)
+
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical
-   order.  */
+   order.  
+
+   The modifiers applied to mouse clicks are rather ornate.  The
+   window-system-specific code should store mouse clicks with
+   up_modifier or down_modifier set; the window-system independent
+   code turns all up_modifier events into either drag_modifier or
+   click_modifier.  The click_modifier has no written representation
+   in the names of the symbols used as event heads, but it does appear
+   in the Qevent_symbol_components property of the event heads.  */
 enum {
-  up_modifier	=   1,		/* This only applies to mouse buttons.  */
+  up_modifier	=   1,		/* Only used on mouse buttons - always
+				   turned into a click or a drag modifier
+				   before lisp code sees the event.  */
   alt_modifier	=   2,		/* Under X, the XK_Alt_[LR] keysyms.  */
   ctrl_modifier	=   4,
   hyper_modifier=   8,		/* Under X, the XK_Hyper_[LR] keysyms.  */
   meta_modifier	=  16,		/* Under X, the XK_Meta_[LR] keysyms.  */
   shift_modifier=  32,
   super_modifier=  64,		/* Under X, the XK_Super_[LR] keysyms.  */
-  down_modifier = 128,		/* The window-system independent code finds
-				   it handy to have this modifier, but
-				   it is ignored in the event queue.  */
-  drag_modifier = 256,		/* Same as down_modifier.  */
+  down_modifier = 128,		/* Only used on mouse buttons.  */
+  drag_modifier = 256,		/* This is never used in the event
+				   queue; it's only used internally by
+				   the window-system-independent code.  */
+  click_modifier= 512,		/* See drag_modifier.  */
   last_modifier			/* This should always be one more than the
 				   highest modifier bit defined.  */
 };
-
-#define NUM_MODIFIER_COMBOS ((last_modifier-1) << 1)
 
 #endif
