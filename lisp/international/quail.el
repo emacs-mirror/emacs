@@ -898,7 +898,16 @@ The returned value is a Quail map specific to KEY."
       (throw 'exit nil)))
 
 (defvar quail-suppress-conversion nil
-  "If non-nil, suppress converting facility of the current Quail package.")
+  "If non-nil, suppress conversion facility of the current Quail package.
+We distinguish between \"translation\" and \"conversion\" aspects
+of an input method.  Translation is the first step, done by Quail itself;
+conversion is the second step which changes the translated text into
+bettertext.  For instance, the Quail package for Japanese (`quail-jp')
+translates Roman text (transliteration of Japanese in Latin alphabets)
+to Hiragana text, and then converts the Hiragana into Kanji-and-Kana
+mixed text or Katakana text.
+
+If this variable is non-nil, translation still occurs, but not conversion.")
 
 ;; If set to non-nil, exit conversion mode before starting new translation.
 (defvar quail-exit-conversion-mode nil)
@@ -921,15 +930,27 @@ The returned value is a Quail map specific to KEY."
 	      (if (and (not quail-suppress-conversion)
 		       (quail-conversion-keymap))
 		  ;; We must start translation in conversion mode.
-		  (let ((overriding-local-map (quail-conversion-keymap)))
+		  (let ((overriding-terminal-local-map (quail-conversion-keymap)))
 		    (setq quail-exit-conversion-mode nil)
-		    (recursive-edit)
+		    (catch 'exit
+		      (while t
+			(let* ((key (read-key-sequence nil))
+			       (definition (lookup-key overriding-terminal-local-map key t)))
+			  (setq last-command-event (aref key 0))
+			  (setq prefix-arg nil)
+			  (if definition (call-interactively definition)))))
 		    (if (and auto-fill-function
 			     (> (current-column) (current-fill-column)))
 			(run-hooks 'auto-fill-function)))
-		(let ((overriding-local-map (quail-translation-keymap)))
+		(let ((overriding-terminal-local-map (quail-translation-keymap)))
 		  (setq quail-current-key "")
-		  (recursive-edit)))
+		  (catch 'exit
+		    (while t
+		      (let* ((key (read-key-sequence nil))
+			     (definition (lookup-key overriding-terminal-local-map key t)))
+			(setq last-command-event (aref key 0))
+			(setq prefix-arg nil)
+			(if definition (call-interactively definition)))))))
 	      (if (prog1 (< (overlay-start quail-conv-overlay)
 			    (overlay-end quail-conv-overlay))
 		    (delete-overlay quail-conv-overlay))
@@ -937,7 +958,8 @@ The returned value is a Quail map specific to KEY."
 	      nil)
 	    ;; Someone has thrown a tag with value t, which means
 	    ;; we should turn Quail mode off.
-	    (quail-mode -1)))
+	    (quail-mode -1))
+	(message ""))
     ;; Since the typed character doesn't start any translation, handle
     ;; it out of Quail mode.  We come back to Quail mode later because
     ;; function `quail-toggle-mode-temporarily' is in
