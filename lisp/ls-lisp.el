@@ -1,5 +1,7 @@
-;;;; dired-lisp.el - emulate ls completely in Emacs Lisp
-;;;; Copyright (C) 1990 Sebastian Kremer
+;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision$
+;;;; Copyright (C) 1991 Sebastian Kremer <sk@thp.uni-koeln.de>
+
+;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
 
 ;;;; Useful if you cannot afford to fork Emacs on a real memory UNIX,
 ;;;; under VMS, or if you don't have the ls program.
