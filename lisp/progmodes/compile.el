@@ -298,7 +298,10 @@ to a function that generates a unique name."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
-  
+
+;; The system null device. (Should reference NULL_DEVICE from C.)
+(defvar grep-null-device "/dev/null" "The system null device.")
+
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -310,7 +313,7 @@ easily repeat a grep command."
   (interactive
    (list (read-from-minibuffer "Run grep (like this): "
 			       grep-command nil nil 'grep-history)))
-  (compile-internal (concat command-args " /dev/null")
+  (compile-internal (concat command-args " " grep-null-device)
 		    "No more grep hits" "grep"
 		    ;; Give it a simpler regexp to match.
 		    nil grep-regexp-alist))
