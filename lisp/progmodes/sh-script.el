@@ -226,6 +226,7 @@
 (defcustom sh-ancestor-alist
   '((ash . sh)
     (bash . jsh)
+    (bash2 . jsh)
     (dtksh . ksh)
     (es . rc)
     (itcsh . tcsh)
@@ -274,6 +275,7 @@ sh		Bourne Shell
 	       (ksh . pdksh)))
 	 ;; for the time being
 	 '((ksh . ksh88)
+           (bash2 . bash)
 	   (sh5 . sh)))
   "*Alist for transforming shell names to what they really are.
 Use this where the name of the executable doesn't correspond to the type of
