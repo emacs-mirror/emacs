@@ -1161,19 +1161,38 @@ static char *magick[] = {
        "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
 (defface breakpoint-enabled
-  '((t
-     :inherit fringe
+  ;; On ttys, we don't inherit from the `fringe' face because that
+  ;; doesn't seem to do the right thing in some cases (?), whereas
+  ;; it's required on non-tty displays to get the background right.
+  '((((type tty))
      :weight bold
-     :foreground "red"))
+     :foreground "red")
+    (t
+     :weight bold
+     :foreground "red"
+     :inherit fringe))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)
 ;; compatibility alias for old name
 (put 'breakpoint-enabled-bitmap-face 'face-alias 'breakpoint-enabled)
 
 (defface breakpoint-disabled
-  '((t
-     :inherit fringe
-     :foreground "grey60"))
+  ;; We use different values of grey for different background types,
+  ;; so that on low-color displays it will end up as something visible
+  ;; if it has to be approximated.  On ttys, we don't inherit from the
+  ;; `fringe' face because that doesn't seem to do the right thing in
+  ;; some cases (?), whereas it's required on non-tty displays to get
+  ;; the background right.
+  '((((type tty)  (background dark))
+     :foreground "grey60")
+    (((type tty) (background light))
+     :foreground "grey40")
+    (((background dark))
+     :foreground "grey60"
+     :inherit fringe)
+    (((background light))
+     :foreground "grey40"
+     :inherit fringe))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
 ;; compatibility alias for old name
