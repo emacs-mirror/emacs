@@ -727,7 +727,7 @@ If EXAMINE is non-nil the group is selected read-only."
 		      (gnus-netrc-machine list
 					  (or nnimap-server-address
 					      nnimap-address)
-					  port "imap"))
+					  port "imap")
 		      (gnus-netrc-machine list
 					  (or nnimap-server-address
 					      nnimap-address)

@@ -1,3 +1,7 @@
+2004-09-10  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* nnimap.el (nnimap-open-connection): Remove extraneous end-paren.
+
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnimap.el (nnimap-open-connection): allow 'imaps' as a synonym
