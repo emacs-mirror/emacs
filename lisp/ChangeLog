@@ -1,3 +1,8 @@
+2002-07-03  Andreas Schwab  <schwab@suse.de>
+
+	* net/tramp.el (tramp-handle-ange-ftp): Move interactive spec
+	after doc string.
+
 2002-07-03  Juanma Barranquero  <lektu@terra.es>
 
 	* net/tramp.el (tramp-send-eof): Fix typo.
