@@ -1,3 +1,20 @@
+2004-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Cleanups in `cursor'.
+	Rewrites in `line-height' and `line-spacing'; exchange them.
+
+	* display.texi (Fringes): Rewrite previous change.
+	(Fringe Bitmaps): Merge text from Display Fringe Bitmaps.  Rewrite.
+	(Display Fringe Bitmaps): Node deleted, text moved.
+	(Customizing Bitmaps): Split off from Fringe Bitmaps.  Rewrite.
+	(Scroll Bars): Clarify set-window-scroll-bars.
+	(Pointer Shape): Rewrite.
+	(Specified Space): Clarify :align-to, etc.
+	(Pixel Specification): Use @var.  Clarify new text.
+	(Other Display Specs): Clarify `slice'.
+	(Image Descriptors): Cleanups.
+	(Showing Images): Cleanups.
+
 2004-09-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* hooks.texi (Standard Hooks): Add `after-change-major-mode-hook'.
