@@ -1,3 +1,8 @@
+2001-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (syms_of_fileio) <directory-sep-char>: Warn that it is
+	deprecated.
+
 2001-03-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* data.c (Fsubr_interactive_form): New function.

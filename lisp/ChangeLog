@@ -1,3 +1,9 @@
+2001-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/profile.el: Say that it's obsolete in the header
+	line, so that finder.el puts that into its data-base.
+	Suggested by Alex Schroeder <alex@gnu.org>.
+
 2001-03-29  Paul Eggert  <eggert@twinsun.com>
 
 	* mail/emacsbug.el (report-emacs-bug): Report LC_COLLATE,
