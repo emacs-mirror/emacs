@@ -104,7 +104,7 @@
 ;; USER OPTIONS -- settings you might want to play with.
 ;; ----------------------------------------------------------------------------
 (defconst desktop-basefilename
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
       "emacs.dsk" ; Ms-Dos does not support multiple dots in file name
     ".emacs.desktop")
   "File for Emacs desktop.  A directory name will be prepended to this name.")
