@@ -18473,6 +18473,25 @@ With the Inverse flag [@code{arcsincos}], this command takes a two-element
 vector as an argument and computes @code{arctan2} of the elements.
 (This command does not accept the Hyperbolic flag.)
 
+@pindex calc-sec
+@tindex sec
+@pindex calc-csc
+@tindex csc
+@pindex calc-cot
+@tindex cot
+@pindex calc-sech
+@tindex sech
+@pindex calc-csch
+@tindex csch
+@pindex calc-coth
+@tindex coth
+The remaining trigonometric functions, @code{calc-sec} [@code{sec}],
+@code{calc-csc} [@code{csc}] and @code{calc-sec} [@code{sec}], are also
+available.  With the Hyperbolic flag, these compute their hyperbolic
+counterparts, which are also available separately as @code{calc-sech}
+[@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-sech}
+[@code{sech}].  (These commmands do not accept the Inverse flag.)
+
 @node Advanced Math Functions, Branch Cuts, Trigonometric and Hyperbolic Functions, Scientific Functions
 @section Advanced Mathematical Functions
 
@@ -22730,17 +22749,26 @@ declared to be an integer.
 \bigskip
 @end tex
 
-Trigonometric functions are simplified in several ways.  First,
-@expr{@tfn{sin}(@tfn{arcsin}(x))} is simplified to @expr{x}, and
-similarly for @code{cos} and @code{tan}.  If the argument to
-@code{sin} is negative-looking, it is simplified to 
-@expr{-@tfn{sin}(x),},  and similarly for @code{cos} and @code{tan}.
-Finally, certain special values of the argument are recognized;
-@pxref{Trigonometric and Hyperbolic Functions}.
+Trigonometric functions are simplified in several ways.  Whenever a
+products of two trigonometric functions can be replaced by a single
+function, the replacement is made; for example,
+@expr{@tfn{tan}(x) @tfn{cos}(x)} is simplified to @expr{@tfn{sin}(x)}. 
+Reciprocals of trigonometric functions are replaced by their reciprocal
+function; for example, @expr{1/@tfn{sec}(x)} is simplified to
+@expr{@tfn{cos}(x)}.  The corresponding simplifications for the
+hyperbolic functions are also handled.
 
+Trigonometric functions of their inverse functions are
+simplified. The expression @expr{@tfn{sin}(@tfn{arcsin}(x))} is
+simplified to @expr{x}, and similarly for @code{cos} and @code{tan}.  
 Trigonometric functions of inverses of different trigonometric
 functions can also be simplified, as in @expr{@tfn{sin}(@tfn{arccos}(x))}
 to @expr{@tfn{sqrt}(1 - x^2)}.
+
+If the argument to @code{sin} is negative-looking, it is simplified to
+@expr{-@tfn{sin}(x)}, and similarly for @code{cos} and @code{tan}.
+Finally, certain special values of the argument are recognized;
+@pxref{Trigonometric and Hyperbolic Functions}.
 
 Hyperbolic functions of their inverses and of negative-looking
 arguments are also handled, as are exponentials of inverse
