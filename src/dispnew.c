@@ -29,13 +29,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termchar.h"
 #include "termopts.h"
 #include "termhooks.h"
-#ifdef HAVE_NTGUI
+/* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
-#else
-#include "cm.h"
-#include "dispextern.h"
-#endif /* HAVE_NTGUI */
 #include "buffer.h"
 #include "frame.h"
 #include "window.h"
