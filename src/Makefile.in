@@ -1123,7 +1123,7 @@ process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
    keyboard.h $(config_h)
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h category.h charset.h
-region-cache.o: region-cache.c buffer.h region-cache.h
+region-cache.o: region-cache.c buffer.h region-cache.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
