@@ -38,6 +38,10 @@
   "*Back-end actually used by this interface; may be SCCS or RCS.
 The value is only computed when needed to avoid an expensive search.")
 
+(defvar vc-handle-cvs t
+  "*If non-nil, use VC for files managed with CVS.
+If it is nil, don't use VC for those files.")
+
 (defvar vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")
@@ -285,7 +289,7 @@ value of this flag.")
 			   (mapconcat 'identity vc-path path-separator))
 		   process-environment)))
 	(apply 'call-process "cvs" nil "*vc-info*" nil 
-	       (list "status" (file-name-nondirectory file))))
+	       (list "status" file)))
       (set-buffer (get-buffer "*vc-info*"))
       (set-buffer-modified-p nil)
       (auto-save-mode nil)
@@ -650,7 +654,8 @@ value of this flag.")
   ;; the MASTER will not actually exist yet.  The other parts of VC
   ;; checks for this condition.  This function returns nil if 
   ;; DIRNAME/BASENAME is not handled by CVS.
-  (if (and (file-directory-p (concat dirname "CVS/"))
+  (if (and vc-handle-cvs
+	   (file-directory-p (concat dirname "CVS/"))
 	   (file-readable-p (concat dirname "CVS/Entries"))
 	   (file-readable-p (concat dirname "CVS/Repository")))
       (let ((bufs nil) (fold case-fold-search))
