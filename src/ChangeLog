@@ -1,3 +1,8 @@
+1999-10-03  Ken'ichi Handa  <handa@gnu.org>
+
+	* coding.c (DECODE_CHARACTER_ASCII): Decode ASCII invocated to GR
+	correctly.
+
 1999-09-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* category.c (modify_lower_category_set): Set default value of
