@@ -1,5 +1,23 @@
 2002-03-20  Jason Rumney  <jasonr@gnu.org>
 
+	Most of the following changes are still conditional on HAVE_IMAGES
+	which is not set by default on Windows.
+
+	* w32fns.c (x_set_cursor_color): Set foreground of cursor, not frame.
+	(Fimage_size, Fimage_mask_p, XPutPixel): New functions.
+	(four_corners_best, x_clear_image_1, x_clear_image)
+	(x_alloc_image_color, postprocess_image) 
+	(x_create_x_image_and_pixmap, x_destroy_x_image, xbm_load_image) 
+	(x_from_x_colors, x_disable_image, pbm_load): Adapt for Windows.
+	(init_xfns, syms_of_w32fns): Initialize image functions and constants.
+
+	* w32gui.h (struct XImage): Define.
+
+	* w32term.c (w32_read_socket) <WM_XBUTTONUP>: Use XFASTINT to
+	extract mouse co-ordinates.
+
+2002-03-20  Jason Rumney  <jasonr@gnu.org>
+
 	* w32.c (init_winsock): Dynamically load new server and UDP
 	socket functions.
 	(socket_to_fd): New function.

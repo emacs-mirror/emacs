@@ -1,3 +1,8 @@
+2002-03-20  Jason Rumney  <jasonr@gnu.org>
+
+	* inc/sys/socket.h (sys_setsockopt, sys_listen, sys_getsockname)
+	(sys_accept, sys_recvfrom, sys_sendto): Declare as wrappers.
+
 2002-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* config.nt (HAVE_SENDTO, HAVE_RECVFROM, HAVE_GETSOCKOPT)
