@@ -769,6 +769,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 (define-key kmacro-step-edit-map "f" 'skip-keep)
 (define-key kmacro-step-edit-map "q" 'quit)
 (define-key kmacro-step-edit-map "d" 'skip)
+(define-key kmacro-step-edit-map "\C-d" 'skip)
 (define-key kmacro-step-edit-map "i" 'insert)
 (define-key kmacro-step-edit-map "I" 'insert-1)
 (define-key kmacro-step-edit-map "r" 'replace)
@@ -917,7 +918,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
        ((eq act 'skip-rest)
 	(setq kmacro-step-edit-active 'ignore)
 	nil)
-       ((eq act 'automatic)
+       ((memq act '(automatic exit))
 	(setq kmacro-step-edit-active nil)
 	(setq act t)
 	t)
@@ -1092,8 +1093,11 @@ To customize possible responses, change the \"bindings\" in `kmacro-step-edit-ma
     (add-hook 'post-command-hook 'kmacro-step-edit-post-command t)
     (add-hook 'minibuffer-setup-hook 'kmacro-step-edit-minibuf-setup t)
     (call-last-kbd-macro nil nil)
-    (if kmacro-step-edit-replace
-	(setq last-kbd-macro kmacro-step-edit-new-macro))))
+    (when (and kmacro-step-edit-replace
+	       kmacro-step-edit-new-macro
+	       (not (equal last-kbd-macro kmacro-step-edit-new-macro)))
+      (kmacro-push-ring)
+      (setq last-kbd-macro kmacro-step-edit-new-macro))))
 
 (provide 'kmacro)
 ;;; kmacro.el ends here
