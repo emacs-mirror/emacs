@@ -267,7 +267,7 @@ echo "Making links to \`lisp' and its subdirectories"
  ## Find all subdirs of lisp dir
  for file in `find . -type d -print`; do
    case $file in
-     . | .. | */Old | */RCS)
+     . | .. | */Old | */RCS | */=*)
        ;;	
      *)
        if [ -d $file ]; then
