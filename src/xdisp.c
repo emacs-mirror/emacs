@@ -1565,7 +1565,7 @@ redisplay_window (window, just_this_one)
     }
 
   /* Handle case where text has not changed, only point,
-     and it has not moved off the frame */
+     and it has not moved off the frame.  */
 
   /* This code is not used for minibuffer for the sake of
      the case of redisplaying to replace an echo area message;
@@ -1724,7 +1724,7 @@ recenter:
   pos = *vmotion (PT, - (height / 2), w);
   /* Set startp here explicitly in case that helps avoid an infinite loop
      in case the window-scroll-functions functions get errors.  */
-  Fset_marker (w->start, make_number (pos), Qnil);
+  Fset_marker (w->start, make_number (pos.bufpos), Qnil);
   if (! NILP (Vwindow_scroll_functions))
     run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			  make_number (pos.bufpos));
