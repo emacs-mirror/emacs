@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.28) $
+ * $HopeName: MMsrc!arena.c(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.28) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.29) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -136,11 +136,12 @@ Bool ArenaCheck(Arena arena)
   CHECKL(RingCheck(&arena->threadRing));
 
   CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheI < SHIELD_CACHE_SIZE);
+  CHECKL(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+  CHECKL(arena->shCacheI < arena->shCacheLimit);
   CHECKL(BoolCheck(arena->suspended));
 
   depth = 0;
-  for (i=0; i < SHIELD_CACHE_SIZE; ++i) {
+  for (i=0; i < arena->shCacheLimit; ++i) {
     Seg seg = arena->shCache[i];
     if (seg != (Seg)0) {
       CHECKL(SegCheck(seg));
@@ -230,6 +231,7 @@ void ArenaInit(Arena arena, ArenaClass class)
   LockInit(&arena->lockStruct);
   arena->insideShield = FALSE;          /* impl.c.shield */
   arena->shCacheI = (Size)0;
+  arena->shCacheLimit = (Size)1;
   arena->shDepth = (Size)0;
   arena->suspended = FALSE;
   for(i = 0; i < SHIELD_CACHE_SIZE; i++)
