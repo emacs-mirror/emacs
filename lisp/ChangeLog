@@ -1,3 +1,7 @@
+2001-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ehelp.el (with-electric-help): Doc fix.
+
 2001-02-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* msb.el (msb-mode): Call the update-buffers function explicitly
