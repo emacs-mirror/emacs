@@ -1,3 +1,7 @@
+2003-08-02  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-mode): Don't set mode-class property.
+
 2003-08-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* lpr.el (printify-region): It was ending conversion before the
