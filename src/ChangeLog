@@ -1,5 +1,13 @@
 2001-01-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Frecenter): When changing the window start, set the
+	window's window_end_valid to nil.
+	(Fwindow_end): Fix window-end computation when UPDATE is non-nil.
+
+	* dispextern.h (move_it_past_eol): Add prototype.
+
+	* xdisp.c (move_it_past_eol): New function.
+
 	* window.c (Fwindow_end): Doc fix.
 
 2001-01-03  Dave Love  <fx@gnu.org>
