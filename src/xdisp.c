@@ -13824,7 +13824,12 @@ try_window_id (w)
 			bottom_vpos, dy);
 
   if (first_unchanged_at_end_row)
-    first_unchanged_at_end_row += dvpos;
+    {
+      first_unchanged_at_end_row += dvpos;
+      if (first_unchanged_at_end_row->y >= it.last_visible_y
+	  || !MATRIX_ROW_DISPLAYS_TEXT_P (first_unchanged_at_end_row))
+	first_unchanged_at_end_row = NULL;
+    }
 
   /* If scrolling up, there may be some lines to display at the end of
      the window.  */
@@ -13881,7 +13886,6 @@ try_window_id (w)
 
   /* Update window_end_pos and window_end_vpos.  */
   if (first_unchanged_at_end_row
-      && first_unchanged_at_end_row->y < it.last_visible_y
       && !last_text_row_at_end)
     {
       /* Window end line if one of the preserved rows from the current
