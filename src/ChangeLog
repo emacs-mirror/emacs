@@ -1,3 +1,7 @@
+2001-01-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (display_string): Fix previous change.
+
 2001-01-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_produce_stretch_glyph): Only use Qspace when
