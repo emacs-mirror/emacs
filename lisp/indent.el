@@ -285,11 +285,14 @@ A value of nil means really run `indent-according-to-mode' on each line.")
 
 (defun indent-region (start end column)
   "Indent each nonblank line in the region.
-With no argument, indent each line using `indent-according-to-mode',
+With prefix no argument, indent each line using `indent-according-to-mode',
 or use `indent-region-function' to do the whole region if that's non-nil.
 If there is a fill prefix, make each line start with the fill prefix.
 With argument COLUMN, indent each line to that column.
-Called from a program, takes three args: START, END and COLUMN."
+
+When you call this from a program, START and END specify
+the region to indent, and COLUMN specifies the indentation column.
+If COLUMN is nil, then indent each line according to the mode."
   (interactive "r\nP")
   (if (null column)
       (if fill-prefix
