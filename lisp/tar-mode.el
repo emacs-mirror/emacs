@@ -398,40 +398,40 @@ is visible (and the real data of the buffer is hidden)."
 	 (pos 1)
 	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
 	 (bs100 (max 1 (/ bs 100)))
-	(tokens nil))
+	 (tokens nil))
     (while (not (eq tokens 'empty-tar-block))
-      (let* ((hblock (buffer-substring pos (+ pos 512))))
-	(setq tokens (tar-header-block-tokenize hblock))
-	(setq pos (+ pos 512))
-	(message "parsing tar file...%s%%"
-		 ;(/ (* pos 100) bs)   ; this gets round-off lossage
-		 (/ pos bs100)         ; this doesn't
-		 )
-	(if (eq tokens 'empty-tar-block)
-	    nil
-	  (if (null tokens) (error "premature EOF parsing tar file"))
-	  (if (eq (tar-header-link-type tokens) 20)
-	      ;; Foo.  There's an extra empty block after these.
-	      (setq pos (+ pos 512)))
-	  (let ((size (tar-header-size tokens)))
-	    (if (< size 0)
-		(error "%s has size %s - corrupted"
-		       (tar-header-name tokens) size))
-	    ;
-	    ; This is just too slow.  Don't really need it anyway....
-	    ;(tar-header-block-check-checksum
-	    ;  hblock (tar-header-block-checksum hblock)
-	    ;  (tar-header-name tokens))
-	    
-	    (setq result (cons (make-tar-desc pos tokens) result))
-	    
-	    (if (and (null (tar-header-link-type tokens))
-		     (> size 0))
-		(setq pos
-		  (+ pos 512 (ash (ash (1- size) -9) 9))        ; this works
-		  ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
-		  ))
-	    ))))
+      (if (> (+ pos 512) (point-max))
+	  (error "premature EOF parsing tar file"))
+      (setq tokens
+	    (tar-header-block-tokenize (buffer-substring pos (+ pos 512))))
+      (setq pos (+ pos 512))
+      (message "parsing tar file...%d%%"
+	       ;(/ (* pos 100) bs)   ; this gets round-off lossage
+	       (/ pos bs100)         ; this doesn't
+	       )
+      (if (eq tokens 'empty-tar-block)
+	  nil
+	(if (eq (tar-header-link-type tokens) 20)
+	    ;; Foo.  There's an extra empty block after these.
+	    (setq pos (+ pos 512)))
+	(let ((size (tar-header-size tokens)))
+	  (if (< size 0)
+	      (error "%s has size %s - corrupted"
+		     (tar-header-name tokens) size))
+	  ;
+	  ; This is just too slow.  Don't really need it anyway....
+	  ;(tar-header-block-check-checksum
+	  ;  hblock (tar-header-block-checksum hblock)
+	  ;  (tar-header-name tokens))
+
+	  (setq result (cons (make-tar-desc pos tokens) result))
+
+	  (and (null (tar-header-link-type tokens))
+	       (> size 0)
+	       (setq pos
+		     (+ pos 512 (ash (ash (1- size) -9) 9))        ; this works
+		     ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
+		     )))))
     (make-local-variable 'tar-parse-info)
     (setq tar-parse-info (nreverse result)))
   (save-excursion
