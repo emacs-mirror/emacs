@@ -1214,7 +1214,7 @@ not for everybody."
   ;; To be more complete, we should also kill all permanent-local variables,
   ;; but it's not needed for custom.
   (let ((buf (get-buffer name)))
-    (when (buffer-local-value 'buffer-file-name buf)
+    (when (and buf (buffer-local-value 'buffer-file-name buf))
       ;; This will check if the file is not saved.
       (kill-buffer buf)
       (setq buf nil))
