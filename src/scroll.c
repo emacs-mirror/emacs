@@ -108,6 +108,9 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
      at least 1/4 second.  */
   int extra_cost = baud_rate / (10 * 4 * FRAME_HEIGHT (frame));
 
+  if (baud_rate <= 0)
+    extra_cost = 1;
+
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
   matrix->insertcost = INFINITY;
