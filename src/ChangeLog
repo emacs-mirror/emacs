@@ -1,3 +1,7 @@
+2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (XTread_socket): Disable the Xutf8LookupString code.
+
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* dispextern.h (DEFAULT_TOOL_BAR_BUTTON_MARGIN)
@@ -38,23 +42,22 @@
 	(wait_reading_process_input) [MAC_OSX]: Clear bit for stdin before
 	calling select.
 
-	* termcap.c [MAC_OSX]: Don't define tgetnum, PC, tputs, and
-	tgetent.
-	
+	* termcap.c [MAC_OSX]: Don't define tgetnum, PC, tputs, and tgetent.
+
 	* tparam.c [MAC_OSX]: Don't define BC and UP.
-	
+
 	* config.in [HAVE_CARBON]: Add.
 
-	* mac.c, macgui.h, macfns.c, macmenu.c, macterm.c, macterm.h: Move
-	here from mac/src and mac/inc.
+	* mac.c, macgui.h, macfns.c, macmenu.c, macterm.c, macterm.h:
+	Move here from mac/src and mac/inc.
 
 	* s/darwin.h, m/powermac.h, unexmacosx.c: New files.
-	
+
 2002-04-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (x_draw_phys_cursor_glyph): Undo last change.  Compute
-	phys_cursor_width from the x position returned by x_draw_glyhs,
-	which is cheaper.
+	* xterm.c (x_draw_phys_cursor_glyph): Undo last change.
+	Compute phys_cursor_width from the x position returned
+	by x_draw_glyhs, which is cheaper.
 	(x_display_and_set_cursor): Compute the buffer-local value
 	of `cursor-in-non-selected-windows' only when needed.
 
@@ -83,7 +86,7 @@
 
 	* xterm.c (x_display_and_set_cursor): Set phys_cursor_width to
 	0 for NO_CURSOR.
-	
+
 	* xterm.c (notice_overwritten_cursor): Fix an off by 1 error.
 
 2002-04-23  Colin Walters  <walters@verbum.org>
@@ -95,7 +98,7 @@
 	* xterm.c (notice_overwritten_cursor): Handle the special case
 	of the cursor being in the first blank non-text line at the
 	end of a window.
-	
+
 	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor)
 	(x_draw_phys_cursor_glyph): Set phys_cursor_width here.
 	(x_display_and_set_cursor): Don't set phys_cursor_width here, for
@@ -111,8 +114,7 @@
 
 2002-04-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* xdisp.c: Remove unused global variable
-	`minibuf_prompt_pixel_width'.
+	* xdisp.c: Remove unused global variable `minibuf_prompt_pixel_width'.
 
 2002-04-22  Kim F. Storm  <storm@cua.dk>
 
