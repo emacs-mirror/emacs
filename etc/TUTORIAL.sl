@@ -1,5 +1,5 @@
-Copyright (c) 1985,96,97 Free Software Foundation, Inc;  See end for conditions.
-Prvo berilo za Emacs
+Prvo berilo za Emacs. Pogoji uporabe in raz¹irjanja so navedeni na koncu.
+Copyright (c) 1985, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
 
 Ukazi v Emacsu v splo¹nem vkljuèujejo tipki CONTROL (vèasih oznaèeni
 CTRL ali CTL) in META (vèasih oznaèena EDIT ali ALT). Namesto, da bi ju
@@ -51,6 +51,10 @@ Za pregled celega zaslona besedila so uporabni naslednji ukazi:
    Vtipkajte C-l.
    Ponovno poi¹èite kazalèek. Besedilo okoli njega je ostalo isto.
 
+Za premikanje za cel zaslon naprej ali nazaj lahko tipkovnicah, ki
+imajo ti tipki, uporabljate tudi PageUp in PageDown. Opisan postopek s
+C-v in M-v pa deluje povsod.
+
 
 * PREMIKANJE KAZALÈKA
 ---------------------
@@ -60,7 +64,8 @@ pridemo do izbranega mesta na zaslonu?
 
 Naèinov je veè. Najosnovnej¹i je uporaba ukazov C-p, C-b, C-f in
 C-n. Ti po vrsti premaknejo kazalèek v prej¹njo vrstico, znak nazaj,
-znak naprej, in v naslednjo vrstico. Grafièno prikazano:
+znak naprej, in v naslednjo vrstico. Ti ¹tirje ukazi so enakovredni
+kurzorskim tipkam:
 
 			  prej¹nja vrstica, C-p
 				  :
@@ -74,10 +79,10 @@ znak naprej, in v naslednjo vrstico. Grafièno prikazano:
    na diagramu zgoraj. Zatem pritisnite C-l. S tem diagram postavite na
    sredino zaslona.
 
-V angle¹èini ima izbor tipk nazoren pomen. P kot ,previous` (prej¹nji),
-N kot ,next` (naslednji), B kot ,backward` (nazaj) in F kot ,forward`
-(naprej). To so osnovni ukazi za premikanje kazalèka in uporabljali jih
-boste VES ÈAS. Èim prej se jih nauèite, tem bolje.
+V angle¹èini ima izbor tipk nazoren pomen. P kot ,previous`
+(prej¹nji), N kot ,next` (naslednji), B kot ,backward` (nazaj) in F
+kot ,forward` (naprej). Te osnovne ukaze za premikanje kazalèka boste
+uporabljali ves èas.
 
 >> Nekajkrat pritisnite C-n, da pride kazalèek do te vrstice.
 
@@ -303,14 +308,20 @@ vidite, na primer A, 7, * in podobno, razume Emacs kot del besedila in
 jih takoj vrine. S pritiskom na Return (ali Enter) vrinete znak za
 skok v novo vrstico.
 
-Zadnji vtipkani znak lahko izbri¹ete s pritiskom na tipko <Delete>. Na
-nekaterih tipkovnicah je oznaèena z <Del>. Ponekod (ne pa povsod!)
-slu¾i za brisanje tipka <Backspace>.
+Zadnji vtipkani znak lahko izbri¹ete s pritiskom na tipko
+<Delback>. To je tista tipka na tipkovnici, ki jo navadno uporabljate
+za brisanje nazadnje natipkanega znaka. Navadno je to velika tipka
+vrstico ali dve nad tipko <Return>, ki je oznaèena z "Backspace",
+"Delete" ali "Del".
 
-Splo¹no <Delete> pobri¹e znak neposredno pred trenutnim polo¾ajem
+Èe imate na tipkovnici tipko "Backspace", je to tipka <Delback>. Naj
+vas ne zmede, èe imate poleg tega ¹e tipko "Delete" - <Delback> je
+"Backspace".
+
+Splo¹no <Delback> pobri¹e znak neposredno pred trenutnim polo¾ajem
 kazalèka.
 
->> Vtipkajte zdaj nekaj znakov in jih zatem s tipko <Delete> pobri¹ite.
+>> Vtipkajte zdaj nekaj znakov in jih zatem s tipko <Delback> pobri¹ite.
    Niè naj vas ne skrbi, èe se je ta vrstica spremenila. Izvirnika
    tega uèbenika ne boste pokvarili -- tole je samo va¹a osebna kopija.
 
@@ -322,7 +333,7 @@ nadaljuje v naslednji zaslonski vrstici.
 >> Zdaj zaènite tipkati besedilo, dokler ne dose¾ete desnega roba, in
    ¹e naprej. Opazili boste, da se pojavi znak za nadaljevanje.
 
->> S tipko <Delete> pobri¹ite toliko znakov, da vrstica ne sega
+>> S tipko <Delback> pobri¹ite toliko znakov, da vrstica ne sega
    veè èez ¹irino zaslona. Znak za nadaljevanje v naslednji
    vrstici je izginil.
 
@@ -331,7 +342,7 @@ ko pobri¹emo znak za novo vrstico, zdru¾imo vrstici v eno samo.  Èe bo
 nova vrstica predolga, da bi cela pri¹la na zaslon, bo razdeljena v
 veè zaslonskih vrstic.
 
->> Premaknite kazalèek na zaèetek vrstice in pritisnite <Delete>. To
+>> Premaknite kazalèek na zaèetek vrstice in pritisnite <Delback>. To
    zdru¾i vrstico s prej¹njo.
 
 >> Pritisnite <Return>. S tem ste ponovno vrinili znak za skok v novo
@@ -347,21 +358,21 @@ Zdaj ste se nauèili najpreprostej¹i naèin, da v Emacsu nekaj natipkate
 in popravite. Bri¹ete lahko tudi besede ali vrstice. Tu je povzetek
 ukazov za brisanje:
 
-	<Delete>     pobri¹e znak tik pred kazalèkom (levo od
+	<Delback>    pobri¹e znak tik pred kazalèkom (levo od
 	             oznake za kazalèek)
 	C-d   	     pobri¹e znak tik za kazalèkom (,pod` oznako
 		     za kazalèek)
 
-	M-<Delete>   pobri¹e besedo tik pred kazalèkom
+	M-<Delback>  pobri¹e besedo tik pred kazalèkom
 	M-d	     pobri¹e besedo tik za kazalèkom
 
 	C-k          zavr¾e besedilo desno od kazalèka do konca vrstice
 	M-k          zavr¾e besedilo od polo¾aja kazalèka do konca stavka
 
 Èrka ,d` je iz angle¹ke besede ,delete` (pobrisati), èrka ,k` pa iz
-besede ,kill` (pobiti). Ste opazili, da <Delete> in C-d na eni, ter
-M-<Delete> in M-d na drugi strani nadaljujeta paralelo, ki sta jo zaèela
-C-f in M-f (<Delete> pravzaprav ni kontrolni znak, kar pa naj nas ne 
+besede ,kill` (pobiti). Ste opazili, da <Delback> in C-d na eni, ter
+M-<Delback> in M-d na drugi strani nadaljujeta paralelo, ki sta jo zaèela
+C-f in M-f (<Delback> pravzaprav ni kontrolni znak, kar pa naj nas ne 
 moti).  C-k in M-k sta v enakem sorodu s C-e in M-e: prvi deluje na 
 vrstice, drugi na stavke.
 
@@ -566,9 +577,9 @@ Tudi èe ste z ukazom C-x C-f poiskali in odprli drugo datoteko, prva
 ostane v Emacsu. Nanjo se vrnete tako, da jo ¹e enkrat ,,poi¹èete`` z
 ukazom C-x C-f. Tako imate lahko v Emacsu hkrati kar precej datotek.
 
->> Ustvarite datoteko z imenom ,,foo`` tako, da vtipkate C-x C-f
-   foo <Return>. Natipkajte nekaj besedila, ga po potrebi popravite, in
-   shranite v datoteko ,,foo`` z ukazom C-x C-s. Ko ste konèali, se
+>> Ustvarite datoteko z imenom ,,bla`` tako, da vtipkate C-x C-f
+   bla <Return>. Natipkajte nekaj besedila, ga po potrebi popravite, in
+   shranite v datoteko ,,bla`` z ukazom C-x C-s. Ko ste konèali, se
    vrnite v uèbenik z ukazom C-x C-f TUTORIAL <Return>.
 
 Emacs hrani besedilo vsake datoteke v takoimenovanem ,,delovnem
@@ -581,13 +592,40 @@ z ukazom:
 >> Poskusite C-x C-b zdaj.
 
 Vidite, da ima vsako delovno podroèje svoje ime, pri nekaterih pa pi¹e
-tudi ime datoteke, katere vsebina se hrani v njem. Druga delovna
-podroèja pa ne pripadajo nobeni datoteki. Podroèje ,,*Buffer List*``,
-na primer, je ¾e eno takih. To delovno podroèje smo ustvarili
-ravnokar, ko smo pognali ukaz C-x C-b. VSAKO besedilo, ki ga vidite v
-katerem od Emacsovih oken, je vedno del kak¹nega delovnega podroèja.
+tudi ime datoteke, katere vsebina se hrani v njem. Vsako besedilo, ki
+ga vidite v katerem od Emacsovih oken, je vedno del kak¹nega delovnega
+podroèja.
 
 >> Z ukazom C-x 1 se znebite seznama delovnih podroèij.
+
+Tudi èe imate veè delovnih podroèij, pa je vedno le eno od njih
+trenutno dejavno. To je tisto delovno podroèje, ki ga popravljate. Èe
+¾elite popravljati drugo delovno podroèje, morate ,,preklopiti``
+nanj. Èe bi radi preklopili na delovno podroèje, ki pripada kak¹ni
+datoteki, ¾e poznate en naèin, kako to storiti: ponovno ,,obi¹èete``
+(odprete) to datoteko z ukazom C-x C-f. Obstaja pa ¹e la¾ji naèin: z
+ukazom C-x b. Pri tem ukazu morate navesti ime delovnega podroèja.
+
+>> Vtipkajte C-x b bla <Return>, s èimer se vrnete v delovno podroèje
+   ,,bla`` z vsebino datoteke ,,bla``, ki ste jo maloprej
+   odprli. Zatem vtipkajte C-x b TUTORIAL <RETURN>, s èimer se vrnete
+   nazaj v ta uèbenik.
+
+Veèinoma se ime delovnega podroèja kar ujema z imenom datoteke (brez
+poti do datoteke), ne pa vedno. Seznam delovnih podroèij, ki ga
+prika¾e ukaz C-x C-b, prika¾e imena vseh delovnih podroèij.
+
+Vsako besedilo, ki ga vidite v katerem od Emacsovih oken, je vedno del
+kak¹nega delovnega podroèja. Nekatera delovna podroèja ne pripadajo
+nobeni datoteki. Podroèje ,,*Buffer List*``, na primer, je ¾e eno
+takih. To delovno podroèje smo ustvarili ravnokar, ko smo pognali ukaz
+C-x C-b, in vsebuje seznam delovnih podroèij. Tudi delovno podroèje
+,,Messages`` ne pripada nobeni datoteki, ampak vsebuje sporoèila, ki
+jih je Emacs izpisoval v odzivnem podroèju na dnu zaslona.
+
+>> Vtipkajte C-x b *Messages* <Return> in si oglejte delovno podroèje
+   s sporoèili, zatem pa vtipkajte C-x b TUTORIAL <Return> in se tako
+   vrnite v uèbenik.
 
 Èe ste spreminjali besedilo ene datoteke, potem pa poiskali drugo, to
 ne shrani spremeb v prvo datoteko. Te ostanejo znotraj Emacsa, na
@@ -770,7 +808,7 @@ aktiviramo ali deaktiviramo neodvisno od glavnega naèina in neodvisno
 od ostalih podnaèinov. Tako lahko ne uporabljate nobenega podnaèina,
 en podnaèin, ali kombinacijo veèih podnaèinov.
 
-Podnaèin, ki je zelo uporaben, posebno za pisanje besedil, je Auto
+Podnaèin, ki je zelo uporaben posebno za pisanje besedil, je Auto
 Fill. Ko je vklopljen, Emacs med pisanjem avtomatièno deli vrstice na
 presledkih med besedami, tako da vrstice niso predolge.
 
@@ -823,7 +861,7 @@ in vas èaka, da zaènete tipkati, kar i¹èete. <Return> zakljuèi iskanje.
    ,,kazalèek``. Za vsako vtipkano èrko se ustavite in si oglejte, kaj
    se je zgodilo s kazalèkom.
 >> ©e enkrat pritisnite C-s, da poi¹èete naslednji ,,kazalèek``.
->> ©estkrat pritisnite <Delete> in opazujte, kako se premika kazalèek.
+>> ©estkrat pritisnite <Delback> in opazujte, kako se premika kazalèek.
 >> Konèajte iskanje s tipko <Return>.
 
 Ste videli, kaj se je zgodilo? Emacs pri inkrementalnem iskanju sku¹a
@@ -839,11 +877,11 @@ ga posredoval programu Emacs. Ekran ,,odtajate`` s pritiskom na
 C-q. Potem si oglejte razdelek ,,Spontaneous Entry to Incremental
 Search`` v priroèniku za nasvet, kako se spopasti s to nev¹eènostjo.
 
-Èe sredi inkrementalnega iskanja pritisnete <Delete>, boste opazili,
+Èe sredi inkrementalnega iskanja pritisnete <Delback>, boste opazili,
 da to pobri¹e zadnji znak v iskanem nizu, kazalèek pa se premakne
 nazaj na mesto v besedilu, kjer je na¹el kraj¹i niz. Na primer,
 predpostavimo, da ste do zdaj natipkali ,,ka`` in je kazalèek na
-mestu, kjer se prviè pojavi ,,ka``. Èe zdaj pritisnete <Delete>, boste
+mestu, kjer se prviè pojavi ,,ka``. Èe zdaj pritisnete <Delback>, boste
 s tem v pogovornem vmesniku izbrisali ,a`, hkrati pa se bo kazalèek
 postavil na mesto, kjer je prviè na¹el ,k`, preden ste natipkali ¹e
 ,a`.
@@ -1032,6 +1070,29 @@ write-file.
 		 glavni vir dokumentacije.
 
 
+* DRUGE MO®NOSTI
+----------------
+
+©e veè se lahko nauèite o Emacsu z branjem priroènika, bodisi
+natisnjenega, bodisi na zaslonu v sistemu Info (uporabite menu Help
+ali vtipkajte F10 h r). Dve mo¾nosti, ki vam bosta morda posebej v¹eè,
+sta samodejno zakljuèevanje vrstice, s katerim prihranite nekaj
+tipkanja, in dired, s katerim poenostavimo delo z datotekami.
+
+Samodejno zakljuèevanje vrstic je naèin, s katerim prihranimo nekaj
+tipkanja. Èe ¾elite denimo preklopiti v delovno podroèje *Messages*,
+je dovolj, da vtipkate C-x b *M<Tab> in Emacs bo sam dopolnil
+preostanek imena delovnega podroèja. Samodejno zakljuèevanje je
+opisano v sistemu Info v priroèniku za Emacs, razdelek ,,Completion``.
+
+Dired omogoèa izpis seznama datotek v imeniku (in po mo¾nosti tudi
+podimenikih), premikanje po seznamu, obiskovanje (odpiranje),
+preimenovanje, brisanje in druge operacije z datotekami. Dired je
+opisav v sistemu Info  v priroèniku za Emacs, razdelek ,,Dired``.
+
+Priroènik opisuje tudi mnoge druge mo¾nosti Emacsa.
+
+
 * ZAKLJUÈEK
 -----------
 
@@ -1054,7 +1115,7 @@ Emacs. V sloven¹èino ga je prevedel Primo¾ Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright (c) 1985, 1996, 1997, 2002 Free Software Foundation
+Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o
