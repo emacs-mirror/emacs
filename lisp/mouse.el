@@ -629,11 +629,14 @@ This must be bound to a button-down mouse event."
 	       ;; Are we moving within the original window?
 	       ((and (eq (posn-window end) start-window)
 		     (integer-or-marker-p end-point))
-		(set-marker mouse-secondary-start nil)
 		(let ((range (mouse-start-end start-point end-point
 					      click-count)))
-		  (move-overlay mouse-secondary-overlay
-				(car range) (nth 1 range))))
+		  (if (or (/= start-point end-point)
+			  (null (marker-position mouse-secondary-start)))
+		      (progn
+			(set-marker mouse-secondary-start nil)
+			(move-overlay mouse-secondary-overlay
+				      (car range) (nth 1 range))))))
                (t
                 (let ((mouse-row (cdr (cdr (mouse-position)))))
                   (cond
@@ -787,11 +790,20 @@ again.  If you do this twice in the same position, it kills the selection."
 				      (overlay-start mouse-secondary-overlay)
 				      click-posn))
 		      (setq deactivate-mark nil)))
-		(setcar kill-ring (buffer-substring
-				   (overlay-start mouse-secondary-overlay)
-				   (overlay-end mouse-secondary-overlay)))
-		(if interprogram-cut-function
-		    (funcall interprogram-cut-function (car kill-ring))))
+		(if (eq last-command 'mouse-secondary-save-then-kill)
+		    (progn
+		      ;; If the front of the kill ring comes from 
+		      ;; an immediately previous use of this command,
+		      ;; replace it with the extended region.
+		      ;; (It would be annoying to make a separate entry.)
+		      (setcar kill-ring
+			      (buffer-substring
+			       (overlay-start mouse-secondary-overlay)
+			       (overlay-end mouse-secondary-overlay)))
+		      (if interprogram-cut-function
+			  (funcall interprogram-cut-function (car kill-ring))))
+		  (copy-region-as-kill (overlay-start mouse-secondary-overlay)
+				       (overlay-end mouse-secondary-overlay))))
 	    (if mouse-secondary-start
 		;; All we have is one end of a selection,
 		;; so put the other end here.
