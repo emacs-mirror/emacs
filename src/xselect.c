@@ -1052,6 +1052,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
+  x_start_queuing_selection_requests ();
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
@@ -1062,6 +1063,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   x_check_errors ("Cannot get selection: %s");
   x_uncatch_errors ();
+  x_stop_queuing_selection_requests ();
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
