@@ -28,6 +28,7 @@
 #define UNEXEC	unexsunos4.o
 #define RUN_TIME_REMAP
 #define ORDINARY_LINK
+#define SUNOS4_SHARED_LIBRARIES
 
 #undef LD_SWITCH_SYSTEM
 
