@@ -33,7 +33,12 @@ Boston, MA 02111-1307, USA.  */
  */
 
 #define NO_SHORTNAMES   /* Tell config not to load remap.h */
-#include <../src/config.h>
+#include <config.h>
+
+/* defined to be emacs_main, sys_fopen, etc. in config.h */
+#undef main
+#undef fopen
+#undef chdir
 
 #include <stdio.h>
 #ifdef MSDOS
@@ -219,7 +224,7 @@ read_c_string (infile, printflag)
 	  if (c == '\\')
 	    {
 	      c = getc (infile);
-	      if (c == '\n')
+	      if (c == '\n' || c == '\r')
 		{
 		  c = getc (infile);
 		  continue;
@@ -367,7 +372,7 @@ scan_c_file (filename, mode)
   c = '\n';
   while (!feof (infile))
     {
-      if (c != '\n')
+      if (c != '\n' && c != '\r')
 	{
 	  c = getc (infile);
 	  continue;
@@ -450,7 +455,7 @@ scan_c_file (filename, mode)
 		{
 		  do
 		    c = getc (infile);
-		  while (c == ' ' || c == '\n' || c == '\t');
+		  while (c == ' ' || c == '\n' || c == '\r' || c == '\t');
 		  if (c < 0)
 		    goto eof;
 		  ungetc (c, infile);
@@ -467,14 +472,14 @@ scan_c_file (filename, mode)
 	    goto eof;
 	  c = getc (infile);
 	}
-      while (c == ' ' || c == '\n' || c == '\t')
+      while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
 	c = getc (infile);
       if (c == '"')
 	c = read_c_string (infile, 0);
       while (c != ',')
 	c = getc (infile);
       c = getc (infile);
-      while (c == ' ' || c == '\n' || c == '\t')
+      while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
 	c = getc (infile);
 
       if (c == '"')
@@ -558,7 +563,7 @@ skip_white (infile)
      FILE *infile;
 {
   char c = ' ';
-  while (c == ' ' || c == '\t' || c == '\n')
+  while (c == ' ' || c == '\t' || c == '\n' || c == '\r')
     c = getc (infile);
   ungetc (c, infile);
 }
@@ -577,7 +582,7 @@ read_lisp_symbol (infile, buffer)
       c = getc (infile);
       if (c == '\\')
 	*(++fillp) = getc (infile);
-      else if (c == ' ' || c == '\t' || c == '\n' || c == '(' || c == ')')
+      else if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '(' || c == ')')
 	{
 	  ungetc (c, infile);
 	  *fillp = 0;
@@ -614,7 +619,7 @@ scan_lisp_file (filename, mode)
       char buffer[BUFSIZ];
       char type;
 
-      if (c != '\n')
+      if (c != '\n' && c != '\r')
 	{
 	  c = getc (infile);
 	  continue;
@@ -654,7 +659,7 @@ scan_lisp_file (filename, mode)
 	      saved_string[length - 1] = 0;
 	      /* Skip the newline.  */
 	      c = getc (infile);
-	      while (c != '\n')
+	      while (c != '\n' && c != '\r')
 		c = getc (infile);
 	    }
 	  continue;
@@ -700,7 +705,7 @@ scan_lisp_file (filename, mode)
 	   */
 	  if ((c = getc (infile)) != '"' ||
 	      (c = getc (infile)) != '\\' ||
-	      (c = getc (infile)) != '\n')
+	      (c = getc (infile)) != '\n' || c != '\r')
 	    {
 #ifdef DEBUG
 	      fprintf (stderr, "## non-docstring in %s (%s)\n",
@@ -721,7 +726,7 @@ scan_lisp_file (filename, mode)
 	    {
 
 	      /* Skip until the first newline; remember the two previous chars. */
-	      while (c != '\n' && c >= 0)
+	      while (c != '\n' && c != '\r' && c >= 0)
 		{
 		  c2 = c1;
 		  c1 = c;
@@ -781,7 +786,7 @@ scan_lisp_file (filename, mode)
 	    {
 	      /* Skip until the first newline; remember the two previous
 		 chars. */
-	      while (c != '\n' && c >= 0)
+	      while (c != '\n' && c != '\r' && c >= 0)
 		{
 		  c2 = c1;
 		  c1 = c;
@@ -838,7 +843,7 @@ scan_lisp_file (filename, mode)
 	  if (saved_string == 0)
 	    {
 	      /* Skip until the first newline; remember the two previous chars. */
-	      while (c != '\n' && c >= 0)
+	      while (c != '\n' && c != '\r' && c >= 0)
 		{
 		  c2 = c1;
 		  c1 = c;
@@ -905,7 +910,7 @@ scan_lisp_file (filename, mode)
 		 then we're not reading a docstring.  */
 	      if ((c = getc (infile)) != '"' ||
 		  (c = getc (infile)) != '\\' ||
-		  (c = getc (infile)) != '\n')
+		  (c = getc (infile)) != '\n' || c != '\r')
 		{
 #ifdef DEBUG
 		  fprintf (stderr, "## non-docstring in %s (%s)\n",
