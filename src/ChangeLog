@@ -1,3 +1,8 @@
+2000-10-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_region): Be sure to initialize
+	coding->category_idx.
+
 2000-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xfns.c (Fx_create_frame): Don't bother calling
