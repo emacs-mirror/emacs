@@ -257,10 +257,22 @@ WidgetClass xlwMenuWidgetClass = (WidgetClass) &xlwMenuClassRec;
 
 int submenu_destroyed;
 
+/* For debug, set this to 0 to not grab the keyboard on menu popup */
+int x_menu_grab_keyboard = 1;
+
 static int next_release_must_exit;
 
 /* Utilities */
 
+/* Ungrab pointer and keyboard */
+static void
+ungrab_all (w, ungrabtime)
+     Widget w;
+     Time ungrabtime;
+{
+  XtUngrabPointer (w, ungrabtime);
+  if (x_menu_grab_keyboard) XtUngrabKeyboard (w, ungrabtime);
+}
 
 /* Like abort, but remove grabs from widget W before.  */
 
@@ -270,7 +282,7 @@ abort_gracefully (w)
 {
   if (XtIsShell (XtParent (w)))
     XtRemoveGrab (w);
-  XtUngrabPointer (w, CurrentTime);
+  ungrab_all (w, CurrentTime);
   abort ();
 }
 
@@ -1795,7 +1807,7 @@ XlwMenuDestroy (w)
   XlwMenuWidget mw = (XlwMenuWidget) w;
 
   if (pointer_grabbed)
-    XtUngrabPointer ((Widget)w, CurrentTime);
+    ungrab_all ((Widget)w, CurrentTime);
   pointer_grabbed = 0;
 
   submenu_destroyed = 1;
@@ -2197,7 +2209,7 @@ Key (w, ev, params, num_params)
   if (mw->menu.popped_up)
     {
       mw->menu.popped_up = False;
-      XtUngrabPointer ((Widget)mw, ev->xmotion.time);
+      ungrab_all ((Widget)mw, ev->xmotion.time);
       if (XtIsShell (XtParent ((Widget) mw)))
 	XtPopdown (XtParent ((Widget) mw));
       else
@@ -2238,7 +2250,7 @@ Select (w, ev, params, num_params)
   if (mw->menu.popped_up)
     {
       mw->menu.popped_up = False;
-      XtUngrabPointer ((Widget)mw, ev->xmotion.time);
+      ungrab_all ((Widget)mw, ev->xmotion.time);
       if (XtIsShell (XtParent ((Widget) mw)))
 	XtPopdown (XtParent ((Widget) mw));
       else
@@ -2313,15 +2325,26 @@ pop_up_menu (mw, event)
 #ifdef emacs
   count = x_catch_errors (display);
 #endif
-  XtGrabPointer ((Widget)mw, False,
-		 (PointerMotionMask
-		  | PointerMotionHintMask
-		  | ButtonReleaseMask
-		  | ButtonPressMask),
-		 GrabModeAsync, GrabModeAsync, None,
-		 mw->menu.cursor_shape,
-		 event->time);
-  pointer_grabbed = 1;
+  if (XtGrabPointer ((Widget)mw, False,
+                     (PointerMotionMask
+                      | PointerMotionHintMask
+                      | ButtonReleaseMask
+                      | ButtonPressMask),
+                     GrabModeAsync, GrabModeAsync, None,
+                     mw->menu.cursor_shape,
+                     event->time) == Success)
+    {
+      if (! x_menu_grab_keyboard
+          || XtGrabKeyboard ((Widget)mw, False, GrabModeAsync,
+                             GrabModeAsync, event->time) == Success)
+        {
+          XtSetKeyboardFocus((Widget)mw, None);
+          pointer_grabbed = 1;
+        }
+      else
+        XtUngrabPointer ((Widget)mw, event->time);
+    }
+
 #ifdef emacs
   if (x_had_errors_p (display))
     {
