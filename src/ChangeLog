@@ -1,5 +1,11 @@
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs.c (main): Don't call keys_of_macros any more.
+
+	* lisp.h (keys_of_macros): Remove.
+
+	* macros.c (keys_of_macros): Remove.
+
 	* xfaces.c (Fface_attribute_relative_p): Declare args.
 
 2001-10-30  Jason Rumney  <jasonr@gnu.org>

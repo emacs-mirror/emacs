@@ -1,5 +1,12 @@
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* font-lock.el (java-font-lock-syntactic-face-function): New fun.
+	(font-lock-defaults-alist): Use it.
+	From David Ponce <david.ponce@wanadoo.fr>
+
+	* progmodes/perl-mode.el (perl-indent-line): Use `eq' to compare
+	output of `char-after'.
+
 	* bindings.el (ctl-x-map): Add binding for C-x (, C-x ) and C-x e.
 
 	* simple.el (reindent-then-newline-and-indent): Insert the newline
