@@ -216,7 +216,8 @@ element, regardless of any text on the command line.  In that case,
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-history-reference nil t))
 
-  (if (eshell-using-module 'eshell-rebind)
+  (if (and (eshell-using-module 'eshell-rebind)
+	   (not eshell-non-interactive-p))
       (let ((rebind-alist (symbol-value 'eshell-rebind-keys-alist)))
 	(make-local-variable 'eshell-rebind-keys-alist)
 	(set 'eshell-rebind-keys-alist
@@ -270,9 +271,16 @@ element, regardless of any text on the command line.  In that case,
 
   (make-local-variable 'eshell-history-index)
   (make-local-variable 'eshell-save-history-index)
-  (make-local-variable 'eshell-history-ring)
-  (if eshell-history-file-name
-      (eshell-read-history nil t))
+
+  (if (minibuffer-window-active-p (selected-window))
+      (set (make-local-variable 'eshell-ask-to-save-history) nil)
+    (set (make-local-variable 'eshell-history-ring) nil)
+    (if eshell-history-file-name
+	(eshell-read-history nil t))
+
+    (make-local-hook 'eshell-exit-hook)
+    (add-hook 'eshell-exit-hook 'eshell-write-history nil t))
+
   (unless eshell-history-ring
     (setq eshell-history-ring (make-ring eshell-history-size)))
 
@@ -360,22 +368,40 @@ unless a different file is specified on the command line.")
   "Get an input line from the history ring."
   (ring-ref (or ring eshell-history-ring) index))
 
-(defun eshell-add-to-history ()
-  "Add INPUT to the history ring.
-The input is entered into the input history ring, if the value of
+(defun eshell-add-input-to-history (input)
+  "Add the string INPUT to the history ring.
+Input is entered into the input history ring, if the value of
 variable `eshell-input-filter' returns non-nil when called on the
 input."
+  (if (and (funcall eshell-input-filter input)
+	   (or (null eshell-hist-ignoredups)
+	       (not (ring-p eshell-history-ring))
+	       (ring-empty-p eshell-history-ring)
+	       (not (string-equal (eshell-get-history 0) input))))
+      (eshell-put-history input))
+  (setq eshell-save-history-index eshell-history-index)
+  (setq eshell-history-index nil))
+
+(defun eshell-add-command-to-history ()
+  "Add the command entered at `eshell-command's prompt to the history ring.
+The command is added to the input history ring, if the value of
+variable `eshell-input-filter' returns non-nil when called on the
+command.
+
+This function is supposed to be called from the minibuffer, presumably
+as a minibuffer-exit-hook."
+  (eshell-add-input-to-history
+   (buffer-substring (minibuffer-prompt-end) (point-max))))
+
+(defun eshell-add-to-history ()
+  "Add last Eshell command to the history ring.
+The command is entered into the input history ring, if the value of
+variable `eshell-input-filter' returns non-nil when called on the
+command."
   (when (> (1- eshell-last-input-end) eshell-last-input-start)
     (let ((input (buffer-substring eshell-last-input-start
 				   (1- eshell-last-input-end))))
-      (if (and (funcall eshell-input-filter input)
-	       (or (null eshell-hist-ignoredups)
-		   (not (ring-p eshell-history-ring))
-		   (ring-empty-p eshell-history-ring)
-		   (not (string-equal (eshell-get-history 0) input))))
-	  (eshell-put-history input))
-      (setq eshell-save-history-index eshell-history-index)
-      (setq eshell-history-index nil))))
+      (eshell-add-input-to-history input))))
 
 (defun eshell-read-history (&optional filename silent)
   "Sets the buffer's `eshell-history-ring' from a history file.
