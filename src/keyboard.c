@@ -153,14 +153,16 @@ Lisp_Object last_nonmenu_event;
 Lisp_Object last_input_char;
 
 /* If not Qnil, an object to be read as the next command input.  */
-Lisp_Object unread_command_char;
+Lisp_Object unread_command_event;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
-   next command input, after any unread_command_char.  Only
-   read_key_sequence sets this; it uses it to delay switch-frame
-   events until the end of the key sequence.  */
-static Lisp_Object unread_switch_frame;
+   next command input, after any unread_command_event.
+
+   read_key_sequence uses this to delay switch-frame events until the
+   end of the key sequence; Fread_char uses it to put off switch-frame
+   events until a non-ASCII event is acceptable as input.  */
+Lisp_Object unread_switch_frame;
 
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
@@ -200,11 +202,7 @@ Lisp_Object this_command;
 
 #ifdef MULTI_FRAME
 /* The frame in which the last input event occurred, or Qmacro if the
-   last event came from a macro.
-   command_loop_1 will select this frame before running the
-   command bound to an event sequence, and read_key_sequence will
-   toss the existing prefix if the user starts typing at a
-   new frame.  */
+   last event came from a macro.  */
 Lisp_Object Vlast_event_frame;
 #endif
 
@@ -533,7 +531,7 @@ add_command_key (key)
 
       bcopy (XVECTOR (this_command_keys)->contents,
 	     XVECTOR (new_keys)->contents,
-	     size);
+	     size * sizeof (Lisp_Object));
 
       this_command_keys = new_keys;
     }
@@ -846,7 +844,7 @@ command_loop_1 ()
 	  if (!NILP (Vquit_flag))
 	    {
 	      Vquit_flag = Qnil;
-	      unread_command_char = make_number (quit_char);
+	      unread_command_event = make_number (quit_char);
 	    }
 	}
 
@@ -855,19 +853,22 @@ command_loop_1 ()
 				/* Since we can free the most stuff here.  */
 #endif /* C_ALLOCA */
 
-      /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), 0);
-
-      ++num_input_keys;
-
-#if 0 /* This shouldn't be necessary, now that we have switch-frame events.  */
+#if 0
 #ifdef MULTI_FRAME
-      /* Select the frame that the key sequence came from.  */
+      /* Select the frame that the last event came from.  Usually,
+	 switch-frame events will take care of this, but if some lisp
+	 code swallows a switch-frame event, we'll fix things up here.
+	 Is this a good idea?  */
       if (XTYPE (Vlast_event_frame) == Lisp_Frame
 	  && XFRAME (Vlast_event_frame) != selected_frame)
 	Fselect_frame (Vlast_event_frame, Qnil);
 #endif
 #endif
+
+      /* Read next key sequence; i gets its length.  */
+      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), 0);
+
+      ++num_input_keys;
 
       /* Now we have read a key sequence of length I,
 	 or else I is 0 and we found end of file.  */
@@ -1121,10 +1122,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int count;
   jmp_buf save_jump;
 
-  if (!NILP (unread_command_char))
+  if (!NILP (unread_command_event))
     {
-      c = unread_command_char;
-      unread_command_char = Qnil;
+      c = unread_command_event;
+      unread_command_event = Qnil;
 
       if (this_command_key_count == 0)
 	goto reread_first;
@@ -1331,11 +1332,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* If it's a structured event, take the event header.  */
 	  dribblee = EVENT_HEAD (dribblee);
 
-	  if (XTYPE (c) == Lisp_Symbol)
+	  if (XTYPE (dribblee) == Lisp_Symbol)
 	    {
 	      putc ('<', dribble);
-	      fwrite (XSYMBOL (c)->name->data, sizeof (char),
-		      XSYMBOL (c)->name->size,
+	      fwrite (XSYMBOL (dribblee)->name->data, sizeof (char),
+		      XSYMBOL (dribblee)->name->size,
 		      dribble);
 	      putc ('>', dribble);
 	    }
@@ -1643,7 +1644,9 @@ kbd_buffer_get_event ()
 #ifdef MULTI_FRAME
       /* Decide if we should generate a switch-frame event.  Don't generate
 	 switch-frame events for motion outside of all Emacs frames.  */
-      if (frame && frame != XFRAME (Vlast_event_frame))
+      if (frame
+	  && (XTYPE (Vlast_event_frame) != Lisp_Frame
+	      || frame != XFRAME (Vlast_event_frame)))
 	{
 	  XSET (Vlast_event_frame, Lisp_Frame, frame);
 	  obj = make_lispy_switch_frame (Vlast_event_frame);
@@ -2135,8 +2138,12 @@ lispy_modifier_list (modifiers)
   modifier_list = Qnil;
   for (i = 0; (1<<i) <= modifiers; i++)
     if (modifiers & (1<<i))
-      modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
-			     modifier_list);
+      {
+	if (i >= XVECTOR (modifier_symbols)->size)
+	  abort ();
+	modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
+			       modifier_list);
+      }
 
   return modifier_list;
 }
@@ -2945,8 +2952,12 @@ read_key_sequence (keybuf, bufsize, prompt)
     fkey_start = fkey_end = bufsize + 1;
 
   /* We need to save the current buffer in case we switch buffers to
-     find the right binding for a mouse click.  */
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+     find the right binding for a mouse click.  Note that we can't use
+     save_excursion_{save,restore} here, because they save point as
+     well as the current buffer; we don't want to save point, because
+     redisplay may change it, to accomodate a Fset_window_start or
+     something.  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 			 
   last_nonmenu_event = Qnil;
 
@@ -3490,7 +3501,7 @@ DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
 Actually, the value is nil only if we can be sure that no input is available.")
   ()
 {
-  if (!NILP (unread_command_char))
+  if (!NILP (unread_command_event))
     return (Qt);
 
   return detect_input_pending () ? Qt : Qnil;
@@ -3562,7 +3573,7 @@ Also cancel any kbd macro being defined.")
   defining_kbd_macro = 0;
   update_mode_lines++;
 
-  unread_command_char = Qnil;
+  unread_command_event = Qnil;
 
   discard_tty_input ();
 
@@ -3802,7 +3813,7 @@ quit_throw_to_read_char ()
   clear_waiting_for_input ();
   input_pending = 0;
 
-  unread_command_char = Qnil;
+  unread_command_event = Qnil;
 
   _longjmp (getcjmp, 1);
 }
@@ -3856,7 +3867,7 @@ init_keyboard ()
   command_loop_level = -1;
   immediate_quit = 0;
   quit_char = Ctl ('g');
-  unread_command_char = Qnil;
+  unread_command_event = Qnil;
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
@@ -3865,9 +3876,9 @@ init_keyboard ()
   input_pending = 0;
 
 #ifdef MULTI_FRAME
-  /* This means that we don't get a switch-frame event before the first
-     character typed.  */
-  XSET (Vlast_event_frame, Lisp_Frame, selected_frame);
+  /* This means that command_loop_1 won't try to select anything the first
+     time through.  */
+  Vlast_event_frame = Qnil;
 #endif
 
   if (!noninteractive)
@@ -4046,7 +4057,7 @@ so that you can determine whether the command was run by mouse or not.");
   DEFVAR_LISP ("last-input-char", &last_input_char,
     "Last terminal input key.");
 
-  DEFVAR_LISP ("unread-command-char", &unread_command_char,
+  DEFVAR_LISP ("unread-command-event", &unread_command_event,
     "Object to be read as next input from input stream, or nil if none.");
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
