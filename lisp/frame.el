@@ -843,7 +843,7 @@ window blinks."
 				     'blink-cursor-start))
 	  (setq blink-cursor-mode t)))))
 
-(defcustom blink-cursor t
+(defcustom blink-cursor (not (eq system-type 'ms-dos))
   "*Non-nil means blink-cursor-mode is active."
   :tag "Blinking cursor"
   :type 'boolean
