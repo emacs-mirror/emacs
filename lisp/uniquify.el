@@ -160,8 +160,8 @@ contains the name of the directory which the buffer is visiting.")
 ;; uniquify-fix-list data structure
 (defstruct (uniquify-item
 	    (:constructor nil) (:copier nil)
-	    (:constructor uniquify-make-item (base filename buffer proposed)))
-  base filename buffer proposed)
+	    (:constructor uniquify-make-item (base dirname buffer proposed)))
+  base dirname buffer proposed)
 
 ;; Internal variables used free
 (defvar uniquify-possibly-resolvable nil)
@@ -251,13 +251,13 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (uniquify-rationalize-conflicting-sublist conflicting-sublist
 					      old-proposed depth)))
 
-(defun uniquify-get-proposed-name (base filename &optional depth)
+(defun uniquify-get-proposed-name (base dirname &optional depth)
   (unless depth (setq depth uniquify-min-dir-content))
-  (assert (equal (directory-file-name filename) filename))  ;No trailing slash.
+  (assert (equal (directory-file-name dirname) dirname)) ;No trailing slash.
 
   ;; Distinguish directories by adding extra separator.
   (if (and uniquify-trailing-separator-p
-	   (file-directory-p (expand-file-name base filename))
+	   (file-directory-p (expand-file-name base dirname))
 	   (not (string-equal base "")))
       (cond ((eq uniquify-buffer-name-style 'forward)
 	     (setq base (file-name-as-directory base)))
@@ -267,18 +267,18 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
   (let ((extra-string nil)
 	(n depth))
-    (while (and (> n 0) filename)
-      (let ((file (file-name-nondirectory filename)))
-	(when (setq filename (file-name-directory filename))
-	  (setq filename (directory-file-name filename)))
+    (while (and (> n 0) dirname)
+      (let ((file (file-name-nondirectory dirname)))
+	(when (setq dirname (file-name-directory dirname))
+	  (setq dirname (directory-file-name dirname)))
 	(setq n (1- n))
 	(push (if (zerop (length file)) ;nil or "".
-		  (prog1 "" (setq filename nil)) ;Could be `filename' iso "".
+		  (prog1 "" (setq dirname nil))	;Could be `dirname' iso "".
 		file)
 	      extra-string)))
     (when (zerop n)
-      (if (and filename extra-string
-	       (equal filename (file-name-directory filename)))
+      (if (and dirname extra-string
+	       (equal dirname (file-name-directory dirname)))
 	  ;; We're just before the root.  Let's add the leading / already.
 	  ;; With "/a/b"+"/c/d/b" this leads to "/a/b" and "d/b" but with
 	  ;; "/a/b"+"/c/a/b" this leads to "/a/b" and "a/b".
@@ -322,7 +322,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	    (setf (uniquify-item-proposed item)
 		  (uniquify-get-proposed-name
 		   (uniquify-item-base item)
-		   (uniquify-item-filename item)
+		   (uniquify-item-dirname item)
 		   depth)))
 	  (uniquify-rationalize-a-list conf-list depth))
       (unless (string= old-name "")
