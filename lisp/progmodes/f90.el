@@ -855,7 +855,7 @@ For example, \"!\" or \"!!\"."
   "Return (\"do\" NAME) if a do statement starts after point.
 NAME is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(do\\)\\>")
-      (list (match-string 3) (match-string 2)))
+      (list (match-string 3) (match-string 2))))
 
 (defsubst f90-looking-at-select-case ()
   "Return (\"select\" NAME) if a select-case statement starts after point.
@@ -1519,7 +1519,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
       (forward-char (if (looking-at f90-no-break-re) 2 1))
     (backward-char)
     (or (looking-at f90-no-break-re)
-        (forward-char)))))
+        (forward-char))))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'.
