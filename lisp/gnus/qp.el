@@ -63,7 +63,7 @@ coding-system."
 		 (let ((byte (string-to-int (buffer-substring (1+ (point))
 							      (+ 3 (point)))
 					    16)))
-		   (insert-byte byte 1)
+		   (mm-insert-byte byte 1)
 		   (delete-char 3)
 		   (unless (eq byte ?=)
 		     (backward-char))))
