@@ -137,7 +137,7 @@ never append to an existing entry."
 			    'add-log-current-defun)))
 	paragraph-end entry)
 
-    (setq file-name (find-change-log file-name))
+    (setq file-name (expand-file-name (find-change-log file-name)))
 
     ;; Set ENTRY to the file name to use in the new entry.
     (and buffer-file-name
