@@ -245,9 +245,9 @@ minor modes and about how to use this command.
   If the buffer is very large (larger than the value of
 @code{line-number-display-limit}), then the line number doesn't appear.
 Emacs doesn't compute the line number when the buffer is large, because
-that would be too slow.  If you have narrowed the buffer
-(@pxref{Narrowing}), the displayed line number is relative to the
-accessible portion of the buffer.
+that would be too slow.  Set it to @code{nil} to remove the limit.  If
+you have narrowed the buffer (@pxref{Narrowing}), the displayed line
+number is relative to the accessible portion of the buffer.
 
 @cindex Column Number mode
 @cindex mode, Column Number
