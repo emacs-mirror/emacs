@@ -24,11 +24,11 @@
 ;;; Code:
 
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
-(setq menu-bar-help-menu (make-sparse-keymap "Help"))
+(defvar menu-bar-help-menu (make-sparse-keymap "Help"))
 (define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
-(setq menu-bar-edit-menu (make-sparse-keymap "Edit"))
+(defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(setq menu-bar-file-menu (make-sparse-keymap "File"))
+(defvar menu-bar-file-menu (make-sparse-keymap "File"))
 (define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
 
 (define-key menu-bar-file-menu [exit-emacs]
