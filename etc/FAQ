@@ -4,9 +4,6 @@ This is the introduction to a list of frequently asked questions (FAQ)
 about GNU Emacs 20 with answers.  Some of the answers are not valid for GNU
 Emacs 18 or 19.
 
-[This version has been somewhat edited from the last-posted version
-(as of early December 1998) for inclusion in the Emacs distribution.]
-
 The FAQ is posted (in five parts) to reduce the noise level in the
 gnu.emacs.help newsgroup (which is also the help-gnu-emacs mailing list)
 which results from the repetition of frequently asked questions, wrong
@@ -134,7 +131,7 @@ Common Things People Want To Do
 67:  How can I force Emacs to scroll only one line when I move past the
      bottom of the screen?
 68:  How can I replace highlighted text with what I type?
-69:  How can I edit MS-DOS-style text files using Emacs?
+69:  How can I edit MS-DOS files using Emacs?
 70:  How can I tell Emacs to fill paragraphs with a single space after
      each period?
 
@@ -171,7 +168,7 @@ Finding/Getting Emacs and Related Packages
 93:  What is the difference between Emacs and XEmacs (formerly "Lucid
      Emacs")?
 94:  Where can I get Emacs for my PC running MS-DOS?
-95:  Where can I get Emacs for Microsoft Windows, Windows 9x, or Windows
+95:  Where can I get Emacs for Microsoft Windows, Windows '95, or Windows
      NT?
 96:  Where can I get Emacs for my PC running OS/2?
 97:  Where can I get Emacs for my Atari ST?
@@ -186,7 +183,7 @@ Finding/Getting Emacs and Related Packages
 Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 
 104: VM (View Mail) -- another mail reader within Emacs, with MIME support
-105: SuperCite -- mail and news citation package within Emacs
+105: Supercite -- mail and news citation package within Emacs
 106: Calc -- poor man's Mathematica within Emacs
 107: VIPER -- vi emulation for Emacs
 108: AUC TeX -- enhanced LaTeX mode with debugging facilities
@@ -195,67 +192,68 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 111: W3-mode -- A World Wide Web browser inside of Emacs
 112: EDB -- Database program for Emacs; replaces forms editing modes
 113: Mailcrypt -- PGP interface within Emacs mail and news
-114: Patch -- program to apply "diffs" for updating files
+114: JDE -- Development environment for Java programming
+115: Patch -- program to apply "diffs" for updating files
 
 Changing Key Bindings and Handling Key Binding Problems
 
-115: How do I bind keys (including function keys) to commands?
-116: Why does Emacs say "Key sequence XXX uses invalid prefix characters"?
-117: Why doesn't this [terminal or window-system setup] code work in my
+116: How do I bind keys (including function keys) to commands?
+117: Why does Emacs say "Key sequence XXX uses invalid prefix characters"?
+118: Why doesn't this [terminal or window-system setup] code work in my
      .emacs file, but it works just fine after Emacs starts up?
-118: How do I use function keys under X Windows?
-119: How do I tell what characters or symbols my function or arrow keys
+119: How do I use function keys under X Windows?
+120: How do I tell what characters or symbols my function or arrow keys
      emit?
-120: How do I set the X key "translations" for Emacs?
-121: How do I handle C-s and C-q being used for flow control?
-122: How do I bind `C-s' and `C-q' (or any key) if these keys are filtered
+121: How do I set the X key "translations" for Emacs?
+122: How do I handle C-s and C-q being used for flow control?
+123: How do I bind `C-s' and `C-q' (or any key) if these keys are filtered
      out?
-123: Why does the "Backspace" key invoke help?
-124: Why doesn't Emacs look at the stty settings for Backspace vs. Delete?
-125: How do I "swap" two keys?
-126: How do I produce C-XXX with my keyboard?
-127: What if I don't have a Meta key?
-128: What if I don't have an Escape key?
-129: Can I make my "Compose Character" key behave like a Meta key?
-130: How do I bind a combination of modifier key and function key?
-131: Why doesn't my Meta key work in an xterm window?
-132: Why doesn't my ExtendChar key work as a Meta key under HP-UX 8.0
+124: Why does the "Backspace" key invoke help?
+125: Why doesn't Emacs look at the stty settings for Backspace vs. Delete?
+126: How do I "swap" two keys?
+127: How do I produce C-XXX with my keyboard?
+128: What if I don't have a Meta key?
+129: What if I don't have an Escape key?
+130: Can I make my "Compose Character" key behave like a Meta key?
+131: How do I bind a combination of modifier key and function key?
+132: Why doesn't my Meta key work in an xterm window?
+133: Why doesn't my ExtendChar key work as a Meta key under HP-UX 8.0
      and 9.x?
 
 Using Emacs with Alternate Character Sets
 
-133: How do I make Emacs display 8-bit characters?
-134: How do I input 8-bit characters?
-135: Where can I get an Emacs that handles kanji, Chinese, or other
+134: How do I make Emacs display 8-bit characters?
+135: How do I input 8-bit characters?
+136: Where can I get an Emacs that handles kanji, Chinese, or other
      character sets?
-136: Where is an Emacs that can handle Semitic (right-to-left) alphabets?
+137: Where is an Emacs that can handle Semitic (right-to-left) alphabets?
 
 Mail and News
 
-137: How do I change the included text prefix in mail/news followups?
-138: How do I save a copy of outgoing mail?
-139: Why doesn't Emacs expand my aliases when sending mail?
-140: Why does Rmail think all my saved messages are one big message?
-141: How can I sort the messages in my Rmail folder?
-142: Why does Rmail need to write to /usr/spool/mail?
-143: How do I recover my mail files after Rmail munges their format?
-144: How can I force Rmail to reply to the sender of a message, but not the
+138: How do I change the included text prefix in mail/news followups?
+139: How do I save a copy of outgoing mail?
+140: Why doesn't Emacs expand my aliases when sending mail?
+141: Why does Rmail think all my saved messages are one big message?
+142: How can I sort the messages in my Rmail folder?
+143: Why does Rmail need to write to /usr/spool/mail?
+144: How do I recover my mail files after Rmail munges their format?
+145: How can I force Rmail to reply to the sender of a message, but not the
   other recipients?
-145: How can I get my favorite Emacs mail package to support MIME?  
-146: How do I make Emacs automatically start my mail/news reader?
-147: How do I read news under Emacs?
-148: Why doesn't Gnus work via NNTP?
-149: How do I view news articles with embedded underlining (e.g.,
+146: How can I get my favorite Emacs mail package to support MIME?  
+147: How do I make Emacs automatically start my mail/news reader?
+148: How do I read news under Emacs?
+149: Why doesn't Gnus work via NNTP?
+150: How do I view news articles with embedded underlining (e.g.,
      ClariNews)?
-150: How do I save all the items of a multi-part posting in Gnus?
-151: How do I make Gnus start up faster?
-152: How do I catch up all newsgroups in Gnus?
-153: Why can't I kill in Gnus based on the Newsgroups/Keywords/Control
+151: How do I save all the items of a multi-part posting in Gnus?
+152: How do I make Gnus start up faster?
+153: How do I catch up all newsgroups in Gnus?
+154: Why can't I kill in Gnus based on the Newsgroups/Keywords/Control
      headers?
-154: How do I get rid of flashing messages in Gnus for slow connections?
-155: Why is catch up slow in Gnus?
-156: Why does Gnus hang for a long time when posting?
-157: Where can I find out more about Gnus?
+155: How do I get rid of flashing messages in Gnus for slow connections?
+156: Why is catch up slow in Gnus?
+157: Why does Gnus hang for a long time when posting?
+158: Where can I find out more about Gnus?
 
 ------------------------------------------------------------
 
@@ -266,15 +264,15 @@ at the text of the answers, just type "C-x $".
 To search for a question numbered XXX, type "M-C-s ^XXX:", followed by a
 C-r if that doesn't work.  Type RET to end the search.
 
-If you have a web browser and the browse-url package configured for
-it, you can visit ftp and HTTP uniform resource locators (URLs) by
-placing the cursor on the URL and typing M-x browse-url-at-point.
+If you have w3-mode installed (see question 111), you can visit ftp and
+HTTP uniform resource locators (URLs) by placing the cursor on the URL and
+typing M-x w3-follow-url-at-point.
 
 The FAQ is posted in five parts; if you are missing a section or would
 prefer to read the FAQ in a single file, see question 22.
 
 ------------------------------------------------------------
-  Time-stamp: <1998-09-18 14:41:10 reuven>
+  Time-stamp: <1998-11-15 12:37:16 reuven>
 
 
 Notation Used in FAQ
@@ -287,7 +285,7 @@ Notation Used in FAQ
   C-x: press the `x' key while holding down the Control key
 
   M-x: press the `x' key while holding down the Meta key (if your computer
-       doesn't have a Meta key, see question 127)
+       doesn't have a Meta key, see question 128)
 
   M-C-x: press the `x' key while holding down both Control and Meta
   C-M-x: a synonym for the above
@@ -295,7 +293,7 @@ Notation Used in FAQ
   LFD: Linefeed or Newline; same as C-j
   RET: Return, sometimes marked Enter; same as C-m
   DEL: Delete,  usually not the same as Backspace; same as C-? (See
-       question 123 if deleting invokes Emacs help)
+       question 124 if deleting invokes Emacs help)
   ESC: Escape; same as C-[
   TAB: Tab; same as C-i
   SPC: Space bar
@@ -473,7 +471,7 @@ General Questions
   postings from, but pretty much everything is there.  The latest archives
   are available at
  
-    ftp://gnudist.gnu.org/pub/gnu/MailingListArchives/current
+    ftp://ftp.gnu.org/pub/gnu/MailingListArchives/current
 
   Web-based Usenet search services, such as DejaNews, also archive the
   gnu.* groups.  You can reach DejaNews at
@@ -631,9 +629,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   format.  Texinfo source for the manual (along with pregenerated Info
   files) is available at
 
-    ftp://gnudist.gnu.org/pub/gnu/elisp-manual-20-2.5.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/elisp-manual-20-2.5.tar.gz
 
-  and all mirrors of gnudist.gnu.org (See question 92 for a list).  See
+  and all mirrors of ftp.gnu.org (See question 92 for a list).  See
   question 17 if you want to install the Info files, or question 18 if you
   want to use the Texinfo source to print the manual yourself.
 
@@ -648,9 +646,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   using the stand-alone "makeinfo" program, available as part of the latest
   Texinfo package at
 
-    ftp://gnudist.gnu.org/pub/gnu/texinfo-3.12.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/texinfo-3.12.tar.gz
 
-  and all mirrors of gnudist.gnu.org (see question 92 for a list).
+  and all mirrors of ftp.gnu.org (see question 92 for a list).
 
   For information about the Texinfo format, read the Texinfo manual which
   comes with Emacs.  This manual also comes installed in Info format, so
@@ -667,11 +665,6 @@ On-line Help, Printed Manuals, Other Sources of Help
      installing.  Follow the examples already in this file.  The format is:
 
        * Topic: (relative-pathname).  Short description of topic.
-
-     If (as it should have done) the Texinfo file used the @direntry
-     command, you can run the "install-info" command from the current
-     Texinfo distribution to do this automatically -- see the example in
-     the top-level Makefile in the Emacs source.
 
   If you want to install Info files and you don't have the necessary
   privileges, you have several options:
@@ -727,8 +720,7 @@ On-line Help, Printed Manuals, Other Sources of Help
      your site.
 
   To get more general instructions, retrieve the latest Texinfo package
-  mentioned in question 17.  The "texi2dvi" command from it will perform
-  the above steps 1 to 4 for you.
+  mentioned in question 17.
 
 19:  Can I view Info files without using Emacs?
 
@@ -740,9 +732,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   * Xinfo, a stand-alone version of the Info program that runs under X
     Windows.  You can get it at
 
-      ftp://gnudist.gnu.org/pub/gnu/xinfo-1.01.01.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/xinfo-1.01.01.tar.gz
 
-    and all mirrors of gnudist.gnu.org (See question 92 for a list).
+    and all mirrors of ftp.gnu.org (See question 92 for a list).
 
   * Tkinfo, an Info viewer that runs under X Windows and uses Tcl/Tk.  You
     can get Tkinfo at
@@ -770,14 +762,12 @@ On-line Help, Printed Manuals, Other Sources of Help
     MACHINES -- Status of Emacs on Various Machines and Systems
     MAILINGLISTS -- GNU Project Electronic Mailing Lists
     NEWS -- Emacs news, a history of user-visible changes
-    PROBLEMS -- Known problems with building and running Emacs in various
-                situations, often with workarounds.
     SERVICE -- GNU Service Directory
     SUN-SUPPORT -- including "Using Emacstool with GNU Emacs"
 
-  Latest versions of some of the above files are also available at
+  Latest versions of the above files also available at
 
-    ftp://gnudist.gnu.org/pub/gnu/GNUinfo/
+    ftp://ftp.gnu.org/pub/gnu/GNUinfo/
 
   More GNU information, including back issues of the "GNU's Bulletin", are at
 
@@ -791,7 +781,7 @@ On-line Help, Printed Manuals, Other Sources of Help
 
   The file etc/SERVICE (see question 4 if you're not sure where that is)
   lists companies and individuals willing to sell you help in installing or
-  using Emacs.  An up-to-date version this file is available on gnudist.gnu.org
+  using Emacs.  An up-to-date version this file is available on ftp.gnu.org
   (see question 20).
 
 22:  Where can I get the latest version of this document (the FAQ list)?
@@ -821,13 +811,13 @@ On-line Help, Printed Manuals, Other Sources of Help
     administrator, because the most recent FAQ should not expire for a
     while.
 
-  * Via anonymous FTP.  You can always fetch the latest FAQ at
+  * Via HTTP or FTP.  You can always fetch the latest FAQ at
 
-      ftp://ftp.lerner.co.il/pub/emacs/faq.txt
-      ftp://ftp.lerner.co.il/pub/emacs/faq.gz
+      http://www.lerner.co.il/emacs/
 
-      http://ftp.lerner.co.il/emacs/faq.txt
-      http://ftp.lerner.co.il/emacs/faq.gz
+    and
+
+      ftp://ftp.lerner.co.il/pub/emacs/
 
   * In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time of
     release has been part of the Emacs distribution as etc/FAQ (see
@@ -890,7 +880,7 @@ Status of Emacs
 
 24:  What is the latest version of Emacs?
 
-  Emacs 20.4 is the current version as of this writing.
+  Emacs 20.3 is the current version as of this writing.
 
 25:  What is different about Emacs 20?
 
@@ -909,7 +899,9 @@ Status of Emacs
   automatic conversion of files from Macintosh, Microsoft, and Unix
   platforms.
 
-  Many Lisp packages have been updated and enhanced for Emacs 20.
+  A number of older Lisp packages, such as Gnus, Supercite and the
+  calendar/diary, have been updated and enhanced to work with Emacs 20, and
+  are now included with the standard distribution.
 
 
 Common Things People Want To Do
@@ -924,11 +916,10 @@ Common Things People Want To Do
   documented.  :-)
 
   Emacs 20 includes the new "customize" facility, which can be invoked
-  using M-x customize RET or via the Help menu.  This allows users who are
-  unfamiliar with Emacs Lisp to modify their .emacs files in a relatively
-  straightforward way, using menus rather than Lisp code.  While all the
-  packages included with Emacs (are meant to) support Customize now,
-  packages from other sources may not.
+  using M-x customize RET.  This allows users who are unfamiliar with Emacs
+  Lisp to modify their .emacs files in a relatively straightforward way,
+  using menus rather than Lisp code.  Not all packages support Customize as
+  of this writing, but the number is growing fairly steadily.
 
   While Customize might indeed make it easier to configure Emacs, consider
   taking a bit of time to learn Emacs Lisp and modifying your .emacs
@@ -947,26 +938,28 @@ Common Things People Want To Do
 
   You can also evaluate an individual function or argument to a function in
   your .emacs file by moving the cursor to the end of the function or
-  argument and typing "C-x C-e" (M-x eval-last-sexp). "C-M-x" (M-x
-  eval-defun) is particularly useful for re-evaluating "defvar" and
-  "customize" forms.
+  argument and typing "C-x C-e" (M-x eval-last-sexp).
 
   Use "C-h v" (M-x describe-variable) to check the value of variables which
   you are trying to set or use.
 
 28:  How do I make Emacs display the current line (or column) number?
 
-  To toggle having Emacs automatically display the current line number of the
-  point in the mode line, do "M-x line-number-mode".  (This option is on by
-  default.)  Note that Emacs will not display the line number if the buffer is
-  larger than the value of the variable line-number-display-limit.
+  To have Emacs automatically display the current line number of the point
+  in the mode line, do "M-x line-number-mode".  You can also put the form
+
+    (setq line-number-mode t)
+
+  in your .emacs file to achieve this whenever you start Emacs.  Note that
+  Emacs will not display the line number if the buffer is larger than the
+  value of the variable line-number-display-limit.
  
   As of Emacs 20, you can similarly display the current column with "M-x
-  column-number-mode", by putting the form
+  column-number-mode", or by putting the form
 
     (setq column-number-mode t) 
 
-  in your .emacs file or by using Customize.
+  in your .emacs file.
 
   The "%c" format specifier in the variable mode-line-format will insert
   the current column's value into the mode line.  See the documentation for
@@ -978,8 +971,7 @@ Common Things People Want To Do
   instructions on how to get it.
 
   None of the vi emulation modes provide the "set number" capability of vi
-  (as far as we know) but Kyle Jones's setnu.el package implements such a
-  feature.
+  (as far as we know).
 
 29:  How can I modify the titlebar to contain the current filename?
 
@@ -1011,8 +1003,9 @@ Common Things People Want To Do
       (file-error nil))
 
     (add-hook 'XXX-mode-hook
-              (lambda ()
-                (setq abbrev-mode t)))
+              (function
+                (lambda ()
+                 (setq abbrev-mode t))))
 
 31:  How do I turn on auto-fill mode by default?
 
@@ -1025,9 +1018,6 @@ Common Things People Want To Do
 
     (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
-  You can also do this via the Help -> Options menu, which runs the command
-  toggle-text-mode-auto-fill.
-
   If you want auto-fill mode on in all major modes, do this:
 
     (setq-default auto-fill-function 'do-auto-fill)
@@ -1037,7 +1027,7 @@ Common Things People Want To Do
   If you want to use XXX mode for all files which end with the extension
   ".YYY", this will do it for you:
 
-    (add-to-list 'auto-mode-alist '("\\.YYY\\'" . XXX-mode))
+    (setq auto-mode-alist (cons '("\\.YYY\\'" . XXX-mode) auto-mode-alist))
 
   Otherwise put this somewhere in the first line of any file you want to
   edit in XXX mode (in the second line, if the first line begins with
@@ -1095,8 +1085,7 @@ Common Things People Want To Do
 
         (transient-mark-mode t)
 
-  in your .emacs file, using Customize or via the Help->Options menu.
-  (Also see question 66.)
+  in your .emacs file.  (Also see question 66.)
 
 35:  How do I control Emacs's case-sensitivity when searching/replacing?
 
@@ -1106,18 +1095,16 @@ Common Things People Want To Do
     (setq case-fold-search nil) ; make searches case sensitive
     (setq case-fold-search t)   ; make searches case insensitive
 
-  To change this or similar variables during an Emacs session, use
-  M-x set-variable.
-
-  Similarly, for replacing, the variable case-replace determines whether
+  Similarly, for replacing the variable case-replace determines whether
   replacements preserve case.
 
   To change the case sensitivity just for one major mode, use the major
   mode's hook.  For example:
 
     (add-hook 'XXX-mode-hook
-              (lambda ()
-                (setq case-fold-search nil)))
+          (function
+           (lambda ()
+             (setq case-fold-search nil))))
 
 36:  How do I make Emacs wrap words for me?
 
@@ -1208,7 +1195,7 @@ Common Things People Want To Do
 
     The alpha version of an enhanced version of gnuserv is available at
 
-        ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz
+        ftp://ftp.wellfleet.com/netman/psmith/emacs/gnuserv-2.1alpha.tar.gz
 
 41:  How do I make Emacs recognize my compiler's funny error messages?
 
@@ -1228,10 +1215,11 @@ Common Things People Want To Do
   already provided.  Once you have determined the proper regexps, use the
   following to inform Emacs of your changes:
 
-        (add-to-list 'compilation-error-regexp-alist
-                     '(REGEXP FILE-IDX LINE-IDX))
+        (setq compilation-error-regexp-alist
+              (cons '(REGEXP FILE-IDX LINE-IDX)
+                 compilation-error-regexp-alist))
 
-42:  How do I indent C switch statements like this?
+42:  How do I indent switch statements like this?
 
   Many people want to indent their switch statements like this:
 
@@ -1283,7 +1271,7 @@ Common Things People Want To Do
   off, so exiting from overwrite-mode is as easy as another M-x
   overwrite-mode.
 
-  On some systems the "Insert" key toggles overwrite-mode on and off.
+  On some workstations, the "Insert" key toggles overwrite-mode on and off.
 
 45:  How do I stop Emacs from beeping on a terminal?
 
@@ -1300,9 +1288,6 @@ Common Things People Want To Do
     And evaluate the following Lisp form:
 
       (setq visible-bell t)
-
-  There is also a way to turn off _all_ effects of a bell, by defining
-  a custom `ring-bell-function' that does nothing.
 
 46:  How do I turn down the bell volume in Emacs running under X Windows?
 
@@ -1321,8 +1306,8 @@ Common Things People Want To Do
 47:  How do I tell Emacs to automatically indent a new line to the
      indentation of the previous line?
 
-  Such behavior is automatic in text mode in Emacs 20.  From the NEWS file
-  for Emacs 20.2:
+  Such behavior is automatic in Emacs 20.  From the NEWS file for Emacs
+  20.2:
 
     ** In Text mode, now only blank lines separate paragraphs.  This makes
     it possible to get the full benefit of Adaptive Fill mode in Text mode,
@@ -1359,12 +1344,11 @@ Common Things People Want To Do
 
     (require 'paren)
 
-  in your .emacs file.  As of version 20.1, you must instead call
-  show-paren-mode in your .emacs file:
+  in your .emacs file.  Alan Shutko <shutkoa@ugsolutions.com> reports that
+  as of version 20.1, you must also call show-paren-mode in your .emacs
+  file:
 
     (show-paren-mode 1)
-
-  and the "require" is redundant.
 
   The "customize" facility will let you turn on show-paren-mode.  Use M-x
   customize-group RET paren-showing RET.  From within customize, you can
@@ -1383,9 +1367,7 @@ Common Things People Want To Do
 
   * Here is some Emacs Lisp that will make the % key show the matching
     parenthesis, like in vi.  In addition, if the cursor isn't over a
-    parenthesis, it simply inserts a % like normal.  (`Parenthesis' actually
-    includes and character with `open' or `close' syntax, which usually means
-    "()[]{}".)
+    parenthesis, it simply inserts a % like normal.
 
       ;; By an unknown contributor
 
@@ -1408,19 +1390,20 @@ Common Things People Want To Do
 
   (`.' is the redo command in vi.  It redoes the last insertion/deletion.)
 
-  In Emacs 20.3 and later, use the C-x z ("repeat") command to repeat `simple
-  commands'.
+  The next version of 
 
-  Otherwise you can type "C-x ESC ESC" (repeat-complex-command) to reinvoke
-  commands that used the minibuffer to get arguments.  In
-  repeat-complex-command you can type M-p and M-n to scan through all the
-  different complex commands you've typed.
+  No, not really, because Emacs doesn't have a special insertion mode.
+
+  You can type "C-x ESC ESC" (repeat-complex-command) to reinvoke commands
+  that used the minibuffer to get arguments.  In repeat-complex-command you
+  can type M-p and M-n to scan through all the different complex commands
+  you've typed.
 
   To repeat a set of commands, use keyboard macros.  (See "Keyboard Macros"
   in the on-line manual.)
 
-  VIPER, which comes with Emacs, emulates vi, including `.'.  (See question
-  107.)
+  If you're really desperate for the `.' command, use VIPER, which comes
+  with Emacs, and which appears to support it.  (See question 107.)
 
 51:  What are the valid X resource settings (i.e., stuff in .Xdefaults)?
 
@@ -1480,12 +1463,10 @@ Common Things People Want To Do
   To do this to a region, use "string-rectangle" ("C-x r t").  Set the mark
   (`C-SPC') at the beginning of the first line you want to prefix, move the
   cursor to last line to be prefixed, and type "C-x r t > RET".  To do this
-  for the whole buffer, type "C-x h C-x r t > RET".  In Emacs 20.3 and
-  later, this will affect only the current region if Transient Mark mode is
-  on (see NEWS via C-h N).
+  for the whole buffer, type "C-x h C-x r t > RET".
 
   If you are trying to prefix a yanked mail message with '>', you might
-  want to set the variable mail-yank-prefix.  Better yet, get the SuperCite
+  want to set the variable mail-yank-prefix.  Better yet, get the Supercite
   package (see question 105), which provides flexible citation for yanked
   mail and news messages.
 
@@ -1544,8 +1525,7 @@ Common Things People Want To Do
 
 61:  Where is the documentation for "etags"?
 
-  "etags" is documented in the Tags node of the Emacs manual.  The "etags"
-  man page should be in the same place as the "emacs" man page.
+  The "etags" man page should be in the same place as the "emacs" man page.
 
   Quick command-line switch descriptions are also available.  For example,
   "etags -H".
@@ -1569,7 +1549,7 @@ Common Things People Want To Do
 
   If you're tired of seeing backup files whenever you do an "ls" at the
   Unix shell, try GNU ls with the "-B" option.  GNU ls is part of the GNU
-  fileutils package, available at mirrors of gnudist.gnu.org (see question 92).
+  fileutils package, available at mirrors of ftp.gnu.org (see question 92).
 
   To disable or change how backups are made, see "Backup Names" in the
   on-line manual.
@@ -1658,12 +1638,7 @@ Common Things People Want To Do
 
   More detailed information -- and more examples of how to create and
   modify menu options -- are in the Emacs Lisp Reference Manual, under
-  "Menu Keymaps."  (See question 16 for information on this manual.)
-
-  Note that Emacs 20.3 introduced a better (`extended') format for menu
-  items, described in the NEWS file and the Lisp Manual.  The "easymenu"
-  package provides support for defining menus conveniently with some
-  portability amongst Emacs versions.
+  "Keymaps."  (See question 16 for information on this manual.)
 
 65:  How do I delete menus and menu options?
 
@@ -1694,24 +1669,22 @@ Common Things People Want To Do
   font-lock-mode RET".
 
   To automatically invoke font-lock mode when a particular major mode is
-  invoked, set the major mode's hook or define font-lock-global-modes as a
-  list with the mode name as an element.  For example, to fontify all
-  c-mode buffers, add the following to your .emacs file:
+  invoked, set the major mode's hook.  For example, to fontify all c-mode
+  buffers, add the following to your .emacs file:
 
     (add-hook 'c-mode-hook 'turn-on-font-lock)
 
   To automatically invoke font-lock mode for all major modes, you can turn
   on global-font-lock mode by including the following line in your .emacs
-  file (or use Custom):
+  file:
 
     (global-font-lock-mode 1)
 
   This instructs Emacs to turn on font-lock mode in those buffers for which
   a font-lock mode definition has been provided (in the variable
-  font-lock-global-modes or via the variable font-lock-defaults-alist).  If
-  you edit a file in pie-ala-mode, and no font-lock definitions have been
-  provided for pie-ala files, then the above setting will have no effect on
-  that particular buffer.
+  font-lock-global-modes).  If you edit a file in pie-ala-mode, and no
+  font-lock definitions have been provided for pie-ala files, then the
+  above setting will have no effect on that particular buffer.
 
   Highlighting with font-lock mode can take quite a while, and thus
   different levels of decoration are available, from slight to gaudy.  To
@@ -1740,10 +1713,10 @@ Common Things People Want To Do
   typing C-h f font-lock-mode ("M-x describe-function RET font-lock-mode
   RET").
 
-  For more information on font-lock mode, particularly adding new patterns,
-  see the Lisp Reference Manual and the commentary in the source
-  font-lock.el, which you can find in Emacs 20 (if it is installed) using,
-  say, M-x find-function font-lock-mode.
+  For more information on font-lock mode, take a look at the font-lock mode
+  FAQ, maintained by Jari Aalto <jari.aalto@ntc.nokia.com> at
+
+    ftp://cs.uta.fi/pub/ssjaaa/ema-font.gui
 
   To print buffers with the faces (i.e., colors and fonts) intact, use
   "M-x ps-print-buffer-with-faces" or "M-x ps-print-region-with-faces".
@@ -1773,23 +1746,17 @@ Common Things People Want To Do
   This mode also allows you to delete (not kill) the highlighted region by
   pressing DEL.
 
-69:  How can I edit MS-DOS-style text files using Emacs?
+69:  How can I edit MS-DOS files using Emacs?
 
   As of Emacs 20, detection and handling of MS-DOS (and Windows) files is
-  performed transparently.  You can open an MS-DOS file on a Unix system
-  (and vice versa), edit it, and save it without having to worry about the
-  file format.  To save it with a different end-of-line convention use
-  C-x RET c to specify a new coding system such as undecided-unix.
+  performed transparently. You can open MS-DOS files on a Unix system, edit
+  it, and save it without having to worry about the file format.
 
   When editing an MS-DOS style file, a backslash (\) will appear in the
   mode line.
 
-  You can avoid translation of the end-of-line conventions either by
-  visiting a file using M-x find-file-literally or by setting the variable
-  inhibit-eol-conversion to t.
-
-  If you are running an earlier version of Emacs, get crypt++ from
-  ftp://ftp.cs.umb.edu/pub/misc/crypt++.el.  Among other things, crypt++
+  If you are running an earlier version of Emacs, get crypt++ from the
+  Emacs Lisp Archive (see question 90).  Among other things, crypt++
   transparently modifies MS-DOS files as they are loaded and saved,
   allowing you to ignore the different conventions that Unix and MS-DOS
   have for delineating the end of a line.
@@ -1802,8 +1769,6 @@ Common Things People Want To Do
 
     (setq sentence-end "[.?!][]\"')}]*\\($\\|[ \t]\\)[ \t\n]*")
     (setq sentence-end-double-space nil)
-
-  See "Sentences" in the online manual.
 
 
 Bugs/Problems
@@ -1843,11 +1808,7 @@ Bugs/Problems
 72:  How do I get rid of ^M or echoed commands in my shell buffer?
 
   Try typing "M-x shell-strip-ctrl-m RET" while in shell-mode to make them
-  go away.  You might add this function to comint-output-filter-functions:
-
-  (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m)
-
-  If that doesn't work, you have several options:
+  go away.  If that doesn't work, you have several options:
 
   For tcsh, put this in your .cshrc (or .tcshrc) file:
 
@@ -1900,11 +1861,15 @@ Bugs/Problems
   can cause a failure and don't know a general solution for working around
   the problem in this case.
 
+  The "make clean" command will remove "env" and other vital programs, so
+  be careful when using it.
+
   It has been reported that this sometimes happened when Emacs was started
   as an X client from an xterm window (i.e., had a controlling tty) but the
   xterm was later terminated.
 
-  See also etc/PROBLEMS for other possible causes of this message.
+  See also PROBLEMS (in the top-level directory when you unpack the Emacs
+  source) for other possible causes of this message.
 
 74:  Where is the termcap/terminfo entry for terminal type "emacs"?
 
@@ -1935,7 +1900,7 @@ Bugs/Problems
   sending C-s and C-q for flow control, and Emacs is receiving these
   characters and interpreting them as commands.  (The C-s character
   normally invokes the isearch-forward command.)  For possible solutions,
-  see question 121.
+  see question 122.
 
 76:  Why can't Emacs talk to certain hosts (or certain hostnames)?
 
@@ -1976,7 +1941,7 @@ Bugs/Problems
 
   It may be the case that you need to load some package first, or use a
   hook that will be evaluated after the package is loaded.  A common case
-  of this is explained in question 117.
+  of this is explained in question 118.
 
 78:  Why does Emacs ignore my X resources (my .Xdefaults file)?
 
@@ -2156,29 +2121,29 @@ Difficulties Building/Installing/Porting Emacs
   from scratch.  You will need:
 
   * Emacs sources.  See question 92 for a list of ftp sites that make them
-    available.  On gnudist.gnu.org, the main GNU distribution site, sources are
+    available.  On ftp.gnu.org, the main GNU distribution site, sources are
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs-20.4.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs-20.3.tar.gz
 
     The above will obviously change as new versions of Emacs come out.  For
-    instance, when Emacs 20.5 is released, it will most probably be
+    instance, when Emacs 20.4 is released, it will most probably be
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs-20.5.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs-20.4.tar.gz
 
     Again, you should use one of the mirror sites in question 92 (and
-    adjust the URL accordingly) so as to reduce load on gnudist.gnu.org.
+    adjust the URL accordingly) so as to reduce load on ftp.gnu.org.
 
   * Gzip, the GNU compression utility.  You can get gzip via anonymous ftp
-    at mirrors of gnudist.gnu.org sites; it should compile and install without
+    at mirrors of ftp.gnu.org sites; it should compile and install without
     much trouble on most systems.  Once you have retrieved the Emacs
     sources, you will probably be able to uncompress them with the command
 
-      gunzip --verbose emacs-20.4.tar.gz
+      gunzip --verbose emacs-20.3.tar.gz
 
-    changing the Emacs version (20.4), as necessary.  Once gunzip has
-    finished doing its job, a file by the name of "emacs-20.4.tar" should
+    changing the Emacs version (20.3), as necessary.  Once gunzip has
+    finished doing its job, a file by the name of "emacs-20.3.tar" should
     be in your build directory.
 
   * Tar, the "tape archiving" program, which moves multiple files into and
@@ -2187,27 +2152,27 @@ Difficulties Building/Installing/Porting Emacs
     before you can build Emacs.  Typically, the extraction command would
     look like
 
-      tar -xvvf emacs-20.4.tar
+      tar -xvvf emacs-20.3.tar
 
     The `x' indicates that we want to extract files from this tarfile, the
     two `v's force verbose output, and the `f' tells tar to use a disk
     file, rather than one on tape.
 
-    If you're using GNU tar (available at mirrors of gnudist.gnu.org), you can
+    If you're using GNU tar (available at mirrors of ftp.gnu.org), you can
     combine this step and the previous one by using the command
 
-      tar -zxvvf emacs-20.4.tar.gz
+      tar -zxvvf emacs-20.3.tar.gz
 
     The additional `z' at the beginning of the options list tells GNU tar
     to uncompress the file with gunzip before extracting the tarfile's
     components.
 
   At this point, the Emacs sources (all 25+ megabytes of them) should be
-  sitting in a directory called "emacs-20.4".  On most common Unix and
+  sitting in a directory called "emacs-20.3".  On most common Unix and
   Unix-like systems, you should be able to compile Emacs (with X Windows
   support) with the following commands:
 
-    cd emacs-20.4       [ change directory to emacs-20.4 ]
+    cd emacs-20.3       [ change directory to emacs-20.3 ]
     ./configure         [ configure Emacs for your particular system ]
     make                [ use Makefile to build components, then Emacs ]
 
@@ -2215,9 +2180,7 @@ Difficulties Building/Installing/Porting Emacs
   build has gone well.  (See question 86 if you weren't successful.)
 
   To install Emacs in its default directories of /usr/local/bin (binaries),
-  /usr/local/share/emacs/20.xx (Lisp code and support files),
-  /usr/local/libexec/CONFIGURATION/emacs/VERSION (executable files to be
-  run by Emacs rather than users), /usr/local/man/man1 (man pages) and
+  /usr/local/share/emacs/20.xx (Lisp code and support files), and
   /usr/local/info (Info documentation), become the super-user and type
 
     make install
@@ -2233,7 +2196,7 @@ Difficulties Building/Installing/Porting Emacs
   Follow the instructions in question 84.
 
   Emacs places nearly everything in version-specific directories (e.g.,
-  /usr/local/share/emacs/20.4), so the only files that can be overwritten
+  /usr/local/share/emacs/20.3), so the only files that can be overwritten
   when installing a new release are /usr/local/bin/emacs and the Emacs Info
   documentation in /usr/local/info.  Back up these files before you install
   a new release, and you shouldn't have too much trouble.
@@ -2300,12 +2263,11 @@ Finding/Getting Emacs and Related Packages
   lists all functions and variables containing the string "wordstar".
 
   It is also possible that the package is on your system, but has not been
-  loaded.  To see which packages are available for loading, look through your
-  computer's lisp directory (see question 4) or use the Finder (C-h p) to
-  search under keywords.  The Lisp source to most packages contains a
-  short description of how they should be loaded, invoked, and configured --
-  so before you use or modify a Lisp package, see if the author has provided
-  any hints in the source code.
+  loaded.  To see which packages are available for loading, look through
+  your computer's lisp directory (see question 4).  The Lisp source to most
+  most packages contains a short description of how they should be loaded,
+  invoked, and configured -- so before you use or modify a Lisp package,
+  see if the author has provided any hints in the source code.
 
   If a package does not come with Emacs, check the Lisp Code Directory,
   maintained by Dave Brennan <brennan@hal.com>.  The directory is contained
@@ -2320,7 +2282,7 @@ Finding/Getting Emacs and Related Packages
   lisp-dir-apropos RET ange-ftp RET" produces this output:
 
               GNU Emacs Lisp Code Directory Apropos -- "ange-ftp"
-     "~/" refers to ftp.cs.ohio-state.edu:pub/gnu/emacs/elisp-archive/
+     "~/" refers to archive.cis.ohio-state.edu:pub/gnu/emacs/elisp-archive/
 
           ange-ftp (4.18)       15-Jul-1992
                Andy Norman, <ange@hplb.hpl.hp.com>
@@ -2357,7 +2319,7 @@ Finding/Getting Emacs and Related Packages
 
   You can access the Emacs Lisp Archive at the following sites:
 
-    ftp://ftp.cs.ohio-state.edu/pub/gnu/emacs/elisp-archive/
+    ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/
     ftp://calypso-2.oit.unc.edu/pub/gnu/elisp-archive/
     ftp://faui43.informatik.uni-erlangen.de/pub/gnu/elisp-archive/
     ftp://ftp.cs.umn.edu/pub/elisp-archive/
@@ -2382,12 +2344,6 @@ Finding/Getting Emacs and Related Packages
           them.  You should also use binary mode whenever you retrieve any
           files with names ending in ".elc".
 
-  Note that the archive is apparently not being maintained at the time of
-  writing; a volunteer to take on the task would be welcome.
-
-  Packages which have been posted to gnu.emacs.sources should be locatable
-  via a service like Dejanews.
-
 91:  How do I submit code to the Emacs Lisp Archive?
 
   Guidelines and procedures for submission to the archive can be found in
@@ -2398,14 +2354,12 @@ Finding/Getting Emacs and Related Packages
   The lispdir.el package has a function named submit-lcd-entry which will
   help you with this.
 
-  See question 90 regarding non-maintenance of the archive. 
-
 92:  Where can I get other up-to-date GNU stuff?
 
   The most up-to-date official GNU software is normally kept on
-  gnudist.gnu.org and is available at
+  ftp.gnu.org and is available at
 
-    ftp://gnudist.gnu.org/pub/gnu
+    ftp://ftp.gnu.org/pub/gnu
 
   Read the files etc/DISTRIB and etc/FTP for more information.
 
@@ -2457,7 +2411,7 @@ Finding/Getting Emacs and Related Packages
          ftp://vixen.cso.uiuc.edu/gnu,
          ftp://wuarchive.wustl.edu/systems/gnu
 
-  The directory at ftp.uu.net is a mirror of gnudist.gnu.org except that files
+  The directory at ftp.uu.net is a mirror of ftp.gnu.org except that files
   larger than one megabyte are split into multiple parts.  If you have
   trouble transferring large files, you should try that site.  A file
   normally named "XXX" is split into files XXX-split/part[0-9][0-9], and
@@ -2468,35 +2422,46 @@ Finding/Getting Emacs and Related Packages
 93:  What is the difference between Emacs and XEmacs (formerly "Lucid
      Emacs")?
 
-  XEmacs is a modified version of GNU Emacs.
-
-  This FAQ refers to the latest version to be distributed by the FSF
-  as "Emacs," partly because the XEmacs maintainers now refer to their
-  product using the "XEmacs" name, and partly because there isn't any
-  accurate way to differentiate between the two without getting mired
-  in paragraphs of legalese and history.
+  First of all, they're both GNU Emacs.  XEmacs is just as much a later
+  version of GNU Emacs as the FSF-distributed version.  This FAQ refers to
+  the latest version to be distributed by the FSF as "Emacs," partly
+  because the XEmacs maintainers now refer to their product using the
+  "XEmacs" name, and partly because there isn't any accurate way to
+  differentiate between the two without getting mired in paragraphs of
+  legalese and history.
 
   XEmacs, which began life as Lucid Emacs, is based on an early version of
   Emacs 19 and Epoch, an X-aware version of Emacs 18.
 
   Emacs (i.e., the version distributed by the FSF) has a larger installed
-  base and now always contains the MULE multilingual facilities.  XEmacs
-  can do some clever tricks with X Windows, such as putting arbitrary
-  graphics in a buffer; similar facilities have been implemented for Emacs,
-  which will be integrated after version 20.4.  Emacs and XEmacs each come
-  with some Lisp packages that are lacking or more up-to-date in the other;
-  RMS says that the FSF would include more packages that come with XEmacs,
-  but that the XEmacs maintainers don't always keep track of the authors of
-  contributed code, which makes it impossible for the FSF to have certain
-  legal papers signed.  (Without these legal papers, the FSF will not
-  distribute Lisp packages with Emacs.)  The two versions have some
-  significant differences at the Lisp programming level.
+  base, while XEmacs can do some clever tricks with X Windows, such as
+  putting arbitrary graphics in a buffer.  Emacs and XEmacs each come with
+  Lisp packages that are lacking in the other; RMS says that the FSF would
+  include more packages that come with XEmacs, but that the XEmacs
+  maintainers don't always keep track of the authors of contributed code,
+  which makes it impossible for the FSF to have certain legal papers
+  signed.  (Without these legal papers, the FSF will not distribute Lisp
+  packages with Emacs.)
+
+  Many XEmacs features have found their way into recent versions of Emacs,
+  and more features can be expected in the future, but there are still many
+  differences between the two.
+
+  The latest version of XEmacs as of this writing is 20.4; you can get it
+  at
+
+    ftp://ftp.xemacs.org/pub/xemacs/xemacs-20.4.tar.gz
+
+  More information about XEmacs, including a list of frequently asked
+  questions (FAQ), is available at
+
+    http://www.xemacs.org/
 
 94:  Where can I get Emacs for my PC running MS-DOS?
 
   A pre-built binary distribution of Emacs is available from the Simtel
-  archives.  This version works under MS-DOS and Windows (3.x, 9x, and NT) and
-  supports long file names under Windows 9x.  More information is available
+  archives.  This version apparently works under MS-DOS and Windows (3.x,
+  95, and NT) and supports long file names.  More information is availble
   from:
 
         ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/emacs.README
@@ -2515,7 +2480,7 @@ Finding/Getting Emacs and Related Packages
 
   Compiler: djgpp version 1.12 maint 1 or later.  Djgpp 2.0 or later is
             recommended, since 1.x is being phased out.  Djgpp 2 supports
-            long filenames under Windows 9x.
+            long filenames under Windows 95.
 
             You can get the latest release of djgpp by retrieving
             all of the files in
@@ -2539,8 +2504,8 @@ Finding/Getting Emacs and Related Packages
 
               ftp://ftp.simtel.net/pub/simtelnet/gnu/gnuish
 
-  The files INSTALL and etc/PROBLEMS in the Emacs source contains some
-  additional information regarding Emacs under MS-DOS.
+  The files INSTALL and PROBLEMS in the top-level directory of the Emacs
+  source contains some additional information regarding Emacs under MS-DOS.
 
   For a list of other MS-DOS implementations of Emacs (and Emacs
   look-alikes), consult the list of "Emacs implementations and literature,"
@@ -2549,35 +2514,17 @@ Finding/Getting Emacs and Related Packages
     ftp://rtfm.mit.edu/pub/usenet/comp.emacs/
 
   Note that while many of these programs look similar to Emacs, they often
-  lack certain features, particularly as the Emacs Lisp extension language.
+  lack certain features, such as the Emacs Lisp extension language.
 
-95:  Where can I get Emacs for Microsoft Windows, Windows 9x, or Windows
+95:  Where can I get Emacs for Microsoft Windows, Windows '95, or Windows
      NT?
 
-  GNU Emacs has been fully ported to Windows NT and Windows 95/98.  
-  If you have MSVC 4.0 or greater, then you can compile GNU Emacs
-  directly from the source distribution.  First read the file
-  nt/README, and then the file nt/INSTALL, for step by step
-  instructions on how to compile and install GNU Emacs on your system.
-
-  You can also download precompiled distributions of GNU Emacs from:
-
-    ftp://ftp.cs.washington.edu/pub/ntemacs
-
-  If you need the gunzip and tar utilities for unpacking distributions,
-  you can download precompiled versions from:
-
-    ftp://ftp.cs.washington.edu/pub/ntemacs/utilities
-
-  For more information on configuring your favorite package to run with
-  GNU Emacs on Windows NT/95/98, see the following FAQ:
+  For information on Emacs for Windows 95 and NT, read the FAQ produced by
+  Geoff Voelker <voelker@cs.washington.edu>, available at
 
     http://www.cs.washington.edu/homes/voelker/ntemacs.html
-    ftp://ftp.cs.washington.edu/pub/ntemacs/docs/ntemacs.html
 
-  If you are running Windows 3.11, and if you compile GNU Emacs for MSDOS
-  with the tools listed in the previous question, it will run under
-  Microsoft Windows in a DOS box.
+  For Windows 3.1, see question 94.
 
 96:  Where can I get Emacs for my PC running OS/2?
 
@@ -2611,26 +2558,6 @@ Finding/Getting Emacs and Related Packages
     ftp://next-ftp.peak.org/pub/next/apps/emacs/Emacs_for_NeXTstep.4.20a1.NIHS.b.tar.gz
 
 100:  Where can I get Emacs for my Apple computer?
-
-
-  There used to be a boycott of Apple because of its "look and feel"
-  lawsuit.  The lawsuit failed, and the boycott is over.
-  Currently the GNU project treats Apple like other computer companies.
-
-  Since the Mac operating system is very different from Unix and GNU,
-  support for it would be a big job.  And this job would be tangential
-  to the GNU project's goals.  Meanwhile, we don't have the resources
-  to do all we want to do on supporting Emacs for GNU-like systems.
-  So if we had to do work on support for the Macintosh, that would
-  directly harm the GNU project.
-
-  Of course, the same is true for MSDOS and Windows NT.  We decided to
-  incorporate support for those systems because the code was very modular,
-  because volunteers not only wrote all the code but also investigate
-  all the bugs reported on those systems, and because we hoped that we
-  will be able to raise funds for GNU using these versions, and in this
-  way these ports will make up for the effort that they took.  (We still
-  hope so, but it has not happened yet.)
 
   An unofficial port of GNU Emacs 18.59 to the Macintosh is available at a
   number of ftp sites, the home being
@@ -2670,9 +2597,9 @@ Finding/Getting Emacs and Related Packages
 
   If you are on a Unix machine, try using the "nslookup" command, included
   in the Berkeley BIND package.  For example, to find the IP address of
-  "gnudist.gnu.org", you would type
+  "ftp.gnu.org", you would type
 
-    nslookup gnudist.gnu.org
+    nslookup ftp.gnu.org
 
   Your computer should then provide the IP address of that computer.
 
@@ -2711,23 +2638,24 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   seem to use it without too much trouble).  Users of Emacs 20 might prefer
   to use VM 5.97, available from the same FTP site.
 
-105: SuperCite -- mail and news citation package within Emacs
+105: Supercite -- mail and news citation package within Emacs
 
   Author: Barry Warsaw <bwarsaw@cen.com>
   Latest version: 3.1 (comes with Emacs 20)
-  Anonymous FTP:
-    ftp://ftp.python.org/pub/emacs/sc3.1.tar.gz
+
+  World Wide Web:
+    http://www.python.org/emacs/supercite.tar.gz
   Mailing list:
-    supercite-request@merlin.cnri.reston.va.us (for subscriptions)
-    supercite@merlin.cnri.reston.va.us (for submissions)
-  NOTE: Superyank is an old version of SuperCite.
+    supercite-request@python.org (for subscriptions)
+    supercite@python.org (for submissions)
+  NOTE: Superyank is an old version of Supercite.
 
 106: Calc -- poor man's Mathematica within Emacs
 
   Author: Dave Gillespie <daveg@csvax.cs.caltech.edu>
   Latest version: 2.02f
   Anonymous FTP:
-    ftp://gnudist.gnu.org/pub/gnu/calc-2.02f.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/calc-2.02f.tar.gz
   NOTE: Unlike Wolfram Research, Dave has never threatened to sue
         anyone for having a program with a similar command language to
         Calc.  :-)
@@ -2746,7 +2674,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Author: Aamod Sane <sane@cs.uiuc.edu>
   Latest version: 4.3
   Anonymous FTP:
-    ftp://ftp.cs.ohio-state.edu/pub/gnu/emacs/elisp-archive/modes/vip-mode.tar.Z
+    ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/modes/vip-mode.tar.Z
 
 108: AUC TeX -- enhanced LaTeX mode with debugging facilities
 
@@ -2815,13 +2743,20 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Authors: Patrick J. LoPresti <patl@lcs.mit.edu> and 
            Jin S. Choi <jin@atype.com>
   Maintainer: Len Budney <lbudney@pobox.com>
-  Latest version: 3.5b6
+  Latest version: 3.4
   Anonymous FTP:
     http://www.nb.net/~lbudney/linux/software/mailcrypt/mailcrypt-3.5b6.tar.gz
   World Wide Web:
     http://www.nb.net/~lbudney/linux/software/mailcrypt.html
 
-114: Patch -- program to apply "diffs" for updating files
+114: JDE -- Development environment for Java programming
+
+  Author: Paul Kinnucan <paulk@mathworks.com>
+  Mailing list: jde-subscribe@sunsite.auc.dk
+  Latest version: 2.1.1
+  World Wide Web: http://sunsite.auc.dk/jde/
+
+115: Patch -- program to apply "diffs" for updating files
 
   Author: Larry Wall <lwall@wall.org> (with GNU modifications)
   Latest version: 2.5
@@ -2830,7 +2765,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 
 Changing Key Bindings and Handling Key Binding Problems
 
-115: How do I bind keys (including function keys) to commands?
+116: How do I bind keys (including function keys) to commands?
 
   Keys can be bound to commands either interactively or in your .emacs
   file.  To interactively bind keys for all modes, type
@@ -2849,15 +2784,15 @@ Changing Key Bindings and Handling Key Binding Problems
   is in the kill ring, and can be yanked into your .emacs file.  If the key
   binding is global, no changes to the command are required.  For example,
 
-    (global-set-key [f1] 'help-for-help)
+    (global-set-key (quote [f1]) (quote help-for-help))
 
   can be placed directly into the .emacs file.  If the key binding is
   local, the command is used in conjunction with the "add-hook" command.
   For example, in tex-mode, a local binding might be
 
     (add-hook 'tex-mode-hook
-      (lambda ()
-        (local-set-key [f1] 'help-for-help)))
+      (function (lambda ()
+        (local-set-key (quote [f1]) (quote help-for-help))))
 
   NOTE: * Control characters in key sequences, in the form yanked from the
           kill ring are given in their graphic form -- i.e., CTRL is shown
@@ -2877,16 +2812,7 @@ Changing Key Bindings and Handling Key Binding Problems
            (global-set-key [f10] [?\C-x?\e?\e?\C-a?\C-k?\C-g])  ;;  or
            (global-set-key [f10] "\C-x\e\e\C-a\C-k\C-g")
 
-        * The "kbd" macro is convenient for converting a key description in
-          the form used in documentation or printed by C-h c (except that
-          function key symbols must be enclosed in angle brackets).  For
-          example:
-
-            (global-set-key (kbd "<f1>") 'help-for-help)
-            (global-set-key (kbd "C-h") 'help-for-help)
-            (local-set-key (kbd "DEL") 'scroll-down)
-
-116: Why does Emacs say "Key sequence XXX uses invalid prefix characters"?
+117: Why does Emacs say "Key sequence XXX uses invalid prefix characters"?
 
   Usually, one of two things has happened.  In one case, the control
   character in the key sequence has been misspecified (e.g. "C-f" used
@@ -2899,7 +2825,7 @@ Changing Key Bindings and Handling Key Binding Problems
     (global-unset-key [?\e ?[])  ;;  or
     (global-unset-key "\e[")
 
-117: Why doesn't this [terminal or window-system setup] code work in my
+118: Why doesn't this [terminal or window-system setup] code work in my
      .emacs file, but it works just fine after Emacs starts up?
 
   During startup, Emacs initializes itself according to a given code/file
@@ -2921,22 +2847,22 @@ Changing Key Bindings and Handling Key Binding Problems
                     (global-set-key [do] 'execute-extended-command))
                    ))))
 
-  For information on what Emacs does every time it is started, see
-  "Starting Up Emacs" in the Lisp Reference Manual.
+  For information on what Emacs does every time it is started, see the
+  lisp/startup.el file.
 
-118: How do I use function keys under X Windows?
+119: How do I use function keys under X Windows?
 
   With Emacs 19, functions keys under X are bound like any other key.  See
-  question 115 for details.
+  question 116 for details.
 
-119: How do I tell what characters or symbols my function or arrow keys
+120: How do I tell what characters or symbols my function or arrow keys
      emit?
 
   Type "C-h c" then the function or arrow keys.  The command will return
   either a function key symbol or character sequence (see the Emacs on-line
   documentation for an explanation).  This works for other keys as well.
 
-120: How do I set the X key "translations" for Emacs?
+121: How do I set the X key "translations" for Emacs?
 
   Emacs is not written using the Xt library by default, so there are no
   "translations" to be set.  (We aren't sure how to set such translations
@@ -2951,7 +2877,7 @@ Changing Key Bindings and Handling Key Binding Problems
 
   defines the "M-TAB" key sequence.
 
-121: How do I handle C-s and C-q being used for flow control?
+122: How do I handle C-s and C-q being used for flow control?
 
   C-s and C-q are used in the XON/XOFF flow control protocol.  This messes
   things up when you're using Emacs, because Emacs binds these keys to
@@ -3047,23 +2973,23 @@ Changing Key Bindings and Handling Key Binding Problems
     For further discussion of this issue, read the file PROBLEMS (in the
     top-level directory when you unpack the Emacs source).
 
-122: How do I bind `C-s' and `C-q' (or any key) if these keys are filtered
+123: How do I bind `C-s' and `C-q' (or any key) if these keys are filtered
      out?
 
   To bind `C-s' and `C-q', use either "enable-flow-control" or
-  "enable-flow-control-on".  See question 121 for usage and implementation
+  "enable-flow-control-on".  See question 122 for usage and implementation
   details.
 
-  To bind other keys, use "keyboard-translate".  See question 125 for usage
+  To bind other keys, use "keyboard-translate".  See question 126 for usage
   details.  To do this for an entire site, you should swap the keys in
-  lisp/site-start.el.  See question 121 for an explanation of why
+  lisp/site-start.el.  See question 122 for an explanation of why
   lisp/default.el should not be used.
 
   NOTE: * If you do this for an entire site, the users will be confused by
           the disparity between what the documentation says and how Emacs
           actually behaves.
 
-123: Why does the "Backspace" key invoke help?
+124: Why does the "Backspace" key invoke help?
 
   The "Backspace" key (on most keyboards) generates ASCII code 8.  `C-h'
   sends the same code.  In Emacs by default `C-h' invokes help-command.
@@ -3097,7 +3023,7 @@ Changing Key Bindings and Handling Key Binding Problems
 
       (keyboard-translate ?\C-h ?\C-?)
 
-    See question 125 for further details of "keyboard-translate".
+    See question 126 for further details of "keyboard-translate".
 
   * Another approach is to switch key bindings and put help on "C-x h"
     instead:
@@ -3110,11 +3036,11 @@ Changing Key Bindings and Handling Key Binding Problems
     NOTE: * Don't try to bind DEL to help-command, because there are many
             modes that have local bindings of DEL that will interfere.
 
-124: Why doesn't Emacs look at the stty settings for Backspace vs. Delete?
+125: Why doesn't Emacs look at the stty settings for Backspace vs. Delete?
 
   Good question!
 
-125: How do I "swap" two keys?
+126: How do I "swap" two keys?
 
   In Emacs 19, you can swap two keys (or key sequences) by using the
   "keyboard-translate" function.  For example, to turn `C-h' into DEL and
@@ -3136,7 +3062,7 @@ Changing Key Bindings and Handling Key Binding Problems
 
   Also see "Keyboard Translations" in the on-line manual.
 
-126: How do I produce C-XXX with my keyboard?
+127: How do I produce C-XXX with my keyboard?
 
   On terminals (but not under X), some common "aliases" are:
 
@@ -3151,14 +3077,14 @@ Changing Key Bindings and Handling Key Binding Problems
   all of the digits on your keyboard to see what gets generated.  You can
   also try the "C-h w" command if you know the name of the command.
 
-127: What if I don't have a Meta key?
+128: What if I don't have a Meta key?
 
   Instead of typing "M-a", you can type "ESC a".  In fact, Emacs converts
   M-a internally into "ESC a" anyway (depending on the value of
   meta-prefix-char).  Note that you press "Meta" and `a' together, while
   you press `ESC', release it, and then press `a'.
 
-128: What if I don't have an Escape key?
+129: What if I don't have an Escape key?
 
   Type `C-[' instead.  This should send ASCII code 27 just like an Escape
   key would.  `C-3' may also work on some terminal (but not under X).  For
@@ -3168,13 +3094,13 @@ Changing Key Bindings and Handling Key Binding Problems
   (define-key function-key-map [f11] [?\e])  ; F11 is the documented ESC
                                              ; replacement on DEC terminals.
 
-129: Can I make my "Compose Character" key behave like a Meta key?
+130: Can I make my "Compose Character" key behave like a Meta key?
 
   On a dumb terminal such as a VT220, no.  It is rumored that certain VT220
   clones could have their Compose key configured this way.  If you're using
   X, you might be able to do this with the "xmodmap" program.
 
-130: How do I bind a combination of modifier key and function key?
+131: How do I bind a combination of modifier key and function key?
 
   With Emacs 19 you can represent modified function keys in vector format
   by adding prefixes to the function key symbol.  For example (from the
@@ -3191,18 +3117,14 @@ Changing Key Bindings and Handling Key Binding Problems
 
            (global-set-key [H-M-right] 'forward-word)
 
-  In recent Emacs versions this may also be written as:
-
-           (global-set-key [(hyper meta right)] 'forward-word)
-
   NOTE: * Not all modifiers are permitted in all situations.  Hyper, Super,
           and Alt are available only under X (provided there are such
           keys).  Non-ASCII keys and mouse events (e.g. "C-=" and
           "mouse-1") also fall under this category.
 
-  See question 115 for general key binding instructions.
+  See question 116 for general key binding instructions.
 
-131: Why doesn't my Meta key work in an xterm window?
+132: Why doesn't my Meta key work in an xterm window?
 
   Try all of these methods before asking for further help:
 
@@ -3241,7 +3163,7 @@ Changing Key Bindings and Handling Key Binding Problems
 
     You might have to replace "Meta" with "Alt".
 
-132: Why doesn't my ExtendChar key work as a Meta key under HP-UX 8.0
+133: Why doesn't my ExtendChar key work as a Meta key under HP-UX 8.0
      and 9.x?
 
   This is a result of an internationalization extension in X11R4 and the
@@ -3259,18 +3181,46 @@ Changing Key Bindings and Handling Key Binding Problems
 
 Using Emacs with Alternate Character Sets
 
-133: How do I make Emacs display 8-bit characters?
+134: How do I make Emacs display 8-bit characters?
 
-  Emacs 19 introduced built-in support for 8-bit characters.  Emacs 20 can
-  operate similarly in Unibyte mode or else in Multibyte mode.  See the
-  "International" node in the online manual, specifically "Single-Byte
-  European Support".
+  Emacs 19 has built-in support for 8-bit characters.  Here is an excerpt
+  from the "European Display" page of the on-line manual:
 
-134: How do I input 8-bit characters?
+    Some European languages use accented letters and other special symbols.
+    The ISO 8859 Latin-1 character set defines character codes for many
+    European languages in the range 160 to 255.
 
-  Again, see the "International" node of the on-line manual.
+    Emacs can display those characters according to Latin-1, provided the
+    terminal or font in use supports them.  The "M-x
+    standard-display-european" command toggles European character display
+    mode.  With a numeric argument, "M-x standard-display-european" enables
+    European character display if and only if the argument is positive.
 
-135: Where can I get an Emacs that handles kanji, Chinese, or other
+    Some operating systems let you specify the language you are using by
+    setting a locale.  Emacs handles one common special case of this: if
+    your locale name for character types contains the string "8859-1" or
+    "88591", Emacs automatically enables European character display mode
+    when it starts up.
+
+135: How do I input 8-bit characters?
+
+  Again, from the "European Display" page of the on-line manual:
+
+    If you enter non-ASCII ISO Latin-1 characters often, you might find ISO
+    Accents mode convenient.  When this minor mode is enabled, the
+    characters ``', `'', `"', `^', `/' and `~' modify the following letter
+    by adding the corresponding diacritical mark to it, if possible.  To
+    enable or disable ISO Accents mode, use the command "M-x
+    iso-accents-mode".  This command affects only the current buffer.
+
+    To enter one of those six special characters, type the character,
+    followed by a space.  Some of those characters have a corresponding
+    "dead key" accent character in the ISO Latin-1 character set; to enter
+    that character, type the corresponding ASCII character twice.  For
+    example, `''' enters the Latin-1 character acute-accent (character code
+    0264).
+
+136: Where can I get an Emacs that handles kanji, Chinese, or other
      character sets?
 
   Emacs 20 now includes many of the features of MULE, the Multilingual
@@ -3281,7 +3231,7 @@ Using Emacs with Alternate Character Sets
 
     ftp://sh.wide.ad.jp/JAPAN/mule/mule-19.33-delta.tar.gz
 
-136: Where is an Emacs that can handle Semitic (right-to-left) alphabets?
+137: Where is an Emacs that can handle Semitic (right-to-left) alphabets?
 
   Emacs 20 supports Hebrew characters (ISO 8859-8), but does not yet
   support right-to-left character entry.
@@ -3300,19 +3250,19 @@ Using Emacs with Alternate Character Sets
 
 Mail and News
 
-137: How do I change the included text prefix in mail/news followups?
+138: How do I change the included text prefix in mail/news followups?
 
   If you read mail with Rmail or news with Gnus, set the variable
   mail-yank-prefix.  For VM, set vm-included-text-prefix.  For mh-e, set
   mh-ins-buf-prefix.
 
-  For fancier control of citations, use SuperCite.  See question 105.
+  For fancier control of citations, use Supercite.  See question 105.
 
   To prevent Emacs from including various headers of the replied-to
   message, set the value of mail-yank-ignored-headers to an appropriate
   regexp.
 
-138: How do I save a copy of outgoing mail?
+139: How do I save a copy of outgoing mail?
 
   You can either mail yourself a copy by including a "BCC:" header in the
   mail message, or store a copy of the message directly to a file by
@@ -3329,15 +3279,13 @@ Mail and News
     (setq mail-archive-file-name (expand-file-name "~/outgoing"))
 
   The output file will be in Unix mail format, which can be read directly
-  by VM, but not always by Rmail.  See question 140.
-
-  For Gnus, see the `Archived Messages node of the Gnus manual.
+  by VM, but not always by Rmail.  See question 141.
 
   If you use mh-e, add an "FCC:" or "BCC:" field to your components file.
 
   It does not work to put "set record filename" in the .mailrc file.
 
-139: Why doesn't Emacs expand my aliases when sending mail?
+140: Why doesn't Emacs expand my aliases when sending mail?
 
   * You must separate multiple addresses in the headers of the mail buffer
     with commas.  This is because Emacs supports RFC822 standard addresses
@@ -3364,7 +3312,7 @@ Mail and News
     expansion by moving point to the end of the alias and typing "C-x a e"
     (M-x expand-abbrev).
 
-140: Why does Rmail think all my saved messages are one big message?
+141: Why does Rmail think all my saved messages are one big message?
 
   A file created through the FCC: field in a message is in Unix mail
   format, not the format that Rmail uses (BABYL format).  Rmail will try to
@@ -3373,12 +3321,12 @@ Mail and News
   file be an inbox for your Rmail file by using the function
   set-rmail-inbox-list.
 
-141: How can I sort the messages in my Rmail folder?
+142: How can I sort the messages in my Rmail folder?
 
   In Rmail, type "C-c C-s C-h" to get a list of sorting functions and their
   key bindings.
 
-142: Why does Rmail need to write to /usr/spool/mail?
+143: Why does Rmail need to write to /usr/spool/mail?
 
   This is the behavior of the "movemail" program which Rmail uses.  This
   indicates that movemail is configured to use lock files.
@@ -3392,7 +3340,7 @@ Mail and News
     Other systems use the flock system call to interlock access.  On these
     systems, you should configure movemail to use flock.
 
-143: How do I recover my mail files after Rmail munges their format?
+144: How do I recover my mail files after Rmail munges their format?
 
   If you have just done rmail-input on a file and you don't want to save it
   in Rmail's format (called BABYL), just kill the buffer (with C-x k).
@@ -3404,7 +3352,7 @@ Mail and News
   format, use the command M-x unrmail: it will prompt you for the input and
   output file names.
 
-144: How can I force Rmail to reply to the sender of a message, but not the
+145: How can I force Rmail to reply to the sender of a message, but not the
   other recipients?
 
   Ron Isaacson <isaacson@seas.upenn.edu> says: When you hit "r" to reply in
@@ -3424,7 +3372,7 @@ Mail and News
          (define-key rmail-mode-map "r" 'rmail-reply-t)
          (define-key rmail-mode-map "R" 'rmail-reply)))
 
-145: How can I get my favorite Emacs mail package to support MIME?  
+146: How can I get my favorite Emacs mail package to support MIME?  
 
   Look at the Emacs MIME FAQ, maintained by MacDonald Hall Jackson
   <trey@cs.berkeley.edu> at
@@ -3433,10 +3381,7 @@ Mail and News
 
   Version 6.x of VM supports MIME.  See question 104.
 
-  MIME support has been added in the development version of Gnus which will
-  be included with a future version of Emacs.
-
-146: How do I make Emacs automatically start my mail/news reader?
+147: How do I make Emacs automatically start my mail/news reader?
 
   To start Emacs in Gnus:
 
@@ -3456,11 +3401,11 @@ Mail and News
   two copies of Emacs at one time.  Also, this would make it difficult for
   you to start Emacs quickly when you needed to.
 
-147: How do I read news under Emacs?
+148: How do I read news under Emacs?
 
   Use M-x gnus.  It is documented in Info (see question 14).
 
-148: Why doesn't Gnus work via NNTP?
+149: Why doesn't Gnus work via NNTP?
 
   There is a bug in NNTP version 1.5.10, such that when multiple requests
   are sent to the NNTP server, the server only handles the first one before
@@ -3478,36 +3423,55 @@ Mail and News
 
   Also see question 75 in this FAQ for some additional ideas.
 
-149: How do I view news articles with embedded underlining (e.g.,
+150: How do I view news articles with embedded underlining (e.g.,
      ClariNews)?
 
   Underlining appears like this:
 
     _^Hu_^Hn_^Hd_^He_^Hr_^Hl_^Hi_^Hn_^Hi_^Hn_^Hg
 
-  Use Gnus' "Overstrike" function from the Article -> Washing menu (or type
-  "W o").  You can do this for all articles with:
+  Per Abrahamsen <amanda@iesd.auc.dk> suggests using the following code,
+  which uses the underline face to turn such text into true underlining:
 
-    (add-hook 'gnus-article-prepare-hook 'gnus-article-treat-overstrike)
+    (defun gnus-article-prepare-overstrike ()
+      ;; Prepare article for overstrike commands.
+      (save-excursion
+        (set-buffer gnus-article-buffer)
+        (let ((buffer-read-only nil))
+        (goto-char (point-min))
+          (while (search-forward "\b" nil t)
+            (let ((next (following-char))
+                  (previous (char-after (- (point) 2))))
+              (cond ((eq next previous)
+                     (delete-region (- (point) 2) (point))
+                     (put-text-property (point) (1+ (point))
+                                        'face 'bold))
+                    ((eq next ?_)
+                     (delete-region (1- (point)) (1+ (point)))
+                     (put-text-property (1- (point)) (point)
+                                        'face 'underline))
+                    ((eq previous ?_)
+                     (delete-region (- (point) 2) (point))
+                     (put-text-property (point) (1+ (point))
+                                        'face 'underline))))))))
+
+    (add-hook 'gnus-article-prepare-hook 'gnus-article-prepare-overstrike)
 
   If you prefer to do away with underlining altogether, you can
   destructively remove it with M-x ununderline-region; do this
   automatically via
 
     (add-hook 'gnus-article-prepare-hook
-      (lambda () (ununderline-region (point-min) (point-max))))
+      '(lambda () (ununderline-region (point-min) (point-max))))
 
-  See the Gnus manual for more information about this and similar methods
-  for treating article contents.
-
-150: How do I save all the items of a multi-part posting in Gnus?
+151: How do I save all the items of a multi-part posting in Gnus?
 
   Use gnus-uu.  Type C-c C-v C-h in the Gnus summary buffer to see a list
   of available commands.
 
-151: How do I make Gnus start up faster?
+152: How do I make Gnus start up faster?
 
-  From the Gnus FAQ (see question 157):
+  From the Gnus FAQ (see question 158):
 
    Pranav Kumar Tiwari <pktiwari@eos.ncsu.edu> writes: I posted the same
    query recently and I got an answer to it. I am going to repeat the
@@ -3519,7 +3483,7 @@ Mail and News
           gnus-nov-is-evil nil
           gnus-select-method '(nntp gnus-nntp-server))
 
-152: How do I catch up all newsgroups in Gnus?
+153: How do I catch up all newsgroups in Gnus?
 
   In the "*Newsgroup*" buffer, type the following magical incantation:
 
@@ -3528,7 +3492,7 @@ Mail and News
   Leave off the "M-<" if you only want to catch up from point to the end of
   the "*Newsgroup" buffer.
 
-153: Why can't I kill in Gnus based on the Newsgroups/Keywords/Control
+154: Why can't I kill in Gnus based on the Newsgroups/Keywords/Control
      headers?
 
   Gnus will complain that the "Newsgroups:", "Keywords:", and "Control:"
@@ -3543,16 +3507,16 @@ Mail and News
 
     (gnus-kill nil "^Newsgroups: .*\\(bad\\.group\\|worse\\.group\\)")
 
-154: How do I get rid of flashing messages in Gnus for slow connections?
+155: How do I get rid of flashing messages in Gnus for slow connections?
 
   Set nntp-debug-read to nil.
 
-155: Why is catch up slow in Gnus?
+156: Why is catch up slow in Gnus?
 
   Because Gnus is marking crosspostings read.  You can control this with
   the variable gnus-use-cross-reference.
 
-156: Why does Gnus hang for a long time when posting?
+157: Why does Gnus hang for a long time when posting?
 
   David Lawrence <tale@uunet.uu.net> explains:
 
@@ -3571,14 +3535,13 @@ Mail and News
     on its own.  The C News folks have sped up inews, too, so speed should
     look better to most folks as that update propagates around.
 
-157: Where can I find out more about Gnus?
+158: Where can I find out more about Gnus?
 
-  Visit http://www.gnus.org/, which has a pointer to the current Gnus FAQ and
-  more information.  The relevant newsgroup is gnu.emacs.gnus.
+  Look for the Gnus FAQ, available at
+
+    http://www.miranova.com/~steve/gnus-faq.html
 
 ------------------------------------------------------------
-Modified, with permission, for the Emacs 20.4 distribution by Dave Love.
-
 Copyright 1994-1998 Reuven M. Lerner
 Copyright 1992-1993 Steven Byrnes
 Copyright 1990-1992 Joseph Brian Wells
