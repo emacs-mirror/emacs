@@ -1033,9 +1033,9 @@ It returns t if it got any new messages."
 		       (if (looking-at "movemail: ")
 			   (delete-region (point-min) (match-end 0)))
 		       (beep t)
-		       (message (concat "movemail: "
-					(buffer-substring (point-min)
-							  (point-max))))
+		       (message "movemail: %s"
+				(buffer-substring (point-min)
+						  (point-max)))
 		       (sit-for 3)
 		       nil))
 		 (if errors (kill-buffer errors))))))
