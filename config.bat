@@ -127,10 +127,10 @@ Rem   ----------------------------------------------------------------------
 Echo Configuring the source directory...
 cd src
 
-rem   Create "paths.h"
-sed -f ../msdos/sed4.inp <paths.in >paths.tmp
-update paths.tmp paths.h >nul
-rm -f paths.tmp
+rem   Create "epaths.h"
+sed -f ../msdos/sed4.inp <epaths.in >epaths.tmp
+update epaths.tmp epaths.h >nul
+rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
