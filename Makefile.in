@@ -570,6 +570,9 @@ dist:
 .PHONY: info dvi dist check
 force-info:
 info: force-info
-	(cd ${srcdir}/man; $(MAKE) $(MFLAGS) info)
+	# Note that man/Makefile knows how to
+	# put the info files in $(srcdir),
+	# so we can do ok running make in the build dir.
+	(cd man; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
