@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001, 2002 Free Software Foundation.
 
 ;; Keywords: multilingual, input method, latin
 
@@ -2518,5 +2519,24 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("z.." ["z."])
  ("z~~" ["z~"])
  )
+
+;; Derived from Slovenian.kmap from Yudit
+;; attributed as: 2001-11-11 Roman Maurer <roman.maurer@amis.net>
+(quail-define-package
+ "slovenian" "Slovenian" "Sl" t
+ "Slovenian postfix input."
+ nil t t t nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("C<" ?,BH(B)
+ ("C'" ?,BF(B)
+ ("D;" ?,BP(B)
+ ("S<" ?,B)(B)
+ ("Z<" ?,B.(B)
+ ("c<" ?,Bh(B)
+ ("c'" ?,Bf(B)
+ ("d;" ?,Bp(B)
+ ("s<" ?,B9(B)
+ ("z<" ?,B>(B))
 
 ;;; latin-post.el ends here
