@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.28 2001/07/02 10:45:54 eliz Exp $||
+;; Version: $Id: allout.el,v 1.29 2001/07/16 11:39:41 pj Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.28 $"))
+  (let ((rcs-rev "$Revision: 1.29 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -1806,7 +1806,7 @@ Goes to most immediate subsequent topic if none immediately containing.
 
 Not sensitive to topic visibility.
 
-Returns a the point at the beginning of the prefix, or nil if none."
+Returns the point at the beginning of the prefix, or nil if none."
 
   (let (done)
     (while (and (not done)
