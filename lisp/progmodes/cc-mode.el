@@ -491,7 +491,6 @@ that requires a literal mode spec at compile time."
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t))
 
 (defun c-after-font-lock-init ()
@@ -517,8 +516,6 @@ This does not load the font-lock package.  Use after
 	  c-beginning-of-syntax
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
-
-  (make-local-hook 'font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 (defun c-setup-doc-comment-style ()
@@ -669,8 +666,7 @@ Key bindings:
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'c-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
   (c-update-modeline))
 
 
@@ -733,8 +729,7 @@ Key bindings:
   (c-common-init 'c++-mode)
   (easy-menu-add c-c++-menu)
   (cc-imenu-init cc-imenu-c++-generic-expression)
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'c++-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'c++-mode-hook)
   (c-update-modeline))
 
 
@@ -798,8 +793,7 @@ Key bindings:
   (c-common-init 'objc-mode)
   (easy-menu-add c-objc-menu)
   (cc-imenu-init nil 'cc-imenu-objc-function)
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'objc-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'objc-mode-hook)
   (c-update-modeline))
 
 
@@ -869,8 +863,7 @@ Key bindings:
   (c-common-init 'java-mode)
   (easy-menu-add c-java-menu)
   (cc-imenu-init cc-imenu-java-generic-expression)
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'java-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'java-mode-hook)
   (c-update-modeline))
 
 
@@ -928,8 +921,7 @@ Key bindings:
   (c-common-init 'idl-mode)
   (easy-menu-add c-idl-menu)
   ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;TODO
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'idl-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'idl-mode-hook)
   (c-update-modeline))
 
 
@@ -991,8 +983,7 @@ Key bindings:
   (c-common-init 'pike-mode)
   (easy-menu-add c-pike-menu)
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;TODO
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'pike-mode-hook)
+  (run-mode-hooks 'c-mode-common-hook 'pike-mode-hook)
   (c-update-modeline))
 
 
@@ -1084,8 +1075,7 @@ Key bindings:
     ;; in cc-engine.el, just before (defun c-fast-in-literal ...
     (defalias 'c-in-literal 'c-slow-in-literal)
 
-    (run-hooks 'c-mode-common-hook)
-    (run-hooks 'awk-mode-hook)
+    (run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
     (c-update-modeline))
 ) ;; closes the (if (not (memq 'syntax-properties c-emacs-features))
 
