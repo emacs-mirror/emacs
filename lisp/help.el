@@ -683,6 +683,15 @@ Returns the documentation as a string, also."
 	    (buffer-string))))
     (message "You did not specify a variable")))
 
+(defun describe-bindings (&optional prefix)
+  "Show a list of all defined keys, and their definitions.
+We put that list in a buffer, and display the buffer.
+
+The optional argument PREFIX, if non-nil, should be a key sequence;
+then we display only bindings that start with that prefix."
+  (interactive "p")
+  (describe-bindings-internal nil prefix))
+
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke specified command.
 Argument is a command definition, usually a symbol with a function definition.
