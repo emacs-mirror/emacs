@@ -3058,6 +3058,7 @@ Does not apply if quit is handled by a `condition-case'.");
     "Non-nil means debugger may continue execution.\n\
 This is nil when the debugger is called under circumstances where it\n\
 might not be safe to continue.");
+  debugger_may_continue = 1;
 
   DEFVAR_LISP ("debugger", &Vdebugger,
     "Function to call to invoke debugger.\n\
