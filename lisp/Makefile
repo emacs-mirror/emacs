@@ -32,6 +32,11 @@ DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
 	generic-x.el international/latin-8.el international/latin-9.el \
 	emacs-lisp/cl-specs.el finder-inf.el term/internal.el
 
+# Files to compile before others during a bootstrap.  This is done
+# to speed up the bootstrap process.
+
+COMPILE_FIRST = emacs-lisp/bytecomp.el emacs-lisp/byte-opt.el subr.el
+
 # The actual Emacs command run in the targets below.
 
 emacs = $(EMACS) $(EMACSOPT)
@@ -113,8 +118,9 @@ compile-files: subdirs.el doit
 	wd=.; $(setwins);					\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | 	\
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) | tr '	 ' '\012\012' | sort | uniq -u`; \
-	for el in $$els; do \
+	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
+		tr '	 ' '\012\012' | sort | uniq -u`; \
+	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
 	  EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$el ;\
 	done
