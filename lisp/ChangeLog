@@ -1,10 +1,18 @@
+2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lucid.el: Require CL.
+	(copy-tree, remprop): Remove, it's provided by CL.
+	(map-keymap): Define in terms of cl-map-keymap.
+	(extent-property, set-extent-end-glyph): New functions.
+
+	* emacs-lisp/cl-extra.el (cl-map-keymap): Handle char-tables.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (DONTCOMPILE): Add comment that the name may
 	not be changed without changing the make-dist script.
 
-	* emacs-lisp/cl-extra.el (cl-old-mapc): Removed; don't defalias
-	mapc.
+	* emacs-lisp/cl-extra.el (cl-old-mapc): Removed; don't defalias mapc.
 	(cl-mapc): Use mapc instead of cl-old-mapc.
 	
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
