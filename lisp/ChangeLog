@@ -1,3 +1,9 @@
+2000-11-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Handle case
+	that foreground and/or background colors of the face `tool-bar'
+	are unspecified.
+
 2000-11-27  Miles Bader  <miles@gnu.org>
 
 	* wid-edit.el (widget-field-buffer, widget-field-start) 
