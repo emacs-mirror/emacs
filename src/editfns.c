@@ -3027,7 +3027,7 @@ usage: (message STRING &rest ARGS)  */)
   else
     {
       register Lisp_Object val;
-      val = nargs < 2 && STRINGP (args[0]) ? args[0] : Fformat (nargs, args);
+      val = Fformat (nargs, args);
       message3 (val, SBYTES (val), STRING_MULTIBYTE (val));
       return val;
     }
