@@ -175,9 +175,9 @@ performance.")
 	  (use-global-map terminal-escape-map)
 	  (use-local-map terminal-escape-map)
 	  (setq s (read-key-sequence
-		    (if prefix-arg
+		    (if current-prefix-arg
 			(format "Emacs Terminal escape> %d "
-				(prefix-numeric-value prefix-arg))
+				(prefix-numeric-value current-prefix-arg))
 		        "Emacs Terminal escape> "))))
       (use-global-map global)
       (use-local-map local))
