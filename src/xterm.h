@@ -411,10 +411,11 @@ struct x_display
   Cursor modeline_cursor;
   Cursor cross_cursor;
 
-  /* The name that was associated with the icon, the last time
+  /* The name to use for the icon, the last time
      it was refreshed.  Usually the same as the name of the
-     buffer in the currently selected window in the frame */
-  char *icon_label;
+     buffer in the currently selected window in the frame.
+     nil means not explicitly specified.  */
+  Lisp_Object icon_name;
 
   /* Flag to set when the X window needs to be completely repainted.  */
   int needs_exposure;
