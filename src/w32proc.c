@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.
 #include <io.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/file.h>
 
 /* must include CRT headers *before* config.h */
 
