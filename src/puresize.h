@@ -1,5 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
 #ifndef PURESIZE_RATIO
 #if VALBITS + GCTYPEBITS + 1 > 32
-#define PURESIZE_RATIO 8/5	/* Don't surround with `()'. */
+#define PURESIZE_RATIO 9/5	/* Don't surround with `()'. */
 #else
 #define PURESIZE_RATIO 1
 #endif
