@@ -5915,7 +5915,15 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
       && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
 #endif
       && NILP (Vwindow_system))
-    call0 (intern ("tty-set-up-initial-frame-faces"));
+    {
+      /* For the initial frame, we don't have any way of knowing what
+	 are the foreground and background colors of the terminal.  */
+      struct frame *sf = SELECTED_FRAME();
+
+      FRAME_FOREGROUND_PIXEL (sf) = -1;
+      FRAME_BACKGROUND_PIXEL (sf) = -1;
+      call0 (intern ("tty-set-up-initial-frame-faces"));
+    }
 }
 
 

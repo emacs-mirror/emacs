@@ -55,6 +55,25 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
+#if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(macintosh)
+
+#if !defined(HAVE_X_WINDOWS)
+
+/* A (mostly empty) x_output structure definition for building Emacs
+   on Unix and GNU/Linux without X support.  */
+struct x_output
+{
+  PIX_TYPE background_pixel;
+  PIX_TYPE foreground_pixel;
+};
+
+#endif /* ! HAVE_X_WINDOWS */
+
+/* A structure describing a termcap frame display.  */
+extern struct x_output tty_display;
+
+#endif /* ! MSDOS && ! WINDOWSNT && ! macintosh */
+
 struct frame
 {
   EMACS_INT size;

@@ -1,3 +1,101 @@
+1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Changes for automatic remapping of X colors on terminal frames:
+
+	* xfaces.c (XColor) [!HAVE_X_WINDOWS]: Provide a typedef for non-X
+	frames.
+	(Vface_tty_color_alist): Remove.
+	(tty_defined_color): New function.
+	(defined_color): Rewrite to support any type of frame.
+	(tty_color_name): New function.
+	(face_color_supported_p, Fface_color_gray_p,
+	Fface_color_supported_p): Support non-X frames.
+	(load_color): Enclose the color name in quotes, in the log
+	messages.  Remove DOS-specific version of load_color.
+	(realize_tty_face): Take the supported colors from
+	tty-color-alist.  Support translation of X colors to the closest
+	tty color, for both MSDOS and tty frames.
+	[MSDOS]: Don't invert face colors if they were taken from the
+	frame colors.
+	(Fface_register_tty_color, Fface_clear_tty_colors): Remove.
+
+	* frame.h (struct x_output) [!MSDOS, !WINDOWSNT, !HAVE_X_WINDOWS]:
+	Define a mostly empty surrogate.
+	(tty_display): Declare.
+
+	* frame.c (make_terminal_frame) [!macintosh]: Don't use
+	tty_display.
+	(Fframe_parameters): Don't invert colors of non-FRAME_WINDOW_P
+	frames when the frame's param_alist includes 'reverse.
+	(tty_display): Define.
+	(make_terminal_frame) [!MSDOS]: Assign &tty_display to the
+	output_data.x member.
+	(Fframe_parameters): Return foreground and background color names
+	on tty frames as well, in addition to MSDOS frames.
+
+	* msdos.h (DisplayWidth, DisplayHeight): Changes for Lisp_Object
+	selected_frame.
+	(struct x_output): Remove unused members; document who uses each
+	member.
+	(FRAME_PARAM_FACES, FRAME_N_PARAM_FACES, FRAME_DEFAULT_PARAM_FACE,
+	FRAME_MODE_LINE_PARAM_FACE, FRAME_COMPUTED_FACES,
+	FRAME_N_COMPUTED_FACES, FRAME_SIZE_COMPUTED_FACES,
+	FRAME_DEFAULT_FACE, FRAME_MODE_LINE_FACE, unload_color): Remove
+	unused macro definintions.
+
+	* msdos.c (IT_set_frame_parameters): Don't call
+	recompute_basic_faces, the next redisplay will, anyway.
+	(x_current_display): Remove unused variable.
+	Many functions: changes for Lisp_object selected_frame.
+	(IT_set_face): If the tty_reverse_p flag is set for the face,
+	reverse the foreground and background colors.
+	(Fmsdos_remember_default_colors): New function.
+	(syms_of_msdos): Defsubr it.
+	(IT_set_frame_parameters): Use initial_screen_colors[] when
+	creating a new frame.  If the frame parameters include 'reverse,
+	swap the foreground and background colors.
+	(internal_terminal_init): Initialize initial_screen_colors to -1.
+	(syms_of_msdos): Add DEFVAR_BOOL for x-stretch-cursor, to shut up
+	cus-start.el.
+
+	* Makefile.in (lisp, shortlisp): Add lisp/term/tty-colors.elc.
+
+	* xfns.c (x_defined_color): Rename from defined_color.  All
+	callers changed.
+	(Fxw_color_defined_p): Renamed from Fx_color_defined_p;
+	all callers changed.
+	(Fxw_color_values): Renamed from Fx_color_values; all callers
+	changed.
+	(Fxw_display_color_p): Renamed from Fx_display_color_p; all
+	callers changed.
+	(x_window_to_frame, x_any_window_to_frame,
+	x_non_menubar_window_to_frame, x_menubar_window_to_frame,
+	x_top_window_to_frame): Use !FRAME_X_P instead of
+	f->output_data.nothing.
+	* xterm.h (x_defined_color): Rename from defined_color.
+
+	* w32fns.c (x_window_to_frame): Use FRAME_W32_P instead of
+	f->output_data.nothing.
+	(Fxw_color_defined_p): Renamed from Fx_color_defined_p;
+	all callers changed.
+	(Fxw_color_values): Renamed from Fx_color_values; all callers
+	changed.
+	(Fxw_display_color_p): Renamed from Fx_display_color_p; all
+	callers changed.
+
+	* dispextern.h (tty_color_name): Add prototype.
+
+	* xmenu.c (menubar_id_to_frame): Use FRAME_WINDOW_P instead of
+	f->output_data.nothing.
+	* w32menu.c (menubar_id_to_frame): Likewise.
+	* w32term.h (w32_output): Declare.
+
+	* dosfns.c (Qmsdos_color_translate): Remove.
+	(msdos_stdcolor_name): Now returns a Lisp_Object.
+	* dosfns.h (Qmsdos_color_translate): Remove.
+
+	* s/msdos.h (INTERNAL_TERMINAL): Add entries for color support.
+
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* fileio.c (decide_coding_unwind): Renamed from

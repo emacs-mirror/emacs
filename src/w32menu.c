@@ -219,7 +219,7 @@ menubar_id_to_frame (HMENU menu)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1)
+      if (!FRAME_W32_P (f))
 	continue;
       if (f->output_data.w32->menubar_widget == menu)
 	return f;

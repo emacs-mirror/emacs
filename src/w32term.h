@@ -343,6 +343,9 @@ struct w32_output
   volatile char pending_menu_activation;
 };
 
+/* A (mostly empty) structure describing a w32 terminal frame display.  */
+extern struct w32_output w32term_display;
+
 /* Get at the computed faces of an X window frame.  */
 #define FRAME_PARAM_FACES(f) ((f)->output_data.w32->param_faces)
 #define FRAME_N_PARAM_FACES(f) ((f)->output_data.w32->n_param_faces)

@@ -733,6 +733,7 @@ lisp= \
 	${lispsource}simple.elc \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
+	${lispsource}term/tty-colors.elc \
 	${lispsource}textmodes/fill.elc \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
@@ -798,6 +799,7 @@ shortlisp= \
 	../lisp/simple.elc \
 	../lisp/startup.elc \
 	../lisp/subr.elc \
+	../lisp/term/tty-colors.elc \
 	../lisp/textmodes/fill.elc \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \

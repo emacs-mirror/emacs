@@ -222,6 +222,8 @@ set_menu_bar_lines (f, value, oldval)
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 
+struct x_output tty_display;
+
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
 extern Lisp_Object Fhandle_switch_frame ();
@@ -232,6 +234,8 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   "Return non-nil if OBJECT is a frame.\n\
 Value is t for a termcap frame (a character-only terminal),\n\
 `x' for an Emacs frame that is really an X window,\n\
+`w32' for an Emacs frame that is a window on MS-Windows display,\n\
+`mac' for an Emacs frame on a Macintosh display,\n\
 `pc' for a direct-write MS-DOS frame.\n\
 See also `frame-live-p'.")
   (object)
@@ -545,9 +549,13 @@ make_terminal_frame ()
   f->async_visible = 1;		/* Don't let visible be cleared later. */
 #ifdef MSDOS
   f->output_data.x = &the_only_x_display;
-  f->output_method = output_msdos_raw;
-#endif /* MSDOS */
-
+  if (!inhibit_window_system
+      && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
+	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
+    f->output_method = output_msdos_raw;
+  else
+    f->output_method = output_termcap;
+#else
 #ifdef macintosh
   f->output_data.mac = NewMacWindow(f);
   f->output_data.mac->background_pixel = 0xffffff;
@@ -559,16 +567,15 @@ make_terminal_frame ()
   f->auto_raise = 1;
   f->auto_lower = 1;
   init_frame_faces (f);
-#endif /* macintosh */
+#else  /* !macintosh */
+  f->output_data.x = &tty_display;
+#endif /* !macintosh */
+#endif /* MSDOS */
 
-#ifndef MSDOS
 #ifndef macintosh
-  f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
-#endif
-#endif
-
   if (!noninteractive)
     init_frame_faces (f);
+#endif
   return f;
 }
 
@@ -587,7 +594,8 @@ Note that changing the size of one terminal frame automatically affects all.")
   struct frame *sf = SELECTED_FRAME ();
 
 #ifdef MSDOS
-  if (sf->output_method != output_msdos_raw)
+  if (sf->output_method != output_msdos_raw
+      && sf->output_method != output_termcap)
     abort ();
 #else /* not MSDOS */
 
@@ -1994,23 +2002,20 @@ If FRAME is omitted, return information on the currently selected frame.")
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
-#ifdef MSDOS
-  if (FRAME_MSDOS_P (f))
+  if (!FRAME_WINDOW_P (f))
     {
       int fg = FRAME_FOREGROUND_PIXEL (f);
       int bg = FRAME_BACKGROUND_PIXEL (f);
-      Lisp_Object qreverse = intern ("reverse");
-      int rv =
-	!NILP (Fassq (qreverse, alist))
-	|| !NILP (Fassq (qreverse, Vdefault_frame_alist));
 
       store_in_alist (&alist, intern ("foreground-color"),
-		      build_string (msdos_stdcolor_name (rv ? bg : fg)));
+		      tty_color_name (f, fg));
       store_in_alist (&alist, intern ("background-color"),
-		      build_string (msdos_stdcolor_name (rv ? fg : bg)));
+		      tty_color_name (f, bg));
+      store_in_alist (&alist, intern ("font"),
+		      build_string (FRAME_MSDOS_P (f)
+				    ? "ms-dos"
+				    : FRAME_W32_P (f) ? "w32term" : "tty"));
     }
-  store_in_alist (&alist, intern ("font"), build_string ("ms-dos"));
-#endif
   store_in_alist (&alist, Qname, f->name);
   height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
   store_in_alist (&alist, Qheight, make_number (height));

@@ -350,7 +350,7 @@ x_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
 #ifdef USE_X_TOOLKIT
       if ((f->output_data.x->edit_widget 
@@ -388,7 +388,7 @@ x_any_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is any of its widgets.  */
@@ -426,7 +426,7 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is any of its widgets.  */
@@ -461,7 +461,7 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* Match if the window is this frame's menubar.  */
@@ -490,7 +490,7 @@ x_top_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
 
@@ -1230,7 +1230,7 @@ gamma_correct (f, color)
    If ALLOC is nonzero, allocate a new colormap cell.  */
 
 int
-defined_color (f, color, color_def, alloc)
+x_defined_color (f, color, color_def, alloc)
      FRAME_PTR f;
      char *color;
      XColor *color_def;
@@ -1341,9 +1341,9 @@ x_decode_color (f, arg, def)
   if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
     return def;
 
-  /* defined_color is responsible for coping with failures
+  /* x_defined_color is responsible for coping with failures
      by looking for a near-miss.  */
-  if (defined_color (f, XSTRING (arg)->data, &cdef, 1))
+  if (x_defined_color (f, XSTRING (arg)->data, &cdef, 1))
     return cdef.pixel;
 
   Fsignal (Qerror, Fcons (build_string ("undefined color"),
@@ -3908,9 +3908,8 @@ x_get_focus_frame (frame)
 }
 
 
-DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
-       "Return non-nil if color COLOR is supported on frame FRAME.\n\
-If FRAME is omitted or nil, use the selected frame.")
+DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
+  "Internal function called by `color-defined-p', which see.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -3919,18 +3918,14 @@ If FRAME is omitted or nil, use the selected frame.")
 
   CHECK_STRING (color, 1);
 
-  if (defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
     return Qt;
   else
     return Qnil;
 }
 
-DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 2, 0,
-  "Return a description of the color named COLOR on frame FRAME.\n\
-The value is a list of integer RGB values--(RED GREEN BLUE).\n\
-These values appear to range from 0 to 65280 or 65535, depending\n\
-on the system; white is (65280 65280 65280) or (65535 65535 65535).\n\
-If FRAME is omitted or nil, use the selected frame.")
+DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
+  "Internal function called by `color-values', which see.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -3939,7 +3934,7 @@ If FRAME is omitted or nil, use the selected frame.")
 
   CHECK_STRING (color, 1);
 
-  if (defined_color (f, XSTRING (color)->data, &foo, 0))
+  if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
     {
       Lisp_Object rgb[3];
 
@@ -3952,11 +3947,8 @@ If FRAME is omitted or nil, use the selected frame.")
     return Qnil;
 }
 
-DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 1, 0,
-  "Return t if the X display supports color.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
+  "Internal function called by `display-color-p', which see.")
   (display)
      Lisp_Object display;
 {
@@ -5878,7 +5870,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 
   xassert (STRINGP (color_name));
 
-  if (defined_color (f, XSTRING (color_name)->data, &color, 1))
+  if (x_defined_color (f, XSTRING (color_name)->data, &color, 1))
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
@@ -10333,10 +10325,10 @@ Each element of the list is a symbol for a supported image type.");
   defsubr (&Sx_contour_region);
   defsubr (&Sx_uncontour_region);
 #endif
-  defsubr (&Sx_display_color_p);
+  defsubr (&Sxw_display_color_p);
   defsubr (&Sx_display_grayscale_p);
-  defsubr (&Sx_color_defined_p);
-  defsubr (&Sx_color_values);
+  defsubr (&Sxw_color_defined_p);
+  defsubr (&Sxw_color_values);
   defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);

@@ -255,6 +255,16 @@ Boston, MA 02111-1307, USA.  */
 
 #define FACE_CACHE_BUCKETS_SIZE 1001
 
+/* A definition of XColor for non-X frames.  */
+#ifndef HAVE_X_WINDOWS
+typedef struct {
+  unsigned long pixel;
+  unsigned short red, green, blue;
+  char flags;
+  char pad;
+} XColor;
+#endif
+
 /* Keyword symbols used for face attribute names.  */
 
 Lisp_Object QCfamily, QCheight, QCweight, QCslant, QCunderline;
@@ -368,10 +378,8 @@ static int next_lface_id;
 static Lisp_Object *lface_id_to_name;
 static int lface_id_to_name_size;
 
-/* An alist of elements (COLOR-NAME . INDEX) mapping color names
-   to color indices for tty frames.  */
-
-Lisp_Object Vface_tty_color_alist;
+/* tty color-related functions (defined on lisp/term/tty-colors.el).  */
+Lisp_Object Qtty_color_desc, Qtty_color_by_index;
 
 /* Counter for calls to clear_face_cache.  If this counter reaches
    CLEAR_FONT_TABLE_COUNT, and a frame has more than
@@ -1067,7 +1075,113 @@ load_face_font_or_fontset (f, face, font_name, fontset)
 				X Colors
  ***********************************************************************/
 
+/* A version of defined_color for non-X frames.  */
+int
+tty_defined_color (f, color_name, color_def, alloc)
+     struct frame *f;
+     char *color_name;
+     XColor *color_def;
+     int alloc;
+{
+  Lisp_Object color_desc;
+  int color_idx = FACE_TTY_DEFAULT_COLOR, red = 0, green = 0, blue = 0;
+  int status = 1;
+
+  if (*color_name && !NILP (Ffboundp (Qtty_color_desc)))
+    {
+      status = 0;
+      color_desc = call1 (Qtty_color_desc, build_string (color_name));
+      if (!NILP (color_desc) && CONSP (color_desc))
+	{
+	  color_idx = XINT (XCAR (XCDR (color_desc)));
+	  if (CONSP (XCDR (XCDR (color_desc))))
+	    {
+	      red = XINT (XCAR (XCDR (XCDR (color_desc))));
+	      green = XINT (XCAR (XCDR (XCDR (XCDR (color_desc)))));
+	      blue = XINT (XCAR (XCDR (XCDR (XCDR (XCDR (color_desc))))));
+	    }
+	  status = 1;
+	}
+      else if (NILP (Fsymbol_value (intern ("tty-color-alist"))))
+	/* We were called early during startup, and the colors are not
+	   yet set up in tty-color-alist.  Don't return a failure
+	   indication, since this produces the annoying "Unable to
+	   load color" messages in the *Messages* buffer.  */
+	status = 1;
+    }
+  color_def->pixel = (unsigned long) color_idx;
+  color_def->red = red;
+  color_def->green = green;
+  color_def->blue = blue;
+
+  return status;
+}
+
+/* Decide if color named COLOR is valid for the display associated
+   with the frame F; if so, return the rgb values in COLOR_DEF.  If
+   ALLOC is nonzero, allocate a new colormap cell.
+
+   This does the right thing for any type of frame.  */
+int
+defined_color (f, color_name, color_def, alloc)
+     struct frame *f;
+     char *color_name;
+     XColor *color_def;
+     int alloc;
+{
+  if (!FRAME_WINDOW_P (f))
+    return tty_defined_color (f, color_name, color_def, alloc);
 #ifdef HAVE_X_WINDOWS
+  else if (FRAME_X_P (f))
+    return x_defined_color (f, color_name, color_def, alloc);
+#endif
+#ifdef WINDOWSNT
+  else if (FRAME_W32_P (f))
+    /* FIXME: w32_defined_color doesn't exist!  w32fns.c defines
+       defined_color which needs to be renamed, and the declaration
+       of color_def therein should be changed.  */
+    return w32_defined_color (f, color_name, color_def, alloc);
+#endif
+#ifdef macintosh
+  else if (FRAME_MAC_P (f))
+    /* FIXME: mac_defined_color doesn't exist!  */
+    return mac_defined_color (f, color_name, color_def, alloc);
+#endif
+  else
+    abort ();
+}
+
+/* Given the index of the tty color, return its name, a Lisp string.  */
+
+Lisp_Object
+tty_color_name (f, idx)
+     struct frame *f;
+     int idx;
+{
+  char *color;
+
+  if (idx >= 0 && !NILP (Ffboundp (Qtty_color_by_index)))
+    {
+      Lisp_Object coldesc = call1 (Qtty_color_by_index, make_number (idx));
+
+      if (!NILP (coldesc))
+	return XCAR (coldesc);
+    }
+#ifdef MSDOS
+  /* We can have an MSDOG frame under -nw for a short window of
+     opportunity before internal_terminal_init is called.  DTRT.  */
+  if (FRAME_MSDOS_P (f) && !inhibit_window_system)
+    return msdos_stdcolor_name (idx);
+#endif
+
+#ifdef WINDOWSNT
+  /* FIXME: When/if w32 supports colors in non-window mode, there should
+     be a call here to a w32-specific function that returns the color
+     by index using the default color mapping on a Windows console.  */
+#endif
+
+  return Qunspecified;
+}
 
 /* Return non-zero if COLOR_NAME is a shade of gray (or white or
    black) on frame F.  The algorithm is taken from 20.2 faces.el.  */
@@ -1105,17 +1219,19 @@ face_color_supported_p (f, color_name, background_p)
      int background_p;
 {
   Lisp_Object frame;
+  XColor not_used;
 
   XSETFRAME (frame, f);
-  return (!NILP (Vwindow_system)
-	  && (!NILP (Fx_display_color_p (frame))
+  return ((FRAME_WINDOW_P (f)
+	  && (!NILP (Fxw_display_color_p (frame))
 	      || xstricmp (color_name, "black") == 0
 	      || xstricmp (color_name, "white") == 0
 	      || (background_p
 		  && face_color_gray_p (f, color_name))
 	      || (!NILP (Fx_display_grayscale_p (frame))
-		  && face_color_gray_p (f, color_name))));
-}  
+		  && face_color_gray_p (f, color_name))))
+	  || tty_defined_color (f, color_name, &not_used, 0));
+}
 
 
 DEFUN ("face-color-gray-p", Fface_color_gray_p, Sface_color_gray_p, 1, 2, 0,
@@ -1125,8 +1241,11 @@ If FRAME is nil or omitted, use the selected frame.")
    (color, frame)
      Lisp_Object color, frame;
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f;
+
+  CHECK_FRAME (frame, 0);
   CHECK_STRING (color, 0);
+  f = XFRAME (frame);
   return face_color_gray_p (f, XSTRING (color)->data) ? Qt : Qnil;
 }
 
@@ -1140,8 +1259,11 @@ COLOR must be a valid color name.")
    (frame, color, background_p)
      Lisp_Object frame, color, background_p;
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f;
+
+  CHECK_FRAME (frame, 0);
   CHECK_STRING (color, 0);
+  f = XFRAME (frame);
   if (face_color_supported_p (f, XSTRING (color)->data, !NILP (background_p)))
     return Qt;
   return Qnil;
@@ -1177,7 +1299,7 @@ load_color (f, face, name, target_index)
      to the values in an existing cell. */
   if (!defined_color (f, XSTRING (name)->data, &color, 1))
     {
-      add_to_log ("Unable to load color %s", name, Qnil);
+      add_to_log ("Unable to load color \"%s\"", name, Qnil);
       
       switch (target_index)
 	{
@@ -1223,6 +1345,7 @@ load_color (f, face, name, target_index)
   return color.pixel;
 }
 
+#ifdef HAVE_X_WINDOWS
 
 /* Load colors for face FACE which is used on frame F.  Colors are
    specified by slots LFACE_BACKGROUND_INDEX and LFACE_FOREGROUND_INDEX
@@ -1371,75 +1494,7 @@ free_face_colors (f, face)
       UNBLOCK_INPUT;
     }
 }
-
-#else  /* ! HAVE_X_WINDOWS */
-
-#ifdef MSDOS
-unsigned long
-load_color (f, face, name, target_index)
-     struct frame *f;
-     struct face *face;
-     Lisp_Object name;
-     enum lface_attribute_index target_index;
-{
-  Lisp_Object color;
-  int color_idx = FACE_TTY_DEFAULT_COLOR;
-
-  if (NILP (name))
-    return (unsigned long)FACE_TTY_DEFAULT_COLOR;
-
-  CHECK_STRING (name, 0);
-
-  color = Qnil;
-  if (XSTRING (name)->size && !NILP (Ffboundp (Qmsdos_color_translate)))
-    {
-      color = call1 (Qmsdos_color_translate, name);
-
-      if (INTEGERP (color))
-	return (unsigned long)XINT (color);
-
-      add_to_log ("Unable to load color %s", name, Qnil);
-      
-      switch (target_index)
-	{
-	case LFACE_FOREGROUND_INDEX:
-	  face->foreground_defaulted_p = 1;
-	  color_idx = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-	  
-	case LFACE_BACKGROUND_INDEX:
-	  face->background_defaulted_p = 1;
-	  color_idx = FRAME_BACKGROUND_PIXEL (f);
-	  break;
-	  
-	case LFACE_UNDERLINE_INDEX:
-	  face->underline_defaulted_p = 1;
-	  color_idx = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-	  
-	case LFACE_OVERLINE_INDEX:
-	  face->overline_color_defaulted_p = 1;
-	  color_idx = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-	  
-	case LFACE_STRIKE_THROUGH_INDEX:
-	  face->strike_through_color_defaulted_p = 1;
-	  color_idx = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-	  
-	case LFACE_BOX_INDEX:
-	  face->box_color_defaulted_p = 1;
-	  color_idx = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-	}
-    }
-  else
-    color_idx = msdos_stdcolor_idx (XSTRING (name)->data);
-
-  return (unsigned long)color_idx;
-}
-#endif /* MSDOS */
-#endif /* ! HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS */
 
 
 
@@ -2714,7 +2769,7 @@ lface_fully_specified_p (attrs)
    for split_font_name, see the comment there.  */
    
 static int
-set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
+set_lface_from_font_name (f, lface, font_name, force_p)
      struct frame *f;
      Lisp_Object lface;
      char *font_name;
@@ -2752,10 +2807,8 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
 	      split_font_name (f, &font, 1);
 	      have_font_p = 1;
 	    }
-	  
 	  UNBLOCK_INPUT;
 	}
-    }
 
   /* If FONT_NAME is completely bogus try to use something reasonable
      if this function must succeed.  Otherwise, give up.  */
@@ -5628,12 +5681,7 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	/* Frame parameters for terminal frames usually don't contain
-	   a color.  Use an empty string to indicate that the face
-	   should use the (unknown) default color of the terminal.  */
-	LFACE_FOREGROUND (lface) = build_string ("");
-      else
+      else if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
 	abort ();
     }
   
@@ -5646,12 +5694,7 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	/* Frame parameters for terminal frames usually don't contain
-	   a color.  Use an empty string to indicate that the face
-	   should use the (unknown) default color of the terminal.  */
-	LFACE_BACKGROUND (lface) = build_string ("");
-      else
+      else if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
 	abort ();
     }
   
@@ -6006,6 +6049,8 @@ realize_tty_face (c, attrs, charset)
   struct face *face;
   int weight, slant;
   Lisp_Object color;
+  Lisp_Object tty_color_alist = Fsymbol_value (intern ("tty-color-alist"));
+  int face_colors_defaulted = 0;
 
   /* Frame must be a termcap frame.  */
   xassert (FRAME_TERMCAP_P (c->f) || FRAME_MSDOS_P (c->f));
@@ -6033,106 +6078,75 @@ realize_tty_face (c, attrs, charset)
   face->foreground = face->background = FACE_TTY_DEFAULT_COLOR;
 
   color = attrs[LFACE_FOREGROUND_INDEX];
-  if (XSTRING (color)->size
-      && (color = Fassoc (color, Vface_tty_color_alist),
+  if (STRINGP (color)
+      && XSTRING (color)->size
+      && !NILP (tty_color_alist)
+      && (color = Fassoc (color, tty_color_alist),
 	  CONSP (color)))
-    face->foreground = XINT (XCDR (color));
+    /* Associations in tty-color-alist are of the form
+       (NAME INDEX R G B).  We need the INDEX part.  */
+    face->foreground = XINT (XCAR (XCDR (color)));
 
-#ifdef MSDOS
-  if (FRAME_MSDOS_P (c->f) && face->foreground == FACE_TTY_DEFAULT_COLOR)
+  if (face->foreground == FACE_TTY_DEFAULT_COLOR
+      && STRINGP (attrs[LFACE_FOREGROUND_INDEX]))
     {
       face->foreground = load_color (c->f, face,
 				     attrs[LFACE_FOREGROUND_INDEX],
 				     LFACE_FOREGROUND_INDEX);
+#ifdef MSDOS
       /* If the foreground of the default face is the default color,
 	 use the foreground color defined by the frame.  */
-      if (face->foreground == FACE_TTY_DEFAULT_COLOR)
+      if (FRAME_MSDOS_P (c->f) && face->foreground == FACE_TTY_DEFAULT_COLOR)
 	{
 	  face->foreground = FRAME_FOREGROUND_PIXEL (f);
 	  attrs[LFACE_FOREGROUND_INDEX] =
-	    build_string (msdos_stdcolor_name (face->foreground));
+	    msdos_stdcolor_name (face->foreground);
+	  face_colors_defaulted = 1;
 	}
-    }
 #endif
+    }
 
   color = attrs[LFACE_BACKGROUND_INDEX];
-  if (XSTRING (color)->size
-      && (color = Fassoc (color, Vface_tty_color_alist),
+  if (STRINGP (color)
+      && XSTRING (color)->size
+      && !NILP (tty_color_alist)
+      && (color = Fassoc (color, tty_color_alist),
 	  CONSP (color)))
-    face->background = XINT (XCDR (color));
+    /* Associations in tty-color-alist are of the form
+       (NAME INDEX R G B).  We need the INDEX part.  */
+    face->background = XINT (XCAR (XCDR (color)));
 
-#ifdef MSDOS
-  if (FRAME_MSDOS_P (c->f) && face->background == FACE_TTY_DEFAULT_COLOR)
+  if (face->background == FACE_TTY_DEFAULT_COLOR
+      && STRINGP (attrs[LFACE_BACKGROUND_INDEX]))
     {
       face->background = load_color (c->f, face,
 				     attrs[LFACE_BACKGROUND_INDEX],
 				     LFACE_BACKGROUND_INDEX);
+#ifdef MSDOS
       /* If the background of the default face is the default color,
 	 use the background color defined by the frame.  */
-      if (face->background == FACE_TTY_DEFAULT_COLOR)
+      if (FRAME_MSDOS_P (c->f) && face->background == FACE_TTY_DEFAULT_COLOR)
 	{
 	  face->background = FRAME_BACKGROUND_PIXEL (f);
 	  attrs[LFACE_BACKGROUND_INDEX] =
-	    build_string (msdos_stdcolor_name (face->background));
+	    msdos_stdcolor_name (face->background);
+	  face_colors_defaulted = 1;
 	}
+#endif
     }
 
-  /* Swap colors if face is inverse-video.  */
-  if (face->tty_reverse_p)
+  /* Swap colors if face is inverse-video.  If the colors are taken
+     from the frame colors, they are already inverted, since the
+     frame-creation function calls x-handle-reverse-video.  */
+  if (face->tty_reverse_p && !face_colors_defaulted)
     {
       unsigned long tem = face->foreground;
 
       face->foreground = face->background;
       face->background = tem;
     }
-#endif
 
   return face;
-}
-
-
-DEFUN ("face-register-tty-color", Fface_register_tty_color,
-       Sface_register_tty_color, 2, 2, 0,
-  "Say that COLOR is color number NUMBER on the terminal.\n\
-COLOR is a string, the color name.  Value is COLOR.")
-  (color, number)
-     Lisp_Object color, number;
-{
-  Lisp_Object entry;
-  
-  CHECK_STRING (color, 0);
-  CHECK_NUMBER (number, 1);
-  entry = Fassoc (color, Vface_tty_color_alist);
-  if (NILP (entry))
-    Vface_tty_color_alist = Fcons (Fcons (color, number),
-				   Vface_tty_color_alist);
-  else
-    Fsetcdr (entry, number);
-  return color;
-}
-
-
-DEFUN ("face-clear-tty-colors", Fface_clear_tty_colors,
-       Sface_clear_tty_colors, 0, 0, 0,
-  "Unregister all registered tty colors.")
-  ()
-{
-  return Vface_tty_color_alist = Qnil;
-}
-
-
-DEFUN ("tty-defined-colors", Ftty_defined_colors,
-       Stty_defined_colors, 0, 0, 0,
-  "Return a list of registered tty colors.")
-  ()
-{
-  Lisp_Object list, colors;
-
-  colors = Qnil;
-  for (list = Vface_tty_color_alist; CONSP (list); list = XCDR (list))
-    colors = Fcons (XCAR (XCAR (list)), colors);
-
-  return colors;
 }
 
 
@@ -6625,6 +6639,10 @@ syms_of_xfaces ()
   staticpro (&Qborder);
   Qmouse = intern ("mouse");
   staticpro (&Qmouse);
+  Qtty_color_desc = intern ("tty-color-desc");
+  staticpro (&Qtty_color_desc);
+  Qtty_color_by_index = intern ("tty-color-by-index");
+  staticpro (&Qtty_color_by_index);
 
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);
@@ -6696,11 +6714,4 @@ scaled if its name matches a regular expression in the list.");
   defsubr (&Sx_family_fonts);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_X_WINDOWS */
-
-  /* TTY face support.  */
-  defsubr (&Sface_register_tty_color);
-  defsubr (&Sface_clear_tty_colors);
-  defsubr (&Stty_defined_colors);
-  Vface_tty_color_alist = Qnil;
-  staticpro (&Vface_tty_color_alist);
 }

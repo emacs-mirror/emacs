@@ -58,33 +58,18 @@ typedef int XRectangle;
 /* This is a cut-down version of the one in xterm.h, which see.  */
 struct x_output
 {
-  int left_pos;
-  int top_pos;
-  int line_height;
-  PIX_TYPE background_pixel;
-  PIX_TYPE foreground_pixel;
-  XFontStruct *font;
-  Window busy_window;
-  unsigned busy_p : 1;
-  struct face **param_faces;
-  int n_param_faces;
-  struct face **computed_faces;
-  int n_computed_faces;
-  int size_computed_faces;
+  int left_pos;			/* used in xmenu_show (xmenu.c) */
+  int top_pos;			/* ditto */
+  int line_height;		/* used in x-popup-menu (xmenu.c) */
+  PIX_TYPE background_pixel;	/* used in xfaces.c and lots of other places */
+  PIX_TYPE foreground_pixel;	/* ditto */
+  XFontStruct *font;		/* used in x-popup-menu (xmenu.c) */
+  Window busy_window;		/* currently unused (but maybe some day) */
+  unsigned busy_p : 1;		/* ditto */
 };
 
 extern struct x_output the_only_x_display;
-extern Display *x_current_display;
 
-#define FRAME_PARAM_FACES(f) (the_only_x_display.param_faces)
-#define FRAME_N_PARAM_FACES(f) (the_only_x_display.n_param_faces)
-#define FRAME_DEFAULT_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[0])
-#define FRAME_MODE_LINE_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[1])
-#define FRAME_COMPUTED_FACES(f) (the_only_x_display.computed_faces)
-#define FRAME_N_COMPUTED_FACES(f) (the_only_x_display.n_computed_faces)
-#define FRAME_SIZE_COMPUTED_FACES(f) (the_only_x_display.size_computed_faces)
-#define FRAME_DEFAULT_FACE(f) (the_only_x_display.computed_faces[0])
-#define FRAME_MODE_LINE_FACE(f) (the_only_x_display.computed_faces[1])
 #define FRAME_X_DISPLAY(f) ((Display *) 0)
 #define FRAME_FOREGROUND_PIXEL(f) (the_only_x_display.foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) (the_only_x_display.background_pixel)
@@ -95,10 +80,6 @@ extern Display *x_current_display;
 /* Forward declarations for prototypes.  */
 struct frame;
 struct window;
-#if 0
-extern int face_name_id_number P_ ((struct frame *, Lisp_Object)); /* !!! */
-extern int compute_glyph_face P_ ((struct frame *, int, int)); /* !!! */
-#endif
 
 /* From xterm.c; emulated on msdos.c */
 
@@ -116,12 +97,11 @@ extern int x_pixel_width P_ ((struct frame *));
 extern int x_pixel_height P_ ((struct frame *));
 
 #define XFreeGC (void)
-#define unload_color(p1,p2)
 #define x_destroy_bitmap(p1,p2)
 #define load_pixmap(p1,p2,p3,p4) (0)
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
-#define DisplayWidth(p1,p2) (selected_frame->width)
-#define DisplayHeight(p1,p2) (selected_frame->height)
+#define DisplayWidth(p1,p2) (SELECTED_FRAME()->width)
+#define DisplayHeight(p1,p2) (SELECTED_FRAME()->height)
 #define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)

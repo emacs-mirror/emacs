@@ -215,7 +215,7 @@ menubar_id_to_frame (id)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1)
+      if (!FRAME_WINDOW_P (f))
 	continue;
       if (f->output_data.x->id == id)
 	return f;

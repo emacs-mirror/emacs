@@ -347,8 +347,7 @@ x_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->output_data.nothing == 1 
-	  || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
@@ -6449,9 +6448,8 @@ Lisp_Object w32_find_bdf_fonts_in_dir( Lisp_Object directory )
 }
 
 
-DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
-       "Return non-nil if color COLOR is supported on frame FRAME.\n\
-If FRAME is omitted or nil, use the selected frame.")
+DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
+  "Internal function called by `color-defined-p', which see.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -6466,12 +6464,8 @@ If FRAME is omitted or nil, use the selected frame.")
     return Qnil;
 }
 
-DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 2, 0,
-  "Return a description of the color named COLOR on frame FRAME.\n\
-The value is a list of integer RGB values--(RED GREEN BLUE).\n\
-These values appear to range from 0 to 65280 or 65535, depending\n\
-on the system; white is (65280 65280 65280) or (65535 65535 65535).\n\
-If FRAME is omitted or nil, use the selected frame.")
+DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
+  "Internal function called by `color-values', which see.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -6493,7 +6487,7 @@ If FRAME is omitted or nil, use the selected frame.")
     return Qnil;
 }
 
-DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 1, 0,
+DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
   "Return t if the X display supports color.\n\
 The optional argument DISPLAY specifies which display to ask about.\n\
 DISPLAY should be either a frame or a display name (a string).\n\
@@ -7595,10 +7589,10 @@ only be necessary if the default setting causes problems.");
 
   defsubr (&Sx_get_resource);
   defsubr (&Sx_list_fonts);
-  defsubr (&Sx_display_color_p);
+  defsubr (&Sxw_display_color_p);
   defsubr (&Sx_display_grayscale_p);
-  defsubr (&Sx_color_defined_p);
-  defsubr (&Sx_color_values);
+  defsubr (&Sxw_color_defined_p);
+  defsubr (&Sxw_color_values);
   defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);

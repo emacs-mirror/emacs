@@ -173,11 +173,6 @@ Report whether a mouse is present.")
   else
     return Qnil;
 }
-
-/* Function to translate colour names to integers.  See lisp/term/pc-win.el
-   for its definition.  */
-
-Lisp_Object Qmsdos_color_translate;
 #endif
 
 
@@ -418,8 +413,8 @@ static char *vga_colors[16] = {
    that this only performs case-insensitive comparison against the
    standard names.  For anything more sophisticated, like matching
    "gray" with "grey" or translating X color names into their MSDOS
-   equivalents, call the Lisp function Qmsdos_color_translate (defined
-   on lisp/term/pc-win.el).  */
+   equivalents, call the Lisp function Qtty_color_desc (defined
+   on lisp/term/tty-colors.el).  */
 int
 msdos_stdcolor_idx (const char *name)
 {
@@ -433,12 +428,14 @@ msdos_stdcolor_idx (const char *name)
 }
 
 /* Given a color index, return its standard name.  */
-char *
+Lisp_Object
 msdos_stdcolor_name (int idx)
 {
+  extern Lisp_Object Qunspecified;
+
   if (idx < 0 || idx >= sizeof (vga_colors) / sizeof (vga_colors[0]))
-    return "";	/* meaning the default */
-  return vga_colors[idx];
+    return Qunspecified;	/* meaning the default */
+  return build_string (vga_colors[idx]);
 }
 
 /* Support for features that are available when we run in a DOS box
@@ -533,8 +530,6 @@ syms_of_dosfns ()
   defsubr (&Smsdos_mouse_disable);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
-  Qmsdos_color_translate = intern ("msdos-color-translate");
-  staticpro (&Qmsdos_color_translate);
 #endif
 
   DEFVAR_INT ("dos-country-code", &dos_country_code,

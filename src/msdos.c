@@ -253,7 +253,7 @@ mouse_get_pos (f, insist, bar_window, part, x, y, time)
   FOR_EACH_FRAME (tail, frame)
     XFRAME (frame)->mouse_moved = 0;
 
-  *f = selected_frame;
+  *f = SELECTED_FRAME();
   *bar_window = Qnil;
   mouse_get_xy (&ix, &iy);
   *time = event_timestamp ();
@@ -267,7 +267,7 @@ mouse_check_moved ()
   int x, y;
 
   mouse_get_xy (&x, &y);
-  selected_frame->mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
+  SELECTED_FRAME()->mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
   mouse_last_x = x;
   mouse_last_y = y;
 }
@@ -343,9 +343,6 @@ static int term_setup_done;
 
 /* Similar to the_only_frame.  */
 struct x_output the_only_x_display;
-
-/* This is never dereferenced.  */
-Display *x_current_display;
 
 /* Support for DOS/V (allows Japanese characters to be displayed on
    standard, non-Japanese, ATs).  Only supported for DJGPP v2 and later.  */
@@ -666,12 +663,13 @@ IT_ring_bell (void)
 static void
 IT_set_face (int face)
 {
-  struct face *fp = FACE_FROM_ID (selected_frame, face);
+  struct frame *sf = SELECTED_FRAME();
+  struct face *fp = FACE_FROM_ID (sf, face);
   unsigned long fg, bg;
 
   if (!fp)
     {
-      fp = FACE_FROM_ID (selected_frame, DEFAULT_FACE_ID);
+      fp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
       /* The default face for the frame should always be realized and
 	 cached.  */
       if (!fp)
@@ -688,11 +686,11 @@ IT_set_face (int face)
      switches on this mode (and loses the blinking attribute) at
      startup.  */
   if (fg == (unsigned long)-1)
-    fg = highlight ? FRAME_BACKGROUND_PIXEL (selected_frame)
-		   : FRAME_FOREGROUND_PIXEL (selected_frame);
+    fg = highlight || fp->tty_reverse_p ? FRAME_BACKGROUND_PIXEL (sf)
+					: FRAME_FOREGROUND_PIXEL (sf);
   if (bg == (unsigned long)-1)
-    bg = highlight ? FRAME_FOREGROUND_PIXEL (selected_frame)
-		   : FRAME_BACKGROUND_PIXEL (selected_frame);
+    bg = highlight || fp->tty_reverse_p ? FRAME_FOREGROUND_PIXEL (sf)
+					: FRAME_BACKGROUND_PIXEL (sf);
   if (termscript)
     fprintf (termscript, "<FACE %d%s: %d/%d>",
 	     face, highlight ? "H" : "", fp->foreground, fp->background);
@@ -724,6 +722,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
   struct coding_system *coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
 				  ? &terminal_coding
 				  : &safe_terminal_coding);
+  struct frame *sf;
 
   /* Do we need to consider conversion of unibyte characters to
      multibyte?  */
@@ -735,6 +734,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
   
   screen_buf = screen_bp = alloca (str_len * 2);
   screen_buf_end = screen_buf + str_len * 2;
+  sf = SELECTED_FRAME();
 
   /* Since faces get cached and uncached behind our back, we can't
      rely on their indices in the cache being consistent across
@@ -783,8 +783,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	    {
 	      g = !NILP (Vdos_unsupported_char_glyph)
 		? Vdos_unsupported_char_glyph
-		: MAKE_GLYPH (selected_frame, '\177',
-			      GLYPH_FACE (selected_frame, g));
+		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
 	      ch = FAST_GLYPH_CHAR (g);
 	    }
 	  if (COMPOSITE_CHAR_P (ch))
@@ -792,7 +791,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	      /* If CH is a composite character, we can display
 		 only the first component.  */
 	      g = cmpchar_table[COMPOSITE_CHAR_ID (ch)]->glyph[0],
-	      ch = GLYPH_CHAR (selected_frame, g);
+	      ch = GLYPH_CHAR (sf, g);
 	      cf = FAST_GLYPH_FACE (g);
 	    }
 
@@ -931,13 +930,13 @@ IT_clear_end_of_line (int first_unused)
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
   extern int fatal_error_in_progress;
 
-  if (fatal_error_in_progress)
+  if (new_pos_X >= first_unused || fatal_error_in_progress)
     return;
 
   IT_set_face (0);
   if (termscript)
     fprintf (termscript, "<CLR:EOL>");
-  i = (j = screen_size_X - new_pos_X) * 2;
+  i = (j = first_unused - new_pos_X) * 2;
   spaces = sp = alloca (i);
   
   while (--j >= 0)
@@ -950,6 +949,10 @@ IT_clear_end_of_line (int first_unused)
   dosmemput (spaces, i, (int)ScreenPrimary + offset);
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (offset, i / 2);
+
+  /* clear_end_of_line_raw on term.c leaves the cursor at first_unused.
+     Let's follow their lead, in case someone relies on this.  */
+  new_pos_X = first_unused;
 }
 
 static void
@@ -1028,8 +1031,14 @@ IT_cmgoto (FRAME_PTR f)
 {
   /* Only set the cursor to where it should be if the display is
      already in sync with the window contents.  */
-  int update_cursor_pos = MODIFF == unchanged_modified;
+  int update_cursor_pos = 1; /* MODIFF == unchanged_modified; */
+
+  /* FIXME: This needs to be rewritten for the new redisplay, or
+     removed.  */
+#if 0
   static int previous_pos_X = -1;
+
+  update_cursor_pos = 1;	/* temporary!!! */
 
   /* If the display is in sync, forget any previous knowledge about
      cursor position.  This is primarily for unexpected events like
@@ -1066,6 +1075,7 @@ IT_cmgoto (FRAME_PTR f)
 	  update_cursor_pos = 1;
 	}
     }
+#endif
 
   if (update_cursor_pos
       && (current_pos_X != new_pos_X || current_pos_Y != new_pos_Y))
@@ -1088,14 +1098,12 @@ static void
 IT_reassert_line_highlight (int new, int vpos)
 {
   highlight = new;
-  IT_set_face (0); /* To possibly clear the highlighting.  */
 }
 
 static void
 IT_change_line_highlight (int new_highlight, int y, int vpos, int first_unused_hpos)
 {
   highlight = new_highlight;
-  IT_set_face (0); /* To possibly clear the highlighting.  */
   IT_cursor_to (vpos, 0);
   IT_clear_end_of_line (first_unused_hpos);
 }
@@ -1104,8 +1112,6 @@ static void
 IT_update_begin (struct frame *foo)
 {
   highlight = 0;
-  IT_set_face (0); /* To possibly clear the highlighting.  */
-  screen_face = -1;
 }
 
 static void
@@ -1341,6 +1347,30 @@ IT_set_terminal_window (int foo)
 {
 }
 
+/* Remember the screen colors of the curent frame, to serve as the
+   default colors for newly-created frames.  */
+
+static int initial_screen_colors[2];
+
+DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
+       Smsdos_remember_default_colors, 1, 1, 0,
+  "Remember the screen colors of the current frame.")
+     (frame)
+     Lisp_Object frame;
+{
+  int reverse;
+  struct frame *f;
+
+  CHECK_FRAME (frame, 0);
+  f= XFRAME (frame);
+  reverse = EQ (Fcdr (Fassq (intern ("reverse"), f->param_alist)), Qt);
+
+  initial_screen_colors[0]
+    = reverse ? FRAME_BACKGROUND_PIXEL (f) : FRAME_FOREGROUND_PIXEL (f);
+  initial_screen_colors[1]
+    = reverse ? FRAME_FOREGROUND_PIXEL (f) : FRAME_BACKGROUND_PIXEL (f);
+}
+
 void
 IT_set_frame_parameters (f, alist)
      struct frame *f;
@@ -1348,18 +1378,29 @@ IT_set_frame_parameters (f, alist)
 {
   Lisp_Object tail;
   int length = XINT (Flength (alist));
-  int i;
+  int i, j;
   Lisp_Object *parms
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
   Lisp_Object *values
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
-  int redraw;
-  struct face *dflt = NULL;
+  Lisp_Object qreverse = intern ("reverse");
+  /* Do we have to reverse the foreground and background colors?  */
+  int reverse = EQ (Fcdr (Fassq (qreverse, f->param_alist)), Qt);
+  int was_reverse = reverse;
+  int redraw = 0, fg_set = 0, bg_set = 0;
+  unsigned long orig_fg;
+  unsigned long orig_bg;
 
-  if (FRAME_FACE_CACHE (f))
-    dflt = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-
-  redraw = 0;
+  /* If we are creating a new frame, begin with the original screen colors
+     used for the initial frame.  */
+  if (alist == Vdefault_frame_alist
+      && initial_screen_colors[0] != -1 && initial_screen_colors[1] != -1)
+    {
+      FRAME_FOREGROUND_PIXEL (f) = initial_screen_colors[0];
+      FRAME_BACKGROUND_PIXEL (f) = initial_screen_colors[1];
+    }
+  orig_fg = FRAME_FOREGROUND_PIXEL (f);
+  orig_bg = FRAME_BACKGROUND_PIXEL (f);
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
@@ -1374,8 +1415,21 @@ IT_set_frame_parameters (f, alist)
       i++;
     }
 
+  j = i;
 
-  /* Now process them in reverse of specified order.  */
+  for (i = 0; i < j; i++)
+    {
+      Lisp_Object prop = parms[i];
+      Lisp_Object val  = values[i];
+
+      if (EQ (prop, qreverse))
+	reverse = EQ (val, Qt);
+    }
+	
+  if (termscript && reverse && !was_reverse)
+    fprintf (termscript, "<INVERSE-VIDEO>\n");
+
+  /* Now process the alist elements in reverse of specified order.  */
   for (i--; i >= 0; i--)
     {
       Lisp_Object prop = parms[i];
@@ -1383,30 +1437,36 @@ IT_set_frame_parameters (f, alist)
 
       if (EQ (prop, Qforeground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val,
-						LFACE_FOREGROUND_INDEX);
+	  unsigned long new_color = load_color (f, NULL, val, reverse
+						? LFACE_BACKGROUND_INDEX
+						: LFACE_FOREGROUND_INDEX);
 	  if (new_color != ~0)
 	    {
-	      if (!dflt)
-		abort ();
-	      FRAME_FOREGROUND_PIXEL (f) = new_color;
-	      dflt->foreground = new_color;
+	      if (reverse)
+		/* FIXME: should the fore-/background of the default
+		   face change here as well?  */
+		FRAME_BACKGROUND_PIXEL (f) = new_color;
+	      else
+		FRAME_FOREGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
+	      fg_set = 1;
 	      if (termscript)
 		fprintf (termscript, "<FGCOLOR %lu>\n", new_color);
 	    }
 	}
       else if (EQ (prop, Qbackground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val,
-						LFACE_BACKGROUND_INDEX);
+	  unsigned long new_color = load_color (f, NULL, val, reverse
+						? LFACE_FOREGROUND_INDEX
+						: LFACE_BACKGROUND_INDEX);
 	  if (new_color != ~0)
 	    {
-	      if (!dflt)
-		abort ();
-	      FRAME_BACKGROUND_PIXEL (f) = new_color;
-	      dflt->background = new_color;
+	      if (reverse)
+		FRAME_FOREGROUND_PIXEL (f) = new_color;
+	      else
+		FRAME_BACKGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
+	      bg_set = 1;
 	      if (termscript)
 		fprintf (termscript, "<BGCOLOR %lu>\n", new_color);
 	    }
@@ -1417,27 +1477,29 @@ IT_set_frame_parameters (f, alist)
 	  if (termscript)
 	    fprintf (termscript, "<TITLE: %s>\n", XSTRING (val)->data);
 	}
-      else if (EQ (prop, intern ("reverse")) && EQ (val, Qt))
-	{
-	  unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
-
-	  if (!dflt)
-	    abort ();
-	  FRAME_FOREGROUND_PIXEL (f) = FRAME_BACKGROUND_PIXEL (f); /* FIXME! */
-	  FRAME_BACKGROUND_PIXEL (f) = fg;
-	  dflt->foreground = FRAME_FOREGROUND_PIXEL (f);
-	  dflt->foreground = fg;
-	  if (termscript)
-	    fprintf (termscript, "<INVERSE-VIDEO>\n");
-	}
       store_frame_param (f, prop, val);
+    }
 
+  /* If they specified "reverse", but not the colors, we need to swap
+     the current frame colors.  */
+  if (reverse && !was_reverse)
+    {
+      if (!fg_set)
+	{
+	  FRAME_BACKGROUND_PIXEL (f) = orig_fg;
+	  redraw = 1;
+	}
+      if (!bg_set)
+	{
+	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
+	  redraw = 1;
+	}
     }
 
   if (redraw)
     {
-      recompute_basic_faces (f);
-      if (f == selected_frame)
+      face_change_count++;	/* forces xdisp.c to recompute basic faces */
+      if (f == SELECTED_FRAME())
 	redraw_frame (f);
     }
 }
@@ -1454,6 +1516,7 @@ internal_terminal_init ()
 {
   char *term = getenv ("TERM");
   char *colors;
+  struct frame *sf = SELECTED_FRAME();
 
 #ifdef HAVE_X_WINDOWS
   if (!inhibit_window_system)
@@ -1469,15 +1532,19 @@ internal_terminal_init ()
 #ifndef HAVE_X_WINDOWS
   if (!internal_terminal || inhibit_window_system)
     {
-      selected_frame->output_method = output_termcap;
+      sf->output_method = output_termcap;
       return;
     }
 
   Vwindow_system = intern ("pc");
   Vwindow_system_version = make_number (1);
+  sf->output_method = output_msdos_raw;
 
   /* If Emacs was dumped on DOS/V machine, forget the stale VRAM address.  */
   screen_old_address = 0;
+
+  /* Forget the stale screen colors as well.  */
+  initial_screen_colors[0] = initial_screen_colors[1] = -1;
 
   bzero (&the_only_x_display, sizeof the_only_x_display);
   the_only_x_display.background_pixel = 7; /* White */
@@ -1503,7 +1570,7 @@ internal_terminal_init ()
   the_only_x_display.line_height = 1;
   the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
 
-  init_frame_faces (selected_frame);
+  init_frame_faces (sf);
 
   ring_bell_hook = IT_ring_bell;
   insert_glyphs_hook = IT_insert_glyphs;
@@ -1548,8 +1615,8 @@ dos_get_saved_screen (screen, rows, cols)
 void
 check_x (void)
 {
-  if (! FRAME_MSDOS_P (selected_frame))
-    error ("Not running under a windows system");
+  if (! FRAME_MSDOS_P (SELECTED_FRAME()))
+    error ("Not running under a window system");
 }
 
 #endif
@@ -2081,7 +2148,7 @@ dos_rawgetc ()
   
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
-  IT_cmgoto (selected_frame);
+  IT_cmgoto (SELECTED_FRAME());
 #endif
 
   /* The following condition is equivalent to `kbhit ()', except that
@@ -2294,7 +2361,7 @@ dos_rawgetc ()
 	event.kind = ascii_keystroke;
       event.code = code;
       event.modifiers =	modifiers;
-      XSETFRAME (event.frame_or_window, selected_frame);
+      event.frame_or_window = selected_frame;
       event.timestamp = event_timestamp ();
       kbd_buffer_store_event (&event);
     }
@@ -2344,7 +2411,7 @@ dos_rawgetc ()
 		  | (press ? down_modifier : up_modifier);
 		event.x = x;
 		event.y = y;
-		XSETFRAME (event.frame_or_window, selected_frame);
+		event.frame_or_window = selected_frame;
 		event.timestamp = event_timestamp ();
 		kbd_buffer_store_event (&event);
 	      }
@@ -2503,12 +2570,13 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
   int mx, my;
   int enabled, mousehere;
   int row, col;
+  struct frame *sf = SELECTED_FRAME();
 
   width = menu->width;
   text = (struct glyph *) xmalloc ((width + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
-  IT_update_begin (selected_frame);
+  IT_update_begin (sf);
   for (i = 0; i < menu->count; i++)
     {
       IT_cursor_to (y + i, x);
@@ -2543,7 +2611,7 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
       p++;
       IT_write_glyphs (text, width + 2);
     }
-  IT_update_end (selected_frame);
+  IT_update_end (sf);
   IT_cursor_to (row, col);
   xfree (text);
 }
@@ -2663,6 +2731,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int leave, result, onepane;
   int title_faces[4];		/* face to display the menu title */
   int buffers_num_deleted = 0;
+  struct frame *sf = SELECTED_FRAME();
 
   /* Just in case we got here without a mouse present...  */
   if (have_mouse <= 0)
@@ -2681,15 +2750,15 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
-    = lookup_derived_face (selected_frame, intern ("msdos-menu-passive-face"),
+    = lookup_derived_face (sf, intern ("msdos-menu-passive-face"),
 			   CHARSET_ASCII, DEFAULT_FACE_ID);
   faces[1]
-    = lookup_derived_face (selected_frame, intern ("msdos-menu-active-face"),
+    = lookup_derived_face (sf, intern ("msdos-menu-active-face"),
 			   CHARSET_ASCII, DEFAULT_FACE_ID);
   selectface = intern ("msdos-menu-select-face");
-  faces[2] = lookup_derived_face (selected_frame, selectface,
+  faces[2] = lookup_derived_face (sf, selectface,
 				  CHARSET_ASCII, faces[0]);
-  faces[3] = lookup_derived_face (selected_frame, selectface,
+  faces[3] = lookup_derived_face (sf, selectface,
 				  CHARSET_ASCII, faces[1]);
 
   /* Make sure the menu title is always displayed with
@@ -2740,9 +2809,9 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
     {
       if (!mouse_visible) mouse_on ();
       mouse_check_moved ();
-      if (selected_frame->mouse_moved)
+      if (sf->mouse_moved)
 	{
-	  selected_frame->mouse_moved = 0;
+	  sf->mouse_moved = 0;
 	  result = XM_IA_SELECT;
 	  mouse_get_xy (&x, &y);
 	  for (i = 0; i < statecount; i++)
@@ -2924,8 +2993,8 @@ getdefdir (drive, dst)
   *p = '\0';
   errno = 0;
   _fixpath (in_path, dst);
-  /* _fixpath can set errno to ENOSYS on non-LFN systems because
-     it queries the LFN support, so ignore that error.  */
+    /* _fixpath can set errno to ENOSYS on non-LFN systems because
+       it queries the LFN support, so ignore that error.  */
   if ((errno && errno != ENOSYS) || *dst == '\0')
     return 0;
 
@@ -4075,11 +4144,12 @@ abort ()
 }
 #endif
 
-/* The following two are required so that customization feature
-   won't complain about unbound variables.  */
+/* The following variables are required so that cus-start.el won't
+   complain about unbound variables.  */
 #ifndef HAVE_X_WINDOWS
 /* Search path for bitmap files (xfns.c).  */
 Lisp_Object Vx_bitmap_file_path;
+int x_stretch_cursor_p;
 #endif
 #ifndef subprocesses
 /* Nonzero means delete a process right away if it exits (process.c).  */
@@ -4094,6 +4164,12 @@ syms_of_msdos ()
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
   Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
+
+  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
+    "*Non-nil means draw block cursor as wide as the glyph under it.\n\
+For example, if a block cursor is over a tab, it will be drawn as\n\
+wide as that tab on the display.  (No effect on MS-DOS.)");
+  x_stretch_cursor_p = 0;
 
   /* The following three are from xfns.c:  */
   Qbackground_color = intern ("background-color");
@@ -4117,6 +4193,7 @@ nil means don't delete them until `list-processes' is run.");
   defsubr (&Srecent_doskeys);
   defsubr (&Smsdos_long_file_names);
   defsubr (&Smsdos_downcase_filename);
+  defsubr (&Smsdos_remember_default_colors);
 }
 
 #endif /* MSDOS */
