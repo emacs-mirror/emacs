@@ -80,7 +80,7 @@ If `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
-than the value of `fill-column' and ARG is `nil'."
+than the value of `fill-column' and ARG is nil."
   (interactive "*P")
   (barf-if-buffer-read-only)
   ;; Inserting a newline at the end of a line produces better redisplay in
