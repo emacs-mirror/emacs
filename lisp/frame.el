@@ -577,13 +577,14 @@ A negative ARG moves in the opposite order."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq window-system 'x)
-	   (x-focus-frame frame))
-	  ((eq window-system 'w32)
-	   (w32-focus-frame frame)))
-    (when (and (not (eq window-system 'w32))
-	       focus-follows-mouse)
-      (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
+    (when (eq window-system 'w32)
+      (w32-focus-frame frame))
+    (cond (focus-follows-mouse
+	   (unless (eq window-system 'w32)
+	     (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+	  (t
+	   (when (eq window-system 'x)
+	     (x-focus-frame frame))))))
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
