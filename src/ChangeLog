@@ -4,6 +4,9 @@
 	environment, for the case that child_setup signals an error.
 	When mirroring slashes in DOS shell commands, don't fail when
 	argv[2] has embedded blanks.
+	(Fmsdos_set_mouse_buttons, mouse_setup_buttons): New functions.
+	(syms_of_msdos): Defsubr Fmsdos_set_mouse_buttons.
+	(dos_ttraw): Call mouse_setup_buttons.
 
 	* callproc.c (child_setup) [MSDOS]: malloc pwd_var instead of
 	using alloca; free it after run_msdos_command returns.
