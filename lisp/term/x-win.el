@@ -646,8 +646,6 @@ This is in addition to the primary selection.")
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
 
-(setq-default mode-line-frame-identification "")
-
 (if (fboundp 'new-fontset)
     (progn
       ;; Create a default fontset.
@@ -756,7 +754,7 @@ This is in addition to the primary selection.")
 (setq split-window-keep-point t)
 
 ;; Don't show the frame name; that's redundant with X.
-(setq-default mode-line-buffer-identification '("Emacs: %12b"))
+(setq-default mode-line-frame-identification "  ")
 
 ;;; Motif direct handling of f10 wasn't working right,
 ;;; So temporarily we've turned it off in lwlib-Xm.c
