@@ -1,3 +1,35 @@
+2000-06-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* imenu.el (imenu-generic-expression): Docstring fix.
+
+	* composite.el (composition-function-table): Move the `put'
+	below the autoload cookie so we can load the file before loaddefs.
+
+	* avoid.el (mouse-avoidance-random-shape): Don't quote lambda.
+
+	* emacs-lisp/autoload.el (make-autoload): Use `cond'.
+	Handle easy-mmode-define-global-mode.
+	For complex macros like define-minor-mode that can generate
+	several autoload entries, try to autoload entries in the
+	macroexpanded code.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	If KEYMAP is a symbol, just use it.
+	Use byte-compile-current-file and load-file-name to infer the
+	proper :require to pass to defcustom.
+	Wrap the hook var into `progn' so as not to autoload it.
+	Add a :autoload-end cookie.
+	Be more careful about the evaluation of KEYMAP.
+	(easy-mmode-define-global-mode): Add a :autoload-end cookie.
+	(define-derived-mode): Move define-abbrev-table outside of defvar.
+
+2000-06-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile (EMACSOPT): Remove --no-init-file (implied by -batch).
+	(autoloads): Explicitly load `autoload' to bootstrap without loaddefs.
+	(backup-compiled-files): Ignore errors during `tar'.
+	(bootstrap): Make autoloads before elc files.
+
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): If one of
@@ -10,7 +42,7 @@
 
 	* tar-mode.el (tar-copy): Supply MUSTBENEW arg to write-region.
 
-	* executable.el: Byte compile dynamic.
+	* progmodes/executable.el: Byte compile dynamic.
 	(executable-insert): Change custom type.
 	(executable-find): Add autoload cookie.
 	(executable-make-buffer-file-executable-if-script-p): New
