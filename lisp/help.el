@@ -448,8 +448,8 @@ l  view-lossage.  Shows last 100 characters you typed.
 L  describe-language-environment.  This describes either the a
 	specific language environment (if you type its name)
 	or the current language environment (if you type just RET).
-m  describe-mode.  Print documentation of current major mode,
-	which describes the commands peculiar to it.
+m  describe-mode.  Print documentation of current minor modes,
+	and the current major mode, including their special commands.
 n  view-emacs-news.  Shows emacs news file.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 s  describe-syntax.  Display contents of syntax table, plus explanations
