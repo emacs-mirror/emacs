@@ -2855,13 +2855,19 @@ read_process_output (proc, channel)
       carryover = nbytes - coding->consumed;
       if (carryover > 0)
 	{
-	  /* We must move the data carried over to the tail of
-	     decoding buffer.  We are sure that the size of decoding
-	     buffer (decided by decoding_buffer_size) is large enough
-	     to contain them.  */
-	  bcopy (chars + nbytes - carryover,
-		 (XSTRING (p->decoding_buf)->data
-		  + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover),
+	  /* Copy the carryover bytes to the end of p->decoding_buf, to
+	     be processed on the next read.  Since decoding_buffer_size
+	     asks for an extra amount of space beyond the maximum
+	     expected for the output, there should always be sufficient
+	     space for the carryover (which is by definition a sequence
+	     of bytes that was not long enough to be decoded, and thus
+	     has a bounded length).  */
+	  if (STRING_BYTES (XSTRING (p->decoding_buf))
+	      < coding->produced + carryover)
+	    abort ();
+	  bcopy (chars + coding->consumed,
+		 XSTRING (p->decoding_buf)->data
+		 + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover,
 		 carryover);
 	  XSETINT (p->decoding_carryover, carryover);
 	}
