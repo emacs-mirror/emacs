@@ -1149,7 +1149,16 @@ keymap_panes (vector, panes, names, enables, items, prefixes, keymaps, nmaps)
   return p;
 }
 
-/* This is a recursive subroutine of the previous function.
+/* This is used as the handler when calling internal_condition_case_1.  */
+
+static Lisp_Object
+single_keymap_panes_1 (arg)
+     Lisp_Object arg;
+{
+  return Qnil;
+}
+
+/* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
    The other arguments are passed along
    or point to local variables of the previous function.  */
@@ -1246,7 +1255,11 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 			 Otherwise, enable if value is not nil.  */
 		      tem = Fget (def, Qmenu_enable);
 		      if (!NILP (tem))
-			enabled = Feval (tem);
+			/* (condition-case nil (eval tem)
+			   (error nil))  */
+			enabled = internal_condition_case_1 (Feval, tem,
+							     Qerror,
+							     single_keymap_panes_1);
 		    }
 		  tem = Fkeymapp (def);
 		  if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
@@ -1291,7 +1304,11 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 			  /* No property, or nil, means enable.
 			     Otherwise, enable if value is not nil.  */
 			  if (!NILP (tem))
-			    enabled = Feval (tem);
+			    /* (condition-case nil (eval tem)
+			       (error nil))  */
+			    enabled = internal_condition_case_1 (Feval, tem,
+								 Qerror,
+								 single_keymap_panes_1);
 			}
 
 		      tem = Fkeymapp (def);
