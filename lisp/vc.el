@@ -41,8 +41,8 @@
 ;; doesn't understand -t-; this has been known to happen to people running
 ;; NExTSTEP 3.0. 
 ;;
-;; The RCS code assumes strict locking.  You can support the RCS -x option
-;; by adding pairs to the vc-master-templates list.
+;; You can support the RCS -x option by adding pairs to the 
+;; vc-master-templates list.
 ;;
 ;; Proper function of the SCCS diff commands requires the shellscript vcdiff
 ;; to be installed somewhere on Emacs's path for executables.
@@ -604,7 +604,6 @@ to an optional list of FLAGS."
 (defun vc-next-action-dired (file rev comment)
   ;; We've accepted a log comment, now do a vc-next-action using it on all
   ;; marked files.
-  (set-buffer vc-parent-buffer)
   (let ((configuration (current-window-configuration)))
     (dired-map-over-marks
      (save-window-excursion
