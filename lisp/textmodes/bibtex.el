@@ -172,7 +172,7 @@ narrowed to just the entry."
 (defcustom bibtex-sort-ignore-string-entries t
   "*If non-nil, BibTeX @String entries are not sort-significant.
 That means they are ignored when determining ordering of the buffer
-(e.g., sorting, locating alphabetical position for new entries, etc.).
+\(e.g., sorting, locating alphabetical position for new entries, etc.).
 This variable is buffer-local."
   :group 'bibtex
   :type 'boolean)
@@ -408,14 +408,14 @@ after last parsing and which are maintained in sorted order are parsed."
 
   "Defines entry types and their associated fields.
 List of
-(ENTRY-NAME (REQUIRED OPTIONAL) (CROSSREF-REQUIRED CROSSREF-OPTIONAL))
+\(ENTRY-NAME (REQUIRED OPTIONAL) (CROSSREF-REQUIRED CROSSREF-OPTIONAL))
 triples.
 If the third element is nil, the first pair is always used.
 If not, the second pair is used in the case of presence of a crossref
 field and the third in the case of absence.
 REQUIRED, OPTIONAL, CROSSREF-REQUIRED and CROSSREF-OPTIONAL are lists.
 Each element of these lists is a list of the form
-(FIELD-NAME COMMENT-STRING INIT ALTERNATIVE-FLAG).
+\(FIELD-NAME COMMENT-STRING INIT ALTERNATIVE-FLAG).
 COMMENT-STRING, INIT, and ALTERNATIVE-FLAG are optional.
 FIELD-NAME is the name of the field, COMMENT-STRING the comment to
 appear in the echo area, INIT is either the initial content of the
