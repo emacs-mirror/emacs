@@ -2593,6 +2593,57 @@ Match frames with dark backgrounds.")
 (defconst custom-face-selected (widget-convert 'custom-face-selected)
   "Converted version of the `custom-face-selected' widget.")
 
+(defun custom-filter-face-spec (spec filter-index default-filter)
+  "Return a canonicalized version of SPEC using.
+FILTER-INDEX is the index in the entry for each attribute in
+`custom-face-attributes' at which the appropriate filter function can be
+found, and DEFAULT-FILTER is the filter to apply for attributes that
+don't specify one."
+  (mapcar (lambda (entry)
+	    ;; Filter a single face-spec entry
+	    (let ((tests (car entry))
+		  (unfiltered-attrs
+		   ;; Handle both old- and new-style attribute syntax
+		   (if (listp (car (cdr entry)))
+		       (car (cdr entry))
+		     (cdr entry)))
+		  (filtered-attrs nil))
+	      ;; Filter each face attribute
+	      (while unfiltered-attrs
+		(let* ((attr (pop unfiltered-attrs))
+		       (pre-filtered-value (pop unfiltered-attrs))
+		       (filter
+			(or (nth filter-index (assq attr custom-face-attributes))
+			    default-filter))
+		       (filtered-value
+			(if filter
+			    (funcall filter pre-filtered-value)
+			  pre-filtered-value)))
+		  (push filtered-value filtered-attrs)
+		  (push attr filtered-attrs)))
+	      ;;
+	      (list tests filtered-attrs)))
+	  spec))
+
+(defun custom-pre-filter-face-spec (spec)
+  "Return SPEC changed as necessary for editing by the face customization widget.
+SPEC must be a full face spec."
+  (custom-filter-face-spec
+   spec 2
+   (lambda (value)
+     (cond ((eq value 'unspecified) nil)
+	   ((eq value nil) 'off)
+	   (t value)))))
+
+(defun custom-post-filter-face-spec (spec)
+  "Return the customized SPEC in a form suitable for setting the face."
+  (custom-filter-face-spec
+   spec 3
+   (lambda (value)
+     (cond ((eq value nil) 'unspecified)
+	   ((eq value 'off) nil)
+	   (t value)))))
+
 (defun custom-face-value-create (widget)
   "Create a list of the display specifications for WIDGET."
   (let ((buttons (widget-get widget :buttons))
@@ -2681,6 +2732,7 @@ Match frames with dark backgrounds.")
 	       ;; edit it as the user has specified it.
 	       (if (not (face-spec-match-p symbol spec (selected-frame)))
 		   (setq spec (list (list t (face-attr-construct symbol (selected-frame))))))
+	       (setq spec (custom-pre-filter-face-spec spec))
 	       (setq edit (widget-create-child-and-convert
 			   widget
 			   (cond ((and (eq form 'selected)
@@ -2794,7 +2846,7 @@ Optional EVENT is the location for the menu."
   "Make the face attributes in WIDGET take effect."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
-	 (value (widget-value child))
+	 (value (custom-post-filter-face-spec (widget-value child)))
 	 (comment-widget (widget-get widget :comment-widget))
 	 (comment (widget-value comment-widget)))
     (when (equal comment "")
@@ -2802,7 +2854,11 @@ Optional EVENT is the location for the menu."
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
     (put symbol 'customized-face value)
-    (face-spec-set symbol value)
+    (if (face-spec-choose value)
+	(face-spec-set symbol value)
+      ;; face-set-spec ignores empty attribute lists, so just give it
+      ;; something harmless instead.
+      (face-spec-set symbol '((t :foreground unspecified))))
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
