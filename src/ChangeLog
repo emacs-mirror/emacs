@@ -1,3 +1,12 @@
+2005-02-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_string): Always return a unibyte string.
+	If NOCOPY is nonzero and there's no need of encoding, make STR
+	unibyte directly.
+
+	* xselect.c (lisp_data_to_selection_data): If OBJ is a non-ASCII
+	multibyte string, signal an error instead of aborting.
+
 2005-02-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keyboard.c: If HAVE_FCNTL_H include fcntl.h.
