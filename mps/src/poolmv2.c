@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.11) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.12) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.11) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.12) $");
 
 
 /* Signatures */
@@ -908,7 +908,8 @@ size_t mps_mv2_free_size(mps_pool_t mps_pool)
 static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, 
                        Pool pool, Bool withReservoirPermit)
 {
-  Res res = SegAlloc(segReturn, MV2SegPref(mv2), size, pool,
+  Res res = SegAlloc(segReturn, EnsureGCSegClass(), 
+                     MV2SegPref(mv2), size, pool,
                      withReservoirPermit);
 
   if (res == ResOK) {
