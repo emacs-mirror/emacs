@@ -33,6 +33,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 
+extern char *sbrk ();
+
 /* The following come from gmalloc.c.  */
 
 #if defined (__STDC__) && __STDC__
