@@ -1,3 +1,11 @@
+2004-05-25  John Paul Wallington  <jpw@gnu.org>
+
+	* gs.el (gs-load-image): Use `set-process-query-on-exit-flag'
+	instead of obsolete `process-kill-without-query'.
+
+	* textmodes/texinfmt.el (texinfo-indexvar-alist):
+	Declare as variable, not constant.
+
 2004-05-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (find-file-noselect-1): Fix bug introduced by
