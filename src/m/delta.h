@@ -1,5 +1,6 @@
-/* machine description file for the Motorola delta running System V.3.X
-   tested on mvme147.
+/* Machine description file for the Motorola Delta.
+   Tested on mvme147 board using R3V7 without X.  Tested with gcc.
+   Tested on mvme167 board using R3V7 without X.  Tested with cc, gnucc, gcc.
    Copyright (C) 1986, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -59,7 +60,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This is desirable for most machines.  */
 
 #define NO_UNION_TYPE 
-#define SWITCH_ENUM_BUG
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -130,73 +130,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define VALBITS 26
    #define GCTYPEBITS 5 */
 
-/* Machine specific stuff */
-
-#define BSTRING
-#define HAVE_PTYS
-#define SYSV_PTYS
-#define HAVE_SELECT
-#define HAVE_SOCKETS		/***** only if NSE has been installed *****/
-#define HAVE_UNISTD_H
-#define HAVE_TIMEVAL
-#define SIGNALS_VIA_CHARACTERS
-#define memmove memcpy		/* memmove not provided until R3V7 */
-#undef KERNEL_FILE
-#define KERNEL_FILE "/sysv68"
-#undef LDAV_SYMBOL
-
-/* The standard C library is -lc881, not -lc.
-   -lbsd brings sigblock and sigsetmask.
-   DO NOT USE -lPW. That version of alloca is broken, at last until version
-   R3V7. -riku@field.fi -pot@cnuce.cnr.it. */
-
-#define LIB_STANDARD -lc881
-#define LIB_MATH -lm881
-#define LIBS_TERMCAP -lcurses
-#define LIBS_SYSTEM -lbsd
-#undef sigsetmask
-
-#ifdef HAVE_X_WINDOWS
-/* not sure if this makes sense any more */
-/* debug switches enabled because of some difficulties w/X11 */
-# define C_DEBUG_SWITCH -g
-# define OBJECTS_MACHINE -lg
-# define C_OPTIMIZE_SWITCH
-# define CANNOT_DUMP
-/*# define XDEBUG*/
-# define X11
-/* X library is in 'nonstandard' location. */
-# define LD_SWITCH_MACHINE -L/usr/lib/X11/
-#endif /* HAVE_X_WINDOWS */
-
-#ifdef __GNUC__
- /* Use builtin one. Also be sure that no other ones are tried out. */
-# define alloca __builtin_alloca
-# define HAVE_ALLOCA
-#else
- /* Not __GNUC__, use the one in alloca.s. */
-
- /* Try to guess if we are using the Green Hills Compiler */
-# if defined mc68000 && defined MC68000
- /* Required only for use with Green Hills compiler:
-	-ga	 Because alloca relies on stack frames. This option forces
-		 the Green Hills compiler to create stack frames even for
-		 functions with few local variables. */
-#  define C_SWITCH_MACHINE -ga
-# endif
-#endif /* __GNUC__ */
-
-
-/* emacs19 beta release stuff */
-
-/* crt0.c should use the vax-bsd style of entry, with no dummy args.  */
-
-/* emacs's magic number isn't temacs's;
-   temacs is writable text (the default!).  */
-
-/* Don't use interrupt I/O */
-#undef INTERRUPT_INPUT
-#undef SIGIO
+/* Undefine this if you don't want the machine slow down when a buffer
+   is modified. */
 
 #define CLASH_DETECTION
 
@@ -219,3 +154,84 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBX11_SYSTEM -lnls -lnsl_s
 
 #undef USG_SHARED_LIBRARIES
+
+/* Machine specific stuff */
+
+#define HAVE_PTYS
+#define SYSV_PTYS
+#define HAVE_SELECT
+#define HAVE_SOCKETS		/***** only if NSE has been installed *****/
+#define HAVE_UNISTD_H
+#define HAVE_TIMEVAL
+#define SIGNALS_VIA_CHARACTERS
+#define memmove safe_bcopy
+#undef KERNEL_FILE
+#define KERNEL_FILE "/sysv68"
+#undef LDAV_SYMBOL
+#ifdef SIGIO
+ /* R3V7 has SIGIO, but interrupt input does not work yet.
+    Let's go on with cbreak code. */
+/* # define INTERRUPT_INPUT */
+#endif
+
+/* The standard C library is -lc881, not -lc.
+   -lbsd brings sigblock and sigsetmask.
+   DO NOT USE -lPW. That version of alloca is broken in versions R3V5,
+   R3V6, R3V7. -riku@field.fi -pot@cnuce.cnr.it. */
+
+#define LIB_STANDARD -lc881
+#define LIB_MATH -lm881
+#define LIBS_TERMCAP -lcurses
+#define LIBS_SYSTEM -lbsd
+#undef sigsetmask
+
+#ifdef HAVE_X_WINDOWS
+/* I have not tested X, but I think these are obsolete, so let's
+   commment them -pot@cnuce.cnr.it */
+/* debug switches enabled because of some difficulties w/X11
+# define C_DEBUG_SWITCH -g
+# define OBJECTS_MACHINE -lg
+# define C_OPTIMIZE_SWITCH
+# define CANNOT_DUMP
+# define XDEBUG */
+/* X library is in 'nonstandard' location. */
+/* This should be taken care of by configure -pot@cnuce.cnr.it
+# define LD_SWITCH_MACHINE -L/usr/lib/X11/ */
+#endif /* HAVE_X_WINDOWS */
+
+#ifdef __GNUC__
+ /* Use builtin alloca. Also be sure that no other ones are tried out. */
+# define alloca __builtin_alloca
+# define HAVE_ALLOCA
+ /* Union lisp objects do not yet work as of 19.15. */
+/* # undef NO_UNION_TYPE */
+
+/* There are three ways to use the gnucc provided with R3V7.  Either
+   link /bin/ccd/cc to /bin/cc and then configure (supposing that CC
+   is unset or set to cc).  Or configure like this: `CC=/bin/ccd/cc
+   configure', or else configure like this: `CC=gnucc configure'. */
+
+# ifdef __STDC__
+ /* Compiling with gnucc (not through ccd).  This means -traditional is
+    not set.  Let us set it, because I didn't manage yet to make it
+    compile without -traditional. -pot@cnuce.cnr.it. */
+#  define C_SWITCH_MACHINE -traditional -mfp0ret -m68881 -Dconst=
+#  define LIB_GCC /lib/gnulib881
+# endif /* __STDC__ */
+
+#else
+ /* Not __GNUC__, use the alloca in alloca.s. */
+
+ /* Try to guess if we are using the Green Hills Compiler */
+# if defined mc68000 && defined MC68000
+ /* Required only for use with Green Hills compiler:
+	-ga	 Because alloca relies on stack frames. This option forces
+		 the Green Hills compiler to create stack frames even for
+		 functions with few local variables. */
+#  define C_SWITCH_MACHINE -ga -O
+# else
+ /* We are using the standard AT&T Portable C Compiler */
+#  define SWITCH_ENUM_BUG
+# endif
+
+#endif /* not __GNUC__ */
