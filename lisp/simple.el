@@ -566,7 +566,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 (defcustom eval-expression-print-level 4
   "*Value to use for `print-level' when printing value in `eval-expression'."
   :group 'lisp
-  :type '(choice (const nil integer))
+  :type '(choice (const nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
