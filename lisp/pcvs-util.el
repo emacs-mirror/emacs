@@ -1,7 +1,7 @@
 ;;; pcvs-util.el --- utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1991,92,93,94,95,96,97,98,99, 2000,01,04
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -180,9 +180,7 @@ arguments.  If ARGS is not a list, no argument will be passed."
 
 (defun cvs-string-prefix-p (str1 str2)
   "Tell whether STR1 is a prefix of STR2."
-  (let ((length1 (length str1)))
-    (and (>= (length str2) length1)
-	 (string= str1 (substring str2 0 length1)))))
+  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
 
 ;; (string->strings (strings->string X)) == X
 (defun cvs-strings->string (strings &optional separator)
@@ -392,5 +390,5 @@ and reset it unless READ-ONLY is non-nil."
 
 (provide 'pcvs-util)
 
-;;; arch-tag: 3b2588bb-2ae3-4f1f-bf5b-dea91b1f8a59
+;; arch-tag: 3b2588bb-2ae3-4f1f-bf5b-dea91b1f8a59
 ;;; pcvs-util.el ends here

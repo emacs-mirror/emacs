@@ -1,3 +1,20 @@
+2004-09-09  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi (Save Keyboard Macro): Replace `name-last-kbd-macro'
+	with new `kmacro-name-last-macro'.
+
+2004-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* makefile.w32-in (sieve, pgg): Use $(infodir).
+
+2004-09-08  Juri Linkov  <juri@jurta.org>
+
+	* mini.texi (Minibuffer History): Add `history-delete-duplicates'.
+
+2004-09-08  Dhruva Krishnamurthy  <dhruva.krishnamurthy@gmail.com>  (tiny change)
+
+	* makefile.w32-in: Fix PGG and Sieve entries.
+
 2004-09-03  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Incremental Search): Update wording for M-%.

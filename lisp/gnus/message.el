@@ -1588,7 +1588,7 @@ is used by default."
   (if (not header)
       nil
     (let ((regexp (format "[%s]+" (or separator ",")))
-	  (beg 1)
+	  (beg (point-min))
 	  (first t)
 	  quoted elems paren)
       (with-temp-buffer
@@ -3722,13 +3722,13 @@ It should typically alter the sending method in some way or other."
 				   "content-transfer-encoding")))))))
 	    (message-insert-courtesy-copy))
 	  (if (or (not message-send-mail-partially-limit)
-		  (< (point-max) message-send-mail-partially-limit)
+		  (< (buffer-size) message-send-mail-partially-limit)
 		  (not (message-y-or-n-p
 			"The message size is too large, split? "
 			t
 			"\
 The message size, "
-			(/ (point-max) 1000) "KB, is too large.
+			(/ (buffer-size) 1000) "KB, is too large.
 
 Some mail gateways (MTA's) bounce large messages.  To avoid the
 problem, answer `y', and the message will be split into several
@@ -3839,8 +3839,8 @@ to find out how to use this."
   (case
       (let ((coding-system-for-write message-send-coding-system))
 	(apply
-	 'call-process-region 1 (point-max) message-qmail-inject-program
-	 nil nil nil
+	 'call-process-region (point-min) (point-max)
+	 message-qmail-inject-program nil nil nil
 	 ;; qmail-inject's default behaviour is to look for addresses on the
 	 ;; command line; if there're none, it scans the headers.
 	 ;; yes, it does The Right Thing w.r.t. Resent-To and it's kin.

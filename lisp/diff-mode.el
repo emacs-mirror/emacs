@@ -140,7 +140,7 @@ when editing big diffs)."
     ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-a" . diff-apply-hunk)
     ("\C-c\C-t" . diff-test-hunk)
-    ("\C-c\C-f" . next-error-follow-mode))
+    ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
 (easy-menu-define diff-mode-menu diff-mode-map

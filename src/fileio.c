@@ -175,9 +175,6 @@ Lisp_Object Vdefault_file_name_coding_system;
    whose I/O is done with a special handler.  */
 Lisp_Object Vfile_name_handler_alist;
 
-/* Format for auto-save files */
-Lisp_Object Vauto_save_file_format;
-
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
@@ -5374,8 +5371,8 @@ build_annotations (start, end)
     }
 
   /* Now do the same for annotation functions implied by the file-format */
-  if (auto_saving && (!EQ (Vauto_save_file_format, Qt)))
-    p = Vauto_save_file_format;
+  if (auto_saving && (!EQ (current_buffer->auto_save_file_format, Qt)))
+    p = current_buffer->auto_save_file_format;
   else
     p = current_buffer->file_format;
   for (i = 0; CONSP (p); p = XCDR (p), ++i)
@@ -6492,13 +6489,6 @@ User should not set this variable manually,
 instead use `file-name-coding-system' to get a constant encoding
 of file names regardless of the current language environment.  */);
   Vdefault_file_name_coding_system = Qnil;
-
-  DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
-    doc: /* *Format in which to write auto-save files.
-Should be a list of symbols naming formats that are defined in `format-alist'.
-If it is t, which is the default, auto-save files are written in the
-same format as a regular save would use.  */);
-  Vauto_save_file_format = Qt;
 
   Qformat_decode = intern ("format-decode");
   staticpro (&Qformat_decode);

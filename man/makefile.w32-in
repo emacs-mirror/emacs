@@ -198,22 +198,26 @@ gnus.dvi: gnus.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
+#
 $(infodir)/message: message.texi
 	$(MAKEINFO) message.texi
 message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/message.texi
+#
 $(infodir)/emacs-mime: emacs-mime.texi
 	$(MAKEINFO) emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
-../info/sieve: sieve.texi
-	cd $(srcdir); $(MAKEINFO) sieve.texi
+#
+$(infodir)/sieve: sieve.texi
+	$(MAKEINFO) sieve.texi
 sieve.dvi: sieve.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
-../info/pgg: pgg.texi
-	cd $(srcdir); $(MAKEINFO) pgg.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/sieve.texi
+#
+$(infodir)/pgg: pgg.texi
+	$(MAKEINFO) pgg.texi
 pgg.dvi: pgg.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/pgg.texi
 
 $(infodir)/mh-e: mh-e.texi
 	$(MAKEINFO) mh-e.texi

@@ -204,7 +204,7 @@ macro to be executed before appending to it."
 
     ;; naming and binding
     (define-key map "b"    'kmacro-bind-to-key)
-    (define-key map "n"    'name-last-kbd-macro)
+    (define-key map "n"    'kmacro-name-last-macro)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
@@ -539,8 +539,8 @@ Displays the selected macro in the echo area."
 The commands are recorded even as they are executed.
 Use \\[kmacro-end-macro] to finish recording and make the macro available.
 Use \\[kmacro-end-and-call-macro] to execute the macro.
-Use \\[name-last-kbd-macro] to give it a permanent name.
-Non-nil arg (prefix arg) means append to last macro defined;
+
+Non-nil arg (prefix arg) means append to last macro defined.
 
 With \\[universal-argument] prefix, append to last keyboard macro
 defined.  Depending on `kmacro-execute-before-append', this may begin
@@ -551,7 +551,10 @@ defining the macro.
 
 Use \\[kmacro-insert-counter] to insert (and increment) the macro counter.
 The counter value can be set or modified via \\[kmacro-set-counter] and \\[kmacro-add-counter].
-The format of the counter can be modified via \\[kmacro-set-format]."
+The format of the counter can be modified via \\[kmacro-set-format].
+
+Use \\[kmacro-name-last-macro] to give it a permanent name.
+Use \\[kmacro-bind-to-key] to bind it to a key sequence."
   (interactive "P")
   (if (or defining-kbd-macro executing-kbd-macro)
       (message "Already defining keyboard macro.")
@@ -585,7 +588,7 @@ The format of the counter can be modified via \\[kmacro-set-format]."
   "Finish defining a keyboard macro.
 The definition was started by \\[kmacro-start-macro].
 The macro is now available for use via \\[kmacro-call-macro],
-or it can be given a name with \\[name-last-kbd-macro] and then invoked
+or it can be given a name with \\[kmacro-name-last-macro] and then invoked
 under that name.
 
 With numeric arg, repeat macro now that many times,
@@ -609,7 +612,7 @@ command.  See `kmacro-call-repeat-key' and `kmacro-call-repeat-with-arg'
 for details on how to adjust or disable this behaviour.
 
 To make a macro permanent so you can call it even after defining
-others, use \\[name-last-kbd-macro]."
+others, use \\[kmacro-name-last-macro]."
   (interactive "p")
   (let ((repeat-key (and (null no-repeat)
 			 (> (length (this-single-command-keys)) 1)
@@ -707,7 +710,7 @@ With numeric prefix ARG, repeat macro that many times.
 Zero argument means repeat until there is an error.
 
 To give a macro a permanent name, so you can call it
-even after defining other macros, use \\[name-last-kbd-macro]."
+even after defining other macros, use \\[kmacro-name-last-macro]."
   (interactive "P")
   (if defining-kbd-macro
       (kmacro-end-macro nil))
@@ -771,8 +774,36 @@ may be shaded by a local key binding."
 		     (yes-or-no-p (format "%s runs command %S.  Bind anyway? "
 					  (format-kbd-macro key-seq)
 					  cmd))))
-	(define-key global-map key-seq last-kbd-macro)
+	(define-key global-map key-seq
+	  `(lambda (&optional arg)
+	     "Keyboard macro."
+	     (interactive "p")
+	     (kmacro-exec-ring-item ',(kmacro-ring-head) arg)))
 	(message "Keyboard macro bound to %s" (format-kbd-macro key-seq))))))
+
+
+(defun kmacro-name-last-macro (symbol)
+  "Assign a name to the last keyboard macro defined.
+Argument SYMBOL is the name to define.
+The symbol's function definition becomes the keyboard macro string.
+Such a \"function\" cannot be called from Lisp, but it is a valid editor command."
+  (interactive "SName for last kbd macro: ")
+  (or last-kbd-macro
+      (error "No keyboard macro defined"))
+  (and (fboundp symbol)
+       (not (get symbol 'kmacro))
+       (not (stringp (symbol-function symbol)))
+       (not (vectorp (symbol-function symbol)))
+       (error "Function %s is already defined and not a keyboard macro"
+	      symbol))
+  (if (string-equal symbol "")
+      (error "No command name given"))
+  (fset symbol
+	`(lambda (&optional arg)
+	   "Keyboard macro."
+	   (interactive "p")
+	   (kmacro-exec-ring-item ',(kmacro-ring-head) arg)))
+  (put symbol 'kmacro t))
 
 
 (defun kmacro-view-macro (&optional arg)

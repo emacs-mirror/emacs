@@ -2127,7 +2127,7 @@ likely to have undesired semantics.")
 ;; expression leads to the equivalent implementation that if SEPARATORS
 ;; is defaulted, OMIT-NULLS is treated as t.
 (defun split-string (string &optional separators omit-nulls)
-  "Splits STRING into substrings bounded by matches for SEPARATORS.
+  "Split STRING into substrings bounded by matches for SEPARATORS.
 
 The beginning and end of STRING, and each match for SEPARATORS, are
 splitting points.  The substrings matching SEPARATORS are removed, and

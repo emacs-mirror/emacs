@@ -270,8 +270,6 @@ to the FSF.
   list in a menu, let you select one of the values, and put it into some
   other variable, without changing the value of `values'.
 
-** Fix skip-chars-{for,back}ward to allow character classes.
-
 ** (Controlled by a flag) make open and close syntax match exactly,
   i.e. `(' doesn't match `]'.
 

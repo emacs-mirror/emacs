@@ -34,6 +34,10 @@
 
 (eval-when-compile (require 'cl))
 
+(defgroup nntp nil
+  "NNTP access for Gnus."
+  :group 'gnus)
+
 (defvoo nntp-address nil
   "Address of the physical nntp server.")
 
@@ -182,6 +186,7 @@ server there that you can connect to.  See also
 
 (defcustom nntp-authinfo-file "~/.authinfo"
   ".netrc-like file that holds nntp authinfo passwords."
+  :group 'nntp
   :type
   '(choice file
 	   (repeat :tag "Entries"

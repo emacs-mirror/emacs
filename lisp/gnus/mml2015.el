@@ -83,6 +83,7 @@
     ("TRUST_FULLY"     . t)
     ("TRUST_ULTIMATE"  . t))
   "Map GnuPG trust output values to a boolean saying if you trust the key."
+  :group 'mime-security
   :type '(repeat (cons (regexp :tag "GnuPG output regexp")
 		       (boolean :tag "Trust key"))))
 

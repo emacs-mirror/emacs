@@ -1,7 +1,7 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -274,7 +274,7 @@ to confuse some users sometimes."
 ;;;;
 
 (defconst cvs-states
-  `((NEED-UPDATE	update diff)
+  `((NEED-UPDATE	update diff ignore)
     (UP-TO-DATE		update nil remove diff safe-rm revert)
     (MODIFIED		update commit undo remove diff merge diff-base)
     (ADDED		update commit remove)
@@ -471,5 +471,5 @@ DIR can also be a file."
 
 (provide 'pcvs-info)
 
-;;; arch-tag: d85dde07-bdc2-400a-882f-92f398c7b0ba
+;; arch-tag: d85dde07-bdc2-400a-882f-92f398c7b0ba
 ;;; pcvs-info.el ends here

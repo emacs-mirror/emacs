@@ -8341,7 +8341,7 @@ If BACKWARD, search backward instead."
   (let ((gnus-last-article gnus-last-article))
     (if (gnus-summary-search-article regexp backward)
 	(gnus-summary-show-thread)
-      (error "Search failed: \"%s\"" regexp))))
+      (signal 'search-failed (list regexp)))))
 
 (defun gnus-summary-search-article-backward (regexp)
   "Search for an article containing REGEXP backward."
