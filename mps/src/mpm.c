@@ -1,12 +1,12 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(MMdevel_restr2.3) $
+ * $HopeName: MMsrc!mpm.c(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(MMdevel_restr2.3) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.3) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -29,6 +29,7 @@ Bool MPMCheck(void)
   CHECKL(!SizeIsAligned(64, (unsigned) -1));
   CHECKL(SizeIsAligned(0, 32));
   CHECKL((SizeAlignUp(1024, 16) == 1024));
+  /* .prime: 31051 is prime */
   CHECKL(SizeIsAligned(SizeAlignUp(31051, 256), 256));
   CHECKL(SizeIsAligned(SizeAlignUp(31051, 512), 512));
   CHECKL(!SizeIsAligned(31051, 1024));
@@ -38,11 +39,6 @@ Bool MPMCheck(void)
   CHECKL(SizeLog2(256L) == 8);
   CHECKL(SizeLog2(65536L) == 16);
   CHECKL(SizeLog2(131072L) == 17);
-
-  CHECKL(sizeof(char) == 1);
-  CHECKL(sizeof(MPS_T_WORD)*8 == WORD_WIDTH);
-  CHECKL(1u << WORD_SHIFT == WORD_WIDTH);
-  CHECKL(AlignCheck(ARCH_ALIGN));
 
   return TRUE;  
 }
@@ -82,12 +78,11 @@ Bool SizeIsP2(Size size)
 }
 
 
-/* SizeLog2 -- calculate the binary (base 2) log of a size */
+/* Logarithms */
 
-Shift SizeLog2(Size size)
+Shift SizeFloorLog2(Size size)
 {
   Shift l = 0;
-  AVER(SizeIsP2(size));
 
   while(size > 1) {
     ++l;
@@ -95,6 +90,13 @@ Shift SizeLog2(Size size)
   }
 
   return l;
+}
+
+Shift SizeLog2(Size size)
+{
+  AVER(SizeIsP2(size));
+
+  return SizeFloorLog2(size);
 }
 
 
