@@ -1247,10 +1247,10 @@ Bind this in case the user sets it to nil."
     (save-excursion
       (save-restriction
 	(goto-char (point-min))
-	(when Info-header-line
-	  ;; expose the header line in the buffer
-	  (widen)
-	  (forward-line -1))
+;;; 	(when Info-header-line
+;;; 	  ;; expose the header line in the buffer
+;;; 	  (widen)
+;;; 	  (forward-line -1))
 	(let ((bound (point)))
 	  (forward-line 1)
 	  (cond ((re-search-backward (concat name ":") bound t)
