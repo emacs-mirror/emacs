@@ -1434,7 +1434,7 @@ make_shadow_gcs (mw)
       topc.green = MINL (65535, topc.green * 1.2);
       topc.blue  = MINL (65535, topc.blue  * 1.2);
 #ifdef emacs
-      if (x_alloc_nearest_color (dpy, screen, cmap, &topc))
+      if (x_alloc_nearest_color_for_widget (mw, cmap, &topc))
 #else
       if (XAllocColor (dpy, cmap, &topc))
 #endif
@@ -1452,7 +1452,7 @@ make_shadow_gcs (mw)
       botc.green *= 0.6;
       botc.blue  *= 0.6;
 #ifdef emacs
-      if (x_alloc_nearest_color (dpy, screen, cmap, &botc))
+      if (x_alloc_nearest_color_for_widget (mw, cmap, &botc))
 #else
       if (XAllocColor (dpy, cmap, &botc))
 #endif
