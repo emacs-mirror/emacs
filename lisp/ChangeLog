@@ -1,3 +1,10 @@
+2002-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-step-edit-query): Use RET to execute rest of
+	macro and terminate editing.
+	(kmacro-step-edit-macro): Push previous macro onto ring if changed
+	by step editing.
+
 2002-09-19  Tom Tromey  <tromey@redhat.com>
 
 	* play/blackbox.el (bb-right): Respect prefix argument.
