@@ -444,7 +444,7 @@ extern EMACS_INT last_nonminibuf_frame;
    `for' loop which traverses Vframe_list using LIST_VAR and
    FRAME_VAR.  */
 #define FOR_EACH_FRAME(list_var, frame_var)			\
-  for (list_var = Qt; frame_var = selected_frame, ! NILP (list_var); list_var = Qnil)
+  for (list_var = Qt; XFASTINT (frame_var) = selected_frame, ! NILP (list_var); list_var = Qnil)
 
 #endif /* not MULTI_FRAME */
 
