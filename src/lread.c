@@ -889,27 +889,27 @@ STREAM or the value of `standard-input' may be:\n\
      call it with a char as argument to push a char back)\n\
  a string (takes text from string, starting at the beginning)\n\
  t (read text line using minibuffer and use it).")
-  (readcharfun)
-     Lisp_Object readcharfun;
+  (stream)
+     Lisp_Object stream;
 {
   extern Lisp_Object Fread_minibuffer ();
 
-  if (NILP (readcharfun))
-    readcharfun = Vstandard_input;
-  if (EQ (readcharfun, Qt))
-    readcharfun = Qread_char;
+  if (NILP (stream))
+    stream = Vstandard_input;
+  if (EQ (stream, Qt))
+    stream = Qread_char;
 
   new_backquote_flag = 0;
 
 #ifndef standalone
-  if (EQ (readcharfun, Qread_char))
+  if (EQ (stream, Qread_char))
     return Fread_minibuffer (build_string ("Lisp expression: "), Qnil);
 #endif
 
-  if (STRINGP (readcharfun))
-    return Fcar (Fread_from_string (readcharfun, Qnil, Qnil));
+  if (STRINGP (stream))
+    return Fcar (Fread_from_string (stream, Qnil, Qnil));
 
-  return read0 (readcharfun);
+  return read0 (stream);
 }
 
 DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
