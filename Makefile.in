@@ -371,6 +371,7 @@ install-arch-indep: mkdir info
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
+		rm -f  $${subdir}/.cvsignore ; \
 		rm -f  $${subdir}/\#* ; \
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
