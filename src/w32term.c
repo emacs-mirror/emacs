@@ -1016,7 +1016,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	if (font)
 	  {
             if (font->hfont)
-	    SelectObject (hdc, font->hfont);
+	      SelectObject (hdc, font->hfont);
 
             if (!cmpcharp)
 	      {
@@ -1233,11 +1233,22 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	  {
 	    /* Show rectangles to indicate that we found no font.  */
 	    int limit = cmpcharp ? 1 : len;
+	    HBRUSH hb, oldhb;
+	    HPEN hp, oldhp;
+	    hb = CreateSolidBrush (bg);
+	    hp = CreatePen (PS_SOLID, 0, fg);
+	    oldhb = SelectObject(hdc, hb);
+	    oldhp = SelectObject(hdc, hp);
 
 	    for (i = 0; i < limit; i++)
 	      Rectangle (hdc, left + glyph_width * i, top,
-                         left + glyph_width * (i + 1) - 1,
-                         top + line_height - 1);
+			 left + glyph_width * (i + 1),
+			 top + line_height);
+
+	    SelectObject(hdc, oldhb);
+	    SelectObject(hdc, oldhp);
+	    DeleteObject (hb);
+	    DeleteObject (hp);
 	  }
         else if (require_clipping && !NILP (Vhighlight_wrong_size_font))
           {
@@ -1252,6 +1263,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                                top + line_height - 3, 1, 2);
               }
           }
+
 	{
 	  /* Setting underline position based on the metric of the
 	     current font results in shaky underline if it strides
@@ -1272,7 +1284,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	}
 
 	if (!cmpcharp)
-	left += run_width;
+	  left += run_width;
       }
     }
   release_frame_dc (f, hdc);
