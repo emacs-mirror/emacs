@@ -113,7 +113,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef USG5_4
 #undef UNEXEC
-#define UNEXEC unexsgi.o
+#define UNEXEC unexelf.o
 #else
 #define UNEXEC unexmips.o
 #endif
