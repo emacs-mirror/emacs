@@ -307,6 +307,11 @@ extern int pure_size;
    ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
 #endif
 
+/* Convert a C integer into a Lisp_Object integer.  */
+
+#define make_number(N)		\
+  ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
+
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT accesses the markbit.
  Markbits are used only in particular slots of particular structure types.
@@ -509,6 +514,21 @@ struct Lisp_Cons
   {
     Lisp_Object car, cdr;
   };
+
+/* Take the car or cdr of something known to be a cons cell.  */
+#define XCAR(c) (XCONS ((c))->car)
+#define XCDR(c) (XCONS ((c))->cdr)
+
+/* Take the car or cdr of something whose type is not known.  */
+#define CAR(c)					\
+ (CONSP ((c)) ? XCAR ((c))			\
+  : NILP ((c)) ? Qnil				\
+  : wrong_type_argument (Qlistp, (c)))
+
+#define CDR(c)					\
+ (CONSP ((c)) ? XCDR ((c))			\
+  : NILP ((c)) ? Qnil				\
+  : wrong_type_argument (Qlistp, (c)))
 
 /* Like a cons, but records info on where the text lives that it was read from */
 /* This is not really in use now */
@@ -1400,7 +1420,6 @@ extern Lisp_Object Flsh (), Fash ();
 
 extern Lisp_Object Fadd1 (), Fsub1 ();
 
-extern Lisp_Object make_number ();
 extern Lisp_Object   long_to_cons ();
 extern unsigned long cons_to_long ();
 extern void args_out_of_range ();
