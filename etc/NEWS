@@ -1461,6 +1461,17 @@ you need to put it somewhere into Emacs' load path and add the atom
 ** New modes and packages
 
 +++
+*** The new package Eshell is an operating system command shell
+implemented entirely in Emacs Lisp.  Use `M-x eshell' to invoke it.
+It functions similarly to bash and zsh, and allows running of Lisp
+functions and external commands using the same syntax.  It supports
+history lists, aliases, extended globbing, smart scrolling, etc.  It
+will work on any platform Emacs has been ported to.  And since most of
+the basic commands -- ls, rm, mv, cp, ln, du, cat, etc. -- have been
+rewritten in Lisp, it offers an operating-system independent shell,
+all within the scope of your Emacs process.
+
++++
 *** The new package timeclock.el is a mode is for keeping track of time
 intervals.  You can use it for whatever purpose you like, but the
 typical scenario is to keep track of how much time you spend working

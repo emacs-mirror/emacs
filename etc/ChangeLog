@@ -1,3 +1,7 @@
+2000-10-13  John Wiegley  <johnw@gnu.org>
+
+	* NEWS: Added a note about Eshell.
+
 2000-10-12  Dave Love  <fx@gnu.org>
 
 	* gnus.pbm: New file.
