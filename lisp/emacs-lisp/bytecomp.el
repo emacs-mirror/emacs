@@ -832,24 +832,22 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;; Log something that isn't a warning.
 (defmacro byte-compile-log (format-string &rest args)
-  (list 'and
-	'byte-optimize
-	'(memq byte-optimize-log '(t source))
-	(list 'let '((print-escape-newlines t)
-		     (print-level 4)
-		     (print-length 4))
-	      (list 'byte-compile-log-1
-		    (cons 'format
-		      (cons format-string
-			(mapcar
-			 (lambda (x)
-			   (if (symbolp x) (list 'prin1-to-string x) x))
-			 args)))))))
+  `(and
+    byte-optimize
+    (memq byte-optimize-log '(t source))
+    (let ((print-escape-newlines t)
+	  (print-level 4)
+	  (print-length 4))
+      (byte-compile-log-1
+       (format
+	,format-string
+	,@(mapcar
+	   (lambda (x) (if (symbolp x) (list 'prin1-to-string x) x))
+	   args))))))
 
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
-  (save-excursion
-    (byte-goto-log-buffer)
+  (with-current-buffer "*Compile-Log*"
     (goto-char (point-max))
     (byte-compile-warning-prefix nil nil)
     (cond (noninteractive
@@ -902,11 +900,6 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 (defvar byte-compile-last-warned-form nil)
 (defvar byte-compile-last-logged-file nil)
-
-(defun byte-goto-log-buffer ()
-  (set-buffer (get-buffer-create "*Compile-Log*"))
-  (unless (eq major-mode 'compilation-mode)
-    (compilation-mode)))
 
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
@@ -983,6 +976,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   ;; Do this after setting default-directory.
 	   (unless (eq major-mode 'compilation-mode)
 	     (compilation-mode))
+	   (compilation-forget-errors)
 	   pt))))
 
 ;; Log a message STRING in *Compile-Log*.
