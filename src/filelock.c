@@ -461,31 +461,6 @@ t if it is locked by you, else a string of the name of the locker.")
 
 /* Initialization functions.  */
 
-init_filelock ()
-{
-#if 0
-  char *new_name;
-
-  lock_dir = egetenv ("EMACSLOCKDIR");
-  if (! lock_dir)
-    lock_dir = PATH_LOCK;
-
-  /* Copy the name in case egetenv got it from a Lisp string.  */
-  new_name = (char *) xmalloc (strlen (lock_dir) + 2);
-  strcpy (new_name, lock_dir);
-  lock_dir = new_name;
-
-  /* Make sure it ends with a slash.  */
-  if (lock_dir[strlen (lock_dir) - 1] != '/')
-    strcat (lock_dir, "/");
-
-  superlock_file = (char *) xmalloc ((strlen (lock_dir)
-				      + sizeof (SUPERLOCK_NAME)));
-  strcpy (superlock_file, lock_dir);
-  strcat (superlock_file, SUPERLOCK_NAME);
-#endif
-}
-
 syms_of_filelock ()
 {
   defsubr (&Sunlock_buffer);
