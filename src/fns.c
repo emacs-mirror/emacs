@@ -2697,13 +2697,15 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
 	{
 	  int c1, c2, c;
 
-	  if (NILP (elt))
-	    elt = XCHAR_TABLE (subtable)->defalt;
-	  if (NILP  (elt))
-	    elt = Faref (table, make_number (i));
 	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
 	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
 	  c = MAKE_CHAR (charset, c1, c2);
+
+	  if (NILP (elt))
+	    elt = XCHAR_TABLE (subtable)->defalt;
+	  if (NILP  (elt))
+	    elt = Faref (table, make_number (c));
+
 	  if (c_function)
 	    (*c_function) (arg, make_number (c), elt);
 	  else
