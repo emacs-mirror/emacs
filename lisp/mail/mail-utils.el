@@ -142,7 +142,7 @@ Usenet paths ending in an element that matches are removed also."
 		        "")
 		    (concat (regexp-quote (user-login-name))
 			    "\\>"))))
-  (let ((match (concat "\\(^\\|,\\)[ \t\n]*\\([^,\n]*!\\|\\)\\("
+  (let ((match (concat "\\(^\\|,\\)[ \t\n]*\\([^,\n]*[!<]\\|\\)\\("
 		       rmail-dont-reply-to-names
 		       "\\|[^\,.<]*<\\(" rmail-dont-reply-to-names "\\)"
 		       "\\)"))
