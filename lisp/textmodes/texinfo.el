@@ -381,8 +381,11 @@ value of texinfo-mode-hook."
 ;;; Insert string commands
 
 (defconst texinfo-environment-regexp
-  "^@\\(f?table\\|enumerate\\|itemize\\|ifinfo\\|iftex\\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|cartouche\\|end\\)"
-  "Regexp for environment-like TexInfo list commands.
+  "^@\\(f?table\\|enumerate\\|itemize\\|ifinfo\\|iftex\\|ifset\\|ifclear\
+\\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\
+\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|cartouche\\|end\
+\\|def[a-z]*\\)"
+  "Regexp for environment-like Texinfo list commands.
 Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 ;; The following texinfo-insert-@end command not only inserts a SPC
@@ -568,7 +571,7 @@ to jump to the corresponding spot in the Texinfo source file."
              ;; ((looking-at "@subheading ") 13)
 
              ((looking-at 
-               (concat "@\\(" texinfo-subsection-level-regexp "\\)")) 13)
+               (concat "@\\(" texinfo-subsubsection-level-regexp "\\)")) 13)
              ;; ((looking-at "@subsubsection ") 17)
              ;; ((looking-at "@unnumberedsubsubsec ") 17)
              ;; ((looking-at "@appendixsubsubsec ") 17)
