@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -1201,9 +1201,7 @@ then
   CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-#### Some other nice autoconf tests.  If you add a test here which
-#### should make an entry in src/config.h, don't forget to add an
-#### #undef clause to src/config.h.in for autoconf to modify.
+#### Some other nice autoconf tests.
 
 dnl checks for programs
 AC_PROG_LN_S
@@ -2303,6 +2301,18 @@ fi
 
 AC_FUNC_FORK
 
+dnl Adapted from Haible's version.
+AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
+  [AC_TRY_LINK([#include <langinfo.h>],
+    [char* cs = nl_langinfo(CODESET);],
+    emacs_cv_langinfo_codeset=yes,
+    emacs_cv_langinfo_codeset=no)
+  ])
+if test $emacs_cv_langinfo_codeset = yes; then
+  AC_DEFINE(HAVE_LANGINFO_CODESET, 1,
+    [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
+fi
+
 AC_CHECK_TYPES(size_t)
 
 dnl Restrict could probably be used effectively other than in regex.c.
@@ -2657,7 +2667,7 @@ char *alloca ();
 # endif /* HAVE_ALLOCA_H */
 #endif /* __GNUC__ */
 #ifndef HAVE_SIZE_T
-typedef size_t unsigned
+typedef unsigned size_t
 #endif
 #endif /* NOT_C_CODE */
 
