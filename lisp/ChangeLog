@@ -1,7 +1,18 @@
+2002-09-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* menu-bar.el (menu-bar-make-mm-toggle): New macro.
+	(showhide-menu-bar, showhide-toolbar, menu-bar-toggle-auto-compression)
+	(toggle-highlight-paren-mode, toggle-global-lazy-font-lock-mode):
+	Remove.  Use the minor mode function directly instead.
+	(menu-bar-mode): Add message and customize-mark-as-set and return
+	the new value as do other minor modes.
+
+	* edmacro.el (edmacro-subseq): Don't use cl-push/cl-pop.
+
 2002-09-06  Simon Marshall  <simon@gnu.org>
 
-	* progmodes/etags.el (find-tag-tag, complete-tag): Bind
-	completion-ignore-case based on tags-case-fold-search, so that
+	* progmodes/etags.el (find-tag-tag, complete-tag):
+	Bind completion-ignore-case based on tags-case-fold-search, so that
 	case-sensitivity of tag completion matches that of tag search.
 
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
@@ -86,11 +97,11 @@
 2002-09-04  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el: Require vc.el at compile-time.
-	(vc-workfile-unchanged-p, vc-default-workfile-unchanged-p): Moved
-	here from vc.el.
+	(vc-workfile-unchanged-p, vc-default-workfile-unchanged-p):
+	Moved here from vc.el.
 
-	* vc.el (vc-workfile-unchanged-p,
-	vc-default-workfile-unchanged-p): Moved to vc-hooks.el.
+	* vc.el (vc-workfile-unchanged-p, vc-default-workfile-unchanged-p):
+	Moved to vc-hooks.el.
 
 	* vc-rcs.el (vc-rcs-state): Don't require vc.el.
 
@@ -101,6 +112,32 @@
 	utf-8-fragment-on-decoding is non-nil.
 
 2002-09-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/text-mode.el (paragraph-indent-text-mode-abbrev-table)
+	(paragraph-indent-text-mode-syntax-table, paragraph-indent-text-mode):
+	Use text-mode's syntax-table and abbrev-table.
+	(text-mode): Set require-final-newline to t.
+
+	* newcomment.el (comment-make-extra-lines): Only use the
+	dummy `=' char when there's really nothing else.
+	Don't remove spaces if it leads to an incorrect comment.
+
+	* pcvs.el (cvs-run-process): Use a pty rather than a pipe to work
+	around the cvs/ssh/libc bug.
+	(cvs-update-header): Understand `cvs admin -m<rev>:<msg>' syntax.
+	(defun-cvs-mode): Use the new `declare' thingy.
+	(cvs-edit-log-text-at-point, cvs-mode-edit-log, cvs-do-edit-log)
+	(cvs-edit-log-minor-wrap, cvs-edit-log-filelist): New funs.
+	(cvs-mode-undo): Use `cvs add' for (CONFLICT. REMOVED).
+
+	* pcvs-parse.el (cvs-parse-table): Create a `need-update'
+	node rather than a message for new directories.
+	(cvs-parse-status): Add support for `Entry Invalid'.
+
+	* smerge-mode.el (smerge-diff-buffer-name): Default to *vc-diff*.
+	(smerge-combine-with-next): New function.
+	(smerge-diff): Don't output `wrote /tmp/foo' messages.
+	Insert message if no diffs were found.
 
 	* mail/sendmail.el (mail-mode): Don't set local-abbrev-table.
 	(mail-mode-abbrev-table): Set to text-mode-abbrev-table.
