@@ -1,10 +1,8 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.4) $
+/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.5) $
 rankfmt.c
    See comments in header file for usage.
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "rankfmt.h"
 #include <string.h>
 
