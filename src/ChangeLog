@@ -1,5 +1,17 @@
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* eval.c (call_debugger): Bind `inhibit-redisplay' to nil, and
+	bind `inhibit-eval-during-redisplay' to t.
+
+	* lisp.h (Qinhibit_eval_during_redisplay): Declare extern.
+
+	* xdisp.c (inhibit_eval_during_redisplay)
+	(Qinhibit_eval_during_redisplay): New variables.
+	(safe_eval, safe_call): If inhibit_eval_during_redisplay is set,
+	don't eval, return nil instead.
+	(syms_of_xdisp): DEFVAR_BOOL inhibit-eval-during-redisplay.
+	Initialize Qinhibit_eval_during_redisplay.
+
 	* xdisp.c (reseat_to_string): If STRING is multibyte, set
 	the iterator's multibyte_p flag.
 
