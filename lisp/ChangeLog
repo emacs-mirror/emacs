@@ -1,3 +1,10 @@
+2003-12-29  Mark A. Hershberger <mah@everybody.org>
+
+	* xml.el (xml-get-attribute-or-nil): New function, like
+	xml-get-attribute, but returns nil if the attribute was not found.
+	(xml-get-attribute): Converted to defsubst, uses
+	xml-get-attribute-or-nil.
+
 2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix.
