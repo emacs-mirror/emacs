@@ -471,14 +471,6 @@ clear_face_cache ()
   /* No action.  */
 }
 
-static void
-build_face (f, face)
-     struct frame *f;
-     struct face *face;
-{
-  face->gc = 1;
-}
-
 #ifdef MSDOS
 unsigned long
 load_color (f, name)
