@@ -17,6 +17,13 @@
 	to get the right value of window-width in list-colors-print
 	after the buffer is displayed.
 
+	* simple.el (pop-mark): Move deactivate-mark out of conditional
+	part to deactivate the active mark regardless of the state of the
+	mark ring.
+
+	* desktop.el (desktop-save): Add `mode: emacs-lisp' to the local
+	variables line in desktop files.
+
 2005-01-12  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (search-highlight, isearch, isearch-lazy-highlight):
