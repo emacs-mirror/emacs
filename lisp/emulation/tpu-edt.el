@@ -675,8 +675,8 @@ With argument, fill and justify."
 (defun tpu-reset-screen-size (height width)
   "Sets the screen size."
   (interactive "nnew screen height: \nnnew screen width: ")
-  (set-screen-height height)
-  (set-screen-width width))
+  (set-frame-height (selected-frame) height)
+  (set-frame-width (selected-frame) width))
 
 (defun tpu-toggle-newline-and-indent nil
   "Toggle between 'newline and indent' and 'simple newline'."
