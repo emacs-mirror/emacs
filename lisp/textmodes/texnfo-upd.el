@@ -149,12 +149,8 @@
 
 ;;; Code:
 
-(or (fboundp 'defgroup)
-    (defmacro defgroup (&rest ignore) nil))
+(require 'texinfo)
 
-(or (fboundp 'defcustom)
-    (defmacro defcustom (var value doc &rest ignore)
-      `(defvar ,var ,value ,doc)))
 
 (defvar texinfo-master-menu-header
   " --- The Detailed Node Listing ---\n"
@@ -315,7 +311,7 @@ if the match is found there, the value is t and point does not move."
 
   (let ((case-fold-search t))
     (cond
-     ((or (string-equal "top" level) (string-equal "chapter" level))
+     ((< level 3)
       (if (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" region-end t)
 	  (progn (beginning-of-line) t)))
      (t
@@ -1045,9 +1041,9 @@ error if the node is not the top node and a section is not found."
   "Return the general hierarchal level of the next node in a texinfo file.
 Thus, a subheading or appendixsubsec is of type subsection."
   (let ((case-fold-search t))
-    (cdr (assoc
+    (cadr (assoc
 	  (texinfo-specific-section-type)
-	  texinfo-section-to-generic-alist))))
+	  texinfo-section-list))))
 
 
 ;;; Locating the major positions
@@ -1062,8 +1058,7 @@ Only argument is a string of the general type of section."
     ;; returns the beginning of the buffer as the beginning of the
     ;; higher level section.
     (cond
-     ((or (string-equal "top" level)
-	  (string-equal "chapter" level))
+     ((< level 3)
       (save-excursion
 	(goto-char (point-min))
 	(re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
@@ -1122,86 +1117,58 @@ end of that region; it limits the search."
     (point)))
 
 
-;;; Alists and regular expressions for defining hierarchical levels
-
-(defvar texinfo-section-to-generic-alist
-  '(("top" . "top")
-
-    ("chapter" . "chapter")
-    ("unnumbered" . "chapter")
-    ("majorheading" . "chapter")
-    ("chapheading" . "chapter")
-    ("appendix" . "chapter")
-
-    ("section" . "section")
-    ("unnumberedsec" . "section")
-    ("heading" . "section")
-    ("appendixsec" . "section")
-
-    ("subsection" . "subsection")
-    ("unnumberedsubsec" . "subsection")
-    ("subheading" . "subsection")
-    ("appendixsubsec" . "subsection")
-
-    ("subsubsection" . "subsubsection")
-    ("unnumberedsubsubsec" . "subsubsection")
-    ("subsubheading" . "subsubsection")
-    ("appendixsubsubsec" . "subsubsection"))
-  "*An alist of specific and corresponding generic Texinfo section types.
-The keys are strings specifying specific types of section; the values
-are strings of their corresponding general types.")
-
 ;; We used to look for just sub, but that found @subtitle.
 (defvar texinfo-section-types-regexp
   "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
   "Regexp matching chapter, section, other headings (but not the top node).")
 
+(defun texinfo-filter (section list)
+  (let (res)
+    (dolist (x list) (if (eq section (cadr x)) (push (car x) res)))
+    res))
+
 (defvar texinfo-chapter-level-regexp
-  "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
+  (regexp-opt (texinfo-filter 2 texinfo-section-list))
   "Regular expression matching just the Texinfo chapter level headings.")
 
 (defvar texinfo-section-level-regexp
-  "section\\|unnumberedsec\\|heading \\|appendixsec"
+  (regexp-opt (texinfo-filter 3 texinfo-section-list))
   "Regular expression matching just the Texinfo section level headings.")
 
 (defvar texinfo-subsection-level-regexp
-  "subsection\\|unnumberedsubsec\\|subheading\\|appendixsubsec"
+  (regexp-opt (texinfo-filter 4 texinfo-section-list))
   "Regular expression matching just the Texinfo subsection level headings.")
 
 (defvar texinfo-subsubsection-level-regexp
-  "subsubsection\\|unnumberedsubsubsec\\|subsubheading\\|appendixsubsubsec"
+  (regexp-opt (texinfo-filter 5 texinfo-section-list))
   "Regular expression matching just the Texinfo subsubsection level headings.")
 
 (defvar texinfo-update-menu-same-level-regexps
-  '(("top" . "top[ \t]+")
-    ("chapter" .
-     (concat "\\(^@\\)\\(" texinfo-chapter-level-regexp "\\)[ \t]*"))
-    ("section" .
-     (concat "\\(^@\\)\\(" texinfo-section-level-regexp "\\)[ \t]*"))
-    ("subsection" .
-     (concat "\\(^@\\)\\(" texinfo-subsection-level-regexp "\\)[ \t]+"))
-    ("subsubsection" .
-     (concat "\\(^@\\)\\(" texinfo-subsubsection-level-regexp "\\)[ \t]+")))
+  '((1 . "top[ \t]+")
+    (2 . (concat "\\(^@\\)\\(" texinfo-chapter-level-regexp "\\)\\>[ \t]*"))
+    (3 . (concat "\\(^@\\)\\(" texinfo-section-level-regexp "\\)\\>[ \t]*"))
+    (4 . (concat "\\(^@\\)\\(" texinfo-subsection-level-regexp "\\)\\>[ \t]+"))
+    (5 . (concat "\\(^@\\)\\(" texinfo-subsubsection-level-regexp "\\)\\>[ \t]+")))
   "*Regexps for searching for same level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
 (defvar texinfo-update-menu-higher-regexps
-  '(("top" . "^@node [ \t]*DIR")
-    ("chapter" . "^@node [ \t]*top[ \t]*\\(,\\|$\\)")
-    ("section" .
+  '((1 . "^@node [ \t]*DIR")
+    (2 . "^@node [ \t]*top[ \t]*\\(,\\|$\\)")
+    (3 .
      (concat
       "\\(^@\\("
       texinfo-chapter-level-regexp
-      "\\)[ \t]*\\)"))
-    ("subsection" .
+      "\\)\\>[ \t]*\\)"))
+    (4 .
      (concat
       "\\(^@\\("
       texinfo-section-level-regexp
       "\\|"
       texinfo-chapter-level-regexp
-      "\\)[ \t]*\\)"))
-    ("subsubsection" .
+      "\\)\\>[ \t]*\\)"))
+    (5 .
      (concat
       "\\(^@\\("
       texinfo-subsection-level-regexp
@@ -1209,13 +1176,13 @@ document; the values are regular expressions.")
       texinfo-section-level-regexp
       "\\|"
       texinfo-chapter-level-regexp
-      "\\)[ \t]*\\)")))
+      "\\)\\>[ \t]*\\)")))
   "*Regexps for searching for higher level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
 (defvar texinfo-update-menu-lower-regexps
-  '(("top" .
+  '((1 .
      (concat
       "\\(^@\\("
       texinfo-chapter-level-regexp
@@ -1225,8 +1192,8 @@ document; the values are regular expressions.")
       texinfo-subsection-level-regexp
       "\\|"
       texinfo-subsubsection-level-regexp
-      "\\)[ \t]*\\)"))
-    ("chapter" .
+      "\\)\\>[ \t]*\\)"))
+    (2 .
      (concat
       "\\(^@\\("
       texinfo-section-level-regexp
@@ -1234,20 +1201,20 @@ document; the values are regular expressions.")
       texinfo-subsection-level-regexp
       "\\|"
       texinfo-subsubsection-level-regexp
-      "\\)[ \t]*\\)"))
-    ("section" .
+      "\\)\\>[ \t]*\\)"))
+    (3 .
      (concat
       "\\(^@\\("
       texinfo-subsection-level-regexp
       "\\|"
       texinfo-subsubsection-level-regexp
-      "\\)[ \t]+\\)"))
-    ("subsection" .
+      "\\)\\>[ \t]+\\)"))
+    (4 .
      (concat
       "\\(^@\\("
       texinfo-subsubsection-level-regexp
-      "\\)[ \t]+\\)"))
-    ("subsubsection" . "nothing lower"))
+      "\\)\\>[ \t]+\\)"))
+    (subsubsection . "nothing lower"))
   "*Regexps for searching for lower level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
@@ -1255,7 +1222,6 @@ document; the values are regular expressions.")
 
 ;;; Updating a node
 
-;;;###autoload
 (defun texinfo-update-node (&optional beginning end)
   "Without any prefix argument, update the node in which point is located.
 Interactively, a prefix argument means to operate on the region.
@@ -1299,7 +1265,6 @@ which menu descriptions are indented. Its default value is 32."
 	  (goto-char (point-max))
 	  (message "Done...nodes updated in region.  You may save the buffer."))))))
 
-;;;###autoload
 (defun texinfo-every-node-update ()
   "Update every node in a Texinfo file."
   (interactive)
@@ -1320,7 +1285,7 @@ Leave point at the end of the node line."
 	 (level (texinfo-hierarchic-level))
 	 (beginning (texinfo-update-menu-region-beginning level))
 	 (end (texinfo-update-menu-region-end level)))
-      (if (string-equal level "top")
+      (if (eq level 1)
 	  (texinfo-top-pointer-case)
 	;; else
 	(texinfo-insert-pointer beginning end level 'next)
@@ -1508,7 +1473,6 @@ towards which the pointer is directed, one of `next', `previous', or `up'."
 ;; (The subsection to which `Next' points will most likely be the first
 ;; item on the section's menu.)
 
-;;;###autoload
 (defun texinfo-sequential-node-update (&optional region-p)
   "Update one node (or many) in a Texinfo file with sequential pointers.
 
@@ -1557,22 +1521,21 @@ Info `g*' command is inadequate."
 A `Next' or `Previous' pointer points to any preceding or following node,
 regardless of its hierarchical level."
 
-	(texinfo-check-for-node-name)
-	(texinfo-delete-existing-pointers)
-	(message
-	 "Sequentially updating node: %s ... " (texinfo-copy-node-name))
-	(save-restriction
-	  (widen)
-	  (let*
-	      ((case-fold-search t)
-	       (level (texinfo-hierarchic-level)))
-	    (if (string-equal level "top")
-		(texinfo-top-pointer-case)
-	      ;; else
-	      (texinfo-sequentially-insert-pointer level 'next)
-	      (texinfo-sequentially-insert-pointer level 'previous)
-	      (texinfo-sequentially-insert-pointer level 'up)
-	      (texinfo-clean-up-node-line)))))
+  (texinfo-check-for-node-name)
+  (texinfo-delete-existing-pointers)
+  (message
+   "Sequentially updating node: %s ... " (texinfo-copy-node-name))
+  (save-restriction
+    (widen)
+    (let* ((case-fold-search t)
+	   (level (texinfo-hierarchic-level)))
+      (if (eq level 1)
+	  (texinfo-top-pointer-case)
+	;; else
+	(texinfo-sequentially-insert-pointer level 'next)
+	(texinfo-sequentially-insert-pointer level 'previous)
+	(texinfo-sequentially-insert-pointer level 'up)
+	(texinfo-clean-up-node-line)))))
 
 (defun texinfo-sequentially-find-pointer (level direction)
   "Find next or previous pointer sequentially in Texinfo file, or up pointer.
