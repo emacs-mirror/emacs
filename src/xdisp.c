@@ -603,7 +603,7 @@ static Lisp_Object eval_form P_ ((Lisp_Object));
 static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
-static void append_space P_ ((struct it *, int));
+static int append_space P_ ((struct it *, int));
 static void make_cursor_line_fully_visible P_ ((struct window *));
 static int try_scrolling P_ ((Lisp_Object, int, int, int, int));
 static int trailing_whitespace_p P_ ((int));
@@ -10723,7 +10723,7 @@ compute_line_metrics (it)
 /* Append one space to the glyph row of iterator IT if doing a
    window-based redisplay.  DEFAULT_FACE_P non-zero means let the
    space have the default face, otherwise let it have the same face as
-   IT->face_id.
+   IT->face_id.  Value is non-zero if a space was added.
 
    This function is called to make sure that there is always one glyph
    at the end of a glyph row that the cursor can be set on under
@@ -10733,7 +10733,7 @@ compute_line_metrics (it)
    At the same time this space let's a nicely handle clearing to the
    end of the line if the row ends in italic text.  */
 
-static void
+static int
 append_space (it, default_face_p)
      struct it *it;
      int default_face_p;
@@ -10778,8 +10778,11 @@ append_space (it, default_face_p)
 	  it->what = saved_what;
 	  it->face_id = saved_face_id;
 	  it->charset = saved_charset;
+	  return 1;
 	}
     }
+
+  return 0;
 }
 
 
@@ -11006,13 +11009,11 @@ display_line (it)
 	{
 	  /* Maybe add a space at the end of this line that is used to
 	     display the cursor there under X.  */
-	  append_space (it, 1);
-
-	  /* The position -1 below indicates a blank line not
-	     corresponding to any text, as opposed to an empty line
-	     corresponding to a line end.  */
-	  if (row->used[TEXT_AREA] <= 1)
+	  if (append_space (it, 1) && row->used[TEXT_AREA] == 1)
 	    {
+	      /* The position -1 below indicates a blank line not
+		 corresponding to any text, as opposed to an empty line
+		 corresponding to a line end.  */
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
 
