@@ -427,6 +427,9 @@ create a new comment."
    ((looking-at "=cut") 1)
    (t 3)))
 
+(defvar perl-mode-hook nil
+  "Normal hook to run when entering Perl mode.")
+
 ;;;###autoload
 (defun perl-mode ()
   "Major mode for editing Perl code.
@@ -519,7 +522,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   ;; Setup outline-minor-mode.
   (set (make-local-variable 'outline-regexp) perl-outline-regexp)
   (set (make-local-variable 'outline-level) 'perl-outline-level)
-  (run-hooks 'perl-mode-hook))
+  (run-mode-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code
