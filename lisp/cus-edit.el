@@ -2423,7 +2423,6 @@ Optional EVENT is the location for the menu."
   "Restore the saved value for the variable being edited by WIDGET."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
-	 (comment-widget (widget-get widget :comment-widget))
 	 (value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
     (cond ((or value comment)
@@ -2444,8 +2443,7 @@ Optional EVENT is the location for the menu."
 This operation eliminates any saved setting for the variable,
 restoring it to the state of a variable that has never been customized."
   (let* ((symbol (widget-value widget))
-	 (set (or (get symbol 'custom-set) 'set-default))
-	 (comment-widget (widget-get widget :comment-widget)))
+	 (set (or (get symbol 'custom-set) 'set-default)))
     (if (get symbol 'standard-value)
 	(funcall set symbol (eval (car (get symbol 'standard-value))))
       (error "No standard setting known for %S" symbol))
