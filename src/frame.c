@@ -670,7 +670,7 @@ prev_frame (frame, minibuf)
 	  if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
 	    prev = f;
 	}
-      else if (XTYPE (minibuf) == Lisp_Window)
+      else if (WINDOWP (minibuf))
 	{
 	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
 	      /* Check that F either is, or has forwarded its focus to,
@@ -686,7 +686,7 @@ prev_frame (frame, minibuf)
 	  if (FRAME_VISIBLE_P (XFRAME (f)))
 	    prev = f;
 	}
-      else if (XFASTINT (f) == 0)
+      else if (XFASTINT (minibuf) == 0)
 	{
 	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
 	  if (FRAME_VISIBLE_P (XFRAME (f))
