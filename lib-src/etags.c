@@ -55,7 +55,6 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 #include "getopt.h"
 
 extern char *getenv ();
-char *malloc (), *realloc ();
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
  Let it undefined to make the program "etags", which makes emacs-style

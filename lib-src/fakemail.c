@@ -130,7 +130,6 @@ static boolean no_problems = true;
 
 extern FILE *popen ();
 extern int fclose (), pclose ();
-extern char *malloc (), *realloc ();
 
 #ifdef CURRENT_USER
 extern struct passwd *getpwuid ();
