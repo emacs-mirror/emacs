@@ -171,7 +171,7 @@ The following %-sequences are provided:
 	  (setq buffer (get-buffer-create " *battery*"))
 	  (set-buffer buffer)
 	  (erase-buffer)
-	  (battery-insert-file-contents "/proc/apm")
+	  (insert-file-contents "/proc/apm")
 	  (re-search-forward battery-linux-proc-apm-regexp)
 	  (setq driver-version (match-string 1))
 	  (setq bios-version (match-string 2))
@@ -241,24 +241,6 @@ The following %-sequences are provided:
     (or (null flag)
 	(setq result (concat result "%")))
     result))
-
-(defun battery-insert-file-contents (file-name)
-  "Insert contents of file FILE-NAME after point.
-FILE-NAME can be a non-ordinary file, for example, a named pipe.
-Return t if file exists."
-  (let ((load-read-function 'battery-read-function)
-	(load-source-file-function nil)
-	(load-path '("."))
-	(load-history nil))
-    (save-excursion
-      (load file-name nil t t))))
-
-(defun battery-read-function (&optional stream)
-  "Function for reading expressions from STREAM.
-Value is always nil."
-  (let (char)
-    (while (not (< (setq char (get-file-char)) 0))
-      (insert char))))
 
 (defconst battery-hex-map '((?0 .  0) (?1 .  1) (?2 .  2) (?3 .  3)
 			    (?4 .  4) (?5 .  5) (?6 .  6) (?7 .  7)
