@@ -3516,7 +3516,6 @@ actually used.  */)
   int replace_handled = 0;
   int set_coding_system = 0;
   int coding_system_decided = 0;
-  int gap_size;
   int read_quit = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
