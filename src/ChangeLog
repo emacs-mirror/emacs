@@ -3,7 +3,7 @@
 	* xdisp.c (echo_area_display): Check display_completed instead
 	of calling detect_input_pending.
 
-	* dispnew.c (update_frame): Only set display_completed here; use
+	* dispnew.c (update_frame): Only set display_completed here; move
 	the update_begin and update_end calls here from update_frame_1.
 	(update_frame_1): Don't set display_completed here, don't call
 	update_begin/update_end.
