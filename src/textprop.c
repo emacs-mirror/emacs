@@ -48,7 +48,10 @@ Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have. */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only;
+Lisp_Object Qinvisible, Qread_only, Qhidden;
+
+/* Sticky properties */
+Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 /* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to
    the o1's cdr.  Otherwise, return zero.  This is handy for
@@ -543,7 +546,36 @@ If the value is non-nil, it is a position greater than POS, never equal.")
     return Qnil;
 
   return next->position - (XTYPE (object) == Lisp_String);
-;
+}
+
+/* Return 1 if there's a change in some property between BEG and END.  */
+
+int
+property_change_between_p (beg, end)
+     int beg, end;
+{
+  register INTERVAL i, next;
+  Lisp_Object object, pos;
+
+  XSET (object, Lisp_Buffer, current_buffer);
+  XFASTINT (pos) = beg;
+
+  i = validate_interval_range (object, &pos, &pos, soft);
+  if (NULL_INTERVAL_P (i))
+    return 0;
+
+  next = next_interval (i);
+  while (! NULL_INTERVAL_P (next) && intervals_equal (i, next))
+    {
+      next = next_interval (next);
+      if (next->position >= end)
+	return 0;
+    }
+
+  if (NULL_INTERVAL_P (next))
+    return 0;
+
+  return 1;
 }
 
 DEFUN ("next-single-property-change", Fnext_single_property_change,
@@ -1201,10 +1233,16 @@ percentage by which the left interval tree should not differ from the right.");
   Qread_only = intern ("read-only");
   staticpro (&Qinvisible);
   Qinvisible = intern ("invisible");
+  staticpro (&Qhidden);
+  Qhidden = intern ("hidden");
   staticpro (&Qcategory);
   Qcategory = intern ("category");
   staticpro (&Qlocal_map);
   Qlocal_map = intern ("local-map");
+  staticpro (&Qfront_sticky);
+  Qfront_sticky = intern ("front-sticky");
+  staticpro (&Qrear_nonsticky);
+  Qrear_nonsticky = intern ("rear-nonsticky");
 
   /* Properties that text might use to specify certain actions */
 
