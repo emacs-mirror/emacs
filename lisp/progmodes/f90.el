@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
-;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
+;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Dave Love <fx@gnu.org>
 ;; Keywords: fortran, f90, languages
 
