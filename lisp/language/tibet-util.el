@@ -276,6 +276,7 @@ Returns a string containing a composite character."
 
 ;;; quail <-> conversion interface.
 
+;;;###autoload
 (defun tibetan-composition (pc key)
   "Interface to quail input method.
 Takes two arguments: char PC and string KEY, where PC is the preceding
