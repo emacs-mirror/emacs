@@ -594,6 +594,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  break;
 
 	default:
+	  continue;
 	}
     }
 
