@@ -88,6 +88,9 @@ The third argument DOC is a documentation string for the widget."
   (put name 'widget-documentation doc)
   name)
 
+;; This is used by external widget code (in W3, at least).
+(defalias 'widget-plist-member 'plist-member)
+
 ;;; The End.
 
 (provide 'widget)
