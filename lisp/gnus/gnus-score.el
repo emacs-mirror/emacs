@@ -136,7 +136,8 @@ will be expired along with non-matching score entries."
 (defcustom gnus-orphan-score nil
   "*All orphans get this score added.  Set in the score file."
   :group 'gnus-score-default
-  :type 'integer)
+  :type '(choice (const nil)
+		 integer))
 
 (defcustom gnus-decay-scores nil
   "*If non-nil, decay non-permanent scores."
@@ -307,7 +308,8 @@ If nil, the user will be asked for a header."
 		 (const :tag "xref" x)
 		 (const :tag "lines" l)
 		 (const :tag "date" d)
-		 (const :tag "followup" f)))
+		 (const :tag "followup" f)
+		 (const :tag "ask" nil)))
 
 (defcustom gnus-score-default-type nil
   "Default match type when entering new scores.
@@ -336,7 +338,8 @@ If nil, the user will be asked for a match type."
 		 (const :tag "this date" n)
 		 (const :tag "less than number" <)
 		 (const :tag "greater than number" >)
-		 (const :tag "equal than number" =)))
+		 (const :tag "equal than number" =)
+		 (const :tag "ask" nil)))
 
 (defcustom gnus-score-default-fold nil
   "Use case folding for new score file entries iff not nil."
