@@ -182,7 +182,7 @@ This is the contents of buffer foo
 @end example
 @end defun
 
-@defun buffer-substring-without-properties start end
+@defun buffer-substring-no-properties start end
 This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 Here's an example of using this function to get a word to look up in an
@@ -2233,7 +2233,7 @@ from the specified range of text.  Here's an example:
 @end example
 @end defun
 
-See also the function @code{buffer-substring-without-properties}
+See also the function @code{buffer-substring-no-properties}
 (@pxref{Buffer Contents}) which copies text from the buffer
 but does not copy its properties.
 
