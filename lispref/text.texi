@@ -2892,10 +2892,10 @@ Manual}).
 
 If the value of the @code{help-echo} property is a function, that
 function is called with three arguments, @var{window}, @var{object} and
-@var{position} and should return a help string or @var{nil} for
+@var{pos} and should return a help string or @code{nil} for
 none.  The first argument, @var{window} is the window in which
 the help was found.  The second, @var{object}, is the buffer, overlay or
-string which had the @code{help-echo} property.  The @var{position}
+string which had the @code{help-echo} property.  The @var{pos}
 argument is as follows:
 
 @itemize @bullet{}
