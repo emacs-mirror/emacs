@@ -2378,12 +2378,14 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
   coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
   /* We suppress producing escape sequences for composition.  */
   coding.common_flags &= ~CODING_ANNOTATION_MASK;
+  coding.dst_bytes = XSTRING (string)->size * 2;
+  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, string, 0, 0,
 			XSTRING (string)->size,
-			STRING_BYTES (XSTRING (string)), Qt);
+			STRING_BYTES (XSTRING (string)), Qnil);
   *text_bytes = coding.produced;
   *stringp = (result == 1 || !EQ (coding_system, Qcompound_text));
-  return XSTRING (coding.dst_object)->data;
+  return coding.destination;
 }
 
 
