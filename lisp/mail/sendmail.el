@@ -347,7 +347,7 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"\\|[ \t]*$\\|" page-delimiter))
+				"$\\|[ \t]*$\\|" page-delimiter))
   (setq paragraph-separate paragraph-start)
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
@@ -357,7 +357,7 @@ If within the headers, this makes the new lines into continuation lines."
   (if (< (point)
 	 (save-excursion
 	   (goto-char (point-min))
-	   (if (search-forward mail-header-separator nil t)
+	   (if (search-forward (concat "^" mail-header-separator "$") nil t)
 	       (point)
 	     0)))
       (let ((old-line-start (save-excursion (beginning-of-line) (point))))
@@ -375,7 +375,7 @@ If within the headers, this makes the new lines into continuation lines."
   (if (< (point)
 	 (save-excursion
 	   (goto-char (point-min))
-	   (if (search-forward mail-header-separator nil t)
+	   (if (search-forward (concat "^" mail-header-separator "$") nil t)
 	       (point)
 	     0)))
       (let (beg end fieldname) 
