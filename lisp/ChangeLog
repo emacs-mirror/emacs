@@ -1,5 +1,21 @@
 2004-09-27  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/rmaildesc.el (rmail-message-deleted-p): Add as alias.
+
+	* mail/rmail.el (rmail-message-vector, rmail-deleted-vector)
+	(rmail-msgref-vector, rmail-summary-vector): Vars deleted.
+	All code to initialize them deleted too.
+	(rmail-forget-messages): Function deleted.  Callers changed.
+	(rmail-set-message-counters): Function deleted.  Callers changed.
+	(rmail-count-new-messages): Function deleted.  Callers changed.
+	(rmail-set-message-counters-counter): Likewise.
+	(rmail-maybe-set-message-counters): Now no-op.
+	(rmail-message-deleted-p, rmail-set-message-deleted-p): Fns deleted.
+	(rmail-msg-number-after-expunge): Fn deleted.
+	(rmail): Delete excess closeparen.
+	(rmail-initialize-messages): Doc fix.
+	(rmail-expunge-confirmed): Update to use rmail-desc-deleted-p.
+	
 	* mail/rmailsum.el (rmail-make-summary-line): Function deleted.
 	(rmail-new-summary): Make it work once again as in old version.
 	(rmail-summary-get-summary): Call rmail-summary-line-decoder.
