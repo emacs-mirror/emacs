@@ -108,4 +108,20 @@ See definition of `print-region-1' for calling conventions.")
 	(insert-buffer-substring oldbuf start end)
 	(setq start (point-min) end (point-max)))))
 
+(defun printify-region (begin end)
+  "Turn nonprinting characters (other than TAB, LF, SPC, RET, and FF)
+in the current buffer into printable representations as control or
+hexadecimal escapes."
+  (interactive "r")
+  (save-excursion
+    (goto-char begin)
+    (let (c)
+      (while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" end t)
+	(setq c (preceding-char))
+	(delete-backward-char 1)
+	(insert 
+	 (if (< c ?\ )
+	     (format "\\^%c" (+ c ?@))
+	   (format "\\%02x" c)))))))
+
 ;;; lpr.el ends here
