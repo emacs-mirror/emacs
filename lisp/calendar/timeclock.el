@@ -124,11 +124,11 @@ If this variable is nil, no questions will be asked."
   "*A function used to determine the length of today's workday.
 The first time that a user clocks in each day, this function will be
 called to determine what the length of the current workday is.  If
-nil, or equal to `timeclock-workday', nothing special will be done.
-If it is a quantity different from `timeclock-workday', however, a
-record will be output to the timelog file to note the fact that that
-day has a different length from the norm."
-  :type '(choice (const nil) (function-item timeclock-workday) function)
+the return value is nil, or equal to `timeclock-workday', nothing special
+will be done.  If it is a quantity different from `timeclock-workday', 
+however, a record will be output to the timelog file to note the fact that
+that day has a different length from the norm."
+  :type '(choice (const nil) function)
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
