@@ -1,3 +1,7 @@
+2001-04-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Fplist_get): Don't QUIT if interrupt_input_blocked.
+
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* fns.c (Fcompare_strings): Fix return values.
