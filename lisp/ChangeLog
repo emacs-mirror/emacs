@@ -1,3 +1,8 @@
+2003-06-09  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el (dired-get-filename): Complain only about "." and "..",
+	not all directories.
+
 2003-06-08  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-get-current-frame, gdb-frame-handler): Use Gdb
