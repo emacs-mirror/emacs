@@ -186,6 +186,8 @@ specified in various ways.
 Move point to specified date (@code{calendar-goto-date}).
 @item g D
 Move point to specified day of year (@code{calendar-goto-day-of-year}).
+@item g w
+Move point to specified week of year (@code{calendar-goto-iso-week}).
 @item o
 Center calendar around specified month (@code{calendar-other-month}).
 @item .
@@ -201,9 +203,13 @@ entirety; that is, type @samp{1990}, not @samp{90}.
 
 @kindex g D @r{(Calendar mode)}
 @findex calendar-goto-day-of-year
+@kindex g w @r{(Calendar mode)}
+@findex calendar-goto-iso-week
   @kbd{g D} (@code{calendar-goto-day-of-year}) prompts for a year and
-day number, and moves to that date.  Negative day numbers count backward
-from the end of the year.
+day number, and moves to that date.  Negative day numbers count
+backward from the end of the year.  @kbd{g w}
+(@code{calendar-goto-iso-week}) prompts for a year and week number,
+and moves to that week.
 
 @kindex o @r{(Calendar mode)}
 @findex calendar-other-month
@@ -1351,7 +1357,7 @@ of @code{appt-audible} is non-@code{nil}, an audible reminder is also given.
 appointment list for today from the diary file, giving all diary entries
 found with recognizable times of day, and reminds you just before each
 of them. Calling @code{appt-activate} with a negative argument disables
-the appointment package.
+the appointment package.  With no argument, it toggles.
 
   For example, suppose the diary file contains these lines:
 
