@@ -1,3 +1,14 @@
+2000-04-12  Dave Love  <fx@gnu.org>
+
+	* info.el: Add debug-ignored-errors.
+	(Info-mode-menu): Add some items.
+	(Info-directory): Add autoload cookie.
+
+	* menu-bar.el (menu-bar-options-menu): Make `mule' always visible.
+	Modify `truncate-lines'.  Make `describe-language-environment'
+	always visible and add help.  Modify `describe-key' help.  Invoke
+	Info-directory from `info'.  New entry `emacs-manual'.
+
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse.el (ebrowse-tree-mode): Use
