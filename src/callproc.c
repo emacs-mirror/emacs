@@ -130,8 +130,6 @@ int synch_process_termsig;
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
 
-extern Lisp_Object Qredisplay_dont_pause;
-
 extern Lisp_Object Vdoc_file_name;
 
 extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
@@ -222,7 +220,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int fd[2];
   int filefd;
   register int pid;
-  char buf[16384*4];
+  char buf[16384];
   char *bufptr = buf;
   int bufsize = sizeof buf;
   int count = SPECPDL_INDEX ();
@@ -773,15 +771,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	    if (this_read == 0)
 	      {
-//		fprintf(stderr, "read 0, total=%d\n", total_read);
 		process_coding.mode |= CODING_MODE_LAST_BLOCK;
 		break;
 	      }
 
 	    nread += this_read;
 	    total_read += this_read;
-
-//	    fprintf(stderr, "read %d+%d of %d, total=%d\n", nread, this_read, bufsize, total_read);
 
 	    if (display_on_the_fly)
 	      break;
@@ -834,8 +829,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		    carryover = nread;
 		    continue;
 		  }
-
-//		fprintf(stderr, "produced %d\n", process_coding.produced);
 
 		if (process_coding.produced > 0)
 		  insert_1_both (decoding_buf, process_coding.produced_char,
@@ -936,15 +929,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	if (!NILP (display) && INTERACTIVE)
 	  {
-	    extern int windows_or_buffers_changed;
-	    int count = SPECPDL_INDEX ();
-
 	    if (first)
 	      prepare_menu_bars ();
 	    first = 0;
-	    specbind (Qredisplay_dont_pause, Qt);
 	    redisplay_preserve_echo_area (1);
-	    unbind_to (count, Qnil);
 	  }
 	immediate_quit = 1;
 	QUIT;
