@@ -30,7 +30,8 @@ Boston, MA 02111-1307, USA.  */
 #include <mach-o/reloc.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <libc.h>
+#include <unistd.h>
+/* Instead of unistd.h, this used to include libc.h.  */
 
 
 int malloc_cookie;
