@@ -1,13 +1,10 @@
 /* impl.c.mpsioan: HARLEQUIN MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
- * $HopeName: MMsrc!mpsioan.c(trunk.2) $
- * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpsioan.c(trunk.3) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * .readership: MPS developers.
- *
- * TRANSGRESSIONS (rule.impl.trans)
- *
- * There's no way this meets all the requirements yet.
+ * .readership: For MPS client application developers, MPS developers.
+ * .sources: design.mps.io
  */
 
 #include "mpsio.h"
@@ -15,10 +12,18 @@
 
 #include "mpstd.h"   /* .sunos.warn */
 #ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
-#include "config.h"  /* to get platform configurations */
+extern int fclose (FILE *stream);
+extern int fflush (FILE *stream);
+extern size_t fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+/* These functions are used in the macro definitions of putc and getc
+ * but not declared in stdio.h.
+ */
+extern int _filbuf(FILE *stream);
+extern int _flsbuf(unsigned char c, FILE *stream);
+
+#endif
 
 
 static FILE *ioFile = NULL;
@@ -49,12 +54,12 @@ void mps_io_destroy(mps_io_t mps_io)
 }
 
 
-mps_res_t mps_io_write(mps_io_t mps_io, void *mps_buf, size_t mps_size)
+mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
 {
   FILE *f = (FILE *)mps_io; /* Should check f == ioFile */
   size_t n;
 
-  n = fwrite(mps_buf, mps_size, 1, f);
+  n = fwrite(buf, size, 1, f);
   if(n != 1)
     return MPS_RES_IO;
   
