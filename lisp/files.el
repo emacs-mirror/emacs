@@ -1645,7 +1645,9 @@ in that case, this function acts as if `enable-local-variables' were t."
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
-   '(("\\.te?xt\\'" . text-mode)
+   '(;; do this first, so that .html.pl is Polish html, not Perl
+     ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.te?xt\\'" . text-mode)
      ("\\.[tT]e[xX]\\'" . tex-mode)
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
      ("\\.ltx\\'" . latex-mode)
@@ -1661,7 +1663,6 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("\\.s?html?\\'" . html-mode)
      ("\\.mk\\'" . makefile-mode)
      ("\\([Mm]\\|GNUm\\)akep*file\\'" . makefile-mode)
      ("\\.am\\'" . makefile-mode)	;For Automake.
@@ -1689,7 +1690,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.bib\\'" . bibtex-mode)
      ("\\.sql\\'" . sql-mode)
      ("\\.m[4c]\\'" . m4-mode)
-     ("\\.m[fp]\\'" . metapost-mode)
+     ("\\.mf\\'" . metafont-mode)
+     ("\\.mp\\'" . metapost-mode)
      ("\\.vhdl?\\'" . vhdl-mode)
      ("\\.article\\'" . text-mode)
      ("\\.letter\\'" . text-mode)
@@ -1841,7 +1843,7 @@ buffer will be in some XML mode.  If `auto-mode-alist' associates
 the file with one of the modes in this list, that mode will be
 used.  Else `xml-mode' or `sgml-mode' is used.")
 
-(defun set-auto-mode (&optional just-from-file-name)
+(defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text, checks the
 interpreter that runs this file against `interpreter-mode-alist',
@@ -1855,60 +1857,62 @@ Local Variables section of the file; for that, use `hack-local-variables'.
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag.
 
-If the optional argument JUST-FROM-FILE-NAME is non-nil,
+If the optional argument KEEP-MODE-IF-SAME is non-nil,
 then we do not set anything but the major mode,
 and we don't even do that unless it would come from the file name."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes xml)
-    (unless just-from-file-name
-      ;; Find a -*- mode tag
-      (save-excursion
-	(goto-char (point-min))
-	(skip-chars-forward " \t\n")
-	;; While we're at this point, check xml for later.
-	(setq xml (looking-at "<\\?xml \\|<!DOCTYPE"))
-	(and enable-local-variables
-	     (setq end (set-auto-mode-1))
-	     (if (save-excursion (search-forward ":" end t))
-		 ;; Find all specifications for the `mode:' variable
-		 ;; and execute them left to right.
-		 (while (let ((case-fold-search t))
-			  (or (and (looking-at "mode:")
-				   (goto-char (match-end 0)))
-			      (re-search-forward "[ \t;]mode:" end t)))
-		   (skip-chars-forward " \t")
-		   (let ((beg (point)))
-		     (if (search-forward ";" end t)
-			 (forward-char -1)
-		       (goto-char end))
-		     (skip-chars-backward " \t")
-		     (push (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
-			   modes)))
-	       ;; Simple -*-MODE-*- case.
-	       (push (intern (concat (downcase (buffer-substring (point) end))
-				     "-mode"))
-		     modes))))
-      ;; If we found modes to use, invoke them now, outside the save-excursion.
-      (if modes
-	  (dolist (mode (nreverse modes))
-	    (if (not (functionp mode))
-		(message "Ignoring unknown mode `%s'" mode)
-	      (setq done t)
-	      (funcall mode)))
-	;; If we didn't, look for an interpreter specified in the first line.
-	;; As a special case, allow for things like "#!/bin/env perl", which
-	;; finds the interpreter anywhere in $PATH.
-	(setq mode (save-excursion
-		     (goto-char (point-min))
-		     (if (looking-at auto-mode-interpreter-regexp)
-			 (match-string 2)
-		       ""))
-	      ;; Map interpreter name to a mode, signalling we're done at the
-	      ;; same time.
-	      done (assoc (file-name-nondirectory mode)
-			  interpreter-mode-alist))
-	;; If we found an interpreter mode to use, invoke it now.
-	(if done (funcall (cdr done)))))
+    ;; Find a -*- mode tag
+    (save-excursion
+      (goto-char (point-min))
+      (skip-chars-forward " \t\n")
+      ;; While we're at this point, check xml for later.
+      (setq xml (looking-at "<\\?xml \\|<!DOCTYPE"))
+      (and enable-local-variables
+	   (setq end (set-auto-mode-1))
+	   (if (save-excursion (search-forward ":" end t))
+	       ;; Find all specifications for the `mode:' variable
+	       ;; and execute them left to right.
+	       (while (let ((case-fold-search t))
+			(or (and (looking-at "mode:")
+				 (goto-char (match-end 0)))
+			    (re-search-forward "[ \t;]mode:" end t)))
+		 (skip-chars-forward " \t")
+		 (let ((beg (point)))
+		   (if (search-forward ";" end t)
+		       (forward-char -1)
+		     (goto-char end))
+		   (skip-chars-backward " \t")
+		   (push (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
+			 modes)))
+	     ;; Simple -*-MODE-*- case.
+	     (push (intern (concat (downcase (buffer-substring (point) end))
+				   "-mode"))
+		   modes))))
+    ;; If we found modes to use, invoke them now, outside the save-excursion.
+    (if modes
+	(dolist (mode (nreverse modes))
+	  (if (not (functionp mode))
+	      (message "Ignoring unknown mode `%s'" mode)
+	    (setq done t)
+	    (unless (if keep-mode-if-same (eq mode major-mode))
+	      (funcall mode))))
+      ;; If we didn't, look for an interpreter specified in the first line.
+      ;; As a special case, allow for things like "#!/bin/env perl", which
+      ;; finds the interpreter anywhere in $PATH.
+      (setq mode (save-excursion
+		   (goto-char (point-min))
+		   (if (looking-at auto-mode-interpreter-regexp)
+		       (match-string 2)
+		     ""))
+	    ;; Map interpreter name to a mode, signalling we're done at the
+	    ;; same time.
+	    done (assoc (file-name-nondirectory mode)
+			interpreter-mode-alist))
+      ;; If we found an interpreter mode to use, invoke it now.
+      (and done
+	   (not (if keep-mode-if-same (eq mode major-mode)))
+	   (funcall (cdr done))))
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name))
 	  ;; Remove backup-suffixes from file name.
@@ -1919,24 +1923,25 @@ and we don't even do that unless it would come from the file name."
 		   (memq system-type '(vax-vms windows-nt cygwin))))
 	      (if (and (setq mode (assoc-default name auto-mode-alist
 						 'string-match))
-		       (setq done t)
 		       (consp mode)
 		       (cadr mode))
 		  (setq mode (car mode)
 			name (substring name 0 (match-beginning 0)))
 		(setq name)))
-	    (if mode
-		;; When JUST-FROM-FILE-NAME is set, we are working on behalf
-		;; of set-visited-file-name.  In that case, if the major mode
-		;; specified is the same one we already have, don't actually
-		;; reset it.  We don't want to lose minor modes such as Font
-		;; Lock.
-		(unless (and just-from-file-name (eq mode major-mode))
-		  (if (if xml (memq mode xml-based-modes) t)
-		      (funcall mode)
-		    (xml-mode)))))))
+	    (when mode
+	      (if xml (or (memq mode xml-based-modes)
+			  (setq mode 'sgml-mode))) ; alias to xml-mode for `eq'
+	      ;; When KEEP-MODE-IF-SAME is set, we are working on behalf of
+	      ;; set-visited-file-name.  In that case, if the major mode
+	      ;; specified is the same one we already have, don't actually
+	      ;; reset it.  We don't want to lose minor modes such as Font
+	      ;; Lock.
+	      (unless (if keep-mode-if-same (eq mode major-mode))
+		(funcall mode))
+	      (setq done t)))))
     (and (not done)
 	 xml
+	 (not (if keep-mode-if-same (eq 'sgml-mode major-mode)))
 	 (xml-mode))))
 
 
