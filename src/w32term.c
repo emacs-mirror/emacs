@@ -1894,6 +1894,17 @@ x_produce_glyphs (it)
       struct font_info *font_info;
       int boff;                 /* baseline offset */
       HDC hdc;
+      /* We may change it->multibyte_p upon unibyte<->multibyte
+	 conversion.  So, save the current value now and restore it
+	 later.
+
+	 Note: It seems that we don't have to record multibyte_p in
+	 struct glyph because the character code itself tells if or
+	 not the character is multibyte.  Thus, in the future, we must
+	 consider eliminating the field `multibyte_p' in the struct
+	 glyph.
+      */
+      int saved_multibyte_p = it->multibyte_p;
 
       hdc = get_frame_dc (it->f);
 
@@ -1908,6 +1919,7 @@ x_produce_glyphs (it)
                   || !NILP (Vnonascii_translation_table)))
             {
               it->char_to_display = unibyte_char_to_multibyte (it->c);
+              it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
@@ -1915,6 +1927,7 @@ x_produce_glyphs (it)
 		   && !it->multibyte_p)
 	    {
 	      it->char_to_display = multibyte_char_to_unibyte (it->c, Qnil);
+              it->multibyte_p = 0;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
@@ -2133,6 +2146,7 @@ x_produce_glyphs (it)
             xfree (pcm);
 	}
       release_frame_dc (it->f, hdc);
+      it->multibyte_p = saved_multibyte_p;
     }
   else if (it->what == IT_COMPOSITION)
     {
@@ -3297,24 +3311,24 @@ w32_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
   
   /* Top.  */
   w32_fill_area (s->f, s->hdc, s->face->box_color,
-		  left_x, top_y, right_x - left_x, width);
+		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
     {
       w32_fill_area (s->f, s->hdc, s->face->box_color,
-                     left_x, top_y, width, bottom_y - top_y);
+                     left_x, top_y, width, bottom_y - top_y + 1);
     }
   
   /* Bottom.  */
   w32_fill_area (s->f, s->hdc, s->face->box_color,
-                 left_x, bottom_y - width, right_x - left_x, width);
+                 left_x, bottom_y - width + 1, right_x - left_x + 1, width);
   
   /* Right.  */
   if (right_p)
     {
       w32_fill_area (s->f, s->hdc, s->face->box_color,
-                     right_x - width, top_y, width, bottom_y - top_y);
+                     right_x - width + 1, top_y, width, bottom_y - top_y + 1);
     }
 
   w32_set_clip_rectangle (s->hdc, NULL);
