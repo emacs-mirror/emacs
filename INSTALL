@@ -340,7 +340,7 @@ libraries, or some macro-processor definition in the system headers.
 
 Some tests might fail because the compiler should look in special
 directories for some header files, or link against optional
-directories, or use special compilation options.  You can force
+libraries, or use special compilation options.  You can force
 `configure' and the build process which follows it to do that by
 setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, and CC before
 running `configure'.  CPPFLAGS lists the options passed to the
