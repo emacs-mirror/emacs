@@ -531,6 +531,14 @@ struct buffer
      displaying this buffer.  */
   unsigned prevent_redisplay_optimizations_p : 1;
 
+  /* List of overlays that end at or before the current center,
+     in order of end-position.  */
+  struct Lisp_Overlay *overlays_before;
+
+  /* List of overlays that end after  the current center,
+     in order of start-position.  */
+  struct Lisp_Overlay *overlays_after;
+
   /* Position where the overlay lists are centered.  */
   EMACS_INT overlay_center;
 
@@ -646,14 +654,6 @@ struct buffer
   Lisp_Object display_table;
   /* t means the mark and region are currently active.  */
   Lisp_Object mark_active;
-
-  /* List of overlays that end at or before the current center,
-     in order of end-position.  */
-  Lisp_Object overlays_before;
-
-  /* List of overlays that end after  the current center,
-     in order of start-position.  */
-  Lisp_Object overlays_after;
 
   /* Non-nil means the buffer contents are regarded as multi-byte
      form of characters, not a binary code.  */
