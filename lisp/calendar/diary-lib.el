@@ -1349,8 +1349,9 @@ to be March 1 in non-leap years."
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
 If `european-calendar-style' is t, parameters are N, DAY, MONTH, YEAR.
 ENTRY can contain `%d' or `%d%s'; the %d will be replaced by the number of
-years since the MONTH DAY, YEAR and the %s will be replaced by the ordinal
-ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
+repetitions since the MONTH DAY, YEAR and %s will be replaced by the
+ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
+appropriate."
   (let* ((d (if european-calendar-style
                 month
               day))
