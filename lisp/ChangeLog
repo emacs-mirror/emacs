@@ -1,4 +1,4 @@
-2003-05-01  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny patch)
+2003-05-01  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
 
 	* ls-lisp.el (ls-lisp-format-file-size): New function to implement
 	"-h" switch.
@@ -192,8 +192,7 @@
 
 2003-04-25  Jan Nieuwenhuizen  <janneke@gnu.org>
 
-	* info.el (Info-unescape-quotes)
-	(Info-split-parameter-string)
+	* info.el (Info-unescape-quotes, Info-split-parameter-string)
 	(Info-display-images-node): New functions for displaying images.
 	(Info-select-node): Call Info-display-images-node.
 
