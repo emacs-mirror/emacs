@@ -139,7 +139,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   "Display character C as character SC in the g1 character set.
 This function assumes that your terminal uses the SO/SI characters;
 it is meaningless for an X frame."
-  (if window-system
+  (if (memq window-system '(x w32))
       (error "Cannot use string glyphs in a windowing system"))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
@@ -149,7 +149,7 @@ it is meaningless for an X frame."
   "Display character C as character GC in graphics character set.
 This function assumes VT100-compatible escapes; it is meaningless for an
 X frame."
-  (if window-system
+  (if (memq window-system '(x w32))
       (error "Cannot use string glyphs in a windowing system"))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
