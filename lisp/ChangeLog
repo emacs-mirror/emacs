@@ -1,3 +1,8 @@
+2004-12-17  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Make forcing deferred font-lock fontification jit-specific.
+
 2004-12-17  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-1-click-follows-link): New defcustom.
