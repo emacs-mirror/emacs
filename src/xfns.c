@@ -4673,6 +4673,9 @@ x_display_info_for_name (name)
 
   CHECK_STRING (name, 0);
 
+  if (! EQ (Vwindow_system, intern ("x")))
+    error ("Not using X Windows");
+
   for (dpyinfo = x_display_list, names = x_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCONS (names)->cdr)
@@ -4716,6 +4719,9 @@ terminate Emacs if we can't open the connection.")
   CHECK_STRING (display, 0);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
+
+  if (! EQ (Vwindow_system, intern ("x")))
+    error ("Not using X Windows");
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
