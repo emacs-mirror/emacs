@@ -2288,7 +2288,7 @@ echo creating lib-src/Makefile
   sed -e '/start of cpp stuff/q' \
       < Makefile.c > junk1.c
   sed -e '1,/start of cpp stuff/d'\
-      -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
+      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
@@ -2304,7 +2304,7 @@ echo creating src/Makefile
   sed -e '/start of cpp stuff/q' \
       < Makefile.c > junk1.c
   sed -e '1,/start of cpp stuff/d'\
-      -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
+      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
