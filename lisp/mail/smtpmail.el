@@ -2,7 +2,7 @@
 ;;; ###	Hacked by Mike Taylor, 11th October 1999 to add support for
 ;;;	automatically appending a domain to RCPT TO: addresses.
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Brian D. Carlstrom <bdc@ai.mit.edu>
@@ -119,6 +119,13 @@ and sent with `smtpmail-send-queued-mail'."
 (defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
   "*Directory where `smtpmail.el' stores queued mail."
   :type 'directory
+  :group 'smtpmail)
+
+(defcustom smtpmail-warn-about-unknown-extensions nil
+  "*If set, print warnings about unknown SMTP extensions.
+This is mainly useful for development purposes, to learn about
+new SMTP extensions that might be useful to support."
+  :type 'boolean
   :group 'smtpmail)
 
 (defvar smtpmail-queue-index-file "index"
@@ -393,8 +400,8 @@ This is relative to `smtpmail-queue-dir'.")
 						  help xusr))
 				(setq supported-extensions
 				      (cons name supported-extensions)))
-			       (t (message "unknown extension %s"
-					   name)))))
+			       (smtpmail-warn-about-unknown-extensions
+				(message "Unknown extension %s" name)))))
 		  (setq extension-lines (cdr extension-lines)))))
 
 	    (if (or (member 'onex supported-extensions)
