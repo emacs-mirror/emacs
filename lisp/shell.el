@@ -266,7 +266,10 @@ into the buffer's input ring.  See also `comint-magic-space' and
 
 This variable supplies a default for `comint-input-autoexpand',
 for Shell mode only."
-  :type '(choice (const nil) (const input) (const history))
+  :type '(choice (const :tag "off" nil)
+		 (const input)
+		 (const history)
+		 (const :tag "on" t))
   :type 'shell)
 
 (defvar shell-dirstack nil
