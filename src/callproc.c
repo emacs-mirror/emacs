@@ -151,11 +151,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       CHECK_STRING (infile, 1);
     }
   else
-#ifdef VMS
-    infile = build_string ("NLA0:");
-#else
-    infile = build_string ("/dev/null");
-#endif /* not VMS */
+    infile = build_string (NULL_DEVICE);
 
   if (nargs >= 3)
     {
@@ -220,7 +216,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       report_file_error ("Opening process input file", Fcons (infile, Qnil));
     }
   /* Search for program; barf if not found.  */
-  openp (Vexec_path, args[0], "", &path, 1);
+  openp (Vexec_path, args[0], EXEC_SUFFIXES, &path, 1);
   if (NILP (path))
     {
       close (filefd);
@@ -229,7 +225,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   new_argv[0] = XSTRING (path)->data;
 
   if (XTYPE (buffer) == Lisp_Int)
-    fd[1] = open ("/dev/null", O_WRONLY), fd[0] = -1;
+    fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
   else
     {
       pipe (fd);

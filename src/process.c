@@ -1034,7 +1034,7 @@ Remaining arguments are strings to give program as arguments.")
   if (new_argv[0][0] != '/')
     {
       tem = Qnil;
-      openp (Vexec_path, program, "", &tem, 1);
+      openp (Vexec_path, program, EXEC_SUFFIXES, &tem, 1);
       if (NILP (tem))
 	report_file_error ("Searching for program", Fcons (program, Qnil));
       new_argv[0] = XSTRING (tem)->data;
@@ -2597,7 +2597,7 @@ nil, indicating the current buffer's process.")
   else
     {
       close (XPROCESS (proc)->outfd);
-      XFASTINT (XPROCESS (proc)->outfd) = open ("/dev/null", O_WRONLY);
+      XFASTINT (XPROCESS (proc)->outfd) = open (NULL_DEVICE, O_WRONLY);
     }
 #endif /* VMS */
 #endif /* did not do TOICREMOTE */
