@@ -3807,12 +3807,18 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 		  else
 		    while (range > lim
 			   && !fastmap[(unsigned char)
-				       RE_TRANSLATE (translate, (unsigned char) *d++)])
-		      range--;
+				       RE_TRANSLATE (translate, (unsigned char) *d)])
+		      {
+			d++;
+			range--;
+		      }
 		}
 	      else
-		while (range > lim && !fastmap[(unsigned char) *d++])
-		  range--;
+		while (range > lim && !fastmap[(unsigned char) *d])
+		  {
+		    d++;
+		    range--;
+		  }
 
 	      startpos += irange - range;
 	    }
@@ -4526,9 +4532,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		do
 		  {
 		    PREFETCH ();
-		    if ((unsigned char) RE_TRANSLATE (translate, (unsigned char) *d++)
+		    if ((unsigned char) RE_TRANSLATE (translate, (unsigned char) *d)
 			!= (unsigned char) *p++)
 		      goto fail;
+		    d++;
 		  }
 		while (--mcnt);
 	    }
