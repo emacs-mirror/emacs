@@ -1,5 +1,9 @@
 2000-11-10  Dave Love  <fx@gnu.org>
 
+	* catchup.pbm, describe-group.pbm, exit-gnus.pbm, get-news.pbm:
+	gnntg.pbm, kill-group.pbm, subscribe.pbm, unsubscribe.pbm: New
+	files, converted from the XPMs.
+
 	* gnus-cache.el (gnus-cache-active-file): Don't use
 	file-name-as-directory on directory.
 	(gnus-cache-file-name): Use expand-file-name, not concat.  Don't
