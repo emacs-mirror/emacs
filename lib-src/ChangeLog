@@ -1,5 +1,9 @@
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* cvtmail.c, yow.c: Include config.h.
+
+2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* test-distrib.c (main): For failing cases, exit with `EXIT_FAILURE'.
 
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
