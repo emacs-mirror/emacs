@@ -1452,7 +1452,8 @@ Value is what BODY returns."
 ;; We used to use an uninterned symbol; the compiler handles that properly
 ;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
-  "Execute the BODY forms, restoring the global value of the match data."
+  "Execute the BODY forms, restoring the global value of the match data.
+The value returned is the value of the last form in BODY."
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
