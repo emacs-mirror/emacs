@@ -1,5 +1,7 @@
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
+	* hexl.el (hexl-mode-ruler): Adapt to new :align-to semantics.
+
 	* progmodes/compile.el (compilation-start): Always set
 	compilation-last-buffer and return it.
 
