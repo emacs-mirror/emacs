@@ -5926,7 +5926,7 @@ message2 (m, nbytes, multibyte)
 void
 message2_nolog (m, nbytes, multibyte)
      const char *m;
-     int nbytes;
+     int nbytes, multibyte;
 {
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
@@ -6947,7 +6947,7 @@ void
 set_message (s, string, nbytes, multibyte_p)
      const char *s;
      Lisp_Object string;
-     int nbytes;
+     int nbytes, multibyte_p;
 {
   message_enable_multibyte
     = ((s && multibyte_p)
