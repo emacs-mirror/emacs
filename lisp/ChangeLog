@@ -1,5 +1,12 @@
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* menu-bar.el (minibuffer-local-*map): Take inheritance into account.
+
+	* simple.el (minibuffer-local*-map): Remove redundant bindings.
+
+	* bindings.el (minibuffer-local-map): Also bind next, C-n, C-s, prior,
+	C-p and C-r.  Remove redundant bindings from inheriting maps.
+
 	* progmodes/cperl-mode.el: Merged in changes from v4.32.
 	 After 4.23 and: After 4.24:
 	(cperl-contract-levels): Restore position.
