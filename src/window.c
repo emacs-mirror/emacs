@@ -227,7 +227,8 @@ POS defaults to point; WINDOW, to the selected window.")
   height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
 
   buf = XBUFFER (w->buffer);
-  if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf))
+  if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf)
+      && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (buf))
     {
       /* If frame is up to date,
 	 use the info recorded about how much text fit on it. */
@@ -601,6 +602,7 @@ from overriding motion of point in order to display at this exact start.")
     w->force_start = Qt;
   w->update_mode_line = Qt;
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   if (!EQ (window, selected_window))
     windows_or_buffers_changed++;
   return pos;
@@ -1700,6 +1702,7 @@ set_window_height (window, height, nodelete)
     }
 
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
 
@@ -1763,6 +1766,7 @@ set_window_width (window, width, nodelete)
     }
 
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
 
@@ -1861,6 +1865,7 @@ BUFFER can be a buffer or buffer name.")
   w->start_at_line_beg = Qnil;
   w->force_start = Qnil;
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   windows_or_buffers_changed++;
 
   /* We must select BUFFER for running the window-scroll-functions.
@@ -2553,6 +2558,7 @@ change_window_height (delta, widthflag)
     }
 
   XSETFASTINT (p->last_modified, 0);
+  XSETFASTINT (p->last_overlay_modified, 0);
 }
 #undef MINSIZE
 #undef CURBEG
@@ -2659,6 +2665,7 @@ window_scroll (window, n, noerror)
       w->start_at_line_beg = bolp;
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
+      XSETFASTINT (w->last_overlay_modified, 0);
       if (pos > opoint)
 	SET_PT (pos);
       if (n < 0)
@@ -3114,6 +3121,7 @@ by `current-window-configuration' (which see).")
 	  w->hscroll = p->hscroll;
 	  w->display_table = p->display_table;
 	  XSETFASTINT (w->last_modified, 0);
+	  XSETFASTINT (w->last_overlay_modified, 0);
 
 	  /* Reinstall the saved buffer and pointers into it.  */
 	  if (NILP (p->buffer))
