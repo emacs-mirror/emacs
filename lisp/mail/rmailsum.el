@@ -773,8 +773,8 @@ Search, the `unseen' attribute is restored.")
 		    ;; and we have gone to a different message while searching,
 		    ;; put back `unseen' on the former one.
 		    (if rmail-summary-put-back-unseen
-		    (rmail-set-attribute "unseen" t
-					 rmail-current-message))
+			(rmail-set-attribute "unseen" t
+					     rmail-current-message))
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
 		    (setq rmail-summary-put-back-unseen
