@@ -986,6 +986,12 @@ Here's how you might undo the change:
 (put-text-property @var{beg} @var{end} @var{property} @var{value})
 @end example
 
+@item (@var{marker} . @var{adjustment})
+This kind of element records the fact that the marker @var{marker} was
+relocated due to deletion of surrounding text, and that it moved
+@var{adjustment} character positions.  Undoing this element moves
+@var{marker} @minus{} @var{adjustment} characters.
+
 @item @var{position}
 This element indicates where point was at an earlier time.  Undoing this
 element sets point to @var{position}.  Deletion normally creates an
@@ -2088,6 +2094,8 @@ along with the characters; this includes such diverse functions as
                                   neighboring text.
 * Saving Properties::           Saving text properties in files, and reading
                                   them back.
+* Lazy Properties::             Computing text properties in a lazy fashion
+                                  only when text is examined.
 * Not Intervals::		Why text properties do not use
 				  Lisp-visible text intervals.
 @end menu
@@ -2638,6 +2646,51 @@ types that are reasonably flexible, and not too hard to encode.
 @xref{Format Conversion}, for a related feature.
 
 @c ??? In next edition, merge this info Format Conversion.
+
+@node Lazy Properties
+@subsection Lazy Computation of Text Properties
+
+  Instead of computing text properties for all the text in the buffer,
+you can arrange to compute the text properties for parts of the text
+when and if something depends on them.
+
+  The primitive that extracts text from the buffer along with its
+properties is @code{buffer-substring}.  Before examining the properties,
+this function runs the abnormal hook @code{buffer-access-fontify-functions}.
+
+@defvar buffer-access-fontify-functions
+This variable holds a list of functions for computing text properties.
+Before @code{buffer-substring} copies the text and text properties for a
+portion of the buffer, it calls all the functions in this list.  Each of
+the functions receives two arguments that specify the range of the
+buffer being accessed.  (The buffer itself is always the current
+buffer.)
+@end defvar
+
+  The function @code{buffer-substring-no-properties} does not call these
+functions, since it ignores text properties anyway.
+
+  In order to prevent the hook functions from being called more than
+once for the same part of the buffer, you can use the variable
+@code{buffer-access-fontified-property}.
+
+@defvar buffer-access-fontified-property
+If this value's variable is non-@code{nil}, it is a symbol which is used
+as a text property name.  A non-@code{nil} value for that text property
+means, ``the other text properties for this character have already been
+computed.''
+
+If all the characters in the range specified for @code{buffer-substring}
+have a non-@code{nil} value for this property, @code{buffer-substring}
+does not call the @code{buffer-access-fontify-functions} functions.  It
+assumes these characters already have the right text properties, and
+just copies the properties they already have.
+
+The normal way to use this feature is that the
+@code{buffer-access-fontify-functions} functions add this property, as
+well as others, to the characters they operate on.  That way, they avoid
+being called over and over for the same text.
+@end defvar
 
 @node Not Intervals
 @subsection Why Text Properties are not Intervals
