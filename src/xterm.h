@@ -262,6 +262,9 @@ struct x_display
   /* Size of the X window in pixels. */
   int pixel_height, pixel_width;
 
+  /* Height of a line, in pixels.  */
+  int line_height;
+
 #ifdef HAVE_X11
   /* The tiled border used when the mouse is out of the frame. */
   Pixmap border_tile;
@@ -508,7 +511,7 @@ struct scroll_bar {
 /* Return the outside pixel height for a vertical scroll bar HEIGHT
    rows high on frame F.  */
 #define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
-  ((height) * FONT_HEIGHT ((f)->display.x->font))
+  ((height) * (f)->display.x->line_height)
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -559,7 +562,7 @@ struct scroll_bar {
    at ROW/COL.  */
 #define CHAR_TO_PIXEL_ROW(f, row) \
   ((f)->display.x->internal_border_width \
-   + (row) * FONT_HEIGHT ((f)->display.x->font))
+   + (row) * (f)->display.x->line_height)
 #define CHAR_TO_PIXEL_COL(f, col) \
   ((f)->display.x->internal_border_width \
    + (col) * FONT_WIDTH ((f)->display.x->font))
@@ -579,7 +582,7 @@ struct scroll_bar {
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->display.x->internal_border_width) \
-   / FONT_HEIGHT ((f)->display.x->font))
+   / (f)->display.x->line_height)
 #define PIXEL_TO_CHAR_COL(f, col) \
   (((col) - (f)->display.x->internal_border_width) \
    / FONT_WIDTH ((f)->display.x->font))
