@@ -3318,8 +3318,16 @@ enlarge_window (window, delta, widthflag)
  ***********************************************************************/
 
 static void shrink_window_lowest_first P_ ((struct window *, int));
-static void save_restore_orig_size P_ ((struct window *, int));
 
+enum save_restore_action
+{
+    CHECK_ORIG_SIZES,
+    SAVE_ORIG_SIZES,
+    RESTORE_ORIG_SIZES
+};
+
+static int save_restore_orig_size P_ ((struct window *, 
+                                       enum save_restore_action));
 
 /* Shrink windows rooted in window W to HEIGHT.  Take the space needed
    from lowest windows first.  */
@@ -3393,40 +3401,70 @@ shrink_window_lowest_first (w, height)
 }
 
 
-/* Save or restore positions and sizes in the window tree rooted at W.
-   SAVE_P non-zero means save top position and height in orig_top and
-   orig_height members of the window structure.  Otherwise, restore top
-   and height from orig_top and orig_height.  */
+/* Save, restore, or check positions and sizes in the window tree
+   rooted at W.  ACTION says what to do.
 
-static void
-save_restore_orig_size (w, save_p)
+   If ACTION is CHECK_ORIG_SIZES, check if orig_top and orig_height
+   members are valid for all windows in the window tree.  Value is
+   non-zero if they are valid.
+   
+   If ACTION is SAVE_ORIG_SIZES, save members top and height in
+   orig_top and orig_height for all windows in the tree.
+
+   If ACTION is RESTORE_ORIG_SIZES, restore top and height from
+   values stored in orig_top and orig_height for all windows.  */
+
+static int
+save_restore_orig_size (w, action)
      struct window *w;
-     int save_p;
+     enum save_restore_action action;
 {
+  int success_p = 1;
+
   while (w)
     {
       if (!NILP (w->hchild))
-	save_restore_orig_size (XWINDOW (w->hchild), save_p);
-      else if (!NILP (w->vchild))
-	save_restore_orig_size (XWINDOW (w->vchild), save_p);
-      
-      if (save_p)
 	{
+	  if (!save_restore_orig_size (XWINDOW (w->hchild), action))
+	    success_p = 0;
+	}
+      else if (!NILP (w->vchild))
+	{
+	  if (!save_restore_orig_size (XWINDOW (w->vchild), action))
+	    success_p = 0;
+	}
+      
+      switch (action)
+	{
+	case CHECK_ORIG_SIZES:
+	  if (!INTEGERP (w->orig_top) || !INTEGERP (w->orig_height))
+	    return 0;
+	  break;
+
+	case SAVE_ORIG_SIZES:
 	  w->orig_top = w->top;
 	  w->orig_height = w->height;
-	}
-      else
-	{
+          XSETFASTINT (w->last_modified, 0);
+          XSETFASTINT (w->last_overlay_modified, 0);
+	  break;
+
+	case RESTORE_ORIG_SIZES:
 	  xassert (INTEGERP (w->orig_top) && INTEGERP (w->orig_height));
 	  w->top = w->orig_top;
 	  w->height = w->orig_height;
 	  w->orig_height = w->orig_top = Qnil;
+          XSETFASTINT (w->last_modified, 0);
+          XSETFASTINT (w->last_overlay_modified, 0);
+	  break;
+
+	default:
+	  abort ();
 	}
-      
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+
       w = NILP (w->next) ? NULL : XWINDOW (w->next);
     }
+
+  return success_p;
 }
 
 
@@ -3461,8 +3499,8 @@ grow_mini_window (w, delta)
   if (delta)
     {
       /* Save original window sizes and positions, if not already done.  */
-      if (NILP (root->orig_top))
-	save_restore_orig_size (root, 1);
+      if (!save_restore_orig_size (root, CHECK_ORIG_SIZES))
+	save_restore_orig_size (root, SAVE_ORIG_SIZES);
 
       /* Shrink other windows.  */
       shrink_window_lowest_first (root, XFASTINT (root->height) - delta);
@@ -3490,9 +3528,9 @@ shrink_mini_window (w)
   struct frame *f = XFRAME (w->frame);
   struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
 
-  if (!NILP (root->orig_height))
+  if (save_restore_orig_size (root, CHECK_ORIG_SIZES))
     {
-      save_restore_orig_size (root, 0);
+      save_restore_orig_size (root, RESTORE_ORIG_SIZES);
       adjust_glyphs (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       windows_or_buffers_changed = 1;
