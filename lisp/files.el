@@ -1588,6 +1588,10 @@ in that case, this function acts as if `enable-local-variables' were t."
       (ucs-set-table-for-input)))
 
 (defvar auto-mode-alist
+  ;; Note: The entries for the modes defined in cc-mode.el (c-mode,
+  ;; c++-mode, java-mode and more) are added through autoload
+  ;; directives in that file.  That way is discouraged since it
+  ;; spreads out the definition of the initial value.
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
@@ -1726,6 +1730,10 @@ REGEXP and search the list again for another match.")
 
 
 (defvar interpreter-mode-alist
+  ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
+  ;; and pike-mode) are added through autoload directives in that
+  ;; file.  That way is discouraged since it spreads out the
+  ;; definition of the initial value.
   (mapc
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
