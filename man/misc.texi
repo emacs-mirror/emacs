@@ -1247,6 +1247,14 @@ kills it if the file name matches the regular expression
   If you set the variable @code{server-window} to a window or a frame,
 @kbd{C-x #} displays the server buffer in that window or in that frame.
 
+@vindex server-name
+  You can run multiple Emacs servers on the same machine by giving
+each one a unique ``server name'', using the variable
+@code{server-name}.  For example, @kbd{M-x set-variable RET
+server-name RET foo} sets the server name to @samp{foo}.  The
+@code{emacsclient} program can visit a server by name using the
+@samp{-s} option.
+
   While @code{mail} or another application is waiting for
 @code{emacsclient} to finish, @code{emacsclient} does not read terminal
 input.  So the terminal that @code{mail} was using is effectively
@@ -1328,6 +1336,9 @@ If you use several displays, you can tell Emacs on which display to
 open the given files with the option @samp{--display=@var{DISPLAY}}.
 This can be used typically when connecting from home to an Emacs
 server running on your machine at your workplace.
+
+If there is more than one Emacs server running, you can specify a
+server name with the option @samp{-s @var{name}}.
 
 You can also use @code{emacsclient} to execute any piece of Emacs Lisp
 code, using the option @samp{--eval}.  When this option is given, the
