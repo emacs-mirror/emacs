@@ -2,8 +2,6 @@
 
 #include "usg5-4.h"
 
-/* pcg@aber.ac.uk says this is useless since fork does copy-on-write
-   #define HAVE_VFORK */
 /* fnf@cygnus.com says these exist.  */
 #define HAVE_TCATTR
 #if 0 /* autoconf should take care of this.  */
