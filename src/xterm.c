@@ -6382,7 +6382,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
           orig_keysym = keysym;
 
-          if (numchars > 1)
+          if (numchars > 0)
             {
               Lisp_Object c;
 
@@ -7208,12 +7208,6 @@ XTread_socket (display, bufp, numchars, expected)
       while (XPending (dpyinfo->display))
 	{
           int finish;
-
-          if (numchars <= 1)
-            {
-              /* The input buffer is full; read the rest next time. */
-              break;
-            }
 
 	  XNextEvent (dpyinfo->display, &event);
 
