@@ -175,7 +175,7 @@ nil means they are ignored; anything else means query.
 The command \\[normal-mode] always obeys local-variables lists
 and ignores this variable.")
 
-(defconst enable-local-eval nil
+(defconst enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
@@ -607,7 +607,8 @@ for current buffer."
 			  (y-or-n-p (format "Set local variables as specified at end of %s? "
 					    (file-name-nondirectory buffer-file-name))))))))
 	(let ((continue t)
-	      prefix prefixlen suffix beg)
+	      prefix prefixlen suffix beg
+	      (enable-local-eval enable-local-eval))
 	  ;; The prefix is what comes before "local variables:" in its line.
 	  ;; The suffix is what comes after "local variables:" in its line.
 	  (skip-chars-forward " \t")
@@ -665,8 +666,9 @@ for current buffer."
 					   (save-excursion
 					     (beginning-of-line)
 					     (set-window-start (selected-window) (point)))
-					   (y-or-n-p (format "Process `eval' local variable in file %s? "
-							     (file-name-nondirectory buffer-file-name)))))))
+					   (setq enable-local-eval
+						 (y-or-n-p (format "Process `eval' local variable in file %s? "
+								   (file-name-nondirectory buffer-file-name))))))))
 			   (save-excursion (eval val))
 			 (message "Ignoring `eval:' in file's local variables")))
 		      (t (make-local-variable var)
