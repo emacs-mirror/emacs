@@ -48,7 +48,7 @@
 ;; Buffer local variables
 
 (defvar quail-current-package nil
-  "The current Quail package to input multilingual text in Quail minor mode.
+  "The current Quail package, which depends on the current input method.
 See the documentation of `quail-package-alist' for the format.")
 (make-variable-buffer-local 'quail-current-package)
 (put 'quail-current-package 'permanent-local t)
@@ -62,6 +62,7 @@ See the documentation of `quail-package-alist' for the format.")
 ;; Each buffer in which Quail is activated should use different
 ;; guidance buffers.
 (make-variable-buffer-local 'quail-guidance-buf)
+(put 'quail-guidance-buf 'permanent-local t)
 
 ;; A main window showing Quail guidance buffer.
 (defvar quail-guidance-win nil)
@@ -440,7 +441,8 @@ vs. corresponding command to be called."
     (if (overlayp quail-conv-overlay)
 	(move-overlay quail-conv-overlay pos pos)
       (setq quail-conv-overlay (make-overlay pos pos nil nil t))
-      (overlay-put quail-conv-overlay 'face 'underline)
+      (if input-method-highlight-flag
+	(overlay-put quail-conv-overlay 'face 'underline))
       ;;(overlay-put quail-conv-overlay 'modification-hooks
       ;;'(quail-conv-overlay-modification-hook))
       )))
@@ -610,7 +612,8 @@ We assume there are six rows and each row has 15 keys (columns),
 	the sixth row is below the `z' - `/' row.
 Nth (N is even) and (N+1)th characters in the string are non-shifted
  and shifted characters respectively at the same location.
-The location of Nth character is row (N / 30) and column ((N mod 30) / 2).")
+The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
+The command `quail-set-keyboard-layout' usually sets this variable.")
 
 (defconst quail-keyboard-layout-len 180)
 
@@ -1354,7 +1357,7 @@ The buffer is normally displayed at the echo area,
 but if the current buffer is a minibuffer, it is shown in
 the bottom-most ordinary window of the same frame,
 or in a newly created frame (if the selected frame has no other windows)."
-  (if (and input-method-tersely-flag
+  (if (and (not input-method-verbose-flag)
 	   (eq (selected-window) (minibuffer-window)))
       ;; We don't need the guidance buffer.
       nil
@@ -1433,7 +1436,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 (defun quail-update-guidance ()
   "Update the Quail guidance buffer and completion buffer (if displayed now)."
   ;; Update guidance buffer.
-  (if (or (null input-method-tersely-flag)
+  (if (or input-method-verbose-flag
 	  (not (eq (selected-window) (minibuffer-window))))
       (let ((guidance (quail-guidance)))
 	(cond ((eq guidance t)
