@@ -959,7 +959,7 @@ Advanced commands:
 
 (defun Info-edit-mode ()
   "Major mode for editing the contents of an Info node.
-Like text mode with the addition of Info-cease-edit
+Like text mode with the addition of `Info-cease-edit'
 which returns to Info mode for browsing.
 \\{Info-edit-map}"
   )
