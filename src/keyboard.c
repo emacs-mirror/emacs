@@ -73,7 +73,8 @@ int interrupt_input_pending;
 
 
 #ifdef HAVE_X_WINDOWS
-extern Lisp_Object Vmouse_grabbed;
+/* File descriptor to use for input.  */
+extern int input_fd;
 
 /* Make all keyboard buffers much bigger when using X windows.  */
 #define KBD_BUFFER_SIZE 4096
@@ -3515,7 +3516,8 @@ read_avail_input (expected)
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (0, buf, KBD_BUFFER_SIZE, expected, expected);
+    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE,
+				 expected, expected);
   else
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
@@ -3532,7 +3534,7 @@ read_avail_input (expected)
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
-      if (ioctl (0, FIONREAD, &n_to_read) < 0)
+      if (ioctl (input_fd, FIONREAD, &n_to_read) < 0)
 	/* Formerly simply reported no input, but that sometimes led to
 	   a failure of Emacs to terminate.
 	   SIGHUP seems appropriate if we can't reach the terminal.  */
@@ -3548,7 +3550,7 @@ read_avail_input (expected)
 #if defined(USG) || defined(DGUX)
       /* Read some input if available, but don't wait.  */
       n_to_read = sizeof cbuf;
-      fcntl (fileno (stdin), F_SETFL, O_NDELAY);
+      fcntl (input_fd, F_SETFL, O_NDELAY);
 #else
       you lose;
 #endif
@@ -3563,7 +3565,7 @@ read_avail_input (expected)
 	  cbuf[0] = dos_keyread();
 	  nread = 1;
 #else
-	  nread = read (fileno (stdin), cbuf, n_to_read);
+	  nread = read (input_fd, cbuf, n_to_read);
 #endif
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
@@ -3595,7 +3597,7 @@ read_avail_input (expected)
 
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX)
-      fcntl (fileno (stdin), F_SETFL, 0);
+      fcntl (input_fd, F_SETFL, 0);
 #endif /* USG or DGUX */
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
