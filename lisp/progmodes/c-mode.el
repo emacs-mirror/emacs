@@ -969,13 +969,15 @@ ENDPOS is encountered."
 		      (save-excursion (forward-char 1)
 				      (beginning-of-defun)
 				      (setq funbeg (point)))
+		      (setq opoint funbeg)
 		      ;; Try to find containing open,
 		      ;; but don't scan past that fcn-start.
 		      (save-restriction
 			(narrow-to-region funbeg (point))
 			(condition-case nil
 			    (save-excursion
-			      (backward-up-list 1) (point))
+			      (backward-up-list 1)
+			      (point))
 			  ;; We gave up: must be between fcns.
 			  ;; Set opoint to beg of prev fcn
 			  ;; since otherwise calculate-c-indent
@@ -998,6 +1000,12 @@ ENDPOS is encountered."
 	(and (re-search-forward
 	      comment-start-skip
 	      (save-excursion (end-of-line) (point)) t)
+	     ;; Make sure this isn't a comment alone on a line
+	     ;; (which should be indented like code instead).
+	     (save-excursion
+	       (goto-char (match-beginning 0))
+	       (skip-chars-backward " \t")
+	       (not (bolp)))
 	     ;; Make sure the comment starter we found
 	     ;; is not actually in a string or quoted.
 	     (let ((new-state
@@ -1060,7 +1068,12 @@ ENDPOS is encountered."
 							(point)))))
 	  (forward-line 1)
 	  (skip-chars-forward " \t")
-	  (if (eolp)
+	  ;; Don't really reindent if the line is just whitespace,
+	  ;; or if it is past the endpos.
+	  ;; (The exit test in the outer while
+	  ;; does not exit until we have passed the first line
+	  ;; past the region.)
+	  (if (or (eolp) (and endpos (>= (point) endpos)))
 	      nil
 	    (if (and (car indent-stack)
 		     (>= (car indent-stack) 0))
