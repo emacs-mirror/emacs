@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.125 2000/10/27 12:11:55 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.126 2000/10/27 13:26:18 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -208,26 +208,24 @@ It is usually called via the `vc-call' macro."
 
 Optional argument LIMIT is a regexp.  If present, the file is inserted
 in chunks of size BLOCKSIZE (default 8 kByte), until the first
-occurrence of LIMIT is found.  The function returns nil if FILE doesn't
-exist."
+occurrence of LIMIT is found.  The function returns non-nil if FILE 
+exists and its contents were successfully inserted."
   (erase-buffer)
-  (cond ((file-exists-p file)
-	 (cond (limit
-		(if (not blocksize) (setq blocksize 8192))
-		(let (found s)
-		  (while (not found)
-		    (setq s (buffer-size))
-		    (goto-char (1+ s))
-		    (setq found
-			  (or (zerop (cadr (insert-file-contents
-					    file nil s (+ s blocksize))))
-			      (progn (beginning-of-line)
-				     (re-search-forward limit nil t)))))))
-	       (t (insert-file-contents file)))
-	 (set-buffer-modified-p nil)
-	 (auto-save-mode nil)
-	 t)
-	(t nil)))
+  (when (file-exists-p file)
+    (if (not limit)
+        (insert-file-contents file)
+      (if (not blocksize) (setq blocksize 8192))
+      (let (found s)
+        (while (not found)
+          (setq s (buffer-size))
+          (goto-char (1+ s))
+          (setq found
+                (or (zerop (cadr (insert-file-contents
+                                  file nil s (+ s blocksize))))
+                    (progn (beginning-of-line)
+                           (re-search-forward limit nil t)))))))
+    (set-buffer-modified-p nil)
+    t))
 
 ;;; Access functions to file properties
 ;;; (Properties should be _set_ using vc-file-setprop, but
