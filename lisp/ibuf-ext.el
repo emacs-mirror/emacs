@@ -697,6 +697,19 @@ Ordering is lexicographic."
 				  (car b)
 				major-mode)))))
 
+(define-ibuffer-sorter mode-name
+  "Sort the buffers by their mode name.
+Ordering is lexicographic."
+  (:description "mode name")
+  (string-lessp (downcase
+		 (symbol-name (with-current-buffer
+				  (car a)
+				mode-name)))
+		(downcase
+		 (symbol-name (with-current-buffer
+				  (car b)
+				mode-name)))))
+
 (define-ibuffer-sorter alphabetic
   "Sort the buffers by their names.
 Ordering is lexicographic."
@@ -1139,7 +1152,7 @@ defaults to one."
 	  (< nlines 0))
       (setq nlines 1))
   (when (zerop (ibuffer-count-marked-lines))
-    (ibuffer-set-mark 'ibuffer-marked-char))
+    (ibuffer-set-mark ibuffer-marked-char))
   (let ((ibuffer-do-occur-bufs nil))
     ;; Accumulate a list of marked buffers
     (ibuffer-map-marked-lines
