@@ -36,7 +36,7 @@
   :version "21.1"
   :group 'gnus)
 
-(defcustom mail-sources '((file))
+(defcustom mail-sources nil
   "*Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
@@ -719,9 +719,9 @@ This only works when `display-time' is enabled."
 	      (> (prefix-numeric-value arg) 0))))
     (setq mail-source-report-new-mail on)
     (and mail-source-report-new-mail-timer
-	 (cancel-timer mail-source-report-new-mail-timer))
+	 (nnheader-cancel-timer mail-source-report-new-mail-timer))
     (and mail-source-report-new-mail-idle-timer
-	 (cancel-timer mail-source-report-new-mail-idle-timer))
+	 (nnheader-cancel-timer mail-source-report-new-mail-idle-timer))
     (setq mail-source-report-new-mail-timer nil)
     (setq mail-source-report-new-mail-idle-timer nil)
     (if on
@@ -789,7 +789,11 @@ This only works when `display-time' is enabled."
   (autoload 'imap-error-text "imap")
   (autoload 'imap-message-flags-add "imap")
   (autoload 'imap-list-to-message-set "imap")
+  (autoload 'imap-range-to-message-set "imap")
   (autoload 'nnheader-ms-strip-cr "nnheader"))
+
+(defvar mail-source-imap-file-coding-system 'binary
+  "Coding system for the crashbox made by `mail-source-fetch-imap'.")
 
 (defun mail-source-fetch-imap (source callback)
   "Fetcher for imap sources."
@@ -804,7 +808,7 @@ This only works when `display-time' is enabled."
 		user (or (cdr (assoc from mail-source-password-cache))
 			 password) buf)
 	       (imap-mailbox-select mailbox nil buf))
-	  (let (str (coding-system-for-write 'binary))
+	  (let (str (coding-system-for-write mail-source-imap-file-coding-system))
 	    (with-temp-file mail-source-crash-box
 	      ;; In some versions of FSF Emacs, inserting unibyte
 	      ;; string into multibyte buffer may convert 8-bit chars
@@ -829,7 +833,8 @@ This only works when `display-time' is enabled."
 	    (incf found (mail-source-callback callback server))
 	    (when (and remove fetchflag)
 	      (imap-message-flags-add
-	       (imap-list-to-message-set remove) fetchflag nil buf))
+	       (imap-range-to-message-set (gnus-compress-sequence remove))
+	       fetchflag nil buf))
 	    (if dontexpunge
 		(imap-mailbox-unselect buf)
 	      (imap-mailbox-close buf))
