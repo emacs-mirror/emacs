@@ -605,7 +605,7 @@ start of buffer."
 	(def-re (rx (and line-start (0+ space) (or "def" "class")
 			 (1+ space)
 			 (group (1+ (or word (syntax symbol)))))))
-	point found lep def-line)
+	found lep def-line)
     (if (python-comment-line-p)
 	(setq ci most-positive-fixnum))
     (while (and (not (bobp)) (not found))
@@ -822,6 +822,7 @@ move and return nil.  Otherwise return t."
 
 ;;;; Imenu.
 
+(defvar python-recursing)
 (defun python-imenu-create-index ()
   "`imenu-create-index-function' for Python.
 
@@ -829,10 +830,10 @@ Makes nested Imenu menus from nested `class' and `def' statements.
 The nested menus are headed by an item referencing the outer
 definition; it has a space prepended to the name so that it sorts
 first with `imenu--sort-by-name'."
-  (unless (boundp 'recursing)		; dynamically bound below
+  (unless (boundp 'python-recursing)		; dynamically bound below
     (goto-char (point-min)))		; normal call from Imenu
   (let (index-alist			; accumulated value to return
-	name is-class pos)
+	name)
     (while (re-search-forward
 	    (rx (and line-start (0+ space) ; leading space
 		     (or (group "def") (group "class"))	    ; type
@@ -845,7 +846,7 @@ first with `imenu--sort-by-name'."
 	      (setq name (concat "class " name)))
 	  (save-restriction
 	    (narrow-to-defun)
-	    (let* ((recursing t)
+	    (let* ((python-recursing t)
 		   (sublist (python-imenu-create-index)))
 	      (if sublist
 		  (progn (push (cons (concat " " name) pos) sublist)
@@ -1008,18 +1009,15 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
-(defvar python-orig-start-line nil
-  "Line number at start of region sent to inferior Python.")
-
-(defvar python-orig-file nil
-  "File name to associate with errors found in inferior Python.")
+(defvar python-orig-start nil
+  "Marker to the start of the region passed to the inferior Python.
+It can also be a filename.")
 
 (defun python-input-filter (str)
   "`comint-input-filter' function for inferior Python.
 Don't save anything for STR matching `inferior-python-filter-regexp'.
 Also resets variables for adjusting error messages."
-  (setq python-orig-file nil
-	python-orig-start-line 1)
+  (setq python-orig-start nil)
   (not (string-match inferior-python-filter-regexp str)))
 
 ;; Fixme: Loses with quoted whitespace.
@@ -1035,14 +1033,15 @@ Also resets variables for adjusting error messages."
 (defun python-compilation-line-number (file col)
   "Return error descriptor of error found for FILE, column COL.
 Used as line-number hook function in `python-compilation-regexp-alist'."
-  (let ((line (save-excursion
-		(goto-char (match-beginning 2))
-		(read (current-buffer)))))
-    (list (point-marker) (if python-orig-file
-			     (list python-orig-file default-directory)
-			   file)
-	  (+ line (1- python-orig-start-line))
-	  nil)))
+  (let ((line (string-to-number (match-string 2))))
+    (cons (point-marker)
+	  (if (and (markerp python-orig-start)
+		   (marker-buffer python-orig-start))
+	      (with-current-buffer (marker-buffer python-orig-start)
+		(goto-char python-orig-start)
+		(forward-line (1- line)))
+	    (list (if (stringp python-orig-start) python-orig-start file)
+		  line nil)))))
 
 (defvar python-preoutput-result nil
   "Data from output line last `_emacs_out' line seen by the preoutput filter.")
@@ -1150,10 +1149,7 @@ print '_emacs_ok'"))
   (interactive "r")
   (let* ((f (make-temp-file "py"))
 	 (command (format "_emacs_execfile(%S)" f))
-	 (orig-file (buffer-file-name))
-	 (orig-line (save-restriction
-		      (widen)
-		      (line-number-at-pos start))))
+	 (orig-start (copy-marker start)))
     (if (save-excursion
 	  (goto-char start)
 	  (/= 0 (current-indentation)))	; need dummy block
@@ -1162,8 +1158,7 @@ print '_emacs_ok'"))
     (when python-buffer
       (with-current-buffer python-buffer
 	(let ((end (marker-position (process-mark (python-proc)))))
-	  (set (make-local-variable 'python-orig-file) orig-file)
-	  (set (make-local-variable 'python-orig-start-line) orig-line)
+	  (set (make-local-variable 'python-orig-start) orig-start)
 	  (set (make-local-variable 'compilation-error-list) nil)
 	  (let ((comint-input-filter-functions
 		 (delete 'python-input-filter comint-input-filter-functions)))
@@ -1244,14 +1239,12 @@ module-qualified names."
 	       ;; Fixme: make sure the directory is in the path list
 	       (let ((module (file-name-sans-extension
 			      (file-name-nondirectory file-name))))
-		 (set (make-local-variable 'python-orig-file) nil)
-		 (set (make-local-variable 'python-orig-start-line) nil)
+		 (set (make-local-variable 'python-orig-start) nil)
 		 (format "\
 if globals().has_key(%S): reload(%s)
 else: import %s
 " module module module))
-	     (set (make-local-variable 'python-orig-file) file-name)
-	     (set (make-local-variable 'python-orig-start-line) 1)
+	     (set (make-local-variable 'python-orig-start) file-name)
 	     (format "execfile('%s')" file-name))))
 	(set-marker compilation-parsing-end end)
 	(setq compilation-last-buffer (current-buffer))))))
@@ -1336,10 +1329,11 @@ Used with `eval-after-load'."
 		    (string-match "^Python \\([0-9]+\\.[0-9]+\\>\\)" s)
 		    (match-string 1 s)))
 	 ;; Whether info files have a Python version suffix, e.g. in Debian.
-	 (versioned 
+	 (versioned
 	  (with-temp-buffer
 	    (Info-mode)
 	    (condition-case ()
+		;; Don't use `info' because it would pop-up a *info* buffer.
 		(Info-goto-node (format "(python%s-lib)Miscellaneous Index"
 					version))
 	      (error nil)))))
@@ -1529,7 +1523,7 @@ Uses `python-beginning-of-block', `python-end-of-block'."
 
 (defvar outline-heading-end-regexp)
 (defvar eldoc-print-current-symbol-info-function)
-
+(defvar python-mode-running)
 ;;;###autoload
 (define-derived-mode python-mode fundamental-mode "Python"
   "Major mode for editing Python files.
