@@ -1216,7 +1216,7 @@ print (obj, printcharfun, escapeflag)
 	register int confusing;
 	register unsigned char *p = XSYMBOL (obj)->name->data;
 	register unsigned char *end = p + XSYMBOL (obj)->name->size_byte;
-	register unsigned char c;
+	register int c;
 	int i, i_byte, size_byte;
 	Lisp_Object name;
 
