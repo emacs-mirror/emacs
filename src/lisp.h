@@ -1926,6 +1926,8 @@ extern Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
 
 extern Lisp_Object Qframep;
 
+extern void circular_list_error P_ ((Lisp_Object));
+
 EXFUN (Feq, 2);
 EXFUN (Fnull, 1);
 EXFUN (Flistp, 1);
