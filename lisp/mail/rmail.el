@@ -1144,7 +1144,8 @@ argument causes us to read a file name and use that file as the inbox."
 	       (goto-char (point-min))
 	       (search-forward "\n*** EOOH ***\n")
 	       (narrow-to-region (point) (point-max)))
-      (rmail-reformat-message (point-min) (point-max)))))
+      (rmail-reformat-message (point-min) (point-max))))
+  (rmail-highlight-headers))
 
 ;;;; *** Rmail Attributes and Keywords ***
 
