@@ -227,6 +227,15 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
+(defvar mode-line-minor-mode-keymap nil "\
+Keymap to display on major and minor modes.")
+
+;; Menu of minor modes.
+(let ((map (make-sparse-keymap)))
+  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+  (setq mode-line-minor-mode-keymap map))
+
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
 	;; bottom mode line...  Better ideas?
@@ -252,7 +261,9 @@ Normally nil in most modes, since there is no process to display.")
   (setq-default mode-line-modes
     (list
      (propertize "   %[(" 'help-echo help-echo)
-     '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
+     `(:propertize ("" mode-name mode-line-process minor-mode-alist)
+		   help-echo "mouse-3: minor mode menu"
+		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
 		 'local-map (make-mode-line-mouse-map
 			     'mouse-2 #'mode-line-widen))
@@ -265,12 +276,6 @@ Normally nil in most modes, since there is no process to display.")
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
-
-(defvar mode-line-minor-mode-keymap nil "\
-Keymap for what is displayed by `mode-line-mode-name'.")
-
-(defvar mode-line-mode-menu-keymap nil "\
-Keymap for mode operations menu in the mode line.")
 
 (defun last-buffer () "\
 Return the last non-hidden buffer in the buffer list."
@@ -316,59 +321,45 @@ Menu of mode operations in the mode line.")
       (if binding
 	  (call-interactively binding)))))
 
-(defvar mode-line-copied-mode-name nil
-  "A copy of `mode-name', with `help-echo' and `local-map' properties added.")
-
-(defun mode-line-mode-name () "\
-Return a string to display in the mode line for the current mode name."
-  (when (stringp mode-name)
-    (if (equal mode-name mode-line-copied-mode-name)
-	mode-line-copied-mode-name
-      (setq mode-line-copied-mode-name
-	    (propertize mode-name
-			'local-map mode-line-minor-mode-keymap 
-			'help-echo "mouse-3: minor mode menu"))))
-  mode-line-copied-mode-name)
-
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
 (define-key mode-line-mode-menu [overwrite-mode]
-  `(menu-item ,(purecopy "Overwrite") overwrite-mode
+  `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
 	      :button (:toggle . overwrite-mode)))
 (define-key mode-line-mode-menu [outline-minor-mode]
-  `(menu-item ,(purecopy "Outline") outline-minor-mode
+  `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
 (define-key mode-line-mode-menu [line-number-mode]
   `(menu-item ,(purecopy "Line number") line-number-mode
 	      :button (:toggle . line-number-mode)))
 (define-key mode-line-mode-menu [highlight-changes-mode]
-  `(menu-item ,(purecopy "Highlight changes") highlight-changes-mode
+  `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
 	      :button (:toggle . highlight-changes-mode)))
 (define-key mode-line-mode-menu [glasses-mode]
-  `(menu-item ,(purecopy "Glasses") glasses-mode
+  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
-  `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
+  `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font-lock") font-lock-mode
 	      :button (:toggle . font-lock-mode)))
 (define-key mode-line-mode-menu [flyspell-mode]
-  `(menu-item ,(purecopy "Flyspell") flyspell-mode
+  `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (define-key mode-line-mode-menu [column-number-mode]
   `(menu-item ,(purecopy "Column number") column-number-mode
 	      :button (:toggle . column-number-mode)))
 (define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto-fill") auto-fill-mode
+  `(menu-item ,(purecopy "Auto-fill (Fill)") auto-fill-mode
 	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [auto-revert-mode]
-  `(menu-item ,(purecopy "Auto revert") auto-revert-mode
+  `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
 	      :button (:toggle . auto-revert-mode)))
 (define-key mode-line-mode-menu [abbrev-mode]
-  `(menu-item ,(purecopy "Abbrev") abbrev-mode
+  `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-mode-menu (event)
@@ -404,12 +395,6 @@ text properties for face, help-echo, and local-map to it."
 (setq-default mode-line-buffer-identification
 	      (propertized-buffer-identification "%12b"))
 
-;; Menu of minor modes.
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
-  (setq mode-line-minor-mode-keymap map))
-
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.
 Each element looks like (VARIABLE STRING);
@@ -420,15 +405,9 @@ is okay.  See `mode-line-format'.")
 ;; Don't use purecopy here--some people want to change these strings.
 (setq minor-mode-alist
       (list
-       (list 'abbrev-mode
-	     (propertize " Abbrev"
-			 'help-echo (purecopy "mouse-3: minor mode menu")
-			 'local-map mode-line-minor-mode-keymap))
+       (list 'abbrev-mode " Abbrev")
        '(overwrite-mode overwrite-mode)
-       (list 'auto-fill-function
-	     (propertize " Fill"
-			 'help-echo (purecopy "mouse-3: minor mode menu")
-			 'local-map mode-line-minor-mode-keymap))
+       (list 'auto-fill-function " Fill")
        ;; not really a minor mode...
        '(defining-kbd-macro " Def")))
 
