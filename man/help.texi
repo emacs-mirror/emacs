@@ -40,7 +40,7 @@ customization buffers and the like.  @xref{Help Mode}.
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know where
 exactly it is documented, and aren't sure of the name of a
-related command or option, we recommend trying these methods.  Usually
+related command or variable, we recommend trying these methods.  Usually
 it is best to start with an apropos command, then try searching the
 manual index, then finally look in the FAQ and the package keywords.
 
@@ -51,9 +51,9 @@ be a regular expression (@pxref{Regexps}).  Browse the buffer that this
 command displays to find what you are looking for.  @xref{Apropos}.
 
 @item M-x apropos @key{RET} @var{topic} @key{RET}
-This works like @kbd{C-h a}, but it also searches for user options and
-other variables, in case the feature you are looking for is controlled
-by an option, not a command.  @xref{Apropos}.
+This works like @kbd{C-h a}, but it also searches for variables,
+in case the feature you are looking for is controlled by a variable
+rather than a command.  @xref{Apropos}.
 
 @item M-x apropos-documentation @key{RET} @var{topic} @key{RET}
 This searches the @emph{documentation strings} (the built-in short
@@ -302,9 +302,9 @@ view, describe, default.
 
 @findex apropos-variable
   To list all user variables that match a regexp, use the command
-@kbd{M-x apropos-variable}. This command shows only user variables and
-customization options by default; if you specify a prefix argument, it
-checks all variables.
+@kbd{M-x apropos-variable}.  By default, this command shows only
+variables meant for user customization; if you specify a prefix
+argument, it checks all variables.
 
 @findex apropos
   To list all Lisp symbols that contain a match for a regexp, not just

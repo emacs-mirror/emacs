@@ -278,7 +278,7 @@ particularly under OpenWindows and Gnome.
 @code{Paste} and @code{Copy} menu items, as well as the keys of the same
 names, all use the clipboard.
 
-  You can customize the option @code{x-select-enable-clipboard} to make
+  You can customize the variable @code{x-select-enable-clipboard} to make
 the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
 well as the primary selection.  Otherwise they do not access the
@@ -758,7 +758,7 @@ window vertically.  The split occurs on the line where you click.
 scroll-bar-mode}.  With no argument, it toggles the use of scroll bars.
 With an argument, it turns use of scroll bars on if and only if the
 argument is positive.  This command applies to all frames, including
-frames yet to be created.  Customize the option @code{scroll-bar-mode}
+frames yet to be created.  Customize the variable @code{scroll-bar-mode}
 to control the use of scroll bars at startup.  You can use it to specify
 that they are placed at the right of windows if you prefer that.  You
 have to set this variable through the @samp{Customize} interface
@@ -788,7 +788,7 @@ usually click the wheel to act as either @kbd{Mouse-2} or
 @kbd{Mouse-3}, depending on the setup.  You can also use the wheel to
 scroll windows instead of using the scroll bar or keyboard commands.
 To do so, turn on Mouse Wheel global minor mode with the command
-@kbd{M-x mouse-wheel-mode} or by customizing the option
+@kbd{M-x mouse-wheel-mode} or by customizing the variable
 @code{mouse-wheel-mode}.  Support for the wheel depends on the system
 generating appropriate events for Emacs.
 
@@ -849,7 +849,7 @@ variables.
 @cindex mode, Menu Bar
 
   You can turn display of menu bars on or off with @kbd{M-x
-menu-bar-mode} or by customizing the option @code{menu-bar-mode}.
+menu-bar-mode} or by customizing the variable @code{menu-bar-mode}.
 With no argument, this command toggles Menu Bar mode, a
 minor mode.  With an argument, the command turns Menu Bar mode on if the
 argument is positive, off if the argument is not positive.  You can use
@@ -899,7 +899,7 @@ question or some other special question.  Many Emacs commands use a
 dialog box to ask a yes-or-no question, if you used the mouse to
 invoke the command to begin with.
 
-  You can customize the option @code{use-dialog-box} to suppress the
+  You can customize the variable @code{use-dialog-box} to suppress the
 use of dialog boxes.  This also controls whether to use file selection
 windows (but those are not supported on all platforms).
 
@@ -907,10 +907,10 @@ windows (but those are not supported on all platforms).
   A file selection window is a special kind of dialog box for asking for
 file names.
 
-  You can customize the option @code{use-file-dialog} to suppress the
+  You can customize the variable @code{use-file-dialog} to suppress the
 use of file selection windows even if you still want other kinds
-of dialogs.  This option has no effect if you have suppressed all dialog
-boxes with the option @code{use-dialog-box}.
+of dialogs.  This variable has no effect if you have suppressed all dialog
+boxes with the variable @code{use-dialog-box}.
 
 @vindex x-use-old-gtk-file-dialog
   For Gtk+ version 2.4 and 2.6, you can make Emacs use the old file dialog
@@ -949,7 +949,7 @@ customizing the windows that display tooltips.
 @vindex mouse-avoidance-mode
 Mouse Avoidance mode keeps the window system mouse pointer away from
 point, to avoid obscuring text.  Whenever it moves the mouse, it also
-raises the frame.  To use Mouse Avoidance mode, customize the option
+raises the frame.  To use Mouse Avoidance mode, customize the variable
 @code{mouse-avoidance-mode}.  You can set this to various values to
 move the mouse in several ways:
 

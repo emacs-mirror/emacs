@@ -2020,8 +2020,8 @@ editors.  Standard facilities can emulate these:
 @cindex mode, CRiSP
 You can turn on key bindings to emulate the CRiSP/Brief editor with
 @kbd{M-x crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs
-unless you change the user option @code{crisp-override-meta-x}.  You can
-also use the command @kbd{M-x scroll-all-mode} or set the user option
+unless you set the variable @code{crisp-override-meta-x}.  You can
+also use the command @kbd{M-x scroll-all-mode} or set the variable
 @code{crisp-load-scroll-all} to emulate CRiSP's scroll-all feature
 (scrolling all windows together).
 

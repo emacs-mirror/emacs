@@ -90,7 +90,7 @@ can even guess the name of the function or other object that was
 changed.
 
 @vindex add-log-keep-changes-together
-  When the option @code{add-log-keep-changes-together} is
+  When the variable @code{add-log-keep-changes-together} is
 non-@code{nil}, @kbd{C-x 4 a} adds to any existing entry for the file
 rather than starting a new entry.
 

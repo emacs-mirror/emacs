@@ -1277,7 +1277,7 @@ Hide all blocks @var{n} levels below this block
 @vindex hs-hide-comments-when-hiding-all
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
-  These user options exist for customizing Hideshow mode.
+  These variables exist for customizing Hideshow mode.
 
 @table @code
 @item hs-hide-comments-when-hiding-all
