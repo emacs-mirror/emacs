@@ -614,7 +614,45 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
       unsigned char tmp[MAX_MULTIBYTE_LENGTH], *p;
       int bytes;
 
-      if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
+      if (*src == '\r')
+	{
+	  int c;
+
+	  src++;
+	  if (coding->eol_type == CODING_EOL_CR)
+	    c = '\n';
+	  else if (coding->eol_type == CODING_EOL_CRLF)
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (c != '\n')
+		{
+		  if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
+		    {
+		      coding->result = CODING_FINISH_INCONSISTENT_EOL;
+		      goto label_end_of_loop;
+		    }
+		  src--;
+		  c = '\r';
+		}
+	    }
+	  *dst++ = c;
+	  coding->produced_char++;
+	  continue;
+	}
+      else if (*src == '\n')
+	{
+	  if ((coding->eol_type == CODING_EOL_CR
+	       || coding->eol_type == CODING_EOL_CRLF)
+	      && coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
+	    {
+	      coding->result = CODING_FINISH_INCONSISTENT_EOL;
+	      goto label_end_of_loop;
+	    }
+	  *dst++ = *src++;
+	  coding->produced_char++;
+	  continue;
+	}
+      else if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
 	{
 	  p = src;
 	  src += bytes;
@@ -633,6 +671,7 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
       while (bytes--) *dst++ = *p++;
       coding->produced_char++;
     }
+ label_end_of_loop:
   coding->consumed = coding->consumed_char = src_base - source;
   coding->produced = dst - destination;
 }
