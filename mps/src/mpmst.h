@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.45) $
+ * $HopeName: MMsrc!mpmst.h(trunk.46) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -123,6 +123,10 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct actionRing;        /* actions are attached to pool */
   Serial actionSerial;          /* serial of next action */
   Align alignment;              /* alignment for units */
+  double fillMutatorSize;       /* bytes filled, mutator buffers */
+  double emptyMutatorSize;      /* bytes emptied, mutator buffers */
+  double fillInternalSize;      /* bytes filled, internal buffers */
+  double emptyInternalSize;     /* bytes emptied, internal buffers */
 } PoolStruct;
 
 /* MFSStruct -- MFS (Manual Fixed Small) pool outer structure
@@ -285,8 +289,8 @@ typedef struct BufferStruct {
   Pool pool;                    /* owning pool */
   RingStruct poolRing;          /* buffers are attached to pools */
   Bool isMutator;               /* TRUE iff buffer used by mutator */
-  Count fill;                   /* total bytes filled in this buffer */
-  Count empty;                  /* total bytes emptied from this buffer */
+  double fillSize;              /* bytes filled in this buffer */
+  double emptySize;             /* bytes emptied from this buffer */
   RankSet rankSet;              /* ranks of references being created */
   Seg seg;                      /* segment being buffered */
   Addr base;                    /* base address of allocation buffer */
@@ -589,7 +593,12 @@ typedef struct ArenaStruct {
   Bool insidePoll;              /* design.mps.arena.poll */
   Bool clamped;                 /* prevent background activity */
   Size actionInterval;          /* design.mps.arena.poll.interval */
-  double allocTime;             /* "time" in allocated bytes */
+
+  double fillMutatorSize;       /* total bytes filled, mutator buffers */
+  double emptyMutatorSize;      /* total bytes emptied, mutator buffers */
+  double allocMutatorSize;      /* fill-empty, only asymptotically accurate */
+  double fillInternalSize;      /* total bytes filled, internal buffers */
+  double emptyInternalSize;     /* total bytes emptied, internal buffers */
 
   Shift zoneShift;              /* see also impl.c.ref */
   Align alignment;		/* minimum alignment of segments */

@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.39) $
+ * $HopeName: MMsrc!pool.c(trunk.40) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.39) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.40) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -58,6 +58,10 @@ Bool PoolCheck(Pool pool)
   CHECKL(RingCheck(&pool->actionRing));
   /* Cannot check pool->bufferSerial */
   CHECKL(AlignCheck(pool->alignment));
+  CHECKL(pool->fillMutatorSize >= 0.0);
+  CHECKL(pool->emptyMutatorSize >= 0.0);
+  CHECKL(pool->fillInternalSize >= 0.0);
+  CHECKL(pool->emptyInternalSize >= 0.0);
   return TRUE;
 }
 
@@ -96,6 +100,10 @@ Res PoolInitV(Pool pool, Arena arena,
   pool->bufferSerial = (Serial)0;
   pool->actionSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
+  pool->fillMutatorSize = 0.0;
+  pool->emptyMutatorSize = 0.0;
+  pool->fillInternalSize = 0.0;
+  pool->emptyInternalSize = 0.0;
 
   /* Initialise signature last; see design.mps.sig */
   pool->sig = PoolSig;
@@ -153,7 +161,7 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   /* requested  in the pool class.  See .space.free */
   res = ArenaAlloc(&base, arena, class->size); 
   if(res != ResOK)
-      goto failArenaAlloc;
+    goto failArenaAlloc;
 
   /* base is the address of the class-specific pool structure. */
   /* We calculate the address of the generic pool structure within the */
@@ -227,7 +235,8 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   AVER(size > 0);
 
   res = (*pool->class->alloc)(pReturn, pool, size);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   /* Make sure that the allocated address was in the pool's memory. */
   AVER(PoolHasAddr(pool, *pReturn));
@@ -378,22 +387,34 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                "  arena $P ($U)\n", 
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
+	       "  fillMutatorSize $UKb\n",
+	         (WriteFU)(pool->fillMutatorSize / 1024),
+	       "  emptyMutatorSize $UKb\n",
+	         (WriteFU)(pool->emptyMutatorSize / 1024),
+	       "  fillInternalSize $UKb\n",
+	         (WriteFU)(pool->fillInternalSize / 1024),
+	       "  emptyInternalSize $UKb\n",
+	         (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   res = (*pool->class->describe)(pool, stream);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   RING_FOR(node, &pool->bufferRing, nextNode) {
     Buffer buffer = RING_ELT(Buffer, poolRing, node);
     res = BufferDescribe(buffer, stream);
-    if(res != ResOK) return res;
+    if(res != ResOK)
+      return res;
   }
 
   res = WriteF(stream,
                "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   return ResOK;
 }
@@ -448,6 +469,13 @@ Align (PoolAlignment)(Pool pool)
 {
   AVERT(Pool, pool);
   return pool->alignment;
+}
+
+
+double PoolMutatorAllocSize(Pool pool)
+{
+  AVERT(Pool, pool);
+  return pool->fillMutatorSize - pool->emptyMutatorSize;
 }
 
 
