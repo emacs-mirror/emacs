@@ -429,7 +429,8 @@ code-point in CCS.  Currently not supported and just ignored."
   "Return the coding type of CODING-SYSTEM.
 A coding type is an integer value indicating the encoding method
 of CODING-SYSTEM.  See the function `make-coding-system' for more detail."
-  (aref (coding-system-spec coding-system) coding-spec-type-idx))
+  (let ((spec (coding-system-spec coding-system)))
+    (if spec (aref spec coding-spec-type-idx))))
 
 (defun coding-system-mnemonic (coding-system)
   "Return the mnemonic character of CODING-SYSTEM.
@@ -440,18 +441,21 @@ to indicate the coding system.  If the arg is nil, return ?-."
 
 (defun coding-system-doc-string (coding-system)
   "Return the documentation string for CODING-SYSTEM."
-  (aref (coding-system-spec coding-system) coding-spec-doc-string-idx))
+  (let ((spec (coding-system-spec coding-system)))
+    (if spec (aref spec coding-spec-doc-string-idx))))
 
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
-  (aref (coding-system-spec coding-system) coding-spec-plist-idx))
+  (let ((spec (coding-system-spec coding-system)))
+    (if spec (aref spec coding-spec-plist-idx))))
 
 (defun coding-system-flags (coding-system)
   "Return `flags' of CODING-SYSTEM.
 A `flags' of a coding system is a vector of length 32 indicating detailed
 information of a coding system.  See the function `make-coding-system'
 for more detail."
-  (aref (coding-system-spec coding-system) coding-spec-flags-idx))
+  (let ((spec (coding-system-spec coding-system)))
+    (if spec (aref spec coding-spec-flags-idx))))
 
 (defun coding-system-get (coding-system prop)
   "Extract a value from CODING-SYSTEM's property list for property PROP."
@@ -462,8 +466,8 @@ for more detail."
   (let ((plist (coding-system-plist coding-system)))
     (if plist
 	(plist-put plist prop val)
-      (aset (coding-system-spec coding-system) coding-spec-plist-idx
-	    (list prop val)))))
+      (let ((spec (coding-system-spec coding-system)))
+	(if spec (aset spec coding-spec-plist-idx (list prop val)))))))
 
 (defun coding-system-category (coding-system)
   "Return the coding category of CODING-SYSTEM.
@@ -1307,10 +1311,15 @@ ARG is a list of coding categories ordered by priority."
 charsets or coding systems.")
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
-;; by the ICCCM spec.  We support that by converting the leading
-;; sequence of the ``extended segment'' to the corresponding ISO-2022
-;; sequences (if the leading sequence names an Emacs charset), or decode
-;; the segment (if it names a coding system).  Encoding does the reverse.
+;; by the COMPOUND-TEXT spec.
+;; We support that by converting the leading sequence of the
+;; ``extended segment'' to the corresponding ISO-2022 sequences (if
+;; the leading sequence names an Emacs charset), or decode the segment
+;; (if it names a coding system).  Encoding does the reverse.
+;; This function also supports "The UTF-8 encoding" described in the
+;; section 7 of the documentation fo COMPOUND-TEXT distributed with
+;; XFree86.
+
 (defun ctext-post-read-conversion (len)
   "Decode LEN characters encoded as Compound Text with Extended Segments."
   (buffer-disable-undo)	; minimize consing due to insertions and deletions
@@ -1324,54 +1333,65 @@ charsets or coding systems.")
 	  last-coding-system-used
 	  encoding textlen chset)
       (while (re-search-forward
-	      "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002"
+	      "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002\\|\e%G[^\e]+\e%@"
 	      nil 'move)
 	(set-marker newpt (point))
 	(set-marker pt (match-beginning 0))
-	(setq encoding (match-string 3))
-	(setq textlen (- (+ (* (- (aref (match-string 2) 0) 128) 128)
-			    (- (aref (match-string 2) 1) 128))
-			 (1+ (length encoding))))
-	(setq
-	 chset (cdr (assoc-ignore-case encoding
-				       non-standard-icccm-encodings-alist)))
-	(cond ((null chset)
-	       ;; This charset is not supported--leave this extended
-	       ;; segment unaltered and skip over it.
-	       (goto-char (+ (point) textlen)))
-	      ((charsetp chset)
-	     ;; If it's a charset, replace the leading escape sequence
-	     ;; with a standard ISO-2022 sequence.  We will decode all
-	      ;; such segments later, in one go, when we exit the loop
-	       ;; or find an extended segment that names a coding
-	       ;; system, not a charset.
-	       (replace-match
-		(concat "\\1"
-			(if (= 0 (charset-iso-graphic-plane chset))
-			    ;; GL charsets
-			    (if (= 1 (charset-dimension chset)) "(" "$(")
-			  ;; GR charsets
-			  (if (= 96 (charset-chars chset))
-			      "-"
-			    (if (= 1 (charset-dimension chset)) ")" "$)")))
-			(string (charset-iso-final-char chset)))
-		t)
-	       (goto-char (+ (point) textlen)))
-	      ((coding-system-p chset)
-	     ;; If it's a coding system, we need to decode the segment
-	       ;; right away.  But first, decode what we've skipped
-	       ;; across until now.
-	       (when (> pt oldpt)
-		 (decode-coding-region oldpt pt 'ctext-no-compositions))
-	       (delete-region pt newpt)
-	       (set-marker newpt (+ newpt textlen))
-	       (decode-coding-region pt newpt chset)
-	       (goto-char newpt)
-	       (set-marker oldpt newpt))))
+	(if (= (preceding-char) ?@)
+	    ;; We found embedded utf-8 sequence.
+	    (progn
+	      (delete-char -3)		; delete ESC % @ at the tail
+	      (goto-char pt)
+	      (delete-char 3)		; delete ESC % G at the head
+	      (if (> pt oldpt)
+		  (decode-coding-region oldpt pt 'ctext-no-compositions))
+	      (decode-coding-region pt newpt 'mule-utf-8)
+	      (goto-char newpt)
+	      (set-marker oldpt newpt))
+	  (setq encoding (match-string 3))
+	  (setq textlen (- (+ (* (- (aref (match-string 2) 0) 128) 128)
+			      (- (aref (match-string 2) 1) 128))
+			   (1+ (length encoding))))
+	  (setq
+	   chset (cdr (assoc-ignore-case encoding
+					 non-standard-icccm-encodings-alist)))
+	  (cond ((null chset)
+		 ;; This charset is not supported--leave this extended
+		 ;; segment unaltered and skip over it.
+		 (goto-char (+ (point) textlen)))
+		((charsetp chset)
+		 ;; If it's a charset, replace the leading escape sequence
+		 ;; with a standard ISO-2022 sequence.  We will decode all
+		 ;; such segments later, in one go, when we exit the loop
+		 ;; or find an extended segment that names a coding
+		 ;; system, not a charset.
+		 (replace-match
+		  (concat "\\1"
+			  (if (= 0 (charset-iso-graphic-plane chset))
+			      ;; GL charsets
+			      (if (= 1 (charset-dimension chset)) "(" "$(")
+			    ;; GR charsets
+			    (if (= 96 (charset-chars chset))
+				"-"
+			      (if (= 1 (charset-dimension chset)) ")" "$)")))
+			  (string (charset-iso-final-char chset)))
+		  t)
+		 (goto-char (+ (point) textlen)))
+		((coding-system-p chset)
+		 ;; If it's a coding system, we need to decode the segment
+		 ;; right away.  But first, decode what we've skipped
+		 ;; across until now.
+		 (when (> pt oldpt)
+		   (decode-coding-region oldpt pt 'ctext-no-compositions))
+		 (delete-region pt newpt)
+		 (set-marker newpt (+ newpt textlen))
+		 (decode-coding-region pt newpt chset)
+		 (goto-char newpt)
+		 (set-marker oldpt newpt)))))
       ;; Decode what's left.
       (when (> (point) oldpt)
 	(decode-coding-region oldpt (point) 'ctext-no-compositions))
-     ;; This buffer started as unibyte, because the string we get from
+      ;; This buffer started as unibyte, because the string we get from
       ;; the X selection is a unibyte string.  We must now make it
       ;; multibyte, so that the decoded text is inserted as multibyte
       ;; into its buffer.
