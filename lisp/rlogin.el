@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.39 1997/05/05 01:00:35 rms Exp $
+;; $Id: rlogin.el,v 1.40 1997/06/23 08:22:53 friedman Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -320,7 +320,7 @@ local one share the same directories (through NFS)."
       (setq list (cons (substring line (match-beginning 0) (match-end 0))
                        list))
       (setq posn (match-end 0)))
-    (store-match-data (match-data))
+    (set-match-data (match-data))
     (nreverse list)))
 
 (defun rlogin-carriage-filter (string)
