@@ -850,7 +850,8 @@ For CVS, the full name of CVS/Entries is returned."
 		;; We found it.  Store away version number now that we 
 		;; are anyhow so close to finding it.
 		(vc-file-setprop file 'vc-workfile-version (match-string 1))
-                (vc-file-setprop file 'vc-checkout-time 0))
+		(vc-file-setprop file 'vc-checkout-time 0)
+		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       (t nil)))
 	  (kill-buffer buffer)))))
 
