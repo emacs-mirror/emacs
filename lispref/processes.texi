@@ -106,12 +106,11 @@ specify overrides for it with @code{process-environment}.  @xref{System
 Environment}.
 
 @defvar exec-directory 
-@pindex wakeup
+@pindex movemail
 The value of this variable is the name of a directory (a string) that
 contains programs that come with GNU Emacs, that are intended for Emacs
-to invoke.  The program @code{wakeup} is an example of such a program;
-the @code{display-time} command uses it to get a reminder once per
-minute.
+to invoke.  The program @code{movemail} is an example of such a program;
+Rmail uses it to fetch new mail from an inbox.
 @end defvar
 
 @defopt exec-path
