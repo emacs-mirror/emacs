@@ -75,6 +75,9 @@ ALL-FRAMES nil or omitted means cycle within the selected frame,
 but include the minibuffer window (if MINIBUF says so) that that
 frame uses, even if it is on another frame.
 If ALL-FRAMES is neither nil nor t, stick strictly to the selected frame."
+  ;; If we start from the minibuffer window, don't fail to come back to it.
+  (if (window-minibuffer-p (selected-window))
+      (setq minibuf t))
   (let* ((walk-windows-start (selected-window))
 	 (walk-windows-current walk-windows-start))
     (while (progn
