@@ -1,3 +1,31 @@
+2002-06-25  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-ftp-method): New user option.
+	(tramp-invoke-ange-ftp): New function to forward calls to
+	Ange-FTP.
+
+	(with-parsed-tramp-file-name): New macro for the usual big `let'
+	statement to dissect a file-name.
+
+	(tramp-handle-make-symbolic-link, tramp-handle-load) 
+	(tramp-handle-file-name-directory) 
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename) 
+	(tramp-handle-file-truename, tramp-handle-file-directory-p) 
+	(tramp-handle-file-regular-p, tramp-handle-file-symlink-p) 
+	(tramp-handle-file-writable-p, tramp-handle-file-writable-p):
+
+        Use the new macro and forward call to Ange-FTP if applicable.
+
+	(tramp-make-ange-ftp-file-name): New helper function to convert a
+	file name into an Ange-FTP file name, used by
+	`tramp-invoke-ange-ftp'.
+	
+        (tramp-default-method-alist): New user option.
+	(tramp-find-default-method): Use it.
+
+	(tramp-sh-extra-args): New variable.
+	(tramp-find-shell): Use it.
+
 2002-06-25  Andreas Schwab  <schwab@suse.de>
 
 	* replace.el (occur-1): Avoid invalid message format string.
