@@ -202,6 +202,7 @@ Specifies how to recognise special constructs such as include files
 etc. and an associated method for extracting the filename from that
 construct.")
 
+(defvaralias 'ff-related-file-alist 'ff-other-file-alist)
 (defcustom ff-other-file-alist 'cc-other-file-alist
   "*Alist of extensions to find given the current file's extension.
 
@@ -310,6 +311,9 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
     (setq ff-ignore-include t)
     (ff-find-the-other-file in-other-window)
     (setq ff-ignore-include ignore)))
+
+;;;###
+(defalias 'ff-find-related-file 'ff-find-other-file)
 
 ;;;###autoload
 (defun ff-find-other-file (&optional in-other-window ignore-include)
