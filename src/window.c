@@ -1092,7 +1092,7 @@ enum window_loop
   DELETE_OTHER_WINDOWS,		/* Arg is window not to delete */
   DELETE_BUFFER_WINDOWS,	/* Arg is buffer */
   GET_LARGEST_WINDOW,
-  UNSHOW_BUFFER,		/* Arg is buffer */
+  UNSHOW_BUFFER		/* Arg is buffer */
 };
 
 static Lisp_Object
