@@ -2574,18 +2574,18 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory)
+	elt backup-directory failed)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
 	  (setq backup-directory (cdr elt)
 		alist nil)))
-    (if (null backup-directory)
-	file
-      (unless (file-exists-p backup-directory)
+    (if (and backup-directory (not (file-exists-p backup-directory)))
 	(condition-case nil
 	    (make-directory backup-directory 'parents)
-	  (file-error file)))
+	  (file-error (setq backup-directory nil))))
+    (if (null backup-directory)
+	file
       (if (file-name-absolute-p backup-directory)
 	  (progn
 	    (when (memq system-type '(windows-nt ms-dos))
@@ -3199,6 +3199,9 @@ to create parent directories if they don't exist."
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
 	 t))
+  ;; If default-directory is a remote directory,
+  ;; make sure we find its make-directory handler.
+  (setq dir (expand-file-name dir))
   (let ((handler (find-file-name-handler dir 'make-directory)))
     (if handler
 	(funcall handler 'make-directory dir parents)
