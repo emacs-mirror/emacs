@@ -52,6 +52,7 @@ in paths.el.")
 
 (defvar Info-fontify-maximum-menu-size 30000
   "*Maximum size of menu to fontify if `Info-fontify' is non-nil.")
+
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
 	(sep (if (eq system-type 'ms-dos) ";" ":"))
@@ -89,6 +90,10 @@ If you run the Emacs executable from the `src' directory in the Emacs
 source tree, the `info' directory in the source tree is used as the last
 element, in place of the installation Info directory.  This is useful
 when you run a version of Emacs without installing it.")
+
+(defvar Info-additional-directory-list nil
+  "List of additional directories to search for Info documentation files.
+These directories are not searched for merging the `dir' file.")
 
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.")
@@ -210,7 +215,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			  ;; If specified name starts with `./'
 			  ;; then just try current directory.
 			  '("./")
-			Info-directory-list)))
+			(if Info-additional-directory-list
+			    (append Info-directory-list
+				    Info-additional-directory-list)
+			  Info-directory-list))))
 	    ;; Search the directory list for file FILENAME.
 	    (while (and dirs (not found))
 	      (setq temp (expand-file-name filename (car dirs)))
