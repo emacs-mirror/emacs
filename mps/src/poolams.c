@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.6) $
+ * $HopeName: MMsrc!poolams.c(trunk.7) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.6) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.7) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -444,6 +444,7 @@ static Res AMSBufferFill(Seg *segReturn,
   Ring node, ring;              /* for iterating over the segments */
   Index base, limit;
   RankSet rankSet;
+  Bool b;                       /* the return value of AMSGroupAlloc */
 
   AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
@@ -464,7 +465,6 @@ static Res AMSBufferFill(Seg *segReturn,
     Seg seg = SegOfPoolRing(node);
     if (SegBuffer(seg) == NULL &&
 	SegRankSet(seg) == rankSet) {
-      Bool b;
       group = AMSSegGroup(seg);
       AVERT(AMSGroup, group);
       b = AMSGroupAlloc(&base, &limit, group, size);
@@ -478,9 +478,9 @@ static Res AMSBufferFill(Seg *segReturn,
   if (res != ResOK)
     return res;
   b = AMSGroupAlloc(&base, &limit, group, size);
-  AVER(b);
   
 found:
+  AVER(b);
   *segReturn = group->seg;
   *baseReturn = AMSIndexAddr(group, base);
   *limitReturn = AMSIndexAddr(group, limit);
@@ -767,7 +767,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
   closureStruct.ss = ss;
 
-  if (scanAllObjects) { /* design.mps.poolams.scan.all */
+  if (closureStruct.scanAllObjects) { /* design.mps.poolams.scan.all */
 
     res = AMSIterate(ams, group, seg, arena, AMSScanObject,
 		     &closureStruct);
