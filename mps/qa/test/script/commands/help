@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:commands:help(trunk.3) $
+# $HopeName: MMQA_harness!script:commands:help(trunk.4) $
 #
 # provide help on QA functions
 #
@@ -17,7 +17,10 @@ if (@ARGV) {
    &summhelp($_);
   }
  }
- print "For help on a topic, type 'qa help <topic>'.\n";
+ print "For help on a topic, type 'qa help <topic>'.\n\n";
+ print "For general instructions on how to run tests, see guide.mmqa in\n";
+ print "the MM Information database.\n";
+
  closedir(DIR);
 }
 
