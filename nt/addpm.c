@@ -44,7 +44,7 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	DdeClientTransaction (str, strlen (str)+1, HConversation, (HSZ)NULL, \
 		              CF_TEXT, XTYP_EXECUTE, 30000, NULL)
 
-#define REG_ROOT "SOFTWARE\\GNU\\Emacs\\"
+#define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 static struct entry
 {
@@ -53,14 +53,14 @@ static struct entry
 } 
 env_vars[] = 
 {
-  {"emacs_path", NULL},
-  {"EMACSLOADPATH", "%emacs_path%\\lisp"},
+  {"emacs_dir", NULL},
+  {"EMACSLOADPATH", "%emacs_dir%\\lisp"},
   {"SHELL", "cmd"},
-  {"EMACSDATA", "%emacs_path%\\etc"},
-  {"EMACSPATH", "%emacs_path%\\bin"},
-  {"EMACSLOCKDIR", "%emacs_path%\\lock"},
-  {"INFOPATH", "%emacs_path%\\info"},
-  {"EMACSDOC", "%emacs_path%\\etc"},
+  {"EMACSDATA", "%emacs_dir%\\etc"},
+  {"EMACSPATH", "%emacs_dir%\\bin"},
+  {"EMACSLOCKDIR", "%emacs_dir%\\lock"},
+  {"INFOPATH", "%emacs_dir%\\info"},
+  {"EMACSDOC", "%emacs_dir%\\etc"},
   {"TERM", "cmd"}
 };
 
@@ -128,7 +128,7 @@ main (argc, argv)
     {
       DdeCommand ("[CreateGroup (Gnu Emacs)]");
       DdeCommand ("[ReplaceItem (Emacs)]");
-      sprintf (additem, "[AddItem (%s\\bin\\emacs.%s, Emacs%c%s)]",
+      sprintf (additem, "[AddItem (%s\\bin\\runemacs.%s, Emacs%c%s)]",
 	       argv[1], lpext, (argc>2 ? ',' : ' '),
 	       (argc>2 ? argv[2] : ""));
       DdeCommand (additem);
