@@ -43,17 +43,18 @@ Function to indent current line.")
   "Indent line in proper way for current major mode."
   (interactive "P")
   (if (eq indent-line-function 'indent-to-left-margin)
-      (insert-tab)
+      (insert-tab prefix-arg)
     (if prefix-arg
 	(funcall indent-line-function prefix-arg)
       (funcall indent-line-function))))
 
-(defun insert-tab ()
-  (if abbrev-mode
-      (expand-abbrev))
-  (if indent-tabs-mode
-      (insert ?\t)
-    (indent-to (* tab-width (1+ (/ (current-column) tab-width))))))
+(defun insert-tab (&optional prefix-arg)
+  (let ((count (prefix-numeric-value prefix-arg)))
+    (if abbrev-mode
+	(expand-abbrev))
+    (if indent-tabs-mode
+	(insert ?\t count)
+      (indent-to (* tab-width (+ count (/ (current-column) tab-width)))))))
 
 (defun indent-rigidly (start end arg)
   "Indent all lines starting in the region sideways by ARG columns.
