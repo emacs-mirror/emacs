@@ -146,7 +146,7 @@ lower-precedence keymaps; thus, if the local map gives a binding of
 @cindex prompt string of keymap
 Aside from bindings, a keymap can also have a string as an element.
 This is called the @dfn{overall prompt string} and makes it possible to
-use the keymap as a menu.  @xref{Menu Keymaps}.
+use the keymap as a menu.  @xref{Defining Menus}.
 @end table
 
 @cindex meta characters lookup
@@ -228,8 +228,8 @@ to @code{nil}, and does not bind any other kind of event.
 @end example
 
 If you specify @var{prompt}, that becomes the overall prompt string for
-the keymap.  The prompt string is useful for menu keymaps (@pxref{Menu
-Keymaps}).
+the keymap.  The prompt string is useful for menu keymaps
+(@pxref{Defining Menus}).
 @end defun
 
 @defun make-sparse-keymap &optional prompt
@@ -475,7 +475,7 @@ as a variable instead.
 
 If @var{prompt} is non-@code{nil}, that becomes the overall prompt
 string for the keymap.  The prompt string is useful for menu keymaps
-(@pxref{Menu Keymaps}).
+(@pxref{Defining Menus}).
 @end defun
 
 @node Active Keymaps
@@ -1526,8 +1526,13 @@ work with the keyboard also.
 A keymap is suitable for menu use if it has an @dfn{overall prompt
 string}, which is a string that appears as an element of the keymap.
 (@xref{Format of Keymaps}.)  The string should describe the purpose of
-the menu.  The easiest way to construct a keymap with a prompt string is
-to specify the string as an argument when you call @code{make-keymap} or
+the menu's commands.  Emacs displays the overall prompt string as the
+menu title in some cases, depending on which toolkit is used for
+displaying menus.  Keyboard menus also display the overall prompt
+string.
+
+The easiest way to construct a keymap with a prompt string is to specify
+the string as an argument when you call @code{make-keymap} or
 @code{make-sparse-keymap} (@pxref{Creating Keymaps}).
 
 The order of items in the menu is the same as the order of bindings in
@@ -1872,12 +1877,13 @@ When a prefix key ending with a keyboard event (a character or function
 key) has a definition that is a menu keymap, the user can use the
 keyboard to choose a menu item.
 
-Emacs displays the menu alternatives (the item strings of the bindings)
-in the echo area.  If they don't all fit at once, the user can type
-@key{SPC} to see the next line of alternatives.  Successive uses of
-@key{SPC} eventually get to the end of the menu and then cycle around to
-the beginning.  (The variable @code{menu-prompt-more-char} specifies
-which character is used for this; @key{SPC} is the default.)
+Emacs displays the menu's overall prompt string followed by the
+alternatives (the item strings of the bindings) in the echo area.  If
+the bindings don't all fit at once, the user can type @key{SPC} to see
+the next line of alternatives.  Successive uses of @key{SPC} eventually
+get to the end of the menu and then cycle around to the beginning.  (The
+variable @code{menu-prompt-more-char} specifies which character is used
+for this; @key{SPC} is the default.)
 
 When the user has found the desired alternative from the menu, he or she
 should type the corresponding character---the one whose binding is that
