@@ -77,7 +77,7 @@
 (defcustom traceroute-program-options nil
   "Options for the traceroute program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom ping-program "ping"
@@ -94,7 +94,7 @@
   "Options for the ping program.
 These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom ipconfig-program  
@@ -112,7 +112,7 @@ These options can be used to limit how many ICMP packets are emitted."
 	"/all" "-a"))
   "Options for ipconfig-program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom netstat-program  "netstat"
@@ -125,7 +125,7 @@ These options can be used to limit how many ICMP packets are emitted."
   (list "-a")
   "Options for netstat-program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom arp-program  "arp"
@@ -138,7 +138,7 @@ These options can be used to limit how many ICMP packets are emitted."
   (list "-a")
   "Options for arp-program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom route-program  
@@ -156,7 +156,7 @@ These options can be used to limit how many ICMP packets are emitted."
     (list "-r"))
   "Options for route-program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom nslookup-program  "nslookup"
@@ -168,7 +168,7 @@ These options can be used to limit how many ICMP packets are emitted."
 (defcustom nslookup-program-options  nil
   "List of options to pass to the nslookup program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom nslookup-prompt-regexp "^> "
@@ -186,7 +186,7 @@ These options can be used to limit how many ICMP packets are emitted."
 (defcustom ftp-program-options nil
   "List of options to pass to the FTP program."
   :group 'net-utils
-  :type  '(repeat 'string)
+  :type  '(repeat string)
   )
 
 (defcustom ftp-prompt-regexp "^ftp>"
