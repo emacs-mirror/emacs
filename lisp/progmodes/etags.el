@@ -820,6 +820,7 @@ See documentation of variable `tags-file-name'."
   ;; We go through find-tag-other-window to do all the display hair there.
   (funcall (if other-window 'find-tag-other-window 'find-tag)
 	   regexp next-p t))
+;;;###autoload (define-key esc-map [?\C-.] 'find-tag-regexp)
 
 ;; Internal tag finding function.
 
