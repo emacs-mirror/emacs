@@ -177,6 +177,7 @@ localtime_r (t, tp)
 /* Some systems lack the `memset' function and we don't want to
    introduce additional dependencies.  */
 static const char spaces[16] = "                ";
+static const char zeroes[16] = "0000000000000000";
 
 # define memset_space(P, Len) \
   do {									      \
@@ -191,11 +192,26 @@ static const char spaces[16] = "                ";
       }									      \
     while (_len > 0);							      \
   } while (0)
+
+# define memset_zero(P, Len) \
+  do {									      \
+    int _len = (Len);							      \
+									      \
+    do									      \
+      {									      \
+	int _this = _len > 16 ? 16 : _len;				      \
+	memcpy ((P), zeroes, _this);					      \
+	(P) += _this;							      \
+	_len -= _this;							      \
+      }									      \
+    while (_len > 0);							      \
+  } while (0)
 #else
 # define memset_space(P, Len) (memset ((P), ' ', (Len)), (P) += (Len))
+# define memset_zero(P, Len) (memset ((P), '0', (Len)), (P) += (Len))
 #endif
 
-#define	add(n, f) \
+#define	add(n, f)							      \
   do									      \
     {									      \
       int _n = (n);							      \
@@ -206,7 +222,12 @@ static const char spaces[16] = "                ";
       if (p)								      \
 	{								      \
 	  if (_delta > 0)						      \
-	    memset_space (p, _delta);					      \
+	    {								      \
+	      if (pad == '0')						      \
+		memset_zero (p, _delta);				      \
+	      else							      \
+		memset_space (p, _delta);				      \
+	    }								      \
 	  f;								      \
 	  p += _n;							      \
 	}								      \
