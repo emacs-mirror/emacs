@@ -1,5 +1,46 @@
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (mark_object): Don't mark symbol names in pure space.
+	(gc_sweep): Don't unmark symbol names in pure space.
+
+	* lisp.h (GC_USE_GCPROS_AS_BEFORE, GC_MAKE_GCPROS_NOOPS)
+	(GC_MARK_STACK_CHECK_GCPROS, GC_USE_GCPROS_CHECK_ZOMBIES)
+	[GC_MARK_STACK]: New defines.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, UNGCPRO) 
+	[GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS]: Define as no-ops.
+
+	* emacs.c (main) [GC_MARK_STACK]: Initialize stack_base.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Use
+	allocate_buffer instead of xmalloc.
+
+	* alloc.c (toplevel): Include setjmp.h.
+	(PURE_POINTER_P): New define.
+	(enum mem_type) [GC_MARK_STACK]: New enumeration.
+	(Vdead) [GC_MARK_STACK]: New variable.
+	(lisp_malloc): Add parameter TYPE, call mem_insert if
+	GC_MARK_STACK is defined.
+	(allocate_buffer): New function.
+	(lisp_free) [GC_MARK_STACK]: Call mem_delete. 
+	(free_float) [GC_MARK_STACK]: Set type to Vdead.
+	(free_cons) [GC_MARK_STACK]: Set car to Vdead.
+	(stack_base, mem_root, mem_z) [GC_MARK_STACK]: New variables.
+	(MEM_NIL) [GC_MARK_STACK]: New define.
+	(struct mem_node) [GC_MARK_STACK]: New structure.
+	(mem_init, mem_find, mem_insert, mem_delete, mem_insert_fixup)
+	(mem_delete_fixup, mem_rotate_left, mem_rotate_right)
+	(live_string_p, live_cons_p, live_symbol_p, live_float_p)
+	(live_misc_p, live_vector_p, live_buffer_p, mark_memory)
+	(mark_stack) [GC_MARK_STACK]: New functions.
+	(Fgarbage_collect) [GC_MARK_STACK]: Call mark_stack.
+	(clear_marks): Removed.
+	(gc_sweep): Set free conses' car, free floats' type, free
+	symbols' function to Vdead.  Use lisp_free to free buffers.
+	(init_alloc_once): Initialize Vdead.
+	(survives_gc_p): Return non-zero for pure objects.
+
+	* alloc.c: Add comments throughout the file.
+
 	* atimer.c (stop_other_atimers): Don't call cancel_atimer because
 	that unblocks alarms.
 
