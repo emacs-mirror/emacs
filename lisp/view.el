@@ -264,7 +264,7 @@ If you viewed an existing buffer, that buffer returns to its previous mode.
 If you viewed a file that was not present in Emacs, its buffer is killed."
   (interactive)
   (setq view-mode nil)
-  (delete-overlay view-overlay)
+  (and view-overlay (delete-overlay view-overlay))
   (force-mode-line-update)
   (cond (view-mode-auto-exit
 	 (setq buffer-read-only view-old-buffer-read-only)
