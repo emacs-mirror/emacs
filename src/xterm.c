@@ -99,7 +99,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef USE_LUCID
-extern int xlwmenu_window_p (Widget w, Window window);
+extern int xlwmenu_window_p P_ ((Widget w, Window window));
 extern void xlwmenu_redisplay P_ ((Widget));
 #endif
 
