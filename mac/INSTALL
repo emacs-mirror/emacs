@@ -79,13 +79,6 @@ vt100|vt100-am|vt100am|dec vt100:\
     :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
 -----
 
-To build a binary distribution of Emacs for Mac OS X, run the shell
-script make-bin-dist in the `mac' directory.  This will create a file
-emacs-21.xx.yy-mac-bin.tar.gz.
-
-To install the binary distribution, untar the file and run the shell
-script osx-install in its top-level directory.
-
 To build the `info' files, you need to install the texinfo software.
 
 To install from source, obtain texinfo-4.2.tar.gz from ftp.gnu.org or
