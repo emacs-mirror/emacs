@@ -2458,12 +2458,6 @@ x_scroll_bar_expose (bar, event)
 		  /* x, y, width, height */
 		  0, 0, XINT (bar->width) - 1, XINT (bar->height) - 1);
 
-  /* Draw another line to make the extra-thick border on the right.  */
-  XFillRectangle (x_current_display, w, gc,
-
-		  /* x, y, width, height */
-		  XINT (bar->width) - 2, 1, 1, XINT (bar->height) - 2);
-
   UNBLOCK_INPUT;
 }
 
