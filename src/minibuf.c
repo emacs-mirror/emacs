@@ -399,6 +399,8 @@ Lisp_Object
 minibuffer_completion_contents ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
+  if (PT < prompt_end)
+    error ("Cannot do completion in the prompt");
   return make_buffer_string (prompt_end, PT, 1);
 }
 
