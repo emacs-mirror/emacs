@@ -204,27 +204,37 @@
 ;; ---------------------------------------------------------------------------
 ;; We want to delay setting frame parameters until the faces are setup
 (defvar default-frame-alist nil)
+(modify-frame-parameters terminal-frame default-frame-alist)
 
 (defun msdos-face-setup ()
-  (modify-frame-parameters (selected-frame) default-frame-alist)
+  (modify-frame-parameters terminal-frame default-frame-alist)
 
-  (set-face-foreground 'bold "yellow")
-  (set-face-foreground 'italic "red")
-  (set-face-foreground 'bold-italic "lightred")
-  (set-face-foreground 'underline "white")
-  (set-face-background 'region "green")
+  (set-face-foreground 'bold "yellow" terminal-frame)
+  (set-face-foreground 'italic "red" terminal-frame)
+  (set-face-foreground 'bold-italic "lightred" terminal-frame)
+  (set-face-foreground 'underline "white" terminal-frame)
+  (set-face-background 'region "green" terminal-frame)
 
   (make-face 'msdos-menu-active-face)
   (make-face 'msdos-menu-passive-face)
   (make-face 'msdos-menu-select-face)
-  (set-face-foreground 'msdos-menu-active-face "white")
-  (set-face-foreground 'msdos-menu-passive-face "lightgray")
-  (set-face-background 'msdos-menu-active-face "blue")
-  (set-face-background 'msdos-menu-passive-face "blue")
-  (set-face-background 'msdos-menu-select-face "red"))
+  (set-face-foreground 'msdos-menu-active-face "white" terminal-frame)
+  (set-face-foreground 'msdos-menu-passive-face "lightgray" terminal-frame)
+  (set-face-background 'msdos-menu-active-face "blue" terminal-frame)
+  (set-face-background 'msdos-menu-passive-face "blue" terminal-frame)
+  (set-face-background 'msdos-menu-select-face "red" terminal-frame))
 
 ;; We have only one font, so...
 (add-hook 'before-init-hook 'msdos-face-setup)
+
+;; We create frames as if we were a terminal, but with a twist.
+(defun make-msdos-frame (&optional parameters)
+  (let ((parms
+	 (append initial-frame-alist default-frame-alist parameters nil)))
+    (make-terminal-frame parms)))
+
+(setq frame-creation-function 'make-msdos-frame)
+
 ;; ---------------------------------------------------------------------------
 ;; More or less useful imitations of certain X-functions.  A lot of the
 ;; values returned are questionable, but usually only the form of the
@@ -233,8 +243,6 @@
 
 ;; From src/xfns.c
 (defun x-display-color-p (&optional display) 't)
-(fset 'focus-frame 'ignore)
-(fset 'unfocus-frame 'ignore)
 (defun x-list-fonts (pattern &optional face frame) (list "default"))
 (defun x-color-defined-p (color) (numberp (msdos-color-translate color)))
 (defun x-display-pixel-width (&optional frame) (frame-width frame))
@@ -292,20 +300,6 @@ The value may be different for frames on different X displays."
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.
-(fset 'auto-raise-mode 'ignore)
-(fset 'auto-lower-mode 'ignore)
-(defun set-background-color (color-name)
-  "Set the background color of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
-  (interactive "sColor: ")
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'background-color color-name))))
-(defun set-foreground-color (color-name)
-  "Set the foreground color of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
-  (interactive "sColor: ")
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'foreground-color color-name))))
 ;; ---------------------------------------------------------------------------
 ;; Handle the X-like command line parameters "-fg" and "-bg"
 (defun msdos-handle-args (args)
@@ -330,8 +324,3 @@ When called interactively, prompt for the name of the color to use."
 
 (setq command-line-args (msdos-handle-args command-line-args))
 ;; ---------------------------------------------------------------------------
-(require 'faces)
-(if (msdos-mouse-p)
-    (progn
-      (require 'menu-bar)
-      (menu-bar-mode t)))
