@@ -262,21 +262,18 @@
 
 2003-02-01  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* time-stamp.el: Update example date in preamble commentary.
+	* time-stamp.el: Tweak doc strings and preamble commentary.
 	(time-stamp): Fix parsing of "%%a" in time-stamp-pattern (change
 	regexp subpattern 5)
 	(time-stamp-pattern): Initialize to nil to avoid regexp work in
 	default case.
 	(time-stamp-string): Call set-time-zone-rule instead of setenv
-	(time-stamp-hhmmss): Remove (not needed after all).
-	(time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy,
-	time-stamp-mon-dd-yyyy, time-stamp-dd-mon-yy, time-stamp-yy/mm/dd,
-	time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd, time-stamp-yymmdd,
-	time-stamp-hh:mm:ss, time-stamp-hhmm): Make obsolete.
-	(time-stamp-format, time-stamp-pattern, time-stamp-warn-inactive,
-	time-stamp-inserts-lines, time-stamp-count, time-stamp-time-zone,
-	time-stamp, time-stamp-toggle-active, time-stamp-string-preprocess,
-	time-stamp-once, time-stamp-conv-warn): Tweak doc strings.
+	
+	* time-stamp.el (time-stamp-hhmmss): Remove (not needed after all).
+	(time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy)
+	(time-stamp-mon-dd-yyyy, time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
+	(time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd, time-stamp-yymmdd)
+	(time-stamp-hh:mm:ss, time-stamp-hhmm): Make obsolete.
 
 2003-01-31  Christoph Wedler  <Christoph.Wedler@sap.com>
 
