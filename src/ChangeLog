@@ -1,3 +1,7 @@
+2002-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* unexelf.c (unexec) [__sgi]: Undo the change from 2002-01-20.
+
 2002-04-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (sync_frame_with_window_matrix_rows): Don't give frame
