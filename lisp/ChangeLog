@@ -1,3 +1,10 @@
+2002-05-08  Markus Rost  <rost@math.ohio-state.edu>
+
+	* filesets.el (filesets-conditional-sort): Use copy-sequence, not
+	copy-list.
+	(filesets-menu-path, filesets-menu-before, filesets-menu-in-menu):
+	Defvar them to nil if running in Emacs.
+
 2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (make-flyspell-overlay): Add help text
