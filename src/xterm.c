@@ -2854,7 +2854,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  }
 		else if (event.xclient.data.l[0] == Xatom_wm_delete_window)
 		  {
-		    struct frame *f = x_window_to_frame (event.xclient.window);
+		    struct frame *f = x_any_window_to_frame (event.xclient.window);
 
 		    if (f)
 		      {
