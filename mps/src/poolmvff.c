@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.2) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscmvff.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.2) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.3) $");
 
 
 extern PoolClass PoolClassMVFF(void);
@@ -135,6 +135,7 @@ static void MVFFFreeSegs(MVFF mvff)
   Seg seg;
   Arena arena;
   Bool b;
+  Res res;
   Pool pool;
   Addr segLimit;  /* limit of the current segment when iterating */
   Addr freeBase;  /* base of the area returned to the arena */
@@ -198,7 +199,8 @@ static void MVFFFreeSegs(MVFF mvff)
       freeLimit = segLimit;
     }
     
-    MVFFRemoveFromFreeList(mvff, freeBase, freeLimit);
+    res = MVFFRemoveFromFreeList(mvff, freeBase, freeLimit);
+    AVER(res == ResOK);
     mvff->total -= AddrOffset(freeBase, freeLimit);
   }
 
@@ -261,6 +263,8 @@ static Res MVFFAddSeg(MVFF mvff, Size size, Bool withReservoirPermit)
   AVER(!mvff->freeRangeToCheck);
 
   res = MVFFAddToFreeList(mvff, SegBase(seg), SegLimit(seg));
+  AVER(res == ResOK);
+
   /* We don't want to remove the entirely free segment from the */
   /* free list. */
   if(mvff->freeRangeToCheck) {
@@ -332,9 +336,11 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
     if(res != ResOK) 
       return res;
     foundBlock = MVFFFindFirstFree(&base, &limit, mvff, size);
-    AVER(foundBlock);
   }
-  MVFFRemoveFromFreeList(mvff, base, limit);
+  AVER(foundBlock);
+
+  res = MVFFRemoveFromFreeList(mvff, base, limit);
+  AVER(res == ResOK);
   *aReturn = base;
 
   return ResOK;
@@ -362,6 +368,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   limit = AddrAdd(base, size);
 
   res = MVFFAddToFreeList(mvff, base, limit);
+  AVER(res == ResOK);
   if (res != ResOK)
     return;
   if(mvff->freeRangeToCheck) 
