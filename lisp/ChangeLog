@@ -1,3 +1,7 @@
+2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* newcomment.el (comment-multi-line): Doc fix.
+
 2004-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
