@@ -1,3 +1,9 @@
+1999-10-24  Ken Raeburn  <raeburn@raeburn.org>
+
+	* s/netbsd.h (HAVE_GETLOADAVG): Define as 1.
+	(UNEXEC, START_FILES, LIB_STANDARD, LIB_GCC): Define ELF versions,
+	if __ELF__ is defined.
+
 1999-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fnext_window): Add a QUIT in the loop.

@@ -12,7 +12,7 @@
 
 #undef KERNEL_FILE
 #undef LDAV_SYMBOL
-#define HAVE_GETLOADAVG
+#define HAVE_GETLOADAVG 1
 
 #define HAVE_UNION_WAIT
 
@@ -57,7 +57,15 @@
 #define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
-#endif /* not NO_SHARED_LIBS */
+#endif /* not NO_SHARED_LIBS and not ELF */
+
+#if !defined (NO_SHARED_LIBS) && defined (__ELF__)
+#define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
+#define UNEXEC unexelf.o
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
+#undef LIB_GCC
+#define LIB_GCC
+#endif
 
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
