@@ -1,5 +1,8 @@
 2000-12-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (window_scroll_pixel_based): Don't use
+	move_it_vertically.
+
 	* dispnew.c (direct_output_for_insert): Fix check for mini-window
 	currently displaying a message.
 

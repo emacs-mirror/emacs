@@ -17,7 +17,7 @@
 
 	* progmodes/idlwave.el: Fixed copyright notice.
 
-	* textmodes/reftex-dcr.el (reftex-view-crossref): added SPACE and
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Added SPACE and
 	TAB as key separators.
 
 2000-12-19  Alex Schroeder  <alex@gnu.org>
