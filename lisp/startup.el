@@ -732,16 +732,17 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 		   (if window-system
 		       (insert "\n
 C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
-		   (if (directory-files (file-name-directory auto-save-list-file-prefix)
-					nil
-					(concat "\\`"
-						(regexp-quote
-						 (file-name-nondirectory
-						  auto-save-list-file-prefix)))
-					t)
-		       (insert "\n\nIf an Emacs session crashed recently,\n"
-			       "type M-x recover-session RET to recover"
-			       " the files you were editing."))
+		   (and auto-save-list-file-prefix
+			(directory-files
+			 (file-name-directory auto-save-list-file-prefix)
+			 nil
+			 (concat "\\`"
+				 (regexp-quote (file-name-nondirectory
+						auto-save-list-file-prefix)))
+			 t)
+			(insert "\n\nIf an Emacs session crashed recently,\n"
+				"type M-x recover-session RET to recover"
+				" the files you were editing."))
 
 		   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
