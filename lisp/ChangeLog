@@ -1,3 +1,19 @@
+2005-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el: Don't forcibly turn on the mode upon load.
+	(icomplete-mode): Use define-minor-mode.
+	(icomplete-eoinput): Default to nil.
+	(icomplete-minibuffer-setup): Remove autoload.
+	(icomplete-tidy): Simplify.
+	(icomplete-exhibit): Use buffer-undo-list to determine if we're still
+	in the initial state or if the user has modified the field.
+	Fix handling of icomplete-max-delay-chars.
+	Remove code that handles the oddball case where
+	minibuffer-completion-table is an integer.
+	Wrap icomplete-completions in while-no-input in case building
+	completions takes more time than expected.
+	(icomplete-completions): Simplify.
+
 2005-03-21  Richard M. Stallman  <rms@gnu.org>
 
 	* jka-compr.el (jka-compr-really-do-compress):
