@@ -203,7 +203,7 @@ Returns one of:
    ((looking-at "</")
     '())
    ;;  opening tag
-   ((looking-at "<\\([^/> \t]+\\)")
+   ((looking-at "<\\([^/> \t\n]+\\)")
     (let* ((node-name (match-string 1))
 	   (children (list (intern node-name)))
 	   pos)
