@@ -164,11 +164,11 @@ by `lisp-body-indent'."
                         (not (eq (char-after (- containing-sexp 2)) ?\#)))
                    ;; No indentation for "'(...)" elements
                    (setq calculated (1+ sexp-column)))
-		  ((or (eq (char-after (1- containing-sexp)) ?\,)
-		       (and (eq (char-after (1- containing-sexp)) ?\@)
-			    (eq (char-after (- containing-sexp 2)) ?\,)))
-		   ;; ",(...)" or ",@(...)"
-		   (setq calculated normal-indent))
+                  ((or (eq (char-after (1- containing-sexp)) ?\,)
+                       (and (eq (char-after (1- containing-sexp)) ?\@)
+                            (eq (char-after (- containing-sexp 2)) ?\,)))
+                   ;; ",(...)" or ",@(...)"
+                   (setq calculated normal-indent))
                   ((eq (char-after (1- containing-sexp)) ?\#)
                    ;; "#(...)"
                    (setq calculated (1+ sexp-column)))
@@ -192,15 +192,15 @@ by `lisp-body-indent'."
                                            ;; other body form
                                            normal-indent))))
                   ((symbolp method)
-		   (let ((lisp-indent-error-function function))
-		     (setq calculated (funcall method
-					       path state indent-point
-					       sexp-column normal-indent))))
+                   (let ((lisp-indent-error-function function))
+                     (setq calculated (funcall method
+                                               path state indent-point
+                                               sexp-column normal-indent))))
                   (t
-		   (let ((lisp-indent-error-function function))
-		     (setq calculated (lisp-indent-259
-				       method path state indent-point
-				       sexp-column normal-indent))))))
+                   (let ((lisp-indent-error-function function))
+                     (setq calculated (lisp-indent-259
+                                       method path state indent-point
+                                       sexp-column normal-indent))))))
           (goto-char containing-sexp)
           (setq last-point containing-sexp)
           (unless calculated
@@ -241,16 +241,16 @@ by `lisp-body-indent'."
           (setq tem (car method))
 
           (or (eq tem 'nil)             ;default indentation
-	      (eq tem '&lambda)		;lambda list
+              (eq tem '&lambda)         ;lambda list
               (and (eq tem '&body) (null (cdr method)))
               (and (eq tem '&rest)
-		   (consp (cdr method))
-		   (null (cddr method)))
+                   (consp (cdr method))
+                   (null (cddr method)))
               (integerp tem)            ;explicit indentation specified
               (and (consp tem)          ;destructuring
                    (eq (car tem) '&whole)
-		   (or (symbolp (cadr tem))
-		       (integerp (cadr tem))))
+                   (or (symbolp (cadr tem))
+                       (integerp (cadr tem))))
               (and (symbolp tem)        ;a function to call to do the work.
                    (null (cdr method)))
               (lisp-indent-report-bad-format method))
@@ -346,14 +346,14 @@ by `lisp-body-indent'."
   (if (>= (car path) 3)
       (let ((lisp-tag-body-indentation lisp-body-indent))
         (funcall (function lisp-indent-tagbody)
-		 path state indent-point sexp-column normal-indent))
+                 path state indent-point sexp-column normal-indent))
     (funcall (function lisp-indent-259)
-	     '((&whole nil &rest
- 		;; the following causes weird indentation
- 		;;(&whole 1 1 2 nil)
-		)
-	       (&whole nil &rest 1))
-	     path state indent-point sexp-column normal-indent)))
+             '((&whole nil &rest
+                ;; the following causes weird indentation
+                ;;(&whole 1 1 2 nil)
+                )
+               (&whole nil &rest 1))
+             path state indent-point sexp-column normal-indent)))
 
 (defun lisp-indent-function-lambda-hack (path state indent-point
                                          sexp-column normal-indent)
@@ -375,83 +375,83 @@ by `lisp-body-indent'."
 
 
 (let ((l '((block 1)
-	   (case        (4 &rest (&whole 2 &rest 1)))
-	   (ccase . case) (ecase . case)
-	   (condition-case ((1 4) (&whole 2 ((0 1) (1 3) (2 &body)))))
-	   (typecase . case) (etypecase . case) (ctypecase . case)
-	   (catch 1)
-	   (cond        (&rest (&whole 2 &rest 1)))
-	   (defvar      (4 2 2))
-	   (defclass    ((&whole 4 &rest (&whole 2 &rest 1))
-			 &rest (&whole 2 &rest 1)))
-	   (defconstant . defvar)
+           (case        (4 &rest (&whole 2 &rest 1)))
+           (ccase . case) (ecase . case)
+           (condition-case ((1 4) (&whole 2 ((0 1) (1 3) (2 &body)))))
+           (typecase . case) (etypecase . case) (ctypecase . case)
+           (catch 1)
+           (cond        (&rest (&whole 2 &rest 1)))
+           (defvar      (4 2 2))
+           (defclass    ((&whole 4 &rest (&whole 2 &rest 1))
+                         &rest (&whole 2 &rest 1)))
+           (defconstant . defvar)
            (defcustom   (4 2 2 2))
-	   (defparameter . defvar)
-	   (define-modify-macro
-			(4 &body))
-	   (defsetf     (4 &lambda 4 &body))
-	   (defun       (4 &lambda &body))
-	   (define-setf-method . defun)
-	   (define-setf-expander . defun)
-	   (defmacro . defun) (defsubst . defun) (deftype . defun)
-	   (defmethod   (4 4 (&whole 4 &rest 1) &body))
-	   (defpackage  (4 2))
-	   (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
-			 &rest (&whole 2 &rest 1)))
-	   (destructuring-bind
-			((&whole 6 &rest 1) 4 &body))
-	   (do          lisp-indent-do)
-	   (do* . do)
-	   (dolist      ((&whole 4 2 1) &body))
-	   (dotimes . dolist)
-	   (eval-when	1)
-	   (flet        ((&whole 4 &rest (&whole 1 &lambda &body)) &body))
-	   (labels . flet)
-	   (macrolet . flet)
+           (defparameter . defvar)
+           (define-modify-macro
+                        (4 &body))
+           (defsetf     (4 &lambda 4 &body))
+           (defun       (4 &lambda &body))
+           (define-setf-method . defun)
+           (define-setf-expander . defun)
+           (defmacro . defun) (defsubst . defun) (deftype . defun)
+           (defmethod   (4 4 (&whole 4 &rest 1) &body))
+           (defpackage  (4 2))
+           (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
+                         &rest (&whole 2 &rest 1)))
+           (destructuring-bind
+                        ((&whole 6 &rest 1) 4 &body))
+           (do          lisp-indent-do)
+           (do* . do)
+           (dolist      ((&whole 4 2 1) &body))
+           (dotimes . dolist)
+           (eval-when   1)
+           (flet        ((&whole 4 &rest (&whole 1 &lambda &body)) &body))
+           (labels . flet)
+           (macrolet . flet)
            (handler-case (4 &rest (&whole 2 &lambda &body)))
            (restart-case . handler-case)
-	   ;; `else-body' style
-	   (if          (nil nil &body))
-	   ;; single-else style (then and else equally indented)
-	   (if          (&rest nil))
-	   (lambda      (&lambda &rest lisp-indent-function-lambda-hack))
-	   (let         ((&whole 4 &rest (&whole 1 1 2)) &body))
-	   (let* . let)
-	   (compiler-let . let) ;barf
+           ;; `else-body' style
+           (if          (nil nil &body))
+           ;; single-else style (then and else equally indented)
+           (if          (&rest nil))
+           (lambda      (&lambda &rest lisp-indent-function-lambda-hack))
+           (let         ((&whole 4 &rest (&whole 1 1 2)) &body))
+           (let* . let)
+           (compiler-let . let) ;barf
            (handler-bind . let) (restart-bind . let)
-	   (locally 1)
-	   ;(loop ...)
-	   (multiple-value-bind 
-			((&whole 6 &rest 1) 4 &body))
-	   (multiple-value-call
-			(4 &body))
-	   (multiple-value-prog1 1)
-	   (multiple-value-setq
-			(4 2))
-	   (multiple-value-setf . multiple-value-setq)
+           (locally 1)
+           ;(loop ...)
+           (multiple-value-bind
+                        ((&whole 6 &rest 1) 4 &body))
+           (multiple-value-call
+                        (4 &body))
+           (multiple-value-prog1 1)
+           (multiple-value-setq (4 2))
+           (multiple-value-setf . multiple-value-setq)
            (pprint-logical-block (4 2))
-	   ;; Combines the worst features of BLOCK, LET and TAGBODY
-	   (prog        (&lambda &rest lisp-indent-tagbody))
-	   (prog* . prog)
-	   (prog1 1)
-	   (prog2 2)
-	   (progn 0)
-	   (progv       (4 4 &body))
-	   (return 0)
-	   (return-from (nil &body))
-	   (symbol-macrolet . multiple-value-bind)
-	   (tagbody     lisp-indent-tagbody)
-	   (throw 1)
-	   (unless 1)
-	   (unwind-protect (5 &body))
+           (print-unreadable-object ((&whole 4 1 &rest 1) &body))
+           ;; Combines the worst features of BLOCK, LET and TAGBODY
+           (prog        (&lambda &rest lisp-indent-tagbody))
+           (prog* . prog)
+           (prog1 1)
+           (prog2 2)
+           (progn 0)
+           (progv       (4 4 &body))
+           (return 0)
+           (return-from (nil &body))
+           (symbol-macrolet . multiple-value-bind)
+           (tagbody     lisp-indent-tagbody)
+           (throw 1)
+           (unless 1)
+           (unwind-protect (5 &body))
            (when 1)
            (with-output-to-string (4 2))
            (with-standard-io-syntax (2)))))
   (while l
     (put (caar l) 'common-lisp-indent-function
-	 (if (symbolp (cdar l))
-	     (get (cdar l) 'common-lisp-indent-function)
-	     (car (cdar l))))
+         (if (symbolp (cdar l))
+             (get (cdar l) 'common-lisp-indent-function)
+             (car (cdar l))))
     (setq l (cdr l))))
 
 
@@ -482,7 +482,7 @@ by `lisp-body-indent'."
 ;             (t
 ;              (lose
 ;                3))))))
-          
+
 
 ;(put 'while    'common-lisp-indent-function 1)
 ;(put 'defwrapper'common-lisp-indent-function ...)

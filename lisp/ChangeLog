@@ -1,3 +1,8 @@
+2000-06-20  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/cl-indent.el (toplevel): Indent
+	`print-unreadable-object' properly.  Untabify.
+
 2000-06-14  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* textmodes/reftex.el (reftex-find-citation-regexp-format):
@@ -109,7 +114,7 @@
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (distclean): New target.
-	
+
 2000-06-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (srcdir): Define for update-subdirs.
@@ -146,9 +151,9 @@
 
 2000-06-15  Gerd Moellmann  <gerd@gnu.org>
 
-	* info.el (Info-find-in-tag-table-1, Info-find-in-tag-table) 
+	* info.el (Info-find-in-tag-table-1, Info-find-in-tag-table)
 	(Info-find-node-in-buffer-1, Info-find-node-in-buffer): New
-	functions. 
+	functions.
 	(Info-find-node-2): Try a case-sensitive search first, then
 	do a case-insensitive search.
 
@@ -215,7 +220,7 @@
 	* image.el (insert-image): Default STRING to a space.
 
 	* info.el Doc fixes.
-	(Info-build-node-completions): Match Ref tags. 
+	(Info-build-node-completions): Match Ref tags.
 
 2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
 
@@ -253,9 +258,9 @@
 	* thingatpt.el (toplevel symbol-properties):
 	* textmodes/makeinfo.el (makeinfo-compile):
 	* progmodes/make-mode.el (makefile-pickup-filenames-as-targets):
-	* progmodes/hideif.el (hif-compress-define-list) 
+	* progmodes/hideif.el (hif-compress-define-list)
 	(hide-ifdef-use-define-alist):
-	* net/ange-ftp.el (ange-ftp-vms-delete-file-entry) 
+	* net/ange-ftp.el (ange-ftp-vms-delete-file-entry)
 	(ange-ftp-vms-add-file-entry):
 	* menu-bar.el (menu-bar-update-buffers, menu-bar-update-buffers):
 	* man.el (Man-build-man-command):
@@ -263,8 +268,8 @@
 	* info.el (Info-insert-dir):
 	* emulation/mlconvert.el (backward-word, forward-word, setq):
 	* emacs-lisp/gulp.el (gulp-send-requests):
-	* emacs-lisp/byte-opt.el (byte-compile-log-lap-1) 
-	(byte-optimize-inline-handler, byte-optimize-form-code-walker) 
+	* emacs-lisp/byte-opt.el (byte-compile-log-lap-1)
+	(byte-optimize-inline-handler, byte-optimize-form-code-walker)
 	(byte-optimize-apply, end of file):
 	* emacs-lisp/advice.el (ad-advice-class-completion-table)
 	(ad-make-freeze-definition):
@@ -356,7 +361,7 @@
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): If one of
-	undecided-XXX is specified, change only EOL conversion. 
+	undecided-XXX is specified, change only EOL conversion.
 
 	* international/mule-conf.el (unix): New alias for the coding
 	system undecided-unix.
@@ -3147,7 +3152,7 @@
 
 2000-02-25  Sam Steingold  <sds@goems.com>
 
-	* emacs-lisp/cl-indent.el (toplvel): Indent `pprint-logical-block'
+	* emacs-lisp/cl-indent.el (toplevel): Indent `pprint-logical-block'
 	properly.
 
 2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
