@@ -1175,6 +1175,7 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   else
     {
       CHECK_NUMBER (end, 2);
+      endval = XINT (end);
       if (endval < 0 || endval > XSTRING (string)->size)
 	args_out_of_range (string, end);
     }
@@ -1184,6 +1185,7 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   else
     {
       CHECK_NUMBER (start, 1);
+      startval = XINT (start);
       if (startval < 0 || startval > endval)
 	args_out_of_range (string, start);
     }
