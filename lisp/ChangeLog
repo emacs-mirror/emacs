@@ -1,3 +1,10 @@
+2000-09-27 +00  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (set-frame-font): Remove call to obsolete function
+	frame-update-faces.
+	(set-foreground-color, set-background-color): Likewise for
+	frame-update-face-colors.
+
 2000-09-27  Miles Bader  <miles@gnu.org>
 
 	* image-file.el: New file.
