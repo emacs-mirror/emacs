@@ -4,12 +4,12 @@
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.  
+ * that decodes the MutatorFaultContext. 
  *
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * .source.i486: Intel486 Microprocessor Family Programmer's
  * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
@@ -58,8 +58,8 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 
 /* Prmci3DecodeFaultContext -- decode fault to find faulting address and IP */
 
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, 
-                              Byte **insvecReturn, 
+void Prmci3DecodeFaultContext(MRef *faultmemReturn,
+                              Byte **insvecReturn,
                               MutatorFaultContext context)
 {
   struct sigcontext *scp;

@@ -5,9 +5,9 @@
  *
  * .source: design.mps.telemetry
  *
- * .desc: This file declares relationships that define the various 
- * event types.  It is intended to be used with clever definitions 
- * of the RELATION macro. 
+ * .desc: This file declares relationships that define the various
+ * event types.  It is intended to be used with clever definitions
+ * of the RELATION macro.
  *
  * TRANSGRESSIONS
  *
@@ -44,17 +44,17 @@
 
 
 /* Relations -- Generic definitions of events
- * 
+ *
  * These specify:
  *   - Type: The name of the event type, without the leading "Event";
  *   - Code: The unique 16-bit code associated with this event type,
  *     not currently used (see impl.h.eventcom);
- *   - Always: Whether this event type should appear in optimised 
+ *   - Always: Whether this event type should appear in optimised
  *     varieties, not currently used;
  *   - Kind: Category into which this event falls, without the
  *     leading "EventKind";
  *   - Format: Character sequence indicating the format of the event
- *     parameters, similar to writef (Pointer, Addr, Word, Unsigned, 
+ *     parameters, similar to writef (Pointer, Addr, Word, Unsigned,
  *     String, Double).
  */
 

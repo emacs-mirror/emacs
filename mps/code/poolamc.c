@@ -71,10 +71,10 @@ typedef struct amcNailboardStruct {
 #define amcNailboardSig ((Sig)0x519A3C4B) /* SIGnature AMC Nailboard */
 
 
-/* AMCGSegStruct -- AMC segment structure 
+/* AMCGSegStruct -- AMC segment structure
  *
  * .segtype: AMC segs have a pointer to the type field of either
- * a nailboard or a generation. This initial value is passed 
+ * a nailboard or a generation. This initial value is passed
  * as an additional parameter when the segment is allocated.
  * See design.mps.poolamc.fix.nail.distinguish.
  */
@@ -110,7 +110,7 @@ static Bool amcSegCheck(amcSeg amcseg)
 
 /* AMCSegInit -- initialise an AMC segment */
 
-static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
                       Bool reservoirPermit, va_list args)
 {
   int *segtype = va_arg(args, int*);  /* .segtype */
@@ -341,7 +341,7 @@ static Bool amcNailboardCheck(amcNailboard board)
  * This subclass of SegBuf records a link to a generation.
  */
 
-#define amcBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */ 
+#define amcBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */
 
 typedef struct amcBufStruct *amcBuf;
 
@@ -1967,7 +1967,7 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->grey = PoolNoGrey;
   this->scan = PoolNoScan;
 }
-  
+ 
 
 /* mps_class_amc -- return the pool class descriptor to the client */
 

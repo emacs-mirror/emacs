@@ -93,7 +93,7 @@ ECHO = echo
 !ifdef TARGET
 !if "$(TARGET)" == "mmsw.lib" || "$(TARGET)" == "epvmss.exe" || "$(TARGET)" == "replaysw.exe"
 CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
-CFLAGSTARGETPOST = 
+CFLAGSTARGETPOST =
 CRTFLAGSW = /MD
 CRTFLAGSH = /MDd
 CRTFLAGSC = /MDd
@@ -103,7 +103,7 @@ LINKFLAGSCOOL = msvcrtd.lib
 
 !elseif "$(TARGET)" == "mmdw.lib"
 # /Oy- is actually 86-specific, but Dylan is only built for that platform
-CFLAGSTARGETPRE = /DCONFIG_PROD_DYLAN 
+CFLAGSTARGETPRE = /DCONFIG_PROD_DYLAN
 CFLAGSTARGETPOST = /Oy-
 CRTFLAGSW = /MT
 CRTFLAGSH = /MT
@@ -179,10 +179,10 @@ LIBMAN = lib                  # can't call this LIB - it screws the environment
 LIBFLAGSCOMMON = /nologo
 LIBFLAGSWE =
 LIBFLAGSWI =
-LIBFLAGSHE = 
-LIBFLAGSHI = 
-LIBFLAGSCE = 
-LIBFLAGSCI = 
+LIBFLAGSHE =
+LIBFLAGSHI =
+LIBFLAGSCE =
+LIBFLAGSCI =
 LIBFLAGSTI =
 #LIBFLAGSCV =
 

@@ -16,7 +16,7 @@
  *
  * .tract: Tracts represent the grains of memory allocation from
  * the arena.  See design.mps.arena.
- * 
+ *
  * .bool: The hasSeg field is a boolean, but can't be represented
  * as type Bool. See design.mps.arena.tract.field.hasSeg.
  */
@@ -49,7 +49,7 @@ extern void TractFinish(Tract tract);
 
 /* TRACT_*SEG -- Test / set / unset seg->tract associations
  *
- * These macros all multiply evaluate the tract parameter 
+ * These macros all multiply evaluate the tract parameter
  */
 
 #define TRACT_SEG(segReturn, tract) \
@@ -71,7 +71,7 @@ extern void TractFinish(Tract tract);
  * .page: The "pool" field must be the first field of the "tail"
  * field of this union.  See design.mps.arena.tract.field.pool.
  *
- * .states: Pages (hence PageStructs that describe them) can be in 
+ * .states: Pages (hence PageStructs that describe them) can be in
  * one of 3 states:
  *  allocated (to a pool as tracts)
  *   allocated pages are mapped

@@ -51,7 +51,7 @@ static mps_word_t *tvw;
 
 
 static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
-                                mps_word_t es, mps_word_t vf) 
+                                mps_word_t es, mps_word_t vf)
 {
   /* VERSION- ... VB------ reserved ES---VF- */
   return((version << (MPS_WORD_WIDTH - 8)) |

@@ -99,22 +99,22 @@ typedef struct ProtocolInstStruct *ProtocolInst;
 
 /* ProtocolCoerceInstMethod -- coerce "pro" to an instance of "interface"
  *
- * If "pro" is an instance of "interface", then returns TRUE 
- * and sets coerceResult to point directly to the part of "pro" 
- * which contains the slots for "interface" 
+ * If "pro" is an instance of "interface", then returns TRUE
+ * and sets coerceResult to point directly to the part of "pro"
+ * which contains the slots for "interface"
  */
 typedef Bool (*ProtocolCoerceInstMethod)(ProtocolInst *coerceResult,
-                                         ProtocolInst pro, 
+                                         ProtocolInst pro,
                                          ProtocolClass interface);
 
 /* ProtocolCoerceClassMethod -- coerce "proClass" to an "interface" class
  *
  * If "proClass" is a subclass of "interface", then returns TRUE
- * and sets coerceResult to point directly to the part of 
+ * and sets coerceResult to point directly to the part of
  * "proClass" which contains the slots for "interface".
  */
 typedef Bool (*ProtocolCoerceClassMethod)(ProtocolClass *coerceResult,
-                                          ProtocolClass proClass, 
+                                          ProtocolClass proClass,
                                           ProtocolClass interface);
 
 
@@ -135,7 +135,7 @@ typedef struct ProtocolInstStruct {
 
 /* ProtocolClassGet -- Returns the root of the protocol class hierarchy
  *
- * Function name conforms to standard conventions for 
+ * Function name conforms to standard conventions for
  * protocols.
  */
 extern ProtocolClass ProtocolClassGet(void);
@@ -174,7 +174,7 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 /* SUPERCLASS  - get the superclass object, given a class name
  *
  * Returns the superclass, with type ProtocolClass. Clients will
- * probably wish to cast this. See 
+ * probably wish to cast this. See
  * design.mps.protocol.int.static-superclass
  */
 #define SUPERCLASS(className)  \

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
  *
- *  This scans the stack and fixes the registers which may contain 
+ *  This scans the stack and fixes the registers which may contain
  *  roots.  See design.mps.thread-manager
  *
  *  The registers edi, esi, ebx are the registers defined to be preserved

@@ -80,8 +80,8 @@ void (LockReleaseRecursive)(Lock lock)
 }
 
 
-/* Global locking is performed by normal locks. 
- * A separate lock structure is used for recursive and 
+/* Global locking is performed by normal locks.
+ * A separate lock structure is used for recursive and
  * non-recursive locks so that each may be differently ordered
  * with respect to client-allocated locks.
  */

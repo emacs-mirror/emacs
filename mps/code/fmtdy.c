@@ -182,7 +182,7 @@ int dylan_wrapper_check(mps_word_t *w)
   /* size.  This assumes that DylanWorks is only going to use byte */
   /* vectors in the non-word case. */
 
-  /* Variable part format 6 is reserved. */  
+  /* Variable part format 6 is reserved. */ 
   assert(vf != 6);
 
   /* There should be no shift in word vector formats. */
@@ -802,7 +802,7 @@ mps_fmt_B_s *dylan_fmt_B_weak(void)
 }
 
 
-/* Now we have format variety-independent version that pick the right 
+/* Now we have format variety-independent version that pick the right
  * format variety and create it.
  */
 

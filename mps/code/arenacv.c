@@ -28,15 +28,15 @@
 
 /* testAllocAndIterate  -- Test arena allocation and iteration
  *
- * .tract-seg: Test allocation and iteration, using both low-level 
- * tracts and higher-level segments. To do this, contrive a set of 
+ * .tract-seg: Test allocation and iteration, using both low-level
+ * tracts and higher-level segments. To do this, contrive a set of
  * allocation and iteration functions which are interchangeable.
  */
 
 /* Type definitions for the interchangability interface */
 
 
-/* AllocInfo -- interchangeable info about  allocated regions */ 
+/* AllocInfo -- interchangeable info about  allocated regions */
 
 typedef struct AllocInfoStruct *AllocInfo;
 
@@ -60,7 +60,7 @@ typedef void (*FreeFun)(AllocInfo ai);
 
 typedef Bool (*FirstFun)(AllocInfoStruct *aiReturn, Arena arena);
 
-typedef Bool (*NextFun)(AllocInfoStruct *nextReturn, AllocInfo ai, 
+typedef Bool (*NextFun)(AllocInfoStruct *nextReturn, AllocInfo ai,
                         Arena arena);
 
 typedef Count (*UnitsFun)(Count pages);
@@ -103,8 +103,8 @@ static Res allocAsTract(AllocInfoStruct *aiReturn, SegPref pref,
 
 static void freeAsTract(AllocInfo ai)
 {
-  ArenaFree(ai->the.tractData.base, 
-            ai->the.tractData.size, 
+  ArenaFree(ai->the.tractData.base,
+            ai->the.tractData.size,
             ai->the.tractData.pool);
 }
 
@@ -121,7 +121,7 @@ static Bool firstAsTract(AllocInfoStruct *aiReturn, Arena arena)
   return res;
 }
 
-static Bool nextAsTract(AllocInfoStruct *nextReturn, AllocInfo ai, 
+static Bool nextAsTract(AllocInfoStruct *nextReturn, AllocInfo ai,
                         Arena arena)
 {
   Bool res;
@@ -152,7 +152,7 @@ static void testAsTract(AllocInfo ai, Arena arena)
   cdie(found, "TractOfAddr");
   base = TractBase(tract);
   cdie(base == ai->the.tractData.base, "base");
-  
+ 
 }
 
 static void copyAsTract(AllocInfoStruct *toReturn, AllocInfo from)
@@ -203,7 +203,7 @@ static Bool firstAsSeg(AllocInfoStruct *aiReturn, Arena arena)
   return res;
 }
 
-static Bool nextAsSeg(AllocInfoStruct *nextReturn, AllocInfo ai, 
+static Bool nextAsSeg(AllocInfoStruct *nextReturn, AllocInfo ai,
                       Arena arena)
 {
   Bool res;
@@ -229,7 +229,7 @@ static void testAsSeg(AllocInfo ai, Arena arena)
   Seg seg = ai->the.segData.seg;
   Addr base, limit;
   Size size;
-  
+ 
   UNUSED(arena);
   base = SegBase(seg);
   limit = SegLimit(seg);
@@ -255,7 +255,7 @@ static AllocatorClassStruct allocatorSegStruct = {
 
 /* The main function can use either tracts or segs */
 
-static void testAllocAndIterate(Arena arena, Pool pool, 
+static void testAllocAndIterate(Arena arena, Pool pool,
                                 Size pageSize, Count numPerPage,
                                 AllocatorClass allocator)
 {
@@ -304,12 +304,12 @@ static void testAllocAndIterate(Arena arena, Pool pool,
           }
 
           /* Should be able to iterate over at least offset, new, top */
-          expected = 
+          expected =
             allocator->units(offset) +
-            allocator->units(new) + 
+            allocator->units(new) +
             allocator->units(1);
 
-          if (regionNum >= expected) 
+          if (regionNum >= expected)
             enoughRegions = ResOK;
           else
             enoughRegions = ResFAIL;
@@ -352,11 +352,11 @@ static void testPageTable(ArenaClass class, ...)
   printf("%ld tracts per page in the page table.\n", (long)tractsPerPage);
 
   /* test tract allocation and iteration */
-  testAllocAndIterate(arena, pool, pageSize, tractsPerPage, 
+  testAllocAndIterate(arena, pool, pageSize, tractsPerPage,
                       &allocatorTractStruct);
 
   /* test segment allocation and iteration */
-  testAllocAndIterate(arena, pool, pageSize, tractsPerPage, 
+  testAllocAndIterate(arena, pool, pageSize, tractsPerPage,
                       &allocatorSegStruct);
 
   PoolDestroy(pool);
