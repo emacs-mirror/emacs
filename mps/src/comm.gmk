@@ -1,9 +1,9 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.18) $
+# $HopeName: MMsrc!comm.gmk(trunk.19) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
-# DSCRIPTION
+# DESCRIPTION
 #
 # This makefile fragment is included in more specific makefiles for
 # platforms which use GNU make.
@@ -166,6 +166,10 @@ LOOBJ = $(LO:%.c=$(PFM)/$(VARIETY)/%.o)
 LODEP = $(LO:%.c=$(PFM)/$(VARIETY)/%.d)
 DWOBJ = $(DW:%.c=$(PFM)/$(VARIETY)/%.o)
 DWDEP = $(DW:%.c=$(PFM)/$(VARIETY)/%.d)
+POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
+POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
+ARENAANOBJ = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.o)
+ARENAANDEP = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.d)
 SWOBJ = $(SW:%.c=$(PFM)/$(VARIETY)/%.o)
 # The following hack for SWDEP only creates those dependencies when
 # mmsw.a is being built.
@@ -309,16 +313,15 @@ $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
 	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
-	$(PFM)/$(VARIETY)/pooln.o \
-	$(MPMOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ) $(ARENAANOBJ)
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
 	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
-	$(MPMOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
-$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(PFM)/$(VARIETY)/pooln.o
+$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ)
 
 $(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
 
@@ -373,7 +376,8 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
-include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP)
+include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
+	$(AWLDEP) $(DWDEP) $(POOLNDEP) $(ARENAANDEP) $(TESTLIBDEP)
 endif
 endif
 
