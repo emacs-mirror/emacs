@@ -1224,7 +1224,9 @@ DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 2, 0,
 If BUFFER is nil, then some other buffer is chosen.\n\
 If `pop-up-windows' is non-nil, windows can be split to do this.\n\
 If optional second arg OTHER-WINDOW is non-nil, insist on finding another\n\
-window even if BUFFER is already visible in the selected window.")
+window even if BUFFER is already visible in the selected window.\n\
+This uses the function `display-buffer' as a subroutine; see the documentation\n\
+of `display-buffer' for additional customization information.")
   (buffer, other_window)
      Lisp_Object buffer, other_window;
 {
