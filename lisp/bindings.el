@@ -183,7 +183,8 @@ Major modes that edit things other than ordinary files may change this
 
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
-(defvar mode-line-frame-identification '("-%F  "))
+(defvar mode-line-frame-identification '("-%F  ")
+  "Mode-line control to describe the current frame.")
 
 (defvar mode-line-process nil "\
 Mode-line control for displaying info on process status.
@@ -219,15 +220,22 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-modified)
 
-(setq-default mode-line-format
-  (let* ((help-echo
-	  ;; The multi-line message doesn't work terribly well on the
-	  ;; bottom mode line...  Better ideas?
+;; Actual initialization is below.
+(defvar mode-line-position nil
+  "Mode-line control for displaying line number, column number and fraction.")
+
+(defvar mode-line-modes nil
+  "Mode-line control for displaying major and minor modes.")
+
+(let* ((help-echo
+	;; The multi-line message doesn't work terribly well on the
+	;; bottom mode line...  Better ideas?
 ;;; 	  "\
 ;;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 ;;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	  "mouse-1: select window, mouse-2: delete others, mouse-3: delete ...")
+	  "mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete")
 	 (dashes (propertize "--" 'help-echo help-echo)))
+  (setq-default mode-line-format
     (list
      (propertize "-" 'help-echo help-echo)
      'mode-line-mule-info
@@ -236,17 +244,24 @@ Normally nil in most modes, since there is no process to display.")
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
      'global-mode-string
+     'mode-line-modes
+     `(which-func-mode ("" which-func-format ,dashes))
+     'mode-line-position
+     (propertize "-%-" 'help-echo help-echo)))
+
+  (setq-default mode-line-modes
+    (list
      (propertize "   %[(" 'help-echo help-echo)
      '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
      (propertize "%n" 'help-echo "mouse-2: widen"
 		 'local-map (make-mode-line-mouse-map
 			     'mouse-2 #'mode-line-widen))
-     (propertize ")%]--" 'help-echo help-echo)
-     `(which-func-mode ("" which-func-format ,dashes))
-     `(line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
-     `(column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
-     `(-3 . ,(propertize "%p" 'help-echo help-echo))
-     (propertize "-%-" 'help-echo help-echo))))
+     (propertize ")%]--" 'help-echo help-echo)))
+
+  (setq-default mode-line-position 
+    `((line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
+      (column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
+      (-3 . ,(propertize "%p" 'help-echo help-echo)))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
