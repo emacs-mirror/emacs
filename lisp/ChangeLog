@@ -1,3 +1,7 @@
+2004-07-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (defcustom): Doc fix.
+
 2004-07-28  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (etags-tags-apropos): Show building progress.
