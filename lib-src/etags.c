@@ -589,8 +589,8 @@ static char *Cplusplus_suffixes [] =
     "pdb",			/* Postscript with C syntax */
     NULL };
 static char Cplusplus_help [] =
-"In C++ code, all the tag constructs of C code are tagged\n\
-(use --help --lang=c --lang=c++ for full help).\n\
+"In C++ code, all the tag constructs of C code are tagged.  (Use\n\
+--help --lang=c --lang=c++ for full help.)\n\
 In addition to C tags, member functions are also recognized, and\n\
 optionally member variables if you use the `--members' option.\n\
 Tags for variables and functions in classes are named `CLASS::VARIABLE'\n\
@@ -601,7 +601,7 @@ static char *Cjava_suffixes [] =
   { "java", NULL };
 static char Cjava_help [] =
 "In Java code, all the tags constructs of C and C++ code are\n\
-tagged (use --help --lang=c --lang=c++ --lang=java for full help).";
+tagged.  (Use --help --lang=c --lang=c++ --lang=java for full help.)";
 
 
 static char *Cobol_suffixes [] =
