@@ -1,6 +1,6 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;; Free Sofware Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -346,7 +346,7 @@ See documentation for variable `ebnf-yac-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; "string"
        ((eq token 'string)
 	(setq ebnf-yac-lex (ebnf-get-string))
@@ -425,7 +425,7 @@ See documentation for variable `ebnf-yac-lex'."
        ((= (following-char) ?\')
 	(ebnf-string " -&(-~" ?\' "character"))
        (t
-	(error "Illegal character"))
+	(error "Invalid character"))
        )))
   (ebnf-yac-skip-spaces))
 
@@ -476,7 +476,7 @@ See documentation for variable `ebnf-yac-lex'."
 	       (forward-char)
 	       (setq not-end nil)))
 	    (t
-	     (error "Illegal character"))
+	     (error "Invalid character"))
 	    ))))
 
 

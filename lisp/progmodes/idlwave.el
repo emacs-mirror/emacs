@@ -1,5 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
-;; Copyright (c) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation
+;; Copyright (c) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;  Free Software Foundation
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -5587,7 +5588,7 @@ other completions will be tried.")
 		      (symbolp what)
 		      (assoc (symbol-name what) what-list))
 		 what)
-		(t (error "Illegal WHAT"))))
+		(t (error "Invalid WHAT"))))
 	 (nil-list '(nil nil nil nil))
 	 (class-list (list nil nil (or class t) nil)))
 
@@ -5656,7 +5657,7 @@ other completions will be tried.")
      ((eq what 'class)
       (list nil-list nil-list 'class nil-list nil))
      
-     (t (error "Illegal value for WHAT")))))
+     (t (error "Invalid value for WHAT")))))
 
 (defun idlwave-completing-read (&rest args)
   ;; Completing read, case insensitive

@@ -1,6 +1,6 @@
 ;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)
 
-;; Copyright (C) 2004 Free Sofware Foundation, Inc.
+;; Copyright (C) 2004, 2005 Free Sofware Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -453,7 +453,7 @@ See documentation for variable `ebnf-ebx-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; end of rule
        ((eq token 'end-of-rule)
 	'end-of-rule)

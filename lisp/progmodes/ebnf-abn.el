@@ -1,6 +1,6 @@
 ;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
 
-;; Copyright (C) 2004 Free Sofware Foundation, Inc.
+;; Copyright (C) 2004, 2005 Free Sofware Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -518,7 +518,7 @@ See documentation for variable `ebnf-abn-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; end of rule
        ((eq token 'end-of-rule)
 	'end-of-rule)
@@ -600,7 +600,7 @@ See documentation for variable `ebnf-abn-lex'."
 	((= (following-char) ?\n)
 	 t)
 	(t
-	 (error "Illegal character"))
+	 (error "Invalid character"))
 	))
 
 

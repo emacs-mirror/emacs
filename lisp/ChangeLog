@@ -8,6 +8,11 @@
 	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
 	`invalid'.
 	* mail/supercite.el: Replace `illegal' with `invalid'.
+	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el,
+	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el,
+	progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el,
+	progmodes/sh-script.el, progmodes/xscheme.el: Replace `illegal' with
+	`invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
