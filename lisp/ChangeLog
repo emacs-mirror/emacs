@@ -1,5 +1,8 @@
 2000-05-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* dabbrev.el (dabbrev-expand): Don't display messages in the
+	echo area if the minibuffer window is active.
+
 	* jit-lock.el (jit-lock-mode): Add after change function to
 	local hook.
 

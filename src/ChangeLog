@@ -1,5 +1,8 @@
 2000-05-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* syntax.c (find_defun_start): Move test for
+	open_paren_in_column_0_is_defun_start outside of the loop.
+
 	* xdisp.c (redisplay_window): Really switch buffers when
 	displaying mode lines, and temporarily set selected_frame to the
 	frame of the window that's redisplayed.
