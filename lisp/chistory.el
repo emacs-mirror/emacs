@@ -122,17 +122,22 @@ The buffer is left in Command History mode."
       (goto-char (point-min))
       (if (eobp)
 	  (error "No command history")
-	(Command-history-setup)))))
+	(command-history-mode)))))
 
-(defun Command-history-setup (&optional majormode modename keymap)
-  (set-buffer "*Command History*")
+(defun command-history-mode ()
+  "Major mode for listing and repeating recent commands."
+  (Command-history-setup)
+  (setq major-mode 'command-history-mode)
+  (setq mode-name "Command History")
+  (use-local-map command-history-map)
+  (run-hooks 'command-history-mode-hook))
+
+(defun Command-history-setup ()
+  (kill-all-local-variables)
   (use-local-map (or keymap command-history-map))
   (lisp-mode-variables nil)
   (set-syntax-table emacs-lisp-mode-syntax-table)
-  (setq buffer-read-only t)
-  (use-local-map (or keymap command-history-map))
-  (setq major-mode (or majormode 'command-history-mode))
-  (setq mode-name (or modename "Command History")))
+  (setq buffer-read-only t))
 
 (defcustom command-history-hook nil
   "If non-nil, its value is called on entry to `command-history-mode'."
@@ -163,8 +168,8 @@ The buffer for that command is the previous current buffer."
 	     (car (cdr (buffer-list))))))))
 
 ;;;###autoload
-(defun command-history-mode ()
-  "Major mode for examining commands from `command-history'.
+(defun command-history ()
+  "Examine commands from `command-history' in a buffer.
 The number of commands listed is controlled by `list-command-history-max'.
 The command history is filtered by `list-command-history-filter' if non-nil.
 Use \\<command-history-map>\\[command-history-repeat] to repeat the command on the current line.
@@ -172,8 +177,9 @@ Use \\<command-history-map>\\[command-history-repeat] to repeat the command on t
 Otherwise much like Emacs-Lisp Mode except that there is no self-insertion
 and digits provide prefix arguments.  Tab does not indent.
 \\{command-history-map}
-Calls the value of `command-history-hook' if that is non-nil.
-The Command History listing is recomputed each time this mode is invoked."
+
+This command always recompiles the Command History listing
+and runs the normal hook `command-history-hook'."
   (interactive)
   (list-command-history)
   (pop-to-buffer "*Command History*")
