@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate August 28, 1999
+@set lastupdate August 29, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -467,9 +467,11 @@ some of them).  However, there may be a need to configure certain data
 in the computer in a way that is specific to each model of computer.
 @end ignore
 
+@ignore Frank Cruz promises a free version
 @item
 A free program that can transfer files on a serial line
 using the same protocol that Kermit uses.
+@end ignore
 
 @item
 An imitation of Page Maker or Ventura Publisher.
