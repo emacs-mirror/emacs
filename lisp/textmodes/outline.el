@@ -242,6 +242,7 @@ With arg, turn Outline minor mode on if arg is positive, off otherwise.
 See the command `outline-mode' for more information on this mode."
   nil " Outl" (list (cons [menu-bar] outline-mode-menu-bar-map)
 		    (cons outline-minor-mode-prefix outline-mode-prefix-map))
+  :group 'outlines
   (if outline-minor-mode
       (progn
 	;; Turn off this mode if we change major modes.
