@@ -531,6 +531,7 @@ distclean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
+	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
 ### `maintainer-clean'
