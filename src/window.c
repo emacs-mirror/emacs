@@ -1674,6 +1674,7 @@ BUFFER can be a buffer or a buffer name.\n\
 If BUFFER is shown already in some window, just use that one,\n\
 unless the window is the selected window and the optional second\n\
 argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).\n\
+If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.\n\
 Returns the window displaying BUFFER.")
   (buffer, not_this_window)
      register Lisp_Object buffer, not_this_window;
@@ -1690,7 +1691,8 @@ Returns the window displaying BUFFER.")
       && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
     return selected_window;
 
-  window = Fget_buffer_window (buffer, Qnil);
+  /* If pop_up_frames, look for a window on any frame, showing BUFFER.  */
+  window = Fget_buffer_window (buffer, pop_up_frames ? Qt : Qnil);
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     return window;
