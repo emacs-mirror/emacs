@@ -1765,7 +1765,7 @@ closures:
 
 @example
 (defun add-to-list (x list)
-  (mapcar (function (lambda (y) (+ x y))) list))
+  (mapcar (lambda (y) (+ x y))) list)
 (add-to-list 7 '(1 2 5))
      @result{} (8 9 12)
 @end example
@@ -5483,7 +5483,7 @@ Emacs Lisp:
         collect (if flag x (funcall func x))))
 
 (defun add-odd-elements (list x)
-  (map-odd-elements (function (lambda (a) (+ a x))) list))
+  (map-odd-elements (lambda (a) (+ a x))) list)
 @end example
 
 @noindent

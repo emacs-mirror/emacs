@@ -1569,13 +1569,13 @@ faces, you can modify them when Ediff is being loaded using
 
 @smallexample
 (add-hook 'ediff-load-hook
-          (function (lambda ()
-                      (set-face-foreground
-                        ediff-current-diff-face-B "blue")
-                      (set-face-background
-                        ediff-current-diff-face-B "red")
-                      (make-face-italic
-                        ediff-current-diff-face-B))))
+          (lambda ()
+            (set-face-foreground
+              ediff-current-diff-face-B "blue")
+            (set-face-background
+              ediff-current-diff-face-B "red")
+            (make-face-italic
+              ediff-current-diff-face-B)))
 @end smallexample
 
 @strong{Note:} To set Ediff's faces, use only @code{copy-face} or

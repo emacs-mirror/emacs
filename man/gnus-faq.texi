@@ -529,22 +529,21 @@ This is what I use...customize as necessary...
 ;;; Don't auto-select first article if reading sources, or archives or
 ;;; jobs postings, etc. and just display the summary buffer
 (add-hook 'gnus-select-group-hook
-	  (function
-	   (lambda ()
-	     (cond ((string-match "sources" gnus-newsgroup-name)
-		    (setq gnus-auto-select-first nil))
-			   ((string-match "jobs" gnus-newsgroup-name)
-				(setq gnus-auto-select-first nil))
-		   ((string-match "comp\\.archives" gnus-newsgroup-name)
-		    (setq gnus-auto-select-first nil))
-		   ((string-match "reviews" gnus-newsgroup-name)
-		    (setq gnus-auto-select-first nil))
-		   ((string-match "announce" gnus-newsgroup-name)
-		    (setq gnus-auto-select-first nil))
-		   ((string-match "binaries" gnus-newsgroup-name)
-		    (setq gnus-auto-select-first nil))
-		   (t
-		    (setq gnus-auto-select-first t))))))
+	  (lambda ()
+	    (cond ((string-match "sources" gnus-newsgroup-name)
+	           (setq gnus-auto-select-first nil))
+	       	   ((string-match "jobs" gnus-newsgroup-name)
+	       		(setq gnus-auto-select-first nil))
+	          ((string-match "comp\\.archives" gnus-newsgroup-name)
+	           (setq gnus-auto-select-first nil))
+	          ((string-match "reviews" gnus-newsgroup-name)
+	           (setq gnus-auto-select-first nil))
+	          ((string-match "announce" gnus-newsgroup-name)
+	           (setq gnus-auto-select-first nil))
+	          ((string-match "binaries" gnus-newsgroup-name)
+	           (setq gnus-auto-select-first nil))
+	          (t
+	           (setq gnus-auto-select-first t)))))
 @end lisp
 
 @item

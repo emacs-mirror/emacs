@@ -1237,9 +1237,8 @@ Put this in your @file{.emacs} file:
   (file-error nil))
 
 (add-hook 'XXX-mode-hook
-          (function
-            (lambda ()
-             (setq abbrev-mode t))))
+          (lambda ()
+           (setq abbrev-mode t)))
 @end lisp
 
 @node Turning on auto-fill by default, Associating modes with files, Turning on abbrevs by default, Common requests
@@ -1389,9 +1388,8 @@ mode's hook.  For example:
 
 @lisp
 (add-hook 'XXX-mode-hook
-      (function
-       (lambda ()
-         (setq case-fold-search nil))))
+          (lambda ()
+           (setq case-fold-search nil)))
 @end lisp
 
 @node Wrapping words automatically, Spell-checkers, Controlling case sensitivity, Common requests
@@ -2014,8 +2012,8 @@ load dired-x by adding the following to your @file{.emacs} file:
 
 @lisp
 (add-hook 'dired-load-hook
-          (function (lambda ()
-                      (load "dired-x"))))
+          (lambda ()
+           (load "dired-x")))
 @end lisp
 
 With dired-x loaded, @kbd{M-o} toggles omitting in each dired buffer.
@@ -3802,8 +3800,8 @@ For example, in tex-mode, a local binding might be
 
 @lisp
 (add-hook 'tex-mode-hook
-  (function (lambda ()
-    (local-set-key (quote [f1]) (quote help-for-help)))))
+  (lambda ()
+   (local-set-key (quote [f1]) (quote help-for-help))))
 @end lisp
 
 
@@ -3868,13 +3866,11 @@ of either the @code{term-setup-hook} or @code{window-setup-hook}
 variable to this "lambda function."  For example,
 
 @lisp
-(setq term-setup-hook
-      (function
-       (lambda ()
-         (cond ((string-match "\\`vt220" (or (getenv "TERM") ""))
-                ;; Make vt220's "Do" key behave like M-x:
-                (global-set-key [do] 'execute-extended-command))
-               ))))
+(add-hook 'term-setup-hook
+          (lambda ()
+           (when (string-match "\\`vt220" (or (getenv "TERM") ""))
+             ;; Make vt220's "Do" key behave like M-x:
+             (global-set-key [do] 'execute-extended-command))))
 @end lisp
 
 For information on what Emacs does every time it is started, see the

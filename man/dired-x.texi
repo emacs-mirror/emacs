@@ -290,17 +290,17 @@ initialization file @file{default.el} in the @file{site-lisp} directory, put
 
 @example
 (add-hook 'dired-load-hook
-          (function (lambda ()
-                      (load "dired-x")
-                      ;; Set dired-x global variables here.  For example:
-                      ;; (setq dired-guess-shell-gnutar "gtar")
-                      ;; (setq dired-x-hands-off-my-keys nil)
-                      )))
+          (lambda ()
+            (load "dired-x")
+            ;; Set dired-x global variables here.  For example:
+            ;; (setq dired-guess-shell-gnutar "gtar")
+            ;; (setq dired-x-hands-off-my-keys nil)
+            ))
 (add-hook 'dired-mode-hook
-          (function (lambda ()
-                      ;; Set dired-x buffer-local variables here.  For example:
-                      ;; (setq dired-omit-files-p t)
-                      )))
+          (lambda ()
+            ;; Set dired-x buffer-local variables here.  For example:
+            ;; (setq dired-omit-files-p t)
+            ))
 @end example
 
 @noindent
@@ -367,13 +367,13 @@ If you choose to have @file{dired-x.el} bind @code{dired-x-find-file} over
 
 @example
 (add-hook 'dired-load-hook 
-          (function (lambda ()
-                      (load "dired-x")
-                      ;; Bind dired-x-find-file.
-                      (setq dired-x-hands-off-my-keys nil)
-                      ;; Make sure our binding preference is invoked.
-                      (dired-x-bind-find-file)
-                      )))
+          (lambda ()
+            (load "dired-x")
+            ;; Bind dired-x-find-file.
+            (setq dired-x-hands-off-my-keys nil)
+            ;; Make sure our binding preference is invoked.
+            (dired-x-bind-find-file)
+            ))
 @end example
 
 Alternatively, you can set the variable @emph{before} @file{dired-x.el} is
@@ -381,11 +381,11 @@ loaded
 
 @example
 (add-hook 'dired-load-hook 
-          (function (lambda ()
-                      ;; Bind dired-x-find-file.
-                      (setq dired-x-hands-off-my-keys nil)
-                      (load "dired-x")
-                      )))
+          (lambda ()
+            ;; Bind dired-x-find-file.
+            (setq dired-x-hands-off-my-keys nil)
+            (load "dired-x")
+            ))
 @end example
 
 @node Special Notes, Omitting Files in Dired, Optional Installation File At Point, Installation

@@ -734,8 +734,8 @@ lambda expression.
 
 @group
 (add-hook 'c-mode-common-hook
-  (function (lambda ()
-    (c-add-style "my-style" my-c-style t))))
+  (lambda ()
+    (c-add-style "my-style" my-c-style t)))
 @end group
 @end example
 
