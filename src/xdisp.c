@@ -3974,7 +3974,7 @@ run_redisplay_end_trigger_hook (it)
      - when we stopped at a line end, i.e. a newline or a CR and selective
      display is on.  */
 
-enum move_it_result
+static enum move_it_result
 move_it_in_display_line_to (it, to_charpos, to_x, op)
      struct it *it;
      int to_charpos, to_x, op;
