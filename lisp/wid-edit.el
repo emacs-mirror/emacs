@@ -1992,15 +1992,18 @@ when he invoked the menu."
   ;; We could probably do the same job as the images using single
   ;; space characters in a boxed face with a stretch specification to
   ;; make them square.
-  :on-glyph (create-image (make-bool-vector 49 1)
+  :on-glyph (create-image "\377\311\301\343\301\311\377"  ; this is an `X'
 			  'xbm t :width 7 :height 7
 			  :foreground "grey75" ; like default mode line
-			  :relief -3 :ascent 'center)
+			  :background "black"
+			  :relief -3
+			  :ascent 'center)
   :off "[ ]"
   :off-glyph (create-image (make-bool-vector 49 1)
 			   'xbm t :width 7 :height 7
 			   :foreground "grey75"
-			   :relief 3 :ascent 'center)
+			   :relief 3
+			   :ascent 'center)
   :help-echo "Toggle this item."
   :action 'widget-checkbox-action)
 
