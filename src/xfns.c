@@ -968,7 +968,7 @@ x_real_positions (f, xptr, yptr)
 
   while (1)
     {
-      x_catch_errors (FRAME_X_DISPLAY (f));
+      int count = x_catch_errors (FRAME_X_DISPLAY (f));
 
       XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
 		  &f->output_data.x->parent_desc,
@@ -1010,11 +1010,11 @@ x_real_positions (f, xptr, yptr)
 	 Detect that and try the whole thing over.  */
       if (! x_had_errors_p (FRAME_X_DISPLAY (f)))
 	{
-	  x_uncatch_errors (FRAME_X_DISPLAY (f));
+	  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 	  break;
 	}
 
-      x_uncatch_errors (FRAME_X_DISPLAY (f));
+      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
     }
 
   *xptr = f->output_data.x->left_pos - win_x;
@@ -1266,6 +1266,7 @@ x_set_mouse_color (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
+  int count;
   int mask_color;
 
   if (!EQ (Qnil, arg))
@@ -1280,7 +1281,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  count = x_catch_errors (FRAME_X_DISPLAY (f));
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
@@ -1323,7 +1324,7 @@ x_set_mouse_color (f, arg, oldval)
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_X_DISPLAY (f), "can't set cursor shape: %s");
-  x_uncatch_errors (FRAME_X_DISPLAY (f));
+  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 
   {
     XColor fore_color, back_color;
@@ -3427,6 +3428,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
   FRAME_PTR f;
   Lisp_Object key;
   int maxnames;
+  int count;
 
   check_x ();
   CHECK_STRING (pattern, 0);
@@ -3492,13 +3494,13 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 	{
 	  XFontStruct *thisinfo;
 
-	  x_catch_errors (FRAME_X_DISPLAY (f));
+	  count = x_catch_errors (FRAME_X_DISPLAY (f));
 
 	  thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f),
 				     XSTRING (XCONS (tem)->car)->data);
 
 	  x_check_errors (FRAME_X_DISPLAY (f), "XLoadQueryFont failure: %s");
-	  x_uncatch_errors (FRAME_X_DISPLAY (f));
+	  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 
 	  if (thisinfo && same_size_fonts (thisinfo, size_ref))
 	    newlist = Fcons (XCONS (tem)->car, newlist);
@@ -3514,7 +3516,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
   BLOCK_INPUT;
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  count = x_catch_errors (FRAME_X_DISPLAY (f));
 
   /* Solaris 2.3 has a bug in XListFontsWithInfo.  */
 #ifndef BROKEN_XLISTFONTSWITHINFO
@@ -3532,7 +3534,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 			&num_fonts); /* count_return */
 
   x_check_errors (FRAME_X_DISPLAY (f), "XListFonts failure: %s");
-  x_uncatch_errors (FRAME_X_DISPLAY (f));
+  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 
   UNBLOCK_INPUT;
 
@@ -3567,11 +3569,11 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
 	      BLOCK_INPUT;
 
-	      x_catch_errors (FRAME_X_DISPLAY (f));
+	      count = x_catch_errors (FRAME_X_DISPLAY (f));
 	      thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f), names[i]);
 	      x_check_errors (FRAME_X_DISPLAY (f),
 			      "XLoadQueryFont failure: %s");
-	      x_uncatch_errors (FRAME_X_DISPLAY (f));
+	      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 
 	      UNBLOCK_INPUT;
 
