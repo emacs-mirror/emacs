@@ -1,7 +1,7 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.7) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!finalcv.c(trunk.8) $
+ * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
  *
  * READERSHIP
  *
@@ -31,6 +31,7 @@
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "fmtdy.h"
 
 #ifdef MPS_OS_SU
@@ -42,13 +43,14 @@
 #include <stdio.h>
 
 
-#define N_ROOTS 20
-#define CHURN_FACTOR 1000
-#define ONE_SLOT_SIZE (3*sizeof(mps_word_t))
-/* The number that a half of all numbers generated from rnd are less
- * than.  Hence, probability a-half, or P a-half */
-/* see impl.h.testlib */
-#define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
+#define testArenaSIZE   ((size_t)16<<20)
+#define rootCOUNT 20
+#define churnFACTOR 1000
+#define slotSIZE (3*sizeof(mps_word_t))
+/* The number that a half of all numbers generated from rnd are less */
+/* than.  See impl.h.testlib */
+#define rndMEDIAN (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
+
 
 /* tags an integer according to dylan format */
 static mps_word_t dylan_int(mps_word_t x)
@@ -56,23 +58,25 @@ static mps_word_t dylan_int(mps_word_t x)
   return (x << 2)|1;
 }
 
+
 /* converts a dylan format int to an int (untags) */
 static mps_word_t dylan_int_int(mps_word_t x)
 {
   return x >> 2;
 }
 
-static void *root[N_ROOTS];
+
+static void *root[rootCOUNT];
 static int rc = 0;                      /* return code */
 
-static void
-churn(mps_ap_t ap)
+
+static void churn(mps_ap_t ap)
 {
   int i;
   mps_addr_t p;
   mps_res_t e;
   
-  for(i = 0; i < CHURN_FACTOR; ++i) {
+  for(i = 0; i < churnFACTOR; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, 4096);
       assert(e == MPS_RES_OK);
@@ -91,59 +95,59 @@ static void * test(void *arg, size_t s)
   mps_pool_t amc;
   mps_res_t e;
   mps_root_t mps_root[2];
-  mps_space_t space;
+  mps_arena_t arena;
   void *p = NULL;
   mps_message_t message;
 
-  space = (mps_space_t)arg;
+  arena = (mps_arena_t)arg;
   (void)s;
 
-  die(mps_fmt_create_A(&fmt, space, dylan_fmt_A()), "fmt_create\n");
-  die(mps_pool_create(&amc, space, mps_class_amc(), fmt),
+  die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
+  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt),
       "pool_create amc\n");
-  die(mps_root_create_table(&mps_root[0], space,
+  die(mps_root_create_table(&mps_root[0], arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
-                            root, (size_t)N_ROOTS), "root_create\n");
-  die(mps_root_create_table(&mps_root[1], space,
+                            root, (size_t)rootCOUNT), "root_create\n");
+  die(mps_root_create_table(&mps_root[1], arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
                             &p, (size_t)1), "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
 
   /* design.mps.poolmrg.test.ut.alloc */
-  for(i = 0; i < N_ROOTS; ++i) {
+  for(i = 0; i < rootCOUNT; ++i) {
     do {
-      MPS_RESERVE_BLOCK(e, p, ap, ONE_SLOT_SIZE);
+      MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
       assert(e == MPS_RES_OK);
-      dylan_init(p, ONE_SLOT_SIZE, root, 1);
-    } while(!mps_commit(ap, p, ONE_SLOT_SIZE));
+      dylan_init(p, slotSIZE, root, 1);
+    } while(!mps_commit(ap, p, slotSIZE));
     ((mps_word_t *)p)[2] = dylan_int(i);
-    die(mps_finalize(space, &p), "finalize\n");
+    die(mps_finalize(arena, &p), "finalize\n");
     root[i] = p;
   }
   p = NULL;
 
   /* design.mps.poolmrg.test.ut.drop */
-  for(i = 0; i < N_ROOTS; ++i) {
-    if(rnd() < P_A_HALF) {
+  for(i = 0; i < rootCOUNT; ++i) {
+    if(rnd() < rndMEDIAN) {
       root[i] = NULL;
     }
   }
 
-  mps_message_type_enable(space, mps_message_type_finalization());
+  mps_message_type_enable(arena, mps_message_type_finalization());
 
   /* design.mps.poolmrg.test.ut.churn */
-  while(mps_collections(space) < 3) {
+  while(mps_collections(arena) < 3) {
     churn(ap);
-    while(mps_message_poll(space)) {
+    while(mps_message_poll(arena)) {
       int b;
       mps_word_t *obj;
       mps_word_t objind;
       mps_addr_t objaddr;
 
-      b = mps_message_get(&message, space, mps_message_type_finalization());
+      b = mps_message_get(&message, arena, mps_message_type_finalization());
       assert(b);
-      mps_message_finalization_ref(&objaddr, space, message);
+      mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[2]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
@@ -163,18 +167,19 @@ static void * test(void *arg, size_t s)
   return NULL;
 }
 
-int
-main(void)
+
+int main(void)
 {
-  mps_space_t space;
+  mps_arena_t arena;
   mps_thr_t thread;
   void *r;
 
-  die(mps_space_create(&space), "space_create\n");
-  die(mps_thread_reg(&thread, space), "thread_reg\n");
-  mps_tramp(&r, test, space, 0);
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "arena_create\n");
+  die(mps_thread_reg(&thread, arena), "thread_reg\n");
+  mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
   if(rc) {
     printf("Defects found, exiting with non-zero status.\n");
