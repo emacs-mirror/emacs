@@ -59,6 +59,14 @@
 		      '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?"
 			 . thai-composition-function)))
 
+(define-coding-system 'cp874
+  "DOS codepage 874 (Thai)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp874)
+  :mime-charset 'cp874)
+(define-coding-system-alias 'ibm874 'cp874)
+
 (provide 'thai)
 
 ;;; thai.el ends here
