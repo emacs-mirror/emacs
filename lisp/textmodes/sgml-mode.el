@@ -858,6 +858,12 @@ and move to the line in the SGML document that caused it."
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal command "No more errors"))
 
+(defsubst sgml-at-indentation-p ()
+  "Return true if point is at the first non-whitespace character on the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (bolp)))
+
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
 START is the location of the start of the lexical element.
@@ -946,12 +952,6 @@ With prefix argument, unquote the region."
       (replace-match (cdr (assq (char-before) '((?& . "&amp;")
 						(?< . "&lt;")
 						(?> . "&gt;"))))))))
-
-(defsubst sgml-at-indentation-p ()
-  "Return true if point is at the first non-whitespace character on the line."
-  (save-excursion
-    (skip-chars-backward " \t")
-    (bolp)))
 
 
 ;; Parsing
