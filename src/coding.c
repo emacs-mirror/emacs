@@ -1808,14 +1808,19 @@ detect_coding_emacs_mule (coding, detect_info)
 	}
       else
 	{
-	  const unsigned char *src_base = src - 1;
+	  int more_bytes = emacs_mule_bytes[*src_base] - 1;
 
-	  do
+	  while (more_bytes > 0)
 	    {
 	      ONE_MORE_BYTE (c);
+	      if (c < 0xA0)
+		{
+		  src--;	/* Unread the last byte.  */
+		  break;
+		}
+	      more_bytes--;
 	    }
-	  while (c >= 0xA0);
-	  if (src - src_base != emacs_mule_bytes[*src_base])
+	  if (more_bytes != 0)
 	    break;
 	  found = CATEGORY_MASK_EMACS_MULE;
 	}
@@ -4354,13 +4359,14 @@ detect_coding_ccl (coding, detect_info)
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
-  unsigned char *valids = CODING_CCL_VALIDS (coding);
+  unsigned char *valids;
   int head_ascii = coding->head_ascii;
   Lisp_Object attrs;
 
   detect_info->checked |= CATEGORY_MASK_CCL;
 
   coding = &coding_categories[coding_category_ccl];
+  valids = CODING_CCL_VALIDS (coding);
   attrs = CODING_ID_ATTRS (coding->id);
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
