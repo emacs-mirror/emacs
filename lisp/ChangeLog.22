@@ -1,3 +1,9 @@
+2004-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el (diacritic-composition-function): Fix for
+	the case that POS is at the head.  Allow combining with more
+	characters.
+
 2004-01-16  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Check `charset' property.
