@@ -82,7 +82,10 @@
 (defvar snake-score-y snake-height
   "Y position of score.")
 
-(defvar snake-score-file (concat temporary-file-directory "snake-scores")
+;; It is not safe to put this in /tmp.
+;; Someone could make a symlink in /tmp 
+;; pointing to a file you don't want to clobber.
+(defvar snake-score-file "~/.snake-scores")
   "File for holding high scores.")
 
 ;; ;;;;;;;;;;;;; display options ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
