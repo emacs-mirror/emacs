@@ -1062,18 +1062,6 @@ Legitimate radix values are 8, 10 and 16."
   :type '(choice (const 8) (const 10) (const 16))
   :group 'editing-basics)
 
-(defconst read-key-auxiliary-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'undefined)
-    map))
-
-(defun read-key (&optional prompt)
-  "Read a key from the keyboard.
-Contrary to `read-event' this will not return a raw event but will
-obey `function-key-map' and `key-translation-map' instead."
-  (let ((overriding-terminal-local-map read-key-auxiliary-map))
-    (aref (read-key-sequence prompt nil t) 0)))
-
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
 Also, if the first character read is an octal digit,
@@ -1095,8 +1083,17 @@ for numeric input."
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-	(setq char (read-key (and prompt (format "%s-" prompt))))
+	(setq char (read-event (and prompt (format "%s-" prompt)) t))
 	(if inhibit-quit (setq quit-flag nil)))
+      ;; Translate TAB key into control-I ASCII character, and so on.
+      ;; Note: `read-char' does it using the `ascii-character' property.
+      ;; We could try and use read-key-sequence instead, but then C-q ESC
+      ;; or C-q C-x might not return immediately since ESC or C-x might be
+      ;; bound to some prefix in function-key-map or key-translation-map.
+      (and char
+	   (let ((translated (lookup-key function-key-map (vector char))))
+	     (if (arrayp translated)
+		 (setq char (aref translated 0)))))
       (cond ((null char))
 	    ((not (integerp char))
 	     (setq unread-command-events (listify-key-sequence (this-single-command-raw-keys))
