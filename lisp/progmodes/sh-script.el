@@ -1297,7 +1297,7 @@ with your script for an edit-interpret-debug cycle."
 		  "rpm")))))
     (if interpreter
 	(sh-set-shell interpreter nil nil)
-      (sh-set-shell sh-shell-file nil t))
+      (sh-set-shell sh-shell-file nil nil))
     (run-hooks 'sh-mode-hook)))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
