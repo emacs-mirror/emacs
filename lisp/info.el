@@ -55,11 +55,6 @@ because that gives you a printed manual as well."
 The Lisp code is executed when the node is selected.")
 (put 'Info-enable-active-nodes 'risky-local-variable t)
 
-(defcustom Info-fontify t
-  "*Non-nil enables highlighting and fonts in Info nodes."
-  :type 'boolean
-  :group 'info)
-
 (defface info-node
   '((((class color) (background light)) (:foreground "brown" :weight bold :slant italic))
     (((class color) (background dark)) (:foreground "white" :weight bold :slant italic))
@@ -148,6 +143,11 @@ Setting this option to nil results in behavior similar to the stand-alone
 Info reader program, which visits the first subnode from the menu only
 when you hit the end of the current node."
   :type 'boolean
+  :group 'info)
+
+(defcustom Info-mode-hook '(font-lock-mode)
+  "Hooks run when `info-mode' is called."
+  :type 'hook
   :group 'info)
 
 (defvar Info-current-file nil
@@ -997,7 +997,7 @@ Bind this in case the user sets it to nil."
 					    (read (current-buffer))))))
 			    (point-max)))
 	(if Info-enable-active-nodes (eval active-expression))
-	(if Info-fontify (Info-fontify-node))
+	(Info-fontify-node)
 	(if Info-use-header-line
 	    (Info-setup-header-line)
 	  (setq Info-header-line nil)
@@ -2340,6 +2340,16 @@ Advanced commands:
   (setq Info-tag-table-marker (make-marker))
   (make-local-variable 'Info-tag-table-buffer)
   (setq Info-tag-table-buffer nil)
+  (set (make-local-variable 'font-lock-category-alist)
+       '((info-menu-header . info-menu-header)
+	 (info-header-node . info-header-node)
+	 (info-header-xref . info-header-xref)
+	 (Info-title-1-face . Info-title-1-face)
+	 (Info-title-2-face . Info-title-2-face)
+	 (Info-title-3-face . Info-title-3-face)
+	 (Info-title-4-face . Info-title-4-face)
+	 (info-menu-5 . info-menu-5)
+	 (info-xref . info-xref)))
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
@@ -2587,10 +2597,10 @@ the variable `Info-file-list-for-emacs'."
     (goto-char (point-min))
     (when (re-search-forward "\\* Menu:" nil t)
       (put-text-property (match-beginning 0) (match-end 0)
-			 'face 'info-menu-header)
+			 'category 'info-menu-header)
       (while (re-search-forward "\n\n\\([^*\n ].*\\)\n\n?[*]" nil t)
 	(put-text-property (match-beginning 1) (match-end 1)
-			   'face 'info-menu-header)))))
+			   'category 'info-menu-header)))))
 
 (defun Info-fontify-node ()
   ;; Only fontify the node if it hasn't already been done.  [We pass in
@@ -2618,8 +2628,8 @@ the variable `Info-file-list-for-emacs'."
 		   (tbeg (match-beginning 1))
 		   (tag (buffer-substring tbeg (match-end 1))))
 	      (if (string-equal tag "Node")
-		  (put-text-property nbeg nend 'face 'info-header-node)
-		(put-text-property nbeg nend 'face 'info-header-xref)
+		  (put-text-property nbeg nend 'category 'info-header-node)
+		(put-text-property nbeg nend 'category 'info-header-xref)
 		(put-text-property tbeg nend 'mouse-face 'highlight)
 		(put-text-property tbeg nend
 				   'help-echo
@@ -2646,14 +2656,14 @@ the variable `Info-file-list-for-emacs'."
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
-	  (let ((c (preceding-char))
-		face)
-	    (cond ((= c ?*) (setq face 'Info-title-1-face))
-		  ((= c ?=) (setq face 'Info-title-2-face))
-		  ((= c ?-) (setq face 'Info-title-3-face))
-		  (t        (setq face 'Info-title-4-face)))
+	  (let* ((c (preceding-char))
+		 (category
+		  (cond ((= c ?*) 'Info-title-1-face)
+			((= c ?=) 'Info-title-2-face)
+			((= c ?-) 'Info-title-3-face)
+			(t        'Info-title-4-face))))
 	    (put-text-property (match-beginning 1) (match-end 1)
-			       'face face))
+			       'category category))
 	  ;; This is a serious problem for trying to handle multiple
 	  ;; frame types at once.  We want this text to be invisible
 	  ;; on frames that can display the font above.
@@ -2665,7 +2675,7 @@ the variable `Info-file-list-for-emacs'."
 	  (if (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	      nil
 	    (add-text-properties (match-beginning 1) (match-end 1)
-				 '(face info-xref
+				 '(category info-xref
 				   mouse-face highlight
 				   help-echo "mouse-2: go to this node"))))
 	(goto-char (point-min))
@@ -2679,9 +2689,9 @@ the variable `Info-file-list-for-emacs'."
 		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
 		    (put-text-property (match-beginning 0)
 				       (1+ (match-beginning 0))
-				       'face 'info-menu-5))
+				       'category 'info-menu-5))
 		(add-text-properties (match-beginning 1) (match-end 1)
-				     '(face info-xref
+				     '(category info-xref
 				       mouse-face highlight
 				       help-echo "mouse-2: go to this node")))))
 	(Info-fontify-menu-headers)
