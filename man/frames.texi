@@ -761,8 +761,10 @@ argument is positive.  This command applies to all frames, including
 frames yet to be created.  Customize the option @code{scroll-bar-mode}
 to control the use of scroll bars at startup.  You can use it to specify
 that they are placed at the right of windows if you prefer that.  You
-can use the X resource @samp{verticalScrollBars} to control the initial
-setting of Scroll Bar mode similarly.  @xref{Resources}.
+have to set this variable through the @samp{Customize} interface
+(@pxref{Easy Customization}).  Otherwise, it will not work properly.
+You can use the X resource @samp{verticalScrollBars} to control the
+initial setting of Scroll Bar mode similarly.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the

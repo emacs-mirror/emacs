@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.03  (internal CVS version is $Revision: 1.3 $)
+;; Version: 3.03
 
 ;; This file is part of GNU Emacs.
 
