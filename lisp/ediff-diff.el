@@ -160,15 +160,17 @@ one optional arguments, diff-number to refine.")
 	    (get-buffer-create
 	     (ediff-unique-buffer-name "*ediff-fine-diff" "*"))))
   
-  (let (diff3-job diff-program ok-regexp diff-list)
+  (let (diff3-job diff-program diff-options ok-regexp diff-list)
     (setq diff3-job ediff-3way-job
 	  diff-program (if diff3-job ediff-diff3-program ediff-diff-program)
+	  diff-options (if diff3-job ediff-diff3-options ediff-diff-options)
 	  ok-regexp (if diff3-job
 			ediff-diff3-ok-lines-regexp
 			ediff-diff-ok-lines-regexp))
     
     (ediff-message-if-verbose "Refining difference region %d ..." (1+ reg-num))
     (ediff-exec-process diff-program ediff-fine-diff-buffer 'synchronize
+			diff-options
 			;; The shuffle below is because we can compare 3-way
 			;; or in several 2-way fashions, like fA fC, fA fB,
 			;; or fB fC.
