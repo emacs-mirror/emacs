@@ -93,7 +93,27 @@ The mouse commands work as documented, including those that use menus
 and the menu bar (@pxref{Menu Bar}).  Scroll bars don't work in
 MS-DOS Emacs.  PC mice usually have only two buttons; these act as
 @kbd{Mouse-1} and @kbd{Mouse-2}, but if you press both of them
-together, that has the effect of @kbd{Mouse-3}.
+together, that has the effect of @kbd{Mouse-3}.  If the mouse does have
+3 buttons, Emacs detects that at startup, and all the 3 buttons function
+normally, as on X.
+
+@cindex mouse, set number of buttons
+@findex msdos-set-mouse-buttons
+  Some versions of mouse drivers don't report the number of mouse
+buttons correctly.  For example, mice with a wheel report that they have
+3 buttons, but only 2 of them are passed to Emacs; the clicks on the
+wheel, which serves as the middle button, are not passed.  In these
+cases, you can use the @kbd{M-x msdos-set-mouse-buttons} command to set
+the notion of number of buttons used by Emacs.  This command prompts for
+the number of buttons, and forces Emacs to behave as if your mouse had
+that number of buttons.  You could make such a setting permanent by
+adding this fragment to your @file{_emacs} init file:
+
+@example
+ ;; Force Emacs to behave as if the mouse had 
+ ;; only 2 buttons
+ (msdos-set-mouse-buttons 2)
+@end example
 
 @cindex Windows clipboard support
   Emacs built for MS-DOS supports clipboard operations when it runs on
