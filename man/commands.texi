@@ -161,7 +161,7 @@ you can make new prefix keys, or eliminate these.  @xref{Key Bindings}.
   If you do make or eliminate prefix keys, that changes the set of
 possible key sequences.  For example, if you redefine @kbd{C-f} as a
 prefix, @kbd{C-f C-k} automatically becomes a key (complete, unless you
-define it too as a prefix).  Conversely, if you remove the prefix
+define that too as a prefix).  Conversely, if you remove the prefix
 definition of @kbd{C-x 4}, then @kbd{C-x 4 f} (or @kbd{C-x 4
 @var{anything}}) is no longer a key.
 
