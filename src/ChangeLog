@@ -1,5 +1,34 @@
 2000-06-05  Dave Love  <fx@gnu.org>
 
+	* xdisp.c: Include fontset.h.
+
+	* xfns.c (x_real_positions): Declare tmp_nchildren as unsigned.
+
+	* xterm.c (x_calc_absolute_position): Declare nchildren unsigned.
+
+	* dispnew.c: Conditionally include term.h.
+
+	* coding.h: Declare code_convert_string_norecord.
+
+	* frame.h (struct frame): Use volatile unconditionally.
+
+	* buffer.h: Remove Vbefore_change_function, Vafter_change_function.
+
+	* xmenu.c (menu_item_selection): Declare volatile unconditionally.
+
+	* systime.h: Protect against multiple inclusion.
+	(timezone) [USG5_4]: Define as time_t.
+
+	* lisp.h (DEFUN, EXFUN): Test PROTOTYPES.
+	(Foptimize_char_table, make_temp_name): Declare.
+
+	* Makefile.in (xdisp.o): Depend on fontset.h.
+
+	* xterm.c (x_calc_absolute_position): Declare nchildren unsigned.
+
+	* lisp.h (DEFUN, EXFUN): Test PROTOTYPES.
+	(Foptimize_char_table, make_temp_name): Declare.
+
 	* s/irix4-0.h: 
 	* s/irix5-0.h:
 	* s/netbsd.h: Don't define autoconfiscated MATHERR.
