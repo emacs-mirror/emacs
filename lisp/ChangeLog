@@ -1,3 +1,8 @@
+2004-09-04  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop): Don't invoke
+	highlighting if the search string is empty.
+
 2004-09-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* facemenu.el (facemenu-active-faces): Change condition of inner
