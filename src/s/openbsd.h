@@ -5,3 +5,7 @@
 
 /* Get the rest of the stuff from that less-POSIX-conformant system */
 #include "netbsd.h"
+
+/*  David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
+    is necessary.  Otherwise Emacs dumps core when run -nw.  */
+#undef LIBS_TERMCAP
