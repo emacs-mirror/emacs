@@ -659,7 +659,7 @@ Second optional argument LOCALP is as in `dired-get-filename'."
      msg)))
 
 ;;; REDEFINE.
-(defun dired-omit-new-add-entry (filename &optional marker-char)
+(defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
   ;; files that are going to be omitted anyway.
   (if dired-omit-files-p
@@ -678,12 +678,12 @@ Second optional argument LOCALP is as in `dired-get-filename'."
                                   filename
                                   (file-name-directory filename)))))))
             ;; if it didn't match, go ahead and add the entry
-            (dired-omit-old-add-entry filename marker-char)
+            (dired-omit-old-add-entry filename marker-char relative)
           ;; dired-add-entry returns t for success, perhaps we should
           ;; return file-exists-p
           t))
     ;; omitting is not turned on at all
-    (dired-omit-old-add-entry filename marker-char)))
+    (dired-omit-old-add-entry filename marker-char relative)))
 
 ;;; REDEFINE.
 ;;; Redefine dired-aux.el's version of `dired-add-entry'
