@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.8 2001/01/26 06:19:25 johnw Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.9 2001/01/28 18:48:45 eliz Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
@@ -151,18 +151,17 @@ is natural and seamless.
 What is a command shell?  To properly understand the role of a shell,
 it's necessary to visualize what a computer does for you.  Basically, a
 computer is a tool; in order to use that tool, you must tell it what to
-do---or give it ``commands''.  These commands take many forms, such as
+do---or give it ``commands.''  These commands take many forms, such as
 clicking with a mouse on certain parts of the screen.  But that is only
 one form of command input.
 
 By far the most versatile way to express what you want the computer to
-do is by using an abbreviated language called @dfn{script}.  In script,
-instead of telling the computer, ``list my files, please'', one writes
-just ``list''.  In fact, this command is so commonly used that it is
-abbreviated to ``ls''.  Typing @kbd{ls} in a command shell is a script
-way of telling the computer to list your files.@footnote{This is
-comparable to viewing the contents of a folder using a graphical
-display.}
+do is by using an abbreviated language called @dfn{script}.  In
+script, instead of telling the computer, ``list my files, please'',
+one writes a standard abbreviated command word---@samp{ls}.  Typing
+@samp{ls} in a command shell is a script way of telling the computer
+to list your files.@footnote{This is comparable to viewing the
+contents of a folder using a graphical display.}
 
 The real flexibility of this approach is apparent only when you realize
 that there are many, many different ways to list files.  Perhaps you
@@ -451,7 +450,7 @@ Whereas normal languages use a variety of embellishments, the form of a
 script command is always:
 
 @example
-  VERB [ARGUMENTS]
+@var{verb} [@var{arguments}]
 @end example
 
 The verb expresses what you want your computer to do.  There are a fixed
@@ -461,8 +460,8 @@ only a handful of these are really necessary.
 
 Sometimes, the verb is all that's written.  A verb is always a single
 word, usually related to the task it performs.  @command{reboot} is a
-good example.  Entering that on Linux will cause your computer to
-reboot---assuming you have sufficient privileges.
+good example.  Entering that on GNU/Linux will reboot the
+computer---assuming you have sufficient privileges.
 
 Other verbs require more information.  These are usually very capable
 verbs, and must be told specifically what to do.  The extra information
@@ -472,11 +471,11 @@ requires these arguments to know what to echo.  A proper use of
 @command{echo} looks like this:
 
 @example
-  echo This is an example of using echo!
+echo This is an example of using echo!
 @end example
 
 This script command causes the computer to echo back: ``This is an
-example of using echo!''.
+example of using echo!''
 
 Although command verbs are always simple words, like @command{reboot} or
 @command{echo}, arguments may have a wide variety of forms.  There are
@@ -509,7 +508,7 @@ is safe to add backslashes anywhere and everywhere.
 Here is a more complicated @command{echo} example:
 
 @example
-  echo A\ Multi-word\ Argument\ With\ A\ \$\ dollar
+echo A\ Multi-word\ Argument\ With\ A\ \$\ dollar
 @end example
 
 Beyond this, things get a bit more complicated.  While not beyond the
@@ -794,12 +793,6 @@ globbing result, since otherwise hitting return here will result in
 In that case, having an alias command name @command{glob} for
 @command{identity} would be useful.
 
-@item Fix `file-name-all-completions' for XEmacs on MS-Windows
-
-Make sure it returns directory names terminated by
-@code{directory-sep-char} (which is initialized to be @samp{?/}), rather
-than backslash.
-
 @item Once symbolic mode is supported for @command{umask}, implement @command{chmod} in Lisp
 
 @item Create @code{eshell-expand-file-name}
@@ -811,7 +804,7 @@ This would use a data table to transform things such as @samp{~+},
 
 It only really needs: to be hooked onto the output filter and the
 pre-command hook, and to have the input-end and input-start markers.
-And to know whether the last output group was ``successful''.
+And to know whether the last output group was ``successful.''
 
 @item Allow for fully persisting the state of Eshell
 
