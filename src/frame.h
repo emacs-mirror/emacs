@@ -248,6 +248,10 @@ extern Lisp_Object Vterminal_frame;
 
 #define FRAME_PTR int
 
+/* A frame we use to store all the data concerning the screen when we
+   don't have multiple frames.  Remember, if you store any data in it
+   which needs to be protected from GC, you should staticpro that
+   element explicitly.  */
 extern struct frame the_only_frame;
 
 extern int selected_frame;
@@ -266,32 +270,32 @@ extern int message_buf_print;
 #define FRAME_X_P(f) 0
 #define FRAME_MINIBUF_ONLY_P(f) 0
 #define FRAME_HAS_MINIBUF_P(f) 1
-#define FRAME_CURRENT_GLYPHS(f) the_only_frame.current_glyphs
-#define FRAME_DESIRED_GLYPHS(f) the_only_frame.desired_glyphs
-#define FRAME_TEMP_GLYPHS(f) the_only_frame.temp_glyphs
-#define FRAME_HEIGHT(f) the_only_frame.height
-#define FRAME_WIDTH(f) the_only_frame.width
-#define FRAME_NEW_HEIGHT(f) the_only_frame.new_height
-#define FRAME_NEW_WIDTH(f) the_only_frame.new_width
-#define FRAME_CURSOR_X(f) the_only_frame.cursor_x
-#define FRAME_CURSOR_Y(f) the_only_frame.cursor_y
+#define FRAME_CURRENT_GLYPHS(f) (the_only_frame.current_glyphs)
+#define FRAME_DESIRED_GLYPHS(f) (the_only_frame.desired_glyphs)
+#define FRAME_TEMP_GLYPHS(f) (the_only_frame.temp_glyphs)
+#define FRAME_HEIGHT(f) (the_only_frame.height)
+#define FRAME_WIDTH(f) (the_only_frame.width)
+#define FRAME_NEW_HEIGHT(f) (the_only_frame.new_height)
+#define FRAME_NEW_WIDTH(f) (the_only_frame.new_width)
+#define FRAME_CURSOR_X(f) (the_only_frame.cursor_x)
+#define FRAME_CURSOR_Y(f) (the_only_frame.cursor_y)
 #define FRAME_VISIBLE_P(f) 1
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1)
-#define FRAME_GARBAGED_P(f) frame_garbaged
+#define FRAME_GARBAGED_P(f) (frame_garbaged)
 #define FRAME_NO_SPLIT_P(f) 0
 #define FRAME_WANTS_MODELINE_P(f) 1
 #define FRAME_ICONIFIED_P(f) 0
-#define FRAME_MINIBUF_WINDOW(f) minibuf_window
-#define FRAME_ROOT_WINDOW(f) the_only_frame.root_window
-#define FRAME_SELECTED_WINDOW(f) selected_window
-#define SET_GLYPHS_FRAME(glyphs,frame)
-#define FRAME_INSERT_COST(frame)  the_only_frame.insert_line_cost    
-#define FRAME_DELETE_COST(frame)  the_only_frame.delete_line_cost    
-#define FRAME_INSERTN_COST(frame) the_only_frame.insert_n_lines_cost
-#define FRAME_DELETEN_COST(frame) the_only_frame.delete_n_lines_cost
-#define FRAME_MESSAGE_BUF(f) the_only_frame.message_buf
-#define FRAME_SCROLL_BOTTOM_VPOS(f) the_only_frame.scroll_bottom_vpos
-#define FRAME_FOCUS_FRAME(f) 0
+#define FRAME_MINIBUF_WINDOW(f) (minibuf_window)
+#define FRAME_ROOT_WINDOW(f) (XWINDOW (minibuf_window)->prev)
+#define FRAME_SELECTED_WINDOW(f) (selected_window)
+#define SET_GLYPHS_FRAME(glyphs,frame) do ; while (0)
+#define FRAME_INSERT_COST(frame)  (the_only_frame.insert_line_cost)
+#define FRAME_DELETE_COST(frame)  (the_only_frame.delete_line_cost)
+#define FRAME_INSERTN_COST(frame) (the_only_frame.insert_n_lines_cost)
+#define FRAME_DELETEN_COST(frame) (the_only_frame.delete_n_lines_cost)
+#define FRAME_MESSAGE_BUF(f) (the_only_frame.message_buf)
+#define FRAME_SCROLL_BOTTOM_VPOS(f) (the_only_frame.scroll_bottom_vpos)
+#define FRAME_FOCUS_FRAME(f) (0)
 
 #define CHECK_FRAME(x, i) do; while (0)
 #define CHECK_LIVE_FRAME(x, y) do; while (0)
