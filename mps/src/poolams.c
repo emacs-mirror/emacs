@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.26) $
+ * $HopeName: MMsrc!poolams.c(trunk.31) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.26) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.31) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -279,10 +279,10 @@ Res AMSInit(Pool pool, va_list arg)
   AVERT(Pool, pool);
 
   ams = PoolPoolAMS(pool);
-  ams->format = va_arg(arg, Format);
-  AVERT(Format, ams->format);
+  pool->format = va_arg(arg, Format);
+  AVERT(Format, pool->format);
 
-  pool->alignment = ams->format->alignment;
+  pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
   ActionInit(AMSAction(ams), pool);
   RingInit(&ams->groupRing);
@@ -629,7 +629,7 @@ static Res AMSIterate(AMSGroup group,
 
   ams = group->ams;
   AVERT(AMS, ams);
-  format = ams->format;
+  format = AMSPool(ams)->format;
   AVERT(Format, format);
   alignment = PoolAlignment(AMSPool(ams));
 
@@ -697,7 +697,7 @@ static Res AMSScanObject(AMSGroup group,
   AVERT(ScanState, closure->ss);
   AVER(BoolCheck(closure->scanAllObjects));
 
-  format = group->ams->format;
+  format = AMSPool(group->ams)->format;
   AVERT(Format, format);
 
   /* @@@@ This isn't quite right for multiple traces. */
@@ -763,7 +763,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } else {
     AVER(group->marksChanged); /* something must have changed */
     AVER(group->colourTablesInUse);
-    format = ams->format;
+    format = pool->format;
     AVERT(Format, format);
     alignment = PoolAlignment(AMSPool(ams));
     do { /* design.mps.poolams.scan.iter */
@@ -862,7 +862,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           /* design.mps.poolams.fix.to-black */
           Addr next;
 
-          next = (*group->ams->format->skip)(ref);
+          next = (*pool->format->skip)(ref);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
           AMSRangeWhiteBlacken(group, i, AMS_ADDR_INDEX(group, next));
@@ -932,7 +932,7 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   /* It's a white seg, so it must have colour tables. */
   AVER(group->colourTablesInUse);
   AVER(!group->marksChanged); /* there must be nothing grey */
-  format = ams->format;
+  format = pool->format;
   AVERT(Format, format);
   alignment = PoolAlignment(AMSPool(ams));
 
@@ -1120,8 +1120,6 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
                (WriteFP)pool, (WriteFU)pool->serial,
                "  size $W, lastReclaimed $W\n",
                (WriteFW)ams->size, (WriteFW)ams->lastReclaimed,
-               "  format $P ($U)\n",
-               (WriteFP)ams->format, (WriteFU)ams->format->serial,
                "  grain shift $U\n", (WriteFU)ams->grainShift,
                "  action $P ($U)\n",
                (WriteFP)AMSAction(ams), (WriteFU)AMSAction(ams)->serial,
@@ -1191,9 +1189,8 @@ Bool AMSCheck(AMS ams)
   CHECKD(Pool, AMSPool(ams));
   /* Can't check the class until we have a class inclusion predicate. */
   /* CHECKL(AMSPool(ams)->class == &PoolClassAMSStruct); */
-  CHECKD(Format, ams->format);
   CHECKL(PoolAlignment(AMSPool(ams)) == ((Size)1 << ams->grainShift));
-  CHECKL(PoolAlignment(AMSPool(ams)) == ams->format->alignment);
+  CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(Action, AMSAction(ams));
   CHECKL(AMSAction(ams)->pool == AMSPool(ams));
   CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMSPool(ams)))));
