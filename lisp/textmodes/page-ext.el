@@ -1,8 +1,11 @@
-;;; page-ext.el --- page handling commands
+;;; page-ext.el --- extended page handling commands
 
-;;; Copyright (C) 1990 Free Software Foundation
+;; You may use these commands to handle an address list or other
+;; small data base.
 
-;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
+;; Copyright (C) 1990, 1991, 1993 Free Software Foundation
+
+;; Maintainer: Robert J. Chassell <bob@gnu.ai.mit.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -20,124 +23,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Commentary:
-
-;;; You may use these commands to handle an address list or other
-;;; small data base.
-
-;;; Change Log:
-
-;;; Change Log ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;; Version 0.043
-;;; 24 May 1990 - When the cursor is at the end of the pages directory
-;;; buffer (which is empty), a `C-c C-c' (pages-directory-goto)
-;;; command now takes you to the end of the buffer.
-;;;
-;;; Version 0.042
-;;; 16 May 1990 - Since people often handle address and other files
-;;; differently, variable `pages-directory-for-addresses-narrowing-p'
-;;; now specifies whether `pages-directory-goto' should narrow
-;;; addresses buffer to entry to which it goes.
-;;; `pages-directory-buffer-narrowing-p' continues to control
-;;; narrowing of pages buffer.
-;;;
-;;; `add-new-page' documentation string now explains
-;;; that the value of the inserted page-delimiter is a `^L'.
-;;;
-;;; `pages-directory-previous-regexp' definition reworded.
-;;;
-;;; Removed unneeded defvar for `pages-directory-buffer'.
-;;;
-;;; Version 0.041 
-;;; 14 May 1990 - `pages-last-search' bound to nil initially.
-;;; Remove unnecessary lines from `search-pages' definition.
-;;;
-;;; Version 0.04 
-;;; 18 Mar 1990 - `pages-directory' creates a directory for only the
-;;; accessible portion of the buffer; it does not automatically widen
-;;; the buffer.
-;;;  
-;;; However, `pages-directory-for-addresses' does widen the addresses'
-;;; buffer before constructing the addresses' directory.
-;;;
-;;; Version 0.032
-;;; 20 Feb 1990 - `pages-directory-for-addresses' no longer copies
-;;; first line of addresses directory to kill-ring
-;;;
-;;; Remove `(kill-all-local-variables)' line from
-;;; `pages-directory-address-mode' so Emacs will not be told to forget
-;;; the name of the file containing the addresses!
-;;;
-;;; Version 0.031
-;;; 15 Feb 1990 - `pages-directory-goto' no longer erroneously selects
-;;; the entry on the following line when the cursor is at the end of
-;;; the line, but selects the entry on which the cursor rests.  
-;;;
-;;; `pages-directory-address-mode' now sets local variables and enables
-;;; `describe-mode' to describe Addresses Directory mode.
-;;;
-;;; `pages-directory-for-addresses' now sets the buffer-modified flag
-;;; for the Addresses Directory to nil.
-;;;
-;;; The documentation string for both `pages-directory-mode' and
-;;; `pages-directory-address-mode' now provide a lookup for the
-;;; `pages-directory-goto' keybinding.
-;;;
-;;; Version 0.03
-;;; 10 Feb 1990 - Incorporated a specialized extension of the
-;;; `pages-directory' command called `pages-directory-for-addresses'
-;;; and bound it to ctl-x-ctl-p-map "d" for integration with other
-;;; page functions.  This function finds a file, creates a directory
-;;; for it using the `pages-directory' command, and displays the
-;;; directory.  It is primarily for lists of addresses and the like.
-;;;
-;;; The difference between this and the `pages-directory' command is
-;;; that the `pages-directory-for-addresses' command presumes a
-;;; default addresses file (although you may optionally specify a file
-;;; name) and it switches you to the directory for the file, but the
-;;; `pages-directory' command creates a directory for the current
-;;; buffer, and pops to the directory in another window.
-;;;
-;;; `pages-directory' now places the cursor over the header line of
-;;; the page in which point was located in the pages buffer.
-;;;
-;;; New `set-page-delimiter' command sets  the buffer local value of
-;;; the page-delimiter variable.  With prefix arg, resets function to
-;;; original value.  (Quicker to use than `edit-options'.)
-;;;
-;;; Version 0.02
-;;; 9 Feb 1990 - `pages-directory' now displays the
-;;; first line that contains a non-blank character that follows the
-;;; `page-delimiter'; this may be the rest of the line that contains
-;;; the `page-delimiter' or a line following.  (In most instances, the
-;;; line containing a non-blank character is a line of text.)
-;;; Modification includes changes to `pages-copy-header-and-position'.
-;;;
-;;; Each directory created by `pages-directory' now possesses a name
-;;; derived on the name of the pages buffer.  Consequently, you may
-;;; create several different directories, one for each pages buffer.
-;;;
-;;; `sort-pages-in-region' no longers requires the text to start on
-;;; the line immediately following the line containing the
-;;; page-delimiter.
-;;;
-;;; `pages-directory-goto' no longer narrows to the page
-;;; automatically.  Instead, if you wish it to narrow to the page, set
-;;; variable pages-directory-buffer-narrowing-p to a non-nil value.
-;;; Default is nil; this is an experiment to see whether it is useful
-;;; to see the surrounding context.
-;;;
-;;; Version 0.011
-;;; 2 Feb 1990 - `add-new-page': removed extraneous space.
-;;;
-;;; Version 0.01 
-;;; 28 Jan 1990 - Initial definitions.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;; Code:
 
-;;;; Summary
+;;; Summary
 
 ; The current page commands are:
 
@@ -164,11 +51,11 @@
 ;     set-page-delimiter               C-x C-p C-l
 ;     pages-directory                  C-x C-p C-d   
 ;     pages-directory-for-addresses    C-x C-p d
-;         goto-page                    C-c C-c
+;        pages-directory-goto          C-c C-c
 
 
-;;;; Using the page commands
-; 
+;;; Using the page commands
+ 
 ; The page commands are helpful in several different contexts.  For
 ; example, programmers often divide source files into sections using the
 ; `page-delimiter'; you can use the `pages-directory' command to list
@@ -180,8 +67,25 @@
 ; Called with a prefix-arg, the command resets the value of the
 ; page-delimiter to its original value.
 
+; You may set several user options:
+;
+;   The `pages-directory-buffer-narrowing-p' variable causes the
+;   `pages-directory-goto' command to narrow to the destination page.
+;
+;   The `pages-directory-for-adding-page-narrowing-p' variable, causes the
+;   `add-new-page' command to narrow to the new entry.
+;
+;   The `pages-directory-for-adding-new-page-before-current-page-p' variable
+;   causes the `add-new-page' command to insert a new page before current
+;   page.
+;
+; These variables are true by default.
+;
+; Additional, addresses-related user options are described in the next page
+; of this file.
+
 
-;;;; Handling an address list or small data base
+;;; Handling an address list or small data base
 
 ; You may use the page commands to handle an address list or other
 ; small data base.  Put each address or entry on its own page.  The
@@ -223,7 +127,7 @@
 ;     Washington, DC  20515
 ;     
 ;     Congressional committee concerned with permitting or preventing
-;     monopolistic restrictions on the use of software technology
+;     monopolistic restrictions on the use of software technology.
 ; 
 ;     
 ;     George Lakoff
@@ -260,15 +164,12 @@
 ; dislay a directory of all the heading lines.
 
 ; In the directory, you may position the cursor over a heading line
-; and type `C-c C-c' to go to the entry to which it refers in the
-; pages buffer.
+; and type `C-c C-c' (pages-directory-goto) to go to the entry to
+; which it refers in the pages buffer.
 
-; When used in conjunction with the `pages-directory-for-addresses'
-; command, the `C-c C-c' (pages-directory-goto) command narrows to the
-; entry to which it goes.  But, when used in conjunction with the
-; `pages-directory' command, the `C-c C-c' (pages-directory-goto)
-; command does not narrow to the entry, but widens the buffer so you
-; can see the context surrounding the entry.
+; You can type `C-c C-p C-a' (add-new-page) to add a new entry in the
+; pages buffer or address file.  This is the same command you use to
+; add a new entry when you are in the pages buffer or address file.
 
 ; If you wish, you may create several different directories,
 ; one for each different buffer.
@@ -282,11 +183,32 @@
 ; the command with a prefix arg, `C-u C-x C-p d', it prompts you for a
 ; file name.
 
+; You may customize the addresses commands:
+
+;   The `pages-addresses-file-name' variable determines the name of
+;   the addresses file; by default it is "~/addresses".
+
+;   The `pages-directory-for-addresses-goto-narrowing-p' variable
+;   determines whether `pages-directory-goto' narrows the addresses
+;   buffer to the entry, which it does by default.
+
+;   The `pages-directory-for-addresses-buffer-keep-windows-p' variable
+;   determines whether `pages-directory-for-addresses' deletes other
+;   windows to show as many lines as possible on the screen or works
+;   in the usual Emacs manner and keeps other windows.  Default is to
+;   keep other windows.
+
+;   The `pages-directory-for-adding-addresses-narrowing-p' variable
+;   determines whether `pages-directory-for-addresses' narrows the
+;   addresses buffer to a new entry when you are adding that entry.
+;   Default is to narrow to new entry, which means you see a blank
+;   screen before you write the new entry.
+
 ;; `pages-directory' in detail
 
-; Call the `pages-directory' from the buffer for which you want a
-; directory created; it creates a directory for the buffer and pops
-; you to the directory.
+; Call the `pages-directory' command from the buffer for which you
+; want a directory created; it creates a directory for the buffer and
+; pops you to the directory.
 
 ; The `pages-directory' command has several options:
 
@@ -305,8 +227,38 @@
 ;   Called with a negative numeric argument, the `pages-directory'
 ;   command lists the lengths of pages whose contents match a regexp.
 
+;;; Code:
+
 
-;;;; Key bindings for page handling functions
+;;; Customarily customizable variable definitions
+
+(defvar pages-directory-buffer-narrowing-p t
+  "*If non-nil, `pages-directory-goto' narrows pages buffer to entry.")
+
+(defvar pages-directory-for-adding-page-narrowing-p t
+  "*If non-nil, `add-new-page' narrows page buffer to new entry.")
+
+(defvar pages-directory-for-adding-new-page-before-current-page-p t
+  "*If non-nil, `add-new-page' inserts new page before current page.")
+
+
+;;; Addresses related variables
+
+(defvar pages-addresses-file-name "~/addresses"
+  "*Standard name for file of addresses. Entries separated by page-delimiter.
+Used by `pages-directory-for-addresses' function.")
+
+(defvar pages-directory-for-addresses-goto-narrowing-p t
+  "*If non-nil, `pages-directory-goto' narrows addresses buffer to entry.")
+
+(defvar pages-directory-for-addresses-buffer-keep-windows-p t
+  "*If nil, `pages-directory-for-addresses' deletes other windows.")
+
+(defvar pages-directory-for-adding-addresses-narrowing-p t
+  "*If non-nil, `add-new-page' narrows addresses buffer to new entry.")
+
+
+;;; Key bindings for page handling functions
 
 (global-unset-key "\C-x\C-p")
 
@@ -327,7 +279,7 @@
 (define-key ctl-x-ctl-p-map "d"    'pages-directory-for-addresses)
 
 
-;;;; Page movement function definitions
+;;; Page movement function definitions
 
 (defun next-page (&optional count)
   "Move to the next page bounded by the `page-delimiter' variable.
@@ -361,17 +313,58 @@ With arg (prefix if interactive), move that many pages."
   (next-page (- count)))
 
 
-;;;; Adding and searching pages
+;;; Adding and searching pages
 
 (defun add-new-page (header-line)
-  "Insert new page at point; prompt for header line.
-Page begins with a `^L' as the page-delimiter.  
+  "Insert new page.  Prompt for header line.
+
+If point is in the pages directory buffer, insert the new page in the
+buffer associated with the directory.
+
+Insert the new page just before current page if
+  pages-directory-for-adding-new-page-before-current-page-p  variable
+is non-nil.  Else insert at exact location of point.
+
+Narrow to new page if
+  pages-directory-for-adding-page-narrowing-p variable
+is non-nil.
+
+Page begins with a `^L' as the default page-delimiter.  
+Use \\[set-page-delimiter] to change the page-delimiter.
 Point is left in the body of page."
   (interactive "sHeader line: ")
   (widen)
-  (insert (format "\n\n%s\n\n" header-line))
-  ;; don't renarrow; stay unnarrowed to see context
-  (forward-line -1))
+  ;; If in pages directory buffer
+  (if (eq major-mode 'pages-directory-mode) 
+      (progn
+        ;; Add new page before or after current page?
+        (if pages-directory-for-adding-new-page-before-current-page-p
+            (pages-directory-goto)
+          (pages-directory-goto)
+          (forward-page)
+          (or (eobp) (forward-line -1)))))
+  (widen)
+  ;; Move point before current delimiter if desired.
+  (and pages-directory-for-adding-new-page-before-current-page-p
+       (if (re-search-backward page-delimiter nil t)
+           (goto-char (match-beginning 0))
+         ;; If going to beginning of file, insert a page-delimiter
+         ;; before current first page.
+         (goto-char (point-min))
+         (insert
+          (format "%s\n"
+                  ;; Remove leading `^' from page-delimiter string
+                  (if (eq '^ (car (read-from-string page-delimiter)))
+                      (substring page-delimiter 1))))         
+         (goto-char (point-min))))
+  ;; Insert page delimiter at beginning of line.
+  (if (not (looking-at "^."))   (forward-line 1))
+  (insert (format "%s\n%s\n\n\n" 
+                  (if (eq '^ (car (read-from-string page-delimiter)))
+                      (substring page-delimiter 1))
+                  header-line))
+  (forward-line -1)
+  (and pages-directory-for-adding-page-narrowing-p (narrow-to-page)))
 
 (defvar pages-last-search nil
   "Value of last regexp searched for.  Initially, nil.")
@@ -390,7 +383,7 @@ Point is left in the body of page."
   (narrow-to-page))
 
 
-;;;; Sorting pages
+;;; Sorting pages
 
 (autoload 'sort-subr "sort" "Primary function for sorting." t nil)
 
@@ -441,10 +434,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
     (sort-pages-in-region reverse beginning end)))
 
 
-;;;; Pages directory ancillary definitions
-
-(defvar pages-directory-buffer-narrowing-p nil
-  "*If non-nil, `pages-directory-goto' narrows pages buffer to entry.")
+;;; Pages directory ancillary definitions
 
 (defvar pages-directory-previous-regexp nil
   "Value of previous regexp used by `pages-directory'.
@@ -467,7 +457,11 @@ contain matches to the regexp.\)")
     ()
   (setq pages-directory-map (make-sparse-keymap))
   (define-key pages-directory-map "\C-c\C-c"
-    'pages-directory-goto))
+    'pages-directory-goto)
+  (define-key pages-directory-map "\C-c\C-p\C-a" 'add-new-page))
+
+(defvar original-page-delimiter "^"
+  "Default page delimiter.")
 
 (defun set-page-delimiter (regexp reset-p)
   "Set buffer local value of page-delimiter to REGEXP.
@@ -479,7 +473,7 @@ resets the page-delimiter to the original value."
   
   (interactive
    (if current-prefix-arg
-       (list original-page-delimiter nil)
+       (list original-page-delimiter "^")
      (list (read-string "Set page-delimiter to regexp: " page-delimiter)
            nil)))
   (make-local-variable 'original-page-delimiter)
@@ -493,7 +487,7 @@ resets the page-delimiter to the original value."
       (message "The value of `page-delimiter' is now: %s" page-delimiter)))
 
 
-;;;; Pages directory main definitions
+;;; Pages directory main definitions
 
 (defun pages-directory
   (pages-list-all-headers-p count-lines-p &optional regexp)
@@ -551,7 +545,7 @@ directory for only the accessible portion of the buffer."
       (message "Creating directory for: %s "
                (buffer-name)))
   
-  (let ((buffer (current-buffer))
+  (let ((target-buffer (current-buffer))
         (pages-directory-buffer
          (concat pages-directory-prefix " " (buffer-name) " "))
         (linenum 1)
@@ -567,7 +561,7 @@ directory for only the accessible portion of the buffer."
         (pages-directory-mode)
         (insert
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
-        (setq pages-buffer buffer)
+        (setq pages-buffer target-buffer)
         (setq pages-pos-list nil))
       
       (if pages-list-all-headers-p
@@ -617,7 +611,7 @@ directory for only the accessible portion of the buffer."
       (setq pages-pos-list (nreverse pages-pos-list))
       (if (interactive-p)
           (message "%d matching lines in: %s"
-                   (length pages-pos-list) (buffer-name buffer))))
+                   (length pages-pos-list) (buffer-name target-buffer))))
     (pop-to-buffer pages-directory-buffer)
     (sit-for 0)  ; otherwise forward-line fails if N > window height.
     (forward-line (if (= 0 pages-buffer-original-page)
@@ -656,7 +650,7 @@ Used by `pages-directory' function."
         ;; record page position 
         (setq pages-pos-list (cons position pages-pos-list))
         ;; insert page header
-        (insert-buffer-substring buffer start end))
+        (insert-buffer-substring target-buffer start end))
       
       (if count-lines-p
           (save-excursion
@@ -697,7 +691,7 @@ to the same line in the pages buffer."
 	 (pos (nth pages-number pages-pos-list))
          (end-of-directory-p (eobp))
          (narrowing-p  pages-directory-buffer-narrowing-p))
-    (pop-to-buffer pages-buffer)
+    (pop-to-buffer pages-buffer)  
     (widen)
     (if end-of-directory-p
         (goto-char (point-max))
@@ -705,14 +699,7 @@ to the same line in the pages buffer."
     (if narrowing-p (narrow-to-page))))
 
 
-;;;; The `pages-directory-for-addresses' function and ancillary code
-
-(defvar pages-addresses-file-name "~/addresses"
-  "*Standard name for file of addresses.  Entries separated by `page-delimiter'.
-Used by `pages-directory-for-addresses' function.")
-
-(defvar pages-directory-for-addresses-narrowing-p t
-  "*If non-nil, `pages-directory-goto' narrows addresses buffer to entry.")
+;;; The `pages-directory-for-addresses' function and ancillary code
 
 (defun pages-directory-for-addresses (&optional filename)
   "Find addresses file and display its directory.
@@ -721,7 +708,15 @@ Optional argument is FILENAME.  In interactive use, with prefix
 argument, prompt for file name and provide completion.
 
 Move point to one of the lines in the displayed directory,
-then use C-c C-c to go to the same line in the addresses buffer."
+then use \\[pages-directory-goto] to go to the same line
+in the addresses buffer.
+
+If    pages-directory-for-addresses-goto-narrowing-p    is non-nil,
+`pages-directory-goto' narrows addresses buffer to entry.
+
+If    pages-directory-for-addresses-buffer-keep-windows-p     is nil,
+this command deletes other windows when it displays the addresses 
+directory."
 
   (interactive
    (list (if current-prefix-arg
@@ -739,9 +734,10 @@ then use C-c C-c to go to the same line in the addresses buffer."
         (widen)
         (pages-directory t nil nil)
         (pages-directory-address-mode)
-        (setq pages-directory-buffer-narrowing-p 
-              pages-directory-for-addresses-narrowing-p)
-        (delete-other-windows)
+        (setq pages-directory-buffer-narrowing-p
+              pages-directory-for-addresses-goto-narrowing-p)
+        (or pages-directory-for-addresses-buffer-keep-windows-p
+            (delete-other-windows))
         (save-excursion
           (goto-char (point-min))
           (delete-region (point) (save-excursion (end-of-line) (point)))
@@ -754,7 +750,8 @@ then use C-c C-c to go to the same line in the addresses buffer."
 (defun pages-directory-address-mode ()
   "Mode for handling the Addresses Directory buffer.
 
-Move point to one of the lines in this buffer, then use C-c C-c to go
+Move point to one of the lines in this buffer,
+then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
 
   (use-local-map pages-directory-map)
@@ -764,5 +761,9 @@ to the same line in the pages buffer."
   (make-local-variable 'pages-pos-list)
   (make-local-variable 'pages-directory-buffer-narrowing-p))
 
-;;; page-ext.el ends here
+
+;;; Place `provide' at end of file.
+(provide 'page-ext)
+
+;;;;;;;;;;;;;;;; end of page-ext.el ;;;;;;;;;;;;;;;;
 
