@@ -1,3 +1,7 @@
+2002-04-30  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
+
+	* quail/vntelex.el: Add new rules to escape from composition.
+
 2002-04-29  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
 
 	* quail/vntelex.el: Use proper charset.
