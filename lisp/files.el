@@ -3439,7 +3439,8 @@ See also `auto-save-file-name-p'."
     ;; mode tends to create a good number of these.)
 
     (let ((buffer-name (buffer-name))
-	  (limit 0))
+	  (limit 0)
+	  filename)
       ;; Eliminate all slashes and backslashes by
       ;; replacing them with sequences that start with %.
       ;; Quote % also, to keep distinct names distinct.
@@ -3452,27 +3453,34 @@ See also `auto-save-file-name-p'."
 	  (setq buffer-name (replace-match replacement t t buffer-name))
 	  (setq limit (1+ (match-end 0)))))
       ;; Generate the file name.
-      (make-temp-file
-       (let ((fname
-	      (expand-file-name
-	       (format "#%s#" buffer-name)
-	       ;; Try a few alternative directories, to get one we can
-	       ;; write it.
-	       (cond
-		((file-writable-p default-directory) default-directory)
-		((file-writable-p "/var/tmp/") "/var/tmp/")
-		("~/")))))
-	 (if (and (memq system-type '(ms-dos windows-nt))
-		  ;; Don't modify remote (ange-ftp) filenames
-		  (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" fname)))
-	     ;; The call to convert-standard-filename is in case
-	     ;; buffer-name includes characters not allowed by the
-	     ;; DOS/Windows filesystems.  make-temp-file writes to the
-	     ;; file it creates, so we must fix the file name _before_
-	     ;; make-temp-file is called.
-	     (convert-standard-filename fname)
-	   fname))
-       nil "#"))))
+      (setq file-name
+	    (make-temp-file
+	     (let ((fname
+		    (expand-file-name
+		     (format "#%s#" buffer-name)
+		     ;; Try a few alternative directories, to get one we can
+		     ;; write it.
+		     (cond
+		      ((file-writable-p default-directory) default-directory)
+		      ((file-writable-p "/var/tmp/") "/var/tmp/")
+		      ("~/")))))
+	       (if (and (memq system-type '(ms-dos windows-nt))
+			;; Don't modify remote (ange-ftp) filenames
+			(not (string-match "^/\\w+@[-A-Za-z0-9._]+:" fname)))
+		   ;; The call to convert-standard-filename is in case
+		   ;; buffer-name includes characters not allowed by the
+		   ;; DOS/Windows filesystems.  make-temp-file writes to the
+		   ;; file it creates, so we must fix the file name _before_
+		   ;; make-temp-file is called.
+		   (convert-standard-filename fname)
+		 fname))
+	     nil "#"))
+      ;; make-temp-file creates the file,
+      ;; but we don't want it to exist until we do an auto-save.
+      (condition-case ()
+	  (delete-file file-name)
+	(file-error nil))
+      file-name)))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
