@@ -648,22 +648,28 @@ else
 
 /* Increment both CHARPOS and BYTEPOS, each in the appropriate way.  */
 
-#define INC_BOTH(charpos, bytepos)		\
-do						\
-  {						\
-    (charpos)++;				\
-    INC_POS ((bytepos));			\
-  }						\
+#define INC_BOTH(charpos, bytepos)				\
+do								\
+  {								\
+    (charpos)++;						\
+    if (NILP (current_buffer->enable_multibyte_characters))	\
+      (bytepos)++;						\
+    else							\
+      INC_POS ((bytepos));					\
+  }								\
 while (0)
 
 /* Decrement both CHARPOS and BYTEPOS, each in the appropriate way.  */
 
-#define DEC_BOTH(charpos, bytepos)		\
-do						\
-  {						\
-    (charpos)--;				\
-    DEC_POS ((bytepos));			\
-  }						\
+#define DEC_BOTH(charpos, bytepos)				\
+do								\
+  {								\
+    (charpos)--;						\
+    if (NILP (current_buffer->enable_multibyte_characters))	\
+      (bytepos)--;						\
+    else							\
+      DEC_POS ((bytepos));					\
+  }								\
 while (0)
 
 /* Increase the buffer point POS of the current buffer to the next
