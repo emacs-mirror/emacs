@@ -47,6 +47,8 @@ engine) or retrievable from general Usenet archive services.
 
 You might find bug-fixes or enhancements in these places.
 
+ * Ada: <URL:http://ada.eu.org/ada-mode/>
+
  * Autorevert and Follow:
    <URL:http://www.andersl.com/emacs/>
 
@@ -164,23 +166,23 @@ the future.
    information management and hypertext system.'
    From GNU distribution mirrors.
 
- * ILISP: <URL:http://www.cs.cmu.edu/%7Ecampbell/ilisp/index.html>
+ * ILISP: <URL:http://ilisp.cons.org/>
    Provides an interactive environment for manipulating an inferior
-   process running some form of Lisp.  Reported to have a problem with
-   Emacs 20.
+   process running some form of Lisp.
 
  * JDE: <URL:http://sunsite.auc.dk/jde/>
    Wrapper around Java development tools.
 
  * MULE-UCS: Universal enCoding System
-   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/elisp/mule-ucs/akr/>: 
+   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/elisp/mule-ucs/himi/>: 
    Extended coding systems for MULE, specifically for reading and
    writing UTF-8 encoded Unicode.
 
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
-   Privacy Guard, is under development as a free replacement.
+   Privacy Guard, is under development as a free replacement
+   <URL:http://www.gnupg.org/>.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
