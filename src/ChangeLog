@@ -1,3 +1,8 @@
+2000-04-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (make_cursor_line_fully_visible): Handle case of rows
+	taller than the window.
+
 2000-04-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (realize_x_face): Fix the argument of the second
