@@ -1,3 +1,40 @@
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-check-version):
+	If default-directory is nonexistent, use home dir.
+
+	* progmodes/grep.el (grep-regexp-alist):
+	Don't match parens around line numbers.
+
+	* progmodes/cperl-mode.el (cperl-indent-region)
+	(cperl-imenu--create-perl-index, cperl-xsub-scan): 
+	Don't print progress messages.
+
+	* progmodes/compile.el (compilation-mode-map):
+	Don't inherit from compilation-minor-mode-map;
+	copy its bindings instead.  But the menu bar Compile
+	entry now does inherit from compilation-menu-map.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Use with-no-warnings around compiler-macroexpand.
+
+	* imenu.el: Don't always require newcomment.
+	(imenu--generic-function): Call comment-normalize-vars
+	if we have a comment syntax.
+	Exit the loop if REGEXP matches the null string.
+	Test comment-start as well as comment-start-skip
+	when deciding whether to check for comments.
+
+	* tooltip.el (tooltip-mode): Doc fix.
+
+	* term.el (term-escape-char, term-mode): Doc fixes.
+
+2004-11-24  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords):
+	Check for escapes in the regexp.
+	(python-quote-syntax): Don't do it here.
+
 2004-11-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-breakpoints-mode-map)
@@ -143,6 +180,7 @@
 	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
 	and x-server-version may throw.
 
+>>>>>>> 1.6662
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (substitute-key-definition-key): Optimize.

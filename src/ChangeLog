@@ -1,3 +1,9 @@
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* coding.c (run_pre_post_conversion_on_str): Bind Qinhibit_read_only.
+
+	* buffer.c (syms_of_buffer) <indicate-buffer-boundaries>: Doc fix.
+
 2004-11-24  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to, display_line):

@@ -1,3 +1,24 @@
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Synchronous Processes): Grammar fix.
+
+	* numbers.texi (Comparison of Numbers): Add eql.
+
+	* locals.texi (Standard Buffer-Local Variables): Add many vars.
+
+	* intro.texi (Printing Notation): Fix previous change.
+
+	* display.texi (Customizing Bitmaps): Move indicate-buffer-boundaries
+	and default-indicate-buffer-boundaries from here.
+	(Usual Display): To here.
+	(Scroll Bars): Add scroll-bar-mode and scroll-bar-width.
+	(Usual Display): Move tab-width up.
+
+	* customize.texi (Variable Definitions): Replace
+	show-paren-mode example with tooltip-mode.
+	(Simple Types, Composite Types, Defining New Types): 
+	Minor cleanups.
+	
 2004-11-21  Jesper Harder  <harder@ifa.au.dk>
 
 	* processes.texi (Synchronous Processes, Output from Processes):

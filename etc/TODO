@@ -150,6 +150,10 @@ to the FSF.
 ** Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.
 
+** Make compiler warnings about functions that might be undefined at run time
+ smarter, so that they know which files are required by the file being
+ compiled and don't warn about functions defined in them.
+
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 

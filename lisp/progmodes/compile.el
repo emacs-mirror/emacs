@@ -1080,6 +1080,9 @@ exited abnormally with code %d\n"
 
 (defvar compilation-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; Don't inherit from compilation-minor-mode-map,
+    ;; because that introduces a menu bar item we don't want.
+    ;; That confuses C-down-mouse-3.
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
