@@ -2330,7 +2330,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #ifdef EWOULDBLOCK
 	      else if (nread == -1 && errno == EWOULDBLOCK)
 		;
-#else
+#endif
 #ifdef O_NONBLOCK
 	      else if (nread == -1 && errno == EAGAIN)
 		;
@@ -2346,7 +2346,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		;
 #endif				/* O_NDELAY */
 #endif				/* O_NONBLOCK */
-#endif				/* EWOULDBLOCK */
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
