@@ -7045,6 +7045,7 @@ We suppose that the regexp is scanned already."
                    (error "No perldoc args given")
                  default-entry)
              input))))
+  (require 'man)
   (let* ((is-func (and
 		   (string-match "^[a-z]+$" word)
 		   (string-match (concat "^" word "\\>")
@@ -7052,7 +7053,6 @@ We suppose that the regexp is scanned already."
 				  'cperl-short-docs
 				  'variable-documentation))))
 	 (manual-program (if is-func "perldoc -f" "perldoc")))
-    (require 'man)
     (Man-getpage-in-background word)))
 
 (defun cperl-perldoc-at-point ()
