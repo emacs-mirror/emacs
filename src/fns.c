@@ -2839,7 +2839,7 @@ into shorter lines.")
 
   /* Now we have encoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
-  SET_PT (beg);
+  SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert (encoded, encoded_length);
   del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
 
@@ -2847,8 +2847,8 @@ into shorter lines.")
      move to the beginning of the region.  */
   if (old_pos >= XFASTINT (end))
     old_pos += encoded_length - (XFASTINT (end) - XFASTINT (beg));
-  else if (old_pos > beg)
-    old_pos = beg;
+  else if (old_pos > XFASTINT (beg))
+    old_pos = XFASTINT (beg);
   SET_PT (old_pos);
 
   /* We return the length of the encoded text. */
