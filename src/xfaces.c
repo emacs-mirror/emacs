@@ -32,7 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dispextern.h"
 #include "frame.h"
 #include "blockinput.h"
-/* #include "window.h" */
+#include "window.h"
 
 /* Display Context for the icons */ 
 #include <X11/Intrinsic.h>
@@ -519,9 +519,9 @@ free_frame_faces (f)
 /* Find a match for NEW_FACE in a FRAME's face array, and add it if we don't
    find one.  */
 int
-intern_frame_face (new_face, frame)
-     struct face *new_face;
+intern_frame_face (frame, new_face)
      struct frame *frame;
+     struct face *new_face;
 {
   int len = FRAME_N_FACES (frame);
   int i;
@@ -626,11 +626,10 @@ compute_char_face (f, w, pos, endptr)
      int *endptr;
 {
   struct face face;
-  Lisp_Object prop, position, length;
-  Lisp_Object overlay, start, end;
+  Lisp_Object prop, position;
   int i, j, noverlays;
   int facecode;
-  int endpos;
+  int endpos = BUF_ZV (XBUFFER (w->buffer));
   Lisp_Object *overlay_vec;
   int len;
   struct sortvec *sortvec;
@@ -639,11 +638,26 @@ compute_char_face (f, w, pos, endptr)
   XSET (frame, Lisp_Frame, f);
 
   XFASTINT (position) = pos;
-  prop = Fget_text_property (position, Qface);
+  prop = Fget_text_property (position, Qface, w->buffer);
+  {
+    Lisp_Object end;
 
-  len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
-  noverlays = overlays_at (pos, &overlay_vec, &len, &endpos);
+    end = Fnext_single_property_change (position, Qface, w->buffer);
+    if (INTEGERP (end))
+      endpos = XINT (end);
+  }
+
+  {
+    int end;
+
+    len = 10;
+    overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+    noverlays = overlays_at (pos, &overlay_vec, &len, &end);
+    if (end < endpos)
+      endpos = end;
+  }
+
+  *endptr = endpos;
 
   /* Optimize the default case.  */
   if (noverlays == 0 && NILP (prop))
@@ -664,7 +678,7 @@ compute_char_face (f, w, pos, endptr)
 
   for (i = 0, j = 0; i < noverlays; i++)
     {
-      overlay = overlay_vec[i];
+      Lisp_Object overlay = overlay_vec[i];
 
       if (OVERLAY_VALID (overlay)
 	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
@@ -810,6 +824,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id < 0 || id >= next_face_id)
     error ("Face id out of range");
 
+  if (! FRAME_X_P (f))
+    return;
+
   ensure_face_ready (f, id);
   face = FRAME_FACES (f) [XFASTINT (face_id)];
 
@@ -894,6 +911,8 @@ face_name_id_number (frame, name)
 
   CHECK_FRAME (frame, 0);
   tem = Fcdr (Fassq (name, XFRAME (frame)->face_alist));
+  if (NILP (tem))
+    return 0;
   CHECK_VECTOR (tem, 0);
   tem = XVECTOR (tem)->contents[2];
   CHECK_NUMBER (tem, 0);
