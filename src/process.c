@@ -2413,6 +2413,21 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	kill (getpid (), SIGIO);
 #endif
 
+#if 0 /* When polling is used, interrupt_input is 0,
+	 so get_input_pending should read the input.
+	 So this should not be needed.  */
+      /* If we are using polling for input,
+	 and we see input available, make it get read now.
+	 Otherwise it might not actually get read for a second.
+	 And on hpux, since we turn off polling in wait_reading_process_input,
+	 it might never get read at all if we don't spend much time
+	 outside of wait_reading_process_input.  */
+      if (XINT (read_kbd) && interrupt_input
+	  && keyboard_bit_set (&Available)
+	  && input_polling_used ())
+	kill (getpid (), SIGALRM);
+#endif
+
       /* Check for keyboard input */
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
@@ -2430,6 +2445,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  && requeued_events_pending_p ())
 	break;
 
+#if 0
       /* If wait_for_cell. check for keyboard input
 	 but don't run any timers.
 	 ??? (It seems wrong to me to check for keyboard
@@ -2443,19 +2459,20 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (detect_input_pending ())
 	    break;
 	}
+#endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (wait_for_cell && ! NILP (*wait_for_cell))
 	break;
 
 #ifdef SIGIO
-      /* If we think we have keyboard input waiting, but didn't get SIGIO
+      /* If we think we have keyboard input waiting, but didn't get SIGIO,
 	 go read it.  This can happen with X on BSD after logging out.
 	 In that case, there really is no input and no SIGIO,
 	 but select says there is input.  */
 
       if (XINT (read_kbd) && interrupt_input
-	  && (keyboard_bit_set (&Available)))
+	  && keyboard_bit_set (&Available))
 	kill (getpid (), SIGIO);
 #endif
 
@@ -2575,7 +2592,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      Causes "poll: interrupted system call" messages when Emacs is run
      in an X window
      Turn periodic alarms back on */
-  start_polling();
+  start_polling ();
 #endif
    
   return got_some_input;
