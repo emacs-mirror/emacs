@@ -1,0 +1,34 @@
+# impl.gmk.eg: GNUMAKEFILE FRAGMENT FOR EGCS
+#
+# $HopeName$
+# Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
+#
+# This file is included by platform makefiles that use the EGCS
+# compiler.  It defines the compiler specific variables that the
+# common makefile fragment (impl.gmk.comm) requires.
+#
+# It was made by copying gc.gmk on 1998-03-23
+
+
+CC = egcs
+CFLAGSCOMPILER = \
+	-ansi -pedantic -Wall -Werror -Wpointer-arith \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Winline -Waggregate-return -Wnested-externs \
+	-Wcast-qual -Wshadow
+CFLAGSDEBUG = -g -ggdb3
+CFLAGSOPT = -O -g -ggdb3
+CFLAGSOPTNODEBUG = -O -g0
+
+# gcc -MM generates a dependency line of the form:
+#   thing.o : thing.c ...
+# The sed line converts this into:
+#   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
+# @@ This sequence is vulnerable to interrupts (for some reason)
+
+define gendep
+	$(SHELL) -ec "gcc -c $(CFLAGS) -MM $< | \
+		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
+endef
+
+include comm.gmk
