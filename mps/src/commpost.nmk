@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.25) $
+# $HopeName: MMsrc!commpost.nmk(trunk.26) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -45,7 +45,8 @@ clean:
 	-deltree /Y $(PFM)
 
 # target target
-# %%VARIETY: Add a recusive make call for the new variety
+# %%VARIETY: Optionally, add a recursive make call for the new variety, 
+#  if it should be built by default.
 # Only the varieties needed for development and internal customers are made.
 # Depends on there being no file called "target".
 
