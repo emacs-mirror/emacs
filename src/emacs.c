@@ -210,57 +210,39 @@ init_cmdargs (argc, argv, skip_args)
       name = Fexpand_file_name (Vinvocation_name, dir);
       while (1)
 	{
-	  Lisp_Object tem, lisp_exists, lib_src_exists;
+	  Lisp_Object tem, lib_src_exists;
 	  Lisp_Object etc_exists, info_exists;
 
-	  /* See if dir contains subdirs for use by Emacs.  */
-	  tem = Fexpand_file_name (build_string ("lisp"), dir);
-	  lisp_exists = Ffile_exists_p (tem);
-	  if (!NILP (lisp_exists))
+	  /* See if dir contains subdirs for use by Emacs.
+	     Check for the ones that would exist in a build directory,
+	     not including lisp and info.  */
+	  tem = Fexpand_file_name (build_string ("lib-src"), dir);
+	  lib_src_exists = Ffile_exists_p (tem);
+	  if (!NILP (lib_src_exists))
 	    {
-	      tem = Fexpand_file_name (build_string ("lib-src"), dir);
-	      lib_src_exists = Ffile_exists_p (tem);
-	      if (!NILP (lib_src_exists))
+	      tem = Fexpand_file_name (build_string ("etc"), dir);
+	      etc_exists = Ffile_exists_p (tem);
+	      if (!NILP (etc_exists))
 		{
-		  tem = Fexpand_file_name (build_string ("etc"), dir);
-		  etc_exists = Ffile_exists_p (tem);
-		  if (!NILP (etc_exists))
-		    {
-		      tem = Fexpand_file_name (build_string ("info"), dir);
-		      info_exists = Ffile_exists_p (tem);
-		      if (!NILP (info_exists))
-			{
-			  Vinstallation_directory
-			    = Ffile_name_as_directory (dir);
-			  break;
-			}
-		    }
+		  Vinstallation_directory
+		    = Ffile_name_as_directory (dir);
+		  break;
 		}
 	    }
 
 	  /* See if dir's parent contains those subdirs.  */
-	  tem = Fexpand_file_name (build_string ("../lisp"), dir);
-	  lisp_exists = Ffile_exists_p (tem);
-	  if (!NILP (lisp_exists))
+	  tem = Fexpand_file_name (build_string ("../lib-src"), dir);
+	  lib_src_exists = Ffile_exists_p (tem);
+	  if (!NILP (lib_src_exists))
 	    {
-	      tem = Fexpand_file_name (build_string ("../lib-src"), dir);
-	      lib_src_exists = Ffile_exists_p (tem);
-	      if (!NILP (lib_src_exists))
+	      tem = Fexpand_file_name (build_string ("../etc"), dir);
+	      etc_exists = Ffile_exists_p (tem);
+	      if (!NILP (etc_exists))
 		{
-		  tem = Fexpand_file_name (build_string ("../etc"), dir);
-		  etc_exists = Ffile_exists_p (tem);
-		  if (!NILP (etc_exists))
-		    {
-		      tem = Fexpand_file_name (build_string ("../info"), dir);
-		      info_exists = Ffile_exists_p (tem);
-		      if (!NILP (info_exists))
-			{
-			  tem = Fexpand_file_name (build_string (".."), dir);
-			  Vinstallation_directory
-			    = Ffile_name_as_directory (tem);
-			  break;
-			}
-		    }
+		  tem = Fexpand_file_name (build_string (".."), dir);
+		  Vinstallation_directory
+		    = Ffile_name_as_directory (tem);
+		  break;
 		}
 	    }
 
