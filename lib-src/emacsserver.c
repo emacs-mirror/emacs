@@ -58,6 +58,28 @@ main ()
 
 extern int errno;
 
+/* Copied from src/process.c */
+#ifdef FD_SET
+/* We could get this from param.h, but better not to depend on finding that.
+   And better not to risk that it might define other symbols used in this
+   file.  */
+#ifdef FD_SETSIZE
+#define MAXDESC FD_SETSIZE
+#else
+#define MAXDESC 64
+#endif
+#define SELECT_TYPE fd_set
+#else /* no FD_SET */
+#define MAXDESC 32
+#define SELECT_TYPE int
+
+/* Define the macros to access a single-int bitmap of descriptors.  */
+#define FD_SET(n, p) (*(p) |= (1 << (n)))
+#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
+#define FD_ISSET(n, p) (*(p) & (1 << (n)))
+#define FD_ZERO(p) (*(p) = 0)
+#endif /* no FD_SET */
+
 main ()
 {
   char system_name[32];
@@ -129,15 +151,17 @@ main ()
   signal (SIGPIPE, SIG_IGN);
   for (;;)
     {
-      int rmask = (1 << s) + 1;
-      if (select (s + 1, (fd_set *)&rmask, 0, 0, 0) < 0)
+      SELECT_TYPE rmask;
+      FD_ZERO (rmask);
+      FD_SET (rmask, 0);
+      FD_SET (rmask, s);
+      if (select (s + 1, &rmask, 0, 0, 0) < 0)
 	perror ("select");
-      if (rmask & (1 << s))	/* client sends list of filenames */
+      if (FD_ISSET (rmask, s))	/* client sends list of filenames */
 	{
 	  fromlen = sizeof (fromunix);
 	  fromunix.sun_family = AF_UNIX;
-	  infd = accept (s, (struct sockaddr *) &fromunix,
-			 (size_t *) &fromlen);
+	  infd = accept (s, (struct sockaddr *) &fromunix, &fromlen);
 	  if (infd < 0)
 	    {
 	      if (errno == EMFILE || errno == ENFILE)
@@ -186,7 +210,7 @@ main ()
 	  fflush (infile);
 	  continue;
 	}
-      else if (rmask & 1) /* emacs sends codeword, fd, and string message */
+      else if (FD_ISSET (rmask, 0)) /* emacs sends codeword, fd, and string message */
 	{
 	  /* Read command codeword and fd */
 	  clearerr (stdin);
