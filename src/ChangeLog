@@ -1,3 +1,22 @@
+2000-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c: Equivalent changes to those made to xterm.c on
+	2000-02-25 and 2000-02-24.
+
+	* w32fns.c: Equivalent changes to those made to xfns.c on
+	2000-02-25 and 2000-02-21.
+
+	* sysdep.c: [WINDOWSNT]: Use sys_read and sys_write to ensure
+	correct line-end convention is followed.
+
+	* w32menu.c [HAVE_BOXES]: Remove #undef.
+	(single_keymap_panes): Remove code for simulating checkmarks.
+	(single_menu_item): Remove notbuttons_ptr argument. Callers changed.
+	Remove code for drawing simulated checkmarks.
+	(w32_menu_show): make unibyte help string correctly.
+	(add_menu_item): draw standard Windows checkmarks. Draw radio
+	buttons as radio buttons if possible.
+
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c (start_of_text): Don't define this function for NetBSD
