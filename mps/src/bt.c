@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.11) $
+ * $HopeName: MMsrc!bt.c(trunk.12) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.11) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.12) $");
 
 /* is the whole word of bits at this index set? */
 
@@ -205,7 +205,7 @@ void BTResRange(BT t, Index base, Index limit)
   innerLimit = BTIndexAlignDown(limit);
 
   if(innerBase >= innerLimit) { /* no inner range */
-    for(bitIndex = base; bitIndex < limit; bitIndex++)
+    for(bitIndex = base; bitIndex < limit; ++bitIndex)
       BTRes(t, bitIndex);
   } else {
     Index wordIndex, wordBase, wordLimit;
@@ -213,13 +213,13 @@ void BTResRange(BT t, Index base, Index limit)
     wordBase = innerBase >> MPS_WORD_SHIFT;
     wordLimit = innerLimit >> MPS_WORD_SHIFT;
 
-    for(bitIndex = base; bitIndex < innerBase; bitIndex++) 
+    for(bitIndex = base; bitIndex < innerBase; ++bitIndex) 
       BTRes(t, bitIndex);
 
-    for(wordIndex = wordBase; wordIndex < wordLimit; wordIndex++)
+    for(wordIndex = wordBase; wordIndex < wordLimit; ++wordIndex)
       t[wordIndex] = (Word)0;
 
-    for(bitIndex = innerLimit; bitIndex < limit; bitIndex++)
+    for(bitIndex = innerLimit; bitIndex < limit; ++bitIndex)
       BTRes(t, bitIndex);
   }
 }
@@ -396,11 +396,16 @@ Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
  * See design.mps.bt.if.ranges-same
  */
  
-Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit)
+Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
 {
-  Index i = base;
+  Index i;
+
+  AVER(BTCheck(comparand));
+  AVER(BTCheck(comparator));
+  AVER(base < limit);
+  i = base;
   while(i < limit) {
-    if (BTGet(BTx, i) != BTGet(BTy, i))
+    if(BTGet(comparand, i) != BTGet(comparator, i))
       return FALSE;
     ++ i;
   }
@@ -417,6 +422,11 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
 {
   Index bitIndex, innerBase, innerLimit;
 
+  AVER(BTCheck(fromBT));
+  AVER(BTCheck(toBT));
+  AVER(fromBT != toBT);
+  AVER(base < limit);
+
   /* We determine the maximal inner range that has word-aligned */
   /* base and limit.  We then copy the lead and trailing bits as */
   /* bits, and the rest as words. */
@@ -425,10 +435,10 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
   innerLimit = BTIndexAlignDown(limit); 
 
   if(innerBase >= innerLimit) { /* no inner range */
-    for(bitIndex = base; bitIndex < limit; bitIndex++)
+    for(bitIndex = base; bitIndex < limit; ++bitIndex)
      if(BTGet(fromBT, bitIndex))
        BTRes(toBT, bitIndex);
-	 else
+     else
        BTSet(toBT, bitIndex);
   } else {
     Index wordIndex, wordBase, wordLimit;
@@ -436,17 +446,17 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
     wordBase = innerBase >> MPS_WORD_SHIFT;
     wordLimit = innerLimit >> MPS_WORD_SHIFT;
 
-    for(bitIndex = base; bitIndex < innerBase; bitIndex++) {
-      if (BTGet(fromBT, bitIndex))
+    for(bitIndex = base; bitIndex < innerBase; ++bitIndex) {
+      if(BTGet(fromBT, bitIndex))
         BTRes(toBT, bitIndex);
       else
         BTSet(toBT, bitIndex);
     }
 
-    for(wordIndex = wordBase; wordIndex < wordLimit; wordIndex++)
+    for(wordIndex = wordBase; wordIndex < wordLimit; ++wordIndex)
       toBT[wordIndex] = ~fromBT[wordIndex];
       
-    for(bitIndex = innerLimit; bitIndex < limit; bitIndex++) {
+    for(bitIndex = innerLimit; bitIndex < limit; ++bitIndex) {
       if(BTGet(fromBT, bitIndex))
         BTRes(toBT, bitIndex);
       else
