@@ -91,7 +91,7 @@
 ;;   The variable `checkdoc-spellcheck-documentation-flag' can be set
 ;; to customize how spell checking is to be done.  Since spell
 ;; checking can be quite slow, you can optimize how best you want your
-;; checking done.  The default is 'defun, which spell checks each time
+;; checking done.  The default is `defun', which spell checks each time
 ;; `checkdoc-defun' or `checkdoc-eval-defun' is used.  Setting to nil
 ;; prevents spell checking during normal usage.
 ;;   Setting this variable to nil does not mean you cannot take
@@ -467,8 +467,8 @@ the users will view as each check is completed."
   (interactive)
   (let ((status (list "Checking..." "-" "-" "-"))
 	(checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(buffer interactive t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer interactive t))))
 	;; if the user set autofix to never, then that breaks the
 	;; obviously requested asking implied by using this function.
 	;; Set it to paranoia level.
@@ -535,8 +535,8 @@ Optional argument SHOWSTATUS indicates that we should update the
 checkdoc status window instead of the usual behavior."
   (interactive "P")
   (let ((checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(interactive t))))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(interactive t)))))
     (checkdoc-interactive-loop start-here showstatus 'checkdoc-next-error)))
 
 ;;;###autoload
@@ -550,8 +550,8 @@ Optional argument SHOWSTATUS indicates that we should update the
 checkdoc status window instead of the usual behavior."
   (interactive "P")
   (let ((checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(interactive t))))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(interactive t)))))
     (checkdoc-interactive-loop start-here showstatus
 			       'checkdoc-next-message-error)))
 
@@ -569,8 +569,8 @@ style."
 		  (if (not start-here) (goto-char (point-min)))))
 	 ;; Assign a flag to spellcheck flag
 	 (checkdoc-spellcheck-documentation-flag
-	  (member checkdoc-spellcheck-documentation-flag
-		  '(buffer interactive t)))
+	  (car (memq checkdoc-spellcheck-documentation-flag
+                     '(buffer interactive t))))
 	 ;; Fetch the error list
 	 (err-list (list (funcall findfunc nil)))
 	 (cdo nil)
@@ -803,7 +803,8 @@ otherwise stop after the first error."
   (if (interactive-p) (message "Checking buffer for style..."))
   ;; Assign a flag to spellcheck flag
   (let ((checkdoc-spellcheck-documentation-flag
-	 (memq checkdoc-spellcheck-documentation-flag '(buffer t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer t))))
 	(checkdoc-autofix-flag (if take-notes 'never
 				 checkdoc-autofix-flag))
 	(checkdoc-generate-compile-warnings-flag
@@ -847,8 +848,8 @@ is the starting location.  If this is nil, `point-min' is used instead."
   (let ((wrong nil) (msg nil) (errors nil)
 	;; Assign a flag to spellcheck flag
 	(checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(buffer t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer t))))
 	(checkdoc-autofix-flag (if take-notes 'never
 				 checkdoc-autofix-flag))
 	(checkdoc-generate-compile-warnings-flag
@@ -891,8 +892,8 @@ if there is one."
   (if (not buffer-file-name)
      (error "Can only check comments for a file buffer"))
   (let* ((checkdoc-spellcheck-documentation-flag
-	  (member checkdoc-spellcheck-documentation-flag
-		  '(buffer t)))
+	  (car (memq checkdoc-spellcheck-documentation-flag
+                     '(buffer t))))
 	 (checkdoc-autofix-flag (if take-notes 'never checkdoc-autofix-flag))
 	 (e (checkdoc-file-comments-engine))
 	(checkdoc-generate-compile-warnings-flag
@@ -971,8 +972,8 @@ space at the end of each line."
       (forward-sexp 1)
       (skip-chars-forward " \n\t")
       (let* ((checkdoc-spellcheck-documentation-flag
-	      (member checkdoc-spellcheck-documentation-flag
-		      '(defun t)))
+	      (car (memq checkdoc-spellcheck-documentation-flag
+                         '(defun t))))
 	     (beg (save-excursion (beginning-of-defun) (point)))
 	     (end (save-excursion (end-of-defun) (point)))
 	     (msg (checkdoc-this-string-valid)))
@@ -2052,7 +2053,11 @@ before using the Ispell engine on it."
   (if (or (not checkdoc-spellcheck-documentation-flag)
 	  ;; If the user wants no questions or fixing, then we must
 	  ;; disable spell checking as not useful.
-	  (not checkdoc-autofix-flag)
+          ;; FIXME: Somehow, `checkdoc-autofix-flag' is always nil
+          ;; when `checkdoc-ispell-docstring-engine' is called to be
+          ;; used on a docstring.  As a workround, I commented out the
+          ;; next line.
+	  ;; (not checkdoc-autofix-flag)
 	  (eq checkdoc-autofix-flag 'never))
       nil
     (checkdoc-ispell-init)
