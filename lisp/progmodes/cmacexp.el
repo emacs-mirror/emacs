@@ -3,7 +3,6 @@
 ;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.26 1996/06/07 22:59:27 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
