@@ -572,6 +572,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		    elt = XCAR (tem);
 		    if (!STRINGP (elt))
 		      continue;
+		    /* Need to encode ELT, since scmp compares unibyte
+		       strings only.  */
+		    elt = ENCODE_FILE (elt);
 		    elt_len = XSTRING (elt)->size - 1; /* -1 for trailing / */
 		    if (elt_len <= 0)
 		      continue;
@@ -598,6 +601,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		  {
 		    elt = XCAR (tem);
 		    if (!STRINGP (elt)) continue;
+		    /* Need to encode ELT, since scmp compares unibyte
+		       strings only.  */
+		    elt = ENCODE_FILE (elt);
 		    skip = len - XSTRING (elt)->size;
 		    if (skip < 0) continue;
 
