@@ -59,7 +59,7 @@
 ;; I've set up a mailing list to report bugs or suggest enhancements,
 ;; etc. This list's intended audience is elisp package authors who are
 ;; using reporter and want to stay current with releases. Here are the
-;; relevent addresses:
+;; relevant addresses:
 ;;
 ;; Administrivia: reporter-request@anthem.nlm.nih.gov
 ;; Submissions:   reporter@anthem.nlm.nih.gov
@@ -139,7 +139,7 @@ the name of the mode (you must explicitly concat any version numbers).
 VARLIST is the list of variables to dump (do a `\\[describe-function] reporter-dump-state'
 for details). Optional PRE-HOOKS and POST-HOOKS are passed to
 `reporter-dump-state'. Optional SALUTATION is inserted at the top of the
-mail buffer, and point is left after the saluation.
+mail buffer, and point is left after the salutation.
 
 The mailer used is described in the variable `reporter-mailer'."
 
