@@ -52,7 +52,7 @@ those face attributes first that appear first in the list.  For
 example, if `:slant' appears before `:height', font selection first
 tries to find a font with a suitable slant, even if this results in
 a font height that isn't optimal."
-  :tag "Font selection order."
+  :tag "Font selection order"
   :type '(list symbol symbol symbol symbol)
   :group 'font-selection
   :set #'(lambda (symbol value)
@@ -68,7 +68,7 @@ a font height that isn't optimal."
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
-  :tag "Alternative font families to try."
+  :tag "Alternative font families to try"
   :type '(repeat (repeat string))
   :group 'font-selection
   :set #'(lambda (symbol value)
@@ -93,7 +93,7 @@ Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
 tries to find a best matching font among all fonts of registry
 REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
-  :tag "Alternative font registries to try."
+  :tag "Alternative font registries to try"
   :type '(repeat (repeat string))
   :version "21.1"
   :group 'font-selection
