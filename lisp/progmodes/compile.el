@@ -303,7 +303,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; Error 24 at (2:progran.f90) : syntax error
     ("Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
 
-    ;; SGI IRIX MipsPro compilers:
+    ;; SGI IRIX MipsPro 7.3 compilers:
     ;; cc-1070 cc: ERROR File = linkl.c, Line = 38
     (".*: ERROR File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
     (".*: WARNING File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
