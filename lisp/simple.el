@@ -2999,7 +2999,7 @@ the user to see that the mark has moved, and you want the previous
 mark position to be lost.
 
 Normally, when a new mark is set, the old one should go on the stack.
-This is why most applications should use push-mark, not set-mark.
+This is why most applications should use `push-mark', not `set-mark'.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  The mark saves a location for the user's convenience.
