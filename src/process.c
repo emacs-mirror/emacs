@@ -1841,7 +1841,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  else
 	    error("select error: %s", sys_errlist[xerrno]);
 	}
-#ifdef sun
+#if defined(sun) && !defined(USG5_4)
       else if (nfds > 0 && FD_ISSET (0, &Available) && interrupt_input)
 	/* System sometimes fails to deliver SIGIO.  */
 	kill (getpid (), SIGIO);

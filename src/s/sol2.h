@@ -1,4 +1,4 @@
-#include "s-usg5-4.h"
+#include "usg5-4.h"
 
 #define POSIX
 
@@ -17,6 +17,7 @@
 #else /* GCC */
 #define C_SWITCH_SYSTEM -traditional
 #endif /* GCC */
+#define const
 
 /* Karl Berry writes:
 If you have the misfortune to be running Solaris 2.1, you may have
