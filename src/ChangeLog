@@ -1,3 +1,14 @@
+2005-01-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_gtk_scroll_destroy, xg_create_scroll_bar)
+	(xg_tool_bar_callback, xg_tool_bar_help_callback)
+	(update_frame_tool_bar): Cast to EMACS_INT to avoid compiler
+	warning.
+
+	* xselect.c (x_get_foreign_selection, x_fill_property_data)
+	(Fx_get_atom_name, Fx_send_client_event): Replace XFLOAT with 
+	XFLOAT_DATA to get extract number from Lisp object.
+
 2005-01-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_iterator_to_next): Fix 2004-12-13 change.

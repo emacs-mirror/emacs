@@ -2850,7 +2850,7 @@ xg_gtk_scroll_destroy (widget, data)
      gpointer data;
 {
   gpointer p;
-  int id = (int)data;
+  int id = (int) (EMACS_INT) data; /* The EMACS_INT cast avoids a warning. */
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
   if (p) xfree (p);
@@ -2920,10 +2920,11 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     "value-changed",
                     scroll_callback,
                     (gpointer) bar);
+  /* The EMACS_INT cast avoids a warning. */
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer) scroll_id);
+                    (gpointer) (EMACS_INT) scroll_id);
 
   /* Connect to button press and button release to detect if any scroll bar
      has the pointer.  */
@@ -3112,7 +3113,8 @@ xg_tool_bar_callback (w, client_data)
      GtkWidget *w;
      gpointer client_data;
 {
-  int idx = (int)client_data;
+  /* The EMACS_INT cast avoids a warning. */
+  int idx = (int) (EMACS_INT) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
@@ -3209,7 +3211,8 @@ xg_tool_bar_help_callback (w, event, client_data)
      GdkEventCrossing *event;
      gpointer client_data;
 {
-  int idx = (int)client_data;
+  /* The EMACS_INT cast avoids a warning. */
+  int idx = (int) (EMACS_INT) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
@@ -3452,11 +3455,12 @@ update_frame_tool_bar (f)
 
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
 
+          /* The EMACS_INT cast avoids a warning. */
           gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
                                    0, 0, 0,
                                    w,
                                    GTK_SIGNAL_FUNC (xg_tool_bar_callback),
-                                   (gpointer)i);
+                                   (gpointer) (EMACS_INT) i);
 
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
@@ -3486,14 +3490,15 @@ update_frame_tool_bar (f)
                  rather than the GtkButton specific signals "enter" and
                  "leave", so we can have only one callback.  The event
                  will tell us what kind of event it is.  */
+              /* The EMACS_INT cast avoids a warning. */
               g_signal_connect (G_OBJECT (w),
                                 "enter-notify-event",
                                 G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer)i);
+                                (gpointer) (EMACS_INT) i);
               g_signal_connect (G_OBJECT (w),
                                 "leave-notify-event",
                                 G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer)i);
+                                (gpointer) (EMACS_INT) i);
             }
         }
       else
