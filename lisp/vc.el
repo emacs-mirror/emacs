@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.16 1992/11/08 18:58:17 rms Exp jimb $	
+;;	$Id: vc.el,v 1.17 1992/11/20 17:23:45 jimb Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -319,7 +319,8 @@ the option to steal the lock."
 		       (not (buffer-modified-p)))
 		  (progn
 		    (vc-backend-revert file)
-		    (vc-resynch-window file t t))
+		    ;; DO NOT revert the file without asking the user!
+		    (vc-resynch-window file t nil))
 
 		;; user may want to set nonstandard parameters
 		(if verbose
