@@ -23,6 +23,7 @@ pertaining to the terminal and the screen.
 * Time of Day::		Getting the current time.
 * Time Conversion::     Converting a time from numeric form to a string, or
                           to calendrical data (or vice versa).
+* Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::		Setting a timer to call a function at a certain time.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
@@ -1032,6 +1033,11 @@ the number of years since the year 1 B.C., and do not skip zero as
 traditional Gregorian years do; for example, the year number @minus{}37
 represents the Gregorian year 38 B.C@.
 
+@defun date-to-time string
+This function parses the time-string @var{string} and returns the
+corresponding time value.
+@end defun
+
 @defun format-time-string format-string &optional time universal
 This function converts @var{time} (or the current time, if @var{time} is
 omitted) to a string according to @var{format-string}.  The argument
@@ -1146,6 +1152,12 @@ returns the resulting string, @code{format-time-string} decodes the
 string using that same coding system.
 @end defun
 
+@defun seconds-to-time seconds
+This function converts @var{seconds}, a floating point number of
+seconds since the epoch, to a time value and returns that.  To perform
+the inverse conversion, use @code{float-time}.
+@end defun
+
 @defun decode-time time
 This function converts a time value into calendrical information.  The
 return value is a list of nine elements, as follows:
@@ -1215,6 +1227,45 @@ arguments; for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
+@end defun
+
+@node Time Calculations
+@section Time Calculations
+
+  These functions perform calendrical computations using time values
+(the kind of list that @code{current-time} returns).
+
+@defun time-less-p t1 t2
+This returns @code{t} if time value @var{t1} is less than time value
+@var{t2}.
+@end defun
+
+@defun time-subtract t1 t2
+This returns the time difference @var{t1} @minus{} @var{t2} between
+two time values, in the same format as a time value.
+@end defun
+
+@defun time-add t1 t2
+This returns the sum of two time values, one of which ought to
+represent a time difference rather than a point in time.
+Here is how to add a number of seconds to a time value:
+
+@example
+(time-add @var{time} (seconds-to-time @var{seconds}))
+@end example
+@end defun
+
+@defun time-to-days time
+This function returns the number of days between the beginning of year
+1 and @var{time}.
+@end defun
+
+@defun time-to-day-in-year time
+This returns the day number within the year corresponding to @var{time}.
+@end defun
+
+@defun date-leap-year-p year
+This function returns @code{t} if @var{year} is a leap year.
 @end defun
 
 @node Timers
