@@ -26,6 +26,10 @@
 	* xdisp.c (try_scrolling): Make sure `scroll-conservatively' is
 	not too large before computing how much to scroll.
 
+2004-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (Ffile_attributes): Don't pass extra nil arg to file-handler.
+
 2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fileio.c (Fverify_visited_file_modtime, Fvisited_file_modtime):
@@ -57,6 +61,11 @@
 	higher-than-window cursor row - both initially and again with
 	centering_position = 0.
 	Clear desired matrix before retrying with centering_position = 0.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (scan_lists): Simplify backward string scan.
+	Fix off-by-one boundary check for string and comment fences.
 
 2004-04-13  Joe Buehler  <jbuehler@hekimian.com>
 
