@@ -1,4 +1,4 @@
-2002-11-05    <karl@gnu.org>
+2002-11-05  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Info-fontify): reorder face list to avoid bad line
 	breaks.
