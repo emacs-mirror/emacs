@@ -49,7 +49,7 @@ static int
 search_file_line(char *key, char *start, int len, char **val, char **next)
 {
   int linelen;
-  unsigned char *p, *q;
+  char *p;
 
   p = memchr(start, '\n', len);
   if (!p) return -1;
@@ -107,7 +107,7 @@ get_quoted_string(char *start, char *end)
 static int
 set_bdf_font_info(bdffont *fontp)
 {
-  unsigned char *start, *p, *q;
+  char *start, *p, *q;
   int len, flag;
   int bbw, bbh, bbx, bby;
   int val1;
@@ -345,7 +345,8 @@ seek_char(bdffont *fontp, int index)
 {
   font_char *result;
   int len, flag, font_index;
-  unsigned char *start, *p, *q;
+  unsigned char *start;
+  char *p, *q;
 
   if (!fontp->seeked) return NULL;
 
@@ -379,8 +380,9 @@ int
 w32_get_bdf_glyph(bdffont *fontp, int index, int size, glyph_struct *glyph)
 {
   font_char *pch;
-  unsigned char *start, *p, *q, *bitmapp;
-  unsigned char val1, val2;
+  unsigned char *start, *bitmapp;
+  char *p, *q;
+  char val1, val2;
   int i, j, len, flag;
 
   pch = get_cached_font_char(fontp, index);
@@ -692,7 +694,7 @@ int w32_BDF_to_x_font (char *file, char* xstr, int len)
 {
   HANDLE hfile, hfilemap;
   BY_HANDLE_FILE_INFORMATION fileinfo;
-  unsigned char *font, *start, *p, *q;
+  char *font, *start, *p, *q;
   int flag, size, retval = 0;
 
   hfile = CreateFile (file, GENERIC_READ, FILE_SHARE_READ, NULL,
