@@ -564,7 +564,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
   (vc-start-entry file rev
 		  (or comment (not vc-initial-comment))
 		  "Enter initial comment." 'vc-backend-admin
-		  'vc-checkout-writable-buffer-hook))
+		  nil))
 
 (defun vc-checkout (file &optional writable)
   "Retrieve a copy of the latest version of the given file."
