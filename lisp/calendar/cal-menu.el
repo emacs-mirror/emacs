@@ -238,6 +238,13 @@ ERROR is t, otherwise just returns nil."
     (calendar-goto-date (calendar-event-to-date))
     (view-diary-entries 1)))
 
+(defun calendar-mouse-insert-diary-entry ()
+  "Insert diary entry for mouse-selected date."
+  (interactive)
+  (save-excursion
+    (calendar-goto-date (calendar-event-to-date))
+    (insert-diary-entry nil)))
+
 (defun calendar-mouse-set-mark ()
   "Mark the date under the cursor."
   (interactive)
@@ -284,6 +291,7 @@ ERROR is t, otherwise just returns nil."
                  (list
                   (calendar-date-string date t t)
                   '("Diary entries" . calendar-mouse-view-diary-entries)
+                  '("Insert diary entry" . calendar-mouse-insert-diary-entry)
                   '("Holidays" . calendar-mouse-holidays)
                   '("Mark date" . calendar-mouse-set-mark)
                   '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
