@@ -1783,7 +1783,7 @@ Outdent two basic offsets.
 @item *
 Indent half basic offset.
 @item /
-Outdent hal basic offset.
+Outdent half basic offset.
 @end table
 
 @item
