@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985, 1986, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 94, 95, 97, 2001  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -68,6 +68,10 @@
     st)
   "Syntax table used while in `nroff-mode'.")
 
+(defvar nroff-imenu-expression
+  ;; man headers:
+  '((nil "^\\.SH \"?\\([^\"\n]*\\)\"?$" 1)))
+
 (defcustom nroff-font-lock-keywords
   (list
    ;; Directives are . or ' at start of line, followed by
@@ -92,6 +96,11 @@
   "Font-lock highlighting control in `nroff-mode'."
   :group 'nroff
   :type '(repeat regexp))
+
+(defcustom nroff-mode-hook nil
+  "Hook run by function `nroff-mode'."
+  :type 'hook
+  :group 'nroff)
 
 ;;;###autoload
 (define-derived-mode nroff-mode text-mode "Nroff"
@@ -118,7 +127,8 @@ closing requests for requests that are used in matched pairs."
   (set (make-local-variable 'comment-start) "\\\" ")
   (set (make-local-variable 'comment-start-skip) "\\\\\"[ \t]*")
   (set (make-local-variable 'comment-column) 24)
-  (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent))
+  (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent)
+  (set (make-local-variable 'imenu-generic-expression) nroff-imenu-expression))
 
 (defun nroff-outline-level ()
   (save-excursion
