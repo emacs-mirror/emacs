@@ -1,9 +1,8 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.22) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.23) $
 #
-# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
-#
+# Copyright (C) 1999 Harlequin Limited.  All rights reserved.
 
 # .limit.epcore: This only knows about making the mmsw libraries for
 # MM/EP-core.
@@ -131,7 +130,6 @@ mmsw_{Variety}.o  Ä  ¶
                 root{OSffx} ¶
                 format{OSffx} ¶
                 buffer{OSffx} ¶
-                lockan{OSffx} ¶
                 ref{OSffx} ¶
                 trace{OSffx} ¶
                 protsw{OSffx} ¶
