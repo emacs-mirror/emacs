@@ -278,16 +278,18 @@ struct input_event {
   int code;
   enum scroll_bar_part part;
 
-  /* This field is copied into a vector while the event is in the queue,
-     so that garbage collections won't kill it.  */
-  /* In a menu_bar_event, this is a cons cell whose car is the frame
-     and whose cdr is the Lisp object that is the event's value.  */
-  Lisp_Object frame_or_window;
-
   int modifiers;		/* See enum below for interpretation.  */
 
   Lisp_Object x, y;
   unsigned long timestamp;
+
+  /* This field is copied into a vector while the event is in the queue,
+     so that garbage collections won't kill it.  */
+  /* In a menu_bar_event, this is a cons cell whose car is the frame
+     and whose cdr is the Lisp object that is the event's value.  */
+  /* This field is last so that struct selection_input_event
+     does not overlap with it.  */
+  Lisp_Object frame_or_window;
 };
 
 /* This is used in keyboard.c, to tell how many buttons we will need
