@@ -2242,6 +2242,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** Major mode functions now run the new normal hook
+`after-change-major-mode-hook', at the end, just before the mode
+dependent hooks.
+
 +++
 ** `auto-save-file-format' has been renamed to
 `buffer-auto-save-file-format' and made into a permanent local.

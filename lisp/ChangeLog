@@ -1,3 +1,19 @@
+2004-09-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-rerun-flag): New variable.
+	(enriched-before-change-major-mode): New function.
+	Add it to `change-major-mode-hook'.
+	(enriched-after-change-major-mode): New function.
+	Add it to `after-change-major-mode-hook'.
+	(enriched-mode): Make it work correctly if called from
+	`after-change-major-mode-hook'.
+	No longer set `indent-line-function'.
+
+	* simple.el (fundamental-mode): Run `after-change-major-mode-hook'.
+
+	* subr.el (after-change-major-mode-hook): New variable.
+	(run-mode-hooks): Implement it.
+
 2004-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* battery.el (battery-linux-proc-apm): Use string-to-number.
