@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.37) $
+ * $HopeName: MMsrc!mpsi.c(trunk.38) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.37) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.38) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -62,33 +62,11 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.37) $");
  * the MPM.  It is checking the assumptions made in the other functions
  * in this implementation.
  *
- * .check.macros: The CHECK* macros use some C trickery to attempt to
- * verify that certain types and fields are equivalent.  They do not
- * do a complete job.  This trickery is justified by the security gained
- * in knowing that impl.h.mps matches the MPM.  See also
- * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
- * satisfy rule.impl.trick.]
- *
  * .check.empty: Note that mpsi_check compiles away to almost nothing.
  * 
  * .check.enum.cast: enum comparisons have to be cast to avoid a warning
  * from the SunPro C compiler. See builder.sc.warn.enum.
  */
-
-#define CHECKLVALUE(lv1, lv2) \
-  ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
-
-#define CHECKTYPE(t1, t2) \
-  (sizeof(t1) == sizeof(t2) && \
-   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
-
-#define CHECKFIELDAPPROX(s1, f1, s2, f2) \
-  (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
-   offsetof(s1, f1) == offsetof(s2, f2))
-
-#define CHECKFIELD(s1, f1, s2, f2) \
-  (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
-   CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
 
 static Bool mpsi_check(void)
 {
