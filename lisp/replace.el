@@ -622,7 +622,8 @@ the matching is case-sensitive."
 		     (format "%d lines" occur-num-matches))))
 	      (insert message-string)
 	      (if (interactive-p)
-		  (message "%s matched" message-string)))))))))
+		  (message "%s matched" message-string)))
+	    (setq buffer-read-only t)))))))
 
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.
