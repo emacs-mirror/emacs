@@ -404,7 +404,10 @@ DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
 Returns the longest string\n\
 common to all file names in DIRECTORY that start with FILE.\n\
 If there is only one and FILE matches it exactly, returns t.\n\
-Returns nil if DIR contains no name starting with FILE.")
+Returns nil if DIR contains no name starting with FILE.\n\
+\n\
+This function ignores some of the possible completions as\n\
+determined by the variable `completion-ignored-extensions', which see.")
   (file, directory)
      Lisp_Object file, directory;
 {
@@ -555,6 +558,31 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		 actually in the way in a directory contains only one file.  */
 	      if (!passcount && TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
 		continue;
+	      if (!passcount && len > XSTRING (encoded_file)->size)
+		/* Ignore directories if they match an element of
+		   completion-ignored-extensions which ends in a slash.  */
+		for (tem = Vcompletion_ignored_extensions;
+		     CONSP (tem); tem = XCDR (tem))
+		  {
+		    int elt_len;
+
+		    elt = XCAR (tem);
+		    if (!STRINGP (elt))
+		      continue;
+		    elt_len = XSTRING (elt)->size - 1; /* -1 for trailing / */
+		    if (elt_len == 0)
+		      continue;
+		    p1 = XSTRING (elt)->data;
+		    if (p1[elt_len] != '/')
+		      continue;
+		    skip = len - elt_len;
+		    if (skip < 0)
+		      continue;
+
+		    if (0 <= scmp (dp->d_name + skip, p1, elt_len))
+		      continue;
+		    break;
+		  }
 	    }
 	  else
             {
@@ -952,6 +980,8 @@ syms_of_dired ()
 
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
     "*Completion ignores filenames ending in any string in this list.\n\
+Directories are ignored if they match any string in this list which\n\
+ends in a slash.\n\
 This variable does not affect lists of possible completions,\n\
 but does affect the commands that actually do completions.");
   Vcompletion_ignored_extensions = Qnil;
