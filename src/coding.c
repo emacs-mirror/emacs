@@ -259,7 +259,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
   } while (0)
 
 
-/* Produce a multibyte form of characater C to `dst'.  Jump to
+/* Produce a multibyte form of character C to `dst'.  Jump to
    `label_end_of_loop' if there's not enough space at `dst'.
 
    If we are now in the middle of a composition sequence, the decoded
@@ -461,7 +461,7 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
 struct coding_system *coding_system_table[CODING_CATEGORY_IDX_MAX];
 
 /* Table of coding category masks.  Nth element is a mask for a coding
-   cateogry of which priority is Nth.  */
+   category of which priority is Nth.  */
 static
 int coding_priorities[CODING_CATEGORY_IDX_MAX];
 
@@ -569,7 +569,7 @@ coding_safe_chars (coding)
 	CHARS is 0x20 plus a number of characters composed by this
 	data,
 
-	COMPONENTs are characters of multibye form or composition
+	COMPONENTs are characters of multibyte form or composition
 	rules encoded by two-byte of ASCII codes.
 
    In addition, for backward compatibility, the following formats are
@@ -677,7 +677,7 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 
 
 /* Get one byte from a data pointed by SRC and increment SRC.  If SRC
-   is not less than SRC_END, return -1 without inccrementing Src.  */
+   is not less than SRC_END, return -1 without incrementing Src.  */
 
 #define SAFE_ONE_MORE_BYTE() (src >= src_end ? -1 : *src++)
 
@@ -774,7 +774,7 @@ decode_composition_emacs_mule (coding, src, src_end,
   unsigned char *dst = *destination;
   int method, data_len, nchars;
   unsigned char *src_base = src++;
-  /* Store compoments of composition.  */
+  /* Store components of composition.  */
   int component[COMPOSITION_DATA_MAX_BUNCH_LENGTH];
   int ncomponent;
   /* Store multibyte form of characters to be composed.  This is for
@@ -1137,7 +1137,7 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
    is encoded using bytes less than 128.  This may make the encoded
    text a little bit longer, but the text passes more easily through
    several types of gateway, some of which strip off the MSB (Most
-   Signigant Bit).
+   Significant Bit).
 
    There are two kinds of character sets: control character sets and
    graphic character sets.  The former contain control characters such
@@ -1258,8 +1258,8 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
    Now you may notice that there are a lot of ways of encoding the
    same multilingual text in ISO2022.  Actually, there exist many
    coding systems such as Compound Text (used in X11's inter client
-   communication, ISO-2022-JP (used in Japanese internet), ISO-2022-KR
-   (used in Korean internet), EUC (Extended UNIX Code, used in Asian
+   communication, ISO-2022-JP (used in Japanese Internet), ISO-2022-KR
+   (used in Korean Internet), EUC (Extended UNIX Code, used in Asian
    localized platforms), and all of these are variants of ISO2022.
 
    In addition to the above, Emacs handles two more kinds of escape
@@ -1293,7 +1293,7 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 
   COMPOSITION_RELATIVE:
 	ESC 0 CHAR [ CHAR ] ESC 1
-  COMPOSITOIN_WITH_RULE:
+  COMPOSITION_WITH_RULE:
 	ESC 2 CHAR [ RULE CHAR ] ESC 1
   COMPOSITION_WITH_ALTCHARS:
 	ESC 3 ALTCHAR [ ALTCHAR ] ESC 0 CHAR [ CHAR ] ESC 1
@@ -1628,7 +1628,7 @@ coding_allocate_composition_data (coding, char_offset)
            that coding->cmp_data has enough space to store the		   \
            information about the composition.  If not, terminate the	   \
            current decoding loop, allocate one more memory block for	   \
-           coding->cmp_data in the calller, then start the decoding	   \
+           coding->cmp_data in the caller, then start the decoding	   \
            loop again.  We can't allocate memory here directly because	   \
            it may cause buffer/string relocation.  */			   \
 	if (!coding->cmp_data						   \
@@ -1660,7 +1660,7 @@ coding_allocate_composition_data (coding, char_offset)
       }									   \
   } while (0)
 
-/* Handle compositoin end sequence ESC 1.  */
+/* Handle composition end sequence ESC 1.  */
 
 #define DECODE_COMPOSITION_END(c1)					\
   do {									\
@@ -1959,7 +1959,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		goto label_invalid_code;
 	      /* For the moment, nested direction is not supported.
 		 So, `coding->mode & CODING_MODE_DIRECTION' zero means
-		 left-to-right, and nozero means right-to-left.  */
+		 left-to-right, and nonzero means right-to-left.  */
 	      ONE_MORE_BYTE (c1);
 	      switch (c1)
 		{
@@ -2046,7 +2046,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    It is not enough to say just "ISO2022" on encoding, we have to
    specify more details.  In Emacs, each ISO2022 coding system
    variant has the following specifications:
-	1. Initial designation to G0 thru G3.
+	1. Initial designation to G0 through G3.
 	2. Allows short-form designation?
 	3. ASCII should be designated to G0 before control characters?
 	4. ASCII should be designated to G0 at end of line?
@@ -2540,7 +2540,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	      /* COMPOSITION_WITH_ALTCHARS or COMPOSITION_WITH_RULE_ALTCHAR  */
 	      if (coding->cmp_data_index == coding->cmp_data_start + data[0])
 		/* We have consumed components of the composition.
-                   What follows in SRC is the compositions's base
+                   What follows in SRC is the composition's base
                    text.  */
 		ENCODE_COMPOSITION_FAKE_START (coding);
 	      else
@@ -3223,7 +3223,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 
 /* See "GENERAL NOTES about `encode_coding_XXX ()' functions".  Encode
    format of end-of-line according to `coding->eol_type'.  It also
-   convert multibyte form 8-bit characers to unibyte if
+   convert multibyte form 8-bit characters to unibyte if
    CODING->src_multibyte is nonzero.  If `coding->mode &
    CODING_MODE_SELECTIVE_DISPLAY' is nonzero, code '\r' in source text
    also means end-of-line.  */
@@ -3454,7 +3454,7 @@ setup_coding_system (coding_system, coding)
      `translation-table-for-decode', `translation-table-for-encode'.  */
   plist = XVECTOR (coding_spec)->contents[3];
   /* Pre & post conversion functions should be disabled if
-     inhibit_eol_conversion is nozero.  This is the case that a code
+     inhibit_eol_conversion is nonzero.  This is the case that a code
      conversion function is called while those functions are running.  */
   if (! inhibit_pre_post_conversion)
     {
@@ -3849,14 +3849,14 @@ setup_raw_text_coding_system (coding)
    o coding-category-iso-7-else
 
    	The category for a coding system which has the same code range
-	as ISO2022 of 7-bit environemnt but uses locking shift or
+	as ISO2022 of 7-bit environment but uses locking shift or
 	single shift functions.  Assigned the coding-system (Lisp
 	symbol) `iso-2022-7bit-lock' by default.
 
    o coding-category-iso-8-else
 
    	The category for a coding system which has the same code range
-	as ISO2022 of 8-bit environemnt but uses locking shift or
+	as ISO2022 of 8-bit environment but uses locking shift or
 	single shift functions.  Assigned the coding-system (Lisp
 	symbol) `iso-2022-8bit-ss2' by default.
 
@@ -4682,7 +4682,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
     {
       detect_eol (coding, source, src_bytes);
       /* We had better recover the original eol format if we
-	 encounter an inconsitent eol format while decoding.  */
+	 encounter an inconsistent eol format while decoding.  */
       coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
     }
 
@@ -4976,7 +4976,7 @@ shrink_decoding_region (beg, end, coding, str)
 	case CODING_CATEGORY_IDX_ISO_7:
 	case CODING_CATEGORY_IDX_ISO_7_TIGHT:
 	  {
-	    /* We can skip all charactes at the tail except for 8-bit
+	    /* We can skip all characters at the tail except for 8-bit
 	       codes and ESC and the following 2-byte at the tail.  */
 	    unsigned char *eight_bit = NULL;
 
@@ -5065,7 +5065,7 @@ shrink_encoding_region (beg, end, coding, str)
 	if (!NILP (CHAR_TABLE_REF (translation_table, i)))
 	  break;
       if (i < 128)
-	/* Some ASCII character should be tranlsated.  We give up
+	/* Some ASCII character should be translated.  We give up
 	   shrinking.  */
 	return;
     }
@@ -5231,7 +5231,7 @@ coding_save_composition (coding, from, to, obj)
 }
 
 /* Reflect the saved information about compositions to OBJ.
-   CODING->cmp_data points to a memory block for the informaiton.  OBJ
+   CODING->cmp_data points to a memory block for the information.  OBJ
    is a buffer or a string, defaults to the current buffer.  */
 
 void
@@ -5290,7 +5290,7 @@ coding_restore_composition (coding, obj)
    replace_range (insdel.c) to know what we are doing.
 
    If REPLACE is zero, it is assumed that the source text is unibyte.
-   Otherwize, it is assumed that the source text is multibyte.  */
+   Otherwise, it is assumed that the source text is multibyte.  */
 
 int
 code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
@@ -5369,7 +5369,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  if (coding->eol_type == CODING_EOL_UNDECIDED)
 	    coding->eol_type = CODING_EOL_LF;
 	  /* We had better recover the original eol format if we
-	     encounter an inconsitent eol format while decoding.  */
+	     encounter an inconsistent eol format while decoding.  */
 	  coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
 	}
     }
@@ -5459,7 +5459,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       len -= total_skip; len_byte -= total_skip;
     }
 
-  /* For converion, we must put the gap before the text in addition to
+  /* For conversion, we must put the gap before the text in addition to
      making the gap larger for efficient decoding.  The required gap
      size starts from 2000 which is the magic number used in make_gap.
      But, after one batch of conversion, it will be incremented if we
@@ -5629,7 +5629,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       if (first)
 	{
 	  /* We have just done the first batch of conversion which was
-	     stoped because of insufficient gap.  Let's reconsider the
+	     stopped because of insufficient gap.  Let's reconsider the
 	     required gap size (i.e. SRT - DST) now.
 
 	     We have converted ORIG bytes (== coding->consumed) into
@@ -5678,7 +5678,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       inserted_byte = str_to_multibyte (GPT_ADDR, GAP_SIZE, inserted_byte);
     }
 
-  /* If we have shrinked the conversion area, adjust it now.  */ 
+  /* If we shrank the conversion area, adjust it now.  */ 
   if (total_skip > 0)
     {
       if (tail_skip > 0)
@@ -5829,7 +5829,7 @@ decode_coding_string (str, coding, nocopy)
 	  if (coding->eol_type == CODING_EOL_UNDECIDED)
 	    coding->eol_type = CODING_EOL_LF;
 	  /* We had better recover the original eol format if we
-	     encounter an inconsitent eol format while decoding.  */
+	     encounter an inconsistent eol format while decoding.  */
 	  coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
 	}
     }
@@ -6495,7 +6495,7 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 3, 0,
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
+Optional arg NOCOPY non-nil means it is OK to return STRING itself\n\
 if the decoding operation is trivial.\n\
 This function sets `last-coding-system-used' to the precise coding system\n\
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
@@ -6509,7 +6509,7 @@ not fully specified.)")
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
        2, 3, 0,
   "Encode STRING to CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
+Optional arg NOCOPY non-nil means it is OK to return STRING itself\n\
 if the encoding operation is trivial.\n\
 This function sets `last-coding-system-used' to the precise coding system\n\
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
@@ -6678,7 +6678,7 @@ DEFUN ("set-terminal-coding-system-internal",
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
   terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
-  /* Characer composition should be disabled.  */
+  /* Character composition should be disabled.  */
   terminal_coding.composing = COMPOSITION_DISABLED;
   /* Error notification should be suppressed.  */
   terminal_coding.suppress_error = 1;
@@ -6696,7 +6696,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
   CHECK_SYMBOL (coding_system, 0);
   setup_coding_system (Fcheck_coding_system (coding_system),
 		       &safe_terminal_coding);
-  /* Characer composition should be disabled.  */
+  /* Character composition should be disabled.  */
   safe_terminal_coding.composing = COMPOSITION_DISABLED;
   /* Error notification should be suppressed.  */
   terminal_coding.suppress_error = 1;
@@ -6721,7 +6721,7 @@ DEFUN ("set-keyboard-coding-system-internal",
 {
   CHECK_SYMBOL (coding_system, 0);
   setup_coding_system (Fcheck_coding_system (coding_system), &keyboard_coding);
-  /* Characer composition should be disabled.  */
+  /* Character composition should be disabled.  */
   keyboard_coding.composing = COMPOSITION_DISABLED;
   return Qnil;
 }
@@ -6777,14 +6777,14 @@ which is a list of all the arguments given to this function.")
   operation = args[0];
   if (!SYMBOLP (operation)
       || !INTEGERP (target_idx = Fget (operation, Qtarget_idx)))
-    error ("Invalid first arguement");
+    error ("Invalid first argument");
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
 	   XSYMBOL (operation)->name->data);
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %dth argument", XINT (target_idx) + 1);
+    error ("Invalid argument %d", XINT (target_idx) + 1);
 
   chain = ((EQ (operation, Qinsert_file_contents)
 	    || EQ (operation, Qwrite_region))
@@ -7250,13 +7250,13 @@ See also the function `find-operation-coding-system'.");
 
   DEFVAR_LISP ("standard-translation-table-for-encode",
     &Vstandard_translation_table_for_encode,
-    "Table for translationg characters while encoding.");
+    "Table for translating characters while encoding.");
   Vstandard_translation_table_for_encode = Qnil;
 
   DEFVAR_LISP ("charset-revision-table", &Vcharset_revision_alist,
     "Alist of charsets vs revision numbers.\n\
 While encoding, if a charset (car part of an element) is found,\n\
-designate it with the escape sequence identifing revision (cdr part of the element).");
+designate it with the escape sequence identifying revision (cdr part of the element).");
   Vcharset_revision_alist = Qnil;
 
   DEFVAR_LISP ("default-process-coding-system",
