@@ -7,6 +7,11 @@
 
 	* textmodes/reftex-vars.el (reftex-label-alist): Likewise.
 
+	* calendar/timeclock.el (timeclock-workday-remaining): Likewise.
+	(timeclock-workday-elapsed): Likewise.
+
+	* allout.el (outline-goto-prefix): Likewise.
+
 	* subr.el (chars-in-region): Add obsolescence declaration for
 	`chars-in-region'.
 
