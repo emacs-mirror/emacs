@@ -636,6 +636,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (nth 5 attributes))))
+      (if (consp buffer-undo-list)
+	  (setq buffer-undo-list nil))
       (set-buffer-modified-p nil))))
 
 ;; Subroutines of dired-readin
@@ -2071,9 +2073,9 @@ if there are no flagged files."
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
 		      (message "%s of %s deletions" succ count)
-		      (delete-region (progn (beginning-of-line) (point))
-				     (progn (forward-line 1) (point)))
-		      (dired-clean-up-after-deletion fn))
+		      (dired-fun-in-all-buffers
+		       (file-name-directory fn) (file-name-nondirectory fn)
+		       (function dired-delete-entry) fn))
 		  (error;; catch errors from failed deletions
 		   (dired-log "%s\n" err)
 		   (setq failures (cons (car (car l)) failures)))))
@@ -2087,6 +2089,29 @@ if there are no flagged files."
 	       failures))))
       (message "(No deletions performed)")))
   (dired-move-to-filename))
+
+(defun dired-fun-in-all-buffers (directory file fun &rest args)
+  ;; In all buffers dired'ing DIRECTORY, run FUN with ARGS.
+  ;; If the buffer has a wildcard pattern, check that it matches FILE.
+  ;; (FILE does not include a directory component.)
+  ;; FILE may be nil, in which case ignore it.
+  ;; Return list of buffers where FUN succeeded (i.e., returned non-nil).
+  (let (success-list)
+    (dolist (buf (dired-buffers-for-dir (expand-file-name directory)
+					file))
+      (with-current-buffer buf
+	(if (apply fun args)
+	    (setq success-list (cons (buffer-name buf) success-list)))))
+    success-list))
+
+;; Delete the entry for FILE from 
+(defun dired-delete-entry (file)
+  (save-excursion
+    (and (dired-goto-file file)
+	 (let (buffer-read-only)
+	   (delete-region (progn (beginning-of-line) (point))
+			  (save-excursion (forward-line 1) (point))))))
+  (dired-clean-up-after-deletion file))
 
 ;; This is a separate function for the sake of dired-x.el.
 (defun dired-clean-up-after-deletion (fn)
