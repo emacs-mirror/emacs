@@ -1,6 +1,6 @@
 ;;; custom.el -- Tools for declaring and initializing options.
 ;;
-;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -438,8 +438,8 @@ COMMENT is a comment string about SYMBOL."
 		  (cond ((and 1-then-2 2-then-1)
 			 (error "Circular custom dependency between `%s' and `%s'"
 				sym1 sym2))
-			(2-then-1 nil)
-			(t t))))))
+			(1-then-2 t)
+			(t nil))))))
   (while args
     (let ((entry (car args)))
       (if (listp entry)
