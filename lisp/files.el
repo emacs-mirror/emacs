@@ -1616,7 +1616,7 @@ is specified, returning t if it is specified."
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
 	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$"
+	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$"
 			    (symbol-name var))
 	      (not (get var 'safe-local-variable))))
 	 ;; Permit evalling a put of a harmless property.
@@ -1789,7 +1789,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
 	   (read-file-name "Write file: "
 			       (cdr (assq 'default-directory
 					  (buffer-local-variables)))
-			       nil nil (buffer-name)))
+			       nil nil (file-name-nondirectory (buffer-name))))
 	 (not current-prefix-arg)))
   (or (null filename) (string-equal filename "")
       (progn
