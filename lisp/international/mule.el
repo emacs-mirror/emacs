@@ -663,7 +663,7 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				 :post-read-conversion
 				 :pre-write-conversion
 				 :default-char
-				 :prefer-unibyte
+				 :for-unibyte
 				 :plist
 				 :eol-type)))
 	 (coding-type (plist-get props :coding-type))
