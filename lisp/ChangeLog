@@ -1,3 +1,8 @@
+2005-04-04  Lute Kamstra  <lute@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Names in
+	parenthesized lists can contain spaces.
+
 2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* startup.el (fancy-splash-text): Shorten default text of
