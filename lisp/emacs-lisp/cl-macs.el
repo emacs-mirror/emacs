@@ -70,7 +70,6 @@
 
 (require
  (progn
-   (or (fboundp 'defalias) (fset 'defalias 'fset))
    (or (fboundp 'cl-transform-function-property)
        (defalias 'cl-transform-function-property
 	 (function (lambda (n p f)
@@ -2582,7 +2581,6 @@ surrounded by (block NAME ...)."
 	  (fifth 'nth 4 x) (sixth 'nth 5 x) (seventh 'nth 6 x)
 	  (eighth 'nth 7 x) (ninth 'nth 8 x) (tenth 'nth 9 x)
 	  (rest 'cdr x) (endp 'null x) (plusp '> x 0) (minusp '< x 0)
-	  (caar car car) (cadr car cdr) (cdar cdr car) (cddr cdr cdr)
 	  (caaar car caar) (caadr car cadr) (cadar car cdar)
 	  (caddr car cddr) (cdaar cdr caar) (cdadr cdr cadr)
 	  (cddar cdr cdar) (cdddr cdr cddr) (caaaar car caaar)
