@@ -375,7 +375,9 @@ extern void set_window_height P_ ((Lisp_Object, int, int));
 extern void set_window_width P_ ((Lisp_Object, int, int));
 extern void delete_all_subwindows P_ ((struct window *));
 extern void freeze_window_starts P_ ((struct frame *, int));
-extern void foreach_window ();
+extern void foreach_window P_ ((struct frame *,
+				int (* fn) (struct window *, void *),
+				void *));
 extern void grow_mini_window P_ ((struct window *, int));
 extern void shrink_mini_window P_ ((struct window *));
 
