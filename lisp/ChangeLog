@@ -1,3 +1,8 @@
+2003-04-27  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* scroll-bar.el (scroll-bar-drag-1): Replace beginning-of-line with
+	vertical-motion.
+
 2003-04-27  David Ponce  <david@dponce.com>
 
 	* recentf.el

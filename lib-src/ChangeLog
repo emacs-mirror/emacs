@@ -1,3 +1,8 @@
+2003-04-27  Oliver Scholz  <alkibiades@gmx.de>
+
+	* update-game-score.c (read_scores): Fix corruption of scores on
+	read.
+
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacsclient.c (main): Use new safe location for socket.
