@@ -1302,6 +1302,13 @@ This function stores @var{string} into the first cut buffer (cut buffer
 like the way successive kills in Emacs move down the kill ring.
 @end defun
 
+@defvar selection-coding-system
+@tindex selection-coding-system
+This variable specifies the coding system to use when reading and
+writing a selections, the clipboard, or a cut buffer.  @xref{Coding
+Systems}.
+@end defvar
+
 @need 1500
 @node Font Names
 @section Looking up Font Names
