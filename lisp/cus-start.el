@@ -179,7 +179,7 @@
 	      "21.1")
 	     (minibuffer-auto-raise minibuffer boolean)
 	     ;; options property set at end
-	     (read-buffer-function minibuffer (choice nil function))
+	     (read-buffer-function minibuffer (choice (const nil) function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
 	     ;; process.c
