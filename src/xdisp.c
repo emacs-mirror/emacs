@@ -598,6 +598,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 					     struct text_pos));
 static int compute_window_start_on_continuation_line P_ ((struct window *));
@@ -860,6 +861,31 @@ window_box_edges (w, area, top_left_x, top_left_y,
 			      Utilities
  ***********************************************************************/
 
+/* Return the next character from STR which is MAXLEN bytes long.
+   Return in *LEN the length of the character.  This is like
+   STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
+   we find one, we return a `?', but with the length of the illegal
+   character.  */
+
+static INLINE int
+string_char_and_length (str, max_len, len)
+     unsigned char *str;
+     int max_len, *len;
+{
+  int c;
+
+  c = STRING_CHAR_AND_LENGTH (str, maxlen, *len);
+  if (!CHAR_VALID_P (c, 1))
+    /* We may not change the length here because other places in Emacs
+       don't use this function, i.e. they silently accept illegal
+       characters.  */
+    c = '?';
+
+  return c;
+}
+
+
+
 /* Given a position POS containing a valid character and byte position
    in STRING, return the position NCHARS ahead (NCHARS >= 0).  */
 
@@ -879,7 +905,7 @@ string_pos_nchars_ahead (pos, string, nchars)
 
       while (nchars--)
 	{
-	  STRING_CHAR_AND_LENGTH (p, rest, len);
+	  string_char_and_length (p, rest, &len);
 	  p += len, rest -= len;
 	  xassert (rest >= 0);
 	  CHARPOS (pos) += 1;
@@ -931,7 +957,7 @@ c_string_pos (charpos, s, multibyte_p)
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
-	  STRING_CHAR_AND_LENGTH (s, rest, len);
+	  string_char_and_length (s, rest, &len);
 	  s += len, rest -= len;
 	  xassert (rest >= 0);
 	  CHARPOS (pos) += 1;
@@ -962,7 +988,7 @@ number_of_chars (s, multibyte_p)
 
       for (nchars = 0; rest > 0; ++nchars)
 	{
-	  STRING_CHAR_AND_LENGTH (p, rest, len);
+	  string_char_and_length (p, rest, &len);
 	  rest -= len, p += len;
 	}
     }
@@ -1009,7 +1035,7 @@ charset_at_position (pos)
       int maxlen = ((BYTEPOS (pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE)
 		    - BYTEPOS (pos));
       int len;
-      c = STRING_CHAR_AND_LENGTH (p, maxlen, len);
+      c = string_char_and_length (p, maxlen, &len);
     }
   else
     c = *p;
@@ -1955,7 +1981,7 @@ face_before_or_after_it_pos (it, before_p)
 	  int rest = STRING_BYTES (XSTRING (it->string)) - BYTEPOS (pos);
 	  int c, len, charset;
       
-	  c = STRING_CHAR_AND_LENGTH (p, rest, len);
+	  c = string_char_and_length (p, rest, &len);
 	  charset = CHAR_CHARSET (c);
 	  if (charset != CHARSET_ASCII)
 	    face_id = FACE_FOR_CHARSET (it->f, face_id, charset);
@@ -3599,7 +3625,7 @@ next_element_from_string (it)
 			   - IT_STRING_BYTEPOS (*it));
 	  unsigned char *s = (XSTRING (it->string)->data
 			      + IT_STRING_BYTEPOS (*it));
-	  it->c = STRING_CHAR_AND_LENGTH (s, remaining, it->len);
+	  it->c = string_char_and_length (s, remaining, &it->len);
 	}
       else
 	{
@@ -3630,7 +3656,7 @@ next_element_from_string (it)
 			- IT_STRING_BYTEPOS (*it));
 	  unsigned char *s = (XSTRING (it->string)->data
 			      + IT_STRING_BYTEPOS (*it));
-	  it->c = STRING_CHAR_AND_LENGTH (s, maxlen, it->len);
+	  it->c = string_char_and_length (s, maxlen, &it->len);
 	}
       else
 	{
@@ -3688,8 +3714,8 @@ next_element_from_c_string (it)
 	 performance problem because there is no noticeable performance
 	 difference between Emacs running in unibyte or multibyte mode.  */
       int maxlen = strlen (it->s) - IT_BYTEPOS (*it);
-      it->c = STRING_CHAR_AND_LENGTH (it->s + IT_BYTEPOS (*it),
-				      maxlen, it->len);
+      it->c = string_char_and_length (it->s + IT_BYTEPOS (*it),
+				      maxlen, &it->len);
     }
   else
     it->c = it->s[IT_BYTEPOS (*it)], it->len = 1;
@@ -3826,7 +3852,7 @@ next_element_from_buffer (it)
 	{
 	  int maxlen = ((IT_BYTEPOS (*it) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE)
 			- IT_BYTEPOS (*it));
-	  it->c = STRING_CHAR_AND_LENGTH (p, maxlen, it->len);
+	  it->c = string_char_and_length (p, maxlen, &it->len);
 	}
       else
 	it->c = *p, it->len = 1;
@@ -4604,7 +4630,7 @@ message_dolog (m, len, nlflag, multibyte)
 	     for the *Message* buffer.  */
 	  for (i = 0; i < len; i += nbytes)
 	    {
-	      c = STRING_CHAR_AND_LENGTH (m + i, len - i, nbytes);
+	      c = string_char_and_length (m + i, len - i, &nbytes);
 	      work[0] = (SINGLE_BYTE_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
@@ -9773,7 +9799,7 @@ get_overlay_arrow_glyph_row (w)
       
       /* Get the next character.  */
       if (multibyte_p)
-	it.c = STRING_CHAR_AND_LENGTH (p, arrow_len, it.len);
+	it.c = string_char_and_length (p, arrow_len, &it.len);
       else
 	it.c = *p, it.len = 1;
       p += it.len;
