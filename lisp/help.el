@@ -98,6 +98,8 @@
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
 
+(define-key help-map "r" 'info-emacs-manual)
+
 (define-key help-map "s" 'describe-syntax)
 
 (define-key help-map "t" 'help-with-tutorial)
@@ -123,8 +125,9 @@ This is a list
 
 (defun print-help-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
-Computes a message and applies the optional argument FUNCTION to it.
-If FUNCTION is nil, applies `message' to it, thus printing it."
+This function assumes that `standard-output' is the help buffer.
+It computes a message, and applies the optional argument FUNCTION to it.
+If FUNCTION is nil, it applies `message', thus displaying the message."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((special-display-p (buffer-name standard-output))
