@@ -1,3 +1,71 @@
+2001-05-07  MORIOKA Tomohiko  <tomo@m17n.org>
+
+	The following changes are to provide infrastructure for handling
+	MIME messages to rmail.  They don't affect the original behaviour
+	if rmail-enable-mime is nil.
+
+	* mail/rmail.el (rmail-insert-mime-forwarded-message-function)
+	(rmail-search-mime-message-function)
+	(rmail-search-mime-header-function): New variables.
+	(rmail-expunge-and-save): Be sure to set-buffer to the Rmail
+	buffer.
+	(rmail-quit): Bury `rmail-buffer' after `rmail-view-buffer' is
+	hidden.
+	(rmail-get-new-mail): Likewise.
+	(rmail-toggle-header): Likewise.  If rmail-enable-mime is non-nil,
+	call rmai-show-mime-function.
+	(rmail-display-labels): If rmail-enable-mime is non-nil, update
+	mode-line-process of rmail-view-buffer.
+	(rmail-set-attribute): Be sure to set-buffer to the Rmail buffer.
+	(rmail-show-message): Be sure to call rmail-auto-file in the Rmail
+	buffer.
+	(rmail-next-message): Be sure to set-buffer to the Rmail buffer.
+	(rmail-next-undeleted-message): Likewise.
+	(rmail-message-regexp-p): If rmail-enable-mime is non-nil, call
+	rmail-search-mime-header-function.
+	(rmail-search-message): New function.
+	(rmail-search): Call rmail-search-message to check if a message
+	matches REGEXP, lastly update point after calling
+	rmail-show-message.
+	(rmail-undelete-previous-message): Be sure to set-buffer to the
+	Rmail buffer.
+	(rmail-expunge-confirmed): Likewise.
+	(rmail-only-expunge): Likewise.
+	(rmail-reply): If rmail-enable-mime is non-nil, don't narrow to
+	header region, refer to rmail-msgref-vector while setting the
+	current buffer to rmail-buffer temporarily.
+	(rmail-forward): Be sure to bind forward-buffer to the Rmail
+	buffer.  If rmail-enable-mime is non-nil, call
+	rmail-insert-mime-forwarded-message-function instead of inserting
+	forwarded message by itself.
+
+	* mail/rmailkwd.el (rmail-read-label): Be sure to work in the
+	Rmail buffer.
+	(rmail-set-label, rmail-next-labeled-message): Likewise.
+
+	* mail/rmailout.el (rmail-output-read-rmail-file-name): Be sure to
+	set-buffer to the Rmail buffer.
+	(rmail-output-to-rmail-file): Likewise.
+	(rmail-output): Likewise.
+
+	* mail/rmailsum.el (rmail-message-subject-p): Process the result
+	of mail-fetch-field by rmail-summary-line-decoder.
+	(rmail-new-summary): Be sure to go to the Rmail buffer.  If
+	rmail-enable-mime is non-nil, set rmail-summary-buffer of
+	rmail-view-buffer to nil.
+	(rmail-summary-undelete): If rmail-enable-mime is non-nil, pop to
+	rmail-view-buffer.
+	(rmail-summary-scroll-msg-up): Handle rmail-view-buffer, not
+	rmail-buffer.
+	(rmail-summary-scroll-msg-down): Likewise.
+	(rmail-summary-beginning-of-message): Likewise.
+	(rmail-summary-wipe): Likewise.
+	(rmail-summary-toggle-header): Use save-window-excursion, not
+	save-excursion.  Update point in rmail-view-buffer, not in
+	rmail-buffer.
+	(rmail-summary-reply): Before calling rmail-reply, set buffer to
+	rmail-view-buffer, not rmail-buffer.
+
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* cus-edit.el (custom-file): Signal an error if user-init-file is

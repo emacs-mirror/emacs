@@ -1,3 +1,8 @@
+2001-05-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (enter_namespace): Fix reallocation of
+	namespace_stack.
+
 2001-05-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (globals): Fix handling of namespace aliases.
