@@ -12,6 +12,9 @@
 
 2001-11-28  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lisp.h (GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5):
+	Add dummy uses of gcproN variables.
+
 	* category.c (describe_category, describe_category_1)
 	(Fdescribe_categories): Remove.
 	(syms_of_category): Don't defsubr Sdescribe_categories.
