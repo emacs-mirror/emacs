@@ -119,12 +119,13 @@ the user's init file.")
 
 (defvar init-file-user nil
   "Identity of user whose `.emacs' file is or was read.
-The value may be the null string or a string containing a user's name.
-If the value is a null string, it means that the init file was taken from
-the user that originally logged in.
+The value is nil if no init file is being used; otherwise, it may be either
+the null string, meaning that the init file was taken from the user that
+originally logged in, or it may be a string containing a user's name.
 
-In all cases, `(concat \"~\" init-file-user \"/\")' evaluates to the
-directory name of the directory where the `.emacs' file was looked for.")
+In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
+evaluates to the name of the directory where the `.emacs' file was
+looked for.")
 
 (defvar site-run-file "site-start"
   "File containing site-wide run-time initializations.
