@@ -80,11 +80,6 @@ extern int minibuf_prompt_width;
 
 #ifdef MULTI_SCREEN
 
-/* When the global-minibuffer-screen is not used, this is the screen
-   where the minbuffer is active, and thus where certain windows
-   (completions, etc.) should appear. */
-struct screen *active_screen;
-
 extern Lisp_Object Vglobal_minibuffer_screen;
 #endif
 
@@ -138,7 +133,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 	  minibuf_save_vector[minibuf_level].current_prefix_arg);
 
   record_unwind_protect (Fset_window_configuration,
-			 Fcurrent_window_configuration ());
+			 Fcurrent_window_configuration (Qnil));
+
+  /* If the minibuffer window is on a different screen, save that
+     screen's configuration too.  */
+  if (XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)))
+      != selected_screen)
+    record_unwind_protect (Fset_window_configuration,
+			   Fcurrent_window_configuration (WINDOW_SCREEN (XWINDOW (minibuf_window))));
 
   val = current_buffer->directory;
   Fset_buffer (get_minibuffer (minibuf_level));
@@ -148,10 +150,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
-#ifdef MULTI_SCREEN
-  if (SCREENP (Vglobal_minibuffer_screen))
-    active_screen = selected_screen;
-#endif
   Fselect_window (minibuf_window);
   XFASTINT (XWINDOW (minibuf_window)->hscroll) = 0;
 
@@ -201,11 +199,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
   /* If Lisp form desired instead of string, parse it */
   if (expflag)
     val = Fread (val);
-
-#ifdef MULTI_SCREEN
-  if (active_screen)
-    active_screen = (struct screen *) 0;
-#endif
 
   return val;
 }
