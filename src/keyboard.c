@@ -1165,7 +1165,12 @@ command_loop_1 ()
 
 			  obj = DISP_CHAR_VECTOR (dp, lose);
 			  if (NILP (obj))
-			    no_redisplay = direct_output_for_insert (lose);
+			    {
+			      /* Do it only for char codes
+				 that by default display as themselves.  */
+			      if (lose >= 0x20 && lose <= 0x7e)
+				no_redisplay = direct_output_for_insert (lose);
+			    }
 			  else if (XTYPE (obj) == Lisp_Vector
 				   && XVECTOR (obj)->size == 1
 				   && (XTYPE (obj = XVECTOR (obj)->contents[0])
