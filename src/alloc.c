@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "charset.h"
 #endif
 
 #include "syssignal.h"
@@ -1186,16 +1187,37 @@ Both LENGTH and INIT must be numbers.")
      Lisp_Object length, init;
 {
   register Lisp_Object val;
-  register unsigned char *p, *end, c;
+  register unsigned char *p, *end;
+  int c, nbytes;
 
   CHECK_NATNUM (length, 0);
   CHECK_NUMBER (init, 1);
-  val = make_uninit_string (XFASTINT (length));
+
   c = XINT (init);
-  p = XSTRING (val)->data;
-  end = p + XSTRING (val)->size;
-  while (p != end)
-    *p++ = c;
+  if (SINGLE_BYTE_CHAR_P (c))
+    {
+      nbytes = XINT (length);
+      val = make_uninit_multibyte_string (nbytes, nbytes);
+      p = XSTRING (val)->data;
+      end = p + XSTRING (val)->size;
+      while (p != end)
+	*p++ = c;
+    }
+  else
+    {
+      unsigned char work[4], *str;
+      int len = CHAR_STRING (c, work, str);
+
+      nbytes = len * XINT (length);
+      val = make_uninit_multibyte_string (XINT (length), nbytes);
+      p = XSTRING (val)->data;
+      end = p + nbytes;
+      while (p != end)
+	{
+	  bcopy (str, p, len);
+	  p += len;
+	}
+    }
   *p = 0;
   return val;
 }
