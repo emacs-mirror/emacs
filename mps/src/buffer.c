@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.26) $
+ * $HopeName: MMsrc!buffer.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.26) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.27) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -66,9 +66,9 @@ Bool BufferCheck(Buffer buffer)
     /* The buffer is attached to a segment.  Make sure its fields */
     /* tally with those of the segment. */
     CHECKL(SegCheck(buffer->seg)); /* design.mps.check.type.no-sig */
-    CHECKL(buffer->seg->buffer == buffer);
-    CHECKL(buffer->seg->pool == buffer->pool);
-    CHECKL(buffer->rankSet == buffer->seg->rankSet);
+    CHECKL(SegBuffer(buffer->seg) == buffer);
+    CHECKL(SegPool(buffer->seg) == buffer->pool);
+    CHECKL(buffer->rankSet == SegRankSet(buffer->seg));
 
     /* These fields should obey the ordering */
     /* base <= initAtFlip <= init <= alloc <= poolLimit */
@@ -242,7 +242,7 @@ static void BufferDetach(Buffer buffer, Pool pool)
     (*pool->class->bufferEmpty)(pool, buffer);
 
     /* Reset the buffer. */
-    buffer->seg->buffer = NULL;
+    SegSetBuffer(buffer->seg, NULL);
     buffer->seg = NULL;
     buffer->base = (Addr)0;
     buffer->initAtFlip = (Addr)0;
@@ -417,7 +417,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   if(res != ResOK) return res;
 
   AVER(SegCheck(seg));
-  AVER(seg->buffer == NULL);
+  AVER(SegBuffer(seg) == NULL);
   AVER(SegBase(space, seg) <= base);
   AVER(AddrAdd(base, size) <= limit);
   AVER(limit <= SegLimit(space, seg));
@@ -425,7 +425,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   /* Set up the buffer to point at the memory given by the pool */
   /* and do the allocation that was requested by the client. */
   buffer->seg = seg;
-  seg->buffer = buffer;
+  SegSetBuffer(seg, buffer);
   buffer->base = base;
   buffer->initAtFlip = base;
   buffer->apStruct.init = base;
@@ -507,7 +507,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   pool = BufferPool(buffer);
 
   AVER(PoolHasAddr(pool, p));
-  AVER(BufferSeg(buffer)->pool == pool);
+  AVER(SegPool(BufferSeg(buffer)) == pool);
 
   /* .trip.untrap: If the flip occurred before commit set "init" */
   /* to "alloc" (see .commit.before) then the object is invalid */

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.32) $
+ * $HopeName: MMsrc!mpm.h(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -432,6 +432,32 @@ extern Bool SegNext(Seg *segReturn, Space space, Addr addr);
 extern Bool SegCheck(Seg seg);
 extern void SegInit(Seg seg, Pool pool);
 extern void SegFinish(Seg seg);
+
+#define SegPool(seg)		((seg)->_pool)
+#define SegSingle(seg)		((seg)->_single)
+#define SegRankSet(seg)		((seg)->_rankSet)
+#define SegPM(seg)		((seg)->_pm)
+#define SegSM(seg)		((seg)->_sm)
+#define SegDepth(seg)		((seg)->_depth)
+#define SegP(seg)		((seg)->_p)
+#define SegGrey(seg)		((seg)->_grey)
+#define SegWhite(seg)		((seg)->_white)
+#define SegSummary(seg)		((seg)->_summary)
+#define SegBuffer(seg)		((seg)->_buffer)
+#define SegPoolRing(seg)	(&(seg)->_poolRing)
+#define SegOfPoolRing(node)	RING_ELT(Seg, _poolRing, node)
+
+#define SegSetPool(seg, pool)   ((void)((seg)->_pool = (pool)))
+#define SegSetSingle(seg, s)	((void)((seg)->_single = (s)))
+#define SegSetRankSet(seg, rs)	((void)((seg)->_rankSet = (rs)))
+#define SegSetPM(seg, mode)	((void)((seg)->_pm = (mode)))
+#define SegSetSM(seg, mode)	((void)((seg)->_sm = (mode)))
+#define SegSetDepth(seg, d)	((void)((seg)->_depth = (d)))
+#define SegSetP(seg, pp)	((void)((seg)->_p = (pp)))
+#define SegSetGrey(seg, ts)	((void)((seg)->_grey = (ts)))
+#define SegSetWhite(seg, ts)	((void)((seg)->_white = (ts)))
+#define SegSetSummary(seg, rs)	((void)((seg)->_summary = (rs)))
+#define SegSetBuffer(seg, b)	((void)((seg)->_buffer = (b)))
 
 
 /* Buffer Interface -- see impl.c.buffer */
