@@ -3538,22 +3538,26 @@ and `list-directory-verbose-switches'."
 				       nil default-directory nil)
 		       pfx)))
   (let ((switches (if verbose list-directory-verbose-switches
-		    list-directory-brief-switches)))
+		    list-directory-brief-switches))
+	buffer)
     (or dirname (setq dirname default-directory))
     (setq dirname (expand-file-name dirname))
     (with-output-to-temp-buffer "*Directory*"
+      (setq buffer standard-output)
       (buffer-disable-undo standard-output)
       (princ "Directory ")
       (princ dirname)
       (terpri)
       (save-excursion
 	(set-buffer "*Directory*")
-	(setq default-directory
-	      (if (file-directory-p dirname)
-		  (file-name-as-directory dirname)
-		(file-name-directory dirname)))
 	(let ((wildcard (not (file-directory-p dirname))))
-	  (insert-directory dirname switches wildcard (not wildcard)))))))
+	  (insert-directory dirname switches wildcard (not wildcard)))))
+    ;; Finishing with-output-to-temp-buffer seems to clobber default-directory.
+    (with-current-buffer buffer
+      (setq default-directory
+	    (if (file-directory-p dirname)
+		(file-name-as-directory dirname)
+	      (file-name-directory dirname))))))
 
 (defun shell-quote-wildcard-pattern (pattern)
   "Quote characters special to the shell in PATTERN, leave wildcards alone.
