@@ -1,3 +1,13 @@
+2001-01-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-setup-completion-buf): Make the
+	multibyteness of current buffer inherited to Quail completion
+	buffer.
+	(quail-show-guidance-buf): Make the multibyteness of current
+	buffer inherited to Quail guidance buffer.
+	(quail-help): Make the multibyteness of current buffer inherited
+	to Quail help buffer.
+
 2001-01-26  Dave Love  <fx@gnu.org>
 
 	* time-stamp.el: Doc fixes.
