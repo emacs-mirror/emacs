@@ -1074,7 +1074,7 @@ Leave point after the value, if there is one."
   "Leave point before the next token, skipping white space and comments."
   (skip-chars-forward " \t\r\n\f")
   (while (= (following-char) ?\;)
-    (skip-chars-forward "^\n\r")  ; skip the comment
+    (skip-chars-forward "^\n")  ; skip the comment
     (skip-chars-forward " \t\r\n\f")))
 
 (defun edebug-read-sexp ()
