@@ -168,15 +168,22 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 	      (while (stringp (car-safe defn))
 		(setq skipped (cons (car defn) skipped))
 		(setq defn (cdr defn)))
+	      ;; Skip past cached key-equivalence data for menu items.
+	      (and (consp defn) (consp (car defn))
+		   (setq defn (cdr defn)))
 	      (setq inner-def defn)
+	      ;; Look past a symbol that names a keymap.
 	      (while (and (symbolp inner-def)
 			  (fboundp inner-def))
 		(setq inner-def (symbol-function inner-def)))
 	      (if (eq defn olddef)
 		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
+		;; Avoid recursively rescanning a keymap being scanned.
 		(if (and (keymapp defn)
 			 (not (memq inner-def
 				    key-substitution-in-progress)))
+		    ;; If this one isn't being scanned already,
+		    ;; scan it now.
 		    (substitute-key-definition olddef newdef keymap
 					       inner-def
 					       prefix1)))))
@@ -195,6 +202,8 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		    (while (stringp (car-safe defn))
 		      (setq skipped (cons (car defn) skipped))
 		      (setq defn (cdr defn)))
+		    (and (consp defn) (consp (car defn))
+			 (setq defn (cdr defn)))
 		    (setq inner-def defn)
 		    (while (and (symbolp inner-def)
 				(fboundp inner-def))
