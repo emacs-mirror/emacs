@@ -29,7 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * 
  * New module: popmail.c
  * Modified routines:
- *	main - added code within #ifdef MAIL_USE_POP; added setuid(getuid())
+ *	main - added code within #ifdef MAIL_USE_POP; added setuid (getuid ())
  *		after POP code. 
  * New routines in movemail.c:
  *	get_errmsg - return pointer to system error message
@@ -133,7 +133,7 @@ main (argc, argv)
       exit (status);
     }
 
-  setuid (getuid());
+  setuid (getuid ());
 #endif /* MAIL_USE_POP */
 
   /* Check access to input file.  */
@@ -173,7 +173,7 @@ main (argc, argv)
   *p = 0;
   strcpy (p, "EXXXXXX");
   mktemp (tempname);
-  (void) unlink (tempname);
+  unlink (tempname);
 
   while (1)
     {
@@ -185,7 +185,7 @@ main (argc, argv)
       close (desc);
 
       tem = link (tempname, lockname);
-      (void) unlink (tempname);
+      unlink (tempname);
       if (tem >= 0)
 	break;
       sleep (1);
@@ -195,7 +195,7 @@ main (argc, argv)
 	{
 	  now = time (0);
 	  if (st.st_ctime < now - 60)
-	    (void) unlink (lockname);
+	    unlink (lockname);
 	}
     }
 
@@ -214,7 +214,7 @@ main (argc, argv)
   if (indesc < 0)
     pfatal_with_name (inname);
 
-#if defined(BSD) || defined(XENIX)
+#if defined (BSD) || defined (XENIX)
   /* In case movemail is setuid to root, make sure the user can
      read the output file.  */
   /* This is desirable for all systems
@@ -238,7 +238,7 @@ main (argc, argv)
       if (nread != write (outdesc, buf, nread))
 	{
 	  int saved_errno = errno;
-	  (void) unlink (outname);
+	  unlink (outname);
 	  errno = saved_errno;
 	  pfatal_with_name (outname);
 	}
@@ -247,24 +247,20 @@ main (argc, argv)
     }
 
 #ifdef BSD
-  fsync (outdesc);
+  if (fsync (outdesc) < 0)
+    pfatal_and_delete (outname);
 #endif
 
   /* Check to make sure no errors before we zap the inbox.  */
   if (close (outdesc) != 0)
-    {
-      int saved_errno = errno;
-      (void) unlink (outname);
-      errno = saved_errno;
-      pfatal_with_name (outname);
-  }
+    pfatal_and_delete (outname);
 
 #ifdef MAIL_USE_FLOCK
-#if defined(STRIDE) || defined(XENIX)
+#if defined (STRIDE) || defined (XENIX)
   /* Stride, xenix have file locking, but no ftruncate.  This mess will do. */
-  (void) close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
+  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
 #else
-  (void) ftruncate (indesc, 0L);
+  ftruncate (indesc, 0L);
 #endif /* STRIDE or XENIX */
 #endif /* MAIL_USE_FLOCK */
 
@@ -318,6 +314,22 @@ pfatal_with_name (name)
     s = concat ("", sys_errlist[errno], " for %s");
   else
     s = "cannot open %s";
+  fatal (s, name);
+}
+
+pfatal_and_delete (name)
+     char *name;
+{
+  extern int errno, sys_nerr;
+  extern char *sys_errlist[];
+  char *s;
+
+  if (errno < sys_nerr)
+    s = concat ("", sys_errlist[errno], " for %s");
+  else
+    s = "cannot open %s";
+
+  unlink (name);
   fatal (s, name);
 }
 
@@ -402,29 +414,25 @@ popmail (user, outfile)
 
   if (pop_init (host) == NOTOK)
     {
-      error (Errmsg);
-      return 1;
+      fatal (Errmsg);
     }
 
   if (getline (response, sizeof response, sfi) != OK)
     {
-      error (response);
-      return 1;
+      fatal (response);
     }
 
-  if (pop_command ("USER %s", user) == NOTOK 
+  if (pop_command ("USER %s", user) == NOTOK
       || pop_command ("RPOP %s", user) == NOTOK)
     {
-      error (Errmsg);
       pop_command ("QUIT");
-      return 1;
+      fatal (Errmsg);
     }
 
   if (pop_stat (&nmsgs, &nbytes) == NOTOK)
     {
-      error (Errmsg);
       pop_command ("QUIT");
-      return 1;
+      fatal (Errmsg);
     }
 
   if (!nmsgs)
@@ -437,18 +445,14 @@ popmail (user, outfile)
   if (mbfi < 0)
     {
       pop_command ("QUIT");
-      error ("Error in open: %s, %s", get_errmsg (), outfile);
-      return 1;
+      pfatal_and_delete (outfile);
     }
   fchown (mbfi, getuid (), -1);
 
   if ((mbf = fdopen (mbfi, "w")) == NULL)
     {
       pop_command ("QUIT");
-      error ("Error in fdopen: %s", get_errmsg ());
-      close (mbfi);
-      unlink (outfile);
-      return 1;
+      pfatal_and_delete (outfile);
     }
 
   for (i = 1; i <= nmsgs; i++)
@@ -456,29 +460,37 @@ popmail (user, outfile)
       mbx_delimit_begin (mbf);
       if (pop_retr (i, mbx_write, mbf) != OK)
 	{
-	  error (Errmsg);
 	  pop_command ("QUIT");
 	  close (mbfi);
-	  return 1;
+	  unlink (outfile);
+	  fatal (Errmsg);
 	}
       mbx_delimit_end (mbf);
       fflush (mbf);
+    }
+
+  if (fsync (mbfi) < 0)
+    {
+      pop_command ("QUIT");
+      pfatal_and_delete (outfile);
+    }
+
+  if (close (mbfi) == -1)
+    {
+      pop_command ("QUIT");
+      pfatal_and_delete (outfile);
     }
 
   for (i = 1; i <= nmsgs; i++)
     {
       if (pop_command ("DELE %d", i) == NOTOK)
 	{
-	  error (Errmsg);
-	  pop_command ("QUIT");
-	  close (mbfi);
-	  return 1;
+	  /* Better to ignore this failure.  */
 	}
     }
 
   pop_command ("QUIT");
-  close (mbfi);
-  return 0;
+  return (0);
 }
 
 pop_init (host)
@@ -550,7 +562,8 @@ pop_command (fmt, a, b, c, d)
       return NOTOK;
     }
 
-  if (debug) fprintf (stderr, "<--- %s\n", buf);
+  if (debug)
+    fprintf (stderr, "<--- %s\n", buf);
   if (*buf != '+')
     {
       strcpy (Errmsg, buf);
@@ -568,8 +581,10 @@ pop_stat (nmsgs, nbytes)
 {
   char buf[128];
 
-  if (debug) fprintf (stderr, "---> STAT\n");
-  if (putline ("STAT", Errmsg, sfo) == NOTOK) return NOTOK;
+  if (debug)
+    fprintf (stderr, "---> STAT\n");
+  if (putline ("STAT", Errmsg, sfo) == NOTOK)
+    return NOTOK;
 
   if (getline (buf, sizeof buf, sfi) != OK)
     {
@@ -656,17 +671,14 @@ multiline (buf, n, f)
      register int n;
      FILE *f;
 {
-  if (getline (buf, n, f) != OK) return NOTOK;
+  if (getline (buf, n, f) != OK)
+    return NOTOK;
   if (*buf == '.')
     {
       if (*(buf+1) == NULL)
-	{
-	  return DONE;
-	}
+	return DONE;
       else
-	{
-	  strcpy (buf, buf+1);
-	}
+	strcpy (buf, buf+1);
     }
   return OK;
 }
