@@ -12051,7 +12051,10 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* keyboard.c (record_asynch_buffer_change): Return void.
 
-	* xterm.c (XTroï ðoï ðÃâ ðoï ðoï ðTÿ ðLá ðoï ðterminal_window): Ditto.
+	The first line of the following paragraph was garbled for an
+	unknown reason.  It couldn't be fully reconstructed.
+	
+	* xterm.c (XTread_socket, XTset_terminal_window): Ditto.
 	(x_lower_frame): Ditto.
 	(x_scroll_bar_clear): Ditto.
 	(XTflash): Add default case in switch for -Wall.
@@ -13338,10 +13341,15 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	based on text properties for an overlay string.
 	(next_element_from_overlay_string): Check invisible and face text
 	properties.
+	
 	(set_iterator_to_next_overlay_string): Restore face id before
 	overlay strings when no more overlay strings are found to return.
 	Initialize next_ovstr_.*check_pos for each new overlay string
-	roï ðoï ðÃâ ðoï ðoï ðTÿ ðLá ðoï ðase_face): Made public.
+	
+	A line in the following paragraph was garbled for an unknown
+	reason.  It couldn't be fully reconstructed.
+	
+	(compute_base_face): Made public.
 	(merge_face_list): Ditto.
 	(intern_computed_face): Ditto.
 
