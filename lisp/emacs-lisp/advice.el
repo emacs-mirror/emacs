@@ -1849,7 +1849,8 @@ old original, or keep it and raise an error.  The values `accept', `discard',
 `error' or `warn' govern what will be done.  `warn' is just like `accept' but
 it additionally prints a warning message.  All other values will be
 interpreted as `error'."
-  :type '(choice (const accept) (const discard) (const error) (const warn))
+  :type '(choice (const accept) (const discard) (const warn)
+		 (other :tag "error" error))
   :group 'advice)
 
 ;;;###autoload
@@ -1861,8 +1862,8 @@ loaded, and `like-original' will compile if the original definition of the
 advised function is compiled or a built-in function. Every other value will
 be interpreted as `maybe'. This variable will only be considered if the 
 COMPILE argument of `ad-activate' was supplied as nil."
-  :type '(choice (const always) (const never) (const maybe)
-		 (const like-original))
+  :type '(choice (const always) (const never) (const like-original)
+		 (other :tag "maybe" maybe))
   :group 'advice)
 
 
