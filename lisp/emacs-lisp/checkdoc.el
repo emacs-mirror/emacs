@@ -509,8 +509,8 @@ the users will view as each check is completed."
 
 (defun checkdoc-display-status-buffer (check)
   "Display and update the status buffer for the current checkdoc mode.
-CHECK is a vector stating the current status of each test as an
-element is the status of that level of test."
+CHECK is a list of four strings stating the current status of each
+test; the nth string describes the status of the nth test."
   (let (temp-buffer-setup-hook)
     (with-output-to-temp-buffer " *Checkdoc Status*"
       (princ-list
@@ -537,7 +537,13 @@ checkdoc status window instead of the usual behavior."
   (let ((checkdoc-spellcheck-documentation-flag
 	 (car (memq checkdoc-spellcheck-documentation-flag
                     '(interactive t)))))
-    (checkdoc-interactive-loop start-here showstatus 'checkdoc-next-error)))
+    (prog1
+        ;; Due to a design flaw, this will never spell check
+        ;; docstrings.
+        (checkdoc-interactive-loop start-here showstatus
+                                   'checkdoc-next-error)
+      ;; This is a workaround to perform spell checking.
+      (checkdoc-interactive-ispell-loop start-here))))
 
 ;;;###autoload
 (defun checkdoc-message-interactive (&optional start-here showstatus)
@@ -552,13 +558,21 @@ checkdoc status window instead of the usual behavior."
   (let ((checkdoc-spellcheck-documentation-flag
 	 (car (memq checkdoc-spellcheck-documentation-flag
                     '(interactive t)))))
-    (checkdoc-interactive-loop start-here showstatus
-			       'checkdoc-next-message-error)))
+    (prog1
+        ;; Due to a design flaw, this will never spell check messages.
+        (checkdoc-interactive-loop start-here showstatus
+                                   'checkdoc-next-message-error)
+      ;; This is a workaround to perform spell checking.
+      (checkdoc-message-interactive-ispell-loop start-here))))
 
 (defun checkdoc-interactive-loop (start-here showstatus findfunc)
   "Interactively loop over all errors that can be found by a given method.
-Searching starts at START-HERE.  SHOWSTATUS expresses the verbosity
-of the search, and whether ending the search will auto-exit this function.
+
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE.  SHOWSTATUS
+expresses the verbosity of the search, and whether ending the search
+will auto-exit this function.
+
 FINDFUNC is a symbol representing a function that will position the
 cursor, and return error message text to present to the user.  It is
 assumed that the cursor will stop just before a major sexp, which will
@@ -614,7 +628,7 @@ style."
 		(goto-char (checkdoc-error-start (car (car err-list))))
 		(if (not (pos-visible-in-window-p))
 		    (recenter (- (window-height) 2)))
-		(setq c (checkdoc-read-event)))1
+		(setq c (checkdoc-read-event)))
 	      (if (not (integerp c)) (setq c ??))
 	      (cond
 	       ;; Exit condition
@@ -626,7 +640,7 @@ style."
 		(goto-char (cdr (car err-list)))
 		;; `automatic-then-never' tells the autofix function
 		;; to only allow one fix to be automatic.  The autofix
-		;; function will than set the flag to 'never, allowing
+		;; function will then set the flag to 'never, allowing
 		;; the checker to return a different error.
 		(let ((checkdoc-autofix-flag 'automatic-then-never)
 		      (fixed nil))
@@ -691,7 +705,7 @@ style."
 		(setq returnme err-list
 		      err-list nil
 		      begin (point)))
-	       ;; Goofy s tuff
+	       ;; Goofy stuff
 	       (t
 		(if (get-buffer-window "*Checkdoc Help*")
 		    (progn
@@ -720,13 +734,54 @@ style."
     (message "Checkdoc: Done.")
     returnme))
 
+(defun checkdoc-interactive-ispell-loop (start-here)
+  "Interactively spell check doc strings in the current buffer.
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE."
+  (when checkdoc-spellcheck-documentation-flag
+    (save-excursion
+      ;; Move point to where we need to start.
+      (if start-here
+          ;; Include whatever function point is in for good measure.
+          (beginning-of-defun)
+        (goto-char (point-min)))
+      ;; Loop over docstrings.
+      (while (checkdoc-next-docstring)
+        (message "Searching for doc string spell error...%d%%"
+                 (/ (* 100 (point)) (point-max)))
+        (if (looking-at "\"")
+            (checkdoc-ispell-docstring-engine
+             (save-excursion (forward-sexp 1) (point-marker)))))
+      (message "Checkdoc: Done."))))
+
+(defun checkdoc-message-interactive-ispell-loop (start-here)
+  "Interactively spell check messages in the current buffer.
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE."
+  (when checkdoc-spellcheck-documentation-flag
+    (save-excursion
+      ;; Move point to where we need to start.
+      (if start-here
+          ;; Include whatever function point is in for good measure.
+          (beginning-of-defun)
+        (goto-char (point-min)))
+      ;; Loop over message strings.
+      (while (checkdoc-message-text-next-string (point-max))
+        (message "Searching for message string spell error...%d%%"
+                 (/ (* 100 (point)) (point-max)))
+        (if (looking-at "\"")
+            (checkdoc-ispell-docstring-engine
+             (save-excursion (forward-sexp 1) (point-marker)))))
+      (message "Checkdoc: Done."))))
+
+
 (defun checkdoc-next-error (enable-fix)
   "Find and return the next checkdoc error list, or nil.
 Only documentation strings are checked.
-Add error vector is of the form (WARNING . POSITION) where WARNING
-is the warning text, and POSITION is the point in the buffer where the
-error was found.  We can use points and not markers because we promise
-not to edit the buffer before point without re-executing this check.
+An error list is of the form (WARNING . POSITION) where WARNING is the
+warning text, and POSITION is the point in the buffer where the error
+was found.  We can use points and not markers because we promise not
+to edit the buffer before point without re-executing this check.
 Argument ENABLE-FIX will enable auto-fixing while looking for the next
 error.  This argument assumes that the cursor is already positioned to
 perform the fix."
@@ -1707,7 +1762,7 @@ function,command,variable,option or symbol." ms1))))))
 	     ;; it occurs last.
 	     (and checkdoc-verb-check-experimental-flag
 		  (save-excursion
-		    ;; Maybe rebuild the monster-regex
+		    ;; Maybe rebuild the monster-regexp
 		    (checkdoc-create-common-verbs-regexp)
 		    (let ((lim (save-excursion
 				 (end-of-line)
@@ -2055,11 +2110,7 @@ before using the Ispell engine on it."
   (if (or (not checkdoc-spellcheck-documentation-flag)
 	  ;; If the user wants no questions or fixing, then we must
 	  ;; disable spell checking as not useful.
-          ;; FIXME: Somehow, `checkdoc-autofix-flag' is always nil
-          ;; when `checkdoc-ispell-docstring-engine' is called to be
-          ;; used on a docstring.  As a workround, I commented out the
-          ;; next line.
-	  ;; (not checkdoc-autofix-flag)
+	  (not checkdoc-autofix-flag)
 	  (eq checkdoc-autofix-flag 'never))
       nil
     (checkdoc-ispell-init)
