@@ -1860,8 +1860,8 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-name-as-directory}, @code{file-name-completion},
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
-@code{file-readable-p}, @code{file-symlink-p}, @code{file-truename},
-@code{file-writable-p}, @code{insert-directory},@*
+@code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
+@code{file-truename}, @code{file-writable-p}, @code{insert-directory},
 @code{insert-file-contents}, @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
