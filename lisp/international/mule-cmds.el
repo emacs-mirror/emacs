@@ -430,8 +430,8 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			       ;; Lower utf-16 priority so that we
 			       ;; normally prefer utf-8 to it, and put
 			       ;; x-ctext below that.
-			       (cond ((or (eq base 'mule-utf-16-le)
-					  (eq base 'mule-utf-16-be))
+			       (cond ((string-match "utf-16"
+						    (symbol-name mime))
 				      16)
 				     ((string-match "^x-" (symbol-name mime))
 				      8)
