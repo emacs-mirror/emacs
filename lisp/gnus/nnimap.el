@@ -666,7 +666,7 @@ If EXAMINE is non-nil the group is selected read-only."
 				(format "BODY.PEEK[HEADER.FIELDS %s])" headers)
 			      (format "RFC822.HEADER.LINES %s)" headers)))))
       (with-current-buffer nntp-server-buffer
-	(sort-numeric-fields 1 1 (buffer-size)))
+	(sort-numeric-fields 1 (point-min) (point-max)))
       (and (numberp nnmail-large-newsgroup)
 	   (> nnimap-length nnmail-large-newsgroup)
 	   (nnheader-message 6 "nnimap: Retrieving headers...done")))))
