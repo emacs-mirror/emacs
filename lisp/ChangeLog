@@ -1,3 +1,7 @@
+1999-11-15  Sam Steingold  <sds@ksp.com>
+
+	* mail/rnews.el, mail/mh-utils.el: Use the new backquote syntax.
+	
 1999-11-15  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (customize-face, customize-face-other-window):
@@ -7,8 +11,8 @@
 
 1999-11-15  Gerd Moellmann  <gerd@gnu.org>
 
-	* iswitchb.el, hippie-exp.el, progmodes/cperl-mode.el: Use new
-	backquote syntax.
+	* mail/rmail.el, iswitchb.el, hippie-exp.el,
+	progmodes/cperl-mode.el: Use new backquote syntax.
 
 1998-09-14  Michael Ernst  <mernst@alum.mit.edu>
 
