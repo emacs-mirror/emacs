@@ -49,7 +49,9 @@ below homepage and following its instructions.
 Please note that the multi-tty mailing list is read-only, and is
 reserved for automatic commit messages.  Discussion about the branch
 and bug reports should be sent directly to me (lorentey@elte.hu), or
-to the emacs-devel@gnu.org mailing list.
+to the emacs-devel@gnu.org mailing list.  (I hope to merge my branch
+into CVS HEAD reasonably soon, so I don't want to set up an elaborate
+development infrastructure for the multi-tty branch.)
 
 STATUS
 ------
@@ -58,15 +60,16 @@ The branch is now very stable and almost full-featured. I hope the
 major problems were fixed.  (It still needs testing on other
 architectures, though.)  Both multiple tty device support and
 simultaneous X and tty frame support works fine.  Emacsclient has been
-extended to support opening a new terminal frame.
+extended to support opening new tty and X frames.  It has been changed
+open new Emacs frames by default.
 
 Please let me know if you find any bugs in this branch.
 
 HOW TO COMPILE AND TEST
 -----------------------
 
-To try it out, compile and run the multi-tty branch with the following
-commands:
+To try out the multi-tty branch, compile and run the multi-tty branch
+with the following commands:
 
    	mkdir +build
 	cd +build
@@ -77,6 +80,8 @@ commands:
 
 and then (from a shell prompt on another terminal) start emacsclient
 with
+	lib-src/emacsclient /optional/file/names...
+or
 	lib-src/emacsclient -t /optional/file/names...
 
 You'll hopefully have two fully working, independent frames on
@@ -132,11 +137,9 @@ For the NEWS file:
     testing for the `multi-tty' feature.
 
 *** Emacsclient has been extended to support opening a new terminal
-    frame (see -t option).
-
-*** The behaviour of Emacsclient has been changed to open a new Emacs
-    frame by default.  Use the -c option to get the old behavior of
-    opening files in the currently selected Emacs frame.
+    frame. Its behaviour has been changed to open a new Emacs frame by
+    default.  Use the -c option to get the old behavior of opening
+    files in the currently selected Emacs frame.
 
 *** A make-frame-on-tty function has been added to make it easier to
     create frames on new terminals.
@@ -170,6 +173,7 @@ Romain Francoise <romain at orebokech dot com>
 Ami Fischman <ami at fischman dot org>
 Istvan Marko <mi-mtty ar kismala dot com>
 Dan Nicolaescu <dann at ics dot uci dot edu>
+Mark Plaksin <happy at mcplaksin dot org>
 
 Richard Stallman was kind enough to review my patches.
 
