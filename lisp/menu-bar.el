@@ -640,6 +640,19 @@ Do the same for the keys of the same name."
 
 ;; The "Tools" menu items
 
+(defun send-mail-item-name ()
+  (let* ((known-send-mail-commands '((sendmail-user-agent . "sendmail")
+				     (mh-e-user-agent . "MH")
+				     (message-user-agent . "Gnus Message")
+				     (gnus-user-agent . "Gnus")))
+	 (name (assq mail-user-agent known-send-mail-commands)))
+    (if name
+	(setq name (cdr name))
+      (setq name (symbol-name mail-user-agent))
+      (if (string-match "\\(.+\\)-user-agent" name)
+	  (setq name (match-string 1 name))))
+    name))
+
 (defun read-mail-item-name ()
   (let* ((known-rmail-commands '((rmail . "RMAIL")
 				 (mh-rmail . "MH")
@@ -698,14 +711,18 @@ Do the same for the keys of the same name."
   '(menu-item "Directory Search" eudc-tools-menu
 	      :help "Query directory servers via LDAP, CCSO PH/QI or BBDB"))
 (define-key menu-bar-tools-menu [compose-mail]
-  '(menu-item "Send Mail" compose-mail
-	      :help "Send a mail message"))
+  (list
+   'menu-item `(format "Send Mail (with %s)" (send-mail-item-name))
+   'compose-mail
+   :visible `(and mail-user-agent (not (eq mail-user-agent 'ignore)))
+   :help "Send a mail message"))
 (define-key menu-bar-tools-menu [rmail]
   (list
    'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
    (lambda ()
      (interactive)
      (call-interactively read-mail-command))
+   :visible `(and read-mail-command (not (eq read-mail-command 'ignore)))
    :help "Read your mail and reply to it"))
 (define-key menu-bar-tools-menu [gnus]
   '(menu-item "Read Net News (Gnus)" gnus
