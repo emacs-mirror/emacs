@@ -831,7 +831,8 @@ Environment Variables
 
 MS-DOS and Windows 95/98/NT
 
-* MS-DOS Input::        Keyboard and mouse usage on MS-DOS.
+* MS-DOS Keyboard::     Keyboard usage on MS-DOS.
+* MS-DOS Mouse::        Mouse usage on MS-DOS.
 * MS-DOS Display::      Fonts, frames and display size on MS-DOS.
 * MS-DOS File Names::   File-name conventions on MS-DOS.
 * Text and Binary::     Text files on MS-DOS use CRLF to separate lines.
