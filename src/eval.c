@@ -120,7 +120,7 @@ struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
-int max_specpdl_size;
+EMACS_INT max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
 
@@ -128,7 +128,7 @@ int lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
 
-int max_lisp_eval_depth;
+EMACS_INT max_lisp_eval_depth;
 
 /* Nonzero means enter debugger before next function call */
 
@@ -190,12 +190,18 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
-void specbind (), record_unwind_protect ();
+void specbind P_ ((Lisp_Object, Lisp_Object));
+void record_unwind_protect P_ ((Lisp_Object (*) (Lisp_Object),
+				Lisp_Object));
 
-Lisp_Object run_hook_with_args ();
 
-Lisp_Object funcall_lambda ();
-extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argument list */
+enum run_hooks_condition {to_completion, until_success, until_failure};
+
+Lisp_Object run_hook_with_args P_ ((int, Lisp_Object *,
+				    enum run_hooks_condition));
+
+Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object *));
+extern Lisp_Object ml_apply P_ ((Lisp_Object, Lisp_Object)); /* Apply a mocklisp function to unevaluated argument list */
 
 void
 init_eval_once ()
@@ -241,8 +247,8 @@ call_debugger (arg)
     max_specpdl_size = specpdl_size + 40;
   
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   debug_on_next_call = 0;
@@ -254,6 +260,12 @@ call_debugger (arg)
   redisplaying_p = 0;
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
+  specbind (Qinhibit_redisplay, Qnil);
+
+#if 0 /* Binding this prevents execution of Lisp code during
+	 redisplay, which necessarily leads to display problems.  */
+  specbind (Qinhibit_eval_during_redisplay, Qt);
+#endif
   
   val = apply1 (Vdebugger, arg);
 
@@ -684,21 +696,28 @@ If INITVALUE is missing, SYMBOL's value is not set.")
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("too many arguments");
 
+  tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
-      tem = Fdefault_boundp (sym);
       if (NILP (tem))
-	Fset_default (sym, Feval (Fcar (Fcdr (args))));
+	Fset_default (sym, Feval (Fcar (tail)));
+      tail = Fcdr (tail);
+      if (!NILP (Fcar (tail)))
+	{
+	  tem = Fcar (tail);
+	  if (!NILP (Vpurify_flag))
+	    tem = Fpurecopy (tem);
+	  Fput (sym, Qvariable_documentation, tem);
+	}
+      LOADHIST_ATTACH (sym);
     }
-  tail = Fcdr (Fcdr (args));
-  if (!NILP (Fcar (tail)))
-    {
-      tem = Fcar (tail);
-      if (!NILP (Vpurify_flag))
-	tem = Fpurecopy (tem);
-      Fput (sym, Qvariable_documentation, tem);
-    }
-  LOADHIST_ATTACH (sym);
+  else
+    /* A (defvar <var>) should not take precedence in the load-history over
+       an earlier (defvar <var> <val>), so only add to history if the default
+       value is still unbound.  */
+    if (NILP (tem))
+      LOADHIST_ATTACH (sym);
+    
   return sym;
 }
 
@@ -993,7 +1012,7 @@ If a throw happens, it specifies the value to return from `catch'.")
 Lisp_Object
 internal_catch (tag, func, arg)
      Lisp_Object tag;
-     Lisp_Object (*func) ();
+     Lisp_Object (*func) P_ ((Lisp_Object));
      Lisp_Object arg;
 {
   /* This structure is made part of the chain `catchlist'.  */
@@ -1341,7 +1360,9 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
 }
 
 
-static Lisp_Object find_handler_clause ();
+static Lisp_Object find_handler_clause P_ ((Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object,
+					    Lisp_Object *));
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
   "Signal an error.  Args are ERROR-SYMBOL and associated DATA.\n\
@@ -1366,7 +1387,7 @@ See also the function `condition-case'.")
   Lisp_Object debugger_value;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
-  extern int display_busy_cursor_p;
+  extern int display_hourglass_p;
   struct backtrace *bp;
 
   immediate_quit = handling_signal = 0;
@@ -1381,8 +1402,8 @@ See also the function `condition-case'.")
     real_error_symbol = error_symbol;
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   /* This hook is used by edebug.  */
@@ -1748,7 +1769,8 @@ Third arg DOCSTRING is documentation for the function.\n\
 Fourth arg INTERACTIVE if non-nil says function can be called interactively.\n\
 Fifth arg TYPE indicates the type of the object:\n\
    nil or omitted says FUNCTION is a function,\n\
-   `keymap' says FUNCTION is really a keymap, and\n\
+   `keymap' says FUNCTION is really a keymap,\n\
+   `coding-system' says FUNCTION is really a coding-says, and\n\
    `macro' or t says FUNCTION is really a macro.\n\
 Third through fifth args give info about the real definition.\n\
 They default to nil.\n\
@@ -2157,8 +2179,6 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
 }
 
 /* Run hook variables in various ways.  */
-
-enum run_hooks_condition {to_completion, until_success, until_failure};
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
   "Run each hook in HOOKS.  Major mode functions use this.\n\
@@ -2950,7 +2970,7 @@ specbind (symbol, value)
 
       specpdl_ptr++;
       if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
-	store_symval_forwarding (symbol, ovalue, value);
+	store_symval_forwarding (symbol, ovalue, value, NULL);
       else
 	set_internal (symbol, value, 0, 1);
     }
@@ -2990,10 +3010,10 @@ unbind_to (count, value)
 	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
-      /* If the symbol is a list, it is really
-	 (SYMBOL BINDING_BUFFER . CURRENT_BUFFER)
-	 and it indicates we bound a variable that has
-	 buffer-local bindings.  */
+      /* If the symbol is a list, it is really (SYMBOL BINDING_BUFFER
+	 . CURRENT_BUFFER) and it indicates we bound a variable that
+	 has buffer-local bindings.  BINDING_BUFFER nil means that the
+	 variable had the default value when it was bound.  */
       else if (CONSP (specpdl_ptr->symbol))
 	{
 	  Lisp_Object symbol, buffer;
@@ -3255,7 +3275,8 @@ if one of its condition symbols appears in the list.");
 
   DEFVAR_LISP ("debug-on-error", &Vdebug_on_error,
     "*Non-nil means enter debugger if an error is signaled.\n\
-Does not apply to errors handled by `condition-case'.\n\
+Does not apply to errors handled by `condition-case' or those\n\
+matched by `debug-ignored-errors'.\n\
 If the value is a list, an error only means to enter the debugger\n\
 if one of its condition symbols appears in the list.\n\
 See also variable `debug-on-quit'.");
