@@ -139,12 +139,13 @@
 						  default-header-line-format)
 					      1
 					    0)))
-		    (move-to-column (+ (car where) (current-column)
+		    (move-to-column (- (+ (car where) (current-column)
 				       (if (string-match "\\` \\*Minibuf"
 							 (buffer-name))
 					   (- (minibuffer-prompt-width))
 					 0)
-				       (max 0 (1- (window-hscroll)))))
+				       (max 0 (1- (window-hscroll))))
+				       left-margin-width))
 		    (point))
 		where))
 	 (mouse (intern
