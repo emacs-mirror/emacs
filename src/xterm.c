@@ -1996,11 +1996,11 @@ note_mouse_highlight (f, x, y)
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before,
+	      fast_find_position (window, XFASTINT (before),
 				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col,
 				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row);
 	      FRAME_X_DISPLAY_INFO (f)->mouse_face_past_end
-		= !fast_find_position (window, after,
+		= !fast_find_position (window, XFASTINT (after),
 				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col,
 				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row);
 	      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = window;
@@ -2030,11 +2030,11 @@ note_mouse_highlight (f, x, y)
 		= Fnext_single_property_change (position, Qmouse_face,
 						w->buffer, end);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before,
+	      fast_find_position (window, XFASTINT (before),
 				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col,
 				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row);
 	      FRAME_X_DISPLAY_INFO (f)->mouse_face_past_end
-		= !fast_find_position (window, after,
+		= !fast_find_position (window, XFASTINT (after),
 				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col,
 				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row);
 	      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = window;
