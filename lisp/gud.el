@@ -214,7 +214,7 @@ we're in the GUD buffer)."
 
 ;; ======================================================================
 ;; speedbar support functions and variables.
-(eval-when-compile (require 'speedbar))
+(eval-when-compile (require 'speedbar))	;For speedbar-with-attached-buffer.
 
 (defvar gud-last-speedbar-buffer nil
   "The last GUD buffer used.")
@@ -303,11 +303,13 @@ off the specialized speedbar mode."
 ;; ======================================================================
 ;; gdb functions
 
-;;; History of argument lists passed to gdb.
+;; History of argument lists passed to gdb.
 (defvar gud-gdb-history nil)
 
-(defun gud-gdb-massage-args (file args)
-  args)
+(defcustom gud-gdb-command-name "gdb --fullname"
+  "Default command to execute an executable under the GDB debugger."
+   :type 'string
+   :group 'gud)
 
 (defvar gud-gdb-marker-regexp
   ;; This used to use path-separator instead of ":";
@@ -383,7 +385,16 @@ off the specialized speedbar mode."
     (read-from-minibuffer
      (format "Run %s (like this): " minor-mode)
      (or (car-safe (symbol-value hist-sym))
-	 (concat (or cmd-name (symbol-name minor-mode)) " --fullname " init))
+	 (concat (or cmd-name (symbol-name minor-mode))
+		 " "
+		 (or init
+		     (let ((file nil))
+		       (dolist (f (directory-files default-directory) file)
+			 (if (and (file-executable-p f)
+				  (not (file-directory-p f))
+				  (or (not file)
+				      (file-newer-than-file-p f file)))
+			     (setq file f)))))))
      gud-minibuffer-local-map nil
      hist-sym)))
 
@@ -394,7 +405,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gdb)))
 
-  (gud-common-init command-line 'gud-gdb-massage-args
+  (gud-common-init command-line nil
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
@@ -621,15 +632,13 @@ BUFFER is the GUD buffer in which to run the command."
 ;; ======================================================================
 ;; sdb functions
 
-;;; History of argument lists passed to sdb.
+;; History of argument lists passed to sdb.
 (defvar gud-sdb-history nil)
 
 (defvar gud-sdb-needs-tags (not (file-exists-p "/var"))
   "If nil, we're on a System V Release 4 and don't need the tags hack.")
 
 (defvar gud-sdb-lastfile nil)
-
-(defun gud-sdb-massage-args (file args) args)
 
 (defun gud-sdb-marker-filter (string)
   (setq gud-marker-acc
@@ -696,7 +705,7 @@ and source-file directory for your debugger."
 		     (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work"))
 
-  (gud-common-init command-line 'gud-sdb-massage-args
+  (gud-common-init command-line nil
 		   'gud-sdb-marker-filter 'gud-sdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'sdb)
 
@@ -719,7 +728,7 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; dbx functions
 
-;;; History of argument lists passed to dbx.
+;; History of argument lists passed to dbx.
 (defvar gud-dbx-history nil)
 
 (defcustom gud-dbx-directories nil
@@ -1074,7 +1083,7 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; xdb (HP PARISC debugger) functions
 
-;;; History of argument lists passed to xdb.
+;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)
 
 (defcustom gud-xdb-directories nil
@@ -1125,10 +1134,8 @@ containing the executable being debugged."
 			      result)
 		(string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
 			      result))
-	    (let ((line (string-to-int
-			 (substring result (match-beginning 2) (match-end 2))))
-		  (file (gud-xdb-file-name
-			 (substring result (match-beginning 1) (match-end 1)))))
+	    (let ((line (string-to-int (match-string 2 result)))
+		  (file (gud-xdb-file-name (match-string 1 result))))
 	      (if file
 		  (setq gud-last-frame (cons file line))))))
     (or result "")))
@@ -1176,19 +1183,18 @@ directories if your program contains sources from more than one directory."
 ;; ======================================================================
 ;; perldb functions
 
-;;; History of argument lists passed to perldb.
+;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
-;; Convert a command line as would be typed normally to run a script
-;; into one that invokes an Emacs-enabled debugging session.
-;; "-d" in inserted as the first switch, and "-emacs" is inserted where
-;; it will be $ARGV[0] (see perl5db.pl).
 (defun gud-perldb-massage-args (file args)
-  (let* ((new-args (list "-d"))
+  "Convert a command line as would be typed normally to run perldb
+into one that invokes an Emacs-enabled debugging session.
+\"-emacs\" is inserted where it will be $ARGV[0] (see perl5db.pl)."
+  ;; FIXME: what if the command is `make perldb' and doesn't accept those extra
+  ;; arguments ?
+  (let* ((new-args nil)
 	 (seen-e nil)
-	 (shift (lambda ()
-		  (setq new-args (cons (car args) new-args))
-		  (setq args (cdr args)))))
+	 (shift (lambda () (push (pop args) new-args))))
 
     ;; Pass all switches and -e scripts through.
     (while (and args
@@ -1275,8 +1281,8 @@ directories if your program contains sources from more than one directory."
 (defun gud-perldb-find-file (f)
   (find-file-noselect f))
 
-(defcustom gud-perldb-command-name "perl"
-  "File name for executing Perl."
+(defcustom gud-perldb-command-name "perl -d"
+  "Default command to execute a Perl script under debugger."
   :type 'string
   :group 'gud)
 
@@ -1310,11 +1316,8 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; pdb (Python debugger) functions
 
-;;; History of argument lists passed to pdb.
+;; History of argument lists passed to pdb.
 (defvar gud-pdb-history nil)
-
-(defun gud-pdb-massage-args (file args)
-  args)
 
 ;; Last group is for return value, e.g. "> test.py(2)foo()->None"
 ;; Either file or function name may be omitted: "> <string>(0)?()"
@@ -1398,7 +1401,7 @@ and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'pdb)))
 
-  (gud-common-init command-line 'gud-pdb-massage-args
+  (gud-common-init command-line nil
 		   'gud-pdb-marker-filter 'gud-pdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
@@ -1536,7 +1539,7 @@ class information on jdb startup (original method)."
  "Java/jdb classpath directories list.
 If `gud-jdb-use-classpath' is non-nil, gud-jdb derives the `gud-jdb-classpath'
 list automatically using the following methods in sequence
-(with subsequent successful steps overriding the results of previous
+\(with subsequent successful steps overriding the results of previous
 steps):
 
 1) Read the CLASSPATH environment variable,
@@ -2103,46 +2106,46 @@ gud, see `gud-mode'."
 ;;
 
 
-;;; When we send a command to the debugger via gud-call, it's annoying
-;;; to see the command and the new prompt inserted into the debugger's
-;;; buffer; we have other ways of knowing the command has completed.
-;;;
-;;; If the buffer looks like this:
-;;; --------------------
-;;; (gdb) set args foo bar
-;;; (gdb) -!-
-;;; --------------------
-;;; (the -!- marks the location of point), and we type `C-x SPC' in a
-;;; source file to set a breakpoint, we want the buffer to end up like
-;;; this:
-;;; --------------------
-;;; (gdb) set args foo bar
-;;; Breakpoint 1 at 0x92: file make-docfile.c, line 49.
-;;; (gdb) -!-
-;;; --------------------
-;;; Essentially, the old prompt is deleted, and the command's output
-;;; and the new prompt take its place.
-;;;
-;;; Not echoing the command is easy enough; you send it directly using
-;;; process-send-string, and it never enters the buffer.  However,
-;;; getting rid of the old prompt is trickier; you don't want to do it
-;;; when you send the command, since that will result in an annoying
-;;; flicker as the prompt is deleted, redisplay occurs while Emacs
-;;; waits for a response from the debugger, and the new prompt is
-;;; inserted.  Instead, we'll wait until we actually get some output
-;;; from the subprocess before we delete the prompt.  If the command
-;;; produced no output other than a new prompt, that prompt will most
-;;; likely be in the first chunk of output received, so we will delete
-;;; the prompt and then replace it with an identical one.  If the
-;;; command produces output, the prompt is moving anyway, so the
-;;; flicker won't be annoying.
-;;;
-;;; So - when we want to delete the prompt upon receipt of the next
-;;; chunk of debugger output, we position gud-delete-prompt-marker at
-;;; the start of the prompt; the process filter will notice this, and
-;;; delete all text between it and the process output marker.  If
-;;; gud-delete-prompt-marker points nowhere, we leave the current
-;;; prompt alone.
+;; When we send a command to the debugger via gud-call, it's annoying
+;; to see the command and the new prompt inserted into the debugger's
+;; buffer; we have other ways of knowing the command has completed.
+;;
+;; If the buffer looks like this:
+;; --------------------
+;; (gdb) set args foo bar
+;; (gdb) -!-
+;; --------------------
+;; (the -!- marks the location of point), and we type `C-x SPC' in a
+;; source file to set a breakpoint, we want the buffer to end up like
+;; this:
+;; --------------------
+;; (gdb) set args foo bar
+;; Breakpoint 1 at 0x92: file make-docfile.c, line 49.
+;; (gdb) -!-
+;; --------------------
+;; Essentially, the old prompt is deleted, and the command's output
+;; and the new prompt take its place.
+;;
+;; Not echoing the command is easy enough; you send it directly using
+;; process-send-string, and it never enters the buffer.  However,
+;; getting rid of the old prompt is trickier; you don't want to do it
+;; when you send the command, since that will result in an annoying
+;; flicker as the prompt is deleted, redisplay occurs while Emacs
+;; waits for a response from the debugger, and the new prompt is
+;; inserted.  Instead, we'll wait until we actually get some output
+;; from the subprocess before we delete the prompt.  If the command
+;; produced no output other than a new prompt, that prompt will most
+;; likely be in the first chunk of output received, so we will delete
+;; the prompt and then replace it with an identical one.  If the
+;; command produces output, the prompt is moving anyway, so the
+;; flicker won't be annoying.
+;;
+;; So - when we want to delete the prompt upon receipt of the next
+;; chunk of debugger output, we position gud-delete-prompt-marker at
+;; the start of the prompt; the process filter will notice this, and
+;; delete all text between it and the process output marker.  If
+;; gud-delete-prompt-marker points nowhere, we leave the current
+;; prompt alone.
 (defvar gud-delete-prompt-marker nil)
 
 
@@ -2270,7 +2273,7 @@ comint mode, which see."
       (if w
 	  (setcar w file)))
     (apply 'make-comint (concat "gud" filepart) program nil
-	   (funcall massage-args file args)))
+	   (if massage-args (funcall massage-args file args) args)))
   ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
   (make-local-variable 'gud-marker-filter)
@@ -2438,10 +2441,10 @@ Obeying it means displaying in another window the specified file and line."
 		   (goto-char pos))))
 	  (set-window-point window overlay-arrow-position)))))
 
-;;; The gud-call function must do the right thing whether its invoking
-;;; keystroke is from the GUD buffer itself (via major-mode binding)
-;;; or a C buffer.  In the former case, we want to supply data from
-;;; gud-last-frame.  Here's how we do it:
+;; The gud-call function must do the right thing whether its invoking
+;; keystroke is from the GUD buffer itself (via major-mode binding)
+;; or a C buffer.  In the former case, we want to supply data from
+;; gud-last-frame.  Here's how we do it:
 
 (defun gud-format-command (str arg)
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
@@ -2469,7 +2472,7 @@ Obeying it means displaying in another window the specified file and line."
 		       (if insource
 			   (save-restriction
 			     (widen)
-			     (+ (count-lines 1 (point))
+			     (+ (count-lines (point-min) (point))
 				(if (bolp) 1 0)))
 			 (cdr frame)))))
 	 ((eq key ?e)
@@ -2537,12 +2540,12 @@ Obeying it means displaying in another window the specified file and line."
   (gud-display-frame)
   (recenter arg))
 
-;;; Code for parsing expressions out of C code.	 The single entry point is
-;;; find-c-expr, which tries to return an lvalue expression from around point.
-;;;
-;;; The rest of this file is a hacked version of gdbsrc.el by
-;;; Debby Ayers <ayers@asc.slb.com>,
-;;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
+;; Code for parsing expressions out of C code.  The single entry point is
+;; find-c-expr, which tries to return an lvalue expression from around point.
+;;
+;; The rest of this file is a hacked version of gdbsrc.el by
+;; Debby Ayers <ayers@asc.slb.com>,
+;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
 
 (defun gud-find-c-expr ()
   "Returns the C expr that surrounds point."
