@@ -1,3 +1,13 @@
+2003-05-13  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-invalidate-assembler): Update assembler buffer
+	correctly when frame changes.
+	(gdb-info-threads-custom, gdb-threads-buffer-name) 
+	(gdb-display-threads-buffer, gdb-frame-threads-buffer) 
+	(gdb-threads-mode-map, gdb-threads-mode, gdb-get-thread-number) 
+	(gdb-threads-select, gdb-threads-mouse-select): New functions and
+	variable for a buffer that provides a selectable threads list.
+
 2003-05-11  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (info-lookup-make-completions): Allow colons in index
