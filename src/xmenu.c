@@ -1541,6 +1541,7 @@ update_frame_menubar (f)
 
   /* Re-manage the text-area widget, and then thrash the sizes.  */
   XtManageChild (x->edit_widget);
+  x_set_menu_resources_from_menu_face (f, x->menubar_widget);
   lw_refigure_widget (x->column_widget, True);
 
   /* Force the pane widget to resize itself with the right values.  */
@@ -1788,7 +1789,6 @@ set_frame_menubar (f, first_time, deep_p)
     f->output_data.x->menubar_height = menubar_size;
   }
   
-  x_set_menu_resources_from_menu_face (f, f->output_data.x->menubar_widget);
   free_menubar_widget_value_tree (first_wv);
   update_frame_menubar (f);
 
