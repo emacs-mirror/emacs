@@ -1166,8 +1166,8 @@ Ligatures and special rules are processed."
   "This function re-orders glyph list for decomposition."
   (sort glyphlist 
 	'(lambda (x y) 
-	   (let ((xx (assoc x devanagari-decomposition-rules))
-		 (yy (assoc y devanagari-decomposition-rules)))
+	   (let ((xx (nth 1 (assoc x devanagari-decomposition-rules)))
+		 (yy (nth 1 (assoc y devanagari-decomposition-rules))))
 	     (if (null xx) (setq xx 0))
 	     (if (null yy) (setq yy 0))
 	     (< xx yy)))))
