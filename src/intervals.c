@@ -215,19 +215,19 @@ traverse_intervals_noorder (tree, function, arg)
    Pass FUNCTION two args: an interval, and ARG.  */
 
 void
-traverse_intervals (tree, position, depth, function, arg)
+traverse_intervals (tree, position, function, arg)
      INTERVAL tree;
-     int position, depth;
+     int position;
      void (* function) P_ ((INTERVAL, Lisp_Object));
      Lisp_Object arg;
 {
   while (!NULL_INTERVAL_P (tree))
     {
-      traverse_intervals (tree->left, position, depth + 1, function, arg);
+      traverse_intervals (tree->left, position, function, arg);
       position += LEFT_TOTAL_LENGTH (tree);
       tree->position = position;
       (*function) (tree, arg);
-      position += LENGTH (tree); tree = tree->right; depth++;
+      position += LENGTH (tree); tree = tree->right;
     }
 }
 
