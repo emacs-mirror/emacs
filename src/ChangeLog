@@ -1,5 +1,10 @@
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_highlight): Return quickly if frame's
+	glyph matrices have been freed.
+
+	* dispnew.c (free_glyphs): Block input while freeing matrices.
+
 	* xfns.c (x_clear_image, x_kill_gs_process): Use x_free_colors.
 
 	* xterm.c (x_alloc_lighter_color, x_setup_relief_color): Use
