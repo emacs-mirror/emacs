@@ -291,17 +291,16 @@ ${archlibdir}: all
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file ${archlibdir}/$$file ; \
 	  done ; \
         fi
-#ifdef HAVE_SHARED_GAME_DIR
-	chown ${gameuser} ${archlibdir}/update-game-score
-	chmod u+s ${archlibdir}/update-game-score
-	$(top_srcdir)/mkinstalldirs ${gamedir}
-	chown ${gameuser} ${gamedir}
-	chmod u=rwx,g=rwx,o=rx ${gamedir}
-/* If you change these, be sure to change the variables in
-   lisp/play/{tetris,snake}.el. */
-	touch ${gamedir}/snake-scores
-	touch ${gamedir}/tetris-scores
-#endif
+/* If the following commands fail, that is not a big deal.
+   update-game-score will detect at runtime that it is not setuid,
+   and handle things accordingly. */
+	if test ${gamedir} != no && chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
+	  $(top_srcdir)/mkinstalldirs ${gamedir}; \
+	  chown ${gameuser} ${gamedir}; \
+	  chmod u=rwx,g=rwx,o=rx ${gamedir}; \
+	  touch ${gamedir}/snake-scores; \
+	  touch ${gamedir}/tetris-scores; \
+	fi
         if [ `(cd ${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
 	  for file in ${SCRIPTS}; do \
