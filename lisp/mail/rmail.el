@@ -391,6 +391,14 @@ by substituting the new message number into the existing list.")
 This is set to nil by default.")
 
 ;;;###autoload
+(defvar rmail-enable-decoding-message nil
+  "*If non-nil, RMAIL decode character code of incomming mails automatically.
+The default value is nil.
+
+Regardless of the value of this variable, MIME messages are decoded
+if rmail-enable-mime is non-nil.")
+
+;;;###autoload
 (defcustom rmail-enable-mime nil
   "*If non-nil, RMAIL uses MIME feature.
 If the value is t, RMAIL automatically shows MIME decoded message.
@@ -517,9 +525,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     (if (and (not convert)
 	     (not rmail-enable-mime)
 	     rmail-file-coding-system)
-	;; Decode BABYL part at the headq only.  The remaining non
-	;; BABYL parts are decode in rmail-convert-to-babyl-format if
-	;; necessary..
+	;; Decode coding system of BABYL part at the head only.  The
+	;; remaining non BABYL parts are decoded in
+	;; rmail-convert-to-babyl-format if necessary.
 	(rmail-decode-babyl-format))
     ;; If file was not a Babyl file or if there are
     ;; Unix format messages added at the end,
@@ -885,7 +893,10 @@ Instead, these commands are available:
     (if (revert-buffer arg noconfirm)
 	;; If the user said "yes", and we changed something,
 	;; reparse the messages.
-	(progn
+	;; But, we don't have to convert coding system because backup
+	;; files should have been saved by Emacs' internal format.
+	(let ((rmail-file-coding-system nil)
+	      (rmail-enable-decoding-message nil))
 	  (rmail-convert-file)
 	  (goto-char (point-max))
 	  (rmail-mode)))))
@@ -1389,7 +1400,7 @@ Optional DEFAULT is password to start with."
 		   (while (search-forward "\n\^_" nil t); single char "\^_"
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (or rmail-enable-mime
-		   (not rmail-file-coding-system)
+		   (not rmail-enable-decoding-message)
 		   (decode-coding-region start (point) 'automatic-conversion))
 	       (narrow-to-region (point) (point-max))
 	       (setq count (1+ count)))
@@ -1452,7 +1463,7 @@ Optional DEFAULT is password to start with."
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (insert ?\^_)
 	       (or rmail-enable-mime
-		   (not rmail-file-coding-system)
+		   (not rmail-enable-decoding-message)
 		   (decode-coding-region start (point) 'automatic-conversion))
 	       (narrow-to-region (point) (point-max)))
 	      ;;
