@@ -1,3 +1,7 @@
+2002-05-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* make-dist: Do not distribute lock/ directory.
+
 2002-04-30  Andrew Choi  <akochoi@shaw.ca>
 
 	* configure.in: Provide documentation string when defining
@@ -18,7 +22,7 @@
 	* configure.in: Add support for powerpc-apple-darwin*.
 	(HAVE_CARBON): Add.
 
-	* make-dist: create directories in mac/Emacs.app.	
+	* make-dist: Create directories in mac/Emacs.app.	
 
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
