@@ -196,9 +196,14 @@ With prefix arg, prompt for diff switches."
 	(let ((command
 	       (mapconcat 'identity
 			  (append '("diff")
-				  (if (consp diff-switches)
-				      diff-switches
-				    (list diff-switches))
+				  ;; Use explicitly specified switches
+				  (if switches
+				      (if (consp switches)
+					  switches (list switches))
+				    ;; If not specified, use default.
+				    (if (consp diff-switches)
+					diff-switches
+				      (list diff-switches)))
 				  (if (or old-alt new-alt)
 				      (list "-L" old "-L" new))
 				  (list (or old-alt old))
