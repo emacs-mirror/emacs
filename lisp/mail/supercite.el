@@ -499,8 +499,9 @@ In version 18, the HISTORY argument is ignored."
   "Compatibility between Emacs 18 and 19 `read-string'.
 In version 18, the HISTORY argument is ignored."
   (if (memq 'v19 sc-emacs-features)
-      (funcall 'read-string prompt initial-contents history)
-    (funcall 'read-string prompt initial-contents)))
+      ;; maybe future versions will take a `history' argument:
+      (read-string prompt initial-contents)
+    (read-string prompt initial-contents)))
 
 (defun sc-submatch (matchnum &optional string)
   "Returns `match-beginning' and `match-end' sub-expression for MATCHNUM.
