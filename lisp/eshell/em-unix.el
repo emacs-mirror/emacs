@@ -313,7 +313,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	    (eshell-error (format "%s: %s: omitting directory\n"
 				  command (car files)))))
        ((and attr-target
-	     (not (eshell-under-windows-p))
+	     (or (not (eshell-under-windows-p))
+		 (eq system-type 'ms-dos))
 	     (setq attr (file-attributes (car files)))
 	     (= (nth 10 attr-target) (nth 10 attr))
 	     (= (nth 11 attr-target) (nth 11 attr)))
