@@ -141,7 +141,9 @@ in REGEXP."
 	 (open-charset (if lax "" open-group))
 	 (close-charset (if lax "" close-group)))
     (cond
-     ;;
+     ;; Protect against user-stupidity... could call error here
+     ((null strings)
+      nil)
      ;; If there is only one string, just return it.
      ((= (length strings) 1)
       (if (= (length (car strings)) 1)
