@@ -345,7 +345,8 @@ make_menu_in_widget (widget_instance* instance, Widget widget,
       XtSetArg (al [ac], XmNalignment, XmALIGNMENT_BEGINNING); ac++;
       XtSetArg (al [ac], XmNuserData, cur->call_data); ac++;
       
-      if (instance->pop_up_p && !cur->contents && !cur->call_data)
+      if (instance->pop_up_p && !cur->contents && !cur->call_data
+	  && !all_dashes_p (cur->name))
 	{
 	  ac = 0;
 	  XtSetArg (al[ac], XmNalignment, XmALIGNMENT_CENTER); ac++;
@@ -1510,7 +1511,10 @@ xm_pull_down_callback (Widget widget, XtPointer closure, XtPointer call_data)
 static void
 xm_pop_down_callback (Widget widget, XtPointer closure, XtPointer call_data)
 {
-  do_call (widget, closure, post_activate);
+  widget_instance *instance = (widget_instance *) closure;
+
+  if (!instance->pop_up_p || (XtParent (widget) == instance->parent))
+    do_call (widget, closure, post_activate);
 }
 
 
