@@ -1002,27 +1002,31 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 	      Lisp_Object frame;
 
 	      XSETFRAME (frame, f);
-	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Fcons (frame, Fcons (Qmenu_bar, Qnil));
+	      buf.kind = MENU_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = frame;
 	      kbd_buffer_store_event (&buf);
 
 	      for (j = 0; j < submenu_depth; j++)
 		if (!NILP (subprefix_stack[j]))
 		  {
-		    buf.kind = menu_bar_event;
-		    buf.frame_or_window = Fcons (frame, subprefix_stack[j]);
+		    buf.kind = MENU_BAR_EVENT;
+		    buf.frame_or_window = frame;
+		    buf.arg = subprefix_stack[j];
 		    kbd_buffer_store_event (&buf);
 		  }
 
 	      if (!NILP (prefix))
 		{
-		  buf.kind = menu_bar_event;
-		  buf.frame_or_window = Fcons (frame, prefix);
+		  buf.kind = MENU_BAR_EVENT;
+		  buf.frame_or_window = frame;
+		  buf.arg = prefix;
 		  kbd_buffer_store_event (&buf);
 		}
 
-	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Fcons (frame, entry);
+	      buf.kind = MENU_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
 	      return;
