@@ -48,7 +48,8 @@
   "Spellchecking on the fly."
   :tag "FlySpell"
   :prefix "flyspell-"
-  :group 'processes)
+  :group 'processes
+  :version "20.3")
 
 ;*---------------------------------------------------------------------*/
 ;*    User variables ...                                               */
