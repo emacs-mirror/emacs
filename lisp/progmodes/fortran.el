@@ -190,7 +190,7 @@ This variable used in TAB-format mode.")
   (define-key fortran-mode-map "\e;" 'fortran-indent-comment)
   (define-key fortran-mode-map "\e\C-h" 'mark-fortran-subprogram)
   (define-key fortran-mode-map "\e\n" 'fortran-split-line)
-  (define-key fortran-mode-map "\n" 'fortran-reindent-then-newline-and-indent)
+  (define-key fortran-mode-map "\n" 'fortran-indent-new-line)
   (define-key fortran-mode-map "\e\C-q" 'fortran-indent-subprogram)
   (define-key fortran-mode-map "\C-c\C-w" 'fortran-window-create-momentarily)
   (define-key fortran-mode-map "\C-c\C-r" 'fortran-column-ruler)
@@ -589,7 +589,7 @@ Auto-indent does not happen if a numeric arg is used."
 		   (looking-at "\t"));In col 8 with a single tab to the left.
 		 (not (or (eq last-command 'fortran-indent-line)
 			  (eq last-command
-			      'fortran-reindent-then-newline-and-indent))))
+			      'fortran-indent-new-line))))
 	    (save-excursion
 	      (re-search-backward "[^ \t0-9]"
 				  (save-excursion
@@ -750,7 +750,7 @@ non-comment Fortran statement in the file, and nil otherwise."
     (if fortran-blink-matching-if
 	(fortran-blink-matching-if))))
 
-(defun fortran-reindent-then-newline-and-indent ()
+(defun fortran-indent-new-line ()
   "Reindent the current Fortran line, insert a newline and indent the newline.
 An abbrev before point is expanded if `abbrev-mode' is non-nil."
   (interactive)
