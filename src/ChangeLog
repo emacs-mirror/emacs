@@ -25,6 +25,15 @@
 	* m/mips-siemens.h (XSETUINT, XSETPNTR): Unused macros deleted.
 	(XSETINT): Deleted.
 
+	* m/att3b.h (XINT): Don't define.
+	(VALBITS, VALMASK, XTYPE): Deleted.
+	(DATA_SEG_BITS): Define.
+	* m/gec63.h (VALBITS, VALAMASK, XTYPE, XSETTYPE, XPNTR, XSET,
+	ARRAY_MARK_FLAG): Deleted.
+	(DATA_SEG_BITS): Define.
+	* m/pfa50.h (VALBITS, VALMASK, XTYPE): Deleted.
+	(DATA_SEG_BITS): Define.
+
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print_error_message): New args CONTEXT and CALLER.
