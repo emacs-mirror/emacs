@@ -842,7 +842,7 @@ x_set_cursor_color (f, arg, oldval)
   /* Make sure that the cursor color differs from the background color.  */
   if (f->display.x->cursor_pixel == f->display.x->background_pixel)
     {
-      f->display.x->cursor_pixel == f->display.x->mouse_pixel;
+      f->display.x->cursor_pixel = f->display.x->mouse_pixel;
       if (f->display.x->cursor_pixel == fore_pixel)
 	fore_pixel = f->display.x->background_pixel;
     }
