@@ -3900,7 +3900,7 @@ Body: site XXX.YYY.ZZZ
 @email{kyle_jones@@wonderworks.com, Kyle Jones}
 
 @item Latest version
-7.14
+7.15
 
 @item Distribution
 @uref{ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz}
@@ -5436,8 +5436,8 @@ most folks as that update propagates around.
 @cindex Gnus FAQ
 @cindex Learning more about Gnus
 
-The @uref{http://my.gnus.org, my.gnus.org} site hosts the Gnus FAQ,
-along with a great deal of Gnus information and tips.
+For more information on Gnus, consult the Gnus manual and FAQ, which are
+part of the Gnus distribution.
 
 @node Concept index,  , Mail and news, Top
 @unnumbered Concept Index
