@@ -1,3 +1,7 @@
+2000-11-23  Dave Love  <fx@gnu.org>
+
+	* rect.el (string-rectangle): Don't test delete-selection-mode.
+
 2000-11-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired-aux.el (dired-add-entry): Don't call dired-get-filename
