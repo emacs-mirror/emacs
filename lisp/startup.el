@@ -47,7 +47,6 @@
 ; -funcall function	same
 ; -l file		load file
 ; -load file		same
-; -i file		insert file into buffer
 ; -insert file		same
 ; file			visit file
 ; -kill			kill (exit) emacs
@@ -371,10 +370,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (setq file (expand-file-name file)))
 		   (load file nil t))
 		 (setq command-line-args-left (cdr command-line-args-left)))
-		((or (string-equal argi "-i")
-		     (string-equal argi "-insert"))
+		((string-equal argi "-insert")
 		 (or (stringp (car command-line-args-left))
-		     (error "filename omitted from `-i' option"))
+		     (error "filename omitted from `-insert' option"))
 		 (insert-file-contents (car command-line-args-left))
 		 (setq command-line-args-left (cdr command-line-args-left)))
 		((string-equal argi "-kill")
