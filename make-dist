@@ -362,9 +362,9 @@ done
 #### than two.  (Yes, strictly greater than 2 is correct; since we
 #### created these files by linking them in from the original tree,
 #### they'll have exactly two links normally.)
-echo "Breaking intra-tree links."
-find ${tempdir} ! -type d -links +2 \
-  -exec cp -p {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
+#echo "Breaking intra-tree links."
+#find ${tempdir} ! -type d -links +2 \
+#  -exec cp -p {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
 
 if [ "${newer}" ]; then
   echo "Removing files older than $newer."
