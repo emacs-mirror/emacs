@@ -1,3 +1,17 @@
+2003-05-27  David Ponce  <david@dponce.com>
+
+	Handle W32 mouse wheel events as mouse click events, like in X.
+
+	* keyboard.c (make_lispy_event) [WINDOWSNT]: Don't handle
+	MOUSE_WHEEL_EVENT anymore.
+
+	* w32term.c (construct_mouse_wheel): Result is a MOUSE_CLICK_EVENT.
+	Scrolling down/up the mouse wheel is respectively mapped to mouse
+	button 4 and 5.
+	(w32_read_socket): Map w32 WM_MOUSEWHEEL events to Emacs
+	MOUSE_CLICK_EVENT events.  Forward w32 MSH_MOUSEWHEEL events as
+	WM_MOUSEWHEEL events.
+
 2003-05-27  Andreas Schwab  <schwab@suse.de>
 
 	* buffer.c (syms_of_buffer) <default-direction-reversed>: Doc fix.
