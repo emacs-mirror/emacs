@@ -1,3 +1,14 @@
+2000-06-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-toggle):
+	Remove (inline into define-minor-mode).
+	(easy-mmode-pretty-mode-name): Rename from easy-mmode-derive-name
+	and improve to use the lighter to guess the capitalization.
+	(define-minor-mode): Inline code from easy-mmode-define-toggle.
+	Add keyword arguments to specify global-ness or the custom group.
+	Add local-map and help-echo properties to the lighter.
+	(easy-mmode-define-navigation): Add the errors to debug-ignored-errors.
+
 2000-06-02  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el: byte-compile-dynamic since we typically don't use
@@ -19,8 +30,7 @@
 	(widget-convert): Use keywordp.
 	(widget-leave-text, widget-children-value-delete): Use mapc.
 	(widget-keymap): Remove XEmacs stuff.
-	(widget-field-keymap, widget-text-keymap): Define all inside
-	defvar.
+	(widget-field-keymap, widget-text-keymap): Define all inside defvar.
 	(widget-button-click): Don't set point at the click, but re-centre
 	if we scroll out of window.  Rewritten for images v. glyphs &c.
 	(widget-tabable-at): Use POS arg, not point.
