@@ -306,7 +306,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 
       (let ((err-file (jka-compr-make-temp-name))
 	    (coding-system-for-read (or coding-system-for-read 'undecided))
-            (coding-system-for-write 'no-conversion) )
+            (coding-system-for-write 'no-conversion))
 
 	(unwind-protect
 
@@ -413,7 +413,11 @@ There should be no more than seven characters after the final `/'."
 		(compress-args (jka-compr-info-compress-args info))
 		(uncompress-args (jka-compr-info-uncompress-args info))
 		(base-name (file-name-nondirectory visit-file))
-		temp-file temp-buffer)
+		temp-file temp-buffer
+		;; we need to leave `last-coding-system-used' set to its
+		;; value after calling write-region the first time, so
+		;; that `basic-save-buffer' sees the right value.
+		(coding-system-used last-coding-system-used))
 
 	    (setq temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
 	    (with-current-buffer temp-buffer
@@ -436,6 +440,8 @@ There should be no more than seven characters after the final `/'."
 	    
 	    (jka-compr-run-real-handler 'write-region
 					(list start end temp-file t 'dont))
+	    ;; save value used by the real write-region
+	    (setq coding-system-used last-coding-system-used)
 
 	    ;; Here we must read the output of compress program as is
 	    ;; without any code conversion.
@@ -477,6 +483,9 @@ There should be no more than seven characters after the final `/'."
 		     (eq visit nil)
 		     (stringp visit))
 		 (message "Wrote %s" visit-file))
+
+	    ;; ensure `last-coding-system-used' has an appropriate value
+	    (setq last-coding-system-used coding-system-used)
 
 	    nil)
 	      
