@@ -409,21 +409,6 @@ FONTLIST is an alist of charsets vs font names to be used in FONSET.")
     (oblique . x-make-font-oblique)
     (bold-italic . x-make-font-bold-italic)
     (demibold-italic
-     . ,(function (lambda (x) (x-make-font-italic (x-make-font-demibold x)))))
-    (demibold-oblique
-     . ,(function (lambda (x) (x-make-font-oblique (x-make-font-demibold x)))))
-    (bold-oblique
-     . ,(function (lambda (x) (x-make-font-oblique (x-make-font-bold x))))))
-  "Alist of font style vs function to generate a X font name of the style.
-The function is called with one argument, a font name.")
-
-(defconst x-style-funcs-alist
-  `((bold . x-make-font-bold)
-    (demibold . x-make-font-demibold)
-    (italic . x-make-font-italic)
-    (oblique . x-make-font-oblique)
-    (bold-italic . x-make-font-bold-italic)
-    (demibold-italic
      . ,(function (lambda (x)
 		    (let ((y (x-make-font-demibold x)))
 		      (and y (x-make-font-italic y))))))
