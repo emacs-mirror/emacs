@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.49) $
+ * $HopeName: MMsrc!arenavm.c(trunk.50) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.49) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.50) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -89,6 +89,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   VMArenaChunk primary;
   RingStruct chunkRing;
   VMArenaChunkCacheEntryStruct chunkCache; /* just one entry */
+  Size committed;		/* amount of committed RAM */
   RefSet blacklist;             /* zones to use last */
   RefSet genRefSet[VMArenaGenCount]; /* .gencount.const */
   RefSet freeSet;               /* unassigned zones */
@@ -244,6 +245,9 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKD(VMArenaChunk, vmArena->primary);
   CHECKD(VMArenaChunkCacheEntry, &vmArena->chunkCache);
   CHECKL(RingCheck(&vmArena->chunkRing));
+  /* we could iterate over all chunks accumulating an accurate */
+  /* count of committed, but we don't have all day */
+  CHECKL(VMMapped(vmArena->primary->vm) <= vmArena->committed);
   CHECKL(RefSetCheck(vmArena->blacklist));
 
   allocSet = RefSetEMPTY;
@@ -289,6 +293,56 @@ static void VMArenaChunkEncache(VMArena vmArena, VMArenaChunk chunk)
   vmArena->chunkCache.pageTableLimit = &chunk->pageTable[chunk->pages];
 
   AVERT(VMArenaChunkCacheEntry, &vmArena->chunkCache);
+
+  return;
+}
+
+
+/* VM indirect functions
+ *
+ * These functions should be the only ones in this module that call
+ * VMMap or VMUnmap directly (there is an annoying exception to this
+ * during boot).  These functions are responsible for
+ * maintaining * vmArena->committed, and for checking that the
+ * commit limit does not get exceeded.
+ */
+
+static Res VMArenaMap(VMArena vmArena, VM vm, Addr base, Addr limit)
+{
+  Arena arena;
+  Size size;
+  Res res;
+
+  /* no checking as function is local to module */
+
+  arena = &vmArena->arenaStruct;
+  size = AddrOffset(base, limit);
+  /* committed can't overflow (since we can't commit more memory than */
+  /* address space), but we're paranoid. */
+  AVER(vmArena->committed < vmArena->committed + size);
+  /* check against commit limit */
+  if(arena->commitLimit < vmArena->committed + size)
+    return ResCOMMIT_LIMIT;
+  
+  res = VMMap(vm, base, limit);
+  if(res != ResOK)
+    return res;
+    
+  vmArena->committed += size;
+  return ResOK;
+}
+
+static void VMArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
+{
+  Size size;
+
+  /* no checking as function is local to module */
+
+  size = AddrOffset(base, limit);
+
+  VMUnmap(vm, base, limit);
+  AVER(size <= vmArena->committed);
+  vmArena->committed -= size;
 
   return;
 }
@@ -538,7 +592,12 @@ static Res VMArenaChunkCreate(VMArenaChunk *chunkReturn, void **spareReturn,
 
   /* Actually commit the necessary addresses. */
   /* design.mps.arena.coop-vm.chunk.create.tables.map */
-  res = VMMap(vm, initChunk->base, (Addr)initChunk->pageTable);
+  if(primary) {
+    /* no vmArena, so must call VMMap directly */
+    res = VMMap(vm, initChunk->base, (Addr)initChunk->pageTable);
+  } else {
+    VMArenaMap(vmArena, vm, initChunk->base, (Addr)initChunk->pageTable);
+  }
   if(res != ResOK)
     goto failTableMap;
 
@@ -584,6 +643,7 @@ failVMCreate:
 static void VMArenaChunkDestroy(VMArenaChunk chunk)
 {
   VM vm;
+  VMArena vmArena;
 
   /* Can't check chunk during destroy as its parent vmArena is invalid */
   AVER(chunk->sig == VMArenaChunkSig);
@@ -591,8 +651,14 @@ static void VMArenaChunkDestroy(VMArenaChunk chunk)
   chunk->sig = SigInvalid;
   RingFinish(&chunk->arenaRing);
   vm = chunk->vm;
+  vmArena = chunk->vmArena;
   /* unmap the permanently mapped tables */
-  VMUnmap(vm, chunk->base, (Addr)chunk->pageTable);
+  if(chunk->primary) {
+    /* must call VMUnmap directly */
+    VMUnmap(vm, chunk->base, (Addr)chunk->pageTable);
+  } else {
+    VMArenaUnmap(vmArena, vm, chunk->base, (Addr)chunk->pageTable);
+  }
   VMDestroy(vm);
 }
 
@@ -631,6 +697,7 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   /* field yet. */
   chunk->vmArena = vmArena;
   chunk->inBoot = FALSE;
+  vmArena->committed = VMMapped(vmArena->primary->vm);
 
   arena = VMArenaArena(vmArena);
   /* impl.c.arena.init.caller */
@@ -733,27 +800,16 @@ static Size VMArenaReserved(Arena arena)
 
 
 /* VMArenaCommitted -- return the amount of committed virtual memory
- *
- * Since this is a VM-based arena, this information is retrieved from
- * the VM.
  */
 
 static Size VMArenaCommitted(Arena arena)
 {
-  Size committed;
-  Ring node, next;
   VMArena vmArena;
 
   vmArena = ArenaVMArena(arena);
   AVERT(VMArena, vmArena);
 
-  committed = 0;
-  RING_FOR(node, &vmArena->chunkRing, next) {
-    VMArenaChunk chunk = RING_ELT(VMArenaChunk, arenaRing, node);
-    committed += VMMapped(chunk->vm);
-  }
-
-  return committed;
+  return vmArena->committed;
 }
 
 
@@ -1235,18 +1291,11 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* chunk (and base) should be initialised by VMSegFind */
   AVERT(VMArenaChunk, chunk);
 
-  /* Test commit limit */
-  /* Assumes VMArenaCommitted will increase by size after the call */
-  /* to VMMap. */
-  if(VMMapped(chunk->vm) + size > arena->commitLimit) {
-    return ResCOMMIT_LIMIT;
-  }
-
   /* .alloc.early-map: Map in the segment memory before actually */
   /* allocating the pages, so that we can exit straight away if */
   /* we fail. */
   addr = PageIndexBase(chunk, base);
-  res = VMMap(chunk->vm, addr, AddrAdd(addr, size));
+  res = VMArenaMap(vmArena, chunk->vm, addr, AddrAdd(addr, size));
   if(res != ResOK)
     goto failSegMap;
 
@@ -1256,16 +1305,8 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* Ensure that the page descriptors we need are on mapped pages. */
   if(unusedTablePages(&unmappedPagesBase, &unmappedPagesLimit,
 		      chunk, base, base + pages)) {
-    /* test commit limit */
-    /* Assumes VMArenaCommitted will increase by unmappedPagesLimit - */
-    /* unmappedPagesBase after the call to VMMap */
-    if(VMMapped(chunk->vm) +
-       AddrOffset(unmappedPagesBase, unmappedPagesLimit) >
-       arena->commitLimit) {
-      res = ResCOMMIT_LIMIT;
-      goto failTableMap;
-    }
-    res = VMMap(chunk->vm, unmappedPagesBase, unmappedPagesLimit);
+    res = VMArenaMap(vmArena, chunk->vm,
+                     unmappedPagesBase, unmappedPagesLimit);
     if(res != ResOK)
       goto failTableMap;
   }
@@ -1312,7 +1353,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   return ResOK;
 
 failTableMap:
-  VMUnmap(chunk->vm, addr, AddrAdd(addr, size));
+  VMArenaUnmap(vmArena, chunk->vm, addr, AddrAdd(addr, size));
 failSegMap:
   return res;
 }
@@ -1372,7 +1413,7 @@ static void VMSegFree(Seg seg)
   SegFinish(seg);
 
   base = PageIndexBase(chunk, basePage);
-  VMUnmap(chunk->vm, base, limit);
+  VMArenaUnmap(vmArena, chunk->vm, base, limit);
 
   /* Calculate the number of pages in the segment */
   pages = AddrOffset(base, limit) >> chunk->pageShift;
@@ -1385,7 +1426,7 @@ static void VMSegFree(Seg seg)
   /* Unmap any pages that became unused in the page table */
   if(unusedTablePages(&unusedPagesBase, &unusedPagesLimit,
 		      chunk, basePage, basePage + pages))
-    VMUnmap(chunk->vm, unusedPagesBase, unusedPagesLimit);
+    VMArenaUnmap(vmArena, chunk->vm, unusedPagesBase, unusedPagesLimit);
 
   EVENT_PP(SegFree, vmArena, seg);
 }
