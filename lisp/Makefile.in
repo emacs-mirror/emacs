@@ -284,7 +284,12 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: update-subdirs autoloads compile finder-data custom-deps
+bootstrap: update-subdirs autoloads compile
+
+# Generate/update files after the bootstrap process.
+# custom-deps needs `preloaded-file-list'.
+
+bootstrap-after: finder-data custom-deps
 
 distclean:
 	-rm -f ./Makefile
