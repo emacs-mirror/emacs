@@ -201,14 +201,16 @@
 ;;;	x	forms-exit-no-save
 ;;;	DEL	forms-prev-record
 ;;;
-;;; Standard functions scroll-up, scroll-down, beginning-of-buffer and
-;;; end-of-buffer are wrapped with re-definitions, which map them to
-;;; next/prev record and first/last record.
-;;; Buffer-local variables forms-forms-scroll and forms-forms-jump
-;;; may be used to control these redefinitions.
+;;; The bindings of standard functions scroll-up, scroll-down,
+;;; beginning-of-buffer and end-of-buffer are locally replaced with
+;;; forms mode functions next/prev record and first/last
+;;; record. Buffer-local variables forms-forms-scroll and
+;;; forms-forms-jump (default: t) may be set to nil to inhibit
+;;; rebinding.
 ;;;
-;;; Function save-buffer is also wrapped to perform a sensible action.
-;;; A revert-file-hook is defined to revert a forms to original.
+;;; A local-write-file hook is defined to save the actual data file
+;;; instead of the buffer data, a revert-file-hook is defined to
+;;; revert a forms to original.
 ;;;
 ;;; For convenience, TAB is always bound to forms-next-field, so you
 ;;; don't need the C-c prefix for this command.
@@ -434,8 +436,7 @@
   (if forms-mode-map			; already defined
       nil
     (setq forms-mode-map (make-keymap))
-    (forms--mode-commands forms-mode-map)
-    (forms--change-commands))
+    (forms--mode-commands forms-mode-map))
 
   ;; find the data file
   (setq forms--file-buffer (find-file-noselect forms-file))
@@ -457,6 +458,8 @@
   (make-local-variable 'minor-mode-alist) ; needed?
   (forms--set-minor-mode)
   (forms--set-keymaps)
+  (make-local-variable 'local-write-file-hooks)
+  (forms--change-commands)
 
   (set-buffer-modified-p nil)
 
