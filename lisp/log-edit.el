@@ -4,8 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.12 2000/12/06 19:36:44 fx Exp $
+;; Revision: $Id: log-edit.el,v 1.13 2000/12/10 21:08:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -4,8 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.8 2000/12/08 16:58:37 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.9 2000/12/10 21:17:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,8 +27,6 @@
 
 
 ;;; Code:
-
-(defconst pcl-cvs-version "$Name:  $")
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)

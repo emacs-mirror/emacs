@@ -5,8 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.27 2000/12/06 19:54:37 fx Exp $
+;; Revision: $Id: newcomment.el,v 1.28 2000/12/11 21:41:35 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

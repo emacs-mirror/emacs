@@ -4,8 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Version: $Name:  $
-;; Revision: $Id: log-view.el,v 1.4 2000/05/21 02:12:34 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.5 2000/12/06 19:49:40 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -172,6 +171,9 @@
 
 ;;; Change Log:
 ;; $Log: log-view.el,v $
+;; Revision 1.5  2000/12/06 19:49:40  fx
+;; Fix copyright years.
+;;
 ;; Revision 1.4  2000/05/21 02:12:34  monnier
 ;; Fix file description.
 ;; (log-view-mode-map): Unsatisfying fix for when cvs-mode-map is not

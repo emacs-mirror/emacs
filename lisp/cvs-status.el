@@ -4,8 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
-;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.8 2000/11/06 07:01:10 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.9 2000/12/06 19:50:12 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -517,6 +516,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.9  2000/12/06 19:50:12  fx
+;; Fix copyright years.
+;;
 ;; Revision 1.8  2000/11/06 07:01:10  monnier
 ;; (cvs-tree-merge): Use cvs-butlast (avoid CL).
 ;; (cvs-status-get-tags): Fix regexp.
