@@ -52,6 +52,12 @@ This defaults to the value of `user-mail-address'.")
     ("(\\([^)\n]+\\)):" 1 font-lock-keyword-face))	; Function name.
   "Additional expressions to highlight in Change Log mode.")
 
+(defvar change-log-mode-map nil
+  "Keymap for Change Log major mode.")
+(if change-log-mode-map
+    nil
+  (setq change-log-mode-map (make-sparse-keymap)))
+
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
@@ -278,6 +284,7 @@ Runs `change-log-mode-hook'."
 	fill-column 74
 	indent-tabs-mode t
 	tab-width 8)
+  (use-local-map change-log-mode-map)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
   ;; Let each entry behave as one paragraph:
