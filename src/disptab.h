@@ -40,25 +40,21 @@ extern Lisp_Object Vglyph_table;
 /* Return the current length of the GLYPH table,
    or 0 if the table isn't currently valid.  */
 #define GLYPH_TABLE_LENGTH  \
-  ((XTYPE (Vglyph_table) == Lisp_Vector) \
-   ? XVECTOR (Vglyph_table)->size : 0)
+  ((VECTORP (Vglyph_table)) ? XVECTOR (Vglyph_table)->size : 0)
 
 /* Return the current base (for indexing) of the GLYPH table,
    or 0 if the table isn't currently valid.  */
 #define GLYPH_TABLE_BASE  \
-  ((XTYPE (Vglyph_table) == Lisp_Vector) \
-   ? XVECTOR (Vglyph_table)->contents : 0)
+  ((VECTORP (Vglyph_table)) ? XVECTOR (Vglyph_table)->contents : 0)
 
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if the GLYPH code G should be output as a single
    character with code G.  Return zero if G has a string in the table.  */
-#define GLYPH_SIMPLE_P(base,len,g)  \
-  ((g) >= (len) || XTYPE (base[g]) != Lisp_String)
+#define GLYPH_SIMPLE_P(base,len,g) ((g) >= (len) || !STRINGP (base[g]))
 
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if GLYPH code G is aliased to a different code.  */
-#define GLYPH_ALIAS_P(base,len,g)  \
-  ((g) < (len) && XTYPE (base[g]) == Lisp_Int)
+#define GLYPH_ALIAS_P(base,len,g) ((g) < (len) && INTEGERP (base[g]))
 
 /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 1,
    return the alias for G.  */
