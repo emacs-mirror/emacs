@@ -175,8 +175,8 @@ See `interactive'.\n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in the command-history.\n\
 Otherwise, this is done only if an arg is read using the minibuffer.")
-  (function, record, keys)
-     Lisp_Object function, record, keys;
+  (function, record_flag, keys)
+     Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
@@ -291,7 +291,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
       input = specs;
       /* Compute the arg values using the user's expression.  */
       specs = Feval (specs);
-      if (i != num_input_chars || !NILP (record))
+      if (i != num_input_chars || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values, car;
@@ -642,7 +642,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   args[0] = function;
 
-  if (arg_from_tty || !NILP (record))
+  if (arg_from_tty || !NILP (record_flag))
     {
       visargs[0] = function;
       for (i = 1; i < count + 1; i++)
@@ -676,7 +676,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
   1, 1, 0,
-  "Return numeric meaning of raw prefix argument ARG.\n\
+  "Return numeric meaning of raw prefix argument RAW.\n\
 A raw prefix argument is what you get from `(interactive \"P\")'.\n\
 Its numeric meaning is what you would get from `(interactive \"p\")'.")
   (raw)
