@@ -1,5 +1,13 @@
 2000-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (echo_area_display): Check display_completed instead
+	of calling detect_input_pending.
+
+	* dispnew.c (update_frame): Only set display_completed here; use
+	the update_begin and update_end calls here from update_frame_1.
+	(update_frame_1): Don't set display_completed here, don't call
+	update_begin/update_end.
+
 	* xfaces.c (set_font_frame_param): Use Fmodify_frame_parameters
 	instead of store_frame_param.
 
