@@ -52,6 +52,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifdef NEED_NET_ERRNO_H
+#include <net/errno.h>
+#endif /* NEED_NET_ERRNO_H */
 #endif /* HAVE_SOCKETS */
 
 /* TERM is a poor-man's SLIP, used on Linux.  */
