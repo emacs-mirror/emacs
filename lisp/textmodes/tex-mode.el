@@ -1212,6 +1212,24 @@ A prefix arg inhibits the checking."
 
 (defvar latex-block-default "enumerate")
 
+(defvar latex-block-args-alist
+  '(("array" nil ?\{ (skeleton-read "[options]: ") ?\})
+    ("tabular" nil ?\{ (skeleton-read "[options]: ") ?\}))
+  "Skeleton element to use for arguments to particular environments.
+Every element of the list has the form (NAME . SKEL-ELEM) where NAME is
+the name of the environment and SKEL-ELEM is an element to use in
+a skeleton (see `skeleton-insert').")
+
+(defvar latex-block-body-alist
+  '(("enumerate" nil '(latex-insert-item) > _)
+    ("itemize" nil '(latex-insert-item) > _)
+    ("table" nil "\\caption{" > - "}" > \n _)
+    ("figure" nil  > _ \n "\\caption{" > _ "}" >))
+  "Skeleton element to use for the body of particular environments.
+Every element of the list has the form (NAME . SKEL-ELEM) where NAME is
+the name of the environment and SKEL-ELEM is an element to use in
+a skeleton (see `skeleton-insert').")
+
 ;; Like tex-insert-braces, but for LaTeX.
 (defalias 'tex-latex-block 'latex-insert-block)
 (define-skeleton latex-insert-block
@@ -1229,8 +1247,8 @@ Puts point on a blank line between them."
       (push choice latex-block-names))
     choice)
   \n "\\begin{" str "}"
-  ?\[ (skeleton-read "[options]: ") & ?\] | -1
-  > \n _ \n
+  (cdr (assoc str latex-block-args-alist))
+  > \n (or (cdr (assoc str latex-block-body-alist)) '(nil > _)) \n
   "\\end{" str "}" > \n)
 
 (define-skeleton latex-insert-item
@@ -1572,23 +1590,35 @@ IN can be either a string (with the same % escapes in it) indicating
 OUT describes the output file and is either a %-escaped string
   or nil to indicate that there is no output file.")
 
+;; defsubst* gives better byte-code than defsubst.
+(defsubst* tex-string-prefix-p (str1 str2)
+  "Return non-nil if STR1 is a prefix of STR2"
+  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
+
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
 Looks for hints in other buffers in the same directory or in
-ALL other buffers."
+ALL other buffers.  If ALL is `sub' only look at buffers in parent directories
+of the current buffer."
   (let ((dir default-directory)
 	(header-re tex-start-of-header))
     (catch 'found
       ;; Look for a buffer with `tex-main-file' set.
       (dolist (buf (if (consp all) all (buffer-list)))
 	(with-current-buffer buf
-	  (when (and (or all (equal dir default-directory))
+	  (when (and (cond
+		      ((null all) (equal dir default-directory))
+		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      (t))
 		     (stringp tex-main-file))
 	    (throw 'found (expand-file-name tex-main-file)))))
       ;; Look for a buffer containing the magic `tex-start-of-header'.
       (dolist (buf (if (consp all) all (buffer-list)))
 	(with-current-buffer buf
-	  (when (and (or all (equal dir default-directory))
+	  (when (and (cond
+		      ((null all) (equal dir default-directory))
+		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      (t))
 		     buffer-file-name
 		     ;; (or (easy-mmode-derived-mode-p 'latex-mode)
 		     ;; 	 (easy-mmode-derived-mode-p 'plain-tex-mode))
@@ -1618,6 +1648,7 @@ ALL other buffers."
 			  buffer-file-name
 			;; This isn't the main file, let's try to find better,
 			(or (tex-guess-main-file)
+			    (tex-guess-main-file 'sub)
 			    ;; (tex-guess-main-file t)
 			    buffer-file-name)))))))
     (if (file-exists-p file) file (concat file ".tex"))))
@@ -1705,8 +1736,8 @@ FILE is typically the output DVI or PDF file."
       (when (and (eq in t) (stringp out))
 	(not (tex-uptodate-p (format-spec out fspec)))))))
 
-(defun tex-compile-default (dir fspec)
-  "Guess a default command in DIR given the format-spec FSPEC."
+(defun tex-compile-default (fspec)
+  "Guess a default command given the format-spec FSPEC."
   ;; TODO: Learn to do latex+dvips!
   (let ((cmds nil)
 	(unchanged-in nil))
@@ -1724,12 +1755,16 @@ FILE is typically the output DVI or PDF file."
       (dolist (cmd cmds)
 	(unless (member (nth 1 cmd) unchanged-in)
 	  (push cmd tmp)))
+      ;; Only remove if there's something left.
       (if tmp (setq cmds tmp)))
-    ;; remove commands whose input is not uptodate either.
-    (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds))))
-      (dolist (cmd (prog1 cmds (setq cmds nil)))
+    ;; Remove commands whose input is not uptodate either.
+    (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds)))
+	  (tmp nil))
+      (dolist (cmd cmds)
 	(unless (member (nth 1 cmd) outs)
-	  (push cmd cmds))))
+	  (push cmd tmp)))
+      ;; Only remove if there's something left.
+      (if tmp (setq cmds tmp)))
     ;; Select which file we're going to operate on (the latest).
     (let ((latest (nth 1 (car cmds))))
       (dolist (cmd (prog1 (cdr cmds) (setq cmds (list (car cmds)))))
@@ -1748,27 +1783,40 @@ FILE is typically the output DVI or PDF file."
       (push (cons (eval (car cmd)) (cdr cmd)) cmds))
     ;; Select the favorite command from the history.
     (let ((hist tex-compile-history)
-	  re)
+	  re hist-cmd)
       (while hist
+	(setq hist-cmd (pop hist))
 	(setq re (concat "\\`"
-			 (regexp-quote (tex-command-executable (pop hist)))
+			 (regexp-quote (tex-command-executable hist-cmd))
 			 "\\([ \t]\\|\\'\\)"))
 	(dolist (cmd cmds)
-	  (if (string-match re (car cmd))
-	      (setq hist nil cmds (list cmd))))))
-    ;; Substitute and return.
-    (format-spec (caar cmds) fspec)))
+	  ;; If the hist entry uses the same command and applies to a file
+	  ;; of the same type (e.g. `gv %r.pdf' vs `gv %r.ps'), select cmd.
+	  (and (string-match re (car cmd))
+	       (or (not (string-match "%[fr]\\([-._[:alnum:]]+\\)" (car cmd)))
+		   (string-match (regexp-quote (match-string 1 (car cmd)))
+				 hist-cmd))
+	       (setq hist nil cmds (list cmd)))))
+      ;; Substitute and return.
+      (if (and hist-cmd
+	       (string-match (concat "[' \t\"]" (format-spec "%r" fspec)
+				     "\\([;&' \t\"]\\|\\'\\)") hist-cmd))
+	  ;; The history command was already applied to the same file,
+	  ;; so just reuse it.
+	  hist-cmd
+	(if cmds (format-spec (caar cmds) fspec))))))
 
 (defun tex-compile (dir cmd)
   "Run a command CMD on current TeX buffer's file in DIR."
   ;; FIXME: Use time-stamps on files to decide the next op.
   (interactive
    (let* ((file (tex-main-file))
+	  (dir (prog1 (file-name-directory (expand-file-name file))
+		 (setq file (file-name-nondirectory file))))
 	  (root (file-name-sans-extension file))
-	  (dir (file-name-directory (expand-file-name file)))
 	  (fspec (list (cons ?r (comint-quote-filename root))
 		       (cons ?f (comint-quote-filename file))))
-	  (default (tex-compile-default dir fspec)))
+	  (default (tex-compile-default fspec)))
      (list dir
 	   (completing-read
 	    (format "Command [%s]: " (tex-summarize-command default))
