@@ -1,3 +1,20 @@
+2004-03-31  Juri Linkov  <juri@jurta.org>
+
+	* dired.el: Add autoload for `dired-do-touch'.
+	(dired-touch-program): New var.
+	(dired-mode-map): Bind `dired-do-touch' to T and add menu-item.
+	(dired-no-confirm): Add `touch' to docstring.
+
+	* dired-aux.el (dired-do-touch): New fun.
+	(dired-do-chxxx): Add argument -t for touch operation.
+
+	* dired-x.el (dired-mark-sexp): Replace hard-coded month names by
+	`dired-move-to-filename-regexp'.
+
+2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
+
+	* dired.el (dired-move-to-filename-regexp): Add . to HH:MM.
+
 2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf2ps.el (ebnf-eps-finish-and-write): Write a buffer if
