@@ -700,7 +700,10 @@ unlike `file-truename'."
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
 Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones."
+do not put this buffer at the front of the list of recently selected ones.
+
+This uses the function `display-buffer' as a subroutine; see its
+documentation for additional customization information."
   (interactive "BSwitch to buffer in other window: ")
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t norecord)))
@@ -708,7 +711,10 @@ do not put this buffer at the front of the list of recently selected ones."
 (defun switch-to-buffer-other-frame (buffer &optional norecord)
   "Switch to buffer BUFFER in another frame.
 Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones."
+do not put this buffer at the front of the list of recently selected ones.
+
+This uses the function `display-buffer' as a subroutine; see its
+documentation for additional customization information."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t))
     (pop-to-buffer buffer t norecord)
