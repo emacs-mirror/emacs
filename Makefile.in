@@ -310,7 +310,7 @@ install-arch-indep: mkdir
 	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   fi ; \
-	   for f in cl* emacs* dired-x* forms* gnus* info* sc* vip* ; do \
+	   for f in cl* emacs* forms* gnus* info* sc* vip* ; do \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
 	   done); \
 	else true; fi
