@@ -60,9 +60,9 @@
 ;; `highlight-changes-previous-change'.
 ;;
 ;;
-;; You can also use the command compare-with-file to show changes in this
-;; file compared with another file (typically the previous version of the
-;; file).
+;; You can also use the command highlight-compare-with-file to show changes
+;; in this file compared with another file (typically the previous version
+;; of the file).
 ;;
 ;;
 ;; There are currently three hooks run by `highlight-changes-mode':
@@ -147,7 +147,7 @@
 ;; highlight-changes-mode
 ;; highlight-changes-remove-highlight
 ;; highlight-changes-rotate-faces
-;; compare-with-file
+;; highlight-compare-with-file
 
 ;; 
 ;; You can automatically rotate faces when the buffer is saved;
@@ -167,8 +167,8 @@
 ;; - having different faces for deletion and non-deletion: is it
 ;;   really worth the hassle?
 ;; - should have better hooks:  when should they be run?
-;; - compare-with-file should allow RCS files - e.g. nice to be able
-;;   to say show changes compared with version 2.1.     
+;; - highlight-compare-with-file should allow RCS files - e.g. nice to be
+;;   able to say show changes compared with version 2.1.
 ;; - Maybe we should have compare-with-buffer as well.  (When I tried
 ;;   a while back I ran into a problem with ediff-buffers-internal.)
 
@@ -411,7 +411,7 @@ Otherwise, this list will be constructed when needed from
 
 
 (eval-and-compile
-  ;;  For compare-with-file
+  ;;  For highlight-compare-with-file
   (defvar ediff-number-of-differences)
   (autoload 'ediff-setup		"ediff")
   (autoload 'ediff-with-current-buffer	"ediff")
@@ -553,7 +553,7 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;;
   ;; This function is called by the `after-change-functions' hook, which
   ;; is how we are notified when text is changed.
-  ;; It is also called from `compare-with-file'.
+  ;; It is also called from `highlight-compare-with-file'.
   ;;
   ;; We do NOT want to simply do this if this is an undo command, because
   ;; otherwise an undone change shows up as changed.  While the properties
@@ -667,8 +667,8 @@ Passive state - means changes are kept and new ones recorded but are
 Functions:
 \\[highlight-changes-next-change] - move point to beginning of next change
 \\[highlight-changes-previous-change] - move to beginning of previous change 
-\\[compare-with-file] - mark text as changed by comparing this buffer with
-	the contents of a file
+\\[highlight-compare-with-file] - mark text as changed by comparing this
+	buffer with the contents of a file
 \\[highlight-changes-remove-highlight] - remove the change face from the region
 \\[highlight-changes-rotate-faces] - rotate different \"ages\" of changes \
 through 
