@@ -83,7 +83,7 @@ control the appearance of an Ibuffer buffer.  See also
 for display.
 
 This variable has the form
-((COLUMN COLUMN ...) (COLUMN COLUMN ...) ...)
+ ((COLUMN COLUMN ...) (COLUMN COLUMN ...) ...)
 Each element in `ibuffer-formats' should be a list containing COLUMN
 specifiers.  A COLUMN can be any of the following:
 
@@ -276,7 +276,7 @@ This feature only works on Emacs 21 or later."
 
 (defcustom ibuffer-default-directory nil
   "The default directory to use for a new ibuffer buffer.
-Nil means inherit the directory of the buffer in which `ibuffer' was
+If nil, inherit the directory of the buffer in which `ibuffer' was
 called.  Otherwise, this variable should be a string naming a
 directory, like `default-directory'."
   :type '(choice (const :tag "Inherit" :value nil)
