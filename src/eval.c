@@ -390,7 +390,7 @@ whose values are discarded.")
 
   val = Qnil;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -405,7 +405,7 @@ whose values are discarded.")
 	Feval (Fcar (args_left));
       args_left = Fcdr (args_left);
     }
-  while (!NILP(args_left));
+  while (!NILP (args_left));
 
   UNGCPRO;
   return val;
@@ -414,7 +414,7 @@ whose values are discarded.")
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
   "(setq SYM VAL SYM VAL ...): set each SYM to the value of its VAL.\n\
 The SYMs are not evaluated.  Thus (setq x y) sets x to the value of y.\n\
-Each SYM is set before the next VAL is computed.
+Each SYM is set before the next VAL is computed.\n\
 The return value of the `setq' form is the value of the last VAL.")
   (args)
      Lisp_Object args;
