@@ -45,6 +45,8 @@ case "$3" in
 	SOURCE="http://www.iana.org/assignments/charset-reg/${BASE}";;
     UNICODE)
 	SOURCE="http://www.unicode.org/Public/MAPPINGS/.../${BASE}";;
+    UNICODE2)
+	SOURCE="http://www.unicode.org/Public/MAPPINGS/.../${BASE}";;
     YASUOKA)
 	SOURCE="http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/.../${BASE}";;
     MICROSOFT)
@@ -106,6 +108,12 @@ elif [ "$3" == "UNICODE" ] ; then
     #   YYYY	XX
     sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-F]*\)[^0-9A-F]*\([0-9A-F]*\).*/0x\2 0x\1/' \
+	| sort | ${AWKPROG}
+elif [ "$3" == "UNICODE2" ] ; then
+    # Source format is:
+    #   0xXXXX	0xYYYY	# ...
+    sed -n -e "$2 p" < $1 \
+	| sed -e 's/\([0-9A-Fx]*\)[^0]*\([0-9A-Fx]*\).*/\1 \2/' \
 	| sort | ${AWKPROG}
 elif [ "$3" == "YASUOKA" ] ; then
     # Source format is:
