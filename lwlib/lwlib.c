@@ -526,6 +526,9 @@ merge_widget_value (val1, val2, level)
 	  EXPLAIN (val1->name, change, INVISIBLE_CHANGE, "(contents change)",
 		   0, 0);
 	  change = max (change, INVISIBLE_CHANGE);
+#ifdef USE_MOTIF
+	  change = max (merged_contents->change, change);
+#endif
 	}
       
       val1->contents = merged_contents;
