@@ -426,6 +426,10 @@ Filesz      Memsz       Flags       Align
 extern void fatal (char *, ...);
 #endif
 
+#ifndef ELF_BSS_SECTION_NAME
+#define ELF_BSS_SECTION_NAME ".bss"
+#endif
+
 /* Get the address of a particular section or program header entry,
  * accounting for the size of the entries.
  */
@@ -535,7 +539,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	       old_section_names + OLD_SECTION_H (old_bss_index).sh_name);
 #endif
       if (!strcmp (old_section_names + OLD_SECTION_H (old_bss_index).sh_name,
-		   ".bss"))
+		   ELF_BSS_SECTION_NAME))
 	break;
     }
   if (old_bss_index == old_file_h->e_shnum)
