@@ -983,7 +983,7 @@ the generated Quail package is saved."
 		;; Give DOS users a chance...
 		(and (fboundp 'msdos-long-file-names)
 		     (not (msdos-long-file-names))
-		     (string-match (dos-truncate-to-8+3 (nth 2 (car tail)))
+		     (string-match (dos-8+3-filename (nth 2 (car tail)))
 				   filename)))
 	(setq slot (car tail)
 	      name (car slot)

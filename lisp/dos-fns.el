@@ -114,7 +114,7 @@ with a definition that really does change some file names."
 		    (convert-standard-filename dir))
 		  string))))))
 
-(defun dos-truncate-to-8+3 (filename)
+(defun dos-8+3-filename (filename)
   "Truncate FILENAME to DOS 8+3 limits."
   (if (or (not (stringp filename))
 	  (< (length filename) 5))	; too short to give any trouble
@@ -122,7 +122,7 @@ with a definition that really does change some file names."
     (let ((flen (length filename)))
       ;; If FILENAME has a trailing slash, remove it and recurse.
       (if (memq (aref filename (1- flen)) '(?/ ?\\))
-	  (concat (dos-truncate-to-8+3 (substring filename 0 (1- flen)))
+	  (concat (dos-8+3-filename (substring filename 0 (1- flen)))
 		  "/")
 	(let* (;; ange-ftp gets in the way for names like "/foo:bar".
 	       ;; We need to inhibit all magic file names, because
@@ -166,10 +166,10 @@ with a definition that really does change some file names."
 	      (aset string (1- (length string)) lastchar))
 	  (concat (if (and (stringp dir)
 			   (memq (aref dir dlen-m-1) '(?/ ?\\)))
-		      (concat (dos-truncate-to-8+3 (substring dir 0 dlen-m-1))
+		      (concat (dos-8+3-filename (substring dir 0 dlen-m-1))
 			      "/")
 		    ;; Recurse to truncate the leading directories.
-		    (dos-truncate-to-8+3 dir))
+		    (dos-8+3-filename dir))
 		  string))))))
 
 ;; See dos-vars.el for defcustom.
