@@ -3046,69 +3046,288 @@ hack_wm_protocols (f, widget)
 #endif
 
 
-/* Create input method and input context for frame F.  Set FRAME_XIM
-   (F) and FRAME_XIC (F).  */
+
+/* Support routines for XIC (X Input Context).  */
 
-static void
-x_create_im (f)
+#ifdef HAVE_X_I18N
+
+static XFontSet xic_create_xfontset P_ ((struct frame *, char *));
+static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
+
+
+/* Supported XIM styles, ordered by preferenc.  */
+
+static XIMStyle supported_xim_styles[] =
+{
+  XIMPreeditPosition | XIMStatusArea,
+  XIMPreeditPosition | XIMStatusNothing,
+  XIMPreeditPosition | XIMStatusNone,
+  XIMPreeditNothing | XIMStatusArea,
+  XIMPreeditNothing | XIMStatusNothing,
+  XIMPreeditNothing | XIMStatusNone,
+  XIMPreeditNone | XIMStatusArea,
+  XIMPreeditNone | XIMStatusNothing,
+  XIMPreeditNone | XIMStatusNone,
+  0,
+};
+
+
+/* Create an X fontset on frame F with base font name
+   BASE_FONTNAME.. */
+
+static XFontSet
+xic_create_xfontset (f, base_fontname)
+     struct frame *f;
+     char *base_fontname;
+{
+  XFontSet xfs;
+  char **missing_list;
+  int missing_count;
+  char *def_string;
+  
+  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+			base_fontname, &missing_list,
+			&missing_count, &def_string);
+  if (missing_list)
+    XFreeStringList (missing_list);
+  
+  /* No need to free def_string. */
+  return xfs;
+}
+
+
+/* Value is the best input style, given user preferences USER (already
+   checked to be supported by Emacs), and styles supported by the
+   input method XIM.  */
+
+static XIMStyle
+best_xim_style (user, xim)
+     XIMStyles *user;
+     XIMStyles *xim;
+{
+  int i, j;
+
+  for (i = 0; i < user->count_styles; ++i)
+    for (j = 0; j < xim->count_styles; ++j)
+      if (user->supported_styles[i] == xim->supported_styles[j])
+	return user->supported_styles[i];
+
+  /* Return the default style.  */
+  return XIMPreeditNothing | XIMStatusNothing;
+}
+
+/* Create XIC for frame F. */
+
+void
+create_frame_xic (f)
      struct frame *f;
 {
-  FRAME_XIM (f) = 0;
-  FRAME_XIC (f) = 0;
-  
-#ifdef HAVE_X_I18N
 #ifndef X_I18N_INHIBITED
-  { 
-    XIM xim;
-    XIC xic = NULL;
-    XIMStyles *styles;
-    XIMStyle input_style = XIMPreeditNothing | XIMStatusNothing;
-    int i, n;
+  XIM xim;
+  XIC xic = NULL;
+  XFontSet xfs = NULL;
+  static XIMStyle xic_style;
 
-    xim = XOpenIM (FRAME_X_DISPLAY(f), NULL, NULL, NULL);
-    if (!xim)
-      return;
-    
-    if (XGetIMValues (xim, XNQueryInputStyle, &styles, NULL)
-	|| !styles)
-      {
-	/* Input method doesn't support any input style.  */
-	XCloseIM (xim);
-	return;
-      }
+  if (FRAME_XIC (f))
+    return;
+  
+  xim = FRAME_X_XIM (f);
+  if (xim)
+    {
+      XRectangle s_area = {0, 0, 1, 1};
+      XPoint spot = {0, 1};
+      XVaNestedList preedit_attr;
+      XVaNestedList status_attr;
+      char *base_fontname;
+      int fontset;
 
-    /* See if input_style is supported.  Give up if it isn't.  */
-    n = styles->count_styles;
-    for (i = 0; i < n; ++i)
-      if (styles->supported_styles[i] == input_style)
-	break;
-    
-    XFree (styles);
-    if (i == n)
-      {
-	XCloseIM (xim);
-	return;
-      }
+      /* Create X fontset. */
+      fontset = FRAME_FONTSET (f);
+      if (fontset < 0)
+	base_fontname = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+      else
+	{
+	  struct fontset_info *fontsetp;
+	  int len = 0;
+	  int i;
+	  
+	  fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
+	  for (i = 0; i <= MAX_CHARSET; i++)
+	    if (fontsetp->fontname[i])
+	      len += strlen (fontsetp->fontname[i]) + 1;
+	  base_fontname = alloca (len);
+	  strcpy (base_fontname, fontsetp->fontname[CHARSET_ASCII]);
+	  for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
+	    if (fontsetp->fontname[i])
+	      {
+		strcat (base_fontname, ",");
+		strcat (base_fontname, fontsetp->fontname[i]);
+	      }
+	}
+      xfs = xic_create_xfontset (f, base_fontname);
 
-    /* Create the input context.  */
-    xic = XCreateIC (xim,  
-		     XNInputStyle,   input_style,
-		     XNClientWindow, FRAME_X_WINDOW(f),
-		     XNFocusWindow,  FRAME_X_WINDOW(f),
-		     NULL);
-    
-    if (!xic)
-      {
-	XCloseIM (xim);
-	return;
-      }
+      /* Determine XIC style.  */
+      if (xic_style == 0)
+	{
+	  XIMStyles supported_list;
+	  supported_list.count_styles = (sizeof supported_xim_styles
+					 / sizeof supported_xim_styles[0]);
+	  supported_list.supported_styles = supported_xim_styles;
+	  xic_style = best_xim_style (&supported_list,
+				      FRAME_X_XIM_STYLES (f));
+	}
 
-    FRAME_XIM (f) = xim;
-    FRAME_XIC (f) = xic;
-  }
+      preedit_attr = XVaCreateNestedList (0,
+					  XNFontSet, xfs,
+					  XNForeground,
+					  FRAME_FOREGROUND_PIXEL (f),
+					  XNBackground,
+					  FRAME_BACKGROUND_PIXEL (f),
+					  (xic_style & XIMPreeditPosition
+					   ? XNSpotLocation
+					   : NULL),
+					  &spot,
+					  NULL);
+      status_attr = XVaCreateNestedList (0,
+					 XNArea,
+					 &s_area,
+					 XNFontSet,
+					 xfs,
+					 XNForeground,
+					 FRAME_FOREGROUND_PIXEL (f),
+					 XNBackground,
+					 FRAME_BACKGROUND_PIXEL (f),
+					 NULL);
+
+      xic = XCreateIC (xim,
+		       XNInputStyle, xic_style,
+		       XNClientWindow, FRAME_X_WINDOW(f),
+		       XNFocusWindow, FRAME_X_WINDOW(f),
+		       XNStatusAttributes, status_attr,
+		       XNPreeditAttributes, preedit_attr,
+		       NULL);
+      XFree (preedit_attr);
+      XFree (status_attr);
+    }
+  
+  FRAME_XIC (f) = xic;
+  FRAME_XIC_STYLE (f) = xic_style;
+  FRAME_XIC_FONTSET (f) = xfs;
+#else /* X_I18N_INHIBITED */
+  FRAME_XIC (f) = NULL;
+  FRAME_XIC_STYLE (f) = 0;
+  FRAME_XIC_FONTSET (f) = NULL;
 #endif /* X_I18N_INHIBITED */
-#endif /* HAVE_X_I18N */
 }
+
+
+/* Destroy XIC and free XIC fontset of frame F, if any. */
+
+void
+free_frame_xic (f)
+     struct frame *f;
+{
+  if (FRAME_XIC (f) == NULL)
+    return;
+  
+  XDestroyIC (FRAME_XIC (f));
+  if (FRAME_XIC_FONTSET (f))
+    XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
+
+  FRAME_XIC (f) = NULL;
+  FRAME_XIC_FONTSET (f) = NULL;
+}
+
+
+/* Place preedit area for XIC of window W's frame to specified
+   pixel position X/Y.  X and Y are relative to window W.  */
+
+void
+xic_set_preeditarea (w, x, y)
+     struct window *w;
+     int x, y;
+{
+  struct frame *f = XFRAME (w->frame);
+  XVaNestedList attr;
+  XPoint spot;
+      
+  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x);
+  spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
+  attr = XVaCreateNestedList (0, XNSpotLocation, &spot, NULL);
+  XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
+  XFree (attr);
+}
+
+
+/* Place status area for XIC in bottom right corner of frame F.. */
+
+void
+xic_set_statusarea (f)
+     struct frame *f;
+{
+  XIC xic = FRAME_XIC (f);
+  XVaNestedList attr;
+  XRectangle area;
+  XRectangle *needed;
+
+  /* Negotiate geometry of status area.  If input method has existing
+     status area, use its current size.  */
+  area.x = area.y = area.width = area.height = 0;
+  attr = XVaCreateNestedList (0, XNAreaNeeded, &area, NULL);
+  XSetICValues (xic, XNStatusAttributes, attr, NULL);
+  XFree (attr);
+  
+  attr = XVaCreateNestedList (0, XNAreaNeeded, &needed, NULL);
+  XGetICValues (xic, XNStatusAttributes, attr, NULL);
+  XFree (attr);
+
+  if (needed->width == 0) /* Use XNArea instead of XNAreaNeeded */
+    {
+      attr = XVaCreateNestedList (0, XNArea, &needed, NULL);
+      XGetICValues (xic, XNStatusAttributes, attr, NULL);
+      XFree (attr);
+    }
+
+  area.width  = needed->width;
+  area.height = needed->height;
+  area.x = PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
+  area.y = (PIXEL_HEIGHT (f) - area.height
+	    - FRAME_MENUBAR_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f));
+  XFree (needed);
+
+  attr = XVaCreateNestedList (0, XNArea, &area, NULL);
+  XSetICValues(xic, XNStatusAttributes, attr, NULL);
+  XFree (attr);
+}
+
+
+/* Set X fontset for XIC of frame F, using base font name
+   BASE_FONTNAME.  Called when a new Emacs fontset is chosen.  */
+
+void
+xic_set_xfontset (f, base_fontname)
+     struct frame *f;
+     char *base_fontname;
+{
+  XVaNestedList attr;
+  XFontSet xfs;
+
+  xfs = xic_create_xfontset (f, base_fontname);
+
+  attr = XVaCreateNestedList (0, XNFontSet, xfs, NULL);
+  if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
+    XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
+  if (FRAME_XIC_STYLE (f) & XIMStatusArea)
+    XSetICValues (FRAME_XIC (f), XNStatusAttributes, attr, NULL);
+  XFree (attr);
+  
+  if (FRAME_XIC_FONTSET (f))
+    XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
+  FRAME_XIC_FONTSET (f) = xfs;
+}
+
+#endif /* HAVE_X_I18N */
+
 
 
 #ifdef USE_X_TOOLKIT
@@ -3266,7 +3485,11 @@ x_window (f, window_prompting, minibuffer_only)
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
-  x_create_im (f);
+
+#ifdef HAVE_X_I18N
+  FRAME_XIC (f) = NULL;
+  create_frame_xic (f);
+#endif
 
   f->output_data.x->wm_hints.input = True;
   f->output_data.x->wm_hints.flags |= InputHint;
@@ -3288,8 +3511,19 @@ x_window (f, window_prompting, minibuffer_only)
 		   XA_ATOM, 32, PropModeAppend,
 		   (unsigned char*) NULL, 0);
 
- /* Make all the standard events reach the Emacs frame.  */
+  /* Make all the standard events reach the Emacs frame.  */
   attributes.event_mask = STANDARD_EVENT_SET;
+
+#ifdef HAVE_X_I18N
+  if (FRAME_XIC (f))
+    {
+      /* XIM server might require some X events. */
+      unsigned long fevent = NoEventMask;
+      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+      attributes.event_mask |= fevent;
+    }
+#endif /* HAVE_X_I18N */
+  
   attribute_mask = CWEventMask;
   XChangeWindowAttributes (XtDisplay (shell_widget), XtWindow (shell_widget),
 			   attribute_mask, &attributes);
@@ -3357,7 +3591,21 @@ x_window (f)
 		     InputOutput, /* class */
 		     FRAME_X_DISPLAY_INFO (f)->visual,
 		     attribute_mask, &attributes);
-  x_create_im (f);
+
+#ifdef HAVE_X_I18N
+  create_frame_xic (f);
+  if (FRAME_XIC (f))
+    {
+      /* XIM server might require some X events. */
+      unsigned long fevent = NoEventMask;
+      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+      attributes.event_mask |= fevent;
+      attribute_mask = CWEventMask;
+      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			       attribute_mask, &attributes);
+    }
+#endif /* HAVE_X_I18N */
+  
   validate_x_resource_name ();
 
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
