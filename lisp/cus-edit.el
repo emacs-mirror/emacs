@@ -2631,7 +2631,7 @@ Match frames with dark backgrounds.")
 		  (group :sibling-args (:help-echo "\
 Only match frames that support the specified face attributes.")
 			 (const :format "Supports attributes:" supports)
-			 (custom-face-edit :format "%n%v"))))))
+			 (custom-face-edit :inline t :format "%n%v"))))))
 
 ;;; The `custom-face' Widget.
 
