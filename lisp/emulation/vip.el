@@ -136,7 +136,7 @@ bound to delete-backward-char.")
 (defun vip-push-mark-silent (&optional location)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
 No message."
-  (if (null (mark))
+  (if (null (mark t))
       nil
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
     (if (> (length mark-ring) mark-ring-max)
