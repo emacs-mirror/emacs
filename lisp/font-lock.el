@@ -506,7 +506,13 @@ settings.  See the variable `font-lock-defaults', which takes precedence.")
 
 (defvar font-lock-keywords-alist nil
   "*Alist of `font-lock-keywords' local to a `major-mode'.
-This is normally set via `font-lock-add-keywords'.")
+This is normally set via `font-lock-add-keywords' and
+`font-lock-remove-keywords'.")
+
+(defvar font-lock-removed-keywords-alist nil
+  "*Alist of `font-lock-keywords' removed from `major-mode'.
+This is normally set via `font-lock-add-keywords' and
+`font-lock-remove-keywords'.")
 
 (defvar font-lock-keywords-only nil
   "*Non-nil means Font Lock should not fontify comments or strings.
@@ -754,13 +760,18 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 ;; `font-lock-keywords-alist' so `font-lock-set-defaults' uses them.
 	 (let ((spec (cons keywords append)) cell)
 	   (if (setq cell (assq mode font-lock-keywords-alist))
-	       (setcdr cell (append (cdr cell) (list spec)))
-	     (push (list mode spec) font-lock-keywords-alist))))
+	       (if (eq append 'set)
+		   (setcdr cell (list spec))
+		 (setcdr cell (append (cdr cell) (list spec))))
+	     (push (list mode spec) font-lock-keywords-alist)))
+	 ;; Make sure that `font-lock-removed-keywords-alist' does not
+	 ;; contain the new keywords.
+	 (font-lock-update-removed-keyword-alist mode keywords append))
 	(font-lock-mode
 	 ;; Otherwise if Font Lock mode is on, set or add the keywords now.
 	 (if (eq append 'set)
 	     (setq font-lock-keywords keywords)
-	   (font-lock-remove-keywords nil keywords)
+	   (font-lock-remove-keywords mode keywords)
 	   (let ((old (if (eq (car-safe font-lock-keywords) t)
 			  (cdr font-lock-keywords)
 			font-lock-keywords)))
@@ -768,17 +779,98 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 					  (append old keywords)
 					(append keywords old))))))))
 
-;;;###autoload
-(defun font-lock-remove-keywords (mode keywords)
-  "Remove highlighting KEYWORDS from the current buffer.
-A non-nil MODE is currently unsupported."
-  (setq font-lock-keywords (copy-list font-lock-keywords))
-  (dolist (keyword keywords)
-    (setq font-lock-keywords
-	  (delete keyword
-		  (delete (font-lock-compile-keyword keyword)
-			  font-lock-keywords)))))
+(defun font-lock-update-removed-keyword-alist (major-mode keywords append)
+  ;; Update `font-lock-removed-keywords-alist' when adding new
+  ;; KEYWORDS to MAJOR-MODE.
+  ;;
+  ;; When font-lock is enabled first all keywords in the list
+  ;; `font-lock-keywords-alist' are added, then all keywords in the
+  ;; list `font-lock-removed-keywords-alist' are removed.  If a
+  ;; keyword was once added, removed, and then added again it must be
+  ;; removed from the removed-keywords list.  Otherwise the second add
+  ;; will not take effect.
+  (let ((cell (assq major-mode font-lock-removed-keywords-alist)))
+    (if cell
+	(if (eq append 'set)
+	    ;; A new set of keywords is defined.  Forget all about
+	    ;; our old keywords that should be removed.
+	    (setq font-lock-removed-keywords-alist
+		  (delq cell font-lock-removed-keywords-alist))
+	  ;; Delete all previously removed keywords.
+	  (dolist (kword keywords)
+	    (setcdr cell (delete kword (cdr cell))))
+	  ;; Delete the major-mode cell if empty.
+	  (if (null (cdr cell))
+	      (setq font-lock-removed-keywords-alist
+		    (delq cell font-lock-removed-keywords-alist)))))))
 
+;; Written by Anders Lindgren <andersl@andersl.com>.
+;;
+;; Case study:
+;; (I)  The keywords are removed from a major mode.
+;;      In this case the keyword could be local (i.e. added earlier by
+;;      `font-lock-add-keywords'), global, or both.
+;;
+;;      (a) In the local case we remove the keywords from the variable
+;;          `font-lock-keywords-alist'.
+;;
+;;      (b) The actual global keywords are not known at this time.
+;;          All keywords are added to `font-lock-removed-keywords-alist',
+;;          when font-lock is enabled those keywords are removed.
+;;
+;;      Note that added keywords are taken out of the list of removed
+;;      keywords.  This ensure correct operation when the same keyword
+;;      is added and removed several times.
+;;
+;; (II) The keywords are removed from the current buffer.
+;;;###autoload
+(defun font-lock-remove-keywords (major-mode keywords)
+  "Remove highlighting KEYWORDS for MAJOR-MODE.
+
+MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+or nil.  If nil, highlighting keywords are removed for the current buffer."
+  (dolist (keyword keywords)
+    ;; Remove one keyword at the time.
+    (cond (major-mode
+	   (let ((top-cell (assq major-mode font-lock-keywords-alist)))
+	     ;; If MAJOR-MODE is non-nil, remove the KEYWORD from
+	     ;; `font-lock-keywords-alist'.
+	     (when top-cell
+	       (dolist (keyword-list-append-pair (cdr top-cell))
+		 ;; `keywords-list-append-pair' is a cons with a list of
+		 ;; keywords in the car top-cell and the original append
+		 ;; argument in the cdr top-cell.
+		 (setcar keyword-list-append-pair
+			 (delete keyword (car keyword-list-append-pair))))
+	       ;; Remove keyword list/append pair when the keyword list
+	       ;; is empty and append doesn't specify `set'.  (If it
+	       ;; should be deleted then previously deleted keywords
+	       ;; would appear again.)
+	       (let ((cell top-cell))
+		 (while (cdr cell)
+		   (if (and (null (car (car (cdr cell))))
+			    (not (eq (cdr (car (cdr cell))) 'set)))
+		       (setcdr cell (cdr (cdr cell)))
+		     (setq cell (cdr cell)))))
+	       ;; Final cleanup, remove major mode cell if last keyword
+	       ;; was deleted.
+	       (if (null (cdr top-cell))
+		   (setq font-lock-keywords-alist
+			 (delq top-cell font-lock-keywords-alist))))
+	     ;; Remember the keyword in case it is not local.
+	     (let ((cell (assq major-mode font-lock-removed-keywords-alist)))
+	       (if cell
+		   (unless (member keyword (cdr cell))
+		     (nconc cell (list keyword)))
+		 (push (cons major-mode (list keyword))
+		       font-lock-removed-keywords-alist)))))
+	  (font-lock-mode
+	   ;; Otherwise if Font Lock mode is on, remove it immediately.
+	   (setq font-lock-keywords (delete keyword font-lock-keywords))
+	   ;; The keywords might be compiled.
+	   (setq font-lock-keywords
+		 (delete (font-lock-compile-keyword keyword)
+			 font-lock-keywords))))))
 
 ;;; Global Font Lock mode.
 
@@ -1609,7 +1701,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	   (keywords
 	    (font-lock-choose-keywords (nth 0 defaults)
 	     (font-lock-value-in-major-mode font-lock-maximum-decoration)))
-	   (local (cdr (assq major-mode font-lock-keywords-alist))))
+	   (local (cdr (assq major-mode font-lock-keywords-alist)))
+	   (removed-keywords
+	    (cdr-safe (assq major-mode font-lock-removed-keywords-alist))))
       ;; Regexp fontification?
       (set (make-local-variable 'font-lock-keywords)
 	   (font-lock-compile-keywords (font-lock-eval-keywords keywords)))
@@ -1617,6 +1711,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
       (while local
 	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
 	(setq local (cdr local)))
+      (when removed-keywords
+	(font-lock-remove-keywords nil removed-keywords))
       ;; Syntactic fontification?
       (when (nth 1 defaults)
 	(set (make-local-variable 'font-lock-keywords-only) t))
@@ -2354,6 +2450,13 @@ See also `c-font-lock-extra-types'.")
 	  "\\|"))
        (c-type-names-depth
 	`(regexp-opt-depth (,@ c-type-names)))
+       (c-preprocessor-directives
+	(eval-when-compile
+	  (regexp-opt
+	   '("define"  "elif" "else" "endif" "error" "file" "if" "ifdef"
+	     "ifndef" "include" "line" "pragma" "undef"))))
+       (c-preprocessor-directives-depth
+	(regexp-opt-depth c-preprocessor-directives))
        )
  (setq c-font-lock-keywords-1
   (list
@@ -2380,8 +2483,12 @@ See also `c-font-lock-extra-types'.")
       (1 font-lock-builtin-face) (2 font-lock-variable-name-face nil t)))
    ;;
    ;; Fontify otherwise as symbol names, and the preprocessor directive names.
-   '("^#[ \t]*\\(\\sw+\\)\\>[ \t!]*\\(\\sw+\\)?"
-     (1 font-lock-builtin-face) (2 font-lock-variable-name-face nil t))
+   (list
+    (concat "^#[ \t]*\\(" c-preprocessor-directives
+	    "\\)\\>[ \t!]*\\(\\sw+\\)?")
+    '(1 font-lock-builtin-face)
+    (list (+ 2 c-preprocessor-directives-depth)
+	  'font-lock-variable-name-face nil t))
    ))
 
  (setq c-font-lock-keywords-2
@@ -2398,8 +2505,13 @@ See also `c-font-lock-extra-types'.")
     (concat "\\<\\(" c-keywords "\\|" c-type-specs "\\)\\>")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
-    '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
+    '("\\<\\(case\\|goto\\)\\>"
+      (1 font-lock-keyword-face)
+      ("\\(-[0-9]+\\|\\sw+\\)"
+       ;; Return limit of search.
+       (save-excursion (skip-chars-forward "^:\n") (point))
+       nil
+       (1 font-lock-constant-face nil t)))
     ;; Anders Lindgren <andersl@andersl.com> points out that it is quicker to
     ;; use MATCH-ANCHORED to effectively anchor the regexp on the left.
     ;; This must come after the one for keywords and targets.
@@ -2511,6 +2623,24 @@ See also `c++-font-lock-extra-types'.")
 	    (goto-char (match-end 2)))
 	(error t)))))
 
+(defun font-lock-match-c++-structor-declaration (limit)
+  ;; Match C++ constructors and destructors inside class declarations.
+  (let ((res nil)
+	(regexp (concat "^\\s-+\\(\\(virtual\\|explicit\\)\\s-+\\)*~?\\(\\<"
+			(mapconcat 'identity
+				   c++-font-lock-extra-types "\\|")
+			"\\>\\)\\s-*("
+			;; Don't match function pointer declarations, e.g.:
+			;;    Foo (*fptr)();
+			"\\s-*[^*( \t]")))
+    (while (progn (setq res (re-search-forward regexp limit t))
+		  (and res
+		       (save-excursion
+			 (beginning-of-line)
+			 (save-match-data
+			   (not (vectorp (c-at-toplevel-p))))))))
+    res))
+
 (let* ((c++-keywords
 	(eval-when-compile
 	  (regexp-opt
@@ -2599,8 +2729,20 @@ See also `c++-font-lock-extra-types'.")
 	  '(2 font-lock-builtin-face nil t))
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
-    '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
+    '("\\<\\(case\\|goto\\)\\>"
+      (1 font-lock-keyword-face)
+      ("\\(-[0-9]+\\|\\sw+\\)[ \t]*\\(::\\)?"
+       ;; Return limit of search.
+       (save-excursion
+	 (while (progn
+		  (skip-chars-forward "^:\n")
+		  (looking-at "::"))
+	   (forward-char 2))
+	 (point))
+       nil
+       (1 (if (match-beginning 2)
+	      font-lock-type-face
+	    font-lock-constant-face) nil t)))
     ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:\\($\\|[^:]\\)"
 	   (beginning-of-line) (end-of-line)
@@ -2692,6 +2834,10 @@ See also `c++-font-lock-extra-types'.")
 	    (5 (if (match-beginning 6)
 		   font-lock-function-name-face
 		 font-lock-variable-name-face) nil t)))
+    ;;
+    ;; Fontify constructors and destructors inside class declarations.
+    '(font-lock-match-c++-structor-declaration
+      (3 font-lock-function-name-face t))
     )))
  )
 
