@@ -24,7 +24,6 @@ Boston, MA 02111-1307, USA.  */
 #include <ctype.h>
 #include "termchar.h"
 #include "termopts.h"
-#include "cm.h"
 #undef NULL
 #include "lisp.h"
 #include "charset.h"
@@ -34,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "dispextern.h"
+#include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
@@ -1604,7 +1604,7 @@ term_init (terminal_type)
   FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
 
   return;
-#endif /* WINDOWSNT */
+#else  /* not WINDOWSNT */
 
   Wcm_clear ();
 
@@ -1929,6 +1929,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
+#endif /* WINDOWSNT */
 }
 
 /* VARARGS 1 */
