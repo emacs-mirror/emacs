@@ -399,7 +399,10 @@ This is the input method activated automatically by the command
 (defvar inactivate-current-input-method-function nil
   "Function to call for inactivating the current input method.
 Every input method should set this to an appropriate value when activated.
-This function is called with no argument.")
+This function is called with no argument.
+
+This function should never change the value of `current-input-method'.
+It is set to nil by the function `inactivate-input-method'.")
 (make-variable-buffer-local 'inactivate-current-input-method-function)
 (put 'inactivate-current-input-method-function 'permanent-local t)
 
@@ -450,8 +453,9 @@ If INHIBIT-NULL is non-nil, null input signals an error."
       (if inhibit-null
 	  (error "No valid input method is specified")))))
 
-;; Activate INPUT-METHOD.
 (defun activate-input-method (input-method)
+  "Turn INPUT-METHOD on.
+If some input method is already on, turn it off at first."
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
     (inactivate-input-method))
@@ -464,8 +468,8 @@ If INHIBIT-NULL is non-nil, null input signals an error."
       (setq current-input-method-title (nth 3 slot))
       (run-hooks 'input-method-activate-hook))))
 
-;; Inactivate the current input method.
 (defun inactivate-input-method ()
+  "Turn off the current input method."
   (when current-input-method
     (if input-method-history
 	(unless (string= current-input-method (car input-method-history))
@@ -554,9 +558,11 @@ to be activated instead of the one selected last time."
 	(or input-method
 	    default-input-method
 	    (read-input-method-name "Input method: " nil t)))
-  (let ((minibuffer-setup-hook
-	 (function (lambda () (activate-input-method input-method)))))
-    (read-string prompt initial-input)))
+  (let ((current-input-method
+	 (or input-method
+	     default-input-method
+	     (read-input-method-name "Input method: " nil t))))
+    (read-string prompt initial-input nil nil t)))
 
 ;; Variables to control behavior of input methods.  All input methods
 ;; should react to these variables.
@@ -578,10 +584,16 @@ The underlining goes away when you finish or abort the input method sequence."
   :group 'mule)
 
 (defvar input-method-activate-hook nil
-  "Normal hook run just after an input method is activated.")
+  "Normal hook run just after an input method is activated.
+
+The variable `current-input-method' keeps the input method name
+just activated.")
 
 (defvar input-method-inactivate-hook nil
-  "Normal hook run just after an input method is inactivated.")
+  "Normal hook run just after an input method is inactivated.
+
+The variable `current-input-method' still keeps the input method name
+just inacitvated.")
 
 (defvar input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text.")
