@@ -808,8 +808,8 @@ and use selections for the serious work.")
       buf_num = XINT (n);
     }
 
-  if (buf_num < 0 && buf_num > NUM_CUT_BUFFERS)
-    error ("cut buffer numbers must be from zero to seven.");
+  if (buf_num < 0 || buf_num >= NUM_CUT_BUFFERS)
+    error ("cut buffer numbers must be from zero to seven");
 
   {
     Lisp_Object value;
@@ -859,8 +859,8 @@ and use selections for the serious work.")
 
   buf_num = XINT (n);
 
-  if (buf_num < 0 || buf_num > 7)
-    error ("cut buffer numbers must be from zero to seven.");
+  if (buf_num < 0 || buf_num >= NUM_CUT_BUFFERS)
+    error ("cut buffer numbers must be from zero to seven");
 
   BLOCK_INPUT;
 
