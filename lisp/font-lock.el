@@ -693,7 +693,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
 	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords keywords t)))))))
+		    (font-lock-compile-keywords font-lock-keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords append)
   ;; Update `font-lock-removed-keywords-alist' when adding new
@@ -801,7 +801,7 @@ subtle problems due to details of the implementation."
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
 	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords keywords t)))))))
+		    (font-lock-compile-keywords font-lock-keywords t)))))))
 
 ;;; Font Lock Support mode.
 
@@ -1945,12 +1945,12 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
 		    "ccase" "ctypecase" "handler-case" "handler-bind"
 		    "restart-bind" "restart-case" "in-package"
-		    "cerror" "break" "ignore-errors"
+		    "break" "ignore-errors"
 		    "loop" "do" "do*" "dotimes" "dolist" "the" "locally"
 		    "proclaim" "declaim" "declare" "symbol-macrolet"
 		    "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
-		    "destructuring-bind" "macrolet" "tagbody" "block"
-		    "multiple-value-bind"
+		    "destructuring-bind" "macrolet" "tagbody" "block" "go"
+		    "multiple-value-bind" "multiple-value-prog1"
 		    "return" "return-from"
 		    "with-accessors" "with-compilation-unit"
 		    "with-condition-restarts" "with-hash-table-iterator"
@@ -1968,7 +1968,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	    '(2 font-lock-constant-face nil t))
       ;;
       ;; Erroneous structures.
-      '("(\\(abort\\|assert\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
+      '("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
       ;;
       ;; Words inside \\[] tend to be for `substitute-command-keys'.
       '("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-constant-face prepend)

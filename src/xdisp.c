@@ -14562,9 +14562,13 @@ display_line (it)
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);
 
-  /* We must not display in a row that's not a text row.  */
-  xassert (MATRIX_ROW_VPOS (row, it->w->desired_matrix)
-	   < it->w->desired_matrix->nrows);
+  if (MATRIX_ROW_VPOS (row, it->w->desired_matrix)
+      >= it->w->desired_matrix->nrows)
+    {
+      it->w->nrows_scale_factor++;
+      fonts_changed_p = 1;
+      return 0;
+    }
 
   /* Is IT->w showing the region?  */
   it->w->region_showing = it->region_beg_charpos > 0 ? Qt : Qnil;
@@ -18241,6 +18245,11 @@ append_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
+  else if (!fonts_changed_p)
+    {
+      it->w->ncols_scale_factor++;
+      fonts_changed_p = 1;
+    }
 }
 
 /* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
@@ -18277,6 +18286,11 @@ append_composite_glyph (it)
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
+    }
+  else if (!fonts_changed_p)
+    {
+      it->w->ncols_scale_factor++;
+      fonts_changed_p = 1;
     }
 }
 
@@ -18447,6 +18461,11 @@ produce_image_glyph (it)
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
+      else if (!fonts_changed_p)
+	{
+	  it->w->ncols_scale_factor++;
+	  fonts_changed_p = 1;
+	}
     }
 }
 
@@ -18489,6 +18508,11 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
+    }
+  else if (!fonts_changed_p)
+    {
+      it->w->ncols_scale_factor++;
+      fonts_changed_p = 1;
     }
 }
 
@@ -22324,7 +22348,7 @@ all the functions in the list are called, with the frame as argument.  */);
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
-    doc: /* List of Functions to call before redisplaying a window with scrolling.
+    doc: /* List of functions to call before redisplaying a window with scrolling.
 Each function is called with two arguments, the window
 and its new display-start position.  Note that the value of `window-end'
 is not valid when these functions are called.  */);

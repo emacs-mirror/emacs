@@ -1327,6 +1327,36 @@ The functions are run with one arg, the frame to be deleted.  */)
 	}
     }
 
+  /* If there's no other frame on the same kboard, get out of
+     single-kboard state if we're in it for this kboard.  */
+  {
+    Lisp_Object frames;
+    /* Some frame we found on the same kboard, or nil if there are none.  */
+    Lisp_Object frame_on_same_kboard;
+
+    frame_on_same_kboard = Qnil;
+
+    for (frames = Vframe_list;
+	 CONSP (frames);
+	 frames = XCDR (frames))
+      {
+	Lisp_Object this;
+	struct frame *f1;
+
+	this = XCAR (frames);
+	if (!FRAMEP (this))
+	  abort ();
+	f1 = XFRAME (this);
+
+	if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
+	  frame_on_same_kboard = this;
+      }
+
+    if (NILP (frame_on_same_kboard))
+      not_single_kboard_state (FRAME_KBOARD (f));
+  }
+
+
   /* If we've deleted this keyboard's default_minibuffer_frame, try to
      find another one.  Prefer minibuffer-only frames, but also notice
      frames with other windows.  */

@@ -1,3 +1,7 @@
+2004-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c (quote_file_name): Pass COPY thru %s to output it.
+
 2004-06-01  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (obj): Add image.c.

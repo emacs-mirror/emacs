@@ -2769,6 +2769,8 @@ and t is the same as `SECONDARY'.  */)
 extern int inhibit_window_system;
 extern int noninteractive;
 
+#include "blockinput.h"
+
 /* When Emacs is started from the Finder, SELECT always immediately
    returns as if input is present when file descriptor 0 is polled for
    input.  Strangely, when Emacs is run as a GUI application from the
@@ -2776,84 +2778,99 @@ extern int noninteractive;
    the system call SELECT corrects this discrepancy.  */
 int
 sys_select (n, rfds, wfds, efds, timeout)
-  int n;
-  SELECT_TYPE *rfds;
-  SELECT_TYPE *wfds;
-  SELECT_TYPE *efds;
-  struct timeval *timeout;
+     int n;
+     SELECT_TYPE *rfds;
+     SELECT_TYPE *wfds;
+     SELECT_TYPE *efds;
+     struct timeval *timeout;
 {
-  if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
-    return 1;
-  else if (inhibit_window_system || noninteractive ||
-	   (timeout && (EMACS_SECS(*timeout)==0) &&
-	    (EMACS_USECS(*timeout)==0)))
-    return select(n, rfds, wfds, efds, timeout);
-  else
+  OSErr err;
+  EMACS_TIME end_time, now, remaining_time;
+ 
+  if (inhibit_window_system || noninteractive
+      || rfds == NULL || !FD_ISSET (0, rfds))
+    return select (n, rfds, wfds, efds, timeout);
+  
+  if (wfds == NULL && efds == NULL)
     {
-      EMACS_TIME end_time, now;
+      int i;
 
-      EMACS_GET_TIME (end_time);
-      if (timeout)
-	EMACS_ADD_TIME (end_time, end_time, *timeout);
+      for (i = 1; i < n; i++)
+	if (FD_ISSET (i, rfds))
+	  break;
+      if (i == n)
+  	{
+	  EventTimeout timeout_sec =
+	    (timeout
+	     ? (EMACS_SECS (*timeout) * kEventDurationSecond
+		+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+	     : kEventDurationForever);
 
-      do
-	{
-	  int r;
-	  EMACS_TIME one_second;
-	  SELECT_TYPE orfds;
-
-	  FD_ZERO (&orfds);
-	  if (rfds)
+	  BLOCK_INPUT;
+	  err = ReceiveNextEvent (0, NULL, timeout_sec,
+				  kEventLeaveInQueue, NULL);
+	  UNBLOCK_INPUT;
+	  if (err == noErr)
 	    {
-	      orfds = *rfds;
+	      FD_ZERO (rfds);
+	      FD_SET (0, rfds);
+	      return 1;
 	    }
-
-	  EMACS_SET_SECS (one_second, 1);
-	  EMACS_SET_USECS (one_second, 0);
-
-	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
-	    one_second = *timeout;
-
-	  if ((r = select (n, &orfds, wfds, efds, &one_second)) > 0)
-	    {
-	      *rfds = orfds;
-	      return r;
-	    }
-
-	  mac_check_for_quit_char();
-
-	  EMACS_GET_TIME (now);
-	  EMACS_SUB_TIME (now, end_time, now);
+	  else
+	    return 0;
 	}
-      while (!timeout || !EMACS_TIME_NEG_P (now));
-
-      return 0;
     }
-}
 
-#undef read
-int sys_read (fds, buf, nbyte)
-     int fds;
-     char *buf;
-     unsigned int nbyte;
-{
-  SELECT_TYPE rfds;
-  EMACS_TIME one_second;
-  int r;
-
-  /* Use select to block on IO while still checking for quit_char */
-  if (!inhibit_window_system && !noninteractive &&
-      ! (fcntl(fds, F_GETFL, 0) & O_NONBLOCK))
+  if (timeout)
     {
-      FD_ZERO (&rfds);
-      FD_SET (fds, &rfds);
-      if (sys_select (fds+1, &rfds, 0, 0, NULL) < 0)
-	return -1;
+      remaining_time = *timeout;
+      EMACS_GET_TIME (now);
+      EMACS_ADD_TIME (end_time, now, remaining_time);
     }
+  FD_CLR (0, rfds);
+  do
+    {
+      EMACS_TIME select_timeout;
+      SELECT_TYPE orfds = *rfds;
+      int r;
 
-  return read (fds, buf, nbyte);
+      EMACS_SET_SECS_USECS (select_timeout, 0, 20000);
+
+      if (timeout && EMACS_TIME_LT (remaining_time, select_timeout))
+	select_timeout = remaining_time;
+
+      r = select (n, &orfds, wfds, efds, &select_timeout);
+      BLOCK_INPUT;
+      err = ReceiveNextEvent (0, NULL, kEventDurationNoWait,
+			      kEventLeaveInQueue, NULL);
+      UNBLOCK_INPUT;
+      if (r > 0)
+	{
+	  *rfds = orfds;
+	  if (err == noErr)
+	    {
+	      FD_SET (0, rfds);
+	      r++;
+	    }
+	  return r;
+	}
+      else if (err == noErr)
+	{
+	  FD_ZERO (rfds);
+	  FD_SET (0, rfds);
+	  return 1;
+	}
+
+      if (timeout)
+	{
+	  EMACS_GET_TIME (now);
+	  EMACS_SUB_TIME (remaining_time, end_time, now);
+	}
+    }
+  while (!timeout || EMACS_TIME_LT (now, end_time));
+
+  return 0;
 }
-
 
 /* Set up environment variables so that Emacs can correctly find its
    support files when packaged as an application bundle.  Directories

@@ -34,7 +34,8 @@
 ;;
 ;; This package contains two minor modes: Global Auto-Revert Mode and
 ;; Auto-Revert Mode.  Both modes automatically revert buffers
-;; whenever the corresponding files have been changed on disk.
+;; whenever the corresponding files have been changed on disk and the
+;; buffer contains no unsaved changes.
 ;;
 ;; Auto-Revert Mode can be activated for individual buffers.  Global
 ;; Auto-Revert Mode applies to all file buffers. (If the user option
@@ -59,6 +60,13 @@
 ;; Just put point at the end of the buffer and it will stay there.
 ;; These rules apply to file buffers. For non-file buffers, the
 ;; behavior may be mode dependent.
+;;
+;; While you can use Auto Revert Mode to tail a file, this package
+;; contains a third minor mode, Auto Revert Tail Mode, which does so
+;; more efficiently, as long as you are sure that the file will only
+;; change by growing at the end.  It only appends the new output,
+;; instead of reverting the entire buffer.  It does so even if the
+;; buffer contains unsaved changes.  (Because they will not be lost.)
 
 ;; Usage:
 ;;
@@ -389,7 +397,7 @@ This is an internal function used by Auto-Revert Mode."
 		     (not (file-remote-p buffer-file-name))
 		     (file-readable-p buffer-file-name)
 		     (not (verify-visited-file-modtime buffer)))
-		(and (or auto-revert-mode auto-revert-tail-mode
+		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
 		     (boundp 'buffer-stale-function)

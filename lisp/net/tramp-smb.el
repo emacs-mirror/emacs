@@ -1012,7 +1012,7 @@ Domain names in USER and port numbers in HOST are acknowledged."
 	(when real-user
 	  (let ((pw-prompt "Password:"))
 	    (tramp-message 9 "Sending password")
-	    (tramp-enter-password p pw-prompt)))
+	    (tramp-enter-password p pw-prompt user host)))
 
 	(unless (tramp-smb-wait-for-output user host)
 	  (tramp-clear-passwd user host)

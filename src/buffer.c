@@ -5877,7 +5877,10 @@ all windows or just the selected window.
 
 If the value is `lambda', that enables Transient Mark mode temporarily
 until the next buffer modification.  If a command sets the value to `only',
-that enables Transient Mark mode for the following command only.  */);
+that enables Transient Mark mode for the following command only.
+During that following command, the value of `transient-mark-mode'
+is `identity'.  If it is still `identity' at the end of that command,
+it changes to nil.  */);
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,

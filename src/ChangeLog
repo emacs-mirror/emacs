@@ -1,3 +1,98 @@
+2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
+
+	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.
+
+2004-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* window.h (struct glyph_matrix): New members nrows_scale_factor
+	and ncols_scale_factor.
+
+	* window.c (make_window): Initialize nrows_scale_factor and
+	ncols_scale_factor members.
+
+	* dispnew.c (margin_glyphs_to_reserve): Apply ncols_scale_factor.
+	(allocate_matrices_for_frame_redisplay): Fix left/right margin mix-up.
+	(required_matrix_height): Apply nrows_scale_factor.
+	(required_matrix_width): Apply ncols_scale_factor.
+
+	* xdisp.c (display_line): Increment nrows_scale_factor and set
+	fonts_changed_p if past last allocated row.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Increment ncols_scale_factor and set
+	fonts_changed_p if current area is full.
+
+2004-07-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* widget.c (EmacsFrameDestroy): Don't abort if normal_gc is 0.
+
+2004-07-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fpos_visible_in_window_p, Fset_window_hscroll)
+	(Fwindow_inside_pixel_edges, Fwindow_end, Fset_window_point)
+	(Fset_window_start, Fscroll_up, Fscroll_down)
+	(Fother_window_for_scrolling, Fscroll_other_window)
+	(Fsave_window_excursion, Fset_window_vscroll)
+	(syms_of_window) <window-size-fixed>: Doc fixes.
+
+2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* w32fns.c (Fx_file_dialog): Use ENCODE_FILE instead of
+	ENCODE_SYSTEM for filenames.
+
+2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (sys_select): Block input around call to
+	ReceiveNextEvent to prevent breakage.  Correctly handle
+	blocking on event queue only by calling ReceiveNextEvent
+	instead of select (since GUI events aren't on an fd).
+	(sys_read): Remove function
+	* sysdep.c: Remove redefine of read to sys_read if HAVE_CARBON
+
+2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (sys_select): Redo sys_select to use alarm-based
+	polling instead of 1 sec timeouts (like solaris).
+
+	* macterm.c (x_make_frame_visible): Comment in polling on
+	frame creation.
+
+	* keyboard.c: Undef SIGIO on Carbon
+
+	* atimer.c (alarm_signal_handler): Call alarm handlers after
+	scheduling.
+
+	* eval.c (Feval): Remove quit_char test
+
+	* process.c (wait_reading_process_input): Remove clearing
+	stdin for select call on process input.
+
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xdisp.c (syms_of_xdisp) <window-scroll-functions>: Correct
+	capitalization error in docstring.
+
+2004-07-17  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (not_single_kboard_state): Do nothing unless
+	MULTI_KBOARD is defined.
+
+2004-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (coordinates_in_window): Inside the window but outside
+	its box to the L or R, return ON_VERTICAL_BORDER.
+	(window_list_1): Rotate the list to start with WINDOW.
+
+	* print.c (print_preprocess): Test for print_depth at limit
+	before entering in being_printed.
+
+	* keyboard.c (not_single_kboard_state): New function.
+	(stuff_buffered_input): Now no-op only if no SIGTSTP.
+
+	* frame.c (Fdelete_frame): If we're in single_bboard_state on
+	this kboard, and we delete its last frame, go to any_kboard_state.
+
+	* buffer.c (syms_of_buffer) <transient-mark-mode>: Doc fix.
+
 2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* w32fns.c (Fx_file_dialog): Encode strings in system coding

@@ -5321,7 +5321,6 @@ x_make_frame_visible (f)
 
   XFlush (FRAME_MAC_DISPLAY (f));
 
-#if 0 /* MAC_TODO */
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
@@ -5365,9 +5364,6 @@ x_make_frame_visible (f)
 	FRAME_SAMPLE_VISIBILITY (f);
       }
   }
-#else
-  UNBLOCK_INPUT;
-#endif /* MAC_TODO */
 }
 
 /* Change from mapped state to withdrawn state.  */

@@ -203,7 +203,7 @@ quote_file_name (name, stream)
     }
   *q++ = 0;
 
-  fprintf (stream, copy);
+  fprintf (stream, "%s", copy);
 
   free (copy);
 }

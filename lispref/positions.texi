@@ -389,6 +389,7 @@ In an interactive call, @var{count} is the numeric prefix argument.
 
 @defun count-lines start end
 @cindex lines in region
+@anchor{Definition of count-lines}
 This function returns the number of lines between the positions
 @var{start} and @var{end} in the current buffer.  If @var{start} and
 @var{end} are equal, then it returns 0.  Otherwise it returns at least

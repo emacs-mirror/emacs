@@ -1806,6 +1806,7 @@ a minibuffer window, is currently active.
 @end defun
 
 @defvar minibuffer-scroll-window
+@anchor{Definition of minibuffer-scroll-window}
 If the value of this variable is non-@code{nil}, it should be a window
 object.  When the function @code{scroll-other-window} is called in the
 minibuffer, it scrolls this window.
