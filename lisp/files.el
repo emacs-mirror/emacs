@@ -837,8 +837,8 @@ run `normal-mode' explicitly."
 				  ("\\.cpp\\'" . c++-mode)
 				  ("\\.cxx\\'" . c++-mode)
 				  ("\\.hxx\\'" . c++-mode)
-				  ("\\.c++\\'" . c++-mode)
-				  ("\\.h++\\'" . c++-mode)
+				  ("\\.c\\+\\+\\'" . c++-mode)
+				  ("\\.h\\+\\+\\'" . c++-mode)
 ;;;				  ("\\.mk\\'" . makefile-mode)
 ;;;				  ("[Mm]akefile" . makefile-mode)
 ;;; Less common extensions come here
