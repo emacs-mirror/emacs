@@ -1,3 +1,9 @@
+2001-01-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* nnheader.el (toplevel): Don't require `gnus-util' at
+	compile-time; this creates a circular dependency, and prevents
+	a bootstrap.
+
 2001-01-22  Andreas Schwab  <schwab@suse.de>
 
 	* nnheader.el (gnus-delete-line): Autoload it as a macro.

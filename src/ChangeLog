@@ -1,3 +1,11 @@
+2001-01-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_set_window_size_1): New function extracted from
+	x_set_window_size.
+	(x_set_window_size): Use it.
+	(x_set_window_size) [USE_X_TOOLKIT]: Handle case that window
+	doesn't have a widget, like tooltips.
+
 2001-01-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.c (syms_of_window) <scroll-preserve-screen-position>: Doc
@@ -11,7 +19,7 @@
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (build_desired_tool_bar_string): Make sure we have
-	a desired tool bar string, even if there are not tool bar
+	a desired tool bar string, even if there are no tool bar
 	items.
 	
 	* xdisp.c (Ftool_bar_lines_needed): New function.
