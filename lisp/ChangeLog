@@ -1,3 +1,18 @@
+2000-01-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
+	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
+	progmodes/ebnf-yac.el: Update copyright.
+	
+	* jit-lock.el (jit-lock-function): Widen before calculating end
+	position.
+	(jit-lock-stealth-chunk-start): Rewritten.
+
+	* info.el (Info-title-face-alist): Removed.
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face): New
+	faces.
+	(Info-fontify-node): Use these faces.
+
 2000-01-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-specs.el (cl-lambda-list, cl-macro-list)

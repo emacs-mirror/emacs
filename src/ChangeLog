@@ -1,5 +1,11 @@
 2000-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs.c (USAGE): Use term `display options' instead of `X
+	options'.
+
+	* xdisp.c (Ftrace_to_stderr) [GLYPH_DEBUG]: New function.
+	(syms_of_xdisp) [GLYPH_DEBUG]: Defsubr it.
+
 	* fns.c (sweep_weak_table): New function.
 	(sweep_weak_hash_tables): Use it.  Keep on marking until there
 	is no more change.
