@@ -4773,7 +4773,9 @@ x_fill_stretch_glyph_string (s, row, area, start, end)
   /* Adjust base line for subscript/superscript text.  */
   s->ybase += voffset;
 
-  xassert (s->face && s->face->gc);
+  /* The case that face->gc == 0 is handled when drawing the glyph
+     string by calling PREPARE_FACE_FOR_DISPLAY.  */
+  xassert (s->face);
   return glyph - s->row->glyphs[s->area];
 }
 
