@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.19) $
+ * $HopeName: MMsrc!config.h(trunk.20) $
  *
  * .readership: MPS developers.
  */
@@ -184,7 +184,7 @@
 
 /* Shield Configuration -- see impl.c.shield */
 
-#define SHIELD_CACHE_SIZE       ((Size)2)
+#define SHIELD_CACHE_SIZE       ((Size)16)
 #define SHIELD_DEPTH_WIDTH      ((Size)4)
 #define SHIELD_DEPTH            ((Count)1<<SHIELD_DEPTH_WIDTH)
 
