@@ -35,7 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Display Context for the icons */ 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-#include <X11/Xmu/Drawing.h>
+/* #include <X11/Xmu/Drawing.h> */  /* Appears not to be used */
 #include <X11/Xos.h>
 
 /* We use face structures in two ways:
