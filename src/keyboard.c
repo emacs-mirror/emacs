@@ -928,8 +928,8 @@ recursive_edit_1 ()
 #ifdef HAVE_X_WINDOWS
   /* The command loop has started an hourglass timer, so we have to
      cancel it here, otherwise it will fire because the recursive edit
-     can take some time.  */
-  if (display_hourglass_p)
+     can take some time.  Do not check for display_hourglass_p here,
+     because it could already be nil.  */
     cancel_hourglass ();
 #endif
 
