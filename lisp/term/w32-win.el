@@ -441,30 +441,33 @@ The value may be different for frames on different X displays."
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
-(define-key function-key-map [backspace] [127])
-(define-key function-key-map [delete] [127])
 (define-key function-key-map [tab] [?\t])
 (define-key function-key-map [linefeed] [?\n])
 (define-key function-key-map [clear] [11])
 (define-key function-key-map [return] [13])
 (define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-\d])
 (define-key function-key-map [M-tab] [?\M-\t])
 (define-key function-key-map [M-linefeed] [?\M-\n])
 (define-key function-key-map [M-clear] [?\M-\013])
 (define-key function-key-map [M-return] [?\M-\015])
 (define-key function-key-map [M-escape] [?\M-\e])
 
+;; These don't do the right thing (voelker)
+;(define-key function-key-map [backspace] [127])
+;(define-key function-key-map [delete] [127])
+;(define-key function-key-map [M-backspace] [?\M-\d])
+;(define-key function-key-map [M-delete] [?\M-\d])
+
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
 (put 'tab 'ascii-character ?\t)
 (put 'linefeed 'ascii-character ?\n)
 (put 'clear 'ascii-character 12)
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
+;; These don't seem to be necessary (voelker)
+;(put 'backspace 'ascii-character 127)
+;(put 'delete 'ascii-character 127)
 
 
 ;;;; Selections and cut buffers
