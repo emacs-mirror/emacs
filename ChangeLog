@@ -1,3 +1,8 @@
+2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist (lispref): Add *.txt, *.el, permute-index, and
+	tindex.pl to the list of those being put into the distribution.
+
 2001-11-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in: Add coff.h to the list in AC_CHECK_HEADERS.

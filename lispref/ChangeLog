@@ -1,3 +1,9 @@
+2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* two-volume-cross-refs.txt: New file.
+	* two.el: New file.
+	* spellfile: New file.
+
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* permute-index: New file.
