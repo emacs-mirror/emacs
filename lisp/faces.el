@@ -55,7 +55,7 @@ a font height that isn't optimal."
 	   (set-default symbol value)
 	   (internal-set-font-selection-order value)))
 
-
+;; This is defined originally in {w32,x}faces.c.
 (defcustom face-font-family-alternatives
   '(("courier" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
@@ -1671,9 +1671,8 @@ created."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This is here for compatibilty with Emacs 20.2.  For example,
-;; international/fontset.el uses these functions to manipulate font
-;; names.  The following functions are not used in the face
-;; implementation itself.
+;; international/fontset.el uses x-resolve-font-name.  The following
+;; functions are not used in the face implementation itself.
 
 (defvar x-font-regexp nil)
 (defvar x-font-regexp-head nil)
@@ -1772,7 +1771,7 @@ also the same size as FACE on FRAME, or fail."
 	  ((string-match x-font-regexp-weight font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
-
+(make-obsolete 'x-frob-font-weight 'make-face-...)
 
 (defun x-frob-font-slant (font which)
   (let ((case-fold-search t))
@@ -1793,49 +1792,50 @@ also the same size as FACE on FRAME, or fail."
 	  ((string-match x-font-regexp-slant font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
-
+(make-obsolete 'x-frob-font-slant 'make-face-...)
 
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "bold"))
-
+(make-obsolete 'x-make-font-bold 'make-face-bold)
 
 (defun x-make-font-demibold (font)
   "Given an X font specification, make a demibold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "demibold"))
-
+(make-obsolete 'x-make-font-demibold 'make-face-bold)
 
 (defun x-make-font-unbold (font)
   "Given an X font specification, make a non-bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "medium"))
-
+(make-obsolete 'x-make-font-unbold 'make-face-unbold)
 
 (defun x-make-font-italic (font)
   "Given an X font specification, make an italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "i"))
-
+(make-obsolete 'x-make-font-italic 'make-face-italic)
 
 (defun x-make-font-oblique (font) ; you say tomayto...
   "Given an X font specification, make an oblique version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "o"))
-
+(make-obsolete 'x-make-font-oblique 'make-face-italic)
 
 (defun x-make-font-unitalic (font)
   "Given an X font specification, make a non-italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "r"))
-
+(make-obsolete 'x-make-font-unitalic 'make-face-unitalic)
 
 (defun x-make-font-bold-italic (font)
   "Given an X font specification, make a bold and italic version of it.
 If that can't be done, return nil."
   (and (setq font (x-make-font-bold font))
        (x-make-font-italic font)))
+(make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic)
 
 (provide 'faces)
 
