@@ -1,5 +1,7 @@
 2000-11-25  Miles Bader  <miles@gnu.org>
 
+	* cus-face.el (custom-face-attributes): Add "None" choice to :stipple.
+
 	* wid-edit.el (widget-field-value-delete): Don't try to delete
 	overlay when it's the `psuedo-overlay' that exists at some points.
 

@@ -1,3 +1,7 @@
+2000-11-25  Miles Bader  <miles@gnu.org>
+
+	* indent.c (compute_motion): Keep pos_byte in sync with pos.
+
 2000-11-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (init_environment): Set LANG environment variable based on
