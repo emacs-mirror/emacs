@@ -5224,15 +5224,32 @@ An argument specifies the modification time value to use\n\
 }
 
 Lisp_Object
-auto_save_error ()
+auto_save_error (error)
+     Lisp_Object error;
 {
+  Lisp_Object args[3], msg;
+  int i, nbytes;
+  struct gcpro gcpro1;
+  
   ring_bell ();
-  message_with_string ("Autosaving...error for %s", current_buffer->name, 1);
-  Fsleep_for (make_number (1), Qnil);
-  message_with_string ("Autosaving...error for %s", current_buffer->name, 0);
-  Fsleep_for (make_number (1), Qnil);
-  message_with_string ("Autosaving...error for %s", current_buffer->name, 0);
-  Fsleep_for (make_number (1), Qnil);
+  
+  args[0] = build_string ("Auto-saving %s: %s");
+  args[1] = current_buffer->name;
+  args[2] = Ferror_message_string (error);
+  msg = Fformat (3, args);
+  GCPRO1 (msg);
+  nbytes = STRING_BYTES (XSTRING (msg));
+
+  for (i = 0; i < 3; ++i)
+    {
+      if (i == 0)
+	message2 (XSTRING (msg)->data, nbytes, STRING_MULTIBYTE (msg));
+      else
+	message2_nolog (XSTRING (msg)->data, nbytes, STRING_MULTIBYTE (msg));
+      Fsleep_for (make_number (1), Qnil);
+    }
+
+  UNGCPRO;
   return Qnil;
 }
 
