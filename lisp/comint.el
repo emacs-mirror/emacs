@@ -219,9 +219,10 @@ appears in the buffer.
 
 This variable is buffer-local.")
 
-(defvar comint-password-prompt-regexp "\\b[Pp]assword:\\s *\\'"
+(defvar comint-password-prompt-regexp
+  "\\(^[Pp]assword\\|pass phrase\\):\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
-This is used by comint-watch-for-password-prompt.")
+This is used by `comint-watch-for-password-prompt'.")
 
 ;;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
