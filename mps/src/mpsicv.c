@@ -1,35 +1,38 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.11) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.12) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
 
-#include "testlib.h"
-#include "mps.h"
-#include "mpscamc.h"
-#include "mpsavm.h"
-#include "mpscmv.h"
-#include "fmtdy.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+#include "testlib.h"
+#include "mps.h"
+#include "mpscamc.h"
+#include "mpsavm.h"
+#include "mpscmv.h"
+#include "fmtdy.h"
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
 
-#define NR_EXACT_ROOTS  50
-#define NR_AMBIG_ROOTS  50
-#define FIELDS_MAX      2000
+#define exactRootsCOUNT  50
+#define ambigRootsCOUNT  50
 #define OBJECTS         4000
-#define OBJNULL         ((mps_addr_t)0xDECEA5ED)
+#define objNULL         ((mps_addr_t)0xDECEA5ED)
 
 static mps_pool_t amcpool;
 static mps_ap_t ap;
-static mps_addr_t exact_roots[NR_EXACT_ROOTS];
-static mps_addr_t ambig_roots[NR_AMBIG_ROOTS];
+static mps_addr_t exactRoots[exactRootsCOUNT];
+static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
 static mps_addr_t make(void)
@@ -41,7 +44,7 @@ static mps_addr_t make(void)
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
     if(res) die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exact_roots, NR_EXACT_ROOTS);
+    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
     if(res) die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
@@ -57,7 +60,7 @@ static mps_addr_t make_no_inline(void)
   do {
     res = (mps_reserve)(&p, ap, size);
     if(res) die(res, "(mps_reserve)");
-    res = dylan_init(p, size, exact_roots, NR_EXACT_ROOTS);
+    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
     if(res) die(res, "dylan_init");
   } while(!(mps_commit)(ap, p, size));
 
@@ -111,8 +114,7 @@ static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
-  mps_root_t exact_root, ambig_root;
-  mps_root_t single_root, fmt_root;
+  mps_root_t exactRoot, ambigRoot, singleRoot, fmtRoot;
   mps_word_t i;
   mps_word_t collections;
   mps_pool_t mv;
@@ -135,26 +137,26 @@ static void *test(void *arg, size_t s)
 
   die(mps_ap_create(&ap, amcpool), "ap_create");
 
-  for(i=0; i<NR_EXACT_ROOTS; ++i)
-    exact_roots[i] = OBJNULL;
+  for(i=0; i<exactRootsCOUNT; ++i)
+    exactRoots[i] = objNULL;
 
-  for(i=0; i<NR_AMBIG_ROOTS; ++i)
-    ambig_roots[i] = (mps_addr_t)rnd();
+  for(i=0; i<ambigRootsCOUNT; ++i)
+    ambigRoots[i] = (mps_addr_t)rnd();
 
 
-  die(mps_root_create_table(&exact_root, arena,
+  die(mps_root_create_table(&exactRoot, arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
-                            &exact_roots[0], NR_EXACT_ROOTS),
+                            &exactRoots[0], exactRootsCOUNT),
       "root_create_table(exact)");
 
-  die(mps_root_create_table(&ambig_root, arena,
+  die(mps_root_create_table(&ambigRoot, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
-                            &ambig_roots[0], NR_AMBIG_ROOTS),
+                            &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
 
-  obj = OBJNULL;
+  obj = objNULL;
 
-  die(mps_root_create(&single_root, arena,
+  die(mps_root_create(&singleRoot, arena,
                       MPS_RANK_EXACT, (mps_rm_t)0,
                       &root_single, &obj, 0),
       "root_create(single)");
@@ -164,10 +166,10 @@ static void *test(void *arg, size_t s)
 
   die(mps_alloc(&alloced_obj, mv, asize), "mps_alloc");
 
-  die(dylan_init(alloced_obj, asize, exact_roots, NR_EXACT_ROOTS),
+  die(dylan_init(alloced_obj, asize, exactRoots, exactRootsCOUNT),
       "dylan_init(alloced_obj)");
 
-  die(mps_root_create_fmt(&fmt_root, arena,
+  die(mps_root_create_fmt(&fmtRoot, arena,
                           MPS_RANK_EXACT, (mps_rm_t)0,
                           dylan_fmt_A()->scan,
                           alloced_obj,
@@ -194,28 +196,28 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %u, %lu objects.\n",
              c, (unsigned long)i);
-      for(r=0; r<NR_EXACT_ROOTS; ++r)
-        assert(dylan_check(exact_roots[r]));
+      for(r=0; r<exactRootsCOUNT; ++r)
+        assert(dylan_check(exactRoots[r]));
     }
 
     if(rnd() & 1)
-      exact_roots[rnd() % NR_EXACT_ROOTS] = make();
+      exactRoots[rnd() % exactRootsCOUNT] = make();
     else
-      ambig_roots[rnd() % NR_AMBIG_ROOTS] = make();
+      ambigRoots[rnd() % ambigRootsCOUNT] = make();
 
-    r = rnd() % NR_EXACT_ROOTS;
-    if(exact_roots[r] != OBJNULL)
-      assert(dylan_check(exact_roots[r]));
+    r = rnd() % exactRootsCOUNT;
+    if(exactRoots[r] != objNULL)
+      assert(dylan_check(exactRoots[r]));
   }
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
   mps_pool_destroy(mv);
   mps_ap_destroy(ap);
-  mps_root_destroy(fmt_root);
-  mps_root_destroy(single_root);
-  mps_root_destroy(exact_root);
-  mps_root_destroy(ambig_root);
+  mps_root_destroy(fmtRoot);
+  mps_root_destroy(singleRoot);
+  mps_root_destroy(exactRoot);
+  mps_root_destroy(ambigRoot);
   mps_pool_destroy(amcpool);
   mps_fmt_destroy(format);
 
@@ -251,5 +253,6 @@ int main(void)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
