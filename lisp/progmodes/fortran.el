@@ -466,8 +466,8 @@ Any other key combination is executed normally."
   (interactive)
   (let (c)
     (insert last-command-char)
-    (if (or (= (setq c (read-char)) ??)	;insert char if not equal to `?'
-	    (= c help-char))
+    (if (or (eq (setq c (read-event)) ??)    ;insert char if not equal to `?'
+	    (eq c help-char))
 	(fortran-abbrev-help)
       (setq unread-command-events (list c)))))
 
@@ -533,7 +533,7 @@ See also `fortran-window-create'."
       (save-window-excursion
 	(if (not (equal (fortran-window-create) 'error))
 	    (progn (message "Type SPC to continue editing.")
-		   (let ((char (read-char)))
+		   (let ((char (read-event)))
 		     (or (equal char (string-to-char " "))
 			 (setq unread-command-events (list char)))))))
     (fortran-window-create)))
