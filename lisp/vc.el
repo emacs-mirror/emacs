@@ -1313,7 +1313,6 @@ on a buffer attached to the file named in the current Dired buffer line."
          limit t)
       (setq perm          (match-string 1)
 	    date-and-file (match-string 2))))
-    (if (numberp x) (setq x (or owner (number-to-string x))))
     (if x (setq x (concat "(" x ")")))
     (let ((rep (substring (concat x "                 ") 0 10)))
       (replace-match (concat perm rep date-and-file)))))
