@@ -1,3 +1,7 @@
+2001-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (syms_of_eval): Doc fixes.
+
 2001-10-19  Miles Bader  <miles@gnu.org>
 
 	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify interaction
