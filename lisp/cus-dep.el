@@ -64,6 +64,6 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 		    (insert "))\n"))))))
   (insert "\n;;; cus-load.el ends here\n")
   (save-buffer)
-  (message "Generating cus-load.el..."))
+  (message "Generating cus-load.el...done"))
 
 ;;; cus-dep.el ends here
