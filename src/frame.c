@@ -383,6 +383,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
      Lisp_Object display;
 {
   register struct frame *f;
+  struct gcpro gcpro1;
 
   if (!NILP (mini_window))
     CHECK_LIVE_WINDOW (mini_window, 0);
@@ -402,10 +403,16 @@ make_frame_without_minibuffer (mini_window, kb, display)
       if (!FRAMEP (kb->Vdefault_minibuffer_frame)
 	  || ! FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame)))
 	{
+          Lisp_Object frame_dummy;
+
+          XSETFRAME (frame_dummy, f);
+          GCPRO1 (frame_dummy);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  kb->Vdefault_minibuffer_frame
-	    = call1 (intern ("make-initial-minibuffer-frame"), display);
+	  kb->Vdefault_minibuffer_frame =
+	    call1 (intern ("make-initial-minibuffer-frame"), display);
+          UNGCPRO;
 	}
+   
       mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
     }
 
