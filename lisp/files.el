@@ -1286,15 +1286,14 @@ that are visiting the various files."
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
-      (let ((buffer (current-buffer)))
-	(if rawfile
-	    (progn
-	      (set-buffer-multibyte nil)
-	      (setq buffer-file-coding-system 'no-conversion)
-	      (make-local-variable 'find-file-literally)
-	      (setq find-file-literally t))
-	  (after-find-file error (not nowarn)))
-	buffer))))
+      (if rawfile
+	  (progn
+	    (set-buffer-multibyte nil)
+	    (setq buffer-file-coding-system 'no-conversion)
+	    (make-local-variable 'find-file-literally)
+	    (setq find-file-literally t))
+	(after-find-file error (not nowarn)))
+      (current-buffer))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
@@ -3223,8 +3222,12 @@ non-nil, it is called instead of rereading visited file contents."
 			  (if auto-save-p 'emacs-mule-unix
 			    coding-system-for-read)))
 		     ;; Note that this preserves point in an intelligent way.
-		     (insert-file-contents file-name (not auto-save-p)
-					   nil nil t))))
+		     (if preserve-modes
+			 (let ((buffer-file-formats buffer-file-formats))
+			   (insert-file-contents file-name (not auto-save-p)
+						 nil nil t))
+		       (insert-file-contents file-name (not auto-save-p)
+					     nil nil t)))))
 	       ;; Recompute the truename in case changes in symlinks
 	       ;; have changed the truename.
 	       (setq buffer-file-truename
