@@ -1,3 +1,15 @@
+1999-12-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* smerge-mode.el: New file.
+
+	* font-lock.el (font-lock-multiline): New variable.
+	(font-lock-add-keywords): Rename `major-mode' into `mode'.
+	(font-lock-remove-keywords): Added a dummy `mode' argument for
+	potential future support.
+	(font-lock-fontify-anchored-keywords, 
+	(font-lock-fontify-keywords-region): Only handle multiline strings
+	if necessary (avoids a pathological behavior in (f.ex) diff-mode).
+
 1999-12-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* bookmark.el (bookmark-bmenu-mode-map): Bind RET like f.
@@ -237,7 +249,6 @@
 
 	* delsel.el: Grok skeleton-pair-insert-maybe.
 
->>>>>>> 1.224
 1999-11-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* progmodes/cperl-mode.el (cperl-under-as-char):
