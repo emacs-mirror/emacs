@@ -1149,7 +1149,7 @@ If `enable-local-variables' is nil, this function does not check for a
     ;; If we found modes to use, invoke them now,
     ;; outside the save-excursion.
     (if modes
-	(progn (mapcar 'funcall modes)
+	(progn (mapcar 'funcall (nreverse modes))
 	       (setq done t)))
     ;; If we didn't find a mode from a -*- line, try using the file name.
     (if (and (not done) buffer-file-name)
