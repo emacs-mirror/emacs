@@ -1,3 +1,10 @@
+2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
+	for left and top calculations.  Remove call to x_real_positions.
+	(x_check_expected_move): Do not set change_gravity to 1 when calling
+	x_set_offset.
+
 2004-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Use `escape-glyph' for
