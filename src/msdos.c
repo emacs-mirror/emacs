@@ -36,6 +36,8 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>    /* for _fixpath */
 #if __DJGPP__ >= 2
 #include <fcntl.h>
+#include <dpmi.h>	 /* for __dpmi_xxx stuff */
+#include <sys/farptr.h>	 /* for _farsetsel, _farnspokeb */
 #include <libc/dosio.h>  /* for _USE_LFN */
 #endif
 
@@ -47,6 +49,8 @@ Boston, MA 02111-1307, USA.  */
 #include "termopts.h"
 #include "frame.h"
 #include "window.h"
+#include "buffer.h"
+#include "commands.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -294,11 +298,6 @@ struct x_output the_only_x_display;
 /* This is never dereferenced.  */
 Display *x_current_display;
 
-
-#define SCREEN_SET_CURSOR() 						\
-  if (current_pos_X != new_pos_X || current_pos_Y != new_pos_Y) 	\
-    ScreenSetCursor (current_pos_Y = new_pos_Y, current_pos_X = new_pos_X)
-
 static
 dos_direct_output (y, x, buf, len)
      int y;
@@ -307,11 +306,17 @@ dos_direct_output (y, x, buf, len)
      int len;
 {
   int t = (int) ScreenPrimary + 2 * (x + y * screen_size_X);
-  
+
+#if (__DJGPP__ < 2)
   while (--len >= 0) {
     dosmemput (buf++, 1, t);
     t += 2;
   }
+#else
+  /* This is faster.  */
+  for (_farsetsel (_dos_ds); --len >= 0; t += 2, buf++)
+    _farnspokeb (t, *buf);
+#endif
 }
 #endif
 
@@ -647,6 +652,76 @@ IT_cursor_to (int y, int x)
   new_pos_Y = y;
 }
 
+static int cursor_cleared;
+
+static
+IT_display_cursor (int on)
+{
+  if (on && cursor_cleared)
+    {
+      ScreenSetCursor (current_pos_Y, current_pos_X);
+      cursor_cleared = 0;
+    }
+  else if (!on && !cursor_cleared)
+    {
+      ScreenSetCursor (-1, -1);
+      cursor_cleared = 1;
+    }
+}
+
+/* Emacs calls cursor-movement functions a lot when it updates the
+   display (probably a legacy of old terminals where you cannot
+   update a screen line without first moving the cursor there).
+   However, cursor movement is expensive on MSDOS (it calls a slow
+   BIOS function and requires 2 mode switches), while actual screen
+   updates access the video memory directly and don't depend on
+   cursor position.  To avoid slowing down the redisplay, we cheat:
+   all functions that move the cursor only set internal variables
+   which record the cursor position, whereas the cursor is only
+   moved to its final position whenever screen update is complete.
+
+   `IT_cmgoto' is called from the keyboard reading loop and when the
+   frame update is complete.  This means that we are ready for user
+   input, so we update the cursor position to show where the point is,
+   and also make the mouse pointer visible.
+
+   Special treatment is required when the cursor is in the echo area,
+   to put the cursor at the end of the text displayed there.  */
+
+static
+IT_cmgoto (f)
+     FRAME_PTR f;
+{
+  /* Only set the cursor to where it should be if the display is
+     already in sync with the window contents.  */
+  int update_cursor_pos = MODIFF == unchanged_modified;
+
+  /* If we are in the echo area, put the cursor at the end of text.  */
+  if (!update_cursor_pos
+      && XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top) <= new_pos_Y)
+    {
+      new_pos_X = FRAME_DESIRED_GLYPHS (f)->used[new_pos_Y];
+      FRAME_CURSOR_X (f) = new_pos_X;
+      update_cursor_pos = 1;
+    }
+
+  if (update_cursor_pos
+      && (current_pos_X != new_pos_X || current_pos_Y != new_pos_Y))
+    {
+      ScreenSetCursor (current_pos_Y = new_pos_Y, current_pos_X = new_pos_X);
+      if (termscript)
+	fprintf (termscript, "\n<CURSOR:%dx%d>", current_pos_X, current_pos_Y);
+    }
+
+  /* Maybe cursor is invisible, so make it visible.  */
+  IT_display_cursor (1);
+
+  /* Mouse pointer should be always visible if we are waiting for
+     keyboard input.  */
+  if (!mouse_visible)
+    mouse_on ();
+}
+
 static
 IT_reassert_line_highlight (new, vpos)
      int new, vpos;
@@ -963,6 +1038,7 @@ internal_terminal_init ()
   update_begin_hook = IT_update_begin;
   update_end_hook = IT_update_end;
   reassert_line_highlight_hook = IT_reassert_line_highlight;
+  frame_up_to_date_hook = IT_cmgoto; /* position cursor when update is done */
 
   /* These hooks are called by term.c without being checked.  */
   set_terminal_modes_hook = IT_set_terminal_modes;
@@ -1448,10 +1524,10 @@ dos_rawgetc ()
   union REGS regs;
   
 #ifndef HAVE_X_WINDOWS
-  SCREEN_SET_CURSOR ();
-  if (!mouse_visible) mouse_on ();
+  /* Maybe put the cursor where it should be.  */
+  IT_cmgoto (selected_frame);
 #endif
-    
+
   /* The following condition is equivalent to `kbhit ()', except that
      it uses the bios to do its job.  This pleases DESQview/X.  */
   while ((regs.h.ah = extended_kbd ? 0x11 : 0x01),
@@ -2036,6 +2112,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   mouse_off ();
   ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
 
+  /* Turn off the cursor.  Otherwise it shows through the menu
+     panes, which is ugly.  */
+  IT_display_cursor (0);
+
   IT_menu_display (menu, y0 - 1, x0 - 1, title_faces); /* display menu title */
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
@@ -2123,6 +2203,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   ScreenUpdate (state[0].screen_behind);
   while (statecount--)
     xfree (state[statecount].screen_behind);
+  IT_display_cursor (1);	/* turn cursor back on */
   return result;
 }
 
