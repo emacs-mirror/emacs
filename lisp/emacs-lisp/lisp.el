@@ -28,7 +28,7 @@
 ;;; Code:
 
 (defvar defun-prompt-regexp nil
-  "Non-nil => regexp to ignore, before the `(' that starts a defun.")
+  "*Non-nil => regexp to ignore, before the `(' that starts a defun.")
 
 (defvar parens-require-spaces t
   "Non-nil => `insert-parentheses' should insert whitespace as needed.")
