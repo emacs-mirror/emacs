@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.20 2000/12/08 16:58:45 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.21 2000/12/10 21:20:56 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1237,13 +1237,12 @@ Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
 	  (push fi fis)
 	;; If a directory is selected, return members, if any.
 	(setq fis
-	      (append (ewoc-collect cvs-cookies
-				    'cvs-dir-member-p
-				    (cvs-fileinfo->dir fi))
+	      (append (ewoc-collect
+		       cvs-cookies 'cvs-dir-member-p (cvs-fileinfo->dir fi))
 		      fis))))
     (nreverse fis)))
 
-(defun* cvs-mode-marked (filter &optional (cmd (symbol-name filter))
+(defun* cvs-mode-marked (filter &optional cmd
 				&key read-only one file noquery)
   "Get the list of marked FIS.
 CMD is used to determine whether to use the marks or not.
@@ -1251,6 +1250,7 @@ Only files for which FILTER is applicable are returned.
 If READ-ONLY is non-nil, the current toggling is left intact.
 If ONE is non-nil, marks are ignored and a single FI is returned.
 If FILE is non-nil, directory entries won't be selected."
+  (unless cmd (setq cmd (symbol-name filter)))
   (let* ((fis (cvs-get-marked (or one (cvs-ignore-marks-p cmd read-only))
 			      (and (not file)
 				   (cvs-applicable-p 'DIRCHANGE filter))))
@@ -1262,7 +1262,7 @@ If FILE is non-nil, directory entries won't be selected."
       (message (if (null fis)
 		   "`%s' is not applicable to any of the selected files."
 		 "`%s' is only applicable to a single file.") cmd)
-      (sit-for 0.5)
+      (sit-for 1)
       (setq fis (list (cvs-insert-file
 		       (read-file-name (format "File to %s: " cmd))))))
     (if one (car fis) fis)))
