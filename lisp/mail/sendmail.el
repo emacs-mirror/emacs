@@ -712,7 +712,22 @@ the user from the mailer."
 
 ;;;###autoload
 (defvar sendmail-coding-system nil
-  "Coding system to encode the outgoing mail.")
+  "*Coding system for encoding the outgoing mail.
+This has higher priority than `defualt-buffer-file-coding-system'
+and `default-sendmail-coding-system',
+but lower priority than the local value of `buffer-file-coding-system'.
+See also the function `select-sendmail-coding-system'.")
+
+;;;###autoload
+(defvar default-sendmail-coding-system 'iso-latin-1
+  "Default coding system for encodihng the outgoing mail.
+This variable is used only when `sendmail-coding-system' is nil.
+
+This variable is set/changed by the command set-language-environment.
+User should not set this variable manually,
+instead use sendmail-coding-system to get a constant encoding
+of outgoing mails regardless of the current language environment.
+See also the function `select-sendmail-coding-system'.")
 
 (defun sendmail-send-it ()
   (require 'mail-utils)
@@ -724,17 +739,7 @@ the user from the mailer."
 	resend-to-addresses
 	delimline
 	fcc-was-found
-	(mailbuf (current-buffer))
-	(sendmail-coding-system
-	 (if (local-variable-p 'buffer-file-coding-system)
-	     buffer-file-coding-system
-	   (or sendmail-coding-system
-	       default-buffer-file-coding-system
-	       'iso-latin-1))))
-    (if (fboundp select-safe-coding-system-function)
-	(setq sendmail-coding-system
-	      (funcall select-safe-coding-system-function
-		       (point-min) (point-max) sendmail-coding-system)))
+	(mailbuf (current-buffer)))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
@@ -877,7 +882,7 @@ the user from the mailer."
 \\|^resent-cc:\\|^resent-bcc:"
 				   delimline t))
 	      (let ((default-directory "/")
-		    (coding-system-for-write sendmail-coding-system))
+		    (coding-system-for-write (select-message-coding-system)))
 		(apply 'call-process-region
 		       (append (list (point-min) (point-max)
 				     (if (boundp 'sendmail-program)
