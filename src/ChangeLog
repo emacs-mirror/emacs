@@ -1,5 +1,8 @@
 2004-10-04  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (define_frame_cursor1): Do not change frame cursor
+	while tracking/dragging mouse.
+
 	* window.c (coordinates_in_window): Relax check for cursor
 	on vertial border between mode lines.
 	(Fset_window_fringes): Do not allow negative widths.
