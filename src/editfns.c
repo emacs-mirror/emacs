@@ -503,6 +503,14 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   return Vsystem_name;
 }
 
+DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
+  "Return the current time, as an integer.")
+  ()
+{
+  return make_number (time(0));
+}
+
+
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 0, 0,
   "Return the current time, as a human-readable string.\n\
 Programs can use it too, since the number of columns in each field is fixed.\n\
@@ -998,13 +1006,6 @@ the argument used by %d or %c must be a number.")
 {
   register Lisp_Object val;
 
-#ifdef MULTI_SCREEN
-  extern Lisp_Object Vglobal_minibuffer_screen;
-
-  if (XTYPE (Vglobal_minibuffer_screen) == Lisp_Screen)
-    Fmake_screen_visible (Vglobal_minibuffer_screen);
-#endif
-
   val = Fformat (nargs, args);
   message ("%s", XSTRING (val)->data);
   return val;
@@ -1258,6 +1259,7 @@ syms_of_editfns ()
   defsubr (&Suser_uid);
   defsubr (&Suser_real_uid);
   defsubr (&Suser_full_name);
+  defsubr (&Scurrent_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Ssystem_name);
   defsubr (&Sset_default_file_mode);
