@@ -200,12 +200,6 @@ extern
 #endif /* VIRT_ADDR_VARIES */
 int malloc_sbrk_unused;
 
-/* Two limits controlling how much undo information to keep.  */
-
-EMACS_INT undo_limit;
-EMACS_INT undo_strong_limit;
-EMACS_INT undo_outer_limit;
-
 /* Number of live and free conses etc.  */
 
 static int total_conses, total_markers, total_symbols, total_vector_size;
@@ -4644,12 +4638,47 @@ returns nil, because real GC can't be done.  */)
   if (abort_on_gc)
     abort ();
 
-  EMACS_GET_TIME (t1);
-
   /* Can't GC if pure storage overflowed because we can't determine
      if something is a pure object or not.  */
   if (pure_bytes_used_before_overflow)
     return Qnil;
+
+  /* Don't keep undo information around forever.
+     Do this early on, so it is no problem if the user quits.  */
+  {
+    register struct buffer *nextb = all_buffers;
+
+    while (nextb)
+      {
+	/* If a buffer's undo list is Qt, that means that undo is
+	   turned off in that buffer.  Calling truncate_undo_list on
+	   Qt tends to return NULL, which effectively turns undo back on.
+	   So don't call truncate_undo_list if undo_list is Qt.  */
+	if (! EQ (nextb->undo_list, Qt))
+	  truncate_undo_list (nextb);
+
+	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
+	if (nextb->base_buffer == 0 && !NILP (nextb->name))
+	  {
+	    /* If a buffer's gap size is more than 10% of the buffer
+	       size, or larger than 2000 bytes, then shrink it
+	       accordingly.  Keep a minimum size of 20 bytes.  */
+	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
+
+	    if (nextb->text->gap_size > size)
+	      {
+		struct buffer *save_current = current_buffer;
+		current_buffer = nextb;
+		make_gap (-(nextb->text->gap_size - size));
+		current_buffer = save_current;
+	      }
+	  }
+
+	nextb = nextb->next;
+      }
+  }
+
+  EMACS_GET_TIME (t1);
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -4688,42 +4717,6 @@ returns nil, because real GC can't be done.  */)
   BLOCK_INPUT;
 
   shrink_regexp_cache ();
-
-  /* Don't keep undo information around forever.  */
-  {
-    register struct buffer *nextb = all_buffers;
-
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
-	  nextb->undo_list
-	    = truncate_undo_list (nextb->undo_list, undo_limit,
-				  undo_strong_limit, undo_outer_limit);
-
-	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name))
-	  {
-	    /* If a buffer's gap size is more than 10% of the buffer
-	       size, or larger than 2000 bytes, then shrink it
-	       accordingly.  Keep a minimum size of 20 bytes.  */
-	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
-
-	    if (nextb->text->gap_size > size)
-	      {
-		struct buffer *save_current = current_buffer;
-		current_buffer = nextb;
-		make_gap (-(nextb->text->gap_size - size));
-		current_buffer = save_current;
-	      }
-	  }
-
-	nextb = nextb->next;
-      }
-  }
 
   gc_in_progress = 1;
 
@@ -5998,29 +5991,6 @@ prevent garbage collection during a part of the program.  */);
   DEFVAR_LISP ("purify-flag", &Vpurify_flag,
 	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
 This means that certain objects should be allocated in shared (pure) space.  */);
-
-  DEFVAR_INT ("undo-limit", &undo_limit,
-	      doc: /* Keep no more undo information once it exceeds this size.
-This limit is applied when garbage collection happens.
-The size is counted as the number of bytes occupied,
-which includes both saved text and other data.  */);
-  undo_limit = 20000;
-
-  DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
-	      doc: /* Don't keep more than this much size of undo information.
-A previous command which pushes the undo list past this size
-is entirely forgotten when GC happens.
-The size is counted as the number of bytes occupied,
-which includes both saved text and other data.  */);
-  undo_strong_limit = 30000;
-
-  DEFVAR_INT ("undo-outer-limit", &undo_outer_limit,
-	      doc: /* Don't keep more than this much size of undo information.
-If the current command has produced more than this much undo information,
-GC discards it.  This is a last-ditch limit to prevent memory overflow.
-The size is counted as the number of bytes occupied,
-which includes both saved text and other data.  */);
-  undo_outer_limit = 300000;
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
