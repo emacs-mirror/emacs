@@ -261,7 +261,7 @@ and the value of the environment variable MAIL overrides it)."
 (defcustom rmail-show-message-hook nil
   "List of functions to call when Rmail displays a message."
   :type 'hook
-  :options '(goto-addr)
+  :options '(goto-address)
   :group 'rmail)
 
 ;;;###autoload
