@@ -74,6 +74,8 @@
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
 (autoload 'netrc-parse "netrc")
+(autoload 'netrc-machine "netrc")
+(autoload 'netrc-get "netrc")
 
 ;;;
 (defgroup smtpmail nil
