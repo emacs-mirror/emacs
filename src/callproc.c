@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <signal.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include <config.h>
 
@@ -801,16 +802,18 @@ init_callproc ()
   tempdir = Fdirectory_file_name (Vexec_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
     {
-      printf ("Warning: arch-dependent data dir (%s) does not exist.\n",
-	      XSTRING (Vexec_directory)->data);
+      fprintf (stderr,
+	       "Warning: arch-dependent data dir (%s) does not exist.\n",
+	       XSTRING (Vexec_directory)->data);
       sleep (2);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
     {
-      printf ("Warning: arch-independent data dir (%s) does not exist.\n",
-	      XSTRING (Vdata_directory)->data);
+      fprintf (stderr,
+	       "Warning: arch-independent data dir (%s) does not exist.\n",
+	       XSTRING (Vdata_directory)->data);
       sleep (2);
     }
 
