@@ -371,8 +371,9 @@ extern struct charset *emacs_mule_charset[256];
 
 /* Lookup Vcharset_order_list and return the first charset that
    contains the character C.  */
-#define CHAR_CHARSET(c) \
-  char_charset ((c), Qnil, NULL)
+#define CHAR_CHARSET(c)				\
+  ((c) < 0x80 ? CHARSET_FROM_ID (charset_ascii)	\
+   : char_charset ((c), Qnil, NULL))
 
 #if 0
 /* Char-table of charset-sets.  Each element is a bool vector indexed
