@@ -3152,7 +3152,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 {
   Lisp_Object definition;
   Lisp_Object tem2;
-  register int i;
+  int i;
   Lisp_Object suppress;
   Lisp_Object kludge;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -3160,14 +3160,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
   int from, to;
   Lisp_Object character;
   int starting_i;
+  int first = 1;
 
-  if (CHAR_TABLE_P (vector))
-    {
-      describe_char_table (vector, elt_prefix, args, elt_describer,
-			   partial, shadow, entire_map);
-      return;
-    }
-  
   suppress = Qnil;
 
   definition = Qnil;
@@ -3182,13 +3176,22 @@ describe_vector (vector, elt_prefix, args, elt_describer,
     suppress = intern ("suppress-keymap");
 
   from = 0;
-  to = XVECTOR (vector)->size;
+  to = CHAR_TABLE_P (vector) ? MAX_CHAR + 1 : XVECTOR (vector)->size;
 
   for (i = from; i < to; i++)
     {
+      int range_beg, range_end;
+      Lisp_Object val;
+
       QUIT;
 
-      definition = get_keyelt (AREF (vector, i), 0);
+      starting_i = i;
+
+      if (CHAR_TABLE_P (vector))
+	val = char_table_ref_and_range (vector, i, &range_beg, &i);
+      else
+	val = AREF (vector, i);
+      definition = get_keyelt (val, 0);
 
       if (NILP (definition)) continue;
 
@@ -3202,7 +3205,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	  if (!NILP (tem)) continue;
 	}
 
-      character = make_number (i);
+      character = make_number (starting_i);
 
       /* If this binding is shadowed by some other map, ignore it.  */
       if (!NILP (shadow))
@@ -3221,30 +3224,43 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	{
 	  Lisp_Object tem;
 
-	  ASET (kludge, 0, make_number (character));
+	  ASET (kludge, 0, character);
 	  tem = Flookup_key (entire_map, kludge, Qt);
 
 	  if (!EQ (tem, definition))
 	    continue;
 	}
 
+      if (first)
+	{
+	  insert ("\n", 1);
+	  first = 0;
+	}
+
       /* Output the prefix that applies to every entry in this map.  */
       if (!NILP (elt_prefix))
 	insert1 (elt_prefix);
 
-      insert1 (Fsingle_key_description (make_number (character), Qnil));
-
-      starting_i = i;
+      insert1 (Fsingle_key_description (character, Qnil));
 
       /* Find all consecutive characters or rows that have the same
          definition.  But, for elements of a top level char table, if
          they are for charsets, we had better describe one by one even
          if they have the same definition.  */
-      while (i + 1 < to
-	     && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
-		 !NILP (tem2))
-	     && !NILP (Fequal (tem2, definition)))
-	i++;
+      if (CHAR_TABLE_P (vector))
+	while (i + 1 < to
+	       && (val = char_table_ref_and_range (vector, i + 1,
+						   &range_beg, &range_end),
+		   tem2 = get_keyelt (val, 0),
+		   !NILP (tem2))
+	       && !NILP (Fequal (tem2, definition)))
+	  i = range_end;
+      else
+	while (i + 1 < to
+	       && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
+		   !NILP (tem2))
+	       && !NILP (Fequal (tem2, definition)))
+	  i++;
 
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */
@@ -3256,126 +3272,6 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 	  insert1 (Fsingle_key_description (make_number (i), Qnil));
-	}
-
-      /* Print a description of the definition of this character.
-	 elt_describer will take care of spacing out far enough
-	 for alignment purposes.  */
-      (*elt_describer) (definition, args);
-    }
-
-  UNGCPRO;
-}
-
-/* Insert in the current buffer a description of the contents of
-   char-table TABLE.  We call ELT_DESCRIBER to insert the description
-   of one value found in TABLE.
-
-   ELT_PREFIX describes what "comes before" the keys or indices defined
-   by this vector.  This is a human-readable string whose size
-   is not necessarily related to the situation.
-
-   If PARTIAL is nonzero, it means do not mention suppressed commands
-   (that assumes the vector is in a keymap).
-
-   SHADOW is a list of keymaps that shadow this map.
-   If it is non-nil, then we look up the key in those maps
-   and we don't mention it now if it is defined by any of them.
-
-   ENTIRE_MAP is the keymap in which this vector appears.
-   If the definition in effect in the whole map does not match
-   the one in this vector, we ignore this one.
-
-   ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
-
-void
-describe_char_table  (table, elt_prefix, args, elt_describer,
-		      partial, shadow, entire_map)
-     register Lisp_Object table;
-     Lisp_Object args;
-     Lisp_Object elt_prefix;
-     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
-     int partial;
-     Lisp_Object shadow;
-     Lisp_Object entire_map;
-{
-  Lisp_Object definition;
-  Lisp_Object tem2;
-  register int i;
-  Lisp_Object suppress;
-  Lisp_Object kludge;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  /* Range of elements to be handled.  */
-  int from, to;
-  int c;
-  int starting_i;
-
-  suppress = Qnil;
-
-  definition = Qnil;
-
-  /* This vector gets used to present single keys to Flookup_key.  Since
-     that is done once per vector element, we don't want to cons up a
-     fresh vector every time.  */
-  kludge = Fmake_vector (make_number (1), Qnil);
-  GCPRO3 (elt_prefix, definition, kludge);
-
-  if (partial)
-    suppress = intern ("suppress-keymap");
-
-  from = 0;
-  to = MAX_CHAR + 1;
-
-  while (from < to)
-    {
-      int range_beg, range_end;
-      Lisp_Object val;
-
-      QUIT;
-
-      val = char_table_ref_and_range (table, from, &range_beg, &range_end);
-      from = range_end + 1;
-      definition = get_keyelt (val, 0);
-
-      if (NILP (definition)) continue;      
-
-      /* Don't mention suppressed commands.  */
-      if (SYMBOLP (definition) && partial)
-	{
-	  Lisp_Object tem;
-
-	  tem = Fget (definition, suppress);
-
-	  if (!NILP (tem)) continue;
-	}
-
-      /* Output the prefix that applies to every entry in this map.  */
-      if (!NILP (elt_prefix))
-	insert1 (elt_prefix);
-
-      starting_i = range_beg;
-      insert_char (starting_i);
-
-      /* Find all consecutive characters that have the same
-         definition.  */
-      while (from < to
-	     && (val = char_table_ref_and_range (table, from,
-						 &range_beg, &range_end),
-		 tem2 = get_keyelt (val, 0),
-		 !NILP (tem2))
-	     && !NILP (Fequal (tem2, definition)))
-	from = range_end + 1;
-
-      /* If we have a range of more than one character,
-	 print where the range reaches to.  */
-      if (starting_i + 1 < from)
-	{
-	  insert (" .. ", 4);
-
-	  if (!NILP (elt_prefix))
-	    insert1 (elt_prefix);
-
-	  insert_char (from - 1);
 	}
 
       /* Print a description of the definition of this character.
