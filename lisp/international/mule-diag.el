@@ -241,15 +241,15 @@ but still shows the full information."
 (defvar non-iso-charset-alist
   `((viscii
      (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     ,viet-viscii-nonascii-translation-table
+     viet-viscii-nonascii-translation-table
      ((0 255)))
     (koi8-r
      (ascii cyrillic-iso8859-5)
-     ,cyrillic-koi8-r-nonascii-translation-table
+     cyrillic-koi8-r-nonascii-translation-table
      ((32 255)))
     (alternativnyj
      (ascii cyrillic-iso8859-5)
-     ,cyrillic-alternativnyj-nonascii-translation-table
+     cyrillic-alternativnyj-nonascii-translation-table
      ((32 255)))
     (big5
      (ascii chinese-big5-1 chinese-big5-2)
@@ -274,10 +274,10 @@ NON-ISO-CHARSET is a name (symbol) of the non-ISO charset.
 CHARSET-LIST is a list of Emacs' charsets into which characters of
 NON-ISO-CHARSET are mapped.
 
-TRANSLATION-METHOD is a char-table to translate a character code of
-NON-ISO-CHARSET to the corresponding Emacs character code.  It can
-also be a function to call with one argument, a character code in
-NON-ISO-CHARSET.
+TRANSLATION-METHOD is a translatin table (symbol) to translate a
+character code of NON-ISO-CHARSET to the corresponding Emacs character
+code.  It can also be a function to call with one argument, a
+character code in NON-ISO-CHARSET.
 
 CODE-RANGE specifies the valid code ranges of NON-ISO-CHARSET.
 It is a list of RANGEs, where each RANGE is of the form:
@@ -353,8 +353,9 @@ detailed meanings of these arguments."
 ;; of CHARSET is two (i.e. 2-byte charset), ROW is the first byte
 ;; (block index) of the characters, and MIN and MAX are the second
 ;; bytes of the characters.  If the dimension is one, ROW should be 0.
-;; For a non-ISO charset, CHARSET is a char-table or a function to get
-;; Emacs' character codes that corresponds to the characters to list.
+;; For a non-ISO charset, CHARSET is a translation table (symbol) or a
+;; function to get Emacs' character codes that corresponds to the
+;; characters to list.
 
 (defun list-block-of-chars (charset row min max)
   (let (i ch)
@@ -374,8 +375,8 @@ detailed meanings of these arguments."
 		      (if (= row 0)
 			  (make-char charset i)
 			(make-char charset row i)))
-		     ((char-table-p charset)
-		      (aref charset i))
+		     ((and (symbolp charset) (get charset 'translation-table))
+		      (aref (get charset 'translation-table) i))
 		     (t (funcall charset (+ (* row 256) i)))))
       (if (and (char-table-p charset)
 	       (or (< ch 32) (and (>= ch 127) (<= ch 255))))
