@@ -636,10 +636,6 @@ struct glyph_row
      implies that the row doesn't have marginal areas.  */
   unsigned full_width_p : 1;
 
-  /* if non-zero, and full_width_p is also non-zero, don't let
-     the row draw over the frame's internal border.  */
-  unsigned internal_border_p : 1;
-
   /* Non-zero means row is a mode or top-line.  */
   unsigned mode_line_p : 1;
 
