@@ -1020,7 +1020,10 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
 ;;;          t))
   (pop-to-buffer "*mail*")
-  (auto-save-mode auto-save-default)
+  ;; Put the auto-save file in the home dir
+  ;; to avoid any danger that it can't be written.
+  (let ((default-directory "~/"))
+    (auto-save-mode auto-save-default))
   (mail-mode)
   ;; Disconnect the buffer from its visited file
   ;; (in case the user has actually visited a file *mail*).
