@@ -2424,14 +2424,21 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
   (c1, c2)
      register Lisp_Object c1, c2;
 {
+  int i1, i2;
   CHECK_NUMBER (c1, 0);
   CHECK_NUMBER (c2, 1);
 
-  if (XINT (c1) == XINT (c2)
-      && (NILP (current_buffer->case_fold_search)
-	  || DOWNCASE (XFASTINT (c1)) == DOWNCASE (XFASTINT (c2))))
+  if (XINT (c1) == XINT (c2))
     return Qt;
-  return Qnil;
+  if (NILP (current_buffer->case_fold_search))
+    return Qnil;
+
+  /* Do these in separate statements,
+     then compare the variables.
+     because of the way DOWNCASE uses temp variables.  */
+  i1 = DOWNCASE (XFASTINT (c1));
+  i2 = DOWNCASE (XFASTINT (c2));
+  return (i1 == i2 ? Qt :  Qnil);
 }
 
 /* Transpose the markers in two regions of the current buffer, and
