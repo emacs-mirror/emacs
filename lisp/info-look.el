@@ -1,9 +1,10 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99,2001  Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
+;;         (did not show signs of life (Nov 2001)  -stef)
 ;; Keywords: help languages
 
 ;; This file is part of GNU Emacs.
@@ -646,8 +647,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'makefile-mode
  :regexp "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*"
  :doc-spec '(("(make)Name Index" nil
+	      "^[ \t]*`" "'")
+	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
- :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+")
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+"
+ :other-modes '(automake-mode))
 
 (info-lookup-maybe-add-help
  :mode 'texinfo-mode
@@ -670,7 +674,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :regexp "A[CM]_[_A-Z0-9]+"
  :doc-spec '(("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
-	     ("(automake)Index" nil
+	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
  :parse-rule 'ignore
