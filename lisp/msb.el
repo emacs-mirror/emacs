@@ -496,13 +496,13 @@ If the argument is left out or nil, then the current buffer is considered."
   (file-name-directory (directory-file-name dir)))
 
 ;; Create an alist with all buffers from LIST that lies under the same
-;; directory will be in the same item as the directory string.
-;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) ...)
+;; directory will be in the same item as the directory name.
+;; ((DIR1 . (BUFFER-1 BUFFER-2 ...)) (DIR2 . (BUFFER-K BUFFER-K+1...)) ...)
 (defun msb--init-file-alist (list)
   (let ((buffer-alist
 	 ;; Make alist that looks like
-	 ;; ((PATH-1 BUFFER-1) (PATH-2 BUFFER-2) ...)
-	 ;; sorted on PATH-x
+	 ;; ((DIR-1 BUFFER-1) (DIR-2 BUFFER-2) ...)
+	 ;; sorted on DIR-x
 	 (sort
 	  (apply #'nconc
 		 (mapcar
@@ -514,37 +514,37 @@ If the argument is left out or nil, then the current buffer is considered."
 		  list))
 	  (lambda (item1 item2)
 	    (string< (car item1) (car item2))))))
-    ;; Now clump buffers together that have the same path
+    ;; Now clump buffers together that have the same directory name
     ;; Make alist that looks like
-    ;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K)) ...)
-    (let ((path nil)
+    ;; ((DIR1 . (BUFFER-1 BUFFER-2 ...)) (DIR2 . (BUFFER-K)) ...)
+    (let ((dir nil)
 	  (buffers nil))
       (nconc
        (apply
 	#'nconc
 	(mapcar (lambda (item)
 		  (cond
-		   ((equal path (car item))
-		    ;; The same path as earlier: Add to current list of
-		    ;; buffers.
+		   ((equal dir (car item))
+		    ;; The same dir as earlier:
+		    ;; Add to current list of buffers.
 		    (push (cdr item) buffers)
 		    ;; This item should not be added to list
 		    nil)
 		   (t
-		    ;; New path
-		    (let ((result (and path (cons path buffers))))
-		      (setq path (car item))
+		    ;; New dir
+		    (let ((result (and dir (cons dir buffers))))
+		      (setq dir (car item))
 		      (setq buffers (list (cdr item)))
 		      ;; Add the last result the list.
 		      (and result (list result))))))
 		buffer-alist))
        ;; Add the last result to the list
-       (list (cons path buffers))))))
+       (list (cons dir buffers))))))
 
-(defun msb--format-title (top-found-p path number-of-items)
+(defun msb--format-title (top-found-p dir number-of-items)
   "Format a suitable title for the menu item."
   (format (if top-found-p "%s... (%d)" "%s (%d)")
-	  (abbreviate-file-name path) number-of-items))
+	  (abbreviate-file-name dir) number-of-items))
 
 ;; Variables for debugging.
 (defvar msb--choose-file-menu-list)
@@ -559,32 +559,32 @@ If the argument is left out or nil, then the current buffer is considered."
 				  msb-max-file-menu-items
 				10))
 	(top-found-p nil)
-	(last-path nil)
-	first rest path buffers old-path)
+	(last-dir nil)
+	first rest dir buffers old-dir)
     ;; Prepare for looping over all items in buffer-alist
     (setq first (car buffer-alist)
 	  rest (cdr buffer-alist)
-	  path (car first)
+	  dir (car first)
 	  buffers (cdr first))
     (setq msb--choose-file-menu-list (copy-sequence rest))
     ;; This big loop tries to clump buffers together that have a
     ;; similar name. Remember that buffer-alist is sorted based on the
-    ;; path for the buffers.
+    ;; directory name of the buffers' visited files.
     (while rest
       (let ((found-p nil)
 	    (tmp-rest rest)
 	    result
-	    new-path item)
+	    new-dir item)
 	(setq item (car tmp-rest))
-	;; Clump together the "rest"-buffers that have a path that is
-	;; a subpath of the current one.
+	;; Clump together the "rest"-buffers that have a dir that is
+	;; a subdir of the current one.
 	(while (and tmp-rest
 		    (<= (length buffers) max-clumped-together)
-		    (>= (length (car item)) (length path))
+		    (>= (length (car item)) (length dir))
 		    ;; `completion-ignore-case' seems to default to t
 		    ;; on the systems with case-insensitive file names.
-		    (eq t (compare-strings path 0 nil
-					   (car item) 0 (length path)
+		    (eq t (compare-strings dir 0 nil
+					   (car item) 0 (length dir)
 					   completion-ignore-case)))
 	  (setq found-p t)
 	  (setq buffers (append buffers (cdr item))) ;nconc is faster than append
@@ -594,7 +594,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	 ((> (length buffers) max-clumped-together)
 	  ;; Oh, we failed. Too many buffers clumped together.
 	  ;; Just use the original ones for the result.
-	  (setq last-path (car first))
+	  (setq last-dir (car first))
 	  (push (cons (msb--format-title top-found-p
 					 (car first)
 					 (length (cdr first)))
@@ -603,33 +603,33 @@ If the argument is left out or nil, then the current buffer is considered."
 	  (setq top-found-p nil)
 	  (setq first (car rest)
 		rest (cdr rest)
-		path (car first)
+		dir (car first)
 		buffers (cdr first)))
 	 (t
 	  ;; The first pass of clumping together worked out, go ahead
 	  ;; with this result.
 	  (when found-p
 	    (setq top-found-p t)
-	    (setq first (cons path buffers)
+	    (setq first (cons dir buffers)
 		  rest tmp-rest))
 	  ;; Now see if we can clump more buffers together if we go up
 	  ;; one step in the file hierarchy.
-	  ;; If path isn't changed by msb--strip-dir, we are looking
+	  ;; If dir isn't changed by msb--strip-dir, we are looking
 	  ;; at the machine name component of an ange-ftp filename.
-	  (setq old-path path)
-	  (setq path (msb--strip-dir path)
+	  (setq old-dir dir)
+	  (setq dir (msb--strip-dir dir)
 		buffers (cdr first))
-	  (if (equal old-path path)
-	      (setq last-path path))
-	  (when (and last-path
-		     (or (and (>= (length path) (length last-path))
+	  (if (equal old-dir dir)
+	      (setq last-dir dir))
+	  (when (and last-dir
+		     (or (and (>= (length dir) (length last-dir))
 			      (eq t (compare-strings
-				     last-path 0 nil path 0
-				     (length last-path)
+				     last-dir 0 nil dir 0
+				     (length last-dir)
 				     completion-ignore-case)))
-			 (and (< (length path) (length last-path))
+			 (and (< (length dir) (length last-dir))
 			      (eq t (compare-strings
-				     path 0 nil last-path 0 (length path)
+				     dir 0 nil last-dir 0 (length dir)
 				     completion-ignore-case)))))
 	    ;; We have reached the same place in the file hierarchy as
 	    ;; the last result, so we should quit at this point and
@@ -642,7 +642,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	    (setq top-found-p nil)
 	    (setq first (car rest)
 		  rest (cdr rest)
-		  path (car first)
+		  dir (car first)
 		  buffers (cdr first)))))))
     ;; Now take care of the last item.
     (when first
