@@ -1471,7 +1471,16 @@ SIG optional fourth argument, controls action on no match
     a string: signal an error, using that string."
   (save-excursion
     (goto-char pos)
-    (re-search-backward start (max (point-min) (- pos 200)) 'yes)
+    ;; First look for a match for START that goes across POS.
+    (while (and (not (bobp)) (> (point) (- pos (length start)))
+		(not (looking-at start)))
+      (forward-char -1))
+    ;; If we did not find one, search back for START
+    ;; (this finds only matches that end at or before POS).
+    (or (looking-at start)
+	(progn
+	  (goto-char pos)
+	  (re-search-backward start (max (point-min) (- pos 200)) 'yes)))
     (let (found)
       (while (and (re-search-forward all (min (point-max) (+ pos 200)) 'yes)
 		  (not (setq found (and (<= (match-beginning 0) pos)
