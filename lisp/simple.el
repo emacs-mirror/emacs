@@ -992,13 +992,18 @@ ring directly.")
 (defvar kill-ring-yank-pointer nil
   "The tail of the kill ring whose car is the last thing yanked.")
 
-(defun kill-new (string)
+(defun kill-new (string &optional replace)
   "Make STRING the latest kill in the kill ring.
 Set the kill-ring-yank pointer to point to it.
-If `interprogram-cut-function' is non-nil, apply it to STRING."
-  (setq kill-ring (cons string kill-ring))
-  (if (> (length kill-ring) kill-ring-max)
-      (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
+If `interprogram-cut-function' is non-nil, apply it to STRING.
+Optional second argument REPLACE non-nil means that STRING will replace
+the front of the kill ring, rather than being added to the list."
+  (menu-bar-update-yank-menu string (and replace (car kill-ring)))
+  (if replace
+      (setcar kill-ring string)
+    (setq kill-ring (cons string kill-ring))
+    (if (> (length kill-ring) kill-ring-max)
+	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
       (funcall interprogram-cut-function string t)))
@@ -1008,12 +1013,9 @@ If `interprogram-cut-function' is non-nil, apply it to STRING."
 If BEFORE-P is non-nil, prepend STRING to the kill.
 If `interprogram-cut-function' is set, pass the resulting kill to
 it."
-  (setcar kill-ring
-	  (if before-p
-	      (concat string (car kill-ring))
-	    (concat (car kill-ring) string)))
-  (if interprogram-cut-function
-      (funcall interprogram-cut-function (car kill-ring))))
+  (kill-new (if before-p
+		(concat string (car kill-ring))
+	      (concat (car kill-ring) string)) t))
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
