@@ -1359,25 +1359,58 @@ sys_kill (int pid, int sig)
 	    }
 
 	  foreground_window = GetForegroundWindow ();
-	  if (foreground_window && SetForegroundWindow (cp->hwnd))
+	  if (foreground_window)
 	    {
-	      /* Generate keystrokes as if user had typed Ctrl-Break or
-                 Ctrl-C.  */
-	      keybd_event (VK_CONTROL, control_scan_code, 0, 0);
-	      keybd_event (vk_break_code, break_scan_code,
-			   (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY), 0);
-	      keybd_event (vk_break_code, break_scan_code,
-			   (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY)
-			   | KEYEVENTF_KEYUP, 0);
-	      keybd_event (VK_CONTROL, control_scan_code, KEYEVENTF_KEYUP, 0);
+              /* NT 5.0, and apparently also Windows 98, will not allow
+		 a Window to be set to foreground directly without the
+		 user's involvement. The workaround is to attach
+		 ourselves to the thread that owns the foreground
+		 window, since that is the only thread that can set the
+		 foreground window.  */
+              DWORD foreground_thread, child_thread;
+              foreground_thread =
+		GetWindowThreadProcessId (foreground_window, NULL);
+	      if (foreground_thread == GetCurrentThreadId ()
+                  || !AttachThreadInput (GetCurrentThreadId (),
+                                         foreground_thread, TRUE))
+                foreground_thread = 0;
 
-	      /* Sleep for a bit to give time for Emacs frame to respond
-		 to focus change events (if Emacs was active app).  */
-	      Sleep (10);
+              child_thread = GetWindowThreadProcessId (cp->hwnd, NULL);
+	      if (child_thread == GetCurrentThreadId ()
+                  || !AttachThreadInput (GetCurrentThreadId (),
+                                         child_thread, TRUE))
+                child_thread = 0;
 
-	      SetForegroundWindow (foreground_window);
-	    }
-	}
+              /* Set the foreground window to the child.  */
+              if (SetForegroundWindow (cp->hwnd))
+                {
+                  /* Generate keystrokes as if user had typed Ctrl-Break or
+                     Ctrl-C.  */
+                  keybd_event (VK_CONTROL, control_scan_code, 0, 0);
+                  keybd_event (vk_break_code, break_scan_code,
+		    (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY), 0);
+                  keybd_event (vk_break_code, break_scan_code,
+                    (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY)
+                    | KEYEVENTF_KEYUP, 0);
+                  keybd_event (VK_CONTROL, control_scan_code,
+                               KEYEVENTF_KEYUP, 0);
+
+                  /* Sleep for a bit to give time for Emacs frame to respond
+                     to focus change events (if Emacs was active app).  */
+                  Sleep (100);
+
+                  SetForegroundWindow (foreground_window);
+                }
+              /* Detach from the foreground and child threads now that
+                 the foreground switching is over.  */
+              if (foreground_thread)
+                AttachThreadInput (GetCurrentThreadId (),
+                                   foreground_thread, FALSE);
+              if (child_thread)
+                AttachThreadInput (GetCurrentThreadId (),
+                                   child_thread, FALSE);
+            }
+        }
       /* Ctrl-Break is NT equivalent of SIGINT.  */
       else if (!GenerateConsoleCtrlEvent (CTRL_BREAK_EVENT, pid))
         {
