@@ -3211,6 +3211,22 @@ struct x_display_info *XTread_socket_fake_io_error;
    This variable is used for cycling thru the displays.  */
 static struct x_display_info *next_noop_dpyinfo;
 
+#define SET_SAVED_MENU_EVENT(size) { \
+  if (f->output_data.x->saved_menu_event == 0) \
+    f->output_data.x->saved_menu_event = (XEvent*)xmalloc (sizeof (XEvent)); \
+  bcopy (&event, f->output_data.x->saved_menu_event, size); \
+  if (numchars >= 1) \
+    { \
+      bufp->kind = menu_bar_activate_event; \
+      XSETFRAME (bufp->frame_or_window, f); \
+      bufp++; \
+      count++; \
+      numchars--; \
+    } \
+  }
+#define SET_SAVED_BUTTON_EVENT SET_SAVED_MENU_EVENT (sizeof (XButtonEvent))
+#define SET_SAVED_KEY_EVENT SET_SAVED_MENU_EVENT (sizeof (XKeyEvent))
+
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -3226,8 +3242,8 @@ static struct x_display_info *next_noop_dpyinfo;
 int
 XTread_socket (sd, bufp, numchars, waitp, expected)
      register int sd;
-     register struct input_event *bufp;
-     register int numchars;
+     /* register */ struct input_event *bufp;
+     /* register */ int numchars;
      int waitp;
      int expected;
 {
@@ -3621,7 +3637,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
                                                f->output_data.x->menubar_widget
                                                ))
                     {
-                      XtDispatchEvent (&event);
+                      SET_SAVED_KEY_EVENT;
                       break;
                     }
 #endif /* USE_X_TOOLKIT */
@@ -4030,19 +4046,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && event.xbutton.y < f->output_data.x->menubar_height
 		    && event.xbutton.same_screen)
 		  {
-		    if (f->output_data.x->saved_button_event == 0)
-		      f->output_data.x->saved_button_event
-			= (XButtonEvent *) xmalloc (sizeof (XButtonEvent)); 
-		    bcopy (&event, f->output_data.x->saved_button_event,
-			   sizeof (XButtonEvent));
-		    if (numchars >= 1)
-		      {
-			bufp->kind = menu_bar_activate_event;
-			XSETFRAME (bufp->frame_or_window, f);
-			bufp++;
-			count++;
-			numchars--;
-		      }
+		    SET_SAVED_BUTTON_EVENT;
 		  }
 		else
 		  goto OTHER;
