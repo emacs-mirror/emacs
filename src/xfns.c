@@ -58,8 +58,8 @@ static XrmDatabase xrdb;
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
-/* The name we're using for this X application.  */
-Lisp_Object Vxrdb_name;
+/* The name we're using in resource queries.  */
+Lisp_Object Vx_resource_name;
 
 /* Title name and application name for X stuff. */
 extern char *x_id_name;
@@ -358,10 +358,7 @@ x_set_frame_parameters (f, alist)
       i++;
     }
 
-  XSET (width,  Lisp_Int, FRAME_WIDTH  (f));
-  XSET (height, Lisp_Int, FRAME_HEIGHT (f));
-  XSET (top, Lisp_Int, f->display.x->top_pos);
-  XSET (left, Lisp_Int, f->display.x->left_pos);
+  width = height = top = left = Qunbound;
 
   /* Now process them in reverse of specified order.  */
   for (i--; i >= 0; i--)
@@ -393,17 +390,23 @@ x_set_frame_parameters (f, alist)
 	}
     }
 
-  /* Don't call these unless they've changed; the window may not actually
-     exist yet.  */
+  /* Don't set these parameters these unless they've been explicitly
+     specified.  The window might be mapped or resized while we're in
+     this function, and we don't want to override that unless the lisp
+     code has asked for it.
+
+     Don't set these parameters unless they actually differ from the
+     window's current parameters; the window may not actually exist
+     yet.  */
   {
     Lisp_Object frame;
 
     XSET (frame, Lisp_Frame, f);
-    if (XINT (width) != FRAME_WIDTH (f)
-	|| XINT (height) != FRAME_HEIGHT (f))
+    if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
+	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
       Fset_frame_size (frame, width, height);
-    if (XINT (left) != f->display.x->left_pos
-	|| XINT (top) != f->display.x->top_pos)
+    if ((NUMBERP (left) && XINT (left) != f->display.x->left_pos)
+	|| (NUMBERP (top) && XINT (top) != f->display.x->top_pos))
       Fset_frame_position (frame, left, top);
   }
 }
@@ -1098,17 +1101,28 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 /* Subroutines of creating an X frame.  */
 
 #ifdef HAVE_X11
+
+/* Make sure that Vx_resource_name is set to a reasonable value.  */
+static void
+validate_x_resource_name ()
+{
+  if (! STRINGP (Vx_resource_name))
+    Vx_resource_name = make_string ("emacs");
+}
+
+
 extern char *x_get_string_resource ();
 extern XrmDatabase x_load_resources ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
   "Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.\n\
-This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the\n\
-class, where INSTANCE is the name under which Emacs was invoked.\n\
+This uses `NAME.ATTRIBUTE' as the key and `Emacs.CLASS' as the\n\
+class, where INSTANCE is the name under which Emacs was invoked, or\n\
+the name specified by the `-name' or `-rn' command-line arguments.\n\
 \n\
 The optional arguments COMPONENT and SUBCLASS add to the key and the\n\
 class, respectively.  You must specify both of them or neither.\n\
-If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'\n\
+If you specify them, the key is `NAME.COMPONENT.ATTRIBUTE'\n\
 and the class is `Emacs.CLASS.SUBCLASS'.")
   (attribute, class, component, subclass)
      Lisp_Object attribute, class, component, subclass;
@@ -1129,11 +1143,13 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   if (NILP (component) != NILP (subclass))
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
+  validate_x_resource_name ();
+
   if (NILP (component))
     {
       /* Allocate space for the components, the dots which separate them,
 	 and the final '\0'.  */
-      name_key = (char *) alloca (XSTRING (Vxrdb_name)->size
+      name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
 				  + XSTRING (attribute)->size
 				  + 2);
       class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
@@ -1141,7 +1157,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 2);
 
       sprintf (name_key, "%s.%s",
-	       XSTRING (Vxrdb_name)->data,
+	       XSTRING (Vx_resource_name)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s",
 	       EMACS_CLASS,
@@ -1149,7 +1165,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     }
   else
     {
-      name_key = (char *) alloca (XSTRING (Vxrdb_name)->size
+      name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
 				  + XSTRING (component)->size
 				  + XSTRING (attribute)->size
 				  + 3);
@@ -1160,7 +1176,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 3);
 
       sprintf (name_key, "%s.%s.%s",
-	       XSTRING (Vxrdb_name)->data,
+	       XSTRING (Vx_resource_name)->data,
 	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s.%s",
@@ -1522,7 +1538,8 @@ x_window (f)
 		     screen_visual, /* set in Fx_open_connection */
 		     attribute_mask, &attributes);
 
-  class_hints.res_name = (char *) XSTRING (Vxrdb_name)->data;
+  validate_x_resource_name ();
+  class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, FRAME_X_WINDOW (f), &class_hints);
 
@@ -1733,13 +1750,17 @@ be shared by the new frame.")
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-  x_default_parameter (f, parms, Qfont, 
-		       build_string
-		       /* If we use an XLFD name for this font, the lisp code
-			  knows how to find variants which are bold, italic,
-			  etcetera.  */
-		       ("-*-fixed-*-*-*-*-*-120-*-*-c-*-iso8859-1"),
-		       "font", "Font", string);
+  {
+    Lisp_Object font;
+
+    /* Try out a font which we know has bold and italic variations.  */
+    font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
+    if (NILP (font))
+      font = build_string ("-*-fixed-*-*-*-*-*-120-*-*-c-*-iso8859-1");
+    
+    x_default_parameter (f, parms, Qfont, font, 
+			 "font", "Font", string);
+  }
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
   /* This defaults to 2 in order to match xterm.  We recognize either
@@ -3466,8 +3487,8 @@ select_visual (screen, depth)
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 2, 0, "Open a connection to an X server.\n\
-DISPLAY is the name of the display to connect to.  Optional second\n\
-arg XRM_STRING is a string of resources in xrdb format.")
+DISPLAY is the name of the display to connect to.\n\
+Optional second arg XRM_STRING is a string of resources in xrdb format.")
   (display, xrm_string)
      Lisp_Object display, xrm_string;
 {
@@ -3477,6 +3498,8 @@ arg XRM_STRING is a string of resources in xrdb format.")
   CHECK_STRING (display, 0);
   if (x_current_display != 0)
     error ("X server connection is already initialized");
+  if (! NILP (xrm_string))
+    CHECK_STRING (xrm_string, 1);
 
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input. */
@@ -3485,34 +3508,23 @@ arg XRM_STRING is a string of resources in xrdb format.")
 #ifdef HAVE_X11
   XFASTINT (Vwindow_system_version) = 11;
 
-  if (!EQ (xrm_string, Qnil))
-    {
-      CHECK_STRING (xrm_string, 1);
-      xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
-    }
+  if (! NILP (xrm_string))
+    xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
   else
     xrm_option = (unsigned char *) 0;
+
+  validate_x_resource_name ();
+
   BLOCK_INPUT;
-  xrdb = x_load_resources (x_current_display, xrm_option, EMACS_CLASS);
+  xrdb = x_load_resources (x_current_display, xrm_option,
+			   (char *) XSTRING (Vx_resource_name)->data,
+			   EMACS_CLASS);
   UNBLOCK_INPUT;
-#if defined (HAVE_X11R5) || defined (HAVE_XRMSETDATABASE)
+#if defined (HAVE_X11R5)
   XrmSetDatabase (x_current_display, xrdb);
 #else
   x_current_display->db = xrdb;
 #endif
-
-  /* Make a version of Vinvocation_name suitable for use in xrdb
-     queries - i.e. containing no dots or asterisks.  */
-  Vxrdb_name = Fcopy_sequence (Vinvocation_name);
-  {
-    int i;
-    int len = XSTRING (Vxrdb_name)->size;
-    unsigned char *data = XSTRING (Vxrdb_name)->data;
-    
-    for (i = 0; i < len; i++)
-      if (data[i] == '.' || data[i] == '*')
-	data[i] = '-';
-  }
 
   x_screen = DefaultScreenOfDisplay (x_current_display);
 
@@ -3656,16 +3668,24 @@ syms_of_xfns ()
   init_x_parm_symbols ();
 
   DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
-	      "The buffer offset of the character under the pointer.");
+    "The buffer offset of the character under the pointer.");
   mouse_buffer_offset = 0;
 
   DEFVAR_INT ("x-pointer-shape", &Vx_pointer_shape,
-	      "The shape of the pointer when over text.\n\
+    "The shape of the pointer when over text.\n\
 Changing the value does not affect existing frames\n\
 unless you set the mouse color.");
   Vx_pointer_shape = Qnil;
 
-  staticpro (&Vxrdb_name);
+  DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
+    "The name Emacs uses to look up X resources; for internal use only.\n\
+`x-get-resource' uses this as the first component of the instance name\n\
+when requesting resource values.\n\
+Emacs initially sets `x-resource-name' to the name under which Emacs\n\
+was invoked, or to the value specified with the `-name' or `-rn'\n\
+switches, if present.");
+  Vx_resource_name = Qnil;
+  staticpro (&Vx_resource_name);
 
 #if 0
   DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
