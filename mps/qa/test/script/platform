@@ -72,7 +72,7 @@ sub settings_nt {
 sub settings_nt_cap {
  $cc_opts = "$cc_opts /Gh";
  $cc_link = "$cc_link CAP.lib";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:mapped,partial";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug:full /debugtype:both /pdb:none";
 }
 
 sub settings_nt_coff {
