@@ -72,7 +72,7 @@
   (if (not calendar-time-zone)
       (setq calendar-time-zone
             (solar-get-number
-             "Enter difference from Universal Time (in minutes): "))))
+             "Enter difference from Coordinated Universal Time (in minutes): "))))
 
 (defun solar-get-number (prompt)
   "Return a number from the minibuffer, prompting with PROMPT.
@@ -226,22 +226,46 @@ of hours.  Returns nil if the sun does not set at that location on that day."
 	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
-(defun solar-time-string (time date)
-  "Printable form for decimal fraction standard TIME on DATE.
+(defun solar-time-string (time date &optional style)
+  "Printable form for decimal fraction *standard* TIME on DATE.
+Optional parameter STYLE forces the time to be standard time when its value
+is 'standard and daylight savings time (if available) when its value is
+'daylight.
+
 Format used is given by `calendar-time-display-form'.  Converted to daylight
-savings time according to `calendar-daylight-savings-starts' and
-`calendar-daylight-savings-ends', if those variables are not nil."
+savings time according to `calendar-daylight-savings-starts',
+`calendar-daylight-savings-ends', `calendar-daylight-switchover-time', and
+`calendar-daylight-savings-offset'."
   (let* ((year (extract-calendar-year date))
-	 (abs-date (calendar-absolute-from-gregorian date))
-	 (dst (and calendar-daylight-savings-starts
-		   calendar-daylight-savings-ends
-		   (<= (calendar-absolute-from-gregorian
-			(eval calendar-daylight-savings-starts))
-		       abs-date)
-		   (< abs-date
-		      (calendar-absolute-from-gregorian
-		       (eval calendar-daylight-savings-ends)))))
-	 (time (if dst (1+ time) time))
+         (abs-date-and-time (+ (calendar-absolute-from-gregorian date)
+                               (/ time 24.0)))
+         (rounded-abs-date (+ abs-date-and-time (/ 1.0 60 24 2)));; half min
+         (dst-change-over
+          (/ (eval calendar-daylight-savings-switchover-time) 60.0 24.0))
+         (dst-starts (and calendar-daylight-savings-starts
+                          (+ (calendar-absolute-from-gregorian
+                              (eval calendar-daylight-savings-starts))
+                             dst-change-over)))
+         (dst-ends (and calendar-daylight-savings-ends
+                        (+ (calendar-absolute-from-gregorian
+                            (eval calendar-daylight-savings-ends))
+                           dst-change-over)))
+	 (dst (and (not (eq style 'standard))
+                   (or (eq style 'daylight)
+                       (and dst-starts dst-ends
+                            (or (and (< dst-starts dst-ends);; northern hemi.
+                                     (<= dst-starts rounded-abs-date)
+                                     (< rounded-abs-date dst-ends))
+                                (and (< dst-ends dst-starts);; southern hemi.
+                                     (or (< rounded-abs-date dst-ends)
+                                         (<= dst-starts rounded-abs-date)))))
+                       (and dst-starts (not dst-ends)
+                            (<= dst-starts rounded-abs-date))
+                       (and dst-ends (not dst-starts)
+                            (< rounded-abs-date dst-ends)))))
+         (time (if dst
+                   (+ time (/ (eval calendar-daylight-time-offset) 60.0))
+                 time))
 	 (time-zone (if dst
 			calendar-daylight-time-zone-name
 			calendar-standard-time-zone-name))
@@ -301,7 +325,7 @@ savings time according to `calendar-daylight-savings-starts' and
     app))
 
 (defun solar-ephemeris-correction (year)
-  "Difference in minutes between Ephemeris time an Universal time in YEAR.
+  "Difference in minutes between Ephemeris time and UTC in YEAR.
 Value is only an approximation."
   (let ((T (/ (- year 1900) 100.0)))
     (+ 0.41 (* 1.2053 T) (* 0.4992 T T))))
@@ -347,7 +371,7 @@ This function is suitable for execution in a .emacs file."
         (calendar-time-zone
          (if (< arg 16) calendar-time-zone
            (solar-get-number
-            "Enter difference from Universal Time (in minutes): ")))
+            "Enter difference from Coordinated Universal Time (in minutes): ")))
         (calendar-location-name
          (if (< arg 16) calendar-location-name
            (let ((float-output-format "%.1f"))
