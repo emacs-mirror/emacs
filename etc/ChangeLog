@@ -1,3 +1,11 @@
+2001-04-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs.1: Place under GFDL.
+
+	* etags.1: Ditto.
+
+	* gfdl.1: New file.
+
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* TUTORIAL.sk, sk-survival.tex

@@ -1,3 +1,8 @@
+2001-04-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (install-arch-indep): Add gfdl.1 to the man pages
+	that are installed.
+
 2001-04-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Copy only `[a-z]*.{el,elc}' from leim/quail.
