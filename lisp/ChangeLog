@@ -1,3 +1,13 @@
+2004-05-08  Andreas Schwab  <schwab@suse.de>
+
+	* international/subst-ksc.el: Fix references to utf-translate-cjk
+	into utf-translate-cjk-mode.
+	* international/subst-big5.el: Likewise.
+	* international/subst-gb2312.el: Likewise.
+	* international/subst-jis.el: Likewise.
+	* international/utf-16.el: Likewise.
+	* international/utf-8.el: Likewise.
+
 2004-05-08  John Wiegley  <johnw@newartisans.com>
 
 	* iswitchb.el (iswitchb-use-virtual-buffers): Added support for
