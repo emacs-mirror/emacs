@@ -42,6 +42,17 @@ download conventional patches against Emacs CVS HEAD:
 
 	http://lorentey.web.elte.hu/project/emacs.html
 
+If you want to be notified of new revisions, sign up to the
+multi-tty@listbox.elte.hu mailing list by visiting the
+below homepage and following its instructions.
+
+	https://listbox.elte.hu/mailman/listinfo/multi-tty
+
+Please note that the multi-tty mailing list is read-only, and is
+reserved for automatic commit messages.  Discussion about the branch
+and bug reports should be sent directly to me (lorentey@elte.hu), or
+to the emacs-devel@gnu.org mailing list.
+
 STATUS
 ------
 
