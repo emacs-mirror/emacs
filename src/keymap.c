@@ -88,27 +88,40 @@ static void describe_alist ();
 
 /* Keymap object support - constructors and predicates.			*/
 
-DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 0, 0,
+DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
   "Construct and return a new keymap, of the form (keymap VECTOR . ALIST).\n\
 VECTOR is a 128-element vector which holds the bindings for the ASCII\n\
 characters.  ALIST is an assoc-list which holds bindings for function keys,\n\
 mouse events, and any other things that appear in the input stream.\n\
-All entries in it are initially nil, meaning \"command undefined\".")
-  ()
+All entries in it are initially nil, meaning \"command undefined\".\n\n\
+The optional arg STRING supplies a menu name for the keymap\n\
+in case you use it as a menu with `x-popup-menu'.")
+  (string)
+     Lisp_Object string;
 {
+  Lisp_Object tail;
+  if (!NILP (string))
+    tail = Fcons (string, Qnil);
+  else
+    tail = Qnil;
   return Fcons (Qkeymap,
 		Fcons (Fmake_vector (make_number (DENSE_TABLE_SIZE), Qnil),
-		       Qnil));
+		       tail));
 }
 
-DEFUN ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 0, 0,
+DEFUN ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 1, 0,
   "Construct and return a new sparse-keymap list.\n\
 Its car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),\n\
 which binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),\n\
 which binds the function key or mouse event SYMBOL to DEFINITION.\n\
-Initially the alist is nil.")
-  ()
+Initially the alist is nil.\n\n\
+The optional arg STRING supplies a menu name for the keymap\n\
+in case you use it as a menu with `x-popup-menu'.")
+  (string)
+     Lisp_Object string;
 {
+  if (!NILP (string))
+    return Fcons (Qkeymap, Fcons (string, Qnil));
   return Fcons (Qkeymap, Qnil);
 }
 
@@ -194,7 +207,7 @@ get_keymap (object)
 /* If KEYMAP is a dense keymap, return the vector from its cadr.
    Otherwise, return nil.  */
 
-static Lisp_Object
+Lisp_Object
 keymap_table (keymap)
      Lisp_Object keymap;
 {
@@ -464,7 +477,7 @@ the front of KEYMAP.")
 
       if (NILP (cmd))
 	{
-	  cmd = Fmake_sparse_keymap ();
+	  cmd = Fmake_sparse_keymap (Qnil);
 	  store_in_keymap (keymap, c, cmd);
 	}
 
@@ -762,7 +775,7 @@ which is shared with other buffers in the same major mode.")
   map = current_buffer->keymap;
   if (NILP (map))
     {
-      map = Fmake_sparse_keymap ();
+      map = Fmake_sparse_keymap (Qnil);
       current_buffer->keymap = map;
     }
 
@@ -806,7 +819,7 @@ as a function.")
      Lisp_Object name, mapvar;
 {
   Lisp_Object map;
-  map = Fmake_sparse_keymap ();
+  map = Fmake_sparse_keymap (Qnil);
   Ffset (name, map);
   if (!NILP (mapvar))
     Fset (mapvar, map);
@@ -1767,32 +1780,32 @@ syms_of_keymap ()
    Each one is the value of a Lisp variable, and is also
    pointed to by a C variable */
 
-  global_map = Fmake_keymap ();
+  global_map = Fmake_keymap (Qnil);
   Fset (intern ("global-map"), global_map);
 
-  meta_map = Fmake_keymap ();
+  meta_map = Fmake_keymap (Qnil);
   Fset (intern ("esc-map"), meta_map);
   Ffset (intern ("ESC-prefix"), meta_map);
 
-  control_x_map = Fmake_keymap ();
+  control_x_map = Fmake_keymap (Qnil);
   Fset (intern ("ctl-x-map"), control_x_map);
   Ffset (intern ("Control-X-prefix"), control_x_map);
 
   DEFVAR_LISP ("minibuffer-local-map", &Vminibuffer_local_map,
     "Default keymap to use when reading from the minibuffer.");
-  Vminibuffer_local_map = Fmake_sparse_keymap ();
+  Vminibuffer_local_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("minibuffer-local-ns-map", &Vminibuffer_local_ns_map,
     "Local keymap for the minibuffer when spaces are not allowed.");
-  Vminibuffer_local_ns_map = Fmake_sparse_keymap ();
+  Vminibuffer_local_ns_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("minibuffer-local-completion-map", &Vminibuffer_local_completion_map,
     "Local keymap for minibuffer input with completion.");
-  Vminibuffer_local_completion_map = Fmake_sparse_keymap ();
+  Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
     "Local keymap for minibuffer input with completion, for exact match.");
-  Vminibuffer_local_must_match_map = Fmake_sparse_keymap ();
+  Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
 
   current_global_map = global_map;
 
@@ -1820,7 +1833,7 @@ For example, suppose function-key-map binds `ESC O P' to [pf1].\n\
 Typing `ESC O P' to read-key-sequence would return [pf1].  Typing\n\
 `C-x ESC O P' would return [?\C-x pf1].  If [pf1] were a prefix\n\
 key, typing `ESC O P x' would return [pf1 x].");
-  Vfunction_key_map = Fmake_sparse_keymap ();
+  Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);
