@@ -1,5 +1,5 @@
 ;; Basic editing commands for Emacs
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -402,7 +402,8 @@ Repeat this command to undo more changes.
 A numeric argument serves as a repeat count."
   (interactive "*p")
   (let ((modified (buffer-modified-p)))
-    (message "Undo!")
+    (or (eq (selected-window) (minibuffer-window))
+	(message "Undo!"))
     (or (eq last-command 'undo)
 	(progn (undo-start)
 	       (undo-more 1)))
