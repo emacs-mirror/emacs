@@ -246,7 +246,7 @@ Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
 Lisp_Object Quser_position;
 Lisp_Object Quser_size;
-Lisp_Object Qdisplay;
+extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma;
 
@@ -10192,8 +10192,6 @@ syms_of_xfns ()
   staticpro (&Quser_position);
   Quser_size = intern ("user-size");
   staticpro (&Quser_size);
-  Qdisplay = intern ("display");
-  staticpro (&Qdisplay);
   Qscroll_bar_foreground = intern ("scroll-bar-foreground");
   staticpro (&Qscroll_bar_foreground);
   Qscroll_bar_background = intern ("scroll-bar-background");
