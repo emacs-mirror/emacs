@@ -102,9 +102,12 @@ extern char *strerror ();
    redirector allows the six letters between 'Z' and 'a' as well. */
 #ifdef MSDOS
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
+#define DRIVE_LETTER(x) (x)
 #endif
 #ifdef WINDOWSNT
 #define IS_DRIVE(x) isalpha (x)
+extern Lisp_Object Vwin32_downcase_file_names;
+#define DRIVE_LETTER(x) (NILP (Vwin32_downcase_file_names) ? (x) : tolower (x))
 #endif
 #endif
 
@@ -1065,7 +1068,7 @@ See also the function `substitute-in-file-name'.")
 	  if (strcmp (nm - 2, XSTRING (name)->data) != 0)
 	    {
 	      name = make_string (nm - 2, p - nm + 2);
-	      XSTRING (name)->data[0] = drive;
+	      XSTRING (name)->data[0] = DRIVE_LETTER (drive);
 	      XSTRING (name)->data[1] = ':';
 	    }
 	  return name;
@@ -1159,7 +1162,7 @@ See also the function `substitute-in-file-name'.")
 	{
 	  /* Either nm starts with /, or drive isn't mounted. */
 	  newdir = alloca (4);
-	  newdir[0] = drive;
+	  newdir[0] = DRIVE_LETTER (drive);
 	  newdir[1] = ':';
 	  newdir[2] = '/';
 	  newdir[3] = 0;
@@ -1407,7 +1410,7 @@ See also the function `substitute-in-file-name'.")
     {
       if (!drive) abort ();
       target -= 2;
-      target[0] = drive;
+      target[0] = DRIVE_LETTER (drive);
       target[1] = ':';
     }
   CORRECT_DIR_SEPS (target);
