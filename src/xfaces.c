@@ -917,6 +917,17 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       UNBLOCK_INPUT;
     }
 
+  /* If we're modifying either of the frame's display faces, that
+     means that we're changing the parameters of a fixed face code;
+     since the color/font/whatever is changed but the face ID hasn't,
+     redisplay won't know to redraw the affected sections.  Give it a
+     kick.  */
+  if (id == 0 || id == 1)
+    SET_FRAME_GARBAGED (f);
+  else
+    /* Otherwise, it's enough to tell it to redisplay the text.  */
+    windows_or_buffers_changed = 1;
+
   return Qnil;
 }
 
