@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.343 2002/10/11 09:36:00 spiegel Exp $
+;; $Id: vc.el,v 1.344 2002/10/14 15:13:59 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2113,27 +2113,36 @@ There is a special command, `*l', to mark all files currently locked."
   (set-keymap-parent vc-dired-mode-map dired-mode-map)
   (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
   ;; The following is slightly modified from dired.el,
-  ;; because file lines look a bit different in vc-dired-mode.
+  ;; because file lines look a bit different in vc-dired-mode
+  ;; (the column before the date does not end in a digit).
   (set (make-local-variable 'dired-move-to-filename-regexp)
-       (let*
-          ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
-           ;; In some locales, month abbreviations are as short as 2 letters,
-           ;; and they can be padded on the right with spaces.
-           (month (concat l l "+ *"))
-           ;; Recognize any non-ASCII character.
-           ;; The purpose is to match a Kanji character.
-           (k "[^\0-\177]")
-           ;; (k "[^\x00-\x7f\x80-\xff]")
-           (s " ")
-           (yyyy "[0-9][0-9][0-9][0-9]")
-           (mm "[ 0-1][0-9]")
-           (dd "[ 0-3][0-9]")
-           (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
-           (western (concat "\\(" month s dd "\\|" dd s month "\\)"
-                            s "\\(" HH:MM "\\|" s yyyy"\\|" yyyy s "\\)"))
-           (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
-	 ;; the .* below ensures that we find the last match on a line
-         (concat ".*" s "\\(" western "\\|" japanese "\\)" s)))
+  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+	 ;; In some locales, month abbreviations are as short as 2 letters,
+	 ;; and they can be followed by ".".
+	 (month (concat l l "+\\.?"))
+	 (s " ")
+	 (yyyy "[0-9][0-9][0-9][0-9]")
+	 (dd "[ 0-3][0-9]")
+	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
+	 (zone "[-+][0-2][0-9][0-5][0-9]")
+	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
+	 (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
+	 (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
+		      "\\|" yyyy "-" iso-mm-dd "\\)"))
+	 (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
+			  s "+"
+			  "\\(" HH:MM "\\|" yyyy "\\)"))
+	 (western-comma (concat month s "+" dd "," s "+" yyyy))
+	 ;; Japanese MS-Windows ls-lisp has one-digit months, and
+	 ;; omits the Kanji characters after month and day-of-month.
+	 (mm "[ 0-1]?[0-9]")
+	 (japanese
+	  (concat mm l "?" s dd l "?" s "+"
+		  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
+    (concat ".*" s
+	    "\\(" western "\\|" western-comma "\\|" japanese "\\|" iso "\\)"
+	    s "+")))
   (and (boundp 'vc-dired-switches)
        vc-dired-switches
        (set (make-local-variable 'dired-actual-switches)
