@@ -1,3 +1,11 @@
+2003-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_text_icon, x_raise_frame, x_lower_frame)
+	(x_make_frame_invisible, x_wm_set_icon_position): Use
+	FRAME_OUTER_WINDOW instead of ifdef X_TOOLKIT/else/endif.
+
+	* xfns.c (x_set_name, x_set_title): Ditto.
+
 2003-02-04  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (echo_now): Update before_command_echo_length.

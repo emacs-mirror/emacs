@@ -2552,22 +2552,15 @@ x_set_name (f, name, explicit)
 	    icon.format = 8;
 	    icon.nitems = bytes;
 	  }
-#ifdef USE_X_TOOLKIT
-	XSetWMName (FRAME_X_DISPLAY (f),
-		    XtWindow (f->output_data.x->widget), &text);
-	XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
-			&icon);
-#else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                               SDATA (name));
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-                        &icon);
 #else /* not USE_GTK */
-	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
+	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
-#endif /* not USE_X_TOOLKIT */
+
+	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
+
 	if (!NILP (f->icon_name)
 	    && icon.value != (unsigned char *) SDATA (f->icon_name))
 	  xfree (icon.value);
@@ -2666,22 +2659,17 @@ x_set_title (f, name, old_name)
 	    icon.format = 8;
 	    icon.nitems = bytes;
 	  }
-#ifdef USE_X_TOOLKIT
-	XSetWMName (FRAME_X_DISPLAY (f),
-		    XtWindow (f->output_data.x->widget), &text);
-	XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
-			&icon);
-#else /* not USE_X_TOOLKIT */
+
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                               SDATA (name));
+#else /* not USE_GTK */
+	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
+#endif /* not USE_GTK */
+
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
                         &icon);
-#else /* not USE_GTK */
-	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
-#endif /* not USE_GTK */
-#endif /* not USE_X_TOOLKIT */
+
 	if (!NILP (f->icon_name)
 	    && icon.value != (unsigned char *) SDATA (f->icon_name))
 	  xfree (icon.value);

@@ -12432,15 +12432,10 @@ x_text_icon (f, icon_name)
     text.encoding = XA_STRING;
     text.format = 8;
     text.nitems = strlen (icon_name);
-#ifdef USE_X_TOOLKIT
-    XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
-		    &text);
-#else /* not USE_X_TOOLKIT */
-    XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
-#endif /* not USE_X_TOOLKIT */
+    XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
   }
 #else /* not HAVE_X11R4 */
-  XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), icon_name);
+  XSetIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), icon_name);
 #endif /* not HAVE_X11R4 */
 
   if (f->output_data.x->icon_bitmap > 0)
@@ -13624,11 +13619,7 @@ x_raise_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-#ifdef USE_X_TOOLKIT
-      XRaiseWindow (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget));
-#else /* not USE_X_TOOLKIT */
-      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-#endif /* not USE_X_TOOLKIT */
+      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
       XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
     }
@@ -13643,11 +13634,7 @@ x_lower_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-#ifdef USE_X_TOOLKIT
-      XLowerWindow (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget));
-#else /* not USE_X_TOOLKIT */
-      XLowerWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-#endif /* not USE_X_TOOLKIT */
+      XLowerWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
       XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
     }
@@ -13837,12 +13824,8 @@ x_make_frame_invisible (f)
 {
   Window window;
 
-#ifdef USE_X_TOOLKIT
   /* Use the frame's outermost window, not the one we normally draw on.  */
-  window = XtWindow (f->output_data.x->widget);
-#else /* not USE_X_TOOLKIT */
-  window = FRAME_X_WINDOW (f);
-#endif /* not USE_X_TOOLKIT */
+  window = FRAME_OUTER_WINDOW (f);
 
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
@@ -14413,11 +14396,7 @@ x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
 {
-#ifdef USE_X_TOOLKIT
-  Window window = XtWindow (f->output_data.x->widget);
-#else
-  Window window = FRAME_X_WINDOW (f);
-#endif
+  Window window = FRAME_OUTER_WINDOW (f);
 
   f->output_data.x->wm_hints.flags |= IconPositionHint;
   f->output_data.x->wm_hints.icon_x = icon_x;
