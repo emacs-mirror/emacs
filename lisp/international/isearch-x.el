@@ -63,6 +63,7 @@
 	(setq l (cdr l))))
     (define-key map "\C-m" 'exit-minibuffer)
     (define-key map [return] 'exit-minibuffer)
+    (define-key map "\C-g" 'exit-minibuffer)
     map)
   "Keymap of minibuffer to input multibyte characters while isearching.")
 
@@ -77,8 +78,9 @@
     (catch 'isearch-tag
       (while events
 	(let* ((event (car events))
-	       (cmd (lookup-key isearch-mode-map (vector event))))
-	  (cond ((eq cmd 'isearch-printing-char)
+	       (cmd (key-binding (vector event))))
+	  (cond ((or (eq cmd 'isearch-printing-char)
+		     (eq cmd 'isearch-minibuffer-self-insert))
 		 (insert event)
 		 (setq events (cdr events)))
 		((eq cmd 'exit-minibuffer)
@@ -87,8 +89,7 @@
 		(t
 		 (throw 'isearch-tag nil))))))
     (setq unread-post-input-method-events events)
-    (or unread-post-input-method-events
-	(exit-minibuffer))))
+    (exit-minibuffer)))
 
 ;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char)
@@ -98,15 +99,15 @@
 	    (input-method-verbose-flag nil)
 	    (minibuffer-local-map isearch-minibuffer-local-map)
 	    str)
-	(setq unread-input-method-events
-	      (cons last-char unread-input-method-events))
+	(setq unread-command-events
+	      (cons last-char unread-command-events))
 	(setq str (read-multilingual-string
 		   (concat (isearch-message-prefix) isearch-message)
 		   nil
 		   current-input-method))
 	(if (and str (> (length str) 0))
-	    (isearch-process-search-string str str)
-	  (isearch-update)))
+	    (isearch-process-search-string str str))
+	(isearch-update))
     (isearch-process-search-char last-char)))
 
 ;;; isearch-x.el ends here
