@@ -487,11 +487,7 @@ wait_for_termination (pid)
 	  break;
 	}
 
-      /* FIXME: Since sigpause is not POSIX and its use is deprecated,
-	 this should probably be `sigsuspend (&empty_mask)', which is
-	 POSIX.  I'm not making that change right away because the
-	 release is nearing.  2001-09-20 gerd.  */
-      sigpause (SIGEMPTYMASK);
+      sigsuspend (&empty_mask);
 #else /* not POSIX_SIGNALS */
 #ifdef HAVE_SYSV_SIGPAUSE
       sighold (SIGCHLD);
