@@ -147,7 +147,7 @@ key is pressed.")
 
 ;; These are internal variables.  Do not set them yourself.
 
-(defvar type-break-alarm-p nil) ; Non-nil when a scheduled typing break is due.
+(defvar type-break-alarm-p nil)
 (defvar type-break-keystroke-count 0)
 (defvar type-break-time-last-break nil)
 (defvar type-break-time-next-break nil)
@@ -278,13 +278,16 @@ as per the function `type-break-schedule'."
 
 
 (defun type-break-schedule (&optional time)
+  "Schedule a typing break for TIME seconds from now.
+If time is not specified, default to `type-break-interval'."
+  (interactive (list (and current-prefix-arg
+                          (prefix-numeric-value current-prefix-arg))))
   (or time (setq time type-break-interval))
   (type-break-cancel-schedule)
   (type-break-time-warning-schedule time 'reset)
   (run-at-time time nil 'type-break-alarm)
-  (setq type-break-time-next-break (current-time))
-  (setcar (cdr type-break-time-next-break)
-          (+ time (car (cdr type-break-time-next-break)))))
+  (setq type-break-time-next-break
+        (type-break-time-sum (current-time) time)))
 
 (defun type-break-cancel-schedule ()
   (type-break-cancel-time-warning-schedule)
@@ -505,7 +508,7 @@ used to override the default assumption about average word length and the
 fraction of the maximum threshold to which to set the minimum threshold.
 FRAC should be the inverse of the fractional value; for example, a value of
 2 would mean to use one half, a value of 4 would mean to use one quarter, etc."
-  (interactive "nHow many words per minute do you type? ")
+  (interactive "NHow many words per minute do you type? ")
   (let* ((upper (* wpm (or wordlen 5) (/ type-break-interval 60)))
          (lower (/ upper (or frac 5))))
     (or type-break-keystroke-threshold
@@ -521,12 +524,49 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 ;; Compute the difference, in seconds, between a and b, two structures
 ;; similar to those returned by `current-time'.
-;; Use addition rather than logand since I found it convenient to add
-;; seconds to the cdr of some of my stored time values, which may throw off
-;; the number of bits in the cdr.
+;; Use addition rather than logand since that is more robust; the low 16
+;; bits of the seconds might have been incremented, making it more than 16
+;; bits wide.
 (defsubst type-break-time-difference (a b)
   (+ (lsh (- (car b) (car a)) 16)
      (- (car (cdr b)) (car (cdr a)))))
+
+;; Return (in a new list the same in structure to that returned by
+;; `current-time') the sum of the arguments.  Each argument may be a time
+;; list or a single integer, a number of seconds.
+;; This function keeps the high and low 16 bits of the seconds properly
+;; balanced so that the lower value never exceeds 16 bits.  Otherwise, when
+;; the result is passed to `current-time-string' it will toss some of the
+;; "low" bits and return the wrong value.
+(defun type-break-time-sum (&rest tmlist)
+  (let ((high 0)
+        (low 0)
+        (micro 0)
+        tem)
+    (while tmlist
+      (setq tem (car tmlist))
+      (setq tmlist (cdr tmlist))
+      (cond
+       ((numberp tem)
+        (setq low (+ low tem)))
+       (t
+        (setq high  (+ high  (or (car tem) 0)))
+        (setq low   (+ low   (or (car (cdr tem)) 0)))
+        (setq micro (+ micro (or (car (cdr (cdr tem))) 0))))))
+
+    (and (>= micro 1000000)
+         (progn
+           (setq tem (/ micro 1000000))
+           (setq low (+ low tem))
+           (setq micro (- micro (* tem 1000000)))))
+
+    (setq tem (lsh low -16))
+    (and (> tem 0)
+         (progn
+           (setq low (logand low 65535))
+           (setq high (+ high tem))))
+
+    (list high low micro)))
 
 (defsubst type-break-format-time (secs)
   (let ((mins (/ secs 60)))
@@ -590,23 +630,49 @@ FRAC should be the inverse of the fractional value; for example, a value of
          (and (get-buffer "*Life*")
               (kill-buffer "*Life*")))))))
 
-;; Boring demo, but doesn't use any cycles
+;; Boring demo, but doesn't use many cycles
 (defun type-break-demo-boring ()
   "Boring typing break demo."
-  (let ((msg "Press any key to resume from typing break")
+  (let ((rmsg "Press any key to resume from typing break")
         (buffer-name "*Typing Break Buffer*")
-        line col)
+        line col pos
+        elapsed timeleft tmsg)
     (condition-case ()
         (progn
           (switch-to-buffer (get-buffer-create buffer-name))
           (buffer-disable-undo (current-buffer))
           (erase-buffer)
-          (setq line (/ (window-height) 2))
-          (setq col (/ (- (window-width) (length msg)) 2))
+          (setq line (1+ (/ (window-height) 2)))
+          (setq col (/ (- (window-width) (length rmsg)) 2))
           (insert (make-string line ?\C-j)
                   (make-string col ?\ )
-                  msg)
-          (goto-char (point-min))
+                  rmsg)
+          (forward-line -1)
+          (beginning-of-line)
+          (setq pos (point))
+          (while (not (input-pending-p))
+            (delete-region pos (progn
+                                 (goto-char pos)
+                                 (end-of-line)
+                                 (point)))
+            (setq elapsed (type-break-time-difference
+                           type-break-time-last-break
+                           (current-time)))
+            (cond
+             (type-break-good-rest-interval
+              (setq timeleft (- type-break-good-rest-interval elapsed))
+              (if (> timeleft 0)
+                  (setq tmsg (format "You should rest for %s more"
+                                     (type-break-format-time timeleft)))
+                (setq tmsg (format "Typing break has lasted %s"
+                                   (type-break-format-time elapsed)))))
+             (t
+              (setq tmsg (format "Typing break has lasted %s"
+                                 (type-break-format-time elapsed)))))
+            (setq col (/ (- (window-width) (length tmsg)) 2))
+            (insert (make-string col ?\ ) tmsg)
+            (goto-char (point-min))
+            (sit-for 60))
           (read-char)
           (kill-buffer buffer-name))
       (quit
@@ -616,7 +682,9 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 (provide 'type-break)
 
-(type-break-mode t)
+;; Do not do this at load time because it makes it impossible to load this
+;; file into temacs and then dump it.
+;(type-break-mode t)
 
 ;; local variables:
 ;; vc-make-backup-files: t
