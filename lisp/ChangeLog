@@ -9,6 +9,10 @@
 	instead of sera-being-called-by-w3.
 	(ethio-write-file): Likewise.
 
+2004-04-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Dox fix.
+
 2004-04-05  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New option.

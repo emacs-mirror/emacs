@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/03/31 23:14:47 vinicius>
+;; Time-stamp: <2004/04/05 23:41:49 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.7.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -190,6 +190,13 @@ Please send all bug fixes and enhancements to
 ;; 4. When running Emacs on Windows with cygwin, check if the
 ;;    `pr-shell-file-name' variable is set to the proper shell.  This shell
 ;;    will execute the commands to preview/print the buffer, file or directory.
+;;    Also check the setting of `pr-path-style' variable.
+;;    Probably, you should use:
+;;
+;;    (setq pr-shell-file-name "bash")
+;;    (setq pr-path-style 'unix)
+;;
+;;     And use / instead of \ when specifying a directory.
 ;;
 ;;
 ;; Using `printing'
