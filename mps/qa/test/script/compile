@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(trunk.25) $
+# $HopeName: MMQA_harness!script:compile(MMQA_harness_dev.2) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -80,10 +80,30 @@ sub compile_and_link {
   $comobjfspec = ""
  }
 
- $command = "$cc_command $cc_opts $hashdefs $comobjfspec$cc_exe$exefile ".
- "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
+ $command = &convdirseps(
+  "$cc_command $cc_opts $hashdefs $comobjfspec$cc_exe$exefile ".
+  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts ".
+  "$stderr_merge |");
  
- if (&mysystem($command)) {
+ &debug("OPEN >>$command<<");
+
+ unless(open(COMLINK, $command)) {
+  return 0;
+ }
+ 
+ $compoutput = "";
+
+ while (<COMLINK>) {
+  $compoutput .= $_;
+  print $_;
+ }
+ close(COMLINK);
+
+ if ($compoutput) {
+  chop $compoutput;
+ }
+
+ if ($?) {
   return 0;
  } else {
   return 1;
