@@ -703,6 +703,9 @@ FILE should be (FILENAME . DIRNAME) or nil."
 			     ,(if col `(match-string ,col)))))
 		(,file compilation-error-face t))
 
+	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
+	      (error "HYPERLINK should be an integer: %s" (nth 5 item)))
+
 	    `(,(nth 0 item)
 
 	      ,@(when (integerp file)
