@@ -9986,36 +9986,10 @@ redisplay_window (window, just_this_one_p)
       goto recenter;
     }
   
-  /* Try scrolling with try_window_id.  */
-  else if (/* Windows and buffers haven't changed.  */
-	   !windows_or_buffers_changed
-	   /* Window must be either use window-based redisplay or
-	      be full width.  */
-	   && (FRAME_WINDOW_P (f)
-	       || (line_ins_del_ok && WINDOW_FULL_WIDTH_P (w)))
-	   && !MINI_WINDOW_P (w)
-	   /* Point is not known NOT to appear in window.  */
-	   && PT >= CHARPOS (startp)
-	   && XFASTINT (w->last_modified)
-	   /* Window is not hscrolled.  */
-	   && XFASTINT (w->hscroll) == 0
-	   /* Selective display has not changed.  */
-	   && !current_buffer->clip_changed
-	   /* Current matrix is up to date.  */
-	   && !NILP (w->window_end_valid)
-	   /* Can't use this case if highlighting a region because
-	      a cursor movement will do more than just set the cursor.  */
-	   && !(!NILP (Vtransient_mark_mode)
-		&& !NILP (current_buffer->mark_active))
-	   && NILP (w->region_showing)
-	   && NILP (Vshow_trailing_whitespace)
-	   /* Overlay arrow position and string not changed.  */
-	   && EQ (last_arrow_position, COERCE_MARKER (Voverlay_arrow_position))
-	   && EQ (last_arrow_string, Voverlay_arrow_string)
-	   /* Value is > 0 if update has been done, it is -1 if we
-	      know that the same window start will not work.  It is 0
-	      if unsuccessful for some other reason.  */
-	   && (tem = try_window_id (w)) != 0)
+  /* Try scrolling with try_window_id.  Value is > 0 if update has
+     been done, it is -1 if we know that the same window start will
+     not work.  It is 0 if unsuccessful for some other reason.  */
+  else if ((tem = try_window_id (w)) != 0)
     {
 #if GLYPH_DEBUG
       debug_method_add (w, "try_window_id %d", tem);
@@ -11108,15 +11082,78 @@ try_window_id (w)
   int first_unchanged_at_end_vpos = 0;
   struct glyph_row *last_text_row, *last_text_row_at_end;
   struct text_pos start;
+  int first_changed_charpos, last_changed_charpos;
 
+  /* This is handy for debugging.  */
+#if 0
+#define GIVE_UP(X)						\
+  do {								\
+    fprintf (stderr, "try_window_id give up %d\n", (X));	\
+    return 0;							\
+  } while (0)
+#else
+  #define GIVE_UP(X) return 0
+#endif
+  
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
-  /* Check pre-conditions.  Window end must be valid, otherwise
-     the current matrix would not be up to date.  */
-  xassert (!NILP (w->window_end_valid));
-  xassert (FRAME_WINDOW_P (XFRAME (w->frame))
-	   || (line_ins_del_ok && WINDOW_FULL_WIDTH_P (w)));
+  /* Don't use this for mini-windows because these can show
+     messages and mini-buffers, and we don't handle that here.  */
+  if (MINI_WINDOW_P (w))
+    GIVE_UP (1);
+  
+  /* This flag is used to prevent redisplay optimizations.  */
+  if (windows_or_buffers_changed)
+    GIVE_UP (2);
+  
+  /* Narrowing has not changed.  This flag is also set to prevent
+     redisplay optimizations.  It would be nice to further
+     reduce the number of cases where this prevents try_window_id.  */
+  if (current_buffer->clip_changed)
+    GIVE_UP (3);
 
+  /* Window must either use window-based redisplay or be full width.  */
+  if (!FRAME_WINDOW_P (f)
+      && (!line_ins_del_ok
+	  || !WINDOW_FULL_WIDTH_P (w)))
+    GIVE_UP (4);
+
+  /* Point is not known NOT to appear in W.  */
+  if (PT < CHARPOS (start))
+    GIVE_UP (5);
+
+  /* Another way to prevent redisplay optimizations.  */
+  if (XFASTINT (w->last_modified) == 0)
+    GIVE_UP (6);
+  
+  /* Window is not hscrolled.  */
+  if (XFASTINT (w->hscroll) != 0)
+    GIVE_UP (7);
+  
+  /* Display wasn't paused.  */
+  if (NILP (w->window_end_valid))
+    GIVE_UP (8);
+  
+  /* Can't use this if highlighting a region because a cursor movement
+     will do more than just set the cursor.  */
+  if (!NILP (Vtransient_mark_mode)
+      && !NILP (current_buffer->mark_active))
+    GIVE_UP (9);
+
+  /* Likewise if highlighting trailing whitespace.  */
+  if (!NILP (Vshow_trailing_whitespace))
+    GIVE_UP (11);
+  
+  /* Likewise if showing a region.  */
+  if (!NILP (w->region_showing))
+    GIVE_UP (10);
+  
+  /* Can use this if overlay arrow position and or string have changed.  */
+  if (!EQ (last_arrow_position, COERCE_MARKER (Voverlay_arrow_position))
+      || !EQ (last_arrow_string, Voverlay_arrow_string))
+    GIVE_UP (12);
+
+  
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
      initially at Z for freshly visited files.  The code below would
@@ -11131,72 +11168,107 @@ try_window_id (w)
 	END_UNCHANGED = Z - GPT;
     }
 
+  /* The position of the first and last character that has been changed.  */
+  first_changed_charpos = BEG + BEG_UNCHANGED;
+  last_changed_charpos  = Z - END_UNCHANGED;
+
   /* If window starts after a line end, and the last change is in
      front of that newline, then changes don't affect the display.
      This case happens with stealth-fontification.  Note that although
      the display is unchanged, glyph positions in the matrix have to
      be adjusted, of course.  */
   row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-  if (CHARPOS (start) > BEGV
-      && Z - END_UNCHANGED < CHARPOS (start) - 1
-      && FETCH_BYTE (BYTEPOS (start) - 1) == '\n'
-      && PT < MATRIX_ROW_END_CHARPOS (row))
+  if (MATRIX_ROW_DISPLAYS_TEXT_P (row)
+      && ((first_changed_charpos < CHARPOS (start)
+	   && CHARPOS (start) == BEGV)
+	  || (first_changed_charpos < CHARPOS (start) - 1
+	      && FETCH_BYTE (BYTEPOS (start) - 1) == '\n')))
     {
-      struct glyph_row *r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
-      int delta = CHARPOS (start) - MATRIX_ROW_START_CHARPOS (r0);
-      int delta_bytes = BYTEPOS (start) - MATRIX_ROW_START_BYTEPOS (r0);
+      int Z_old, delta, Z_BYTE_old, delta_bytes;
+      struct glyph_row *r0;
 
-      if (delta || delta_bytes)
+      /* Compute how many chars/bytes have been added to or removed
+	 from the buffer.  */
+      Z_old = MATRIX_ROW_END_CHARPOS (row) + XFASTINT (w->window_end_pos);
+      Z_BYTE_old = MATRIX_ROW_END_BYTEPOS (row) + w->window_end_bytepos;
+      delta = Z - Z_old;
+      delta_bytes = Z_BYTE - Z_BYTE_old;
+	  
+      /* Give up if PT is not in the window.  Note that it already has
+	 been checked at the start of try_window_id that PT is not in
+	 front of the window start.  */
+      if (PT >= MATRIX_ROW_END_CHARPOS (row) + delta)
+	GIVE_UP (13);
+
+      /* If window start is unchanged, we can reuse the whole matrix
+	 as is, after adjusting glyph positions.  No need to compute
+	 the window end again, since its offset from Z hasn't changed.  */
+      r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
+      if (CHARPOS (start) == MATRIX_ROW_START_CHARPOS (r0) + delta
+	  && BYTEPOS (start) == MATRIX_ROW_START_BYTEPOS (r0) + delta_bytes)
 	{
-	  struct glyph_row *r1 = MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
-	  increment_matrix_positions (w->current_matrix,
-				      MATRIX_ROW_VPOS (r0, current_matrix),
-				      MATRIX_ROW_VPOS (r1, current_matrix),
-				      delta, delta_bytes);
+	  /* Adjust positions in the glyph matrix.  */
+	  if (delta || delta_bytes)
+	    {
+	      struct glyph_row *r1
+		= MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
+	      increment_matrix_positions (w->current_matrix,
+					  MATRIX_ROW_VPOS (r0, current_matrix),
+					  MATRIX_ROW_VPOS (r1, current_matrix),
+					  delta, delta_bytes);
+	    }
+      
+	  /* Set the cursor.  */
+	  row = row_containing_pos (w, PT, r0, NULL);
+	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  return 1;
 	}
-      
-#if 0  /* If changes are all in front of the window start, the
-	  distance of the last displayed glyph from Z hasn't
-	  changed.  */
-      w->window_end_pos
-	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
-      w->window_end_bytepos
-	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-#endif
-
-      row = row_containing_pos (w, PT, r0, NULL);
-      if (row == NULL)
-	return 0;
-      
-      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-      return 1;
     }
 
-  /* Return quickly if changes are all below what is displayed in the
-     window, and if PT is in the window.  */
-  if (BEG_UNCHANGED > MATRIX_ROW_END_CHARPOS (row)
-      && PT < MATRIX_ROW_END_CHARPOS (row))
+  /* Handle the case that changes are all below what is displayed in
+     the window, and that PT is in the window.  */
+  if (first_changed_charpos >= MATRIX_ROW_END_CHARPOS (row))
     {
-      /* We have to update window end positions because the buffer's
-	 size has changed.  */
-      w->window_end_pos
-	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
-      w->window_end_bytepos
-	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+      struct glyph_row *r0;
 
-      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-      row = row_containing_pos (w, PT, row, NULL);
-      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-      return 2;
+      /* Give up if PT is not in the window.  Note that it already has
+	 been checked at the start of try_window_id that PT is not in
+	 front of the window start.  */
+      if (PT >= MATRIX_ROW_END_CHARPOS (row))
+	GIVE_UP (14);
+
+      /* If window start is unchanged, we can reuse the whole matrix
+	 as is, without changing glyph positions since no text has
+	 been added/removed in front of the window end.  */
+      r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
+      if (TEXT_POS_EQUAL_P (start, r0->start.pos))
+	{
+	  /* We have to compute the window end anew since text
+	     can have been added/removed after it.  */
+	  w->window_end_pos
+	    = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
+	  w->window_end_bytepos
+	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+
+	  /* Set the cursor.  */
+	  row = row_containing_pos (w, PT, r0, NULL);
+	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  return 2;
+	}
     }
 
   /* Check that window start agrees with the start of the first glyph
      row in its current matrix.  Check this after we know the window
      start is not in changed text, otherwise positions would not be
      comparable.  */
-  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  if (BEG_UNCHANGED + END_UNCHANGED != Z - BEG
+      && CHARPOS (start) >= first_changed_charpos
+      && CHARPOS (start) <= last_changed_charpos)
+    GIVE_UP (15);
+  
+  row = MATRIX_FIRST_TEXT_ROW (current_matrix);
   if (!TEXT_POS_EQUAL_P (start, row->start.pos))
-    return 0;
+    GIVE_UP (16);
 
   /* Compute the position at which we have to start displaying new
      lines.  Some of the lines at the top of the window might be
@@ -11216,7 +11288,7 @@ try_window_id (w)
 	--last_unchanged_at_beg_row;
 
       if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row))
-	return 0;
+	GIVE_UP (17);
       
       init_to_row_end (&it, w, last_unchanged_at_beg_row);
       start_pos = it.current.pos;
@@ -11285,7 +11357,7 @@ try_window_id (w)
 	}
     }
   else if (last_unchanged_at_beg_row == NULL)
-    return 0;
+    GIVE_UP (18);
 
 
 #if GLYPH_DEBUG
@@ -11645,6 +11717,8 @@ try_window_id (w)
   w->window_end_valid = Qnil;
   w->desired_matrix->no_scrolling_p = 1;
   return 3;
+
+#undef GIVE_UP
 }
 
 
