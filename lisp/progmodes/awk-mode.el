@@ -1,6 +1,6 @@
 ;;; awk-mode.el --- AWK code editing commands for Emacs
 
-;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, languages
@@ -49,11 +49,63 @@
   (modify-syntax-entry ?> "." awk-mode-syntax-table)
   (modify-syntax-entry ?& "." awk-mode-syntax-table)
   (modify-syntax-entry ?| "." awk-mode-syntax-table)
+  (modify-syntax-entry ?_ "_" awk-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" awk-mode-syntax-table))
 
 (defvar awk-mode-abbrev-table nil
   "Abbrev table in use in Awk-mode buffers.")
 (define-abbrev-table 'awk-mode-abbrev-table ())
+
+;; Regexps written with help from Peter Galbraith <galbraith@mixing.qc.dfo.ca>.
+(defconst awk-font-lock-keywords
+  (eval-when-compile
+    (list
+     ;;
+     ;; Function names.
+     '("^[ \t]*\\(function\\)\\>[ \t]*\\(\\sw+\\)?" 
+       (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+     ;;
+     ;; Variable names.
+     (cons (concat "\\<\\("
+;		   ("ARGC" "ARGIND" "ARGV" "CONVFMT" "ENVIRON" "ERRNO"
+;		    "FIELDWIDTHS" "FILENAME" "FNR" "FS" "IGNORECASE" "NF" "NR"
+;		    "OFMT" "OFS" "ORS" "RLENGTH" "RS" "RSTART" "SUBSEP")
+		   "ARG\\([CV]\\|IND\\)\\|CONVFMT\\|E\\(NVIRON\\|RRNO\\)\\|"
+		   "F\\(I\\(ELDWIDTHS\\|LENAME\\)\\|NR\\|S\\)\\|IGNORECASE\\|"
+		   "N[FR]\\|O\\(F\\(MT\\|S\\)\\|RS\\)\\|"
+		   "R\\(LENGTH\\|S\\(\\|TART\\)\\)\\|SUBSEP"
+		   "\\)\\>")
+	   'font-lock-variable-name-face)
+     ;;
+     ;; Keywords.
+     (concat "\\<\\("
+;	     ("BEGIN" "END" "break" "continue" "delete" "exit" "for"
+;	      "getline" "if" "next" "print" "printf" "return" "while")
+	     "BEGIN\\|END\\|break\\|continue\\|delete\\|exit\\|for\\|"
+	     "getline\\|if\\|next\\|printf?\\|return\\|while"
+	     "\\)\\>")
+     ;;
+     ;; Builtins.
+     (list (concat "\\<\\("
+;		   ("atan2" "close" "cos" "ctime" "exp" "gsub" "index" "int"
+;		    "length" "log" "match" "rand" "sin" "split" "sprintf"
+;		    "sqrt" "srand" "sub" "substr" "system" "time"
+;		    "tolower" "toupper")
+		   "atan2\\|c\\(lose\\|os\\|time\\)\\|exp\\|gsub\\|"
+		   "in\\(dex\\|t\\)\\|l\\(ength\\|og\\)\\|match\\|rand\\|"
+		   "s\\(in\\|p\\(lit\\|rintf\\)\\|qrt\\|rand\\|"
+		   "ub\\(\\|str\\)\\|ystem\\)\\|"
+		   "t\\(ime\\|o\\(lower\\|upper\\)\\)"
+		   "\\)(")
+	   1 'font-lock-builtin-face)
+     ;;
+     ;; Operators.  Is this too much?
+     (cons (mapconcat 'identity
+		      '("&&" "||" "<=" "<" ">=" ">" "==" "!=" "!~" "~")
+		      "\\|")
+	   'font-lock-reference-face)
+     ))
+ "Default expressions to highlight in AWK mode.")
 
 ;;;###autoload
 (defun awk-mode ()
@@ -92,6 +144,10 @@ with no args, if that value is non-nil."
   (setq comment-start-skip "#+ *")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'c-comment-indent)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(awk-font-lock-keywords nil nil ((?_ . "w"))))
   (run-hooks 'awk-mode-hook))
+
+(provide 'awk-mode)
 
 ;;; awk-mode.el ends here
