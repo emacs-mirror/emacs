@@ -1187,7 +1187,10 @@ minibuffer contents show.")
      Lisp_Object *args;
 {
   if (NILP (args[0]))
-    message (0);
+    {
+      message (0);
+      return Qnil;
+    }
   else
     {
       register Lisp_Object val;
