@@ -1,12 +1,10 @@
 ;;; wid-edit.el --- Functions for creating and using widgets.
 ;;
-;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
 ;; Keywords: extensions
-;; Version: 1.9951
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
 ;; This file is part of GNU Emacs.
 
@@ -61,8 +59,6 @@
 (defgroup widgets nil
   "Customization support for the Widget Library."
   :link '(custom-manual "(widget)Top")
-  :link '(url-link :tag "Development Page" 
-		   "http://www.dina.kvl.dk/~abraham/custom/")
   :link '(emacs-library-link :tag "Lisp File" "widget.el")
   :prefix "widget-"
   :group 'extensions
@@ -325,9 +321,7 @@ new value."
 	(help-echo (widget-get widget :help-echo))
 	(overlay (make-overlay from to nil 
 			       nil (or (not widget-field-add-space)
-				       (widget-get widget :size)))))
-    (unless (or (stringp help-echo) (null help-echo))
-      (setq help-echo 'widget-mouse-help))    
+				       (widget-get widget :size)))))    
     (widget-put widget :field-overlay overlay)
     ;;(overlay-put overlay 'detachable nil)
     (overlay-put overlay 'field widget)
@@ -335,7 +329,8 @@ new value."
     ;;(overlay-put overlay 'keymap map)
     (overlay-put overlay 'face face)
     ;;(overlay-put overlay 'balloon-help help-echo)
-    (overlay-put overlay 'help-echo help-echo))
+    (if (stringp help-echo)
+	(overlay-put overlay 'help-echo help-echo)))
   (widget-specify-secret widget))
 
 (defun widget-specify-secret (field)
@@ -362,25 +357,12 @@ new value."
 	(help-echo (widget-get widget :help-echo))
 	(overlay (make-overlay from to nil t nil)))
     (widget-put widget :button-overlay overlay)
-    (unless (or (null help-echo) (stringp help-echo))
-      (setq help-echo 'widget-mouse-help))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'mouse-face widget-mouse-face)
     ;;(overlay-put overlay 'balloon-help help-echo)
-    (overlay-put overlay 'help-echo help-echo)
+    (if (stringp help-echo)
+	(overlay-put overlay 'help-echo help-echo))
     (overlay-put overlay 'face face)))
-
-(defun widget-mouse-help (extent)
-  "Find mouse help string for button in extent."
-  (let* ((widget (widget-at (extent-start-position extent)))
-	 (help-echo (and widget (widget-get widget :help-echo))))
-    (cond ((stringp help-echo)
-	   help-echo)
-	  ((and (symbolp help-echo) (fboundp help-echo)
-		(stringp (setq help-echo (funcall help-echo widget))))
-	   help-echo)
-	  (t
-	   (format "(widget %S :help-echo %S)" widget help-echo)))))
 
 (defun widget-specify-sample (widget from to)
   ;; Specify sample for WIDGET between FROM and TO.
@@ -1350,11 +1332,11 @@ Optional EVENT is the event that triggered the action."
   :value-inline 'widget-default-value-inline
   :default-get 'widget-default-default-get
   :menu-tag-get 'widget-default-menu-tag-get
-  :validate (lambda (widget) nil)
+  :validate #'ignore
   :active 'widget-default-active
   :activate 'widget-specify-active
   :deactivate 'widget-default-deactivate
-  :mouse-down-action (lambda (widget event) nil)
+  :mouse-down-action #'ignore
   :action 'widget-default-action
   :notify 'widget-default-notify
   :prompt-value 'widget-default-prompt-value)
@@ -2121,6 +2103,7 @@ when he invoked the menu."
   :on-glyph "check1"
   :off "[ ]"
   :off-glyph "check0"
+  :help-echo "Toggle this item."
   :action 'widget-checkbox-action)
 
 (defun widget-checkbox-action (widget &optional event)
@@ -3148,13 +3131,16 @@ It will read a directory name from the minibuffer when invoked."
 
 (defun widget-sexp-validate (widget)
   ;; Valid if we can read the string and there is no junk left after it.
-  (save-excursion
-    (let ((buffer (set-buffer (get-buffer-create " *Widget Scratch*"))))
-      (erase-buffer)
-      (insert (widget-apply widget :value-get))
-      (goto-char (point-min))
-      (condition-case data
-	  (let ((value (read buffer)))
+  (with-temp-buffer
+    (insert (widget-apply widget :value-get))
+    (goto-char (point-min))
+    (condition-case data
+	(progn
+	  ;; Avoid a confusing end-of-file error.
+	  (skip-syntax-forward "\\s-")
+	  (if (eobp)
+	      (error "Empty sexp -- use `nil'?"))
+	  (let ((value (read (current-buffer))))
 	    (if (eobp)
 		(if (widget-apply widget :match value)
 		    nil
@@ -3164,9 +3150,12 @@ It will read a directory name from the minibuffer when invoked."
 			  :error (format "Junk at end of expression: %s"
 					 (buffer-substring (point)
 							   (point-max))))
-	      widget))
-	(error (widget-put widget :error (error-message-string data))
-	       widget)))))
+	      widget)))
+      (end-of-file			; Avoid confusing error message.
+       (widget-put widget :error "Unbalanced sexp")
+       widget)
+      (error (widget-put widget :error (error-message-string data))
+	     widget))))
 
 (defvar widget-sexp-prompt-value-history nil
   "History of input to `widget-sexp-prompt-value'.")
@@ -3241,9 +3230,7 @@ To use this type, you must define :match or :match-alternatives."
 			   (aref value 0)
 			 value))
   :match (lambda (widget value)
-	   (if (fboundp 'characterp)
-	       (characterp value)
-	     (integerp value))))
+	   (char-valid-p value)))
 
 (define-widget 'list 'group
   "A Lisp list."
@@ -3464,9 +3451,11 @@ To use this type, you must define :match or :match-alternatives."
 
 (defun widget-color-complete (widget)
   "Complete the color in WIDGET."
+  (require 'facemenu)			; for facemenu-color-alist
   (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
 						 (point)))
-	 (list (widget-color-choice-list))
+	 (list (or facemenu-color-alist
+		   (mapcar 'list (defined-colors))))
 	 (completion (try-completion prefix list)))
     (cond ((eq completion t)
 	   (message "Exact match."))
@@ -3490,19 +3479,6 @@ To use this type, you must define :match or :match-alternatives."
 	(facemenu-get-face symbol)
       (error 'default))))
 
-(defvar widget-color-choice-list nil)
-;; Variable holding the possible colors.
-
-(defun widget-color-choice-list ()
-  (unless widget-color-choice-list
-    (setq widget-color-choice-list 
-	  (mapcar '(lambda (color) (list color))
-		  (x-defined-colors))))
-  widget-color-choice-list)
-
-(defvar widget-color-history nil
-  "History of entered colors")
-
 (defun widget-color-action (widget &optional event)
   ;; Prompt for a color.
   (let* ((tag (widget-apply widget :menu-tag-get))
@@ -3515,13 +3491,7 @@ To use this type, you must define :match or :match-alternatives."
 		     (length value))
 		    (t
 		     (- (point) start))))
-	 (answer (if (commandp 'read-color)
-		     (read-color prompt)
-		   (completing-read (concat tag ": ")
-				    (widget-color-choice-list) 
-				    nil nil 
-				    (cons value pos)
-				    'widget-color-history))))
+	 (answer (facemenu-read-color prompt)))
     (unless (zerop (length answer))
       (widget-value-set widget answer)
       (widget-setup)
