@@ -1,5 +1,5 @@
 # -sed1v2.inp-----------------------------------------------------------
-# Configuration script for src/makefile under DJGPP v2.x
+# Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 s/^#.*//
 s/^[ \f\t][ \f\t]*$//
@@ -20,6 +20,7 @@ s/\.h\.in/.h-in/
 /^LIBS *=/s/@[^@\n]*@//
 /^LIBOBJS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@/getloadavg.o/
+/^LIBSOUND *=/s/@LIBSOUND@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
