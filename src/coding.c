@@ -4186,7 +4186,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
       unsigned char *dst = destination + coding->produced;
 
       src_bytes -= coding->consumed;
-     coding->errors++;
+      coding->errors++;
       if (COMPOSING_P (coding))
 	DECODE_COMPOSITION_END ('1');
       while (src_bytes--)
@@ -4255,10 +4255,6 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
       encode_eol (coding, source, destination, src_bytes, dst_bytes);
     }
 
-  if (coding->result == CODING_FINISH_INSUFFICIENT_SRC
-      && coding->consumed == src_bytes)
-    coding->result = CODING_FINISH_NORMAL;
-
   if (coding->mode & CODING_MODE_LAST_BLOCK
       && coding->result == CODING_FINISH_INSUFFICIENT_SRC)
     {
@@ -4283,6 +4279,10 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
       coding->produced = coding->produced_char = dst - destination;
       coding->result = CODING_FINISH_NORMAL;
     }
+
+  if (coding->result == CODING_FINISH_INSUFFICIENT_SRC
+      && coding->consumed == src_bytes)
+    coding->result = CODING_FINISH_NORMAL;
 
   return coding->result;
 }
