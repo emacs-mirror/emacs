@@ -559,13 +559,14 @@ fetches previous (older) inputs."
   (comint-previous-similar-input (- arg)))
 
 (defun comint-send-input () 
-  "Send input to process.  After the process output mark, sends all text
-from the process mark to point as input to the process.  Before the process
-output mark, calls value of variable comint-get-old-input to retrieve old
-input, copies it to the process mark, and sends it.  A terminal newline is
-also inserted into the buffer and sent to the process.  In either case, value
-of variable comint-input-sentinel is called on the input before sending it.
-The input is entered into the input history ring, if the value of variable
+  "Send input to process.
+After the process output mark, sends all text from the process mark to
+point as input to the process.  Before the process output mark, calls value
+of variable comint-get-old-input to retrieve old input, copies it to the
+process mark, and sends it.  A terminal newline is also inserted into the
+buffer and sent to the process.  In either case, value of variable
+comint-input-sentinel is called on the input before sending it.  The input
+is entered into the input history ring, if the value of variable
 comint-input-filter returns non-nil when called on the input.
 
 If variable comint-eol-on-send is non-nil, then point is moved to the end of
@@ -612,8 +613,9 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker (process-mark proc) (point))))))
 
 (defun comint-get-old-input-default ()
-  "Default for comint-get-old-input: take the current line, and discard
-any initial text matching comint-prompt-regexp."
+  "Default for comint-get-old-input.
+Take the current line, and discard any initial text matching
+comint-prompt-regexp."
   (save-excursion
     (beginning-of-line)
     (comint-skip-prompt)
@@ -666,11 +668,12 @@ in your hook, comint-mode-hook."
 ;;; Just enter m-x send-invisible and type in your line.
 
 (defun comint-read-noecho (prompt &optional stars)
-  "Prompt the user with argument PROMPT. Read a single line of text
-without echoing, and return it. Note that the keystrokes comprising
-the text can still be recovered (temporarily) with \\[view-lossage]. This
-may be a security bug for some applications. Optional argument STARS
-causes input to be echoed with '*' characters on the prompt line."
+  "Prompt the user with argument PROMPT. 
+Read a single line of text without echoing, and return it. Note that
+the keystrokes comprising the text can still be recovered (temporarily)
+with \\[view-lossage]. This may be a security bug for some applications.
+Optional argument STARS causes input to be echoed with '*' characters
+on the prompt line."
   (let ((echo-keystrokes 0)
 	(cursor-in-echo-area t)
 	(answ "")
@@ -687,9 +690,9 @@ causes input to be echoed with '*' characters on the prompt line."
 
 
 (defun send-invisible (str)
-  "Read a string without echoing, and send it to the process running
-in the current buffer. A new-line is additionally sent. String is not 
-saved on comint input history list.
+  "Read a string without echoing.
+Then send it to the process running in the current buffer. A new-line
+is additionally sent. String is not saved on comint input history list.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
 ; (interactive (list (comint-read-noecho "Enter non-echoed text")))
@@ -1023,8 +1026,9 @@ Useful if you accidentally suspend the top-level process."
 
 
 (defun comint-replace-by-expanded-filename ()
-"Replace the filename at point with an expanded, canonicalised, and
-completed replacement.
+"Expand the filename at point.
+Replace the filename with an expanded, canonicalised, and completed
+ replacement.
 \"Expanded\" means environment variables (e.g., $HOME) and ~'s are
 replaced with the corresponding directories.  \"Canonicalised\" means ..
 and \. are removed, and the filename is made absolute instead of relative.

@@ -1502,7 +1502,8 @@ Sets up cmpl-db-downcase-string and cmpl-db-symbol."
        ))
 
 (defun find-cmpl-prefix-entry (prefix-string)
-  "Returns the prefix entry for string. Sets cmpl-db-prefix-symbol.
+  "Returns the prefix entry for string.
+Sets cmpl-db-prefix-symbol.
 Prefix-string must be exactly *completion-prefix-min-length* long
 and downcased.  Sets up cmpl-db-prefix-symbol."
   (and (boundp (setq cmpl-db-prefix-symbol
@@ -1513,8 +1514,9 @@ and downcased.  Sets up cmpl-db-prefix-symbol."
 ;; used to trap lossage in silent error correction
 
 (defun locate-completion-entry (completion-entry prefix-entry)
-  "Locates the completion entry.  Returns a pointer to the element
-before the completion entry or nil if the completion entry is at the head.
+  "Locates the completion entry.
+Returns a pointer to the element before the completion entry or nil if
+the completion entry is at the head.
 Must be called after find-exact-completion."
   (let ((prefix-list (cmpl-prefix-entry-head prefix-entry))
 	 next-prefix-list
@@ -1570,9 +1572,10 @@ Must be called after find-exact-completion."
 
 ;;; WRITES
 (defun add-completion-to-tail-if-new (string)
-  "If the string is not in the database it is added to the end of the
-approppriate prefix list with num-uses = 0.  The database is unchanged if it 
-is there.  string must be longer than *completion-prefix-min-length*.
+  "If STRING is not in the database add it to appropriate prefix list.
+STRING is added to the end of the approppriate prefix list with
+num-uses = 0.  The database is unchanged if it is there.  STRING must be
+longer than *completion-prefix-min-length*.
 This must be very fast.
 Returns the completion entry."
   (or (find-exact-completion string)
@@ -1603,9 +1606,10 @@ Returns the completion entry."
 	)))
 
 (defun add-completion-to-head (string)
-  "If the string is not in the database it is added to the head of the
-approppriate prefix list.  Otherwise it is moved to the head of the list.
-string must be longer than *completion-prefix-min-length*.
+  "If STRING is not in the database, add it to prefix list.
+STRING is added to the head of the approppriate prefix list.  Otherwise
+it is moved to the head of the list.  STRING must be longer than
+*completion-prefix-min-length*.
 Updates the saved string with the supplied string.
 This must be very fast.
 Returns the completion entry."
@@ -1661,8 +1665,8 @@ Returns the completion entry."
       )))
       
 (defun delete-completion (string)
-  "Deletes the completion from the database.  string must be longer than
-*completion-prefix-min-length*."
+  "Deletes the completion from the database.
+String must be longer than *completion-prefix-min-length*."
   ;; Handle pending acceptance
   (if completion-to-accept (accept-completion))
   (if (setq cmpl-db-entry (find-exact-completion string))
@@ -1812,30 +1816,28 @@ completion-search-reset."
     ))
 
 (defun use-completion-under-point ()
-  "Call this to add the completion symbol underneath the point into
-the completion buffer."
+  "Adds the completion symbol underneath the point into the completion buffer."
   (let ((string (and *completep* (symbol-under-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 	
 (defun use-completion-before-point ()
-  "Call this to add the completion symbol before point into
+  "Adds the completion symbol before point into
 the completion buffer."
   (let ((string (and *completep* (symbol-before-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 
 (defun use-completion-under-or-before-point ()
-  "Call this to add the completion symbol before point into
-the completion buffer."
+  "Adds the completion symbol before point into the completion buffer."
   (let ((string (and *completep* (symbol-under-or-before-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 
 (defun use-completion-before-separator ()
-  "Call this to add the completion symbol before point into
-the completion buffer.  Completions added this way will automatically be
-saved if *separator-character-uses-completion-p* is non-nil."
+  "Adds the completion symbol before point into the completion buffer.
+Completions added this way will automatically be saved if
+*separator-character-uses-completion-p* is non-nil."
   (let ((string (and *completep* (symbol-before-point)))
 	(current-completion-source cmpl-source-separator)
 	entry)
@@ -1925,9 +1927,9 @@ String must be longer than *completion-prefix-min-length*."
 	))
 
 (defun completion-search-next (index)
-  "Returns the next completion entry.  If index is out of sequence it resets
-and starts from the top.  If there are no more entries it tries cdabbrev and 
-returns only a string."
+  "Returns the next completion entry.
+If index is out of sequence it resets and starts from the top.
+If there are no more entries it tries cdabbrev and returns only a string."
   (cond
     ((= index (setq cmpl-last-index (1+ cmpl-last-index)))
      (completion-search-peek t))
@@ -2517,8 +2519,7 @@ completion database."
 ;;;---------------------------------------------------------------------------
 
 (defun kill-emacs-save-completions ()
-  "The version of save-completions-to-file called at kill-emacs
-time."
+  "The version of save-completions-to-file called at kill-emacs time."
   (when (and *save-completions-p* *completep* cmpl-initialized-p)
     (cond
       ((not cmpl-completions-accepted-p)
@@ -2542,8 +2543,8 @@ time."
   (concat filename ".BAK"))
 
 (defun save-completions-to-file (&optional filename)
-  "Saves a completion init file.  If file is not specified,
-   then *saved-completions-filename* is used."
+  "Saves a completion init file.
+If file is not specified, then *saved-completions-filename* is used."
   (interactive)
   (setq filename (expand-file-name (or filename *saved-completions-filename*)))
   (when (file-writable-p filename)
@@ -2649,8 +2650,8 @@ time."
 (pushnew 'autosave-completions cmpl-emacs-idle-time-hooks)
 
 (defun load-completions-from-file (&optional filename no-message-p)
-  "loads a completion init file.  If file is not specified,
-   then *saved-completions-filename* is used"
+  "Loads a completion init file.
+If file is not specified, then *saved-completions-filename* is used."
   (interactive)
   (setq filename (expand-file-name (or filename *saved-completions-filename*)))
   (let* ((backup-filename (completion-backup-filename filename))
@@ -2753,8 +2754,8 @@ time."
 	  )))))
 
 (defun initialize-completions ()
-  "Loads the default completions file and sets up so that exiting emacs will
-automatically save the file."
+  "Loads the default completions file.
+Also sets up so that exiting emacs will automatically save the file."
   (interactive)
   (cond ((not cmpl-initialized-p)
 	 (load-completions-from-file)
@@ -2852,9 +2853,8 @@ Patched to remove the most recent completion."
 ;;; the functions defined with this macro get byte compiled.
 
 (defmacro def-completion-wrapper (function-name type &optional new-name)
-  "Add a call to update the completion database before the function is
-executed.  TYPE is the type of the wrapper to be added.  Can be :before or
-:under."
+  "Add a call to update the completion database before function execution.
+TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (completion-advise-1
    function-name ':before
    (ecase type

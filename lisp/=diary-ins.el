@@ -151,8 +151,9 @@ Prefix arg will make the entry nonmarking."
    arg))
 
 (defun insert-hebrew-diary-entry (arg)
-  "Insert a diary entry for the Hebrew date corresponding to the date
-indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert a diary entry.
+For the Hebrew date corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array
           calendar-hebrew-month-name-array-leap-year))
@@ -168,8 +169,9 @@ indicated by point.  Prefix arg will make the entry nonmarking."
      arg)))
 
 (defun insert-monthly-hebrew-diary-entry (arg)
-  "Insert a monthly diary entry for the day of the Hebrew month corresponding
-to the date indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert a monthly diary entry.
+For the day of the Hebrew month corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -186,8 +188,9 @@ to the date indicated by point.  Prefix arg will make the entry nonmarking."
      arg)))
 
 (defun insert-yearly-hebrew-diary-entry (arg)
-  "Insert an annual diary entry for the day of the Hebrew year corresponding
-to the date indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert an annual diary entry.
+For the day of the Hebrew year corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style
@@ -206,8 +209,9 @@ to the date indicated by point.  Prefix arg will make the entry nonmarking."
      arg)))
 
 (defun insert-islamic-diary-entry (arg)
-  "Insert a diary entry for the Islamic date corresponding to the date
-indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert a diary entry.
+For the Islamic date corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array calendar-islamic-month-name-array))
     (make-diary-entry
@@ -222,8 +226,9 @@ indicated by point.  Prefix arg will make the entry nonmarking."
      arg)))
 
 (defun insert-monthly-islamic-diary-entry (arg)
-  "Insert a monthly diary entry for the day of the Islamic month corresponding
-to the date indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert a monthly diary entry.
+For the day of the Islamic month corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -239,8 +244,9 @@ to the date indicated by point.  Prefix arg will make the entry nonmarking."
      arg)))
 
 (defun insert-yearly-islamic-diary-entry (arg)
-  "Insert an annual diary entry for the day of the Islamic year corresponding
-to the date indicated by point.  Prefix arg will make the entry nonmarking."
+  "Insert an annual diary entry.
+For the day of the Islamic year corresponding to the date indicated by point.
+Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style

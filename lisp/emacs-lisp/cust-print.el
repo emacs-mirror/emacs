@@ -217,8 +217,9 @@ uninstall-custom-print-funcs."
 ;; (or princ) -- so far only the printing and formatting subrs.
 
 (defun custom-prin1 (object &optional stream)
-  "Replacement for standard prin1 that uses the appropriate
-printer depending on the values of print-level and print-circle (which see).
+  "Replacement for standard prin1.
+Uses the appropriate printer depending on the values of print-level
+and print-circle (which see).
 
 Output the printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
