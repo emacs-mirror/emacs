@@ -43,8 +43,12 @@
 ;;; (add-hook 'dired-load-hook
 ;;;           (function (lambda ()
 ;;;                       (load "dired-x")
-;;;                       ;; Set variables here.  For example:
+;;;                       ;; Set global variables here.  For example:
 ;;;                       ;; (setq dired-guess-shell-gnutar "gtar")
+;;;                       )))
+;;; (add-hook 'dired-mode-hook
+;;;           (function (lambda ()
+;;;                       ;; Set buffer-local variables here.  For example:
 ;;;                       ;; (setq dired-omit-files-p t)
 ;;;                       )))
 ;;;
@@ -155,9 +159,10 @@ Read-only folders only work in VM 5, not in VM 4.")
 Use \\[dired-omit-toggle] to toggle its value.
 Uninteresting files are those whose filenames match regexp `dired-omit-files',
 plus those ending with extensions in `dired-omit-extensions'.")
+(make-variable-buffer-local 'dired-omit-files-p)
 
 (defvar dired-omit-files "^#\\|^\\.$\\|^\\.\\.$"
-  "*Filenames matching this regexp will not be displayed \(buffer-local\).
+  "*Filenames matching this regexp will not be displayed.
 This only has effect when `dired-omit-files-p' is t.  See interactive function
 `dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
 `dired-omit-extensions'.  The default is to omit  `.', `..', and auto-save
@@ -528,7 +533,6 @@ whole pathname.")
 Should never be used as marker by the user or other packages.")
 
 (defun dired-omit-startup ()
-  (make-local-variable 'dired-omit-files-p)
   (or (assq 'dired-omit-files-p minor-mode-alist)
       (setq minor-mode-alist
             (append '((dired-omit-files-p " Omit")) minor-mode-alist))))
