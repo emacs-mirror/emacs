@@ -92,3 +92,6 @@ extern void get_display_line ();
 /* Buffer used by `message' for formatting a message.  */
 extern char *message_buf;
 extern int message_buf_size;
+
+/* Nonzero means message_buf is being used by print.  */
+extern int message_buf_print;
