@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, '88, '89, '90, '91,
+;; Copyright (C) 1985, '88, '89, '90, '91, '01,
 ;;                '92, '93, '96, '97, 2000 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
@@ -285,8 +285,8 @@ chapter."
 (if texinfo-mode-syntax-table
     nil
   (setq texinfo-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\" " " texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\\ " " texinfo-mode-syntax-table)
+  (modify-syntax-entry ?\" "." texinfo-mode-syntax-table)
+  (modify-syntax-entry ?\\ "." texinfo-mode-syntax-table)
   (modify-syntax-entry ?@ "\\" texinfo-mode-syntax-table)
   (modify-syntax-entry ?\^q "\\" texinfo-mode-syntax-table)
   (modify-syntax-entry ?\[ "(]" texinfo-mode-syntax-table)
