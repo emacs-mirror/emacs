@@ -969,6 +969,7 @@ x_real_positions (f, xptr, yptr)
   while (1)
     {
       int count = x_catch_errors (FRAME_X_DISPLAY (f));
+      Window outer_window;
 
       XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
 		  &f->output_data.x->parent_desc,
@@ -980,28 +981,21 @@ x_real_positions (f, xptr, yptr)
       /* Find the position of the outside upper-left corner of
 	 the inner window, with respect to the outer window.  */
       if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-	{
-	  XTranslateCoordinates (FRAME_X_DISPLAY (f),
+	outer_window = f->output_data.x->parent_desc;
+      else
+	outer_window = outer;
 
-				 /* From-window, to-window.  */
-#ifdef USE_X_TOOLKIT
-				 XtWindow (f->output_data.x->widget),
-#else
-				 f->output_data.x->window_desc,
-#endif
-				 f->output_data.x->parent_desc,
+      XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-				 /* From-position, to-position.  */
-				 0, 0, &win_x, &win_y,
+			     /* From-window, to-window.  */
+			     outer_window,
+			     FRAME_X_DISPLAY_INFO (f)->root_window,
 
-				 /* Child of win.  */
-				 &child);
+			     /* From-position, to-position.  */
+			     0, 0, &win_x, &win_y,
 
-#if 0  /* The values seem to be right without this and wrong with.  */
-	  win_x += f->output_data.x->border_width;
-	  win_y += f->output_data.x->border_width;
-#endif
-	}
+			     /* Child of win.  */
+			     &child);
 
       /* It is possible for the window returned by the XQueryNotify
 	 to become invalid by the time we call XTranslateCoordinates.
@@ -1017,8 +1011,8 @@ x_real_positions (f, xptr, yptr)
       x_uncatch_errors (FRAME_X_DISPLAY (f), count);
     }
 
-  *xptr = f->output_data.x->left_pos - win_x;
-  *yptr = f->output_data.x->top_pos - win_y;
+  *xptr = win_x;
+  *yptr = win_y;
 }
 
 /* Insert a description of internally-recorded parameters of frame X
