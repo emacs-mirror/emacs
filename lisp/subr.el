@@ -181,10 +181,16 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
 just after the binding for the event AFTER, instead of at the beginning
-of the map.
-The order matters when the keymap is used as a menu.
+of the map.  Note that AFTER must be an event type (like KEY), NOT a command
+\(like DEFINITION).
+
+If AFTER is t, the new binding goes at the end of the keymap.
+
 KEY must contain just one event type--that is to say, it must be
-a string or vector of length 1."
+a string or vector of length 1.
+
+The order of bindings in a keymap matters when it is used as a menu."
+
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
   (if (> (length key) 1)
@@ -198,7 +204,8 @@ a string or vector of length 1."
       ;; When we reach AFTER's binding, insert the new binding after.
       ;; If we reach an inherited keymap, insert just before that.
       ;; If we reach the end of this keymap, insert at the end.
-      (if (or (eq (car-safe (car tail)) after)
+      (if (or (and (eq (car-safe (car tail)) after)
+		   (not (eq after t)))
 	      (eq (car (cdr tail)) 'keymap)
 	      (null (cdr tail)))
 	  (progn
