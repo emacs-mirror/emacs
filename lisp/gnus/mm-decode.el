@@ -509,10 +509,10 @@ Postpone undisplaying of viewers for types in
     (message "Destroying external MIME viewers")
     (mm-destroy-parts mm-postponed-undisplay-list)))
 
-(defun mm-dissect-buffer (&optional no-strict-mime loose-mime)
+(defun mm-dissect-buffer (&optional no-strict-mime loose-mime from)
   "Dissect the current buffer and return a list of MIME handles."
   (save-excursion
-    (let (ct ctl type subtype cte cd description id result from)
+    (let (ct ctl type subtype cte cd description id result)
       (save-restriction
 	(mail-narrow-to-head)
 	(when (or no-strict-mime
@@ -523,8 +523,9 @@ Postpone undisplaying of viewers for types in
 		cte (mail-fetch-field "content-transfer-encoding")
 		cd (mail-fetch-field "content-disposition")
 		description (mail-fetch-field "content-description")
-		from (mail-fetch-field "from")
 		id (mail-fetch-field "content-id"))
+	  (unless from
+		(setq from (mail-fetch-field "from")))
 	  ;; FIXME: In some circumstances, this code is running within
 	  ;; an unibyte macro.  mail-extract-address-components
 	  ;; creates unibyte buffers. This `if', though not a perfect
@@ -567,7 +568,7 @@ Postpone undisplaying of viewers for types in
 					'from from
 					'start start)
 				  (car ctl))
-	     (cons (car ctl) (mm-dissect-multipart ctl))))
+	     (cons (car ctl) (mm-dissect-multipart ctl from))))
 	  (t
 	   (mm-possibly-verify-or-decrypt
 	    (mm-dissect-singlepart
@@ -594,7 +595,7 @@ Postpone undisplaying of viewers for types in
     (mm-make-handle
      (mm-copy-to-buffer) ctl cte nil cdl description nil id)))
 
-(defun mm-dissect-multipart (ctl)
+(defun mm-dissect-multipart (ctl from)
   (goto-char (point-min))
   (let* ((boundary (concat "\n--" (mail-content-type-get ctl 'boundary)))
 	 (close-delimiter (concat (regexp-quote boundary) "--[ \t]*$"))
@@ -611,7 +612,7 @@ Postpone undisplaying of viewers for types in
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region start (point))
-	    (setq parts (nconc (list (mm-dissect-buffer t)) parts)))))
+	    (setq parts (nconc (list (mm-dissect-buffer t nil from)) parts)))))
       (end-of-line 2)
       (or (looking-at boundary)
 	  (forward-line 1))
@@ -620,7 +621,7 @@ Postpone undisplaying of viewers for types in
       (save-excursion
 	(save-restriction
 	  (narrow-to-region start end)
-	  (setq parts (nconc (list (mm-dissect-buffer t)) parts)))))
+	  (setq parts (nconc (list (mm-dissect-buffer t nil from)) parts)))))
     (mm-possibly-verify-or-decrypt (nreverse parts) ctl)))
 
 (defun mm-copy-to-buffer ()

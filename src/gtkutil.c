@@ -556,12 +556,6 @@ xg_resize_outer_widget (f, columns, rows)
      int columns;
      int rows;
 {
-  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                     FRAME_PIXEL_WIDTH (f), FRAME_TOTAL_PIXEL_HEIGHT (f));
-
-  /* base_height is now changed.  */
-  x_wm_set_size_hint (f, 0, 0);
-
   /* If we are not mapped yet, set geometry once again, as window
      height now have changed.  */
   if (! GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))

@@ -30,7 +30,6 @@ pertaining to the terminal and the screen.
 * Terminal Output::     Recording terminal output for debugging.
 * Sound Output::        Playing sounds on the computer's speaker.
 * X11 Keysyms::         Operating on key symbols for X Windows
-* Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
 @end menu
@@ -86,22 +85,22 @@ It initializes the window frame and faces, if appropriate.
 It runs the normal hook @code{before-init-hook}.
 
 @item
-It loads the library @file{site-start}, unless the option
-@samp{-no-site-file} was specified.  The library's file name is usually
-@file{site-start.el}.
+It loads the library @file{site-start} (if any), unless the option
+@samp{-Q} (or @samp{--no-site-file}) was specified.  The library's file
+name is usually @file{site-start.el}.
 @cindex @file{site-start.el}
 
 @item
-It loads your init file (usually @file{~/.emacs}), unless @samp{-q},
-@samp{-no-init-file}, or @samp{-batch} was specified on the command line.
-The @samp{-u} option can specify another user whose home directory
-should be used instead of @file{~}.
+It loads your init file (usually @file{~/.emacs}), unless @samp{-q}
+(or @samp{--no-init-file}), @samp{-Q}, or @samp{--batch} was specified
+on the command line.  The @samp{-u} option can specify another user
+whose home directory should be used instead of @file{~}.
 
 @item
-It loads the library @file{default}, unless @code{inhibit-default-init}
-is non-@code{nil}.  (This is not done in @samp{-batch} mode or if
-@samp{-q} was specified on the command line.)  The library's file name
-is usually @file{default.el}.
+It loads the library @file{default} (if any), unless
+@code{inhibit-default-init} is non-@code{nil}.  (This is not done in
+@samp{-batch} mode, or if @samp{-Q} or @samp{-q} was specified on the
+command line.)  The library's file name is usually @file{default.el}.
 @cindex @file{default.el}
 
 @item
@@ -118,7 +117,7 @@ mode or using a window system.
 
 @item
 It displays the initial echo area message, unless you have suppressed
-that with @code{inhibit-startup-echo-area-message}.
+that with @code{inhibit-startup-echo-area-message} or @samp{-Q}.
 
 @item
 It processes the action arguments from the command line.
@@ -136,9 +135,8 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
 It displays copyleft, nonwarranty, and basic use information, provided
-there were no remaining command-line arguments (a few steps above),
-the value of @code{inhibit-startup-message} is @code{nil}, and the
-buffer is still empty.
+the value of @code{inhibit-startup-message} is @code{nil}, you didn't
+specify @samp{--no-splash} or @samp{-Q}, and the buffer is still empty.
 @end enumerate
 
 @defopt inhibit-startup-message
@@ -179,36 +177,39 @@ for someone else.
 @cindex @file{.emacs}
 
   When you start Emacs, it normally attempts to load your @dfn{init
-file}, a file in your home directory.  Its normal name is @file{.emacs},
-but you can alternatively call it @file{.emacs.el}, which enables you to
-byte-compile it (@pxref{Byte Compilation}); then the actual file loaded
-will be @file{.emacs.elc}.
+file}, a file in your home directory.  Its normal name is
+@file{.emacs}, but you can alternatively call it @file{.emacs.el}.
+You can also store it inside a subdirectory @file{.emacs.d}.
+Whichever place you use, you can also compile the file (@pxref{Byte
+Compilation}); then the actual file loaded will be @file{.emacs.elc}.
 
-  The command-line switches @samp{-q} and @samp{-u} control whether and
-where to find the init file; @samp{-q} says not to load an init file,
-and @samp{-u @var{user}} says to load @var{user}'s init file instead of
-yours.  @xref{Entering Emacs,,, emacs, The GNU Emacs Manual}.  If
-neither option is specified, Emacs uses the @code{LOGNAME} environment
+  The command-line switches @samp{-q}, @samp{-Q}, and @samp{-u}
+control whether and where to find the init file; @samp{-q} (and the
+stronger @samp{-Q}) says not to load an init file, while @samp{-u
+@var{user}} says to load @var{user}'s init file instead of yours.
+@xref{Entering Emacs,,, emacs, The GNU Emacs Manual}.  If neither
+option is specified, Emacs uses the @code{LOGNAME} environment
 variable, or the @code{USER} (most systems) or @code{USERNAME} (MS
-systems) variable, to find your home directory and thus your init file;
-this way, even if you have su'd, Emacs still loads your own init file.
-If those environment variables are absent, though, Emacs uses your
-user-id to find your home directory.
+systems) variable, to find your home directory and thus your init
+file; this way, even if you have su'd, Emacs still loads your own init
+file.  If those environment variables are absent, though, Emacs uses
+your user-id to find your home directory.
 
 @cindex default init file
-  A site may have a @dfn{default init file}, which is the library named
-@file{default.el}.  Emacs finds the @file{default.el} file through the
-standard search path for libraries (@pxref{How Programs Do Loading}).
-The Emacs distribution does not come with this file; sites may provide
-one for local customizations.  If the default init file exists, it is
-loaded whenever you start Emacs, except in batch mode or if @samp{-q} is
-specified.  But your own personal init file, if any, is loaded first; if
-it sets @code{inhibit-default-init} to a non-@code{nil} value, then
-Emacs does not subsequently load the @file{default.el} file.
+  A site may have a @dfn{default init file}, which is the library
+named @file{default.el}.  Emacs finds the @file{default.el} file
+through the standard search path for libraries (@pxref{How Programs Do
+Loading}).  The Emacs distribution does not come with this file; sites
+may provide one for local customizations.  If the default init file
+exists, it is loaded whenever you start Emacs, except in batch mode or
+if @samp{-q} (or @samp{-Q}) is specified.  But your own personal init
+file, if any, is loaded first; if it sets @code{inhibit-default-init}
+to a non-@code{nil} value, then Emacs does not subsequently load the
+@file{default.el} file.
 
   Another file for site-customization is @file{site-start.el}.  Emacs
 loads this @emph{before} the user's init file.  You can inhibit the
-loading of this file with the option @samp{-no-site-file}.
+loading of this file with the option @samp{--no-site-file}.
 
 @defvar site-run-file
 This variable specifies the site-customization file to load before the
@@ -1526,7 +1527,7 @@ uses interrupts if that is the way it knows how to communicate.
 
 If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff}
 (@kbd{C-q}, @kbd{C-s}) flow control for output to the terminal.  This
-has no effect except in @sc{cbreak} mode.  @xref{Flow Control}.
+has no effect except in @sc{cbreak} mode.
 
 @c Emacs 19 feature
 The argument @var{meta} controls support for input character codes
@@ -1621,7 +1622,7 @@ In the example below, we set @code{keyboard-translate-table} to a
 char-table.  Then we fill it in to swap the characters @kbd{C-s} and
 @kbd{C-\} and the characters @kbd{C-q} and @kbd{C-^}.  Subsequently,
 typing @kbd{C-\} has all the usual effects of typing @kbd{C-s}, and vice
-versa.  (@xref{Flow Control}, for more information on this subject.)
+versa.
 
 @cindex flow control example
 @example
@@ -1820,7 +1821,7 @@ trigger an Emacs bug, for the sake of a bug report.
 @section Terminal Output
 @cindex terminal output
 
-  The terminal output functions send output to the terminal, or keep
+  The terminal output functions send output to a text terminal, or keep
 track of output sent to the terminal.  The variable @code{baud-rate}
 tells you what Emacs thinks is the output speed of the terminal.
 
@@ -1852,6 +1853,7 @@ This obsolete function returns the value of the variable
 @defun send-string-to-terminal string
 This function sends @var{string} to the terminal without alteration.
 Control characters in @var{string} have terminal-dependent effects.
+This function operates only on text terminals.
 
 One use of this function is to define function keys on terminals that
 have downloadable function key definitions.  For example, this is how (on
@@ -2003,98 +2005,6 @@ how to swap the Meta and Alt modifiers within Emacs:
 @end lisp
 @end defvar
 
-@node Flow Control
-@section Flow Control
-@cindex flow control characters
-
-  This section attempts to answer the question ``Why does Emacs use
-flow-control characters in its command character set?''  For a second
-view on this issue, read the comments on flow control in the
-@file{emacs/INSTALL} file from the distribution; for help with Termcap
-entries and DEC terminal concentrators, see @file{emacs/etc/TERMS}.
-
-@cindex @kbd{C-s}
-@cindex @kbd{C-q}
-  At one time, most terminals did not need flow control, and none used
-@code{C-s} and @kbd{C-q} for flow control.  Therefore, the choice of
-@kbd{C-s} and @kbd{C-q} as command characters for searching and quoting
-was natural and uncontroversial.  With so many commands needing key
-assignments, of course we assigned meanings to nearly all @acronym{ASCII}
-control characters.
-
-  Later, some terminals were introduced which required these characters
-for flow control.  They were not very good terminals for full-screen
-editing, so Emacs maintainers ignored them.  In later years, flow
-control with @kbd{C-s} and @kbd{C-q} became widespread among terminals,
-but by this time it was usually an option.  And the majority of Emacs
-users, who can turn flow control off, did not want to switch to less
-mnemonic key bindings for the sake of flow control.
-
-  So which usage is ``right''---Emacs's or that of some terminal and
-concentrator manufacturers?  This question has no simple answer.
-
-  One reason why we are reluctant to cater to the problems caused by
-@kbd{C-s} and @kbd{C-q} is that they are gratuitous.  There are other
-techniques (albeit less common in practice) for flow control that
-preserve transparency of the character stream.  Note also that their use
-for flow control is not an official standard.  Interestingly, on the
-model 33 teletype with a paper tape punch (around 1970), @kbd{C-s} and
-@kbd{C-q} were sent by the computer to turn the punch on and off!
-
-  As window systems and PC terminal emulators replace character-only
-terminals, the flow control problem is gradually disappearing.  For the
-mean time, Emacs provides a convenient way of enabling flow control if
-you want it: call the function @code{enable-flow-control}.
-
-@deffn Command enable-flow-control &optional arg
-When @var{arg} is a positive integer, this function enables use of
-@kbd{C-s} and @kbd{C-q} for output flow control, and provides the
-characters @kbd{C-\} and @kbd{C-^} as aliases for them using
-@code{keyboard-translate-table} (@pxref{Translating Input}).
-
-When @var{arg} is a negative integer or zero, it disables these
-features.  When @var{arg} is @code{nil} or omitted, it toggles.
-Interactively, @var{arg} is the prefix argument.  If non-@code{nil},
-its numeric value is used.
-@end deffn
-
-You can use the function @code{enable-flow-control-on} in your
-init file to enable flow control automatically on certain
-terminal types.
-
-@defun enable-flow-control-on &rest termtypes
-This function enables flow control, and the aliases @kbd{C-\} and @kbd{C-^},
-if the terminal type is one of @var{termtypes}.  For example:
-
-@smallexample
-(enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
-@end smallexample
-@end defun
-
-  Here is how @code{enable-flow-control} does its job:
-
-@enumerate
-@item
-@cindex @sc{cbreak}
-It sets @sc{cbreak} mode for terminal input, and tells the operating
-system to handle flow control.  This is done using @code{set-input-mode}.
-
-@item
-It sets up @code{keyboard-translate-table} to translate @kbd{C-\} and
-@kbd{C-^} into @kbd{C-s} and @kbd{C-q}.  Except at its very
-lowest level, Emacs never knows that the characters typed were anything
-but @kbd{C-s} and @kbd{C-q}, so you can in effect type them as @kbd{C-\}
-and @kbd{C-^} even when they are input for other commands.
-@xref{Translating Input}.
-@end enumerate
-
-If the terminal is the source of the flow control characters, then once
-you enable kernel flow control handling, you probably can make do with
-less padding than normal for that terminal.  You can reduce the amount
-of padding by customizing the Termcap entry.  You can also reduce it by
-setting @code{baud-rate} to a smaller value so that Emacs uses a smaller
-speed when calculating the padding needed.  @xref{Terminal Output}.
-
 @node Batch Mode
 @section Batch Mode
 @cindex batch mode
@@ -2106,8 +2016,8 @@ terminal, it does not alter the terminal modes, and it does not expect
 to be outputting to an erasable screen.  The idea is that you specify
 Lisp programs to run; when they are finished, Emacs should exit.  The
 way to specify the programs to run is with @samp{-l @var{file}}, which
-loads the library named @var{file}, and @samp{-f @var{function}}, which
-calls @var{function} with no arguments.
+loads the library named @var{file}, or @samp{-f @var{function}}, which
+calls @var{function} with no arguments, or @samp{--eval @var{form}}.
 
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with @code{t}

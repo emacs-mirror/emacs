@@ -155,9 +155,10 @@ character that is valid in symbols is underscore (@samp{_}).
 @dfn{Punctuation characters} (designated by @samp{.}) are those
 characters that are used as punctuation in English, or are used in some
 way in a programming language to separate symbols from one another.
-Most programming language modes, including Emacs Lisp mode, have no
+Some programming language modes, such as Emacs Lisp mode, have no
 characters in this class since the few characters that are not symbol or
-word constituents all have other uses.
+word constituents all have other uses.  Other programming language modes,
+such as C mode, use punctuation syntax for operators.
 @end deffn
 
 @deffn {Syntax class} @w{open parenthesis character}
@@ -501,12 +502,6 @@ We use @code{string} to make it easier to see the character returned by
 @code{char-syntax}.
 @end defun
 
-@defun syntax-after pos
-This function returns a description of the syntax of the character in
-the buffer after position @var{pos}, taking account of syntax
-properties as well as the syntax table.
-@end defun
-
 @defun set-syntax-table table
 This function makes @var{table} the syntax table for the current buffer.
 It returns @var{table}.
@@ -664,13 +659,13 @@ start of a comment.  If @var{stop-comment} is the symbol
 string, or the end of a comment or a string, whichever comes first.
 
 @cindex parse state
-The fifth argument @var{state} is a nine-element list of the same form
+The fifth argument @var{state} is a ten-element list of the same form
 as the value of this function, described below.  (It is OK to omit the
-last element of the nine.)  The return value of one call may be used to
-initialize the state of the parse on another call to
+last two elements of this list.)  The return value of one call may be
+used to initialize the state of the parse on another call to
 @code{parse-partial-sexp}.
 
-The result is a list of nine elements describing the final state of
+The result is a list of ten elements describing the final state of
 the parse:
 
 @enumerate 0
@@ -717,15 +712,16 @@ The string or comment start position.  While inside a comment, this is
 the position where the comment began; while inside a string, this is the
 position where the string began.  When outside of strings and comments,
 this element is @code{nil}.
+
+@item
+Internal data for continuing the parsing.  The meaning of this
+data is subject to change; it is used if you pass this list
+as the @var{state} argument to another call.
+
 @end enumerate
 
-Elements 0, 3, 4, 5 and 7 are significant in the argument @var{state}.
-
-Actually, the return value is currently a list of ten, rather than
-nine, elements and @var{state} is allowed to be a list of ten elements
-as well.  However, the meaning of the tenth element is subject to
-change and only the first eight elements of @var{state} need to be
-specified.
+Elements 0, 3, 4, 5, 7 and 9 are significant in the argument
+@var{state}.
 
 @cindex indenting with parentheses
 This function is most often used to compute indentation for languages
@@ -941,6 +937,12 @@ This function returns the internal form @code{(@var{syntax-code} .
 @var{matching-char})} corresponding to the syntax descriptor @var{desc}.
 @end defun
 
+@defun syntax-after pos
+This function returns the syntax code of the character in the buffer
+after position @var{pos}, taking account of syntax properties as well
+as the syntax table.
+@end defun
+
 @node Categories
 @section Categories
 @cindex categories of characters
@@ -973,7 +975,7 @@ defaults to the current buffer's category table.
 
 @defun define-category char docstring &optional table
 This function defines a new category, with name @var{char} and
-documentation @var{docstring}, for the category table @var{table},
+documentation @var{docstring}, for the category table @var{table}.
 @end defun
 
 @defun category-docstring category &optional table

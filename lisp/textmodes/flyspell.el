@@ -543,8 +543,9 @@ in your .emacs file.
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
   (setq ispell-highlight-face 'flyspell-incorrect-face)
   ;; local dictionaries setup
-  (ispell-change-dictionary
-   (or ispell-local-dictionary ispell-dictionary flyspell-default-dictionary))
+  (or ispell-local-dictionary ispell-dictionary
+      (if flyspell-default-dictionary
+	  (ispell-change-dictionary flyspell-default-dictionary)))
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!

@@ -74,15 +74,15 @@ character causes @dfn{quitting} (@pxref{Quitting}).
 The editor command loop runs this normal hook before each command.  At
 that time, @code{this-command} contains the command that is about to
 run, and @code{last-command} describes the previous command.
-@xref{Hooks}.
+@xref{Command Loop Info}.
 @end defvar
 
 @defvar post-command-hook
 The editor command loop runs this normal hook after each command
 (including commands terminated prematurely by quitting or by errors),
 and also when the command loop is first entered.  At that time,
-@code{this-command} describes the command that just ran, and
-@code{last-command} describes the command before that.  @xref{Hooks}.
+@code{this-command} refers to the command that just ran, and
+@code{last-command} refers to the command before that.
 @end defvar
 
   Quitting is suppressed while running @code{pre-command-hook} and
@@ -840,21 +840,21 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 @node Adjusting Point
 @section Adjusting Point After Commands
 
-  It is not easy to display a value of point in the middle of a sequence
-of text that has the @code{display} or @code{composition} property.  So
-after a command finishes and returns to the command loop, if point is
-within such a sequence, the command loop normally moves point to the
-edge of the sequence.
+  It is not easy to display a value of point in the middle of a
+sequence of text that has the @code{display}, @code{composition} or
+@code{intangible} property, or is invisible.  Therefore, after a
+command finishes and returns to the command loop, if point is within
+such a sequence, the command loop normally moves point to the edge of
+the sequence.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
 
 @defvar disable-point-adjustment
 @tindex disable-point-adjustment
-If this variable is non-@code{nil} when a command returns to the command
-loop, then the command loop does not check for text properties such as
-@code{display} and @code{composition}, and does not move point out of
-sequences that have these properties.
+If this variable is non-@code{nil} when a command returns to the
+command loop, then the command loop does not check for those text
+properties, and does not move point out of sequences that have them.
 
 The command loop sets this variable to @code{nil} before each command,
 so if a command sets it, the effect applies only to that command.
@@ -2051,7 +2051,7 @@ can use for translating or modifying input events while reading them.
 @code{read-key-sequence}.  Lisp programs can also call this function;
 for example, @code{describe-key} uses it to read the key to describe.
 
-@defun read-key-sequence prompt
+@defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
 @cindex key sequence
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
@@ -2066,8 +2066,28 @@ Otherwise, it returns a vector, since a vector can hold all kinds of
 events---characters, symbols, and lists.  The elements of the string or
 vector are the events in the key sequence.
 
-The argument @var{prompt} is either a string to be displayed in the echo
-area as a prompt, or @code{nil}, meaning not to display a prompt.
+The argument @var{prompt} is either a string to be displayed in the
+echo area as a prompt, or @code{nil}, meaning not to display a prompt.
+The argument @var{continue-echo}, if non-@code{nil}, means to echo
+this key as a continuation of the previous key.
+
+Normally any upper case event is converted to lower case if the
+original event is undefined and the lower case equivalent is defined.
+The argument @var{dont-downcase-last}, if non-@code{nil}, means do not
+convert the last event to lower case.  This is appropriate for reading
+a key sequence to be defined.
+
+The argument @var{switch-frame-ok}, if non-@code{nil}, means that this
+function should process a @code{switch-frame} event if the user
+switches frames before typing anything.  If the user switches frames
+in the middle of a key sequence, or at the start of the sequence but
+@var{switch-frame-ok} is @code{nil}, then the event will be put off
+until after the current key sequence.
+
+The argument @var{command-loop}, if non-@code{nil}, means that this
+key sequence is being read by something that will read commands one
+after another.  It should be @code{nil} if the caller will read just
+one key sequence.
 
 In the example below, the prompt @samp{?} is displayed in the echo area,
 and the user types @kbd{C-x C-f}.
@@ -2089,7 +2109,7 @@ typed while reading with this function works like any other character,
 and does not set @code{quit-flag}.  @xref{Quitting}.
 @end defun
 
-@defun read-key-sequence-vector prompt
+@defun read-key-sequence-vector prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
 This is like @code{read-key-sequence} except that it always
 returns the key sequence as a vector, never as a string.
 @xref{Strings of Events}.

@@ -1,5 +1,5 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -6680,9 +6680,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (set-buffer gnus-group-buffer)
       (if quit-config
 	  (gnus-handle-ephemeral-exit quit-config)
-	(goto-char group-point)
 	(unless leave-hidden
-	  (gnus-configure-windows 'group 'force)))
+	  (gnus-configure-windows 'group 'force))
+	;; Move point after calling gnus-configure-windows to make sure it
+	;; moves the window's point as well.
+	(goto-char group-point))
       ;; Clear the current group name.
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))

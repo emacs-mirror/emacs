@@ -1,7 +1,7 @@
 ;;; calendar.el --- calendar functions
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;	2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+;;	2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
@@ -141,11 +141,25 @@
   :group 'calendar)
 
 
+(defconst calendar-buffer "*Calendar*"
+  "Name of the buffer used for the calendar.")
+
 ;;;###autoload
 (defcustom calendar-week-start-day 0
   "*The day of the week on which a week in the calendar begins.
-0 means Sunday (default), 1 means Monday, and so on."
+0 means Sunday (default), 1 means Monday, and so on.
+
+If you change this variable directly (without using customize)
+after starting `calendar', you should call `redraw-calendar' to
+update the calendar display to reflect the change, otherwise
+movement commands will not work correctly."
   :type 'integer
+  :set (lambda (sym val)
+         (set sym val)
+         (let ((buffer (get-buffer calendar-buffer)))
+           (when (buffer-live-p buffer)
+             (with-current-buffer buffer
+               (redraw-calendar)))))
   :group 'calendar)
 
 ;;;###autoload
@@ -1303,9 +1317,6 @@ with descriptive strings such as
   :type 'sexp
   :group 'holidays)
 
-(defconst calendar-buffer "*Calendar*"
-  "Name of the buffer used for the calendar.")
-
 (defconst holiday-buffer "*Holidays*"
   "Name of the buffer used for the displaying the holidays.")
 
@@ -1563,13 +1574,19 @@ return negative results."
 The choices are: `one-frame' (calendar and diary together in one separate,
 dedicated frame); `two-frames' (calendar and diary in separate, dedicated
 frames); `calendar-only' (calendar in a separate, dedicated frame); with
-any other value the current frame is used.  Using any of the first 
+any other value the current frame is used.  Using any of the first
 three options overrides the value of `view-diary-entries-initially'."
   :type '(choice
           (const :tag "calendar and diary in separate frame" one-frame)
           (const :tag "calendar and diary each in own frame" two-frames)
           (const :tag "calendar in separate frame" calendar-only)
           (const :tag "use current frame" nil))
+  :group 'calendar)
+
+(defcustom calendar-minimum-window-height 8
+  "Minimum height `generate-calendar-window' should use for calendar window."
+  :type 'integer
+  :version "22.1"
   :group 'calendar)
 
 ;;;###autoload
@@ -2039,28 +2056,33 @@ Or, for optional MON, YR."
           (or (not mon)
               (let ((offset (calendar-interval mon yr month year)))
                 (and (<= offset 1) (>= offset -1)))))
-         (day-in-week (calendar-day-of-week today)))
+         (day-in-week (calendar-day-of-week today))
+         (in-calendar-window (eq (window-buffer (selected-window))
+                                 (get-buffer calendar-buffer))))
     (update-calendar-mode-line)
     (if mon
         (generate-calendar mon yr)
-        (generate-calendar month year))
+      (generate-calendar month year))
     (calendar-cursor-to-visible-date
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
-    (if (or (one-window-p t) (/= (frame-width) (window-width)))
-	;; Don't mess with the window size, but ensure that the first
-	;; line is fully visible
-	(set-window-vscroll nil 0)
-      ;; Adjust the window to exactly fit the displayed calendar
-      (fit-window-to-buffer))
-    (sit-for 0)
+    ;; Don't do any window-related stuff if we weren't called from a
+    ;; window displaying the calendar
+    (when in-calendar-window
+      (if (or (one-window-p t) (/= (frame-width) (window-width)))
+          ;; Don't mess with the window size, but ensure that the first
+          ;; line is fully visible
+          (set-window-vscroll nil 0)
+        ;; Adjust the window to exactly fit the displayed calendar
+        (fit-window-to-buffer nil nil calendar-minimum-window-height))
+      (sit-for 0))
     (if (and (boundp 'font-lock-mode)
 	     font-lock-mode)
 	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
 ;;;         (calendar-date-is-legal-p today) ; useful for BC dates
          (mark-calendar-holidays)
-         (sit-for 0))
+         (and in-calendar-window (sit-for 0)))
     (unwind-protect
         (if mark-diary-entries-in-calendar (mark-diary-entries))
       (if today-visible
@@ -2071,10 +2093,10 @@ Or, for optional MON, YR."
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
 ;;; A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
 ;;; Note that while calendars for years BC could be displayed as it
-;;; stands, almost all other calendar functions (eg holidays) would 
+;;; stands, almost all other calendar functions (eg holidays) would
 ;;; at best have unpredictable results for such dates.
   (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before February, 1 AD are not available"))
+      (error "Months before January, 1 AD cannot be displayed"))
   (setq displayed-month month
         displayed-year year)
   (erase-buffer)
@@ -2229,6 +2251,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "S"   'calendar-sunrise-sunset)
   (define-key calendar-mode-map "M"   'calendar-phases-of-moon)
   (define-key calendar-mode-map " "   'scroll-other-window)
+  (define-key calendar-mode-map (kbd "DEL") 'scroll-other-window-down)
   (define-key calendar-mode-map "\C-c\C-l" 'redraw-calendar)
   (define-key calendar-mode-map "."   'calendar-goto-today)
   (define-key calendar-mode-map "o"   'calendar-other-month)

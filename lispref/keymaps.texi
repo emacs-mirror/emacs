@@ -10,7 +10,7 @@
 
   The bindings between input events and commands are recorded in data
 structures called @dfn{keymaps}.  Each binding in a keymap associates
-(or @dfn{binds}) an individual event type either to another keymap or to
+(or @dfn{binds}) an individual event type, either to another keymap or to
 a command.  When an event type is bound to a keymap, that keymap is used
 to look up the next input event; this continues until a command is
 found.  The whole process is called @dfn{key lookup}.
@@ -202,24 +202,29 @@ lisp-mode-map
 @end group
 @group
 (keymap
- ;; @key{TAB}
- (9 . lisp-indent-line)
+ (3 keymap
+    ;; @kbd{C-c C-z}
+    (26 . run-lisp))
 @end group
 @group
+ (27 keymap
+     ;; @r{@kbd{M-C-x}, treated as @kbd{@key{ESC} C-x}}
+     (24 . lisp-send-defun)
+     keymap
+     ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
+     (17 . indent-sexp)))
+@end group
+@group
+ ;; @r{This part is inherited from @code{lisp-mode-shared-map}.}
+ keymap
  ;; @key{DEL}
  (127 . backward-delete-char-untabify)
 @end group
 @group
- (3 keymap
-    ;; @kbd{C-c C-l}
-    (12 . run-lisp))
-@end group
-@group
  (27 keymap
      ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
-     (17 . indent-sexp)
-     ;; @r{@kbd{M-C-x}, treated as @kbd{@key{ESC} C-x}}
-     (24 . lisp-send-defun)))
+     (17 . indent-sexp))
+ (9 . lisp-indent-line))
 @end group
 @end example
 
@@ -565,8 +570,8 @@ additional active keymaps through the variable
 text or overlay property.  If that is non-@code{nil}, it is the first
 keymap to be processed, in normal circumstances.
 
-  However, there are also special circumstances, ways programs can
-substitute other keymaps for some of those.  The variable
+  However, there are also special ways for program can to substitute
+other keymaps for some of those.  The variable
 @code{overriding-local-map}, if non-@code{nil}, specifies a keymap
 that replaces all the usual active keymaps except the global keymap.
 Another way to do this is with @code{overriding-terminal-local-map};
@@ -679,8 +684,8 @@ structure as elements of @code{minor-mode-alist}.  The map must be the
 not do.  The @sc{cdr} can be either a keymap (a list) or a symbol whose
 function definition is a keymap.
 
-When more than one minor mode keymap is active, their order of priority
-is the order of @code{minor-mode-map-alist}.  But you should design
+When more than one minor mode keymap is active, the earlier one in
+@code{minor-mode-map-alist} takes priority.  But you should design
 minor modes so that they don't interfere with each other.  If you do
 this properly, the order will not matter.
 
@@ -763,8 +768,8 @@ part of key lookup.
 
   Key lookup uses just the event type of each event in the key sequence;
 the rest of the event is ignored.  In fact, a key sequence used for key
-lookup may designate mouse events with just their types (symbols)
-instead of with entire mouse events (lists).  @xref{Input Events}.  Such
+lookup may designate a mouse event with just its types (a symbol)
+instead of the entire event (a list).  @xref{Input Events}.  Such
 a ``key-sequence'' is insufficient for @code{command-execute} to run,
 but it is sufficient for looking up or rebinding a key.
 
@@ -1113,10 +1118,11 @@ key name).  For example, @code{(control ?a)} is equivalent to
 @code{C-H-left}.  One advantage of such lists is that the precise
 numeric codes for the modifier bits don't appear in compiled files.
 
-  For the functions below, an error is signaled if @var{keymap} is not a
-keymap or if @var{key} is not a string or vector representing a key
+  For the functions below, an error is signaled if @var{keymap} is not
+a keymap or if @var{key} is not a string or vector representing a key
 sequence.  You can use event types (symbols) as shorthand for events
-that are lists.
+that are lists.  The @code{kbd} macro (@pxref{Keymap Terminology}) is
+a convenient way to specify the key sequence.
 
 @defun define-key keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
@@ -1396,7 +1402,7 @@ redefines @kbd{C-x C-\} to move down a line.
 @end smallexample
 
 @noindent
-redefines the first (leftmost) mouse button, typed with the Meta key, to
+redefines the first (leftmost) mouse button, entered with the Meta key, to
 set point where you click.
 
 @cindex non-@acronym{ASCII} text in keybindings
@@ -1743,7 +1749,7 @@ menu.  It should be short---preferably one to three words.  It should
 describe the action of the command it corresponds to.  Note that it is
 not generally possible to display non-@acronym{ASCII} text in menus.  It will
 work for keyboard menus and will work to a large extent when Emacs is
-built with Gtk+ support.@footnote{In this case, the text is first
+built with the Gtk+ toolkit.@footnote{In this case, the text is first
 encoded using the @code{utf-8} coding system and then rendered by the
 toolkit as it sees fit.}
 
@@ -2044,13 +2050,8 @@ with @samp{@@} or not.  In a toolkit version of Emacs, the only thing
 special about @samp{@@} at the beginning of an item string is that the
 @samp{@@} doesn't appear in the menu item.
 
-  You can also produce multiple panes or submenus from separate keymaps.
-The full definition of a prefix key always comes from merging the
-definitions supplied by the various active keymaps (minor mode, local,
-and global).  When more than one of these keymaps is a menu, each of
-them makes a separate pane or panes (when Emacs does not use an
-X-toolkit) or a separate submenu (when using an X-toolkit).
-@xref{Active Keymaps}.
+  Multiple keymaps that define the same menu prefix key produce
+separate panes or separate submenus.
 
 @node Keyboard Menus
 @subsection Menus and the Keyboard
@@ -2094,29 +2095,29 @@ for @key{SPC}.
 @cindex menu definition example
 
   Here is a complete example of defining a menu keymap.  It is the
-definition of the @samp{Print} submenu in the @samp{Tools} menu in the
-menu bar, and it uses the simple menu item format (@pxref{Simple Menu
-Items}).  First we create the keymap, and give it a name:
+definition of the @samp{Replace} submenu in the @samp{Edit} menu in
+the menu bar, and it uses the extended menu item format
+(@pxref{Extended Menu Items}).  First we create the keymap, and give
+it a name:
 
-@example
-(defvar menu-bar-print-menu (make-sparse-keymap "Print"))
-@end example
+@smallexample
+(defvar menu-bar-replace-menu (make-sparse-keymap "Replace"))
+@end smallexample
 
 @noindent
 Next we define the menu items:
 
-@example
-(define-key menu-bar-print-menu [ps-print-region]
-  '("Postscript Print Region" . ps-print-region-with-faces))
-(define-key menu-bar-print-menu [ps-print-buffer]
-  '("Postscript Print Buffer" . ps-print-buffer-with-faces))
-(define-key menu-bar-print-menu [separator-ps-print]
-  '("--"))
-(define-key menu-bar-print-menu [print-region]
-  '("Print Region" . print-region))
-(define-key menu-bar-print-menu [print-buffer]
-  '("Print Buffer" . print-buffer))
-@end example
+@smallexample
+(define-key menu-bar-replace-menu [tags-repl-continue]
+  '(menu-item "Continue Replace" tags-loop-continue
+	      :help "Continue last tags replace operation"))
+(define-key menu-bar-replace-menu [tags-repl]
+  '(menu-item "Replace in tagged files" tags-query-replace
+	      :help "Interactively replace a regexp in all tagged files"))
+(define-key menu-bar-replace-menu [separator-replace-tags]
+  '(menu-item "--"))
+;; @r{@dots{}}
+@end smallexample
 
 @noindent
 Note the symbols which the bindings are ``made for''; these appear
@@ -2136,58 +2137,29 @@ typed with the keyboard.
 
   The binding whose definition is @code{("--")} is a separator line.
 Like a real menu item, the separator has a key symbol, in this case
-@code{separator-ps-print}.  If one menu has two separators, they must
-have two different key symbols.
-
-  Here is code to define enable conditions for two of the commands in
-the menu:
-
-@example
-(put 'print-region 'menu-enable 'mark-active)
-(put 'ps-print-region-with-faces 'menu-enable 'mark-active)
-@end example
+@code{separator-replace-tags}.  If one menu has two separators, they
+must have two different key symbols.
 
   Here is how we make this menu appear as an item in the parent menu:
 
 @example
-(define-key menu-bar-tools-menu [print]
-  (cons "Print" menu-bar-print-menu))
+(define-key menu-bar-edit-menu [replace]
+  (list 'menu-item "Replace" menu-bar-replace-menu))
 @end example
 
 @noindent
 Note that this incorporates the submenu keymap, which is the value of
-the variable @code{menu-bar-print-menu}, rather than the symbol
-@code{menu-bar-print-menu} itself.  Using that symbol in the parent menu
-item would be meaningless because @code{menu-bar-print-menu} is not a
-command.
+the variable @code{menu-bar-replace-menu}, rather than the symbol
+@code{menu-bar-replace-menu} itself.  Using that symbol in the parent
+menu item would be meaningless because @code{menu-bar-replace-menu} is
+not a command.
 
-  If you wanted to attach the same print menu to a mouse click, you
+  If you wanted to attach the same replace menu to a mouse click, you
 can do it this way:
 
 @example
 (define-key global-map [C-S-down-mouse-1]
-   menu-bar-print-menu)
-@end example
-
-  We could equally well use an extended menu item (@pxref{Extended Menu
-Items}) for @code{print-region}, like this:
-
-@example
-(define-key menu-bar-print-menu [print-region]
-  '(menu-item "Print Region" print-region
-              :enable mark-active))
-@end example
-
-@noindent
-With the extended menu item, the enable condition is specified
-inside the menu item itself.  If we wanted to make this
-item disappear from the menu entirely when the mark is inactive,
-we could do it this way:
-
-@example
-(define-key menu-bar-print-menu [print-region]
-  '(menu-item "Print Region" print-region
-              :visible mark-active))
+   menu-bar-replace-menu)
 @end example
 
 @node Menu Bar
@@ -2197,7 +2169,7 @@ we could do it this way:
   Most window systems allow each frame to have a @dfn{menu bar}---a
 permanently displayed menu stretching horizontally across the top of the
 frame.  The items of the menu bar are the subcommands of the fake
-``function key'' @code{menu-bar}, as defined by all the active keymaps.
+``function key'' @code{menu-bar}, as defined in the active keymaps.
 
   To add an item to the menu bar, invent a fake ``function key'' of your
 own (let's call it @var{key}), and make a binding for the key sequence

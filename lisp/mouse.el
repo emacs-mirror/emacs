@@ -82,6 +82,17 @@ packages.  See `mouse-on-link-p' for details."
                  (other :tag "Single click" t))
   :group 'mouse)
 
+(defcustom mouse-1-click-in-non-selected-windows t
+  "*If non-nil, a Mouse-1 click also follows links in non-selected windows.
+
+If nil, a Mouse-1 click on a link in a non-selected window performs
+the normal mouse-1 binding, typically selects the window and sets
+point at the click position."
+  :type 'boolean
+  :version "22.1"
+  :group 'mouse)
+
+
 
 ;; Provide a mode-specific menu on a mouse button.
 
@@ -771,6 +782,8 @@ If the click is in the echo area, display the `*Messages*' buffer."
   "Return non-nil if POS is on a link in the current buffer.
 POS must be a buffer position in the current buffer or an mouse
 event location in the selected window, see `event-start'.
+However, if `mouse-1-click-in-non-selected-windows' is non-nil,
+POS may be a mouse event location in any window.
 
 A clickable link is identified by one of the following methods:
 
@@ -805,21 +818,24 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (if (consp pos)
-      (setq pos (and (eq (selected-window) (posn-window pos))
-		     (posn-point pos))))
-  (when pos
-    (let ((action
-	   (or (get-char-property pos 'follow-link)
-	       (save-excursion
-		 (goto-char pos)
-		 (key-binding [follow-link] nil t)))))
-      (cond
-       ((eq action 'mouse-face)
-	(and (get-char-property pos 'mouse-face) t))
-       ((functionp action)
-	(funcall action pos))
-       (t action)))))
+  (let ((w (and (consp pos) (posn-window pos))))
+    (if (consp pos)
+	(setq pos (and (or mouse-1-click-in-non-selected-windows
+			   (eq (selected-window) w))
+		       (posn-point pos))))
+    (when pos
+      (with-current-buffer (window-buffer w)
+	(let ((action
+	       (or (get-char-property pos 'follow-link)
+		   (save-excursion
+		     (goto-char pos)
+		     (key-binding [follow-link] nil t)))))
+	  (cond
+	   ((eq action 'mouse-face)
+	    (and (get-char-property pos 'mouse-face) t))
+	   ((functionp action)
+	    (funcall action pos))
+	   (t action)))))))
 
 
 (defun mouse-drag-region-1 (start-event)
@@ -839,7 +855,8 @@ at the same position."
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
 	 (on-link (and mouse-1-click-follows-link
-		       (eq start-window (selected-window))))
+		       (or mouse-1-click-in-non-selected-windows
+			   (eq start-window (selected-window)))))
 	 remap-double-click
 	 (click-count (1- (event-click-count start-event))))
     (setq mouse-selection-click-count click-count)

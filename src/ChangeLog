@@ -1,3 +1,19 @@
+2005-02-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_resize_outer_widget): Removed unneeded call to
+	gtk_window_resize and x_wm_set_size_hint.
+
+2005-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (OVERLAY_STRING_CHUNK_SIZE): Increase from 3 to 16.
+
+	* xdisp.c (init_from_display_pos): Don't read past end of
+	it->overlay_strings array.
+
+2005-02-25  Stephan Stahl <stahl@eos.franken.de>  (tiny change)
+
+	* buffer.c (syms_of_buffer): Fix typo.
+
 2005-02-23  Lute Kamstra  <lute@gnu.org>
 
 	* buffer.c (Foverlay_buffer): Doc fix.

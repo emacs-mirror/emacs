@@ -1882,7 +1882,7 @@ struct it
 
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
-#define OVERLAY_STRING_CHUNK_SIZE 3
+#define OVERLAY_STRING_CHUNK_SIZE 16
   Lisp_Object overlay_strings[OVERLAY_STRING_CHUNK_SIZE];
 
   /* Total number of overlay strings to process.  This can be >
