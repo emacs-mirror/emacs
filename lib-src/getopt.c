@@ -75,6 +75,10 @@
 # endif
 #endif
 
+#if HAVE_LIBINTL_H
+# include <libintl.h>
+#endif /* HAVE_LIBINTL_H */
+
 #if 0
 #  ifdef _LIBC
 #    include <libintl.h>
@@ -84,12 +88,12 @@
 #  endif  /* end #ifdef _LIBC */
 #endif  /* end #if 0 */
 
-#if HAVE_LIBINTL_H || defined _LIBC
+#if HAVE_LIBINTL_H
   /* Should I include libintl.h here as in regex.c ? */
 #  define _(msgid) gettext (msgid)
-#else  /* not #if HAVE_LIBINTL_H || defined _LIBC */
+#else  /* not #if HAVE_LIBINTL_H */
 #  define _(msgid) (msgid)
-#endif  /* end #if HAVE_LIBINTL_H || defined _LIBC */
+#endif  /* end #if HAVE_LIBINTL_H */
 
 #if defined _LIBC && defined USE_IN_LIBIO
 # include <wchar.h>
