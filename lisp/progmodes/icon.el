@@ -627,33 +627,66 @@ Returns nil if line starts inside a string, t if in a comment."
    (eval-when-compile
      (list
       ;; Fontify all type specifiers.
-      ;;"null" "string" "co-expression" "table" "integer" "cset"  "set" "real" "file" "list"
-      (cons "\\<\\(c\\(o-expression\\|set\\)\\|file\\|integer\\|list\\|null\\|real\\|s\\(et\\|tring\\)\\|table\\)\\>"'font-lock-type-face)
+      (cons 
+       (concat 
+	"\\<" (regexp-opt  '("null" "string" "co-expression" "table" "integer" 
+			     "cset"  "set" "real" "file" "list") t) 
+	"\\>") 
+       'font-lock-type-face)
       ;; Fontify all keywords.
-      ;;"break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" "until" "case" "of" "while" "create" "every" "suspend" "default" "fail" "record" "then"
-      (cons "\\<\\(b\\(reak\\|y\\)\\|c\\(ase\\|reate\\)\\|d\\(efault\\|o\\)\\|e\\(lse\\|very\\)\\|fail\\|if\\|n\\(ext\\|ot\\)\\|of\\|re\\(cord\\|peat\\|turn\\)\\|suspend\\|t\\(hen\\|o\\)\\|until\\|while\\)\\>" 'font-lock-keyword-face)
+      ;;
+      (cons 
+       (concat 
+	"\\<" 
+	(regexp-opt 
+	 '("break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" 
+	   "until" "case" "of" "while" "create" "every" "suspend" "default" 
+	   "fail" "record" "then") t)
+	"\\>")
+       'font-lock-keyword-face)
       ;; "end" "initial" 
-      (cons (concat "\\<\\(end\\|initial\\)\\>") 'font-lock-builtin-face)
+      (cons (concat "\\<" (regexp-opt '("end" "initial") t) "\\>")
+	    'font-lock-builtin-face)
       ;; Fontify all system variables.
-      ;;"&allocated" "&ascii" "&clock" "&col" "&collections" "&column" "&control" "&cset" "&current" "&date" "&dateline" "&digits" "&dump" "&error" "&errornumber" "&errortext" "&errorvalue" "&errout" "&eventcode" "&eventsource" "&eventvalue" "&fail" "&features" "&file" "&host" "&input" "&interval" "&lcase" "&ldrag" "&letters" "&level" "&line" "&lpress" "&lrelease" "&main" "&mdrag" "&meta" "&mpress" "&mrelease" "&null" "&output" "&phi" "&pi" "&pos" "&progname" "&random" "&rdrag" "&regions" "&resize" "&row" "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject" "&time" "&trace" "&ucase" "&version" "&window" "&x" "&y"
-      (cons (concat "\\(&\\(a\\(llocated\\|scii\\)\\|c\\(lock\\|o\\(l\\(\\|lections\\|umn\\)\\|ntrol\\)\\|set\\|urrent\\)\\|d\\(ate\\(\\|line\\)\\|igits\\|ump\\)\\|e\\(rro\\(r\\(\\|number\\|text\\|value\\)\\|ut\\)\\|vent\\(code\\|source\\|value\\)\\)\\|f\\(ail\\|eatures\\|ile\\)\\|host\\|in\\(put\\|terval\\)\\|l\\(case\\|drag\\|e\\(tters\\|vel\\)\\|ine\\|press\\|release\\)\\|m\\(ain\\|drag\\|eta\\|press\\|release\\)\\|null\\|output\\|p\\(hi\\|i\\|os\\|rogname\\)\\|r\\(andom\\|drag\\|e\\(gions\\|size\\)\\|ow\\|press\\|release\\)\\|s\\(hift\\|ource\\|torage\\|ubject\\)\\|t\\(ime\\|race\\)\\|ucase\\|version\\|window\\|[exy]\\)\\)") 'font-lock-reference-face)
-      ;; global local static declarations and link files
-      (cons  "^[ \t]*\\(global\\|link\\|local\\|static\\)\\(\\sw+\\>\\)*"
-	     '((1 font-lock-builtin-face)
-	       (font-lock-match-c-style-declaration-item-and-skip-to-next
-		(goto-char (or (match-beginning 2) (match-end 1))) nil
-		(1 (if (match-beginning 2)
-		       font-lock-function-name-face
-		     font-lock-variable-name-face)))))
-      ;; $define $elif $ifdef $ifdef $ifndef
-      (cons "^\\(\\$\\(define\\|elif\\|if\\(\\|def\\|ndef\\)\\|undef\\)\\)[ \t]+\\([^ \t\n]+\\)" 
-	    '((1 font-lock-builtin-face) (4 font-lock-variable-name-face nil t)))
-      ;; $dump $endif $else $include 
-      (cons "^\\(\\$\\(dump\\|e\\(lse\\|ndif\\)\\|include\\)\\)\\>" 'font-lock-builtin-face)
-      ;; $warning $error
-      (cons "^\\(\\$\\(warning\\|error\\)\\)[ \t]+\\([^\n]+\\)" 
-	    '((1 font-lock-builtin-face) (3 font-lock-warning-face nil t)))
-      )))
+      (cons 
+       (regexp-opt 
+	'("&allocated" "&ascii" "&clock" "&col" "&collections" "&column" 
+	  "&control" "&cset" "&current" "&date" "&dateline" "&digits" "&dump"
+	  "&e" "&error" "&errornumber" "&errortext" "&errorvalue" "&errout" 
+	  "&eventcode" "&eventsource" "&eventvalue" "&fail" "&features" 
+	  "&file" "&host" "&input" "&interval" "&lcase" "&ldrag" "&letters" 
+	  "&level" "&line" "&lpress" "&lrelease" "&main" "&mdrag" "&meta" 
+	  "&mpress" "&mrelease" "&null" "&output" "&phi" "&pi" "&pos" 
+	  "&progname" "&random" "&rdrag" "&regions" "&resize" "&row" 
+	  "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject" 
+	  "&time" "&trace" "&ucase" "&version" "&window" "&x" "&y") t)
+       'font-lock-reference-face)
+      (cons      ;; global local static declarations and link files
+       (concat 
+	"^[ \t]*"
+	(regexp-opt '("global" "link" "local" "static") t)
+	"\\(\\sw+\\>\\)*")
+       '((1 font-lock-builtin-face)
+	 (font-lock-match-c-style-declaration-item-and-skip-to-next
+	  (goto-char (or (match-beginning 2) (match-end 1))) nil
+	  (1 (if (match-beginning 2)
+		 font-lock-function-name-face
+	       font-lock-variable-name-face)))))
+
+      (cons      ;; $define $elif $ifdef $ifdef $ifndef
+       (concat 
+	"^" 
+	(regexp-opt'("$define" "$elif" "$ifdef" "$ifdef" "$ifndef" "$undef") t)
+	"[ \t]+\\([^ \t\n]+\\)")
+	    '((1 font-lock-builtin-face) 
+	      (4 font-lock-variable-name-face nil t)))
+      (cons      ;; $dump $endif $else $include 
+       (concat 
+	"^" (regexp-opt'("$dump" "$endif" "$else" "$include") t) "\\>" )
+       'font-lock-builtin-face)
+      (cons      ;; $warning $error
+       (concat 	"^" (regexp-opt '("$warning" "$error") t) "[ \t]+\\([^\n]+\\)")
+	    '((1 font-lock-builtin-face) (3 font-lock-warning-face nil t))))))
     "Gaudy level highlighting for `icon-mode'.")
 
 (defvar icon-font-lock-keywords icon-font-lock-keywords-1
