@@ -134,7 +134,7 @@ This variable is relevant only if `backup-by-copying' and
   :group 'backup)
 
 (defvar backup-enable-predicate
-  '(lambda (name)
+  (lambda (name)
      (and (let ((comp (compare-strings temporary-file-directory 0 nil
 				       name 0 nil)))
 	    (and (not (eq comp t))
