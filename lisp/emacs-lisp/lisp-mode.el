@@ -296,12 +296,24 @@ With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     (prin1 (eval (let ((stab (syntax-table))
 		       (opoint (point))
+		       ignore-quotes
 		       expr)
 		   (unwind-protect
 		       (save-excursion
 			 (set-syntax-table emacs-lisp-mode-syntax-table)
+			 ;; If this sexp appears to be enclosed in `...'
+			 ;; then ignore the surrounding quotes.
+			 (setq ignore-quotes
+			       (or (eq (following-char) ?\')
+				   (eq (preceding-char) ?\')))
 			 (forward-sexp -1)
 			 (save-restriction
+			   ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
+			   ;; `variable' so that the value is returned, not the
+			   ;; name 
+			   (if (and ignore-quotes
+				    (eq (following-char) ?`))
+			       (forward-char))
 			   (narrow-to-region (point-min) opoint)
 			   (setq expr (read (current-buffer)))
 			   ;; If it's an (interactive ...) form, it's more
