@@ -317,6 +317,12 @@ echo "Making links to \`lisp' and its subdirectories"
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
  ln [a-zA-Z]*.dat ../${tempdir}/lisp
+ for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm; do
+   # If there are no images, the shell won't expand the pattern.
+   if [ -f $img ]; then
+     ln $img ../${tempdir}/lisp
+   fi
+ done
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog Makefile.in makefile.nt ChangeLog.? ../${tempdir}/lisp
@@ -347,6 +353,11 @@ echo "Making links to \`lisp' and its subdirectories"
    mkdir ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z]*.el ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z]*.elc ../${tempdir}/lisp/$file
+   for img in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.xbm; do
+     if [ -f $img ]; then
+       ln $img ../${tempdir}/lisp/$file
+     fi
+   done
    if [ -f $file/README ]; then
      ln $file/README ../${tempdir}/lisp/$file
    fi
