@@ -1,3 +1,8 @@
+2004-03-12  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-preserve-ascii): Default value changed to t and
+	doc string revised.
+
 2004-03-12  Richard M. Stallman  <rms@gnu.org>
 
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
