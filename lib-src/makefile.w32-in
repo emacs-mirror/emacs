@@ -19,7 +19,7 @@
 #  Boston, MA 02111-1307, USA.
 #
 
-ALL	      = make-docfile hexl ctags etags movemail fakemail ebrowse
+ALL	      = make-docfile hexl ctags etags movemail ebrowse
 
 .PHONY: $(ALL)
 
@@ -38,7 +38,6 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 #		$(BLD)/cvtmail.exe	\
 #		$(BLD)/digest-doc.exe	\
 #		$(BLD)/test-distrib.exe	\
-
 
 LIBS	      = $(BASE_LIBS) $(ADVAPI32)
 
