@@ -5819,7 +5819,7 @@ expose_window (w, r)
      happen when toolkit scroll bars are used and a window is split.
      Reconfiguring the scroll bar will generate an expose for a newly
      created window.  */
-  if (w->current_matrix == NULL)
+  if (w->current_matrix == NULL || w == updated_window)
     return;
 
   TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
