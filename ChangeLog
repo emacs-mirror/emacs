@@ -1,3 +1,7 @@
+2002-12-08  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-arch-indep): Revert last change.
+
 2002-11-27  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_CHECK_DECLS, not AC_DECL_SYS_SIGLIST.
