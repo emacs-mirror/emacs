@@ -1,12 +1,12 @@
 #
-#     BUILD FOR Solaris/UltraSPARC/SunPro C PLATFORM
+#     BUILD FOR Solaris/SPARC v9/SunPro C PLATFORM
 #
-#  $HopeName: MMsrc!soussc.gmk(trunk.7) $
+#  $HopeName: MMsrc!sos9sc.gmk(trunk.8) $
 #
-#  This is the GNU makefile for platform.soussc
+#  This is the GNU makefile for platform.sos9sc
 #
 
-PFM = soussc
+PFM = sos9sc
 PFMDEFS = -D_POSIX_SOURCE -D__EXTENSIONS__
 
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
@@ -14,7 +14,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
       trace.c than.c protso.c shield.c mpsi.c ld.c \
       mpsioan.c event.c action.c seg.c
-MPMPS = ssussp.s
+MPMPS = sssos9sc.s
 AMC = amc.c
 AWL = poolawl.c
 MRG = poolmrg.c
