@@ -2,6 +2,7 @@
  summary = test my format for format_a
  language = c
  link = myfmt.o testlib.o
+ manual = true
 END_HEADER
 */
 

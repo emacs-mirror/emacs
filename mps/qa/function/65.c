@@ -2,6 +2,9 @@
  summary = sort-of-leak in arena_collect
  language = c
  link = testlib.o exfmt.o
+OUTPUT_SPEC
+ junksize = 0
+ result = pass
 END_HEADER
 */
 
@@ -45,8 +48,6 @@ static void test(void)
 
  mps_fmt_t format;
  mps_ap_t apamc;
-
- size_t size0, size1;
 
  typedef mycell * myroot;
  myroot a, b, c, d, e, f, g;
@@ -198,5 +199,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

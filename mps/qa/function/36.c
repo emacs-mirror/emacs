@@ -22,12 +22,12 @@ static void test(void)
  mps_fmt_t format;
  mps_ap_t apamc, apawl, apran;
 
- mycell *a[100], *b, *c;
+ mycell *a[100], *c;
 
 
  int i;
  int j;
- int k,n,z;
+ int k,z;
 
  alloccomments = 1;
  skipcomments = 1;
@@ -110,5 +110,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

@@ -27,7 +27,6 @@ static void test(void) {
  mycell *a, *b;
  tag tag;
 
- long int j;
  long int i;
 
  cdie(mps_space_create(&space), "create space");
@@ -113,5 +112,6 @@ int main(void) {
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

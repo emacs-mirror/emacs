@@ -2,6 +2,10 @@
  summary = request.dylan.170439 (detect bad pointers)
  language = c
  link = testlib.o exfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile = .\trace.c
+ assertline = 963
 END_HEADER
 */
 
@@ -92,5 +96,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

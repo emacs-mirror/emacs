@@ -64,8 +64,8 @@ static void test(void)
   for (i=1; i<10000; i++)
   {
   UC;
-   a = allocone(ap1, 2, 1);
-   b = allocone(ap2, 2, 1);
+   a = allocone(ap1, 100, 1);
+   b = allocone(ap2, 100, 1);
    setref(a, 0, b);
    setref(b, 0, a);
   UC;
@@ -102,5 +102,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

@@ -2,6 +2,7 @@
  summary = keep calling arena_collect
  language = c
  link = testlib.o exfmt.o
+ manual = true
 END_HEADER
 */
 

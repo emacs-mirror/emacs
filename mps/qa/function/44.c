@@ -2,6 +2,10 @@
  summary = clamp and space_collect tests
  language = c
  link = testlib.o exfmt.o
+OUTPUT_SPEC
+ diff0 > 0
+ diff1 > 0
+ result = pass
 END_HEADER
 */
 
@@ -106,6 +110,7 @@ static void test(void)
    size1 = mps_arena_committed(space);
    report("sizebefore0", "%lu", (unsigned long) size0);
    report("sizeafter0", "%lu", (unsigned long) size1);
+   report("diff0", "%lu", (unsigned long) size0-size1);
    DC;
    mps_arena_release(space);
    comment("...released");
@@ -143,6 +148,7 @@ static void test(void)
    size1 = mps_arena_committed(space);
    report("sizebefore1", "%lu", (unsigned long) size0);
    report("sizeafter1", "%lu", (unsigned long) size1);
+   report("diff1", "%lu", (unsigned long) size0-size1);
    DC;
   }
   mps_arena_release(space);
@@ -178,5 +184,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

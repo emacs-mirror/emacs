@@ -2,6 +2,10 @@
  summary = finalization tests with AMC, AWL and LO
  language = c
  link = testlib.o rankfmt.o
+OUTPUT_SPEC
+ count1 < 50
+ count2 < 50
+ result = pass
 END_HEADER
 */
 
@@ -103,7 +107,7 @@ static void test(void) {
  mps_fmt_t format;
  mps_ap_t apamc, apawl, aplo;
 
- mycell *a, *b, *c, *d, *e, *z;
+ mycell *a, *b, *c, *d, *z;
 
  long int j;
 
@@ -278,5 +282,6 @@ int main(void) {
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }
