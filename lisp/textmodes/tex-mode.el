@@ -517,6 +517,8 @@ Entering SliTeX mode calls the value of `text-mode-hook', then the value of
   (setq comment-start-skip "\\(\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'tex-comment-indent)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
   (make-local-variable 'compare-windows-whitespace)
   (setq compare-windows-whitespace 'tex-categorize-whitespace)
   (make-local-variable 'tex-command)
