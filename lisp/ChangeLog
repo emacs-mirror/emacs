@@ -1,3 +1,16 @@
+2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (reindent-then-newline-and-indent): Insert the newline
+	before indenting the first line.
+	(undo-get-state, undo-revert-to-state): New funs.
+	(shell-command): Don't kill the buffer even if empty.
+	(transpose-subr-start1, transpose-subr-start2, transpose-subr-end1)
+	(transpose-subr-end2): Remove.
+	(transpose-subr): Add `special' arg and simplify.
+	(transpose-subr-1): Rewrite.
+	(do-auto-fill): Use fill-indent-according-to-mode and fill-nobreak-p.
+	(rfc822-goto-eoh): Simplify.
+
 2001-10-30  Richard M. Stallman  <rms@gnu.org>
 
 	* enriched.el (enriched-face-ans): FIx previous change.
@@ -36,11 +49,11 @@
 	rather than rebinding `paragraph-start' and `paragraph-separate'.
 
 	* indent.el (indent-line-function): Change default to indent-relative.
-	(tab-always-indent): Add an `always' setting.
+	(tab-always-indent): Add an `never' setting.
 	(indent-according-to-mode): Handle `indent-relative' and
 	`indent-relative-maybe' specially.
 	(indent-for-tab-command): Rename `prefix-arg' to `arg'.
-	Handle the `always; case for `tab-always-indent'.
+	Handle the `never' case for `tab-always-indent'.
 	Don't call indent-according-to-mode for indent-relative' and
 	`indent-relative-maybe'.
 	(insert-tab): Rename `prefix-arg' to `arg'.
