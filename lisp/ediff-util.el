@@ -303,11 +303,7 @@ to invocation.")
 	    (if ediff-diff3-job
 		'ediff-setup-diff-regions3
 	      'ediff-setup-diff-regions))
-	
-      (if ediff-xemacs-p
-	  ()
-	(make-local-variable 'default-minibuffer-frame))
-      
+
       (setq ediff-wide-bounds
 	    (list (ediff-make-bullet-proof-overlay
 		   '(point-min) '(point-max) ediff-buffer-A)
