@@ -1,3 +1,11 @@
+2004-06-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-insert-old-subdirs): Adapt to fact that the R
+	switch is no longer stored in `dired-switches-alist'.
+
+	* dired-aux.el (dired-insert-subdir): Do not store R switch in
+	`dired-switches-alist'.
+
 2004-06-10  Kim F. Storm  <storm@cua.dk>
 
 	* pcvs.el (cvs-mode-diff-yesterday): New command.
