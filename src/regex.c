@@ -243,7 +243,7 @@ char *alloca ();
    destination)
 
 /* No need to do anything to free, after alloca.  */
-#define REGEX_FREE(arg) (0)
+#define REGEX_FREE(arg) ((void)0) /* Do nothing!  But inhibit gcc warning.  */
 
 #endif /* not REGEX_MALLOC */
 
