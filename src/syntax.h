@@ -105,14 +105,12 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
 #endif
 
-#define SYNTAX_ENTRY_INT(c)					\
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS				\
-   ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,		\
-				 (unsigned char) (c))		\
-   : Faref (CURRENT_SYNTAX_TABLE,				\
-	    make_number (COMPOSITE_CHAR_P (c)			\
-			 ? cmpchar_component ((c), 0, 1)	\
-			 : (c))))
+#define SYNTAX_ENTRY_INT(c)				\
+  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+   ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,	\
+				 (unsigned char) (c))	\
+   : Faref (CURRENT_SYNTAX_TABLE,			\
+	    make_number (c)))
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
