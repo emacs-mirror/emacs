@@ -677,7 +677,10 @@ IT_update_end ()
 {
 }
 
-/* This was more or less copied from xterm.c */
+/* This was more or less copied from xterm.c
+
+   Nowadays, the corresponding function under X is `x_set_menu_bar_lines_1'
+   on xfns.c  */
 
 static void
 IT_set_menu_bar_lines (window, n)
@@ -700,6 +703,32 @@ IT_set_menu_bar_lines (window, n)
       w = XWINDOW (window);
       IT_set_menu_bar_lines (window, n);
     }
+}
+
+/* This was copied from xfns.c  */
+
+void
+x_set_menu_bar_lines (f, value, oldval)
+     struct frame *f;
+     Lisp_Object value, oldval;
+{
+  int nlines;
+  int olines = FRAME_MENU_BAR_LINES (f);
+
+  /* Right now, menu bars don't work properly in minibuf-only frames;
+     most of the commands try to apply themselves to the minibuffer
+     frame itslef, and get an error because you can't switch buffers
+     in or split the minibuffer window.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
+
+  if (INTEGERP (value))
+    nlines = XINT (value);
+  else
+    nlines = 0;
+
+  FRAME_MENU_BAR_LINES (f) = nlines;
+  IT_set_menu_bar_lines (f->root_window, nlines - olines);
 }
 
 /* IT_set_terminal_modes is called when emacs is started,
@@ -813,14 +842,13 @@ IT_set_terminal_window (void)
 }
 
 void
-IT_set_frame_parameters (frame, alist)
-     FRAME_PTR frame;
+IT_set_frame_parameters (f, alist)
+     FRAME_PTR f;
      Lisp_Object alist;
 {
   Lisp_Object tail;
   int redraw;
   extern unsigned long load_color ();
-  FRAME_PTR f = (FRAME_PTR) &the_only_frame;
 
   redraw = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
@@ -855,23 +883,14 @@ IT_set_frame_parameters (frame, alist)
 	    }
 	}
       else if (EQ (prop, intern ("menu-bar-lines")))
-	{
-	  int new;
-	  int old = FRAME_MENU_BAR_LINES (the_only_frame);
-
-	  if (INTEGERP (val))
-	    new = XINT (val);
-	  else
-	    new = 0;
-	  FRAME_MENU_BAR_LINES (f) = new;
-	  IT_set_menu_bar_lines (the_only_frame.root_window, new - old);
-	}
+	x_set_menu_bar_lines (f, val, 0);
     }
 
   if (redraw)
     {
       recompute_basic_faces (f);
-      Fredraw_frame (Fselected_frame ());
+      if (f == selected_frame)
+	redraw_frame (f);
     }
 }
 
@@ -900,7 +919,7 @@ internal_terminal_init ()
 #ifndef HAVE_X_WINDOWS
   if (!internal_terminal || inhibit_window_system)
     {
-      the_only_frame.output_method = output_termcap;
+      selected_frame->output_method = output_termcap;
       return;
     }
 
@@ -929,11 +948,9 @@ internal_terminal_init ()
         the_only_x_display.background_pixel = colors[1];
     }
   the_only_x_display.line_height = 1;
-  the_only_frame.output_data.x = &the_only_x_display;
-  the_only_frame.output_method = output_msdos_raw;
   the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
 
-  init_frame_faces ((FRAME_PTR) &the_only_frame);
+  init_frame_faces (selected_frame);
 
   ring_bell_hook = IT_ring_bell;
   write_glyphs_hook = IT_write_glyphs;
@@ -967,6 +984,19 @@ dos_get_saved_screen (screen, rows, cols)
   return 0;
 #endif  
 }
+
+#ifndef HAVE_X_WINDOWS
+
+/* We are not X, but we can emulate it well enough for our needs... */
+void
+check_x (void)
+{
+  if (! FRAME_MSDOS_P (selected_frame))
+    error ("Not running under a windows system");
+}
+
+#endif
+
 
 /* ----------------------- Keyboard control ----------------------
  *
@@ -1930,6 +1960,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int faces[4], selectface;
   int leave, result, onepane;
   int title_faces[4];		/* face to display the menu title */
+  int buffers_num_deleted = 0;
 
   /* Just in case we got here without a mouse present...  */
   if (have_mouse <= 0)
@@ -1938,21 +1969,21 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
-    = compute_glyph_face (&the_only_frame,
+    = compute_glyph_face (selected_frame,
 			  face_name_id_number
-			  (&the_only_frame,
+			  (selected_frame,
 			   intern ("msdos-menu-passive-face")),
 			  0);
   faces[1]
-    = compute_glyph_face (&the_only_frame,
+    = compute_glyph_face (selected_frame,
 			  face_name_id_number
-			  (&the_only_frame,
+			  (selected_frame,
 			   intern ("msdos-menu-active-face")),
 			  0);
   selectface
-    = face_name_id_number (&the_only_frame, intern ("msdos-menu-select-face"));
-  faces[2] = compute_glyph_face (&the_only_frame, selectface, faces[0]);
-  faces[3] = compute_glyph_face (&the_only_frame, selectface, faces[1]);
+    = face_name_id_number (selected_frame, intern ("msdos-menu-select-face"));
+  faces[2] = compute_glyph_face (selected_frame, selectface, faces[0]);
+  faces[3] = compute_glyph_face (selected_frame, selectface, faces[1]);
 
   /* Make sure the menu title is always displayed with
      `msdos-menu-active-face', no matter where the mouse pointer is.  */
@@ -1960,11 +1991,25 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
     title_faces[i] = faces[3];
 
   statecount = 1;
+
+  /* Don't let the title for the "Buffers" popup menu include a
+     digit (which is ugly).
+     
+     This is a terrible kludge, but I think the "Buffers" case is
+     the only one where the title includes a number, so it doesn't
+     seem to be necessary to make this more general.  */
+  if (strncmp (menu->text[0], "Buffers 1", 9) == 0)
+    {
+      menu->text[0][7] = '\0';
+      buffers_num_deleted = 1;
+    }
   state[0].menu = menu;
   mouse_off ();
   ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
 
   IT_menu_display (menu, y0 - 1, x0 - 1, title_faces); /* display menu title */
+  if (buffers_num_deleted)
+    menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
     {
       menu->width = menu->submenu[0]->width;
