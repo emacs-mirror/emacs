@@ -1,3 +1,10 @@
+2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* term/xterm.el (function-key-map):
+	Add entry for `ESC [ 3 ~' -> <delete>
+	Add entries `ESC O 5 [ABCD]' -> C-{up,down,right,left}.
+	Use inheritance so that .emacs and terminfo take precedence.
+
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tooltip.el (tooltip-delay): Decrease to 0.7.
