@@ -965,8 +965,14 @@ It gets two arguments: the process, and a string describing the change.  */)
      (process, sentinel)
      register Lisp_Object process, sentinel;
 {
+  struct Lisp_Process *p;
+
   CHECK_PROCESS (process);
-  XPROCESS (process)->sentinel = sentinel;
+  p = XPROCESS (process);
+
+  p->sentinel = sentinel;
+  if (NETCONN1_P (p))
+    p->childp = Fplist_put (p->childp, QCsentinel, sentinel);
   return sentinel;
 }
 
@@ -2308,233 +2314,158 @@ static struct socket_options {
   /* The name of this option.  Should be lowercase version of option
      name without SO_ prefix. */
   char *name;
-  /* Length of name.  */
-  int nlen;
   /* Option level SOL_... */
   int optlevel;
   /* Option number SO_... */
   int optnum;
   enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_STR, SOPT_LINGER } opttype;
+  enum { OPIX_NONE=0, OPIX_MISC=1, OPIX_REUSEADDR=2 } optbit;
 } socket_options[] =
   {
 #ifdef SO_BINDTODEVICE
-    { "bindtodevice", 12, SOL_SOCKET, SO_BINDTODEVICE, SOPT_STR },
+    { ":bindtodevice", SOL_SOCKET, SO_BINDTODEVICE, SOPT_STR, OPIX_MISC },
 #endif
 #ifdef SO_BROADCAST
-    { "broadcast", 9, SOL_SOCKET, SO_BROADCAST, SOPT_BOOL },
+    { ":broadcast", SOL_SOCKET, SO_BROADCAST, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_DONTROUTE
-    { "dontroute", 9, SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL },
+    { ":dontroute", SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_KEEPALIVE
-    { "keepalive", 9, SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL },
+    { ":keepalive", SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_LINGER
-    { "linger", 6, SOL_SOCKET, SO_LINGER, SOPT_LINGER },
+    { ":linger", SOL_SOCKET, SO_LINGER, SOPT_LINGER, OPIX_MISC },
 #endif
 #ifdef SO_OOBINLINE
-    { "oobinline", 9, SOL_SOCKET, SO_OOBINLINE, SOPT_BOOL },
+    { ":oobinline", SOL_SOCKET, SO_OOBINLINE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_PRIORITY
-    { "priority", 8, SOL_SOCKET, SO_PRIORITY, SOPT_INT },
+    { ":priority", SOL_SOCKET, SO_PRIORITY, SOPT_INT, OPIX_MISC },
 #endif
 #ifdef SO_REUSEADDR
-    { "reuseaddr", 9, SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL },
+    { ":reuseaddr", SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL, OPIX_REUSEADDR },
 #endif
-    { 0, 0, 0, 0, SOPT_UNKNOWN }
+    { 0, 0, 0, SOPT_UNKNOWN, OPIX_NONE }
   };
 
-/* Process list of socket options OPTS on socket S.
-   Only check if options are supported is S < 0.
-   If NO_ERROR is non-zero, continue silently if an option
-   cannot be set.
+/* Set option OPT to value VAL on socket S.
 
-   Each element specifies one option.  An element is either a string
-   "OPTION=VALUE" or a cons (OPTION . VALUE) where OPTION is a string
-   or a symbol.  */
+   Returns (1<<socket_options[OPT].optbit) if option is known, 0 otherwise.
+   Signals an error if setting a known option fails.
+*/
 
 static int
-set_socket_options (s, opts, no_error)
+set_socket_option (s, opt, val)
      int s;
-     Lisp_Object opts;
-     int no_error;
+     Lisp_Object opt, val;
 {
-  if (!CONSP (opts))
-    opts = Fcons (opts, Qnil);
+  char *name;
+  struct socket_options *sopt;
+  int ret = 0;
 
-  while (CONSP (opts))
+  CHECK_SYMBOL (opt);
+
+  name = (char *) SDATA (SYMBOL_NAME (opt));
+  for (sopt = socket_options; sopt->name; sopt++)
+    if (strcmp (name, sopt->name) == 0)
+      break;
+
+  switch (sopt->opttype)
     {
-      Lisp_Object opt;
-      Lisp_Object val;
-      char *name, *arg;
-      struct socket_options *sopt;
-      int ret = 0;
-
-      opt = XCAR (opts);
-      opts = XCDR (opts);
-
-      name = 0;
-      val = Qt;
-      if (CONSP (opt))
-	{
-	  val = XCDR (opt);
-	  opt = XCAR (opt);
-	}
-      if (STRINGP (opt))
-	name = (char *) SDATA (opt);
-      else if (SYMBOLP (opt))
-	name = (char *) SDATA (SYMBOL_NAME (opt));
-      else {
-	error ("Mal-formed option list");
-	return 0;
+    case SOPT_BOOL:
+      {
+	int optval;
+	optval = NILP (val) ? 0 : 1;
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &optval, sizeof (optval));
+	break;
       }
 
-      if (strncmp (name, "no", 2) == 0)
-	{
-	  val = Qnil;
-	  name += 2;
-	}
+    case SOPT_INT:
+      {
+	int optval;
+	if (INTEGERP (val))
+	  optval = XINT (val);
+	else
+	  error ("Bad option value for %s", name);
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &optval, sizeof (optval));
+	break;
+      }
 
-      arg = 0;
-      for (sopt = socket_options; sopt->name; sopt++)
-	if (strncmp (name, sopt->name, sopt->nlen) == 0)
-	  {
-	    if (name[sopt->nlen] == 0)
-	      break;
-	    if (name[sopt->nlen] == '=')
-	      {
-		arg = name + sopt->nlen + 1;
-		break;
-	      }
-	  }
+    case SOPT_STR:
+      {
+	char *arg;
 
-      switch (sopt->opttype)
-	{
-	case SOPT_BOOL:
-	  {
-	    int optval;
-	    if (s < 0)
-	      return 1;
-	    if (arg)
-	      optval = (*arg == '0' || *arg == 'n') ? 0 : 1;
-	    else if (INTEGERP (val))
-	      optval = XINT (val) == 0 ? 0 : 1;
-	    else
-	      optval = NILP (val) ? 0 : 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &optval, sizeof (optval));
-	    break;
-	  }
-
-	case SOPT_INT:
-	  {
-	    int optval;
-	    if (arg)
-	      optval = atoi(arg);
-	    else if (INTEGERP (val))
-	      optval = XINT (val);
-	    else
-	      error ("Bad option argument for %s", name);
-	    if (s < 0)
-	      return 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &optval, sizeof (optval));
-	    break;
-	  }
-
-	case SOPT_STR:
-	  {
-	    if (!arg)
-	      {
-		if (NILP (val))
-		  arg = "";
-		else if (STRINGP (val))
-		  arg = (char *) SDATA (val);
-		else if (XSYMBOL (val))
-		  arg = (char *) SDATA (SYMBOL_NAME (val));
-		else
-		  error ("Invalid argument to %s option", name);
-	      }
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      arg, strlen (arg));
-	  }
+	if (NILP (val))
+	  arg = "";
+	else if (STRINGP (val))
+	  arg = (char *) SDATA (val);
+	else if (XSYMBOL (val))
+	  arg = (char *) SDATA (SYMBOL_NAME (val));
+	else
+	  error ("Bad option value for %s", name);
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  arg, strlen (arg));
+      }
 
 #ifdef SO_LINGER
-	case SOPT_LINGER:
-	  {
-	    struct linger linger;
+    case SOPT_LINGER:
+      {
+	struct linger linger;
 
-	    linger.l_onoff = 1;
-	    linger.l_linger = 0;
-
-	    if (s < 0)
-	      return 1;
-
-	    if (arg)
-	      {
-		if (*arg == 'n' || *arg == 't' || *arg == 'y')
-		  linger.l_onoff = (*arg == 'n') ? 0 : 1;
-		else
-		  linger.l_linger = atoi(arg);
-	      }
-	    else if (INTEGERP (val))
-	      linger.l_linger = XINT (val);
-	    else
-	      linger.l_onoff = NILP (val) ? 0 : 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &linger, sizeof (linger));
-	    break;
-	  }
+	linger.l_onoff = 1;
+	linger.l_linger = 0;
+	if (INTEGERP (val))
+	  linger.l_linger = XINT (val);
+	else
+	  linger.l_onoff = NILP (val) ? 0 : 1;
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &linger, sizeof (linger));
+	break;
+      }
 #endif
-	default:
-	  if (s < 0)
-	    return 0;
-	  if (no_error)
-	    continue;
-	  error ("Unsupported option: %s", name);
-	}
-      if (ret < 0 && ! no_error)
-	  report_file_error ("Cannot set network option: %s", opt);
+
+    default:
+      return 0;
     }
-  return 1;
+
+  if (ret < 0)
+    report_file_error ("Cannot set network option",
+		       Fcons (opt, Fcons (val, Qnil)));
+  return (1 << sopt->optbit);
 }
 
-DEFUN ("set-network-process-options",
-       Fset_network_process_options, Sset_network_process_options,
-       1, MANY, 0,
-       doc: /* Set one or more options for network process PROCESS.
-Each option is either a string "OPT=VALUE" or a cons (OPT . VALUE).
-A boolean value is false if it either zero or nil, true otherwise.
 
-The following options are known.  Consult the relevant system manual
-pages for more information.
-
-bindtodevice=NAME -- bind to interface NAME, or remove binding if nil.
-broadcast=BOOL -- Allow send and receive of datagram broadcasts.
-dontroute=BOOL -- Only send to directly connected hosts.
-keepalive=BOOL -- Send keep-alive messages on network stream.
-linger=BOOL or TIMEOUT -- Send queued messages before closing.
-oobinline=BOOL -- Place out-of-band data in receive data stream.
-priority=INT -- Set protocol defined priority for sent packets.
-reuseaddr=BOOL -- Allow reusing a recently used address.
-
-usage: (set-network-process-options PROCESS &rest OPTIONS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+DEFUN ("set-network-process-option",
+       Fset_network_process_option, Sset_network_process_option,
+       3, 4, 0,
+       doc: /* For network process PROCESS set option OPTION to value VALUE.
+See `make-network-process' for a list of options and values.
+If optional fourth arg NO-ERROR is non-nil, don't signal an error if
+OPTION is not a supported option, return nil instead; otherwise return t.  */)
+     (process, option, value, no_error)
+     Lisp_Object process, option, value;
+     Lisp_Object no_error;
 {
-  Lisp_Object process;
-  Lisp_Object opts;
+  int s, i;
 
-  process = args[0];
   CHECK_PROCESS (process);
-  if (nargs > 1 && XINT (XPROCESS (process)->infd) >= 0)
-    {
-      opts = Flist (nargs, args);
-      set_socket_options (XINT (XPROCESS (process)->infd), opts, 0);
-    }
-  return process;
+
+  s = XINT (XPROCESS (process)->infd);
+  if (s < 0)
+    error ("Process is not running");
+
+  if (set_socket_option (s, option, value))
+    return Qt;
+
+  if (NILP (no_error))
+    error ("Unknown or unsupported option");
+
+  return Qnil;
 }
+
 
 /* A version of request_sigio suitable for a record_unwind_protect.  */
 
@@ -2614,10 +2545,10 @@ address data with one element per address data byte.  Do not rely on
 this format in portable code, as it may depend on implementation
 defined constants, data sizes, and data structure alignment.
 
-:coding CODING -- CODING is coding system for this process.
-
-:options OPTIONS -- Set the specified options for the network process.
-See `set-network-process-options' for details.
+:coding CODING -- If CODING is a symbol, it specifies the coding
+system used for both reading and writing for this process.  If CODING
+is a cons (DECODING . ENCODING), DECODING is used for reading, and
+ENCODING is used for writing.
 
 :nowait BOOL -- If BOOL is non-nil for a stream type client process,
 return without waiting for the connection to complete; instead, the
@@ -2651,13 +2582,32 @@ and MESSAGE is a string.
 
 :plist PLIST -- Install PLIST as the new process' initial plist.
 
-:server BOOL -- if BOOL is non-nil, create a server process for the
+:server QLEN -- if QLEN is non-nil, create a server process for the
 specified FAMILY, SERVICE, and connection type (stream or datagram).
-Default is a client process.
+If QLEN is an integer, it is used as the max. length of the server's
+pending connection queue (also known as the backlog); the default
+queue length is 5.  Default is to create a client process.
 
-A server process will listen for and accept connections from
-clients.  When a client connection is accepted, a new network process
-is created for the connection with the following parameters:
+The following network options can be specified for this connection:
+
+:bindtodevice NAME -- bind to interface NAME.
+:broadcast BOOL    -- Allow send and receive of datagram broadcasts.
+:dontroute BOOL    -- Only send to directly connected hosts.
+:keepalive BOOL    -- Send keep-alive messages on network stream.
+:linger BOOL or TIMEOUT -- Send queued messages before closing.
+:oobinline BOOL    -- Place out-of-band data in receive data stream.
+:priority INT      -- Set protocol defined priority for sent packets.
+:reuseaddr BOOL    -- Allow reusing a recently used local address
+                      (this is allowed by default for a server process).
+
+Consult the relevant system programmer's manual pages for more
+information on using these options.
+
+
+A server process will listen for and accept connections from clients.
+When a client connection is accepted, a new network process is created
+for the connection with the following parameters:
+
 - The client's process name is constructed by concatenating the server
 process' NAME and a client identification string.
 - If the FILTER argument is non-nil, the client process will not get a
@@ -2718,7 +2668,7 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object name, buffer, host, service, address;
   Lisp_Object filter, sentinel;
   int is_non_blocking_client = 0;
-  int is_server = 0;
+  int is_server = 0, backlog = 5;
   int socktype;
   int family = -1;
 
@@ -2755,6 +2705,8 @@ usage: (make-network-process &rest ARGS)  */)
       error ("Network servers not supported");
 #else
       is_server = 1;
+      if (INTEGERP (tem))
+	backlog = XINT (tem);
 #endif
     }
 
@@ -3007,6 +2959,8 @@ usage: (make-network-process &rest ARGS)  */)
 
   for (lres = res; lres; lres = lres->ai_next)
     {
+      int optn, optbits;
+
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3040,17 +2994,27 @@ usage: (make-network-process &rest ARGS)  */)
       /* Make us close S if quit.  */
       record_unwind_protect (close_file_unwind, make_number (s));
 
+      /* Parse network options in the arg list.
+	 We simply ignore anything which isn't a known option (including other keywords).
+         An error is signalled if setting a known option fails.  */
+      for (optn = optbits = 0; optn < nargs-1; optn += 2)
+	optbits |= set_socket_option (s, args[optn], args[optn+1]);
+
       if (is_server)
 	{
 	  /* Configure as a server socket.  */
+
+	  /* SO_REUSEADDR = 1 is default for server sockets; must specify
+	     explicit :reuseaddr key to override this.  */
 #ifdef HAVE_LOCAL_SOCKETS
 	  if (family != AF_LOCAL)
 #endif
-	    {
-	      int optval = 1;
-	      if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
-		report_file_error ("Cannot set reuse option on server socket.", Qnil);
-	    }
+	    if (!(optbits & (1 << OPIX_REUSEADDR)))
+	      {
+		int optval = 1;
+		if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
+		  report_file_error ("Cannot set reuse option on server socket.", Qnil);
+	      }
 
 	  if (bind (s, lres->ai_addr, lres->ai_addrlen))
 	    report_file_error ("Cannot bind server socket", Qnil);
@@ -3069,7 +3033,7 @@ usage: (make-network-process &rest ARGS)  */)
 	    }
 #endif
 
-	  if (socktype == SOCK_STREAM && listen (s, 5))
+	  if (socktype == SOCK_STREAM && listen (s, backlog))
 	    report_file_error ("Cannot listen on server socket", Qnil);
 
 	  break;
@@ -3205,10 +3169,6 @@ usage: (make-network-process &rest ARGS)  */)
 	report_file_error ("make client process failed", contact);
     }
 
-  tem = Fplist_get (contact, QCoptions);
-  if (!NILP (tem))
-    set_socket_options (s, tem, 1);
-
 #endif /* not TERM */
 
   inch = s;
@@ -3290,7 +3250,11 @@ usage: (make-network-process &rest ARGS)  */)
     Lisp_Object args[5], val;
 
     if (!NILP (tem))
-      val = XCAR (XCDR (tem));
+      {
+	val = XCAR (XCDR (tem));
+	if (CONSP (val))
+	  val = XCAR (val);
+      }
     else if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
     else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
@@ -3322,7 +3286,11 @@ usage: (make-network-process &rest ARGS)  */)
     p->decode_coding_system = val;
 
     if (!NILP (tem))
-      val = XCAR (XCDR (tem));
+      {
+	val = XCAR (XCDR (tem));
+	if (CONSP (val))
+	  val = XCDR (val);
+      }
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (NILP (current_buffer->enable_multibyte_characters))
@@ -3490,7 +3458,7 @@ static struct ifflag_def ifflag_table[] = {
   { 0, 0 }
 };
 
-DEFUN ("get-network-interface-info", Fget_network_interface_info, Sget_network_interface_info, 1, 1, 0,
+DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_info, 1, 1, 0,
        doc: /* Return information about network interface named IFNAME.
 The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
 where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
@@ -6540,6 +6508,8 @@ init_process ()
 #ifdef HAVE_SOCKETS
  {
    Lisp_Object subfeatures = Qnil;
+   struct socket_options *sopt;
+
 #define ADD_SUBFEATURE(key, val) \
   subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
 
@@ -6558,30 +6528,10 @@ init_process ()
 #if !defined(TERM) && (defined(O_NONBLOCK) || defined(O_NDELAY))
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
-#ifdef SO_BINDTODEVICE
-   ADD_SUBFEATURE (QCoptions, intern ("bindtodevice"));
-#endif
-#ifdef SO_BROADCAST
-   ADD_SUBFEATURE (QCoptions, intern ("broadcast"));
-#endif
-#ifdef SO_DONTROUTE
-   ADD_SUBFEATURE (QCoptions, intern ("dontroute"));
-#endif
-#ifdef SO_KEEPALIVE
-   ADD_SUBFEATURE (QCoptions, intern ("keepalive"));
-#endif
-#ifdef SO_LINGER
-   ADD_SUBFEATURE (QCoptions, intern ("linger"));
-#endif
-#ifdef SO_OOBINLINE
-   ADD_SUBFEATURE (QCoptions, intern ("oobinline"));
-#endif
-#ifdef SO_PRIORITY
-   ADD_SUBFEATURE (QCoptions, intern ("priority"));
-#endif
-#ifdef SO_REUSEADDR
-   ADD_SUBFEATURE (QCoptions, intern ("reuseaddr"));
-#endif
+
+   for (sopt = socket_options; sopt->name; sopt++)
+     subfeatures = Fcons (intern (sopt->name), subfeatures);
+
    Fprovide (intern ("make-network-process"), subfeatures);
  }
 #endif /* HAVE_SOCKETS */
@@ -6703,14 +6653,14 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
 #ifdef HAVE_SOCKETS
-  defsubr (&Sset_network_process_options);
+  defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
-  defsubr (&Sget_network_interface_info);
+  defsubr (&Snetwork_interface_info);
 #endif
 #endif /* HAVE_SOCKETS */
 #ifdef DATAGRAM_SOCKETS
