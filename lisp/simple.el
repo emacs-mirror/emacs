@@ -1943,17 +1943,39 @@ Setting this variable automatically makes it local to the current buffer.")
 	     (save-excursion (beginning-of-line)
 			     (looking-at auto-fill-inhibit-regexp)))
 	(while (and (not give-up) (> (current-column) fill-column))
+	  ;; Determine where to split the line.
 	  (let ((fill-point
-		 (let ((opoint (point)))
+		 (let ((opoint (point))
+		       bounce
+		       (first t))
 		   (save-excursion
 		     (move-to-column (1+ fill-column))
-		     (skip-chars-backward "^ \t\n")
-		     (if (bolp)
-			 (re-search-forward "[ \t]" opoint t))
-		     (skip-chars-backward " \t")
+		     ;; Move back to a word boundary.
+		     (while (or first
+				;; If this is after period and a single space,
+				;; move back once more--we don't want to break
+				;; the line there and make it look like a
+				;; sentence end.
+				(and (not (bobp))
+				     (not bounce)
+				     sentence-end-double-space
+				     (save-excursion (forward-char -1)
+						     (and (looking-at "\\. ")
+							  (not (looking-at "\\.  "))))))
+		       (setq first nil)
+		       (skip-chars-backward "^ \t\n")
+		       ;; If we find nowhere on the line to break it,
+		       ;; break after one word.  Set bounce to t
+		       ;; so we will not keep going in this while loop.
+		       (if (bolp)
+			   (progn
+			     (re-search-forward "[ \t]" opoint t)
+			     (setq bounce t)))
+		       (skip-chars-backward " \t"))
+		     ;; Let fill-point be set to the place where we end up.
 		     (point)))))
-	    ;; If there is a space on the line before fill-point,
-	    ;; and nonspaces precede it, break the line there.
+	    ;; If that place is not the beginning of the line,
+	    ;; break the line there.
 	    (if (save-excursion
 		  (goto-char fill-point)
 		  (not (bolp)))
