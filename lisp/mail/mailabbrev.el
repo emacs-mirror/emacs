@@ -126,14 +126,6 @@
 
 (require 'sendmail)
 
-(defvar mail-abbrev-mailrc-file nil
-  "Name of file with mail aliases.   If nil, ~/.mailrc is used.")
-
-(defmacro mail-abbrev-mailrc-file ()
-  '(or mail-abbrev-mailrc-file
-       (setq mail-abbrev-mailrc-file
-	     (or (getenv "MAILRC") "~/.mailrc"))))
-
 ;; originally defined in sendmail.el - used to be an alist, now is a table.
 (defvar mail-abbrevs nil
   "Word-abbrev table of mail address aliases.
@@ -144,7 +136,7 @@ no aliases, which is represented by this being a table with no entries.)")
 ;;;###autoload
 (defun mail-abbrevs-setup ()
   (if (and (not (vectorp mail-abbrevs))
-	   (file-exists-p (mail-abbrev-mailrc-file)))
+	   (file-exists-p mail-personal-alias-file))
       (build-mail-abbrevs))
   (make-local-variable 'pre-abbrev-expand-hook)
   (setq pre-abbrev-expand-hook
@@ -157,8 +149,9 @@ no aliases, which is represented by this being a table with no entries.)")
 
 ;;;###autoload
 (defun build-mail-abbrevs (&optional file recursivep)
-  "Read mail aliases from `~/.mailrc' file and set `mail-abbrevs'."
-  (setq file (expand-file-name (or file (mail-abbrev-mailrc-file))))
+  "Read mail aliases from personal mail alias file and set `mail-abbrevs'.
+By default this is the file specified by `mail-personal-alias-file'."
+  (setq file (expand-file-name (or file mail-personal-alias-file)))
   (if (vectorp mail-abbrevs)
       nil
     (setq mail-abbrevs nil)
@@ -247,7 +240,7 @@ If DEFINITION contains multiple addresses, separate them with commas."
       nil
     (setq mail-abbrevs nil)
     (define-abbrev-table 'mail-abbrevs '())
-    (if (file-exists-p (mail-abbrev-mailrc-file))
+    (if (file-exists-p mail-personal-alias-file)
 	(build-mail-abbrevs)))
   ;; strip garbage from front and end
   (if (string-match "\\`[ \t\n,]+" definition)
@@ -489,7 +482,7 @@ characters which may be a part of the name of a mail-alias.")
   (interactive (list
 		(let ((insert-default-directory t)
 		      (default-directory (expand-file-name "~/"))
-		      (def (mail-abbrev-mailrc-file)))
+		      (def mail-personal-alias-file))
 		  (read-file-name
 		    (format "Read additional aliases from file: (default %s) "
 			    def)
@@ -503,7 +496,7 @@ characters which may be a part of the name of a mail-alias.")
   (interactive (list
 		(let ((insert-default-directory t)
 		      (default-directory (expand-file-name "~/"))
-		      (def (mail-abbrev-mailrc-file)))
+		      (def mail-personal-alias-file))
 		  (read-file-name
 		   (format "Read mail aliases from file: (default %s) " def)
 		   default-directory
