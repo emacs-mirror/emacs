@@ -103,7 +103,9 @@
 (defconst python-font-lock-syntactic-keywords
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
-  `((,(rx (and (group (optional (any "uUrR"))) ; prefix gets syntax property
+  `((,(rx (and (or buffer-start (not (syntax escape))) ; avoid escaped
+						       ; leading quote
+	       (group (optional (any "uUrR"))) ; prefix gets syntax property
 	       (optional (any "rR"))	; possible second prefix
 	       (group (syntax string-quote))	; maybe gets property
 	       (backref 2)			; per first quote
@@ -130,32 +132,31 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
   ;;  ur"""ar""" x='"' # """
   ;; x = ''' """ ' a
   ;; '''
-  ;; x '"""' x
+  ;; x '"""' x """ \"""" x
   (save-excursion
     (goto-char (match-beginning 0))
-    (unless (eq ?\\ (char-before))
-      (cond
-       ;; Consider property for the last char if in a fenced string.
-       ((= n 3)
-	(let ((syntax (syntax-ppss)))
-	  (when (eq t (nth 3 syntax))	 ; after unclosed fence
-	    (goto-char (nth 8 syntax))	 ; fence position
-	    ;; Skip any prefix.
-	    (if (memq (char-after) '(?u ?U ?R ?r))
-		(skip-chars-forward "uUrR"))
-	    ;; Is it a matching sequence?
-	    (if (eq (char-after) (char-after (match-beginning 2)))
-		(eval-when-compile (string-to-syntax "|"))))))
-       ;; Consider property for initial char, accounting for prefixes.
-       ((or (and (= n 2)				; not prefix
-		 (= (match-beginning 1) (match-end 1)))	; prefix is null
-	    (and (= n 1)				; prefix
-		 (/= (match-beginning 1) (match-end 1)))) ; non-empty
-	(unless (eq 'string (syntax-ppss-context (syntax-ppss)))
-	  (eval-when-compile (string-to-syntax "|")))))
-      ;; Otherwise (we're in a non-matching string) the property is
-      ;; nil, which is OK.
-      )))
+    (cond
+     ;; Consider property for the last char if in a fenced string.
+     ((= n 3)
+      (let ((syntax (syntax-ppss)))
+	(when (eq t (nth 3 syntax))	; after unclosed fence
+	  (goto-char (nth 8 syntax))	; fence position
+	  ;; Skip any prefix.
+	  (if (memq (char-after) '(?u ?U ?R ?r))
+	      (skip-chars-forward "uUrR"))
+	  ;; Is it a matching sequence?
+	  (if (eq (char-after) (char-after (match-beginning 2)))
+	      (eval-when-compile (string-to-syntax "|"))))))
+     ;; Consider property for initial char, accounting for prefixes.
+     ((or (and (= n 2)			; not prefix
+	       (= (match-beginning 1) (match-end 1))) ; prefix is null
+	  (and (= n 1)			; prefix
+	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
+      (unless (eq 'string (syntax-ppss-context (syntax-ppss)))
+	(eval-when-compile (string-to-syntax "|"))))
+     ;; Otherwise (we're in a non-matching string) the property is
+     ;; nil, which is OK.
+     )))
 
 ;; This isn't currently in `font-lock-defaults' as probably not worth
 ;; it -- we basically only mess with a few normally-symbol characters.
