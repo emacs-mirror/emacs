@@ -1127,9 +1127,9 @@ See also the function `substitute-in-file-name'.")
     }
 #endif
 
-  /* If nm is absolute, look for /./ or /../ sequences; if none are
-     found, we can probably return right away.  We will avoid allocating
-     a new string if name is already fully expanded.  */
+  /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
+     none are found, we can probably return right away.  We will avoid
+     allocating a new string if name is already fully expanded.  */
   if (
       IS_DIRECTORY_SEP (nm[0])
 #ifdef MSDOS
@@ -1165,6 +1165,13 @@ See also the function `substitute-in-file-name'.")
 		  || (p[2] == '.' && (IS_DIRECTORY_SEP (p[3])
 				      || p[3] == 0))))
 	    lose = 1;
+	  /* We want to replace multiple `/' in a row with a single
+	     slash.  */
+	  else if (p > nm
+		   && IS_DIRECTORY_SEP (p[0])
+		   && IS_DIRECTORY_SEP (p[1]))
+	    lose = 1;
+	  
 #ifdef VMS
 	  if (p[0] == '\\')
 	    lose = 1;
@@ -1525,7 +1532,8 @@ See also the function `substitute-in-file-name'.")
 
   /* ASSERT (IS_DIRECTORY_SEP (target[0])) if not VMS */
 
-  /* Now canonicalize by removing /. and /foo/.. if they appear.  */
+  /* Now canonicalize by removing `//', `/.' and `/foo/..' if they
+     appear.  */
 
   p = target;
   o = target;
@@ -1600,6 +1608,14 @@ See also the function `substitute-in-file-name'.")
 	  if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
 	    ++o;
 	  p += 3;
+	}
+      else if (p > target
+	       && IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1]))
+	{
+	  /* Collapse multiple `/' in a row.  */
+	  *o++ = *p++;
+	  while (IS_DIRECTORY_SEP (*p))
+	    ++p;
 	}
       else
 	{
