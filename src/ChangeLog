@@ -1,3 +1,13 @@
+2000-12-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (ccl_coding_driver): Initialize ccl->cr_consumed.
+
+	* ccl.h (struct ccl_program): New member cr_consumed.
+
+	* ccl.c (CCL_WRITE_CHAR): Don't handle EOL conversion here.
+	(CCL_READ_CHAR): Handle EOL conversion here.
+	(ccl_driver) <CCL_ReadMultibyteChar2>: Likewise.
+
 2000-12-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (Fdump_glyph_row) [GLYPH_DEBUG]: Add optional arg
