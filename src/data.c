@@ -464,16 +464,9 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0, "T if SYMBOL's value is not void.")
 
   valcontents = XSYMBOL (sym)->value;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (valcontents))
-#else
-  switch (XTYPE (valcontents))
-#endif
-    {
-    case Lisp_Buffer_Local_Value:
-    case Lisp_Some_Buffer_Local_Value:
-      valcontents = swap_in_symval_forwarding (sym, valcontents);
-    }
+  if (LISP_BUFFER_LOCAL_VALUEP (valcontents)
+      || LISP_SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    valcontents = swap_in_symval_forwarding (sym, valcontents);
 
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
@@ -765,19 +758,12 @@ find_symbol_value (sym)
   CHECK_SYMBOL (sym, 0);
   valcontents = XSYMBOL (sym)->value;
 
- retry:
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (valcontents))
-#else
-  switch (XTYPE (valcontents))
-#endif
-    {
-    case Lisp_Buffer_Local_Value:
-    case Lisp_Some_Buffer_Local_Value:
-      valcontents = swap_in_symval_forwarding (sym, valcontents);
-      goto retry;
+  if (LISP_BUFFER_LOCAL_VALUEP (valcontents)
+      || LISP_SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    valcontents = swap_in_symval_forwarding (sym, valcontents);
 
-    case Lisp_Misc:
+  if (MISCP (valcontents))
+    {
       switch (XMISC (valcontents)->type)
 	{
 	case Lisp_Misc_Intfwd:
