@@ -1,3 +1,13 @@
+2002-05-12  Colin Walters  <walters@debian.org>
+
+	* replace.el (occur-1): New optional argument `buf-name'. 
+	(occur-revert-function): Use it.
+
+	(occur-1): Handle plurals.
+	
+	(occur-engine): If there are no more matches, then finish
+	searching the current buffer.
+	
 2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ange-ftp.el (ange-ftp-try-passive-mode)
