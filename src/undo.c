@@ -140,6 +140,8 @@ record_delete (beg, string)
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
       && last_point_position != XFASTINT (sbeg)
+      /* If we're called from batch mode, this could be nil.  */
+      && BUFFERP (last_point_position_buffer)
       && current_buffer == XBUFFER (last_point_position_buffer))
     current_buffer->undo_list
       = Fcons (make_number (last_point_position), current_buffer->undo_list);
