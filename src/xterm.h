@@ -511,6 +511,8 @@ struct x_output
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 #define FRAME_FONT(f) ((f)->output_data.x->font)
+#define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
+#define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
