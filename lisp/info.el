@@ -1352,8 +1352,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
          (setq default (car (car completions))))
      (if completions
 	 (let ((input (completing-read (if default
-					   (concat "Follow reference named: ("
-						   default ") ")
+					   (concat
+					    "Follow reference named: (default "
+					    default ") ")
 					 "Follow reference named: ")
 				       completions nil t)))
 	   (list (if (equal input "")
