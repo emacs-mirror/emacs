@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.48) $
+ * $HopeName: MMsrc!arenavm.c(trunk.49) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.48) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.49) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -1565,7 +1565,7 @@ static Bool VMIsReservedAddr(Arena arena, Addr addr)
 }
 
 
-/* segSearch -- search for a segment
+/* segSearchInChunk -- search for a segment
  *
  * .seg-search: Searches for a segment in the arena starting at page
  * index i, return NULL if there is none.  A page is the first page
@@ -1576,7 +1576,7 @@ static Bool VMIsReservedAddr(Arena arena, Addr addr)
  * is used in the segment iteration protocol (SegFirst and SegNext).
  */
 
-static Bool segSearch(Seg *segReturn, VMArenaChunk chunk, Index i)
+static Bool segSearchInChunk(Seg *segReturn, VMArenaChunk chunk, Index i)
 {
   AVER(segReturn != NULL);
   AVERT(VMArenaChunk, chunk);
@@ -1597,6 +1597,7 @@ static Bool segSearch(Seg *segReturn, VMArenaChunk chunk, Index i)
   *segReturn = PageSeg(&chunk->pageTable[i]);
   return TRUE;
 }
+
 
 
 /* VMNextChunkOfAddr
@@ -1634,6 +1635,49 @@ static Bool VMNextChunkOfAddr(VMArenaChunk *chunkReturn,
 }
 
 
+/* segSearch (internal to impl.c.arenavm)
+ *
+ * Searches for the next segment in increasing address order.
+ * The segment returned is the next one along from addr (ie
+ * it has a base address bigger than addr and no other segment
+ * with a base address bigger than addr has a smaller base address).
+ *
+ * Returns FALSE if there is no segment to find (end of the arena).
+ */
+static Bool segSearch(Seg *segReturn, VMArena vmArena, Addr addr)
+{
+  Bool b;
+  VMArenaChunk chunk;
+  Seg seg;
+
+  b = VMArenaChunkOfAddr(&chunk, vmArena, addr);
+  if(b) {
+    Index i;
+
+    i = indexOfAddr(chunk, addr);
+
+    /* There are fewer pages than addresses, therefore the */
+    /* page index can never wrap around */
+    AVER_CRITICAL(i+1 != 0);
+
+    if(segSearchInChunk(&seg, chunk, i+1)) {
+      *segReturn = seg;
+      return TRUE;
+    }
+  }
+  while(VMNextChunkOfAddr(&chunk, vmArena, addr)) {
+    addr = chunk->base;
+    /* We start from tablePages, as the tables can't be a segment. */
+    /* See .tablepages */
+    if(segSearchInChunk(&seg, chunk, chunk->tablePages)) {
+      *segReturn = seg;
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
 /* VMSegFirst -- return the first segment in the arena
  *
  * This is used to start an iteration over all segments in the arena.
@@ -1642,20 +1686,22 @@ static Bool VMNextChunkOfAddr(VMArenaChunk *chunkReturn,
 static Bool VMSegFirst(Seg *segReturn, Arena arena)
 {
   Bool b;
+  Seg seg;
   VMArena vmArena;
-  VMArenaChunk chunk;
 
   AVER(segReturn != NULL);
   vmArena = ArenaVMArena(arena);
   AVERT(VMArena, vmArena);
 
-  b = VMNextChunkOfAddr(&chunk, vmArena, (Addr)0);
-  /* There's at least one chunk, so we must have found something */
-  AVER(b);
-
-  /* We start from tablePages, as the tables can't be a segment.
-   * See .tablepages */
-  return segSearch(segReturn, chunk, chunk->tablePages);
+  /* .segfirst.assume.nozero: We assume that there is no segment */
+  /* with base address (Addr)0.  Happily this assumption is sound */
+  /* for a number of reasons. */
+  b = segSearch(&seg, vmArena, (Addr)0);
+  if(b) {
+    *segReturn = seg;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
@@ -1671,39 +1717,19 @@ static Bool VMSegFirst(Seg *segReturn, Arena arena)
 
 static Bool VMSegNext(Seg *segReturn, Arena arena, Addr addr)
 {
-  VMArena vmArena;
-  VMArenaChunk chunk;
   Bool b;
   Seg seg;
+  VMArena vmArena;
 
   AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
   vmArena = ArenaVMArena(arena);
   AVERT_CRITICAL(VMArena, vmArena);
   AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
 
-  b = VMArenaChunkOfAddr(&chunk, vmArena, addr);
+  b = segSearch(&seg, vmArena, addr);
   if(b) {
-    Index i;
-
-    i = indexOfAddr(chunk, addr);
-
-    /* There are fewer pages than addresses, therefore the */
-    /* page index can never wrap around */
-    AVER_CRITICAL(i+1 != 0);
-
-    if(segSearch(&seg, chunk, i+1)) {
-      *segReturn = seg;
-      return TRUE;
-    }
-  }
-  while(VMNextChunkOfAddr(&chunk, vmArena, addr)) {
-    addr = chunk->base;
-    /* We start from tablePages, as the tables can't be a segment. */
-    /* See .tablepages */
-    if(segSearch(&seg, chunk, chunk->tablePages)) {
-      *segReturn = seg;
-      return TRUE;
-    }
+    *segReturn = seg;
+    return TRUE;
   }
   return FALSE;
 }
