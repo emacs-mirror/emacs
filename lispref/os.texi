@@ -1917,7 +1917,9 @@ calls @var{function} with no arguments.
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with @code{t}
 as the stream, goes instead to Emacs's standard error descriptor when
-in batch mode.  Thus, Emacs behaves much like a noninteractive
+in batch mode.  Similarly, input that would normally come from the
+minibuffer is read from the standard input descriptor.
+Thus, Emacs behaves much like a noninteractive
 application program.  (The echo area output that Emacs itself normally
 generates, such as command echoing, is suppressed entirely.)
 
