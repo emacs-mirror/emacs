@@ -1935,7 +1935,7 @@ x_window (f, window_prompting, minibuffer_only)
 
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
-        short ibw;
+        Dimension ibw;
         XtVaGetValues (pane_widget, XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
