@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.10
+;; Version:    4.11
 ;; Keywords:   tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.10"
+(defconst reftex-version "RefTeX version 4.11"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1095,7 +1095,8 @@ This enforces rescanning the buffer on next use."
 	   (include-re (concat wbol "\\\\\\(include\\|input\\)[{ \t]+\\([^} \t\n\r]+\\)"))
 	   (section-re
 	    (concat wbol "\\\\\\("
-		    (mapconcat 'car reftex-section-levels-all "\\|")
+		    (mapconcat (lambda (x) (regexp-quote (car x)))
+			       reftex-section-levels-all "\\|")
 		    "\\)\\*?\\(\\[[^]]*\\]\\)?{?"))
 	   (appendix-re (concat wbol "\\(\\\\appendix\\)"))
 	   (macro-re
