@@ -1,4 +1,4 @@
-2000-09-11  Gerd Moellmann  <gerd@gnu.org>
+2000-09-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecomp.el (byte-compile-defvar): Undo last change
 	because it breaks '(make-variable-buffer-local (defvar ...)'

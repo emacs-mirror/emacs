@@ -1,3 +1,7 @@
+2000-09-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (Fload): Put code checking for recursive loads in #if 0.
+
 2000-09-12  Miyashita Hisashi  <himi@meadowy.org>
 
 	* ccl.c: Comment fixed.
