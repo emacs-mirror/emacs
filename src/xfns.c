@@ -2471,9 +2471,9 @@ x_set_name (f, name, explicit)
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
 	if (!NILP (f->icon_name)
-	    && icon.value != SDATA (f->icon_name))
+	    && icon.value != (unsigned char *) SDATA (f->icon_name))
 	  xfree (icon.value);
-	if (text.value != SDATA (name))
+	if (text.value != (unsigned char *) SDATA (name))
 	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
@@ -2578,9 +2578,9 @@ x_set_title (f, name, old_name)
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
 	if (!NILP (f->icon_name)
-	    && icon.value != SDATA (f->icon_name))
+	    && icon.value != (unsigned char *) SDATA (f->icon_name))
 	  xfree (icon.value);
-	if (text.value != SDATA (name))
+	if (text.value != (unsigned char *) SDATA (name))
 	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
