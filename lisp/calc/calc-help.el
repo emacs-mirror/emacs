@@ -186,11 +186,12 @@ C-w  Describe how there is no warranty for Calc."
 				 (copy-to-buffer "*Calc Summary*"
 						 (point) (point-max))
                                  (if Info-history
-                                     (Info-last))))
-			     (setq case-fold-search nil)
-			     (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
-			     (setq calc-summary-indentation
-				   (- (match-end 1) (match-beginning 1)))))
+                                     (Info-last))))))
+                       (goto-char (point-min))
+                       (setq case-fold-search nil)
+                       (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
+                       (setq calc-summary-indentation
+                             (- (match-end 1) (match-beginning 1)))
 		       (goto-char (point-min))
 		       (setq target (if (and (string-match "[0-9]\\'" desc)
 					     (not (string-match "[d#]" desc)))
