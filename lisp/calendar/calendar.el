@@ -2313,19 +2313,13 @@ If optional NODAY is t, does not ask for day, but just returns
 (defun calendar-day-name (date &optional width absolute)
   "Returns a string with the name of the day of the week of DATE.
 If WIDTH is non-nil, return just the first WIDTH characters of the name.
-If ABSOLUTE is non-nil, then DATE is actual the day-of-the-week
+If ABSOLUTE is non-nil, then DATE is actually the day-of-the-week
 rather than a date."
   (let ((string (aref calendar-day-name-array
 		      (if absolute date (calendar-day-of-week date)))))
-    (if width
-	(let ((i 0) (result "") (pos 0))
-	  (while (< i width)
-	    (let ((chartext (char-to-string (sref string pos))))
-	      (setq pos (+ pos (length chartext)))
-	      (setq result (concat result chartext)))
-	    (setq i (1+ i)))
-	  result)
-      string)))
+    (cond ((null width) string)
+	  (enable-multibyte-characters (truncate-string-to-width string width))
+	  (t (substring string 0 width)))))
 
 (defvar calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
