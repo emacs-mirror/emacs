@@ -33,6 +33,8 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#include <ctype.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
