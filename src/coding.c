@@ -3329,22 +3329,32 @@ DEFUN ("keyboard-coding-system",
 
 DEFUN ("find-coding-system", Ffind_coding_system, Sfind_coding_system,
        1, MANY, 0,
-  "Return a cons of coding systems for I/O primitive OPERATION.\n\
-Remaining arguments are for OPERATION.\n\
-OPERATION is one of the following Emacs I/O primitives:\n\
-  For file I/O, insert-file-contents or write-region.\n\
-  For process I/O, call-process, call-process-region, or start-process.\n\
-  For network I/O, open-network-stream.\n\
-For each OPERATION, TARGET is selected from the arguments as below:\n\
+  "Choose a coding system for a file operation based on file name.\n\
+The value names a pair of coding systems: (ENCODING-SYSTEM DECODING-SYSTEM).\n\
+ENCODING-SYSTEM is the coding system to use for encoding\n\
+\(in case OPERATION does encoding), and DECODING-SYSTEM is the coding system\n\
+for decoding (in case OPERATION does decoding).\n\
+\n\
+The first argument OPERATION specifies an I/O primitive:\n\
+  For file I/O, `insert-file-contents' or `write-region'.\n\
+  For process I/O, `call-process', `call-process-region', or `start-process'.\n\
+  For network I/O, `open-network-stream'.\n\
+\n\
+The remaining arguments should be the same arguments that were passed\n\
+to the primitive.  Depending on which primitive, one of those arguments\n\
+is selected as the TARGET.  For example, if OPERATION does file I/O,\n\
+whichever argument specifies the file name is TARGET.\n\
+\n\
+TARGET has a meaning which depends on OPERATION:\n\
   For file I/O, TARGET is a file name.\n\
   For process I/O, TARGET is a process name.\n\
   For network I/O, TARGET is a service name or a port number\n\
 \n\
-The return value is a cons of coding systems for decoding and encoding\n\
-registered in nested alist `coding-system-alist' (which see) at a slot\n\
-corresponding to OPERATION and TARGET.\n\
-If a function symbol is at the slot, return a result of the function call.\n\
-The function is called with one argument, a list of all the arguments.")
+This function looks up what `coding-system-alist' specifies for\n\
+OPERATION and TARGET.  It may specify a cons cell which represents\n\
+a particular coding system or it may have a function to call.\n\
+In the latter case, we call the function with one argument,\n\
+which is a list of all the arguments given to `find-coding-system'.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
