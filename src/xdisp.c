@@ -6490,8 +6490,11 @@ echo_area_display (update_frame_p)
       window_height_changed_p = display_echo_area (w);
       w->must_be_updated_p = 1;
 
-      /* Update the display, unless called from redisplay_internal. */
-      if (update_frame_p)
+      /* Update the display, unless called from redisplay_internal.
+	 Also don't update the screen during redisplay itself.  The
+	 update will happen at the end of redisplay, and an update
+	 here could cause confusion.  */
+      if (update_frame_p && !redisplaying_p)
 	{
 	  int n = 0;
 
