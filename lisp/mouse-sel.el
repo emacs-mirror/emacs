@@ -201,7 +201,7 @@ for them.")
 (defvar mouse-sel-get-selection-function
   (function (lambda (selection)
 	      (if (eq selection 'PRIMARY)
-		  (x-cut-buffer-or-selection-value)
+		  (or (x-cut-buffer-or-selection-value) x-last-selected-text)
 		(x-get-selection selection))))
   "Function to call to get the selection.
 Called with one argument:
