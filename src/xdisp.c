@@ -64,7 +64,7 @@ Boston, MA 02111-1307, USA.  */
                                                          |
 			           X expose events  -----+
 
-   What does redisplay?  Obviously, it has to figure out somehow what
+   What does redisplay do?  Obviously, it has to figure out somehow what
    has been changed since the last time the display has been updated,
    and to make these changes visible.  Preferably it would do that in
    a moderately intelligent way, i.e. fast.
@@ -120,7 +120,7 @@ Boston, MA 02111-1307, USA.  */
    on various settings of buffers and windows, on overlays and text
    properties, on display tables, on selective display.  The good news
    is that all this hairy stuff is hidden behind a small set of
-   interface functions taking a iterator structure (struct it)
+   interface functions taking an iterator structure (struct it)
    argument.
 
    Iteration over things to be displayed is then simple.  It is
@@ -3143,6 +3143,9 @@ single_display_prop_intangible_p (prop)
 	return 0;
       prop = XCDR (prop);
     }
+
+  if (STRINGP (prop))
+    return 1;
 
   if (!CONSP (prop))
     return 0;
