@@ -222,7 +222,7 @@ Nil means no limit.")
   "*The maximum number of items from different directories.
 
 When the menu is of type `file by directory', this is the maximum
-number of buffers that are clumped togehter from different
+number of buffers that are clumped together from different
 directories.
 
 Set this to 1 if you want one menu per directory instead of clumping
@@ -278,13 +278,13 @@ Set this to nil or t if you don't want any sorting (faster).")
 the groups in msb-menu-cond.")
 
 (defvar msb-menu-cond msb--very-many-menus
-  "*List of criterias for splitting the mouse buffer menu.
+  "*List of criteria for splitting the mouse buffer menu.
 The elements in the list should be of this type:
  (CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLING-FN ITEM-SORT-FN).
 
 When making the split, the buffers are tested one by one against the
 CONDITION, just like a lisp cond: When hitting a true condition, the
-other criterias are *not* tested and the buffer name will appear in
+other criteria are *not* tested and the buffer name will appear in
 the menu with the menu-title corresponding to the true condition.
 
 If the condition returns the symbol `multi', then the buffer will be
@@ -439,7 +439,7 @@ If the argument is left out or nil, then the current buffer is considered."
   (and (> (length (buffer-name buffer)) 0)
        (eq ?\ (aref (buffer-name buffer) 0))))
 
-;; Strip one hierarcy level from the end of PATH.
+;; Strip one hierarchy level from the end of PATH.
 (defun msb--strip-path (path)
   (save-match-data
     (if (string-match "\\(.+\\)/[^/]+$" path)
@@ -840,7 +840,7 @@ variable `msb-menu-cond'."
 	(setq posX (- posX (funcall msb-horizontal-shift-function))
 	      position (list (list posX posY) posWind))))
     ;; This `sit-for' magically makes the menu stay up if the mouse
-    ;; button is released withing 0.1 second.
+    ;; button is released within 0.1 second.
     (sit-for 0 100)
     ;; Popup the menu
     (setq choice (x-popup-menu position msb--last-buffer-menu))
