@@ -4482,12 +4482,7 @@ displayed_window_lines (w)
       int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
       it.vpos += lines;
     }
-#if 0
-  else if (it.current_y < height && bottom_y > height)
-    /* Partially visible line at the bottom.  */
-    ++it.vpos;
-#endif
-  
+
   return it.vpos;
 }
 
@@ -4528,6 +4523,10 @@ zero means top of window, negative means relative to bottom of window.")
       if (XINT (arg) < 0)
 	XSETINT (arg, XINT (arg) + lines);
     }
+
+  if (w->vscroll)
+    /* Skip past a partially visible first line.  */
+    XSETINT (arg, XINT (arg) + 1);
 
   return Fvertical_motion (arg, window);
 }
