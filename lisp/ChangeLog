@@ -1,3 +1,8 @@
+2002-01-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/sendmail.el (mail-mode): ">" is not a supercite-style prefix
+	and is already matched by adaptive-fill-regexp.
+
 2002-01-22  Richard M. Stallman  <rms@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-canonize-filename): Avoid duplicate
