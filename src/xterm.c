@@ -1700,6 +1700,8 @@ static void x_scroll_bar_report_motion ();
    Set *time to the server timestamp for the time at which the mouse
    was at this position.
 
+   Don't store anything if we don't have a valid set of values to report.
+
    This clears the mouse_moved flag, so we can wait for the next mouse
    movement.  This also calls XQueryPointer, which will cause the
    server to give us another MotionNotify when the mouse moves
@@ -1713,6 +1715,8 @@ XTmouse_position (f, bar_window, part, x, y, time)
      Lisp_Object *x, *y;
      unsigned long *time;
 {
+  FRAME_PTR f1;
+
   BLOCK_INPUT;
 
   if (! NILP (last_mouse_scroll_bar))
@@ -1790,28 +1794,32 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	   never use them in that case.)  */
 
 	/* Is win one of our frames?  */
-	*f = x_window_to_frame (win);
+	f1 = x_window_to_frame (win);
       
 	/* If not, is it one of our scroll bars?  */
-	if (! *f)
+	if (! f1)
 	  {
 	    struct scroll_bar *bar = x_window_to_scroll_bar (win);
 
 	    if (bar)
 	      {
-		*f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+		f1 = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 		win_x = parent_x;
 		win_y = parent_y;
 	      }
 	  }
 
-	if (*f)
+	if (f1)
 	  {
-	    pixel_to_glyph_coords (*f, win_x, win_y, &win_x, &win_y,
+	    /* Ok, we found a frame.  Convert from pixels to characters
+	       and store all the values.  */
+
+	    pixel_to_glyph_coords (f1, win_x, win_y, &win_x, &win_y,
 				   &last_mouse_glyph);
 
 	    *bar_window = Qnil;
 	    *part = 0;
+	    *f = f1;
 	    XSET (*x, Lisp_Int, win_x);
 	    XSET (*y, Lisp_Int, win_y);
 	    *time = last_mouse_movement_time;
