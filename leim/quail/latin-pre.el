@@ -260,7 +260,7 @@ Key translation rules are:
     acute    |   '    | 'e -> ,Ai(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
-  diaeresis  |   \"   | \"i -> ,Ao(B
+  diaeresis  |   \"    | \"i -> ,Ao(B
    cedilla   | ~ or , | ~c -> ,Ag(B   ,c -> ,Ag(B
    symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B
 " nil t nil nil nil nil nil nil nil nil t)
