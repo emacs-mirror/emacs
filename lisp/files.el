@@ -1077,6 +1077,11 @@ If `enable-local-variables' is nil, this function does not check for a
 	    (hack-one-local-variable (car (car result)) (cdr (car result)))
 	    (setq result (cdr result)))))))
 
+(defvar hack-local-variables-hook nil
+  "Normal hook run after processing a file's local variables specs.
+Major modes can use this to examine user-specified local variables
+in order to initialize other data structure based on them.")
+
 (defun hack-local-variables ()
   "Parse and put into effect this buffer's local variables spec."
   (hack-local-variables-prop-line)
@@ -1147,7 +1152,8 @@ If `enable-local-variables' is nil, this function does not check for a
 		(or (if suffix (looking-at suffix) (eolp))
 		    (error "Local variables entry is terminated incorrectly"))
 		;; Set the variable.  "Variables" mode and eval are funny.
-		(hack-one-local-variable var val))))))))
+		(hack-one-local-variable var val)))))))
+  (run-hooks 'hack-local-variables-hook))
 
 (defconst ignored-local-variables
   '(enable-local-eval)
