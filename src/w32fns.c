@@ -142,6 +142,9 @@ Lisp_Object Vw32_mouse_button_tolerance;
    events that are passed on to the event loop. */
 Lisp_Object Vw32_mouse_move_interval;
 
+/* Flag to indicate if XBUTTON events should be passed on to Windows.  */
+int w32_pass_extra_mouse_buttons_to_system;
+
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
@@ -4570,6 +4573,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       }
       return 0;
 
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+      if (w32_pass_extra_mouse_buttons_to_system)
+	goto dflt;
+      /* else fall through and process them.  */
     case WM_MBUTTONDOWN:
     case WM_MBUTTONUP:
     handle_plain_button:
@@ -4577,7 +4585,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	BOOL up;
 	int button;
 
-	if (parse_button (msg, &button, &up))
+	if (parse_button (msg, HIWORD (wParam), &button, &up))
 	  {
 	    if (up) ReleaseCapture ();
 	    else SetCapture (hwnd);
@@ -4592,7 +4600,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-      return 0;
+
+      /* Need to return true for XBUTTON messages, false for others,
+         to indicate that we processed the message.  */
+      return (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP);
 
     case WM_MOUSEMOVE:
       /* If the mouse has just moved into the frame, start tracking
@@ -14506,6 +14517,16 @@ The value is the minimum time in milliseconds that must elapse between
 successive mouse move (or scroll bar drag) events before they are
 reported as lisp events.  */);
   XSETINT (Vw32_mouse_move_interval, 0);
+
+  DEFVAR_BOOL ("w32-pass-extra-mouse-buttons-to-system",
+	       &w32_pass_extra_mouse_buttons_to_system,
+	       doc: /* Non-nil if the fourth and fifth mouse buttons are passed to Windows.
+Recent versions of Windows support mice with up to five buttons.
+Since most applications don't support these extra buttons, most mouse
+drivers will allow you to map them to functions at the system level.
+If this variable is non-nil, Emacs will pass them on, allowing the
+system to handle them.  */);
+  w32_pass_extra_mouse_buttons_to_system = 0;
 
   init_x_parm_symbols ();
 
