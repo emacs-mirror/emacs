@@ -80,6 +80,8 @@
 
 ;;; Code:
 
+;;; This is passed to the inferior in the EMACS environment variable,
+;;; so it is important to increase it if there are protocol-relevant changes.
 (defconst term-version "0.93")
 
 (require 'ring)
@@ -804,11 +806,11 @@ buffer. The hook term-exec-hook is run after each exec."
 (defvar term-term-name "eterm")
 ; Format string, usage: (format term-termcap-string emacs-term-name "TERMCAP=" 24 80)
 (defvar term-termcap-format
-  "%s%s:li#%d:co#%d:cl=\\E[;H\\E[2J:bs:am:xn:cm=\\E[%%i%%d;%%dH\
+  "%s%s:li#%d:co#%d:cl=\\E[H\\E[J:cd=\\E[J:bs:am:xn:cm=\\E[%%i%%d;%%dH\
 :nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
 :al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=\\n\
 :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
-:dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\E4l:mi:\
+:dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\\E[4l:mi:\
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
 :UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC"
 ;;; : -undefine ic
@@ -818,19 +820,30 @@ buffer. The hook term-exec-hook is run after each exec."
 ;;; the appropriate environment.
 
 (defun term-exec-1 (name buffer command switches)
-;; The 'if ...; then shift; fi' hack is because Bourne shell
-;; loses one arg when called with -c, and newer shells (bash,  ksh) don't.
-;; Thus we add an extra dummy argument "..", and then remove it.
-  (apply 'start-process name buffer
-"/bin/sh" "-c" (format "stty -nl echo rows %d columns %d sane 2>/dev/null; if [ $1 = .. ]; then shift; fi;\
-  TERM=$1; export TERM; shift;\
-  TERMCAP=$1; export TERMCAP; shift;\
-  EMACS=t; export EMACS;\
-  exec \"$@\"" term-height term-width)
- ".."
- term-term-name
- (format term-termcap-format "" term-term-name term-height term-width)
- command switches))
+  ;; We need to do an extra (fork-less) exec to run stty.
+  ;; (This would not be needed if we had suitable emacs primitives.)
+  ;; The 'if ...; then shift; fi' hack is because Bourne shell
+  ;; loses one arg when called with -c, and newer shells (bash,  ksh) don't.
+  ;; Thus we add an extra dummy argument "..", and then remove it.
+  (let ((process-environment
+	 (nconc
+	  (list
+	   (format "TERM=%s" term-term-name)
+	   (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
+	       (format "TERMINFO=%s" data-directory)
+	    (format term-termcap-format "TERMCAP="
+		    term-term-name term-height term-width))
+	   (format "EMACS=%s (term:%s)" emacs-version term-version)
+	   (format "LINES=%d" term-height)
+	   (format "COLUMNS=%d" term-width))
+	  process-environment)))
+    (apply 'start-process name buffer
+	   "/bin/sh" "-c"
+	   (format "stty -nl echo rows %d columns %d sane 2>/dev/null;\
+if [ $1 = .. ]; then shift; fi; exec \"$@\""
+		   term-height term-width)
+	   ".."
+	   command switches)))
 
 ;;; This should be in emacs, but it isn't.
 (defun term-mem (item list &optional elt=)
@@ -2292,7 +2305,7 @@ See `term-prompt-regexp'."
 	   (setq term-insert-mode t))
 	  ((eq term-terminal-parameter 47)
 	   (term-switch-to-alternate-sub-buffer t))))
-   ;; \E[?h - DEC Private Mode Reset
+   ;; \E[?l - DEC Private Mode Reset
    ((eq char ?l)
     (cond ((eq term-terminal-parameter 4)
 	   (setq term-insert-mode nil))
@@ -3095,4 +3108,3 @@ Typing SPC flushes the help buffer."
 (provide 'term)
 
 ;;; term.el ends here
-
