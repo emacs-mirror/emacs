@@ -452,7 +452,7 @@ case "${canonical}" in
       *.B8.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.08.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.09.* ) machine=hp9000s300 opsys=hpux9 ;;
-      *.10.* ) machine=hp9000s300 opsys=hpux9shr ;;
+      *.1[0-9].* ) machine=hp9000s300 opsys=hpux9shr ;;
       *) machine=hp9000s300 opsys=hpux ;;
     esac
   ;;
@@ -470,7 +470,7 @@ case "${canonical}" in
   hppa*-hp-hpux9* )
     machine=hp800 opsys=hpux9
   ;;
-  hppa*-hp-hpux10* )
+  hppa*-hp-hpux1[0-9]* )
     machine=hp800 opsys=hpux10
   ;;
 
