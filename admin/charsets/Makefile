@@ -80,7 +80,7 @@ CJK =   GB2312.map GBK.map GB180302.map GB180304.map \
 	CNS-1.map CNS-2.map CNS-3.map CNS-4.map CNS-5.map CNS-6.map CNS-7.map \
 	CNS-F.map \
 	JISX0201.map JISX0208.map JISX0212.map JISX2131.map JISX2132.map \
-	JISC6226.map CP932-2BYTE.map\
+	JISC6226.map CP932-2BYTE.map JISX213A.map\
 	KSC5601.map KSC5636.map JOHAB.map
 
 MISC =  KOI-8.map KOI8-R.map KOI8-U.map KOI8-T.map ALTERNATIVNYJ.map \
@@ -196,6 +196,19 @@ JISX2131.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 > $@
+
+JISX213A.map:
+	# Generating $@
+	@(echo "0x2E21 0x4FF1"; \
+	  echo "0x2F7E 0x525D"; \
+	  echo "0x4F54 0x20B9F"; \
+	  echo "0x4F7E 0x541E"; \
+	  echo "0x7427 0x5653"; \
+	  echo "0x7E7A 0x59F8"; \
+	  echo "0x7E7B 0x5C5B"; \
+	  echo "0x7E7C 0x5E77"; \
+	  echo "0x7E7D 0x7626"; \
+	  echo "0x7E7E 0x7E6B") > $@
 
 CP932-2BYTE.map: ${MISC_CHARMAPS}/cp932.txt mapconv cp932.awk
 	# Generating $@...
