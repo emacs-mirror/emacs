@@ -38,6 +38,12 @@
 (defvar gdb-first-time nil)
 (defvar gdb-proc nil "The process associated with gdb.")
 
+;; Dynamically-bound vars in gud.el
+(defvar gud-gdb-complete-string)
+(defvar gud-gdb-complete-break)
+(defvar gud-gdb-complete-list)
+(defvar gud-gdb-complete-in-progress)
+
 ;;;###autoload
 (defun gdba (command-line)
   "Run gdb on program FILE in buffer *gdb-FILE*.
@@ -124,7 +130,7 @@ The following interactive lisp functions help control operation :
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
   (setq gud-last-last-frame nil)
-  (setq gdb-running nil)
+  (setq gud-running nil)
 
   (run-hooks 'gdb-mode-hook)
   (setq gdb-proc (get-buffer-process (current-buffer)))
@@ -754,7 +760,7 @@ subprocess is now the program being debugged, not GDB."
     (cond
      ((eq sink 'user)
       (progn
-	(setq gdb-running t)
+	(setq gud-running t)
 	(set-gdb-instance-output-sink 'inferior)))
      (t (error "Unexpected `starting' annotation")))))
 
@@ -770,7 +776,7 @@ for the subprocess is now GDB, not the program being debugged."
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.  It is just like gdb-stopping, except
 that if we already set the output sink to 'user in gdb-stopping, that is fine."
-  (setq gdb-running nil)
+  (setq gud-running nil)
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
@@ -2170,7 +2176,7 @@ Just the partial-output buffer is left."
 	      (setq left-margin-width 0)
 	      (setq gud-minor-mode nil)
 	      (kill-local-variable 'tool-bar-map)
-	      (setq gdb-running nil)
+	      (setq gud-running nil)
 	      (if (get-buffer-window (current-buffer))
 		  (set-window-margins (get-buffer-window
 				       (current-buffer))
