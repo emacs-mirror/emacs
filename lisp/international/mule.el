@@ -593,7 +593,7 @@ character code range.  Thus FUNC should iterate over [START, END]."
 		 (make-char charset (+ i start) (+ start chars -1)))))))
 
 (defun register-char-codings (coding-system safe-chars)
-  "This is an obsolete function.  
+  "This is an obsolete function.
 It exists just for backward compatibility, and it does nothing.")
 (make-obsolete 'register-char-codings
 	       "Unnecessary function.  Calling it has no effect."
@@ -1985,12 +1985,22 @@ the table in `translation-table-vector'."
 
 (put 'with-category-table 'lisp-indent-function 1)
 
-(defmacro with-category-table (category-table &rest body)
-  `(let ((current-category-table (category-table)))
-     (set-category-table ,category-table)
-     (unwind-protect
-	 (progn ,@body)
-       (set-category-table current-category-table))))
+(defmacro with-category-table (table &rest body)
+  "Evaluate BODY with category table of current buffer set to TABLE.
+The category table of the current buffer is saved, BODY is evaluated,
+then the saved table is restored, even in case of an abnormal exit.
+Value is what BODY returns."
+  (let ((old-table (make-symbol "old-table"))
+	(old-buffer (make-symbol "old-buffer")))
+    `(let ((,old-table (category-table))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn
+	     (set-category-table ,table)
+	     ,@body)
+	 (save-current-buffer
+	   (set-buffer ,old-buffer)
+	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)
   "Define SYMBOL as the name of the hash translation TABLE for use in CCL.
