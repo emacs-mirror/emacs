@@ -989,7 +989,8 @@ Name is nil if the statement has no label."
 	    (setq struct (f90-match-piece 3))
 	    (if (looking-at "\\(\\sw+\\)[ \t]*\:")
 		(setq label (f90-match-piece 1)))
-	    (goto-char (scan-lists (point) 1 0))
+	    (let ((pos (scan-lists (point) 1 0)))
+	      (and pos (goto-char pos)))
 	    (skip-chars-forward " \t")
 	    (if (or (looking-at "then\\>")
 		    (if (f90-line-continued)
@@ -1041,7 +1042,11 @@ Name is non-nil only for type."
 	((and f90-directive-comment-re
 	      (looking-at f90-directive-comment-re)) 0)
 	((looking-at (regexp-quote f90-comment-region)) 0)
-	((looking-at f90-indented-comment-re)
+	((and (looking-at f90-indented-comment-re)
+	      ;; Don't attempt to indent trailing comment as code.
+	      (save-excursion
+		(skip-chars-backward " \t")
+		(bolp)))
 	 (f90-calculate-indent))
 	(t (skip-chars-backward " \t")
 	   (max (if (bolp) 0 (1+ (current-column))) comment-column))))
