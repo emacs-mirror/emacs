@@ -1,5 +1,8 @@
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
+	* subr.el (substitute-key-definition-key): Optimize.  Don't
+	call indirect-function for nil defn (always signals error).
+
 	* ido.el (ido-read-internal): Fix require-match check when
 	ido-directory-too-big is set.
 
