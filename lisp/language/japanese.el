@@ -74,6 +74,14 @@
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
 
+(define-coding-system 'japanese-cp932
+  "CP932 (Microsoft shift-jis)"
+  :coding-type 'charset
+  :mnemonic ?S
+  :charset-list '(ascii katakana-sjis cp932-2-byte))
+
+(define-coding-system-alias 'cp932 'japanese-cp932)
+
 ;; Fixme: AKA Shift-JIS according to
 ;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
 ;; that correct?
