@@ -137,26 +137,41 @@ list of recently opened files."
   "*Function used to filter files displayed in the recentf menu.
 Nil means no filter.  The following functions are predefined:
 
-- - `recentf-sort-ascending' to sort menu items in ascending order.
-- - `recentf-sort-descending' to sort menu items in descending order.
-- - `recentf-sort-basenames-ascending' to sort file names in descending order.
-- - `recentf-sort-basenames-descending' to sort file names in descending order.
-- - `recentf-sort-directories-ascending' to sort directories in ascending order.
-- - `recentf-sort-directories-descending' to sort directories in descending order.
-- - `recentf-show-basenames' to show file names (no directories) in menu items.
-- - `recentf-show-basenames-ascending' to show file names in ascending order.
-- - `recentf-show-basenames-descending' to show file names in descending order.
-- - `recentf-relative-filter' to show file names relative to `default-directory'.
-- - `recentf-arrange-by-rule' to show sub-menus following user defined rules.
-- - `recentf-arrange-by-mode' to show a sub-menu for each major mode.
-- - `recentf-arrange-by-dir' to show a sub-menu for each directory.
-- - `recentf-filter-changer' to manage a ring of filters.
+- `recentf-sort-ascending' to sort menu items in ascending order.
+- `recentf-sort-descending' to sort menu items in descending order.
+- `recentf-sort-basenames-ascending' to sort file names in descending order.
+- `recentf-sort-basenames-descending' to sort file names in descending order.
+- `recentf-sort-directories-ascending' to sort directories in ascending order.
+- `recentf-sort-directories-descending' to sort directories in descending order.
+- `recentf-show-basenames' to show file names (no directories) in menu items.
+- `recentf-show-basenames-ascending' to show file names in ascending order.
+- `recentf-show-basenames-descending' to show file names in descending order.
+- `recentf-relative-filter' to show file names relative to `default-directory'.
+- `recentf-arrange-by-rule' to show sub-menus following user defined rules.
+- `recentf-arrange-by-mode' to show a sub-menu for each major mode.
+- `recentf-arrange-by-dir' to show a sub-menu for each directory.
+- `recentf-filter-changer' to manage a ring of filters.
 
 The filter function is called with one argument, the list of menu elements
 used to build the menu and must return a new list of menu elements (see
 `recentf-make-menu-element' for menu element form)."
   :group 'recentf
-  :type 'function
+  :type '(radio (const nil) 
+		(function-item recentf-sort-ascending)
+		(function-item recentf-sort-descending)
+		(function-item recentf-sort-basenames-ascending)
+		(function-item recentf-sort-basenames-descending)
+		(function-item recentf-sort-directories-ascending)
+		(function-item recentf-sort-directories-descending)
+		(function-item recentf-show-basenames)
+		(function-item recentf-show-basenames-ascending)
+		(function-item recentf-show-basenames-descending)
+		(function-item recentf-relative-filter)
+		(function-item recentf-arrange-by-rule)
+		(function-item recentf-arrange-by-mode)
+		(function-item recentf-arrange-by-dir)
+		(function-item recentf-filter-changer)
+		function)
   :set 'recentf-menu-customization-changed)
 
 (defcustom recentf-menu-append-commands-p t
@@ -550,7 +565,7 @@ defined."
 Nil means no filter.  See also `recentf-menu-filter'.  You can't use
 `recentf-arrange-by-rule' itself here!"
   :group 'recentf-filters
-  :type 'function
+  :type '(choice (const nil) function)
   :set (lambda (sym val)
          (if (eq val 'recentf-arrange-by-rule)
              (error "Can't use `recentf-arrange-by-rule' itself here!")
