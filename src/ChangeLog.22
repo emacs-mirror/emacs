@@ -1,3 +1,10 @@
+2004-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (report_file_error): Make a unibyte string from
+	strerror (errorno).
+	(Fsubstitute_in_file_name): Fix the arg to
+	unibyte_char_to_multibyte.  It is evaluated twice.
+
 2004-09-19  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (CHAR_CHARSET): Shortcut for ASCII case.
