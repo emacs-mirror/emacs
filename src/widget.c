@@ -434,14 +434,19 @@ set_frame_size (ew)
     Dimension pixel_width, pixel_height;
     char shell_position [32];
 
-    /* Take into account the size of the scrollbar */
+    /* Take into account the size of the scrollbar.  Always use the
+       number of columns occupied by the scroll bar here otherwise we
+       might end up with a frame width that is not a multiple of the
+       frame's character width which is bad for vertically split
+       windows.  */
     frame->output_data.x->vertical_scroll_bar_extra
       = (!FRAME_HAS_VERTICAL_SCROLL_BARS (frame)
 	 ? 0
-	 : FRAME_SCROLL_BAR_PIXEL_WIDTH (frame) > 0
-	 ? FRAME_SCROLL_BAR_PIXEL_WIDTH (frame)
 	 : (FRAME_SCROLL_BAR_COLS (frame)
 	    * FONT_WIDTH (frame->output_data.x->font)));
+
+    frame->output_data.x->flags_areas_extra
+      = 2 * FRAME_FLAGS_AREA_WIDTH (frame);
 
     change_frame_size (frame, h, w, 1, 0);
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
@@ -556,6 +561,8 @@ create_frame_gcs (ew)
   s->output_data.x->cursor_gc
     = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
 		 (unsigned long)0, (XGCValues *)0);
+  s->output_data.x->black_relief.gc = 0;
+  s->output_data.x->white_relief.gc = 0;
 }
 
 static char setup_frame_cursor_bits[] =
@@ -754,16 +761,15 @@ EmacsFrameDestroy (widget)
   if (! s->output_data.x) abort ();
   if (! s->output_data.x->normal_gc) abort ();
 
-  /* this would be called from Fdelete_frame() but it needs to free some
-     stuff after the widget has been finalized but before the widget has
-     been freed. */
-  free_frame_faces (s);
-
   BLOCK_INPUT;
   /* need to be careful that the face-freeing code doesn't free these too */
   XFreeGC (XtDisplay (widget), s->output_data.x->normal_gc);
   XFreeGC (XtDisplay (widget), s->output_data.x->reverse_gc);
   XFreeGC (XtDisplay (widget), s->output_data.x->cursor_gc);
+  if (s->output_data.x->white_relief.gc)
+    XFreeGC (XtDisplay (widget), s->output_data.x->white_relief.gc);
+  if (s->output_data.x->black_relief.gc)
+    XFreeGC (XtDisplay (widget), s->output_data.x->black_relief.gc);
   UNBLOCK_INPUT;
 }
 
@@ -903,8 +909,9 @@ EmacsFrameSetCharSize (widget, columns, rows)
   Dimension pixel_width, pixel_height, granted_width, granted_height;
   XtGeometryResult result;
   struct frame *f = ew->emacs_frame.frame;
-  Arg al[2];
+  Arg al[10];
   int ac = 0;
+  Dimension border_width;
   
   if (columns < 3) columns = 3;  /* no way buddy */
 
@@ -912,15 +919,25 @@ EmacsFrameSetCharSize (widget, columns, rows)
   f->output_data.x->vertical_scroll_bar_extra
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
-       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
-       ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
 
+  f->output_data.x->flags_areas_extra
+    = 2 * FRAME_FLAGS_AREA_WIDTH (f);
+
+  /* Something is really strange here wrt to the border width:
+     Apparently, XtNwidth and XtNheight include the border, so we have
+     to add it here.  But the XtNborderWidth set for the widgets has
+     no similarity to what f->output_data.x->border_width is set to.  */
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
+  XtVaGetValues (widget, XtNborderWidth, &border_width, NULL);
+  pixel_height += 2 * border_width;
+  pixel_width += 2 * border_width;
+  
   /* Manually change the height and width of all our widgets,
      adjusting each widget by the same increments.  */
-  if (ew->core.width != pixel_width || ew->core.height != pixel_height)
+  if (ew->core.width != pixel_width
+      || ew->core.height != pixel_height)
     {
       int hdelta = pixel_height - ew->core.height;
       int wdelta = pixel_width - ew->core.width;
@@ -967,6 +984,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
      we have to make sure to do it here.  */
   SET_FRAME_GARBAGED (f);
 }
+
 
 void
 widget_store_internal_border (widget)
