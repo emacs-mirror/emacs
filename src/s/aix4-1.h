@@ -20,5 +20,9 @@
 #define C_DEBUG_SWITCH -g
 #endif
 
-/* X internationalization stuff is still not working in AIX 4.1.  */
+/* The X internationalization stuff is still broken in AIX 4.1, so
+   don't #undef X11R5_INHIBIT_I18N
+   It still causes shift, ctrl, and alt to resend the last character,
+   if it was a control character like tab, enter, backspace, or ESC.
+   Bill_Mann @ PraxisInt.com   */
 /* #undef X11R5_INHIBIT_I18N */
