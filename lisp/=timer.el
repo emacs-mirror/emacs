@@ -51,7 +51,7 @@ the call to the function.  If REPEAT is nil, call it just once."
          (continue-process timer-process)))
   ;; There should be a living, breathing timer process now
   (let ((token (concat (current-time-string) "-" (length timer-alist))))
-    (send-string timer-process (concat time "@" token "\n"))
+    (process-send-string timer-process (concat time "@" token "\n"))
     (setq timer-alist (cons (list token repeat function args) timer-alist))))
 
 (defun timer-process-filter (proc str)
