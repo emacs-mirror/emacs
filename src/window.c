@@ -1342,7 +1342,10 @@ value is reasonable when this function is called.")
   Fset_buffer (w->buffer);
   opoint = point;
   SET_PT (marker_position (w->start));
-  Frecenter (make_number (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w)))));
+  /* Like Frecenter but avoid setting w->force_start.  */
+  Fvertical_motion (make_number (- (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w))))));
+  Fset_marker (w->start, make_number (PT), w->buffer);
+  w->start_at_line_beg = Fbolp ();
 
   SET_PT (opoint);
   set_buffer_internal (obuf);
