@@ -1079,6 +1079,10 @@ See also the function `select-message-coding-system'.")
 	  ;; unless we've already taken care of it.
 	  (unless dont-write-the-file
 	    (if (and (file-exists-p (car fcc-list))
+		     ;; Check that the file isn't empty.  We don't
+		     ;; want to insert a newline at the start of an
+		     ;; empty file.
+		     (not (zerop (nth 7 (file-attributes (car fcc-list)))))
 		     (mail-file-babyl-p (car fcc-list)))
 		;; If the file is a Babyl file,
 		;; convert the message to Babyl format.
