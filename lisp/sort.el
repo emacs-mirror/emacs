@@ -460,10 +460,10 @@ sRegexp specifying key within record: \nr")
 ;;;###autoload
 (defun sort-columns (reverse &optional beg end)
   "Sort lines in region alphabetically by a certain range of columns.
-For the purpose of this command, the region includes
+For the purpose of this command, the region BEG...END includes
 the entire line that point is in and the entire line the mark is in.
 The column positions of point and mark bound the range of columns to sort on.
-A prefix argument means sort into reverse order.
+A prefix argument means sort into REVERSE order.
 The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order.
 
@@ -486,7 +486,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-start (min col-beg1 col-end1))
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
-	  (error "sort-columns does not work with tabs.  Use M-x untabify."))
+	  (error "sort-columns does not work with tabs.  Use M-x untabify"))
       (if (not (or (eq system-type 'vax-vms)
 		   (text-properties-at beg1)
 		   (< (next-property-change beg1 nil end1) end1)))
@@ -494,8 +494,8 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; Do not use it if there are any properties in the region,
 	  ;; since the sort utility would lose the properties.
 	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
-				 (concat "+0." col-start)
-				 (concat "-0." col-end))))
+				 (concat "+0." (int-to-string col-start))
+				 (concat "-0." (int-to-string col-end)))))
 	    (when sort-fold-case
 	      (push "-f" sort-args))
 	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))
