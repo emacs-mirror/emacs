@@ -1,3 +1,8 @@
+2000-12-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (setup_coding_system): Be sure to initialize
+	coding->category_idx.
+
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (PER_CHAR_METRIC): Removed because not used.
