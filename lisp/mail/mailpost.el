@@ -28,7 +28,7 @@ site-init."
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " post-mail errors")
 		  0))
-	(temfile "/tmp/,rpost")
+	(temfile (expand-file-name ",rpost" temporary-file-directory))
 	(tembuf (generate-new-buffer " post-mail temp"))
 	(case-fold-search nil)
 	delimline
