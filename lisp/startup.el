@@ -305,6 +305,7 @@ Copyright (C) 1991 Free Software Foundation, Inc.\n\n")
        "Type C-h for help; C-x u to undo changes.  (`C-' means use CTRL key.)
 To kill the Emacs job, type C-x C-c.
 Type C-h t for a tutorial on using Emacs.
+Type C-h i to enter Info, which you can use to read GNU documentation.
 
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
 You may give out copies of Emacs; type C-h C-c to see the conditions.
@@ -313,6 +314,7 @@ Type C-h C-d for information on getting the latest version.")
        "Type \\[help-command] for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
 To kill the Emacs job, type \\[save-buffers-kill-emacs].
 Type \\[help-with-tutorial] for a tutorial on using Emacs.
+Type \\[info] to enter Info, which you can use to read GNU documentation.
 
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
