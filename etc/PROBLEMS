@@ -591,6 +591,16 @@ is to use the default compiler `cc'.
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  Please use PSGML 1.2.3 or later.
 
+* PSGML conflicts with sgml-mode.
+
+PSGML package uses the same names of some variables (like keymap)
+as built-in sgml-mode.el because it was created as a replacement
+of that package.  The conflict will be shown if you load
+sgml-mode.el before psgml.el.  E.g. this could happen if you edit
+HTML page and then start to work with SGML or XML file.  html-mode
+(from sgml-mode.el) is used for HTML file and loading of psgml.el
+(for sgml-mode or xml-mode) will cause an error.
+
 * The LDAP support rely on ldapsearch program from OpenLDAP version 2.
 
 It can fail to work with ldapsearch program from OpenLDAP version 1.
