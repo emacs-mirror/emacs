@@ -1,3 +1,8 @@
+2001-11-27  Stephen Eglen  <stephen@gnu.org>
+
+	* locate.el (locate): Put point at first matching file rather
+	than top of buffer.
+
 2001-11-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* reveal.el: New file.
