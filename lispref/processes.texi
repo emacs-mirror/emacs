@@ -1828,7 +1828,7 @@ For a server process, the options specified with
 connections, so you will need to set the necessary options for each
 child connection as they are created.
 
-@table asis
+@table @asis
 @item :bindtodevice @var{device-name}
 If @var{device-name} is a non-empty string identifying a network
 interface name (see @code{network-interface-list}), only handle
