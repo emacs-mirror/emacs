@@ -457,7 +457,8 @@ To control it, set `auto-compression-mode' via Custom or use the
 `auto-compression-mode' command.
 
 ** `browse-url-gnome-moz' is a new option for
-`browse-url-browser-function', invoking Mozilla in GNOME.
+`browse-url-browser-function', invoking Mozilla in GNOME, and
+`browse-url-kde' can be chosen for invoking the KDE browser.
 
 ** The user-option `browse-url-new-window-p' has been renamed to
 `browse-url-new-window-flag'.
