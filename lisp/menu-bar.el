@@ -41,6 +41,9 @@
 (define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
 (defvar menu-bar-files-menu (make-sparse-keymap "Files"))
 (define-key global-map [menu-bar files] (cons "Files" menu-bar-files-menu))
+
+;; This alias is for compatibility with 19.28 and before.
+(defvar menu-bar-file-menu menu-bar-files-menu)
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
 
