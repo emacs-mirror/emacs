@@ -87,7 +87,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (rmail-output file-name count)
     (rmail-maybe-set-message-counters)
     (setq file-name (abbreviate-file-name file-name))
-    (or (get-file-buffer file-name)
+    (or (find-buffer-visiting file-name)
 	(file-exists-p file-name)
 	(if (yes-or-no-p
 	     (concat "\"" file-name "\" does not exist, create it? "))
@@ -113,7 +113,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		(widen)
 		;; Decide whether to append to a file or to an Emacs buffer.
 		(save-excursion
-		  (let ((buf (get-file-buffer file-name))
+		  (let ((buf (find-buffer-visiting file-name))
 			(cur (current-buffer))
 			(beg (1+ (rmail-msgbeg rmail-current-message)))
 			(end (1+ (rmail-msgend rmail-current-message))))
