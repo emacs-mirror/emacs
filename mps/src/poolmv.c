@@ -1,7 +1,7 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.38) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolmv.c(trunk.39) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
@@ -30,13 +30,13 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.38) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.39) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
 #define SPANPOOL(mv)    (MFSPool(&(mv)->spanPoolStruct))
+
 #define PoolPoolMV(pool) PARENT(MVStruct, poolStruct, pool)
-#define MVPool(mv) (&(mv)->poolStruct)
 
 Pool (MVPool)(MV mv)
 {
