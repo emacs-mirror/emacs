@@ -363,11 +363,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 
      ;; if there is no master file corresponding, create one
      ((not vc-file)
-      (vc-register verbose comment)
-      (if vc-initial-comment
-	  (setq vc-log-after-operation-hook
-		'vc-checkout-writable-buffer-hook)
-	(vc-checkout-writable-buffer file)))
+      (vc-register verbose comment))
 
      ;; if there is no lock on the file, assert one and get it
      ((not (setq owner (vc-locking-user file)))
@@ -527,11 +523,12 @@ lock steals will raise an error.
 	   (delete-window)
 	   (kill-buffer (current-buffer))))))
 
-(defun vc-start-entry (file rev comment msg action)
+(defun vc-start-entry (file rev comment msg action &optional after-hook)
   ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
   ;; is nil, pop up a VC-log buffer, emit MSG, and set the
   ;; action on close to ACTION; otherwise, do action immediately.
   ;; Remember the file's buffer in parent-buffer (current one if no file).
+  ;; AFTER-HOOK specifies the local value for vc-log-operation-hook.
   (let ((parent (if file (find-file-noselect file) (current-buffer))))
     (if comment
 	(set-buffer (get-buffer-create "*VC-log*"))
@@ -541,6 +538,9 @@ lock steals will raise an error.
 	 (concat " from " (buffer-name vc-parent-buffer)))
     (vc-mode-line (or file " (no file)"))
     (vc-log-mode)
+    (make-local-variable 'vc-log-after-operation-hook)
+    (if after-hook
+	(setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
     (setq vc-log-file file)
     (setq vc-log-version rev)
@@ -557,9 +557,10 @@ lock steals will raise an error.
   "Check a file into your version-control system.
 FILE is the unmodified name of the file.  REV should be the base version
 level to check it in under.  COMMENT, if specified, is the checkin comment."
-      (vc-start-entry file rev
-		      (or comment (not vc-initial-comment))
-		      "Enter initial comment." 'vc-backend-admin))
+  (vc-start-entry file rev
+		  (or comment (not vc-initial-comment))
+		  "Enter initial comment." 'vc-backend-admin
+		  'vc-checkout-writable-buffer-hook))
 
 (defun vc-checkout (file &optional writable)
   "Retrieve a copy of the latest version of the given file."
@@ -605,9 +606,9 @@ The optional argument REV may be a string specifying the new version level
 permissions zeroed, or deleted (according to the value of `vc-keep-workfiles').
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
-  (setq vc-log-after-operation-hook 'vc-checkin-hook)
   (vc-start-entry file rev comment
-		  "Enter a change comment." 'vc-backend-checkin))
+		  "Enter a change comment." 'vc-backend-checkin
+		  'vc-checkin-hook))
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
