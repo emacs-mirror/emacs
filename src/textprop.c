@@ -452,15 +452,15 @@ remove_properties (plist, list, i, object)
   register Lisp_Object tail1, tail2, sym, current_plist;
   register int changed = 0;
 
-  /* Nonzero means tail1 is a list, otherwise it is a plist.  */
-  int use_list;
+  /* Nonzero means tail1 is a plist, otherwise it is a list.  */
+  int use_plist;
 
   current_plist = i->plist;
 
   if (! NILP (plist))
-    tail1 = plist, use_list = 0;
+    tail1 = plist, use_plist = 1;
   else
-    tail1 = list, use_list = 1;
+    tail1 = list, use_plist = 0;
 
   /* Go through each element of LIST or PLIST.  */
   while (! NILP (tail1))
@@ -498,10 +498,9 @@ remove_properties (plist, list, i, object)
 	}
 
       /* Advance thru TAIL1 one way or the other.  */
-      if (use_list)
+      tail1 = XCDR (tail1);
+      if (use_plist && CONSP (tail1))
 	tail1 = XCDR (tail1);
-      else
-	tail1 = XCDR (XCDR (tail1));
     }
 
   if (changed)
