@@ -818,26 +818,32 @@ For example:
 
     (gnus-run-hooks 'gnus-group-menu-hook)))
 
+(defvar gnus-group-toolbar-map nil)
+
 (defun gnus-group-make-tool-bar ()
-  (when (and (fboundp 'tool-bar-add-item-from-menu)
-	     (default-value 'tool-bar-mode)
-	     (not (lookup-key gnus-group-mode-map [tool-bar])))
-    (let ((tool-bar-map (make-sparse-keymap)))
-      (tool-bar-add-item-from-menu
-       'gnus-group-get-new-news "get-news" gnus-group-mode-map)
-      (tool-bar-add-item-from-menu
-       'gnus-group-get-new-news-this-group "gnntg" gnus-group-mode-map)
-      (tool-bar-add-item-from-menu
-       'gnus-group-catchup-current "catchup" gnus-group-mode-map)
-      (tool-bar-add-item-from-menu
-       'gnus-group-describe-group "describe-group" gnus-group-mode-map)
-      (tool-bar-add-item "subscribe" 'gnus-group-subscribe 'subscribe
-			 :help "Subscribe to the current group")
-      (tool-bar-add-item "unsubscribe" 'gnus-group-unsubscribe 'unsubscribe
-			 :help "Unsubscribe from the current group")
-      (tool-bar-add-item-from-menu
-       'gnus-group-exit "exit-gnus" gnus-group-mode-map)
-      (define-key gnus-group-mode-map [tool-bar] tool-bar-map))))
+  (if (and (fboundp 'tool-bar-add-item-from-menu)
+	   (default-value 'tool-bar-mode)
+	   (not gnus-group-toolbar-map))
+      (setq gnus-group-toolbar-map
+	    (let ((tool-bar-map (make-sparse-keymap)))
+	      (tool-bar-add-item-from-menu
+	       'gnus-group-get-new-news "get-news" gnus-group-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-group-get-new-news-this-group "gnntg" gnus-group-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-group-catchup-current "catchup" gnus-group-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-group-describe-group "describe-group" gnus-group-mode-map)
+	      (tool-bar-add-item "subscribe" 'gnus-group-subscribe 'subscribe
+				 :help "Subscribe to the current group")
+	      (tool-bar-add-item "unsubscribe" 'gnus-group-unsubscribe
+				 'unsubscribe
+				 :help "Unsubscribe from the current group")
+	      (tool-bar-add-item-from-menu
+	       'gnus-group-exit "exit-gnus" gnus-group-mode-map)
+	      tool-bar-map))
+    (if gnus-group-toolbar-map
+	(set (make-local-variable 'tool-bar-map) gnus-group-toolbar-map))))
 
 (defun gnus-group-mode ()
   "Major mode for reading news.
@@ -857,10 +863,10 @@ The following commands are available:
 
 \\{gnus-group-mode-map}"
   (interactive)
+  (kill-all-local-variables)
   (when (gnus-visual-p 'group-menu 'menu)
     (gnus-group-make-menu-bar)
     (gnus-group-make-tool-bar))
-  (kill-all-local-variables)
   (gnus-simplify-mode-line)
   (setq major-mode 'gnus-group-mode)
   (setq mode-name "Group")
