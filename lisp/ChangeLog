@@ -1,3 +1,9 @@
+2001-12-20  Werner Lemberg  <wl@gnu.org>
+
+	* international/mule-diag.el (describe-coding-system,
+	print-coding-system-briefly): Make printed output have a similar
+	format as describe-character-set.
+
 2001-12-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/blackbox.el (bb-member): Remove, use member instead.
