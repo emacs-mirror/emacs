@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse switches controlling interface with X window system
 
-;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -1266,8 +1266,19 @@ as returned by (x-server-vendor)."
 
 ;;; We keep track of the last text selected here, so we can check the
 ;;; current selection against it, and avoid passing back our own text
-;;; from x-cut-buffer-or-selection-value.
-(defvar x-last-selected-text nil)
+;;; from x-cut-buffer-or-selection-value.  We track all three
+;;; seperately in case another X application only sets one of them
+;;; (say the the cut buffer) we aren't fooled by the PRIMARY or
+;;; CLIPBOARD selection staying the same.
+(defvar x-last-selected-text-clipboard nil
+  "The value of the CLIPBOARD X selection last time we selected or
+pasted text.")
+(defvar x-last-selected-text-primary   nil
+  "The value of the PRIMARY X selection last time we selected or
+pasted text.")
+(defvar x-last-selected-text-cut       nil
+  "The vaue of the X cut buffer last time we selected or
+pasted text.")
 
 ;;; It is said that overlarge strings are slow to put into the cut buffer.
 ;;; Note this value is overridden below.
@@ -1288,56 +1299,121 @@ This is in addition to, but in preference to, the primary selection."
 (defun x-select-text (text &optional push)
   ;; Don't send the cut buffer too much text.
   ;; It becomes slow, and if really big it causes errors.
-  (if (< (length text) x-cut-buffer-max)
+  (cond ((>= (length text) x-cut-buffer-max)
+	 (x-set-cut-buffer "" push)
+	 (setq x-last-selected-text-cut ""))
+	(t 
       (x-set-cut-buffer text push)
-    (x-set-cut-buffer "" push))
+	 (setq x-last-selected-text-cut text)))
   (x-set-selection 'PRIMARY text)
-  (if x-select-enable-clipboard
-      (x-set-selection 'CLIPBOARD text))
-  (setq x-last-selected-text text))
+  (setq x-last-selected-text-primary text)
+  (when x-select-enable-clipboard
+      (x-set-selection 'CLIPBOARD text)
+      (setq x-last-selected-text-clipboard text))
+  )
 
 ;;; Return the value of the current X selection.
-;;; Consult the selection, then the cut buffer.  Treat empty strings
+;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.
 ;;; If this function is called twice and finds the same text,
 ;;; it returns nil the second time.  This is so that a single
 ;;; selection won't be added to the kill ring over and over.
 (defun x-cut-buffer-or-selection-value ()
-  (let (text)
+  (let (clip-text primary-text cut-text)
     (when x-select-enable-clipboard
-      (if (null text) 
+      ;; Don't die if x-get-selection signals an error.
+      (if (null clip-text) 
 	  (condition-case c
-	      (setq text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
+	      (setq clip-text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
 	    (error nil)))
-      (if (null text) 
+      (if (null clip-text) 
 	  (condition-case c
-	      (setq text (x-get-selection 'CLIPBOARD 'STRING))
+	      (setq clip-text (x-get-selection 'CLIPBOARD 'STRING))
 	    (error nil)))
-      (if (string= text "") (setq text nil)))
+      (if (string= clip-text "") (setq clip-text nil))
+
+      ;; Check the CLIPBOARD selection for 'newness', is it different
+      ;; from what we remebered them to be last time we did a
+      ;; cut/paste operation.
+      (setq clip-text 
+	    (cond;; check clipboard
+	     ((or (not clip-text) (string= clip-text ""))
+	      (setq x-last-selected-text-clipboard nil))
+	     ((eq      clip-text x-last-selected-text-clipboard) nil)
+	     ((string= clip-text x-last-selected-text-clipboard)
+	      ;; Record the newer string, 
+	      ;; so subsequent calls can use the `eq' test.
+	      (setq x-last-selected-text-clipboard clip-text)
+	      nil)
+	     (t
+	      (setq x-last-selected-text-clipboard clip-text))))
+      )
 
     ;; Don't die if x-get-selection signals an error.
-    (if (null text) 
+    (if (null primary-text) 
 	(condition-case c
-	    (setq text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
+	    (setq primary-text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
 	  (error nil)))
-    (if (null text) 
+    (if (null primary-text) 
 	(condition-case c
-	    (setq text (x-get-selection 'PRIMARY 'STRING))
+	    (setq primary-text (x-get-selection 'PRIMARY 'STRING))
 	  (error nil)))
-    (if (string= text "") (setq text nil))
+    ;; Check the PRIMARY selection for 'newness', is it different
+    ;; from what we remebered them to be last time we did a
+    ;; cut/paste operation.
+    (setq primary-text 
+	  (cond;; check primary selection
+	   ((or (not primary-text) (string= primary-text ""))
+	    (setq x-last-selected-text-primary nil))
+	   ((eq      primary-text x-last-selected-text-primary) nil)
+	   ((string= primary-text x-last-selected-text-primary)
+	    ;; Record the newer string, 
+	    ;; so subsequent calls can use the `eq' test.
+	    (setq x-last-selected-text-primary primary-text)
+	    nil)
+	   (t
+	    (setq x-last-selected-text-primary primary-text))))
 
-    (or text (setq text (x-get-cut-buffer 0)))
-    (if (string= text "") (setq text nil))
+    (setq cut-text (x-get-cut-buffer 0))
 
-    (cond
-     ((not text) nil)
-     ((eq text x-last-selected-text) nil)
-     ((string= text x-last-selected-text)
-      ;; Record the newer string, so subsequent calls can use the `eq' test.
-      (setq x-last-selected-text text)
+    ;; Check the x cut buffer for 'newness', is it different
+    ;; from what we remebered them to be last time we did a
+    ;; cut/paste operation.
+    (setq cut-text 
+	  (cond;; check primary selection
+	   ((or (not cut-text) (string= cut-text ""))
+	    (setq x-last-selected-text-cut nil))
+	   ((eq      cut-text x-last-selected-text-cut) nil)
+	   ((string= cut-text x-last-selected-text-cut)
+	    ;; Record the newer string, 
+	    ;; so subsequent calls can use the `eq' test.
+	    (setq x-last-selected-text-cut cut-text)
       nil)
      (t
-      (setq x-last-selected-text text)))))
+	    (setq x-last-selected-text-cut cut-text))))
+
+    ;; At this point we have recorded the current values for the
+    ;; selection from clipboard (if we are supposed to) primary,
+    ;; and cut buffer.  So return the first one that has changed
+    ;; (which is the first non-null one).
+    ;;
+    ;; NOTE: There will be cases where more than one of these has
+    ;; changed and the new values differ.  This indicates that
+    ;; something like the following has happened since the last time
+    ;; we looked at the selections: Application X set all the
+    ;; selections, then Application Y set only one or two of them (say
+    ;; just the cut-buffer).  In this case since we don't have
+    ;; timestamps there is no way to know what the 'correct' value to
+    ;; return is.  The nice thing to do would be to tell the user we
+    ;; saw multiple possible selections and ask the user which was the
+    ;; one they wanted.  
+    ;; This code is still a big improvement because now the user can
+    ;; futz with the current selection and get emacs to pay attention
+    ;; to the cut buffer again (previously as soon as clipboard or
+    ;; primary had been set the cut buffer would essentially never be
+    ;; checked again).
+    (or clip-text primary-text cut-text)
+    ))
 
 
 ;;; Do the actual X Windows setup here; the above code just defines
