@@ -698,14 +698,14 @@ On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.")
 
 ;; This should probably be written in C (i.e., without using `walk-windows').
-(defun get-buffer-window-list (buffer &optional frame)
+(defun get-buffer-window-list (buffer &optional minibuf frame)
   "Return windows currently displaying BUFFER, or nil if none.
-See `get-buffer-window' for the meaning of FRAME."
+See `walk-windows' for the meaning of MINIBUF and FRAME."
   (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
     (walk-windows (function (lambda (window)
 			      (if (eq (window-buffer window) buffer)
 				  (setq windows (cons window windows)))))
-		  nil frame)
+		  minibuf frame)
     windows))
 
 (defun ignore (&rest ignore)
