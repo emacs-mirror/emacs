@@ -77,13 +77,19 @@ and \"-de\" when dehexlifying a buffer."
   :group 'hexl)
 
 (defcustom hexlify-command
-  (format "%s%s %s" exec-directory hexl-program hexl-options)
+  (format "%s %s"
+	  (shell-quote-argument
+	   (expand-file-name hexl-program exec-directory))
+	  hexl-options)
   "The command to use to hexlify a buffer."
   :type 'string
   :group 'hexl)
 
 (defcustom dehexlify-command
-  (format "%s%s -de %s" exec-directory hexl-program hexl-options)
+  (format "%s -de %s"
+	  (shell-quote-argument
+	   (expand-file-name hexl-program exec-directory))
+	  hexl-options)
   "The command to use to unhexlify a buffer."
   :type 'string
   :group 'hexl)
