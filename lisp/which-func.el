@@ -3,6 +3,7 @@
 ;; Copyright (C) 1994, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
+;;           (doesn't seem to be responsive any more)
 ;; Keywords: mode-line, imenu, tools
 
 ;; This file is part of GNU Emacs.
