@@ -153,10 +153,13 @@ Returns list of symbols and documentation found."
 			 (1- (point))
 		       (point))))
 	      item (assq symbol sym-list))
-	(or item
-	    (setq item (list symbol nil nil)
-		  sym-list (cons item sym-list)))
-	(setcar (nthcdr type item) doc)))
+	(and (if (= type 1)
+		 (documentation symbol)
+	       (documentation-property symbol 'variable-documentation))
+	     (or item
+		 (setq item (list symbol nil nil)
+		       sym-list (cons item sym-list)))
+	     (setcar (nthcdr type item) doc))))
     sym-list))
 
 ;; This is passed as the argument to map-atoms, so it is called once for every
