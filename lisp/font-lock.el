@@ -2332,12 +2332,7 @@ See also `c-font-lock-extra-types'.")
        (save-excursion (skip-chars-forward "^:\n") (point))
        nil
        (1 font-lock-constant-face nil t)))
-    ;; Anders Lindgren <andersl@andersl.com> points out that it is quicker to
-    ;; use MATCH-ANCHORED to effectively anchor the regexp on the left.
-    ;; This must come after the one for keywords and targets.
-    '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*$"
-	   (beginning-of-line) (end-of-line)
-	   (1 font-lock-constant-face)))
+    '("\\(\\sw+\\)[ \t]*:" 1 font-lock-constant-face)
     )))
 
  (setq c-font-lock-keywords-3
@@ -2372,10 +2367,10 @@ See also `c-font-lock-extra-types'.")
 	  (list 1 'font-lock-keyword-face)
 	  (list ,(+ c-type-specs-depth 2) 'font-lock-type-face nil t)
 	  (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  nil 
+		  nil
 		  ;; Finish with point after the variable name if
 		  ;; there is one.
-		  `(if (match-end 2) 
+		  `(if (match-end 2)
 		       (goto-char (match-end 2)))
 		  ;; Fontify as a variable or function name.
 		  '(1 (if (match-beginning 2)
