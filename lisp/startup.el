@@ -256,17 +256,20 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 		nil t))
     ;; If we can't read it, print the error message and exit.
     (error
-     (if (eq (car error) 'error)
-	 (message "%s" (apply 'concat (cdr error)))
-       (if (memq 'file-error (get (car error) 'error-conditions))
-	   (message "%s: %s"
-		    (nth 1 error)
-		    (mapconcat '(lambda (obj) (prin1-to-string obj t))
-			       (cdr (cdr error)) ", "))
-	 (message "%s: %s"
-		  (get (car error) 'error-message)
-		  (mapconcat '(lambda (obj) (prin1-to-string obj t))
-			     (cdr error) ", "))))
+     (princ
+      (if (eq (car error) 'error)
+	  (apply 'concat (cdr error))
+	(if (memq 'file-error (get (car error) 'error-conditions))
+	    (format "%s: %s"
+		     (nth 1 error)
+		     (mapconcat '(lambda (obj) (prin1-to-string obj t))
+				(cdr (cdr error)) ", "))
+	  (format "%s: %s"
+		   (get (car error) 'error-message)
+		   (mapconcat '(lambda (obj) (prin1-to-string obj t))
+			      (cdr error) ", "))))
+      'external-debugging-output)
+     (setq window-system nil)
      (kill-emacs)))
 
   (let ((done nil)
