@@ -1070,10 +1070,13 @@ the front of KEYMAP.  */)
 
 DEFUN ("remap-command", Fremap_command, Sremap_command, 1, 1, 0,
        doc: /* Return the remapping for command COMMAND in current keymaps.
-Returns nil if COMMAND is not remapped.  */)
+Returns nil if COMMAND is not remapped (or not a symbol).  */)
      (command)
      Lisp_Object command;
 {
+  if (!SYMBOLP (command))
+    return Qnil;
+
   ASET (remap_command_vector, 1, command);
   return Fkey_binding (remap_command_vector, Qnil, Qt);
 }
