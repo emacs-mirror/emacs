@@ -456,6 +456,7 @@ The order of bindings in a keymap matters when it is used as a menu."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
+
 (defmacro kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string constant in the format used for
@@ -1867,21 +1868,6 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 		(nconc found (list (cons toggle keymap)) rest))
 	    (setq minor-mode-map-alist (cons (cons toggle keymap)
 					     minor-mode-map-alist))))))))
-
-;; XEmacs compatibility/convenience.
-(if (fboundp 'play-sound)
-    (defun play-sound-file (file &optional volume device)
-      "Play sound stored in FILE.
-VOLUME and DEVICE correspond to the keywords of the sound
-specification for `play-sound'."
-      (interactive "fPlay sound file: ")
-      (let ((sound (list :file file)))
-	(if volume
-	    (plist-put sound :volume volume))
-	(if device
-	    (plist-put sound :device device))
-	(push 'sound sound)
-	(play-sound sound))))
 
 ;; Clones ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
