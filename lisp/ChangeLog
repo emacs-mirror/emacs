@@ -1,3 +1,7 @@
+2001-10-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-switches): Doc rewritten.
+
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tooltip.el (tooltip-set-param): Doc fix.
