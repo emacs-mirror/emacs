@@ -690,6 +690,9 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar mail]
   (cons "Mail" (make-sparse-keymap "Mail")))
 
+(define-key rmail-summary-mode-map [menu-bar mail resend]
+  '("Re-send" . rmail-resend))
+
 (define-key rmail-summary-mode-map [menu-bar mail continue]
   '("Continue" . rmail-summary-continue))
 
