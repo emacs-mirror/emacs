@@ -96,18 +96,18 @@ extern long timezone;
 #define EMACS_SET_USECS(time, microseconds) ((time).tv_usec = (microseconds))
 
 /* On SVR4, the compiler may complain if given this extra BSD arg.  */
-#ifdef USG5_4
+#ifdef GETTIMEOFDAY_ONE_ARGUMENT
 #define EMACS_GET_TIME(time)                                  \
 {                                                             \
   gettimeofday (&(time));                                     \
 }
-#else /* not USG5_4 */
+#else /* not GETTIMEOFDAY_ONE_ARGUMENT */
 #define EMACS_GET_TIME(time)					\
 {								\
   struct timezone dummy;					\
   gettimeofday (&(time), &dummy);				\
 }
-#endif /* not USG5_4 */
+#endif /* not GETTIMEOFDAY_ONE_ARGUMENT */
 
 #define EMACS_ADD_TIME(dest, src1, src2)			\
 {								\
