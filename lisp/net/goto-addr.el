@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -64,6 +64,16 @@
 (require 'thingatpt)
 (autoload 'browse-url-url-at-point "browse-url")
 
+;; XEmacs needs the following definitions.
+(unless (fboundp 'overlays-in)
+  (require 'overlay))
+(unless (fboundp 'line-beginning-position)
+  (defalias 'line-beginning-position 'point-at-bol))
+(unless (fboundp 'line-end-position)
+  (defalias 'line-end-position 'point-at-eol))
+(unless (fboundp 'match-string-no-properties)
+  (defalias 'match-string-no-properties 'match-string))
+
 (defgroup goto-address nil
   "Click to browse URL or to send to e-mail address."
   :group 'mouse
@@ -100,8 +110,10 @@ But only if `goto-address-highlight-p' is also non-nil."
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (define-key m [mouse-2] 'goto-address-at-mouse)
-    (define-key m "\C-c\r" 'goto-address-at-point)
+    (if (featurep 'xemacs)
+	(define-key m (kbd "<button2>") 'goto-address-at-mouse)
+      (define-key m (kbd "<mouse-2>") 'goto-address-at-mouse))
+    (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
