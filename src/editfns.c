@@ -1378,6 +1378,13 @@ subst_char_in_region_unwind (arg)
   return current_buffer->undo_list = arg;
 }
 
+static Lisp_Object
+subst_char_in_region_unwind_1 (arg)
+     Lisp_Object arg;
+{
+  return current_buffer->filename = arg;
+}
+
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
   Ssubst_char_in_region, 4, 5, 0,
   "From START to END, replace FROMCHAR with TOCHAR each time it occurs.\n\
@@ -1400,12 +1407,17 @@ and don't mark the buffer as really changed.")
 
   /* If we don't want undo, turn off putting stuff on the list.
      That's faster than getting rid of things,
-     and it prevents even the entry for a first change.  */
+     and it prevents even the entry for a first change.
+     Also inhibit locking the file.  */
   if (!NILP (noundo))
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     current_buffer->undo_list);
       current_buffer->undo_list = Qt;
+      /* Don't do file-locking.  */
+      record_unwind_protect (subst_char_in_region_unwind_1,
+			     current_buffer->filename);
+      current_buffer->filename = Qnil;
     }
 
   while (pos < stop)
