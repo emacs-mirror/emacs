@@ -11329,7 +11329,7 @@ display_menu_bar (w)
 
 #ifdef USE_X_TOOLKIT
   xassert (!FRAME_WINDOW_P (f));
-  init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MODE_LINE_FACE_ID);
+  init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_WINDOW_WIDTH (f) * CANON_X_UNIT (f);
 #else /* not USE_X_TOOLKIT */
@@ -11341,7 +11341,7 @@ display_menu_bar (w)
       xassert (WINDOWP (f->menu_bar_window));
       menu_w = XWINDOW (f->menu_bar_window);
       init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
-		     MODE_LINE_FACE_ID);
+		     MENU_FACE_ID);
       it.first_visible_x = 0;
       it.last_visible_x = FRAME_WINDOW_WIDTH (f) * CANON_X_UNIT (f);
     }
@@ -11350,7 +11350,7 @@ display_menu_bar (w)
       /* This is a TTY frame, i.e. character hpos/vpos are used as
 	 pixel x/y.  */
       init_iterator (&it, w, -1, -1, f->desired_matrix->rows,
-		     MODE_LINE_FACE_ID);
+		     MENU_FACE_ID);
       it.first_visible_x = 0;
       it.last_visible_x = FRAME_WIDTH (f);
     }
