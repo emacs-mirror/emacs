@@ -1,3 +1,10 @@
+2000-12-11  Miles Bader  <miles@gnu.org>
+
+	* gnus-sum.el (gnus-summary-recenter): When trying to keep the
+	bottom line visible, check to see if it's partially obscured, and
+	if so, either scroll one more line to make it fully visible, or
+	revert to showing the second line from the top.
+
 2000-12-07  Dave Love  <fx@gnu.org>
 
 	* mailcap.el (mailcap-download-directory)
