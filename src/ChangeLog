@@ -1,3 +1,12 @@
+2000-07-27  Dave Love  <fx@gnu.org>
+
+	* s/irix6-5.h (IRIX_FORCE_32_BITS, LD_SWITCH_SYSTEM): Don't
+	define.
+	[_MIPS_SZLONG == 64]: Set up for 64-bit mode -- not currently
+	working.
+
+	* m/iris4d.h (XUINT, XSET, XUNMARK) [_LP64]: Don't define.
+
 2000-07-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* editfns.c (lisp_time_argument): Fix last change.
