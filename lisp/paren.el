@@ -86,7 +86,9 @@
 			       (progn
 				 (make-face 'paren-mismatch)
 				 (set-face-background 'paren-mismatch
-						      "purple")))
+						      "purple")
+				 (set-face-foreground 'paren-mismatch
+						      "white")))
 			   (setq show-paren-mismatch-face 'paren-mismatch))
 		      (if show-paren-mismatch-face
 			  (setq face show-paren-mismatch-face)
