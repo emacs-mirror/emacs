@@ -185,8 +185,4 @@ Example:
 
 (provide 'image)
 
-  ;; image.el ends here.
-
-
-
-
+;;; image.el ends here
