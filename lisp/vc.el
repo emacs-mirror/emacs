@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.17 1992/11/20 17:23:45 jimb Exp rms $	
+;;	$Id: vc.el,v 1.18 1992/11/20 19:33:38 rms Exp jimb $	
 
 ;; This file is part of GNU Emacs.
 
@@ -156,6 +156,11 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	status)
     (set-buffer (get-buffer-create "*vc*"))
     (erase-buffer)
+
+    ;; This is so that command arguments typed in the *vc* buffer will
+    ;; have reasonable defaults.
+    (setq default-directory (file-name-directory file))
+
     (mapcar
      (function (lambda (s) (and s (setq squeezed (append squeezed (list s))))))
      flags)
