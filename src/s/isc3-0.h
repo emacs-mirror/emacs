@@ -23,13 +23,14 @@
 #undef LIBX11_SYSTEM
 #define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc
 
-/* marko@tekelec.com (Marko Rauhamaa) says that his linker couldn't
-   find memmove, but that sounds crazy - I thought all SYSV
-   descendants had that.  Let us know if this turns out to be wrong.  */
-/* It is safe to have no parens around the args in the safe_bcopy call,
-   and parens would screw up the prototype decl for memmove.  */
-#define	memmove(d, s, n) safe_bcopy (s, d, n)
+/* TIOCGWINSZ isn't broken; you just have to know where to find it.  */
+#undef BROKEN_TIOCGWINSZ
+#define NEED_SIOCTL
+
+/* This does no harm, and is necessary for some ANSI compilers.  */
+#define C_SWITCH_SYSTEM -D_SYSV3
 
 /* This works around a bug in ISC 4.0 and 3.0; it fails
-   to clear the "POSIX process" flag on an exec.  */
+   to clear the "POSIX process" flag on an exec.
+   It won't be needed for 4.1.  */
 #define EXTRA_INITIALIZE __setostype (0)
