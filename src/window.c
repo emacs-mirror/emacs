@@ -287,6 +287,8 @@ make_window ()
   XSETWINDOW (val, p);
   XSETFASTINT (p->last_point, 0);
   p->frozen_window_start_p = 0;
+  p->height_fixed_p = 0;
+  p->last_cursor_off_p = p->cursor_off_p = 0;
 
   Vwindow_list = Qnil;
   return val;
