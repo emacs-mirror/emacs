@@ -1,3 +1,12 @@
+2005-01-22  Steven Tamm  <steventamm@mac.com>
+
+	* s/darwin.h: Removed PTY_ITERATION from here.
+	(DARWIN): Defined.
+	* process.c (init_process): Default process-connection-type to
+	nil on darwin 6 or less, t if it is 7 or higher.  This way the
+	broken pty behavior is still allowed on darwin 6 for interactive
+	processes for people that know what they are doing.
+
 2005-01-22  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (auto_window_vscroll_p): New boolean.
