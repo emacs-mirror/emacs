@@ -570,6 +570,7 @@ prev_frame (frame, minibuf)
     return prev;
 }
 
+
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
 By default, skip minibuffer-only frames.\n\
@@ -589,6 +590,27 @@ If MINIFRAME is non-nil and not a window, include all frames.")
     CHECK_LIVE_FRAME (frame, 0);
 
   return next_frame (frame, miniframe);
+}
+
+DEFUN ("previous-frame", Fprevious_frame, Sprevious_frame, 0, 2, 0,
+  "Return the previous frame in the frame list before FRAME.\n\
+By default, skip minibuffer-only frames.\n\
+If omitted, FRAME defaults to the selected frame.\n\
+If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
+If MINIFRAME is a window, include only frames using that window for their\n\
+minibuffer.\n\
+If MINIFRAME is non-nil and not a window, include all frames.")
+  (frame, miniframe)
+     Lisp_Object frame, miniframe;
+{
+  Lisp_Object tail;
+
+  if (NILP (frame))
+    XSET (frame, Lisp_Frame, selected_frame);
+  else
+    CHECK_LIVE_FRAME (frame, 0);
+
+  return prev_frame (frame, miniframe);
 }
 
 
@@ -1490,6 +1512,7 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sframe_selected_window);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
+  defsubr (&Sprevious_frame);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Sset_mouse_position);
