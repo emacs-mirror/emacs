@@ -780,7 +780,6 @@ Rounds the value toward zero.")
   return arg;
 }
 
-#if 0
 /* It's not clear these are worth adding.  */
 
 DEFUN ("fceiling", Ffceiling, Sfceiling, 1, 1, 0,
@@ -811,7 +810,7 @@ DEFUN ("fround", Ffround, Sfround, 1, 1, 0,
      register Lisp_Object arg;
 {
   double d = extract_float (arg);
-  IN_FLOAT (d = rint (XFLOAT (arg)->data), "fround", arg);
+  IN_FLOAT (d = rint (d), "fround", arg);
   return make_float (d);
 }
 
@@ -828,7 +827,6 @@ Rounds the value toward zero.")
     IN_FLOAT (d = ceil (d), "ftruncate", arg);
   return make_float (d);
 }
-#endif
 
 #ifdef FLOAT_CATCH_SIGILL
 static SIGTYPE
@@ -930,11 +928,11 @@ syms_of_floatfns ()
   defsubr (&Serfc);
   defsubr (&Slog_gamma);
   defsubr (&Scube_root);
+#endif
   defsubr (&Sfceiling);
   defsubr (&Sffloor);
   defsubr (&Sfround);
   defsubr (&Sftruncate);
-#endif
   defsubr (&Sexp);
   defsubr (&Sexpt);
   defsubr (&Slog);
