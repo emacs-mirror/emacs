@@ -50,6 +50,7 @@ example, if `:slant' appears before `:height', font selection first
 tries to find a font with a suitable slant, even if this results in
 a font height that isn't optimal."
   :tag "Font selection order."
+  :type '(list symbol symbol symbol symbol)
   :group 'font-selection
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
@@ -64,6 +65,7 @@ Each element has the the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
   :tag "Alternative font families to try."
+  :type '(repeat (repeat string))
   :group 'font-selection
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
