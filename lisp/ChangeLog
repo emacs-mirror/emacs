@@ -1,3 +1,8 @@
+2004-09-18  John Paul Wallington  <jpw@gnu.org>
+
+	* calc/calc-units.el (calc-quick-units): Fix overzealous
+	s/or/unless/.
+
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename): Expand
