@@ -828,6 +828,7 @@ terminal, as far as Emacs knows.  Setting this variable does not
 change the speed of actual data transmission, but the value is used
 for calculations.  On terminals, it affects padding, and decisions
 about whether to scroll part of the screen or redraw it instead.
+It also affects the behavior of incremental search.
 
   On window-systems, @code{baud-rate} is only used to determine how
 frequently to look for pending input during display updating.  A
