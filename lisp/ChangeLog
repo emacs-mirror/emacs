@@ -4,9 +4,8 @@
 
 2001-01-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (reset-language-environment): Make
-	the priority of coding-category-utf-8 higher than
-	coding-category-binary.
+	* international/mule-cmds.el (reset-language-environment): Reset
+	coding-category-utf-8 to mule-utf-8.
 
 	* international/mule-conf.el (coding-category-utf-8): Initialize
 	to mule-utf-8.
