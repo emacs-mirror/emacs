@@ -45,6 +45,7 @@
 #undef BSD_PGRPS
 
 #ifndef NO_SHARED_LIBS
+#define LD_SWITCH_SYSTEM -e start
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 #define UNEXEC unexsunos4.o
