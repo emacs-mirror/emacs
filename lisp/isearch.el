@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/12/05 19:34:52 $|$Revision: 1.79 $
+;; |$Date: 1994/12/15 02:06:45 $|$Revision: 1.80 $
 
 ;; This file is part of GNU Emacs.
 
@@ -570,18 +570,16 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (if isearch-small-window
 	(goto-char found-point)
       ;; Exiting the save-window-excursion clobbers window-start; restore it.
-      (set-window-start (selected-window) found-start t)))
+      (set-window-start (selected-window) found-start t))
 
     ;; If there was movement, mark the starting position.
     ;; Maybe should test difference between and set mark iff > threshold.
     (if (/= (point) isearch-opoint)
-	(progn
-	  (or (and transient-mark-mode mark-active)
-	      (push-mark isearch-opoint t))
-	  (or executing-macro (> (minibuffer-depth) 0)
-	      (message "Mark saved where search started")))
-      ;; (message "") why is this needed?
-      )
+	(or (and transient-mark-mode mark-active)
+	    (progn
+	      (push-mark isearch-opoint t)
+	      (or executing-macro (> (minibuffer-depth) 0)
+		  (message "Mark saved where search started"))))))
 
   (setq isearch-mode nil)
   (set-buffer-modified-p (buffer-modified-p))  ;; update modeline
