@@ -1262,7 +1262,7 @@ AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.in, [
 
 ### Make the necessary directories, if they don't exist.
-for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ; do
+for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ./man ; do
   if test ! -d ${dir}; then
     mkdir ${dir}
   fi
