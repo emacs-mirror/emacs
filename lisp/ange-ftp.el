@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.42 $")
+(defconst ange-ftp-version "$Revision: 1.43 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -4502,8 +4502,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 (defconst ange-ftp-vms-filename-regexp
   (concat
-   "\\(\\([_A-Za-z0-9$]?\\|[_A-Za-z0-9$][_A-Za-z0-9$---]*\\)\\."
-   "[_A-Za-z0-9$---]*;+[0-9]*\\)")
+   "\\(\\([_A-Za-z0-9$]?\\|[_A-Za-z0-9$][-_A-Za-z0-9$]*\\)\\."
+   "[-_A-Za-z0-9$]*;+[0-9]*\\)")
   "Regular expression to match for a valid VMS file name in Dired buffer.
 Stupid freaking bug! Position of _ and $ shouldn't matter but they do.
 Having [A-Z0-9$_] bombs on filename _$$CHANGE_LOG$.TXT$ and $CHANGE_LOG$.TX

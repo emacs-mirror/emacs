@@ -388,30 +388,30 @@ started ispell process.")
 ;;;###autoload
 (defvar ispell-dictionary-alist		; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
-     "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
+     "[A-Za-z]" "[^A-Za-z]" "[-']" nil ("-B") nil)
     ("english"				; make english explicitly selectable
-     "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
+     "[A-Za-z]" "[^A-Za-z]" "[-']" nil ("-B") nil)
     ("deutsch"				; deutsch.aff
-     "[a-zA-Z\"]" "[^a-zA-Z\"]" "[---']" t ("-C") nil)
+     "[a-zA-Z\"]" "[^a-zA-Z\"]" "[-']" t ("-C") nil)
     ("deutsch8"
      "[a-zA-Z\304\326\334\344\366\337\374]"
      "[^a-zA-Z\304\326\334\344\366\337\374]"
-     "[---']" t ("-C" "-d" "deutsch") "~latin1")
+     "[-']" t ("-C" "-d" "deutsch") "~latin1")
     ("nederlands8"				; dutch8.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[---']" t ("-C") nil)
+     "[-']" t ("-C") nil)
     ("svenska"				;7 bit swedish mode
      "[A-Za-z}{|\\133\\135\\\\]" "[^A-Za-z}{|\\133\\135\\\\]"
-     "[---']" nil ("-C") nil)
+     "[-']" nil ("-C") nil)
     ("svenska8"				;8 bit swedish mode
      "[A-Za-z\345\344\366\305\304\366]"  "[^A-Za-z\345\344\366\305\304\366]"
-     "[---']" nil ("-C" "-d" "svenska") "~list") ; Add `"-T" "list"' instead?
+     "[-']" nil ("-C" "-d" "svenska") "~list") ; Add `"-T" "list"' instead?
     ("francais"
-     "[A-Za-z]" "[^A-Za-z]" "[---`'\^]" nil nil nil)
+     "[A-Za-z]" "[^A-Za-z]" "[-`'\^]" nil nil nil)
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
-     "[---]" nil ("-C") nil)
+     "[-]" nil ("-C") nil)
     )
   "An alist of dictionaries and their associated parameters.
 
@@ -1484,7 +1484,7 @@ With prefix argument, set the default directory."
 		    (re-search-forward "[][()$]" limit t))
 		(setq string (concat "^" (buffer-substring start limit) "\n")))
 	    (goto-char limit))))
-       ((looking-at "[---#@*+!%~^]")	; SKIP SPECIAL ISPELL CHARACTERS
+       ((looking-at "[-#@*+!%~^]")	; SKIP SPECIAL ISPELL CHARACTERS
 	(forward-char 1))
        ((or (re-search-forward ispell-casechars end t) ; TEXT EXISTS...
 	    (re-search-forward "[][()$]" end t)) ; or MATH COMMANDS...
@@ -1800,7 +1800,7 @@ news-reply-mode-hook or mail-mode-hook to the following lambda expression:
       ;;(search-forward mail-header-separator nil t)
       (while (if internal-messagep
 		 (< (point) internal-messagep)
-	       (and (looking-at "[a-zA-Z---]+:\\|\t\\| ")
+	       (and (looking-at "[-a-zA-Z]+:\\|\t\\| ")
 		    (not (eobp))))
 
 	;; spell check Subject: field without Re:'s.

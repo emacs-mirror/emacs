@@ -1330,8 +1330,8 @@ we do not remove backup version numbers, only true file version numbers."
 		     ;; sign, zero or more digits, provided this is the
 		     ;; second period encountered outside of the
 		     ;; device/directory part of the file name.
-		     (or (string-match ";[---+]?[0-9]*\\'" name)
-			 (if (string-match "\\.[^]>:]*\\(\\.[---+]?[0-9]*\\)\\'"
+		     (or (string-match ";[-+]?[0-9]*\\'" name)
+			 (if (string-match "\\.[^]>:]*\\(\\.[-+]?[0-9]*\\)\\'"
 					   name)
 			     (match-beginning 1))
 			 (length name))

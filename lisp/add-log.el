@@ -284,7 +284,7 @@ Prefix arg means justify as well."
     (fill-paragraph justify)))
 
 (defvar add-log-current-defun-header-regexp
-  "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[a-z_---A-Z]+\\)[ \t]*[:=]"
+  "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
 
 (defun add-log-current-defun ()

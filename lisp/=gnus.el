@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.32 1994/01/08 12:46:53 rms Exp kwzh $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.33 1994/02/11 21:56:45 kwzh Exp kwzh $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -2350,7 +2350,7 @@ the same subject will be searched for."
 	(regexp 
 	 (format "^%s[ \t]+\\([0-9]+\\):.\\[[^]\r\n]*\\][ \t]+%s"
 		 ;;(if unread " " ".")
-		 (cond ((eq unread t) " ") (unread "[ ---]") (t "."))
+		 (cond ((eq unread t) " ") (unread "[- ]") (t "."))
 		 (if subject
 		     (concat "\\([Rr][Ee]:[ \t]+\\)*"
 			     (regexp-quote (gnus-simplify-subject subject))
@@ -3318,7 +3318,7 @@ Argument COUNT specifies number of articles unmarked"
       (let ((buffer-read-only nil))
 	(save-excursion
 	  (goto-char (point-min))
-	  (delete-non-matching-lines "^[ ---]"))
+	  (delete-non-matching-lines "^[- ]"))
 	;; Adjust point.
 	(if (eobp)
 	    (gnus-summary-prev-subject 1)
@@ -6635,7 +6635,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ;; Parse each newsgroup description such as "comp.all".  Commas
     ;; and white spaces can be a newsgroup separator.
     (while
-	(string-match "^[ \t\n,]*\\(!?\\)\\([^--- \t\n,][^ \t\n,]*\\)" options)
+	(string-match "^[ \t\n,]*\\(!?\\)\\([^- \t\n,][^ \t\n,]*\\)" options)
       (setq yes-or-no
 	    (substring options (match-beginning 1) (match-end 1)))
       (setq newsgroup

@@ -2061,7 +2061,7 @@ With a prefix argument you can edit the current listing switches instead."
 	(let (case-fold-search)
 	  (concat
 	   "-l"
-	   (dired-replace-in-string (concat "[---lt"
+	   (dired-replace-in-string (concat "[-lt"
 					    dired-ls-sorting-switches "]")
 				    ""
 				    dired-actual-switches)

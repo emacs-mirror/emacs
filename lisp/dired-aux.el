@@ -279,7 +279,7 @@ with a prefix argument."
   ;; Quote everything except POSIX filename characters.
   ;; This should be safe enough even for really weird shells.
   (let ((result "") (start 0) end)
-    (while (string-match "[^---0-9a-zA-Z_./]" filename start)
+    (while (string-match "[^-0-9a-zA-Z_./]" filename start)
       (setq end (match-beginning 0)
 	    result (concat result (substring filename start end)
 			   "\\" (substring filename end (1+ end)))

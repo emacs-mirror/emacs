@@ -671,7 +671,7 @@ Wildcards and redirection are handled as usual in the shell."
   ;; Quote everything except POSIX filename characters.
   ;; This should be safe enough even for really weird shells.
   (let ((result "") (start 0) end)
-    (while (string-match "[^---0-9a-zA-Z_./]" argument start)
+    (while (string-match "[^-0-9a-zA-Z_./]" argument start)
       (setq end (match-beginning 0)
 	    result (concat result (substring argument start end)
 			   "\\" (substring argument end (1+ end)))
