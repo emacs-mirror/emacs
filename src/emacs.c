@@ -267,6 +267,9 @@ Display options:\n\
 --display, -d DISPLAY		use X server DISPLAY\n\
 --font, -fn FONT		default font; must be fixed-width\n\
 --foreground-color, -fg COLOR	window foreground color\n\
+--fullscreen, -fs	        make first frame fullscreen\n\
+--fullwidth, -fw	        make the first frame wide as the screen\n\
+--fullheight, -fh	        make the first frame high as the screen\n\
 --geometry, -g GEOMETRY		window geometry\n\
 --iconic			start Emacs in iconified state\n\
 --icon-type, -i			use picture of gnu for Emacs icon\n\
@@ -1660,6 +1663,9 @@ struct standard_args standard_args[] =
   { "-cr", "--cursor-color", 10, 1 },
   { "-fn", "--font", 10, 1 },
   { "-font", 0, 10, 1 },
+  { "-fs", "--fullscreen", 10, 0 },
+  { "-fw", "--fullwidth", 10, 0 },
+  { "-fh", "--fullheight", 10, 0 },
   { "-g", "--geometry", 10, 1 },
   { "-geometry", 0, 10, 1 },
   { "-T", "--title", 10, 1 },
