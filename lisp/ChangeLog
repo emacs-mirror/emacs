@@ -1,3 +1,12 @@
+2001-10-12  Miles Bader  <miles@gnu.org>
+
+	* help-mode.el (help-customize-face): New button-type.
+	* faces.el (list-faces-display): Fix args to `help-xref-button'.
+	(describe-face): Fix args to `help-xref-button'.
+	Don't switch to help-buffer around call to `help-setup-xref'.
+	Use `help-buffer' instead of hard-wired "*Help*".
+	Require `help-mode'.
+
 2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/goto-addr.el (goto-address-mail-regexp): Allow + in username.
@@ -26,7 +35,7 @@
 	(describe-bindings): Call help-setup-xref earlier.
 	(describe-key): Call help-setup-xref.  Fix call to describe-function-1.
 	(describe-mode): Don't autoload.  Call help-setup-xref earlier.
-
+	
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* master.el (master-mode): Use define-minor-mode instead of
