@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.43 $
+;; Version: $Revision: 1.44 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/17 19:59:49 $|$Revision: 1.43 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/23 20:26:47 $|$Revision: 1.44 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.44  1995/07/23  20:26:47  tromey
+;; Doc fixes.
+;;
 ;; Revision 1.43  1995/07/17  19:59:49  tromey
 ;; (inferior-tcl-mode): Use modeline-process if it exists.
 ;;
@@ -342,7 +345,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.43 $")
+(defconst tcl-version "$Revision: 1.44 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1168,7 +1171,7 @@ See documentation for variable `tcl-type-alist' for more information."
 	    (if (looking-at "[a-zA-Z_]+")
 		(let ((list tcl-type-alist)
 		      entry)
-		  (setq word-stack (cons (current-word) word-stack))
+		  (setq word-stack (cons (tcl-word-no-props) word-stack))
 		  (while (and list (not result))
 		    (setq entry (car list))
 		    (setq list (cdr list))
@@ -1801,6 +1804,13 @@ to update the alist.")
   (tcl-help-snarf-commands tcl-help-directory-list)
   (message "Building Tcl help file index...done"))
 
+(defun tcl-word-no-props ()
+  "Like current-word, but strips properties."
+  (let ((word (current-word)))
+    (and (fboundp 'set-text-properties)
+	 (set-text-properties 0 (length word) nil word))
+    word))
+
 (defun tcl-current-word (flag)
   "Return current command word, or nil.
 If FLAG is nil, just uses `current-word'.
@@ -1815,10 +1825,10 @@ Otherwise scans backward for most likely Tcl command word."
 	      (while (and (not (bobp))
 			  (not (tcl-real-command-p)))
 		(backward-sexp)))
-	    (if (assoc (current-word) tcl-help-alist)
-		(current-word)))
+	    (if (assoc (tcl-word-no-props) tcl-help-alist)
+		(tcl-word-no-props)))
 	(error nil))
-    (current-word)))
+    (tcl-word-no-props)))
 
 ;;;###autoload
 (defun tcl-help-on-word (command &optional arg)
