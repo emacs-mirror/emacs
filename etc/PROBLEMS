@@ -103,7 +103,23 @@ emulators, but this support relies on the terminfo or termcap database
 entry to specify that the display supports color.  Emacs looks at the
 "Co" capability for the terminal to find out how many colors are
 supported; it should be non-zero to activate the color support within
-Emacs.  (Most color terminals support 8 or 16 colors.)
+Emacs.  (Most color terminals support 8 or 16 colors.)  If your system
+uses terminfo, the name of the capability equivalent to "Co" is
+"colors".
+
+In addition to the "Co" capability, Emacs needs the "op" (for
+``original pair'') capability, which tells how to switch the terminal
+back to the default foreground and background colors.  Emacs will not
+use colors if this capability is not defined.  If your terminal entry
+doesn't provide such a capability, try using the ANSI standard escape
+sequence \E[00m (that is, define a new termcap/terminfo entry and make
+it use your current terminal's entry plus \E[00m for the "op"
+capability).
+
+Finally, the "NC" capability (terminfo name: "ncv") tells Emacs which
+attributes cannot be used with colors.  Setting this capability
+incorrectly might have the effect of disabling colors; try setting
+this capability to `0' (zero) and see if that helps.
 
 Emacs uses the database entry for the terminal whose name is the value
 of the environment variable TERM.  With `xterm', a common terminal
