@@ -76,14 +76,20 @@
 #endif
 
 #if 0
-#ifdef _LIBC
-# include <libintl.h>
-#else
+#  ifdef _LIBC
+#    include <libintl.h>
+#  else  /* not #ifdef _LIBC */
 /* This is for other GNU distributions with internationalized messages.  */
-# include "gettext.h"
-#endif
-#endif
-#define _(msgid) gettext (msgid)
+#    include "gettext.h"
+#  endif  /* end #ifdef _LIBC */
+#endif  /* end #if 0 */
+
+#if HAVE_LIBINTL_H || defined _LIBC
+  /* Should I include libintl.h here as in regex.c ? */
+#  define _(msgid) gettext (msgid)
+#else  /* not #if HAVE_LIBINTL_H || defined _LIBC */
+#  define _(msgid) (msgid)
+#endif  /* end #if HAVE_LIBINTL_H || defined _LIBC */
 
 #if defined _LIBC && defined USE_IN_LIBIO
 # include <wchar.h>
