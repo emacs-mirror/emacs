@@ -1,3 +1,8 @@
+2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* editfns.c (Fmessage_box): If the frame is not under a window
+	system, output the message in the echo area.
+
 2001-06-14  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (try_window_id): When EOB is visible, don't treat
