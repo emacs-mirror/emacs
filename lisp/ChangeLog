@@ -1,3 +1,7 @@
+2001-06-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* rot13.el (rot13-other-window): Doc fix.
+
 2001-06-14  Miles Bader  <miles@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode-syntax-table): Change syntax
