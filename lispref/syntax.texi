@@ -951,12 +951,11 @@ This function makes @var{table} the category table for the current
 buffer.  It returns @var{table}.
 @end defun
 
-@defun make-category-table &optional default-set
+@defun make-category-table
 @tindex make-category-table
-This creates and returns an empty category table, using
-@var{default-set} as the default (for characters that don't specify
-their own sets).  Initially no characters specify their own sets in this
-new table; that is what we mean by ``empty.''
+This creates and returns an empty category table.  In an empty category
+table, no categories have been allocated, and no characters belong to
+any categories.
 @end defun
 
 @defun make-category-set categories
