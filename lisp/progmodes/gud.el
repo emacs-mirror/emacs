@@ -95,7 +95,7 @@ Used to grey out relevant toolbar icons.")
   '(([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb jdb))))
+				  (memq gud-minor-mode '(gdba gdb dbx jdb))))
     ([goto]	menu-item "Continue to selection" gud-until
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb))))
@@ -129,7 +129,7 @@ Used to grey out relevant toolbar icons.")
     ([nexti]	menu-item "Next Instruction" gud-nexti
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode
-					'(gdba gdb))))
+					'(gdba gdb dbx))))
     ([step]	menu-item "Step Line" gud-step
                      :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
@@ -1053,8 +1053,10 @@ and source-file directory for your debugger."
   (gud-def gud-step   "step %p"   "\C-s" "Step one line with display.")
   (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"   "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p"   nil  "Step one instruction (skip functions).")
   (gud-def gud-cont   "cont"      "\C-r" "Continue with display.")
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-run    "run"	     nil    "Run the program.")
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (setq paragraph-start comint-prompt-regexp)
@@ -2578,7 +2580,7 @@ Obeying it means displaying in another window the specified file and line."
 				(if (bolp) 1 0)))
 			 (cdr frame)))))
 	 ((eq key ?e)
-	  (setq subst (gud-find-c-expr)))
+	  (setq subst (gud-find-expr)))
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
 	 ((eq key ?c)
@@ -2652,21 +2654,31 @@ Obeying it means displaying in another window the specified file and line."
   (gud-display-frame)
   (recenter arg))
 
-;; Code for parsing expressions out of C code.  The single entry point is
-;; find-c-expr, which tries to return an lvalue expression from around point.
-;;
-;; The rest of this file is a hacked version of gdbsrc.el by
+;; Code for parsing expressions out of C or Fortran code.  The single entry
+;; point is gud-find-expr, which tries to return an lvalue expression from
+;; around point.
+
+(defvar gud-find-expr 'gud-find-c-expr)
+
+(defun gud-find-expr (&rest args)
+  (apply gud-find-expr args))
+
+(defun gud-find-fortran-expr ()
+  ;; Consider \n as punctuation (end of expression).
+  (with-syntax-table fortran-gud-syntax-table
+    (gud-find-c-expr)))
+
+;; The next eight functions are hacked from gdbsrc.el by
 ;; Debby Ayers <ayers@asc.slb.com>,
 ;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
 
 (defun gud-find-c-expr ()
-  "Returns the C expr that surrounds point."
+  "Returns the expr that surrounds point."
   (interactive)
   (save-excursion
-    (let (p expr test-expr)
-      (setq p (point))
-      (setq expr (gud-innermost-expr))
-      (setq test-expr (gud-prev-expr))
+    (let ((p (point))
+	  (expr (gud-innermost-expr))
+	  (test-expr (gud-prev-expr)))
       (while (and test-expr (gud-expr-compound test-expr expr))
 	(let ((prev-expr expr))
 	  (setq expr (cons (car test-expr) (cdr expr)))
@@ -2786,14 +2798,14 @@ Link exprs of the form:
      ((= (cdr first) (cdr second)) nil)
      ((= syntax ?.) t)
      ((= syntax ?\ )
-	 (setq span-start (char-after (- span-start 1)))
-	 (setq span-end (char-after span-end))
-	 (cond
-	  ((= span-start ?)) t)
-	  ((= span-start ?]) t)
-	  ((= span-end ?() t)
-	  ((= span-end ?[) t)
-	  (t nil)))
+      (setq span-start (char-after (- span-start 1)))
+      (setq span-end (char-after span-end))
+      (cond
+       ((= span-start ?)) t)
+      ((= span-start ?]) t)
+     ((= span-end ?() t)
+      ((= span-end ?[) t)
+       (t nil)))
      (t nil))))
 
 (defun gud-find-class (f line)
