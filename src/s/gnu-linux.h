@@ -329,6 +329,10 @@ Boston, MA 02111-1307, USA.  */
    jmp_buf.  */
 /* m68k and alpha aren't tested, but there are Debian packages for SCM
    and/or Guile on them, so the technique must work.  */
-#if #cpu (i386) || #cpu (sparc) || #cpu (m68k) || #cpu (alpha)
+
+/* Don't use #cpu here since in newest development versions of GCC,
+   we must call cpp with -traditional, and that disables #cpu.  */
+
+#if defined __i386__ || defined __sparc__ || defined __m68k__ || defined __alpha__
 #define GC_SETJMP_WORKS 1
 #endif
