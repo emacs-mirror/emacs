@@ -1,3 +1,12 @@
+2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (Fstring_to_syntax): New function extracted from
+	Fmodify_syntax_entry.
+	(Fmodify_syntax_entry): Use it and document the ! and | fences.
+	(skip_chars, Fforward_comment): Remove unused variables.
+	(syms_of_syntax): Add defsubr for string-to-syntax.
+	(describe_syntax): Add code for comment and string fences.
+
 2000-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (access_keymap): Add AUTOLOAD parameter.
