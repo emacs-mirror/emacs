@@ -266,6 +266,8 @@ extern int timers_run;
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
+extern Lisp_Object Vfile_name_coding_system;
+
 #ifdef HAVE_PTYS
 /* The file name of the pty opened by allocate_pty.  */
 
@@ -1452,6 +1454,9 @@ create_process (process, new_argv, current_dir)
     /* child_setup must clobber environ on systems with true vfork.
        Protect it from permanent change.  */
     char **save_environ = environ;
+
+    current_dir
+      = Fencode_coding_string (current_dir, Vfile_name_coding_system, Qt);
 
 #ifndef WINDOWSNT
     pid = vfork ();
