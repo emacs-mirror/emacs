@@ -1,9 +1,10 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
+;; Keywords: matching
 
 ;; This file is part of GNU Emacs.
 
@@ -28,8 +29,7 @@
 
 ;; For programmed use of isearch-mode, e.g. calling (isearch-forward),
 ;; isearch-mode behaves modally and does not return until the search
-;; is completed.  It uses a recursive-edit to behave this way.  Note:
-;; gnus does it wrong: (call-interactively 'isearch-forward).
+;; is completed.  It uses a recursive-edit to behave this way.
 
 ;; The key bindings active within isearch-mode are defined below in
 ;; `isearch-mode-map' which is given bindings close to the default
@@ -39,11 +39,9 @@
 ;; be longer than two chars.  Also see minibuffer-local-isearch-map
 ;; for bindings active during `isearch-edit-string'.
 
-;; Note to emacs version 19 users: isearch-mode should work even if
-;; you switch windows with the mouse, in which case isearch-mode is
-;; terminated automatically before the switch.  This is true of lemacs
-;; too, with a few more cleanups I've neglected in this release. 
-;; No one has supplied patches for epoch yet.
+;; isearch-mode should work even if you switch windows with the mouse,
+;; in which case isearch-mode is terminated automatically before the
+;; switch.
 
 ;; The search ring and completion commands automatically put you in
 ;; the minibuffer to edit the string.  This gives you a chance to
@@ -107,6 +105,8 @@
 
 (defgroup isearch nil
   "Incremental search minor mode."
+  :link '(emacs-commentary-link "isearch")
+  :link '(custom-manual "(emacs)Incremental Search")
   :prefix "isearch-"
   :prefix "search-"
   :group 'matching)
@@ -312,10 +312,9 @@ Default value, nil, means edit the string instead."
       (define-key map "\C-\\" 'isearch-toggle-input-method)
       (define-key map "\C-^" 'isearch-toggle-specified-input-method)
 
-;;; I think the normal meaning of Mouse-2 is more natural.
-;;;       ;; People expect to be able to paste with the mouse.
-;;;       (define-key map [mouse-2] #'isearch-yank-kill)
-;;;       (define-key map [down-mouse-2] nil)
+      ;; People expect to be able to paste with the mouse.
+      (define-key map [mouse-2] #'isearch-mouse-yank)
+      (define-key map [down-mouse-2] nil)
 
       (setq isearch-mode-map map)
       ))
@@ -417,9 +416,6 @@ Default value, nil, means edit the string instead."
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
 
 ;;; Entry points to isearch-mode.
-;;; These four functions should replace those in loaddefs.el
-;;; An alternative is to defalias isearch-forward etc to isearch-mode,
-;;; and look at this-command to set the options accordingly.
 
 (defun isearch-forward (&optional regexp-p no-recursive-edit)
   "\
@@ -690,16 +686,13 @@ REGEXP says which ring to use."
 	      (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
 ;;; Switching buffers should first terminate isearch-mode.
-;;; This is done quite differently for each variant of emacs.
-;;; For lemacs, see Exiting in lemacs below
-
-;; For Emacs 19, the frame switch event is handled.
-(defun isearch-switch-frame-handler ()
-  (interactive) ;; Is this necessary?
-  ;; First terminate isearch-mode.
-  (isearch-done)
-  (isearch-clean-overlays) 
-  (handle-switch-frame (car (cdr (isearch-last-command-char)))))
+;;; ;; For Emacs 19, the frame switch event is handled.
+;;; (defun isearch-switch-frame-handler ()
+;;;   (interactive) ;; Is this necessary?
+;;;   ;; First terminate isearch-mode.
+;;;   (isearch-done)
+;;;   (isearch-clean-overlays) 
+;;;   (handle-switch-frame (car (cdr last-command-char))))
 
 
 ;; Commands active while inside of the isearch minor mode.
@@ -1005,13 +998,20 @@ If no previous match was done, just beep."
   (isearch-yank-string (current-kill 0)))
 
 (defun isearch-yank-x-selection ()
-  "Pull current X selection into search string.
-Some users like to put this command on Mouse-2.
-To do that, evaluate these expressions:
-    (define-key isearch-mode-map [down-mouse-2] nil)
-    (define-key isearch-mode-map [mouse-2] 'isearch-yank-x-selection)"
+  "Pull current X selection into search string."
   (interactive)
   (isearch-yank-string (x-get-selection)))
+
+(defun isearch-mouse-yank (click arg)
+  "Yank with the mouse in Isearch mode.
+For a click in the echo area, invoke `isearch-yank-x-selection'.
+Otherwise invoke `mouse-yank-at-click'."
+  (interactive "e\nP")
+  (let ((w (posn-window (event-start click))))
+    (if (and (window-minibuffer-p w)
+	     (not (minibuffer-window-active-p w))) ; in echo area
+	(isearch-yank-x-selection)
+      (mouse-yank-at-click click arg))))
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."
@@ -1105,7 +1105,7 @@ To do that, evaluate these expressions:
 	     (if isearch-forward
 		 (max cs isearch-barrier)
 	       (min cs isearch-barrier)))))))
-  (isearch-process-search-char (isearch-last-command-char)))
+  (isearch-process-search-char last-command-char))
   
 
 (defun isearch-|-char ()
@@ -1115,7 +1115,7 @@ To do that, evaluate these expressions:
       (progn
 	(setq isearch-adjusted t)
 	(goto-char isearch-barrier)))
-  (isearch-process-search-char (isearch-last-command-char)))
+  (isearch-process-search-char last-command-char))
 
 
 (defalias 'isearch-other-control-char 'isearch-other-meta-char)
@@ -1223,7 +1223,7 @@ Obsolete."
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)
-  (let ((char (isearch-last-command-char)))
+  (let ((char last-command-char))
     (if (= char ?\S-\ )
 	(setq char ?\ ))
     (if (and enable-multibyte-characters
@@ -1236,7 +1236,7 @@ Obsolete."
 
 (defun isearch-whitespace-chars ()
   "Match all whitespace chars, if in regexp mode.
-If you want to search for just a space, type C-q SPC."
+If you want to search for just a space, type \\[quoted-insert] SPC."
   (interactive)
   (if isearch-regexp 
       (if (and search-whitespace-regexp (not isearch-within-brackets)
@@ -1253,7 +1253,7 @@ If you want to search for just a space, type C-q SPC."
 (defun isearch-process-search-char (char)
   ;; Append the char to the search string, update the message and re-search.
   (isearch-process-search-string 
-   (isearch-char-to-string char) 
+   (char-to-string char) 
    (if (>= char ?\200)
        (char-to-string char)
      (isearch-text-char-description char))))
@@ -1308,7 +1308,8 @@ If you want to search for just a space, type C-q SPC."
   (isearch-ring-adjust nil))
 
 (defun isearch-ring-advance-edit (n)
-  "Insert the next element of the search history into the minibuffer."
+  "Insert the next element of the search history into the minibuffer.
+With prefix arg N, insert the Nth element."
   (interactive "p")
   (let* ((yank-pointer-name (if isearch-regexp
 				'regexp-search-ring-yank-pointer
@@ -1328,7 +1329,8 @@ If you want to search for just a space, type C-q SPC."
       (goto-char (point-max)))))
 
 (defun isearch-ring-retreat-edit (n)
-  "Inserts the previous element of the search history into the minibuffer."
+  "Insert the previous element of the search history into the minibuffer.
+With prefix arg N, insert the Nth element."
   (interactive "p")
   (isearch-ring-advance-edit (- n)))
 
@@ -1565,8 +1567,8 @@ If there is no completion possible, say so and continue searching."
     (overlay-put ov 'intangible nil)))
 
 
-;;; This is called at the end of isearch. I will open the overlays
-;;; that contain the latest match. Obviously in case of a C-g the
+;;; This is called at the end of isearch.  It will open the overlays
+;;; that contain the latest match.  Obviously in case of a C-g the
 ;;; point returns to the original location which surely is not contain
 ;;; in any of these overlays, se we are safe in this case too.
 (defun isearch-open-necessary-overlays (ov)
@@ -1727,13 +1729,10 @@ since they have special meaning in a regexp."
 
 ;; Portability functions to support various Emacs versions.
 
-(defun isearch-char-to-string (c)
-  (char-to-string c))
-
 (defun isearch-text-char-description (c)
   (if (and (integerp c) (or (< c ?\ ) (= c ?\^?)))
       (text-char-description c)
-    (isearch-char-to-string c)))
+    (char-to-string c)))
 
 ;; General function to unread characters or events.
 ;; Also insert them in a keyboard macro being defined.
@@ -1741,9 +1740,5 @@ since they have special meaning in a regexp."
   (mapcar 'store-kbd-macro-event char-or-events)
   (setq unread-command-events
 	(append char-or-events unread-command-events)))
-
-(defun isearch-last-command-char ()
-  ;; General function to return the last command character.
-  last-command-char)
 
 ;;; isearch.el ends here
