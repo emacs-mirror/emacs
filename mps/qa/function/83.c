@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!83.c(trunk.2) $
  summary = test for bug with segment summaries
  language = c
  link = testlib.o awlfmt.o
@@ -8,13 +8,11 @@ END_HEADER
 */
 
 /*
-
 This bug, suggested by drj, turned out not to exist. The problem
 would have occurred when a nailed, buffered segment was scanned,
-and the summary would be wrongly set. But in fact all buffered
+and the summary would be wrongly set.  But in fact all buffered
 segments are scanned in their entirety anyway, so no problem
 arises.
-
 */
 
 #include "testlib.h"
@@ -22,9 +20,11 @@ arises.
 #include "mpscawl.h"
 #include "awlfmt.h"
 
+
 void *stackpointer;
 
 mps_addr_t temp_root;
+
 
 static void test(void)
 {
@@ -36,7 +36,7 @@ static void test(void)
  mps_fmt_t format;
  mps_ap_t ap1, ap2, ap;
 
- mycell *a, *b, *c, *d;
+ mycell *a, *b = NULL, *c, *d;
 
  int i;
 
@@ -124,8 +124,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
