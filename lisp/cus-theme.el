@@ -73,7 +73,7 @@ This will help you share your customizations with other people.\n\n")
   (widget-insert " ")
   (widget-create 'push-button
      		 :notify (lambda (&rest ignore)
-     			   (custom-theme-create))
+     			   (customize-create-theme))
      		 "Reset")
   (widget-insert " ")
   (widget-create 'push-button
