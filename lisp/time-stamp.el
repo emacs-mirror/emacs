@@ -392,7 +392,8 @@ With arg, turn time stamping on if and only if arg is positive."
 
 (defun time-stamp-string (&optional ts-format)
   "Generate the new string to be inserted by \\[time-stamp].
-Optionally use FORMAT."
+Optionally use format TS-FORMAT instead of `time-stamp-format' to
+format the string."
   (or ts-format
       (setq ts-format time-stamp-format))
   (if (stringp ts-format)
