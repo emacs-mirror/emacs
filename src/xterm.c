@@ -243,6 +243,8 @@ int x_toolkit_scroll_bars_p;
    (The display is done in read_char.)  */
    
 static Lisp_Object help_echo;
+static Lisp_Object help_echo_object;
+static int help_echo_pos;
 
 /* Temporary variable for XTread_socket.  */
 
@@ -6352,13 +6354,24 @@ note_mode_line_highlight (w, x, mode_line_p)
 	  help = Fget_text_property (make_number (glyph->charpos),
 				     Qhelp_echo, glyph->object);
 	  if (!NILP (help))
-	    help_echo = help;
+	    {
+	      help_echo = help;
+	      help_echo_object = glyph->object;
+	      help_echo_pos = glyph->charpos;
+	    }
 
 	  /* Change the mouse pointer according to what is under X/Y.  */
 	  map = Fget_text_property (make_number (glyph->charpos),
 				    Qlocal_map, glyph->object);
 	  if (!NILP (Fkeymapp (map)))
 	    cursor = f->output_data.x->nontext_cursor;
+	  else
+	    {
+	      map = Fget_text_property (make_number (glyph->charpos),
+					Qkeymap, glyph->object);
+	      if (!NILP (Fkeymapp (map)))
+		cursor = f->output_data.x->nontext_cursor;
+	    }
 	}
     }
 
@@ -6604,26 +6617,38 @@ note_mouse_highlight (f, x, y)
 
 	/* Look for a `help-echo' property.  */
 	{
-	  Lisp_Object help;
+	  Lisp_Object help, object, position;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
 	  for (i = 0; i < noverlays && NILP (help); ++i)
-	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
-	    
-	  /* Try text properties.  */
-	  if (NILP (help)
-	      && ((STRINGP (glyph->object)
+	    help = Foverlay_get (overlay_vec[i], Qhelp_echo);
+
+	  if (!NILP (help))
+	    {
+	      help_echo = help;
+	      help_echo_object = w->buffer;
+	      help_echo_pos = pos;
+	    }
+	  else
+	    {
+	      /* Try text properties.  */
+	      if ((STRINGP (glyph->object)
 		   && glyph->charpos >= 0
 		   && glyph->charpos < XSTRING (glyph->object)->size)
 		  || (BUFFERP (glyph->object)
 		      && glyph->charpos >= BEGV
-		      && glyph->charpos < ZV)))
-	    help = Fget_text_property (make_number (glyph->charpos),
-				       Qhelp_echo, glyph->object);
+		      && glyph->charpos < ZV))
+		help = Fget_text_property (make_number (glyph->charpos),
+					   Qhelp_echo, glyph->object);
 	    
-	  if (!NILP (help))
-	    help_echo = help;
+	      if (!NILP (help))
+		{
+		  help_echo = help;
+		  help_echo_object = glyph->object;
+		  help_echo_pos = glyph->charpos;
+		}
+	    }
 	}
 	  
 	BEGV = obegv;
@@ -6855,6 +6880,8 @@ note_tool_bar_highlight (f, x, y)
   
   /* Set help_echo to a help string.to display for this tool-bar item.
      XTread_socket does the rest.  */
+  help_echo_object = Qnil;
+  help_echo_pos = -1;
   help_echo = (XVECTOR (f->current_tool_bar_items)
 	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
   if (NILP (help_echo))
@@ -9769,11 +9796,12 @@ XTread_socket (sd, bufp, numchars, expected)
 		     the mouse leaves the frame.  */
 		  if (any_help_event_p)
 		    {
+		      Lisp_Object frame;
+		      int n;
+
 		      XSETFRAME (frame, f);
-		      bufp->kind = HELP_EVENT;
-		      bufp->frame_or_window = frame;
-		      bufp->arg = Qnil;
-		      ++bufp, ++count, --numchars;
+		      n = gen_help_event (bufp, Qnil, frame, Qnil, 0);
+		      bufp += n, count += n, numchars -= n;
 		    }
 
 #ifdef LESSTIF_VERSION
@@ -9820,7 +9848,8 @@ XTread_socket (sd, bufp, numchars, expected)
 	    case MotionNotify:
 	      {
 		previous_help_echo = help_echo;
-		help_echo = Qnil;
+		help_echo = help_echo_object = Qnil;
+		help_echo_pos = -1;
 		
 		if (dpyinfo->grabbed && last_mouse_frame
 		    && FRAME_LIVE_P (last_mouse_frame))
@@ -9851,6 +9880,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    || !NILP (previous_help_echo))
 		  {
 		    Lisp_Object frame;
+		    int n;
 
 		    if (f)
 		      XSETFRAME (frame, f);
@@ -9858,10 +9888,9 @@ XTread_socket (sd, bufp, numchars, expected)
 		      frame = Qnil;
 
 		    any_help_event_p = 1;
-		    bufp->kind = HELP_EVENT;
-		    bufp->frame_or_window = frame;
-		    bufp->arg = help_echo;
-		    ++bufp, ++count, --numchars;
+		    n = gen_help_event (bufp, help_echo, frame,
+					help_echo_object, help_echo_pos);
+		    bufp += n, count += n, numchars -= n;
 		  }
 		
 		goto OTHER;
@@ -13564,10 +13593,13 @@ syms_of_xterm ()
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
 
-  staticpro (&help_echo);
   help_echo = Qnil;
-  staticpro (&previous_help_echo);
+  staticpro (&help_echo);
+  help_echo_object = Qnil;
+  staticpro (&help_echo_object);
   previous_help_echo = Qnil;
+  staticpro (&previous_help_echo);
+  help_echo_pos = -1;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     "*Non-nil means draw block cursor as wide as the glyph under it.\n\
