@@ -1,3 +1,19 @@
+2001-02-12  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-diff.el (ediff-make-diff2-buffer): Removed bogus checks
+	for remote files.
+	(ediff-coding-system-for-read): replaced the no-conversion default
+	with raw-text.
+	
+	* ediff-init.el: Removed :version from defcustom vars.
+	
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): Better
+	handling of the diff mode
+	
+	* ediff.texi: Added ediff-coding-system-for-read.
+	
+	* viper.texi: Typos
+	
 2001-02-11  Dave Love  <fx@gnu.org>
 
 	* shadowfile.el: Doc fixes.

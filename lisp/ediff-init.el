@@ -381,7 +381,6 @@ that Ediff doesn't know about.")
 This hook can be used to save the previous window config, which can be restored
 on ediff-quit or ediff-suspend."
   :type 'hook
-  :version "21.1"
   :group 'ediff-hook)
 (defcustom ediff-before-setup-windows-hook nil
   "*Hooks to run before Ediff sets its window configuration.
@@ -1221,7 +1220,6 @@ as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
 (defcustom ediff-merge-filename-prefix "merge_"
   "*Prefix to be attached to saved merge buffers."
   :type 'string
-  :version "21.1"
   :group 'ediff-merge)
 
 (defcustom ediff-no-emacs-help-in-control-buffer nil

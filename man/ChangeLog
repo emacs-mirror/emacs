@@ -1,3 +1,9 @@
+2001-02-12  Michael Kifer <kifer@cs.sunysb.edu>
+	
+	* viper.texi: Fixed typos.
+	
+	* ediff.texi: Added ediff-coding-system-for-read.
+	
 2001-02-11  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.texi (Pterodactyl Gnus): Added.

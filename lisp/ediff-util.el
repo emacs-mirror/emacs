@@ -3113,13 +3113,10 @@ Without an argument, it saves customized diff argument, if available
     (ediff-exec-process
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
      ediff-custom-diff-options file-A file-B)
-    (condition-case nil
-	;; put the diff file in diff-mode, if it is available
-	(prog
-	 (require 'diff-mode)
-	 (with-current-buffer ediff-custom-diff-buffer
-	   (diff-mode)))
-      (error))
+    ;; put the diff file in diff-mode, if it is available
+    (if (fboundp 'diff-mode)
+	(with-current-buffer ediff-custom-diff-buffer
+	  (diff-mode)))
     (delete-file file-A)
     (delete-file file-B)
     ))

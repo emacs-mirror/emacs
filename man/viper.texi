@@ -559,7 +559,7 @@ function instead.
 
 Viper uses @key{ESC} as a switch between Insert and Vi states.  Emacs uses
 @key{ESC} for Meta.  The Meta key is very important in Emacs since many
-finctions are accessible only via that key as @kbd{M-x function-name}.
+functions are accessible only via that key as @kbd{M-x function-name}.
 Therefore, we need to simulate it somehow.  In Viper's Vi, Insert, and
 Replace states, the meta key is set to be @kbd{C-\}.  Thus, to get
 @kbd{M-x}, you should type @kbd{C-\ x} (if the keyboard has no Meta key).
@@ -679,7 +679,7 @@ Having found the appropriate command, it can be then executed by typing
 
 To avoid confusing the beginner (at Viper level 1 and 2), Viper makes only the
 standard Vi keys available in Insert state.  The implication is that
-Emacs major modes cannot be used Insert state.
+Emacs major modes cannot be used in Insert state.
 It is strongly recommended that as soon as you are comfortable, make the
 Emacs state bindings visible (by changing your user level to 3 or higher).
 @xref{Customization},
@@ -4449,7 +4449,7 @@ lindstro@@biostat.wisc.edu (Mary Lindstrom),
 minakaji@@osaka.email.ne.jp (Mikio Nakajima),
 Mark.Bordas@@East.Sun.COM (Mark Bordas),
 meyering@@comco.com (Jim Meyering),
-mrb@@Eng.Sun.COM (Martin Buchholz),
+martin@@xemacs.org (Martin Buchholz),
 mveiga@@dit.upm.es (Marcelino Veiga Tuimil),
 paulk@@summit.esg.apertus.com (Paul Keusemann),
 pfister@@cs.sunysb.edu (Hanspeter Pfister),

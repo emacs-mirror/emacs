@@ -55,6 +55,16 @@ Must produce output compatible with Unix's diff3 program."
   :type 'string
   :group 'ediff-diff)
 
+(defcustom ediff-coding-system-for-read 'raw-text
+  "*The coding system for read to use when running the diff program as a subprocess. 
+In most cases, the default will do. However, under certain circumstances in
+Windows NT/98/95 you might need to use something like 'raw-text-dos here.
+So, if the output that your diff program sends to Emacs contains extra ^M's,
+you might need to experiment here, if the default or 'raw-text-dos doesn't
+work."
+  :type 'symbol
+  :group 'ediff-diff)
+
 ;; The following functions must precede all defcustom-defined variables.
 
 ;; The following functions needed for setting diff/diff3 options
@@ -235,6 +245,7 @@ one optional arguments, diff-number to refine.")
 
 ;; Run the diff program on FILE1 and FILE2 and put the output in DIFF-BUFFER
 ;; Return the size of DIFF-BUFFER
+;; The return code isn't used in the program at present.
 (defun ediff-make-diff2-buffer (diff-buffer file1 file2)
   (let ((file1-size (ediff-file-size file1))
 	(file2-size (ediff-file-size file2)))
@@ -248,19 +259,6 @@ one optional arguments, diff-number to refine.")
 	   (message "Can't find file: %s"
 		    (ediff-abbreviate-file-name file2))
 	   (sit-for 2)
-	   ;; 1 is an error exit code
-	   1)
-	  ((< file1-size 0)
-	   (message "Can't diff remote files: %s"
-		    (ediff-abbreviate-file-name file1))
-	   (sit-for 2)
-	   ;; 1 is an error exit code
-	   1)
-	  ((< file2-size 0)
-	   (message "Can't diff remote file: %s"
-		    (ediff-abbreviate-file-name file2))
-	   (sit-for 2)
-	   (message "")
 	   ;; 1 is an error exit code
 	   1)
 	  (t (message "Computing differences between %s and %s ..."
@@ -1133,7 +1131,7 @@ delimiter regions"))
 ;; args.
 (defun ediff-exec-process (program buffer synch options &rest files)
   (let ((data (match-data))
-	(coding-system-for-read 'no-conversion)
+	(coding-system-for-read ediff-coding-system-for-read)
 	args)
     (setq args (append (split-string options) files))
     (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
