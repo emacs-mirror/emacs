@@ -1351,7 +1351,7 @@ whose car is ELT.")
     {
       if (!CONSP (list) || EQ (XCAR (list), elt))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list) || EQ (XCAR (list), elt))
 	break;
@@ -1385,19 +1385,19 @@ Elements of LIST that are not conses are ignored.")
 	  || (CONSP (XCAR (list))
 	      && EQ (XCAR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && EQ (XCAR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && EQ (XCAR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       QUIT;
     }
@@ -1442,21 +1442,21 @@ The value is actually the element of LIST whose car equals KEY.")
 	      && (car = XCAR (XCAR (list)),
 		  EQ (car, key) || !NILP (Fequal (car, key)))))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && (car = XCAR (XCAR (list)),
 		  EQ (car, key) || !NILP (Fequal (car, key)))))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && (car = XCAR (XCAR (list)),
 		  EQ (car, key) || !NILP (Fequal (car, key)))))
 	break;
-      
+
       list = XCDR (list);
       QUIT;
     }
@@ -1486,19 +1486,19 @@ The value is actually the element of LIST whose cdr is KEY.")
 	  || (CONSP (XCAR (list))
 	      && EQ (XCDR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && EQ (XCDR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && EQ (XCDR (XCAR (list)), key)))
 	break;
-      
+
       list = XCDR (list);
       QUIT;
     }
@@ -1528,21 +1528,21 @@ The value is actually the element of LIST whose cdr equals KEY.")
 	      && (cdr = XCDR (XCAR (list)),
 		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && (cdr = XCDR (XCAR (list)),
 		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
 	break;
-      
+
       list = XCDR (list);
       if (!CONSP (list)
 	  || (CONSP (XCAR (list))
 	      && (cdr = XCDR (XCAR (list)),
 		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
 	break;
-      
+
       list = XCDR (list);
       QUIT;
     }
@@ -1614,7 +1614,7 @@ to be sure of changing the value of `foo'.")
       if (n != ASIZE (seq))
 	{
 	  struct Lisp_Vector *p = allocate_vectorlike (n);
-	  
+
 	  for (i = n = 0; i < ASIZE (seq); ++i)
 	    if (NILP (Fequal (AREF (seq, i), elt)))
 	      p->contents[n++] = AREF (seq, i);
@@ -1643,7 +1643,7 @@ to be sure of changing the value of `foo'.")
 	      c = XSTRING (seq)->data[i];
 	      cbytes = 1;
 	    }
-	  
+
 	  if (!INTEGERP (elt) || c != XINT (elt))
 	    {
 	      ++nchars;
@@ -1658,7 +1658,7 @@ to be sure of changing the value of `foo'.")
 	  tem = make_uninit_multibyte_string (nchars, nbytes);
 	  if (!STRING_MULTIBYTE (seq))
 	    SET_STRING_BYTES (XSTRING (tem), -1);
-	  
+
 	  for (i = nchars = nbytes = ibyte = 0;
 	       i < XSTRING (seq)->size;
 	       ++i, ibyte += cbytes)
@@ -1674,16 +1674,16 @@ to be sure of changing the value of `foo'.")
 		  c = XSTRING (seq)->data[i];
 		  cbytes = 1;
 		}
-	      
+
 	      if (!INTEGERP (elt) || c != XINT (elt))
 		{
 		  unsigned char *from = &XSTRING (seq)->data[ibyte];
 		  unsigned char *to   = &XSTRING (tem)->data[nbytes];
 		  EMACS_INT n;
-		  
+
 		  ++nchars;
 		  nbytes += cbytes;
-		  
+
 		  for (n = cbytes; n--; )
 		    *to++ = *from++;
 		}
@@ -1700,7 +1700,7 @@ to be sure of changing the value of `foo'.")
 	{
 	  if (!CONSP (tail))
 	    wrong_type_argument (Qlistp, seq);
-	  
+
 	  if (!NILP (Fequal (elt, XCAR (tail))))
 	    {
 	      if (NILP (prev))
@@ -1713,7 +1713,7 @@ to be sure of changing the value of `foo'.")
 	  QUIT;
 	}
     }
-  
+
   return seq;
 }
 
@@ -2802,7 +2802,7 @@ is nil.")
   if (display_busy_cursor_p)
     cancel_busy_cursor ();
 #endif
-  
+
   while (1)
     {
 
@@ -3491,7 +3491,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
 
   /* Now we have decoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
-  TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);  
+  TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert_1_both (decoded, inserted_chars, decoded_length, 0, 1, 0);
   if (length > MAX_ALLOCA)
     xfree (decoded);
@@ -3577,13 +3577,13 @@ base64_decode_1 (from, to, length)
       *e++ = (unsigned char) (value >> 16);
 
       /* Process third byte of a quadruplet.  */
-      
+
       READ_QUADRUPLET_BYTE (-1);
 
       if (c == '=')
 	{
 	  READ_QUADRUPLET_BYTE (-1);
-	  
+
 	  if (c != '=')
 	    return -1;
 	  continue;
@@ -3740,11 +3740,11 @@ get_key_arg (key, nargs, args, used)
      char *used;
 {
   int i;
-  
+
   for (i = 0; i < nargs - 1; ++i)
     if (!used[i] && EQ (args[i], key))
       break;
-  
+
   if (i >= nargs - 1)
     i = -1;
   else
@@ -3752,7 +3752,7 @@ get_key_arg (key, nargs, args, used)
       used[i++] = 1;
       used[i] = 1;
     }
-  
+
   return i;
 }
 
@@ -3818,7 +3818,7 @@ cmpfn_equal (h, key1, hash1, key2, hash2)
   return hash1 == hash2 && !NILP (Fequal (key1, key2));
 }
 
-  
+
 /* Compare KEY1 which has hash code HASH1, and KEY2 with hash code
    HASH2 in hash table H using H->user_cmp_function.  Value is non-zero
    if KEY1 and KEY2 are the same.  */
@@ -3832,7 +3832,7 @@ cmpfn_user_defined (h, key1, hash1, key2, hash2)
   if (hash1 == hash2)
     {
       Lisp_Object args[3];
-  
+
       args[0] = h->user_cmp_function;
       args[1] = key1;
       args[2] = key2;
@@ -3904,7 +3904,7 @@ hashfn_user_defined (h, key)
      Lisp_Object key;
 {
   Lisp_Object args[2], hash;
-  
+
   args[0] = h->user_hash_function;
   args[1] = key;
   hash = Ffuncall (2, args);
@@ -3923,7 +3923,7 @@ user-supplied hash function"),
    It must be either one of the predefined tests `eq', `eql' or
    `equal' or a symbol denoting a user-defined test named TEST with
    test and hash functions USER_TEST and USER_HASH.
-   
+
    Give the table initial capacity SIZE, SIZE > 0, an integer.
 
    If REHASH_SIZE is an integer, it must be > 0, and this hash table's
@@ -3969,7 +3969,7 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
   /* Initialize hash table slots.  */
   sz = XFASTINT (size);
   h = (struct Lisp_Hash_Table *) v;
-  
+
   h->test = test;
   if (EQ (test, Qeql))
     {
@@ -3993,7 +3993,7 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
       h->cmpfn = cmpfn_user_defined;
       h->hashfn = hashfn_user_defined;
     }
-  
+
   h->weak = weak;
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
@@ -4038,7 +4038,7 @@ copy_hash_table (h1)
   struct Lisp_Hash_Table *h2;
   struct Lisp_Vector *v, *next;
   int len;
-  
+
   len = VECSIZE (struct Lisp_Hash_Table);
   v = allocate_vectorlike (len);
   h2 = (struct Lisp_Hash_Table *) v;
@@ -4073,7 +4073,7 @@ maybe_resize_hash_table (h)
     {
       int old_size = HASH_TABLE_SIZE (h);
       int i, new_size, index_size;
- 
+
       if (INTEGERP (h->rehash_size))
 	new_size = old_size + XFASTINT (h->rehash_size);
       else
@@ -4095,16 +4095,16 @@ maybe_resize_hash_table (h)
          maphash faster.  */
       for (i = old_size; i < new_size - 1; ++i)
 	HASH_NEXT (h, i) = make_number (i + 1);
-      
+
       if (!NILP (h->next_free))
 	{
 	  Lisp_Object last, next;
-	  
+
 	  last = h->next_free;
 	  while (next = HASH_NEXT (h, XFASTINT (last)),
 		 !NILP (next))
 	    last = next;
-	  
+
 	  HASH_NEXT (h, XFASTINT (last)) = make_number (old_size);
 	}
       else
@@ -4119,7 +4119,7 @@ maybe_resize_hash_table (h)
 	    HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
 	    HASH_INDEX (h, start_of_bucket) = make_number (i);
 	  }
-    }	
+    }
 }
 
 
@@ -4140,7 +4140,7 @@ hash_lookup (h, key, hash)
   hash_code = h->hashfn (h, key);
   if (hash)
     *hash = hash_code;
-  
+
   start_of_bucket = hash_code % XVECTOR (h->index)->size;
   idx = HASH_INDEX (h, start_of_bucket);
 
@@ -4177,7 +4177,7 @@ hash_put (h, key, value, hash)
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count = make_number (XFASTINT (h->count) + 1);
-  
+
   /* Store key/value in the key_and_value vector.  */
   i = XFASTINT (h->next_free);
   h->next_free = HASH_NEXT (h, i);
@@ -4288,10 +4288,10 @@ sweep_weak_table (h, remove_entries_p)
      int remove_entries_p;
 {
   int bucket, n, marked;
-  
+
   n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
   marked = 0;
-  
+
   for (bucket = 0; bucket < n; ++bucket)
     {
       Lisp_Object idx, prev;
@@ -4309,7 +4309,7 @@ sweep_weak_table (h, remove_entries_p)
 
 	  key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
-	  
+
 	  if (EQ (h->weak, Qkey))
 	    remove_p = !key_known_to_survive_p;
 	  else if (EQ (h->weak, Qvalue))
@@ -4320,7 +4320,7 @@ sweep_weak_table (h, remove_entries_p)
 	    remove_p = !key_known_to_survive_p && !value_known_to_survive_p;
 	  else
 	    abort ();
-		      
+
 	  next = HASH_NEXT (h, i);
 
 	  if (remove_entries_p)
@@ -4332,15 +4332,15 @@ sweep_weak_table (h, remove_entries_p)
 		    HASH_INDEX (h, i) = next;
 		  else
 		    HASH_NEXT (h, XFASTINT (prev)) = next;
-		  
+
 		  /* Add to free list.  */
 		  HASH_NEXT (h, i) = h->next_free;
 		  h->next_free = idx;
-		  
+
 		  /* Clear key, value, and hash.  */
 		  HASH_KEY (h, i) = HASH_VALUE (h, i) = Qnil;
 		  HASH_HASH (h, i) = Qnil;
-		  
+
 		  h->count = make_number (XFASTINT (h->count) - 1);
 		}
 	    }
@@ -4405,7 +4405,7 @@ sweep_weak_hash_tables ()
     {
       prev = h;
       h = XHASH_TABLE (table);
-	
+
       if (h->size & ARRAY_MARK_FLAG)
 	{
 	  if (XFASTINT (h->count) > 0)
@@ -4464,7 +4464,7 @@ sxhash_string (ptr, len)
 	c -= 40;
       hash = ((hash << 3) + (hash >> 28) + c);
     }
-  
+
   return hash & 07777777777;
 }
 
@@ -4479,7 +4479,7 @@ sxhash_list (list, depth)
 {
   unsigned hash = 0;
   int i;
-  
+
   if (depth < SXHASH_MAX_DEPTH)
     for (i = 0;
 	 CONSP (list) && i < SXHASH_MAX_LEN;
@@ -4544,7 +4544,7 @@ sxhash (obj, depth)
 
   if (depth > SXHASH_MAX_DEPTH)
     return 0;
-  
+
   switch (XTYPE (obj))
     {
     case Lisp_Int:
@@ -4643,7 +4643,7 @@ Default is 0.8.\n\
 `key-or-value', or `key-and-value'.  If WEAK is not nil, the table returned\n\
 is a weak table.  Key/value pairs are removed from a weak hash table when\n\
 there are no non-weak references pointing to their key, value, one of key\n\
-or value, or both key and value, depending on WEAK.  WEAK t is equivalent
+or value, or both key and value, depending on WEAK.  WEAK t is equivalent\n\
 to `key-and-value'.  Default value of WEAK is nil.")
   (nargs, args)
      int nargs;
@@ -4666,7 +4666,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
     {
       /* See if it is a user-defined test.  */
       Lisp_Object prop;
-      
+
       prop = Fget (test, Qhash_table_test);
       if (!CONSP (prop) || XFASTINT (Flength (prop)) < 2)
 	Fsignal (Qerror, list2 (build_string ("Illegal hash table test"),
@@ -4694,7 +4694,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
     Fsignal (Qerror,
 	     list2 (build_string ("Illegal hash table rehash size"),
 		    rehash_size));
-  
+
   /* Look for `:rehash-threshold THRESHOLD'.  */
   i = get_key_arg (QCrehash_threshold, nargs, args, used);
   rehash_threshold = i < 0 ? make_float (DEFAULT_REHASH_THRESHOLD) : args[i];
@@ -4704,7 +4704,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
     Fsignal (Qerror,
 	     list2 (build_string ("Illegal hash table rehash threshold"),
 		    rehash_threshold));
-  
+
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
   weak = i < 0 ? Qnil : args[i];
@@ -4715,9 +4715,9 @@ to `key-and-value'.  Default value of WEAK is nil.")
       && !EQ (weak, Qvalue)
       && !EQ (weak, Qkey_or_value)
       && !EQ (weak, Qkey_and_value))
-    Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"), 
+    Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"),
 			    weak));
-  
+
   /* Now, all args should have been used up, or there's a problem.  */
   for (i = 0; i < nargs; ++i)
     if (!used[i])
@@ -4761,7 +4761,7 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
   return check_hash_table (table)->count;
 }
 
-  
+
 DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
        Shash_table_rehash_size, 1, 1, 0,
   "Return the current rehash size of TABLE.")
@@ -4770,7 +4770,7 @@ DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
 {
   return check_hash_table (table)->rehash_size;
 }
-  
+
 
 DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
        Shash_table_rehash_threshold, 1, 1, 0,
@@ -4780,7 +4780,7 @@ DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
 {
   return check_hash_table (table)->rehash_threshold;
 }
-  
+
 
 DEFUN ("hash-table-size", Fhash_table_size, Shash_table_size, 1, 1, 0,
   "Return the size of TABLE.\n\
@@ -4793,7 +4793,7 @@ without need for resizing.")
   struct Lisp_Hash_Table *h = check_hash_table (table);
   return make_number (HASH_TABLE_SIZE (h));
 }
-  
+
 
 DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
   "Return the test TABLE uses.")
@@ -4803,7 +4803,7 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
   return check_hash_table (table)->test;
 }
 
-  
+
 DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
        1, 1, 0,
   "Return the weakness of TABLE.")
@@ -4813,7 +4813,7 @@ DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
   return check_hash_table (table)->weak;
 }
 
-  
+
 DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
   "Return t if OBJ is a Lisp hash table object.")
   (obj)
@@ -4861,7 +4861,7 @@ VALUE.")
     HASH_VALUE (h, i) = value;
   else
     hash_put (h, key, value, hash);
-  
+
   return value;
 }
 
@@ -4895,7 +4895,7 @@ FUNCTION is called with 2 arguments KEY and VALUE.")
 	args[2] = HASH_VALUE (h, i);
 	Ffuncall (3, args);
       }
-  
+
   return Qnil;
 }
 
@@ -4970,7 +4970,7 @@ syms_of_fns ()
   defsubr (&Sremhash);
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
-  
+
   Qstring_lessp = intern ("string-lessp");
   staticpro (&Qstring_lessp);
   Qprovide = intern ("provide");
