@@ -135,12 +135,14 @@ corresponding to the mode line clicked."
   "Local keymap for the coding-system part of the mode line.")
 
 
-(defun mode-line-change-eol ()
+(defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
-  (interactive)
-  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
-    (set-buffer-file-coding-system
-     (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix)))))
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+      (set-buffer-file-coding-system
+       (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix))))))
 
 (defvar mode-line-eol-desc-cache nil)
 
