@@ -1,7 +1,7 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc!protnt.c(trunk.2) $
+ *  $HopeName: MMsrc!protnt.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -10,8 +10,8 @@
 #include "prot.h"
 #include "fault.h"
 
-#ifndef OS_NT
-#error "protnt.c is Win32 specific, but OS_NT is not set"
+#ifndef MPS_OS_NT
+#error "protnt.c is Win32 specific, but MPS_OS_NT is not set"
 #endif
 
 #include <windows.h>
