@@ -42,6 +42,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef WINDOWSNT
+#include <stdlib.h>
+#include <fcntl.h>
+#endif /* not WINDOWSNT */
+
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
 #include <netdb.h>
@@ -142,6 +147,7 @@ extern int h_errno;
 #ifndef SYS_SIGLIST_DECLARED
 #ifndef VMS
 #ifndef BSD4_1
+#ifndef WINDOWSNT
 #ifndef LINUX
 extern char *sys_siglist[];
 #endif /* not LINUX */
@@ -175,6 +181,7 @@ char *sys_siglist[] =
     "exceeded CPU time limit",
     "exceeded file size limit"
     };
+#endif /* not WINDOWSNT */
 #endif
 #endif /* VMS */
 #endif /* ! SYS_SIGLIST_DECLARED */
@@ -251,7 +258,8 @@ Lisp_Object Vprocess_alist;
    output from the process is to read at least one char.
    Always -1 on systems that support FIONREAD.  */
 
-static int proc_buffered_char[MAXDESC];
+/* Don't make static; need to access externally.  */
+int proc_buffered_char[MAXDESC];
 
 static Lisp_Object get_process ();
 
@@ -1090,7 +1098,9 @@ Remaining arguments are strings to give program as arguments.")
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
   /* If program file name is not absolute, search our path for it */
-  if (XSTRING (program)->data[0] != '/')
+  if (!IS_DIRECTORY_SEP (XSTRING (program)->data[0])
+      && !(XSTRING (program)->size > 1
+	   && IS_DEVICE_SEP (XSTRING (program)->data[1])))
     {
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1232,12 +1242,22 @@ create_process (process, new_argv, current_dir)
     }
 #else /* not SKTPAIR */
     {
+#ifdef WINDOWSNT
+      pipe_with_inherited_out (sv);
+      inchannel = sv[0];
+      forkout = sv[1];
+
+      pipe_with_inherited_in (sv);
+      forkin = sv[0];
+      outchannel = sv[1];
+#else /* not WINDOWSNT */
       pipe (sv);
       inchannel = sv[0];
       forkout = sv[1];
       pipe (sv);
       outchannel = sv[1];
       forkin = sv[0];
+#endif /* not WINDOWSNT */
     }
 #endif /* not SKTPAIR */
 
@@ -1312,8 +1332,10 @@ create_process (process, new_argv, current_dir)
        Protect it from permanent change.  */
     char **save_environ = environ;
 
+#ifndef WINDOWSNT
     pid = vfork ();
     if (pid == 0)
+#endif /* not WINDOWSNT */
       {
 	int xforkin = forkin;
 	int xforkout = forkout;
@@ -1444,8 +1466,13 @@ create_process (process, new_argv, current_dir)
 
 	if (pty_flag)
 	  child_setup_tty (xforkout);
+#ifdef WINDOWSNT
+	pid = child_setup (xforkin, xforkout, xforkout,
+			   new_argv, 1, current_dir);
+#else  /* not WINDOWSNT */	
 	child_setup (xforkin, xforkout, xforkout,
 		     new_argv, 1, current_dir);
+#endif /* not WINDOWSNT */
       }
     environ = save_environ;
   }
@@ -1460,6 +1487,10 @@ create_process (process, new_argv, current_dir)
     }
   
   XSETFASTINT (XPROCESS (process)->pid, pid);
+
+#ifdef WINDOWSNT
+  register_child (pid, inchannel);
+#endif /* WINDOWSNT */
 
   /* If the subfork execv fails, and it exits,
      this close hangs.  I don't know why.
@@ -1742,6 +1773,7 @@ deactivate_process (proc)
 
 close_process_descs ()
 {
+#ifndef WINDOWSNT
   int i;
   for (i = 0; i < MAXDESC; i++)
     {
@@ -1757,6 +1789,7 @@ close_process_descs ()
 	    close (out);
 	}
     }
+#endif
 }
 
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
@@ -2277,12 +2310,20 @@ read_process_output (proc, channel)
 #else /* not VMS */
 
   if (proc_buffered_char[channel] < 0)
+#ifdef WINDOWSNT
+    nchars = read_child_output (channel, chars, sizeof (chars));
+#else
     nchars = read (channel, chars, sizeof chars);
+#endif
   else
     {
       chars[0] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
+#ifdef WINDOWSNT
+      nchars = read_child_output (channel, chars + 1, sizeof (chars) - 1);
+#else
       nchars = read (channel, chars + 1, sizeof chars - 1);
+#endif
       if (nchars < 0)
 	nchars = 1;
       else
@@ -2909,7 +2950,12 @@ Both PID and CODE are integers.")
 {
   CHECK_NUMBER (pid, 0);
   CHECK_NUMBER (sig, 1);
+#ifdef WINDOWSNT
+  /* Only works for kill-type signals */
+  return make_number (win32_kill_process (XINT (pid), XINT (sig)));
+#else
   return make_number (kill (XINT (pid), XINT (sig)));
+#endif
 }
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
@@ -3071,6 +3117,7 @@ sigchld_handler (signo)
       if (p != 0)
 	{
 	  union { int i; WAITTYPE wt; } u;
+	  int clear_desc_flag = 0;
 	  
 	  XSETINT (p->tick, ++process_tick);
 	  u.wt = w;
@@ -3078,12 +3125,16 @@ sigchld_handler (signo)
 	  XSETFASTINT (p->raw_status_high, u.i >> 16);
 	  
 	  /* If process has terminated, stop waiting for its output.  */
-	  if (WIFSIGNALED (w) || WIFEXITED (w))
-	    if (XINT (p->infd) >= 0)
-	      {
-		FD_CLR (XINT (p->infd), &input_wait_mask);
-		FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
-	      }
+	  if ((WIFSIGNALED (w) || WIFEXITED (w))
+	      && XINT (p->infd) >= 0)
+	    clear_desc_flag = 1;
+
+	  /* We use clear_desc_flag to avoid a compiler bug in Microsoft C.  */
+	  if (clear_desc_flag)
+	    {
+	      FD_CLR (XINT (p->infd), &input_wait_mask);
+	      FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	    }
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */
@@ -3131,7 +3182,7 @@ sigchld_handler (signo)
 	 get another signal.
 	 Otherwise (on systems that have WNOHANG), loop around
 	 to use up all the processes that have something to tell us.  */
-#if defined (USG) && ! (defined (HPUX) && defined (WNOHANG))
+#if defined (USG) && ! (defined (HPUX) && defined (WNOHANG)) || defined (WINDOWSNT)
 #ifdef USG
       signal (signo, sigchld_handler);
 #endif
