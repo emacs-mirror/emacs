@@ -1,3 +1,7 @@
+2002-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* quail/cyrillic.el ("bulgarian-pho"): Fix a typo in a doc string.
+
 2002-01-01  Dave Love  <fx@gnu.org>
 
 	* quail/indian.el (quail-define-indian-trans-package): Unquote
