@@ -1,3 +1,37 @@
+2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+	Version 2.0.36 of Tramp released.
+
+	* net/tramp.el (tramp-default-password-end-of-line): Renamed from
+	tramp-password-end-of-line.
+	(tramp-password-end-of-line): New method parameter.
+	(tramp-get-password-end-of-line): Function to access method
+	parameter `tramp-password-end-of-line', or variable
+	`tramp-default-password-end-of-line' (default value).
+	(tramp-methods): Add entries for new parameter
+	tramp-password-end-of-line.
+	(tramp-enter-password): Use new function
+	`tramp-get-password-end-of-line'.
+	(tramp-handle-insert-file-contents): Do not
+	unconditionally inhibit the file operation file-local-copy, only
+	do that when the inhibit-file-name-operation is currently
+	insert-file-contents.  This fixes finding remote CVS-controlled
+	files.  (It would barf on inserting the CVS/Entries file
+	literally, because the file-local-copy handler wasn't called.)
+	(tramp-handle-shell-command): Support optional third arg
+	ERROR-BUFFER.
+	(tramp-sh-extra-args): Adapt defcustom type to XEmacs.
+	(tramp-initial-commands): New variable.
+	(tramp-process-initial-commands): New function, using the variable.
+	(tramp-open-connection-setup-interactive-shell): Call the new
+	function.
+	(tramp-buffer-name, tramp-debug-buffer-name): Always put the
+	method into the buffer name, never use nil.  Reported by Hanak
+	David <dhanak@inf.bme.hu>.
+	(tramp-open-connection-setup-interactive-shell): Erase buffer
+	before sending "stty -onlcr".
+
+	* net/tramp-vc.el (vc-workfile-unchanged-p): Add comment.
+
 2003-07-19  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/artist.el (artist-erase-char): Fix default value using
