@@ -1658,6 +1658,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	goto loop;
       if (errno == EADDRINUSE && retry < 20)
 	{
+	  /* A delay here is needed on some FreeBSD systems,
+	     and it is harmless, since this retrying takes time anyway
+	     and should be infrequent.  */
+	  Fsleep_for (make_number (1), Qnil);
 	  retry++;
 	  goto loop;
 	}
