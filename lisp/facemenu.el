@@ -597,24 +597,27 @@ use the selected frame.  If t, then the global, non-frame faces are used."
 
 (defun facemenu-get-face (symbol)
   "Make sure FACE exists.
-If not, it is created.  If it is created and is of the form `fg:color', then
-set the foreground to that color. If of the form `bg:color', set the
-background.  In any case, add it to the appropriate menu.  Returns the face,
-or nil if given a bad color."
-  (if (or (internal-find-face symbol)
-	  (let* ((face (make-face symbol))
-		 (name (symbol-name symbol))
+If not, create it and add it to the appropriate menu.  Return the symbol.
+
+If a window system is in use, and this function creates a face named
+`fg:color', then it sets the foreground to that color.  Likewise, `bg:color'
+means to set the background.  In either case, if the color is undefined,
+no color is set and a warning is issued."
+  (let ((name (symbol-name symbol))
+	foreground)
+    (cond ((internal-find-face symbol))
+	  ((and window-system
+		(or (setq foreground (string-match "^fg:" name))
+		    (string-match "^bg:" name)))
+	   (let ((face (make-face symbol))
 		 (color (substring name 3)))
-	    (cond ((string-match "^fg:" name)
-		   (set-face-foreground face color)
-		   (and window-system
-			(x-color-defined-p color)))
-		  ((string-match "^bg:" name)
-		   (set-face-background face color)
-		   (and window-system
-			(x-color-defined-p color)))
-		  (t))))
-      symbol))
+	     (if (x-color-defined-p color)
+		 (if foreground
+		     (set-face-foreground face color)
+		   (set-face-background face color))
+	       (message "Color \"%s\" undefined" color))))
+	  (t (make-face symbol))))
+  symbol)
 
 (defun facemenu-add-new-face (face)
   "Add a FACE to the appropriate Face menu.
