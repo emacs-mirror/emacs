@@ -122,11 +122,11 @@ document xbufobjfwd
 Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
-define xdispobjfwd
-print (struct Lisp_Display_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+define xkbobjfwd
+print (struct Lisp_Kboard_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
 end
-document xdispobjfwd
-Print $ as a display-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+document xkbobjfwd
+Print $ as a kboard-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xbuflocal
@@ -270,5 +270,3 @@ break abort
 # before Emacs exits.  Perhaps we should put the break somewhere else
 # instead...
 break x_error_quitter
-
-
