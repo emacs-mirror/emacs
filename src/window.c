@@ -34,7 +34,7 @@ Lisp_Object Qwindowp, Qlive_window_p;
 Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
 Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
 
-static void delete_all_subwindows ();
+void delete_all_subwindows ();
 static struct window *decode_window();
 
 /* This is the window in which the terminal's cursor should
@@ -2394,21 +2394,11 @@ by `current-window-configuration' (which see).")
      (configuration)
      Lisp_Object configuration;
 {
-  register struct window *w;
   register struct save_window_data *data;
   struct Lisp_Vector *saved_windows;
-  register struct saved_window *p;
-  register Lisp_Object tem;
   Lisp_Object new_current_buffer;
-  int k;
+  Lisp_Object frame;
   FRAME_PTR f;
-
-  /* If the frame has been resized since this window configuration was
-     made, we change the frame to the size specified in the
-     configuration, restore the configuration, and then resize it
-     back.  We keep track of the prevailing height in these variables.  */
-  int previous_frame_height;
-  int previous_frame_width;
 
   while (XTYPE (configuration) != Lisp_Window_Configuration)
     {
@@ -2419,123 +2409,167 @@ by `current-window-configuration' (which see).")
   data = (struct save_window_data *) XVECTOR (configuration);
   saved_windows = XVECTOR (data->saved_windows);
 
-  f = XFRAME (XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame);
-
-  previous_frame_height = FRAME_HEIGHT (f);
-  previous_frame_width =  FRAME_WIDTH  (f);
-  if (XFASTINT (data->frame_height) != previous_frame_height
-      || XFASTINT (data->frame_width) != previous_frame_width)
-    change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
-
-  windows_or_buffers_changed++;
   new_current_buffer = data->current_buffer;
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
 
-  /* Kludge Alert!
-     Mark all windows now on frame as "deleted".
-     Restoring the new configuration "undeletes" any that are in it.
+  frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
+  f = XFRAME (frame);
 
-     Save their current buffers in their height fields, since we may
-     need it later, if a buffer saved in the configuration is now
-     dead.  */
-  delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-
-  for (k = 0; k < saved_windows->size; k++)
+  /* If f is a dead frame, don't bother rebuilding its window tree.
+     However, there is other stuff we should still try to do below.  */
+  if (FRAME_LIVE_P (f))
     {
-      p = SAVED_WINDOW_N (saved_windows, k);
-      w = XWINDOW (p->window);
-      w->next = Qnil;
+      register struct window *w;
+      register struct saved_window *p;
+      int k;
 
-      if (!NILP (p->parent))
-	w->parent = SAVED_WINDOW_N (saved_windows, XFASTINT (p->parent))->window;
-      else
-	w->parent = Qnil;
+      /* If the frame has been resized since this window configuration was
+	 made, we change the frame to the size specified in the
+	 configuration, restore the configuration, and then resize it
+	 back.  We keep track of the prevailing height in these variables.  */
+      int previous_frame_height = FRAME_HEIGHT (f);
+      int previous_frame_width =  FRAME_WIDTH  (f);
 
-      if (!NILP (p->prev))
+      if (XFASTINT (data->frame_height) != previous_frame_height
+	  || XFASTINT (data->frame_width) != previous_frame_width)
+	change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
+
+      windows_or_buffers_changed++;
+
+      /* Kludge Alert!
+	 Mark all windows now on frame as "deleted".
+	 Restoring the new configuration "undeletes" any that are in it.
+	 
+	 Save their current buffers in their height fields, since we may
+	 need it later, if a buffer saved in the configuration is now
+	 dead.  */
+      delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
+
+      for (k = 0; k < saved_windows->size; k++)
 	{
-	  w->prev = SAVED_WINDOW_N (saved_windows, XFASTINT (p->prev))->window;
-	  XWINDOW (w->prev)->next = p->window;
-	}
-      else
-	{
-	  w->prev = Qnil;
-	  if (!NILP (w->parent))
-	    {
-	      if (EQ (p->width, XWINDOW (w->parent)->width))
-		{
-		  XWINDOW (w->parent)->vchild = p->window;
-		  XWINDOW (w->parent)->hchild = Qnil;
-		}
-	      else
-		{
-		  XWINDOW (w->parent)->hchild = p->window;
-		  XWINDOW (w->parent)->vchild = Qnil;
-		}
-	    }
-	}
+	  p = SAVED_WINDOW_N (saved_windows, k);
+	  w = XWINDOW (p->window);
+	  w->next = Qnil;
 
-      /* If we squirreled away the buffer in the window's height,
-	 restore it now.  */
-      if (XTYPE (w->height) == Lisp_Buffer)
-	w->buffer = w->height;
-      w->left = p->left;
-      w->top = p->top;
-      w->width = p->width;
-      w->height = p->height;
-      w->hscroll = p->hscroll;
-      w->display_table = p->display_table;
-      XFASTINT (w->last_modified) = 0;
+	  if (!NILP (p->parent))
+	    w->parent = SAVED_WINDOW_N (saved_windows,
+					XFASTINT (p->parent))->window;
+	  else
+	    w->parent = Qnil;
 
-      /* Reinstall the saved buffer and pointers into it.  */
-      if (NILP (p->buffer))
-	w->buffer = p->buffer;
-      else
-	{
-	  if (!NILP (XBUFFER (p->buffer)->name))
-	    /* If saved buffer is alive, install it.  */
+	  if (!NILP (p->prev))
 	    {
-	      w->buffer = p->buffer;
-	      w->start_at_line_beg = p->start_at_line_beg;
-	      set_marker_restricted (w->start, Fmarker_position (p->start), w->buffer);
-	      set_marker_restricted (w->pointm, Fmarker_position (p->pointm), w->buffer);
-	      Fset_marker (XBUFFER (w->buffer)->mark,
-			   Fmarker_position (p->mark), w->buffer);
-
-	      /* As documented in Fcurrent_window_configuration, don't
-		 save the location of point in the buffer which was current
-		 when the window configuration was recorded.  */
-	      if (!EQ (p->buffer, new_current_buffer) &&
-		  XBUFFER (p->buffer) == current_buffer)
-		Fgoto_char (w->pointm);
-	    }
-	  else if (NILP (XBUFFER (w->buffer)->name))
-	    /* Else if window's old buffer is dead too, get a live one.  */
-	    {
-	      w->buffer = Fcdr (Fcar (Vbuffer_alist));
-	      /* This will set the markers to beginning of visible range.  */
-	      set_marker_restricted (w->start, make_number (0), w->buffer);
-	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
-	      w->start_at_line_beg = Qt;
+	      w->prev = SAVED_WINDOW_N (saved_windows,
+					XFASTINT (p->prev))->window;
+	      XWINDOW (w->prev)->next = p->window;
 	    }
 	  else
-	    /* Keeping window's old buffer; make sure the markers are real.  */
-	    /* Else if window's old buffer is dead too, get a live one.  */
 	    {
-	      /* Set window markers at start of visible range.  */
-	      if (XMARKER (w->start)->buffer == 0)
-		set_marker_restricted (w->start, make_number (0), w->buffer);
-	      if (XMARKER (w->pointm)->buffer == 0)
-		set_marker_restricted (w->pointm,
-				       make_number (BUF_PT (XBUFFER (w->buffer))),
-				       w->buffer);
-	      w->start_at_line_beg = Qt;
+	      w->prev = Qnil;
+	      if (!NILP (w->parent))
+		{
+		  if (EQ (p->width, XWINDOW (w->parent)->width))
+		    {
+		      XWINDOW (w->parent)->vchild = p->window;
+		      XWINDOW (w->parent)->hchild = Qnil;
+		    }
+		  else
+		    {
+		      XWINDOW (w->parent)->hchild = p->window;
+		      XWINDOW (w->parent)->vchild = Qnil;
+		    }
+		}
+	    }
+
+	  /* If we squirreled away the buffer in the window's height,
+	     restore it now.  */
+	  if (XTYPE (w->height) == Lisp_Buffer)
+	    w->buffer = w->height;
+	  w->left = p->left;
+	  w->top = p->top;
+	  w->width = p->width;
+	  w->height = p->height;
+	  w->hscroll = p->hscroll;
+	  w->display_table = p->display_table;
+	  XFASTINT (w->last_modified) = 0;
+
+	  /* Reinstall the saved buffer and pointers into it.  */
+	  if (NILP (p->buffer))
+	    w->buffer = p->buffer;
+	  else
+	    {
+	      if (!NILP (XBUFFER (p->buffer)->name))
+		/* If saved buffer is alive, install it.  */
+		{
+		  w->buffer = p->buffer;
+		  w->start_at_line_beg = p->start_at_line_beg;
+		  set_marker_restricted (w->start,
+					 Fmarker_position (p->start),
+					 w->buffer);
+		  set_marker_restricted (w->pointm,
+					 Fmarker_position (p->pointm),
+					 w->buffer);
+		  Fset_marker (XBUFFER (w->buffer)->mark,
+			       Fmarker_position (p->mark), w->buffer);
+
+		  /* As documented in Fcurrent_window_configuration, don't
+		     save the location of point in the buffer which was current
+		     when the window configuration was recorded.  */
+		  if (!EQ (p->buffer, new_current_buffer) &&
+		      XBUFFER (p->buffer) == current_buffer)
+		    Fgoto_char (w->pointm);
+		}
+	      else if (NILP (XBUFFER (w->buffer)->name))
+		/* Else if window's old buffer is dead too, get a live one.  */
+		{
+		  w->buffer = Fcdr (Fcar (Vbuffer_alist));
+		  /* This will set the markers to beginning of visible
+		     range.  */
+		  set_marker_restricted (w->start, make_number (0), w->buffer);
+		  set_marker_restricted (w->pointm, make_number (0),w->buffer);
+		  w->start_at_line_beg = Qt;
+		}
+	      else
+		/* Keeping window's old buffer; make sure the markers
+		   are real.  Else if window's old buffer is dead too,
+		   get a live one.  */
+		{
+		  /* Set window markers at start of visible range.  */
+		  if (XMARKER (w->start)->buffer == 0)
+		    set_marker_restricted (w->start, make_number (0),
+					   w->buffer);
+		  if (XMARKER (w->pointm)->buffer == 0)
+		    set_marker_restricted (w->pointm,
+					   (make_number
+					    (BUF_PT (XBUFFER (w->buffer)))),
+					   w->buffer);
+		  w->start_at_line_beg = Qt;
+		}
 	    }
 	}
-    }
 
-  FRAME_ROOT_WINDOW (f) = data->root_window;
-  Fselect_window (data->current_window);
+      FRAME_ROOT_WINDOW (f) = data->root_window;
+      Fselect_window (data->current_window);
+
+#ifdef MULTI_FRAME
+      Fredirect_frame_focus (frame, data->focus_frame);
+#endif
+
+#if 0 /* I don't understand why this is needed, and it causes problems
+         when the frame's old selected window has been deleted.  */
+#ifdef MULTI_FRAME
+      if (f != selected_frame && ! FRAME_TERMCAP_P (f))
+	Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
+#endif
+#endif
+
+      /* Set the screen height to the value it had before this function.  */
+      if (previous_frame_height != FRAME_HEIGHT (f)
+	  || previous_frame_width != FRAME_WIDTH (f))
+	change_frame_size (f, previous_frame_height, previous_frame_width,
+			   0, 0);
+    }
 
 #ifdef MULTI_FRAME
   /* Fselect_window will have made f the selected frame, so we
@@ -2543,34 +2577,12 @@ by `current-window-configuration' (which see).")
      selected window too, but that doesn't make the call to
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
-  Fselect_frame (data->selected_frame);
+  if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
+    Fselect_frame (data->selected_frame);
 #endif
 
   if (!NILP (new_current_buffer))
     Fset_buffer (new_current_buffer);
-
-#ifdef MULTI_FRAME
-  {
-    Lisp_Object frame;
-
-    XSET (frame, Lisp_Frame, f);
-    Fredirect_frame_focus (frame, data->focus_frame);
-  }
-#endif
-
-#if 0  /* I don't understand why this is needed, and it causes
-	  problems when the frame's old selected window has been
-	  deleted.  */
-#ifdef MULTI_FRAME
-  if (f != selected_frame && ! FRAME_TERMCAP_P (f))
-    Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
-#endif
-#endif
-
-  /* Set the screen height to the value it had before this function.  */
-  if (previous_frame_height != FRAME_HEIGHT (f)
-      || previous_frame_width != FRAME_WIDTH (f))
-    change_frame_size (f, previous_frame_height, previous_frame_width, 0, 0);
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   return (Qnil);
@@ -2579,7 +2591,7 @@ by `current-window-configuration' (which see).")
 /* Mark all windows now on frame as deleted
    by setting their buffers to nil.  */
 
-static void
+void
 delete_all_subwindows (w)
      register struct window *w;
 {
