@@ -1,5 +1,8 @@
 2005-03-31  Kenichi Handa  <handa@etlken2>
 
+	* language/thai-word.el (thai-find-word-ends): Pay attention to
+	the case that we reach the end of buffer.
+
 	* textmodes/fill.el (fill-text-properties-at): New function.
 	(fill-newline): Use fill-text-properties-at instead of
 	text-properties-at.
