@@ -83,21 +83,10 @@ with a character in column 6."
   :type  'boolean
   :group 'fortran-indent)
 
-(defcustom fortran-tab-mode-string " TAB"
-  "*String to appear in mode line in TAB format buffers.
-Should have a leading space."
+(defcustom fortran-tab-mode-string "/t"
+  "*String to appear in mode line in TAB format buffers."
   :type  'string
   :group 'fortran-indent)
-
-(defvar fortran-tab-mode-minor-mode-string nil
-  "Internal variable used for `minor-mode-alist' in Fortran mode.
-Do not change the value of this variable - edit `fortran-tab-mode-string'
-instead.")
-(make-variable-buffer-local 'fortran-tab-mode-minor-mode-string)
-
-(add-to-list 'minor-mode-alist
-             '(fortran-tab-mode-minor-mode-string
-               (indent-tabs-mode fortran-tab-mode-minor-mode-string)))
 
 (defcustom fortran-do-indent 3
   "*Extra indentation applied to DO blocks."
@@ -677,8 +666,8 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'comment-indent-function) 'fortran-comment-indent)
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
-  (setq fortran-tab-mode-minor-mode-string fortran-tab-mode-string)
   (set (make-local-variable 'indent-tabs-mode) (fortran-analyze-file-format))
+  (setq mode-line-process '(indent-tabs-mode fortran-tab-mode-string))
   (set (make-local-variable 'fill-column) 72)
   (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
   (set (make-local-variable 'font-lock-defaults)
@@ -1761,8 +1750,7 @@ before the end or in the first `fortran-analyze-depth' lines."
       (cond
        ((eq (char-after) ?\t) t)
        ((looking-at " \\{6\\}") nil)
-       (fortran-tab-mode-default t)
-       (t nil)))))
+       (t fortran-tab-mode-default)))))
 
 (defun fortran-fill-paragraph (&optional justify)
   "Fill surrounding comment block as paragraphs, else fill statement.
