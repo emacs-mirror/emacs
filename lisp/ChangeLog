@@ -1,3 +1,7 @@
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* net/goto-addr.el (goto-address-fontify): Fix help-echo text.
+
 2004-06-23  Lars Hansen  <larsh@math.ku.dk>
 
 	* files.el (write-contents-functions): Doc fix.
