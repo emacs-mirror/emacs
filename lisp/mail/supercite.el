@@ -146,8 +146,9 @@ Each element of this list has the following form:
              (...)))
 
 Where INFOKEY is a key for `sc-mail-field', REGEXP is a regular
-expression to match against the INFOKEY's value.  FRAME is a citation
-frame, or a variable containing a citation frame."
+expression to match against the INFOKEY's value.  FRAME is
+a citation frame, or a symbol that represents the name of
+a variable whose value is a citation frame."
   :type '(repeat (list symbol (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
@@ -1434,12 +1435,11 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 and that means call `sc-select-attribution' too."
   (interactive "r\nP\np")
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist
-		    (if (symbolp sc-cite-frame-alist)
-			(symbol-value sc-cite-frame-alist)
-		      sc-cite-frame-alist))
-		   sc-default-cite-frame))
+  (let ((frame (sc-scan-info-alist sc-cite-frame-alist))
 	(sc-confirm-always-p (if confirm-p t sc-confirm-always-p)))
+    (if (and frame (symbolp frame))
+	(setq frame (symbol-value frame)))
+    (or frame (setq frame sc-default-cite-frame))
     (run-hooks 'sc-pre-cite-hook)
     (if interactive
 	(sc-select-attribution))
@@ -1450,11 +1450,10 @@ and that means call `sc-select-attribution' too."
 First runs `sc-pre-uncite-hook'."
   (interactive "r")
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist
-		    (if (symbolp sc-uncite-frame-alist)
-			(symbol-value sc-uncite-frame-alist)
-		      sc-uncite-frame-alist))
-		   sc-default-uncite-frame)))
+  (let ((frame (sc-scan-info-alist sc-uncite-frame-alist)))
+    (if (and frame (symbolp frame))
+	(setq frame (symbol-value frame)))
+    (or frame (setq frame sc-default-uncite-frame))
     (run-hooks 'sc-pre-uncite-hook)
     (regi-interpret frame start end)))
 
@@ -1465,11 +1464,10 @@ First runs `sc-pre-recite-hook'."
   (let ((sc-confirm-always-p t))
     (sc-select-attribution))
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist
-		    (if (symbolp sc-recite-frame-alist)
-			(symbol-value sc-recite-frame-alist)
-		      sc-recite-frame-alist))
-		   sc-default-recite-frame)))
+  (let ((frame (sc-scan-info-alist sc-recite-frame-alist)))
+    (if (and frame (symbolp frame))
+	(setq frame (symbol-value frame)))
+    (or frame (setq frame sc-default-recite-frame))
     (run-hooks 'sc-pre-recite-hook)
     (regi-interpret frame start end)))
 
