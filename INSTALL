@@ -26,12 +26,12 @@ insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in.in', or possibly when
 running the final dumped Emacs.
  
-Building Emacs requires about 50 Mb of disk space (including the Emacs
-sources).  Once installed, Emacs occupies about 20 Mb in the file
+Building Emacs requires about 70 Mb of disk space (including the Emacs
+sources).  Once installed, Emacs occupies about 35 Mb in the file
 system where it is installed; this includes the executable files, Lisp
 libraries, miscellaneous data files, and on-line documentation.  If
 the building and installation take place in different directories,
-then the installation procedure momentarily requires 50+20 Mb.
+then the installation procedure momentarily requires 70+35 Mb.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file offers hints for
@@ -240,7 +240,11 @@ info files.
 then you might need to make the movemail program setuid or setgid
 to enable it to write the lock files.  We believe this is safe.
 
-10) You are done!
+10) You are done!  You can remove executables and object files from
+the build directory by typing `make clean'.  To also remove the files
+that `configure' created (so you can compile Emacs for a different
+configuration), type `make distclean'.
+
 
 
 MAKE VARIABLES
@@ -335,16 +339,16 @@ Here is a complete list of the variables you may want to set.
 The above variables serve analogous purposes in the makefiles for all
 GNU software; here are some variables specific to Emacs.
 
-`lispdir' indicates where Emacs installs and expects its lisp
-	library.  Its default value, based on `datadir' (see above),
-	is `/usr/local/lib/emacs/VERSION/lisp' (where `VERSION' is as
+`lispdir' indicates where Emacs installs and expects its lisp library.
+	Its default value, based on `datadir' (see above), is
+	`/usr/local/share/emacs/VERSION/lisp' (where `VERSION' is as
 	described above).
 
 `locallisppath' indicates where Emacs should search for lisp files
 	specific to your site.  It should be a colon-separated list of
 	directories; Emacs checks them in order before checking
 	`lispdir'.  Its default value, based on `datadir' (see above),
-	is `/usr/local/lib/emacs/site-lisp'.
+	is `/usr/local/share/emacs/site-lisp'.
 
 `lisppath' is the complete list of directories Emacs should search for
 	its lisp files; its default value is the concatenation of
@@ -355,16 +359,16 @@ GNU software; here are some variables specific to Emacs.
 `etcdir' indicates where Emacs should install and expect the rest of
 	its architecture-independent data, like the tutorial, DOC
 	file, and yow database.  Its default value, based on `datadir'
-	(which see), is `/usr/local/lib/emacs/VERSION/etc'.
+	(which see), is `/usr/local/share/emacs/VERSION/etc'.
 
 `lockdir' indicates the directory where Emacs keeps track of its
-	locking information.  Its default value, based on `sharedstatedir'
-	(which see), is `/usr/local/lib/emacs/lock'.
+	locking information.  Its default value, based on
+	`sharedstatedir' (which see), is `/usr/local/com/emacs/lock'.
 
-`archlibdir' indicates where Emacs installs and expects the
-	executable files and other architecture-dependent data it uses
-	while running.  Its default value, based on `libexecdir' (which
-	see), is `/usr/local/lib/emacs/VERSION/CONFIGURATION-NAME'
+`archlibdir' indicates where Emacs installs and expects the executable
+	files and other architecture-dependent data it uses while
+	running.  Its default value, based on `libexecdir' (which
+	see), is `/usr/local/libexec/emacs/VERSION/CONFIGURATION-NAME'
 	(where VERSION and CONFIGURATION-NAME are as described above).
 
 Remember that you must specify any variable values you need each time
