@@ -152,7 +152,7 @@ gb18030-2.map: ${GLIBCDIR}/GB18030 gb18030-2.awk
 	| ${SED} -e 's,<U\([^>]*\)>[ 	]*/x\(..\)/x\(..\).*$$,0x\2\3 0x\1,' \
 	| sort | gawk -f gb18030-2.awk > $@
 
-gb18030-4byte.map: gb18030-2.map gb18030-4.awk
+gb18030-4.map: gb18030-2.map gb18030-4.awk
 	gawk -f gb18030-4.awk < $< > $@
 
 maintainer-clean:
