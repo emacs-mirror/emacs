@@ -138,7 +138,8 @@
 
 2004-11-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Filtering Spam Using The Spam ELisp Package): 
+	* gnus.texi (Filtering Spam Using The Spam ELisp Package): Index
+	`spam-initialize'.
 
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
