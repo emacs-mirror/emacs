@@ -24,42 +24,7 @@
 
 ;;; Commentary:
 
-;; Search a database of files and use dired commands on
-;; the result.
-;;
-
-;;;;; Building a database of files ;;;;;;;;;
-;;
-;; You can create a simple files database with a port of the Unix find command
-;; and one of the various Windows NT various scheduling utilities,
-;; for example the AT command from the NT Resource Kit, WinCron which is
-;; included with Microsoft FrontPage, or the shareware NTCron program.
-;;
-;; To set up a function which searches the files database, do something
-;; like this:
-;;
-;; (defvar locate-fcodes-file       "c:/users/peter/fcodes")
-;; (defvar locate-make-command-line 'nt-locate-make-command-line)
-;;
-;; (defun nt-locate-make-command-line (arg)
-;;  (list "grep" "-i" arg locate-fcodes-file))
-;;
-;;;;;;;; ADVICE For dired-make-relative: ;;;;;;;;;
-;;
-;; For certain dired commands to work right, you should also include the
-;; following in your _emacs/.emacs:
-;;
-;; (defadvice dired-make-relative (before set-no-error activate)
-;;   "For locate mode and Windows, don't return errors"
-;;   (if (and (eq   major-mode  'locate-mode)
-;; 	   (memq system-type (list 'windows-nt 'ms-dos)))
-;;       (ad-set-arg 2 t)
-;;     ))
-;;
-;; Otherwise, `dired-make-relative' will give error messages like
-;; "FILENAME: not in directory tree growing at /"
-
-;;; Commentary:
+;; Search a database of files and use dired commands on the result.
 ;;
 ;; Locate.el provides an interface to a program which searches a
 ;; database of file names. By default, this program is the GNU locate
@@ -109,6 +74,38 @@
 ;; regular expression; this is often useful to constrain a big search.
 ;;
 
+;;;;; Building a database of files ;;;;;;;;;
+;;
+;; You can create a simple files database with a port of the Unix find command
+;; and one of the various Windows NT various scheduling utilities,
+;; for example the AT command from the NT Resource Kit, WinCron which is
+;; included with Microsoft FrontPage, or the shareware NTCron program.
+;;
+;; To set up a function which searches the files database, do something
+;; like this:
+;;
+;; (defvar locate-fcodes-file       "c:/users/peter/fcodes")
+;; (defvar locate-make-command-line 'nt-locate-make-command-line)
+;;
+;; (defun nt-locate-make-command-line (arg)
+;;  (list "grep" "-i" arg locate-fcodes-file))
+;;
+;;;;;;;; ADVICE For dired-make-relative: ;;;;;;;;;
+;;
+;; For certain dired commands to work right, you should also include the
+;; following in your _emacs/.emacs:
+;;
+;; (defadvice dired-make-relative (before set-no-error activate)
+;;   "For locate mode and Windows, don't return errors"
+;;   (if (and (eq   major-mode  'locate-mode)
+;; 	   (memq system-type (list 'windows-nt 'ms-dos)))
+;;       (ad-set-arg 2 t)
+;;     ))
+;;
+;; Otherwise, `dired-make-relative' will give error messages like
+;; "FILENAME: not in directory tree growing at /"
+
+
 ;;; Code:
 
 (eval-when-compile
@@ -153,6 +150,14 @@
   "*Face used to highlight the locate header."
   :type 'face
   :group 'locate)
+
+;;;###autoload
+(defcustom locate-ls-subdir-switches "-al"
+  "`ls' switches for inserting subdirectories in `*Locate*' buffers.
+This should contain the \"-l\" switch, but not the \"-F\" or \"-b\" switches."
+  :type 'string
+  :group 'locate
+  :version "21.4")
 
 (defcustom locate-update-command "updatedb"
   "The command used to update the locate database."
@@ -223,24 +228,25 @@ With prefix arg, prompt for the locate command to run."
     (save-window-excursion
       (set-buffer (get-buffer-create locate-buffer-name))
       (locate-mode)
-      (erase-buffer)
+      (let ((inhibit-read-only t))
+	(erase-buffer)
 
-      (setq locate-current-filter filter)
+	(setq locate-current-filter filter)
 
-      (if run-locate-command
-	  (shell-command search-string locate-buffer-name)
-	(apply 'call-process locate-cmd nil t nil locate-cmd-args))
+	(if run-locate-command
+	    (shell-command search-string locate-buffer-name)
+	  (apply 'call-process locate-cmd nil t nil locate-cmd-args))
 
-      (and filter
-	  (locate-filter-output filter))
+	(and filter
+	     (locate-filter-output filter))
 
-      (locate-do-setup search-string)
-      )
+	(locate-do-setup search-string)
+	))
     (and (not (string-equal (buffer-name) locate-buffer-name))
 	(switch-to-buffer-other-window locate-buffer-name))
 
     (run-hooks 'dired-mode-hook)
-    (dired-next-line 2)			;move to first matching file.
+    (dired-next-line 3)			;move to first matching file.
     (run-hooks 'locate-post-command-hook)
     )
   )
@@ -281,9 +287,10 @@ shown; this is often useful to constrain a big search."
    (define-key locate-mode-map [menu-bar mark directories] 'undefined)
    (define-key locate-mode-map [menu-bar mark symlinks]    'undefined)
 
-   (define-key locate-mode-map [mouse-2]   'locate-mouse-view-file)
+   (define-key locate-mode-map [M-mouse-2] 'locate-mouse-view-file)
    (define-key locate-mode-map "\C-c\C-t"  'locate-tags)
 
+   (define-key locate-mode-map "l"       'locate-do-redisplay)
    (define-key locate-mode-map "U"       'dired-unmark-all-files)
    (define-key locate-mode-map "V"       'locate-find-directory)
 )
@@ -318,45 +325,74 @@ shown; this is often useful to constrain a big search."
 	 (not (eq lineno 2))
 	 (buffer-substring (elt pos 0) (elt pos 1)))))
 
+(defun locate-main-listing-line-p ()
+  "Return t if current line contains a file name listed by locate.
+This function returns nil if the current line either contains no
+file name or is inside a subdirectory."
+  (save-excursion
+    (forward-line 0)
+    (looking-at (concat "."
+			(make-string (1- locate-filename-indentation) ?\ )
+			"\\(/\\|[A-Za-z]:\\)"))))
+
 (defun locate-mouse-view-file (event)
   "In Locate mode, view a file, using the mouse."
   (interactive "@e")
   (save-excursion
     (goto-char (posn-point (event-start event)))
-    (view-file (locate-get-filename))))
+    (if (locate-main-listing-line-p)
+	(view-file (locate-get-filename))
+      (message "This command only works inside main listing."))))
 
 ;; Define a mode for locate
 ;; Default directory is set to "/" so that dired commands, which
 ;; expect to be in a tree, will work properly
 (defun locate-mode ()
   "Major mode for the `*Locate*' buffer made by \\[locate].
+\\<locate-mode-map>\
 In that buffer, you can use almost all the usual dired bindings.
 \\[locate-find-directory] visits the directory of the file on the current line.
 
+Operating on listed files works, but does not always
+automatically update the buffer as in ordinary Dired.
+This is true both for the main listing and for subdirectories.
+Reverting the buffer using \\[revert-buffer] deletes all subdirectories.
+Specific `locate-mode' commands, such as \\[locate-find-directory],
+do not work in subdirectories.
+
 \\{locate-mode-map}"
+  ;; Not to be called interactively.
   (kill-all-local-variables)
-  ;; Avoid clobbering this variables
+  ;; Avoid clobbering this variable
   (make-local-variable 'dired-subdir-alist)
   (use-local-map             locate-mode-map)
   (setq major-mode          'locate-mode
         mode-name           "Locate"
-        default-directory   "/")
+        default-directory   "/"
+	buffer-read-only    t
+	selective-display   t)
   (dired-alist-add-1 default-directory (point-min-marker))
+  (set (make-local-variable 'dired-directory) "/")
+  (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
+  (setq dired-switches-alist nil)
   (make-local-variable 'dired-move-to-filename-regexp)
   ;; This should support both Unix and Windoze style names
   (setq dired-move-to-filename-regexp
-	(concat "."
+	(concat "^."
 		(make-string (1- locate-filename-indentation) ?\ )
-		"\\(/\\|[A-Za-z]:\\)"))
+		"\\(/\\|[A-Za-z]:\\)\\|"
+		(default-value 'dired-move-to-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")
   (make-local-variable 'dired-permission-flags-regexp)
   (setq dired-permission-flags-regexp
 	(concat "^.\\("
 		(make-string (1- locate-filename-indentation) ?\ )
-		"\\)"))
+		"\\)\\|"
+		(default-value 'dired-permission-flags-regexp)))
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'locate-update)
+  (set (make-local-variable 'page-delimiter) "\n\n")
   (run-hooks 'locate-mode-hook))
 
 (defun locate-do-setup (search-string)
@@ -386,7 +422,10 @@ In that buffer, you can use almost all the usual dired bindings.
       (dired-insert-set-properties (elt pos 0) (elt pos 1)))))
 
 (defun locate-insert-header (search-string)
-  (let ((locate-format-string "Matches for %s")
+  ;; There needs to be a space before `Matches, because otherwise,
+  ;; `*!" would erase the `M'.  We can not use two spaces, or the line
+  ;; would mistakenly fit `dired-subdir-regexp'.
+  (let ((locate-format-string "  /:\n Matches for %s")
 	(locate-regexp-match
 	 (concat " *Matches for \\(" (regexp-quote search-string) "\\)"))
 	(locate-format-args (list search-string))
@@ -424,6 +463,7 @@ In that buffer, you can use almost all the usual dired bindings.
 
     (save-excursion
       (goto-char (point-min))
+      (forward-line 1)
       (if (not (looking-at locate-regexp-match))
 	  nil
 	(add-text-properties (match-beginning 1) (match-end 1)
@@ -439,9 +479,11 @@ In that buffer, you can use almost all the usual dired bindings.
 (defun locate-tags ()
   "Visit a tags table in `*Locate*' mode."
   (interactive)
-  (let ((tags-table (locate-get-filename)))
-    (and (y-or-n-p (format "Visit tags table %s? " tags-table))
-	 (visit-tags-table tags-table))))
+  (if (locate-main-listing-line-p)
+      (let ((tags-table (locate-get-filename)))
+	(and (y-or-n-p (format "Visit tags table %s? " tags-table))
+	     (visit-tags-table tags-table)))
+    (message "This command only works inside main listing.")))
 
 ;; From Stephen Eglen <stephen@cns.ed.ac.uk>
 (defun locate-update (ignore1 ignore2)
@@ -460,12 +502,14 @@ Database is updated using the shell command in `locate-update-command'."
 (defun locate-find-directory ()
   "Visit the directory of the file mentioned on this line."
   (interactive)
-  (let ((directory-name (locate-get-dirname)))
-    (if (file-directory-p directory-name)
-	(find-file directory-name)
-      (if (file-symlink-p directory-name)
-	  (error "Directory is a symlink to a nonexistent target")
-	(error "Directory no longer exists; run `updatedb' to update database")))))
+  (if (locate-main-listing-line-p)
+      (let ((directory-name (locate-get-dirname)))
+	(if (file-directory-p directory-name)
+	    (find-file directory-name)
+	  (if (file-symlink-p directory-name)
+	      (error "Directory is a symlink to a nonexistent target")
+	    (error "Directory no longer exists; run `updatedb' to update database"))))
+    (message "This command only works inside main listing.")))
 
 (defun locate-find-directory-other-window ()
   "Visit the directory of the file named on this line in other window."
@@ -517,6 +561,14 @@ Database is updated using the shell command in `locate-update-command'."
 					 (expand-file-name database))
 				 string))))))
     (locate search-string)))
+
+(defun locate-do-redisplay (&optional arg test-for-subdir)
+  "Like `dired-do-redisplay', but adapted for `*Locate*' buffers."
+  (interactive "P\np")
+  (if (string= (dired-current-directory) "/")
+      (message "This command only works in subdirectories.")
+    (let ((dired-actual-switches locate-ls-subdir-switches))
+      (dired-do-redisplay arg test-for-subdir))))
 
 (provide 'locate)
 

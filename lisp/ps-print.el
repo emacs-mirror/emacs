@@ -1262,7 +1262,7 @@ Please send all bug fixes and enhancements to
 ;;	 N-up printing.
 ;;	 Hook: `ps-print-begin-sheet-hook'.
 ;;
-;; [keinichi] 19990509 Kein'ichi Handa <handa@etl.go.jp>
+;; [kenichi] 19990509 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    `ps-print-region-function'
 ;;
@@ -1275,7 +1275,7 @@ Please send all bug fixes and enhancements to
 ;;	 PostScript prologue header comment insertion.
 ;;	 Skip invisible text better.
 ;;
-;; [keinichi] 19980819 Kein'ichi Handa <handa@etl.go.jp>
+;; [kenichi] 19980819 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    Multi-byte buffer handling.
 ;;
@@ -1383,7 +1383,7 @@ Please send all bug fixes and enhancements to
 ;; prologue code suggestion, for odd/even printing suggestion and for
 ;; `ps-prologue-file' enhancement.
 ;;
-;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
+;; Thanks to Ken'ichi Handa <handa@m17n.org> for multi-byte buffer handling.
 ;;
 ;; Thanks to Matthew O Persico <Matthew.Persico@lazard.com> for line number on
 ;; empty columns.

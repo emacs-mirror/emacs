@@ -161,6 +161,7 @@ FORVAR		= %%f
 FORDO		= ) do
 ENDFOR		=
 ARGQUOTE	= "
+# "
 DQUOTE		= \"
 DEL		= rm
 DEL_TREE	= rm -r

@@ -6566,8 +6566,8 @@ highest priority.  */)
     possible coding systems.  If it is nil, it means that we have not
     yet found any coding systems.
 
-    WORK_TABLE is a copy of the char-table Vchar_coding_system_table.  An
-    element of WORK_TABLE is set to t once the element is looked up.
+    WORK_TABLE a char-table of which element is set to t once the
+    element is looked up.
 
     If a non-ASCII single byte char is found, set
     *single_byte_char_found to 1.  */
@@ -6582,6 +6582,8 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
   Lisp_Object val, ch;
   Lisp_Object prev, tail;
 
+  if (NILP (safe_codings))
+    goto done_safe_codings;
   while (p < pend)
     {
       c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
@@ -6591,11 +6593,6 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 	continue;
       if (SINGLE_BYTE_CHAR_P (c))
 	*single_byte_char_found = 1;
-      if (NILP (safe_codings))
-	/* Already all coding systems are excluded.  But, we can't
-	   terminate the loop here because non-ASCII single-byte char
-	   must be found.  */
-	continue;
       /* Check the safe coding systems for C.  */
       ch = make_number (c);
       val = Faref (work_table, ch);
@@ -6673,12 +6670,33 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 	    {
 	      /* Exclude this coding system from SAFE_CODINGS.  */
 	      if (EQ (tail, safe_codings))
-		safe_codings = XCDR (safe_codings);
+		{
+		  safe_codings = XCDR (safe_codings);
+		  if (NILP (safe_codings))
+		    goto done_safe_codings;
+		}
 	      else
 		XSETCDR (prev, XCDR (tail));
 	    }
 	}
     }
+
+ done_safe_codings:
+  /* If the above loop was terminated before P reaches PEND, it means
+     SAFE_CODINGS was set to nil.  If we have not yet found an
+     non-ASCII single-byte char, check it now.  */
+  if (! *single_byte_char_found)
+    while (p < pend)
+      {
+	c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
+	p += len;
+	if (! ASCII_BYTE_P (c)
+	    && SINGLE_BYTE_CHAR_P (c))
+	  {
+	    *single_byte_char_found = 1;
+	    break;
+	  }
+      }
   return safe_codings;
 }
 

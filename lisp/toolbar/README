@@ -1,0 +1,8 @@
+The following icons are from GTK+ 2.x:
+
+    close.xpm copy.xpm cut.xpm help.xpm home.xpm
+    index.xpm jump_to.xpm left_arrow.xpm new.xpm open.xpm
+    paste.xpm preferences.xpm print.xpm right_arrow.xpm save.xpm
+    saveas.xpm search.xpm spell.xpm undo.xpm up_arrow.xpm
+
+They are not part of Emacs, but distributed and used by Emacs.

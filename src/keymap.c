@@ -1624,7 +1624,7 @@ DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
        doc: /* Return the binding for command KEYS in current global keymap only.
 KEYS is a string, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
-This function's return values are the same as those of lookup-key
+This function's return values are the same as those of `lookup-key'
 \(which see).
 
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
@@ -1951,7 +1951,7 @@ Lisp_Object Qsingle_key_description, Qkey_description;
 DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
        doc: /* Return a pretty description of key-sequence KEYS.
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
-Control characters turn into "C-foo" sequences, meta into "M-foo"
+Control characters turn into "C-foo" sequences, meta into "M-foo",
 spaces are put between sequence elements, etc.  */)
   (keys, prefix)
      Lisp_Object keys, prefix;
@@ -3226,7 +3226,8 @@ describe_vector_princ (elt, fun)
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,
        doc: /* Insert a description of contents of VECTOR.
-This is text showing the elements of vector matched against indices.  */)
+This is text showing the elements of vector matched against indices.
+DESCRIBER is the output function used; nil means use `princ'.  */)
      (vector, describer)
      Lisp_Object vector, describer;
 {
