@@ -1362,7 +1362,7 @@ Return type of pointer (either 'normal or 'no-pointer).
 The first and second arguments bound the search for a pointer to the
 beginning and end, respectively, of the enclosing higher level
 section.  The third argument is a string specifying the general kind
-of section such as \"chapter\ or \"section\".  When looking for the
+of section such as \"chapter\" or \"section\".  When looking for the
 `Next' pointer, the section found will be at the same hierarchical
 level in the Texinfo file; when looking for the `Previous' pointer,
 the section found will be at the same or higher hierarchical level in
@@ -1559,7 +1559,7 @@ it is in a different section.
 Return type of pointer (either 'normal or 'no-pointer).
 
 The first argument is a string specifying the general kind of section
-such as \"chapter\ or \"section\".  The section found will be at the
+such as \"chapter\" or \"section\".  The section found will be at the
 same hierarchical level in the Texinfo file, or, in the case of the up
 pointer, some level higher.  The second argument (one of 'next,
 'previous, or 'up) specifies whether to find the `Next', `Previous',
