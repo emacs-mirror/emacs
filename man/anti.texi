@@ -251,7 +251,7 @@ you should have fewer files anyway, so you won't notice the absence of
 this feature.
 
 @item
-The @code{field} property does not exist in Emasc 20, so various
+The @code{field} property does not exist in Emacs 20, so various
 packages that run subsidiary programs in Emacs buffers cannot in general
 distinguish which text was user input and which was output from the
 subprocess.  If you need to try to do this nonetheless, Emacs 20

@@ -62,14 +62,14 @@ be passed to Emacs.
   The Mac keyboard ordinarily generates characters in the Mac Roman
 encoding.  To use it for entering ISO Latin-1 characters directly, set
 the value of the variable @code{mac-keyboard-text-encoding} to
-@code{kTextEncodingISOLatin1}.  Note that that not all Mac Roman
-characters that can be entered at the keyboard can be converted to ISO
-Latin-1 characters.
+@code{kTextEncodingISOLatin1}.  Note that not all Mac Roman characters
+that can be entered at the keyboard can be converted to ISO Latin-1
+characters.
 
   To enter ISO Latin-2 characters directly from the Mac keyboard.  Set
 the value of @code{mac-keyboard-text-encoding} to
 @code{kTextEncodingISOLatin2}.  Then let Emacs know that the keyboard
-generates Latin-2 codes by typink @kbd{C-x RET k iso-latin-2 RET}.  To
+generates Latin-2 codes by typing @kbd{C-x RET k iso-latin-2 RET}.  To
 make this setting permanent, put this in your @file{.emacs} init file:
 
 @lisp
@@ -90,9 +90,9 @@ this native encoding, and for displaying file names in Dired mode.
   Any native (non-symbol) Mac font can be used to correctly display
 characters in the @code{mac-roman} coding system.
 
-  The fontset @code{fontset-mac} is created automatically when Emacs is
-run on the Mac by the following expression.  It displays characters in
-the @code{mac-roman} coding system using 12-point Monaco.
+  The fontset @code{fontset-mac} is created automatically when Emacs
+is run on the Mac.  It displays characters in the @code{mac-roman}
+coding system using 12-point Monaco.
 
   To insert characters directly in the @code{mac-roman} coding system,
 type @kbd{C-x RET k mac-roman RET}, or put this in your @file{.emacs}
@@ -192,22 +192,21 @@ another directory but this folder will still be created.
 font name.  I.e.,
 
 @smallexample
--@var{foundry}-@var{family}-@var{weight}-@var{slant}-@var{width}--@var{pixels}-@var{points}-@var{hres}-@var{vres}-@var{spacing}-@var{avewidth}-@var{charset}
+-@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
+@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{charset}
 @end smallexample
 
 @noindent
-where the fields refer to foundry, font family, weight, slant, width,
-pixels, point size, horizontal resolution, vertical resolution,
-spacing, average width, and character set, respectively.  Wildcards
+@xref{Font X}.  Wildcards
 are supported as they are on X.
 
-  Native Apple fonts in Mac Roman encoding has foundry name @code{apple}
+  Native Apple fonts in Mac Roman encoding has maker name @code{apple}
 and charset @code{mac-roman}.  For example 12-point Monaco can be
 specified by the name @samp{-apple-monaco-*-12-*-mac-roman}.
 
   Native Apple Traditional Chinese, Simplified Chinese, Japanese, and
-Korean fonts have charsets @samp{big5-0}, @samp{gb2312-0},
-@samp{jisx0208.1983-sjis}, and @samp{ksc5601-1}, respectively.
+Korean fonts have charsets @samp{big5-0}, @samp{gb2312.1980-0},
+@samp{jisx0208.1983-sjis}, and @samp{ksc5601.1989-0}, respectively.
 
   Single-byte fonts converted from GNU fonts in BDF format, which are not
 in the Mac Roman encoding, have foundry, family, and character sets
