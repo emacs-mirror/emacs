@@ -292,7 +292,7 @@ Hostname matching is stricter in this case than for
 ;;;###autoload
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
-  :group 'emacs)
+  :group 'applications)
 
 ;;;###autoload
 (defcustom browse-url-browser-function
