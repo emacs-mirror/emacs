@@ -1,3 +1,16 @@
+2003-03-19  Kenichi Handa  <handa@etlken2>
+
+	* fileio.c (Ffile_name_directory): Reconstruct file name by
+	make_specified_string.
+	(Ffile_name_nondirectory, Ffile_name_as_directory)
+	(Fdirectory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name): Likewise.
+	(Fread_file_name): Compare decoded homedir with DIR and
+	DEFAULT_FILENAME.
+
+	* alloc.c (make_specified_string): If NCHARS is negative, count
+	the number of characters.
+
 2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_cleared): Call gtk_widget_queue_draw for

@@ -1,3 +1,9 @@
+2003-03-19  Kenichi Handa  <handa@etlken2>
+
+	* dired.el (dired-get-filename): Pay attention to the case that
+	`read' returns a unibyte string.  Don't encode the file name by
+	buffer-file-coding-system.
+
 2003-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Latin-6"): Fix input-method.
