@@ -973,6 +973,8 @@ EmacsFrameSetCharSize (widget, columns, rows)
 	 enters an infinite loop (as of 2000-01-15).  This is fixed in
 	 later versions of LessTif (as of 2001-03-13); I'll leave it
 	 as is because I think it can't do any harm.  */
+      /* In April 2002, simon.marshall@misys.com reports the problem
+	 seems not to occur any longer.  */
       XtVaSetValues (f->output_data.x->widget,
       		     XtNheight, (XtArgVal) (outer_widget_height + hdelta),
 		     XtNwidth, (XtArgVal) (outer_widget_width + wdelta),
