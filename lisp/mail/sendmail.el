@@ -445,6 +445,9 @@ If within the headers, this makes the new lines into continuation lines."
 (define-key mail-mode-map [menu-bar mail signature]
   '("Insert Signature" . mail-signature))
 
+(define-key mail-mode-map [menu-bar mail mail-sep]
+  '("--"))
+
 (define-key mail-mode-map [menu-bar mail cancel]
   '("Cancel" . mail-dont-send))
 
@@ -457,14 +460,17 @@ If within the headers, this makes the new lines into continuation lines."
 (define-key mail-mode-map [menu-bar headers]
   (cons "Headers" (make-sparse-keymap "Move to Header")))
 
-(define-key mail-mode-map [menu-bar headers reply-to]
-  '("Reply-To" . mail-reply-to))
+(define-key mail-mode-map [menu-bar headers text]
+  '("Text" . mail-text))
+
+(define-key mail-mode-map [menu-bar headers expand-aliases]
+  '("Expand Aliases" . expand-mail-aliases))
 
 (define-key mail-mode-map [menu-bar headers sent-via]
   '("Sent Via" . mail-sent-via))
 
-(define-key mail-mode-map [menu-bar headers text]
-  '("Text" . mail-text))
+(define-key mail-mode-map [menu-bar headers reply-to]
+  '("Reply-To" . mail-reply-to))
 
 (define-key mail-mode-map [menu-bar headers bcc]
   '("Bcc" . mail-bcc))
