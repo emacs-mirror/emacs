@@ -1355,7 +1355,8 @@ and only used if a buffer is displayed."
 		   (t
 		    ;; Buffer
 		    (goto-char (point-min))
-		    (display-buffer message not-this-window frame))))))))
+		    (display-buffer (current-buffer)
+				    not-this-window frame))))))))
 
 
 ;; We have a sentinel to prevent insertion of a termination message
