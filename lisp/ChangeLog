@@ -1,5 +1,8 @@
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-problems, cperl-tips)
+	(cperl-non-problems, cperl-praise): Doc fixes.
+
 	* progmodes/sh-script.el (sh-mode): Don't use define-derived-mode.
 	(sh-mode-syntax-table): Function restored.
 	Variable set up for use by function sh-mode-syntax-table.
