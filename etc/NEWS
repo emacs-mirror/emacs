@@ -2150,6 +2150,9 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** If a command sets transient-mark-mode to `only', that 
+enables Transient Mark mode for the following command, only.
+
 +++
 ** Cleaner way to enter key sequences.
 

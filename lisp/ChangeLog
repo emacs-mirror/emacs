@@ -1,3 +1,14 @@
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-set-region-1): Set transient-mark-mode to `only'.
+
+	* isearch.el (isearch-repeat): Avoid testing old match data.
+	(isearch-message): Display trailing space in special font
+	when search is failing.
+	(isearch-search-fun-function): Doc fix.
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Doc fix.
+
 2004-06-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frame.el (show-trailing-whitespace): Doc fix.

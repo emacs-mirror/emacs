@@ -1,3 +1,16 @@
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
+
+	* search.c (match_limit): Cleaner err msg when no match data available.
+
+	* window.c (syms_of_window): Doc fix.
+
+	* keyboard.c (command_loop_1): Handle values `only' and `identity'
+	for Vtransient_mark_mode.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
 2004-06-21  David Kastrup  <dak@gnu.org>
 
 	* minibuf.c (Ftry_completion, Fall_completions): Do lazy binding
