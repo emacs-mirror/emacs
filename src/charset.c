@@ -761,7 +761,7 @@ CHARSET should be defined by `defined-charset' in advance.")
 /* Return information about charsets in the text at PTR of NBYTES
    bytes, which are NCHARS characters.  The value is:
 
-	0: Each character is represented by one byte.  This is alwasy
+	0: Each character is represented by one byte.  This is always
 	   true for unibyte text.
 	1: No charsets other than ascii eight-bit-control,
 	   eight-bit-graphic, and latin-1 are found.
