@@ -244,11 +244,14 @@ With argument, print output into current buffer."
 Print value in minibuffer.
 With argument, insert value in current buffer after the defun."
   (interactive "P")
-  (let ((standard-output (if eval-defun-arg-internal (current-buffer) t)))
-    (prin1 (eval (save-excursion
-		   (end-of-defun)
-		   (beginning-of-defun)
-		   (read (current-buffer)))))))
+  (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
+	(form (save-excursion
+		(end-of-defun)
+		(beginning-of-defun)
+		(read (current-buffer)))))
+    (if (eq (car form) 'defvar)
+	(setq form (cons 'defconst (cdr form))))
+    (prin1 (eval form))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
