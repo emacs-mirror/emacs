@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.19 2002/06/29 19:52:51 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.20 2002/11/12 21:04:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -137,8 +137,9 @@ current line.  See also `cvs-invert-ignore-marks'"
   :group 'pcl-cvs
   :type '(boolean))
 
-(defvar cvs-diff-ignore-marks t
-  "Obsolete: use `cvs-invert-ignore-marks' instead.")
+(defvar cvs-diff-ignore-marks t)
+(make-obsolete-variable 'cvs-diff-ignore-marks
+                        'cvs-invert-ignore-marks)
 
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
@@ -173,8 +174,9 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
-(defvar cvs-diff-buffer-name "*cvs-diff*"
-  "Obsolete variable: use `cvs-buffer-name-alist' instead.")
+(defvar cvs-diff-buffer-name "*cvs-diff*")
+(make-obsolete-variable 'cvs-diff-buffer-name
+                        'cvs-buffer-name-alist)
 
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
