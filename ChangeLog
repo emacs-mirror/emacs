@@ -1,3 +1,7 @@
+2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.in: Support AIX 5.1.
+
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
 	* configure.in: Added test for X Session Management (HAVE_X_SM).
