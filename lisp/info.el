@@ -2193,9 +2193,13 @@ specific node to expand."
     ;; being known at creation time.
     (if (not node)
 	(speedbar-with-writable (insert "Info Nodes:\n")))
-    (let ((completions nil))
-      (setq completions
-	    (Info-speedbar-fetch-file-nodes (or node '"(dir)top")))
+    (let ((completions nil)
+	  (cf (selected-frame)))
+      (select-frame speedbar-attached-frame)
+      (save-window-excursion
+	(setq completions
+	      (Info-speedbar-fetch-file-nodes (or node '"(dir)top"))))
+      (select-frame cf)
       (if completions
 	  (speedbar-with-writable
 	   (while completions
