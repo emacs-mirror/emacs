@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;; Copyright (C) 1992, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -36,8 +36,7 @@
 (defcustom find-dired-find-program "find"
   "Program used to find files."
   :group 'dired
-  :type 'file
-  )
+  :type 'file)
 
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
@@ -92,6 +91,21 @@ as the final argument."
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
     (switch-to-buffer (get-buffer-create "*Find*"))
+
+    ;; See if there's still a `find' running, and offer to kill
+    ;; it first, if it is.
+    (let ((find (get-buffer-process (current-buffer))))
+      (when find
+	(if (or (not (eq (process-status find) 'run))
+		(yes-or-no-p "A `find' process is running; kill it? "))
+	    (condition-case nil
+		(progn
+		  (interrupt-process find)
+		  (sit-for 1)
+		  (delete-process find))
+	      (error nil))
+	  (error "Cannot have two processes in `%s' at once" (buffer-name)))))
+      
     (widen)
     (kill-all-local-variables)
     (setq buffer-read-only nil)
