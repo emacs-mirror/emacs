@@ -31,6 +31,9 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+** The new global minor mode `auto-image-file-mode' allows image files
+to be visited as images.
+
 ** The functions `keep-lines', `flush-lines' and `how-many' now
 operate on the active region in Transient Mark mode.
 
@@ -1733,6 +1736,9 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** The new macro `with-auto-compression-mode' allows evaluating an
+expression with auto-compression-mode enabled.
 
 ** In image specifications, `:heuristic-mask' has been replaced
 with the more general `:mask' property.
