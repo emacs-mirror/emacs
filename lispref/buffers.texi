@@ -1041,6 +1041,13 @@ save that buffer, just as they offer to save file-visiting buffers.
 for any reason.  @xref{Buffer-Local Variables}.
 @end defvar
 
+@defvar buffer-save-without-query
+This variable, if non-@code{nil} in a particular buffer, tells
+@code{save-buffers-kill-emacs} and @code{save-some-buffers} to save
+this buffer (if it's modified) without asking the user.  The variable
+automatically becomes buffer-local when set for any reason.
+@end defvar
+
 @defun buffer-live-p object
 This function returns @code{t} if @var{object} is a buffer which has
 not been killed, @code{nil} otherwise.
