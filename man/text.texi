@@ -1833,8 +1833,8 @@ menu works with (@code{facemenu-remove-face-props}).
 Delete @emph{all} text properties from the region
 (@code{facemenu-remove-all}).
 
-@findex list-text-properties-at
-@item List Properties
+@findex describe-text-at
+@item Describe Text
 List all the text properties of the character following point
 (@code{list-text-properties-at}).
 
