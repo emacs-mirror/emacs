@@ -475,6 +475,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       /* No multibyte character in OBJ.  We need not encode it, but we
 	 will have to convert it to DOS CR-LF style.  */
       no_crlf_conversion = 0;
+      dst = src;
     }
   else
     {
@@ -495,6 +496,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       dst = (unsigned char *) xmalloc (bufsize);
       encode_coding (&coding, src, dst, nbytes, bufsize);
       no_crlf_conversion = 1;
+      nbytes = coding.produced;
     }
 
   if (!open_clipboard ())
@@ -502,7 +504,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   
   ok = empty_clipboard ()
     && ((put_status
-	 = set_clipboard_data (CF_OEMTEXT, src, nbytes, no_crlf_conversion))
+	 = set_clipboard_data (CF_OEMTEXT, dst, nbytes, no_crlf_conversion))
 	== 0);
 
   if (!no_crlf_conversion)
