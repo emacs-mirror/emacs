@@ -1064,6 +1064,10 @@ All regular expression replacement commands now allow `\?' in the
 replacement string to specify a position where the replacement string
 can be edited for each replacement.
 
+* query-replace uses isearch highlighting with lazy highlighting
+when the user option `query-replace-highlight' is set to `isearch'.
+If it is t, it uses old query-replace highlighting method.
+
 +++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
