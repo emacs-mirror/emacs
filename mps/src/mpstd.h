@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.26) $
+ * $HopeName: MMsrc!mpstd.h(trunk.27) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -158,9 +158,10 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .macos.ppc.align */
 
-/* GCC 2.7.2.1, gcc -E -dM -traditional-cpp and <URL:http://developer.apple.c */
-/* om/techpubs/macosx/System/Documentation/Developer/YellowBox/Reference/DevT */
-/* ools/Preprocessor/Preprocessor.[ef].html> */
+/* GCC 2.7.2.1, gcc -E -dM -traditional-cpp and <URL:http://developer.apple.c
+ * om/techpubs/macosx/System/Documentation/Developer/YellowBox/Reference/DevT
+ * ools/Preprocessor/Preprocessor.[ef].html> 
+ */
 
 #elif defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) && defined(__GNUC__)
 #define MPS_PF_XCPPGC
