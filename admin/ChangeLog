@@ -1,3 +1,7 @@
+2004-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* FOR-RELEASE (New features): Remove Gnus 5.10 entry (Done!).
+
 2004-08-29  Kim F. Storm  <storm@cua.dk>
 
 	* FOR-RELEASE (Documentation): Add man/ack.texi and AUTHORS.
