@@ -987,7 +987,7 @@ print (obj, printcharfun, escapeflag)
 
 #ifndef standalone
     case Lisp_Misc:
-      switch (XMISC (obj)->type)
+      switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Marker:
 	  strout ("#<marker ", -1, printcharfun);
@@ -1091,7 +1091,7 @@ print (obj, printcharfun, escapeflag)
 	   Probably should just abort () */
 	strout ("#<EMACS BUG: INVALID DATATYPE ", -1, printcharfun);
 	if (MISCP (obj))
-	  sprintf (buf, "(MISC 0x%04x)", (int) XMISC (obj)->type);
+	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
 	  sprintf (buf, "(PVEC 0x%08x)", (int) XVECTOR (obj)->size);
 	else
