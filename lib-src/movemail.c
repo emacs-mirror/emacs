@@ -116,7 +116,7 @@ void error ();
 void pfatal_with_name ();
 void pfatal_and_delete ();
 char *concat ();
-char *xmalloc ();
+long *xmalloc ();
 int popmail ();
 int pop_retr ();
 int mbx_write ();
@@ -430,11 +430,11 @@ concat (s1, s2, s3)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-char *
+long *
 xmalloc (size)
      unsigned size;
 {
-  char *result = (char *) malloc (size);
+  long *result = (long *) malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
