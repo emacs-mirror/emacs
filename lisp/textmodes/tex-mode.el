@@ -1318,7 +1318,9 @@ This function is more useful than \\[tex-buffer] when you need the
   "Generate a unique name suitable for use as a file name."
   ;; Include the shell process number and host name
   ;; in case there are multiple shells (for same or different user).
-  (format "#tz%d%s"
+  ;; Dec 1998: There is a report that some versions of xdvi
+  ;; don't work with file names that start with #.
+  (format "-tz#%d%s"
           (process-id (get-buffer-process "*tex-shell*"))
 	  (tex-strip-dots (system-name))))
 
