@@ -177,6 +177,9 @@ getdate.o: getdate.y ../src/config.h
 timer: getdate.o timer.o
 	$(CC) $(CFLAGS) getdate.o timer.o -o timer
 
+make-path: make-path.c
+	$(CC) $(CFLAGS) make-path.c -o make-path
+
 # These are NOT included in INSTALLABLES or UTILITIES.
 # See ../src/ymakefile.
 emacstool: emacstool.c
