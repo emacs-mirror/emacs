@@ -25,7 +25,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Corrections made by Ilya Zakharevich ilya@math.mps.ohio-state.edu
-;;; XEmacs changes by Peter Arius arius@informatik.uni-erlangen.de
 
 ;;; Commentary:
 
