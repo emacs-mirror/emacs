@@ -1734,7 +1734,7 @@ Interactively, empty argument means use same regexp used last time."
 	found)
     (save-restriction
       (widen)
-      (while (and (not found) (< current rmail-total-messages))
+      (while (and (not found) (<= current rmail-total-messages))
 	(if (rmail-message-labels-p current ", ?\\(unseen\\),")
 	    (setq found current))
 	(setq current (1+ current))))
