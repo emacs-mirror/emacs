@@ -149,8 +149,11 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 We do that if this regexp matches the locale name
 specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 
+(defvar mail-host-address nil
+  "*Name of this machine, for purposes of naming users.")
+
 (defvar user-mail-address nil
-  "Full mailing address of this user.")
+  "*Full mailing address of this user.")
 
 (defvar init-file-debug nil)
 
@@ -176,7 +179,9 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 			   (delete (concat "PWD=" pwd)
 				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
-    (setq user-mail-address (concat (user-login-name) "@" (system-name)))
+    (setq user-mail-address (concat (user-login-name) "@"
+				    (or mail-host-address
+					(system-name))))
     (let ((menubar-bindings-done nil))
       (unwind-protect
 	  (command-line)
