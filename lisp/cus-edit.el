@@ -3661,7 +3661,9 @@ The format is suitable for use with `easy-menu-define'."
   "Keymap for `custom-mode'.")
 
 (unless custom-mode-map
-  (setq custom-mode-map (make-keymap))
+  ;; This keymap should be dense, but a dense keymap would prevent inheriting
+  ;; "\r" bindings from the parent map.
+  (setq custom-mode-map (make-sparse-keymap))
   (set-keymap-parent custom-mode-map widget-keymap)
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map " " 'scroll-up)
