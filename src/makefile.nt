@@ -159,6 +159,7 @@ LIBS =  $(TLIB0)	\
 	$(ADVAPI32)	\
 	user32.lib	\
 	mpr.lib		\
+	shell32.lib	\
 	setargv.obj
 
 #
