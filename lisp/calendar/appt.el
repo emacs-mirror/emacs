@@ -151,6 +151,9 @@ The number before each time/message is the time in minutes from midnight.")
 (defconst max-time 1439
   "11:59pm in minutes - number of minutes in a day minus 1.")
 
+(defvar appt-display-interval 1
+  "*Number of minutes to wait between checking the appointment list.")
+
 (defun appt-check ()
   "Check for an appointment and update the mode line.
 Note: the time must be the first thing in the line in the diary
@@ -168,135 +171,142 @@ Example:
 The following variables control the action of the notification:
 
 appt-issue-message
-        If T, the diary buffer is checked for appointments.
+	If T, the diary buffer is checked for appointments.
 
 appt-message-warning-time
-       Variable used to determine if appointment message
-        should be displayed.
+	Variable used to determine if appointment message
+	should be displayed.
 
 appt-audible
-        Variable used to determine if appointment is audible.
-        Default is t.
+	Variable used to determine if appointment is audible.
+	Default is t.
 
 appt-visible
-        Variable used to determine if appointment message should be
-        displayed in the mini-buffer. Default is t.
+	Variable used to determine if appointment message should be
+	displayed in the mini-buffer. Default is t.
 
 appt-msg-window
-       Variable used to determine if appointment message
-       should temporarily appear in another window. Mutually exclusive
-       to appt-visible.
+	Variable used to determine if appointment message
+	should temporarily appear in another window. Mutually exclusive
+	to appt-visible.
 
 appt-display-duration
-      The number of seconds an appointment message
-      is displayed in another window.
+	The number of seconds an appointment message
+	is displayed in another window.
+
+appt-display-interval
+	The number of minutes to wait between checking the appointments
+	list.
 
 This function is run from the loadst process for display time.
 Therefore, you need to have `(display-time)' in your .emacs file."
 
 
-  (let ((min-to-app -1)
-        (new-time ""))
-    (save-excursion
-      
-      ;; Get the current time and convert it to minutes
-      ;; from midnight. ie. 12:01am = 1, midnight = 0.
-      
-      (let* ((cur-hour(string-to-int 
-                       (substring (current-time-string) 11 13)))
-             (cur-min (string-to-int 
-                       (substring (current-time-string) 14 16)))
-             (cur-comp-time (+ (* cur-hour 60) cur-min)))
-        
-        ;; If the time is 12:01am, we should update our 
-        ;; appointments to todays list.
-        
-        (if (= cur-comp-time 1)
-            (if (and view-diary-entries-initially appt-display-diary)
-                (diary)
-              (let ((diary-display-hook 'appt-make-list))
-                (diary))))
+  (if (or (= appt-display-interval 1)
+	  ;; This is true every appt-display-interval minutes.
+	  (= 0 (mod (/ (nth 1 (current-time)) 60) appt-display-interval)))
+      (let ((min-to-app -1)
+	    (new-time ""))
+	(save-excursion
 
-        ;; If there are entries in the list, and the
-        ;; user wants a message issued
-        ;; get the first time off of the list
-        ;; and calculate the number of minutes until
-        ;; the appointment.
-        
-        (if (and appt-issue-message appt-time-msg-list)
-            (let ((appt-comp-time (car (car (car appt-time-msg-list)))))
-              (setq min-to-app (- appt-comp-time cur-comp-time))
-              
-              (while (and appt-time-msg-list 
-                          (< appt-comp-time cur-comp-time))
-                (setq appt-time-msg-list (cdr appt-time-msg-list)) 
-                (if appt-time-msg-list
-                    (setq appt-comp-time 
-                          (car (car (car appt-time-msg-list))))))
-              
-              ;; If we have an appointment between midnight and
-              ;; 'appt-message-warning-time' minutes after midnight,
-              ;; we must begin to issue a message before midnight.
-              ;; Midnight is considered 0 minutes and 11:59pm is
-              ;; 1439 minutes. Therefore we must recalculate the minutes
-              ;; to appointment variable. It is equal to the number of 
-              ;; minutes before midnight plus the number of 
-              ;; minutes after midnight our appointment is.
-              
-              (if (and (< appt-comp-time appt-message-warning-time)
-                       (> (+ cur-comp-time appt-message-warning-time)
-                          max-time))
-                  (setq min-to-app (+ (- (1+ max-time) cur-comp-time))
-                        appt-comp-time))
-              
-              ;; issue warning if the appointment time is 
-              ;; within appt-message-warning time
-              
-              (if (and (<= min-to-app appt-message-warning-time)
-                       (>= min-to-app 0))
-                  (progn
-                    (if appt-msg-window
-                        (progn
-                          (string-match
-                           "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
-                           display-time-string)
-                          
-                          (setq new-time (substring display-time-string 
-                                                    (match-beginning 0)
-                                                    (match-end 0)))
-                          (appt-disp-window min-to-app new-time
-                                            (car (cdr (car appt-time-msg-list)))))
-                      ;;; else
-                      
-                      (if appt-visible
-                          (message "%s" 
-                                   (car (cdr (car appt-time-msg-list)))))
-                      
-                      (if appt-audible
-                          (beep 1)))
-                    
-                    (if appt-display-mode-line
-                        (progn
-                          (string-match
-                           "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
-                           display-time-string)
-                          
-                          (setq new-time (substring display-time-string 
-                                                    (match-beginning 0)
-                                                    (match-end 0)))
-                          (setq display-time-string
-                                (concat  "App't in "
-                                         min-to-app " min. " new-time " "))
-                          
-                          ;; force mode line updates - from time.el
-                          
-                          (save-excursion (set-buffer (other-buffer)))
-                          (set-buffer-modified-p (buffer-modified-p))
-                          (sit-for 0)))
-                    
-                    (if (= min-to-app 0)
-                        (setq appt-time-msg-list
-                              (cdr appt-time-msg-list)))))))))))
+	  ;; Get the current time and convert it to minutes
+	  ;; from midnight. ie. 12:01am = 1, midnight = 0.
+
+	  (let* ((cur-hour(string-to-int 
+			   (substring (current-time-string) 11 13)))
+		 (cur-min (string-to-int 
+			   (substring (current-time-string) 14 16)))
+		 (cur-comp-time (+ (* cur-hour 60) cur-min)))
+
+	    ;; If the time is 12:01am, we should update our 
+	    ;; appointments to todays list.
+
+	    (if (= cur-comp-time 1)
+		(if (and view-diary-entries-initially appt-display-diary)
+		    (diary)
+		  (let ((diary-display-hook 'appt-make-list))
+		    (diary))))
+
+	    ;; If there are entries in the list, and the
+	    ;; user wants a message issued
+	    ;; get the first time off of the list
+	    ;; and calculate the number of minutes until
+	    ;; the appointment.
+
+	    (if (and appt-issue-message appt-time-msg-list)
+		(let ((appt-comp-time (car (car (car appt-time-msg-list)))))
+		  (setq min-to-app (- appt-comp-time cur-comp-time))
+
+		  (while (and appt-time-msg-list 
+			      (< appt-comp-time cur-comp-time))
+		    (setq appt-time-msg-list (cdr appt-time-msg-list)) 
+		    (if appt-time-msg-list
+			(setq appt-comp-time 
+			      (car (car (car appt-time-msg-list))))))
+
+		  ;; If we have an appointment between midnight and
+		  ;; 'appt-message-warning-time' minutes after midnight,
+		  ;; we must begin to issue a message before midnight.
+		  ;; Midnight is considered 0 minutes and 11:59pm is
+		  ;; 1439 minutes. Therefore we must recalculate the minutes
+		  ;; to appointment variable. It is equal to the number of 
+		  ;; minutes before midnight plus the number of 
+		  ;; minutes after midnight our appointment is.
+
+		  (if (and (< appt-comp-time appt-message-warning-time)
+			   (> (+ cur-comp-time appt-message-warning-time)
+			      max-time))
+		      (setq min-to-app (+ (- (1+ max-time) cur-comp-time))
+			    appt-comp-time))
+
+		  ;; issue warning if the appointment time is 
+		  ;; within appt-message-warning time
+
+		  (if (and (<= min-to-app appt-message-warning-time)
+			   (>= min-to-app 0))
+		      (progn
+			(if appt-msg-window
+			    (progn
+			      (string-match
+			       "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
+			       display-time-string)
+
+			      (setq new-time (substring display-time-string 
+							(match-beginning 0)
+							(match-end 0)))
+			      (appt-disp-window min-to-app new-time
+						(car (cdr (car appt-time-msg-list)))))
+			  ;;; else
+
+			  (if appt-visible
+			      (message "%s" 
+				       (car (cdr (car appt-time-msg-list)))))
+
+			  (if appt-audible
+			      (beep 1)))
+
+			(if appt-display-mode-line
+			    (progn
+			      (string-match
+			       "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
+			       display-time-string)
+
+			      (setq new-time (substring display-time-string 
+							(match-beginning 0)
+							(match-end 0)))
+			      (setq display-time-string
+				    (concat  "App't in "
+					     min-to-app " min. " new-time " "))
+
+			      ;; force mode line updates - from time.el
+
+			      (save-excursion (set-buffer (other-buffer)))
+			      (set-buffer-modified-p (buffer-modified-p))
+			      (sit-for 0)))
+
+			(if (= min-to-app 0)
+			    (setq appt-time-msg-list
+				  (cdr appt-time-msg-list))))))))))))
 
 
 ;; Display appointment message in a separate buffer.
