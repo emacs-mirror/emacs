@@ -449,6 +449,11 @@ struct interval
 
   unsigned int total_length;	/* Length of myself and both children.  */
   unsigned int position;	/* Cache of interval's character position.  */
+				/* This field is usually updated
+				   simultaneously with an interval
+				   traversal, there is no guaranty
+				   that it is valid for a random
+				   interval.  */
   struct interval *left;	/* Intervals which precede me.  */
   struct interval *right;	/* Intervals which succeed me.  */
 
@@ -1601,7 +1606,6 @@ EXFUN (Fforward_char, 1);
 EXFUN (Fforward_line, 1);
 extern int forward_point P_ ((int));
 extern int internal_self_insert P_ ((int, int));
-extern int nonascii_insert_offset;
 
 /* Defined in coding.c */
 EXFUN (Fcoding_system_p, 1);
@@ -1614,10 +1618,13 @@ EXFUN (Fdecode_coding_string, 3);
 extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int));
 
 /* Defined in charset.c */
+extern int nonascii_insert_offset;
+extern Lisp_Object Vnonascii_translate_table;
 EXFUN (Fchar_bytes, 1);
 extern int chars_in_text P_ ((unsigned char *, int));
 extern int multibyte_chars_in_text P_ ((unsigned char *, int));
 extern int unibyte_char_to_multibyte P_ ((int));
+extern Lisp_Object Qcharset;
 
 /* Defined in syntax.c */
 EXFUN (Fforward_word, 1);
@@ -1638,6 +1645,10 @@ EXFUN (Fappend, MANY);
 EXFUN (Fconcat, MANY);
 EXFUN (Fvconcat, MANY);
 EXFUN (Fcopy_sequence, 1);
+EXFUN (Fstring_make_multibyte, 1);
+EXFUN (Fstring_make_unibyte, 1);
+EXFUN (Fstring_as_multibyte, 1);
+EXFUN (Fstring_as_unibyte, 1);
 EXFUN (Fsubstring, 3);
 extern Lisp_Object substring_both P_ ((Lisp_Object, int, int, int, int));
 EXFUN (Fnth, 2);
@@ -1751,6 +1762,10 @@ extern void memory_full P_ ((void));
 extern void buffer_memory_full P_ ((void));
 extern Lisp_Object Vpurify_flag;
 EXFUN (Fcons, 2);
+EXFUN (list2, 2);
+EXFUN (list3, 3);
+EXFUN (list4, 4);
+EXFUN (list5, 5);
 EXFUN (Flist, MANY);
 EXFUN (Fmake_list, 2);
 extern Lisp_Object allocate_misc P_ ((void));
@@ -2006,7 +2021,7 @@ extern Lisp_Object expand_and_dir_to_file P_ ((Lisp_Object, Lisp_Object));
 EXFUN (Ffile_accessible_directory_p, 1);
 EXFUN (Funhandled_file_name_directory, 1);
 EXFUN (Ffile_directory_p, 1);
-EXFUN (Fwrite_region, 6);
+EXFUN (Fwrite_region, 7);
 EXFUN (Ffile_readable_p, 1);
 EXFUN (Ffile_executable_p, 1);
 EXFUN (Fread_file_name, 5);
@@ -2139,6 +2154,7 @@ EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fsplit_window, 3);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
+extern int compare_window_configurations P_ ((Lisp_Object, Lisp_Object, int));
 EXFUN (Fcoordinates_in_window_p, 2);
 EXFUN (Fwindow_at, 3);
 EXFUN (Fpos_visible_in_window_p, 2);
