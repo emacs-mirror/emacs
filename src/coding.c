@@ -5310,7 +5310,8 @@ and the cdr part is used for encoding.\n\
 If VAL is a function symbol, the function must return a coding system\n\
 or a cons of coding systems which are used as above.\n\
 \n\
-See also the function `find-operation-coding-system'.");
+See also the function `find-operation-coding-system'.\n\
+and the variable `auto-coding-alist'.");
   Vfile_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("process-coding-system-alist", &Vprocess_coding_system_alist,
