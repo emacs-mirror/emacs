@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-info.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.2 2000/03/22 02:56:52 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,6 @@ on a directory entry, cvs would commit the whole directory.  This seems
 to confuse some users sometimes."
   :group 'pcl-cvs
   :type '(boolean))
-
 
 ;;;;
 ;;;; Faces for fontification
@@ -129,6 +128,8 @@ to confuse some users sometimes."
   "PCL-CVS face used to highlight CVS messages."
   :group 'pcl-cvs)
 
+(defvar cvs-fi-up-to-date-face 'cvs-handled-face)
+(defvar cvs-fi-unknown-face 'cvs-unknown-face)
 
 ;; There is normally no need to alter the following variable, but if
 ;; your site has installed CVS in a non-standard way you might have
@@ -137,20 +138,9 @@ to confuse some users sometimes."
 (defvar cvs-bakprefix ".#"
   "The prefix that CVS prepends to files when rcsmerge'ing.")
 
-(easy-mmode-defmap cvs-filename-map
-  '(([(mouse-2)] . cvs-mode-find-file))
-  "Local keymap for text properties of file names"
-  :inherit 'cvs-mode-map)
-
 (easy-mmode-defmap cvs-status-map
   '(([(mouse-2)] . cvs-mouse-toggle-mark))
-  "Local keymap for text properties of status"
-  :inherit 'cvs-mode-map)
-
-(easy-mmode-defmap cvs-dirname-map
-  '(([(mouse-2)] . cvs-mode-find-file))
-  "Local keymap for text properties of directory names"
-  :inherit 'cvs-mode-map)
+  "Local keymap for text properties of status")
 
 ;; Constructor:
 
@@ -225,7 +215,6 @@ to confuse some users sometimes."
 	(if (string= dir "") "." (directory-file-name dir))
       ;; Here, I use `concat' rather than `expand-file-name' because I want
       ;; the resulting path to stay relative if `dir' is relative.
-      ;; I could also use `expand-file-name' with `default-directory = ""'
       (concat dir (cvs-fileinfo->file fileinfo)))))
 
 (defun cvs-fileinfo->pp-name (fi)
@@ -320,7 +309,6 @@ Most of the actions have the obvious meaning.
 ;;;; Utility functions
 ;;;;
 
-;;----------
 (defun cvs-applicable-p (fi-or-type func)
   "Check if FUNC is applicable to FI-OR-TYPE.
 If FUNC is nil, always return t.
@@ -330,23 +318,17 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
     (and (not (eq type 'MESSAGE))
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
-;; (defun cvs-default-action (fileinfo)
-;;   "Return some kind of \"default\" action to be performed."
-;;   (second (assq (cvs-fileinfo->type fileinfo) cvs-states)))
-
-;; fileinfo pretty-printers:
-
 (defun cvs-add-face (str face &optional keymap)
   (when cvs-highlight
     (add-text-properties 0 (length str)
 			 (list* 'face face
 				(when keymap
-				  (list 'mouse-face 'highlight
-					'local-map keymap)))
+				  (list* 'mouse-face 'highlight
+					 (when (keymapp keymap)
+					   (list 'keymap keymap)))))
 			 str))
   str)
 
-;;----------
 (defun cvs-fileinfo-pp (fileinfo)
   "Pretty print FILEINFO.  Insert a printed representation in current buffer.
 For use by the cookie package."
@@ -357,7 +339,7 @@ For use by the cookie package."
      (case type
        (DIRCHANGE (concat "In directory "
 			  (cvs-add-face (cvs-fileinfo->full-path fileinfo)
-					'cvs-header-face cvs-dirname-map)
+					'cvs-header-face t)
 			  ":"))
        (MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
@@ -367,7 +349,7 @@ For use by the cookie package."
 			   (cvs-add-face "*" 'cvs-marked-face)
 			 " "))
 	       (file (cvs-add-face (cvs-fileinfo->pp-name fileinfo)
-				   'cvs-filename-face cvs-filename-map))
+				   'cvs-filename-face t))
 	       (base (or (cvs-fileinfo->base-rev fileinfo) ""))
 	       (head (cvs-fileinfo->head-rev fileinfo))
 	       (type
@@ -375,10 +357,12 @@ For use by the cookie package."
 			     ;;(MOD-CONFLICT "Not Removed")
 			     (DEAD	  "")
 			     (t (capitalize (symbol-name type)))))
-		      (face (case type
-			      (UP-TO-DATE 'cvs-handled-face)
-			      (UNKNOWN 'cvs-unknown-face)
-			      (t 'cvs-need-action-face))))
+		      (face (let ((sym (intern
+					(concat "cvs-fi-"
+						(downcase (symbol-name type))
+						"-face"))))
+			      (or (and (boundp sym) (symbol-value sym))
+				  'cvs-need-action-face))))
 		  (cvs-add-face str face cvs-status-map)))
 	       (side (or
 		      ;; maybe a subtype
@@ -405,7 +389,6 @@ For use by the cookie package."
      ((memq type '(UP-TO-DATE NEED-UPDATE))
       (setf (cvs-fileinfo->merge fi) nil)))))
 
-;;----------
 (defun cvs-fileinfo< (a b)
   "Compare fileinfo A with fileinfo B and return t if A is `less'.
 The ordering defined by this function is such that directories are
@@ -424,6 +407,73 @@ fileinfo will appear first, followed by all files (alphabetically)."
 
      ;; All files are sorted by file name.
      ((string< (cvs-fileinfo->file a) (cvs-fileinfo->file b))))))
+
+;;;
+;;; Look at CVS/Entries to quickly find a first approximation of the status
+;;;
+
+(defun cvs-fileinfo-from-entries (dir &optional all)
+  "List of fileinfos for DIR, extracted from CVS/Entries.
+Unless ALL is optional, returns only the files that are not up-to-date.
+DIR can also be a file."
+  (let* ((singlefile
+	  (cond
+	   ((equal dir "") nil)
+	   ((file-directory-p dir) (setq dir (file-name-as-directory dir)) nil)
+	   (t (prog1 (file-name-nondirectory dir)
+		(setq dir (or (file-name-directory dir) ""))))))
+	 (file (expand-file-name "CVS/Entries" dir))
+	 (fis nil))
+    (if (not (file-readable-p file))
+	(push (cvs-create-fileinfo (if singlefile 'UNKNOWN 'DIRCHANGE)
+				   dir (or singlefile ".") "") fis)
+      (with-temp-buffer
+	(insert-file-contents file)
+	(goto-char (point-min))
+	;; Select the single file entry in case we're only interested in a file.
+	(cond
+	 ((not singlefile)
+	  (push (cvs-create-fileinfo 'DIRCHANGE dir "." "") fis))
+	 ((re-search-forward
+	   (concat "^[^/]*/" (regexp-quote singlefile) "/.*") nil t)
+	  (setq all t)
+	  (goto-char (match-beginning 0))
+	  (narrow-to-region (point) (match-end 0)))
+	 (t
+	  (push (cvs-create-fileinfo 'UNKNOWN dir singlefile "") fis)
+	  (narrow-to-region (point-min) (point-min))))
+	(while (looking-at "\\([^/]*\\)/\\([^/]*\\)/\\([^/]*\\)/\\([^/]*\\)/")
+	  (if (/= (match-beginning 1) (match-end 1))
+	      (setq fis (append (cvs-fileinfo-from-entries
+				 (concat dir (file-name-as-directory
+					      (match-string 2)))
+				 all)
+				fis))
+	    (let ((f (match-string 2))
+		  (rev (match-string 3))
+		  (date (match-string 4))
+		  timestamp
+		  (type 'MODIFIED)
+		  (subtype nil))
+	      (cond
+	       ((equal (substring rev 0 1) "-")
+		(setq type 'REMOVED rev (substring rev 1)))
+	       ((not (file-exists-p (concat dir f))) (setq type 'MISSING))
+	       ((equal rev "0") (setq type 'ADDED rev nil))
+	       ((equal date "Result of merge") (setq subtype 'MERGED))
+	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
+		      (system-time-locale "C"))
+		  (equal (setq timestamp (format-time-string "%c" mtime 'utc))
+			 date))
+		(setq type (if all 'UP-TO-DATE)))
+	       ((equal date (concat "Result of merge+" timestamp))
+		(setq type 'CONFLICT)))
+	      (when type
+		(push (cvs-create-fileinfo type dir f ""
+					   :base-rev rev :subtype subtype)
+		      fis))))
+	  (forward-line 1))))
+    fis))
 
 (provide 'pcvs-info)
 
