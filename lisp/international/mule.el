@@ -51,8 +51,11 @@ Return t if file exists."
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
 	   (load-in-progress t))
       (or nomessage (message "Loading %s..." file))
+      (if purify-flag
+	  (setq preloaded-file-list (cons file preloaded-file-list)))
       (unwind-protect
-	  (progn
+	  (let ((load-file-name fullname)
+		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
 	      ;; This is buffer-local.
@@ -220,15 +223,25 @@ See the function `charset-info' for more detail."
   "Set CHARSET's property list to PLIST, and retrun PLIST."
   (aset (charset-info  charset) 14 plist))
 
-(defmacro make-char (charset &optional c1 c2)
+(defun make-char (charset &optional c1 c2)
   "Return a character of CHARSET and position-codes CODE1 and CODE2.
 CODE1 and CODE2 are optional, but if you don't supply
 sufficient position-codes, return a generic character which stands for
 all characters or group of characters in the character sets.
 A generic character can be used to index a char table (e.g. syntax-table)."
-  (if (charset-quoted-standard-p charset)
-      `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
-    `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
+  (make-char-internal (charset-id charset) c1 c2))
+
+(put 'make-char 'byte-compile
+     (function 
+      (lambda (form)
+	(let ((charset (nth 1 form)))
+	  (if (charset-quoted-standard-p charset)
+	      (byte-compile-normal-call
+	       (cons 'make-char-internal
+		     (cons (charset-id (nth 1 charset)) (nthcdr 2 form))))
+	    (byte-compile-normal-call
+	     (cons 'make-char-internal
+		   (cons (list 'charset-id charset) (nthcdr 2 form)))))))))
 
 (defun charset-list ()
   "Return list of charsets ever defined.
@@ -264,10 +277,10 @@ See also the documentation of make-char."
 (defconst coding-spec-plist-idx 3)
 (defconst coding-spec-flags-idx 4)
 
-;; PLIST is a property list of a coding system.  A coding system has
-;; PLIST in coding-spec instead of having it in normal proper list of
-;; Lisp symbol to share PLIST among alias coding systems.  Here's a
-;; list of properties to be held in PLIST.
+;; PLIST is a property list of a coding system.  To share PLIST among
+;; alias coding systems, a coding system has PLIST in coding-spec
+;; instead of having it in normal property list of Lisp symbol.
+;; Here's a list of coding system properties currently being used.
 ;;
 ;; o coding-category
 ;;
@@ -309,6 +322,16 @@ See also the documentation of make-char."
 ;; o character-unification-table-for-encode
 ;;
 ;; The value is a unification table to be applied on encoding.
+;;
+;; o safe-charsets
+;;
+;; The value is a list of charsets safely supported by the coding
+;; system.  The value t means that all charsets Emacs handles are
+;; supported.  Even if some charset is not in this list, it doesn't
+;; mean that the charset can't be encoded in the coding system,
+;; instead, it just means that some other receiver of a text encoded
+;; in the coding system won't be able to handle that charset.
+
 
 ;; Return coding-spec of CODING-SYSTEM
 (defsubst coding-system-spec (coding-system)
@@ -409,10 +432,11 @@ coding system whose eol-type is N."
     subsidiaries))
 
 (defun make-coding-system (coding-system type mnemonic doc-string
-					 &optional flags)
+					 &optional flags safe-charsets)
   "Define a new CODING-SYSTEM (symbol).
-Remaining arguments are TYPE, MNEMONIC, DOC-STRING, and FLAGS (optional) which
-construct a coding-spec of CODING-SYSTEM in the following format:
+Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional), 
+and CHARSETS (optional) which construct a coding-spec of CODING-SYSTEM
+in the following format:
 	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
 TYPE is an integer value indicating the type of coding-system as follows:
   0: Emacs internal format,
@@ -427,7 +451,10 @@ MNEMONIC is a character to be displayed on mode line for the coding-system.
 DOC-STRING is a documentation string for the coding-system.
 
 PLIST is the propert list for CODING-SYSTEM.  This function sets
-properties coding-category and alias-coding-systems.
+properties coding-category, alias-coding-systems, safe-charsets.  The
+first two are set automatically.  The last one is set to the argument
+SAFE-CHARSETS.  SAFE-CHARSETS is a list of character sets encoded
+safely in CODING-SYSTEM, or t which means all character sets are safe.
 
 FLAGS specifies more precise information of each TYPE.
 
@@ -455,8 +482,8 @@ FLAGS specifies more precise information of each TYPE.
       to initial at each beginning of line on output.
     DESIGNATION-BOL non-nil means designation sequences should be placed
       at beginning of line on output.
-    SAFE non-nil means convert unexpected characters to `?' on output.
-      Unexpected characters are what not specified in CHARSETn directly.
+    SAFE non-nil means convert unsafe characters to `?' on output.
+      Unsafe characters are what not specified in SAFE-CHARSET.
     ACCEPT-LATIN-EXTRA-CODE non-nil means code-detection routine accepts
       a code specified in `latin-extra-code-table' (which see) as a valid
       code of the coding system.
@@ -542,7 +569,8 @@ FLAGS specifies more precise information of each TYPE.
 	   (setq coding-category 'coding-category-raw-text)))
 
     (let ((plist (list 'coding-category coding-category
-		       'alias-coding-systems (list coding-system))))
+		       'alias-coding-systems (list coding-system)
+		       'safe-charsets safe-charsets)))
       (if no-initial-designation
 	  (setq plist (cons 'no-initial-designation
 			    (cons no-initial-designation plist))))
