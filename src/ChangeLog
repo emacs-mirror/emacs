@@ -1,5 +1,7 @@
 2001-09-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/netbsd.h (LD_SWITCH_SYSTEM, C_SWITCH_SYSTEM): Add /usr/pkg.
+
 	* m/macppc.h (DATA_SEG_BITS): Also define for GCC 3.
 
 2001-09-18  Gerd Moellmann  <gerd@gnu.org>
