@@ -437,7 +437,14 @@ align (size)
   __ptr_t result;
   unsigned long int adj;
 
-  result = (*__morecore) (size);
+  /* align accepts an unsigned argument, but __morecore accepts a
+     signed one.  This could lead to trouble if SIZE overflows a
+     signed int type accepted by __morecore.  We just punt in that
+     case, since they are requesting a ludicrous amount anyway.  */
+  if ((__malloc_ptrdiff_t)size < 0)
+    result = 0;
+  else
+    result = (*__morecore) (size);
   adj = (unsigned long int) ((unsigned long int) ((char *) result -
 						  (char *) NULL)) % BLOCKSIZE;
   if (adj != 0)
