@@ -21,6 +21,31 @@
 
 /* Variety Configuration */
 
+/* First deal with old-style CONFIG_VAR_* build directives.  These
+ * must be translated into the new directives CONFIG_ASSERT,
+ * CONFIG_LOG, and CONFIG_DEBUG.
+ *
+ * One day the old build system may be converted to use the new
+ * directives.
+ */
+
+#if defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
+#define CONFIG_DEBUG
+#define CHECK_DEFAULT CheckNONE
+#elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
+#define CONFIG_DEBUG
+#define CONFIG_ASSERT
+#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
+#define CONFIG_DEBUG
+#define CONFIG_ASSERT
+#define CONFIG_LOG
+#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
+#define CONFIG_LOG
+#define CONFIG_DEBUG
+#define CHECK_DEFAULT CheckNONE
+/* also CONFIG_VAR_WI and CONFIG_VAR_WE, for which all switches are off. */
+#endif
+
 
 #if defined(CONFIG_ASSERT)
 #define CHECK
@@ -234,7 +259,7 @@
 #define THREAD_SINGLE
 #define PROTECTION_NONE
 #define DONGLE_NONE
-#define CHECK_DEFAULT CheckNONE /* CheckSHALLOW is too slow for SW */
+#define PROD_CHECK_DEFAULT CheckNONE /* CheckSHALLOW is too slow for SW */
 
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_STRING         "dylan"
@@ -248,7 +273,7 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
-#define CHECK_DEFAULT CheckSHALLOW
+#define PROD_CHECK_DEFAULT CheckSHALLOW
 
 #elif defined(CONFIG_PROD_CONFIGURA)
 #define MPS_PROD_STRING         "configura"
@@ -265,10 +290,17 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
-#define CHECK_DEFAULT CheckSHALLOW
+#define PROD_CHECK_DEFAULT CheckSHALLOW
 
 #else
 #error "No target product configured."
+#endif
+
+/* if CHECK_DEFAULT hasn't been defined already (e.g. by a variety, or
+ * in a makefile), take the value from the product. */
+
+#ifndef CHECK_DEFAULT
+#define CHECK_DEFAULT PROD_CHECK_DEFAULT
 #endif
 
 
@@ -295,18 +327,18 @@
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -317,7 +349,7 @@
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
