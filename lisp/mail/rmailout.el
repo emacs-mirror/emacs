@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'rmail)
+(provide 'rmailout)
 
 ;;;###autoload
 (defcustom rmail-output-file-alist nil
@@ -39,6 +40,70 @@ a file name as a string."
 			       (string :tag "File Name")
 			       sexp)))
   :group 'rmail-output)
+
+(defun rmail-output-read-rmail-file-name ()
+  "Read the file name to use for `rmail-output-to-rmail-file'.
+Set `rmail-default-rmail-file' to this name as well as returning it."
+  (let ((default-file
+	  (let (answer tail)
+	    (setq tail rmail-output-file-alist)
+	    ;; Suggest a file based on a pattern match.
+	    (while (and tail (not answer))
+	      (save-excursion
+		(goto-char (point-min))
+		(if (re-search-forward (car (car tail)) nil t)
+		    (setq answer (eval (cdr (car tail)))))
+		(setq tail (cdr tail))))
+	    ;; If no suggestions, use same file as last time.
+	    (expand-file-name (or answer rmail-default-rmail-file)))))
+    (let ((read-file
+	   (expand-file-name
+	    (read-file-name
+	     (concat "Output message to Rmail file: (default "
+		     (file-name-nondirectory default-file)
+		     ") ")
+	     (file-name-directory default-file)
+	     (abbreviate-file-name default-file))
+	    (file-name-directory default-file))))
+      ;; If the user enters just a directory,
+      ;; use the name within that directory chosen by the default.
+      (setq rmail-default-rmail-file
+	    (if (file-directory-p read-file)
+		(expand-file-name (file-name-nondirectory default-file)
+				  read-file)
+	      read-file)))))
+
+(defun rmail-output-read-file-name ()
+  "Read the file name to use for `rmail-output'.
+Set `rmail-default-file' to this name as well as returning it."
+  (let ((default-file
+	  (let (answer tail)
+	    (setq tail rmail-output-file-alist)
+	    ;; Suggest a file based on a pattern match.
+	    (while (and tail (not answer))
+	      (save-excursion
+		(goto-char (point-min))
+		(if (re-search-forward (car (car tail)) nil t)
+		    (setq answer (eval (cdr (car tail)))))
+		(setq tail (cdr tail))))
+	    ;; If no suggestion, use same file as last time.
+	    (or answer rmail-default-file))))
+    (let ((read-file
+	   (expand-file-name
+	    (read-file-name
+	     (concat "Output message to Unix mail file: (default "
+		     (file-name-nondirectory default-file)
+		     ") ")
+	     (file-name-directory default-file)
+	     (abbreviate-file-name default-file))
+	    (file-name-directory default-file))))
+      (setq rmail-default-file
+	    (if (file-directory-p read-file)
+		(expand-file-name (file-name-nondirectory default-file)
+				  read-file)
+	      (expand-file-name
+	       (or read-file (file-name-nondirectory default-file))
+	       (file-name-directory default-file)))))))
 
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
@@ -57,36 +122,8 @@ which is updated to the name you use in this command.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
   (interactive
-   (let ((default-file
-	   (let (answer tail)
-	     (setq tail rmail-output-file-alist)
-	     ;; Suggest a file based on a pattern match.
-	     (while (and tail (not answer))
-	       (save-excursion
-		 (goto-char (point-min))
-		 (if (re-search-forward (car (car tail)) nil t)
-		     (setq answer (eval (cdr (car tail)))))
-		 (setq tail (cdr tail))))
-	     ;; If not suggestions, use same file as last time.
-	     (expand-file-name (or answer rmail-default-rmail-file)))))
-     (let ((read-file
-	    (expand-file-name
-	     (read-file-name
-	      (concat "Output message to Rmail file: (default "
-		      (file-name-nondirectory default-file)
-		      ") ")
-	      (file-name-directory default-file)
-	      (abbreviate-file-name default-file))
-	     (file-name-directory default-file))))
-       ;; If the user enters just a directory,
-       ;; use the name within that directory chosen by the default.
-       (setq rmail-default-rmail-file
-	     (if (file-directory-p read-file)
-		 (expand-file-name (file-name-nondirectory default-file)
-				   read-file)
-	       read-file)))
-     (list rmail-default-rmail-file
-	   (prefix-numeric-value current-prefix-arg))))
+   (list (rmail-output-read-rmail-file-name)
+	 (prefix-numeric-value current-prefix-arg)))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
@@ -227,35 +264,8 @@ to set the `filed' attribute, and not to display a message.
 
 The optional fourth argument FROM-GNUS is set when called from GNUS."
   (interactive
-   (let ((default-file
-	   (let (answer tail)
-	     (setq tail rmail-output-file-alist)
-	     ;; Suggest a file based on a pattern match.
-	     (while (and tail (not answer))
-	       (save-excursion
-		 (goto-char (point-min))
-		 (if (re-search-forward (car (car tail)) nil t)
-		     (setq answer (eval (cdr (car tail)))))
-		 (setq tail (cdr tail))))
-	     ;; If no suggestion, use same file as last time.
-	     (or answer rmail-default-file))))
-     (list (setq rmail-default-file
-		 (let ((read-file
-			(expand-file-name
-			 (read-file-name
-			  (concat "Output message to Unix mail file: (default "
-				  (file-name-nondirectory default-file)
-				  ") ")
-			  (file-name-directory default-file)
-			  (abbreviate-file-name default-file))
-			 (file-name-directory default-file))))
-		   (if (file-directory-p read-file)
-		       (expand-file-name (file-name-nondirectory default-file)
-					 read-file)
-		     (expand-file-name
-		      (or read-file (file-name-nondirectory default-file))
-		      (file-name-directory default-file)))))
-	   (prefix-numeric-value current-prefix-arg))))
+   (list (rmail-output-read-file-name)
+	 (prefix-numeric-value current-prefix-arg)))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
