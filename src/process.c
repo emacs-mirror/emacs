@@ -1255,22 +1255,12 @@ create_process (process, new_argv, current_dir)
     }
 #else /* not SKTPAIR */
     {
-#ifdef WINDOWSNT
-      pipe_with_inherited_out (sv);
-      inchannel = sv[0];
-      forkout = sv[1];
-
-      pipe_with_inherited_in (sv);
-      forkin = sv[0];
-      outchannel = sv[1];
-#else /* not WINDOWSNT */
       pipe (sv);
       inchannel = sv[0];
       forkout = sv[1];
       pipe (sv);
       outchannel = sv[1];
       forkin = sv[0];
-#endif /* not WINDOWSNT */
     }
 #endif /* not SKTPAIR */
 
@@ -1800,7 +1790,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Qnil;
   XPROCESS (proc)->pid = Qnil;
-  XSETINT (XPROCESS (proc)->infd, s);
+  XSETINT (XPROCESS (proc)->infd, inch);
   XSETINT (XPROCESS (proc)->outfd, outch);
   XPROCESS (proc)->status = Qrun;
   FD_SET (inch, &input_wait_mask);
@@ -2463,20 +2453,12 @@ read_process_output (proc, channel)
 #else /* not VMS */
 
   if (proc_buffered_char[channel] < 0)
-#ifdef WINDOWSNT
-    nchars = read_child_output (channel, chars, sizeof (chars));
-#else
-    nchars = read (channel, chars, sizeof chars);
-#endif
+    nchars = read (channel, chars, sizeof (chars));
   else
     {
       chars[0] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-#ifdef WINDOWSNT
-      nchars = read_child_output (channel, chars + 1, sizeof (chars) - 1);
-#else
-      nchars = read (channel, chars + 1, sizeof chars - 1);
-#endif
+      nchars = read (channel, chars + 1, sizeof (chars) - 1);
       if (nchars < 0)
 	nchars = 1;
       else
@@ -3228,12 +3210,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.")
 
 #undef handle_signal
 
-#ifdef WINDOWSNT
-  /* Only works for kill-type signals */
-  return make_number (win32_kill_process (XINT (pid), XINT (sigcode)));
-#else
   return make_number (kill (XINT (pid), XINT (sigcode)));
-#endif
 }
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
