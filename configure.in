@@ -3,7 +3,8 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001
+dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1639,7 +1640,7 @@ if test "${HAVE_X11}" = "yes"; then
 #include <X11/XKBlib.h>],
 	[XkbDescPtr kb = XkbGetKeyboard (0, XkbAllComponentsMask, XkbUseCoreKbd);],
 	emacs_xkb=yes, emacs_xkb=no)
-  AC_MSG_CHECKING($emacs_xkb)
+  AC_MSG_RESULT($emacs_xkb)
   if test $emacs_xkb = yes; then
     AC_DEFINE(HAVE_XKBGETKEYBOARD)
   fi
@@ -1733,7 +1734,14 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
     LIBS="-lXt $LIBS"
   fi
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
-  LIBS="$OLDLIBS"
+  test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
+fi
+
+# On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
+if test "${HAVE_X11}" = "yes"; then
+  if test "${USE_X_TOOLKIT}" != "none"; then
+    AC_CHECK_LIB(Xext, XShapeQueryExtension)
+  fi
 fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
@@ -1749,7 +1757,7 @@ Motif version prior to 2.1.
   if test $emacs_cv_motif_version_2_1 = yes; then
     HAVE_LIBXP=no
     AC_DEFINE(HAVE_MOTIF_2_1)
-    AC_CHECK_LIB(Xp, XpCreateContext, HAVE_LIBXP=yes, , -lXext)
+    AC_CHECK_LIB(Xp, XpCreateContext, HAVE_LIBXP=yes)
     if test ${HAVE_LIBXP} = yes; then
       AC_DEFINE(HAVE_LIBXP)
     fi	
@@ -1760,12 +1768,8 @@ fi
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE}"
     AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
-
+	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes))
     if test "${HAVE_XAW3D}" = "yes"; then
 	AC_DEFINE(HAVE_XAW3D)
     fi
@@ -1801,8 +1805,6 @@ fi
 HAVE_XPM=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_xpm}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE}"
     AC_CHECK_HEADER(X11/xpm.h,
       AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
     if test "${HAVE_XPM}" = "yes"; then
@@ -1814,7 +1816,6 @@ no_return_alloc_pixels
 #endif
 	], HAVE_XPM=no, HAVE_XPM=yes)
     fi
-    CFLAGS="${old_c_flags}"
     if test "${HAVE_XPM}" = "yes"; then
        AC_MSG_RESULT(yes)
     else
@@ -1831,13 +1832,10 @@ fi
 HAVE_JPEG=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     dnl Checking for jpeglib.h can lose becsue of a redefinition of
     dnl  HAVE_STDLIB_H.
     AC_CHECK_HEADER(jerror.h,
-      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
+      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes))
   fi
 
   if test "${HAVE_JPEG}" = "yes"; then
@@ -1849,11 +1847,8 @@ fi
 HAVE_PNG=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(png.h,
-      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lX11 -lz -lm))
-    CFLAGS="${old_c_flags}"
+      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm))
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -1865,14 +1860,11 @@ fi
 HAVE_TIFF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_tiff}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(tiffio.h,
-      tifflibs="-lX11 -lz -lm"
+      tifflibs="-lz -lm"
       # At least one tiff package requires the jpeg library.
       if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
       AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs))
-    CFLAGS="${old_c_flags}"
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -1884,11 +1876,8 @@ fi
 HAVE_GIF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_gif}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(gif_lib.h,
-      AC_CHECK_LIB(ungif, DGifOpen, HAVE_GIF=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
+      AC_CHECK_LIB(ungif, DGifOpen, HAVE_GIF=yes))
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
