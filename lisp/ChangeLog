@@ -1,3 +1,8 @@
+2000-11-25  Miles Bader  <miles@gnu.org>
+
+	* wid-edit.el (widget-field-value-delete): Don't try to delete
+	overlay when it's the `psuedo-overlay' that exists at some points.
+
 2000-11-24  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (locale-language-names): Add "jp" as
