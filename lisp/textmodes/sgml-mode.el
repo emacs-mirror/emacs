@@ -1074,14 +1074,14 @@ immediately enclosing the current position."
 		      (/= (point) (sgml-tag-start (car context)))
                       (sgml-unclosed-tag-p (sgml-tag-name (car context)))))
 	     (setq tag-info (ignore-errors (sgml-parse-tag-backward))))
-      
+
       ;; This tag may enclose things we thought were tags.  If so,
       ;; discard them.
       (while (and context
                   (> (sgml-tag-end tag-info)
                      (sgml-tag-end (car context))))
         (setq context (cdr context)))
-      
+
       (cond
 
        ;; start-tag
@@ -1144,7 +1144,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 ;; Editing shortcuts
 
 (defun sgml-close-tag ()
-  "Insert an close-tag for the current element."
+  "Insert a close-tag for the current element."
   (interactive)
   (case (car (sgml-lexical-context))
     (comment 	(insert " -->"))
@@ -1259,7 +1259,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 	   (goto-char there)
 	   (+ (current-column)
 	      (* sgml-basic-offset (length context))))))
-      
+
       (otherwise
        (error "Unrecognised context %s" (car lcon)))
 
@@ -1740,7 +1740,7 @@ The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")
 
 (defun html-imenu-index ()
-  "Return an table of contents for an HTML buffer for use with Imenu."
+  "Return a table of contents for an HTML buffer for use with Imenu."
   (let (toc-index)
     (save-excursion
       (goto-char (point-min))
