@@ -1014,9 +1014,8 @@ see `language-info-alist'."
     (put 'current-language-environment 'custom-type
 	 (cons 'choice (mapcar
 			(lambda (lang)
-			  (list 'const (car lang)))
-			(sort (copy-sequence language-info-alist)
-			      (lambda (x y) (string< (car x) (car y)))))))))
+			  (list 'const lang))
+			(sort (mapcar 'car language-info-alist) 'string<))))))
 
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
@@ -1533,9 +1532,8 @@ to using the function `set-language-environment'."
   :type (if language-info-alist
 	    (cons 'choice (mapcar
 			   (lambda (lang)
-			     (list 'const (car lang)))
-			   (sort (copy-sequence language-info-alist)
-				 (lambda (x y) (string< (car x) (car y))))))
+			     (list 'const lang))
+			   (sort (mapcar 'car language-info-alist) 'string<)))
 	  'string)
   :initialize 'custom-initialize-default
   :group 'mule)
