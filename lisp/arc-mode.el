@@ -520,8 +520,8 @@ archive.
 	(make-local-variable 'revert-buffer-function)
 	(setq revert-buffer-function 'archive-mode-revert)
 	(auto-save-mode 0)
-	(make-local-variable 'local-write-file-hooks)
-	(add-hook 'local-write-file-hooks 'archive-write-file)
+	(make-local-variable 'write-contents-hooks)
+	(add-hook 'write-contents-hooks 'archive-write-file)
 
 	;; Real file contents is binary
 	(make-local-variable 'require-final-newline)
