@@ -1,6 +1,11 @@
+2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-context-prefix): Fix last change with
+	yet-another-approach.
+
 2002-04-28  Markus Rost  <rost@math.ohio-state.edu>
 
-	* net/ange-ftp.el (ange-ftp-passive-host-alist) 
+	* net/ange-ftp.el (ange-ftp-passive-host-alist)
 	(ange-ftp-bs2000-additional-pubsets):  Fix custom type.
 
 	* files.el (small-temporary-file-directory): Fix custom type.
@@ -10,14 +15,14 @@
 	* progmodes/f90.el (f90-xemacs-flag): New variable.
 	(f90-mark-subprogram-overlay): New variable.
 	(f90-mark-subprogram): Now it highlights the subprogram.
-	(f90-font-lock-keywords-1, f90-font-lock-keywords-2): Fix
-	highlighting of various "type" forms.
+	(f90-font-lock-keywords-1, f90-font-lock-keywords-2):
+	Fix highlighting of various "type" forms.
 
 2002-04-28  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-mode): Additional documentation on filter
 	groups.
-	
+
 2002-04-28  John Paul Wallington <jpw@shootybangbang.com>
 
 	* ibuf-ext.el (ibuffer-set-filter-groups-by-mode): Don't make an
@@ -41,9 +46,9 @@
 	Use occur-engine-add-prefix instead.
 	Rename `l' to `lines' and `c' to `matches'.
 
-	* replace.el (occur-engine, occur-mode-mouse-goto) 
-	(occur-mode-find-occurrence, occur-mode-goto-occurrence) 
-	(occur-mode-goto-occurrence-other-window) 
+	* replace.el (occur-engine, occur-mode-mouse-goto)
+	(occur-mode-find-occurrence, occur-mode-goto-occurrence)
+	(occur-mode-goto-occurrence-other-window)
 	(occur-mode-display-occurrence): A position is just a marker,
 	not a list.
 
@@ -91,8 +96,8 @@
 
 2002-04-26  Andrew Choi  <akochoi@shaw.ca>
 
-	* term/mac-win.el: Don't call ediff-toggle-multiframe.  Set
-	default directory.  Set process-connection-type to nil.
+	* term/mac-win.el: Don't call ediff-toggle-multiframe.
+	Set default directory.  Set process-connection-type to nil.
 
 2002-04-26  Richard M. Stallman  <rms@gnu.org>
 
@@ -164,16 +169,15 @@
 
 	* replace.el (multi-occur-by-filename-regexp): Doc fix.
 	(occur-engine): Go to `point-min'.  Make nlines argument actually
-	mean number of context lines.  Handle it.  Pad digits to the
-	right.
+	mean number of context lines.  Handle it.  Pad digits to the right.
 
 	* ibuf-ext.el (ibuffer-filtering-groups): Renamed to
 	`ibuffer-filter-groups'.  All users updated.
 	(ibuffer-show-empty-filter-groups): New variable.
 	(ibuffer-saved-filter-groups): New variable.
 	(ibuffer-maybe-save-stuff): Renamed from
-	`ibuffer-maybe-save-saved-filters'.  Callers updated.  Handle
-	`ibuffer-saved-filter-groups'.
+	`ibuffer-maybe-save-saved-filters'.  Callers updated.
+	Handle `ibuffer-saved-filter-groups'.
 	(ibuffer-hidden-filtering-groups): Renamed to
 	`ibuffer-hidden-filter-groups'.
 	(ibuffer-filter-group-kill-ring): New variable.
@@ -192,8 +196,8 @@
 	specific mark, and marking on a specific group.
 
 	* ibuffer.el (ibuffer-formats): Doc fix.
-	(ibuffer-mode-map): Bind <up> to `ibuffer-backward-line'.  Bind
-	new functions from ibuf-ext.el.  Add menu entries for them.
+	(ibuffer-mode-map): Bind <up> to `ibuffer-backward-line'.
+	Bind new functions from ibuf-ext.el.  Add menu entries for them.
 	Remove superfluous tooltips.
 	(ibuffer-toggle-marks): If on a group name, then toggle marks just
 	in that group.
@@ -203,8 +207,7 @@
 	(ibuffer-mark-for-delete-backwards): Update docs.
 	(ibuffer-current-filter-groups): Moved to ibuf-ext.el, and renamed
 	to `ibuffer-current-filter-groups-with-position'.
-	(ibuffer-redisplay-engine): Handle
-	`ibuffer-show-empty-filter-groups'.
+	(ibuffer-redisplay-engine): Handle `ibuffer-show-empty-filter-groups'.
 	(ibuffer-mode): Add some documentation about filter groups.
 
 2002-04-25  Andreas Schwab  <schwab@suse.de>
@@ -274,13 +277,12 @@
 	functions; also, bind the arrow keys to the movement functions.
 	(ibuffer-mode-filter-group-map): New.
 	(ibuffer-mouse-toggle-mark): Handle group names.
-	(ibuffer-mouse-visit-buffer): Error if the current buffer is
-	killed.
+	(ibuffer-mouse-visit-buffer): Error if the current buffer is killed.
 	(ibuffer-skip-properties): New function.
 	(ibuffer-backward-line, ibuffer-forward-line): Optionally skip
 	group names.  Also, handle new properties.
-	(ibuffer-visit-buffer, ibuffer-visit-buffer-other-window): Move
-	error handling to `ibuffer-current-buffer'.
+	(ibuffer-visit-buffer, ibuffer-visit-buffer-other-window):
+	Move error handling to `ibuffer-current-buffer'.
 	(ibuffer-visit-buffer-other-frame, ibuffer-bury-buffer): Ditto.
 	(ibuffer-visit-tags-table, ibuffer-do-view-1): Ditto.
 	(ibuffer-toggle-marks): Add optional group argument.
@@ -295,13 +297,12 @@
 	(ibuffer-insert-filter-group): New function.
 	(ibuffer-redisplay-engine): Renamed from
 	`ibuffer-insert-buffers-and-marks'.  Handle new filtering groups.
-	(ibuffer): Add filter-groups argument.  Handle it.  Use
-	`save-selected-window'.
+	(ibuffer): Add filter-groups argument.  Handle it.
+	Use `save-selected-window'.
 	(ibuffer-mode): Make `ibuffer-filtering-groups' and
 	`ibuffer-hidden-filtering-groups' buffer-local.
 
-	* ibuf-macs.el (ibuffer-save-marks): Call
-	`ibuffer-redisplay-engine'.
+	* ibuf-macs.el (ibuffer-save-marks): Call `ibuffer-redisplay-engine'.
 
 2002-04-24  Richard M. Stallman  <rms@gnu.org>
 
@@ -378,10 +379,8 @@
 	(ibuffer-occur-match-face): Delete.
 	(ibuffer-occur-props, ibuffer-occur-mode): Delete.
 	(ibuffer-occur-mouse-display-occurence): Delete.
-	(ibuffer-occur-goto-occurence, ibuffer-occur-display-occurence):
-	Delete.
-	(ibuffer-do-occur-1, ibuffer-occur-revert-buffer-function):
-	Delete.
+	(ibuffer-occur-goto-occurence, ibuffer-occur-display-occurence)
+	(ibuffer-do-occur-1, ibuffer-occur-revert-buffer-function): Delete.
 	(ibuffer-occur-engine): Moved to replace.el.
 	(ibuffer-do-occur): Simply call `occur-1'.
 
@@ -440,13 +439,12 @@
 
 	* tmm.el (tmm-completion-prompt): Doc fix.
 
-	* hilit-chg.el (global-highlight-changes): Capitalize status
-	texts.
+	* hilit-chg.el (global-highlight-changes): Capitalize status texts.
 
 2002-04-22  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* diary-lib.el (include-other-diary-files): Allow modifying
-        included buffer, to turn off selective display.
+	included buffer, to turn off selective display.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -458,8 +456,8 @@
 
 	* progmodes/cc-align.el, progmodes/cc-engine.el,
 	progmodes/cc-styles.el, progmodes/cc-vars.el
-	(c-guess-basic-syntax, c-lineup-topmost-intro-cont): Find
-	correct anchor for statement-cont in top level constructs.
+	(c-guess-basic-syntax, c-lineup-topmost-intro-cont):
+	Find correct anchor for statement-cont in top level constructs.
 	Analyze variable initializations in top level constructs as
 	topmost-intro-cont instead of statement-cont.  That is an
 	incompatible change but it gives better consistency.  The new
@@ -478,28 +476,28 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Detect
-	variable declarations after class and struct declarations
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Detect variable declarations after class and struct declarations
 	correctly.  Fixed limit error when finding the anchor for
 	template-args-cont and topmost-intro-cont.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-beginning-of-defun,
-	c-declaration-limits): Find the "line oriented" declaration
+	* progmodes/cc-cmds.el (c-beginning-of-defun)
+	(c-declaration-limits): Find the "line oriented" declaration
 	start too, just like the "line oriented" end is found.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-vars.el (c-offsets-alist): A more sane default
-	for `inexpr-statement'.  This is not compatible, though.  I
-	think the benefit of a good default style outweights that in
+	for `inexpr-statement'.  This is not compatible, though.
+	I think the benefit of a good default style outweights that in
 	this case.  Besides, `inexpr-statement' is not very common.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-electric-delete-forward): Fixed
-	silly bug that caused it to delete backwards in hungry delete
+	* progmodes/cc-cmds.el (c-electric-delete-forward):
+	Fix silly bug that caused it to delete backwards in hungry delete
 	mode.  (It's amazing that this bug hasn't been reported.)
 
 	* progmodes/cc-cmds.el (c-declaration-limits, c-mark-function):
@@ -517,24 +515,22 @@
 
 	* progmodes/cc-cmds.el, progmodes/cc-engine.el
 	(c-beginning-of-defun, c-end-of-defun, c-mark-function):
-	Rewritten to detect the declaration limits better.  Now
-	handles K&R argdecls, class definitions followed by variables
-	etc.
+	Rewritten to detect the declaration limits better.
+	Now handles K&R argdecls, class definitions followed by variables etc.
 
 	(c-in-knr-argdecl): Broke out the K&R argdecl test in
 	`c-beginning-of-decl-1' to this new function.
 
-	(c-end-of-statement-1, c-end-of-decl-1): Replaced
-	`c-end-of-statement-1' with `c-end-of-decl-1', which correctly
+	(c-end-of-statement-1, c-end-of-decl-1):
+	Replace `c-end-of-statement-1' with `c-end-of-decl-1', which correctly
 	handles declarations that continue after the block.
 
 	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
 	Added an option to restrict matching to the top level of the
 	current paren sexp.
 
-	* progmodes/cc-langs.el (c-opt-block-decls-with-vars-key): New
-	regexp to recognize declarations that continue after the
-	block.
+	* progmodes/cc-langs.el (c-opt-block-decls-with-vars-key):
+	New regexp to recognize declarations that continue after the block.
 
 	(c-syntactic-eol): New regexp to match a "syntactic" eol.
 
@@ -544,8 +540,8 @@
 	that often caused the backward limit to be lost at the top
 	level.  This improves performance a bit.
 
-	* progmodes/cc-engine.el (c-syntactic-re-search-forward): New
-	function that works like `re-search-forward' but only returns
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	New function that works like `re-search-forward' but only returns
 	matches in syntactically significant text.
 
 	* progmodes/cc-engine.el: Fixed a faster and more accurate way
@@ -573,8 +569,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-indent-line-or-region): Call
-	`c-indent-line' directly instead of through
+	* progmodes/cc-cmds.el (c-indent-line-or-region):
+	Call `c-indent-line' directly instead of through
 	`indent-according-to-mode' so that this function always
 	indents syntactically.
 
@@ -589,8 +585,8 @@
 	progmodes/cc-engine.el, progmodes/cc-vars.el: Fixes so that
 	the context sensitive analysis inside macros is restricted to
 	the bodies of #define's; other things, like #if expressions,
-	never have anything in common with their surroundings.  The
-	old `cpp-macro-cont' syntax is now used in situations where
+	never have anything in common with their surroundings.
+	The old `cpp-macro-cont' syntax is now used in situations where
 	the syntactic analysis isn't applicable, and a new syntactic
 	element `cpp-define-intro' is used to add indentation in
 	#define bodies.
@@ -599,19 +595,16 @@
 	better reflect its use.
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Ignore line
-	continuation backslashes in the detection of
-	`arglist-cont-nonempty'.
+	continuation backslashes in the detection of `arglist-cont-nonempty'.
 
 	* progmodes/cc-align.el: Use the vector form in the return
-	value in all cases where lineup functions return absolute
-	columns.
+	value in all cases where lineup functions return absolute columns.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-add-stmt-syntax,
-	c-guess-basic-syntax): Anchor `brace-list-intro' and
-	`bracec-list-close' better for brace lists nested inside
-	expressions.
+	* progmodes/cc-engine.el (c-add-stmt-syntax)
+	(c-guess-basic-syntax): Anchor `brace-list-intro' and
+	`bracec-list-close' better for brace lists nested inside expressions.
 
 	* progmodes/cc-engine.el, progmodes/cc-langs.el,
 	progmodes/cc-mode.el, progmodes/cc-styles.el: Cleaned up the
@@ -625,24 +618,22 @@
 	original CC Mode mode.
 
 	(c-major-mode-is): Compare against the buffer local variable
-	`c-buffer-is-cc-mode', which is faster than using
-	`derived-mode-class'.
+	`c-buffer-is-cc-mode', which is faster than using `derived-mode-class'.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-forward-syntactic-ws,
-	c-backward-syntactic-ws, c-forward-token-1,
-	c-backward-token-1, c-in-literal, c-literal-limits,
-	c-collect-line-comments, c-literal-type, c-on-identifier,
-	c-guess-basic-syntax): These functions are now considered part
-	of the "CC Mode API" and may be used by other code.  That's
-	signified by making their documentation into docstrings.
+	* progmodes/cc-engine.el (c-forward-syntactic-ws)
+	(c-backward-syntactic-ws, c-forward-token-1)
+	(c-backward-token-1, c-in-literal, c-literal-limits)
+	(c-collect-line-comments, c-literal-type, c-on-identifier)
+	(c-guess-basic-syntax): These functions are now considered part
+	of the "CC Mode API" and may be used by other code.
+	That's signified by making their documentation into docstrings.
 
 	(c-whack-state, c-hack-state, c-skip-case-statement-forward):
 	Removed these internal functions since they aren't used.
 
-	(c-forward-to-cpp-expression): Classified this function as
-	internal.
+	(c-forward-to-cpp-expression): Classified this function as internal.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -693,8 +684,8 @@
 	outside their intended use, and they generally do the right
 	thing when they kick in.
 
-	* progmodes/cc-engine.el (c-guess-continued-construct,
-	c-guess-basic-syntax): Handle nested functions in all
+	* progmodes/cc-engine.el (c-guess-continued-construct)
+	(c-guess-basic-syntax): Handle nested functions in all
 	languages, not just Pike.  In C and C++ there's a gcc
 	extension for this, and it also gives better treatment of
 	macros that are followed by blocks.
@@ -754,8 +745,8 @@
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el, progmodes/cc-langs.el
-	(c-stmt-delim-chars, c-stmt-delim-chars-with-comma): New
-	variables containing the character sets used to recognize
+	(c-stmt-delim-chars, c-stmt-delim-chars-with-comma):
+	New variables containing the character sets used to recognize
 	statement/declaration boundaries.  These variables might help
 	to support languages like javascript and awk, where newlines
 	sometimes delimits statements.
@@ -766,26 +757,23 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-looking-at-bos,
-	c-looking-at-inexpr-block, c-add-stmt-syntax,
-	c-guess-basic-syntax): Treat blocks directly inside function
+	* progmodes/cc-engine.el (c-looking-at-bos)
+	(c-looking-at-inexpr-block, c-add-stmt-syntax)
+	(c-guess-basic-syntax): Treat blocks directly inside function
 	calls like "bare" statements inside function calls, and not
 	like in-expression statements.  This to make indentation of
-	such blocks consistent with other statements inside macro
-	calls.
+	such blocks consistent with other statements inside macro calls.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Made
-	arglist-cont anchor correctly in arglists that contain
-	statements.
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Made arglist-cont anchor correctly in arglists that contain statements.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed
-	consistent anchoring of defun-block-intro in defuns in code
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Fixed consistent anchoring of defun-block-intro in defuns in code
 	blocks (can only occur in Pike).
 
-	* progmodes/cc-engine.el (c-looking-at-inexpr-block,
-	c-looking-at-inexpr-block-backward): Changed the arguments to
-	require containing sexps and paren state, for better
-	efficiency.
+	* progmodes/cc-engine.el (c-looking-at-inexpr-block)
+	(c-looking-at-inexpr-block-backward): Changed the arguments to
+	require containing sexps and paren state, for better efficiency.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -793,13 +781,12 @@
 	progmodes/cc-vars.el: Improved anchoring of statement and
 	handling of labels in front of substatements.
 
-	(c-guess-continued-construct, c-guess-basic-syntax): Improved
-	and unified anchoring at statements.  Statements beginning
+	(c-guess-continued-construct, c-guess-basic-syntax):
+	Improved and unified anchoring at statements.  Statements beginning
 	with comments or labels are now avoided, by going out of
 	blocks and containing statements if necessary.  This nesting
 	handling also fixes the case when there's a statement after a
-	block open brace.  Added the syntactic symbol
-	`substatement-label'.
+	block open brace.  Added the syntactic symbol `substatement-label'.
 
 	(c-electric-colon): Map the new `substatement-label' to
 	`label' when consulting `c-hanging-colons-alist'.
@@ -808,8 +795,8 @@
 	comments for the new anchoring positions at statements.
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Use more sane
-	anchor points for knr-argdecl-intro and access-label.  They
-	used to refer to some point on the same line, a bug which was
+	anchor points for knr-argdecl-intro and access-label.
+	They used to refer to some point on the same line, a bug which was
 	neutralized by a kludge in `c-get-syntactic-indentation' which
 	ignored such anchor points.
 
@@ -826,13 +813,13 @@
 	* progmodes/cc-engine.el (c-looking-at-bos): Added optional
 	limit arg for backward searches.
 
-	* progmodes/cc-engine.el (c-looking-at-inexpr-block): Anchor
-	gcc in-expression statements at the surrounding open
+	* progmodes/cc-engine.el (c-looking-at-inexpr-block):
+	Anchor gcc in-expression statements at the surrounding open
 	parenthesis.  Treat a class body as an in-expression class if
 	it's used in an object clone expression in Pike.
 
-	* progmodes/cc-engine.el (c-get-offset,
-	c-get-syntactic-indentation): Allow several anchor positions
+	* progmodes/cc-engine.el (c-get-offset)
+	(c-get-syntactic-indentation): Allow several anchor positions
 	in the list of syntactic symbols.  Only the first is used as
 	the base for the offset calculation.
 
@@ -848,8 +835,8 @@
 
 	* progmodes/cc-engine.el (c-end-of-macro): New function.
 
-	* progmodes/cc-engine.el (c-least-enclosing-brace): Rewritten
-	to not be destructive.
+	* progmodes/cc-engine.el (c-least-enclosing-brace):
+	Rewritten to not be destructive.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -885,37 +872,36 @@
 	any reasonably sane style.  Also introduced a noerror flag.
 
 	(c-beginning-of-closest-statement): Removed;
-	c-beginning-of-statement-1 now avoids the problem this one
-	solved.
+	c-beginning-of-statement-1 now avoids the problem this one solved.
 
-	* progmodes/cc-engine.el (c-guess-continued-construct,
-	c-guess-basic-syntax): Better and more uniform anchor points
+	* progmodes/cc-engine.el (c-guess-continued-construct)
+	(c-guess-basic-syntax): Better and more uniform anchor points
 	for 'statement-cont and 'substatement.  The effect is
 	noticeable mostly when there's a label on the same line as the
 	beginning of the statement, or when there are more stuff
 	before the start of the statement.
 
-	* progmodes/cc-engine.el (c-looking-at-inexpr-block): Added
-	flag to disable looking at the type of the surrounding paren
+	* progmodes/cc-engine.el (c-looking-at-inexpr-block):
+	Added flag to disable looking at the type of the surrounding paren
 	since that confuses c-beginning-of-statement-1 and a couple of
 	other places.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Avoid
-	stepping to the previous statement in case 18.  Improvements
-	in recognition of statement blocks on the top level.
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Avoid stepping to the previous statement in case 18.
+	Improvements in recognition of statement blocks on the top level.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1,
-	c-crosses-statement-barrier-p): Rewritten to get a well
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-crosses-statement-barrier-p): Rewritten to get a well
 	defined and documented behavior.  This fixes some tricky cases
 	in recognition of do-while constructs.
 
 	(c-backward-to-start-of-do, c-backward-to-start-of-if):
 	Removed; use c-beginning-of-statement-1 instead.
 
-	(c-guess-continued-construct, c-guess-basic-syntax): Various
-	fixes to not depend on the bugs previously in
+	(c-guess-continued-construct, c-guess-basic-syntax):
+	Various fixes to not depend on the bugs previously in
 	c-beginning-of-statement-1.  Cleanups in cases 18 and 17 to
 	use the new behavior of c-beginning-of-statement-1 better.
 	Fixed recognition of catch blocks inside macros.
@@ -932,10 +918,10 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Improved
-	recognition of statements: They are now recognized in contexts
-	where they normally can't occur, e.g. on the top level or in
-	function call arguments.  This is mainly useful to recognize
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Improved recognition of statements: They are now recognized in
+	contexts where they normally can't occur, e.g. on the top level or
+	in function call arguments.  This is mainly useful to recognize
 	statements in macros at the top level, and in arguments to
 	macros.  The cases has been moved around quite a bit, and case
 	10 has been copied to case 18.  (The cases has not been
@@ -944,9 +930,9 @@
 	(c-guess-continued-construct): New function which has the
 	rules which are common between cases 10 and 18.
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1,
-	c-backward-to-start-of-do, c-backward-to-start-of-if): Fixes
-	so that they really obey the passed limits.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-backward-to-start-of-do, c-backward-to-start-of-if):
+	Fixes so that they really obey the passed limits.
 
 	(c-safe-position): Return nil if the state doesn't contain a
 	suitable position.
@@ -955,11 +941,11 @@
 	to c-beginning-of-statement-1.  Some fixes for top level
 	analysis in ObjC mode.
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1): Fixed
-	bug in do-while statements where the body is not a block.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):
+	Fixed bug in do-while statements where the body is not a block.
 
-	* progmodes/cc-styles.el (c-set-style): Reset
-	c-special-indent-hook to its global value if in override mode.
+	* progmodes/cc-styles.el (c-set-style):
+	Reset c-special-indent-hook to its global value if in override mode.
 	Fixes problem where functions on that hook remained after
 	style switch.
 
@@ -980,8 +966,8 @@
 	(c-in-literal): No longer recognizes macros as literals by
 	default. An extra flag argument is required to do that.
 
-	(c-macro-start, c-query-macro-start,
-	c-query-and-set-macro-start): Added a cache for the macro
+	(c-macro-start, c-query-macro-start)
+	(c-query-and-set-macro-start): Added a cache for the macro
 	start position.
 
 	(c-forward-syntactic-ws, c-backward-syntactic-ws): Fixes for
@@ -992,8 +978,8 @@
 	(c-lineup-macro-cont): Improved behavior when
 	c-syntactic-indentation-in-macros is nil.
 
-	(c-syntactic-indentation-in-macros, c-backslash-max-column,
-	c-auto-align-backslashes): New customization variables to
+	(c-syntactic-indentation-in-macros, c-backslash-max-column)
+	(c-auto-align-backslashes): New customization variables to
 	control macro handling.
 
 	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression):
@@ -1007,8 +993,7 @@
 	(c-benign-error): New macro to report errors that doesn't need
 	to interrupt the operation.
 
-	* progmodes/cc-defs.el (c-point): Added eonl and eopl
-	positions.
+	* progmodes/cc-defs.el (c-point): Added eonl and eopl positions.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -1026,8 +1011,7 @@
 	`c-check-state-cache'.  This gives a considerable performance
 	boost when editing large functions or classes.
 
-	* progmodes/cc-engine.el (c-whack-state-after): Slight
-	optimization.
+	* progmodes/cc-engine.el (c-whack-state-after): Slight optimization.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -1044,8 +1028,8 @@
 	(c-forward-to-cpp-expression): New function to aid in
 	syntactic analysis inside macros.
 
-	(c-beginning-of-statement-1, c-backward-syntactic-ws): Fixes
-	to work better inside macros.
+	(c-beginning-of-statement-1, c-backward-syntactic-ws):
+	Fixes to work better inside macros.
 
 	(c-forward-syntactic-ws): Whitespace between the # and the
 	command should be allowed in preprocessor directives.
@@ -1058,24 +1042,24 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1,
-	c-forward-syntactic-ws): Fixes to handle continued lines.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-forward-syntactic-ws): Fixes to handle continued lines.
 
-	(c-backward-to-start-of-if, c-guess-basic-syntax): Do
-	syntactic analysis inside macros.
+	(c-backward-to-start-of-if, c-guess-basic-syntax):
+	Do syntactic analysis inside macros.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el (c-indent-region): Did a speedup made
 	possible by the more flexible state cache.
 
-	* progmodes/cc-engine.el (c-parse-state, c-whack-state-before,
-	c-whack-state-after, c-hack-state,
-	c-narrow-out-enclosing-class, c-guess-basic-syntax): Improved
-	the state cache system.  It now can use partial info from an
-	old cached state to calculate a new one at a different
-	position.  Removed some kludges to avoid the state cache.  The
-	new functions `c-whack-state-before' and `c-whack-state-after'
+	* progmodes/cc-engine.el (c-parse-state, c-whack-state-before)
+	(c-whack-state-after, c-hack-state)
+	(c-narrow-out-enclosing-class, c-guess-basic-syntax):
+	Improved the state cache system.  It now can use partial info from
+	an old cached state to calculate a new one at a different
+	position.  Removed some kludges to avoid the state cache.
+	The new functions `c-whack-state-before' and `c-whack-state-after'
 	replace the now obsolete `c-whack-state'.
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1):
@@ -1086,8 +1070,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-electric-continued-statement): Fixed
-	a bug where the keyword wasn't reindented correctly if
+	* progmodes/cc-cmds.el (c-electric-continued-statement):
+	Fixed a bug where the keyword wasn't reindented correctly if
 	followed by another keyword or identifier.
 
 	* progmodes/cc-engine.el (c-parse-state): Ignore closed brace
@@ -1097,8 +1081,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-beginning-of-macro,
-	c-forward-syntactic-ws): Recognize "#!" as a preprocessor
+	* progmodes/cc-engine.el (c-beginning-of-macro)
+	(c-forward-syntactic-ws): Recognize "#!" as a preprocessor
 	directive when it begins a line, to allow for script
 	interpreter lines like "#!/usr/bin/pike" at the beginning of
 	the file.
@@ -1107,13 +1091,12 @@
 
 	* progmodes/cc-engine.el (c-looking-at-inexpr-block):
 	Recognize brace blocks inside a parenthesis expression as
-	inexpr-statement.  Useful when writing statements as macro
-	arguments.
+	inexpr-statement.  Useful when writing statements as macro arguments.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-fill-paragraph, c-do-auto-fill,
-	c-mask-comment): Broke out the comment masking code from
+	* progmodes/cc-cmds.el (c-fill-paragraph, c-do-auto-fill)
+	(c-mask-comment): Broke out the comment masking code from
 	`c-fill-paragraph' to a new function `c-mask-comment', to be
 	able to do the same thing in `c-do-auto-fill'.  This should
 	make auto-fill-mode behave better.
@@ -1148,11 +1131,10 @@
 	current line with the comment starter, so that we line up
 	comments which matches `c-comment-prefix-regexp' on the first
 	line (after the `/') without the need to make
-	`comment-start-skip' match whatever `c-comment-prefix-regexp'
-	matches.
+	`comment-start-skip' match whatever `c-comment-prefix-regexp' matches.
 
-	* progmodes/cc-mode.el, progmodes/cc-styles.el (c-common-init,
-	c-set-style-1, c-setup-paragraph-variables): Moved the
+	* progmodes/cc-mode.el, progmodes/cc-styles.el (c-common-init)
+	(c-set-style-1, c-setup-paragraph-variables): Moved the
 	variable initialization based on `c-comment-prefix-regexp' to
 	a new function `c-setup-paragraph-variables', which is now
 	used both at mode init and when a style that sets
@@ -1166,8 +1148,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-most-enclosing-brace,
-	c-least-enclosing-brace): Added optional second arg to limit
+	* progmodes/cc-engine.el (c-most-enclosing-brace)
+	(c-least-enclosing-brace): Added optional second arg to limit
 	the search to before a certain point.
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug
@@ -1179,8 +1161,8 @@
 	* progmodes/cc-defs.el (c-forward-comment): More idiosyncrasy
 	insulation.  This time for XEmacs 21.
 
-	* progmodes/cc-engine.el, progmodes/cc-langs.el: Improved
-	handling of inheritance lists:
+	* progmodes/cc-engine.el, progmodes/cc-langs.el:
+	Improved handling of inheritance lists:
 
 	(c-beginning-of-inheritance-list): Rewritten to use a more
 	syntactically correct method that doesn't get confused by
@@ -1190,8 +1172,7 @@
 	inheritance lists in combination with templates.  'inher-intro
 	is now anchored on the start of the class declaration and not
 	the indentation of the current line.  Switched places on cases
-	5D.3 and 5D.4 and made them use more syntactically correct
-	methods.
+	5D.3 and 5D.4 and made them use more syntactically correct methods.
 
 	(c-inher-key): Removed since the code in
 	`c-guess-basic-syntax' now uses token-based search.
@@ -1213,25 +1194,24 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-align.el (c-lineup-cascaded-calls): New
-	indentation function.
+	* progmodes/cc-align.el (c-lineup-cascaded-calls):
+	New indentation function.
 
 	* progmodes/cc-engine.el (c-beginning-of-macro): Bugfix for
 	directives with whitespace between the '#' and the name.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-forward-syntactic-ws,
-	c-backward-syntactic-ws): Handle line continuations as
+	* progmodes/cc-engine.el (c-forward-syntactic-ws)
+	(c-backward-syntactic-ws): Handle line continuations as
 	whitespace.  Don't move past a macro if that'd take us past
 	the limit.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-beginning-of-macro,
-	c-forward-syntactic-ws): Multiline strings begin with `#"' in
-	Pike, and that shouldn't be confused with a preprocessor
-	directive.
+	* progmodes/cc-engine.el (c-beginning-of-macro)
+	(c-forward-syntactic-ws): Multiline strings begin with `#"' in
+	Pike, and that shouldn't be confused with a preprocessor directive.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -1250,8 +1230,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el (c-mode-help-address): Removed
-	bug-gnu-emacs@gnu.org from the receiver list for bug reports.
+	* progmodes/cc-mode.el (c-mode-help-address):
+	Removed bug-gnu-emacs@gnu.org from the receiver list for bug reports.
 	I've almost never seen a bug reported this way that should go
 	to that list, but it's rather common that the reports concern
 	the combination CC Mode and XEmacs instead.
@@ -1267,8 +1247,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-electric-brace,
-	c-electric-semi&comma, c-electric-colon, c-electric-paren):
+	* progmodes/cc-cmds.el (c-electric-brace)
+	(c-electric-semi&comma, c-electric-colon, c-electric-paren):
 	Check for last on line only for doing the auto-newline-mode
 	stuff, not for the reindentation.
 
@@ -1278,8 +1258,8 @@
 	line only when the inserted brace comes first on it, instead
 	of last.
 
-	* progmodes/cc-cmds.el (c-electric-brace,
-	c-electric-semi&comma): Fixed two places where
+	* progmodes/cc-cmds.el (c-electric-brace)
+	(c-electric-semi&comma): Fixed two places where
 	c-syntactic-indentation wasn't heeded.
 
 	* progmodes/cc-cmds.el (c-electric-pound): Don't be electric
@@ -1293,13 +1273,11 @@
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el (c-guess-fill-prefix): Tuned the dwim
-	for the fallback to add a single space after the comment
-	prefix.
+	for the fallback to add a single space after the comment prefix.
 
-	* progmodes/cc-cmds.el (c-indent-new-comment-line): Somewhat
-	better behavior in some special cases, especially for
-	single-line comments.  Avoid breaking up a comment starter or
-	ender.
+	* progmodes/cc-cmds.el (c-indent-new-comment-line): Somewhat better
+	behavior in some special cases, especially for single-line comments.
+	Avoid breaking up a comment starter or ender.
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -1312,8 +1290,8 @@
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el, progmodes/cc-mode.el
-	(c-electric-delete, c-electric-delete-forward): Split
-	`c-electric-delete' into two functions where
+	(c-electric-delete, c-electric-delete-forward):
+	Split `c-electric-delete' into two functions where
 	`c-electric-delete-forward' always deletes forward and
 	`c-electric-delete' only contains the code necessary for
 	XEmacs to choose between backward and forward deletion.
@@ -1328,8 +1306,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el, progmodes/cc-vars.el (c-common-init,
-	c-default-style): Removed the hardcoded switch to "java" style
+	* progmodes/cc-mode.el, progmodes/cc-vars.el (c-common-init)
+	(c-default-style): Removed the hardcoded switch to "java" style
 	in Java mode.  It's instead taken care of by the default value
 	for c-default-style.
 
@@ -3508,8 +3486,8 @@
 
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
-	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Require
-	non-letter after specials.
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2):
+	Require non-letter after specials.
 
 2002-02-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -3540,8 +3518,7 @@
 	`describe-text-at' in the menu.
 
 	* wid-edit.el (widgetp): New function.
-	* wid-edit.el (widget-keymap, widget-insert, widget-setup):
-	Autoloaded.
+	* wid-edit.el (widget-keymap, widget-insert, widget-setup): Autoload.
 
 	* emacs-lisp/pp.el (pp-to-string): Autoloaded.
 
