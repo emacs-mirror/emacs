@@ -146,6 +146,27 @@
   (modify-syntax-entry ?_ "w"    pascal-mode-syntax-table)
   (modify-syntax-entry ?\' "\""  pascal-mode-syntax-table))
 
+(defvar pascal-font-lock-keywords
+  (list
+   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
+;   ("type" "const" "real" "integer" "char" "boolean" "var"
+;    "record" "array" "file")
+   (cons (concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
+		 "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
+	 'font-lock-type-face)
+   '("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-reference-face)
+   '("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-reference-face)
+;   ("of" "to" "for" "if" "then" "else" "case" "while"
+;    "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")
+   (concat "\\<\\("
+	   "and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\)\\|for\\|i[fn]\\|"
+	   "not\\|o[fr]\\|repeat\\|t\\(hen\\|o\\)\\|until\\|w\\(hile\\|ith\\)"
+	   "\\)\\>")
+   '("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-reference-face nil t)))
+  "Additional expressions to highlight in Pascal mode.")
+
 (defvar pascal-indent-level 3
   "*Indentation of Pascal statements with respect to containing block.")
 
@@ -297,6 +318,12 @@ no args, if that value is non-nil."
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'case-fold-search)
   (setq case-fold-search t)
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "(\\*+ *\\|{ *")
+  (make-local-variable 'comment-end)
+  (setq comment-end "}")
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords pascal-font-lock-keywords)
   (run-hooks 'pascal-mode-hook))
 
 
