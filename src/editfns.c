@@ -132,7 +132,7 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
   CHECK_NUMBER (character, 0);
 
   len = CHAR_STRING (XFASTINT (character), workbuf, str);
-  return make_string (str, len);
+  return make_multibyte_string (str, 1, len);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
@@ -151,48 +151,6 @@ A multibyte character is handled correctly.")
     XSETFASTINT (val, 0);
   return val;
 }
-
-DEFUN ("sref", Fsref, Ssref, 2, 2, 0,
-  "Return the character in STRING at INDEX.  INDEX starts at 0.\n\
-A multibyte character is handled correctly.\n\
-INDEX not pointing at character boundary is an error.")
-  (str, idx)
-     Lisp_Object str, idx;
-{
-  register int idxval, len, i;
-  register unsigned char *p, *q;
-  register Lisp_Object val;
-
-  CHECK_STRING (str, 0);
-  CHECK_NUMBER (idx, 1);
-  idxval = XINT (idx);
-  if (idxval < 0 || idxval >= (len = XVECTOR (str)->size))
-    args_out_of_range (str, idx);
-
-  p = XSTRING (str)->data + idxval;
-  if (!NILP (current_buffer->enable_multibyte_characters)
-      && !CHAR_HEAD_P (*p)
-      && idxval > 0)
-    {
-      /* We must check if P points to a tailing byte of a multibyte
-         form.  If so, we signal error.  */
-      i = idxval - 1;
-      q = p - 1;
-      while (i > 0 && *q >= 0xA0) i--, q--;
-
-      if (*q == LEADING_CODE_COMPOSITION)
-	i = multibyte_form_length (XSTRING (str)->data + i, len - i);
-      else
-	i = BYTES_BY_CHAR_HEAD (*q);
-      if (q + i > p)
-	error ("Not character boundary");
-    }
-
-  len = XSTRING (str)->size - idxval;
-  XSETFASTINT (val, STRING_CHAR (p, len));
-  return val;
-}
-
 
 static Lisp_Object
 buildmark (charpos, bytepos)
@@ -887,7 +845,7 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
     error ("Invalid time specification");
 
   /* This is probably enough.  */
-  size = XSTRING (format_string)->size * 6 + 50;
+  size = XSTRING (format_string)->size_byte * 6 + 50;
 
   while (1)
     {
@@ -1288,7 +1246,7 @@ void
 general_insert_function (insert_func, insert_from_string_func,
 			 inherit, nargs, args)
      void (*insert_func) P_ ((unsigned char *, int));
-     void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int));
+     void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int, int, int));
      int inherit, nargs;
      register Lisp_Object *args;
 {
@@ -1312,7 +1270,10 @@ general_insert_function (insert_func, insert_from_string_func,
 	}
       else if (STRINGP (val))
 	{
-	  (*insert_from_string_func) (val, 0, XSTRING (val)->size, inherit);
+	  (*insert_from_string_func) (val, 0, 0,
+				      XSTRING (val)->size,
+				      XSTRING (val)->size_byte,
+				      inherit);
 	}
       else
 	{
@@ -1469,7 +1430,7 @@ make_buffer_string (start, end, props)
   if (start < GPT && GPT < end)
     move_gap (start);
 
-  result = make_uninit_string (end_byte - start_byte);
+  result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
   bcopy (BYTE_POS_ADDR (start_byte), XSTRING (result)->data,
 	 end_byte - start_byte);
 
@@ -1873,7 +1834,9 @@ Both characters must have the same length of multi-byte form.")
 DEFUN ("translate-region", Ftranslate_region, Stranslate_region, 3, 3, 0,
   "From START to END, translate characters according to TABLE.\n\
 TABLE is a string; the Nth character in it is the mapping\n\
-for the character with code N.  Returns the number of characters changed.")
+for the character with code N.\n\
+This function does not alter multibyte characters.\n\
+It returns the number of characters changed.")
   (start, end, table)
      Lisp_Object start;
      Lisp_Object end;
@@ -1884,38 +1847,40 @@ for the character with code N.  Returns the number of characters changed.")
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int charpos;
+  int pos;
 
   validate_region (&start, &end);
   CHECK_STRING (table, 2);
 
-  size = XSTRING (table)->size;
+  size = XSTRING (table)->size_byte;
   tt = XSTRING (table)->data;
 
   pos_byte = CHAR_TO_BYTE (XINT (start));
   stop = CHAR_TO_BYTE (XINT (end));
   modify_region (current_buffer, XINT (start), XINT (end));
-  charpos = XINT (start);
+  pos = XINT (start);
 
   cnt = 0;
-  for (; pos_byte < stop; ++pos_byte)
+  for (; pos_byte < stop; )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
-      register int oc = *p;		/* Old character. */
-      if (CHAR_HEAD_P (*p))
-	charpos++;
+      int len;
+      int oc;
 
-      if (oc < size)
+      oc = STRING_CHAR_AND_LENGTH (p, stop - pos_byte, len);
+      if (oc < size && len == 1)
 	{
 	  nc = tt[oc];
 	  if (nc != oc)
 	    {
-	      record_change (charpos, 1);
+	      record_change (pos, 1);
 	      *p = nc;
-	      signal_after_change (charpos, 1, 1);
+	      signal_after_change (pos, 1, 1);
 	      ++cnt;
 	    }
 	}
+      pos_byte += len;
+      pos++;
     }
 
   return make_number (cnt);
@@ -2103,11 +2068,12 @@ minibuffer contents show.")
 	}
       if (XSTRING (val)->size > message_length)
 	{
-	  message_length = XSTRING (val)->size;
+	  message_length = XSTRING (val)->size_byte;
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size);
-      message2 (message_text, XSTRING (val)->size);
+      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size_byte);
+      message2 (message_text, XSTRING (val)->size_byte,
+		STRING_MULTIBYTE (val));
       return val;
     }
 }
@@ -2151,13 +2117,13 @@ minibuffer contents show.")
 	  message_text = (char *)xmalloc (80);
 	  message_length = 80;
 	}
-      if (XSTRING (val)->size > message_length)
+      if (XSTRING (val)->size_byte > message_length)
 	{
-	  message_length = XSTRING (val)->size;
+	  message_length = XSTRING (val)->size_byte;
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size);
-      message2 (message_text, XSTRING (val)->size);
+      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size_byte);
+      message2 (message_text, XSTRING (val)->size_byte);
       return val;
 #endif /* not HAVE_MENUS */
     }
@@ -2195,6 +2161,15 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 	  : Qnil);
 }
 
+/* Number of bytes that STRING will occupy when put into the result.
+   MULTIBYTE is nonzero if the result should be multibyte.  */
+
+#define CONVERTED_BYTE_SIZE(MULTIBYTE, STRING)				\
+  (((MULTIBYTE) && ! STRING_MULTIBYTE (STRING))				\
+   ? XSTRING (STRING)->size_byte					\
+   : count_size_as_multibyte (XSTRING (STRING)->data,			\
+			      XSTRING (STRING)->size_byte))
+
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
   "Format a string out of a control-string and arguments.\n\
 The first argument is a control string.\n\
@@ -2216,22 +2191,39 @@ Use %% to put a single % into the output.")
 {
   register int n;		/* The number of the next arg to substitute */
   register int total = 5;	/* An estimate of the final length */
-  char *buf;
+  char *buf, *p;
   register unsigned char *format, *end;
-  int length;
+  int length, nchars;
+  /* Nonzero if the output should be a multibyte string,
+     which is true if any of the inputs is one.  */
+  int multibyte = 0;
+  unsigned char *this_format;
+  int longest_format = 0;
+
   extern char *index ();
+
   /* It should not be necessary to GCPRO ARGS, because
      the caller in the interpreter should take care of that.  */
 
+  for (n = 0; n < nargs; n++)
+    if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
+      multibyte = 1;
+
   CHECK_STRING (args[0], 0);
   format = XSTRING (args[0])->data;
-  end = format + XSTRING (args[0])->size;
+  end = format + XSTRING (args[0])->size_byte;
+
+  /* Make room in result for all the non-%-codes in the control string.  */
+  total += CONVERTED_BYTE_SIZE (multibyte, args[0]);
+
+  /* Add to TOTAL enough space to hold the converted arguments.  */
 
   n = 0;
   while (format != end)
     if (*format++ == '%')
       {
-	int minlen;
+	int minlen, thissize = 0;
+	unsigned char *this_format_start = format - 1;
 
 	/* Process a numeric arg and skip it.  */
 	minlen = atoi (format);
@@ -2241,6 +2233,9 @@ Use %% to put a single % into the output.")
 	while ((*format >= '0' && *format <= '9')
 	       || *format == '-' || *format == ' ' || *format == '.')
 	  format++;
+
+	if (format - this_format_start + 1 > longest_format)
+	  longest_format = format - this_format_start + 1;
 
 	if (*format == '%')
 	  format++;
@@ -2264,11 +2259,7 @@ Use %% to put a single % into the output.")
 	  string:
 	    if (*format != 's' && *format != 'S')
 	      error ("format specifier doesn't match argument type");
-	    total += XSTRING (args[n])->size;
-	    /* We have to put an arbitrary limit on minlen
-	       since otherwise it could make alloca fail.  */
-	    if (minlen < XSTRING (args[n])->size + 1000)
-	      total += minlen;
+	    thissize = CONVERTED_BYTE_SIZE (multibyte, args[n]);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
@@ -2281,22 +2272,14 @@ Use %% to put a single % into the output.")
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
 #endif
-	    total += 30;
-	    /* We have to put an arbitrary limit on minlen
-	       since otherwise it could make alloca fail.  */
-	    if (minlen < 1000)
-	      total += minlen;
+	    thissize = 30;
 	  }
 #ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n], Qnil);
-	    total += 30;
-	    /* We have to put an arbitrary limit on minlen
-	       since otherwise it could make alloca fail.  */
-	    if (minlen < 1000)
-	      total += minlen;
+	    thissize = 60;
 	  }
 #endif
 	else
@@ -2307,64 +2290,106 @@ Use %% to put a single % into the output.")
 	    args[n] = tem;
 	    goto string;
 	  }
+	
+	if (thissize < minlen)
+	  thissize = minlen;
+
+	total += thissize + 4;
       }
 
-  {
-    register int nstrings = n + 1;
+  this_format = (unsigned char *) alloca (longest_format + 1);
 
-    /* Allocate twice as many strings as we have %-escapes; floats occupy
-       two slots, and we're not sure how many of those we have.  */
-    register unsigned char **strings
-      = (unsigned char **) alloca (2 * nstrings * sizeof (unsigned char *));
-    int i;
+  /* Allocate the space for the result.
+     Note that TOTAL is an overestimate.  */
+  if (total < 1000)
+    buf = (unsigned char *) alloca (total + 1);
+  else
+    buf = (unsigned char *) xmalloc (total + 1);
 
-    i = 0;
-    for (n = 0; n < nstrings; n++)
-      {
-	if (n >= nargs)
-	  strings[i++] = (unsigned char *) "";
-	else if (INTEGERP (args[n]))
-	  /* We checked above that the corresponding format effector
-	     isn't %s, which would cause MPV.  */
-	  strings[i++] = (unsigned char *) XINT (args[n]);
-#ifdef LISP_FLOAT_TYPE
-	else if (FLOATP (args[n]))
-	  {
-	    union { double d; char *half[2]; } u;
+  p = buf;
+  nchars = 0;
+  n = 0;
 
-	    u.d = XFLOAT (args[n])->data;
-	    strings[i++] = (unsigned char *) u.half[0];
-	    strings[i++] = (unsigned char *) u.half[1];
-	  }
-#endif
-	else if (i == 0)
-	  /* The first string is treated differently
-	     because it is the format string.  */
-	  strings[i++] = XSTRING (args[n])->data;
-	else
-	  strings[i++] = (unsigned char *) XSTRING (args[n]);
-      }
+  /* Scan the format and store result in BUF.  */
+  format = XSTRING (args[0])->data;
+  while (format != end)
+    {
+      if (*format == '%')
+	{
+	  int minlen;
+	  unsigned char *this_format_start = format;
 
-    /* Make room in result for all the non-%-codes in the control string.  */
-    total += XSTRING (args[0])->size;
+	  format++;
 
-    /* Format it in bigger and bigger buf's until it all fits. */
-    while (1)
-      {
-	buf = (char *) alloca (total + 1);
-	buf[total - 1] = 0;
+	  /* Process a numeric arg and skip it.  */
+	  minlen = atoi (format);
+	  if (minlen < 0)
+	    minlen = - minlen;
 
-	length = doprnt_lisp (buf, total + 1, strings[0],
-			      end, i-1, (char **) strings + 1);
-	if (buf[total - 1] == 0)
-	  break;
+	  while ((*format >= '0' && *format <= '9')
+		 || *format == '-' || *format == ' ' || *format == '.')
+	    format++;
 
-	total *= 2;
-      }
-  }
+	  if (*format++ == '%')
+	    {
+	      *p++ = '%';
+	      nchars++;
+	      continue;
+	    }
 
-  /*   UNGCPRO;  */
-  return make_string (buf, length);
+	  ++n;
+
+	  if (STRINGP (args[n]))
+	    {
+	      int padding, nbytes;
+
+	      nbytes = copy_text (XSTRING (args[n])->data, p,
+				  XSTRING (args[n])->size_byte,
+				  STRING_MULTIBYTE (args[n]), multibyte);
+	      p += nbytes;
+	      nchars += XSTRING (args[n])->size;
+
+	      /* If spec requires it, pad on right with spaces.  */
+	      padding = minlen - XSTRING (args[n])->size;
+	      while (padding-- > 0)
+		{
+		  *p++ = ' ';
+		  nchars++;
+		}
+	    }
+	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
+	    {
+	      int this_nchars;
+
+	      bcopy (this_format_start, this_format,
+		     format - this_format_start);
+	      this_format[format - this_format_start] = 0;
+
+	      sprintf (p, this_format, XINT (args[n]));
+
+	      this_nchars = strlen (p);
+	      p += this_nchars;
+	      nchars += this_nchars;
+	    }
+	}
+      else if (multibyte && !STRING_MULTIBYTE (args[0]))
+	{
+	  /* Convert a single-byte character to multibyte.  */
+	  int len = copy_text (format, p, 1, 0, 1);
+
+	  p += len;
+	  format++;
+	  nchars++;
+	}
+      else
+	*p++ = *format++, nchars++;
+    }
+
+  /* If we allocated BUF with malloc, free it too.  */
+  if (total >= 1000)
+    xfree (buf);
+
+  return make_multibyte_string (buf, nchars, p - buf);
 }
 
 /* VARARGS 1 */
@@ -2823,7 +2848,6 @@ functions if all the text being accessed has this property.");
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
   defsubr (&Schar_to_string);
-  defsubr (&Ssref);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);
