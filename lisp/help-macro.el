@@ -81,30 +81,45 @@ from the HELPED-MAP and the corresponding interactive function is executed."
 	   (let ((line-prompt
 		  (substitute-command-keys (, help-line))))
 	     (message line-prompt)
-	     (let ((char (read-char)))
-	       (if (or (= char ??) (= char help-char))
-		   (save-window-excursion
-		     (switch-to-buffer-other-window "*Help*")
-		     (erase-buffer)
-		     (insert (documentation (quote (, fname))))
-		     (goto-char (point-min))
-		     (while (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
-		       (if (memq char '(?\C-v ?\ ))
-			   (scroll-up))
-		       (if (memq char '(?\177 ?\M-v))
-			   (scroll-down))
-		       (message "%s%s: "
-				line-prompt
-				(if (pos-visible-in-window-p (point-max))
-				    "" " or Space to scroll"))
-		       (let ((cursor-in-echo-area t))
-			 (setq char (read-char))))))
-	       (let ((defn (cdr (assq (downcase char) (, helped-map)))))
-		 (if defn
-		     (if (keymapp defn)
-			 (error "sorry, this command cannot be run from the help screen. Start over.")
-		       (call-interactively defn))
-		   (ding))))))
+	     (let ((char (read-event))
+		   config)
+	       (unwind-protect
+		   (progn
+		     (if (or (eq char ??) (eq char help-char))
+			 (progn
+			   (setq config (current-window-configuration))
+			   (switch-to-buffer-other-window "*Help*")
+			   (erase-buffer)
+			   (insert (documentation (quote (, fname))))
+			   (goto-char (point-min))
+			   (while (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
+			     (if (memq char '(?\C-v ?\ ))
+				 (scroll-up))
+			     (if (memq char '(?\177 ?\M-v))
+				 (scroll-down))
+			     (message "%s%s: "
+				      line-prompt
+				      (if (pos-visible-in-window-p (point-max))
+					  "" " or Space to scroll"))
+			     (let ((cursor-in-echo-area t))
+			       (setq char (read-event))))))
+		     
+		     (let ((defn (cdr (assq (if (integerp char) (downcase char) char) (, helped-map)))))
+		       (if defn
+			   (if (keymapp defn)
+			       (error "sorry, this command cannot be run from the help screen.  Start over.")
+			     (if config
+				 (progn
+				   (set-window-configuration config)
+				   (setq config nil)))
+			     (call-interactively defn))
+			 (if (listp char)
+			     (setq unread-command-events
+				   (cons char unread-command-events)
+				   config nil)
+			   (ding)))))
+		 (if config
+		     (set-window-configuration config))))))
      ))
 
 ;;; help-macro.el
