@@ -4116,7 +4116,7 @@ header line with the old Message-ID."
   "Remove junk like \"Re:\", \"(fwd)\", etc. added to subject string SUBJECT.
 Previous forwarders, replyers, etc. may add it."
   (with-temp-buffer
-    (insert-string subject)
+    (insert subject)
     (goto-char (point-min))
     ;; strip Re/Fwd stuff off the beginning
     (while (re-search-forward

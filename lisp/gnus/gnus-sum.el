@@ -6393,23 +6393,34 @@ If given a prefix, remove all limits."
       (gnus-summary-limit nil 'pop)
     (gnus-summary-position-point)))
 
-(defun gnus-summary-limit-to-subject (subject &optional header)
-  "Limit the summary buffer to articles that have subjects that match a regexp."
-  (interactive "sLimit to subject (regexp): ")
+(defun gnus-summary-limit-to-subject (subject &optional header not-matching)
+  "Limit the summary buffer to articles that have subjects that match a regexp.
+If NOT-MATCHING, excluding articles that have subjects that match a regexp."
+  (interactive 
+   (list (read-string (if current-prefix-arg
+			  "Exclude subject (regexp): "
+			"Limit to subject (regexp): ")) 
+	 nil current-prefix-arg))
   (unless header
     (setq header "subject"))
   (when (not (equal "" subject))
     (prog1
 	(let ((articles (gnus-summary-find-matching
-			 (or header "subject") subject 'all)))
+			 (or header "subject") subject 'all nil nil 
+			 not-matching)))
 	  (unless articles
 	    (error "Found no matches for \"%s\"" subject))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
 
 (defun gnus-summary-limit-to-author (from)
-  "Limit the summary buffer to articles that have authors that match a regexp."
-  (interactive "sLimit to author (regexp): ")
+  "Limit the summary buffer to articles that have authors that match a regexp.
+If NOT-MATCHING, excluding articles that have authors that match a regexp."
+  (interactive 
+   (list (read-string (if current-prefix-arg
+			  "Exclude author (regexp): "
+			"Limit to author (regexp): ")) 
+	 nil current-prefix-arg))
   (gnus-summary-limit-to-subject from "from"))
 
 (defun gnus-summary-limit-to-age (age &optional younger-p)
@@ -6450,25 +6461,31 @@ articles that are younger than AGE days."
 	(gnus-summary-limit (nreverse articles)))
     (gnus-summary-position-point)))
 
-(defun gnus-summary-limit-to-extra (header regexp)
+(defun gnus-summary-limit-to-extra (header regexp &optional not-matching)
   "Limit the summary buffer to articles that match an 'extra' header."
   (interactive
    (let ((header
 	  (intern
 	   (gnus-completing-read
 	    (symbol-name (car gnus-extra-headers))
-	    "Limit extra header:"
+	    (if current-prefix-arg
+		"Exclude extra header:"
+	      "Limit extra header:")
 	    (mapcar (lambda (x)
 		      (cons (symbol-name x) x))
 		    gnus-extra-headers)
 	    nil
 	    t))))
      (list header
-	   (read-string (format "Limit to header %s (regexp): " header)))))
+	   (read-string (format "%s header %s (regexp): " 
+				(if current-prefix-arg "Exclude" "Limit to")
+				header))
+	   current-prefix-arg)))
   (when (not (equal "" regexp))
     (prog1
 	(let ((articles (gnus-summary-find-matching
-			 (cons 'extra header) regexp 'all)))
+			 (cons 'extra header) regexp 'all nil nil 
+			 not-matching)))
 	  (unless articles
 	    (error "Found no matches for \"%s\"" regexp))
 	  (gnus-summary-limit articles))
@@ -7215,17 +7232,15 @@ Optional argument BACKWARD means do search for backward.
       t)))
 
 (defun gnus-summary-find-matching (header regexp &optional backward unread
-					  not-case-fold)
+					  not-case-fold not-matching)
   "Return a list of all articles that match REGEXP on HEADER.
 The search stars on the current article and goes forwards unless
 BACKWARD is non-nil.  If BACKWARD is `all', do all articles.
 If UNREAD is non-nil, only unread articles will
 be taken into consideration.  If NOT-CASE-FOLD, case won't be folded
-in the comparisons."
-  (let ((data (if (eq backward 'all) gnus-newsgroup-data
-		(gnus-data-find-list
-		 (gnus-summary-article-number) (gnus-data-list backward))))
-	(case-fold-search (not not-case-fold))
+in the comparisons. If NOT-MATCHING, return a list of all articles that 
+not match REGEXP on HEADER."
+  (let ((case-fold-search (not not-case-fold))
 	articles d func)
     (if (consp header)
 	(if (eq (car header) 'extra)
@@ -7237,14 +7252,21 @@ in the comparisons."
       (unless (fboundp (intern (concat "mail-header-" header)))
 	(error "%s is not a valid header" header))
       (setq func `(lambda (h) (,(intern (concat "mail-header-" header)) h))))
-    (while data
-      (setq d (car data))
-      (and (or (not unread)		; We want all articles...
-	       (gnus-data-unread-p d))	; Or just unreads.
-	   (vectorp (gnus-data-header d)) ; It's not a pseudo.
-	   (string-match regexp (funcall func (gnus-data-header d))) ; Match.
-	   (push (gnus-data-number d) articles)) ; Success!
-      (setq data (cdr data)))
+    (dolist (d (if (eq backward 'all)
+		   gnus-newsgroup-data
+		 (gnus-data-find-list
+		  (gnus-summary-article-number)
+		  (gnus-data-list backward))))
+      (when (and (or (not unread)	; We want all articles...
+		     (gnus-data-unread-p d)) ; Or just unreads.
+		 (vectorp (gnus-data-header d)) ; It's not a pseudo.
+		 (if not-matching
+		     (not (string-match 
+			   regexp
+			   (funcall func (gnus-data-header d))))
+		   (string-match regexp
+				 (funcall func (gnus-data-header d)))))
+	(push (gnus-data-number d) articles))) ; Success!
     (nreverse articles)))
 
 (defun gnus-summary-execute-command (header regexp command &optional backward)

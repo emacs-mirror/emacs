@@ -1,3 +1,18 @@
+2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-util.el (gnus-directory-sep-char-regexp): New.
+	* gnus-score.el (gnus-score-find-bnews): Sync with Gnus CVS.
+	* mm-util.el: Sync.
+	
+	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
+	(gnus-summary-limit-to-author): Ditto.
+	(gnus-summary-limit-to-extra): Ditto.
+	(gnus-summary-find-matching): Support not-matching argument.
+
+	* message.el (message-wash-subject): Use `insert' rather than
+	`insert-string', which is deprecated.
+	From  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
 2001-11-14  Sam Steingold  <sds@gnu.org>
 
 	* gnus-score.el: Fixed some doc strings to properly quote symbols.

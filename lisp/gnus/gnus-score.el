@@ -2560,8 +2560,10 @@ GROUP using BNews sys file syntax."
 	      ;; too much.
 	      (delete-char (min (1- (point-max)) klen))
 	    (goto-char (point-max))
-	    (search-backward (string directory-sep-char))
-	    (delete-region (1+ (point)) (point-min)))
+	    (if (re-search-backward gnus-directory-sep-char-regexp nil t)
+		(delete-region (1+ (point)) (point-min))
+	      (gnus-message 1 "Can't find directory separator in %s"
+			    (car sfiles))))
 	  ;; If short file names were used, we have to translate slashes.
 	  (goto-char (point-min))
 	  (let ((regexp (concat
@@ -2595,10 +2597,10 @@ GROUP using BNews sys file syntax."
 	  ;; we add this score file to the list of score files
 	  ;; applicable to this group.
 	  (when (or (and not-match
- 			 (ignore-errors
+			 (ignore-errors
 			   (not (string-match regexp group-trans))))
-  		    (and (not not-match)
- 			 (ignore-errors (string-match regexp group-trans))))
+		    (and (not not-match)
+			 (ignore-errors (string-match regexp group-trans))))
 	    (push (car sfiles) ofiles)))
 	(setq sfiles (cdr sfiles)))
       (kill-buffer (current-buffer))
