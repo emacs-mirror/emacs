@@ -1063,6 +1063,8 @@ only the processes whose query-on-exit flag is set are listed.
 functions.  The existing process-kill-without-query function is still
 supported, but new code should use the new functions.
 
+** New function copy-tree.
+
 ** New function substring-no-properties.
 
 ** New function minibuffer-selected-window.
