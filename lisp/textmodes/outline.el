@@ -150,30 +150,52 @@ in the file it applies to."
 (defvar outline-font-lock-keywords
   '(;;
     ;; Highlight headings according to the level.
-    (eval . (list (concat "^" outline-regexp ".+")
-		  0 '(or (cdr (assq (outline-font-lock-level)
-				    ;; FIXME: this is silly!
-				    '((1 . font-lock-function-name-face)
-				      (2 . font-lock-variable-name-face)
-				      (3 . font-lock-keyword-face)
-				      (4 . font-lock-builtin-face)
-				      (5 . font-lock-comment-face)
-				      (6 . font-lock-constant-face)
-				      (7 . font-lock-type-face)
-				      (8 . font-lock-string-face))))
-			 font-lock-warning-face)
-		  nil t)))
+    (eval . (list (concat "^\\(?:" outline-regexp "\\).+")
+		  0 '(outline-font-lock-face) nil t)))
   "Additional expressions to highlight in Outline mode.")
 
-(defun outline-font-lock-level ()
-  (let ((count 1))
-    (save-excursion
-      (outline-back-to-heading t)
-      (while (and (not (bobp))
-		  (not (eq (funcall outline-level) 1)))
-	(outline-up-heading 1 t)
-	(setq count (1+ count)))
-      count)))
+(defface outline-1 '((t :inherit font-lock-function-name-face)) "Level 1.")
+(defface outline-2 '((t :inherit font-lock-variable-name-face)) "Level 2.")
+(defface outline-3 '((t :inherit font-lock-keyword-face)) "Level 3.")
+(defface outline-4 '((t :inherit font-lock-builtin-face)) "Level 4.")
+(defface outline-5 '((t :inherit font-lock-comment-face)) "Level 5.")
+(defface outline-6 '((t :inherit font-lock-constant-face)) "Level 6.")
+(defface outline-7 '((t :inherit font-lock-type-face)) "Level 7.")
+(defface outline-8 '((t :inherit font-lock-string-face)) "Level 8.")
+
+(defvar outline-font-lock-faces
+  [outline-1 outline-2 outline-3 outline-4
+   outline-5 outline-6 outline-7 outline-8])
+
+(defvar outline-font-lock-levels nil)
+(make-variable-buffer-local 'outline-font-lock-levels)
+
+(defun outline-font-lock-face ()
+  ;; (save-excursion
+  ;;   (outline-back-to-heading t)
+  ;;   (let* ((count 0)
+  ;; 	   (start-level (funcall outline-level))
+  ;; 	   (level start-level)
+  ;; 	   face-level)
+  ;;     (while (not (setq face-level
+  ;; 			(if (or (bobp) (eq level 1)) 0
+  ;; 			  (cdr (assq level outline-font-lock-levels)))))
+  ;; 	(outline-up-heading 1 t)
+  ;; 	(setq count (1+ count))
+  ;; 	(setq level (funcall outline-level)))
+  ;;     ;; Remember for later.
+  ;;     (unless (zerop count)
+  ;; 	(setq face-level (+ face-level count))
+  ;; 	(push (cons start-level face-level) outline-font-lock-levels))
+  ;;     (condition-case nil
+  ;; 	  (aref outline-font-lock-faces face-level)
+  ;; 	(error font-lock-warning-face))))
+  (save-excursion
+    (goto-char (match-beginning 0))
+    (looking-at outline-regexp)
+    (condition-case nil
+	(aref outline-font-lock-faces (1- (funcall outline-level)))
+      (error font-lock-warning-face))))
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
@@ -223,11 +245,11 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   ;; Cause use of ellipses for invisible text.
   (add-to-invisibility-spec '(outline . t))
   (set (make-local-variable 'paragraph-start)
-       (concat paragraph-start "\\|\\(" outline-regexp "\\)"))
+       (concat paragraph-start "\\|\\(?:" outline-regexp "\\)"))
   ;; Inhibit auto-filling of header lines.
   (set (make-local-variable 'auto-fill-inhibit-regexp) outline-regexp)
   (set (make-local-variable 'paragraph-separate)
-       (concat paragraph-separate "\\|\\(" outline-regexp "\\)"))
+       (concat paragraph-separate "\\|\\(?:" outline-regexp "\\)"))
   (set (make-local-variable 'font-lock-defaults)
        '(outline-font-lock-keywords t nil nil backward-paragraph))
   (setq imenu-generic-expression
@@ -265,7 +287,8 @@ See the command `outline-mode' for more information on this mode."
 
 (defcustom outline-level 'outline-level
   "*Function of no args to compute a header's nesting level in an outline.
-It can assume point is at the beginning of a header line."
+It can assume point is at the beginning of a header line and that the match
+data reflects the `outline-regexp'."
   :type 'function
   :group 'outlines)
 
@@ -286,18 +309,14 @@ a given level and to find the level of a given heading.")
 Point must be at the beginning of a header line.
 This is actually either the level specified in `outline-heading-alist'
 or else the number of characters matched by `outline-regexp'."
-  (save-excursion
-    (if (not (looking-at outline-regexp))
-	;; This should never happen
-	1000
-      (or (cdr (assoc (match-string 0) outline-heading-alist))
-	  (- (match-end 0) (match-beginning 0))))))
+  (or (cdr (assoc (match-string 0) outline-heading-alist))
+      (- (match-end 0) (match-beginning 0))))
 
 (defun outline-next-preface ()
   "Skip forward to just before the next heading line.
 If there's no following heading line, stop before the newline
 at the end of the buffer."
-  (if (re-search-forward (concat "\n\\(" outline-regexp "\\)")
+  (if (re-search-forward (concat "\n\\(?:" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (match-beginning 0)))
   (if (and (bolp) (not (bobp)))
@@ -306,14 +325,14 @@ at the end of the buffer."
 (defun outline-next-heading ()
   "Move to the next (possibly invisible) heading line."
   (interactive)
-  (if (re-search-forward (concat "\n\\(" outline-regexp "\\)")
+  (if (re-search-forward (concat "\n\\(?:" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (1+ (match-beginning 0)))))
 
 (defun outline-previous-heading ()
   "Move to the previous (possibly invisible) heading line."
   (interactive)
-  (re-search-backward (concat "^\\(" outline-regexp "\\)")
+  (re-search-backward (concat "^\\(?:" outline-regexp "\\)")
 		      nil 'move))
 
 (defsubst outline-invisible-p ()
@@ -331,7 +350,7 @@ Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
       (let (found)
 	(save-excursion
 	  (while (not found)
-	    (or (re-search-backward (concat "^\\(" outline-regexp "\\)")
+	    (or (re-search-backward (concat "^\\(?:" outline-regexp "\\)")
 				    nil t)
 		(error "before first heading"))
 	    (setq found (and (or invisible-ok (not (outline-invisible-p)))
@@ -408,7 +427,9 @@ If prefix argument CHILDREN is given, demote also all the children."
 				(progn
 				  (outline-next-heading)
 				  (<= (funcall outline-level) level)))))
-		  (unless (eobp) (match-string 0))))
+		  (unless (eobp)
+		    (looking-at outline-regexp)
+		    (match-string 0))))
 	      (save-match-data
 		;; Bummer!! There is no lower heading in the buffer.
 		;; Let's try to invent one by repeating the first char.
@@ -450,13 +471,13 @@ A heading line is one that starts with a `*' (or that
     (end-of-line))
   (while (and (not (bobp)) (< arg 0))
     (while (and (not (bobp))
-		(re-search-backward (concat "^\\(" outline-regexp "\\)")
+		(re-search-backward (concat "^\\(?:" outline-regexp "\\)")
 				    nil 'move)
 		(outline-invisible-p)))
     (setq arg (1+ arg)))
   (while (and (not (eobp)) (> arg 0))
     (while (and (not (eobp))
-		(re-search-forward (concat "^\\(" outline-regexp "\\)")
+		(re-search-forward (concat "^\\(?:" outline-regexp "\\)")
 				   nil 'move)
 		(outline-invisible-p)))
     (setq arg (1- arg)))
@@ -736,18 +757,19 @@ With argument, move up ARG levels.
 If INVISIBLE-OK is non-nil, also consider invisible lines."
   (interactive "p")
   (outline-back-to-heading invisible-ok)
-  (if (eq (funcall outline-level) 1)
-      (error "Already at top level of the outline"))
-  (while (and (> (funcall outline-level) 1)
-	      (> arg 0)
-	      (not (bobp)))
-    (let ((present-level (funcall outline-level)))
-      (while (and (not (< (funcall outline-level) present-level))
-		  (not (bobp)))
-	(if invisible-ok
-	    (outline-previous-heading)
-	  (outline-previous-visible-heading 1)))
-      (setq arg (- arg 1)))))
+  (let ((start-level (funcall outline-level)))
+    (if (eq start-level 1)
+	(error "Already at top level of the outline"))
+    (while (and (> start-level 1) (> arg 0) (not (bobp)))
+      (let ((level start-level))
+	(while (not (or (< level start-level) (bobp)))
+	  (if invisible-ok
+	      (outline-previous-heading)
+	    (outline-previous-visible-heading 1))
+	  (setq level (funcall outline-level)))
+	(setq start-level level))
+      (setq arg (- arg 1))))
+  (looking-at outline-regexp))
 
 (defun outline-forward-same-level (arg)
   "Move forward to the ARG'th subheading at same level as this one.
