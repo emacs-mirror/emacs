@@ -60,6 +60,13 @@ int load_in_progress;
 /* Search path for files to be loaded. */
 Lisp_Object Vload_path;
 
+/* This is the user-visible association list that maps features to
+   lists of defs in their load files. */
+Lisp_Object Vload_history;
+
+/* This is useud to build the load history. */
+Lisp_Object Vcurrent_load_list;
+
 /* File for get_file_char to read from.  Use by load */
 static FILE *instream;
 
@@ -398,7 +405,7 @@ Return t if file exists.")
   XSET (lispstream, Lisp_Internal_Stream, (int) ptr);
   record_unwind_protect (load_unwind, lispstream);
   load_in_progress++;
-  readevalloop (Qget_file_char, stream, Feval, 0);
+  readevalloop (Qget_file_char, stream, str, Feval, 0);
   unbind_to (count, Qnil);
 
   /* Run any load-hooks for this file.  */
@@ -540,6 +547,74 @@ openp (path, str, suffix, storeptr, exec_only)
 }
 
 
+/* Merge the list we've accumulated of globals from the current input source
+   into the load_history variable.  The details depend on whether
+   the source has an associated file name or not. */
+
+static void
+build_load_history (stream, source)
+     FILE *stream;
+     Lisp_Object source;
+{
+  register Lisp_Object tail, prev, newelt;
+  register Lisp_Object tem, tem2;
+  register int foundit, loading;
+
+  loading = stream || !NARROWED;
+
+  tail = Vload_history;
+  prev = Qnil;
+  foundit = 0;
+  while (!NILP (tail))
+    {
+      tem = Fcar (tail);
+
+      /* Find the feature's previous assoc list... */
+      if (!NILP (Fequal (source, Fcar (tem))))
+	{
+	  foundit = 1;
+
+	  /*  If we're loading, remove it. */
+	  if (loading)
+	    {	  
+	      if (NILP (prev))
+		Vload_history = Fcdr (tail);
+	      else
+		Fsetcdr (prev, Fcdr (tail));
+	    }
+
+	  /*  Otherwise, cons on new symbols that are not already members.  */
+	  else
+	    {
+	      tem2 = Vcurrent_load_list;
+
+	      while (CONSP (tem2))
+		{
+		  newelt = Fcar (tem2);
+
+		  if (NILP (Fmemq (newelt, tem)))
+		    Fsetcar (tail, Fcons (Fcar (tem),
+					  Fcons (newelt, Fcdr (tem))));
+
+		  tem2 = Fcdr (tem2);
+		  QUIT;
+		}
+	    }
+	}
+      else
+	prev = tail;
+      tail = Fcdr (tail);
+      QUIT;
+    }
+
+      /* If we're loading, cons the new assoc onto the front of load-history,
+	 the most-recently-loaded position.  Also do this if we didn't find
+	 an existing member for the current source.  */
+      if (loading || !foundit)
+	  Vload_history = Fcons (Fnreverse(Vcurrent_load_list),
+				 Vload_history);
+}
+
 Lisp_Object
 unreadpure ()	/* Used as unwind-protect function in readevalloop */
 {
@@ -548,17 +623,26 @@ unreadpure ()	/* Used as unwind-protect function in readevalloop */
 }
 
 static void
-readevalloop (readcharfun, stream, evalfun, printflag)
+readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
      Lisp_Object readcharfun;
-     FILE *stream;     
+     FILE *stream;
+     Lisp_Object sourcename;
      Lisp_Object (*evalfun) ();
      int printflag;
 {
   register int c;
   register Lisp_Object val;
+  Lisp_Object oldlist;
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1, gcpro2;
 
   specbind (Qstandard_input, readcharfun);
+
+  oldlist = Vcurrent_load_list;
+  GCPRO2 (sourcename, oldlist);
+
+  Vcurrent_load_list = Qnil;
+  LOADHIST_ATTACH (sourcename);
 
   while (1)
     {
@@ -595,6 +679,11 @@ readevalloop (readcharfun, stream, evalfun, printflag)
 	}
     }
 
+  build_load_history (stream, sourcename);
+
+  Vcurrent_load_list = oldlist;
+  UNGCPRO;
+
   unbind_to (count, Qnil);
 }
 
@@ -629,7 +718,7 @@ point remains at the end of the last character read from the buffer.")
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, Feval, !NILP (printflag));
+  readevalloop (buf, 0, XBUFFER (buf)->filename, Feval, !NILP (printflag));
   unbind_to (count, Qnil);
 
   return Qnil;
@@ -647,7 +736,9 @@ point remains at the end of the last character read from the buffer.")
      Lisp_Object printflag;
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object tem;
+  Lisp_Object tem, cbuf;
+
+  cbuf = Fcurrent_buffer ()
 
   if (NILP (printflag))
     tem = Qsymbolp;
@@ -656,7 +747,7 @@ point remains at the end of the last character read from the buffer.")
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   SET_PT (BEGV);
-  readevalloop (Fcurrent_buffer (), 0, Feval, !NILP (printflag));
+  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval, !NILP (printflag));
   return unbind_to (count, Qnil);
 }
 #endif
@@ -675,7 +766,9 @@ point remains at the end of the last character read from the buffer.")
      Lisp_Object b, e, printflag;
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object tem;
+  Lisp_Object tem, cbuf;
+
+  cbuf = Fcurrent_buffer ();
 
   if (NILP (printflag))
     tem = Qsymbolp;
@@ -690,7 +783,7 @@ point remains at the end of the last character read from the buffer.")
   /* This both uses b and checks its type.  */
   Fgoto_char (b);
   Fnarrow_to_region (make_number (BEGV), e);
-  readevalloop (Fcurrent_buffer (), 0, Feval, !NILP (printflag));
+  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval, !NILP (printflag));
 
   return unbind_to (count, Qnil);
 }
@@ -1798,6 +1891,18 @@ with no directory specified, since that is how `load' is normally called.\n\
 An error in FORMS does not undo the load,\n\
 but does prevent execution of the rest of the FORMS.");
   Vafter_load_alist = Qnil;
+
+  DEFVAR_LISP ("load-history", &Vload_history,
+    "Alist mapping source file names to symbols and features.\n\
+Each alist element is a list that starts with a file name,\n\
+except for one element (optional) that starts with nil and describes\n\
+definitions evaluated from buffers not visiting files.\n\
+The remaining elements of each list are symbols defined as functions\n\
+or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
+  Vload_history = Qnil;
+
+  staticpro (&Vcurrent_load_list);
+  Vcurrent_load_list = Qnil;
 
   Qstandard_input = intern ("standard-input");
   staticpro (&Qstandard_input);
