@@ -688,7 +688,7 @@ of array-rows-numbered."
 	(kill-line 1))
        (t
 	;; Add the row number.
-	(insert-string (format "%d:\n" this-row))))
+	(insert (format "%d:\n" this-row))))
       ;; Deal with the array columns in this row.
       (cond
        ((= old-columns-per-line new-columns-per-line)
