@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.26) $
+ * $HopeName: MMsrc!mpm.c(trunk.27) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.26) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.27) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -166,26 +166,6 @@ Word (WordAlignDown)(Word word, Align alignment)
 {
   AVER(AlignCheck(alignment));
   return WordAlignDown(word, alignment);
-}
-
-
-/* Accumulator methods */
-
-void AccumulatorReset(Accumulation *a)
-{
-  AVER(a != NULL);
-  /* *a may be arbitrary, especially if unitialized */
-
-  *a = 0;
-}
-
-void Accumulate(Accumulation *augend, unsigned long addend)
-{
-  AVER(augend != NULL);
-  AVER(*augend >= 0);
-  /* addend may be arbitrary */
-
-  *augend += addend;
 }
 
 

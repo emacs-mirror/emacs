@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.104) $
+ * $HopeName: MMsrc!mpm.h(trunk.105) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -117,12 +117,6 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
 /* Result codes */
 
 extern Bool ResIsAllocFailure(Res res);
-
-
-/* Accumulator methods */
-
-extern void AccumulatorReset(Accumulation *a);
-extern void Accumulate(Accumulation *augend, unsigned long addend);
 
 
 /* Logs and Powers
