@@ -1,3 +1,16 @@
+2004-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi: Various small changes in addition to the
+	following.
+	(Regexp Example): Adapt to new value of `sentence-end'.
+	(Regexp Functions): The PAREN argument to `regexp-opt' can be
+	`words'.
+	(Search and Replace): Add usage note for `perform-replace'.
+	(Entire Match Data): Mention INTEGERS and REUSE arguments to
+	`match-data'.
+	(Standard Regexps): Update for new values of `paragraph-start'
+	and `sentence-end'.
+
 2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Saving Buffers): Clarify descriptions of
