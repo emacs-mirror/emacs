@@ -896,8 +896,14 @@ This should be the author's full name minus an optional title."
 	  ;; If there is a <...> in the name,
 	  ;; treat everything before that as the full name.
 	  ;; Even if it contains parens, use the whole thing.
+	  ;; On the other hand, we do look for quotes in the usual way.
 	  (and (string-match " *<.*>" from 0)
-	       (sc-name-substring from 0 (match-beginning 0) 0))
+	       (let ((before-angles
+		      (sc-name-substring from 0 (match-beginning 0) 0)))
+		 (if (string-match "\".*\"" before-angles 0)
+		     (sc-name-substring
+		      before-angles (match-beginning 0) (match-end 0) 1)
+		   before-angles)))
 	  (sc-name-substring
 	   from (string-match "(.*)" from 0) (match-end 0) 1)
 	  (sc-name-substring
