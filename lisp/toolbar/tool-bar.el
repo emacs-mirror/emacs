@@ -99,9 +99,21 @@ ICON is the base name of a file containing the image to use.  The
 function will first try to use ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'.
 
-Keybindings are made in the map `tool-bar-map'.  To define items in
-some local map, bind `tool-bar-map' with `let' around calls of this
-function."
+Use this function only to make bindings in the global value of `tool-bar-map'.
+To define items in any other map, use `tool-bar-local-item'."
+  (apply 'tool-bar-local-item icon def key tool-bar-map props))
+
+;;;###autoload
+(defun tool-bar-local-item (icon def key map &rest props)
+  "Add an item to the tool bar in map MAP.
+ICON names the image, DEF is the key definition and KEY is a symbol
+for the fake function key in the menu keymap.  Remaining arguments
+PROPS are additional items to add to the menu item specification.  See
+Info node `(elisp)Tool Bar'.  Items are added from left to right.
+
+ICON is the base name of a file containing the image to use.  The
+function will first try to use ICON.xpm, then ICON.pbm, and finally
+ICON.xbm, using `find-image'."
   (let* ((fg (face-attribute 'tool-bar :foreground))
 	 (bg (face-attribute 'tool-bar :background))
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
@@ -121,24 +133,37 @@ function."
     (when (and (display-images-p) image)
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
-      (define-key-after tool-bar-map (vector key)
+      (define-key-after map (vector key)
 	`(menu-item ,(symbol-name key) ,def :image ,image ,@props)))))
 
 ;;;###autoload
 (defun tool-bar-add-item-from-menu (command icon &optional map &rest props)
   "Define tool bar binding for COMMAND using the given ICON in keymap MAP.
-The binding of COMMAND is looked up in the menu bar in MAP (default
-`global-map') and modified to add an image specification for ICON, which
-is looked for as by `tool-bar-add-item'.
-MAP must contain an appropriate keymap bound to `[menu-bar]'.
-PROPS is a list of additional properties to add to the binding.
+This makes a binding for COMMAND in `tool-bar-map', copying its
+binding from the menu bar in MAP (which defaults to `global-map'), but
+modifies the binding by adding an image specification for ICON.  It
+finds ICON just like `tool-bar-add-item'.  PROPS are additional
+properties to add to the binding.
 
-Keybindings are made in the map `tool-bar-map'.  To define items in
-some local map, bind `tool-bar-map' with `let' around calls of this
-function."
-  (unless map
-    (setq map global-map))
-  (let* ((menu-bar-map (lookup-key map [menu-bar]))
+MAP must contain appropriate binding for `[menu-bar]' which holds a keymap.
+
+Use this function only to make bindings in the global value of `tool-bar-map'.
+To define items in any other map, use `tool-bar-local-item'."
+  (apply 'tool-bar-local-item-from-menu command icon tool-bar-map map props))
+
+;;;###autoload
+(defun tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)
+  "Define tool bar binding for COMMAND using the given ICON in keymap MAP.
+This makes a binding for COMMAND in IN-MAP, copying its binding from
+the menu bar in FROM-MAP (which defaults to `global-map'), but
+modifies the binding by adding an image specification for ICON.  It
+finds ICON just like `tool-bar-add-item'.  PROPS are additional
+properties to add to the binding.
+
+MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
+  (unless from-map
+    (setq from-map global-map))
+  (let* ((menu-bar-map (lookup-key from-map [menu-bar]))
 	 (keys (where-is-internal command menu-bar-map))
 	 (fg (face-attribute 'tool-bar :foreground))
 	 (bg (face-attribute 'tool-bar :background))
@@ -179,10 +204,10 @@ function."
 	(setq image (append image '(:mask heuristic))))
       (let ((defn (assq key (cdr submap))))
 	(if (eq (cadr defn) 'menu-item)
-	    (define-key-after tool-bar-map (vector key)
+	    (define-key-after in-map (vector key)
 	      (append (cdr defn) (list :image image) props))
 	  (setq defn (cdr defn))
-	  (define-key-after tool-bar-map (vector key)
+	  (define-key-after in-map (vector key)
 	    (append `(menu-item ,(car defn) ,(cddr defn))
 		    (list :image image) props)))))))
 
