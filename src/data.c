@@ -1833,7 +1833,7 @@ or a byte-code object.  IDX starts at 0.  */)
 	return make_number ((unsigned char) SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
-      c = STRING_CHAR (&SREF (array, idxval_byte),
+      c = STRING_CHAR (SDATA (array) + idxval_byte,
 		       SBYTES (array) - idxval_byte);
       return make_number (c);
     }
@@ -2031,7 +2031,7 @@ IDX starts at 0.  */)
       CHECK_NUMBER (newelt);
 
       idxval_byte = string_char_to_byte (array, idxval);
-      p1 = &SREF (array, idxval_byte);
+      p1 = SDATA (array) + idxval_byte;
       PARSE_MULTIBYTE_SEQ (p1, nbytes - idxval_byte, prev_bytes);
       new_bytes = CHAR_STRING (XINT (newelt), p0);
       if (prev_bytes != new_bytes)
@@ -2065,7 +2065,7 @@ IDX starts at 0.  */)
       CHECK_NUMBER (newelt);
 
       if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
-	SREF (array, idxval) = XINT (newelt);
+	SSET (array, idxval, XINT (newelt));
       else
 	{
 	  /* We must relocate the string data while converting it to
