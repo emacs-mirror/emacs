@@ -1,3 +1,15 @@
+2003-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (MAX_BUF_SIZE): Reduce to 2**15.
+	(print_partial_compiled_pattern): Replace assert with a printout.
+	(skip_noops, mutually_exclusive_p): Change args, values to re_char *.
+
+	* alloc.c (lisp_align_malloc): If BASE is 0, call memory_full.
+
+	* window.c (Fset_window_margins): Allow only integers as args.
+	(syms_of_window) <special-display-buffer-names, special-display-regexps>:
+	Doc fixes.
+
 2003-10-13  Lute Kamstra  <lute@gnu.org>
 
 	* window.c (Fset_window_fringes): Elaborate docstring.

@@ -1,3 +1,44 @@
+2003-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Windows): A window has fringe settings,
+	display margins and scroll-bar settings.
+	(Splitting Windows): Doc split-window return value.
+	Clean up one-window-p.
+	(Selecting Windows): Fix typo.
+	(Cyclic Window Ordering): Explain frame as ALL-FRAMES in next-window.
+	(Buffers and Windows): In set-window-buffer, explain effect
+	on fringe settings and scroll bar settings.
+	(Displaying Buffers): In pop-to-buffer, explain nil as buffer arg.
+	(Choosing Window): Use defopt for pop-up-frame-function.
+	For special-display-buffer-names, explain same-window and same-frame.
+	Clarify window-dedicated-p return value.
+	(Textual Scrolling): scroll-up and scroll-down can get an error.
+	(Horizontal Scrolling): Clarify auto-hscroll-mode.
+	Clarify set-window-hscroll.
+	(Size of Window): Don't mention tool bar in window-height.
+	(Coordinates and Windows): Explain what coordinates-in-window-p
+	returns for fringes and display margins.
+	(Window Configurations): Explain saving fringes, etc.
+
+	* tips.texi (Library Headers): Clean up Documentation.
+
+	* syntax.texi (Parsing Expressions): Clean up forward-comment
+	and parse-sexp-lookup-properties.
+
+	* sequences.texi (Sequence Functions): sequencep accepts bool-vectors.
+
+	* os.texi (System Environment): Clean up text for load-average errors.
+
+	* modes.texi (Hooks): Don't explain local hook details at front.
+	Clarify run-hooks and run-hook-with-args a little.
+	Clean up add-hook and remove-hook.
+
+	* edebug.texi (Edebug Execution Modes): Clarify t.
+	Document edebug-sit-for-seconds.
+	(Coverage Testing): Document C-x X = and =.
+	(Instrumenting Macro Calls): Fix typo.
+	(Specification List): Don't index the specification keywords.
+
 2003-10-10  Kim F. Storm  <storm@cua.dk>
 
 	* processes.texi (Network): Introduce make-network-process.

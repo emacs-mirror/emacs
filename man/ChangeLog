@@ -1,3 +1,7 @@
+2003-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* xresources.texi (GTK resources): Clean up previous change.
+
 2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK resources): Added a note that some themes
