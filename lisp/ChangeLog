@@ -1,5 +1,9 @@
 2002-06-15  Richard M. Stallman  <rms@gnu.org>
 
+	* comint.el (comint-skip-input): New function.
+	(comint-interrupt-subjob, comint-kill-subjob, comint-quit-subjob) 
+	(comint-stop-subjob): Use comint-skip-input.
+
 	* ielm.el (ielm-eval-input): Use error-message-string.
 	(ielm-format-error, ielm-format-errors): Functions deleted.
 

@@ -1,3 +1,8 @@
+2002-06-15  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fset_window_configuration): Explicitly preserve
+	the point value that new_current_buffer had at the start.
+
 2002-06-14  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.c (Fcompose_region_internal, Fcompose_string_internal):
