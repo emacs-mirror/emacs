@@ -496,10 +496,11 @@ which font is being used for displaying the character."
 
 ;;; CODING-SYSTEM
 
+;; Fixme
+(defun print-designation (charset-list initial request)
 ;; Print information of designation of each graphic register in FLAGS
 ;; in human readable format.  See the documentation of
 ;; `make-coding-system' for the meaning of FLAGS.
-(defun print-designation (charset-list initial request)
   (let ((gr (make-vector 4 nil))
 	charset)
     (dotimes (i 4)
@@ -579,17 +580,21 @@ which font is being used for displaying the character."
 	       (princ " (Shift-JIS, MS-KANJI)"))
 	      ((eq type 'iso-2022)
 	       (princ " (variant of ISO-2022)\n")
-	       (princ "Initial designations:\n")
-	       (print-designation (coding-system-charset-list coding-system)
-				  (aref extra-spec 0) (aref extra-spec 1))
-	       (print-iso-2022-flags (aref extra-spec 2))
-	       (princ "."))
+;; Fixme:
+;; 	       (princ "Initial designations:\n")
+;; 	       (print-designation (coding-system-charset-list coding-system)
+;; 				  (aref extra-spec 0) (aref extra-spec 1))
+;; 	       (print-iso-2022-flags (aref extra-spec 2))
+;; 	       (princ ".")
+	       )
 	      ((eq type 'charset)
 	       (princ " (charset)"))
 	      ((eq type 'ccl)
 	       (princ " (do conversion by CCL program)"))
 	      ((eq type 'raw-text)
 	       (princ " (text with random binary characters)"))
+	      ((eq type 'emacs-mule)
+	       (princ " (Emacs 21 internal encoding)"))
 	      (t (princ ": invalid coding-system.")))
 	(princ "\nEOL type: ")
 	(let ((eol-type (coding-system-eol-type coding-system)))
@@ -616,21 +621,23 @@ which font is being used for displaying the character."
 	  (princ prewrite)
 	  (princ "\n")))
       (with-current-buffer standard-output
-	(let ((charsets (coding-system-get coding-system :charset-list)))
-	  (when (and (not (memq (coding-system-base coding-system)
-				'(raw-text emacs-mule)))
+	(let ((charsets (coding-system-charset-list coding-system)))
+	  (when (and (not (eq (coding-system-base coding-system) 'raw-text))
 		     charsets)
-	    (if (eq charsets t)
-		(insert "This coding system can encode all charsets except for
-eight-bit-control and eight-bit-graphic.\n")
+	    (cond
+	     ((eq charsets 'iso-2022)
+	      (insert "This coding system can encode all ISO 2022 charsets."))
+	     ((eq charsets 'emacs-mule)
+	      (insert "This coding system can encode all emacs-mule charsets\
+."""))
+	     (t
 	      (insert "This coding system encodes the following charsets:\n ")
 	      (while charsets
 		(insert " " (symbol-name (car charsets)))
 		(search-backward (symbol-name (car charsets)))
 		(help-xref-button 0 'help-character-set (car charsets))
 		(goto-char (point-max))
-		(setq charsets (cdr charsets))))))))))
-
+		(setq charsets (cdr charsets)))))))))))
 
 ;;;###autoload
 (defun describe-current-coding-system-briefly ()
