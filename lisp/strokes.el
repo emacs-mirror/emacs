@@ -1006,8 +1006,8 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   silently--without displaying the strokes.  All variables can be set
   by customizing the group `strokes' via \[customize-group].")
     (set-buffer standard-output)
-    (help-mode))
-  (print-help-return-message))
+    (help-mode)
+    (print-help-return-message)))
 
 (defalias 'strokes-report-bug 'report-emacs-bug)
 
