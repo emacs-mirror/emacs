@@ -10,3 +10,12 @@
 #undef HAVE_RANDOM
 #define HPUX10
 #define FORCE_ALLOCA_H
+
+#ifdef LIBS_SYSTEM
+#undef LIBS_SYSTEM
+#endif
+#ifdef HPUX_NET
+#define LIBS_SYSTEM -ln -l:libdld.sl
+#else
+#define LIBS_SYSTEM -l:libdld.sl
+#endif
