@@ -1506,13 +1506,20 @@ read_multibyte (c, readcharfun)
      characters.  */
   unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len = 0;
+  int bytes;
 
   str[len++] = c;
   while ((c = READCHAR) >= 0xA0
 	 && len < MAX_MULTIBYTE_LENGTH)
     str[len++] = c;
   UNREAD (c);
-  return STRING_CHAR (str, len);
+  if (UNIBYTE_STR_AS_MULTIBYTE_P (str, len, bytes))
+    return STRING_CHAR (str, len);
+  /* The byte sequence is not valid as multibyte.  Unread all bytes
+     but the first one, and return the first byte.  */
+  while (--len > 0)
+    UNREAD (str[len]);
+  return str[0];
 }
 
 /* Read a \-escape sequence, assuming we already read the `\'.  */
