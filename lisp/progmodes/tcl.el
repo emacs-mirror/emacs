@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.28 $
+;; Version: $Revision: 1.29 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/04/08 19:52:50 $|$Revision: 1.28 $|~/modes/tcl.el.Z|
+;; $Date: 1995/05/09 21:36:53 $|$Revision: 1.29 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,11 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.29  1995/05/09  21:36:53  tromey
+;; Changed "Lucid Emacs" to "XEmacs".
+;; Tcl's popup menu now added to existing one, courtesy
+;; dfarmer@evolving.com (Doug Farmer)
+;;
 ;; Revision 1.28  1995/04/08  19:52:50  tromey
 ;; (tcl-outline-level): New function
 ;; (tcl-mode): Added outline-handling stuff.
@@ -288,7 +293,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.28 $")
+(defconst tcl-version "$Revision: 1.29 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -923,7 +928,7 @@ Commands:
 	(set-buffer-menubar (copy-sequence current-menubar))
 	(add-menu nil "Tcl" tcl-lucid-menu)))
   ;; Append Tcl menu to popup menu for XEmacs.
-  (if (and tcl-using-xemacs-19 (not (boundp 'mode-popup-menu)))
+  (if (and tcl-using-xemacs-19 (boundp 'mode-popup-menu))
       (setq mode-popup-menu tcl-xemacs-menu))
 
   (run-hooks 'tcl-mode-hook))
