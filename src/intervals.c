@@ -345,24 +345,28 @@ rotate_left (interval)
   return B;
 }
 
-/* Split an interval into two.  The second (RIGHT) half is returned as
-   the new interval.  The size and position of the interval being split are
-   stored within it, having been found by find_interval ().  The properties
-   are reset;  it is up to the caller to do the right thing.
+/* Split INTERVAL into two pieces, starting the second piece at character
+   position OFFSET (counting from 1), relative to INTERVAL.  The right-hand
+   piece (second, lexicographically) is returned.
+
+   The size and position fields of the two intervals are set based upon
+   those of the original interval.  The property list of the new interval
+   is reset, thus it is up to the caller to do the right thing with the
+   result.
 
    Note that this does not change the position of INTERVAL;  if it is a root,
    it is still a root after this operation. */
 
 INTERVAL
-split_interval_right (interval, relative_position)
+split_interval_right (interval, offset)
      INTERVAL interval;
-     int relative_position;
+     int offset;
 {
   INTERVAL new = make_interval ();
   int position = interval->position;
-  int new_length = LENGTH (interval) - relative_position + 1;
+  int new_length = LENGTH (interval) - offset + 1;
 
-  new->position = position + relative_position - 1;
+  new->position = position + offset - 1;
   new->parent = interval;
 #if 0
   copy_properties (interval, new);
@@ -386,22 +390,26 @@ split_interval_right (interval, relative_position)
   return new;
 }
 
-/* Split an interval into two.  The first (LEFT) half is returned as
-   the new interval.  The size and position of the interval being split
-   are stored within it, having been found by find_interval ().  The
-   properties are reset;  it is up to the caller to do the right thing.
+/* Split INTERVAL into two pieces, starting the second piece at character
+   position OFFSET (counting from 1), relative to INTERVAL.  The left-hand
+   piece (first, lexicographically) is returned.
 
-   Note that this does not change the position of INTERVAL in the tree;  if it
-   is a root, it is still a root after this operation.  */
+   The size and position fields of the two intervals are set based upon
+   those of the original interval.  The property list of the new interval
+   is reset, thus it is up to the caller to do the right thing with the
+   result.
+
+   Note that this does not change the position of INTERVAL;  if it is a root,
+   it is still a root after this operation. */
 
 INTERVAL
-split_interval_left (interval, relative_position)
+split_interval_left (interval, offset)
      INTERVAL interval;
-     int relative_position;
+     int offset;
 {
   INTERVAL new = make_interval ();
   int position = interval->position;
-  int new_length = relative_position - 1;
+  int new_length = offset - 1;
 
 #if 0
   copy_properties (interval, new);
@@ -409,7 +417,7 @@ split_interval_left (interval, relative_position)
 
   new->position = interval->position;
 
-  interval->position = interval->position + relative_position - 1;
+  interval->position = interval->position + offset - 1;
   new->parent = interval;
 
   if (NULL_LEFT_CHILD (interval))
@@ -429,10 +437,15 @@ split_interval_left (interval, relative_position)
   return new;
 }
 
-/* Find the interval containing POSITION in TREE.  POSITION is relative
-   to the start of TREE. */
+/* Find the interval containing text position POSITION in the text
+   represented by the interval tree TREE.  POSITION is relative to
+   the beginning of that text.
 
-INTERVAL
+   The `position' field, which is a cache of an interval's position,
+   is updated in the interval found.  Other functions (e.g., next_interval)
+   will update this cache based on the result of find_interval. */
+
+INLINE INTERVAL
 find_interval (tree, position)
      register INTERVAL tree;
      register int position;
@@ -471,10 +484,8 @@ find_interval (tree, position)
 }
 
 /* Find the succeeding interval (lexicographically) to INTERVAL.
-   Sets the `position' field based on that of INTERVAL.
-
-   Note that those values are only correct if they were also correct
-   in INTERVAL. */
+   Sets the `position' field based on that of INTERVAL (see
+   find_interval). */
 
 INTERVAL
 next_interval (interval)
@@ -513,10 +524,8 @@ next_interval (interval)
 }
 
 /* Find the preceding interval (lexicographically) to INTERVAL.
-   Sets the `position' field based on that of INTERVAL.
-
-   Note that those values are only correct if they were also correct
-   in INTERVAL. */
+   Sets the `position' field based on that of INTERVAL (see
+   find_interval). */
 
 INTERVAL
 previous_interval (interval)
@@ -554,6 +563,7 @@ previous_interval (interval)
   return NULL_INTERVAL;
 }
 
+#if 0
 /* Traverse a path down the interval tree TREE to the interval
    containing POSITION, adjusting all nodes on the path for
    an addition of LENGTH characters.  Insertion between two intervals
@@ -609,6 +619,59 @@ adjust_intervals_for_insertion (tree, position, length)
 	  return tree;
 	}
     }
+}
+#endif
+
+/* Effect an adjustment corresponding to the addition of LENGTH characters
+   of text.  Do this by finding the interval containing POSITION in the
+   interval tree TREE, and then adjusting all of it's ancestors by adding
+   LENGTH to them.
+
+   If POSITION is the first character of an interval, meaning that point
+   is actually between the two intervals, make the new text belong to
+   the interval which is "sticky".
+
+   If both intervals are "stick", then make them belong to the left-most
+   interval.  Another possibility would be to create a new interval for
+   this text, and make it have the merged properties of both ends. */
+
+static INTERVAL
+adjust_intervals_for_insertion (tree, position, length)
+     INTERVAL tree;
+     int position, length;
+{
+  register INTERVAL i;
+
+  if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
+    abort ();
+
+  /* If inserting at point-max of a buffer, that position
+     will be out of range. */
+  if (position > TOTAL_LENGTH (tree))
+    position = TOTAL_LENGTH (tree);
+
+  i = find_interval (tree, position);
+  /* If we are positioned between intervals, check the stickiness of
+     both of them. */
+  if (position == i->position
+      && position != 1)
+    {
+      register prev = previous_interval (i);
+
+      /* If both intervals are sticky here, then default to the
+         left-most one.  But perhaps we should create a new
+	 interval here instead... */
+      if (END_STICKY (prev))
+	i = prev;
+    }
+
+  while (! NULL_INTERVAL_P (i))
+    {
+      i->total_length += length;
+      i = i->parent
+    }
+
+  return tree;
 }
 
 /* Merge interval I with its lexicographic successor. Note that
@@ -697,8 +760,8 @@ merge_interval_left (i)
   return NULL_INTERVAL;
 }
 
-/* Delete an interval node from its btree by merging its subtrees
-   into one subtree which is returned.  Caller is responsible for
+/* Delete an node I from its interval tree by merging its subtrees
+   into one subtree which is then returned.  Caller is responsible for
    storing the resulting subtree into its parent. */
 
 static INTERVAL
@@ -1002,7 +1065,7 @@ map_intervals (source, destination, position)
 
    If the inserted text had no intervals associated, this function
    simply returns -- offset_intervals should handle placing the
-   text in the correct interval, depending on the hungry bits.
+   text in the correct interval, depending on the sticky bits.
 
    If the inserted text had properties (intervals), then there are two
    cases -- either insertion happened in the middle of some interval,
@@ -1015,12 +1078,12 @@ map_intervals (source, destination, position)
    of the text into which it was inserted.
 
    If the text goes between two intervals, then if neither interval
-   had its appropriate hungry property set (front_hungry, rear_hungry),
-   the new text has only its properties.  If one of the hungry properties
+   had its appropriate sticky property set (front_sticky, rear_sticky),
+   the new text has only its properties.  If one of the sticky properties
    is set, then the new text "sticks" to that region and its properties
    depend on merging as above.  If both the preceding and succeding
-   intervals to the new text are "hungry", then the new text retains
-   only its properties, as if neither hungry property were set.  Perhaps
+   intervals to the new text are "sticky", then the new text retains
+   only its properties, as if neither sticky property were set.  Perhaps
    we should consider merging all three sets of properties onto the new
    text... */
 
@@ -1088,7 +1151,7 @@ graft_intervals_into_buffer (new_tree, position, b)
       /* First interval -- none precede it. */
       if (position == 1)
 	{
-	  if (! under->front_hungry)
+	  if (! FRONT_STICKY (under))
 	    /* The inserted string keeps its own properties. */
 	    while (! NULL_INTERVAL_P (over))
 	    {
@@ -1115,10 +1178,10 @@ graft_intervals_into_buffer (new_tree, position, b)
 	  if (NULL_INTERVAL_P (prev))
 	    abort ();
 
-	  if (prev->rear_hungry)
+	  if (END_STICKY (prev))
 	    {
-	      if (under->front_hungry)
-		/* The intervals go inbetween as the two hungry
+	      if (FRONT_STICKY (under))
+		/* The intervals go inbetween as the two sticky
 		   properties cancel each other.  Should we change
 		   this policy? */
 		while (! NULL_INTERVAL_P (over))
@@ -1142,7 +1205,7 @@ graft_intervals_into_buffer (new_tree, position, b)
 	    }
 	  else
 	    {
-	      if (under->front_hungry)
+	      if (FRONT_STICKY (under))
 		/* The intervals stick to under */
 		while (! NULL_INTERVAL_P (over))
 		  {
@@ -1334,7 +1397,7 @@ verify_interval_modification (buf, start, end)
 	abort ();
 
       i = find_interval (intervals, start - 1);
-      if (! END_HUNGRY_P (i))
+      if (! END_STICKY_P (i))
 	return;
     }
   else
