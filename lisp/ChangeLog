@@ -1,3 +1,19 @@
+2003-01-05  Dave Love  <fx@gnu.org>
+
+	* language/european.el ("Latin-6", "Croatian"): New.
+	("Latin-7"): Fix nonascii-translation.  Add input method.
+	("Lithuanian", "Latvian"): Add nonascii-translation.
+	("German", "Spanish", "Dutch", "Welsh", "Swedish"): Fix
+	nonascii-translation.
+
+	* language/georgian.el ("Georgian"): Fix nonascii-translation.
+
+	* international/mule-cmds.el (set-locale-environment): Ignore
+	empty values of environment variables.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-nth)
+	(byte-optimize-nthcdr): Fix for case of wrong-length forms.
+
 2003-01-04  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el: Acknowledge Tom Lord as author of gdba.el.
@@ -27,6 +43,9 @@
 	(mail-mode-map): remap split-line to mail-split-line.
 
 2003-01-03  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/find-func.el (find-variable-noselect): Make it work
+	with new load-history format.
 
 	* international/mule-cmds.el (sort-coding-systems): Adjust
 	priority of utf-16 and x-ctext.

@@ -1,3 +1,11 @@
+2003-01-05  Dave Love  <fx@gnu.org>
+
+	* makefile.w32-in (SLAVIC): Add croatian.elc.
+
+	* Makefile.in (SLAVIC): Add croatian.elc.
+
+	* quail/croatian.el: New file.
+
 2002-12-10  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (LATIN): Add welsh.elc.
