@@ -58,6 +58,7 @@ It removes the recentf menu and forces its complete redrawing."
 
 (defgroup recentf nil
   "Maintain a menu of recently opened files."
+  :version "21.1"
   :group 'files)
 
 (defcustom recentf-max-saved-items 20
