@@ -1,8 +1,7 @@
 ;;; mule-cmds.el --- commands for mulitilingual environment
-
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -1938,7 +1937,7 @@ of `buffer-file-coding-system' set by this function."
     ("ca" . "Latin-1") ; Catalan
     ; co Corsican
     ("cs" . "Czech")
-    ("cy" . "Welsh") ; Welsh
+    ("cy" . "Welsh") ; Welsh [glibc uses Latin-8.  Did this change?]
     ("da" . "Latin-1") ; Danish
     ("de" . "German")
     ; dz Bhutani
@@ -1974,7 +1973,7 @@ of `buffer-file-coding-system' set by this function."
     ; ie Interlingue
     ; ik Inupiak
     ("is" . "Latin-1") ; Icelandic
-    ("it" . "Latin-1") ; Italian
+    ("it" . "Italian") ; Italian
     ; iu Inuktitut
     ("ja" . "Japanese")
     ; jw Javanese
@@ -2019,7 +2018,7 @@ of `buffer-file-coding-system' set by this function."
     ("rm" . "Latin-1") ; Rhaeto-Romanic
     ; rn Kirundi
     ("ro" . "Romanian")
-    ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
+    ("ru.*[_.]koi8" . "Russian")
     ("ru" . "Cyrillic-ISO") ; Russian
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
@@ -2050,7 +2049,7 @@ of `buffer-file-coding-system' set by this function."
     ("tl" . "Latin-1") ; Tagalog
     ; tn Setswana
     ; to Tonga
-    ("tr" . "Latin-5") ; Turkish
+    ("tr" . "Turkish")
     ; ts Tsonga
     ; tt Tatar
     ; tw Twi
@@ -2071,12 +2070,11 @@ of `buffer-file-coding-system' set by this function."
     ; zh_CN.GB18030/GB18030 \
     ; zh_CN.GBK/GBK \
     ; zh_HK/BIG5-HKSCS \
-    ; zh_TW/BIG5 \
-    ; zh_TW.EUC-TW/EUC-TW \
 
     ("zh.*[._]big5" . "Chinese-BIG5")
     ("zh.*[._]gbk" . nil) ; Solaris 2.7; has gbk-0 as well as GB 2312.1980-0
-    ("zh_tw" . "Chinese-CNS")
+    ("zh_tw" . "Chinese-CNS") ; glibc uses big5
+    ("zh_tw[._]euc-tw" . "Chinese-EUC-TW")
     ("zh" . "Chinese-GB")
     ; zu Zulu
 
@@ -2256,7 +2254,33 @@ See also `locale-charset-language-names', `locale-language-names',
 
 	(when coding-system
 	  (prefer-coding-system coding-system)
-	  (setq locale-coding-system coding-system))))))
+	  (setq locale-coding-system coding-system))))
+
+    ;; Default to A4 paper if we're not in a C, POSIX or US locale.
+    ;; (See comments in Flanginfo.)
+    (let ((locale locale)
+	  (paper (langinfo 'paper)))
+      (if paper
+	  ;; This will always be null at the time of writing.
+	  (cond
+	   ((equal paper '(216 279))
+	    (setq ps-paper-type 'letter))
+	   ((equal paper '(210 297))
+	    (setq ps-paper-type 'a4)))
+	(let ((vars '("LC_ALL" "LC_PAPER" "LANG")))
+	  (while (and vars (= 0 (length locale)))
+	    (setq locale (getenv (pop vars)))))
+	(when locale
+	  ;; As of glibc 2.2.5, these are the only US Letter locales,
+	  ;; and the rest are A4.
+	  (setq ps-paper-type
+		(or (locale-name-match locale '(("c$" . letter)
+						("posix$" . letter)
+						(".._us" . letter)
+						(".._pr" . letter)
+						(".._ca" . letter)))
+		    'a4))))))
+  nil)
 
 ;;; Charset property
 
