@@ -4850,11 +4850,6 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   init_sigio ();
 #endif /* ! defined (SIGIO) */
 
-  /* Must use interrupt input because we cannot otherwise
-     arrange for C-g to be noticed immediately.
-     We cannot connect it to SIGINT.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
-
   expose_all_windows = 0;
 
   clear_frame_hook = XTclear_frame;
@@ -4888,6 +4883,9 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   memory_below_frame = 0;	/* we don't remember what scrolls 
 				   off the bottom */
   baud_rate = 19200;
+
+  /* Try to use interrupt input; if we can't, then start polling.  */
+  Fset_input_mode (Qt, Qnil, Qt, Qnil);
 
   /* Note that there is no real way portable across R3/R4 to get the 
      original error handler.  */
