@@ -1,3 +1,7 @@
+2001-06-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix unanchored regexp.
+
 2001-06-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
