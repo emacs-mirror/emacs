@@ -1444,7 +1444,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
           *char2b = BUILD_WCHAR_T (sjis1, sjis2);
         }
     }
-  codepage = w32_codepage_for_font (font_info->name);
+  codepage = font_info->codepage;
 
   /* If charset is not ASCII or Latin-1, may need to move it into
      Unicode space.  */
