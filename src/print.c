@@ -923,6 +923,19 @@ print (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('>');
 	}
+      else if (BUFFERP (obj))
+	{
+	  if (NILP (XBUFFER (obj)->name))
+	    strout ("#<killed buffer>", -1, printcharfun);
+	  else if (escapeflag)
+	    {
+	      strout ("#<buffer ", -1, printcharfun);
+	      print_string (XBUFFER (obj)->name, printcharfun);
+	      PRINTCHAR ('>');
+	    }
+	  else
+	    print_string (XBUFFER (obj)->name, printcharfun);
+	}
       else if (WINDOW_CONFIGURATIONP (obj))
 	{
 	  strout ("#<window-configuration>", -1, printcharfun);
@@ -965,19 +978,6 @@ print (obj, printcharfun, escapeflag)
       break;
 
 #ifndef standalone
-    case Lisp_Buffer:
-      if (NILP (XBUFFER (obj)->name))
-	strout ("#<killed buffer>", -1, printcharfun);
-      else if (escapeflag)
-	{
-	  strout ("#<buffer ", -1, printcharfun);
-	  print_string (XBUFFER (obj)->name, printcharfun);
-	  PRINTCHAR ('>');
-	}
-      else
-	print_string (XBUFFER (obj)->name, printcharfun);
-      break;
-
     case Lisp_Misc:
       if (MARKERP (obj))
 	{
@@ -992,6 +992,7 @@ print (obj, printcharfun, escapeflag)
 	      print_string (XMARKER (obj)->buffer->name, printcharfun);
 	    }
 	  PRINTCHAR ('>');
+	  break;
 	}
       else if (OVERLAYP (obj))
 	{
@@ -1008,7 +1009,9 @@ print (obj, printcharfun, escapeflag)
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');
+	  break;
 	}
+      /* Other cases fall through to get an error.  */
 #endif /* standalone */
 
     default:
