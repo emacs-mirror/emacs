@@ -103,10 +103,10 @@
   (define-key gomoku-mode-map "X" 'gomoku-human-plays)		; X
   (define-key gomoku-mode-map "x" 'gomoku-human-plays)		; x
   (define-key gomoku-mode-map "\C-m" 'gomoku-human-plays)	; RET
-  (define-key gomoku-mode-map "\C-cp" 'gomoku-human-plays)	; C-C P
-  (define-key gomoku-mode-map "\C-cb" 'gomoku-human-takes-back) ; C-C B
-  (define-key gomoku-mode-map "\C-cr" 'gomoku-human-resigns)	; C-C R
-  (define-key gomoku-mode-map "\C-ce" 'gomoku-emacs-plays)	; C-C E
+  (define-key gomoku-mode-map "\C-c\C-p" 'gomoku-human-plays)	; C-C C-P
+  (define-key gomoku-mode-map "\C-c\C-b" 'gomoku-human-takes-back) ; C-C C-B
+  (define-key gomoku-mode-map "\C-c\C-r" 'gomoku-human-resigns)	; C-C C-R
+  (define-key gomoku-mode-map "\C-c\C-e" 'gomoku-emacs-plays)	; C-C C-E
 
   (define-key gomoku-mode-map [up] 'gomoku-move-up)
   (define-key gomoku-mode-map [down] 'gomoku-move-down)
