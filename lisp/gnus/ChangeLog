@@ -1,3 +1,7 @@
+2000-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* nnimap.el: require 'cl when compiling.
+
 2000-10-04  Dave Love  <fx@gnu.org>
 
 	* smiley-ems.el (smiley-regexp-alist, smiley-update-cache): Use
