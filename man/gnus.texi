@@ -979,7 +979,7 @@ The native select method.
 @vindex gnus-group-highlight
 Highlighting in the group buffer is controlled by the
 @code{gnus-group-highlight} variable.  This is an alist with elements
-that look like @var{(form . face)}.  If @var{form} evaluates to
+that look like @code{(@var{form} . @var{face})}.  If @var{form} evaluates to
 something non-@code{nil}, the @var{face} will be used on the line.
 
 Here's an example value for this variable that might look nice if the
@@ -1137,7 +1137,7 @@ this command, Gnus will offer to fetch all the old articles in this
 group from the server.  If you give a numerical prefix @var{N}, @var{N}
 determines the number of articles Gnus will fetch.  If @var{N} is
 positive, Gnus fetches the @var{N} newest articles, if @var{N} is
-negative, Gnus fetches the @var{abs(N)} oldest articles.
+negative, Gnus fetches the @math{abs(N)} oldest articles.
 
 @item RET
 @kindex RET (Group)
@@ -1830,7 +1830,7 @@ are arbitrary comments on the group.  They are currently ignored by
 Gnus, but provide a place for you to store information on particular
 groups.
 
-@item @var{(variable form)}
+@item @code{(@var{variable} @var{form})}
 You can use the group parameters to set variables local to the group you
 are entering.  If you want to turn threading off in @samp{news.answers},
 you could put @code{(gnus-show-threads nil)} in the group parameters of
@@ -3126,7 +3126,7 @@ highlight the current article in the summary buffer.
 @item gnus-summary-highlight
 @vindex gnus-summary-highlight
 Summary lines are highlighted according to this variable, which is a
-list where the elements are of the format @var{(FORM . FACE)}.  If you
+list where the elements are of the format @code{(@var{form} . @var{face})}.  If you
 would, for instance, like ticked articles to be italic and high-scored
 articles to be bold, you could set this variable to something like
 @lisp
@@ -3811,7 +3811,7 @@ Canceled article (@code{gnus-canceled-mark})
 
 @item F
 @vindex gnus-souped-mark
-@sc{SOUP}ed article (@code{gnus-souped-mark}).  @xref{SOUP}.
+@sc{soup}ed article (@code{gnus-souped-mark}).  @xref{SOUP}.
 
 @item Q
 @vindex gnus-sparse-mark
@@ -4599,7 +4599,7 @@ The default is 4.
 Hook run before parsing any headers.  The default value is
 @code{(gnus-decode-rfc1522)}, which means that QPized headers will be
 slightly decoded in a hackish way.  This is likely to change in the
-future when Gnus becomes @sc{MIME}ified.
+future when Gnus becomes @sc{mime}ified.
 
 @item gnus-alter-header-function
 @vindex gnus-alter-header-function
@@ -5796,8 +5796,8 @@ signature and adds buttons.
 @vindex gnus-header-face-alist
 Highlight the headers (@code{gnus-article-highlight-headers}).  The
 highlighting will be done according to the @code{gnus-header-face-alist}
-variable, which is a list where each element has the form @var{(regexp
-name content)}.  @var{regexp} is a regular expression for matching the
+variable, which is a list where each element has the form @code{(@var{regexp}
+@var{name} @var{content})}.  @var{regexp} is a regular expression for matching the
 header, @var{name} is the face used for highlighting the header name
 (@pxref{Faces and Fonts}) and @var{content} is the face for highlighting
 the header value.  The first match made will be used.  Note that
@@ -6763,8 +6763,8 @@ Variables related to the display are:
 @item gnus-tree-brackets
 @vindex gnus-tree-brackets
 This is used for differentiating between ``real'' articles and
-``sparse'' articles.  The format is @var{((real-open . real-close)
-(sparse-open . sparse-close) (dummy-open . dummy-close))}, and the
+``sparse'' articles.  The format is @code{((@var{real-open} . @var{real-close})
+(@var{sparse-open} . @var{sparse-close}) (@var{dummy-open} . @var{dummy-close}))}, and the
 default is @code{((?[ . ?]) (?( . ?)) (?@{ . ?@}) (?< . ?>))}.
 
 @item gnus-tree-parent-child-edges
@@ -8072,7 +8072,7 @@ any case, if this returns a non-@code{nil} value, then the style is said
 to @dfn{match}.
 
 Each style may contain a arbitrary amount of @dfn{attributes}.  Each
-attribute consists of a @var{(name . value)} pair.  The attribute name
+attribute consists of a @code{(@var{name} . @var{value})} pair.  The attribute name
 can be one of @code{signature}, @code{signature-file},
 @code{organization}, @code{address}, @code{name} or @code{body}.  The
 attribute name can also be a string.  In that case, this will be used as
@@ -8412,7 +8412,7 @@ backend, and the second is the @dfn{address}, or @dfn{name}, if you
 will.
 
 After these two elements, there may be an arbitrary number of
-@var{(variable form)} pairs.
+@code{(@var{variable} @var{form})} pairs.
 
 To go back to the first example---imagine that you want to read from
 port 15 on that machine.  This is what the select method should
@@ -9381,26 +9381,26 @@ name.  Normal regexp match expansion will be done.  See below for
 examples. 
 
 @item
-@var{(FIELD VALUE SPLIT)}: If the split is a list, the first element of
+@code{(@var{field} @var{value} @var{split})}: If the split is a list, the first element of
 which is a string, then store the message as specified by SPLIT, if
 header FIELD (a regexp) contains VALUE (also a regexp).
 
 @item
-@var{(| SPLIT...)}: If the split is a list, and the first element is
+@code{(| @var{split}...)}: If the split is a list, and the first element is
 @code{|} (vertical bar), then process each SPLIT until one of them
-matches.  A SPLIT is said to match if it will cause the mail message to
+matches.  A @var{split} is said to match if it will cause the mail message to
 be stored in one or more groups.
 
 @item
-@var{(& SPLIT...)}: If the split is a list, and the first element is
-@code{&}, then process all SPLITs in the list.
+@code{(& @var{split}...)}: If the split is a list, and the first element is
+@code{&}, then process all @var{split}s in the list.
 
 @item
 @code{junk}: If the split is the symbol @code{junk}, then don't save
 this message. Use with extreme caution.
 
 @item
-@var{(: function arg1 arg2 ...)}:  If the split is a list, and the first
+@code{(: @var{function} @var{arg1} @var{arg2} @dots{})}:  If the split is a list, and the first
 element is @code{:}, then the second element will be called as a
 function with @var{args} given as arguments.  The function should return
 a SPLIT.
@@ -10118,7 +10118,7 @@ newsgroups.
 * Directory Groups::      You can read a directory as if it was a newsgroup.
 * Anything Groups::       Dired?  Who needs dired?
 * Document Groups::       Single files can be the basis of a group.
-* SOUP::                  Reading @sc{SOUP} packets ``offline''.
+* SOUP::                  Reading @sc{soup} packets ``offline''.
 * Web Searches::          Creating groups from articles that match a string.
 * Mail-To-News Gateways:: Posting articles via mail-to-news gateways.
 @end menu
@@ -12553,7 +12553,7 @@ A list.  The elements in this list can be:
 
 @enumerate
 @item
-@var{(regexp file-name)}.  If the @var{regexp} matches the group name,
+@code{(@var{regexp} @var{file-name})}.  If the @var{regexp} matches the group name,
 the @var{file-name} will will be used as the home score file.
 
 @item
@@ -14326,7 +14326,7 @@ messages from the people you like.  Each NoCeM message has a @dfn{type}
 header that gives the message a (more or less, usually less) rigorous
 definition.  Common types are @samp{spam}, @samp{spew}, @samp{mmf},
 @samp{binary}, and @samp{troll}.  To specify this, you have to use
-@var{(issuer conditions ...)} elements in the list.  Each condition is
+@code{(@var{issuer} @var{conditions} @dots{})} elements in the list.  Each condition is
 either a string (which is a regexp that matches types you want to use)
 or a list on the form @code{(not STRING)}, where @var{string} is a
 regexp that matches types you don't want to use.

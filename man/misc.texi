@@ -515,9 +515,9 @@ before point in the shell buffer
 @item C-d
 @kindex C-d @r{(Shell mode)}
 @findex comint-delchar-or-maybe-eof
-Either delete a character or send @sc{EOF}
+Either delete a character or send @sc{eof}
 (@code{comint-delchar-or-maybe-eof}).  Typed at the end of the shell
-buffer, @kbd{C-d} sends @sc{EOF} to the subshell.  Typed at any other
+buffer, @kbd{C-d} sends @sc{eof} to the subshell.  Typed at any other
 position in the buffer, @kbd{C-d} deletes a character as usual.
 
 @item C-c C-a
