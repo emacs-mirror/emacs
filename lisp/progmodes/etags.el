@@ -34,8 +34,7 @@ Use the `etags' program to make a tags table file.")
 ;; Make M-x set-variable tags-file-name like M-x visit-tags-table.
 ;;;###autoload (put 'tags-file-name 'variable-interactive "fVisit tags table: ")
 
-(defgroup etags nil
-  "Tags tables"
+(defgroup etags "Tags tables"
   :group 'tools)
 
 ;;;###autoload
