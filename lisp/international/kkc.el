@@ -58,7 +58,7 @@ This string is shown at mode line when users are in KKC mode.")
   "Save initial setup code for KKC to a file specified by `kkc-init-file-name'"
   (if (and kkc-init-file-flag
 	   (not (eq kkc-init-file-flag t)))
-      (let ((coding-system-for-write 'coding-system-iso-2022-7))
+      (let ((coding-system-for-write 'iso-2022-7))
 	(write-region (format "(setq kkc-lookup-cache '%S)\n" kkc-lookup-cache)
 		      nil
 		      kkc-init-file-name))))
