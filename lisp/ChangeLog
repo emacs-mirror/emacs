@@ -1,3 +1,8 @@
+2001-12-19  Werner Lemberg  <wl@gnu.org>
+
+	* language/czech.el, language/european.el, language/slovak.el: More
+	fixes for language info doc strings.
+
 2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* loadup.el: Add "language" to the load-path.
