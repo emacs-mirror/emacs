@@ -66,10 +66,8 @@
 
 (defvar ucs-mule-to-mule-unicode (make-translation-table)
   "Translation table for encoding to `mule-utf-8'.")
-;; Could have been done by ucs-tables loaded before.
-(unless (get 'ucs-mule-to-mule-unicode 'translation-table)
-  (define-translation-table 'ucs-mule-to-mule-unicode
-    ucs-mule-to-mule-unicode))
+(define-translation-table 'ucs-mule-to-mule-unicode
+  ucs-mule-to-mule-unicode)
 
 (defvar utf-8-subst-table (make-hash-table :test 'eq))
 (defvar utf-8-subst-rev-table (make-hash-table :test 'eq))
@@ -87,9 +85,13 @@ decoded into mule-unicode-0100-24ff.")
 ;; space of mule-unicode.  For Latin scripts this isn't very
 ;; important.  Hebrew and Arabic might go here too when there's proper
 ;; support for them.
+(defvar utf-8-fragmentation-table (make-translation-table)
+  "Char table normally mapping non-Latin mule-unicode-... characters to iso8859.
+Used as the value of `utf-8-translation-table-for-decode' in
+`utf-8-fragment-on-decoding' mode.")
 (mapc
  (lambda (pair)
-   (aset utf-8-translation-table-for-decode (car pair) (cdr pair)))
+   (aset utf-8-fragmentation-table (car pair) (cdr pair)))
  '((?$,1&d(B . ?,F4(B) (?$,1&e(B . ?,F5(B) (?$,1&f(B . ?,F6(B) (?$,1&h(B . ?,F8(B) (?$,1&i(B . ?,F9(B)
    (?$,1&j(B . ?,F:(B) (?$,1&l(B . ?,F<(B) (?$,1&n(B . ?,F>(B) (?$,1&o(B . ?,F?(B) (?$,1&p(B . ?,F@(B)
    (?$,1&q(B . ?,FA(B) (?$,1&r(B . ?,FB(B) (?$,1&s(B . ?,FC(B) (?$,1&t(B . ?,FD(B) (?$,1&u(B . ?,FE(B)
@@ -138,10 +140,12 @@ for mechanisms to make this largely transparent.
 
 Setting this variable outside customize has no effect."
   :set (lambda (s v)
-	 (if v
-	     (define-translation-table 'utf-8-translation-table-for-decode
-	       utf-8-translation-table-for-decode)
-	   (define-translation-table 'utf-8-translation-table-for-decode))
+	 (setq utf-8-translation-table-for-decode
+	       (if v
+		   utf-8-fragmentation-table
+		 (make-char-table)))
+	 (define-translation-table 'utf-8-translation-table-for-decode
+	   utf-8-translation-table-for-decode)
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
