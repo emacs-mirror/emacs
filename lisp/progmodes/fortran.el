@@ -255,9 +255,9 @@ format style.")
 (defconst fortran-font-lock-keywords-3 nil
   "Gaudy level highlighting for Fortran mode.")
 
-(eval-when-compile
-  (let ((comment-chars "c!*")
-        (fortran-type-types
+(let ((comment-chars "c!*")
+      (fortran-type-types
+       (eval-when-compile
          (regexp-opt
           (let ((simple-types '("character" "byte" "integer" "logical"
                                 "none" "real" "complex"
@@ -270,94 +270,96 @@ format style.")
              simple-types
              (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
              structured-types
-             other-types))))
-        (fortran-keywords
+             other-types)))))
+      (fortran-keywords
+       (eval-when-compile
          (regexp-opt '("continue" "format" "end" "enddo" "if" "then"
                        "else" "endif" "elseif" "while" "inquire" "stop"
                        "return" "include" "open" "close" "read" "write"
-                       "format" "print" "select" "case")))
-        (fortran-logicals
+                       "format" "print" "select" "case"))))
+      (fortran-logicals
+       (eval-when-compile
          (regexp-opt '("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne"
-                       "true" "false"))))
+                       "true" "false")))))
 
-    (setq fortran-font-lock-keywords-1
-          (list
-           ;;
-           ;; Fontify syntactically (assuming strings cannot be quoted
-           ;; or span lines).
-           (cons (concat "^[" comment-chars "].*") 'font-lock-comment-face)
-           '(fortran-match-!-comment . font-lock-comment-face)
-           (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.)
-                         "\\(.*\\)")
-                 '(1 font-lock-comment-face))
-           '("\\(\\s\"\\)\"[^\n]*\\1?" . font-lock-string-face)
-           ;;
-           ;; Program, subroutine and function declarations, plus calls.
-           (list (concat "\\<\\(block[ \t]*data\\|call\\|entry\\|function\\|"
-                         "program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
-                 '(1 font-lock-keyword-face)
-                 '(2 font-lock-function-name-face nil t))))
+  (setq fortran-font-lock-keywords-1
+        (list
+         ;;
+         ;; Fontify syntactically (assuming strings cannot be quoted
+         ;; or span lines).
+         (cons (concat "^[" comment-chars "].*") 'font-lock-comment-face)
+         '(fortran-match-!-comment . font-lock-comment-face)
+         (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.)
+                       "\\(.*\\)")
+               '(1 font-lock-comment-face))
+         '("\\(\\s\"\\)\"[^\n]*\\1?" . font-lock-string-face)
+         ;;
+         ;; Program, subroutine and function declarations, plus calls.
+         (list (concat "\\<\\(block[ \t]*data\\|call\\|entry\\|function\\|"
+                       "program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
+               '(1 font-lock-keyword-face)
+               '(2 font-lock-function-name-face nil t))))
 
-    (setq fortran-font-lock-keywords-2
-          (append fortran-font-lock-keywords-1
-                  (list
-                   ;;
-                   ;; Fontify all type specifiers (must be first; see below).
-                   (cons (concat "\\<\\(" fortran-type-types "\\)\\>") 
-                         'font-lock-type-face)
-                   ;;
-                   ;; Fontify all builtin keywords (except logical, do
-                   ;; and goto; see below).
-                   (concat "\\<\\(" fortran-keywords "\\)\\>")
-                   ;;
-                   ;; Fontify all builtin operators.
-                   (concat "\\.\\(" fortran-logicals "\\)\\.")
-                   ;;
-                   ;; Fontify do/goto keywords and targets, and goto tags.
-                   (list "\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)?"
-                         '(1 font-lock-keyword-face)
-                         '(2 font-lock-constant-face nil t))
-                   (cons "^ *\\([0-9]+\\)" 'font-lock-constant-face))))
+  (setq fortran-font-lock-keywords-2
+        (append fortran-font-lock-keywords-1
+                (list
+                 ;;
+                 ;; Fontify all type specifiers (must be first; see below).
+                 (cons (concat "\\<\\(" fortran-type-types "\\)\\>") 
+                       'font-lock-type-face)
+                 ;;
+                 ;; Fontify all builtin keywords (except logical, do
+                 ;; and goto; see below).
+                 (concat "\\<\\(" fortran-keywords "\\)\\>")
+                 ;;
+                 ;; Fontify all builtin operators.
+                 (concat "\\.\\(" fortran-logicals "\\)\\.")
+                 ;;
+                 ;; Fontify do/goto keywords and targets, and goto tags.
+                 (list "\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)?"
+                       '(1 font-lock-keyword-face)
+                       '(2 font-lock-constant-face nil t))
+                 (cons "^ *\\([0-9]+\\)" 'font-lock-constant-face))))
 
-    (setq fortran-font-lock-keywords-3
-          (append
-           ;;
-           ;; The list `fortran-font-lock-keywords-1'.
-           fortran-font-lock-keywords-1
-           ;;
-           ;; Fontify all type specifiers plus their declared items.
-           (list
-            (list (concat "\\<\\(" fortran-type-types "\\)\\>[ \t(/]*\\(*\\)?")
-                  ;; Fontify the type specifier.
-                  '(1 font-lock-type-face)
-                  ;; Fontify each declaration item (or just the /.../ block name).
-                  '(font-lock-match-c-style-declaration-item-and-skip-to-next
-                    ;; Start after any *(...) expression.
-                    (and (match-beginning 15) (forward-sexp))
-                    ;; No need to clean up.
-                    nil
-                    ;; Fontify as a variable name, functions are
-                    ;; fontified elsewhere.
-                    (1 font-lock-variable-name-face nil t))))
-           ;;
-           ;; Things extra to `fortran-font-lock-keywords-3'
-           ;; (must be done first).
-           (list
-            ;;
-            ;; Fontify goto-like `err=label'/`end=label' in read/write
-            ;; statements.
-            '(", *\\(e\\(nd\\|rr\\)\\)\\> *\\(= *\\([0-9]+\\)\\)?"
-              (1 font-lock-keyword-face) (4 font-lock-constant-face nil t))
-            ;;
-            ;; Highlight standard continuation character and in a
-            ;; TAB-formatted line.
-            '("^     \\([^ 0]\\)" 1 font-lock-string-face)
-            '("^\t\\([1-9]\\)" 1 font-lock-string-face))
-           ;;
-           ;; The list `fortran-font-lock-keywords-2' less that for types
-           ;; (see above).
-           (cdr (nthcdr (length fortran-font-lock-keywords-1)
-                        fortran-font-lock-keywords-2))))))
+  (setq fortran-font-lock-keywords-3
+        (append
+         ;;
+         ;; The list `fortran-font-lock-keywords-1'.
+         fortran-font-lock-keywords-1
+         ;;
+         ;; Fontify all type specifiers plus their declared items.
+         (list
+          (list (concat "\\<\\(" fortran-type-types "\\)\\>[ \t(/]*\\(*\\)?")
+                ;; Fontify the type specifier.
+                '(1 font-lock-type-face)
+                ;; Fontify each declaration item (or just the /.../ block name).
+                '(font-lock-match-c-style-declaration-item-and-skip-to-next
+                  ;; Start after any *(...) expression.
+                  (and (match-beginning 15) (forward-sexp))
+                  ;; No need to clean up.
+                  nil
+                  ;; Fontify as a variable name, functions are
+                  ;; fontified elsewhere.
+                  (1 font-lock-variable-name-face nil t))))
+         ;;
+         ;; Things extra to `fortran-font-lock-keywords-3'
+         ;; (must be done first).
+         (list
+          ;;
+          ;; Fontify goto-like `err=label'/`end=label' in read/write
+          ;; statements.
+          '(", *\\(e\\(nd\\|rr\\)\\)\\> *\\(= *\\([0-9]+\\)\\)?"
+            (1 font-lock-keyword-face) (4 font-lock-constant-face nil t))
+          ;;
+          ;; Highlight standard continuation character and in a
+          ;; TAB-formatted line.
+          '("^     \\([^ 0]\\)" 1 font-lock-string-face)
+          '("^\t\\([1-9]\\)" 1 font-lock-string-face))
+         ;;
+         ;; The list `fortran-font-lock-keywords-2' less that for types
+         ;; (see above).
+         (cdr (nthcdr (length fortran-font-lock-keywords-1)
+                      fortran-font-lock-keywords-2)))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
