@@ -1,5 +1,10 @@
 2000-05-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* language/hebrew.el (iso-8859-8-e, iso-8859-8-i): For now, just
+	aliases for hebrew-iso-8bit.
+
+2000-05-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* woman.el: New version from Francis J. Wright
 	<F.J.Wright@Maths.QMW.ac.uk>.
 	(woman-parse-colon-path): Support Cygwin-style //d/foo/bar file
