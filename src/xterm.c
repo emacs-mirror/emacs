@@ -10561,19 +10561,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			      temp_buffer[temp_index++] = copy_bufptr[i];
 			    }
 
-			  if (/* If the event is not from XIM, */
-			      event.xkey.keycode != 0
-			      /* or the current locale doesn't request
-				 decoding of the intup data, ... */
-			      || coding.type == coding_type_raw_text
-			      || coding.type == coding_type_no_conversion)
-			    {
-			      /* ... we can use the input data as is.  */
-			      nchars = nbytes;
-			    }
-			  else
 			    { 
-			      /* We have to decode the input data.  */
+			      /* Decode the input data.  */
 			      int require;
 			      unsigned char *p;
 

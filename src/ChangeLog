@@ -1,3 +1,7 @@
+2002-06-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (XTread_socket): Always decode X*LookupString's output.
+
 2002-06-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.c (Fset_window_hscroll): Doc fix.
