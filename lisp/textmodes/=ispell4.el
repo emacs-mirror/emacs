@@ -28,15 +28,22 @@
 ;;; Code:
 
 (defvar ispell-have-new-look t
-  "T if default 'look' program has the -r flag.")
+  "Non-nil means use the `-r' option when running `look'.")
 
 (defvar ispell-enable-tex-parser nil
-  "T to enable experimental tex parser in ispell for tex buffers.")
+  "Non-nil enables experimental TeX parser in Ispell for TeX-mode buffers.")
 
-(defvar ispell-process nil "The process running ISPELL")
+(defvar ispell-process nil "The process running Ispell")
 (defvar ispell-next-message nil
-  "An integer telling where in the *ispell* buffer where
-to look for the next message from the ISPELL program.")
+  "An integer: where in `*ispell*' buffer to find next message from Ispell.")
+
+(defvar ispell-command "ispell"
+  "Command for running Ispell.")
+(defvar ispell-command-options nil
+  "*String (or list of strings) to pass to Ispell as command arguments.
+You can use this to specify the name of your private dictionary.
+The -S option is always passed to Ispell as the last parameter,
+and need not be mentioned here.")
 
 ;Each marker in this list points to the start of a word that
 ;ispell thought was bad last time it did the :file command.
@@ -47,7 +54,7 @@ to look for the next message from the ISPELL program.")
 ;without the select system call.  Therefore, see the variable
 ;ispell-recently-accepted.
 (defvar ispell-bad-words nil
-  "A list of markers corresponding to the output of the ISPELL :file command.")
+  "A list of markers reflecting the output of the Ispell `:file' command.")
 
 ;list of words that the user has accepted, but that might still
 ;be on the bad-words list
@@ -68,7 +75,7 @@ to look for the next message from the ISPELL program.")
   (setq ispell-recently-accepted nil))
 
 (defun kill-ispell ()
-  "Kill the ispell process.
+  "Kill the Ispell process.
 Any changes in your private dictionary
 that have not already been dumped will be lost."
   (interactive)
@@ -82,14 +89,20 @@ that have not already been dumped will be lost."
 (put 'ispell-startup-error 'error-message
      "Problem starting ispell - see buffer *ispell*")
 
+;; Start an ispell subprocess; check the version; and display the greeting.
+
 (defun start-ispell ()
-  "Start an ispell subprocess; check the version; and display the greeting."
   (message "Starting ispell ...")
   (let ((buf (get-buffer "*ispell*")))
     (if buf
 	(kill-buffer buf)))
   (condition-case err
-      (setq ispell-process (start-process "ispell" "*ispell*" "ispell" "-S"))
+      (setq ispell-process
+	    (apply 'start-process "ispell" "*ispell*" ispell-command
+		   (append (if (listp ispell-command-options)
+			       ispell-command-options
+			     (list ispell-command-options))
+			   '("-S"))))
     (file-error (signal 'ispell-startup-error nil)))
   (process-kill-without-query ispell-process)
   (buffer-disable-undo (process-buffer ispell-process))
@@ -112,9 +125,10 @@ that have not already been dumped will be lost."
 	(message (car (cdr greeting))))
       (delete-region (point-min) last-char))))
   
-;leaves buffer set to *ispell*, point at '='
+;; Make sure ispell is ready for a command.
+;; Leaves buffer set to *ispell*, point at '='.
+
 (defun ispell-sync (intr)
-  "Make sure ispell is ready for a command."
   (if (or (null ispell-process)
 	  (not (eq (process-status ispell-process) 'run)))
       (start-ispell))
@@ -129,30 +143,30 @@ that have not already been dumped will be lost."
       (setq last-char (- (point-max) 1)))
     (goto-char last-char)))
 
+;; Send a command to ispell.  Choices are:
+;; 
+;; WORD		Check spelling of WORD.  Result is
+;; 
+;;			 nil			   not found
+;;			 t			   spelled ok
+;;			 list of strings		   near misses
+;; 
+;; :file FILENAME	scan the named file, and print the file offsets of
+;;		 any misspelled words
+;; 
+;; :insert WORD	put word in private dictionary
+;; 
+;; :accept WORD	don't complain about word any more this session
+;; 
+;; :dump		write out the current private dictionary, if necessary.
+;; 
+;; :reload		reread `~/ispell.words'
+;; 
+;; :tex
+;; :troff
+;; :generic	set type of parser to use when scanning whole files
+
 (defun ispell-cmd (&rest strings)
-  "Send a command to ispell.  Choices are:
-
-WORD		Check spelling of WORD.  Result is
-
-			nil			   not found
-			t			   spelled ok
-			list of strings		   near misses
-
-:file FILENAME	scan the named file, and print the file offsets of
-		any misspelled words
-
-:insert WORD	put word in private dictionary
-
-:accept WORD	don't complain about word any more this session
-
-:dump		write out the current private dictionary, if necessary.
-
-:reload		reread `~/ispell.words'
-
-:tex
-:troff
-:generic	set type of parser to use when scanning whole files
-"
   (save-excursion
     (ispell-sync t)
     (set-buffer (process-buffer ispell-process))
@@ -182,9 +196,9 @@ WORD		Check spelling of WORD.  Result is
   (if ispell-bad-words
       (setq ispell-recently-accepted (cons word ispell-recently-accepted))))
 
+;; Return the next message sent by the Ispell subprocess.
 
 (defun ispell-next-message ()
-  "Return the next message sent by the ispell subprocess."
   (save-excursion
     (set-buffer (process-buffer ispell-process))
     (bury-buffer (current-buffer))
@@ -281,7 +295,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 (defalias 'ispell-buffer 'ispell)
 
 (defun ispell-next ()
-  "Resume command loop for most recent ispell command."
+  "Resume command loop for most recent Ispell command."
   (interactive)
   (setq ispell-window-configuration nil)
   (unwind-protect
@@ -317,7 +331,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 ;;;###autoload
 (defun ispell-word (&optional resume)
   "Check the spelling of the word under the cursor.
-See `ispell' for more information.
+See the command `ispell' for more information.
 With a prefix argument, resume handling of the previous Ispell command."
   (interactive "P")
   (if resume
@@ -560,7 +574,7 @@ L lookup; Q quit\n")
   (delete-region (point) end))
 
 (defun reload-ispell ()
-  "Tell ispell to re-read your private dictionary."
+  "Tell Ispell to re-read your private dictionary."
   (interactive)
   (ispell-cmd ":reload"))
 
