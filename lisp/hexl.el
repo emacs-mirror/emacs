@@ -53,9 +53,9 @@
 ;;
 
 (defvar hexl-program "hexl"
-  "The program that will hexlify and de-hexlify its stdin.
+  "The program that will hexlify and dehexlify its stdin.
 `hexl-program' will always be concatenated with `hexl-options'
-and \"-de\" when dehexlfying a buffer.")
+and \"-de\" when dehexlifying a buffer.")
 
 (defvar hexl-iso ""
   "If your emacs can handle ISO characters, this should be set to
@@ -517,12 +517,12 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
       (recenter 0))))
 
 (defun hexl-beginning-of-1k-page ()
-  "Goto to beginning of 1k boundry."
+  "Go to beginning of 1k boundary."
   (interactive)
   (hexl-goto-address (logand (hexl-current-address) -1024)))
 
 (defun hexl-end-of-1k-page ()
-  "Goto to end of 1k boundry."
+  "Go to end of 1k boundary."
   (interactive)
   (hexl-goto-address (let ((address (logior (hexl-current-address) 1023)))
 		       (if (> address hexl-max-address)
@@ -530,12 +530,12 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 		       address)))
 
 (defun hexl-beginning-of-512b-page ()
-  "Goto to beginning of 512 byte boundry."
+  "Go to beginning of 512 byte boundary."
   (interactive)
   (hexl-goto-address (logand (hexl-current-address) -512)))
 
 (defun hexl-end-of-512b-page ()
-  "Goto to end of 512 byte boundry."
+  "Go to end of 512 byte boundary."
   (interactive)
   (hexl-goto-address (let ((address (logior (hexl-current-address) 511)))
 		       (if (> address hexl-max-address)
