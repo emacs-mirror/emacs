@@ -270,7 +270,7 @@ nil for FUNCTION means all messages."
 				 new-summary-line-count))
 		    (rmail-make-summary-line-1 msg)))))
     ;; Fix up the part of the summary that says "deleted" or "unseen".
-    (aset line 4
+    (aset line 5
 	  (if (rmail-message-deleted-p msg) ?\D
 	    (if (= ?0 (char-after (+ 3 (rmail-msgbeg msg))))
 		?\- ?\ )))
@@ -339,7 +339,7 @@ By default, `identity' is set."
     (setq pos (string-match "#" line))
     (aset rmail-summary-vector (1- msg)
 	  (funcall rmail-summary-line-decoder
-		   (concat (format "%4d  " msg)
+		   (concat (format "%5d  " msg)
 			   (substring line 0 pos)
 			   labels
 			   (substring line (1+ pos)))))
@@ -573,7 +573,7 @@ If N is negative, go backwards."
 	    ;; Get msg number of this line.
 	    (setq i (string-to-int
 		     (buffer-substring (point)
-				       (min (point-max) (+ 5 (point))))))
+				       (min (point-max) (+ 6 (point))))))
 	    ;; See if that msg has desired subject.
 	    (save-excursion
 	      (set-buffer rmail-buffer)
@@ -1055,7 +1055,7 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 	 message-not-found
 	 (curmsg (string-to-int
 		  (buffer-substring (point)
-				    (min (point-max) (+ 5 (point))))))
+				    (min (point-max) (+ 6 (point))))))
 	 (total (save-excursion (set-buffer buf) rmail-total-messages)))
     ;; If message number N was specified, find that message's line
     ;; or set message-not-found.
@@ -1071,7 +1071,7 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 		 (goto-char (point-max))
 		 (rmail-summary-goto-msg nil nowarn skip-rmail)))
       (goto-char (point-min))
-      (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
+      (if (not (re-search-forward (format "^%5d[^0-9]" n) nil t))
 	  (progn (or nowarn (message "Message %d not found" n))
 		 (setq n curmsg)
 		 (setq message-not-found t)
