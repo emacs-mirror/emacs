@@ -2685,7 +2685,7 @@ and (2) it puts less data in the undo list.")
   if (!NILP (beg))
     CHECK_NUMBER (beg, 0);
   else
-    XFASTINT (beg) = 0;
+    XSETFASTINT (beg, 0);
 
   if (!NILP (end))
     CHECK_NUMBER (end, 0);
@@ -2706,8 +2706,8 @@ and (2) it puts less data in the undo list.")
   if (!NILP (replace))
     {
       replace = Qnil;
-      XFASTINT (beg) = 0;
-      XFASTINT (end) = st.st_size;
+      XSETFASTINT (beg, 0);
+      XSETFASTINT (end, st.st_size);
       del_range_1 (BEGV, ZV, 0);
     }
 #else /* MSDOS */
@@ -2801,8 +2801,8 @@ and (2) it puts less data in the undo list.")
 	same_at_end += overlap;
 
       /* Arrange to read only the nonmatching middle part of the file.  */
-      XFASTINT (beg) = same_at_start - BEGV;
-      XFASTINT (end) = st.st_size - (ZV - same_at_end);
+      XSETFASTINT (beg, same_at_start - BEGV);
+      XSETFASTINT (end, st.st_size - (ZV - same_at_end));
 
       del_range_1 (same_at_start, same_at_end, 0);
       /* Insert from the file at the proper position.  */
@@ -2916,7 +2916,7 @@ and (2) it puts less data in the undo list.")
 
       current_buffer->save_modified = MODIFF;
       current_buffer->auto_save_modified = MODIFF;
-      XFASTINT (current_buffer->save_length) = Z - BEG;
+      XSETFASTINT (current_buffer->save_length, Z - BEG);
 #ifdef CLASH_DETECTION
       if (NILP (handler))
 	{
@@ -3052,7 +3052,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       if (visiting)
 	{
 	  current_buffer->save_modified = MODIFF;
-	  XFASTINT (current_buffer->save_length) = Z - BEG;
+	  XSETFASTINT (current_buffer->save_length, Z - BEG);
 	  current_buffer->filename = visit_file;
 	}
       UNGCPRO;
@@ -3062,8 +3062,8 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
     {
-      XFASTINT (start) = BEG;
-      XFASTINT (end) = Z;
+      XSETFASTINT (start, BEG);
+      XSETFASTINT (end, Z);
     }
 
   record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
@@ -3299,7 +3299,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (visiting)
     {
       current_buffer->save_modified = MODIFF;
-      XFASTINT (current_buffer->save_length) = Z - BEG;
+      XSETFASTINT (current_buffer->save_length, Z - BEG);
       current_buffer->filename = visit_file;
       update_mode_lines++;
     }
@@ -3708,7 +3708,7 @@ Non-nil second argument means save only current buffer.")
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
 	    auto_saved++;
 	    b->auto_save_modified = BUF_MODIFF (b);
-	    XFASTINT (current_buffer->save_length) = Z - BEG;
+	    XSETFASTINT (current_buffer->save_length, Z - BEG);
 	    set_buffer_internal (old);
 
 	    EMACS_GET_TIME (after_time);
@@ -3745,7 +3745,7 @@ No auto-save file will be written until the buffer changes again.")
   ()
 {
   current_buffer->auto_save_modified = MODIFF;
-  XFASTINT (current_buffer->save_length) = Z - BEG;
+  XSETFASTINT (current_buffer->save_length, Z - BEG);
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }
