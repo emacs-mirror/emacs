@@ -203,8 +203,8 @@ make-docfile: ${srcdir}/make-docfile.c
 digest-doc: ${srcdir}/digest-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
 
-sorted-doc: ${srcdir}/sorted-doc.c
-	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
+sorted-doc: ${srcdir}/sorted-doc.c ${ALLOCA}
+	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
 
 b2m: ${srcdir}/b2m.c ../src/config.h
 	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
