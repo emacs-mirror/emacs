@@ -27,7 +27,7 @@ static void test(void) {
  mycell *a, *b;
  tag tag;
 
- long int i;
+ long int j;
 
  cdie(mps_space_create(&space), "create space");
 
