@@ -1,3 +1,18 @@
+2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist,
+	c-lang-variable-inits, c-lang-variable-inits-tail): The values of
+	these are changed, so declare them as variables and not constants.
+
+	* progmodes/cc-mode.el: Fixed some autoload problems: Try to
+	ensure that the entry for ".c" extension comes before the one for
+	".C" on `auto-mode-alist', to behave better on case insensitive
+	OS:es.  Fixed incorrect entries that were added to
+	`interpreter-mode-alist'.  Moved the autoload directives for AWK
+	to the top level since they aren't recognized anywhere else.  Do
+	not use the new AWK mode doc in the autoload form for the old AWK
+	mode.
+
 2003-06-30  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-sort-entry-class): new entry
