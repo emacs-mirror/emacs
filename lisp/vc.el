@@ -1984,19 +1984,32 @@ default directory."
 (defvar vc-annotate-mode nil
   "Variable indicating if VC-Annotate mode is active.")
 
-(defvar vc-annotate-mode-map ()
+(defvar vc-annotate-mode-map nil
   "Local keymap used for VC-Annotate mode.")
+
+(defvar vc-annotate-mode-menu nil
+  "Local keymap used for VC-Annotate mode's menu bar menu.")
 
 ;; Syntax Table
 (defvar vc-annotate-mode-syntax-table nil
   "Syntax table used in VC-Annotate mode buffers.")
+
+;; Declare globally instead of additional parameter to
+;; temp-buffer-show-function (not possible to pass more than one
+;; parameter).
+(defvar vc-annotate-ratio nil)
 
 (defun vc-annotate-mode-variables ()
   (if (not vc-annotate-mode-syntax-table)
       (progn   (setq vc-annotate-mode-syntax-table (make-syntax-table))
 	       (set-syntax-table vc-annotate-mode-syntax-table)))
   (if (not vc-annotate-mode-map)
-      (setq vc-annotate-mode-map (make-sparse-keymap))))
+      (setq vc-annotate-mode-map (make-sparse-keymap)))
+  (setq vc-annotate-mode-menu (make-sparse-keymap "Annotate"))
+  (define-key vc-annotate-mode-map [menu-bar]
+    (make-sparse-keymap "VC-Annotate"))
+  (define-key vc-annotate-mode-map [menu-bar vc-annotate-mode]
+    (cons "VC-Annotate" vc-annotate-mode-menu)))
 
 (defun vc-annotate-mode ()
   "Major mode for buffers displaying output from the CVS `annotate' command.
@@ -2018,11 +2031,12 @@ menu items."
 (defun vc-annotate-display-default (&optional event)
   "Use the default color spectrum for VC Annotate mode."
   (interactive)
-  (vc-annotate-display (get-buffer (buffer-name))))
+  (message "Redisplaying annotation...")
+  (vc-annotate-display (get-buffer (buffer-name)))
+  (message "Redisplaying annotation...done"))
 
 (defun vc-annotate-add-menu ()
   "Adds the menu 'Annotate' to the menu bar in VC-Annotate mode."
-  (setq vc-annotate-mode-menu (make-sparse-keymap "Annotate"))
   (define-key vc-annotate-mode-menu [default]
     '("Default" . vc-annotate-display-default))
   (let ((menu-elements vc-annotate-menu-elements))
@@ -2038,10 +2052,12 @@ menu items."
 			days)
 		`(lambda ()
 		   ,(format "Use colors spanning %d days" days)
-		   (vc-annotate-display (get-buffer (buffer-name))
-					(vc-annotate-time-span ,element)))))))))
-
-(defvar vc-annotate-ratio)
+		   (interactive)
+		   (message "Redisplaying annotation...")
+		   (vc-annotate-display
+		    (get-buffer (buffer-name))
+		    (vc-annotate-time-span vc-annotate-color-map ,element))
+		   (message "Redisplaying annotation...done"))))))))
 
 ;;;###autoload
 (defun vc-annotate (ratio)
@@ -2098,8 +2114,15 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
 (defun vc-annotate-display (buffer &optional color-map)
   "Do the VC-Annotate display in BUFFER using COLOR-MAP."
 
+  ;; Handle the case of the global variable vc-annotate-ratio being
+  ;; set. This variable is used to pass information from function
+  ;; vc-annotate since it is not possible to use another parameter
+  ;; (see temp-buffer-show-function). 
   (if (and (not color-map) vc-annotate-ratio)
-      (setq color-map (vc-annotate-time-span color-map vc-annotate-ratio)))
+      ;; This will only be true if called from vc-annotate with ratio
+      ;; being non-nil.
+      (setq color-map (vc-annotate-time-span vc-annotate-color-map
+					     vc-annotate-ratio)))
       
   ;; We need a list of months and their corresponding numbers.
   (let* ((local-month-numbers 
