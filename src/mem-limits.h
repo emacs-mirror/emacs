@@ -1,5 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef MSDOS
 #include <dpmi.h>
 #endif
+
+/* Some systems need this before <sys/resource.h>.  */
+#include <sys/types.h>
 
 #ifdef _LIBC
 
