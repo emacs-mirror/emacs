@@ -3709,8 +3709,24 @@ sys_write (int fd, const void * buffer, unsigned int count)
 #ifdef HAVE_SOCKETS
   if (fd_info[fd].flags & FILE_SOCKET)
     {
+      unsigned long nblock = 0;
       if (winsock_lib == NULL) abort ();
+
+      /* TODO: implement select() properly so non-blocking I/O works. */
+      /* For now, make sure the write blocks.  */
+      if (fd_info[fd].flags & FILE_NDELAY)
+	pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+
       nchars =  pfn_send (SOCK_HANDLE (fd), buffer, count, 0);
+
+      /* Set the socket back to non-blocking if it was before,
+	 for other operations that support it.  */
+      if (fd_info[fd].flags & FILE_NDELAY)
+	{
+	  nblock = 1;
+	  pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+	}
+
       if (nchars == SOCKET_ERROR)
         {
 	  DebPrint(("sys_read.send failed with error %d on socket %ld\n",
