@@ -7,7 +7,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: minibuffer, window, frame, display
 
-;; $Id: rsz-mini.el,v 1.24 1999/03/30 21:29:47 kwzh Exp kwzh $
+;; $Id: rsz-mini.el,v 1.25 1999/03/30 21:36:35 kwzh Exp fx $
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,8 @@
 ;;;###autoload
 (defcustom resize-minibuffer-mode nil
   "Toggle resizing the minibuffer so its entire contents are visible.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `resize-minibuffer-mode'."
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `resize-minibuffer-mode'."
   :set (lambda (symbol value)
 	 (resize-minibuffer-mode (if value 1 -1)))
   :initialize 'custom-initialize-default
