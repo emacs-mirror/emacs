@@ -1150,7 +1150,7 @@ w32_bdf_per_char_metric (font, char2b, dim, pcm)
       pcm->rbearing = bdf_metric->dwidth
                     - (bdf_metric->bbox + bdf_metric->bbw);
       pcm->ascent = bdf_metric->bboy + bdf_metric->bbh;
-      pcm->descent = bdf_metric->bboy;
+      pcm->descent = -bdf_metric->bboy;
 
       return 1;
     }
@@ -1280,7 +1280,16 @@ w32_cache_char_metrics (font)
   if (font->bdf)
     {
       /* TODO: determine whether font is fixed-pitch.  */
-      w32_bdf_per_char_metric (font, &char2b, 1, &font->max_bounds);
+      if (!w32_bdf_per_char_metric (font, &char2b, 1, &font->max_bounds))
+        {
+          /* Use the font width and height as max bounds, as not all BDF
+             fonts contain the letter 'x'. */
+          font->max_bounds.width = FONT_MAX_WIDTH (font);
+          font->max_bounds.lbearing = -font->bdf->llx;
+          font->max_bounds.rbearing = FONT_MAX_WIDTH (font) - font->bdf->urx;
+          font->max_bounds.ascent = FONT_BASE (font);
+          font->max_bounds.descent = FONT_DESCENT (font);
+        }
     }
   else
     {
@@ -2370,7 +2379,8 @@ void W32_TEXTOUT (s, x, y,chars,nchars)
   int charset_dim = w32_font_is_double_byte (s->gc->font) ? 2 : 1;
   if (s->gc->font->bdf)
     w32_BDF_TextOut (s->gc->font->bdf, s->hdc,
-                     x, y, (char *) chars, charset_dim, nchars, 0);
+                     x, y, (char *) chars, charset_dim,
+                     nchars * charset_dim, 0);
   else if (s->first_glyph->w32_font_type == UNICODE_FONT)
     ExtTextOutW (s->hdc, x, y, 0, NULL, chars, nchars, NULL);
   else
