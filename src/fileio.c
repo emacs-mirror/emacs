@@ -1720,6 +1720,7 @@ duplicates what `expand-file-name' does.")
 #else /* not WINDOWSNT */
 	 || p[0] == '/'
 #endif /* not WINDOWSNT */
+#endif /* not APOLLO */
 	 )
 	&& p != nm && IS_DIRECTORY_SEP (p[-1]))
       xnm = p;
