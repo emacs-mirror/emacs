@@ -55,6 +55,7 @@ extern OSVERSIONINFO  osinfo_cache;
 extern BOOL   	      using_dynamic_heap;
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;
+extern int    	      w32_build_number;
 
 enum {
   OS_WIN95 = 1,
