@@ -1,5 +1,7 @@
 2000-10-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* dirtrack.el (dirtrack): Fix call to run-hooks.
+
 	* cmuscheme.el (cmuscheme-program-name): Renamed from
 	scheme-program-name because xscheme.el contains a defcustom with
 	the same name.  As a consequence, customizing group `cmuscheme'
