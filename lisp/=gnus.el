@@ -5221,14 +5221,13 @@ If case-fold-search is non-nil, case of letters is ignored."
 (defun gnus-sortable-date (date)
   "Make sortable string by string-lessp from DATE.
 Timezone package is used."
-  (let* ((date   (timezone-parse-date date)) ;[Y M D T]
-	 (year   (string-to-int (aref date 0)))
-	 (month  (string-to-int (aref date 1)))
-	 (day    (string-to-int (aref date 2)))
-	 (time   (aref date 3)))	;HH:MM:SS
-    ;; Timezone package is used.  But, we don't have to care about
-    ;; the timezone since article's timezones are always GMT.
-    (timezone-make-sortable-date year month day time)
+  (let* ((date   (timezone-fix-time date nil nil)) ;[Y M D H M S]
+	 (year   (aref date 0))
+	 (month  (aref date 1))
+	 (day    (aref date 2)))
+    (timezone-make-sortable-date year month day 
+				 (timezone-make-time-string
+				  (aref date 3) (aref date 4) (aref date 5)))
     ))
 
 ;;(defun gnus-sortable-date (date)
