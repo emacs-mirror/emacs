@@ -318,7 +318,7 @@ printchar (ch, fun)
   if (EQ (fun, Qnil))
     {
       int len;
-      char work[4], *str;
+      unsigned char work[4], *str;
 
       QUIT;
       len = CHAR_STRING (ch, work, str);
@@ -483,6 +483,7 @@ strout (ptr, size, printcharfun)
    It isn't safe to use strout in many cases,
    because printing one char can relocate.  */
 
+void
 print_string (string, printcharfun)
      Lisp_Object string;
      Lisp_Object printcharfun;
@@ -524,6 +525,7 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).")
    on the default output stream.
    Do not use this on the contents of a Lisp string.  */
 
+void
 write_string (data, size)
      char *data;
      int size;
@@ -542,6 +544,7 @@ write_string (data, size)
    on a specified stream PRINTCHARFUN.
    Do not use this on the contents of a Lisp string.  */
 
+void
 write_string_1 (data, size, printcharfun)
      char *data;
      int size;
@@ -579,7 +582,7 @@ temp_output_buffer_setup (bufname)
 Lisp_Object
 internal_with_output_to_temp_buffer (bufname, function, args)
      char *bufname;
-     Lisp_Object (*function) ();
+     Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object args;
 {
   int count = specpdl_ptr - specpdl;
@@ -820,7 +823,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
       && NILP (XCONS (XCONS (obj)->cdr)->cdr))
     return XCONS (XCONS (obj)->cdr)->car;
 
-  print_error_message (obj, Vprin1_to_string_buffer, NULL);
+  print_error_message (obj, Vprin1_to_string_buffer);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   value = Fbuffer_string ();
@@ -836,6 +839,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
 /* Print an error message for the error DATA
    onto Lisp output stream STREAM (suitable for the print functions).  */
 
+void
 print_error_message (data, stream)
      Lisp_Object data, stream;
 {
