@@ -683,8 +683,8 @@ Major/minor modes can set this variable if they know which option applies.")
 		      (inhibit-modification-hooks t)
 		      deactivate-mark buffer-file-name buffer-file-truename))
        ,@body
-       (when (and (not modified) (buffer-modified-p))
-	 (set-buffer-modified-p nil))))
+       (unless modified
+	 (restore-buffer-modified-p nil))))
   (put 'save-buffer-state 'lisp-indent-function 1)
   (def-edebug-spec save-buffer-state let)
   ;;
@@ -2405,7 +2405,9 @@ See also `c-font-lock-extra-types'."))
 	      font-lock-warning-face
 	    font-lock-string-face))
       (goto-char (nth 8 state))
-      (if (looking-at "/\\*\\*\n") font-lock-doc-face font-lock-comment-face))))
+      ;; `doxygen' uses /*! while others use /**.
+      (if (looking-at "/\\*[*!]\n")
+	  font-lock-doc-face font-lock-comment-face))))
 
 (defvar c-font-lock-keywords c-font-lock-keywords-1
   "Default expressions to highlight in C mode.
