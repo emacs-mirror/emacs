@@ -175,7 +175,7 @@ maybe-blessmail: BLESSMAIL
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
 	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  ./blessmail ${archlibdir}/movemail; \
+	  echo run  lib-src/blessmail ${archlibdir}/movemail; \
 	  echo as root, to give  movemail  appropriate permissions.; \
 	  echo Do that after running  make install.; \
 	fi
