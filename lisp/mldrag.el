@@ -208,7 +208,6 @@ right will make the clicked-on window thinner or wider."
 			   edges (window-edges)
 			   left (nth 0 edges)
 			   right (nth 2 edges))
-		     (setq foo (cons (list x left) foo))
 		     ;; scale back a move that would make the
 		     ;; window too thin.
 		     (if scroll-bar-left
