@@ -197,9 +197,9 @@ into the buffer's input ring.  See also `comint-magic-space' and
 
 This variable is buffer-local."
   :type '(choice (const :tag "off" nil)
-		 (const :tag "on" t)
 		 (const input)
-		 (const history))
+		 (const history)
+		 (other :tag "on" t))
   :group 'comint)
 
 (defcustom comint-input-ignoredups nil
