@@ -2721,6 +2721,7 @@ extern Lisp_Object get_local_map P_ ((int, struct buffer *));
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 2);
 extern void syms_of_xmenu P_ ((void));
+extern int popup_activated_flag;
 
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));
