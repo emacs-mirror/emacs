@@ -293,7 +293,9 @@ on the right side of the rectangle."
     (unless (= (point) (point-at-eol))
       (delete-region (point) (progn (skip-syntax-forward " ") (point))))))
 
-;;;###autoload (defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
+;;;###autoload
+(defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
+
 ;;;###autoload
 (defun delete-whitespace-rectangle (start end &optional fill)
   "Delete all whitespace following a specified column in each line.
@@ -318,7 +320,6 @@ With a prefix (or a FILL) argument, also fill too short lines."
   (insert string))
 
 ;;;###autoload
-
 (defun string-rectangle (start end string)
   "Replace rectangle contents with STRING on each line.
 The length of STRING need not be the same as the rectangle width.
