@@ -56,6 +56,8 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
 (require 'dired)
 
 ;; Abort if in-line imaging isn't supported (i.e. Emacs-20.7)
@@ -181,18 +183,6 @@ see some of your images."
   (progn
     (make-directory thumbs-thumbsdir)
     (message "Creating thumbnails directory")))
-
-(when (not (fboundp 'ignore-errors))
-  (defmacro ignore-errors (&rest body)
-    "Execute FORMS; if anz error occurs, return nil.
-Otherwise, return result of last FORM."
-    (let ((err (thumbs-gensym)))
-      (list 'condition-case err (cons 'progn body) '(error nil)))))
-
-(when (not (fboundp 'caddar))
-  (defun caddar (x)
-    "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-    (car (cdr (cdr (car x))))))
 
 (defvar thumbs-gensym-counter 0)
 
