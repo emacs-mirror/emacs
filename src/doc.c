@@ -480,7 +480,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    {
 	      name = Fsymbol_name (name);
 	      insert_string ("\nUses keymap \"");
-	      insert_from_string (name, 0, XSTRING (name)->size);
+	      insert_from_string (name, 0, XSTRING (name)->size, 1);
 	      insert_string ("\", which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
