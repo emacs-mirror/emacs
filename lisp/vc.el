@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.327 2002/02/25 22:00:51 spiegel Exp $
+;; $Id: vc.el,v 1.328 2002/02/28 09:59:08 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2570,6 +2570,34 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
     (message "Reverting %s..." file)
     (vc-revert-file file)
     (message "Reverting %s...done" file)))
+
+;;;###autoload
+(defun vc-update ()
+  "Update the current buffer's file to the latest version on its branch.
+If the file contains no changes, and is not locked, then this simply replaces
+the working file with the latest version on its branch.  If the file contains
+changes, and the backend supports merging news, then any recent changes from 
+the current branch are merged into the working file."
+  (interactive)
+  (vc-ensure-vc-buffer)
+  (vc-buffer-sync nil)
+  (let ((file buffer-file-name))
+    (if (vc-up-to-date-p file)
+        (vc-checkout file nil "")
+      (if (eq (vc-checkout-model file) 'locking)
+          (if (eq (vc-state file) 'edited)
+              (error 
+               (substitute-command-keys 
+           "File is locked--type \\[vc-revert-buffer] to discard changes"))
+            (error 
+             (substitute-command-keys
+           "Unexpected file state (%s)--type \\[vc-next-action] to correct") 
+                   (vc-state file)))
+        (if (not (vc-find-backend-function (vc-backend file) 'merge-news))
+            (error "Sorry, merging news is not implemented for %s" 
+                   (vc-backend file))
+          (vc-call merge-news file)
+          (vc-resynch-window file t t))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
