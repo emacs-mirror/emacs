@@ -1,5 +1,11 @@
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (decode_coding_charset): Adjusted for the change of
+	Fdefine_coding_system_internal.
+	(Fdefine_coding_system_internal): For a coding system of
+	`charset' type, store a list of charset IDs in
+	`charset_attr_charset_valids' element of coding attributes.
+
 	* charset.c (Fmake_char): Fix previous change.
 
 2002-05-21  Kenichi Handa  <handa@etl.go.jp>
