@@ -2019,7 +2019,6 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
   int count;
   int mask_color;
@@ -2169,7 +2168,7 @@ x_set_cursor_color (f, arg, oldval)
   else
     fore_pixel = FRAME_BACKGROUND_PIXEL (f);
 
-  pixel = x_decode_color (f, arg, BLACK_PIXEL_DEFAULT (f));
+  pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   
   /* Make sure that the cursor color differs from the background color.  */
   if (pixel == FRAME_BACKGROUND_PIXEL (f))
