@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.51 $")
+(defconst byte-compile-version "$Revision: 2.52 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1199,7 +1199,7 @@ recompile every `.el' file that already has a `.elc' file."
     (displaying-byte-compile-warnings
      (while directories
        (setq directory (car directories))
-       (or noninteractive (message "Checking %s..." directory))
+       (message "Checking %s..." directory)
        (let ((files (directory-files directory))
 	     source dest)
 	 (while files
@@ -1208,11 +1208,11 @@ recompile every `.el' file that already has a `.elc' file."
 		    (file-directory-p source)
 		    (not (file-symlink-p source)))
 	       ;; This file is a subdirectory.  Handle them differently.
-	       (if (or (null arg)
-		       (eq 0 arg)
-		       (y-or-n-p (concat "Check " source "? ")))
-		   (setq directories
-			 (nconc directories (list source))))
+	       (when (or (null arg)
+			 (eq 0 arg)
+			 (y-or-n-p (concat "Check " source "? ")))
+		 (setq directories
+		       (nconc directories (list source))))
 	     ;; It is an ordinary file.  Decide whether to compile it.
 	     (if (and (string-match emacs-lisp-file-regexp source)
 		      (not (auto-save-file-name-p source))
