@@ -303,7 +303,7 @@ DEFUN ("set-marker-insertion-type", Fset_marker_insertion_type,
        Sset_marker_insertion_type, 2, 2, 0,
   "Set the insertion-type of MARKER to TYPE.\n\
 If TYPE is t, it means the marker advances when you insert text at it.\n\
-If TYPE is t, it means the marker stays behind when you insert text at it.")
+If TYPE is nil, it means the marker stays behind when you insert text at it.")
   (marker, type)
      Lisp_Object marker, type;
 {
