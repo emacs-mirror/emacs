@@ -416,18 +416,11 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 				 (match-end 0)))))
 	(error (message "Couldn't cd")))))
 
-
-;; Like `cd', but prepends comint-file-name-prefix to absolute names.
-(defsubst shell-cd (directory)
-  (if (file-name-absolute-p directory)
-      (cd-absolute (concat comint-file-name-prefix directory))
-    (cd directory)))
-
 ;;; popd [+n]
 (defun shell-process-popd (arg)
   (let ((num (or (shell-extract-num arg) 0)))
     (cond ((and num (= num 0) shell-dirstack)
-	   (shell-cd (car shell-dirstack))
+	   (cd (car shell-dirstack))
 	   (setq shell-dirstack (cdr shell-dirstack))
 	   (shell-dirstack-message))
 	  ((and num (> num 0) (<= num (length shell-dirstack)))
@@ -439,13 +432,22 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	  (t
 	   (error (message "Couldn't popd."))))))
 
+;; Return DIR prefixed with comint-file-name-prefix as appropriate.
+(defsubst shell-prefixed-directory-name (dir)
+  (if (file-name-absolute-p dir)
+      ;; The name is absolute, so prepend the prefix.
+      (concat comint-file-name-prefix dir)
+    ;; For a relative name we assume default-directory already has the prefix.
+    (expand-file-name dir)))
+
 ;;; cd [dir]
 (defun shell-process-cd (arg)
-  (let ((new-dir (cond ((zerop (length arg)) (getenv "HOME"))
+  (let ((new-dir (cond ((zerop (length arg)) (concat comint-file-name-prefix
+						     "~"))
 		       ((string-equal "-" arg) shell-last-dir)
-		       (t arg))))
+		       (t (shell-prefixed-directory-name arg)))))
     (setq shell-last-dir default-directory)
-    (shell-cd new-dir)
+    (cd new-dir)
     (shell-dirstack-message)))
 
 ;;; pushd [+n | dir]
@@ -454,10 +456,10 @@ Environment variables are expanded, see function `substitute-in-file-name'."
     (cond ((zerop (length arg))
 	   ;; no arg -- swap pwd and car of stack unless shell-pushd-tohome
 	   (cond (shell-pushd-tohome
-		  (shell-process-pushd "~"))
+		  (shell-process-pushd (concat comint-file-name-prefix "~")))
 		 (shell-dirstack
 		  (let ((old default-directory))
-		    (shell-cd (car shell-dirstack))
+		    (cd (car shell-dirstack))
 		    (setq shell-dirstack
 			  (cons old (cdr shell-dirstack)))
 		    (shell-dirstack-message)))
@@ -473,7 +475,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)
 		    (shell-process-pushd default-directory)
-		    (shell-cd dir)
+		    (cd dir)
 		    (shell-dirstack-message)))
 		 (t
 		  (let* ((ds (cons default-directory shell-dirstack))
@@ -481,13 +483,13 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			 (front (nthcdr num ds))
 			 (back (reverse (nthcdr (- dslen num) (reverse ds))))
 			 (new-ds (append front back)))
-		    (shell-cd (car new-ds))
+		    (cd (car new-ds))
 		    (setq shell-dirstack (cdr new-ds))
 		    (shell-dirstack-message)))))
 	  (t
 	   ;; pushd <dir>
 	   (let ((old-wd default-directory))
-	     (shell-cd arg)
+	     (cd (shell-prefixed-directory-name arg))
 	     (if (or (null shell-pushd-dunique)
 		     (not (member old-wd shell-dirstack)))
 		 (setq shell-dirstack (cons old-wd shell-dirstack)))
@@ -543,10 +545,12 @@ command again."
       (while (< i dl-len)
 	;; regexp = optional whitespace, (non-whitespace), optional whitespace
 	(string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	(setq ds (cons (substring dl (match-beginning 1) (match-end 1))
+	(setq ds (cons (concat comint-file-name-prefix
+			       (substring dl (match-beginning 1)
+					  (match-end 1)))
 		       ds))
 	(setq i (match-end 0)))
-      (let ((ds (reverse ds)))
+      (let ((ds (nreverse ds)))
 	(condition-case nil
 	    (progn (cd (car ds))
 		   (setq shell-dirstack (cdr ds))
