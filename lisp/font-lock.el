@@ -1561,7 +1561,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
       ;; Now compile the keywords.
       (unless (eq (car font-lock-keywords) t)
 	(set (make-local-variable 'font-lock-keywords)
-	     (font-lock-compile-keywords keywords t))))))
+	     (font-lock-compile-keywords font-lock-keywords t))))))
 
 ;;; Colour etc. support.
 
