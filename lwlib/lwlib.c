@@ -21,10 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef __STRICT_BSD__ /* ick */
 #endif
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
-#include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include "lwlib-int.h"
@@ -77,7 +74,7 @@ static void
 instanciate_widget_instance (/* widget_instance* instance */);
 
 /* utility functions for widget_instance and widget_info */
-static char *
+char *
 safe_strdup (s)
      char *s;
 {

@@ -17,11 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <memory.h>
-
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>
@@ -68,7 +63,7 @@ XtApplyToWidgets (w, proc, arg)
       int nkids = cw->composite.num_children;
       Widget *kids = (Widget *) malloc (sizeof (Widget) * nkids);
       int i;
-      memcpy (kids, cw->composite.children, sizeof (Widget) * nkids);
+      bcopy (cw->composite.children, kids, sizeof (Widget) * nkids);
       for (i = 0; i < nkids; i++)
 /* This prevent us from using gadgets, why is it here? */
 /*	if (XtIsWidget (kids [i])) */
