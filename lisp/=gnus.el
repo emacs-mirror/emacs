@@ -1253,6 +1253,7 @@ Various hooks for customization:
   (use-local-map gnus-group-mode-map)
   (buffer-flush-undo (current-buffer))
   (setq buffer-read-only t)		;Disable modification
+  (setq truncate-lines t)		;In case descriptions are too long.
   (run-hooks 'gnus-group-mode-hook))
 
 (defun gnus-mouse-pick-group (e)
