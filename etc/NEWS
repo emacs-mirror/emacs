@@ -2512,9 +2512,9 @@ back the match can start; this is a way to keep it from taking too long.
 
 +++
 ** New functions `make-progress-reporter', `progress-reporter-update',
-`progress-reporter-force-update' and `progress-reporter-done' provide
-a simple and efficient way for a command to present progress messages
-for the user.
+`progress-reporter-force-update', `progress-reporter-done', and
+`dotimes-with-progress-reporter' provide a simple and efficient way for
+a command to present progress messages for the user.
 
 ---
 ** To manipulate the File menu using easy-menu, you must specify the

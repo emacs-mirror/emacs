@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001, 2002
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
+@c   2002, 2005  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
 @node Display, Calendar, Processes, Top
@@ -632,6 +632,22 @@ You should always call this function and not hope for
 never print it, there are many good reasons for this not to happen.
 Secondly, ``done'' is more explicit.
 @end defun
+
+@defmac dotimes-with-progress-reporter (var count [result]) message body...
+This is a convenience macro that works the same way as @code{dotimes}
+does, but also reports loop progress using the functions described
+above.  It allows you to save some typing.
+
+You can rewrite the example in the beginning of this node using
+this macro this way:
+
+@example
+(dotimes-with-progress-reporter
+    (k 500)
+    "Collecting some mana for Emacs..."
+  (sit-for 0.01))
+@end example
+@end defmac
 
 @node Invisible Text
 @section Invisible Text
