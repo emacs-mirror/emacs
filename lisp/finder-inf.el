@@ -567,13 +567,13 @@
         (outlines))
     ("rfn-eshadow.el"
         "Highlight `shadowed' part of read-file-name input text"
-        (convenience))
+        (convenience minibuffer))
     ("rot13.el"
         "display a buffer in rot13"
         nil)
     ("ruler-mode.el"
         "display a ruler in the header line"
-        (environment convenience))
+        (convenience))
     ("s-region.el"
         "set region using shift key"
         (terminals))
