@@ -109,7 +109,7 @@ the text in this case."
   (interactive "p")
   (beginning-of-line n)
   (skip-chars-forward " \t")
-  (if (not (memq (justification) '(right center)))
+  (if (not (memq (current-justification) '(right center)))
       (let ((cc (current-column))
 	    (lm (current-left-margin)))
 	(cond ((> cc lm)
