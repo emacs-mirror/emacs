@@ -136,9 +136,6 @@ Lisp_Object Vx_bitmap_file_path;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 Lisp_Object Vx_pixel_size_width_font_regexp;
 
-/* A flag to control how to display unibyte 8-bit character.  */
-int unibyte_display_via_language_environment;
-
 /* Evaluate this expression to rebuild the section of syms_of_xfns
    that initializes and staticpros the symbols declared below.  Note
    that Emacs 18 has a bug that keeps C-x C-e from being able to
@@ -5407,15 +5404,6 @@ PIXEL_SIZE field of the name, font finding mechanism gets faster for\n\
 such a font.  This is especially effective for such large fonts as\n\
 Chinese, Japanese, and Korean.");
   Vx_pixel_size_width_font_regexp = Qnil;
-
-  DEFVAR_BOOL ("unibyte-display-via-language-environment",
-	       &unibyte_display_via_language_environment,
-   "*Non-nil means display unibyte text according to language environment.\n\
-Specifically this means that unibyte non-ASCII characters\n\
-are displayed by converting them to the equivalent multibyte characters\n\
-according to the current language environment.  As a result, they are\n\
-displayed according to the current fontset.");
-  unibyte_display_via_language_environment = 0;
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
