@@ -1,3 +1,12 @@
+2000-10-24  Andrew Choi  <akochoi@i-cable.com>
+
+	* international/mule-conf.el (mac-roman-lower, mac-roman-upper):
+	New charsets.
+
+	* term/mac-win.el: Remove definitions of mac-roman-lower and
+	mac-roman-upper, require dired, and define instead of set
+	mac-ready-for-drag-n-drop to avoid compilation error.
+
 2000-10-23  Andrew Innes  <andrewi@gnu.org>
 
 	* files.el (make-backup-file-name-1) [windowsnt, ms-dos]: Remove

@@ -103,6 +103,9 @@
 ;; Use Lisp verison of ls instead of calling subprocess on ls (faster,
 ;; don't need to write ls).
 (load "ls-lisp")
+
+(require 'dired)
+
 ;; This variable specifies the Unix program to call (as a process) to
 ;; deteremine the amount of free space on a file system (defaults to
 ;; df).  If it is not set to nil, ls-lisp will not work correctly
@@ -118,11 +121,6 @@
 ;; frame without a minibuffer properly.  Call this to tell ediff
 ;; library to use a single frame.
 (ediff-toggle-multiframe)
-
-;; Emacs must be told we're using an 8-bit code for file names.
-;; Otherwise file names won't be displayed properly in dired mode,
-;; etc.
-(setq file-name-coding-system 'latin-1)
 
 ;; Setup to use the Mac clipboard.  The functions mac-cut-function and
 ;; mac-paste-function are defined in mac.c.
@@ -158,8 +156,14 @@ Switch to a buffer editing the last file dropped."
 
 (global-set-key [drag-n-drop] 'mac-drag-n-drop)
 
-; Tell event loop in macterm.c we are ready.
-(setq mac-ready-for-drag-n-drop t)
+;; By checking whether the variable mac-ready-for-drag-n-drop has been
+;; defined, the event loop in macterm.c can be informed that it can
+;; now receive Finder drag and drop events.  Files dropped onto the
+;; Emacs application icon can only be processed when the initial frame
+;; has been created: this is where the files should be opened.
+(add-hook 'after-init-hook
+	  '(lambda ()
+	     (defvar mac-ready-for-drag-n-drop t)))
 
 ; Define constant values to be set to mac-keyboard-text-encoding
 (defconst kTextEncodingMacRoman 0)
@@ -172,20 +176,6 @@ Switch to a buffer editing the last file dropped."
 ;; code points as one character set, we divide it into two:
 ;; mac-roman-lower for code points 128 to 159 and mac-roman-upper for
 ;; code points 160 to 255.
-
-(defvar mac-roman-lower-final-char
-  (get-unused-iso-final-char 1 96))
-
-(defvar mac-roman-upper-final-char
-  (1+ mac-roman-lower-final-char))
-
-(define-charset nil 'mac-roman-lower
-  (vector 1 96 1 0 mac-roman-lower-final-char 1
-     "Mac Roman lower" "Mac Roman lower" "Mac Roman lower"))
-
-(define-charset nil 'mac-roman-upper
-  (vector 1 96 1 0 mac-roman-upper-final-char 1
-     "Mac Roman upper" "Mac Roman upper" "Mac Roman upper"))
 
 ;; Since Mac Roman does not follow the ISO 2022 standard and uses code
 ;; points in the range 128-159, it is necessary to define it as a

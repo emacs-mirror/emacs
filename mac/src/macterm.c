@@ -11123,7 +11123,7 @@ int current_mac_keyboard_text_encoding = kTextEncodingMacRoman;
 
 /* Set in term/mac-win.el to indicate that event loop can now generate
    drag and drop events.  */
-Lisp_Object Vmac_ready_for_drag_n_drop;
+Lisp_Object Qmac_ready_for_drag_n_drop;
 
 Lisp_Object drag_and_drop_file_list;
 
@@ -11769,7 +11769,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
   bufp->arg = Qnil;
 
   event_mask = everyEvent;
-  if (NILP (Vmac_ready_for_drag_n_drop))
+  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
     event_mask -= highLevelEventMask;
 
   if (WaitNextEvent (event_mask, &er, (expected ? app_sleep_time : 0L), NULL))
@@ -12038,7 +12038,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
       case kHighLevelEvent:
         drag_and_drop_file_list = Qnil;
-        
+
         AEProcessAppleEvent(&er);
         
         /* Build a drag_n_drop type event as is done in
@@ -12392,6 +12392,9 @@ syms_of_macterm ()
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
 
+  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
+  staticpro (&Qmac_ready_for_drag_n_drop);
+
   help_echo = Qnil;
   staticpro (&help_echo);
   help_echo_object = Qnil;
@@ -12423,11 +12426,6 @@ wide as that tab on the display.");
     "Non-nil means that the command key is used as the Emacs meta key.\n\
 Otherwise the option key is used.");
   Vmac_command_key_is_meta = Qt;
-
-  DEFVAR_LISP ("mac-ready-for-drag-n-drop", &Vmac_ready_for_drag_n_drop,
-    "Non-nil indicates that the Mac event loop can now generate drag and\n\
-drop events.  Set in term/mac-win.el.");
-  Vmac_ready_for_drag_n_drop = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     "One of the Text Encoding Base constant values defined in the\n\
