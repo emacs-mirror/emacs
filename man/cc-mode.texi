@@ -2928,7 +2928,7 @@ A line containing only a comment introduction.
 The first line in an argument list.
 @item arglist-cont
 Subsequent argument list lines when no arguments follow on the same line
-as the the arglist opening paren.
+as the arglist opening paren.
 @item arglist-cont-nonempty
 Subsequent argument list lines when at least one argument follows on the
 same line as the arglist opening paren.
