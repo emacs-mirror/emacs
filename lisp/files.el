@@ -1483,7 +1483,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	;; If the auto-save file was recent before this command,
 	;; delete it now.
 	(delete-auto-save-file-if-necessary recent-save)
-	(run-hooks 'after-save-hook))
+	(run-hooks 'after-save-buffer-hook))
     (message "(No changes need to be saved)")))
 
 (defun save-some-buffers (&optional arg exiting)
