@@ -351,9 +351,6 @@ developers.
 
 * Known problems with the MS-Windows port of Emacs 21.2.
 
-Emacs 21.2 built for MS-Windows doesn't support images and the tool bar.
-Support for these will be added in future versions.
-
 Frames are not refreshed while the File or Font dialog or a pop-up menu
 is displayed. This also means help text for pop-up menu items is not
 displayed at all.  This is because message handling under Windows is
@@ -395,10 +392,10 @@ Windows programs if the characters are in the system codepage.
 Reportedly, a partial solution is to install the Mule-UCS package and
 set selection-coding-system to utf-16-le-dos.
 
-The %h format specifier for format-time-string does not work on Windows.
-The %b format specifier does not produce abbreviated month names with
-consistent widths for some locales on some versions of Windows. This is
-caused by a deficiency in the underlying system library function.
+The %b specifier for format-time-string does not produce abbreviated
+month names with consistent widths for some locales on some versions
+of Windows. This is caused by a deficiency in the underlying system
+library function.
 
 * The `configure' script doesn't find the jpeg library.
 
