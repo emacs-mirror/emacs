@@ -44,24 +44,21 @@ progname="`echo $0 | sed 's:^\./::'`"
 short_usage="Type \`${progname} -usage' for more information about options."
 
 usage_message="Usage: ${progname} MACHINENAME [-OPTION[=VALUE] ...]
-
-This message needs to be updated.
-
 Set compilation and installation parameters for GNU Emacs, and report.
-MACHINENAME is the machine to build for.  See \`etc/MACHINES'.
+MACHINENAME is the machine to build for.  For example:
+   ${progname} decstation
+configures Emacs to run on a DECstation running Ultrix.  See \`etc/MACHINES'.
 Options are:
-  --opsystem=SYSTEM - operating system to build for; see \`etc/MACHINES'.
-  --prefix=DIR - where to install Emacs's library files
-These options have reasonable defaults (in []s), and may not be needed:
+  --with-x, --with-x11 or --with-x10 - what window system to use;
+         default is to use X11 if present.  If you don't want X, specify
+         \`--with-x=no'.
   -g, -O - Passed to the compiler.  Default is -g, plus -O if using gcc.
-  --cc=COMPILER - Which compiler to use.  Defaults to gcc if available.
+  --prefix=DIR - where to install Emacs's library files
   --libdir=DIR - where to look for arch-dependent library files
   --datadir=DIR - where to look for architecture-independent library files
   --bindir=DIR - where to install the Emacs executable, and some friends
   --lisppath=PATH - colon-separated list of Emacs Lisp directories
   --lockdir=DIR - where Emacs should do its file-locking stuff
-  --with-x or --with-x10 - what window system to use;
-         default is to use X11 if present
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, config.status is removed."
 # These are omitted since users should not mess with them.
@@ -80,22 +77,18 @@ fi
 # They should have `_' in place of `-'.
 options=":\
 usage:help:\
-machine:opsystem:\
-g:O:cc:\
+with_x:with_x11:with_x10:\
+g:O:\
 prefix:bindir:emacsdir:datadir:lispdir:locallisppath:\
 lisppath:buildlisppath:statedir:lockdir:libdir:mandir:infodir:\
-gnu_malloc:rel_alloc:lisp_float_type:\
-window_system:\
 "
 
 boolean_opts=":\
-g:O:\
-gnu_malloc:rel_alloc:lisp_float_type:have_x_menu:with_x:with_x11:with_x10:\
+g:O:with_x:with_x10:\
 "
 
 config_h_opts=":\
-gnu_malloc:rel_alloc:lisp_float_type:\
-have_x_windows:have_x11:\
+have_x_windows:have_x11:have_x_menu:\
 c_switch_site:sigtype:\
 "
 
@@ -113,7 +106,7 @@ lockdir=""
 window_system=""
 
 # Record all the arguments, so we can save them in config.status.
-arguments="$*"
+arguments="$@"
 
 echo "Examining options."
 while [ $# != 0 ]; do
@@ -121,10 +114,9 @@ while [ $# != 0 ]; do
   case "${arg}" in
     -*)
       # Separate the switch name from the value it's being given.
-      # Also change `-' in the option name to `_'.
       case "${arg}" in
         -*=*)
-	  opt=`echo ${arg} | sed 's:^-*\([^=]*\)=.*$:\1:' | tr - _`
+	  opt=`echo ${arg} | sed 's:^-*\([^=]*\)=.*$:\1:'`
 	  val=`echo ${arg} | sed 's:^-*[^=]*=\(.*\)$:\1:'`
 	  valomitted=no
 	;;
@@ -132,11 +124,14 @@ while [ $# != 0 ]; do
           # If FOO is a boolean argument, -FOO is equivalent to
           # -FOO=yes.  Otherwise, the value comes from the next
           # argument - see below.
-	  opt=`echo ${arg} | sed 's:^-*\(.*\)$:\1:' | tr - _`
+	  opt=`echo ${arg} | sed 's:^-*\(.*\)$:\1:'`
           val="yes"
           valomitted=yes
         ;;
       esac
+
+      # Also change `-' in the option name to `_'.
+      opt="`echo ${opt} | tr - _`"
 
       # Make sure the argument is valid and unambiguous.
       case ${options} in
@@ -213,65 +208,76 @@ if [ "${machine}" = "" ]; then
   exit 1
 fi
 
+# Canonicalize the machine name.
 echo "Checking the machine."
-machfile="m/${machine}.h"
-if [ ! -r src/${machfile} ]; then
-  echo "${progname}: Emacs has no configuration info for the machine called
-\`${machine}'.  Look at etc/MACHINES for the names of machines
-that Emacs has been ported to." >&2
-  exit 1
-fi
+machine=`./config.sub "${machine}"`
 
-echo "Checking the operating system."
-if [ "${opsystem}" = "" ]; then
+# Given the canonicalized machine name, set machfile and opsysfile to
+# the names of the m/*.h and s/*.h files we should use.
+echo ${machine}
+case "${machine}" in
 
-  echo "  No operating system explicitly specified."
-  echo "  Guessing, based on machine."
-  # Get the default operating system to go with the specified machine.
-  opsystem=`grep 'USUAL-OPSYS="' src/${machfile} \
-	    | sed 's/^.*USUAL-OPSYS="\([^"]*\)".*$/\1/'`
+  ## Alliant machines.
+  ## Strictly speaking, we need the version of the alliant operating
+  ## system to choose the right machine file, but currently the
+  ## configuration name doesn't tell us enough to choose the right
+  ## one; we need to give alliants their own operating system name to
+  ## do this right.  When someone cares, they can help us.
+  fx80-alliant-* )
+    machfile=m/alliant4.h opsysfile=s/bsd4-2.h
+  ;;
+  i860-alliant-* )
+    machfile=m/alliant-2800.h opsysfile=s/bsd4-3.h
+  ;;
 
-  if [ "${opsystem}" = "" ]; then
-    echo "${progname}: Emacs's configuration files don't suggest what operating
-system a \`${machine}' machine might run.  Try specifying the
-operating system explicitly by passing ${progname} an
-\`-opsystem=SYSTEM-NAME' flag.  Look at etc/MACHINES for the
-names of operating systems that Emacs has been ported to." >&2
-    exit 1
-  fi
+  ## DECstations.
+  mips-*-ultrix* )
+    machfile=m/pmax.h opsysfile=s/bsd4-3.h
+  ;;
+  mips-*-osf* )
+    machfile=m/pmax.h opsysfile=s/osf1.h
+  ;;
 
-  if [ "${opsystem}" = "note" ]; then
-    echo "The \`${machine}' machine can be used with more than one operating
-system, and Emacs's configuration info isn't clever enough to figure
-out which one you're running.  Run ${progname} with -machine and
--opsystem arguments as specified below for the appropriate system.
-(This information comes from the file \`etc/MACHINES' - see that
-file for more detail.)
+  ## HP 9000 series 200 or 300.
+  m68*-hp-bsd* )
+    machfile=m/hp9000s300.h opsysfile=s/bsd4-3.h
+  ;;
+  ## If it's running an unspecified version of HP/UX, assume version 8.
+  m68*-hp-hpux7 )
+    machfile=m/hp9000s300.h opsysfile=s/hpux.h
+  ;;
+  m68*-hp-hpux* )
+    machfile=m/hp9000s300.h opsysfile=s/hpux8.h
+  ;;
 
-" >&2
-    sed < src/${machfile} -e '1,/NOTE-START/d' -e '/NOTE-END/,$d' | more
-    echo
-    exit 1
-  fi
+  ## HP 9000 series 800, running HP/UX.
+  hppa1.0-hp-hpux* )
+    machfile=m/hp9000s800.h opsysfile=s/hpux.h
+  ;;
 
-  opsysfile="s/${opsystem}.h"
-  if [ ! -r src/${opsysfile} ]; then
-    echo "${progname}: Emacs's configuration files say that the default
-operating system for the machine \`${machine}' is \`${opsystem}',
-but there is no configuration file for \`${opsystem}', so Emacs's
-default info is screwed up.  Try specifying the operating system
-explicitly by passing ${progname} an \`-opsystem=SYSTEM-NAME' flag." >&2
-    exit 1
-  fi
-else
-  opsysfile="s/${opsystem}.h"
-  if [ ! -r src/${opsysfile} ]; then
-    echo "${progname}: Emacs has no configuration info for the operating system
-\`${opsystem}'.  Look at etc/MACHINES for the names of operating
-systems that Emacs has been ported to." >&2
-    exit 1
-  fi
-fi
+  ## Suns.
+  *-sun-sunos* | *-sun-bsd* )
+    case "${machine}" in
+      m68*-sunos1* )	machfile=m/sun1.h ;;
+      m68*-sunos2* )	machfile=m/sun2.h ;;
+      m68* )		machfile=m/sun3.h ;;
+      i[34]86* )	machfile=m/sun386.h ;;
+      * )		machfile=m/sparc.h ;;
+    esac
+    case "${machine}" in
+      *-sunos4.0*	  ) opsysfile=s/sunos4-0.h ;;
+      *-sunos4* | *-sunos ) opsysfile=s/sunos4-1.h ;;
+      *			  ) opsysfile=s/bsd4-2.h   ;;
+    esac
+  ;;
+
+  * )
+    (echo "${progname}: Emacs hasn't been ported to the machine \`${machine}'."
+     echo "${progname}: Check \`etc/MACHINES' for recognized machine names.") \
+    >&2
+  ;;
+    
+esac
 
 if [ ! "${prefix}" ]; then
   prefix="/usr/local"
@@ -322,28 +328,27 @@ if [ ! "${infodir}" ]; then
 fi
 
 echo "Checking window system."
-case "${with_x11}" in
-  yes )
-    window_system=${window_system}x11
-    ;;
-esac
+indow_system=''
 case "${with_x}" in
   yes )
     window_system=${window_system}x11
-    ;;
+  ;;
+  no )
+    window_system=${window_system}none
+esac
+case "${with_x11}" in
+  yes )
+    window_system=${window_system}x11
+  ;;
 esac
 case "${with_x10}" in
   yes )
     window_system=${window_system}x10
-    ;;
+  ;;
 esac
 
-# Note that SYSV `tr' doesn't handle character ranges.
-window_system="`echo ${window_system} \
-                | tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz`"
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
-  "x" ) window_system=x11 ;;
   "" )
     echo "  No window system specifed.  Looking for X Windows."
     window_system=none
@@ -372,21 +377,25 @@ case "${window_system}" in
   ;;
 esac
 
-echo "Checking for GCC."
-case "${cc}" in
-  "" )
-    temppath=`echo $PATH | sed 's/^:/.:/
-				s/::/:.:/g
-				s/:$/:./
-				s/:/ /g'`
-    cc=`(
-      for dir in ${temppath}; do
-        if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
-      done
-      echo cc
-    )`
+# If we're using X11, we should use the X menu package.
+have_x_menu=no
+case ${have_x11} in
+  yes )
+    have_x_menu=yes
   ;;
 esac
+
+echo "Checking for GCC."
+temppath=`echo $PATH | sed 's/^:/.:/
+			    s/::/:.:/g
+			    s/:$/:./
+			    s/:/ /g'`
+cc=`(
+  for dir in ${temppath}; do
+    if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
+  done
+  echo cc
+)`
 
 case "${cc}" in
   "gcc" )
@@ -581,9 +590,9 @@ chmod -w lib-src/Makefile
 
 
 # Create a verbal description of what we have done.
-message="Configured for machine \`${machine}' running \`${opsystem}'.
+message="Configured for \`${machine}'.
 The following values have been set in ./Makefile and ./build-install:
-  \`make install' or \`build-install' will placed executables in
+  \`make install' or \`build-install' will place executables in
         ${bindir}.
   Emacs's lisp search path will be
         \`${lisppath}'.
