@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.20
+2.0.21
 @end macro
 
 @c Entries for @command{install-info} to use

@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.20"
+(defconst tramp-version "2.0.21"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -2173,33 +2173,54 @@ if the remote host can't provide the modtime."
          nil)
         ((not (file-exists-p file2))
          t)
-        ;; We are sure both files exist at this point.  We assume that
-	;; both files are Tramp files, otherwise we issue an error
-	;; message.  Todo: make a better error message.
+        ;; We are sure both files exist at this point.
         (t
          (save-excursion
-	   (with-parsed-tramp-file-name file1 v1
-	     (with-parsed-tramp-file-name file2 v2
-	       (when (and (tramp-ange-ftp-file-name-p v1-multi-method v1-method)
-			  (tramp-ange-ftp-file-name-p v2-multi-method v2-method))
-		 (tramp-invoke-ange-ftp 'file-newer-than-file-p
-					file1 file2))
-	       (unless (and (equal v1-multi-method v2-multi-method)
-			    (equal v1-method v2-method)
-			    (equal v1-user v2-user)
-			    (equal v1-host v2-host))
-		 (signal 'file-error
-			 (list "Files must have same method, user, host"
-			       file1 file2)))
+	   ;; We try to get the mtime of both files.  If they are not
+	   ;; equal to the "dont-know" value, then we subtract the times
+	   ;; and obtain the result.
+	   (let ((fa1 (file-attributes file1))
+		 (fa2 (file-attributes file2)))
+	     (if (and (not (equal (nth 5 fa1) '(0 0)))
+		      (not (equal (nth 5 fa2) '(0 0))))
+		 (> 0 (car (subtract-time (nth 5 fa1) (nth 5 fa2))))
+	       ;; If one of them is the dont-know value, then we can
+	       ;; still try to run a shell command on the remote host.
+	       ;; However, this only works if both files are Tramp
+	       ;; files and both have the same method, same user, same
+	       ;; host.
 	       (unless (and (tramp-tramp-file-p file1)
 			    (tramp-tramp-file-p file2))
-		 (signal 'file-error
-			 (list "Files must be tramp files on same host"
-			       file1 file2)))
-	       (if (tramp-get-test-groks-nt
-		    v1-multi-method v1-method v1-user v1-host)
-		   (zerop (tramp-run-test2 "test" file1 file2 "-nt"))
-		 (zerop (tramp-run-test2 "tramp_test_nt" file1 file2)))))))))
+		 (signal
+		  'file-error
+		  (list
+		   "Cannot check if Tramp file is newer than non-Tramp file"
+		   file1 file2)))
+	       (with-parsed-tramp-file-name file1 v1
+		 (with-parsed-tramp-file-name file2 v2
+		   (when (and (tramp-ange-ftp-file-name-p
+			       v1-multi-method v1-method)
+			      (tramp-ange-ftp-file-name-p
+			       v2-multi-method v2-method))
+		     (tramp-invoke-ange-ftp 'file-newer-than-file-p
+					    file1 file2))
+		   (unless (and (equal v1-multi-method v2-multi-method)
+				(equal v1-method v2-method)
+				(equal v1-user v2-user)
+				(equal v1-host v2-host))
+		     (signal 'file-error
+			     (list "Files must have same method, user, host"
+				   file1 file2)))
+		   (unless (and (tramp-tramp-file-p file1)
+				(tramp-tramp-file-p file2))
+		     (signal 'file-error
+			     (list "Files must be tramp files on same host"
+				   file1 file2)))
+		   (if (tramp-get-test-groks-nt
+			v1-multi-method v1-method v1-user v1-host)
+		       (zerop (tramp-run-test2 "test" file1 file2 "-nt"))
+		     (zerop (tramp-run-test2
+			     "tramp_test_nt" file1 file2)))))))))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -2952,10 +2973,12 @@ This will break if COMMAND prints a newline, followed by the value of
     (let ((trampbuf (get-buffer-create "*tramp output*"))
 	  (rcp-program (tramp-get-rcp-program
 			multi-method
-			(tramp-find-method multi-method method user host)))
+			(tramp-find-method multi-method method user host)
+			user host))
 	  (rcp-args (tramp-get-rcp-args
 		     multi-method
-		     (tramp-find-method multi-method method user host)))
+		     (tramp-find-method multi-method method user host)
+		     user host))
 	  tmpfil)
       (unless (file-exists-p filename)
 	(error "Cannot make local copy of non-existing file `%s'"
@@ -3122,10 +3145,12 @@ This will break if COMMAND prints a newline, followed by the value of
 			     start end filename append visit))
     (let ((curbuf (current-buffer))
 	  (rcp-program (tramp-get-rcp-program
-			multi-method (tramp-find-method multi-method method user host)))
+			multi-method (tramp-find-method multi-method method user host)
+			user host))
 	  (rcp-args (tramp-get-rcp-args
 		     multi-method
-		     (tramp-find-method multi-method method user host)))
+		     (tramp-find-method multi-method method user host)
+		     user host))
 	  (rem-enc (tramp-get-remote-encoding multi-method method user host))
 	  (rem-dec (tramp-get-remote-decoding multi-method method user host))
 	  (loc-enc (tramp-get-local-encoding multi-method method user host))
@@ -4227,7 +4252,7 @@ file exists and nonzero exit status otherwise."
        9 "Setting remote shell prompt...done")
       )
      (t (tramp-message 5 "Remote `%s' groks tilde expansion, good"
-		       (tramp-get-remote-sh multi-method method))))))
+		       (tramp-get-remote-sh multi-method method user host))))))
 
 (defun tramp-check-ls-command (multi-method method user host cmd)
   "Checks whether the given `ls' executable groks `-n'.
@@ -4481,11 +4506,13 @@ Maybe the different regular expressions need to be tuned.
                        (tramp-get-buffer multi-method method user host)
 		       (tramp-get-telnet-program
 			multi-method
-			(tramp-find-method multi-method method user host))
+			(tramp-find-method multi-method method user host)
+			user host)
                        host
 		       (tramp-get-telnet-args
 			multi-method
-			(tramp-find-method multi-method method user host))))
+			(tramp-find-method multi-method method user host)
+			user host)))
              (found nil)
              (pw nil))
         (process-kill-without-query p)
@@ -4536,10 +4563,12 @@ arguments, and xx will be used as the host name to connect to.
 	  (buf (tramp-get-buffer multi-method method user host))
 	  (rsh-program (tramp-get-rsh-program
 			multi-method
-			(tramp-find-method multi-method method user host)))
+			(tramp-find-method multi-method method user host)
+			user host))
 	  (rsh-args (tramp-get-rsh-args
 		     multi-method
-		     (tramp-find-method multi-method method user host))))
+		     (tramp-find-method multi-method method user host)
+		     user host)))
       ;; The following should be changed.  We need a more general
       ;; mechanism to parse extra host args.
       (when (string-match "\\([^#]*\\)#\\(.*\\)" host)
@@ -4609,13 +4638,15 @@ prompt than you do, so it is not at all unlikely that the variable
                        (tramp-get-buffer multi-method method user host)
 		       (tramp-get-su-program
 			multi-method
-			(tramp-find-method multi-method method user host))
+			(tramp-find-method multi-method method user host)
+			user host)
                        (mapcar
                         '(lambda (x)
                            (format-spec x `((?u . ,(or user "root")))))
                         (tramp-get-su-args
 			 multi-method
-			 (tramp-find-method multi-method method user host)))))
+			 (tramp-find-method multi-method method user host)
+			 user host))))
              (found nil)
              (pw nil))
         (process-kill-without-query p)
@@ -4857,7 +4888,8 @@ to set up.  METHOD, USER and HOST specify the connection."
   ;; Pittman reports that the unusual positioning of the single quotes
   ;; makes it work under `rc', too.
   (process-send-string nil (format "exec env 'PS1=$ ' %s%s"
-                                   (tramp-get-remote-sh multi-method method)
+                                   (tramp-get-remote-sh
+				    multi-method method user host)
                                    tramp-rsh-end-of-line))
   (when tramp-debug-buffer
     (save-excursion
@@ -4865,15 +4897,16 @@ to set up.  METHOD, USER and HOST specify the connection."
       (goto-char (point-max))
       (tramp-insert-with-face
        'bold (format "$ exec env PS1='$ ' %s\n"
-		     (tramp-get-remote-sh multi-method method)))))
+		     (tramp-get-remote-sh multi-method method user host)))))
   (tramp-message 9 "Waiting 30s for remote `%s' to come up..."
-               (tramp-get-remote-sh multi-method method))
+               (tramp-get-remote-sh multi-method method user host))
   (unless (tramp-wait-for-regexp
 	   p 30 (format "\\(%s\\|%s\\)\\'"
 			shell-prompt-pattern tramp-shell-prompt-pattern))
     (pop-to-buffer (buffer-name))
     (error "Remote `%s' didn't come up.  See buffer `%s' for details"
-           (tramp-get-remote-sh multi-method method) (buffer-name)))
+           (tramp-get-remote-sh multi-method method user host)
+	   (buffer-name)))
   (tramp-message 9 "Setting up remote shell environment")
   (tramp-discard-garbage-erase-buffer p multi-method method user host)
   (process-send-string
@@ -5099,7 +5132,8 @@ locale to C and sets up the remote shell search path."
 	(tramp-wait-for-output)
 	(unless (tramp-get-rcp-program
 		 multi-method
-		 (tramp-find-method multi-method method user host))
+		 (tramp-find-method multi-method method user host)
+		 user host)
 	  (tramp-message 5 "Sending the Perl `mime-encode' implementations.")
 	  (tramp-send-linewise
 	   multi-method method user host
@@ -5140,7 +5174,8 @@ locale to C and sets up the remote shell search path."
   ;; Find the right encoding/decoding commands to use.
   (unless (tramp-get-rcp-program
 	   multi-method
-	   (tramp-find-method multi-method method user host))
+	   (tramp-find-method multi-method method user host)
+	   user host)
     (tramp-find-inline-encoding multi-method method user host))
   ;; If encoding/decoding command are given, test to see if they work.
   ;; CCC: Maybe it would be useful to run the encoder both locally and
@@ -5345,7 +5380,8 @@ connection if a previous connection has died for some reason."
         (delete-process p))
       (funcall (tramp-get-connection-function
 		multi-method
-		(tramp-find-method multi-method method user host))
+		(tramp-find-method multi-method method user host)
+		user host)
                multi-method method user host))))
 
 (defun tramp-send-command
@@ -5835,7 +5871,8 @@ It is important to check for this condition, since it is not possible
 to enter a password for the `tramp-rcp-program'."
   (tramp-get-rcp-program
    multi-method
-   (tramp-find-method multi-method method user host)))
+   (tramp-find-method multi-method method user host)
+   user host))
 
 ;; Variables local to connection.
 
