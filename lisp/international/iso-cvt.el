@@ -84,8 +84,7 @@
   "Spanish translation table.")
 
 (defun iso-translate-conventions (trans-tab)
-  "Use the translation table argument to translate the current buffer."
-  (interactive)
+  "Use the translation table TRANS-TAB to translate the current buffer."
   (save-excursion
     (widen)
     (goto-char (point-min))
