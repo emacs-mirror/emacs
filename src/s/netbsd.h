@@ -94,7 +94,7 @@
    before syssignal.h is included, to work around interface conflicts
    that are handled with CPP __RENAME() macro in signal.h.  */
 
-#ifndef NO_C_SOURCE
+#ifndef NOT_C_CODE
 #include <signal.h>
 #endif
 

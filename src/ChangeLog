@@ -1,3 +1,8 @@
+2000-09-09  Ken Raeburn  <raeburn@gnu.org>
+
+	* s/netbsd.h: Use NOT_C_CODE, not NO_C_SOURCE, when deciding
+	whether to include other header files.
+
 2000-09-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (CYCLE_CHECK): Don't use the Lisp_Object returned 
