@@ -607,6 +607,9 @@ the front of KEYMAP.")
     {
       c = Faref (key, make_number (idx));
 
+      if (CONSP (c) && lucid_event_type_list_p (c))
+	c = convert_event_type_list (c);
+
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
 	  && !metized)
@@ -697,6 +700,9 @@ recognize the default bindings, just as `read-key-sequence' does.")
   while (1)
     {
       c = Faref (key, make_number (idx));
+
+      if (CONSP (c) && lucid_event_type_list_p (c))
+	c = convert_event_type_list (c);
 
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
@@ -997,74 +1003,6 @@ bindings; see the description of `lookup-key' for more details about this.")
 
   UNGCPRO;
   return Flist (j, maps);
-}
-
-DEFUN ("global-set-key", Fglobal_set_key, Sglobal_set_key, 2, 2,
-  "KSet key globally: \nCSet key %s to command: ",
-  "Give KEY a global binding as COMMAND.\n\
-COMMAND is a symbol naming an interactively-callable function.\n\
-KEY is a key sequence (a string or vector of characters or event types).\n\
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)\n\
-can be included if you use a vector.\n\
-Note that if KEY has a local binding in the current buffer\n\
-that local binding will continue to shadow any global binding.")
-  (keys, function)
-     Lisp_Object keys, function;
-{
-  if (!VECTORP (keys) && !STRINGP (keys))
-    keys = wrong_type_argument (Qarrayp, keys);
-
-  Fdefine_key (current_global_map, keys, function);
-  return Qnil;
-}
-
-DEFUN ("local-set-key", Flocal_set_key, Slocal_set_key, 2, 2,
-  "KSet key locally: \nCSet key %s locally to command: ",
-  "Give KEY a local binding as COMMAND.\n\
-COMMAND is a symbol naming an interactively-callable function.\n\
-KEY is a key sequence (a string or vector of characters or event types).\n\
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)\n\
-can be included if you use a vector.\n\
-The binding goes in the current buffer's local map,\n\
-which in most cases is shared with all other buffers in the same major mode.")
-  (keys, function)
-     Lisp_Object keys, function;
-{
-  register Lisp_Object map;
-  map = current_buffer->keymap;
-  if (NILP (map))
-    {
-      map = Fmake_sparse_keymap (Qnil);
-      current_buffer->keymap = map;
-    }
-
-  if (!VECTORP (keys) && !STRINGP (keys))
-    keys = wrong_type_argument (Qarrayp, keys);
-
-  Fdefine_key (map, keys, function);
-  return Qnil;
-}
-
-DEFUN ("global-unset-key", Fglobal_unset_key, Sglobal_unset_key,
-  1, 1, "kUnset key globally: ",
-  "Remove global binding of KEY.\n\
-KEY is a string representing a sequence of keystrokes.")
-  (keys)
-     Lisp_Object keys;
-{
-  return Fglobal_set_key (keys, Qnil);
-}
-
-DEFUN ("local-unset-key", Flocal_unset_key, Slocal_unset_key, 1, 1,
-  "kUnset key locally: ",
-  "Remove local binding of KEY.\n\
-KEY is a string representing a sequence of keystrokes.")
-  (keys)
-     Lisp_Object keys;
-{
-  if (!NILP (current_buffer->keymap))
-    Flocal_set_key (keys, Qnil);
-  return Qnil;
 }
 
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 2, 0,
@@ -2486,12 +2424,8 @@ key, typing `ESC O P x' would return [f1 x].");
   defsubr (&Slocal_key_binding);
   defsubr (&Sglobal_key_binding);
   defsubr (&Sminor_mode_key_binding);
-  defsubr (&Sglobal_set_key);
-  defsubr (&Slocal_set_key);
   defsubr (&Sdefine_key);
   defsubr (&Slookup_key);
-  defsubr (&Sglobal_unset_key);
-  defsubr (&Slocal_unset_key);
   defsubr (&Sdefine_prefix_command);
   defsubr (&Suse_global_map);
   defsubr (&Suse_local_map);
