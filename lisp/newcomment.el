@@ -29,6 +29,8 @@
 
 ;;; Bugs:
 
+;; - boxed comments in Perl are not properly uncommented because they are
+;;   uncommented one-line at a time.
 ;; - nested comments in sgml-mode are not properly quoted.
 ;; - single-char nestable comment-start can only do the "\\s<+" stuff
 ;;   if the corresponding closing marker happens to be right.
@@ -43,15 +45,16 @@
 
 ;;; Todo:
 
-;; - quantized steps in comment-alignment
-;; - try to align tail comments
-;; - check what c-comment-line-break-function has to say
-;; - spill auto-fill of comments onto the end of the next line
+;; - rebox.el-style refill.
+;; - quantized steps in comment-alignment.
+;; - try to align tail comments.
+;; - check what c-comment-line-break-function has to say.
+;; - spill auto-fill of comments onto the end of the next line.
 ;; - uncomment-region with a consp (for blocks) or somehow make the
-;;   deletion of continuation markers less dangerous
-;; - drop block-comment-<foo> unless it's really used
-;; - uncomment-region on a subpart of a comment
-;; - support gnu-style "multi-line with space in continue"
+;;   deletion of continuation markers less dangerous.
+;; - drop block-comment-<foo> unless it's really used.
+;; - uncomment-region on a subpart of a comment.
+;; - support gnu-style "multi-line with space in continue".
 ;; - somehow allow comment-dwim to use the region even if transient-mark-mode
 ;;   is not turned on.
 
@@ -706,13 +709,23 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
 	     (s (concat cs "a=m" cce))
 	     (e (concat ccs "a=m" ce))
 	     (c (if (string-match ".*\\S-\\S-" cs)
-		    (aref cs (1- (match-end 0))) ?=))
-	     (_ (string-match "\\s-*a=m\\s-*" s))
+		    (aref cs (1- (match-end 0)))
+		  (if (and (equal comment-end "") (string-match ".*\\S-" cs))
+		      (aref cs (1- (match-end 0))) ?=)))
+	     (re "\\s-*a=m\\s-*")
+	     (_ (string-match re s))
+	     (lcs (length cs))
 	     (fill
 	      (make-string (+ width (- (match-end 0)
-				       (match-beginning 0) (length cs) 3)) c)))
+				       (match-beginning 0) lcs 3)) c)))
 	(setq cs (replace-match fill t t s))
-	(string-match "\\s-*a=m\\s-*" e)
+	(when (and (not (string-match comment-start-skip cs))
+		   (string-match "a=m" s))
+	  ;; The whitespace around CS cannot be ignored: put it back.
+	  (setq re "a=m")
+	  (setq fill (make-string (- width lcs) c))
+	  (setq cs (replace-match fill t t s)))
+	(string-match re e)
 	(setq ce (replace-match fill t t e))))
     (cons (concat cs "\n" (make-string min-indent ? ) ccs)
 	  (concat cce "\n" (make-string (+ min-indent eindent) ? ) ce))))
@@ -749,7 +762,7 @@ indentation to be kept as it was before narrowing."
 
 (defun comment-region-internal (beg end cs ce
 				    &optional ccs cce block lines indent)
-  "Comment region BEG..END.
+  "Comment region BEG .. END.
 CS and CE are the comment start resp end string.
 CCS and CCE are the comment continuation strings for the start resp end
 of lines (default to CS and CE).
@@ -828,7 +841,7 @@ rather than at left margin."
 ;;;###autoload
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
-With just \\[universal-argument] prefix arg, uncomment each line in region BEG..END.
+With just \\[universal-argument] prefix arg, uncomment each line in region BEG .. END.
 Numeric prefix arg ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 By default, comments start at the left margin, are terminated on each line,
@@ -892,7 +905,7 @@ The strings used as comment starts are built from
        (nth 3 style))))))
 
 (defun comment-box (beg end &optional arg)
-  "Comment out the BEG..END region, putting it inside a box.
+  "Comment out the BEG .. END region, putting it inside a box.
 The numeric prefix ARG specifies how many characters to add to begin- and
 end- comment markers additionally to what `comment-add' already specifies."
   (interactive "*r\np")
