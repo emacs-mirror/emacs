@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.3) $
+ * $HopeName: MMsrc!poolams.c(trunk.4) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.3) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.4) $");
 
 /* These two BT utility functions should be in the BT module.
  * See design.mps.poolams.bt.utilities */
@@ -1013,7 +1013,7 @@ static Bool AMSCheck(AMS ams)
   CHECKD(Pool, AMSPool(ams));
   CHECKL(AMSPool(ams)->class == &PoolClassAMSStruct);
   CHECKD(Format, ams->format);
-  CHECKL((1 << ams->grainShift) == AMSPool(ams)->alignment);
+  CHECKL((1U << ams->grainShift) == AMSPool(ams)->alignment);
   CHECKD(Action, AMSAction(ams));
   CHECKL(ams->lastReclaimed <= ams->size);
 

@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.9) $
+# $HopeName: MMsrc!commpost.nmk(trunk.10) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -42,15 +42,14 @@ clean:
 
 # target target
 # %%VARIETY: Add a recusive make call for the new variety
+# Only the varieties needed for development and internal customers are made.
 
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=df variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=dp variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ds variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=dl variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ro variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hi variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ci variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ti variety
 !ENDIF
 !ENDIF
 
@@ -171,13 +170,13 @@ $(PFM)\$(VARIETY)\poolawl.lib: $(AWLOBJ)
 	ml /nologo /c /coff /Fo$@ $<
 
 # Coverage files
-{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
-	$(ECHO) $@
-	cd $(PFM)\$(VARIETY)
-	prep /nologo /lv  $(<F)
-	profile /nologo $(<B)
-	prep /nologo /m $(<B)
-	plist /nologo /D ..\.. $(<B) > $(@F)
+#{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
+#	$(ECHO) $@
+#	cd $(PFM)\$(VARIETY)
+#	prep /nologo /lv  $(<F)
+#	profile /nologo $(<B)
+#	prep /nologo /m $(<B)
+#	plist /nologo /D ..\.. $(<B) > $(@F)
 
 
 # Dependencies

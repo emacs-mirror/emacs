@@ -1,9 +1,9 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.14) $
+# $HopeName: MMsrc!comm.gmk(trunk.15) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
-# DESCRIPTION
+# DSCRIPTION
 #
 # This makefile fragment is included in more specific makefiles for
 # platforms which use GNU make.
@@ -12,11 +12,15 @@
 #
 # Assumes the following variables and definitions:
 # CFLAGSCOMPILER    a list of flags that should be passed
-#   to the compiler for all compilations.
-# CFLAGSDEBUG       a list of flags that should be passed
-#   to the compiler for debug compilations.
-# CFLAGSOPTIMIZE    a list of flags that should be passed
-#   to the compiler for optimize compilations.
+#                   to the compiler for all compilations.
+# CFLAGSHOT         a list of flags that should be passed
+#                   to the compiler for hot varieties
+# CFLAGSCOOL        a list of flags that should be passed
+#                   to the compiler for cool varieties
+# CFLAGSINTERNAL    a list of flags that should be passed
+#                   to the compiler for internal varieties
+# CFLAGSEXTERNAL    a list of flags that should be passed
+#                   to the compiler for external varieties
 # CC                the command for the C compiler.
 # gendep            optionally defined to be a command sequence
 #   for generating the dependency file (.d) from a C file (.c)
@@ -64,11 +68,17 @@ endif
 ifndef CFLAGSCOMPILER
 error "comm.gmk: CFLAGSCOMPILER not defined"
 endif
-ifndef CFLAGSDEBUG
-error "comm.gmk: CFLAGSDEBUG not defined"
+ifndef CFLAGSHOT
+error "comm.gmk: CFLAGSHOT not defined"
 endif
-ifndef CFLAGSOPTIMIZE
-error "comm.gmk: CFLAGSOPTIMIZE not defined"
+ifndef CFLAGSCOOL
+error "comm.gmk: CFLAGSCOOL not defined"
+endif
+ifndef CFLAGSINTERNAL
+error "comm.gmk: CFLAGSINTERNAL not defined"
+endif
+ifndef CFLAGSEXTERNAL
+error "comm.gmk: CFLAGSEXTERNAL not defined"
 endif
 
 #
@@ -131,20 +141,14 @@ CFLAGSCOMMON = \
 # %%VARIETY: Define a macro containing the set of flags for the new
 #            variety.
 
-# These flags are added to compilations for the "df" variety.
-CFDF = -DCONFIG_VAR_DF $(CFLAGSDEBUG)
+# These flags are added to compilations for the indicated variety.
+CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSHOT)  $(CFLAGSINTERNAL)
+CFCI = -DCONFIG_VAR_CI          $(CFLAGSCOOL) $(CFLAGSINTERNAL)
+CFTI = -DCONFIG_VAR_TI          $(CFLAGSCOOL) $(CFLAGSINTERNAL)
+CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSHOT)  $(CFLAGSEXTERNAL) 
+CFCE = -DCONFIG_VAR_CE          $(CFLAGSCOOL) $(CFLAGSEXTERNAL)
+CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSHOT)  $(CFLAGSINTERNAL)
 
-# These flags are added to compilations for the "dp" variety.
-CFDP = -DCONFIG_VAR_DP $(CFLAGSDEBUG)
-
-# These flags are added to compilations for the "ds" variety.
-CFDS = -DCONFIG_VAR_DS $(CFLAGSDEBUG)
-
-# These flags are added to compilations for the "ro" variety.
-CFRO = -DCONFIG_VAR_RO -DNDEBUG $(CFLAGSOPTIMIZE)
-
-# These flags are added to compilations for the "dl" variety.
-CFDL = -DCONFIG_VAR_DL $(CFLAGSDEBUG)
 
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
@@ -154,7 +158,7 @@ CFDL = -DCONFIG_VAR_DL $(CFLAGSDEBUG)
 
 ifdef VARIETY
 MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) \
-	$(MPMS:%.s=$(PFM)/$(VARIETY)/%.o) $(MPMPS:%.S=$(PFM)/$(VARIETY)/%.o)
+	$(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
 MPMDEP = $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
 AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
 AMCDEP = $(AMC:%.c=$(PFM)/$(VARIETY)/%.d)
@@ -184,20 +188,24 @@ endif
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
-ifeq ($(VARIETY),dp)
-CFLAGS=$(CFLAGSCOMMON) $(CFDP)
+ifeq ($(VARIETY),ci)
+CFLAGS=$(CFLAGSCOMMON) $(CFCI)
 else
-ifeq ($(VARIETY),dl)
-CFLAGS=$(CFLAGSCOMMON) $(CFDL)
+ifeq ($(VARIETY),hi)
+CFLAGS=$(CFLAGSCOMMON) $(CFHI)
 else
-ifeq ($(VARIETY),ro)
-CFLAGS=$(CFLAGSCOMMON) $(CFRO)
+ifeq ($(VARIETY),ti)
+CFLAGS=$(CFLAGSCOMMON) $(CFTI)
 else
-ifeq ($(VARIETY),df)
-CFLAGS=$(CFLAGSCOMMON) $(CFDF)
+ifeq ($(VARIETY),ce)
+CFLAGS=$(CFLAGSCOMMON) $(CFCE)
 else
-ifeq ($(VARIETY),ds)
-CFLAGS=$(CFLAGSCOMMON) $(CFDS)
+ifeq ($(VARIETY),he)
+CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+else
+ifeq ($(VARIETY),wi)
+CFLAGS=$(CFLAGSCOMMON) $(CFWI)
+endif
 endif
 endif
 endif
@@ -238,17 +246,18 @@ clean: phony
 
 # "target" builds all varieties of the target named in the TARGET macro.
 # %%VARIETY: Add a recursive make call for the new variety.
+# In fact, it builds all varieties needed for development and
+# internal customers.
 
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=df variety
-	$(MAKE) -f $(PFM).gmk VARIETY=dp variety
-	$(MAKE) -f $(PFM).gmk VARIETY=ds variety
-	$(MAKE) -f $(PFM).gmk VARIETY=ro variety
-	$(MAKE) -f $(PFM).gmk VARIETY=dl variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hi variety
+	$(MAKE) -f $(PFM).gmk VARIETY=ci variety
+	$(MAKE) -f $(PFM).gmk VARIETY=ti variety
 endif
 endif
+
 
 # "variety" builds the target named in the TARGET macro using the
 # variety named in the VARIETY macro.

@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.5) $
+# $HopeName: MMsrc!commpre.nmk(trunk.6) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -114,49 +114,53 @@ CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 
 CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) $(CFLAGSTARGET)
 
+# Flags for use in the variety combinations
+CFLAGSHOT = /O2 /DNDEBUG
+CFLAGSCOOL = 
+CFLAGSINTERNAL = /Z7
+CFLAGSEXTERNAL = 
 
-# "debug" variety flags
-# [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
-#  object and linked files themselves, whereas /Zi generated debugging
-#  output in a .PDB file.]
-CFDF = /DCONFIG_VAR_DF /Z7
+# The combinations of variety
+# @@@@ TI is a temporary telemetry variety
+CFHE = /DCONFIG_VAR_HE $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
+CFCE = /DCONFIG_VAR_CE $(CFLAGSCOOL) $(CFLAGSEXTERNAL)
+CFHI = /DCONFIG_VAR_HI $(CFLAGSHOT)  $(CFLAGSINTERNAL)
+CFCI = /DCONFIG_VAR_CI $(CFLAGSCOOL) $(CFLAGSINTERNAL)
+CFTI = /DCONFIG_VAR_TI $(CFLAGSCOOL) $(CFLAGSINTERNAL)
+CFWI = /DCONFIG_VAR_WI $(CFLAGSHOT)  $(CFLAGSINTERNAL)
 
-CFDP = /DCONFIG_VAR_DP /Z7
-
-CFDS = /DCONFIG_VAR_DS /Z7
-
-# "telemetry (logging)" variety flags
-CFDL = /DCONFIG_VAR_DL /Z7
-
-# "release" variety flags
 # Microsoft documentation is not very clear on the point of using both
 # optimization and debug information
-CFRO = /DCONFIG_VAR_RO /DNDEBUG /Z7 /O2
-
-# "cover" variety flags
-CFCV = /DCONFIG_VAR_DP /Z7
 
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
-LINKFLAGSCOMMON = /nologo /PDB:NONE
-LFDF = /DEBUG:full /DEBUGTYPE:cv
-LFDP = /DEBUG:full /DEBUGTYPE:cv
-LFDS = /DEBUG:full /DEBUGTYPE:cv
-LFDL = /DEBUG:full /DEBUGTYPE:cv
-LFRO = /RELEASE /DEBUG:full /DEBUGTYPE:cv
-LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
+LINKFLAGSCOMMON = /nologo /PDB:NONE /DEBUGTYPE:cv
+LINKFLAGSINTERNAL = /DEBUG:full
+LINKFLAGSEXTERNAL = /RELEASE
+LINKFLAGSHOT = 
+LINKFLAGSCOOL =
+
+LFHE = $(LINKFLAGSHOT)  $(LINKFLAGSEXTERNAL)
+LFCE = $(LINKFLAGSCOOL) $(LINKFLAGSEXTERNAL)
+LFHI = $(LINKFLAGSHOT)  $(LINKFLAGSINTERNAL)
+LFCI = $(LINKFLAGSCOOL) $(LINKFLAGSINTERNAL)
+LFTI = $(LINKFLAGSCOOL) $(LINKFLAGSINTERNAL)
+LFWI = $(LINKFLAGSHOT)  $(LINKFLAGSINTERNAL)
+
+#LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
 
 # Library manager
 # %%VARIETY: define a macro containing the flags for the new variety
 LIBMAN = lib                  # can't call this LIB - it screws the environment
 LIBFLAGSCOMMON = /nologo
-LIBFLAGSDF = 
-LIBFLAGSDP = 
-LIBFLAGSDS = 
-LIBFLAGSDL = 
-LIBFLAGSRO = 
-LIBFLAGSCV =
+LIBFLAGSHE = 
+LIBFLAGSCE = 
+LIBFLAGSHI = 
+LIBFLAGSCI = 
+LIBFLAGSTI =
+LIBFLAGSWI =
+#LIBFLAGSCV =
 
 # Browser database manager [not used at present]
 #BSC = bscmake
