@@ -601,6 +601,10 @@ static void clear_font_table P_ ((struct frame *));
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 #endif /* WINDOWSNT */
 
+#ifdef USE_X_TOOLKIT
+static void x_update_menu_appearance P_ ((struct frame *));
+#endif /* USE_X_TOOLKIT */
+
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
@@ -4341,91 +4345,84 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
-#ifdef HAVE_X_WINDOWS
 /***********************************************************************
 			      Menu face
  ***********************************************************************/
 
-#ifdef USE_X_TOOLKIT
+#if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 
-void
-x_set_menu_face_resources (f)
+/* Make menus on frame F appear as specified by the `menu' face.  */
+
+static void
+x_update_menu_appearance (f)
      struct frame *f;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  XrmDatabase rdb;
 
-  if (dpyinfo)
+  if (dpyinfo
+      && (rdb = XrmGetDatabase (FRAME_X_DISPLAY (f)),
+	  rdb != NULL))
     {
-      Display *dpy = FRAME_X_DISPLAY (f);
-      XrmDatabase rdb = XrmGetDatabase (dpy);
-      extern Lisp_Object Vx_resource_name;
-
-      if (rdb)
-	{
-	  char line[512];
-	  Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
-	  struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
-	  char *myname = XSTRING (Vx_resource_name)->data;
-	  int changes = 0;
+      char line[512];
+      Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
+      struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
+      char *myname = XSTRING (Vx_resource_name)->data;
+      int changed_p = 0;
       
-	  if (STRINGP (LFACE_FOREGROUND (lface)))
-	    {
-	      sprintf (line, "%s.menu*foreground: %s",
-		       myname, XSTRING (LFACE_FOREGROUND (lface))->data);
-	      XrmPutLineResource (&rdb, line);
-	      sprintf (line, "%s.pane.menubar*foreground: %s",
-		       myname, XSTRING (LFACE_FOREGROUND (lface))->data);
-	      XrmPutLineResource (&rdb, line);
-	      ++changes;
-	    }
+      if (STRINGP (LFACE_FOREGROUND (lface)))
+	{
+	  sprintf (line, "%s.popup_menu*foreground: %s",
+		   myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+	  XrmPutLineResource (&rdb, line);
+	  sprintf (line, "%s.pane.menubar*foreground: %s",
+		   myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+	  XrmPutLineResource (&rdb, line);
+	  changed_p = 1;
+	}
 
-	  if (STRINGP (LFACE_BACKGROUND (lface)))
-	    {
-	      sprintf (line, "%s*menu*background: %s",
-		       myname, XSTRING (LFACE_BACKGROUND (lface))->data);
-	      XrmPutLineResource (&rdb, line);
-	      sprintf (line, "%s.pane.menubar*background: %s",
-		       myname, XSTRING (LFACE_BACKGROUND (lface))->data);
-	      XrmPutLineResource (&rdb, line);
-	      ++changes;
-	    }
+      if (STRINGP (LFACE_BACKGROUND (lface)))
+	{
+	  sprintf (line, "%s.popup_menu*background: %s",
+		   myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+	  XrmPutLineResource (&rdb, line);
+	  sprintf (line, "%s.pane.menubar*background: %s",
+		   myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+	  XrmPutLineResource (&rdb, line);
+	  changed_p = 1;
+	}
 	  
-	  if (face->font_name
-	      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
-		  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
-		  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
-		  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
-		  || !UNSPECIFIEDP (LFACE_SLANT (lface))
-		  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
-	    {
+      if (face->font_name
+	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
+	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+	      || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
+	      || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
+	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
+	      || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
+	{
 #ifdef USE_MOTIF
-	      char *format1 = "%s.pane.menubar*fontList: %s";
-	      char *format2 = "%s*menu*fontList: %s";
+	  const char *suffix = "List";
 #else
-	      char *format1 = "%s.pane.menubar*font: %s";
-	      char *format2 = "%s*menu*font: %s";
-#endif	      
-	      sprintf (line, format1, myname, face->font_name);
-	      XrmPutLineResource (&rdb, line);
-	      sprintf (line, format2, myname, face->font_name);
-	      XrmPutLineResource (&rdb, line);
-	      ++changes;
-	    }
+	  const char *suffix = "";
+#endif
+	  sprintf (line, "%s.pane.menubar*font%s: %s",
+		   myname, suffix, face->font_name);
+	  XrmPutLineResource (&rdb, line);
+	  sprintf (line, "%s.popup_menu*font%s: %s",
+		   myname, suffix, face->font_name);
+	  XrmPutLineResource (&rdb, line);
+	  changed_p = 1;
+	}
 
-	  if (changes && f->output_data.x->menubar_widget)
-	    {
-	      free_frame_menubar (f);
-	      set_frame_menubar (f, 1, 1);
-	      XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
-	    }
+      if (changed_p && f->output_data.x->menubar_widget)
+	{
+	  free_frame_menubar (f);
+	  set_frame_menubar (f, 1, 1);
 	}
     }
 }
 
-
-#endif /* USE_X_TOOLKIT */
-
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS && USE_X_TOOLKIT */
 
 
 
@@ -5972,7 +5969,7 @@ realize_basic_faces (f)
 	{
 	  menu_face_change_count = 0;
 #ifdef USE_X_TOOLKIT
-	  x_set_menu_face_resources (f);
+	  x_update_menu_appearance (f);
 #endif
 	}
       
