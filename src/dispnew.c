@@ -3560,10 +3560,9 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       /* Update windows.  */
       paused_p = update_window_tree (root_window, force_p);
       update_end (f);
-      display_completed = !paused_p;
-
-      /* The flush is a performance bottleneck under X.  */
-#if 0
+      
+#if 0 /* This flush is a performance bottleneck under X,
+	 and it doesn't seem to be necessary anyway.  */
       rif->flush_display (f);
 #endif
     }
@@ -3573,21 +3572,26 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 	 frame matrix we operate.  */
       set_frame_matrix_frame (f);
 
-      /* Build F's desired matrix from window matrices.  For windows
-	 whose must_be_updated_p flag is set, desired matrices are
-	 made part of the desired frame matrix.  For other windows,
-	 the current matrix is copied.  */
+      /* Build F's desired matrix from window matrices.  */
       build_frame_matrix (f);
       
-      /* Do the update on the frame desired matrix.  */
+      /* Update the display  */
+      update_begin (f);
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
-      
+      update_end (f);
+
+      if (termscript)
+	fflush (termscript);
+      fflush (stdout);
+
       /* Check window matrices for lost pointers.  */
       IF_DEBUG (check_window_matrix_pointers (root_window));
     }
 
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
+  
+  display_completed = !paused_p;
   return paused_p;
 }
 
@@ -4718,8 +4722,6 @@ update_frame_1 (f, force_p, inhibit_id_p)
       goto do_pause;
     }
 
-  update_begin (f);
-
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!line_ins_del_ok)
     inhibit_id_p = 1;
@@ -4875,15 +4877,8 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	}
     }
 
-  update_end (f);
-
-  if (termscript)
-    fflush (termscript);
-  fflush (stdout);
-
  do_pause:
 
-  display_completed = !pause;
   clear_desired_matrices (f);
   return pause;
 }
