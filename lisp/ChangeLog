@@ -1,3 +1,8 @@
+2000-09-25  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Avoid infinite loop if
+	rmail-dont-reply-to-names matches the empty string.
+	
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line-1, fancy-splash-text): Change the 
