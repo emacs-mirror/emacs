@@ -1,7 +1,7 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.31) $
- * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
@@ -25,26 +25,37 @@
  */
 
 #include "mpscmv.h"
+#include "dbgpool.h"
 #include "poolmv.h"
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.31) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.32) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
 #define SPANPOOL(mv)    (MFSPool(&(mv)->spanPoolStruct))
 #define PoolPoolMV(pool) PARENT(MVStruct, poolStruct, pool)
+#define MVPool(mv) (&(mv)->poolStruct)
 
-/*  == Class Structure ==  */
+Pool (MVPool)(MV mv)
+{
+  AVERT(MV, mv);
+  return &mv->poolStruct;
+}
 
-#if 0
-static Res MVInit(Pool pool, va_list arg);
-static void MVFinish(Pool pool);
-static Res MVAlloc(Addr *pReturn, Pool pool, Size size);
-static void MVFree(Pool pool, Addr old, Size size);
-static Res MVDescribe(Pool pool, mps_lib_FILE *stream);
-#endif /* 0 */
+
+typedef struct MVDebugStruct {
+  MVStruct MVStruct;             /* MV structure */
+  PoolDebugMixinStruct debug;    /* debug mixin */
+  Sig sig;
+} MVDebugStruct;
+
+typedef MVDebugStruct *MVDebug;
+
+
+#define MVPoolMVDebug(mv)   PARENT(MVDebugStruct, MVStruct, mv)
+#define MVDebugPoolMV(mvd)  (&((mvd)->MVStruct))
 
 
 /* MVBlockStruct -- block structure
@@ -69,12 +80,11 @@ static Bool MVBlockCheck(MVBlock block)
   AVER(block != NULL);
   AVER(block->limit >= block->base);
   /* Check that it is in the block pool.  See note 7. */
-  /* This turns out to be considerably tricky, as we cannot get hold
-   * of the blockPool (pool is not a parameter). */
+  /* This turns out to be considerably tricky, as we cannot get hold */
+  /* of the blockPool (pool is not a parameter). */
   return TRUE;
 }
 
-#define MVSpanSig       ((Sig)0x5193F5BA) /* SIGnature MV SPAn */
 
 /* MVSpanStruct -- span structure
  *
@@ -96,6 +106,8 @@ static Bool MVBlockCheck(MVBlock block)
  * free area. If it is larger than 'largest', set 'largest' to it.
  */
 
+#define MVSpanSig       ((Sig)0x5193F5BA) /* SIGnature MV SPAn */
+
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
   Sig sig;                      /* design.mps.sig */
@@ -116,12 +128,6 @@ typedef struct MVSpanStruct {
                                    (span)->limit.limit))
 #define SpanInsideSentinels(span) (AddrOffset((span)->base.limit,     \
                                               (span)->limit.base))
-
-Pool MVPool(MV mv)
-{
-  AVERT(MV, mv);
-  return &mv->poolStruct;
-}
 
 
 /* MVSpanCheck -- check the consistency of a span structure */
@@ -161,6 +167,9 @@ static Bool MVSpanCheck(MVSpan span)
   }
   return TRUE;
 }
+
+
+/* MVInit -- init method for class MV */
 
 static Res MVInit(Pool pool, va_list arg)
 {
@@ -212,12 +221,13 @@ static Res MVInit(Pool pool, va_list arg)
   mv->lost = 0;
 
   mv->sig = MVSig;
-
   AVERT(MV, mv);
 
   return ResOK;
 }
 
+
+/* MVFinish -- finish method for class MV */
 
 static void MVFinish(Pool pool)
 {
@@ -332,7 +342,6 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
  * 6. whole of limit sentinel
  * 7. at base of base sentinel
  * 8. at limit of limit sentinel
- * 
  */
 
 static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
@@ -433,7 +442,7 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 }
 
 
-/*  == Allocate ==  */
+/* MVAlloc -- allocate method for class MV */
 
 static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
                    Bool withReservoirPermit)
@@ -445,13 +454,12 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   Size segSize;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
+  AVER(pReturn != NULL);
   AVERT(Pool, pool);
   mv = PoolPoolMV(pool);
   AVERT(MV, mv);
-
-  AVER(pReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   size = SizeAlignUp(size, pool->alignment);
 
@@ -530,6 +538,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
 }
 
 
+/* MVFree -- free method for class MV */
+
 static void MVFree(Pool pool, Addr old, Size size)
 {
   Addr base, limit;
@@ -580,6 +590,20 @@ static void MVFree(Pool pool, Addr old, Size size)
     RingFinish(&span->spans);
     PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
   }
+}
+
+
+/* MVDebugMixin - find debug mixin in class MVDebug */
+
+static PoolDebugMixin MVDebugMixin(Pool pool)
+{
+  MV mv;
+
+  AVERT(Pool, pool);
+  mv = PoolPoolMV(pool);
+  AVERT(MV, mv);
+  /* Can't check MVDebug, because this is called during MVDebug init */
+  return &(MVPoolMVDebug(mv)->debug);
 }
 
 
@@ -690,11 +714,14 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-static PoolClassStruct PoolClassMVStruct = {
+/* Pool class MV */
+
+static PoolClassStruct poolClassMVStruct = {
   PoolClassSig,
   "MV",                                 /* name */
   sizeof(MVStruct),                     /* size */
   offsetof(MVStruct, poolStruct),       /* offset */
+  NULL,                                 /* super */
   AttrALLOC | AttrFREE | AttrBUF,       /* attr */
   MVInit,                               /* init */
   MVFinish,                             /* finish */
@@ -719,23 +746,48 @@ static PoolClassStruct PoolClassMVStruct = {
   PoolNoRampEnd,
   PoolNoWalk,                           /* walk */
   MVDescribe,                           /* describe */
+  PoolNoDebugMixin,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 
 PoolClass PoolClassMV(void)
 {
-  return &PoolClassMVStruct;
+  return &poolClassMVStruct;
 }
 
 
-/* MPS Interface Extension */
+/* Pool class MVDebug */
+
+static PoolClassStruct poolClassMVDebugStruct;
+
+static PoolClass poolClassMVDebug(void)
+{
+  /* This code has to be idempotent to avoid locking. */
+  EnsureDebugClass(&poolClassMVDebugStruct, PoolClassMV());
+  poolClassMVDebugStruct.name = "MVDBG";
+  poolClassMVDebugStruct.size = sizeof(MVDebugStruct);
+  poolClassMVDebugStruct.debugMixin = MVDebugMixin;
+  return &poolClassMVDebugStruct;
+}
+
+
+/* class functions 
+ *
+ * Note this is an MPS interface extension
+ */
 
 mps_class_t mps_class_mv(void)
 {
   return (mps_class_t)(PoolClassMV());
 }
 
-/* Free bytes */
+mps_class_t mps_class_mv_debug(void)
+{
+  return (mps_class_t)(poolClassMVDebug());
+}
+
+
+/* mps_mv_free_size -- free bytes in pool */
 
 size_t mps_mv_free_size(mps_pool_t mps_pool)
 {
@@ -761,6 +813,7 @@ size_t mps_mv_free_size(mps_pool_t mps_pool)
   return (size_t)f;
 }
 
+
 size_t mps_mv_size(mps_pool_t mps_pool)
 {
   Pool pool;
@@ -785,10 +838,7 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   }
 
   return (size_t)f;
-} 
-
-
-
+}
 
 
 /* MVCheck -- check the consistency of an MV structure */
@@ -797,7 +847,8 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, &mv->poolStruct);
-  CHECKL(mv->poolStruct.class == &PoolClassMVStruct);
+  CHECKL(mv->poolStruct.class == &poolClassMVStruct
+         || mv->poolStruct.class == &poolClassMVDebugStruct);
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
