@@ -720,7 +720,7 @@ shortlisp= \
 	../lisp/international/mule.elc \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
-	../lisp/ainternational/characters.elc \
+	../lisp/international/characters.elc \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/devanagari.elc \
