@@ -589,6 +589,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	(save-excursion
 	  (set-buffer (cdr (car blist)))
 	  (if (and (eq major-mode mode)
+		   dired-directory  ;; nil during find-alternate-file
 		   (equal dirname
 			  (expand-file-name
 			   (if (consp dired-directory)
