@@ -100,7 +100,7 @@ C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
   (use-local-map news-reply-mode-map)
   (setq local-abbrev-table text-mode-abbrev-table)
   (setq major-mode 'news-reply-mode)
-  (setq mode-name "News")
+  (setq mode-name "News Reply")
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^" mail-header-separator "$\\|"
