@@ -3256,6 +3256,8 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 #define USE_SAFE_ALLOCA			\
   int sa_count = SPECPDL_INDEX ()
 
+/* SAFE_ALLOCA allocates a simple buffer.  */
+
 #define SAFE_ALLOCA(buf, type, size)			  \
   do {							  \
     if ((size) < MAX_ALLOCA)				  \
@@ -3267,6 +3269,24 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 			       make_save_value (buf, 0)); \
       }							  \
   } while (0)
+
+/* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.
+   Temporarily inhibits GC since that array is unknow to GC.  */
+
+#define SAFE_ALLOCA_LISP(buf, size)			  \
+  do {							  \
+    if ((size) < MAX_ALLOCA)				  \
+      buf = (Lisp_Object *) alloca (size);		  \
+    else						  \
+      {							  \
+	buf = (Lisp_Object *) xmalloc (size);		  \
+	inhibit_garbage_collection();			  \
+	record_unwind_protect (safe_alloca_unwind,	  \
+			       make_save_value (buf, 0)); \
+      }							  \
+  } while (0)
+
+/* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
 
 #define SAFE_FREE(size)			\
   do {					\
