@@ -882,6 +882,14 @@ Wildcards and redirection are handled as usual in the shell."
            (cons 'progn body)
            (list 'store-match-data original)))))
 
+(defun match-string (n &optional string)
+  "Return the Nth subexpression matched by the last regexp search or match.
+If the last search or match was done against a string,
+specify that string as the second argument STRING."
+  (if string
+      (substring string (match-beginning 0) (match-end 0))
+    (buffer-substring string (match-beginning 0) (match-end 0))))
+
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
   ;; Quote everything except POSIX filename characters.
