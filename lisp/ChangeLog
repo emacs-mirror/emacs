@@ -1,3 +1,13 @@
+2002-02-17  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* menu-bar.el (menu-bar-showhide-menu): Added speedbar.
+	(menu-bar-tools-menu): Removed speedbar.
+
+	* textmodes/ispell.el (ispell-menu-map): Added `customize-ispell'
+	and `flyspell-mode' entries.
+
+	* textmodes/flyspell.el (flyspell): Add to ispell group.
+
 2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
         * emacs-lisp/lisp.el (mark-sexp): Don't leave multiple marks when

@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -878,11 +878,20 @@ and added as a submenu of the \"Edit\" menu.")
 	'(menu-item "Save Dictionary"
 		    (lambda () (interactive) (ispell-pdict-save t t))
 		    :help "Save personal dictionary"))
+      (define-key ispell-menu-map [ispell-customize]
+	'(menu-item "Customize..."
+		    (lambda () (interactive) (customize-group 'ispell))
+		    :help "Customize spell checking options"))
       (define-key ispell-menu-map [ispell-help]
 	;; use (x-popup-menu last-nonmenu-event(list "" ispell-help-list)) ?
 	'(menu-item "Help"
 		    (lambda () (interactive) (describe-function 'ispell-help))
 		    :help "Show standard Ispell keybindings and commands"))
+      (define-key ispell-menu-map [flyspell-mode]
+	'(menu-item "Automatic spell checking (Flyspell)"
+		    flyspell-mode
+		    :help "Check spelling while you edit the text"
+		    :button (:toggle . flyspell-mode)))
       (define-key ispell-menu-map [ispell-complete-word]
 	'(menu-item "Complete Word" ispell-complete-word
 		    :help "Complete word at cursor using dictionary"))

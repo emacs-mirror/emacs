@@ -87,6 +87,8 @@ scroll bar to either side here or turn it off completely.  There is also
 a menu-item to toggle displaying of current date and time, current line
 and column number in the mode-line.
 
+** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
+
 ** Emacs can now indicate in the mode-line the presence of new e-mails in
 directory in addition to file.  See the documentation of the user option
 `display-time-mail-directory'.

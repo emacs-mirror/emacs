@@ -51,6 +51,7 @@
   "Spell checking on the fly."
   :tag "FlySpell"
   :prefix "flyspell-"
+  :group 'ispell
   :group 'processes)
 
 ;*---------------------------------------------------------------------*/

@@ -626,6 +626,15 @@ Do the same for the keys of the same name."
 (define-key menu-bar-showhide-menu [datetime-separator]
   '("--"))
 
+(define-key menu-bar-showhide-menu [showhide-speedbar]
+  '(menu-item "Speedbar" speedbar-frame-mode
+	      :help "Display speedbar"
+	      :button (:toggle
+		       . (and (boundp 'speedbar-frame)
+			      (frame-live-p (symbol-value 'speedbar-frame))
+			      (frame-visible-p 
+			       (symbol-value 'speedbar-frame))))))
+
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
 (define-key menu-bar-showhide-scroll-bar-menu [right]
@@ -874,8 +883,6 @@ Do the same for the keys of the same name."
 	      :help "Invoke the Emacs built-in scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
   '(menu-item "Display Calendar" calendar))
-(define-key menu-bar-tools-menu [speedbar]
-  '(menu-item "Display Speedbar" speedbar-frame-mode))
 
 (define-key menu-bar-tools-menu [separator-net]
   '("--"))
