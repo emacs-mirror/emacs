@@ -287,14 +287,18 @@ If the face already exists, it is unmodified."
 	   )))
   face)
 
-(defun copy-face (old-face new-name &optional frame)
+(defun copy-face (old-face new-name &optional frame new-frame)
   "Define a face just like OLD-FACE, with name NEW-NAME.
 If NEW-NAME already exists as a face, it is modified to be like OLD-FACE.
 If the optional argument FRAME is given, this applies only to that frame.
-Otherwise it applies to each frame separately."
+Otherwise it applies to each frame separately.
+If the optional fourth argument NEW-FRAME is given, 
+copy the information from face OLD-FACE on frame FRAME
+to face NEW-NAME on frame NEW-FRAME."
+  (or new-frame (setq new-frame frame))
   (setq old-face (internal-get-face old-face frame))
   (let* ((inhibit-quit t)
-	 (new-face (or (internal-find-face new-name frame)
+	 (new-face (or (internal-find-face new-name new-frame)
 		       (make-face new-name))))
     (if (null frame)
 	(let ((frames (frame-list)))
@@ -302,13 +306,13 @@ Otherwise it applies to each frame separately."
 	    (copy-face old-face new-name (car frames))
 	    (setq frames (cdr frames)))
 	  (copy-face old-face new-name t))
-      (set-face-font new-face (face-font old-face frame) frame)
-      (set-face-foreground new-face (face-foreground old-face frame) frame)
-      (set-face-background new-face (face-background old-face frame) frame)
+      (set-face-font new-face (face-font old-face frame) new-frame)
+      (set-face-foreground new-face (face-foreground old-face frame) new-frame)
+      (set-face-background new-face (face-background old-face frame) new-frame)
 ;;;      (set-face-background-pixmap
-;;;       new-face (face-background-pixmap old-face frame) frame)
+;;;       new-face (face-background-pixmap old-face frame) new-frame)
       (set-face-underline-p new-face (face-underline-p old-face frame)
-			    frame))
+			    new-frame))
     new-face))
 
 (defun face-equal (face1 face2 &optional frame)
@@ -620,6 +624,50 @@ If NOERROR is non-nil, return nil on failure."
     (or (not (equal ofont (face-font face)))
 	(and (not noerror)
 	     (error "No unitalic version of %S" font1)))))
+
+(defvar list-faces-sample-text
+  "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "*Text string to display as the sample text for `list-faces-display'.")
+
+;; The name list-faces would be more consistent, but let's avoid a conflict
+;; with Lucid, which uses that name differently.
+(defun list-faces-display ()
+  "List all faces, using the same sample text in each.
+The sample text is a string that comes from the variable
+`list-faces-sample-text'.
+
+It is possible to give a particular face name different appearances in
+different frames.  This command shows the appearance in the
+selected frame."
+  (interactive)
+  (let ((faces (sort (face-list) (function string-lessp)))
+	(face nil)
+	(frame (selected-frame))
+	disp-frame window)
+    (with-output-to-temp-buffer "*Faces*"
+      (save-excursion
+	(set-buffer standard-output)
+	(setq truncate-lines t)
+	(while faces
+	  (setq face (car faces))
+	  (setq faces (cdr faces))
+	  (insert (format "%25s " (symbol-name face)))
+	  (let ((beg (point)))
+	    (insert list-faces-sample-text)
+	    (insert "\n")
+	    (put-text-property beg (1- (point)) 'face face)))
+	(goto-char (point-min))))
+    ;; If the *Faces* buffer appears in a different frame,
+    ;; copy all the face definitions from FRAME,
+    ;; so that the display will reflect the frame that was selected.
+    (setq window (get-buffer-window (get-buffer "*Faces*") t))
+    (setq disp-frame (if window (window-frame window)
+		       (car (frame-list))))
+    (or (eq frame disp-frame)
+	(let ((faces (face-list)))
+	  (while faces
+	    (copy-face (car faces) (car faces) frame disp-frame)
+	    (setq faces (cdr faces)))))))
 
 ;;; Make the default and modeline faces; the C code knows these as
 ;;; faces 0 and 1, respectively, so they must be the first two faces
