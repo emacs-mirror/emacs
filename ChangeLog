@@ -1,3 +1,8 @@
+2002-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist: Make version checking in emacs.texi consistent with
+	how we set it there.
+
 2001-12-29  Kim F. Storm  <storm@cua.dk>
 
 	* INSTALL: <CONFIGURATION BY HAND> Now requires autoconf 2.51.
