@@ -1,3 +1,12 @@
+2000-06-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (display_line): While checking line continuation, pay
+	attention to a padding glyph.
+
+	* term.c (encode_terminal_code): Change the way to check if
+	terminal coding does any conversion.
+	(append_glyph): Set glyph->pixel_width correctly.
+
 2000-06-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_window): Always use set_buffer_internal_1.
