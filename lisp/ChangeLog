@@ -12,9 +12,6 @@
 
 	* xml.el (xml-name-re, xml-entity-value-re): Add defvars.
 
-	* vc.el (vc-default-update-changelog): Use insert-file-contents,
-	not insert-file.
-
 	* emacs-lisp/elint.el (elint-standard-variables)
 	(elint-unknown-builtin-args): Move definitions up.
 

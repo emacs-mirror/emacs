@@ -2371,6 +2371,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** (while-no-input BODY...) runs BODY, but only so lomg as no input
+arrives.  If the user types or clicks anything, BODY stops as if a
+quit had occurred.  while-no-input returns the value of BODY, if BODY
+finishes.  It returns nil if BODY was aborted.
+
 ---
 ** To manipulate the File menu using easy-menu, you must specify the
 proper name "file".  In previous Emacs versions, you had to specify
@@ -2620,8 +2625,10 @@ strings by giving that character a non-nil `cursor' text property.
 around potentially blocking or long-running code in timers
 and post-command-hooks.
 
-** An unconditional face specification in defface (one where the DISPLAY part
-is just t) applies to all cases and does not override subsequent entries.
+** The first face specification element in a defface can specify
+`default' instead of frame classification.  Then its attributes act as
+defaults that apply to all the subsequent cases (and may be overridden
+by them).
 
 +++
 ** New face attribute `min-colors' can be used to tailor the face color

@@ -1,3 +1,14 @@
+2004-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (syms_of_eval) <quit-flag>: Doc fix.
+
+	* keyboard.c (Vthrow_on_input): New variable.
+	(syms_of_keyboard): Defvar and initialize it.
+	(kbd_buffer_store_event_hold): Handle Vthrow_on_input.
+
+	* lisp.h (QUIT): Check for Vthrow_on_input.
+	(Vthrow_on_input): Declare it.
+
 2004-12-13  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_iterator_to_next): Reset stop_charpos after display
