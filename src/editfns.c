@@ -1504,7 +1504,7 @@ minibuffer contents show.")
 {
 #ifdef HAVE_X_MENU
   if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-    return Fbox_message (nargs, args);
+    return Fmessage_box (nargs, args);
 #endif
   return Fmessage (nargs, args);
 }
