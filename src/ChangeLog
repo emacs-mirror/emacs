@@ -1,3 +1,8 @@
+2001-01-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_backspace_delete_keys_p): Use XkbGetMap and
+	XkbGetNames instead of XkbGetKeyboard.
+
 2001-01-10  Dave Love  <fx@gnu.org>
 
 	* sysdep.c (random): Revert the declaration.
