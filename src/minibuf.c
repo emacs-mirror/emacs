@@ -74,10 +74,6 @@ static Lisp_Object last_exact_completion;
 
 Lisp_Object Quser_variable_p;
 
-/* Width in columns of current minibuffer prompt.  */
-
-extern int minibuf_prompt_width;
-
 
 /* Actual minibuffer invocation. */
 
@@ -171,10 +167,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
   Ferase_buffer ();
   minibuf_level++;
 
-  if (!NULL (initial))
+  if (!NILP (initial))
     {
       Finsert (1, &initial);
-      if (!NULL (backup_n) && XTYPE (backup_n) == Lisp_Int)
+      if (!NILP (backup_n) && XTYPE (backup_n) == Lisp_Int)
 	Fforward_char (backup_n);
     }
 
@@ -231,13 +227,13 @@ get_minibuffer (depth)
 
   XFASTINT (num) = depth;
   tail = Fnthcdr (num, Vminibuffer_list);
-  if (NULL (tail))
+  if (NILP (tail))
     {
       tail = Fcons (Qnil, Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
-  if (NULL (buf) || NULL (XBUFFER (buf)->name))
+  if (NILP (buf) || NILP (XBUFFER (buf)->name))
     {
       sprintf (name, " *Minibuf-%d*", depth);
       buf = Fget_buffer_create (build_string (name));
@@ -299,10 +295,10 @@ Fifth arg POSITION, if non-nil, is where to put point\n\
   int pos = 0;
 
   CHECK_STRING (prompt, 0);
-  if (!NULL (initial_input))
+  if (!NILP (initial_input))
     {
       CHECK_STRING (initial_input, 1);
-      if (!NULL (position))
+      if (!NILP (position))
 	{
 	  CHECK_NUMBER (position, 0);
 	  /* Convert to distance from end of input.  */
@@ -310,12 +306,12 @@ Fifth arg POSITION, if non-nil, is where to put point\n\
 	}
     }
 
-  if (NULL (keymap))
+  if (NILP (keymap))
     keymap = Vminibuffer_local_map;
   else
     keymap = get_keymap (keymap,2);
   return read_minibuf (keymap, initial_input, prompt,
-		       pos, !NULL (read));
+		       pos, !NILP (read));
 }
 
 DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
@@ -326,7 +322,7 @@ is a string to insert in the minibuffer before reading.")
      Lisp_Object prompt, initial_contents;
 {
   CHECK_STRING (prompt, 0);
-  if (!NULL (initial_contents))
+  if (!NILP (initial_contents))
     CHECK_STRING (initial_contents, 1)
   return read_minibuf (Vminibuffer_local_map, initial_contents, prompt, Qnil, 1);
 }
@@ -359,7 +355,7 @@ Prompt with PROMPT, and provide INIT as an initial value of the input string.")
      Lisp_Object prompt, init;
 {
   CHECK_STRING (prompt, 0);
-  if (! NULL (init))
+  if (! NILP (init))
     CHECK_STRING (init, 1);
 
   return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil, 0);
@@ -413,7 +409,7 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
 
   if (XTYPE (def) == Lisp_Buffer)
     def = XBUFFER (def)->name;
-  if (!NULL (def))
+  if (!NILP (def))
     {
       args[0] = build_string ("%s(default %s) ");
       args[1] = prompt;
@@ -453,7 +449,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
   Lisp_Object bestmatch, tail, elt, eltstring;
   int bestmatchsize;
   int compare, matchsize;
-  int list = CONSP (alist) || NULL (alist);
+  int list = CONSP (alist) || NILP (alist);
   int index, obsize;
   int matchcount = 0;
   Lisp_Object bucket, zero, end, tem;
@@ -483,7 +479,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       if (list)
 	{
-	  if (NULL (tail))
+	  if (NILP (tail))
 	    break;
 	  elt = Fcar (tail);
 	  eltstring = Fcar (elt);
@@ -520,7 +516,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
-	  if (!NULL (pred))
+	  if (!NILP (pred))
 	    {
 	      if (EQ (pred, Qcommandp))
 		tem = Fcommandp (elt);
@@ -530,13 +526,13 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 		  tem = call1 (pred, elt);
 		  UNGCPRO;
 		}
-	      if (NULL (tem)) continue;
+	      if (NILP (tem)) continue;
 	    }
 
 	  /* Update computation of how much all possible completions match */
 
 	  matchcount++;
-	  if (NULL (bestmatch))
+	  if (NILP (bestmatch))
 	    bestmatch = eltstring, bestmatchsize = XSTRING (eltstring)->size;
 	  else
 	    {
@@ -575,7 +571,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	}
     }
 
-  if (NULL (bestmatch))
+  if (NILP (bestmatch))
     return Qnil;		/* No completions found */
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
@@ -642,7 +638,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
-  int list = CONSP (alist) || NULL (alist);
+  int list = CONSP (alist) || NILP (alist);
   int index, obsize;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -672,7 +668,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       if (list)
 	{
-	  if (NULL (tail))
+	  if (NILP (tail))
 	    break;
 	  elt = Fcar (tail);
 	  eltstring = Fcar (elt);
@@ -710,7 +706,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
-	  if (!NULL (pred))
+	  if (!NILP (pred))
 	    {
 	      if (EQ (pred, Qcommandp))
 		tem = Fcommandp (elt);
@@ -720,7 +716,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 		  tem = call1 (pred, elt);
 		  UNGCPRO;
 		}
-	      if (NULL (tem)) continue;
+	      if (NILP (tem)) continue;
 	    }
 	  /* Ok => put it on the list. */
 	  allmatches = Fcons (eltstring, allmatches);
@@ -760,7 +756,7 @@ other component that is likely to be deleted.")
   specbind (Qminibuffer_completion_confirm,
 	    EQ (require_match, Qt) ? Qnil : Qt);
   last_exact_completion = Qnil;
-  val = read_minibuf (NULL (require_match)
+  val = read_minibuf (NILP (require_match)
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, backup_n, 0);
@@ -794,7 +790,7 @@ temp_echo_area_glyphs (m)
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
   del_range (point, ZV);
-  if (!NULL (Vquit_flag))
+  if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
       unread_command_char = Ctl ('g');
@@ -825,7 +821,7 @@ do_completion ()
   last = last_exact_completion;
   last_exact_completion = Qnil;
 
-  if (NULL (completion))
+  if (NILP (completion))
     {
       bitch_at_user ();
       temp_echo_area_glyphs (" [No match]");
@@ -837,7 +833,7 @@ do_completion ()
 
   /* compiler bug */
   tem = Fstring_equal (completion, Fbuffer_string());
-  if (completedp = NULL (tem))
+  if (completedp = NILP (tem))
     {
       Ferase_buffer ();		/* Some completion happened */
       Finsert (1, &completion);
@@ -845,7 +841,7 @@ do_completion ()
 
   /* It did find a match.  Do we match some possibility exactly now? */
   if (CONSP (Vminibuffer_completion_table)
-      || NULL (Vminibuffer_completion_table))
+      || NILP (Vminibuffer_completion_table))
     tem = assoc_for_completion (Fbuffer_string (),
 				Vminibuffer_completion_table);
   else if (XTYPE (Vminibuffer_completion_table) == Lisp_Vector)
@@ -859,7 +855,7 @@ do_completion ()
 		      XSTRING (tem)->data, XSTRING (tem)->size);
       if (XTYPE (tem) != Lisp_Symbol)
 	tem = Qnil;
-      else if (!NULL (Vminibuffer_completion_predicate))
+      else if (!NILP (Vminibuffer_completion_predicate))
 	tem = call1 (Vminibuffer_completion_predicate, tem);
       else
 	tem = Qt;
@@ -870,7 +866,7 @@ do_completion ()
 		 Vminibuffer_completion_predicate,
 		 Qlambda);
 
-  if (NULL (tem))
+  if (NILP (tem))
     { /* not an exact match */
       if (completedp)
 	return 5;
@@ -886,10 +882,10 @@ do_completion ()
      it means we've already given a "Complete but not unique"
      message and the user's hit TAB again, so now we give him help.  */
   last_exact_completion = completion;
-  if (!NULL (last))
+  if (!NILP (last))
     {
       tem = Fbuffer_string ();
-      if (!NULL (Fequal (tem, last)))
+      if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
   return 3;
@@ -907,7 +903,7 @@ assoc_for_completion (key, list)
   if (completion_ignore_case)
     key = Fupcase (key);
 
-  for (tail = list; !NULL (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = Fcdr (tail))
     {
       register Lisp_Object elt, tem, thiscar;
       elt = Fcar (tail);
@@ -918,7 +914,7 @@ assoc_for_completion (key, list)
       if (completion_ignore_case)
 	thiscar = Fupcase (thiscar);
       tem = Fequal (thiscar, key);
-      if (!NULL (tem)) return elt;
+      if (!NILP (tem)) return elt;
       QUIT;
     }
   return Qnil;
@@ -968,7 +964,7 @@ a repetition of this command will exit.")
       goto exit;
 
     case 4:
-      if (!NULL (Vminibuffer_completion_confirm))
+      if (!NILP (Vminibuffer_completion_confirm))
 	{
 	  temp_echo_area_glyphs (" [Confirm]");
 	  return Qnil;
@@ -1001,7 +997,7 @@ is added, provided that matches some possible completion.")
   completion = Ftry_completion (Fbuffer_string (),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
-  if (NULL (completion))
+  if (NILP (completion))
     {
       bitch_at_user ();
       temp_echo_area_glyphs (" [No match]");
@@ -1113,12 +1109,12 @@ or may be a list of two strings to be printed as if concatenated.")
 
   set_buffer_internal (XBUFFER (Vstandard_output));
 
-  if (NULL (completions))
+  if (NILP (completions))
     insert_string ("There are no possible completions of what you have typed.");
   else
     {
       insert_string ("Possible completions are:");
-      for (tail = completions, i = 0; !NULL (tail); tail = Fcdr (tail), i++)
+      for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
 	{
 	  /* this needs fixing for the case of long completions
 	     and/or narrow windows */
@@ -1155,7 +1151,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
 				  Vminibuffer_completion_predicate);
   echo_area_glyphs = 0;
 
-  if (NULL (completions))
+  if (NILP (completions))
     {
       bitch_at_user ();
       temp_echo_area_glyphs (" [No completions]");

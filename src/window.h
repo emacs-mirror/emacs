@@ -205,6 +205,9 @@ extern Lisp_Object Fset_window_buffer ();
 /* Prompt to display in front of the minibuffer contents.  */
 extern char *minibuf_prompt;
 
+/* The visual width of the above.  */
+extern int minibuf_prompt_width;
+
 /* Message to display instead of minibuffer contents. 
    This is what the functions error and message make,
    and command echoing uses it as well. It overrides the

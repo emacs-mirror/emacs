@@ -47,8 +47,6 @@ int last_known_column_point;
 /* Value of MODIFF when current_column was called */
 int last_known_column_modified;
 
-extern int minibuf_prompt_width;
-
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Vector *
@@ -99,7 +97,7 @@ current_column ()
   int post_tab;
   register int c;
   register int tab_width = XINT (current_buffer->tab_width);
-  int ctl_arrow = !NULL (current_buffer->ctl_arrow);
+  int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Vector *dp = buffer_display_table ();
   int stopchar;
 
@@ -188,7 +186,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
   register int tab_width = XINT (current_buffer->tab_width);
 
   CHECK_NUMBER (col, 0);
-  if (NULL (minimum))
+  if (NILP (minimum))
     XFASTINT (minimum) = 0;
   CHECK_NUMBER (minimum, 1);
 
@@ -293,7 +291,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   register int goal;
   register int end;
   register int tab_width = XINT (current_buffer->tab_width);
-  register int ctl_arrow = !NULL (current_buffer->ctl_arrow);
+  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Vector *dp = buffer_display_table ();
 
   Lisp_Object val;
@@ -344,7 +342,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 
   /* If a tab char made us overshoot, change it to spaces
      and scan through it again.  */
-  if (!NULL (force) && col > goal && c == '\t' && prev_col < goal)
+  if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
       del_range (point - 1, point);
       Findent_to (make_number (col - 1));
@@ -353,7 +351,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
     }
 
   /* If line ends prematurely, add space to the end.  */
-  if (col < goal && !NULL (force))
+  if (col < goal && !NILP (force))
     Findent_to (make_number (col = goal));
 
   last_known_column = col;
@@ -434,12 +432,12 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   register int pos;
   register int c;
   register int tab_width = XFASTINT (current_buffer->tab_width);
-  register int ctl_arrow = !NULL (current_buffer->ctl_arrow);
+  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Vector *dp = buffer_display_table ();
   int selective
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
-	: !NULL (current_buffer->selective_display) ? -1 : 0;
+	: !NILP (current_buffer->selective_display) ? -1 : 0;
   int prevpos;
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_ROPE (dp)) == Lisp_String
@@ -517,7 +515,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	  if (hscroll
 	      || (truncate_partial_width_windows
 		  && width + 1 < SCREEN_WIDTH (selected_screen))
-	      || !NULL (current_buffer->truncate_lines))
+	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      while (pos < to && FETCH_CHAR(pos) != '\n') pos++;
 	      pos--;
@@ -593,7 +591,7 @@ vmotion (from, vtarget, width, hscroll, window)
   int selective
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
-	: !NULL (current_buffer->selective_display) ? -1 : 0;
+	: !NILP (current_buffer->selective_display) ? -1 : 0;
   int start_hpos = (EQ (window, minibuf_window) ? minibuf_prompt_width : 0);
 
  retry:

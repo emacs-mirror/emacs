@@ -92,7 +92,7 @@ init_editfns ()
   /* If the user name claimed in the environment vars differs from
      the real uid, use the claimed name to find the full name.  */
   tem = Fstring_equal (Vuser_name, Vuser_real_name);
-  if (NULL (tem))
+  if (NILP (tem))
     pw = (struct passwd *) getpwnam (XSTRING (Vuser_name)->data);
   
   p = (unsigned char *) (pw ? USER_FULL_NAME : "unknown");
@@ -202,7 +202,7 @@ region_limit (beginningp)
 {
   register Lisp_Object m;
   m = Fmarker_position (current_buffer->mark);
-  if (NULL (m)) error ("There is no region now");
+  if (NILP (m)) error ("There is no region now");
   if ((point < XFASTINT (m)) == beginningp)
     return (make_number (point));
   else
@@ -263,14 +263,14 @@ store it in a Lisp variable.  Example:\n\
   (pos)
      Lisp_Object pos;
 {
-  if (NULL (pos))
+  if (NILP (pos))
     {
       current_buffer->mark = Qnil;
       return Qnil;
     }
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-  if (NULL (current_buffer->mark))
+  if (NILP (current_buffer->mark))
     current_buffer->mark = Fmake_marker ();
 
   Fset_marker (current_buffer->mark, pos, Qnil);
@@ -298,7 +298,7 @@ save_excursion_restore (info)
   /* Otherwise could get error here while unwinding to top level
      and crash */
   /* In that case, Fmarker_buffer returns nil now.  */
-  if (NULL (tem))
+  if (NILP (tem))
     return Qnil;
   Fset_buffer (tem);
   tem = Fcar (info);
@@ -308,7 +308,7 @@ save_excursion_restore (info)
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   unchain_marker (tem);
   tem = Fcdr (Fcdr (info));
-  if (!NULL (tem) && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+  if (!NILP (tem) && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
   return Qnil;
 }
@@ -720,14 +720,14 @@ They default to the beginning and the end of BUFFER.")
   buf = Fget_buffer (buf);
   bp = XBUFFER (buf);
 
-  if (NULL (b))
+  if (NILP (b))
     beg = BUF_BEGV (bp);
   else
     {
       CHECK_NUMBER_COERCE_MARKER (b, 0);
       beg = XINT (b);
     }
-  if (NULL (e))
+  if (NILP (e))
     end = BUF_ZV (bp);
   else
     {
@@ -782,7 +782,7 @@ and don't mark the buffer as really changed.")
   look = XINT (fromchar);
 
   modify_region (pos, stop);
-  if (! NULL (noundo))
+  if (! NILP (noundo))
     {
       if (MODIFF - 1 == current_buffer->save_modified)
 	current_buffer->save_modified++;
@@ -794,10 +794,10 @@ and don't mark the buffer as really changed.")
     {
       if (FETCH_CHAR (pos) == look)
 	{
-	  if (NULL (noundo))
+	  if (NILP (noundo))
 	    record_change (pos, 1);
 	  FETCH_CHAR (pos) = XINT (tochar);
-	  if (NULL (noundo))
+	  if (NILP (noundo))
 	    signal_after_change (pos, 1, 1);
 	}
       pos++;
@@ -1183,28 +1183,13 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
   CHECK_NUMBER (c1, 0);
   CHECK_NUMBER (c2, 1);
 
-  if (!NULL (current_buffer->case_fold_search)
+  if (!NILP (current_buffer->case_fold_search)
       ? downcase[0xff & XFASTINT (c1)] == downcase[0xff & XFASTINT (c2)]
       : XINT (c1) == XINT (c2))
     return Qt;
   return Qnil;
 }
 
-#ifndef MAINTAIN_ENVIRONMENT /* it is done in environ.c in that case */
-DEFUN ("getenv", Fgetenv, Sgetenv, 1, 2, 0,
-  "Return the value of environment variable VAR, as a string.\n\
-VAR should be a string.  Value is nil if VAR is undefined in the environment.")
-  (str)
-     Lisp_Object str;
-{
-  register char *val;
-  CHECK_STRING (str, 0);
-  val = (char *) egetenv (XSTRING (str)->data);
-  if (!val)
-    return Qnil;
-  return build_string (val);
-}
-#endif /* MAINTAIN_ENVIRONMENT */
 
 void
 syms_of_editfns ()
@@ -1266,9 +1251,6 @@ syms_of_editfns ()
   defsubr (&Sunix_sync);
   defsubr (&Smessage);
   defsubr (&Sformat);
-#ifndef MAINTAIN_ENVIRONMENT /* in environ.c */
-  defsubr (&Sgetenv);
-#endif
 
   defsubr (&Sinsert_buffer_substring);
   defsubr (&Ssubst_char_in_region);
