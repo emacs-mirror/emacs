@@ -1,3 +1,7 @@
+2002-08-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-region): Force `lines' when `block' is set.
+
 2002-08-12  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/page-ext.el (pages-target-buffer): Add defvar.
@@ -10,17 +14,15 @@
 2002-08-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* scroll-all.el (scroll-all-mode): Use define-minor-mode.
-	(scroll-all-mode): defcustom deleted.
-	(running-xemacs): Variable deleted.
+	(scroll-all-mode) <defcustom>: Delete.
+	(running-xemacs): Delete.
 	(minor-mode-alist): Don't manipulate it directly.
-	
+
 2002-08-10  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (search-unencodable-char): New
-	function.
+	* international/mule-cmds.el (search-unencodable-char): New function.
 	(select-safe-coding-system): Show unencodable characters.
-	(unencodable-char-position): Deleted, and implemented by C in
-	coding.c.
+	(unencodable-char-position): Deleted, and implemented in C in coding.c.
 
 2002-04-09  John Wiegley  <johnw@gnu.org>
 
@@ -48,9 +50,9 @@
 
 2002-08-08  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/checkdoc.el (checkdoc, checkdoc-interactive) 
-	(checkdoc-message-interactive, checkdoc-interactive-loop) 
-	(checkdoc-current-buffer, checkdoc-continue, checkdoc-comments) 
+	* emacs-lisp/checkdoc.el (checkdoc, checkdoc-interactive)
+	(checkdoc-message-interactive, checkdoc-interactive-loop)
+	(checkdoc-current-buffer, checkdoc-continue, checkdoc-comments)
 	(checkdoc-defun):
 	Update checkdoc-spellcheck-documentation-flag correctly.
 	(checkdoc-ispell-docstring-engine): Don't test for
@@ -61,7 +63,7 @@
 	* xt-mouse.el (xterm-mouse-mode): Make it a global mode.
 
 	* wid-browse.el (widget-minor-mode): Fix doc typo.
-	
+
 2002-08-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.12 released.
@@ -80,13 +82,13 @@
 
 2002-08-07  Richard M. Stallman  <rms@gnu.org>
 
-	* warnings.el (warning-prefix-function, warning-series) 
+	* warnings.el (warning-prefix-function, warning-series)
 	(warning-fill-prefix, warning-group-format): Add autoload cookies.
 
 2002-08-07  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (select-safe-coding-system): Call
-	pop-to-buffer inside save-window-excursion and save-excursion.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Call pop-to-buffer inside save-window-excursion and save-excursion.
 
 2002-08-06  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -99,7 +101,7 @@
 	and `mail-user-agent' instead of straight sendmail.
 	(diary-modified, diary-entries-list, displayed-year)
 	(displayed-month, entry, date, number, date-string, d-file)
-	(original-date): defvar without binding to avoid compiler warnings.
+	(original-date): Defvar without binding to avoid compiler warnings.
 
 2002-08-05  Alan Shutko  <ats@acm.org>
 
@@ -143,8 +145,7 @@
 2002-08-05  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.11 released.
-	(tramp-perl-file-attributes): Print uid and gid as signed
-	integers.
+	(tramp-perl-file-attributes): Print uid and gid as signed integers.
 	(tramp-invoke-ange-ftp): Correct check for Ange-FTP being loaded.
 	Invoke Ange-FTP with tramp-run-real-handler to avoid Ange-FTP
 	calling Tramp again.
@@ -167,8 +168,7 @@
 
 	* net/tramp.el: Version 2.0.10 released.
 	(tramp-uudecode): New shell function `tramp_uudecode' to decode to
-	standard output even if `uudecode -p' and `uudecode -o -' don't
-	work.
+	standard output even if `uudecode -p' and `uudecode -o -' don't work.
 	(tramp-post-connection): After finding the right shell, wait a
 	bit.  This is a kludge to avoid a race condition, even though I
 	don't understand why there is a race condition in the first place.
@@ -184,8 +184,8 @@
 	report.
 	(tramp-find-shell): Set $PS1 for invocation of second shell (for
 	tilde expansion).
-	(tramp-find-shell): Shell prompt must match at end of buffer.  Do
-	this also for fallback shell prompt.
+	(tramp-find-shell): Shell prompt must match at end of buffer.
+	Do this also for fallback shell prompt.
 	(tramp-find-shell): More debugging output.
 	(tramp-find-inline-encoding): When checking the decoding command,
 	some commands fail when reading from /dev/null.  So we pass a
@@ -224,8 +224,7 @@
 
 	* net/tramp.el: Version 2.0.6.
 	(tramp-default-method): Change to "ssh" from "sm".
-	(tramp-wrong-passwd-regexp): Restructure.  Add additional
-	alternative.
+	(tramp-wrong-passwd-regexp): Restructure.  Add additional alternative.
 	(tramp-su-program): New internal variable for method parameter.
 	(tramp-perl-encode-with-module, tramp-perl-decode-with-module):
 	New variables.  Very short Perl one-liner, but requires Perl
@@ -240,8 +239,7 @@
 	twice, once is enough.
 	(tramp-action-permission-denied): Show *tramp/foo* buffer so the
 	user knows what's wrong.
-	(tramp-post-connection): Support the two Perl encoders and
-	decoders.
+	(tramp-post-connection): Support the two Perl encoders and decoders.
 	(tramp-coding-commands): Ditto.  Add some todo items.
 
 2002-08-02  Richard M. Stallman  <rms@gnu.org>
@@ -271,8 +269,8 @@
 
 2002-07-31  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* ibuffer.el (ibuffer-fontification-alist): Use
-	`font-lock-constant-face' instead of `font-lock-reference-face'.
+	* ibuffer.el (ibuffer-fontification-alist):
+	Use `font-lock-constant-face' instead of `font-lock-reference-face'.
 
 2002-07-31  John Wiegley  <johnw@gnu.org>
 
@@ -311,14 +309,14 @@
 
 	* makefile.w32-in: Revert some changes from 2002-07-23 because they
 	don't work on MSVC/nmake builds.
-	(update-subdirs-CMD): Generate the right list of subdirectories.  From
-	Tak Ota <Takaaki.Ota@am.sony.com>.
+	(update-subdirs-CMD): Generate the right list of subdirectories.
+	From Tak Ota <Takaaki.Ota@am.sony.com>.
 
 2002-07-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: New version 2.0.5.
-	(tramp-methods): Remove inline encoding method parameters.  The
-	encoding is now autodetected.  Also shorten the list of
+	(tramp-methods): Remove inline encoding method parameters.
+	The encoding is now autodetected.  Also shorten the list of
 	methods (u/m distinction gone) and rename the remaining methods to
 	have longer, but more mnemonic, names.
 	(tramp-login-prompt-regexp, tramp-password-prompt-regexp)
@@ -336,46 +334,42 @@
 	(tramp-last-cmd-time): New variable.  If nothing has been sent to
 	remote end for 60 seconds, look to see if the remote end is still
 	alive.
-	(tramp-perl-mime-encode, tramp-perl-mime-decode): Remove.  It
-	didn't work.
+	(tramp-perl-mime-encode, tramp-perl-mime-decode): Remove.
+	It didn't work.
 	(tramp-perl-encode, tramp-perl-decode): New variables, these
 	require the MIME::Base64 module on the remote end.
 	(tramp-handle-file-attributes): Restructure logic.
 	(tramp-handle-file-attributes-with-ls)
 	(tramp-handle-file-attributes-with-perl): More debugging.
-	(tramp-handle-directory-files): Grok fifth arg `files-only' for
-	XEmacs.
+	(tramp-handle-directory-files): Grok fifth arg `files-only' for XEmacs.
 	(tramp-handle-make-directory, tramp-handle-delete-directory)
-	(tramp-handle-delete-file, tramp-handle-insert-directory): Expand
-	file name.
+	(tramp-handle-delete-file, tramp-handle-insert-directory):
+	Expand file name.
 	(tramp-handle-shell-command): Use `when', not `if'.
-	(tramp-handle-file-local-copy, tramp-handle-write-region): Adapt
-	to autodetection of inline encoding.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	Adapt to autodetection of inline encoding.
 	(tramp-invoke-ange-ftp): Require ange-ftp to make sure that
 	variable ange-ftp-name-format is defined before binding it.
 	(tramp-action-login, tramp-action-password, tramp-action-succeed)
-	(tramp-action-permission-denied, tramp-action-yesno): Functions
-	called from `tramp-actions-before-shell'.
+	(tramp-action-permission-denied, tramp-action-yesno):
+	Functions called from `tramp-actions-before-shell'.
 	(tramp-multi-action-login, tramp-multi-action-password)
-	(tramp-multi-action-succeed)
-	(tramp-multi-action-permission-denied): Functions called from
-	`tramp-multi-actions'.
-	(tramp-process-one-action, tramp-process-actions): Pattern
-	matching and action invocation code for
+	(tramp-multi-action-succeed, tramp-multi-action-permission-denied):
+	Functions called from `tramp-multi-actions'.
+	(tramp-process-one-action, tramp-process-actions):
+	Pattern matching and action invocation code for
 	`tramp-actions-before-shell'.
 	(tramp-process-one-multi-action, tramp-process-multi-actions):
 	Same for `tramp-multi-actions'.
 	(tramp-open-connection-telnet, tramp-open-connection-rsh)
-	(tramp-open-connection-su): Process actions instead of hardwired
-	logic.
+	(tramp-open-connection-su): Process actions instead of hardwired logic.
 	(tramp-multi-connect-telnet, tramp-multi-connect-rlogin)
 	(tramp-multi-connect-su): Ditto.
 	(tramp-post-connection): New method for tramp_encode and
 	tramp_decode scripts.
 	(tramp-post-connection): Invoke inline autodetection code.
 	(tramp-coding-commands): List of inline codings.
-	(tramp-find-inline-encoding): This is the inline autodetection
-	code.
+	(tramp-find-inline-encoding): This is the inline autodetection code.
 	(tramp-maybe-open-connection): If nothing was sent to connection
 	for 60 seconds, look if it connection is still alive.
 	(tramp-send-command): Remember that something was sent to the
@@ -385,8 +379,8 @@
 	(tramp-get-encoding-command, tramp-set-encoding-command)
 	(tramp-get-decoding-command, tramp-set-decoding-command)
 	(tramp-get-encoding-function, tramp-set-encoding-function)
-	(tramp-get-decoding-function, tramp-set-decoding-function): Use
-	for results of inline autodetection.
+	(tramp-get-decoding-function, tramp-set-decoding-function):
+	Use for results of inline autodetection.
 	(tramp-get-encoding-command, tramp-get-decoding-command)
 	(tramp-get-encoding-function, tramp-get-decoding-function):
 	Remove these old functions.
@@ -396,8 +390,8 @@
 	* language/indian.el (in-is13194): Give correct `safe-chars' property.
 	(devanagari): Define it as an alias of in-is13194.
 
-	* international/mule.el (safe-chars): Put
-	`char-table-extra-slots' property with value 0.
+	* international/mule.el (safe-chars):
+	Put `char-table-extra-slots' property with value 0.
 
 	* files.el (revert-buffer): Fix previous change.
 
@@ -479,8 +473,7 @@
 
 2002-07-25  Markus Rost  <rost@math.ohio-state.edu>
 
-	* ediff-wind.el (ediff-window-setup-function): Extend type
-	declaration.
+	* ediff-wind.el (ediff-window-setup-function): Extend type declaration.
 
 2002-07-25  Sam Steingold  <sds@gnu.org>
 
@@ -501,8 +494,8 @@
 
 2002-07-25  Sam Steingold  <sds@gnu.org>
 
-	* progmodes/cc-engine.el (c-search-uplist-for-classkey): When
-	`search-end' is a cons, use its car.
+	* progmodes/cc-engine.el (c-search-uplist-for-classkey):
+	When `search-end' is a cons, use its car.
 
 2002-07-25  Dave Love  <fx@gnu.org>
 
@@ -510,16 +503,15 @@
 
 2002-07-25  Carsten Dominik  <dominik@astro.uva.nl>
 
-	* textmodes/reftex.el (reftex-compile-variables): Simplified
-	regular expression.
+	* textmodes/reftex.el (reftex-compile-variables):
+	Simplified regular expression.
 
 	* textmodes/reftex-parse.el (reftex-locate-bibliography-files):
 	Simplified the regexp.
 
-	* textmodes/reftex-cite.el (reftex-get-bibkey-default): New
-	function.
-	(reftex-extract-bib-entries-from-thebibliography): Use
-	`reftex-get-bibkey-default' to get a default regex.
+	* textmodes/reftex-cite.el (reftex-get-bibkey-default): New function.
+	(reftex-extract-bib-entries-from-thebibliography):
+	Use `reftex-get-bibkey-default' to get a default regex.
 	(reftex-extract-bib-entries): Use `reftex-get-bibkey-default' to
 	get a default regex.
 
@@ -529,7 +521,7 @@
 	* textmodes/reftex-index.el (reftex-index-mode): Likewise.
 
 	* textmodes/reftex-sel.el (reftex-select-label-mode): Likewise.
-	(reftex-select-bib-mode): Likewise
+	(reftex-select-bib-mode): Likewise.
 
 2002-07-25  Colin Walters  <walters@debian.org>
 
@@ -603,8 +595,7 @@
 
 2002-07-22  Markus Rost  <rost@math.ohio-state.edu>
 
-	* add-log.el (add-log-mailing-address): Fix type.  Can be a
-	string.
+	* add-log.el (add-log-mailing-address): Fix type.  Can be a string.
 
 	* ido.el (ido-separator): Fix type.
 
@@ -681,19 +672,18 @@
 
 2002-07-22  Carsten Dominik  <dominik@astro.uva.nl>
 
-	* textmodes/reftex-vars.el (reftex-index-verify-function): New
-	option.
+	* textmodes/reftex-vars.el (reftex-index-verify-function): New option.
 	(reftex-bibliography-commands): New option.
 	(reftex-toc-split-windows-horizontally): New option
 	(reftex-toc-split-windows-horizontally-fraction): New option
 	(reftex-include-file-commands): New option.
 	(reftex-cite-format-builtin): Added ?n for nocite.
 
-	* textmodes/reftex-index.el (reftex-query-index-phrase): Use
-	`reftex-index-verify-function'.
+	* textmodes/reftex-index.el (reftex-query-index-phrase):
+	Use `reftex-index-verify-function'.
 
-	* textmodes/reftex-toc.el (reftex-re-enlarge): Handle horizontal
-	splitting.
+	* textmodes/reftex-toc.el (reftex-re-enlarge):
+	Handle horizontal splitting.
 	(reftex-toc): Handle horizontal splitting
 	(reftex-last-window-width): New variable.
 
@@ -702,30 +692,23 @@
 	(reftex-locate-bibliography-files): Regexp relaxed to allow for
 	cases where \bibliography is not the first thing on the line.
 
-	* textmodes/reftex.el (reftex-compile-variables): Use
-	`reftex-include-file-commands'.
+	* textmodes/reftex.el (reftex-compile-variables):
+	Use `reftex-include-file-commands'.
 	(reftex-type-query-prompt): Changed defconst to defvar.
-	(reftex-type-query-help): likewise
-	(reftex-typekey-to-format-alist): likewise
-	(reftex-typekey-to-prefix-alist): likewise
-	(reftex-env-or-mac-alist):
-	(reftex-special-env-parsers): likewise
-	(reftex-label-mac-list): likewise
-	(reftex-label-env-list): likewise
-	(reftex-typekey-list): likewise
-	(reftex-words-to-typekey-alist): likewise
-	(reftex-key-to-index-macro-alist): likewise
-	(reftex-query-index-macro-prompt): likewise
-	(reftex-query-index-macro-help): likewise
-	(reftex-no-follow-message): likewise
-	(reftex-no-info-message): likewise
+	(reftex-type-query-help, reftex-typekey-to-format-alist)
+	(reftex-typekey-to-prefix-alist, reftex-env-or-mac-alist)
+	(reftex-special-env-parsers, reftex-label-mac-list)
+	(reftex-label-env-list, reftex-typekey-list)
+	(reftex-words-to-typekey-alist, reftex-key-to-index-macro-alist)
+	(reftex-query-index-macro-prompt, reftex-query-index-macro-help)
+	(reftex-no-follow-message, reftex-no-info-message): Likewise.
 	(reftex-mode): Define systax table for bibtex parsing.
 	(reftex-syntax-table-for-bib): Syntax table for bibtex parsing.
 
 	* textmodes/reftex-cite.el (reftex-format-names): %a as name
 	format lists all names.
 	(reftex-parse-bibtex-entry): Use `reftex-syntax-table-for-bib'.
-	(reftex-with-special-syntax-for-bib): new macro.
+	(reftex-with-special-syntax-for-bib): New macro.
 
 2002-07-21  Richard M. Stallman  <rms@gnu.org>
 
@@ -742,15 +725,14 @@
 	longer names.  Use old names "sm1", "sm2" and so on for methods
 	invoking "ssh -1" or "ssh -2".
 	(tramp-multi-file-name-structure-separate): Typo, its name was set
-	to "tramp-file-name-structure-separate".  Trivial patch.  From
-	Steve Youngs <youngs@xemacs.org>.
+	to "tramp-file-name-structure-separate".  Trivial patch.
+	From Steve Youngs <youngs@xemacs.org>.
 	(tramp-multi-sh-program): New variable.
 	(tramp-open-connection-multi): Use it.  Now you can use multi
 	methods from Windows (at least in principle).
 	(tramp-do-copy-or-rename-via-buffer): New function.
 	(tramp-do-copy-or-rename-file): Use it.  Change and simplify
-	logic.  Omit special case of invoking rcp directly to copy the
-	files.
+	logic.  Omit special case of invoking rcp directly to copy the files.
 	(tramp-open-connection-su, tramp-multi-connect-telnet)
 	(tramp-multi-connect-rlogin, tramp-multi-connect-su)
 	(tramp-make-tramp-file-name, tramp-make-tramp-multi-file-name):
@@ -792,8 +774,8 @@
 
 2002-07-19  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* emacs-lisp/bytecomp.el (compile-defun): Bind
-	`read-with-symbol-positions' to current buffer.
+	* emacs-lisp/bytecomp.el (compile-defun):
+	Bind `read-with-symbol-positions' to current buffer.
 
 2002-07-19  Andre Spiegel  <spiegel@gnu.org>
 
@@ -814,21 +796,21 @@
 
 	* subr.el (dot, dot-max, dot-min, dot-marker, buffer-flush-undo)
 	(baud-rate, compiled-function-p, define-function, unread-command-char)
-	(executing-macro, post-command-idle-hook, post-command-idle-delay): Move
-	obsolescence declarations from emacs-lisp/bytecomp.el.
-	(directory-sep-char, mode-line-inverse-video): Add obsolescence
-	declaration.
+	(executing-macro, post-command-idle-hook, post-command-idle-delay):
+	Move obsolescence declarations from emacs-lisp/bytecomp.el.
+	(directory-sep-char, mode-line-inverse-video):
+	Add obsolescence declaration.
 
 2002-07-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el: Updated to IDLWAVE version 4.14.  Too many
 	changes to list them here.
 
-	* progmodes/idlw-shell.el: Updated to IDLWAVE version 4.14.  Too
-	many changes to list them here.
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 4.14.
+	Too many changes to list them here.
 
-	* progmodes/idlw-rinfo.el: Updated to IDLWAVE version 4.14.  Too
-	many changes to list them here.
+	* progmodes/idlw-rinfo.el: Updated to IDLWAVE version 4.14.
+	Too many changes to list them here.
 
 	* progmodes/idlw-toolbar.el: Updated to IDLWAVE version 4.14 with
 	only minor documentation changes.
@@ -858,8 +840,8 @@
 
 2002-07-18  Juanma Barranquero  <lektu@terra.es>
 
-	* international/mule-util.el (string-to-sequence, truncate-string): Add
-	autoload cookie to obsolescence declaration.
+	* international/mule-util.el (string-to-sequence, truncate-string):
+	Add autoload cookie to obsolescence declaration.
 
 	* rect.el (move-to-column-force): Likewise.
 
@@ -891,7 +873,7 @@
 	(encode-char): Use ucs-mule-to-mule-unicode.
 
 	* international/characters.el: Fix settings of U+2000-U+2027.
-	Remove.
+	Remove $,1uf(B.
 
 	* international/mule-cmds.el (locale-language-names): Fix be, add
 	sr_YU@cyrillic, modify tg.
@@ -904,17 +886,16 @@
 	factor.  Use utf-8-translation-table-for-decode.
 	(ccl-encode-koi8, ccl-encode-koi8): Don't check r0.
 	(cyrillic-unify-encoding): New function.
-	(cyrillic-koi8): Modify safe-chars, valid-codes.  Remove
-	charset-origin-alist.
+	(cyrillic-koi8): Modify safe-chars, valid-codes.
+	Remove charset-origin-alist.
 	(Cp878, cp866): New alias.
 	(ccl-encode-8859-5-font): New.
 	(font-ccl-encoder-alist): Add ccl-encode-8859-5-font.
-	(ccl-encode-koi8-font, ccl-encode-alternativnyj-font): Remove
-	redundant parens.
+	(ccl-encode-koi8-font, ccl-encode-alternativnyj-font):
+	Remove redundant parens.
 	("Cyrillic-KOI8"): Add cyrillic-iso-8bit to coding-priority.
 	(cyrillic-koi8-u-decode-table, ccl-decode-koi8-u)
-	(ccl-encode-koi8-u, koi8-u, ccl-encode-koi8-u-font, "Ukrainian"):
-	New.
+	(ccl-encode-koi8-u, koi8-u, ccl-encode-koi8-u-font, "Ukrainian"): New.
 	(cyrillic-alternativnyj): Modify safe-chars, add mime-charset.
 	("Cyrillic-ALT"): Change input method.
 	("Windows-1251", "Tajik", "Bulgarian", "Belarusian"): New.
@@ -10450,8 +10431,8 @@
 
 	* dired.el: Many trivial doc fixes.
 	(dired-get-file-for-visit): New function.
-	(dired-find-alternate-file, dired-mouse-find-file-other-window):
-	(dired-view-file, dired-find-file-other-window, dired-display-file):
+	(dired-find-alternate-file, dired-mouse-find-file-other-window)
+	(dired-view-file, dired-find-file-other-window, dired-display-file)
 	(dired-find-file): Use dired-get-file-for-visit.
 
 2001-11-12  Alex Schroeder  <kensanata@yahoo.com>
