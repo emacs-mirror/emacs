@@ -2,7 +2,7 @@
  *
  *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- *  $HopeName: MMsrc!vmsu.c(trunk.6) $
+ *  $HopeName: MMsrc!vmsu.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -49,7 +49,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 /* Fix up unprototyped system calls.  */

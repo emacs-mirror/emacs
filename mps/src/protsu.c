@@ -2,7 +2,7 @@
  *
  *                  PROTECTION FOR SUNOS
  *
- *  $HopeName: MMsrc!protsu.c(trunk.3) $
+ *  $HopeName: MMsrc!protsu.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -27,7 +27,7 @@
 #error "protsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 /* .hack.sigdfl */

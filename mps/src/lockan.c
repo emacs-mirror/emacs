@@ -2,7 +2,7 @@
  *
  *                  ANSI RECURSIVE LOCKS
  *
- *  $HopeName: MMsrc!lockan.c(trunk.1) $
+ *  $HopeName: MMsrc!lockan.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -21,7 +21,7 @@
 #include "lock.h"
 #include "lockst.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 static SigStruct LockSigStruct;
 

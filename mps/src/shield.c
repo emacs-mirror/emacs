@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.2) $
+ * $HopeName: MMsrc!shield.c(trunk.3) $
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -15,7 +15,7 @@
 #include "poolar.h"
 #include "th.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 static void protect(Arena arena, Addr seg, ProtMode mode)
 {

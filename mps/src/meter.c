@@ -1,6 +1,6 @@
 /*  ==== METERING ====
  *
- *  $HopeName: MMsrc!meter.c(trunk.1) $
+ *  $HopeName: MMsrc!meter.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,7 +20,7 @@
 #include "lib.h"
 #include "meter.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 #ifdef DEBUG
