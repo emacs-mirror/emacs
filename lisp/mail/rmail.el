@@ -2009,7 +2009,7 @@ see the documentation of `rmail-resend'."
 	    ;; Insert after header separator--before signature if any.
 	    (goto-char (point-min))
 	    (search-forward-regexp
-	     (concat "^" (regexp-quote mail-header-separator)))
+	     (concat "^" (regexp-quote mail-header-separator) "$"))
 	    (forward-line 1)
 	    (insert-buffer forward-buffer))))))
 
