@@ -3015,7 +3015,7 @@ specifying headers which should not be copied into the new message."
 		(indent-rigidly (point-min) (point-max) bounce-indent))
 	    (rmail-clear-headers rmail-retry-ignored-headers)
 	    (rmail-clear-headers "^sender:\\|^from:\\|^return-path:")
-	    (mail-send-delimit-header)
+	    (mail-sendmail-delimit-header)
 	    (save-restriction
 	      (narrow-to-region (point-min) (mail-header-end))
 	      (setq resending (mail-fetch-field "resent-to"))
