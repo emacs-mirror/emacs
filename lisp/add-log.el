@@ -160,11 +160,11 @@ never append to an existing entry."
     (if (looking-at (concat (regexp-quote (substring (current-time-string)
 						     0 10))
 			    ".* " (regexp-quote add-log-full-name)
-			    "  (" (regexp-quote add-log-mailing-address)))
+			    "  <" (regexp-quote add-log-mailing-address)))
 	(forward-line 1)
       (insert (current-time-string)
 	      "  " add-log-full-name
-	      "  (" add-log-mailing-address ")\n\n"))
+	      "  <" add-log-mailing-address ">\n\n"))
 
     ;; Search only within the first paragraph.
     (if (looking-at "\n*[^\n* \t]")
