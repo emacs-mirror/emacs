@@ -192,7 +192,7 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 ;; allow View Mode to be activated in its buffer.
 (put 'gomoku-mode 'mode-class 'special)
 
-(define-derived-mode gomoku-mode nil "Gomoku"
+(defun gomoku-mode ()
   "Major mode for playing Gomoku against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
@@ -204,10 +204,15 @@ Other useful commands:
 \\{gomoku-mode-map}
 Entry to this mode calls the value of `gomoku-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
+  (interactive)
+  (setq major-mode 'gomoku-mode
+	mode-name "Gomoku")
   (gomoku-display-statistics)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gomoku-font-lock-keywords t))
-  (toggle-read-only t))
+  (use-local-map gomoku-mode-map)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(gomoku-font-lock-keywords t))
+  (toggle-read-only t)
+  (run-hooks 'gomoku-mode-hook))
 
 ;;;
 ;;; THE BOARD.
