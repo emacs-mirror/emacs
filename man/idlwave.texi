@@ -1072,7 +1072,7 @@ statement (@code{pro}/@code{function}) is shown.
 
 @kindex M-?
 In any IDL program, press @kbd{M-?} (@code{idlwave-context-help}) or
-click with @kbd{S-mouse-3} to access context sensitive online help.  The
+click with @kbd{S-Mouse-3} to access context sensitive online help.  The
 following locations are recognized as context:
 
 @cindex Context, for online help
@@ -1108,11 +1108,11 @@ which online help can be accessed.
 @itemize @bullet
 @item
 Online help for routines and keywords can be accessed through the
-Routine Info display.  Click with @kbd{mouse-3} on an item to see the
+Routine Info display.  Click with @kbd{Mouse-3} on an item to see the
 corresponding help (@pxref{Routine Info}).
 @item
 When using completion and Emacs pops up a window with possible
-completions, clicking with @kbd{mouse-3} on a completion item invokes
+completions, clicking with @kbd{Mouse-3} on a completion item invokes
 help on that item (@pxref{Completion}).
 @end itemize
 @noindent
@@ -1139,7 +1139,7 @@ following commands can be used to navigate inside the help system.
 @tab Move back and forward through the help topic history.
 @item @kbd{c}
 @tab Clear the history.
-@item @kbd{mouse-2}
+@item @kbd{Mouse-2}
 @tab Follow a link.  Active links are displayed in a different font.
 Items under @i{See Also} are active, and classes have links to their
 methods and back.
@@ -1252,7 +1252,7 @@ self.g*                 @r{Class structure tag in methods}
 If the list of completions is too long to fit in the
 @file{*Completions*} window, the window can be scrolled by pressing
 @kbd{M-@key{TAB}} repeatedly.  Online help (if installed) for each
-possible completion is available by clicking with @kbd{mouse-3} on the
+possible completion is available by clicking with @kbd{Mouse-3} on the
 item.  Items for which system online help (from the IDL manual) is
 available will be displayed in a different font.  For other items, the
 corresponding source code or DocLib header is available as help text.
@@ -2135,8 +2135,8 @@ argument will prompt for an expression instead of using the one at
 point.
 
 It is very convenient to click with the mouse on expressions to retrieve
-their value.  Expression printing is also bound to @kbd{S-mouse-2} and
-expression help to @kbd{C-S-mouse-2}.  I.e. you need to hold down
+their value.  Expression printing is also bound to @kbd{S-Mouse-2} and
+expression help to @kbd{C-S-Mouse-2}.  I.e. you need to hold down
 @key{SHIFT} and @key{CONTROL} while clicking with the mouse.
 
 @cindex Calling stack, motion

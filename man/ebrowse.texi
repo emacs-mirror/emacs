@@ -21,7 +21,7 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
@@ -446,9 +446,9 @@ regions in the buffer.  Please notice the help strings in the echo area
 when the mouse moves over a sensitive region.
 
 @cindex context menu
-A click with @kbd{mouse-3} on a mouse-sensitive region opens a context
+A click with @kbd{Mouse-3} on a mouse-sensitive region opens a context
 menu.  In addition to this, each buffer also has a buffer-specific menu
-that is opened with a click with @kbd{mouse-3} somewhere in the buffer
+that is opened with a click with @kbd{Mouse-3} somewhere in the buffer
 where no highlight is displayed.
 
 
@@ -515,7 +515,7 @@ editing.@refill
 @end table
 
 The same functionality is available from the menu opened with
-@kbd{mouse-3} on the class name.
+@kbd{Mouse-3} on the class name.
 
 
 
@@ -579,7 +579,7 @@ Display a list of types.
 @end table
 
 These lists are also available from the class' context menu invoked with
-@kbd{mouse-3} on the class name.
+@kbd{Mouse-3} on the class name.
 
 
 
@@ -939,7 +939,7 @@ You can install a hook function to perform actions after a member or
 class declaration or definition has been found, or when it is not found.
 
 All the commands described above can also be found in the context menu
-displayed when clicking @kbd{mouse-2} on a member name.
+displayed when clicking @kbd{Mouse-2} on a member name.
 
 
 
