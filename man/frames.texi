@@ -757,7 +757,7 @@ setting of Scroll Bar mode similarly.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
-@kbd{M-x toggle-scroll-bar} command.
+command @kbd{M-x toggle-scroll-bar}.
 
 @vindex scroll-bar-width
 @cindex width of the scroll bar

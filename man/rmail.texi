@@ -1101,8 +1101,7 @@ transmission is considerable.
   When you receive a digest message, the most convenient way to read it is
 to @dfn{undigestify} it: to turn it back into many individual messages.
 Then you can read and delete the individual messages as it suits you.
-
-  To do this, select the digest message and type the command @kbd{M-x
+To do this, select the digest message and type the command @kbd{M-x
 undigestify-rmail-message}.  This extracts the submessages as separate
 Rmail messages, and inserts them following the digest.  The digest
 message itself is flagged as deleted.

@@ -619,7 +619,8 @@ X choose one of the fonts that match the pattern.  Here is an example,
 which happens to specify the font whose nickname is @samp{6x13}:
 
 @smallexample
-emacs -fn "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
+emacs -fn \
+  "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
 @end smallexample
 
 @noindent

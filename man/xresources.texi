@@ -40,8 +40,8 @@ collection of related options, for one program or for several programs
 @cindex @file{.Xdefaults} file, and MS-Windows
   MS-Windows systems don't support @file{~/.Xdefaults} files, but
 Emacs compiled for Windows looks for X resources in the Windows
-Registry, under the keys @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
-and @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
+Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
+and then under the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
 
   Programs define named resources with particular meanings.  They also
 define how to group resources into named classes.  For instance, in
