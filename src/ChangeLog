@@ -1,3 +1,8 @@
+2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dispnew.c (syms_of_display) <visible-bell>: Add a reference to
+	ring-bell-function.  Suggested by Alf-Ivar Holm <alfh@ifi.uio.no>
+
 2001-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* insdel.c (insert_1_both): Do nothing if NCHARS == 0.
