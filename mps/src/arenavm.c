@@ -1,20 +1,20 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.9) $
+ * $HopeName: MMsrc!arenavm.c(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
  * abstraction.  Use of this arena implies use of a VM.
  *
  * DESIGN
- * design.mps.arenavm (beware, design.mps.arena is obsolete)
+ * design.mps.arena.vm
  */
 
 
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.9) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.10) $");
 
 
 /* Space Arena Projection
@@ -27,7 +27,7 @@ SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.9) $");
 
 /* Page Index to Base address mapping
  *
- * See design.mps.arenavm.table.linear
+ * See design.mps.arena.vm.table.linear
  */
 
 #define PageBase(arena, pi) \
@@ -49,7 +49,7 @@ typedef Size BI;
 /* PageStruct -- page structure
  *
  * The page table (defined as a PageStruct array) is central to the
- * design of the arena.  See design.mps.arenavm.table.*
+ * design of the arena.  See design.mps.arena.vm.table.*
  */
 
 typedef struct PageStruct {     /* page structure */
@@ -273,7 +273,7 @@ Res SegAlloc(Seg *segReturn, Space space, Size size, Pool pool)
   AVER(SizeIsAligned(size, arena->pageSize));
   
   /* NULL is used as a discriminator (see
-   * design.mps.arenavm.table.disc), therefore the real pool must be
+   * design.mps.arena.vm.table.disc), therefore the real pool must be
    * non-NULL.
    */
   AVER(pool != NULL);
