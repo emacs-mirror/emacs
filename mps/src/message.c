@@ -1,11 +1,7 @@
-/* impl.c.message: MPS / CLIENT MESSAGES
+/* impl.c.message: MPS/CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.9) $
- * Copyright (C) 1997, 1998 Harlequin Group plc.  All Rights Reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
+ * $HopeName: MMsrc!message.c(trunk.10) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -20,33 +16,24 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.9) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.10) $");
 
 
 /* Maps from a Ring pointer to the message */
 #define MessageNodeMessage(node) \
   PARENT(MessageStruct, queueRing, node)
 
-/* commented out as it causes compiler warnings */
-#if 0
-static Message (MessageNodeMessage)(Ring node)
-{
-  Message message;
-
-  AVERT(Ring, node);
-  message = MessageNodeMessage(node);
-  AVERT(Message, message);
-
-  return message;
-}
-#endif
 
 /* forward declarations */
 static Bool MessageTypeEnabled(Arena arena, MessageType type);
 static void MessageDelete(Message message);
 
-/* is the message on the queue?
- * message on queue if and only if it's ring is not a singleton */
+
+/* MessageOnQueue -- is the message on the queue?
+ *
+ * Message is on queue if and only if its ring is not a singleton.
+ */
+
 static Bool MessageOnQueue(Message message)
 {
   AVERT(Message, message);
@@ -60,7 +47,7 @@ static Bool MessageOnQueue(Message message)
 
 Bool MessageTypeCheck(MessageType type)
 {
-  CHECKL(type < MessageTypeMAX);
+  CHECKL(type < MessageTypeLIMIT);
   UNUSED(type); /* impl.c.mpm.check.unused */
 
   return TRUE;
@@ -332,12 +319,13 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   AVERT(Arena, arena);
   AVERT(Message, message);
 
-  AVER(message->type == MessageTypeFinalization);
+  AVER(message->type == MessageTypeFINALIZATION);
 
   (*message->class->finalizationRef)(refReturn, arena, message);
 
   return;
 }
+
 
 Size MessageGCLiveSize(Message message)
 {
@@ -364,7 +352,8 @@ Size MessageGCNotCondemnedSize(Message message)
 }
 
 
-/* type specific stub methods */
+/* type-specific stub methods */
+
 
 void MessageNoFinalizationRef(Ref *refReturn, Arena arena, 
                               Message message)
@@ -405,4 +394,3 @@ Size MessageNoGCNotCondemnedSize(Message message)
 
   return (Size)0;
 }
-
