@@ -476,8 +476,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
      int noinherit;
      int autoload;
 {
-  int noprefix = 0;
-  Lisp_Object val;
+  Lisp_Object val = Qunbound;
 
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
@@ -517,12 +516,13 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
   {
     Lisp_Object tail;
-    Lisp_Object t_binding;
-    Lisp_Object generic_binding;
+    Lisp_Object t_binding = Qnil;
 
-    t_binding = Qnil;
-    generic_binding = Qnil;
-    
+    /* If `t_ok' is 2, both `t' and generic-char bindings are accepted.
+       If it is 1, only generic-char bindings are accepted.
+       Otherwise, neither are.  */
+    t_ok = t_ok ? 2 : 0;
+
     for (tail = XCDR (map);
 	 (CONSP (tail)
 	  || (tail = get_keymap (tail, 0, autoload), CONSP (tail)));
@@ -536,7 +536,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    /* If NOINHERIT, stop finding prefix definitions
 	       after we pass a second occurrence of the `keymap' symbol.  */
 	    if (noinherit && EQ (binding, Qkeymap))
-	      noprefix = 1;
+	      return Qnil;
 	  }
 	else if (CONSP (binding))
 	  {
@@ -544,15 +544,9 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    int c1, c2, charset;
 	    
 	    if (EQ (key, idx))
-	      {
-		val = XCDR (binding);
-		if (noprefix && KEYMAPP (val))
-		  return Qnil;
-		if (CONSP (val))
-		  fix_submap_inheritance (map, idx, val);
-		return get_keyelt (val, autoload);
-	      }
-	    else if (INTEGERP (idx)
+	      val = XCDR (binding);
+	    else if (t_ok
+		     && INTEGERP (idx)
 		     && (XINT (idx) & CHAR_MODIFIER_MASK) == 0
 		     && INTEGERP (key)
 		     && (XINT (key) & CHAR_MODIFIER_MASK) == 0
@@ -566,22 +560,19 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 		/* KEY is the generic character of the charset of IDX.
 		   Use KEY's binding if there isn't a binding for IDX
 		   itself.  */
-		generic_binding = XCDR (binding);
+		t_binding = XCDR (binding);
+		t_ok = 0;
 	      }
-	    else if (t_ok && EQ (XCAR (binding), Qt))
-	      t_binding = XCDR (binding);
+	    else if (t_ok > 1 && EQ (key, Qt))
+	      {
+		t_binding = XCDR (binding);
+		t_ok = 1;
+	      }
 	  }
 	else if (VECTORP (binding))
 	  {
-	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (binding)->size)
-	      {
-		val = XVECTOR (binding)->contents[XFASTINT (idx)];
-		if (noprefix && KEYMAPP (val))
-		  return Qnil;
-		if (CONSP (val))
-		  fix_submap_inheritance (map, idx, val);
-		return get_keyelt (val, autoload);
-	      }
+	    if (NATNUMP (idx) && XFASTINT (idx) < ASIZE (binding))
+	      val = AREF (binding, XFASTINT (idx));
 	  }
 	else if (CHAR_TABLE_P (binding))
 	  {
@@ -590,21 +581,19 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	       All character codes without modifiers are included.  */
 	    if (NATNUMP (idx)
 		&& (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
-	      {
-		val = Faref (binding, idx);
-		if (noprefix && KEYMAPP (val))
-		  return Qnil;
-		if (CONSP (val))
-		  fix_submap_inheritance (map, idx, val);
-		return get_keyelt (val, autoload);
-	      }
+	      val = Faref (binding, idx);
 	  }
 
+	/* If we found a binding, clean it up and return it.  */
+	if (!EQ (val, Qunbound))
+	  {
+	    val = get_keyelt (val, autoload);
+	    if (KEYMAPP (val))
+	      fix_submap_inheritance (map, idx, val);
+	    return val;
+	  }
 	QUIT;
       }
-
-    if (!NILP (generic_binding))
-      return get_keyelt (generic_binding, autoload);
 
     return get_keyelt (t_binding, autoload);
   }
