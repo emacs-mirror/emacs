@@ -699,9 +699,9 @@ is the menu entry name, and the cdr of P is the node name."
 
     (insert "\n")) ; end this menu entry
   (insert "@end menu")
-  (message
-   ;; FIXME: `level' is passed by dynamic scoping.
-   "Updated \"%s\" level menu following node: %s ... " level node-name))
+  (let ((level (texinfo-hierarchic-level)))
+    (message
+     "Updated level \"%s\" menu following node: %s ... " level node-name)))
 
 
 ;;; Starting menu descriptions by inserting titles
@@ -1557,6 +1557,21 @@ regardless of its hierarchical level."
 	(texinfo-sequentially-insert-pointer level 'up)
 	(texinfo-clean-up-node-line)))))
 
+(defun texinfo-sequentially-insert-pointer (level direction)
+  "Insert the `Next', `Previous' or `Up' node name at point.
+Move point forward.
+
+The first argument is the hierarchical level of the Texinfo file, a
+string such as \"section\".  The second argument is direction, one of
+`next', `previous', or `up'."
+
+  (end-of-line)
+  (insert
+   ", "
+   (save-excursion
+     (texinfo-pointer-name
+      (texinfo-sequentially-find-pointer level direction)))))
+
 (defun texinfo-sequentially-find-pointer (level direction)
   "Find next or previous pointer sequentially in Texinfo file, or up pointer.
 Move point to section associated with the pointer.  Find point even if
@@ -1589,28 +1604,12 @@ or `Up' pointer."
 	  ((eq direction 'up)
 	   (if (re-search-backward
 		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
-		;; FIXME: passed many levels down via dynamic scoping!
-		beginning
+		(point-min)
 		t)
 	       'normal
 	     'no-pointer))
 	  (t
 	   (error "texinfo-sequential-find-pointer: lack proper arguments")))))
-
-(defun texinfo-sequentially-insert-pointer (level direction)
-  "Insert the `Next', `Previous' or `Up' node name at point.
-Move point forward.
-
-The first argument is the hierarchical level of the Texinfo file, a
-string such as \"section\".  The second argument is direction, one of
-`next', `previous', or `up'."
-
-  (end-of-line)
-  (insert
-   ", "
-   (save-excursion
-     (texinfo-pointer-name
-      (texinfo-sequentially-find-pointer level direction)))))
 
 
 ;;; Inserting `@node' lines
