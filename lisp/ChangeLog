@@ -1,3 +1,13 @@
+2001-04-18  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (EMACSLOADPATH): Define.
+	(custom-deps): 
+	(autoloads): 
+	(.el.elc): 
+	(compile-files-CMD): 
+	(compile-files-SH): 
+	(recompile): Remove stuff to set EMACSLOADPATH.
+
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* language/slovak.el ("Slovak"): Add tutorial entry.

@@ -1,3 +1,12 @@
+2001-04-18  Andrew Innes  <andrewi@gnu.org>
+
+	* nmake.defs (EMACSLOADPATH): Ensure EMACSLOADPATH is defined in
+	the environment.
+
+	* gmake.defs (SETLOADPATH): Remove definition.
+	(EMACSLOADPATH): Ensure EMACSLOADPATH is defined in the
+	environment.
+
 2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.bat: Make the checkw32api* labels be distinct in the
