@@ -86,6 +86,13 @@ and the value of the environment variable MAIL overrides it).")
 (defvar rmail-retry-setup-hook nil
   "Hook that `rmail-retry-failure' uses in place of `mail-setup-hook'.")
 
+;;;###autoload
+(defvar rmail-secondary-file-directory "~/"
+  "*Directory for additional secondary Rmail files.")
+;;;###autoload
+(defvar rmail-secondary-file-regexp "\\.xmail$"
+  "*Regexp for which files are secondary Rmail files.")
+
 ;; These may be altered by site-init.el to match the format of mmdf files
 ;;  delimiting used on a given host (delim1 and delim2 from the config
 ;;  files).
@@ -652,6 +659,21 @@ Instead, these commands are available:
   (interactive "FRun rmail on RMAIL file: ")
   (rmail filename))
 
+;; Choose a .xmail file in dir rmail-secondary-file-directory.
+(defun rmail-secondary-file-menu (event)
+  (let* ((files (directory-files rmail-secondary-file-directory t
+				 rmail-secondary-file-regexp))
+	 (menu (list "Rmail Files"
+		     (cons "Rmail Files"
+			   (mapcar (function (lambda (f) (cons f f)))
+				   files)))))
+    (x-popup-menu event menu)))
+
+(defun rmail-input-menu (event)
+  "Choose a new Rmail file to edit, with a menu."
+  (interactive "e")
+  (rmail-input (expand-file-name (rmail-secondary-file-menu event)
+				 rmail-secondary-file-directory)))
 
 ;;;; *** Rmail input ***
 
@@ -2036,7 +2058,7 @@ the body of the original message."
 
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
-Non-nil value returned is the summary buffer."
+In fact, the non-nil value returned is the summary buffer itself."
   (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
        rmail-summary-buffer))
 
@@ -2048,11 +2070,27 @@ Non-nil value returned is the summary buffer."
   "*Non-nil means Rmail should show the summary when it changes.
 This has an effect only if a summary buffer exists.")
 
+(defvar rmail-summary-window-size nil
+  "*Non-nil means specify the height for an Rmail summary window.")
+
 ;; Put the summary buffer back on the screen, if user wants that.
 (defun rmail-maybe-display-summary ()
-  (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
-       rmail-redisplay-summary
-       (display-buffer rmail-summary-buffer)))
+  (let ((selected (selected-window))
+	window)
+    ;; If requested, make sure the summary is displayed.
+    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
+	 rmail-redisplay-summary
+	 (display-buffer rmail-summary-buffer))
+    ;; If requested, set the height of the summary window.
+    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
+	 rmail-summary-window-size
+	 (setq window (get-buffer-window rmail-summary-buffer))
+	 (unwind-protect 
+	     (progn
+	       (select-window window)
+	       (enlarge-window (- rmail-summary-window-size
+				  (window-height))))
+	   (select-window selected)))))
 
 ;;;; *** Rmail Specify Inbox Files ***
 
