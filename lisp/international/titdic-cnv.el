@@ -65,24 +65,109 @@
     ("KS" euc-kr "Korean")))
 
 ;; List of package names and the corresponding titles.
-(defvar quail-cxterm-package-title-alist
-  '(("chinese-4corner" . "$(0(?-F(B")
-    ("chinese-array30" . "$(0#R#O(B")
-    ("chinese-ccdospy" . "$AKuF4(B")
-    ("chinese-ctlau" . "$AAuTA(B")
-    ("chinese-ctlaub" . "$(0N,Gn(B")
-    ("chinese-ecdict" . "$(05CKH(B")
-    ("chinese-etzy" . "$(06/0D(B")
-    ("chinese-punct-b5" . "$(0O:(BB")
-    ("chinese-punct" . "$A1j(BG")
-    ("chinese-py-b5" . "$(03<(BB")
-    ("chinese-py" . "$AF4(BG")
-    ("chinese-qj-b5" . "$(0)A(BB")
-    ("chinese-qj" . "$AH+(BG")
-    ("chinese-sw" . "$AJWN2(B")
-    ("chinese-tonepy" . "$A5wF4(B")
-    ("chinese-ziranma" . "$AK+F4(B")
-    ("chinese-zozy" . "$(0I\0D(B")))
+(defvar quail-cxterm-package-ext-info
+  '(("chinese-4corner" "$(0(?-F(B")
+    ("chinese-array30" "$(0#R#O(B")
+    ("chinese-ccdospy" "$AKuF4(B")
+    ("chinese-ctlau" "$AAuTA(B")
+    ("chinese-ctlaub" "$(0N,Gn(B")
+    ("chinese-ecdict" "$(05CKH(B")
+    ("chinese-etzy" "$(06/0D(B")
+
+    ("chinese-punct-b5" "$(0O:(BB"
+     "Input method for Chinese punctuations and symbols of Big5
+\(`chinese-big5-1' and `chinese-big5-2').")
+
+    ("chinese-punct" "$A1j(BG"
+     "Input method for Chinese punctuations and symbols of GB2312
+\(`chinese-gb2312').")
+
+    ("chinese-py-b5" "$(03<(BB"
+     "Pinyin base input method for Chinese Big5 characters
+\(`chinese-big5-1', `chinese-big5-2').
+
+This input method works almost the same way as `chinese-py' (which
+see).
+
+This input method supports only Han characters.  The more convenient
+method is `chinese-py-punct-b5' which is the conbination of this
+method and `chinese-punct-b5' and supports both Han characters and
+punctuations/symbols.
+
+For double-width Big5 characters correponding to ASCII, use the input
+method `chinese-qj-b5'.
+
+The input method `chinese-py' and `chinese-tonepy' are also Pinyin
+base, but for the character set GB2312 (`chinese-gb2312').")
+
+    ("chinese-py" "$AF4(BG"
+     "Pinyin base input method for Chinese charset GB2312
+\(`chinese-gb2312').
+
+Pinyin is the standared roman transliteration method for Chinese.
+Pinyin uses a sequence of Latin alphabets for each Chinese character.
+The sequence is made by the combination of the initials (the beginning
+sounds) and finals (the ending sounds).
+
+  initials: b p m f d t n l z c s zh ch sh r j q x g k h
+  finals: a o e i er ai ei oa ou an en ang eng ong i ia iao ie iu ian in
+          iang ing iong u ua uo uai ui uan un uan ueng yu yue yuan yun
+
+  (Note: In the correct Pinyin writing, the sequence \"yu\" in the last
+   four finals should be written by the character u-umlaut `$A(9(B'.)
+
+With this input method, each time you type a key, list of Chinese
+characters corresponding to the accumulated key sequence is shown at
+the echo area.  Then you can select one from the list by typing an
+index number or by navigating in the candidate list by C-b, C-f, C-n,
+and C-p.
+
+For instance, to input $ADc(B, you type \"n i C-n 3\".  The first \"n i\"
+is a Pinyin, \"C-n\" selects the next group of candidates (each group
+contains at most 10 characters), \"3\" select the third character in
+that block.
+
+This input method supports only Han characters.  The more convenient
+method is `chinese-py-punct' which is the conbination of this method
+and `chinese-punct' and supports both Han characters and
+punctuations/symbols.
+
+For double-width GB2312 characters correponding to ASCII, use the
+input method `chinese-qj'.
+
+The correct Pinyin system specifies tones by diacritical marks, but
+this input method doesn't use them, which results in easy (you don't
+have to know exact tones) but verbose (many characters are assigned to
+a same key seuqnece) inputting.  You may also want to try the input
+method `chinese-tonepy' with which you must specify tones by digits
+\(1..5).")
+
+    ("chinese-qj-b5" "$(0)A(BB"
+"
+"
+)
+    ("chinese-qj" "$AH+(BG"
+"")
+    ("chinese-sw" "$AJWN2(B"
+"")
+    ("chinese-tonepy" "$A5wF4(B"
+     "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
+
+Pinyin is the standared roman transliteration method for Chinese.
+For the detail of Pinyin system, see the documentation of the input
+method `chinese-py'.
+
+This input method works almost the same way as `chinese-py'.  The
+difference is that you must type 1..5 after each Pinyin to specify a
+tone.  So, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is a
+Pinyin, the next \"3\" specifies tone, the last \"3\" selecte the
+third character from the candidate list.
+
+For double-width GB2312 characters correponding to ASCII, use the
+input method `chinese-qj'.")
+
+    ("chinese-ziranma" "$AK+F4(B")
+    ("chinese-zozy" "$(0I\0D(B")))
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
@@ -178,7 +263,14 @@
 	      ((= ch ?P)		; PROMPT
 	       (cond ((looking-at "PROMPT:[ \t]*")
 		      (goto-char (match-end 0))
-		      (setq tit-prompt (tit-read-key-value)))))
+		      (setq tit-prompt (tit-read-key-value))
+		      ;; Some TIT dictionaies that are encoded by
+		      ;; euc-china contains invalid character at the tail.
+		      (let* ((last (aref tit-prompt (1- (length tit-prompt))))
+			     (split (split-char last)))
+			(if (or (eq (nth 1 split) 32)
+				(eq (nth 2 split) 32))
+			    (setq tit-prompt (substring tit-prompt 0 -1)))))))
 	      ((= ch ?B)		; BACKSPACE, BEGINDICTIONARY,
 					; BEGINPHRASE
 	       (cond ((looking-at "BACKSPACE:[ \t]*")
@@ -210,7 +302,7 @@
 
     (princ "(quail-define-package ")
     ;; Args NAME, LANGUAGE, TITLE
-    (let ((title (cdr (assoc package quail-cxterm-package-title-alist))))
+    (let ((title (nth 1 (assoc package quail-cxterm-package-ext-info))))
       (princ "\"")
       (princ package)
       (princ "\" \"")
@@ -236,9 +328,16 @@
       (princ " t\n"))
 
     ;; Arg DOCSTRING
-    (prin1
-     (mapconcat 'identity (cons tit-prompt (nreverse tit-comments)) "\n"))
-    (terpri)
+    (let ((doc (concat tit-prompt "\n"))
+	  (comments (if tit-comments
+			(mapconcat 'identity (nreverse tit-comments) "\n")))
+	  (doc-ext (nth 2 (assoc package quail-cxterm-package-ext-info))))
+      (if comments
+	  (setq doc (concat doc "\n" comments "\n")))
+      (if doc-ext
+	  (setq doc (concat doc "\n" doc-ext "\n")))
+      (prin1 doc)
+      (terpri))
 
     ;; Arg KEY-BINDINGS
     (princ " '(")
