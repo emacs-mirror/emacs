@@ -6,6 +6,15 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
 
+* Changes in Emacs 21.3
+
+** The default value of selection-coding-system is now
+compound-text-with-extensions.
+
+If you want the old behavior, set selection-coding-system to
+compound-text.
+
+
 * Installation changes in Emacs 21.2
 
 ** Support for BSD/OS 5.0 has been added.
