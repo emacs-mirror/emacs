@@ -31,23 +31,29 @@
 (defun string-to-sequence (string type)
   "Convert STRING to a sequence of TYPE which contains characters in STRING.
 TYPE should be `list' or `vector'."
-  (let ((len (length string))
-	(i 0)
-	val)
+;;;  (let ((len (length string))
+;;;	   (i 0)
+;;;	   val)
     (cond ((eq type 'list)
-	   (setq val (make-list len 0))
-	   (let ((l val))
-	     (while (< i len)
-	       (setcar l (aref string i))
-	       (setq l (cdr l) i (1+ i)))))
+	   ;; Applicable post-Emacs 20.2 and asymptotically ~10 times
+	   ;; faster than the code below:
+	   (append string nil))
+;;; 	   (setq val (make-list len 0))
+;;; 	   (let ((l val))
+;;; 	     (while (< i len)
+;;; 	       (setcar l (aref string i))
+;;; 	       (setq l (cdr l) i (1+ i))))))
 	  ((eq type 'vector)
-	   (setq val (make-vector len 0))
-	   (while (< i len)
-	     (aset val i (aref string i))
-	     (setq i (1+ i))))
+	   ;; As above.
+	   (vconcat string))
+;;; 	   (setq val (make-vector len 0))
+;;; 	   (while (< i len)
+;;; 	     (aset val i (aref string i))
+;;; 	     (setq i (1+ i))))
 	  (t
 	   (error "Invalid type: %s" type)))
-    val))
+;;;    val)
+)
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -187,7 +193,7 @@ If ALIST is not deep enough for KEYSEQ, return number which is
 Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
  even if ALIST is not deep enough."
   (or (nested-alist-p alist)
-      (error "invalid argument %s" alist))
+      (error "Invalid argument %s" alist))
   (or len
       (setq len (length keyseq)))
   (let ((i (or start 0)))
@@ -288,5 +294,6 @@ language environment LANG-ENV."
       (detect-coding-region from to))))
 
 
-;;; mule-util.el ends here
+(provide 'mule-util)
 
+;;; mule-util.el ends here
