@@ -104,7 +104,7 @@ LATIN=quail/latin-pre.el quail/latin-post.el
 
 GREEK=quail/greek.el
 
-RUSSIAN=quail/cyrillic.el
+RUSSIAN=quail/cyrillic.el quail/cyril-jis.el
 
 MISC=quail/ethiopic.el quail/ipa.el
 
