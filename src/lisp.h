@@ -253,7 +253,6 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #ifndef VALMASK
 #define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
 #endif
-#define GCTYPEMASK ((((EMACS_INT) 1)<<GCTYPEBITS) - 1)
 
 /* Two flags that are set during GC.  On some machines, these flags
    are defined differently by the m- file.  */
@@ -356,16 +355,6 @@ enum pvec_type
 #define make_number(N)		\
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 
-/* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT accesses the markbit.
- Markbits are used only in particular slots of particular structure types.
- Other markbits are always zero.
- Outside of garbage collection, all mark bits are always zero.  */
-
-#ifndef XGCTYPE
-#define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-#endif
-
 #endif /* NO_UNION_TYPE */
 
 #ifndef NO_UNION_TYPE
@@ -399,15 +388,18 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
+#endif /* NO_UNION_TYPE */
+
 /* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT access the markbit.
+ so that the mark bit is ignored.  XMARKBIT accesses the markbit.
  Markbits are used only in particular slots of particular structure types.
  Other markbits are always zero.
  Outside of garbage collection, all mark bits are always zero.  */
 
-#define XGCTYPE(a) ((a).gu.type)
-
-#endif /* NO_UNION_TYPE */
+#ifndef XGCTYPE
+/* The distinction does not exist now that the MARKBIT has been eliminated.  */
+#define XGCTYPE(a) XTYPE(a)
+#endif
 
 #ifndef XPNTR
 #ifdef HAVE_SHM
