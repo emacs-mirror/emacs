@@ -149,8 +149,10 @@ NOTE-END  */
 #define LD_SWITCH_MACHINE -D 800000
 #define LIBS_DEBUG
 
+#if defined (__NetBSD__) || defined (__OpenBSD__)
+#else  /* bsd with elf */
 #define LINKER /bsd43/bin/ld
-  
+#endif /* bsd with elf */
 #else /* not BSD_SYSTEM */
 
 #if defined(__GNUC__) && defined(_ABIN32)
