@@ -1,3 +1,7 @@
+2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* floatfns.c (Fround): Doc fix.
+
 2002-02-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lisp.h (Fx_file_dialog): Export (for Motif code in fileio.c).
