@@ -2061,6 +2061,11 @@ that end a sentence without following spaces.
 `format' are now documented.  Some flags that were accepted but not
 implemented (such as "*") are no longer accepted.
 
+** New function `macroexpand-all' expands all macros in a form.
+It is similar to the Common-Lisp function of the same name.
+One difference is that it guarantees to return the original argument
+if no expansion is done, which may be tested using `eq'.
+
 +++
 ** New function `delete-dups' destructively removes `equal' duplicates
 from a list.  Of several `equal' occurrences of an element in the list,
