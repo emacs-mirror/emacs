@@ -1,3 +1,7 @@
+2004-02-16  Stephen Eglen  <stephen@gnu.org>
+
+	* fringe.c (init_fringe_bitmap): Define j in MAC_OS code.
+
 2004-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (Fbyteorder): 
