@@ -1,15 +1,22 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR SunPro C
 #
-# $HopeName: MMsrc!sc.gmk(MMdevel_sw_eq.3) $
+# $HopeName: MMsrc!sc.gmk(trunk.2) $
 #
 # This file is included by platform makefiles that use the SunPro C
 # compiler.  It defines the compiler specific variables that the
 # common makefile fragment (impl.gmk.comm) requires. See builder.sc for
 # discussion of the various flags.
 
+# We need a symbol for a non-empty defintion with empty value
+ifdef MPS_EMPTY
+error "dc.gmk: MPS_EMPTY defined"
+endif
+
 CC = /opt/SUNWspro/SC4.0/bin/cc
 CFLAGSCOMPILER = -v -Xc
-CFLAGSDEBUG = -g
-CFLAGSOPTIMIZE = -O
+CFLAGSHOT = -O
+CFLAGSCOOL = $(MPS_EMPTY)
+CFLAGSINTERNAL = -g
+CFLAGSEXTERNAL = $(MPS_EMPTY)
 
 include comm.gmk
