@@ -1757,14 +1757,32 @@ lisp_data_to_selection_data (display, obj,
       /* Since we are now handling multilingual text, we must consider
 	 sending back compound text.  */
       int stringp;
+      extern Lisp_Object Qcompound_text;
 
       if (NILP (Vnext_selection_coding_system))
 	Vnext_selection_coding_system = Vselection_coding_system;
 
       *format_ret = 8;
-      *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
-				 (int *) size_ret, &stringp);
-      *nofree_ret = (*data_ret == XSTRING (obj)->data);
+      /* If the requested type is STRING, we must encode the selected
+	 text as a string, even if the coding system set by the user
+	 is ctext or its derivatives.  */
+      if (EQ (type, QSTRING)
+	  && (EQ (Vnext_selection_coding_system, Qcompound_text)
+	      || EQ (Vnext_selection_coding_system,
+		     Qcompound_text_with_extensions)))
+	{
+	  Lisp_Object unibyte_string;
+
+	  unibyte_string = string_make_unibyte (obj);
+	  *data_ret = XSTRING (unibyte_string)->data;
+	  *nofree_ret = 1;
+	}
+      else
+	{
+	  *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
+				     (int *) size_ret, &stringp);
+	  *nofree_ret = (*data_ret == XSTRING (obj)->data);
+	}
       if (NILP (type))
 	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
       Vlast_coding_system_used = (*nofree_ret
