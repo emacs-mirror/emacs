@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1156,6 +1156,9 @@ read_char (commandflag)
   if (_setjmp (getcjmp))
     {
       XSET (c, Lisp_Int, quit_char);
+#ifdef MULTI_SCREEN
+      XSET (Vlast_event_screen, Lisp_Screen, selected_screen);
+#endif
 
       waiting_for_input = 0;
       input_available_clear_word = 0;
@@ -1586,24 +1589,7 @@ kbd_buffer_get_event ()
 #endif /* SIGIO */
       if (EVENT_QUEUES_EMPTY)
 	{
-#ifdef subprocesses
 	  wait_reading_process_input (0, 0, -1, 1);
-#else
-/* Note SIGIO has been undef'd if FIONREAD is missing.  */
-#ifdef SIGIO
-	  if (interrupt_input)
-	    {
-	      sigblockx (SIGIO);
-	      set_waiting_for_input (0);
-	      while (EVENT_QUEUES_EMPTY)
-		sigpausex (SIGIO);
-	      clear_waiting_for_input ();
-	      sigunblockx (SIGIO);
-	    }
-#else
-	  interrupt_input = 0;
-#endif /* not SIGIO */
-#endif /* subprocesses */
 
 	  if (!interrupt_input && EVENT_QUEUES_EMPTY)
 	    {
