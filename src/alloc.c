@@ -1352,6 +1352,10 @@ Garbage collection happens automatically if you cons more than\n\
   char stack_top_variable;
   register int i;
 
+  /* In case user calls debug_print during GC,
+     don't let that cause a recursive GC.  */
+  consing_since_gc = 0;
+
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
   if (NILP (Vpurify_flag))
