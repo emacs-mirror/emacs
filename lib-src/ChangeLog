@@ -1,3 +1,18 @@
+2002-06-07  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (scan_separators): Support all character escape
+	sequences supported by Gcc.
+	(find_entries): rewind unconditionally.
+	(find_entries): Do not call language functions directly, now calls
+	itself.
+	(find_entries): Do general initialisations here.
+	(CNL_SAVE_DEFINEDEF, C_entries, LOOP_ON_INPUT_LINES, F_getit)
+	(Ada_getit, Pascal_functions, Pascal_functions)
+	(prolog_skip_comment): Do not do them here.
+	(readline_internal): Increment lineno here.
+	(readline): Conditionally undo readline_internal increment.
+	(readline): Do not return a value.
+
 2002-06-06  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c New option --parse-stdin=FILE.
