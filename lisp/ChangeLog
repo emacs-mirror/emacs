@@ -1,3 +1,59 @@
+2004-03-23  Dave Love  <fx@gnu.org>
+
+	* dired.el (dired) <defgroup>: Add link to manual.
+	(dired-font-lock-keywords): Ad highlighting on unusual permissions.
+	(dired-revert): Use dolist.
+	(dired-mode-map): Add U binding.
+	(dired-mode): Add font-lock-beginning-of-syntax-function.
+	(dired-garbage-files-regexp): Make it a defcustom.
+
+2004-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-diff): Handle the special case where `newvers'
+	is equivalent to nil.
+	(vc-arch-diff3-rej-p): Be a bit more flexible in what we accept.
+	(vc-arch-mode-line-string): Accept `added' state.
+	(vc-arch-state): Use inode-sigs if available.
+	(vc-arch-add-tagline): Rename from vc-arch-add-tag.
+	Copy&delete existing id file if any.  Fallback if uuidgen is absent.
+	(vc-arch-tagline-re): New var.
+	(vc-arch-file-source-p, vc-arch-file-id, vc-arch-tagging-method):
+	New functions.
+	(vc-arch-find-file-not-found-hook, vc-arch-register): New backend ops.
+	(vc-arch-registered): Try our best guess using vc-arch-file-source-p.
+
+	* vc-hooks.el (vc-default-find-file-not-found-hook): New fun.
+	(vc-file-not-found-hook): Use it.
+
+	* diff-mode.el (diff-default-read-only): Change default.
+	(diff-mode-hook): Make it a defcustom.  Add some options.
+	(diff-mode-map): Bind diff-refine-hook.
+	(diff-yank-handler): New var.
+	(diff-yank-function): New fun.
+	(diff-font-lock-keywords): Use them.
+	(diff-end-of-file): Handle case where file-header looks like diff text.
+	(diff-hunk-kill): Adjust to "new" hunk-next behavior.
+	(diff-file-kill): Delete a subsequent empty line, if applicable.
+	(diff-hunk-file-names): New fun, extracted from diff-tell-file-name.
+	(diff-find-file-name): Use it.
+	(diff-tell-file-name): New command.
+	(diff-mode): Be careful with view-mode.
+	(diff-delete-if-empty, diff-delete-empty-files, diff-make-unified):
+	New functions, for use in diff-mode-hook.
+	(diff-find-source-location): Catch "regex too large" errors.
+	(diff-apply-hunk, diff-test-hunk): Go to old or new file.
+	(diff-refine-hunk): New command.
+
+	* smerge-mode.el (smerge-mode-menu): Fix activate pred for resolve.
+	(smerge-context-menu-map): Remove unused var.
+	(smerge-keep-all): Preserve markers.
+	(smerge-keep-n): New fun.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine)
+	(smerge-keep-current, smerge-ediff): Use it.
+	(smerge-kill-current): Use it.  Make it work on some 3-part conflicts.
+	(smerge-popup-context-menu): Also use context-menu on 3-part conflicts.
+	(smerge-resolve): Resolve trivial 3-part conflicts.
+
 2004-03-23  Juri Linkov  <juri@jurta.org>
 
 	* man.el (Man-width): New var.
@@ -11,24 +67,16 @@
 	* woman.el (woman-fill-frame): Doc fix.
 	(woman-decode-region): Use window-width instead of frame-width.
 
-	* abbrevlist.el (list-one-abbrev-table): Use window-width instead
-	of frame-width.
-
-	* descr-text.el (describe-char): Use window-width instead of
-	frame-width.
-
-	* international/mule-diag.el (describe-current-coding-system): Use
-	window-width instead of frame-width.
-
-	* international/quail.el (quail-insert-decode-map): Use
-	window-width instead of frame-width.
+	* abbrevlist.el (list-one-abbrev-table):
+	* descr-text.el (describe-char):
+	* international/mule-diag.el (describe-current-coding-system):
+	* international/quail.el (quail-insert-decode-map):
+	Use window-width instead of frame-width.
 
 	* jka-compr.el (jka-compr-compression-info-list): Add tbz and dz.
 	(jka-compr-mode-alist-additions): Add tbz.
-	(jka-compr-write-region): Add error message for undefined
-	compress-program.
-	(jka-compr-insert-file-contents): Add message for undefined
-	compress-program.
+	(jka-compr-write-region, jka-compr-insert-file-contents):
+	Add message for undefined compress-program.
 	(jka-compr-write-region): Remove redundant var bindings.
 
 	* dired-x.el (dired-guess-shell-alist-default): Add choices for
@@ -47,8 +95,7 @@
 
 2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Expand doc
-	string.
+	* autorevert.el (global-auto-revert-non-file-buffers): Expand docstring.
 	(buffer-stale-function): New variable.
 	(auto-revert-list-diff, auto-revert-dired-file-list)
 	(auto-revert-dired-changed-p, auto-revert-buffer-p): Delete.
@@ -56,8 +103,7 @@
 	functions.
 	(auto-revert-buffers): Delete call to auto-revert-buffer-p.
 
-	* dired.el (dired-directory-changed-p, dired-buffer-stale-p): New
-	functions.
+	* dired.el (dired-directory-changed-p, dired-buffer-stale-p): New funs.
 	(dired-internal-noselect): Use dired-directory-changed-p.
 	Eliminate revert messages.
 	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
@@ -67,8 +113,8 @@
 	* international/characters.el: Setup syntaxes for more parentheses
 	Unicode characters.
 
-	* international/mule-cmds.el (select-safe-coding-system): Merge
-	coding-system and auto-cs before comparing them.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Merge coding-system and auto-cs before comparing them.
 
 2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
