@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.11) $
+ * $HopeName: MMsrc!finalcv.c(trunk.12) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -31,11 +31,14 @@
 
 #define testArenaSIZE   ((size_t)16<<20)
 #define rootCOUNT 20
-#define churnFACTOR 1000
+#define churnFACTOR 30
 #define slotSIZE (3*sizeof(mps_word_t))
-/* The number that a half of all numbers generated from rnd are less */
-/* than.  See impl.h.testlib. */
-#define rndMEDIAN (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
+#define genCOUNT 2
+
+/* testChain -- generation parameters for the test */
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 150, 0.85 }, { 170, 0.45 } };
 
 
 /* tags an integer according to dylan format */
@@ -53,7 +56,6 @@ static mps_word_t dylan_int_int(mps_word_t x)
 
 
 static void *root[rootCOUNT];
-static int rc = 0;                      /* return code */
 
 
 static void churn(mps_ap_t ap)
@@ -73,11 +75,12 @@ static void churn(mps_ap_t ap)
 }
 
 
-static void * test(void *arg, size_t s)
+static void *test(void *arg, size_t s)
 {
   int i;                        /* index */
   mps_ap_t ap;
   mps_fmt_t fmt;
+  mps_chain_t chain;
   mps_pool_t amc;
   mps_res_t e;
   mps_root_t mps_root[2];
@@ -89,17 +92,18 @@ static void * test(void *arg, size_t s)
   (void)s;
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
-  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt),
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc\n");
-  die(mps_root_create_table(&mps_root[0], arena,
-                            MPS_RANK_EXACT, (mps_rm_t)0,
-                            root, (size_t)rootCOUNT), "root_create\n");
-  die(mps_root_create_table(&mps_root[1], arena,
-                            MPS_RANK_EXACT, (mps_rm_t)0,
-                            &p, (size_t)1), "root_create\n");
+  die(mps_root_create_table(&mps_root[0], arena, MPS_RANK_EXACT, (mps_rm_t)0,
+                            root, (size_t)rootCOUNT),
+      "root_create\n");
+  die(mps_root_create_table(&mps_root[1], arena, MPS_RANK_EXACT, (mps_rm_t)0,
+                            &p, (size_t)1),
+      "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
-  /* design.mps.poolmrg.test.ut.alloc */
+  /* design.mps.poolmrg.test.promise.ut.alloc */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
@@ -112,16 +116,15 @@ static void * test(void *arg, size_t s)
   }
   p = NULL;
 
-  /* design.mps.poolmrg.test.ut.drop */
+  /* design.mps.poolmrg.test.promise.ut.drop */
   for(i = 0; i < rootCOUNT; ++i) {
-    if (rnd() < rndMEDIAN) {
+    if (rnd() % 2 == 0)
       root[i] = NULL;
-    }
   }
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  /* design.mps.poolmrg.test.ut.churn */
+  /* design.mps.poolmrg.test.promise.ut.churn */
   while(mps_collections(arena) < 3) {
     churn(ap);
     while(mps_message_poll(arena)) {
@@ -129,24 +132,27 @@ static void * test(void *arg, size_t s)
       mps_word_t objind;
       mps_addr_t objaddr;
 
+      /* design.mps.poolmrg.test.promise.ut.message */
       cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
            "get");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[2]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
+      /* design.mps.poolmrg.test.promise.ut.final.check */
       cdie(root[objind] == NULL, "died");
       root[objind] = objaddr;
       mps_message_discard(arena, message);
     }
   }
 
-  /* design.mps.poolmrg.test.ut.not */
+  /* @@@@ design.mps.poolmrg.test.promise.ut.nofinal.check missing */
 
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[1]);
   mps_root_destroy(mps_root[0]);
   mps_pool_destroy(amc);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
 
   return NULL;
@@ -168,11 +174,7 @@ int main(int argc, char **argv)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
-  if (rc) {
-    printf("Defects found, exiting with non-zero status.\n");
-  } else {
-    printf("No defects found.\n");
-  }
-
-  return rc;
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  return 0;
 }
