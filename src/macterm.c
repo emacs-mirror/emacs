@@ -13212,7 +13212,8 @@ NewMacWindow (FRAME_PTR fp)
 }
 
 
-void make_mac_frame (struct frame *f)
+void
+make_mac_frame (struct frame *f)
 {
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
@@ -13245,7 +13246,8 @@ void make_mac_frame (struct frame *f)
   f->new_height = 0;
 }
 
-void make_mac_terminal_frame (struct frame *f)
+void
+make_mac_terminal_frame (struct frame *f)
 {
   Lisp_Object frame;
 
@@ -13428,7 +13430,8 @@ mac_term_init (display_name, xrm_option, resource_name)
 }
 
 #ifdef MAC_OSX
-void MakeMeTheFrontProcess ()
+void
+MakeMeTheFrontProcess ()
 {
   ProcessSerialNumber psn;
   OSErr err;
