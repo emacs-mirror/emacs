@@ -166,6 +166,13 @@ static int curs_y;
 
 /* Mouse movement.
 
+   Formerly, we used PointerMotionHintMask (in STANDARD_EVENT_MASK)
+   so that we would have to call XQueryPointer after each MotionNotify
+   event to ask for another such event.  However, this made mouse tracking
+   slow, and there was a bug that made it eventually stop.
+
+   Simply asking for MotionNotify all the time seems to work better.
+
    In order to avoid asking for motion events and then throwing most
    of them away or busy-polling the server for mouse positions, we ask
    the server for pointer motion hints.  This means that we get only
@@ -175,13 +182,7 @@ static int curs_y;
    get another MotionNotify event the next time the mouse moves.  This
    is at least as efficient as getting motion events when mouse
    tracking is on, and I suspect only negligibly worse when tracking
-   is off.
-
-   The silly O'Reilly & Associates Nutshell guides barely document
-   pointer motion hints at all (I think you have to infer how they
-   work from an example), and the description of XQueryPointer doesn't
-   mention that calling it causes you to get another motion hint from
-   the server, which is very important.  */
+   is off.  */
 
 /* Where the mouse was last time we reported a mouse event.  */
 static FRAME_PTR last_mouse_frame;
@@ -1837,17 +1838,6 @@ note_mouse_movement (frame, event)
       last_mouse_scroll_bar = Qnil;
 
       note_mouse_highlight (frame, -1, -1);
-
-      /* Ask for another mouse motion event.  */
-      {
-	int dummy;
-	Window dummy_window;
-
-	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		       &dummy_window, &dummy_window,
-		       &dummy, &dummy, &dummy, &dummy,
-		       (unsigned int *) &dummy);
-      }
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
@@ -1860,30 +1850,6 @@ note_mouse_movement (frame, event)
       last_mouse_scroll_bar = Qnil;
 
       note_mouse_highlight (frame, event->x, event->y);
-
-      /* Ask for another mouse motion event.  */
-      {
-	int dummy;
-	Window dummy_window;
-
-	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		       &dummy_window, &dummy_window,
-		       &dummy, &dummy, &dummy, &dummy,
-		       (unsigned int *) &dummy);
-      }
-    }
-  else
-    {
-      /* It's on the same glyph.  Call XQueryPointer so we'll get an
-	 event the next time the mouse moves and we can see if it's
-	 *still* on the same glyph.  */
-      int dummy;
-      Window dummy_window;
-
-      XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		     &dummy_window, &dummy_window,
-		     &dummy, &dummy, &dummy, &dummy,
-		     (unsigned int *) &dummy);
     }
 }
 
@@ -2258,9 +2224,7 @@ static void x_scroll_bar_report_motion ();
    Don't store anything if we don't have a valid set of values to report.
 
    This clears the mouse_moved flag, so we can wait for the next mouse
-   movement.  This also calls XQueryPointer, which will cause the
-   server to give us another MotionNotify when the mouse moves
-   again. */
+   movement.  */
 
 static void
 XTmouse_position (fp, insist, bar_window, part, x, y, time)
@@ -3001,18 +2965,6 @@ x_scroll_bar_note_movement (bar, event)
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	}
     }
-
-  /* Call XQueryPointer so we'll get an event the next time the mouse
-     moves and we can see *still* on the same position.  */
-  {
-    int dummy;
-    Window dummy_window;
-
-    XQueryPointer (event->xmotion.display, event->xmotion.window,
-		   &dummy_window, &dummy_window,
-		   &dummy, &dummy, &dummy, &dummy,
-		   (unsigned int *) &dummy);
-  }
 }
 
 /* Return information to the user about the current position of the mouse
@@ -4812,6 +4764,7 @@ x_new_font (f, fontname)
       char *full_name;
       XFontStruct *font;
       int n_fonts;
+      Atom FONT_atom;
 
       /* Try to find a character-cell font in the list.  */
 #if 0
@@ -4857,11 +4810,10 @@ x_new_font (f, fontname)
 
       /* Try to get the full name of FONT.  Put it in full_name.  */
       full_name = 0;
+      FONT_atom = XInternAtom (FRAME_X_DISPLAY (f), "FONT", False);
       for (i = 0; i < font->n_properties; i++)
 	{
-	  char *atom
-	    = XGetAtomName (FRAME_X_DISPLAY (f), font->properties[i].name);
-	  if (!strcmp (atom, "FONT"))
+	  if (FONT_atom == font->properties[i].name)
 	    {
 	      char *name = XGetAtomName (FRAME_X_DISPLAY (f),
 					 (Atom) (font->properties[i].card32));
@@ -4885,8 +4837,6 @@ x_new_font (f, fontname)
 
 	      break;
 	    }
-
-	  XFree (atom);
 	}
 
       n_fonts = FRAME_X_DISPLAY_INFO (f)->n_fonts;
