@@ -2232,16 +2232,18 @@ current line (which is the line in which point is located).  It returns
 @code{nil}.
 @end deffn
 
-@deffn Command backward-to-indentation arg
+@deffn Command backward-to-indentation &optional arg
 @comment !!SourceFile simple.el
 This command moves point backward @var{arg} lines and then to the
 first nonblank character on that line.  It returns @code{nil}.
+If @var{arg} is omitted or @code{nil}, it defaults to 1.
 @end deffn
 
-@deffn Command forward-to-indentation arg
+@deffn Command forward-to-indentation &optional arg
 @comment !!SourceFile simple.el
 This command moves point forward @var{arg} lines and then to the first
 nonblank character on that line.  It returns @code{nil}.
+If @var{arg} is omitted or @code{nil}, it defaults to 1.
 @end deffn
 
 @node Case Changes
