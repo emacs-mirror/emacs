@@ -4,26 +4,34 @@
 	listing remote directories.
 
 2002-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-hooks.el: Put back the autoloads (for compatibility with XEmacs).
-	
+
+	* ediff-hooks.el: Put back the autoloads (for XEmacs compatibility).
+
 	* ediff-init.el: Use defalias instead of fset.
-	
+
 	* ediff-util.el: Use defalias instead of fset.
-	
-	* viper-util.el (viper-chars-in-region): simplification.
-	
-	* viper.el (viper-emacs-state-mode-list): added modes.
-	
+
+	* viper-util.el (viper-chars-in-region): Simplification.
+
+	* viper.el (viper-emacs-state-mode-list): Added modes.
+
 2002-09-18  Miles Bader  <miles@gnu.org>
 
 	* diff-mode.el (diff-mode): Don't evaluate `compilation-last-buffer'
 	unless it's bound.
 
+2002-09-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* server.el (server-log): Add `client' arg.
+	(server-start): Don't bother canceling the sentinel.
+	(server-process-filter): Use replace-regexp-in-string and
+	handle the new &n quoting.  Use push.  Use server-log's new arg.
+	Don't output the C-x # message if `nowait'.
+	(server-buffer-done): Use server-log's new arg.
+
 2002-09-16  Markus Rost  <rost@math.ohio-state.edu>
 
-	* ls-lisp.el (ls-lisp-format-time-list): Fix type and provide
-	:tag's.
+	* ls-lisp.el (ls-lisp-format-time-list): Fix type and provide :tag's.
 
 2002-09-16  Richard M. Stallman  <rms@gnu.org>
 
@@ -33,8 +41,14 @@
 	* cus-edit.el (custom-variable-backup-value): New function.
 	(custom-variable-reset-backup): New function.
 	(custom-variable-menu): Add item for custom-variable-reset-backup.
-	(custom-variable-set, custom-variable-reset-saved) 
+	(custom-variable-set, custom-variable-reset-saved)
 	(custom-variable-reset-standard): Call custom-variable-backup-value.
+
+2002-09-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dired.el (dired-font-lock-keywords): Use regexp-opt.
+	(dired-move-to-filename): Better message when we fail to find the file.
+	(dired-sort-toggle): Minor optimization.
 
 2002-09-16  Juanma Barranquero  <lektu@terra.es>
 
