@@ -101,7 +101,7 @@ rejecting one login and prompting again for a username and password.")
 ; initialization on first load.
 (if telnet-mode-map
     nil
-  (setq telnet-mode-map (copy-keymap comint-mode-map))
+  (setq telnet-mode-map (nconc (make-sparse-keymap) comint-mode-map))
   (define-key telnet-mode-map "\C-m" 'telnet-send-input)
 ;  (define-key telnet-mode-map "\C-j" 'telnet-send-input)
   (define-key telnet-mode-map "\C-c\C-q" 'send-process-next-char)
