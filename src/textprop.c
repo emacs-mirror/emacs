@@ -606,7 +606,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
 
-  if (!NILP (limit))
+  if (! NILP (limit) && ! EQ (limit, Qt))
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
   i = validate_interval_range (object, &pos, &pos, soft);
@@ -614,6 +614,14 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
     return limit;
 
   next = next_interval (i);
+  /* If LIMIT is t, return start of next interval--don't
+     bother checking further intervals.  */
+  if (EQ (limit, Qt))
+    {
+      XSETFASTINT (pos, next->position - (STRINGP (object)));
+      return pos;
+    }
+
   while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
