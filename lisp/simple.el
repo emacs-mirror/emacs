@@ -712,8 +712,17 @@ then call `undo-more' one or more times to undo them."
 
 (defun shell-command (command &optional output-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
+
 If COMMAND ends in ampersand, execute it asynchronously.
-The output appears in the buffer `*Shell Command*'.
+The output appears in the buffer `*Async Shell Command*'.
+
+Otherwise, COMMAND is executed synchronously.  The output appears
+in the buffer `*Shell Command Output*'.
+If the output is one line, it is displayed in the echo area *as well*,
+but it is nonetheless available in buffer `*Shell Command Output*',
+even though that buffer is not automatically displayed.
+If there is no output, or if output is inserted in the current buffer,
+then `*Shell Command Output*' is deleted.
 
 The optional second argument OUTPUT-BUFFER, if non-nil,
 says to put the output in some other buffer.
@@ -747,7 +756,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	  (if (string-match "[ \t]*&[ \t]*$" command)
 	      ;; Command ending with ampersand means asynchronous.
 	      (let ((buffer (get-buffer-create
-			     (or output-buffer "*Shell-Command*")))
+			     (or output-buffer "*Asynch Shell Command*")))
 		    (directory default-directory)
 		    proc)
 		;; Remove the ampersand.
