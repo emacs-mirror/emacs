@@ -645,6 +645,7 @@ Just inserts the text, but uses `insert-before-markers'."
 	  (save-excursion
 	    (goto-char (process-mark proc))
 	    (insert-before-markers string)
+	    (run-hooks 'compilation-filter-hook)
 	    (set-marker (process-mark proc) (point)))))))
 
 ;; Return the cdr of compilation-old-error-list for the error containing point.
