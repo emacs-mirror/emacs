@@ -160,6 +160,21 @@ is nil, REGEXP matches only half a section.")
     (message "Parsing differences...done"))
   (setq compilation-error-list (nreverse compilation-error-list)))
 
+(defun diff-process-setup ()
+  "Set up \`compilation-exit-message-function' for \`diff'."
+  ;; Avoid frightening people with "abnormally terminated"
+  ;; if diff finds differences.
+  (set (make-local-variable 'compilation-exit-message-function)
+       (lambda (status code msg)
+	 (cond ((not (eq status 'exit))
+		(cons msg code))
+	       ((zerop code)
+		'("finished (no differences)\n" . "no differences"))
+	       ((= code 1)
+		'("finished\n" . "differences found"))
+	       (t
+		(cons msg code))))))
+
 ;;;###autoload
 (defun diff (old new &optional switches)
   "Find and display the differences between OLD and NEW files.
@@ -198,7 +213,8 @@ With prefix arg, prompt for diff switches."
 	(new-alt (file-local-copy new))
 	buf)
     (save-excursion
-	(let ((command
+	(let ((compilation-process-setup-function 'diff-process-setup)
+	      (command
 	       (mapconcat 'identity
 			  (append (list diff-command)
 				  ;; Use explicitly specified switches
@@ -221,18 +237,6 @@ With prefix arg, prompt for diff switches."
 				  "No more differences" "Diff"
 				  'diff-parse-differences))
 	  (set-buffer buf)
-	  ;; Avoid frightening people with "abnormally terminated"
-	  ;; if diff finds differences.
-	  (set (make-local-variable 'compilation-exit-message-function)
-	       (lambda (status code msg)
-		 (cond ((not (eq status 'exit))
-			(cons msg code))
-		       ((zerop code)
-			'("finished (no differences)\n" . "no differences"))
-		       ((= code 1)
-			'("finished\n" . "differences found"))
-		       (t
-			(cons msg code)))))
 	  (set (make-local-variable 'diff-old-file) old)
 	  (set (make-local-variable 'diff-new-file) new)
 	  (set (make-local-variable 'diff-old-temp-file) old-alt)
@@ -243,6 +247,10 @@ With prefix arg, prompt for diff switches."
 			       (delete-file diff-old-temp-file))
 			   (if diff-new-temp-file
 			       (delete-file diff-new-temp-file)))))
+	  ;; When async processes aren't available, the compilation finish
+	  ;; function doesn't get chance to run.  Invoke it by hand.
+	  (or (fboundp 'start-process)
+	      (funcall compilation-finish-function nil nil))
 	  buf))))
 
 ;;;###autoload
