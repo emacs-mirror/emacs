@@ -1,3 +1,11 @@
+2000-05-12  Dave Love  <fx@gnu.org>
+
+	* calendar/todo-mode.el: Remove some compatibility stuff and CL
+	dependence.  Use line-{beginning,end}-position, not
+	point-at{b,e}ol.  Some doc fixes.
+	(todo-position): New function.  Fix callers of position to use it.
+	(todo-save-top-priorities, todo-print): Use with-temp-buffer.
+
 2000-05-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* time.el (display-time-mail-icon): Use `:ascent center'.
