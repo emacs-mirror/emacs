@@ -358,9 +358,7 @@ Instead, these commands are available:
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   (make-local-variable 'rmail-keywords)
   ;; this gets generated as needed
-  (setq rmail-keywords nil)
-  (make-local-variable 'save-buffers-skip)
-  (setq save-buffers-skip t))
+  (setq rmail-keywords nil))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
