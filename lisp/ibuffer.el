@@ -330,9 +330,11 @@ directory, like `default-directory'."
 
 (defvar ibuffer-mode-map nil)
 (defvar ibuffer-mode-operate-map nil)
+(defvar ibuffer-mode-groups-popup nil)
 (unless ibuffer-mode-map
   (let ((map (make-sparse-keymap))
-	(operate-map (make-sparse-keymap "Operate")))
+	(operate-map (make-sparse-keymap "Operate"))
+	(groups-map (make-sparse-keymap "Filter Groups")))
     (define-key map (kbd "0") 'digit-argument)
     (define-key map (kbd "1") 'digit-argument)
     (define-key map (kbd "2") 'digit-argument)
@@ -552,46 +554,54 @@ directory, like `default-directory'."
       '(menu-item "Delete permanently saved filters..."
 		  ibuffer-delete-saved-filters))
 
-    (define-key-after map [menu-bar view filter-groups]
-      (cons "Filter Groups" (make-sparse-keymap "Filter Groups")))
+    ;; Filter groups
 
-    (define-key-after map [menu-bar view filter-groups filters-to-filter-group]
+    (define-key-after groups-map [filters-to-filter-group]
       '(menu-item "Create filter group from current filters..."
 		  ibuffer-filters-to-filter-group))
-    (define-key-after map [menu-bar view filter-groups forward-filter-group]
+    (define-key-after groups-map [forward-filter-group]
       '(menu-item "Move point to the next filter group"
 		  ibuffer-forward-filter-group))    
-    (define-key-after map [menu-bar view filter-groups backward-filter-group]
+    (define-key-after groups-map [backward-filter-group]
       '(menu-item "Move point to the previous filter group"
 		  ibuffer-backward-filter-group))
-    (define-key-after map [menu-bar view filter-groups jump-to-filter-group]
+    (define-key-after groups-map [jump-to-filter-group]
       '(menu-item "Move point to a specific filter group..."
 		  ibuffer-jump-to-filter-group))
-    (define-key-after map [menu-bar view filter-groups pop-filter-group]
+    (define-key-after groups-map [kill-filter-group]
+      '(menu-item "Kill filter group named..."
+		  ibuffer-kill-filter-group
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
+    (define-key-after groups-map [yank-filter-group]
+      '(menu-item "Yank last killed filter group before..."
+		  ibuffer-yank-filter-group
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+    (define-key-after groups-map [pop-filter-group]
       '(menu-item "Remove top filter group"
-		  ibuffer-pop-filter-group))
-    (define-key-after map [menu-bar view filter-groups clear-filter-groups]
+		  ibuffer-pop-filter-group
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+    (define-key-after groups-map [clear-filter-groups]
       '(menu-item "Remove all filter groups"
-		  ibuffer-clear-filter-groups))    
-    (define-key-after map [menu-bar view filter-groups save-filter-groups]
+		  ibuffer-clear-filter-groups
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+    (define-key-after groups-map [save-filter-groups]
       '(menu-item "Save current filter groups permanently..."
 		  ibuffer-save-filter-groups
 		  :help "Use a mnemnonic name to store current filter groups"))
-    (define-key-after map [menu-bar view filter-groups switch-to-saved-filter-groups]
+    (define-key-after groups-map [switch-to-saved-filter-groups]
       '(menu-item "Restore permanently saved filters..."
 		  ibuffer-switch-to-saved-filter-groups
 		  :help "Replace current filters with a saved stack"))    
-    (define-key-after map [menu-bar view filter-groups delete-saved-filter-groups]
+    (define-key-after groups-map [delete-saved-filter-groups]
       '(menu-item "Delete permanently saved filter groups..."
 		  ibuffer-delete-saved-filter-groups))
-    (define-key-after map [menu-bar view filter-groups set-filter-groups-by-mode]
+    (define-key-after groups-map [set-filter-groups-by-mode]
       '(menu-item "Set current filter groups to filter by mode"
 		  ibuffer-set-filter-groups-by-mode))
 
-;; FIXME add menu entries    
-;;    (define-key map (kbd "C-k") 'ibuffer-kill-line)
-;;    (define-key map (kbd "C-y") 'ibuffer-yank)
-    
+    (define-key-after map [menu-bar view filter-groups]
+      (cons "Filter Groups" groups-map))
+
     (define-key-after map [menu-bar view dashes2]
       '("--"))
     (define-key-after map [menu-bar view diff-with-file]
@@ -709,7 +719,8 @@ directory, like `default-directory'."
 		  :help "Evaluate a Lisp form in each marked buffer while viewing it"))
     
     (setq ibuffer-mode-map map
-	  ibuffer-mode-operate-map operate-map)))
+	  ibuffer-mode-operate-map operate-map
+	  ibuffer-mode-groups-popup groups-map)))
  
 (defvar ibuffer-name-map nil)
 (unless ibuffer-name-map
@@ -735,12 +746,8 @@ directory, like `default-directory'."
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-toggle-filter-group)
     (define-key map (kbd "RET") 'ibuffer-toggle-filter-group)
+    (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
     (setq ibuffer-mode-filter-group-map map)))
-
-;; quiet the byte-compiler
-(defvar ibuffer-mode-operate-menu nil)
-(defvar ibuffer-mode-mark-menu nil)
-(defvar ibuffer-mode-view-menu nil)
 
 (defvar ibuffer-mode-hooks nil)
 
@@ -814,7 +821,7 @@ width and the longest string in LIST."
 				default-directory))))
      (list (read-file-name "Find file: " default-directory)
 	   current-prefix-arg)))
-  (find-file file wildcards))
+  (find-file file (or wildcards (interactive-p))))
 
 (defun ibuffer-mouse-visit-buffer (event)
   "Visit the buffer chosen with the mouse."
@@ -830,16 +837,19 @@ width and the longest string in LIST."
   (let ((origline (count-lines (point-min) (point))))
     (unwind-protect
 	(progn
-	  (setq buffer-read-only nil)
-	  (ibuffer-save-marks
-	   ;; hm.  we could probably do this in a better fashion
-	   (ibuffer-unmark-all ?\r)
-	   (setq buffer-read-only nil)
-	   (mouse-set-point event)
-	   (ibuffer-set-mark ibuffer-marked-char)
-	   (setq buffer-read-only nil)
-	   (save-excursion
-	     (popup-menu ibuffer-mode-operate-map))))
+	  (mouse-set-point event)
+	  (if (get-text-property (point) 'ibuffer-filter-group-name)
+	      (save-excursion 
+		(popup-menu ibuffer-mode-groups-popup))
+	    (setq buffer-read-only nil)
+	    (ibuffer-save-marks
+	      ;; hm.  we could probably do this in a better fashion
+	      (ibuffer-unmark-all ?\r)
+	      (setq buffer-read-only nil)
+	      (ibuffer-set-mark ibuffer-marked-char)
+	      (setq buffer-read-only nil)
+	      (save-excursion
+		(popup-menu ibuffer-mode-operate-map)))))
       (progn
 	(setq buffer-read-only t)
 	(goto-line (1+ origline))))))
