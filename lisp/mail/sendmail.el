@@ -693,13 +693,13 @@ Prefix arg means don't delete this window."
   (mail-send)
   (mail-bury arg))
 
-(defun mail-dont-send (arg)
+(defun mail-dont-send (&optional arg)
   "Don't send the message you have been editing.
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-bury arg))
 
-(defun mail-bury (arg)
+(defun mail-bury (&optional arg)
   "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
