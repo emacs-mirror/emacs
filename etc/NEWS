@@ -2520,7 +2520,11 @@ connection using base64 or uu encoding) and the `out-of-band' methods
 `rsync' to do the copying).
 
 Shell connections can be acquired via `rsh', `ssh', `telnet' and also
-`su' and `sudo'.
+`su' and `sudo'.  Ange-FTP is still supported via the `ftp' method.
+
+If you want to disable Tramp you should set
+
+  (setq tramp-default-method "ftp")
 
 ---
 ** The new global minor mode `file-name-shadow-mode' modifies the way

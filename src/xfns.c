@@ -4275,6 +4275,14 @@ static Lisp_Object Vhourglass_delay;
 static void show_hourglass P_ ((struct atimer *));
 static void hide_hourglass P_ ((void));
 
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_atimer != NULL;
+}
+
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 

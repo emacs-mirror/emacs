@@ -1350,6 +1350,11 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
     cancel_hourglass ();
 #endif
 
+  /* Unblock input if we enter with input blocked.  This may happen if
+     redisplay traps e.g. during tool-bar update with input blocked.  */
+  while (INPUT_BLOCKED_P)
+    UNBLOCK_INPUT;
+
   return Fthrow (Qtop_level, Qnil);
 }
 
@@ -9709,6 +9714,15 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   Lisp_Object saved_keys, saved_last_point_position_buffer;
   Lisp_Object bindings, value;
   struct gcpro gcpro1, gcpro2, gcpro3;
+#ifdef HAVE_X_WINDOWS
+  /* The call to Fcompleting_read wil start and cancel the hourglass,
+     but if the hourglass was already scheduled, this means that no
+     hourglass will be shown for the actual M-x command itself.
+     So we restart it if it is already scheduled.  Note that checking
+     hourglass_shown_p is not enough,  normally the hourglass is not shown,
+     just scheduled to be shown.  */
+  int hstarted = hourglass_started ();
+#endif
 
   saved_keys = Fvector (this_command_key_count,
 			XVECTOR (this_command_keys)->contents);
@@ -9739,6 +9753,10 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 			       Vobarray, Qcommandp,
 			       Qt, Qnil, Qextended_command_history, Qnil,
 			       Qnil);
+
+#ifdef HAVE_X_WINDOWS
+  if (hstarted) start_hourglass ();
+#endif
 
   if (STRINGP (function) && SCHARS (function) == 0)
     error ("No command name given");

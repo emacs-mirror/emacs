@@ -351,7 +351,7 @@ detailed description of this mode.
 				  ,(nth 1 var) nil))))
 	    (setq gdb-var-changed t)))
       (if (re-search-forward "Undefined command" nil t)
-	  (message "Watching expressions requires gdb 6.0 onwards")
+	  (message-box "Watching expressions requires gdb 6.0 onwards")
 	(message "No symbol %s in current context." expr)))))
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
@@ -2119,13 +2119,8 @@ Put in buffer and place breakpoint icon."
 	    (push (cons bptno (match-string 0)) gdb-location-list))
       (gdb-resync)
       (push (cons bptno "File not found") gdb-location-list)
-      (if (eq window-system 'x)
-	  (x-popup-dialog
-	   t '("Cannot find source file for breakpoint location.\n\
-Add directory to search path for source files using the GDB command, dir."
-	       ("Ok" . nil)))
-	(message "Cannot find source file for breakpoint location.\n\
-Add directory to search path for source files using the GDB command, dir."))
+      (message-box "Cannot find source file for breakpoint location.\n\
+Add directory to search path for source files using the GDB command, dir.")
       (throw 'file-not-found nil))
     (with-current-buffer
 	(find-file-noselect (match-string 0))

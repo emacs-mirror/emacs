@@ -1,3 +1,80 @@
+2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Properly handle non-trivial lighters.
+	Don't ignore minor modes that are not listed in minor-mode-list.
+
+	* tooltip.el (tooltip-mode): Don't complain that you can't turn the
+	feature ON when the user requests to turn it OFF.
+
+2005-03-10  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-entry-code): Delete it.
+	(implement-debug-on-entry): New function to replace debug-entry-code.
+	(debug-on-entry-1): Use implement-debug-on-entry.  Delete the
+	second argument as the 2005-03-07 change makes it obsolete.
+	(debug-on-entry, cancel-debug-on-entry): Update call to
+	debug-on-entry-1.
+	(debug, debugger-setup-buffer): Comment update.
+	(debugger-frame-number): Update to work with implement-debug-on-entry.
+
+2005-03-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (math-ms-args): Declare it.
+	(calc-embedded-eval-expr, calc-embedded-eval-get-var): Use variable
+	math-ms-args.
+	(calc-embedded-subst): Use math-multi-subst-rec to substitute
+	variables.
+
+2005-03-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-get-location):
+	Use message-box.
+
+	* tooltip.el (tooltip-mode): Use define-minor-mode and simplify.
+	(tooltip-activate-mouse-motions-if-enabled): Use dolist.
+	(tooltip-gud-tips): Simplify.
+	(tooltip-gud-tips-p): Remove superflouous :set.
+	(tooltip-gud-modes): Add fortran-mode.
+	(gdb-tooltip-print): Remove newline for tooltip-use-echo-area.
+
+	* bindings.el (mode-line-mode-menu): Add tooltip-mode to mode-line.
+
+2005-03-09  Kim F. Storm  <storm@cua.dk>
+
+	* play/animate.el (animate-place-char): Use forward-line instead
+	of next-line to improve performance.
+
+2005-03-09  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-default-browser): Doc fix.
+
+2005-03-09  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-variable-ref)
+	(byte-compile-obsolete): Change " since VER" to " (as of Emacs VER)".
+
+2005-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-1.el: Set case and syntax for 255 only if
+	set-case-syntax-set-multibyte is nil.
+
+	* textmodes/ispell.el (ispell-insert-word): New function.
+	(ispell-word): Use ispell-insert-word to insert a new word.
+	(ispell-process-line): Likewise.
+	(ispell-complete-word): Likewise.
+
+2005-03-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Preserve point.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+	(calendar-week-start-day): Move after definition of
+	redraw-calendar.  Delete buffer test, since redraw-calendar has
+	that now.
+
+	* calendar/diary-lib.el (mark-diary-entries): Only call
+	redraw-calendar in the first of any recursive calls.
+	Reported by Alan Shutko <ats@acm.org>.
+
 2005-03-08  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/sgml-mode.el (sgml-tag, html-tag-alist)
@@ -249,8 +326,7 @@
 	that debug-entry-code can be safely removed from a function while
 	this code is being evaluated.  Revert the 2005-02-27 change as the
 	new implementation no longer requires it.  Make sure that a
-	function body containing just a string is not mistaken for a
-	docstring.
+	function body containing just a string is not mistaken for a docstring.
 	(debug): Skip one more frame in case of debug on entry.
 	(debugger-setup-buffer): Delete one more frame line in case of
 	debug on entry.
