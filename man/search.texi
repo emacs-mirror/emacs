@@ -432,16 +432,16 @@ are non-greedy variants of the operators above.  The normal operators
 as they can, while if you append a @samp{?} after them, it makes them
 non-greedy: they will match as little as possible.
 
-@item \@{n,m\@}
+@item \@{@var{n},@var{m}\@}
 is another postfix operator that specifies an interval of iteration:
-the preceding regular expression must match between @samp{n} and
-@samp{m} times.  If @samp{m} is omitted, then there is no upper bound
-and if @samp{,m} is omitted, then the regular expression must match
-exactly @samp{n} times.				@*
+the preceding regular expression must match between @var{n} and
+@var{m} times.  If @var{m} is omitted, then there is no upper bound
+and if @var{,m} is omitted, then the regular expression must match
+exactly @var{n} times.				@*
 @samp{\@{0,1\@}} is equivalent to @samp{?}.	@*
 @samp{\@{0,\@}} is equivalent to @samp{*}.	@*
 @samp{\@{1,\@}} is equivalent to @samp{+}.	@*
-@samp{\@{n\@}} is equivalent to @samp{\@{n,n\@}}.
+@samp{\@{@var{n}\@}} is equivalent to @samp{\@{@var{n},@var{n}\@}}.
 
 @item [ @dots{} ]
 is a @dfn{character set}, which begins with @samp{[} and is terminated
@@ -560,7 +560,15 @@ To record a matched substring for future reference.
 This last application is not a consequence of the idea of a
 parenthetical grouping; it is a separate feature that is assigned as a
 second meaning to the same @samp{\( @dots{} \)} construct.  In practice
-there is no conflict between the two meanings.
+there is almost no conflict between the two meanings.
+
+@item \(?: @dots{} \)
+is another grouping construct (often called ``shy'') that serves the same
+first two purposes, but not the third:
+it cannot be referred to later on by number.  This is only useful
+for mechanically constructed regular expressions where grouping
+constructs need to be introduced implicitly and hence risk changing the
+numbering of subsequent groups.
 
 @item \@var{d}
 matches the same text that matched the @var{d}th occurrence of a

@@ -1087,7 +1087,7 @@ what BODY returns.
 
 +++
 ** Regular expressions now support intervals \{n,m\} as well as
-Perl's non-greedy *? +? and ?? operators.
+Perl's shy-groups \(?:...\) and non-greedy *? +? and ?? operators.
 
 +++
 ** The optional argument BUFFER of function file-local-copy has been
