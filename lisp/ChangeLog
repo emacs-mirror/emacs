@@ -1,3 +1,12 @@
+2002-02-25  Kim F. Storm  <no-spam@cua.dk>
+
+	* comint.el (comint-replace-by-expanded-filename): Do nothing if
+	comint-match-partial-filename returns nil.
+
+	* shell.el (shell-pcomplete-setup-done): New variable.
+	(shell-pcomplete): Use it instead of shell-pcomplete-setup-p.
+	(shell-pcomplete-reverse): Ditto.
+
 2002-02-25  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* ps-print.el (ps-print-printer): Added `lpr' customize group
