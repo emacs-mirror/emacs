@@ -11622,6 +11622,9 @@ try_window_id (w)
 	  break;
 
       w->window_end_vpos = make_number (vpos);
+      row = MATRIX_ROW (w->desired_matrix, vpos);
+      w->window_end_pos = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
+      w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
     }
   else
     abort ();
