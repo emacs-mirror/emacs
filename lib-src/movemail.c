@@ -62,6 +62,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <errno.h>
 #include <../src/syswait.h>
+#include <getopt.h>
 #ifdef MAIL_USE_POP
 #include "pop.h"
 #endif
@@ -167,6 +168,7 @@ main (argc, argv)
   int indesc, outdesc;
   int nread;
   WAITTYPE status;
+  int c, preserve_mail = 0;
 
 #ifndef MAIL_USE_SYSTEM_LOCK
   struct stat st;
@@ -183,14 +185,37 @@ main (argc, argv)
 
   delete_lockname = 0;
 
-  if (argc < 3)
+  while ((c = getopt (argc, argv, "p")) != EOF)
     {
-      fprintf (stderr, "Usage: movemail inbox destfile [POP-password]\n");
+      switch (c) {
+      case 'p':
+	preserve_mail++;
+	break;
+      default:
+	exit(1);
+      }
+    }
+
+  if (
+#ifdef MAIL_USE_POP
+      (argc - optind < 2) || (argc - optind > 3)
+#else
+      (argc - optind != 2)
+#endif
+      )
+    {
+      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
+#ifdef MAIL_USE_POP
+	       " [POP-password]"
+#else
+	       ""
+#endif
+	       );
       exit (1);
     }
 
-  inname = argv[1];
-  outname = argv[2];
+  inname = argv[optind];
+  outname = argv[optind+1];
 
 #ifdef MAIL_USE_MMDF
   mmdf_init (argv[0]);
@@ -223,7 +248,8 @@ main (argc, argv)
     {
       int status;
 
-      status = popmail (inname + 3, outname, argc > 3 ? argv[3] : NULL);
+      status = popmail (inname + 3, outname, preserve_mail,
+			(argc - optind == 3) ? argv[optind+2] : NULL);
       exit (status);
     }
 
@@ -448,11 +474,15 @@ main (argc, argv)
 	pfatal_and_delete (outname);
 
 #ifdef MAIL_USE_SYSTEM_LOCK
+      if (! preserve_mail)
+	{
 #if defined (STRIDE) || defined (XENIX) || defined (WINDOWSNT)
-      /* Stride, xenix have file locking, but no ftruncate.  This mess will do. */
-      close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
+	  /* Stride, xenix have file locking, but no ftruncate.
+	     This mess will do. */
+	  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
 #else
-      ftruncate (indesc, 0L);
+	  ftruncate (indesc, 0L);
+	}
 #endif /* STRIDE or XENIX */
 #endif /* MAIL_USE_SYSTEM_LOCK */
 
@@ -463,14 +493,17 @@ main (argc, argv)
 #endif
 
 #ifndef MAIL_USE_SYSTEM_LOCK
-      /* Delete the input file; if we can't, at least get rid of its
-	 contents.  */
+      if (! preserve_mail)
+	{
+	  /* Delete the input file; if we can't, at least get rid of its
+	     contents.  */
 #ifdef MAIL_UNLINK_SPOOL
-      /* This is generally bad to do, because it destroys the permissions
-	 that were set on the file.  Better to just empty the file.  */
-      if (unlink (inname) < 0 && errno != ENOENT)
+	  /* This is generally bad to do, because it destroys the permissions
+	     that were set on the file.  Better to just empty the file.  */
+	  if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
-	creat (inname, 0600);
+	    creat (inname, 0600);
+	}
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
 #ifdef MAIL_USE_MAILLOCK
@@ -644,9 +677,10 @@ char ibuffer[BUFSIZ];
 char obuffer[BUFSIZ];
 char Errmsg[80];
 
-popmail (user, outfile, password)
+popmail (user, outfile, preserve, password)
      char *user;
      char *outfile;
+     int preserve;
      char *password;
 {
   int nmsgs, nbytes;
@@ -735,15 +769,16 @@ popmail (user, outfile, password)
       return (1);
     }
 
-  for (i = 1; i <= nmsgs; i++)
-    {
-      if (pop_delete (server, i))
-	{
-	  error (pop_error);
-	  pop_close (server);
-	  return (1);
-	}
-    }
+  if (! preserve)
+    for (i = 1; i <= nmsgs; i++)
+      {
+	if (pop_delete (server, i))
+	  {
+	    error (pop_error);
+	    pop_close (server);
+	    return (1);
+	  }
+      }
 
   if (pop_quit (server))
     {
