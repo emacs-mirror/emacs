@@ -183,6 +183,9 @@ struct x_display_info
   /* The root window of this screen.  */
   Window root_window;
 
+  /* Client leader window.  */
+  Window client_leader_window;
+
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
@@ -289,6 +292,7 @@ struct x_display_info
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
+  Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
 
   /* EditRes protocol */
   Atom Xatom_editres;
@@ -1029,7 +1033,7 @@ extern void widget_store_internal_border P_ ((Widget));
 
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM
-extern void x_session_initialize P_ ((void));
+extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
 extern int x_session_check_input P_ ((struct input_event *bufp,
                                       int *numchars));
 extern int x_session_have_connection P_ ((void));

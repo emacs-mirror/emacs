@@ -3526,6 +3526,19 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	;
     }
 
+  /* Set the WM leader property.  GTK does this itself, so this is not
+     needed when using GTK.  */
+  if (dpyinfo->client_leader_window != 0)
+    {
+      BLOCK_INPUT;
+      XChangeProperty (FRAME_X_DISPLAY (f),
+                       FRAME_OUTER_WINDOW (f),
+                       dpyinfo->Xatom_wm_client_leader,
+                       XA_WINDOW, 32, PropModeReplace,
+                       (char *) &dpyinfo->client_leader_window, 1);
+      UNBLOCK_INPUT;
+    }
+
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window

@@ -1,3 +1,19 @@
+2003-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): New fields: client_leader_window
+	and Xatom_wm_client_leader.
+
+	* xterm.c (x_initialize): Move call to x_session_initialize to ...
+	(x_term_init): ... here.  Initialize client_leader fields in dpyinfo.
+
+	* xsmfns.c (create_client_leader_window): New function.
+	(x_session_initialize): Call create_client_leader_window, take
+	dpyinfo as argument.
+
+	* xfns.c (Fx_create_frame): Set property WM_CLIENT_LEADER.
+
+	* Makefile.in (xsmfns.o): Add more depenedencies.
+
 2003-08-21  Dave Love  <fx@gnu.org>
 
 	* m/iris4d.h: Use _MIPS_SZLONG, not _LP64.

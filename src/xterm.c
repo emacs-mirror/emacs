@@ -10136,7 +10136,7 @@ x_term_init (display_name, xrm_option, resource_name)
   if (!x_initialized)
     {
       x_initialize ();
-      x_initialized = 1;
+      ++x_initialized;
     }
 
 #ifdef USE_GTK
@@ -10151,8 +10151,6 @@ x_term_init (display_name, xrm_option, resource_name)
        than one, but this remains to be implemented.  */
     if (x_initialized > 1)
       return 0;
-
-    x_initialized++;
 
     for (argc = 0; argc < NUM_ARGV; ++argc)
       argv[argc] = 0;
@@ -10343,6 +10341,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->height = HeightOfScreen (dpyinfo->screen);
   dpyinfo->width = WidthOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
+  dpyinfo->client_leader_window = 0;
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->icon_bitmap_id = -1;
@@ -10412,6 +10411,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "WM_CONFIGURE_DENIED", False);
   dpyinfo->Xatom_wm_window_moved
     = XInternAtom (dpyinfo->display, "WM_MOVED", False);
+  dpyinfo->Xatom_wm_client_leader
+    = XInternAtom (dpyinfo->display, "WM_CLIENT_LEADER", False);
   dpyinfo->Xatom_editres
     = XInternAtom (dpyinfo->display, "Editres", False);
   dpyinfo->Xatom_CLIPBOARD
@@ -10565,6 +10566,12 @@ x_term_init (display_name, xrm_option, resource_name)
       use_xim = 1;
 #endif
   }
+
+#ifdef HAVE_X_SM
+  /* Only do this for the first display.  */
+  if (x_initialized == 1)
+    x_session_initialize (dpyinfo);
+#endif
 
   UNBLOCK_INPUT;
 
@@ -10779,10 +10786,6 @@ x_initialize ()
 #endif /* SIGWINCH */
 
   signal (SIGPIPE, x_connection_signal);
-
-#ifdef HAVE_X_SM
-  x_session_initialize ();
-#endif
 }
 
 
