@@ -1,3 +1,12 @@
+2003-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pixel_to_glyph_coords, glyph_to_pixel_coords):
+	Add generic versions here.  Remove system specific versions
+	defined elsewhere.
+
+	* dispextern.h (pixel_to_glyph_coords, glyph_to_pixel_coords):
+	Add prototypes.
+
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_glyph_string_clip_rect): Use
