@@ -1,3 +1,9 @@
+2004-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* delim-col.el: Doc fix.
+
+	* printing.el: Doc fix.  New doc section (Tips).
+
 2004-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* type-break.el (type-break-emacs-variant): Remove.
