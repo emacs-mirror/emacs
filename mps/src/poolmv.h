@@ -1,14 +1,14 @@
-/*  ==== MANUAL VARIABLE POOLS ====
+/* .impl.h.poolmv: MANUAL VARIABLE POOL
  *
- *  $HopeName: MMsrc!poolmv.h(MMdevel_restr2.2) $
+ * $HopeName: MMsrc!poolmv.h(trunk.6) $
+ * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
- *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
+ * .purpose: This is the interface to the manual-variable pool class.
  *
- *  This is the interface to the manual-variable pool class.
- *  Manual-variable pools manage variably-sized blocks of memory in a
+ * .mv: Manual-variable pools manage variably-sized blocks of memory in a
  *  flexible manner.  They have higher overheads than a fixed-size pool.
  *
- *  This class adds the following arguments to PoolCreate:
+ * .init: This class adds the following arguments to PoolCreate:
  *
  *    Size extendBy
  *
@@ -32,10 +32,6 @@
  *  an accurate estimate will improve the efficiency of the pool.  maxSize
  *  must not be less than extendBy.
  *
- *  The size parameter to PoolAllocP can be any non-zero size.
- *
- *  PoolAllocH is not supported by this class.
- *
  *  Notes
  *   2. The documentation could suggest a segment size according to the
  *      distribution of allocation size requests.  richard 1994-11-08
@@ -44,13 +40,17 @@
 #ifndef poolmv_h
 #define poolmv_h
 
-#include "mpm.h"
+
+#include "mpmtypes.h"
 
 typedef struct MVStruct *MV;
 
 extern PoolClass PoolClassMV(void);
 
 extern Bool MVCheck(MV mv);
+
+#define MVPool(mv) (&(mv)->poolStruct)
 extern Pool (MVPool)(MV mv);
+
 
 #endif /* poolmv_h */
