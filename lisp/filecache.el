@@ -345,13 +345,11 @@ Find is run in DIRECTORY."
     (call-process file-cache-find-command nil
 		  (get-buffer file-cache-buffer) nil
 		  dir "-name"
-                  (cond
-                   (file-cache-find-command-posix-flag
-                    "\\*")
-                   ((eq system-type 'windows-nt)
-                    "'*'")
-                   (t
-                    "*"))
+		  (if (memq system-type '(windows-nt cygwin))
+		      (if file-cache-find-command-posix-flag
+			  "\\*"
+			"'*'")
+		    "*")
 		  "-print")
     (file-cache-add-from-file-cache-buffer)))
 
