@@ -32,7 +32,8 @@
 (defvar inferior-octave-program "octave"
   "*Program invoked by `inferior-octave'.")
 
-(defvar inferior-octave-prompt "\\(^octave\\(:[0-9]+\\)?\\|^\\)>+ "
+(defvar inferior-octave-prompt
+  "\\(^octave\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
   "*Regexp to match prompts for the inferior Octave process.")
 
 (defvar inferior-octave-startup-file nil
@@ -40,7 +41,7 @@
 The contents of this file are sent to the inferior Octave process on
 startup.")
 
-(defvar inferior-octave-startup-args nil
+(defvar inferior-octave-startup-args '("-i")
   "*List of command line arguments for the inferior Octave process.
 For example, for suppressing the startup message and using `traditional'
 mode, set this to (\"-q\" \"--traditional\").")
