@@ -35,10 +35,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_TERMIOS
-#include <termios.h>
-#endif
-
 #ifdef APOLLO
 #ifndef APOLLO_SR10
 #include <default_acl.h>
@@ -134,7 +130,7 @@ fatal_error_signal (sig)
     {
       fatal_error_in_progress = 1;
 
-      shut_down_emacs (sig);
+      shut_down_emacs (sig, 0);
     }
 
 #ifdef VMS
@@ -638,11 +634,6 @@ all of which are called before Emacs is actually killed.")
   if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
-#ifdef HAVE_X_WINDOWS
-  if (!noninteractive && EQ (Vwindow_system, intern ("x")))
-    Fx_close_current_connection ();
-#endif /* HAVE_X_WINDOWS */
-
   UNGCPRO;
 
 /* Is it really necessary to do this deassign
@@ -652,7 +643,7 @@ all of which are called before Emacs is actually killed.")
  #endif  */
   stuff_buffered_input (arg);
 
-  shut_down_emacs (0);
+  shut_down_emacs (0, 0);
 
   exit ((XTYPE (arg) == Lisp_Int) ? XINT (arg)
 #ifdef VMS
@@ -676,8 +667,8 @@ all of which are called before Emacs is actually killed.")
    This is called by fatal signal handlers, X protocol error handlers,
    and Fkill_emacs.  */
 void
-shut_down_emacs (sig)
-     int sig;
+shut_down_emacs (sig, no_x)
+     int sig, no_x;
 {
   /* If we are controlling the terminal, reset terminal modes */
 #ifdef EMACS_HAVE_TTY_PGRP
@@ -707,6 +698,11 @@ shut_down_emacs (sig)
 #ifdef VMS
   kill_vms_processes ();
 #endif
+
+#ifdef HAVE_X_WINDOWS
+  if (!noninteractive && EQ (Vwindow_system, intern ("x")) && ! no_x)
+    Fx_close_current_connection ();
+#endif /* HAVE_X_WINDOWS */
 
 #ifdef SIGIO
   /* There is a tendency for a SIGIO signal to arrive within exit,
