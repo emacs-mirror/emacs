@@ -1,3 +1,8 @@
+2004-10-28  Kim F. Storm  <storm@cua.dk>
+
+	* imenu.el (imenu-scanning-message): Remove.
+	(imenu-progress-message): Make it a no-op.
+
 2004-10-28  John Paul Wallington  <jpw@gnu.org>
 
 	* files.el (set-auto-mode): Call `throw' correctly.
