@@ -840,6 +840,9 @@ selected frame."
 	(if (listp font)
 	    (let ((bold (memq 'bold font))
 		  (italic (memq 'italic font)))
+	      ;; Ignore any previous (string-valued) font, it might not even
+	      ;; be the right size anymore.
+	      (set-face-font face nil frame)
 	      (cond ((and bold italic)
 		     (make-face-bold-italic face frame t))
 		    (bold
