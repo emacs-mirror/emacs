@@ -33,20 +33,14 @@
 
 ;;; Code:
 
-;; Is this XEmacs-land? Located here since needed by mh-customize.el.
-(defvar mh-xemacs-flag (featurep 'xemacs)
-  "Non-nil means the current Emacs is XEmacs.")
+(defvar recursive-load-depth-limit)
+(eval-and-compile
+  (if (and (boundp 'recursive-load-depth-limit)
+           (integerp recursive-load-depth-limit)
+           (> 50 recursive-load-depth-limit))
+      (setq recursive-load-depth-limit 50)))
 
-;; The Emacs coding conventions require that the cl package not be required at
-;; runtime. However, the cl package in versions of Emacs prior to 21.4 left cl
-;; routines in their macro expansions. Use mh-require-cl to provide the cl
-;; routines in the best way possible.
-(eval-when-compile (require 'cl))
-(defmacro mh-require-cl ()
-  (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
-      `(require 'cl)
-    `(eval-when-compile (require 'cl))))
-
+(eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'gnus-util)
 (require 'font-lock)
@@ -58,6 +52,7 @@
 
 (load "mm-decode" t t)                  ; Non-fatal dependency
 (load "mm-view" t t)                    ; Non-fatal dependency
+(load "vcard" t t)                      ; Non-fatal dependency
 (load "hl-line" t t)                    ; Non-fatal dependency
 (load "executable" t t)                 ; Non-fatal dependency on
                                         ; executable-find
@@ -69,42 +64,11 @@
 
 ;;; Autoloads
 (autoload 'gnus-article-highlight-citation "gnus-cite")
+(autoload 'message-fetch-field "message")
+(autoload 'message-tokenize-header "message")
 (require 'sendmail)
-(autoload 'Info-goto-node "info")
 (unless (fboundp 'make-hash-table)
   (autoload 'make-hash-table "cl"))
-
-;;; Set for local environment:
-;;; mh-progs and mh-lib used to be set in paths.el, which tried to
-;;; figure out at build time which of several possible directories MH
-;;; was installed into.  But if you installed MH after building Emacs,
-;;; this would almost certainly be wrong, so now we do it at run time.
-
-(defvar mh-progs nil
-  "Directory containing MH commands, such as inc, repl, and rmm.")
-
-(defvar mh-lib nil
-  "Directory containing the MH library.
-This directory contains, among other things, the components file.")
-
-(defvar mh-lib-progs nil
-  "Directory containing MH helper programs.
-This directory contains, among other things, the mhl program.")
-
-(defvar mh-nmh-flag nil
-  "Non-nil means nmh is installed on this system instead of MH.")
-
-(defvar mh-flists-present-flag nil
-  "Non-nil means that we have `flists'.")
-
-;;;###autoload
-(put 'mh-progs 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib-progs 'risky-local-variable t)
-;;;###autoload
-(put 'mh-nmh-flag 'risky-local-variable t)
 
 ;;; CL Replacements
 (defun mh-search-from-end (char string)
@@ -115,92 +79,52 @@ of `search' in the CL package."
         when (equal (aref string index) char) return index
         finally return nil))
 
-;;; Macros to generate correct code for different emacs variants
-
-(defmacro mh-do-in-gnu-emacs (&rest body)
-  "Execute BODY if in GNU Emacs."
-  (unless mh-xemacs-flag `(progn ,@body)))
-(put 'mh-do-in-gnu-emacs 'lisp-indent-hook 'defun)
-
-(defmacro mh-do-in-xemacs (&rest body)
-  "Execute BODY if in GNU Emacs."
-  (when mh-xemacs-flag `(progn ,@body)))
-(put 'mh-do-in-xemacs 'lisp-indent-hook 'defun)
-
-(defmacro mh-funcall-if-exists (function &rest args)
-  "Call FUNCTION with ARGS as parameters if it exists."
-  (if (fboundp function)
-      `(funcall ',function ,@args)))
-
-(defmacro mh-make-local-hook (hook)
-  "Make HOOK local if needed.
-XEmacs and versions of GNU Emacs before 21.1 require `make-local-hook' to be
-called."
-  (when (and (fboundp 'make-local-hook)
-             (not (get 'make-local-hook 'byte-obsolete-info)))
-    `(make-local-hook ,hook)))
-
-(defmacro mh-mark-active-p (check-transient-mark-mode-flag)
-  "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
-In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
-variable `transient-mark-mode' is active."
-  (cond (mh-xemacs-flag                 ;XEmacs
-         `(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
-        ((not check-transient-mark-mode-flag) ;GNU Emacs
-         `(and (boundp 'mark-active) mark-active))
-        (t                              ;GNU Emacs
-         `(and (boundp 'transient-mark-mode) transient-mark-mode
-               (boundp 'mark-active) mark-active))))
-
 ;;; Additional header fields that might someday be added:
 ;;; "Sender: " "Reply-to: "
 
+
+;;; Scan Line Formats
+
 (defvar mh-scan-msg-number-regexp "^ *\\([0-9]+\\)"
-  "Regexp to find the number of a message in a scan line.
-The message's number must be surrounded with \\( \\)")
+  "This regexp is used to extract the message number from a scan line.
+Note that the message number must be placed in a parenthesized expression as
+in the default of \"^ *\\\\([0-9]+\\\\)\".")
 
 (defvar mh-scan-msg-overflow-regexp "^[?0-9][0-9]"
-  "Regexp to find a scan line in which the message number overflowed.
-The message's number is left truncated in this case.")
+  "This regexp matches scan lines in which the message number overflowed.")
 
 (defvar mh-scan-msg-format-regexp "%\\([0-9]*\\)(msg)"
-  "Regexp to find message number width in an scan format.
-The message number width must be surrounded with \\( \\).")
+  "This regexp is used to find the message number width in a scan format.
+Note that the message number must be placed in a parenthesized expression as
+in the default of \"%\\\\([0-9]*\\\\)(msg)\".")
 
 (defvar mh-scan-msg-format-string "%d"
-  "Format string for width of the message number in a scan format.
+  "This is a format string for width of the message number in a scan format.
 Use `0%d' for zero-filled message numbers.")
 
 (defvar mh-scan-msg-search-regexp "^[^0-9]*%d[^0-9]"
-  "Format string containing a regexp matching the scan listing for a message.
-The desired message's number will be an argument to format.")
+  "This format string regexp matches the scan line for a particular message.
+Use `%d' to represent the location of the message number within the
+expression as in the default of \"^[^0-9]*%d[^0-9]\".")
 
-(defvar mh-default-folder-for-message-function nil
-  "Function to select a default folder for refiling or Fcc.
-If set to a function, that function is called with no arguments by
-`\\[mh-refile-msg]' and `\\[mh-to-fcc]' to get a default when
-prompting the user for a folder.  The function is called from within a
-`save-excursion', with point at the start of the message.  It should
-return the folder to offer as the refile or Fcc folder, as a string
-with a leading `+' sign.  It can also return an empty string to use no
-default, or nil to calculate the default the usual way.
-NOTE: This variable is not an ordinary hook;
-It may not be a list of functions.")
+(defvar mh-cmd-note 4
+  "This is the number of characters to skip over before inserting notation.
+This variable should be set with the function `mh-set-cmd-note'. This variable
+may be updated dynamically if `mh-adaptive-cmd-note-flag' is non-nil and
+`mh-scan-format-file' is t.")
+(make-variable-buffer-local 'mh-cmd-note)
+
+(defvar mh-note-seq ?%
+  "Messages in a user-defined sequence are marked by this character.
+Messages in the `search' sequence are marked by this character as well.")
+
+
 
 (defvar mh-show-buffer-mode-line-buffer-id "    {show-%s} %d"
   "Format string to produce `mode-line-buffer-identification' for show buffers.
 First argument is folder name.  Second is message number.")
 
-(defvar mh-cmd-note 4
-  "Column to insert notation.
-Use `mh-set-cmd-note' to modify it.
-This value may be dynamically updated if `mh-adaptive-cmd-note-flag' is
-non-nil and `mh-scan-format-file' is t.
-Note that the first column is column number 0.")
-(make-variable-buffer-local 'mh-cmd-note)
-
-(defvar mh-note-seq "%"
-  "String whose first character is used to notate messages in a sequence.")
+
 
 (defvar mh-mail-header-separator "--------"
   "*Line used by MH to separate headers from text in messages being composed.
@@ -213,11 +137,29 @@ Do not make this a regexp as it may be the argument to `insert' and it is
 passed through `regexp-quote' before being used by functions like
 `re-search-forward'.")
 
+(defvar mh-signature-separator-regexp "^-- $"
+  "Regexp used to find signature separator.
+See `mh-signature-separator'.")
+
+(defvar mh-signature-separator "-- \n"
+  "Text of a signature separator.
+A signature separator is used to separate the body of a message from the
+signature. This can be used by user agents such as MH-E to render the
+signature differently or to suppress the inclusion of the signature in a
+reply.
+Use `mh-signature-separator-regexp' when searching for a separator.")
+
+(defun mh-signature-separator-p ()
+  "Return non-nil if buffer includes \"^-- $\"."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward mh-signature-separator-regexp nil t)))
+
 ;; Variables for MIME display
 
 ;; Structure to keep track of MIME handles on a per buffer basis.
-(defstruct (mh-buffer-data (:conc-name mh-mime-)
-                           (:constructor mh-make-buffer-data))
+(mh-defstruct (mh-buffer-data (:conc-name mh-mime-)
+                              (:constructor mh-make-buffer-data))
   (handles ())                          ; List of MIME handles
   (handles-cache (make-hash-table))     ; Cache to avoid multiple decodes of
                                         ; nested messages
@@ -331,7 +273,7 @@ passed through `regexp-quote' before being used by functions like
   "A regular expression probably matching an e-mail address.")
 
 ;; From goto-addr.el, which we don't want to force-load on users.
-;;;###mh-autoload
+
 (defun mh-goto-address-find-address-at-point ()
   "Find e-mail address around or before point.
 Then search backwards to beginning of line for the start of an e-mail
@@ -348,7 +290,18 @@ address.  If no e-mail address found, return nil."
 In MH-E we frequently need to find the end of headers in nested messages, where
 the buffer has been narrowed. This function works in this situation."
   (save-excursion
-    (rfc822-goto-eoh)
+    ;; XXX: The following replaces a call to rfc822-goto-eoh. Occasionally,
+    ;; mail headers that MH-E has to read contains lines of the form:
+    ;;    From xxx@yyy Mon May 10 11:48:07 2004
+    ;; In this situation, rfc822-goto-eoh doesn't go to the end of the
+    ;; header. The replacement allows From_ lines in the mail header.
+    (goto-char (point-min))
+    (loop for p = (re-search-forward
+                   "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
+          do (cond ((null p) (return))
+                   (t (goto-char (match-beginning 0))
+                      (unless (looking-at "From ") (return))
+                      (goto-char p))))
     (point)))
 
 (defun mh-in-header-p ()
@@ -528,17 +481,20 @@ message about the fontification operation."
 ;; hidden and can be programmatically removed in mh-quit), and the variable
 ;; names have the form mh-temp-.*-buffer.
 (defconst mh-temp-buffer " *mh-temp*")  ;scratch
+(defconst mh-temp-fetch-buffer " *mh-fetch*")  ;wget/curl/fetch output
 
 ;; The names of MH-E buffers that are not ephemeral and can be used by the
 ;; user (and deleted by the user when no longer needed) have a "*MH-E " prefix
 ;; (so they can be programmatically removed in mh-quit), and the variable
 ;; names have the form mh-.*-buffer.
+(defconst mh-aliases-buffer "*MH-E Aliases*") ;alias lookups
 (defconst mh-folders-buffer "*MH-E Folders*") ;folder list
+(defconst mh-help-buffer "*MH-E Help*") ;quick help
 (defconst mh-info-buffer "*MH-E Info*") ;version information buffer
 (defconst mh-log-buffer "*MH-E Log*") ;output of MH commands and so on
+(defconst mh-mail-delivery-buffer "*MH-E Mail Delivery*") ;mail delivery log
 (defconst mh-recipients-buffer "*MH-E Recipients*") ;killed when draft sent
 (defconst mh-sequences-buffer "*MH-E Sequences*") ;sequences list
-(defconst mh-mail-delivery-buffer "*MH-E Mail Delivery*") ;mail delivery log
 
 ;; Number of lines to keep in mh-log-buffer.
 (defvar mh-log-buffer-lines 100)
@@ -593,7 +549,6 @@ message about the fontification operation."
             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
           (cons modeline-buffer-id-right-extent " %17b")))))
 
-
 ;;; This holds a documentation string used by describe-mode.
 (defun mh-showing-mode (&optional arg)
   "Change whether messages should be displayed.
@@ -613,7 +568,6 @@ With arg, display messages iff ARG is positive."
 ;; If nil, show buffer contains message processed normally.
 ;; Showing message with headers or normally.
 (defvar mh-showing-with-headers nil)
-
 
 ;;; MH-E macros
 
@@ -742,7 +696,7 @@ of the buffer in the event window is preserved."
   (unlock-buffer)
   (setq buffer-file-name nil))
 
-;;;###mh-autoload
+
 (defun mh-get-msg-num (error-if-no-message)
   "Return the message number of the displayed message.
 If the argument ERROR-IF-NO-MESSAGE is non-nil, then complain if the cursor is
@@ -915,6 +869,16 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-index-ticked-messages mh-index-ticked-messages)
 (mh-defun-show-buffer mh-show-index-sequenced-messages
                       mh-index-sequenced-messages)
+(mh-defun-show-buffer mh-show-catchup mh-catchup)
+(mh-defun-show-buffer mh-show-ps-print-toggle-mime mh-ps-print-toggle-mime)
+(mh-defun-show-buffer mh-show-ps-print-toggle-color mh-ps-print-toggle-color)
+(mh-defun-show-buffer mh-show-ps-print-toggle-faces mh-ps-print-toggle-faces)
+(mh-defun-show-buffer mh-show-ps-print-msg-file mh-ps-print-msg-file)
+(mh-defun-show-buffer mh-show-ps-print-msg mh-ps-print-msg)
+(mh-defun-show-buffer mh-show-ps-print-msg-show mh-ps-print-msg-show)
+(mh-defun-show-buffer mh-show-toggle-mime-buttons mh-toggle-mime-buttons)
+(mh-defun-show-buffer mh-show-display-with-external-viewer
+                      mh-display-with-external-viewer)
 
 ;;; Populate mh-show-mode-map
 (gnus-define-keys mh-show-mode-map
@@ -941,7 +905,6 @@ still visible.\n")
   "g"    mh-show-goto-msg
   "i"    mh-show-inc-folder
   "k"    mh-show-delete-subject-or-thread
-  "l"    mh-show-print-msg
   "m"    mh-show-send
   "n"    mh-show-next-undeleted-msg
   "\M-n" mh-show-next-unread-msg
@@ -961,6 +924,7 @@ still visible.\n")
   "?"    mh-prefix-help
   "'"    mh-index-ticked-messages
   "S"    mh-show-sort-folder
+  "c"    mh-show-catchup
   "f"    mh-show-visit-folder
   "i"    mh-index-search
   "k"    mh-show-kill-folder
@@ -991,6 +955,17 @@ still visible.\n")
   "?"    mh-prefix-help
   "b"    mh-show-junk-blacklist
   "w"    mh-show-junk-whitelist)
+
+(gnus-define-keys (mh-show-ps-print-map "P" mh-show-mode-map)
+  "?"	mh-prefix-help
+  "A"	mh-show-ps-print-toggle-mime
+  "C"	mh-show-ps-print-toggle-color
+  "F"	mh-show-ps-print-toggle-faces
+  "M"	mh-show-ps-print-toggle-mime
+  "f"	mh-show-ps-print-msg-file
+  "l"   mh-show-print-msg
+  "p"	mh-show-ps-print-msg
+  "s"	mh-show-ps-print-msg-show)
 
 (gnus-define-keys (mh-show-thread-map "T" mh-show-mode-map)
   "?"    mh-prefix-help
@@ -1026,9 +1001,11 @@ still visible.\n")
 (gnus-define-keys (mh-show-mime-map "K" mh-show-mode-map)
   "?"           mh-prefix-help
   "a"           mh-mime-save-parts
+  "e"           mh-show-display-with-external-viewer
   "v"           mh-show-toggle-mime-part
   "o"           mh-show-save-mime-part
   "i"           mh-show-inline-mime-part
+  "t"           mh-show-toggle-mime-buttons
   "\t"          mh-show-next-button
   [backtab]     mh-show-prev-button
   "\M-\t"       mh-show-prev-button)
@@ -1115,7 +1092,10 @@ still visible.\n")
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
 The value of `mh-show-mode-hook' is a list of functions to
-be called, with no arguments, upon entry to this mode."
+be called, with no arguments, upon entry to this mode.
+See also `mh-folder-mode'.
+
+\\{mh-show-mode-map}"
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
   (mh-show-unquote-From)
@@ -1210,8 +1190,9 @@ be called, with no arguments, upon entry to this mode."
 (mh-do-in-xemacs (defvar default-enable-multibyte-characters))
 
 (defun mh-face-display-function ()
-  "Display a Face or X-Face header field.
-Display Face if both are present."
+  "Display a Face, X-Face, or X-Image-URL header field.
+If more than one of these are present, then the first one found in this order
+is used."
   (save-restriction
     (goto-char (point-min))
     (re-search-forward "\n\n" (point-max) t)
@@ -1226,7 +1207,8 @@ Display Face if both are present."
                         type 'png))
             (x-face (setq raw (mh-uncompface x-face)
                           type 'pbm))
-            (url (setq type 'url)))
+            (url (setq type 'url))
+            (t (multiple-value-setq (type raw) (mh-picon-get-image))))
       (when type
         (goto-char (point-min))
         (when (re-search-forward "^from:" (point-max) t)
@@ -1261,9 +1243,14 @@ Display Face if both are present."
              ((and (eq type 'pbm)
                    (fboundp 'x-face-xmas-wl-display-x-face)
                    (fboundp 'executable-find) (executable-find "uncompface"))
-              (mh-funcall-if-exists x-face-xmas-wl-display-x-face)))
+              (mh-funcall-if-exists x-face-xmas-wl-display-x-face))
+             ;; Picon display
+             ((and raw (member type '(xpm xbm gif)))
+              (when (featurep type)
+                (set-extent-begin-glyph
+                 (make-extent (point) (point))
+                 (make-glyph (vector type ':data raw))))))
             (when raw (insert " "))))))))
-
 
 (defun mh-show-xface ()
   "Display X-Face."
@@ -1274,49 +1261,207 @@ Display Face if both are present."
 
 
 
+;; Picon display
+
+;;; XXX: This should be customizable. As a side-effect of setting this
+;;;   variable, arrange to reset mh-picon-existing-directory-list to 'unset.
+(defvar mh-picon-directory-list
+  '("~/.picons" "~/.picons/users" "~/.picons/usenix" "~/.picons/news"
+    "~/.picons/domains" "~/.picons/misc"
+    "/usr/share/picons/" "/usr/share/picons/users" "/usr/share/picons/usenix"
+    "/usr/share/picons/news" "/usr/share/picons/domains"
+    "/usr/share/picons/misc")
+  "List of directories where picons reside.
+The directories are searched for in the order they appear in the list.")
+
+(defvar mh-picon-existing-directory-list 'unset
+  "List of directories to search in.")
+
+(defvar mh-picon-cache (make-hash-table :test #'equal))
+
+(defvar mh-picon-image-types
+  (loop for type in '(xpm xbm gif)
+        when (or (mh-do-in-gnu-emacs
+                   (ignore-errors
+                     (mh-funcall-if-exists image-type-available-p type)))
+                 (mh-do-in-xemacs (featurep type)))
+        collect type))
+
+(defun mh-picon-set-directory-list ()
+  "Update `mh-picon-existing-directory-list' if needed."
+  (when (eq mh-picon-existing-directory-list 'unset)
+    (setq mh-picon-existing-directory-list
+          (loop for x in mh-picon-directory-list
+                when (file-directory-p x) collect x))))
+
+(defun* mh-picon-get-image ()
+  "Find the best possible match and return contents."
+  (mh-picon-set-directory-list)
+  (save-restriction
+    (let* ((from-field (ignore-errors (car (message-tokenize-header
+                                            (mh-get-header-field "from:")))))
+           (from (car (ignore-errors
+                        (mh-funcall-if-exists ietf-drums-parse-address
+                                              from-field))))
+           (host (and from
+                      (string-match "\\([^+]*\\)\\(+.*\\)?@\\(.*\\)" from)
+                      (downcase (match-string 3 from))))
+           (user (and host (downcase (match-string 1 from))))
+           (canonical-address (format "%s@%s" user host))
+           (cached-value (gethash canonical-address mh-picon-cache))
+           (host-list (and host (delete "" (split-string host "\\."))))
+           (match nil))
+      (cond (cached-value (return-from mh-picon-get-image cached-value))
+            ((not host-list) (return-from mh-picon-get-image nil)))
+      (setq match
+            (block 'loop
+              ;; u@h search
+              (loop for dir in mh-picon-existing-directory-list
+                    do (loop for type in mh-picon-image-types
+                             ;; [path]user@host
+                             for file1 = (format "%s/%s.%s"
+                                                 dir canonical-address type)
+                             when (file-exists-p file1)
+                             do (return-from 'loop file1)
+                             ;; [path]user
+                             for file2 = (format "%s/%s.%s" dir user type)
+                             when (file-exists-p file2)
+                             do (return-from 'loop file2)
+                             ;; [path]host
+                             for file3 = (format "%s/%s.%s" dir host type)
+                             when (file-exists-p file3)
+                             do (return-from 'loop file3)))
+              ;; facedb search
+              ;; Search order for user@foo.net:
+              ;;   [path]net/foo/user
+              ;;   [path]net/foo/user/face
+              ;;   [path]net/user
+              ;;   [path]net/user/face
+              ;;   [path]net/foo/unknown
+              ;;   [path]net/foo/unknown/face
+              ;;   [path]net/unknown
+              ;;   [path]net/unknown/face
+              (loop for u in (list user "unknown")
+                    do (loop for dir in mh-picon-existing-directory-list
+                             do (loop for x on host-list by #'cdr
+                                      for y = (mh-picon-generate-path x u dir)
+                                      do (loop for type in mh-picon-image-types
+                                               for z1 = (format "%s.%s" y type)
+                                               when (file-exists-p z1)
+                                               do (return-from 'loop z1)
+                                               for z2 = (format "%s/face.%s"
+                                                                y type)
+                                               when (file-exists-p z2)
+                                               do (return-from 'loop z2)))))))
+      (setf (gethash canonical-address mh-picon-cache)
+            (mh-picon-file-contents match)))))
+
+(defun mh-picon-file-contents (file)
+  "Return details about FILE.
+A list of consisting of a symbol for the type of the file and the file
+contents as a string is returned. If FILE is nil, then both elements of the
+list are nil."
+  (if (stringp file)
+      (with-temp-buffer
+        (let ((type (and (string-match ".*\\.\\(...\\)$" file)
+                         (intern (match-string 1 file)))))
+          (insert-file-contents-literally file)
+          (values type (buffer-string))))
+    (values nil nil)))
+
+(defun mh-picon-generate-path (host-list user directory)
+  "Generate the image file path.
+HOST-LIST is the parsed host address of the email address, USER the username
+and DIRECTORY is the directory relative to which the path is generated."
+  (loop with acc = ""
+        for elem in host-list
+        do (setq acc (format "%s/%s" elem acc))
+        finally return (format "%s/%s%s" directory acc user)))
+
+
+
 ;; X-Image-URL display
 
 (defvar mh-x-image-cache-directory nil
   "Directory where X-Image-URL images are cached.")
-
-(defvar mh-convert-executable (executable-find "convert"))
-(defvar mh-wget-executable (executable-find "wget"))
+(defvar mh-x-image-scaling-function
+  (cond ((executable-find "convert")
+         'mh-x-image-scale-with-convert)
+        ((and (executable-find "anytopnm") (executable-find "pnmscale")
+              (executable-find "pnmtopng"))
+         'mh-x-image-scale-with-pnm)
+        (t 'ignore))
+  "Function to use to scale image to proper size.")
+(defvar mh-wget-executable nil)
+(defvar mh-wget-choice
+  (or (and (setq mh-wget-executable (executable-find "wget")) 'wget)
+      (and (setq mh-wget-executable (executable-find "fetch")) 'fetch)
+      (and (setq mh-wget-executable (executable-find "curl")) 'curl)))
+(defvar mh-wget-option
+  (cdr (assoc mh-wget-choice '((curl . "-o") (fetch . "-o") (wget . "-O")))))
 (defvar mh-x-image-temp-file nil)
 (defvar mh-x-image-url nil)
 (defvar mh-x-image-marker nil)
 (defvar mh-x-image-url-cache-file nil)
 
+;; Functions to scale image to proper size
+(defun mh-x-image-scale-with-pnm (input output)
+  "Scale image in INPUT file and write to OUTPUT file using pnm tools."
+  (let ((res (shell-command-to-string
+              (format "anytopnm < %s | pnmscale -xysize 96 48 | pnmtopng > %s"
+                      input output))))
+    (unless (equal res "")
+      (delete-file output))))
+
+(defun mh-x-image-scale-with-convert (input output)
+  "Scale image in INPUT file and write to OUTPUT file using ImageMagick."
+  (call-process "convert" nil nil nil "-geometry" "96x48" input output))
+
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
-Replace the ?/ character with a ?! character."
-  (with-temp-buffer
-    (insert url)
-    (goto-char (point-min))
-    (while (search-forward "/" nil t) (replace-match "!"))
-    (format "%s/%s.png" mh-x-image-cache-directory (buffer-string))))
+Replace the ?/ character with a ?! character and append .png."
+   (format "%s/%s.png" mh-x-image-cache-directory
+           (with-temp-buffer
+             (insert url)
+             (mh-replace-string "/" "!")
+             (buffer-string))))
+
+(defun mh-x-image-set-download-state (file data)
+  "Setup a symbolic link from FILE to DATA."
+  (if data
+      (make-symbolic-link (symbol-name data) file t)
+    (delete-file file)))
+
+(defun mh-x-image-get-download-state (file)
+  "Check the state of FILE by following any symbolic links."
+  (unless (file-exists-p mh-x-image-cache-directory)
+    (call-process "mkdir" nil nil nil mh-x-image-cache-directory))
+  (cond ((file-symlink-p file)
+         (intern (file-name-nondirectory (file-chase-links file))))
+        ((not (file-exists-p file)) nil)
+        (t 'ok)))
 
 (defun mh-x-image-url-fetch-image (url cache-file marker sentinel)
   "Fetch and display the image specified by URL.
 After the image is fetched, it is stored in CACHE-FILE. It will be displayed
 in a buffer and position specified by MARKER. The actual display is carried
 out by the SENTINEL function."
-  (if (and mh-wget-executable
-           mh-fetch-x-image-url
-           (or (eq mh-fetch-x-image-url t)
-               (y-or-n-p (format "Fetch %s? " url))))
-      (let ((buffer (get-buffer-create (generate-new-buffer-name " *mh-url*")))
-            (filename (make-temp-name "/tmp/mhe-wget")))
+  (if mh-wget-executable
+      (let ((buffer (get-buffer-create (generate-new-buffer-name
+                                        mh-temp-fetch-buffer)))
+            (filename (or (mh-funcall-if-exists make-temp-file "mhe-fetch")
+                          (expand-file-name (make-temp-name "~/mhe-fetch")))))
         (save-excursion
           (set-buffer buffer)
           (set (make-local-variable 'mh-x-image-url-cache-file) cache-file)
           (set (make-local-variable 'mh-x-image-marker) marker)
           (set (make-local-variable 'mh-x-image-temp-file) filename))
         (set-process-sentinel
-         (start-process "*wget*" buffer mh-wget-executable "-O" filename url)
+         (start-process "*mh-x-image-url-fetch*" buffer
+                        mh-wget-executable mh-wget-option filename url)
          sentinel))
-    ;; Make sure we don't ask about this image again
-    (when (and mh-wget-executable (eq mh-fetch-x-image-url 'ask))
-      (make-symbolic-link mh-x-image-cache-directory cache-file t))))
+    ;; Temporary failure
+    (mh-x-image-set-download-state cache-file 'try-again)))
 
 (defun mh-x-image-display (image marker)
   "Display IMAGE at MARKER."
@@ -1326,7 +1471,8 @@ out by the SENTINEL function."
           (default-enable-multibyte-characters nil)
           (buffer-modified-flag (buffer-modified-p)))
       (unwind-protect
-          (when (and (file-readable-p image) (not (file-symlink-p image)))
+          (when (and (file-readable-p image) (not (file-symlink-p image))
+                     (eq marker mh-x-image-marker))
             (goto-char marker)
             (mh-do-in-gnu-emacs
               (mh-funcall-if-exists insert-image (create-image image 'png)))
@@ -1350,32 +1496,56 @@ The argument CHANGE is ignored."
         (setq marker mh-x-image-marker
               cache-filename mh-x-image-url-cache-file
               temp-file mh-x-image-temp-file))
-      (when mh-convert-executable
-        (call-process mh-convert-executable nil nil nil "-resize" "96x48"
-                       temp-file cache-filename))
-      (if (file-exists-p cache-filename)
-          (mh-x-image-display cache-filename marker)
-        (make-symbolic-link mh-x-image-cache-directory cache-filename t))
+      (cond
+       ;; Check if we have `convert'
+       ((eq mh-x-image-scaling-function 'ignore)
+        (message "The `convert' program is needed to display X-Image-URL")
+        (mh-x-image-set-download-state cache-filename 'try-again))
+       ;; Scale fetched image
+       ((and (funcall mh-x-image-scaling-function temp-file cache-filename)
+             nil))
+       ;; Attempt to display image if we have it
+       ((file-exists-p cache-filename)
+        (mh-x-image-display cache-filename marker))
+       ;; We didn't find the image. Should we try to display it the next time?
+       (t (mh-x-image-set-download-state cache-filename 'try-again)))
       (ignore-errors
         (set-marker marker nil)
         (delete-process process)
         (kill-buffer wget-buffer)
         (delete-file temp-file)))))
 
+(defun mh-x-image-url-sane-p (url)
+  "Check if URL is something sensible."
+  (let ((len (length url)))
+    (cond ((< len 5) nil)
+          ((not (equal (substring url 0 5) "http:")) nil)
+          ((> len 100) nil)
+          (t t))))
+
 (defun mh-x-image-url-display (url)
   "Display image from location URL.
 If the URL isn't present in the cache then it is fetched with wget."
-  (let ((cache-filename (mh-x-image-url-cache-canonicalize url))
-        (marker (set-marker (make-marker) (point))))
-    (cond ((file-exists-p cache-filename)
+  (let* ((cache-filename (mh-x-image-url-cache-canonicalize url))
+         (state (mh-x-image-get-download-state cache-filename))
+         (marker (set-marker (make-marker) (point))))
+    (set (make-local-variable 'mh-x-image-marker) marker)
+    (cond ((not (mh-x-image-url-sane-p url)))
+          ((eq state 'ok)
            (mh-x-image-display cache-filename marker))
+          ((or (not mh-wget-executable)
+               (eq mh-x-image-scaling-function 'ignore)))
+          ((eq state 'never))
           ((not mh-fetch-x-image-url)
            (set-marker marker nil))
-          ((and (not (file-exists-p mh-x-image-cache-directory))
-                (call-process "mkdir" nil nil nil mh-x-image-cache-directory)
-                nil))
-          ((and (file-exists-p mh-x-image-cache-directory)
-                (file-directory-p mh-x-image-cache-directory))
+          ((eq state 'try-again)
+           (mh-x-image-set-download-state cache-filename nil)
+           (mh-x-image-url-fetch-image url cache-filename marker
+                                       'mh-x-image-scale-and-display))
+          ((and (eq mh-fetch-x-image-url 'ask)
+                (not (y-or-n-p (format "Fetch %s? " url))))
+           (mh-x-image-set-download-state cache-filename 'never))
+          ((eq state nil)
            (mh-x-image-url-fetch-image url cache-filename marker
                                        'mh-x-image-scale-and-display)))))
 
@@ -1386,27 +1556,32 @@ If the URL isn't present in the cache then it is fetched with wget."
 If optional arg MSG is non-nil, display that message instead."
   (if mh-showing-mode (mh-show msg)))
 
-(defun mh-show (&optional message)
+(defun mh-show (&optional message redisplay-flag)
   "Show message at cursor.
 If optional argument MESSAGE is non-nil, display that message instead.
 Force a two-window display with the folder window on top (size given by the
 variable `mh-summary-height') and the show buffer below it.
 If the message is already visible, display the start of the message.
 
+If REDISPLAY-FLAG is non-nil, the default when called interactively, the
+message is redisplayed even if the show buffer was already displaying the
+correct message.
+
 Display of the message is controlled by setting the variables
 `mh-clean-message-header-flag' and `mhl-formfile'.  The default behavior is
 to scroll uninteresting headers off the top of the window.
 Type \"\\[mh-header-display]\" to see the message with all its headers."
-  (interactive)
-  (and mh-showing-with-headers
-       (or mhl-formfile mh-clean-message-header-flag)
-       (mh-invalidate-show-buffer))
+  (interactive (list nil t))
+  (when (or redisplay-flag
+            (and mh-showing-with-headers
+                 (or mhl-formfile mh-clean-message-header-flag)))
+    (mh-invalidate-show-buffer))
   (mh-show-msg message))
 
-(defun mh-show-mouse (EVENT)
+(defun mh-show-mouse (event)
   "Move point to mouse EVENT and show message."
   (interactive "e")
-  (mouse-set-point EVENT)
+  (mouse-set-point event)
   (mh-show))
 
 (defun mh-summary-height ()
@@ -1428,10 +1603,12 @@ arguments, after the message has been displayed."
   (let ((folder mh-current-folder)
         (folders (list mh-current-folder))
         (clean-message-header mh-clean-message-header-flag)
-        (show-window (get-buffer-window mh-show-buffer)))
+        (show-window (get-buffer-window mh-show-buffer))
+        (display-mime-buttons-flag mh-display-buttons-for-inline-parts-flag))
     (if (not (eq (next-window (minibuffer-window)) (selected-window)))
         (delete-other-windows))         ; force ourself to the top window
     (mh-in-show-buffer (mh-show-buffer)
+      (setq mh-display-buttons-for-inline-parts-flag display-mime-buttons-flag)
       (if (and show-window
                (equal (mh-msg-filename msg folder) buffer-file-name))
           (progn                        ;just back up to start
@@ -1443,6 +1620,9 @@ arguments, after the message has been displayed."
         (shrink-window (- (window-height) (or mh-summary-height
                                               (mh-summary-height)))))
     (mh-recenter nil)
+    ;; The following line is a nop which forces update of the scan line so
+    ;; that font-lock will update it (if needed)...
+    (mh-notate nil nil mh-cmd-note)
     (if (not (memq msg mh-seen-list))
         (setq mh-seen-list (cons msg mh-seen-list)))
     (when mh-update-sequences-after-mh-show-flag
@@ -1518,8 +1698,8 @@ Sets the current buffer to the show buffer."
     ;; Bind variables in folder buffer in case they are local
     (let ((formfile mhl-formfile)
           (clean-message-header mh-clean-message-header-flag)
-          (invisible-headers mh-invisible-headers)
-          (visible-headers mh-visible-headers)
+          (invisible-headers mh-invisible-header-fields-compiled)
+          (visible-headers nil)
           (msg-filename (mh-msg-filename msg-num folder-name))
           (show-buffer mh-show-buffer)
           (mm-inline-media-tests mh-mm-inline-media-tests))
@@ -1596,7 +1776,10 @@ Sets the current buffer to the show buffer."
 Header is cleaned from START to the end of the message header.
 INVISIBLE-HEADERS contains a regular expression specifying lines to delete
 from the header. VISIBLE-HEADERS contains a regular expression specifying the
-lines to display. INVISIBLE-HEADERS is ignored if VISIBLE-HEADERS is non-nil."
+lines to display. INVISIBLE-HEADERS is ignored if VISIBLE-HEADERS is non-nil.
+
+Note that MH-E no longer supports the `mh-visible-headers' variable, so
+this function could be trimmed of this feature too."
   (let ((case-fold-search t)
         (buffer-read-only nil)
         (after-change-functions nil))   ;Work around emacs-20 font-lock bug
@@ -1639,8 +1822,7 @@ If NOTATION is nil then no change in the buffer occurs."
         (with-mh-folder-updating (t)
           (beginning-of-line)
           (forward-char offset)
-          (let* ((change-stack-flag (and (stringp notation)
-                                         (equal offset (1+ mh-cmd-note))
+          (let* ((change-stack-flag (and (equal offset (1+ mh-cmd-note))
                                          (not (eq notation mh-note-seq))))
                  (msg (and change-stack-flag (or msg (mh-get-msg-num nil))))
                  (stack (and msg (gethash msg mh-sequence-notation-history)))
@@ -1652,32 +1834,13 @@ If NOTATION is nil then no change in the buffer occurs."
                 ;; at the bottom of the stack. If the sequence is deleted,
                 ;; the correct notation will be shown.
                 (setf (gethash msg mh-sequence-notation-history)
-                      (reverse (cons (aref notation 0) (cdr (reverse stack)))))
+                      (reverse (cons notation (cdr (reverse stack)))))
               ;; Since we don't have any sequence notations in the way, just
               ;; notate the scan line.
               (delete-char 1)
               (insert notation))
             (when change-stack-flag
               (mh-thread-update-scan-line-map msg notation offset)))))))
-
-(defun mh-find-msg-get-num (step)
-  "Return the message number of the message nearest the cursor.
-Jumps over non-message lines, such as inc errors.
-If we have to search, STEP tells whether to search forward or backward."
-  (or (mh-get-msg-num nil)
-      (let ((msg-num nil)
-            (nreverses 0))
-        (while (and (not msg-num)
-                    (< nreverses 2))
-          (cond ((eobp)
-                 (setq step -1)
-                 (setq nreverses (1+ nreverses)))
-                ((bobp)
-                 (setq step 1)
-                 (setq nreverses (1+ nreverses))))
-          (forward-line step)
-          (setq msg-num (mh-get-msg-num nil)))
-        msg-num)))
 
 (defun mh-goto-msg (number &optional no-error-if-no-message dont-show)
   "Position the cursor at message NUMBER.
@@ -1699,10 +1862,6 @@ Non-nil third argument DONT-SHOW means not to show the message."
     (or dont-show (not return-value) (mh-maybe-show number))
     return-value))
 
-(defun mh-msg-search-pat (n)
-  "Return a search pattern for message N in the scan listing."
-  (format mh-scan-msg-search-regexp n))
-
 (defun mh-get-profile-field (field)
   "Find and return the value of FIELD in the current buffer.
 Returns nil if the field is not in the buffer."
@@ -1716,119 +1875,64 @@ Returns nil if the field is not in the buffer."
              (end-of-line)
              (buffer-substring start (point)))))))
 
-(defvar mail-user-agent)
-(defvar read-mail-command)
-
 (defvar mh-find-path-run nil
   "Non-nil if `mh-find-path' has been run already.")
 
 (defun mh-find-path ()
-  "Set `mh-progs', `mh-lib', and `mh-lib-progs' variables.
+  "Set variables from user's MH profile.
 Set `mh-user-path', `mh-draft-folder', `mh-unseen-seq', `mh-previous-seq',
 `mh-inbox' from user's MH profile.
 The value of `mh-find-path-hook' is a list of functions to be called, with no
 arguments, after these variable have been set."
-  (mh-find-progs)
+  (mh-variants)
   (unless mh-find-path-run
     (setq mh-find-path-run t)
-    (setq read-mail-command 'mh-rmail)
-    (setq mail-user-agent 'mh-e-user-agent))
-  (save-excursion
-    ;; Be sure profile is fully expanded before switching buffers
-    (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
-      (set-buffer (get-buffer-create mh-temp-buffer))
-      (setq buffer-offer-save nil)      ;for people who set default to t
-      (erase-buffer)
-      (condition-case err
-          (insert-file-contents profile)
-        (file-error
-         (mh-install profile err)))
-      (setq mh-user-path (mh-get-profile-field "Path:"))
-      (if (not mh-user-path)
-          (setq mh-user-path "Mail"))
-      (setq mh-user-path
-            (file-name-as-directory
-             (expand-file-name mh-user-path (expand-file-name "~"))))
-      (unless mh-x-image-cache-directory
-        (setq mh-x-image-cache-directory
-              (expand-file-name ".mhe-x-image-cache" mh-user-path)))
-      (setq mh-draft-folder (mh-get-profile-field "Draft-Folder:"))
-      (if mh-draft-folder
-          (progn
-            (if (not (mh-folder-name-p mh-draft-folder))
-                (setq mh-draft-folder (format "+%s" mh-draft-folder)))
-            (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
-                (error "Draft folder \"%s\" not found.  Create it and try again"
-                       (mh-expand-file-name mh-draft-folder)))))
-      (setq mh-inbox (mh-get-profile-field "Inbox:"))
-      (cond ((not mh-inbox)
-             (setq mh-inbox "+inbox"))
-            ((not (mh-folder-name-p mh-inbox))
-             (setq mh-inbox (format "+%s" mh-inbox))))
-      (setq mh-unseen-seq (mh-get-profile-field "Unseen-Sequence:"))
-      (if mh-unseen-seq
-          (setq mh-unseen-seq (intern mh-unseen-seq))
-        (setq mh-unseen-seq 'unseen))   ;old MH default?
-      (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
-      (if mh-previous-seq
-          (setq mh-previous-seq (intern mh-previous-seq)))
-      (run-hooks 'mh-find-path-hook)
-      (mh-collect-folder-names))))
+    (save-excursion
+      ;; Be sure profile is fully expanded before switching buffers
+      (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
+        (set-buffer (get-buffer-create mh-temp-buffer))
+        (setq buffer-offer-save nil)      ;for people who set default to t
+        (erase-buffer)
+        (condition-case err
+            (insert-file-contents profile)
+          (file-error
+           (mh-install profile err)))
+        (setq mh-user-path (mh-get-profile-field "Path:"))
+        (if (not mh-user-path)
+            (setq mh-user-path "Mail"))
+        (setq mh-user-path
+              (file-name-as-directory
+               (expand-file-name mh-user-path (expand-file-name "~"))))
+        (unless mh-x-image-cache-directory
+          (setq mh-x-image-cache-directory
+                (expand-file-name ".mhe-x-image-cache" mh-user-path)))
+        (setq mh-draft-folder (mh-get-profile-field "Draft-Folder:"))
+        (if mh-draft-folder
+            (progn
+              (if (not (mh-folder-name-p mh-draft-folder))
+                  (setq mh-draft-folder (format "+%s" mh-draft-folder)))
+              (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
+                  (error
+                   "Draft folder \"%s\" not found.  Create it and try again"
+                         (mh-expand-file-name mh-draft-folder)))))
+        (setq mh-inbox (mh-get-profile-field "Inbox:"))
+        (cond ((not mh-inbox)
+               (setq mh-inbox "+inbox"))
+              ((not (mh-folder-name-p mh-inbox))
+               (setq mh-inbox (format "+%s" mh-inbox))))
+        (setq mh-unseen-seq (mh-get-profile-field "Unseen-Sequence:"))
+        (if mh-unseen-seq
+            (setq mh-unseen-seq (intern mh-unseen-seq))
+          (setq mh-unseen-seq 'unseen))   ;old MH default?
+        (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
+        (if mh-previous-seq
+            (setq mh-previous-seq (intern mh-previous-seq)))
+        (run-hooks 'mh-find-path-hook)
+        (mh-collect-folder-names)))))
 
 (defun mh-file-command-p (file)
   "Return t if file FILE is the name of a executable regular file."
   (and (file-regular-p file) (file-executable-p file)))
-
-(defun mh-find-progs ()
-  "Find the directories for the installed MH/nmh binaries and config files.
-Set the `mh-progs' and `mh-lib', and `mh-lib-progs' variables to the
-directory names and set `mh-nmh-flag' if we detect nmh instead of MH."
-  (unless (and mh-progs mh-lib mh-lib-progs)
-    (let ((path (or (mh-path-search exec-path "mhparam")
-                    (mh-path-search '("/usr/local/nmh/bin" ; nmh default
-                                      "/usr/local/bin/mh/"
-                                      "/usr/local/mh/"
-                                      "/usr/bin/mh/" ;Ultrix 4.2, Linux
-                                      "/usr/new/mh/" ;Ultrix <4.2
-                                      "/usr/contrib/mh/bin/" ;BSDI
-                                      "/usr/pkg/bin/" ; NetBSD
-                                      "/usr/local/bin/"
-                                      )
-                                    "mhparam"))))
-      (if (not path)
-          (error "Unable to find the `mhparam' command"))
-      (save-excursion
-        (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
-          (set-buffer tmp-buffer)
-          (unwind-protect
-              (progn
-                (call-process (expand-file-name "mhparam" path)
-                              nil '(t nil) nil "libdir" "etcdir")
-                (goto-char (point-min))
-                (if (search-forward-regexp "^libdir:\\s-\\(\\S-+\\)\\s-*$"
-                                           nil t)
-                    (setq mh-lib-progs (match-string 1)
-                          mh-lib mh-lib-progs
-                          mh-progs path))
-                (goto-char (point-min))
-                (if (search-forward-regexp "^etcdir:\\s-\\(\\S-+\\)\\s-*$"
-                                           nil t)
-                    (setq mh-lib (match-string 1)
-                          mh-nmh-flag t)))
-            (kill-buffer tmp-buffer))))
-      (unless (and mh-progs mh-lib mh-lib-progs)
-        (error "Unable to determine paths from `mhparam' command"))
-      (setq mh-flists-present-flag
-            (file-exists-p (expand-file-name "flists" mh-progs))))))
-
-(defun mh-path-search (path file)
-  "Search PATH, a list of directory names, for FILE.
-Returns the element of PATH that contains FILE, or nil if not found."
-  (while (and path
-              (not (funcall 'mh-file-command-p
-                            (expand-file-name file (car path)))))
-    (setq path (cdr path)))
-  (car path))
 
 (defvar mh-no-install nil)              ;do not run install-mh
 
@@ -1911,18 +2015,18 @@ not updated."
   (let ((entry (mh-find-seq seq))
         (internal-seq-flag (mh-internal-seq seq)))
     (if (and msgs (atom msgs)) (setq msgs (list msgs)))
-    (unless internal-flag
-      (mh-add-to-sequence seq msgs)
-      (when (not dont-annotate-flag)
-        (mh-iterate-on-range msg msgs
-          (unless (memq msg (cdr entry))
-            (mh-add-sequence-notation msg internal-seq-flag)))))
     (if (null entry)
         (setq mh-seq-list
               (cons (mh-make-seq seq (mh-canonicalize-sequence msgs))
                     mh-seq-list))
       (if msgs (setcdr entry (mh-canonicalize-sequence
-                              (append msgs (mh-seq-msgs entry))))))))
+                              (append msgs (mh-seq-msgs entry))))))
+    (unless internal-flag
+      (mh-add-to-sequence seq msgs)
+      (when (not dont-annotate-flag)
+        (mh-iterate-on-range msg msgs
+          (unless (memq msg (cdr entry))
+            (mh-add-sequence-notation msg internal-seq-flag)))))))
 
 (defun mh-canonicalize-sequence (msgs)
   "Sort MSGS in decreasing order and remove duplicates."
@@ -2076,12 +2180,15 @@ aren't usually mail folders are hidden."
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
         (goto-char (line-end-position))
-        (let ((has-pos (search-backward " has " (line-beginning-position) t)))
+        (let ((start-pos (line-beginning-position))
+              (has-pos (search-backward " has " (line-beginning-position) t)))
           (when (integerp has-pos)
             (while (equal (char-after has-pos) ? )
               (decf has-pos))
             (incf has-pos)
-            (let* ((name (buffer-substring (line-beginning-position) has-pos))
+            (while (equal (char-after start-pos) ? )
+              (incf start-pos))
+            (let* ((name (buffer-substring start-pos has-pos))
                    (first-char (aref name 0))
                    (last-char (aref name (1- (length name)))))
               (unless (member first-char '(?. ?# ?,))
@@ -2189,7 +2296,9 @@ whether the completion is over."
 If ALLOW-ROOT-FOLDER-FLAG is non-nil then \"+\" is allowed to be a folder name
 corresponding to `mh-user-path'."
   (mh-normalize-folder-name
-   (let ((minibuffer-local-completion-map mh-folder-completion-map)
+   (let ((minibuffer-completing-file-name t)
+         (completion-root-regexp "^[+/]")
+         (minibuffer-local-completion-map mh-folder-completion-map)
          (mh-allow-root-folder-flag allow-root-folder-flag))
      (completing-read prompt 'mh-folder-completion-function nil nil nil
                       'mh-folder-hist default))
@@ -2206,11 +2315,10 @@ non-nil then the function will accept the folder +, which means all folders
 when used in searching."
   (if (null default)
       (setq default ""))
-  (let* ((default-string (cond (default-string (format " [%s]? "
-                                                       default-string))
-                               ((equal "" default) "? ")
-                               (t (format " [%s]? " default))))
-         (prompt (format "%s folder%s" prompt default-string))
+  (let* ((default-string (cond (default-string (format "[%s] " default-string))
+                               ((equal "" default) "")
+                               (t (format "[%s] " default))))
+         (prompt (format "%s folder: %s" prompt default-string))
          (mh-current-folder-name mh-current-folder)
          read-name folder-name)
     (while (and (setq read-name (mh-folder-completing-read
@@ -2451,6 +2559,13 @@ Put the output into buffer after point.  Set mark after inserted text."
             (t (error "Bad element in mh-list-to-string: %s" (car l))))
       (setq l (cdr l)))
     new-list))
+
+(defun mh-replace-string (old new)
+  "Replace all occurrences of OLD with NEW in the current buffer."
+  (goto-char (point-min))
+  (let ((case-fold-search t))
+    (while (search-forward old nil t)
+      (replace-match new t t))))
 
 (defun mh-replace-in-string (regexp newtext string)
   "Replace REGEXP with NEWTEXT everywhere in STRING and return result.

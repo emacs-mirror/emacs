@@ -1,6 +1,6 @@
 ;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,6 +34,7 @@
 (load "mm-uu" t t)                      ; Non-fatal dependency
 (load "mailcap" t t)                    ; Non-fatal dependency
 (load "smiley" t t)                     ; Non-fatal dependency
+(load "mailabbrev" t t)
 
 (defmacro mh-defun-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.
@@ -74,11 +75,27 @@ BODY."
       (put-text-property 0 (length (car handle)) parameter value
                          (car handle))))
 
+;; Copy of function from mm-view.el
+(mh-defun-compat mm-inline-text-vcard (handle)
+  (let (buffer-read-only)
+    (mm-insert-inline
+     handle
+     (concat "\n-- \n"
+	     (ignore-errors
+	       (if (fboundp 'vcard-pretty-print)
+		   (vcard-pretty-print (mm-get-part handle))
+		 (vcard-format-string
+		  (vcard-parse-string (mm-get-part handle)
+				      'vcard-standard-filter))))))))
+
+;; Function from mm-decode.el used in PGP messages. Just define it with older
+;; gnus to avoid compiler warning.
+(mh-defun-compat mm-possibly-verify-or-decrypt (parts ctl)
+  nil)
+
 ;; Copy of original macro is in mm-decode.el
 (mh-defmacro-compat mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
-
-(mh-do-in-xemacs (defvar default-enable-multibyte-characters))
 
 ;; Copy of original function in mm-decode.el
 (mh-defun-compat mm-readable-p (handle)
@@ -134,10 +151,23 @@ BODY."
                                   file)))
          (mm-save-part-to-file handle file))))
 
+(defun mh-mm-text-html-renderer ()
+  "Find the renderer gnus is using to display text/html MIME parts."
+  (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
+      (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
+
+(defun mh-mail-abbrev-make-syntax-table ()
+  "Call `mail-abbrev-make-syntax-table' if available."
+  (when (fboundp 'mail-abbrev-make-syntax-table)
+    (mail-abbrev-make-syntax-table)))
+
 (provide 'mh-gnus)
+
 ;;; Local Variables:
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
+;;; indent-tabs-mode: nil
+;;; sentence-end-double-space: nil
 ;;; End:
 
 ;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa

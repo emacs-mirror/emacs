@@ -34,10 +34,11 @@
 ;;; Code:
 
 ;; Requires
-(require 'mh-utils)
+(eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-e)
 (require 'speedbar)
+(require 'timer)
 
 ;; Global variables
 (defvar mh-speed-refresh-flag nil)
@@ -90,26 +91,25 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
   "+"           mh-speed-expand-folder
   "-"           mh-speed-contract-folder
   "\r"          mh-speed-view
-  "f"           mh-speed-flists
-  "i"           mh-speed-invalidate-map)
+  "r"           mh-speed-refresh)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
 (defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
 
 ;; Menus for speedbar...
 (defvar mh-folder-speedbar-menu-items
-  '(["Visit Folder" mh-speed-view
+  '("--"
+    ["Visit Folder" mh-speed-view
      (save-excursion
        (set-buffer speedbar-buffer)
        (get-text-property (line-beginning-position) 'mh-folder))]
-    ["Expand nested folders" mh-speed-expand-folder
+    ["Expand Nested Folders" mh-speed-expand-folder
      (and (get-text-property (line-beginning-position) 'mh-children-p)
           (not (get-text-property (line-beginning-position) 'mh-expanded)))]
-    ["Contract nested folders" mh-speed-contract-folder
+    ["Contract Nested Folders" mh-speed-contract-folder
      (and (get-text-property (line-beginning-position) 'mh-children-p)
           (get-text-property (line-beginning-position) 'mh-expanded))]
-    ["Run Flists" mh-speed-flists t]
-    ["Invalidate cached folders" mh-speed-invalidate-map t])
+    ["Refresh Speedbar" mh-speed-refresh t])
   "Extra menu items for speedbar.")
 
 (defvar mh-show-speedbar-menu-items mh-folder-speedbar-menu-items)
@@ -352,6 +352,14 @@ Optional ARGS are ignored."
 (defvar mh-speed-current-folder nil)
 (defvar mh-speed-flists-folder nil)
 
+(defmacro mh-process-kill-without-query (process)
+  "PROCESS can be killed without query on Emacs exit.
+Avoid using `process-kill-without-query' if possible since it is now
+obsolete."
+  (if (fboundp 'set-process-query-on-exit-flag)
+      `(set-process-query-on-exit-flag ,process nil)
+    `(process-kill-without-query ,process)))
+
 ;;;###mh-autoload
 (defun mh-speed-flists (force &rest folders)
   "Execute flists -recurse and update message counts.
@@ -396,6 +404,7 @@ only for that one folder."
                             (or mh-speed-flists-folder '("-recurse"))))
                ;; Run flists on all folders the next time around...
                (setq mh-speed-flists-folder nil)
+               (mh-process-kill-without-query mh-speed-flists-process)
                (set-process-filter mh-speed-flists-process
                                    'mh-speed-parse-flists-output)))))))
 
@@ -493,6 +502,14 @@ next."
           (setq mh-speed-refresh-flag t)))
       (when (equal folder "")
         (clrhash mh-sub-folders-cache)))))
+
+(defun mh-speed-refresh ()
+  "Refresh the speedbar.
+Use this function to refresh the speedbar if folders have been added or
+deleted or message ranges have been updated outside of MH-E."
+  (interactive)
+  (mh-speed-flists t)
+  (mh-speed-invalidate-map ""))
 
 ;;;###mh-autoload
 (defun mh-speed-add-folder (folder)

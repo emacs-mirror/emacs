@@ -70,7 +70,7 @@
 
 ;;; Code:
 
-(require 'mh-utils)
+(eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-e)
 
@@ -78,15 +78,15 @@
 (defvar tool-bar-mode)
 
 ;;; Data structures (used in message threading)...
-(defstruct (mh-thread-message (:conc-name mh-message-)
-                              (:constructor mh-thread-make-message))
+(mh-defstruct (mh-thread-message (:conc-name mh-message-)
+                                 (:constructor mh-thread-make-message))
   (id nil)
   (references ())
   (subject "")
   (subject-re-p nil))
 
-(defstruct (mh-thread-container (:conc-name mh-container-)
-                                (:constructor mh-thread-make-container))
+(mh-defstruct (mh-thread-container (:conc-name mh-container-)
+                                   (:constructor mh-thread-make-container))
   message parent children
   (real-child-p t))
 
@@ -201,12 +201,15 @@ redone to get the new thread tree. This makes incremental threading easier.")
 
 ;;;###mh-autoload
 (defun mh-msg-is-in-seq (message)
-  "Display the sequences that contain MESSAGE.
-Default is the displayed message."
-  (interactive (list (mh-get-msg-num t)))
+  "Display the sequences in which the current message appears.
+Use a prefix argument to display the sequences in which another MESSAGE
+appears."
+  (interactive "P")
+  (if (not message)
+      (setq message (mh-get-msg-num t)))
   (let* ((dest-folder (loop for seq in mh-refile-list
-                            until (member message (cdr seq))
-                            finally return (car seq)))
+                            when (member message (cdr seq)) return (car seq)
+                            finally return nil))
          (deleted-flag (unless dest-folder (member message mh-delete-list))))
     (message "Message %d%s is in sequences: %s"
              message
@@ -269,12 +272,11 @@ interactive use."
   (let* ((internal-seq-flag (mh-internal-seq sequence))
          (original-msgs (mh-seq-msgs (mh-find-seq sequence)))
          (folders (list mh-current-folder))
-         (msg-list ()))
+         (msg-list (mh-range-to-msg-list range)))
+    (mh-add-msgs-to-seq msg-list sequence nil t)
     (mh-iterate-on-range m range
-      (push m msg-list)
       (unless (memq m original-msgs)
         (mh-add-sequence-notation m internal-seq-flag)))
-    (mh-add-msgs-to-seq msg-list sequence nil t)
     (if (not internal-seq-flag)
         (setq mh-last-seq-used sequence))
     (when mh-index-data
@@ -292,10 +294,8 @@ OP is one of 'widen and 'unthread."
 
 ;;;###mh-autoload
 (defun mh-widen (&optional all-flag)
-  "Remove last restriction from current folder.
-If optional prefix argument ALL-FLAG is non-nil, then unwind to the beginning
-of the view stack thereby showing all messages that the buffer originally
-contained."
+  "Restore the previous limit.
+If optional prefix argument ALL-FLAG is non-nil, remove all limits."
   (interactive "P")
   (let ((msg (mh-get-msg-num nil)))
     (when mh-folder-view-stack
@@ -533,28 +533,6 @@ should be replaced with:
     (rplaca old-seq new-name)))
 
 ;;;###mh-autoload
-(defun mh-map-to-seq-msgs (func seq &rest args)
-  "Invoke the FUNC at each message in the SEQ.
-SEQ can either be a list of messages or a MH sequence. The remaining ARGS are
-passed as arguments to FUNC."
-  (save-excursion
-    (let ((msgs (if (listp seq) seq (mh-seq-to-msgs seq))))
-      (while msgs
-        (if (mh-goto-msg (car msgs) t t)
-            (apply func (car msgs) args))
-        (setq msgs (cdr msgs))))))
-
-;;;###mh-autoload
-(defun mh-notate-seq (seq notation offset)
-  "Mark the scan listing.
-All messages in SEQ are marked with NOTATION at OFFSET from the beginning of
-the line."
-  (let ((msg-list (mh-seq-to-msgs seq)))
-    (mh-iterate-on-messages-in-region msg (point-min) (point-max)
-      (when (member msg msg-list)
-        (mh-notate nil notation offset)))))
-
-;;;###mh-autoload
 (defun mh-notate-cur ()
   "Mark the MH sequence cur.
 In addition to notating the current message with `mh-note-cur' the function
@@ -576,14 +554,6 @@ uses `overlay-arrow-position' to put a marker in the fringe."
           (apply 'mh-exec-cmd "mark" mh-current-folder "-add"
                  "-sequence" (symbol-name seq)
                  (mh-coalesce-msg-list msgs)))))
-
-;; This has a tricky bug. mh-map-to-seq-msgs uses mh-goto-msg, which assumes
-;; that the folder buffer is sorted. However in this case that assumption
-;; doesn't hold. So we will do this the dumb way.
-;(defun mh-copy-seq-to-point (seq location)
-;  ;; Copy the scan listing of the messages in SEQUENCE to after the point
-;  ;; LOCATION in the current buffer.
-;  (mh-map-to-seq-msgs 'mh-copy-line-to-point seq location))
 
 (defvar mh-thread-last-ancestor)
 
@@ -613,21 +583,6 @@ uses `overlay-arrow-position' to put a marker in the fringe."
                (mh-notate-user-sequences))
               (mh-index-data
                (mh-index-insert-folder-headers)))))))
-
-(defun mh-copy-line-to-point (msg location)
-  "Copy current message line to a specific location.
-The argument MSG is not used. The message in the current line is copied to
-LOCATION."
-  ;; msg is not used?
-  ;; Copy the current line to the LOCATION in the current buffer.
-  (beginning-of-line)
-  (save-excursion
-    (let ((beginning-of-line (point))
-          end)
-      (forward-line 1)
-      (setq end (point))
-      (goto-char location)
-      (insert-buffer-substring (current-buffer) beginning-of-line end))))
 
 ;;;###mh-autoload
 (defmacro mh-iterate-on-messages-in-region (var begin end &rest body)
@@ -702,7 +657,7 @@ a region in a cons cell."
     (nreverse msg-list)))
 
 ;;;###mh-autoload
-(defun mh-interactive-range (range-prompt)
+(defun mh-interactive-range (range-prompt &optional default)
   "Return interactive specification for message, sequence, range or region.
 By convention, the name of this argument is RANGE.
 
@@ -715,23 +670,16 @@ RANGE-PROMPT. A list of messages in that range is returned.
 If a MH range is given, say something like last:20, then a list containing
 the messages in that range is returned.
 
+If DEFAULT non-nil then it is returned.
+
 Otherwise, the message number at point is returned.
 
 This function is usually used with `mh-iterate-on-range' in order to provide
 a uniform interface to MH-E functions."
   (cond ((mh-mark-active-p t) (cons (region-beginning) (region-end)))
         (current-prefix-arg (mh-read-range range-prompt nil nil t t))
+        (default default)
         (t (mh-get-msg-num t))))
-
-;;;###mh-autoload
-(defun mh-region-to-msg-list (begin end)
-  "Return a list of messages within the region between BEGIN and END."
-  ;; If end is end of buffer back up one position
-  (setq end (if (equal end (point-max)) (1- end) end))
-  (let ((result))
-    (mh-iterate-on-messages-in-region index begin end
-      (when (numberp index) (push index result)))
-    result))
 
 
 
@@ -772,7 +720,7 @@ Return number of messages put in the sequence:
     (if (or (not (looking-at mh-scan-subject-regexp))
             (not (match-string 3))
             (string-equal "" (match-string 3)))
-        (progn (message "No subject line.")
+        (progn (message "No subject line")
                nil)
       (let ((subject (match-string-no-properties 3))
             (list))
@@ -835,61 +783,57 @@ This function can only be used the folder is threaded."
      (mh-container-message (gethash (gethash msg mh-thread-index-id-map)
                                     mh-thread-id-table)))))
 
-;;;###mh-autoload
-(defun mh-narrow-to-subject ()
-  "Narrow to a sequence containing all following messages with same subject."
-  (interactive)
-  (let ((num (mh-get-msg-num nil))
-        (count (mh-subject-to-sequence t)))
-    (cond
-     ((not count)                       ; No subject line, delete msg anyway
-      nil)
-     ((= 0 count)                       ; No other msgs, delete msg anyway.
-      (message "No other messages with same Subject following this one.")
-      nil)
-     (t                                 ; We have a subject sequence.
-      (message "Found %d messages for subject sequence." count)
-      (mh-narrow-to-seq 'subject)
-      (if (numberp num)
-          (mh-goto-msg num t t))))))
-
-(defun mh-read-pick-regexp (default)
-  "With prefix arg read a pick regexp.
+(defun mh-edit-pick-expr (default)
+  "With prefix arg edit a pick expression.
 If no prefix arg is given, then return DEFAULT."
   (let ((default-string (loop for x in default concat (format " %s" x))))
     (if (or current-prefix-arg (equal default-string ""))
-        (delete "" (split-string (read-string "Pick regexp: " default-string)))
+        (delete "" (split-string (read-string "Pick expression: "
+                                              default-string)))
       default)))
 
 ;;;###mh-autoload
-(defun mh-narrow-to-from (&optional regexp)
-  "Limit to messages with the same From header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick."
+(defun mh-narrow-to-subject (&optional pick-expr)
+  "Limit to messages with same subject.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-read-pick-regexp (mh-current-message-header-field 'from))))
-  (mh-narrow-to-header-field 'from regexp))
+   (list (mh-edit-pick-expr (mh-current-message-header-field 'subject))))
+  (mh-narrow-to-header-field 'subject pick-expr))
 
 ;;;###mh-autoload
-(defun mh-narrow-to-cc (&optional regexp)
-  "Limit to messages with the same Cc header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick."
+(defun mh-narrow-to-from (&optional pick-expr)
+  "Limit to messages with the same `From:' field.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-read-pick-regexp (mh-current-message-header-field 'cc))))
-  (mh-narrow-to-header-field 'cc regexp))
+   (list (mh-edit-pick-expr (mh-current-message-header-field 'from))))
+  (mh-narrow-to-header-field 'from pick-expr))
 
 ;;;###mh-autoload
-(defun mh-narrow-to-to (&optional regexp)
-  "Limit to messages with the same To header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick."
-  (interactive
-   (list (mh-read-pick-regexp (mh-current-message-header-field 'to))))
-  (mh-narrow-to-header-field 'to regexp))
+(defun mh-narrow-to-cc (&optional pick-expr)
+  "Limit to messages with the same `Cc:' field.
+With a prefix argument, edit PICK-EXPR.
 
-(defun mh-narrow-to-header-field (header-field regexp)
-  "Limit to messages whose HEADER-FIELD match REGEXP.
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
+  (interactive
+   (list (mh-edit-pick-expr (mh-current-message-header-field 'cc))))
+  (mh-narrow-to-header-field 'cc pick-expr))
+
+;;;###mh-autoload
+(defun mh-narrow-to-to (&optional pick-expr)
+  "Limit to messages with the same `To:' field.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
+  (interactive
+   (list (mh-edit-pick-expr (mh-current-message-header-field 'to))))
+  (mh-narrow-to-header-field 'to pick-expr))
+
+(defun mh-narrow-to-header-field (header-field pick-expr)
+  "Limit to messages whose HEADER-FIELD match PICK-EXPR.
 The MH command pick is used to do the match."
   (let ((folder mh-current-folder)
         (original (mh-coalesce-msg-list
@@ -897,7 +841,7 @@ The MH command pick is used to do the match."
         (msg-list ()))
     (with-temp-buffer
       (apply #'mh-exec-cmd-output "pick" nil folder
-             (append original (list "-list") regexp))
+             (append original (list "-list") pick-expr))
       (goto-char (point-min))
       (while (not (eobp))
         (let ((num (read-from-string
@@ -939,7 +883,9 @@ The MH command pick is used to do the match."
   "Limit to messages in RANGE.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
+interactive use.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive (list (mh-interactive-range "Narrow to")))
   (when (assoc 'range mh-seq-list) (mh-delete-seq 'range))
   (mh-add-msgs-to-seq (mh-range-to-msg-list range) 'range)
@@ -958,7 +904,7 @@ subject sequence."
      ((not count)                       ; No subject line, delete msg anyway
       (mh-delete-msg (mh-get-msg-num t)))
      ((= 0 count)                       ; No other msgs, delete msg anyway.
-      (message "No other messages with same Subject following this one.")
+      (message "No other messages with same Subject following this one")
       (mh-delete-msg (mh-get-msg-num t)))
      (t                                 ; We have a subject sequence.
       (message "Marked %d messages for deletion" count)
@@ -1078,13 +1024,12 @@ SUBJECT and REFS fields."
            message)
           (container
            (setf (mh-container-message container)
-                 (mh-thread-make-message :subject subject
-                                         :subject-re-p subject-re-p
-                                         :id id :references refs)))
-          (t (let ((message (mh-thread-make-message
-                             :subject subject
-                             :subject-re-p subject-re-p
-                             :id id :references refs)))
+                 (mh-thread-make-message :id id :references refs
+                                         :subject subject
+                                         :subject-re-p subject-re-p)))
+          (t (let ((message (mh-thread-make-message :id id :references refs
+                                                    :subject-re-p subject-re-p
+                                                    :subject subject)))
                (prog1 message
                  (mh-thread-get-message-container message)))))))
 
@@ -1450,8 +1395,7 @@ MSG is the message being notated with NOTATION at OFFSET."
          (cur-scan-line (and mh-thread-scan-line-map
                              (gethash msg mh-thread-scan-line-map)))
          (old-scan-lines (loop for map in mh-thread-scan-line-map-stack
-                               collect (and map (gethash msg map))))
-         (notation (if (stringp notation) (aref notation 0) notation)))
+                               collect (and map (gethash msg map)))))
     (when cur-scan-line
       (setf (aref (car cur-scan-line) offset) notation))
     (dolist (line old-scan-lines)
@@ -1486,7 +1430,8 @@ MSG is the message being notated with NOTATION at OFFSET."
                               (setf (gethash msg mh-thread-scan-line-map) v))))
                  (when (> (hash-table-count mh-thread-scan-line-map) 0)
                    (insert (if (bobp) "" "\n") (car x) "\n")
-                   (mh-thread-generate-scan-lines thread-tree -2)))))))
+                   (mh-thread-generate-scan-lines thread-tree -2))))
+      (mh-index-create-imenu-index))))
 
 (defun mh-thread-folder ()
   "Generate thread view of folder."
@@ -1711,11 +1656,12 @@ start of the region and the second is the point at the end."
              (push msg unticked)
              (setcdr tick-seq (delq msg (cdr tick-seq)))
              (when (null (cdr tick-seq)) (setq mh-last-seq-used nil))
-             (mh-remove-sequence-notation msg t))
+             (mh-remove-sequence-notation msg (mh-colors-in-use-p)))
             (t
              (push msg ticked)
              (setq mh-last-seq-used mh-tick-seq)
-             (mh-add-sequence-notation msg t))))
+             (let ((mh-seq-list (cons `(,mh-tick-seq ,msg) mh-seq-list)))
+               (mh-add-sequence-notation msg (mh-colors-in-use-p))))))
     (mh-add-msgs-to-seq ticked mh-tick-seq nil t)
     (mh-undefine-sequence mh-tick-seq unticked)
     (when mh-index-data
@@ -1724,15 +1670,15 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-tick ()
-  "Restrict display of this folder to just messages in `mh-tick-seq'.
+  "Limit to messages in `mh-tick-seq'.
+
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive)
   (cond ((not mh-tick-seq)
          (error "Enable ticking by customizing `mh-tick-seq'"))
         ((null (mh-seq-msgs (mh-find-seq mh-tick-seq)))
-         (message "No messages in tick sequence"))
+         (message "No messages in %s sequence" mh-tick-seq))
         (t (mh-narrow-to-seq mh-tick-seq))))
-
 
 (provide 'mh-seq)
 
