@@ -1,3 +1,7 @@
+2000-02-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (make_frame): Set frame initiallly to `garbaged'.
+	
 2000-02-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (decode_mode_spec_coding): Delete superfluous code to
