@@ -1,3 +1,8 @@
+2000-08-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* keyboard.c (read_char_minibuf_menu_prompt): Call read_char with
+	the 4th arg (PREV_EVENT) Qt to suppress input method.
+
 2000-08-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c: Indent cpp directives and remove parens after `defined'.
