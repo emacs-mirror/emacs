@@ -254,7 +254,7 @@ of the following forms:
 	be given.
 
 \(minibuffer . t) - the frame should have a minibuffer
-\(minibuffer . none) - the frame should have no minibuffer
+\(minibuffer . nil) - the frame should have no minibuffer
 \(minibuffer . only) - the frame should contain only a minibuffer
 \(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window.
 
@@ -390,21 +390,21 @@ With arg, turn auto-lower mode on if and only if arg is positive."
 			   (list (cons 'auto-lower (> arg 0)))))
 
 (defun toggle-vertical-scroll-bar (arg)
-  "Toggle whether or not the selected frame has vertical scrollbars.
-With arg, turn vertical scrollbars on if and only if arg is positive."
+  "Toggle whether or not the selected frame has vertical scroll bars.
+With arg, turn vertical scroll bars on if and only if arg is positive."
   (interactive "P")
   (if (null arg)
       (setq arg
-	    (if (cdr (assq 'vertical-scrollbars
+	    (if (cdr (assq 'vertical-scroll-bars
 			   (frame-parameters (selected-frame))))
 		-1 1)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'vertical-scrollbars (> arg 0)))))
+			   (list (cons 'vertical-scroll-bars (> arg 0)))))
 
 (defun toggle-horizontal-scroll-bar (arg)
-  "Toggle whether or not the selected frame has horizontal scrollbars.
-With arg, turn horizontal scrollbars on if and only if arg is positive.
-Horizontal scrollbars aren't implemented yet."
+  "Toggle whether or not the selected frame has horizontal scroll bars.
+With arg, turn horizontal scroll bars on if and only if arg is positive.
+Horizontal scroll bars aren't implemented yet."
   (interactive "P")
   (error "Horizontal scroll bars aren't implemented yet"))
 
