@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu.
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: rms
@@ -75,16 +75,16 @@ NAME is a string; the name of an argument to CALLBACK.
 STYLE is a symbol describing the type of menu item.  The following are
 defined:  
 
-toggle: A checkbox.  
-        Currently just prepend the name with the string \"Toggle \".
-radio: A radio button. 
+toggle: A checkbox.
+        Prepend the name with '(*) ' or '( ) ' depending on if selected or not.
+radio: A radio button.
+       Prepend the name with '[X] ' or '[ ] ' depending on if selected or not.
 nil: An ordinary menu item.
 
    :selected SELECTED
 
 SELECTED is an expression; the checkbox or radio button is selected
 whenever this expression's value is non-nil.
-Currently just disable radio buttons, no effect on checkboxes.
 
 A menu item can be a string.  Then that string appears in the menu as
 unselectable text.  A string consisting solely of hyphens is displayed
@@ -118,25 +118,26 @@ is a list of menu items, as above."
 ;; MENU-ITEMS, and with name MENU-NAME.
 ;;;###autoload
 (defun easy-menu-create-keymaps (menu-name menu-items)
-  (let ((menu (make-sparse-keymap menu-name)))
+  (let ((menu (make-sparse-keymap menu-name)) old-items have-buttons)
     ;; Process items in reverse order,
     ;; since the define-key loop reverses them again.
     (setq menu-items (reverse menu-items))
     (while menu-items
       (let* ((item (car menu-items))
 	     (callback (if (vectorp item) (aref item 1)))
-	     command enabler name)
+	     (not-button t)
+	     command enabler item-string name)
 	(cond ((stringp item)
 	       (setq command nil)
-	       (setq name (if (string-match "^-+$" item) "" item)))
+	       (setq item-string (if (string-match "^-+$" item) "" item)))
 	      ((consp item)
 	       (setq command (easy-menu-create-keymaps (car item) (cdr item)))
-	       (setq name (car item)))
+	       (setq name (setq item-string (car item))))
 	      ((vectorp item)
 	       (setq command (make-symbol (format "menu-function-%d"
 						  easy-menu-item-count)))
 	       (setq easy-menu-item-count (1+ easy-menu-item-count))
-	       (setq name (aref item 0))
+	       (setq name (setq item-string (aref item 0)))
 	       (let ((keyword (aref item 2)))
 		 (if (and (symbolp keyword)
 			  (= ?: (aref (symbol-name keyword) 0)))
@@ -152,26 +153,40 @@ is a list of menu items, as above."
 			       ((eq keyword ':active)
 				(setq active arg))
 			       ((eq keyword ':suffix)
-				(setq name (concat name " " arg)))
+				(setq item-string
+				      (concat item-string " " arg)))
 			       ((eq keyword ':style)
 				(setq style arg))
 			       ((eq keyword ':selected)
 				(setq selected arg))))
 		       (if keys
-			   (setq name (concat name "  (" keys ")")))
-		       (if (eq style 'toggle)
-			   ;; Simulate checkboxes.
-			   (setq name (concat "Toggle " name)))
-		       (if active 
-			   (put command 'menu-enable active)
-			 (and (eq style 'radio)
-			      selected
-			      ;; Simulate radio buttons with menu-enable.
-			      (put command 'menu-enable
-				   (list 'not selected)))))	       
+			   (setq item-string
+				 (concat item-string "  (" keys ")")))
+		       (if (and selected
+				(or (eq style 'radio) (eq style 'toggle)))
+			   ;; Simulate checkboxes and radio buttons.
+			   (progn
+			     (setq item-string
+				   (concat
+				    (if (eval selected)
+					(if (eq style 'radio) "(*) " "[X] ")
+				      (if (eq style 'radio) "( ) " "[ ] "))
+				    item-string))
+			     (put command 'menu-enable
+				  (list 'easy-menu-update-button
+					item-string
+					(if (eq style 'radio) ?* ?X)
+					selected
+					(or active t)))
+			     (setq not-button nil
+				   active     nil
+				   have-buttons t)
+			     (while old-items ; Fix items aleady defined.
+			       (setcar (car old-items)
+				       (concat "    " (car (car old-items))))
+			       (setq old-items (cdr old-items)))))
+		       (if active (put command 'menu-enable active)))
 		   (put command 'menu-enable keyword)))
-	       (if (keymapp callback)
-		   (setq name (concat name " ...")))
 	       (if (symbolp callback)
 		   (fset command callback)
 		 (fset command (list 'lambda () '(interactive) callback)))
@@ -179,11 +194,32 @@ is a list of menu items, as above."
 	(if (null command)
 	    ;; Handle inactive strings specially--allow any number
 	    ;; of identical ones.
-	    (setcdr menu (cons (list nil name) (cdr menu)))
-	  (if name 
-	      (define-key menu (vector (intern name)) (cons name command)))))
+	    (setcdr menu (cons (list nil item-string) (cdr menu)))
+	  (if (and not-button have-buttons)
+	      (setq item-string (concat "    " item-string)))
+	  (setq command (cons item-string command))
+	  (if (not have-buttons)	; Save all items so that we can fix
+	      (setq old-items (cons command old-items))) ; if we have buttons.
+	  (if name (define-key menu (vector (intern name)) command))))
       (setq menu-items (cdr menu-items)))
     menu))
+
+(defun easy-menu-update-button (item ch selected active)
+  "Used as menu-enable property to update buttons.
+A call to this function is used as the menu-enable property for buttons.
+ITEM is the item-string into wich CH or ` ' is inserted depending on if
+SELECTED is true or not. The menu entry in enabled iff ACTIVE is true."
+  (let ((new (if selected ch ? ))
+	(old (aref item 1)))
+    (if (eq new old)
+	;; No change, just use the active value.
+	active
+      ;; It has changed.  Update the entry.
+      (aset item 1 new)
+      ;; If the entry is active, make sure the menu gets updated by
+      ;; returning a different value than last time to cheat the cache. 
+      (and active
+	   (random)))))
 
 (defun easy-menu-change (path name items)
   "Change menu found at PATH as item NAME to contain ITEMS.
@@ -191,7 +227,7 @@ PATH is a list of strings for locating the menu containing NAME in the
 menu bar.  ITEMS is a list of menu items, as in `easy-menu-define'.
 These items entirely replace the previous items in that map.
 
-Call this from `activate-menubar-hook' to implement dynamic menus."
+Call this from `menu-bar-update-hook' to implement dynamic menus."
   (let ((map (key-binding (apply 'vector
 				 'menu-bar
 				 (mapcar 'intern (append path (list name)))))))
