@@ -451,8 +451,10 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE must be an integer specifying the height of the font to use in
-1/10 pt.
+VALUE must be either an integer specifying the height of the font to use
+in 1/10 pt, a floating point number specifying the amount by which to
+scale any underlying face, or a function, which is called with the old
+height (from the underlying face), and should return the new height.
 
 `:weight'
 
@@ -536,7 +538,13 @@ will be used.
 
 For compatibility with Emacs 20, keywords `:bold' and `:italic' can
 be used to specify that a bold or italic font should be used.  VALUE
-must be t or nil in that case.  A value of `unspecified' is not allowed."
+must be t or nil in that case.  A value of `unspecified' is not allowed.
+
+`:inherit'
+
+VALUE is the name of a face from which to inherit attributes, or a list
+of face names.  Attributes from inherited faces are merged into the face
+like an underlying face would be, with higher priority than underlying faces."
   (setq args (purecopy args))
   (cond ((null frame)
 	 ;; Change face on all frames.
@@ -731,7 +739,7 @@ Value is a symbol naming a known face."
 	(def (thing-at-point 'symbol))
 	face)
     (cond ((assoc def face-list)
-	   (setq prompt (concat prompt "(default " def "): ")))
+	   (setq prompt (concat prompt " (default " def "): ")))
 	  (t (setq def nil)
 	     (setq prompt (concat prompt ": "))))
     (while (equal "" (setq face (completing-read
@@ -776,9 +784,13 @@ an integer value."
 		  (mapcar #'list
 			  (apply #'nconc (mapcar #'directory-files
 						 x-bitmap-file-path)))))
+	    (:inherit
+	     (cons '("none" . nil)
+		   (mapcar #'(lambda (c) (cons (symbol-name c) c))
+			   (face-list))))
 	    (t
 	     (error "Internal error"))))
-    (if (listp valid)
+    (if (and (listp valid) (not (memq attribute '(:inherit))))
 	(nconc (list (cons "unspecified" 'unspecified)) valid)
       valid)))
 	       
@@ -797,7 +809,8 @@ an integer value."
     (:inverse-video . "inverse-video display")
     (:foreground . "foreground color")
     (:background . "background color")
-    (:stipple . "background stipple"))
+    (:stipple . "background stipple")
+    (:inherit . "inheritance"))
   "An alist of descriptive names for face attributes.
 Each element has the form (ATTRIBUTE-NAME . DESCRIPTION) where
 ATTRIBUTE-NAME is a face attribute name (a keyword symbol), and
@@ -811,21 +824,22 @@ DESCRIPTION is a descriptive name for ATTRIBUTE-NAME.")
 
 (defun face-read-string (face default name &optional completion-alist)
   "Interactively read a face attribute string value.
-FACE is the face whose attribute is read.  DEFAULT is the default
-value to return if no new value is entered.  NAME is a descriptive
-name of the attribute for prompting.  COMPLETION-ALIST is an alist
-of valid values, if non-nil.
+FACE is the face whose attribute is read.  If non-nil, DEFAULT is the
+default string to return if no new value is entered.  NAME is a
+descriptive name of the attribute for prompting.  COMPLETION-ALIST is an
+alist of valid values, if non-nil.
 
-Entering nothing accepts the default value DEFAULT.
+Entering nothing accepts the default string DEFAULT.
 Value is the new attribute value."
+  ;; Capitalize NAME (we don't use `capitalize' because that capitalizes
+  ;; each word in a string separately).
+  (setq name (concat (upcase (substring name 0 1)) (substring name 1)))
   (let* ((completion-ignore-case t)
 	 (value (completing-read
 		 (if default
-		     (format "Set face %s %s (default %s): "
-			     face name (downcase (if (symbolp default)
-						     (symbol-name default)
-						   default)))
-		   (format "Set face %s %s: " face name))
+		     (format "%s for face `%s' (default %s): "
+			     name face default)
+		   (format "%s for face `%s': " name face))
 		 completion-alist)))
     (if (equal value "") default value)))
 
@@ -837,17 +851,15 @@ value to return if no new value is entered.  NAME is a descriptive
 name of the attribute for prompting.  Value is the new attribute value."
   (let ((new-value
 	 (face-read-string face
-			   (if (memq default
-				     '(unspecified
-				       "unspecified-fg"
-				       "unspecified-bg"))
-			       default
-			     (int-to-string default))
+			   (format "%s" default)
 			   name
 			   (list (cons "unspecified" 'unspecified)))))
-    (if (memq new-value '(unspecified "unspecified-fg" "unspecified-bg"))
-	new-value
-      (string-to-int new-value))))
+    (cond ((equal new-value "unspecified")
+	   'unspecified)
+	  ((member new-value '("unspecified-fg" "unspecified-bg"))
+	   new-value)
+	  (t
+	   (string-to-int new-value)))))
 
 
 (defun read-face-attribute (face attribute &optional frame)
@@ -868,20 +880,27 @@ of a global face.  Value is the new attribute value."
 		   (vectorp old-value)))
       (setq old-value (prin1-to-string old-value)))
     (cond ((listp valid)
-	   (setq new-value
-		 (face-read-string face old-value attribute-name valid))
-	   ;; Terminal frames can support colors that don't appear
-	   ;; explicitly in VALID, using color approximation code
-	   ;; in tty-colors.el.
-	   (if (and (memq attribute '(:foreground :background))
-		    (not (memq window-system '(x w32 mac)))
-		    (not (memq new-value
-			       '(unspecified
-				 "unspecified-fg"
-				 "unspecified-bg"))))
-	       (setq new-value (car (tty-color-desc new-value frame))))
-	   (unless (eq new-value 'unspecified)
-	     (setq new-value (cdr (assoc new-value valid)))))
+	   (let ((default
+		   (or (car (rassoc old-value valid))
+		       (format "%s" old-value))))
+	     (setq new-value
+		   (face-read-string face default attribute-name valid))
+	     (if (equal new-value default)
+		 ;; Nothing changed, so don't bother with all the stuff
+		 ;; below.  In particular, this avoids a non-tty color
+		 ;; from being canonicalized for a tty when the user
+		 ;; just uses the default.
+		 (setq new-value old-value)
+	       ;; Terminal frames can support colors that don't appear
+	       ;; explicitly in VALID, using color approximation code
+	       ;; in tty-colors.el.
+	       (if (and (memq attribute '(:foreground :background))
+			(not (memq window-system '(x w32 mac)))
+			(not (member new-value
+				     '("unspecified"
+				       "unspecified-fg" "unspecified-bg"))))
+		   (setq new-value (car (tty-color-desc new-value frame))))
+	       (setq new-value (cdr (assoc new-value valid))))))
 	  ((eq valid 'integerp)
 	   (setq new-value (face-read-integer face old-value attribute-name)))
 	  (t (error "Internal error")))
@@ -920,7 +939,7 @@ Value is a property list of attribute names and new values."
 If optional argument FRAME is nil or omitted, modify the face used
 for newly created frame, i.e. the global face."
   (interactive)
-  (let ((face (read-face-name "Modify face ")))
+  (let ((face (read-face-name "Modify face")))
     (apply #'set-face-attribute face frame
 	   (read-all-face-attributes face frame))))
 
@@ -938,7 +957,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 	   (list face font)))
 	(t
 	 (let* ((attribute-name (face-descriptive-attribute-name attribute))
-		(prompt (format "Set %s of face " attribute-name))
+		(prompt (format "Set %s of face" attribute-name))
 		(face (read-face-name prompt))
 		(new-value (read-face-attribute face attribute frame)))
 	   (list face new-value)))))
