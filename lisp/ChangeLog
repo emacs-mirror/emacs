@@ -1,3 +1,9 @@
+2004-02-28  Richard M. Stallman  <rms@gnu.org>
+
+	* term.el (term-mouse-paste): Call mouse-set-point.
+
+	* thumbs.el: New file.
+
 2004-02-28  Juri Linkov  <juri@jurta.org>
 
 	* ffap.el (dired-at-point): Additional writability test for
