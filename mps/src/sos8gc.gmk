@@ -1,10 +1,7 @@
 # impl.gmk.sos8gc: BUILD FOR SOLARIS/SPARC V8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sos8gc.gmk(trunk.27) $
+# $HopeName: MMsrc!sos8gc.gmk(trunk.28) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
-#
-# This is the GNU makefile for platform.sos8gc.
-#
 
 PFM = sos8gc
 
@@ -15,3 +12,5 @@ SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk
