@@ -1,3 +1,8 @@
+2000-07-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.h (MAKE_CHAR): Return reasonable code even if CHARSET is
+	undefined.
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* window.c (Fwindow_list): Declare arg `window'.
