@@ -1,3 +1,10 @@
+2003-08-05  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add open-paren-in-column-0-is-defun-start,
+	line-number-display-limit-width.
+
+	* textmodes/tex-mode.el (tex-dvi-view-command): Fix quoted quotes.
+
 2003-08-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el: Don't require mule-diag.
