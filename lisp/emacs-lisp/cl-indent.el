@@ -161,15 +161,15 @@ by `lisp-body-indent'."
                    (setq method lisp-indent-defun-method)))
 
             (cond ((and (memq (char-after (1- containing-sexp)) '(?\' ?\`))
-                        (not (eql (char-after (- containing-sexp 2)) ?\#)))
+                        (not (eq (char-after (- containing-sexp 2)) ?\#)))
                    ;; No indentation for "'(...)" elements
                    (setq calculated (1+ sexp-column)))
-		  ((or (eql (char-after (1- containing-sexp)) ?\,)
-		       (and (eql (char-after (1- containing-sexp)) ?\@)
-			    (eql (char-after (- containing-sexp 2)) ?\,)))
+		  ((or (eq (char-after (1- containing-sexp)) ?\,)
+		       (and (eq (char-after (1- containing-sexp)) ?\@)
+			    (eq (char-after (- containing-sexp 2)) ?\,)))
 		   ;; ",(...)" or ",@(...)"
 		   (setq calculated normal-indent))
-                  ((eql (char-after (1- containing-sexp)) ?\#)
+                  ((eq (char-after (1- containing-sexp)) ?\#)
                    ;; "#(...)"
                    (setq calculated (1+ sexp-column)))
                   ((null method))
