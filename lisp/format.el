@@ -149,7 +149,7 @@ otherwise, it should be a Lisp function.
 BUFFER should be the buffer that the output originally came from."
   (if (stringp method)
       (let ((error-buff (get-buffer-create "*Format Errors*"))
-	    (coding-system-for-write 'no-conversion)
+	    (coding-system-for-read 'no-conversion)
 	    format-alist)
 	(with-current-buffer error-buff
 	  (widen)
@@ -170,7 +170,7 @@ If METHOD is a string, it is a shell command; otherwise, it should be
 a Lisp function.  Decoding is done for the given BUFFER."
   (if (stringp method)
       (let ((error-buff (get-buffer-create "*Format Errors*"))
-	    (coding-system-for-read 'no-conversion) ; like jka-compr
+	    (coding-system-for-write 'no-conversion)
 	    format-alist)
 	(with-current-buffer error-buff
 	  (widen)
