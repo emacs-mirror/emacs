@@ -3831,13 +3831,16 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  Lisp_Object test =
-	    (EQ (face, Qdefault) ? value :
-	     /* The default face must have an absolute size, otherwise, we do
-		a test merge with a random height to see if VALUE's ok. */
-	     merge_face_heights (value, make_number(10), Qnil, Qnil));
+	  Lisp_Object test;
 
-	  if (!INTEGERP(test) || XINT(test) <= 0)
+	  test = (EQ (face, Qdefault)
+		  ? value
+		  /* The default face must have an absolute size,
+		     otherwise, we do a test merge with a random
+		     height to see if VALUE's ok. */
+		  : merge_face_heights (value, make_number (10), Qnil, Qnil));
+
+	  if (!INTEGERP (test) || XINT (test) <= 0)
 	    signal_error ("Invalid face height", value);
 	}
 
