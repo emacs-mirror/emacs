@@ -2262,6 +2262,55 @@ char_table_translate (table, ch)
     return ch;
   return XINT (value);
 }
+
+static void
+optimize_sub_char_table (table, chars)
+     Lisp_Object *table;
+     int chars;
+{
+  Lisp_Object elt;
+  int from, to;
+
+  if (chars == 94)
+    from = 33, to = 127;
+  else
+    from = 32, to = 128;
+
+  if (!SUB_CHAR_TABLE_P (*table))
+    return;
+  elt = XCHAR_TABLE (*table)->contents[from++];
+  for (; from < to; from++)
+    if (NILP (Fequal (elt, XCHAR_TABLE (*table)->contents[from])))
+      return;
+  *table = elt;
+}
+
+DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
+       1, 1, 0,
+  "Optimize char table TABLE.")
+  (table)
+     Lisp_Object table;
+{
+  Lisp_Object elt;
+  int dim;
+  int i, j;
+
+  CHECK_CHAR_TABLE (table, 0);
+
+  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+    {
+      elt = XCHAR_TABLE (table)->contents[i];
+      if (!SUB_CHAR_TABLE_P (elt))
+	continue;
+      dim = CHARSET_DIMENSION (i);
+      if (dim == 2)
+	for (j = 32; j < SUB_CHAR_TABLE_ORDINARY_SLOTS; j++)
+	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, dim);
+      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, dim);
+    }
+  return Qnil;
+}
+
 
 /* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
    character or group of characters that share a value.
@@ -4774,6 +4823,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Schar_table_range);
   defsubr (&Sset_char_table_range);
   defsubr (&Sset_char_table_default);
+  defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
   defsubr (&Snconc);
   defsubr (&Smapcar);
