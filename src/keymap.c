@@ -188,6 +188,7 @@ is also allowed as an element.")
 
    If AUTOLOAD is non-zero and OBJECT is a symbol whose function value
    is an autoload form, do the autoload and try again.
+   If AUTOLOAD is nonzero, callers must assume GC is possible.
 
    ERROR controls how we respond if OBJECT isn't a keymap.
    If ERROR is non-zero, signal an error; otherwise, just return Qnil.
@@ -552,6 +553,8 @@ is not copied.")
 
 /* Simple Keymap mutators and accessors.				*/
 
+/* GC is possible in this function if it autoloads a keymap.  */
+
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
   "Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.\n\
 KEYMAP is a keymap.  KEY is a string or a vector of symbols and characters\n\
@@ -646,6 +649,7 @@ the front of KEYMAP.")
 }
 
 /* Value is number if KEY is too long; NIL if valid but has no definition. */
+/* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
   "In keymap KEYMAP, look up key sequence KEY.  Return the definition.\n\
@@ -675,6 +679,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
   int length;
   int t_ok = ! NILP (accept_default);
   int meta_bit;
+  struct gcpro gcpro1;
 
   keymap = get_keymap_1 (keymap, 1, 1);
 
@@ -690,6 +695,8 @@ recognize the default bindings, just as `read-key-sequence' does.")
     meta_bit = meta_modifier;
   else
     meta_bit = 0x80;
+
+  GCPRO1 (key);
 
   idx = 0;
   while (1)
@@ -714,11 +721,11 @@ recognize the default bindings, just as `read-key-sequence' does.")
 
       cmd = get_keyelt (access_keymap (keymap, c, t_ok, 0), 1);
       if (idx == length)
-	return cmd;
+	RETURN_UNGCPRO (cmd);
 
       keymap = get_keymap_1 (cmd, 0, 1);
       if (NILP (keymap))
-	return make_number (idx);
+	RETURN_UNGCPRO (make_number (idx));
 
       QUIT;
     }
@@ -859,6 +866,8 @@ current_minor_maps (modeptr, mapptr)
   return i;
 }
 
+/* GC is possible in this function if it autoloads a keymap.  */
+
 DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 2, 0,
   "Return the binding for command KEY in current keymaps.\n\
 KEY is a string or vector, a sequence of keystrokes.\n\
@@ -874,38 +883,47 @@ recognize the default bindings, just as `read-key-sequence' does.")
 {
   Lisp_Object *maps, value;
   int nmaps, i;
+  struct gcpro gcpro1;
+
+  GCPRO1 (key);
 
   if (!NILP (Voverriding_local_map))
     {
       value = Flookup_key (Voverriding_local_map, key, accept_default);
       if (! NILP (value) && XTYPE (value) != Lisp_Int)
-	return value;
+	RETURN_UNGCPRO (value);
     }
   else
     { 
       nmaps = current_minor_maps (0, &maps);
+      /* Note that all these maps are GCPRO'd
+	 in the places where we found them.  */
+
       for (i = 0; i < nmaps; i++)
 	if (! NILP (maps[i]))
 	  {
 	    value = Flookup_key (maps[i], key, accept_default);
 	    if (! NILP (value) && XTYPE (value) != Lisp_Int)
-	      return value;
+	      RETURN_UNGCPRO (value);
 	  }
 
       if (! NILP (current_buffer->keymap))
 	{
 	  value = Flookup_key (current_buffer->keymap, key, accept_default);
 	  if (! NILP (value) && XTYPE (value) != Lisp_Int)
-	    return value;
+	    RETURN_UNGCPRO (value);
 	}
     }
 
   value = Flookup_key (current_global_map, key, accept_default);
+  UNGCPRO;
   if (! NILP (value) && XTYPE (value) != Lisp_Int)
     return value;
   
   return Qnil;
 }
+
+/* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
   "Return the binding for command KEYS in current local keymap only.\n\
@@ -924,12 +942,14 @@ bindings; see the description of `lookup-key' for more details about this.")
   return Flookup_key (map, keys, accept_default);
 }
 
+/* GC is possible in this function if it autoloads a keymap.  */
+
 DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
   "Return the binding for command KEYS in current global keymap only.\n\
 KEYS is a string, a sequence of keystrokes.\n\
 The binding is probably a symbol with a function definition.\n\
 This function's return values are the same as those of lookup-key\n\
-(which see).\n\
+\(which see).\n\
 \n\
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
 bindings; see the description of `lookup-key' for more details about this.")
@@ -938,6 +958,8 @@ bindings; see the description of `lookup-key' for more details about this.")
 {
   return Flookup_key (current_global_map, keys, accept_default);
 }
+
+/* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
   "Find the visible minor mode bindings of KEY.\n\
@@ -958,8 +980,14 @@ bindings; see the description of `lookup-key' for more details about this.")
   int nmaps;
   Lisp_Object binding;
   int i, j;
+  struct gcpro gcpro1, gcpro2;
 
   nmaps = current_minor_maps (&modes, &maps);
+  /* Note that all these maps are GCPRO'd
+     in the places where we found them.  */
+
+  binding = Qnil;
+  GCPRO2 (key, binding);
 
   for (i = j = 0; i < nmaps; i++)
     if (! NILP (maps[i])
@@ -969,9 +997,10 @@ bindings; see the description of `lookup-key' for more details about this.")
 	if (! NILP (get_keymap (binding)))
 	  maps[j++] = Fcons (modes[i], binding);
 	else if (j == 0)
-	  return Fcons (Fcons (modes[i], binding), Qnil);
+	  RETURN_UNGCPRO (Fcons (Fcons (modes[i], binding), Qnil));
       }
 
+  UNGCPRO;
   return Flist (j, maps);
 }
 
@@ -1114,6 +1143,8 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
+/* This function cannot GC.  */
+
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
   1, 2, 0,
   "Find all keymaps accessible via prefix characters from KEYMAP.\n\
@@ -1127,6 +1158,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 {
   Lisp_Object maps, good_maps, tail;
   int prefixlen = 0;
+
+  /* no need for gcpro because we don't autoload any keymaps.  */
 
   if (!NILP (prefix))
     prefixlen = XINT (Flength (prefix));
@@ -1285,6 +1318,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 
 Lisp_Object Qsingle_key_description, Qkey_description;
 
+/* This function cannot GC.  */
+
 DEFUN ("key-description", Fkey_description, Skey_description, 1, 1, 0,
   "Return a pretty description of key-sequence KEYS.\n\
 Control characters turn into \"C-foo\" sequences, meta into \"M-foo\"\n\
@@ -1439,6 +1474,8 @@ push_key_description (c, p)
   return p;  
 }
 
+/* This function cannot GC.  */
+
 DEFUN ("single-key-description", Fsingle_key_description, Ssingle_key_description, 1, 1, 0,
   "Return a pretty description of command character KEY.\n\
 Control characters turn into C-whatever, etc.")
@@ -1493,6 +1530,8 @@ push_text_char_description (c, p)
   return p;  
 }
 
+/* This function cannot GC.  */
+
 DEFUN ("text-char-description", Ftext_char_description, Stext_char_description, 1, 1, 0,
   "Return a pretty description of file-character CHAR.\n\
 Control characters turn into \"^char\", etc.")
@@ -1534,6 +1573,8 @@ ascii_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
+/* This function can GC if Flookup_key autoloads any keymaps.  */
+
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
   "Return list of keys that invoke DEFINITION.\n\
 If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
@@ -1553,9 +1594,10 @@ indirect definition itself.")
      Lisp_Object definition, keymap;
      Lisp_Object firstonly, noindirect;
 {
-  register Lisp_Object maps;
-  Lisp_Object found;
+  Lisp_Object maps;
+  Lisp_Object found, sequence;
   int keymap_specified = !NILP (keymap);
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   if (! keymap_specified)
     {
@@ -1587,7 +1629,9 @@ indirect definition itself.")
 	}
     }
 
+  GCPRO5 (definition, keymap, maps, found, sequence);
   found = Qnil;
+  sequence = Qnil;
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
@@ -1622,7 +1666,7 @@ indirect definition itself.")
 	     advance map to the next element until i indicates that we
 	     have finished off the vector.  */
 	  
-	  Lisp_Object elt, key, binding, sequence;
+	  Lisp_Object elt, key, binding;
 	  elt = XCONS (map)->car;
 
 	  QUIT;
@@ -1731,11 +1775,13 @@ indirect definition itself.")
 	     nil, then we should return the first ascii-only binding
 	     we find.  */
 	  if (EQ (firstonly, Qnon_ascii))
-	    return sequence;
+	    RETURN_UNGCPRO (sequence);
 	  else if (! NILP (firstonly) && ascii_sequence_p (sequence))
-	    return sequence;
+	    RETURN_UNGCPRO (sequence);
 	}
     }
+
+  UNGCPRO;
 
   found = Fnreverse (found);
 
