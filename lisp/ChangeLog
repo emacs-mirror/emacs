@@ -1,3 +1,9 @@
+2003-08-12  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-sccs.el (vc-sccs-state-heuristic): Fix parentheses.
+	(vc-sccs-workfile-version): Search the entire delta table, rather
+	than just the first entry, because that might be a deleted version.
+
 2003-08-11  Karl Fogel  <kfogel@red-bean.com>
 
 	* menu-bar.el (menu-bar-options-menu): Supply a body for the
