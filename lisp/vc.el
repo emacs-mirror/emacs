@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.367 2004/02/08 22:42:42 uid65629 Exp $
+;; $Id: vc.el,v 1.368 2004/03/15 03:55:24 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -264,9 +264,10 @@
 ;;
 ;; HISTORY FUNCTIONS
 ;;
-;; * print-log (file)
+;; * print-log (file &optional buffer)
 ;;
-;;   Insert the revision log of FILE into the *vc* buffer.
+;;   Insert the revision log of FILE into BUFFER, or the *vc* buffer
+;;   if BUFFER is nil.
 ;;
 ;; - show-log-entry (version)
 ;;
@@ -301,17 +302,17 @@
 ;;   default implementation runs rcs2log, which handles RCS- and
 ;;   CVS-style logs.
 ;;
-;; * diff (file &optional rev1 rev2)
+;; * diff (file &optional rev1 rev2 buffer)
 ;;
-;;   Insert the diff for FILE into the *vc-diff* buffer.  If REV1 and
-;;   REV2 are non-nil, report differences from REV1 to REV2.  If REV1
-;;   is nil, use the current workfile version (as found in the
-;;   repository) as the older version; if REV2 is nil, use the current
-;;   workfile contents as the newer version.  This function should
-;;   pass the value of (vc-switches BACKEND 'diff) to the backend
-;;   command.  It should return a status of either 0 (no differences
-;;   found), or 1 (either non-empty diff or the diff is run
-;;   asynchronously).
+;;   Insert the diff for FILE into BUFFER, or the *vc-diff* buffer if
+;;   BUFFER is nil.  If REV1 and REV2 are non-nil, report differences
+;;   from REV1 to REV2.  If REV1 is nil, use the current workfile
+;;   version (as found in the repository) as the older version; if
+;;   REV2 is nil, use the current workfile contents as the newer
+;;   version.  This function should pass the value of (vc-switches
+;;   BACKEND 'diff) to the backend command.  It should return a status
+;;   of either 0 (no differences found), or 1 (either non-empty diff
+;;   or the diff is run asynchronously).
 ;;
 ;; - diff-tree (dir &optional rev1 rev2)
 ;;
@@ -1727,7 +1728,9 @@ versions of all registered files in or below it."
                            'diff-tree dir rel1 rel2))
 	(vc-exec-after `(let ((inhibit-read-only t))
 			  (insert "\nEnd of diffs.\n"))))
-    ;; single file diff
+    ;; Single file diff.  It is important that the vc-controlled buffer
+    ;; is still current at this time, because any local settings in that
+    ;; buffer should affect the diff command.
     (vc-diff-internal file rel1 rel2))
   (set-buffer "*vc-diff*")
   (if (and (zerop (buffer-size))
@@ -1752,8 +1755,8 @@ versions of all registered files in or below it."
 
 (defun vc-diff-internal (file rel1 rel2)
   "Run diff to compare FILE's revisions REL1 and REL2.
-Output goes to the current buffer, which is assumed properly set up.
-The exit status of the diff command is returned.
+Diff output goes to the *vc-diff* buffer.  The exit status of the diff
+command is returned.
 
 This function takes care to set up a proper coding system for diff output.
 If both revisions are available as local files, then it also does not
@@ -2322,14 +2325,26 @@ allowed and simply skipped)."
 
 ;;;###autoload
 (defun vc-print-log (&optional focus-rev)
-  "List the change log of the current buffer in a window.  If
-FOCUS-REV is non-nil, leave the point at that revision."
+  "List the change log of the current buffer in a window.
+If FOCUS-REV is non-nil, leave the point at that revision."
   (interactive)
   (vc-ensure-vc-buffer)
-  (let ((file buffer-file-name))
+  (let* ((file buffer-file-name)
+         (print-log-args-length 
+          (length (cadr (symbol-function 
+                         (vc-find-backend-function (vc-backend file) 
+                                                   'print-log))))))
     (or focus-rev (setq focus-rev (vc-workfile-version file)))
-    (vc-call print-log file)
-    (set-buffer "*vc*")
+    ;; Don't switch to the output buffer before running the command, 
+    ;; so that any buffer-local settings in the vc-controlled 
+    ;; buffer can be accessed by the command.
+    (if (> print-log-args-length 1)
+        (progn
+          (vc-call print-log file "*vc-change-log*")
+          (set-buffer "*vc-change-log*"))
+      ;; for backward compatibility
+      (vc-call print-log file)
+      (set-buffer "*vc*"))
     (pop-to-buffer (current-buffer))
     (log-view-mode)
     (vc-exec-after
