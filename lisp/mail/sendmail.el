@@ -643,7 +643,7 @@ the user from the mailer."
   (search-forward (concat "\n" mail-header-separator "\n")))
 
 (defun mail-signature (atpoint)
-  "Sign letter with contents of `mail-signature-file'.
+  "Sign letter with contents of the file `~/.signature'.
 Prefix arg means put contents at point."
   (interactive "P")
   (save-excursion
@@ -653,7 +653,7 @@ Prefix arg means put contents at point."
     (end-of-line)
     (or atpoint
 	(delete-region (point) (point-max)))
-    (insert "\n\n")
+    (insert "\n\n-- \n")
     (insert-file-contents (expand-file-name "~/.signature"))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
