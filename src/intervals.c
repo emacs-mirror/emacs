@@ -284,34 +284,35 @@ rotate_right (interval)
 {
   INTERVAL i;
   INTERVAL B = interval->left;
-  int len = LENGTH (interval);
+  int old_total = interval->total_length;
 
   /* Deal with any Parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
     if (AM_LEFT_CHILD (interval))
-      interval->parent->left = interval->left;
+      interval->parent->left = B;
     else
-      interval->parent->right = interval->left;
-  interval->left->parent = interval->parent;
+      interval->parent->right = B;
+  B->parent = interval->parent;
 
-  /* B gets the same length as A, since it get A's position in the tree.  */
-  interval->left->total_length = interval->total_length;
+  /* Make B the parent of A */
+  i = B->right;
+  B->right = interval;
+  interval->parent = B;
 
-  /* B becomes the parent of A.  */
-  i = interval->left->right;
-  interval->left->right = interval;
-  interval->parent = interval->left;
-
-  /* A gets c as left child.  */
+  /* Make A point to c */
   interval->left = i;
   if (! NULL_INTERVAL_P (i))
     i->parent = interval;
-  interval->total_length = (len + LEFT_TOTAL_LENGTH (interval)
-			    + RIGHT_TOTAL_LENGTH (interval));
+
+  /* A's total length is decreased by the length of B and it's left child.  */
+  interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
+
+  /* B must have the same total length of A.  */
+  B->total_length = old_total;
 
   return B;
 }
-
+
 /* Assuming that a right child exists, perform the following operation:
 
     A               B   
@@ -327,32 +328,119 @@ rotate_left (interval)
 {
   INTERVAL i;
   INTERVAL B = interval->right;
-  int len = LENGTH (interval);
+  int old_total = interval->total_length;
 
-  /* Deal with the parent of A.  */
+  /* Deal with any parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
     if (AM_LEFT_CHILD (interval))
-      interval->parent->left = interval->right;
+      interval->parent->left = B;
     else
-      interval->parent->right = interval->right;
-  interval->right->parent = interval->parent;
-
-  /* B must have the same total length of A.  */
-  interval->right->total_length = interval->total_length;
+      interval->parent->right = B;
+  B->parent = interval->parent;
 
   /* Make B the parent of A */
-  i = interval->right->left;
-  interval->right->left = interval;
-  interval->parent = interval->right;
+  i = B->left;
+  B->left = interval;
+  interval->parent = B;
 
   /* Make A point to c */
   interval->right = i;
   if (! NULL_INTERVAL_P (i))
     i->parent = interval;
-  interval->total_length = (len + LEFT_TOTAL_LENGTH (interval)
-			    + RIGHT_TOTAL_LENGTH (interval));
+
+  /* A's total length is decreased by the length of B and it's right child.  */
+  interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
+
+  /* B must have the same total length of A.  */
+  B->total_length = old_total;
 
   return B;
+}
+
+/* Balance an interval tree with the assumption that the subtrees
+   themselves are already balanced.  */
+
+static INTERVAL
+balance_an_interval (i)
+     INTERVAL i;
+{
+  register int old_diff, new_diff;
+
+  while (1)
+    {
+      old_diff = LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i);
+      if (old_diff > 0)
+	{
+	  new_diff = i->total_length - i->left->total_length
+	    + RIGHT_TOTAL_LENGTH (i->left) - LEFT_TOTAL_LENGTH (i->left);
+	  if (abs (new_diff) >= old_diff)
+	    break;
+	  i = rotate_right (i);
+	  balance_an_interval (i->right);
+	}
+      else if (old_diff < 0)
+	{
+	  new_diff = i->total_length - i->right->total_length
+	    + LEFT_TOTAL_LENGTH (i->right) - RIGHT_TOTAL_LENGTH (i->right);
+	  if (abs (new_diff) >= -old_diff)
+	    break;
+	  i = rotate_left (i);
+	  balance_an_interval (i->left);
+	}
+      else
+	break;
+    }
+  return i;
+}
+
+/* Balance INTERVAL, potentially stuffing it back into its parent
+   Lisp Object.  */
+
+static INLINE INTERVAL
+balance_possible_root_interval (interval)
+     register INTERVAL interval;
+{
+  Lisp_Object parent;
+
+  if (interval->parent == NULL_INTERVAL)
+    return interval;
+
+  parent = (Lisp_Object) (interval->parent);
+  interval = balance_an_interval (interval);
+
+  if (XTYPE (parent) == Lisp_Buffer)
+    XBUFFER (parent)->intervals = interval;
+  else if (XTYPE (parent) == Lisp_String)
+    XSTRING (parent)->intervals = interval;
+
+  return interval;
+}
+
+/* Balance the interval tree TREE.  Balancing is by weight
+   (the amount of text).  */
+
+static INTERVAL
+balance_intervals_internal (tree)
+     register INTERVAL tree;
+{
+  /* Balance within each side.  */
+  if (tree->left)
+    balance_intervals (tree->left);
+  if (tree->right)
+    balance_intervals (tree->right);
+  return balance_an_interval (tree);
+}
+
+/* Advertised interface to balance intervals.  */
+
+INTERVAL
+balance_intervals (tree)
+     INTERVAL tree;
+{
+  if (tree == NULL_INTERVAL)
+    return NULL_INTERVAL;
+
+  return balance_intervals_internal (tree);
 }
 
 /* Split INTERVAL into two pieces, starting the second piece at
@@ -380,7 +468,7 @@ split_interval_right (interval, offset)
   new->position = position + offset;
   new->parent = interval;
 
-  if (LEAF_INTERVAL_P (interval) || NULL_RIGHT_CHILD (interval))
+  if (NULL_RIGHT_CHILD (interval))
     {
       interval->right = new;
       new->total_length = new_length;
@@ -392,8 +480,10 @@ split_interval_right (interval, offset)
   new->right = interval->right;
   interval->right->parent = new;
   interval->right = new;
-
   new->total_length = new_length + new->right->total_length;
+
+  balance_an_interval (new);
+  balance_possible_root_interval (interval);
 
   return new;
 }
@@ -436,7 +526,10 @@ split_interval_left (interval, offset)
   new->left = interval->left;
   new->left->parent = new;
   interval->left = new;
-  new->total_length = new_length + LEFT_TOTAL_LENGTH (new);
+  new->total_length = new_length + new->left->total_length;
+
+  balance_an_interval (new);
+  balance_possible_root_interval (interval);
 
   return new;
 }
@@ -464,6 +557,8 @@ find_interval (tree, position)
 
   if (relative_position > TOTAL_LENGTH (tree))
     abort ();			/* Paranoia */
+
+  tree = balance_possible_root_interval (tree);
 
   while (1)
     {
@@ -694,8 +789,11 @@ adjust_intervals_for_insertion (tree, position, length)
       /* Even if we are positioned between intervals, we default
 	 to the left one if it exists.  We extend it now and split
 	 off a part later, if stickyness demands it.  */
-      for (temp = prev ? prev : i; ! NULL_INTERVAL_P (temp); temp = temp->parent)
-	temp->total_length += length;
+      for (temp = prev ? prev : i;! NULL_INTERVAL_P (temp); temp = temp->parent)
+	{
+	  temp->total_length += length;
+	  temp = balance_possible_root_interval (temp);
+	}
       
       /* If at least one interval has sticky properties,
 	 we check the stickyness property by property.  */
@@ -739,7 +837,10 @@ adjust_intervals_for_insertion (tree, position, length)
   else
     {
       for (temp = i; ! NULL_INTERVAL_P (temp); temp = temp->parent)
-	temp->total_length += length;
+	{
+	  temp->total_length += length;
+	  temp = balance_possible_root_interval (temp);
+	}
     }
       
   return tree;
@@ -1279,6 +1380,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 				make_number (position + length),
 				Qnil, buf);
 	}
+      if (! NULL_INTERVAL_P (buffer->intervals))
+	buffer->intervals = balance_an_interval (buffer->intervals);
       return;
     }
 
@@ -1370,7 +1473,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
       over = next_interval (over);
     }
 
-  buffer->intervals = balance_intervals (buffer->intervals);
+  if (! NULL_INTERVAL_P (buffer->intervals))
+    buffer->intervals = balance_an_interval (buffer->intervals);
   return;
 }
 
@@ -1762,70 +1866,6 @@ verify_interval_modification (buf, start, end)
     }
 }
 
-/* Balance an interval node if the amount of text in its left and right
-   subtrees differs by more than the percentage specified by
-   `interval-balance-threshold'.  */
-
-static INTERVAL
-balance_an_interval (i)
-     INTERVAL i;
-{
-  register int total_children_size = (LEFT_TOTAL_LENGTH (i)
-				      + RIGHT_TOTAL_LENGTH (i));
-  register int threshold = (XFASTINT (interval_balance_threshold)
-			    * (total_children_size / 100));
-
-  /* Balance within each side.  */
-  balance_intervals (i->left);
-  balance_intervals (i->right);
-
-  if (LEFT_TOTAL_LENGTH (i) > RIGHT_TOTAL_LENGTH (i)
-      && (LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i)) > threshold)
-    {
-      i = rotate_right (i);
-      /* If that made it unbalanced the other way, take it back.  */
-      if (RIGHT_TOTAL_LENGTH (i) > LEFT_TOTAL_LENGTH (i)
-	  && (RIGHT_TOTAL_LENGTH (i) - LEFT_TOTAL_LENGTH (i)) > threshold)
-	return rotate_left (i);
-      return i;
-    }
-
-  if (RIGHT_TOTAL_LENGTH (i) > LEFT_TOTAL_LENGTH (i)
-      && (RIGHT_TOTAL_LENGTH (i) - LEFT_TOTAL_LENGTH (i)) > threshold)
-    {
-      i = rotate_left (i);
-      if (LEFT_TOTAL_LENGTH (i) > RIGHT_TOTAL_LENGTH (i)
-	  && (LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i)) > threshold)
-	return rotate_right (i);
-      return i;
-    }
-
-  return i;
-}
-
-/* Balance the interval tree TREE.  Balancing is by weight
-   (the amount of text).  */
-
-INTERVAL
-balance_intervals (tree)
-     register INTERVAL tree;
-{
-  register INTERVAL new_tree;
-
-  if (NULL_INTERVAL_P (tree))
-    return NULL_INTERVAL;
-
-  new_tree = tree;
-  do
-    {
-      tree = new_tree;
-      new_tree = balance_an_interval (new_tree);
-    }
-  while (new_tree != tree);
-
-  return new_tree;
-}
-
 /* Produce an interval tree reflecting the intervals in
    TREE from START to START + LENGTH.  */
 
@@ -1866,7 +1906,7 @@ copy_intervals (tree, start, length)
       got += prevlen;
     }
 
-  return balance_intervals (new);
+  return balance_an_interval (new);
 }
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
