@@ -4167,7 +4167,7 @@ xm_scroll_callback (widget, client_data, call_data)
 	XtVaGetValues (widget, XmNsliderSize, &slider_size, NULL);
 	UNBLOCK_INPUT;
 
-	whole = XM_SB_MAX;
+	whole = XM_SB_MAX - slider_size;
 	portion = min (cs->value, whole);
 	part = scroll_bar_handle;
 	bar->dragging = make_number (cs->value);
