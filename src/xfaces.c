@@ -350,7 +350,7 @@ extern Lisp_Object Qmouse_face;
 
 /* Error symbol for wrong_type_argument in load_pixmap.  */
 
-Lisp_Object Qpixmap_spec_p;
+Lisp_Object Qbitmap_spec_p;
 
 /* Alist of global face definitions.  Each element is of the form
    (FACE . LFACE) where FACE is a symbol naming a face and LFACE
@@ -838,10 +838,10 @@ clear_font_table (f)
 
 #ifdef HAVE_X_WINDOWS
 
-DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
-  "Value is non-nil if OBJECT is a valid pixmap specification.\n\
-A pixmap specification is either a string, a file name, or a list\n\
-(WIDTH HEIGHT DATA) where WIDTH is the pixel width of the pixmap,\n\
+DEFUN ("bitmap-spec-p", Fbitmap_spec_p, Sbitmap_spec_p, 1, 1, 0,
+  "Value is non-nil if OBJECT is a valid bitmap specification.\n\
+A bitmap specification is either a string, a file name, or a list\n\
+(WIDTH HEIGHT DATA) where WIDTH is the pixel width of the bitmap,\n\
 HEIGHT is its height, and DATA is a string containing the bits of\n\
 the pixmap.  Bits are stored row by row, each row occupies\n\
 (WIDTH + 7)/8 bytes.")
@@ -907,9 +907,9 @@ load_pixmap (f, name, w_ptr, h_ptr)
   if (NILP (name))
     return 0;
 
-  tem = Fpixmap_spec_p (name);
+  tem = Fbitmap_spec_p (name);
   if (NILP (tem))
-    wrong_type_argument (Qpixmap_spec_p, name);
+    wrong_type_argument (Qbitmap_spec_p, name);
 
   BLOCK_INPUT;
   if (CONSP (name))
@@ -1255,7 +1255,7 @@ load_face_colors (f, face, attrs)
      "supported" as background because we are supposed to use stipple
      for them.  */
   if (!face_color_supported_p (f, XSTRING (bg)->data, 0)
-      && !NILP (Fpixmap_spec_p (Vface_default_stipple)))
+      && !NILP (Fbitmap_spec_p (Vface_default_stipple)))
     {
       x_destroy_bitmap (f, face->stipple);
       face->stipple = load_pixmap (f, Vface_default_stipple,
@@ -2568,7 +2568,7 @@ check_lface_attrs (attrs)
 #ifdef HAVE_WINDOW_SYSTEM
   xassert (UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
 	   || SYMBOLP (attrs[LFACE_STIPPLE_INDEX])
-	   || !NILP (Fpixmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
+	   || !NILP (Fbitmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
 #endif
 }
 
@@ -2957,7 +2957,7 @@ merge_face_vector_with_property (f, to, prop)
 	      else if (EQ (keyword, QCstipple))
 		{
 #ifdef HAVE_X_WINDOWS
-		  Lisp_Object pixmap_p = Fpixmap_spec_p (value);
+		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
@@ -3379,7 +3379,7 @@ frame.")
 #ifdef HAVE_X_WINDOWS
       if (!UNSPECIFIEDP (value)
 	  && !NILP (value)
-	  && NILP (Fpixmap_spec_p (value)))
+	  && NILP (Fbitmap_spec_p (value)))
 	signal_error ("Invalid stipple attribute", value);
       old_value = LFACE_STIPPLE (lface);
       LFACE_STIPPLE (lface) = value;
@@ -6474,8 +6474,8 @@ syms_of_xfaces ()
 {
   Qface = intern ("face");
   staticpro (&Qface);
-  Qpixmap_spec_p = intern ("pixmap-spec-p");
-  staticpro (&Qpixmap_spec_p);
+  Qbitmap_spec_p = intern ("bitmap-spec-p");
+  staticpro (&Qbitmap_spec_p);
   Qframe_update_face_colors = intern ("frame-update-face-colors");
   staticpro (&Qframe_update_face_colors);
   
@@ -6666,7 +6666,7 @@ scaled if its name matches a regular expression in the list.");
 #endif /* SCALABLE_FONTS */
 
 #ifdef HAVE_X_WINDOWS
-  defsubr (&Spixmap_spec_p);
+  defsubr (&Sbitmap_spec_p);
   defsubr (&Sx_list_fonts);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
