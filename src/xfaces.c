@@ -5329,7 +5329,8 @@ smaller_face (f, face_id, steps)
       new_face = FACE_FROM_ID (f, new_face_id);
 
       /* If height changes, count that as one step.  */
-      if (FONT_HEIGHT (new_face->font) != last_height)
+      if ((delta < 0 && FONT_HEIGHT (new_face->font) < last_height)
+	  || (delta > 0 && FONT_HEIGHT (new_face->font) > last_height))
 	{
 	  --steps;
 	  last_height = FONT_HEIGHT (new_face->font);
