@@ -5,7 +5,7 @@
 ;; Copyright (C) 2001, 2002
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 ;; Keywords: i18n, mule, multilingual, character set, coding system
 
@@ -419,8 +419,15 @@
   :iso-final-char ?C
   :emacs-mule-id 147
   :code-space [33 126 33 126]
-  :code-offset #x279f94
+  :code-offset #x279f94			; ... #x27c217
   :unify-map "ksc5601-1987")
+
+(define-charset 'big5-hkscs
+  "Big5-HKSCS (Chinese traditional, Hong Kong supplement)"
+  :short-name "Big5"
+  :code-space [#x40 #xFE #xA1 #xFE]
+  :code-offset #x27c218			; ... #x280839
+  :unify-map "big5-hkscs")
 
 ;; Fixme: Korean cp949/UHC
 
@@ -529,6 +536,13 @@
   :ascii-compatible-p t
   :code-space [0 255]
   :map "georgian-ps")
+
+(define-charset 'georgian-academy
+  "GEORGIAN-ACADEMY"
+  :short-name "GEORGIAN-ACADEMY"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "georgian-academy")
 
 (define-charset 'windows-1250
   "WINDOWS-1250 (Central Europe)"
@@ -945,7 +959,7 @@
 
 (define-charset 'ibm1047
   ;; Says groff:
-  "IBM1047, some form of EBCDIC used by OS/390 Unix."
+  "IBM1047, `EBCDIC Latin 1/Open Systems' used by OS/390 Unix."
   :short-name "IBM1047"
   :code-space [0 255]
   :mime-charset 'ibm1047
@@ -994,7 +1008,10 @@
   :short-name "PT154"
   :ascii-compatible-p t
   :code-space [0 255]
+  :mime-charset 'pt154
   :map "pt154")
+(define-charset-alias 'ptcp154 'pt154)
+(define-charset-alias 'cp154 'pt154)
 
 (define-charset 'gb18030-2-byte
   "GB18030 2-byte (0x814E..0xFEFE)"
@@ -1052,8 +1069,7 @@
 (unify-charset 'chinese-big5-2)
 (unify-charset 'vietnamese-viscii-lower)
 (unify-charset 'vietnamese-viscii-upper)
-;; Fixme: unifying sucks in the charset tables, which may be large.
-;; (Can we avoid that and do it anyhow (with lazy loading)?)
+(unify-charset 'big5-hkscs)
 (unify-charset 'chinese-sisheng)
 (unify-charset 'korean-ksc5601)
 (unify-charset 'ipa)
