@@ -91,9 +91,17 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   "Non-nil if debuggee is running.
 Used to grey out relevant toolbar icons.")
 
+(defun gud-goto-info ()
+  "Go to relevant Emacs info node."
+  (interactive)
+  (select-frame (make-frame))
+  (require 'info)
+  (if (memq gud-minor-mode '(gdbmi gdba))
+      (Info-goto-node "(emacs)GDB Graphical Interface")
+    (Info-goto-node "(emacs)Debuggers")))
+
 (easy-mmode-defmap gud-menu-map
-  '(([help]     menu-item "Help" gdb-goto-info
-                  :enable (memq gud-minor-mode '(gdbmi gdba)))
+  '(([help]     "Info" . gud-goto-info
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)
@@ -172,7 +180,7 @@ Used to grey out relevant toolbar icons.")
 		     (gud-nexti . "gud-ni")
 		     (gud-up . "gud-up")
 		     (gud-down . "gud-down")
-		     (gdb-goto-info . "help"))
+		     (gud-goto-info . "info"))
 		   map)
 	  (tool-bar-local-item-from-menu
 	   (car x) (cdr x) map gud-minor-mode-map)))))
