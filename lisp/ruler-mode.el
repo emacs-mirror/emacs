@@ -438,24 +438,35 @@ C-mouse-2: hide tabs"
   "Right margin %S"
   "Help string shown when mouse is over the right margin area.")
 
-(defun ruler-mode-extra-left-cols ()
-  "Return number of extra columns on the left side of selected frame.
-That is the number of columns occupied by the left fringe area and
-vertical scrollbar on the left side of the selected frame."
-  (let ((w  (frame-first-window))
-        (xy (cons 0 0)))
-    (with-current-buffer (window-buffer w)
-      (let (header-line-format)
-        (while (not (listp (coordinates-in-window-p xy w)))
-          (setcar xy (1+ (car xy))))
-        (car xy)))))
+(defmacro ruler-mode-left-fringe-cols ()
+  "Return the width, measured in columns, of the left fringe area."
+  '(round (or (frame-parameter nil 'left-fringe) 0)
+          (frame-char-width)))
+
+(defmacro ruler-mode-right-fringe-cols ()
+  "Return the width, measured in columns, of the right fringe area."
+  '(round (or (frame-parameter nil 'right-fringe) 0)
+          (frame-char-width)))
+
+(defmacro ruler-mode-left-scroll-bar-cols ()
+  "Return the width, measured in columns, of the left vertical scrollbar."
+  '(if (eq (frame-parameter nil 'vertical-scroll-bars) 'left)
+       (round (or (frame-parameter nil 'scroll-bar-width) 0)
+              (frame-char-width))
+     0))
+
+(defmacro ruler-mode-right-scroll-bar-cols ()
+  "Return the width, measured in columns, of the right vertical scrollbar."
+  '(if (eq (frame-parameter nil 'vertical-scroll-bars) 'right)
+       (round (or (frame-parameter nil 'scroll-bar-width) 0)
+              (frame-char-width))
+     0))
 
 (defun ruler-mode-ruler ()
   "Return a string ruler."
   (if ruler-mode
-      (let* ((j     (ruler-mode-extra-left-cols))
-             (k     (/ (or (frame-parameter nil 'right-fringe) 0)
-                       (frame-char-width)))
+      (let* ((j     (+ (ruler-mode-left-fringe-cols)
+                       (ruler-mode-left-scroll-bar-cols)))
              (w     (+ (window-width) j))
              (m     (window-margins))
              (l     (or (car m) 0))
@@ -466,8 +477,10 @@ vertical scrollbar on the left side of the selected frame."
                      ;; unit graduations
                      (make-string w ruler-mode-basic-graduation-char)
                      ;; extra space to fill the header line
-                     (make-string k ?\ )))
-             c)
+                     (make-string (+ (ruler-mode-right-fringe-cols)
+                                     (ruler-mode-right-scroll-bar-cols))
+                                  ?\ )))
+             c k)
 
         ;; Setup default face and help echo.
         (put-text-property 0 (length ruler)
