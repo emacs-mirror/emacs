@@ -292,6 +292,7 @@ and allied functions.
 @item
 @code{file-attributes} returns the file size and the file inode number
 only as a simple integer.
+Also @acronym{UID} and @acronym{GID} are always returned as integers.
 @end itemize
 
 @ignore
