@@ -245,7 +245,7 @@ Lisp_Object Qsuppress_icon;
 Lisp_Object Qsuppress_initial_map;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
-Lisp_Object Qvertical_scrollbars;
+Lisp_Object Qvertical_scroll_bars;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
 
@@ -306,7 +306,7 @@ enum x_frame_parm
   X_PARM_NAME,
   X_PARM_AUTORAISE,
   X_PARM_AUTOLOWER,
-  X_PARM_VERT_SCROLLBAR,
+  X_PARM_VERT_SCROLL_BAR,
 };
 
 
@@ -329,7 +329,7 @@ void x_set_internal_border_width ();
 void x_explicitly_set_name ();
 void x_set_autoraise ();
 void x_set_autolower ();
-void x_set_vertical_scrollbars ();
+void x_set_vertical_scroll_bars ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -346,7 +346,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "name", x_explicitly_set_name,
   "auto-raise", x_set_autoraise,
   "auto-lower", x_set_autolower,
-  "vertical-scrollbars", x_set_vertical_scrollbars,
+  "vertical-scroll-bars", x_set_vertical_scroll_bars,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1043,13 +1043,13 @@ x_set_autolower (f, arg, oldval)
 }
 
 void
-x_set_vertical_scrollbars (f, arg, oldval)
+x_set_vertical_scroll_bars (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  if (NILP (arg) != ! FRAME_HAS_VERTICAL_SCROLLBARS (f))
+  if (NILP (arg) != ! FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     {
-      FRAME_HAS_VERTICAL_SCROLLBARS (f) = ! NILP (arg);
+      FRAME_HAS_VERTICAL_SCROLL_BARS (f) = ! NILP (arg);
 
       /* We set this parameter before creating the X window for the
 	 frame, so we can get the geometry right from the start.
@@ -1594,9 +1594,9 @@ x_figure_window_size (f, parms)
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     error ("Must specify *both* height and width");
 
-  f->display.x->vertical_scrollbar_extra =
-    (FRAME_HAS_VERTICAL_SCROLLBARS (f)
-     ? VERTICAL_SCROLLBAR_PIXEL_WIDTH (f)
+  f->display.x->vertical_scroll_bar_extra =
+    (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+     ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
      : 0);
   f->display.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->display.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
@@ -1859,8 +1859,8 @@ be shared by the new frame.")
   else
     f = make_frame (1);
 
-  /* Note that X Windows does support scrollbars.  */
-  FRAME_CAN_HAVE_SCROLLBARS (f) = 1;
+  /* Note that X Windows does support scroll bars.  */
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
@@ -1892,8 +1892,8 @@ be shared by the new frame.")
   /* This defaults to 2 in order to match xterm.  */
   x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
 		       "internalBorderWidth", "BorderWidth", number);
-  x_default_parameter (f, parms, Qvertical_scrollbars, Qt,
-		       "verticalScrollbars", "Scrollbars", boolean);
+  x_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
+		       "verticalScrollBars", "ScrollBars", boolean);
 
   /* Also do the stuff which must be set before the window exists. */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -3103,7 +3103,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
       BLOCK_INPUT;
     }
   while (XTYPE (obj) == Lisp_Cons		   /* Mouse event */
-	 && EQ (Fcar (Fcdr (Fcdr (obj))), Qnil)	   /* Not scrollbar */
+	 && EQ (Fcar (Fcdr (Fcdr (obj))), Qnil)	   /* Not scroll bar */
 	 && EQ (Vmouse_depressed, Qnil)              /* Only motion events */
 	 && EQ (Vmouse_window, selected_window)	   /* In this window */
 	 && x_mouse_frame);
@@ -3207,14 +3207,14 @@ otherwise, wait for an event.  Returns a four-part list:\n\
 Normally X-POS and Y-POS are the position of the click on the frame\n\
  (measured in characters and lines), and WINDOW is the window clicked in.\n\
 KEYSEQ is a string, the key sequence to be looked up in the mouse maps.\n\
-If FRAME-PART is non-nil, the event was on a scrollbar;\n\
-then Y-POS is really the total length of the scrollbar, while X-POS is\n\
-the relative position of the scrollbar's value within that total length,\n\
+If FRAME-PART is non-nil, the event was on a scroll bar;\n\
+then Y-POS is really the total length of the scroll bar, while X-POS is\n\
+the relative position of the scroll bar's value within that total length,\n\
 and a third element OFFSET appears in that list: the height of the thumb-up\n\
 area at the top of the scroll bar.\n\
 FRAME-PART is one of the following symbols:\n\
- `vertical-scrollbar', `vertical-thumbup', `vertical-thumbdown',\n\
- `horizontal-scrollbar', `horizontal-thumbleft', `horizontal-thumbright'.\n\
+ `vertical-scroll-bar', `vertical-thumbup', `vertical-thumbdown',\n\
+ `horizontal-scroll-bar', `horizontal-thumbleft', `horizontal-thumbright'.\n\
 TIMESTAMP is the lower 23 bits of the X-server's timestamp for\n\
 the mouse event.")
   (arg)
@@ -3275,7 +3275,7 @@ the mouse event.")
 						  Fcons (timestamp, Qnil)))));
 		  return Vmouse_event;
 		}
-	      else if ((f = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix)) != 0)
+	      else if ((f = x_window_to_scroll_bar (xrep.MouseWindow, &part, &prefix)) != 0)
 		{
 		  int pos, len;
 		  Lisp_Object keyseq;
@@ -3284,17 +3284,17 @@ the mouse event.")
 		  keyseq = concat2 (Fchar_to_string (make_number (prefix)),
 				    Fchar_to_string (make_number (com_letter)));
 		  
-		  pos = xrep.MouseY - (f->display.x->v_scrollbar_width - 2);
+		  pos = xrep.MouseY - (f->display.x->v_scroll_bar_width - 2);
 		  XSET (tempx, Lisp_Int, pos);
 		  len = ((FONT_HEIGHT (f->display.x->font) * f->height)
 			 + f->display.x->internal_border_width
-			 - (2 * (f->display.x->v_scrollbar_width - 2)));
+			 - (2 * (f->display.x->v_scroll_bar_width - 2)));
 		  XSET (tempy, Lisp_Int, len);
 		  XSET (timestamp, Lisp_Int, (xrep.MouseTime & 0x7fffff));
 		  Vmouse_window = f->selected_window;
 		  Vmouse_event
 		    = Fcons (Fcons (tempx, Fcons (tempy, 
-						  Fcons (make_number (f->display.x->v_scrollbar_width - 2),
+						  Fcons (make_number (f->display.x->v_scroll_bar_width - 2),
 							 Qnil))),
 			     Fcons (Vmouse_window,
 				    Fcons (intern (part),
@@ -3344,7 +3344,7 @@ the mouse event.")
 	    default:
 	      if (f = x_window_to_frame (xrep.MouseWindow))
 		Vmouse_window = f->selected_window;
-	      else if (f = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix))
+	      else if (f = x_window_to_scroll_bar (xrep.MouseWindow, &part, &prefix))
 		Vmouse_window = f->selected_window;
 	      return Vmouse_event = Qnil;
 	    }
@@ -3823,8 +3823,8 @@ syms_of_xfns ()
   staticpro (&Qtop);
   Qundefined_color = intern ("undefined-color");
   staticpro (&Qundefined_color);
-  Qvertical_scrollbars = intern ("vertical-scrollbars");
-  staticpro (&Qvertical_scrollbars);
+  Qvertical_scroll_bars = intern ("vertical-scroll-bars");
+  staticpro (&Qvertical_scroll_bars);
   Qwindow_id = intern ("window-id");
   staticpro (&Qwindow_id);
   Qx_frame_parameter = intern ("x-frame-parameter");

@@ -396,15 +396,15 @@ struct position val_compute_motion;
    When displaying in window w, a typical formula for WIDTH is:
 
 	window_width - 1
-	 - (has_vertical_scrollbars
-	    ? VERTICAL_SCROLLBAR_WIDTH
+	 - (has_vertical_scroll_bars
+	    ? VERTICAL_SCROLL_BAR_WIDTH
 	    : (window_width + window_left != frame_width))
 
 	where
 	  window_width is XFASTINT (w->width),
 	  window_left is XFASTINT (w->left),
-	  has_vertical_scrollbars is
-	    FRAME_HAS_VERTICAL_SCROLLBARS (XFRAME (WINDOW_FRAME (window)))
+	  has_vertical_scroll_bars is
+	    FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (window)))
 	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))
 
 	Or,
@@ -412,7 +412,7 @@ struct position val_compute_motion;
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split vertically, and
-   the scrollbars if the frame supports them.  */
+   the scroll bars if the frame supports them.  */
 
 struct position *
 compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, tab_offset)

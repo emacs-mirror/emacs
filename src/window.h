@@ -123,12 +123,12 @@ struct window
     Lisp_Object last_modified;
     /* Value of point at that time */
     Lisp_Object last_point;
-    /* This window's vertical scrollbar.  This field is only for use
+    /* This window's vertical scroll bar.  This field is only for use
        by the window-system-dependent code which implements the
-       scrollbars; it can store anything it likes here.  If this
-       window is newly created and we haven't displayed a scrollbar in
-       it yet, or if the frame doesn't have any scrollbars, this is nil.  */
-    Lisp_Object vertical_scrollbar;
+       scroll bars; it can store anything it likes here.  If this
+       window is newly created and we haven't displayed a scroll bar in
+       it yet, or if the frame doesn't have any scroll bars, this is nil.  */
+    Lisp_Object vertical_scroll_bar;
 
 /* The rest are currently not used or only half used */
     /* Frame coords of point at that time */

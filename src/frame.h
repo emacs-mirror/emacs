@@ -122,15 +122,15 @@ struct frame
      or modified with modify-frame-parameters.  */
   Lisp_Object param_alist;
 
-  /* List of scrollbars on this frame.  
+  /* List of scroll bars on this frame.  
      Actually, we don't specify exactly what is stored here at all; the
-     scrollbar implementation code can use it to store anything it likes.
+     scroll bar implementation code can use it to store anything it likes.
      This field is marked by the garbage collector.  It is here
      instead of in the `display' structure so that the garbage
      collector doesn't need to look inside the window-system-dependent
      structure.  */
-  Lisp_Object scrollbars;
-  Lisp_Object condemned_scrollbars;
+  Lisp_Object scroll_bars;
+  Lisp_Object condemned_scroll_bars;
 
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
@@ -189,12 +189,12 @@ struct frame
   char wants_modeline;
 
   /* Non-zero if the hardware device this frame is displaying on can
-     support scrollbars.  */
-  char can_have_scrollbars;
+     support scroll bars.  */
+  char can_have_scroll_bars;
 
-  /* If can_have_scrollbars is non-zero, this is non-zero if we should
+  /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
-  char has_vertical_scrollbars;
+  char has_vertical_scroll_bars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
@@ -263,10 +263,10 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
-#define FRAME_CAN_HAVE_SCROLLBARS(f) ((f)->can_have_scrollbars)
-#define FRAME_HAS_VERTICAL_SCROLLBARS(f) ((f)->has_vertical_scrollbars)
-#define FRAME_SCROLLBARS(f) ((f)->scrollbars)
-#define FRAME_CONDEMNED_SCROLLBARS(f) ((f)->condemned_scrollbars)
+#define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((f)->has_vertical_scroll_bars)
+#define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 
 /* Emacs's redisplay code could become confused if a frame's
    visibility changes at arbitrary times.  For example, if a frame is
@@ -391,11 +391,11 @@ extern int last_nonminibuf_frame;
 #define FRAME_MESSAGE_BUF(f) (the_only_frame.message_buf)
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (the_only_frame.scroll_bottom_vpos)
 #define FRAME_FOCUS_FRAME(f) (Qnil)
-#define FRAME_CAN_HAVE_SCROLLBARS(f) (the_only_frame.can_have_scrollbars)
-#define FRAME_HAS_VERTICAL_SCROLLBARS(f) \
-  (the_only_frame.has_vertical_scrollbars)
-#define FRAME_SCROLLBARS(f) (the_only_frame.scrollbars)
-#define FRAME_CONDEMNED_SCROLLBARS(f) (the_only_frame.condemned_scrollbars)
+#define FRAME_CAN_HAVE_SCROLL_BARS(f) (the_only_frame.can_have_scroll_bars)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
+  (the_only_frame.has_vertical_scroll_bars)
+#define FRAME_SCROLL_BARS(f) (the_only_frame.scroll_bars)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) (the_only_frame.condemned_scroll_bars)
 
 /* See comments in definition above.  */
 #define FRAME_SAMPLE_VISIBILITY(f) (0)
@@ -419,22 +419,22 @@ extern int last_nonminibuf_frame;
 #endif /* not MULTI_FRAME */
 
 
-/* Device- and MULTI_FRAME-independent scrollbar stuff.  */
+/* Device- and MULTI_FRAME-independent scroll bar stuff.  */
 
-/* The number of columns a vertical scrollbar occupies.  */
-#define VERTICAL_SCROLLBAR_WIDTH (2)
+/* The number of columns a vertical scroll bar occupies.  */
+#define VERTICAL_SCROLL_BAR_WIDTH (2)
 
-/* Return the starting column (zero-based) of the vertical scrollbar
+/* Return the starting column (zero-based) of the vertical scroll bar
    for window W.  The column before this one is the last column we can
    use for text.  If the window touches the right edge of the frame,
-   we have extra space allocated for it.  Otherwise, the scrollbar
+   we have extra space allocated for it.  Otherwise, the scroll bar
    takes over the window's rightmost columns.  */
-#define WINDOW_VERTICAL_SCROLLBAR_COLUMN(w) \
+#define WINDOW_VERTICAL_SCROLL_BAR_COLUMN(w) \
   (((XINT ((w)->left) + XINT ((w)->width)) \
     < FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
-   ? XINT ((w)->left) + XINT ((w)->width) - VERTICAL_SCROLLBAR_WIDTH \
+   ? XINT ((w)->left) + XINT ((w)->width) - VERTICAL_SCROLL_BAR_WIDTH \
    : FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
 
-/* Return the height in lines of the vertical scrollbar in w.  If the
-   window has a mode line, don't make the scrollbar extend that far.  */
-#define WINDOW_VERTICAL_SCROLLBAR_HEIGHT(w) (window_internal_height (w))
+/* Return the height in lines of the vertical scroll bar in w.  If the
+   window has a mode line, don't make the scroll bar extend that far.  */
+#define WINDOW_VERTICAL_SCROLL_BAR_HEIGHT(w) (window_internal_height (w))

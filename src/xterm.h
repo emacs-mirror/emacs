@@ -335,8 +335,8 @@ struct x_display
   XWMHints wm_hints;
 
   /* The size of the extra width currently allotted for vertical
-     scrollbars, in pixels.  */
-  int vertical_scrollbar_extra;
+     scroll bars, in pixels.  */
+  int vertical_scroll_bar_extra;
 };
 
 /* Return the window associated with the frame F.  */
@@ -377,130 +377,130 @@ struct face
 extern struct face *x_face_table[];
 
 
-/* X-specific scrollbar stuff.  */
+/* X-specific scroll bar stuff.  */
 
-/* We represent scrollbars as lisp vectors.  This allows us to place
+/* We represent scroll bars as lisp vectors.  This allows us to place
    references to them in windows without worrying about whether we'll
-   end up with windows referring to dead scrollbars; the garbage
+   end up with windows referring to dead scroll bars; the garbage
    collector will free it when its time comes.
 
-   We use struct scrollbar as a template for accessing fields of the
+   We use struct scroll_bar as a template for accessing fields of the
    vector.  */
 
-struct scrollbar {
+struct scroll_bar {
 
   /* These fields are shared by all vectors.  */
   int size_from_Lisp_Vector_struct;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
-  /* The window we're a scrollbar for.  */
+  /* The window we're a scroll bar for.  */
   Lisp_Object window;
 
-  /* The next and previous in the chain of scrollbars in this frame.  */
+  /* The next and previous in the chain of scroll bars in this frame.  */
   Lisp_Object next, prev;
 
-  /* The X window representing this scrollbar.  Since this is a full
+  /* The X window representing this scroll bar.  Since this is a full
      32-bit quantity, we store it split into two 32-bit values.  */
   Lisp_Object x_window_low, x_window_high;
 
-  /* The position and size of the scrollbar in pixels, relative to the
+  /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
   Lisp_Object top, left, width, height;
 
   /* The starting and ending positions of the handle, relative to the
      handle area (i.e. zero is the top position, not
-     SCROLLBAR_TOP_BORDER).  If they're equal, that means the handle
+     SCROLL_BAR_TOP_BORDER).  If they're equal, that means the handle
      hasn't been drawn yet.
 
      These are not actually the locations where the beginning and end
      are drawn; in order to keep handles from becoming invisible when
      editing large files, we establish a minimum height by always
-     drawing handle bottoms VERTICAL_SCROLLBAR_MIN_HANDLE pixels below
+     drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
      different co-ordinate system.  */
   Lisp_Object start, end;
 
-  /* If the scrollbar handle is currently being dragged by the user,
+  /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
 };
 
-/* The number of elements a vector holding a struct scrollbar needs.  */
-#define SCROLLBAR_VEC_SIZE \
-  ((sizeof (struct scrollbar) - sizeof (int) - sizeof (struct Lisp_Vector *)) \
+/* The number of elements a vector holding a struct scroll_bar needs.  */
+#define SCROLL_BAR_VEC_SIZE \
+  ((sizeof (struct scroll_bar) - sizeof (int) - sizeof (struct Lisp_Vector *)) \
    / sizeof (Lisp_Object))
 
-/* Turning a lisp vector value into a pointer to a struct scrollbar.  */
-#define XSCROLLBAR(vec) ((struct scrollbar *) XPNTR (vec))
+/* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
+#define XSCROLL_BAR(vec) ((struct scroll_bar *) XPNTR (vec))
 
 
 /* Building a 32-bit C integer from two 16-bit lisp integers.  */
-#define SCROLLBAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
+#define SCROLL_BAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
 
 /* Setting two lisp integers to the low and high words of a 32-bit C int.  */
-#define SCROLLBAR_UNPACK(low, high, int32) \
+#define SCROLL_BAR_UNPACK(low, high, int32) \
   (XSET ((low),  Lisp_Int,  (int32)        & 0xffff), \
    XSET ((high), Lisp_Int, ((int32) >> 16) & 0xffff))
 
 
-/* Extract the X window id of the scrollbar from a struct scrollbar.  */
-#define SCROLLBAR_X_WINDOW(ptr) \
-  ((Window) SCROLLBAR_PACK ((ptr)->x_window_low, (ptr)->x_window_high))
+/* Extract the X window id of the scroll bar from a struct scroll_bar.  */
+#define SCROLL_BAR_X_WINDOW(ptr) \
+  ((Window) SCROLL_BAR_PACK ((ptr)->x_window_low, (ptr)->x_window_high))
 
-/* Store a window id in a struct scrollbar.  */
-#define SET_SCROLLBAR_X_WINDOW(ptr, id) \
-  (SCROLLBAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
+/* Store a window id in a struct scroll_bar.  */
+#define SET_SCROLL_BAR_X_WINDOW(ptr, id) \
+  (SCROLL_BAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
 
 
-/* Return the outside pixel width for a vertical scrollbar on frame F.  */
-#define VERTICAL_SCROLLBAR_PIXEL_WIDTH(f) (2*FONT_WIDTH ((f)->display.x->font))
+/* Return the outside pixel width for a vertical scroll bar on frame F.  */
+#define VERTICAL_SCROLL_BAR_PIXEL_WIDTH(f) (2*FONT_WIDTH ((f)->display.x->font))
 
-/* Return the outside pixel height for a vertical scrollbar HEIGHT
+/* Return the outside pixel height for a vertical scroll bar HEIGHT
    rows high on frame F.  */
-#define VERTICAL_SCROLLBAR_PIXEL_HEIGHT(f, height) \
+#define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
   ((height) * FONT_HEIGHT ((f)->display.x->font))
 
-/* Return the inside width of a vertical scrollbar, given the outside
+/* Return the inside width of a vertical scroll bar, given the outside
    width.  */
-#define VERTICAL_SCROLLBAR_INSIDE_WIDTH(width) \
-  ((width) - VERTICAL_SCROLLBAR_LEFT_BORDER - VERTICAL_SCROLLBAR_RIGHT_BORDER)
+#define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(width) \
+  ((width) - VERTICAL_SCROLL_BAR_LEFT_BORDER - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scrollbar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.  
 
-   This is the real range of motion for the scrollbar, so when we're
-   scaling buffer positions to scrollbar positions, we use this, not
-   VERTICAL_SCROLLBAR_INSIDE_HEIGHT.  */
-#define VERTICAL_SCROLLBAR_TOP_RANGE(height) \
-  (VERTICAL_SCROLLBAR_INSIDE_HEIGHT (height) - VERTICAL_SCROLLBAR_MIN_HANDLE)
+   This is the real range of motion for the scroll bar, so when we're
+   scaling buffer positions to scroll bar positions, we use this, not
+   VERTICAL_SCROLL_BAR_INSIDE_HEIGHT.  */
+#define VERTICAL_SCROLL_BAR_TOP_RANGE(height) \
+  (VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (height) - VERTICAL_SCROLL_BAR_MIN_HANDLE)
 
-/* Return the inside height of vertical scrollbar, given the outside
-   height.  See VERTICAL_SCROLLBAR_TOP_RANGE too.  */
-#define VERTICAL_SCROLLBAR_INSIDE_HEIGHT(height) \
-  ((height) - VERTICAL_SCROLLBAR_TOP_BORDER - VERTICAL_SCROLLBAR_BOTTOM_BORDER)
+/* Return the inside height of vertical scroll bar, given the outside
+   height.  See VERTICAL_SCROLL_BAR_TOP_RANGE too.  */
+#define VERTICAL_SCROLL_BAR_INSIDE_HEIGHT(height) \
+  ((height) - VERTICAL_SCROLL_BAR_TOP_BORDER - VERTICAL_SCROLL_BAR_BOTTOM_BORDER)
 
 
-/* Border widths for scrollbars.
+/* Border widths for scroll bars.
 
-   Scrollbar windows don't have any X borders; their border width is
+   Scroll bar windows don't have any X borders; their border width is
    set to zero, and we redraw borders ourselves.  This makes the code
    a bit cleaner, since we don't have to convert between outside width
    (used when relating to the rest of the screen) and inside width
-   (used when sizing and drawing the scrollbar window itself).
+   (used when sizing and drawing the scroll bar window itself).
 
    The handle moves up and down/back and forth in a rectange inset
-   from the edges of the scrollbar.  These are widths by which we
-   inset the handle boundaries from the scrollbar edges.  */
-#define VERTICAL_SCROLLBAR_LEFT_BORDER (2)
-#define VERTICAL_SCROLLBAR_RIGHT_BORDER (3)
-#define VERTICAL_SCROLLBAR_TOP_BORDER (2)
-#define VERTICAL_SCROLLBAR_BOTTOM_BORDER (2)
+   from the edges of the scroll bar.  These are widths by which we
+   inset the handle boundaries from the scroll bar edges.  */
+#define VERTICAL_SCROLL_BAR_LEFT_BORDER (2)
+#define VERTICAL_SCROLL_BAR_RIGHT_BORDER (3)
+#define VERTICAL_SCROLL_BAR_TOP_BORDER (2)
+#define VERTICAL_SCROLL_BAR_BOTTOM_BORDER (2)
 
-/* Minimum lengths for scrollbar handles, in pixels.  */
-#define VERTICAL_SCROLLBAR_MIN_HANDLE (5)
+/* Minimum lengths for scroll bar handles, in pixels.  */
+#define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
 
 
 /* Manipulating pixel sizes and character sizes.
@@ -520,7 +520,7 @@ struct scrollbar {
    WIDTH columns/HEIGHT rows.  */
 #define CHAR_TO_PIXEL_WIDTH(f, width) \
   (CHAR_TO_PIXEL_COL (f, width) \
-   + (f)->display.x->vertical_scrollbar_extra \
+   + (f)->display.x->vertical_scroll_bar_extra \
    + (f)->display.x->internal_border_width)
 #define CHAR_TO_PIXEL_HEIGHT(f, height) \
   (CHAR_TO_PIXEL_ROW (f, height) \
@@ -541,7 +541,7 @@ struct scrollbar {
 #define PIXEL_TO_CHAR_WIDTH(f, width) \
   (PIXEL_TO_CHAR_COL (f, ((width) \
 			  - (f)->display.x->internal_border_width \
-			  - (f)->display.x->vertical_scrollbar_extra)))
+			  - (f)->display.x->vertical_scroll_bar_extra)))
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
 			  - (f)->display.x->internal_border_width)))

@@ -1534,8 +1534,8 @@ mark_object (objptr)
 	mark_object (&ptr->selected_window);
 	mark_object (&ptr->minibuffer_window);
 	mark_object (&ptr->param_alist);
-	mark_object (&ptr->scrollbars);
-	mark_object (&ptr->condemned_scrollbars);
+	mark_object (&ptr->scroll_bars);
+	mark_object (&ptr->condemned_scroll_bars);
       }
       break;
 #endif /* not MULTI_FRAME */

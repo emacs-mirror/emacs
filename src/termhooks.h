@@ -55,10 +55,10 @@ extern int (*set_terminal_window_hook) ();
 
 /* Multi-frame and mouse support hooks.  */
 
-enum scrollbar_part {
-  scrollbar_above_handle,
-  scrollbar_handle,
-  scrollbar_below_handle
+enum scroll_bar_part {
+  scroll_bar_above_handle,
+  scroll_bar_handle,
+  scroll_bar_below_handle
 };
 
 /* Return the current position of the mouse.
@@ -67,10 +67,10 @@ enum scrollbar_part {
    Emacs frame.  If it is set to zero, all the other arguments are
    garbage.
 
-   If the motion started in a scrollbar, set *bar_window to the
-   scrollbar's window, *part to the part the mouse is currently over,
-   *x to the position of the mouse along the scrollbar, and *y to the
-   overall length of the scrollbar.
+   If the motion started in a scroll bar, set *bar_window to the
+   scroll bar's window, *part to the part the mouse is currently over,
+   *x to the position of the mouse along the scroll bar, and *y to the
+   overall length of the scroll bar.
 
    Otherwise, set *bar_window to Qnil, and *x and *y to the column and
    row of the character cell the mouse is over.
@@ -81,7 +81,7 @@ enum scrollbar_part {
    event arrives.  */
 extern void (*mouse_position_hook) ( /* FRAME_PTR *f,
 					Lisp_Object *bar_window,
-					enum scrollbar_part *part,
+					enum scroll_bar_part *part,
 					Lisp_Object *x,
 					Lisp_Object *y,
 					unsigned long *time */ );
@@ -109,76 +109,76 @@ extern void (*frame_rehighlight_hook) ( /* void */ );
 extern void (*frame_raise_lower_hook) ( /* FRAME_PTR f, int raise */ );
 
 
-/* Scrollbar hooks.  */
+/* Scroll bar hooks.  */
 
-/* The representation of scrollbars is determined by the code which
+/* The representation of scroll bars is determined by the code which
    implements them, except for one thing: they must be represented by
    lisp objects.  This allows us to place references to them in
    Lisp_Windows without worrying about those references becoming
-   dangling references when the scrollbar is destroyed.
+   dangling references when the scroll bar is destroyed.
 
    The window-system-independent portion of Emacs just refers to
-   scrollbars via their windows, and never looks inside the scrollbar
+   scroll bars via their windows, and never looks inside the scroll bar
    representation; it always uses hook functions to do all the
-   scrollbar manipulation it needs.
+   scroll bar manipulation it needs.
 
-   The `vertical_scrollbar' field of a Lisp_Window refers to that
-   window's scrollbar, or is nil if the window doesn't have a
-   scrollbar.
+   The `vertical_scroll_bar' field of a Lisp_Window refers to that
+   window's scroll bar, or is nil if the window doesn't have a
+   scroll bar.
 
-   The `scrollbars' and `condemned_scrollbars' fields of a Lisp_Frame
-   are free for use by the scrollbar implementation in any way it sees
+   The `scroll_bars' and `condemned_scroll_bars' fields of a Lisp_Frame
+   are free for use by the scroll bar implementation in any way it sees
    fit.  They are marked by the garbage collector.  */
 
 
-/* Set the vertical scrollbar for WINDOW to have its upper left corner
+/* Set the vertical scroll bar for WINDOW to have its upper left corner
    at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
    indicate that we are displaying PORTION characters out of a total
    of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
-   have a scrollbar, create one for it.  */
-extern void (*set_vertical_scrollbar_hook)
+   have a scroll bar, create one for it.  */
+extern void (*set_vertical_scroll_bar_hook)
             ( /* struct window *window,
 	         int portion, int whole, int position */ );
 
 
 /* The following three hooks are used when we're doing a thorough
-   redisplay of the frame.  We don't explicitly know which scrollbars
+   redisplay of the frame.  We don't explicitly know which scroll bars
    are going to be deleted, because keeping track of when windows go
    away is a real pain - can you say set-window-configuration?
    Instead, we just assert at the beginning of redisplay that *all*
-   scrollbars are to be removed, and then save scrollbars from the
+   scroll bars are to be removed, and then save scroll bars from the
    firey pit when we actually redisplay their window.  */
 
-/* Arrange for all scrollbars on FRAME to be removed at the next call
-   to `*judge_scrollbars_hook'.  A scrollbar may be spared if
-   `*redeem_scrollbar_hook' is applied to its window before the judgement. 
+/* Arrange for all scroll bars on FRAME to be removed at the next call
+   to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
+   `*redeem_scroll_bar_hook' is applied to its window before the judgement. 
 
    This should be applied to each frame each time its window tree is
-   redisplayed, even if it is not displaying scrollbars at the moment;
-   if the HAS_SCROLLBARS flag has just been turned off, only calling
-   this and the judge_scrollbars_hook will get rid of them.
+   redisplayed, even if it is not displaying scroll bars at the moment;
+   if the HAS_SCROLL_BARS flag has just been turned off, only calling
+   this and the judge_scroll_bars_hook will get rid of them.
 
    If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scrollbars, and whether or not it is
+   whether or not it can support scroll bars, and whether or not it is
    currently displaying them.  */
-extern void (*condemn_scrollbars_hook)( /* FRAME_PTR *frame */ );
+extern void (*condemn_scroll_bars_hook)( /* FRAME_PTR *frame */ );
 
-/* Unmark WINDOW's scrollbar for deletion in this judgement cycle.
-   Note that it's okay to redeem a scrollbar that is not condemned.  */
-extern void (*redeem_scrollbar_hook)( /* struct window *window */ );
+/* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
+   Note that it's okay to redeem a scroll bar that is not condemned.  */
+extern void (*redeem_scroll_bar_hook)( /* struct window *window */ );
 
-/* Remove all scrollbars on FRAME that haven't been saved since the
-   last call to `*condemn_scrollbars_hook'.  
+/* Remove all scroll bars on FRAME that haven't been saved since the
+   last call to `*condemn_scroll_bars_hook'.  
 
    This should be applied to each frame after each time its window
-   tree is redisplayed, even if it is not displaying scrollbars at the
-   moment; if the HAS_SCROLLBARS flag has just been turned off, only
-   calling this and condemn_scrollbars_hook will get rid of them.
+   tree is redisplayed, even if it is not displaying scroll bars at the
+   moment; if the HAS_SCROLL_BARS flag has just been turned off, only
+   calling this and condemn_scroll_bars_hook will get rid of them.
 
    If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scrollbars, and whether or not it is
+   whether or not it can support scroll bars, and whether or not it is
    currently displaying them.  */
-extern void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+extern void (*judge_scroll_bars_hook)( /* FRAME_PTR *FRAME */ );
 
 
 /* Input queue declarations and hooks.  */
@@ -232,23 +232,23 @@ struct input_event {
 				   the mouse click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-    scrollbar_click,		/* .code gives the number of the mouse button
+    scroll_bar_click,		/* .code gives the number of the mouse button
 				   that was clicked.
 				   .modifiers holds the state of the modifier
 				   keys.
 				   .part is a lisp symbol indicating which
-				   part of the scrollbar got clicked.
+				   part of the scroll bar got clicked.
 				   .x gives the distance from the start of the
 				   scroll bar of the click; .y gives the total
 				   length of the scroll bar.
 				   .frame_or_window gives the window
-				   whose scrollbar was clicked in.
+				   whose scroll bar was clicked in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
   } kind;
   
   Lisp_Object code;
-  enum scrollbar_part part;
+  enum scroll_bar_part part;
 
   /* This field is copied into a vector while the event is in the queue,
      so that garbage collections won't kill it.  */

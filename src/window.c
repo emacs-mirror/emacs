@@ -2038,7 +2038,7 @@ window_internal_height (w)
 
 
 /* Return the number of columns in W.
-   Don't count columns occupied by scrollbars or the vertical bar
+   Don't count columns occupied by scroll bars or the vertical bar
    separating W from the sibling to its right.  */
 int
 window_internal_width (w)
@@ -2056,9 +2056,9 @@ window_internal_width (w)
   /* If we are not flush right, then our rightmost columns are
      occupied by some sort of separator.  */
 
-  /* Scrollbars occupy a few columns.  */
-  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
-    return width - VERTICAL_SCROLLBAR_WIDTH;
+  /* Scroll bars occupy a few columns.  */
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+    return width - VERTICAL_SCROLL_BAR_WIDTH;
 
   /* The column of `|' characters separating side-by-side windows
      occupies one column only.  */
@@ -2899,13 +2899,13 @@ work using this function.");
   ((X-POS Y-POS) WINDOW FRAME-PART KEYSEQ).\n\
 KEYSEQ is a string, the key sequence to be looked up in the mouse maps.\n\
 WINDOW is the window that the click applies do.\n\
-If FRAME-PART is non-nil, the event was on a scrollbar;\n\
-then Y-POS is really the total length of the scrollbar, while X-POS is\n\
-the relative position of the scrollbar's value within that total length.\n\
+If FRAME-PART is non-nil, the event was on a scroll bar;\n\
+then Y-POS is really the total length of the scroll bar, while X-POS is\n\
+the relative position of the scroll bar's value within that total length.\n\
 FRAME-PART is one of the following symbols:\n\
- `vertical-scrollbar', `vertical-slider',\n\
+ `vertical-scroll-bar', `vertical-slider',\n\
  `vertical-thumbup', `vertical-thumbdown',\n\
- `horizontal-scrollbar', `horizontal-slider',\n\
+ `horizontal-scroll-bar', `horizontal-slider',\n\
  `horizontal-thumbleft', `horizontal-thumbright'");
   Vmouse_event = Qnil;
 
