@@ -1091,9 +1091,10 @@ string if you do not like underscores."
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
     (setq file
-	  (read-file-name "Save MIME part to: "
-			  (or mm-default-directory default-directory)
-			  nil nil (or filename name "")))
+	  (mm-with-multibyte
+	    (read-file-name "Save MIME part to: "
+			    (or mm-default-directory default-directory)
+			    nil nil (or filename name ""))))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "
@@ -1452,6 +1453,12 @@ If RECURSIVE, search recursively."
     parts))
 
 (defun mm-multiple-handles (handles)
+  (and (listp handles)
+       (> (length handles) 1)
+       (or (listp (car handles))
+	   (stringp (car handles)))))
+
+(defun mm-complicated-handles (handles)
   (and (listp (car handles))
        (> (length handles) 1)))
 

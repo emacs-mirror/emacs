@@ -1,5 +1,5 @@
 ;;; mm-encode.el --- Functions for encoding MIME things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -36,13 +36,23 @@
   '(("text/x-patch" 8bit)
     ("text/.*" qp-or-base64)
     ("message/rfc822" 8bit)
-    ("application/emacs-lisp" 8bit)
-    ("application/x-emacs-lisp" 8bit)
-    ("application/x-patch" 8bit)
+    ("application/emacs-lisp" qp-or-base64)
+    ("application/x-emacs-lisp" qp-or-base64)
+    ("application/x-patch" qp-or-base64)
     (".*" base64))
   "Alist of regexps that match MIME types and their encodings.
 If the encoding is `qp-or-base64', then either quoted-printable
-or base64 will be used, depending on what is more efficient."
+or base64 will be used, depending on what is more efficient.
+
+`qp-or-base64' has another effect.  It will fold long lines so that
+MIME parts may not be broken by MTA.  So do `quoted-printable' and
+`base64'.
+
+Note: It affects body encoding only when a part is a raw forwarded
+message (which will be made by `gnus-summary-mail-forward' with the
+arg 2 for example) or is neither the text/* type nor the message/*
+type.  Even though in those cases, you can use the `encoding' MML tag
+to specify encoding of non-ASCII MIME parts."
   :type '(repeat (list (regexp :tag "MIME type")
 		       (choice :tag "encoding"
 			       (const 7bit)
@@ -88,7 +98,8 @@ This variable should never be set directly, but bound before a call to
 (defun mm-safer-encoding (encoding)
   "Return an encoding similar to ENCODING but safer than it."
   (cond
-   ((memq encoding '(7bit 8bit quoted-printable)) 'quoted-printable)
+   ((eq encoding '7bit) '7bit) ;; 7bit is considered safe.
+   ((memq encoding '(8bit quoted-printable)) 'quoted-printable)
    ;; The remaining encodings are binary and base64 (and perhaps some
    ;; non-standard ones), which are both turned into base64.
    (t 'base64)))

@@ -395,8 +395,13 @@ Thank you for your help in stamping out bugs.
        ;; added an optional argument to `gnus-configure-posting-styles' to
        ;; make sure that the correct value for the group name is used. -- drv
        (add-hook 'message-mode-hook
-		 (lambda ()
-		   (gnus-configure-posting-styles ,group)))
+		 (if (memq ,config '(reply-yank reply))
+		     (lambda ()
+		       (gnus-configure-posting-styles ,group))
+		   (lambda ()
+		     ;; There may be an old " *gnus article copy*" buffer.
+		     (let (gnus-article-copy)
+		       (gnus-configure-posting-styles ,group)))))
        (gnus-pull ',(intern gnus-draft-meta-information-header)
 		  message-required-headers)
        (when (and ,group
@@ -1261,6 +1266,7 @@ composing a new message."
 	;; Get a normal message buffer.
 	(message-pop-to-buffer (message-buffer-name "Resend" to))
 	(insert-buffer-substring cur)
+	(mime-to-mml)
 	(message-narrow-to-head-1)
 	;; Gnus will generate a new one when sending.
 	(message-remove-header "Message-ID")
@@ -1510,14 +1516,14 @@ The source file has to be in the Emacs load path."
     (while olist
       (if (boundp (car olist))
 	  (ignore-errors
-	    (pp `(setq ,(car olist)
-		       ,(if (or (consp (setq sym (symbol-value (car olist))))
-				(and (symbolp sym)
-				     (not (or (eq sym nil)
-					      (eq sym t)))))
-			    (list 'quote (symbol-value (car olist)))
-			  (symbol-value (car olist))))
-		(current-buffer)))
+	   (gnus-pp
+	    `(setq ,(car olist)
+		   ,(if (or (consp (setq sym (symbol-value (car olist))))
+			    (and (symbolp sym)
+				 (not (or (eq sym nil)
+					  (eq sym t)))))
+			(list 'quote (symbol-value (car olist)))
+		      (symbol-value (car olist))))))
 	(insert ";; (makeunbound '" (symbol-name (car olist)) ")\n"))
       (setq olist (cdr olist)))
     (insert "\n\n")

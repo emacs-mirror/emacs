@@ -2444,11 +2444,6 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (set (make-local-variable 'message-checksum) nil)
   (set (make-local-variable 'message-mime-part) 0)
   (message-setup-fill-variables)
-  (set
-   (make-local-variable 'paragraph-separate)
-   (format "\\(%s\\)\\|\\(%s\\)"
-	   paragraph-separate
-	   "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)"))
   ;; Allow using comment commands to add/remove quoting.
   ;; (set (make-local-variable 'comment-start) message-yank-prefix)
   (when message-yank-prefix
@@ -2504,7 +2499,9 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 	   "---+$\\|"		   ; delimiters for forwarded messages
 	   page-delimiter "$\\|"	; spoiler warnings
 	   ".*wrote:$\\|"		; attribution lines
-	   quote-prefix-regexp "$"))	; empty lines in quoted text
+	   quote-prefix-regexp "$\\|"	; empty lines in quoted text
+					; mml tags
+	   "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)"))
     (setq paragraph-separate paragraph-start)
     (setq adaptive-fill-regexp
 	  (concat quote-prefix-regexp "\\|" adaptive-fill-regexp))
@@ -3894,8 +3891,8 @@ to find out how to use this."
   "Send the prepared message buffer with `smtpmail-send-it'.
 This only differs from `smtpmail-send-it' that this command evaluates
 `message-send-mail-hook' just before sending a message.  It is useful
-if your ISP requires the POP-before-SMTP authentication.  See the
-documentation for the function `mail-source-touch-pop'."
+if your ISP requires the POP-before-SMTP authentication.  See the Gnus
+manual for details."
   (run-hooks 'message-send-mail-hook)
   (smtpmail-send-it))
 
@@ -6490,7 +6487,13 @@ which specify the range to operate on."
 	(if (eq (char-after) (char-after (- (point) 2)))
 	    (delete-char -2))))))
 
-(defalias 'message-exchange-point-and-mark 'exchange-point-and-mark)
+(defun message-exchange-point-and-mark ()
+  "Exchange point and mark, but don't activate region if it was inactive."
+  (unless (prog1
+	      (message-mark-active-p)
+	    (exchange-point-and-mark))
+    (setq mark-active nil)))
+
 (defalias 'message-make-overlay 'make-overlay)
 (defalias 'message-delete-overlay 'delete-overlay)
 (defalias 'message-overlay-put 'overlay-put)

@@ -1,5 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -198,44 +199,21 @@
   (setq w3m-display-inline-images mm-inline-text-html-with-images))
 
 (defun mm-w3m-cid-retrieve-1 (url handle)
-  (dolist (elem handle)
-    (when (and (listp elem)
-	       (equal url (mm-handle-id elem)))
-      (mm-insert-part elem)
-      (throw 'found-handle (mm-handle-media-type elem)))))
+  (if (mm-multiple-handles handle)
+      (dolist (elem handle)
+	(mm-w3m-cid-retrieve-1 url elem))
+    (when (and (listp handle)
+	       (equal url (mm-handle-id handle)))
+      (mm-insert-part handle)
+      (throw 'found-handle (mm-handle-media-type handle)))))
 
 (defun mm-w3m-cid-retrieve (url &rest args)
   "Insert a content pointed by URL if it has the cid: scheme."
   (when (string-match "\\`cid:" url)
-    (setq url (concat "<" (substring url (match-end 0)) ">"))
     (catch 'found-handle
-      (let ((handles (with-current-buffer w3m-current-buffer
-		       gnus-article-mime-handles)))
-	(if (mm-multiple-handles handles)
-	    (dolist (handle handles)
-	      (mm-w3m-cid-retrieve-1 url handle))
-	  (mm-w3m-cid-retrieve-1 url handles))))))
-
-(eval-and-compile
-  (unless (or (featurep 'xemacs)
-	      (>= emacs-major-version 21))
-    (defvar mm-w3m-mode-map nil
-      "Keymap for text/html parts rendered by emacs-w3m.
-This keymap will be bound only when Emacs 20 is running and overwritten
-by the value of `w3m-minor-mode-map'.  In order to add some commands to
-this keymap, add them to `w3m-minor-mode-map' instead of this keymap.")))
-
-(defun mm-w3m-local-map-property ()
-  (when (and (boundp 'w3m-minor-mode-map) w3m-minor-mode-map)
-    (if (or (featurep 'xemacs)
-	    (>= emacs-major-version 21))
-	(list 'keymap w3m-minor-mode-map)
-      (list 'local-map
-	    (or mm-w3m-mode-map
-		(progn
-		  (setq mm-w3m-mode-map (copy-keymap w3m-minor-mode-map))
-		  (set-keymap-parent mm-w3m-mode-map gnus-article-mode-map)
-		  mm-w3m-mode-map))))))
+      (mm-w3m-cid-retrieve-1 (concat "<" (substring url (match-end 0)) ">")
+			     (with-current-buffer w3m-current-buffer
+			       gnus-article-mime-handles)))))
 
 (defun mm-inline-text-html-render-with-w3m (handle)
   "Render a text/html part using emacs-w3m."
@@ -244,25 +222,25 @@ this keymap, add them to `w3m-minor-mode-map' instead of this keymap.")))
 	(b (point))
 	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
     (save-excursion
-      (insert text)
+      (insert (if charset (mm-decode-string text charset) text))
       (save-restriction
 	(narrow-to-region b (point))
-	(goto-char (point-min))
-	(when (re-search-forward w3m-meta-content-type-charset-regexp nil t)
-	  (setq charset (or (w3m-charset-to-coding-system (match-string 2))
-			    charset)))
-	(when charset
-	  (delete-region (point-min) (point-max))
-	  (insert (mm-decode-string text charset)))
+	(unless charset
+	  (goto-char (point-min))
+	  (when (setq charset (w3m-detect-meta-charset))
+	    (delete-region (point-min) (point-max))
+	    (insert (mm-decode-string text charset))))
 	(let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
 	      w3m-force-redisplay)
-	  (w3m-region (point-min) (point-max)))
-	(when mm-inline-text-html-with-w3m-keymap
+	  (w3m-region (point-min) (point-max) nil charset))
+	(when (and mm-inline-text-html-with-w3m-keymap
+		   (boundp 'w3m-minor-mode-map)
+		   w3m-minor-mode-map)
 	  (add-text-properties
 	   (point-min) (point-max)
-	   (nconc (mm-w3m-local-map-property)
-		  ;; Put the mark meaning this part was rendered by emacs-w3m.
-		  '(mm-inline-text-html-with-w3m t)))))
+	   (list 'keymap w3m-minor-mode-map
+		 ;; Put the mark meaning this part was rendered by emacs-w3m.
+		 'mm-inline-text-html-with-w3m t))))
       (mm-handle-set-undisplayer
        handle
        `(lambda ()
@@ -319,11 +297,14 @@ this keymap, add them to `w3m-minor-mode-map' instead of this keymap.")))
        (buffer-string)))))
 
 (defun mm-inline-render-with-function (handle func &rest args)
-  (let ((source (mm-get-part handle)))
+  (let ((source (mm-get-part handle))
+	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
     (mm-insert-inline
      handle
-     (mm-with-unibyte-buffer
-       (insert source)
+     (mm-with-multibyte-buffer
+       (insert (if charset
+		   (mm-decode-string source charset)
+		 source))
        (apply func args)
        (buffer-string)))))
 

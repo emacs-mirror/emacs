@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 ;;
-;; Copyright (C) 1996, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1996, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -915,7 +915,8 @@ articles in the thread.
             (val (,field info))
             (deflt (if (,field defaults)
                        (concat " [" (gnus-trim-whitespace
-                                     (pp-to-string (,field defaults))) "]")))
+                                     (gnus-pp-to-string (,field defaults)))
+			       "]")))
             symb)
 
        (if (eq (car type) 'radio)

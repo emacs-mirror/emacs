@@ -940,10 +940,10 @@ be set in `.emacs' instead."
 
 (eval-when (load)
   (let ((command (format "%s" this-command)))
-    (if (and (string-match "gnus" command)
-	     (not (string-match "gnus-other-frame" command)))
-	(gnus-splash)
-      (gnus-get-buffer-create gnus-group-buffer))))
+    (when (string-match "gnus" command)
+      (if (string-match "gnus-other-frame" command)
+	  (gnus-get-buffer-create gnus-group-buffer)
+	(gnus-splash)))))
 
 ;;; Do the rest.
 

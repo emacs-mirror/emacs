@@ -1411,7 +1411,7 @@ If FORMAT, also format the current score file."
 	      ;; This is a normal score file, so we print it very
 	      ;; prettily.
 	      (let ((lisp-mode-syntax-table score-mode-syntax-table))
-		(pp score (current-buffer)))))
+		(gnus-pp score))))
 	  (gnus-make-directory (file-name-directory file))
 	  ;; If the score file is empty, we delete it.
 	  (if (zerop (buffer-size))
