@@ -63,6 +63,12 @@ extern Lisp_Object Vglyph_table;
    return the alias for G.  */
 #define GLYPH_ALIAS(base, g) XINT (base[g])
 
+/* Follow all aliases for G in the glyph table given by (BASE,
+   LENGTH), and set G to the final glyph.  */
+#define GLYPH_FOLLOW_ALIASES(base, length, g)				\
+  while (GLYPH_ALIAS_P ((base), (length), (g)))				\
+    (g) = GLYPH_ALIAS ((base), (g));
+  
 /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 0,
    return the length and the address of the character-sequence
    used for outputting GLYPH G.  */
