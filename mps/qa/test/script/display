@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.4) $
+# $HopeName: MMQA_harness!script:display(trunk.1) $
 #
 # provide a subroutine to pretty-print tests to a
 # output stream
@@ -23,3 +23,13 @@ sub display_test_source {
  close(IN);
 }
 
+#
+# Ideas:
+#
+# line properties:  join at start / join at end?
+# specials:
+#   start paragraph
+#   special formatting (alignment?)
+#   lists, itemised, tables &c
+#
+#
