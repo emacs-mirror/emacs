@@ -3,6 +3,7 @@
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; Converts text to Morse code and back with M-x morese-region and
+;; M-x unmorse-region (though Morse code is no longer official :-().
 
 ;;; Code:
 
@@ -73,6 +79,7 @@
 		     ("9" . "----."))
   "Morse code character set.")
 
+;;;###autoload
 (defun morse-region (beg end)
   "Convert all text in a given region to morse code."
   (interactive "r")
@@ -95,6 +102,7 @@
 	       (forward-char 1)
 	       (setq sep "")))))))
 
+;;;###autoload
 (defun unmorse-region (beg end)
   "Convert morse coded text in region to ordinary ASCII text."
   (interactive "r")
