@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.9 1992/10/05 05:20:52 roland Exp roland $	
+;;	$Id: vc.el,v 1.10 1992/10/05 05:49:27 roland Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -359,27 +359,25 @@ level to check it in under."
       (setq owner (vc-locking-user file)))
   (if (not (y-or-n-p (format "Take the lock on %s:%s from %s?" file rev owner)))
       (error "Steal cancelled."))
-  (pop-to-buffer (get-buffer-create "*VC-log*"))
-  (vc-log-mode)
-  (narrow-to-region (point-max) (point-max))
+  (require 'sendmail)
+  (pop-to-buffer (get-buffer-create "*VC-mail*"))
+  (setq default-directory (expand-file-name "~/"))
+  (auto-save-mode auto-save-default)
+  (mail-mode)
+  (erase-buffer)
+  (mail-setup owner (format "%s:%s" file rev) nil nil nil
+	      (list (list 'vc-finish-steal file rev)))
+  (goto-char (point-max))
   (insert
-   (format "To: %s\n\nI stole the lock on %s:%s, " owner file rev)
+   (format "I stole the lock on %s:%s, " file rev)
    (current-time-string)
-   "\n")
-  (vc-mode-line file (file-name-nondirectory file))
-  (setq vc-log-operation 'vc-finish-steal)
-  (setq vc-log-file file)
-  (setq vc-log-version rev)
-  (message "Please explain why you stole the lock.  Type C-c C-c when done.")
-  )
+   ".\n")
+  (message "Please explain why you stole the lock.  Type C-c C-c when done."))
 
+;; This is called when the notification has been sent.
 (defun vc-finish-steal (file version)
-  ;; Actually do the lock acquisition; send the former owner a notification
   (vc-backend-steal file version)
-  (require 'sendmail)	;; (send-mail) isn't on the standard autoload list.
-  (mail-send)
-  (vc-resynch-window file t)
-  )
+  (vc-resynch-window file t))
 
 (defun vc-checkout (file &optional writeable)
   "Retrieve a copy of the latest version of the given file."
