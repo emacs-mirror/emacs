@@ -1,7 +1,7 @@
 2005-01-11  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Button Properties, Button Buffer Commands):
-	Mention mouse-1 binding.
+	Mention mouse-1 binding.  Add follow-link keyword.
 
 	* text.texi (Text Properties): Add "Enable Mouse-1" to submenu.
 	(Enabling Mouse-1 to Follow Links): New subsection.

@@ -1,3 +1,7 @@
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (Basic Types): Add :follow-link keyword.
+
 2005-01-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Basic Commands): Describe new behavior of calc-reset.
