@@ -1,3 +1,11 @@
+2002-10-17  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
+	the table.
+	(cyrillic-alternativnyj): Don't give it `mime-charset' property.
+	(cp866): Delete this alias.
+	("Bulgarian"): Fix the value of `input-method'.
+
 2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* dired-aux.el (dired-add-entry): Put point in correct position
