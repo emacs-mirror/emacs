@@ -373,6 +373,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  (while contents
 	    (unless (member (car contents) '("." ".." "RCS" "CVS"))
 	      (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
+			 ;; Avoid doing a `stat' when it isn't necessary
+			 ;; because that can cause trouble when an NFS server
+			 ;; is down.
+			 (not (string-match "\\.elc?\\'" (car contents)))
 			 (file-directory-p (car contents)))
 		(let ((expanded (expand-file-name (car contents))))
 		  (unless (file-exists-p (expand-file-name ".nosearch"
