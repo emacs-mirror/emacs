@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = destroy AP between reserve and commit
  language = c
  link = myfmt.o testlib.o

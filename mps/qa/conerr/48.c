@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = deregister thread twice
  language = c
  link = myfmt.o testlib.o

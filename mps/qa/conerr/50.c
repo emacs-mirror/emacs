@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = reset ld in uncreated space
  language = c
  link = myfmt.o testlib.o

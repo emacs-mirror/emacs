@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create a pool with a format in the wrong space
  language = c
  link = testlib.o

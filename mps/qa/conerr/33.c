@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create an AP with a rank not supported by its pool
  language = c
  link = testlib.o
