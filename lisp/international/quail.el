@@ -683,7 +683,7 @@ The installed map can be referred by the function `quail-map'."
   (setcar (cdr (cdr quail-current-package)) map))
 
 ;;;###autoload
-(defun quail-defrule (key translation &optional name)
+(defun quail-defrule (key translation &optional name append)
   "Add one translation rule, KEY to TRANSLATION, in the current Quail package.
 KEY is a string meaning a sequence of keystrokes to be translated.
 TRANSLATION is a character, a string, a vector, a Quail map,
@@ -700,15 +700,19 @@ In these cases, a key specific Quail map is generated and assigned to KEY.
 
 If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
  it is used to handle KEY.
-Optional argument NAME, if specified, says which Quail package
+
+Optional 3rd argument NAME, if specified, says which Quail package
 to define this translation rule in.  The default is to define it in the
-current Quail package."
+current Quail package.
+
+Optional 4th argument APPEND, if non-nil, appends TRANSLATION
+to the current translations for KEY instead of replacing them."
   (if name
       (let ((package (quail-package name)))
 	(if (null package)
 	    (error "No Quail package `%s'" name))
 	(setq quail-current-package package)))
-  (quail-defrule-internal key translation (quail-map)))
+  (quail-defrule-internal key translation (quail-map) append))
 
 ;;;###autoload
 (defun quail-defrule-internal (key trans map &optional append)
@@ -761,9 +765,19 @@ current Quail package."
 		    (error "Quail key %s is too short" key)
 		  (setcdr entry trans))
 	      (setcdr entry (append trans (cdr map)))))
-	(if (and append (stringp (car map)) (stringp trans))
-	    (setcar map (concat (car map) trans))
-	  (setcar map trans))))))
+	(if (and (car map) append)
+	    (let ((prev (quail-get-translation (car map) key len)))
+	      (if (integerp prev)
+		  (setq prev (vector prev))
+		(setq prev (cdr prev)))
+	      (if (integerp trans)
+		  (setq trans (vector trans))
+		(if (stringp trans)
+		    (setq trans (string-to-vector trans))))
+	      (setq trans
+		    (cons (list 0 0 0 0 nil)
+			  (vconcat prev trans)))))
+	(setcar map trans)))))
 
 (defun quail-get-translation (def key len)
   "Return the translation specified as DEF for KEY of length LEN.
