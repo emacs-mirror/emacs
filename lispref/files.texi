@@ -1561,8 +1561,13 @@ variables; only @code{substitute-in-file-name} does that.
 @defun file-relative-name filename directory
 This function does the inverse of expansion---it tries to return a
 relative name that is equivalent to @var{filename} when interpreted
-relative to @var{directory}.  (If such a relative name would be longer
-than the absolute name, it returns the absolute name instead.)
+relative to @var{directory}.
+
+On some operating systems, an absolute file name begins with a device
+name.  On such systems, @var{filename} has no relative equivalent based
+on @var{directory} if they start with two different device names.  In
+this case, @code{file-relative-name} returns @var{filename} in absolute
+form.
 
 @example
 (file-relative-name "/foo/bar" "/foo/")
