@@ -266,8 +266,12 @@ The backup file is the first file given to `diff'."
       (or
        (let ((bak (make-backup-file-name fn)))
 	 (if (file-exists-p bak) bak))
-       (let* ((dir (file-name-directory fn))
-	      (base-versions (concat (file-name-nondirectory fn) ".~"))
+       ;; We use BACKUPNAME to cope with backups stored in a different dir.
+       (let* ((backupname (car (find-backup-file-name fn)))
+	      (dir (file-name-directory backupname))
+	      (base-versions (concat (file-name-sans-versions
+				      (file-name-nondirectory backupname))
+				     ".~"))
 	      (bv-length (length base-versions)))
 	 (concat dir
 		 (car (sort
