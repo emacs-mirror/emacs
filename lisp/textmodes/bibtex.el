@@ -89,9 +89,9 @@ If this is a string, it will be used as the initial field text.
 If this is a function, it will be called to generate the initial field text."
   :group 'bibtex
   :type '(choice (const :tag "None" nil)
-		 (const :tag "Default" t)
 		 (string :tag "Initial text")
-		 (function :tag "Initialize Function" :value fun)))
+		 (function :tag "Initialize Function" :value fun)
+		 (other :tag "Default" t)))
 
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
