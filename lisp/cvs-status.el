@@ -4,7 +4,6 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
-;; Revision: $Id: cvs-status.el,v 1.10 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -513,45 +512,5 @@ Optional prefix ARG chooses between two representations."
       
 
 (provide 'cvs-status)
-
-;;; Change Log:
-;; $Log: cvs-status.el,v $
-;; Revision 1.10  2000/12/18 03:17:31  monnier
-;; Remove useless Version.
-;;
-;; Revision 1.9  2000/12/06 19:50:12  fx
-;; Fix copyright years.
-;;
-;; Revision 1.8  2000/11/06 07:01:10  monnier
-;; (cvs-tree-merge): Use cvs-butlast (avoid CL).
-;; (cvs-status-get-tags): Fix regexp.
-;; (cvs-status-trees, cvs-status-cvstrees):
-;; Combine after change hooks and don't sit-for.
-;; (cvs-tree-use-jisx0208): Renamed from cvs-tree-dstr-2byte-ready.
-;; (cvs-tree-char-*): Renamed from cvs-tree-dstr-char-*.
-;; Use make-char rather than hard-coded cryptic data.
-;; (cvs-status-cvstrees): Convert the buffer to multibyte if necessary.
-;;
-;; Revision 1.7  2000/09/29 02:19:10  monnier
-;; (cvs-status-entry-leader-re): Minor fix.
-;;
-;; Revision 1.6  2000/08/16 20:46:32  monnier
-;; *** empty log message ***
-;;
-;; Revision 1.5  2000/08/06 09:18:02  gerd
-;; Use `nth' instead of `first', `second', and `third'.
-;;
-;; Revision 1.4  2000/05/10 22:08:28  monnier
-;; (cvs-status-minor-wrap): Use mark-active.
-;;
-;; Revision 1.3  2000/03/22 01:08:08  monnier
-;; (cvs-status-mode): Use define-derived-mode.
-;;
-;; Revision 1.2  2000/03/22 01:01:36  monnier
-;; (cvs-status-(prev|next)): Rename from
-;; cvs-status-(prev|next)-entry and use easy-mmode-define-navigation.
-;; (cvs-tree-dstr-*): Rename from cvstree-dstr-* and use two ascii chars
-;; to let the output "breathe" a little more (more readable).
-;;
 
 ;;; cvs-status.el ends here
