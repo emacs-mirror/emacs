@@ -64,7 +64,7 @@ Nil means 1 <= hh <= 12, and an AM/PM suffix is used."
 (defvar display-time-string nil)
 
 (defcustom display-time-hook nil
-  "* List of functions to be called when the time is updated on the mode line."
+  "*List of functions to be called when the time is updated on the mode line."
   :type 'hook
   :group 'display-time)
 
@@ -208,7 +208,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 			(if (> (- (nth 1 (current-time)) (nth 1 start-time))
 			       20)
 			    ;; Record that mail file is not accessible.
-			    (setq display-time-server-down-time 
+			    (setq display-time-server-down-time
 				  (nth 1 (current-time)))
 			  ;; Record that mail file is accessible.
 			  (setq display-time-server-down-time nil))))))
