@@ -293,7 +293,7 @@ Do not change it directly;  use term-set-escape-char instead.")
 
 (defvar term-ptyp t
   "True if communications via pty; false if by pipe.  Buffer local.
-This is to work around a bug in emacs process signalling.")
+This is to work around a bug in emacs process signaling.")
 
 (defvar term-last-input-match ""
   "Last string searched for by term input history search, for defaulting.
@@ -698,7 +698,7 @@ without any interpretation."
       (define-key term-raw-map term-escape-char 'term-send-raw))
   (setq c (make-string 1 c))
   (define-key term-raw-map c term-raw-escape-map)
-  ;; Define standard binings in term-raw-escape-map
+  ;; Define standard bindings in term-raw-escape-map
   (define-key term-raw-escape-map "\C-x"
     (lookup-key (current-global-map) "\C-x"))
   (define-key term-raw-escape-map "\C-v"
@@ -861,7 +861,7 @@ buffer. The hook term-exec-hook is run after each exec."
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
 :UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC"
 ;;; : -undefine ic
-  "termcap capabilties supported")
+  "termcap capabilities supported")
 
 ;;; This auxiliary function cranks up the process for term-exec in
 ;;; the appropriate environment.
@@ -1984,7 +1984,7 @@ See `term-prompt-regexp'."
 	 (let ((H)
 	       (todo (+ count (/ (current-column) term-width))))
 	   (end-of-line)
-	   ;; The loop interates over buffer lines;
+	   ;; The loop iterates over buffer lines;
 	   ;; H is the number of screen lines in the current line, i.e.
 	   ;; the ceiling of dividing the buffer line width by term-width.
 	   (while (and (<= (setq H (max (/ (+ (current-column) term-width -1)
@@ -2009,7 +2009,7 @@ See `term-prompt-regexp'."
 		       (progn (beginning-of-line)
 			      (not (bobp))))
 	     (setq todo (- todo H))
-	     (backward-char)) ;; Move to end of previos line
+	     (backward-char)) ;; Move to end of previous line.
 	   (if (and (>= todo H) (> todo 0))
 	       (+ count todo (- 1 H)) ;; Hit beginning of buffer.
 	     (move-to-column (* (- H todo 1) term-width))
@@ -2338,7 +2338,7 @@ See `term-prompt-regexp'."
 	  (setq term-current-row (1- term-height))))))
 
 ;;; Handle a character assuming (eq terminal-state 2) -
-;;; i.e. we have previousely seen Escape followed by ?[.
+;;; i.e. we have previously seen Escape followed by ?[.
 
 (defun term-handle-ansi-escape (proc char)
   (cond
@@ -2423,7 +2423,7 @@ See `term-prompt-regexp'."
 (defun term-scroll-region (top bottom)
   "Set scrolling region.
 TOP is the top-most line (inclusive) of the new scrolling region,
-while BOTTOM is the line folling the new scrolling region (e.g. exclusive).
+while BOTTOM is the line following the new scrolling region (e.g. exclusive).
 The top-most line is line 0."
   (setq term-scroll-start
 	(if (or (< top 0) (>= top term-height))
@@ -2569,7 +2569,7 @@ The top-most line is line 0."
 	  (setq tmp (make-sparse-keymap "More pages?"))
 	  (define-key tmp [help] '("Help" . term-pager-help))
 	  (define-key tmp [disable]
-	    '("Diable paging" . term-fake-pager-disable))
+	    '("Disable paging" . term-fake-pager-disable))
 	  (define-key tmp [discard]
 	    '("Discard remaining output" . term-pager-discard))
 	  (define-key tmp [eob] '("Goto to end" . term-pager-eob))
@@ -2939,7 +2939,7 @@ This is a good place to put keybindings.")
 ;;; want them present in specific modes.
 
 (defvar term-completion-autolist nil
-  "*If non-nil, automatically list possiblities on partial completion.
+  "*If non-nil, automatically list possibilities on partial completion.
 This mirrors the optional behavior of tcsh.")
 
 (defvar term-completion-addsuffix t
