@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (c) 2002 Global Graphics Software.
+ * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * <code/mps.h>, and the internal MPM interfaces, as defined by

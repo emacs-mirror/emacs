@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (c) 2002 Global Graphics Software.
+ * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: The purpose of this code is
  *   1. to connect the MPS Library Interface to the ANSI C libraries,

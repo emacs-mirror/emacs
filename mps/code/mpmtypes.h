@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (c) 2001 Global Graphics Software.
+ * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
  *

@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (C) 2002 Global Graphics Software.
+ * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.

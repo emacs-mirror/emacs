@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (C) 2002 Global Graphics Software.
+ * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */

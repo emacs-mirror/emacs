@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (C) 2002 Global Graphics Software.
+ * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the

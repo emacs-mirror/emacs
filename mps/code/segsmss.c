@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (c) 2002 Global Graphics Software.
+ * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amsss.c (because AMS already supports
  * a protocol for subclassing AMS segments). Defines a new pool
