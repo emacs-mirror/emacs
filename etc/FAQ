@@ -2321,7 +2321,7 @@ Finding/Getting Emacs and Related Packages
   lisp-dir-apropos RET ange-ftp RET" produces this output:
 
               GNU Emacs Lisp Code Directory Apropos -- "ange-ftp"
-     "~/" refers to ftp.cis.ohio-state.edu:pub/gnu/emacs/elisp-archive/
+     "~/" refers to ftp.cis.ohio-state.edu:pub/emacs-lisp/
 
           ange-ftp (4.18)       15-Jul-1992
                Andy Norman, <ange@hplb.hpl.hp.com>
@@ -2358,7 +2358,7 @@ Finding/Getting Emacs and Related Packages
 
   You can access the Emacs Lisp Archive at the following sites:
 
-    ftp://ftp.cis.ohio-state.edu/pub/gnu/emacs-lisp/
+    ftp://ftp.cis.ohio-state.edu/pub/emacs-lisp/
     ftp://ftp.uni-mainz.de/pub/gnu/elisp-archive/
     ftp://gatekeeper.dec.com/pub/GNU/elisp-archive/
     ftp://nic.funet.fi/pub/gnu/emacs/elisp-archive/
@@ -2742,7 +2742,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Author: Aamod Sane <sane@cs.uiuc.edu>
   Latest version: 4.3
   Anonymous FTP:
-    ftp://ftp.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/modes/vip-mode.tar.Z
+    ftp://ftp.cis.ohio-state.edu/pub/emacs-lisp/modes/vip-mode.tar.Z
 
 108: AUC TeX -- enhanced LaTeX mode with debugging facilities
 
