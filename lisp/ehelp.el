@@ -88,7 +88,7 @@
   (setq major-mode 'help)
   (setq mode-line-buffer-identification '(" Help:  %b"))
   (use-local-map electric-help-map)
-  (setq mouse-leave-buffer-hook '(electric-help-retain))
+  (add-hook 'mouse-leave-buffer-hook 'electric-help-retain)
   (view-mode -1)
   ;; this is done below in with-electric-help
   ;(run-hooks 'electric-help-mode-hook)
@@ -232,10 +232,10 @@ will select it.)"
   (interactive)
   ;; Make sure that we don't throw twice, even if two events cause
   ;; calling this function:
-  (if mouse-leave-buffer-hook
-    (progn
-      (setq mouse-leave-buffer-hook nil)
-      (throw 'exit '(retain)))))
+  (if (memq 'electric-help-retain mouse-leave-buffer-hook)
+      (progn
+	(remove-hook 'mouse-leave-buffer-hook 'electric-help-retain)
+	(throw 'exit '(retain)))))
 
 
 (defun electric-help-undefined ()
