@@ -9906,7 +9906,6 @@ XTread_socket (sd, bufp, numchars, expected)
 			{
 			  register int i;
 			  register int c;
-			  unsigned char *p, *pend;
 			  int nchars, len;
 
 			  for (i = 0; i < nbytes; i++)
@@ -10089,7 +10088,6 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
 	      if (f)
 		{
-		  Lisp_Object frame;
 		  int from_menu_bar_p = 0;
 		  
 		  if (f == dpyinfo->mouse_face_mouse_frame)
