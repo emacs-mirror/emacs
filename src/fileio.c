@@ -2998,11 +2998,14 @@ before the error is signaled.\n\n\
 The optional third and fourth arguments BEG and END\n\
 specify what portion of the file to insert.\n\
 If VISIT is non-nil, BEG and END must be nil.\n\
+\n\
 If optional fifth argument REPLACE is non-nil,\n\
 it means replace the current buffer contents (in the accessible portion)\n\
 with the file contents.  This is better than simply deleting and inserting\n\
 the whole thing because (1) it preserves some marker positions\n\
-and (2) it puts less data in the undo list.")
+and (2) it puts less data in the undo list.\n\
+When REPLACE is non-nil, the value is the number of characters actually read,\n\
+which is often less than the number of characters to be read.")
   (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
