@@ -1,3 +1,17 @@
+2000-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Recompute unchanged information if
+	it is invalid.
+
+	* xterm.c (x_term_init): Create a colormap if not using the
+	default visual.
+
+	* xterm.h (select_visual): Change prototype.
+
+	* xfns.c (select_visual): Rewritten.  Recognize user-specified
+	visual classes.
+	(visual_classes): New variable.
+
 2000-03-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_defined_color, x_set_mouse_color, lookup_rgb_color)
