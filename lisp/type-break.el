@@ -342,7 +342,7 @@ keystroke threshold has been exceeded."
           ;; will reset the keystroke count anyway.
           (and max-threshold
                min-threshold
-               (> (- max-threshold type-break-keystroke-count) min-threshold)
+               (< (- max-threshold type-break-keystroke-count) min-threshold)
                (setq type-break-keystroke-count min-threshold))
           (type-break-query))))
        ((and max-threshold
@@ -417,11 +417,15 @@ Current keystroke count     : %s"
                        (current-time-string type-break-time-last-break)
                      "never")
                    (if (and type-break-mode type-break-time-next-break)
-                       (format "%s\t(%d minutes from now)"
+                       (format "%s\t(%s from now)"
                                (current-time-string type-break-time-next-break)
-                               (/ (type-break-time-difference
-                                   (current-time) type-break-time-next-break)
-                                  60))
+                               (let* ((secs (type-break-time-difference
+                                             (current-time) 
+                                             type-break-time-next-break))
+                                      (mins (/ secs 60)))
+                                 (if (> mins 0)
+                                     (format "%d minutes" mins)
+                                   (format "%d seconds" secs))))
                      "none scheduled")
                    (or (car type-break-keystroke-threshold) "none")
                    (or (cdr type-break-keystroke-threshold) "none")
