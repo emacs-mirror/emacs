@@ -1,3 +1,31 @@
+2002-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (DEFUN) [USE_NONANSI_DEFUN]: The 2001-10-17 patch
+	removed the wrong version of the DEFUN macro; fixed it.
+
+	* fns.c (Ffeaturep): Allow subfeature to be a list (test using
+	Fmember rather than Fmemq).
+	(Fprovide): Check that subfeatures is a list.
+
+	* process.c (QCfeature, QCdatagram): Removed variables.
+	(QCtype, Qdatagram): New variables.
+	(network_process_featurep): Removed function.
+	(Fmake_network_process): Removed :feature check.
+	Use :type 'datagram instead of :datagram t to create a datagram
+	socket.  This allows us to add other connection types (e.g. raw
+	sockets) later in a consistent manner.
+	(init_process) [subprocess]: Provide list of supported subfeatures
+	for feature make-network-process.
+	(syms_of_process) [subprocess]: Remove QCfeature and QCdatagram.
+	Intern and staticpro QCtype and Qdatagram.
+	(syms_of_process) [!subprocess]: Intern and staticpro QCtype.
+
+	* xfns.c: (QCtype): Remove duplicate declaration and
+	initialization (is now declared in process.c).
+
+	* w32fns.c: (QCtype): Remove duplicate declaration and
+	initialization (is now declared in process.c).
+
 2002-03-21  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (DISCARD_FAILURE_REG_OR_COUNT): New macro.
