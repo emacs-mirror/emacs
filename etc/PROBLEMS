@@ -699,6 +699,19 @@ release was reported to work without problems.  It worked OK on
 another system with Solaris 8 using apparently the same 5.0 compiler
 and the default CFLAGS.
 
+* Attempting to visit remote files via ange-ftp fails.
+
+If the error message is "ange-ftp-file-modtime: Specified time is not
+representable", then this could happen when `lukemftp' is used as the
+ftp client.  This was reported to happen on Debian GNU/Linux 2.4.3
+with `lukemftp' 1.5-5, but might happen on other systems as well.  To
+avoid this problem, switch to using the standard ftp client.  On a
+Debian system, type
+
+  update-alternatives --config ftpd
+
+and then choose /usr/bin/netkit-ftp.
+
 * On Windows 95/98/ME, subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
