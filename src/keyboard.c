@@ -9376,7 +9376,7 @@ for guidance on what to do.");
 
   DEFVAR_LISP ("input-method-previous-message",
 	       &Vinput_method_previous_message,
-	       "When `input-mehod-function' is called, hold the previous echo area message.\n\
+    "When `input-method-function' is called, hold the previous echo area message.\n\
 This variable exists because `read-event' clears the echo area\n\
 before running the input method.  It is nil if there was no message.");
   Vinput_method_previous_message = Qnil;
