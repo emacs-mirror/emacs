@@ -1486,19 +1486,23 @@ DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
 Take symbols from SYMFILE (presumably the file you executed to run Emacs).\n\
 This is used in the file `loadup.el' when building Emacs.\n\
 \n\
-Bind `command-line-processed' to nil before dumping,\n\
-if you want the dumped Emacs to process its command line\n\
-and announce itself normally when it is run.\n\
-\n\
 You must run Emacs in batch mode in order to dump it.")
   (filename, symfile)
      Lisp_Object filename, symfile;
 {
   extern char my_edata[];
   Lisp_Object tem;
+  Lisp_Object symbol;
+  int count = specpdl_ptr - specpdl;
 
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
+
+  /* Bind `command-line-processed' to nil before dumping,
+     so that the dumped Emacs will process its command line
+     and set up to work with X windows if appropriate.  */
+  symbol = intern ("command-line-process");
+  specbind (symbol, Qnil);
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
@@ -1545,7 +1549,7 @@ You must run Emacs in batch mode in order to dump it.")
 
   Vpurify_flag = tem;
 
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 #endif /* not HAVE_SHM */
