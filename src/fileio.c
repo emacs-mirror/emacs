@@ -5084,6 +5084,10 @@ e_write (desc, string, start, end, coding)
       if (coding->cmp_data)
 	coding_adjust_composition_offset (coding, start);
     }
+
+  if (coding->cmp_data)
+    coding_free_composition_data (coding);
+
   return return_val;
 }
 
