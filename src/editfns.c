@@ -719,7 +719,43 @@ Any other markers at the point of insertion remain before the text.")
 	}
       else if (XTYPE (tem) == Lisp_String)
 	{
-	  insert_from_string (tem, 0, XSTRING (tem)->size);
+	  insert_from_string (tem, 0, XSTRING (tem)->size, 0);
+	}
+      else
+	{
+	  tem = wrong_type_argument (Qchar_or_string_p, tem);
+	  goto retry;
+	}
+    }
+
+  return Qnil;
+}
+
+DEFUN ("insert-and-inherit", Finsert_and_inherit, Sinsert_and_inherit,
+   0, MANY, 0,
+  "Insert the arguments at point, inheriting properties from adjoining text.\n\
+Point moves forward so that it ends up after the inserted text.\n\
+Any other markers at the point of insertion remain before the text.")
+  (nargs, args)
+     int nargs;
+     register Lisp_Object *args;
+{
+  register int argnum;
+  register Lisp_Object tem;
+  char str[1];
+
+  for (argnum = 0; argnum < nargs; argnum++)
+    {
+      tem = args[argnum];
+    retry:
+      if (XTYPE (tem) == Lisp_Int)
+	{
+	  str[0] = XINT (tem);
+	  insert (str, 1);
+	}
+      else if (XTYPE (tem) == Lisp_String)
+	{
+	  insert_from_string (tem, 0, XSTRING (tem)->size, 1);
 	}
       else
 	{
@@ -754,7 +790,44 @@ Any other markers at the point of insertion also end up after the text.")
 	}
       else if (XTYPE (tem) == Lisp_String)
 	{
-	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size);
+	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 0);
+	}
+      else
+	{
+	  tem = wrong_type_argument (Qchar_or_string_p, tem);
+	  goto retry;
+	}
+    }
+
+  return Qnil;
+}
+
+DEFUN ("insert-before-markers-and-inherit",
+  Finsert_and_inherit_before_markers, Sinsert_and_inherit_before_markers,
+  0, MANY, 0,
+  "Insert text at point, relocating markers and inheriting properties.\n\
+Point moves forward so that it ends up after the inserted text.\n\
+Any other markers at the point of insertion also end up after the text.")
+  (nargs, args)
+     int nargs;
+     register Lisp_Object *args;
+{
+  register int argnum;
+  register Lisp_Object tem;
+  char str[1];
+
+  for (argnum = 0; argnum < nargs; argnum++)
+    {
+      tem = args[argnum];
+    retry:
+      if (XTYPE (tem) == Lisp_Int)
+	{
+	  str[0] = XINT (tem);
+	  insert_before_markers (str, 1);
+	}
+      else if (XTYPE (tem) == Lisp_String)
+	{
+	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 1);
 	}
       else
 	{
@@ -918,7 +991,7 @@ They default to the beginning and the end of BUFFER.")
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   graft_intervals_into_buffer (copy_intervals (bp->intervals, start, len),
-			       opoint, bp);
+			       opoint, bp, 0);
 
   return Qnil;
 }
@@ -1533,6 +1606,8 @@ syms_of_editfns ()
   defsubr (&Schar_after);
   defsubr (&Sinsert);
   defsubr (&Sinsert_before_markers);
+  defsubr (&Sinsert_and_inherit);
+  defsubr (&Sinsert_and_inherit_before_markers);
   defsubr (&Sinsert_char);
 
   defsubr (&Suser_login_name);
