@@ -201,7 +201,7 @@ Lisp_Object Vw32_charset_info_alist;
 
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
-Lisp_Object Qbar;
+Lisp_Object Qbar, Qhbar;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
 Lisp_Object Qbox;
@@ -2366,6 +2366,19 @@ x_specified_cursor_type (arg, width)
 	   && XINT (XCDR (arg)) >= 0)
     {
       type = BAR_CURSOR;
+      *width = XINT (XCDR (arg));
+    }
+  else if (EQ (arg, Qhbar))
+    {
+      type = HBAR_CURSOR;
+      *width = 2;
+    }
+  else if (CONSP (arg)
+	   && EQ (XCAR (arg), Qhbar)
+	   && INTEGERP (XCDR (arg))
+	   && XINT (XCDR (arg)) >= 0)
+    {
+      type = HBAR_CURSOR;
       *width = XINT (XCDR (arg));
     }
   else if (NILP (arg))
@@ -7093,9 +7106,8 @@ typedef struct enumfont_t
   int numFonts;
   LOGFONT logfont;
   XFontStruct *size_ref;
-  Lisp_Object *pattern;
+  Lisp_Object pattern;
   Lisp_Object list;
-  Lisp_Object *tail;
 } enumfont_t;
 
 
@@ -7151,7 +7163,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     /* Truetype fonts do not report their true metrics until loaded */
     if (FontType != RASTER_FONTTYPE)
       {
-	if (!NILP (*(lpef->pattern)))
+	if (!NILP (lpef->pattern))
 	  {
 	    /* Scalable fonts are as big as you want them to be.  */
 	    lplf->elfLogFont.lfHeight = lpef->logfont.lfHeight;
@@ -7176,9 +7188,9 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
           lplf->elfLogFont.lfHeight = -lplf->elfLogFont.lfHeight;
       }
 
-    if (!NILP (*(lpef->pattern)))
+    if (!NILP (lpef->pattern))
       {
-        charset = xlfd_charset_of_font (XSTRING(*(lpef->pattern))->data);
+        charset = xlfd_charset_of_font (XSTRING(lpef->pattern)->data);
 
 	/* We already checked charsets above, but DEFAULT_CHARSET
            slipped through.  So only allow exact matches for DEFAULT_CHARSET.  */
@@ -7242,8 +7254,8 @@ enum_font_maybe_add_to_list (lpef, logfont, match_charset, width)
   if (!w32_to_x_font (logfont, buf, 100, match_charset))
     return;
 
-  if (NILP (*(lpef->pattern))
-      || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+  if (NILP (lpef->pattern)
+      || w32_font_match (buf, XSTRING (lpef->pattern)->data))
     {
       /* Check if we already listed this font.  This may happen if
          w32_enable_synthesized_fonts is non-nil, and there are real
@@ -7251,8 +7263,8 @@ enum_font_maybe_add_to_list (lpef, logfont, match_charset, width)
       Lisp_Object font_name = build_string (buf);
       if (NILP (Fmember (font_name, lpef->list)))
 	{
-	  *lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
-	  lpef->tail = &(XCDR_AS_LVALUE (*lpef->tail));
+	  Lisp_Object entry = Fcons (font_name, width);
+	  lpef->list = Fcons (entry, lpef->list);
 	  lpef->numFonts++;
 	}
     }
@@ -7397,10 +7409,8 @@ w32_list_fonts (f, pattern, size, maxnames)
 
       BLOCK_INPUT;
       /* At first, put PATTERN in the cache.  */
-      list = Qnil;
-      ef.pattern = &tpat;
-      ef.list = list;
-      ef.tail = &list;
+      ef.pattern = tpat;
+      ef.list = Qnil;
       ef.numFonts = 0;
 
       /* Use EnumFontFamiliesEx where it is available, as it knows
@@ -7435,6 +7445,7 @@ w32_list_fonts (f, pattern, size, maxnames)
       }
 
       UNBLOCK_INPUT;
+      list = ef.list;
 
       /* Make a list of the fonts we got back.
          Store that in the font cache for the display. */
@@ -14812,6 +14823,8 @@ syms_of_w32fns ()
   staticpro (&Qauto_lower);
   Qbar = intern ("bar");
   staticpro (&Qbar);
+  Qhbar = intern ("hbar");
+  staticpro (&Qhbar);
   Qborder_color = intern ("border-color");
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
