@@ -698,6 +698,9 @@ struct glyph_row
   /* 1 means some glyphs in this row are displayed in mouse-face.  */
   unsigned mouse_face_p : 1;
 
+  /* 1 means this row was ended by a newline from a string.  */
+  unsigned ends_in_newline_from_string_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 };
