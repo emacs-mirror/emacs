@@ -551,7 +551,11 @@ When called interactively, prompt for the name of the color to use."
 
 (defun auto-raise-mode (arg)
   "Toggle whether or not the selected frame should auto-raise.
-With arg, turn auto-raise mode on if and only if arg is positive."
+With arg, turn auto-raise mode on if and only if arg is positive.
+Note that this controls Emacs's own auto-raise feature.
+Some window managers allow you to enable auto-raise for certain windows.
+You can use that for Emacs windows if you wish, but if you do,
+that is beyond the control of Emacs and this command has no effect on it."
   (interactive "P")
   (if (null arg)
       (setq arg
@@ -562,7 +566,11 @@ With arg, turn auto-raise mode on if and only if arg is positive."
 
 (defun auto-lower-mode (arg)
   "Toggle whether or not the selected frame should auto-lower.
-With arg, turn auto-lower mode on if and only if arg is positive."
+With arg, turn auto-lower mode on if and only if arg is positive.
+Note that this controls Emacs's own auto-lower feature.
+Some window managers allow you to enable auto-lower for certain windows.
+You can use that for Emacs windows if you wish, but if you do,
+that is beyond the control of Emacs and this command has no effect on it."
   (interactive "P")
   (if (null arg)
       (setq arg
