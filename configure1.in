@@ -214,7 +214,6 @@ machine=`./config.sub "${machine}"`
 
 # Given the canonicalized machine name, set machfile and opsysfile to
 # the names of the m/*.h and s/*.h files we should use.
-echo ${machine}
 case "${machine}" in
 
   ## Alliant machines.
@@ -583,7 +582,7 @@ rm -f lib-src/Makefile.tmp
 # editing \`Makefile.in' itself, or running \`${progname}' instead."
  /bin/sed < lib-src/Makefile.in				\
  -e '/^# DIST: /d'					\
- -e 's;^\(CFLAGS=\).*$;\1'"${c_switch_site};"		\
+ -e 's;^\(CONFIG_CFLAGS=\).*$;\1'"${c_switch_site};"	\
  -e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
  -e 's;^\(CC=\).*$;\1'"${cc};") > lib-src/Makefile.tmp
 ./move-if-change lib-src/Makefile.tmp lib-src/Makefile
