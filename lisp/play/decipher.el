@@ -124,12 +124,12 @@ the tail of the list.")
      (1 font-lock-keyword-face)
      (2 font-lock-string-face)))
   "Expressions to fontify in Decipher mode.
-! Ciphertext uses `font-lock-keyword-face', plaintext uses
+Ciphertext uses `font-lock-keyword-face', plaintext uses
 `font-lock-string-face', comments use `font-lock-comment-face', and
 checkpoints use `font-lock-reference-face'.  You can customize the
 display by changing these variables.  For best results, I recommend
 that all faces use the same background color.
-! For example, to display ciphertext in the `bold' face, use
+For example, to display ciphertext in the `bold' face, use
   (add-hook 'decipher-mode-hook
             (lambda () (set (make-local-variable 'font-lock-keyword-face)
                             'bold)))
