@@ -1,3 +1,9 @@
+2002-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (do_autoload): Error if called while preparing to dump.
+
+	* fns.c (Frequire): Error if need to load while preparing to dump.
+
 2002-04-28  Colin Walters  <walters@verbum.org>
 
 	* callproc.c (Vgame_score_directory) [!HAVE_SHARED_GAME_DIR]:

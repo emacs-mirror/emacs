@@ -1,5 +1,8 @@
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
+	* time.el (display-time-mail-directory) 
+	(display-time-mail-function): Doc fixes.
+
 	* ediff-hook.el: Remove autoload cookies.
 
 	* language/tibetan.el (tibetan-obsolete-glyphs): Now in tibet-util.el.
