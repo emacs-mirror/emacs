@@ -52,7 +52,10 @@ yield the values intended."
 		 (looking-at eshell-number-regexp)
 		 (eshell-arg-delimiter (match-end 0)))
 	(goto-char (match-end 0))
-	(string-to-number (match-string 0)))))
+	(let ((str (match-string 0)))
+	  (if (> (length str) 0)
+	      (add-text-properties 0 1 '(number t) str))
+	  str))))
 
    ;; parse any non-special characters, based on the current context
    (function
