@@ -1339,9 +1339,17 @@ Similarly for Soar, Scheme, etc."
 	  (run-hook-with-args 'comint-output-filter-functions "")))))
 
 (defvar comint-preoutput-filter-functions nil 
-  "Functions to call before output is inserted into the buffer.
-These functions get one argument, a string containing the text to be
-inserted.  They return the string as it should be inserted.
+  "List of functions to call before inserting Comint output into the buffer.
+Each function gets one argument, a string containing the text received
+from the subprocess.  It should return the string to insert, perhaps
+the same string that was received, or perhaps a modified or transformed
+string.
+
+The functions on the list are called sequentially, and each one is
+given the string returned by the previous one.  The string returned by
+the last function is the text that is actually inserted in the
+redirection buffer.")
+
 
 This variable is buffer-local.")
 
