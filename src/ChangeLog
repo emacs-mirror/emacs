@@ -63,12 +63,15 @@
 	(x_display_and_set_cursor): Use get_window_cursor_type.
 	Remove unused local variables cursor_off_state.
 	Redraw cursor if hbar cursor width changes.
-
+	Changed all occurrences of w32_highlight_frame to x_highlight_frame.
+	
 	* w32term.h (enum text_cursor_kinds): Removed.
 	(struct output_w32) <current_cursor, desired_cursor, cursor_width>
 	<blink_off_cursor, blink_off_cursor_width>: Members removed.
 	(FRAME_DESIRED_CURSOR, FRAME_CURSOR_WIDTH, FRAME_BLINK_OFF_CURSOR)
 	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros removed.
+	(struct w32_display_info) <x_highlight_frame>: Renamed member from
+	w32_highlight_frame.
 	
 	* xfns.c (Vblink_cursor_alist): Removed.
 	(Qbar, Qhbar, Qbox, Qhollow): Removed.
