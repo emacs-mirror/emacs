@@ -29,7 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "keyboard.h"
 
-Lisp_Object Qwindowp;
+Lisp_Object Qwindowp, Qlive_window_p;
 
 Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
 Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
@@ -105,6 +105,16 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
   return XTYPE (obj) == Lisp_Window ? Qt : Qnil;
 }
 
+DEFUN ("live-window-p", Flive_window_p, Slive_window_p, 1, 1, 0,
+  "Returns t if OBJ is a window which is currently visible.")
+     (obj)
+     Lisp_Object obj;
+{
+  return ((XTYPE (obj) == Lisp_Window
+	   && ! NILP (XWINDOW (obj)->buffer))
+	  ? Qt : Qnil);
+}
+
 Lisp_Object
 make_window ()
 {
@@ -158,7 +168,7 @@ used by that frame.")
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
-DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 1, 1, 0,
+DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
   "Returns non-nil if WINDOW is a minibuffer window.")
   (window)
      Lisp_Object window;
@@ -190,11 +200,7 @@ POS defaults to point; WINDOW, to the selected window.")
       posint = XINT (pos);
     }
 
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window, 1);
-  w = XWINDOW (window);
+  w = decode_window (window);
   top = marker_position (w->start);
 
   if (posint < top)
@@ -235,7 +241,7 @@ decode_window (window)
   if (NILP (window))
     return XWINDOW (selected_window);
 
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
   return XWINDOW (window);
 }
 
@@ -370,7 +376,7 @@ If they are on the border between WINDOW and its right sibling,\n\
 {
   int x, y;
 
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
   CHECK_CONS (coordinates, 1);
   x = XINT (Fcar (coordinates));
   y = XINT (Fcdr (coordinates));
@@ -682,12 +688,21 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
   register struct window *p;
   register struct window *par;
 
+  /* Because this function is called by other C code on non-leaf
+     windows, the CHECK_LIVE_WINDOW macro would choke inappropriately,
+     so we can't decode_window here.  */
   if (NILP (window))
     window = selected_window;
   else
     CHECK_WINDOW (window, 0);
-
   p = XWINDOW (window);
+
+  /* It's okay to delete an already-deleted window.  */
+  if (NILP (p->buffer)
+      && NILP (p->hchild)
+      && NILP (p->vchild))
+    return Qnil;
+
   parent = p->parent;
   if (NILP (parent))
     error ("Attempt to delete minibuffer or sole ordinary window");
@@ -695,8 +710,25 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
   windows_or_buffers_changed++;
 
-  if (EQ (window, selected_window))
-    Fselect_window (Fnext_window (window, Qnil, Qnil));
+  /* Are we trying to delete any frame's selected window?  */
+  {
+    Lisp_Object frame = WINDOW_FRAME (XWINDOW (window));
+
+    if (EQ (window, FRAME_SELECTED_WINDOW (XFRAME (frame))))
+      {
+	Lisp_Object alternative = Fnext_window (window, Qlambda, Qnil);
+
+	/* If we're about to delete the selected window on the
+	   selected frame, then we should use Fselect_window to select
+	   the new window.  On the other hand, if we're about to
+	   delete the selected window on any other frame, we shouldn't do
+	   anything but set the frame's selected_window slot.  */
+	if (EQ (window, selected_window))
+	  Fselect_window (alternative);
+	else
+	  FRAME_SELECTED_WINDOW (XFRAME (frame)) = alternative;
+      }
+  }
 
   tem = p->buffer;
   /* tem is null for dummy parent windows
@@ -706,7 +738,6 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
       unshow_buffer (p);
       unchain_marker (p->pointm);
       unchain_marker (p->start);
-      p->buffer = Qnil;
     }
 
   tem = p->next;
@@ -747,12 +778,22 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
   /* If parent now has only one child,
      put the child into the parent's place.  */
-
   tem = par->hchild;
   if (NILP (tem))
     tem = par->vchild;
   if (NILP (XWINDOW (tem)->next))
     replace_window (parent, tem);
+
+  /* Since we may be deleting combination windows, we must make sure that
+     not only p but all its children have been marked as deleted.  */
+  if (! NILP (p->hchild))
+    delete_all_subwindows (XWINDOW (p->hchild));
+  else if (! NILP (p->vchild))
+    delete_all_subwindows (XWINDOW (p->vchild));
+
+  /* Mark this window as deleted.  */
+  p->buffer = p->hchild = p->vchild = Qnil;
+
   return Qnil;
 }
 
@@ -786,7 +827,7 @@ above.  If neither nil nor t, restrict to WINDOW's frame.")
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window, 0);
 
   start_window = window;
 
@@ -883,7 +924,7 @@ above.  If neither nil nor t, restrict to WINDOW's frame.")
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window, 0);
 
   start_window = window;
 
@@ -1170,7 +1211,7 @@ window_loop (type, obj, mini, frames)
 
   return best_window;
 }     
-
+
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
   "Return the window least recently selected or used for display.\n\
 If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
@@ -1227,7 +1268,7 @@ Only the frame WINDOW is on is affected.")
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window, 0);
 
   w = XWINDOW (window);
   top = XFASTINT (w->top);
@@ -1296,10 +1337,10 @@ check_min_window_sizes ()
 
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
-extern void
+void
 check_frame_size (frame, rows, cols)
-FRAME_PTR frame;
-int *rows, *cols;
+     FRAME_PTR frame;
+     int *rows, *cols;
 {
   /* For height, we have to see whether the frame has a minibuffer, and
      whether it wants a mode line.  */
@@ -1497,7 +1538,7 @@ before each command.")
   register struct window *w;
   register struct window *ow = XWINDOW (selected_window);
 
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
 
   w = XWINDOW (window);
 
@@ -1706,7 +1747,7 @@ and put SIZE columns in the first of the pair.")
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window, 0);
 
   o = XWINDOW (window);
 
@@ -2143,7 +2184,7 @@ showing that buffer, popping the buffer up if necessary.")
   else
     /* Nothing specified; pick a neighboring window.  */
     window = Fnext_window (selected_window, Qnil, Qt);
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
 
   if (EQ (window, selected_window))
     error ("There is no other window");
@@ -2540,14 +2581,22 @@ static void
 delete_all_subwindows (w)
      register struct window *w;
 {
-  w->height = w->buffer;       /* See Fset_window_configuration for excuse.  */
-  w->buffer = Qnil;
   if (!NILP (w->next))
     delete_all_subwindows (XWINDOW (w->next));
   if (!NILP (w->vchild))
     delete_all_subwindows (XWINDOW (w->vchild));
   if (!NILP (w->hchild))
     delete_all_subwindows (XWINDOW (w->hchild));
+
+  w->height = w->buffer;       /* See Fset_window_configuration for excuse.  */
+
+  /* We set all three of these fields to nil, to make sure that we can
+     distinguish this dead window from any live window.  Live leaf
+     windows will have buffer set, and combination windows will have
+     vchild or hchild set.  */
+  w->buffer = Qnil;
+  w->vchild = Qnil;
+  w->hchild = Qnil;
 }
 
 static int
@@ -2754,6 +2803,9 @@ syms_of_window ()
   Qwindowp = intern ("windowp");
   staticpro (&Qwindowp);
 
+  Qlive_window_p = intern ("live-window-p");
+  staticpro (&Qlive_window_p);
+
 #ifndef MULTI_FRAME
   /* Make sure all windows get marked */
   staticpro (&minibuf_window);
@@ -2838,6 +2890,7 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Sminibuffer_window);
   defsubr (&Swindow_minibuffer_p);
   defsubr (&Swindowp);
+  defsubr (&Slive_window_p);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
