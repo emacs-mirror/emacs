@@ -1,3 +1,9 @@
+2002-08-29  Juanma Barranquero  <lektu@terra.es>
+
+	* replace.el (occur-mode-hook): New hook.
+	(occur-mode): Use it.
+	(occur-hook): Set default to nil.
+
 2002-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-file): Use \f.
