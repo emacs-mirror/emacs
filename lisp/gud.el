@@ -1849,7 +1849,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	    (setq massaged-args
 		  (append massaged-args
 			  (list "-classpath")
-			  (list 
+			  (list
 			   (setq gud-jdb-classpath-string
 				 (substring
 				  (car args)
@@ -1858,7 +1858,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	    (setq massaged-args
 		  (append massaged-args
 			  (list "-sourcepath")
-			  (list 
+			  (list
 			   (setq gud-jdb-sourcepath
 				 (substring
 				  (car args)
@@ -2750,6 +2750,6 @@ pathname standards using file-truename."
         (tool-bar-add-item-from-menu 'gud-down "gud-down" gud-minor-mode-map)
         tool-bar-map)))
 
-(provide 'mygud)
+(provide 'gud)
 
 ;;; gud.el ends here
