@@ -1,3 +1,11 @@
+2004-11-05  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Don't search in node header lines
+	and file headers.
+
+	* emacs-lisp/edebug.el (edebug-next-token-class): Allow all
+	symbol-constituent characters after dot, not only digits.
+
 2004-11-04  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (set-auto-mode): Don't get error after setting
