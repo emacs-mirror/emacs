@@ -1,3 +1,27 @@
+2000-10-03  Dave Love  <fx@gnu.org>
+
+	* mail-source.el (mail-sources): Revert to nil.
+
+	* qp.el: Don't require mm-util.
+	(quoted-printable-decode-region): Rewritten.
+	(quoted-printable-decode-string, quoted-printable-encode-region):
+	Doc fix.
+	(quoted-printable-encode-region): Barf on multibyte characters.
+	Maybe make the class multibyte.  Upcase chars, not formatted
+	strings.  Allow mm-use-ultra-safe-encoding to be unbound.
+	(quoted-printable-encode-string): Don't use
+	mm-with-unibyte-buffer.
+
+2000-10-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mail-source.el (mail-source-report-new-mail): Use
+	nnheader-cancel-timer.
+
+2000-10-03  Simon Josefsson  <simon@josefsson.org>
+
+	* mail-source.el (mail-source-imap-file-coding-system): New variable.
+	(mail-source-fetch-imap): Use it.
+
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.el (gnus-mode-line-buffer-identification)[EMACS]: Fix
@@ -13,6 +37,11 @@
 	* gnus.el (gnus-mode-line-buffer-identification) [Emacs]: Change
 	image's :ascent to 80.  That gives a mode-line which is approx.
 	as tall as the normal one.
+
+2000-09-21  Dave Love  <fx@gnu.org>
+
+	* smiley-ems.el (smiley-region): Test if display-graphic-p bound
+	(for Emacs 20).  Tidy somewhat.
 
 2000-09-21  Dave Love  <fx@gnu.org>
 
