@@ -195,6 +195,7 @@ static int curs_y;
 
 /* Where the mouse was last time we reported a mouse event.  */
 static FRAME_PTR last_mouse_frame;
+static FRAME_PTR last_mouse_press_frame;
 static XRectangle last_mouse_glyph;
 
 /* The scroll bar in which the last X motion event occurred.
@@ -4046,6 +4047,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && event.xbutton.y < f->output_data.x->menubar_height
 		    && event.xbutton.same_screen)
 		  {
+		    SET_SAVED_BUTTON_EVENT;
+		    last_mouse_press_frame = f;
+		  }
+		else if (event.type == ButtonRelease)
+		  {
+		    if (!f) f = last_mouse_press_frame;
 		    SET_SAVED_BUTTON_EVENT;
 		  }
 		else
