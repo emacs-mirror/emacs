@@ -448,22 +448,26 @@ Boston, MA 02111-1307, USA.  */
   } while (0)
 
 
-#define MAYBE_UNIFY_CHAR(c)				\
-  if (CHAR_TABLE_P (Vchar_unify_table))			\
-    {							\
-      Lisp_Object val;					\
-      int unified;					\
-							\
-      val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
-      if (SYMBOLP (val))				\
-	{						\
-	  Funify_charset (val, Qnil);			\
-	  val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
-	}						\
-      if ((unified = XINT (val)) >= 0)			\
-	c = unified;					\
-    }							\
+#define MAYBE_UNIFY_CHAR(c)					\
+  if (CHAR_TABLE_P (Vchar_unify_table))				\
+    {								\
+      Lisp_Object val;						\
+      int unified;						\
+								\
+      val = CHAR_TABLE_REF (Vchar_unify_table, c);		\
+      if (! NILP (val))						\
+	{							\
+	  if (SYMBOLP (val))					\
+	    {							\
+	      Funify_charset (val, Qnil);			\
+	      val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
+	    }							\
+	  if ((unified = XINT (val)) >= 0)			\
+	    c = unified;					\
+	}							\
+    }								\
   else
+
 
 /* Return the width of ASCII character C.  The width is measured by
    how many columns occupied on the screen when displayed in the
