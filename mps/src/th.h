@@ -1,14 +1,13 @@
-/*  impl.h.th
+/*  impl.h.th: THREAD MANAGER
  *
- *                    THREAD MANAGER
- *
- *  $HopeName: MMsrc!th.h(MMdevel_lib.2) $
- *
+ *  $HopeName: MMsrc!th.h(MMdevel_config_thread.2) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
- *  Provides thread suspension facilities to the shield.
+ * .readership: MM developers.
+ *
+ *  .purpose: Provides thread suspension facilities to the shield.
  *  See design.mps.thread-manager.  Each thread has to be
- *  individually registered and deregistered with a space.
+ *  individually registered and deregistered with an arena.
  */
 
 #ifndef th_h
@@ -22,16 +21,16 @@ extern Res ThreadDescribe(Thread thread, mps_lib_FILE *stream);
 
 /*  == Register/Deregister ==
  *
- *  Explicitly register/deregister a thread on the space threadRing.
+ *  Explicitly register/deregister a thread on the arena threadRing.
  *  Register returns a "Thread" value which needs to be used
  *  for deregistration.
  *
- *  Threads must not be multiply registered in the same space.
+ *  Threads must not be multiply registered in the same arena.
  */
 
-extern Res ThreadRegister(Thread *threadReturn, Space space);
+extern Res ThreadRegister(Thread *threadReturn, Arena arena);
 
-extern void ThreadDeregister(Thread thread, Space space);
+extern void ThreadDeregister(Thread thread, Arena arena);
 
 
 /*  == ThreadRingSuspend/Resume ==
@@ -45,7 +44,7 @@ extern void ThreadRingSuspend(Ring threadRing);
 extern void ThreadRingResume(Ring threadRing);
 
 
-extern Space ThreadSpace(Thread thread);
+extern Arena ThreadArena(Thread thread);
 
 extern Res ThreadScan(ScanState ss, Thread thread, void *stackBot);
 

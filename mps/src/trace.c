@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.34) $
+ * $HopeName: MMsrc!trace.c(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.34) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.35) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -17,15 +17,15 @@ Bool ScanStateCheck(ScanState ss)
   RefSet white;
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
-  CHECKU(Space, ss->space);
+  CHECKU(Arena, ss->arena);
   CHECKL(TraceSetCheck(ss->traces));
-  CHECKL(TraceSetSuper(ss->space->busyTraces, ss->traces));
+  CHECKL(TraceSetSuper(ss->arena->busyTraces, ss->traces));
   white = RefSetEMPTY;
   for(ti = 0; ti < TRACE_MAX; ++ti)
     if(TraceSetIsMember(ss->traces, ti))
-      white = RefSetUnion(white, ss->space->trace[ti].white);
+      white = RefSetUnion(white, ss->arena->trace[ti].white);
   CHECKL(ss->white == white);
-  CHECKL(ss->zoneShift == ss->space->zoneShift);
+  CHECKL(ss->zoneShift == ss->arena->zoneShift);
   CHECKL(RankCheck(ss->rank));
   CHECKL(BoolCheck(ss->wasMarked));
   return TRUE;
@@ -55,10 +55,10 @@ Bool TraceSetCheck(TraceSet ts)
 Bool TraceCheck(Trace trace)
 {
   CHECKS(Trace, trace);
-  CHECKU(Space, trace->space);
+  CHECKU(Arena, trace->arena);
   CHECKL(TraceIdCheck(trace->ti));
-  CHECKL(trace == &trace->space->trace[trace->ti]);
-  CHECKL(TraceSetIsMember(trace->space->busyTraces, trace->ti));
+  CHECKL(trace == &trace->arena->trace[trace->ti]);
+  CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace->ti));
   CHECKL(RankSetCheck(trace->grey));
   /* Can't check trace->white -- not in O(1) anyway. */
   /* Use trace->state to check more invariants. */
@@ -68,22 +68,22 @@ Bool TraceCheck(Trace trace)
     break;
 
     case TraceUNFLIPPED:
-    CHECKL(!TraceSetIsMember(trace->space->flippedTraces, trace->ti));
+    CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that mutator is grey for trace. */
     break;
 
     case TraceFLIPPED:
-    CHECKL(TraceSetIsMember(trace->space->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that mutator is black for trace. */
     break;
 
     case TraceRECLAIM:
-    CHECKL(TraceSetIsMember(trace->space->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that grey set is empty for trace. */
     break;
 
     case TraceFINISHED:
-    CHECKL(TraceSetIsMember(trace->space->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that grey and white sets is empty for trace. */
     break;
 
@@ -110,7 +110,7 @@ static Res TraceStart(Trace trace, Action action)
 {
   Res res;
   Ring ring, node;
-  Space space;
+  Arena arena;
   Seg seg;
   Pool pool;
 
@@ -121,7 +121,7 @@ static Res TraceStart(Trace trace, Action action)
   AVER(trace->white == RefSetEMPTY);
 
   /* Identify the condemned set and turn it white. */
-  space = trace->space;
+  arena = trace->arena;
   pool = action->pool;
 
   EVENT_PPP(TraceStart, trace, pool, action);
@@ -141,7 +141,7 @@ static Res TraceStart(Trace trace, Action action)
     /* Add the segment to the approximation of the white set the */
     /* pool made it white. */
     if(TraceSetIsMember(SegWhite(seg), trace->ti))
-      trace->white = RefSetUnion(trace->white, RefSetOfSeg(space, seg));
+      trace->white = RefSetUnion(trace->white, RefSetOfSeg(arena, seg));
 
     node = next;
   }
@@ -153,7 +153,7 @@ static Res TraceStart(Trace trace, Action action)
   /* @@@@ We can also shortcut if there is nothing grey. */
   /* @@@@ This should be in design. */
   if(trace->white == RefSetEMPTY) {
-    space->flippedTraces = TraceSetAdd(space->flippedTraces, trace->ti);
+    arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
     trace->state = TraceRECLAIM;
     return ResOK;
   }
@@ -166,10 +166,10 @@ static Res TraceStart(Trace trace, Action action)
   /* of segments are scannable.  Perhaps we should choose */
   /* dynamically which method to use. */
 
-  if(SegFirst(&seg, space)) {
+  if(SegFirst(&seg, arena)) {
     Addr base;
     do {
-      base = SegBase(space, seg);
+      base = SegBase(arena, seg);
       /* Segment should be either black or white by now. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
@@ -187,14 +187,14 @@ static Res TraceStart(Trace trace, Action action)
         if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY)
           PoolGrey(SegPool(seg), trace, seg);
       }
-    } while(SegNext(&seg, space, base));
+    } while(SegNext(&seg, arena, base));
   }
 
-  ring = SpaceRootRing(space);
+  ring = ArenaRootRing(arena);
   node = RingNext(ring);
   while(node != ring) {
     Ring next = RingNext(node);
-    Root root = RING_ELT(Root, spaceRing, node);
+    Root root = RING_ELT(Root, arenaRing, node);
 
     if(RefSetInter(root->summary, trace->white) != RefSetEMPTY)
       RootGrey(root, trace);
@@ -230,7 +230,7 @@ failCondemn:
  * Returns ResLIMIT if there aren't any available trace IDs.
  *
  * Trace objects are allocated directly from a small array in the
- * space structure which is indexed by the TraceId.  This is so
+ * arena structure which is indexed by the TraceId.  This is so
  * that it's always possible to start a trace (provided there's
  * a free TraceId) even if there's no available memory.
  *
@@ -238,7 +238,7 @@ failCondemn:
  * objects dynamically.
  */
 
-Res TraceCreate(Trace *traceReturn, Space space, Action action)
+Res TraceCreate(Trace *traceReturn, Arena arena, Action action)
 {
   TraceId ti;
   Trace trace;
@@ -247,22 +247,22 @@ Res TraceCreate(Trace *traceReturn, Space space, Action action)
   AVER(TRACE_MAX == 1);         /* .single-collection */
 
   AVER(traceReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVERT(Action, action);
 
   /* Find a free trace ID */
   for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(!TraceSetIsMember(space->busyTraces, ti))
+    if(!TraceSetIsMember(arena->busyTraces, ti))
       goto found;
 
   return ResLIMIT;              /* no trace IDs available */
 
 found:
-  trace = SpaceTrace(space, ti);
-  AVER(trace->sig == SigInvalid);       /* design.mps.space.trace.invalid */
-  space->busyTraces = TraceSetAdd(space->busyTraces, ti);
+  trace = ArenaTrace(arena, ti);
+  AVER(trace->sig == SigInvalid);       /* design.mps.arena.trace.invalid */
+  arena->busyTraces = TraceSetAdd(arena->busyTraces, ti);
 
-  trace->space = space;
+  trace->arena = arena;
   trace->action = action;
   trace->white = RefSetEMPTY;
   trace->ti = ti;
@@ -283,14 +283,14 @@ found:
   if(res != ResOK) goto failStart;
 
   *traceReturn = trace;
-  EVENT_PPPU(TraceCreate, space, action, trace, ti);
+  EVENT_PPPU(TraceCreate, arena, action, trace, ti);
   return ResOK;
 
 failStart:
   PoolTraceEnd(action->pool, trace, action);
 failBegin:
-  trace->sig = SigInvalid;              /* design.mps.space.trace.invalid */
-  space->busyTraces = TraceSetDel(space->busyTraces, ti);
+  trace->sig = SigInvalid;              /* design.mps.arena.trace.invalid */
+  arena->busyTraces = TraceSetDel(arena->busyTraces, ti);
   return res;
 }
 
@@ -315,11 +315,11 @@ void TraceDestroy(Trace trace)
   
   PoolTraceEnd(trace->action->pool, trace, trace->action);
   
-  trace->sig = SigInvalid;              /* design.mps.space.trace.invalid */
-  trace->space->busyTraces =
-    TraceSetDel(trace->space->busyTraces, trace->ti);
-  trace->space->flippedTraces =
-    TraceSetDel(trace->space->flippedTraces, trace->ti);
+  trace->sig = SigInvalid;              /* design.mps.arena.trace.invalid */
+  trace->arena->busyTraces =
+    TraceSetDel(trace->arena->busyTraces, trace->ti);
+  trace->arena->flippedTraces =
+    TraceSetDel(trace->arena->flippedTraces, trace->ti);
   EVENT_P(TraceDestroy, trace);
 }
 
@@ -332,11 +332,11 @@ void TraceDestroy(Trace trace)
  * @@@@ Why does it seem to be write and a read barrier?
  */
 
-void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
+void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts)
 {
   TraceSet grey;
   
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVERT(Seg, seg);
   AVER(TraceSetCheck(ts));
 
@@ -346,29 +346,29 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
     /* Currently we assume that there is only one trace.  */
     /* This makes it simpler to greyen each trace. */
     AVER(ts == 1); /* @@@@ Hack */
-    SpaceTrace(space, 0)->grey =
-      RankSetUnion(SpaceTrace(space, 0)->grey, SegRankSet(seg));
-    if(TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
-      ShieldRaise(space, seg, AccessREAD);
+    ArenaTrace(arena, 0)->grey =
+      RankSetUnion(ArenaTrace(arena, 0)->grey, SegRankSet(seg));
+    if(TraceSetInter(grey, arena->flippedTraces) != TraceSetEMPTY)
+      ShieldRaise(arena, seg, AccessREAD);
   }
   SegSetGrey(seg, grey);
-  EVENT_PPU(TraceSegGreyen, space, seg, ts);
+  EVENT_PPU(TraceSegGreyen, arena, seg, ts);
 }
 
 
-/* TraceFlipBuffers -- flip all buffers in the space */
+/* TraceFlipBuffers -- flip all buffers in the arena */
 
-static void TraceFlipBuffers(Space space)
+static void TraceFlipBuffers(Arena arena)
 {
   Ring poolRing, poolNode, bufferRing, bufferNode;
   
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   
-  poolRing = SpacePoolRing(space);
+  poolRing = ArenaPoolRing(arena);
   poolNode = RingNext(poolRing);
   while(poolNode != poolRing) {
     Ring poolNext = RingNext(poolNode);
-    Pool pool = RING_ELT(Pool, spaceRing, poolNode);
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
     
     AVERT(Pool, pool);
     
@@ -403,18 +403,18 @@ static void TraceFlipBuffers(Space space)
  * moment, and assume that the mutator's summary is RefSetUNIV.
  */
 
-void TraceSetSummary(Space space, Seg seg, RefSet summary)
+void TraceSetSummary(Arena arena, Seg seg, RefSet summary)
 {
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVERT(Seg, seg);
 
   if(summary == RefSetUNIV) {
     SegSetSummary(seg, summary);             /* NB summary == RefSetUNIV */
     if(SegSM(seg) & AccessWRITE)
-      ShieldLower(space, seg, AccessWRITE);
+      ShieldLower(arena, seg, AccessWRITE);
   } else {
     if(!(SegSM(seg) & AccessWRITE))
-      ShieldRaise(space, seg, AccessWRITE);
+      ShieldRaise(arena, seg, AccessWRITE);
     SegSetSummary(seg, summary);
   }
 }
@@ -426,34 +426,34 @@ static Res TraceFlip(Trace trace)
 {
   Ring ring;
   Ring node;
-  Space space;
+  Arena arena;
   ScanStateStruct ss;
   Res res;
 
   AVERT(Trace, trace);
 
-  space = trace->space;
-  ShieldSuspend(space);
+  arena = trace->arena;
+  ShieldSuspend(arena);
 
   AVER(trace->state == TraceUNFLIPPED);
 
-  EVENT_PP(TraceFlipBegin, trace, space);
+  EVENT_PP(TraceFlipBegin, trace, arena);
 
-  TraceFlipBuffers(space);
+  TraceFlipBuffers(arena);
  
   /* Update location dependency structures.  white is */
   /* a conservative approximation of the refset of refs which */
   /* may move during this collection. */
   /* @@@@ It is too conservative.  Not everything white will */
   /* necessarily move. */
-  LDAge(space, trace->white);
+  LDAge(arena, trace->white);
 
   /* The trace is marked as flipped here, apparently prematurely, */
   /* so that TraceSegGreyen will DTRT when things are scanned below. */
   /* @@@@ This isn't right.  When flippedTraces is changed _all_ */
   /* grey segments should have their shield modes fixed up anyway. */
   trace->state = TraceFLIPPED;
-  space->flippedTraces = TraceSetAdd(space->flippedTraces, trace->ti);
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
 
   /* At the moment we must scan all roots, because we don't have */
   /* a mechanism for shielding them.  There can't be any weak or */
@@ -464,23 +464,23 @@ static Res TraceFlip(Trace trace)
   /* data in pools. */
 
   ss.fix = TraceFix;
-  ss.zoneShift = SpaceZoneShift(space);
+  ss.zoneShift = ArenaZoneShift(arena);
   ss.white = trace->white;
   ss.summary = RefSetEMPTY;
-  ss.space = space;
+  ss.arena = arena;
   ss.traces = TraceSetSingle(trace->ti);
   ss.wasMarked = TRUE;
   ss.sig = ScanStateSig;
 
   for(ss.rank = RankAMBIG; ss.rank <= RankEXACT; ++ss.rank) {
-    ring = SpaceRootRing(space);
+    ring = ArenaRootRing(arena);
     node = RingNext(ring);
 
     AVERT(ScanState, &ss);
 
     while(node != ring) {
       Ring next = RingNext(node);
-      Root root = RING_ELT(Root, spaceRing, node);
+      Root root = RING_ELT(Root, arenaRing, node);
 
       AVER(RootRank(root) <= RankEXACT); /* see above */
 
@@ -497,9 +497,9 @@ static Res TraceFlip(Trace trace)
 
   ss.sig = SigInvalid;  /* just in case */
 
-  EVENT_PP(TraceFlipEnd, trace, space);
+  EVENT_PP(TraceFlipEnd, trace, arena);
 
-  ShieldResume(space);
+  ShieldResume(arena);
 
   return ResOK;
 }
@@ -507,7 +507,7 @@ static Res TraceFlip(Trace trace)
 
 static void TraceReclaim(Trace trace)
 {
-  Space space;
+  Arena arena;
   Seg seg;
 
   AVERT(Trace, trace);
@@ -515,11 +515,11 @@ static void TraceReclaim(Trace trace)
 
 
   EVENT_P(TraceReclaim, trace);
-  space = trace->space;
-  if(SegFirst(&seg, space)) {
+  arena = trace->arena;
+  if(SegFirst(&seg, arena)) {
     Addr base;
     do {
-      base = SegBase(space, seg);
+      base = SegBase(arena, seg);
 
       /* There shouldn't be any grey stuff left for this trace. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
@@ -530,10 +530,10 @@ static void TraceReclaim(Trace trace)
         PoolReclaim(SegPool(seg), trace, seg);
 
         /* If the segment still exists, it should no longer be white. */
-        AVER(!(SegOfAddr(&seg, space, base) &&
+        AVER(!(SegOfAddr(&seg, arena, base) &&
                TraceSetIsMember(SegWhite(seg), trace->ti)));
       }
-    } while(SegNext(&seg, space, base));
+    } while(SegNext(&seg, arena, base));
   }
 
   trace->state = TraceFINISHED;
@@ -554,31 +554,31 @@ static void TraceReclaim(Trace trace)
  */
 
 static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
-                     Space space, TraceId ti)
+                     Arena arena, TraceId ti)
 {
   Rank rank;
   Trace trace;
   Seg seg;
 
   AVER(segReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(TraceIdCheck(ti));
 
-  trace = SpaceTrace(space, ti);
+  trace = ArenaTrace(arena, ti);
   
   for(rank = 0; rank < RankMAX; ++rank) {
     if(RankSetIsMember(trace->grey, rank)) {
-      if(SegFirst(&seg, space)) {
+      if(SegFirst(&seg, arena)) {
 	Addr base;
 	do {
-	  base = SegBase(space, seg);
+	  base = SegBase(arena, seg);
 	  if(RankSetIsMember(SegRankSet(seg), rank) &&
 	     TraceSetIsMember(SegGrey(seg), ti)) {
 	    *segReturn = seg;
 	    *rankReturn = rank;
 	    return TRUE;
 	  }
-	} while(SegNext(&seg, space, base));
+	} while(SegNext(&seg, arena, base));
       }
       trace->grey = RankSetDel(trace->grey, rank);
     }
@@ -599,7 +599,7 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
  */
 
 static Res TraceScan(TraceSet ts, Rank rank,
-                     Space space, Seg seg)
+                     Arena arena, Seg seg)
 {
   Res res;
   ScanStateStruct ss;
@@ -611,29 +611,29 @@ static Res TraceScan(TraceSet ts, Rank rank,
   
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
-  EVENT_UUPPP(TraceScan, ts, rank, space, seg, &ss);
+  EVENT_UUPPP(TraceScan, ts, rank, arena, seg, &ss);
 
   ss.rank = rank;
   ss.traces = ts;
   ss.fix = TraceFix;
-  ss.zoneShift = space->zoneShift;
+  ss.zoneShift = arena->zoneShift;
   ss.summary = RefSetEMPTY;
   ss.fixed = RefSetEMPTY;
-  ss.space = space;
+  ss.arena = arena;
   ss.wasMarked = TRUE;
   ss.white = RefSetEMPTY;
   for(ti = 0; ti < TRACE_MAX; ++ti)
     if(TraceSetIsMember(ss.traces, ti))
-      ss.white = RefSetUnion(ss.white, SpaceTrace(space, ti)->white);
+      ss.white = RefSetUnion(ss.white, ArenaTrace(arena, ti)->white);
   ss.sig = ScanStateSig;
   AVERT(ScanState, &ss);
 
   /* Expose the segment to make sure we can scan it. */
-  ShieldExpose(space, seg);
+  ShieldExpose(arena, seg);
 
   res = PoolScan(&ss, SegPool(seg), seg);
   if(res != ResOK) {
-    ShieldCover(space, seg);
+    ShieldCover(arena, seg);
     return res;
   }
 
@@ -657,7 +657,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   /* .fix.fixed.all */
 
   AVER(RefSetSub(ss.summary, SegSummary(seg)));
-  TraceSetSummary(space, seg,
+  TraceSetSummary(arena, seg,
                   TraceSetUnion(ss.fixed,
                                 TraceSetDiff(ss.summary, ss.white)));
 
@@ -668,49 +668,49 @@ static Res TraceScan(TraceSet ts, Rank rank,
 
   /* If the segment is no longer grey for any flipped trace it */
   /* doesn't need to be behind the read barrier. */  
-  if(TraceSetInter(SegGrey(seg), space->flippedTraces) == TraceSetEMPTY)
-    ShieldLower(space, seg, AccessREAD);
+  if(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY)
+    ShieldLower(arena, seg, AccessREAD);
 
   /* Cover the segment again, now it's been scanned. */
-  ShieldCover(space, seg);
+  ShieldCover(arena, seg);
 
   return res;
 }
 
 
-void TraceAccess(Space space, Seg seg, AccessSet mode)
+void TraceAccess(Arena arena, Seg seg, AccessSet mode)
 {
   Res res;
 
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVERT(Seg, seg);
   UNUSED(mode);
 
-  EVENT_PPU(TraceAccess, space, seg, mode);
+  EVENT_PPU(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
     /* In this case, the segment must be grey for a trace which is */
     /* flipped. */
-    AVER(TraceSetInter(SegGrey(seg), space->flippedTraces) != TraceSetEMPTY);
+    AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
 
     /* scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
     /* minimum rank of all grey segments. */
     /* design.mps.poolamc.access.multi @@@@ tag correct?? */
-    res = TraceScan(space->busyTraces,  /* @@@@ Should just be flipped traces? */
+    res = TraceScan(arena->busyTraces,  /* @@@@ Should just be flipped traces? */
                     RankEXACT,
-                    space, seg);
+                    arena, seg);
     AVER(res == ResOK);                 /* design.mps.poolamc.access.error */
 
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
     /* can go ahead and access it. */
-    AVER(TraceSetInter(SegGrey(seg), space->flippedTraces) == TraceSetEMPTY);
+    AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY);
   }
 
   if((mode & SegSM(seg) & AccessWRITE) != 0) {    /* write barrier? */
     AVER(SegSummary(seg) != RefSetUNIV);
-    TraceSetSummary(space, seg, RefSetUNIV);
+    TraceSetSummary(arena, seg, RefSetUNIV);
   }
 
   AVER((mode & SegSM(seg)) == AccessSetEMPTY);
@@ -720,19 +720,19 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
 static Res TraceRun(Trace trace)
 {
   Res res;
-  Space space;
+  Arena arena;
   Seg seg;
   Rank rank;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceFLIPPED);
 
-  space = trace->space;
+  arena = trace->arena;
 
-  if(FindGrey(&seg, &rank, space, trace->ti)) {
+  if(FindGrey(&seg, &rank, arena, trace->ti)) {
     AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
     res = TraceScan(TraceSetSingle(trace->ti), rank,
-                    space, seg);
+                    arena, seg);
     if(res != ResOK) return res;
   } else
     trace->state = TraceRECLAIM;
@@ -748,14 +748,14 @@ static Res TraceRun(Trace trace)
 
 Res TracePoll(Trace trace)
 {
-  Space space;
+  Arena arena;
   Res res;
 
   AVERT(Trace, trace);
 
-  space = trace->space;
+  arena = trace->arena;
 
-  EVENT_PP(TracePoll, trace, space);
+  EVENT_PP(TracePoll, trace, arena);
 
   switch(trace->state) {
     case TraceUNFLIPPED: {
@@ -797,9 +797,9 @@ Res TracePoll(Trace trace)
  * is currently very deep.
  */
 
-Size TraceGreyEstimate(Space space, RefSet refSet)
+Size TraceGreyEstimate(Arena arena, RefSet refSet)
 {
-  return ArenaCommitted(space);
+  return ArenaCommitted(arena);
 }
 
 
@@ -815,7 +815,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
   ref = *refIO;
 
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
-  if(SegOfAddr(&seg, ss->space, ref)) {
+  if(SegOfAddr(&seg, ss->arena, ref)) {
     EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
       Res res;
@@ -837,7 +837,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
   /* accuracy of ss->fixed would vary according to the "width" of the white */
   /* summary). */
 
-  ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
+  ss->fixed = RefSetAdd(ss->arena, ss->fixed, *refIO);
 
   return ResOK;
 }

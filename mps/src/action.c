@@ -1,13 +1,13 @@
 /* impl.c.action: STRATEGIC ACTION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!action.c(trunk.2) $
+ * $HopeName: MMsrc!action.c(trunk.3) $
  */
 
 #include "mpm.h"
 #include <float.h>	/* @@@@ for DBL_MAX */
 
-SRCID(action, "$HopeName: MMsrc!action.c(trunk.2) $");
+SRCID(action, "$HopeName: MMsrc!action.c(trunk.3) $");
 
 
 /* ActionCheck -- check consistency of an Action structure */
@@ -62,11 +62,11 @@ static Res ActionCollect(Action action)
 {
   Trace trace;
   Res res;
-  Space space;
+  Arena arena;
 
-  space = PoolSpace(action->pool);
+  arena = PoolArena(action->pool);
 
-  res = TraceCreate(&trace, space, action);
+  res = TraceCreate(&trace, arena, action);
   if(res != ResOK) return res;
 
   return ResOK;
@@ -80,19 +80,19 @@ static Res ActionCollect(Action action)
  * and takes those which are worthwhile.
  */
 
-void ActionPoll(Space space)
+void ActionPoll(Arena arena)
 {
   Ring poolNode;
   double bestBenefit;
   Action bestAction;
   
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   
   bestBenefit = -DBL_MAX;
   bestAction = NULL;
 
-  RING_FOR(poolNode, &space->poolRing) {
-    Pool pool = RING_ELT(Pool, spaceRing, poolNode);
+  RING_FOR(poolNode, &arena->poolRing) {
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
     Ring actionNode;
 
     RING_FOR(actionNode, &pool->actionRing) {

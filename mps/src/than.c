@@ -1,9 +1,6 @@
-/*  impl.c.than
+/*  impl.c.than: ANSI THREADS MANAGER
  *
- *                  ANSI THREADS MANAGER
- *
- *  $HopeName: MMsrc!than.c(trunk.14) $
- *
+ *  $HopeName: MMsrc!than.c(MMdevel_config_thread.2) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  This is a single-threaded implementation of the threads manager.
@@ -17,20 +14,20 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.14) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.15) $");
 
 
 Bool ThreadCheck(Thread thread)
 {
   CHECKS(Thread, thread);
-  CHECKU(Space, thread->space);
-  CHECKL(thread->serial < thread->space->threadSerial);
-  CHECKL(RingCheck(&thread->spaceRing));
+  CHECKU(Arena, thread->arena);
+  CHECKL(thread->serial < thread->arena->threadSerial);
+  CHECKL(RingCheck(&thread->arenaRing));
   return TRUE;
 }
 
 
-Res ThreadRegister(Thread *threadReturn, Space space)
+Res ThreadRegister(Thread *threadReturn, Arena arena)
 {
   Res res;
   Thread thread;
@@ -39,40 +36,40 @@ Res ThreadRegister(Thread *threadReturn, Space space)
 
   AVER(threadReturn != NULL);
 
-  res = SpaceAlloc(&p, space, sizeof(ThreadStruct));
+  res = ArenaAlloc(&p, arena, sizeof(ThreadStruct));
   if(res != ResOK) return res;
   thread = (Thread)p;
 
-  thread->space = space;
-  RingInit(&thread->spaceRing);
+  thread->arena = arena;
+  RingInit(&thread->arenaRing);
 
   thread->sig = ThreadSig;
-  thread->serial = space->threadSerial;
-  ++space->threadSerial;
+  thread->serial = arena->threadSerial;
+  ++arena->threadSerial;
 
   AVERT(Thread, thread);
 
-  ring = SpaceThreadRing(space);
+  ring = ArenaThreadRing(arena);
   AVER(RingCheckSingle(ring));  /* .single */
 
-  RingAppend(ring, &thread->spaceRing);
+  RingAppend(ring, &thread->arenaRing);
 
   *threadReturn = thread;
   return ResOK;
 }
 
-void ThreadDeregister(Thread thread, Space space)
+void ThreadDeregister(Thread thread, Arena arena)
 {
   AVERT(Thread, thread);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
 
-  RingRemove(&thread->spaceRing);
+  RingRemove(&thread->arenaRing);
 
   thread->sig = SigInvalid;
 
-  RingFinish(&thread->spaceRing);
+  RingFinish(&thread->arenaRing);
 
-  SpaceFree(space, (Addr)thread, sizeof(ThreadStruct));
+  ArenaFree(arena, (Addr)thread, sizeof(ThreadStruct));
 }
 
 void ThreadRingSuspend(Ring threadRing)
@@ -88,11 +85,11 @@ void ThreadRingResume(Ring threadRing)
 }
 
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
-Space ThreadSpace(Thread thread)
+Arena ThreadArena(Thread thread)
 {
   /* Can't AVER thread as that would not be thread-safe */
   /* AVERT(Thread, thread); */
-  return thread->space;
+  return thread->arena;
 }
 
 Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
@@ -106,8 +103,8 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
   
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  space $P ($U)\n",  
-               (WriteFP)thread->space, (WriteFU)thread->space->serial,
+               "  arena $P ($U)\n",  
+               (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
   if(res != ResOK) return res;
