@@ -338,6 +338,9 @@ install-arch-indep: mkdir
 		 rm -f  $${subdir}/.\#* ; \
 		 rm -f  $${subdir}/*~ ; \
 		 rm -f  $${subdir}/*.orig ; \
+		 rm -f  $${subdir}/[mM]akefile* ; \
+		 rm -f  $${subdir}/ChangeLog* ; \
+		 rm -f  $${subdir}/dired.todo ; \
 	       done) ; \
 	 done
 	-rm -f ${lispdir}/subdirs.el
@@ -352,8 +355,10 @@ install-arch-indep: mkdir
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
 	  (cd ${infodir};  \
-	   if [ -f dir ] && [ ! -f dir.old ]; then mv -f dir dir.old; \
-	   else mv -f dir dir.bak; fi; \
+	   if [ -f dir ]; then
+	     if [ ! -f dir.old ]; then mv -f dir dir.old; \
+	     else mv -f dir dir.bak; fi; \
+	   fi; \
 	   cd ${srcdir}/info ; \
 	   (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   for f in cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*; do \
