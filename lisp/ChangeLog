@@ -1,3 +1,12 @@
+2003-05-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/smtpmail.el (smtpmail-send-queued-mail): Use point-at-bol
+	instead of forward-line.
+
+2003-05-10  Oliver Scholz  <alkibiades@gmx.de>
+
+	* startup.el (fancy-splash-default-action): Fix docstring.
+
 2003-05-09  Sam Steingold  <sds@gnu.org>
 
 	* pcvs.el (cvs-mode-find-file): Fixed the last patch's logic.
