@@ -1,3 +1,7 @@
+2003-07-26  Markus Rost  <rost@math.ohio-state.edu>
+
+	* vc-hooks.el (vc-file-not-found-hook): Doc fix.
+
 2003-07-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-default-registered, vc-make-version-backup): 
