@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.3) $
+ * $HopeName: MMsrc!finalcv.c(trunk.4) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -28,17 +28,30 @@
  * is no MPS interface to finalization.  For the moment this test uses
  * PoolMRG directly.  Later it will use the MPS interface to
  * finalization.
+ *
+ * .hack.order.1: poolmrg.h must be included before ossu.h.  The reason
+ * for this is that they both attempt to define offsetof (poolmrg.h
+ * indirectly via the MPM file misc.h).  The definition in misc.h falls
+ * over if offsetof is already defined whereas the one in ossu.h simply
+ * does not define offsetof if it is already defined.
+ *
+ * .hack.order.2: poolmrg.h must be included before mps.h.  This is
+ * to prevent a parse error in mpmtypes.h (in the declaration of TRUE
+ * and FALSE).  This happens because windows.h (#included in mps.h)
+ * defines TRUE and FALSE as macros.
  */
+
+/* .hack.order.1, .hack.order.2 */
+#include "poolmrg.h" /* .hack.no-interface */
 
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "fmtdy.h"
+
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
-
-#include "poolmrg.h" /* .hack.no-interface */
 
 #include <assert.h>
 #include <stdlib.h>
