@@ -211,7 +211,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* Add the value to the appropriate history list.  */
   if (XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
-      && XSYMBOL (Vminibuffer_history_variable)->value != Qunbound)
+      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
     Fset (Vminibuffer_history_variable,
 	  Fcons (val, Fsymbol_value (Vminibuffer_history_variable)));
 
@@ -899,7 +899,7 @@ temp_echo_area_glyphs (m)
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
-      unread_command_char = Ctl ('g');
+      XFASTINT (unread_command_char) = Ctl ('g');
     }
   Vinhibit_quit = oinhibit;
 }
