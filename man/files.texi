@@ -244,7 +244,7 @@ For information on how to customize this, see @xref{Dialog Boxes}.
 window system.  Dropping a file into an ordinary Emacs window visits
 the file using that window.  However, dropping a file into a window
 displaying a Dired buffer moves or copies the file into the displayed
-directory.  For details, see @xref{Drag and Drop} and @xref{Misc Dired
+directory.  For details, see @ref{Drag and Drop}, @ref{Misc Dired
 Features}.
 
 @cindex creating files
