@@ -281,7 +281,8 @@ how to display a message and prevent it from being logged:
 
 @defvar echo-keystrokes
 This variable determines how much time should elapse before command
-characters echo.  Its value must be an integer, which specifies the
+characters echo.  Its value must be an integer or floating point number,
+which specifies the
 number of seconds to wait before echoing.  If the user types a prefix
 key (such as @kbd{C-x}) and then delays this many seconds before
 continuing, the prefix key is echoed in the echo area.  (Once echoing
