@@ -6,3 +6,7 @@
 
 #undef SYSTEM_MALLOC
 #endif
+
+/* murray@chemical-eng.edinburgh.ac.uk says this works, and avoids
+   the problem of spurious ^M in subprocess output.  */
+#define HAVE_TERMIOS
