@@ -338,17 +338,17 @@ Interactively, ARG is the prefix arg (default 1)
 and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
   (when (eq backward-delete-char-untabify-method 'untabify)
-  (let ((count arg))
-    (save-excursion
-      (while (and (> count 0) (not (bobp)))
-	(if (= (preceding-char) ?\t)
-	    (let ((col (current-column)))
-	      (forward-char -1)
-	      (setq col (- col (current-column)))
-	      (insert-char ?\ col)
-	      (delete-char 1)))
-	(forward-char -1)
-        (setq count (1- count))))))
+    (let ((count arg))
+      (save-excursion
+	(while (and (> count 0) (not (bobp)))
+	  (if (= (preceding-char) ?\t)
+	      (let ((col (current-column)))
+		(forward-char -1)
+		(setq col (- col (current-column)))
+		(insert-char ?\ col)
+		(delete-char 1)))
+	  (forward-char -1)
+	  (setq count (1- count))))))
   (delete-backward-char
    (if (eq backward-delete-char-untabify-method 'hungry)
        (let ((wh (- (point) (save-excursion (skip-chars-backward " \t")
@@ -2683,9 +2683,11 @@ indicating whether it should use soft newlines.
 
 Setting this variable automatically makes it local to the current buffer.")
 
-;; This function is the auto-fill-function of a buffer
+;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
 ;; It returns t if it really did any work.
+;; (Actually some major modes use a different auto-fill function,
+;; but this one is the default one.)
 (defun do-auto-fill ()
   (let (fc justify bol give-up
 	   (fill-prefix fill-prefix))
@@ -2725,11 +2727,11 @@ Setting this variable automatically makes it local to the current buffer.")
 			 (looking-at (regexp-quote fill-prefix))
 			 (setq after-prefix (match-end 0)))
 		    (move-to-column (1+ fc))
-		    ;; Move back to the point where we can break the
-		    ;; line at.  We break the line between word or
+		    ;; Move back to the point where we can break the line.
+		    ;; We break the line between word or
 		    ;; after/before the character which has character
 		    ;; category `|'.  We search space, \c| followed by
-		    ;; a character, or \c| follwoing a character.  If
+		    ;; a character, or \c| following a character.  If
 		    ;; not found, place the point at beginning of line.
 		    (while (or first
 			       ;; If this is after period and a single space,
@@ -2741,7 +2743,11 @@ Setting this variable automatically makes it local to the current buffer.")
 				    sentence-end-double-space
 				    (save-excursion (forward-char -1)
 						    (and (looking-at "\\. ")
-							 (not (looking-at "\\.  "))))))
+							 (not (looking-at "\\.  ")))))
+			       (and (not (bobp))
+				    (not bounce)
+				    fill-nobreak-predicate
+				    (funcall fill-nobreak-predicate)))
 		      (setq first nil)
 		      (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
 		      ;; If we find nowhere on the line to break it,
