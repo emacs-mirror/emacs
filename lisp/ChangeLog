@@ -1,3 +1,19 @@
+2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-mode.el (ada-mode): Avoid unneeded version checks.
+	Don't change compile-auto-highlight globally.
+	Don't bother with `font-lock-defaults' property since XEmacs
+	also understands the `font-lock-defaults' variable.
+	Use make-local-variable rather than make-variable-buffer-local.
+	Don't `defconst' comment-indent-function: keep the default.
+	Call easy-menu-add unconditionally.
+	(ada-create-keymap): Use [(shift tab)] so it works on both Emacsen.
+	(ada-create-menu): Use :included for Emacs as well.
+
+	* vc.el (vc-do-command): Autoload.
+
+	* progmodes/ada-xref.el (ada-xref-initialize): Fix call to add-hook.
+
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* ps-print.el: Fix Author: header.
@@ -100,8 +116,8 @@
 
 	* play/5x5.el, play/decipher.el, play/dunnet.el, play/fortune.el,
 	* play/gamegrid.el, play/handwrite.el, play/landmark.el,
-	* play/morse.el, play/pong.el, play/snake.el, play/tetris.el: Some
-	fixes to follow coding conventions.
+	* play/morse.el, play/pong.el, play/snake.el, play/tetris.el:
+	Some fixes to follow coding conventions.
 
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
@@ -189,9 +205,8 @@
 	* term/vt102.el, term/vt125.el, term/vt200.el, term/vt201.el,
 	* term/vt220.el, term/vt240.el, term/vt300.el, term/vt320.el,
 	* term/vt400.el, term/vt420.el, x-apollo.el, x-menu.el: Some fixes
-	to follow coding conventions in files without maintainer or in
-	files with clear maintainer (but without Maintainer header stating
-	so).
+	to follow coding conventions in files without maintainer or in files
+	with clear maintainer (but without Maintainer header stating so).
 
 	* emacs-lisp/elp.el: A fix to follow coding conventions.
 
@@ -352,8 +367,7 @@
 
 	* net/ange-ftp.el (ange-ftp-file-modtime): Check a 213 response
 	from the server for the format we expect.  Don't use it if it
-	doesn't look like what the Internet draft for FTP extensions
-	specifies.
+	doesn't look like what the Internet draft for FTP extensions specifies.
 
 	* toolbar/*.pbm: Cleaned up.
 	From Luis Fernandes <elf@ee.ryerson.ca>.
