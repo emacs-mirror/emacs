@@ -524,8 +524,15 @@ w32_clear_window (f)
   RECT rect;
   HDC hdc = get_frame_dc (f);
 
-  GetClientRect (FRAME_W32_WINDOW (f), &rect);
-  w32_clear_rect (f, hdc, &rect);
+  /* Under certain conditions, this can be called at startup with
+     a console frame pointer before the GUI frame is created. An HDC
+     of 0 indicates this. */
+  if (hdc)
+    {
+      GetClientRect (FRAME_W32_WINDOW (f), &rect);
+      w32_clear_rect (f, hdc, &rect);
+    }
+
   release_frame_dc (f, hdc);
 }
 
@@ -640,7 +647,7 @@ x_draw_vertical_border (w)
       r.bottom -= 1;
 
       hdc = get_frame_dc (f);
-      w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), r);
+      w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), &r);
       release_frame_dc (f, hdc);
     }
 }
