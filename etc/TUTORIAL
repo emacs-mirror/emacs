@@ -14,7 +14,8 @@ write that in full each time, we'll use the following abbreviations:
 Important note: to end the Emacs session, type C-x C-c.  (Two characters.)
 The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
-<<Blank lines inserted here by startup of help-with-tutorial>>
+<<Blank lines inserted around following line by help-with-tutorial>>
+[Middle of page left blank for didactic purposes.   Text continues below]
 >>  Now type C-v (View next screen) to move to the next screen.
 	(go ahead, do it by holding down the CONTROL key while typing v).
 	From now on, you should do this again whenever you finish
