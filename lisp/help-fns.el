@@ -237,7 +237,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defface help-argument-name '((t (:weight bold)))
+(defface help-argument-name '((t (:slant italic)))
   "Face to highlight function arguments in docstrings.")
 
 (defun help-do-arg-highlight (doc args)
@@ -273,9 +273,9 @@ KIND should be `var' for a variable or `subr' for a subroutine."
         ;; Highlight aguments in the USAGE string
         (setq usage (help-do-arg-highlight (buffer-string) args))
         ;; Highlight arguments in the DOC string
-        (setq doc (and doc (help-do-arg-highlight doc args)))))
-    ;; Return value is like the one from help-split-fundoc, but highlighted
-    (cons usage doc)))
+        (setq doc (and doc (help-do-arg-highlight doc args))))))
+  ;; Return value is like the one from help-split-fundoc, but highlighted
+  (cons usage doc))
 
 ;;;###autoload
 (defun describe-function-1 (function)
