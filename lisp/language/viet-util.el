@@ -36,6 +36,12 @@
 ;;; Code:
 
 ;;;###autoload
+(defun viet-encode-viscii-char (char)
+  "Return VISCII character code of CHAR if appropriate."
+  (aref (char-table-extra-slot viet-viscii-nonascii-translation-table 0)
+	char))
+
+;;;###autoload
 (defun setup-vietnamese-environment ()
   "Setup multilingual environment (MULE) for Vietnamese VISCII users."
   (interactive)
