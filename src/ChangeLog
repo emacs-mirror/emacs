@@ -1,3 +1,18 @@
+2000-09-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (GC_CHECK_STRING_BYTES): Temporarily define, for bug
+	hunting.
+	(struct sdata) [GC_CHECK_STRING_BYTES]: Always record the string's
+	size in the sdata structure.
+	(SDATA_NBYTES, SDATA_DATA): New macros.
+	(SDATA_OF_STRING, SDATA_SIZE) [GC_CHECK_STRING_BYTES]: Define
+	differently for the different layout of the sdata structure.
+	(allocate_string_data) [GC_CHECK_STRING_BYTES]: Record string size
+	in sdata.
+	(sweep_strings, compact_small_strings) [GC_CHECK_STRING_BYTES]:
+	Check that size recorded in the string size and size recorded in
+	the sdata structure agree.
+
 2000-09-25  Dave Love  <fx@gnu.org>
 
 	* buffer.c: Include stdio.h.
