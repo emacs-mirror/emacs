@@ -2767,7 +2767,7 @@ window_scroll (window, n, whole, noerror)
 {
   register struct window *w = XWINDOW (window);
   register int opoint = PT;
-  register int opoint_byte = PT;
+  register int opoint_byte = PT_BYTE;
   register int pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
