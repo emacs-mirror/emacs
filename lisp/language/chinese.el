@@ -34,8 +34,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system
- 'chinese-iso-7bit 2 ?C
+ 'iso-2022-cn 2 ?C
  "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN)"
+ '(ascii
+   (nil chinese-gb2312 chinese-cns11643-1)
+   (nil chinese-cns11643-2)
+   nil
+   nil ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
+   init-bol)
+ '((safe-charsets ascii chinese-gb2312 chinese-cns11643-1 chinese-cns11643-2)
+   (mime-charset . iso-2022-cn)))
+
+(define-coding-system-alias 'chinese-iso-7bit 'iso-2022-cn)
+
+(make-coding-system
+ 'iso-2022-cn-ext 2 ?C
+ "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN-EXT)"
  '(ascii
    (nil chinese-gb2312 chinese-cns11643-1)
    (nil chinese-cns11643-2)
@@ -43,22 +57,11 @@
 	chinese-cns11643-6 chinese-cns11643-7)
    nil ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
    init-bol)
- '(ascii chinese-gb2312 chinese-cns11643-1 chinese-cns11643-2
-	 chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
-	 chinese-cns11643-6 chinese-cns11643-7))
+ '((safe-charsets ascii chinese-gb2312 chinese-cns11643-1 chinese-cns11643-2
+		  chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
+		  chinese-cns11643-6 chinese-cns11643-7)
+   (mime-charset . iso-2022-cn-ext)))
 
-(define-coding-system-alias 'iso-2022-cn 'chinese-iso-7bit)
-(define-coding-system-alias 'iso-2022-cn-ext 'chinese-iso-7bit)
-
-(define-prefix-command 'describe-chinese-environment-map)
-(define-key-after describe-language-environment-map [Chinese]
-  '("Chinese" . describe-chinese-environment-map)
-  t)
-
-(define-prefix-command 'setup-chinese-environment-map)
-(define-key-after setup-language-environment-map [Chinese]
-  '("Chinese" . setup-chinese-environment-map)
-  t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Chinese GB2312 (simplified) 
@@ -67,9 +70,10 @@
 (make-coding-system
  'chinese-iso-8bit 2 ?c
  "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB-2312)"
- '((ascii t) chinese-gb2312 chinese-sisheng nil
-   nil ascii-eol ascii-cntl nil nil single-shift nil)
- '(ascii chinese-gb2312 chinese-sisheng))
+ '(ascii chinese-gb2312 nil nil
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '((safe-charsets ascii chinese-gb2312)
+   (mime-charset . cn-gb-2312)))
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
@@ -79,9 +83,10 @@
  'chinese-hz 0 ?z
  "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)"
  nil
- '(ascii chinese-gb2312))
-(coding-system-put 'chinese-hz 'post-read-conversion 'post-read-decode-hz)
-(coding-system-put 'chinese-hz 'pre-write-conversion 'pre-write-encode-hz)
+ '((safe-charsets ascii chinese-gb2312)
+   (mime-charset . hz-gb-2312)
+   (post-read-conversion . post-read-decode-hz)
+   (pre-write-conversion . pre-write-encode-hz)))
 
 (define-coding-system-alias 'hz-gb-2312 'chinese-hz)
 (define-coding-system-alias 'hz 'chinese-hz)
@@ -107,15 +112,13 @@
     nil))
 
 (set-language-info-alist
- "Chinese-GB" '((setup-function . (setup-chinese-gb-environment
-				   . setup-chinese-environment-map))
-		(charset . (chinese-gb2312 chinese-sisheng))
-		(coding-system
-		 . (chinese-iso-8bit chinese-iso-7bit chinese-hz))
+ "Chinese-GB" '((setup-function . setup-chinese-gb-environment)
+		(charset chinese-gb2312 chinese-sisheng)
+		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
+		(coding-priority chinese-iso-8bit chinese-big5 iso-2022-cn)
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
-		(documentation . ("Support for Chinese GB2312 character set."
-				  . describe-chinese-environment-map))
-		))
+		(documentation . "Support for Chinese GB2312 character set."))
+ '("Chinese"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese BIG5 (traditional)
@@ -123,7 +126,9 @@
 
 (make-coding-system
  'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)"
- nil '(chinese-big5-1 chinese-big5-2))
+ nil
+ '((safe-charsets ascii chinese-big5-1 chinese-big5-2)
+   (mime-charset . cn-big5)))
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
@@ -147,29 +152,27 @@
       (cons (cons "big5" ccl-encode-big5-font) font-ccl-encoder-alist))
 
 (set-language-info-alist
- "Chinese-BIG5" '((setup-function . (setup-chinese-big5-environment
-				     . setup-chinese-environment-map))
-		  (charset . (chinese-big5-1 chinese-big5-2))
-		  (coding-system . (chinese-big5 chinese-iso-7bit))
+ "Chinese-BIG5" '((setup-function . setup-chinese-big5-environment)
+		  (charset chinese-big5-1 chinese-big5-2)
+		  (coding-system chinese-big5 chinese-iso-7bit)
+		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
-		  (documentation . ("Support for Chinese Big5 character set."
-				    . describe-chinese-environment-map))
-		  ))
+		  (documentation . "Support for Chinese Big5 character set."))
+ '("Chinese"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese CNS11643 (traditional)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set-language-info-alist
- "Chinese-CNS" '((setup-function . (setup-chinese-cns-environment
-				    . setup-chinese-environment-map))
-		 (charset . (chinese-cns11643-1 chinese-cns11643-2
-			     chinese-cns11643-3 chinese-cns11643-4
-			     chinese-cns11643-5 chinese-cns11643-6
-			     chinese-cns11643-7))
-		 (coding-system . (chinese-iso-7bit))
-		 (documentation . ("Support for Chinese CNS character sets."
-				   . describe-chinese-environment-map))
-		 ))
+ "Chinese-CNS" '((setup-function . setup-chinese-cns-environment)
+		 (charset chinese-cns11643-1 chinese-cns11643-2
+			  chinese-cns11643-3 chinese-cns11643-4
+			  chinese-cns11643-5 chinese-cns11643-6
+			  chinese-cns11643-7)
+		 (coding-system iso-2022-cn)
+		 (coding-priority iso-2022-cn chinese-big5 chinese-iso-8bit)
+		 (documentation . "Support for Chinese CNS character sets."))
+ '("Chinese"))
 
 ;;; chinese.el ends here
