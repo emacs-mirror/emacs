@@ -1,3 +1,8 @@
+2003-01-07  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-checkout): Fix the check whether we are on a
+	branch.
+
 2003-01-06  Dave Love  <fx@gnu.org>
 
 	* textmodes/ispell.el (lookup-words): Cope with null lookup-dict.
