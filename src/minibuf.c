@@ -133,8 +133,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Lisp_Object mini_frame;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-#ifdef MULTI_PERDISPLAY
-  display_locked = 1;
+#ifdef MULTI_KBOARD
+  kboard_locked = 1;
 #endif
 
   val = Qnil;
