@@ -1053,13 +1053,13 @@ CCL-PROGRAM on exit.")
       if (ccl.ic < i && i < ccl.size)
 	ccl.ic = i;
     }
-  outbufsize = XSTRING (str)->size * ccl.buf_magnification + 256;
+  outbufsize = XSTRING (str)->size_byte * ccl.buf_magnification + 256;
   outbuf = (char *) xmalloc (outbufsize);
   if (!outbuf)
     error ("Not enough memory");
   ccl.last_block = NILP (contin);
   produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
-			 XSTRING (str)->size, outbufsize, (int *)0);
+			 XSTRING (str)->size_byte, outbufsize, (int *)0);
   for (i = 0; i < 8; i++)
     XSET (XVECTOR (status)->contents[i], Lisp_Int, ccl.reg[i]);
   XSETINT (XVECTOR (status)->contents[8], ccl.ic);
