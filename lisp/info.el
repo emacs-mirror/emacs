@@ -2622,7 +2622,7 @@ the variable `Info-file-list-for-emacs'."
 	    (let ((n 0))
 	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\):" nil t)
 		(setq n (1+ n))
-		(if (memq n '(5 9))	; visual aids to help with 1-9 keys
+		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
 		    (put-text-property (match-beginning 0)
 				       (1+ (match-beginning 0))
 				       'face 'info-menu-5))
