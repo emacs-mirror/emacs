@@ -149,7 +149,7 @@ The following interactive lisp functions help control operation :
 			  (beginning-of-line)
 			  (forward-char 2)
 			  (gud-call "until *%a" arg)))
-	   "\C-u" "Continue up to current line or address.")
+	   "\C-u" "Continue to current line or address.")
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -754,8 +754,7 @@ output from the current command if that happens to be appropriate."
 	(progn
 	  (setq char "*")
 	  (setq gdb-temp-value (substring gdb-temp-value 1 nil))))
-    (save-excursion
-      (set-buffer gdb-expression-buffer-name)
+    (with-current-buffer gdb-expression-buffer-name
       (setq gdb-expression gdb-temp-value)
       (if (not (string-match "::" gdb-expression))
 	  (setq gdb-expression (concat char gdb-current-frame
@@ -768,8 +767,7 @@ output from the current command if that happens to be appropriate."
   ;;-if scalar/string
   (if (not (re-search-forward "##" nil t))
       (progn
-	(save-excursion
-	  (set-buffer gdb-expression-buffer-name)
+	(with-current-buffer gdb-expression-buffer-name
 	  (let ((buffer-read-only nil))
 	    (delete-region (point-min) (point-max))
 	    (insert-buffer-substring
@@ -778,8 +776,7 @@ output from the current command if that happens to be appropriate."
     (goto-char (point-min))
     (let ((start (progn (point)))
 	  (end (progn (end-of-line) (point))))
-      (save-excursion
-	(set-buffer gdb-expression-buffer-name)
+      (with-current-buffer gdb-expression-buffer-name
 	(setq buffer-read-only nil)
 	(delete-region (point-min) (point-max))
 	(insert-buffer-substring (gdb-get-buffer
@@ -798,8 +795,7 @@ output from the current command if that happens to be appropriate."
 	(progn
 	  (setq gdb-annotation-arg (match-string 1))
 	  (gdb-field-format-begin))))
-  (save-excursion
-    (set-buffer gdb-expression-buffer-name)
+  (with-current-buffer gdb-expression-buffer-name
     (if gdb-dive-display-number
 	(progn
 	  (let ((buffer-read-only nil))
@@ -830,32 +826,28 @@ output from the current command if that happens to be appropriate."
 (defun gdb-array-section-begin (args)
   (if gdb-display-in-progress
       (progn
-	(save-excursion
-	  (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
+	(with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
 	  (goto-char (point-max))
 	  (insert (concat "\n##array-section-begin " args "\n"))))))
 
 (defun gdb-array-section-end (ignored)
   (if gdb-display-in-progress
       (progn
-	(save-excursion
-	  (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
+	(with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
 	  (goto-char (point-max))
 	  (insert "\n##array-section-end\n")))))
 
 (defun gdb-field-begin (args)
   (if gdb-display-in-progress
       (progn
-	(save-excursion
-	  (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
+	(with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
 	  (goto-char (point-max))
 	  (insert (concat "\n##field-begin " args "\n"))))))
 
 (defun gdb-field-end (ignored)
   (if gdb-display-in-progress
       (progn
-	(save-excursion
-	  (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
+	(with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
 	  (goto-char (point-max))
 	  (insert "\n##field-end\n")))))
 
@@ -934,8 +926,7 @@ output from the current command if that happens to be appropriate."
   (let ((start (progn (point)))
 	(end (progn (next-line) (point)))
 	(num 0))
-    (save-excursion
-      (set-buffer gdb-expression-buffer-name)
+    (with-current-buffer gdb-expression-buffer-name
       (let ((buffer-read-only nil))
 	(if (string-equal gdb-annotation-arg "\*") (insert "\*"))
 	(while (<= num gdb-nesting-level)
@@ -966,8 +957,7 @@ output from the current command if that happens to be appropriate."
 	(if (eq gdb-nesting-level 0)
 	    (progn
 	      (let ((values (buffer-substring gdb-point (- (point) 2))))
-		(save-excursion
-		  (set-buffer gdb-expression-buffer-name)
+		(with-current-buffer gdb-expression-buffer-name
 		  (setq gdb-values
 			(concat "{" (replace-regexp-in-string "\n" "" values)
 				"}"))
@@ -1149,22 +1139,16 @@ output from the current command if that happens to be appropriate."
      (t (error "Bogon output sink %S" sink)))))
 
 (defun gdb-append-to-partial-output (string)
-  (save-excursion
-    (set-buffer
-     (gdb-get-create-buffer 'gdb-partial-output-buffer))
+  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-max))
     (insert string)))
 
 (defun gdb-clear-partial-output ()
-  (save-excursion
-    (set-buffer
-     (gdb-get-create-buffer 'gdb-partial-output-buffer))
+  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (delete-region (point-min) (point-max))))
 
 (defun gdb-append-to-inferior-io (string)
-  (save-excursion
-    (set-buffer
-     (gdb-get-create-buffer 'gdb-inferior-io))
+  (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
     (goto-char (point-max))
     (insert-before-markers string))
   (if (not (string-equal string ""))
@@ -1172,9 +1156,7 @@ output from the current command if that happens to be appropriate."
 	(gdb-display-buffer (gdb-get-create-buffer 'gdb-inferior-io)))))
 
 (defun gdb-clear-inferior-io ()
-  (save-excursion
-    (set-buffer
-     (gdb-get-create-buffer 'gdb-inferior-io))
+  (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
     (delete-region (point-min) (point-max))))
 
 
@@ -1222,8 +1204,7 @@ output from the current command if that happens to be appropriate."
 	    (gdb-get-pending-triggers)))
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
-	    (save-excursion
-	      (set-buffer buf)
+	    (with-current-buffer buf
 	      (let ((p (point))
 		    (buffer-read-only nil))
 		(delete-region (point-min) (point-max))
@@ -1344,15 +1325,13 @@ static char *magick[] = {
     ;;
     ;; remove all breakpoint-icons in source buffers but not assembler buffer
     (dolist (buffer (buffer-list))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(if (and (eq gud-minor-mode 'gdba)
 		 (not (string-match "^\*" (buffer-name))))
 	    (if (display-graphic-p)
 		(remove-images (point-min) (point-max))
-	      (remove-strings (point-min) (point-max))))))
-    (save-excursion
-      (set-buffer (gdb-get-buffer 'gdb-breakpoints-buffer))
+	      (gdb-remove-strings (point-min) (point-max))))))
+    (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
@@ -1370,11 +1349,10 @@ static char *magick[] = {
 			(put-text-property (progn (beginning-of-line) (point))
 					   (progn (end-of-line) (point))
 					   'mouse-face 'highlight)
-			(save-excursion
-			  (set-buffer
-			   (find-file-noselect
-			    (if (file-exists-p file) file
-			      (expand-file-name file gdb-cdir))))
+			(with-current-buffer
+			    (find-file-noselect
+			     (if (file-exists-p file) file
+			       (expand-file-name file gdb-cdir)))
 			  (save-current-buffer
 			    (set (make-local-variable 'gud-minor-mode) 'gdba)
 			    (set (make-local-variable 'tool-bar-map)
@@ -1402,12 +1380,10 @@ static char *magick[] = {
 				      (put-image breakpoint-disabled-icon (point)
 						 "breakpoint icon disabled"
 						 'left-margin)))
-				(remove-strings start end)
+				(gdb-remove-strings start end)
 				(if (eq ?y flag)
-				    (put-string "B" (point) "enabled"
-						'left-margin)
-				  (put-string "b" (point) "disabled"
-					      'left-margin)))))))))))
+				    (put-string "B" (point))
+				  (put-string "b" (point))))))))))))
 	  (end-of-line))))))
 
 (defun gdb-breakpoints-buffer-name ()
@@ -1518,8 +1494,7 @@ current line."
   gdb-info-frames-custom)
 
 (defun gdb-info-frames-custom ()
-  (save-excursion
-    (set-buffer (gdb-get-buffer 'gdb-stack-buffer))
+  (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
     (save-excursion
       (let ((buffer-read-only nil))
 	(goto-char (point-min))
@@ -1605,8 +1580,7 @@ the source buffer."
   gdb-info-threads-custom)
 
 (defun gdb-info-threads-custom ()
-  (save-excursion
-    (set-buffer (gdb-get-buffer 'gdb-threads-buffer))
+  (with-current-buffer (gdb-get-buffer 'gdb-threads-buffer)
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (while (< (point) (point-max))
@@ -1730,8 +1704,7 @@ the source buffer."
   (gdb-set-pending-triggers (delq 'gdb-invalidate-locals
 				  (gdb-get-pending-triggers)))
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (goto-char (point-min))
       (while (re-search-forward "^ .*\n" nil t)
 	(replace-match "" nil nil))
@@ -1742,8 +1715,7 @@ the source buffer."
       (while (re-search-forward "{.*=.*\n" nil t)
 	(replace-match "(structure);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-    (and buf (save-excursion
-	       (set-buffer buf)
+    (and buf (with-current-buffer buf
 	       (let ((p (point))
 		     (buffer-read-only nil))
 		 (delete-region (point-min) (point-max))
@@ -1800,8 +1772,7 @@ the source buffer."
 
 (defun gdb-info-display-custom ()
   (let ((display-list nil))
-    (save-excursion
-      (set-buffer (gdb-get-buffer 'gdb-display-buffer))
+    (with-current-buffer (gdb-get-buffer 'gdb-display-buffer)
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
@@ -1887,9 +1858,7 @@ the source buffer."
 (defun gdb-delete-display ()
   "Delete the displayed expression at current line."
   (interactive)
-  (save-excursion
-    (set-buffer
-     (gdb-get-buffer 'gdb-display-buffer))
+  (with-current-buffer (gdb-get-buffer 'gdb-display-buffer)
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
@@ -2084,7 +2053,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 		  (kill-buffer nil)
 		(if (display-graphic-p)
 		    (remove-images (point-min) (point-max))
-		  (remove-strings (point-min) (point-max)))
+		  (gdb-remove-strings (point-min) (point-max)))
 		(setq left-margin-width 0)
 		(setq gud-minor-mode nil)
 		(kill-local-variable 'tool-bar-map)
@@ -2122,63 +2091,51 @@ buffers."
       (other-window 1))))
 
 ;;from put-image
-(defun put-string (putstring pos &optional string area)
+(defun gdb-put-string (putstring pos)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is
-PUTSTRING.  STRING is defaulted if you omit it.
-POS may be an integer or marker.
-AREA is where to display the string.  AREA nil or omitted means
-display it in the text area, a value of `left-margin' means
-display it in the left marginal area, a value of `right-margin'
-means display it in the right marginal area."
-  (unless string (setq string "x"))
+PUTSTRING."
+  (setq string "x")
   (let ((buffer (current-buffer)))
-    (unless (or (null area) (memq area '(left-margin right-margin)))
-      (error "Invalid area %s" area))
     (setq string (copy-sequence string))
     (let ((overlay (make-overlay pos pos buffer))
-	  (prop (if (null area) putstring (list (list 'margin area) putstring))))
+	  (prop (list (list 'margin 'left-margin) putstring)))
       (put-text-property 0 (length string) 'display prop string)
-      (overlay-put overlay 'put-text t)
+      (overlay-put overlay 'put-break t)
       (overlay-put overlay 'before-string string))))
 
 ;;from remove-images
-(defun remove-strings (start end &optional buffer)
+(defun gdb-remove-strings (start end &optional buffer)
   "Remove strings between START and END in BUFFER.
-Remove only images that were put in BUFFER with calls to `put-string'.
+Remove only strings that were put in BUFFER with calls to `put-string'.
 BUFFER nil or omitted means use the current buffer."
   (unless buffer
     (setq buffer (current-buffer)))
   (let ((overlays (overlays-in start end)))
     (while overlays
       (let ((overlay (car overlays)))
-	(when (overlay-get overlay 'put-text)
+	(when (overlay-get overlay 'put-break)
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
 
-(defun put-arrow (putstring pos &optional string area)
-  "Put arrow string PUTSTRING in front of POS in the current buffer.
-PUTSTRING is displayed by putting an overlay into the current buffer with a
-`before-string' \"gdb-arrow\" that has a `display' property whose value is
-PUTSTRING. STRING is defaulted if you omit it.
-POS may be an integer or marker.
-AREA is where to display the string.  AREA nil or omitted means
-display it in the text area, a value of `left-margin' means
-display it in the left marginal area, a value of `right-margin'
-means display it in the right marginal area."
+(defun gdb-put-arrow (putstring pos)
+  "Put arrow string PUTSTRING in the left margin in front of POS
+in the current buffer.  PUTSTRING is displayed by putting an
+overlay into the current buffer with a `before-string'
+\"gdb-arrow\" that has a `display' property whose value is
+PUTSTRING. STRING is defaulted if you omit it.  POS may be an
+integer or marker."
   (setq string "gdb-arrow")
   (let ((buffer (current-buffer)))
-    (unless (or (null area) (memq area '(left-margin right-margin)))
-      (error "Invalid area %s" area))
     (setq string (copy-sequence string))
     (let ((overlay (make-overlay pos pos buffer))
-	  (prop (if (null area) putstring (list (list 'margin area) putstring))))
+	  (prop (list (list 'margin 'left-margin) putstring)))
       (put-text-property 0 (length string) 'display prop string)
-      (overlay-put overlay 'put-text t)
+      (overlay-put overlay 'put-arrow t)
       (overlay-put overlay 'before-string string))))
 
-(defun remove-arrow (&optional buffer)
+(defun gdb-remove-arrow (&optional buffer)
   "Remove arrow in BUFFER.
 Remove only images that were put in BUFFER with calls to `put-arrow'.
 BUFFER nil or omitted means use the current buffer."
@@ -2187,7 +2144,7 @@ BUFFER nil or omitted means use the current buffer."
   (let ((overlays (overlays-in (point-min) (point-max))))
     (while overlays
       (let ((overlay (car overlays)))
-	(when (string-equal (overlay-get overlay 'before-string) "gdb-arrow")
+	(when (overlay-get overlay 'put-arrow)
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
 
@@ -2240,21 +2197,20 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
 	(address) (flag))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (if (not (equal gdb-current-address "main"))
 	  (progn
-	    (remove-arrow)
-	    (goto-char (point-min))
-	    (if (re-search-forward gdb-current-address nil t)
-		(progn
-		  (put-arrow "=>" (point) nil 'left-margin)
-		  (set-window-point gdb-source-window (point))))))
-      ;; remove all breakpoint-icons in assembler buffer  before updating.
+	    (gdb-remove-arrow)
+	    (save-selected-window
+	      (select-window gdb-source-window)
+	      (goto-char (point-min))
+	      (if (re-search-forward gdb-current-address nil t)
+		  (gdb-put-arrow "=>" (point))))))
+      ;; remove all breakpoint-icons in assembler buffer before updating.
       (save-excursion
 	(if (display-graphic-p)
 	    (remove-images (point-min) (point-max))
-	  (remove-strings (point-min) (point-max))))
+	  (gdb-remove-strings (point-min) (point-max))))
       (set-buffer (gdb-get-buffer 'gdb-breakpoints-buffer))
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
@@ -2269,8 +2225,7 @@ BUFFER nil or omitted means use the current buffer."
 		(if (string-match "0x0+\\(.*\\)" number)
 		    (setq address (concat "0x" (match-string 1 address)))
 		  (setq address number)))
-	      (save-excursion
-		(set-buffer buffer)
+	      (with-current-buffer buffer
 		(save-excursion
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
@@ -2286,11 +2241,10 @@ BUFFER nil or omitted means use the current buffer."
 				(put-image breakpoint-disabled-icon (point)
 					   "breakpoint icon disabled"
 					   'left-margin)))
-			  (remove-strings start end)
+			  (gdb-remove-strings start end)
 			  (if (eq ?y flag)
-			      (put-string "B" (point) "enabled" 'left-margin)
-			    (put-string "b" (point) "disabled"
-					'left-margin)))))))))))))
+			      (put-string "B" (point))
+			    (put-string "b" (point))))))))))))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2332,8 +2286,7 @@ BUFFER nil or omitted means use the current buffer."
 	       (not (string-equal gdb-current-address gdb-previous-address))))
       (progn
 	;; take previous disassemble command off the queue
-	(save-excursion
-	  (set-buffer gud-comint-buffer)
+	(with-current-buffer gud-comint-buffer
 	  (let ((queue (gdb-get-idle-input-queue)) (item))
 	    (dolist (item queue)
 	      (if (equal (cdr item) '(gdb-assembler-handler))
@@ -2359,8 +2312,7 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-frame-handler ()
   (gdb-set-pending-triggers
    (delq 'gdb-get-current-frame (gdb-get-pending-triggers)))
-  (save-excursion
-    (set-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer))
+  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\) in \\(\\S-*\\)")
 	(progn
