@@ -2013,7 +2013,7 @@ syms_of_keymap ()
    pointed to by a C variable */
 
   global_map = Fcons (Qkeymap,
-		      Fcons (Fmake_vector (make_number (0400), Qnil)));
+		      Fcons (Fmake_vector (make_number (0400), Qnil), Qnil));
   Fset (intern ("global-map"), global_map);
 
   meta_map = Fmake_keymap (Qnil);
