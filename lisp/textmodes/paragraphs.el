@@ -114,7 +114,32 @@ text indented by a margin setting."
   :group 'paragraphs
   :type 'regexp)
 
-(defcustom sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
+(defcustom sentence-end-double-space t
+  "*Non-nil means a single space does not end a sentence.
+This is relevant for filling.  See also `sentence-end-without-period'
+and `colon-double-space'.
+
+If you change this, you should also change `sentence-end'.  See Info
+node `Sentences'."
+  :type 'boolean
+  :group 'fill)
+
+(defcustom sentence-end-without-period nil
+  "*Non-nil means a sentence will end without a period.
+For example, a sentence in Thai text ends with double space but
+without a period."
+  :type 'boolean
+  :group 'fill)
+
+(defcustom sentence-end
+  (purecopy
+   ;; This is a bit stupid since it's not auto-updated when the
+   ;; other variables are changes, but it's still useful info.
+   (concat (if sentence-end-without-period "\\w  \\|")
+	   "[.?!][]\"')}]*"
+	   (if sentence-end-double-space
+	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+	   "[ \t\n]*"))
   "*Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.
 All paragraph boundaries also end sentences, regardless.
@@ -161,33 +186,33 @@ to which the end of the previous line belongs, or the end of the buffer."
 	 ;; starting at the left-margin.  This allows paragraph commands to
 	 ;; work normally with indented text.
 	 ;; This hack will not find problem cases like "whatever\\|^something".
-	 (paragraph-start (if (and (not (equal "" paragraph-start))
-				   (equal ?^ (aref paragraph-start 0)))
-			      (substring paragraph-start 1)
-			    paragraph-start))
-	 (paragraph-separate (if (and (not (equal "" paragraph-separate))
-				      (equal ?^ (aref paragraph-separate 0)))
-				 (substring paragraph-separate 1)
-			    paragraph-separate))
-	 (paragraph-separate
+	 (parstart (if (and (not (equal "" paragraph-start))
+			    (equal ?^ (aref paragraph-start 0)))
+		       (substring paragraph-start 1)
+		     paragraph-start))
+	 (parsep (if (and (not (equal "" paragraph-separate))
+			  (equal ?^ (aref paragraph-separate 0)))
+		     (substring paragraph-separate 1)
+		   paragraph-separate))
+	 (parsep
 	  (if fill-prefix-regexp
-	      (concat paragraph-separate "\\|"
+	      (concat parsep "\\|"
 		      fill-prefix-regexp "[ \t]*$")
-	    paragraph-separate))
+	    parsep))
 	 ;; This is used for searching.
-	 (sp-paragraph-start (concat "^[ \t]*\\(" paragraph-start "\\)"))
+	 (sp-parstart (concat "^[ \t]*\\(?:" parstart "\\|" parsep "\\)"))
 	 start found-start)
     (while (and (< arg 0) (not (bobp)))
-      (if (and (not (looking-at paragraph-separate))
+      (if (and (not (looking-at parsep))
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
-	       (looking-at paragraph-separate))
+	       (looking-at parsep))
 	  nil
 	(setq start (point))
 	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
 	(while (and (not (bobp))
 		    (progn (move-to-left-margin)
-			   (looking-at paragraph-separate)))
+			   (looking-at parsep)))
 	  (forward-line -1))
 	(if (bobp)
 	    nil
@@ -195,38 +220,36 @@ to which the end of the previous line belongs, or the end of the buffer."
 	  (end-of-line)
 	  ;; Search back for line that starts or separates paragraphs.
 	  (if (if fill-prefix-regexp
-		  ;; There is a fill prefix; it overrides paragraph-start.
+		  ;; There is a fill prefix; it overrides parstart.
 		  (let (multiple-lines)
 		    (while (and (progn (beginning-of-line) (not (bobp)))
 				(progn (move-to-left-margin)
-				       (not (looking-at paragraph-separate)))
+				       (not (looking-at parsep)))
 				(looking-at fill-prefix-regexp))
 		      (unless (= (point) start)
 			(setq multiple-lines t))
 		      (forward-line -1))
 		    (move-to-left-margin)
-;;; This deleted code caused a long hanging-indent line
-;;; not to be filled together with the following lines.
-;;;		    ;; Don't move back over a line before the paragraph
-;;;		    ;; which doesn't start with fill-prefix
-;;;		    ;; unless that is the only line we've moved over.
-;;;		    (and (not (looking-at fill-prefix-regexp))
-;;;			 multiple-lines
-;;;			 (forward-line 1))
+		    ;; This deleted code caused a long hanging-indent line
+		    ;; not to be filled together with the following lines.
+		    ;; ;; Don't move back over a line before the paragraph
+		    ;; ;; which doesn't start with fill-prefix
+		    ;; ;; unless that is the only line we've moved over.
+		    ;; (and (not (looking-at fill-prefix-regexp))
+		    ;;      multiple-lines
+		    ;;      (forward-line 1))
 		    (not (bobp)))
-		(while (and (re-search-backward sp-paragraph-start nil 1)
+		(while (and (re-search-backward sp-parstart nil 1)
 			    (setq found-start t)
 			    ;; Found a candidate, but need to check if it is a
-			    ;; REAL paragraph-start.
+			    ;; REAL parstart.
 			    (progn (setq start (point))
 				   (move-to-left-margin)
-				   (not (looking-at paragraph-separate)))
-			    (not (and (looking-at paragraph-start)
-				      (not
-				       (and use-hard-newlines
-					    (not (bobp))
-					    (not (get-text-property (1- start)
-								    'hard)))))))
+				   (not (looking-at parsep)))
+			    (not (and (looking-at parstart)
+				      (or (not use-hard-newlines)
+					  (get-text-property (1- start) 'hard)
+					  (bobp)))))
 		  (setq found-start nil)
 		  (goto-char start))
 		found-start)
@@ -237,7 +260,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 		;; because we know we moved back over a non-separator.
 		(while (and (not (eobp))
 			    (progn (move-to-left-margin)
-				   (looking-at paragraph-separate)))
+				   (looking-at parsep)))
 		  (forward-line 1))
 		;; If line before paragraph is just margin, back up to there.
 		(end-of-line 0)
@@ -249,26 +272,27 @@ to which the end of the previous line belongs, or the end of the buffer."
 	    ;; No starter or separator line => use buffer beg.
 	    (goto-char (point-min)))))
       (setq arg (1+ arg)))
+
     (while (and (> arg 0) (not (eobp)))
       ;; Move forward over separator lines, and one more line.
       (while (prog1 (and (not (eobp))
 			 (progn (move-to-left-margin) (not (eobp)))
-			 (looking-at paragraph-separate))
+			 (looking-at parsep))
 	       (forward-line 1)))
       (if fill-prefix-regexp
-	  ;; There is a fill prefix; it overrides paragraph-start.
+	  ;; There is a fill prefix; it overrides parstart.
 	  (while (and (not (eobp))
 		      (progn (move-to-left-margin) (not (eobp)))
-		      (not (looking-at paragraph-separate))
+		      (not (looking-at parsep))
 		      (looking-at fill-prefix-regexp))
 	    (forward-line 1))
-	(while (and (re-search-forward sp-paragraph-start nil 1)
+	(while (and (re-search-forward sp-parstart nil 1)
 		    (progn (setq start (match-beginning 0))
 			   (goto-char start)
 			   (not (eobp)))
 		    (progn (move-to-left-margin)
-			   (not (looking-at paragraph-separate)))
-		    (or (not (looking-at paragraph-start))
+			   (not (looking-at parsep)))
+		    (or (not (looking-at parstart))
 			(and use-hard-newlines
 			     (not (get-text-property (1- start) 'hard)))))
 	  (forward-char 1))
