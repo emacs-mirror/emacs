@@ -20,6 +20,11 @@
 	* textmodes/flyspell.el (flyspell-mode-map): Don't bind mouse-2.
 	It's bound via text-properties already.
 
+2002-04-17  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (locale-preferred-coding-systems):
+	Add "jpn".
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term.el (term-emulate-terminal): Fix last change.
