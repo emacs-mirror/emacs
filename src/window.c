@@ -1874,6 +1874,9 @@ BUFFER can be a buffer or buffer name.")
 
   if (EQ (window, selected_window))
     XBUFFER (w->buffer)->last_selected_window = window;
+  if (INTEGERP (XBUFFER (buffer)->display_count))
+    XSETINT (XBUFFER (buffer)->display_count,
+	     XBUFFER (buffer)->display_count + 1);
 
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
