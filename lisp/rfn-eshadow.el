@@ -180,13 +180,9 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; This is not really a correct implementation; it won't always do the
   ;; right thing in the presence of environment variables that
   ;; substitute-in-file-name would expand; currently it just assumes any
-  ;; environment variable contains an absolute filename.  It doesn't
-  ;; handle MS-DOS-type drive specs like substitute-in-file-name does.
+  ;; environment variable contains an absolute filename.
   (save-excursion
-    ;; Note that this should use `minibuffer-prompt-end' instead of
-    ;; `field-end', but for now we use the latter so that it works
-    ;; properly with old definitions of minibuffer-prompt-end.
-    (goto-char (field-end (point-min)))
+    (goto-char (minibuffer-prompt-end))
     ;; Update the overlay (which will evaporate if it's empty).
     (move-overlay rfn-eshadow-overlay
 		  (point)
