@@ -127,6 +127,12 @@ Commands:
   (setq view-no-disable-on-exit t)
   (run-hooks 'help-mode-hook))
 
+(defun help-mode-maybe ()
+  (if (eq major-mode 'fundamental-mode)
+      (help-mode)))
+
+(add-hook 'temp-buffer-show-hook 'help-mode-maybe)
+
 (defun help-quit ()
   (interactive)
   nil)
@@ -289,9 +295,6 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		  (progn (terpri)
 			 (princ doc))
 		(princ "not documented")))
-	    (save-excursion
-	      (set-buffer standard-output)
-	      (help-mode))
 	    (print-help-return-message)))))))
 
 (defun describe-mode ()
@@ -334,9 +337,6 @@ followed by the major mode, which is described on the last page.\n\f\n"))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
-    (save-excursion
-      (set-buffer standard-output)
-      (help-mode))
     (print-help-return-message)))
 
 ;; So keyboard macro definitions are documented correctly
@@ -416,8 +416,7 @@ of the key sequence that ran this command."
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
-	(insert "\n"))
-      (help-mode))
+	(insert "\n")))
     (print-help-return-message)))
 
 (defalias 'help 'help-for-help)
@@ -583,7 +582,6 @@ C-w Display information on absence of warranty for GNU Emacs."
 	(print-help-return-message)
 	(save-excursion
 	  (set-buffer standard-output)
-	  (help-mode)
 	  ;; Return the text we displayed.
 	  (buffer-string)))
     (message "You didn't specify a function")))
@@ -661,7 +659,6 @@ Returns the documentation as a string, also."
 	  (print-help-return-message)
 	  (save-excursion
 	    (set-buffer standard-output)
-	    (help-mode)
 	    ;; Return the text we displayed.
 	    (buffer-string))))
     (message "You did not specify a variable")))
