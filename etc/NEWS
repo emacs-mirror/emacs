@@ -83,6 +83,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** The max size of buffers and integers has been doubled.
+On 32bit machines, it is now 256M (i.e. 268435455).
+
 ** Under XFree86 4, the display table is modified so that `' is
 displayed as balanced quotes, not the ASCII glyphs whose shape has
 been changed generally in the XFree86 fonts.

@@ -588,7 +588,8 @@ The solution is to remove this line from `etc/fstab'.
 * Emacs binary is not in executable format, and cannot be run.
 
 This was reported to happen when Emacs is built in a directory mounted
-via NFS.  Usually, the file `emacs' produced in these cases is full of
+via NFS, for some combinations of NFS client and NFS server.
+Usually, the file `emacs' produced in these cases is full of
 binary null characters, and the `file' utility says:
 
     emacs: ASCII text, with no line terminators
