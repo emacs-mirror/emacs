@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
-;; Maintainer: David Bakhash <cadet@alum.mit.edu>
+;; Maintainer: FSF
 ;; Keywords: lisp, mouse, extensions
 
 ;; This file is part of GNU Emacs.
