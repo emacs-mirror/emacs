@@ -1,3 +1,8 @@
+2004-01-05  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): might as well allow
+	/ and *, too.
+
 2003-12-31  Simon Josefsson  <jas@extundo.com>
 
 	* files.el (before-save-hook): Add.

@@ -48,7 +48,7 @@ A value of nil means to search whole buffer."
 (defcustom copyright-regexp
  "\\([Å©é©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *[Å©é©]\\)\
-\\s *\\([1-9]\\([-0-9, ';%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+\\s *\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
