@@ -195,7 +195,7 @@ SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefil
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-all:	src/paths.h ${SUBDIR}
+all:	src/paths.h ${SUBDIR} blessmail
 
 removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 
@@ -221,9 +221,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC.src.paths.h
 
 src:	lib-src FRC.src
 
-# Depend on src so that src gets done first
-# and emacs is available for running blessmail.
-lib-src: FRC.lib-src src/paths.h src
+lib-src: FRC.lib-src src/paths.h
 
 .RECURSIVE: ${SUBDIR}
 
@@ -231,6 +229,9 @@ ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
+
+blessmail: ${SUBDIR_MAKEFILES} FRC
+	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) MAKE='${MAKE}'
 
 Makefile: Makefile.in config.status
 	./config.status
