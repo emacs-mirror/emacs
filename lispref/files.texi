@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/files
@@ -408,6 +408,13 @@ major modes, as buffer-local bindings for this variable.
 
 This variable automatically becomes buffer-local whenever it is set;
 switching to a new major mode always resets this variable.
+@end defvar
+
+@defvar before-save-hook
+This normal hook runs before a buffer has been saved in its visited
+file.  One use of this hook is for the Copyright package; it uses this
+hook to make sure the file has the current year in the copyright
+header.
 @end defvar
 
 @c Emacs 19 feature

@@ -1,3 +1,8 @@
+2004-01-01  Simon Josefsson  <jas@extundo.com>
+
+	* hooks.texi (Standard Hooks): Add before-save-hook.
+	* files.texi (Saving Buffers): Likewise.
+
 2004-01-03  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Frames and Windows): Delete frame-root-window.
