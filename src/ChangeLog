@@ -1,4 +1,17 @@
+2002-11-18  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (struct face): Add `overstrike' field.
+	* xterm.c (x_draw_glyph_string_foreground) 
+	(x_draw_composite_glyph_string_foreground): Implement overstriking.
+	* xfaces.c (load_face_font): Set `face->overstrike' based on
+	result from choose_face_font.
+	(best_matching_font, choose_face_font): Add `needs_overstrike'
+	argument, and use it to return whether overstriking is desirable
+	for this face/font combo.
+	(set_font_frame_param: Pass new argument to choose_face_font.
+
 2002-11-17  Ben Key <BKey1@tampabay.rr.com>
+
 	* w32.c: Added wrapper functions around the win32 API functions
 	OpenProcessToken, GetTokenInformation, LookupAccountSid, and
 	GetSidIdentifierAuthority.  These wrapper functions serve two
@@ -65,7 +78,6 @@
 	* s/ms-w32.h: Defined the symbol HAVE_SOUND so that the newly
 	added support for play-sound-internal under Windows would be
 	included in the build of Emacs.
-
 	
 2002-11-16  Jason Rumney  <jasonr@gnu.org>
 
