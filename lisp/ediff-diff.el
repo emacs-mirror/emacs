@@ -491,10 +491,6 @@ one optional arguments, diff-number to refine.")
 	 (vconcat diff-overlay-list))
     ))
 
-(defsubst ediff-message-if-verbose (string &rest args)
-  (if ediff-verbose-p
-      (apply 'message string args)))
-	 
 ;; `n' is the diff region to work on.  Default is ediff-current-difference.
 ;; if `flag' is 'noforce then make fine-diffs only if this region's fine
 ;; diffs have not been computed before.

@@ -50,7 +50,14 @@ skiped over. Nil means show all regions.")
 	  (nth 1 ediff-combination-pattern) "\n"
 	  (ediff-get-region-contents n 'B ediff-control-buffer)
 	  (nth 2 ediff-combination-pattern) "\n"))
-    
+
+(defsubst ediff-make-combined-diff (regA regB)
+  (concat (nth 0 ediff-combination-pattern) "\n"
+	  regA
+	  (nth 1 ediff-combination-pattern) "\n"
+	  regB
+	  (nth 2 ediff-combination-pattern) "\n"))
+
 (defsubst ediff-set-state-of-all-diffs-in-all-buffers (ctl-buf)
   (let ((n 0))
     (while (< n ediff-number-of-differences)
@@ -216,13 +223,6 @@ Combining is done using the list in variable `ediff-combination-pattern'."
     (ediff-copy-diff n nil 'C batch-invocation reg-combined))
     (or batch-invocation (ediff-recenter)))
     
-(defsubst ediff-make-combined-diff (regA regB)
-  (concat (nth 0 ediff-combination-pattern) "\n"
-	  regA
-	  (nth 1 ediff-combination-pattern) "\n"
-	  regB
-	  (nth 2 ediff-combination-pattern) "\n"))
-
 
 ;; Checks if the region in buff C looks like a combination of the regions
 ;; in buffers A and B. Returns a list (reg-a-beg reg-a-end reg-b-beg reg-b-end)

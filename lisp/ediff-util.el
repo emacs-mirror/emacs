@@ -61,14 +61,6 @@ Commands:
   (setq mode-name "Ediff")
   (run-hooks 'ediff-mode-hook))
 
-(defun ediff-version ()
-  "Return string describing the version of Ediff.
-When called interactively, displays the version."
-  (interactive)
-  (if (interactive-p)
-      (message (ediff-version))
-    (format "Ediff %s of %s" ediff-version ediff-date)))
-    
     
 (require 'ediff-diff)
 (require 'ediff-merg)

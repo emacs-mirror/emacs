@@ -74,8 +74,8 @@
 ;; which may be in the same or different directories. Or, one may want to
 ;; compare all files of the form {something} to files of the form {something}~.
 ;;
-;; Implementing this require writing an collating function, which would pair up
-;; appropriate files. It will also require a generalization of the functions
+;; Implementing this requires writing an collating function, which should pair
+;; up appropriate files. It will also require a generalization of the functions
 ;; that do the layout of the meta- and differences buffers and of
 ;; ediff-dir-action.
 

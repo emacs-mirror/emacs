@@ -1421,6 +1421,10 @@ More precisely, a regexp to match any one such character.")
 
 (defsubst Xor (a b)
   (or (and a (not b)) (and (not a) b)))
+
+(defsubst ediff-message-if-verbose (string &rest args)
+  (if ediff-verbose-p
+      (apply 'message string args)))
      
 (provide 'ediff-init)
 
