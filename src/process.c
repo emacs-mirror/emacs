@@ -125,8 +125,10 @@ static Lisp_Object stream_process;
 #define WIFEXITED(w) ((w&0377) == 0)
 #define WRETCODE(w) (w >> 8)
 #define WSTOPSIG(w) (w >> 8)
-#define WCOREDUMP(w) ((w&0200) != 0)
 #define WTERMSIG(w) (w & 0377)
+#ifndef WCOREDUMP
+#define WCOREDUMP(w) ((w&0200) != 0)
+#endif
 #else 
 #ifdef BSD4_1
 #include <wait.h>
@@ -1206,6 +1208,11 @@ create_process (process, new_argv)
 	/* First, disconnect its current controlling terminal.  */
 #ifdef HAVE_SETSID
 	setsid ();
+#ifdef TIOCSCTTY
+	/* Make the pty's terminal the controlling terminal.  */
+	if (pty_flag && (ioctl (xforkin, TIOCSCTTY, 0) < 0))
+	  abort ();
+#endif
 #else /* not HAVE_SETSID */
 #ifdef USG
 	/* It's very important to call setpgrp() here and no time
