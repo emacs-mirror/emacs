@@ -1144,7 +1144,7 @@ you need both the type of a literal and its limits."
     (let* ((here (point))
 	   (c-macro-start (c-query-macro-start))
 	   (in-macro-start (or c-macro-start (point)))
-	   old-state last-pos pairs pos)
+	   old-state last-pos pairs pos save-pos)
       ;; Somewhat ugly use of c-check-state-cache to get rid of the
       ;; part of the state cache that is after point.  Can't use
       ;; c-whack-state-after for the same reasons as in that function.
@@ -1225,7 +1225,8 @@ you need both the type of a literal and its limits."
       (narrow-to-region (point-min) here)
       (while pos
 	;; Find the balanced brace pairs.
-	(setq pairs nil)
+	(setq save-pos pos
+	      pairs nil)
 	(while (and (setq last-pos (c-down-list-forward pos))
 		    (setq pos (c-up-list-forward last-pos)))
 	  (if (eq (char-before last-pos) ?{)
@@ -1269,7 +1270,13 @@ you need both the type of a literal and its limits."
 	      (progn
 		(setq pos (c-up-list-backward pos)
 		      c-state-cache nil)
-		(unless pos
+		(when (or (not pos)
+			  ;; Emacs (up to at least 21.2) can get confused by
+			  ;; open parens in column zero inside comments: The
+			  ;; sexp functions can then misbehave and bring us
+			  ;; back to the same point again.  Check this so that
+			  ;; we don't get an infinite loop.
+			  (>= pos save-pos))
 		  (setq pos last-pos
 			c-parsing-error
 			(format "Unbalanced close paren at line %d"
