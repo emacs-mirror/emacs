@@ -484,7 +484,13 @@ access_keymap (map, idx, t_ok, noinherit)
 	  }
 	else if (CHAR_TABLE_P (binding))
 	  {
-	    if (NATNUMP (idx))
+	    /* Character codes with modifiers
+	       are not included in a char-table.
+	       All character codes without modifiers are included.  */
+	    if (NATNUMP (idx)
+		&& ! (XFASTINT (idx)
+		      & (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
+			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
 	      {
 		val = Faref (binding, idx);
 		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
@@ -629,7 +635,13 @@ store_in_keymap (keymap, idx, def)
 	  }
 	else if (CHAR_TABLE_P (elt))
 	  {
-	    if (NATNUMP (idx))
+	    /* Character codes with modifiers
+	       are not included in a char-table.
+	       All character codes without modifiers are included.  */
+	    if (NATNUMP (idx)
+		&& ! (XFASTINT (idx)
+		      & (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
+			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
 	      {
 		Faset (elt, idx, def);
 		return def;
