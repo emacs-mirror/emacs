@@ -34,6 +34,10 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_UTSNAME_H
+#include <sys/utsname.h>
+#endif
+
 /* systime.h includes <sys/time.h> which, on some systems, is required
    for <sys/resource.h>; thus systime.h must be included before
    <sys/resource.h> */
@@ -106,6 +110,7 @@ Lisp_Object Vsystem_name;
 Lisp_Object Vuser_real_login_name;	/* login name of current user ID */
 Lisp_Object Vuser_full_name;		/* full name of current user */
 Lisp_Object Vuser_login_name;		/* user name from LOGNAME or USER */
+Lisp_Object Voperating_system_release;  /* Operating System Release */
 
 /* Symbol for the text property used to mark fields.  */
 
@@ -170,6 +175,16 @@ init_editfns ()
     Vuser_full_name = build_string (p);
   else if (NILP (Vuser_full_name))
     Vuser_full_name = build_string ("unknown");
+
+#ifdef HAVE_SYS_UTSNAME_H
+  {
+    struct utsname uts;
+    uname (&uts);
+    Voperating_system_release = build_string (uts.release);
+  }
+#else
+  Voperating_system_release = Qnil;
+#endif
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
@@ -4292,6 +4307,9 @@ functions if all the text being accessed has this property.  */);
 
   DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
 	       doc: /* The user's name, based upon the real uid only.  */);
+
+  DEFVAR_LISP ("operating-system-release", &Voperating_system_release,
+	       doc: /* The release of the operating system Emacs is running on.  */);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);

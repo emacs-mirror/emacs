@@ -598,6 +598,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
+/* Define to 1 if you have the <sys/utsname.h> header file. */
+#undef HAVE_SYS_UTSNAME_H
+
 /* Define to 1 if you have the <sys/vlimit.h> header file. */
 #undef HAVE_SYS_VLIMIT_H
 
