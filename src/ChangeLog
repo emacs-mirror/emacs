@@ -1,5 +1,12 @@
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* textprop.c (verify_interval_modification): Don't run
+	modification-hooks if inhibit_modification_hooks.
+
+	* dispnew.c (set_window_cursor_after_update): Fix code
+	finding glyph row containing cursor when cursor_in_echo_area
+	is >= 0.
+
 	* xdisp.c (init_from_display_pos): Put some code in #if 0.
 	(add_to_log): Use bcopy instead of strcpy.
 	(init_from_display_pos): Use an explicit loop over bytes in
