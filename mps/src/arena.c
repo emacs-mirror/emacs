@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.65) $
+ * $HopeName: MMsrc!arena.c(trunk.66) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.65) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.66) $");
 
 
 /* Forward declarations */
@@ -614,9 +614,8 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
 
-  EventInit();
-  
   arenaClaimRingLock();
+  EventInit();
   if(!arenaRingInit) {
     /* there isn't an arena ring yet */
     /* design.mps.arena.static.init */
