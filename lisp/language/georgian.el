@@ -1,6 +1,6 @@
 ;;; georgian.el --- language support for Georgian
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -25,6 +25,18 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(define-coding-system 'georgian-ps
+  "Georgian PS encoding"
+  :coding-type 'charset
+  :mnemonic ?G
+  :charset-list '(georgian-ps))
+
+(define-coding-system 'georgian-academy
+  "Georgian Academy encoding"
+  :coding-type 'charset
+  :mnemonic ?G
+  :charset-list '(georgian-academy))
 
 (set-language-info-alist
  "Georgian" `((coding-system georgian-ps)
