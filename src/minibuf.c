@@ -1403,9 +1403,13 @@ It can find the completion buffer in `standard-output'.")
   register Lisp_Object tail, elt;
   register int i;
   int column = 0;
-  /* No GCPRO needed, since (when it matters) every variable
-     points to a non-string that is pointed to by COMPLETIONS.  */
+  struct gcpro gcpro1;
   struct buffer *old = current_buffer;
+
+  /* Note that (when it matters) every variable
+     points to a non-string that is pointed to by COMPLETIONS.  */
+  GCPRO1 (completions);
+
   if (XTYPE (Vstandard_output) == Lisp_Buffer)
     set_buffer_internal (XBUFFER (Vstandard_output));
 
@@ -1466,6 +1470,8 @@ It can find the completion buffer in `standard-output'.")
 	    }
 	}
     }
+
+  UNGCPRO;
 
   if (XTYPE (Vstandard_output) == Lisp_Buffer)
     set_buffer_internal (old);
