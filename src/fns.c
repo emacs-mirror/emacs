@@ -840,7 +840,7 @@ concat (nargs, args, target_type, last_special)
 	{
 	  this = args[textprops[argnum].argnum];
 	  copy_text_properties (make_number (textprops[argnum].from),
-				XSTRING (this)->size, this,
+				make_number (XSTRING (this)->size), this,
 				make_number (textprops[argnum].to), val, Qnil);
 	}
     }
@@ -3950,7 +3950,7 @@ hash_lookup (h, key, hash)
       if (EQ (key, HASH_KEY (h, i))
 	  || (h->cmpfn
 	      && h->cmpfn (h, key, hash_code,
-			   HASH_KEY (h, i), HASH_HASH (h, i))))
+			   HASH_KEY (h, i), XUINT (HASH_HASH (h, i)))))
 	break;
       idx = HASH_NEXT (h, i);
     }
@@ -4017,7 +4017,7 @@ hash_remove (h, key)
       if (EQ (key, HASH_KEY (h, i))
 	  || (h->cmpfn
 	      && h->cmpfn (h, key, hash_code,
-			   HASH_KEY (h, i), HASH_HASH (h, i))))
+			   HASH_KEY (h, i), XUINT (HASH_HASH (h, i)))))
 	{
 	  /* Take entry out of collision chain.  */
 	  if (NILP (prev))

@@ -1579,7 +1579,7 @@ do_completion ()
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
 
-  completion = Ftry_completion (Ffield_string (ZV),
+  completion = Ftry_completion (Ffield_string (make_number (ZV)),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
@@ -1602,7 +1602,7 @@ do_completion ()
     }
 
   /* compiler bug */
-  tem = Fstring_equal (completion, Ffield_string(ZV));
+  tem = Fstring_equal (completion, Ffield_string(make_number (ZV)));
   completedp = NILP (tem);
   if (completedp)
     {
@@ -1611,7 +1611,7 @@ do_completion ()
     }
 
   /* It did find a match.  Do we match some possibility exactly now? */
-  tem = test_completion (Ffield_string(ZV));
+  tem = test_completion (Ffield_string (make_number (ZV)));
   if (NILP (tem))
     {
       /* not an exact match */
@@ -1635,7 +1635,7 @@ do_completion ()
   last_exact_completion = completion;
   if (!NILP (last))
     {
-      tem = Ffield_string (ZV);
+      tem = Ffield_string (make_number (ZV));
       if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
@@ -1760,10 +1760,10 @@ a repetition of this command will exit.")
   Lisp_Object val;
 
   /* Allow user to specify null string */
-  if (Ffield_beginning (ZV, Qnil) == ZV)
+  if (XINT (Ffield_beginning (make_number (ZV), Qnil)) == ZV)
     goto exit;
 
-  if (!NILP (test_completion (Ffield_string (ZV))))
+  if (!NILP (test_completion (Ffield_string (make_number (ZV)))))
     goto exit;
 
   /* Call do_completion, but ignore errors.  */
@@ -1811,7 +1811,7 @@ Return nil if there is no valid completion, else t.")
   /* We keep calling Fbuffer_string rather than arrange for GC to
      hold onto a pointer to one of the strings thus made.  */
 
-  completion = Ftry_completion (Ffield_string (ZV),
+  completion = Ftry_completion (Ffield_string (make_number (ZV)),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   if (NILP (completion))
@@ -1824,7 +1824,7 @@ Return nil if there is no valid completion, else t.")
     return Qnil;
 
 #if 0 /* How the below code used to look, for reference. */
-  tem = Ffield_string (ZV);
+  tem = Ffield_string (make_number (ZV));
   b = XSTRING (tem)->data;
   i = ZV - 1 - XSTRING (completion)->size;
   p = XSTRING (completion)->data;
@@ -1843,7 +1843,7 @@ Return nil if there is no valid completion, else t.")
     int buffer_nchars, completion_nchars;
 
     CHECK_STRING (completion, 0);
-    tem = Ffield_string (ZV);
+    tem = Ffield_string (make_number (ZV));
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
@@ -1896,7 +1896,7 @@ Return nil if there is no valid completion, else t.")
   }
 #endif /* Rewritten code */
   
-  prompt_end_charpos = Ffield_beginning (make_number (ZV), Qnil);
+  prompt_end_charpos = XINT (Ffield_beginning (make_number (ZV), Qnil));
 
   {
     int prompt_end_bytepos;
@@ -1910,7 +1910,7 @@ Return nil if there is no valid completion, else t.")
   if (i == XSTRING (completion)->size)
     {
       GCPRO1 (completion);
-      tem = Ftry_completion (concat2 (Ffield_string (ZV), build_string (" ")),
+      tem = Ftry_completion (concat2 (Ffield_string (make_number (ZV)), build_string (" ")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
       UNGCPRO;
@@ -1921,7 +1921,7 @@ Return nil if there is no valid completion, else t.")
 	{
 	  GCPRO1 (completion);
 	  tem =
-	    Ftry_completion (concat2 (Ffield_string (ZV), build_string ("-")),
+	    Ftry_completion (concat2 (Ffield_string (make_number (ZV)), build_string ("-")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
 	  UNGCPRO;
@@ -2156,7 +2156,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   Lisp_Object completions;
 
   message ("Making completion list...");
-  completions = Fall_completions (Ffield_string (ZV),
+  completions = Fall_completions (Ffield_string (make_number (ZV)),
 				  Vminibuffer_completion_table,
 				  Vminibuffer_completion_predicate,
 				  Qt);

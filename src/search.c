@@ -218,7 +218,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	 XSTRING in those cases.  However, compile_pattern_1 is only
 	 applied to the cache entry we pick here to reuse.  So nil
 	 should never appear before a non-nil entry.  */
-      if (cp->regexp == Qnil)
+      if (NILP (cp->regexp))
 	goto compile_it;
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
 	  && !NILP (Fstring_equal (cp->regexp, pattern))

@@ -2334,7 +2334,7 @@ substitute_object_recurse (object, placeholder, subtree)
     case Lisp_Vectorlike:
       {
 	int i;
-	int length = Flength(subtree);
+	int length = XINT (Flength(subtree));
 	for (i = 0; i < length; i++)
 	  {
 	    Lisp_Object idx = make_number (i);

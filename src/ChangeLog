@@ -1,3 +1,20 @@
+2000-04-05  Ken Raeburn  <raeburn@gnu.org>
+
+	* dispnew.c (allocate_matrices_for_frame_redisplay,
+	direct_output_forward_char): Use X(U)INT and make_number as needed
+	to convert between (unsigned) int values and lisp integers.
+	* keyboard.c (read_key_sequence): Likewise.
+	* lread.c (substitute_object_recurse): Likewise.
+	* fns.c (concat, hash_lookup, hash_remove): Likewise.
+	* minibuf.c (do_completion, Fminibuffer_complete_word,
+	Fminibuffer_completion_help): Likewise.
+	* term.c (produce_special_glyphs): Likewise.
+
+	* fileio.c (Fwrite_region): Use EQ when comparing lisp objects.
+	* print.c (print_preprocess, print_object): Likewise.
+
+	* search.c (compile_pattern): Use NILP when checking for nil.
+
 2000-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (compare_window_configurations): Signal an error

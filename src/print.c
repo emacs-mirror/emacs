@@ -1118,7 +1118,7 @@ print_preprocess (obj)
       if (! NILP (Vprint_circle) || SYMBOLP (obj))
 	{
 	  for (i = 0; i < print_number_index; i++)
-	    if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
 	      {
 		/* OBJ appears more than once.  Let's remember that.  */
 		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
@@ -1218,7 +1218,7 @@ print_object (obj, printcharfun, escapeflag)
 	  /* With the print-circle feature.  */
 	  int i;
 	  for (i = 0; i < print_number_index; i++)
-	    if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
 	      {
 		if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 		  {
@@ -1506,7 +1506,7 @@ print_object (obj, printcharfun, escapeflag)
 		      {
 			int i;
 			for (i = 0; i < print_number_index; i++)
-			  if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+			  if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
 			    {
 			      if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 				{

@@ -1893,7 +1893,7 @@ produce_special_glyphs (it, what)
   temp_it.dp = NULL;
   temp_it.what = IT_CHARACTER;
   temp_it.len = 1;
-  temp_it.object = 0;
+  temp_it.object = make_number (0);
   bzero (&temp_it.current, sizeof temp_it.current);
 
   if (what == IT_CONTINUATION)

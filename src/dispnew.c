@@ -1756,8 +1756,8 @@ allocate_matrices_for_frame_redisplay (window, x, y, ch_dim,
   
 	  /* Width and height MUST be chosen so that there are no
 	     holes in the frame matrix.  */
-	  dim.width = w->width;
-	  dim.height = w->height;
+	  dim.width = XINT (w->width);
+	  dim.height = XINT (w->height);
 
 	  /* Will matrix be re-allocated?  */
 	  if (x != w->desired_matrix->matrix_x
@@ -3372,7 +3372,7 @@ direct_output_forward_char (n)
   struct glyph_row *row;
 
   /* Give up if point moved out of or into a composition.  */
-  if (check_point_in_composition (current_buffer, w->last_point,
+  if (check_point_in_composition (current_buffer, XINT (w->last_point),
 				  current_buffer, PT))
     return 0;
 
