@@ -652,7 +652,11 @@ function, it is changed to a list of functions."
   (let ((old (symbol-value hook)))
     (if (or (not (listp old)) (eq (car old) 'lambda))
 	(set hook (list old))))
-  (if local
+  (if (or local
+	  ;; Detect the case where make-local-variable was used on a hook
+	  ;; and do what we used to do.
+	  (and (local-variable-p hook)
+	       (not (memq t (symbol-value hook)))))
       ;; Alter the local value only.
       (or (if (consp function)
 	      (member function (symbol-value hook))
@@ -687,7 +691,11 @@ To make a hook variable buffer-local, always use
 	  (null (symbol-value hook))	;value is nil, or
 	  (null function))		;function is nil, then
       nil				;Do nothing.
-    (if local
+    (if (or local
+	    ;; Detect the case where make-local-variable was used on a hook
+	    ;; and do what we used to do.
+	    (and (local-variable-p hook)
+		 (not (memq t (symbol-value hook)))))
 	(let ((hook-value (symbol-value hook)))
 	  (if (consp hook-value)
 	      (if (member function hook-value)
