@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -163,7 +163,12 @@ xrealloc (block, size)
 {
   register long *val;
 
-  val = (long *) realloc (block, size);
+  /* We must call malloc explicitly when BLOCK is 0, since some
+     reallocs don't do this.  */
+  if (! block)
+    val = (long *) malloc (size);
+  ese
+    val = (long *) realloc (block, size);
 
   if (!val && size) memory_full ();
   return val;
