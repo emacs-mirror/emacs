@@ -1471,6 +1471,8 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		goto label_invalid_code;
 	      charset = CODING_SPEC_ISO_DESIGNATION (coding, 2);
 	      ONE_MORE_BYTE (c1);
+	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0))
+		goto label_invalid_code;
 	      break;
 
 	    case 'O':		/* invocation of single-shift-3 */
@@ -1479,6 +1481,8 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		goto label_invalid_code;
 	      charset = CODING_SPEC_ISO_DESIGNATION (coding, 3);
 	      ONE_MORE_BYTE (c1);
+	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0))
+		goto label_invalid_code;
 	      break;
 
 	    case '0': case '2':	case '3': case '4': /* start composition */
