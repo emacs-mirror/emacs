@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.82) $
+ * $HopeName: MMsrc!mpm.h(trunk.83) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -318,6 +318,8 @@ extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
                         AccessSet mode, MutatorFaultContext context);
 extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
                          AccessSet mode, MutatorFaultContext context);
+extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
+                            AccessSet mode, MutatorFaultContext context);
 extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
 extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
