@@ -2,9 +2,7 @@
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
-;; Author: Bob Weiner <rsw@cs.brown.edu>
 ;; Maintainer: FSF
-;; Adapted-by: Eric S. Raymond <esr@snark.thyrsus.com>
 
 ;; This file is part of GNU Emacs.
 
