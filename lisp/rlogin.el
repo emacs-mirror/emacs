@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.36 1997/04/12 02:53:36 rms Exp rms $
+;; $Id: rlogin.el,v 1.37 1997/04/12 02:55:04 rms Exp $
 
 ;;; Commentary:
 
@@ -63,7 +63,15 @@
   :type 'hook
   :group 'rlogin)
 
-(defcustom rlogin-process-connection-type nil
+(defcustom rlogin-process-connection-type
+  (save-match-data
+    ;; Solaris 2.x `rlogin' will spew a bunch of ioctl error messages if
+    ;; stdin isn't a tty.
+    (cond ((and (boundp 'system-configuration)
+                (stringp system-configuration)
+                (string-match "-solaris2" system-configuration))
+           t)
+          (t nil)))
   "*If non-`nil', use a pty for the local rlogin process.
 If `nil', use a pipe (if pipes are supported on the local system).
 
