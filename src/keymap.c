@@ -73,6 +73,9 @@ Lisp_Object Vminor_mode_map_alist;
    documentation.  */
 Lisp_Object Vfunction_key_map;
 
+/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
+Lisp_Object Vkey_translation_map;
+
 /* A list of all commands given new bindings since a certain time
    when nil was stored here.
    This is used to speed up recomputation of menu key equivalents
@@ -90,7 +93,7 @@ extern Lisp_Object Voverriding_local_map;
 
 static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
-static void describe_command ();
+static void describe_command (), describe_translation ();
 static void describe_map ();
 
 /* Keymap object support - constructors and predicates.			*/
@@ -1839,7 +1842,7 @@ nominal         alternate\n\
   Fset_buffer (Vstandard_output);
 
   /* Report on alternates for keys.  */
-  if (STRINGP (Vkeyboard_translate_table))
+  if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
       unsigned char *translate = XSTRING (Vkeyboard_translate_table)->data;
@@ -1869,6 +1872,10 @@ nominal         alternate\n\
       insert ("\n", 1);
     }
 
+  if (!NILP (Vkey_translation_map))
+    describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
+		       "Key translations", 0, 1);
+
   {
     int i, nmaps;
     Lisp_Object *modes, *maps;
@@ -1876,6 +1883,7 @@ nominal         alternate\n\
     /* Temporarily switch to descbuf, so that we can get that buffer's
        minor modes correctly.  */
     Fset_buffer (descbuf);
+
     if (!NILP (current_kboard->Voverriding_terminal_local_map)
 	|| !NILP (Voverriding_local_map))
       nmaps = 0;
@@ -1905,7 +1913,7 @@ nominal         alternate\n\
 	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
 
-	describe_map_tree (maps[i], 0, shadow, prefix, title, 0);
+	describe_map_tree (maps[i], 0, shadow, prefix, title, 0, 0);
 	shadow = Fcons (maps[i], shadow);
       }
   }
@@ -1921,12 +1929,17 @@ nominal         alternate\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 0, shadow, prefix,
-			 "Major Mode Bindings", 0);
+			 "Major Mode Bindings", 0, 0);
       shadow = Fcons (start1, shadow);
     }
 
   describe_map_tree (current_global_map, 0, shadow, prefix,
-		     "Global Bindings", 0);
+		     "Global Bindings", 0, 0);
+
+  /* Print the function-key-map translations under this prefix.  */
+  if (!NILP (Vfunction_key_map))
+    describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
+		       "Function key map translations", 0, 1);
 
   call0 (intern ("help-mode"));
   Fset_buffer (descbuf);
@@ -1943,14 +1956,18 @@ nominal         alternate\n\
    PREFIX, if non-nil, says mention only keys that start with PREFIX.
    TITLE, if not 0, is a string to insert at the beginning.
    TITLE should not end with a colon or a newline; we supply that.
-   If NOMENU is not 0, then omit menu-bar commands.  */
+   If NOMENU is not 0, then omit menu-bar commands.
+
+   If TRANSL is nonzero, the definitions are actually key translations
+   so print strings and vectors differently.  */
 
 void
-describe_map_tree (startmap, partial, shadow, prefix, title, nomenu)
+describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl)
      Lisp_Object startmap, shadow, prefix;
      int partial;
      char *title;
      int nomenu;
+     int transl;
 {
   Lisp_Object maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -2041,7 +2058,8 @@ key             binding\n\
 	    sub_shadows = Fcons (shmap, sub_shadows);
 	}
 
-      describe_map (Fcdr (elt), Fcar (elt), describe_command,
+      describe_map (Fcdr (elt), Fcar (elt),
+		    transl ? describe_translation : describe_command,
 		    partial, sub_shadows, &seen);
 
     skip: ;
@@ -2067,8 +2085,34 @@ describe_command (definition)
       insert1 (tem1);
       insert_string ("\n");
     }
-  else if (STRINGP (definition))
+  else if (STRINGP (definition) || VECTORP (definition))
     insert_string ("Keyboard Macro\n");
+  else
+    {
+      tem1 = Fkeymapp (definition);
+      if (!NILP (tem1))
+	insert_string ("Prefix Command\n");
+      else
+	insert_string ("??\n");
+    }
+}
+
+static void
+describe_translation (definition)
+     Lisp_Object definition;
+{
+  register Lisp_Object tem1;
+
+  Findent_to (make_number (16), make_number (1));
+
+  if (SYMBOLP (definition))
+    {
+      XSETSTRING (tem1, XSYMBOL (definition)->name);
+      insert1 (tem1);
+      insert_string ("\n");
+    }
+  else if (STRINGP (definition) || VECTORP (definition))
+    insert1 (Fkey_description (definition));
   else
     {
       tem1 = Fkeymapp (definition);
@@ -2459,6 +2503,12 @@ Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing\n\
 `C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix\n\
 key, typing `ESC O P x' would return [f1 x].");
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+
+  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+    "Keymap of key translations that can override keymaps.\n\
+This keymap works like `function-key-map', but comes after that,\n\
+and applies even for keys that have ordinary bindings.");
+  Vkey_translation_map = Qnil;
 
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);
