@@ -1,5 +1,5 @@
 /* Input event support for Windows NT port of GNU Emacs.
-   Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -92,22 +92,90 @@ get_frame (void)
   return selected_frame;
 }
 
-#ifdef MULTI_FRAME
-#define SET_FRAME(o, f) XSETFRAME (o, f)
-#else
-#define SET_FRAME(o, f) ((o) = Qnil)
-#endif
-
-/* Translate console modifiers to emacs modifiers.  */
+/* Translate console modifiers to emacs modifiers.  
+   German keyboard support (Kai Morgan Zeise 2/18/95).  */
 static int 
-nt_kbd_mods_to_emacs (DWORD mods)
+win32_kbd_mods_to_emacs (DWORD mods)
 {
-  return ((mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED)) ?
-	  meta_modifier : 0) |
-	    ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED)) ?
-	     ctrl_modifier : 0) |
-	       ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) ?
-		shift_modifier : 0);
+  int retval = 0;
+
+  /* If AltGr has been pressed, remove it.  */
+  if ((mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED)) 
+      == (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
+    mods &= ~ (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED);
+
+  if (mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
+    retval = meta_modifier;
+  
+  if (mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+    {
+      retval |= ctrl_modifier;
+      if ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED)) 
+	  == (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+	retval |= meta_modifier;
+    }
+
+  if (((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == SHIFT_PRESSED)
+      || ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == CAPSLOCK_ON))
+    retval |= shift_modifier;
+
+  return retval;
+}
+
+/* Patch up NT keyboard events when info is missing that should be there,
+   assuming that map_virt_key says that the key is a valid ASCII char. */
+static char win32_number_shift_map[] = {
+  ')', '!', '@', '#', '$', '%', '^', '&', '*', '('
+};
+
+#define WIN32_KEY_SHIFTED(mods, no, yes) \
+  ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) ? yes : no)
+
+static void
+win32_kbd_patch_key (KEY_EVENT_RECORD *event)
+{
+  unsigned int key_code = event->wVirtualKeyCode;
+  unsigned int mods = event->dwControlKeyState;
+  int mapped_punct = 0;
+
+  /* map_virt_key says its a valid key, but the uChar.AsciiChar field
+     is empty.  patch up the uChar.AsciiChar field using wVirtualKeyCode.  */
+  if (event->uChar.AsciiChar == 0
+      && ((key_code >= '0' && key_code <= '9')
+	  || (key_code >= 'A' && key_code <= 'Z')
+	  || (key_code >= 0xBA && key_code <= 0xC0)
+	  || (key_code >= 0xDB && key_code <= 0xDE)
+	  )) {
+    if (key_code >= '0' && key_code <= '9') {
+      event->uChar.AsciiChar = 
+	WIN32_KEY_SHIFTED (mods, key_code,
+			win32_number_shift_map[key_code - '0']);
+      return;
+    }
+    switch (key_code) {
+    case 0xBA: mapped_punct = WIN32_KEY_SHIFTED (mods, ';', ':'); break;
+    case 0xBB: mapped_punct = WIN32_KEY_SHIFTED (mods, '=', '+'); break;
+    case 0xBC: mapped_punct = WIN32_KEY_SHIFTED (mods, ',', '<'); break;
+    case 0xBD: mapped_punct = WIN32_KEY_SHIFTED (mods, '-', '_'); break;
+    case 0xBE: mapped_punct = WIN32_KEY_SHIFTED (mods, '.', '>'); break;
+    case 0xBF: mapped_punct = WIN32_KEY_SHIFTED (mods, '/', '?'); break;
+    case 0xC0: mapped_punct = WIN32_KEY_SHIFTED (mods, '`', '~'); break;
+    case 0xDB: mapped_punct = WIN32_KEY_SHIFTED (mods, '[', '{'); break;
+    case 0xDC: mapped_punct = WIN32_KEY_SHIFTED (mods, '\\', '|'); break;
+    case 0xDD: mapped_punct = WIN32_KEY_SHIFTED (mods, ']', '}'); break;
+    case 0xDE: mapped_punct = WIN32_KEY_SHIFTED (mods, '\'', '"'); break;
+    default:
+      mapped_punct = 0;
+      break;
+    }
+    if (mapped_punct) {
+      event->uChar.AsciiChar = mapped_punct;
+      return;
+    }
+    /* otherwise, it's a letter.  */
+    event->uChar.AsciiChar = WIN32_KEY_SHIFTED (mods, key_code - 'A' + 'a',
+						key_code);
+  }
 }
 
 /* Map virtual key codes into:
@@ -223,7 +291,8 @@ static int map_virt_key[256] =
   -2,                 /* ] */
   -2,                 /* ' */
   -1, /* 0xdf */
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xef */
+  -1, -1, -2,         /* VK_OEM_102 */
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xef */
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 /* 0xff */
 };
 
@@ -231,6 +300,7 @@ static int
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 {
   int map;
+  static BOOL map_virt_key_init_done;
   
   /* Skip key-up events.  */
   if (event->bKeyDown == FALSE)
@@ -240,6 +310,17 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       printf ("Unknown key code %d\n", event->wVirtualKeyCode);
       return 0;
+    }
+
+  /* Patch needed for German keyboard. Ulrich Leodolter (1/11/95).  */
+  if (! map_virt_key_init_done) 
+    {
+      short vk;
+
+      if ((vk = VkKeyScan (0x3c)) >= 0 && vk < 256) map_virt_key[vk] = -2; /* less */
+      if ((vk = VkKeyScan (0x3e)) >= 0 && vk < 256) map_virt_key[vk] = -2; /* greater */
+
+      map_virt_key_init_done = TRUE;
     }
   
   /* BUGBUG - Ignores the repeat count
@@ -258,6 +339,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       /* ASCII */
       emacs_ev->kind = ascii_keystroke;
+      win32_kbd_patch_key (event);
       XSETINT (emacs_ev->code, event->uChar.AsciiChar);
     }
   else
@@ -271,15 +353,16 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
       map |= 0xff00;
       XSETINT (emacs_ev->code, map);
     }
-  SET_FRAME (emacs_ev->frame_or_window, get_frame ());
-  emacs_ev->modifiers = nt_kbd_mods_to_emacs (event->dwControlKeyState);
+  XSETFRAME (emacs_ev->frame_or_window, get_frame ());
+  emacs_ev->modifiers = win32_kbd_mods_to_emacs (event->dwControlKeyState);
   emacs_ev->timestamp = GetTickCount ();
   return 1;
 }
 
 /* Mouse position hook.  */
 void 
-win32_mouse_position (FRAME_PTR *f, int insist,
+win32_mouse_position (FRAME_PTR *f,
+		      int insist,
 		      Lisp_Object *bar_window,
 		      enum scroll_bar_part *part,
 		      Lisp_Object *x,
@@ -288,6 +371,8 @@ win32_mouse_position (FRAME_PTR *f, int insist,
 {
   BLOCK_INPUT;
   
+  insist = insist;
+
   *f = get_frame ();
   *bar_window = Qnil;
   *part = 0;
@@ -371,12 +456,12 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   
   button_state = event->dwButtonState;
   emacs_ev->timestamp = GetTickCount ();
-  emacs_ev->modifiers = nt_kbd_mods_to_emacs (event->dwControlKeyState) |
+  emacs_ev->modifiers = win32_kbd_mods_to_emacs (event->dwControlKeyState) |
     ((event->dwButtonState & mask) ? down_modifier : up_modifier);
   
   XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
   XSETFASTINT (emacs_ev->y, event->dwMousePosition.Y);
-  SET_FRAME (emacs_ev->frame_or_window, get_frame ());
+  XSETFRAME (emacs_ev->frame_or_window, get_frame ());
   
   return 1;
 }
