@@ -1,3 +1,10 @@
+2001-05-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* language/japan-util.el (japanese-hankaku): Prefer the charset
+	`jisx0201' when the optional argument `ascii-only' is not specified.
+	(japanese-hankaku-region): Ditto.
+	From Katsumi Yamaoka <yamaoka@jpl.org>
+
 2001-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cus-edit.el (custom-file): Fix last change.

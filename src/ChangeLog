@@ -1,3 +1,7 @@
+2001-05-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* termcap.c (speeds): Put in #if 0.
+
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (call_debugger): Don't bind inhibit-eval-during-redisplay.
