@@ -1083,6 +1083,16 @@ See also the function `signal' for more info.")
   return val;
 }
 
+/* Call the function BFUN with no arguments, catching errors within it
+   according to HANDLERS.  If there is an error, call HFUN with
+   one argument which is the data that describes the error:
+   (SIGNALNAME . DATA)
+
+   HANDLERS can be a list of conditions to catch.
+   If HANDLERS is Qt, catch all errors.
+   If HANDLERS is Qerror, catch all errors
+   but allow the debugger to run if that is enabled.  */
+
 Lisp_Object
 internal_condition_case (bfun, handlers, hfun)
      Lisp_Object (*bfun) ();
@@ -1123,6 +1133,8 @@ internal_condition_case (bfun, handlers, hfun)
   handlerlist = h.next;
   return val;
 }
+
+/* Like internal_condition_case but call HFUN with ARG as its argument.  */
 
 Lisp_Object
 internal_condition_case_1 (bfun, arg, handlers, hfun)
@@ -1969,6 +1981,11 @@ run_hook_with_args (nargs, args, cond)
 {
   Lisp_Object sym, val, ret;
   struct gcpro gcpro1, gcpro2;
+
+  /* If we are dying or still initializing,
+     don't do anything--it would probably crash if we tried.  */
+  if (NILP (Vrun_hooks))
+    return;
 
   sym = args[0];
   val = find_symbol_value (sym);
