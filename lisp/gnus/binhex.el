@@ -39,7 +39,7 @@ The program should expect to read binhex data on its standard
 input and write the converted data to its standard output.")
 
 (defvar binhex-decoder-switches '("-d")
-  "*List of command line flags passed to the command named by binhex-decoder-program.")
+  "*List of command line flags passed to the command `binhex-decoder-program'.")
 
 (defconst binhex-alphabet-decoding-alist
   '(( ?\! . 0) ( ?\" . 1) ( ?\# . 2) ( ?\$ . 3) ( ?\% . 4) ( ?\& . 5)
