@@ -7,6 +7,9 @@
 
 2005-04-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
+	* startup.el (command-line-1): Display startup-echo-area-message
+	when fancy splash screen is in use.
+
 	* progmodes/sh-script.el (sh-builtins) <bash>: Add `caller'.
 	(sh-escaped-newline): New face.
 	(sh-font-lock-keywords) <shell>: Improve regexp for escaped
