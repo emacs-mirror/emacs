@@ -1,6 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 1988, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 88, 1992, 94, 2004  Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: FSF
@@ -240,22 +240,13 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (put 'telnet-mode 'mode-class 'special)
 
-(defun telnet-mode ()
+(define-derived-mode telnet-mode comint-mode "Telnet"
   "This mode is for using telnet (or rsh) from a buffer to another host.
 It has most of the same commands as comint-mode.
 There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
-Data is sent to the remote host when RET is typed.
-
-\\{telnet-mode-map}
-"
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'telnet-mode
-	mode-name "Telnet"
-	comint-prompt-regexp telnet-prompt-pattern)
-  (use-local-map telnet-mode-map)
-  (run-hooks 'telnet-mode-hook))
+Data is sent to the remote host when RET is typed."
+  (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern))
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*rsh-[^-]*\\*\\(\\|<[0-9]*>\\)")
 
