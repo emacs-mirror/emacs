@@ -86,8 +86,8 @@ Stefan Monnier
 	src/intervals.c
 	src/keyboard.c
 	lisp/textmodes/tex-mode.el
-	lisp/textmodes/perl-mode.el
-	lisp/textmodes/tcl-mode.el
+	lisp/progmodes/perl-mode.el
+	lisp/progmodes/tcl.el
 
 ==============================================================================
 3.
