@@ -19,6 +19,11 @@
 	(cua--indent-rectangle): Don't tabify.
 	(cua-rotate-rectangle): Ignore that point has moved.
 
+2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add ASCII equivalents for some function keys.
+	(mode-line-frame-identification): Sync with x-win.el.
+
 2004-09-02  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-buffer-name): Compare major
