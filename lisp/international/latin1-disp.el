@@ -143,18 +143,49 @@ character set."
 			      (make-char charset 127)))
   (sit-for 0))
 
-;; Is there a better way than this?
 (defun latin1-display-check-font (language)
   "Return non-nil if we have a font with an encoding for LANGUAGE.
 LANGUAGE is a symbol naming a language environment using an ISO8859
 character set: `latin-2', `hebrew' etc."
   (if (eq language 'cyrillic)
       (setq language 'cyrillic-iso))
-  (if window-system
-      (let* ((info (get-language-info language 'charset))
-	     (str (symbol-name (car (remq 'ascii info)))))
-	(string-match "-iso8859-[0-9]+\\'" str)
-	(x-list-fonts (concat "*" (match-string 0 str))))))
+  (let* ((info (get-language-info language 'charset))
+	 (char (make-char (car (remq 'ascii info)) ?\ )))
+    (latin1-char-displayable-p char)))
+
+;; This should be moved into mule-utils or somewhere after 21.1.
+(defun latin1-char-displayable-p (char)
+  (cond ((< char 256)
+	 ;; Single byte characters are always displayable.
+	 t)
+	(window-system
+	 ;; On a window system, a character is displayable if we have
+	 ;; a font for that character in the default face of the
+	 ;; currently selected frame.
+	 (let ((fontset (frame-parameter (selected-frame) 'font))
+	       font-pattern)
+	   (if (query-fontset fontset)
+	       (setq font-pattern (fontset-font fontset char)))
+	   (or font-pattern
+	       (setq font-pattern (fontset-font "fontset-default" char)))
+	   (if font-pattern
+	       (progn
+		 ;; Now FONT-PATTERN is a string or a cons of family
+		 ;; field pattern and registry filed pattern.
+		 (or (stringp font-pattern)
+		     (setq font-pattern (concat (or (car font-pattern) "*")
+						"-*-"
+						(cdr font-pattern))))
+		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
+	(t
+	 (let ((coding (terminal-coding-system)))
+	   (if coding
+	       (let ((safe-chars (coding-system-get coding 'safe-chars))
+		     (safe-charsets (coding-system-get coding 'safe-charsets)))
+		 (or (and safe-chars
+			  (aref safe-chars char))
+		     (and safe-charsets
+			  (memq (char-charset char) safe-charsets)))))))))
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.
