@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.226 1998/05/16 03:44:16 rms Exp rms $
+;; $Id: vc.el,v 1.227 1998/05/16 17:53:32 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1725,7 +1725,10 @@ There is a special command, `*l', to mark all files currently locked."
          ((file-directory-p filename)
           (if (member (file-name-nondirectory filename) 
                       vc-directory-exclusion-list)
-              (dired-kill-line)
+              (let ((pos (point)))
+                (dired-kill-tree filename)
+                (goto-char pos)
+                (dired-kill-line))
             (vc-dired-reformat-line nil)
             (forward-line 1)))
          ((if cvs-dir
