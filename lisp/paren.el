@@ -107,7 +107,7 @@
 				       (+ (point) dir) (point)
 				       (current-buffer))
 		       (setq show-paren-overlay-1
-			     (make-overlay (- pos dir) pos)))
+			     (make-overlay (+ (point) dir) (point))))
 		     ;; Always set the overlay face, since it varies.
 		     (overlay-put show-paren-overlay-1 'face face))
 		 ;; Otherwise, turn off any such highlighting.
