@@ -555,8 +555,8 @@ Commands for sorting the summary:
   (setq rmail-summary-redo nil)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'post-command-hook)
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords rmail-summary-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable)
   (run-hooks 'rmail-summary-mode-hook))
 
