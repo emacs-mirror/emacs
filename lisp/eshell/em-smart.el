@@ -1,4 +1,4 @@
-;;; em-smart --- smart display of output
+;;; em-smart.el --- smart display of output
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

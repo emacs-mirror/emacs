@@ -1,4 +1,4 @@
-;;; talk.el --- Allow several users to talk to each other through Emacs.
+;;; talk.el --- allow several users to talk to each other through Emacs
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; em-script --- Eshell script files
+;;; em-script.el --- Eshell script files
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

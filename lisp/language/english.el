@@ -1,4 +1,4 @@
-;;; english.el --- English support
+;;; english.el --- support for English
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -28,7 +28,7 @@
 ;; English as a language environment is one of the ways to reset
 ;; various multilingual environment to the original settting.
 
-;;; Code
+;;; Code:
 
 (set-language-info-alist
  "English" '((tutorial . "TUTORIAL")

@@ -1,4 +1,4 @@
-;;; esh-proc --- process management
+;;; esh-proc.el --- process management
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

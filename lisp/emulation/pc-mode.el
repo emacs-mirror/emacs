@@ -1,4 +1,4 @@
-;;; pc-mode.el --- emulate certain key bindings used on PCs.
+;;; pc-mode.el --- emulate certain key bindings used on PCs
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
@@ -20,6 +20,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -51,4 +53,4 @@ C-Escape does list-buffers."
 
 (provide 'pc-mode)
 
-;; pc-mode.el ends here
+;;; pc-mode.el ends here

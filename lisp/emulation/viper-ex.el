@@ -19,7 +19,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Code
+;;; Commentary:
+
+;;; Code:
 
 (provide 'viper-ex)
 
@@ -1436,7 +1438,7 @@ reversed."
     (if name
 	(if (eq 1 (length name))
 	    (setq char (string-to-char name))
-	  (error "`%s': Spurious text \"%s\" after mark name."
+	  (error "`%s': Spurious text \"%s\" after mark name"
 		 name (substring name 1) viper-SpuriousText))
     (save-window-excursion
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
@@ -2221,4 +2223,4 @@ Please contact your system administrator. "
 
 
 
-;;;  viper-ex.el ends here
+;;; viper-ex.el ends here

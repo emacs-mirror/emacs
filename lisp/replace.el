@@ -1,4 +1,4 @@
-;;; replace.el --- replace commands for Emacs.
+;;; replace.el --- replace commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000, 2001
 ;;  Free Software Foundation, Inc.

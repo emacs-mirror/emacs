@@ -19,7 +19,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Code
+;;; Commentary:
+
+;;; Code:
 
 (provide 'viper-init)
 
@@ -986,4 +988,4 @@ Should be set in `~/.viper' file."
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
-;;;  viper-ex.el ends here
+;;; viper-init.el ends here

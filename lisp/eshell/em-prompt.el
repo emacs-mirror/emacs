@@ -1,4 +1,4 @@
-;;; em-prompt --- command prompts
+;;; em-prompt.el --- command prompts
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

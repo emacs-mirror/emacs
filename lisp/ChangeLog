@@ -1,5 +1,52 @@
 2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el,
+	eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el,
+	eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el,
+	eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el,
+	eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el,
+	eshell/em-xtra.el, eshell/esh-arg.el, eshell/esh-cmd.el,
+	eshell/esh-ext.el, eshell/esh-io.el, eshell/esh-maint.el,
+	eshell/esh-mode.el, eshell/esh-module.el, eshell/esh-opt.el,
+	eshell/esh-proc.el, eshell/esh-test.el, eshell/esh-util.el,
+	eshell/esh-var.el, eshell/eshell.el: Some fixes to follow coding
+	conventions in Eshell files.
+
+	* composite.el, diff.el, emacs-lisp/levents.el,
+	emacs-lisp/lmenu.el, emacs-lisp/lselect.el, emacs-lisp/lucid.el,
+	emulation/pc-mode.el, emulation/viper-cmd.el,
+	emulation/viper-ex.el, emulation/viper-init.el,
+	emulation/viper-keym.el, emulation/viper-macs.el,
+	emulation/viper-mous.el, emulation/viper-util.el,
+	emulation/viper.el, forms-pass.el, international/ccl.el,
+	international/characters.el, international/encoded-kb.el,
+	international/fontset.el, international/ja-dic-cnv.el,
+	international/ja-dic-utl.el, international/kinsoku.el,
+	international/kkc.el, international/mule-cmds.el,
+	international/mule-diag.el, international/mule-util.el,
+	international/mule.el, international/titdic-cnv.el,
+	language/china-util.el, language/chinese.el,
+	language/cyril-util.el, language/cyrillic.el, language/english.el,
+	language/greek.el, language/hebrew.el, language/japan-util.el,
+	language/japanese.el, language/korea-util.el, language/korean.el,
+	language/lao-util.el, language/lao.el, language/misc-lang.el,
+	language/slovak.el, language/thai-util.el, language/thai.el,
+	language/viet-util.el, language/vietnamese.el, mail/mh-comp.el,
+	mail/mh-e.el, mail/mh-funcs.el, mail/mh-mime.el, mail/mh-pick.el,
+	mail/mh-seq.el, mail/mh-utils.el, mail/sc.el, mail/unrmail.el,
+	midnight.el, patcomp.el, pcmpl-cvs.el, pcmpl-gnu.el,
+	pcmpl-linux.el, pcmpl-rpm.el, pcmpl-unix.el, play/studly.el,
+	play/zone.el, replace.el, select.el, subr.el, talk.el, term.el,
+	term/apollo.el, term/bobcat.el, term/linux.el, term/lk201.el,
+	term/vt102.el, term/vt125.el, term/vt200.el, term/vt201.el,
+	term/vt220.el, term/vt240.el, term/vt300.el, term/vt320.el,
+	term/vt400.el, term/vt420.el, x-apollo.el, x-menu.el: Some fixes
+	to follow coding conventions in files without maintainer or in
+	files with clear maintainer (but without Maintainer header stating
+	so).
+
+	* emacs-lisp/elp.el: A fix to follow coding conventions.
+
 	* gnus/binhex.el, gnus/binhex.el, gnus/earcon.el,
 	gnus/gnus-agent.el, gnus/gnus-art.el, gnus/gnus-audio.el,
 	gnus/gnus-logic.el, gnus/gnus-ml.el, gnus/gnus-mlspl.el,

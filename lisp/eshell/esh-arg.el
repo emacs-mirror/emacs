@@ -1,4 +1,4 @@
-;;; esh-arg --- argument processing
+;;; esh-arg.el --- argument processing
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

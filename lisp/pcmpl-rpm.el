@@ -1,4 +1,4 @@
-;;; pcmpl-rpm --- functions for dealing with rpm completions
+;;; pcmpl-rpm.el --- functions for dealing with rpm completions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
@@ -324,6 +324,6 @@ You can use \\[eshell-report-bug] to do so."
 		 (pcomplete-dirs-or-entries "\\.tar\\'")
 	       (pcomplete-dirs-or-entries "\\.spec\\'"))))))
        (t
-	(error "You must select a mode: -q, -i, -U, --verify, etc."))))))
+	(error "You must select a mode: -q, -i, -U, --verify, etc"))))))
 
 ;;; pcmpl-rpm.el ends here

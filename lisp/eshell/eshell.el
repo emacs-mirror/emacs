@@ -1,4 +1,4 @@
-;;; eshell --- the Emacs command shell
+;;; eshell.el --- the Emacs command shell
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

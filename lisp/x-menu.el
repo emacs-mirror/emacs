@@ -1,4 +1,4 @@
-;;; x-menu.el --- menu support for X 
+;;; x-menu.el --- menu support for X
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
@@ -18,6 +18,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

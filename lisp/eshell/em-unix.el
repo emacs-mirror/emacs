@@ -1,4 +1,4 @@
-;;; em-unix --- UNIX command aliases
+;;; em-unix.el --- UNIX command aliases
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
 

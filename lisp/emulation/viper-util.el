@@ -1,4 +1,4 @@
-;;; viper-util.el --- Utilities used by viper.el
+;;; viper-util.el --- utilities used by viper.el
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -19,8 +19,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
 
-;; Code
+;;; Code:
 
 ;; Compiler pacifier
 (defvar viper-overriding-map)
@@ -1382,4 +1383,4 @@ This option is appropriate if you like Emacs-style words."
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
-;;;  viper-util.el ends here
+;;; viper-util.el ends here

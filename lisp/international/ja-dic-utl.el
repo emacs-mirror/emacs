@@ -1,4 +1,4 @@
-;;; ja-dic-utl.el --- Utilities for handling Japanese dictionary (SKK-JISYO.L)
+;;; ja-dic-utl.el --- utilities for handling Japanese dictionary (SKK-JISYO.L)
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -213,8 +213,8 @@ LEIM is available from the same ftp directory as Emacs."))
 ;;
 (provide 'ja-dic-utl)
 
-;; ja-dic-utl.el ends here
-
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
+
+;;; ja-dic-utl.el ends here

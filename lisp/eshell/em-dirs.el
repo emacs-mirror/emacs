@@ -1,4 +1,4 @@
-;;; em-dirs --- directory navigation commands
+;;; em-dirs.el --- directory navigation commands
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

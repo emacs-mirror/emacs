@@ -1,4 +1,4 @@
-;;; esh-io --- I/O management
+;;; esh-io.el --- I/O management
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

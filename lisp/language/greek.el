@@ -1,4 +1,4 @@
-;;; greek.el --- Support for Greek
+;;; greek.el --- support for Greek
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

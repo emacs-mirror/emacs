@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Comments:
+;;; Commentary:
 
 ;; Convert cxterm dictionary (of TIT format) to quail-package.
 ;;
@@ -1179,8 +1179,8 @@ to store generated Quail packages."
 	(miscdic-convert filename dir))))
   (kill-emacs 0))
 
-;;; titdic-cnv.el ends here
-
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
+
+;;; titdic-cnv.el ends here

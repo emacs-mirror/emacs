@@ -1,4 +1,4 @@
-;;; esh-opt --- command options processing
+;;; esh-opt.el --- command options processing
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

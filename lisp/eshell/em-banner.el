@@ -1,4 +1,4 @@
-;;; em-banner --- sample module that displays a login banner
+;;; em-banner.el --- sample module that displays a login banner
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

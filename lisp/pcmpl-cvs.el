@@ -1,4 +1,4 @@
-;;; pcmpl-cvs --- functions for dealing with cvs completions
+;;; pcmpl-cvs.el --- functions for dealing with cvs completions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

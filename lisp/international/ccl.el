@@ -317,7 +317,7 @@
 (defun ccl-check-register (arg cmd)
   (if (get arg 'ccl-register-number)
       arg
-    (error "CCL: Invalid register %s in %s." arg cmd)))
+    (error "CCL: Invalid register %s in %s" arg cmd)))
 
 ;; Check if ARG is a valid CCL command.
 (defun ccl-check-compile-function (arg cmd)
@@ -1483,4 +1483,4 @@ See the documentation of `define-ccl-program' for the detail of CCL program."
 
 (provide 'ccl)
 
-;; ccl.el ends here
+;;; ccl.el ends here

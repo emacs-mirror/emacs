@@ -1,4 +1,4 @@
-;;; em-hist --- history list management
+;;; em-hist.el --- history list management
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

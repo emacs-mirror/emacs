@@ -1,4 +1,4 @@
-;;; esh-cmd --- command invocation
+;;; esh-cmd.el --- command invocation
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

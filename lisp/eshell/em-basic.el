@@ -1,4 +1,4 @@
-;;; em-basic --- basic shell builtin commands
+;;; em-basic.el --- basic shell builtin commands
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

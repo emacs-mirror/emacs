@@ -1,4 +1,4 @@
-;;; encoded-kb.el --- Handler to input multibyte characters encoded somehow
+;;; encoded-kb.el --- handler to input multibyte characters encoded somehow
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -19,6 +19,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (defvar encoded-kbd-mode nil
   "Non-nil if in Encoded-kbd minor mode.")

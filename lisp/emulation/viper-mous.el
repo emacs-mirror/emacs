@@ -19,7 +19,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Code
+;;; Commentary:
+
+;;; Code:
 
 (provide 'viper-mous)
 
@@ -247,7 +249,7 @@ On single or double click, returns the word as determined by
 	      (goto-char click-pos)
 	      (setq click-word
 		    (funcall viper-surrounding-word-function count click-count)))
-	  (error "Click must be over a window."))
+	  (error "Click must be over a window"))
 	click-word))))
 
 
@@ -664,4 +666,4 @@ This buffer may be different from the one where the click occurred."
 ;;; End:
 
 
-;;;  viper-mous.el ends here
+;;; viper-mous.el ends here

@@ -4,3 +4,5 @@
 
 ;; Make F11 an escape key.
 (define-key function-key-map "\e[23~" [?\e])
+
+;;; vt200.el ends here

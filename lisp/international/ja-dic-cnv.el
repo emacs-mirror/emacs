@@ -1,4 +1,4 @@
-;;; ja-dic-cnv.el --- Convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp
+;;; ja-dic-cnv.el --- convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -562,8 +562,8 @@ To get complete usage, invoke:
 
 (provide 'ja-dic-cnv)
 
-;; ja-dic-cnv.el ends here
-
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
+
+;;; ja-dic-cnv.el ends here

@@ -1,10 +1,10 @@
-;;; viper.el --- A full-featured Vi emulator for GNU Emacs and XEmacs,
+;;; viper.el --- a full-featured Vi emulator for GNU Emacs and XEmacs,
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 ;;
-;;  Keywords: emulations
-;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Keywords: emulations
+;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
@@ -294,7 +294,7 @@
 ;;    much easier.
 ;;
 
-;; Code
+;;; Code:
 
 (require 'advice)
 (require 'cl)
@@ -1280,4 +1280,4 @@ These two lines must come in the order given.
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
-;;;  viper.el ends here
+;;; viper.el ends here

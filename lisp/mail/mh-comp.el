@@ -1,5 +1,5 @@
-;;; mh-comp --- mh-e functions for composing messages
-;; Time-stamp: <95/08/19 17:48:59 gildea>
+;;; mh-comp.el --- mh-e functions for composing messages
+;; Time-stamp: <2001-07-15 09:36:30 pavel>
 
 ;; Copyright (C) 1993,1995,1997,2000  Free Software Foundation, Inc.
 
@@ -7,7 +7,7 @@
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
 
-;; This file is part of mh-e, part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.20 2000/11/02 12:37:38 gerd Exp $
+;; $Id: mh-comp.el,v 1.21 2001/02/08 00:01:35 fx Exp $
 
 ;;; Code:
 
@@ -576,7 +576,7 @@ See also documentation for `\\[mh-send]' function."
 		  (if (y-or-n-p
 			(format "A draft exists.  Use for %s? " use))
 		      (if mh-error-if-no-draft
-			  (error "A prior draft exists."))
+			  (error "A prior draft exists"))
 		    t)))
 	 (erase-buffer)
 	 (insert-file-contents initial-contents)
@@ -1103,3 +1103,5 @@ various types of components in a message, see
 (autoload 'mh-revert-mhn-edit "mh-mime"
   "Undoes the effect of \\[mh-edit-mhn] by reverting to the backup file.
 Optional non-nil argument means don't ask for confirmation." t)
+
+;;; mh-comp.el ends here

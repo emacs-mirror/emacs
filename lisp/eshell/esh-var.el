@@ -1,4 +1,4 @@
-;;; esh-var --- handling of variables
+;;; esh-var.el --- handling of variables
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

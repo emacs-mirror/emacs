@@ -1,4 +1,4 @@
-;;; pcmpl-unix --- standard UNIX completions
+;;; pcmpl-unix.el --- standard UNIX completions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
@@ -18,6 +18,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

@@ -1,4 +1,4 @@
-;;; esh-test --- Eshell test suite
+;;; esh-test.el --- Eshell test suite
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -1,4 +1,4 @@
-;;; cyrillic.el --- Support for Cyrillic -*- coding: iso-2022-7bit; -*-
+;;; cyrillic.el --- support for Cyrillic -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,11 +1,11 @@
-;;; midnight.el --- run something every midnight, e.g., kill old buffers.
+;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
 ;;; Copyright (C) 1998 Free Software Foundation, Inc.
 
-;;; Author: Sam Steingold <sds@usa.net>
-;;; Maintainer: Sam Steingold <sds@usa.net>
-;;; Created: 1998-05-18
-;;; Keywords: utilities
+;; Author: Sam Steingold <sds@usa.net>
+;; Maintainer: Sam Steingold <sds@usa.net>
+;; Created: 1998-05-18
+;; Keywords: utilities
 
 ;; This file is part of GNU Emacs.
 

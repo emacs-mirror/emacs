@@ -3,6 +3,8 @@
 ;;; This is in the public domain, since it was distributed
 ;;; by its author without a copyright notice in 1986.
 
+;; This file is part of GNU Emacs.
+
 ;; Keywords: games
 
 ;;; Commentary:

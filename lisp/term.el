@@ -2,9 +2,9 @@
 
 ;;; Copyright (C) 1988, 1990, 1992, 1994, 1995 Free Software Foundation, Inc.
 
-;;; Author: Per Bothner <bothner@cygnus.com>
-;;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
-;;; Keywords: processes
+;; Author: Per Bothner <bothner@cygnus.com>
+;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
+;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,8 @@
 ;;; Marco Melgazzi <marco@techie.com>.
 
 ;;; To see what I've modified and where it came from search for '-mm'
+
+;;; Commentary:
 
 ;;; Speed considerations and a few caveats
 ;;; --------------------------------------
@@ -390,7 +392,7 @@
 ;; term-mode-hook is the term mode hook.  Basically for your keybindings.
 ;; term-load-hook is run after loading in this package.
 
-;; Code:
+;;; Code:
 
 ;; This is passed to the inferior in the EMACS environment variable,
 ;; so it is important to increase it if there are protocol-relevant changes.

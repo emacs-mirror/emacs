@@ -1,4 +1,4 @@
-;;; esh-maint --- init code for building eshell
+;;; esh-maint.el --- init code for building eshell
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

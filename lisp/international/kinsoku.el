@@ -1,4 +1,4 @@
-;;; kinsoku.el --- `Kinsoku' processing funcs. -*- coding: iso-2022-7bit; -*-
+;;; kinsoku.el --- `Kinsoku' processing funcs -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -170,4 +170,4 @@ the context of text formatting."
 	      (aref (char-category-set (preceding-char)) ?<))
 	  (kinsoku-shorter linebeg))))
 
-;; kinsoku.el ends here
+;;; kinsoku.el ends here

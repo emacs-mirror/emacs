@@ -1,4 +1,4 @@
-;;; em-rebind --- rebind keys when point is at current input
+;;; em-rebind.el --- rebind keys when point is at current input
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

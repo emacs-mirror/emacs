@@ -1,4 +1,4 @@
-;;; em-cmpl --- completion using the TAB key
+;;; em-cmpl.el --- completion using the TAB key
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -1,4 +1,4 @@
-;;; esh-module --- Eshell modules
+;;; esh-module.el --- Eshell modules
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -66,3 +66,5 @@
 (define-key function-key-map "\eOw" [kp-7])
 (define-key function-key-map "\eOx" [kp-8])
 (define-key function-key-map "\eOy" [kp-9])
+
+;;; lk201.el ends here

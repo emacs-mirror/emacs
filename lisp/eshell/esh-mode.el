@@ -1,4 +1,4 @@
-;;; esh-mode --- user interface
+;;; esh-mode.el --- user interface
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

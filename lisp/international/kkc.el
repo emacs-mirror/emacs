@@ -655,4 +655,4 @@ and change the current conversion to the last one in the group."
 ;;
 (provide 'kkc)
 
-;; kkc.el ends here
+;;; kkc.el ends here

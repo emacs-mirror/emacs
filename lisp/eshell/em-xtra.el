@@ -1,4 +1,4 @@
-;;; em-xtra --- extra alias functions
+;;; em-xtra.el --- extra alias functions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -1,9 +1,9 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
-;; Time-stamp: <95/10/22 17:58:16 gildea>
+;; Time-stamp: <2001-07-15 09:52:59 pavel>
 
 ;; Copyright (C) 1993, 1995, 1997, 2000 Free Software Foundation, Inc.
 
-;; This file is part of mh-e, part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -579,7 +579,7 @@ Non-nil third argument means not to show the message."
 	    (if (not (mh-folder-name-p mh-draft-folder))
 		(setq mh-draft-folder (format "+%s" mh-draft-folder)))
 	    (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
-		(error "Draft folder \"%s\" not found.  Create it and try again."
+		(error "Draft folder \"%s\" not found.  Create it and try again"
 		       (mh-expand-file-name mh-draft-folder)))))
       (setq mh-inbox (mh-get-profile-field "Inbox:"))
       (cond ((not mh-inbox)
@@ -978,7 +978,7 @@ directory names."
 						 (end-of-line)
 						 (point))))
 	     (display-buffer (current-buffer))
-	     (error "%s failed with status %d.  See error message in other window."
+	     (error "%s failed with status %d.  See error message in other window"
 		    command status)))))))
 
 

@@ -7,7 +7,7 @@
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
 
-;; This file is part of mh-e, part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.26 2000/08/16 20:38:40 monnier Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.27 2000/11/02 12:37:54 gerd Exp $")
 
 ;;; Code:
 
@@ -629,7 +629,7 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   (save-excursion
     (mh-goto-msg msg nil t)
     (if (looking-at mh-refiled-msg-regexp)
-	(error "Message %d is refiled.  Undo refile before deleting." msg))
+	(error "Message %d is refiled.  Undo refile before deleting" msg))
     (if (looking-at mh-deleted-msg-regexp)
 	nil
 	(mh-set-folder-modified-p t)
@@ -643,7 +643,7 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   (save-excursion
     (mh-goto-msg msg nil t)
     (cond ((looking-at mh-deleted-msg-regexp)
-	   (error "Message %d is deleted.  Undo delete before moving." msg))
+	   (error "Message %d is deleted.  Undo delete before moving" msg))
 	  ((looking-at mh-refiled-msg-regexp)
 	   (if (y-or-n-p
 		(format "Message %d already refiled.  Copy to %s as well? "

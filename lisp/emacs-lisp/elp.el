@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1994,1995,1997,1998, 2001 Free Software Foundation, Inc.
 
-;; Author:        1994-1998 Barry A. Warsaw
-;; Maintainer:    FSF
-;; Created:       26-Feb-1994
-;; Keywords:      debugging lisp tools
+;; Author: Barry A. Warsaw
+;; Maintainer: FSF
+;; Created: 26-Feb-1994
+;; Keywords: debugging lisp tools
 
 ;; This file is part of GNU Emacs.
 
@@ -331,7 +331,7 @@ For example, to instrument all ELP functions, do the following:
     \\[elp-instrument-package] RET elp- RET"
   (interactive "sPrefix of package to instrument: ")
   (if (zerop (length prefix))
-      (error "Instrumenting all Emacs functions would render Emacs unusable."))
+      (error "Instrumenting all Emacs functions would render Emacs unusable"))
   (elp-instrument-list
    (mapcar
     'intern
@@ -362,7 +362,7 @@ Use optional LIST if provided instead."
   (interactive "aFunction to reset: ")
   (let ((info (get funsym elp-timer-info-property)))
     (or info
-	(error "%s is not instrumented for profiling." funsym))
+	(error "%s is not instrumented for profiling" funsym))
     (aset info 0 0)			;reset call counter
     (aset info 1 0.0)			;reset total time
     ;; don't muck with aref 2 as that is the old symbol definition
@@ -417,7 +417,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	 (func (aref info 2))
 	 result)
     (or func
-	(error "%s is not instrumented for profiling." funsym))
+	(error "%s is not instrumented for profiling" funsym))
     (if (not elp-record-p)
 	;; when not recording, just call the original function symbol
 	;; and return the results.
@@ -591,4 +591,4 @@ displayed."
 
 (provide 'elp)
 
-;; elp.el ends here
+;;; elp.el ends here

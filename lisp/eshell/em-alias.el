@@ -1,4 +1,4 @@
-;;; em-alias --- creation and management of command aliases
+;;; em-alias.el --- creation and management of command aliases
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -19,7 +19,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Code
+;;; Commentary:
+
+;;; Code:
 
 (provide 'viper-keym)
 
@@ -630,4 +632,4 @@ form ((key . function) (key . function) ... )."
 ;;; End:
 
 
-;;;  viper-keym.el ends here
+;;; viper-keym.el ends here

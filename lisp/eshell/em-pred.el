@@ -1,4 +1,4 @@
-;;; em-pred --- argument predicates and modifiers (ala zsh)
+;;; em-pred.el --- argument predicates and modifiers (ala zsh)
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
@@ -57,6 +57,8 @@ ordinary strings."
 ;;
 ;; See the zsh docs for more on the syntax ([(zsh.info)Filename
 ;; Generation]).
+
+;;; Code:
 
 ;;; User Variables:
 

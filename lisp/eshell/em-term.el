@@ -1,4 +1,4 @@
-;;; em-term --- running visual commands
+;;; em-term.el --- running visual commands
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

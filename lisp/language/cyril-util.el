@@ -1,4 +1,4 @@
-;;; cyril-util.el ---  utilities for Cyrillic scripts
+;;; cyril-util.el --- utilities for Cyrillic scripts
 
 ;; Copyright (C) 1997  Free Software Foundation, Inc.
 
@@ -20,6 +20,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -189,8 +191,8 @@ If the argument is nil, we return the display table to its standard state."
 ;;
 (provide 'cyril-util)
 
-;;; cyril-util.el ends here
-
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
+
+;;; cyril-util.el ends here

@@ -18,7 +18,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Code
+;;; Commentary:
+
+;;; Code:
 
 (provide 'viper-cmd)
 (require 'advice)
@@ -1489,7 +1491,7 @@ If the prefix argument, ARG, is non-nil, it is used instead of `val'."
 	    (com (nth 2 viper-d-com))
 	    (reg (nth 3 viper-d-com)))
         (if (null val) (setq val (nth 1 viper-d-com)))
-        (if (null m-com) (error "No previous command to repeat."))
+        (if (null m-com) (error "No previous command to repeat"))
         (setq viper-use-register reg)
 	(if (nth 4 viper-d-com) ; text inserted by command
 	    (setq viper-last-insertion (nth 4 viper-d-com)
@@ -4902,4 +4904,4 @@ Mail anyway (y or n)? ")
   
   
 
-;;;  viper-cmd.el ends here
+;;; viper-cmd.el ends here

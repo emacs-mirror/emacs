@@ -1,4 +1,4 @@
-;;; em-ls --- implementation of ls in Lisp
+;;; em-ls.el --- implementation of ls in Lisp
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

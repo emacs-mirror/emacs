@@ -1,4 +1,4 @@
-;;; slovak.el --- Support for Slovak -*- coding: iso-2022-7bit; -*-
+;;; slovak.el --- support for Slovak -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
@@ -48,4 +48,4 @@ and select's the Slovak tutorial."))
 
 (provide 'slovak)
 
-;; slovak.el ends here
+;;; slovak.el ends here

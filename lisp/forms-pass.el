@@ -1,6 +1,12 @@
 ;;; forms-pass.el --- passwd file demo for forms-mode
 
+;; This file is part of GNU Emacs.
+
+;;; Commentary:
+
 ;; This demo visits your passwd file.
+
+;;; Code:
 
 ;; use yp if present
 (or (file-exists-p (setq forms-file "/var/yp/src/passwd"))
@@ -23,3 +29,5 @@
        "\n\n"
        "Shell: "	7
        "\n"))
+
+;;; forms-pass.el ends here

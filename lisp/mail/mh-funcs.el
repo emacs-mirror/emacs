@@ -1,9 +1,9 @@
-;;; mh-funcs --- mh-e functions not everyone will use right away
-;; Time-stamp: <95/08/19 16:44:06 gildea>
+;;; mh-funcs.el --- mh-e functions not everyone will use right away
+;; Time-stamp: <2001-07-14 13:08:45 pavel>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
-;; This file is part of mh-e, part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.4 1995/11/03 02:29:34 kwzh Exp erik $
+;; $Id: mh-funcs.el,v 1.5 1996/01/14 07:34:30 erik Exp $
 
 ;;; Code:
 
@@ -352,3 +352,4 @@ Default directory is the last directory used, or initially the value of
       (mh-handle-process-error command value))
     (insert "\n(mh-store finished)\n")))
 	
+;;; mh-funcs.el ends here

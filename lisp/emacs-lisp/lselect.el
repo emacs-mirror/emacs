@@ -24,6 +24,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;;; The selection code requires us to use certain symbols whose names are
@@ -229,4 +231,4 @@ the kill ring or the Clipboard."
 
 (provide 'lselect)
 
-;;; lselect.el ends here.
+;;; lselect.el ends here

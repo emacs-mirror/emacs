@@ -30,6 +30,8 @@
 ;; This file does not define the syntax for Latin-N character sets;
 ;; those are defined by the files latin-N.el.
 
+;;; Code:
+
 ;;; Predefined categories.
 
 ;; For each character set.
@@ -827,4 +829,4 @@
 ;;; coding: iso-2022-7bit
 ;;; End:
 
-;;; end of characters.el
+;;; characters.el ends here

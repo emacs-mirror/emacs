@@ -1,4 +1,4 @@
-;;; em-glob --- extended file name globbing
+;;; em-glob.el --- extended file name globbing
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

@@ -1,4 +1,4 @@
-;;; esh-ext --- commands external to Eshell
+;;; esh-ext.el --- commands external to Eshell
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
