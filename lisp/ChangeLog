@@ -1,5 +1,7 @@
 2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* tmm.el (tmm-completion-prompt): Doc fix.
+
 	* hilit-chg.el (global-highlight-changes): Capitalize status
 	texts.
 
