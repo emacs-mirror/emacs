@@ -1,3 +1,13 @@
+2001-01-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fdelete_other_windows): Set window's window_end_valid
+	to nil when changing the window's start.  Don't change the
+	window's start when its top position hasn't changed.  If we do,
+	this will set the window's optional_new_start, which act's like a
+	force_start during redisplay with C-x 1 M-> under particular
+	circumstances (see report from Per Starback to emacs-pretest-bug
+	from 2000-12-13.).
+
 2001-01-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Reset it->c if taking the
