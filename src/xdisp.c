@@ -1546,8 +1546,11 @@ redisplay_window (window, just_this_one)
 	  update_mode_line = 1;
 	  w->update_mode_line = Qt;
 	  if (! NILP (Vwindow_scroll_functions))
-	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
-				  make_number (startp));
+	    {
+	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				    make_number (startp));
+	      startp = marker_position (w->start);
+	    }
 	}
       XSETFASTINT (w->last_modified, 0);
       if (startp < BEGV) startp = BEGV;
@@ -1722,8 +1725,11 @@ redisplay_window (window, just_this_one)
       if (PT >= pos.bufpos)
 	{
 	  if (! NILP (Vwindow_scroll_functions))
-	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
-				  make_number (pos.bufpos));
+	    {
+	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				    make_number (pos.bufpos));
+	      pos.bufpos = marker_position (w->start);
+	    }
 	  try_window (window, pos.bufpos);
 	  if (cursor_vpos >= 0)
 	    {
@@ -1750,8 +1756,11 @@ recenter:
      in case the window-scroll-functions functions get errors.  */
   Fset_marker (w->start, make_number (pos.bufpos), Qnil);
   if (! NILP (Vwindow_scroll_functions))
-    run_hook_with_args_2 (Qwindow_scroll_functions, window,
-			  make_number (pos.bufpos));
+    {
+      run_hook_with_args_2 (Qwindow_scroll_functions, window,
+			    make_number (pos.bufpos));
+      pos.bufpos = marker_position (w->start);
+    }
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
