@@ -331,7 +331,6 @@ which filenames are considered temporary.
 
 If invoked with a prefix argument, or if there is no server process running, 
 starts server process and that is all.  Invoked by \\[server-edit]."
-
   (interactive "P")
   (if (or arg
 	  (not server-process)
@@ -347,7 +346,13 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	((framep server-window)
 	 (select-window (frame-selected-window server-window))))
   (if (window-minibuffer-p (selected-window))
-      (select-window (next-window nil 'nomini t)))
+      (select-window (next-window nil 'nomini 0)))
+  ;; Move to a non-dedicated window, if we have one.
+  (let ((last-window (previous-window nil 'nomini 0)))
+    (while (and (window-dedicated-p (selected-window))
+		(not (eq last-window (selected-window))))
+      (select-window (next-window nil 'nomini 0))))
+  (set-window-dedicated-p (selected-window) nil)
   (if next-buffer
       (if (and (bufferp next-buffer)
 	       (buffer-name next-buffer))
