@@ -4500,7 +4500,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		do
 		  {
 		    int pat_charlen, buf_charlen;
-		    int pat_ch, buf_ch;
+		    unsigned int pat_ch, buf_ch;
 
 		    PREFETCH ();
 		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
@@ -4543,7 +4543,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	case anychar:
 	  {
 	    int buf_charlen;
-	    int buf_ch;
+	    unsigned int buf_ch;
 
 	    DEBUG_PRINT1 ("EXECUTING anychar.\n");
 
