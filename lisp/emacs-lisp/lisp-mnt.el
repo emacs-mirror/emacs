@@ -149,7 +149,7 @@ then $identifier: doc string $ is used by GNU ident(1)"
   :type 'regexp
   :group 'lisp-mnt)
 
-(defcustom lm-history-header "Change Log\\|History"
+(defcustom lm-history-header "Change ?Log\\|History"
   "Regexp which matches the start of code log section."
   :type 'regexp
   :group 'lisp-mnt)
