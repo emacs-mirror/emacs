@@ -1,3 +1,8 @@
+2004-09-04  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* eshell/em-pred.el (eshell-predicate-help-string): Doc fix.
+	Support choosing seconds with "s".
+
 2004-09-04  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* terminal.el (te-escape): Show `?' in prompt for help key.
