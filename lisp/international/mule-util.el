@@ -254,7 +254,7 @@ coding-spec (see the function `make-coding-system')."
   (and coding-system
        (symbolp coding-system)
        (or (get coding-system 'unification-table-for-decode)
-	   (coding-system-unification-table
+	   (coding-system-unification-table-for-decode
 	    (get coding-system 'coding-system)))))
 
 ;;;###autoload
@@ -263,7 +263,7 @@ coding-spec (see the function `make-coding-system')."
   (and coding-system
        (symbolp coding-system)
        (or (get coding-system 'unification-table-for-encode)
-	   (coding-system-unification-table
+	   (coding-system-unification-table-for-encode
 	    (get coding-system 'coding-system)))))
 
 (defun coding-system-lessp (x y)
