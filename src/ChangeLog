@@ -1,5 +1,11 @@
 2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* fileio.c (FILE_SYSTEM_CASE): Define macro if not already defined.
+	(Ffile_name_directory): Use FILE_SYSTEM_CASE unconditionally.
+	(Fexpand_file_name): Likewise.
+
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* emacs.c (Fkill_emacs): Use EXIT_SUCCESS;
 	no longer special-case VMS.  Add bogus return value.
 
