@@ -468,12 +468,9 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
   for (;!NILP (defns); defns = Fcdr (defns))
     {
       elt = Fcar (defns);
-      name = Fcar (elt);
-      elt = Fcdr (elt);
-      exp = Fcar (elt);
-      elt = Fcdr (elt);
-      hook = Fcar (elt);
-      elt = Fcdr (elt);
+      name  = Fcar (elt);	elt = Fcdr (elt);
+      exp   = Fcar (elt);	elt = Fcdr (elt);
+      hook  = Fcar (elt);	elt = Fcdr (elt);
       count = Fcar (elt);
       Fdefine_abbrev (table, name, exp, hook, count);
     }
