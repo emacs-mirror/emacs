@@ -400,10 +400,8 @@ Must be set before Emerge is loaded."
   ;; Allow emerge-fast-keymap to be referenced indirectly
   (fset 'emerge-fast-keymap emerge-fast-keymap)
   ;; Suppress write-file and save-buffer
-  (substitute-key-definition 'write-file 'emerge-query-write-file
-			     emerge-fast-keymap (current-global-map))
-  (substitute-key-definition 'save-buffer 'emerge-query-save-buffer
-			     emerge-fast-keymap (current-global-map))
+  (define-key emerge-fast-keymap [remap write-file] 'emerge-query-write-file)
+  (define-key emerge-fast-keymap [remap save-buffer] 'emerge-query-save-buffer)
 
   (define-key emerge-basic-keymap [menu-bar] (make-sparse-keymap))
 
@@ -1432,10 +1430,8 @@ Otherwise, the A or B file present is copied to the output file."
   (substitute-key-definition 'save-buffer
 			     'emerge-query-save-buffer
 			     emerge-edit-keymap)
-  (substitute-key-definition 'write-file 'emerge-query-write-file
-			     emerge-edit-keymap (current-global-map))
-  (substitute-key-definition 'save-buffer 'emerge-query-save-buffer
-			     emerge-edit-keymap (current-global-map))
+  (define-key emerge-edit-keymap [remap write-file] 'emerge-query-write-file)
+  (define-key emerge-edit-keymap [remap save-buffer] 'emerge-query-save-buffer)
   (use-local-map emerge-fast-keymap)
   (setq emerge-edit-mode nil)
   (setq emerge-fast-mode t))
