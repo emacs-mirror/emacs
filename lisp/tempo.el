@@ -3,9 +3,9 @@
 
 ;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
-;; Version: 1.2.1
+;; Version: 1.2.2
 ;; Keywords: extensions, languages, tools
-;; $Revision: 1.5 $
+;; $Revision: 1.6 $
 
 ;; This file is part of GNU Emacs.
 
@@ -558,17 +558,18 @@ Whenever it is needed again it will be rebuilt."
 (defun tempo-build-collection ()
   "Build a collection of all the tags and return it.
 If `tempo-dirty-collection' is NIL, the old collection is reused."
-  (setq tempo-dirty nil)
-  (or (and (not tempo-dirty-collection)
-	   tempo-collection)
-      (setq tempo-collection
-	    (apply (function append)
-		   (mapcar (function (lambda (tag-list)
+  (prog1
+      (or (and (not tempo-dirty-collection)
+	       tempo-collection)
+	  (setq tempo-collection
+		(apply (function append)
+		       (mapcar (function (lambda (tag-list)
 					; If the format for
 					; tempo-local-tags changes,
 					; change this
-				       (eval (car tag-list))))
-			   tempo-local-tags)))))
+					   (eval (car tag-list))))
+			       tempo-local-tags))))
+    (setq tempo-dirty-collection nil)))
 
 ;;;
 ;;; tempo-find-match-string
@@ -597,7 +598,7 @@ if no reasonable string is found."
 (defun tempo-complete-tag (&optional silent)
   "Look for a tag and expand it.
 All the tags in the tag lists in `tempo-local-tags'
-(this includes `tempo-tags') are searched for a match for the text
+\(this includes `tempo-tags') are searched for a match for the text
 before the point.  The way the string to match for is determined can
 be altered with the variable `tempo-match-finder'. If
 `tempo-match-finder' returns nil, then the results are the same as
