@@ -300,10 +300,12 @@
     (defmacro defcustom (var value doc &rest args)
       (` (defvar (, var) (, value) (, doc))))))
 
+(eval-when-compile (require 'smtpmail))
+(autoload 'mail-do-fcc "sendmail")
 
 (defgroup feedmail nil
   "Assist other email packages to massage outgoing messages."
-  :link (url-link "http://www.carpenter.org/feedmail/feedmail.html")
+  :link '(url-link "http://www.carpenter.org/feedmail/feedmail.html")
   :group 'mail)
 
 (defgroup feedmail-misc nil
@@ -428,7 +430,6 @@ beginning of the body intact.  The result is that the Fcc: copy will
 consist only of the message headers, serving as a sort of an outgoing
 message log."
   :group 'feedmail-headers
-  ;;:type 'boolean
   :type '(choice (const nil) (const t) integer)
   )
 
@@ -1350,7 +1351,7 @@ complicated cases."
 ;;   Mon 14-Oct-1996; Douglas Gray Stephens
 ;;   modified to insert error for displaying
 (defun feedmail-buffer-to-smtpmail (prepped errors-to addr-listoid)
-  "Function which actually calls smtpmail-via-smtp to send buffer as e-mail."
+  "Function which actually calls `smtpmail-via-smtp' to send buffer as e-mail."
   ;; I'm not sure smtpmail.el is careful about the following
   ;; return value, but it also uses it internally, so I will fear
   ;; no evil.
@@ -1429,7 +1430,7 @@ FOLDING can be nil, in which case VALUE is used as-is.  If FOLDING is
 non-nil, feedmail \"smart filling\" is done on VALUE just before
 insertion.")
 
-
+;;;###autoload
 (defun feedmail-send-it ()
   "A function which is a suitable value for `send-mail-function'.
 To use it, you probably want something like this in your .emacs or
