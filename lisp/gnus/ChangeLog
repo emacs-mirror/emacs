@@ -1,3 +1,7 @@
+2001-01-22  Andreas Schwab  <schwab@suse.de>
+
+	* nnheader.el (gnus-delete-line): Autoload it as a macro.
+
 2001-01-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-forward): Use mule4.
