@@ -32,6 +32,9 @@ HP 9000 series 200 or 300 (-machine=hp9000s300)
   If you're running BSD, specify `-opsystem=bsd4-3'.
 NOTE-END */
 
+/* I don't understand why we have to do this at all!  -JimB */
+#if 0
+
 /* Do this here at the top of the file; including sys/wait.h may
    include <endian.h>, which defines BIG_ENDIAN, which will conflict
    with our definition of BIG_ENDIAN if we do this at the bottom.  */
@@ -41,6 +44,8 @@ NOTE-END */
 #define WAITTYPE int
 #endif
 #define WRETCODE(w) (((w) >> 8) & 0377)
+#endif
+
 #endif
 
 /* Define NOMULTIPLEJOBS on versions of HPUX before 6.5.  */
@@ -63,9 +68,10 @@ NOTE-END */
 
 /* Define BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
-/* Under BSD, <endian.h> defines this.  */
+/* Under BSD, <endian.h> defines this to be 4321; rather than fight with it,
+   we'll just give in.  Compatibility, akido style.  */
 #ifndef BIG_ENDIAN
-#define BIG_ENDIAN
+#define BIG_ENDIAN 4321
 #endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a

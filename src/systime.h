@@ -17,6 +17,14 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#if defined (HAVE_TIMEVAL) && !defined (NEED_TIME_H)
+/* NEED_TIME_H is necessary because some versions of HP/UX shouldn't
+   have this included; time.h should do the trick instead.  */
+
+#include <sys/time.h>
+
+#else
+
 /* _h_BSDTYPES is checked because on ISC unix, socket.h includes
    both time.h and sys/time.h, and the later file is protected
    from repeated inclusion.  We just hope that other systems will
@@ -25,12 +33,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <time.h>
 #endif /* _h_BSDTYPES */
 
-#ifdef HAVE_TIMEVAL
-#ifndef NEED_TIME_H		/* Some versions of HP/UX shouldn't have
-				   this included; time.h should do the trick
-				   instead.  */
-#include <sys/time.h>
+/* AIX needs both <sys/time.h> and <time.h>.  */
+#ifdef _AIX
+#include <time.h>
 #endif
+
 #endif
 
 
