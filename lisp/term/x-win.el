@@ -132,17 +132,16 @@
 		  geo)
 	  x-invocation-args (cdr x-invocation-args))))
 
-;; Handle the -name and -rn options.  Set the variable x-resource-name
-;; to the option's operand; if the switch was `-name', set the name of
+;; Handle the -name option.  Set the variable x-resource-name
+;; to the option's operand; set the name of
 ;; the initial frame, too.
-(defun x-handle-name-rn-switch (switch)
+(defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-resource-name (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args))
-  (if (string= switch "-name")
-      (setq initial-frame-alist (cons (cons 'name x-resource-name)
-				      initial-frame-alist))))
+  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+				  initial-frame-alist)))
 
 (defvar x-display-name nil
   "The X display name specifying server and X frame.")
