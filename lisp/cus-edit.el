@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9944
+;; Version: 1.9951
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -774,6 +774,26 @@ If VARIABLE has a `custom-type' property, it must be a widget and the
   (put var 'customized-value (list (custom-quote val))))
 
 ;;;###autoload
+(defun customize-save-variable (var val)
+  "Set the default for VARIABLE to VALUE, and save it for future sessions.
+If VARIABLE has a `custom-set' property, that is used for setting
+VARIABLE, otherwise `set-default' is used.
+
+The `customized-value' property of the VARIABLE will be set to a list
+with a quoted VALUE as its sole list member.
+
+If VARIABLE has a `variable-interactive' property, that is used as if
+it were the arg to `interactive' (which see) to interactively read the value.
+
+If VARIABLE has a `custom-type' property, it must be a widget and the
+`:prompt-value' property of that widget will be used for reading the value. " 
+  (interactive (custom-prompt-variable "Set and ave variable: "
+				       "Set and save value for %s as: "))
+  (funcall (or (get var 'custom-set) 'set-default) var val)
+  (put var 'saved-value (list (custom-quote val)))
+  (custom-save-all))
+
+;;;###autoload
 (defun customize ()
   "Select a customization buffer which you can use to set user options.
 User options are structured into \"groups\".
@@ -1109,6 +1129,7 @@ Reset all values in this buffer to their standard settings."
 		      options))))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
+  (message "Creating customization items %2d%%...done" 100)
   (unless (eq custom-buffer-style 'tree)
     (mapcar 'custom-magic-reset custom-options))
   (message "Creating customization setup...")
@@ -1119,45 +1140,46 @@ Reset all values in this buffer to their standard settings."
 ;;; The Tree Browser.
 
 ;;;###autoload
-(defun customize-browse ()
+(defun customize-browse (&optional group)
   "Create a tree browser for the customize hierarchy."
   (interactive)
-  (let ((group 'emacs))
-    (let ((name "*Customize Browser*"))
-      (kill-buffer (get-buffer-create name))
-      (switch-to-buffer (get-buffer-create name)))
-    (custom-mode)
-    (widget-insert "\
+  (unless group
+    (setq group 'emacs))
+  (let ((name "*Customize Browser*"))
+    (kill-buffer (get-buffer-create name))
+    (switch-to-buffer (get-buffer-create name)))
+  (custom-mode)
+  (widget-insert "\
 Square brackets show active fields; type RET or click mouse-1
 on an active field to invoke its action.
 Invoke [+] below to expand a group, and [-] to collapse an expanded group.\n")
-    (if custom-browse-only-groups
-	(widget-insert "\
+  (if custom-browse-only-groups
+      (widget-insert "\
 Invoke the [Group] button below to edit that item in another window.\n\n")
-      (widget-insert "Invoke the ") 
-      (widget-create 'item 
-		     :format "%t"
-		     :tag "[Group]"
-		     :tag-glyph "folder")
-      (widget-insert ", ")
-      (widget-create 'item 
-		     :format "%t"
-		     :tag "[Face]"
-		     :tag-glyph "face")
-      (widget-insert ", and ")
-      (widget-create 'item 
-		     :format "%t"
-		     :tag "[Option]"
-		     :tag-glyph "option")
-      (widget-insert " buttons below to edit that
+    (widget-insert "Invoke the ") 
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Group]"
+		   :tag-glyph "folder")
+    (widget-insert ", ")
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Face]"
+		   :tag-glyph "face")
+    (widget-insert ", and ")
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Option]"
+		   :tag-glyph "option")
+    (widget-insert " buttons below to edit that
 item in another window.\n\n"))
-    (let ((custom-buffer-style 'tree))
-      (widget-create 'custom-group 
-		     :custom-last t
-		     :custom-state 'unknown
-		     :tag (custom-unlispify-tag-name group)
-		     :value group))
-    (goto-char (point-min))))
+  (let ((custom-buffer-style 'tree))
+    (widget-create 'custom-group 
+		   :custom-last t
+		   :custom-state 'unknown
+		   :tag (custom-unlispify-tag-name group)
+		   :value group))
+  (goto-char (point-min)))
 
 (define-widget 'custom-browse-visibility 'item
   "Control visibility of of items in the customize tree browser."
@@ -2549,19 +2571,32 @@ and so forth.  The remaining group tags are shown with
 	(insert "--------")))
   (widget-default-create widget))
 
+(defun custom-group-members (symbol groups-only)
+  "Return SYMBOL's custom group members.
+If GROUPS-ONLY non-nil, return only those members that are groups."
+  (if (not groups-only)
+      (get symbol 'custom-group)
+    (let (members)
+      (dolist (entry (get symbol 'custom-group))
+	(when (eq (nth 1 entry) 'custom-group)
+	  (push entry members)))
+      (nreverse members))))
+
 (defun custom-group-value-create (widget)
   "Insert a customize group for WIDGET in the current buffer."
-  (let ((state (widget-get widget :custom-state))
-	(level (widget-get widget :custom-level))
-	(indent (widget-get widget :indent))
-	(prefix (widget-get widget :custom-prefix))
-	(buttons (widget-get widget :buttons))
-	(tag (widget-get widget :tag))
-	(symbol (widget-value widget)))
+  (let* ((state (widget-get widget :custom-state))
+	 (level (widget-get widget :custom-level))
+	 (indent (widget-get widget :indent))
+	 (prefix (widget-get widget :custom-prefix))
+	 (buttons (widget-get widget :buttons))
+	 (tag (widget-get widget :tag))
+	 (symbol (widget-value widget))
+	 (members (custom-group-members symbol
+					(and (eq custom-buffer-style 'tree)
+					     custom-browse-only-groups))))
     (cond ((and (eq custom-buffer-style 'tree)
 		(eq state 'hidden)
-		(or (get symbol 'custom-group)
-		    (custom-unloaded-widget-p widget)))
+		(or members (custom-unloaded-widget-p widget)))
 	   (custom-browse-insert-prefix prefix)
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-visibility 
@@ -2576,7 +2611,7 @@ and so forth.  The remaining group tags are shown with
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
 	  ((and (eq custom-buffer-style 'tree)
-		(zerop (length (get symbol 'custom-group))))
+		(zerop (length members)))
 	   (custom-browse-insert-prefix prefix)
 	   (insert "[ ]-- ")
 	   ;; (widget-glyph-insert nil "[ ]" "empty")
@@ -2589,7 +2624,7 @@ and so forth.  The remaining group tags are shown with
 	  ((eq custom-buffer-style 'tree)
 	   (custom-browse-insert-prefix prefix)
 	   (custom-load-widget widget)
-	   (if (zerop (length (get symbol 'custom-group)))
+	   (if (zerop (length members))
 	       (progn 
 		 (custom-browse-insert-prefix prefix)
 		 (insert "[ ]-- ")
@@ -2613,7 +2648,7 @@ and so forth.  The remaining group tags are shown with
 	     (insert " " tag "\n")
 	     (widget-put widget :buttons buttons)
 	     (message "Creating group...")
-	     (let* ((members (custom-sort-items (get symbol 'custom-group)
+	     (let* ((members (custom-sort-items members
 			      custom-browse-sort-alphabetically
 			      custom-browse-order-groups))
 		    (prefixes (widget-get widget :custom-prefixes))
@@ -2626,18 +2661,16 @@ and so forth.  The remaining group tags are shown with
 	       (while members
 		 (setq entry (car members)
 		       members (cdr members))
-		 (when (or (not custom-browse-only-groups)
-			   (eq (nth 1 entry) 'custom-group))
-		   (push (widget-create-child-and-convert
-			  widget (nth 1 entry)
-			  :group widget
-			  :tag (custom-unlispify-tag-name (nth 0 entry))
-			  :custom-prefixes custom-prefix-list
-			  :custom-level (1+ level)
-			  :custom-last (null members)
-			  :value (nth 0 entry)
-			  :custom-prefix prefix)
-			 children)))
+		 (push (widget-create-child-and-convert
+			widget (nth 1 entry)
+			:group widget
+			:tag (custom-unlispify-tag-name (nth 0 entry))
+			:custom-prefixes custom-prefix-list
+			:custom-level (1+ level)
+			:custom-last (null members)
+			:value (nth 0 entry)
+			:custom-prefix prefix)
+		       children))
 	       (widget-put widget :children (reverse children)))
 	     (message "Creating group...done")))
 	  ;; Nested style.
@@ -2732,7 +2765,7 @@ and so forth.  The remaining group tags are shown with
 	   ;; Members.
 	   (message "Creating group...")
 	   (custom-load-widget widget)
-	   (let* ((members (custom-sort-items (get symbol 'custom-group)
+	   (let* ((members (custom-sort-items members
 					      custom-buffer-sort-alphabetically
 					      custom-buffer-order-groups))
 		  (prefixes (widget-get widget :custom-prefixes))
@@ -2870,8 +2903,11 @@ Optional EVENT is the location for the menu."
 
 ;;; The `custom-save-all' Function.
 ;;;###autoload
-(defcustom custom-file (if (featurep 'xemacs)
-			   "~/.xemacs-custom"
+(defcustom custom-file (if (boundp 'emacs-user-extension-dir)
+			   (concat "~"
+				   init-file-user
+				   emacs-user-extension-dir
+				   "options.el")
 			 "~/.emacs")
   "File used for storing customization information.
 If you change this from the default \"~/.emacs\" you need to
@@ -2985,11 +3021,12 @@ Leave point at the location of the call, or after the last expression."
 ;;;###autoload
 (defun custom-save-all ()
   "Save all customizations in `custom-file'."
-  (custom-save-variables)
-  (custom-save-faces)
-  (save-excursion
-    (set-buffer (find-file-noselect custom-file))
-    (save-buffer)))
+  (let ((inhibit-read-only t))
+    (custom-save-variables)
+    (custom-save-faces)
+    (save-excursion
+      (set-buffer (find-file-noselect custom-file))
+      (save-buffer))))
 
 ;;; The Customize Menu.
 
@@ -3148,6 +3185,9 @@ The following commands are available:
 
 Move to next button or editable field.     \\[widget-forward]
 Move to previous button or editable field. \\[widget-backward]
+\\<widget-field-keymap>\
+Complete content of editable text field.   \\[widget-complete]
+\\<custom-mode-map>\
 Invoke button under the mouse pointer.     \\[Custom-move-and-invoke]
 Invoke button under point.		   \\[widget-button-press]
 Set all modifications.			   \\[Custom-set]
