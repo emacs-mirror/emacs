@@ -5169,7 +5169,7 @@ x_term_init (display_name)
   x_focus_frame = x_highlight_frame = 0;
 
 #ifdef USE_X_TOOLKIT
-  argv = XtMalloc (3 * sizeof (char *));
+  argv = (char **) XtMalloc (3 * sizeof (char *));
   argv [0] = "";
   argv [1] = "-display";
   argv [2] = display_name;
