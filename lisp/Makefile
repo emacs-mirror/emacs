@@ -34,6 +34,17 @@ autoloads: doit
         done; \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
+update-subdirs: doit
+	subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done; \
+	for file in $$wins; do \
+	   ../update-subdirs $$file; \
+	done;
+
 updates: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
@@ -41,6 +52,9 @@ updates: doit
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
+	for file in $$wins; do \
+	   ../update-subdirs $$file; \
+	done; \
 	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins \
 	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
