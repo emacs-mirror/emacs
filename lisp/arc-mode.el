@@ -587,6 +587,7 @@ archive.
   (define-key archive-mode-map [down] 'archive-next-line)
   (define-key archive-mode-map "o" 'archive-extract-other-window)
   (define-key archive-mode-map "p" 'archive-previous-line)
+  (define-key archive-mode-map "q" 'quit-window)
   (define-key archive-mode-map "\C-p" 'archive-previous-line)
   (define-key archive-mode-map [up] 'archive-previous-line)
   (define-key archive-mode-map "r" 'archive-rename-entry)
