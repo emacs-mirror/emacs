@@ -148,8 +148,14 @@ Writes the region to the device or file which is a value of
 START and END."
 
   ;; DOS printers need the lines to end with CR-LF pairs, so make
-  ;; sure it always happens that way.
-  (let ((coding-system-for-write 'undecided-dos))
+  ;; sure it always happens that way, unless the buffer is binary.
+  (let* ((coding coding-system-for-write)
+	 (coding-base
+	  (if (null coding) 'undecided (coding-system-base coding)))
+	 (eol-type (coding-system-eol-type coding-base)))
+    (or (eq coding-system-for-write 'no-conversion)
+	(setq coding-system-for-write
+	      (aref eol-type 1)))	; force conversion to DOS EOLs
     (write-region start end dos-printer t 0)
     ;; Make each print-out start on a new page, but don't waste
     ;; paper if there was a form-feed at the end of this file.
