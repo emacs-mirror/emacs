@@ -1,4 +1,4 @@
-/*  impl.c.protli: PROTECTION FOR LINUX
+/*  impl.c.protfr: PROTECTION FOR FreeBSD
  *
  *  $HopeName: $
  *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
@@ -7,11 +7,11 @@
 
 #include "mpm.h"
 
-#ifndef MPS_OS_LI
-#error "protli.c is Linux specific, but MPS_OS_LI is not set"
+#ifndef MPS_OS_FR
+#error "protfr.c is FreeBSD specific, but MPS_OS_FR is not set"
 #endif
 #ifndef PROTECTION
-#error "protli.c implements protection, but PROTECTION is not set"
+#error "protfr.c implements protection, but PROTECTION is not set"
 #endif
 
 #include <limits.h>
@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-SRCID(protli, "$HopeName: $");
+SRCID(protfr, "$HopeName: $");
 
 
 /* ProtSet -- set protection
@@ -42,6 +42,8 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
    * access unless explicitly told not to) caused mmqa test 37 to fail.
    * This might be a bug in MPS, so for now we go with the stricter
    * version that matches the Win32 implementation. */
+  /* .flags.trouble.freebsd: the above comment was in the Linux version
+   * of this code; I haven't verified it for FreeBSD.  */
   flags = 0;
   if((mode & AccessREAD) == 0)
     flags |= PROT_READ | PROT_EXEC;
@@ -61,7 +63,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
 /* ProtSync -- synchronize protection settings with hardware
  *
- * This does nothing under Linux.
+ * This does nothing under FreeBSD.
  */
 
 void ProtSync(Arena arena)
@@ -73,10 +75,10 @@ void ProtSync(Arena arena)
 
 /* ProtTramp -- protection trampoline
  *
- * The protection trampoline is trivial under Linux, as there is nothing
- * that needs to be done in the dynamic context of the mutator in order
- * to catch faults.  (Contrast this with Win32 Structured Exception
- * Handling.)
+ * The protection trampoline is trivial under FreeBSD, as there is
+ * nothing that needs to be done in the dynamic context of the mutator
+ * in order to catch faults.  (Contrast this with Win32 Structured
+ * Exception Handling.)
  */
 
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
