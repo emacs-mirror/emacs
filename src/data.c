@@ -2203,9 +2203,7 @@ arith_driver (code, nargs, args)
 	{
 	case Aadd: accum += next; break;
 	case Asub:
-	  if (!argnum && nargs != 1)
-	    next = - next;
-	  accum -= next;
+	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
 	  break;
 	case Amult: accum *= next; break;
 	case Adiv:
@@ -2265,9 +2263,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	  accum += next;
 	  break;
 	case Asub:
-	  if (!argnum && nargs != 1)
-	    next = - next;
-	  accum -= next;
+	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
 	  break;
 	case Amult:
 	  accum *= next;
