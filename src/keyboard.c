@@ -6992,6 +6992,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   /* If enabled, show which key runs this command.  */
   if (!NILP (Vsuggest_key_bindings)
+      && NILP (Vexecuting_macro)
       && SYMBOLP (function))
     {
       Lisp_Object bindings;
