@@ -134,7 +134,7 @@ for `jka-compr-compression-info-list')."
     ["\\.bz2\\'"
      "bzip2ing"        "bzip2"         ("")
      "bunzip2ing"      "bzip2"         ("-d")
-     t t]
+     nil t]
     ["\\.tgz\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
