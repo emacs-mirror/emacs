@@ -20,7 +20,7 @@
 #include <../src/config.h>
 #ifdef USG
 #undef SIGIO
-#define SIGIO	SIGUSR1
+#define SIGIO SIGPOLL
 #endif
 
 #ifdef LINUX
@@ -291,6 +291,9 @@ main (argc, argv)
       fprintf (stderr, "%s\n", strerror (errno));
       exit (1);
     }
+#else /* USG */
+  /* Register this process for SIGPOLL.  */
+  ioctl (0, I_SETSIG, S_RDNORM);
 #endif /* USG */
 
   /* In case Emacs sent some input before we set up
