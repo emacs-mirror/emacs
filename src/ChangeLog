@@ -1,3 +1,29 @@
+2000-02-27  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Add atimer.h to dependencies.
+	* w32.c (init_environment): Set Vw32_num_mouse_buttons here.
+	* w32console.c: Only disable window system features for dispextern.h
+	(initialize_w32_display): Build a display info for the console.
+	* w32faces.c (tty_defined_color): Apply xfaces.c change from 02-17.
+	* w32fns.c (w32_wnd_proc) [WM_LBUTTON_DOWN, WM_RBUTTON_DOWN,
+	WM_LBUTTON_UP, WM_RBUTTON_UP]: Do not treat 4 or more button mice
+	as 2 button mice.
+	* w32gui.h (struct W32FontStruct): Revert last change after change
+	to xdisp.c.
+	* w32menu.c (single_submenu): Set up help string.
+	[!HAVE_MULTILINGUAL_MENU]: Don't overwrite item_name with descrip.
+	(w32_dialog_show): Set up help string.
+	* w32term.c (w32_display_info_for_display): Remove unused function.
+	(w32_draw_bitmap): Use pre-built bitmaps.
+	(w32_initialize_display_info): New function to initialize parts of
+	display info that are common to both GUI and console frames.
+	(w32_term_init): Use w32_initialize_display_info. Do not set
+	Vw32_num_mouse_buttons here, as it is not called for console
+	frames.  Build bitmaps for indicating truncated lines etc.
+	(x_delete_display): Destroy pre-built bitmaps.
+	* xdisp.c (handle_single_display_prop): Use FONT_HEIGHT macro.
+	(echo_area_display): Change HAVE_X_WINDOWS to HAVE_WINDOW_SYSTEM.
+
 2000-02-27  Dave Love  <fx@gnu.org>
 
 	* lisp.h: Add a bunch of prototypes.
