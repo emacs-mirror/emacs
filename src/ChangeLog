@@ -1,3 +1,7 @@
+2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intervals.c (lookup_char_property): Do not prematurely return nil.
+
 2004-05-19  Jim Blandy  <jimb@redhat.com>
 
 	Add support for new '\_<' and '\_>' regexp operators, matching the
