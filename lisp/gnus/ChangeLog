@@ -1,4 +1,6 @@
-2002-02-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-02-16  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-msg.el (gnus-post-method): Fix doc.
 
 	* gnus-sum.el (gnus-rebuild-thread): Count hidden lines too.
 

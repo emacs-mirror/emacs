@@ -37,21 +37,21 @@
 (defcustom gnus-post-method 'current
   "*Preferred method for posting USENET news.
 
-If this variable is `current', Gnus will use the \"current\" select
-method when posting.  If it is nil (which is the default), Gnus will
-use the native select method when posting.
+If this variable is `current' (which is the default), Gnus will use
+the \"current\" select method when posting.  If it is `native', Gnus
+will use the native select method when posting.
 
 This method will not be used in mail groups and the like, only in
 \"real\" newsgroups.
 
-If not nil nor `native', the value must be a valid method as discussed
+If not `native' nor `current', the value must be a valid method as discussed
 in the documentation of `gnus-select-method'.  It can also be a list of
 methods.  If that is the case, the user will be queried for what select
 method to use when posting."
   :group 'gnus-group-foreign
-  :type `(choice (const nil)
-                 (const current)
-		 (const native)
+  :link '(custom-manual "(gnus)Posting Server")
+  :type `(choice (const native)
+		 (const current)
 		 (sexp :tag "Methods" ,gnus-select-method)))
 
 (defvar gnus-outgoing-message-group nil
