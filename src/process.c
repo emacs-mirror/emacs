@@ -5788,7 +5788,8 @@ exec_sentinel (proc, reason)
 
 /* Report all recent events of a change in process status
    (either run the sentinel or output a message).
-   This is done while Emacs is waiting for keyboard input.  */
+   This is usually done while Emacs is waiting for keyboard input
+   but can be done at other times.  */
 
 void
 status_notify ()

@@ -1637,11 +1637,23 @@ append_glyph (it)
 }
 
 
-/* Produce glyphs for the display element described by IT.  The
-   function fills output fields of IT with pixel information like the
-   pixel width and height of a character, and maybe produces glyphs at
+/* Produce glyphs for the display element described by IT.  *IT
+   specifies what we want to produce a glyph for (character, image, ...),
+   and where in the glyph matrix we currently are (glyph row and hpos).
+   produce_glyphs fills in output fields of *IT with information such as the
+   pixel width and height of a character, and maybe output actual glyphs at
    the same time if IT->glyph_row is non-null.  See the explanation of
-   struct display_iterator in dispextern.h for an overview.  */
+   struct display_iterator in dispextern.h for an overview.
+
+   produce_glyphs also stores the result of glyph width, ascent
+   etc. computations in *IT.
+
+   IT->glyph_row may be null, in which case produce_glyphs does not
+   actually fill in the glyphs.  This is used in the move_* functions
+   in xdisp.c for text width and height computations.
+
+   Callers usually don't call produce_glyphs directly;
+   instead they use the macro PRODUCE_GLYPHS.  */
 
 void 
 produce_glyphs (it)
