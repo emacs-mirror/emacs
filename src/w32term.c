@@ -5939,7 +5939,7 @@ x_wm_set_size_hint (f, flags, user_position)
 }
 
 /* Window manager things */
-x_wm_set_icon_position (f, icon_x, icon_y)
+void x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
 {
