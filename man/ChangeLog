@@ -1,3 +1,8 @@
+2004-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Emacs for MS-DOS): Update URLs for the MS-DOS port of
+	Emacs and related programs.
+
 2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Secondary Selection): Setting the secondary
