@@ -1403,16 +1403,13 @@ or markers) bounding the text that should remain visible.")
   (b, e)
      register Lisp_Object b, e;
 {
-  register EMACS_INT i;
-
   CHECK_NUMBER_COERCE_MARKER (b, 0);
   CHECK_NUMBER_COERCE_MARKER (e, 1);
 
   if (XINT (b) > XINT (e))
     {
-      i = XFASTINT (b);
-      b = e;
-      XSETFASTINT (e, i);
+      Lisp_Object tem;
+      tem = b;  b = e;  e = tem;
     }
 
   if (!(BEG <= XINT (b) && XINT (b) <= XINT (e) && XINT (e) <= Z))
