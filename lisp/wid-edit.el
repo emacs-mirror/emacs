@@ -304,8 +304,7 @@ new value.")
     (overlay-put overlay 'keymap map)
     (overlay-put overlay 'face face)
     ;;(overlay-put overlay 'balloon-help help-echo)
-    (if (stringp help-echo)
-	(overlay-put overlay 'help-echo help-echo)))
+    (overlay-put overlay 'help-echo help-echo))
   (widget-specify-secret widget))
 
 (defun widget-specify-secret (field)
@@ -338,8 +337,7 @@ new value.")
       (overlay-put overlay 'face face)
       (overlay-put overlay 'mouse-face widget-mouse-face))
     ;;(overlay-put overlay 'balloon-help help-echo)
-    (if (stringp help-echo)
-	(overlay-put overlay 'help-echo help-echo))))
+    (overlay-put overlay 'help-echo help-echo)))
 
 (defun widget-specify-sample (widget from to)
   "Specify sample for WIDGET between FROM and TO."
@@ -1167,7 +1165,8 @@ Optional EVENT is the event that triggered the action."
 	    found (widget-apply child :validate)))
     found))
 
-(defun widget-types-convert-widget (widget)
+;; Made defsubst to speed up face editor creation.
+(defsubst widget-types-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
   (widget-put widget :args (mapcar 'widget-convert (widget-get widget :args)))
   widget)
@@ -3367,12 +3366,24 @@ To use this type, you must define :match or :match-alternatives."
   (let* ((widget (widget-at pos))
 	 (help-echo (and widget (widget-get widget :help-echo))))
     (if (or (stringp help-echo)
-	    (and (symbolp help-echo) (fboundp help-echo)
-		 (stringp (setq help-echo (funcall help-echo widget)))))
+	    (and (functionp help-echo)
+		 ;; Kluge: help-echo originally could be a function of
+		 ;; one arg -- the widget.  It is more useful in Emacs
+		 ;; 21 to have it as a function usable also as a
+		 ;; help-echo property, when it can sort out its own
+		 ;; widget if necessary.  Try both calling sequences
+		 ;; (rather than messing around to get the function's
+		 ;; arity).
+		 (stringp
+		  (setq help-echo
+			(condition-case nil
+			    (funcall help-echo (current-buffer) (point))
+			  (error (funcall help-echo widget))))))
+	    (stringp (eval help-echo)))
 	(message "%s" help-echo))))
 
 ;;; The End:
 
 (provide 'wid-edit)
 
-;; wid-edit.el ends here
+;;; wid-edit.el ends here
