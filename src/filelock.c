@@ -116,12 +116,12 @@ get_boot_time ()
 
   while ((fd = open ("/proc/uptime", O_RDONLY)) >= 0)
     {
-      char buf[BUFSIZ];
+      char buf[100];
       int res;
       double upsecs;
       time_t uptime;
 
-      read (fd, buf, BUFSIZ);
+      read (fd, buf, sizeof buf);
       close (fd);
 
       res = sscanf (buf, "%lf", &upsecs);
