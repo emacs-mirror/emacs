@@ -3326,9 +3326,9 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   Vload_file_name = Qnil;
 
   DEFVAR_LISP ("user-init-file", &Vuser_init_file,
-    "File name, including directory, of user's initialization file.
-If the file loaded had extension `.elc' and there was a corresponding `.el'
-file, this variable contains the name of the .el file, suitable for use
+    "File name, including directory, of user's initialization file.\n\
+If the file loaded had extension `.elc' and there was a corresponding `.el'\n\
+file, this variable contains the name of the .el file, suitable for use\n\
 by functions like `custom-save-all' which edit the init file.");
   Vuser_init_file = Qnil;
 
