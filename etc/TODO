@@ -33,6 +33,9 @@
 * Add ANSI C prototype forward declarations to the source files,
   so that even the functions used within one file have prototypes.
 
+* Add a way for macro definitions to provide info to edebug
+  so it can handle them right.
+
 * Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
   Love started on this.]
