@@ -25,7 +25,7 @@
 (if view-mode-map
     nil
   (setq view-mode-map (make-keymap))
-  (fillarray (car (cdr view-mode-map)) 'View-undefined)
+  (fillarray (nth 1 view-mode-map) 'View-undefined)
   (define-key view-mode-map "\C-c" 'view-exit)
   (define-key view-mode-map "\C-z" 'suspend-emacs)
   (define-key view-mode-map "q" 'view-exit)
@@ -110,6 +110,26 @@ Calls the value of  view-hook  if that is non-nil."
 		    'kill-buffer))))
 
 ;;;###autoload
+(defun view-file-other-window (file-name)
+  "View FILE in View mode in other window.
+Return to previous buffer when done.
+The usual Emacs commands are not available; instead,
+a special set of commands (mostly letters and punctuation)
+are defined for moving around in the buffer.
+Space scrolls forward, Delete scrolls backward.
+For list of all View commands, type ? or h while viewing.
+
+Calls the value of  view-hook  if that is non-nil."
+  (interactive "fView file: ")
+  (let ((old-arrangement (current-window-configuration))
+	(had-a-buf (get-file-buffer file-name))
+	(buf-to-view (find-file-noselect file-name)))
+    (switch-to-buffer-other-window buf-to-view)
+    (view-mode old-arrangement
+	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
+		    'kill-buffer))))
+
+;;;###autoload
 (defun view-buffer (buffer-name)
   "View BUFFER in View mode, returning to previous buffer when done.
 The usual Emacs commands are not available; instead,
@@ -123,6 +143,23 @@ Calls the value of  view-hook  if that is non-nil."
   (let ((old-buf (current-buffer)))
     (switch-to-buffer buffer-name t)
     (view-mode old-buf nil)))
+
+;;;###autoload
+(defun view-buffer-other-window (buffer-name not-return)
+  "View BUFFER in View mode in another window,
+returning to original buffer when done  ONLY if 
+prefix argument not-return is nil (as by default).
+  The usual Emacs commands are not available; instead,
+a special set of commands (mostly letters and punctuation)
+are defined for moving around in the buffer.
+Space scrolls forward, Delete scrolls backward.
+For list of all View commands, type ? or h while viewing.
+
+Calls the value of  view-hook  if that is non-nil."
+  (interactive \"bView buffer:\\nP\")
+  (let ((return-to (and not-return (current-window-configuration))))
+    (switch-to-buffer-other-window buffer-name)
+    (view-mode return-to)))
 
 ;;;###autoload
 (defun view-mode (&optional prev-buffer action)
@@ -197,8 +234,8 @@ Entry to this mode calls the value of  view-hook  if non-nil.
 
   (make-local-variable 'view-exit-action)
   (setq view-exit-action action)
-  (make-local-variable 'view-prev-buffer)
-  (setq view-prev-buffer prev-buffer)
+  (make-local-variable 'view-return-here)
+  (setq view-return-here prev-buffer)
   (make-local-variable 'view-exit-position)
   (setq view-exit-position (point-marker))
 
@@ -214,6 +251,7 @@ Entry to this mode calls the value of  view-hook  if non-nil.
   (run-hooks 'view-hook)
   (view-helpful-message))
 
+
 (defun view-exit ()
   "Exit from view-mode.
 If you viewed an existing buffer, that buffer returns to its previous mode.
@@ -233,7 +271,11 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
   ;; (such as kill it).
   (let ((viewed-buffer (current-buffer))
 	(action view-exit-action))
-    (switch-to-buffer view-prev-buffer)
+    (cond
+     ((bufferp view-return-here)
+      (switch-to-buffer view-return-here))
+     ((window-configuration-p view-return-here)
+      (set-window-configuration view-return-here)))
     (if action (funcall action viewed-buffer))))
 
 (defun view-helpful-message ()
@@ -390,3 +432,9 @@ invocations return to earlier marks."
       (message "Can't find occurrence %d of %s" times regexp)
       (sit-for 4))))
 
+
+;;;###autoload
+(define-key ctl-x-map "v" 'view-file)
+
+;;;###autoload
+(define-key ctl-x-4-map "v" 'view-file-other-window)
