@@ -1,3 +1,46 @@
+2000-08-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* loadhist.el (unload-feature): Typo.
+
+	* finder.el (finder-compile-keywords): 
+	* cus-dep.el (custom-make-dependencies): Add local-variable settings
+	to the generated file.
+
+	* mail/mh-e.el (mh-make-local-vars):
+	Replace make-variable-buffer-local with make-local-variable.
+
+	* options.el (Edit-options-{set,toggle,t,nil}):
+	* mail/mailabbrev.el (mail-abbrevs-mode): 
+	* textmodes/tex-mode.el (tex-expand-files): 
+	* textmodes/outline.el (outline-minor-mode): Don't quote lambda.
+
+	* term/bg-mouse.el (bg-mouse-report): screen-height -> frame-height.
+
+	* emacs-lisp/ewoc.el (ewoc-locate): Default POS to (point).
+	(ewoc-goto-prev, ewoc-goto-next): Remove arg POS.
+	Allow going past the last element.
+	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line, cvs-mode-mark) 
+	(cvs-mode-unmark-up, cvs-get-marked): Update calls to ewoc.
+	(cvs-mouse-toggle-mark): Don't move point.
+	(cvs-revert-if-needed): Avoid re-eval of local variables and modes.
+
+	* progmodes/compile.el (grep): Provide a default set of files.
+	(next-error): Docstring fix.
+	(compilation-find-file): Avoid find-file (fails in a dedicated window).
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use `symbol-value' to keep the byte-compiler quiet.
+
+	* diff-mode.el (diff-mode-map): Bind diff-apply-hunk.
+	(diff-find-source-location): New fun, extracted from diff-goto-source.
+	(diff-goto-source): Use it.
+	(diff-next-complex-hunk, diff-filter-lines): New function.
+	(diff-apply-hunk): New command.
+
+	* smerge-mode.el (smerge-mode-menu): Doc fix.
+
+	* msb.el (msb-mode): Define it in terms of define-minor-mode.
+
 2000-08-16  Dave Love  <fx@gnu.org>
 
 	* play/5x5.el: Doc fixes.

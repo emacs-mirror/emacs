@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.4 2000/05/10 22:08:28 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.5 2000/08/06 09:18:02 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -425,9 +425,9 @@ Optional prefix ARG chooses between two representations."
 	      ;;(pt (save-excursion (forward-line -1) (point)))
 	      )
 	  (setq tags (sort tags 'cvs-tag-lessp))
-	  (let* ((first (nth 0 tags))
+	  (let* ((first (car tags))
 		 (prev (if (cvs-tag-p first)
-			   (list (nth 0 (cvs-tag->vlist first))) nil)))
+			   (list (car (cvs-tag->vlist first))) nil)))
 	    (cvs-tree-tags-insert tags prev)
 	    ;;(cvs-refontify pt (point))
 	    (sit-for 0)))))))
@@ -505,6 +505,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.5  2000/08/06 09:18:02  gerd
+;; Use `nth' instead of `first', `second', and `third'.
+;;
 ;; Revision 1.4  2000/05/10 22:08:28  monnier
 ;; (cvs-status-minor-wrap): Use mark-active.
 ;;

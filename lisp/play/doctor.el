@@ -947,7 +947,7 @@ Otherwise call the Doctor to parse preceding sentence."
 (defun doctor-correct-spelling (sent)
   "Correct the spelling and expand each word in sentence."
   (if sent
-      (apply 'append (mapcar '(lambda (word)
+      (apply 'append (mapcar (lambda (word)
 				(if (memq word typos)
 				    (get (get word 'doctor-correction) 'doctor-expansion)
 				  (list word)))

@@ -1,7 +1,11 @@
 ;;; mh-comp --- mh-e functions for composing messages
 ;; Time-stamp: <95/08/19 17:48:59 gildea>
 
-;; Copyright (C) 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993,1995,1997,2000  Free Software Foundation, Inc.
+
+;; Maintainer: None
+;; Keywords: mail
+;; Bug-reports: include `M-x mh-version' output in any correspondence
 
 ;; This file is part of mh-e, part of GNU Emacs.
 
@@ -26,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.17 2000/04/27 18:56:42 gerd Exp $
+;; $Id: mh-comp.el,v 1.18 2000/06/05 07:15:34 monnier Exp $
 
 ;;; Code:
 
@@ -1002,10 +1006,9 @@ yanked message will be deleted."
 	 (run-hooks 'mh-yank-hooks))
 	(t
 	 (or (bolp) (forward-line 1))
-	 (let ((zmacs-regions nil))	;so "(mark)" works in XEmacs
-	   (while (< (point) (mark))
-	     (insert mh-ins-string)
-	     (forward-line 1))))))
+	 (while (< (point) (mark))
+	   (insert mh-ins-string)
+	   (forward-line 1)))))
 
 
 (defun mh-fully-kill-draft ()
