@@ -4,7 +4,7 @@
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
-;; Time-stamp: <1998-08-21 19:51:02 ivarr>
+;; Time-stamp: <2002-02-20 22:06:58 ivarru>
 ;; Keywords: convenience frames
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +36,8 @@
 ;; Emacs19.34 and XEmacs20, provided that the installed version of
 ;; custom is not obsolete.
 
-;; Winner mode was improved august 1998.
+;; Winner mode was improved August 1998.
+;; Further improvements February 2002.
 
 ;;; Code:
 
@@ -56,6 +57,17 @@
       (defsetf winner-active-region () (store)
 	`(setq mark-active ,store)))) )
 
+(eval-and-compile
+  (cond
+   ((eq (aref (emacs-version) 0) ?X)
+    (defalias 'winner-edges 'window-pixel-edges)
+    (defsubst winner-window-list ()
+      (remq (minibuffer-window)
+            (window-list nil 0))))
+   (t (defalias 'winner-edges 'window-edges)
+      (defsubst winner-window-list ()
+        (window-list nil 0)))) )
+
 (require 'ring)
 
 (when (fboundp 'defgroup)
@@ -67,7 +79,6 @@
   (defmacro defcustom (symbol &optional initvalue docs &rest rest)
     (list 'defvar symbol initvalue docs)))
 
-
 ;;;###autoload
 (defcustom winner-mode nil
   "Toggle winner-mode.
@@ -90,27 +101,48 @@ use either \\[customize] or the function `winner-mode'."
   :type  'integer
   :group 'winner)
 
+(defcustom winner-boring-buffers '("*Completions*")
+  "`winner-undo' will not restore windows displaying any of these \
+buffers.
+You may want to include buffer names such as *Help*, *Apropos*,
+*Buffer List*, *info* and *Compile-Log*."
+  :type '(repeat string)
+  :group 'winner)
 
 
 
-;;;; Saving old configurations (internal variables and subroutines)
 
+;;;; Saving old configurations (internal variables and subroutines)
+
+
+;;; Current configuration
+
+;; List the windows according to their edges.
+(defun winner-sorted-window-list ()
+  (sort (winner-window-list)
+        (lambda (x y)
+          (loop for a in (winner-edges x)
+                for b in (winner-edges y)
+                while (= a b)
+                finally return (< a b)))))
+
+(defun winner-win-data () 
+  ;; Essential properties of the windows in the selected frame.
+  (loop for win in (winner-sorted-window-list)
+        collect (cons (winner-edges win) (window-buffer win))))
+        
 ;; This variable is updated with the current window configuration
-;; after every command, so that when command make changes in the
-;; window configuration, the last configuration can be saved.
+;; every time it changes.
 (defvar winner-currents nil)
 
 ;; The current configuration (+ the buffers involved).
 (defsubst winner-conf ()
-  (list (current-window-configuration)
-	(loop for w being the windows
-	      unless (window-minibuffer-p w)
-	      collect (window-buffer w)) ))
-;;	(if winner-testvar (incf winner-testvar) ; For debugging purposes
-;;	  (setq winner-testvar 0))))
+  (cons (current-window-configuration)
+        (winner-win-data)))
+
 
 ;; Save current configuration.
-;; (Called by `winner-save-old-configurations' below).
+;; (Called below by `winner-save-old-configurations').
 (defun winner-remember ()
   (let ((entry (assq (selected-frame) winner-currents)))
     (if entry (setcdr entry (winner-conf))
@@ -124,6 +156,8 @@ use either \\[customize] or the function `winner-mode'."
 	(winner-conf))))
 
 
+
+;;; Saved configurations
 
 ;; This variable contains the window cofiguration rings.
 ;; The key in this alist is the frame.
@@ -147,16 +181,13 @@ use either \\[customize] or the function `winner-mode'."
 
 
 (defun winner-equal (a b)
-  "Check two Winner configurations A and B for equality.
-Winner configurations are of the form (CONFIG BUFFERS),
-where CONFIG is a window configuration and BUFFERS is a list of
-buffers."
-  (and (compare-window-configurations (car a) (car b))
-       (equal (cdr a) (cdr b))))
+  "Check whether two Winner configurations (as produced by
+`winner-conf') are equal."
+  (equal (cdr a) (cdr b)))
 
 
 ;; Save the current window configuration, if it has changed.
-;; Then return frame, else return nil.
+;; If so return frame, otherwise return nil.
 (defun winner-insert-if-new (frame)
   (unless (or (memq frame winner-last-frames)
 	      (eq this-command 'winner-redo))
@@ -164,10 +195,16 @@ buffers."
 	  (ring (winner-ring frame)))
       (when (and (not (ring-empty-p ring))
 		 (winner-equal conf (ring-ref ring 0)))
+        ;; When the previous configuration was very similar,
+        ;; keep only the latest.
 	(ring-remove ring 0))
       (ring-insert ring conf)
       (push frame winner-last-frames)
       frame)))
+
+
+
+;;; Hooks
 
 ;; Frames affected by the current command.
 (defvar winner-modified-list nil)
@@ -175,27 +212,23 @@ buffers."
 ;; Called whenever the window configuration changes
 ;; (a `window-configuration-change-hook').
 (defun winner-change-fun ()
-  (unless (memq (selected-frame) winner-modified-list)
+  (unless (or (memq (selected-frame) winner-modified-list)
+              (/= 0 (minibuffer-depth)))
     (push (selected-frame) winner-modified-list)))
 
-
-;; For Emacs20 (a `post-command-hook').
+;; A `post-command-hook' for emacsen with
+;; `window-configuration-change-hook'.
 (defun winner-save-old-configurations ()
-  (unless (eq this-command winner-last-command)
-    (setq winner-last-frames nil)
-    (setq winner-last-command this-command))
-  (dolist (frame winner-modified-list)
-    (winner-insert-if-new frame))
-  (setq winner-modified-list nil)
-  ;;  (ir-trace ; For debugging purposes
-  ;;   "%S"
-  ;;   (loop with ring = (winner-ring (selected-frame))
-  ;;	 for i from 0 to (1- (ring-length ring))
-  ;;	 collect (caddr (ring-ref ring i))))
-  (winner-remember))
+  (when (zerop (minibuffer-depth))
+    (unless (eq this-command winner-last-command)
+      (setq winner-last-frames nil)
+      (setq winner-last-command this-command))
+    (dolist (frame winner-modified-list)
+      (winner-insert-if-new frame))
+    (setq winner-modified-list nil)
+    (winner-remember)))
 
-;; For compatibility with other emacsen
-;; and called by `winner-undo' before "undoing".
+;; A `minibuffer-setup-hook'.
 (defun winner-save-unconditionally ()
   (unless (eq this-command winner-last-command)
     (setq winner-last-frames nil)
@@ -203,30 +236,34 @@ buffers."
   (winner-insert-if-new (selected-frame))
   (winner-remember))
 
+;; A `post-command-hook' for other emacsen.
+;; Also called by `winner-undo' before "undoing".
+(defun winner-save-conditionally ()
+  (when (zerop (minibuffer-depth))
+    (winner-save-unconditionally)))
 
 
 
 ;;;; Restoring configurations
 
 ;; Works almost as `set-window-configuration',
-;; but doesn't change the contents or the size of the minibuffer.
+;; but does not change the contents or the size of the minibuffer,
+;; and tries to preserve the selected window.
 (defun winner-set-conf (winconf)
-  (let ((miniwin (minibuffer-window))
-	(minisel (window-minibuffer-p (selected-window))))
-    (let ((minibuf   (window-buffer miniwin))
-	  (minipoint (window-point  miniwin))
-	  (minisize  (window-height miniwin)))
-      (set-window-configuration winconf)
-      (setf (window-buffer miniwin) minibuf
-	    (window-point  miniwin) minipoint)
-      (when (/= minisize (window-height miniwin)) 
-	(letf (((selected-window) miniwin) )
-	  ;; Clumsy due to cl-macs-limitation
-	  (setf (window-height) minisize)))
-      (cond
-       (minisel (select-window miniwin))
-       ((window-minibuffer-p (selected-window))
-	(other-window 1))))))
+  (let* ((miniwin  (minibuffer-window))
+         (chosen   (selected-window))
+         (minisize (window-height miniwin)))
+    (letf (((window-buffer miniwin))
+           ((window-point  miniwin)))
+      (set-window-configuration winconf))
+    (cond
+     ((window-live-p chosen) (select-window chosen))
+     ((window-minibuffer-p (selected-window))
+      (other-window 1)))
+    (when (/= minisize (window-height miniwin)) 
+      (letf (((selected-window) miniwin) )
+        (setf (window-height) minisize)))))
+
 
 
 (defvar winner-point-alist nil)
@@ -239,24 +276,19 @@ buffers."
 (defun winner-make-point-alist ()
   (letf (((current-buffer)))
     (loop with alist
-	  with entry 
-	  for win being the windows
-	  do (cond
-	      ((window-minibuffer-p win))
-	      ((setq entry (assq win alist)) 
-	       ;; Update existing entry
-	       (push (cons win (window-point win))
-		     (cddr entry)))
-	      (t;; Else create new entry
-	       (push (list (set-buffer (window-buffer win))
-			   (cons (mark t) (winner-active-region))
-			   (cons win (window-point win)))
-		     alist)))
+	  for win in (winner-window-list)
+	  for entry = 
+          (or (assq (window-buffer win) alist)
+              (car (push (list (set-buffer (window-buffer win))
+                               (cons (mark t) (winner-active-region)))
+                         alist)))
+	  do (push (cons win (window-point win))
+                   (cddr entry))
 	  finally return alist)))
-
 
 (defun winner-get-point (buf win)
   ;; Consult (and possibly extend) `winner-point-alist'.
+  ;; Returns nil iff buf no longer exists.
   (when (buffer-name buf)
     (let ((entry (assq buf winner-point-alist)))
       (cond
@@ -273,44 +305,47 @@ buffers."
 		  winner-point-alist)
 	    (point)))))))
 
-;; Make sure point doesn't end up in the minibuffer and
-;; delete windows displaying dead buffers.  Return nil
-;; if and only if all the windows should have been deleted.
-;; Do not move neither points nor marks.
+;; Make sure point does not end up in the minibuffer and delete
+;; windows displaying dead or boring buffers
+;; (c.f. `winner-boring-buffers').  Return nil iff all the windows
+;; should be deleted.  Preserve correct points and marks.
 (defun winner-set (conf)
+  ;; For the format of `conf', see `winner-conf'.
   (let* ((buffers nil)
-	 (origpoints
-	  (loop for buf in (cadr conf)
+	 (alive
+          ;; Possibly update `winner-point-alist'
+	  (loop for buf in (mapcar 'cdr (cdr conf))
 		for pos = (winner-get-point buf nil)
 		if (and pos (not (memq buf buffers)))
 		do (push buf buffers)
 		collect pos)))
     (winner-set-conf (car conf))
-    (let (xwins) ; These windows should be deleted
-      (loop for win being the windows
-	    unless (window-minibuffer-p win)
-	    do (if (pop origpoints)
-		   (setf (window-point win)
-			 ;; Restore point
-			 (winner-get-point
-			  (window-buffer win)
-			  win))
-		 (push win xwins))) ; delete this window
-      ;; Restore mark
+    (let (xwins)                        ; to be deleted
+
+      ;; Restore points
+      (dolist (win (winner-sorted-window-list))
+        (unless (and (pop alive)
+                     (setf (window-point win)
+                           (winner-get-point (window-buffer win) win))
+                     (not (member (buffer-name (window-buffer win))
+                                  winner-boring-buffers)))
+          (push win xwins)))            ; delete this window
+
+      ;; Restore marks
       (letf (((current-buffer)))
 	(loop for buf in buffers 
 	      for entry = (cadr (assq buf winner-point-alist))
 	      do (progn (set-buffer buf)
 			(set-mark (car entry))
 			(setf (winner-active-region) (cdr entry)))))
-      ;; Delete windows, whose buffers are dead.
+      ;; Delete windows, whose buffers are dead or boring.
       ;; Return t if this is still a possible configuration.
       (or (null xwins)
-	  (progn (mapcar 'delete-window (cdr xwins))
-		 (if (one-window-p t)
-		     nil  ; No windows left
-		   (progn (delete-window (car xwins))
-			  t)))))))
+	  (progn
+            (mapc 'delete-window (cdr xwins)) ; delete all but one
+            (unless (one-window-p t)
+              (delete-window (car xwins))
+              t))))))
 
 
 
@@ -328,7 +363,7 @@ buffers."
 
 (defvar winner-mode-map nil "Keymap for Winner mode.")
 
-;; Is `window-configuration-change-hook' working?
+;; Check if `window-configuration-change-hook' is working.
 (defun winner-hook-installed-p ()
   (save-window-excursion
     (let ((winner-var nil)
@@ -353,20 +388,23 @@ With arg, turn Winner mode on if and only if arg is positive."
        ((winner-hook-installed-p)
 	(add-hook 'window-configuration-change-hook 'winner-change-fun)
 	(add-hook 'post-command-hook 'winner-save-old-configurations))
-       (t (add-hook 'post-command-hook 'winner-save-unconditionally)))
+       (t (add-hook 'post-command-hook 'winner-save-conditionally)))
+      (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
       (setq winner-modified-list (frame-list))
       (winner-save-old-configurations)
-      (run-hooks 'winner-mode-hook))
+      (run-hooks 'winner-mode-hook)
+      (when (interactive-p) (message "Winner mode enabled")))
      ;; Turn mode off
      (winner-mode
       (setq winner-mode nil)
       (remove-hook 'window-configuration-change-hook 'winner-change-fun)
       (remove-hook 'post-command-hook 'winner-save-old-configurations)
-      (remove-hook 'post-command-hook 'winner-save-unconditionally)
-      (run-hooks 'winner-mode-leave-hook)))
-    (force-mode-line-update)))
+      (remove-hook 'post-command-hook 'winner-save-conditionally)
+      (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
+      (run-hooks 'winner-mode-leave-hook)
+      (when (interactive-p) (message "Winner mode disabled"))))))
 
-;; Inspired by undo (simple.el)
+;; Inspired by undo (simple.el)
 
 (defvar winner-undo-frame nil)
 
@@ -383,7 +421,7 @@ In other words, \"undo\" changes in window configuration."
    ((not winner-mode) (error "Winner mode is turned off"))
    (t (unless (and (eq last-command 'winner-undo)
  		   (eq winner-undo-frame (selected-frame)))
-	(winner-save-unconditionally)	; current configuration->stack
+	(winner-save-conditionally)     ; current configuration->stack
  	(setq winner-undo-frame (selected-frame))
  	(setq winner-point-alist (winner-make-point-alist))
  	(setq winner-pending-undo-ring (winner-ring (selected-frame)))
@@ -396,16 +434,9 @@ In other words, \"undo\" changes in window configuration."
  		 winner-undo-counter
  		 (1- (ring-length winner-pending-undo-ring)))))))
  
-(defun winner-win-data () 
-  ;; Essential properties of the windows in the selected frame.
-  (loop for win being the windows
- 	unless (window-minibuffer-p win)
- 	collect (list (window-buffer win)
- 		      (window-width  win)
- 		      (window-height win))))
+        
  
-
-(defun winner-undo-this ()		; The heart of winner undo.
+(defun winner-undo-this ()		; The heart of winner undo.
   (loop 
    (cond
     ((>= winner-undo-counter (ring-length winner-pending-undo-ring))
@@ -415,12 +446,12 @@ In other words, \"undo\" changes in window configuration."
     ((and				; If possible configuration
       (winner-set (ring-ref winner-pending-undo-ring
  			    winner-undo-counter))
-      ;; .. and new configuration
+                                        ; .. and new configuration
       (let ((data (winner-win-data)))
  	(and (not (member data winner-undone-data))
  	     (push data winner-undone-data))))
-     (return t))			; .. then everything is all right.
-    (t					; Else; discharge it and try another one.
+     (return t))			; .. then everything is fine.
+    (t ;; Otherwise, discharge it (and try the next one).
      (ring-remove winner-pending-undo-ring winner-undo-counter)))))
  
 
@@ -430,11 +461,13 @@ In other words, \"undo\" changes in window configuration."
   (cond
    ((eq last-command 'winner-undo)
     (winner-set
-     (ring-remove winner-pending-undo-ring 0))
+     (if (zerop (minibuffer-depth))
+         (ring-remove winner-pending-undo-ring 0)
+       (ring-ref winner-pending-undo-ring 0)))
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
    (t (error "Previous command was not a winner-undo"))))
-
+
 ;;; To be evaluated when the package is loaded:
 
 (unless winner-mode-map
@@ -446,9 +479,6 @@ In other words, \"undo\" changes in window configuration."
 	    winner-dont-bind-my-keys)
   (push (cons 'winner-mode winner-mode-map)
 	minor-mode-map-alist))
-
-(unless (assq 'winner-mode minor-mode-alist)
-  (push '(winner-mode " Win") minor-mode-alist))
 
 (provide 'winner)
 
