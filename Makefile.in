@@ -738,6 +738,7 @@ bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
 	$(MAKE) $(MFLAGS) all
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
 
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
 bootstrap-clean-before: FRC
