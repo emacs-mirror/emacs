@@ -1273,25 +1273,26 @@ the normal hook `change-major-mode-hook'.")
       sym = XCONS (XCONS (alist)->car)->car;
 
       /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->car;
+      tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car;
       if (XBUFFER (tem) == current_buffer)
 	{
 	  /* Symbol is set up for this buffer's old local value.
 	     Set it up for the current buffer with the default value.  */
 
-	  tem = XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->cdr;
+	  tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr;
 	  /* Store the symbol's current value into the alist entry
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again below,
 	     we don't lose the value.  */
 	  XCONS (XCONS (tem)->car)->cdr
-	    = do_symval_forwarding (XCONS (XSYMBOL (sym)->value)->car);
+	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car);
 	  /* Switch to the symbol's default-value alist entry.  */
 	  XCONS (tem)->car = tem;
 	  /* Mark it as current for the current buffer.  */
-	  XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->car = Fcurrent_buffer ();
+	  XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car
+	    = Fcurrent_buffer ();
 	  /* Store the current value into any forwarding in the symbol.  */
-	  store_symval_forwarding (sym, XCONS (XSYMBOL (sym)->value)->car,
+	  store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car,
 				   XCONS (tem)->cdr);
 	}
     }
