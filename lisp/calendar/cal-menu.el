@@ -382,7 +382,7 @@ The output is in landscape format, one month to a page."
          (x-popup-menu
           event
           (list
-           "Date Menu"
+           (concat (calendar-date-string date) " (Gregorian)")
            (append
             (list
              (concat (calendar-date-string date) " (Gregorian)")
