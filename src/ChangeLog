@@ -1,5 +1,9 @@
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h: Move image related prototypes from xfns.c section
+	to image.c.  Condition them by HAVE_WINDOW_SYSTEM rather than
+	HAVE_X_WINDOWS.
+	
 	* Makefile.in (XOBJ): Consolidate into one list.  Add image.o.
 	Move gtkutil.o to new GTK_OBJ list.  
 	(XMENU_OBJ) [HAVE_MENUS]: Move declaration to proper place.
