@@ -1274,6 +1274,50 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   handlerlist = h.next;
   return val;
 }
+
+
+/* Like internal_condition_case but call HFUN with NARGS as first,
+   and ARGS as second argument.  */
+
+Lisp_Object
+internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
+     Lisp_Object (*bfun) ();
+     int nargs;
+     Lisp_Object *args;
+     Lisp_Object handlers;
+     Lisp_Object (*hfun) ();
+{
+  Lisp_Object val;
+  struct catchtag c;
+  struct handler h;
+
+  c.tag = Qnil;
+  c.val = Qnil;
+  c.backlist = backtrace_list;
+  c.handlerlist = handlerlist;
+  c.lisp_eval_depth = lisp_eval_depth;
+  c.pdlcount = specpdl_ptr - specpdl;
+  c.poll_suppress_count = poll_suppress_count;
+  c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
+  if (_setjmp (c.jmp))
+    {
+      return (*hfun) (c.val);
+    }
+  c.next = catchlist;
+  catchlist = &c;
+  h.handler = handlers;
+  h.var = Qnil;
+  h.next = handlerlist;
+  h.tag = &c;
+  handlerlist = &h;
+
+  val = (*bfun) (nargs, args);
+  catchlist = c.next;
+  handlerlist = h.next;
+  return val;
+}
+
 
 static Lisp_Object find_handler_clause ();
 
