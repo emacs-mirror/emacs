@@ -478,10 +478,13 @@ extern Lisp_Object Qframep, Qframe_live_p, Qicon;
 extern struct frame *selected_frame;
 extern struct frame *last_nonminibuf_frame;
 
-extern struct frame *make_terminal_frame ();
-extern struct frame *make_frame ();
-extern struct frame *make_minibuffer_frame ();
-extern struct frame *make_frame_without_minibuffer ();
+extern struct frame *make_terminal_frame P_ ((void));
+extern struct frame *make_frame P_ ((int));
+extern struct frame *make_minibuffer_frame P_ ((void));
+extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
+							struct kboard *,
+							Lisp_Object));
+extern int other_visible_frames P_ ((struct frame *));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
