@@ -1,3 +1,4 @@
+/* Contributed by Viktor Dukhovni.  */
 /*
  * Unexec for Berkeley a.out format + SUNOS shared libraries
  * The unexeced executable contains the __DYNAMIC area from the
