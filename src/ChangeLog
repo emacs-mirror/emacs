@@ -164,7 +164,7 @@
 	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): New macro.
 	(FETCH_CHAR_ADVANCE): Check multibyteness of the current buffer.
 
-	* coding.c (ONE_MORE_BYTE, TWO_MORE_BYTES): Set coding->resutl to
+	* coding.c (ONE_MORE_BYTE, TWO_MORE_BYTES): Set coding->result to
 	CODING_FINISH_INSUFFICIENT_SRC if there's not enough source.
 	(ONE_MORE_CHAR, EMIT_CHAR, EMIT_ONE_BYTE, EMIT_TWO_BYTE,
 	EMIT_BYTES): New macros.
@@ -255,7 +255,7 @@
 	dst_multibyte members of coding.  On handling REPLACE on unibyte
 	buffer, convert the result of decode_coding to unibyte.  On
 	inserting into a mutibyte buffer, always call code_convert_region.
-	(e_write): Setup cdoing->src_multibyte according to the
+	(e_write): Setup coding->src_multibyte according to the
 	multibyteness of the source (buffer or string).
 
 	* fns.c (concat): Handle 8-bit characters correctly.
