@@ -32,7 +32,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.26";
+char pot_etags_version[] = "@(#) pot revision number is 11.28";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3683,7 +3683,7 @@ etags_getcwd ()
   while (getcwd (path, bufsize) == NULL)
     {
       if (errno != ERANGE)
-	pfatal ("pwd");
+	pfatal ("getcwd");
       bufsize *= 2;
       path = xnew (bufsize, char);
     }
@@ -3696,9 +3696,9 @@ etags_getcwd ()
   FILE *pipe;
 
   initbuffer (&path);
-  pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
+  pipe = (FILE *) popen ("/bin/pwd 2>/dev/null", "r");
   if (pipe == NULL || readline_internal (&path, pipe) == 0)
-    pfatal ("pwd");
+    pfatal ("/bin/pwd");
   pclose (pipe);
 
   return path.buffer;
