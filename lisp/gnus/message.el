@@ -4327,6 +4327,7 @@ which specify the range to operate on."
 (defalias 'message-exchange-point-and-mark 'exchange-point-and-mark)
 
 ;; Support for toolbar
+(eval-when-compile (defvar tool-bar-map))
 (if (featurep 'xemacs)
     (require 'messagexmas)
   (when (and (fboundp 'tool-bar-add-item-from-menu)
