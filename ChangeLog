@@ -1,5 +1,7 @@
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* Makefile.in (install-arch-indep): Added pgg and sieve.
+
 	* info/.cvsignore: Added pgg and sieve.
 
 2004-07-05  Andreas Schwab  <schwab@suse.de>
