@@ -813,17 +813,23 @@ Returns the new status of Global Font Lock mode (non-nil means on).
 When Global Font Lock mode is enabled, Font Lock mode is automagically
 turned on in a buffer if its major mode is one of `font-lock-global-modes'."
   (interactive "P\np")
-  (let ((off-p (if arg
-		   (<= (prefix-numeric-value arg) 0)
-		 global-font-lock-mode)))
-    (if off-p
-	(remove-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
-      (add-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
-      (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-      (setq font-lock-buffers (buffer-list)))
+  (let ((on-p (if arg
+		  (> (prefix-numeric-value arg) 0)
+		(not global-font-lock-mode))))
+    (cond (on-p
+	   (add-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
+	   (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
+	   (setq font-lock-buffers (buffer-list)))
+	  (t
+	   (remove-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
+	   (mapcar (function (lambda (buffer)
+			       (with-current-buffer buffer
+				 (when font-lock-mode
+				   (font-lock-mode)))))
+		   (buffer-list))))
     (when message
-      (message "Global Font Lock mode is now %s." (if off-p "OFF" "ON")))
-    (setq global-font-lock-mode (not off-p))))
+      (message "Global Font Lock mode %s" (if on-p "enabled" "disabled")))
+    (setq global-font-lock-mode on-p)))
 
 ;; Naughty hack.  This variable was originally a `defvar' to keep track of
 ;; whether Global Font Lock mode was turned on or not.  As a `defcustom' with
