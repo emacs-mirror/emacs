@@ -1,3 +1,8 @@
+2002-04-04  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el: Add missing require.
+	(sgml-lexical-context): Fix up CDATA detection for boundary cases.
+
 2002-04-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line): Move to
