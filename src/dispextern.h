@@ -34,7 +34,7 @@ extern int display_completed;
 #endif
 
 #ifdef HAVE_NTGUI
-#include "win32.h"
+#include "w32gui.h"
 #endif
 
 #ifdef HAVE_FACES
