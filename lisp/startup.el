@@ -242,6 +242,7 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	(and ctype
 	     (string-match iso-8859-1-locale-regexp ctype)))
       (progn 
+	(require 'disp-table)
 	(standard-display-european t)
 	(require 'iso-syntax)))
 
