@@ -1336,7 +1336,11 @@ esac
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
 [ -n "${x_includes}" ] && C_SWITCH_X_SITE="-I${x_includes}"
 
-bitmapdir="${x_includes}"
+if [ x"${x_includes}" = x ]; then
+  bitmapdir=/usr/include/X11/bitmaps;
+else
+  bitmapdir="${x_includes}/bitmaps";
+fi
 
 # Avoid forcing the search of /usr/include before fixed include files.
 if [ "$C_SWITCH_X_SITE" = "-I/usr/include" ]; then
