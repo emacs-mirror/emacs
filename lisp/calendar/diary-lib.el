@@ -892,8 +892,7 @@ and XX:XXam or XX:XXpm."
          (+ (* 100 (% (string-to-int
                          (substring s (match-beginning 1) (match-end 1)))
                         12))
-            (if (string-equal "a"
-                              (substring s (match-beginning 2) (match-end 2)))
+            (if (equal ?a (downcase (aref s (match-beginning 2))))
                 0 1200)))
         ((string-match;; Hour and minute  XX:XXam or XX:XXpm
           "^[ \t]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
@@ -901,8 +900,7 @@ and XX:XXam or XX:XXpm."
                          (substring s (match-beginning 1) (match-end 1)))
                         12))
             (string-to-int (substring s (match-beginning 2) (match-end 2)))
-            (if (string-equal "a"
-                              (substring s (match-beginning 3) (match-end 3)))
+            (if (equal ?a (downcase (aref s (match-beginning 3))))
                 0 1200)))
         (t -9999)));; Unrecognizable
 
