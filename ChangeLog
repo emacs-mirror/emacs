@@ -2,6 +2,7 @@
 
 	* configure.in [HAVE_TIMEVAL]: Move gettimeofday test here, test
 	for struct timezone and test how we can call gettimeofday.
+	Check for OSF 5+.
 
 	* aclocal.m4: Define the post-2.13 stuff conditionally on autoconf
 	version.
