@@ -474,7 +474,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                     (setq found-in-tag-table
                           (re-search-forward regexp nil t))
                     (if found-in-tag-table
-                        (setq guesspos (read (current-buffer))))
+                        (setq guesspos (1+ (read (current-buffer)))))
                     (setq found-mode major-mode))
 
                   ;; Indirect file among split files
@@ -502,6 +502,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                     ;; (or from beg of buffer)
                     ;; to find the actual node.
                     (catch 'foo
+		      (if (and (eq (point) (point-min))
+			       (looking-at "\^_")
+			       (= (forward-line 1) 0))
+			  (let ((beg (point)))
+			    (forward-line 1)
+			    (if (re-search-backward regexp beg t)
+				(progn
+				  (beginning-of-line)
+				  (throw 'foo t)))))
                       (while (search-forward "\n\^_" nil t)
                         (forward-line 1)
                         (let ((beg (point)))
@@ -517,6 +526,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      ;; Now search from our advised position (or from beg of buffer)
 	      ;; to find the actual node.
 	      (catch 'foo
+		(if (and (eq (point) (point-min))
+			 (looking-at "\^_")
+			 (= (forward-line 1) 0))
+		    (let ((beg (point)))
+		      (forward-line 1)
+		      (if (re-search-backward regexp beg t)
+			  (progn
+			    (beginning-of-line)
+			    (throw 'foo t)))))
 		(while (search-forward "\n\^_" nil t)
 		  (forward-line 1)
 		  (let ((beg (point)))
@@ -643,7 +661,9 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (let (beg nodename end)
 		(forward-line 1)
 		(setq beg (point))
-		(search-backward "\n\^_")
+		(or (search-backward "\n\^_" nil 'move)
+		    (looking-at "\^_")
+		    (signal 'search-failed (list "\n\^_")))
 		(search-forward "Node: ")
 		(setq nodename (Info-following-node-name))
 		(search-forward "\n\^_" nil 'move)
@@ -682,7 +702,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(let ((nodename (car (car nodes))))
 	  (goto-char (point-min))
 	  ;; Find the like-named node in the main buffer.
-	  (if (re-search-forward (concat "\n\^_.*\n.*Node: "
+	  (if (re-search-forward (concat "^\^_.*\n.*Node: "
 					 (regexp-quote nodename)
 					 "[,\n\t]")
 				 nil t)
@@ -719,7 +739,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(save-excursion
 	  (set-buffer (marker-buffer Info-tag-table-marker))
 	  (goto-char (point-min))
-	  (search-forward "\n\^_")
+	  (or (looking-at "\^_")
+	      (search-forward "\n\^_"))
 	  (forward-line 2)
 	  (catch 'foo
 	    (while (not (looking-at "\^_"))
@@ -750,7 +771,9 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (set-buffer-modified-p nil)
 	  (setq Info-current-subfile lastfilename)))
     (goto-char (point-min))
-    (search-forward "\n\^_")
+    (if (looking-at "\^_")
+	(forward-char 1)
+      (search-forward "\n\^_"))
     (if (numberp nodepos)
 	(+ (- nodepos lastfilepos) (point)))))
 
@@ -760,8 +783,11 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (let ((case-fold-search t))
     (save-excursion
      ;; Find beginning of node.
-     (search-backward "\n\^_")
-     (forward-line 2)
+     (if (search-backward "\n\^_" nil 'move)
+	 (forward-line 2)
+       (if (looking-at "\^_")
+	   (forward-line 1)
+	 (signal 'search-failed (list "\n\^_"))))
      ;; Get nodename spelled as it is in the node.
      (re-search-forward "Node:[ \t]*")
      (setq Info-current-node
@@ -866,6 +892,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				compl))))
 	      (widen)
 	      (goto-char (point-min))
+	      (if (and (looking-at "\^_")
+		       (= (forward-line 1) 0))
+		  (let ((beg (point)))
+		    (forward-line 1)
+		    (if (re-search-backward "Node: *\\([^,\n]*\\) *[,\n\t]"
+					    beg t)
+			(setq compl 
+			      (list (buffer-substring (match-beginning 1)
+						      (match-end 1)))))))
 	      (while (search-forward "\n\^_" nil t)
 		(forward-line 1)
 		(let ((beg (point)))
