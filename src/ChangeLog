@@ -1,3 +1,9 @@
+2002-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (read_non_regular, Finsert_file_contents): Use BEG_BYTE.
+	(Finsert_file_contents, build_annotations): Use XCAR, XCDR.
+	(Vwrite_region_annotate_functions): Docstring fix.
+
 2002-05-23  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (x_write_glyphs): Clear phys_cursor_on_p if current
@@ -14,7 +20,7 @@
 	Use modified enumfont_t struct.
 
 	* w32term.h (text_cursor_kinds): New enumeration member HBAR_CURSOR.
- 
+
 	* w32term.c (x_draw_bar_cursor): New argument KIND; callers changed.
 	Handle the `hbar' cursor type.
 	(x_display_and_set_cursor): Handle the HBAR_CURSOR case.
@@ -60,8 +66,8 @@
 	(code_convert_string1, code_convert_string_norecord)
 	(Ffind_operation_coding_system): Use SYMBOL_NAME instead of
 	XSYMBOL and name field.
-	* data.c (Fkeywordp, Fsymbol_name, store_symval_forwarding) 
-	(Fmake_variable_buffer_local, Fmake_local_variable) 
+	* data.c (Fkeywordp, Fsymbol_name, store_symval_forwarding)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
 	(Fmake_variable_frame_local): Use SYMBOL_NAME and XSTRING instead
 	of XSYMBOL and name field.
 	* editfns.c (Fformat): Use SYMBOL_NAME and XSTRING instead of
@@ -70,15 +76,15 @@
 	instead of XSYMBOL and name field.
 	* eval.c (do_autoload): Use SYMBOL_NAME and XSTRING instead of
 	XSYMBOL and name field.
-	* fns.c (Fstring_equal, Fstring_lessp, Frequire, sxhash): Use
-	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+	* fns.c (Fstring_equal, Fstring_lessp, Frequire, sxhash):
+	Use SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
 	* fontset.c (Fset_fontset_font): Use SYMBOL_NAME and XSTRING
 	instead of XSYMBOL and name field.
-	* keyboard.c (echo_char, record_char, parse_modifiers_uncached) 
-	(parse_modifiers, apply_modifiers, Fevent_convert_list) 
-	(parse_solitary_modifier, Fexecute_extended_command): Use
-	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
-	* keymap.c (silly_event_symbol_error, Fsingle_key_description) 
+	* keyboard.c (echo_char, record_char, parse_modifiers_uncached)
+	(parse_modifiers, apply_modifiers, Fevent_convert_list)
+	(parse_solitary_modifier, Fexecute_extended_command):
+	Use SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+	* keymap.c (silly_event_symbol_error, Fsingle_key_description)
 	(Fdescribe_buffer_bindings): Use SYMBOL_NAME and XSTRING instead
 	of XSYMBOL and name field.
 	(describe_command, describe_translation): Use SYMBOL_NAME and
@@ -101,16 +107,16 @@
 	XSTRING instead of XSYMBOL and name field.
 	* xfns.c (parse_image_spec): Use SYMBOL_NAME and XSTRING instead
 	of XSYMBOL and name field.
-	* xselect.c (symbol_to_x_atom, x_get_foreign_selection): Use
-	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+	* xselect.c (symbol_to_x_atom, x_get_foreign_selection):
+	Use SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
 
 2002-05-19  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (LISP_MAKE_RVALUE): Delete disabled version, making XCAR
 	and XCDR real rvalues in most configurations.
 
-	* buffer.c (fix_overlays_in_range, fix_overlays_before): Don't
-	take the address of the cdr part of a cons cell; instead, track
+	* buffer.c (fix_overlays_in_range, fix_overlays_before):
+	Don't take the address of the cdr part of a cons cell; instead, track
 	the parent cell and call XSETCDR, or set the variable for the head
 	of the list if we haven't started down the list yet.
 
@@ -133,8 +139,7 @@
 
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
 
-	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Fix
-	typo.
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Fix typo.
 
 2002-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -205,13 +210,13 @@
 
 2002-05-09  Kim F. Storm  <storm@cua.dk>
 
-	* macterm.c (x_draw_image_foreground, x_draw_image_foreground_1): 
+	* macterm.c (x_draw_image_foreground, x_draw_image_foreground_1):
 	Enlarge cursor rectangle drawn around image with non-zero relief.
 
-	* w32term.c (x_draw_image_foreground, w32_draw_image_foreground_1): 
+	* w32term.c (x_draw_image_foreground, w32_draw_image_foreground_1):
 	Enlarge cursor rectangle drawn around image with non-zero relief.
 
-	* xterm.c (x_draw_image_foreground, x_draw_image_foreground_1): 
+	* xterm.c (x_draw_image_foreground, x_draw_image_foreground_1):
 	Enlarge cursor rectangle drawn around image with non-zero relief.
 
 2002-05-07  Eli Zaretskii  <eliz@is.elta.co.il>
