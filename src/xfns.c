@@ -3098,7 +3098,7 @@ This function is an internal primitive--use `make-frame' instead.")
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parms, parent, name, frame);
-  tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
+  tem = x_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer", symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
