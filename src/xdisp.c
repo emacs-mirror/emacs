@@ -2302,8 +2302,8 @@ display_prop_end (it, object, start_pos)
   Lisp_Object end;
   struct text_pos end_pos;
 
-  end = next_single_char_property_change (make_number (CHARPOS (start_pos)),
-					  Qdisplay, object, Qnil);
+  end = Fnext_single_char_property_change (make_number (CHARPOS (start_pos)),
+					   Qdisplay, object, Qnil);
   CHARPOS (end_pos) = XFASTINT (end);
   if (STRINGP (object))
     compute_string_pos (&end_pos, start_pos, it->string);
@@ -4660,9 +4660,9 @@ invisible_text_between_p (it, start_charpos, end_charpos)
     invisible_found_p = 1;
   else
     {
-      limit = next_single_char_property_change (make_number (start_charpos),
-						Qinvisible, Qnil,
-						make_number (end_charpos));
+      limit = Fnext_single_char_property_change (make_number (start_charpos),
+						 Qinvisible, Qnil,
+						 make_number (end_charpos));
       invisible_found_p = XFASTINT (limit) < end_charpos;
     }
 
