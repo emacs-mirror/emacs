@@ -621,9 +621,6 @@ treated as a compiled CCL code.
 
 2. If PROPERTIES is just a list of character sets, the list is set as
 a value of `safe-charsets' in PLIST."
-  (if (memq coding-system coding-system-list)
-      (error "Coding system %s already exists" coding-system))
-
   ;; Set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
 	(no-initial-designation t)
