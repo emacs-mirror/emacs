@@ -576,7 +576,7 @@ echo_dash ()
   if (!immediate_echo && echoptr == echobuf)
     return;
   /* Do nothing if we just printed a prompt.  */
-  if (echo_after_prompt != echoptr - echobuf)
+  if (echo_after_prompt == echoptr - echobuf)
     return;
   /* Do nothing if not echoing at all.  */
   if (echoptr == 0)
