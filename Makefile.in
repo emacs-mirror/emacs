@@ -344,7 +344,7 @@ do-install: mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
-	-[ `(cd etc; /bin/pwd)` != `(cd ${etcdir}; /bin/pwd)` ] \
+	-[ `(cd etc; /bin/pwd)` != `(cd ${srcdir}/etc; /bin/pwd)` ] \
 	 && (echo "Copying ./etc..." ; \
 	       (cd ./etc; tar cf - . )|(cd ${etcdir}; umask 0; tar xvf - ); \
 	       for subdir in `find ${etcdir} -type d ! -name RCS -print` ; do \
