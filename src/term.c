@@ -376,7 +376,7 @@ int max_frame_width;
 
 int max_frame_height;
 
-int costs_set = 0;		/* Nonzero if costs have been calculated. */
+static int costs_set;	  /* Nonzero if costs have been calculated. */
 
 int insert_mode;			/* Nonzero when in insert mode.  */
 int standout_mode;			/* Nonzero when in standout mode.  */
@@ -816,7 +816,6 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   int len;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
-  int result;
   struct coding_system *coding;
 
   /* If terminal_coding does any conversion, use it, otherwise use
