@@ -85,6 +85,7 @@ OBJ0 =  $(BLD)\emacs.obj
 OBJ1 =  $(BLD)\abbrev.obj       \
 	$(BLD)\alloc.obj        \
 	$(BLD)\alloca.obj       \
+	$(BLD)\atimer.obj       \
 	$(BLD)\buffer.obj       \
 	$(BLD)\bytecode.obj     \
 	$(BLD)\callint.obj      \
@@ -302,6 +303,7 @@ $(BLD)\alloc.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\puresize.h \
@@ -321,6 +323,20 @@ $(BLD)\alloca.obj : \
 	$(SRC)\config.h \
 	$(SRC)\blockinput.h
 
+$(BLD)\atimer.obj : \
+	$(SRC)\atimer.c \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\s\ms-w32.h \
+	$(SRC)\m\intel386.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\atimer.h \
+	$(SRC)\syssignal.h \
+	$(SRC)\systime.h \
+	$(SRC)\blockinput.h
+
 $(BLD)\buffer.obj : \
 	$(SRC)\buffer.c \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
@@ -329,6 +345,7 @@ $(BLD)\buffer.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\window.h \
@@ -456,6 +473,7 @@ $(BLD)\dispnew.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
 	$(SRC)\w32term.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h \
@@ -487,6 +505,7 @@ $(BLD)\editfns.obj : \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -502,6 +521,7 @@ $(BLD)\emacs.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
@@ -533,6 +553,7 @@ $(BLD)\fileio.obj : \
 	$(SRC)\vmsdir.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -589,6 +610,7 @@ $(BLD)\fns.obj : \
 	$(SRC)\buffer.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -646,6 +668,7 @@ $(BLD)\indent.obj : \
 	$(SRC)\termopts.h \
 	$(SRC)\disptab.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\region-cache.h \
 	$(SRC)\composite.h
@@ -657,6 +680,7 @@ $(BLD)\insdel.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -670,6 +694,7 @@ $(BLD)\intervals.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\buffer.h \
 	$(SRC)\puresize.h
@@ -701,6 +726,7 @@ $(BLD)\keyboard.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
 	$(SRC)\w32term.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h
@@ -765,6 +791,7 @@ $(BLD)\minibuf.obj : \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\syntax.h
@@ -804,6 +831,7 @@ $(BLD)\w32inevt.obj : \
 	$(SRC)\blockinput.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\w32heap.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\w32term.h
 
 $(BLD)\w32proc.obj : \
@@ -843,6 +871,7 @@ $(BLD)\print.obj : \
 	$(SRC)\process.h \
 	$(SRC)\termchar.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -911,6 +940,7 @@ $(BLD)\scroll.obj : \
 	$(SRC)\termchar.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\frame.h
 
 $(BLD)\search.obj : \
@@ -976,6 +1006,7 @@ $(BLD)\sysdep.obj : \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\process.h \
 	$(SRC)\vmsdir.h \
 	$(SRC)\ndir.h \
@@ -1018,6 +1049,7 @@ $(BLD)\textprop.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -1082,6 +1114,7 @@ $(BLD)\widget.obj : \
 	$(SRC)\xterm.h \
 	$(SRC)\frame.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\widget.h \
 	$(SRC)\widgetprv.h
 
@@ -1117,6 +1150,7 @@ $(BLD)\xdisp.obj : \
 	$(SRC)\disptab.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\dispextern.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
