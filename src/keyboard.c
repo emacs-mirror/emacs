@@ -293,7 +293,7 @@ Lisp_Object Qscrollbar_click;
 
 /* Properties of event headers.  */
 Lisp_Object Qevent_kind;
-Lisp_Object Qevent_unmodified;
+Lisp_Object Qevent_symbol_elements;
 
 /* Symbols to use for non-text mouse positions.  */
 Lisp_Object Qmode_line;
@@ -392,8 +392,7 @@ echo_char (c)
 	*ptr++ = ' ';
 
       /* If someone has passed us a composite event, use its head symbol.  */
-      if (EVENT_HAS_PARAMETERS (c))
-	c = EVENT_HEAD (c);
+      c = EVENT_HEAD (c);
 
       if (XTYPE (c) == Lisp_Int)
 	{
@@ -1283,8 +1282,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  Lisp_Object dribblee = c;
 
 	  /* If it's a structured event, take the event header.  */
-	  if (EVENT_HAS_PARAMETERS (dribblee))
-	    dribblee = EVENT_HEAD (dribblee);
+	  dribblee = EVENT_HEAD (dribblee);
 
 	  if (XTYPE (c) == Lisp_Symbol)
 	    {
@@ -1385,30 +1383,7 @@ extern int frame_garbaged;
 static int
 readable_events ()
 {
-  struct input_event *ep;
-
-  if (EVENT_QUEUES_EMPTY)
-    return 0;
-
-  if (do_mouse_tracking)
-    return 1;
-
-  /* Mouse tracking is disabled, so we need to actually scan the
-     input queue to see if any events are currently readable.  */
-  for (ep = kbd_fetch_ptr; ep != kbd_store_ptr; ep++)
-    {
-      if (ep == kbd_buffer + KBD_BUFFER_SIZE)
-	ep = kbd_buffer;
-	
-      /* Skip button-up events.  */
-      if ((ep->kind == mouse_click || ep->kind == scrollbar_click)
-	  && (ep->modifiers & up_modifier))
-	continue;
-
-      return 1;
-    }
-    
-  return 0;
+  return ! EVENT_QUEUES_EMPTY;
 }
 
 
@@ -1537,28 +1512,6 @@ kbd_buffer_get_event ()
   /* Wait until there is input available.  */
   for (;;)
     {
-
-      /* Process or toss any events that we don't want to return as
-	 input.  The fact that we remove undesirable events here
-	 allows us to use EVENT_QUEUES_EMPTY in the rest of this loop.  */
-      if (! do_mouse_tracking)
-	while (kbd_fetch_ptr != kbd_store_ptr)
-	  {
-	    if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
-	      kbd_fetch_ptr = kbd_buffer;
-
-	    if (kbd_fetch_ptr->kind == mouse_click
-		|| kbd_fetch_ptr->kind == scrollbar_click)
-	      {
-		if ((kbd_fetch_ptr->modifiers & up_modifier) == 0)
-		  break;
-	      }
-	    else
-	      break;
-
-	    kbd_fetch_ptr++;
-	  }
-
       if (!EVENT_QUEUES_EMPTY)
 	break;
 
@@ -1720,9 +1673,23 @@ static char *lispy_mouse_names[] =
   "mouse-1", "mouse-2", "mouse-3", "mouse-4", "mouse-5"
 };
 
+/* make_lispy_event stores the down-going location of the currently
+   depressed buttons in button_down_locations.  */
+struct mouse_position {
+  Lisp_Object window;
+  Lisp_Object buffer_pos;
+  Lisp_Object x, y;
+  Lisp_Object timestamp;
+};
+static struct mouse_position button_down_location[NUM_MOUSE_BUTTONS];
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
-   movement buffer, which should have a movement event in it.  */
+   movement buffer, which should have a movement event in it.
+
+   Note that events must be passed to this function in the order they
+   are received; this function stores the location of button presses
+   in order to build drag events when the button is released.  */
 
 static Lisp_Object
 make_lispy_event (event)
@@ -1734,7 +1701,6 @@ make_lispy_event (event)
   switch (event->kind)
 #endif
     {
-
       /* A simple keystroke.  */
     case ascii_keystroke:
       return event->code;
@@ -1750,16 +1716,22 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
-      /* A mouse click - build a list of the relevant information.  */
+      /* A mouse click.  Figure out where it is, decide whether it's 
+         a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
       {
 	int part;
-	Lisp_Object window =
-	  window_from_coordinates (event->frame,
-				   XINT (event->x), XINT (event->y),
-				   &part);
+	Lisp_Object window;
 	Lisp_Object posn;
+	struct mouse_position *loc;
 
+	if (event->code < 0 || event->code >=  NUM_MOUSE_BUTTONS)
+	  abort ();
+
+	/* Where did this mouse click occur?  */
+	window = window_from_coordinates (event->frame,
+					  XINT (event->x), XINT (event->y),
+					  &part);
 	if (XTYPE (window) != Lisp_Window)
 	  posn = Qnil;
 	else
@@ -1768,7 +1740,6 @@ make_lispy_event (event)
 				- XINT (XWINDOW (window)->left)));
 	    XSETINT (event->y, (XINT (event->y)
 				- XINT (XWINDOW (window)->top)));
-
 	    if (part == 1)
 	      posn = Qmode_line;
 	    else if (part == 2)
@@ -1780,18 +1751,67 @@ make_lispy_event (event)
 					     XINT (event->y)));
 	  }
 
-	return Fcons (modify_event_symbol (XFASTINT (event->code) - 1,
-					   event->modifiers,
-					   Qmouse_click,
-					   lispy_mouse_names, &mouse_syms,
-					   (sizeof (lispy_mouse_names)
-					    / sizeof (lispy_mouse_names[0]))),
-		      Fcons (window,
-			     Fcons (posn,
-				    Fcons (Fcons (event->x, event->y),
-					   Fcons (make_number
-						  (event->timestamp),
-						  Qnil)))));
+	/* If this is a button press, squirrel away the location, so we
+	   can decide later whether it was a click or a drag.  */
+	loc = button_down_location + event->code;
+	if (event->modifiers & down_modifier)
+	  {
+	    loc->window = window;
+	    loc->buffer_pos = posn;
+	    loc->x = event->x;
+	    loc->y = event->y;
+	    loc->timestamp = event->timestamp;
+	  }
+
+	/* Now we're releasing a button - check the co-ordinates to
+	   see if this was a click or a drag.  */
+	else if (event->modifiers & up_modifier)
+	  {
+	    event->modifiers &= ~up_modifier;
+	    event->modifiers |= ((event->x == loc->x && event->y == loc->y)
+				 ? click_modifier
+				 : drag_modifier);
+	  }
+	else
+	  /* Every mouse event should either have the down_modifier or
+	     the up_modifier set.  */
+	  abort ();
+
+	  
+	/* Build the event.  */
+	{
+	  Lisp_Object head, start, end;
+
+	  /* Build the components of the event.  */
+	  head = modify_event_symbol (XFASTINT (event->code) - 1,
+				      event->modifiers,
+				      Qmouse_click,
+				      lispy_mouse_names, &mouse_syms,
+				      (sizeof (lispy_mouse_names)
+				       / sizeof (lispy_mouse_names[0])));
+	  end = Fcons (window,
+		       Fcons (posn,
+			      Fcons (Fcons (event->x, event->y),
+				     Fcons (make_number (event->timestamp),
+					    Qnil))));
+	  if (event->modifiers & drag_modifier)
+	    start = Fcons (loc->window,
+			   Fcons (loc->buffer_pos,
+				  Fcons (Fcons (loc->x, loc->y),
+					 Fcons (make_number (loc->timestamp),
+						Qnil))));
+
+	  /* Assemble the pieces.  */
+	  if (event->modifiers & drag_modifier)
+	    return Fcons (head,
+			  Fcons (start,
+				 Fcons (end,
+					Qnil)));
+	  else
+	    return Fcons (head,
+			  Fcons (end,
+				 Qnil));
+	}
       }
 
       /* A scrollbar click.  Build a list containing the relevant
@@ -1854,10 +1874,12 @@ make_lispy_movement (frame, x, y, time)
   XSETINT (x, ix);
   XSETINT (y, iy);
   return Fcons (Qmouse_movement,
-		Fcons (window,
-		       Fcons (posn,
-			      Fcons (Fcons (x, y),
-				     Fcons (make_number (time), Qnil)))));
+		Fcons (Fcons (window,
+			      Fcons (posn,
+				     Fcons (Fcons (x, y),
+					    Fcons (make_number (time),
+						   Qnil)))),
+		       Qnil));
 }
 
 
@@ -1872,8 +1894,8 @@ format_modifiers (modifiers, buf)
 {
   char *p = buf;
 
-  /* Events with the `up' modifier should always be turned into 
-     click or drag events.  */
+  /* Only the event queue may use the `up' modifier; it should always
+     be turned into a click or drag event before presented to lisp code.  */
   if (modifiers & up_modifier)
     abort ();
 
@@ -1885,6 +1907,7 @@ format_modifiers (modifiers, buf)
   if (modifiers & super_modifier) { strcpy (p, "super-"); p += 6; }
   if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
   if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
+  /* The click modifier is denoted by the absence of other modifiers.  */
   *p = '\0';
 
   return p - buf;
@@ -1894,7 +1917,7 @@ format_modifiers (modifiers, buf)
 /* Given a symbol whose name begins with modifiers ("C-", "M-", etc),
    return a symbol with the modifiers placed in the canonical order.
    Canonical order is alphabetical, except for down and drag, which
-   always come last.
+   always come last.  The 'click' modifier is never written out.
 
    Fdefine_key calls this to make sure that (for example) C-M-foo
    and M-C-foo end up being equivalent in the keymap.  */
@@ -2029,7 +2052,19 @@ reorder_modifiers (symbol)
    whose prefixes should be applied to the symbol name.
 
    SYMBOL_KIND is the value to be placed in the event_kind property of
-   the returned symbol.  */
+   the returned symbol. 
+
+   The symbols we create are supposed to have an
+   `event-symbol-elements' propery, which lists the modifiers present
+   in the symbol's name.  */
+
+static char *modifier_names[] =
+{
+  "up", "alt", "ctrl", "hyper", "meta", "shift", "super", "down", "drag",
+  "click"
+};
+
+static Lisp_Object modifier_symbols;
 
 static Lisp_Object
 modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
@@ -2041,76 +2076,89 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
      Lisp_Object *symbol_table;
      int table_size;
 {
-  Lisp_Object *slot, *unmodified_slot;
+  Lisp_Object *slot;
+  Lisp_Object unmodified;
+  Lisp_Object temp;
 
   /* Is this a request for a valid symbol?  */
-  if (symbol_num < 0 || symbol_num >= table_size
-      || modifiers >= NUM_MODIFIER_COMBOS)
+  if (symbol_num < 0 || symbol_num >= table_size)
     abort ();
 
-  /* If *symbol_table is not a vector of the appropriate size,
-     set it to one.  */
+  /* If *symbol_table doesn't seem to be initialized property, fix that.
+
+     *symbol_table should be a lisp vector TABLE_SIZE elements long,
+     where the Nth element is an alist for modified versions of
+     name_table[N]; the alist maps modifier masks onto the modified
+     symbols.  The click modifier is always omitted from the mask; it
+     is indicated implicitly on a mouse event by the absence of the
+     down_ and drag_ modifiers.  */
   if (XTYPE (*symbol_table) != Lisp_Vector
       || XVECTOR (*symbol_table)->size != table_size)
-    *symbol_table = Fmake_vector (make_number (table_size), Qnil);
-
-  unmodified_slot = slot = & XVECTOR (*symbol_table)->contents[symbol_num];
-
-  /* If there are modifier keys, there had better be a vector in
-     this symbol's position of the symbol_table.  */
-  if (modifiers != 0)
     {
-      Lisp_Object slot_contents = *slot;
-
-      /* If there isn't the right sort of vector there, put one in.  */
-      if (XTYPE (slot_contents) != Lisp_Vector
-	  || XVECTOR (slot_contents)->size != NUM_MODIFIER_COMBOS)
-	{
-	  *slot = Fmake_vector (make_number (NUM_MODIFIER_COMBOS), Qnil);
-
-	  /* Make sure that the vector has an entry for the unmodified
-	     symbol, so we can put it on the event_unmodified property.  */
-	  if (! NILP (slot_contents))
-	    XVECTOR (*slot)->contents[0] = slot_contents;
-	  else
-	    XVECTOR (*slot)->contents[0] = intern (name_table [symbol_num]);
-	}
+      XFASTINT (temp) = table_size;
+      *symbol_table = Fmake_vector (temp, Qnil);
     }
 
-  /* If this entry has been filled in with a modified symbol vector,
-     point to the appropriate slot within that.  */
-  if (XTYPE (*slot) == Lisp_Vector)
-    {
-      unmodified_slot = & XVECTOR (*slot)->contents[0];
-      slot = & XVECTOR (*slot)->contents[modifiers];
-    }
+  slot = & XVECTOR (*symbol_table)->contents[symbol_num];
 
-  /* Make sure we have an unmodified version of the symbol in its
-     proper place?  */
-  if (NILP (*unmodified_slot))
-    {
-      *unmodified_slot = intern (name_table [symbol_num]);
-      Fput (*unmodified_slot, Qevent_kind, symbol_kind);
-      Fput (*unmodified_slot, Qevent_unmodified, *unmodified_slot);
-    }
+  /* Have we already modified this symbol?  */
+  XFASTINT (temp) = modifiers & ~(click_modifier);
+  temp = Fassq (temp, *slot);
+  if (CONSP (temp))
+    return (XCONS (temp)->cdr);
 
-  /* Have we already created a symbol for this combination of modifiers?  */
+  /* We don't have an entry for the symbol; we have to build it.   */
+
+  /* Make sure there's an assoc for the unmodified symbol.
+     Any non-empty alist should contain an entry for the unmodified symbol.  */
+  XFASTINT (temp) = 0;
+
   if (NILP (*slot))
     {
-      /* No, let's create one.  */
-      char *modified_name
-	= (char *) alloca (sizeof ("C-M-S-U-")
-			   + strlen (name_table [symbol_num]));
-
-      strcpy (modified_name + format_modifiers (modifiers, modified_name),
-	      name_table [symbol_num]);
-
-      *slot = intern (modified_name);
-      Fput (*slot, Qevent_kind, symbol_kind);
-      Fput (*slot, Qevent_unmodified, *unmodified_slot);
+      unmodified = intern (name_table [symbol_num]);
+      *slot = Fcons (Fcons (temp, unmodified), Qnil);
+      Fput (unmodified, Qevent_kind, symbol_kind);
+      Fput (unmodified, Qevent_symbol_elements, Fcons (unmodified, Qnil));
     }
-  
-  return *slot;
+  else
+    {
+      temp = Fassq (temp, *slot);
+      if (NILP (temp))
+	abort ();
+      unmodified = XCONS (temp)->cdr;
+    }
+
+  /* Create a modified version of the symbol, and add it to the alist.  */
+  {
+    Lisp_Object modified;
+    char *modified_name
+      = (char *) alloca (sizeof ("A-C-H-M-S-super-U-down-drag")
+			 + strlen (name_table [symbol_num]));
+
+    strcpy (modified_name + format_modifiers (modifiers, modified_name),
+	    name_table [symbol_num]);
+
+    modified = intern (modified_name);
+    XFASTINT (temp) = modifiers & ~click_modifier;
+    *slot = Fcons (Fcons (temp, modified), *slot);
+    Fput (modified, Qevent_kind, symbol_kind);
+
+    {
+      Lisp_Object modifier_list;
+      int i;
+
+      modifier_list = Qnil;
+      for (i = 0; (1<<i) <= modifiers; i++)
+	if (modifiers & (1<<i))
+	  modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
+				 modifier_list);
+
+      Fput (modified, Qevent_symbol_elements,
+	    Fcons (unmodified, modifier_list));
+    }
+
+    return modified;
+  }
 }
 
 DEFUN ("mouse-click-p", Fmouse_click_p, Smouse_click_p, 1, 1, 0,
@@ -2546,6 +2594,9 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
    case letter and there are bindings for the corresponding lower-case
    letter, return the bindings for the lower-case letter.
 
+   If KEY has no bindings in any of the CURRENT maps, NEXT is left
+   unmodified.
+
    NEXT may == CURRENT.  */
 
 static int
@@ -2786,7 +2837,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    }
 	  else if (EVENT_HAS_PARAMETERS (key))
 	    {
-	      Lisp_Object window = EVENT_WINDOW (key);
+	      Lisp_Object window = POSN_WINDOW (EVENT_START (key));
 
 	      if (NILP (window))
 		abort ();
@@ -3568,8 +3619,8 @@ syms_of_keyboard ()
 
   Qevent_kind = intern ("event-type");
   staticpro (&Qevent_kind);
-  Qevent_unmodified = intern ("event-unmodified");
-  staticpro (&Qevent_unmodified);
+  Qevent_symbol_elements = intern ("event-symbol-elements");
+  staticpro (&Qevent_symbol_elements);
 
   {
     struct event_head *p;
@@ -3581,8 +3632,25 @@ syms_of_keyboard ()
 	*p->var = intern (p->name);
 	staticpro (p->var);
 	Fput (*p->var, Qevent_kind, *p->kind);
-	Fput (*p->var, Qevent_unmodified, *p->var);
+	Fput (*p->var, Qevent_symbol_elements, Fcons (*p->var, Qnil));
       }
+  }
+
+  {
+    int i;
+
+    for (i = 0; i < NUM_MOUSE_BUTTONS; i++)
+      staticpro (&button_down_location[i].window);
+  }
+
+  {
+    int i;
+    int len = sizeof (modifier_names) / sizeof (modifier_names[0]);
+
+    modifier_symbols = Fmake_vector (make_number (len), Qnil);
+    for (i = 0; i < len; i++)
+      XVECTOR (modifier_symbols)->contents[i] = intern (modifier_names[i]);
+    staticpro (&modifier_symbols);
   }
 
   recent_keys = Fmake_vector (make_number (NUM_RECENT_KEYS), Qnil);
