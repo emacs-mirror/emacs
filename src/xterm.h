@@ -570,3 +570,46 @@ struct selection_input_event
   (((struct selection_input_event *) (eventp))->property)
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
+
+
+/* Interface to the face code functions.  */
+
+/* Create the first two faces for a frame -- the ones that have GC's.  */
+extern void init_frame_faces (/* FRAME_PTR */);
+
+/* Free the resources for the faces associated with a frame.  */
+extern void free_frame_faces (/* FRAME_PTR */);
+
+/* Given a non-display face, find or make an equivalent display face
+   in face_vector, and return a pointer to it.  */
+extern struct face *intern_face (/* FRAME_PTR, struct face * */);
+
+/* Given a frame and a face name, return the face's ID number, or
+   zero if it isn't a recognized face name.  */
+extern int face_name_id_number (/* FRAME_PTR, Lisp_Object */);
+
+/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+   We assume that they're both character-cell fonts.  */
+extern int same_size_fonts (/* XFontStruct *, XFontStruct * */);
+
+/* Recompute the GC's for the default and modeline faces.
+   We call this after changing frame parameters on which those GC's
+   depend.  */
+extern void recompute_basic_faces (/* FRAME_PTR */);
+
+/* Return the face ID associated with a buffer position POS.
+   Store into *ENDPTR the position at which a different face is needed.
+   This does not take account of glyphs that specify their own face codes.
+   F is the frame in use for display, and W is a window displaying
+   the current buffer.
+
+   REGION_BEG, REGION_END delimit the region, so it can be highlighted.  */
+extern int compute_char_face (/* FRAME_PTR frame,
+				 struct window *w,
+				 int pos,
+				 int region_beg, int region_end,
+				 int *endptr */);
+/* Return the face ID to use to display a special glyph which selects
+   FACE_CODE as the face ID, assuming that ordinarily the face would
+   be BASIC_FACE.  F is the frame.  */
+extern int compute_glyph_face (/* FRAME_PTR, int */);
