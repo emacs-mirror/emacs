@@ -3835,8 +3835,8 @@ x_catch_errors ()
   XSync (x_current_display, False);
 
   /* Set up the error buffer.  */
-  x_caught_error_message =
-    (char (*)[]) xmalloc (sizeof (*x_caught_error_message));
+  x_caught_error_message
+    = (char (*)[200]) xmalloc (sizeof (*x_caught_error_message));
   (*x_caught_error_message)[0] = '\0';
 
   /* Install our little error handler.  */
