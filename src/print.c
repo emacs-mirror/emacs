@@ -1043,8 +1043,16 @@ print (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Buffer_Objfwd:
 	  strout (buf, "#<buffer_objfwd to ", -1, printcharfun);
-	  print (*(Lisp_Object *)((char *)current_buffer +
-				  XBUFFER_OBJFWD (obj)->offset),
+	  print (*(Lisp_Object *)((char *)current_buffer
+				  + XBUFFER_OBJFWD (obj)->offset),
+		 printcharfun, escapeflag);
+	  PRINTCHAR ('>');
+	  break;
+
+	case Lisp_Misc_Display_Objfwd:
+	  strout (buf, "#<display_objfwd to ", -1, printcharfun);
+	  print (*(Lisp_Object *)((char *) get_perdisplay (selected_frame)
+				  + XDISPLAY_OBJFWD (obj)->offset),
 		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
