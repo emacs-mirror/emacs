@@ -1,5 +1,8 @@
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-conf.el (oldjis-newjis-jisroman-ascii): Don't
+	translate some natinal variant characters of latin-jisx0201.
+
 	* international/kkc.el (kkc-after-update-conversion-functions):
 	New variable.
 	(kkc-update-conversion): Run functions in it at the tail.
