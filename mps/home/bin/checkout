@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/usr/local/bin/bash
 # impl.sh.checkout: ROBOT CHECKOUT SCRIPT
 #
-# $HopeName$
+# $HopeName: HOMEmm!bin:checkout(trunk.7) $
 #
 # This script is run in the MM Project Robot's home directory (~mm) as
 # the user `mm'.  It checks out the HOMEmm compound and updates the
@@ -11,6 +11,6 @@
 hostname=`hostname`; hostname=${hostname%%.*}
 
 cd $HOME &&
-hope checkout -compound HOMEmm -recursive -writable-files quit \
+hope checkout -compound HOMEmm -recursive -writable-files skip \
   -extra-files delete &&
 crontab < $HOME/etc/$hostname.cron
