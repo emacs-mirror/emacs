@@ -241,17 +241,16 @@ use the standard functions without calling themselves recursively.")
   else
     inhibited_handlers = Qnil;
 
-  for (chain = Vfile_name_handler_alist; XTYPE (chain) == Lisp_Cons;
+  for (chain = Vfile_name_handler_alist; CONSP (chain);
        chain = XCONS (chain)->cdr)
     {
       Lisp_Object elt;
       elt = XCONS (chain)->car;
-      if (XTYPE (elt) == Lisp_Cons)
+      if (CONSP (elt))
 	{
 	  Lisp_Object string;
 	  string = XCONS (elt)->car;
-	  if (XTYPE (string) == Lisp_String
-	      && fast_string_match (string, filename) >= 0)
+	  if (STRINGP (string) && fast_string_match (string, filename) >= 0)
 	    {
 	      Lisp_Object handler, tem;
 
@@ -1774,9 +1773,9 @@ A prefix arg makes KEEP-TIME non-nil.")
 			   ok_if_already_exists, keep_date));
 
   if (NILP (ok_if_already_exists)
-      || XTYPE (ok_if_already_exists) == Lisp_Int)
+      || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "copy to it",
-				  XTYPE (ok_if_already_exists) == Lisp_Int);
+				  INTEGERP (ok_if_already_exists));
 
   ifd = open (XSTRING (filename)->data, O_RDONLY);
   if (ifd < 0)
@@ -1954,9 +1953,9 @@ This is what happens in interactive use with M-x.")
 			   filename, newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
-      || XTYPE (ok_if_already_exists) == Lisp_Int)
+      || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
-				  XTYPE (ok_if_already_exists) == Lisp_Int);
+				  INTEGERP (ok_if_already_exists));
 #ifndef BSD4_1
   if (0 > rename (XSTRING (filename)->data, XSTRING (newname)->data))
 #else
@@ -2017,9 +2016,9 @@ This is what happens in interactive use with M-x.")
 			   newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
-      || XTYPE (ok_if_already_exists) == Lisp_Int)
+      || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "make it a new name",
-				  XTYPE (ok_if_already_exists) == Lisp_Int);
+				  INTEGERP (ok_if_already_exists));
   unlink (XSTRING (newname)->data);
   if (0 > link (XSTRING (filename)->data, XSTRING (newname)->data))
     {
@@ -2071,9 +2070,9 @@ This happens for interactive use with M-x.")
 			   linkname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
-      || XTYPE (ok_if_already_exists) == Lisp_Int)
+      || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, "make it a link",
-				  XTYPE (ok_if_already_exists) == Lisp_Int);
+				  INTEGERP (ok_if_already_exists));
   if (0 > symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
     {
       /* If we didn't complain already, silently delete existing file.  */
@@ -3069,7 +3068,7 @@ to the file, instead of any buffer contents, and END is ignored.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qwrite_region);
   /* If FILENAME has no handler, see if VISIT has one.  */
-  if (NILP (handler) && XTYPE (visit) == Lisp_String)
+  if (NILP (handler) && STRINGP (visit))
     handler = Ffind_file_name_handler (visit, Qwrite_region);    
 
   if (!NILP (handler))
@@ -3487,7 +3486,7 @@ This means that the file has not been changed since it was visited or saved.")
   CHECK_BUFFER (buf, 0);
   b = XBUFFER (buf);
 
-  if (XTYPE (b->filename) != Lisp_String) return Qt;
+  if (!STRINGP (b->filename)) return Qt;
   if (b->modtime == 0) return Qt;
 
   /* If the file name has special constructs in it,
@@ -3680,7 +3679,7 @@ Non-nil second argument means save only current buffer.")
       
 	/* Record all the buffers that have auto save mode
 	   in the special file that lists them.  */
-	if (XTYPE (b->auto_save_file_name) == Lisp_String
+	if (STRINGP (b->auto_save_file_name)
 	    && listdesc >= 0 && do_handled_files == 0)
 	  {
 	    write (listdesc, XSTRING (b->auto_save_file_name)->data,
@@ -3695,7 +3694,7 @@ Non-nil second argument means save only current buffer.")
 	/* Check for auto save enabled
 	   and file changed since last auto save
 	   and file changed since last real save.  */
-	if (XTYPE (b->auto_save_file_name) == Lisp_String
+	if (STRINGP (b->auto_save_file_name)
 	    && b->save_modified < BUF_MODIFF (b)
 	    && b->auto_save_modified < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
@@ -3875,7 +3874,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
       specdir = Ffile_name_directory (string);
       val = Ffile_name_completion (name, realdir);
       UNGCPRO;
-      if (XTYPE (val) != Lisp_String)
+      if (!STRINGP (val))
 	{
 	  if (changed)
 	    return double_dollars (string);
@@ -3935,7 +3934,7 @@ DIR defaults to current buffer's directory default.")
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
   if (homedir != 0
-      && XTYPE (dir) == Lisp_String
+      && STRINGP (dir)
       && !strncmp (homedir, XSTRING (dir)->data, strlen (homedir))
       && XSTRING (dir)->data[strlen (homedir)] == '/')
     {
@@ -4019,7 +4018,7 @@ DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
   if (homedir != 0
-      && XTYPE (dir) == Lisp_String
+      && STRINGP (dir)
       && !strncmp (homedir, XSTRING (dir)->data, strlen (homedir))
       && XSTRING (dir)->data[strlen (homedir)] == '/')
     {
