@@ -3086,8 +3086,6 @@ read_process_output (proc, channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      /* Insert before markers in case we are inserting where
-	 the buffer's mark is, and the user's next command is Meta-y.  */
       text = decode_coding_string (make_unibyte_string (chars, nbytes),
 				   coding, 0);
       Vlast_coding_system_used = coding->symbol;
@@ -3112,10 +3110,12 @@ read_process_output (proc, channel)
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
-		? string_make_unibyte (text)
-		: string_make_multibyte (text));
+		? Fstring_as_unibyte (text)
+		: Fstring_as_multibyte (text));
       nbytes = STRING_BYTES (XSTRING (text));
       nchars = XSTRING (text)->size;
+      /* Insert before markers in case we are inserting where
+	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
       signal_after_change (before, 0, PT - before);
       update_compositions (before, PT, CHECK_BORDER);
