@@ -745,12 +745,11 @@ directory name is a symbolic link.
 If the optional argument LIMIT is a number,
 it means chase no more than that many links and then stop."
   (let (tem (newname filename)
-	    (count 0)
-	    (max (max limit 100)))
+	    (count 0))
     (while (and (or (null limit) (< count limit))
 		(setq tem (file-symlink-p newname)))
       (save-match-data
-	(if (= count max)
+	(if (and (null limit) (= count 100))
 	    (error "Apparent cycle of symbolic links for %s" filename))
 	;; In the context of a link, `//' doesn't mean what Emacs thinks.
 	(while (string-match "//+" tem)
@@ -769,7 +768,7 @@ it means chase no more than that many links and then stop."
 	  ;; Now find the parent of that dir.
 	  (setq newname (file-name-directory newname)))
 	(setq newname (expand-file-name tem (file-name-directory newname)))
-	(setq count (1- count))))
+	(setq count (1+ count))))
     newname))
 
 (defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
