@@ -154,7 +154,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	;; and this file won't fit in the length limit, process now.
 	(if (and pending (> (+ thislength pending-length) max))
 	    (setq failures
-		  (nconc (apply function (append args pending))
+		  (nconc (apply function (append args (nreverse pending)))
 			 failures)
 		  pending nil
 		  pending-length 0))
@@ -164,7 +164,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	(setq pending files)
 	(setq pending-length (+ thislength pending-length))
 	(setq files rest)))
-    (nconc (apply function (append args pending))
+    (nconc (apply function (append args (nreverse pending)))
 	   failures)))
 
 ;;;###autoload
@@ -316,22 +316,30 @@ If no files are marked or a specific numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
-If there is output, it goes to a separate buffer.
+If there is a `*' in COMMAND, surrounded by whitespace, this runs
+COMMAND just once with the entire file list substituted there.
 
-Normally the command is run on each file individually.
-However, if there is a `*' in the command then it is run
-just once with the entire file list substituted there.
+If there is no `*', but there is a `?' in COMMAND, surrounded by
+whitespace, this runs COMMAND on each file individually with the
+file name substituted for `?'.
 
-If there is no `*', but a `?' in the command then it is still run
-on each file individually but with the filename substituted there
-instead of at the end of the command.
+Otherwise, this runs COMMAND on each file individually with the
+file name added at the end of COMMAND (separated by a space).
 
-No automatic redisplay of dired buffers is attempted, as there's no
-telling what files the command may have changed.  Type
-\\[dired-do-redisplay] to redisplay the marked files.
+`*' and `?' when not surrounded by whitespace have no special
+significance for `dired-do-shell-command', and are passed through
+normally to the shell, but you must confirm first.  To pass `*' by
+itself to the shell as a wildcard, type `*""'.
 
-The shell command has the top level directory as working directory, so
-output files usually are created there instead of in a subdir.
+If COMMAND produces output, it goes to a separate buffer.
+
+This feature does not try to redisplay Dired buffers afterward, as
+there's no telling what files COMMAND may have changed.
+Type \\[dired-do-redisplay] to redisplay the marked files.
+
+When COMMAND runs, its working directory is the top-level directory of
+the Dired buffer, so output files usually are created there instead of
+in a subdir.
 
 In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument."
@@ -347,18 +355,28 @@ the list of file names explicitly with the FILE-LIST argument."
 				files)
       current-prefix-arg
       files)))
-  (let* ((on-each (not (string-match "\\*" command))))
-    (if on-each
-	(dired-bunch-files
-	 (- 10000 (length command))
-	 (function (lambda (&rest files)
-		     (dired-run-shell-command
-		      (dired-shell-stuff-it command files t arg))))
-	 nil
-	 file-list)
-      ;; execute the shell command
-      (dired-run-shell-command
-       (dired-shell-stuff-it command file-list nil arg)))))
+  (let* ((on-each (not (string-match "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)" command)))
+	 (subst (not (string-match "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)" command)))
+	 (star (not (string-match "\\*" command)))
+	 (qmark (not (string-match "\\?" command))))
+    ;; Get confirmation for wildcards that may have been meant
+    ;; to control substitution of a file name or the file name list.
+    (if (cond ((and star (not on-each))
+	       (y-or-n-p "Confirm--do you mean to use `*' as a wildcard? "))
+	      ((and qmark (not subst))
+	       (y-or-n-p "Confirm--do you mean to use `?' as a wildcard? "))
+	      (t))
+	(if on-each
+	    (dired-bunch-files
+	     (- 10000 (length command))
+	     (function (lambda (&rest files)
+			 (dired-run-shell-command
+			  (dired-shell-stuff-it command files t arg))))
+	     nil
+	     file-list)
+	  ;; execute the shell command
+	  (dired-run-shell-command
+	   (dired-shell-stuff-it command file-list nil arg))))))
 
 ;; Might use {,} for bash or csh:
 (defvar dired-mark-prefix ""
@@ -376,25 +394,23 @@ the list of file names explicitly with the FILE-LIST argument."
 ;; Might be redefined for smarter things and could then use RAW-ARG
 ;; (coming from interactive P and currently ignored) to decide what to do.
 ;; Smart would be a way to access basename or extension of file names.
-;; See dired-trns.el for an approach to this.
-  ;; Bug: There is no way to quote a * or a ?
-  ;; On the other hand, you can never accidentally get a * or a ? into
-  ;; your cmd.
   (let ((stuff-it
-	 (cond ((string-match "\\*" command)
-		(function (lambda (x)
-			    (dired-replace-in-string "\\*" x command))))
-	       ((string-match "\\?" command)
-		(function (lambda (x)
-			     (dired-replace-in-string "\\?" x command))))
-	       (t (function (lambda (x) (concat command " " x)))))))
+	 (cond ((string-match "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)" command)
+		(lambda (x)
+		  (string-match "\\(^\\|[ \t]\\)\\(\\*\\)\\([ \t]\\|$\\)" command)
+		  (replace-match x t t command 2)))
+	       ((string-match "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)" command)
+		(lambda (x)
+		  (string-match "\\(^\\|[ \t]\\)\\(\\?\\)\\([ \t]\\|$\\)" command)
+		  (replace-match x t t command 2)))
+	       (t (lambda (x) (concat command dired-mark-separator x))))))
     (if on-each
 	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
-      (let ((fns (mapconcat 'shell-quote-argument
-			    file-list dired-mark-separator)))
+      (let ((files (mapconcat 'shell-quote-argument
+			      file-list dired-mark-separator)))
 	(if (> (length file-list) 1)
-	    (setq fns (concat dired-mark-prefix fns dired-mark-postfix)))
-	(funcall stuff-it fns)))))
+	    (setq files (concat dired-mark-prefix files dired-mark-postfix)))
+	(funcall stuff-it files)))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
 (defun dired-run-shell-command (command)
