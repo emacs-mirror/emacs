@@ -742,6 +742,13 @@ If DOCSTRING starts with *, this variable is identified as a user option.
  This means that M-x set-variable recognizes it.
  See also `user-variable-p'.
 If INITVALUE is missing, SYMBOL's value is not set.
+
+If SYMBOL has a local binding, then this form affects the local
+binding.  This is usually not what you want.  Thus, if you need to
+load a file defining variables, with this form or with `defconst' or
+`defcustom', you should always load that file _outside_ any bindings
+for these variables.  \(`defconst' and `defcustom' behave similarly in
+this respect.)
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
      (args)
      Lisp_Object args;
@@ -784,6 +791,10 @@ Always sets the value of SYMBOL to the result of evalling INITVALUE.
 If SYMBOL is buffer-local, its default value is what is set;
  buffer-local values are not affected.
 DOCSTRING is optional.
+
+If SYMBOL has a local binding, then this form sets the local binding's
+value.  However, you should normally not make local bindings for
+variables defined with this form.
 usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
      (args)
      Lisp_Object args;
