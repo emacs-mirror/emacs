@@ -402,15 +402,22 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
-  "Find change log file and add an entry for today.
+  "Find change log file, and add an entry for today and an item for this file.
 Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
 name and site.
 
-Second arg is FILE-NAME of change log.  If nil, uses `change-log-default-name'.
+Second arg FILE-NAME is file name of the change log.
+If nil, use the value of `change-log-default-name'.
+
 Third arg OTHER-WINDOW non-nil means visit in other window.
+
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry.  Option `add-log-keep-changes-together'
 otherwise affects whether a new entry is created.
+
+The change log file can start with a copyright notice and a copying
+permission notice.  The first blank line indicates the end of these
+notices.
 
 Today's date is calculated according to `change-log-time-zone-rule' if
 non-nil, otherwise in local time."
@@ -439,8 +446,8 @@ non-nil, otherwise in local time."
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
 	 (file-name (expand-file-name
 		     (or file-name (find-change-log file-name buffer-file))))
-	 ;; Set ENTRY to the file name to use in the new entry.
-	 (entry (add-log-file-name buffer-file file-name))
+	 ;; Set ITEM to the file name to use in the new item.
+	 (item (add-log-file-name buffer-file file-name))
 	 bound)
 
     (if (or (and other-window (not (equal file-name buffer-file-name)))
@@ -451,36 +458,47 @@ non-nil, otherwise in local time."
 	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
+
+    ;; If file starts with a copyright and permission notice, skip them.
+    ;; Assume they end at first blank line.
+    (when (looking-at "Copyright")
+      (search-forward "\n\n")
+      (skip-chars-forward "\n"))
+
+    ;; Advance into first entry if it is usable; else make new one.
     (let ((new-entry (concat (funcall add-log-time-format)
 			     "  " add-log-full-name
 			     "  <" add-log-mailing-address ">")))
       (if (looking-at (regexp-quote new-entry))
 	  (forward-line 1)
-	(insert new-entry "\n\n")))
+	(insert new-entry "\n\n")
+	(forward-line -1)))
 
+    ;; Determine where we should stop searching for a usable
+    ;; item to add to, within this entry.
     (setq bound
-	  (progn
+	  (save-excursion
             (if (looking-at "\n*[^\n* \t]")
                 (skip-chars-forward "\n")
 	      (if add-log-keep-changes-together
 		  (forward-page)	; page delimits entries for date
 		(forward-paragraph)))	; paragraph delimits entries for file
 	    (point)))
-    (goto-char (point-min))
-    ;; Now insert the new line for this entry.
+
+    ;; Now insert the new line for this item.
     (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
-	   ;; Put this file name into the existing empty entry.
-	   (if entry
-	       (insert entry)))
+	   ;; Put this file name into the existing empty item.
+	   (if item
+	       (insert item)))
 	  ((and (not new-entry)
 		(let (case-fold-search)
 		  (re-search-forward
-		   (concat (regexp-quote (concat "* " entry))
+		   (concat (regexp-quote (concat "* " item))
 			   ;; Don't accept `foo.bar' when
 			   ;; looking for `foo':
 			   "\\(\\s \\|[(),:]\\)")
 		   bound t)))
-	   ;; Add to the existing entry for the same file.
+	   ;; Add to the existing item for the same file.
 	   (re-search-forward "^\\s *$\\|^\\s \\*")
 	   (goto-char (match-beginning 0))
 	   ;; Delete excess empty lines; make just 2.
@@ -490,8 +508,7 @@ non-nil, otherwise in local time."
 	   (forward-line -2)
 	   (indent-relative-maybe))
 	  (t
-	   ;; Make a new entry.
-	   (forward-line 1)
+	   ;; Make a new item.
 	   (while (looking-at "\\sW")
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
@@ -500,9 +517,9 @@ non-nil, otherwise in local time."
 	   (forward-line -2)
 	   (indent-to left-margin)
 	   (insert "* ")
-	   (if entry (insert entry))))
+	   (if item (insert item))))
     ;; Now insert the function name, if we have one.
-    ;; Point is at the entry for this file,
+    ;; Point is at the item for this file,
     ;; either at the end of the line or at the first blank line.
     (if defun
 	(progn
@@ -512,8 +529,8 @@ non-nil, otherwise in local time."
 		    (beginning-of-line 1)
 		    (looking-at "\\s *$"))
 	    (insert ?\ ))
-	  ;; See if the prev function name has a message yet or not
-	  ;; If not, merge the two entries.
+	  ;; See if the prev function name has a message yet or not.
+	  ;; If not, merge the two items.
 	  (let ((pos (point-marker)))
 	    (if (and (skip-syntax-backward " ")
 		     (skip-chars-backward "):")
@@ -537,13 +554,9 @@ non-nil, otherwise in local time."
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
-  "Find change log file in other window and add an entry for today.
-Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
-name and site.
-Second optional arg FILE-NAME is file name of change log.
-If nil, use `change-log-default-name'.
-
-Affected by the same options as `add-change-log-entry'."
+  "Find change log file in other window and add entry and item.
+This is just like `add-change-log-entry' except that it displays
+the change log file in another window."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
