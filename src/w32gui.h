@@ -30,10 +30,24 @@ typedef struct W32FontStruct {
   bdffont *bdf;
 } W32FontStruct;
 
+typedef struct W32FontStruct XFontStruct;
+
+/* Emulate X GC's by keeping color and font info in a structure.  */
+typedef struct _XGCValues
+{
+  COLORREF foreground;
+  COLORREF background;
+  XFontStruct * font;
+} XGCValues;
+
+#define GCForeground 0x01
+#define GCBackground 0x02
+#define GCFont 0x03
+
 typedef HBITMAP Pixmap;
 typedef HBITMAP Bitmap;
-typedef struct W32FontStruct XFontStruct;
-typedef HDC GC;
+
+typedef XGCValues * GC;
 typedef COLORREF Color;
 typedef DWORD Time;
 typedef HWND Window;
