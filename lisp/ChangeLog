@@ -1,3 +1,13 @@
+2002-08-20  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-forward-syntactic-ws): Fixed a bug
+	that could cause an infinite loop if something that looks like
+	a macro begins in the middle of a line.
+
+	* progmodes/cc-engine.el (c-parse-state): Fixed a bug that
+	could cause `c-state-cache' to contain two conses in sequence
+	when there's an unbalanced open paren in a macro.
+
 2002-08-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-current-defun): Use save-excursion.
