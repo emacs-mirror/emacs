@@ -457,7 +457,7 @@ is visible (and the real data of the buffer is hidden)."
     ;; A tar file should end with a block or two of nulls,
     ;; but let's not get a fatal error if it doesn't.
     (if (eq tokens 'empty-tar-block)
-	(message "Parsing tar file...done.")
+	(message "Parsing tar file...done")
       (message "Warning: premature EOF parsing tar file")))
   (save-excursion
     (goto-char (point-min))
@@ -465,7 +465,7 @@ is visible (and the real data of the buffer is hidden)."
 	  (summaries nil))
       ;; Collect summary lines and insert them all at once since tar files
       ;; can be pretty big.
-      (tar-dolist (tar-desc tar-parse-info)
+      (tar-dolist (tar-desc (reverse tar-parse-info))
 	(setq summaries
 	      (cons (tar-header-block-summarize (tar-desc-tokens tar-desc))
 		    (cons "\n"
