@@ -1,3 +1,8 @@
+2004-04-09  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el: Add comment, based on report by
+	kdc@rcn.com (Kevin D. Clark).
+
 2004-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
