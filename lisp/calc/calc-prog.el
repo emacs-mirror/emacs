@@ -722,7 +722,7 @@
 					  (setcar mac new))))))))
 	     (let ((keys (progn (and (fboundp 'edit-kbd-macro)
 				     (edit-kbd-macro nil))
-				(fboundp 'MacEdit-parse-keys))))
+				(fboundp 'edmacro-parse-keys))))
 	       (calc-wrapper
 		(calc-edit-mode (list 'calc-finish-macro-edit
 				      (list 'quote def)
@@ -775,7 +775,7 @@
   (if (and keys (looking-at "\n")) (forward-line 1))
   (let* ((true-str (buffer-substring (point) (point-max)))
 	 (str true-str))
-    (if keys (setq str (MacEdit-parse-keys str)))
+    (if keys (setq str (edmacro-parse-keys str)))
     (if (symbolp (cdr def))
 	(if (stringp (symbol-function (cdr def)))
 	    (fset (cdr def) str)
@@ -1019,7 +1019,7 @@
 		  (vectorp (nth 1 (nth 3 fcmd)))
 		  (progn (and (fboundp 'edit-kbd-macro)
 			      (edit-kbd-macro nil))
-			 (fboundp 'MacEdit-parse-keys))
+			 (fboundp 'edmacro-parse-keys))
 		  (setq q-ok t)
 		  (aset (nth 1 (nth 3 fcmd)) 1 nil))
 	     (insert (setq str (prin1-to-string
@@ -1105,7 +1105,7 @@
       (setq mac (or (aref mac 1)
 		    (aset mac 1 (progn (and (fboundp 'edit-kbd-macro)
 					    (edit-kbd-macro nil))
-				       (MacEdit-parse-keys (aref mac 0)))))))
+				       (edmacro-parse-keys (aref mac 0)))))))
   (if (< (prefix-numeric-value arg) 0)
       (execute-kbd-macro mac (- (prefix-numeric-value arg)))
     (if calc-executing-macro
