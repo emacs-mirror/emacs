@@ -1,3 +1,14 @@
+2001-11-07  Paul Eggert  <eggert@twinsun.com>
+
+	* dired.el (dired-move-to-filename-regexp):
+	Do not distinguish between ASCII letters and non-ASCII characters.
+	Don't allow comma except in the form "month day, year".
+	Don't allow space between month name and comma.
+	Clean up the code that checks for trailing period, comma, and space.
+	Remove now-obsolete comments, and add more commentary about
+	Japanese dates.
+	Always gobble up trailing spaces, instead of doing it only sometimes.
+
 2001-11-07  Miles Bader  <miles@gnu.org>
 
 	* paren.el (show-paren-match-face): Add dark-background variant.
