@@ -679,10 +679,11 @@ appear on disk when you save the tar-file's buffer."
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
 	   (tarname (buffer-name))
-	   (bufname (concat (file-name-nondirectory name)
-			    " ("
-			    tarname
-			    ")"))
+	   (bufname (generate-new-buffer-name
+		     (concat (file-name-nondirectory name)
+			     " ("
+			     tarname
+			     ")")))
 	   (read-only-p (or buffer-read-only view-p))
 	   (buffer (get-buffer bufname))
 	   (just-created nil)
