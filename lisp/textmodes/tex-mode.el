@@ -1063,10 +1063,10 @@ This function is more useful than \\[tex-buffer] when you need the
         (tex-kill-job)
       (tex-start-shell))
     (tex-send-command tex-shell-cd-command file-dir)
-    (tex-send-command tex-command source-file))
-  (tex-display-shell)
-  (setq tex-last-buffer-texed (current-buffer))
-  (setq tex-print-file source-file))
+    (tex-send-command tex-command source-file)
+    (tex-display-shell)
+    (setq tex-last-buffer-texed (current-buffer))
+    (setq tex-print-file source-file)))
 
 (defun tex-generate-zap-file-name ()
   "Generate a unique name suitable for use as a file name."
@@ -1108,16 +1108,18 @@ The last line of the buffer is displayed on
 line LINE of the window, or centered if LINE is nil."
   (interactive "P")
   (let ((tex-shell (get-buffer "*tex-shell*"))
-	(old-buffer (current-buffer)))
+	(old-buffer (current-buffer))
+	(window))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (pop-to-buffer tex-shell)
-      (bury-buffer tex-shell)
-      (goto-char (point-max))
-      (recenter (if linenum
-		    (prefix-numeric-value linenum)
-		  (/ (window-height) 2)))
-      (pop-to-buffer old-buffer))))
+      (setq window (display-buffer tex-shell))
+      (save-selected-window
+	(select-window window)
+	(bury-buffer tex-shell)
+	(goto-char (point-max))
+	(recenter (if linenum
+		      (prefix-numeric-value linenum)
+		    (/ (window-height) 2)))))))
 
 (defun tex-print (&optional alt)
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
