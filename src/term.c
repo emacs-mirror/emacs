@@ -1513,12 +1513,15 @@ term_get_fkeys_1 ()
 
     if (k_semi)
       {
+	if (k0)
+	  /* Define f0 first, so that f10 takes precedence in case the
+	     key sequences happens to be the same.  */
+	  Fdefine_key (Vfunction_key_map, build_string (k0),
+		       Fmake_vector (make_number (1), intern ("f0")));
 	Fdefine_key (Vfunction_key_map, build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
-	k0_name = "f0";
       }
-
-    if (k0)
+    else if (k0)
       Fdefine_key (Vfunction_key_map, build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
