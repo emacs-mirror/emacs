@@ -471,7 +471,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
       fontset)))
 
 (defvar charset-script-alist
-  '((ascii . ascii)
+  '((ascii . latin)
     (latin-iso8859-1 . latin)
     (latin-iso8859-2 . latin)
     (latin-iso8859-3 . latin)
@@ -488,7 +488,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
     (arabic-iso8859-6 . arabic)
     (greek-iso8859-7 . latin)
     (hebrew-iso8859-8 . latin)
-    (katakana-jisx0201 . katakana-halfwidth)
+    (katakana-jisx0201 . kana)
     (chinese-gb2312 . han)
     (chinese-big5-1 . han)
     (chinese-big5-2 . han)
@@ -504,7 +504,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
     (japanese-jisx0212 . han)
     (japanese-jisx0213-1 . han)
     (japanese-jisx0213-2 . han)
-    (korean-ksc5601 . hangul-syllable)
+    (korean-ksc5601 . hangul)
     (chinese-sisheng . bopomofo)
     (vietnamese-viscii-lower . latin)
     (vietnamese-viscii-upper . latin)
