@@ -1,3 +1,10 @@
+2003-05-06  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_set_source): Fix for the case that the current
+	buffer is different from coding->src_object.
+	(decode_coding_object): Don't use the conversion work buffer if
+	DST_OBJECT is a buffer.
+
 2003-05-04  Dave Love  <fx@gnu.org>
 
 	* lread.c (read_emacs_mule_char) [len==2]: Index
@@ -12,7 +19,7 @@
 	(setup_coding_system, coding_category, CATEGORY_MASK_ANY)
 	(detected_mask): Remove Big5 bits.
 
-2003-04-09  Kenichi Handa  <handa@etlken2>
+2003-04-09  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to make the font rescaling facility
 	compatible with Emacs 21.
@@ -28,7 +35,7 @@
 	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
 	variable.
 
-2003-03-28  Kenichi Handa  <handa@etlken2>
+2003-03-28  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Qutf_16_be_nosig, Qutf_16_be, Qutf_16_le_nosig)
 	(Qutf_16_le): Remove these variables.
