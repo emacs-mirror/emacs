@@ -4328,7 +4328,8 @@ functions to be used for the client processes; the server process
 does not use these function."
   (if (featurep 'make-network-process '(:server t))
       (make-network-process :name name :buffer buffer
-			    :service service :server t :noquery t)))
+			    :service service :server t :noquery t
+			    :sentinel sentinel :filter filter)))
 
 ))  ;; (featurep 'make-network-process)
 
