@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.290 2000/11/16 18:28:11 monnier Exp $
+;; $Id: vc.el,v 1.292 2000/11/20 14:01:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -838,6 +838,11 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 (defun vc-default-workfile-unchanged-p (file)
   "Default check whether FILE is unchanged: diff against master version."
   (zerop (vc-call diff file (vc-workfile-version file))))
+
+(defun vc-default-latest-on-branch-p (file)
+  "Default check whether the current workfile version of FILE is the 
+latest on its branch."
+  t)
 
 (defun vc-recompute-state (file)
   "Force a recomputation of the version control state of FILE.
