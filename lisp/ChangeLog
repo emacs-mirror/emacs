@@ -1,8 +1,15 @@
+2005-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line)
+	(mouse-drag-region, mouse-drag-region-1, mouse-drag-secondary):
+	Ignore select-window events rather than fiddle with
+	mouse-autoselect-window.
+
 2005-01-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (calc-reset): Reset when inside embedded
-	calculator; only reset when point is inside a calculator. Don't
-	adjust the window height if the window takes up the whole height
+	calculator; only reset when point is inside a calculator.
+	Don't adjust the window height if the window takes up the whole height
 	of the frame.
 
 2005-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -25,8 +32,8 @@
 	(vc-disable-async-diff): New internal variable.
 	(vc-revert-buffer): Use them to disable asynchronous diff.
 
-	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff,
-	vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
+	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff)
+	(vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
 	asynchronously if vc-disable-async-diff is t.
 
 2005-01-09  Jay Belanger  <belanger@truman.edu>
@@ -112,7 +119,7 @@
 2005-01-06  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/find-func.el (find-face-definition):
-	Renamed from find-face.
+	Rename from find-face.
 
 2005-01-06  Kim F. Storm  <storm@cua.dk>
 
@@ -128,12 +135,12 @@
 
 2005-01-06  Juri Linkov  <juri@jurta.org>
 
-	* isearch.el (isearch-lazy-highlight-update): Rename
-	`isearch-lazy-highlight-interval' to `lazy-highlight-interval'.
+	* isearch.el (isearch-lazy-highlight-update):
+	Rename `isearch-lazy-highlight-interval' to `lazy-highlight-interval'.
 
 2005-01-06  Miles Bader  <miles@gnu.org>
 
-	* isearch.el (lazy-highlight): Renamed from `lazy-highlight-face'.
+	* isearch.el (lazy-highlight): Rename from `lazy-highlight-face'.
 	(isearch-lazy-highlight-face): Use new name.
 
 2005-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>

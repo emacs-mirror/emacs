@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 94, 95, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1993, 94, 95, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -397,7 +397,6 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start-nwindows (count-windows t))
 	 (old-selected-window (selected-window))
 	 (minibuffer (frame-parameter nil 'minibuffer))
-	 (mouse-autoselect-window nil)
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
       (progn
@@ -435,7 +434,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	  (cond ((integerp event)
 		 (setq done t))
 
-		((eq (car event) 'switch-frame)
+		((memq (car event) '(switch-frame select-window))
 		 nil)
 
 		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
@@ -582,7 +581,7 @@ resized by dragging their header-line."
 	  ;;     unknown event.
 	  (cond ((integerp event)
 		 (setq done t))
-		((eq (car event) 'switch-frame)
+		((memq (car event) '(switch-frame select-window))
 		 nil)
 		((not (memq (car event)
 			    '(mouse-movement scroll-bar-movement)))
@@ -754,10 +753,9 @@ remains active.  Otherwise, it remains until the next input event.
 
 If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
-  (let ((w (posn-window (event-start start-event)))
-	(mouse-autoselect-window nil))
-    (if (not (or (not (window-minibuffer-p w))
-		 (minibuffer-window-active-p w)))
+  (let ((w (posn-window (event-start start-event))))
+    (if (and (window-minibuffer-p w)
+	     (not (minibuffer-window-active-p w)))
 	(save-excursion
 	  (read-event)
 	  (set-buffer "*Messages*")
@@ -858,8 +856,8 @@ at the same position."
 	(while (progn
 		 (setq event (read-event))
 		 (or (mouse-movement-p event)
-		     (eq (car-safe event) 'switch-frame)))
-	  (if (eq (car-safe event) 'switch-frame)
+		     (memq (car-safe event) '(switch-frame select-window))))
+	  (if (memq (car-safe event) '(switch-frame select-window))
 	      nil
 	    (setq end (event-end event)
 		  end-point (posn-point end))
@@ -1153,6 +1151,7 @@ If MODE is 2 then do the same for lines."
       (move-overlay mouse-drag-overlay (point) (mark t)))
     (catch 'mouse-show-mark
       ;; In this loop, execute scroll bar and switch-frame events.
+      ;; Should we similarly handle `select-window' events?  --Stef
       ;; Also ignore down-events that are undefined.
       (while (progn (setq event (read-event))
 		    (setq events (append events (list event)))
@@ -1476,9 +1475,9 @@ The function returns a non-nil value if it creates a secondary selection."
 	  (while (progn
 		   (setq event (read-event))
 		   (or (mouse-movement-p event)
-		       (eq (car-safe event) 'switch-frame)))
+		       (memq (car-safe event) '(switch-frame select-window))))
 
-	    (if (eq (car-safe event) 'switch-frame)
+	    (if (memq (car-safe event) '(switch-frame select-window))
 		nil
 	      (setq end (event-end event)
 		    end-point (posn-point end))
