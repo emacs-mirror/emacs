@@ -3212,11 +3212,11 @@ send_process (proc, buf, len, object)
 
       /* Remember the offset of data because a string or a buffer may
          be relocated.  Setting OFFSET to -1 means we don't have to
-         care relocation.  */
+         care about relocation.  */
       offset = (BUFFERP (object)
 		? BUF_PTR_BYTE_POS (XBUFFER (object), buf)
 		: (STRINGP (object)
-		   ? offset = buf - XSTRING (object)->data
+		   ? buf - XSTRING (object)->data
 		   : -1));
 
       if (carryover > 0)
@@ -3229,7 +3229,7 @@ send_process (proc, buf, len, object)
 		buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 	      else if (STRINGP (object))
 		buf = offset + XSTRING (object)->data;
-	      /* Now we don't have to care relocation.  */
+	      /* Now we don't have to care about relocation.  */
 	      offset = -1;
 	    }
 	  bcopy ((XSTRING (XPROCESS (proc)->encoding_buf)->data
