@@ -220,9 +220,9 @@ and displays information about that.
 ** When an error is signaled during the loading of the user's init
 file, Emacs now pops up the *Messages* buffer.
 
-** Polish, German, and French translations of Emacs' reference card
-have been added.  They are named `pl-refcard.tex', `de-refcard.tex' and
-`fr-refcard.tex'.  Postscript files are included.
+** Polish, Czech, German, and French translations of Emacs' reference card
+have been added.  They are named `pl-refcard.tex', `cs-refcard.tex',
+`de-refcard.tex' and `fr-refcard.tex'.  Postscript files are included.
 
 ** An `Emacs Survival Guide', etc/survival.tex, is available.
 
