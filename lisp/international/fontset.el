@@ -398,7 +398,7 @@ Value is name of that font."
 	   (aset xlfd-fields index "*")
 	   (setq index (1+ index))))))
     (unless ascii-font
-      (error "No fonts founds"))
+      (error "No fonts found"))
     ascii-font))
 
 
@@ -571,7 +571,7 @@ It returns a name of the created fontset."
   "Create a fontset from an ASCII font FONT.
 
 Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
-omitted, x-resolve-font-name is called to get the resolved name.  At
+omitted, `x-resolve-font-name' is called to get the resolved name.  At
 this time, if FONT is not available, error is signaled.
 
 Optional 2nd arg FONTSET-NAME is a string to be used in
