@@ -175,13 +175,15 @@ To disable timer scans, set this to zero."
   :group 'whitespace)
 
 ;; Tell Emacs about this new kind of minor mode
+(defvar whitespace-mode nil
+  "Non-nil when Whitespace mode (a minor mode) is enabled.")
 (make-variable-buffer-local 'whitespace-mode)
 (put 'whitespace-mode 'permanent-local nil)
-(set-default 'whitespace-mode nil)
 
+(defvar whitespace-mode-line nil
+  "String to display in the mode line for Whitespace mode.")
 (make-variable-buffer-local 'whitespace-mode-line)
 (put 'whitespace-mode-line 'permanent-local nil)
-(set-default 'whitespace-mode-line nil)
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
