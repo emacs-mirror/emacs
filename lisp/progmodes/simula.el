@@ -12,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -39,8 +39,9 @@
 (provide 'simula-mode)
 
 (defconst simula-tab-always-indent nil
-  "*Non-nil means TAB in SIMULA mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used.")
+  "*Non-nil means TAB in SIMULA mode should always reindent the current line.
+Otherwise TAB indents only when point is within
+the run of whitespace at the beginning of the line.")
 
 (defconst simula-indent-level 3
   "*Indentation of SIMULA statements with respect to containing block.")
@@ -55,43 +56,43 @@ will have the car of the list extra indentation with respect to
 the previous line of the statement.")
 
 (defconst simula-label-offset -4711
-  "*Offset of SIMULA label lines relative to usual indentation")
+  "*Offset of SIMULA label lines relative to usual indentation.")
 
 (defconst simula-if-indent '(0 . 0)
   "*Extra indentation of THEN and ELSE with respect to the starting IF.
 Value is a cons cell, the car is extra THEN indentation and the cdr
-extra ELSE indentation. IF after ELSE is indented as the starting IF.")
+extra ELSE indentation.  IF after ELSE is indented as the starting IF.")
 
 (defconst simula-inspect-indent '(0 . 0)
-  "*Extra indentation of WHEN and OTHERWISE with respect to the
-corresponding INSPECT. Value is a cons cell, the car is
-extra WHEN indentation and the cdr extra OTHERWISE indentation.")
+  "*Extra indentation of WHEN and OTHERWISE with respect to the INSPECT.
+Value is a cons cell, the car is extra WHEN indentation
+and the cdr extra OTHERWISE indentation.")
 
 (defconst simula-electric-indent nil
-  "*If this variable is non-nil, the simula-indent-line function
-will check the previous line to see if it has to be reindented.")
+  "*Non-nil means `simula-indent-line' function may reindent previous line.")
 
 (defconst simula-abbrev-keyword 'upcase
-  "*Determine how SIMULA keywords will be expanded. Value is one of
-the symbols upcase, downcase, capitalize, (as in) abbrev-table or
-nil if they should not be changed.")
+  "*Specify how to convert case for SIMULA keywords.
+Value is one of the symbols `upcase', `downcase', `capitalize',
+(as in) `abbrev-table' or nil if they should not be changed.")
 
 (defconst simula-abbrev-stdproc 'abbrev-table
-  "*Determine how standard SIMULA procedure and class names will be
-expanded. Value is one of the symbols upcase, downcase, capitalize,
-(as in) abbrev-table or nil if they should not be changed.")
+  "*Specify how to convert case for standard SIMULA procedure and class names.
+Value is one of the symbols `upcase', `downcase', `capitalize',
+(as in) `abbrev-table', or nil if they should not be changed.")
 
 (defvar simula-abbrev-file nil
-  "*File with abbrev definitions that are merged together with
-the standard abbrev definitions.  Please note that the standard
-definitions are required for simula-mode to function correctly.")
+  "*File with extra abbrev definitions for use in SIMULA mode.
+These are used together with the standard abbrev definitions for SIMULA.
+Please note that the standard definitions are required
+for SIMULA mode to function correctly.")
 
 (defvar simula-mode-syntax-table nil
-  "Syntax table in simula-mode buffers.")
+  "Syntax table in SIMULA mode buffers.")
 
 (if simula-mode-syntax-table
     ()
-  (setq simula-mode-syntax-table  (standard-syntax-table))
+  (setq simula-mode-syntax-table (copy-syntax-table (standard-syntax-table)))
   (modify-syntax-entry ?!  "<"    simula-mode-syntax-table)
   (modify-syntax-entry ?$  "."    simula-mode-syntax-table)
   (modify-syntax-entry ?%  "."    simula-mode-syntax-table)
@@ -108,7 +109,7 @@ definitions are required for simula-mode to function correctly.")
   (modify-syntax-entry ?\} "."    simula-mode-syntax-table))
 
 (defvar simula-mode-map ()
-  "Keymap used in simula mode.")
+  "Keymap used in SIMULA mode.")
 
 (if simula-mode-map
     ()
@@ -124,7 +125,7 @@ definitions are required for simula-mode to function correctly.")
   (define-key simula-mode-map "\t"         'simula-indent-command))
 
 (defvar simula-mode-abbrev-table nil
-  "Abbrev table in simula-mode buffers")
+  "Abbrev table in SIMULA mode buffers")
 
 
 (defun simula-mode ()
@@ -140,30 +141,30 @@ Variables controlling indentation style:
     Extra indentation after DO, THEN, ELSE, WHEN and OTHERWISE.
  simula-continued-statement-offset 3
     Extra indentation for lines not starting a statement or substatement,
-    e.g. a nested FOR-loop. If value is a list, each line in a multipple-
+    e.g. a nested FOR-loop.  If value is a list, each line in a multiple-
     line continued statement will have the car of the list extra indentation
     with respect to the previous line of the statement.
  simula-label-offset -4711
-    Offset of SIMULA label lines relative to usual indentation
+    Offset of SIMULA label lines relative to usual indentation.
  simula-if-indent '(0 . 0)
     Extra indentation of THEN and ELSE with respect to the starting IF.
     Value is a cons cell, the car is extra THEN indentation and the cdr
-    extra ELSE indentation. IF after ELSE is indented as the starting IF.
+    extra ELSE indentation.  IF after ELSE is indented as the starting IF.
  simula-inspect-indent '(0 . 0)
     Extra indentation of WHEN and OTHERWISE with respect to the
-    corresponding INSPECT. Value is a cons cell, the car is
+    corresponding INSPECT.  Value is a cons cell, the car is
     extra WHEN indentation and the cdr extra OTHERWISE indentation.
  simula-electric-indent nil
-    If this variable  non-nil value, simula-indent-line
+    If this variable is non-nil, `simula-indent-line'
     will check the previous line to see if it has to be reindented.
  simula-abbrev-keyword 'upcase
-    Determine how SIMULA keywords will be expanded. Value is one of
-    the symbols upcase, downcase, capitalize, (as in) abbrev-table or
-    nil if they should not be changed.
+    Determine how SIMULA keywords will be expanded.  Value is one of
+    the symbols `upcase', `downcase', `capitalize', (as in) `abbrev-table',
+    or nil if they should not be changed.
  simula-abbrev-stdproc 'abbrev-table
     Determine how standard SIMULA procedure and class names will be
-    expanded. Value is one of the symbols upcase, downcase, capitalize,
-    (as in) abbrev-table or nil if they should not be changed.
+    expanded.  Value is one of the symbols `upcase', `downcase', `capitalize',
+    (as in) `abbrev-table', or nil if they should not be changed.
 
 Turning on SIMULA mode calls the value of the variable simula-mode-hook
 with no arguments, if that value is non-nil
@@ -213,8 +214,8 @@ at all."
 
 
 (defun simula-indent-line ()
-  "Indent this line as SIMULA code.  If simula-electric-indent
-is non-nil, indent previous line if necessary."
+  "Indent this line as SIMULA code.
+If `simula-electric-indent' is non-nil, indent previous line if necessary."
   (let ((origin (- (point-max) (point)))
 	(indent (simula-calculate-indent))
 	(case-fold-search t))
@@ -249,7 +250,7 @@ is non-nil, indent previous line if necessary."
 
 (defun simula-indent-command (&optional whole-exp)
   "Indent current line as SIMULA code, or insert TAB character.
-If simula-tab-always-indent is non-nil, always indent current line.
+If `simula-tab-always-indent' is non-nil, always indent current line.
 Otherwise, indent only if point is before any non-whitespace
 character on the line.
 
@@ -298,8 +299,8 @@ The relative indentation among the lines of the statement are preserved."
 
 
 (defun simula-context ()
-  "Returns value according to position of point inside SIMULA text:
-    0    point inside COMMENT
+  "Returns value according to syntactic SIMULA context of point.
+    0    point inside COMMENT comment
     1    point on SIMULA-compiler directive line
     2    point inside END comment
     3    point inside string
@@ -397,7 +398,7 @@ The relative indentation among the lines of the statement are preserved."
 
 
 (defun simula-electric-label ()
-  "If this is a label that starts the line, reindent the line"
+  "If this is a label that starts the line, reindent the line."
   (interactive)
   (expand-abbrev)
   (insert ?:)
@@ -438,7 +439,7 @@ The relative indentation among the lines of the statement are preserved."
 
 (defun simula-backward-up-level (count)
   "Move backward up COUNT block levels.
-If COUNT is negative, move forward up block level instead"
+If COUNT is negative, move forward up block level instead."
   (interactive "p")
   (let ((origin (point))
 	(case-fold-search t))
@@ -469,7 +470,7 @@ If COUNT is negative, move forward up block level instead"
 
 (defun simula-forward-down-level (count)
   "Move forward down COUNT block levels.
-If COUNT is negative, move backward down block level instead"
+If COUNT is negative, move backward down block level instead."
   (interactive "p")
   ;; When we search for a deeper block level, we must never
   ;; get out of the block where we started -> count >= start-count
@@ -506,7 +507,7 @@ If COUNT is negative, move backward down block level instead"
      
 (defun simula-previous-statement (count)
   "Move backward COUNT statements.
-If COUNT is negative, move forward instead (simula-next-statement)"
+If COUNT is negative, move forward instead."
   (interactive "p")
   (if (< count 0)
       (simula-next-statement (- count))
@@ -538,8 +539,8 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-next-statement (count)
-  "Move backward COUNT statements.
-If COUNT is negative, move forward instead (simula-next-statement)"
+  "Move forward COUNT statements.
+If COUNT is negative, move backward instead."
   (interactive "p")
   (if (< count 0)
       (simula-previous-statement (- count))
@@ -563,7 +564,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-skip-comment-backward ()
-  "Search towards bob to find first char that is outside a comment"
+  "Search towards bob to find first char that is outside a comment."
   (interactive)
   (catch 'simula-out
     (let (context)
@@ -602,7 +603,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-skip-comment-forward ()
-  "Search towards eob to find first char that is outside a comment"
+  "Search towards eob to find first char that is outside a comment."
   ;; this function assumes we start with point .outside a comment
   (interactive)
   (catch 'simula-out
@@ -841,7 +842,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-find-if ()
-  "Find starting IF of a IF-THEN[-ELSE[-IF-THEN...]] statement"
+  "Find starting IF of a IF-THEN[-ELSE[-IF-THEN...]] statement."
   (catch 'simula-out
     (while t
       (if (and (simula-search-backward "\\<if\\>\\|;\\|\\<begin\\>"nil t)
@@ -866,7 +867,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-find-inspect ()
-  "Find INSPECT matching WHEN or OTHERWISE"
+  "Find INSPECT matching WHEN or OTHERWISE."
   (catch 'simula-out
     (let ((level 0))
       ;;
@@ -897,7 +898,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-inside-parens ()
-  "Return position after '(' on line if inside parentheses, nil otherwise."
+  "Return position after `(' on line if inside parentheses, nil otherwise."
   (save-excursion
     (let ((parlevel 0))
       (catch 'simula-out
@@ -944,7 +945,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
 
 (defun simula-electric-keyword ()
-  "Expand SIMULA keyword. If it starts the line, reindent."
+  "Expand SIMULA keyword.  If it starts the line, reindent."
   ;; redisplay
   (let ((show-char (eq this-command 'self-insert-command)))
     ;; If the abbrev expansion results in reindentation, the user may have
@@ -1051,8 +1052,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 
   
 (defun simula-install-standard-abbrevs ()
-  "Define Simula keywords, standard procedures and classes in
-local abbrev table."
+  "Define Simula keywords, procedures and classes in local abbrev table."
   ;; procedure and class names are as of the SIMULA 87 standard.
   (interactive)
   (mapcar (function (lambda (args)
