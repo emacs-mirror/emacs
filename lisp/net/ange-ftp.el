@@ -1,6 +1,7 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 00  Free Software Foundation, Inc.
+;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001
+;;  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -3141,12 +3142,13 @@ system TYPE.")
 		      (filename (buffer-file-name))
 		      (mod-p (buffer-modified-p)))
 		  (unwind-protect
-		      (ange-ftp-real-write-region start end temp nil visit)
+		      (progn
+			(ange-ftp-real-write-region start end temp nil visit)
+			(setq coding-system-used last-coding-system-used))
 		    ;; cleanup forms
+		    (setq coding-system-used last-coding-system-used)
 		    (setq buffer-file-name filename)
 		    (set-buffer-modified-p mod-p)))
-		;; save value used by the real write-region
-		(setq coding-system-used last-coding-system-used)
 		(if binary
 		    (ange-ftp-set-binary-mode host user))
 
