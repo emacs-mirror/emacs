@@ -1407,7 +1407,18 @@ Does NOT find the source line like \\[next-error]."
 			  (if (> (- n) i)
 			      (error "Moved back past first error")
 			    (nth (+ i n) compilation-old-error-list)))
-		      (let ((compilation-error-list (cdr errors)))
+		      (save-excursion
+			(while (> n 0)
+			  ;; Discard the current error and any previous.
+			  (while (>= (point) (car (car errors)))
+			    (setq errors (cdr errors)))
+			  ;; Now (car errors) is the next error.
+			  ;; If we want to move down more errors,
+			  ;; put point at this one and start again.
+			  (setq n (1- n))
+			  (if (and errors (> n 0))
+			      (goto-char (car (car errors))))))
+		      (let ((compilation-error-list errors))
 			(compile-reinitialize-errors nil nil n)
 			(if compilation-error-list
 			    (nth (1- n) compilation-error-list)
