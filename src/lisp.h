@@ -1778,6 +1778,7 @@ unsigned sxhash P_ ((Lisp_Object, int));
 Lisp_Object make_hash_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object));
+Lisp_Object copy_hash_table P_ ((struct Lisp_Hash_Table *));
 int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
 void hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		   unsigned));
@@ -1786,6 +1787,7 @@ void hash_clear P_ ((struct Lisp_Hash_Table *));
 void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
 EXFUN (Fsxhash, 1);
 EXFUN (Fmake_hash_table, MANY);
+EXFUN (Fcopy_hash_table, 1);
 EXFUN (Fhash_table_count, 1);
 EXFUN (Fhash_table_rehash_size, 1);
 EXFUN (Fhash_table_rehash_threshold, 1);
