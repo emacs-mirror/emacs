@@ -1,3 +1,7 @@
+2001-05-17  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.1: Add the latest changes to etags behaviour.
+
 2001-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacsclient.1: Place in the public domain.
@@ -19,7 +23,7 @@
 	* TUTORIAL.sk, sk-survival.tex
 	* sk-refcard.ps, sk-refcard.tex, sk-dired-ref.ps
 	* sk-dired-ref.tex: New files.
-	
+
 	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
 	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
 
@@ -47,7 +51,7 @@
 	(PHL, LHL): New funs.
 
 	* ps-prin2.ps: File eliminated.
-	
+
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* splash.pbm: New image from Luis Fernandes <elf@ee.ryerson.ca>.
@@ -74,7 +78,7 @@
 	* ps-prin1.ps: Code fix to support `ps-zebra-stripe-follow'
 	functionality enhancement.
 	(doColumnZebra): Code fix.
-	
+
 2001-02-08  Dave Love  <fx@gnu.org>
 
 	* tasks.texi, SERVICE: Updated.
