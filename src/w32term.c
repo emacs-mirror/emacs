@@ -792,7 +792,6 @@ w32_draw_bitmap (w, hdc, row, which)
   HDC compat_hdc;
   int x, y, wd, h, dy;
   HBITMAP pixmap;
-  HBRUSH fg_brush, orig_brush;
   HANDLE horig_obj;
   struct face *face;
 
@@ -867,21 +866,14 @@ w32_draw_bitmap (w, hdc, row, which)
 
   compat_hdc = CreateCompatibleDC (hdc);
   SaveDC (hdc);
-  fg_brush = CreateSolidBrush (face->foreground);
-  orig_brush = SelectObject (hdc, fg_brush);
+
   horig_obj = SelectObject (compat_hdc, pixmap);
-  SetTextColor (hdc, face->foreground);
-  SetBkColor (hdc, face->background);
-#if 0 /* From w32bdf.c (which is from Meadow).  */
-  /* Old versions - in case we find a reason to fall back on them.  */
+  SetTextColor (hdc, face->background);
+  SetBkColor (hdc, face->foreground);
+
   BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, SRCCOPY);
-  BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, 0xB8074A);
-#else
-  BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, 0xE20746);
-#endif
+
   SelectObject (compat_hdc, horig_obj);
-  SelectObject (hdc, orig_brush);
-  DeleteObject (fg_brush);
   DeleteDC (compat_hdc);
   RestoreDC (hdc, -1);
 }
@@ -3853,9 +3845,11 @@ x_draw_image_foreground (s)
 #if 0 /* From w32bdf.c (which is from Meadow).  */
           BitBlt (s->hdc, x, y, s->img->width, s->img->height,
                   compat_hdc, 0, 0, SRCCOPY);
-#else
           BitBlt (s->hdc, x, y, s->img->width, s->img->height,
                   compat_hdc, 0, 0, 0xB8074A);
+#else
+          BitBlt (s->hdc, x, y, s->img->width, s->img->height,
+                  compat_hdc, 0, 0, 0xE20746);
 #endif
           SelectObject (s->hdc, orig_brush);
           DeleteObject (fg_brush);
@@ -3998,9 +3992,11 @@ w32_draw_image_foreground_1 (s, pixmap)
 #if 0 /* From w32bdf.c (which is from Meadow).  */
           BitBlt (hdc, x, y, s->img->width, s->img->height,
                   compat_hdc, 0, 0, SRCCOPY);
-#else
           BitBlt (hdc, x, y, s->img->width, s->img->height,
                   compat_hdc, 0, 0, 0xB8074A);
+#else
+          BitBlt (hdc, x, y, s->img->width, s->img->height,
+                  compat_hdc, 0, 0, 0xE20746);
 #endif
           SelectObject (hdc, orig_brush);
           DeleteObject (fg_brush);
@@ -4154,9 +4150,11 @@ x_draw_image_glyph_string (s)
 #if 0 /* From w32bdf.c (which is from Meadow).  */
         BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
                 compat_hdc, 0, 0, SRCCOPY);
-#else
         BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
                 compat_hdc, 0, 0, 0xB8074A);
+#else
+        BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
+                compat_hdc, 0, 0, 0xE20746);
 #endif
         SelectObject (s->hdc, orig_brush);
         DeleteObject (fg_brush);
@@ -5632,7 +5630,7 @@ expose_window (w, r)
      happen when toolkit scroll bars are used and a window is split.
      Reconfiguring the scroll bar will generate an expose for a newly
      created window.  */
-  if (w->current_matrix == NULL)
+  if (w->current_matrix == NULL || w == updated_window)
     return;
 
   TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
