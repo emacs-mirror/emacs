@@ -1221,40 +1221,10 @@ to move by.  The default is `ibuffer-marked-char'."
   "View the differences between this buffer and its associated file.
 This requires the external program \"diff\" to be in your `exec-path'."
   (interactive)
-  (let* ((buf (ibuffer-current-buffer))
-	 (buf-filename (with-current-buffer buf
-			 buffer-file-name)))
+  (let ((buf (ibuffer-current-buffer)))
     (unless (buffer-live-p buf)
       (error "Buffer %s has been killed" buf))
-    (unless buf-filename
-      (error "Buffer %s has no associated file" buf))
-    (let ((diff-buf (get-buffer-create "*Ibuffer-diff*")))
-      (with-current-buffer diff-buf
-	(setq buffer-read-only nil)
-	(erase-buffer))
-      (let ((tempfile (make-temp-file "ibuffer-diff-")))
-	(unwind-protect
-	    (progn
-	      (with-current-buffer buf
-		(write-region (point-min) (point-max) tempfile nil 'nomessage))
-	      (if (zerop
-		   (apply #'call-process "diff" nil diff-buf nil
-			  (append
-			   (when (and (boundp 'ediff-custom-diff-options)
-				      (stringp ediff-custom-diff-options))
-			     (list ediff-custom-diff-options))
-			   (list buf-filename tempfile))))
-		  (message "No differences found")
-		(progn
-		  (with-current-buffer diff-buf
-		    (goto-char (point-min))
-		    (if (fboundp 'diff-mode)
-			(diff-mode)
-		      (fundamental-mode)))
-		  (display-buffer diff-buf))))
-	  (when (file-exists-p tempfile)
-	    (delete-file tempfile)))))
-      nil))
+    (diff-buffer-with-file buf)))
 
 ;;;###autoload
 (defun ibuffer-copy-filename-as-kill (&optional arg)
