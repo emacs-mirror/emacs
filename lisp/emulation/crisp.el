@@ -3,6 +3,7 @@
 ;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <gfoster@suzieq.ml.org>
+;; Maintainer: FSF (unless Foster can be recontacted)
 ;; Keywords: emulations brief crisp
 
 ;; This file is part of GNU Emacs.
@@ -265,8 +266,6 @@ does not load the scroll-all package."
 						 (move-to-window-line -1)))
 (define-key crisp-mode-map [(meta end)]        'end-of-line)
 
-(define-key crisp-mode-map [(control c) (b)]   'crisp-submit-bug-report)
-
 (defun crisp-version (&optional arg)
   "Version number of the CRiSP emulator package.
 If ARG, insert results at point."
@@ -358,27 +357,6 @@ normal CRiSP binding) and when it is nil M-x will run
   (if crisp-override-meta-x
       (save-buffers-kill-emacs)
     (call-interactively 'execute-extended-command)))
-
-;; bug reporter
-
-(defun crisp-submit-bug-report ()
-  "Submit via mail a bug report on CRiSP Mode."
-  (interactive)
-  ;; load in reporter
-  (let ((reporter-prompt-for-summary-p t)
-	(reporter-dont-compact-list '(c-offsets-alist)))
-    (and
-     (if (y-or-n-p "Do you want to submit a report on CRiSP Mode? ")
-	 t (message "") nil)
-     (require 'reporter)
-     (reporter-submit-bug-report
-      crisp-mode-help-address
-      (concat "CRiSP Mode [" crisp-version "]")
-      nil
-      nil
-      nil
-      "Dear Gary,"
-      ))))
 
 ;; Now enable the mode
 
