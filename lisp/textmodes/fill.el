@@ -61,7 +61,8 @@ reinserts the fill prefix in each resulting line."
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, whatever text matches this pattern
 on the second line of a paragraph is used as the standard indentation
-for the paragraph.")
+for the paragraph.  If the paragraph has just one line, the indentation
+is taken from that line.")
 
 (defun current-fill-column ()
   "Return the fill-column to use for this line.
@@ -92,7 +93,7 @@ number equals or exceeds the local fill-column - right-margin difference."
 (defun canonically-space-region (beg end)
   "Remove extra spaces between words in region.
 Puts one space between words in region; two between sentences.
-Remove indenation from each line."
+Remove indentation from each line."
   (interactive "r")
   (save-excursion
     (goto-char beg)
@@ -180,17 +181,17 @@ space does not end a sentence, so don't break a line there."
 	  (save-excursion
 	    (goto-char from)
 	    (if (eolp) (forward-line 1))
-	    (forward-line 1)
+	    ;; Move to the second line unless there is just one.
+	    (let ((firstline (point)))
+	      (forward-line 1)
+	      (if (>= (point) to)
+		  (goto-char firstline)))
 	    (move-to-left-margin)
-	    (if (< (point) to)
-		(let ((start (point)))
-		  (re-search-forward adaptive-fill-regexp)
-		  (setq fill-prefix (buffer-substring start (point)))
-		  (set-text-properties 0 (length fill-prefix) nil
-				       fill-prefix)))
-	    ;; If paragraph has only one line, don't assume in general
-	    ;; that additional lines would have the same starting
-	    ;; decoration.  Assume no indentation.
+	    (let ((start (point)))
+	      (re-search-forward adaptive-fill-regexp)
+	      (setq fill-prefix (buffer-substring start (point)))
+	      (set-text-properties 0 (length fill-prefix) nil
+				   fill-prefix))
 	    ))
 
       (save-restriction
@@ -762,8 +763,11 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 		   (if (not (and fill-prefix
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
-			     (buffer-substring (point)
-					       (save-excursion (skip-chars-forward " \t") (point)))
+			     (if (and adaptive-fill-mode adaptive-fill-regexp
+				      (looking-at (concat "\\(" adaptive-fill-regexp "\\)")))
+				 (match-string 1)
+			       (buffer-substring (point)
+						 (save-excursion (skip-chars-forward " \t") (point))))
 			     fill-prefix-regexp
 			     (regexp-quote fill-prefix)))
 		   (forward-line 1)
