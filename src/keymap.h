@@ -39,6 +39,9 @@ extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
 extern void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				 void (*) (Lisp_Object, Lisp_Object), int,
 				 Lisp_Object, Lisp_Object, int *, int));
+extern void describe_char_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				     void (*) (Lisp_Object, Lisp_Object), int,
+				     Lisp_Object, Lisp_Object));
 extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
 				   char *, int, int, int));
 extern int current_minor_maps P_ ((Lisp_Object **, Lisp_Object **));
