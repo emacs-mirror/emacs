@@ -459,8 +459,8 @@ DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
   "Return the byte position for character position POSITION.")
   (position)
 {
-  CHECK_NUMBER (position, 1);
-  return make_number (CHAR_TO_BYTE (position));
+  CHECK_NUMBER_COERCE_MARKER (position, 1);
+  return make_number (CHAR_TO_BYTE (XINT (position)));
 }
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
