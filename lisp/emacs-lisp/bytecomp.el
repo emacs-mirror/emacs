@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.114 $")
+(defconst byte-compile-version "$Revision: 2.115 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -342,7 +342,7 @@ Elements of the list may be be:
   obsolete    obsolete variables and functions.
   noruntime   functions that may not be defined at runtime (typically
               defined only under `eval-when-compile').
-  cl-functions    calls to runtime functions from the CL package (as 
+  cl-functions    calls to runtime functions from the CL package (as
 		  distinguished from macros and aliases)."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
@@ -867,8 +867,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 ;; variable reference, like in (1+ foo), we remove `foo' from the
 ;; list.  If our current position is after the symbol's position, we
 ;; assume we've already passed that point, and look for the next
-;; occurence of the symbol.
-;; So your're probably asking yourself: Isn't this function a 
+;; occurrence of the symbol.
+;; So your're probably asking yourself: Isn't this function a
 ;; gross hack?  And the answer, of course, would be yes.
 (defun byte-compile-set-symbol-position (sym &optional allow-previous)
   (when byte-compile-read-position
@@ -2161,7 +2161,7 @@ list that represents a doc string reference.
 	(byte-compile-set-symbol-position (nth 1 form))
 	(byte-compile-warn "probable `\"' without `\\' in doc string of %s"
 			   (nth 1 form))))
-    
+
     ;; Generate code for declarations in macro definitions.
     ;; Remove declarations from the body of the macro definition.
     (when macrop
@@ -2176,7 +2176,7 @@ list that represents a doc string reference.
 			(funcall macro-declaration-function
 				 ',name ',declaration))
 		   outbuffer)))))
-      
+
     (let* ((new-one (byte-compile-lambda (cons 'lambda (nthcdr 2 form))))
 	   (code (byte-compile-byte-code-maker new-one)))
       (if this-one
