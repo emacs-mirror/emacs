@@ -345,6 +345,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 #include "ccl.h"
 #include "coding.h"
 #include "window.h"
+#include "intervals.h"
 
 #else  /* not emacs */
 
