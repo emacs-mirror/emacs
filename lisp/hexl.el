@@ -167,8 +167,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (setq major-mode 'hexl-mode)
 
     (make-local-variable 'write-contents-hooks)
-    (setq write-contents-hooks
-	  (cons 'hexl-save-buffer write-contents-hooks))
+    (add-hook 'write-contents-hooks 'hexl-save-buffer)
 
     (let ((modified (buffer-modified-p))
  	  (read-only buffer-read-only)
@@ -233,6 +232,7 @@ With arg, don't unhexlify buffer."
 	    (original-point (1+ (hexl-current-address))))
 	(setq buffer-read-only nil)
 	(dehexlify-buffer)
+	(remove-hook 'write-contents-hook 'hexl-save-buffer)
 	(set-buffer-modified-p modified)
 	(setq buffer-read-only read-only)
 	(goto-char original-point)))
