@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-mode.el]
+;;; calc-mode.el --- calculator modes for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;; Code:
 
 
 ;; This file is autoloaded from calc-ext.el.
@@ -33,8 +39,8 @@
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-line-numbering n t t)
-		"Displaying stack level numbers."
-	      "Hiding stack level numbers."))))
+		"Displaying stack level numbers"
+	      "Hiding stack level numbers"))))
 
 (defun calc-line-breaking (n)
   (interactive "P")
@@ -46,9 +52,9 @@
 	     (not calc-line-breaking)))
    (if (calc-change-mode 'calc-line-breaking n t)
        (if (integerp calc-line-breaking)
-	   (message "Breaking lines longer than %d characters." n)
-	 (message "Breaking long lines in Stack display."))
-     (message "Not breaking long lines in Stack display."))))
+	   (message "Breaking lines longer than %d characters" n)
+	 (message "Breaking long lines in Stack display"))
+     (message "Not breaking long lines in Stack display"))))
 
 
 (defun calc-left-justify (n)
@@ -58,8 +64,8 @@
    (calc-change-mode '(calc-display-just calc-display-origin)
 		     (list nil n) t)
    (if n
-       (message "Displaying stack entries indented by %d." n)
-     (message "Displaying stack entries left-justified."))))
+       (message "Displaying stack entries indented by %d" n)
+     (message "Displaying stack entries left-justified"))))
 
 (defun calc-center-justify (n)
   (interactive "P")
@@ -68,8 +74,8 @@
    (calc-change-mode '(calc-display-just calc-display-origin)
 		     (list 'center n) t)
    (if n
-       (message "Displaying stack entries centered on column %d." n)
-     (message "Displaying stack entries centered in window."))))
+       (message "Displaying stack entries centered on column %d" n)
+     (message "Displaying stack entries centered in window"))))
 
 (defun calc-right-justify (n)
   (interactive "P")
@@ -78,8 +84,8 @@
    (calc-change-mode '(calc-display-just calc-display-origin)
 		     (list 'right n) t)
    (if n
-       (message "Displaying stack entries right-justified to column %d." n)
-     (message "Displaying stack entries right-justified in window."))))
+       (message "Displaying stack entries right-justified to column %d" n)
+     (message "Displaying stack entries right-justified in window"))))
 
 (defun calc-left-label (s)
   (interactive "sLefthand label: ")
@@ -106,11 +112,11 @@
      (setq n (and (not (eq calc-auto-why t)) (if calc-auto-why t 1))))
    (calc-change-mode 'calc-auto-why n nil)
    (cond ((null n)
-	  (message "User must press `w' to explain unsimplified results."))
+	  (message "User must press `w' to explain unsimplified results"))
 	 ((eq n t)
-	  (message "Automatically doing `w' to explain unsimplified results."))
+	  (message "Automatically doing `w' to explain unsimplified results"))
 	 (t
-	  (message "Automatically doing `w' only for unusual messages.")))))
+	  (message "Automatically doing `w' only for unusual messages")))))
 
 (defun calc-group-digits (n)
   (interactive "P")
@@ -126,30 +132,30 @@
      (setq n (not calc-group-digits)))
    (calc-change-mode 'calc-group-digits n t)
    (cond ((null n)
-	  (message "Grouping is off."))
+	  (message "Grouping is off"))
 	 ((integerp n)
-	  (message "Grouping every %d digits." (math-abs n)))
+	  (message "Grouping every %d digits" (math-abs n)))
 	 (t
-	  (message "Grouping is on.")))))
+	  (message "Grouping is on")))))
 
 (defun calc-group-char (ch)
   (interactive "cGrouping character: ")
   (calc-wrapper
    (or (>= ch 32)
-       (error "Control characters not allowed for grouping."))
+       (error "Control characters not allowed for grouping"))
    (if (= ch ?\\)
        (setq ch "\\,")
      (setq ch (char-to-string ch)))
    (calc-change-mode 'calc-group-char ch calc-group-digits)
-   (message "Digit grouping character is \"%s\"." ch)))
+   (message "Digit grouping character is \"%s\"" ch)))
 
 (defun calc-point-char (ch)
   (interactive "cCharacter to use as decimal point: ")
   (calc-wrapper
    (or (>= ch 32)
-       (error "Control characters not allowed as decimal point."))
+       (error "Control characters not allowed as decimal point"))
    (calc-change-mode 'calc-point-char (char-to-string ch) t)
-   (message "Decimal point character is \"%c\"." ch)))
+   (message "Decimal point character is \"%c\"" ch)))
 
 (defun calc-normal-notation (n)
   (interactive "P")
@@ -163,12 +169,12 @@
 				     (- (% (+ val 5000) 10000) 5000))))
 		     t)
    (if (eq (nth 1 n) 0)
-       (message "Displaying floating-point numbers normally.")
+       (message "Displaying floating-point numbers normally")
      (if (> (nth 1 n) 0)
 	 (message
-	  "Displaying floating-point numbers with %d significant digits."
+	  "Displaying floating-point numbers with %d significant digits"
 	  (nth 1 n))
-       (message "Displaying floating-point numbers with (precision%d)."
+       (message "Displaying floating-point numbers with (precision%d)"
 		(nth 1 n))))))
 
 (defun calc-fix-notation (n)
@@ -177,7 +183,7 @@
    (calc-change-mode 'calc-float-format
 		     (setq n (list 'fix (if n (prefix-numeric-value n) 0)))
 		     t)
-   (message "Displaying floats with %d digits after decimal."
+   (message "Displaying floats with %d digits after decimal"
 	    (math-abs (nth 1 n)))))
 
 (defun calc-sci-notation (n)
@@ -187,11 +193,11 @@
 		     (setq n (list 'sci (if n (prefix-numeric-value n) 0)))
 		     t)
    (if (eq (nth 1 n) 0)
-       (message "Displaying floats in scientific notation.")
+       (message "Displaying floats in scientific notation")
      (if (> (nth 1 n) 0)
-	 (message "Displaying scientific notation with %d significant digits."
+	 (message "Displaying scientific notation with %d significant digits"
 		  (nth 1 n))
-       (message "Displaying scientific notation with (precision%d)."
+       (message "Displaying scientific notation with (precision%d)"
 		(nth 1 n))))))
 
 (defun calc-eng-notation (n)
@@ -201,11 +207,11 @@
 		     (setq n (list 'eng (if n (prefix-numeric-value n) 0)))
 		     t)
    (if (eq (nth 1 n) 0)
-       (message "Displaying floats in engineering notation.")
+       (message "Displaying floats in engineering notation")
      (if (> (nth 1 n) 0)
-	 (message "Displaying engineering notation with %d significant digits."
+	 (message "Displaying engineering notation with %d significant digits"
 		  (nth 1 n))
-       (message "Displaying engineering notation with (precision%d)."
+       (message "Displaying engineering notation with (precision%d)"
 		(nth 1 n))))))
 
 
@@ -254,7 +260,7 @@
    (setq calc-display-raw (if calc-display-raw nil (if arg 0 t)))
    (calc-do-refresh)
    (if calc-display-raw
-       (message "Press d ' again to cancel \"raw\" display mode."))))
+       (message "Press d ' again to cancel \"raw\" display mode"))))
 
 
 
@@ -267,6 +273,8 @@
    (let (pos
 	 (vals (mapcar (function (lambda (v) (symbol-value (car v))))
 		       calc-mode-var-list)))
+     (unless calc-settings-file
+       (error "No `calc-settings-file' specified"))
      (set-buffer (find-file-noselect (substitute-in-file-name
 				      calc-settings-file)))
      (goto-char (point-min))
@@ -324,7 +332,9 @@
      ;; FIXME: we should use ~/.calc or so in order to avoid
      ;; reexecuting ~/.emacs (it's not always idempotent) -cgw 2001.11.12
      (setq calc-settings-file name)
-     (or (and (string-match "\\.emacs" calc-settings-file)
+     (or (and
+	  calc-settings-file
+	  (string-match "\\.emacs" calc-settings-file)
 	      (> arg 0))
 	 (< arg 0)
 	 (load name t)
@@ -415,10 +425,10 @@
 		  ((eq calc-mode-save-mode 'global)
 		   "Recording mode changes with [calc-global-mode: ...]")
 		  ((eq calc-mode-save-mode 'save)
-		   (format "Recording mode changes in \"%s\"."
+		   (format "Recording mode changes in \"%s\""
 			   calc-settings-file))
 		  (t
-		   "Not recording mode changes permanently.")))))
+		   "Not recording mode changes permanently")))))
 
 (defun calc-total-algebraic-mode (flag)
   (interactive "P")
@@ -431,7 +441,7 @@
 		       '(total nil))
      (use-local-map calc-alg-map)
      (message
-      "All keys begin algebraic entry; use Meta (ESC) for Calc keys."))))
+      "All keys begin algebraic entry; use Meta (ESC) for Calc keys"))))
 
 (defun calc-algebraic-mode (flag)
   (interactive "P")
@@ -444,18 +454,18 @@
 		       (list (not calc-algebraic-mode) nil)))
    (use-local-map calc-mode-map)
    (message (if calc-algebraic-mode
-		"Numeric keys and ( and [ begin algebraic entry."
+		"Numeric keys and ( and [ begin algebraic entry"
 	      (if calc-incomplete-algebraic-mode
-		  "Only ( and [ begin algebraic entry."
-		"No keys except ' and $ begin algebraic entry.")))))
+		  "Only ( and [ begin algebraic entry"
+		"No keys except ' and $ begin algebraic entry")))))
 
 (defun calc-symbolic-mode (n)
   (interactive "P")
   (calc-wrapper
    
    (message (if (calc-change-mode 'calc-symbolic-mode n nil t)
-		"Inexact computations like sqrt(2) are deferred."
-	      "Numerical computations are always done immediately."))))
+		"Inexact computations like sqrt(2) are deferred"
+	      "Numerical computations are always done immediately"))))
 
 (defun calc-infinite-mode (n)
   (interactive "P")
@@ -463,10 +473,10 @@
    (if (eq n 0)
        (progn
 	 (calc-change-mode 'calc-infinite-mode 1)
-	 (message "Computations like 1 / 0 produce \"inf\"."))
+	 (message "Computations like 1 / 0 produce \"inf\""))
      (message (if (calc-change-mode 'calc-infinite-mode n nil t)
-		  "Computations like 1 / 0 produce \"uinf\"."
-		"Computations like 1 / 0 are left unsimplified.")))))
+		  "Computations like 1 / 0 produce \"uinf\""
+		"Computations like 1 / 0 are left unsimplified")))))
 
 (defun calc-matrix-mode (arg)
   (interactive "P")
@@ -480,13 +490,13 @@
 			   ((eq calc-matrix-mode 'scalar) nil)
 			   (t 'matrix)))
    (if (integerp calc-matrix-mode)
-       (message "Variables are assumed to be %dx%d matrices."
+       (message "Variables are assumed to be %dx%d matrices"
 		calc-matrix-mode calc-matrix-mode)
      (message (if (eq calc-matrix-mode 'matrix)
-		  "Variables are assumed to be matrices."
+		  "Variables are assumed to be matrices"
 		(if calc-matrix-mode
-		    "Variables are assumed to be scalars (non-matrices)."
-		  "Variables are not assumed to be matrix or scalar."))))))
+		    "Variables are assumed to be scalars (non-matrices)"
+		  "Variables are not assumed to be matrix or scalar"))))))
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
@@ -497,26 +507,26 @@
 			   mode)))
   (message (if (eq calc-simplify-mode mode)
 	       msg
-	     "Default simplifications enabled.")))
+	     "Default simplifications enabled")))
 
 (defun calc-no-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'none arg
-			   "All default simplifications are disabled.")))
+			   "All default simplifications are disabled")))
 
 (defun calc-num-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'num arg
-			   "Default simplifications apply only if arguments are numeric.")))
+			   "Default simplifications apply only if arguments are numeric")))
 
 (defun calc-default-simplify-mode (arg)
   (interactive "p")
   (cond ((= arg 1)
 	 (calc-wrapper
 	  (calc-set-simplify-mode
-	   nil nil "Usual default simplifications are enabled.")))
+	   nil nil "Usual default simplifications are enabled")))
 	((= arg 0) (calc-num-simplify-mode 1))
 	((< arg 0) (calc-no-simplify-mode 1))
 	((= arg 2) (calc-bin-simplify-mode 1))
@@ -529,26 +539,26 @@
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'binary arg
-			   (format "Binary simplification occurs by default (word size=%d)."
+			   (format "Binary simplification occurs by default (word size=%d)"
 				   calc-word-size))))
 
 (defun calc-alg-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'alg arg
-			   "Algebraic simplification occurs by default.")))
+			   "Algebraic simplification occurs by default")))
 
 (defun calc-ext-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'ext arg
-			   "Extended algebraic simplification occurs by default.")))
+			   "Extended algebraic simplification occurs by default")))
 
 (defun calc-units-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'units arg
-			   "Units simplification occurs by default.")))
+			   "Units simplification occurs by default")))
 
 (defun calc-auto-recompute (arg)
   (interactive "P")
@@ -556,8 +566,8 @@
    (calc-change-mode 'calc-auto-recompute arg nil t)
    (calc-refresh-evaltos)
    (message (if calc-auto-recompute
-		"Automatically recomputing `=>' forms when necessary."
-	      "Not recomputing `=>' forms automatically."))))
+		"Automatically recomputing `=>' forms when necessary"
+	      "Not recomputing `=>' forms automatically"))))
 
 (defun calc-working (n)
   (interactive "P")
@@ -571,89 +581,89 @@
 	 ((eq n 0) (calc-change-mode 'calc-display-working-message nil))
 	 ((eq n 1) (calc-change-mode 'calc-display-working-message t)))
    (cond ((eq calc-display-working-message t)
-	  (message "\"Working...\" messages enabled."))
+	  (message "\"Working...\" messages enabled"))
 	 (calc-display-working-message
-	  (message "Detailed \"Working...\" messages enabled."))
+	  (message "Detailed \"Working...\" messages enabled"))
 	 (t
-	  (message "\"Working...\" messages disabled.")))))
+	  (message "\"Working...\" messages disabled")))))
 
 (defun calc-always-load-extensions ()
   (interactive)
   (calc-wrapper
    (if (setq calc-always-load-extensions (not calc-always-load-extensions))
-       (message "Always loading extensions package.")
-     (message "Loading extensions package on demand only."))))
+       (message "Always loading extensions package")
+     (message "Loading extensions package on demand only"))))
 
 
 (defun calc-matrix-left-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just nil t)
-   (message "Matrix elements will be left-justified in columns.")))
+   (message "Matrix elements will be left-justified in columns")))
 
 (defun calc-matrix-center-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just 'center t)
-   (message "Matrix elements will be centered in columns.")))
+   (message "Matrix elements will be centered in columns")))
 
 (defun calc-matrix-right-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just 'right t)
-   (message "Matrix elements will be right-justified in columns.")))
+   (message "Matrix elements will be right-justified in columns")))
 
 (defun calc-full-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-full-vectors n t t)
-		"Displaying long vectors in full."
-	      "Displaying long vectors in [a, b, c, ..., z] notation."))))
+		"Displaying long vectors in full"
+	      "Displaying long vectors in [a, b, c, ..., z] notation"))))
 
 (defun calc-full-trail-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-full-trail-vectors n nil t)
-		"Recording long vectors in full."
-	      "Recording long vectors in [a, b, c, ..., z] notation."))))
+		"Recording long vectors in full"
+	      "Recording long vectors in [a, b, c, ..., z] notation"))))
 
 (defun calc-break-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-break-vectors n t t)
-		"Displaying vector elements one-per-line."
-	      "Displaying vector elements all on one line."))))
+		"Displaying vector elements one-per-line"
+	      "Displaying vector elements all on one line"))))
 
 (defun calc-vector-commas ()
   (interactive)
   (calc-wrapper
    (if (calc-change-mode 'calc-vector-commas (if calc-vector-commas nil ",") t)
-       (message "Separating vector elements with \",\".")
-     (message "Separating vector elements with spaces."))))
+       (message "Separating vector elements with \",\"")
+     (message "Separating vector elements with spaces"))))
 
 (defun calc-vector-brackets ()
   (interactive)
   (calc-wrapper
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "[]") nil "[]") t)
-       (message "Surrounding vectors with \"[]\".")
-     (message "Not surrounding vectors with brackets."))))
+       (message "Surrounding vectors with \"[]\"")
+     (message "Not surrounding vectors with brackets"))))
 
 (defun calc-vector-braces ()
   (interactive)
   (calc-wrapper
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "{}") nil "{}") t)
-       (message "Surrounding vectors with \"{}\".")
-     (message "Not surrounding vectors with brackets."))))
+       (message "Surrounding vectors with \"{}\"")
+     (message "Not surrounding vectors with brackets"))))
 
 (defun calc-vector-parens ()
   (interactive)
   (calc-wrapper
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "()") nil "()") t)
-       (message "Surrounding vectors with \"()\".")
-     (message "Not surrounding vectors with brackets."))))
+       (message "Surrounding vectors with \"()\"")
+     (message "Not surrounding vectors with brackets"))))
 
 (defun calc-matrix-brackets (arg)
   (interactive "sCode letters (R, O, C, P): ")
