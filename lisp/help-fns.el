@@ -106,8 +106,8 @@ With arg, you are asked to choose which language."
 ;;;###autoload
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
-This command searches the directories in `load-path' like `M-x load-library'
-to find the file that `M-x load-library RET LIBRARY RET' would load.
+This command searches the directories in `load-path' like `\\[load-library]'
+to find the file that `\\[load-library] RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
 to the specified name LIBRARY.
 
@@ -117,22 +117,19 @@ is used instead of `load-path'.
 When called from a program, the file name is normaly returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
-  (interactive (list (read-string "Locate library: ")
+  (interactive (list (completing-read "Locate library: "
+				      'locate-file-completion
+				      (cons load-path load-suffixes))
 		     nil nil
 		     t))
-  (catch 'answer
-    (dolist (dir (or path load-path))
-      (dolist (suf (append (unless nosuffix load-suffixes) '("")))
-	  (let ((try (expand-file-name (concat library suf) dir)))
-	  (and (file-readable-p try)
-	       (null (file-directory-p try))
-	       (progn
-		 (if interactive-call
-		     (message "Library is file %s" (abbreviate-file-name try)))
-		 (throw 'answer try))))))
+  (let ((file (locate-file library
+			   (or path load-path)
+			   (append (unless nosuffix load-suffixes) '("")))))
     (if interactive-call
-	(message "No library %s in search path" library))
-    nil))
+	(if file
+	    (message "Library is file %s" (abbreviate-file-name file))
+	  (message "No library %s in search path" library)))
+    file))
 
 
 ;; Functions
@@ -173,14 +170,21 @@ Return (USAGE . DOC) or nil if there's no usage info."
   ;; function's name in the doc string.  Kluge round that using the printed
   ;; representation.  The arg list then shows the wrong function name, but
   ;; that might be a useful hint.
-  (let* ((rep (prin1-to-string def))
-	 (name (if (string-match " \\([^ ]+\\)>$" rep)
-		   (match-string 1 rep) "fun")))
-    (if (string-match (format "^(%s[ )].*\\'" (regexp-quote name)) doc)
-	(cons (match-string 0 doc)
-	      (substring doc 0 (match-beginning 0))))))
+  (when doc
+    (let* ((rep (prin1-to-string def))
+	   (name (if (string-match " \\([^ ]+\\)>$" rep)
+		     (match-string 1 rep) rep)))
+      (if (string-match (format "\n\n\\((\\(fn\\|%s\\)\\( .*\\)?)\\)\\'"
+				(regexp-quote name))
+			doc)
+	  (cons (match-string 1 doc)
+		(substring doc 0 (match-beginning 0)))))))
 
 (defun help-function-arglist (def)
+  ;; Handle symbols aliased to other symbols.
+  (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
+  ;; If definition is a macro, find the function inside it.
+  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
    ((byte-code-function-p def) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
@@ -229,8 +233,7 @@ Return (USAGE . DOC) or nil if there's no usage info."
 			 (if (eq (nth 4 def) 'keymap) "keymap"
 			   (if (nth 4 def) "Lisp macro" "Lisp function"))
 			 ))
-                ;; perhaps use keymapp here instead
-                ((eq (car-safe def) 'keymap)
+                ((keymapp def)
                  (let ((is-full nil)
                        (elts (cdr-safe def)))
                    (while elts
@@ -280,7 +283,7 @@ Return (USAGE . DOC) or nil if there's no usage info."
     (when (commandp function)
       (let* ((remapped (remap-command function))
 	     (keys (where-is-internal
-		    (or remapped function) overriding-local-map nil nil)))
+		   (or remapped function) overriding-local-map nil nil)))
 	(when remapped
 	  (princ "It is remapped to `")
 	  (princ (symbol-name remapped))
@@ -294,19 +297,24 @@ Return (USAGE . DOC) or nil if there's no usage info."
 	  (terpri))))
     ;; Handle symbols aliased to other symbols.
     (setq def (indirect-function def))
-    ;; If definition is a macro, find the function inside it.
-    (if (eq (car-safe def) 'macro)
-	(setq def (cdr def)))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
-	   usage)
+	   (usage (help-split-fundoc doc def)))
       ;; If definition is a keymap, skip arglist note.
       (unless (keymapp def)
 	(princ (cond
+		(usage (setq doc (cdr usage)) (car usage))
 		((listp arglist) (help-make-usage function arglist))
 		((stringp arglist) arglist)
-		((and doc (subrp def) (setq usage (help-split-fundoc doc def)))
-		 (setq doc (cdr usage)) (car usage))
+		;; Maybe the arglist is in the docstring of the alias.
+		((let ((fun function))
+		   (while (and (symbolp fun)
+			       (setq fun (symbol-function fun))
+			       (not (setq usage (help-split-fundoc
+						 (documentation fun)
+						 def)))))
+		   usage)
+		 (car usage))
 		(t "[Missing arglist.  Please make a bug report.]")))
 	(terpri))
       (let ((obsolete (and
@@ -366,27 +374,27 @@ it is displayed along with the global value."
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (save-excursion
-      (let (valvoid)
+      (let* ((valvoid (not (with-current-buffer buffer (boundp variable))))
+	     ;; Extract the value before setting up the output buffer,
+	     ;; in case `buffer' *is* the output buffer.
+	     (val (unless valvoid (buffer-local-value variable buffer))))
 	(help-setup-xref (list #'describe-variable variable buffer)
 			 (interactive-p))
 	(with-output-to-temp-buffer (help-buffer)
 	  (with-current-buffer buffer
 	    (prin1 variable)
-	    (if (not (boundp variable))
-		(progn
-		  (princ " is void")
-		  (setq valvoid t))
-	      (let ((val (symbol-value variable)))
-		(with-current-buffer standard-output
-		  (princ "'s value is ")
-		  (terpri)
-		  (let ((from (point)))
-		    (pp val)
-		    (help-xref-on-pp from (point))
-		    (if (< (point) (+ from 20))
-			(save-excursion
-			  (goto-char from)
-			  (delete-char -1)))))))
+	    (if valvoid
+		(princ " is void")
+	      (with-current-buffer standard-output
+		(princ "'s value is ")
+		(terpri)
+		(let ((from (point)))
+		  (pp val)
+		  (help-xref-on-pp from (point))
+		  (if (< (point) (+ from 20))
+		      (save-excursion
+			(goto-char from)
+			(delete-char -1))))))
 	    (terpri)
 	    (when (local-variable-p variable)
 	      (princ (format "Local in buffer %s; " (buffer-name)))
