@@ -666,21 +666,21 @@ static tr_stack *mapping_stack_pointer;
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
-#define CCL_WRITE_CHAR(ch)				\
-  do {							\
-    if (!dst)						\
-      CCL_INVALID_CMD;					\
-    else						\
-      {							\
-	unsigned char work[4], *str;			\
-	int len = CHAR_STRING (ch, work, str);		\
-	if (dst + len <= (dst_bytes ? dst_end : src))	\
-	  {						\
-	    while (len--) *dst++ = *str++;		\
-	  }						\
-	else						\
-	  CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);	\
-      }							\
+#define CCL_WRITE_CHAR(ch)					\
+  do {								\
+    if (!dst)							\
+      CCL_INVALID_CMD;						\
+    else							\
+      {								\
+	unsigned char str[MAX_MULTIBYTE_LENGTH], *p = str;	\
+	int len = CHAR_STRING (ch, str);			\
+	if (dst + len <= (dst_bytes ? dst_end : src))		\
+	  {							\
+	    while (len--) *dst++ = *p++;			\
+	  }							\
+	else							\
+	  CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
+      }								\
   } while (0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
@@ -1125,46 +1125,6 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 	      
 		i = *src++;
-		if (i == LEADING_CODE_COMPOSITION)
-		  {
-		    if (src >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    if (*src == 0xFF)
-		      {
-			ccl->private_state = COMPOSING_WITH_RULE_HEAD;
-			src++;
-		      }
-		    else
-		      ccl->private_state = COMPOSING_NO_RULE_HEAD;
-
-		    continue;
-		  }
-		if (ccl->private_state != COMPOSING_NO)
-		  {
-		    /* composite character */
-		    if (i < 0xA0)
-		      ccl->private_state = COMPOSING_NO;
-		    else
-		      {
-			if (COMPOSING_WITH_RULE_RULE == ccl->private_state)
-			  {
-			    ccl->private_state = COMPOSING_WITH_RULE_HEAD;
-			    continue;
-			  }
-			else if (COMPOSING_WITH_RULE_HEAD == ccl->private_state)
-			  ccl->private_state = COMPOSING_WITH_RULE_RULE;
-
-			if (i == 0xA0)
-			  {
-			    if (src >= src_end)
-			      goto ccl_read_multibyte_character_suspend;
-			    i = *src++ & 0x7F;
-			  }
-			else
-			  i -= 0x20;
-		      }
-		  }
-
 		if (i < 0x80)
 		  {
 		    /* ASCII */
@@ -1231,8 +1191,6 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
 		i = reg[rrr] & 0xFF;
-	      else if (i == CHARSET_COMPOSITION)
-		i = MAKE_COMPOSITE_CHAR (reg[rrr]);
 	      else if (CHARSET_DIMENSION (i) == 1)
 		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
 	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
@@ -1248,11 +1206,6 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
 		i = reg[rrr];
-	      else if (i == CHARSET_COMPOSITION)
-		{
-		  reg[RRR] = -1;
-		  break;
-		}
 	      else if (CHARSET_DIMENSION (i) == 1)
 		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
 	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
@@ -1275,11 +1228,6 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
 		i = reg[rrr];
-	      else if (i == CHARSET_COMPOSITION)
-		{
-		  reg[RRR] = -1;
-		  break;
-		}
 	      else if (CHARSET_DIMENSION (i) == 1)
 		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
 	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
