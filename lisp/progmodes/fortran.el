@@ -1,10 +1,9 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (c) 1986, 1993, 1994, 1995, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
-;; Maintainer: bug-fortran-mode@erl.mit.edu (Steve Gildea and others)
-;; Version 1.30.6 (July 27, 1995)
+;; Maintainer: Dave Love <fx@gnu.org>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -26,30 +25,24 @@
 
 ;;; Commentary:
 
-;; Fortran mode has been upgraded and is now maintained by Stephen A. Wood
-;; (saw@cebaf.gov).  It now will use either fixed format continuation line
-;; markers (character in 6th column), or tab format continuation line style
-;; (digit after a TAB character.)  A auto-fill mode has been added to
-;; automatically wrap fortran lines that get too long.
+;; This mode is documented in the Emacs manual.
+;;
+;; Note that it is for editing Fortran77 or Fortran90 fixed source
+;; form.  For editing Fortran90 free format source, use `f90-mode'
+;; (f90.el).
+
+;;; History:
+
+;; Fortran mode was upgraded by Stephen A. Wood (saw@cebaf.gov).
 
 ;; We acknowledge many contributions and valuable suggestions by
 ;; Lawrence R. Dodd, Ralf Fassel, Ralph Finch, Stephen Gildea,
 ;; Dr. Anil Gokhale, Ulrich Mueller, Mark Neale, Eric Prestemon,
 ;; Gary Sabot and Richard Stallman.
 
-;; This file may be used with GNU Emacs version 18.xx if the following
-;; variable and function substitutions are made.
-;;  Replace:
-;;   frame-width                           with screen-width
-;;   auto-fill-function                    with auto-fill-hook
-;;   comment-indent-function               with comment-indent-hook
-;;   (setq unread-command-events (list c)) with (setq unread-command-char c)
-
-;; Bugs to bug-fortran-mode@erl.mit.edu
-
 ;;; Code:
 
-(defconst fortran-mode-version "version 1.30.6")
+(require 'easymenu)
 
 (defgroup fortran nil
   "Fortran mode for Emacs"
@@ -102,7 +95,8 @@ with a character in column 6."
   :group 'fortran-indent)
 
 (defcustom fortran-comment-indent-style 'fixed
-  "*nil forces comment lines not to be touched,
+  "*How to indent comments.
+nil forces comment lines not to be touched,
 'fixed makes fixed comment indentation to `fortran-comment-line-extra-indent'
 columns beyond `fortran-minimum-statement-indent-fixed' (for
 `indent-tabs-mode' of nil) or `fortran-minimum-statement-indent-tab' (for
@@ -175,13 +169,13 @@ Normally $."
 
 (defcustom fortran-comment-region "c$$$"
   "*String inserted by \\[fortran-comment-region]\
- at start of each line in region."
+at start of each line in region."
   :type 'string
   :group 'fortran-comment)
 
 (defcustom fortran-electric-line-number t
   "*Non-nil causes line number digits to be moved to the correct column as\
- typed."
+typed."
   :type 'boolean
   :group 'fortran)
 
@@ -192,7 +186,7 @@ Normally $."
 
 (defvar fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
-\0        60        70\n\
+0        60        70\n\
 \[   ]|{   |    |    |    |    |    |    |    |    \
 \|    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
@@ -200,7 +194,7 @@ This variable used in fixed format mode.")
 
 (defvar fortran-column-ruler-tab
   "0       810        20        30        40        5\
-\0        60        70\n\
+0        60        70\n\
 \[   ]|  { |    |    |    |    |    |    |    |    \
 \|    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
@@ -214,7 +208,7 @@ This variable used in TAB format mode.")
 
 (defvar fortran-analyze-depth 100
   "Number of lines to scan to determine whether to use fixed or TAB format\
- style.")
+style.")
 
 (defcustom fortran-break-before-delimiters t
   "*Non-nil causes `fortran-fill' to break lines before delimiters."
@@ -224,6 +218,8 @@ This variable used in TAB format mode.")
 (if fortran-mode-syntax-table
     ()
   (setq fortran-mode-syntax-table (make-syntax-table))
+  ;; We might like `;' to be punctuation (g77 multi-statement lines),
+  ;; but that screws abbrevs.
   (modify-syntax-entry ?\; "w" fortran-mode-syntax-table)
   (modify-syntax-entry ?\r " " fortran-mode-syntax-table)
   (modify-syntax-entry ?+ "." fortran-mode-syntax-table)
@@ -234,8 +230,11 @@ This variable used in TAB format mode.")
   (modify-syntax-entry ?\' "\"" fortran-mode-syntax-table)
   (modify-syntax-entry ?\" "\"" fortran-mode-syntax-table)
   (modify-syntax-entry ?\\ "/" fortran-mode-syntax-table)
-  (modify-syntax-entry ?. "w" fortran-mode-syntax-table)
-  (modify-syntax-entry ?_ "w" fortran-mode-syntax-table)
+  ;; This might be better as punctuation, as for C, but this way you
+  ;; can treat floating-point numbers as symbols.
+  (modify-syntax-entry ?. "_" fortran-mode-syntax-table) ; e.g. `a.ne.b'
+  (modify-syntax-entry ?_ "_" fortran-mode-syntax-table)
+  (modify-syntax-entry ?$ "_" fortran-mode-syntax-table) ; esp. VMSisms
   (modify-syntax-entry ?\! "<" fortran-mode-syntax-table)
   (modify-syntax-entry ?\n ">" fortran-mode-syntax-table))
 
@@ -372,20 +371,22 @@ This variable used in TAB format mode.")
 (defvar fortran-imenu-generic-expression
   ;; These patterns could be confused by sequence nos. in cols 72+ and
   ;; don't allow continuations everywhere.
-  '((nil
-     ;; Lines below are: 1. leading whitespace; 2. function
-     ;; declaration with optional type, e.g. `real', `real*4',
-     ;; character(*), `double precision' and possible statement
-     ;; continuation; 3. untyped declarations; 4. the variable to
-     ;; index.  [This will be fooled by `end function' allowed by G77.
-     ;; Also, it assumes sensible whitespace is employed.]
-      "^\\s-+\\(\
+  (list
+   (list
+    nil
+    ;; Lines below are: 1. leading whitespace; 2. function
+    ;; declaration with optional type, e.g. `real', `real*4',
+    ;; character(*), `double precision' and possible statement
+    ;; continuation; 3. untyped declarations; 4. the variable to
+    ;; index.  [This will be fooled by `end function' allowed by G77.
+    ;; Also, it assumes sensible whitespace is employed.]
+    (concat "^\\s-+\\(\
 \\(\\sw\\|\\s-\\|[*()+]\\)*\\<function\\|\
-subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t+]+\
-\\(\\sw+\\)"
-     3)
-    ;; Un-named block data
-    (nil "^\\s-+\\(block\\s-*data\\)\\s-*$" 1))
+subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t" fortran-continuation-string "]+\
+\\(\\sw+\\)")
+    3)
+   ;; Un-named block data
+   (list nil "^\\s-+\\(block\\s-*data\\)\\s-*$" 1))
   "imenu generic expression for `imenu-default-create-index-function'.")
 
 (defvar fortran-mode-map ()
@@ -406,6 +407,7 @@ subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t+]+\
   (define-key fortran-mode-map "\C-c\C-r" 'fortran-column-ruler)
   (define-key fortran-mode-map "\C-c\C-p" 'fortran-previous-statement)
   (define-key fortran-mode-map "\C-c\C-n" 'fortran-next-statement)
+  (define-key fortran-mode-map "\C-c\C-d" 'fortran-join-line)
   (define-key fortran-mode-map "\t" 'fortran-indent-line)
   (define-key fortran-mode-map "0" 'fortran-electric-line-number)
   (define-key fortran-mode-map "1" 'fortran-electric-line-number)
@@ -416,7 +418,48 @@ subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t+]+\
   (define-key fortran-mode-map "6" 'fortran-electric-line-number)
   (define-key fortran-mode-map "7" 'fortran-electric-line-number)
   (define-key fortran-mode-map "8" 'fortran-electric-line-number)
-  (define-key fortran-mode-map "9" 'fortran-electric-line-number))
+  (define-key fortran-mode-map "9" 'fortran-electric-line-number)
+
+  ;; Menu
+  (unless (boundp 'fortran-mode-menu)
+    (easy-menu-define
+     fortran-mode-menu fortran-mode-map ""
+     '("Fortran"
+       ["Toggle Auto-fill" fortran-auto-fill-mode :style toggle
+        :selected (eq auto-fill-function 'fortran-do-auto-fill)]
+       ["Toggle abbrev-mode" abbrev-mode :style toggle :selected abbrev-mode]
+       "----"
+       ["Comment-out Region" fortran-comment-region mark-active]
+       ["Uncomment-out region"
+        (fortran-comment-region (region-beginning) (region-end) 1)
+        mark-active]
+       ["Indent Region" indent-region mark-active]
+       ["Indent Subprogram" fortran-indent-subprogram t]
+       "----"
+       ["Beginning of Subprogram" beginning-of-fortran-subprogram t]
+       ["End of Subprogram" end-of-fortran-subprogram t]
+       ("Mark"
+        ["Subprogram" mark-fortran-subprogram t]
+        ["IF Block" fortran-mark-if t]
+        ["DO Block" fortran-mark-do t])
+       ["Narrow to Subprogram" fortran-narrow-to-subprogram t]
+       ["Widen" widen t]
+       "----"
+       ["Temporary column ruler" fortran-column-ruler t]
+       ["72-column window" fortran-window-create t]
+       ["Full Width Window"
+        (enlarge-window-horizontally (- (frame-width) (window-width)))
+        (< (window-width) (frame-width))]
+       ["Momentary 72-column window" fortran-window-create-momentarily t]
+       "----"
+       ["Break Line at Point" fortran-split-line t]
+       ["Join Continuation Line" fortran-join-line t]
+       "----"
+       ["Add imenu menu"
+        (progn (imenu-add-to-menubar "Index")
+               ;; Prod menu bar to update -- is this the right way?
+               (menu-bar-mode 1))
+        t]))))
 
 (defvar fortran-mode-abbrev-table nil)
 (if fortran-mode-abbrev-table
@@ -483,6 +526,8 @@ subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t+]+\
     (define-abbrev fortran-mode-abbrev-table  ";wh"  "where" nil)
     (setq abbrevs-changed ac)))
 
+(eval-when-compile (defvar imenu-syntax-alist nil)) ; silence compiler
+
 ;;;###autoload
 (defun fortran-mode ()
   "Major mode for editing Fortran code.
@@ -550,17 +595,11 @@ Variables controlling indentation style and extra features:
  fortran-break-before-delimiters
     Non-nil causes `fortran-fill' breaks lines before delimiters.
     (default t)
- fortran-startup-message
-    Set to nil to inhibit message first time Fortran mode is used.
 
 Turning on Fortran mode calls the value of the variable `fortran-mode-hook'
 with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
-  (if fortran-startup-message
-      (message "Emacs Fortran mode %s.  Bugs to %s"
-	       fortran-mode-version bug-fortran-mode))
-  (setq fortran-startup-message nil)
   (setq local-abbrev-table fortran-mode-abbrev-table)
   (set-syntax-table fortran-mode-syntax-table)
   ;; Font Lock mode support.
@@ -569,7 +608,7 @@ with no args, if that value is non-nil."
 			      fortran-font-lock-keywords-1
 			      fortran-font-lock-keywords-2
 			      fortran-font-lock-keywords-3)
-			     t t ((?/ . "$/"))))
+			     t t ((?/ . "$/") ("_$" . "w"))))
   (make-local-variable 'fortran-break-before-delimiters)
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
@@ -605,8 +644,10 @@ with no args, if that value is non-nil."
   (make-local-variable 'fortran-tab-mode-string)
   (setq fortran-tab-mode-string " TAB-format")
   (setq indent-tabs-mode (fortran-analyze-file-format))
+  (setq imenu-case-fold-search t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression fortran-imenu-generic-expression)
+  (setq imenu-syntax-alist '(("_$" . "w")))
   (run-hooks 'fortran-mode-hook))
 
 (defun fortran-comment-hook ()
@@ -619,7 +660,7 @@ with no args, if that value is non-nil."
   "Align or create comment on current line.
 Existing comments of all types are recognized and aligned.
 If the line has no comment, a side-by-side comment is inserted and aligned
-if the value of  comment-start  is not nil.
+if the value of  `comment-start'  is not nil.
 Otherwise, a separate-line comment is inserted, on this line
 or on a new line inserted before this line if this line is not blank."
   (interactive)
@@ -658,7 +699,7 @@ or on a new line inserted before this line if this line is not blank."
 
 (defun fortran-comment-region (beg-region end-region arg)
   "Comments every line in the region.
-Puts fortran-comment-region at the beginning of every line in the region.
+Puts `fortran-comment-region' at the beginning of every line in the region.
 BEG-REGION and END-REGION are args which specify the region boundaries.
 With non-nil ARG, uncomments the region."
   (interactive "*r\nP")
@@ -711,7 +752,7 @@ Any other key combination is executed normally."
   (get-buffer-create "*Abbrevs*"))
 
 (defun fortran-column-ruler ()
-  "Inserts a column ruler momentarily above current line, till next keystroke.
+  "Insert a column ruler momentarily above current line, till next keystroke.
 The ruler is defined by the value of `fortran-column-ruler-fixed' when in fixed
 format mode, and `fortran-column-ruler-tab' when in TAB format mode.
 The key typed is executed unless it is SPC."
@@ -729,7 +770,7 @@ The key typed is executed unless it is SPC."
    nil "Type SPC or any command to erase ruler."))
 
 (defun fortran-window-create ()
-  "Makes the window 72 columns wide.
+  "Make the window 72 columns wide.
 See also `fortran-window-create-momentarily'."
   (interactive)
   (condition-case error
@@ -746,7 +787,7 @@ See also `fortran-window-create-momentarily'."
 	   'error)))
 
 (defun fortran-window-create-momentarily (&optional arg)
-  "Momentarily makes the window 72 columns wide.
+  "Momentarily make the window 72 columns wide.
 Optional ARG non-nil and non-unity disables the momentary feature.
 See also `fortran-window-create'."
   (interactive "p")
@@ -773,6 +814,22 @@ See also `fortran-window-create'."
       (insert "\n " fortran-continuation-string)));Space after \n important
   (fortran-indent-line))		;when the cont string is C, c or *.
 
+(defun fortran-join-line ()
+  "Join a continuation line to the previous one and re-indent."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (cond ((looking-at "     \\S-")
+           (delete-region (1- (point)) (+ (point) 7)))
+          ((looking-at "&")
+           (delete-region (1- (point)) (1+ (point))))
+          ((looking-at " *\t[1-9]")
+           (apply 'delete-region (match-data))
+           (delete-backward-char 1))
+          (t (error "This isn't a continuation line")))
+    (just-one-space)
+    (fortran-indent-line)))
+
 (defun fortran-numerical-continuation-char ()
   "Return a digit for tab-digit style of continuation lines.
 If, previous line is a tab-digit continuation line, returns that digit
@@ -793,7 +850,7 @@ except that ] is never special and \ quotes ^, - or \."
 
 (defun fortran-electric-line-number (arg)
   "Self insert, but if part of a Fortran line number indent it automatically.
-Auto-indent does not happen if a numeric arg is used."
+Auto-indent does not happen if a numeric ARG is used."
   (interactive "P")
   (if (or arg (not fortran-electric-line-number))
       (if arg
@@ -896,6 +953,15 @@ non-comment Fortran statement in the file, and nil otherwise."
  		    (looking-at (concat "[ \t]*"  comment-start-skip)))))
     (if (not not-last-statement)
  	'last-statement)))
+
+(defun fortran-narrow-to-subprogram ()
+  "Make text outside the current subprogram invisible.
+The subprogram visible is the one that contains or follows point."
+  (interactive)
+        (save-excursion
+          (mark-fortran-subprogram)
+          (narrow-to-region (region-beginning)
+                            (region-end))))
 
 (defun fortran-blink-matching-if ()
   ;; From a Fortran ENDIF statement, blink the matching IF statement.
@@ -1125,7 +1191,7 @@ The marks are pushed."
              (point))))))
 
 (defun fortran-indent-line ()
-  "Indents current Fortran line based on its contents and on previous lines."
+  "Indent current Fortran line based on its contents and on previous lines."
   (interactive)
   (let ((cfi (calculate-fortran-indent)))
     (save-excursion
@@ -1147,7 +1213,7 @@ The marks are pushed."
 	  (end-of-line)
 	  (fortran-fill)))
     (if fortran-blink-matching-if
-	(progn
+        (progn
 	  (fortran-blink-matching-if)
 	  (fortran-blink-matching-do)))))
 
@@ -1168,7 +1234,7 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
   (fortran-indent-line))
 
 (defun fortran-indent-subprogram ()
-  "Properly indents the Fortran subprogram which contains point."
+  "Properly indent the Fortran subprogram which contains point."
   (interactive)
   (save-excursion
     (mark-fortran-subprogram)
@@ -1305,7 +1371,7 @@ non-indentation text within the comment."
     (current-column)))
 
 (defun fortran-indent-to-column (col)
-  "Indents current line with spaces to column COL.
+  "Indent current line with spaces to column COL.
 notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
           line, and this continuation character is retained on indentation;
        2) If `fortran-continuation-string' is the first non-whitespace
@@ -1380,8 +1446,8 @@ Do not call if there is no line number."
 		    (= (current-column) 5))))))
 
 (defun fortran-check-for-matching-do ()
-  "When called from a numbered statement, returns t if matching DO is found.
-Otherwise return a nil."
+  "When called from a numbered statement, return t if matching DO is found.
+Otherwise return nil."
   (let (charnum
 	(case-fold-search t))
     (save-excursion
@@ -1448,8 +1514,7 @@ Return t if `comment-start-skip' found, nil if not."
 ;;;From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;;; Test if TAB format continuation lines work.
 (defun fortran-is-in-string-p (where)
-  "Return non-nil if POS (a buffer position) is inside a Fortran string,
-nil else."
+  "Return non-nil iff WHERE (a buffer position) is inside a Fortran string."
   (save-excursion
     (goto-char where)
     (cond
@@ -1636,7 +1701,7 @@ automatically breaks the line at a previous space."
 	  (insert comment-string)))))
 
 (defun fortran-analyze-file-format ()
-  "Returns nil if fixed format is used, t if TAB formatting is used.
+  "Return nil if fixed format is used, t if TAB formatting is used.
 Use `fortran-tab-mode-default' if no non-comment statements are found in the
 file before the end or the first `fortran-analyze-depth' lines."
   (let ((i 0))
