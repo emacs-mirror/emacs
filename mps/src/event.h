@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!event.h(trunk.7) $
+ * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!event.h(trunk.8) $
  *
  * READERSHIP
  *
@@ -92,8 +92,11 @@ extern Word EventKindControl;
 
 #else /* EVENT not */
 
-#define EventInit()                        NOOP
-#define EventFinish()                      NOOP
+#define EventInit()            NOOP
+#define EventFinish()          NOOP
+#define EventControl(r, f)     (UNUSED(r), UNUSED(f), (Word)0)
+#define EventInternString(l)   (UNUSED(l), (Word)0)
+#define EventLabelAddr(a, i)   BEGIN UNUSED(a); UNUSED(i); END
 
 #endif /* EVENT */
 
