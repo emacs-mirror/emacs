@@ -222,7 +222,7 @@ If FORM is not a macro call, it is returned unchanged.
 Otherwise, the macro is expanded and the expansion is considered
 in place of FORM.  When a non-macro-call results, it is returned.
 
-The second optional arg ENVIRONMENT species an environment of macro
+The second optional arg ENVIRONMENT specifies an environment of macro
 definitions to shadow the loaded ones for use in file byte-compilation."
   (let ((cl-macro-environment cl-env))
     (while (progn (setq cl-macro (funcall cl-old-macroexpand cl-macro cl-env))
