@@ -47,8 +47,10 @@
     (if (consp relative-coordinate)
 	(progn
 	  (move-to-window-line (car (cdr relative-coordinate)))
+	  ;; Note that hscroll must get above 1
+	  ;; before the text actually starts to move.
 	  (move-to-column (+ (car relative-coordinate) (current-column)
-			     (window-hscroll (selected-window))))
+			     (1- (max 1 (window-hscroll (selected-window))))))
 	  (what-line)))))
 
 (defun mouse-eval-last-sexpr (event)
