@@ -1,3 +1,10 @@
+2000-04-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (INSTALLABLES): Add ebrowse.
+	(ebrowse): New target.
+
+	* ebrowse.c: New file.
+
 2000-03-29  Andreas Schwab  <schwab@suse.de>
 
 	* make-docfile.c (scan_lisp_file): Also look for `defsubst'.

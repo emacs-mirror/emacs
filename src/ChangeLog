@@ -1,3 +1,8 @@
+2000-04-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (Frestore_buffer_modified_p): New function.
+	(syms_of_buffer): Defsubr it.
+
 2000-04-08  Ken Raeburn  <raeburn@gnu.org>
 
 	* charset.c (Fmake_char_internal): CHAR_COMPONENTS_VALID_P takes a

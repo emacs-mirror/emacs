@@ -1,3 +1,20 @@
+2000-04-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rfc2368.el: Correct author's email address.
+
+	* progmodes/ebrowse.el: New file.
+
+	* emacs-lisp/easymenu.el (easy-menu-create-menu): Process menu
+	item help string.
+	(easy-menu-do-add-item): Ditto.
+	(easy-menu-define): Extend doc string.
+
+	* jit-lock.el (with-buffer-unmodified): Use
+	restore-buffer-modified-p.
+	(with-buffer-prepared-for-font-lock): Use with-buffer-unmodified.
+	(jit-lock-function, jit-lock-stealth-fontify): Don't use
+	with-buffer-unmodified.
+
 2000-04-08  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/edebug.el: Fix specs for dolist, dotimes, push, pop,

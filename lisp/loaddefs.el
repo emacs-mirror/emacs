@@ -119,7 +119,7 @@ Insert a descriptive header at the top of the file." t nil)
 ;;;### (autoloads (change-log-merge add-log-current-defun change-log-mode
 ;;;;;;  add-change-log-entry-other-window add-change-log-entry find-change-log
 ;;;;;;  prompt-for-change-log-name add-log-mailing-address add-log-full-name)
-;;;;;;  "add-log" "add-log.el" (14525 5303))
+;;;;;;  "add-log" "add-log.el" (14565 55609))
 ;;; Generated autoloads from add-log.el
 
 (defvar add-log-full-name nil "\
@@ -192,11 +192,11 @@ Runs `change-log-mode-hook'." t nil)
 Return name of function definition point is in, or nil.
 
 Understands C, Lisp, LaTeX (\"functions\" are chapters, sections, ...),
-Texinfo (@node titles), Perl, and Fortran.
+Texinfo (@node titles) and Perl.
 
 Other modes are handled by a heuristic that looks in the 10K before
 point for uppercase headings starting in the first column or
-identifiers followed by `:' or `=', see variables
+identifiers followed by `:' or `='.  See variables
 `add-log-current-defun-header-regexp' and
 `add-log-current-defun-function'
 
@@ -417,7 +417,7 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'." nil nil)
 ;;;### (autoloads (appt-make-list appt-delete appt-add appt-display-diary
 ;;;;;;  appt-display-duration appt-msg-window appt-display-mode-line
 ;;;;;;  appt-visible appt-audible appt-message-warning-time appt-issue-message)
-;;;;;;  "appt" "calendar/appt.el" (14517 9487))
+;;;;;;  "appt" "calendar/appt.el" (14563 8413))
 ;;; Generated autoloads from calendar/appt.el
 
 (defvar appt-issue-message t "\
@@ -448,13 +448,23 @@ as the first thing on a line.")
 This will occur at midnight when the appointment list is updated.")
 
 (autoload (quote appt-add) "appt" "\
-Add an appointment for the day at TIME and issue MESSAGE.
+Add an appointment for the day at NEW-APPT-TIME and issue message NEW-APPT-MSG.
 The time should be in either 24 hour format or am/pm format." t nil)
 
 (autoload (quote appt-delete) "appt" "\
 Delete an appointment from the list of appointments." t nil)
 
-(autoload (quote appt-make-list) "appt" nil nil nil)
+(autoload (quote appt-make-list) "appt" "\
+Create the appointments list from todays diary buffer.
+The time must be at the beginning of a line for it to be
+put in the appointments list.
+  02/23/89
+    12:00pm lunch
+   Wednesday
+     10:00am group meeting
+We assume that the variables DATE and NUMBER
+hold the arguments that `list-diary-entries' received.
+They specify the range of dates that the diary is being processed for." nil nil)
 
 ;;;***
 
@@ -665,7 +675,7 @@ insert a template for the file depending on the mode of the buffer." t nil)
 
 ;;;### (autoloads (batch-update-autoloads update-autoloads-from-directories
 ;;;;;;  update-file-autoloads) "autoload" "emacs-lisp/autoload.el"
-;;;;;;  (14398 37513))
+;;;;;;  (14563 8438))
 ;;; Generated autoloads from emacs-lisp/autoload.el
 
 (autoload (quote update-file-autoloads) "autoload" "\
@@ -1310,7 +1320,7 @@ corresponding bookmark function from Lisp (the one without the
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-generic-program
 ;;;;;;  browse-url-save-file browse-url-netscape-display browse-url-new-window-p
 ;;;;;;  browse-url-browser-function) "browse-url" "net/browse-url.el"
-;;;;;;  (14554 2050))
+;;;;;;  (14558 23455))
 ;;; Generated autoloads from net/browse-url.el
 
 (defvar browse-url-browser-function (if (eq system-type (quote windows-nt)) (quote browse-url-default-windows-browser) (quote browse-url-netscape)) "\
@@ -1546,7 +1556,7 @@ name of buffer configuration." t nil)
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (14547 29523))
+;;;;;;  "emacs-lisp/bytecomp.el" (14564 35790))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -2718,7 +2728,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (14440 46010))
+;;;;;;  "compile" "progmodes/compile.el" (14569 2479))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -3289,7 +3299,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 ;;;***
 
 ;;;### (autoloads (cpp-parse-edit cpp-highlight-buffer) "cpp" "progmodes/cpp.el"
-;;;;;;  (13826 9529))
+;;;;;;  (14568 36509))
 ;;; Generated autoloads from progmodes/cpp.el
 
 (autoload (quote cpp-highlight-buffer) "cpp" "\
@@ -3333,7 +3343,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14552 48684))
+;;;;;;  (14558 7062))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3582,7 +3592,7 @@ If the argument is nil, we return the display table to its standard state." t ni
 ;;;***
 
 ;;;### (autoloads (dabbrev-expand dabbrev-completion) "dabbrev" "dabbrev.el"
-;;;;;;  (14385 24830))
+;;;;;;  (14568 46430))
 ;;; Generated autoloads from dabbrev.el
 
 (define-key esc-map "/" (quote dabbrev-expand))
@@ -4066,7 +4076,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14522 27392))
+;;;;;;  "dired" "dired.el" (14563 8348))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -4625,8 +4635,8 @@ been generated automatically, with a reference to the keymap." nil (quote macro)
 ;;;***
 
 ;;;### (autoloads (easy-menu-change easy-menu-create-menu easy-menu-do-define
-;;;;;;  easy-menu-define) "easymenu" "emacs-lisp/easymenu.el" (14385
-;;;;;;  24854))
+;;;;;;  easy-menu-define) "easymenu" "emacs-lisp/easymenu.el" (14574
+;;;;;;  18612))
 ;;; Generated autoloads from emacs-lisp/easymenu.el
 
 (autoload (quote easy-menu-define) "easymenu" "\
@@ -4716,6 +4726,10 @@ anything else means an ordinary menu item.
 
 SELECTED is an expression; the checkbox or radio button is selected
 whenever this expression's value is non-nil.
+
+   :help HELP
+
+HELP is a string, the help to display for the menu item.
 
 A menu item can be a string.  Then that string appears in the menu as
 unselectable text.  A string consisting solely of hyphens is displayed
@@ -4860,6 +4874,43 @@ It returns the old style symbol." t nil)
 
 ;;;***
 
+;;;### (autoloads (ebrowse-save-tree-as ebrowse-tags-query-replace
+;;;;;;  ebrowse-tags-loop-continue ebrowse-tags-complete-symbol ebrowse-electric-choose-tree
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14575
+;;;;;;  54558))
+;;; Generated autoloads from progmodes/ebrowse.el
+
+(autoload (quote ebrowse-tree-mode) "ebrowse" "\
+Major mode for Ebrowse class tree buffers.
+Each line corresponds to a class in a class tree.
+Letters do not insert themselves, they are commands.
+File operations in the tree buffer work on class tree data structures.
+E.g.\\[save-buffer] writes the tree to the file it was loaded from.
+
+Tree mode key bindings:
+\\{ebrowse-tree-mode-map}" nil nil)
+
+(autoload (quote ebrowse-electric-choose-tree) "ebrowse" "\
+Return a buffer containing a tree or nil if no tree found or canceled." t nil)
+
+(autoload (quote ebrowse-tags-complete-symbol) "ebrowse" "Perform completion on the C++ symbol preceding point.\nA second call of this function without changing point inserts the next match. \nA call with prefix PREFIX reads the symbol to insert from the minibuffer with\ncompletion." t nil)
+
+(autoload (quote ebrowse-tags-loop-continue) "ebrowse" "\
+Repeat last operation on files in tree.
+FIRST-TIME non-nil means this is not a repetition, but the first time.
+TREE-BUFFER if indirectly specifies which files to loop over." t nil)
+
+(autoload (quote ebrowse-tags-query-replace) "ebrowse" "\
+Query replace FROM with TO in all files of a class tree.
+With prefix arg, process files of marked classes only." t nil)
+
+(autoload (quote ebrowse-save-tree-as) "ebrowse" "\
+Write the current tree data structure to a file.
+Read the file name from the minibuffer if interactive.
+Otherwise, FILE-NAME specifies the file to save the tree in." t nil)
+
+;;;***
+
 ;;;### (autoloads (electric-buffer-list) "ebuff-menu" "ebuff-menu.el"
 ;;;;;;  (13778 5499))
 ;;; Generated autoloads from ebuff-menu.el
@@ -4894,7 +4945,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14482 54435))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14576 25687))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -6957,7 +7008,7 @@ Some generic modes are defined in `generic-x.el'." t nil)
 ;;;***
 
 ;;;### (autoloads (glasses-mode) "glasses" "progmodes/glasses.el"
-;;;;;;  (14480 59906))
+;;;;;;  (14568 44804))
 ;;; Generated autoloads from progmodes/glasses.el
 
 (autoload (quote glasses-mode) "glasses" "\
@@ -8350,9 +8401,9 @@ and a negative argument disables it." t nil)
 ;;;***
 
 ;;;### (autoloads (iso-cvt-define-menu iso-cvt-write-only iso-cvt-read-only
-;;;;;;  iso-iso2duden iso-iso2gtex iso-gtex2iso iso-tex2iso iso-iso2tex
-;;;;;;  iso-german iso-spanish) "iso-cvt" "international/iso-cvt.el"
-;;;;;;  (13768 42838))
+;;;;;;  iso-sgml2iso iso-iso2sgml iso-iso2duden iso-iso2gtex iso-gtex2iso
+;;;;;;  iso-tex2iso iso-iso2tex iso-german iso-spanish) "iso-cvt"
+;;;;;;  "international/iso-cvt.el" (14564 29908))
 ;;; Generated autoloads from international/iso-cvt.el
 
 (autoload (quote iso-spanish) "iso-cvt" "\
@@ -8394,6 +8445,18 @@ Optional arg BUFFER is ignored (so that the function can can be used in
 (autoload (quote iso-iso2duden) "iso-cvt" "\
 Translate ISO 8859-1 characters to German TeX sequences.
 The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')." t nil)
+
+(autoload (quote iso-iso2sgml) "iso-cvt" "\
+Translate ISO 8859-1 characters in the region to SGML entities.
+The entities used are from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')." t nil)
+
+(autoload (quote iso-sgml2iso) "iso-cvt" "\
+Translate SGML entities in the region to ISO 8859-1 characters.
+The entities used are from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
 Optional arg BUFFER is ignored (so that the function can can be used in
 `format-alist')." t nil)
 
@@ -8765,7 +8828,7 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading." nil 
 ;;;***
 
 ;;;### (autoloads (turn-on-jit-lock jit-lock-mode) "jit-lock" "jit-lock.el"
-;;;;;;  (14550 5866))
+;;;;;;  (14571 7073))
 ;;; Generated autoloads from jit-lock.el
 
 (autoload (quote jit-lock-mode) "jit-lock" "\
@@ -8806,7 +8869,7 @@ Unconditionally turn on Just-in-time Lock mode." nil nil)
 ;;;***
 
 ;;;### (autoloads (auto-compression-mode) "jka-compr" "jka-compr.el"
-;;;;;;  (14495 17985))
+;;;;;;  (14568 39747))
 ;;; Generated autoloads from jka-compr.el
 
 (defvar auto-compression-mode nil "\
@@ -9057,7 +9120,7 @@ is nil, raise an error." t nil)
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate) "locate" "locate.el"
-;;;;;;  (14396 4034))
+;;;;;;  (14563 8348))
 ;;; Generated autoloads from locate.el
 
 (autoload (quote locate) "locate" "\
@@ -9072,7 +9135,7 @@ shown; this is often useful to constrain a big search." t nil)
 
 ;;;***
 
-;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (14537 49316))
+;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (14559 17354))
 ;;; Generated autoloads from log-edit.el
 
 (autoload (quote log-edit) "log-edit" "\
@@ -9096,8 +9159,8 @@ Major mode for browsing CVS log output." t nil)
 ;;;***
 
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
-;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14440
-;;;;;;  46009))
+;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14563
+;;;;;;  22518))
 ;;; Generated autoloads from lpr.el
 
 (defvar printer-name (if (memq system-type (quote (ms-dos windows-nt))) "PRN") "\
@@ -9428,7 +9491,7 @@ current header, calls `mail-complete-function' and passes prefix arg if any." t 
 ;;;***
 
 ;;;### (autoloads (makefile-mode) "make-mode" "progmodes/make-mode.el"
-;;;;;;  (14554 2005))
+;;;;;;  (14570 19448))
 ;;; Generated autoloads from progmodes/make-mode.el
 
 (autoload (quote makefile-mode) "make-mode" "\
@@ -9517,7 +9580,7 @@ Previous contents of that buffer are killed first." t nil)
 
 ;;;***
 
-;;;### (autoloads (man-follow man) "man" "man.el" (14539 53667))
+;;;### (autoloads (man-follow man) "man" "man.el" (14570 21850))
 ;;; Generated autoloads from man.el
 
 (defalias (quote manual-entry) (quote man))
@@ -9955,7 +10018,7 @@ Multiplication puzzle with GNU Emacs." t nil)
 
 ;;;***
 
-;;;### (autoloads (msb-mode msb-mode) "msb" "msb.el" (14263 63030))
+;;;### (autoloads (msb-mode msb-mode) "msb" "msb.el" (14555 52300))
 ;;; Generated autoloads from msb.el
 
 (defvar msb-mode nil "\
@@ -10111,16 +10174,18 @@ The file is saved in the directory `data-directory'." nil nil)
 ;;;;;;  coding-system-post-read-conversion coding-system-eol-type-mnemonic
 ;;;;;;  lookup-nested-alist set-nested-alist truncate-string-to-width
 ;;;;;;  store-substring string-to-sequence) "mule-util" "international/mule-util.el"
-;;;;;;  (14423 50997))
+;;;;;;  (14568 36382))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload (quote string-to-sequence) "mule-util" "\
 Convert STRING to a sequence of TYPE which contains characters in STRING.
 TYPE should be `list' or `vector'." nil nil)
 
-(defsubst string-to-list (string) "Return a list of characters in STRING." (string-to-sequence string (quote list)))
+(defsubst string-to-list (string) "\
+Return a list of characters in STRING." (string-to-sequence string (quote list)))
 
-(defsubst string-to-vector (string) "Return a vector of characters in STRING." (string-to-sequence string (quote vector)))
+(defsubst string-to-vector (string) "\
+Return a vector of characters in STRING." (string-to-sequence string (quote vector)))
 
 (autoload (quote store-substring) "mule-util" "\
 Embed OBJ (string or character) at index IDX of STRING." nil nil)
@@ -10142,7 +10207,16 @@ the resulting string may be narrower than END-COLUMN." nil nil)
 
 (defalias (quote truncate-string) (quote truncate-string-to-width))
 
-(defsubst nested-alist-p (obj) "Return t if OBJ is a nested alist.\n\nNested alist is a list of the form (ENTRY . BRANCHES), where ENTRY is\nany Lisp object, and BRANCHES is a list of cons cells of the form\n(KEY-ELEMENT . NESTED-ALIST).\n\nYou can use a nested alist to store any Lisp object (ENTRY) for a key\nsequence KEYSEQ, where KEYSEQ is a sequence of KEY-ELEMENT.  KEYSEQ\ncan be a string, a vector, or a list." (and obj (listp obj) (listp (cdr obj))))
+(defsubst nested-alist-p (obj) "\
+Return t if OBJ is a nested alist.
+
+Nested alist is a list of the form (ENTRY . BRANCHES), where ENTRY is
+any Lisp object, and BRANCHES is a list of cons cells of the form
+\(KEY-ELEMENT . NESTED-ALIST).
+
+You can use a nested alist to store any Lisp object (ENTRY) for a key
+sequence KEYSEQ, where KEYSEQ is a sequence of KEY-ELEMENT.  KEYSEQ
+can be a string, a vector, or a list." (and obj (listp obj) (listp (cdr obj))))
 
 (autoload (quote set-nested-alist) "mule-util" "\
 Set ENTRY for KEYSEQ in a nested alist ALIST.
@@ -10207,7 +10281,7 @@ Enable mouse wheel support." nil nil)
 ;;;### (autoloads (network-connection network-connection-to-service
 ;;;;;;  whois-reverse-lookup whois finger ftp dig nslookup nslookup-host
 ;;;;;;  route arp netstat ipconfig ping traceroute) "net-utils" "net/net-utils.el"
-;;;;;;  (14385 24830))
+;;;;;;  (14564 29931))
 ;;; Generated autoloads from net/net-utils.el
 
 (autoload (quote traceroute) "net-utils" "\
@@ -11097,7 +11171,7 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-paper-type) "ps-print"
-;;;;;;  "ps-print.el" (14554 7425))
+;;;;;;  "ps-print.el" (14563 18761))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -11679,7 +11753,7 @@ Here are all local bindings.
 ;;;***
 
 ;;;### (autoloads (regexp-opt-depth regexp-opt) "regexp-opt" "emacs-lisp/regexp-opt.el"
-;;;;;;  (14535 45202))
+;;;;;;  (14564 29908))
 ;;; Generated autoloads from emacs-lisp/regexp-opt.el
 
 (autoload (quote regexp-opt) "regexp-opt" "\
@@ -12157,11 +12231,11 @@ KEYWORDS is a comma-separated list of labels." t nil)
 
 ;;;***
 
-;;;### (autoloads (rmail-summary-line-decoder rmail-summary-by-senders
-;;;;;;  rmail-summary-by-topic rmail-summary-by-regexp rmail-summary-by-recipients
-;;;;;;  rmail-summary-by-labels rmail-summary rmail-summary-line-count-flag
-;;;;;;  rmail-summary-scroll-between-messages) "rmailsum" "mail/rmailsum.el"
-;;;;;;  (14547 28270))
+;;;### (autoloads (rmail-user-mail-address-regexp rmail-summary-line-decoder
+;;;;;;  rmail-summary-by-senders rmail-summary-by-topic rmail-summary-by-regexp
+;;;;;;  rmail-summary-by-recipients rmail-summary-by-labels rmail-summary
+;;;;;;  rmail-summary-line-count-flag rmail-summary-scroll-between-messages)
+;;;;;;  "rmailsum" "mail/rmailsum.el" (14568 47126))
 ;;; Generated autoloads from mail/rmailsum.el
 
 (defvar rmail-summary-scroll-between-messages t "\
@@ -12205,6 +12279,20 @@ SENDERS is a string of names separated by commas." t nil)
 *Function to decode summary-line.
 
 By default, `identity' is set.")
+
+(defvar rmail-user-mail-address-regexp nil "\
+*Regexp matching user mail addresses.
+If non-nil, this variable is used to identify the correspondent
+when receiving new mail.  If it matches the address of the sender,
+the recipient is taken as correspondent of a mail.
+If nil (default value), your `user-login-name' and `user-mail-address'
+are used to exclude yourself as correspondent.
+
+Usually you don't have to set this variable, except if you collect mails
+sent by you under different user names.
+Then it should be a regexp matching your mail adresses.
+
+Setting this variable has an effect only before reading a mail.")
 
 ;;;***
 
@@ -13450,7 +13538,7 @@ strokes with
 ;;;***
 
 ;;;### (autoloads (sc-cite-original) "supercite" "mail/supercite.el"
-;;;;;;  (14385 23097))
+;;;;;;  (14565 55801))
 ;;; Generated autoloads from mail/supercite.el
 
 (autoload (quote sc-cite-original) "supercite" "\
@@ -14160,7 +14248,7 @@ a symbol as a valid THING." nil nil)
 ;;;;;;  tibetan-compose-buffer tibetan-decompose-buffer tibetan-composition-function
 ;;;;;;  tibetan-compose-region tibetan-compose-string tibetan-transcription-to-tibetan
 ;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p setup-tibetan-environment)
-;;;;;;  "tibet-util" "language/tibet-util.el" (14423 51008))
+;;;;;;  "tibet-util" "language/tibet-util.el" (14568 36412))
 ;;; Generated autoloads from language/tibet-util.el
 
 (autoload (quote setup-tibetan-environment) "tibet-util" nil t nil)
@@ -14747,8 +14835,8 @@ The buffer in question is current when this function is called." nil nil)
 ;;;;;;  vc-create-snapshot vc-directory vc-resolve-conflicts vc-merge
 ;;;;;;  vc-insert-headers vc-version-other-window vc-diff vc-register
 ;;;;;;  vc-next-action edit-vc-file with-vc-file vc-annotate-mode-hook
-;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14478
-;;;;;;  52465))
+;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14565
+;;;;;;  59735))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkin-hook nil "\
