@@ -1,5 +1,10 @@
 2002-02-20  Kim F. Storm  <storm@cua.dk>
 
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Corrected
+	composing of language-change event.
+
+2002-02-20  Kim F. Storm  <storm@cua.dk>
+
 	* keyboard.c (menu_bar_items): Don't include keymap or local-map
 	bindings at PT when building menu (the menu is not updated often
 	enough for this to work reliable).
