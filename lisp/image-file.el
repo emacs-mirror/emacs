@@ -92,32 +92,6 @@ variable is set using \\[customize]."
 
 
 ;;;###autoload
-(define-minor-mode auto-image-file-mode
-  "Toggle visiting of image files as images.
-With prefix argument ARG, turn on if positive, otherwise off.
-Returns non-nil if the new state is enabled.
-
-Image files are those whose name has an extension in
-`image-file-name-extensions', or matches a regexp in
-`image-file-name-regexps'."
-  nil
-  nil
-  nil
-  :global t
-  :group 'image
-  ;; Remove existing handler
-  (let ((existing-entry
-	 (rassq 'image-file-handler file-name-handler-alist)))
-    (when existing-entry
-      (setq file-name-handler-alist
-	    (delq existing-entry file-name-handler-alist))))
-  ;; Add new handler, if enabled
-  (when auto-image-file-mode
-    (push (cons (image-file-name-regexp) 'image-file-handler)
-	  file-name-handler-alist)))
-
-
-;;;###autoload
 (defun insert-image-file (file &optional visit beg end replace)
   "Insert the image file FILE into the current buffer.
 Optional arguments VISIT, BEG, END, and REPLACE are interpreted as for
@@ -168,6 +142,36 @@ Optional argument ARGS are the arguments to call FUNCTION with."
 		    inhibit-file-name-handlers)))
 	(inhibit-file-name-operation operation))
     (apply function args)))
+
+
+;;; Note this definition must be at the end of the file, because
+;;; `define-minor-mode' actually calls the mode-function if the
+;;; associated variable is non-nil, which requires that all needed
+;;; functions be already defined.  [This is arguably a bug in d-m-m]
+;;;###autoload
+(define-minor-mode auto-image-file-mode
+  "Toggle visiting of image files as images.
+With prefix argument ARG, turn on if positive, otherwise off.
+Returns non-nil if the new state is enabled.
+
+Image files are those whose name has an extension in
+`image-file-name-extensions', or matches a regexp in
+`image-file-name-regexps'."
+  nil
+  nil
+  nil
+  :global t
+  :group 'image
+  ;; Remove existing handler
+  (let ((existing-entry
+	 (rassq 'image-file-handler file-name-handler-alist)))
+    (when existing-entry
+      (setq file-name-handler-alist
+	    (delq existing-entry file-name-handler-alist))))
+  ;; Add new handler, if enabled
+  (when auto-image-file-mode
+    (push (cons (image-file-name-regexp) 'image-file-handler)
+	  file-name-handler-alist)))
 
 
 (provide 'image-file)
