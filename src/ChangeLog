@@ -1,3 +1,7 @@
+2001-12-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (run_hook_list_with_args): Undo last change.
+
 2001-12-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_fringe_bitmap): Always undo clipping.
@@ -33,7 +37,7 @@
 	The following changes add left-fringe and right-fringe
 	frame parameters to adjust fringe widths, or remove one or
 	both fringes.
-	
+
 	* frame.h (struct frame): Remove trunc_area_pixel_width and
 	trunc_area_cols fields.
 	(Qleft_fringe, Qright_fringe): Declare.

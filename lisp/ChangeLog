@@ -3,6 +3,17 @@
 	* isearch.el (isearch-resume-enabled): New variable.
 	(isearch-done): Use that variable.
 
+2001-12-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.el (tab-to-tab-stop): Use delete-horizontal-space.
+
+	* bindings.el (minibuffer-local-map): Bind TAB to insert-tab.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt):
+	Bind completion-regexp-list to nil.
+
+	* progmodes/hideif.el (hif-nexttoken): Move to before first def.
+
 2001-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/idlwave.el, progmodes/idlw-rinfo.el:
