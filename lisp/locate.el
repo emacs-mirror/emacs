@@ -199,11 +199,18 @@ With prefix arg, prompt for the locate command to run."
 		       (mapconcat 'identity (cdr locate-cmd) " "))
 		       (+ 2 (length (car locate-cmd))))
 	      nil nil 'locate-history-list))
-	 (read-from-minibuffer
-	  "Locate: "
-	  (locate-word-at-point)
-	  nil nil 'locate-history-list)
-	 )))
+	 (let* ((default (locate-word-at-point))
+	       (input 
+		(read-from-minibuffer
+		 (if  (> (length default) 0)
+		     (format "Locate (default `%s'): " default)
+		   (format "Locate: "))
+		 nil nil nil 'locate-history-list default t)))
+	       (and (equal input "") default
+		    (setq input default))
+	       input))))
+  (if (equal search-string "")
+      (error "Please specify a filename to search for."))
   (let* ((locate-cmd-list (funcall locate-make-command-line search-string))
 	 (locate-cmd (car locate-cmd-list))
 	 (locate-cmd-args (cdr locate-cmd-list))
