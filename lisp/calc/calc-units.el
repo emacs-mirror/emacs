@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-units.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -37,8 +37,7 @@
    (let ((calc-autorange-units nil))
      (calc-enter-result 1 "bsun" (math-simplify-units
 				  (math-to-standard-units (calc-top-n 1)
-							  nil)))))
-)
+							  nil))))))
 
 (defun calc-quick-units ()
   (interactive)
@@ -58,8 +57,7 @@
 			    (math-convert-units expr (nth pos units)))
        (calc-enter-result 1 (format "*un%d" num)
 			  (math-simplify-units
-			   (math-mul expr (nth pos units)))))))
-)
+			   (math-mul expr (nth pos units))))))))
 
 (defun calc-convert-units (&optional old-units new-units)
   (interactive)
@@ -104,8 +102,7 @@
 	 (calc-enter-result 1 "cvun"
 			    (math-convert-units
 			     expr units
-			     (and uoldname (not (equal uoldname "1")))))))))
-)
+			     (and uoldname (not (equal uoldname "1"))))))))))
 
 (defun calc-autorange-units (arg)
   (interactive "P")
@@ -113,8 +110,7 @@
    (calc-change-mode 'calc-autorange-units arg nil t)
    (message (if calc-autorange-units
 		"Adjusting target unit prefix automatically."
-	      "Using target units exactly.")))
-)
+	      "Using target units exactly."))))
 
 (defun calc-convert-temperature (&optional old-units new-units)
   (interactive)
@@ -150,22 +146,19 @@
 	 (error "Bad format in units expression: %s" (nth 2 unew)))
      (calc-enter-result 1 "cvtm" (math-simplify-units
 				  (math-convert-temperature expr uold unew
-							    uoldname)))))
-)
+							    uoldname))))))
 
 (defun calc-remove-units ()
   (interactive)
   (calc-slow-wrapper
    (calc-enter-result 1 "rmun" (math-simplify-units
-				(math-remove-units (calc-top-n 1)))))
-)
+				(math-remove-units (calc-top-n 1))))))
 
 (defun calc-extract-units ()
   (interactive)
   (calc-slow-wrapper
    (calc-enter-result 1 "rmun" (math-simplify-units
-				(math-extract-units (calc-top-n 1)))))
-)
+				(math-extract-units (calc-top-n 1))))))
 
 (defun calc-explain-units ()
   (interactive)
@@ -181,8 +174,7 @@
 	   (message "%s" num-units))
        (if den-units
 	   (message "1 per %s" den-units)
-	 (message "No units in expression")))))
-)
+	 (message "No units in expression"))))))
 
 (defun calc-explain-units-rec (expr pow)
   (let ((u (math-check-unit-name expr))
@@ -239,15 +231,13 @@
 	    ((and (eq (car-safe expr) '^)
 		  (math-realp (nth 2 expr)))
 	     (calc-explain-units-rec (nth 1 expr)
-				     (math-mul pow (nth 2 expr)))))))
-)
+				     (math-mul pow (nth 2 expr))))))))
 
 (defun calc-simplify-units ()
   (interactive)
   (calc-slow-wrapper
    (calc-with-default-simplification
-    (calc-enter-result 1 "smun" (math-simplify-units (calc-top-n 1)))))
-)
+    (calc-enter-result 1 "smun" (math-simplify-units (calc-top-n 1))))))
 
 (defun calc-view-units-table (n)
   (interactive "P")
@@ -262,15 +252,13 @@
 	    (select-window win)
 	    (switch-to-buffer nil)
 	    (select-window curwin)))
-      (math-build-units-table-buffer nil)))
-)
+      (math-build-units-table-buffer nil))))
 
 (defun calc-enter-units-table (n)
   (interactive "P")
   (and n (setq math-units-table-buffer-valid nil))
   (math-build-units-table-buffer t)
-  (message (substitute-command-keys "Type \\[calc] to return to the Calculator."))
-)
+  (message (substitute-command-keys "Type \\[calc] to return to the Calculator.")))
 
 (defun calc-define-unit (uname desc)
   (interactive "SDefine unit name: \nsDescription: ")
@@ -288,8 +276,7 @@
 			     (math-format-flat-expr form 0)))
      (setcar (cdr (cdr unit)) (and (not (equal desc ""))
 				   desc))))
-  (calc-invalidate-units-table)
-)
+  (calc-invalidate-units-table))
 
 (defun calc-undefine-unit (uname)
   (interactive "SUndefine unit name: ")
@@ -301,8 +288,7 @@
 	   (error "Unit name \"%s\" not found" uname)))
      (setq math-additional-units (delq unit math-additional-units)
 	   math-units-table nil)))
-  (calc-invalidate-units-table)
-)
+  (calc-invalidate-units-table))
 
 (defun calc-invalidate-units-table ()
   (setq math-units-table nil)
@@ -314,8 +300,7 @@
 	     (goto-char (point-min))
 	     (if (looking-at "Calculator Units Table")
 		 (let ((buffer-read-only nil))
-		   (insert "(Obsolete) ")))))))
-)
+		   (insert "(Obsolete) "))))))))
 
 (defun calc-get-unit-definition (uname)
   (interactive "SGet definition for unit: ")
@@ -337,8 +322,7 @@
 					   (intern
 					    (concat "var-"
 						    (symbol-name uname)))))
-	 (message "Base unit: %s" msg)))))
-)
+	 (message "Base unit: %s" msg))))))
 
 (defun calc-permanent-units ()
   (interactive)
@@ -379,8 +363,7 @@
 	   (insert "))\n"))
        (insert ";;; (no custom units defined)\n"))
      (insert ";;; End of custom units\n")
-     (save-buffer)))
-)
+     (save-buffer))))
 
 
 
@@ -658,8 +641,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	(let ((math-units-table tab))
 	  (mapcar 'math-find-base-units tab))
 	(message "Building units table...done")
-	(setq math-units-table tab)))
-)
+	(setq math-units-table tab))))
 
 (defun math-find-base-units (entry)
   (if (eq (nth 4 entry) 'boom)
@@ -679,12 +661,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	      (setq b (cdr b)))))
 	(setq base (sort base 'math-compare-unit-names))
 	(setcar (nthcdr 4 entry) base)
-	base))
-)
+	base)))
 
 (defun math-compare-unit-names (a b)
-  (memq (car b) (cdr (memq (car a) unit-list)))
-)
+  (memq (car b) (cdr (memq (car a) unit-list))))
 
 (defun math-find-base-units-rec (expr pow)
   (let ((u (math-check-unit-name expr)))
@@ -715,8 +695,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (or (eq (nth 1 expr) 'pi)
 	       (error "Unknown name %s in defining expression for unit %s"
 		      (nth 1 expr) (car entry))))
-	  (t (error "Malformed defining expression for unit %s" (car entry)))))
-)
+	  (t (error "Malformed defining expression for unit %s" (car entry))))))
 
 
 (defun math-units-in-expr-p (expr sub-exprs)
@@ -726,8 +705,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	 (and (or sub-exprs
 		  (memq (car expr) '(* / ^)))
 	      (or (math-units-in-expr-p (nth 1 expr) sub-exprs)
-		  (math-units-in-expr-p (nth 2 expr) sub-exprs)))))
-)
+		  (math-units-in-expr-p (nth 2 expr) sub-exprs))))))
 
 (defun math-only-units-in-expr-p (expr)
   (and (consp expr)
@@ -738,8 +716,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		  (math-only-units-in-expr-p (nth 2 expr)))
 	   (and (eq (car expr) '^)
 		(and (math-only-units-in-expr-p (nth 1 expr))
-		     (math-realp (nth 2 expr)))))))
-)
+		     (math-realp (nth 2 expr))))))))
 
 (defun math-single-units-in-expr-p (expr)
   (cond ((math-scalarp expr) nil)
@@ -755,8 +732,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	 (if (math-units-in-expr-p (nth 2 expr) nil)
 	     'wrong
 	   (math-single-units-in-expr-p (nth 1 expr))))
-	(t 'wrong))
-)
+	(t 'wrong)))
 
 (defun math-check-unit-name (v)
   (and (eq (car-safe v) 'var)
@@ -770,13 +746,11 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 			   (eq (aref name 1) ?e)
 			   (eq (aref name 2) ?g)
 			   (assq (intern (substring name 3))
-				 math-units-table)))))))
-)
+				 math-units-table))))))))
 
 
 (defun math-to-standard-units (expr which-standard)
-  (math-to-standard-rec expr)
-)
+  (math-to-standard-rec expr))
 
 (defun math-to-standard-rec (expr)
   (if (eq (car-safe expr) 'var)
@@ -806,8 +780,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (if (Math-primp expr)
 	expr
       (cons (car expr)
-	    (mapcar 'math-to-standard-rec (cdr expr)))))
-)
+	    (mapcar 'math-to-standard-rec (cdr expr))))))
 
 (defun math-apply-units (expr units ulist &optional pure)
   (if ulist
@@ -828,8 +801,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				(car (car ulist)))))
     (math-simplify-units (if pure
 			     expr
-			   (list '* expr units))))
-)
+			   (list '* expr units)))))
 
 (defun math-decompose-units (units)
   (let ((u (math-check-unit-name units)))
@@ -858,22 +830,19 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				  (lambda (x y)
 				    (not (Math-lessp (nth 1 x)
 						     (nth 1 y))))))))))
-	 (cdr math-decompose-units-cache)))
-)
+	 (cdr math-decompose-units-cache))))
 (setq math-decompose-units-cache nil)
 
 (defun math-decompose-unit-part (unit)
   (cons unit
 	(math-is-multiple (math-simplify-units (math-to-standard-units
 						unit nil))
-			  t))
-)
+			  t)))
 
 (defun math-find-compatible-unit (expr unit)
   (let ((u (math-check-unit-name unit)))
     (if u
-	(math-find-compatible-unit-rec expr 1)))
-)
+	(math-find-compatible-unit-rec expr 1))))
 
 (defun math-find-compatible-unit-rec (expr pow)
   (cond ((eq (car-safe expr) '*)
@@ -888,8 +857,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	(t
 	 (let ((u2 (math-check-unit-name expr)))
 	   (if (equal (nth 4 u) (nth 4 u2))
-	       (cons expr pow)))))
-)
+	       (cons expr pow))))))
 
 (defun math-convert-units (expr new-units &optional pure)
   (math-with-extra-prec 2
@@ -915,8 +883,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	    (math-convert-units-rec expr)
 	  (math-apply-units (math-to-standard-units
 			     (list '/ expr new-units) nil)
-			    new-units unit-list pure)))))
-)
+			    new-units unit-list pure))))))
 
 (defun math-convert-units-rec (expr)
   (if (math-units-in-expr-p expr nil)
@@ -925,8 +892,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (if (Math-primp expr)
 	expr
       (cons (car expr)
-	    (mapcar 'math-convert-units-rec (cdr expr)))))
-)
+	    (mapcar 'math-convert-units-rec (cdr expr))))))
 
 (defun math-convert-temperature (expr old new &optional pure)
   (let* ((units (math-single-units-in-expr-p expr))
@@ -960,17 +926,15 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		   (setq expr (list '+ expr '(float 27315 -2)))))))
     (if pure
 	expr
-      (list '* expr new)))
-)
+      (list '* expr new))))
 
 
 
 (defun math-simplify-units (a)
   (let ((math-simplifying-units t)
 	(calc-matrix-mode 'scalar))
-    (math-simplify a))
-)
-(fset 'calcFunc-usimplify (symbol-function 'math-simplify-units))
+    (math-simplify a)))
+(defalias calcFunc-usimplify 'math-simplify-units)
 
 (math-defsimplify (+ -)
   (and math-simplifying-units
@@ -984,12 +948,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	       expr)
 	   (list '* (math-add (math-remove-units (nth 1 expr))
 			      (if (eq (car expr) '-) (math-neg ratio) ratio))
-		 units))))
-)
+		 units)))))
 
 (math-defsimplify *
-  (math-simplify-units-prod)
-)
+  (math-simplify-units-prod))
 
 (defun math-simplify-units-prod ()
   (and math-simplifying-units
@@ -1054,8 +1016,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				 (calcFunc-scf (nth 1 expr)
 					       (- uxpon pxpon))))
 		       (setcar unitp pname)
-		       expr))))))
-)
+		       expr)))))))
 
 (math-defsimplify /
   (and math-simplifying-units
@@ -1082,8 +1043,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		   (setq expr base))))
 	 (if (eq (car-safe expr) '/)
 	     (math-simplify-units-prod))
-	 expr))
-)
+	 expr)))
 
 (defun math-simplify-units-divisor (np dp)
   (let ((n (car np))
@@ -1097,8 +1057,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (if (setq temp (math-simplify-units-quotient n d))
 	(progn
 	  (setcar np (setq n temp))
-	  (setcar dp 1))))
-)
+	  (setcar dp 1)))))
 
 ;; Simplify, e.g., "in / cm" to "2.54" in a units expression.
 (defun math-simplify-units-quotient (n d)
@@ -1129,8 +1088,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				    (* (cdr (car ud)) pow2)))))
 		   (setq ud1 (cdr ud1)))
 		 (setq un (cdr un)))
-	       nil)))))
-)
+	       nil))))))
 
 (math-defsimplify ^
   (and math-simplifying-units
@@ -1139,8 +1097,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (list (car (nth 1 expr))
 		 (list '^ (nth 1 (nth 1 expr)) (nth 2 expr))
 		 (list '^ (nth 2 (nth 1 expr)) (nth 2 expr)))
-	 (math-simplify-units-pow (nth 1 expr) (nth 2 expr))))
-)
+	 (math-simplify-units-pow (nth 1 expr) (nth 2 expr)))))
 
 (math-defsimplify calcFunc-sqrt
   (and math-simplifying-units
@@ -1148,8 +1105,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (list (car (nth 1 expr))
 		 (list 'calcFunc-sqrt (nth 1 (nth 1 expr)))
 		 (list 'calcFunc-sqrt (nth 2 (nth 1 expr))))
-	 (math-simplify-units-pow (nth 1 expr) '(frac 1 2))))
-)
+	 (math-simplify-units-pow (nth 1 expr) '(frac 1 2)))))
 
 (math-defsimplify (calcFunc-floor
 		   calcFunc-ceil
@@ -1188,16 +1144,14 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (d (and (eq (car-safe pf) 'frac) (nth 2 pf))))
       (and u d
 	   (math-units-are-multiple u d)
-	   (list '^ (math-to-standard-units a nil) pow))))
-)
+	   (list '^ (math-to-standard-units a nil) pow)))))
 
 
 (defun math-units-are-multiple (u n)
   (setq u (nth 4 u))
   (while (and u (= (% (cdr (car u)) n) 0))
     (setq u (cdr u)))
-  (null u)
-)
+  (null u))
 
 (math-defsimplify calcFunc-sin
   (and math-simplifying-units
@@ -1210,8 +1164,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	      (math-realp (nth 1 rad))
 	      (eq (car-safe (nth 2 rad)) 'var)
 	      (eq (nth 1 (nth 2 rad)) 'rad)
-	      (list 'calcFunc-sin (nth 1 rad)))))
-)
+	      (list 'calcFunc-sin (nth 1 rad))))))
 
 (math-defsimplify calcFunc-cos
   (and math-simplifying-units
@@ -1224,8 +1177,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	      (math-realp (nth 1 rad))
 	      (eq (car-safe (nth 2 rad)) 'var)
 	      (eq (nth 1 (nth 2 rad)) 'rad)
-	      (list 'calcFunc-cos (nth 1 rad)))))
-)
+	      (list 'calcFunc-cos (nth 1 rad))))))
 
 (math-defsimplify calcFunc-tan
   (and math-simplifying-units
@@ -1238,8 +1190,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	      (math-realp (nth 1 rad))
 	      (eq (car-safe (nth 2 rad)) 'var)
 	      (eq (nth 1 (nth 2 rad)) 'rad)
-	      (list 'calcFunc-tan (nth 1 rad)))))
-)
+	      (list 'calcFunc-tan (nth 1 rad))))))
 
 
 (defun math-remove-units (expr)
@@ -1248,15 +1199,13 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (if (Math-primp expr)
 	expr
       (cons (car expr)
-	    (mapcar 'math-remove-units (cdr expr)))))
-)
+	    (mapcar 'math-remove-units (cdr expr))))))
 
 (defun math-extract-units (expr)
   (if (memq (car-safe expr) '(* /))
       (cons (car expr)
 	    (mapcar 'math-extract-units (cdr expr)))
-    (if (math-check-unit-name expr) expr 1))
-)
+    (if (math-check-unit-name expr) expr 1)))
 
 (defun math-build-units-table-buffer (enter-buffer)
   (if (not (and math-units-table math-units-table-buffer-valid
@@ -1344,9 +1293,6 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	  (display-buffer buf)))
     (if enter-buffer
 	(pop-to-buffer (get-buffer "*Units Table*"))
-      (display-buffer (get-buffer "*Units Table*"))))
-)
+      (display-buffer (get-buffer "*Units Table*")))))
 
-
-
-
+;;; calc-units.el ends here
