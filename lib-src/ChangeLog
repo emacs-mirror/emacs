@@ -1,3 +1,8 @@
+2003-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
+	instead of the substitution.
+
 2003-02-04  Richard M. Stallman  <rms@gnu.org>
 
 	* update-game-score.c (push_score, read_scores): Cast values

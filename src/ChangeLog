@@ -1,3 +1,8 @@
+2003-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
+	instead of the substitution.
+
 2003-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_make_frame_visible): Call gtk_window_deiconify.
