@@ -332,7 +332,8 @@ and then move up one line.  Prefix arg means move that many lines."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (forward-line 1)
+    (unless Buffer-menu-use-header-line
+      (forward-line 1))
     (while (re-search-forward "^..S" nil t)
       (let ((modp nil))
 	(save-excursion
@@ -344,10 +345,11 @@ and then move up one line.  Prefix arg means move that many lines."
 	  (insert (if modp ?* ? ))))))
   (save-excursion
     (goto-char (point-min))
-    (forward-line 1)
+    (unless Buffer-menu-use-header-line
+      (forward-line 1))
     (let ((buff-menu-buffer (current-buffer))
 	  (buffer-read-only nil))
-      (while (search-forward "\nD" nil t)
+      (while (re-search-forward "^D" nil t)
 	(forward-char -1)
 	(let ((buf (Buffer-menu-buffer nil)))
 	  (or (eq buf nil)
@@ -357,7 +359,8 @@ and then move up one line.  Prefix arg means move that many lines."
 	    (progn (delete-char 1)
 		   (insert ? ))
 	  (delete-region (point) (progn (forward-line 1) (point)))
-	    (forward-char -1)))))))
+	    (unless (bobp)
+	      (forward-char -1))))))))
 
 (defun Buffer-menu-select ()
   "Select this line's buffer; also display buffers marked with `>'.
@@ -551,6 +554,7 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
+	 ;; Fixme: This is wrong for left-hand scroll-bars.
 	 (header (concat "CRM " (Buffer-menu-buffer+size "Buffer" "Size")
 			 "  Mode" mode-end "File\n"))
 	 list desired-point name file mode)
