@@ -720,16 +720,16 @@ intervention from emacs, except for the escape character (usually C-c)."
 	      (copy-keymap (lookup-key (current-global-map) "\C-x")))
 	(term-if-emacs19
 	 (term-if-xemacs
-	  (define-key term-raw-map [(button2)] 'term-mouse-paste))
+	  (define-key term-raw-map [button2] 'term-mouse-paste))
 	 (term-ifnot-xemacs
 	  (define-key term-raw-map [mouse-2] 'term-mouse-paste)
 	  (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
-	  (define-key term-raw-map [menu-bar signals] term-signals-menu)
+	  (define-key term-raw-map [menu-bar signals] term-signals-menu))
 	 (define-key term-raw-map [up] 'term-send-up)
 	 (define-key term-raw-map [down] 'term-send-down)
 	 (define-key term-raw-map [right] 'term-send-right)
 	 (define-key term-raw-map [left] 'term-send-left))
-	(term-set-escape-char ?\C-c))))
+	(term-set-escape-char ?\C-c)))
   ;; FIXME: Emit message? Cfr ilisp-raw-message
   (if (term-in-line-mode)
       (progn
