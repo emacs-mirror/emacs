@@ -804,10 +804,11 @@ adjust_intervals_for_insertion (tree, position, length)
 	 we check the stickyness property by property.  */
       if (END_NONSTICKY_P (prev) || FRONT_STICKY_P (i))
 	{
-	  Lisp_Object pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
-	  Lisp_Object pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
+	  Lisp_Object pleft, pright;
 	  struct interval newi;
 
+	  pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
+	  pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
 	  newi.plist = merge_properties_sticky (pleft, pright);
 
 	  if(! prev) /* i.e. position == BEG */
@@ -894,15 +895,18 @@ Lisp_Object
 merge_properties_sticky (pleft, pright)
      Lisp_Object pleft, pright;
 {
-  register Lisp_Object props = Qnil, front = Qnil, rear = Qnil;
-
-  Lisp_Object lfront = textget (pleft, Qfront_sticky);
-  Lisp_Object lrear = textget (pleft, Qrear_nonsticky);
-  Lisp_Object rfront = textget (pright, Qfront_sticky);
-  Lisp_Object rrear = textget (pright, Qrear_nonsticky);
-
+  register Lisp_Object props, front, rear;
+  Lisp_Object lfront, lrear, rfront, rrear;
   register Lisp_Object tail1, tail2, sym, lval, rval;
   int use_left, use_right;
+
+  props = Qnil;
+  front = Qnil;
+  rear  = Qnil;
+  lfront = textget (pleft, Qfront_sticky);
+  lrear  = textget (pleft, Qrear_nonsticky);
+  rfront = textget (pright, Qfront_sticky);
+  rrear  = textget (pright, Qrear_nonsticky);
 
   /* Go through each element of PRIGHT.  */
   for (tail1 = pright; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
@@ -1041,7 +1045,8 @@ delete_interval (i)
 
   if (ROOT_INTERVAL_P (i))
     {
-      Lisp_Object owner = (Lisp_Object) i->parent;
+      Lisp_Object owner;
+      owner = (Lisp_Object) i->parent;
       parent = delete_node (i);
       if (! NULL_INTERVAL_P (parent))
 	parent->parent = (INTERVAL) owner;
