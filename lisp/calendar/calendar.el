@@ -1295,7 +1295,7 @@ calendar."
   t)
 
 (autoload 'calendar-goto-chinese-date "cal-chinese"
-   "Move cursor to Chinese date date."
+   "Move cursor to Chinese date."
    t)
 
 (autoload 'calendar-print-chinese-date "cal-chinese"
@@ -1306,8 +1306,20 @@ calendar."
   "String of Chinese date of Gregorian date."
   t)
 
+(autoload 'calendar-absolute-from-astro
+  "Absolute date of astronomical (Julian) day number D."
+  "cal-julian")
+
 (autoload 'calendar-astro-from-absolute "cal-julian"
   "Astronomical (Julian) day number of absolute date D.")
+
+(autoload 'calendar-astro-date-string "cal-julian"
+  "String of astronomical (Julian) day number of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-astro-date "cal-julian"
+   "Move cursor to astronomical (Julian) day number."
+   t)
 
 (autoload 'calendar-julian-from-absolute "cal-julian"
   "Compute the Julian (month day year) corresponding to the absolute DATE.
