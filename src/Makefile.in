@@ -540,7 +540,7 @@ termcapobj = tparam.o
 #ifdef REL_ALLOC
 mallocobj = ralloc.o vm-limit.o
 #else /* ! defined (REL_ALLOC) */
-mallocobj = 
+mallocobj = vm-limit.o
 #endif /* ! defined (REL_ALLOC) */
 #else /* ! defined (DOUG_LEA_MALLOC) */
 #ifdef REL_ALLOC
