@@ -31,8 +31,6 @@
 #include <signal.h>
 #include <sys/ucontext.h>
 
-#include <stdio.h> /* DO NOT SUBMIT */
-
 SRCID(protxcpp, "$Id$");
 
 /* The previously-installed signal action, as returned by */
@@ -70,31 +68,6 @@ static void sigHandle(int sig, siginfo_t *info, void *contextArg)
 
   ucontext = contextArg;
 
-  {
-    int i;
-    fprintf(stderr, "sigHandle.\n");
-
-    for(i=0; i < sizeof *info; ++i) {
-      fprintf(stderr, "%02x", ((unsigned char *)info)[i]);
-    }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "signo: %d, code %d, addr %p\n",
-      info->si_signo, info->si_code, info->si_addr);
-
-    fprintf(stderr, "ucontext:\n");
-    for(i=0; i < sizeof *ucontext; ++i) {
-      fprintf(stderr, "%02x ", ((unsigned char *)ucontext)[i]);
-    }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "uc_mcontext:\n");
-    for(i=0; i< sizeof ucontext->uc_mcontext; ++i) {
-      fprintf(stderr, "%02x ", ((unsigned char *)&ucontext->uc_mcontext)[i]);
-    }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "uc_mcontext->es.dar: %08lx\n",
-      (unsigned long)ucontext->uc_mcontext->es.dar);
-  }
-
   /* On OS X the si_code field does't appear to be useful.  Protection
    * faults appear as SIGBUS signals, and the only documented code for
    * SIGBUS is BUS_ADRALN (invalid address alignment) which is what
@@ -124,17 +97,13 @@ static void sigHandle(int sig, siginfo_t *info, void *contextArg)
 
     /* MutatorFaultContext parameter is a dummy parameter for this */
     /* implementation */
-    fprintf(stderr, "access: base: %08x mode: %08x\n", (unsigned)base, mode);
     if(ArenaAccess(base, mode, NULL)) {
-      fprintf(stderr, "returning\n");
       return;
     }
   }
 
   /* The exception was not handled by any known protection structure, */
   /* so throw it to the previously installed handler. */
-
-  fprintf(stderr, "Throwing to %08x\n", (unsigned)sigNext.sa_sigaction);
 
   /* @@ This is really weak.
    * Need to implement rest of the contract of sigaction */
