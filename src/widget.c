@@ -169,7 +169,7 @@ get_default_char_pixel_size (ew, pixel_width, pixel_height)
 {
   struct frame* f = ew->emacs_frame.frame;
   *pixel_width = FONT_WIDTH (f->display.x->font);
-  *pixel_height = FONT_HEIGHT (f->display.x->font);
+  *pixel_height = f->display.x->line_height;
 }
 
 static void
