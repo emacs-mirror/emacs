@@ -791,7 +791,13 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
 }
 
 DEFUN ("iso-charset", Fiso_charset, Siso_charset, 3, 3, 0,
-  "Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.")
+  "Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.\n\
+\n\
+ISO 2022's designation sequence (escape sequence) distinguishes charsets\n\
+by their DIMENSION, CHARS, and FINAL-CHAR,\n\
+where as Emacs distinguishes them by charset symbol.\n\
+See the documentation of the function `charset-info' for the meanings of\n\
+DIMENSION, CHARS, and FINAL-CHAR.")
   (dimension, chars, final_char)
      Lisp_Object dimension, chars, final_char;
 {
