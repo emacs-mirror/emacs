@@ -1509,7 +1509,7 @@ This allows the buffer's full text to be seen and edited.")
 {
   BEGV = BEG;
   SET_BUF_ZV (current_buffer, Z);
-  clip_changed = 1;
+  current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -1545,7 +1545,7 @@ or markers) bounding the text that should remain visible.")
     SET_PT (XFASTINT (b));
   if (point > XFASTINT (e))
     SET_PT (XFASTINT (e));
-  clip_changed = 1;
+  current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -1587,7 +1587,7 @@ save_restriction_restore (data)
     }
   BUF_BEGV (buf) = BUF_BEG (buf) + newhead;
   SET_BUF_ZV (buf, BUF_Z (buf) - newtail);
-  clip_changed = 1;
+  current_buffer->clip_changed = 1;
 
   /* If point is outside the new visible range, move it inside. */
   SET_BUF_PT (buf,
