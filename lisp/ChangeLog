@@ -1,3 +1,7 @@
+2000-07-24  Dave Love  <fx@gnu.org>
+
+	* ediff-init.el (ediff-region-help-echo): Bind face-help.
+
 2000-07-23  Noah Friedman  <friedman@splode.com>
 
 	* type-break.el (type-break): perform autosave.
