@@ -1,3 +1,13 @@
+2002-04-22  Jan D.  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c: Removed compiler warning.
+
+	* xlwmenu.c: Add calls to GrabKeyboard to remove strange
+	interactions with window managers that steal keypresses.
+	Call ungrab_all instead of XtUngrabPointer.
+	(pop_up_menu): Add call to XtGrabKeyboard.
+	(ungrab_all): New function.
+
 2002-04-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xlwmenu.c (find_next_selectable): New function.
