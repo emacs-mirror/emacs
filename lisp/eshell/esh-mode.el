@@ -745,19 +745,19 @@ newline."
 	       (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
 
-(eshell-deftest proc send-to-subprocess
-  "Send input to a subprocess"
-  ;; jww (1999-12-06): what about when bc is unavailable?
-  (if (not (eshell-search-path "bc"))
-      t
-    (eshell-insert-command "bc")
-    (eshell-insert-command "1 + 2")
-    (sit-for 1 0)
-    (forward-line -1)
-    (prog1
-	(looking-at "3\n")
-      (eshell-insert-command "quit")
-      (sit-for 1 0))))
+; (eshell-deftest proc send-to-subprocess
+;   "Send input to a subprocess"
+;   ;; jww (1999-12-06): what about when bc is unavailable?
+;   (if (not (eshell-search-path "bc"))
+;       t
+;     (eshell-insert-command "bc")
+;     (eshell-insert-command "1 + 2")
+;     (sit-for 1 0)
+;     (forward-line -1)
+;     (prog1
+; 	(looking-at "3\n")
+;       (eshell-insert-command "quit")
+;       (sit-for 1 0))))
 
 (defsubst eshell-kill-new ()
   "Add the last input text to the kill ring."
