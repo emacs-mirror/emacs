@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <1999-11-13 10:19:01 pbreton>
+;; Time-stamp: <2000-10-04 01:32:16 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -25,13 +25,13 @@
 ;;; Commentary:
 ;;
 ;; There are three main areas of functionality:
-;; 
+;;
 ;; * Wrap common network utility programs (ping, traceroute, netstat,
 ;; nslookup, arp, route). Note that these wrappers are of the diagnostic
 ;; functions of these programs only.
-;; 
+;;
 ;; * Implement some very basic protocols in Emacs Lisp (finger and whois)
-;; 
+;;
 ;; * Support connections to HOST/PORT, generally for debugging and the like.
 ;; In other words, for doing much the same thing as "telnet HOST PORT", and
 ;; then typing commands.
@@ -39,7 +39,7 @@
 ;; PATHS
 ;;
 ;; On some systems, some of these programs are not in normal user path,
-;; but rather in /sbin, /usr/sbin, and so on. 
+;; but rather in /sbin, /usr/sbin, and so on.
 
 
 ;;; Code:
@@ -57,15 +57,15 @@
   :version "20.3"
   )
 
-(defcustom net-utils-remove-ctl-m 
+(defcustom net-utils-remove-ctl-m
   (member system-type (list 'windows-nt 'msdos))
   "If non-nil, remove control-Ms from output."
   :group 'net-utils
   :type  'boolean
   )
 
-(defcustom traceroute-program  
-  (if (eq system-type 'windows-nt) 
+(defcustom traceroute-program
+  (if (eq system-type 'windows-nt)
       "tracert"
     "traceroute")
   "Program to trace network hops to a destination."
@@ -87,7 +87,7 @@
 
 ;; On Linux and Irix, the system's ping program seems to send packets
 ;; indefinitely unless told otherwise
-(defcustom ping-program-options 
+(defcustom ping-program-options
   (and (memq system-type (list 'linux 'gnu/linux 'irix))
        (list "-c" "4"))
   "Options for the ping program.
@@ -96,7 +96,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  '(repeat string)
   )
 
-(defcustom ipconfig-program  
+(defcustom ipconfig-program
   (if (eq system-type 'windows-nt)
       "ipconfig"
     "ifconfig")
@@ -106,7 +106,7 @@ These options can be used to limit how many ICMP packets are emitted."
   )
 
 (defcustom ipconfig-program-options
-   (list    
+   (list
     (if (eq system-type 'windows-nt)
 	"/all" "-a"))
   "Options for ipconfig-program."
@@ -120,7 +120,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'string
   )
 
-(defcustom netstat-program-options 
+(defcustom netstat-program-options
   (list "-a")
   "Options for netstat-program."
   :group 'net-utils
@@ -133,14 +133,14 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'string
   )
 
-(defcustom arp-program-options 
+(defcustom arp-program-options
   (list "-a")
   "Options for arp-program."
   :group 'net-utils
   :type  '(repeat string)
   )
 
-(defcustom route-program  
+(defcustom route-program
   (if (eq system-type 'windows-nt)
       "route"
     "netstat")
@@ -149,7 +149,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'string
   )
 
-(defcustom route-program-options 
+(defcustom route-program-options
   (if (eq system-type 'windows-nt)
       (list "print")
     (list "-r"))
@@ -227,51 +227,54 @@ These options can be used to limit how many ICMP packets are emitted."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst nslookup-font-lock-keywords
-  (progn
-    (require 'font-lock)
-    (list
-     (list nslookup-prompt-regexp 0 font-lock-reference-face)
-     (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
-     (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>" 
-	   1 font-lock-keyword-face)
-     ;; Dotted quads
-     (list 
-      (mapconcat 'identity
-		 (make-list 4 "[0-9]+")
-		 "\\.")
-      0 font-lock-variable-name-face)
-     ;; Host names
-     (list 
-      (let ((host-expression "[-A-Za-z0-9]+"))
-	(concat 
-	 (mapconcat 'identity
-		    (make-list 2 host-expression)
-		    "\\.")
-	 "\\(\\." host-expression "\\)*")
-	)
-      0 font-lock-variable-name-face)
-     ))
-  "Expressions to font-lock for nslookup.")
+  (and window-system
+       (progn
+	 (require 'font-lock)
+	 (list
+	  (list nslookup-prompt-regexp 0 font-lock-reference-face)
+	  (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
+	  (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
+		1 font-lock-keyword-face)
+	  ;; Dotted quads
+	  (list
+	   (mapconcat 'identity
+		      (make-list 4 "[0-9]+")
+		      "\\.")
+	   0 font-lock-variable-name-face)
+	  ;; Host names
+	  (list
+	   (let ((host-expression "[-A-Za-z0-9]+"))
+	     (concat
+	      (mapconcat 'identity
+			 (make-list 2 host-expression)
+			 "\\.")
+	      "\\(\\." host-expression "\\)*")
+	     )
+	   0 font-lock-variable-name-face)
+	  )))
+	 "Expressions to font-lock for nslookup.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FTP goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst ftp-font-lock-keywords
-  (progn
-    (require 'font-lock)
-    (list
-     (list ftp-prompt-regexp 0 font-lock-reference-face))))
+  (and window-system
+       (progn
+	 (require 'font-lock)
+	 (list
+	  (list ftp-prompt-regexp 0 font-lock-reference-face)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smbclient goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst smbclient-font-lock-keywords
-  (progn
-    (require 'font-lock)
-    (list
-     (list smbclient-prompt-regexp 0 font-lock-reference-face))))
+  (and window-system
+       (progn
+	 (require 'font-lock)
+	 (list
+	  (list smbclient-prompt-regexp 0 font-lock-reference-face)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -311,7 +314,7 @@ These options can be used to limit how many ICMP packets are emitted."
 	(let ((moving))
 	  (set-buffer (process-buffer process))
 	  (setq moving (= (point) (process-mark process)))
-	  
+
 	  (while (string-match "\r" filtered-string)
 	       (setq filtered-string
 		     (replace-match "" nil nil filtered-string)))
@@ -323,17 +326,18 @@ These options can be used to limit how many ICMP packets are emitted."
 	    (set-marker (process-mark process) (point)))
 	  (if moving (goto-char (process-mark process))))
       (set-buffer old-buffer))))
-  
+
 (defmacro net-utils-run-program (name header program &rest args)
   "Run a network information program."
   ` (let ((buf (get-buffer-create (concat "*" ,name "*"))))
       (set-buffer buf)
       (erase-buffer)
       (insert ,header "\n")
-      (set-process-filter 
+      (set-process-filter
        (apply 'start-process ,name buf ,program ,@args)
        'net-utils-remove-ctrl-m-filter)
-      (display-buffer buf)))
+      (display-buffer buf)
+      buf))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wrappers for external network programs
@@ -343,7 +347,7 @@ These options can be used to limit how many ICMP packets are emitted."
 (defun traceroute (target)
   "Run traceroute program for TARGET."
   (interactive "sTarget: ")
-  (let ((options 
+  (let ((options
 	 (if traceroute-program-options
 	     (append traceroute-program-options (list target))
 	   (list target))))
@@ -357,11 +361,11 @@ These options can be used to limit how many ICMP packets are emitted."
 ;;;###autoload
 (defun ping (host)
   "Ping HOST.
-If your system's ping continues until interrupted, you can try setting 
+If your system's ping continues until interrupted, you can try setting
 `ping-program-options'."
-  (interactive 
+  (interactive
    (list (read-from-minibuffer "Ping host: " (net-utils-machine-at-point))))
-  (let ((options 
+  (let ((options
 	 (if ping-program-options
 	     (append ping-program-options (list host))
 	   (list host))))
@@ -385,7 +389,7 @@ If your system's ping continues until interrupted, you can try setting
 
 ;; This is the normal name on most Unixes.
 ;;;###autoload
-(defalias 'ifconfig 'ipconfig) 
+(defalias 'ifconfig 'ipconfig)
 
 ;;;###autoload
 (defun netstat ()
@@ -435,7 +439,7 @@ If your system's ping continues until interrupted, you can try setting
   "Lookup the DNS information for HOST."
   (interactive
    (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))))
-  (let ((options 
+  (let ((options
 	 (if nslookup-program-options
 	     (append nslookup-program-options (list host))
 	   (list host))))
@@ -462,10 +466,10 @@ If your system's ping continues until interrupted, you can try setting
   )
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
-(define-derived-mode 
+(define-derived-mode
   nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
-  (set 
+  (set
    (make-local-variable 'font-lock-defaults)
    '((nslookup-font-lock-keywords)))
   (setq local-abbrev-table nslookup-mode-abbrev-table)
@@ -495,8 +499,8 @@ If your system's ping continues until interrupted, you can try setting
    (list
     (progn
       (require 'ffap)
-      (read-from-minibuffer 
-       "Lookup host: " 
+      (read-from-minibuffer
+       "Lookup host: "
        (or (ffap-string-at-point 'machine) "")))))
   (net-utils-run-program
    "Dig"
@@ -506,15 +510,15 @@ If your system's ping continues until interrupted, you can try setting
 		      " ** "))
    dig-program
    (list host)
-   )) 
+   ))
 
 ;; This is a lot less than ange-ftp, but much simpler.
 ;;;###autoload
 (defun ftp (host)
   "Run ftp program."
-  (interactive 
+  (interactive
    (list
-    (read-from-minibuffer 
+    (read-from-minibuffer
      "Ftp to Host: " (net-utils-machine-at-point))))
   (require 'comint)
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
@@ -528,24 +532,24 @@ If your system's ping continues until interrupted, you can try setting
     (switch-to-buffer-other-window buf)
     ))
 
-(define-derived-mode 
+(define-derived-mode
   ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
 
-  (set 
+  (set
    (make-local-variable 'font-lock-defaults)
    '((ftp-font-lock-keywords)))
-  
+
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp ftp-prompt-regexp)
-  
+
   (make-local-variable 'comint-input-autoexpand)
   (setq comint-input-autoexpand t)
-  
+
   ;; Already buffer local!
   (setq comint-output-filter-functions
 	(list 'comint-watch-for-password-prompt))
-  
+
   (setq local-abbrev-table ftp-mode-abbrev-table)
   (abbrev-mode t)
   )
@@ -560,9 +564,9 @@ If your system's ping continues until interrupted, you can try setting
 
 (defun smbclient (host service)
   "Connect to SERVICE on HOST via SMB."
-  (interactive 
+  (interactive
    (list
-    (read-from-minibuffer 
+    (read-from-minibuffer
      "Connect to Host: " (net-utils-machine-at-point))
     (read-from-minibuffer "SMB Service: ")))
   (require 'comint)
@@ -581,42 +585,42 @@ If your system's ping continues until interrupted, you can try setting
 
 (defun smbclient-list-shares (host)
   "List services on HOST."
-  (interactive 
+  (interactive
    (list
-    (read-from-minibuffer 
+    (read-from-minibuffer
      "Connect to Host: " (net-utils-machine-at-point))
     ))
   (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
     (set-buffer buf)
     (comint-mode)
-    (comint-exec 
-     buf 
-     "smbclient-list-shares" 
-     smbclient-program 
+    (comint-exec
+     buf
+     "smbclient-list-shares"
+     smbclient-program
      nil
      (list "-L" host)
      )
     (smbclient-mode)
     (switch-to-buffer-other-window buf)))
-  
-(define-derived-mode 
+
+(define-derived-mode
   smbclient-mode comint-mode "smbclient"
   "Major mode for interacting with the smbclient program."
 
-  (set 
+  (set
    (make-local-variable 'font-lock-defaults)
    '((smbclient-font-lock-keywords)))
-  
+
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp smbclient-prompt-regexp)
-  
+
   (make-local-variable 'comint-input-autoexpand)
   (setq comint-input-autoexpand t)
-  
+
   ;; Already buffer local!
   (setq comint-output-filter-functions
 	(list 'comint-watch-for-password-prompt))
-  
+
   (setq local-abbrev-table smbclient-mode-abbrev-table)
   (abbrev-mode t)
   )
@@ -630,7 +634,7 @@ If your system's ping continues until interrupted, you can try setting
 
 ;; Full list is available at:
 ;; ftp://ftp.isi.edu/in-notes/iana/assignments/port-numbers
-(defvar network-connection-service-alist 
+(defvar network-connection-service-alist
   (list
     (cons 'echo          7)
     (cons 'active-users 11)
@@ -659,7 +663,7 @@ If your system's ping continues until interrupted, you can try setting
 This list in not complete.")
 
 ;; Workhorse macro
-(defmacro run-network-program (process-name host port 
+(defmacro run-network-program (process-name host port
 					    &optional initial-string)
   `
    (let ((tcp-connection)
@@ -667,9 +671,9 @@ This list in not complete.")
 	 )
     (setq buf (get-buffer-create (concat "*" ,process-name "*")))
     (set-buffer buf)
-    (or 
+    (or
      (setq tcp-connection
-	   (open-network-stream 
+	   (open-network-stream
 	    ,process-name
 	    buf
 	    ,host
@@ -680,7 +684,7 @@ This list in not complete.")
     (set-marker (process-mark tcp-connection) (point-min))
     (set-process-filter tcp-connection 'net-utils-remove-ctrl-m-filter)
     (and ,initial-string
-	 (process-send-string tcp-connection 
+	 (process-send-string tcp-connection
 			      (concat ,initial-string "\r\n")))
     (display-buffer buf)))
 
@@ -723,9 +727,9 @@ queries of the form USER@HOST, and wants a query containing USER only."
       (setq regexps (cdr regexps)))
     (when regexps
       (setq user-and-host user))
-    (run-network-program 
-     process-name 
-     host 
+    (run-network-program
+     process-name
+     host
      (cdr (assoc 'finger network-connection-service-alist))
      user-and-host)))
 
@@ -804,7 +808,7 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 	      (completing-read "Whois server name: "
 			       whois-server-list nil nil "whois.")
 	    server-name)))
-    (run-network-program 
+    (run-network-program
      "Whois"
      host
      (cdr (assoc 'whois network-connection-service-alist))
@@ -828,22 +832,22 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
-(define-derived-mode 
+(define-derived-mode
   network-connection-mode comint-mode "Network-Connection"
   "Major mode for interacting with the network-connection program."
   )
 
 (defun network-connection-mode-setup (host service)
   (let ((network-abbrev-table
-	 (or 
+	 (or
 	  (assoc service network-connection-service-abbrev-alist)
 	 (and (rassoc service network-connection-service-alist)
-	      (assoc 
+	      (assoc
 	       (elt (rassoc service network-connection-service-alist) 0)
 	       network-connection-service-abbrev-alist)))))
     (make-local-variable 'network-connection-host)
     (setq network-connection-host host)
-    (make-local-variable 'network-connection-service) 
+    (make-local-variable 'network-connection-service)
     (setq network-connection-service service)
     (and network-abbrev-table
 	 (setq local-abbrev-table (cdr network-abbrev-table))
@@ -853,17 +857,17 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 ;;;###autoload
 (defun network-connection-to-service (host service)
   "Open a network connection to SERVICE on HOST."
-  (interactive 
+  (interactive
    (list
     (read-from-minibuffer "Host: " (net-utils-machine-at-point))
-    (completing-read "Service: " 
-		     (mapcar 
-		      (function 
+    (completing-read "Service: "
+		     (mapcar
+		      (function
 		       (lambda (elt)
 			 (list (symbol-name (car elt)))))
 		      network-connection-service-alist))))
-  (network-connection 
-   host 
+  (network-connection
+   host
    (cdr (assoc (intern service) network-connection-service-alist)))
   )
 
@@ -882,7 +886,7 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 	(buf (get-buffer-create (concat "*" process-name "*")))
 	)
     (or (zerop portnum) (setq service portnum))
-    (make-comint 
+    (make-comint
      process-name
      (cons host service))
     (set-buffer buf)
@@ -890,6 +894,27 @@ from SEARCH-STRING.  With argument, prompt for whois server."
     (network-connection-mode-setup host service)
     (pop-to-buffer buf)
     ))
+
+(defun network-connection-reconnect  ()
+  "Reconnect a network connection, preserving the old input ring."
+  (interactive)
+  (let ((proc (get-buffer-process (current-buffer)))
+	(old-comint-input-ring comint-input-ring)
+	(host network-connection-host)
+	(service network-connection-service)
+	)
+    (if (not (or (not proc)
+		 (eq (process-status proc) 'closed)))
+	(message "Still connected")
+      (goto-char (point-max))
+      (insert (format "Reopening connection to %s\n" host))
+      (network-connection host
+       (if (numberp service)
+	   service
+	 (cdr (assoc service network-connection-service-alist))))
+      (and old-comint-input-ring
+	   (setq comint-input-ring old-comint-input-ring))
+      )))
 
 (provide 'net-utils)
 
