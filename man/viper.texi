@@ -881,7 +881,7 @@ want to change this.
 @noindent
 Currently undisplayed files can be listed using the @kbd{:ar} command.  The
 command @kbd{:n} can be given counts from the @kbd{:ar} list to switch to
-other files.
+other files. For example, use `:n3' to move to the third file in that list.
 
 @node Unimplemented Features,,Multiple Files in Viper,Overview
 @section Unimplemented Features
