@@ -526,6 +526,8 @@ to that frame.")
   (frame, no_enter)
      Lisp_Object frame, no_enter;
 {
+  /* Preserve prefix arg that the command loop just cleared.  */
+  current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
   return do_switch_frame (frame, no_enter, 0);
 }
 
