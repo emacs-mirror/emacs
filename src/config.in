@@ -140,6 +140,10 @@ and this notice must be preserved on all copies.  */
 
 #undef HAVE_AIX_SMT_EXP
 
+/* Define if you have the ANSI `strerror' function.
+   Otherwise you must have the variable `char *sys_errlist[]'.  */
+#undef HAVE_STRERROR
+
 /* Define if `sys_siglist' is declared by <signal.h>.  */
 #undef SYS_SIGLIST_DECLARED
 
@@ -247,27 +251,10 @@ typedef unsigned long EMACS_UINT;
 #define BSTRING
 #endif
 
-/* Define if you have the ANSI `strerror' function.
-   Otherwise you must have the variable `char *sys_errlist[]'.  */
-#undef HAVE_STRERROR
-
 /* Non-ANSI C compilers usually don't have volatile.  */
 #ifndef HAVE_VOLATILE
 #ifndef __STDC__
 #define volatile
-#endif
-#endif
-
-#if 0 /* This should be taken care of by autoconf now.  */
-/* joe@zircon.uucp says that in order to use XFree386, you have to
-   link against -lXbsd, which insists on defining the random
-   function.
-   faith@cs.unc.edu says this is bogus for Linux and several other OS's.
-   Eventually, we should have autoconf test for this.  Anyone want to
-   submit a patch?  */
-#if defined (HAVE_XFREE386) && !defined (LINUX)
-#define LIBX11_SYSTEM -lXbsd
-#define HAVE_RANDOM
 #endif
 #endif
 
