@@ -189,12 +189,12 @@ getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) ../src/config.h
-	$(CC) ${ALL_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
+	$(CC) ${ALL_CFLAGS} -DVERSION=${version} ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
 # We depend on etags to assure that parallel makes don't write two
 # etags.o files on top of each other.
 ctags: ${srcdir}/etags.c $(GETOPTDEPS) etags
-	$(CC) ${ALL_CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
+	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION=${version} ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
 
 wakeup: ${srcdir}/wakeup.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
