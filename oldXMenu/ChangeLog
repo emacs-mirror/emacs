@@ -1,3 +1,14 @@
+2000-01-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* Activate.c (XMenuActivate): Add parameter HELP_CALLBACK.
+	Call help callback.
+
+	* Post.c (XMenuPost): Pass null help callback to XMenuActivate.
+
+	* AddSel.c (XMenuAddSelection): Add parameter HELP.
+
+	* XMenu.h (XmSelect): Add member `help_string'.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
