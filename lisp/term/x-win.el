@@ -529,6 +529,13 @@ This returns ARGS with the arguments that have been processed removed."
       (setq initial-frame-alist (append initial-frame-alist
 					(x-parse-geometry res-geometry)))))
 
+;; Set x-selection-timeout, measured in milliseconds.
+(let ((res-selection-timeout
+       (x-get-resource "selectionTimeout" "SelectionTimeout")))
+  (setq x-selection-timeout 5000)
+  (if res-selection-timeout
+      (setq x-selection-timeout (string-to-number res-selection-timeout))))
+
 (defun x-win-suspend-error ()
   (error "Suspending an emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
