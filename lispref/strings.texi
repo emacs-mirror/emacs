@@ -218,11 +218,11 @@ not @code{eq} to any existing string.
 
 When an argument is an integer (not a sequence of integers), it is
 converted to a string of digits making up the decimal printed
-representation of the integer.  This special case exists for
-compatibility with Mocklisp, and we don't recommend you take advantage
-of it.  If you want to convert an integer to digits in this way, use
-@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
-(@pxref{String Conversion}).
+representation of the integer.  @string{Don't use this feature---it
+exists for historical compatibility only, and we plan to change it by
+and by.}  If you wish to convert an integer to a decimal number in this
+way, use @code{format} (@pxref{Formatting Strings}) or
+@code{number-to-string} (@pxref{String Conversion}).
 
 @example
 @group
