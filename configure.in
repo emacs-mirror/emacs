@@ -1610,6 +1610,10 @@ if test "${with_kerberos+set}" = set; then
   AC_CHECK_HEADERS(com_err.h)
 fi
 
+# Solaris requires -lintl if you want strerror (which calls dgettext)
+# to return localized messages.
+AC_CHECK_LIB(intl, dgettext)
+
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
