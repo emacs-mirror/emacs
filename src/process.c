@@ -1159,7 +1159,7 @@ create_process (process, new_argv, current_dir)
   inchannel = outchannel = -1;
 
 #ifdef HAVE_PTYS
-  if (EQ (Vprocess_connection_type, Qt))
+  if (!NILP (Vprocess_connection_type))
     outchannel = inchannel = allocate_pty ();
 
   if (inchannel >= 0)
