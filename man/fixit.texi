@@ -326,3 +326,7 @@ use the default dictionary.  The command @kbd{M-x
 ispell-change-dictionary} sets this variable and then restarts the
 Ispell subprocess, so that it will use a different dictionary.
 
+@vindex ispell-complete-word-dict
+  The dictionary used by @code{ispell-complete-word} can be
+customized separately by setting the value of the variable
+@code{ispell-complete-word-dict}.
