@@ -458,8 +458,6 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
   (interactive)
   (run-hooks 'before-make-frame-hook)
   (let ((frame (funcall frame-creation-function parameters)))
-    (if (featurep 'cus-face)
-	(custom-initialize-frame frame))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
