@@ -36,7 +36,7 @@
 
 (defmacro calc-slow-wrapper (&rest body)
   `(calc-do
-    (function (lambda () ,@body) (point))))
+    (function (lambda () ,@body)) (point)))
 
 (defmacro math-showing-full-precision (form)
   `(let ((calc-float-format calc-full-float-format))
