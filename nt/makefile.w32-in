@@ -217,11 +217,20 @@ force-info:
 # Note that man/makefile knows how to
 # put the info files in $(infodir),
 # so we can do ok running make in the build dir.
-info: force-info
-	(cd ..\man && $(MAKE) $(MFLAGS) info)
-	(cd ..\lispref && $(MAKE) $(MFLAGS) info)
-	(cd ..\lispintro && $(MAKE) $(MFLAGS) info)
+info: force-info info-$(MAKETYPE)
 
+info-nmake:
+	cd ..\man
+	$(MAKE) $(MFLAGS) info
+	cd ..\lispref
+	$(MAKE) $(MFLAGS) info
+	cd ..\lispintro
+	$(MAKE) $(MFLAGS) info
+
+info-gmake:
+	$(MAKE) $(MFLAGS) -C ../man info
+	$(MAKE) $(MFLAGS) -C ../lispref info
+	$(MAKE) $(MFLAGS) -C ../lispintro info
 #
 # Maintenance
 #
