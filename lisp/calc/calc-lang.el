@@ -263,14 +263,14 @@
   (let ((math-parsing-fortran-vector '(end . "\000")))
     (prog1
 	(math-read-brackets t "]")
-      (setq exp-token (car math-parsing-fortran-vector)
+      (setq math-exp-token (car math-parsing-fortran-vector)
 	    math-expr-data (cdr math-parsing-fortran-vector)))))
 
 (defun math-parse-fortran-vector-end (x op)
   (if math-parsing-fortran-vector
       (progn
-	(setq math-parsing-fortran-vector (cons exp-token math-expr-data)
-	      exp-token 'end
+	(setq math-parsing-fortran-vector (cons math-exp-token math-expr-data)
+	      math-exp-token 'end
 	      math-expr-data "\000")
 	x)
     (throw 'syntax "Unmatched closing `/'")))
@@ -386,11 +386,11 @@
   (let (low high save)
     (or (equal math-expr-data "_") (throw 'syntax "Expected `_'"))
     (math-read-token)
-    (setq save exp-old-pos)
+    (setq save math-exp-old-pos)
     (setq low (math-read-factor))
     (or (eq (car-safe low) 'calcFunc-eq)
 	(progn
-	  (setq exp-old-pos (1+ save))
+	  (setq math-exp-old-pos (1+ save))
 	  (throw 'syntax "Expected equation")))
     (or (equal math-expr-data "^") (throw 'syntax "Expected `^'"))
     (math-read-token)
@@ -504,11 +504,11 @@
 	  (progn
 	    (math-read-token)
 	    (let ((args (if (or (equal math-expr-data calc-function-close)
-				(eq exp-token 'end))
+				(eq math-exp-token 'end))
 			    nil
 			  (math-read-expr-list))))
 	      (if (not (or (equal math-expr-data calc-function-close)
-			   (eq exp-token 'end)))
+			   (eq math-exp-token 'end)))
 		  (throw 'syntax "Expected `)'"))
 	      (math-read-token)
 	      (cons (intern (format "calcFunc-%s'" (nth 1 x))) args)))
