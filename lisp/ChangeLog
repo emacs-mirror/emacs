@@ -1,5 +1,19 @@
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (resize-temp-buffer-window): Use count-screen-lines.
+
+	* window.el (count-screen-lines): New function.
+	(shrink-window-if-larger-than-buffer): Use count-screen-lines
+	instead of window-buffer-height.
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode): Don't set
+	non-existing variable comint-input-sentinel.
+	(inferior-lisp-args-to-list): Removed.
+	(inferior-lisp): Use split-string instead of
+	inferior-lisp-args-to-list.
+
+	* hexl.el (hexl-insert-hex-string): New command.
+
 	* emacs-lisp/gulp.el (gulp-maintainer): Use expand-file-name
 	instead of concat.
 

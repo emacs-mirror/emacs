@@ -104,6 +104,9 @@ area or with tooltips.
 ** New user option `read-mail-command' specifies a command to use to
 read mail from the menu etc.
 
+** Hexl contains a new command `hexl-insert-hex-string' which inserts
+a string of hexadecimal numbers read from the mini-buffer.
+
 ** Changes in Texinfo mode.
 
 ** A couple of new key bindings have been added for inserting Texinfo
@@ -1117,6 +1120,30 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** The new function `count-screen-lines' is a more flexible alternative
+to `window-buffer-height'.
+
+- Function: count-screen-lines &optional BEG END COUNT-FINAL-NEWLINE WINDOW
+
+Return the number of screen lines in the region between BEG and END.
+The number of screen lines may be different from the number of actual
+lines, due to line breaking, display table, etc.
+
+Optional arguments BEG and END default to `point-min' and `point-max'
+respectively.
+
+If region ends with a newline, ignore it unless optinal third argument
+COUNT-FINAL-NEWLINE is non-nil.
+
+The optional fourth argument WINDOW specifies the window used for
+obtaining parameters such as width, horizontal scrolling, and so
+on. The default is to use the selected window's parameters.
+
+Like `vertical-motion', `count-screen-lines' always uses the current
+buffer, regardless of which buffer is displayed in WINDOW. This makes
+possible to use `count-screen-lines' in any buffer, whether or not it
+is currently displayed in some window.
 
 ** The new function `mapc' is like `mapcar' but doesn't collect the
 argument function's results.
