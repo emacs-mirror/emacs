@@ -288,8 +288,8 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 
 oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
 	rm -f oldXMenu/Makefile.tmp
-	@echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile'."
-	@(echo "# This file is generated from \`${srcdir}/oldXMenu/Makefile'." ; \
+	@echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile.in'."
+	@(echo "# This file is generated from \`${srcdir}/oldXMenu/Makefile.in'." ; \
 	  echo "# If you are thinking about editing it, you should seriously consider" ; \
 	  echo "# running \`make oldXMenu/Makefile' at the top of the" ; \
 	  echo "# Emacs build tree instead, or editing" ;		\
