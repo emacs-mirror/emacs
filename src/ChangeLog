@@ -1,3 +1,9 @@
+2001-03-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (glyph_rect): New function.
+	(XTmouse_position): Use it to raise the threshold for mouse
+	movement event generation.
+
 2001-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (Fmsdos_remember_default_colors): If default-frame-alist
