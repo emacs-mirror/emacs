@@ -186,10 +186,9 @@ If TO is less than FROM, the value is nil."
 	  (setq to (1- from)))
     (setq to from))
   (let* ((list (make-list (- (1+ to) from) from))
-	 (tail (cdr list)))
-    (while tail
-      (setcar tail (setq from (1+ from)))
-      (setq tail (cdr tail)))
+	 (tail list))
+    (while (setq tail (cdr tail))
+      (setcar tail (setq from (1+ from))))
     list))
 
 (defun remove (elt seq)
