@@ -1305,8 +1305,9 @@ Optional arg GLOBAL means to replace all matches."
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
-  "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
-  "Regular expression to match a month abbreviation followed by a number.")
+  " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
+  "Regular expression to match a month abbreviation followed date/time.")
 
 (defconst dired-standard-move-to-filename-regexp
   "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
