@@ -1,3 +1,16 @@
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (store_symval_forwarding): Handle setting
+	default-fill-column, etc., by changing the value in
+	buffers that use the default.
+
+	* minibuf.c (Fset_minibuffer_window): Doc fix.
+
+	* fileio.c (choose_write_coding_system): Ignore auto_saving
+	if using the visited file for auto saves.
+	(Fwrite_region): Don't update SAVE_MODIFF
+	if auto-saving in visited file.
+
 2003-12-29  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (face_font_available_p): Extern it.
@@ -15,6 +28,14 @@
 	Sset_overriding_fontspec_internal.
 
 	* xfaces.c (face_font_available_p): New function.
+
+2003-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fother_buffer): Don't crash if BUF is nil
+	or if its name is nil.
+
+	* buffer.c (Fkill_buffer): Don't delete auto-save file
+	if it's the same as the visited file.
 
 2003-12-28  Luc Teirlinck  <teirllm@auburn.edu>
 
