@@ -166,10 +166,10 @@ in the file it applies to."
 (defun outline-font-lock-level ()
   (let ((count 1))
     (save-excursion
-      (outline-back-to-heading)
+      (outline-back-to-heading t)
       (condition-case nil
 	  (while (not (bobp))
-	    (outline-up-heading 1)
+	    (outline-up-heading-all 1)
 	    (setq count (1+ count)))
 	(error)))
     count))
@@ -644,8 +644,44 @@ Default is enough to cause the following heading to appear."
 				     nil)))))))
   (run-hooks 'outline-view-change-hook))
 
+(defun outline-up-heading-all (arg)
+  "Move to the heading line  of which the present line is a subheading.
+This function considers both visible and invisible heading lines.
+With argument, move up ARG levels."
+  (outline-back-to-heading t)
+  (if (eq (funcall outline-level) 1)
+      (error "Already at top level of the outline"))
+  (while (and (> (funcall outline-level) 1)
+	      (> arg 0)
+	      (not (bobp)))
+    (let ((present-level (funcall outline-level)))
+      (while (and (not (< (funcall outline-level) present-level))
+		  (not (bobp)))
+	(outline-next-heading -1))
+      (setq arg (- arg 1)))))
+
+(defun outline-next-heading (arg)
+  "Move to the next heading line (visible or invisible).
+With argument, repeats or can move backward if negative.
+A heading line is one that starts with a `*' (or that
+`outline-regexp' matches)."
+  (if (< arg 0)
+      (beginning-of-line)
+    (end-of-line))
+  (while (and (not (bobp)) (< arg 0))
+    (while (and (not (bobp))
+		(re-search-backward (concat "^\\(" outline-regexp "\\)")
+				    nil 'move)))
+    (setq arg (1+ arg)))
+  (while (and (not (eobp)) (> arg 0))
+    (while (and (not (eobp))
+		(re-search-forward (concat "^\\(" outline-regexp "\\)")
+				   nil 'move)))
+    (setq arg (1- arg)))
+  (beginning-of-line))
+
 (defun outline-up-heading (arg)
-  "Move to the heading line of which the present line is a subheading.
+  "Move to the visible heading line of which the present line is a subheading.
 With argument, move up ARG levels."
   (interactive "p")
   (outline-back-to-heading)
