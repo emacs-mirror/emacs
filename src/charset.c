@@ -710,6 +710,7 @@ DESCRIPTION (string) is the description string of the charset.")
   Fput (charset_symbol, Qcharset, CHARSET_TABLE_ENTRY (XINT (charset_id)));
   CHARSET_SYMBOL (XINT (charset_id)) = charset_symbol;
   Vcharset_list = Fcons (charset_symbol, Vcharset_list);
+  Fupdate_coding_systems_internal ();
   return Qnil;
 }
 
