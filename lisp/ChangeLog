@@ -1,5 +1,7 @@
 2003-04-23  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/sendmail.el (mail-send-and-exit): Make arg optional.
+
 	* files.el (view-read-only): Doc fix.
 
 	* simple.el (back-to-indentation): Call backward-prefix-chars.
