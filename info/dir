@@ -33,7 +33,7 @@ Emacs
 * Dired-X: (dired-x).   Dired Extra Features.
 * Ediff: (ediff).	A visual interface for comparing and merging programs.
 * Emacs-Xtra: (emacs-xtra).    Specialized Emacs features.
-* Org Mode: (org.info).	Outline-based notes management and organizer.
+* Org Mode: (org).	Outline-based notes management and organizer.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
