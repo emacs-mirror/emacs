@@ -1,3 +1,7 @@
+2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/po.el: New file.
+
 2002-03-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):
