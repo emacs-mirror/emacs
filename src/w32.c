@@ -270,57 +270,57 @@ static char configuration_buffer[32];
 char *
 get_emacs_configuration (void)
 {
-    char *arch, *oem, *os;
+  char *arch, *oem, *os;
 
-    /* Determine the processor type.  */
-    switch (get_processor_type ()) 
-      {
+  /* Determine the processor type.  */
+  switch (get_processor_type ()) 
+    {
 
 #ifdef PROCESSOR_INTEL_386
-      case PROCESSOR_INTEL_386:
-      case PROCESSOR_INTEL_486:
-      case PROCESSOR_INTEL_PENTIUM:
-	arch = "i386";
-	break;
+    case PROCESSOR_INTEL_386:
+    case PROCESSOR_INTEL_486:
+    case PROCESSOR_INTEL_PENTIUM:
+      arch = "i386";
+      break;
 #endif
 
 #ifdef PROCESSOR_INTEL_860
-      case PROCESSOR_INTEL_860:
-	arch = "i860";
-	break;
+    case PROCESSOR_INTEL_860:
+      arch = "i860";
+      break;
 #endif
 
 #ifdef PROCESSOR_MIPS_R2000
-      case PROCESSOR_MIPS_R2000:
-      case PROCESSOR_MIPS_R3000:
-      case PROCESSOR_MIPS_R4000:
-	arch = "mips";
-	break;
+    case PROCESSOR_MIPS_R2000:
+    case PROCESSOR_MIPS_R3000:
+    case PROCESSOR_MIPS_R4000:
+      arch = "mips";
+      break;
 #endif
 
 #ifdef PROCESSOR_ALPHA_21064
-      case PROCESSOR_ALPHA_21064:
-	arch = "alpha";
-	break;
+    case PROCESSOR_ALPHA_21064:
+      arch = "alpha";
+      break;
 #endif
 
-      default:
-	arch = "unknown";
-	break;
-      }
+    default:
+      arch = "unknown";
+      break;
+    }
 
-    /* Let oem be "*" until we figure out how to decode the OEM field.  */
-    oem = "*";
+  /* Let oem be "*" until we figure out how to decode the OEM field.  */
+  oem = "*";
 
 #ifdef WINDOWS95
-    os = "win";
+  os = "win";
 #else
-    os = "nt";
+  os = "nt";
 #endif
 
-    sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
-	     get_nt_major_version (), get_nt_minor_version ());
-    return configuration_buffer;
+  sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
+	   get_nt_major_version (), get_nt_minor_version ());
+  return configuration_buffer;
 }
 
 /* Conjure up inode and device numbers that will serve the purpose
