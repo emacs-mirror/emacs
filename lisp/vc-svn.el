@@ -328,14 +328,15 @@ This is only possible if SVN is responsible for FILE's directory.")
   "Merge changes into current working copy of FILE.
 The changes are between FIRST-VERSION and SECOND-VERSION."
   (vc-svn-command nil 0 file
-                 "update" "-kk"
-                 (concat "-j" first-version)
-                 (concat "-j" second-version))
+                 "merge"
+		 -r (if second-version
+			(concat first-version ":" second-version)
+		      first-version))
   (vc-file-setprop file 'vc-state 'edited)
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
-    (if (re-search-forward "conflicts during merge" nil t)
-        1				; signal error
+    (if (looking-at "C  ")
+        1				; signal conflict
       0)))				; signal success
 
 (defun vc-svn-merge-news (file)
