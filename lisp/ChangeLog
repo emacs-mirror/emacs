@@ -1,3 +1,8 @@
+2002-03-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/bibtex.el (bibtex-sort-ignore-string-entries)
+	(bibtex-entry-field-alist): Doc fix.
+
 2002-03-16  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-imenu--function-name-regexp-perl):
