@@ -50,7 +50,8 @@ and be replaced by its expansion."
   "Toggle abbrev mode.
 In abbrev mode, inserting an abbreviation causes it to expand
 and be replaced by its expansion.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `abbrev-mode'.
   :set (lambda (symbol value)
 	 (abbrev-mode (if value 1 0)))
   :type 'boolean
