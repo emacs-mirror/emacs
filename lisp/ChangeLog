@@ -1,5 +1,16 @@
 2002-04-26  Richard M. Stallman  <rms@gnu.org>
 
+	* cus-edit.el (customize-face): Use read-face-name
+	and handle multiple faces.
+	(customize-face-other-window): Make it work similarly.
+
+	* faces.el (read-face-name): New defaulting features.
+	New args STRING-DESCRIBING-DEFAULT and MULTIPLE.
+	(list-faces-display): Use the face, not its name string,
+	as arg when running customize-face.
+	Put a `read-face-name' prop on the entire line.
+	(describe-face): Handle multiple faces via read-face-name.
+
 	* textmodes/tex-mode.el (tex-start-tex): Fix previous change.
 
 2002-04-26  Sam Steingold  <sds@gnu.org>
