@@ -1183,7 +1183,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 			while ((EMACS_INT) cursor <= (EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		      else
-			while ((unsigned EMACS_INT) cursor <= (unsigned EMACS_INT) p_limit)
+			while ((EMACS_UINT) cursor <= (EMACS_UINT) p_limit)
 			  cursor += BM_tab[*cursor];
 		    }
 		  else
@@ -1192,7 +1192,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 			while ((EMACS_INT) cursor >= (EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		      else
-			while ((unsigned EMACS_INT) cursor >= (unsigned EMACS_INT) p_limit)
+			while ((EMACS_UINT) cursor >= (EMACS_UINT) p_limit)
 			  cursor += BM_tab[*cursor];
 		    }
 /* If you are here, cursor is beyond the end of the searched region. */
