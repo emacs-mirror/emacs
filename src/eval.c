@@ -1775,7 +1775,7 @@ fourth argument, and some of the built-in functions of Lisp.
 Also, a symbol satisfies `commandp' if its function definition does so.
 
 If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
-then strins and vectors are not accepted.  */)
+then strings and vectors are not accepted.  */)
      (function, for_call_interactively)
      Lisp_Object function, for_call_interactively;
 {
