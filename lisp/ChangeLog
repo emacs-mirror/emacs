@@ -1,5 +1,8 @@
 2001-02-24  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/utf-8.el (mule-utf-8): Set correct value for
+	valid-codes property.
+
 	* international/fontset.el (x-complement-fontset-spec): In the
 	case that we use ASCII font for the other charsets, use only
 	family and regisry part of it.

@@ -1,5 +1,7 @@
 2001-02-24  Kenichi Handa  <handa@etl.go.jp>
 
+	* Makefile.in (lisp): Add international/utf-8.elc.
+
 	* fontset.c (Fnew_fontset): Fix handling of the case that an
 	element of FONTLIST is a cons of family and registry.
 
