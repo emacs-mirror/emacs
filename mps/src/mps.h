@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.51) $
+ * $HopeName: MMsrc!mps.h(trunk.52) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -185,7 +185,7 @@ typedef struct mps_fmt_B_s {
 /* Assertion Handling */
 
 typedef void (*mps_assert_t)(const char *, const char *, const char *,
-                             unsigned line);
+                             unsigned);
 
 extern mps_assert_t mps_assert_install(mps_assert_t);
 extern mps_assert_t mps_assert_default(void);
@@ -274,13 +274,12 @@ extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
 
 /* Low memory reservoir */
 
-extern void mps_reservoir_limit_set(mps_arena_t arena, size_t size);
-extern size_t mps_reservoir_limit(mps_arena_t arena);
-extern size_t mps_reservoir_available(mps_arena_t arena);
-extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, 
-                                                   mps_ap_t ap, 
-                                                   size_t size);
-
+extern void mps_reservoir_limit_set(mps_arena_t, size_t);
+extern size_t mps_reservoir_limit(mps_arena_t);
+extern size_t mps_reservoir_available(mps_arena_t);
+extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *, 
+                                                   mps_ap_t, 
+                                                   size_t);
 
 
 /* Reserve Macros */
