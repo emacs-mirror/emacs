@@ -1369,6 +1369,7 @@ it checks the global keymap.  This is not precisely how key lookup
 works, but it's good enough for understanding ordinary circumstances.
 
 @cindex rebinding major mode keys
+@findex define-key
   To change the local bindings of a major mode, you must change the
 mode's local keymap.  Normally you must wait until the first time the
 mode is used, because most major modes don't create their keymaps until
@@ -1512,11 +1513,9 @@ command is less work to invoke when you really want to.
 @node Init Rebinding
 @subsection Rebinding Keys in Your Init File
 
-@findex define-key
-@findex substitute-key-definition
   If you have a set of key bindings that you like to use all the time,
 you can specify them in your @file{.emacs} file by using their Lisp
-syntax.
+syntax.  (@xref{Init File}.)
 
   The simplest method for doing this works for ASCII characters and
 Meta-modified ASCII characters only.  This method uses a string to
@@ -2199,6 +2198,7 @@ Do the same thing for Lisp mode only.
 Redefine all keys which now run @code{next-line} in Fundamental mode
 so that they run @code{forward-line} instead.
 
+@findex substitute-key-definition
 @example
 (substitute-key-definition 'next-line 'forward-line
                            global-map)

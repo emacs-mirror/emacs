@@ -1,3 +1,26 @@
+1999-11-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* cmds.c (Fbeginning_of_line): Doc fix.
+	(Fend_of_line): Doc fix.
+
+	* editfns.c (Fline_beginning_position): If N is not 1,
+	pass t to Fconstrain_to_field for ESCAPE-FROM-EDGE.
+
+	* syntax.c (Fforward_word): Handle fields even if would have hit
+	an edge of the buffer.  Return nil if affected by fields.
+
+1999-11-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* editfns.c (preceding_pos): Function deleted.
+	(text_property_stickiness): Decrement POS directly.
+	Fix a confusion that used PT instead of POS.
+
+	* editfns.c (find_field): Properly handle the case
+	of a field boundary where `field' inherits from neither side.
+
+	* editfns.c (Ffield_beginning, Ffield_end): Doc fixes.
+	(Ferase_field, Ffield_string, Ffield_string_no_properties): Doc fixes.
+
 1999-11-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecode.c (Fbyte_code) <BinsertN, Bcall>: Do the
@@ -175,6 +198,11 @@
 	Define PTY_NAME_SPRINTF.
 	Redefine PTY_TTY_NAME_SPRINTF.
 	* config.in: Add undef for HAVE_DEV_PTMX.
+
+1999-10-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* regex.c (POP_FAILURE_POINT): Use failure_id.integer
+	as arg to DEBUG_POP and DEBUG_PRINT.
 
 1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
@@ -586,6 +614,7 @@
 	(shrink_mini_window): Restore old window sizes only if old
 	size information is valid in all windows in a window tree.
 	
+>>>>>>> 1.44
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (set_frame_menubar): Don't call
