@@ -148,6 +148,14 @@ choose_minibuf_frame ()
   }
 }
 
+Lisp_Object
+choose_minibuf_frame_1 (ignore)
+     Lisp_Object ignore;
+{
+  choose_minibuf_frame ();
+  return Qnil;
+}
+
 DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
        Sset_minibuffer_window, 1, 1, 0,
   "Specify which minibuffer window to use for the minibuffer.\n\
@@ -233,6 +241,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* Choose the minibuffer window and frame, and take action on them.  */
 
   choose_minibuf_frame ();
+
+  record_unwind_protect (choose_minibuf_frame_1, Qnil);
 
   record_unwind_protect (Fset_window_configuration,
 			 Fcurrent_window_configuration (Qnil));
@@ -538,10 +548,6 @@ read_minibuf_unwind (data)
     Vdeactivate_mark = old_deactivate_mark;
     unbind_to (count, Qnil);
   }
-
-  /* Make the minibuffer follow the selected frame
-     (in case we are exiting a recursive minibuffer).  */
-  choose_minibuf_frame ();
 
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
