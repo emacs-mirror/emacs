@@ -416,8 +416,8 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 #define CHECK_SCNHDR(ptr, name, flags) \
   if (strcmp(s->s_name, name) == 0) { \
     if (s->s_flags != flags) { \
-      fprintf(stderr, "unexec: %x flags where %x expected in %s section.\n", \
-	      s->s_flags, flags, name); \
+      fprintf(stderr, "unexec: %lx flags where %x expected in %s section.\n", \
+	      (unsigned long)s->s_flags, flags, name); \
     } \
     if (ptr) { \
       fprintf(stderr, "unexec: duplicate section header for section %s.\n", \
@@ -616,8 +616,8 @@ write_segment (new, ptr, end)
       else if (nwrite != ret)
 	{
 	  sprintf (buf,
-		   "unexec write failure: addr 0x%x, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   ptr, new, nwrite, ret, errno);
+		   "unexec write failure: addr 0x%lx, fileno %d, size 0x%x, wrote 0x%x, errno %d",
+		   (unsigned long)ptr, new, nwrite, ret, errno);
 	  PERROR (buf);
 	}
       i += nwrite;
