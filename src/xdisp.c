@@ -1292,7 +1292,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
   if (IT_CHARPOS (it) >= charpos)
     {
       int top_y = it.current_y;
-      int bottom_y = line_bottom_y (&it);
+      int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
       if (top_y < window_top_y)
@@ -1302,7 +1302,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
       if (visible_p && x)
 	{
 	  *x = it.current_x;
-	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
 	  if (rtop)
 	    {
 	      *rtop = max (0, window_top_y - top_y);
