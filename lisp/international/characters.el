@@ -221,6 +221,11 @@
 ;; Ethiopic character set
 
 (modify-category-entry (make-char 'ethiopic) ?e)
+(modify-syntax-entry (make-char 'ethiopic) "w")
+(let ((chars '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%i(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B)))
+  (while chars
+    (modify-syntax-entry (car chars) ".")
+    (setq chars (cdr chars))))
 
 ;; European character set (Latin-1,2,3,4,5)
 
