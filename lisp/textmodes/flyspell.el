@@ -282,7 +282,7 @@ property of the major mode name.")
 	  (t
 	   (save-excursion
 	     (beginning-of-line)
-	     (not (looking-at "[>}|]\\To:")))))))
+	     (not (looking-at "[>}|]\\|To:")))))))
 
 ;*--- texinfo mode ----------------------------------------------------*/
 (put 'texinfo-mode 'flyspell-mode-predicate 'texinfo-mode-flyspell-verify)
