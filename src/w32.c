@@ -401,6 +401,17 @@ normalize_filename (fp, path_sep)
   char sep;
   char *elem;
 
+  /* Always lower-case drive letters a-z, even if the filesystem
+     preserves case in filenames.
+     This is so filenames can be compared by string comparison
+     functions that are case-sensitive.  Even case-preserving filesystems
+     do not distinguish case in drive letters.  */
+  if (fp[1] == ':' && *fp >= 'A' && *fp <= 'Z')
+    {
+      *fp += 'a' - 'A';
+      fp += 2;
+    }
+
   if (NILP (Vwin32_downcase_file_names))
     {
       while (*fp)
@@ -1050,11 +1061,20 @@ int
 sys_rename (const char * oldname, const char * newname)
 {
   char temp[MAX_PATH];
+  DWORD attr;
 
   /* MoveFile on Win95 doesn't correctly change the short file name
-     alias when oldname has a three char extension and newname has the
-     same first three chars in its extension.  To avoid problems, on
-     Win95 we rename to a temporary name first.  */
+     alias in a number of circumstances (it is not easy to predict when
+     just by looking at oldname and newname, unfortunately).  In these
+     cases, renaming through a temporary name avoids the problem.
+
+     A second problem on Win95 is that renaming through a temp name when
+     newname is uppercase fails (the final long name ends up in
+     lowercase, although the short alias might be uppercase) UNLESS the
+     long temp name is not 8.3.
+
+     So, on Win95 we always rename through a temp name, and we make sure
+     the temp name has a long extension to ensure correct renaming.  */
 
   strcpy (temp, map_win32_filename (oldname, NULL));
 
@@ -1062,21 +1082,27 @@ sys_rename (const char * oldname, const char * newname)
     {
       char * p;
 
-      unixtodos_filename (temp);
       if (p = strrchr (temp, '\\'))
 	p++;
       else
 	p = temp;
       strcpy (p, "__XXXXXX");
-      _mktemp (temp);
+      sys_mktemp (temp);
+      /* Force temp name to require a manufactured 8.3 alias - this
+	 seems to make the second rename work properly. */
+      strcat (temp, ".long");
       if (rename (map_win32_filename (oldname, NULL), temp) < 0)
 	return -1;
     }
 
   /* Emulate Unix behaviour - newname is deleted if it already exists
-     (at least if it is a file; don't do this for directories). */
+     (at least if it is a file; don't do this for directories).
+     However, don't do this if we are just changing the case of the file
+     name - we will end up deleting the file we are trying to rename!  */
   newname = map_win32_filename (newname, NULL);
-  if (GetFileAttributes (newname) != -1)
+  if (stricmp (newname, temp) != 0
+      && (attr = GetFileAttributes (newname)) != -1
+      && (attr & FILE_ATTRIBUTE_DIRECTORY) == 0)
     {
       _chmod (newname, 0666);
       _unlink (newname);
