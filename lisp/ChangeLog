@@ -1,5 +1,8 @@
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/mule-conf.el (file-coding-system-alist): Add an
+	association for PO files.
+
 	* textmodes/po.el: New file.
 
 2002-03-15  Gerd Moellmann  <gerd@gnu.org>
