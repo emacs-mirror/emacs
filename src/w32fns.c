@@ -12405,12 +12405,25 @@ x_kill_gs_process (pixmap, f)
  ***********************************************************************/
 
 DEFUN ("x-change-window-property", Fx_change_window_property,
-       Sx_change_window_property, 2, 3, 0,
+       Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-PROP and VALUE must be strings.  FRAME nil or omitted means use the
-selected frame.  Value is VALUE.  */)
-  (prop, value, frame)
-     Lisp_Object frame, prop, value;
+VALUE may be a string or a list of conses, numbers and/or strings.
+If an element in the list is a string, it is converted to
+an Atom and the value of the Atom is used.  If an element is a cons,
+it is converted to a 32 bit number where the car is the 16 top bits and the
+cdr is the lower 16 bits.
+FRAME nil or omitted means use the selected frame.
+If TYPE is given and non-nil, it is the name of the type of VALUE.
+If TYPE is not given or nil, the type is STRING.
+FORMAT gives the size in bits of each element if VALUE is a list.
+It must be one of 8, 16 or 32.
+If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
+If OUTER_P is non-nil, the property is changed for the outer X window of
+FRAME.  Default is to change on the edit X window.
+
+Value is VALUE.  */)
+     (prop, value, frame, type, format, outer_p)
+     Lisp_Object prop, value, frame, type, format, outer_p;
 {
 #if 0 /* TODO : port window properties to W32 */
   struct frame *f = check_x_frame (frame);

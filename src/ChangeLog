@@ -1,3 +1,10 @@
+2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macfns.c (Fx_change_window_property): Make doc string and
+	parameters same as for X version.
+
+	* w32fns.c (Fx_change_window_property): Ditto.
+
 2004-02-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (hscroll_window_tree): Position cursor near to right
