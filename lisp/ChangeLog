@@ -1,3 +1,7 @@
+2002-12-02  Dave Love  <fx@gnu.org>
+
+	* autoarg.el (autoarg-kp-mode): Give it a :group.
+
 2002-12-02  Noah Friedman  <friedman@splode.com>
 
 	* complete.el (PC-do-completion): Do not add wildcards to pattern
@@ -17,6 +21,10 @@
 	* tooltip.el (tooltip-gud-process-output): Handle annotations that
 	are output with gdba in gdb-ui.el.
 	(tooltip-strip-annotations): New function.
+
+2002-12-29  Dave Love  <fx@gnu.org>
+
+	* autoarg.el (autoarg-mode): Give it a :group.
 
 2002-11-29  Bill Wohler  <wohler@newt.com>
 
