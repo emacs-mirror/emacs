@@ -2206,8 +2206,9 @@ then the value is a list of functions, but it is abnormal in that either
 these functions are called with arguments or their values are used in
 some way.  You can use @code{add-hook} to add a function to the list,
 but you must take care in writing the function.  (A few of these
-variables are actually normal hooks which were named before we
-established the convention of using @samp{-hook} for them.)
+variables, notably those ending in @samp{-hooks}, are actually
+normal hooks which were named before we established the convention of
+using @samp{-hook} for them.)
 
   If the variable's name ends in @samp{-function}, then its value
 is just a single function, not a list of functions.
@@ -2290,9 +2291,8 @@ executed first (barring another @code{add-hook} call).  If the optional
 argument @var{append} is non-@code{nil}, the new hook function goes at
 the end of the hook list and will be executed last.
 
-If @var{local} is non-@code{nil}, that says to make the new hook
-function buffer-local in the current buffer and automatically calls
-@code{make-local-hook} to make the hook itself buffer-local.
+If @var{local} is non-@code{nil}, that says to add @var{function}
+to the buffer-local hook list instead of to the global hook list.
 @end defun
 
 @defun remove-hook hook function &optional local
@@ -2300,24 +2300,4 @@ This function removes @var{function} from the hook variable @var{hook}.
 
 If @var{local} is non-@code{nil}, that says to remove @var{function}
 from the buffer-local hook list instead of from the global hook list.
-If the hook variable itself is not buffer-local, then the value of
-@var{local} makes no difference.
-@end defun
-
-@defun make-local-hook hook
-This function makes the hook variable @code{hook} buffer-local in the
-current buffer.  When a hook variable is buffer-local, it can have
-buffer-local and global hook functions, and @code{run-hooks} runs all of
-them.
-
-This function works by adding @code{t} as an element of the buffer-local
-value.  That serves as a flag to use the hook functions listed in the default
-value of the hook variable, as well as those listed in the buffer-local value.
-Since @code{run-hooks} understands this flag, @code{make-local-hook}
-works with all normal hooks.  It works for only some non-normal
-hooks---those whose callers have been updated to understand this meaning
-of @code{t}.
-
-Do not use @code{make-local-variable} directly for hook variables; it is
-not sufficient.
 @end defun

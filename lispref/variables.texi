@@ -1291,7 +1291,9 @@ variables cannot have buffer-local bindings as well.  @xref{Multiple
 Displays}.
 
 @strong{Note:} Do not use @code{make-local-variable} for a hook
-variable.  Instead, use @code{make-local-hook}.  @xref{Hooks}.
+variable.  The hook variables are automatically made buffer-local
+as needed if you use the @var{local} argument to @code{add-hook} or
+@code{remove-hook}.
 @end deffn
 
 @deffn Command make-variable-buffer-local variable

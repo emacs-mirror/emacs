@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.11 2001/02/13 00:00:30 fx Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.12 2001/02/23 12:50:41 gerd Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
@@ -23,15 +23,17 @@
 
 @c %**start of header
 @setfilename ../info/pcl-cvs
-@settitle PCL-CVS--Emacs Front-End to CVS
+@settitle PCL-CVS -- Emacs Front-End to CVS
 @c %**end of header
+
+@c 
 
 @dircategory Emacs
 @direntry
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 @end direntry
 @setchapternewpage on
-     
+
 @ifinfo
 Copyright @copyright{} 1991,92,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
 
@@ -777,6 +779,7 @@ This key moves one file backward, towards the beginning of the buffer
 @kindex ESC DEL@r{--unmark all files}
 @kindex DEL@r{--unmark previous file}
 @kindex %@r{--mark files matching regexp}
+@kindex S@r{--mark files in a particular state}
 @kindex T@r{--toggle marks}
 @findex cvs-mode-mark
 @findex cvs-mode-unmark
@@ -784,6 +787,7 @@ This key moves one file backward, towards the beginning of the buffer
 @findex cvs-mode-unmark-all-files
 @findex cvs-mode-unmark-up
 @findex cvs-mode-mark-matching-files
+@findex cvs-mode-mark-on-state
 @findex cvs-mode-toggle-marks
 
 PCL-CVS works on a set of @dfn{selected files} (@pxref{Selected files}).
@@ -810,11 +814,15 @@ Unmark @emph{all} files (@code{cvs-mode-unmark-all-files}).
 Unmark the file on the previous line, and move point to that line
 (@code{cvs-mode-unmark-up}).
 
-@item @key{%}
+@item %
 Mark all files matching a regular expression
 (@code{cvs-mode-mark-matching-files}).
 
-@item @key{T}
+@item S
+Mark all files in a particular state, such as ``Modified'' or
+``Removed''.  (@code{cvs-mode-mark-on-state}).
+
+@item T
 Toggle use of marks for the next command (@code{cvs-mode-toggle-marks}).
 @end table
 
@@ -1435,8 +1443,7 @@ If you have ideas for improvements, or if you have written some
 extensions to this package, we would like to hear from you.  We hope that
 you find this package useful!
 
-Below is a partial list of currently known problems with PCL-CVS version
-2.0.
+Below is a partial list of currently known problems with PCL-CVS.
 
 @table @asis
 @item Unexpected output from CVS
@@ -1444,7 +1451,7 @@ Unexpected output from CVS may confuse PCL-CVS.  It will create
 warning messages in the @samp{*cvs*} buffer alerting you to any parse errors.
 If you get these messages, please send a bug report to the email
 addresses listed above.  Include the contents of the @samp{*cvs*} buffer, the
-output of the CVS process (which should be found in the @samp{*cvs-tmp*}
+output of the CVS process (which should be found in the @samp{ *cvs-tmp*}
 buffer), and the versions of Emacs, PCL-CVS and CVS you are using.
 @end table
 
