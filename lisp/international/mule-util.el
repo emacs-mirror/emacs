@@ -386,6 +386,10 @@ positions (integers or markers) specifying the region."
     (3 . 3) (4 . 4) (5 . 5)
     (6 . 6) (7 . 7) (8 . 8))
   "Alist of reference point symbols vs reference point codes.
+A reference point symbol is to be used to specify a composition rule
+while making a composite character by the function `compose-chars'
+(which see).
+
 Meanings of reference point codes are as follows:
 
     0----1----2 <-- ascent	0:tl or top-left
