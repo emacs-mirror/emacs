@@ -134,7 +134,7 @@ end
 
 define xsymbol
 print (struct Lisp_Symbol *) ((((int) $) & $valmask) | gdb_data_seg_bits)
-output (char*)&$->name->data
+output (char*)$->name->data
 echo \n
 end
 document xsymbol
@@ -289,6 +289,38 @@ echo \n
 end
 document xscrollbar
 Print $ as a scrollbar pointer.
+end
+
+define xprintsym
+  set $sym = (struct Lisp_Symbol *) ((((int) $arg0) & $valmask) | gdb_data_seg_bits)
+  output (char*)$sym->name->data
+  echo \n
+end
+document xprintsym
+  Print argument as a symbol.
+end
+
+define xbacktrace
+  set $bt = backtrace_list
+  while $bt 
+    xprintsym *$bt->function
+    set $bt = $bt->next
+  end
+end
+document xbacktrace
+  Print a backtrace of Lisp function calls from backtrace_list.
+  Set a breakpoint at Fsignal and call this to see from where 
+  an error was signalled.
+end
+
+define xreload
+  set $valmask = ((long)1 << gdb_valbits) - 1
+  set $nonvalbits = gdb_emacs_intbits - gdb_valbits
+end
+document xreload
+  When starting Emacs a second time in the same gdb session under
+  FreeBSD 2.2.5, gdb 4.13, $valmask and $nonvalbits have lost
+  their values.  This function reloads them.
 end
 
 set print pretty on
