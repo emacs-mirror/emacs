@@ -1,9 +1,14 @@
+2001-03-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_font): Handle case of x_new_fontset returning the
+	same name as before, although there was a change in fontsets.
+
 2001-02-28  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (Fframe_parameter): Declare.
 
 	* window.c (set_window_buffer): Field vscroll is an int, not a
-	lisp object.
+	Lisp_Object.
 
 2001-02-28  Gerd Moellmann  <gerd@gnu.org>
 
