@@ -412,6 +412,7 @@ Filesz      Memsz       Flags       Align
 
  */
 
+#include <config.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -758,15 +759,17 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H (nn).sh_size = 0;
 	}
       else
-	memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
-		old_file_h->e_shentsize);
+	{
+	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+		  old_file_h->e_shentsize);
 
-      /* Any section that was original placed AFTER the bss
-	 section must now be adjusted by NEW_OFFSETS_SHIFT.  */
+	  /* Any section that was original placed AFTER the bss
+	     section must now be adjusted by NEW_OFFSETS_SHIFT.  */
 
-      if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
-	NEW_SECTION_H (nn).sh_offset += new_offsets_shift;
-      
+	  if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
+	    NEW_SECTION_H (nn).sh_offset += new_offsets_shift;
+	}
+
       /* If any section hdr refers to the section after the new .data
 	 section, make it refer to next one because we have inserted 
 	 a new section in between.  */
@@ -786,9 +789,18 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       /* Write out the sections. .data and .data1 (and data2, called
 	 ".data" in the strings table) get copied from the current process
 	 instead of the old file.  */
-      if (!strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data")
-	  || !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data1")
-	  || !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".got"))
+      if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data")
+	  || !strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data1")
+#ifdef IRIX6_5
+	  /* Under IRIX 6.5 gcc places objects with adresses relative to 
+	     shared symbols in the section .rodata, which are adjusted at
+	     startup time. Unfortunately they aren't adjusted after unexec,
+	     so with this configuration we must get .rodata also from memory. 
+	     Do any other configurations need this, too?
+	     <Wolfgang.Glas@hfm.tu-graz.ac.at> 1999-06-08.  */
+	  || !strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".rodata")
+#endif
+	  || !strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".got"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H (n).sh_offset;
@@ -859,9 +871,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 					   + new_base);
 	  for (; num--; sym++)
 	    {
+	      /* don't patch special section indices. */
 	      if (sym->st_shndx == SHN_UNDEF
-		  || sym->st_shndx == SHN_ABS
-		  || sym->st_shndx == SHN_COMMON)
+		  || sym->st_shndx >= SHN_LORESERVE)
 		continue;
 	
 	      PATCH_INDEX (sym->st_shndx);
