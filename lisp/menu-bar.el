@@ -576,11 +576,13 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-options-menu [debug-on-quit]
   (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
-			"Enter Debugger on Quit/C-g" "Debug on Quit %s"
+			"Toggle whether to enter the Lisp Debugger on Quit/C-g"
+			"Debug on Quit %s"
 			"Enter Lisp debugger when C-g is pressed"))
 (define-key menu-bar-options-menu [debug-on-error]
   (menu-bar-make-toggle toggle-debug-on-error debug-on-error
-			"Enter Debugger on Error" "Debug on Error %s"
+			"Toggle whether to enter the Lisp Debugger on Error"
+			"Debug on Error %s"
 			"Enter Lisp debugger when error is signaled"))
 (define-key menu-bar-options-menu [debugger-separator]
   '("--"))
