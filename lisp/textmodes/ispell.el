@@ -249,12 +249,12 @@ Must be greater than 1."
 	((file-exists-p "/sys/dict") "/sys/dict")
 	(t "/usr/dict/words"))
   "*Alternate dictionary for spelling help."
-  :type 'file
+  :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
 (defcustom ispell-complete-word-dict ispell-alternate-dictionary
   "*Dictionary used for word completion."
-  :type 'file
+  :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
 (defcustom ispell-message-dictionary-alist nil
