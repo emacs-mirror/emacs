@@ -134,7 +134,7 @@ Commands:
 (defun help-with-tutorial (&optional arg)
   "Select the Emacs learn-by-doing tutorial.
 If there is a tutorial version written in the language
-of the selected anguage envgironment, that version is used.
+of the selected language environment, that version is used.
 If there's no tutorial in that language, `TUTORIAL' is selected.
 With arg, you are asked to select which language."
   (interactive "P")
