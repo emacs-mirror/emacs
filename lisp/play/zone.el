@@ -47,6 +47,9 @@
 (defvar zone-idle 20
   "*Seconds to idle before zoning out.")
 
+(defvar zone-timer nil
+  "The timer we use to decide when to zone out, or nil if none.")
+
 (defvar zone-timeout nil
   "*Seconds to timeout the zoning.
 If nil, don't interrupt for about 1^26 seconds.")
@@ -132,9 +135,6 @@ If the element is a function or a list of a function and a number,
 (defun zone ()
   "Zone out, completely."
   (interactive)
-  (let ((timer (get 'zone 'timer)))
-    (and (timerp timer) (cancel-timer timer)))
-  (put 'zone 'timer nil)
   (let ((f (selected-frame))
         (outbuf (get-buffer-create "*zone*"))
         (text (buffer-substring (window-start) (window-end)))
@@ -175,26 +175,25 @@ If the element is a function or a list of a function and a number,
            (sit-for 3)))
         (quit (ding) (message "Zoning...sorry")))
       (when ct (modify-frame-parameters f (list (cons 'cursor-type ct)))))
-    (kill-buffer outbuf)
-    (zone-when-idle zone-idle)))
+    (kill-buffer outbuf)))
 
 ;;;; Zone when idle, or not.
 
 (defun zone-when-idle (secs)
   "Zone out when Emacs has been idle for SECS seconds."
   (interactive "nHow long before I start zoning (seconds): ")
+  (if (timerp zone-timer)
+      (cancel-timer zone-timer))
+  (setq zone-timer nil)
   (or (<= secs 0)
-      (let ((timer (get 'zone 'timer)))
-        (or (eq timer t)
-            (timerp timer)))
-      (put 'zone 'timer (run-with-idle-timer secs t 'zone))))
+      (setq zone-timer (run-with-idle-timer secs t 'zone))))
 
 (defun zone-leave-me-alone ()
   "Don't zone out when Emacs is idle."
   (interactive)
-  (let ((timer (get 'zone 'timer)))
-    (and (timerp timer) (cancel-timer timer)))
-  (put 'zone 'timer t)
+  (if (timerp zone-timer)
+      (cancel-timer zone-timer))
+  (setq zone-timer nil)
   (message "I won't zone out any more"))
 
 
