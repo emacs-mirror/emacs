@@ -19,6 +19,7 @@
 
 (require 'texnfo-upd)
 (require 'tex-mode)
+(provide 'texinfo)
 
 (defvar texinfo-mode-syntax-table nil)
 
