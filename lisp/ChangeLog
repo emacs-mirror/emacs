@@ -1,5 +1,8 @@
 2005-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* reveal.el (reveal-post-command): Don't try to reveal overlays which
+	have a non-nil `invisible' property but are actually visible.
+
 	* progmodes/perl-mode.el (perl-imenu-generic-expression): Add entries
 	for perldoc sections.
 	(perl-outline-regexp, perl-outline-level): New var and function.
