@@ -2861,7 +2861,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Vx_resource_name = Vinvocation_name;
 
   display = x_get_arg (dpyinfo, parms, Qdisplay_id, 0, 0, RES_TYPE_NUMBER);
-  if (NILP (display))
+  if (EQ (display, Qunbound))
     display = x_get_arg (dpyinfo, parms, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
