@@ -152,7 +152,7 @@ These supersede the values given in `default-frame-alist'.")
 (defun frame-initialize ()
 
   ;; Are we actually running under a window system at all?
-  (if (and window-system (not noninteractive))
+  (if (and window-system (not noninteractive) (not (eq window-system 'pc)))
       (progn
 	;; Turn on special-display processing only if there's a window system.
 	(setq special-display-function 'special-display-popup-frame)
@@ -191,13 +191,14 @@ These supersede the values given in `default-frame-alist'.")
 
     ;; No, we're not running a window system.  Use make-terminal-frame if
     ;; we support that feature, otherwise arrange to cause errors.
-    (setq frame-creation-function
-	  (if (fboundp 'make-terminal-frame)
-	      'make-terminal-frame
-	    (function
-	     (lambda (parameters)
-	       (error
-		"Can't create multiple frames without a window system")))))))
+    (or (eq window-system 'pc)
+	(setq frame-creation-function
+	      (if (fboundp 'make-terminal-frame)
+		  'make-terminal-frame
+		(function
+		 (lambda (parameters)
+		   (error
+		    "Can't create multiple frames without a window system"))))))))
 
 ;;; startup.el calls this function after loading the user's init
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
