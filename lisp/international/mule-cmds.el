@@ -338,9 +338,7 @@ system, and Emacs automatically sets the default to that coding system at
 startup.
 
 A coding system that requires automatic detection of text
-encoding (e.g. undecided, unix) can't be preferred.
-
-See also `coding-category-list' and `coding-system-category'."
+encoding (e.g. undecided, unix) can't be preferred.."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -434,6 +432,7 @@ If STRING contains no multibyte characters, return a list of a single
 element `undecided'."
   (find-coding-systems-region string nil))
 
+;; Fixme: re-write
 (defun find-coding-systems-for-charsets (charsets)
   "Return a list of proper coding systems to encode characters of CHARSETS.
 CHARSETS is a list of character sets."
@@ -1136,6 +1135,8 @@ and enable that one.  The default is the most recent input method specified
 	  (when (interactive-p)
 	    (customize-mark-as-set 'default-input-method)))))))
 
+(eval-when-compile (autoload 'help-buffer "help-mode"))
+
 (defun describe-input-method (input-method)
   "Describe input method INPUT-METHOD."
   (interactive
@@ -1601,8 +1602,7 @@ of buffer-file-coding-system set by this function."
 		      "' in mode line):\n\t"
 		      (coding-system-doc-string (car l))
 		      "\n")
-	      (let ((aliases (coding-system-get (car l)
-						'alias-coding-systems)))
+	      (let ((aliases (coding-system-aliases (car l))))
 		(when aliases
 		  (insert "\t(alias:")
 		  (while aliases
