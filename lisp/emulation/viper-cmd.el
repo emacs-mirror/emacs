@@ -1,5 +1,8 @@
 ;;; viper-cmd.el --- Vi command support for Viper
+
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
+
+;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -757,6 +760,81 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
       (error (beep 1))))
   ;; set state in the new buffer
   (viper-set-mode-vars-for viper-current-state))
+
+;; This is used in order to allow reading characters according to the input
+;; method. The character is read in emacs and inserted into the buffer.
+;; If an input method is in effect, this might
+;; cause several characters to be combined into one.
+;; Also takes care of the iso-accents mode
+(defun viper-special-read-and-insert-char ()
+  (viper-set-mode-vars-for 'emacs-state)
+  (viper-normalize-minor-mode-map-alist)
+  (if viper-special-input-method
+      (viper-set-input-method t))
+  (if viper-automatic-iso-accents
+      (viper-set-iso-accents-mode t))
+  (condition-case nil
+      (let (viper-vi-kbd-minor-mode
+	    viper-insert-kbd-minor-mode
+	    viper-emacs-kbd-minor-mode
+	    ch)
+	(cond ((and viper-special-input-method
+		    viper-emacs-p
+		    (fboundp 'quail-input-method))
+	       ;; (let ...) is used to restore unread-command-events to the
+	       ;; original state. We don't want anything left in there after
+	       ;; key translation. (Such left-overs are possible if the user
+	       ;; types a regular key.)
+	       (let (unread-command-events)
+		 ;; The next 2 cmds are intended to prevent the input method
+		 ;; from swallowing ^M, ^Q and other special characters
+		 (setq ch (read-char))
+		 (viper-set-unread-command-events ch)
+		 (quail-input-method nil)
+
+		 (if (and ch (string= quail-current-str ""))
+		     (insert ch)
+		   (insert quail-current-str))
+		 (setq ch (or ch
+			      (aref quail-current-str
+				    (1- (length quail-current-str)))))
+		 ))
+	      ((and viper-special-input-method
+		    viper-xemacs-p
+		    (fboundp 'quail-start-translation))
+	       ;; same as above but for XEmacs, which doesn't have
+	       ;; quail-input-method
+	       (let (unread-command-events)
+		 (setq ch (read-char))
+		 (viper-set-unread-command-events ch)
+		 (quail-start-translation nil)
+
+		 (if (and ch (string= quail-current-str ""))
+		     (insert ch)
+		   (insert quail-current-str))
+		 (setq ch (or ch
+			      (aref quail-current-str
+				    (1- (length quail-current-str)))))
+		 ))
+	      ((and (boundp 'iso-accents-mode) iso-accents-mode)
+	       (setq ch (aref (read-key-sequence nil) 0))
+	       (insert ch))
+	      (t
+	       (setq ch (read-char))
+	       (insert ch))
+	      )
+	(setq last-command-event
+	      (viper-copy-event (if viper-xemacs-p
+				    (character-to-event ch) ch)))
+	) ; let
+    (error)
+    ) ; condition-case
+      
+  (viper-set-input-method nil)
+  (viper-set-iso-accents-mode nil)
+  (viper-set-mode-vars-for viper-current-state)
+  )
+
 
 (defun viper-exec-form-in-vi  (form)
   "Execute FORM in Vi state, regardless of the Ccurrent Vi state."
@@ -2064,7 +2142,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-insert val ?r nil nil nil))
     (if (eq viper-intermediate-command 'viper-repeat)
 	(viper-loop val (viper-yank-last-insertion))
@@ -2075,7 +2154,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-append val ?r nil nil nil))
     (if (not (eolp)) (forward-char))
     (if (eq viper-intermediate-command 'viper-repeat)
@@ -2087,7 +2167,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-Append val ?r nil nil nil))
     (end-of-line)
     (if (eq viper-intermediate-command 'viper-repeat)
@@ -2099,7 +2180,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-Insert val ?r nil nil nil))
     (back-to-indentation)
     (if (eq viper-intermediate-command 'viper-repeat)
@@ -2111,7 +2193,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-open-line val ?r nil nil nil))
     (let ((col (current-indentation)))
       (if (eq viper-intermediate-command 'viper-repeat)
@@ -2130,7 +2213,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command (list 'viper-Open-line val ?r nil nil nil))
     (let ((col (current-indentation)))
       (if (eq viper-intermediate-command 'viper-repeat)
@@ -2149,7 +2233,8 @@ problems."
   (interactive "P")
   (viper-set-complex-command-for-undo)
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (viper-set-destructive-command
      (list 'viper-open-line-at-point val ?r nil nil nil))
     (if (eq viper-intermediate-command 'viper-repeat)
@@ -2164,7 +2249,8 @@ problems."
   "Substitute characters."
   (interactive "P")
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	;;(com (viper-getcom arg))
+	)
     (push-mark nil t)
     (forward-char val)
     (if (eq viper-intermediate-command 'viper-repeat)
@@ -2389,7 +2475,8 @@ These keys are ESC, RET, and LineFeed"
   "Begin overwrite mode."
   (interactive "P")
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)) (len))
+	;;(com (viper-getcom arg))
+	(len))
     (viper-set-destructive-command (list 'viper-overwrite val ?r nil nil nil))
     (if (eq viper-intermediate-command 'viper-repeat)
 	(progn
@@ -2461,60 +2548,27 @@ These keys are ESC, RET, and LineFeed"
   ))
 
 (defun viper-replace-char-subr (com arg)
-  (let (char)
-    (setq char (if (eq viper-intermediate-command 'viper-repeat)
-		   viper-d-char
-		 (read-char)))
-    (let (inhibit-quit) ; preserve consistency of undo-list and iso-accents
-      (if (and  viper-automatic-iso-accents
-		(viper-memq-char char '(?' ?\" ?^ ?~)))
-	  ;; get European characters
-	  (progn
-	    (viper-set-iso-accents-mode t)
-	    (viper-set-unread-command-events char)
-	    (setq char (aref (read-key-sequence nil) 0))
-	    (viper-set-iso-accents-mode nil)))
-      (viper-set-complex-command-for-undo)
+  (let (char inhibit-quit)
+    (viper-set-complex-command-for-undo)
+    (or (eq viper-intermediate-command 'viper-repeat)
+	(viper-special-read-and-insert-char))
+
       (if (eq char ?\C-m) (setq char ?\n))
-      (if (and viper-special-input-method (fboundp 'quail-start-translation))
-	  ;; get Intl. characters
-	  (progn
-	    (viper-set-input-method t)
-	    (setq last-command-event
-		  (viper-copy-event
-		   (if viper-xemacs-p (character-to-event char) char)))
-	    (delete-char 1 t)
-	    (condition-case nil
-		(if com
-		    (insert char)
-		  (if viper-emacs-p
-		      (quail-start-translation 1)
-		    (quail-start-translation)))
-	      (error))
-	    ;; quail translation failed
-	    (if (and (not (stringp quail-current-str))
-		     (not (viper-characterp quail-current-str)))
-		(progn
-		  (viper-adjust-undo)
-		  (undo-start)
-		  (undo-more 1)
-		  (viper-set-input-method nil)
-		  (error "Composing character failed, changes undone")))
-	    ;; quail translation seems ok
-	    (or com
-		;;(setq char quail-current-str))
-		(setq char (viper-char-at-pos 'backward)))
-	    (setq viper-d-char char)
-	    (viper-loop (1- (if (> arg 0) arg (- arg)))
-			(delete-char 1 t)
-			(insert char))
-	    (viper-set-input-method nil))
-	(delete-char arg t)
-	(setq viper-d-char char)
-	(viper-loop (if (> arg 0) arg (- arg))
-		    (insert char)))
+
+      (delete-char 1 t)
+
+      (setq char (if com viper-d-char (viper-char-at-pos 'backward)))
+      (if com (insert char))
+
+      (setq viper-d-char char)
+
+      (viper-loop (1- (if (> arg 0) arg (- arg)))
+		  (delete-char 1 t)
+		  (insert char))
+
       (viper-adjust-undo)
-      (backward-char arg))))
+      (backward-char arg)
+      ))
 
 
 ;; basic cursor movement.  j, k, l, h commands.

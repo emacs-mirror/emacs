@@ -1202,18 +1202,21 @@ this variable represents.")
 	  (setq pos (next-overlay-change pos)))
 	(+ 1 ediff-shadow-overlay-priority
 	   (apply 'max
-		  (mapcar
-		   (lambda (ovr)
-		     (if (and ovr
-			      ;; exclude ediff overlays from priority
-			      ;; calculation, or else priority will keep
-			      ;; increasing
-			      (null (ediff-overlay-get ovr 'ediff))
-			      (null (ediff-overlay-get ovr 'ediff-diff-num)))
-			 ;; use the overlay priority or 0
-			 (or (ediff-overlay-get ovr 'priority) 0)
-		       0))
-		   ovr-list)
+		  (cons
+		   1
+		   (mapcar
+		    (lambda (ovr)
+		      (if (and ovr
+			       ;; exclude ediff overlays from priority
+			       ;; calculation, or else priority will keep
+			       ;; increasing
+			       (null (ediff-overlay-get ovr 'ediff))
+			       (null (ediff-overlay-get ovr 'ediff-diff-num)))
+			  ;; use the overlay priority or 0
+			  (or (ediff-overlay-get ovr 'priority) 0)
+			0))
+		    ovr-list)
+		   )
 		  ))
 	))))
 

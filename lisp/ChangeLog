@@ -1,3 +1,14 @@
+2001-09-09  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-init.el (ediff-highest-priority): bug fix.
+
+	* viper-cmd.el (viper-special-read-and-insert-char): new function
+	that reads a character and uses the current input method or
+	iso-accents when appropriate.
+	
+	* viper.el and all others: corrections to the comment blocks at
+	the top.
+	
 2001-09-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-goto-node): Doc fix.

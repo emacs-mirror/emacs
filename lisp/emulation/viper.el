@@ -2,13 +2,13 @@
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
-;;
-;; Keywords: emulations
-;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
-(defconst viper-version "3.11 of July 18, 2001"
+;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+;; Keywords: emulations
+
+(defconst viper-version "3.11.1 of September 9, 2001"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
