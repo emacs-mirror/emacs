@@ -201,6 +201,11 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
   :type 'boolean
   :group 'makefile)
 
+(defcustom makefile-mode-hook nil
+  "Normal hook run by `makefile-mode'."
+  :type 'hook
+  :group 'makefile)
+
 (defvar makefile-browser-hook '())
 
 ;;
