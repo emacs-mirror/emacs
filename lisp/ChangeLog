@@ -1,3 +1,8 @@
+2005-01-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el: Make sure the proper macro definitions are
+	available when compiling.
+
 2005-01-06  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-lazy-highlight-update): Rename
