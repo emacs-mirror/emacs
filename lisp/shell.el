@@ -235,7 +235,8 @@ This mirrors the optional behavior of tcsh."
       "[]a-zA-Z^_`\\[\\\\]:"
     nil)
   "*If non-nil, is regexp used to track drive changes."
-  :type 'regexp
+  :type '(choice regexp
+		 (const nil))
   :group 'shell-directories)
 
 (defcustom explicit-shell-file-name nil
