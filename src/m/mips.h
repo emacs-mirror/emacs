@@ -142,7 +142,12 @@ NOTE-END  */
   
 #else /* not BSD */
 
+#if defined(__GNUC__) && defined(_ABIN32)
+#define LIBS_MACHINE
+#else
 #define LIBS_MACHINE -lmld
+#endif
+
 #define LD_SWITCH_MACHINE -D 800000 -g3
 #define START_FILES pre-crt0.o /usr/lib/crt1.o
 #define LIB_STANDARD -lbsd -lc /usr/lib/crtn.o

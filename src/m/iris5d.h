@@ -1,4 +1,4 @@
-/* machine description file for Iris-4D machines.  Use with s-iris3-6.h
+/* machine description file for Iris-5D machines.  Use with s-iris3-6.h
    Copyright (C) 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -130,7 +130,12 @@ Boston, MA 02111-1307, USA.  */
 
 #undef LIBS_MACHINE
 /* -lsun in case using Yellow Pages for passwords.  */
+#if defined(__GNUC__) && defined(_ABIN32)
+#define LIBS_MACHINE -lsun
+#else
 #define LIBS_MACHINE -lsun -lmld
+#endif
+
 #define LIBS_DEBUG
 
 /* Define this if you have a fairly recent system,
