@@ -2318,6 +2318,15 @@ string, only text properties are considered, since strings never have
 overlays.
 @end defun
 
+@defvar char-property-alias-alist
+This variable holds an alist which maps property names to a list of
+alternative property names.  If a character does not specify a direct
+value for a property, the alternative property names are consulted in
+order; the first non-nil value is used.  This variable takes
+precedence over @code{default-text-properties}, and @code{category}
+properties take precedence over this variable.
+@end defvar
+
 @defun text-properties-at position &optional object
 This function returns the entire property list of the character at
 @var{position} in the string or buffer @var{object}.  If @var{object} is
@@ -2327,11 +2336,13 @@ This function returns the entire property list of the character at
 @defvar default-text-properties
 This variable holds a property list giving default values for text
 properties.  Whenever a character does not specify a value for a
-property, neither directly nor through a category symbol, the value
-stored in this list is used instead.  Here is an example:
+property, neither directly, through a category symbol, or through
+@code{char-property-alias-alist}, the value stored in this list is
+used instead.  Here is an example:
 
 @example
-(setq default-text-properties '(foo 69))
+(setq default-text-properties '(foo 69)
+      char-property-alias-alist nil)
 ;; @r{Make sure character 1 has no properties of its own.}
 (set-text-properties 1 2 nil)
 ;; @r{What we get, when we ask, is the default value.}
@@ -2653,8 +2664,23 @@ just the foreground color or just the background color.
 @code{(:foreground @var{color-name})}, and likewise for the background.
 @end itemize
 
-@xref{Font Lock Mode}, for information on how to update @code{face}
-properties automatically based on the contents of the text.
+You can use Font Lock Mode (@pxref{Font Lock Mode}), to dynamically
+update @code{face} properties based on the contents of the text.
+
+@item font-lock-face
+@kindex font-lock-face @r{(text property)}
+The @code{font-lock-face} property is the same in all respects as the
+@code{face} property, but its state of activation is controlled by
+@code{font-lock-mode}.  This can be advantageous for special buffers
+which are not intended to be user-editable, or for static areas of
+text which are always fontified in the same way.
+@xref{Precalculated Fontification}.
+
+Strictly speaking, @code{font-lock-face} is not a built-in text
+property; rather, it is implemented in Font Lock mode using
+@code{char-property-alias-alist}.  @xref{Examining Properties}.
+
+This property is new in Emacs 21.4.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
