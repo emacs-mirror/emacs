@@ -1,3 +1,10 @@
+2002-05-22  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* font-core.el (font-lock-function): New variable.
+	(font-lock-default-function): New function, created from
+	`font-lock-mode'.
+	(font-lock-mode): Just funcall `font-lock-default-function'.
+
 2002-05-22  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (file-newest-backup): Use file-name-sans-versions.
