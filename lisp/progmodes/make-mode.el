@@ -285,6 +285,15 @@ not be enclosed in { } or ( )."
    '("^[ \t]*\\(else\\|endif\\)[ \t]*\\(#.*$\\)?"
      (1 font-lock-warning-face))
 
+   ;; Fontify conditionals and includes.
+   ;; Note that plain `if' is an automake conditional, and not a bug.
+   '("^[ \t]*\\(-?include\\|if\\(n?eq\\|n?def\\)?\\)[ \t]+\\([^: \t\n#]+\\)"
+     (1 font-lock-reference-face) (3 font-lock-variable-name-face))
+
+   ;; Fontify endif and else.
+   '("^[ \t]*\\(else\\|endif\\)[ \t]*\\(#.*$\\)?"
+     (1 font-lock-reference-face))
+
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.
    '("^[ \t]+$" . makefile-space-face)
@@ -352,6 +361,12 @@ The function must satisfy this calling convention:
   :group 'makefile)
 
 ;;; --- end of up-to-date-overview configuration ------------------
+
+(defvar makefile-mode-abbrev-table nil
+  "Abbrev table in use in Makefile buffers.")
+(if makefile-mode-abbrev-table
+    ()
+  (define-abbrev-table 'makefile-mode-abbrev-table ()))
 
 (defvar makefile-mode-abbrev-table nil
   "Abbrev table in use in Makefile buffers.")
@@ -591,6 +606,9 @@ makefile-special-targets-list:
   ;; Dabbrev.
   (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
   (setq dabbrev-abbrev-skip-leading-regexp "\\$")
+
+  ;; Other abbrevs.
+  (setq local-abbrev-table makefile-mode-abbrev-table)
 
   ;; Other abbrevs.
   (setq local-abbrev-table makefile-mode-abbrev-table)
