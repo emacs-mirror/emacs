@@ -317,7 +317,6 @@ Boston, MA 02111-1307, USA.  */
    actually set a process group. */
 
 #define BSD_PGRPS
-#define setpgrp(pid,pgid) setpgid(pid,pgid)
 
 #define NARROWPROTO 1
 
