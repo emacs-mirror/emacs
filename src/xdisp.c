@@ -453,6 +453,10 @@ static int line_number_display_limit_width;
 
 Lisp_Object Vmessage_log_max;
 
+/* The name of the *Messages* buffer, a string.  */
+
+static Lisp_Object Vmessages_buffer_name;
+
 /* Current, index 0, and last displayed echo area message.  Either
    buffers from echo_buffers, or nil to indicate no message.  */
 
@@ -4898,18 +4902,9 @@ message_dolog (m, len, nlflag, multibyte)
       Lisp_Object old_deactivate_mark, tem;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-      static Lisp_Object messages_buffer_name;
-      static int buffer_name_initialized;
-
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
-      if (!buffer_name_initialized)
-	{
-	  messages_buffer_name = build_string ("*Messages*");
-	  staticpro (&messages_buffer_name);
-	  buffer_name_initialized = 1;
-	}
-      Fset_buffer (Fget_buffer_create (messages_buffer_name));
+      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
       current_buffer->undo_list = Qt;
 
       oldpoint = Fpoint_marker ();
@@ -13245,6 +13240,9 @@ syms_of_xdisp ()
   staticpro (&echo_area_buffer[0]);
   staticpro (&echo_area_buffer[1]);
 
+  Vmessages_buffer_name = build_string ("*Messages*");
+  staticpro (&Vmessages_buffer_name);
+  
   DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
     "Non-nil means highlight trailing whitespace.\n\
 The face used for trailing whitespace is `trailing-whitespace'.");
