@@ -92,6 +92,8 @@ extern char *strerror ();
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 #include "window.h"
 
 #ifdef WINDOWSNT
@@ -2987,6 +2989,10 @@ otherwise, if FILE2 does not exist, the answer is t.")
 Lisp_Object Qfind_buffer_file_type;
 #endif /* DOS_NT */
 
+#ifndef READ_BUF_SIZE
+#define READ_BUF_SIZE (64 << 10)
+#endif
+
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 5, 0,
   "Insert contents of file FILENAME after point.\n\
@@ -2994,7 +3000,7 @@ Returns list of absolute file name and length of data inserted.\n\
 If second argument VISIT is non-nil, the buffer's visited filename\n\
 and last save file modtime are set, and it is marked unmodified.\n\
 If visiting and the file does not exist, visiting is completed\n\
-before the error is signaled.\n\n\
+before the error is signaled.\n\
 The optional third and fourth arguments BEG and END\n\
 specify what portion of the file to insert.\n\
 If VISIT is non-nil, BEG and END must be nil.\n\
@@ -3005,7 +3011,10 @@ with the file contents.  This is better than simply deleting and inserting\n\
 the whole thing because (1) it preserves some marker positions\n\
 and (2) it puts less data in the undo list.\n\
 When REPLACE is non-nil, the value is the number of characters actually read,\n\
-which is often less than the number of characters to be read.")
+which is often less than the number of characters to be read.\n\
+This does code conversion according to the value of\n\
+  `coding-system-for-read' or `coding-system-alist', and sets the variable\n\
+  `last-coding-system-used' to the coding system actually used.")
   (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
@@ -3013,12 +3022,15 @@ which is often less than the number of characters to be read.")
   register int fd;
   register int inserted = 0;
   register int how_much;
+  register int unprocessed;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
   int not_regular = 0;
+  char read_buf[READ_BUF_SIZE];
+  struct coding_system coding;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3043,6 +3055,21 @@ which is often less than the number of characters to be read.")
 		   visit, beg, end, replace);
       goto handled;
     }
+
+  /* Decide the coding-system of the file.  */
+  {
+    Lisp_Object val = Vcoding_system_for_read;
+    if (NILP (val))
+      {
+	Lisp_Object args[6], coding_systems;
+
+	args[0] = Qinsert_file_contents, args[1] = filename, args[2] = visit,
+	  args[3] = beg, args[4] = end, args[5] = replace;
+	coding_systems = Ffind_coding_system (6, args);
+	val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
+      }
+    setup_coding_system (Fcheck_coding_system (val), &coding);
+  }
 
   fd = -1;
 
@@ -3114,21 +3141,23 @@ which is often less than the number of characters to be read.")
      with the file contents.  Avoid replacing text at the
      beginning or end of the buffer that matches the file contents;
      that preserves markers pointing to the unchanged parts.  */
-#ifdef DOS_NT
-  /* On MSDOS, replace mode doesn't really work, except for binary files,
-     and it's not worth supporting just for them.  */
-  if (!NILP (replace))
+  if (!NILP (replace) && CODING_REQUIRE_CONVERSION (&coding))
     {
+      /* We have to decode the input, which means replace mode is
+         quite difficult.  We give it up for the moment.  */
       replace = Qnil;
       del_range_1 (BEGV, ZV, 0);
     }
-#else /* not DOS_NT */
   if (!NILP (replace))
     {
       unsigned char buffer[1 << 14];
       int same_at_start = BEGV;
       int same_at_end = ZV;
       int overlap;
+      /* There is still a possibility we will find the need to do code
+	 conversion.  If that happens, we set this variable to 1 to
+	 give up on the REPLACE feature.  */
+      int giveup_match_end = 0;
 
       if (XINT (beg) != 0)
 	{
@@ -3151,9 +3180,30 @@ which is often less than the number of characters to be read.")
 		   XSTRING (filename)->data, strerror (errno));
 	  else if (nread == 0)
 	    break;
+
+	  if (coding.type == coding_type_automatic)
+	    detect_coding (&coding, buffer, nread);
+	  if (CODING_REQUIRE_TEXT_CONVERSION (&coding))
+	    /* We found that the file should be decoded somehow.
+               Let's give up here.  */
+	    {
+	      giveup_match_end = 1;
+	      break;
+	    }
+
+	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
+	    detect_eol (&coding, buffer, nread);
+	  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
+	    /* We found that the format of eol should be decoded.
+               Let's give up here.  */
+	    {
+	      giveup_match_end = 1;
+	      break;
+	    }
+
 	  bufpos = 0;
 	  while (bufpos < nread && same_at_start < ZV
-		 && FETCH_CHAR (same_at_start) == buffer[bufpos])
+		 && FETCH_BYTE (same_at_start) == buffer[bufpos])
 	    same_at_start++, bufpos++;
 	  /* If we found a discrepancy, stop the scan.
 	     Otherwise loop around and scan the next bufferful.  */
@@ -3174,8 +3224,9 @@ which is often less than the number of characters to be read.")
       immediate_quit = 1;
       QUIT;
       /* Count how many chars at the end of the file
-	 match the text at the end of the buffer.  */
-      while (1)
+	 match the text at the end of the buffer.  But, if we have
+	 already found that decoding is necessary, don't waste time.  */
+      while (!giveup_match_end)
 	{
 	  int total_read, nread, bufpos, curpos, trial;
 
@@ -3205,7 +3256,7 @@ which is often less than the number of characters to be read.")
 	  /* Compare with same_at_start to avoid counting some buffer text
 	     as matching both at the file's beginning and at the end.  */
 	  while (bufpos > 0 && same_at_end > same_at_start
-		 && FETCH_CHAR (same_at_end - 1) == buffer[bufpos - 1])
+		 && FETCH_BYTE (same_at_end - 1) == buffer[bufpos - 1])
 	    same_at_end--, bufpos--;
 	  /* If we found a discrepancy, stop the scan.
 	     Otherwise loop around and scan the preceding bufferful.  */
@@ -3231,7 +3282,6 @@ which is often less than the number of characters to be read.")
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
     }
-#endif /* not DOS_NT */
 
   total = XINT (end) - XINT (beg);
 
@@ -3257,32 +3307,81 @@ which is often less than the number of characters to be read.")
 	report_file_error ("Setting file position", Fcons (filename, Qnil));
     }
 
+  /* In the following loop, HOW_MUCH contains the total bytes read so
+     far.  Before exiting the loop, it is set to -1 if I/O error
+     occurs, set to -2 if the maximum buffer size is exceeded.  */
   how_much = 0;
-  while (inserted < total)
+  /* Total bytes inserted.  */
+  inserted = 0;
+  /* Bytes not processed in the previous loop because short gap size.  */
+  unprocessed = 0;
+  while (how_much < total)
     {
 	/* try is reserved in some compilers (Microsoft C) */
-      int trytry = min (total - inserted, 64 << 10);
+      int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
+      char *destination = (CODING_REQUIRE_CONVERSION (&coding)
+			   ? read_buf + unprocessed
+			   : (char *) (POS_ADDR (PT + inserted - 1) + 1));
       int this;
 
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
       QUIT;
-      this = read (fd, &FETCH_CHAR (PT + inserted - 1) + 1, trytry);
+      this = read (fd, destination, trytry);
       immediate_quit = 0;
 
-      if (this <= 0)
+      if (this < 0 || this + unprocessed == 0)
 	{
 	  how_much = this;
 	  break;
+	}
+
+      how_much += this;
+
+      if (CODING_REQUIRE_CONVERSION (&coding))
+	{
+	  int require, produced, consumed;
+
+	  this += unprocessed;
+	  /* Make sure that the gap is large enough.  */
+	  require = decoding_buffer_size (&coding, this);
+	  if (GAP_SIZE < require)
+	    make_gap (require - GAP_SIZE);
+	  if (how_much >= total)  /* This is the last block.  */
+	    coding.last_block = 1;
+	  produced = decode_coding (&coding, read_buf,
+				    POS_ADDR (PT + inserted - 1) + 1,
+				    this, GAP_SIZE, &consumed);
+	  if (produced > 0) 
+	    {
+	      Lisp_Object temp;
+
+	      XSET (temp, Lisp_Int, Z + produced);
+	      if (Z + produced != XINT (temp))
+		{
+		  how_much = -2;
+		  break;
+		}
+	    }
+	  unprocessed = this - consumed;
+	  bcopy (read_buf + consumed, read_buf, unprocessed);
+	  this = produced;
 	}
 
       GPT += this;
       GAP_SIZE -= this;
       ZV += this;
       Z += this;
+      if (GAP_SIZE > 0)
+	/* Put an anchor to ensure multi-byte form ends at gap.  */
+	*GPT_ADDR = 0;
       inserted += this;
     }
 
+  /* We don't have to consider file type of MSDOS because all files
+     are read as binary and end-of-line format has already been
+     decoded appropriately.  */
+#if 0
 #ifdef DOS_NT
   /* Demacs 1.1.1 91/10/16 HIRANO Satoshi, MW July 1993 */
   /* Determine file type from name and remove LFs from CR-LFs if the file
@@ -3293,7 +3392,7 @@ which is often less than the number of characters to be read.")
     if (NILP (current_buffer->buffer_file_type))
       {
 	int reduced_size
-	  = inserted - crlf_to_lf (inserted, &FETCH_CHAR (PT - 1) + 1);
+	  = inserted - crlf_to_lf (inserted, POS_ADDR (PT - 1) + 1);
 	ZV -= reduced_size;
 	Z -= reduced_size;
 	GPT -= reduced_size;
@@ -3302,6 +3401,7 @@ which is often less than the number of characters to be read.")
       }
   }
 #endif /* DOS_NT */
+#endif /* 0 */
 
   if (inserted > 0)
     {
@@ -3317,9 +3417,11 @@ which is often less than the number of characters to be read.")
   /* Discard the unwind protect for closing the file.  */
   specpdl_ptr--;
 
-  if (how_much < 0)
+  if (how_much == -1)
     error ("IO error reading %s: %s",
 	   XSTRING (filename)->data, strerror (errno));
+  else if (how_much == -2)
+    error ("maximum buffer size exceeded");
 
  notfound:
  handled:
@@ -3374,6 +3476,9 @@ which is often less than the number of characters to be read.")
   if (inserted > 0)
     {
       p = Vafter_insert_file_functions;
+      if (!NILP (coding.post_read_conversion))
+	p = Fcons (coding.post_read_conversion, p);
+
       while (!NILP (p))
 	{
 	  insval = call1 (Fcar (p), make_number (inserted));
@@ -3398,7 +3503,11 @@ which is often less than the number of characters to be read.")
 static Lisp_Object build_annotations ();
 
 /* If build_annotations switched buffers, switch back to BUF.
-   Kill the temporary buffer that was selected in the meantime.  */
+   Kill the temporary buffer that was selected in the meantime.
+
+   Since this kill only the last temporary buffer, some buffers remain
+   not killed if build_annotations switched buffers more than once.
+   -- K.Handa */
 
 static Lisp_Object
 build_annotations_unwind (buf)
@@ -3432,7 +3541,10 @@ If VISIT is neither t nor nil nor a string,\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
   use for locking and unlocking, overriding FILENAME and VISIT.\n\
 Kludgy feature: if START is a string, then that string is written\n\
-to the file, instead of any buffer contents, and END is ignored.")
+to the file, instead of any buffer contents, and END is ignored.\n\
+This does code conversion according to the value of\n\
+ `coding-system-for-write' or `coding-system-alist', and sets the variable\n\
+ `last-coding-system-used' to the coding system actually used.")
   (start, end, filename, append, visit, lockname)
      Lisp_Object start, end, filename, append, visit, lockname;
 {
@@ -3457,6 +3569,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   int buffer_file_type
     = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
 #endif /* DOS_NT */
+  struct coding_system coding;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3505,6 +3618,38 @@ to the file, instead of any buffer contents, and END is ignored.")
       return val;
     }
 
+  /* Decide the coding-system to be encoded to.  */
+  {
+    Lisp_Object val;
+
+    if (auto_saving)
+      val = Qnil;
+    else if (!NILP (Vcoding_system_for_write))
+      val = Vcoding_system_for_write;
+    else if (!NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
+					      Qnil)))
+      val = Fsymbol_value (Qbuffer_file_coding_system);
+    else
+      {
+	Lisp_Object args[7], coding_systems;
+
+	args[0] = Qwrite_region, args[1] = start, args[2] = end,
+	  args[3] = filename, args[4] = append, args[5] = visit,
+	  args[6] = lockname;
+	coding_systems = Ffind_coding_system (7, args);
+	val = (CONSP (coding_systems)
+	       ? XCONS (coding_systems)->cdr
+	       : Fsymbol_value (Qbuffer_file_coding_system));
+      }
+    setup_coding_system (Fcheck_coding_system (val), &coding); 
+    if (!STRINGP (start) && !NILP (current_buffer->selective_display))
+      coding.selective = 1;
+#ifdef DOS_NT
+    if (!NILP (current_buffer->buffer_file_type))
+      coding.eol_type = CODING_EOL_LF;
+#endif /* DOS_NT */
+  }
+
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
     {
@@ -3516,7 +3661,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   count1 = specpdl_ptr - specpdl;
 
   given_buffer = current_buffer;
-  annotations = build_annotations (start, end);
+  annotations = build_annotations (start, end, coding.pre_write_conversion);
   if (current_buffer != given_buffer)
     {
       start = BEGV;
@@ -3649,7 +3794,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (STRINGP (start))
     {
       failure = 0 > a_write (desc, XSTRING (start)->data,
-			     XSTRING (start)->size, 0, &annotations);
+			     XSTRING (start)->size, 0, &annotations, &coding);
       save_errno = errno;
     }
   else if (XINT (start) != XINT (end))
@@ -3659,8 +3804,9 @@ to the file, instead of any buffer contents, and END is ignored.")
 	{
 	  register int end1 = XINT (end);
 	  tem = XINT (start);
-	  failure = 0 > a_write (desc, &FETCH_CHAR (tem),
-				 min (GPT, end1) - tem, tem, &annotations);
+	  failure = 0 > a_write (desc, POS_ADDR (tem),
+				 min (GPT, end1) - tem, tem, &annotations,
+				 &coding);
 	  nwritten += min (GPT, end1) - tem;
 	  save_errno = errno;
 	}
@@ -3669,8 +3815,8 @@ to the file, instead of any buffer contents, and END is ignored.")
 	{
 	  tem = XINT (start);
 	  tem = max (tem, GPT);
-	  failure = 0 > a_write (desc, &FETCH_CHAR (tem), XINT (end) - tem,
-				 tem, &annotations);
+	  failure = 0 > a_write (desc, POS_ADDR (tem), XINT (end) - tem,
+				 tem, &annotations, &coding);
 	  nwritten += XINT (end) - tem;
 	  save_errno = errno;
 	}
@@ -3678,7 +3824,15 @@ to the file, instead of any buffer contents, and END is ignored.")
   else
     {
       /* If file was empty, still need to write the annotations */
-      failure = 0 > a_write (desc, "", 0, XINT (start), &annotations);
+      failure = 0 > a_write (desc, "", 0, XINT (start), &annotations, &coding);
+      save_errno = errno;
+    }
+
+  if (coding.require_flushing)
+    {
+      /* We have to flush out a data. */
+      coding.last_block = 1;
+      failure = 0 > e_write (desc, "", 0, &coding);
       save_errno = errno;
     }
 
@@ -3787,8 +3941,8 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
    as save-excursion would do.  */
 
 static Lisp_Object
-build_annotations (start, end)
-     Lisp_Object start, end;
+build_annotations (start, end, pre_write_conversion)
+     Lisp_Object start, end, pre_write_conversion;
 {
   Lisp_Object annotations;
   Lisp_Object p, res;
@@ -3842,6 +3996,24 @@ build_annotations (start, end)
       annotations = merge (annotations, res, Qcar_less_than_car);
       p = Fcdr (p);
     }
+
+  /* At last, do the same for the function PRE_WRITE_CONVERSION
+     implied by the current coding-system.  */
+  if (!NILP (pre_write_conversion))
+    {
+      struct buffer *given_buffer = current_buffer;
+      Vwrite_region_annotations_so_far = annotations;
+      res = call2 (pre_write_conversion, start, end);
+      if (current_buffer != given_buffer)
+	{
+	  start = BEGV;
+	  end = ZV;
+	  annotations = Qnil;
+	}
+      Flength (res);
+      annotations = merge (annotations, res, Qcar_less_than_car);
+    }
+
   UNGCPRO;
   return annotations;
 }
@@ -3856,12 +4028,13 @@ build_annotations (start, end)
    The return value is negative in case of system call failure.  */
 
 int
-a_write (desc, addr, len, pos, annot)
+a_write (desc, addr, len, pos, annot, coding)
      int desc;
      register char *addr;
      register int len;
      int pos;
      Lisp_Object *annot;
+     struct coding_system *coding;
 {
   Lisp_Object tem;
   int nextpos;
@@ -3873,10 +4046,10 @@ a_write (desc, addr, len, pos, annot)
       if (INTEGERP (tem) && XINT (tem) >= pos && XFASTINT (tem) <= lastpos)
 	nextpos = XFASTINT (tem);
       else
-	return e_write (desc, addr, lastpos - pos);
+	return e_write (desc, addr, lastpos - pos, coding);
       if (nextpos > pos)
 	{
-	  if (0 > e_write (desc, addr, nextpos - pos))
+	  if (0 > e_write (desc, addr, nextpos - pos, coding))
 	    return -1;
 	  addr += nextpos - pos;
 	  pos = nextpos;
@@ -3884,43 +4057,50 @@ a_write (desc, addr, len, pos, annot)
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size))
+	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size,
+			   coding))
 	    return -1;
 	}
       *annot = Fcdr (*annot);
     }
 }
 
+#ifndef WRITE_BUF_SIZE
+#define WRITE_BUF_SIZE (16 * 1024)
+#endif
+
 int
-e_write (desc, addr, len)
+e_write (desc, addr, len, coding)
      int desc;
      register char *addr;
      register int len;
+     struct coding_system *coding;
 {
-  char buf[16 * 1024];
-  register char *p, *end;
+  char buf[WRITE_BUF_SIZE];
+  int produced, consumed;
 
-  if (!EQ (current_buffer->selective_display, Qt))
-    return write (desc, addr, len) - len;
-  else
+  /* We used to have a code for handling selective display here.  But,
+     now it is handled within encode_coding.  */
+  while (1)
     {
-      p = buf;
-      end = p + sizeof buf;
-      while (len--)
+      produced = encode_coding (coding, addr, buf, len, WRITE_BUF_SIZE,
+				&consumed);
+      len -= consumed, addr += consumed;
+      if (produced == 0 && len > 0)
 	{
-	  if (p == end)
-	    {
-	      if (write (desc, buf, sizeof buf) != sizeof buf)
-		return -1;
-	      p = buf;
-	    }
-	  *p = *addr++;
-	  if (*p++ == '\015')
-	    p[-1] = '\n';
+	  /* There was a carry over because of invalid codes in the source.
+	     We just write out them as is.  */
+	  bcopy (addr, buf, len);
+	  produced = len;
+	  len = 0;
 	}
-      if (p != buf)
-	if (write (desc, buf, p - buf) != p - buf)
-	  return -1;
+      if (produced > 0)
+	{
+	  produced -= write (desc, buf, produced);
+	  if (produced) return -1;
+	}
+      if (len <= 0)
+	break;
     }
   return 0;
 }
