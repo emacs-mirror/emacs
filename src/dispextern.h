@@ -2650,6 +2650,8 @@ extern void cancel_mouse_face P_ ((struct frame *));
 extern void handle_tool_bar_click P_ ((struct frame *,
 				       int, int, int, unsigned int));
 
+extern void reseat_at_previous_visible_line_start P_ ((struct it *));
+
 /* msdos.c defines its own versions of these functions. */
 extern int clear_mouse_face P_ ((Display_Info *));
 extern void show_mouse_face P_ ((Display_Info *, enum draw_glyphs_face));
