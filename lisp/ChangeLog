@@ -1,5 +1,10 @@
 2001-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/characters.el: Resurrect the Hebrew category
+	settings for all Hebrew characters removed by the last change.
+	Add code for setting the Hebrew category of the Unicode Hebrew
+	characters.  Set syntax entries for Hebrew punctuation characters.
+
 	* international/ucs-tables.el (ucs-8859-8-alist): Add Hebrew
 	points and directional formatting control characters.
 
