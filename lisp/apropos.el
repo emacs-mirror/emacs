@@ -444,8 +444,8 @@ found."
 	(set-buffer standard-output)
 	(apropos-mode)
 	(if window-system
-	    (insert (substitute-command-keys
-		     "If you move the mouse over text that changes color,\n"
+	    (insert "If you move the mouse over text that changes color,\n"
+		    (substitute-command-keys
 		     "you can click \\[apropos-mouse-follow] to get more information.\n")))
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[apropos-follow] to get full documentation.\n\n"))
