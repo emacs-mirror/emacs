@@ -544,25 +544,16 @@ character that indicates continuation.
 a line gets too long.  Continuation on the screen does not do that.  Use
 Auto Fill mode (@pxref{Filling}) if that's what you want.
 
-@vindex truncate-lines
 @cindex truncation
 @cindex line truncation, and fringes
   As an alternative to continuation, Emacs can display long lines by
 @dfn{truncation}.  This means that all the characters that do not fit
-in the width of the screen or window do not appear at all.  They
-remain in the buffer, temporarily invisible.  On terminals, @samp{$}
-in the last column informs you that the line has been truncated on the
-display.  On window systems, a small straight arrow in the fringe to
-the right of the window indicates a truncated line.
+in the width of the screen or window do not appear at all.  @samp{$}
+in the last column or a small straight arrow in the fringe to the
+right of the window indicates a truncated line.
 
-@findex toggle-truncate-lines
-  Truncation instead of continuation happens whenever horizontal
-scrolling is in use, and optionally in all side-by-side windows
-(@pxref{Windows}).  You can enable or disable truncation for a
-particular buffer with the command @kbd{M-x toggle-truncate-lines}.
-
-  @xref{Display Custom}, for additional variables that affect how text is
-displayed.
+  @xref{Display Custom}, for more information about line truncation,
+and other variables that affect how text is displayed.
 
 @node Position Info
 @section Cursor Position Information
