@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-stuff () nil)
-
 
 (defun calc-num-prefix (n)
   "Use the number at the top of stack as the numeric prefix for the next command.
@@ -300,6 +297,8 @@ With a prefix, push that prefix as a number onto the stack."
 	       (math-map-over-constants-rec (nth 1 expr))
 	       (nth 2 expr)))
 	(t (cons (car expr) (mapcar 'math-map-over-constants-rec (cdr expr))))))
+
+(provide 'calc-stuff)
 
 ;;; arch-tag: 789332ef-a178-49d3-8fb7-5d7ed7e21f56
 ;;; calc-stuff.el ends here
