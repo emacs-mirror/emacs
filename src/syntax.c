@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1260,10 +1260,7 @@ skip_chars (forwardp, syntaxp, string, lim)
       /* Convert multibyteness between what the string has
 	 and what the buffer has.  */
       if (multibyte)
-	{
-	  if (c >= 0200 && c < 0400)
-	    c += nonascii_insert_offset;
-	}
+	c = unibyte_char_to_multibyte (c);
       else
 	c &= 0377;
 
