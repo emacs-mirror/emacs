@@ -188,6 +188,30 @@ intervals_equal (i0, i1)
 
 
 /* Traverse an interval tree TREE, performing FUNCTION on each node.
+   No guarantee is made about the order of traversal.
+   Pass FUNCTION two args: an interval, and ARG.  */
+
+void
+traverse_intervals_noorder (tree, function, arg)
+     INTERVAL tree;
+     void (* function) P_ ((INTERVAL, Lisp_Object));
+     Lisp_Object arg;
+{
+  /* Minimize stack usage.  */
+  while (!NULL_INTERVAL_P (tree))
+    {
+      (*function) (tree, arg);
+      if (NULL_INTERVAL_P (tree->right))
+	tree = tree->left;
+      else
+	{
+	  traverse_intervals_noorder (tree->left, function, arg);
+	  tree = tree->right;
+	}
+    }
+}
+
+/* Traverse an interval tree TREE, performing FUNCTION on each node.
    Pass FUNCTION two args: an interval, and ARG.  */
 
 void
@@ -197,15 +221,14 @@ traverse_intervals (tree, position, depth, function, arg)
      void (* function) P_ ((INTERVAL, Lisp_Object));
      Lisp_Object arg;
 {
-  if (NULL_INTERVAL_P (tree))
-    return;
-
-  traverse_intervals (tree->left, position, depth + 1, function, arg);
-  position += LEFT_TOTAL_LENGTH (tree);
-  tree->position = position;
-  (*function) (tree, arg);
-  position += LENGTH (tree);
-  traverse_intervals (tree->right, position, depth + 1,  function, arg);
+  while (!NULL_INTERVAL_P (tree))
+    {
+      traverse_intervals (tree->left, position, depth + 1, function, arg);
+      position += LEFT_TOTAL_LENGTH (tree);
+      tree->position = position;
+      (*function) (tree, arg);
+      position += LENGTH (tree); tree = tree->right; depth++;
+    }
 }
 
 #if 0
@@ -236,7 +259,7 @@ search_for_interval (i, tree)
   icount = 0;
   search_interval = i;
   found_interval = NULL_INTERVAL;
-  traverse_intervals (tree, 1, 0, &check_for_interval, Qnil);
+  traverse_intervals_noorder (tree, &check_for_interval, Qnil);
   return found_interval;
 }
 
@@ -258,7 +281,7 @@ count_intervals (i)
   icount = 0;
   idepth = 0;
   zero_length = 0;
-  traverse_intervals (i, 1, 0, &inc_interval_count, Qnil);
+  traverse_intervals_noorder (i, &inc_interval_count, Qnil);
 
   return icount;
 }
@@ -285,7 +308,7 @@ root_interval (interval)
      c		  c
 */
 
-static INTERVAL
+static INLINE INTERVAL
 rotate_right (interval)
      INTERVAL interval;
 {
@@ -331,7 +354,7 @@ rotate_right (interval)
     c               c
 */
 
-static INTERVAL
+static INLINE INTERVAL
 rotate_left (interval)
      INTERVAL interval;
 {
