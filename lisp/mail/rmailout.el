@@ -22,6 +22,10 @@
 (defvar rmail-delete-after-output nil
   "*Non-nil means automatically delete a message that is copied to a file.")
 
+(defvar rmail-output-file-alist nil
+  "*Alist matching regexps to suggested output Rmail files.
+This is a list of elements of the form (REGEXP . FILENAME).")
+
 (defun rmail-output-to-rmail-file (count file-name)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
@@ -35,7 +39,17 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			      (file-name-nondirectory rmail-last-rmail-file)
 			      ") ")
 		      (file-name-directory rmail-last-rmail-file)
-		      rmail-last-rmail-file)))
+		      (let (answer tail)
+			(setq tail rmail-output-file-alist)
+			;; Suggest a file based on a pattern match.
+			(while (and tail (not answer))
+			  (save-excursion
+			    (goto-char (point-min))
+			    (if (re-search-forward (car (car tail)) nil t)
+				(setq answer (cdr (car tail))))
+			    (setq tail (cdr tail))))
+			;; If not suggestions, use same file as last time.
+			(or answer rmail-last-rmail-file)))))
   (setq file-name (expand-file-name file-name))
   (setq rmail-last-rmail-file file-name)
   (rmail-maybe-set-message-counters)
