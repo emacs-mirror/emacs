@@ -4643,43 +4643,51 @@ Value is a multiple of the canonical character height of WINDOW.")
   (window)
      Lisp_Object window;
 {
+  Lisp_Object result;
   struct frame *f;
   struct window *w;
   
   if (NILP (window))
     window = selected_window;
+  else
+    CHECK_WINDOW (window, 0);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
   
   if (FRAME_WINDOW_P (f))
-    return CANON_Y_FROM_PIXEL_Y (f, w->vscroll);
+    result = CANON_Y_FROM_PIXEL_Y (f, -w->vscroll);
   else
-    return make_number (0);
+    result = make_number (0);
+  return result;
 }
 
 
 DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
-       1, 2, 0,
-  "Set amount by WINDOW should be scrolled vertically to VSCROLL.\n\
+       2, 2, 0,
+  "Set amount by which WINDOW should be scrolled vertically to VSCROLL.\n\
 WINDOW nil or omitted means use the selected window.  VSCROLL is a\n\
-multiple of the canonical character height of WINDOW.")
-  (vscroll, window)
-     Lisp_Object vscroll, window;
+non-negative multiple of the canonical character height of WINDOW.")
+  (window, vscroll)
+     Lisp_Object window, vscroll;
 {
   struct window *w;
   struct frame *f;
   
-  CHECK_NUMBER_OR_FLOAT (vscroll, 0);
-  
   if (NILP (window))
     window = selected_window;
+  else
+    CHECK_WINDOW (window, 0);
+  CHECK_NUMBER_OR_FLOAT (vscroll, 1);
+  
   w = XWINDOW (window);
   f = XFRAME (w->frame);
 
   if (FRAME_WINDOW_P (f))
     {
       int old_dy = w->vscroll;
-      w->vscroll = min (0, CANON_Y_UNIT (f) * XFLOATINT (vscroll));
+      
+      w->vscroll = - CANON_Y_UNIT (f) * XFLOATINT (vscroll);
+      w->vscroll = min (w->vscroll, 0);
 
       /* Adjust glyph matrix of the frame if the virtual display
 	 area becomes larger than before.  */
@@ -4690,7 +4698,7 @@ multiple of the canonical character height of WINDOW.")
       XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
     }
   
-  return Qnil;
+  return Fwindow_vscroll (window);
 }
        
 
