@@ -2935,7 +2935,7 @@ redraws with point in the center of the current window.")
   if (XINT (arg) < 0)
     XSETINT (arg, XINT (arg) + ht);
 
-  pos = *vmotion (point, - XINT (arg), w);
+  pos = *vmotion (PT, - XINT (arg), w);
 
   Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
   w->start_at_line_beg = ((pos.bufpos == BEGV

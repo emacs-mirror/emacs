@@ -238,7 +238,7 @@ looking_at_1 (string, posix)
     }
   
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
-		  point - BEGV, &search_regs,
+		  PT - BEGV, &search_regs,
 		  ZV - BEGV);
   if (i == -2)
     matcher_overflow ();
@@ -762,7 +762,7 @@ skip_chars (forwardp, syntaxp, string, lim)
       fastmap[i] ^= 1;
 
   {
-    int start_point = point;
+    int start_point = PT;
 
     immediate_quit = 1;
     if (syntaxp)
@@ -770,33 +770,33 @@ skip_chars (forwardp, syntaxp, string, lim)
 
 	if (forwardp)
 	  {
-	    while (point < XINT (lim)
-		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (point))]])
-	      SET_PT (point + 1);
+	    while (PT < XINT (lim)
+		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (PT))]])
+	      SET_PT (PT + 1);
 	  }
 	else
 	  {
-	    while (point > XINT (lim)
-		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (point - 1))]])
-	      SET_PT (point - 1);
+	    while (PT > XINT (lim)
+		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (PT - 1))]])
+	      SET_PT (PT - 1);
 	  }
       }
     else
       {
 	if (forwardp)
 	  {
-	    while (point < XINT (lim) && fastmap[FETCH_CHAR (point)])
-	      SET_PT (point + 1);
+	    while (PT < XINT (lim) && fastmap[FETCH_CHAR (PT)])
+	      SET_PT (PT + 1);
 	  }
 	else
 	  {
-	    while (point > XINT (lim) && fastmap[FETCH_CHAR (point - 1)])
-	      SET_PT (point - 1);
+	    while (PT > XINT (lim) && fastmap[FETCH_CHAR (PT - 1)])
+	      SET_PT (PT - 1);
 	  }
       }
     immediate_quit = 0;
 
-    return make_number (point - start_point);
+    return make_number (PT - start_point);
   }
 }
 
@@ -826,7 +826,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
     {
       CHECK_NUMBER_COERCE_MARKER (bound, 1);
       lim = XINT (bound);
-      if (n > 0 ? lim < point : lim > point)
+      if (n > 0 ? lim < PT : lim > PT)
 	error ("Invalid search bound (wrong side of point)");
       if (lim > ZV)
 	lim = ZV;
@@ -834,7 +834,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 	lim = BEGV;
     }
 
-  np = search_buffer (string, point, lim, n, RE,
+  np = search_buffer (string, PT, lim, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
 		       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents
 		       : 0),
@@ -1745,7 +1745,7 @@ since only regular expressions have distinguished subexpressions.")
 
       for (pos = 0; pos < XSTRING (newtext)->size; pos++)
 	{
-	  int offset = point - search_regs.start[sub];
+	  int offset = PT - search_regs.start[sub];
 
 	  c = XSTRING (newtext)->data[pos];
 	  if (c == '\\')
@@ -1773,13 +1773,13 @@ since only regular expressions have distinguished subexpressions.")
       UNGCPRO;
     }
 
-  inslen = point - (search_regs.start[sub]);
+  inslen = PT - (search_regs.start[sub]);
   del_range (search_regs.start[sub] + inslen, search_regs.end[sub] + inslen);
 
   if (case_action == all_caps)
-    Fupcase_region (make_number (point - inslen), make_number (point));
+    Fupcase_region (make_number (PT - inslen), make_number (PT));
   else if (case_action == cap_initial)
-    Fupcase_initials_region (make_number (point - inslen), make_number (point));
+    Fupcase_initials_region (make_number (PT - inslen), make_number (PT));
   return Qnil;
 }
 

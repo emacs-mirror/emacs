@@ -606,9 +606,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  /* visargs[i+1] = Qnil; */
 	  foo = marker_position (current_buffer->mark);
 	  /* visargs[i] = Qnil; */
-	  args[i] = point < foo ? point_marker : current_buffer->mark;
+	  args[i] = PT < foo ? point_marker : current_buffer->mark;
 	  varies[i] = 3;
-	  args[++i] = point > foo ? point_marker : current_buffer->mark;
+	  args[++i] = PT > foo ? point_marker : current_buffer->mark;
 	  varies[i] = 4;
 	  break;
 

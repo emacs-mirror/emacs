@@ -178,7 +178,7 @@ Beginning of buffer is position (point-min)")
   ()
 {
   Lisp_Object temp;
-  XSETFASTINT (temp, point);
+  XSETFASTINT (temp, PT);
   return temp;
 }
 
@@ -186,7 +186,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
    "Return value of point, as a marker object.")
   ()
 {
-  return buildmark (point);
+  return buildmark (PT);
 }
 
 int
@@ -224,8 +224,8 @@ region_limit (beginningp)
     Fsignal (Qmark_inactive, Qnil);
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m)) error ("There is no region now");
-  if ((point < XFASTINT (m)) == beginningp)
-    return (make_number (point));
+  if ((PT < XFASTINT (m)) == beginningp)
+    return (make_number (PT));
   else
     return (m);
 }
@@ -393,10 +393,10 @@ At the end of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
-  if (point >= ZV)
+  if (PT >= ZV)
     XSETFASTINT (temp, 0);
   else
-    XSETFASTINT (temp, FETCH_CHAR (point));
+    XSETFASTINT (temp, FETCH_CHAR (PT));
   return temp;
 }
 
@@ -406,10 +406,10 @@ At the beginning of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
-  if (point <= BEGV)
+  if (PT <= BEGV)
     XSETFASTINT (temp, 0);
   else
-    XSETFASTINT (temp, FETCH_CHAR (point - 1));
+    XSETFASTINT (temp, FETCH_CHAR (PT - 1));
   return temp;
 }
 
@@ -418,7 +418,7 @@ DEFUN ("bobp", Fbobp, Sbobp, 0, 0, 0,
 If the buffer is narrowed, this means the beginning of the narrowed part.")
   ()
 {
-  if (point == BEGV)
+  if (PT == BEGV)
     return Qt;
   return Qnil;
 }
@@ -428,7 +428,7 @@ DEFUN ("eobp", Feobp, Seobp, 0, 0, 0,
 If the buffer is narrowed, this means the end of the narrowed part.")
   ()
 {
-  if (point == ZV)
+  if (PT == ZV)
     return Qt;
   return Qnil;
 }
@@ -437,7 +437,7 @@ DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
   "Return T if point is at the beginning of a line.")
   ()
 {
-  if (point == BEGV || FETCH_CHAR (point - 1) == '\n')
+  if (PT == BEGV || FETCH_CHAR (PT - 1) == '\n')
     return Qt;
   return Qnil;
 }
@@ -447,7 +447,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 `End of a line' includes point being at the end of the buffer.")
   ()
 {
-  if (point == ZV || FETCH_CHAR (point) == '\n')
+  if (PT == ZV || FETCH_CHAR (PT) == '\n')
     return Qt;
   return Qnil;
 }
@@ -1703,9 +1703,9 @@ or markers) bounding the text that should remain visible.")
 
   BEGV = XFASTINT (start);
   SET_BUF_ZV (current_buffer, XFASTINT (end));
-  if (point < XFASTINT (start))
+  if (PT < XFASTINT (start))
     SET_PT (XFASTINT (start));
-  if (point > XFASTINT (end))
+  if (PT > XFASTINT (end))
     SET_PT (XFASTINT (end));
   current_buffer->clip_changed = 1;
   /* Changing the buffer bounds invalidates any recorded current column.  */

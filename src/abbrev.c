@@ -246,7 +246,7 @@ Returns t if expansion took place.")
 	del_range (wordstart, wordstart + 1);
     }
   if (!wordstart)
-    wordstart = scan_words (point, -1);
+    wordstart = scan_words (PT, -1);
 
   if (!wordstart)
     return value;
@@ -255,9 +255,9 @@ Returns t if expansion took place.")
   if (!wordend)
     return value;
 
-  if (wordend > point)
-    wordend = point;
-  whitecnt = point - wordend;
+  if (wordend > PT)
+    wordend = PT;
+  whitecnt = PT - wordend;
   if (wordend <= wordstart)
     return value;
 
@@ -304,7 +304,7 @@ Returns t if expansion took place.")
 
   expansion = XSYMBOL (sym)->value;
   insert_from_string (expansion, 0, XSTRING (expansion)->size, 1);
-  SET_PT (point + whitecnt);
+  SET_PT (PT + whitecnt);
 
   if (uccount && !lccount)
     {
@@ -313,14 +313,14 @@ Returns t if expansion took place.")
       /* This used to be if (!... && ... >= ...) Fcapitalize; else Fupcase
 	 but Megatest 68000 compiler can't handle that */
       if (!abbrev_all_caps)
-	if (scan_words (point, -1) > scan_words (wordstart, 1))
+	if (scan_words (PT, -1) > scan_words (wordstart, 1))
 	  {
 	    Fupcase_initials_region (make_number (wordstart),
-				     make_number (point));
+				     make_number (PT));
 	    goto caped;
 	  }
       /* If expansion is one word, or if user says so, upcase it all. */
-      Fupcase_region (make_number (wordstart), make_number (point));
+      Fupcase_region (make_number (wordstart), make_number (PT));
     caped: ;
     }
   else if (uccount)
@@ -329,7 +329,7 @@ Returns t if expansion took place.")
       int pos = wordstart;
 
       /* Find the initial.  */
-      while (pos < point
+      while (pos < PT
 	     && SYNTAX (*BUF_CHAR_ADDRESS (current_buffer, pos)) != Sword)
 	pos++;
 
@@ -350,7 +350,7 @@ This differs from ordinary undo in that other editing done since then\n\
 is not undone.")
   ()
 {
-  int opoint = point;
+  int opoint = PT;
   int adjust = 0;
   if (last_abbrev_point < BEGV
       || last_abbrev_point > ZV)
@@ -365,7 +365,7 @@ is not undone.")
       if (!STRINGP (val))
 	error ("value of abbrev-symbol must be a string");
       adjust = XSTRING (val)->size;
-      del_range (point, point + adjust);
+      del_range (PT, PT + adjust);
       /* Don't inherit properties here; just copy from old contents.  */
       insert_from_string (Vlast_abbrev_text, 0,
 			  XSTRING (Vlast_abbrev_text)->size, 0);

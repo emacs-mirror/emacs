@@ -639,7 +639,7 @@ and nil is returned.")
   int val;
   CHECK_NUMBER (count, 0);
 
-  if (!(val = scan_words (point, XINT (count))))
+  if (!(val = scan_words (PT, XINT (count))))
     {
       SET_PT (XINT (count) > 0 ? ZV : BEGV);
       return Qnil;
@@ -1401,7 +1401,7 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
   ()
 {
   int beg = BEGV;
-  int pos = point;
+  int pos = PT;
 
   while (pos > beg && !char_quoted (pos - 1)
 	 && (SYNTAX (FETCH_CHAR (pos - 1)) == Squote

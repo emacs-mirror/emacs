@@ -283,7 +283,7 @@ current_column ()
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int stopchar;
 
-  if (point == last_known_column_point
+  if (PT == last_known_column_point
       && MODIFF == last_known_column_modified)
     return last_known_column;
 
@@ -292,18 +292,18 @@ current_column ()
   if (BUF_INTERVALS (current_buffer)
       || !NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
-    return current_column_1 (point);
+    return current_column_1 (PT);
 
   /* Scan backwards from point to the previous newline,
      counting width.  Tab characters are the only complicated case.  */
 
   /* Make a pointer for decrementing through the chars before point.  */
-  ptr = &FETCH_CHAR (point - 1) + 1;
+  ptr = &FETCH_CHAR (PT - 1) + 1;
   /* Make a pointer to where consecutive chars leave off,
      going backwards from point.  */
-  if (point == BEGV)
+  if (PT == BEGV)
     stop = ptr;
-  else if (point <= GPT || BEGV > GPT)
+  else if (PT <= GPT || BEGV > GPT)
     stop = BEGV_ADDR;
   else
     stop = GAP_END_ADDR;
@@ -356,7 +356,7 @@ current_column ()
     }
 
   last_known_column = col;
-  last_known_column_point = point;
+  last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
   return col;
@@ -425,7 +425,7 @@ current_column_1 (pos)
  endloop:
 
   last_known_column = col;
-  last_known_column_point = point;
+  last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
   return col;
@@ -550,7 +550,7 @@ even if that goes past COLUMN; by default, MININUM is zero.")
   Finsert_char (make_number (' '), column, Qt);
 
   last_known_column = mincol;
-  last_known_column_point = point;
+  last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
   XSETINT (column, mincol);
@@ -567,7 +567,7 @@ following any initial whitespace.")
 {
   Lisp_Object val;
 
-  XSETFASTINT (val, position_indentation (find_next_newline (point, -1)));
+  XSETFASTINT (val, position_indentation (find_next_newline (PT, -1)));
   return val;
 }
 
@@ -680,7 +680,7 @@ The return value is the current column.")
   CHECK_NATNUM (column, 0);
   goal = XINT (column);
 
-  pos = point;
+  pos = PT;
   end = ZV;
   next_boundary = pos;
 
@@ -743,9 +743,9 @@ The return value is the current column.")
     {
       int old_point;
 
-      del_range (point - 1, point);
+      del_range (PT - 1, PT);
       Findent_to (make_number (goal), Qnil);
-      old_point = point;
+      old_point = PT;
       Findent_to (make_number (col), Qnil);
       SET_PT (old_point);
       /* Set the last_known... vars consistently.  */
@@ -757,7 +757,7 @@ The return value is the current column.")
     Findent_to (make_number (col = goal), Qnil);
 
   last_known_column = col;
-  last_known_column_point = point;
+  last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
   XSETFASTINT (val, col);
@@ -1409,7 +1409,7 @@ whether or not it is currently displayed in some window.")
   else
     window = selected_window;
 
-  pos = *vmotion (point, (int) XINT (lines), XWINDOW (window));
+  pos = *vmotion (PT, (int) XINT (lines), XWINDOW (window));
 
   SET_PT (pos.bufpos);
   return make_number (pos.vpos);

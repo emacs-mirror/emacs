@@ -57,7 +57,7 @@ On reaching end of buffer, stop and signal error.")
      hooks, etcetera), that's not a good approach.  So we validate the
      proposed position, then set point.  */
   {
-    int new_point = point + XINT (n);
+    int new_point = PT + XINT (n);
 
     if (new_point < BEGV)
       {
@@ -102,7 +102,7 @@ With positive N, a non-empty line at the end counts as one line\n\
   (n)
      Lisp_Object n;
 {
-  int pos2 = point;
+  int pos2 = PT;
   int pos;
   int count, shortage, negp;
 
@@ -178,17 +178,17 @@ N was explicitly specified.")
     {
       if (XINT (n) < 0)
 	{
-	  if (point + XINT (n) < BEGV)
+	  if (PT + XINT (n) < BEGV)
 	    Fsignal (Qbeginning_of_buffer, Qnil);
 	  else
-	    del_range (point + XINT (n), point);
+	    del_range (PT + XINT (n), PT);
 	}
       else
 	{
-	  if (point + XINT (n) > ZV)
+	  if (PT + XINT (n) > ZV)
 	    Fsignal (Qend_of_buffer, Qnil);
 	  else
-	    del_range (point, point + XINT (n));
+	    del_range (PT, PT + XINT (n));
 	}
     }
   else
@@ -216,9 +216,9 @@ N was explicitly specified.")
   /* See if we are about to delete a tab or newline backwards.  */
   for (i = 1; i <= XINT (n); i++)
     {
-      if (point - i < BEGV)
+      if (PT - i < BEGV)
 	break;
-      if (FETCH_CHAR (point - i) == '\t' || FETCH_CHAR (point - i) == '\n')
+      if (FETCH_CHAR (PT - i) == '\t' || FETCH_CHAR (PT - i) == '\n')
 	{
 	  deleted_special = 1;
 	  break;
@@ -232,10 +232,10 @@ N was explicitly specified.")
   if (XINT (n) > 0
       && ! NILP (current_buffer->overwrite_mode)
       && ! deleted_special
-      && ! (point == ZV || FETCH_CHAR (point) == '\n'))
+      && ! (PT == ZV || FETCH_CHAR (PT) == '\n'))
     {
       Finsert_char (make_number (' '), XINT (n));
-      SET_PT (point - XINT (n));
+      SET_PT (PT - XINT (n));
     }
 
   return value;
@@ -302,22 +302,22 @@ internal_self_insert (c1, noautofill)
     hairy = 1;
 
   if (!NILP (overwrite)
-      && point < ZV
+      && PT < ZV
       && (EQ (overwrite, Qoverwrite_mode_binary)
-	  || (c != '\n' && FETCH_CHAR (point) != '\n'))
+	  || (c != '\n' && FETCH_CHAR (PT) != '\n'))
       && (EQ (overwrite, Qoverwrite_mode_binary)
-	  || FETCH_CHAR (point) != '\t'
+	  || FETCH_CHAR (PT) != '\t'
 	  || XINT (current_buffer->tab_width) <= 0
 	  || XFASTINT (current_buffer->tab_width) > 20
 	  || !((current_column () + 1) % XFASTINT (current_buffer->tab_width))))
     {
-      del_range (point, point + 1);
+      del_range (PT, PT + 1);
       hairy = 2;
     }
   if (!NILP (current_buffer->abbrev_mode)
       && SYNTAX (c) != Sword
       && NILP (current_buffer->read_only)
-      && point > BEGV && SYNTAX (FETCH_CHAR (point - 1)) == Sword)
+      && PT > BEGV && SYNTAX (FETCH_CHAR (PT - 1)) == Sword)
     {
       int modiff = MODIFF;
       Fexpand_abbrev ();
@@ -338,10 +338,10 @@ internal_self_insert (c1, noautofill)
 	/* After inserting a newline, move to previous line and fill */
 	/* that.  Must have the newline in place already so filling and */
 	/* justification, if any, know where the end is going to be. */
-	SET_PT (point - 1);
+	SET_PT (PT - 1);
       tem = call0 (current_buffer->auto_fill_function);
       if (c1 == '\n')
-	SET_PT (point + 1);
+	SET_PT (PT + 1);
       if (!NILP (tem))
 	hairy = 2;
     }

@@ -219,7 +219,7 @@ unreadchar (readcharfun, c)
   else if (BUFFERP (readcharfun))
     {
       if (XBUFFER (readcharfun) == current_buffer)
-	SET_PT (point - 1);
+	SET_PT (PT - 1);
       else
 	SET_BUF_PT (XBUFFER (readcharfun), BUF_PT (XBUFFER (readcharfun)) - 1);
     }

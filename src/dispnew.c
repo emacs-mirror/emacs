@@ -1104,7 +1104,7 @@ direct_output_for_insert (g)
      At the moment we only lose at end of line or end of buffer
      and only with faces that have some background */
   /* Instead of wasting time, give up if character has any text properties */
-      || ! NILP (Ftext_properties_at (make_number (point - 1), Qnil))
+      || ! NILP (Ftext_properties_at (make_number (PT - 1), Qnil))
 #endif
 
   /* Give up if w is minibuffer and a message is being displayed there */
@@ -1117,17 +1117,17 @@ direct_output_for_insert (g)
     int dummy;
 
     if (FRAME_WINDOW_P (frame) || FRAME_MSDOS_P (frame))
-      face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point, 0);
+      face = compute_char_face (frame, w, PT - 1, -1, -1, &dummy, PT, 0);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
-    current_frame->charstarts[vpos][hpos] = point - 1;
+    current_frame->charstarts[vpos][hpos] = PT - 1;
     /* Record the entry for after the newly inserted character.  */
-    current_frame->charstarts[vpos][hpos + 1] = point;
+    current_frame->charstarts[vpos][hpos + 1] = PT;
     adjust_window_charstarts (w, vpos, 1);
   }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
-  XSETFASTINT (w->last_point, point);
+  XSETFASTINT (w->last_point, PT);
   XSETFASTINT (w->last_point_x, hpos);
   XSETFASTINT (w->last_modified, MODIFF);
 
@@ -1179,14 +1179,14 @@ direct_output_forward_char (n)
   /* Don't use direct output next to an invisible character
      since we might need to do something special.  */
 
-  XSETFASTINT (position, point);
+  XSETFASTINT (position, PT);
   if (XFASTINT (position) < ZV
       && ! NILP (Fget_char_property (position,
 				     Qinvisible,
 				     selected_window)))
     return 0;
 
-  XSETFASTINT (position, point - 1);
+  XSETFASTINT (position, PT - 1);
   if (XFASTINT (position) >= BEGV
       && ! NILP (Fget_char_property (position,
 				     Qinvisible,
@@ -1196,7 +1196,7 @@ direct_output_forward_char (n)
 
   FRAME_CURSOR_X (frame) += n;
   XSETFASTINT (w->last_point_x, FRAME_CURSOR_X (frame));
-  XSETFASTINT (w->last_point, point);
+  XSETFASTINT (w->last_point, PT);
   cursor_to (FRAME_CURSOR_Y (frame), FRAME_CURSOR_X (frame));
   fflush (stdout);
 

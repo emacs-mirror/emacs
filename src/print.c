@@ -173,9 +173,9 @@ glyph_to_str_cpy (glyphs, str)
          error ("Marker does not point anywhere");		\
        if (XMARKER (original)->buffer != current_buffer)	\
          set_buffer_internal (XMARKER (original)->buffer);	\
-       old_point = point;					\
+       old_point = PT;						\
        SET_PT (marker_position (printcharfun));			\
-       start_point = point;					\
+       start_point = PT;					\
        printcharfun = Qnil;}					\
    if (NILP (printcharfun))					\
      {								\
@@ -191,10 +191,10 @@ glyph_to_str_cpy (glyphs, str)
      insert (print_buffer, print_buffer_pos);		\
    if (print_buffer) free (print_buffer);		\
    if (MARKERP (original))				\
-     Fset_marker (original, make_number (point), Qnil);	\
+     Fset_marker (original, make_number (PT), Qnil);	\
    if (old_point >= 0)					\
      SET_PT (old_point + (old_point >= start_point	\
-			  ? point - start_point : 0));	\
+			  ? PT - start_point : 0));	\
    if (old != current_buffer)				\
      set_buffer_internal (old)
 

@@ -227,11 +227,11 @@ operate_on_word (arg, newpoint)
 
   CHECK_NUMBER (arg, 0);
   iarg = XINT (arg);
-  farend = scan_words (point, iarg);
+  farend = scan_words (PT, iarg);
   if (!farend)
     farend = iarg > 0 ? ZV : BEGV;
 
-  *newpoint = point > farend ? point : farend;
+  *newpoint = PT > farend ? PT : farend;
   XSETFASTINT (val, farend);
 
   return val;
@@ -246,7 +246,7 @@ See also `capitalize-word'.")
 {
   Lisp_Object beg, end;
   int newpoint;
-  XSETFASTINT (beg, point);
+  XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_UP, beg, end);
   SET_PT (newpoint);
@@ -261,7 +261,7 @@ With negative argument, convert previous words but do not move.")
 {
   Lisp_Object beg, end;
   int newpoint;
-  XSETFASTINT (beg, point);
+  XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_DOWN, beg, end);
   SET_PT (newpoint);
@@ -278,7 +278,7 @@ With negative argument, capitalize previous words but do not move.")
 {
   Lisp_Object beg, end;
   int newpoint;
-  XSETFASTINT (beg, point);
+  XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_CAPITALIZE, beg, end);
   SET_PT (newpoint);

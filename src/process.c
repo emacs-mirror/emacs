@@ -2554,7 +2554,7 @@ read_process_output (proc, channel)
       odeactivate = Vdeactivate_mark;
 
       Fset_buffer (p->buffer);
-      opoint = point;
+      opoint = PT;
       old_read_only = current_buffer->read_only;
       XSETFASTINT (old_begv, BEGV);
       XSETFASTINT (old_zv, ZV);
@@ -2571,24 +2571,24 @@ read_process_output (proc, channel)
 
       /* If the output marker is outside of the visible region, save
 	 the restriction and widen.  */
-      if (! (BEGV <= point && point <= ZV))
+      if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
       /* Make sure opoint floats ahead of any new text, just as point
 	 would.  */
-      if (point <= opoint)
+      if (PT <= opoint)
 	opoint += nchars;
 
       /* Insert after old_begv, but before old_zv.  */
-      if (point < XFASTINT (old_begv))
+      if (PT < XFASTINT (old_begv))
 	XSETFASTINT (old_begv, XFASTINT (old_begv) + nchars);
-      if (point <= XFASTINT (old_zv))
+      if (PT <= XFASTINT (old_zv))
 	XSETFASTINT (old_zv, XFASTINT (old_zv) + nchars);
 
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_before_markers (chars, nchars);
-      Fset_marker (p->mark, make_number (point), p->buffer);
+      Fset_marker (p->mark, make_number (PT), p->buffer);
 
       update_mode_lines++;
 
@@ -3620,7 +3620,7 @@ status_notify ()
 	      if (NILP (XBUFFER (buffer)->name))
 		continue;
 	      Fset_buffer (buffer);
-	      opoint = point;
+	      opoint = PT;
 	      /* Insert new output into buffer
 		 at the current end-of-output marker,
 		 thus preserving logical ordering of input and output.  */
@@ -3628,7 +3628,7 @@ status_notify ()
 		SET_PT (marker_position (p->mark));
 	      else
 		SET_PT (ZV);
-	      if (point <= opoint)
+	      if (PT <= opoint)
 		opoint += XSTRING (msg)->size + XSTRING (p->name)->size + 10;
 
 	      tem = current_buffer->read_only;
@@ -3638,7 +3638,7 @@ status_notify ()
 	      insert_string (" ");
 	      Finsert (1, &msg);
 	      current_buffer->read_only = tem;
-	      Fset_marker (p->mark, make_number (point), p->buffer);
+	      Fset_marker (p->mark, make_number (PT), p->buffer);
 
 	      SET_PT (opoint);
 	      set_buffer_internal (old);

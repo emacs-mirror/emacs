@@ -841,7 +841,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bpoint:
-	  XSETFASTINT (v1, point);
+	  XSETFASTINT (v1, PT);
 	  PUSH (v1);
 	  break;
 

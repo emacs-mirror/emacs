@@ -108,7 +108,7 @@ record_delete (beg, length)
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
-  if (point == beg + length)
+  if (PT == beg + length)
     XSETINT (sbeg, -beg);
   else
     XSETFASTINT (sbeg, beg);
