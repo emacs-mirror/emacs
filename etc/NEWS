@@ -687,7 +687,7 @@ isearch-lazy-highlight-cleanup'.
 ** Changes in sort.el
 
 The function sort-numeric-fields interprets numbers starting with `0'
-as ocatal and numbers starting with `0x' or `0X' as hexadecimal.  The
+as octal and numbers starting with `0x' or `0X' as hexadecimal.  The
 new user-option sort-numberic-base can be used to specify a default
 numeric base.
 
