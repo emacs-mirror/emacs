@@ -40,7 +40,10 @@
   "Display a list of all charsets."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (print-character-sets)))
+    (print-character-sets)
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))))
 
 (defvar charset-other-info-func nil)
   
@@ -127,54 +130,57 @@
 ;;;###autoload
 (defun describe-coding-system (coding-system)
   "Display information of CODING-SYSTEM."
-  (interactive "zCoding-system: ")
-  (with-output-to-temp-buffer "*Help*"
-    (print-coding-system-briefly coding-system nil 'doc-string)
-    (let ((coding-spec (coding-system-spec coding-system)))
-      (princ "Type: ")
-      (let ((type (coding-system-type coding-system))
-	    (flags (coding-system-flags coding-system)))
-	(princ type)
-	(princ " (")
-	(cond ((eq type nil)
-	       (princ "do no conversion)"))
-	      ((eq type t)
-	       (princ "do automatic conversion)"))
-	      ((eq type 0)
-	       (princ "Emacs internal multibyte form)"))
-	      ((eq type 1)
-	       (princ "Shift-JIS, MS-KANJI)"))
-	      ((eq type 2)
-	       (princ "variant of ISO-2022)\n")
-	       (princ "Initial designations:\n")
-	       (print-designation flags)
-	       (princ "Other Form: \n  ")
-	       (princ (if (aref flags 4) "short-form" "long-form"))
-	       (if (aref flags 5) (princ ", ASCII@EOL"))
-	       (if (aref flags 6) (princ ", ASCII@CNTL"))
-	       (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
-	       (if (aref flags 8) (princ ", use-locking-shift"))
-	       (if (aref flags 9) (princ ", use-single-shift"))
-	       (if (aref flags 10) (princ ", use-roman"))
-	       (if (aref flags 10) (princ ", use-old-jis"))
-	       (if (aref flags 11) (princ ", no-ISO6429"))
-	       (princ "."))
-	      ((eq type 3)
-	       (princ "Big5."))
-	      ((eq type 4)
-	       (princ "do conversion by CCL program."))
-	      (t (princ "invalid coding-system."))))
-      (princ "\nEOL type:\n  ")
-      (let ((eol-type (coding-system-eol-type coding-system)))
-	(cond ((vectorp eol-type)
-	       (princ "Automatic selection from:\n\t")
-	       (princ eol-type)
-	       (princ "\n"))
-	      ((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
-	      ((eq eol-type 1) (princ "CRLF\n"))
-	      ((eq eol-type 2) (princ "CR\n"))
-	      (t (princ "invalid\n"))))
-      )))
+  (interactive "zDescribe coding system (default, current choices): ")
+  (if (null coding-system)
+      (describe-current-coding-system)
+    (with-output-to-temp-buffer "*Help*"
+      (print-coding-system-briefly coding-system 'doc-string)
+      (let ((coding-spec (coding-system-spec coding-system)))
+	(princ "Type: ")
+	(let ((type (coding-system-type coding-system))
+	      (flags (coding-system-flags coding-system)))
+	  (princ type)
+	  (cond ((eq type nil)
+		 (princ " (do no conversion)"))
+		((eq type t)
+		 (princ " (do automatic conversion)"))
+		((eq type 0)
+		 (princ " (Emacs internal multibyte form)"))
+		((eq type 1)
+		 (princ " (Shift-JIS, MS-KANJI)"))
+		((eq type 2)
+		 (princ " (variant of ISO-2022)\n")
+		 (princ "Initial designations:\n")
+		 (print-designation flags)
+		 (princ "Other Form: \n  ")
+		 (princ (if (aref flags 4) "short-form" "long-form"))
+		 (if (aref flags 5) (princ ", ASCII@EOL"))
+		 (if (aref flags 6) (princ ", ASCII@CNTL"))
+		 (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
+		 (if (aref flags 8) (princ ", use-locking-shift"))
+		 (if (aref flags 9) (princ ", use-single-shift"))
+		 (if (aref flags 10) (princ ", use-roman"))
+		 (if (aref flags 10) (princ ", use-old-jis"))
+		 (if (aref flags 11) (princ ", no-ISO6429"))
+		 (princ "."))
+		((eq type 3)
+		 (princ " (Big5)"))
+		((eq type 4)
+		 (princ " (do conversion by CCL program)"))
+		(t (princ "invalid coding-system."))))
+	(princ "\nEOL type:\n  ")
+	(let ((eol-type (coding-system-eol-type coding-system)))
+	  (cond ((vectorp eol-type)
+		 (princ "Automatic selection from:\n\t")
+		 (princ eol-type)
+		 (princ "\n"))
+		((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
+		((eq eol-type 1) (princ "CRLF\n"))
+		((eq eol-type 2) (princ "CR\n"))
+		(t (princ "invalid\n")))))
+      (save-excursion
+	(set-buffer standard-output)
+	(help-mode)))))
 
 ;;;###autoload
 (defun describe-current-coding-system-briefly ()
@@ -187,7 +193,7 @@ at the place of `..':
   eol-type of buffer-file-coding-system (of the current buffer)
   (keyboard-coding-system)
   eol-type of (keyboard-coding-system)
-  terminal-coding-system
+  (terminal-coding-system)
   eol-type of (terminal-coding-system)
   process-coding-system for read (of the current buffer, if any)
   eol-type of process-coding-system for read (of the current buffer, if any)
@@ -223,24 +229,18 @@ at the place of `..':
      )))
 
 ;; Print symbol name and mnemonic letter of CODING-SYSTEM by `princ'.
-(defun print-coding-system-briefly (coding-system &optional aliases doc-string)
+(defun print-coding-system-briefly (coding-system &optional doc-string)
   (if (not coding-system)
       (princ "nil\n")
     (princ (format "%c -- %s"
 		   (coding-system-mnemonic coding-system)
 		   coding-system))
-    (if aliases
-	(progn
-	  (princ (format " (alias: %s" (car aliases)))
-	  (setq aliases (cdr aliases))
-	  (while aliases
-	    (princ " ")
-	    (princ (car aliases))
-	    (setq aliases (cdr aliases)))
-	  (princ ")"))
-      (let ((base (coding-system-base coding-system)))
-	(if (not (eq base coding-system))
-	    (princ (format " (alias of %s)" base)))))
+    (let ((parent (coding-system-parent coding-system)))
+      (if parent
+	  (princ (format " (alias of %s)" parent))))
+    (let ((aliases (get coding-system 'alias-coding-systems)))
+      (if aliases
+	  (princ (format " %S" (cons 'alias: aliases)))))
     (princ "\n")
     (if (and doc-string
 	     (setq doc-string (coding-system-doc-string coding-system)))
@@ -275,28 +275,76 @@ at the place of `..':
       (print-coding-system-briefly (car default-process-coding-system))
       (princ "  encoding: ")
       (print-coding-system-briefly (cdr default-process-coding-system)))
-    (princ "\nCoding categories (in the order of priority):\n")
-    (let ((l coding-category-list))
-      (while l
-	(princ (format "  %-27s ->  %s\n" (car l) (symbol-value (car l))))
-	(setq l (cdr l))))
-    (princ "\nLook up tables for finding a coding system on I/O operations:\n")
-    (let ((func (lambda (title alist)
-		  (princ title)
-		  (if (not alist)
-		      (princ "    Nothing specified.\n")
-		    (while alist
-		      (princ (format "    %-27s -> %s\n"
-				     (concat "\"" (car (car alist)) "\"")
-				     (cdr (car alist))))
-		      (setq alist (cdr alist)))))))
-      (funcall func "  File I/O (FILENAME -> CODING-SYSTEM):\n"
-	       file-coding-system-alist)
-      (funcall func "  Process I/O (PROGRAM-NAME -> CODING-SYSTEM):\n"
-	       process-coding-system-alist)
-      (funcall func "  Network stream I/O (SERVICE-NAME -> CODING-SYSTEM):\n"
-	       network-coding-system-alist))
-    ))
+
+    (save-excursion
+      (set-buffer standard-output)
+
+      (princ "\nPriority order of coding systems:\n")
+      (let ((l coding-category-list)
+	    (i 1)
+	    coding aliases)
+	(while l
+	  (setq coding (symbol-value (car l)))
+	  (princ (format "  %d. %s" i coding))
+	  (if (setq aliases (get coding 'alias-coding-systems))
+	      (progn
+		(princ " ")
+		(princ (cons 'alias: aliases))))
+	  (terpri)
+	  (setq l (cdr l) i (1+ i))))
+      (princ "\n  Other coding systems cannot be distinguished automatically
+  from these, and therefore cannot be recognized automatically
+  with the present coding system priorities.\n\n")
+
+      (let ((categories '(coding-category-iso-7 coding-category-iso-else))
+	    coding-system codings)
+	(while categories
+	  (setq coding-system (symbol-value (car categories)))
+	  (mapcar
+	   (function
+	    (lambda (x)
+	      (if (and (not (eq x coding-system))
+		       (get x 'no-initial-designation)
+		       (let ((flags (coding-system-flags x)))
+			 (not (or (aref flags 10) (aref flags 11)))))
+		  (setq codings (cons x codings)))))
+	   (get (car categories) 'coding-systems))
+	  (if codings
+	      (let ((max-col (frame-width))
+		    pos)
+		(princ (format "  The followings are decoded correctly but recognized as %s:\n   " coding-system))
+		(while codings
+		  (setq pos (point))
+		  (insert (format " %s" (car codings)))
+		  (if (> (current-column) max-col)
+		      (progn
+		       (goto-char pos)
+		       (insert "\n   ")
+		       (goto-char (point-max))))
+		  (setq codings (cdr codings)))
+		(insert "\n\n")))
+	  (setq categories (cdr categories))))
+
+      (princ "Look up tables for finding a coding system on I/O operations:\n")
+      (terpri)
+      (princ "  OPERATION\tTARGET PATTERN\t\tCODING SYSTEM(s)\n")
+      (princ "  ---------\t--------------\t\t----------------\n")
+      (let ((func (lambda (operation alist)
+		    (princ "  ")
+		    (princ operation)
+		    (if (not alist)
+			(princ "\tnothing specified\n")
+		      (while alist
+			(indent-to 16)
+			(prin1 (car (car alist)))
+			(indent-to 40)
+			(princ (cdr (car alist)))
+			(princ "\n")
+			(setq alist (cdr alist)))))))
+	(funcall func "File I/O" file-coding-system-alist)
+	(funcall func "Process I/O" process-coding-system-alist)
+	(funcall func "Network I/O" network-coding-system-alist))
+      (help-mode))))
 
 ;; Print detailed information on CODING-SYSTEM.
 (defun print-coding-system (coding-system &optional aliases)
@@ -365,7 +413,8 @@ at the place of `..':
 If called interactive, it prints name, mnemonic letter, and doc-string
 of each coding system.
 If not, it prints whole information of each coding system
-with the format which is more suitable for being read by a machine."
+with the format which is more suitable for being read by a machine,
+in addition, it prints list of coding category ordered by priority."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (if (interactive-p)
@@ -401,25 +450,25 @@ with the format which is more suitable for being read by a machine."
 ##
 "))
     (let ((bases (coding-system-list 'base-only))
-	  base coding-system aliases)
+	  coding-system)
       (while bases
-	(setq base (car bases) bases (cdr bases))
-	(if (consp base)
-	    (setq coding-system (car base) aliases (cdr base))
-	  (setq coding-system base aliases nil))
+	(setq coding-system (car bases))
 	(if (interactive-p)
-	    (print-coding-system-briefly coding-system aliases 'doc-string)
-	  (print-coding-system coding-system aliases))))
-    (princ "\
+	    (print-coding-system-briefly coding-system 'doc-string)
+	  (print-coding-system coding-system))
+	(setq bases (cdr bases))))
+    (if (interactive-p)
+	nil
+      (princ "\
 ############################
 ## LIST OF CODING CATEGORIES (ordered by priority)
 ## CATEGORY:CODING-SYSTEM
 ##
 ")
-    (let ((l coding-category-list))
-      (while l
-	(princ (format "%s:%s\n" (car l) (symbol-value (car l))))
-	(setq l (cdr l))))
+      (let ((l coding-category-list))
+	(while l
+	  (princ (format "%s:%s\n" (car l) (symbol-value (car l))))
+	  (setq l (cdr l)))))
     ))
 
 ;;; FONT
@@ -483,7 +532,31 @@ with the format which is more suitable for being read by a machine."
     (let ((fontset-info (fontset-info fontset)))
       (with-output-to-temp-buffer "*Help*"
 	(describe-fontset-internal fontset fontset-info)))))
-
+
+;;;###autoload
+(defun list-input-methods ()
+  "Print information of all input methods."
+  (interactive)
+  (with-output-to-temp-buffer "*Help*"
+    (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
+    (princ "    SHORT-DESCRIPTION\n------------------------------\n")
+    (setq input-method-alist
+	  (sort input-method-alist
+		(function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
+    (let ((l input-method-alist)
+	  language elt)
+      (while l
+	(setq elt (car l) l (cdr l))
+	(if (not (equal language (nth 1 elt)))
+	    (progn
+	      (setq language (nth 1 elt))
+	      (princ language)
+	      (terpri)))
+	(princ (format "  %s (`%s' in mode line)\n    %s\n"
+		       (car elt) (nth 3 elt)
+		       (let ((title (nth 4 elt)))
+			 (string-match ".*" title)
+			 (match-string 0 title))))))))
 
 ;;; DIAGNOSIS
 
@@ -541,28 +614,13 @@ with the format which is more suitable for being read by a machine."
       (insert "\n\n")
 
       (insert-section 3 "Input methods")
-      (insert "language\tinput-method\n"
-	      "--------\t------------\n")
-      (let ((alist language-info-alist))
-	(while alist
-	  (insert (car (car alist)))
-	  (indent-to 16)
-	  (let ((methods (get-language-info (car (car alist)) 'input-method)))
-	    (if methods
-		(insert-list (mapcar 'car methods))
-	      (insert "none\n")))
-	  (setq alist (cdr alist))))
+      (save-excursion (list-input-methods))
+      (insert-buffer "*Help*")
+      (goto-char (point-max))
       (insert "\n")
       (if default-input-method
-	  (insert "The input method used last time is: "
-		  (cdr default-input-method)
-		  "\n"
-		  "        for inputting the language: "
-		  (car default-input-method)
-		  "\n")
-	(insert "No input method has ever been selected.\n"))
-      
-      (insert "\n")
+	  (insert "Default input method: %s\n" default-input-method)
+	(insert "No default input method is specified.\n"))
 
       (insert-section 4 "Coding systems")
       (save-excursion (list-coding-systems))
