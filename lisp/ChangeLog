@@ -1,3 +1,20 @@
+1999-10-03  Dave Love  <fx@gnu.org>
+
+	* image.el (defimage): Remove redundant code.  Substitute file in
+	image plist.
+
+1999-10-02  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc.el (vc-backend-checkout): Use coding system 'no-conversion
+	when doing with-temp-file.
+
+1999-10-01  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (custom-comment-create): Fill :from and :to slots.
+
+	* help.el: Require view when compiling.
+	(view-emacs-FAQ): Use Info version.
+
 1999-09-29  Ken'ichi Handa  <handa@gnu.org>
 
 	* ps-mule.el (ps-mule-font-info-database-ps): Typo fixed
