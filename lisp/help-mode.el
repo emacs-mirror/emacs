@@ -443,31 +443,29 @@ See `help-make-xrefs'."
 ;;;###autoload
 (defun help-xref-on-pp (from to)
   "Add xrefs for symbols in `pp's output between FROM and TO."
-  (let ((ost (syntax-table)))
-    (unwind-protect
-	(save-excursion
-	  (save-restriction
-	    (set-syntax-table emacs-lisp-mode-syntax-table)
-	    (narrow-to-region from to)
-	    (goto-char (point-min))
-	    (condition-case nil
-		(while (not (eobp))
-		  (cond
-		   ((looking-at "\"") (forward-sexp 1))
-		   ((looking-at "#<") (search-forward ">" nil 'move))
-		   ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
-		    (let* ((sym (intern-soft (match-string 1)))
-			   (type (cond ((fboundp sym) 'help-function)
-				       ((or (memq sym '(t nil))
-					    (keywordp sym))
-					nil)
-				       ((and sym (boundp sym))
-					'help-variable))))
-		      (when type (help-xref-button 1 type sym)))
-		    (goto-char (match-end 1)))
-		   (t (forward-char 1))))
-	      (error nil))))
-      (set-syntax-table ost))))
+  (if (> (- to from) 5000) nil
+    (with-syntax-table emacs-lisp-mode-syntax-table
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region from to)
+	  (goto-char (point-min))
+	  (condition-case nil
+	      (while (not (eobp))
+		(cond
+		 ((looking-at "\"") (forward-sexp 1))
+		 ((looking-at "#<") (search-forward ">" nil 'move))
+		 ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
+		  (let* ((sym (intern-soft (match-string 1)))
+			 (type (cond ((fboundp sym) 'help-function)
+				     ((or (memq sym '(t nil))
+					  (keywordp sym))
+				      nil)
+				     ((and sym (boundp sym))
+				      'help-variable))))
+		    (when type (help-xref-button 1 type sym)))
+		  (goto-char (match-end 1)))
+		 (t (forward-char 1))))
+	    (error nil)))))))
 
 
 ;; Additional functions for (re-)creating types of help buffers.
