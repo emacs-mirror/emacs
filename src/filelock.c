@@ -384,11 +384,17 @@ lock_file (fn)
      visited.  */
   {
     register Lisp_Object subject_buf;
+    struct gcpro1;
+
     subject_buf = get_truename_buffer (orig_fn);
+    GCPRO1 (fn);
+
     if (!NILP (subject_buf)
 	&& NILP (Fverify_visited_file_modtime (subject_buf))
 	&& !NILP (Ffile_exists_p (fn)))
       call1 (intern ("ask-user-about-supersession-threat"), fn);
+
+    UNGCPRO;
   }
 
   /* Try to lock the lock. */
