@@ -288,7 +288,7 @@ the delay in switching to the strokes buffer."
 
 (defcustom strokes-click-command 'mouse-yank-at-click
   "*Command to execute when stroke is actually a `click' event.
-This is set to `mouse-yank' by default."
+This is set to `mouse-yank-at-click' by default."
   :type 'function
   :group 'strokes)
 
