@@ -10822,6 +10822,14 @@ redisplay_window (window, just_this_one_p)
 
   if (!make_cursor_line_fully_visible (w))
     {
+      /* If vscroll is enabled, disable it and try again.  */
+      if (w->vscroll)
+	{
+	  w->vscroll = 0;
+	  clear_glyph_matrix (w->desired_matrix);
+	  goto recenter;
+	}
+      
       /* If centering point failed to make the whole line visible,
 	 put point at the top instead.  That has to make the whole line
 	 visible, if it can be done.  */
