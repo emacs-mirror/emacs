@@ -1,5 +1,7 @@
 2001-10-09  Miles Bader  <miles@gnu.org>
 
+	* apropos.el (button): New require.
+
 	* help-funs.el: New file, contents mostly from `help.el'.
 	(describe-variable): Use `condition-case' instead of `ignore-errors'.
 	* help-mode.el: New file, contents mostly from `help.el'.
