@@ -1,3 +1,7 @@
+2000-06-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* term/x-win.el (x-colors): Add colors from recent rgb.txt.
+
 2000-06-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* imenu.el (imenu-generic-expression): Docstring fix.

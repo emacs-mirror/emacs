@@ -1,3 +1,8 @@
+2000-06-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xmenu.c (xmenu_show): Case second parameter of lw_popup_menu
+	to `XEvent *'.
+
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* regex.c (MAKE_CHAR) [!emacs]: Dummy macro for non-Emacs env.
@@ -24,7 +29,7 @@
 2000-06-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (XTread_socket) <FocusIn>: Queue a FOCUS_IN_EVENT which
-	will be translated to a switch-frame event in when reading the
+	will be translated to a switch-frame event when reading the
 	event queue.  This is necessary because Emacs otherwise won't
 	perform a switch-frame to a new frame until some other event, for
 	example a keystroke event, forces it to do so.  This has various

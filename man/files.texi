@@ -316,6 +316,7 @@ Save the current buffer in its visited file (@code{save-buffer}).
 Save any or all buffers in their visited files (@code{save-some-buffers}).
 @item M-~
 Forget that the current buffer has been changed (@code{not-modified}).
+With prefix argument (@kbd{C-u}), mark the current buffer as changed.
 @item C-x C-w
 Save the current buffer in a specified file (@code{write-file}).
 @item M-x set-visited-file-name
