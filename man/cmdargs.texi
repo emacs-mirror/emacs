@@ -311,15 +311,12 @@ programs.  Emacs does not require any of these environment variables
 to be set, but it uses their values if they are set.
 
 @table @env
-@item AUTHORCOPY
-The name of a file used to archive news articles posted with the @sc{gnus}
-package.
-@item CDPATH
+@item @item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
 @item DOMAINNAME
 The name of the Internet domain that the machine running Emacs is
-located in.  Used by the @sc{gnus} package.
+located in.  Used by the Gnus package.
 @item EMACS_UNIBYTE
 @cindex unibyte operation, environment variable
 Defining this environment variable with a nonempty value directs Emacs
@@ -385,10 +382,10 @@ Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
 @item NAME
 The real-world name of the user.
 @item NNTPSERVER
-The name of the news server.  Used by the mh and @sc{gnus} packages.
+The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
 The name of the organization to which you belong.  Used for setting the
-`Organization:' header in your posts from the @sc{gnus} package.
+`Organization:' header in your posts from the Gnus package.
 @item PATH
 A colon-separated list of directories in which executables reside.
 (On MS-DOS, it is semicolon-separated instead.)  This is used to
@@ -400,7 +397,7 @@ If set, this specifies an initial value for the variable
 @code{mail-default-reply-to}.  @xref{Mail Headers}.
 @item SAVEDIR
 The name of a directory in which news articles are saved by default.
-Used by the @sc{gnus} package.
+Used by the Gnus package.
 @item SHELL
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
