@@ -161,7 +161,6 @@ instead, let the various bookmark functions do it for you.")
 
 ;; just add the hook to make sure that people don't lose bookmarks
 ;; when they kill Emacs, unless they don't want to save them.
-;;;###autoload
 (add-hook 'kill-emacs-hook
           (function
            (lambda () (and (featurep 'bookmark)
@@ -1188,6 +1187,7 @@ and then move up one line"
                                   (cons menu-str menu)))))
     (if str (apply func-sym (list str)))))
 
+;;;###autoload
 (defun bookmark-menu-bar-insert (event)
   "Insert the text of the file pointed to by bookmark BOOKMARK.  
 You may have a problem using this function if the value of variable
@@ -1200,6 +1200,7 @@ this."
                                         "--- Insert Contents ---"
                                         event))
 
+;;;###autoload
 (defun bookmark-menu-bar-jump (event)
   "Jump to bookmark BOOKMARK (a point in some file).  
 You may have a problem using this function if the value of variable
@@ -1212,6 +1213,7 @@ this."
                                         "--- Jump to Bookmark ---"
                                         event))
 
+;;;###autoload
 (defun bookmark-menu-bar-locate (event)
   "Insert the name of the  file associated with BOOKMARK. 
 \(This is not the same as the contents of that file\)."
@@ -1221,6 +1223,7 @@ this."
                                         "--- Insert Location ---"
                                         event))
 
+;;;###autoload
 (defun bookmark-menu-bar-rename (event)
   "Change the name of OLD-BOOKMARK to NEWNAME.  
 If called from keyboard, prompts for OLD-BOOKMARK and NEWNAME.
@@ -1239,6 +1242,7 @@ name, and C-v inserts the name of the file."
                                         "--- Rename Bookmark ---"
                                         event))
 
+;;;###autoload
 (defun bookmark-menu-bar-delete (event)
   "Delete the bookmark named NAME from the bookmark list.  
 Removes only the first instance of a bookmark with that name.  If
