@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.13 2001/08/28 17:05:55 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.14 2002/02/25 22:05:16 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -161,7 +161,7 @@ the SCCS command (in that order).
 
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
-    (let* ((switches (list
+    (let* ((switches (append
 		     (if (stringp vc-register-switches)
 			 (list vc-register-switches)
 		       vc-register-switches)
