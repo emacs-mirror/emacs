@@ -51,6 +51,20 @@ nil means use the default method of checking `display-time-mail-file'."
 		 (function))
   :group 'display-time)
 
+(defcustom display-time-default-load-average 0
+  "*Which load-average value will be shown in the mode line.
+Almost every system can provide values of load for past 1 minute, past 5 or
+past 15 minutes.  The default is to display 1 minute load average."
+  :type '(choice (const :tag "1 minute load" 0)
+		 (const :tag "5 minutes load" 1)
+		 (const :tag "15 minutes load" 2))
+  :group 'display-time)
+
+(defvar display-time-load-average display-time-default-load-average)
+
+(defcustom display-time-load-average-threshold 0.1
+  "*Load-average values below this value won't be shown in the mode line.")
+
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
 *Non-nil means \\[display-time] should display day and date as well as time."
@@ -66,7 +80,7 @@ nil means use the default method of checking `display-time-mail-file'."
 
 (defcustom display-time-24hr-format nil
   "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
-Nil means 1 <= hh <= 12, and an AM/PM suffix is used."
+nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :type 'boolean
   :group 'display-time)
 
@@ -191,6 +205,13 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 			  display-time-interval)
 	  (timer-activate timer)))))
 
+(defun display-time-next-load-average ()
+  (interactive)
+  (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
+      (setq display-time-load-average 0))
+  (display-time-update)
+  (sit-for 0))
+
 ;; Update the display-time info for the mode line
 ;; but don't redisplay right now.  This is used for
 ;; things like Rmail `g' that want to force an update
@@ -199,13 +220,24 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
   (let* ((now (current-time))
 	 (time (current-time-string now))
          (load (condition-case ()
-                   (if (zerop (car (load-average))) ""
+		   ;; Do not show values less than
+		   ;; `display-time-load-average-threshold'.
+                   (if (> (* display-time-load-average-threshold 100)
+			   (nth display-time-load-average (load-average)))
+		       ""
 		     ;; The load average number is mysterious, so
-		     ;; propvide some help.
-                     (let ((str (format " %03d" (car (load-average)))))
+		     ;; provide some help.
+                     (let ((str (format " %03d" (nth display-time-load-average (load-average)))))
 		       (propertize
 			(concat (substring str 0 -2) "." (substring str -2))
-			'help-echo "System load average")))
+			'local-map (make-mode-line-mouse-map 'mouse-2 
+							     'display-time-next-load-average)
+			'help-echo (concat "System load average for past "
+					   (if (= 0 display-time-load-average)
+					       "1 minute"
+					     (if (= 1 display-time-load-average)
+						 "5 minutes"
+					       "15 minutes")) "; mouse-2: next" ))))
                  (error "")))
          (mail-spool-file (or display-time-mail-file
                               (getenv "MAIL")
