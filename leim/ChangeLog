@@ -1,5 +1,7 @@
 2000-09-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* Makefile.in: Revert to no-leim Makefile.
+
 	* quail/.cvsignore: Include *.elc.
 
 	* ja-dic/.cvsignore: New file.

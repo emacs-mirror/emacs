@@ -1,3 +1,13 @@
+2000-09-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* leim-Makefile.in (TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
+	files to .elc.
+	(${TIT}): Adjusted for the above change.
+	(clean mostlyclean): Likewise.
+	(.el.elc): New target.
+
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Include XPM and XBM files in lisp/ and subdirs
