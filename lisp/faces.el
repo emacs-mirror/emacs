@@ -430,7 +430,7 @@ also the same size as FACE on FRAME."
 	    (if face
 		(error "no fonts match `%S'." pattern)
 	      (error "no fonts matching pattern are the same size as `%s'."
-		     pattern face)))
+		     face)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
