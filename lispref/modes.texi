@@ -567,13 +567,13 @@ For example,
 @smallexample
 @group
 (("^/tmp/fol/" . text-mode)
- ("\\.texinfo$" . texinfo-mode)
- ("\\.texi$" . texinfo-mode)
+ ("\\.texinfo\\'" . texinfo-mode)
+ ("\\.texi\\'" . texinfo-mode)
 @end group
 @group
- ("\\.el$" . emacs-lisp-mode)
- ("\\.c$" . c-mode) 
- ("\\.h$" . c-mode)
+ ("\\.el\\'" . emacs-lisp-mode)
+ ("\\.c\\'" . c-mode) 
+ ("\\.h\\'" . c-mode)
  @dots{})
 @end group
 @end smallexample
@@ -602,11 +602,11 @@ Here is an example of how to prepend several pattern pairs to
 (setq auto-mode-alist
   (append 
    ;; @r{File name starts with a dot.}
-   '(("/\\.[^/]*$" . fundamental-mode)  
+   '(("/\\.[^/]*\\'" . fundamental-mode)  
      ;; @r{File name has no dot.}
-     ("[^\\./]*$" . fundamental-mode)   
+     ("[^\\./]*\\'" . fundamental-mode)   
      ;; @r{File name ends in @samp{.C}.}
-     ("\\.C$" . c++-mode))
+     ("\\.C\\'" . c++-mode))
    auto-mode-alist))
 @end group
 @end smallexample
