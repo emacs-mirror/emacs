@@ -1,3 +1,8 @@
+2005-01-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (mode_line_string, marginal_area_string): Fix
+	off-by-one error in search for glyph.
+
 2005-01-16  Kim F. Storm  <storm@cua.dk>
 
 	* macterm.c (syms_of_macterm) <mac-allow-anti-aliasing>: Doc fix.
