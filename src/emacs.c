@@ -571,8 +571,19 @@ main (argc, argv, envp)
       if (!malloc_using_checking)
 	/* Work around a bug in glibc's malloc.  MALLOC_CHECK_ must be
 	   ignored if the heap to be restored was constructed without
-	   malloc checking.  */
-	unsetenv ("MALLOC_CHECK_");
+	   malloc checking.  Can't use unsetenv, since that calls malloc.  */
+	{
+	  char **p;
+
+	  for (p = envp; *p; p++)
+	    if (strncmp (*p, "MALLOC_CHECK_=", 14) == 0)
+	      {
+		do
+		  *p = p[1];
+		while (*++p);
+		break;
+	      }
+	}
       malloc_set_state (malloc_state_ptr);
       free (malloc_state_ptr);
     }
