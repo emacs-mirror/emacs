@@ -1,3 +1,9 @@
+2004-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix call to read-file-name for edit.
+	Must expand directory for completion to work; and don't mess with
+	process-environment.
+
 2004-05-04  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-argument-name): New face, inheriting from
