@@ -1,3 +1,8 @@
+2004-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* profile.c: Include config.h, not ../src/config.h.
+	Include systime.h, not ../src/systime.h.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
