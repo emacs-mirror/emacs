@@ -2225,6 +2225,10 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   calculate_costs (frame);
 
   UNBLOCK_INPUT;
+
+  /* This isn't quite a no-op: it runs window-configuration-change-hook.  */
+  Fset_window_buffer (FRAME_SELECTED_WINDOW (frame),
+		      XWINDOW (FRAME_SELECTED_WINDOW (frame))->buffer);
 }
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
