@@ -279,7 +279,7 @@ various symbolic debuggers from within Emacs.  We recommend the debugger
 GDB, which is free software, but you can also run DBX, SDB or XDB if you
 have them.  GUD can also serve as an interface to the Perl's debugging
 mode, the Python debugger PDB, and to JDB, the Java Debugger.
-@xref{Debugger,, The Lisp Debugger, elisp, the Emacs Lisp Reference Manual},
+@xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference Manual},
 for information on debugging Emacs Lisp programs.
 
 @menu
