@@ -876,9 +876,14 @@ using `make-temp-name', and the generated name is returned."
           (setq archive-subfile-mode descr)
 	  (if (and
 	       (null
-		(if (fboundp extractor)
-		    (funcall extractor archive ename)
-		  (archive-*-extract archive ename (symbol-value extractor))))
+		(condition-case err
+		    (if (fboundp extractor)
+			(funcall extractor archive ename)
+		      (archive-*-extract archive ename
+					 (symbol-value extractor)))
+		  (error
+		   (ding (message "%s" (error-message-string err)))
+		   nil)))
 	       just-created)
 	      (progn
 		(set-buffer-modified-p nil)
