@@ -392,6 +392,7 @@ menu_item_enabled_p_1 (arg)
 static Lisp_Object
 menu_item_enabled_p (def, notreal)
      Lisp_Object def;
+     int notreal;
 {
   Lisp_Object enabled, tem;
 
