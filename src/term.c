@@ -2115,6 +2115,7 @@ term_init (terminal_type)
 
   FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
+  TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
   return;
 #else  /* not WINDOWSNT */
