@@ -10,6 +10,43 @@
 
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (show_help_echo): Add parameters OBJECT and POS.
+	if HELP is a function, call it with OBJECT and POS as parameters
+	to get the help to display.
+	(gen_help_event, kbd_buffer_store_help_event): New functions.
+	(kbd_buffer_get_event): Construct the Lisp help-event differently.
+	(read_char): Call show_help_echo with new parameters.
+
+	* keyboard.h (gen_help_event, kbd_buffer_store_help_event): 
+	Add prototypes.
+
+	* xterm.c (help_echo_object, help_echo_pos): New variables.
+	(note_mode_line_highlight): Store additional information about the
+	help-echo in help_echo_object and help_echo_pos.  Check both
+	`local-map' and `keymap' properties for changing the cursor
+	(note_mouse_highlight): Store additional information about the
+	help-echo in help_echo_object and help_echo_pos.
+	(note_tool_bar_highlight): Set help_echo_object to nil and
+	help_echo_pos to -1.
+	(XTread_socket): Use gen_help_event instead of filling
+	input_events manually.
+	(syms_of_xterm): Staticpro help_echo_object.
+
+	* xmenu.c (menu_highlight_callback): Use
+	kbd_buffer_store_help_event instead of setting up and input_event
+	structure manually.
+
+	* xdisp.c (eval_form): GCPRO argument sexpr.
+	(call_function): New function.
+	(handle_single_display_prop): Use call_function and FUNCTIONP
+	instead of checking whether if font_height is a symbol and
+	using eval_form.
+
+	* eval.c (internal_condition_case_2): New function.
+
+	* lisp.h (FUNCTIONP): New macro.
+	(internal_condition_case_2, call_function): Add prototypes.
+
 	* xterm.c (construct_mouse_click, x_scroll_bar_to_input_event)
 	(x_scroll_bar_handle_click, SET_SAVED_MENU_EVENT, XTread_socket):
 	Always set `arg' member of input_events.

@@ -1259,8 +1259,8 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
-** The value of the `help-echo' text property is evaluated, if it
-is not a string already, to obtain a help string.
+** The value of the `help-echo' text property is called as a function
+or evaluated, if it is not a string already, to obtain a help string.
 
 ** Function `make-obsolete' now has an optional arg to say when the
 function was declared obsolete.
@@ -2826,13 +2826,20 @@ moves over a tool-bar item or a piece of text that has a text property
 `help-echo'.  This feature also applies to strings in the mode line
 that have a `help-echo' property.
 
-If the value of the `help-echo' property is not a string. it is
-evaluated to obtain a help string.
+If the value of the `help-echo' property is a function, that function
+is called with two arguments OBJECT and POSITION.  OBJECT is the 
+buffer or string which had the `help-echo' property.  POSITION is
+the position within OBJECT under the mouse pointer.  The function
+should return a help string or nil for none.
 
-For tool-bar items, their key definition is used to determine the help
-to display.  If their definition contains a property `:help FORM',
-FORM is evaluated to determine the help string.  Otherwise, the
-caption of the tool-bar item is used.
+If the value of the `help-echo' property is neither a function nor a
+string, it is evaluated to obtain a help string.
+
+For tool-bar and menu-bar items, their key definition is used to
+determine the help to display.  If their definition contains a
+property `:help FORM', FORM is evaluated to determine the help string.
+For tool-bar items without a help form, the caption of the item is
+used as help string.
 
 The hook `show-help-function' can be set to a function that displays
 help differently.  For example, enabling a tooltip window causes the
