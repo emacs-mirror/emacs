@@ -234,14 +234,14 @@ that have not already been dumped will be lost."
 (define-key ispell-menu-map [ispell-message]
   '("Check Message" . ispell-message))
 
+(define-key ispell-menu-map [ispell-word]
+  '("Check Word" . ispell-word))
+
 (define-key ispell-menu-map [ispell-region]
   '("Check Region" . ispell-region))
 
 (define-key ispell-menu-map [ispell-buffer]
   '("Check Buffer" . ispell))
-
-(define-key ispell-menu-map [ispell-word]
-  '("Check Word" . ispell-word))
 
 ;;;###autoload
 (defun ispell (&optional buf start end)

@@ -530,10 +530,10 @@ language.aff file \(e.g., english.aff\).")
     (progn
       (define-key ispell-menu-map [ispell-continue]
 	'("Continue Check" . ispell-continue))
-      (define-key ispell-menu-map [ispell-region]
-	'("Check Region" . ispell-region))
       (define-key ispell-menu-map [ispell-word]
 	'("Check Word" . ispell-word))
+      (define-key ispell-menu-map [ispell-region]
+	'("Check Region" . ispell-region))
       (define-key ispell-menu-map [ispell-buffer]
 	'("Check Buffer" . ispell-buffer))))
 
