@@ -1,6 +1,6 @@
-;;; iso-insert.el --- insert functions for ISO 8859/1.
+;;; iso-transl.el --- keyboard input definitions for ISO 8859/1.
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -137,7 +137,10 @@
   (define-key map "~~"   [172])
   (or key-translation-map
       (setq key-translation-map (make-sparse-keymap)))
-  (define-key key-translation-map "\C-x8" map))
+  (define-key key-translation-map "\C-x8" map)
+  (define-key isearch-mode-map "\C-x" nil)
+  (define-key isearch-mode-map [?\C-x t] 'isearch-other-control-char)
+  (define-key isearch-mode-map "\C-x8" nil))
 
 (provide 'iso-transl)
 
