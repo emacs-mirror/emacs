@@ -364,7 +364,7 @@ install-arch-indep: mkdir info
 	  [ -d $${dir} ] \
 	  && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
 	  && (echo "Copying $${dir} to $${dest}..." ; \
-	      (cd $${dir}; tar -cf - . ) \
+	      (cd $${dir}; tar -chf - . ) \
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
@@ -403,7 +403,7 @@ install-arch-indep: mkdir info
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
-	   (cd ./etc; tar -cf - DOC*) \
+	   (cd ./etc; tar -chf - DOC*) \
 	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
 	else true; fi
@@ -414,7 +414,7 @@ install-arch-indep: mkdir info
 	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
-	   (cd lisp; tar -cf - *.el *.elc) \
+	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
 	else true; fi
 	-unset CDPATH; \
