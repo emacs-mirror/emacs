@@ -215,10 +215,9 @@ string.  It uses the same text that @kbd{C-y} as a command would yank.
 there.  In Transient Mark mode, incremental search sets the mark without
 activating it, and does so only if the mark is not already active.
 
-  @kbd{M-%} or @kbd{C-M-%} exits the incremental search and starts an
-interactive command @code{query-replace} or @code{query-replace-regexp}
-with the last search string inserted in the minibuffer as initial input
-for the string to replace.
+  @kbd{M-%} typed in incremental search invokes @code{query-replace}
+or @code{query-replace-regexp} (depending on search mode) with the
+current search string used as the string to replace.
 
 @cindex lazy search highlighting
 @vindex isearch-lazy-highlight
