@@ -755,7 +755,6 @@ See the documentation for `calendar-holidays' for details.")
   "*Sun-related holidays.
 See the documentation for `calendar-holidays' for details.")
 
-;;;###autoload
 (defvar calendar-holidays
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
