@@ -32,10 +32,55 @@
 
 ;;; Code:
 
-(defvar delete-selection-mode t
-  "*Non-nil means Delete Selection mode is enabled.
-In Delete Selection mode, when a region is highlighted,
-insertion commands first delete the region and then insert.")
+(eval-when-compile
+  (require 'cl))
+
+;;;###autoload
+(defalias 'pending-delete-mode 'delete-selection-mode)
+
+;;;###autoload
+(defun delete-selection-mode (&optional arg)
+  "Toggle Delete Selection mode.
+With prefix ARG, turn Delete Selection mode on if and only if ARG is positive.
+
+When Delete Selection mode is enabled, Transient Mark mode is also enabled and
+typed text replaces the selection if the selection is active.  Otherwise, typed
+text is just inserted at point regardless of any selection."
+  (interactive "P")
+  (setq delete-selection-mode (if arg
+				  (> (prefix-numeric-value arg) 0)
+				(not delete-selection-mode)))
+  (if (not delete-selection-mode)
+      (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
+    (add-hook 'pre-command-hook 'delete-selection-pre-hook)
+    (transient-mark-mode t)))
+
+;;;###autoload
+(defcustom delete-selection-mode nil
+  "Toggle Delete Selection mode.
+When Delete Selection mode is enabled, Transient Mark mode is also enabled and
+typed text replaces the selection if the selection is active.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (delete-selection-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'editing-basics
+  :require 'delsel)
+
+;; Since the above autoloaded option contains a `:set' form, this file would
+;; get loaded from loaddefs.el.  We can use the above `:initialize' keyword,
+;; and the below `when' form, to the prevent automatic loading of this file, or
+;; an `:initialize' keyword of the form:
+;;
+;;  :initialize (lambda (symbol value)
+;;		  (if value
+;;		      (delete-selection-mode t)
+;;		    (custom-initialize-default symbol nil))
+;;
+;; We choose the former as it is the general mechanism for such toggle options.
+(when delete-selection-mode
+  (delete-selection-mode t))
 
 (defun delete-active-region (&optional killp)
   (if killp
@@ -46,29 +91,26 @@ insertion commands first delete the region and then insert.")
   t)
 
 (defun delete-selection-pre-hook ()
-  (if (and delete-selection-mode
-	   (not buffer-read-only)
-	   transient-mark-mode mark-active)
-      (let ((type (and (symbolp this-command)
-		       (get this-command 'delete-selection))))
-	(cond ((eq type 'kill)
-	       (delete-active-region t))
-	      ((eq type 'yank)
-	       ;; Before a yank command,
-	       ;; make sure we don't yank the same region
-	       ;; that we are going to delete.
-	       ;; That would make yank a no-op.
-	       (if (string= (buffer-substring (point) (mark))
+  (when (and delete-selection-mode transient-mark-mode mark-active
+	     (not buffer-read-only))
+    (let ((type (and (symbolp this-command)
+		     (get this-command 'delete-selection))))
+      (cond ((eq type 'kill)
+	     (delete-active-region t))
+	    ((eq type 'yank)
+	     ;; Before a yank command,
+	     ;; make sure we don't yank the same region
+	     ;; that we are going to delete.
+	     ;; That would make yank a no-op.
+	     (when (string= (buffer-substring-no-properties (point) (mark))
 			    (car kill-ring))
-		   (current-kill 1))
-	       (delete-active-region nil))
-	      ((eq type 'supersede)
-	       (if (delete-active-region nil)
-		   (setq this-command '(lambda () (interactive)))))
-	      (type
-	       (delete-active-region nil))))))
-
-(add-hook 'pre-command-hook 'delete-selection-pre-hook)
+	       (current-kill 1))
+	     (delete-active-region nil))
+	    ((eq type 'supersede)
+	     (when (delete-active-region nil)
+	       (setq this-command '(lambda () (interactive)))))
+	    (type
+	     (delete-active-region nil))))))
 
 (put 'self-insert-command 'delete-selection t)
 (put 'self-insert-iso 'delete-selection t)
@@ -84,25 +126,6 @@ insertion commands first delete the region and then insert.")
 (put 'newline-and-indent 'delete-selection 't)
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection t)
-
-;;;###autoload
-(defalias 'pending-delete-mode 'delete-selection-mode)
-;;;###autoload
-(defun delete-selection-mode (arg)
-  "Toggle Delete Selection mode.
-When ON, typed text replaces the selection if the selection is active.
-When OFF, typed text is just inserted at point.
-
-Delete Selection mode works only when Transient Mark mode is enabled.
-Use \\[transient-mark-mode] to enable or disable Transient Mark mode.
-
-A positive argument turns the mode on, negative argument turns it off,
-and no argument (or nil) toggles the mode."
-  (interactive "P")
-  (setq delete-selection-mode
-	(if (null arg) (not delete-selection-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
 
 ;; This is very useful for cancelling a selection in the minibuffer without 
 ;; aborting the minibuffer.
