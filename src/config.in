@@ -20,6 +20,79 @@ and this notice must be preserved on all copies.  */
 
 
 
+/* Define HAVE_X_WINDOWS if you want to use the X window system.  */
+/* #define HAVE_X_WINDOWS */
+
+/* Define HAVE_X11 if you want to use version 11 of X windows.
+   Otherwise, Emacs expects to use version 10.  */
+/* #define HAVE_X11 */
+
+/* Define HAVE_X_MENU if you want to use the X window menu system.
+   This appears to work on some machines that support X
+   and not on others.  */
+/* #define HAVE_X_MENU */
+
+/* If we're using any sort of window system, define MULTI_SCREEN.  */
+#ifdef HAVE_X_WINDOWS
+#define MULTI_SCREEN
+#endif
+
+/* Define USER_FULL_NAME to return a string
+   that is the user's full name.
+   It can assume that the variable `pw'
+   points to the password file entry for this user.
+
+   At some sites, the pw_gecos field contains
+   the user's full name.  If neither this nor any other
+   field contains the right thing, use pw_name,
+   giving the user's login name, since that is better than nothing.  */
+
+#define USER_FULL_NAME pw->pw_gecos
+
+/* Define AMPERSAND_FULL_NAME if you use the convention
+   that & in the full name stands for the login id.  */
+
+/* #define AMPERSAND_FULL_NAME */
+
+/* Define HIGHPRI as a negative number
+   if you want Emacs to run at a higher than normal priority.
+   For this to take effect, you must install Emacs with setuid root.
+   Emacs will change back to the users's own uid after setting
+   its priority.  */
+/* #define HIGHPRI */
+
+/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
+   numbers. */
+/* #define LISP_FLOAT_TYPE */
+
+/* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
+/* #define GNU_MALLOC */
+
+/* Define REL_ALLOC if you want to use the relocating allocator for
+   buffer space. */
+/* #define REL_ALLOC */
+  
+/* Define this macro if you want to use 16-bit GLYPHs.  Currently this
+   option isn't terribly useful (the current distribution doesn't
+   support large characters in buffer text), so the configuration
+   script doesn't provide an option to select it.
+
+   A character is displayed on a given terminal by means of a sequence
+   of one or more GLYPHs.  A GLYPH is something that takes up exactly
+   one display position on the screen.
+
+   Emacs can use 8-bit or 16-bit values to represent GLYPHs.  Under X
+   windows, 16-bit GLYPHs allow you to display characters from fonts
+   too large to be indexed by 8 bits alone, but drawing with 16-bit GLYPHs 
+   is usually quite a bit slower than drawing with 8-bit GLYPHs.  */
+/* #define GLYPH_16_BIT */
+
+#ifdef GLYPH_16_BIT
+#define GLYPH unsigned short
+#else
+#define GLYPH unsigned char
+#endif
+
 /* The configuration script links system.h to a s- file that describes
    the system type you are using.
    See the file ../share-lib/MACHINES for a list of systems and
@@ -45,27 +118,6 @@ and this notice must be preserved on all copies.  */
 #endif /* not NO_SHORTNAMES */
 #endif /* SHORTNAMES */
 
-/* Define HAVE_X_WINDOWS if you want to use the X window system.  */
-
-#ifndef HAVE_X_WINDOWS
-/* #define HAVE_X_WINDOWS */
-#endif
-
-/* Define HAVE_X11 if you want to use version 11 of X windows.
-   Otherwise, Emacs expects to use version 10.  */
-
-#ifndef HAVE_X11
-/* #define HAVE_X11 */
-#endif
-
-/* Define HAVE_X_MENU if you want to use the X window menu system.
-   This appears to work on some machines that support X
-   and not on others.  */
-
-#ifndef HAVE_X_MENU
-/* #define HAVE_X_MENU */
-#endif
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -78,99 +130,20 @@ and this notice must be preserved on all copies.  */
 #endif
 #endif
 
-/* Define USER_FULL_NAME to return a string
-   that is the user's full name.
-   It can assume that the variable `pw'
-   points to the password file entry for this user.
-
-   At some sites, the pw_gecos field contains
-   the user's full name.  If neither this nor any other
-   field contains the right thing, use pw_name,
-   giving the user's login name, since that is better than nothing.  */
-
-#define USER_FULL_NAME pw->pw_gecos
-
-/* Define AMPERSAND_FULL_NAME if you use the convention
-   that & in the full name stands for the login id.  */
-
-/* #define AMPERSAND_FULL_NAME */
-
-/* Define HIGHPRI as a negative number
-   if you want Emacs to run at a higher than normal priority.
-   For this to take effect, you must install Emacs with setuid root.
-   Emacs will change back to the users's own uid after setting
-   its priority.  */
-
-#ifndef HIGHPRI
-/* #define HIGHPRI */
-#endif
-
-/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
-   numbers. */
-
-#ifndef LISP_FLOAT_TYPE
-/* #define LISP_FLOAT_TYPE */
-#endif
-
-/* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
-
-#ifndef GNU_MALLOC
-/* #define GNU_MALLOC */
-#endif
-
-/* Define REL_ALLOC if you want to use the relocating allocator for
-   buffer space. */
-
-#ifndef REL_ALLOC
-/* #define REL_ALLOC */
-#endif
-  
-/* If we're using any sort of window system, define MULTI_SCREEN.  */
-#ifdef HAVE_X_WINDOWS
-#define MULTI_SCREEN
-#endif
-
 /* Define LD_SWITCH_SITE to contain any special flags your loader may
    need.  For instance, if you've defined HAVE_X_WINDOWS above and your
    X libraries aren't in a place that your loader can find on its own,
    you might want to add "-L/..." or something similar.  */
-
 /* #define LD_SWITCH_SITE */
 
 /* Define C_SWITCH_SITE to contain any special flags your compiler may
    need.  For instance, if you've defined HAVE_X_WINDOWS above and your
    X include files aren't in a place that your compiler can find on its
    own, you might want to add "-I/..." or something similar.  */
-
 /* #define C_SWITCH_SITE */
-
-/* Define this macro if you want to use 16-bit GLYPHs.  Currently this
-   option isn't terribly useful (the current distribution doesn't
-   support large characters in buffer text), so the configuration
-   script doesn't provide an option to select it.
-
-   A character is displayed on a given terminal by means of a sequence
-   of one or more GLYPHs.  A GLYPH is something that takes up exactly
-   one display position on the screen.
-
-   Emacs can use 8-bit or 16-bit values to represent GLYPHs.  Under X
-   windows, 16-bit GLYPHs allow you to display characters from fonts
-   too large to be indexed by 8 bits alone, but drawing with 16-bit GLYPHs 
-   is usually quite a bit slower than drawing with 8-bit GLYPHs.  */
-/* #define GLYPH_16_BIT */
-
-#ifdef GLYPH_16_BIT
-#define GLYPH unsigned short
-#else
-#define GLYPH unsigned char
-#endif
 
 /* Define the return type of signal handlers if the s-xxx file
    did not already do so.  */
 #ifndef SIGTYPE
-#ifdef __STDC__
 #define SIGTYPE void
-#else
-#define SIGTYPE int
-#endif
 #endif

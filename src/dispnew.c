@@ -55,8 +55,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef SIGIO
 #endif
 
-#undef NULL
-
 #include "termchar.h"
 #include "termopts.h"
 #include "cm.h"
@@ -183,7 +181,7 @@ DEFUN ("redraw-screen", Fredraw_screen, Sredraw_screen, 1, 1, 0,
 {
   SCREEN_PTR s;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   s = XSCREEN (screen);
   update_begin (s);
   /*  set_terminal_modes (); */
@@ -998,7 +996,8 @@ update_screen (s, force, inhibit_hairy_id)
   if (!line_ins_del_ok)
     inhibit_hairy_id = 1;
 
-  /* Don't compute for i/d line if just want cursor motion. */
+  /* See if any of the desired lines are enabled; don't compute for
+     i/d line if just want cursor motion. */
   for (i = 0; i < SCREEN_HEIGHT (s); i++)
     if (desired_screen->enable[i])
       break;
@@ -1211,75 +1210,41 @@ buffer_posn_from_coords (window, col, line)
   int window_left = XFASTINT (window->left);
 
   /* The actual width of the window is window->width less one for the
-     \ which ends wrapped lines, and less one if it's not the
-     rightmost window.  */
+     DISP_CONTINUE_GLYPH, and less one if it's not the rightmost
+     window.  */
   int window_width = (XFASTINT (window->width) - 1
 		      - (XFASTINT (window->width) + window_left
 			 != SCREEN_WIDTH (XSCREEN (window->screen))));
 
-  /* The screen's list of buffer positions of line starts.  */
-  int *bufp = SCREEN_CURRENT_GLYPHS (XSCREEN (window->screen))->bufp;
+  int startp = marker_position (window->start);
 
   /* Since compute_motion will only operate on the current buffer,
      we need to save the old one and restore it when we're done.  */
   struct buffer *old_current_buffer = current_buffer;
-  int posn;
+  struct position *posn;
 
   current_buffer = XBUFFER (window->buffer);
 
-  { 
-    /* compute_motion will find the buffer position corresponding to a
-       screen position, given a buffer position to start at and its
-       screen position, by scanning from the start to the goal.  In
-       order to make this faster, we need to choose a starting buffer
-       position with a known screen position as close to the goal as
-       possible.
-
-       The bufp array in the screen_glyphs structure gives the buffer
-       position of the first character on each screen line.  This
-       would be a perfect starting location, except that there's no
-       way to know if this character really starts flush with the
-       beginning of the line or if it is being continued from the
-       previous line; characters like ?\M-x display as \370 and can
-       wrap off the end of one line onto the next.
-
-       So what we do is start on the target line, and scan upwards
-       until we find a screen line that starts right after a newline
-       in the buffer, or at the top of the window; both of these
-       assure us that the character at bufp starts flush with the
-       beginning of the line.  */
-    int start_line;
-
-#if 0
-    /* Unfortunately, the bufp array doesn't seem to be updated properly.  */
-
-    /* Only works for the leftmost window on a line.  bufp is useless
-       for the others.  */
-    if (window_left == 0)
-      {
-	for (start_line = line; start_line > 0; start_line--)
-	  if (FETCH_CHAR (bufp[XFASTINT (window->top) + start_line]-1)
-	      == '\n')
-	    break;
-	posn = bufp[XFASTINT (window->top) + start_line];
-      }
-    else
-#endif
-      {
-	start_line = 0;
-	posn = marker_position (window->start);
-      }
-
-    posn
-      = compute_motion (posn, start_line, window_left,
-			ZV, line, col - window_left,
-			window_width, XINT (window->hscroll), 0)
-	->bufpos;
-  }
+  /* It would be nice if we could use SCREEN_CURRENT_GLYPHS (XSCREEN
+     (window->screen))->bufp to avoid scanning from the very top of
+     the window, but it isn't maintained correctly, and I'm not even
+     sure I will keep it.  */
+  posn = compute_motion (startp, 0,
+			 (window == XWINDOW (minibuf_window) && startp == 1
+			  ? minibuf_prompt_width : 0),
+			 ZV, line, col - window_left,
+			 window_width, XINT (window->hscroll), 0);
 
   current_buffer = old_current_buffer;
 
-  return posn;
+  /* compute_motion considers screen points past the end of a line
+     to be *after* the newline, i.e. at the start of the next line.
+     This is reasonable, but not really what we want.  So if the
+     result is on a line below LINE, back it up one character.  */
+  if (posn->vpos > line)
+    return posn->bufpos - 1;
+  else
+    return posn->bufpos;
 }
 
 static int
@@ -1625,7 +1590,7 @@ FILE = nil means just close any termscript file currently open.")
   if (termscript != 0) fclose (termscript);
   termscript = 0;
 
-  if (! NULL (file))
+  if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
       termscript = fopen (XSTRING (file)->data, "w");
@@ -1637,6 +1602,7 @@ FILE = nil means just close any termscript file currently open.")
 
 
 #ifdef SIGWINCH
+SIGTYPE
 window_change_signal ()
 {
   int width, height;
@@ -1659,7 +1625,7 @@ window_change_signal ()
       {
 	SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
 	
-	if (s->output_method == output_termcap)
+	if (SCREEN_IS_TERMCAP (s))
 	  {
 	    ++in_display;
 	    change_screen_size (s, height, width, 0);
@@ -1728,10 +1694,8 @@ change_screen_size (screen, newlength, newwidth, pretend)
 
   if (newlength && newlength != SCREEN_HEIGHT (screen))
     {
-      if (XSCREEN (WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (screen))))
-	  == screen
-	  && ! EQ (SCREEN_MINIBUF_WINDOW (screen),
-		   SCREEN_ROOT_WINDOW (screen)))
+      if (SCREEN_HAS_MINIBUF (screen)
+	  && ! SCREEN_MINIBUF_ONLY_P (screen))
 	{
 	  /* Screen has both root and minibuffer.  */
 	  set_window_height (SCREEN_ROOT_WINDOW (screen),
@@ -1744,7 +1708,7 @@ change_screen_size (screen, newlength, newwidth, pretend)
 	/* Screen has just one top-level window.  */
 	set_window_height (SCREEN_ROOT_WINDOW (screen), newlength, 0);
 	
-      if (SCREEN_IS_TERMCAP (screen) == output_termcap && !pretend)
+      if (SCREEN_IS_TERMCAP (screen) && !pretend)
 	ScreenRows = newlength;
 
 #if 0
@@ -1760,8 +1724,7 @@ change_screen_size (screen, newlength, newwidth, pretend)
   if (newwidth && newwidth != SCREEN_WIDTH (screen))
     {
       set_window_width (SCREEN_ROOT_WINDOW (screen), newwidth, 0);
-      if (XSCREEN (WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (screen))))
-	  == screen)
+      if (SCREEN_HAS_MINIBUF (screen))
 	set_window_width (SCREEN_MINIBUF_WINDOW (screen), newwidth, 0);
       SCREEN_WIDTH (screen) = newwidth;
 
@@ -1809,7 +1772,7 @@ terminate any keyboard macro currently executing.")
   (arg)
   Lisp_Object arg;
 {
-  if (!NULL (arg))
+  if (!NILP (arg))
     {
       ring_bell ();
       fflush (stdout);
@@ -1851,7 +1814,7 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
   if (sec <= 0)
     return Qnil;
 
-  if (!NULL (millisec))
+  if (!NILP (millisec))
     {
 #ifndef HAVE_TIMEVAL
       error ("millisecond sit-for not supported on %s", SYSTEM_TYPE);
@@ -1941,7 +1904,7 @@ Value is t if waited the full time with no input arriving.")
   if (sec <= 0)
     return Qt;
 
-  if (!NULL (millisec))
+  if (!NILP (millisec))
     {
 #ifndef HAVE_TIMEVAL
       error ("millisecond sleep-for not supported on %s", SYSTEM_TYPE);
@@ -2027,7 +1990,7 @@ init_display ()
      system.  */
 
 #ifdef HAVE_X_WINDOWS
-  if (!inhibit_window_system && (display_arg || egetenv ("DISPLAY")))
+  if (!inhibit_window_system && (display_arg || getenv ("DISPLAY")))
     {
       Vwindow_system = intern ("x");
 #ifdef HAVE_X11

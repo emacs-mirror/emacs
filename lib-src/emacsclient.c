@@ -1,4 +1,4 @@
-/* Client process that communicates with GNU Emacs acting as server.`
+/* Client process that communicates with GNU Emacs acting as server.
    Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -49,12 +49,9 @@ main (argc, argv)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-
-#ifndef SERVER_HOME_DIR
-#include <sys/stat.h>
-#endif
 
 extern int sys_nerr;
 extern char *sys_errlist[];
@@ -70,9 +67,6 @@ main (argc, argv)
   struct sockaddr_un server;
   char *homedir, *cwd, *str;
   char string[BUFSIZ];
-#ifndef SERVER_HOME_DIR
-  struct stat statbfr;
-#endif  
 
   char *getenv (), *getwd ();
   int geteuid ();
@@ -95,19 +89,23 @@ main (argc, argv)
     }
   server.sun_family = AF_UNIX;
 #ifndef SERVER_HOME_DIR
-  gethostname (system_name, sizeof (system_name));
-  sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
+  {
+    struct stat statbfr;
 
-  if (stat (server.sun_path, &statbfr) == -1)
-    {
-      perror ("stat");
-      exit (1);
-    }
-  if (statbfr.st_uid != geteuid())
-    {
-      fprintf (stderr, "Illegal socket owner\n");
-      exit (1);
-    }
+    gethostname (system_name, sizeof (system_name));
+    sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
+
+    if (stat (server.sun_path, &statbfr) == -1)
+      {
+	perror ("stat");
+	exit (1);
+      }
+    if (statbfr.st_uid != geteuid())
+      {
+	fprintf (stderr, "Illegal socket owner\n");
+	exit (1);
+      }
+  }
 #else
   if ((homedir = getenv ("HOME")) == NULL)
     {
