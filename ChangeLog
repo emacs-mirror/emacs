@@ -1,3 +1,7 @@
+2003-07-29  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (HAVE_XIM): Define if XIM is available.
+
 2003-07-29  Tim Van Holder  <tim.vanholder@anubex.com>  (tiny change)
 
 	* configure.in: The function gtk_window_set_icon_from_file was

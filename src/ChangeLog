@@ -1,3 +1,11 @@
+2003-07-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (xim_open_dpy, xim_initialize, xim_close_dpy):
+	Conditionalize XIM code on HAVE_XIM.
+
+	* fns.c (Fclear_string): New function.
+	(syms_of_fns): defsubr it.
+
 2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
 
 	* xfns.c (xic_set_preeditarea): Add the left fringe width to
