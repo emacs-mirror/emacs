@@ -1,3 +1,8 @@
+2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (shell-command-on-region): Call push-mark with
+	non-nil second arg, to suppress the "Mark set" message.
+
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
