@@ -416,7 +416,7 @@ Also used to indicate that rectangle padding is not in effect.
 Default is to load cursor color from initial or default frame parameters.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
-affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
 then only the `cursor-type' property will be affected.  If the value is
 a cons (TYPE . COLOR), then both properties are affected."
   :initialize 'custom-initialize-default
@@ -426,13 +426,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
 		  (const :tag "Horisontal bar" hbar)
-		  (const :tag "Hollow box" block))
+		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horisontal bar" hbar)
-			(const :tag "Hollow box" block))
+			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
 
@@ -441,7 +441,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
-affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
 then only the `cursor-type' property will be affected.  If the value is
 a cons (TYPE . COLOR), then both properties are affected."
   :type '(choice
@@ -450,13 +450,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
 		  (const :tag "Horisontal bar" hbar)
-		  (const :tag "Hollow box" block))
+		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horisontal bar" hbar)
-			(const :tag "Hollow box" block))
+			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
 
@@ -466,7 +466,7 @@ Also used to indicate that rectangle padding is in effect.
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
-affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
 then only the `cursor-type' property will be affected.  If the value is
 a cons (TYPE . COLOR), then both properties are affected."
   :type '(choice
@@ -475,13 +475,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
 		  (const :tag "Horisontal bar" hbar)
-		  (const :tag "Hollow box" block))
+		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horisontal bar" hbar)
-			(const :tag "Hollow box" block))
+			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
 
@@ -491,7 +491,7 @@ Will change cursor color to specified color if string.
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
-affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
 then only the `cursor-type' property will be affected.  If the value is
 a cons (TYPE . COLOR), then both properties are affected."
   :type '(choice
@@ -500,13 +500,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
 		  (const :tag "Horisontal bar" hbar)
-		  (const :tag "Hollow box" block))
+		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horisontal bar" hbar)
-			(const :tag "Hollow box" block))
+			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
 
