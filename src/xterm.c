@@ -6908,7 +6908,7 @@ note_mouse_highlight (f, x, y)
 		if (NILP (b))
 		  b = make_number (0);
 		if (NILP (e))
-		  e = make_number (XSTRING (object)->size) - 1;
+		  e = make_number (XSTRING (object)->size - 1);
 		fast_find_string_pos (w, XINT (b), object,
 				      &dpyinfo->mouse_face_beg_col,
 				      &dpyinfo->mouse_face_beg_row,
