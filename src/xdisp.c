@@ -2147,8 +2147,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  minibuf_prompt_width
 	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
 			       XSTRING (minibuf_prompt)->size, hpos,
-			       (!truncate ? continuer : truncator),
-			       1, -1, -1)
+			       /* Display a space if we truncate.  */
+			       ' ',
+			       1, -1,
+			       /* Truncate the prompt a little before the
+				  margin, so user input can at least start
+				  on the first line.  */
+			       w->width > 10 ? w->width - 4 : -1)
 	       - hpos);
 	  hpos += minibuf_prompt_width;
 	}
