@@ -960,7 +960,9 @@ let_shadows_buffer_binding_p (symbol)
   struct specbinding *p;
 
   for (p = specpdl_ptr - 1; p >= specpdl; p--)
-    if (p->func == 0 && CONSP (p->symbol)
+    if (p->func == 0
+	&& CONSP (p->symbol)
+	&& EQ (symbol, XCAR (p->symbol))
 	&& XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
       return 1;
 
