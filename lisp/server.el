@@ -305,6 +305,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  client nowait eval
 	  (files nil)
 	  (lineno 1)
+	  (tmp-frame nil) ; Sometimes used to embody the selected display.
 	  (columnno 0))
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))
@@ -319,7 +320,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (let ((display (server-unquote-arg (match-string 1 request))))
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
-		  (server-select-display display)
+		  (setq tmp-frame (server-select-display display))
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
 	   ;; ARG is a line number option.
@@ -366,7 +367,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (run-hooks 'server-switch-hook)
 	  (unless nowait
 	    (message (substitute-command-keys
-		      "When done with a buffer, type \\[server-edit]")))))))
+		      "When done with a buffer, type \\[server-edit]")))))
+      ;; Avoid preserving the connection after the last real frame is deleted.
+      (if tmp-frame (delete-frame tmp-frame))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (process-put proc 'previous-string string)))
