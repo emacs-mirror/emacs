@@ -1227,8 +1227,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
-(defvar buffer-stale-function)
-
 (defun dired-mode (&optional dirname switches)
   "\
 Mode for \"editing\" directory listings.
