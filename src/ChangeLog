@@ -1,3 +1,7 @@
+1999-11-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* editfns.c (Ftranslate_region): Check the buffer multibyteness.
+
 1999-11-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* print.c, keymap.c, indent.c, insdel.c, keyboard.c, intervals.c,
