@@ -178,6 +178,31 @@ form that is evaluated to get a list of arguments to pass to the
 command.
 @cindex argument evaluation form
 
+If this expression reads keyboard input (this includes using the
+minibuffer), keep in mind that the integer value of point or the mark
+before reading input may be incorrect after reading input.  This is
+because the current buffer may be receiving subprocess output;
+if subprocess output arrives while the command is waiting for input,
+it could relocate point and the mark.
+
+Here's an example of what @emph{not} to do:
+
+@smallexample
+(interactive
+ (list (region-beginning) (region-end)
+       (read-string "Foo: " nil 'my-history)))
+@end smallexample
+
+@noindent
+Here's how to avoid the problem, by examining point and the mark only
+after reading the keyboard input:
+
+@smallexample
+(interactive
+ (let ((string (read-string "Foo: " nil 'my-history)))
+   (list (region-beginning) (region-end) string)))
+@end smallexample
+
 @item
 @cindex argument prompt
 It may be a string; then its contents should consist of a code character
