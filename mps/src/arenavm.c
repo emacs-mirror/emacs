@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.50) $
+ * $HopeName: MMsrc!arenavm.c(trunk.51) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.50) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.51) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -1347,8 +1347,6 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   
   AVERT(Seg, seg);
   
-  EVENT_PPAWP(SegAlloc, vmArena, seg, addr, size, pool);
-
   *segReturn = seg;
   return ResOK;
 
@@ -1361,7 +1359,7 @@ failSegMap:
 static VMArenaChunk VMArenaChunkOfSeg(VMArena vmArena, Seg seg)
 {
   Ring node, next;
-  /* critcal because used from critical functions */
+  /* critical because used from critical functions */
   AVERT_CRITICAL(VMArena, vmArena);
   AVERT_CRITICAL(Seg, seg);
 
@@ -1428,7 +1426,7 @@ static void VMSegFree(Seg seg)
 		      chunk, basePage, basePage + pages))
     VMArenaUnmap(vmArena, chunk->vm, unusedPagesBase, unusedPagesLimit);
 
-  EVENT_PP(SegFree, vmArena, seg);
+  return;
 }
 
 /* .seg.critical: These Seg functions are low-level and are on 
