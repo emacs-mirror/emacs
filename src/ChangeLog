@@ -1,4 +1,7 @@
-2000-02-19  Gerd Moellmann  <gerd@gnu.org>
+2000-02-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Unbind the binding of
+	standard-output done by temp_output_buffer_setup.
 
 	* eval.c (funcall_lambda): Don't bind Qmocklisp_arguments unless
 	Vmocklisp_arguments is nil.  Inline Fcar and Fcdr.
