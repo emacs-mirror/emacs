@@ -3709,7 +3709,7 @@ syms_of_xfns ()
     "The buffer offset of the character under the pointer.");
   mouse_buffer_offset = 0;
 
-  DEFVAR_INT ("x-pointer-shape", &Vx_pointer_shape,
+  DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
     "The shape of the pointer when over text.\n\
 Changing the value does not affect existing frames\n\
 unless you set the mouse color.");
