@@ -1,3 +1,9 @@
+2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>  (tiny change)
+
+	* progmodes/gud.el (gud-jdb-marker-filter): Add period as optional
+	thousands separator; fixes <class>:<line-number> regexp for
+	non-english locales.
+
 2004-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* view.el (view-mode-enable): Revert previous change.
