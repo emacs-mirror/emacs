@@ -1,3 +1,10 @@
+2004-11-11  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-mode-handlers, desktop-after-read-hook,
+	desktop-clear-preserve-buffers-regexp, desktop-file-name-format,
+	desktop-globals-to-clear, desktop-no-desktop-file-hook, desktop-path,
+	desktop-save): Add :version.
+
 2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* printing.el (pr-get-symbol): Don't downcase.
