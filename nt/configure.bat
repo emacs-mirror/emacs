@@ -86,6 +86,7 @@ if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
 if "%1" == "--without-png" goto withoutpng
+if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -99,6 +100,7 @@ echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
 echo.   --without-png          	do not use libpng even if it is installed 
+echo.   --without-jpeg         	do not use jpeglib even if it is installed 
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -150,6 +152,13 @@ rem ----------------------------------------------------------------------
 :withoutpng
 set pngsupport=N
 set HAVE_PNG=
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutjpeg
+set jpegsupport=N
+set HAVE_JPEG=
 goto again
 
 rem ----------------------------------------------------------------------
@@ -273,6 +282,26 @@ set HAVE_PNG=1
 :pngDone
 rm -f junk.c junk.obj
 
+if (%jpegsupport%) == (N) goto jpegDone
+
+echo Checking for jpeg ...
+echo #include "jconfig.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj
+if exist junk.obj goto haveJpeg
+
+echo ...building without JPEG support.
+set HAVE_JPEG=
+goto :jpegDone
+
+:haveJpeg
+echo ...JPEG header available, building with JPEG support.
+set HAVE_JPEG=1
+
+:jpegDone
+rm -f junk.c junk.obj
+
 rem ----------------------------------------------------------------------
 :genmakefiles
 echo Generating makefiles
@@ -300,6 +329,7 @@ echo /* Start of settings from configure.bat.  */ >>..\src\config.h
 if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
 if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
+if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
 echo /* End of settings from configure.bat.  */ >>..\src\config.h
 
 copy paths.h ..\src\epaths.h
