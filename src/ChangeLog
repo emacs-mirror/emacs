@@ -1,3 +1,10 @@
+2004-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* w32console.c (w32con_write_glyphs): Decide coding here.
+	Adjusted for the change of encode_terminal_code.
+
+	* term.c (encode_terminal_code): Don't make it "static".
+
 2004-11-30  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_buf, encode_terminal_bufsize): New
