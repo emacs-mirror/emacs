@@ -125,6 +125,14 @@ static Lisp_Object Vmotif_version_string;
 
 #endif /* USE_X_TOOLKIT */
 
+#ifdef USE_GTK
+
+/* GTK+ version info */
+
+static Lisp_Object Vgtk_version_string;
+
+#endif /* USE_GTK */
+
 #ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 #else
@@ -10898,6 +10906,19 @@ meaning don't clear the cache.  */);
   Vmotif_version_string = build_string (XmVERSION_STRING);
 #endif /* USE_MOTIF */
 #endif /* USE_X_TOOLKIT */
+
+#ifdef USE_GTK
+  Fprovide (intern ("gtk"), Qnil);
+
+  DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
+               doc: /* Version info for GTK+.  */);
+  {
+    char gtk_version[40];
+    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
+                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = build_string (gtk_version);
+  }
+#endif /* USE_GTK */
 
   /* X window properties.  */
   defsubr (&Sx_change_window_property);
