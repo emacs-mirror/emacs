@@ -208,7 +208,7 @@ are used."
 	  (goto-char output-end)
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
-
+
 (defconst generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
 A .el file can set this in its local variables section to make its
@@ -270,6 +270,7 @@ Then do \\[exit-recursive-edit]."
 	    (recursive-edit)
 	    (beginning-of-line))
 	  (generate-file-autoloads file)))
+      (if (interactive-p) (save-buffer))
       (if (and (null existing-buffer)
 	       (setq existing-buffer (get-file-buffer file)))
 	  (kill-buffer existing-buffer)))))
@@ -312,7 +313,11 @@ file \"%s\") doesn't exist.  Remove its autoload section? "
   "Run \\[update-file-autoloads] on each .el file in DIR."
   (interactive "DUpdate autoloads for directory: ")
   (mapcar 'update-file-autoloads
-	  (directory-files dir nil "\\.el$")))
+	  (directory-files dir nil "\\.el$"))
+  (if (interactive-p)
+      (save-excursion
+	(set-buffer (find-file-noselect generated-autoload-file))
+	(save-buffer))))
 
 ;;;###autoload
 (defun batch-update-autoloads ()
