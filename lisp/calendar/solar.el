@@ -845,10 +845,11 @@ This function is suitable for execution in a .emacs file."
         (msg (format "%s: %s" date-string time-string))
         (one-window (one-window-p t)))
    (if (<= (length msg) (frame-width))
-       (message msg)
+       (message "%s" msg)
      (with-output-to-temp-buffer "*temp*"
        (princ (concat date-string "\n" time-string)))
-     (message (substitute-command-keys
+     (message "%s"
+	      (substitute-command-keys
                (if one-window
                    (if pop-up-windows
                        "Type \\[delete-other-windows] to remove temp window."
