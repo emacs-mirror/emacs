@@ -101,7 +101,7 @@ frame.
 @defvar after-make-frame-functions
 @tindex after-make-frame-functions
 An abnormal hook run by @code{make-frame} after it creates the frame.
-Each function in @code{after-make-frame-hook} receives one argument, the
+Each function in @code{after-make-frame-functions} receives one argument, the
 frame just created.
 @end defvar
 

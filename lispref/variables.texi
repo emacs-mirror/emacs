@@ -1641,7 +1641,7 @@ the variable changes that binding.  You can observe the result with
 of frames---for example, all color frames, or all frames with dark
 backgrounds.  We have not implemented them because it is not clear that
 this feature is really useful.  You can get more or less the same
-results by adding a function to @code{after-make-frame-hook}, set up to
+results by adding a function to @code{after-make-frame-functions}, set up to
 define a particular frame parameter according to the appropriate
 conditions for each frame.
 
