@@ -1900,34 +1900,53 @@ make_ctrl_char (c)
   return c;
 }
 
-/* Display a help message in the echo area.  */
+/* Display help echo in the echo area.
+
+   MSG a string means display that string, MSG nil means clear the
+   help echo.  If MSG is neither a string nor nil, it is evaluated
+   to obtain a string.
+
+   OK_TO_IVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
+   echo overwrites a keystroke echo currently displayed in the echo
+   area.
+
+   Note: this function may only be called with MSG being nil or
+   a string from X code running asynchronously.  */
+
 void
 show_help_echo (msg, ok_to_overwrite_keystroke_echo)
      Lisp_Object msg;
      int ok_to_overwrite_keystroke_echo;
 {
-  int count = specpdl_ptr - specpdl;
-
-  specbind (Qmessage_truncate_lines, Qt);
-  if (CONSP (msg))
-    msg = Feval (msg);
-
-  if (!NILP (Vshow_help_function))
-    call1 (Vshow_help_function, msg);
-  else if (/* Don't overwrite minibuffer contents.  */
-	   !MINI_WINDOW_P (XWINDOW (selected_window))
-	   /* Don't overwrite a keystroke echo.  */
-	   && (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
-	   /* Don't overwrite a prompt.  */
-	   && !cursor_in_echo_area)
+  if (!NILP (msg) && !STRINGP (msg))
     {
-      if (STRINGP (msg))
-	message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
-      else
-	message (0);
+      msg = eval_form (msg);
+      if (!STRINGP (msg))
+	return;
     }
 
-  unbind_to (count, Qnil);
+  if (STRINGP (msg) || NILP (msg))
+    {
+      if (!NILP (Vshow_help_function))
+	call1 (Vshow_help_function, msg);
+      else if (/* Don't overwrite minibuffer contents.  */
+	       !MINI_WINDOW_P (XWINDOW (selected_window))
+	       /* Don't overwrite a keystroke echo.  */
+	       && (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
+	       /* Don't overwrite a prompt.  */
+	       && !cursor_in_echo_area)
+	{
+	  if (STRINGP (msg))
+	    {
+	      int count = specpdl_ptr - specpdl;
+	      specbind (Qmessage_truncate_lines, Qt);
+	      message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
+	      unbind_to (count, Qnil);
+	    }
+	  else
+	    message (0);
+	}
+    }
 }
 
 
@@ -9371,16 +9390,17 @@ clear_waiting_for_input ()
 }
 
 /* This routine is called at interrupt level in response to C-G.
- If interrupt_input, this is the handler for SIGINT.
- Otherwise, it is called from kbd_buffer_store_event,
- in handling SIGIO or SIGTINT.
+   
+   If interrupt_input, this is the handler for SIGINT.  Otherwise, it
+   is called from kbd_buffer_store_event, in handling SIGIO or
+   SIGTINT.
 
- If `waiting_for_input' is non zero, then unless `echoing' is nonzero,
- immediately throw back to read_char.
+   If `waiting_for_input' is non zero, then unless `echoing' is
+   nonzero, immediately throw back to read_char.
 
- Otherwise it sets the Lisp variable  quit-flag  not-nil.
- This causes  eval  to throw, when it gets a chance.
- If  quit-flag  is already non-nil, it stops the job right away.  */
+   Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
+   eval to throw, when it gets a chance.  If quit-flag is already
+   non-nil, it stops the job right away.  */
 
 SIGTYPE
 interrupt_signal (signalnum)	/* If we don't have an argument, */
