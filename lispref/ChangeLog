@@ -1,3 +1,12 @@
+2003-08-06  John Paul Wallington  <jpw@gnu.org>
+
+	* compile.texi (Compiler Errors): Say `@end defmac' after `defmac'.
+
+	* display.texi (Warning Basics): Fix typo.
+	(Fringes): Add closing curly bracket and fix typo.
+
+	* elisp.texi (Top): Fix typo.
+
 2003-08-05  Richard M. Stallman  <rms@gnu.org>
 
 	* elisp.texi: Update lists of subnodes.
