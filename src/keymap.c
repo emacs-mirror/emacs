@@ -667,7 +667,8 @@ map_keymap_char_table_item (args, key, val)
 }
 
 /* Call FUN for every binding in MAP.
-   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).  */
+   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).
+   AUTOLOAD if non-zero means that we can autoload keymaps if necessary.  */
 void
 map_keymap (map, fun, args, data, autoload)
      map_keymap_function_t fun;
