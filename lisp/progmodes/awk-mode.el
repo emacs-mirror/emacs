@@ -119,6 +119,7 @@ with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (require 'cc-langs)
+  (c-initialize-cc-mode)
   (use-local-map c-mode-map)
   (setq major-mode 'awk-mode)
   (setq mode-name "AWK")
