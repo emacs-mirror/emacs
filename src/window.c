@@ -2431,7 +2431,8 @@ DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
   "Split WINDOW, putting SIZE lines in the first of the pair.\n\
 WINDOW defaults to selected one and SIZE to half its size.\n\
 If optional third arg HORFLAG is non-nil, split side by side\n\
-and put SIZE columns in the first of the pair.")
+and put SIZE columns in the first of the pair.  In that case,\n\
+SIZE includes that window's scroll bar, or the divider column to its right.")
   (window, size, horflag)
      Lisp_Object window, size, horflag;
 {
