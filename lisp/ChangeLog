@@ -1,3 +1,7 @@
+2003-02-02  John Paul Wallington  <jpw@gnu.org>
+
+	* hexl.el (hexl-mode-map): Bind C-m to `hexl-self-insert-command'.
+
 2003-01-29  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.el (decompose-composite-char): Fix docstring.

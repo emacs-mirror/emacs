@@ -873,6 +873,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (substitute-key-definition 'self-insert-command 'hexl-self-insert-command
 			     hexl-mode-map (current-global-map))
 
+  (define-key hexl-mode-map "\C-m" 'hexl-self-insert-command)
   (define-key hexl-mode-map [left] 'hexl-backward-char)
   (define-key hexl-mode-map [right] 'hexl-forward-char)
   (define-key hexl-mode-map [up] 'hexl-previous-line)
