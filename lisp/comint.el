@@ -1984,6 +1984,8 @@ process if STRING contains a password prompt defined by
 
 This function could be in the list `comint-output-filter-functions'."
   (when (string-match comint-password-prompt-regexp string)
+    (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
+      (setq string (replace-match "" t t string)))
     (let ((pw (comint-read-noecho string t)))
       (send-invisible pw))))
 
