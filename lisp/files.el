@@ -1375,7 +1375,7 @@ if you wish to pass an empty string as the argument."
 	      (setq buffer-file-name buffer-file-truename))))
     (setq buffer-file-number
 	  (if filename
-	      (nth 10 (file-attributes buffer-file-name))
+	      (nthcdr 10 (file-attributes buffer-file-name))
 	      nil)))
   ;; write-file-hooks is normally used for things like ftp-find-file
   ;; that visit things that are not local files as if they were files.
@@ -1782,7 +1782,8 @@ After saving the buffer, run `after-save-hook'."
 		;; If a hook returned t, file is already "written".
 		;; Otherwise, write it the usual way now.
 		(setq setmodes (basic-save-buffer-1)))
-	    (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
+	    (setq buffer-file-number
+		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
 		(condition-case ()
 		    (set-file-modes buffer-file-name setmodes)
