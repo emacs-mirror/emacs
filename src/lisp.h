@@ -1910,7 +1910,7 @@ EXFUN (Fload, 5);
 EXFUN (Fget_file_char, 0);
 EXFUN (Fread_char, 0);
 extern Lisp_Object read_filtered_event P_ ((int, int, int));
-EXFUN (Feval_region, 3);
+EXFUN (Feval_region, 4);
 extern Lisp_Object intern P_ ((char *));
 extern Lisp_Object make_symbol P_ ((char *));
 extern Lisp_Object oblookup P_ ((Lisp_Object, char *, int, int));
