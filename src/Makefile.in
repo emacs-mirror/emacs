@@ -609,7 +609,6 @@ lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}byte-run.elc \
-	${lispsource}c-mode.elc \
 	${lispsource}files.elc \
 	${lispsource}fill.elc \
 	${lispsource}format.elc \
