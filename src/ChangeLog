@@ -1,3 +1,8 @@
+2000-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* buffer.c (syms_of_buffer) <scroll-up-aggressively>: Doc fix.
+	<scroll-down-aggressively>: Likewise.
+
 2000-08-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_eol): Fix bug for the case of dst_bytes being
