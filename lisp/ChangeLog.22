@@ -1,3 +1,9 @@
+2003-11-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Put
+	higher priority to charsets listed in `charset' property of the
+	language environment.
+
 2003-11-23  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-compose-chars): Don't do unnecessary
