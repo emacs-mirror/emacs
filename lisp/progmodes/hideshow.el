@@ -354,7 +354,7 @@ For example, in c-like modes, if we wish to also hide the curly braces
 should return the starting point (at the end of line) of the hidden
 region.
 
-It is called with a single argument ARG which is the the position in
+It is called with a single argument ARG which is the position in
 buffer after the block beginning.
 
 It should return the position from where we should start hiding.
