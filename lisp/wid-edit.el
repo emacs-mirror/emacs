@@ -254,7 +254,7 @@ minibuffer."
 	   ;; that corresponds to it.
 	   (save-window-excursion
 	     (let ((buf (get-buffer " widget-choose")))
-	       (display-buffer buf)
+	       (fit-window-to-buffer (display-buffer buf))
 	       (let ((cursor-in-echo-area t)
 		     keys
 		     (char 0)
