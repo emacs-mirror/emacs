@@ -1,3 +1,7 @@
+2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+
+	* configure.in (*-sunos5*, *-solaris*): New configuration.
+
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): New configurations.
