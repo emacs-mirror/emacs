@@ -1239,7 +1239,7 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 	(setq two-lines-prefix
 	      (fill-context-prefix
 	       (point)
-	       (line-beginning-position 2)))
+	       (line-beginning-position 3)))
 	(when just-one-line-prefix
 	  (setq one-line-citation-part
 		(if citation-regexp
