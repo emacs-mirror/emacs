@@ -687,6 +687,13 @@ The value of this variable is the default output stream---the stream
 that print functions use when the @var{stream} argument is @code{nil}.
 @end defvar
 
+@defvar print-quoted
+If this is non-@code{nil}, that means to print quoted forms using
+abbreviated reader syntax.  @code{(quote foo)} prints as @code{'foo},
+@code{(function foo)} as @code{#'foo}, and backquoted forms print
+using modern backquote syntax.
+@end defvar
+
 @defvar print-escape-newlines
 @cindex @samp{\n} in print
 @cindex escape characters
