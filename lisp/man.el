@@ -101,14 +101,27 @@
 (defvar Man-notify)
 (defvar Man-current-page)
 (defvar Man-page-list)
-(defvar Man-filter-list)
+(defvar Man-filter-list nil
+  "*Manpage cleaning filter command phrases.
+This variable contains a list of the following form:
+
+'((command-string phrase-string*)*)
+
+Each phrase-string is concatenated onto the command-string to form a
+command filter.  The (standard) output (and standard error) of the Un*x
+man command is piped through each command filter in the order the
+commands appear in the association list.  The final output is placed in
+the manpage buffer.")
+
 (defvar Man-original-frame)
 (defvar Man-arguments)
 (defvar Man-sections-alist)
 (defvar Man-refpages-alist)
-(defvar Man-uses-untabify-flag)
+(defvar Man-uses-untabify-flag t
+  "When non-nil use `untabify' instead of Man-untabify-command.")
 (defvar Man-page-mode-string)
-(defvar Man-sed-script)
+(defvar Man-sed-script nil
+  "Script for sed to nuke backspaces and ANSI codes from manpages.")
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
@@ -303,7 +316,7 @@ This regular expression should start with a `^' character.")
 ;; ======================================================================
 ;; utilities
 
-(defsubst Man-init-defvars ()
+(defun Man-init-defvars ()
   "Used for initialising variables based on the value of window-system.
 This is necessary if one wants to dump man.el with emacs."
 
@@ -312,76 +325,56 @@ This is necessary if one wants to dump man.el with emacs."
   (setq Man-fontify-manpage-flag (and Man-fontify-manpage-flag
 				      window-system))
 
-  (defconst Man-uses-untabify-flag t
-    ;; don't use pr: it is buggy
-    ;; (or (not (file-readable-p "/etc/passwd"))
-    ;;   (/= 0 (apply 'call-process
-    ;;                Man-untabify-command nil nil nil
-    ;;                (append Man-untabify-command-args
-    ;;                        (list "/etc/passwd")))))
-    "When non-nil use `untabify' instead of Man-untabify-command.")
+  (setq Man-sed-script
+	(cond
+	 (Man-fontify-manpage-flag
+	  nil)
+	 ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
+	  Man-sysv-sed-script)
+	 ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
+	  Man-berkeley-sed-script)
+	 (t
+	  nil)))
 
-  (defconst Man-sed-script
-    (cond
-     (Man-fontify-manpage-flag
-      nil)
-     ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
-      Man-sysv-sed-script)
-     ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
-      Man-berkeley-sed-script)
-     (t
-      nil))
-    "Script for sed to nuke backspaces and ANSI codes from manpages.")
-
-  (defvar Man-filter-list
-    (list
-     (cons
-      Man-sed-command
-      (list
-       (if Man-sed-script
-	   (concat "-e '" Man-sed-script "'")
-	 "")
-       "-e '/^[\001-\032][\001-\032]*$/d'"
-       "-e '/\e[789]/s///g'"
-       "-e '/Reformatting page.  Wait/d'"
-       "-e '/Reformatting entry.  Wait/d'"
-       "-e '/^[ \t]*Hewlett-Packard[ \t]Company[ \t]*-[ \t][0-9]*[ \t]-/d'"
-       "-e '/^[ \t]*Hewlett-Packard[ \t]*-[ \t][0-9]*[ \t]-.*$/d'"
-       "-e '/^[ \t][ \t]*-[ \t][0-9]*[ \t]-[ \t]*Formatted:.*[0-9]$/d'"
-       "-e '/^[ \t]*Page[ \t][0-9]*.*(printed[ \t][0-9\\/]*)$/d'"
-       "-e '/^Printed[ \t][0-9].*[0-9]$/d'"
-       "-e '/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d'"
-       "-e '/^[A-za-z].*Last[ \t]change:/d'"
-       "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
-       "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
-       "-e '/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d'"
-       ))
-     (cons
-      Man-awk-command
-      (list
-       "'\n"
-       "BEGIN { blankline=0; anonblank=0; }\n"
-       "/^$/ { if (anonblank==0) next; }\n"
-       "{ anonblank=1; }\n"
-       "/^$/ { blankline++; next; }\n"
-       "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }\n"
-       "'"
-       ))
-     (if (not Man-uses-untabify-flag)
+  (setq Man-filter-list
+	(list
 	 (cons
-	  Man-untabify-command
-	  Man-untabify-command-args)
-       ))
-    "*Manpage cleaning filter command phrases.
-This variable contains a list of the following form:
-
-'((command-string phrase-string*)*)
-
-Each phrase-string is concatenated onto the command-string to form a
-command filter.  The (standard) output (and standard error) of the Un*x
-man command is piped through each command filter in the order the
-commands appear in the association list.  The final output is placed in
-the manpage buffer.")
+	  Man-sed-command
+	  (list
+	   (if Man-sed-script
+	       (concat "-e '" Man-sed-script "'")
+	     "")
+	   "-e '/^[\001-\032][\001-\032]*$/d'"
+	   "-e '/\e[789]/s///g'"
+	   "-e '/Reformatting page.  Wait/d'"
+	   "-e '/Reformatting entry.  Wait/d'"
+	   "-e '/^[ \t]*Hewlett-Packard[ \t]Company[ \t]*-[ \t][0-9]*[ \t]-/d'"
+	   "-e '/^[ \t]*Hewlett-Packard[ \t]*-[ \t][0-9]*[ \t]-.*$/d'"
+	   "-e '/^[ \t][ \t]*-[ \t][0-9]*[ \t]-[ \t]*Formatted:.*[0-9]$/d'"
+	   "-e '/^[ \t]*Page[ \t][0-9]*.*(printed[ \t][0-9\\/]*)$/d'"
+	   "-e '/^Printed[ \t][0-9].*[0-9]$/d'"
+	   "-e '/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d'"
+	   "-e '/^[A-za-z].*Last[ \t]change:/d'"
+	   "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
+	   "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
+	   "-e '/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d'"
+	   ))
+	 (cons
+	  Man-awk-command
+	  (list
+	   "'\n"
+	   "BEGIN { blankline=0; anonblank=0; }\n"
+	   "/^$/ { if (anonblank==0) next; }\n"
+	   "{ anonblank=1; }\n"
+	   "/^$/ { blankline++; next; }\n"
+	   "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }\n"
+	   "'"
+	   ))
+	 (if (not Man-uses-untabify-flag)
+	     (cons
+	      Man-untabify-command
+	      Man-untabify-command-args)
+	   )))
 )
 
 (defsubst Man-match-substring (&optional n string)
@@ -516,9 +509,6 @@ If a buffer already exists for this man page, it will display immediately."
 		   (error "No man args given")
 		 default-entry)
 	     input))))
-
-  ;; Init the man package variables, if not already done.
-  (Man-init-defvars)
 
   ;; Possibly translate the "subject(section)" syntax into the
   ;; "section subject" syntax and possibly downcase the section.
@@ -1064,6 +1054,9 @@ Specify which reference to use; default is based on word at point."
 	(Man-goto-page (length Man-page-list))
       (error "You're looking at the first manpage in the buffer"))))
 
+;; Init the man package variables, if not already done.
+(Man-init-defvars)
+
 (provide 'man)
 
 ;;; man.el ends here
