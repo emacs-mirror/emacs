@@ -1,5 +1,5 @@
 ;;; mm-view.el --- functions for viewing MIME objects
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -34,7 +34,8 @@
   (autoload 'vcard-parse-string "vcard")
   (autoload 'vcard-format-string "vcard")
   (autoload 'fill-flowed "flow-fill")
-  (autoload 'diff-mode "diff-mode"))
+  (unless (fboundp 'diff-mode)
+    (autoload 'diff-mode "diff-mode" "" t nil)))
 
 ;;;
 ;;; Functions for displaying various formats inline
