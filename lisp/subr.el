@@ -587,7 +587,7 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
-With optional non-nil ALL then force then force redisplay of all mode-lines."
+With optional non-nil ALL, force redisplay of all mode-lines."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
