@@ -34,6 +34,8 @@ struct Lisp_Process
     /* Descriptor for the tty which this process is using.
        nil if we didn't record it (on some systems, there's no need).  */
     Lisp_Object subtty;
+    /* Name of subprocess terminal.  */
+    Lisp_Object tty_name;
     /* Name of this process */
     Lisp_Object name;
     /* List of command arguments that this process was run with */
