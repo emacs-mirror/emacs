@@ -808,7 +808,11 @@ This makes the hook buffer-local if needed."
     ;;	       (not (member (cons 'not function) hook-value)))
     ;;  (push (cons 'not function) hook-value))
     ;; Set the actual variable
-    (if local (set hook hook-value) (set-default hook hook-value))))
+    (if (not local)
+	(set-default hook hook-value)
+      (if (equal hook-value '(t))
+	  (kill-local-variable hook)
+	(set hook hook-value)))))
 
 (defun add-to-list (list-var element &optional append)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
