@@ -1,5 +1,8 @@
 2004-09-25  Stefan  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-move-to-filename): Don't output a message if
+	raise-error is non-nil.  Fix return position and value.
+
 	* files.el (insert-directory): Obey --dired even with symlinks.
 
 2004-09-25  Lars Hansen  <larsh@math.ku.dk>

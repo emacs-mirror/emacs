@@ -1774,8 +1774,10 @@ regardless of the language.")
       (goto-char (match-end 0)))
      ((re-search-forward dired-permission-flags-regexp eol t)
       ;; Ha!  There *is* a file.  Our regexp-from-hell just failed to find it.
-      (funcall (if raise-error 'error 'message)
-	       "Unrecognized line!  Check dired-move-to-filename-regexp"))
+      (if raise-error
+	  (error "Unrecognized line!  Check dired-move-to-filename-regexp"))
+      (beginning-of-line)
+      nil)
      (raise-error
       (error "No file on this line")))))
 
