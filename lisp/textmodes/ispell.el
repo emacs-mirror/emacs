@@ -1559,7 +1559,7 @@ Optional second argument contains the dictionary to use; the default is
   "Highlight the word from START to END with a kludge using `inverse-video'.
 When the optional third arg HIGHLIGHT is set, the word is highlighted;
 otherwise it is displayed normally.
-Uses block cursor to highlight one charcater.
+Uses block cursor to highlight one character.
 Optional REFRESH will unhighlighted then highlight, using block cursor
  highlighting when REFRESH is equal to `block'."
   (and (eq 'block ispell-highlight-p)
@@ -1893,7 +1893,8 @@ With prefix argument, set the default directory."
 
 ;;;###autoload
 (defun ispell-region (reg-start reg-end)
-  "Interactively check a region for spelling errors."
+  "Interactively check a region for spelling errors.
+Return non-nil if not aborted."
   (interactive "r")			; Don't flag errors on read-only bufs.
   (ispell-accept-buffer-local-defs)	; set up dictionary, local words, etc.
   (unwind-protect
@@ -1958,7 +1959,7 @@ With prefix argument, set the default directory."
 		(if string		; there is something to spell check!
 		    (ispell-process-line string)) ; (special start end)
 		(goto-char end)))))
-	;;(not ispell-quit) ??? kss
+	(not ispell-quit)
 	)
     ;; protected
     (if (get-buffer ispell-choices-buffer)
