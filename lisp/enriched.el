@@ -421,21 +421,24 @@ One annotation each for foreground color, background color, italic, etc."
 
 (defun enriched-decode-foreground (from to color)
   (let ((face (intern (concat "fg:" color))))
-    (or (and (fboundp 'facemenu-get-face) (facemenu-get-face face))
-	(progn (enriched-warn "Color \"%s\" not defined" color)
-	       (if window-system
-		   (enriched-warn 
-         "    Try M-x set-face-foreground RET %s RET some-other-color" face))))
+    (cond ((internal-find-face face))
+	  ((and window-system (facemenu-get-face face)))
+	  (window-system
+	   (enriched-warn "Color \"%s\" not defined:
+    Try M-x set-face-foreground RET %s RET some-other-color" color face))
+	  ((make-face face)
+	   (enriched-warn "Color \"%s\" can't be displayed." color)))
     (list from to 'face face)))
 
 (defun enriched-decode-background (from to color)
   (let ((face (intern (concat "bg:" color))))
-    (or (and (fboundp 'facemenu-get-face) (facemenu-get-face face))
-	(progn
-	  (enriched-warn "Color \"%s\" not defined" color)
-	  (if window-system
-	      (enriched-warn
-         "    Try M-x set-face-background RET %s RET some-other-color" face))))
+    (cond ((internal-find-face face))
+	  ((and window-system (facemenu-get-face face)))
+	  (window-system
+	   (enriched-warn "Color \"%s\" not defined:
+    Try M-x set-face-background RET %s RET some-other-color" color face))
+	  ((make-face face)
+	   (enriched-warn "Color \"%s\" can't be displayed." color)))
     (list from to 'face face)))
 
 ;;;
@@ -447,6 +450,7 @@ One annotation each for foreground color, background color, italic, etc."
 ;;; Define the mode
 ;;;
 
+;;;###autoload
 (defun enriched-mode (&optional arg notrans)
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
