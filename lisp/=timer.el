@@ -1,9 +1,8 @@
 ;;; timer.el --- run a function with args at some time in future
 
-;; Maintainer: FSF
-;; Last-Modified: 19 Jan 1990
-
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

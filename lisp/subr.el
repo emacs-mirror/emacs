@@ -1,8 +1,5 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 12 Aug 1991
-
 ;;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

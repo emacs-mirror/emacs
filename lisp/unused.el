@@ -1,7 +1,6 @@
 ;;; unused.el --- editing commands in GNU Emacs that turned out not to be used.
 
 ;; Maintainer: FSF
-;; Last-Modified: 14 Dec 1985
 ;; Keywords: emulations
 
 ;;; Commentary:

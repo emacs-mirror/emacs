@@ -1,10 +1,9 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs.
 
+;; Copyright (C) 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
+
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
-;; Last-Modified: 05 May 1992
-
-;; Copyright (C) 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; mouse.el --- window system-independent mouse support.
 
-;; Maintainer: FSF
-;; Last-Modified: 10 Jul 1992
-;; Keywords: hardware
-
 ;;; Copyright (C) 1988, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: hardware
 
 ;;; This file is part of GNU Emacs.
 

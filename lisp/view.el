@@ -1,10 +1,9 @@
 ;;; view.el --- peruse file or buffer without editing.
 
+;; Copyright (C) 1985, 1989 Free Software Foundation, Inc.
+
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Last-Modified: 21 Aug 1988
-
-;; Copyright (C) 1985, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,9 +1,8 @@
 ;;; sun-cursors.el --- cursor definitions for Sun windows
 
-;; Author: Jeff Peck <peck@sun.com>
-;; Last-Modified: 16 Mar 1992
-
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
+
+;; Author: Jeff Peck <peck@sun.com>
 
 ;; This file is part of GNU Emacs.
 

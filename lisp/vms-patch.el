@@ -1,10 +1,9 @@
 ;;; vms-patch.el --- override parts of files.el for VMS.
 
-;; Maintainer: FSF
-;; Last-Modified: 06 May 1992
-;; Keywords: vms
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: vms
 
 ;; This file is part of GNU Emacs.
 

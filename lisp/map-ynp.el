@@ -1,11 +1,10 @@
 ;;; map-ynp.el --- General-purpose boolean question-asker.
 
+;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
-;; Last-Modified: 14 Mar 1992
 ;; Keywords: lisp, extensions
 
-;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
-;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
 ;;; the Free Software Foundation; either version 2, or (at your option)

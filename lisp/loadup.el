@@ -1,11 +1,9 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 14 Jul 1992
-;; Keywords: internal
-
-;; This is loaded into a bare Emacs to make a dumpable one.
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +20,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This is loaded into a bare Emacs to make a dumpable one.
 
 ;;; Code:
 

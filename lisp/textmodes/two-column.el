@@ -1,10 +1,9 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Author: Daniel Pfeiffer <pfeiffer@cix.cict.fr>
-;; Last-Modified: 14 May 1991
-;; Adapted-By: ESR
-
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
+
+;; Author: Daniel Pfeiffer <pfeiffer@cix.cict.fr>
+;; Adapted-By: ESR
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,11 @@
 ;;; xscheme.el --- run Scheme under Emacs
 
+;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
+
 ;; Maintainer: FSF
-;; Last-Modified: 21 Jan 1987
 ;; Keywords: languages
 
 ;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
-
-;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,7 +1,5 @@
 ;;; term-nasty.el --- Damned Things from terminfo.el
 
-;; Maintainer: FSF
-
 ;;; Commentary:
 
 ;; Some people used to be bothered by the following comments that were

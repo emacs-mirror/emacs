@@ -1,7 +1,6 @@
 ;; meese.el --- protect the impressionable young minds of America
 
 ;; Maintainer: FSF
-;; Last-Modified: 20 May 1988
 ;; Keywords: games
 
 (defun protect-innocence-hook ()
