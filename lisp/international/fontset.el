@@ -224,6 +224,10 @@ Translate through the translation-hash-table named
 (setq vertical-centering-font-regexp
       "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
 
+;; CDAC fonts are actually smaller than their design sizes.
+(setq face-font-rescale-alist
+      '(("-cdac$" . 1.3)))
+
 (defvar x-font-name-charset-alist
   '(("iso8859-1" ascii latin-iso8859-1)
     ("iso8859-2" ascii latin-iso8859-2)
