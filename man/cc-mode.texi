@@ -7,8 +7,8 @@
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  ../info/ccmode
-@settitle     CC Mode Version 5 Documentation
+@setfilename  cc-mode.info
+@settitle     CC Mode Manual
 @footnotestyle end
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -22,93 +22,53 @@
 @comment Texinfo manual for CC Mode
 @comment Generated from the original README file by Krishna Padmasola
 @comment <krishna@earth-gw.njit.edu>
-@comment 
+@comment
+@comment Authors:
+@comment Barry A. Warsaw
+@comment Martin Stjernholm
+@comment
 @comment Maintained by Martin Stjernholm <bug-cc-mode@gnu.org>
 @comment 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@comment Info directory entry for use by install-info
+@macro copyrightblurb
+Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
+@end macro
+
+@comment Info directory entry for use by install-info. The indentation
+@comment here is by request from the FSF folks.
 @dircategory Emacs
 @direntry
-* CC Mode: (ccmode).    Emacs mode for editing C, C++, Objective-C,
+* CC Mode: (cc-mode).   Emacs mode for editing C, C++, Objective-C,
                           Java, Pike, and IDL code.
 @end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The following line inserts the copyright notice 
+@comment The following lines inserts the copyright notice
 @comment into the Info file.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ifnottex
-Copyright @copyright{} 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@copyrightblurb
 @end ifnottex
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment !!!The titlepage section does not appear in the Info file.!!!
+@comment TeX title page
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @titlepage
 @sp 10
 
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The title is printed in a large font.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@center @titlefont{CC Mode 5.27}
+@center @titlefont{CC Mode 5.28}
 @sp 2
 @center @subtitlefont{A GNU Emacs mode for editing C and C-like languages}
 @sp 2
-@center Current maintainer:
-@center Martin Stjernholm
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment  The following two commands start the copyright page
-@comment  for the printed manual.  This will not appear in the Info file.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@center Barry A. Warsaw, Martin Stjernholm
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@copyrightblurb
 @end titlepage
-
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment The Top node contains the master menu for the Info file.
@@ -146,11 +106,11 @@ font-locking; there are other Emacs packages for that.
 * Syntactic Symbols::
 * Indentation Functions::
 * Performance Issues::
+* Limitations and Known Bugs::
 * Frequently Asked Questions::
 * Getting the Latest CC Mode Release::
-* Sample .emacs File::
-* Limitations and Known Bugs::
 * Mailing Lists and Submitting Bug Reports::
+* Sample .emacs File::
 
  --- Indices ---
 
@@ -229,7 +189,7 @@ As of 2000 Martin has taken over as the sole maintainer.
 
 This manual describes @ccmode{}
 @comment The following line must appear on its own, so that the automated
-version 5.27.
+version 5.28.
 @comment Release.py script can update the version number automatically
 
 @ccmode{} supports the editing of K&R and ANSI C, @dfn{ARM}
@@ -263,7 +223,7 @@ How to customize the new indentation engine.
 @findex java-mode
 @findex idl-mode
 @findex pike-mode
-Note that the name of this package is ``@ccmode{},'' but there is no top
+Note that the name of this package is ``@ccmode{}'', but there is no top
 level @code{cc-mode} entry point.  All of the variables, commands, and
 functions in @ccmode{} are prefixed with @code{c-@var{<thing>}}, and
 @code{c-mode}, @code{c++-mode}, @code{objc-mode}, @code{java-mode},
@@ -853,7 +813,7 @@ zero, hanging them can introduce performance problems.
 Using a mechanism similar to brace hanging (@pxref{Hanging Braces}),
 colons can also be made to hang using the style variable
 @code{c-hanging-colons-alist}.  The syntactic symbols appropriate for
-this assocation list are: @code{case-label}, @code{label},
+this association list are: @code{case-label}, @code{label},
 @code{access-label}, @code{member-init-intro}, and @code{inher-intro}.
 Note however that for @code{c-hanging-colons-alist}, @var{ACTION}s as
 functions are not supported. See also @ref{Custom Brace and Colon
@@ -955,13 +915,15 @@ automatically.
 @cindex clean-ups
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@dfn{Clean-ups} are a mechanism complementary to colon and brace
-hanging.  On the surface, it would seem that clean-ups overlap the
-functionality provided by the @code{c-hanging-*-alist} variables, and
-similarly, clean-ups are only enabled when auto-newline minor mode is
-enabled.  Clean-ups are used however to adjust code ``after-the-fact,''
-i.e. to eliminate some whitespace that is inserted by electric
-commands, or whitespace that contains intervening constructs.
+@dfn{Clean-ups} are mechanisms complementary to colon and brace hanging.
+On the surface, it would seem that clean-ups overlap the functionality
+provided by the @code{c-hanging-*-alist} variables.  Clean-ups are
+however used to adjust code ``after-the-fact'', i.e. to adjust the
+whitespace in constructs after they are typed.
+
+Most of the clean-ups are only applicable to counteract automatically
+inserted newlines, and will therefore only have any effect if the
+auto-newline minor mode is turned on.  Others will work all the time.
 
 @vindex c-cleanup-list
 @vindex cleanup-list (c-)
@@ -974,12 +936,12 @@ performed when the construct does not occur within a literal
 (@pxref{Auto-newline Insertion}), and when there is nothing but
 whitespace appearing between the individual components of the construct.
 
-There are currently only five specific constructs that @ccmode{}
-can clean up, as indicated by these symbols:
+These are the clean-ups that only are active in the auto-newline minor
+mode:
 
 @itemize @bullet
 @item
-@code{brace-else-brace} --- cleans up @samp{@} else @{} constructs by
+@code{brace-else-brace} --- Clean up @samp{@} else @{} constructs by
 placing the entire construct on a single line.  Clean-up occurs when the
 open brace after the @samp{else} is typed.  So for example, this:
 @example
@@ -1011,7 +973,7 @@ void spam(int i)
 @end example
 
 @item
-@code{brace-elseif-brace} --- similar to the @code{brace-else-brace}
+@code{brace-elseif-brace} --- Similar to the @code{brace-else-brace}
 clean-up, but this cleans up @samp{@} else if (...) @{} constructs.  For
 example:
 @example
@@ -1057,11 +1019,11 @@ void spam(int i)
 @end example
 
 @item
-@code{brace-catch-brace} --- analogous to @code{brace-elseif-brace}, but
+@code{brace-catch-brace} --- Analogous to @code{brace-elseif-brace}, but
 cleans up @samp{@} catch (...) @{} in C++ and Java mode.
 
 @item
-@code{empty-defun-braces} --- cleans up braces following a top-level
+@code{empty-defun-braces} --- Clean up braces following a top-level
 function or class definition that contains no body.  Clean up occurs
 when the closing brace is typed.  Thus the following:
 @example
@@ -1085,9 +1047,9 @@ class Spam
 @end example
 
 @item
-@code{defun-close-semi} --- cleans up the terminating semi-colon on
+@code{defun-close-semi} --- Clean up the terminating semi-colon on
 top-level function or class definitions when they follow a close
-brace. Clean up occurs when the semi-colon is typed.
+brace.  Clean up occurs when the semi-colon is typed.
 So for example, the following:
 @example
 @group
@@ -1113,17 +1075,41 @@ class Spam
 @end example
 
 @item
-@code{list-close-comma} --- cleans up commas following braces in array
+@code{list-close-comma} --- Clean up commas following braces in array
 and aggregate initializers.  Clean up occurs when the comma is typed.
 
 @item
-@code{scope-operator} --- cleans up double colons which may designate a
+@code{scope-operator} --- Clean up double colons which may designate a
 C++ scope operator split across multiple lines@footnote{Certain C++
 constructs introduce ambiguous situations, so @code{scope-operator}
 clean-ups may not always be correct.  This usually only occurs when
 scoped identifiers appear in switch label tags.}.  Clean up occurs when
 the second colon is typed.  You will always want @code{scope-operator}
 in the @code{c-cleanup-list} when you are editing C++ code.
+
+@end itemize
+
+The following clean-ups are always active when they occur on
+@code{c-cleanup-list}, and are thus not affected by the auto-newline
+minor mode:
+
+@itemize @bullet
+@item
+@code{space-before-funcall} --- Insert a space between the function name
+and the opening parenthesis of a function call.  This produces function
+calls in the style mandated by the GNU coding standards,
+e.g. @samp{signal (SIGINT, SIG_IGN)} and @samp{abort ()}.  Clean up
+occurs when the opening parenthesis is typed.
+
+@item
+@code{compact-empty-funcall} --- Clean up any space between the function
+name and the opening parenthesis of a function call that have no
+arguments.  This is typically used together with
+@code{space-before-funcall} if you prefer the GNU function call style
+for functions with arguments but think it looks ugly when it's only an
+empty parenthesis pair.  I.e. you will get @samp{signal (SIGINT,
+SIG_IGN)}, but @samp{abort()}.  Clean up occurs when the closing
+parenthesis is typed.
 
 @end itemize
 
@@ -1145,7 +1131,7 @@ hungry-delete in @strong{all} your editing modes!
 In a nutshell, when hungry-delete mode is enabled, hitting the
 @key{Backspace} key@footnote{I say ``hit the @key{Backspace} key'' but
 what I really mean is ``when Emacs receives the @code{BackSpace} key
-event.''  The difference usually isn't significant to most users, but
+event''.  The difference usually isn't significant to most users, but
 advanced users will realize that under window systems such as X, any
 physical key (keycap) on the keyboard can be configured to generate any
 keysym, and thus any Emacs key event.  Also, the use of Emacs on TTYs
@@ -1408,11 +1394,13 @@ The commands that does the actual work follows.
 @findex c-fill-paragraph
 @findex fill-paragraph (c-)
 @cindex Javadoc markup
+@cindex Pike autodoc markup
 @item @kbd{M-q} (@code{c-fill-paragraph})
 This is the replacement for @code{fill-paragraph} in @ccmode{}
 buffers. It's used to fill multiline string literals and both block and
 line style comments.  In Java buffers, the Javadoc markup words are
-recognized as paragraph starters.
+recognized as paragraph starters.  The line oriented Pike autodoc markup
+words are recognized in the same way in Pike mode.
 
 The function keeps the comment starters and enders of block comments as
 they were before the filling.  This means that a comment ender on the
@@ -1692,18 +1680,18 @@ argument, move backward.
 @findex beginning-of-statement (c-)
 @item @kbd{M-a} (@code{c-beginning-of-statement})
 Move point to the beginning of the innermost C statement.  If point is
-already at the beginning of a statement, it moves to the beginning of
-the closest preceding statement, even if that means moving into a block
-(you can use @kbd{M-C-b} to move over a balanced block).  With prefix
+already at the beginning of a statement, move to the beginning of the
+closest preceding statement, even if that means moving into a block (you
+can use @kbd{M-C-b} to move over a balanced block).  With prefix
 argument @var{n}, move back @var{n} @minus{} 1 statements.
 
-If point is within a comment, or next to a comment, this command moves
-by sentences instead of statements.
+If point is within or next to a comment or a string which spans more
+than one line, this command moves by sentences instead of statements.
 
 When called from a program, this function takes three optional
-arguments: the numeric prefix argument, a buffer position limit which is
-the farthest back to search, and a flag to enable moving by sentence
-inside comments.
+arguments: the repetition count, a buffer position limit which is the
+farthest back to search for the syntactic context, and a flag saying
+whether to do sentence motion in or near comments and multiline strings.
 
 @kindex M-e
 @findex c-end-of-statement
@@ -1715,13 +1703,13 @@ inside a nested block (use @kbd{M-C-f} to move to the other side of the
 block).  With prefix argument @var{n}, move forward @var{n} @minus{} 1
 statements.
 
-If point is within a comment, or next to a comment, this command moves
-by sentences instead of statements.
+If point is within or next to a comment or a string which spans more
+than one line, this command moves by sentences instead of statements.
 
 When called from a program, this function takes three optional
-arguments: the numeric prefix argument, a buffer position limit which is
-the farthest back to search, and a flag to enable moving by sentence
-inside comments.
+arguments: the repetition count, a buffer position limit which is the
+farthest back to search for the syntactic context, and a flag saying
+whether to do sentence motion in or near comments and multiline strings.
 
 @findex c-forward-into-nomenclature
 @findex forward-into-nomenclature (c-)
@@ -1820,14 +1808,16 @@ function call programmatically!}.
 @vindex c-basic-offset
 @vindex basic-offset (c-)
 The offset associated with any particular syntactic symbol can be any of
-an integer, a function or lambda expression, a variable name, or one of
-the following symbols: @code{+}, @code{-}, @code{++}, @code{--},
-@code{*}, or @code{/}.  These latter describe offset in multiples of the
-value of the style variable @code{c-basic-offset}.  By defining a
-style's indentation in terms of this fundamental variable, you can
-change the amount of whitespace given to an indentation level while
-maintaining the same basic shape of your code.  Here are the values that
-the special symbols correspond to:
+an integer, a function or lambda expression, a variable name, a vector,
+a list, or one of the following symbols: @code{+}, @code{-}, @code{++},
+@code{--}, @code{*}, or @code{/}.
+
+Those last special symbols describe an offset in multiples of the value
+of the style variable @code{c-basic-offset}.  By defining a style's
+indentation in terms of this fundamental variable, you can change the
+amount of whitespace given to an indentation level while maintaining the
+same basic shape of your code.  Here are the values that the special
+symbols correspond to:
 
 @table @code
 
@@ -1853,6 +1843,9 @@ function}.  Such functions are useful when more context than just the
 syntactic symbol is needed to get the desired indentation.
 @xref{Indentation Functions}, and @ref{Custom Indentation Functions},
 for details about them.
+
+If the offset is a vector, its first element sets the absolute
+indentation column, which will override any relative indentation.
 
 @vindex c-strict-syntax-p
 @vindex strict-syntax-p (c-)
@@ -2133,15 +2126,14 @@ The language hooks get run as the last thing when you enter that
 language mode.  The @code{c-mode-common-hook} is run by all supported
 modes @emph{before} the language specific hook, and thus can contain
 customizations that are common across all languages.  Most of the
-examples in this section will assume you are using the common
-hook.@footnote{@code{java-mode} and the hook variables interact in a
-slightly different way than the other modes.  @code{java-mode} normally
-sets the style of the buffer to @samp{java} @emph{before} running the
-@code{c-mode-common-hook} or @code{java-mode-hook}.  You need to be
-aware of this so that style settings in @code{c-mode-common-hook} don't
-clobber your Java style.  This is arguably bogus, but it's kept for
-historical reasons.  @xref{Built-in Styles}, the documentation of
-@code{c-default-style}, for details.}
+examples in this section will assume you are using the common hook.
+
+Note that all the language-specific mode setup that CC Mode does is done
+prior to both @code{c-mode-common-hook} and the language specific hook.
+That includes installing the indentation style, which can be mode
+specific (and also is by default for Java mode).  Thus, any style
+settings done in @code{c-mode-common-hook} will override whatever
+language-specific style is chosen by @code{c-default-style}.
 
 Here's a simplified example of what you can add to your @file{.emacs}
 file to do things whenever any @ccmode{} language is edited.  See the
@@ -2285,14 +2277,14 @@ Whitesmiths C, an early commercial C compiler.
 @cindex Ellemtel style
 @item
 @code{ellemtel} --- Popular C++ coding standards as defined by
-``Programming in C++, Rules and Recommendations,'' Erik Nyquist and Mats
+``Programming in C++, Rules and Recommendations'', Erik Nyquist and Mats
 Henricson, Ellemtel@footnote{This document is available at
 @uref{http://www.doc.ic.ac.uk/lab/cplus/c++.rules/} among other
 places.}.
 
 @cindex Linux style
 @item
-@code{linux} --- C coding standard for Linux (the kernel).
+@code{linux} --- C coding standard for Linux development.
 
 @cindex Python style
 @item
@@ -2304,8 +2296,9 @@ foreign function interface.  For more information, see
 @cindex Java style
 @findex java-mode
 @item
-@code{java} --- The style for editing Java code.  Note that this style is
-automatically installed when you enter @code{java-mode}.
+@code{java} --- The style for editing Java code.  Note that the default
+value for @code{c-default-style} installs this style when you enter
+@code{java-mode}.
 
 @cindex User style
 @item
@@ -2343,9 +2336,7 @@ mode.  Here are the rules:
 @item
 When @code{c-default-style} is a string, it must be an existing style
 name as found in @code{c-style-alist}.  This style is then used for all
-modes @emph{except} @code{java-mode}, where the style @samp{java} is
-used by default@footnote{This is for backwards compatibility reasons.
-The hard-coding of @code{java-mode} style is admittedly bogus!}.
+modes.
 
 @item
 When @code{c-default-style} is an association list, the current major
@@ -3722,7 +3713,7 @@ For every function below there is a ``works with'' list that indicates
 which syntactic symbols the function is intended to be used with.
 
 @macro workswith
-@emph{Works with:}
+@emph{Works with:@ }
 @end macro
 @ifinfo
 @unmacro workswith
@@ -4173,9 +4164,9 @@ In the first case the indentation is kept unchanged, in the second
 @findex c-lineup-dont-change
 @findex lineup-dont-change (c-)
 @item c-lineup-dont-change
-This lineup function returns the indentation of the current line.  Think
-of it as an identity function for lineups; it is used for
-@code{cpp-macro-cont} lines.
+This lineup function makes the line stay at whatever indentation it
+already has; think of it as an identity function for lineups.  It is
+used for @code{cpp-macro-cont} lines.
 
 @workswith Any syntactic symbol.
 
@@ -4183,7 +4174,7 @@ of it as an identity function for lineups; it is used for
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Performance Issues, Frequently Asked Questions, Indentation Functions, Top
+@node    Performance Issues, Limitations and Known Bugs, Indentation Functions, Top
 @comment node-name, next, previous, up
 @chapter    Performance Issues
 @cindex performance issues
@@ -4283,10 +4274,47 @@ use here; you should read the comments at the top of the file, and look
 at the variable @code{cc-lobotomy-pith-list} for details.
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Frequently Asked Questions, Getting the Latest CC Mode Release, Performance Issues, Top
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Limitations and Known Bugs, Frequently Asked Questions, Performance Issues, Top
 @comment node-name, next, previous, up
-@chapter    Frequently Asked Questions
+@chapter    Limitations and Known Bugs
+@cindex limitations
+@cindex bugs
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+@itemize @bullet
+@item
+Re-indenting large regions or expressions can be slow.
+
+@findex c-indent-exp
+@findex indent-exp (c-)
+@item
+@code{c-indent-exp} has not been fully optimized.  It essentially
+equivalent to hitting @kbd{TAB} (@code{c-indent-command}) on every
+line.  Some information is cached from line to line, but such caching
+invariable causes inaccuracies in analysis in some bizarre situations.
+
+@vindex signal-error-on-buffer-boundary
+@item
+XEmacs versions from 19.15 until (as of this writing 12-Mar-1998) 20.4
+contain a variable called @code{signal-error-on-buffer-boundary}.  This
+was intended as a solution to user interface problems associated with
+buffer movement and the @code{zmacs-region} deactivation on errors.
+However, setting this variable to a non-default value had the
+deleterious side effect of breaking many built-in primitive functions.
+Most users will not be affected since they never change the value of
+this variable.  @strong{Do not set this variable to @code{nil}}; you
+will cause serious problems in @ccmode{} and probably other XEmacs
+packages!  As of at least XEmacs 20.4, the effects this variable tried
+to correct have been fixed in other, better ways.
+
+@end itemize
+
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Frequently Asked Questions, Getting the Latest CC Mode Release, Limitations and Known Bugs, Top
+@comment node-name, next, previous, up
+@appendix Frequently Asked Questions
 @cindex frequently asked questions
 @cindex FAQ
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4342,7 +4370,7 @@ in my @file{.emacs} file but I get an error saying that
 
 @strong{A.} This means that @ccmode{} wasn't loaded into your
 Emacs session by the time the @code{c-set-offset} call was reached,
-mostly likely because @ccmode{} is being autoloaded.  Instead
+most likely because @ccmode{} is being autoloaded.  Instead
 of putting the @code{c-set-offset} line in your top-level
 @file{.emacs} file, put it in your @code{c-mode-common-hook}, or
 simply modify @code{c-offsets-alist} directly:
@@ -4351,23 +4379,6 @@ simply modify @code{c-offsets-alist} directly:
 (setq c-offsets-alist '((substatement-open . 0)))
 
 @end example
-
-@sp 1
-@strong{Q.} @emph{My style settings works in all the @ccmode{} language
-modes except for Java, where I still get e.g. 4 column indentation.}
-
-@strong{A.} Java mode switches to the @samp{java} style by default for
-historical reasons.  You can override it by putting an association list
-on @code{c-default-style}:
-@example
-
-(setq c-default-style '((other . "my-style")))
-
-@end example
-@noindent
-The @samp{other} symbol says that @ccmode{} should use "my-style" in all
-modes not explicitly listed.  Since there's nothing else on the list
-this causes "my-style" to be used in every mode.
 
 @sp 1
 @strong{Q.} @emph{How do I make strings, comments, keywords, and other
@@ -4405,9 +4416,9 @@ in the @file{README} file.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Getting the Latest CC Mode Release, Sample .emacs File, Frequently Asked Questions, Top
+@node    Getting the Latest CC Mode Release, Mailing Lists and Submitting Bug Reports, Frequently Asked Questions, Top
 @comment node-name, next, previous, up
-@chapter    Getting the Latest CC Mode Release
+@appendix Getting the Latest CC Mode Release
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ccmode{} is standard with all versions of Emacs since 19.34 and of
@@ -4433,10 +4444,52 @@ distribution (named @code{cc-mode.tar.gz}; a gzip'd tar file), or any of
 the individual files, including PostScript documentation.
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Sample .emacs File, Limitations and Known Bugs, Getting the Latest CC Mode Release, Top
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Mailing Lists and Submitting Bug Reports, Sample .emacs File, Getting the Latest CC Mode Release, Top
 @comment node-name, next, previous, up
-@chapter    Sample .emacs file
+@appendix Mailing Lists and Submitting Bug Reports
+@cindex mailing lists
+@cindex reporting bugs
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+@kindex C-c C-b
+@findex c-submit-bug-report
+@findex submit-bug-report (c-)
+To report bugs, use the @kbd{C-c C-b} (@code{c-submit-bug-report})
+command.  This provides vital information we need to reproduce your
+problem.  Make sure you include a concise, but complete code example.
+Please try to boil your example down to just the essential code needed
+to reproduce the problem, and include an exact recipe of steps needed to
+expose the bug.  Be especially sure to include any code that appears
+@emph{before} your bug example, if you think it might affect our ability
+to reproduce it.
+
+Please try to produce the problem in an Emacs instance without any
+customizations loaded (i.e. start it with the @code{-q -no-site-file}
+arguments).  If it works correctly there, the problem might be caused by
+faulty customizations in either your own or your site configuration.  In
+that case, we'd appreciate if you isolate the Emacs Lisp code that trigs
+the bug and include it in your report.
+
+@cindex bug report mailing list
+Bug reports are now sent to the following email addresses:
+@email{bug-cc-mode@@gnu.org} and @email{bug-gnu-emacs@@gnu.org}; the
+latter is mirrored on the Usenet newsgroup @code{gnu.emacs.bug}.  You
+can send other questions and suggestions (kudos? @t{;-)} to
+@email{bug-cc-mode@@gnu.org}.
+
+@cindex announcement mailing list
+If you want to get announcements of new @ccmode{} releases, send the
+word @emph{subscribe} in the body of a message to
+@email{cc-mode-announce-request@@lists.sourceforge.net}.  Announcements
+will also be posted to the Usenet newsgroups @code{gnu.emacs.sources},
+@code{comp.emacs} and @code{comp.emacs.xemacs}.
+
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Sample .emacs File, Concept Index, Mailing Lists and Submitting Bug Reports, Top
+@comment node-name, next, previous, up
+@appendix Sample .emacs file
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @example
@@ -4490,88 +4543,7 @@ the individual files, including PostScript documentation.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Limitations and Known Bugs, Mailing Lists and Submitting Bug Reports, Sample .emacs File, Top
-@comment node-name, next, previous, up
-@chapter    Limitations and Known Bugs
-@cindex limitations
-@cindex bugs
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@itemize @bullet
-@item
-Re-indenting large regions or expressions can be slow.
-
-@findex c-indent-exp
-@findex indent-exp (c-)
-@item
-@code{c-indent-exp} has not been fully optimized.  It essentially
-equivalent to hitting @kbd{TAB} (@code{c-indent-command}) on every
-line.  Some information is cached from line to line, but such caching
-invariable causes inaccuracies in analysis in some bizarre situations.
-
-@vindex signal-error-on-buffer-boundary
-@item
-XEmacs versions from 19.15 until (as of this writing 12-Mar-1998) 20.4
-contain a variable called @code{signal-error-on-buffer-boundary}.  This
-was intended as a solution to user interface problems associated with
-buffer movement and the @code{zmacs-region} deactivation on errors.
-However, setting this variable to a non-default value had the
-deleterious side effect of breaking many built-in primitive functions.
-Most users will not be affected since they never change the value of
-this variable.  @strong{Do not set this variable to @code{nil}}; you
-will cause serious problems in @ccmode{} and probably other XEmacs
-packages!  As of at least XEmacs 20.4, the effects this variable tried
-to correct have been fixed in other, better ways.
-
-@end itemize
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Mailing Lists and Submitting Bug Reports, Concept Index, Limitations and Known Bugs, Top
-@comment node-name, next, previous, up
-@chapter    Mailing Lists and Submitting Bug Reports
-@cindex mailing lists
-@cindex reporting bugs
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@kindex C-c C-b
-@findex c-submit-bug-report
-@findex submit-bug-report (c-)
-To report bugs, use the @kbd{C-c C-b} (@code{c-submit-bug-report})
-command.  This provides vital information we need to reproduce your
-problem.  Make sure you include a concise, but complete code example.
-Please try to boil your example down to just the essential code needed
-to reproduce the problem, and include an exact recipe of steps needed to
-expose the bug.  Be especially sure to include any code that appears
-@emph{before} your bug example, if you think it might affect our ability
-to reproduce it.
-
-Please try to produce the problem in an Emacs instance without any
-customizations loaded (i.e. start it with the @code{-q -no-site-file}
-arguments).  If it works correctly there, the problem might be caused by
-faulty customizations in either your own or your site configuration.  In
-that case, we'd appreciate if you isolate the Emacs Lisp code that trigs
-the bug and include it in your report.
-
-Bug reports are now sent to the following email addresses:
-@email{bug-cc-mode@@gnu.org} and @email{bug-gnu-emacs@@gnu.org}; the
-latter is mirrored on the Usenet newsgroup @code{gnu.emacs.bug}.  You
-can send other questions and suggestions (kudos? @t{;-)} to
-@email{bug-cc-mode@@gnu.org}, or @email{help-gnu-emacs@@gnu.org} which is
-mirrored on newsgroup @code{gnu.emacs.help}.
-
-@cindex beta testers mailing list
-@cindex announcement mailing list
-If you want to get announcements of new @ccmode{} releases, send the
-word @emph{subscribe} in the body of a message to
-@email{cc-mode-announce-request@@lists.sourceforge.net}.  Announcements
-will also be posted to the Usenet newsgroups @code{gnu.emacs.sources},
-@code{comp.emacs}, @code{comp.emacs.xemacs}, and possibly some of the
-language oriented newsgroups.
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Concept Index, Command Index, Mailing Lists and Submitting Bug Reports, Top
+@node    Concept Index, Command Index, Sample .emacs File, Top
 @comment node-name, next, previous, up
 @unnumbered Concept Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4616,7 +4588,11 @@ Since most @ccmode{} variables are prepended with the string
 @sp 2
 @end iftex
 @printindex vr
+
+@iftex
 @page
 @summarycontents
 @contents
+@end iftex
+
 @bye
