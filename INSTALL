@@ -52,7 +52,7 @@ each character set.
 The intlfonts distribution contains its own installation instructions,
 in the intlfonts/README file.
 
-* elisp-manual-VERSION.tar.gz
+* elisp-manual-EMACSVERSION-MANVERSION.tar.gz
 
 This is the Emacs Lisp Reference for programmers, containing an
 in-depth discussion of Emacs Lisp and Emacs internals.  The

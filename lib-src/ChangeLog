@@ -1,3 +1,7 @@
+1999-11-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* etags.c (print_help): Change email address to send bugs to.
+
 1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
 	* etags.c: Add suffix psw for PSWrap.

@@ -1,3 +1,12 @@
+1999-11-03  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/debug.el (debug): If noninteractive, display the
+	backtrace using `message', then exit Emacs.
+	(debugger-batch-max-lines): New variable.
+	(debugger-setup-buffer): New subroutine, broken out of `debug'.
+	Change the messages put at the start, to say that the debugger
+	was entered.
+
 1999-11-02  Sam Steingold  <sds@ksp.com>
 
 	* progmodes/cmacexp.el (c-macro-preprocessor): Find the Solaris cpp.

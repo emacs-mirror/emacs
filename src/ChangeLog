@@ -51,6 +51,10 @@
 	* syntax.c: Remove whitespace after open or in front of closing
 	parentheses.
 
+1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* Makefile.in (w16select.o, sound.o): Don't depend on lisp.h.
+
 1999-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Compute needed height differently.
@@ -60,6 +64,22 @@
 	* xdisp.c (append_space): Return non-zero if space was appended.
 	(display_line): Set charpos of first glyph to -1 only if that
 	glyph is the space added by append_glyph.
+
+1999-10-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* print.c (strout): Consider `noninteractive' and use stdout
+	only when PRINTCHARFUN is t.
+
+	* lisp.h (struct gcpro) [DEBUG_GCPRO]: New field `level'.
+	(gcpro_level): Declare it extern.
+	[DEBUG_GCPRO] (GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5):
+	Alternate definitions that set `level' and increment `gcpro_level'.
+	[DEBUG_GCPRO] (UNGCPRO): Alternate definition that checks gcpro_level.
+
+	* eval.c [DEBUG_GCPRO] (gcpro_level): New variable.
+	(init_eval) [DEBUG_GCPRO]: Initialize it.
+	(unwind_to_catch) [DEBUG_GCPRO]: Set gcpro_level
+	from remaining gcprolist.
 
 1999-10-29  Kenichi Handa  <handa@etl.go.jp>
 
