@@ -1629,7 +1629,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   start_polling ();
 
-  echo_area_glyphs = 0;
+  /* Don't wipe the echo area for a trivial event.  */
+  if (XTYPE (c) != Lisp_Buffer)
+    echo_area_glyphs = 0;
 
   /* Handle things that only apply to characters.  */
   if (XTYPE (c) == Lisp_Int)
