@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.30) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.31) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.30) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.31) $");
 
 
 /* ROUND -- Round up
@@ -261,44 +261,23 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-static PoolClassStruct PoolClassMFSStruct = {
-  PoolClassSig,
-  "MFS",                                /* name */
-  sizeof(MFSStruct),                    /* size */
-  offsetof(MFSStruct, poolStruct),      /* offset */
-  NULL,                                 /* super */
-  AttrALLOC | AttrFREE,                 /* attr */
-  MFSInit,                              /* init */
-  MFSFinish,                            /* finish */
-  MFSAlloc,                             /* alloc */
-  MFSFree,                              /* free */
-  PoolNoBufferInit,                     /* bufferInit */
-  PoolNoBufferFill,                     /* bufferFill */
-  PoolNoBufferEmpty,                    /* bufferEmpty */
-  PoolNoBufferFinish,                   /* bufferFinish */
-  PoolNoTraceBegin,			/* traceBegin */
-  PoolNoAccess,                         /* access */
-  PoolNoWhiten,                         /* whiten */
-  PoolNoGrey,                           /* grey */
-  PoolNoBlacken,                        /* blacken */
-  PoolNoScan,                           /* scan */
-  PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* emergency fix */
-  PoolNoReclaim,                        /* reclaim */
-  PoolNoBenefit,			/* benefit */
-  PoolNoAct,                            /* act */
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,
-  MFSDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+DEFINE_POOL_CLASS(MFSPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  this->name = "MFS";
+  this->size = sizeof(MFSStruct);
+  this->offset = offsetof(MFSStruct, poolStruct);
+  this->init = MFSInit;
+  this->finish = MFSFinish;
+  this->alloc = MFSAlloc;
+  this->free = MFSFree;
+  this->describe = MFSDescribe;
+}
 
 
 PoolClass PoolClassMFS(void)
 {
-  return &PoolClassMFSStruct;
+  return EnsureMFSPoolClass();
 }
 
 
@@ -308,7 +287,7 @@ Bool MFSCheck(MFS mfs)
 
   CHECKS(MFS, mfs);
   CHECKD(Pool, &mfs->poolStruct);
-  CHECKL(mfs->poolStruct.class == &PoolClassMFSStruct);
+  CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   arena = PoolArena(&mfs->poolStruct);

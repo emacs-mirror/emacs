@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.8) $
+ * $HopeName: MMsrc!poollo.c(trunk.9) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.8) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.9) $");
 
 
 /* MACROS */
@@ -748,48 +748,36 @@ static double LOBenefit(Pool pool, Action action)
 }
 
 
-/* .no-describe: There is no describe method.  The future of describe
- * methods is uncertain and they are little used. */
-    
+/* LOPoolClass -- the class definition */
 
-static struct PoolClassStruct PoolClassLOStruct = {
-  PoolClassSig,
-  "LO",                                 /* name */
-  sizeof(LOStruct),                     /* size */
-  offsetof(LOStruct, poolStruct),       /* offset */
-  NULL,                                 /* super */
-  AttrFMT | AttrBUF | AttrBUF_RESERVE | AttrGC,
-  LOInit,                               /* init */
-  LOFinish,                             /* finish */
-  PoolNoAlloc,                          /* alloc */
-  PoolNoFree,                           /* free */
-  PoolTrivBufferInit,
-  LOBufferFill,                         /* bufferFill */
-  LOBufferEmpty,                        /* bufferEmpty */
-  PoolTrivBufferFinish,                 /* bufferFinish */
-  LOTraceBegin,                         /* traceBegin */
-  PoolSegAccess,
-  LOWhiten,                             /* whiten */
-  PoolNoGrey,                           /* grey */
-  PoolNoBlacken,                        /* blacken */
-  PoolNoScan,                           /* scan */
-  LOFix,                                /* fix */
-  LOFix,                                /* fix */
-  LOReclaim,                            /* reclaim */
-  LOBenefit,                            /* benefit */
-  PoolCollectAct,                       /* act */
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  LOWalk,                               /* walk */
-  PoolTrivDescribe,                     /* describe */
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+DEFINE_POOL_CLASS(LOPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  PoolClassMixInFormat(this);
+  this->name = "LO";
+  this->size = sizeof(LOStruct);
+  this->offset = offsetof(LOStruct, poolStruct);
+  this->attr &= ~(AttrSCAN | AttrINCR_RB);
+  this->init = LOInit;
+  this->finish = LOFinish;
+  this->bufferFill = LOBufferFill;
+  this->bufferEmpty = LOBufferEmpty;
+  this->traceBegin = LOTraceBegin;
+  this->whiten = LOWhiten;
+  this->grey = PoolNoGrey;
+  this->blacken = PoolNoBlacken;
+  this->scan = PoolNoScan;
+  this->fix = LOFix;
+  this->fixEmergency = LOFix;
+  this->reclaim = LOReclaim;
+  this->benefit = LOBenefit;
+  this->walk = LOWalk;
+}
 
 
 mps_class_t mps_class_lo(void)
 {
-  return (mps_class_t)&PoolClassLOStruct;
+  return (mps_class_t)EnsureLOPoolClass();
 }
 
 
@@ -797,7 +785,7 @@ static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
   CHECKD(Pool, &lo->poolStruct);
-  CHECKL(lo->poolStruct.class == &PoolClassLOStruct);
+  CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
   CHECKL(RingCheck(&lo->groupRing));
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(1uL << lo->alignShift == PoolAlignment(&lo->poolStruct));

@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.54) $
+ * $HopeName: MMsrc!poolawl.c(trunk.55) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.54) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.55) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -1163,45 +1163,37 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 }
 
 
+/* AWLPoolClass -- the class definition */
 
-struct PoolClassStruct PoolClassAWLStruct = {
-  PoolClassSig,
-  "AWL",
-  sizeof(AWLStruct),
-  offsetof(AWLStruct, poolStruct),
-  NULL,                                 /* super */
-  AttrFMT | AttrSCAN | AttrBUF | AttrBUF_RESERVE | AttrGC | AttrINCR_RB,
-  AWLInit,
-  AWLFinish,
-  PoolNoAlloc,
-  PoolNoFree,
-  AWLBufferInit,
-  AWLBufferFill,
-  AWLBufferEmpty,
-  PoolTrivBufferFinish,
-  AWLTraceBegin,
-  AWLAccess,
-  AWLWhiten,
-  AWLGrey,
-  AWLBlacken,
-  AWLScan,
-  AWLFix,
-  AWLFix,
-  AWLReclaim,
-  AWLBenefit,
-  PoolCollectAct,
-  PoolTrivRampBegin,
-  PoolTrivRampEnd,
-  AWLWalk,
-  PoolTrivDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig
-};
+DEFINE_POOL_CLASS(AWLPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  PoolClassMixInFormat(this);
+  this->name = "AWL";
+  this->size = sizeof(AWLStruct);
+  this->offset = offsetof(AWLStruct, poolStruct);
+  this->init = AWLInit;
+  this->finish = AWLFinish;
+  this->bufferInit = AWLBufferInit;
+  this->bufferFill = AWLBufferFill;
+  this->bufferEmpty = AWLBufferEmpty;
+  this->traceBegin = AWLTraceBegin;
+  this->access = AWLAccess;
+  this->whiten = AWLWhiten;
+  this->grey = AWLGrey;
+  this->blacken = AWLBlacken;
+  this->scan = AWLScan;
+  this->fix = AWLFix;
+  this->fixEmergency = AWLFix;
+  this->reclaim = AWLReclaim;
+  this->benefit = AWLBenefit;
+  this->walk = AWLWalk;
+}
 
 
 mps_class_t mps_class_awl(void)
 {
-  return (mps_class_t)&PoolClassAWLStruct;
+  return (mps_class_t)EnsureAWLPoolClass();
 }
 
 
@@ -1209,7 +1201,7 @@ static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
   CHECKD(Pool, &awl->poolStruct);
-  CHECKL(awl->poolStruct.class == &PoolClassAWLStruct);
+  CHECKL(awl->poolStruct.class == EnsureAWLPoolClass());
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
   /* This useful check cannot be made because ArenaMutatorAllocSize */

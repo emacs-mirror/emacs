@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.7) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.8) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.7) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.8) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -488,71 +488,50 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-static PoolClassStruct PoolClassMVFFStruct = {
-  PoolClassSig,
-  "MVFF",                               /* name */
-  sizeof(MVFFStruct),                   /* size */
-  offsetof(MVFFStruct, poolStruct),     /* offset */
-  NULL,                                 /* superclass */
-  AttrALLOC | AttrFREE,                 /* attr */
-  MVFFInit,                             /* init */
-  MVFFFinish,                           /* finish */
-  MVFFAlloc,                            /* alloc */
-  MVFFFree,                             /* free */
-  PoolNoBufferInit,                     /* bufferInit */
-  PoolNoBufferFill,                     /* bufferFill */
-  PoolNoBufferEmpty,                    /* bufferEmpty */
-  PoolNoBufferFinish,                   /* bufferFinish */
-  PoolNoTraceBegin,                     /* traceBegin */
-  PoolNoAccess,                         /* access */
-  PoolNoWhiten,                         /* whiten */
-  PoolNoGrey,                           /* mark */
-  PoolNoBlacken,                        /* blacken */
-  PoolNoScan,                           /* scan */
-  PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* emergencyFix */
-  PoolNoReclaim,                        /* relcaim */
-  PoolNoBenefit,                        /* benefit */
-  PoolNoAct,                            /* act */
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,                           /* walk */
-  MVFFDescribe,                         /* describe */
-  PoolNoDebugMixin, 
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+DEFINE_POOL_CLASS(MVFFPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  this->name = "MVFF";
+  this->size = sizeof(MVFFStruct);
+  this->offset = offsetof(MVFFStruct, poolStruct);
+  this->init = MVFFInit;
+  this->finish = MVFFFinish;
+  this->alloc = MVFFAlloc;
+  this->free = MVFFFree;
+  this->describe = MVFFDescribe;
+}
+
 
 PoolClass PoolClassMVFF(void)
 {
-  return &PoolClassMVFFStruct;
+  return EnsureMVFFPoolClass();
 }
 
 
 /* Pool class MVFFDebug */
 
-static PoolClassStruct poolClassMVFFDebugStruct;
 
-static PoolClass poolClassMVFFDebug(void)
+DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 {
-  /* This code has to be idempotent to avoid locking. */
-  EnsureDebugClass(&poolClassMVFFDebugStruct, PoolClassMVFF());
-  poolClassMVFFDebugStruct.name = "MVFFDBG";
-  poolClassMVFFDebugStruct.size = sizeof(MVFFDebugStruct);
-  poolClassMVFFDebugStruct.debugMixin = MVFFDebugMixin;
-  return &poolClassMVFFDebugStruct;
+  INHERIT_CLASS(this, MVFFPoolClass);
+  PoolClassMixInDebug(this);
+  this->name = "MVFFDBG";
+  this->size = sizeof(MVFFDebugStruct);
+  this->debugMixin = MVFFDebugMixin;
 }
+
 
 
 /* MPS Interface Extensions. */
 
 mps_class_t mps_class_mvff(void)
 {
-  return (mps_class_t)(PoolClassMVFF());
+  return (mps_class_t)(EnsureMVFFPoolClass());
 }
 
 mps_class_t mps_class_mvff_debug(void)
 {
-  return (mps_class_t)(poolClassMVFFDebug());
+  return (mps_class_t)(EnsureMVFFDebugPoolClass());
 }
 
 
@@ -593,8 +572,7 @@ static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(MVFFPool(mvff)->class == &PoolClassMVFFStruct
-         || MVFFPool(mvff)->class == &poolClassMVFFDebugStruct);
+  CHECKL(IsSubclass(MVFFPool(mvff)->class, EnsureMVFFPoolClass()));
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */

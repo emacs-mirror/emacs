@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.64) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.65) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -61,6 +61,11 @@ typedef struct LDStruct *LD;            /* design.mps.ld */
 typedef struct LockStruct *Lock;        /* impl.c.lock* */
 typedef struct PoolStruct *Pool;        /* design.mps.pool */
 typedef struct PoolClassStruct *PoolClass; /* impl.c.poolclas */
+typedef PoolClass AbstractPoolClass;    /* impl.c.poolabs */
+typedef PoolClass AbstractAllocFreePoolClass; /* impl.c.poolabs */
+typedef PoolClass AbstractBufferPoolClass; /* impl.c.poolabs */
+typedef PoolClass AbstractScanPoolClass; /* impl.c.poolabs */
+typedef PoolClass AbstractCollectPoolClass; /* impl.c.poolabs */
 typedef struct TraceStruct *Trace;      /* design.mps.tracer */
 typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
 typedef struct SegStruct *Seg;          /* impl.c.seg */
