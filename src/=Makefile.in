@@ -11,7 +11,7 @@ SHELL = /bin/sh
 all: xmakefile doall
 
 doall:
-	$(MAKE) CC=${CC} $(MAKEOVERRIDES) -f xmakefile ${MFLAGS} all
+	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} all
 
 #This is used in making a distribution.
 #Do not use it on development directories!
@@ -24,12 +24,12 @@ clean:
 xemacs: xmakefile doxemacs
 
 doxemacs:
-	$(MAKE) $(MAKEOVERRIDES) -f xmakefile ${MFLAGS} xemacs
+	$(MAKE) -f xmakefile ${MFLAGS} xemacs
 
 temacs: xmakefile dotemacs
 
 dotemacs:
-	$(MAKE) $(MAKEOVERRIDES) -f xmakefile ${MFLAGS} temacs
+	$(MAKE) -f xmakefile ${MFLAGS} temacs
 
 # If you have a problem with cc -E here, changing
 # the definition of CPP above may fix it.
