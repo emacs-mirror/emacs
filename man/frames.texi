@@ -1058,10 +1058,9 @@ specify the granularity and verbosity of stealth fontification.
 @subsection JIT Lock Mode
 
 @findex jit-lock-mode
-The command @kbd{M-x lazy-lock-mode} turns JIT Lock mode on or off,
-according to the argument (with no argument, it toggles).  This support
-mode is roughly equivalent to Lazy Lock but is generally faster.  It
-supports stealth and deferred fontification.
+This Just-In-time support mode is roughly equivalent to Lazy Lock but is
+generally faster and more robust.  It supports stealth and deferred
+contextual fontification.
 
 Font-lock uses @code{jit-lock-mode} as default support mode, so you
 don't have to do anything to activate it.
