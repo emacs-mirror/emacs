@@ -302,11 +302,10 @@ space does not end a sentence, so don't break a line there."
 	(backward-char 1)
 	(setq oneleft t)))
     (setq to (point))
-
-    ;; If there was no newline, and there is text in the paragraph, then
-    ;; create a newline.
-    (if (and (not oneleft) (> to from-plus-indent))
-	(newline))
+;;;     ;; If there was no newline, and there is text in the paragraph, then
+;;;     ;; create a newline.
+;;;     (if (and (not oneleft) (> to from-plus-indent))
+;;; 	(newline))
     (goto-char from-plus-indent))
 
   (if (not (> to (point)))
@@ -557,7 +556,8 @@ space does not end a sentence, so don't break a line there."
 		    (forward-line 1))))))
 	;; Leave point after final newline.
 	(goto-char (point-max)))
-    (forward-char 1))))
+      (unless (eobp)
+	(forward-char 1)))))
 
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix arg means justify as well.
