@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1986,1989,1993,1997,2003,2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience files
@@ -117,12 +117,12 @@ and the value `((4) (4))' for horizontally split windows."
   :group 'compare-w)
 
 (defface compare-windows-face
-  '((((type tty pc) (class color))
-     (:background "turquoise3"))
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "paleturquoise"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "paleturquoise4"))
+    (((class color))
+     (:background "turquoise3"))
     (t (:underline t)))
   "Face for highlighting of compare-windows difference regions."
   :group 'compare-w)
