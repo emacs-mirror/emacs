@@ -158,11 +158,11 @@ is necessary.")
   "Used to support both FSF Emacs and Xemacs.")
 
 (eval-when-compile
-  (if (string-match "^19" emacs-version)
-      nil
-    (defvar current-menubar nil "")
-    (defun set-buffer-menubar (arg1))
-    (defun add-menu (arg1 arg2 arg3))))
+  (if (string-match "xemacs\\|lucid" emacs-version)
+      (progn
+	(defvar current-menubar nil "")
+	(defun set-buffer-menubar (arg1))
+	(defun add-menu (arg1 arg2 arg3)))))
 
 
 ;;;----------------------------------------------------------------------------
@@ -428,9 +428,9 @@ variables to default values and disables the hideshow commands."
 
 ;; which emacs being used?
 (setq hs-emacs-type
-      (if (string-match "^19" emacs-version)
-	  'fsf
-	'lucid))
+      (if (string-match "xemacs\\|lucid" emacs-version)
+	  'lucid
+	'fsf))
 
 ;; keymaps and menus
 (if (not hs-minor-mode-map)
