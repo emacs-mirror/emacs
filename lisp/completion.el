@@ -120,11 +120,11 @@
 ;;; compiled version (because it is noticibly faster).
 ;;;
 ;;;  M-X completion-mode toggles whether or not new words are added to the
-;;; database by changing the value of *completep*.
+;;; database by changing the value of enable-completion.
 ;;;
 ;;;  SAVING/LOADING COMPLETIONS
 ;;;   Completions are automatically saved from one session to another
-;;; (unless *save-completions-p* or *completep* is nil).
+;;; (unless save-completions-flag or enable-completion is nil).
 ;;; Loading this file (or calling initialize-completions) causes EMACS
 ;;; to load a completions database for a saved completions file 
 ;;; (default: ~/.completions).  When you exit, EMACS saves a copy of the
@@ -140,9 +140,9 @@
 ;;; completions have their num-uses slot set to T.  Use 
 ;;; add-permanent-completion to do this
 ;;;
-;;;   Completions are saved only if *completep* is T.  The number of old
+;;;   Completions are saved only if enable-completion is T.  The number of old
 ;;; versions kept of the saved completions file is controlled by 
-;;; *completion-file-versions-kept*.
+;;; completions-file-versions-kept.
 ;;;
 ;;; COMPLETE KEY OPTIONS
 ;;;   The complete function takes a numeric arguments.  
@@ -334,77 +334,65 @@
 
 ;;; Code:
 
-;;;-----------------------------------------------
-;;; Requires
-;;; Version
-;;;-----------------------------------------------
-
-;;(require 'cl) ;; DOTIMES, etc. {actually done after variable defs.}
-
-(defconst *completion-version*  10
-  "Tested for EMACS versions 18.49, 18.52, 18.55 and beyond and 19.0.")
-
 ;;;---------------------------------------------------------------------------
 ;;; User changeable parameters
 ;;;---------------------------------------------------------------------------
 
-(defvar *completep* t
-  "*Set to nil to turn off the completion hooks.
-(No new words added to the database or saved to the init file).")
+(defvar enable-completion t
+  "*Non-nil means enable recording and saving of completions.
+If nil, no new words added to the database or saved to the init file.")
 
-(defvar *save-completions-p* t
-  "*If non-nil, the most useful completions are saved to disk when
-exiting EMACS.  See *saved-completions-decay-factor*.")
+(defvar save-completions-flag t
+  "*Non-nil means save most-used completions when exiting Emacs.
+See also `saved-completions-retention-time'.")
 
-(defvar *saved-completions-filename* "~/.completions"
+(defvar save-completions-file-name "~/.completions"
   "*The filename to save completions to.")
 
-(defvar *saved-completion-retention-time* 336
-  "*The maximum amount of time to save a completion for if it has not been used.
-In hours.  (1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
+(defvar save-completions-retention-time 336
+  "*Discard a completion if unused for this many hours.
+\(1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
 will not be saved unless these are used.  Default is two weeks.")
 
-(defvar *separator-character-uses-completion-p* nil
-  "*If non-nil, typing a separator character after a completion symbol that
-is not part of the database marks it as used (so it will be saved).")
+(defvar completion-on-separator-character nil
+  "*Non-nil means separator characters mark previous word as used.
+This means the word will be saved as a completion.")
 
-(defvar *completion-file-versions-kept* kept-new-versions
-  "*Set this to the number of versions you want save-completions-to-file
-to keep.")
+(defvar completions-file-versions-kept kept-new-versions
+  "*Number of versions to keep for the saved completions file.")
 
-(defvar *print-next-completion-speed-threshold* 4800
-  "*The baud rate at or above which to print the next potential completion
-after inserting the current one."
-  )
+(defvar completion-prompt-speed-threshold 4800
+  "*Minimum output speed at which to display next potential completion.")
 
-(defvar *print-next-completion-does-cdabbrev-search-p* nil
-  "*If non-nil, the next completion prompt will also do a cdabbrev search.
+(defvar completion-cdabbrev-prompt-flag nil
+  "*If non-nil, the next completion prompt does a cdabbrev search.
 This can be time consuming.")
 
-(defvar *cdabbrev-radius* 15000
-  "*How far to search for cdabbrevs.  In number of characters.  If nil, the 
-whole buffer is searched.")
+(defvar completion-search-distance 15000
+  "*How far to search in the buffer when looking for completions.
+In number of characters.  If nil, search the whole buffer.")
 
-(defvar *modes-for-completion-find-file-hook* '(lisp c)
-  "*A list of modes {either C or Lisp}.  Definitions from visited files
-of those types are automatically added to the completion database.")
+(defvar completions-merging-modes '(lisp c)
+  "*List of modes {`c' or `lisp'} for automatic completions merging.
+Definitions from visited files which have these modes
+are automatically added to the completion database.")
 
-(defvar *record-cmpl-statistics-p* nil
-  "*If non-nil, statistics are automatically recorded.")
+;;;(defvar *record-cmpl-statistics-p* nil
+;;;  "*If non-nil, record completion statistics.")
 
-(defvar *completion-auto-save-period* 1800
-  "*The period in seconds to wait for emacs to be idle before autosaving
-the completions.  Default is a 1/2 hour.")
+;;;(defvar *completion-auto-save-period* 1800
+;;;  "*The period in seconds to wait for emacs to be idle before autosaving
+;;;the completions.  Default is a 1/2 hour.")
 
-(defconst *completion-min-length* nil ;; defined below in eval-when
+(defconst completion-min-length nil ;; defined below in eval-when
   "*The minimum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
-(defconst *completion-max-length* nil ;; defined below in eval-when
+(defconst completion-max-length nil ;; defined below in eval-when
   "*The maximum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
-(defconst *completion-prefix-min-length* nil ;; defined below in eval-when
+(defconst completion-prefix-min-length nil ;; defined below in eval-when
   "The minimum length of a completion search string.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
@@ -416,25 +404,26 @@ DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 (defun completion-eval-when ()
   (eval-when-compile-load-eval
    ;; These vars. are defined at both compile and load time.
-   (setq *completion-min-length* 6)
-   (setq *completion-max-length* 200)
-   (setq *completion-prefix-min-length* 3)
-   ;; Need this file around too
-   (require 'cl)))
+   (setq completion-min-length 6)
+   (setq completion-max-length 200)
+   (setq completion-prefix-min-length 3)))
 
 (completion-eval-when)
+
+;; Need this file around too
+(require 'cl)
  
 ;;;---------------------------------------------------------------------------
 ;;; Internal Variables
 ;;;---------------------------------------------------------------------------
 
 (defvar cmpl-initialized-p nil
-  "Set to t when the completion system is initialized.  Indicates that the
-old completion file has been read in.")
+  "Set to t when the completion system is initialized.
+Indicates that the old completion file has been read in.")
 
 (defvar cmpl-completions-accepted-p nil
-  "Set to T as soon as the first completion has been accepted.  Used to
-decide whether to save completions.")
+  "Set to t as soon as the first completion has been accepted.
+Used to decide whether to save completions.")
 
 
 ;;;---------------------------------------------------------------------------
@@ -445,128 +434,14 @@ decide whether to save completions.")
 ;;; Misc.
 ;;;-----------------------------------------------
 
-(defun remove (item list)
-  (setq list (copy-sequence list))
-  (delq item list))
-
 (defun minibuffer-window-selected-p ()
   "True iff the current window is the minibuffer."
-  (eq (minibuffer-window) (selected-window)))
+  (window-minibuffer-p (selected-window)))
 
-(eval-when-compile-load-eval
-(defun function-needs-autoloading-p (symbol)
-  ;; True iff symbol is represents an autoloaded function and has not yet been
-  ;; autoloaded.
-  (and (listp (symbol-function symbol))
-       (eq 'autoload (car (symbol-function symbol)))
-       )))
-
-(defun function-defined-and-loaded (symbol)
-  ;; True iff symbol is bound to a loaded function.
-  (and (fboundp symbol) (not (function-needs-autoloading-p symbol))))
-
-(defmacro read-time-eval (form)
+(defmacro cmpl-read-time-eval (form)
   ;; Like the #. reader macro
   (eval form))
 
-;;;-----------------------------------------------
-;;; Emacs Version 19 compatibility
-;;;-----------------------------------------------
-
-(defconst emacs-is-version-19 (string= (substring emacs-version 0 2) "19"))
-
-(defun cmpl19-baud-rate ()
-  (if emacs-is-version-19
-      baud-rate
-      (baud-rate)))
-
-(defun cmpl19-sit-for (amount)
-  (if (and emacs-is-version-19 (= amount 0))
-      (sit-for 1 t)
-      (sit-for amount)))
-
-;;;-----------------------------------------------
-;;; Advise
-;;;-----------------------------------------------
-
-(defmacro completion-advise (function-name where &rest body)
-  "Adds the body code before calling function.  This advise is not compiled.
-WHERE is either :BEFORE or :AFTER."
-  (completion-advise-1 function-name where body)
-  )
-
-(defmacro cmpl-apply-as-top-level (function arglist)
-  "Calls function-name interactively if inside a call-interactively."
-  (list 'cmpl-apply-as-top-level-1 function arglist
-	'(let ((executing-macro nil)) (interactive-p)))
-  )
-
-(defun cmpl-apply-as-top-level-1 (function arglist interactive-p)
-  (if (and interactive-p (commandp function))
-      (call-interactively function)
-      (apply function arglist)
-      ))
-
-(eval-when-compile-load-eval
-
-(defun cmpl-defun-preamble (function-name)
-  (let ((doc-string
-	 (condition-case e
-	      ;; This condition-case is here to stave
-	      ;; off bizarre load time errors 18.52 gets
-	      ;; on the function c-mode
-	      (documentation function-name)
-	    (error nil)))
-	(interactivep (commandp function-name))
-	)
-    (append
-     (if doc-string (list doc-string))
-     (if interactivep '((interactive)))
-     )))
-
-(defun completion-advise-1 (function-name where body &optional new-name)
-  (unless new-name (setq new-name function-name))
-  (let ((quoted-name (list 'quote function-name))
-	(quoted-new-name (list 'quote new-name))
-	)
-
-  (cond ((function-needs-autoloading-p function-name)
-	 (list* 'defun function-name '(&rest arglist)
-		(append
-		 (cmpl-defun-preamble function-name)
-		 (list (list 'load (second (symbol-function function-name)))
-		       (list 'eval
-			     (list 'completion-advise-1 quoted-name
-				   (list 'quote where) (list 'quote body)
-				   quoted-new-name))
-		       (list 'cmpl-apply-as-top-level quoted-new-name 'arglist)
-		       )))
-	 )
-	(t
-	 (let ((old-def-name
-		(intern (concat "$$$cmpl-" (symbol-name function-name))))
-	       )
-    
-	   (list 'progn
-		 (list 'defvar old-def-name
-		       (list 'symbol-function quoted-name))
-		 (list* 'defun new-name '(&rest arglist)
-			(append
-			 (cmpl-defun-preamble function-name)
-			 (ecase where
-			   (:before
-			    (list (cons 'progn body)
-				  (list 'cmpl-apply-as-top-level
-					old-def-name 'arglist)))
-			   (:after
-			    (list* (list 'cmpl-apply-as-top-level
-					 old-def-name 'arglist)
-				   body)
-			    )))
-			)))
-	 ))))
-) ;; eval-when
-			 
 
 ;;;-----------------------------------------------
 ;;; String case coercion
@@ -628,160 +503,10 @@ WHERE is either :BEFORE or :AFTER."
 ;;; (cmpl-merge-string-cases "ABCDEF456" "abc")     --> abcdef456
 
 
-;;;-----------------------------------------------
-;;; Emacs Idle Time hooks
-;;;-----------------------------------------------
-
-(defvar cmpl-emacs-idle-process nil)
-
-(defvar cmpl-emacs-idle-interval 150
-  "Seconds between running the Emacs idle process.")
-
-(defun init-cmpl-emacs-idle-process ()
-  "Initialize the emacs idle process."
-  (let ((live (and cmpl-emacs-idle-process
-		   (eq (process-status cmpl-emacs-idle-process) 'run)))
-	;; do not allocate a pty
-	(process-connection-type nil))
-    (if live
-	(kill-process cmpl-emacs-idle-process))
-    (if cmpl-emacs-idle-process
-	(delete-process cmpl-emacs-idle-process))
-    (setq cmpl-emacs-idle-process
-	  (start-process "cmpl-emacs-idle" nil
-			 "loadst" 
-			 "-n" (int-to-string cmpl-emacs-idle-interval)))
-    (process-kill-without-query cmpl-emacs-idle-process)
-    (set-process-filter cmpl-emacs-idle-process 'cmpl-emacs-idle-filter)
-    ))
-
-(defvar cmpl-emacs-buffer nil)
-(defvar cmpl-emacs-point 0)
-(defvar cmpl-emacs-last-command nil)
-(defvar cmpl-emacs-last-command-char nil)
-(defun cmpl-emacs-idle-p ()
-  ;; returns T if emacs has been idle
-  (if (and (eq cmpl-emacs-buffer (current-buffer))
-	   (= cmpl-emacs-point (point))
-	   (eq cmpl-emacs-last-command last-command)
-	   (eq last-command-char last-command-char)
-	   )
-      t ;; idle
-      ;; otherwise, update count
-      (setq cmpl-emacs-buffer (current-buffer))
-      (setq cmpl-emacs-point (point))
-      (setq cmpl-emacs-last-command last-command)
-      (setq last-command-char last-command-char)
-      nil
-      ))
-	   
-(defvar cmpl-emacs-idle-time 0
-  "The idle time of Emacs in seconds.")
-
-(defvar inside-cmpl-emacs-idle-filter nil)
-(defvar cmpl-emacs-idle-time-hooks nil)
-
-(defun cmpl-emacs-idle-filter (proc string)
-  ;; This gets called every cmpl-emacs-idle-interval seconds
-  ;; Update idle time clock
-  (if (cmpl-emacs-idle-p)
-      (incf cmpl-emacs-idle-time cmpl-emacs-idle-interval)
-      (setq cmpl-emacs-idle-time 0))
-
-  (unless inside-cmpl-emacs-idle-filter
-    ;; Don't reenter if we are hung
-
-    (setq inside-cmpl-emacs-idle-filter t)
-  
-    (dolist (function cmpl-emacs-idle-time-hooks)
-      (condition-case e
-	   (funcall function)
-	 (error nil)
-	 ))
-    (setq inside-cmpl-emacs-idle-filter nil)
-    ))
-
-
-;;;-----------------------------------------------
-;;; Time 
-;;;-----------------------------------------------
-;;; What a backwards way to get the time!  Unfortunately, GNU Emacs
-;;; doesn't have an accessible time function.
-
-(defconst cmpl-hours-per-day  24)
-(defconst cmpl-hours-per-year  (* 365 cmpl-hours-per-day))
-(defconst cmpl-hours-per-4-years  (+ (* 4 cmpl-hours-per-year)
-				    cmpl-hours-per-day))
-(defconst cmpl-days-since-start-of-year
-    '(0 31 59 90 120 151 181 212 243 273 304 334))
-(defconst cmpl-days-since-start-of-leap-year
-    '(0 31 60 91 121 152 182 213 244 274 305 335))
-(defconst cmpl-months
-    '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
-
-(defun cmpl-hours-since-1900-internal (month day year hours)
-  "Month is an integer from 1 to 12.  Year is a two digit integer (19XX)"
-  (+ ;; Year
-    (* (/ (1- year) 4) cmpl-hours-per-4-years)
-    (* (1+ (mod (1- year) 4)) cmpl-hours-per-year)
-    ;; minus two to account for  1968 rather than 1900
-    ;; month
-    (* cmpl-hours-per-day
-       (nth (1- month) (if (zerop (mod year 4))
-			   cmpl-days-since-start-of-leap-year
-			   cmpl-days-since-start-of-year)))
-    (* (1- day) cmpl-hours-per-day)
-    hours))
-
-(defun cmpl-month-from-string (month-string)
-  "Month string is a three char. month string"
-  (let ((count 1))
-    (do ((list cmpl-months (cdr list))
-	 )
-	((or (null list) (string-equal month-string (car list))))
-      (setq count (1+ count)))
-    (if (> count 12)
-	(error "Unknown month - %s" month-string))
-    count))
-
-(defun cmpl-hours-since-1900 (&optional time-string)
-  "String is a string in the format of current-time-string (the default)."
-  (let* ((string (or time-string (current-time-string)))
-	 (month (cmpl-month-from-string (substring string 4 7)))
-	 (day (string-to-int (substring string 8 10)))
-	 (year (string-to-int (substring string 22 24)))
-	 (hour (string-to-int (substring string 11 13)))
-	 )
-    (cmpl-hours-since-1900-internal month day year hour)))
-
-;;; Tests -
-;;;(cmpl-hours-since-1900 "Wed Jan  1 00:00:28 1900") -->  35040
-;;;(cmpl-hours-since-1900 "Wed Nov  2 23:00:28 1988") --> 778751
-;;;(cmpl-hours-since-1900 "Wed Jan 23 14:34:28 1988") --> 771926
-;;;(cmpl-hours-since-1900 "Wed Feb 23 14:34:28 1988") --> 772670
-;;;(cmpl-hours-since-1900 "Wed Mar 23 14:34:28 1988") --> 773366
-;;;(cmpl-hours-since-1900 "Wed Apr 23 14:34:28 1988") --> 774110
-;;;(cmpl-hours-since-1900 "Wed May 23 14:34:28 1988") --> 774830
-;;;(cmpl-hours-since-1900 "Wed Jun 23 14:34:28 1988") --> 775574
-;;;(cmpl-hours-since-1900 "Wed Jul 23 14:34:28 1988") --> 776294
-;;;(cmpl-hours-since-1900 "Wed Aug 23 14:34:28 1988") --> 777038
-;;;(cmpl-hours-since-1900 "Wed Sep 23 14:34:28 1988") --> 777782
-;;;(cmpl-hours-since-1900 "Wed Oct 23 14:34:28 1988") --> 778502
-;;;(cmpl-hours-since-1900 "Wed Nov 23 14:34:28 1988") --> 779246
-;;;(cmpl-hours-since-1900 "Wed Dec 23 14:34:28 1988") --> 779966
-;;;(cmpl-hours-since-1900 "Wed Jan 23 14:34:28 1957") --> 500198
-;;;(cmpl-hours-since-1900 "Wed Feb 23 14:34:28 1957") --> 500942
-;;;(cmpl-hours-since-1900 "Wed Mar 23 14:34:28 1957") --> 501614
-;;;(cmpl-hours-since-1900 "Wed Apr 23 14:34:28 1957") --> 502358
-;;;(cmpl-hours-since-1900 "Wed May 23 14:34:28 1957") --> 503078
-;;;(cmpl-hours-since-1900 "Wed Jun 23 14:34:28 1957") --> 503822
-;;;(cmpl-hours-since-1900 "Wed Jul 23 14:34:28 1957") --> 504542
-;;;(cmpl-hours-since-1900 "Wed Aug 23 14:34:28 1957") --> 505286
-;;;(cmpl-hours-since-1900 "Wed Sep 23 14:34:28 1957") --> 506030
-;;;(cmpl-hours-since-1900 "Wed Oct 23 14:34:28 1957") --> 506750
-;;;(cmpl-hours-since-1900 "Wed Nov 23 14:34:28 1957") --> 507494
-;;;(cmpl-hours-since-1900 "Wed Dec 23 14:34:28 1957") --> 508214
-
+(defun cmpl-hours-since-origin ()
+  (let ((time (current-time)))
+    (+ (* (/ (car time) 3600.0) (lsh 1 16))
+       (/ (nth 2 time) 3600.0))))
 
 ;;;---------------------------------------------------------------------------
 ;;; "Symbol" parsing functions
@@ -836,7 +561,7 @@ WHERE is either :BEFORE or :AFTER."
 ;;; Table definitions
 ;;;-----------------------------------------------
 
-(defun make-standard-completion-syntax-table ()
+(defun cmpl-make-standard-completion-syntax-table ()
   (let ((table (make-vector 256 0)) ;; default syntax is whitespace
 	)
     ;; alpha chars
@@ -858,9 +583,9 @@ WHERE is either :BEFORE or :AFTER."
       )
     table))
 
-(defconst cmpl-standard-syntax-table (make-standard-completion-syntax-table))
+(defconst cmpl-standard-syntax-table (cmpl-make-standard-completion-syntax-table))
 
-(defun make-lisp-completion-syntax-table ()
+(defun cmpl-make-lisp-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(symbol-chars '(?! ?& ?? ?= ?^))
 	)
@@ -868,7 +593,7 @@ WHERE is either :BEFORE or :AFTER."
       (modify-syntax-entry char "_" table))
     table))
 	   
-(defun make-c-completion-syntax-table ()
+(defun cmpl-make-c-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(separator-chars '(?+ ?* ?/ ?: ?%))
 	)
@@ -876,7 +601,7 @@ WHERE is either :BEFORE or :AFTER."
       (modify-syntax-entry char " " table))
     table))
 
-(defun make-fortran-completion-syntax-table ()
+(defun cmpl-make-fortran-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(separator-chars '(?+ ?- ?* ?/ ?:))
 	)
@@ -884,9 +609,9 @@ WHERE is either :BEFORE or :AFTER."
       (modify-syntax-entry char " " table))
     table))
 
-(defconst cmpl-lisp-syntax-table       (make-lisp-completion-syntax-table))
-(defconst cmpl-c-syntax-table          (make-c-completion-syntax-table))
-(defconst cmpl-fortran-syntax-table    (make-fortran-completion-syntax-table))
+(defconst cmpl-lisp-syntax-table       (cmpl-make-lisp-completion-syntax-table))
+(defconst cmpl-c-syntax-table          (cmpl-make-c-completion-syntax-table))
+(defconst cmpl-fortran-syntax-table    (cmpl-make-fortran-completion-syntax-table))
 
 (defvar cmpl-syntax-table cmpl-standard-syntax-table
   "This variable holds the current completion syntax table.")
@@ -896,36 +621,34 @@ WHERE is either :BEFORE or :AFTER."
 ;;; Installing the appropriate mode tables
 ;;;-----------------------------------------------
 
-(completion-advise lisp-mode-variables :after
-  (setq cmpl-syntax-table cmpl-lisp-syntax-table)
-  )
+(add-hook 'lisp-mode-hook
+	  '(lambda ()
+	     (setq cmpl-syntax-table cmpl-lisp-syntax-table)))
 
-(completion-advise c-mode :after
-  (setq cmpl-syntax-table cmpl-c-syntax-table)
-  )
+(add-hook 'c-mode-hook
+	  '(lambda ()
+	     (setq cmpl-syntax-table cmpl-c-syntax-table)))
 
-(completion-advise fortran-mode :after
-  (setq cmpl-syntax-table cmpl-fortran-syntax-table)
-  (completion-setup-fortran-mode)
-  )
+(add-hook 'fortran-mode-hook
+	  '(lambda ()
+	     (setq cmpl-syntax-table cmpl-fortran-syntax-table)
+	     (completion-setup-fortran-mode)))
 
 ;;;-----------------------------------------------
 ;;; Symbol functions
 ;;;-----------------------------------------------
 (defvar cmpl-symbol-start nil
-  "Set to the first character of the symbol after one of the completion
-symbol functions is called.")
+  "Holds first character of symbol, after any completion symbol function.")
 (defvar cmpl-symbol-end nil
-  "Set to the last character of the symbol after one of the completion
-symbol functions is called.")
+  "Holds last character of symbol, after any completion symbol function.")
 ;;; These are temp. vars. we use to avoid using let.
 ;;;   Why ?  Small speed improvement.
 (defvar cmpl-saved-syntax nil)
 (defvar cmpl-saved-point nil)
 
 (defun symbol-under-point ()
-  "Returns the symbol that the point is currently on if it is longer
-than *completion-min-length*."
+  "Returns the symbol that the point is currently on.
+But only if it is longer than `completion-min-length'."
   (setq cmpl-saved-syntax (syntax-table))
   (set-syntax-table cmpl-syntax-table)
   (cond 
@@ -951,10 +674,10 @@ than *completion-min-length*."
      ;; restore state
      (set-syntax-table cmpl-saved-syntax)
      ;; Return completion if the length is reasonable
-     (if (and (<= (read-time-eval *completion-min-length*)
+     (if (and (<= (cmpl-read-time-eval completion-min-length)
 		  (- cmpl-symbol-end cmpl-symbol-start))
 	      (<= (- cmpl-symbol-end cmpl-symbol-start)
-		  (read-time-eval *completion-max-length*)))
+		  (cmpl-read-time-eval completion-max-length)))
 	 (buffer-substring cmpl-symbol-start cmpl-symbol-end))
      )
     (t 
@@ -976,8 +699,8 @@ than *completion-min-length*."
 ;;;
 
 (defun symbol-before-point ()
-  "Returns a string of the symbol immediately before point
-or nil if there isn't one longer than *completion-min-length*."       
+  "Returns a string of the symbol immediately before point.
+Returns nil if there isn't one longer than `completion-min-length'."       
   ;; This is called when a word separator is typed so it must be FAST !
   (setq cmpl-saved-syntax (syntax-table))
   (set-syntax-table cmpl-syntax-table)
@@ -999,7 +722,7 @@ or nil if there isn't one longer than *completion-min-length*."
 	 ;; return value if long enough
 	 (if (>= cmpl-symbol-end
 		 (+ cmpl-symbol-start
-		    (read-time-eval *completion-min-length*)))
+		    (cmpl-read-time-eval completion-min-length)))
 	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
 	 )
 	((= cmpl-preceding-syntax ?w)
@@ -1019,10 +742,10 @@ or nil if there isn't one longer than *completion-min-length*."
 	 (goto-char cmpl-saved-point)
 	 (set-syntax-table cmpl-saved-syntax)
 	 ;; Return completion if the length is reasonable
-	 (if (and (<= (read-time-eval *completion-min-length*)
+	 (if (and (<= (cmpl-read-time-eval completion-min-length)
 		      (- cmpl-symbol-end cmpl-symbol-start))
 		  (<= (- cmpl-symbol-end cmpl-symbol-start)
-		      (read-time-eval *completion-max-length*)))
+		      (cmpl-read-time-eval completion-max-length)))
 	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
 	 )
 	(t 
@@ -1083,11 +806,11 @@ or nil if there isn't one longer than *completion-min-length*."
 	 ;; restore state
 	 (set-syntax-table cmpl-saved-syntax)
 	 ;; Return completion if the length is reasonable
-	 (if (and (<= (read-time-eval
-		       *completion-prefix-min-length*)
+	 (if (and (<= (cmpl-read-time-eval
+		       completion-prefix-min-length)
 		      (- cmpl-symbol-end cmpl-symbol-start))
 		  (<= (- cmpl-symbol-end cmpl-symbol-start)
-		      (read-time-eval *completion-max-length*)))
+		      (cmpl-read-time-eval completion-max-length)))
 	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
 	 )
 	(t 
@@ -1123,11 +846,11 @@ or nil if there isn't one longer than *completion-min-length*."
 ;;; Conditionalizing code on *record-cmpl-statistics-p*
 ;;;-----------------------------------------------
 ;;; All statistics code outside this block should use this
-(defmacro cmpl-statistics-block (&rest body)
-  "Only executes body if we are recording statistics."
-  (list 'cond
-	(list* '*record-cmpl-statistics-p* body)
-	))		 
+(defmacro cmpl-statistics-block (&rest body))
+;;;  "Only executes body if we are recording statistics."
+;;;  (list 'cond
+;;;	(list* '*record-cmpl-statistics-p* body)
+;;;	))		 
 
 ;;;-----------------------------------------------
 ;;; Completion Sources
@@ -1186,7 +909,7 @@ or nil if there isn't one longer than *completion-min-length*."
 
 (defun reset-cdabbrev (abbrev-string &optional initial-completions-tried)
   "Resets the cdabbrev search to search for abbrev-string.
-initial-completions-tried is a list of downcased strings to ignore
+INITIAL-COMPLETIONS-TRIED is a list of downcased strings to ignore
 during the search."
   (setq cdabbrev-abbrev-string abbrev-string
 	cdabbrev-completions-tried
@@ -1204,9 +927,7 @@ during the search."
 
 
 (defun reset-cdabbrev-window (&optional initializep)
-  "Resets the cdabbrev search to search for abbrev-string.
-initial-completions-tried is a list of downcased strings to ignore
-during the search."
+  "Resets the cdabbrev search to search for abbrev-string."
   ;; Set the window
   (cond (initializep
 	 (setq cdabbrev-current-window (selected-window))
@@ -1226,16 +947,17 @@ during the search."
       (setq cdabbrev-current-point (point)
 	    cdabbrev-start-point cdabbrev-current-point
 	    cdabbrev-stop-point
-	    (if *cdabbrev-radius*
+	    (if completion-search-distance
 		(max (point-min)
-		     (- cdabbrev-start-point *cdabbrev-radius*))
+		     (- cdabbrev-start-point completion-search-distance))
 		(point-min))
 	    cdabbrev-wrapped-p nil)
       )))
 
 (defun next-cdabbrev ()
   "Return the next possible cdabbrev expansion or nil if there isn't one.
-reset-cdabbrev must've been called.  This is sensitive to case-fold-search."
+`reset-cdabbrev' must've been called already.
+This is sensitive to `case-fold-search'."
   ;; note that case-fold-search affects the behavior of this function
   ;; Bug: won't pick up an expansion that starts at the top of buffer
   (when cdabbrev-current-window
@@ -1300,8 +1022,8 @@ reset-cdabbrev must've been called.  This is sensitive to case-fold-search."
 		    (t
 		     ;; need to wrap
 		     (goto-char (setq cdabbrev-current-point
-				      (if *cdabbrev-radius*
-					  (min (point-max) (+ cdabbrev-start-point *cdabbrev-radius*))
+				      (if completion-search-distance
+					  (min (point-max) (+ cdabbrev-start-point completion-search-distance))
 					  (point-max))))
 		
 		     (setq cdabbrev-wrapped-p t))
@@ -1384,7 +1106,7 @@ Each symbol is bound to a single completion entry.")
   (list 'car (list 'cdr completion-entry)))
 
 (defmacro completion-last-use-time (completion-entry)
-  ;;  "The time it was last used.  In hours since 1900.  Used to decide
+  ;;  "The time it was last used.  In hours since origin.  Used to decide
   ;; whether to save it.  T if one should always save it."
   (list 'nth 2 completion-entry))
 
@@ -1465,8 +1187,7 @@ Each symbol is bound to a single completion entry.")
 		    return-completions))))
 
 (defun list-all-completions-by-hash-bucket ()
-  "Returns a list of lists of all the known completion entries organized by 
-hash bucket."
+  "Return list of lists of known completion entries, organized by hash bucket."
   (let ((return-completions nil))
     (mapatoms 'list-all-completions-by-hash-bucket-1 cmpl-prefix-obarray)
     return-completions))
@@ -1503,7 +1224,7 @@ hash bucket."
 ;;; READS
 (defun find-exact-completion (string)
   "Returns the completion entry for string or nil.
-Sets up cmpl-db-downcase-string and cmpl-db-symbol."
+Sets up `cmpl-db-downcase-string' and `cmpl-db-symbol'."
   (and (boundp (setq cmpl-db-symbol
 		     (intern (setq cmpl-db-downcase-string (downcase string))
 			     cmpl-obarray)))
@@ -1512,9 +1233,9 @@ Sets up cmpl-db-downcase-string and cmpl-db-symbol."
 
 (defun find-cmpl-prefix-entry (prefix-string)
   "Returns the prefix entry for string.
-Sets cmpl-db-prefix-symbol.
-Prefix-string must be exactly *completion-prefix-min-length* long
-and downcased.  Sets up cmpl-db-prefix-symbol."
+Sets `cmpl-db-prefix-symbol'.
+Prefix-string must be exactly `completion-prefix-min-length' long
+and downcased.  Sets up `cmpl-db-prefix-symbol'."
   (and (boundp (setq cmpl-db-prefix-symbol
 		     (intern prefix-string cmpl-prefix-obarray)))
        (symbol-value cmpl-db-prefix-symbol)))
@@ -1526,7 +1247,7 @@ and downcased.  Sets up cmpl-db-prefix-symbol."
   "Locates the completion entry.
 Returns a pointer to the element before the completion entry or nil if
 the completion entry is at the head.
-Must be called after find-exact-completion."
+Must be called after `find-exact-completion'."
   (let ((prefix-list (cmpl-prefix-entry-head prefix-entry))
 	 next-prefix-list
 	 )
@@ -1565,7 +1286,7 @@ Must be called after find-exact-completion."
 	   (if cmpl-entry
 	       (find-cmpl-prefix-entry
 		 (substring cmpl-db-downcase-string
-			    0 *completion-prefix-min-length*))))
+			    0 completion-prefix-min-length))))
 	  )
       (if (and cmpl-entry pref-entry)
 	  ;; try again
@@ -1584,7 +1305,7 @@ Must be called after find-exact-completion."
   "If STRING is not in the database add it to appropriate prefix list.
 STRING is added to the end of the approppriate prefix list with
 num-uses = 0.  The database is unchanged if it is there.  STRING must be
-longer than *completion-prefix-min-length*.
+longer than `completion-prefix-min-length'.
 This must be very fast.
 Returns the completion entry."
   (or (find-exact-completion string)
@@ -1594,8 +1315,8 @@ Returns the completion entry."
 	    ;; setup the prefix
 	    (prefix-entry (find-cmpl-prefix-entry
 			    (substring cmpl-db-downcase-string 0
-				       (read-time-eval
-					*completion-prefix-min-length*))))
+				       (cmpl-read-time-eval
+					completion-prefix-min-length))))
 	    )
 	;; The next two forms should happen as a unit (atomically) but
 	;; no fatal errors should result if that is not the case.
@@ -1617,8 +1338,8 @@ Returns the completion entry."
 (defun add-completion-to-head (string)
   "If STRING is not in the database, add it to prefix list.
 STRING is added to the head of the approppriate prefix list.  Otherwise
-it is moved to the head of the list.  STRING must be longer than
-*completion-prefix-min-length*.
+it is moved to the head of the list.
+STRING must be longer than `completion-prefix-min-length'.
 Updates the saved string with the supplied string.
 This must be very fast.
 Returns the completion entry."
@@ -1629,8 +1350,8 @@ Returns the completion entry."
       ;; found
       (let* ((prefix-entry (find-cmpl-prefix-entry
 			     (substring cmpl-db-downcase-string 0
-					(read-time-eval
-					 *completion-prefix-min-length*))))
+					(cmpl-read-time-eval
+					 completion-prefix-min-length))))
 	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
 	     (cmpl-ptr (cdr splice-ptr))
 	     )
@@ -1655,8 +1376,8 @@ Returns the completion entry."
 	  ;; setup the prefix
 	  (prefix-entry (find-cmpl-prefix-entry
 			  (substring cmpl-db-downcase-string 0
-				     (read-time-eval
-				      *completion-prefix-min-length*))))
+				     (cmpl-read-time-eval
+				      completion-prefix-min-length))))
 	  )
       (cond (prefix-entry
 	     ;; Splice in at head
@@ -1675,15 +1396,15 @@ Returns the completion entry."
       
 (defun delete-completion (string)
   "Deletes the completion from the database.
-String must be longer than *completion-prefix-min-length*."
+String must be longer than `completion-prefix-min-length'."
   ;; Handle pending acceptance
   (if completion-to-accept (accept-completion))
   (if (setq cmpl-db-entry (find-exact-completion string))
       ;; found
       (let* ((prefix-entry (find-cmpl-prefix-entry 
 			     (substring cmpl-db-downcase-string 0
-					(read-time-eval
-					 *completion-prefix-min-length*))))
+					(cmpl-read-time-eval
+					 completion-prefix-min-length))))
 	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
 	     )
 	 ;; delete symbol reference
@@ -1770,14 +1491,13 @@ String must be longer than *completion-prefix-min-length*."
     ))
 
 (defun check-completion-length (string)
-  (if (< (length string) *completion-min-length*)
+  (if (< (length string) completion-min-length)
       (error "The string \"%s\" is too short to be saved as a completion."
 	     string)
       (list string)))
 
 (defun add-completion (string &optional num-uses last-use-time)
-  "If the string is not there, it is added to the head of the completion list.
-Otherwise, it is moved to the head of the list.
+  "Add STRING to completion list, or move it to head of list.
 The completion is altered appropriately if num-uses and/or last-use-time is 
 specified."
   (interactive (interactive-completion-string-reader "Completion to add"))
@@ -1793,7 +1513,7 @@ specified."
     ))
 
 (defun add-permanent-completion (string)
-  "Adds string if it isn't already there and and makes it a permanent string."
+  "Add STRING if it isn't already listed, and mark it permanent."
   (interactive
     (interactive-completion-string-reader "Completion to add permanently"))
   (let ((current-completion-source (if (interactive-p)
@@ -1810,9 +1530,9 @@ specified."
   )
 
 (defun accept-completion ()
-  "Accepts the pending completion in completion-to-accept.
-This bumps num-uses.  Called by add-completion-to-head and 
-completion-search-reset."
+  "Accepts the pending completion in `completion-to-accept'.
+This bumps num-uses.  Called by `add-completion-to-head' and 
+`completion-search-reset'."
   (let ((string completion-to-accept)
 	;; if this is added afresh here, then it must be a cdabbrev
 	(current-completion-source cmpl-source-cdabbrev)
@@ -1825,29 +1545,28 @@ completion-search-reset."
     ))
 
 (defun use-completion-under-point ()
-  "Adds the completion symbol underneath the point into the completion buffer."
-  (let ((string (and *completep* (symbol-under-point)))
+  "Add the completion symbol underneath the point into the completion buffer."
+  (let ((string (and enable-completion (symbol-under-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 	
 (defun use-completion-before-point ()
-  "Adds the completion symbol before point into
-the completion buffer."
-  (let ((string (and *completep* (symbol-before-point)))
+  "Add the completion symbol before point into the completion buffer."
+  (let ((string (and enable-completion (symbol-before-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 
 (defun use-completion-under-or-before-point ()
-  "Adds the completion symbol before point into the completion buffer."
-  (let ((string (and *completep* (symbol-under-or-before-point)))
+  "Add the completion symbol before point into the completion buffer."
+  (let ((string (and enable-completion (symbol-under-or-before-point)))
 	(current-completion-source cmpl-source-cursor-moves))
     (if string (add-completion-to-head string))))
 
 (defun use-completion-before-separator ()
-  "Adds the completion symbol before point into the completion buffer.
+  "Add the completion symbol before point into the completion buffer.
 Completions added this way will automatically be saved if
-*separator-character-uses-completion-p* is non-nil."
-  (let ((string (and *completep* (symbol-before-point)))
+`completion-on-separator-character' is non-nil."
+  (let ((string (and enable-completion (symbol-before-point)))
 	(current-completion-source cmpl-source-separator)
 	entry)
     (cmpl-statistics-block
@@ -1855,7 +1574,7 @@ Completions added this way will automatically be saved if
       )
     (cond (string
 	   (setq entry (add-completion-to-head string))
-	   (when (and *separator-character-uses-completion-p*
+	   (when (and completion-on-separator-character
 		      (zerop (completion-num-uses entry)))
 	     (set-completion-num-uses entry 1)
 	     (setq cmpl-completions-accepted-p t)
@@ -1916,8 +1635,8 @@ Completions added this way will automatically be saved if
 
 
 (defun completion-search-reset (string)
-  "Given a string, sets up the get-completion and completion-search-next functions.
-String must be longer than *completion-prefix-min-length*."
+  "Set up the for completion searching for STRING.
+STRING must be longer than `completion-prefix-min-length'."
   (if completion-to-accept (accept-completion))
   (setq cmpl-starting-possibilities
 	(cmpl-prefix-entry-head
@@ -1936,9 +1655,9 @@ String must be longer than *completion-prefix-min-length*."
 	))
 
 (defun completion-search-next (index)
-  "Returns the next completion entry.
-If index is out of sequence it resets and starts from the top.
-If there are no more entries it tries cdabbrev and returns only a string."
+  "Return the next completion entry.
+If INDEX is out of sequence, reset and start from the top.
+If there are no more entries, try cdabbrev and returns only a string."
   (cond
     ((= index (setq cmpl-last-index (1+ cmpl-last-index)))
      (completion-search-peek t))
@@ -1983,9 +1702,9 @@ If there are no more entries it tries cdabbrev and returns only a string."
 
 (defun completion-search-peek (use-cdabbrev)
   "Returns the next completion entry without actually moving the pointers.
-Calling this again or calling completion-search-next will result in the same 
-string being returned.  Depends on case-fold-search.
-If there are no more entries it tries cdabbrev and then returns only a string."
+Calling this again or calling `completion-search-next' results in the same 
+string being returned.  Depends on `case-fold-search'.
+If there are no more entries, try cdabbrev and then return only a string."
   (cond
     ;; return the cached value if we have it
     (cmpl-next-possibility)
@@ -2063,10 +1782,10 @@ If there are no more entries it tries cdabbrev and then returns only a string."
 ;;;-----------------------------------------------
 
 (defun completion-mode ()
-  "Toggles whether or not new words are added to the database."
+  "Toggles whether or not to add new words to the completion database."
   (interactive)
-  (setq *completep* (not *completep*))
-  (message "Completion mode is now %s." (if *completep* "ON" "OFF"))
+  (setq enable-completion (not enable-completion))
+  (message "Completion mode is now %s." (if enable-completion "ON" "OFF"))
   )
 	
 (defvar cmpl-current-index 0)
@@ -2075,15 +1794,14 @@ If there are no more entries it tries cdabbrev and then returns only a string."
 (defvar cmpl-leave-point-at-start nil)
 
 (defun complete (&optional arg)
-  "Inserts a completion at point.  
+  "Fill out a completion of the word before point.  
 Point is left at end.  Consective calls rotate through all possibilities.
 Prefix args ::
   control-u :: leave the point at the beginning of the completion rather 
                than at the end.
   a number  :: rotate through the possible completions by that amount
   `-'       :: same as -1 (insert previous completion)
- {See the comments at the top of completion.el for more info.}
-"
+ {See the comments at the top of `completion.el' for more info.}"
   (interactive "*p")
   ;;; Set up variables
   (cond ((eq last-command this-command)
@@ -2107,7 +1825,7 @@ Prefix args ::
 	 (cond ((not cmpl-original-string)
 		(setq this-command 'failed-complete)
 		(error "To complete, the point must be after a symbol at least %d character long."
-		       *completion-prefix-min-length*)))
+		       completion-prefix-min-length)))
 	 ;; get index	     
 	 (setq cmpl-current-index (if current-prefix-arg arg 0))
 	 ;; statistics
@@ -2122,7 +1840,7 @@ Prefix args ::
   ;; point is at the point to insert the new symbol
   ;; Get the next completion
   (let* ((print-status-p
-	  (and (>= (cmpl19-baud-rate) *print-next-completion-speed-threshold*)
+	  (and (>= baud-rate completion-prompt-speed-threshold)
 	       (not (minibuffer-window-selected-p))))
 	 (insert-point (point))
 	 (entry (completion-search-next cmpl-current-index))
@@ -2157,10 +1875,10 @@ Prefix args ::
 	     ((and print-status-p
 		   ;; This updates the display and only prints if there
 		   ;; is no typeahead
-		   (cmpl19-sit-for 0)
+		   (sit-for 0)
 		   (setq entry
 			 (completion-search-peek
-			   *print-next-completion-does-cdabbrev-search-p*)))
+			   completion-cdabbrev-prompt-flag)))
 	      (setq string (if (stringp entry)
 			       entry (completion-string entry)))
 	      (setq string (cmpl-merge-string-cases
@@ -2187,20 +1905,9 @@ Prefix args ::
 ;;; "Complete" Key Keybindings
 ;;;-----------------------------------------------
 
-;;; Complete key definition
-;;;  These define c-return and meta-return
-;;; In any case you really want to bind this to a single keystroke
-(if (fboundp 'key-for-others-chord)
-    (condition-case e
-	 ;; this can fail if some of the prefix chars. are already used
-	 ;; as commands (this happens on wyses)
-	 (global-set-key (key-for-others-chord "return" '(control)) 'complete)
-      (error)
-      ))
-(if (fboundp 'gmacs-keycode)
-    (global-set-key (gmacs-keycode "return" '(control)) 'complete)
-    )
 (global-set-key "\M-\r" 'complete)
+(global-set-key [?\C-\r] 'complete)
+(define-key function-key-map [C-return] [?\C-\r])
 
 ;;; Tests -
 ;;; (add-completion "cumberland")
@@ -2221,17 +1928,14 @@ Prefix args ::
 
 ;;; User interface
 (defun add-completions-from-file (file)
-  "Parses all the definition names from a Lisp mode file and adds them to the 
-completion database."
+  "Parse possible completions from a file and add them to data base."
   (interactive "fFile: ")
-  (setq file (if (fboundp 'expand-file-name-defaulting)
-		 (expand-file-name-defaulting file)
-		 (expand-file-name file)))
+  (setq file (expand-file-name file))
   (let* ((buffer (get-file-buffer file))
 	 (buffer-already-there-p buffer)
 	 )
     (when (not buffer-already-there-p)
-      (let ((*modes-for-completion-find-file-hook* nil))
+      (let ((completions-merging-modes nil))
 	(setq buffer (find-file-noselect file))
 	))
     (unwind-protect
@@ -2272,13 +1976,13 @@ completion database."
 
 ;;; Find file hook
 (defun cmpl-find-file-hook ()
-  (cond (*completep*
+  (cond (enable-completion
 	 (cond ((and (memq major-mode '(emacs-lisp-mode lisp-mode))
-		     (memq 'lisp *modes-for-completion-find-file-hook*)
+		     (memq 'lisp completions-merging-modes)
 		     )
 		(add-completions-from-buffer))
 	       ((and (memq major-mode '(c-mode))
-		     (memq 'c *modes-for-completion-find-file-hook*)
+		     (memq 'c completions-merging-modes)
 		     )
 		(add-completions-from-buffer)
 		)))
@@ -2292,7 +1996,7 @@ completion database."
 
 (defun add-completions-from-tags-table ()
   ;; Inspired by eero@media-lab.media.mit.edu
-  "Add completions from the current tags-table-buffer."
+  "Add completions from the current tags table."
   (interactive)
   (visit-tags-table-buffer)		;this will prompt if no tags-table
   (save-excursion
@@ -2330,9 +2034,9 @@ completion database."
 ;;;  (and (string-match *lisp-def-regexp* "\n(def-bar foo")(match-end 0)) -> 10
 ;;;  (and (string-match *lisp-def-regexp* "\n(defun (foo") (match-end 0)) -> 9
 
+;;; Parses all the definition names from a Lisp mode buffer and adds them to 
+;;; the completion database.
 (defun add-completions-from-lisp-buffer ()
-  "Parses all the definition names from a Lisp mode buffer and adds them to 
-the completion database."
   ;;; Benchmarks
   ;;;  Sun-3/280 - 1500 to 3000 lines of lisp code per second
   (let (string)
@@ -2365,7 +2069,7 @@ the completion database."
 ;;; Whitespace chars (have symbol syntax)
 ;;; Everything else has word syntax
 
-(defun make-c-def-completion-syntax-table ()
+(defun cmpl-make-c-def-completion-syntax-table ()
   (let ((table (make-vector 256 0))
 	(whitespace-chars '(?  ?\n ?\t ?\f  ?\v ?\r))
 	;; unforunately the ?( causes the parens to appear unbalanced
@@ -2385,7 +2089,7 @@ the completion database."
     (modify-syntax-entry ?\} "){" table)
     table))
 
-(defconst cmpl-c-def-syntax-table (make-c-def-completion-syntax-table))
+(defconst cmpl-c-def-syntax-table (cmpl-make-c-def-completion-syntax-table))
 
 ;;; Regexps
 (defconst *c-def-regexp*
@@ -2425,9 +2129,9 @@ the completion database."
 ;;;  (test-c-def-regexp *c-cont-regexp* "oo {trout =1} my_carp;") -> 14
 ;;;  (test-c-def-regexp *c-cont-regexp* "truct_p complex foon") -> nil
 
+;;; Parses all the definition names from a C mode buffer and adds them to the 
+;;; completion database.
 (defun add-completions-from-c-buffer ()
-  "Parses all the definition names from a C mode buffer and adds them to the 
-completion database."
   ;; Benchmark --
   ;;  Sun 3/280-- 1250 lines/sec.
 
@@ -2527,9 +2231,9 @@ completion database."
 ;;; Init files
 ;;;---------------------------------------------------------------------------
 
+;;; The version of save-completions-to-file called at kill-emacs time.
 (defun kill-emacs-save-completions ()
-  "The version of save-completions-to-file called at kill-emacs time."
-  (when (and *save-completions-p* *completep* cmpl-initialized-p)
+  (when (and save-completions-flag enable-completion cmpl-initialized-p)
     (cond
       ((not cmpl-completions-accepted-p)
        (message "Completions database has not changed - not writing."))
@@ -2545,17 +2249,17 @@ completion database."
 ;;;  <string> is the completion
 ;;;  <last-use-time> is the time the completion was last used
 ;;;    If it is t, the completion will never be pruned from the file.
-;;;    Otherwise it is in hours since 1900.
+;;;    Otherwise it is in hours since origin.
 \n")
 
 (defun completion-backup-filename (filename)
   (concat filename ".BAK"))
 
 (defun save-completions-to-file (&optional filename)
-  "Saves a completion init file.
-If file is not specified, then *saved-completions-filename* is used."
+  "Save completions in init file FILENAME.
+If file name is not specified, use `save-completions-file-name'."
   (interactive)
-  (setq filename (expand-file-name (or filename *saved-completions-filename*)))
+  (setq filename (expand-file-name (or filename save-completions-file-name)))
   (when (file-writable-p filename)
     (if (not cmpl-initialized-p)
 	(initialize-completions));; make sure everything's loaded
@@ -2563,9 +2267,9 @@ If file is not specified, then *saved-completions-filename* is used."
 
     (let* ((trim-versions-without-asking t)
 	   (kept-old-versions 0)
-	   (kept-new-versions *completion-file-versions-kept*)
+	   (kept-new-versions completions-file-versions-kept)
 	   last-use-time
-	   (current-time (cmpl-hours-since-1900))
+	   (current-time (cmpl-hours-since-origin))
 	   (total-in-db 0)
 	   (total-perm 0)
 	   (total-saved 0)
@@ -2603,11 +2307,11 @@ If file is not specified, then *saved-completions-filename* is used."
 		      (setq last-use-time current-time)
 		      ;; or it was saved before and
 		      (and last-use-time
-			   ;; *saved-completion-retention-time* is nil
-			   (or (not *saved-completion-retention-time*)
+			   ;; save-completions-retention-time is nil
+			   (or (not save-completions-retention-time)
 			       ;; or time since last use is < ...retention-time*
 			       (< (- current-time last-use-time)
-				  *saved-completion-retention-time*))
+				  save-completions-retention-time))
 			   )))
 		 ;; write to file
 		 (setq total-saved (1+ total-saved))
@@ -2648,21 +2352,21 @@ If file is not specified, then *saved-completions-filename* is used."
        (record-save-completions total-in-db total-perm total-saved))
       )))
 
-(defun autosave-completions ()
-  (when (and *save-completions-p* *completep* cmpl-initialized-p
-	     *completion-auto-save-period*
-	     (> cmpl-emacs-idle-time *completion-auto-save-period*)
-	     cmpl-completions-accepted-p)
-    (save-completions-to-file)
-    ))
+;;;(defun autosave-completions ()
+;;;  (when (and save-completions-flag enable-completion cmpl-initialized-p
+;;;	     *completion-auto-save-period*
+;;;	     (> cmpl-emacs-idle-time *completion-auto-save-period*)
+;;;	     cmpl-completions-accepted-p)
+;;;    (save-completions-to-file)
+;;;    ))
 
-(pushnew 'autosave-completions cmpl-emacs-idle-time-hooks)
+;;;(pushnew 'autosave-completions cmpl-emacs-idle-time-hooks)
 
 (defun load-completions-from-file (&optional filename no-message-p)
-  "Loads a completion init file.
-If file is not specified, then *saved-completions-filename* is used."
+  "Loads a completion init file FILENAME.
+If file is not specified, then use `save-completions-file-name'."
   (interactive)
-  (setq filename (expand-file-name (or filename *saved-completions-filename*)))
+  (setq filename (expand-file-name (or filename save-completions-file-name)))
   (let* ((backup-filename (completion-backup-filename filename))
 	 (backup-readable-p (file-readable-p backup-filename))
 	 )
@@ -2681,7 +2385,7 @@ If file is not specified, then *saved-completions-filename* is used."
   
 	(let ((insert-okay-p nil)
 	      (buffer (current-buffer))
-	      (current-time (cmpl-hours-since-1900))
+	      (current-time (cmpl-hours-since-origin))
 	      string num-uses entry last-use-time
 	      cmpl-entry cmpl-last-use-time
 	      (current-completion-source cmpl-source-init-file)
@@ -2763,13 +2467,12 @@ If file is not specified, then *saved-completions-filename* is used."
 	  )))))
 
 (defun initialize-completions ()
-  "Loads the default completions file.
+  "Load the default completions file.
 Also sets up so that exiting emacs will automatically save the file."
   (interactive)
   (cond ((not cmpl-initialized-p)
 	 (load-completions-from-file)
 	 ))
-  (init-cmpl-emacs-idle-process)
   (setq cmpl-initialized-p t)
   )
 
@@ -2778,25 +2481,17 @@ Also sets up so that exiting emacs will automatically save the file."
 ;;; Kill EMACS patch
 ;;;-----------------------------------------------
 
-(completion-advise kill-emacs :before
-    ;; | All completion code should go in here
-    ;;\ /
-    (kill-emacs-save-completions)
-    ;;/ \
-    ;; | All completion code should go in here
-    (cmpl-statistics-block
-      (record-cmpl-kill-emacs))
-    )
-
+(add-hook 'kill-emacs-hook
+	  '(lambda ()
+	     (kill-emacs-save-completions)
+	     (cmpl-statistics-block
+	      (record-cmpl-kill-emacs))))
 
 ;;;-----------------------------------------------
 ;;; Kill region patch
 ;;;-----------------------------------------------
 
-;;; Patched to remove the most recent completion
-(defvar $$$cmpl-old-kill-region (symbol-function 'kill-region))
-
-(defun kill-region (&optional beg end)
+(defun completion-kill-region (&optional beg end)
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
 The command \\[yank] can retrieve it from there.
@@ -2810,22 +2505,18 @@ If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring.
 Patched to remove the most recent completion."
-  (interactive "*")  
-  (cond ((and (eq last-command 'complete) (eq last-command-char ?\C-w))
+  (interactive "r")  
+  (cond ((eq last-command 'complete)
 	 (delete-region (point) cmpl-last-insert-location)
 	 (insert cmpl-original-string)
 	 (setq completion-to-accept nil)
 	 (cmpl-statistics-block
-	   (record-complete-failed))
-	 )
+	   (record-complete-failed)))
 	(t
-	  (if (not beg)
-	      (setq beg (min (point) (mark))
-		    end (max (point) (mark)))
-	    )
-	 (funcall $$$cmpl-old-kill-region beg end)
-	 )))
+	 (kill-region beg end))))
 
+(global-set-key "\C-w" 'completion-kill-region)
+
 ;;;-----------------------------------------------
 ;;; Patches to self-insert-command.
 ;;;-----------------------------------------------
@@ -2864,33 +2555,47 @@ Patched to remove the most recent completion."
 (defmacro def-completion-wrapper (function-name type &optional new-name)
   "Add a call to update the completion database before function execution.
 TYPE is the type of the wrapper to be added.  Can be :before or :under."
-  (completion-advise-1
-   function-name ':before
-   (ecase type
-     (:before '((use-completion-before-point)))
-     (:separator '((use-completion-before-separator)))
-     (:under '((use-completion-under-point)))
-     (:under-or-before
-      '((use-completion-under-or-before-point)))
-     (:minibuffer-separator
-      '((let ((cmpl-syntax-table cmpl-standard-syntax-table))
-	  (use-completion-before-separator))))
-     )
-   new-name
-   ))
+  (cond ((eq type ':separator)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-before-separator))
+	((eq type ':before)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-before-point))
+	((eq type ':backward-under)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-backward-under))
+	((eq type ':backward)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-backward))
+	((eq type ':under)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-under-point))
+	((eq type ':under-or-before)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-under-or-before-point))
+	((eq type ':minibuffer-separator)
+	 (list 'put (list 'quote function-name) ''completion-function
+	       ''use-completion-minibuffer-separator))))
 
-;;;(defun foo (x y z) (+ x y z))
-;;;foo
-;;;(macroexpand '(def-completion-wrapper foo :under))
-;;;(progn (defvar $$$cmpl-foo (symbol-function (quote foo))) (defun foo (&rest arglist) (progn (use-completion-under-point)) (cmpl-apply-as-top-level $$$cmpl-foo arglist)))
-;;;(defun bar (x y z) "Documentation" (+ x y z))
-;;;bar
-;;;(macroexpand '(def-completion-wrapper bar :under))
-;;;(progn (defvar $$$cmpl-bar (symbol-function (quote bar))) (defun bar (&rest arglist) "Documentation" (progn (use-completion-under-point)) (cmpl-apply-as-top-level $$$cmpl-bar arglist)))
-;;;(defun quuz (x &optional y z) "Documentation" (interactive "P") (+ x y z))
-;;;quuz
-;;;(macroexpand '(def-completion-wrapper quuz :before))
-;;;(progn (defvar $$$cmpl-quuz (symbol-function (quote quuz))) (defun quuz (&rest arglist) "Documentation" (interactive) (progn (use-completion-before-point)) (cmpl-apply-as-top-level $$$cmpl-quuz arglist)))
+(defun use-completion-minibuffer-separator ()
+  (let ((cmpl-syntax-table cmpl-standard-syntax-table))
+    (use-completion-before-separator)))
+
+(defun use-completion-backward-under ()
+  (use-completion-under-point)
+  (if (eq last-command 'complete)
+      ;; probably a failed completion if you have to back up
+      (cmpl-statistics-block (record-complete-failed))))
+
+(defun use-completion-backward ()
+  (if (eq last-command 'complete)
+      ;; probably a failed completion if you have to back up
+      (cmpl-statistics-block (record-complete-failed))))
+
+(defun completion-before-command ()
+  (funcall (or (get this-command 'completion-function)
+	       'use-completion-under-or-before-point)))
+(add-hook 'before-command-hook 'completion-before-command)
 
 
 ;;;---------------------------------------------------------------------------
@@ -2960,8 +2665,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 ;;;-----------------------------------------------
 (def-completion-wrapper newline :separator)
 (def-completion-wrapper newline-and-indent :separator)
-;;;(if (function-defined-and-loaded 'shell-send-input)
-;;;    (def-completion-wrapper shell-send-input :separator))
+(def-completion-wrapper comint-send-input :separator))
 (def-completion-wrapper exit-minibuffer :minibuffer-separator)
 (def-completion-wrapper eval-print-last-sexp :separator)
 (def-completion-wrapper eval-last-sexp :separator)
@@ -2975,138 +2679,17 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (def-completion-wrapper previous-line :under-or-before)
 (def-completion-wrapper beginning-of-buffer :under-or-before)
 (def-completion-wrapper end-of-buffer :under-or-before)
+(def-completion-wrapper beginning-of-line :under-or-before)
+(def-completion-wrapper end-of-line :under-or-before)
+(def-completion-wrapper forward-char :under-or-before)
+(def-completion-wrapper forward-word :under-or-before)
+(def-completion-wrapper forward-sexp :under-or-before)
+(def-completion-wrapper backward-char :backward-under)
+(def-completion-wrapper backward-word :backward-under)
+(def-completion-wrapper backward-sexp :backward-under)
 
-;; we patch these explicitly so they byte compile and so we don't have to
-;; patch the faster underlying function.
-
-(defun cmpl-beginning-of-line (&optional n)
-  "Move point to beginning of current line.\n\
-With argument ARG not nil or 1, move forward ARG - 1 lines first.\n\
-If scan reaches end of buffer, stop there without error."
-  (interactive "p")
-  (use-completion-under-or-before-point)
-  (beginning-of-line n)
-  )
-
-(defun cmpl-end-of-line (&optional n)
-  "Move point to end of current line.\n\
-With argument ARG not nil or 1, move forward ARG - 1 lines first.\n\
-If scan reaches end of buffer, stop there without error."
-  (interactive "p")
-  (use-completion-under-or-before-point)
-  (end-of-line n)
-  )
-
-(defun cmpl-forward-char (n)
-  "Move point right ARG characters (left if ARG negative).\n\
-On reaching end of buffer, stop and signal error."
-  (interactive "p")
-  (use-completion-under-or-before-point)
-  (forward-char n)
-  )
-(defun cmpl-backward-char (n)
-  "Move point left ARG characters (right if ARG negative).\n\
-On attempt to pass beginning or end of buffer, stop and signal error."
-  (interactive "p")
-  (use-completion-under-point)
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed)))
-  (backward-char n)
-  )
-
-(defun cmpl-forward-word (n)
-  "Move point forward ARG words (backward if ARG is negative).\n\
-Normally returns t.\n\
-If an edge of the buffer is reached, point is left there\n\
-and nil is returned."
-  (interactive "p")
-  (use-completion-under-or-before-point)
-  (forward-word n)
-  )
-(defun cmpl-backward-word (n)
-  "Move backward until encountering the end of a word.
-With argument, do this that many times.
-In programs, it is faster to call forward-word with negative arg."
-  (interactive "p")
-  (use-completion-under-point)
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed)))
-  (forward-word (- n))
-  )
-
-(defun cmpl-forward-sexp (n)
-  "Move forward across one balanced expression.
-With argument, do this that many times."
-  (interactive "p")
-  (use-completion-under-or-before-point)
-  (forward-sexp n)
-  )
-(defun cmpl-backward-sexp (n)
-  "Move backward across one balanced expression.
-With argument, do this that many times."
-  (interactive "p")
-  (use-completion-under-point)
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed)))
-  (backward-sexp n)
-  )
-
-(defun cmpl-delete-backward-char (n killflag)
-  "Delete the previous ARG characters (following, with negative ARG).\n\
-Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).\n\
-Interactively, ARG is the prefix arg, and KILLFLAG is set if\n\
-ARG was explicitly specified."
-  (interactive "p\nP")
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed)))
-  (delete-backward-char n killflag)
-  )
-
-(defvar $$$cmpl-old-backward-delete-char-untabify
-  (symbol-function 'backward-delete-char-untabify))
-
-(defun backward-delete-char-untabify (arg &optional killp)
-  "Delete characters backward, changing tabs into spaces.
-Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
-Interactively, ARG is the prefix arg (default 1)
-and KILLP is t if prefix arg is was specified."
-  (interactive "*p\nP")
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed)))
-  (funcall $$$cmpl-old-backward-delete-char-untabify arg killp)
-  )
-
-
-(global-set-key "\C-?" 'cmpl-delete-backward-char)
-(global-set-key "\M-\C-F" 'cmpl-forward-sexp)
-(global-set-key "\M-\C-B" 'cmpl-backward-sexp)
-(global-set-key "\M-F" 'cmpl-forward-word)
-(global-set-key "\M-B" 'cmpl-backward-word)
-(global-set-key "\C-F" 'cmpl-forward-char)
-(global-set-key "\C-B" 'cmpl-backward-char)
-(global-set-key "\C-A" 'cmpl-beginning-of-line)
-(global-set-key "\C-E" 'cmpl-end-of-line)
-
-;;;-----------------------------------------------
-;;; Misc.
-;;;-----------------------------------------------
-
-(def-completion-wrapper electric-buffer-list :under-or-before)
-(def-completion-wrapper list-buffers :under-or-before)
-(def-completion-wrapper scroll-up :under-or-before)
-(def-completion-wrapper scroll-down :under-or-before)
-(def-completion-wrapper execute-extended-command
-    :under-or-before)
-(def-completion-wrapper other-window :under-or-before)
-
-;;;-----------------------------------------------
-;;; Local Thinking Machines stuff
-;;;-----------------------------------------------
+(def-completion-wrapper delete-backward-char :backward)
+(def-completion-wrapper delete-backward-char-untabify :backward)
 
 ;;; Tests --
 ;;; foobarbiz
