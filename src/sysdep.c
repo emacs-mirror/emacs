@@ -714,7 +714,7 @@ sys_suspend ()
 sys_subshell ()
 {
 #ifndef VMS
-#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+#ifdef DOS_NT	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int st;
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
 #endif
@@ -752,11 +752,7 @@ sys_subshell ()
   str[len] = 0;
  xyzzy:
 
-#ifdef WINDOWSNT
-  pid = -1;
-#else /* not WINDOWSNT */
-
-#ifdef MSDOS
+#ifdef DOS_NT
   pid = 0;
 #if __DJGPP__ > 1
   save_signal_handlers (saved_handlers);
@@ -769,11 +765,10 @@ sys_subshell ()
 #endif
 
   if (pid == 0)
-#endif /* not WINDOWSNT */
     {
       char *sh = 0;
 
-#ifdef MSDOS    /* MW, Aug 1993 */
+#ifdef DOS_NT    /* MW, Aug 1993 */
       getwd (oldwd);
       if (sh == 0)
 	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
@@ -811,10 +806,9 @@ sys_subshell ()
 #ifdef  WINDOWSNT
       /* Waits for process completion */
       pid = _spawnlp (_P_WAIT, sh, sh, NULL);
+      chdir (oldwd);
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
-
-      take_console ();
 #else   /* not WINDOWSNT */
       execlp (sh, sh, 0);
       write (1, "Can't execute subshell", 22);
@@ -829,7 +823,7 @@ sys_subshell ()
   synch_process_alive = 1;
 #endif
 
-#ifndef MSDOS
+#ifndef DOS_NT
   wait_for_termination (pid);
 #endif
   restore_signal_handlers (saved_handlers);
@@ -1550,7 +1544,13 @@ init_sys_modes ()
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
-  if (! read_socket_hook && EQ (Vwindow_system, Qnil))
+  if (EQ (Vwindow_system, Qnil)
+#ifndef WINDOWSNT
+      /* When running in tty mode on NT/Win95, we have a read_socket
+	 hook, but still need the rest of the initialization code below.  */
+      && (! read_socket_hook)
+#endif
+      )
 #endif
     set_terminal_modes ();
 
@@ -1691,7 +1691,13 @@ reset_sys_modes ()
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the clean-up code below.  */
-  if (read_socket_hook || !EQ (Vwindow_system, Qnil))
+  if (!EQ (Vwindow_system, Qnil)
+#ifndef WINDOWSNT
+      /* When running in tty mode on NT/Win95, we have a read_socket
+	 hook, but still need the rest of the clean-up code below.  */
+      || read_socket_hook
+#endif
+      )
     return;
 #endif
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
