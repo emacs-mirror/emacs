@@ -1109,13 +1109,33 @@ message itself is flagged as deleted.
 
 @node Out of Rmail
 @section Converting an Rmail File to Inbox Format
+@cindex Babyl format to Inbox format
+@cindex converting Rmail file to mailbox format
 
 @findex unrmail
   The command @kbd{M-x unrmail} converts a file in Rmail format to inbox
-format (also known as the system mailbox format), so that you can use it
-with other mail-editing tools.  You must specify two arguments, the name
-of the Rmail file and the name to use for the converted file.  @kbd{M-x
-unrmail} does not alter the Rmail file itself.
+format (also known as the system mailbox, or mbox, format), so that
+you can use it with other mail-editing tools.  You must specify two
+arguments, the name of the Rmail file and the name to use for the
+converted file.  @kbd{M-x unrmail} does not alter the Rmail file itself.
+
+@pindex b2m
+  @kbd{M-x unrmail} is useful if you can run Emacs on the machine
+where the Rmail file resides, or can access the Rmail file remotely
+(@pxref{Remote Files}) from a machine where Emacs is installed.  If
+accessing Rmail files from Emacs is impossible, you can use the
+@command{b2m} program instead.  @command{b2m} is part of the Emacs
+distribution, it is installed into the same directory where all the
+other auxiliary programs (@command{etags} etc.) are installed, and its
+source is available in the Emacs source distribution, so that you
+could copy the source to the target machine and compile it there.
+
+  To convert a file @file{@var{babyl-file}} into @file{@var{mbox-file}},
+invoke @command{b2m} like this:
+
+@example
+ b2m < @var{babyl-file} > @var{mbox-file}
+@end example
 
 @node Rmail Rot13
 @section Reading Rot13 Messages
