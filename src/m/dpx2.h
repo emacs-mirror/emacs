@@ -221,6 +221,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* It doesn't seem we have sigpause */
 #undef HAVE_SYSV_SIGPAUSE
 
+#define POSIX_SIGNALS
+
+/* We don't need the definition from usg5-3.h with POSIX_SIGNALS.  */
+#undef sigsetmask
+
 
 /* on bos2.00.45 there is a bug that makes the F_SETOWN fcntl() call
    enters in an infinite loop. Avoid calling it  */
