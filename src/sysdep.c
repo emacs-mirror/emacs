@@ -1,5 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86,87,88,93,94,95, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,88,93,94,95, 1999, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -234,21 +235,16 @@ static int baud_convert[] =
 
 #ifdef HAVE_SPEED_T
 #include <termios.h>
-extern speed_t ospeed;
 #else
 #if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
-extern short ospeed;
 #else
 #if defined (HAVE_TERMIOS_H) && defined (LINUX)
 #include <termios.h>
-/* HJL's version of libc is said to need this on the Alpha.
-   On the other hand, DEC OSF1 on the Alpha needs ospeed to be a short.  */
-extern speed_t ospeed;
-#else
-extern short ospeed;
 #endif
 #endif
 #endif
+
+int emacs_ospeed;
 
 /* The file descriptor for Emacs's input terminal.
    Under Unix, this is normally zero except when using X;
@@ -342,32 +338,32 @@ void
 init_baud_rate ()
 {
   if (noninteractive)
-    ospeed = 0;
+    emacs_ospeed = 0;
   else
     {
 #ifdef INIT_BAUD_RATE
       INIT_BAUD_RATE ();
 #else
 #ifdef DOS_NT
-    ospeed = 15;
+    emacs_ospeed = 15;
 #else  /* not DOS_NT */
 #ifdef VMS
       struct sensemode sg;
 
       SYS$QIOW (0, input_fd, IO$_SENSEMODE, &sg, 0, 0,
 		&sg.class, 12, 0, 0, 0, 0 );
-      ospeed = sg.xmit_baud;
+      emacs_ospeed = sg.xmit_baud;
 #else /* not VMS */
 #ifdef HAVE_TERMIOS
       struct termios sg;
 
       sg.c_cflag = B9600;
       tcgetattr (input_fd, &sg);
-      ospeed = cfgetospeed (&sg);
+      emacs_ospeed = cfgetospeed (&sg);
 #if defined (USE_GETOBAUD) && defined (getobaud)
       /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
-      if (ospeed == 0)
-        ospeed = getobaud (sg.c_cflag);
+      if (emacs_ospeed == 0)
+        emacs_ospeed = getobaud (sg.c_cflag);
 #endif
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
@@ -379,14 +375,14 @@ init_baud_rate ()
 #else
       ioctl (input_fd, TCGETA, &sg);
 #endif
-      ospeed = sg.c_cflag & CBAUD;
+      emacs_ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
       
       sg.sg_ospeed = B9600;
       if (ioctl (input_fd, TIOCGETP, &sg) < 0)
 	abort ();
-      ospeed = sg.sg_ospeed;
+      emacs_ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
 #endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
@@ -394,8 +390,8 @@ init_baud_rate ()
 #endif /* not INIT_BAUD_RATE */
     }
    
-  baud_rate = (ospeed < sizeof baud_convert / sizeof baud_convert[0]
-	       ? baud_convert[ospeed] : 9600);
+  baud_rate = (emacs_ospeed < sizeof baud_convert / sizeof baud_convert[0]
+	       ? baud_convert[emacs_ospeed] : 9600);
   if (baud_rate == 0)
     baud_rate = 1200;
 }
