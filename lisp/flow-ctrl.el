@@ -46,7 +46,7 @@
 
 ;;;###autoload
 (defun enable-flow-control ()
-  "Enable use of flow control; let user type C-s as C-\ and C-q as C-^."
+  "Enable use of flow control; let user type C-s as C-\\ and C-q as C-^."
   (interactive)
   ;; Tell emacs to pass C-s and C-q to OS.
   (set-input-mode nil t nil)
