@@ -1,7 +1,13 @@
+2003-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compile-commands): Add `yap' and `ps2pdf'.
+	(tex-main-file): Don't add .tex if the extension is already present.
+	(tex-uptodate-p): Don't recurse indefinitely with symlinks.
+
 2003-10-29  Lute Kamstra  <lute@gnu.org>
 
-	* progmodes/octave-inf.el (inferior-octave-prompt): Recognize
-	version number in prompt.
+	* progmodes/octave-inf.el (inferior-octave-prompt):
+	Recognize version number in prompt.
 
 2003-10-28  Dave Love  <fx@gnu.org>
 
