@@ -34,7 +34,7 @@
 	   (coding-system . (iso-8859-2))
 	   (coding-priority . (iso-8859-2))
 	   (input-method . "czech")
-	   (nonascii-translation . latin-iso8859-2)
+	   (nonascii-translation . iso-8859-2)
 	   (unibyte-syntax . "latin-2")
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.cs")
