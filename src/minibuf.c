@@ -883,17 +883,12 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
 temp_echo_area_glyphs (m)
      char *m;
 {
-  /* It's not very modular to do things this way, but then it seems
-     to me that the whole echo_area_glyphs thing is a hack anyway.  */
-  extern char *previous_echo_glyphs;
-
   int osize = ZV;
   Lisp_Object oinhibit;
   oinhibit = Vinhibit_quit;
 
-  /* Clear out any old echo-area message to make way for our new
-     thing.  */
-  echo_area_glyphs = previous_echo_glyphs = 0;
+  /* Clear out any old echo-area message to make way for our new thing.  */
+  message (0);
 
   SET_PT (osize);
   insert_string (m);
