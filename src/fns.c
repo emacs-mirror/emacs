@@ -828,15 +828,19 @@ merge (org_l1, org_l2, pred)
     }
 }
 
-DEFUN ("get", Fget, Sget, 2, 2, 0,
-  "Return the value of SYMBOL's PROPNAME property.\n\
-This is the last VALUE stored with `(put SYMBOL PROPNAME VALUE)'.")
-  (sym, prop)
-     Lisp_Object sym;
+
+DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
+       "Extract a value from a property list.\n\
+PLIST is a property list, which is a list of the form\n\
+(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value\n\
+corresponding to the given PROP, or nil if PROP is not\n\
+one of the properties on the list.")
+  (val, prop)
+     Lisp_Object val;
      register Lisp_Object prop;
 {
   register Lisp_Object tail;
-  for (tail = Fsymbol_plist (sym); !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = val; !NILP (tail); tail = Fcdr (Fcdr (tail)))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
@@ -846,30 +850,57 @@ This is the last VALUE stored with `(put SYMBOL PROPNAME VALUE)'.")
   return Qnil;
 }
 
-DEFUN ("put", Fput, Sput, 3, 3, 0,
-  "Store SYMBOL's PROPNAME property with value VALUE.\n\
-It can be retrieved with `(get SYMBOL PROPNAME)'.")
-  (sym, prop, val)
-     Lisp_Object sym;
-     register Lisp_Object prop;
-     Lisp_Object val;
+DEFUN ("get", Fget, Sget, 2, 2, 0,
+  "Return the value of SYMBOL's PROPNAME property.\n\
+This is the last VALUE stored with `(put SYMBOL PROPNAME VALUE)'.")
+  (sym, prop)
+     Lisp_Object sym, prop;
+{
+  return Fplist_get (Fsymbol_plist (sym), prop);
+}
+
+DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
+  "Change value in PLIST of PROP to VAL.\n\
+PLIST is a property list, which is a list of the form\n\
+(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.\n\
+If PROP is already a property on the list, its value is set to VAL,\n\
+otherwise the new PROP VAL pair is added.  The new plist is returned;
+use `(setq x (plist-put x prop val))' to be sure to use the new value.\n\
+The PLIST is modified by side effects.")
+  (plist, prop, val)
+    Lisp_Object plist;
+    register Lisp_Object prop;
+    Lisp_Object val;
 {
   register Lisp_Object tail, prev;
   Lisp_Object newcell;
   prev = Qnil;
-  for (tail = Fsymbol_plist (sym); !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
       if (EQ (prop, tem))
-	return Fsetcar (Fcdr (tail), val);
+	{
+	  Fsetcar (Fcdr (tail), val);
+	  return plist;
+	}
       prev = tail;
     }
   newcell = Fcons (prop, Fcons (val, Qnil));
   if (NILP (prev))
-    Fsetplist (sym, newcell);
+    return newcell;
   else
     Fsetcdr (Fcdr (prev), newcell);
+  return plist;
+}
+
+DEFUN ("put", Fput, Sput, 3, 3, 0,
+  "Store SYMBOL's PROPNAME property with value VALUE.\n\
+It can be retrieved with `(get SYMBOL PROPNAME)'.")
+  (sym, prop, val)
+     Lisp_Object sym, prop, val;
+{
+  Fsetplist (sym, Fplist_put (Fsymbol_plist (sym), prop, val));
   return val;
 }
 
@@ -1490,7 +1521,9 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Snreverse);
   defsubr (&Sreverse);
   defsubr (&Ssort);
+  defsubr (&Splist_get);
   defsubr (&Sget);
+  defsubr (&Splist_put);
   defsubr (&Sput);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
