@@ -1479,21 +1479,22 @@ verify_interval_modification (buf, start, end)
 
       if (NULL_INTERVAL_P (prev))
 	{
-	  after = textget (i->plist, Qread_only);
-	  if (! NILP (after))
+	  if (! INTERVAL_WRITABLE_P (i))
 	    error ("Attempt to insert within read-only text");
 	}
       else if (NULL_INTERVAL_P (i))
 	{
-	  before = textget (prev->plist, Qread_only);
-	  if (! NILP (before))
+	  if (! INTERVAL_WRITABLE_P (prev))
 	    error ("Attempt to insert within read-only text");
 	}
       else
 	{
 	  before = textget (prev->plist, Qread_only);
 	  after = textget (i->plist, Qread_only);
-	  if (! NILP (before) && EQ (before, after))
+	  if (! NILP (before) && EQ (before, after)
+	      /* This checks Vinhibit_read_only properly
+		 for the common value of the read-only property.  */
+	      && ! INTERVAL_WRITABLE_P (i))
 	    error ("Attempt to insert within read-only text");
 	}
 
