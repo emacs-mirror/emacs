@@ -1,3 +1,8 @@
+2000-06-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_create_tip_frame): Initialize frame's colors like
+	in x_create_frame.
+
 2000-06-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (decode_eol_post_ccl): Special handling for undecided

@@ -28,6 +28,12 @@
 
 2000-06-23  Paul Eggert  <eggert@twinsun.com>
 
+	* mail/mailpost.el (post-mail-send-it): Make sure file has
+	proper permissions from birth.
+
+	* files.el (basic-save-buffer-2): When temporarily setting
+	file modes, set them to current modes plus 0200, not to 0777.
+
 	* emerge.el (emerge-make-temp-file): Make sure file has proper
 	permissions from birth.
 
