@@ -97,8 +97,8 @@
 
 (defun life (&optional sleeptime)
   "Run Conway's Life simulation.
-The starting pattern is randomly selected.  Prefix arg (optional first arg
-non-nil from a program) is the number of seconds to sleep between
+The starting pattern is randomly selected.  Prefix arg (optional first
+arg non-nil from a program) is the number of seconds to sleep between
 generations (this defaults to 1)."
   (interactive "p")
   (or sleeptime (setq sleeptime 1))
@@ -272,5 +272,3 @@ generations (this defaults to 1)."
 
 (put 'life-extinct 'error-conditions '(life-extinct quit))
 (put 'life-extinct 'error-message "All life has perished")
-
-

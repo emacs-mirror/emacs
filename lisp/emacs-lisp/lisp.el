@@ -23,8 +23,8 @@
 
 (defun forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
-With argument, do it that many times.
-Negative arg -N means move backward across N balanced expressions."
+With argument, do it that many times.  Negative arg -N means
+move backward across N balanced expressions."
   (interactive "p")
   (or arg (setq arg 1))
   (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
@@ -32,16 +32,16 @@ Negative arg -N means move backward across N balanced expressions."
 
 (defun backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
-With argument, do it that many times.
-Negative arg -N means move forward across N balanced expressions."
+With argument, do it that many times.  Negative arg -N means
+move forward across N balanced expressions."
   (interactive "p")
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
 
 (defun mark-sexp (arg)
   "Set mark ARG sexps from point.
-The place mark goes is the same place \\[forward-sexp] would move to
-with the same argument."
+The place mark goes is the same place \\[forward-sexp] would
+move to with the same argument."
   (interactive "p")
   (push-mark
     (save-excursion
@@ -213,14 +213,12 @@ No argument is equivalent to zero: just insert () and leave point between."
   (newline-and-indent))
 
 (defun lisp-complete-symbol ()
-  "Perform completion on Lisp symbol preceding point.
-That symbol is compared against the symbols that exist
-and any additional characters determined by what is there
-are inserted.
-If the symbol starts just after an open-parenthesis,
-only symbols with function definitions are considered.
-Otherwise, all symbols with function definitions, values
-or properties are considered."
+  "Perform completion on Lisp symbol preceding point.  That symbol is
+compared against the symbols that exist and any additional characters
+determined by what is there are inserted.
+   If the symbol starts just after an open-parenthesis, only symbols
+with function definitions are considered.  Otherwise, all symbols with
+function definitions, values or properties are considered."
   (interactive)
   (let* ((end (point))
 	 (buffer-syntax (syntax-table))
