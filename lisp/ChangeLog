@@ -1,3 +1,7 @@
+2004-12-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (auto-mode-alist): Map .com to DCL mode.
+
 2004-12-09  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-mode-map): Treat S-SPC like SPC.
