@@ -1083,10 +1083,7 @@ void staticpro();
   
 #define UNGCPRO (gcprolist = gcpro1.next)
 
-/* Evaluate expr, UNGCPRO, and then return the value of expr.  I used
-   to have a `do ... while' clause around this to make it interact
-   with semicolons correctly, but this makes some compilers complain
-   that the while is never reached.  */
+/* Evaluate expr, UNGCPRO, and then return the value of expr.  */
 #define RETURN_UNGCPRO(expr)			\
 do						\
     {						\
