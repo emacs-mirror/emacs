@@ -110,7 +110,7 @@ then invokes the normal binding of \\[autoarg-terminate].
 `C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
 
 \\{autoarg-mode-map}"
-  nil " Aarg" autoarg-mode-map :global t)
+  nil " Aarg" autoarg-mode-map :global t :group 'keyboard)
 
 ;;;###autoload
 (define-minor-mode autoarg-kp-mode
