@@ -82,14 +82,12 @@
 		    (progn
 		      (and (null show-paren-mismatch-face)
 			   (x-display-color-p)
-			   (or (setq show-paren-mismatch-face
-				     (internal-find-face 'paren-mismatch))
+			   (or (internal-find-face 'paren-mismatch)
 			       (progn
 				 (make-face 'paren-mismatch)
-				 (setq show-paren-mismatch-face
-				       'paren-mismatch)
 				 (set-face-background 'paren-mismatch
-						      "purple"))))
+						      "purple")))
+			   (setq show-paren-mismatch-face 'paren-mismatch))
 		      (if show-paren-mismatch-face
 			  (setq face show-paren-mismatch-face)
 			(message "Paren mismatch"))))
