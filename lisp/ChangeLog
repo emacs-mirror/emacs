@@ -1,3 +1,9 @@
+2004-04-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-properties): Fix for
+	adding messages when there are already markers for their file.
+	(compilation-fake-loc): New function.
+
 2004-04-16  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-default-workfile-unchanged-p): Quote signal.
