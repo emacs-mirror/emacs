@@ -155,7 +155,7 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
     (define-key map [byte-recompile]
       '("Byte-recompile Directory..." . byte-recompile-directory))
     (define-key map [emacs-byte-compile-and-load]
-      '("Byte-compile And Load" . emacs-lisp-compile-and-load))
+      '("Byte-compile And Load" . emacs-lisp-byte-compile-and-load))
     (define-key map [byte-compile]
       '("Byte-compile This File" . emacs-lisp-byte-compile))
     (define-key map [separator-eval] '("--"))
@@ -177,18 +177,20 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
       (byte-compile-file buffer-file-name)
     (error "The buffer must be saved in a file first")))
 
-(defun emacs-lisp-compile-and-load ()
+(defun emacs-lisp-byte-compile-and-load ()
   "Byte-compile the current file (if it has changed), then load compiled code."
   (interactive)
   (or buffer-file-name
       (error "The buffer must be saved in a file first"))
   (require 'bytecomp)
   ;; Recompile if file or buffer has changed since last compilation.
-  (or (buffer-modified-p)
-      (file-newer-than-file-p (byte-compile-dest-file buffer-file-name)
-			      buffer-file-name)
-      (byte-compile-file buffer-file-name))
-  (load-file (byte-compile-dest-file buffer-file-name)))
+  (if (and (buffer-modified-p)
+	   (y-or-n-p (format "save buffer %s first? " (buffer-name))))
+      (save-buffer))
+  (let ((compiled-file-name (byte-compile-dest-file buffer-file-name)))
+    (if (file-newer-than-file-p compiled-file-name buffer-file-name)
+	(load-file compiled-file-name)
+      (byte-compile-file buffer-file-name t))))
 
 (defun emacs-lisp-mode ()
   "Major mode for editing Lisp code to run in Emacs.
