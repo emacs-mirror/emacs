@@ -352,16 +352,16 @@ useful for editing binary files."
       (insert-and-inherit char)
       (setq arg (1- arg)))))
 
-(defun forward-to-indentation (arg)
+(defun forward-to-indentation (&optional arg)
   "Move forward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line arg)
+  (forward-line (or arg 1))
   (skip-chars-forward " \t"))
 
-(defun backward-to-indentation (arg)
+(defun backward-to-indentation (&optional arg)
   "Move backward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line (- arg))
+  (forward-line (- (or arg 1)))
   (skip-chars-forward " \t"))
 
 (defun back-to-indentation ()
@@ -661,8 +661,10 @@ the echo area."
 
   (let ((print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
-    (prin1 (car values)
-	   (if eval-expression-insert-value (current-buffer) t))))
+    (if eval-expression-insert-value
+	(with-no-warnings
+	 (eval-last-sexp-print-value (car values)))
+      (prin1 (car values) t))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
@@ -2697,7 +2699,7 @@ If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (unless arg (setq arg 1))
+  (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
 	  ;; When adding a newline, don't expand an abbrev.
@@ -2729,7 +2731,7 @@ If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (unless arg (setq arg 1))
+  (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
 	  (line-move (- arg))
@@ -3109,11 +3111,11 @@ With argument 0, interchanges line point is in with line mark is in."
      (goto-char (car pos1))
      (insert word2))))
 
-(defun backward-word (arg)
+(defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
-  (forward-word (- arg)))
+  (forward-word (- (or arg 1))))
 
 (defun mark-word (arg)
   "Set mark arg words away from point.
