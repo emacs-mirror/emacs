@@ -1,3 +1,28 @@
+2000-08-26  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (enum lface_attribute_index): Add LFACE_INHERIT_INDEX.
+	* xfaces.c (QCinherit): New variable.
+	(syms_of_xfaces): Initialize it.
+	(LFACE_INHERIT): New macro.
+	(Finternal_get_lisp_face_attribute)
+	(merge_face_vector_with_property) 
+	(Finternal_set_lisp_face_attribute): Deal with :inherit attribute.
+	(check_lface_attrs): Allow new types of face height.  Check
+	inherit attribute.
+	(CYCLE_CHECK): New macro.
+	(merge_face_inheritance): New function.
+	(merge_face_vectors): Merge inherited faces too.  Add F and
+	CYCLE_CHECK arguments.
+	(merge_face_vector_with_property, Finternal_merge_in_global_face)
+	(lookup_named_face, lookup_derived_face, realize_named_face)
+	(face_at_string_position, face_at_buffer_position):  Supply
+	new F and CYCLE_CHECK arguments to merge_face_vectors.
+	(merge_face_heights): New function.
+	(merge_face_vectors, merge_face_vector_with_property) 
+	(Finternal_set_lisp_face_attribute): Call merge_face_heights to
+	handle relative face heights.
+	(lface_same_font_attributes_p): Compare heights using EQ.
+
 2000-08-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (char_to_string): Check the character validity.
