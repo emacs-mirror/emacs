@@ -1712,6 +1712,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree;
+  int over_used;
 
   tree = BUF_INTERVALS (buffer);
 
@@ -1814,8 +1815,14 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      adjust_intervals_for_insertion, so stickiness has
      already been taken care of.  */
 
+  /* OVER is the interval we are copying from next.
+     OVER_USED says how many characters' worth of OVER
+     have already been copied into target intervals.
+     UNDER is the next interval in the target.  */
+  over_used = 0;
   while (! NULL_INTERVAL_P (over))
     {
+      /* If UNDER is longer than OVER, split it.  */
       if (LENGTH (over) < LENGTH (under))
 	{
 	  this = split_interval_left (under, LENGTH (over));
@@ -1823,12 +1830,27 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	}
       else
 	this = under;
-      copy_properties (over, this);
+
+      /* THIS is now the interval to copy or merge into.
+	 OVER covers all of it.  */
       if (inherit)
 	merge_properties (over, this);
       else
 	copy_properties (over, this);
-      over = next_interval (over);
+
+      /* If THIS and OVER end at the same place,
+	 advance OVER to a new source interval.  */
+      if (LENGTH (this) == LENGTH (over) - over_used)
+	{
+	  over = next_interval (over);
+	  over_used = 0;
+	}
+      else
+	/* Otherwise just record that more of OVER has been used.  */
+	over_used += LENGTH (this);
+
+      /* Always advance to a new target interval.  */
+      under = next_interval (this);
     }
 
   if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
