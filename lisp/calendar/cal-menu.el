@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -318,13 +318,18 @@ ERROR is t, otherwise just returns nil."
   "Pop up menu of diary entries from alternative file on mouse-selected date."
   (interactive)
   (let* ((date (calendar-event-to-date))
+         (diary-list-include-blanks nil)
+         (diary-display-hook 'ignore)
+         (diary-file (read-file-name
+                      "Enter diary file name: "
+                      default-directory nil t))
+         ; The following doesn't really do the right thing.  The problem is
+         ; that a newline in the diary entry does not give a newline in a
+         ; pop-up menu; for that you need a separate list item.  When the (car
+         ; (cdr x)) contains newlines, the item should be split into a list of
+         ; items.  Too minor and messy to worry about.
          (l (mapcar '(lambda (x) (list (car (cdr x))))
-                    (let ((diary-list-include-blanks nil)
-                          (diary-display-hook 'ignore)
-                          (diary-file (read-file-name
-                                       "Enter diary file name: "
-                                       default-directory nil t)))
-                      (list-diary-entries date 1))))
+                    (list-diary-entries date 1)))
          (selection
           (x-popup-menu
            event
