@@ -156,14 +156,14 @@ You might want to use something like \"[ \\t\\r\\n]+\" instead."
   :type 'regexp
   :group 'isearch)
 
-(defcustom search-highlight nil
+(defcustom search-highlight t
   "*Non-nil means incremental search highlights the current match."
   :type 'boolean
   :group 'isearch)
 
 (defvar search-invisible nil
   "*Non-nil means incremental search can match text hidden by an overlay.
-\(This applies when using `noutline.el'.)")
+\(This applies when using `outline.el'.)")
 
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
