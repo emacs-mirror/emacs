@@ -1307,6 +1307,9 @@ to using the function `set-language-environment'."
 			  current-language-environment)
 			language-info-alist))
 	     "English"))
+  ;; This doesn't work per se, because `language-info-alist' isn't
+  ;; defined yet.  It's fixed up in loadup.el, since eval-after-load
+  ;; doesn't work at this point.
   :type (cons 'choice (mapcar (lambda (lang)
 				(list 'const (car lang)))
 			      language-info-alist))
