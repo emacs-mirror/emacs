@@ -1,5 +1,9 @@
 2004-09-12  Stefan  <monnier@iro.umontreal.ca>
 
+	* vc-hooks.el (vc-ignore-dir-regexp): New var.
+	(vc-registered): Use it.
+	(vc-find-root): New fun.
+
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Don't tell to use \\{...} when it's already done.
 

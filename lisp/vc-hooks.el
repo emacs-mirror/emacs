@@ -1,12 +1,12 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992,93,94,95,96,98,99,2000,03,2004
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2003, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.167 2004/04/16 10:21:51 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -51,6 +51,12 @@ BACKEND, use `vc-handled-backends'.")
 
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
+
+(defvar vc-ignore-dir-regexp "\\`\\([\\/][\\/]\\|/net/\\|/afs/\\)\\'"
+ "Regexp matching directory names that are not under VC's control.
+The default regexp prevents fruitless and time-consuming attempts
+to determine the VC status in directories in which filenames are
+interpreted as hostnames.")
 
 (defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
   ;; Arch and MCVS come last because they are per-tree rather than per-dir.
@@ -298,6 +304,20 @@ non-nil if FILE exists and its contents were successfully inserted."
     (set-buffer-modified-p nil)
     t))
 
+(defun vc-find-root (file witness)
+  "Find the root of a checked out project.
+The function walks up the directory tree from FILE looking for WITNESS.
+If WITNESS if not found, return nil, otherwise return the root."
+  (let ((root nil))
+    (while (not (or root
+                   (equal file (setq file (file-name-directory file)))
+                   (null file)
+                   (string-match vc-ignore-dir-regexp file)))
+      (if (file-exists-p (expand-file-name witness file))
+         (setq root file)
+       (setq file (directory-file-name file))))
+    root))
+
 ;; Access functions to file properties
 ;; (Properties should be _set_ using vc-file-setprop, but
 ;; _retrieved_ only through these functions, which decide
@@ -315,11 +335,13 @@ on the result of a previous call, use `vc-backend' instead.  If the
 file was previously registered under a certain backend, then that
 backend is tried first."
   (let (handler)
-    (if (boundp 'file-name-handler-alist)
-  	(setq handler (find-file-name-handler file 'vc-registered)))
-    (if handler
-        ;; handler should set vc-backend and return t if registered
-  	(funcall handler 'vc-registered file)
+    (cond
+     ((string-match vc-ignore-dir-regexp (file-name-directory file)) nil)
+     ((and (boundp 'file-name-handler-alist)
+          (setq handler (find-file-name-handler file 'vc-registered)))
+      ;; handler should set vc-backend and return t if registered
+      (funcall handler 'vc-registered file))
+     (t
       ;; There is no file name handler.
       ;; Try vc-BACKEND-registered for each handled BACKEND.
       (catch 'found
@@ -334,7 +356,7 @@ backend is tried first."
 	     (cons backend vc-handled-backends))))
         ;; File is not registered.
         (vc-file-setprop file 'vc-backend 'none)
-        nil))))
+        nil)))))
 
 (defun vc-backend (file)
   "Return the version control type of FILE, nil if it is not registered."
@@ -869,5 +891,5 @@ Used in `find-file-not-found-functions'."
 
 (provide 'vc-hooks)
 
-;;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
+;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here
