@@ -2363,7 +2363,6 @@ extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
-extern Lisp_Object Qcursor_in_non_selected_windows;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
@@ -2395,6 +2394,9 @@ extern int check_point_in_composition
 extern void redisplay_preserve_echo_area P_ ((int));
 extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern void prepare_menu_bars P_ ((void));
+enum text_cursor_kinds get_specified_cursor_type P_ ((Lisp_Object, int *));
+enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *));
+void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
