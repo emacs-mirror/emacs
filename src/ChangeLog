@@ -1,3 +1,22 @@
+2003-07-12  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (CFLAGS) [!OPTIMIZE]: Set CFLAGS to -g.
+
+	* config.in (HAVE_CRTIN): Add #undef.
+	(INLINE): Really inline only if OPTIMIZE is defined.
+
+	* s/netbsd.h (START_FILES, LIB_STANDARD): Use START_FILES_1,
+	END_FILES_1.
+	(START_FILES_1, END_FILES_1): New macros (conditional).
+	(LD_SWITCH_SYSTEM_TEMACS): Defined.
+
+	* s/openbsd.h: Don't include bsd4-3.h.
+	(TERMINFO): Defined.
+	(LIBS_TERMCAP): Defined.
+	(LD_SWITCH_SYSTEM): Defined (two definitions).
+
+	* xfns.c: Include libpng/png.h instead of png.h.
+
 2003-07-11  Andreas Schwab  <schwab@suse.de>
 
 	* buffer.c (modify_overlay): Update prototype.
