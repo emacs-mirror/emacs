@@ -1506,7 +1506,9 @@ BEG and END may be integers or markers.")
 
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.\n\
-If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.")
+If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.\n\
+If BUFFER is omitted, and OVERLAY is in no buffer, put it in the current\n\
+buffer.")
   (overlay, beg, end, buffer)
      Lisp_Object overlay, beg, end, buffer;
 {
@@ -1515,6 +1517,8 @@ If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.")
   CHECK_OVERLAY (overlay, 0);
   if (NILP (buffer))
     buffer = Fmarker_buffer (OVERLAY_START (overlay));
+  if (NILP (buffer))
+    XSET (buffer, Lisp_Buffer, current_buffer);
   CHECK_BUFFER (buffer, 3);
   CHECK_NUMBER_COERCE_MARKER (beg, 1);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
@@ -1581,12 +1585,12 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
 
-  Fset_marker (OVERLAY_START (overlay), 1, Qnil);
-  Fset_marker (OVERLAY_END   (overlay), 1, Qnil);
-
   redisplay_region (b,
 		    OVERLAY_POSITION (OVERLAY_START (overlay)),
 		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
+
+  Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
+  Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
 
   return Qnil;
 }
