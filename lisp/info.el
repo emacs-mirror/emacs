@@ -109,8 +109,8 @@ It doesn't contain directory names or file name extensions added by Info.
 Can also be t when using `Info-on-current-buffer'.")
 
 (defvar Info-current-subfile nil
-  "Info subfile that is actually in the *info* buffer now,
-or nil if current info file is not split into subfiles.")
+  "Info subfile that is actually in the *info* buffer now.
+nil if current info file is not split into subfiles.")
 
 (defvar Info-current-node nil
   "Name of node that Info is now looking at, or nil.")
@@ -126,7 +126,7 @@ Marker points nowhere if file has no tag table.")
   "Cached completion list for current Info file.")
 
 (defvar Info-index-alternatives nil
-  "List of possible matches for last Info-index command.")
+  "List of possible matches for last `Info-index' command.")
 
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
@@ -250,8 +250,8 @@ Do the right thing if the file has been compressed or zipped."
 	    (call-process-region (point-min) (point-max) decoder t t)))
       (insert-file-contents fullname visit))))
 
-;; Initialize Info-directory-list, if that hasn't been done yet.
 (defun info-initialize ()
+  "Initialize `Info-directory-list', if that hasn't been done yet."
   (unless Info-directory-list
     (let ((path (getenv "INFOPATH"))
 	  (source (expand-file-name "info/" source-directory))
@@ -362,10 +362,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	 (forward-line 1)		; does the line after delimiter match REGEXP?
 	 (re-search-backward regexp beg t))))
 
-;; Go to an info node specified as separate filename and nodename.
-;; no-going-back is non-nil if recovering from an error in this function;
-;; it says do not attempt further (recursive) error recovery.
 (defun Info-find-node (filename nodename &optional no-going-back)
+  "Go to an info node specified as separate FILENAME and NODENAME.
+NO-GOING-BACK is non-nil if recovering from an error in this function;
+it says do not attempt further (recursive) error recovery."
   (info-initialize)
   ;; Convert filename to lower case if not found as specified.
   ;; Expand it.
@@ -714,8 +714,8 @@ else defaults to `Top'."
 	      (setq problems t)
 	      (message "No `top' node in %s" Info-dir-file-name))))
 	(setq others (cdr others)))
-      ;; Add to the main menu a menu item for each other node. 
-      (let ((case-fold-search t)     
+      ;; Add to the main menu a menu item for each other node.
+      (let ((case-fold-search t)
 	    (re-search-forward "^\\* Menu:")))
       (forward-line 1)
       (let ((menu-items '("top"))
@@ -816,9 +816,9 @@ else defaults to `Top'."
     (if (numberp nodepos)
 	(+ (- nodepos lastfilepos) (point)))))
 
-;; Select the info node that point is in.
 (defun Info-select-node ()
-  ;; Bind this in case the user sets it to nil.
+"Select the info node that point is in.
+Bind this in case the user sets it to nil."
   (let ((case-fold-search t))
     (save-excursion
       ;; Find beginning of node.
@@ -933,9 +933,9 @@ If FORK is a string, it is the name to use for the new buffer."
 		  (set-buffer (marker-buffer marker))
 		  (widen)
 		  (goto-char marker)
-		  (while (re-search-forward "\nNode: \\(.*\\)\177" nil t)
+		  (while (re-search-forward "\n\\(Node\\|Ref\\): \\(.*\\)\177" nil t)
 		    (setq compl
-			  (cons (list (match-string-no-properties 1))
+			  (cons (list (match-string-no-properties 2))
 				compl))))
 	      (widen)
 	      (goto-char (point-min))
@@ -1038,11 +1038,11 @@ If FORK is a string, it is the name to use for the new buffer."
 	  (setq Info-history (cons (list ofile onode opoint)
 				   Info-history))))))
 
-;; Extract the value of the node-pointer named NAME.
-;; If there is none, use ERRORNAME in the error message;
-;; if ERRORNAME is nil, just return nil.
 (defun Info-extract-pointer (name &optional errorname)
-  ;; Bind this in case the user sets it to nil.
+  "Extract the value of the node-pointer named NAME.
+If there is none, use ERRORNAME in the error message;
+if ERRORNAME is nil, just return nil.
+Bind this in case the user sets it to nil."
   (let ((case-fold-search t))
     (save-excursion
       (goto-char (point-min))
@@ -1055,10 +1055,10 @@ If FORK is a string, it is the name to use for the new buffer."
 	    nil
 	  (error "Node has no %s" (capitalize (or errorname name))))))))
 
-;; Return the node name in the buffer following point.
-;; ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
-;; saying which chars may appear in the node name.
 (defun Info-following-node-name (&optional allowedchars)
+  "Return the node name in the buffer following point.
+ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
+saying which chars may appear in the node name."
   (skip-chars-forward " \t")
   (buffer-substring-no-properties
    (point)
@@ -1112,8 +1112,8 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (Info-find-node "dir" "top"))
 
 (defun Info-follow-reference (footnotename)
-  "Follow cross reference named NAME to the node it refers to.
-NAME may be an abbreviation of the reference name."
+  "Follow cross reference named FOOTNOTENAME to the node it refers to.
+FOOTNOTENAME may be an abbreviation of the reference name."
   (interactive
    (let ((completion-ignore-case t)
 	 (case-fold-search t)
@@ -1435,7 +1435,7 @@ N is the digit argument used to invoke this command."
 
 (defun Info-next-menu-item ()
   (interactive)
-  ;; Bind this in case the user sets it to nil.  
+  ;; Bind this in case the user sets it to nil.
   (let* ((case-fold-search t)
 	 (node
 	  (save-excursion
@@ -1450,7 +1450,7 @@ N is the digit argument used to invoke this command."
   (interactive)
   (save-excursion
     (forward-line 1)
-    ;; Bind this in case the user sets it to nil.      
+    ;; Bind this in case the user sets it to nil.
     (let* ((case-fold-search t)
 	   (beg (save-excursion
 		  (and (search-backward "\n* menu:" nil t)
@@ -1599,7 +1599,7 @@ previous node or back up to the parent node."
 	  (Info-prev-reference t)))))
 
 (defun Info-index (topic)
-  "Look up a string in the index for this file.
+  "Look up a string TOPIC in the index for this file.
 The index is defined as the first node in the top-level menu whose
 name contains the word \"Index\", plus any immediately following
 nodes whose names also contain the word \"Index\".
@@ -1732,15 +1732,15 @@ Give a blank topic name to go to the Index node itself."
     (bury-buffer "*Help*")))
 
 (defun Info-get-token (pos start all &optional errorstring)
-  "Return the token around POS,
+  "Return the token around POS.
 POS must be somewhere inside the token
 START is a regular expression which will match the
     beginning of the tokens delimited string
 ALL is a regular expression with a single
     parenthesized subpattern which is the token to be
-    returned. E.g. '{\(.*\)}' would return any string
+    returned.  E.g. '{\(.*\)}' would return any string
     enclosed in braces around POS.
-SIG optional fourth argument, controls action on no match
+ERRORSTRING optional fourth argument, controls action on no match
     nil: return nil
     t: beep
     a string: signal an error, using that string."
@@ -1869,7 +1869,7 @@ If no reference to follow, moves to the next node, or up if none."
   )
 
 (defun Info-check-pointer (item)
-  ;; Non-nil if ITEM is present in this node.
+  "Non-nil if ITEM is present in this node."
   (condition-case nil
       (Info-extract-pointer item)
     (error nil)))
@@ -1911,7 +1911,7 @@ If no reference to follow, moves to the next node, or up if none."
 ;; Value is a list, (FILE-NAME NODE-NAME).
 
 (defun Info-menu-update ()
-  ;; Update the Info menu for the current node.
+  "Update the Info menu for the current node."
   (condition-case nil
       (if (or (not (eq major-mode 'Info-mode))
 	      (equal (list Info-current-file Info-current-node)
@@ -1980,12 +1980,12 @@ If no reference to follow, moves to the next node, or up if none."
 (put 'info-mode 'mode-class 'special)
 
 (defun Info-mode ()
-  "\\<Info-mode-map>
-Info mode provides commands for browsing through the Info documentation tree.
+  "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
 topics.  Info has commands to follow the references and show you other nodes.
 
+\\<Info-mode-map>\
 \\[Info-help]	Invoke the Info tutorial.
 \\[Info-exit]	Quit Info: reselect previously selected buffer.
 
@@ -2133,7 +2133,7 @@ If the element is just a file name, the file name also serves as the prefix.")
 The `info-file' property of COMMAND says which Info manual to search.
 If COMMAND has no property, the variable `Info-file-list-for-emacs'
 defines heuristics for which Info manual to try.
-The locations are of the format used in Info-history, i.e.
+The locations are of the format used in `Info-history', i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
   (let ((where '())
 	(cmd-desc (concat "^\\* +" (regexp-quote (symbol-name command))
@@ -2209,7 +2209,7 @@ the variable `Info-file-list-for-emacs'."
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the Info node in the Emacs manual the command bound to KEY, a string.
-Interactively, if the binding is execute-extended-command, a command is read.
+Interactively, if the binding is `execute-extended-command', a command is read.
 The command is found by looking up in Emacs manual's Command Index
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
