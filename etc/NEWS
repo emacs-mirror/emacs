@@ -182,6 +182,11 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** Dense keymaps now handle inheritance correctly.
+To that end, binding a key to t now behaves the same as binding it to
+nil (it shadows parent bindings but not bindings in keymaps of lower
+precedence).
+
 ** jit-lock obeys a new text-property `jit-lock-defer-multiline'.
 If a piece of text with that property gets contextually refontified
 (see jit-lock-defer-contextually), then all of that text will
