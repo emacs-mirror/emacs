@@ -52,6 +52,12 @@ whitespace is considered to match, and is skipped.")
 Compares the text starting at point in each window,
 moving over text in each one as far as they match.
 
+This command pushes the mark in each window
+at the prior location of point in that window.
+If both windows display the same buffer,
+the mark is pushed twice in that buffer:
+first in the other window, then in the selected window.
+
 A prefix arg means ignore changes in whitespace.
 The variable `compare-windows-whitespace' controls how whitespace is skipped.
 If `compare-ignore-case' is non-nil, changes in case are also ignored."
@@ -72,7 +78,9 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
     (setq maxp1 (point-max))
     (save-excursion
       (set-buffer b2)
+      (push-mark p2 t)
       (setq maxp2 (point-max)))
+    (push-mark)
 
     (setq success t)
     (while success
