@@ -3162,6 +3162,7 @@ x_window (f, window_prompting, minibuffer_only)
 				  shell_widget, False,
 				  (lw_callback) NULL,
 				  (lw_callback) NULL,
+				  (lw_callback) NULL,
 				  (lw_callback) NULL);
 
   f->output_data.x->column_widget = pane_widget;
