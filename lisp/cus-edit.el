@@ -1335,7 +1335,7 @@ Un-customize all values in this buffer.  They get their standard settings."
 		    options))))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
-  (message "Creating customization items ...%2d%%done" 100)
+  (message "Creating customization items ...done")
   (unless (eq custom-buffer-style 'tree)
     (mapc 'custom-magic-reset custom-options))
   (message "Creating customization setup...")
