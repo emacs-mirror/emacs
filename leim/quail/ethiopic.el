@@ -1026,16 +1026,11 @@ C-' or `M-x ethio-gemination'
  ("`1000000" ["$(3%$%%(B"])
 )
 
-(add-hook 'quail-mode-hook
-	  (lambda nil
-	    (if (not (string= (quail-name) "ethiopic"))
-		nil
-	      ;; Also turn on the Ethio minor mode.
-	      (ethio-mode 1)
-	      ;; The translation of `a' depends on the language
-	      ;; (either Tigrigna or Amharic). 
-	      (quail-defrule "a"
-			     (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
-			     "ethiopic"))))
+(defun ethio-select-a-translation ()
+  ;; The translation of `a' depends on the language
+  ;; (either Tigrigna or Amharic). 
+  (quail-defrule "a"
+		 (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
+		 "ethiopic"))
 
 ;;; quail/ethiopic.el ends here
