@@ -1171,6 +1171,7 @@ static Lisp_Object
 safe_eval_handler (arg)
      Lisp_Object arg;
 {
+  add_to_log ("Error during redisplay: %s", arg, Qnil);
   return Qnil;
 }
 
