@@ -1,6 +1,7 @@
 ;;; undigest.el --- digest-cracking support for the RMAIL mail reader
 
-;; Copyright (C) 1985, 1986, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 1996, 2002
+;; Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -24,17 +25,119 @@
 
 ;;; Commentary:
 
-;; See Internet RFC 934
+;; See Internet RFC 934 and RFC 1153
 
 ;;; Code:
 
 (require 'rmail)
 
-(defcustom rmail-digest-end-regexps
-  (list "End of.*Digest.*\n" "End of.*\n")
-  "*Regexps matching the end of a digest message."
-  :group 'rmail
-  :type '(repeat regexp))
+(defconst rmail-digest-methods
+  '(rmail-digest-parse-mime
+    rmail-digest-parse-rfc1153strict
+    rmail-digest-parse-rfc1153sloppy
+    rmail-digest-parse-rfc934)
+  "List of digest parsing functions, in preference order.
+
+The functions operate on the current narrowing, and take no argument.  A
+function returns nil if it cannot parse the digest.  If it can, it
+returns a list of cons pairs containing the start and end positions of
+each undigestified message as markers.")
+
+(defconst rmail-digest-mail-separator
+  "\^_\^L\n0, unseen,,\n*** EOOH ***\n"
+  "String substituted to the digest separator to create separate messages.")
+
+
+
+(defun rmail-digest-parse-mime ()
+  (goto-char (point-min))
+  (when (let ((head-end (progn (search-forward "\n\n" nil t) (point))))
+	  (goto-char (point-min))
+	  (and head-end
+	       (re-search-forward
+		(concat
+		 "^Content-type: multipart/digest;"
+		 "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]") head-end t)
+	       (search-forward (match-string 1) nil t)))
+    ;; Ok, prolog separator found
+    (let ((start (make-marker))
+	  (end (make-marker))
+	  (separator (concat "\n--" (match-string 0) "\n\n"))
+	  result)
+      (while (search-forward separator nil t)
+	(move-marker start (match-beginning 0))
+	(move-marker end (match-end 0))
+	(add-to-list 'result (cons (copy-marker start) (copy-marker end t))))
+      ;; Return the list of marker pairs
+      (nreverse result))))
+
+(defun rmail-digest-parse-rfc1153strict ()
+  "Parse following strictly the method defined in RFC 1153.
+See rmail-digest-methods."
+ (rmail-digest-rfc1153
+  "^-\\{70\\}\n\n"
+  "^\n-\\{30\\}\n\n"
+  "^\n-\\{30\\}\n\nEnd of .* Digest.*\n\\*\\{15,\\}\n+\'"))
+
+(defun rmail-digest-parse-rfc1153sloppy ()
+  "Parse using the method defined in RFC 1153, allowing for some sloppiness.
+See rmail-digest-methods."
+ (rmail-digest-rfc1153
+  "^-\\{55,\\}\n\n"
+  "^\n-\\{27,\\}\n\n"
+  "^\n-\\{27,\\}\n\nEnd of"))
+
+(defun rmail-digest-rfc1153 (prolog-sep message-sep trailer-sep)
+  (goto-char (point-min))
+  (when (re-search-forward prolog-sep nil t)
+    ;; Ok, prolog separator found
+    (let ((start (make-marker))
+	  (end (make-marker))
+	  separator result)
+      (move-marker start (match-beginning 0))
+      (move-marker end (match-end 0))
+      (setq result (cons (copy-marker start) (copy-marker end t)))
+      (when (re-search-forward message-sep nil t)
+	;; Ok, at least one message separator found
+	(setq separator (match-string 0))
+	(when (re-search-forward trailer-sep nil t)
+	  ;; Wonderful, we found a trailer, too.  Now, go on splitting
+	  ;; the digest into separate rmail messages
+	  (goto-char (cdar result))
+	  (while (search-forward separator nil t)
+	    (move-marker start (match-beginning 0))
+	    (move-marker end (match-end 0))
+	    (add-to-list 'result
+			 (cons (copy-marker start) (copy-marker end t))))
+	  ;; Undo masking of separators inside digestified messages
+	  (goto-char (point-min))
+	  (while (search-forward
+		  (replace-regexp-in-string "\n-" "\n " separator) nil t)
+	    (replace-match separator))
+	  ;; Return the list of marker pairs
+	  (nreverse result))))))
+
+(defun rmail-digest-parse-rfc934 ()
+  (goto-char (point-min))
+  (when (re-search-forward "^\n?-[^ ].*\n\n?" nil t)
+    ;; Message separator found
+    (let ((start (make-marker))
+	  (end (make-marker))
+	  (separator (match-string 0))
+	  result)
+      (goto-char (point-min))
+      (while (search-forward separator nil t)
+	(move-marker start (match-beginning 0))
+	(move-marker end (match-end 0))
+	(add-to-list 'result (cons (copy-marker start) (copy-marker end t))))
+      ;; Undo masking of separators inside digestified messages
+      (goto-char (point-min))
+      (while (search-forward "\n- -" nil t)
+	(replace-match "\n-"))
+      ;; Return the list of marker pairs
+      (nreverse result))))
+
+
 
 ;;;###autoload
 (defun undigestify-rmail-message ()
@@ -43,88 +146,63 @@ Leaves original message, deleted, before the undigestified messages."
   (interactive)
   (with-current-buffer rmail-buffer
     (widen)
-    (let ((buffer-read-only nil)
-	  (msg-string (buffer-substring (rmail-msgbeg rmail-current-message)
-					(rmail-msgend rmail-current-message))))
-      (goto-char (rmail-msgend rmail-current-message))
-      (narrow-to-region (point) (point))
-      (insert msg-string)
-      (narrow-to-region (point-min) (1- (point-max))))
     (let ((error t)
 	  (buffer-read-only nil))
+      (goto-char (rmail-msgend rmail-current-message))
+      (let ((msg-copy (buffer-substring (rmail-msgbeg rmail-current-message)
+					(rmail-msgend rmail-current-message))))
+	(narrow-to-region (point) (point))
+	(insert msg-copy))
+      (narrow-to-region (point-min) (1- (point-max)))
       (unwind-protect
 	  (progn
 	    (save-restriction
 	      (goto-char (point-min))
 	      (delete-region (point-min)
-			     (progn (search-forward "\n*** EOOH ***\n")
+			     (progn (search-forward "\n*** EOOH ***\n" nil t)
 				    (point)))
-	      (insert "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
+	      (insert "\n" rmail-digest-mail-separator)
 	      (narrow-to-region (point)
 				(point-max))
-	      (let* ((fill-prefix "")
-		     (case-fold-search t)
-		     start
-		     (digest-name
-		      (mail-strip-quoted-names
-		       (or (save-restriction
-			     (search-forward "\n\n")
-			     (setq start (point))
-			     (narrow-to-region (point-min) (point))
-			     (goto-char (point-max))
-			     (or (mail-fetch-field "Reply-To")
-				 (mail-fetch-field "To")
-				 (mail-fetch-field "Apparently-To")
-				 (mail-fetch-field "From")))
-			   (error "Message is not a digest--bad header")))))
-		(save-excursion
-		  (let (found
-			(regexps rmail-digest-end-regexps))
-		    (while (and regexps (not found))
-		      (goto-char (point-max))
-		      ;; compensate for broken un*x digestifiers.  Sigh Sigh.
-		      (setq found (re-search-backward
-				   (concat "^\\(?:" (car regexps) "\\)")
-				   start t))
-		      (setq regexps (cdr regexps)))
-		    (unless found
-		      (error "Message is not a digest--no end line"))))
-		(re-search-forward (concat "^" (make-string 55 ?-) "-*\n*"))
-		(replace-match "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
-		(save-restriction
-		  (narrow-to-region (point)
-				    (progn (search-forward "\n\n")
-					   (point)))
-		  (if (mail-fetch-field "To") nil
-		    (goto-char (point-min))
-		    (insert "To: " digest-name "\n")))
-		(while (re-search-forward
-			(concat "\n\n" (make-string 27 ?-) "-*\n*")
-			nil t)
-		  (replace-match "\n\n\^_\^L\n0, unseen,,\n*** EOOH ***\n")
-		  (save-restriction
-		    (if (looking-at "End ")
-			(insert "To: " digest-name "\n\n")
-		      (narrow-to-region (point)
-					(progn (search-forward "\n\n"
-							       nil 'move)
-					       (point))))
-		    (if (mail-fetch-field "To")
-			nil
-		      (goto-char (point-min))
-		      (insert "To: " digest-name "\n")))
-		  ;; Digestifiers may insert `- ' on lines that start with `-'.
-		  ;; Undo that.
-		  (save-excursion
-		    (goto-char (point-min))
-		    (if (re-search-forward
-			 "\n\n----------------------------*\n*"
-			 nil t)
-			(let ((end (point-marker)))
-			  (goto-char (point-min))
-			  (while (re-search-forward "^- " end t)
-			    (delete-char -2)))))
-		  )))
+	      (let ((fill-prefix "")
+		    (case-fold-search t)
+		    digest-name type start end separator fun-list sep-list)
+		(setq digest-name (mail-strip-quoted-names
+				   (save-restriction
+				     (search-forward "\n\n" nil 'move)
+				     (setq start (point))
+				     (narrow-to-region (point-min) start)
+				     (or (mail-fetch-field "Reply-To")
+					 (mail-fetch-field "To")
+					 (mail-fetch-field "Apparently-To")
+					 (mail-fetch-field "From")))))
+		(unless digest-name
+		  (error "Message is not a digest--bad header"))
+
+		(setq fun-list rmail-digest-methods)
+		(while (and fun-list
+			    (null (setq sep-list (funcall (car fun-list)))))
+		  (setq fun-list (cdr fun-list)))
+		(unless sep-list
+		  (error "Message is not a digest--no messages found"))
+
+		;;; Split the digest into separate rmail messages
+		(while sep-list
+		  (let ((start (caar sep-list))
+			(end (cdar sep-list)))
+		    (delete-region start end)
+		    (goto-char start)
+		    (insert rmail-digest-mail-separator)
+		    (search-forward "\n\n" (caar (cdr sep-list)) 'move)
+		    (save-restriction
+		      (narrow-to-region end (point))
+		      (unless (mail-fetch-field "To")
+			(goto-char start)
+			(insert "To: " digest-name "\n")))
+		    (set-marker start nil)
+		    (set-marker end nil))
+		  (setq sep-list (cdr sep-list)))))
+
 	    (setq error nil)
 	    (message "Message successfully undigestified")
 	    (let ((n rmail-current-message))
