@@ -29,8 +29,6 @@ NOTE-END
 
 */
 
-#define BITS_PER_LONG 64
-#define BITS_PER_EMACS_INT 64
 #ifndef _LP64
 #define _LP64			/* This doesn't appear to be necessary
 				   on OSF 4/5  -- fx.  */
@@ -56,13 +54,7 @@ NOTE-END
 
 /* Use type EMACS_INT rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
-
 #define NO_UNION_TYPE
-
-/* Define the type to use.  */
-#define EMACS_INT long
-#define EMACS_UINT unsigned long
-#define SPECIAL_EMACS_INT
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -113,6 +105,7 @@ NOTE-END
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
+#define DATA_START    0x140000000
 #endif
 
 #ifndef __ELF__
@@ -121,11 +114,6 @@ NOTE-END
 
 #define TEXT_START    0x120000000
 #define DATA_START    0x140000000
-
-/* This is necessary for mem-limits.h, so that start_of_data gives
-   the correct value */
-
-#define DATA_SEG_BITS 0x140000000
 
 /* The program to be used for unexec. */
 
@@ -164,28 +152,6 @@ NOTE-END
 #define LINUX_SBRK_BUG
 #endif
 
-
-#define PNTR_COMPARISON_TYPE unsigned long
-
-/* On the 64 bit architecture, we can use 60 bits for addresses */
-
-#define VALBITS         60
-
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
-
-/* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
-
-#define XPNTR(a) XUINT (a)
 
 #ifndef NOT_C_CODE
 /* We need these because pointers are larger than the default ints.  */
