@@ -4180,7 +4180,7 @@ On systems that don't have job control, run a subshell instead.\n\n\
 If optional arg STUFFSTRING is non-nil, its characters are stuffed\n\
 to be read as terminal input by Emacs's parent, after suspension.\n\
 \n\
-Before suspending, call the functions in `suspend-hooks' with no args.\n\
+Before suspending, call the functions in `suspend-hook' with no args.\n\
 If any of them returns nil, don't call the rest and don't suspend.\n\
 Otherwise, suspend normally and after resumption run the normal hook\n\
 `suspend-resume-hook' if that is bound and non-nil.\n\
