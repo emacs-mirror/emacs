@@ -1,5 +1,8 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/cl-macs.el (define-setf-expander): Make it an
+	alias for define-setf-method.
+
 	* bindings.el: Remove no-byte-compile from file local variables
 	to enable bootstrapping.
 

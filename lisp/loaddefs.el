@@ -385,7 +385,7 @@ A replacement function for `newline-and-indent', aligning as it goes." t nil)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "net/ange-ftp.el" (15186 41423))
+;;;;;;  "net/ange-ftp.el" (15292 1106))
 ;;; Generated autoloads from net/ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
@@ -533,8 +533,8 @@ They specify the range of dates that the diary is being processed for." nil nil)
 ;;;***
 
 ;;;### (autoloads (apropos-documentation apropos-value apropos apropos-command
-;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (15187
-;;;;;;  6158))
+;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (15284
+;;;;;;  8839))
 ;;; Generated autoloads from apropos.el
 
 (autoload (quote apropos-mode) "apropos" "\
@@ -1008,12 +1008,13 @@ insert a template for the file depending on the mode of the buffer." t nil)
 
 ;;;### (autoloads (batch-update-autoloads update-autoloads-from-directories
 ;;;;;;  update-file-autoloads) "autoload" "emacs-lisp/autoload.el"
-;;;;;;  (15187 6159))
+;;;;;;  (15293 33677))
 ;;; Generated autoloads from emacs-lisp/autoload.el
 
 (autoload (quote update-file-autoloads) "autoload" "\
 Update the autoloads for FILE in `generated-autoload-file'
-\(which FILE might bind in its local variables)." t nil)
+\(which FILE might bind in its local variables).
+Return FILE if there was no autoload cookie in it." t nil)
 
 (autoload (quote update-autoloads-from-directories) "autoload" "\
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
@@ -1875,7 +1876,7 @@ Return a vector containing the lines from `bruce-phrases-file'." nil nil)
 ;;;***
 
 ;;;### (autoloads (bs-show bs-customize bs-cycle-previous bs-cycle-next)
-;;;;;;  "bs" "bs.el" (15151 3015))
+;;;;;;  "bs" "bs.el" (15293 33676))
 ;;; Generated autoloads from bs.el
 
 (autoload (quote bs-cycle-next) "bs" "\
@@ -1910,7 +1911,7 @@ name of buffer configuration." t nil)
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (15235 24851))
+;;;;;;  "emacs-lisp/bytecomp.el" (15293 33957))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -1935,7 +1936,7 @@ recompile every `.el' file that already has a `.elc' file." t nil)
 (autoload (quote byte-compile-file) "bytecomp" "\
 Compile a file of Lisp code named FILENAME into a file of byte code.
 The output file's name is made by appending `c' to the end of FILENAME.
-With prefix arg (noninteractively: 2nd arg), load the file after compiling.
+With prefix arg (noninteractively: 2nd arg), LOAD the file after compiling.
 The value is t if there were no errors, nil if errors." t nil)
 
 (autoload (quote compile-defun) "bytecomp" "\
@@ -2022,7 +2023,7 @@ See the documentation for `calculator-mode' for more information." t nil)
 ;;;;;;  calendar-remove-frame-by-deleting mark-diary-entries-in-calendar
 ;;;;;;  number-of-diary-entries view-diary-entries-initially calendar-offset
 ;;;;;;  calendar-week-start-day) "calendar" "calendar/calendar.el"
-;;;;;;  (15218 39937))
+;;;;;;  (15288 21990))
 ;;; Generated autoloads from calendar/calendar.el
 
 (defvar calendar-week-start-day 0 "\
@@ -4506,7 +4507,7 @@ any selection." t nil)
 ;;;***
 
 ;;;### (autoloads (derived-mode-init-mode-variables define-derived-mode)
-;;;;;;  "derived" "derived.el" (15186 41418))
+;;;;;;  "derived" "derived.el" (15293 33676))
 ;;; Generated autoloads from derived.el
 
 (autoload (quote define-derived-mode) "derived" "\
@@ -4515,7 +4516,8 @@ Create a new mode as a variant of an existing mode.
 The arguments to this command are as follow:
 
 CHILD:     the name of the command for the derived mode.
-PARENT:    the name of the command for the parent mode (e.g. `text-mode').
+PARENT:    the name of the command for the parent mode (e.g. `text-mode')
+           or nil if there is no parent.
 NAME:      a string which will appear in the status line (e.g. \"Hypertext\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
@@ -5621,7 +5623,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (15256 45098))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (15288 6986))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -5852,7 +5854,7 @@ With optional NODE, goes to that node." t nil)
 ;;;***
 
 ;;;### (autoloads (ediff-show-registry) "ediff-mult" "ediff-mult.el"
-;;;;;;  (15263 27093))
+;;;;;;  (15284 8839))
 ;;; Generated autoloads from ediff-mult.el
 
 (autoload (quote ediff-show-registry) "ediff-mult" "\
@@ -6998,7 +7000,7 @@ Unconditionally turn on Fast Lock mode." nil nil)
 
 ;;;### (autoloads (feedmail-queue-reminder feedmail-run-the-queue
 ;;;;;;  feedmail-run-the-queue-global-prompt feedmail-run-the-queue-no-prompts
-;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (15187 6159))
+;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (15283 1359))
 ;;; Generated autoloads from mail/feedmail.el
 
 (autoload (quote feedmail-send-it) "feedmail" "\
@@ -8189,7 +8191,7 @@ Use \\[describe-mode] for more info." t nil)
 ;;;***
 
 ;;;### (autoloads (goto-address goto-address-at-point goto-address-at-mouse)
-;;;;;;  "goto-addr" "net/goto-addr.el" (15186 41423))
+;;;;;;  "goto-addr" "net/goto-addr.el" (15293 33678))
 ;;; Generated autoloads from net/goto-addr.el
 
 (autoload (quote goto-address-at-mouse) "goto-addr" "\
@@ -8215,7 +8217,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;***
 
-;;;### (autoloads (gs-load-image) "gs" "gs.el" (15269 60460))
+;;;### (autoloads (gs-load-image) "gs" "gs.el" (15288 14302))
 ;;; Generated autoloads from gs.el
 
 (autoload (quote gs-load-image) "gs" "\
@@ -9417,7 +9419,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node Info-directory info-standalone
-;;;;;;  info info-other-window) "info" "info.el" (15279 8859))
+;;;;;;  info info-other-window) "info" "info.el" (15282 54609))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -10636,7 +10638,7 @@ If 4th arg LIST is non-nil, return a list of all such fields." nil nil)
 ;;;***
 
 ;;;### (autoloads (define-mail-abbrev build-mail-abbrevs mail-abbrevs-setup)
-;;;;;;  "mailabbrev" "mail/mailabbrev.el" (15186 41422))
+;;;;;;  "mailabbrev" "mail/mailabbrev.el" (15293 33678))
 ;;; Generated autoloads from mail/mailabbrev.el
 
 (autoload (quote mail-abbrevs-setup) "mailabbrev" "\
@@ -11323,7 +11325,7 @@ different buffer menu using the function `msb'." t nil)
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-char-after describe-character-set
 ;;;;;;  list-charset-chars read-charset list-character-sets) "mule-diag"
-;;;;;;  "international/mule-diag.el" (15186 41421))
+;;;;;;  "international/mule-diag.el" (15282 61336))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload (quote list-character-sets) "mule-diag" "\
@@ -11632,7 +11634,7 @@ Open a network connection to HOST on PORT." t nil)
 ;;;;;;  uncomment-region comment-kill comment-set-column comment-indent
 ;;;;;;  comment-indent-default comment-multi-line comment-padding
 ;;;;;;  comment-style comment-column) "newcomment" "newcomment.el"
-;;;;;;  (15251 11795))
+;;;;;;  (15284 8839))
 ;;; Generated autoloads from newcomment.el
 
 (defalias (quote indent-for-comment) (quote comment-indent))
@@ -11830,7 +11832,7 @@ to future sessions." t nil)
 ;;;***
 
 ;;;### (autoloads (nroff-mode) "nroff-mode" "textmodes/nroff-mode.el"
-;;;;;;  (14974 43714))
+;;;;;;  (15293 33678))
 ;;; Generated autoloads from textmodes/nroff-mode.el
 
 (autoload (quote nroff-mode) "nroff-mode" "\
@@ -12400,7 +12402,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp d
 ;;;***
 
 ;;;### (autoloads (perl-mode) "perl-mode" "progmodes/perl-mode.el"
-;;;;;;  (15149 49404))
+;;;;;;  (15293 33678))
 ;;; Generated autoloads from progmodes/perl-mode.el
 
 (autoload (quote perl-mode) "perl-mode" "\
@@ -12412,32 +12414,34 @@ Paragraphs are separated by blank lines only.
 Delete converts tabs to spaces as it moves back.
 \\{perl-mode-map}
 Variables controlling indentation style:
- perl-tab-always-indent
+ `perl-tab-always-indent'
     Non-nil means TAB in Perl mode should always indent the current line,
     regardless of where in the line point is when the TAB command is used.
- perl-tab-to-comment
+ `perl-tab-to-comment'
     Non-nil means that for lines which don't need indenting, TAB will
     either delete an empty comment, indent an existing comment, move 
     to end-of-line, or if at end-of-line already, create a new comment.
- perl-nochange
+ `perl-nochange'
     Lines starting with this regular expression are not auto-indented.
- perl-indent-level
+ `perl-indent-level'
     Indentation of Perl statements within surrounding block.
     The surrounding block's indentation is the indentation
     of the line on which the open-brace appears.
- perl-continued-statement-offset
+ `perl-continued-statement-offset'
     Extra indentation given to a substatement, such as the
     then-clause of an if or body of a while.
- perl-continued-brace-offset
+ `perl-continued-brace-offset'
     Extra indentation given to a brace that starts a substatement.
     This is in addition to `perl-continued-statement-offset'.
- perl-brace-offset
+ `perl-brace-offset'
     Extra indentation for line if it starts with an open brace.
- perl-brace-imaginary-offset
+ `perl-brace-imaginary-offset'
     An open brace following other text is treated as if it were
     this far to the right of the start of its line.
- perl-label-offset
+ `perl-label-offset'
     Extra indentation for line that is a label.
+ `perl-indent-continued-arguments'
+    Offset of argument lines relative to usual indentation.
 
 Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-indent-level                5    8    0    2    4
@@ -13211,8 +13215,8 @@ were operated on recently." t nil)
 ;;;### (autoloads (clear-rectangle string-insert-rectangle string-rectangle
 ;;;;;;  delete-whitespace-rectangle open-rectangle insert-rectangle
 ;;;;;;  yank-rectangle kill-rectangle extract-rectangle delete-extract-rectangle
-;;;;;;  delete-rectangle move-to-column-force) "rect" "rect.el" (15187
-;;;;;;  6158))
+;;;;;;  delete-rectangle move-to-column-force) "rect" "rect.el" (15292
+;;;;;;  846))
 ;;; Generated autoloads from rect.el
 
 (autoload (quote move-to-column-force) "rect" "\
@@ -13942,7 +13946,7 @@ KEYWORDS is a comma-separated list of labels." t nil)
 ;;;;;;  rmail-summary-by-senders rmail-summary-by-topic rmail-summary-by-regexp
 ;;;;;;  rmail-summary-by-recipients rmail-summary-by-labels rmail-summary
 ;;;;;;  rmail-summary-line-count-flag rmail-summary-scroll-between-messages)
-;;;;;;  "rmailsum" "mail/rmailsum.el" (15186 41423))
+;;;;;;  "rmailsum" "mail/rmailsum.el" (15293 33678))
 ;;; Generated autoloads from mail/rmailsum.el
 
 (defvar rmail-summary-scroll-between-messages t "\
@@ -14067,6 +14071,277 @@ This function is obsolete." t nil)
 
 ;;;***
 
+;;;### (autoloads (rx rx-to-string) "rx" "emacs-lisp/rx.el" (15286
+;;;;;;  9098))
+;;; Generated autoloads from emacs-lisp/rx.el
+
+(autoload (quote rx-to-string) "rx" "\
+Parse and produce code for regular expression FORM.
+FORM is a regular expression in sexp form.
+NO-GROUP non-nil means don't put shy groups around the result." nil nil)
+
+(autoload (quote rx) "rx" "\
+Translate a regular expression REGEXP in sexp form to a regexp string.
+See also `rx-to-string' for how to do such a translation at run-time.
+
+The following are valid subforms of regular expressions in sexp
+notation.
+
+STRING
+     matches string STRING literally.
+
+CHAR
+     matches character CHAR literally.
+
+`not-newline'
+     matches any character except a newline.
+			.
+`anything'
+     matches any character
+
+`(any SET)'
+     matches any character in SET.  SET may be a character or string.
+     Ranges of characters can be specified as `A-Z' in strings.
+
+'(in SET)' 
+     like `any'.
+
+`(not (any SET))'
+     matches any character not in SET
+
+`line-start'
+     matches the empty string, but only at the beginning of a line
+     in the text being matched
+
+`line-end'
+     is similar to `line-start' but matches only at the end of a line
+
+`string-start'
+     matches the empty string, but only at the beginning of the
+     string being matched against.
+
+`string-end'
+     matches the empty string, but only at the end of the
+     string being matched against.
+
+`buffer-start'
+     matches the empty string, but only at the beginning of the
+     buffer being matched against.
+
+`buffer-end'
+     matches the empty string, but only at the end of the
+     buffer being matched against.
+
+`point'
+     matches the empty string, but only at point.
+
+`word-start'
+     matches the empty string, but only at the beginning or end of a
+     word.
+
+`word-end'
+     matches the empty string, but only at the end of a word.
+
+`word-boundary'
+     matches the empty string, but only at the beginning or end of a
+     word.
+
+`(not word-boundary)'
+     matches the empty string, but not at the beginning or end of a
+     word.
+
+`digit'
+     matches 0 through 9.
+
+`control'
+     matches ASCII control characters.
+
+`hex-digit'
+     matches 0 through 9, a through f and A through F.
+
+`blank'
+     matches space and tab only.
+
+`graphic'
+     matches graphic characters--everything except ASCII control chars,
+     space, and DEL.
+
+`printing'
+     matches printing characters--everything except ASCII control chars
+     and DEL.
+
+`alphanumeric'
+     matches letters and digits.  (But at present, for multibyte characters,
+     it matches anything that has word syntax.)
+
+`letter'
+     matches letters.  (But at present, for multibyte characters,
+     it matches anything that has word syntax.)
+
+`ascii'
+     matches ASCII (unibyte) characters.
+
+`nonascii'
+     matches non-ASCII (multibyte) characters.
+
+`lower'
+     matches anything lower-case.
+
+`upper'
+     matches anything upper-case.
+
+`punctuation'
+     matches punctuation.  (But at present, for multibyte characters,
+     it matches anything that has non-word syntax.)
+
+`space'
+     matches anything that has whitespace syntax.
+
+`word'
+     matches anything that has word syntax.
+
+`(syntax SYNTAX)'
+     matches a character with syntax SYNTAX.  SYNTAX must be one
+     of the following symbols.
+
+     `whitespace'		(\\s- in string notation)
+     `punctuation'		(\\s.)
+     `word'			(\\sw)
+     `symbol'			(\\s_)
+     `open-parenthesis'		(\\s()
+     `close-parenthesis'	(\\s))
+     `expression-prefix'	(\\s')
+     `string-quote'		(\\s\")
+     `paired-delimiter'		(\\s$)
+     `escape'			(\\s\\)
+     `character-quote'		(\\s/)
+     `comment-start'		(\\s<)
+     `comment-end'		(\\s>)
+
+`(not (syntax SYNTAX))'
+     matches a character that has not syntax SYNTAX.
+
+`(category CATEGORY)'
+     matches a character with category CATEGORY.  CATEGORY must be
+     either a character to use for C, or one of the following symbols.
+
+     `consonant'			(\\c0 in string notation)
+     `base-vowel'			(\\c1)
+     `upper-diacritical-mark'		(\\c2)
+     `lower-diacritical-mark'		(\\c3)
+     `tone-mark'		        (\\c4)
+     `symbol'			        (\\c5)
+     `digit'			        (\\c6)
+     `vowel-modifying-diacritical-mark'	(\\c7)
+     `vowel-sign'			(\\c8)
+     `semivowel-lower'			(\\c9)
+     `not-at-end-of-line'		(\\c<)
+     `not-at-beginning-of-line'		(\\c>)
+     `alpha-numeric-two-byte'		(\\cA)
+     `chinse-two-byte'			(\\cC)
+     `greek-two-byte'			(\\cG)
+     `japanese-hiragana-two-byte'	(\\cH)
+     `indian-tow-byte'			(\\cI)
+     `japanese-katakana-two-byte'	(\\cK)
+     `korean-hangul-two-byte'		(\\cN)
+     `cyrillic-two-byte'		(\\cY)
+     `ascii'				(\\ca)
+     `arabic'				(\\cb)
+     `chinese'				(\\cc)
+     `ethiopic'				(\\ce)
+     `greek'				(\\cg)
+     `korean'				(\\ch)
+     `indian'				(\\ci)
+     `japanese'				(\\cj)
+     `japanese-katakana'		(\\ck)
+     `latin'				(\\cl)
+     `lao'				(\\co)
+     `tibetan'				(\\cq)
+     `japanese-roman'			(\\cr)
+     `thai'				(\\ct)
+     `vietnamese'			(\\cv)
+     `hebrew'				(\\cw)
+     `cyrillic'				(\\cy)
+     `can-break'			(\\c|)
+
+`(not (category CATEGORY))'
+     matches a character that has not category CATEGORY.
+
+`(and SEXP1 SEXP2 ...)'
+     matches what SEXP1 matches, followed by what SEXP2 matches, etc.
+
+`(submatch SEXP1 SEXP2 ...)'
+     like `and', but makes the match accessible with `match-end',
+     `match-beginning', and `match-string'.
+
+`(group SEXP1 SEXP2 ...)'
+     another name for `submatch'.
+
+`(or SEXP1 SEXP2 ...)'
+     matches anything that matches SEXP1 or SEXP2, etc.  If all
+     args are strings, use `regexp-opt' to optimize the resulting
+     regular expression.
+
+`(minimal-match SEXP)'
+     produce a non-greedy regexp for SEXP.  Normally, regexps matching
+     zero or more occurrances of something are \"greedy\" in that they
+     match as much as they can, as long as the overall regexp can
+     still match.  A non-greedy regexp matches as little as possible.
+
+`(maximal-match SEXP)'
+     produce a greedy regexp for SEXP.   This is the default.
+
+`(zero-or-more SEXP)'
+     matches zero or more occurrences of what SEXP matches.
+
+`(0+ SEXP)'
+     like `zero-or-more'.
+
+`(* SEXP)'
+     like `zero-or-more', but always produces a greedy regexp.
+
+`(*? SEXP)'
+     like `zero-or-more', but always produces a non-greedy regexp.
+
+`(one-or-more SEXP)'
+     matches one or more occurrences of A.
+  
+`(1+ SEXP)'
+     like `one-or-more'.
+
+`(+ SEXP)'
+     like `one-or-more', but always produces a greedy regexp.
+
+`(+? SEXP)'
+     like `one-or-more', but always produces a non-greedy regexp.
+
+`(zero-or-one SEXP)'
+     matches zero or one occurrences of A.
+     
+`(optional SEXP)'
+     like `zero-or-one'.
+
+`(? SEXP)'
+     like `zero-or-one', but always produces a greedy regexp.
+
+`(?? SEXP)'
+     like `zero-or-one', but always produces a non-greedy regexp.
+
+`(repeat N SEXP)'
+     matches N occurrences of what SEXP matches.
+
+`(repeat N M SEXP)'
+     matches N to M occurrences of what SEXP matches.
+
+`(eval FORM)'
+      evaluate FORM and insert result.   If result is a string,
+      `regexp-quote' it.
+
+`(regexp REGEXP)'
+      include REGEXP in string notation in the result." nil (quote macro))
+
+;;;***
+
 ;;;### (autoloads (dsssl-mode scheme-mode) "scheme" "progmodes/scheme.el"
 ;;;;;;  (15187 6160))
 ;;; Generated autoloads from progmodes/scheme.el
@@ -14164,7 +14439,7 @@ Toggle Scroll-All minor mode." t nil)
 ;;;;;;  mail-archive-file-name mail-header-separator send-mail-function
 ;;;;;;  mail-yank-ignored-headers mail-interactive mail-self-blind
 ;;;;;;  mail-specify-envelope-from mail-from-style) "sendmail" "mail/sendmail.el"
-;;;;;;  (15279 8859))
+;;;;;;  (15283 1778))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -14207,7 +14482,8 @@ nil means let mailer mail back a message to report errors.")
 (defvar send-mail-function (quote sendmail-send-it) "\
 Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
-not a valid RFC822 header or continuation line.
+not a valid RFC822 header or continuation line,
+that matches the variable `mail-header-separator'.
 This is used by the default mail-sending commands.  See also
 `message-send-mail-function' for use with the Message package.")
 
@@ -14785,7 +15061,7 @@ which smileys to operate on and which images to use for them." t nil)
 
 ;;;***
 
-;;;### (autoloads (snake) "snake" "play/snake.el" (15187 6160))
+;;;### (autoloads (snake) "snake" "play/snake.el" (15288 5158))
 ;;; Generated autoloads from play/snake.el
 
 (autoload (quote snake) "snake" "\
@@ -15628,7 +15904,7 @@ Connect to display DISPLAY for the Emacs talk group." t nil)
 
 ;;;***
 
-;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (15215 60892))
+;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (15282 56996))
 ;;; Generated autoloads from tar-mode.el
 
 (autoload (quote tar-mode) "tar-mode" "\
@@ -15775,7 +16051,7 @@ subprocess started." t nil)
 
 ;;;***
 
-;;;### (autoloads (tetris) "tetris" "play/tetris.el" (15187 6160))
+;;;### (autoloads (tetris) "tetris" "play/tetris.el" (15288 5158))
 ;;; Generated autoloads from play/tetris.el
 
 (autoload (quote tetris) "tetris" "\
@@ -16463,7 +16739,7 @@ non-nil." t nil)
 
 ;;;### (autoloads (with-timeout run-with-idle-timer add-timeout run-with-timer
 ;;;;;;  run-at-time cancel-function-timers cancel-timer) "timer"
-;;;;;;  "timer.el" (15186 41419))
+;;;;;;  "timer.el" (15293 33677))
 ;;; Generated autoloads from timer.el
 
 (defalias (quote disable-timeout) (quote cancel-timer))
@@ -16688,8 +16964,8 @@ use either \\[customize] or the function `tooltip-mode'.")
 
 ;;;***
 
-;;;### (autoloads (tpu-edt-on) "tpu-edt" "emulation/tpu-edt.el" (15187
-;;;;;;  6159))
+;;;### (autoloads (tpu-edt-on) "tpu-edt" "emulation/tpu-edt.el" (15292
+;;;;;;  1106))
 ;;; Generated autoloads from emulation/tpu-edt.el
 
 (fset (quote tpu-edt-mode) (quote tpu-edt-on))
@@ -16716,7 +16992,7 @@ Constrain the cursor to the flow of the text." t nil)
 
 ;;;***
 
-;;;### (autoloads (tq-create) "tq" "emacs-lisp/tq.el" (13509 34547))
+;;;### (autoloads (tq-create) "tq" "emacs-lisp/tq.el" (15293 33678))
 ;;; Generated autoloads from emacs-lisp/tq.el
 
 (autoload (quote tq-create) "tq" "\
@@ -18069,8 +18345,8 @@ Delete WIDGET." nil nil)
 ;;;***
 
 ;;;### (autoloads (windmove-default-keybindings windmove-down windmove-right
-;;;;;;  windmove-up windmove-left) "windmove" "windmove.el" (15187
-;;;;;;  6159))
+;;;;;;  windmove-up windmove-left) "windmove" "windmove.el" (15293
+;;;;;;  33677))
 ;;; Generated autoloads from windmove.el
 
 (autoload (quote windmove-left) "windmove" "\
@@ -18326,6 +18602,114 @@ Zone-mode does two things:
 		when saving the file
 
 	- fontification" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("textmodes/text-mode.el" "textmodes/texnfo-upd.el"
+;;;;;;  "textmodes/reftex-vars.el" "textmodes/reftex-toc.el" "textmodes/reftex-sel.el"
+;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-parse.el" "textmodes/reftex-global.el"
+;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-auc.el" "textmodes/refer.el"
+;;;;;;  "textmodes/refbib.el" "textmodes/paragraphs.el" "textmodes/page.el"
+;;;;;;  "textmodes/page-ext.el" "textmodes/makeinfo.el" "textmodes/fill.el"
+;;;;;;  "textmodes/bib-mode.el" "term/xterm.el" "term/x-win.el" "term/wyse50.el"
+;;;;;;  "term/w32-win.el" "term/vt420.el" "term/vt400.el" "term/vt320.el"
+;;;;;;  "term/vt300.el" "term/vt240.el" "term/vt220.el" "term/vt201.el"
+;;;;;;  "term/vt200.el" "term/vt125.el" "term/vt102.el" "term/vt100.el"
+;;;;;;  "term/tvi970.el" "term/tty-colors.el" "term/sup-mouse.el"
+;;;;;;  "term/sun.el" "term/sun-mouse.el" "term/pc-win.el" "term/news.el"
+;;;;;;  "term/mac-win.el" "term/lk201.el" "term/linux.el" "term/keyswap.el"
+;;;;;;  "term/iris-ansi.el" "term/internal.el" "term/bobcat.el" "term/bg-mouse.el"
+;;;;;;  "term/apollo.el" "term/AT386.el" "progmodes/mantemp.el" "progmodes/idlw-toolbar.el"
+;;;;;;  "progmodes/idlw-rinfo.el" "progmodes/ebnf-yac.el" "progmodes/ebnf-otz.el"
+;;;;;;  "progmodes/ebnf-iso.el" "progmodes/ebnf-bnf.el" "progmodes/cc-menus.el"
+;;;;;;  "progmodes/cc-engine.el" "progmodes/cc-defs.el" "progmodes/cc-compat.el"
+;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-bytecomp.el" "progmodes/cc-align.el"
+;;;;;;  "progmodes/ada-xref.el" "progmodes/ada-prj.el" "play/meese.el"
+;;;;;;  "play/gametree.el" "play/gamegrid.el" "obsolete/x-menu.el"
+;;;;;;  "obsolete/x-apollo.el" "obsolete/uncompress.el" "obsolete/sun-fns.el"
+;;;;;;  "obsolete/sun-curs.el" "obsolete/sc.el" "obsolete/rnews.el"
+;;;;;;  "obsolete/profile.el" "obsolete/ooutline.el" "obsolete/hilit19.el"
+;;;;;;  "obsolete/cplus-md.el" "obsolete/c-mode.el" "mail/vms-pmail.el"
+;;;;;;  "mail/uce.el" "mail/rfc822.el" "mail/rfc2368.el" "mail/mspools.el"
+;;;;;;  "mail/mh-seq.el" "mail/mh-pick.el" "mail/mh-funcs.el" "mail/mailpost.el"
+;;;;;;  "mail/mailheader.el" "mail/blessmail.el" "language/vietnamese.el"
+;;;;;;  "language/tibetan.el" "language/thai.el" "language/slovak.el"
+;;;;;;  "language/romanian.el" "language/misc-lang.el" "language/lao.el"
+;;;;;;  "language/korean.el" "language/japanese.el" "language/indian.el"
+;;;;;;  "language/hebrew.el" "language/greek.el" "language/european.el"
+;;;;;;  "language/ethiopic.el" "language/english.el" "language/devanagari.el"
+;;;;;;  "language/czech.el" "language/cyrillic.el" "language/chinese.el"
+;;;;;;  "gnus/webmail.el" "gnus/utf7.el" "gnus/starttls.el" "gnus/rfc2231.el"
+;;;;;;  "gnus/rfc2104.el" "gnus/rfc2047.el" "gnus/rfc2045.el" "gnus/rfc1843.el"
+;;;;;;  "gnus/qp.el" "gnus/pop3.el" "gnus/parse-time.el" "gnus/nnweb.el"
+;;;;;;  "gnus/nnwarchive.el" "gnus/nnvirtual.el" "gnus/nnultimate.el"
+;;;;;;  "gnus/nntp.el" "gnus/nnspool.el" "gnus/nnslashdot.el" "gnus/nnoo.el"
+;;;;;;  "gnus/nnmh.el" "gnus/nnmbox.el" "gnus/nnmail.el" "gnus/nnlistserv.el"
+;;;;;;  "gnus/nnimap.el" "gnus/nnheader.el" "gnus/nngateway.el" "gnus/nneething.el"
+;;;;;;  "gnus/nndraft.el" "gnus/nndir.el" "gnus/nnbabyl.el" "gnus/nnagent.el"
+;;;;;;  "gnus/mml.el" "gnus/mm-view.el" "gnus/mm-util.el" "gnus/mm-encode.el"
+;;;;;;  "gnus/mm-decode.el" "gnus/mm-bodies.el" "gnus/messcompat.el"
+;;;;;;  "gnus/mailcap.el" "gnus/mail-source.el" "gnus/mail-prsvr.el"
+;;;;;;  "gnus/mail-parse.el" "gnus/imap.el" "gnus/ietf-drums.el"
+;;;;;;  "gnus/gnus-vm.el" "gnus/gnus-uu.el" "gnus/gnus-util.el" "gnus/gnus-undo.el"
+;;;;;;  "gnus/gnus-topic.el" "gnus/gnus-sum.el" "gnus/gnus-srvr.el"
+;;;;;;  "gnus/gnus-setup.el" "gnus/gnus-score.el" "gnus/gnus-salt.el"
+;;;;;;  "gnus/gnus-range.el" "gnus/gnus-nocem.el" "gnus/gnus-mh.el"
+;;;;;;  "gnus/gnus-logic.el" "gnus/gnus-int.el" "gnus/gnus-gl.el"
+;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-eform.el" "gnus/gnus-dup.el"
+;;;;;;  "gnus/gnus-draft.el" "gnus/gnus-demon.el" "gnus/gnus-cus.el"
+;;;;;;  "gnus/gnus-cite.el" "gnus/gnus-bcklg.el" "gnus/gnus-async.el"
+;;;;;;  "gnus/format-spec.el" "gnus/flow-fill.el" "eshell/esh-var.el"
+;;;;;;  "eshell/esh-util.el" "eshell/esh-proc.el" "eshell/esh-opt.el"
+;;;;;;  "eshell/esh-module.el" "eshell/esh-maint.el" "eshell/esh-io.el"
+;;;;;;  "eshell/esh-groups.el" "eshell/esh-ext.el" "eshell/esh-cmd.el"
+;;;;;;  "eshell/esh-arg.el" "eshell/em-xtra.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-smart.el" "eshell/em-script.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-prompt.el" "eshell/em-pred.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-hist.el" "eshell/em-glob.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-cmpl.el" "eshell/em-basic.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-alias.el" "emulation/viper-util.el"
+;;;;;;  "emulation/viper-mous.el" "emulation/viper-macs.el" "emulation/viper-keym.el"
+;;;;;;  "emulation/viper-init.el" "emulation/viper-ex.el" "emulation/viper-cmd.el"
+;;;;;;  "emulation/tpu-mapper.el" "emulation/mlsupport.el" "emulation/edt-vt100.el"
+;;;;;;  "emulation/edt-pc.el" "emulation/edt-mapper.el" "emulation/edt-lk201.el"
+;;;;;;  "emacs-lisp/sregex.el" "emacs-lisp/lucid.el" "emacs-lisp/lselect.el"
+;;;;;;  "emacs-lisp/lmenu.el" "emacs-lisp/lisp.el" "emacs-lisp/lisp-mode.el"
+;;;;;;  "emacs-lisp/lisp-mnt.el" "emacs-lisp/levents.el" "emacs-lisp/gulp.el"
+;;;;;;  "emacs-lisp/float.el" "emacs-lisp/find-gc.el" "emacs-lisp/ewoc.el"
+;;;;;;  "emacs-lisp/cust-print.el" "emacs-lisp/cl-specs.el" "emacs-lisp/cl-seq.el"
+;;;;;;  "emacs-lisp/cl-macs.el" "emacs-lisp/cl-extra.el" "emacs-lisp/cl-compat.el"
+;;;;;;  "emacs-lisp/byte-opt.el" "emacs-lisp/authors.el" "emacs-lisp/assoc.el"
+;;;;;;  "calendar/cal-x.el" "calendar/cal-tex.el" "calendar/cal-persia.el"
+;;;;;;  "calendar/cal-move.el" "calendar/cal-menu.el" "calendar/cal-mayan.el"
+;;;;;;  "calendar/cal-julian.el" "calendar/cal-iso.el" "calendar/cal-islam.el"
+;;;;;;  "calendar/cal-french.el" "calendar/cal-coptic.el" "calendar/cal-china.el"
+;;;;;;  "net/ldap.el" "net/eudcb-ph.el" "net/eudcb-ldap.el" "net/eudcb-bbdb.el"
+;;;;;;  "net/eudc-vars.el" "international/utf-8.el" "international/swedish.el"
+;;;;;;  "international/ogonek.el" "international/mule.el" "international/mule-conf.el"
+;;;;;;  "international/mule-cmds.el" "international/latin-9.el" "international/latin-8.el"
+;;;;;;  "international/latin-5.el" "international/latin-4.el" "international/latin-3.el"
+;;;;;;  "international/latin-2.el" "international/latin-1.el" "international/ja-dic-utl.el"
+;;;;;;  "international/ja-dic-cnv.el" "international/iso-swed.el"
+;;;;;;  "international/iso-insert.el" "international/iso-ascii.el"
+;;;;;;  "international/characters.el" "xscheme.el" "xml.el" "window.el"
+;;;;;;  "widget.el" "w32-fns.el" "vt100-led.el" "vt-control.el" "vmsproc.el"
+;;;;;;  "vms-patch.el" "version.el" "vcursor.el" "vc-hooks.el" "unused.el"
+;;;;;;  "uniquify.el" "timezone.el" "tempo.el" "tcp.el" "subr.el"
+;;;;;;  "subdirs.el" "startup.el" "soundex.el" "simple.el" "select.el"
+;;;;;;  "scroll-bar.el" "saveplace.el" "s-region.el" "replace.el"
+;;;;;;  "register.el" "regi.el" "pcvs-util.el" "pcvs-parse.el" "pcvs-info.el"
+;;;;;;  "paths.el" "patcomp.el" "mouse.el" "mouse-drag.el" "mouse-copy.el"
+;;;;;;  "misc.el" "menu-bar.el" "map-ynp.el" "loadup.el" "kermit.el"
+;;;;;;  "isearch.el" "indent.el" "help.el" "generic-x.el" "frame.el"
+;;;;;;  "forms-pass.el" "forms-d2.el" "format.el" "foldout.el" "float-sup.el"
+;;;;;;  "finder-inf.el" "files.el" "faces.el" "env.el" "emacs-lock.el"
+;;;;;;  "electric.el" "ediff-wind.el" "ediff-vers.el" "ediff-ptch.el"
+;;;;;;  "ediff-merg.el" "ediff-init.el" "ediff-diff.el" "dos-w32.el"
+;;;;;;  "dos-vars.el" "dos-fns.el" "custom.el" "cus-start.el" "cus-load.el"
+;;;;;;  "cus-dep.el" "cdl.el" "case-table.el" "byte-run.el" "buff-menu.el"
+;;;;;;  "allout.el" "abbrevlist.el" "abbrev.el" "bindings.el") (15293
+;;;;;;  34415 828265))
 
 ;;;***
 
