@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2230,16 +2230,21 @@ swap_out_buffer_local_variables (b)
    If EXTEND is non-zero, we make the vector bigger if necessary.
    If EXTEND is zero, we never extend the vector,
    and we store only as many overlays as will fit.
-   But we still return the total number of overlays.  */
+   But we still return the total number of overlays.
+
+   If CHANGE_REQ is true, then any position written into *PREV_PTR or
+   *NEXT_PTR is guaranteed to be not equal to POS, unless it is the
+   default (BEGV or ZV).  */
 
 int
-overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
+overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
      int pos;
      int extend;
      Lisp_Object **vec_ptr;
      int *len_ptr;
      int *next_ptr;
      int *prev_ptr;
+     int change_req;
 {
   Lisp_Object tail, overlay, start, end;
   int idx = 0;
@@ -2345,7 +2350,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	}
       else if (endpos < pos && endpos > prev)
 	prev = endpos;
-      else if (endpos == pos && startpos > prev)
+      else if (endpos == pos && startpos > prev && !change_req)
 	prev = startpos;
     }
 
@@ -3517,7 +3522,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   (int *) 0, (int *) 0);
+			   (int *) 0, (int *) 0, 0);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -3580,7 +3585,7 @@ If there are no more overlay boundaries after POS, return (point-max).")
      Store the length in len.
      endpos gets the position where the next overlay starts.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   &endpos, (int *) 0);
+			   &endpos, (int *) 0, 1);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
@@ -3625,7 +3630,7 @@ If there are no more overlay boundaries before POS, return (point-min).")
      Store the length in len.
      prevpos gets the position of the previous change.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   (int *) 0, &prevpos);
+			   (int *) 0, &prevpos, 1);
 
   xfree (overlay_vec);
   return make_number (prevpos);
