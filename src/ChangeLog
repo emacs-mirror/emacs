@@ -1,3 +1,10 @@
+2005-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (OVERLAY_STRING_CHUNK_SIZE): Increase from 3 to 16.
+
+	* xdisp.c (init_from_display_pos): Don't read past end of
+	it->overlay_strings array.
+
 2005-02-25  Stephan Stahl <stahl@eos.franken.de>  (tiny change)
 
 	* buffer.c (syms_of_buffer): Fix typo.
