@@ -83,7 +83,7 @@ the @code{setenv} command does not expand @samp{$} at all.
 
 @item
 Commands to set the mark at a place away from point, including
-@kbd{M-@}, @kbd{M-h}, etc., don't do anything special when you repeat
+@kbd{M-@@}, @kbd{M-h}, etc., don't do anything special when you repeat
 them.  In most cases, typing these commands multiple times is
 equivalent to using them once.  @kbd{M-h} does not use its numeric
 argument.
