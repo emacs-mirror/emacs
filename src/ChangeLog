@@ -1,3 +1,9 @@
+2000-11-07  Dave Love  <fx@gnu.org>
+
+	* config.in (HAVE_MKDIR): Add.
+
+	* callproc.c (Fcall_process_region) [HAVE_MKSTEMP]: Use it.
+
 2000-11-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fset_window_configuration): Don't try to preserve
