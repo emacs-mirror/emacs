@@ -356,11 +356,7 @@ including a reproducible test case and send the message."
 
   (octave-add-octave-menu)
   (octave-initialize-completions)
-  (run-hooks 'octave-mode-hook)
-  (if octave-mode-startup-message
-      (message "Octave mode %s.  Bugs to %s"
-	       octave-version octave-maintainer-address)))
-
+  (run-hooks 'octave-mode-hook))
 
 ;;; Miscellaneous useful functions
 (defun octave-describe-major-mode ()
