@@ -1,3 +1,9 @@
+2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+        * emacs-lisp/lisp.el (mark-sexp): Don't leave multiple marks when
+        repeated.
+        (mark-defun): Mark more if repeated.
+
 2002-02-17  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Make it work.  Patch
