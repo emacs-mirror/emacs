@@ -1597,6 +1597,7 @@ handle_stop (it)
 
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
+  it->add_overlay_start = 0;
 
   do
     {
@@ -1606,7 +1607,7 @@ handle_stop (it)
       for (p = it_props; p->handler; ++p)
 	{
 	  handled = p->handler (it);
-	  
+
 	  if (handled == HANDLED_RECOMPUTE_PROPS)
 	    break;
 	  else if (handled == HANDLED_RETURN)
@@ -2115,6 +2116,7 @@ handle_invisible_prop (it)
 	    = TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop);
 
 	  handled = HANDLED_RECOMPUTE_PROPS;
+	  it->add_overlay_start = IT_CHARPOS (*it);
 	  
 	  /* Loop skipping over invisible text.  The loop is left at
 	     ZV or with IT on the first char being visible again.  */
@@ -2700,6 +2702,7 @@ handle_composition_prop (it)
 
 struct overlay_entry
 {
+  Lisp_Object overlay;
   Lisp_Object string;
   int priority;
   int after_string_p;
@@ -2713,13 +2716,10 @@ static enum prop_handled
 handle_overlay_change (it)
      struct it *it;
 {
-  /* Overlays are handled in current_buffer only.  */
-  if (STRINGP (it->string))
-    return HANDLED_NORMALLY;
+  if (!STRINGP (it->string) && get_overlay_strings (it))
+    return HANDLED_RECOMPUTE_PROPS;
   else
-    return (get_overlay_strings (it)
-	    ? HANDLED_RECOMPUTE_PROPS
-	    : HANDLED_NORMALLY);
+    return HANDLED_NORMALLY;
 }
 
 
@@ -2748,6 +2748,12 @@ next_overlay_string (it)
       SET_TEXT_POS (it->current.string_pos, -1, -1);
       it->n_overlay_strings = 0;
       it->method = next_element_from_buffer;
+
+      /* If we're at the end of the buffer, record that we have
+	 processed the overlay strings there already, so that
+	 next_element_from_buffer doesn't try it again.  */
+      if (IT_CHARPOS (*it) >= it->end_charpos)
+	it->overlay_strings_at_end_processed_p = 1;
     }
   else
     {
@@ -2777,7 +2783,8 @@ next_overlay_string (it)
    comparison function for qsort in load_overlay_strings.  Overlay
    strings for the same position are sorted so that
 
-   1. All after-strings come in front of before-strings.
+   1. All after-strings come in front of before-strings, except
+   when they come from the same overlay.
    
    2. Within after-strings, strings are sorted so that overlay strings
    from overlays with higher priorities come first.
@@ -2797,8 +2804,14 @@ compare_overlay_entries (e1, e2)
   int result;
 
   if (entry1->after_string_p != entry2->after_string_p)
-    /* Let after-strings appear in front of before-strings.  */
-    result = entry1->after_string_p ? -1 : 1;
+    {
+      /* Let after-strings appear in front of before-strings if
+	 they come from different overlays.  */
+      if (EQ (entry1->overlay, entry2->overlay))
+	result = entry1->after_string_p ? 1 : -1;
+      else
+	result = entry1->after_string_p ? -1 : 1;
+    }
   else if (entry1->after_string_p)
     /* After-strings sorted in order of decreasing priority.  */
     result = entry2->priority - entry1->priority;
@@ -2819,6 +2832,15 @@ compare_overlay_entries (e1, e2)
    IT->current.overlay_string_index gives the number of overlay
    strings that have already been loaded by previous calls to this
    function.
+
+   IT->add_overlay_start contains an additional overlay start
+   position to consider for taking overlay strings from, if non-zero.
+   This position comes into play when the overlay has an `invisible'
+   property, and both before and after-strings.  When we've skipped to
+   the end of the overlay, because of its `invisible' property, we
+   nevertheless want its before-string to appear.
+   IT->add_overlay_start will contain the overlay start position
+   in this case.
 
    Overlay strings are sorted so that after-string strings come in
    front of before-string strings.  Within before and after-strings,
@@ -2858,18 +2880,16 @@ load_overlay_strings (it)
 	}								\
 									\
       entries[n].string = (STRING);					\
+      entries[n].overlay = (OVERLAY);					\
       priority = Foverlay_get ((OVERLAY), Qpriority);			\
-      entries[n].priority 						\
-	= INTEGERP (priority) ? XFASTINT (priority) : 0;		\
+      entries[n].priority = INTEGERP (priority) ? XINT (priority) : 0;  \
       entries[n].after_string_p = (AFTER_P);				\
       ++n;								\
     }									\
   while (0)
 
   /* Process overlay before the overlay center.  */
-  for (ov = current_buffer->overlays_before;
-       CONSP (ov);
-       ov = XCDR (ov))
+  for (ov = current_buffer->overlays_before; CONSP (ov); ov = XCDR (ov))
     {
       overlay = XCAR (ov);
       xassert (OVERLAYP (overlay));
@@ -2881,7 +2901,9 @@ load_overlay_strings (it)
 
       /* Skip this overlay if it doesn't start or end at IT's current
 	 position.  */
-      if (end != IT_CHARPOS (*it) && start != IT_CHARPOS (*it))
+      if (end != IT_CHARPOS (*it)
+	  && start != IT_CHARPOS (*it)
+	  && it->add_overlay_start != IT_CHARPOS (*it))
 	continue;
       
       /* Skip this overlay if it doesn't apply to IT->w.  */
@@ -2890,7 +2912,8 @@ load_overlay_strings (it)
 	continue;
 
       /* If overlay has a non-empty before-string, record it.  */
-      if (start == IT_CHARPOS (*it)
+      if ((start == IT_CHARPOS (*it)
+	   || start == it->add_overlay_start)
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 0);
@@ -2903,9 +2926,7 @@ load_overlay_strings (it)
     }
       
   /* Process overlays after the overlay center.  */
-  for (ov = current_buffer->overlays_after;
-	CONSP (ov);
-	ov = XCDR (ov))
+  for (ov = current_buffer->overlays_after; CONSP (ov); ov = XCDR (ov))
     {
       overlay = XCAR (ov);
       xassert (OVERLAYP (overlay));
@@ -2917,7 +2938,9 @@ load_overlay_strings (it)
       
       /* Skip this overlay if it doesn't start or end at IT's current
 	 position.  */
-      if (end != IT_CHARPOS (*it) && start != IT_CHARPOS (*it))
+      if (end != IT_CHARPOS (*it)
+	  && start != IT_CHARPOS (*it)
+	  && it->add_overlay_start != IT_CHARPOS (*it))
 	continue;
 
       /* Skip this overlay if it doesn't apply to IT->w.  */
@@ -2926,7 +2949,8 @@ load_overlay_strings (it)
 	continue;
       
       /* If overlay has a non-empty before-string, record it.  */
-      if (start == IT_CHARPOS (*it)
+      if ((start == IT_CHARPOS (*it)
+	   || start == it->add_overlay_start)
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 0);
@@ -2941,7 +2965,8 @@ load_overlay_strings (it)
 #undef RECORD_OVERLAY_STRING
    
   /* Sort entries.  */
-  qsort (entries, n, sizeof *entries, compare_overlay_entries);
+  if (n)
+    qsort (entries, n, sizeof *entries, compare_overlay_entries);
 
   /* Record the total number of strings to process.  */
   it->n_overlay_strings = n;
@@ -2953,7 +2978,7 @@ load_overlay_strings (it)
   j = it->current.overlay_string_index;
   while (i < OVERLAY_STRING_CHUNK_SIZE && j < n)
     it->overlay_strings[i++] = entries[j++].string;
-  
+
   CHECK_IT (it);
 }
 
