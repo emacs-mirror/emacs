@@ -1,4 +1,4 @@
-;;; c++-mode.el --- C++ code editing commands for Emacs
+;;; cplus-md.el --- C++ code editing commands for Emacs
 ;;; Copyright (C) 1985, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -914,4 +914,4 @@ The fill lines remain a comment."
 ;; 	(beginning-of-line 1)))
 ;;     (goto-char restore)))
 
-;;; c++-mode.el ends here
+;;; cplus-md.el ends here
