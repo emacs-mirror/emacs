@@ -341,6 +341,12 @@ struct x_display
   /* Size of the X window in pixels.  */
   int pixel_height, pixel_width;
 
+  /* Height of menu bar widget, in pixels.
+     Zero if not using the X toolkit.
+     When using the toolkit, this value is not meaningful
+     if the menubar is turned off.  */
+  int menubar_height;
+
   /* Height of a line, in pixels.  */
   int line_height;
 
