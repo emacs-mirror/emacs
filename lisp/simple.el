@@ -3849,16 +3849,28 @@ select the completion near point.\n\n"))
 ;; to the following event.
 
 (defun event-apply-alt-modifier (ignore-prompt)
+  "Add the Alt modifier to the following event.
+For example, type \\[event-apply-alt-modifier] & to enter Alt-&."
   (vector (event-apply-modifier (read-event) 'alt 22 "A-")))
 (defun event-apply-super-modifier (ignore-prompt)
+  "Add the Super modifier to the following event.
+For example, type \\[event-apply-super-modifier] & to enter Super-&."
   (vector (event-apply-modifier (read-event) 'super 23 "s-")))
 (defun event-apply-hyper-modifier (ignore-prompt)
+  "Add the Hyper modifier to the following event.
+For example, type \\[event-apply-hyper-modifier] & to enter Hyper-&."
   (vector (event-apply-modifier (read-event) 'hyper 24 "H-")))
 (defun event-apply-shift-modifier (ignore-prompt)
+  "Add the Shift modifier to the following event.
+For example, type \\[event-apply-shift-modifier] & to enter Shift-&."
   (vector (event-apply-modifier (read-event) 'shift 25 "S-")))
 (defun event-apply-control-modifier (ignore-prompt)
+  "Add the Ctrl modifier to the following event.
+For example, type \\[event-apply-control-modifier] & to enter Ctrl-&."
   (vector (event-apply-modifier (read-event) 'control 26 "C-")))
 (defun event-apply-meta-modifier (ignore-prompt)
+  "Add the Meta modifier to the following event.
+For example, type \\[event-apply-meta-modifier] & to enter Meta-&."
   (vector (event-apply-modifier (read-event) 'meta 27 "M-")))
 
 (defun event-apply-modifier (event symbol lshiftby prefix)
