@@ -1981,13 +1981,16 @@ If there is no plausible default, return nil."
 	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
 			       (save-excursion (end-of-line) (point))
 			       t))
-	(progn (goto-char (match-end 0))
-	       (buffer-substring-no-properties
-                (point)
-                (progn (forward-sexp -1)
-                       (while (looking-at "\\s'")
-                         (forward-char 1))
-                       (point))))
+	(progn
+	  (goto-char (match-end 0))
+	  (condition-case nil
+	      (buffer-substring-no-properties
+	       (point)
+	       (progn (forward-sexp -1)
+		      (while (looking-at "\\s'")
+			(forward-char 1))
+		      (point)))
+	    (error nil)))
       nil)))
 
 (defmacro with-syntax-table (table &rest body)
