@@ -98,6 +98,8 @@ static mps_res_t epvmscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
    mps_res_t res;
    mps_addr_t p;
 
+   commentif(alloccomments, "scan %p", base);
+
    asserts(obj->size > 0, "scan on splatted object at %p", obj);
 
    p = obj->obj;
@@ -113,6 +115,7 @@ static mps_res_t epvmscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     if (res != MPS_RES_OK) return res;
     asserts(p == obj->obj+i, "reference in EPVM changed at %p", obj);
    }
+   base = (char *) base + 8;
   }
  }
  MPS_SCAN_END(ss);
