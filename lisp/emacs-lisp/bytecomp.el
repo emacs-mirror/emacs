@@ -1659,12 +1659,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   ;; Skip (interactive) if it is in front (the most usual location).
 	   (if (eq int (car body))
 	       (setq body (cdr body)))
-	   (cond ((cdr int)
+	   (cond ((consp (cdr int))
 		  (if (cdr (cdr int))
 		      (byte-compile-warn "malformed interactive spec: %s"
 					 (prin1-to-string int)))
-		  (setq int (list 'interactive (byte-compile-top-level
-						(nth 1 int))))))))
+		  ;; If the interactive spec is a call to `list',
+		  ;; don't compile it, because `call-interactively'
+		  ;; looks at the args of `list'.
+		  (or (eq (car-safe (nth 1 int)) 'list)
+		      (setq int (list 'interactive
+				      (byte-compile-top-level (nth 1 int))))))
+		 ((cdr int)
+		  (byte-compile-warn "malformed interactive spec: %s"
+				     (prin1-to-string int))))))
     (let ((compiled (byte-compile-top-level (cons 'progn body) nil 'lambda)))
       (if (and (eq 'byte-code (car-safe compiled))
 	       (byte-compile-version-cond
