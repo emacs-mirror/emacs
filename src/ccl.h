@@ -63,6 +63,8 @@ struct ccl_program {
 				   format when the CCL program is used
 				   for encoding by a coding
 				   system.  */
+  int suppress_error;		/* If nonzero, don't insert error
+				   message in the output.  */
 };
 
 /* This data type is used for the spec field of the structure
