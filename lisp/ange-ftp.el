@@ -721,7 +721,7 @@ cross-mounted."
   :group 'ange-ftp
   :type 'file)
 
-(defcustom ange-ftp-disable-netrc-security-check nil
+(defcustom ange-ftp-disable-netrc-security-check (eq system-type 'windows-nt)
   "*If non-nil avoid checking permissions on the .netrc file."
   :group 'ange-ftp
   :type 'boolean)
@@ -1972,23 +1972,20 @@ on the gateway machine to do the ftp instead."
     (process-kill-without-query proc)
     (set-process-sentinel proc (function ange-ftp-process-sentinel))
     (set-process-filter proc (function ange-ftp-process-filter))
-    ;; wait for ftp startup message
-    (if (not (eq system-type 'windows-nt))
-	(accept-process-output proc)
-      ;; On Windows, the standard ftp client behaves a little oddly,
-      ;; initially buffering its output (because stdin/out are pipe
-      ;; handles).  As a result, the startup message doesn't appear
-      ;; until enough output is generated to flush stdout, so a plain
-      ;; accept-process-output call at this point would hang
-      ;; indefinitely.  So if nothing appears within 2 seconds, we try
-      ;; sending an innocuous command ("help foo") that forces some
-      ;; output.  Curiously, once we start sending normal commands, the
-      ;; output no longer appears to be buffered, and everything works
-      ;; correctly (or at least appears to!).
-      (if (accept-process-output proc 2)
-	  nil
- 	(process-send-string proc "help foo\n")
-	(accept-process-output proc)))
+    ;; On Windows, the standard ftp client buffers its output (because
+    ;; stdout is a pipe handle) so the startup message may never appear:
+    ;; `accept-process-output' at this point would hang indefinitely.
+    ;; However, sending an innocuous command ("help foo") forces some
+    ;; output that will be ignored, which is just as good.  Once we
+    ;; start sending normal commands, the output no longer appears to be
+    ;; buffered, and everything works correctly.  My guess is that the
+    ;; output of interest is being sent to stderr which is not buffered.
+    (when (eq system-type 'windows-nt)
+      ;; force ftp output to be treated as DOS text, otherwise the
+      ;; output of "help foo" confuses the EOL detection logic.
+      (set-process-coding-system proc 'raw-text-dos)
+      (process-send-string proc "help foo\n"))
+    (accept-process-output proc)	;wait for ftp startup message
     proc))
 
 (put 'internal-ange-ftp-mode 'mode-class 'special)
@@ -2966,7 +2963,7 @@ logged in as user USER and cd'd to directory DIR."
 					      "\\|"
 					      ange-ftp-good-msgs))
 		  (result (ange-ftp-send-cmd host user
-					     (list 'get dir "/dev/null")
+					     (list 'get dir grep-null-device)
 					     (format "expanding %s" dir)))
 		  (line (cdr result)))
 	     (setq res
@@ -3032,7 +3029,10 @@ logged in as user USER and cd'd to directory DIR."
 	  (if (not (string-match "^//" name))
 	      (progn
 		(setq name (ange-ftp-real-expand-file-name name))
-
+		;; Strip off drive specifier added on windows-nt
+		(if (and (eq system-type 'windows-nt)
+			 (string-match "^[a-zA-Z]:" name))
+		    (setq name (substring name 2)))
 		(if (string-match "^//" name)
 		    (setq name (substring name 1)))))
 	  
@@ -3049,22 +3049,19 @@ logged in as user USER and cd'd to directory DIR."
 (defun ange-ftp-expand-file-name (name &optional default)
   "Documented as original."
   (save-match-data
-    (if (eq (string-to-char name) ?/)
-	(while (cond ((string-match "[^:]+//" name) ;don't upset Apollo users
-		      (setq name (substring name (1- (match-end 0)))))
-		     ((string-match "/~" name)
-		      (setq name (substring name (1- (match-end 0))))))))
+    (setq default (or default default-directory))
     (cond ((eq (string-to-char name) ?~)
 	   (ange-ftp-real-expand-file-name name))
 	  ((eq (string-to-char name) ?/)
 	   (ange-ftp-canonize-filename name))
-	  ((and (eq system-type 'windows-nt) (string-match "^[a-zA-Z]:" name))
-	   name) ; when on local drive, return it as-is
+	  ((and (eq system-type 'windows-nt)
+		(or (string-match "^[a-zA-Z]:" name)
+		    (string-match "^[a-zA-Z]:" default)))
+	   (ange-ftp-real-expand-file-name name default))
 	  ((zerop (length name))
-	   (ange-ftp-canonize-filename (or default default-directory)))
+	   (ange-ftp-canonize-filename default))
 	  ((ange-ftp-canonize-filename
-	    (concat (file-name-as-directory (or default default-directory))
-		    name))))))
+	    (concat (file-name-as-directory default) name))))))
 
 ;;; These are problems--they are currently not enabled.
 
@@ -3139,10 +3136,14 @@ system TYPE.")
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
-			   (and (not (eq system-type 'windows-nt))
-				(eq (ange-ftp-host-type host user) 'unix))))
+			   (eq (ange-ftp-host-type host user) 'unix)))
 	       (cmd (if append 'append 'put))
-	       (abbr (ange-ftp-abbreviate-filename filename)))
+	       (abbr (ange-ftp-abbreviate-filename filename))
+	       ;; we need to reset `last-coding-system-used' to its
+	       ;; value immediately after calling the real write-region,
+	       ;; so that `basic-save-buffer' doesn't see whatever value
+	       ;; might be used when communicating with the ftp process.
+	       (coding-system-used last-coding-system-used))
 	  (unwind-protect
 	      (progn
 		(let ((executing-kbd-macro t)
@@ -3153,6 +3154,8 @@ system TYPE.")
 		    ;; cleanup forms
 		    (setq buffer-file-name filename)
 		    (set-buffer-modified-p mod-p)))
+		;; save value used by the real write-region
+		(setq coding-system-used last-coding-system-used)
 		(if binary
 		    (ange-ftp-set-binary-mode host user))
 
@@ -3180,6 +3183,8 @@ system TYPE.")
 		(ange-ftp-set-buffer-mode)
 		(setq buffer-file-name filename)
 		(set-buffer-modified-p nil)))
+	  ;; ensure `last-coding-system-used' has an appropriate value
+	  (setq last-coding-system-used coding-system-used)
 	  (ange-ftp-message "Wrote %s" abbr)
 	  (ange-ftp-add-file-entry filename))
       (ange-ftp-real-write-region start end filename append visit))))
@@ -3203,8 +3208,7 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (or (ange-ftp-binary-file filename)
-				 (and (not (eq system-type 'windows-nt))
-				      (eq (ange-ftp-host-type host user) 'unix))))
+				 (eq (ange-ftp-host-type host user) 'unix)))
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     size)
 		(unwind-protect
@@ -3489,8 +3493,7 @@ system TYPE.")
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
 			 (ange-ftp-binary-file newname)
-			 (and (not (eq system-type 'windows-nt))
-			      (eq (ange-ftp-host-type f-host f-user) 'unix)
+			 (and (eq (ange-ftp-host-type f-host f-user) 'unix)
 			      (eq (ange-ftp-host-type t-host t-user) 'unix))))
 	     temp1
 	     temp2)
@@ -3779,7 +3782,7 @@ system TYPE.")
 	     completions)))
 
       (if (or (and (eq system-type 'windows-nt)
-		   (string-match "[^a-zA-Z]?[a-zA-Z]:[/\]" ange-ftp-this-dir))
+		   (string-match "^[a-zA-Z]:[/\]$" ange-ftp-this-dir))
 	      (string-equal "/" ange-ftp-this-dir))
 	  (nconc (all-completions file (ange-ftp-generate-root-prefixes))
 		 (ange-ftp-real-file-name-all-completions file
@@ -4083,14 +4086,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
 		file-name-handler-alist)))
 
-;;; Real ange-ftp file names prefixed with a drive letter.
-;;;###autoload
-(and (memq system-type '(ms-dos windows-nt))
-     (or (assoc "^[a-zA-Z]:/[^/:]*[^/:.]:" file-name-handler-alist)
-	 (setq file-name-handler-alist
-	       (cons '("^[a-zA-Z]:/[^/:]*[^/:.]:" . ange-ftp-hook-function)
-		     file-name-handler-alist))))
-
 ;;; This regexp recognizes and absolute filenames with only one component,
 ;;; for the sake of hostname completion.
 ;;;###autoload
@@ -4185,12 +4180,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'file-name-as-directory args))
 (defun ange-ftp-real-directory-file-name (&rest args)
   (ange-ftp-run-real-handler 'directory-file-name args))
-(or (and (eq system-type 'windows-nt)
-	 ;; Windows handler for [A-Z]: drive name on local disks
-	 (defun ange-ftp-real-expand-file-name (&rest args)
-	   (ange-ftp-run-real-handler 'ange-ftp-real-expand-file-name-actual args)))
 (defun ange-ftp-real-expand-file-name (&rest args)
-  (ange-ftp-run-real-handler 'expand-file-name args)))
+  (ange-ftp-run-real-handler 'expand-file-name args))
 (defun ange-ftp-real-make-directory (&rest args)
   (ange-ftp-run-real-handler 'make-directory args))
 (defun ange-ftp-real-delete-directory (&rest args)
@@ -5682,27 +5673,6 @@ Other orders of $ and _ seem to all work just fine.")
 ;;    (setq ange-ftp-dired-get-filename-alist
 ;;	  (cons '(cms . ange-ftp-dired-cms-get-filename)
 ;;		ange-ftp-dired-get-filename-alist)))
-
-;;
-(and (eq system-type 'windows-nt)
-     (setq ange-ftp-disable-netrc-security-check t))
-
-;; If a drive letter has been added, remote it.  Otherwise, if the drive
-;; letter existed before, leave it.
-(defun ange-ftp-real-expand-file-name-actual (&rest args)
-  (let (old-name new-name final drive-letter)
-    (setq old-name (car args))
-    (setq new-name (ange-ftp-run-real-handler 'expand-file-name args))
-    (setq drive-letter (substring new-name 0 2))
-    ;; I'd like to distill the following lines into one (if) statement
-    ;;   removing the need for the temp final variable
-    (setq final new-name)
-    (if (not (equal (substring old-name 0 1) "~"))
-	(if (or (< (length old-name) 2)
-		(not (string-match "/[a-zA-Z]:" old-name)))
-	    (setq final (substring new-name 2))))
-    final))
-
 
 ;;;; ------------------------------------------------------------
 ;;;; Finally provide package.
