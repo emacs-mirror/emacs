@@ -1493,7 +1493,7 @@ Return nil if there is no such person."
 (defun vc-backend-steal (file &optional rev)
   ;; Steal the lock on the current workfile.  Needs RCS 5.6.2 or later for -M.
   (message "Stealing lock on %s..." file)
-  (vc-backend-dispatch
+  (vc-backend-dispatch file
    (progn
      (vc-do-command 0 "unget" file "-n" (if rev (concat "-r" rev)))
      (vc-do-command 0 "get" file "-g" (if rev (concat "-r" rev)))
