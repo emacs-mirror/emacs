@@ -484,6 +484,9 @@ struct x_output
   /* Nonzero means tried already to make this frame visible.  */
   char asked_for_visible;
 
+  /* Nonzero if this frame was ever previously visible.  */
+  char has_been_visible;
+
 #ifdef HAVE_X_I18N
   /* Input method. */
   XIM xim;
