@@ -79,12 +79,20 @@ would give military-style times like `21:07 (UTC)'.")
 ;;;###autoload
 (defvar calendar-latitude nil
   "*Latitude of `calendar-location-name' in degrees, + north, - south.
-For example, 40.7 for New York City.")
+For example, 40.7 for New York City.
+It may not be a good idea to set this in advance for your site;
+if there may be users running Emacs at your site
+who are physically located elsewhere, they would get the wrong
+value and might not know how to override it.")
 
 ;;;###autoload
 (defvar calendar-longitude nil
   "*Longitude of `calendar-location-name' in degrees, + east, - west.
-For example, -74.0 for New York City.")
+For example, -74.0 for New York City.
+It may not be a good idea to set this in advance for your site;
+if there may be users running Emacs at your site
+who are physically located elsewhere, they would get the wrong
+value and might not know how to override it.")
 
 ;;;###autoload
 (defvar calendar-location-name
