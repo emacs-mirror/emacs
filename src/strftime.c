@@ -508,7 +508,7 @@ my_strftime (s, maxsize, format, tp ut_argument)
 	case '%':
 	  break;
 
-	case '\a': case '\b': case '\t': case '\n':
+	case '\b': case '\t': case '\n':
 	case '\v': case '\f': case '\r':
 	case ' ': case '!': case '"': case '#': case '&': case'\'':
 	case '(': case ')': case '*': case '+': case ',': case '-':
@@ -526,10 +526,11 @@ my_strftime (s, maxsize, format, tp ut_argument)
 	case 'r': case 's': case 't': case 'u': case 'v': case 'w':
 	case 'x': case 'y': case 'z': case '{': case '|': case '}':
 	case '~':
-	  /* The C Standard requires these 98 characters (plus '%') to
+	  /* The C Standard requires these 97 characters (plus '%', '\a') to
 	     be in the basic execution character set.  None of these
 	     characters can start a multibyte sequence, so they need
-	     not be analyzed further.  */
+	     not be analyzed further.  Some old compilers object to
+	     '\a', so don't bother optimizing for it.  */
 	  add (1, *p = *f);
 	  continue;
 
