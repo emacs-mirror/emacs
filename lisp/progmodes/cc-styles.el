@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.15
+;; Version:    5.16
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -126,6 +126,7 @@
 				(substatement-open after)
 				(block-close . c-snug-do-while)
 				))
+     (c-comment-continuation-stars "")
      )
     ("java"
      (c-basic-offset . 2)
