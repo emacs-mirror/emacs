@@ -1,6 +1,6 @@
 /* CCL (Code Conversion Language) interpreter.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -64,6 +64,15 @@ Lisp_Object Qccl_program_idx;
    RESOLVEDP (t or nil) is the flag to tell if symbols in CCL_PROG is
    already resolved to index numbers or not.  */
 Lisp_Object Vccl_program_table;
+
+/* Vector of registered hash tables for translation.  */
+Lisp_Object Vtranslation_hash_table_vector;
+
+/* Return a hash table of id number ID.  */
+#define GET_HASH_TABLE(id) \
+  (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
+/* Copied from fns.c.  */
+#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -651,6 +660,18 @@ while (0)
 					else
 					  set reg[RRR] to -1.
 				     */
+
+#define CCL_LookupIntConstTbl 0x13 /* Lookup multibyte character by
+				      integer key.  Afterwards R7 set
+				      to 1 iff lookup succeeded.
+				      1:ExtendedCOMMNDRrrRRRXXXXXXXX
+				      2:ARGUMENT(Hash table ID) */
+
+#define CCL_LookupCharConstTbl 0x14 /* Lookup integer by multibyte
+				       character key.  Afterwards R7 set
+				       to 1 iff lookup succeeded.
+				       1:ExtendedCOMMNDRrrRRRrrrXXXXX
+				       2:ARGUMENT(Hash table ID) */
 
 /* CCL arithmetic/logical operators. */
 #define CCL_PLUS	0x00	/* X = Y + Z */
@@ -1404,6 +1425,50 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		i = (i << 7) | j;
 	      
 	      reg[rrr] = i;
+	      break;
+
+	    case CCL_LookupIntConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      {		
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (reg[RRR]), NULL);
+		if (op >= 0)
+		  {
+		    op = HASH_VALUE (h, op);
+		    if (!CHAR_VALID_P (op, 0))
+		      CCL_INVALID_CMD;
+		    SPLIT_CHAR (XINT (op), reg[RRR], i, j);
+		    if (j != -1)
+		      i = (i << 7) | j;
+		    reg[rrr] = i;
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
+	      break;
+
+	    case CCL_LookupCharConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
+	      {		
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (i), NULL);
+		if (op >= 0)
+		  {
+		    op = HASH_VALUE (h, op);
+		    if (!INTEGERP (op))
+		      CCL_INVALID_CMD;
+		    reg[RRR] = XINT (op);
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
 	      break;
 
 	    case CCL_IterateMultipleMap:
@@ -2335,6 +2400,13 @@ The code point in the font is set in CCL registers R1 and R2
  when the execution terminated.
  If the font is single-byte font, the register R2 is not used.  */);
   Vfont_ccl_encoder_alist = Qnil;
+
+  DEFVAR_LISP ("translation-hash-table-vector", &Vtranslation_hash_table_vector,
+    doc: /* Vector containing all translation hash tables ever defined.
+Comprises pairs (SYMBOL . TABLE) where SYMBOL and TABLE were set up by calls
+to `define-translation-hash-table'.  The vector is indexed by the table id
+used by CCL.  */);
+    Vtranslation_hash_table_vector = Qnil;
 
   defsubr (&Sccl_program_p);
   defsubr (&Sccl_execute);
