@@ -1143,13 +1143,49 @@ else
 fi
 AC_MSG_RESULT($HAVE_XFREE386)
 
-# We change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
-# for the tests that follow.
+# Change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
+# for the tests that follow.  We set it back to REAL_CFLAGS later on.
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
+
+  if test "${HAVE_XFREE386}" = "yes" && test "${opsys}" = "linux"; then
+    AC_MSG_CHECKING(whether XFree86 needs -b to link)
+    AC_TRY_LINK([],
+     [XOpenDisplay ("foo");],
+     [xfree86_first_failure=no],
+     [xfree86_first_failure=yes])
+    if test "${xfree86_first_failure}" = "yes"; then
+      OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
+      OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
+      OLD_CPPFLAGS="$CPPFLAGS"
+      OLD_LIBS="$LIBS"
+      LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -b i486-linuxaout"
+      C_SWITCH_X_SITE="$C_SWITCH_X_SITE -b i486-linuxaout"
+      CPPFLAGS="$CPPFLAGS -b i486-linuxaout"
+      LIBS="$LIBS -b i486-linuxaout"
+      AC_TRY_LINK([],
+       [XOpenDisplay ("foo");],
+       [xfree86_second_failure=no],
+       [xfree86_second_failure=yes])
+      if test "${xfree86_second_failure}" = "yes"; then
+	# If we get the same failure with -b, there is no use adding -b.
+	# So take it out.  This plays safe.
+	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
+	C_SWITCH_X_SITE="$OLD_C_SWITCH_X_SITE"
+	CPPFLAGS="$OLD_CPPFLAGS"
+	LIBS="$OLD_LIBS"
+        AC_MSG_RESULT(no)
+      else
+        AC_MSG_RESULT(yes)
+      fi
+    else
+      AC_MSG_RESULT(no)
+    fi
+  fi
+
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
 XScreenNumberOfScreen XSetWMProtocols)
 fi
@@ -1278,7 +1314,6 @@ fi
 
 #### Report on what we decided to do.
 echo "
-
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
@@ -1288,11 +1323,20 @@ Configured for \`${canonical}'.
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   What window system should Emacs use?                    ${window_system}
-  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}${x_includes+
-  Where do we find X Windows header files?                }${x_includes}${x_libraries+
-  Where do we find X Windows libraries?                   }${x_libraries}
+  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
 
-"
+if test -n "${x_includes}"; then
+echo "  Where do we find X Windows header files?                ${x_includes}"
+else
+echo "  Where do we find X Windows header files?                Standard dirs"
+fi
+if test -n "${x_libraries}"; then
+echo "  Where do we find X Windows libraries?                   ${x_libraries}"
+else
+echo "  Where do we find X Windows libraries?                   Standard dirs"
+fi
+
+echo
 
 # Remove any trailing slashes in these variables.
 changequote(, )dnl
