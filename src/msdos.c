@@ -413,6 +413,10 @@ extern int unibyte_display_via_language_environment;
 
 Lisp_Object Qbar;
 
+/* The screen colors of the curent frame, which serve as the default
+   colors for newly-created frames.  */
+static int initial_screen_colors[2];
+
 #if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
    begins at OFFSET and includes COUNT characters.  */
@@ -1797,7 +1801,16 @@ IT_clear_screen (void)
 {
   if (termscript)
     fprintf (termscript, "<CLR:SCR>");
-  IT_set_face (0);
+  /* We are sometimes called (from clear_garbaged_frames) when a new
+     frame is being created, but its faces are not yet realized.  In
+     such a case we cannot call IT_set_face, since it will fail to find
+     any valid faces and will abort.  Instead, use the initial screen
+     colors; that should mimic what a Unix tty does, which simply clears
+     the screen with whatever default colors are in use.  */
+  if (FACE_FROM_ID (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
+    ScreenAttrib = (initial_screen_colors[0] << 4) | initial_screen_colors[1];
+  else
+    IT_set_face (0);
   mouse_off ();
   ScreenClear ();
   if (screen_virtual_segment)
@@ -2275,9 +2288,6 @@ IT_set_terminal_window (int foo)
 
 /* Remember the screen colors of the curent frame, to serve as the
    default colors for newly-created frames.  */
-
-static int initial_screen_colors[2];
-
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
        Smsdos_remember_default_colors, 1, 1, 0,
   "Remember the screen colors of the current frame.")
