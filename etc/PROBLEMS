@@ -402,17 +402,16 @@ library function.
 
 * The `configure' script doesn't find the jpeg library.
 
-This can happen because the linker by default only looks for shared
-libraries, but jpeg distribution by default doesn't build and doesn't
-install a shared version of the library, `libjpeg.so'.  One system
-where this is known to happen is Compaq OSF/1 (`Tru64'), but it
-probably isn't limited to that system.
+There are reports that this happens on some systems because the linker
+by default only looks for shared libraries, but jpeg distribution by
+default only installs a nonshared version of the library, `libjpeg.a'.
 
-You can configure the jpeg library with the `--enable-shared' option
-and then rebuild libjpeg.  This produces a shared version of libjpeg,
-which you need to install.  Finally, rerun the Emacs configure script,
-which should now find the jpeg library.  Alternatively, modify the
-generated src/Makefile to link the .a file explicitly.
+If this is the problem, you can configure the jpeg library with the
+`--enable-shared' option and then rebuild libjpeg.  This produces a
+shared version of libjpeg, which you need to install.  Finally, rerun
+the Emacs configure script, which should now find the jpeg library.
+Alternatively, modify the generated src/Makefile to link the .a file
+explicitly.
 
 (If you need the static version of the jpeg library as well, configure
 libjpeg with both `--enable-static' and `--enable-shared' options.)

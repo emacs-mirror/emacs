@@ -1,3 +1,20 @@
+2002-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-warning):
+	Bind warning-group-format.
+
+	* emacs-lisp/bytecomp.el (byte-compile-cl-functions): New variable.
+	(byte-compile-cl-warn): Use that variable.
+	(byte-compile-find-cl-functions): New function.
+	(displaying-byte-compile-warnings):
+	Call byte-compile-find-cl-functions.
+	
+	* warnings.el (warning-levels): Add %s to the strings.
+	(warning-group-format): New variable.
+	(warning-suppress-log-types): Renamed from warning-suppress-log.
+	(warning-suppress-types): Renamed from warning-suppress.
+	(display-warning): Implement those changes.
+
 2002-07-23  Richard M. Stallman  <rms@gnu.org>
 
 	* warnings.el: Add `provide' call.
