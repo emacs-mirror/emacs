@@ -369,7 +369,14 @@ from the current buffer."
     (let ((proc (get-buffer-process buf)))
       (when (and (not normal) (processp proc)
 		 (memq (process-status proc) '(run stop)))
-	(error "Can not run two cvs processes simultaneously")))
+	(if cmd
+	    ;; When CMD is specified, the buffer is normally shown to the
+	    ;; user, so interrupting the process is not harmful.
+	    ;; Use `delete-process' rather than `kill-process' otherwise
+	    ;; the pending output of the process will still get inserted
+	    ;; after we erase the buffer.
+	    (delete-process proc)
+	  (error "Can not run two cvs processes simultaneously"))))
 
     (if (not name) (kill-local-variable 'other-window-scroll-buffer)
       ;; Strangely, if no window is created, `display-buffer' ends up
@@ -454,7 +461,8 @@ If non-nil, NEW means to create a new buffer no matter what."
 		       (concat "\nTag        : " (substring tag 1)))
 		      ((string-match "\\`D" tag)
 		       (concat "\nDate       : " (substring tag 1)))
-		      ("")))))
+		      ("\n"))))
+		 "\n")
 	 (setq buffer-read-only t)
 	 (cvs-mode)
 	 (set (make-local-variable 'list-buffers-directory) buffer-name)
