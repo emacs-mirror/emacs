@@ -385,12 +385,12 @@ static volatile struct input_event *kbd_store_ptr;
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
 
-#ifdef HAVE_MOUSE
 /* If this flag is a frame, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.
    Otherwise, mouse motion is ignored.  */
 static Lisp_Object do_mouse_tracking;
 
+#ifdef HAVE_MOUSE
 /* The window system handling code should set this if the mouse has
    moved since the last call to the mouse_position_hook.  Calling that
    hook should clear this.  Code assumes that if this is set, it can
@@ -7099,10 +7099,8 @@ Otherwise, the menu bar continues to reflect the buffer's local map\n\
 and the minor mode maps regardless of `overriding-local-map'.");
   Voverriding_local_map_menu_flag = Qnil;
 
-#ifdef HAVE_MOUSE
   DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
-	       "*Non-nil means generate motion events for mouse motion.");
-#endif
+    "*Non-nil means generate motion events for mouse motion.");
 
   DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
     "Alist of system-specific X windows key symbols.\n\
