@@ -42,6 +42,9 @@ EMACSOPT = -batch --no-init-file --no-site-file --multibyte
 # Set EMACSLOADPATH correctly (already defined in environment).
 EMACSLOADPATH=$(lisp)
 
+# Use C locale
+LC_ALL = C
+
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
@@ -62,13 +65,7 @@ DONTCOMPILE = \
 	$(lisp)/forms-d2.el \
 	$(lisp)/forms-pass.el \
 	$(lisp)/generic-x.el \
-	$(lisp)/international/latin-1.el \
-	$(lisp)/international/latin-2.el \
-	$(lisp)/international/latin-3.el \
-	$(lisp)/international/latin-4.el \
-	$(lisp)/international/latin-5.el \
-	$(lisp)/international/latin-8.el \
-	$(lisp)/international/latin-9.el \
+	$(lisp)/international/latin1-disp.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
@@ -86,6 +83,10 @@ DONTCOMPILE = \
 	$(lisp)/language/thai.el \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
+	$(lisp)/language/vietnamese.el \
+	$(lisp)/language/cyrillic.el \
+	$(lisp)/language/chinese.el \
+	$(lisp)/language/indian.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
