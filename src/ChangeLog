@@ -1,5 +1,7 @@
 2000-06-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* widget.c (EmacsFrameRealize): Remove SubstructureRedirectMask.
+
 	* xdisp.c (handle_stop): Initialize it->add_overlay_start to zero.
 	(handle_invisible_prop): Record the start of invisible text in
 	it->add_overlay_start.
