@@ -643,7 +643,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
      ((not char) font-lock-comment-face)
      ((eq char ?$) tex-math-face)
      (t
-      (when (char-valid-p char)
+      (when (characterp char)
 	;; This is a \verb?...? construct.  Let's find the end and mark it.
 	(save-excursion
 	  (skip-chars-forward (string ?^ char)) ;; Use `end' ?
