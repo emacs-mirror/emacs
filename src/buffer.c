@@ -1163,7 +1163,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
       buf = Fcdr (Fcar (tail));
       if (EQ (buf, buffer))
 	continue;
-      if (SDATA (XBUFFER (buf)->name)[0] == ' ')
+      if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       /* If the selected frame has a buffer_predicate,
 	 disregard buffers that don't fit the predicate.  */
