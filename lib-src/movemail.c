@@ -81,6 +81,7 @@ extern int lk_open (), lk_close ();
 #undef close
 
 char *malloc ();
+char *strcpy ();
 char *concat ();
 char *xmalloc ();
 #ifndef errno

@@ -40,6 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern int errno;
 
 extern char *egetenv ();
+extern char *strcpy ();
 
 #ifdef CLASH_DETECTION
   
