@@ -1,6 +1,6 @@
 ;;; upd-copyr.el --- update the copyright notice in a GNU Emacs Lisp file
 
-;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -74,7 +74,7 @@ than adding to it."
 			 (search-forward "is free software" nil t)
 		       (goto-char (point-min))))
 		 (re-search-forward
-		  "[Cc]opyright[^0-9]*\\(\\([-, \t]*\\([0-9]+\\)\\)\\)+"
+		  "[Cc]opyright[^0-9]*\\(\\(\\([-, \t]*\\([0-9]+\\)\\)\\)+\\)"
 		  nil t)
 		 (or (not ask-upd)
 		     (save-window-excursion
