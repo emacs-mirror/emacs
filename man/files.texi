@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,1999 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,99, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Fixit, Top
 @chapter File Handling
@@ -31,6 +31,7 @@ on file directories.
 * Comparing Files::     Finding where two files differ.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
+* File Archives::       Operating on tar, zip, jar etc. archive files.
 * Remote Files::        Accessing files on other sites.
 * Quoted File Names::   Quoting special characters in file names.
 @end menu
@@ -2346,10 +2347,12 @@ in use.  Note that not all systems support symbolic links.
 @pindex gzip
 
 @findex auto-compression-mode
+@vindex auto-compression-mode
   Emacs comes with a library that can automatically uncompress
 compressed files when you visit them, and automatically recompress them
 if you alter them and save them.  To enable this feature, type the
-command @kbd{M-x auto-compression-mode}.
+command @kbd{M-x auto-compression-mode}.  You can enable it permanently
+by customizing the option @var{auto-compression-mode}.
 
   When automatic compression (which implies automatic uncompression as
 well) is enabled, Emacs recognizes compressed files by their file names.
@@ -2360,6 +2363,66 @@ File names ending in @samp{.gz} indicate a file compressed with
 which Emacs uses the contents of a file.  This includes visiting it,
 saving it, inserting its contents into a buffer, loading it, and byte
 compiling it.
+
+@node File Archives
+@section File Archives
+@cindex mode, tar
+@cindex Tar mode
+@cindex Archive mode
+@cindex mode, archive
+@cindex @code{arc}
+@cindex @code{jar}
+@cindex @code{zip}
+@cindex @code{lzh}
+@cindex @code{zoo}
+@pindex tar
+@pindex arc
+@pindex jar
+@pindex zip
+@pindex lzh
+@pindex zoo
+
+If you visit a file with extension @samp{.tar}, it is assumed to be an
+`archive' made by the @code{tar} program and it is viewed in a Tar mode
+buffer.  This provides a Dired-like listing of the contents.
+@xref{Dired}.  You can move around the component files as in Dired to
+visit and manipulate them.
+
+The keys @kbd{e}, @kbd{f} and @kbd{RET} all extract a component file
+into its own buffer.  You can edit it there and when you save the buffer
+the edited version will replace the version in the Tar buffer.  @var{v}
+extracts a file into a buffer in View mode.  @kbd{d} marks a file for
+deletion when you later use @kbd{x}, as in Dired.  @kbd{C} copies a file
+from the archive to disk and @kbd{R} renames a file.
+
+Saving the Tar buffer writes a new version of the archive to disk with
+the changes you made to the components.
+
+If you enable Auto Compression mode (@pxref{Compressed Files}), then Tar
+mode will be used also for compressed archives in files with extensions
+@samp{.tgz}, @code{.tar.Z} and @code{.tar.gz}.
+
+@cindex @code{arc}
+@cindex @code{jar}
+@cindex @code{zip}
+@cindex @code{lzh}
+@cindex @code{zoo}
+@pindex tar
+@pindex arc
+@pindex jar
+@pindex zip
+@pindex lzh
+@pindex zoo
+@cindex Java class archives
+A separate but similar Archive mode, is used for archives produced by
+the programs @code{arc}, @code{zip}, @code{lzh} and @code{zoo} which
+have extensions corresponding to the program names.  These archiving
+programs are typically used on MS-DOS and MS-Windows systems.  Java
+class archives with extension @samp{.jar} are also recognized.  The
+keybindings in Archive mode are similar to those in Tar mode.
+
+It is not necessary to have the archiving programs installed to use Tar
+mode or Archive mode---Emacs reads the archives directly.
 
 @node Remote Files
 @section Remote Files
