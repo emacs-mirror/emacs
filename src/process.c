@@ -2337,7 +2337,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (wait_proc != 0
 	  && ! EQ (wait_proc->status, Qrun))
 	{
-	  int nread, total_nread;
+	  int nread, total_nread = 0;
 
 	  clear_waiting_for_input ();
 	  XSETPROCESS (proc, wait_proc);
@@ -2346,7 +2346,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  while (XINT (wait_proc->infd) >= 0
 		 && (nread
 		     = read_process_output (proc, XINT (wait_proc->infd))))
-	    total_nread += nread;
+	    {
+              if (0 < nread) 
+                total_nread += nread;
+#ifdef EIO
+	      else if (nread == -1 && EIO == errno)
+                break;
+#endif
+	    }
 	  if (total_nread > 0 && do_display)
 	    redisplay_preserve_echo_area ();
 
