@@ -1,3 +1,11 @@
+2001-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (inhibit_try_window_id, inhibit_try_window_reusing)
+	(inhibit_try_cursor_movement) [GLYPH_DEBUG]: New variables.
+	(try_window_id, try_window_reusing_current_matrix)
+	(try_cursor_movement) [GLYPH_DEBUG]: Don't run if inhibited.
+	(syms_of_xdisp) [GLYPH_DEBUG]:  DEFVAR_BOOL the variables.
+
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (sync_window_with_frame_matrix_rows): Fix 

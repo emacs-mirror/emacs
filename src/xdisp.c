@@ -552,6 +552,11 @@ int current_mode_line_height, current_header_line_height;
 
 #if GLYPH_DEBUG
 
+/* Variables to turn off display optimizations from Lisp.  */
+
+int inhibit_try_window_id, inhibit_try_window_reusing;
+int inhibit_try_cursor_movement;
+
 /* Non-zero means print traces of redisplay if compiled with
    GLYPH_DEBUG != 0.  */
 
@@ -9686,6 +9691,11 @@ try_cursor_movement (window, startp, scroll_step)
   struct frame *f = XFRAME (w->frame);
   int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
   
+#ifdef GLYPH_DEBUG
+  if (inhibit_try_cursor_movement)
+    return rc;
+#endif
+
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
   if (/* Point may be in this window.  */
@@ -10622,6 +10632,11 @@ try_window_reusing_current_matrix (w)
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
 
+#ifdef GLYPH_DEBUG
+  if (inhibit_try_window_reusing)
+    return 0;
+#endif
+
   if (/* This function doesn't handle terminal frames.  */
       !FRAME_WINDOW_P (f)
       /* Don't try to reuse the display if windows have been split
@@ -11287,6 +11302,11 @@ try_window_id (w)
   struct glyph_row *last_text_row, *last_text_row_at_end;
   struct text_pos start;
   int first_changed_charpos, last_changed_charpos;
+
+#ifdef GLYPH_DEBUG
+  if (inhibit_try_window_id)
+    return 0;
+#endif
 
   /* This is handy for debugging.  */
 #if 0
@@ -14940,6 +14960,20 @@ Can be used to update submenus whose contents should vary.");
   DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
     "Non-nil means don't eval Lisp during redisplay.");
   inhibit_eval_during_redisplay = 0;
+
+#ifdef GLYPH_DEBUG
+  DEFVAR_BOOL ("inhibit-try-window-id", &inhibit_try_window_id,
+	       "Inhibit try_window_id display optimization.");
+  inhibit_try_window_id = 0;
+
+  DEFVAR_BOOL ("inhibit-try-window-reusing", &inhibit_try_window_reusing,
+	       "Inhibit try_window_reusing display optimization.");
+  inhibit_try_window_reusing = 0;
+
+  DEFVAR_BOOL ("inhibit-try-cursor-movement", &inhibit_try_cursor_movement,
+	       "Inhibit try_cursor_movement display optimization.");
+  inhibit_try_cursor_movement = 0;
+#endif /* GLYPH_DEBUG */
 }
 
 
