@@ -2053,6 +2053,7 @@ del_range_1 (from, to, prepare, ret_string)
   deletion = del_range_2 (from, from_byte, to, to_byte, ret_string);
   GCPRO1(deletion);
   signal_after_change (from, to - from, 0);
+  update_compositions (from, from, CHECK_HEAD);
   UNGCPRO;
   return deletion;
 }
@@ -2131,7 +2132,6 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 
   del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
-  update_compositions (from, from, CHECK_HEAD);
   update_compositions (from, from, CHECK_HEAD);
 }
 
