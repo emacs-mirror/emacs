@@ -76,6 +76,12 @@ DWORD   prev_console_mode;
 CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
+/* Determine whether to make frame dimensions match the screen buffer,
+   or the current window size.  The former is desirable when running
+   over telnet, while the latter is more useful when working directly at
+   the console with a large scroll-back buffer.  */
+int w32_use_full_screen_buffer;
+
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
    someone hits ^C in a 'suspended' session (child shell).
@@ -563,6 +569,40 @@ initialize_w32_display (void)
   GetConsoleCursorInfo (prev_screen, &prev_console_cursor);
 #endif
 
+  /* Respect setting of LINES and COLUMNS environment variables.  */
+  {
+    char * lines = getenv("LINES");
+    char * columns = getenv("COLUMNS");
+
+    if (lines != NULL && columns != NULL)
+      {
+	SMALL_RECT new_win_dims;
+	COORD new_size;
+
+	new_size.X = atoi (columns);
+	new_size.Y = atoi (lines);
+
+	GetConsoleScreenBufferInfo (cur_screen, &info);
+
+	/* Shrink the window first, so the buffer dimensions can be
+           reduced if necessary.  */
+	new_win_dims.Top = 0;
+	new_win_dims.Left = 0;
+	new_win_dims.Bottom = min (new_size.Y, info.dwSize.Y) - 1;
+	new_win_dims.Right = min (new_size.X, info.dwSize.X) - 1;
+	SetConsoleWindowInfo (cur_screen, TRUE, &new_win_dims);
+
+	SetConsoleScreenBufferSize (cur_screen, new_size);
+
+	/* Set the window size to match the buffer dimension.  */
+	new_win_dims.Top = 0;
+	new_win_dims.Left = 0;
+	new_win_dims.Bottom = new_size.Y - 1;
+	new_win_dims.Right = new_size.X - 1;
+	SetConsoleWindowInfo (cur_screen, TRUE, &new_win_dims);
+      }
+  }
+
   GetConsoleScreenBufferInfo (cur_screen, &info);
   
   meta_key = 1;
@@ -570,12 +610,20 @@ initialize_w32_display (void)
   char_attr_normal = char_attr;
   char_attr_reverse = ((char_attr & 0xf) << 4) + ((char_attr & 0xf0) >> 4);
 
-  /* Lines per page.  Use buffer coords instead of buffer size.  */
-  FRAME_HEIGHT (selected_frame) = 1 + info.srWindow.Bottom - 
-    info.srWindow.Top; 
-  /* Characters per line.  Use buffer coords instead of buffer size.  */
-  SET_FRAME_WIDTH (selected_frame, 1 + info.srWindow.Right - 
-		   info.srWindow.Left);
+  if (w32_use_full_screen_buffer)
+    {
+      FRAME_HEIGHT (selected_frame) = info.dwSize.Y;	/* lines per page */
+      SET_FRAME_WIDTH (selected_frame, info.dwSize.X);  /* characters per line */
+    }
+  else
+    {
+      /* Lines per page.  Use buffer coords instead of buffer size.  */
+      FRAME_HEIGHT (selected_frame) = 1 + info.srWindow.Bottom - 
+	info.srWindow.Top; 
+      /* Characters per line.  Use buffer coords instead of buffer size.  */
+      SET_FRAME_WIDTH (selected_frame, 1 + info.srWindow.Right - 
+		       info.srWindow.Left);
+    }
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
@@ -624,6 +672,15 @@ glyph_to_pixel_coords (FRAME_PTR f, int x, int y, int *pix_x, int *pix_y)
 void
 syms_of_ntterm ()
 {
+  DEFVAR_BOOL ("w32-use-full-screen-buffer",
+               &w32_use_full_screen_buffer,
+  "Non-nil means make terminal frames use the full screen buffer dimensions.\n\
+This is desirable when running Emacs over telnet, and is the default.\n\
+A value of nil means use the current console window dimensions; this\n\
+may be preferrable when working directly at the console with a large\n\
+scroll-back buffer.");
+  w32_use_full_screen_buffer = 1;
+
   defsubr (&Sset_screen_color);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
