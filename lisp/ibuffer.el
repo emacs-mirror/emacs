@@ -1585,10 +1585,11 @@ become unmarked."
     (let ((buf (ibuffer-current-buffer)))
       (when buf
 	(let ((mark (ibuffer-current-mark)))
-	  (delete-region (point) (1+ (line-end-position)))
-	  (ibuffer-insert-buffer-line
-	   buf mark
-	   (ibuffer-current-format))
+	  (save-excursion
+	    (delete-region (point) (1+ (line-end-position)))
+	    (ibuffer-insert-buffer-line
+	     buf mark
+	     (ibuffer-current-format)))
 	  (when ibuffer-shrink-to-minimum-size
 	    (ibuffer-shrink-to-fit)))))))
    
