@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.29 $
+;; Version: $Revision: 1.30 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/05/09 21:36:53 $|$Revision: 1.29 $|~/modes/tcl.el.Z|
+;; $Date: 1995/05/10 18:22:21 $|$Revision: 1.30 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.30  1995/05/10  18:22:21  tromey
+;; Bug fix in menu code for XEmacs.
+;;
 ;; Revision 1.29  1995/05/09  21:36:53  tromey
 ;; Changed "Lucid Emacs" to "XEmacs".
 ;; Tcl's popup menu now added to existing one, courtesy
@@ -293,7 +296,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.29 $")
+(defconst tcl-version "$Revision: 1.30 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -439,7 +442,7 @@ quoted for Tcl.")
   (define-key map [menu-bar] (make-sparse-keymap))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
-  (let ((menu (make-xemacs-menu-keymap "Tcl" (cdr tcl-xemacs-menu))))
+  (let ((menu (make-lucid-menu-keymap "Tcl" (cdr tcl-xemacs-menu))))
     (define-key map [menu-bar tcl] (cons "Tcl" menu))
     ;; The following is intended to compute the key sequence
     ;; information for the menu.  It doesn't work.
