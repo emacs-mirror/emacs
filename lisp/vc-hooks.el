@@ -764,20 +764,6 @@ For CVS, the full name of CVS/Entries is returned."
 	   vc-master-templates)
 	  nil)))))
 
-(defun vc-utc-string (timeval)
-  ;; Convert a time value into universal time, and return it as a
-  ;; human-readable string.  This is for comparing CVS checkout times
-  ;; with file modification times.
-  (let (utc (high (car timeval)) (low  (nth 1 timeval))
-        (offset (car (current-time-zone timeval))))
-    (setq low (- low offset))
-    (setq utc (if (> low 65535) 
-		  (list (1+ high) (- low 65536))
-		(if (< low 0)
-		    (list (1- high) (+ 65536 low))
-		  (list high low))))
-    (current-time-string utc)))
-	  
 (defun vc-find-cvs-master (dirname basename)
   ;; Check if DIRNAME/BASENAME is handled by CVS.
   ;; If it is, do a (throw 'found (cons MASTER 'CVS)).
@@ -801,7 +787,7 @@ For CVS, the full name of CVS/Entries is returned."
 	      (cond
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) 
-			 "/\\([^/]*\\)/\\([^/]*\\)/")
+			 "/\\([^/]*\\)/[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)/")
 		 nil t)
 		(setq case-fold-search fold)  ;; restore the old value
 		;; We found it.  Store away version number now that we 
@@ -811,8 +797,20 @@ For CVS, the full name of CVS/Entries is returned."
 				 (match-string 1))
 		;; If the file hasn't been modified since checkout,
 		;; store the checkout-time.
-		(let ((mtime (nth 5 (file-attributes file))))
-		  (if (string= (match-string 2) (vc-utc-string mtime))
+		(let ((mtime (nth 5 (file-attributes file)))
+		      (second (string-to-number (match-string 6)))
+		      (minute (string-to-number (match-string 5)))
+		      (hour (string-to-number (match-string 4)))
+		      (day (string-to-number (match-string 3)))
+		      (year (string-to-number (match-string 7))))
+		  (if (equal mtime
+			     (encode-time
+			      second minute hour day
+			      (/ (string-match
+				  (match-string 2)
+				  "xxxJanFebMarAprMayJunJulAugSepOctNovDec")
+				 3)
+			      year 0))
 		      (vc-file-setprop file 'vc-checkout-time mtime)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
 		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
