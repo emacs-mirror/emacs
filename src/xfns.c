@@ -11126,10 +11126,15 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) + width > FRAME_X_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width <= FRAME_X_DISPLAY_INFO (f)->width)
+    /* It fits to the right of the pointer.  */
+    *root_x += XINT (dx);
+  else if (width + XINT (dx) <= *root_x)
+    /* It fits to the left of the pointer.  */
     *root_x -= width + XINT (dx);
   else
-    *root_x += XINT (dx);
+    /* Put it left-justified on the screen--it ought to fit that way.  */
+    *root_x = 0;
 }
 
 
