@@ -1916,51 +1916,42 @@ Thus, the default value of @code{font-lock-comment-face} is
 @table @code
 @item font-lock-comment-face
 @vindex font-lock-comment-face
-@kindex font-lock-comment-face @r{(face name)}
 Used (typically) for comments.
 
 @item font-lock-string-face
 @vindex font-lock-string-face
-@kindex font-lock-string-face @r{(face name)}
 Used (typically) for string constants.
 
 @item font-lock-keyword-face
 @vindex font-lock-keyword-face
-@kindex font-lock-keyword-face @r{(face name)}
 Used (typically) for keywords---names that have special syntactic
 significance, like @code{for} and @code{if} in C.
 
 @item font-lock-builtin-face
 @vindex font-lock-builtin-face
-@kindex font-lock-builtin-face @r{(face name)}
 Used (typically) for built-in function names.
 
 @item font-lock-function-name-face
 @vindex font-lock-function-name-face
-@kindex font-lock-function-name-face @r{(face name)}
 Used (typically) for the name of a function being defined or declared,
 in a function definition or declaration. 
 
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face
-@kindex font-lock-variable-name-face @r{(face name)}
 Used (typically) for the name of a variable being defined or declared,
 in a variable definition or declaration.
 
 @item font-lock-type-face
 @vindex font-lock-type-face
-@kindex font-lock-type-face @r{(face name)}
 Used (typically) for names of user-defined data types,
 where they are defined and where they are used.
 
 @item font-lock-constant-face
 @vindex font-lock-constant-face
-@kindex font-lock-constant-face @r{(face name)}
 Used (typically) for constant names.
 
 @item font-lock-warning-face
 @vindex font-lock-warning-face
-@kindex font-lock-warning-face @r{(face name)}
 Used (typically) for constructs that are peculiar, or that greatly
 change the meaning of other text.  For example, this is used for
 @samp{;;;###autoload} cookies in Emacs Lisp, and for @code{#error}

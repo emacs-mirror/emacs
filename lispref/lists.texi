@@ -496,7 +496,17 @@ result list.  If the final element is not a list, the result is a
 ``dotted list'' since its final @sc{cdr} is not @code{nil} as required
 in a true list.
 
-Here is an example of using @code{append}:
+The @code{append} function also allows integers as arguments.  It
+converts them to strings of digits, making up the decimal print
+representation of the integer, and then uses the strings instead of the
+original integers.  @strong{Don't use this feature; we plan to eliminate
+it.  If you already use this feature, change your programs now!}  The
+proper way to convert an integer to a decimal number in this way is with
+@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
+(@pxref{String Conversion}).
+@end defun
+
+  Here is an example of using @code{append}:
 
 @example
 @group
@@ -518,7 +528,7 @@ more-trees
 @end group
 @end example
 
-You can see how @code{append} works by looking at a box diagram.  The
+  You can see how @code{append} works by looking at a box diagram.  The
 variable @code{trees} is set to the list @code{(pine oak)} and then the
 variable @code{more-trees} is set to the list @code{(maple birch pine
 oak)}.  However, the variable @code{trees} continues to refer to the
@@ -537,9 +547,9 @@ more-trees                trees
 @end group
 @end smallexample
 
-An empty sequence contributes nothing to the value returned by
+  An empty sequence contributes nothing to the value returned by
 @code{append}.  As a consequence of this, a final @code{nil} argument
-forces a copy of the previous argument.
+forces a copy of the previous argument:
 
 @example
 @group
@@ -564,7 +574,7 @@ wood
 This once was the usual way to copy a list, before the function
 @code{copy-sequence} was invented.  @xref{Sequences Arrays Vectors}.
 
-Here we show the use of vectors and strings as arguments to @code{append}:
+  Here we show the use of vectors and strings as arguments to @code{append}:
 
 @example
 @group
@@ -573,7 +583,7 @@ Here we show the use of vectors and strings as arguments to @code{append}:
 @end group
 @end example
 
-With the help of @code{apply} (@pxref{Calling Functions}), we can append
+  With the help of @code{apply} (@pxref{Calling Functions}), we can append
 all the lists in a list of lists:
 
 @example
@@ -583,7 +593,7 @@ all the lists in a list of lists:
 @end group
 @end example
 
-If no @var{sequences} are given, @code{nil} is returned:
+  If no @var{sequences} are given, @code{nil} is returned:
 
 @example
 @group
@@ -592,7 +602,7 @@ If no @var{sequences} are given, @code{nil} is returned:
 @end group
 @end example
 
-Here are some examples where the final argument is not a list:
+  Here are some examples where the final argument is not a list:
 
 @example
 (append '(x y) 'z)
@@ -606,16 +616,6 @@ The second example shows that when the final argument is a sequence but
 not a list, the sequence's elements do not become elements of the
 resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
-
-The @code{append} function also allows integers as arguments.  It
-converts them to strings of digits, making up the decimal print
-representation of the integer, and then uses the strings instead of the
-original integers.  @strong{Don't use this feature; we plan to eliminate
-it.  If you already use this feature, change your programs now!}  The
-proper way to convert an integer to a decimal number in this way is with
-@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
-(@pxref{String Conversion}).
-@end defun
 
 @defun reverse list
 This function creates a new list whose elements are the elements of

@@ -638,7 +638,6 @@ This function returns the name of the machine you are running on.
 @end example
 @end defun
 
-@vindex system-name
   The symbol @code{system-name} is a variable as well as a function.  In
 fact, the function returns whatever value the variable
 @code{system-name} currently holds.  Thus, you can set the variable

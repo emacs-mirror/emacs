@@ -752,15 +752,16 @@ The value returned by @code{save-excursion} is the result of the last of
 
 @example
 @group
-(save-excursion
-  @var{forms})
+(save-excursion @var{forms})
 @equiv{}
 (let ((old-buf (current-buffer))
       (old-pnt (point-marker))
+@end group
       (old-mark (copy-marker (mark-marker))))
   (unwind-protect
       (progn @var{forms})
     (set-buffer old-buf)
+@group
     (goto-char old-pnt)
     (set-marker (mark-marker) old-mark)))
 @end group

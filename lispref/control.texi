@@ -956,6 +956,8 @@ message (but without a beep), then returns a very large number.
   (condition-case err                
       ;; @r{Protected form.}
       (/ dividend divisor)              
+@end group
+@group
     ;; @r{The handler.}
     (arith-error                        ; @r{Condition.}
      ;; @r{Display the usual message for this error.}

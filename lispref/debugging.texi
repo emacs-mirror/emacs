@@ -553,6 +553,7 @@ The arguments of special forms are elided.
 ----------- Buffer: backtrace-output ------------
   backtrace()
   (list ...computing arguments...)
+@end group
   (progn ...)
   eval((progn (1+ var) (list (quote testing) (backtrace))))
   (setq ...)
@@ -561,6 +562,7 @@ The arguments of special forms are elided.
   (with-output-to-temp-buffer ...)
   eval-region(1973 2142 #<buffer *scratch*>)
   byte-code("...  for eval-print-last-sexp ...")
+@group
   eval-print-last-sexp(nil)
 * call-interactively(eval-print-last-sexp)
 ----------- Buffer: backtrace-output ------------

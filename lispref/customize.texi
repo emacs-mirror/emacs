@@ -171,8 +171,9 @@ If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
 value; be careful in writing it, because it can be evaluated on more
 than one occasion.
+@end defmac
 
-The following additional keywords are accepted:
+  @code{defcustom} accepts the following additional keywords:
 
 @table @code
 @item :type @var{type}
@@ -248,7 +249,6 @@ already set or has been customized; otherwise, just use
 @code{set-default}.
 @end table
 @end table
-@end defmac
 
   The @code{:require} option is useful for an option that turns on the
 operation of a certain feature.  Assuming that the package is coded to

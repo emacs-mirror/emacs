@@ -198,7 +198,7 @@ and @samp{o} to get the regular expression @samp{fo}, which matches only
 the string @samp{fo}.  Still trivial.  To do something more powerful, you
 need to use one of the special characters.  Here is a list of them:
 
-@need 1200
+@need 800
 @table @asis
 @item @samp{.}@: @r{(Period)}
 @cindex @samp{.} in regexp
@@ -312,7 +312,6 @@ mentioned as one of the characters not to match.  This is in contrast to
 the handling of regexps in programs such as @code{grep}.
 
 @item @samp{^}
-@cindex @samp{^} in regexp
 @cindex beginning of line in regexp
 is a special character that matches the empty string, but only at the
 beginning of a line in the text being matched.  Otherwise it fails to
