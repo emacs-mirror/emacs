@@ -921,7 +921,7 @@ ecrt0.o: ecrt0.c $(config_h)
 dired.o: dired.c commands.h buffer.h $(config_h) regex.h
 dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
-   xterm.h $(config_h)
+   xterm.h blockinput.h $(config_h)
 doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o: doprnt.c $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
