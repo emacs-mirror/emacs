@@ -69,6 +69,7 @@ Non-date items:
 %f   file name without directory	%F  gives absolute pathname
 %s   system name
 %u   user's login name
+%U   user's full name
 %h   mail host name
 
 Decimal digits between the % and the type character specify the
@@ -445,6 +446,8 @@ With arg, turn time stamping on if and only if arg is positive."
 	  (system-name))
 	 ((eq cur-char ?u)		;user name
 	  (user-login-name))
+	 ((eq cur-char ?U)		;user full name
+	  (user-full-name))
 	 ((eq cur-char ?h)		;mail host name
 	  (time-stamp-mail-host-name))
 	 ))
