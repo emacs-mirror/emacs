@@ -1,3 +1,22 @@
+2002-08-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.14 released.
+	(tramp-shell-prompt-pattern): New variable.
+	(tramp-actions-before-shell, tramp-multi-actions)
+	(tramp-find-shell, tramp-open-connection-multi)
+	(tramp-open-connection-setup-interactive-shell): Use it.
+	(tramp-open-connection-telnet, tramp-open-connection-rsh)
+	(tramp-open-connection-su): Mention `tramp-shell-prompt-pattern'
+	in the docstring.
+	(tramp-bug): Report `tramp-shell-prompt-pattern'.
+	(tramp-process-one-multi-action, tramp-process-one-action): Make
+	message clearer so people don't confuse it with Emacs asking them
+	a question if the regexp happens to end with "?".
+	(tramp-verbose): Change default value from 10 to 9.  Also change
+	some logging levels so that 10 is reserved for stuff which is
+	needed for debugging only, but 9 catches everything that people
+	might like to see in order to see that Tramp is actually working.
+
 2002-08-22  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-entries):
