@@ -1,3 +1,7 @@
+2003-06-02  Dave Love  <fx@gnu.org>
+
+	* regex.c (re_search_2): Fix last change.
+
 2003-05-30  Kenichi Handa  <handa@etlken2>
 
 	* regex.c (GET_CHAR_BEFORE_2): Check multibyte, not
