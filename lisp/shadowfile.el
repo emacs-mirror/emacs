@@ -25,7 +25,7 @@
 ;; LCD Archive Entry:
 ;; shadowfile|Boris Goldowsky|boris@gnu.ai.mit.edu|
 ;; Helps you keep identical copies of files in multiple places.|
-;; $Date: 1995/10/30 17:23:17 $ |$Revision: 1.6 $|~/misc/shadowfile.el.Z|
+;; $Date: 1996/01/14 07:34:30 $ |$Revision: 1.7 $|~/misc/shadowfile.el.Z|
 
 ;; Commentary:
 
@@ -501,7 +501,8 @@ shadow-define-cluster)."
   (let ((msg (shadow-join (mapcar (function cdr)
 				  (shadow-shadows-of (buffer-file-name)))
 			  " ")))
-    (message (if (zerop (length msg)) 
+    (message "%s"
+	     (if (zerop (length msg)) 
 		 "No shadows."
 	       msg))))
 
@@ -539,8 +540,8 @@ shadow-regexp-groups."
 			    (shadow-remove-from-todo pair)))
 		shadow-files-to-copy
 		'("shadow" "shadows" "cancel copy"))
-  (message (format "There are %d shadows to be updated." 
-		   (length shadow-files-to-copy)))
+  (message "There are %d shadows to be updated." 
+	   (length shadow-files-to-copy))
   (shadow-write-todo-file))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -582,8 +583,7 @@ site."
 	    (progn
 	      (write-region (point-min) (point-max) to)
 	      (shadow-remove-from-todo s))
-	  (error (message (format "Shadow %s not updated!" 
-				  (cdr s)))))))))
+	  (error (message "Shadow %s not updated!" (cdr s))))))))
 
 (defun shadow-shadows-of (file)
   "Returns copy operations needed to update FILE.
@@ -634,8 +634,8 @@ of files needing to be copied."
       (setq shadow-files-to-copy
 	    (shadow-union shadows shadow-files-to-copy))
       (shadow-when (not shadow-inhibit-message)
-	(message (substitute-command-keys
-		  "Use \\[shadow-copy-files] to update shadows."))
+	(message "%s" (substitute-command-keys
+		       "Use \\[shadow-copy-files] to update shadows."))
 	(sit-for 1))
       (shadow-write-todo-file)))
   nil)     ; Return nil for write-file-hooks
