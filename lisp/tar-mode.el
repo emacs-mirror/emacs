@@ -373,6 +373,27 @@ MODE should be an integer which is a file mode value."
 		(concat (if (= type 1) " ==> " " --> ") link-name)
 	      ""))))
 
+(defun tar-untar-buffer ()
+  "Extract all archive members in the tar-file."
+  (interactive)
+  (let ((multibyte enable-multibyte-characters))
+    (unwind-protect
+	(save-restriction
+	  (widen)
+	  (set-buffer-multibyte nil)
+	  (dolist (descriptor tar-parse-info)
+	    (let* ((tokens (tar-desc-tokens descriptor))
+		   (name (tar-header-name tokens))
+		   (dir (file-name-directory name))
+		   (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+		   (end (+ start (tar-header-size tokens))))
+	      (message "Extracting %s" name)
+	      (if (and dir (not (file-exists-p dir)))
+		  (make-directory dir t))
+	      (write-region start end name)
+	      (set-file-modes name (tar-header-mode tokens)))))
+      (set-buffer-multibyte multibyte))))
+
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer.
 Place a dired-like listing on the front;
