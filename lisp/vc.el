@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.228 1998/06/03 15:07:04 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.229 1998/06/05 12:46:29 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -153,6 +153,18 @@ These are passed to the checkin program by \\[vc-register]."
 			 :value ("")
 			 string))
   :group 'vc)
+
+(defcustom vc-dired-recurse t
+  "*If non-nil, show directory trees recursively in VC Dired."
+  :type 'boolean
+  :group 'vc
+  :version "20.3")
+
+(defcustom vc-dired-terse-display t
+  "*If non-nil, show only locked files in VC Dired."
+  :type 'boolean
+  :group 'vc
+  :version "20.3")
 
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
   "*List of directory names to be ignored while recursively walking file trees."
@@ -880,16 +892,17 @@ before the filename."
   (let ((dired-buffer (current-buffer))
 	(dired-dir default-directory))
     (dired-map-over-marks
-     (let ((file (dired-get-filename)) p
-	   (default-directory default-directory))
+     (let ((file (dired-get-filename)))
        (message "Processing %s..." file)
        ;; Adjust the default directory so that checkouts
        ;; go to the right place.
-       (setq default-directory (file-name-directory file))
-       (vc-next-action-on-file file nil comment)
-       (set-buffer dired-buffer)
-       (setq default-directory dired-dir)
-       (dired-do-redisplay file)
+       (let ((default-directory (file-name-directory file)))
+         (vc-next-action-on-file file nil comment)
+         (set-buffer dired-buffer))
+       ;; Make sure that files don't vanish
+       ;; after they are checked in.
+       (let ((vc-dired-terse-mode nil))
+         (dired-do-redisplay file))
        (set-window-configuration vc-dired-window-configuration)
        (message "Processing %s...done" file))
     nil t))
@@ -1629,11 +1642,23 @@ There is a special command, `*l', to mark all files currently locked."
        vc-dired-switches
        (set (make-local-variable 'dired-actual-switches)
             vc-dired-switches))
+  (set (make-local-variable 'vc-dired-terse-mode) vc-dired-terse-display)
   (setq vc-dired-mode t))
 
 (define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
 (define-key vc-dired-mode-map "v" vc-prefix-map)
-(define-key vc-dired-mode-map "=" 'vc-diff)
+
+(defun vc-dired-toggle-terse-mode ()
+  "Toggle terse display in VC Dired."
+  (interactive)
+  (if (not vc-dired-mode)
+      nil
+    (setq vc-dired-terse-mode (not vc-dired-terse-mode))
+    (if vc-dired-terse-mode
+        (vc-dired-hook)
+      (revert-buffer))))
+
+(define-key vc-dired-mode-map "vt" 'vc-dired-toggle-terse-mode)
 
 (defun vc-dired-mark-locked ()
   "Mark all files currently locked."
@@ -1723,35 +1748,71 @@ There is a special command, `*l', to mark all files currently locked."
           (delete-region start (point))
           (beginning-of-line)
           (forward-line 1)))
-       ;; an ordinary file line
+       ;; directory entry
        ((setq filename (dired-get-filename nil t))
         (cond
+         ;; subdir
          ((file-directory-p filename)
-          (if (member (file-name-nondirectory filename) 
-                      vc-directory-exclusion-list)
-              (let ((pos (point)))
-                (dired-kill-tree filename)
-                (goto-char pos)
-                (dired-kill-line))
+          (cond 
+           ((member (file-name-nondirectory filename) 
+                    vc-directory-exclusion-list)
+            (let ((pos (point)))
+              (dired-kill-tree filename)
+              (goto-char pos)
+              (dired-kill-line)))
+           (vc-dired-terse-mode
+            (dired-kill-line))
+           ((string-match "\\`\\.\\.?\\'" (file-name-nondirectory filename))
+            (dired-kill-line))
+           (t
             (vc-dired-reformat-line nil)
-            (forward-line 1)))
-         ((if cvs-dir
-              (eq (vc-file-getprop filename 'vc-backend) 'CVS)
-            (vc-backend filename))
+            (forward-line 1))))
+         ;; ordinary file
+         ((if cvs-dir 
+              (and (eq (vc-file-getprop filename 'vc-backend) 'CVS)
+                   (or (not vc-dired-terse-mode)
+                       (not (eq (vc-cvs-status filename) 'up-to-date))))
+            (and (vc-backend filename)
+                 (or (not vc-dired-terse-mode)
+                     (vc-locking-user filename))))
           (vc-dired-reformat-line (vc-dired-state-info filename))
           (forward-line 1))
          (t 
           (dired-kill-line))))
        ;; any other line
-       (t (forward-line 1)))))
-  (message "Getting version information... done"))
+       (t (forward-line 1))))
+    (vc-dired-purge))
+  (message "Getting version information... done")
+  (save-restriction
+    (widen)
+    (if (eq (count-lines (point-min) (point-max)) 2)
+        (message "No files locked under %s" default-directory))))
+
+(defun vc-dired-purge ()
+  ;; Remove empty subdirs
+  (let (subdir)
+    (goto-char (point-min))
+    (while (setq subdir (dired-get-subdir))
+      (forward-line 2)
+      (if (dired-get-filename nil t)
+          (if (not (dired-next-subdir 1 t))
+              (goto-char (point-max)))
+        (forward-line -2)
+        (if (not (string= (dired-current-directory) default-directory))
+            (dired-do-kill-lines t "")
+          (if (not (dired-next-subdir 1 t))
+              (goto-char (point-max))))))
+    (goto-char (point-min))))
 
 ;;;###autoload
 (defun vc-directory (dirname read-switches)
   (interactive "DDired under VC (directory): \nP")
-  (let ((vc-dired-switches
-         (if read-switches (read-string "Dired listing switches: "
-                                        dired-listing-switches))))
+  (let ((vc-dired-switches (concat dired-listing-switches
+                                   (if vc-dired-recurse "R" ""))))
+    (if read-switches 
+        (setq vc-dired-switches
+              (read-string "Dired listing switches: "
+                           vc-dired-switches)))
     (require 'dired)
     (require 'dired-aux)
     ;; force a trailing slash
