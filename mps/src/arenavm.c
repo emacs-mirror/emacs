@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.37) $
+ * $HopeName: MMsrc!arenavm.c(trunk.38) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.37) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.38) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -196,7 +196,8 @@ static Bool VMArenaCheck(VMArena vmArena)
 
 static Res VMArenaInit(Arena *arenaReturn, va_list args)
 {
-  Size size;
+  Size userSize;        /* size requested by user */
+  Size arenaSize;       /* size actually created, as determined by VM */
   Res res;
   Size pageTableSize;
   VM vm;
@@ -207,22 +208,24 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   Arena arena;
   Index gen;
 
-  size = va_arg(args, Size);
+  userSize = va_arg(args, Size);
   AVER(arenaReturn != NULL);
-  AVER(size > 0);
+  AVER(userSize > 0);
 
-  res = VMCreate(&vm, size);
-  if(res != ResOK) goto failVMCreate;
+  res = VMCreate(&vm, userSize);
+  if(res != ResOK)
+    goto failVMCreate;
 
   /* .arena.alloc */
   base = VMBase(vm);
   initArena->vm = vm;
   initArena->base = base;
   initArena->limit = VMLimit(vm);
-  AVER(AddrOffset(initArena->base, initArena->limit) == size);
+  /* the VM will have aligned the userSize, so pick up the actual size */
+  arenaSize = AddrOffset(initArena->base, initArena->limit);
   initArena->pageSize = VMAlign(vm);
   initArena->pageShift = SizeLog2(initArena->pageSize);
-  initArena->pages = size >> initArena->pageShift;
+  initArena->pages = arenaSize >> initArena->pageShift;
   /* We generally assume that a page is aligned enough for any */
   /* normal object. */
   AVER(initArena->pageSize >= MPS_PF_ALIGN);
@@ -245,7 +248,8 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
                                      AddrAdd((Addr)initArena->pageTable,
                                              pageTableSize));
   res = VMMap(vm, base, (Addr)initArena->pageTable);
-  if(res != ResOK) goto failTableMap;
+  if(res != ResOK)
+    goto failTableMap;
 
   /* Now that we've mapped the tables, copy in the stuff already */
   /* computed. */
@@ -269,7 +273,7 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   /* zones as will fit into a reference set (the number of bits in a */
   /* word).  Note that some zones are discontiguous in the arena if the */
   /* size is not a power of 2.  See design.mps.arena.class.fields. */
-  arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
+  arena->zoneShift = SizeFloorLog2(arenaSize >> MPS_WORD_SHIFT);
   arena->alignment = vmArena->pageSize;
 
   /* We blacklist the first and last zones because they commonly */
@@ -701,7 +705,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* we fail. */
   addr = PageIndexBase(vmArena, base);
   res = VMMap(vmArena->vm, addr, AddrAdd(addr, size));
-  if(res)
+  if(res != ResOK)
     goto failSegMap;
 
   /* Compute number of pages to be allocated. */
@@ -711,7 +715,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   if(unusedTablePages(&unmappedPagesBase, &unmappedPagesLimit,
 		      vmArena, base, base + pages)) {
     res = VMMap(vmArena->vm, unmappedPagesBase, unmappedPagesLimit);
-    if(res)
+    if(res != ResOK)
       goto failTableMap;
   }
 
