@@ -1,3 +1,8 @@
+2003-07-30  Kenichi Handa  <handa@etlken2>
+
+	* international/fontset.el (setup-default-fontset): Change
+	registry names of Akurti fonts.
+
 2003-07-29  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* comint.el (comint-read-noecho): Use `clear-string' instead of
