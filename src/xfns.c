@@ -137,7 +137,7 @@ Lisp_Object Vx_bitmap_file_path;
 Lisp_Object Vx_pixel_size_width_font_regexp;
 
 /* A flag to control how to display unibyte 8-bit character.  */
-int x_display_unibyte_char_with_fontset;
+int unibyte_display_via_language_environment;
 
 /* Evaluate this expression to rebuild the section of syms_of_xfns
    that initializes and staticpros the symbols declared below.  Note
@@ -5386,16 +5386,14 @@ such a font.  This is especially effective for such large fonts as\n\
 Chinese, Japanese, and Korean.");
   Vx_pixel_size_width_font_regexp = Qnil;
 
-  DEFVAR_BOOL ("x-display-unibyte-char-with-fontset",
-	       &x_display_unibyte_char_with_fontset,
-     "*Non-nil means display unibyte 8-bit characters by a font in fontset.\n\
-Usually, unibyte 8-bit characters are displayed by a font\n\
-specified for an ASCII font.\n\
-But if this variable is non-nil, such characters are displayed by a font\n\
-for a specific character set listed in the current fontset.\n\
-Thus, changing the current language environment will change\n\
-how unibyte 8-bit characters display.");
-  x_display_unibyte_char_with_fontset = 0;
+  DEFVAR_BOOL ("unibyte-display-via-language-environment",
+	       &unibyte_display_via_language_environment,
+   "*Non-nil means display unibyte text according to language environment.\n\
+Specifically this means that unibyte non-ASCII characters\n\
+are displayed by converting them to the equivalent multibyte characters\n\
+according to the current language environment.  As a result, they are\n\
+displayed according to the current fontset.");
+  unibyte_display_via_language_environment = 0;
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
