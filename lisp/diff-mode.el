@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- A mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
@@ -893,7 +893,8 @@ This mode runs `diff-mode-hook'.
   ;; (compilation-shell-minor-mode 1)
 
   ;; setup change hooks
-  (toggle-read-only t)
+  (unless (and (bobp) (eobp))
+    (toggle-read-only t))
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
