@@ -2429,7 +2429,10 @@ A prefix arg makes KEEP-TIME non-nil.  */)
       SetFileAttributes (filename, attributes);
     }
 #else /* not WINDOWSNT */
+  immediate_quit = 1;
   ifd = emacs_open (SDATA (encoded_file), O_RDONLY, 0);
+  immediate_quit = 0;
+
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (file, Qnil));
 
