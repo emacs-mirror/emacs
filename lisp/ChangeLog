@@ -1,3 +1,9 @@
+2002-07-03  Dave Love  <fx@gnu.org>
+
+	* ediff-diff.el (ediff-wordify): Bind ediff-forward-word-function
+	outside the loop.
+	(ediff-goto-word): Take ediff-with-syntax-table outside the loop.
+
 2002-07-03  Juanma Barranquero  <lektu@terra.es>
 
 	* textmodes/reftex-vars.el (reftex-label-alist): Fix typo.
@@ -17,7 +23,8 @@
 
 	* textmodes/reftex-cite.el (reftex-citation): Fix typo.
 
-	* progmodes/cperl-mode.el (cperl-break-one-line-blocks-when-indent): Fix typo.
+	* progmodes/cperl-mode.el (cperl-break-one-line-blocks-when-indent):
+	Fix typo.
 
 2002-06-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -4167,7 +4174,7 @@
 	(toplevel): Add completion-list-mode-finish to temp-buffer-show-hook.
 
 	* language/european.el ("Polish"): Change sample text.
-	From jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+	From jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
 
 	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
 	parameter.

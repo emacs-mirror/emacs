@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -1270,18 +1270,19 @@ arguments to `skip-chars-forward'."
      (skip-chars-forward ediff-whitespace)
      (delete-region (point-min) (point))
      
-     (while (not (eobp))
-       ;; eval in control buf to let user create local versions for
-       ;; different invocations
-       (if control-buf
-	   (funcall 
-	    (ediff-with-current-buffer control-buf
-	      ediff-forward-word-function))
-	 (funcall ediff-forward-word-function))
-       (setq sv-point (point))
-       (skip-chars-forward ediff-whitespace)
-       (delete-region sv-point (point))
-       (insert "\n")))))
+     (let ((ediff-forward-word-function
+	    ;; eval in control buf to let user create local versions for
+	    ;; different invocations
+	    (if control-buf
+		(ediff-with-current-buffer control-buf
+		  ediff-forward-word-function)
+	      ediff-forward-word-function)))
+       (while (not (eobp))
+	 (funcall ediff-forward-word-function)
+	 (setq sv-point (point))
+	 (skip-chars-forward ediff-whitespace)
+	 (delete-region sv-point (point))
+	 (insert "\n"))))))
        
 ;; copy string from BEG END from IN-BUF to OUT-BUF
 (defun ediff-copy-to-buffer (beg end in-buffer out-buffer)
@@ -1305,11 +1306,11 @@ arguments to `skip-chars-forward'."
 	(syntax-tbl ediff-syntax-table))
     (ediff-with-current-buffer buf
       (skip-chars-forward ediff-whitespace)
-      (while (> n 1)
-	(ediff-with-syntax-table syntax-tbl
-	    (funcall fwd-word-fun))
-	(skip-chars-forward ediff-whitespace)
-	(setq n (1- n)))
+      (ediff-with-syntax-table syntax-tbl
+	(while (> n 1)
+	  (funcall fwd-word-fun)
+	  (skip-chars-forward ediff-whitespace)
+	  (setq n (1- n))))
       (if (and flag (> n 0))
 	  (funcall fwd-word-fun))
       (point))))
