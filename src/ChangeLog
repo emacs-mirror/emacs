@@ -1,5 +1,8 @@
 2001-11-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* coding.c: Change doc-string comments to `new style' [w/`doc:'
+	keyword].
+
 	* eval.c (top_level_value, top_level_set): Remove commented and
 	#ifdef'd-out code.
 	(Fdefvar): Fix usage in doc-string.
