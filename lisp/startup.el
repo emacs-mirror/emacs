@@ -155,6 +155,11 @@ the startup message unless he personally acts to inhibit it."
   :type 'boolean
   :group 'initialization)
 
+(defcustom inhibit-startup-buffer-menu nil
+  "*Non-nil inhibits display of buffer list when more than 2 files are loaded."
+  :type 'boolean
+  :group 'initialization)
+
 (defvar command-switch-alist nil
   "Alist of command-line switches.
 Elements look like (SWITCH-STRING . HANDLER-FUNCTION).
@@ -1621,6 +1626,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
       ;; show user what they all are.  But leave the last one current.
       (and (> file-count 2)
 	   (not noninteractive)
+	   (not inhibit-startup-buffer-menu)	   
 	   (or (get-buffer-window first-file-buffer)
 	       (list-buffers))))))
 
