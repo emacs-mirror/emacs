@@ -1,3 +1,6 @@
+2002-03-12  Francesco Potorti`  <pot@gnu.org>
+	* etags.c (Python_functions): Skip spaces at beginning of lines.
+
 2002-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* cvtmail.c (xrealloc): Always pass two args to `fatal'.
