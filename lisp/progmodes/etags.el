@@ -1396,11 +1396,8 @@ Searches only in \"tags-file-name\"."
     (setq file-list (tags-locate-file-in-tags-table filename
 						    (if next-match next-match nil)))
     (if file-list
-	(if (cdr file-list)
-	    (select-tags-matched-file file-list 'extract-pos-and-tag-from-sel
-				      'select-file-quit)
-	  (tags-list-functions-in-file (nth 1 (car file-list))
-				  (nth 2 (car file-list))))
+	(tags-list-functions-in-file (nth 1 (car file-list))
+				     (nth 2 (car file-list)))
       (message (format "%s not found in tags table" filename)))))
 
 ;;;###autoload
