@@ -303,6 +303,50 @@ CHARSETS is a list of character sets."
 	      (sort codings (function (lambda (x y) (> (car x) (car y))))))
       )))
 
+(defun find-multibyte-characters (from to &optional maxcount excludes)
+  "Find multibyte characters in the region specified by FROM and TO.
+If FROM is a string, find multibyte characters in the string.
+The return value is an alist of the following format:
+  ((CHARSET COUNT CHAR ...) ...)
+where
+  CHARSET is a character set,
+  COUNT is a number of characters,
+  CHARs are found characters of the character set.
+Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
+Optioanl 4th arg EXCLUDE is a list of character sets to be ignored."
+  (let ((chars nil)
+	charset char)
+    (if (stringp from)
+	(let ((idx 0))
+	  (while (setq idx (string-match "[^\000-\177]" from idx))
+	    (setq char (aref from idx)
+		  charset (char-charset char))
+	    (if (not (memq charset excludes))
+		(let ((slot (assq charset chars)))
+		  (if slot
+		      (if (not (memq char (nthcdr 2 slot)))
+			  (let ((count (nth 1 slot)))
+			    (setcar (cdr slot) (1+ count))
+			    (if (or (not maxcount) (< count maxcount))
+				(nconc slot (list char)))))
+		    (setq chars (cons (list charset 1 char) chars)))))
+	    (setq idx (1+ idx))))
+      (save-excursion
+	(goto-char from)
+	(while (re-search-forward "[^\000-\177]" to t)
+	  (setq char (preceding-char)
+		charset (char-charset char))
+	  (if (not (memq charset excludes))
+	      (let ((slot (assq charset chars)))
+		(if slot
+		    (if (not (memq char (nthcdr 2 slot)))
+			(let ((count (nth 1 slot)))
+			  (setcar (cdr slot) (1+ count))
+			  (if (or (not maxcount) (< count maxcount))
+			      (nconc slot (list char)))))
+		  (setq chars (cons (list charset 1 char) chars))))))))
+    (nreverse chars)))
+
 (defvar last-coding-system-specified nil
   "Most recent coding system explicitly specified by the user when asked.
 This variable is set whenever Emacs asks the user which coding system
@@ -326,9 +370,9 @@ Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
   (or default-coding-system
       (setq default-coding-system buffer-file-coding-system))
-  (let ((safe-coding-systems (if (stringp from)
-				 (find-coding-systems-string from)
-			       (find-coding-systems-region from to))))
+  (let* ((charsets (if (stringp from) (find-charset-string from)
+		     (find-charset-region from to)))
+	 (safe-coding-systems (find-coding-systems-for-charsets charsets)))
     (if (or (eq (car safe-coding-systems) 'undecided)
 	    (and default-coding-system
 		 (memq (coding-system-base default-coding-system)
@@ -345,34 +389,86 @@ and TO is ignored."
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
 
-      ;; Then, ask a user to select a proper coding system.  
-      (save-window-excursion
-	;; At first, show a helpful message.
-	(with-output-to-temp-buffer "*Warning*"
-	  (save-excursion
-	    (set-buffer standard-output)
-	    (insert (format "\
-The target text contains a multibyte character which can't be
-encoded safely by the coding system %s.
+      (let ((non-safe-chars (find-multibyte-characters
+			     from to 3
+			     (and default-coding-system
+				  (coding-system-get default-coding-system
+						     'safe-charsets))))
+	    overlays)
+	(save-excursion
+	  ;; Highlight characters that default-coding-system can't encode.
+	  (when (integerp from)
+	    (goto-char from)
+	    (let ((found nil))
+	      (while (and (not found)
+			  (re-search-forward "[^\000-\177]" to t))
+		(setq found (assq (char-charset (preceding-char))
+				  non-safe-chars))))
+	    (beginning-of-line)
+	    (set-window-start (selected-window) (point))
+	    (save-excursion
+	      (while (re-search-forward "[^\000-\177]" to t)
+		(let* ((char (preceding-char))
+		       (charset (char-charset char)))
+		  (when (assq charset non-safe-chars)
+		    (setq overlays (cons (make-overlay (1- (point)) (point))
+					 overlays))
+		    (overlay-put (car overlays) 'face 'highlight))))))
+
+	  ;; At last, ask a user to select a proper coding system.  
+	  (unwind-protect
+	      (save-window-excursion
+		;; At first, show a helpful message.
+		(with-output-to-temp-buffer "*Warning*"
+		  (save-excursion
+		    (set-buffer standard-output)
+		    (insert "The target text contains the following non ASCII character(s):\n")
+		    (let ((len (length non-safe-chars))
+			  (shown 0))
+		      (while (and non-safe-chars (< shown 3))
+			(when (> (length (car non-safe-chars)) 2)
+			  (setq shown (1+ shown))
+			  (insert (format "%25s: " (car (car non-safe-chars))))
+			  (let ((l (nthcdr 2 (car non-safe-chars))))
+			    (while l
+			      (insert (car l))
+			      (setq l (cdr l))))
+			  (if (> (nth 1 (car non-safe-chars)) 3)
+			      (insert "..."))
+			  (insert "\n"))
+			(setq non-safe-chars (cdr non-safe-chars)))
+		      (if (< shown len)
+			  (insert (format "%27s\n" "..."))))
+		    (insert (format "\
+These can't be encoded safely by the coding system %s.
 
 Please select one from the following safe coding systems:\n"
-			    default-coding-system))
-	    (let ((pos (point))
-		  (fill-prefix "  "))
-	      (mapcar (function (lambda (x) (princ "  ") (princ x)))
-		      safe-coding-systems)
-	      (fill-region-as-paragraph pos (point)))))
+				    default-coding-system))
+		    (let ((pos (point))
+			  (fill-prefix "  "))
+		      (mapcar (function (lambda (x) (princ "  ") (princ x)))
+			      safe-coding-systems)
+		      (fill-region-as-paragraph pos (point)))))
 
-	;; Read a coding system.
-	(unwind-protect
-	    (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-				       safe-coding-systems))
-		   (name (completing-read
-			  (format "Select coding system (default %s): "
-				  (car safe-coding-systems))
-			  safe-names nil t nil nil (car (car safe-names)))))
-	      (setq last-coding-system-specified (intern name)))
-	  (kill-buffer "*Warning*"))))))
+		;; Read a coding system.
+		(let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+					   safe-coding-systems))
+		       (name (completing-read
+			      (format "Select coding system (default %s): "
+				      (car safe-coding-systems))
+			      safe-names nil t nil nil
+			      (car (car safe-names)))))
+		  (setq last-coding-system-specified (intern name))
+		  (if (integerp (coding-system-eol-type default-coding-system))
+		      (setq last-coding-system-specified
+			    (coding-system-change-eol-conversion
+			     last-coding-system-specified
+			     (coding-system-eol-type default-coding-system))))
+		  last-coding-system-specified))
+	    (kill-buffer "*Warning*")
+	    (while overlays
+	      (delete-overlay (car overlays))
+	      (setq overlays (cdr overlays)))))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
