@@ -112,11 +112,13 @@ Boston, MA 02111-1307, USA.  */
   in the coding system category XXX.  Each returns an integer value in
   which appropriate flag bits for the category XXX is set.  The flag
   bits are defined in macros CODING_CATEGORY_MASK_XXX.  Below is the
-  template of these functions.  */
+  template of these functions.  If MULTIBYTEP is nonzero, 8-bit codes
+  of the range 0x80..0x9F are in multibyte form.  */
 #if 0
 int
-detect_coding_emacs_mule (src, src_end)
+detect_coding_emacs_mule (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   ...
 }
@@ -209,6 +211,21 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
     c2 = *src++;						\
   } while (0)
 
+
+/* Like ONE_MORE_BYTE, but 8-bit bytes of data at SRC are in multibyte
+   form if MULTIBYTEP is nonzero.  */
+
+#define ONE_MORE_BYTE_CHECK_MULTIBYTE(c1, multibytep)		\
+  do {								\
+    if (src >= src_end)						\
+      {								\
+	coding->result = CODING_FINISH_INSUFFICIENT_SRC;	\
+	goto label_end_of_loop;					\
+      }								\
+    c1 = *src++;						\
+    if (multibytep && c1 == LEADING_CODE_8_BIT_CONTROL)		\
+      c1 = *src++ - 0x20;					\
+  } while (0)
 
 /* Set C to the next character at the source text pointed by `src'.
    If there are not enough characters in the source, jump to
@@ -536,9 +553,10 @@ enum emacs_code_class_type emacs_code_class[256];
    Check if a text is encoded in Emacs' internal format.  If it is,
    return CODING_CATEGORY_MASK_EMACS_MULE, else return 0.  */
 
-int
-detect_coding_emacs_mule (src, src_end)
+static int
+detect_coding_emacs_mule (src, src_end, multibytep)
       unsigned char *src, *src_end;
+      int multibytep;
 {
   unsigned char c;
   int composing = 0;
@@ -548,7 +566,7 @@ detect_coding_emacs_mule (src, src_end)
 
   while (1)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 
       if (composing)
 	{
@@ -556,7 +574,7 @@ detect_coding_emacs_mule (src, src_end)
 	    composing = 0;
 	  else if (c == 0xA0)
 	    {
-	      ONE_MORE_BYTE (c);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	      c &= 0x7F;
 	    }
 	  else
@@ -881,9 +899,10 @@ enum iso_code_class_type iso_code_class[256];
    are set.  If a code which should never appear in ISO2022 is found,
    returns 0.  */
 
-int
-detect_coding_iso2022 (src, src_end)
+static int
+detect_coding_iso2022 (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   int mask = CODING_CATEGORY_MASK_ISO;
   int mask_found = 0;
@@ -897,18 +916,18 @@ detect_coding_iso2022 (src, src_end)
   reg[0] = CHARSET_ASCII, reg[1] = reg[2] = reg[3] = -1;
   while (mask && src < src_end)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
       switch (c)
 	{
 	case ISO_CODE_ESC:
 	  if (inhibit_iso_escape_detection)
 	    break;
 	  single_shifting = 0;
-	  ONE_MORE_BYTE (c);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	  if (c >= '(' && c <= '/')
 	    {
 	      /* Designation sequence for a charset of dimension 1.  */
-	      ONE_MORE_BYTE (c1);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
 	      if (c1 < ' ' || c1 >= 0x80
 		  || (charset = iso_charset_table[0][c >= ','][c1]) < 0)
 		/* Invalid designation sequence.  Just ignore.  */
@@ -918,13 +937,13 @@ detect_coding_iso2022 (src, src_end)
 	  else if (c == '$')
 	    {
 	      /* Designation sequence for a charset of dimension 2.  */
-	      ONE_MORE_BYTE (c);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	      if (c >= '@' && c <= 'B')
 		/* Designation for JISX0208.1978, GB2312, or JISX0208.  */
 		reg[0] = charset = iso_charset_table[1][0][c];
 	      else if (c >= '(' && c <= '/')
 		{
-		  ONE_MORE_BYTE (c1);
+		  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
 		  if (c1 < ' ' || c1 >= 0x80
 		      || (charset = iso_charset_table[1][c >= ','][c1]) < 0)
 		    /* Invalid designation sequence.  Just ignore.  */
@@ -1074,7 +1093,7 @@ detect_coding_iso2022 (src, src_end)
 		  int i = 1;
 		  while (src < src_end)
 		    {
-		      ONE_MORE_BYTE (c);
+		      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 		      if (c < 0xA0)
 			break;
 		      i++;
@@ -2292,9 +2311,10 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    Check if a text is encoded in SJIS.  If it is, return
    CODING_CATEGORY_MASK_SJIS, else return 0.  */
 
-int
-detect_coding_sjis (src, src_end)
+static int
+detect_coding_sjis (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   int c;
   /* Dummy for ONE_MORE_BYTE.  */
@@ -2303,12 +2323,12 @@ detect_coding_sjis (src, src_end)
 
   while (1)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
       if (c >= 0x81)
 	{
 	  if (c <= 0x9F || (c >= 0xE0 && c <= 0xEF))
 	    {
-	      ONE_MORE_BYTE (c);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	      if (c < 0x40 || c == 0x7F || c > 0xFC)
 		return 0;
 	    }
@@ -2324,9 +2344,10 @@ detect_coding_sjis (src, src_end)
    Check if a text is encoded in BIG5.  If it is, return
    CODING_CATEGORY_MASK_BIG5, else return 0.  */
 
-int
-detect_coding_big5 (src, src_end)
+static int
+detect_coding_big5 (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   int c;
   /* Dummy for ONE_MORE_BYTE.  */
@@ -2335,10 +2356,10 @@ detect_coding_big5 (src, src_end)
 
   while (1)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
       if (c >= 0xA1)
 	{
-	  ONE_MORE_BYTE (c);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	  if (c < 0x40 || (c >= 0x7F && c <= 0xA0))
 	    return 0;
 	}
@@ -2359,9 +2380,10 @@ detect_coding_big5 (src, src_end)
 #define UTF_8_5_OCTET_LEADING_P(c) (((c) & 0xFC) == 0xF8)
 #define UTF_8_6_OCTET_LEADING_P(c) (((c) & 0xFE) == 0xFC)
 
-int
-detect_coding_utf_8 (src, src_end)
+static int
+detect_coding_utf_8 (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   unsigned char c;
   int seq_maybe_bytes;
@@ -2371,7 +2393,7 @@ detect_coding_utf_8 (src, src_end)
 
   while (1)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
       if (UTF_8_1_OCTET_P (c))
 	continue;
       else if (UTF_8_2_OCTET_LEADING_P (c))
@@ -2389,7 +2411,7 @@ detect_coding_utf_8 (src, src_end)
 
       do
 	{
-	  ONE_MORE_BYTE (c);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
 	  if (!UTF_8_EXTRA_OCTET_P (c))
 	    return 0;
 	  seq_maybe_bytes--;
@@ -2417,16 +2439,18 @@ detect_coding_utf_8 (src, src_end)
 #define UTF_16_LOW_SURROGATE_P(val) \
   (((val) & 0xDC00) == 0xDC00)
 
-int
-detect_coding_utf_16 (src, src_end)
+static int
+detect_coding_utf_16 (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   unsigned char c1, c2;
   /* Dummy for TWO_MORE_BYTES.  */
   struct coding_system dummy_coding;
   struct coding_system *coding = &dummy_coding;
 
-  TWO_MORE_BYTES (c1, c2);
+  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
+  ONE_MORE_BYTE_CHECK_MULTIBYTE (c2, multibytep);
 
   if ((c1 == 0xFF) && (c2 == 0xFE))
     return CODING_CATEGORY_MASK_UTF_16_LE;
@@ -2677,9 +2701,10 @@ encode_coding_sjis_big5 (coding, source, destination,
    encoder/decoder are written in CCL program.  If it is, return
    CODING_CATEGORY_MASK_CCL, else return 0.  */
 
-int
-detect_coding_ccl (src, src_end)
+static int
+detect_coding_ccl (src, src_end, multibytep)
      unsigned char *src, *src_end;
+     int multibytep;
 {
   unsigned char *valid;
   int c;
@@ -2694,7 +2719,7 @@ detect_coding_ccl (src, src_end)
   valid = coding_system_table[CODING_CATEGORY_IDX_CCL]->spec.ccl.valid_codes;
   while (1)
     {
-      ONE_MORE_BYTE (c);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
       if (! valid[c])
 	return 0;
     }
@@ -3484,14 +3509,16 @@ int ascii_skip_code[256];
    CODING_CATEGORY_MASK_XXX in `coding.h'.  If PRIORITIES is non-NULL,
    it should point the table `coding_priorities'.  In that case, only
    the flag bit for a coding system of the highest priority is set in
-   the returned value.
+   the returned value.  If MULTIBYTEP is nonzero, 8-bit codes of the
+   range 0x80..0x9F are in multibyte form.
 
    How many ASCII characters are at the head is returned as *SKIP.  */
 
 static int
-detect_coding_mask (source, src_bytes, priorities, skip)
+detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
      unsigned char *source;
      int src_bytes, *priorities, *skip;
+     int multibytep;
 {
   register unsigned char c;
   unsigned char *src = source, *src_end = source + src_bytes;
@@ -3519,7 +3546,7 @@ detect_coding_mask (source, src_bytes, priorities, skip)
     {
       /* i.e. (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO) */
       /* C is an ISO2022 specific control code of C0.  */
-      mask = detect_coding_iso2022 (src, src_end);
+      mask = detect_coding_iso2022 (src, src_end, multibytep);
       if (mask == 0)
 	{
 	  /* No valid ISO2022 code follows C.  Try again.  */
@@ -3543,6 +3570,9 @@ detect_coding_mask (source, src_bytes, priorities, skip)
   else
     {
       int try;
+
+      if (multibytep && c == LEADING_CODE_8_BIT_CONTROL)
+	c = *src++ - 0x20;
 
       if (c < 0xA0)
 	{
@@ -3602,22 +3632,22 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 		  iso2022_examined_p = 1;
 		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_SJIS)
-		mask |= detect_coding_sjis (src, src_end);
+		mask |= detect_coding_sjis (src, src_end, multibytep);
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_UTF_8)
-		mask |= detect_coding_utf_8 (src, src_end);
+		mask |= detect_coding_utf_8 (src, src_end, multibytep);
 	      else if (!utf16_examined_p
 		       && (priorities[i] & try &
 			   CODING_CATEGORY_MASK_UTF_16_BE_LE))
 		{
-		  mask |= detect_coding_utf_16 (src, src_end);
+		  mask |= detect_coding_utf_16 (src, src_end, multibytep);
 		  utf16_examined_p = 1;
 		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_BIG5)
-		mask |= detect_coding_big5 (src, src_end);
+		mask |= detect_coding_big5 (src, src_end, multibytep);
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_EMACS_MULE)
-		mask |= detect_coding_emacs_mule (src, src_end);      
+		mask |= detect_coding_emacs_mule (src, src_end, multibytep);
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_CCL)
-		mask |= detect_coding_ccl (src, src_end);
+		mask |= detect_coding_ccl (src, src_end, multibytep);
 	      else if (priorities[i] & CODING_CATEGORY_MASK_RAW_TEXT)
 		mask |= CODING_CATEGORY_MASK_RAW_TEXT;
 	      else if (priorities[i] & CODING_CATEGORY_MASK_BINARY)
@@ -3628,19 +3658,19 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	  return CODING_CATEGORY_MASK_RAW_TEXT;
 	}
       if (try & CODING_CATEGORY_MASK_ISO)
-	mask |= detect_coding_iso2022 (src, src_end);
+	mask |= detect_coding_iso2022 (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_SJIS)
-	mask |= detect_coding_sjis (src, src_end);
+	mask |= detect_coding_sjis (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_BIG5)
-	mask |= detect_coding_big5 (src, src_end);      
+	mask |= detect_coding_big5 (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_UTF_8)
-	mask |= detect_coding_utf_8 (src, src_end);
+	mask |= detect_coding_utf_8 (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_UTF_16_BE_LE)
-	mask |= detect_coding_utf_16 (src, src_end);      
+	mask |= detect_coding_utf_16 (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_EMACS_MULE)
-	mask |= detect_coding_emacs_mule (src, src_end);
+	mask |= detect_coding_emacs_mule (src, src_end, multibytep);
       if (try & CODING_CATEGORY_MASK_CCL)
-	mask |= detect_coding_ccl (src, src_end);
+	mask |= detect_coding_ccl (src, src_end, multibytep);
     }
   return (mask | CODING_CATEGORY_MASK_RAW_TEXT | CODING_CATEGORY_MASK_BINARY);
 }
@@ -3659,7 +3689,7 @@ detect_coding (coding, src, src_bytes)
   Lisp_Object val;
 
   val = Vcoding_category_list;
-  mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip);
+  mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip, 0);
   coding->heading_ascii = skip;
 
   if (!mask) return;
@@ -5607,15 +5637,16 @@ The value of property should be a vector of length 5.")
 }
 
 Lisp_Object
-detect_coding_system (src, src_bytes, highest)
+detect_coding_system (src, src_bytes, highest, multibytep)
      unsigned char *src;
      int src_bytes, highest;
+     int multibytep;
 {
   int coding_mask, eol_type;
   Lisp_Object val, tmp;
   int dummy;
 
-  coding_mask = detect_coding_mask (src, src_bytes, NULL, &dummy);
+  coding_mask = detect_coding_mask (src, src_bytes, NULL, &dummy, multibytep);
   eol_type  = detect_eol_type (src, src_bytes, &dummy);
   if (eol_type == CODING_EOL_INCONSISTENT)
     eol_type = CODING_EOL_UNDECIDED;
@@ -5698,7 +5729,9 @@ highest priority.")
 
   return detect_coding_system (BYTE_POS_ADDR (from_byte),
 			       to_byte - from_byte,
-			       !NILP (highest));
+			       !NILP (highest),
+			       !NILP (current_buffer
+				      ->enable_multibyte_characters));
 }
 
 DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
@@ -5719,7 +5752,8 @@ highest priority.")
 
   return detect_coding_system (XSTRING (string)->data,
 			       STRING_BYTES (XSTRING (string)),
-			       !NILP (highest));
+			       !NILP (highest),
+			       STRING_MULTIBYTE (string));
 }
 
 /* Return an intersection of lists L1 and L2.  */
