@@ -1659,21 +1659,16 @@ All possible translations of the current key and whole possible longer keys
       ;; Insert every 10 elements with indices in a line.
       (let ((len (length translations))
 	    (i 0)
-	    (first t)
 	    num)
 	(while (< i len)
-	  (if first
-	      (progn
-		(insert "(1/1)")
-		(setq first nil))
-	    (if (= (% i 10) 0)
-		(progn
-		  (newline)
-		  (indent-to indent)
-		  (insert (format "(%d/%d)" (1+ (/ i 10)) (1+ (/ len 10)))))))
+	  (when (zerop (% i 10))
+	    (when (>= i 10)
+	      (newline)
+	      (indent-to indent))
+	    (insert (format "(%d/%d)" (1+ (/ i 10)) (1+ (/ len 10)))))
 	  ;; We show the last digit of FROM while converting
 	  ;; 0,1,..,9 to 1,2,..,0.
-	  (insert (format " %d." (if (= (% i 10) 9) 0 (1+ (% i 10)))))
+	  (insert (format " %d." (% (1+ i) 10)))
 	  (insert (aref translations i))
 	  (setq i (1+ i)))
 	(newline)))))
