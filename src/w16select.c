@@ -449,7 +449,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	  || !STRING_MULTIBYTE (string)
 	  || nbytes == XSTRING (string)->size)
 	 ? 0
-	 : find_charset_in_str (src, nbytes, charsets, Qnil, 1));
+	 : find_charset_in_str (src, nbytes, charsets, Qnil, 0));
 
   if (!num || (num == 1 && charsets[CHARSET_ASCII]))
     {
