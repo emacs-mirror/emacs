@@ -318,19 +318,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
   (coding-system-get coding-system :encode-translation-table))
 
 ;;;###autoload
-(defun coding-system-equal (coding-system-1 coding-system-2)
-  "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
-Two coding systems are identical if two symbols are equal
-or one is an alias of the other."
-  (or (eq coding-system-1 coding-system-2)
-      (and (equal (coding-system-plist coding-system-1)
-		  (coding-system-plist coding-system-2))
-	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
-		 (eol-type-2 (coding-system-eol-type coding-system-2)))
-	     (or (eq eol-type-1 eol-type-2)
-		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
-
-;;;###autoload
 (defmacro with-coding-priority (coding-systems &rest body)
   "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
 CODING-SYSTEMS is a list of coding systems.  See
