@@ -197,7 +197,7 @@ COPYDESTS = ${etcdir} ${lispdir}
 
 all:	paths-force ${SUBDIR}
 
-removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
+removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Note that sed is not in /bin on 386bsd.
 src/paths.h: Makefile ${srcdir}/src/paths.h.in
@@ -352,7 +352,7 @@ install-arch-indep: mkdir
 mkdir: FRC.mkdir
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${docdir} ${libdir} \
-	  `echo ${locallisppath} | sed 's/:/ /'`
+	  `echo ${locallisppath} | sed 's/:/ /g'`
 	-chmod 777 ${lockdir}
 
 ### Delete all the installed files that the `install' target would
