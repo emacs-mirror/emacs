@@ -1,5 +1,13 @@
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (Qscalable_fonts_allowed): New variable.
+	(realizing_basic_faces_p): Removed.
+	(x_face_list_fonts): Special handling for realizing_basic_faces_p
+	removed.
+	(realize_basic_faces): Specbind Qscalable_fonts_allowed to t.
+	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change
+	default for scalable-fonts-allowed to t.
+
 	* fileio.c (Finsert_file_contents): If the file size returned from
 	stat is zero, set END to READ_BUF_SIZE.  This makes sure we can
 	read from files on a procfs whose contents are generated
