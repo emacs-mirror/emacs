@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.29) $
+ * $HopeName: MMsrc!mpm.h(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -362,6 +362,7 @@ extern void TraceSetSummary(Space space, Seg seg, RefSet summary);
 
 extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
 extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
+extern Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask);
 
 
 /* Action Interface -- see design.mps.action */
@@ -536,7 +537,10 @@ extern void LDMerge(LD ld, Space space, LD from);
 /* Root Interface -- see impl.c.root */
 
 extern Res RootCreateTable(Root *rootReturn, Space space,
-                             Rank rank, Addr *base, Addr *limit);
+                           Rank rank, Addr *base, Addr *limit);
+extern Res RootCreateTableMasked(Root *rootReturn, Space space,
+                                 Rank rank, Addr *base, Addr *limit,
+                                 Word mask);
 extern Res RootCreateReg(Root *rootReturn, Space space,
                            Rank rank, Thread thread,
                            RootScanRegMethod scan,

@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.24) $
+ * $HopeName: MMsrc!trace.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.24) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.25) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -763,11 +763,24 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 
 /* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
- * This is as TraceScanArea except words are only fixed if they
- * are multiples of four. i.e. look like 4-byte aligned pointers.
+ * This is as TraceScanArea except words are only fixed if they are
+ * tagged as Dylan references (i.e. bottom two bits are zero).
+ * @@@@ This Dylan-specificness should be generalized in some way.
  */
 
 Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
+{
+  return TraceScanAreaMasked(ss, base, limit, (Word)3);
+}
+
+
+/* TraceScanAreaMasked -- scan contiguous area of filtered references
+ *
+ * This is as TraceScanArea except words are only fixed if they
+ * are zero when masked with a mask.
+ */
+
+Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
 {
   Res res;
   Addr *p;
@@ -782,8 +795,7 @@ Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
   loop:
     if(p >= limit) goto out;
     ref = *p++;
-    if(((Word)ref&3) != 0)   /* only fix 4-aligned pointers */
-      goto loop;             /* not a pointer */
+    if(((Word)ref & mask) != 0) goto loop;
     if(!TRACE_FIX1(ss, ref)) goto loop;
     res = TRACE_FIX2(ss, p-1);
     if(res == ResOK) goto loop;

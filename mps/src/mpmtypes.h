@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.22) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -178,12 +178,15 @@ enum {
 /* implemented. */
 
 
-/* Root Variants -- see design.mps.type.rootvar */
-/* Synchonize with impl.c.mpm.rootvarcheck */
+/* Root Variants -- see design.mps.type.rootvar
+ *
+ * .rootvar: Synchonize with impl.c.root.rootvarcheck
+ */
 
 enum {
   RootFUN,
   RootTABLE,
+  RootTABLE_MASKED,
   RootREG,
   RootFMT
 };
