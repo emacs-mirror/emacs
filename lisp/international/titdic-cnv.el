@@ -640,3 +640,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
   (kill-emacs 0))
 
 ;;; titdic-cnv.el ends here
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
