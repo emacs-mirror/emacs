@@ -2330,7 +2330,7 @@ However, the mode will not be changed if
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
-nil or empty string as argument means make buffer not be visiting any file.
+FILENAME nil or an empty string means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
@@ -4024,7 +4024,7 @@ by `sh' are supported."
   "Expand wildcard pattern PATTERN.
 This returns a list of file names which match the pattern.
 
-If PATTERN is written as an absolute relative file name,
+If PATTERN is written as an absolute file name,
 the values are absolute also.
 
 If PATTERN is written as a relative file name, it is interpreted
