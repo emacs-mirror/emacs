@@ -3453,7 +3453,9 @@ This does code conversion according to the value of\n\
      But if we discover the need for conversion, we give up on this method
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
-      && ! CODING_REQUIRE_DECODING (&coding))
+      && ! CODING_REQUIRE_DECODING (&coding)
+      && (coding.eol_type == CODING_EOL_UNDECIDED
+	  || coding.eol_type == CODING_EOL_LF))
     {
       /* same_at_start and same_at_end count bytes,
 	 because file access counts bytes
@@ -3912,11 +3914,12 @@ This does code conversion according to the value of\n\
       /* Use the conversion type to determine buffer-file-type
 	 (find-buffer-file-type is now used to help determine the
 	 conversion).  */
-      if (coding.eol_type != CODING_EOL_UNDECIDED 
-	  && coding.eol_type != CODING_EOL_LF)
-	current_buffer->buffer_file_type = Qnil;
-      else
+      if ((coding.eol_type == CODING_EOL_UNDECIDED 
+	   || coding.eol_type == CODING_EOL_LF)
+	  && ! CODING_REQUIRE_DECODING (&coding))
 	current_buffer->buffer_file_type = Qt;
+      else
+	current_buffer->buffer_file_type = Qnil;
 #endif
     }
 
