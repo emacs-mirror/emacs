@@ -1,3 +1,7 @@
+2005-02-14  Lute Kamstra  <lute@gnu.org>
+
+	* cus-start.el (all): Check if symbol is void.
+
 2005-02-14  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-cite.el (reftex-do-citation): Cleanup single
