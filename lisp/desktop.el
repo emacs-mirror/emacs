@@ -521,8 +521,8 @@ MODE is the major mode."
       (set-buffer buf)
       (erase-buffer)
 
-      (insert desktop-header
-	      ";; -*- coding: emacs-mule; -*-\n"
+      (insert ";; -*- coding: emacs-mule; -*-\n"
+	      desktop-header
 	      ";; Created " (current-time-string) "\n"
 	      ";; Emacs version " emacs-version "\n\n"
 	      ";; Global section:\n")
