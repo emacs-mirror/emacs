@@ -1619,7 +1619,8 @@ This function takes some pains to conform to `ls -lR' output."
     ;;  moves point.
     ;;  Need a marker for END as this inserts text.
     (goto-char begin)
-    (dired-insert-headerline dirname)
+    (if (not (looking-at "^  /.*:$"))
+	(dired-insert-headerline dirname))
     ;; point is now like in dired-build-subdir-alist
     (prog1
 	(list begin (marker-position end))
