@@ -42,7 +42,7 @@
 ;; By default, goto-address now sends using `mail' instead of `mh-send'.
 ;; To use mh-e to send mail, add the following to your .emacs file:
 ;;
-;; (setq goto-address-mail-method 'goto-address-send-using-mhe)
+;; (setq goto-address-mail-method 'goto-address-send-using-mh-e)
 ;;
 ;; The mouse click method is bound to [mouse-2] on highlighted URL's or
 ;; e-mail addresses only; it functions normally everywhere else.  To bind
@@ -98,7 +98,7 @@ But only if `goto-address-highlight-p' is also non-nil.")
   'goto-address-send-using-mail
   "*Function to compose mail.
 Two pre-made functions are `goto-address-send-using-mail' (sendmail);
-and `goto-address-send-using-mhe' (MH-E).")
+and `goto-address-send-using-mh-e' (MH-E).")
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
@@ -194,13 +194,16 @@ address.  If no e-mail address found, return the empty string."
 	(buffer-substring (match-beginning 0) (match-end 0))
       "")))
 
-(defun goto-address-send-using-mhe (to)
+(defun goto-address-send-using-mh-e (to)
+  (require 'mh-comp)
   (mh-find-path)
   (let ((cc (mh-read-address "Cc: "))
 	(subject (read-string "Subject: "))
 	(config (current-window-configuration)))
     (delete-other-windows)
     (mh-send-sub to cc subject config)))
+
+(fset 'goto-address-send-using-mhe 'goto-address-send-using-mh-e)
 
 (defun goto-address-send-using-mail (to)
   (mail-other-window nil to)
