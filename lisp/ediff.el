@@ -7,7 +7,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.75" "The current version of Ediff")
-(defconst ediff-date "October 29, 2000" "Date of last update")  
+(defconst ediff-date "January 19, 2001" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -1257,10 +1257,10 @@ buffer. If odd -- assume it is in a file."
 			      (buffer-file-name patch-buf))))
 			   (t default-directory)))
     (setq source-file
-	  ;; the default is the directory, not the visited file name
 	  (read-file-name 
 	   "File to patch (directory, if multifile patch): "
-	   source-dir (ediff-get-default-file-name)))
+	   ;; use an explicit initial file
+	   source-dir nil nil (ediff-get-default-file-name)))
     (ediff-dispatch-file-patching-job patch-buf source-file)))
 
 ;;;###autoload

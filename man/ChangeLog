@@ -1,3 +1,9 @@
+2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff.texi: add credits.
+	
+	* viper.texi: small fixes; added credits
+	
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faq.texi: Many changes to make it consistent with Emacs 21.

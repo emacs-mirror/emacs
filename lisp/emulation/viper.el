@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
-(defconst viper-version "3.09 of October 29, 2000"
+(defconst viper-version "3.09 of January 19, 2001"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -1248,8 +1248,8 @@ These two lines must come in the order given.
 	     (and (< viper-expert-level 5) (> viper-expert-level 0))))
     (viper-set-hooks))
     
-;; Let all minor modes take effect after loading
-;; this may not be enough, so we also set default minor-mode-alist.
+;; Let all minor modes take effect after loading.
+;; This may not be enough, so we also set default minor-mode-alist.
 ;; Without setting the default, new buffers that come up in emacs mode have
 ;; minor-mode-map-alist = nil, unless we call viper-change-state-*
 (if (and viper-mode (eq viper-current-state 'emacs-state))
@@ -1260,6 +1260,14 @@ These two lines must come in the order given.
 
 (if (and viper-mode (memq major-mode viper-vi-state-mode-list))
     (viper-mode))
+
+(if viper-mode
+    (setq initial-major-mode
+	  `(lambda ()
+	     (funcall (quote ,initial-major-mode))
+	     (set-viper-state-in-major-mode))
+	  ))
+
 
 
 (run-hooks 'viper-load-hook) ; the last chance to change something

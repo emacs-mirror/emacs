@@ -1,3 +1,25 @@
+2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
+
+        * viper.el: call initial-major-mode on startup.
+	
+	* ediff.el (ediff-patch-file): use better defaults.
+	
+	* ediff-vers.el: fix for 8+3 DOS file systems
+	
+2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
+	
+	* ediff-util.el (ediff-compare-custom-diffs-maybe): put diff in
+	diff mode, if available.
+	
+2001-01-19  Vin Shelton <acs@xemacs.org>
+	
+	* ediff-hook.el (ediff-xemacs-init-menus): fixed add-menu-button
+	
+2001-01-19  Steve Youngs  <youngs@xemacs.org>
+
+	* ediff-init.el (subst-char-in-string): Define and use it, unless
+	it's already defined.
+	
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* tooltip.el (tooltip-hide-delay): New user-option.

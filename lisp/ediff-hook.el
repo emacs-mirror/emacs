@@ -62,8 +62,7 @@
 	  (add-submenu
 	   '("Tools") ediff-misc-menu "OO-Browser...")
 	  (add-menu-button
-	   '("Tools")
-	   ["-------" nil nil] "OO-Browser...")
+	   '("Tools") "-------" "OO-Browser...")
 	  ))))
 
 

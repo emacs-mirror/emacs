@@ -401,9 +401,9 @@ change to Vi state.@refill
 
 For users who chose to set their user level to 1 at Viper setup time,
 switching to Emacs state is deliberately made harder in order to not
-confuse the novice user.  In this case, @kbd{C-z} will either iconify
-Emacs (if Emacs runs as an application under X) or it will stop Emacs
-(if Emacs runs on a dumb terminal or in an Xterm window).
+confuse the novice user.  In this case, @kbd{C-z} will either iconify Emacs
+(if Emacs runs as an application under X) or it will stop Emacs (if
+Emacs runs on a dumb terminal or in an Xterm window).
 
 @item Vi state
 This is the Vi command mode.  Any of the Vi commands, such as @kbd{i, o, a},
@@ -4431,6 +4431,7 @@ dwallach@@cs.princeton.edu (Dan Wallach),
 dwight@@toolucky.llnl.gov (Dwight Shih),
 dxc@@xprt.net (David X. Callaway),
 edmonds@@edmonds.home.cs.ubc.ca (Brian Edmonds),
+gin@@mo.msk.ru (Golubev I.N.),
 gviswana@@cs.wisc.edu (Guhan Viswanathan),
 gvr@@halcyon.com (George V.@: Reilly),
 hatazaki@@bach.convex.com (Takao Hatazaki),
