@@ -1,3 +1,7 @@
+2005-02-05  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* emacs.bash: Update the name of the socket of the Emacs server.
+
 2005-01-22  David Kastrup  <dak@gnu.org>
 
 	* NEWS: Mention alias `find-grep' for `grep-find'.

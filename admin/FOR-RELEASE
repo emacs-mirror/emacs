@@ -181,7 +181,7 @@ SECTION             READERS
 man/abbrevs.texi
 man/anti.texi
 man/basic.texi      "Luc Teirlinck"
-man/buffers.texi    "Luc Teirlinck"
+man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi    Joakim Verona <joakim@verona.se>
 man/cmdargs.texi
@@ -191,9 +191,9 @@ man/dired.texi
 man/display.texi    "Luc Teirlinck"
 man/emacs.texi      "Luc Teirlinck"
 man/entering.texi   "Luc Teirlinck"
-man/files.texi      "Luc Teirlinck"
+man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"
-man/frames.texi     "Luc Teirlinck"
+man/frames.texi     "Luc Teirlinck"  Chong Yidong
 man/glossary.texi
 man/help.texi       "Luc Teirlinck"
 man/indent.texi     "Luc Teirlinck"
@@ -215,9 +215,9 @@ man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
 man/search.texi     "Luc Teirlinck"
 man/sending.texi
-man/text.texi       "Luc Teirlinck"
+man/text.texi       "Luc Teirlinck"   Chong Yidong
 man/trouble.texi
-man/windows.texi    "Luc Teirlinck"
+man/windows.texi    "Luc Teirlinck"   Chong Yidong
 man/xresources.texi
 
 ** Check the Emacs Lisp manual.
@@ -233,7 +233,7 @@ lispref/abbrevs.texi     "Luc Teirlinck"
 lispref/advice.texi	 Joakim Verona <joakim@verona.se>
 lispref/anti.texi
 lispref/backups.texi     "Luc Teirlinck"
-lispref/buffers.texi     "Luc Teirlinck"
+lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>
 lispref/commands.texi    "Luc Teirlinck"
 lispref/compile.texi     "Luc Teirlinck"
@@ -245,8 +245,8 @@ lispref/edebug.texi
 lispref/elisp.texi       "Luc Teirlinck"
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"
-lispref/files.texi       "Luc Teirlinck"
-lispref/frames.texi      "Luc Teirlinck"
+lispref/files.texi       "Luc Teirlinck"   Chong Yidong
+lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
 lispref/functions.texi	 "Luc Teirlinck"
 lispref/hash.texi	 "Luc Teirlinck"
 lispref/help.texi	 "Luc Teirlinck"
@@ -274,10 +274,10 @@ lispref/streams.texi	 "Luc Teirlinck"
 lispref/strings.texi	 "Luc Teirlinck"
 lispref/symbols.texi	 "Luc Teirlinck"
 lispref/syntax.texi	 "Luc Teirlinck"
-lispref/text.texi
+lispref/text.texi        Chong Yidong
 lispref/tips.texi	 "Luc Teirlinck"
 lispref/variables.texi	 "Luc Teirlinck"
-lispref/windows.texi     "Luc Teirlinck"
+lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
 
 Local variables:

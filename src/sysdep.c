@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-     2003, 2004  Free Software Foundation, Inc.
+     2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -869,7 +869,7 @@ sys_subshell ()
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
-      execlp (sh, sh, 0);
+      execlp (sh, sh, (char *) 0);
       write (1, "Can't execute subshell", 22);
       _exit (1);
 #endif  /* not WINDOWSNT */

@@ -1,4 +1,4 @@
-/* Handcrafted s-mac.h file for building GNU Emacs on the Macintosh.
+/* Handcrafted s-mac.h file for building GNU Emacs on Mac OS 9.
    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -1554,7 +1554,7 @@ portion of buffer text which has a @code{help-echo} text property.
 The generated event has this form:
 
 @example
- (help-echo @var{frame} @var{help} @var{window} @var{object} @var{pos})
+(help-echo @var{frame} @var{help} @var{window} @var{object} @var{pos})
 @end example
 
 @noindent

@@ -1143,15 +1143,26 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 ;; conflict with Lucid, which uses that name differently.
 
 (defvar help-xref-stack)
-(defun list-faces-display ()
+(defun list-faces-display (&optional regexp)
   "List all faces, using the same sample text in each.
 The sample text is a string that comes from the variable
-`list-faces-sample-text'."
-  (interactive)
+`list-faces-sample-text'.
+
+If REGEXP is non-nil, list only those faces with names matching
+this regular expression.  When called interactively with a prefix
+arg, prompt for a regular expression."
+  (interactive (list (and current-prefix-arg
+                          (read-string "List faces matching regexp: "))))
   (let ((faces (sort (face-list) #'string-lessp))
-	(face nil)
 	(frame (selected-frame))
 	disp-frame window face-name)
+    (when (> (length regexp) 0)
+      (setq faces
+            (delq nil
+                  (mapcar (lambda (f)
+                            (when (string-match regexp (symbol-name f))
+                              f))
+                          faces))))
     (with-output-to-temp-buffer "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
@@ -1164,9 +1175,7 @@ The sample text is a string that comes from the variable
 	   "\\[help-follow] on a face name to customize it\n"
 	   "or on its sample text for a description of the face.\n\n")))
 	(setq help-xref-stack nil)
-	(while faces
-	  (setq face (car faces))
-	  (setq faces (cdr faces))
+	(dolist (face faces)
 	  (setq face-name (symbol-name face))
 	  (insert (format "%25s " face-name))
 	  ;; Hyperlink to a customization buffer for the face.  Using
@@ -1207,6 +1216,7 @@ The sample text is a string that comes from the variable
 	  (while faces
 	    (copy-face (car faces) (car faces) frame disp-frame)
 	    (setq faces (cdr faces)))))))
+
 
 (defun describe-face (face &optional frame)
   "Display the properties of face FACE on FRAME.

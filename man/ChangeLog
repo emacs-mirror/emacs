@@ -1,4 +1,54 @@
-2005-01-31  Luc Teirlinck  <teirllm@auburn.edu>
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Parameters): Add an xref to the description
+	of list-colors-display.  Add a pointer to the X docs about colors.
+
+	* cmdargs.texi (Colors): Mention 16-, 88- and 256-color modes.
+	Impove docs of list-colors-display.
+
+2005-02-03  Lute Kamstra  <lute@gnu.org>
+
+	* frames.texi (Frames, Drag and Drop): Fix typos.
+
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Window): Mention color-change in mode line.
+	(Change Window): Explain dragging vertical boundaries.
+
+	* text.texi (Sentences): Clarify.
+	(Paragraphs): Explain M-a and blank lines.
+	(Outline Mode): Clarify text and menu.
+	(Hard and Soft Newlines): Mention use-hard-newlines.
+
+	* frames.texi (Frames): Delete unnecessary mention of Windows.
+	(Mouse Commands): Likewise.  Mention xterm mouse support.
+	(Clipboard): Clarify.
+	(Mouse References): Mention use of Mouse-1 for following links.
+	(Menu Mouse Clicks): Clarify.
+	(Mode Line Mouse): Clarify.
+	(Drag and Drop): Rewrite.
+
+	* fixit.texi (Spelling): Fix typo.
+
+	* files.texi (File Names): Clarify.
+	(Visiting): Update conditions for use of file dialog.  Clarify.
+	(Saving): Doc d as answer in save-some-buffers.
+	(Remote Files): Clean up the text.
+
+	* dired.texi (Misc Dired Commands): Delete dired-marked-files.
+
+	* buffers.texi (Select Buffer): Doc next-buffer and prev-buffer.
+	(List Buffers): Clarify.
+	(Several Buffers): Doc T command.
+	(Buffer Convenience): Clarify menu.
+
+	* basic.texi (Undo): Clarify last change.
+
+2005-02-02  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* fixit.texi (Spelling): Fix typo.
+
+2005-02-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* basic.texi (Undo): Update description of `undo-outer-limit'.
 

@@ -245,7 +245,7 @@ main (argc, argv)
 #endif
 
   if (*outname == 0)
-    fatal ("Destination file name is empty", 0);
+    fatal ("Destination file name is empty", 0, 0);
 
   /* Check access to output file.  */
   if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
@@ -601,12 +601,12 @@ mail_spool_name (inname)
 /* Print error message and exit.  */
 
 void
-fatal (s1, s2)
-     char *s1, *s2;
+fatal (s1, s2, s3)
+     char *s1, *s2, *s3;
 {
   if (delete_lockname)
     unlink (delete_lockname);
-  error (s1, s2, 0);
+  error (s1, s2, s3);
   exit (EXIT_FAILURE);
 }
 
@@ -631,17 +631,16 @@ void
 pfatal_with_name (name)
      char *name;
 {
-  char *s = concat ("", strerror (errno), " for %s");
-  fatal (s, name);
+  fatal ("%s for %s", strerror (errno), name);
 }
 
 void
 pfatal_and_delete (name)
      char *name;
 {
-  char *s = concat ("", strerror (errno), " for %s");
+  char *s = strerror (errno);
   unlink (name);
-  fatal (s, name);
+  fatal ("%s for %s", s, name);
 }
 
 /* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
@@ -669,7 +668,7 @@ xmalloc (size)
 {
   long *result = (long *) malloc (size);
   if (!result)
-    fatal ("virtual memory exhausted", 0);
+    fatal ("virtual memory exhausted", 0, 0);
   return result;
 }
 

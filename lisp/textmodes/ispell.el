@@ -1,6 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -2449,7 +2450,7 @@ With prefix argument, set the default dictionary."
   "Update the dictionary actually used by Ispell.
 This may kill the Ispell process; if so,
 a new one will be started when needed."
-  (let ((dict (or ispell-local-dictionary ispell-dictionary "default")))
+  (let ((dict (or ispell-local-dictionary ispell-dictionary)))
     (unless (equal ispell-current-dictionary dict)
       (setq ispell-current-dictionary dict)
       (ispell-kill-ispell t))))

@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -288,13 +288,6 @@ detailed description of this mode.
 	  (concat"-var-create - * "  expr "\n"))
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer 0)))
-
-(defun gdb-goto-info ()
-  "Go to Emacs info node: GDB Graphical Interface."
-  (interactive)
-  (select-frame (make-frame))
-  (require 'info)
-  (Info-goto-node "(emacs)GDB Graphical Interface"))
 
 (defconst gdb-var-create-regexp
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -1897,18 +1890,6 @@ corresponding to the mode line clicked."
 
 ;;; Shared keymap initialization:
 
-(let ((menu (make-sparse-keymap "GDB-Frames")))
-  (define-key gud-menu-map [frames]
-    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
-  (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
-  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
-  (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
-  (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
-  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
-  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
-  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
-  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer)))
-
 (let ((menu (make-sparse-keymap "GDB-Windows")))
   (define-key gud-menu-map [displays]
     `(menu-item "GDB-Windows" ,menu :visible (eq gud-minor-mode 'gdba)))
@@ -1921,15 +1902,27 @@ corresponding to the mode line clicked."
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer)))
 
+(let ((menu (make-sparse-keymap "GDB-Frames")))
+  (define-key gud-menu-map [frames]
+    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
+  (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
+  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
+  (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
+  (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
+  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
+  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer)))
+
 (let ((menu (make-sparse-keymap "GDB-UI")))
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb-restore-windows]
-    '("Restore window layout" . gdb-restore-windows))
+    '("Restore Window Layout" . gdb-restore-windows))
   (define-key menu [gdb-many-windows]
     (menu-bar-make-toggle gdb-many-windows gdb-many-windows
-			  "Display other windows" "Many Windows %s"
-			  "Display locals, stack and breakpoint information")))
+     "Display Other Windows" "Many windows %s"
+     "Toggle display of locals, stack and breakpoint information")))
 
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."

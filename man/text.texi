@@ -185,9 +185,9 @@ Kill back to the beginning of the sentence (@code{backward-kill-sentence}).
   The commands @kbd{M-a} and @kbd{M-e} (@code{backward-sentence} and
 @code{forward-sentence}) move to the beginning and end of the current
 sentence, respectively.  They were chosen to resemble @kbd{C-a} and
-@kbd{C-e}, which move to the beginning and end of a line.  Unlike them,
-@kbd{M-a} and @kbd{M-e} if repeated or given numeric arguments move over
-successive sentences.
+@kbd{C-e}, which move to the beginning and end of a line.  Unlike
+them, @kbd{M-a} and @kbd{M-e} move over successive sentences if
+repeated.
 
   Moving backward over a sentence places point just before the first
 character of the sentence; moving forward places point right after the
@@ -238,11 +238,10 @@ set @code{sentence-end} to this value:
 @end example
 
 @noindent
-You should also set the variable @code{sentence-end-double-space} to
-@code{nil} so that the fill commands expect and leave just one space at
-the end of a sentence.  Note that this makes it impossible to
-distinguish between periods that end sentences and those that indicate
-abbreviations.
+This is what setting the variable @code{sentence-end-double-space} to
+@code{nil} automatically does.  But note that this makes it impossible
+to distinguish between periods that end sentences and those that
+indicate abbreviations.
 
 @node Paragraphs
 @section Paragraphs
@@ -269,8 +268,8 @@ paragraph, while @kbd{M-@}} moves to the end of the current or next
 paragraph.  Blank lines and text-formatter command lines separate
 paragraphs and are not considered part of any paragraph.  In Indented
 Text mode, but not in Text mode, an indented line also starts a new
-paragraph.  (If a paragraph is preceded by a blank line, these
-commands treat that blank line as the beginning of the paragraph.)
+paragraph.  If there is a blank line before the paragraph, @kbd{M-@{}
+moves to the blank line, because that is convenient in practice.
 
   In major modes for programs, paragraphs begin and end only at blank
 lines.  This makes the paragraph commands continue to be useful even
@@ -894,11 +893,11 @@ invisible so that you can see the outline structure.  Type @kbd{M-x
 outline-mode} to switch to Outline mode as the major mode of the current
 buffer.
 
-  When Outline mode makes a line invisible, the line does not appear on
-the screen.  The screen appears exactly as if the invisible line were
-deleted, except that an ellipsis (three periods in a row) appears at the
-end of the previous visible line (only one ellipsis no matter how many
-invisible lines follow).
+  When Outline mode makes a line invisible, the line does not appear
+on the screen.  The screen appears exactly as if the invisible line
+were deleted, except that an ellipsis (three periods in a row) appears
+at the end of the previous visible line.  (Multiple consecutive
+invisible lines produce just one ellipsis.)
 
   Editing commands that operate on lines, such as @kbd{C-n} and
 @kbd{C-p}, treat the text of the invisible line as part of the previous
@@ -929,7 +928,7 @@ the hook @code{outline-mode-hook} (@pxref{Hooks}).
                                      outlines.
 * Visibility: Outline Visibility.  Commands to control what is visible.
 * Views: Outline Views.            Outlines and multiple views.
-* Foldout::                        Folding editing.
+* Foldout::                        Folding means zooming in on outlines.
 @end menu
 
 @node Outline Format
@@ -1900,8 +1899,11 @@ for more information about text properties.
 @cindex soft newline
 @cindex newlines, hard and soft
 
+@cindex use-hard-newlines
   In formatted text, Emacs distinguishes between two different kinds of
-newlines, @dfn{hard} newlines and @dfn{soft} newlines.
+newlines, @dfn{hard} newlines and @dfn{soft} newlines.  (You can enable
+or disable this feature separately in any  buffer with the command
+@code{use-hard-newlines}.)
 
   Hard newlines are used to separate paragraphs, or items in a list, or
 anywhere that there should always be a line break regardless of the

@@ -400,7 +400,7 @@ value of @code{undo-strong-limit} is 30000.
   Regardless of the values of those variables, the most recent change
 is never discarded unless it gets bigger than @code{undo-outer-limit}
 (normally 3,000,000).  At that point, Emacs discards the undo data and
-warns you about it.  This is the only situation in which you can not
+warns you about it.  This is the only situation in which you cannot
 undo the last command.  If this happens, you can increase the value of
 @code{undo-outer-limit} to make it even less likely to happen in the
 future.  But if you didn't expect the command to create such large

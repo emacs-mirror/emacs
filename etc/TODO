@@ -24,6 +24,9 @@ to the FSF.
   It should not generate :require.  Or :require in defcustom
   should not be recorded in the user's custom-set-variables call.
 
+** The buttons at the top of a custom buffer should not omit
+  variables whose values are currently hidden.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,

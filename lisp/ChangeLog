@@ -1,3 +1,107 @@
+2005-02-05  Arne_J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Support attributes with
+	optional descriptions separated by a semi-colon, as in
+	"userCertificate;binary".
+
+2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-handle-xdnd): Handle the case where the flags
+	isn't a cons (i.e. the version is 0).
+
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.el (help-for-help): Doc fix.
+
+2005-02-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Update copyright. Put GDB-Frames before
+	GDB-Windows on the menu-bar as this works better.
+
+2005-02-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-update): Don't put in
+	unnecessary newlines. Adjust the end of formula marker.
+
+	* calc/calc-lang.el (math-latex-parse-frac): Don't use arguments.
+	(math-latex-parse-two-args): New function.
+
+2005-02-03  Lute Kamstra  <lute@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Make sure that users cannot
+	remove the entire text of the tutorial by means of `undo'.
+
+2005-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-internal-change-dictionary): Fix problem
+	in recent changes, where the ispell process was repeatedly
+	killed & restarted.
+
+	* international/mule-cmds.el (set-locale-environment): Set file-name
+	coding system to utf-8 on Darwin systems.
+	(set-default-coding-systems): Don't set default-file-name-coding-system
+	on Darwin systems.
+
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-mode): Turning on Hi-Lock turns on Font-Lock.
+
+2005-02-03  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* faces.el (list-faces-display): Add optional argument.
+
+2005-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-core.el (font-lock-default-function): Handle the rare case where
+	only font-lock-keywords is set.
+
+2005-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Cancel previous change for
+	I-WITH-DOT-ABOVE and DOTLESS-i.
+
+	* international/latin-5.el: Cancel previous change.
+
+2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Correction to syntax in gud-menu-map.
+
+2005-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-5.el (tbl): Setup cases of I-WITH-DOT-ABOVE,
+	DOTLESS-i.
+
+	* international/characters.el: Setup cases of GREEK-FINAL-SIGMA,
+	Y-WITH-DIAERESIS, I-WITH-DOT-ABOVE, DOTLESS-i.
+
+	* case-table.el (get-upcase-table): New function.
+	(copy-case-table): Copy upcaes table too if non-nil.
+	(set-case-syntax-delims): Maintain upcase table too.
+	(set-case-syntax-pair): Likewise.
+	(set-upcase-syntax, set-downcase-syntax): New functions.
+	(set-case-syntax): Maintain upcase table too.
+
+2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: (gdb-goto-info): Delete.
+
+	* progmodes/gud.el (gud-goto-info): New function.
+	(gud-tool-bar-map): Use correct icon.
+
+2005-02-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Fix bug:
+	When delegating, order args in the funcall correctly.
+
+2005-02-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Doc fix.
+
+2005-02-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-access-scan-info): Error out in a
+	buffer not visiting a file.
+
 2005-01-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-find-bounds): Set the formula
@@ -111,7 +215,7 @@
 
 2005-01-29  Richard M. Stallman  <rms@gnu.org>
 
-	* ses.el (undo-more): defadvice deleted.
+	* ses.el (undo-more): Delete defadvice.
 	(ses-begin-change): Doc fix.
 
 	* dired.el (dired-mode-map): Remap `undo' and `advertised-undo'
@@ -129,7 +233,7 @@
 
 	* simple.el (undo): Fix the test for continuing a series of undos.
 	(undo-more): Set pending-undo-list to t when we reach end.
-	(pending-undo-list): defvar moved up.
+	(pending-undo-list): Move up defvar.
 
 	* wid-edit.el (widget-button-click):
 	Shorten the range of the track-mouse binding.
@@ -153,6 +257,20 @@
 	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
 	(gdb-assembler-custom): Update to recognise breakpoint information
 	added on 2005-01-19.
+
+2005-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-variables): Set comment-add.
+	(dsssl-mode): Use define-derived-mode.
+	(scheme-mode-initialize): Remove.
+	(scheme-mode): Use run-mode-hooks.
+
+	* cus-edit.el (customize-group-other-window)
+	(custom-buffer-create-other-window): Don't override special-display-*.
+	(custom-mode-map): Make it dense.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Make sure `defvar' always
+	sets the default value.
 
 2005-01-28  Eli Zaretskii  <eliz@gnu.org>
 

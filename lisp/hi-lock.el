@@ -294,6 +294,10 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
     (when (and (not hi-lock-mode-prev) hi-lock-mode)
       (add-hook 'find-file-hooks 'hi-lock-find-file-hook)
       (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook)
+      (when (eq nil font-lock-defaults)
+	(setq font-lock-defaults '(nil)))
+      (unless font-lock-mode
+	(font-lock-mode 1))
       (define-key-after menu-bar-edit-menu [hi-lock]
         (cons "Regexp Highlighting" hi-lock-menu))
       (dolist (buffer (buffer-list))

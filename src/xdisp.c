@@ -8086,6 +8086,8 @@ echo_area_display (update_frame_p)
 
   /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
+  /* Inform read_char that we're not echoing.  */
+  echo_message_buffer = Qnil;
 
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now

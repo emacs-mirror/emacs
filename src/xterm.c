@@ -7770,10 +7770,18 @@ x_error_handler (display, error)
    It kills all frames on the display that we got the error for.
    If that was the only one, it prints an error message and kills Emacs.  */
 
-/* It is after x_error_handler so that it won't get inlined in
-   x_error_handler.  */
+/* .gdbinit puts a breakpoint here, so make sure it is not inlined.  */
 
-static void
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
+/* On older GCC versions, just putting x_error_quitter
+   after x_error_handler prevents inlining into the former.  */
+
+static void NO_INLINE
 x_error_quitter (display, error)
      Display *display;
      XErrorEvent *error;

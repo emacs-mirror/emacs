@@ -1445,9 +1445,9 @@ menu_highlight_callback (widget, id, call_data)
 /* Find the menu selection and store it in the keyboard buffer.
    F is the frame the menu is on.
    MENU_BAR_ITEMS_USED is the length of VECTOR.
-   VECTOR is an array of menu events for the whole menu.
- */
-void
+   VECTOR is an array of menu events for the whole menu.  */
+
+static void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
      int menu_bar_items_used;
@@ -1553,6 +1553,17 @@ menubar_selection_callback (widget, client_data)
 
   if (! cb_data || ! cb_data->cl_data || ! cb_data->cl_data->f)
     return;
+
+  /* When a menu is popped down, X generates a focus event (i.e. focus
+     goes back to the frame below the menu).  Since GTK buffers events,
+     we force it out here before the menu selection event.  Otherwise
+     sit-for will exit at once if the focus event follows the menu selection
+     event.  */
+
+  BLOCK_INPUT;
+  while (gtk_events_pending ())
+    gtk_main_iteration ();
+  UNBLOCK_INPUT;
 
   find_and_call_menu_selection (cb_data->cl_data->f,
                                 cb_data->cl_data->menu_bar_items_used,

@@ -344,11 +344,11 @@ number inside of @samp{<@dots{}>}.  It starts at 2 and keeps
 incrementing the number until it is not the name of an existing buffer.
 
 If the optional second argument @var{ignore} is non-@code{nil}, it
-should be a string; it makes a difference if it is a name in the
-sequence of names to be tried.  That name will be considered acceptable,
-if it is tried, even if a buffer with that name exists.  Thus, if
-buffers named @samp{foo}, @samp{foo<2>}, @samp{foo<3>} and @samp{foo<4>}
-exist,
+should be a string, a potential buffer name.  It means to consider
+that potential buffer acceptable, if it is tried, even it is the name
+of an existing buffer (which would normally be rejected).  Thus, if
+buffers named @samp{foo}, @samp{foo<2>}, @samp{foo<3>} and
+@samp{foo<4>} exist,
 
 @example
 (generate-new-buffer-name "foo")
@@ -629,16 +629,13 @@ modification time, as a list of the form @code{(@var{high} @var{low})}.
 (This is the same format that @code{file-attributes} uses to return
 time values; see @ref{File Attributes}.)
 
-The function returns zero if the buffer has no recorded last
-modification time, which can happen, for instance, if the record has
-been explicitly cleared by @code{clear-visited-file-modtime} or if the
-buffer is not visiting a file.  Note, however, that
-@code{visited-file-modtime} can return a non-zero value for some
-buffers that are not visiting files, but are nevertheless closely
-associated with a file.  This happens, for instance, with dired
-buffers listing a directory.  For such buffers,
-@code{visited-file-modtime} returns the last modification time of that
-directory, as recorded by dired.
+If the buffer has no recorded last modification time, this function
+returns zero.  This case occurs, for instance, if the buffer is not
+visiting a file or if the time has been explicitly cleared by
+@code{clear-visited-file-modtime}.  Note, however, that
+@code{visited-file-modtime} returns a list for some non-file buffers
+too.  For instance, in a Dired buffer listing a directory, it returns
+the last modification time of that directory, as recorded by Dired.
 
 For a new buffer visiting a not yet existing file, @var{high} is
 @minus{}1 and @var{low} is 65535, that is,
@@ -857,7 +854,8 @@ If no suitable buffer exists, the buffer @samp{*scratch*} is returned
 This function puts @var{buffer-or-name} at the end of the buffer list,
 without changing the order of any of the other buffers on the list.
 This buffer therefore becomes the least desirable candidate for
-@code{other-buffer} to return.
+@code{other-buffer} to return.  The argument can be either a buffer
+itself or the name of one.
 
 @code{bury-buffer} operates on each frame's @code{buffer-list} parameter
 as well as the frame-independent Emacs buffer list; therefore, the
@@ -949,8 +947,8 @@ Names}.
 @cindex killing buffers
 @cindex buffers, killing
 
-  @dfn{Killing a buffer} makes its name unknown to Emacs and makes its
-text space available for other use.
+  @dfn{Killing a buffer} makes its name unknown to Emacs and makes the
+memory space it occupied available for other use.
 
   The buffer object for the buffer that has been killed remains in
 existence as long as anything refers to it, but it is specially marked
@@ -1100,6 +1098,18 @@ the base for the new buffer.  If, in addition, @var{clone} is
 non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
 @end deffn
+
+@defun clone-indirect-buffer newname display-flag &optional norecord
+This function creates and returns a new indirect buffer that shares
+the current buffer's base buffer and copies the rest of the current
+buffer's attributes.  (If the current buffer is not indirect, it is
+used as the base buffer.)
+
+If @var{display-flag} is non-@code{nil}, that means to display the new
+buffer by calling @code{pop-to-buffer}.  If @var{norecord} is
+non-@code{nil}, that means not to put the new buffer to the front of
+the buffer list.
+@end defun
 
 @defun buffer-base-buffer &optional buffer
 This function returns the base buffer of @var{buffer}, which defaults
