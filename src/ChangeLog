@@ -1,3 +1,7 @@
+2000-07-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (Fccl_execute): Typo fixed.
+
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (window_loop): Add missing gcpro1 local variable.
