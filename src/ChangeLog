@@ -1,5 +1,8 @@
 2001-02-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (window_loop) <GET_BUFFER_WINDOW>: Prefer to return
+	the selected window if it is showing the buffer in question.
+
 	* dired.c (directory_files_internal): Initialize errno.
 	(toplevel): Include errno.h.
 
