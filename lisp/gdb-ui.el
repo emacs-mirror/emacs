@@ -96,8 +96,7 @@ The following interactive lisp functions help control operation :
 
   (interactive (list (gud-query-cmdline 'gdba)))
 
-  (gdba-common-init command-line nil
-		   'gdba-marker-filter 'gud-gdb-find-file)
+  (gdba-common-init command-line nil 'gdba-marker-filter)
 
   (set (make-local-variable 'gud-minor-mode) 'gdba)
 
@@ -293,32 +292,24 @@ with a gdb instance.")
 ;;; DEF-GDB-VARIABLE
 ;;;
 
-(defmacro def-gdb-variable (name accessor setter &optional default doc)
-  `(progn
-     (defvar ,name ,default ,doc)
-     (if (not (memq ',name gdb-instance-variables))
-	 (push ',name gdb-instance-variables))
-     ,(and accessor
-	     `(defun ,accessor ()
-		(let ((buffer (gdb-get-instance-buffer 'gdba)))
-		  (and buffer (save-excursion
-				(set-buffer buffer)
-				,name)))))
-     ,(and setter
-	     `(defun ,setter (val)
-		(let ((buffer (gdb-get-instance-buffer 'gdba)))
-		  (and buffer (save-excursion
-				(set-buffer buffer)
-				(setq ,name val))))))))
-
 (defmacro def-gdb-var (root-symbol &optional default doc)
   (let* ((root (symbol-name root-symbol))
 	 (accessor (intern (concat "gdb-instance-" root)))
 	 (setter (intern (concat "set-gdb-instance-" root)))
-	 (var-name (intern (concat "gdb-" root))))
-    `(def-gdb-variable
-	 ,var-name ,accessor ,setter
-	 ,default ,doc)))
+	 (name (intern (concat "gdb-" root))))
+    `(progn
+       (defvar ,name ,default ,doc)
+       (if (not (memq ',name gdb-instance-variables))
+	   (push ',name gdb-instance-variables))
+       ,(and accessor
+	     `(defun ,accessor ()
+		(let ((buffer (gdb-get-instance-buffer 'gdba)))
+		  (and buffer (buffer-local-value ',name buffer)))))
+       ,(and setter
+	     `(defun ,setter (val)
+		(let ((buffer (gdb-get-instance-buffer 'gdba)))
+		  (and buffer (with-current-buffer buffer
+				(setq ,name val)))))))))
 
 (def-gdb-var buffer-type nil
   "One of the symbols bound in gdb-instance-buffer-rules")
