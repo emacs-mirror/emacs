@@ -280,8 +280,11 @@ This is used by `eshell-watch-for-password-prompt'."
 	(map-char-table
 	 (function
 	  (lambda (key val)
-	    (and (>= key 256)
-		 (/= (char-syntax key) ?w)
+	    (and (if (consp key)
+		    (and (>= (car key) 128)
+			 (/= (char-syntax (car key)) ?w))
+		   (and (>= key 256)
+			(/= (char-syntax key) ?w)))
 		 (modify-syntax-entry key "_   "
 				      eshell-mode-syntax-table))))
 	 (standard-syntax-table)))))
