@@ -1,3 +1,8 @@
+2002-11-16  Ivan Zakharyaschev <imz@altlinux.org>  (tiny change)
+
+	* international/codepage.el (cp866-decode-table): Fix the
+	translation table.
+
 2002-11-14  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
 
 	* progmodes/etags.el (find-tag-default): Copy text at point without
