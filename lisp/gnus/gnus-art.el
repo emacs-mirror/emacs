@@ -4182,9 +4182,9 @@ groups."
 (defun gnus-article-edit-done (&optional arg)
   "Update the article edits and exit."
   (interactive "P")
+  (widen)
   (save-excursion
     (save-restriction
-      (widen)
       (when (article-goto-body)
 	(let ((lines (count-lines (point) (point-max)))
 	      (length (- (point-max) (point)))
