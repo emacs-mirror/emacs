@@ -210,16 +210,15 @@ off, and make it autoload (@pxref{Autoload}).  Design the package so
 that simply loading it has no visible effect---that should not enable
 the feature.@footnote{Consider that the package may be loaded
 arbitrarily by Custom for instance.}  Users will request the feature by
-invoking the command, which will often be constructed as a minor mode.
+invoking the command.  It is a good idea to define this command
+as a minor mode.
 
 @cindex unloading packages
-If your package contains functions which do modify ordinary Emacs
-behavior, for instance by adding functions to hooks, define a function
-@code{@var{feature}-unload-hook} where @var{feature} is the name of
-the feature the package provides.  This function should undo any such
-changes, e.g.@: by turning off a minor mode, when
-@findex unload-feature
-@code{unload-feature} is used.
+If loading the file adds functions to hooks, define a function
+@code{@var{feature}-unload-hook}, where @var{feature} is the name of
+the feature the package provides, and make it undo any such changes.
+Using @code{unload-feature} to unload the file will run this function.
+@xref{Unloading}.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Use the
@@ -251,15 +250,19 @@ say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
 
 @item
+Avoid using macros that define functions and variables with names that
+are constructed.  It is best for maintenance wen the name of the
+function or variable being defined is given explicitly in the source
+code, as the second element of the list---as it is when you use
+@code{defun}, @code{defalias}, @code{defvar} and @code{defopt}.
+
+@item
 Please keep the names of your Emacs Lisp source files to 13 characters
 or less.  This way, if the files are compiled, the compiled files' names
 will be 14 characters or less, which is short enough to fit on all kinds
 of Unix systems.
 
 @item
-@findex next-line
-@findex previous-line
-@findex forward-line
 Don't use @code{next-line} or @code{previous-line} in programs; nearly
 always, @code{forward-line} is more convenient as well as more
 predictable and robust.  @xref{Text Lines}.
@@ -946,8 +949,8 @@ text is used by the Finder package, so it should make sense in that
 context.
 
 @item ;;; Documentation:
-This has been used in some files in place of @samp{;;; Commentary:},
-but @samp{;;; Commentary:} is preferred.
+This was used in some files in place of @samp{;;; Commentary:},
+but it is deprecated.
 
 @item ;;; Change Log:
 This begins change log information stored in the library file (if you
