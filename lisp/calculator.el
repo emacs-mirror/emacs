@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1998, 2000 by Free Software Foundation, Inc.
 
-;; Author: Eli Barzilay <eli@www.barzilay.org>
+;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
 ;; Time-stamp: <2000-11-19 20:59:59 eli>
 
