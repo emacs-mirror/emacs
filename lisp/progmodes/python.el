@@ -323,7 +323,8 @@ BOS non-nil means point is known to be at beginning of statement."
 				     line-end))
 			    (save-excursion (python-end-of-statement))
 			    t)
-	 (not (python-in-string/comment)))))
+	 (not (progn (goto-char (match-beginning 0))
+		     (python-in-string/comment))))))
 
 (defun python-close-block-statement-p (&optional bos)
   "Return non-nil if current line is a statement closing a block.
