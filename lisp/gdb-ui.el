@@ -123,7 +123,7 @@ The following interactive lisp functions help control operation :
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq comint-input-sender 'gdb-send)
 
-; (re-)initialise
+  ;; (re-)initialise
   (setq gdb-main-or-pc "main")
   (setq gdb-current-address nil)
   (setq gdb-display-in-progress nil)
@@ -136,7 +136,7 @@ The following interactive lisp functions help control operation :
   (gdb-make-instance)
   (if gdb-first-time (gdb-clear-inferior-io))
 
-; find source file and compilation directory here
+  ;; find source file and compilation directory here
   (gdb-instance-enqueue-idle-input (list "server list\n" 'ignore))
   (gdb-instance-enqueue-idle-input (list "server info source\n"
 					 'gdb-source-info)))
@@ -146,7 +146,6 @@ The following interactive lisp functions help control operation :
   (interactive "p")
   (if (not (string-equal mode-name "Assembler"))
       (gud-call "break %f:%l" arg)
-;else
     (save-excursion
       (beginning-of-line)
       (forward-char 2)
@@ -156,8 +155,7 @@ The following interactive lisp functions help control operation :
   "Remove breakpoint at current line or address."
   (interactive "p")
   (if (not (string-equal mode-name "Assembler"))
-    (gud-call "clear %f:%l" arg)
-;else
+      (gud-call "clear %f:%l" arg)
     (save-excursion
       (beginning-of-line)
       (forward-char 2)
@@ -177,7 +175,6 @@ The following interactive lisp functions help control operation :
     (if (re-search-forward "\*" nil t)
 	(gdb-instance-enqueue-idle-input
 	 (list (concat "server display* " expr "\n") 'ignore))
-;else
       (gdb-instance-enqueue-idle-input
        (list (concat "server display " expr "\n") 'ignore))))
 
@@ -444,7 +441,7 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 	    (cons (cons buffer-type rules)
 		  gdb-instance-buffer-rules-assoc)))))
 
-; GUD buffers are an exception to the rules
+;; GUD buffers are an exception to the rules
 (gdb-set-instance-buffer-rules 'gdba 'error)
 
 ;;
@@ -598,7 +595,7 @@ This filter may simply queue output for a later time."
 	     answer)
 	 (gdb-take-last-elt queue)))))
 
-; Don't use this in general.
+;; Don't use this in general.
 (defun gdb-take-last-elt (l)
   (if (cdr (cdr l))
       (gdb-take-last-elt (cdr l))
@@ -657,7 +654,7 @@ This filter may simply queue output for a later time."
     ("display-number-end" gdb-display-number-end)
     ("array-section-begin" gdb-array-section-begin)
     ("array-section-end" gdb-array-section-end)
-;    ("elt" gdb-elt)
+    ;; ("elt" gdb-elt)
     ("field-begin" gdb-field-begin)
     ("field-end" gdb-field-end)
     ) "An assoc mapping annotation tags to functions which process them.")
@@ -678,7 +675,7 @@ This filter may simply queue output for a later time."
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
   (setq gdb-main-or-pc gdb-current-address)
-;update with new frame for machine code if necessary
+  ;;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
 
 (defun gdb-prompt (ignored)
@@ -860,7 +857,7 @@ output from the current command if that happens to be appropriate."
   (looking-at "\\(.*?\\) =")
   (let ((char "")
 	(gdb-temp-value (match-string 1)))
-;move * to front of expression if necessary
+    ;;move * to front of expression if necessary
     (if (looking-at ".*\\*")
 	(progn
 	  (setq char "*")
@@ -871,11 +868,11 @@ output from the current command if that happens to be appropriate."
       (if (not (string-match "::" gdb-expression))
 	  (setq gdb-expression (concat char gdb-current-frame
 				       "::" gdb-expression))
-;else put * back on if necessary
+	;;else put * back on if necessary
 	(setq gdb-expression (concat char gdb-expression)))
       (setq header-line-format (concat "-- " gdb-expression " %-"))))
 
-;-if scalar/string
+  ;;-if scalar/string
   (if (not (re-search-forward "##" nil t))
       (progn
 	(save-excursion
@@ -884,8 +881,7 @@ output from the current command if that happens to be appropriate."
 	  (delete-region (point-min) (point-max))
 	  (insert-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (setq buffer-read-only t)))
-; else
-; display expression name...
+    ;; display expression name...
     (goto-char (point-min))
     (let ((start (progn (point)))
 	  (end (progn (end-of-line) (point))))
@@ -927,18 +923,18 @@ output from the current command if that happens to be appropriate."
   'action (lambda (button) (gdb-display-go-back)))
 
 (defun gdb-display-go-back ()
-  ; delete display so they don't accumulate and delete buffer
+  ;; delete display so they don't accumulate and delete buffer
   (let ((number gdb-display-number))
     (gdb-instance-enqueue-idle-input
      (list (concat "server delete display " number "\n") 'ignore))
     (switch-to-buffer (concat "*display " gdb-dive-display-number "*"))
     (kill-buffer (get-buffer (concat "*display " number "*")))))
 
-; prefix annotations with ## and process whole output in one chunk
-; in gdb-partial-output-buffer (to allow recursion).
+;; prefix annotations with ## and process whole output in one chunk
+;; in gdb-partial-output-buffer (to allow recursion).
 
-; array-section flags are just removed again but after counting. They
-; might also be useful for arrays of structures and structures with arrays.
+;; array-section flags are just removed again but after counting. They
+;; might also be useful for arrays of structures and structures with arrays.
 (defun gdb-array-section-begin (args)
   (if gdb-display-in-progress
       (progn
@@ -978,21 +974,21 @@ output from the current command if that happens to be appropriate."
 	(insert "\n##elt\n"))))
 
 (defun gdb-field-format-begin ()
-; get rid of ##field-begin
-	(gdb-delete-line)
-	(gdb-insert-field)
-	(setq gdb-nesting-level (+ gdb-nesting-level 1))
-	(while (re-search-forward "##" nil t)
-; keep making recursive calls...
-	  (if (looking-at "field-begin \\(.\\)")
-	      (progn
-		(setq gdb-annotation-arg (match-string 1))
-		(gdb-field-format-begin)))
-; until field-end.
-	  (if (looking-at "field-end") (gdb-field-format-end))))
+  ;; get rid of ##field-begin
+  (gdb-delete-line)
+  (gdb-insert-field)
+  (setq gdb-nesting-level (+ gdb-nesting-level 1))
+  (while (re-search-forward "##" nil t)
+    ;; keep making recursive calls...
+    (if (looking-at "field-begin \\(.\\)")
+	(progn
+	  (setq gdb-annotation-arg (match-string 1))
+	  (gdb-field-format-begin)))
+    ;; until field-end.
+    (if (looking-at "field-end") (gdb-field-format-end))))
 
 (defun gdb-field-format-end ()
-; get rid of ##field-end and `,' or `}'
+  ;; get rid of ##field-end and `,' or `}'
   (gdb-delete-line)
   (gdb-delete-line)
   (setq gdb-nesting-level (- gdb-nesting-level 1)))
@@ -1067,14 +1063,14 @@ output from the current command if that happens to be appropriate."
 
 (defun gdb-array-format ()
   (while (re-search-forward "##" nil t)
-; keep making recursive calls...
+    ;; keep making recursive calls...
     (if (looking-at "array-section-begin")
 	(progn
-;get rid of ##array-section-begin
+	  ;;get rid of ##array-section-begin
 	  (gdb-delete-line)
 	  (setq gdb-nesting-level (+ gdb-nesting-level 1))
 	  (gdb-array-format)))
-;until *matching* array-section-end is found
+    ;;until *matching* array-section-end is found
     (if (looking-at "array-section-end")
 	(if (eq gdb-nesting-level 0)
 	    (progn
@@ -1085,7 +1081,7 @@ output from the current command if that happens to be appropriate."
 			(concat "{" (replace-regexp-in-string "\n" "" values)
 				"}"))
 		  (gdb-array-format1))))
-;else get rid of ##array-section-end etc
+	  ;;else get rid of ##array-section-end etc
 	  (gdb-delete-line)
 	  (setq gdb-nesting-level (- gdb-nesting-level 1))
 	  (gdb-array-format)))))
@@ -1400,7 +1396,7 @@ buffer."
 (defvar breakpoint-enabled-icon) 
 (defvar breakpoint-disabled-icon)
 
-;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
+;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
   (let ((flag)(address))
 
@@ -1706,7 +1702,7 @@ buffer."
   gdb-info-locals-custom)
 
 
-;Abbreviate for arrays and structures. These can be expanded using gud-display
+;;Abbreviate for arrays and structures. These can be expanded using gud-display
 (defun gdb-info-locals-handler nil
   (set-gdb-instance-pending-triggers (delq 'gdb-invalidate-locals
 					   (gdb-instance-pending-triggers)))
@@ -1783,10 +1779,10 @@ buffer."
   gdb-info-display-custom)
 
 (defun gdb-info-display-custom ()
-; TODO: ensure frames of expressions that have been deleted are also deleted
-;       these can be missed currently eg through GUD buffer, restarting a
-;       recompiled program.
-)
+  ;; TODO: ensure frames of expressions that have been deleted are also deleted
+  ;;       these can be missed currently eg through GUD buffer, restarting a
+  ;;       recompiled program.
+  )
 
 (defvar gdb-display-mode-map
   (let ((map (make-sparse-keymap))
@@ -1859,7 +1855,6 @@ buffer."
 	       'ignore))
 	(if (not (display-graphic-p))
 	    (kill-buffer (get-buffer (concat "*display " number "*")))
-	  ;else
 	  (catch 'frame-found
 	    (let ((frames (frame-list)))
 	      (while frames
@@ -2044,7 +2039,6 @@ This arrangement depends on the value of `gdb-many-windows'."
 	(switch-to-buffer gud-comint-buffer)
 	(delete-other-windows)
 	(gdb-setup-windows))
-;else
     (switch-to-buffer gud-comint-buffer)
     (delete-other-windows)
     (split-window)
@@ -2140,7 +2134,7 @@ buffers."
       (other-window 1)
       (setq gdb-source-window (get-buffer-window (current-buffer))))))
 
-;from put-image
+;;from put-image
 (defun put-string (putstring pos &optional string area)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
@@ -2162,7 +2156,7 @@ means display it in the right marginal area."
       (overlay-put overlay 'put-text t)
       (overlay-put overlay 'before-string string))))
 
-;from remove-images
+;;from remove-images
 (defun remove-strings (start end &optional buffer)
   "Remove strings between START and END in BUFFER.
 Remove only images that were put in BUFFER with calls to `put-string'.
@@ -2268,7 +2262,7 @@ BUFFER nil or omitted means use the current buffer."
 	    (setq gdb-arrow-position (point))
 	    (put-arrow "=>" gdb-arrow-position nil 'left-margin))))
 
-; remove all breakpoint-icons in assembler buffer  before updating.
+    ;; remove all breakpoint-icons in assembler buffer  before updating.
     (save-excursion
       (set-buffer buffer)
       (if (display-graphic-p)
@@ -2283,7 +2277,7 @@ BUFFER nil or omitted means use the current buffer."
 	    (progn
 	      (looking-at
 	       "\\([0-9]*\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x0\\(\\S-*\\)")
-	      ; info break gives '0x0' (8 digit) while dump gives '0x' (7 digit)
+	      ;; info break gives '0x0' (8 digit) while dump gives '0x' (7 digit)
 	      (setq address (concat "0x" (match-string 3)))
 	      (setq flag (char-after (match-beginning 2)))
 	      (save-excursion
@@ -2358,8 +2352,8 @@ BUFFER nil or omitted means use the current buffer."
 
 (defvar gdb-prev-main-or-pc nil)
 
-; modified because if gdb-main-or-pc has changed value a new command
-; must be enqueued to update the buffer with the new output
+;; modified because if gdb-main-or-pc has changed value a new command
+;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (and (gdb-get-instance-buffer 'gdb-assembler-buffer)
 	   (or (not (member 'gdb-invalidate-assembler
