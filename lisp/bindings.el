@@ -242,9 +242,6 @@ for \\[find-tag] (which see)."
 (aset (nth 1 global-map) (make-char 'latin-iso8859-3) 'self-insert-command)
 (aset (nth 1 global-map) (make-char 'latin-iso8859-4) 'self-insert-command)
 
-(define-key ctl-x-map "n" (make-sparse-keymap))
-(define-key ctl-x-map "r" (make-sparse-keymap))
-
 (setq help-event-list '(help f1))
 
 ;These commands are defined in editfns.c
