@@ -910,7 +910,7 @@ case "${canonical}" in
   m68*-sony-newsos3*)
     machine=news opsys=bsd4-3
   ;;
-  mips-sony-bsd* )
+  mips-sony-bsd* | mips-sony-newsos4* )
     machine=news-risc opsys=bsd4-3
   ;;
   mips-sony-newsos* )
