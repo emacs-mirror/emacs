@@ -76,7 +76,9 @@ extern int sys_nerr;
 #ifdef HPUX
 #include <netio.h>
 #ifndef HPUX8
+#ifndef HPUX9
 #include <errnet.h>
+#endif
 #endif
 #endif
 
