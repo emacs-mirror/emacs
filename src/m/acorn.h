@@ -192,9 +192,6 @@ extern int _edata;
 /* Use <dirent.h>. */
 #define SYSV_SYSTEM_DIR
 
-/* PURESIZE needs to be slightly bigger on the Arm */
-#define PURESIZE 260000
-
 /* For the portable alloca */
 #define STACK_DIRECTION -1
 
