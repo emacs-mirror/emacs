@@ -1158,9 +1158,82 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[3])
   SetStdHandle (STD_ERROR_HANDLE, handles[2]);
 }
 
+#ifdef HAVE_SOCKETS
+
+/* To avoid problems with winsock implementations that work over dial-up
+   connections causing or requiring a connection to exist while Emacs is
+   running, Emacs no longer automatically loads winsock on startup if it
+   is present.  Instead, it will be loaded when open-network-stream is
+   first called.
+
+   To allow full control over when winsock is loaded, we provide these
+   two functions to dynamically load and unload winsock.  This allows
+   dial-up users to only be connected when they actually need to use
+   socket services.  */
+
+/* From nt.c */
+extern HANDLE winsock_lib;
+extern BOOL term_winsock (void);
+extern BOOL init_winsock (int load_now);
+
+extern Lisp_Object Vsystem_name;
+
+DEFUN ("win32-has-winsock", Fwin32_has_winsock, Swin32_has_winsock, 0, 1, 0,
+  "Test for presence of the Windows socket library `winsock'.\n\
+Returns non-nil if winsock support is present, nil otherwise.\n\
+\n\
+If the optional argument LOAD-NOW is non-nil, the winsock library is\n\
+also loaded immediately if not already loaded.  If winsock is loaded,\n\
+the winsock local hostname is returned (since this may be different from\n\
+the value of `system-name' and should supplant it), otherwise t is\n\
+returned to indicate winsock support is present.")
+  (load_now)
+     Lisp_Object load_now;
+{
+  int have_winsock;
+
+  have_winsock = init_winsock (!NILP (load_now));
+  if (have_winsock)
+    {
+      if (winsock_lib != NULL)
+	{
+	  /* Return new value for system-name.  The best way to do this
+	     is to call init_system_name, saving and restoring the
+	     original value to avoid side-effects.  */
+	  Lisp_Object orig_hostname = Vsystem_name;
+	  Lisp_Object hostname;
+
+	  init_system_name ();
+	  hostname = Vsystem_name;
+	  Vsystem_name = orig_hostname;
+	  return hostname;
+	}
+      return Qt;
+    }
+  return Qnil;
+}
+
+DEFUN ("win32-unload-winsock", Fwin32_unload_winsock, Swin32_unload_winsock,
+       0, 0, 0,
+  "Unload the Windows socket library `winsock' if loaded.\n\
+This is provided to allow dial-up socket connections to be disconnected\n\
+when no longer needed.  Returns nil without unloading winsock if any\n\
+socket connections still exist.")
+  ()
+{
+  return term_winsock () ? Qt : Qnil;
+}
+
+#endif /* HAVE_SOCKETS */
+
 
 syms_of_ntproc ()
 {
+#ifdef HAVE_SOCKETS
+  defsubr (&Swin32_has_winsock);
+  defsubr (&Swin32_unload_winsock);
+#endif
+
   DEFVAR_LISP ("win32-quote-process-args", &Vwin32_quote_process_args,
     "Non-nil enables quoting of process arguments to ensure correct parsing.\n\
 Because Windows does not directly pass argv arrays to child processes,\n\
