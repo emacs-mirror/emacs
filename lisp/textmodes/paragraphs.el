@@ -51,6 +51,7 @@ or anything else to ask the user.
 
 Newlines not marked hard are called \"soft\", and are always internal
 to paragraphs.  The fill functions insert and delete only soft newlines."
+  :group 'paragraphs
   :extra-args (insert)
   (when use-hard-newlines
     ;; Turn mode on
