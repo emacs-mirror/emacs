@@ -82,6 +82,10 @@ there.")
 (defvoo nnspool-rejected-article-hook nil
   "*A hook that will be run when an article has been rejected by the server.")
 
+;; 1997/8/14 by MORIOKA Tomohiko
+(defvoo nnspool-file-coding-system nnheader-file-coding-system
+  "Coding system for nnspool.")
+
 
 
 (defconst nnspool-version "nnspool 2.0"
@@ -109,6 +113,9 @@ there.")
 	     (default-directory nnspool-current-directory)
 	     (do-message (and (numberp nnspool-large-newsgroup)
 			      (> number nnspool-large-newsgroup)))
+	     ;; 1997/8/14 by MORIOKA Tomohiko
+	     ;;   for Win32
+	     (nnheader-file-coding-system nnspool-file-coding-system)
 	     file beg article ag)
 	(if (and (numberp (car articles))
 		 (nnspool-retrieve-headers-with-nov articles fetch-old))
@@ -349,6 +356,9 @@ there.")
     (let ((nov (nnheader-group-pathname
 		nnspool-current-group nnspool-nov-directory ".overview"))
 	  (arts articles)
+	  ;; 1997/8/14 by MORIOKA Tomohiko
+	  ;;   for Win32
+      	  (nnheader-file-coding-system nnspool-file-coding-system)
 	  last)
       (if (not (file-exists-p nov))
 	  ()
@@ -430,7 +440,11 @@ there.")
   (set-buffer nntp-server-buffer)
   (erase-buffer)
   (condition-case ()
-      (progn (nnheader-insert-file-contents file) t)
+      ;; 1997/8/14 by MORIOKA Tomohiko
+      ;;   for Win32
+      (let ((nnheader-file-coding-system nnspool-file-coding-system))
+	(nnheader-insert-file-contents file)
+	t)
     (file-error nil)))
 
 (defun nnspool-possibly-change-directory (group)
