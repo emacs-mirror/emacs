@@ -1,3 +1,12 @@
+2004-05-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (find-file-noselect-1): Fix bug introduced by
+	Revision 1.694.  As a side effect, `inhibit-read-only'
+	is again, by default, t during execution of
+	`find-file-not-found-functions'.
+	(insert-directory): Check that lines were really inserted by
+	the --dired switch, before erasing them.
+
 2004-05-24  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode)
