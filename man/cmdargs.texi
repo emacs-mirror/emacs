@@ -67,7 +67,7 @@ the action arguments in the order they are written.
 * Icons X::             Choosing what sort of icon to use, under X.
 * Resources X::         Advanced use of classes and resources, under X.
 * Lucid Resources::     X resources for Lucid menus.
-* Motif Resources::     X resources for Motif menus.
+* LessTif Resources::   X resources for LessTif and Motif menus.
 @end menu
 
 @node Action Arguments
@@ -426,7 +426,7 @@ Used by the Emerge package as a prefix for temporary files.
 This specifies the current time zone and possibly also daylight
 savings information.  On MS-DOS, if @code{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
-appropriate for the country code returned by DOS.  On MS Windows, Emacs
+appropriate for the country code returned by DOS.  On MS-Windows, Emacs
 does not use @code{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
@@ -463,9 +463,11 @@ internal terminal emulator.  This feature is useful for submitting bug
 reports.
 
 @item EMACSCOLORS
-Used on MS-DOS systems to set screen colors early, so that the screen
-won't momentarily flash the default colors when Emacs starts up.  The
-value of this variable should be the two-character encoding of the
+On MS-DOS, this specifies the screen colors.  It is useful to set them
+this way, since otherwise Emacs would display the default colors
+momentarily when it starts up.
+
+The value of this variable should be the two-character encoding of the
 foreground (the first character) and the background (the second
 character) colors of the default face.  Each character should be the
 hexadecimal code for the desired color on a standard PC text-mode
@@ -494,7 +496,7 @@ remotely, displaying on your local screen.
 
   With Emacs, the main reason people change the default display is to
 let them log into another system, run Emacs on that system, but have the
-window displayed at their local terminal.  You might need to login
+window displayed at their local terminal.  You might need to log in
 to another system because the files you want to edit are there, or
 because the Emacs executable file you want to run is there.
 
@@ -519,9 +521,9 @@ by changing the @env{DISPLAY} variable, or with the option @samp{-d
 emacs --display=glasperle:0 &
 @end smallexample
 
-  You can inhibit the direct use of the GUI with the @samp{-nw} option.  This
-is also an initial option.  It tells Emacs to display using ordinary
-ASCII on its controlling terminal.
+  You can inhibit the direct use of the window system and GUI with the
+@samp{-nw} option.  It tells Emacs to display using ordinary ASCII on
+its controlling terminal.  This is also an initial option.
 
   Sometimes, security arrangements prevent a program on a remote system
 from displaying on your local system.  In this case, trying to run Emacs
@@ -670,7 +672,7 @@ background is usually black and the foreground is white.
 @item -fg @var{color} 
 @itemx --foreground-color=@var{color} 
 Specify the foreground color.  @var{color} should be a standard color
-name or a numeric specification of the color's red, green, and blue
+name, or a numeric specification of the color's red, green, and blue
 components as in @samp{#4682B4} or @samp{RGB:46/82/B4}.
 @item -bg @var{color} 
 @itemx --background-color=@var{color} 
@@ -736,11 +738,10 @@ and @var{yoffset} are measured in pixels.
 
   Since the mode line and the echo area occupy the last 2 lines of the
 frame, the height of the initial text window is 2 less than the height
-specified in your geometry.  In non-X-toolkit versions of Emacs,
-the menu bar also takes one line of the specified number.  The tool bar,
-if present, is excluded from the height of the initial text window;
-Emacs will enlarge the frame's height as needed to accomodate for the
-tool bar.
+specified in your geometry.  In non-X-toolkit versions of Emacs, the
+menu bar also takes one line of the specified number.  But in the X
+toolkit version, the menu bar is additional and does not count against
+the specified height.  The tool bar, if present, is also additional.
 
   You do not have to specify all of the fields in the geometry
 specification.
@@ -782,11 +783,11 @@ the window.
 @table @samp
 @item -ib @var{width}
 @itemx --internal-border=@var{width}
-Specify @var{width} as the width of the internal border in pixels.
+Specify @var{width} as the width of the internal border, in pixels.
 
 @item -bw @var{width}
 @itemx --border-width=@var{width}
-Specify @var{width} as the width of the main border in pixels.
+Specify @var{width} as the width of the main border, in pixels.
 @end table
 
   When you specify the size of the frame, that does not count the
@@ -847,9 +848,9 @@ window manager choose what sort of icon to use---usually just a small
 rectangle containing the frame's title.
 
   The @samp{-iconic} option tells Emacs to begin running as an icon,
-rather than opening a frame right away.  In this situation, the icon
-window provides only an indication that Emacs has started; the usual text
-frame doesn't appear until you deiconify it.
+rather than showing a frame right away.  In this situation, the icon
+is the only indication that Emacs has started; the text frame doesn't
+appear until you deiconify it.
 
 @node Resources X
 @appendixsec X Resources
@@ -989,7 +990,7 @@ Width in pixels of the internal border.
 @item @code{lineSpacing} (class LineSpacing)
 @cindex line spacing
 @cindex leading
-Additional space (@dfn{leading}) between lines in pixels.
+Additional space (@dfn{leading}) between lines, in pixels.
 
 @item @code{menuBar} (class @code{MenuBar})
 Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
@@ -1027,7 +1028,7 @@ Gamma correction for colors, equivalent to the frame parameter
 
 @item @code{selectionFont} (class @code{Font})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
-toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
+toolkit versions, see @ref{Lucid Resources}, also see @ref{LessTif
 Resources}.)
 
 @item @code{synchronous} (class @code{Synchronous})
@@ -1126,16 +1127,17 @@ The margin of the menu bar, in characters.  The default of 4 makes the
 menu bar appear like the LessTif/Motif one.
 @end table
 
-@node Motif Resources
-@section Motif Menu X Resources
-@cindex Menu X Resources (Motif widgets)
-@cindex Motif Widget X Resources
+@node LessTif Resources
+@section LessTif Menu X Resources
+@cindex Menu X Resources (LessTif widgets)
+@cindex LessTif Widget X Resources
 
   If the Emacs installed at your site was built to use the X toolkit
-with the Motif widgets, then the menu bar is a separate widget and has
-its own resources.  The resource names contain @samp{pane.menubar}
-(following, as always, the name of the Emacs invocation or @samp{Emacs}
-which stands for all Emacs invocations).  Specify them like this:
+with the LessTif or Motif widgets, then the menu bar is a separate
+widget and has its own resources.  The resource names contain
+@samp{pane.menubar} (following, as always, the name of the Emacs
+invocation or @samp{Emacs} which stands for all Emacs invocations).
+Specify them like this:
 
 @smallexample
 Emacs.pane.menubar.@var{subwidget}.@var{resource}:  @var{value}
