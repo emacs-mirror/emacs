@@ -130,6 +130,21 @@ update_syntax_table (charpos, count, init, object)
       invalidate = 0;
       if (NULL_INTERVAL_P (i))
 	return;
+      /* interval_of () updates only ->position of the return value,
+	 update the parents manually to speed up update_interval.  */
+      while (!NULL_PARENT (i)) 
+	{
+	  if (AM_RIGHT_CHILD (i))
+	    i->parent->position = i->position
+	      - LEFT_TOTAL_LENGTH (i) + TOTAL_LENGTH (i) /* right end */
+	      - TOTAL_LENGTH (i->parent)
+	      + LEFT_TOTAL_LENGTH (i->parent);
+	  else
+	    i->parent->position = i->position - LEFT_TOTAL_LENGTH (i)
+	      + TOTAL_LENGTH (i);
+	  i = i->parent;
+	}
+      i = gl_state.forward_i;
       gl_state.b_property = i->position - 1 - gl_state.offset;
       gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
       goto update;
