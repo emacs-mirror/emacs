@@ -1,7 +1,7 @@
 ;;; rlogin.el --- remote login interface
 
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
-;; Keywords: unix
+;; Keywords: unix, comm
 
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
 ;;;
