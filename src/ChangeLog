@@ -1,5 +1,9 @@
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* keymap.c (access_keymap): Unify handling of `t' and generic-char.
+	If a parent is reached and noinherit is set, exit immediately.
+	Use AREF and ASIZE macros.  Call get_keyelt before checking KEYMAPP.
+
 	* s/ms-w32.h (EXEC_SUFFIXES):
 	* s/msdos.h (EXEC_SUFFIXES):
 	* process.h (EXEC_SUFFIXES): Remove.
