@@ -1416,31 +1416,8 @@ This function could be in the list `comint-output-filter-functions'."
 
 ;;; Low-level process communication
 
-(defvar comint-input-chunk-size 512
-  "*Long inputs are sent to comint processes in chunks of this size.
-If your process is choking on big inputs, try lowering the value.")
-
-(defun comint-send-string (proc str)
-  "Send PROCESS the contents of STRING as input.
-This is equivalent to `process-send-string', except that long input strings
-are broken up into chunks of size `comint-input-chunk-size'.  Processes
-are given a chance to output between chunks.  This can help prevent processes
-from hanging when you send them long inputs on some OS's."
-  (let* ((len (length str))
-	 (i (min len comint-input-chunk-size)))
-    (process-send-string proc (substring str 0 i))
-    (while (< i len)
-      (let ((next-i (+ i comint-input-chunk-size)))
-	(accept-process-output)
-	(sit-for 0)
-	(process-send-string proc (substring str i (min len next-i)))
-	(setq i next-i)))))
-
-(defun comint-send-region (proc start end)
-  "Sends to PROC the region delimited by START and END.
-This is a replacement for `process-send-region' that tries to keep
-your process from hanging on long inputs.  See `comint-send-string'."
-  (comint-send-string proc (buffer-substring start end)))
+(defalias 'comint-send-string 'process-send-string)
+(defalias 'comint-send-region 'process-send-region)
 
 ;;; Random input hackage
 
