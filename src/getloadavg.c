@@ -72,6 +72,13 @@
 #include "config.h"
 #endif
 
+
+/* Exclude all the code except the test program at the end
+   if the system has its own `getloadavg' function.  */
+
+#ifndef HAVE_GETLOADAVG
+
+
 /* The existing Emacs configuration files define a macro called
    LOAD_AVE_CVT, which accepts a value of type LOAD_AVE_TYPE, and
    returns the load average multiplied by 100.  What we actually want
@@ -798,6 +805,8 @@ getloadavg (loadavg, nelem)
   return -1;
 #endif
 }
+
+#endif /* ! HAVE_GETLOADAVG */
 
 #ifdef TEST
 void
