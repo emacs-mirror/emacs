@@ -1069,17 +1069,19 @@ redisplay_window (window, just_this_one)
 
   if (!EQ (window, selected_window))
     {
-      SET_PT (marker_position (w->pointm));
-      if (PT < BEGV)
+      int new_pt = marker_position (w->pointm);
+      if (new_pt < BEGV)
 	{
-	  SET_PT (BEGV);
-	  Fset_marker (w->pointm, make_number (PT), Qnil);
+	  new_pt = BEGV;
+	  Fset_marker (w->pointm, make_number (new_pt), Qnil);
 	}
-      else if (PT > (ZV - 1))
+      else if (new_pt > (ZV - 1))
 	{
-	  SET_PT (ZV);
-	  Fset_marker (w->pointm, make_number (PT), Qnil);
+	  new_pt = ZV;
+	  Fset_marker (w->pointm, make_number (new_pt), Qnil);
 	}
+      /* We don't use SET_PT so that the point-motion hooks don't run.  */
+      BUF_PT (current_buffer) = new_pt;
     }
 
   /* If window-start is screwed up, choose a new one.  */
@@ -1112,7 +1114,7 @@ redisplay_window (window, just_this_one)
 				ZV, height / 2,
 				- (1 << (SHORTBITS - 1)),
 				width, hscroll, pos_tab_offset (w, startp), w);
-	  SET_PT (pos.bufpos);
+	  BUF_PT (current_buffer) = pos.bufpos;
 	  if (w != XWINDOW (selected_window))
 	    Fset_marker (w->pointm, make_number (PT), Qnil);
 	  else
@@ -1331,9 +1333,9 @@ done:
       (*redeem_scroll_bar_hook) (w);
     }
 
-  SET_PT (opoint);
+  BUF_PT (current_buffer) = opoint;
   current_buffer = old;
-  SET_PT (lpoint);
+  BUF_PT (current_buffer) = lpoint;
 }
 
 /* Do full redisplay on one window, starting at position `pos'. */
