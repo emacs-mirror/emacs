@@ -364,6 +364,7 @@ Type \\[isearch-yank-word] to yank word from buffer onto end of search\
  string and search for it.
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
+Type \\[isearch-yank-kill] to yank the last string of killed text.
 Type \\[isearch-quote-char] to quote control character to search for it.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
