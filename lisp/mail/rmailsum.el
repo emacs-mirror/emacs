@@ -582,6 +582,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given.
 A prefix argument serves as a repeat count;
 a negative argument means to delete and move backward."
   (interactive "p")
+  (unless (numberp count) (setq count 1))
   (let (end del-msg
 	    (backward (< count 0)))
     (while (/= count 0)
