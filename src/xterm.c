@@ -8846,6 +8846,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		else if (event.xclient.message_type
 			 == dpyinfo->Xatom_Scrollbar)
 		  {
+		    if (display_busy_cursor_p)
+		      inhibit_busy_cursor = 2;
 		    x_scroll_bar_to_input_event (&event, bufp);
 		    ++bufp, ++count, --numchars;
 		    goto out;
