@@ -282,8 +282,9 @@ Lisp_Object;
 #ifndef XPNTR
 #ifdef HAVE_SHM
 /* In this representation, data is found in two widely separated segments.  */
+extern int pure_size;
 #define XPNTR(a) \
-  (XUINT (a) | (XUINT (a) > PURESIZE ? DATA_SEG_BITS : PURE_SEG_BITS))
+  (XUINT (a) | (XUINT (a) > pure_size ? DATA_SEG_BITS : PURE_SEG_BITS))
 #else /* not HAVE_SHM */
 #ifdef DATA_SEG_BITS
 /* This case is used for the rt-pc.
