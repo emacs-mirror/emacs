@@ -2,11 +2,8 @@
 
 ;; Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Modified by:
-;;   ttn@netcom.com
-;;   Per Cederqvist <ceder@lysator.liu.edu>
-;;   Andre Spiegel <spiegel@berlin.informatik.uni-stuttgart.de>
+;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +30,8 @@
 ;; Paul Eggert <eggert@twinsun.com>, Sebastian Kremer <sk@thp.uni-koeln.de>,
 ;; and Richard Stallman contributed valuable criticism, support, and testing.
 ;; CVS support was added by Per Cederqvist <ceder@lysator.liu.se>
-;; in Jan-Feb 1994.
+;; in Jan-Feb 1994.  Further enhancements came from ttn.netcom.com and
+;; Andre Spiegel <spiegel@inf.fu-berlin.de>.
 ;;
 ;; Supported version-control systems presently include SCCS, RCS, and CVS.
 ;;

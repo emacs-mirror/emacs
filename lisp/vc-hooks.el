@@ -2,10 +2,8 @@
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Modified by:
-;;   Per Cederqvist <ceder@lysator.liu.se>
-;;   Andre Spiegel <spiegel@berlin.informatik.uni-stuttgart.de>
+;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
 ;; This file is part of GNU Emacs.
 
