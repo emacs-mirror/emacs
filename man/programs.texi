@@ -351,6 +351,29 @@ Move to end of current or following defun (@code{end-of-defun}).
 Put region around whole current or following defun (@code{mark-defun}).
 @end table
 
+@cindex move to beginning or end of function
+@cindex function, move to beginning or end
+@kindex C-M-a
+@kindex C-M-e
+@kindex C-M-h
+@findex beginning-of-defun
+@findex end-of-defun
+@findex mark-defun
+  The commands to move to the beginning and end of the current defun
+are @kbd{C-M-a} (@code{beginning-of-defun}) and @kbd{C-M-e}
+(@code{end-of-defun}).  If you repeat one of these commands, or use a
+positive numeric argument, each repetition moves to the next defun in
+the direction of motion.
+
+  @kbd{C-M-a} with a negative argument @minus{}@var{n} moves forward
+@var{n} times to the next beginning of a defun.  This is not exactly
+the same place that @kbd{C-M-e} with argument @var{n} would move to;
+the end of this defun is not usually exactly the same place as the
+beginning of the following defun.  (Typically whitespace or comments
+separate them.)  Likewise, @kbd{C-M-e} with a negative argument moves
+back to an end of a defun, which is not quite the same as @kbd{C-M-a}
+with a positive argument.
+
 @kindex C-M-h @r{(C mode)}
 @findex c-mark-function
   If you wish to operate on the current defun, use @kbd{C-M-h}
@@ -423,6 +446,7 @@ Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @kindex TAB @r{(programming modes)}
 @findex c-indent-command
 @findex indent-line-function
+@findex indent-for-tab-command
   The basic indentation command is @key{TAB}, which gives the current line
 the correct indentation as determined from the previous lines.  The
 function that @key{TAB} runs depends on the major mode; it is
@@ -445,12 +469,12 @@ the characters around it.
 followed by a @key{TAB}.  @kbd{C-j} at the end of a line creates a
 blank line and then gives it the appropriate indentation.
 
-  @key{TAB} indents the second and following lines of the body of a
-parenthetical grouping each under the preceding one; therefore, if you
-alter one line's indentation to be nonstandard, the lines below will
-tend to follow it.  This behavior is convenient in cases where you have
-overridden the standard result of @key{TAB} because you find it
-unaesthetic for a particular line.
+  @key{TAB} indents lines that start within a parenthetical grouping
+each under the preceding line (or the text after the parenthesis).
+Therefore, if you manually give one of these lines a nonstandard
+indentation, the lines below will tend to follow it.  This behavior is
+convenient in cases where you have overridden the standard result of
+@key{TAB} because you find it unaesthetic for a particular line.
 
   Remember that an open-parenthesis, open-brace or other opening delimiter
 at the left margin is assumed by Emacs (including the indentation routines)
@@ -1129,24 +1153,28 @@ the variable @code{c-comment-only-line-offset} (@pxref{Comments in C}).
 @subsubsection C Indentation Styles
 @cindex c indentation styles
 
-  A @dfn{C style} is a collection of indentation style customizations.
-Emacs comes with several predefined indentation styles for C and related
-modes, including @code{gnu}, @code{k&r}, @code{bsd}, @code{stroustrup},
-@code{linux}, @code{python}, @code{java}, @code{whitesmith},
-@code{ellemtel}, @code{cc-mode}, and @code{user}.
+  A @dfn{C style} is a collection of indentation style customizations
+that can be used in C mode and the related modes.  Emacs comes with
+several predefined C styles, including @code{gnu}, @code{k&r},
+@code{bsd}, @code{stroustrup}, @code{linux}, @code{python},
+@code{java}, @code{whitesmith}, @code{ellemtel}, @code{cc-mode}, and
+@code{user}.  Some of these styles are primarily intended for one
+language, but any of them can be used with any of the languages
+supported by these modes.
 
 @findex c-set-style
-  To choose the style you want, use the command @kbd{M-x c-set-style}.
-Specify a style name as an argument (case is not significant in C style
-names).  The chosen style only affects newly visited buffers, not those
-you are already editing; to reindent an existing buffer, switch to that
-buffer and type @kbd{C-x h C-M-\}.
+  To choose a style for the current buffer, use the command @kbd{M-x
+c-set-style}.  Specify a style name as an argument (case is not
+significant in C style names).  This command affects the current
+buffer only, but it affects only future invocations of the indentation
+command; it does not change the indentation of the code in the buffer.
+To reindent the text, you can type @kbd{C-x h C-M-\}.
 
 @vindex c-default-style
   You can also set the variable @code{c-default-style} to specify the
-style for various major modes.  Its value should be an alist, in which
-each element specifies one major mode and which indentation style to use
-for it.  For example,
+default style for various major modes.  Its value should be an alist,
+in which each element specifies one major mode and which indentation
+style to use for it.  For example,
 
 @example
 (setq c-default-style
@@ -1155,14 +1183,17 @@ for it.  For example,
 
 @noindent
 specifies an explicit choice for Java mode, and the default @samp{gnu}
-style for the other C-like modes.
+style for the other C-like modes.  This variable takes effect when you
+switch to one of the C-like major modes; thus, if you specify a new
+default style for Java mode, you can make it take effect in an
+existing Java mode buffer by typing @kbd{M-x java-mode} there.
 
-  The @code{gnu} style defines the formatting recommend by the GNU
-Project; it is the default, so as to encourage the indentation we
-recommend.  However, if you make changes in variables such as
+  The @code{gnu} style specifies the formatting recommended by the GNU
+Project for C; it is the default, so as to encourage use of our
+recommended style.  If you make changes in variables such as
 @code{c-basic-offset} and @code{c-offsets-alist} in your
-@file{~/.emacs} file, your changes override the what @code{gnu} style
-says.
+@file{~/.emacs} file, those changes override what the @code{gnu} style
+specifies.
 
 @findex c-add-style
   To define a new C indentation style, call the function
@@ -1175,10 +1206,9 @@ says.
 @noindent
 Here @var{name} is the name of the new style (a string), and
 @var{values} is an alist whose elements have the form
-@code{(@var{variable} . @var{value})}.  The variables you specify should
-be among those documented in @ref{Variables for C Indent}.
-
-  If @var{use-now} is non-@code{nil}, @code{c-add-style} selects the new
+@code{(@var{variable} . @var{value})}.  The variables you specify
+should be among those documented in @ref{Variables for C Indent}.  If
+@var{use-now} is non-@code{nil}, @code{c-add-style} selects the new
 style after defining it.
 
 @node Matching
@@ -1209,14 +1239,17 @@ correct matches are specified in the syntax table.
   Three variables control parenthesis match display.
 @code{blink-matching-paren} turns the feature on or off; @code{nil}
 turns it off, but the default is @code{t} to turn match display on.
-@code{blink-matching-delay} says how many seconds to wait after moving
-the cursor to the matching open parenthesis, before moving it back; the
-default is 1, but on some systems it is useful to specify a fraction of
-a second.  @code{blink-matching-paren-distance} specifies how many
-characters back to search to find the matching opening delimiter.  If
-the match is not found in that far, scanning stops, and nothing is
-displayed.  This is to prevent scanning for the matching delimiter from
-wasting lots of time when there is no match.  The default is 25600.
+
+  @code{blink-matching-delay} says how many seconds to leave the
+cursor on the matching open parenthesis, before bringing it back to
+the real location of point; the default is 1, but on some systems it
+is useful to specify a fraction of a second.
+
+  @code{blink-matching-paren-distance} specifies how many characters
+back to search to find the matching opening delimiter.  If the match
+is not found in that far, scanning stops, and nothing is displayed.
+This is to prevent scanning for the matching delimiter from wasting
+lots of time when there is no match.  The default is 25600.
 
 @cindex Show Paren mode
 @cindex highlighting matching parentheses
@@ -1598,8 +1631,7 @@ Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
 @item hs-isearch-open
 Specifies what kind of hidden blocks to open in Isearch mode.
 @item hs-special-modes-alist
-Specifies
-Initializes Hideshow variables for different modes.
+Specifies how to initialize Hideshow variables for different modes.
 @end table
 
 @node Glasses
@@ -1706,7 +1738,7 @@ for ``w/o (without) man,'' since it doesn't use the @code{man}
 program.}.  Unlike @kbd{M-x man}, it does not run any external
 programs to format and display the man pages; instead it does the job
 in Emacs Lisp, so it works on systems such as MS-Windows, where the
-@code{man} program and other the programs it needs are not readily
+@code{man} program and the other programs it needs are not readily
 available.  @kbd{M-x woman} prompts for a name of a manual page, and
 provides completion based on the list of manual pages that are
 installed on your machine; the list of available manual pages is
@@ -1789,13 +1821,13 @@ one of its parent directories.  A single @file{ChangeLog} file can
 record changes for all the files in its directory and all its
 subdirectories.
 
-  A change log entry starts with a header line that contains your name,
-your email address (taken from the variable @code{user-mail-address}),
-and the current date and time.  Aside from these header lines, every
-line in the change log starts with a space or a tab.  The bulk of the
-entry consists of @dfn{items}, each of which starts with a line starting
-with whitespace and a star.  Here are two entries, both dated in May
-1993, each with two items:
+  A change log entry starts with a header line that contains the
+current date, your name, and your email address (taken from the
+variable @code{user-mail-address}).  Aside from these header lines,
+every line in the change log starts with a space or a tab.  The bulk
+of the entry consists of @dfn{items}, each of which starts with a line
+starting with whitespace and a star.  Here are two entries, both dated
+in May 1993, each with two items:
 
 @iftex
 @medbreak
@@ -1836,7 +1868,7 @@ rather than starting a new entry.
 @vindex change-log-version-number-regexp-list
 @cindex file version in change log entries
   If the value of the variable @code{change-log-version-info-enabled}
-is non-@code{nil}, @kbd{C-x 4 a} ads the file's version number to the
+is non-@code{nil}, @kbd{C-x 4 a} adds the file's version number to the
 change log entry.  It finds the version number by searching the first
 ten percent of the file, using regular expressions from the variable
 @code{change-log-version-number-regexp-list}.
