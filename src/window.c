@@ -1666,9 +1666,9 @@ replace_buffer_in_all_windows (buffer)
      because it only considers frames on the current keyboard.
      So loop manually over frames, and handle each one.  */
   FOR_EACH_FRAME (tail, frame)
-    window_loop (UNSHOW_BUFFER, buffer, 0, frame);
+    window_loop (UNSHOW_BUFFER, buffer, 1, frame);
 #else
-  window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
+  window_loop (UNSHOW_BUFFER, buffer, 1, Qt);
 #endif
 }
 
