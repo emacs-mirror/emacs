@@ -1,4 +1,4 @@
-/* Give this program DOCSTR.mm.nn as standard input and it outputs to
+/* Give this program DOC-mm.nn.oo as standard input and it outputs to
    standard output a file of nroff output containing the doc strings.
 
    Copyright (C) 1987, 1994, 2001  Free Software Foundation Inc.

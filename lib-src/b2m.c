@@ -1,5 +1,6 @@
 /*
  * b2m - a filter for Babyl -> Unix mail files
+ * The copyright on this file has been disclaimed.
  *
  * usage:	b2m < babyl > mailbox
  *
