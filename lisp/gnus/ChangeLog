@@ -1,3 +1,7 @@
+2002-09-06  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-int.el (gnus-status-message): Fix spacing.
+
 2002-08-30  Juanma Barranquero  <lektu@terra.es>
 
 	* imap.el (imap-authenticator-alist, imap-stream-alist)
