@@ -21,7 +21,6 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
-#include <ctype.h>
 #include <sys/types.h>
 
 #ifdef VMS
@@ -33,6 +32,8 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#include <ctype.h>
 
 #include "lisp.h"
 #include "intervals.h"
