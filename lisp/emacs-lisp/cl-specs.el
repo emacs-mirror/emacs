@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1994/03/23 22:09:57 $|1.1|
+;; |$Date: 1994/04/05 20:52:43 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -130,7 +130,7 @@
 (def-edebug-spec pushnew 
   (form place &rest 
 	&or [[&or ":test" ":test-not" ":key"] function-form]
-	[keywordp form]))
+	[edebug-keywordp form]))
 (def-edebug-spec pop (place))
 
 (def-edebug-spec shiftf (&rest place))  ;; really [&rest place] form
