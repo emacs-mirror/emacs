@@ -1,3 +1,9 @@
+2002-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (adjust_after_replace_noundo): New function.
+
+	* coding.c (code_convert_region): Don't copy old text if undo disabled.
+
 2002-01-09  Jason Rumney  <jasonr@gnu.org>
 
 	* xdisp.c (x_consider_frame_title): Don't count the tooltip frame

@@ -1,5 +1,7 @@
 2002-01-11  Richard M. Stallman  <rms@gnu.org>
 
+	* startup.el (initial-scratch-message): Fix custom type, add group.
+
 	* mail/rmail.el (rmail-decode-babyl-format): Disable undo
 	around the decode-coding-region call.
 
