@@ -82,6 +82,9 @@ top_srcdir=@top_srcdir@
 # to `../configure'.
 archlibdir=@archlibdir@
 
+gamedir=@gamedir@
+gameuser=@gameuser@
+
 # ==================== Utility Programs for the Build =================
 
 # ../configure figures out the correct values for these.
@@ -100,8 +103,8 @@ INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES=  profile digest-doc \
-	sorted-doc movemail cvtmail fakemail yow emacsserver hexl
+UTILITIES=  profile digest-doc sorted-doc movemail cvtmail fakemail \
+            yow emacsserver hexl update-game-score
 
 DONT_INSTALL= test-distrib make-docfile
 
@@ -288,6 +291,17 @@ ${archlibdir}: all
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file ${archlibdir}/$$file ; \
 	  done ; \
         fi
+#ifdef HAVE_SHARED_GAME_DIR
+	chown ${gameuser} ${archlibdir}/update-game-score
+	chmod u+s ${archlibdir}/update-game-score
+	$(top_srcdir)/mkinstalldirs ${gamedir}
+	chown ${gameuser} ${gamedir}
+	chmod u=rwx,g=rwx,o=rx ${gamedir}
+/* If you change these, be sure to change the variables in
+   lisp/play/{tetris,snake}.el. */
+	touch ${gamedir}/snake-scores
+	touch ${gamedir}/tetris-scores
+#endif
         if [ `(cd ${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
 	  for file in ${SCRIPTS}; do \
@@ -429,6 +443,9 @@ emacsclient: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 
 hexl: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
+
+update-game-score: ${srcdir}/update-game-score.c ../src/config.h
+	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */
