@@ -1,7 +1,14 @@
+2005-04-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/tcl.el (tcl-escaped-newline): New face.
+	(tcl-builtin-list): New variable.
+	(tcl-set-font-lock-keywords): Add builtins, variables, and escaped
+	newlines.  Fix keywords subexpression number.
+
 2005-04-05  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-diary-default-entry): Fixed call to
-	`add-to-diary-entry'. 
+	`add-to-diary-entry'.
 
 2005-04-05  Kim F. Storm  <storm@cua.dk>
 
