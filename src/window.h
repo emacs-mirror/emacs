@@ -124,6 +124,9 @@ struct window
     Lisp_Object last_modified;
     /* Value of point at that time */
     Lisp_Object last_point;
+    /* Non-nil if the buffer was "modified" when the window
+       was last updated.  */
+    Lisp_Object last_had_star;
     /* This window's vertical scroll bar.  This field is only for use
        by the window-system-dependent code which implements the
        scroll bars; it can store anything it likes here.  If this
