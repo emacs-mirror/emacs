@@ -824,7 +824,7 @@ x_free_gc (f, gc)
 
 int
 xstricmp (s1, s2)
-     unsigned char *s1, *s2;
+     const unsigned char *s1, *s2;
 {
   while (*s1 && *s2)
     {
