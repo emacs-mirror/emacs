@@ -48,17 +48,26 @@ char *_getpty();
 #define PTY_ITERATION
 /* Here is how to do it.  */
 /* It is necessary to prevent SIGCHLD signals within _getpty.
-   So we block them. */
-#define PTY_OPEN						\
-{								\
-  int mask = sigblock (sigmask (SIGCHLD));			\
-  char *name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0);	\
-  sigsetmask(mask);						\
-  if (name == 0)						\
-    return -1;							\
-  if (fd < 0)							\
-    return -1;							\
-  if (fstat (fd, &stb) < 0)					\
-    return -1;							\
-  strcpy (pty_name, name);					\
+   So we block them. But since all of Emacs uses classic SYSV signal()
+   signals, there is no reliable way to do this (unlike BSD sighold or
+   POSIX sigaction).  On Irix 5.* systems, the implementation of
+   sigaction is as close as you can get to a universal. */
+#define PTY_OPEN					    \
+{							    \
+  struct sigaction ocstat, cstat;			    \
+  char * name;						    \
+  sigemptyset(&cstat.sa_mask);				    \
+  cstat.sa_handler = SIG_DFL;				    \
+  cstat.sa_flags = 0;					    \
+  sigaction(SIGCLD, &cstat, &ocstat);			    \
+  name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0);	    \
+  sigaction(SIGCLD, &ocstat, (struct sigaction *)0);	    \
+  if (name == 0)					    \
+    return -1;						    \
+  if (fd < 0)						    \
+    return -1;						    \
+  if (fstat (fd, &stb) < 0)				    \
+    return -1;						    \
+  strcpy (pty_name, name);				    \
 }
+
