@@ -454,7 +454,7 @@ xg_create_frame_widgets (f)
      up in the wrong place as tool bar height has not been taken into account.
      So we cheat a bit by setting a height that is what it will have
      later on when tool bar items are added.  */
-  if (FRAME_TOOLBAR_HEIGHT (f) == 0)
+  if (FRAME_EXTERNAL_TOOL_BAR (f) && FRAME_TOOLBAR_HEIGHT (f) == 0)
     FRAME_TOOLBAR_HEIGHT (f) = 34;
   
   gtk_widget_set_double_buffered (wvbox, FALSE);
