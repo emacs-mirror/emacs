@@ -1,3 +1,12 @@
+2005-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fmessage): If arg is "", return "" (as before).
+
+	* keymap.c (access_keymap): Protect from bad value of meta_prefix_char.
+
+	* .gdbinit (xgetptr, xgetint, xgettype): Copy $arg0 into a temp
+	variable.
+
 2005-01-20  Steven Tamm  <steventamm@mac.com>
 
 	* editfns.c (Voperating_system_release): Added.

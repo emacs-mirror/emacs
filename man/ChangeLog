@@ -1,7 +1,15 @@
+2005-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar.texi (Time Intervals): Delete special stuff for MS-DOS.
+
 2005-01-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Keep Arguments): Mention that keeping arguments
 	doesn't work with keyboard macros.
+
+2005-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* autotype.texi (Autoinserting): Fix small error.
 
 2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -11,8 +19,20 @@
 	remote files.
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
-
-	* man/rmail.texi: Document support for GNU mailutils in rmail.el.
+ 
+ 	* man/rmail.texi (Movemail): Explain differences
+	between standard and mailutils versions of movemail.
+	Describe command line and configuration options introduced
+	with the latter.
+	Explain the notion of mailbox URL, provide examples and
+	cross-references to mailutils documentation.
+	Describe various methods of specifying mailbox names,
+	user names and user passwords for rmail.
+	(Remote Mailboxes): New section. Describe
+	how movemail handles remote mailboxes. Describe configuration
+	options used to control its behavior. 
+	(Other Mailbox Formats): Explain handling of various mailbox
+	formats.
 
 2005-01-13  Richard M. Stallman  <rms@gnu.org>
 

@@ -20,6 +20,10 @@ to the FSF.
 ** Redefine define-generic-mode as a macro, so the compiler
   sees the definitions it generates.
 
+** Change the way define-minor-mode handles autoloading.
+  It should not generate :require.  Or :require in defcustom
+  should not be recorded in the user's custom-set-variables call.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,

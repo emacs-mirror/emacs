@@ -3,6 +3,10 @@
 	* keymaps.texi (Changing Key Bindings): `suppress-keymap' now uses
 	command remapping.
 
+2005-01-15  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Mention DATA-P arg of create-image.
+
 2005-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Accessing Events): Add WHOLE arg to posn-at-x-y.
