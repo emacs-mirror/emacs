@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -429,6 +429,64 @@ With prefix argument N moves backward N messages with these labels."
   (save-excursion
     (set-buffer rmail-buffer)
     (rmail-previous-labeled-message n labels)))
+
+(defun rmail-summary-next-same-subject (n)
+  "Go to the next message in the summary having the same subject.
+With prefix argument N, do this N times.
+If N is negative, go backwards."
+  (interactive "p")
+  (let (subject search-regexp  i found
+	(forward (> n 0)))
+    (save-excursion
+      (set-buffer rmail-buffer)
+      (setq subject (mail-fetch-field "Subject"))
+      (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
+				  (regexp-quote subject)
+				  "\n"))
+      (setq i rmail-current-message))
+    (if (string-match "Re:[ \t]*" subject)
+	(setq subject (substring subject (match-end 0))))
+    (save-excursion
+      (while (and (/= n 0)
+		  (if forward
+		      (not (eobp))
+		    (not (bobp))))
+	(let (done)
+	  (while (and (not done)
+		      (if forward
+			  (not (eobp))
+			(not (bobp))))
+	    ;; Advance thru summary.
+	    (forward-line (if forward 1 -1))
+	    ;; Get msg number of this line.
+	    (setq i (string-to-int
+		     (buffer-substring (point)
+				       (min (point-max) (+ 5 (point))))))
+	    ;; See if that msg has desired subject.
+	    (save-excursion
+	      (set-buffer rmail-buffer)
+	      (save-restriction
+		(widen)
+		(goto-char (rmail-msgbeg i))
+		(search-forward "\n*** EOOH ***\n")
+		(let ((beg (point)) end)
+		  (search-forward "\n\n")
+		  (setq end (point))
+		  (goto-char beg)
+		  (setq done (re-search-forward search-regexp end t))))))
+	  (if done (setq found i)))
+	(setq n (if forward (1- n) (1+ n)))))
+    (if found
+	(rmail-summary-goto-msg found)
+      (error "No %s message with same subject"
+	     (if forward "following" "previous")))))
+
+(defun rmail-summary-previous-same-subject (n)
+  "Go to the previous message in the summary having the same subject.
+With prefix argument N, do this N times.
+If N is negative, go forwards instead."
+  (interactive "p")
+  (rmail-summary-next-same-subject (- n)))
 
 ;; Delete and undelete summary commands.
 
@@ -667,6 +725,8 @@ Commands for sorting the summary:
   (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
   (define-key rmail-summary-mode-map "\177"   'rmail-summary-scroll-msg-down)
   (define-key rmail-summary-mode-map "?"      'describe-mode)
+  (define-key rmail-summary-mode-map "\C-c\C-n" 'rmail-summary-next-same-subject)
+  (define-key rmail-summary-mode-map "\C-c\C-p" 'rmail-summary-previous-same-subject)
   (define-key rmail-summary-mode-map "\C-c\C-s\C-d"
     'rmail-summary-sort-by-date)
   (define-key rmail-summary-mode-map "\C-c\C-s\C-s"
