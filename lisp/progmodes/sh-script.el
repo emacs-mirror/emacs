@@ -1297,12 +1297,12 @@ option followed by a colon `:' if the option accepts an argument."
 	";;" \n)
       < "*)" \n
       > "echo" " \"usage: " "`basename $0`"
-      "[ +-" '(setq v1 (point)) str
+      " [+-" '(setq v1 (point)) str
       '(save-excursion
 	 (while (search-backward ":" v1 t)
-	   (replace-match " arg][ +-" t t)))
+	   (replace-match " ARG] [+-" t t)))
       (if (eq (preceding-char) ?-) -5)
-      "][ --] args\"" \n
+      "] [--] ARGS...\"" \n
       "exit 2" \n
       < < "esac" \n
       < "done" \n
