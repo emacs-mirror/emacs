@@ -1,5 +1,8 @@
 2000-07-13  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/easymenu.el: Doc fixes.
+	(easy-menu-remove): Defalias to ignore.
+
 	* textmodes/reftex-cite.el (reftex-bibtex-selection-callback):
 	Call throw correctly.
 
