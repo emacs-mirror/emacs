@@ -1009,7 +1009,7 @@ foo
      @result{} 20
 (overlay-buffer foo)
      @result{} #<buffer display.texi>
-;; @r{Moving and deleting the overlay don't change its properties.}
+;; @r{Moving and deleting the overlay does not change its properties.}
 (overlay-get foo 'happy)
      @result{} t
 @end example
@@ -1408,10 +1408,6 @@ Font weight---a symbol from this series (from most dense to most faint):
 @code{ultra-bold}, @code{extra-bold}, @code{bold}, @code{semi-bold},
 @code{normal}, @code{semi-light}, @code{light}, @code{extra-light},
 or @code{ultra-light}.
-
-On a text-only terminal, any weight greater than normal is displayed as
-extra bright, and any weight less than normal is displayed as
-half-bright (This is provided the terminal supports the feature.)
 
 On a text-only terminal, any weight greater than normal is displayed as
 extra bright, and any weight less than normal is displayed as
@@ -2692,7 +2688,7 @@ This function removes images in @var{buffer} between positions
 @var{start} and @var{end}.  If @var{buffer} is omitted or @code{nil},
 images are removed from the current buffer.
 
-This remove only images that were put into @var{buffer} the way
+This removes only images that were put into @var{buffer} the way
 @code{put-image} does it, not images that were inserted with
 @code{insert-image} or in other ways.
 @end defun
@@ -2796,7 +2792,7 @@ default is @code{nil}.
 @defopt mode-line-inverse-video
 This variable controls the use of inverse video for mode lines and menu
 bars.  If it is non-@code{nil}, then these lines are displayed in
-inverse video.  Otherwise, they lines are displayed normally, just like
+inverse video.  Otherwise, these lines are displayed normally, just like
 other text.  The default is @code{t}.
 
 For window frames, this feature actually applies the face named
