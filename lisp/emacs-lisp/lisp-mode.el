@@ -881,8 +881,8 @@ which has a non-nil property `lisp-indent-function',
 that specifies how to do the indentation.  The property value can be
 * `defun', meaning indent `defun'-style;
 * an integer N, meaning indent the first N arguments specially
-like ordinary function arguments and then indent any further
-aruments like a body;
+  like ordinary function arguments and then indent any further
+  arguments like a body;
 * a function to call just as this function was called.
 If that function returns nil, that means it doesn't specify
 the indentation.
