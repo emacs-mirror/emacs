@@ -1271,8 +1271,10 @@ and nil for X and Y.")
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
   "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
-WARNING:  If you use this under X windows,\n\
-you should call `unfocus-frame' afterwards.")
+Note, this is a no-op for an X frame that is not visible.\n\
+If you have just created a frame, you must wait for it to become visible\n\
+before calling this function on it, like this.\n\
+  (while (not (frame-visible-p frame)) (sleep-for .5))")
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
@@ -1293,8 +1295,10 @@ you should call `unfocus-frame' afterwards.")
 DEFUN ("set-mouse-pixel-position", Fset_mouse_pixel_position,
        Sset_mouse_pixel_position, 3, 3, 0,
   "Move the mouse pointer to pixel position (X,Y) in FRAME.\n\
-WARNING:  If you use this under X windows,\n\
-you should call `unfocus-frame' afterwards.")
+Note, this is a no-op for an X frame that is not visible.\n\
+If you have just created a frame, you must wait for it to become visible\n\
+before calling this function on it, like this.\n\
+  (while (not (frame-visible-p frame)) (sleep-for .5))")
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
@@ -2394,6 +2398,16 @@ DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
   return Qt;
 }
 
+DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p, 1, 1, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  (frame)
+     Lisp_Object frame;
+{
+  return Qt;
+}
+
 DEFUN ("frame-list", Fframe_list, Sframe_list, 0, 0, 0,
   /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
@@ -2434,6 +2448,7 @@ syms_of_frame ()
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_live_p);
+  defsubr (&Sframe_visible_p);
   defsubr (&Sframe_list);
 
 #ifdef MSDOS
