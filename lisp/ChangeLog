@@ -1,3 +1,12 @@
+2004-09-07  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-highlight-matches): Change default from
+	`t' to `auto-detect', and type from `boolean' to `choice'.
+	(grep-compute-defaults): Set `grep-highlight-matches' to `t'
+	if grep option `--color' is available, or to `nil' otherwise.
+	(grep-use-null-device): Remove redundant type `boolean' (`choice'
+	is already defined).
+
 2004-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (next-error-follow-minor-mode): Fix last change.
