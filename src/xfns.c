@@ -1041,7 +1041,11 @@ x_set_name (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  CHECK_STRING (arg, 0);
+  /* If ARG is nil, set the name to the x_id_name.  */
+  if (NILP (arg))
+    arg = build_string (x_id_name);
+  else
+    CHECK_STRING (arg, 0);
 
   /* Don't change the name if it's already ARG.  */
   if (! NILP (Fstring_equal (arg, f->name)))
@@ -1063,7 +1067,7 @@ x_set_name (f, arg, oldval)
       BLOCK_INPUT;
       XStoreName (XDISPLAY f->display.x->window_desc,
 		  (char *) XSTRING (arg)->data);
-      XSetIconName (XDISPLAY f->display.x->window_desc,
+      XSetIconName (XDISPLAY f->display.x->window_desc, 
 		    (char *) XSTRING (arg)->data);
       UNBLOCK_INPUT;
 #endif
