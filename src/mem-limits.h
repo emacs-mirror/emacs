@@ -79,10 +79,16 @@ extern POINTER start_of_data ();
 #define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
 
+#ifdef DATA_START
+#define start_of_data() ((char *)DATA_START)
+#endif
+
 #ifdef BSD_SYSTEM
 #ifndef DATA_SEG_BITS
+#ifndef DATA_START
 extern char etext;
 #define start_of_data() &etext
+#endif
 #endif
 #endif
 
