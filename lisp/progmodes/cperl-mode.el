@@ -1835,7 +1835,7 @@ to nil."
   (let ((beg (save-excursion (beginning-of-line) (point)))
 	(dollar (and (eq last-command-char ?$)
 		     (eq this-command 'self-insert-command)))
-	(delete (and (memq last-command-char '(?\ ?\n ?\t ?\f))
+	(delete (and (memq last-command-char '(?\  ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	my do)
     (and (save-excursion
@@ -1905,7 +1905,7 @@ to nil."
 
 (defun cperl-electric-pod ()
   "Insert a POD chunk appropriate after a =POD directive."
-  (let ((delete (and (memq last-command-char '(?\ ?\n ?\t ?\f))
+  (let ((delete (and (memq last-command-char '(?\  ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	head1 notlast name p really-delete over)
     (and (save-excursion
@@ -4232,7 +4232,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 fill-column)
   (let ((c (save-excursion (beginning-of-line)
 			   (cperl-to-comment-or-eol) (point)))
-	(s (memq (following-char) '(?\ ?\t))) marker)
+	(s (memq (following-char) '(?\  ?\t))) marker)
     (if (>= c (point)) nil
       (setq marker (point-marker))
       (cperl-fill-paragraph)
@@ -4241,11 +4241,11 @@ indentation and initial hashes.  Behaves usually outside of comment."
       (if (bolp) (progn (re-search-forward "#+[ \t]*")
 			(goto-char (match-end 0))))
       ;; Following space could have gone:
-      (if (or (not s) (memq (following-char) '(?\ ?\t))) nil
+      (if (or (not s) (memq (following-char) '(?\  ?\t))) nil
 	(insert " ")
 	(backward-char 1))
       ;; Previous space could have gone:
-      (or (memq (preceding-char) '(?\ ?\t)) (insert " "))))))
+      (or (memq (preceding-char) '(?\  ?\t)) (insert " "))))))
 
 (defun cperl-imenu-addback (lst &optional isback name)
   ;; We suppose that the lst is a DAG, unless the first element only
