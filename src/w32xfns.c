@@ -117,7 +117,11 @@ get_frame_dc (FRAME_PTR f)
   enter_crit ();
 
   hdc = GetDC (f->output_data.w32->window_desc);
-  select_palette (f, hdc);
+
+  /* If this gets called during startup before the frame is valid,
+     there is a chance of corrupting random data or crashing. */
+  if (hdc)
+    select_palette (f, hdc);
 
   return hdc;
 }
