@@ -237,7 +237,7 @@ main (argc, argv, envp)
 #endif
 
 #ifdef NeXT
-  static int malloc_cookie;
+  extern int malloc_cookie;
 
   /* This helps out unexnext.c.  */
   if (initialized)
@@ -800,9 +800,7 @@ and announce itself normally when it is run.")
 
 #endif /* not CANNOT_DUMP */
 
-#ifdef VMS
-#define SEPCHAR ','
-#else
+#ifndef SEPCHAR
 #define SEPCHAR ':'
 #endif
 
