@@ -50,7 +50,7 @@
 (defvar inferior-octave-receive-in-progress nil)
 
 (defconst octave-maintainer-address
-  "Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>, bug-gnu-emacs@prep.ai.mit.edu" 
+  "Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>, bug-gnu-emacs@gnu.org" 
   "Current maintainer of the Emacs Octave package.")
 
 (defvar octave-abbrev-table nil
