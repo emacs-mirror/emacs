@@ -110,7 +110,8 @@ nil means let mailer mail back a message to report errors."
 (defcustom send-mail-function 'sendmail-send-it
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
-not a valid RFC822 header or continuation line.
+not a valid RFC822 header or continuation line,
+that matches the variable `mail-header-separator'.
 This is used by the default mail-sending commands.  See also
 `message-send-mail-function' for use with the Message package."
   :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
@@ -1019,6 +1020,8 @@ external program defined by `sendmail-program'."
 	(time (current-time))
 	(tembuf (generate-new-buffer " rmail output"))
 	(case-fold-search t))
+    (unless (markerp header-end)
+      (error "Value of `header-end' must be a marker"))
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward "^FCC:[ \t]*" header-end t)
@@ -1081,6 +1084,8 @@ external program defined by `sendmail-program'."
 			;; If MSG is non-nil, buffer is in RMAIL mode.
 			(if msg
 			    (progn
+			      ;; Append to an ordinary buffer as a
+			      ;; Unix mail message.
 			      (rmail-maybe-set-message-counters)
 			      (widen)
 			      (narrow-to-region (point-max) (point-max))
@@ -1199,7 +1204,7 @@ external program defined by `sendmail-program'."
   (insert "\nFCC: " folder))
 
 (defun mail-reply-to ()      
-  "Move point to end of Reply-To-field."
+  "Move point to end of Reply-To-field.  Create a Reply-To field if none."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Reply-To"))
@@ -1227,7 +1232,7 @@ external program defined by `sendmail-program'."
   (expand-abbrev)
   (goto-char (mail-text-start)))
 
-(defun mail-signature (atpoint)
+(defun mail-signature (&optional atpoint)
   "Sign letter with contents of the file `mail-signature-file'.
 Prefix arg means put contents at point."
   (interactive "P")
@@ -1300,21 +1305,23 @@ and don't delete any header fields."
 		;; Avoid error in Transient Mark mode
 		;; on account of mark's being inactive.
 		(mark-even-if-inactive t))
-	    (if mail-citation-hook
-		;; Bind mail-citation-header to the inserted message's header.
-		(let ((mail-citation-header
-		       (buffer-substring-no-properties
-			start
-			(save-excursion
-			  (save-restriction
-			    (narrow-to-region start (point-max))
-			    (goto-char start)
-			    (rfc822-goto-eoh)
-			    (point))))))
-		(run-hooks 'mail-citation-hook))
-	      (if mail-yank-hooks
-		  (run-hooks 'mail-yank-hooks)
-		(mail-indent-citation)))))
+	    (cond (mail-citation-hook
+		   ;; Bind mail-citation-header to the inserted
+		   ;; message's header.
+		   (let ((mail-citation-header
+			  (buffer-substring-no-properties
+			   start
+			   (save-excursion
+			     (save-restriction
+			       (narrow-to-region start (point-max))
+			       (goto-char start)
+			       (rfc822-goto-eoh)
+			       (point))))))
+		     (run-hooks 'mail-citation-hook)))
+		  (mail-yank-hooks
+		   (run-hooks 'mail-yank-hooks))
+		  (t
+		   (mail-indent-citation)))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
 	;; loop would deactivate the mark because we inserted text.
