@@ -1415,7 +1415,10 @@ internal_terminal_init ()
 
 /* When time zones are set from Ms-Dos too may C-libraries are playing
    tricks with time values.  We solve this by defining our own version
-   of `gettimeofday' bypassing GO32.  */
+   of `gettimeofday' bypassing GO32.  Our version needs to be initialized
+   once and after each call to `tzset' with TZ changed.  */
+
+static int daylight, gmtoffset;
 
 int
 gettimeofday (struct timeval *tp, struct timezone *tzp)
@@ -1423,15 +1426,43 @@ gettimeofday (struct timeval *tp, struct timezone *tzp)
   if (tp)
     {
       struct time t;
+      struct date d;
+      struct tm tmrec;
 
       gettime (&t);
-      tp->tv_sec = time (NULL);
-      /* If tp->tv_sec%60 != t.ti_sec, the seconds counter turned over
-	 between the call to `gettime' and the call to `time'.  */
-      tp->tv_usec = tp->tv_sec%60 != t.ti_sec ? 0 : t.ti_hund * (1000000/100);
+      /* If midnight occurs here, the results can be incorrect.  */
+      getdate (&d);
+      tmrec.tm_year = d.da_year - 1900;
+      tmrec.tm_mon = d.da_mon - 1;
+      tmrec.tm_mday = d.da_day;
+      tmrec.tm_hour = t.ti_hour;
+      tmrec.tm_min = t.ti_min;
+      tmrec.tm_sec = t.ti_sec;
+      tmrec.tm_gmtoff = gmtoffset;
+      tmrec.tm_isdst = daylight;
+      tp->tv_sec = mktime (&tmrec);
+      tp->tv_usec = t.ti_hund * (1000000 / 100);
     }
   /* Ignore tzp; it's obsolescent.  */
   return 0;
+}
+
+void
+init_gettimeofday ()
+{
+  time_t ltm, gtm;
+  struct tm *lstm;
+#undef tzset
+  extern void tzset (void);
+
+  tzset ();
+  daylight = 0;
+  gmtoffset = 0;
+  ltm = gtm = time (NULL);
+  ltm = mktime (lstm = localtime (&ltm));
+  gtm = mktime (gmtime (&gtm));
+  daylight = lstm->tm_isdst;
+  gmtoffset = (int)(gtm - ltm) / 60;
 }
 
 /* These must be global.  */
