@@ -255,6 +255,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
       (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
 
+;;;###autoload
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
 This calls touch."
@@ -342,6 +343,7 @@ Uses the shell command coming from variables `lpr-command' and
 
 (defvar dired-file-version-alist)
 
+;;;###autoload
 (defun dired-clean-directory (keep)
   "Flag numerical backups for deletion.
 Spares `dired-kept-versions' latest versions, and `kept-old-versions' oldest.
@@ -551,6 +553,7 @@ the list of file names explicitly with the FILE-LIST argument."
 	(funcall stuff-it files)))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
+;;;###autoload
 (defun dired-run-shell-command (command)
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
@@ -805,6 +808,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
     ;; None of these keys quit - use C-g for that.
     ))
 
+;;;###autoload
 (defun dired-query (qs-var qs-prompt &rest qs-args)
   ;; Query user and return nil or t.
   ;; Store answer in symbol VAR (which must initially be bound to nil).
