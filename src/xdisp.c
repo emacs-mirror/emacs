@@ -291,6 +291,12 @@ int noninteractive_need_newline;
 
 static int message_log_need_newline;
 
+/* Three markers that message_dolog uses.
+   It could allocate them itself, but that causes trouble
+   in handling memory-full errors.  */
+static Lisp_Object message_dolog_marker1;
+static Lisp_Object message_dolog_marker2;
+static Lisp_Object message_dolog_marker3;
 
 /* The buffer position of the first character appearing entirely or
    partially on the line of the selected window which contains the
@@ -5616,10 +5622,13 @@ message_dolog (m, nbytes, nlflag, multibyte)
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
       current_buffer->undo_list = Qt;
 
-      oldpoint = Fpoint_marker ();
-      oldbegv = Fpoint_min_marker ();
-      oldzv = Fpoint_max_marker ();
-      GCPRO4 (oldpoint, oldbegv, oldzv, old_deactivate_mark);
+      oldpoint = message_dolog_marker1;
+      set_marker_restricted (oldpoint, make_number (PT), Qnil);
+      oldbegv = message_dolog_marker2;
+      set_marker_restricted (oldbegv, make_number (BEGV), Qnil);
+      oldzv = message_dolog_marker3;
+      set_marker_restricted (oldzv, make_number (ZV), Qnil);
+      GCPRO1 (old_deactivate_mark);
 
       if (PT == Z)
 	point_at_end = 1;
@@ -5678,6 +5687,8 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	  this_bol = PT;
 	  this_bol_byte = PT_BYTE;
 
+	  /* See if this line duplicates the previous one.
+	     If so, combine duplicates.  */
 	  if (this_bol > BEG)
 	    {
 	      scan_newline (PT, PT_BYTE, BEG, BEG_BYTE, -2, 0);
@@ -5704,6 +5715,10 @@ message_dolog (m, nbytes, nlflag, multibyte)
 		    }
 		}
 	    }
+
+	  /* If we have more than the desired maximum number of lines
+	     in the *Messages* buffer now, delete the oldest ones.
+	     This is safe because we don't have undo in this buffer.  */
 
 	  if (NATNUMP (Vmessage_log_max))
 	    {
@@ -5735,9 +5750,9 @@ message_dolog (m, nbytes, nlflag, multibyte)
 			  XMARKER (oldpoint)->bytepos);
 
       UNGCPRO;
-      free_marker (oldpoint);
-      free_marker (oldbegv);
-      free_marker (oldzv);
+      unchain_marker (oldpoint);
+      unchain_marker (oldbegv);
+      unchain_marker (oldzv);
 
       tem = Fget_buffer_window (Fcurrent_buffer (), Qt);
       set_buffer_internal (oldbuf);
@@ -14589,6 +14604,13 @@ syms_of_xdisp ()
   
   Qinhibit_redisplay = intern ("inhibit-redisplay");
   staticpro (&Qinhibit_redisplay);
+
+  message_dolog_marker1 = Fmake_marker ();
+  staticpro (&message_dolog_marker1);
+  message_dolog_marker2 = Fmake_marker ();
+  staticpro (&message_dolog_marker2);
+  message_dolog_marker3 = Fmake_marker ();
+  staticpro (&message_dolog_marker3);
 
 #if GLYPH_DEBUG
   defsubr (&Sdump_glyph_matrix);
