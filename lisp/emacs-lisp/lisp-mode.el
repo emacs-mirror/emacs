@@ -83,7 +83,7 @@
 (defvar lisp-imenu-generic-expression
   (list
    (list nil 
-	 (purecopy "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|\
+	 (purecopy "^\\s-*(def\\(un\\*?\\|subst\\|macro\\|advice\\|\
 ine-skeleton\\|ine-minor-mode\\)\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 2)
    (list (purecopy "Variables") 
 	 (purecopy "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\
