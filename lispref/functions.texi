@@ -953,9 +953,9 @@ error.  (See also @code{makunbound}, in @ref{Local Variables}.)
 @end example
 @end defun
 
-@defun fset symbol object
-This function stores @var{object} in the function cell of @var{symbol}.
-The result is @var{object}.  Normally @var{object} should be a function
+@defun fset symbol definition
+This function stores @var{definition} in the function cell of @var{symbol}.
+The result is @var{definition}.  Normally @var{definition} should be a function
 or the name of a function, but this is not checked.
 
 There are three normal uses of this function:
