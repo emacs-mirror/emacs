@@ -262,7 +262,7 @@ Returns nil if nothing was entered."
    "Arctan of point X, Y."
    (if (= x 0)
        (if (> y 0) 90 270)
-     (solar-arctan (/ y x) x)))
+     (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
 
 (defun solar-arccos (x)
      "Arcos of X."
