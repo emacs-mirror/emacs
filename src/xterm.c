@@ -294,7 +294,7 @@ XTupdate_begin (f)
 
       /* If the frame needs to be redrawn,
 	 simply forget about any prior mouse highlighting.  */
-      if (! FRAME_GARBAGED_P (f))
+      if (FRAME_GARBAGED_P (f))
 	FRAME_X_DISPLAY_INFO (f)->mouse_face_window = Qnil;
 
       if (!NILP (FRAME_X_DISPLAY_INFO (f)->mouse_face_window))
@@ -3892,7 +3892,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		bzero (&compose_status, sizeof (compose_status));
 
-		f = x_window_to_frame (event.xbutton.window);
+		if (dpyinfo->grabbed && last_mouse_frame
+		    && FRAME_LIVE_P (last_mouse_frame))
+		  f = last_mouse_frame;
+		else
+		  f = x_window_to_frame (event.xmotion.window);
+
 		if (f)
 		  {
 		    if (!x_focus_frame || (f == x_focus_frame))
@@ -4163,6 +4168,7 @@ x_display_box_cursor (f, on)
 	      && (f != x_highlight_frame))))
     {
       int mouse_face_here = 0;
+      struct frame_glyphs *active_glyphs = FRAME_CURRENT_GLYPHS (f);
 
       /* If the cursor is in the mouse face area, redisplay that when
 	 we clear the cursor.  */
@@ -4174,7 +4180,11 @@ x_display_box_cursor (f, on)
 	  &&
 	  (f->phys_cursor_y < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
 	   || (f->phys_cursor_y == FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
-	       && f->phys_cursor_x < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col)))
+	       && f->phys_cursor_x < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col))
+	  /* Don't redraw the cursor's spot in mouse face
+	     if it is at the end of a line (on a newline).
+	     The cursor appears there, but mouse highlighting does not.  */
+	  && active_glyphs->used[f->phys_cursor_y] > f->phys_cursor_x)
 	mouse_face_here = 1;
 
       /* If the font is not as tall as a whole line,
