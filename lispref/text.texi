@@ -2238,7 +2238,7 @@ the function will be called.
 @itemx insert-behind-hooks
 @kindex insert-in-front-hooks @r{(text property)}
 @kindex insert-behind-hooks @r{(text property)}
-The operation of inserting text in a buffer, after actually modifying
+The operation of inserting text in a buffer, before actually modifying
 the buffer, calls the functions listed in the
 @code{insert-in-front-hooks} property of the following character and in
 the @code{insert-behind-hooks} property of the preceding character.
