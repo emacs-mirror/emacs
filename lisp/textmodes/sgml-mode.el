@@ -32,7 +32,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'skeleton))
+(eval-when-compile
+  (require 'skeleton)
+  (require 'outline))
 
 (defgroup sgml nil
   "SGML editing mode"
@@ -45,6 +47,12 @@
 
 (put 'sgml-transformation 'variable-interactive
      "aTransformation function: ")
+
+(defcustom sgml-mode-hook nil
+  "Hook run by command `sgml-mode'.
+`text-mode-hook' is run first."
+  :group 'sgml
+  :type 'hook)
 
 ;; As long as Emacs' syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
@@ -188,7 +196,7 @@ This takes effect when first loading the sgml-mode library.")
 The file name of current buffer file name will be appended to this,
 separated by a space."
   :type 'string
-  :version "20.5"
+  :version "21.1"
   :group 'sgml)
 
 (defvar sgml-saved-validate-command nil
@@ -822,6 +830,13 @@ See `sgml-tag-alist' for info about attributerules.."
 
 (provide 'sgml-mode)
 
+(defcustom html-mode-hook nil
+  "Hook run by command `html-mode'.
+`text-mode-hook' and `sgml-mode-hook' are run first."
+  :group 'sgml
+  :type 'hook
+  :options '(html-autoview-mode))
+
 (defvar html-quick-keys sgml-quick-keys
   "Use C-c X combinations for quick insertion of frequent tags when non-nil.
 This defaults to `sgml-quick-keys'.
@@ -1237,7 +1252,7 @@ The third `match-string' will be the used in the menu.")
     (nreverse toc-index)))
 
 (defun html-autoview-mode (&optional arg)
-  "Toggle automatic viewing via `html-viewer' upon saving buffer.
+  "Toggle automatic viewing via `browse-url-of-buffer' upon saving buffer.
 With positive prefix ARG always turns viewing on, with negative ARG always off.
 Can be used as a value for `html-mode-hook'."
   (interactive "P")
