@@ -1644,7 +1644,7 @@ reversed.")
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
-	(info vip-info-file-name)
+	(info "viper.info")
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *vip-info*"
