@@ -1,7 +1,11 @@
+2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gnus-msg.el (gnus-setup-message): Setup reaper for MML buffers.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Skip over previously
@@ -9,8 +13,8 @@
 
 2001-09-19  Sam Steingold  <sds@gnu.org>
 
-	* gnus-win.el (gnus-buffer-configuration): Respect
-	`gnus-bug-create-help-buffer'.
+	* gnus-win.el (gnus-buffer-configuration):
+	Respect `gnus-bug-create-help-buffer'.
 
 2001-09-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -20,8 +24,8 @@
 
 2001-09-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* gnus-sum.el (gnus-select-newsgroup): Make
-	`gnus-current-select-method' buffer-local.
+	* gnus-sum.el (gnus-select-newsgroup):
+	Make `gnus-current-select-method' buffer-local.
 	From TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>.
 
 	* gnus-art.el (gnus-request-article-this-buffer): Refer to
