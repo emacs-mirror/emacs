@@ -1,3 +1,9 @@
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xfaces.c (Fcolor_gray_p): Fix omission bug:
+	In case `frame' is nil, consult the selected frame.
+	(Fcolor_supported_p): Likewise.
+
 2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Frandom, Fstring_make_multibyte, Fset_char_table_range):
