@@ -2595,7 +2595,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
       else
 	safe_bcopy (source, destination, src_bytes);
       src += src_bytes;
-      dst += dst_bytes;
+      dst += src_bytes;
       coding->fake_multibyte = 1;
       break;
     }
@@ -2662,18 +2662,16 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
       if (dst_bytes)
 	bcopy (source, destination, src_bytes);
       else
-	{
-	  safe_bcopy (source, destination, src_bytes);
-	  dst_bytes = src_bytes;
-	}
-      if (coding->eol_type == CODING_EOL_CRLF)
+	safe_bcopy (source, destination, src_bytes);
+      dst_bytes = src_bytes;
+      if (coding->eol_type == CODING_EOL_CR)
 	{
 	  while (src_bytes--)
 	    {
 	      if ((c = *dst++) == '\n')
 		dst[-1] = '\r';
 	      else if (BASE_LEADING_CODE_P (c))
-		  coding->fake_multibyte = 1;
+		coding->fake_multibyte = 1;
 	    }
 	}
       else
