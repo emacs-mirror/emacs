@@ -3651,7 +3651,9 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
 {
   int result;
 
-  if (src_bytes <= 0)
+  if (src_bytes <= 0
+      && ! (coding->mode & CODING_MODE_LAST_BLOCK
+	    && CODING_REQUIRE_FLUSHING (coding)))
     {
       coding->produced = coding->produced_char = 0;
       coding->consumed = coding->consumed_char = 0;
@@ -3731,7 +3733,9 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
 {
   int result;
 
-  if (src_bytes <= 0)
+  if (src_bytes <= 0
+      && ! (coding->mode & CODING_MODE_LAST_BLOCK
+	    && CODING_REQUIRE_FLUSHING (coding)))
     {
       coding->produced = coding->produced_char = 0;
       coding->consumed = coding->consumed_char = 0;
@@ -4184,7 +4188,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       shrink_encoding_region (&from_byte, &to_byte, coding, NULL);
     else
       shrink_decoding_region (&from_byte, &to_byte, coding, NULL);
-    if (from_byte == to_byte)
+    if (from_byte == to_byte
+	&& ! (coding->mode & CODING_MODE_LAST_BLOCK
+	      && CODING_REQUIRE_FLUSHING (coding)))
       {
 	coding->produced = len_byte;
 	coding->produced_char = multibyte ? len : len_byte;
@@ -4486,7 +4492,9 @@ code_convert_string (str, coding, encodep, nocopy)
       else
 	shrink_decoding_region (&from, &to_byte, coding, XSTRING (str)->data);
     }
-  if (from == to_byte)
+  if (from == to_byte
+      && ! (coding->mode & CODING_MODE_LAST_BLOCK
+	    && CODING_REQUIRE_FLUSHING (coding)))
     return (nocopy ? str : Fcopy_sequence (str));
 
   if (encodep)
