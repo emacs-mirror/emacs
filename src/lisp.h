@@ -525,12 +525,23 @@ typedef struct interval *INTERVAL;
 
 struct Lisp_Cons
   {
+    /* Please do not use the names of these elements in code other
+       than the core lisp implementation.  Use XCAR and XCDR below.  */
+#ifdef HIDE_LISP_IMPLEMENTATION
+    Lisp_Object car_, cdr_;
+#else
     Lisp_Object car, cdr;
+#endif
   };
 
 /* Take the car or cdr of something known to be a cons cell.  */
+#ifdef HIDE_LISP_IMPLEMENTATION
+#define XCAR(c) (XCONS ((c))->car_)
+#define XCDR(c) (XCONS ((c))->cdr_)
+#else
 #define XCAR(c) (XCONS ((c))->car)
 #define XCDR(c) (XCONS ((c))->cdr)
+#endif
 
 /* Take the car or cdr of something whose type is not known.  */
 #define CAR(c)					\
@@ -1012,8 +1023,18 @@ struct Lisp_Float
   {
     Lisp_Object type;		/* essentially used for mark-bit
 				   and chaining when on free-list */
+#ifdef HIDE_LISP_IMPLEMENTATION
+    double data_;
+#else
     double data;
+#endif
   };
+
+#ifdef HIDE_LISP_IMPLEMENTATION
+#define XFLOAT_DATA(f)	(XFLOAT (f)->data_)
+#else
+#define XFLOAT_DATA(f)	(XFLOAT (f)->data)
+#endif
 #endif /* LISP_FLOAT_TYPE */
 
 /* A character, declared with the following typedef, is a member
