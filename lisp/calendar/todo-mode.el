@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.37 1999/03/18 08:53:48 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.38 1999/05/12 08:41:32 os10000 Exp $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.37 1999/03/18 08:53:48 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.38 1999/05/12 08:41:32 os10000 Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -285,260 +285,16 @@
 ;;
 ;;	Oliver Seidel
 ;;	(Lessingstr. 8, 65760 Eschborn, Federal Republic of Germany)
-;;
-
-;; ---------------------------------------------------------------------------
-
-;;; Change Log:
-
-;; $Log: todo-mode.el,v $
-;; Revision 1.37  1999/03/18 08:53:48  os10000
-;; Marc Zonzon <Marc.Zonzon@univ-rennes1.fr> on 18.Mar.99 writes that I
-;; should remove the single space between ### and autoload.  And now I
-;; have.
-;;
-;; Revision 1.36  1999/03/17 11:10:29  os10000
-;; Alastair Burt <alastair.burt@dfki.de> sent in a patch on 17.Mar.98
-;; which removes duplicates from the category list and saves the buffer
-;; after category addition.  Thanks.
-;;
-;; Uwe Brauer <oub@sunma4.mat.ucm.es> sent in a request on 3.Apr.98 to
-;; implement a "move-between-categories" function.  I haven't done that
-;; yet.  Thanks.
-;;
-;; "Edward S. Hirgelt" <ehirgelt@directinterfaces.com> fixed a problem
-;; with multi-line editing 29.Oct.98.  Thanks.
-;;
-;; tom <tom@pixelpark.com> sent in a replacement for the outmoded
-;; time-format that I had been using on 13.Nov.98.  Thanks.
-;;
-;; Jerome Thebert <thebertj@felixstowe.rms.slb.com> sent in a binding to
-;; show/hide continuation lines using the space bar on 11.Jan.99.
-;; Instead of leaving it as a hook, I integrated it.  Thanks.
-;;
-;; Sorry again to everybody.  I sat on your patches for a year.
-;;
-;; Revision 1.35  1998/09/29 18:20:36  os10000
-;; Alex Schroeder startup description added.
-;;
-;; Revision 1.34  1998/01/12 11:43:22  os10000
-;; Added patch from Don Hejna <djhejna@oasis.ambit.com>.
-;;
-;; Revision 1.33  1997/12/04 17:45:22  os10000
-;; Another patch by Michael Cook to fix annotation.
-;;
-;; Revision 1.32  1997/12/03  12:18:20  os10000
-;; Added category patch by Michael R Cook <mcook@cognex.com>.
-;;
-;; Revision 1.31  1997/10/28  22:16:24  os10000
-;; Three insertion options:
-;; i without prefix: ask for category, do binary insertion
-;; i with prefix: do binary insertion in current category
-;; uppercase I: insert directly under cursor
-;;
-;; Revision 1.30  1997/10/28 21:59:48  os10000
-;; Improved documentation, fixed insertion with prefix.
-;;
-;; Revision 1.29  1997/10/28 21:47:12  os10000
-;; Implemented "insert-under-cursor" as suggested by
-;; Kai Grossjohann <grossjohann@ls6.cs.uni-dortmund.de>.
-;;
-;; Revision 1.28  1997/10/28 21:37:05  os10000
-;; Incorporated simplifying suggestions from
-;; Carsten Dominik <dominik@strw.LeidenUniv.nl>.
-;;
-;; Revision 1.27  1997/10/28 21:26:55  os10000
-;; Patch from Paul Stodghill <stodghil@CS.Cornell.EDU>:
-;; The patch below fixes todo-insert-item so that it will
-;; insert the item in place, instead of at the top of the
-;; buffer, when invoked with a prefix argument.
-;;
-;; Revision 1.26  1997/10/28 21:14:51  os10000
-;; Improvements sent in by Dave Love <d.love@dl.ac.uk>:
-;; todo-mode.el: Doc fixes.  Customization.
-;; (todo-add-item-non-interactively): New arg -- don't dynamically bind ARG.
-;; (todo-insert-item): Use it.
-;;
-;; Revision 1.25  1997/10/28 20:03:27  os10000
-;; Harald Backer <harald.backer@fou.telenor.no> sent the following:
-;; Added `todo-save-top-priorities' and option to automatically save top
-;; priorities file when saving todo-file.  Changed some default values.
-;; Bug fixes.
-;;
-;; Revision 1.24  1997/10/28 19:41:53  os10000
-;; Added fix from Frank Ridderbusch <ridderbusch.pad@sni.de>,
-;; an apostrophe was missing.
-;;
-;; Revision 1.23  1997/10/24  17:30:54  os10000
-;; Added three suggestions from Carsten
-;; Dominik <dominik@strw.LeidenUniv.nl>:
-;;
-;; - recommend autoloading instead of require
-;; - inserting from different buffer didn't work
-;;   (now fixed -- I pray)
-;; - provided public entry point to insert items
-;;   from normal lisp code
-;;
-;; Revision 1.22  1997/10/24  16:53:20  os10000
-;; Paul Stodghill <stodghil@CS.Cornell.EDU> writes:
-;;
-;; When invoked with a prefix, todo-insert-item
-;; should not prompt for a category.  (He adds:
-;; At least that's what I think.)
-;;
-;; Revision 1.21  1997/10/24  16:51:02  os10000
-;; Rafael Laboissiere <rafael@icp.inpg.fr> writes:
-;;
-;; I was just annoyed with the fact that there is no way
-;; to dynamically control the insertion accuracy.  I mean:
-;; the variable `todo-insert-threshold' does the job, but
-;; it is not very handy if one wants to mix the two
-;; behaviors (bisection and "insert right here under the
-;; cursor").
-;;
-;; Therefore I did a quick hack in the function
-;; `todo-insert-item'.  Now by giving a prefix argument to
-;; the insert command (i.e. by typing "C-u i"), entries
-;; are inserted exactly at the line where the cursor is.
-;; It would be better to give the value of
-;; `todo-insert-threshold' as a numeric argument of
-;; `todo-insert-item' (like "M-8 i"), but it's too late
-;; now for continuing to hack.
-;;
-;; Revision 1.20  1997/10/17  15:41:57  os10000
-;; Thanks to Harald Backer <harald.backer@fou.telenor.no>, we now have
-;; the following facilities available:
-;;
-;; Added todo-print, todo-top-priorities and todo-jump with matching
-;; variables; Parameterized todo-header, todo-category-beg,
-;; todo-category-end and todo-category-sep; Added autoload comments;
-;; todo-category-select: Modified regexp to make category names unique;
-;; todo-forward-item: Added optional COUNT vaiable; todo-insert-item:
-;; Rewrote completing read entry.
-;;
-;; Also, check out the extended list of things left to be done to this
-;; package at the end of the documentation!
-;;
-;; Revision 1.19  1997/10/16  21:21:16  os10000
-;; Jari Aalto <jari.aalto@poboxes.com> writes:
-;;
-;;     I just downloaded your package and after reading the docs I
-;;     decided to do some reformatting.  Hope you don't mind.  Now
-;;     they are in such a format that the html page can be
-;;     automatically generated from the source file.  As an example, I
-;;     generated the attached page using the following command:
-;;     ripdoc.pls < todo-mode.el | t2html.pls -a "Oliver.Seidel" -e \
-;;     Oliver.Seidel@cl.cam.ac.uk -simple -base
-;;
-;; And of course I appreciate it.  Jari's stuff can be found at:
-;; ftp://cs.uta.fi/pub/ssjaaa/, while I'm making the rev 1.18 page
-;; available at http://www.cl.cam.ac.uk/users/os10000/doc/todo-mode.html
-;; (That link will be valid until 10/1998 or slightly longer.)
-;;
-;; Revision 1.18  1997/10/15  17:18:11  os10000
-;; Everything seems to work in Harald Melands Emacs 20.02 and
-;; my Emacs 19.34.  Beware of the spelling in some of the
-;; variable names.  I looked up "threshold" in a dictionary
-;; and here in Britain this appears to be the way to spell it.
-;;
-;; Revision 1.17  1997/10/15  14:30:41  os10000
-;; Attempted to reconcile Harald's changes with mine since 1.15.
-;;
-;; Revision 1.16  1997/10/15  14:00:12  os10000
-;; Fixed 'file-item' and added 20.02 split-string function.
-;;
-;; Revision 1.15  1997/10/14  22:22:35  os10000
-;; Added string-split (which I stole from ediff-util), changed
-;; pop-to-buffer to switch-to-buffer and added message on how
-;; to exit the multi-line-edit mode.
-;;
-;; Revision 1.14  1997/10/09  09:24:50  os10000
-;; Harald Meland <harald.meland@usit.uio.no> asked for
-;; the latest version, got 1.13, and returned this.
-;; He writes:
-;;
-;; Thanks a lot for the new version of todo-mode.el.  As you will see I
-;; have messed it up a bit, hopefully for the better -- I don't like
-;; short, cryptic names for variables and functions, so I renamed most of
-;; them, and `defalias'ed the old function names.  I hope you don't mind
-;; too much, I just kinda couldn't stop myself.
-;;
-;; Additionally, I included some support for multiline entries, cleaned
-;; up (IMHO :) a lot of the code, included completion-support for which
-;; category to install a new entry in, and possibly some other changes I
-;; can't remember :)
-;;
-;; It's getting rather late, and I have just done some preliminary
-;; testing on whether all of this really works, but so far it looks
-;; good.
-;;
-;; Revision 1.13  1997/08/19  14:00:36  seidel
-;; - changed name to todo-mode
-;; - fixed menu descriptions
-;; - fixed "pressing abort while filing"
-;; - attempted Emacs Lisp Manual *Tips* section compliance
-;;
-;; Revision 1.12  1997/08/06  10:56:15  os10000
-;; Fixed header, typos, layout, documentation.
-;;
-;; Revision 1.11  1997/08/06  09:14:25  os10000
-;; Applied patch from Istvan Marko <istvan@cmdmail.amd.com>
-;; to make menus work anywhere.
-;;
-;; Revision 1.10  1997/08/06  08:56:03  os10000
-;; Acted upon suggestion from Shane Holder <holder@rsn.hp.com>:
-;; Cancelling the editing of an entry will not delete it any more.
-;;
-;; Revision 1.9  1997/08/06 08:12:03  os10000
-;; Improved documentation.  Broke some lines to comply with
-;; Richard Stallman's email to please keep in sync with the
-;; rest of the Emacs distribution files.
-;;
-;; Revision 1.8  1997/08/05 22:39:04  os10000
-;; Made todo-mode.el available under GPL.
-;;
-;; Revision 1.7  1997/08/05 22:34:14  os10000
-;; Fixed insertion routine with help from Trey Jackson
-;; <trey@cs.berkeley.edu>; added todo-inst-tresh;
-;; fixed keyboard layout to remove unwanted keys.
-;;
-;; Revision 1.6  1997/08/05 16:47:01  os10000
-;; Incorporated menus for XEmacs from Allan.Cochrane@soton.sc.philips.com,
-;; fixed TYPO, fixed todo-file-cmd, cleaned up rcs history.
-;;
-;; Revision 1.5  1997/08/05  14:43:39  os10000
-;; Added improvements from Ron Gut <rgut@aware.com>.
-;; Added category management.
-;;
-;; Revision 1.4  1997/08/04  16:18:45  os10000
-;; Added Raise/Lower item.
-;;
-;; Revision 1.3  1997/08/03  12:47:26  os10000
-;; Cleaned up variables, prefix and cursor position.
-;;
-;; Revision 1.2  1997/08/03 12:15:28  os10000
-;; It appears to work.
-;;
-;; Revision 1.1  1997/08/03 12:15:13  os10000
-;; Initial revision
-;;
-
-;; ---------------------------------------------------------------------------
 
 ;;; Code:
 
-(eval-and-compile                       ; Removable for installation in
-                                        ; Emacs 20.
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro defcustom (var value doc &rest args)
-      (` (defvar (, var) (, value) (, doc))))))
+(eval-when-compile
+  (require 'outline)
+  (require 'calendar)
+  ;; Calendar dynamic bondage:
+  (defvar date)
+  (defvar entry))
+(autoload 'time-stamp-string "time-stamp")
 
 ;; User-configurable variables:
 
@@ -651,28 +407,19 @@ For details see the variable `time-stamp-format'."
   (let ((time-stamp-format todo-time-string-format))
     (concat (time-stamp-string) " " todo-initials ": ")))
 
-;; ---------------------------------------------------------------------------
-
-;; Get some outside help ...
-
-(require 'cl)
-(require 'easymenu)
-(require 'time-stamp)
-
-;; ---------------------------------------------------------------------------
-
 ;; Set up some helpful context ...
 
-(defvar todo-categories         nil     "TODO categories.")
-(defvar todo-cats               nil
+(defvar todo-categories nil
+  "TODO categories.")
+(defvar todo-cats nil
   "Old variable for holding the TODO categories.
 Use `todo-categories' instead.")
-(defvar todo-previous-line      0       "Previous line that I asked about.")
-(defvar todo-previous-answer    0       "Previous answer that I got.")
-(defvar todo-mode-map           nil     "TODO mode keymap.")
-(defvar todo-category-number    0       "TODO category number.")
-
-(defvar todo-tmp-buffer-name "*Tmp*")
+(defvar todo-previous-line      0
+  "Previous line asked about.")
+(defvar todo-previous-answer    0
+  "Previous answer got.")
+(defvar todo-category-number    0
+  "TODO category number.")
 
 (defvar todo-category-sep (make-string 75 ?-)
   "Category separator.")
@@ -683,12 +430,9 @@ Use `todo-categories' instead.")
 (defvar todo-header "-*- mode: todo; "
   "Header of todo files.")
 
-
-
 ;; ---------------------------------------------------------------------------
 
-(if todo-mode-map
-    nil
+(defvar todo-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
     (define-key map "?" 'todo-help)
@@ -712,7 +456,20 @@ Use `todo-categories' instead.")
     (define-key map "s" 'todo-save)
     (define-key map "S" 'todo-save-top-priorities)
     (define-key map "t" 'todo-top-priorities)
-    (setq todo-mode-map map)))
+    map)
+  "TODO mode keymap.")
+
+(defun todo-position (item list)
+  "Return the position of the element in LIST testing `equal' to ITEM.
+Return nil if ITEM not found."
+  (let ((pos 0)
+	found)
+    (while list
+      (if (equal item (pop list))
+	  (setq list nil
+		found pos)
+	(setq pos (1+ pos))))
+    found))
 
 (defun todo-category-select ()
   "Make TODO mode display the current category correctly."
@@ -725,9 +482,9 @@ Use `todo-categories' instead.")
      (concat "^"
              (regexp-quote (concat todo-prefix todo-category-beg name))
              "$"))
-    (let ((begin (1+ (point-at-eol))))
+    (let ((begin (1+ (line-end-position))))
       (search-forward-regexp (concat "^" todo-category-end))
-      (narrow-to-region begin (point-at-bol))
+      (narrow-to-region begin (line-beginning-position))
       (goto-char (point-min)))))
 (defalias 'todo-cat-slct 'todo-category-select)
 
@@ -735,7 +492,8 @@ Use `todo-categories' instead.")
   (interactive)
   (describe-function 'todo-mode))
 
-(defun todo-hide-show-subtree () "Hide or Show subtrees in the TODO list."
+(defun todo-hide-show-subtree ()
+  "Hide or Show subtrees in the TODO list."
   (interactive)
   (save-excursion
     (end-of-line)
@@ -743,21 +501,24 @@ Use `todo-categories' instead.")
 	(hide-subtree)
       (show-subtree))))
 
-(defun todo-forward-category () "Go forward to TODO list of next category."
+(defun todo-forward-category ()
+  "Go forward to TODO list of next category."
   (interactive)
   (setq todo-category-number
         (mod (1+ todo-category-number) (length todo-categories)))
   (todo-category-select))
 (defalias 'todo-cmd-forw 'todo-forward-category)
 
-(defun todo-backward-category () "Go back to TODO list of previous category."
+(defun todo-backward-category ()
+  "Go back to TODO list of previous category."
   (interactive)
   (setq todo-category-number
         (mod (1- todo-category-number) (length todo-categories)))
   (todo-category-select))
 (defalias 'todo-cmd-back 'todo-backward-category)
 
-(defun todo-backward-item () "Select previous entry of TODO list."
+(defun todo-backward-item ()
+  "Select previous entry of TODO list."
   (interactive)
   (search-backward-regexp (concat "^" (regexp-quote todo-prefix)) nil t)
   (message ""))
@@ -816,7 +577,7 @@ Use `todo-categories' instead.")
   "Add new category CAT to the TODO list."
   (interactive "sCategory: ")
   (save-window-excursion
-    (pushnew cat todo-categories)
+    (pushnew 'todo-categories cat)
     (find-file todo-file-do)
     (widen)
     (goto-char (point-min))
@@ -844,7 +605,7 @@ Use `todo-categories' instead.")
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (setq todo-category-number
-	    (or (position category todo-categories :test 'equal)
+	    (or (todo-position category todo-categories)
 		(todo-add-category category)))
     (todo-show)
     (setq todo-previous-line 0)
@@ -1033,7 +794,7 @@ between each category."
         (while (re-search-forward       ;Find category start
                 (regexp-quote (concat todo-prefix todo-category-beg))
                 nil t)
-          (setq beg (+ (point-at-eol) 1)) ;Start of first entry.
+          (setq beg (+ (line-end-position) 1)) ;Start of first entry.
           (re-search-forward cat-end nil t)
           (setq end (match-beginning 0))
           (replace-match todo-category-break)
@@ -1053,8 +814,7 @@ between each category."
     ;; Else we could have used pop-to-buffer.
     (display-buffer todo-print-buffer-name)
     (message "Type C-x 1 to remove %s window.  M-C-v to scroll the help."
-             todo-print-buffer-name)
-    ))
+             todo-print-buffer-name)))
 
 (defun todo-save-top-priorities (&optional nof-priorities)
   "Save top priorities for each category in `todo-file-top'.
@@ -1062,38 +822,24 @@ between each category."
 Number of entries for each category is given by NOF-PRIORITIES which
 defaults to `todo-show-priorities'."
   (interactive "P")
-  (save-window-excursion
-    (save-excursion
-      (save-restriction
-        (todo-top-priorities nof-priorities)
-        (set-buffer todo-tmp-buffer-name)
-        (write-file todo-file-top)
-        (kill-this-buffer)
-        ))))
+  (with-temp-buffer
+    (todo-top-priorities nof-priorities)
+    (write-file todo-file-top)))
 
 ;;;###autoload
 (defun todo-print (&optional category-pr-page)
-  "Print todo summary using \\\[todo-print-function].
+  "Print todo summary using \\[todo-print-function].
 If CATEGORY-PR-PAGE is non-nil, a page separator \'^L\' is inserted
 between each category.
 
 Number of entries for each category is given by
 \'todo-print-priorities\'."
   (interactive "P")
-  (if todo-print-function
-      (progn
-  (save-window-excursion
-  (save-excursion
-    (save-restriction
-      (todo-top-priorities todo-print-priorities
-                                    category-pr-page)
-              (set-buffer todo-tmp-buffer-name)
-              (and (funcall todo-print-function)
-                   (kill-this-buffer))
-            (message "Todo printing done."))
-            )))
-    (message "todo-print-function undefinded")
-    ))
+  (with-temp-buffer
+    (todo-top-priorities todo-print-priorities
+			     category-pr-page)
+    (funcall todo-print-function)
+    (message "Todo printing done.")))
 
 (defun todo-jump-to-category ()
   "Jump to a category.  Default is previous category."
@@ -1107,12 +853,13 @@ Number of entries for each category is given by
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (setq todo-category-number
-	  (or (position category todo-categories :test 'equal)
+	  (or (todo-position category todo-categories)
 	      (todo-add-category category)))
     (todo-show)))
 
-(defun todo-line-string () "Return current line in buffer as a string."
-  (buffer-substring (point-at-bol) (point-at-eol)))
+(defun todo-line-string ()
+  "Return current line in buffer as a string."
+  (buffer-substring (line-beginning-position) (line-end-position)))
 
 (defun todo-item-string-start ()
   "Return the start of this TODO list entry as a string."
@@ -1122,7 +869,8 @@ Number of entries for each category is given by
         (setq item (concat (substring item 0 56) "...")))
     item))
 
-(defun todo-item-start () "Return point at start of current TODO list item."
+(defun todo-item-start ()
+  "Return point at start of current TODO list item."
   (save-excursion
     (beginning-of-line)
     (if (not (looking-at (regexp-quote todo-prefix)))
@@ -1130,14 +878,16 @@ Number of entries for each category is given by
          (concat "^" (regexp-quote todo-prefix)) nil t))
     (point)))
 
-(defun todo-item-end () "Return point at end of current TODO list item."
+(defun todo-item-end ()
+  "Return point at end of current TODO list item."
   (save-excursion
     (end-of-line)
     (search-forward-regexp
      (concat "^" (regexp-quote todo-prefix)) nil 'goto-end)
-    (1- (point-at-bol))))
+    (1- (line-beginning-position))))
 
-(defun todo-remove-item () "Delete the current entry from the TODO list."
+(defun todo-remove-item ()
+  "Delete the current entry from the TODO list."
   (delete-region (todo-item-start) (1+ (todo-item-end))))
 
 (defun todo-item-string () "Return current TODO list entry as a string."
@@ -1155,43 +905,6 @@ Number of entries for each category is given by
   "Generate an alist for use in `completing-read' from `todo-categories'."
   (mapcar (lambda (cat) (cons cat nil))
           todo-categories))
-
-;; utility functions:  These are available in XEmacs, but not in Emacs 19.34
-
-(if (not (fboundp 'point-at-bol))
-    (defun point-at-bol () "Return value of point at beginning of line."
-      (save-excursion
-        (beginning-of-line)
-        (point))))
-
-(if (not (fboundp 'point-at-eol))
-    (defun point-at-eol () "Return value of point at end of line."
-      (save-excursion
-        (end-of-line)
-        (point))))
-
-;; splits at a white space, returns a list
-(if (not (fboundp 'split-string))
-    (defun split-string (string &optional separators)
-      "Splits STRING into substrings where there are matches for SEPARATORS.
-Each match for SEPARATORS is a splitting point.
-The substrings between the splitting points are made into a list
-which is returned.
-If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
-      (let ((rexp (or separators "[ \f\t\n\r\v]+"))
-            (start 0)
-            (list nil))
-        (while (string-match rexp string start)
-          (or (eq (match-beginning 0) 0)
-              (setq list
-                    (cons (substring string start (match-beginning 0))
-                          list)))
-          (setq start (match-end 0)))
-        (or (eq start (length string))
-            (setq list
-                  (cons (substring string start)
-                        list)))
-        (nreverse list))))
 
 ;; ---------------------------------------------------------------------------
 
