@@ -11491,8 +11491,23 @@ try_window_id (w)
   stop_pos = 0;
   if (first_unchanged_at_end_row)
     {
+#if GLYPH_DEBUG
       xassert (last_unchanged_at_beg_row == NULL
 	       || first_unchanged_at_end_row >= last_unchanged_at_beg_row);
+#else
+      /* This is for the release of 21.1 only, and should be removed
+	 after the release.
+
+	 This case means that unchanged information is probably bogus,
+	 which leads to being unable to compute a correct
+	 first_unchanged_at_end_row.  At least that was the case in
+	 one debugging session.  I've fixed a bug that can lead to
+	 wrong unchanged info, but didn't find a way to reproduce this
+	 case.  2001-09-18 gerd.  */
+      if (last_unchanged_at_beg_row 
+	  && first_unchanged_at_end_row < last_unchanged_at_beg_row)
+	GIVE_UP (20);
+#endif
       
       /* If this is a continuation line, move forward to the next one
 	 that isn't.  Changes in lines above affect this line.
