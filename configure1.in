@@ -79,7 +79,7 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
-docdir='${libdir}/emacs/${version}/etc'
+docdir='${datadir}/emacs/${version}/etc'
 
 # On Sun systems, people sometimes set up the variable CPP
 # with a value that is a directory, not an executable at all.
@@ -1474,7 +1474,7 @@ if [ "$run_in_place" = "1" ]; then
    etcdir='${srcdir}/etc'
    lockdir='${srcdir}/lock'
    archlibdir=`(cd lib-src && pwd)`
-   docdir=$archlibdir
+   docdir=`(cd etc && pwd)`
    infodir='${srcdir}/info'
 elif [ "$single_tree" = "1" ]; then
    if [ "$exec_prefix_specified" = "" ]; then
