@@ -2665,10 +2665,11 @@ With prefix argument, prompts for a revision name."
 	'("Large Regions ..." . ediff-large-regions))
       (define-key menu-bar-ediff-menu [ediff-small-regions]
 	'("Small Regions ..." . ediff-small-regions))
-      (define-key menu-bar-ediff-menu [ediff-windows]
-	'("Windows ..." . ediff-windows))
+;;; Too confusing to have this and compare-windows in the same menu.
+;;      (define-key menu-bar-ediff-menu [ediff-windows]
+;;	'("Windows ..." . ediff-windows))
       ))
-     
+
 ;;;###autoload
 (if purify-flag
     ;; explicit string-match, as ediff-xemacs-p is not defined at build time
