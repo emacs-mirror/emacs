@@ -2026,7 +2026,8 @@ push_key_description (c, p, force_multibyte)
     }
   else if (CHARACTERP (make_number (c)))
     {
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (current_buffer->enable_multibyte_characters)
+	  && ! force_multibyte)
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
       else
 	p += CHAR_STRING (c, (unsigned char *) p);
