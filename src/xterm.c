@@ -1013,17 +1013,32 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		    if (relative_compose)
 		      {
 			pcm = PER_CHAR_METRIC (font, x_2byte_buffer + i);
-			if (- pcm->descent >= relative_compose)
+			if (NILP (Vignore_relative_composition)
+			    || NILP (Faref (Vignore_relative_composition,
+					    make_number (cmpcharp->glyph[gidx]))))
 			  {
-			    /* Draw above the current glyphs.  */
-			    y_offset = highest + pcm->descent;
-			    highest += pcm->ascent + pcm->descent;
+			    if (- pcm->descent >= relative_compose)
+			      {
+				/* Draw above the current glyphs.  */
+				y_offset = highest + pcm->descent;
+				highest += pcm->ascent + pcm->descent;
+			      }
+			    else if (pcm->ascent <= 0)
+			      {
+				/* Draw beneath the current glyphs.  */
+				y_offset = lowest - pcm->ascent;
+				lowest -= pcm->ascent + pcm->descent;
+			      }
 			  }
-			else if (pcm->ascent <= 0)
+			else
 			  {
-			    /* Draw beneath the current glyphs.  */
-			    y_offset = lowest - pcm->ascent;
-			    lowest -= pcm->ascent + pcm->descent;
+			    /* Draw the glyph at normal position.  If
+                               it sticks out of HIGHEST or LOWEST,
+                               update them appropriately.  */
+			    if (pcm->ascent > highest)
+			      highest = pcm->ascent;
+			    else if (- pcm->descent < lowest)
+			      lowest = - pcm->descent;
 			  }
 		      }
 		    else if (cmpcharp->cmp_rule)
