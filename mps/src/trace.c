@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.40) $
+ * $HopeName: MMsrc!trace.c(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.40) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.41) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -419,6 +419,13 @@ static Res TraceFlip(Trace trace)
   }
 
   ss.sig = SigInvalid;  /* just in case */
+
+  /* .flip.alloc: Allocation needs to become black now. While we flip */
+  /* at the start, we can get away with always allocating black. This */
+  /* needs to change when we flip later (i.e. have a read-barrier     */
+  /* collector), so that we allocate grey or white before the flip    */
+  /* and black afterwards. For instance, see                          */
+  /* design.mps.poolams.invariant.alloc.                              */
 
   /* Now that the mutator is black we must prevent it from reading */
   /* grey objects so that it can't obtain white pointers.  This is */
