@@ -1,3 +1,7 @@
+2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps, ps-prin2.ps, ps-prin3.ps: New files.
+
 1999-11-30  Paul Eggert  <eggert@twinsun.com>
 
 	* PROBLEMS: Update Solaris 2.6 and 7 problems.

@@ -1,4 +1,4 @@
-Fri Dec 24 12:29:11 1999  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: PostScript code now is in separate files, doc fix.
 	(ps-print-version): New version number (5.0.3).

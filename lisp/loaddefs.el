@@ -10569,9 +10569,52 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-initialize
 ;;;;;;  ps-mule-plot-composition ps-mule-plot-string ps-mule-set-ascii-font
-;;;;;;  ps-mule-prepare-ascii-font) "ps-mule" "ps-mule.el" (14423
-;;;;;;  50875))
+;;;;;;  ps-mule-prepare-ascii-font ps-multibyte-buffer) "ps-mule"
+;;;;;;  "ps-mule.el" (14450 60461))
 ;;; Generated autoloads from ps-mule.el
+
+(defvar ps-multibyte-buffer nil "\
+*Specifies the multi-byte buffer handling.
+
+Valid values are:
+
+  nil                     This is the value to use the default settings which
+			  is by default for printing buffer with only ASCII
+			  and Latin characters.   The default setting can be
+			  changed by setting the variable
+			  `ps-mule-font-info-database-default' differently.
+			  The initial value of this variable is
+			  `ps-mule-font-info-database-latin' (see
+			  documentation).
+
+  `non-latin-printer'     This is the value to use when you have a Japanese
+			  or Korean PostScript printer and want to print
+			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
+			  JISX0201-Kana) and Korean characters.  At present,
+			  it was not tested the Korean characters printing.
+			  If you have a korean PostScript printer, please,
+			  test it.
+
+  `bdf-font'              This is the value to use when you want to print
+			  buffer with BDF fonts.  BDF fonts include both latin
+			  and non-latin fonts.  BDF (Bitmap Distribution
+			  Format) is a format used for distributing X's font
+			  source file.  BDF fonts are included in
+			  `intlfonts-1.1' which is a collection of X11 fonts
+			  for all characters supported by Emacs.  In order to
+			  use this value, be sure to have installed
+			  `intlfonts-1.1' and set the variable
+			  `bdf-directory-list' appropriately (see ps-bdf.el for
+			  documentation of this variable).
+
+  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+			  PostScript default fonts to print ASCII and Latin-1
+			  characters.  This is convenient when you want or
+			  need to use both latin and non-latin characters on
+			  the same buffer.  See `ps-font-family',
+			  `ps-header-font-family' and `ps-font-info-database'.
+
+Any other value is treated as nil.")
 
 (autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
 Setup special ASCII font for STRING.
