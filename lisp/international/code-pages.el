@@ -54,8 +54,6 @@
 
 ;;; Code:
 
-(require 'mule-diag)			; for non-iso-charset-alist
-
 (defun cp-make-translation-table (v)
   "Return a translation table made from 128-long vector V.
 V comprises characters encodable by mule-utf-8."
@@ -151,6 +149,11 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
       (cp-make-coding-systems-for-codepage
        cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
 )					; eval-after-load
+
+;; For `non-iso-charset-alist'.  Do this after redefining
+;; `cp-supported-codepages', which is called through loading
+;; mule-diag.
+(require 'mule-diag)
 
 ;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
