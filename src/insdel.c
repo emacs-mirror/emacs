@@ -424,6 +424,14 @@ insert_from_string_before_markers (string, pos, length, inherit)
 del_range (from, to)
      register int from, to;
 {
+  return del_range_1 (from, to, 1);
+}
+
+/* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.  */
+
+del_range_1 (from, to, prepare)
+     register int from, to, prepare;
+{
   register int numdel;
 
   /* Make args be valid */
@@ -441,7 +449,8 @@ del_range (from, to)
   if (to < GPT)
     gap_left (to, 0);
 
-  prepare_to_modify_buffer (from, to);
+  if (prepare)
+    prepare_to_modify_buffer (from, to);
 
   record_delete (from, numdel);
   MODIFF++;
