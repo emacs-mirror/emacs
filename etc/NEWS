@@ -2533,10 +2533,12 @@ If either property is not set, the default `overlay-arrow-string' or
 line in current buffer, or if optional buffer position is given, line
 number of corresponding line in current buffer.
 
++++
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
 
++++
 ** The function `sentence-end' should be used to obtain the value of
 the variable `sentence-end'.  If the variable `sentence-end' is nil,
 then this function returns the regexp constructed from the variables

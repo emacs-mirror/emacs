@@ -1,8 +1,14 @@
+2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/paragraphs.el (sentence-end-double-space)
+	(sentence-end-without-period, sentence-end-without-space)
+	(sentence-end): Doc fixes.
+
 2004-10-08  Peter Seibel  <peter@javamonkey.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Change
 	paragraph-start regexp so we don't fill code starting with #'(
- 
+
 2004-10-08  Sebastien Kirche  <seki@seki.fr>  (tiny change)
 
 	* mail/mail-extr.el (mail-extr-ignore-realname-equals-mailbox-name):
@@ -28,8 +34,8 @@
 
 2004-10-08  Masatake YAMATO  <jet@gyve.org>
 
-	* server.el (server-process-filter): Wrap `process-send-region' 
-	by `condition-case' to guard the case when the pipe to PROC is 
+	* server.el (server-process-filter): Wrap `process-send-region'
+	by `condition-case' to guard the case when the pipe to PROC is
 	closed.
 
 2004-10-07  Mark A. Hershberger  <mah@everybody.org>
