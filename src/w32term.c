@@ -549,7 +549,7 @@ w32_use_unicode_for_codepage (codepage)
     w32_BDF_TextOut (font->bdf, hdc, left + xoffset,                 \
                      top + yoffset,                                  \
                      x_1byte_buffer + start_offset,                  \
-                     charset_dim, charset_dim * nchars, 0);          \
+                     charset_dim, nchars, 0);                        \
   else if (print_via_unicode)                                        \
     ExtTextOutW (hdc, left + xoffset, top + yoffset,                 \
                  fuOptions, clip_region,                             \
@@ -771,7 +771,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
             codepage = w32_codepage_for_font (fontp->name);
 
             if ( font && !font->bdf )
-            print_via_unicode = w32_use_unicode_for_codepage (codepage);
+              print_via_unicode = w32_use_unicode_for_codepage (codepage);
 
             baseline = FONT_BASE (font) + fontp->baseline_offset;
 
@@ -972,7 +972,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	SetBkColor (hdc, bg);
         SetTextAlign (hdc, TA_BASELINE | TA_LEFT);
 
-        if ( print_via_unicode )
+        if (print_via_unicode)
           n_chars = MultiByteToWideChar
             (codepage, 0, x_1byte_buffer, n_chars,
              x_2byte_buffer, FRAME_WINDOW_WIDTH (f));
