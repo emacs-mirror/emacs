@@ -111,7 +111,7 @@ Any vector of 256 elements will do.")
   (obj)
      Lisp_Object obj;
 {
-  if (XTYPE (obj) == Lisp_Vector && XVECTOR (obj)->size == 0400)
+  if (VECTORP (obj) && XVECTOR (obj)->size == 0400)
     return Qt;
   return Qnil;
 }
@@ -355,7 +355,7 @@ describe_syntax (value)
 
   Findent_to (make_number (16), make_number (1));
 
-  if (XTYPE (value) != Lisp_Int)
+  if (!INTEGERP (value))
     {
       insert_string ("invalid");
       return;
