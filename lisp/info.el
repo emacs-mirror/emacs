@@ -940,13 +940,15 @@ Bind this in case the user sets it to nil."
 
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
-	(concat
-	 "  *Info* ("
-	 (file-name-nondirectory (if (stringp Info-current-file)
-				     Info-current-file
-				   (or buffer-file-name "")))
-	 ") "
-	 (or Info-current-node ""))))
+	(nconc (propertized-buffer-identification " %b")
+	       (list
+		(concat " ("
+			(file-name-nondirectory
+			 (if (stringp Info-current-file)
+			     Info-current-file
+			   (or buffer-file-name "")))
+			") "
+			(or Info-current-node ""))))))
 
 ;; Skip the node header and make it into a header-line.  This function
 ;; should be called when the node is already narrowed.
