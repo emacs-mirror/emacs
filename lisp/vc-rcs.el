@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.38 2003/09/01 15:45:17 miles Exp $
+;; $Id: vc-rcs.el,v 1.39 2004/03/21 15:46:23 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -198,10 +198,14 @@ When VERSION is given, perform check for that version."
 
 (defun vc-rcs-checkout-model (file)
   "RCS-specific version of `vc-checkout-model'."
-  (vc-rcs-consult-headers file)
-  (or (vc-file-getprop file 'vc-checkout-model)
-      (progn (vc-rcs-fetch-master-state file)
-	     (vc-file-getprop file 'vc-checkout-model))))
+  (let (result)
+    (when vc-consult-headers
+      (vc-file-setprop file 'vc-checkout-model nil)
+      (vc-rcs-consult-headers file)
+      (setq result (vc-file-getprop file 'vc-checkout-model)))
+    (or result
+        (progn (vc-rcs-fetch-master-state file)
+               (vc-file-getprop file 'vc-checkout-model)))))
 
 (defun vc-rcs-workfile-unchanged-p (file)
   "RCS-specific implementation of vc-workfile-unchanged-p."
