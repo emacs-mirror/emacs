@@ -947,7 +947,16 @@ If `enable-local-variables' is nil, this function does not check for a
 	       (or (eq enable-local-variables t)
 		   (and enable-local-variables
 			(save-window-excursion
-			  (switch-to-buffer (current-buffer))
+			  (condition-case nil
+			      (switch-to-buffer (current-buffer))
+			    (error
+			     ;; If we fail to switch in the selected window,
+			     ;; it is probably a minibuffer.
+			     ;; So try another window.
+			     (condition-case nil
+				 (switch-to-buffer-other-window (current-buffer))
+			       (error
+				(switch-to-buffer-other-frame (current-buffer))))))
 			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
 					    (file-name-nondirectory buffer-file-name)))))))
 	  (while result
@@ -1091,7 +1100,8 @@ if you wish to pass an empty string as the argument."
 	(if (eq system-type 'vax-vms)
 	    (setq new-name (downcase new-name)))
 	(setq default-directory (file-name-directory buffer-file-name))
-	(rename-buffer new-name t)))
+	(or (string= new-name (buffer-name))
+	    (rename-buffer new-name t))))
   (setq buffer-backed-up nil)
   (clear-visited-file-modtime)
   (if filename
@@ -1578,7 +1588,7 @@ Set mark after the inserted text.
 This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
-  (interactive "fInsert file: ")
+  (interactive "*fInsert file: ")
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
 				filename)))
