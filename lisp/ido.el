@@ -2713,7 +2713,9 @@ for first matching file."
     (let ((default-directory ido-current-directory))
       (ido-to-end ;; move ftp hosts and visited files to end
        (delq nil (mapcar 
-		  (lambda (x) (if (or (string-match "..:\\'" x) (get-file-buffer x)) x))
+		  (lambda (x) (if (or (string-match "..:\\'" x) 
+				      (and (not (ido-final-slash x))
+					   (get-file-buffer x))) x))
 		  ido-temp-list))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar 
@@ -2757,11 +2759,6 @@ for first matching file."
   ;; directory names in this list.
   (let ((ido-temp-list (ido-make-dir-list1 ido-current-directory)))
     (setq ido-temp-list (ido-sort-list ido-temp-list))
-    (let ((default-directory ido-current-directory))
-      (ido-to-end ;; move visited files to end
-       (delq nil (mapcar 
-		  (lambda (x) (if (get-file-buffer x) x))
-		  ido-temp-list))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar 
 		(lambda (x) (if (string-equal (substring x 0 1) ".") x))
