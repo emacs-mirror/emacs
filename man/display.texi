@@ -100,9 +100,14 @@ faces:
 @item default
 This face is used for ordinary text that doesn't specify any other face.
 @item mode-line
-This face is used for mode lines.  By default, it's drawn with shadows
-for a ``raised'' effect on window systems, and drawn as the inverse of
-the default face on non-windowed terminals.  @xref{Display Custom}.
+This face is used for the mode line of the currently selected window.
+By default, it's drawn with shadows for a ``raised'' effect on window
+systems, and drawn as the inverse of the default face on non-windowed
+terminals.  @xref{Display Custom}.
+@item mode-line-inactive
+Like @code{mode-line}, but used for mode lines of the windows other
+than the selected one (if @code{mode-line-in-non-selected-windows} is
+non-@code{nil}).
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
@@ -783,6 +788,19 @@ Alternatively, you can turn off the box attribute in your
 @example
 Emacs.mode-line.AttributeBox: off
 @end example
+
+@cindex non-selected windows, mode line appearance
+@vindex mode-line-in-non-selected-windows
+  By default, the mode line of non-selected windows is displayed in a
+different face, called @code{mode-line-inactive}.  You can control
+this behavior by customizing the value of the variable
+@code{mode-line-in-non-selected-windows}.  If its value is
+non-@code{nil}, non-selected windows are displayed in the
+@code{mode-line-inactive} face.  If the value is @code{t}, the
+selected window is displayed in the @code{mode-line} face even when
+you type at the minibuffer prompt.  If the value is @code{nil}, all
+mode lines are displayed in the @code{mode-line} face, even when the
+window is not selected.  The default is @code{t}.
 
 @node Text Display
 @section How Text Is Displayed
