@@ -1,3 +1,9 @@
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for 
+	pthreads and define HAVE_GTK_AND_PTHREAD.
+	* configure: Regenerate.
+
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (info): Ignore errors building info files.

@@ -1994,6 +1994,21 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     AC_DEFINE(HAVE_GTK_FILE_BOTH, 1,
               [Define to 1 if GTK has both file selection and chooser dialog.])
   fi
+
+  dnl Check if pthreads are available.  Emacs only needs this when using
+  dnl gtk_file_chooser under Gnome.
+  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
+    HAVE_GTK_AND_PTHREAD=no
+    AC_CHECK_HEADERS(pthread.h)
+    if test "$ac_cv_header_pthread_h"; then
+      AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
+    fi
+    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
+      GTK_LIBS="$GTK_LIBS -lpthread"
+      AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
+               [Define to 1 if you have GTK and pthread (-lpthread).])
+    fi
+  fi
 fi
 
 dnl Do not put whitespace before the #include statements below.
