@@ -74,6 +74,7 @@ static unsigned char gray_bits[] = {
 #endif
 
 /*extern void free_frame_menubar ();
+extern void x_compute_fringe_widths (struct frame *, int);
 extern double atof ();
 extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
 extern int quit_char;*/
@@ -604,6 +605,7 @@ void x_set_cursor_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_icon_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_icon_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
 				      Lisp_Object));
@@ -659,7 +661,9 @@ static struct x_frame_parm_table x_frame_parms[] =
   "scroll-bar-background", x_set_scroll_bar_background,
 #endif
   "screen-gamma", x_set_screen_gamma,
-  "line-spacing", x_set_line_spacing
+  "line-spacing", x_set_line_spacing,
+  "left-fringe", x_set_fringe_width,
+  "right-fringe", x_set_fringe_width
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -751,13 +755,16 @@ x_set_frame_parameters (f, alist)
   /* Process foreground_color and background_color before anything else.
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
+  /* Process default font as well, since fringe widths depends on it.  */
   for (p = 0; p < i; p++) 
     {
       Lisp_Object prop, val;
 
       prop = parms[p];
       val = values[p];
-      if (EQ (prop, Qforeground_color) || EQ (prop, Qbackground_color))
+      if (EQ (prop, Qforeground_color)
+	  || EQ (prop, Qbackground_color)
+	  || EQ (prop, Qfont))
 	{
 	  register Lisp_Object param_index, old_value;
 
@@ -791,7 +798,9 @@ x_set_frame_parameters (f, alist)
 	icon_top = val;
       else if (EQ (prop, Qicon_left))
 	icon_left = val;
-      else if (EQ (prop, Qforeground_color) || EQ (prop, Qbackground_color))
+      else if (EQ (prop, Qforeground_color)
+	       || EQ (prop, Qbackground_color)
+	       || EQ (prop, Qfont))
 	/* Processed above.  */
 	continue;
       else
@@ -2548,6 +2557,14 @@ x_set_font (f, arg, oldval)
     }
 }
 
+static void
+x_set_fringe_width (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  x_compute_fringe_widths (f, 1);
+}
+
 void
 x_set_border_width (f, arg, oldval)
      struct frame *f;
@@ -3386,8 +3403,7 @@ x_figure_window_size (f, parms)
        : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.mac->font)));
-  f->output_data.mac->fringes_extra
-    = FRAME_FRINGE_WIDTH (f);
+  x_compute_fringe_widths (f, 0);
   f->output_data.mac->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.mac->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
@@ -3825,6 +3841,10 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "screenGamma", "ScreenGamma", RES_TYPE_FLOAT);
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qleft_fringe, Qnil,
+		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qright_fringe, Qnil,
+		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
 
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
