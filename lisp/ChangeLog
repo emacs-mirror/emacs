@@ -1,5 +1,7 @@
 2001-01-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* ffap.el (ffap-bindings): Doc fix.
+
 	* dired-x.el (dired-virtual-guess-dir): Doc fix.
 
 2001-01-05  Dave Love  <fx@gnu.org>
