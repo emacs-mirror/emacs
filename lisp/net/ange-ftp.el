@@ -1459,13 +1459,11 @@ only return the directory part of FILE."
 	  (if (string-match "^[^/]*\\(/\\).*$" key)
 	      (let ((host (substring key 0 (match-beginning 1)))
 		    (user (substring key (match-end 1))))
-		(setq res (cons (list (concat user "@" host ":"))
-				res))))))
+		(push (concat user "@" host ":") res)))))
        ange-ftp-passwd-hashtable)
       (ange-ftp-map-hashtable
        (function (lambda (host user)
-		   (setq res (cons (list (concat host ":"))
-				   res))))
+		   (push (concat host ":") res)))
        ange-ftp-user-hashtable)
       (or res (list nil)))))
 
@@ -2357,9 +2355,13 @@ and NOWAIT."
 	(setq cmd1 "."))
 
       ;; If the remote ls can take switches, put them in
-      (or (memq host-type ange-ftp-dumb-host-types)
-	  (setq cmd0 'ls
-		cmd1 (format "\"%s %s\"" cmd3 cmd1))))
+      (unless (memq host-type ange-ftp-dumb-host-types)
+	(setq cmd0 'ls)
+	;; We cd and then use `ls' with no directory argument.
+	;; This works around a misfeature of some versions of netbsd ftpd.
+	(unless (equal cmd1 ".")
+	  (setq result (ange-ftp-cd host user (nth 1 cmd) 'noerror)))
+	(setq cmd1 cmd3)))
 
      ;; First argument is the remote name
      ((progn
@@ -4077,9 +4079,8 @@ E.g.,
 	  (try-completion
 	   file
 	   (nconc (ange-ftp-generate-root-prefixes)
-		  (mapcar 'list
-			  (ange-ftp-real-file-name-all-completions
-			   file ange-ftp-this-dir))))
+		  (ange-ftp-real-file-name-all-completions
+		   file ange-ftp-this-dir)))
 	(ange-ftp-real-file-name-completion file ange-ftp-this-dir)))))
 
 
