@@ -1,1010 +1,1113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>A guide to MPS pool classes and their properties</title>
 
-  <head>
+</head>
 
-   <title>A guide to MPS pool classes and their properties</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>A guide to MPS pool classes and their properties</h1>
 
-   <div align='center'>
+<p>draft</p>
 
-    <h1>A guide to MPS pool classes and their properties</h1>
+<address>
+<a href="mailto:nb@ravenbrook.com">Nick Barnes</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2001-11-14
+</address>
 
-    <p>draft</p>
+</div>
 
-    <address>rit, 1998-07-01</address>
+<h2><a id="section-Contents" name="section-Contents">Contents</a></h2>
 
-   </div>
 
-   <p>
+<ul>
 
-    <strong>.purpose:</strong>
+<li><a href="#section-1">1. Introduction</a></li>
 
-     This document is intended to enable you to answer questions like: "Does MV move objects around?" and "Does AMCZ support interior references?", and also to allow you to pick the right pool classes to use in your programs.  It addresses the functional differences between pool classes, without dealing with questions of performance.  It also defines some terminology for properties of references, objects and pools, which may be useful in discussing memory management and the MPS in particular.
+<li><a href="#section-2">2. Properties of References</a></li>
 
-   </p>
+<li><a href="#section-3">3. Ranks</a></li>
 
-   <p>
+<li><a href="#section-4">4. Properties of Objects</a></li>
 
-    <strong>.readership:</strong>
+<li>
+  <a href="#section-5">5. Pool And Pool Class Properties</a>
 
-     Any MM developer or user within Harlequin.
+  <ul>
 
-   </p>
+  <li><a href="#section-5.1">5.1. Allocation and Freeing</a></li>
 
-   <p>
+  <li><a href="#section-5.2">5.2. Collection</a></li>
 
-    <strong>.structure:</strong>
+  <li><a href="#section-5.3">5.3. Size and alignment</a></li>
 
-     First we state some properties that references, objects and pools might have.  There follows a big table of pool classes and their properties.
+  <li><a href="#section-5.4">5.4. Special powers</a></li>
 
-   </p>
+  </ul>
 
-   <p>
+</li>
 
-    <strong>.convention.definitions:</strong>
+<li><a href="#section-6">6. General Issues</a></li>
 
-     Words and phrases being defined appear in double quotation marks.
+<li><a href="#section-7">7. A Table Of Pool Classes And Their Properties</a></li>
 
-   </p>
+<li><a href="#section-A">A. References</a></li>
 
-   <p>
+<li><a href="#section-B">B. Document history</a></li>
 
-    <strong>.caveat:</strong>
+</ul>
 
-     In some cases, there is no appropriate documentation of the behaviour of pool classes.  Therefore it is not always possible to distinguish between behaviour which was specified for a pool class and behaviour which is present but was not intended to be part of the specification.
 
-   </p>
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-   <p>
+<p><a id="purpose" name="purpose"><strong>.purpose:</strong></a> This
+document is intended to enable you to answer questions like: "Does MV
+move objects around?" and "Does AMCZ support interior references?",
+and also to allow you to pick the right pool classes to use in your
+programs.  It addresses the functional differences between pool
+classes, without dealing with questions of performance.  It also
+defines some terminology for properties of references, objects and
+pools, which may be useful in discussing memory management and the MPS
+in particular.</p>
 
-    <strong>.hist.0:</strong>
+<p><a id="readership" name="readership"><strong>.readership:</strong></a>
 
-     rit wrote version 0 based on his understanding of the MPS pool classes at the time.
+Any MM developer or user within Harlequin.</p>
 
-   </p>
+<p><a id="structure" name="structure"><strong>.structure:</strong></a>
 
-   <p>
+First we state some properties that references, objects and pools
+might have.  There follows a big table of pool classes and their
+properties.</p>
 
-    <strong>.hist.1:</strong>
+<p><a id="convention.definitions" name="convention.definitions"><strong>.convention.definitions:</strong></a>
 
-     updated following comments from drj and pekka. rit 1998-08-24
+Words and phrases being defined appear in double quotation marks.</p>
 
-   </p>
+<p><a id="caveat" name="caveat"><strong>.caveat:</strong></a>
 
-   <p>
+In some cases, there is no appropriate documentation of the behaviour
+of pool classes.  Therefore it is not always possible to distinguish
+between behaviour which was specified for a pool class and behaviour
+which is present but was not intended to be part of the
+specification. </p>
 
-    <strong>.hist.2:</strong>
+<h2> <a id="section-2" name="section-2">2. Properties Of References</a> </h2>
 
-     added table column for MVFF pool class. rit 1998-10-14
+<p>These properties apply to references in non-leaf objects (<a
+href="#prop.obj.non-leaf">.prop.obj.non-leaf</a>), and to references
+in roots. I have arranged them in pairs; exactly one of the properties
+in each pair applies to any reference.</p>
 
-   </p>
+<p><a id="prop.ref.containment" name="prop.ref.containment"><strong>.prop.ref.containment:</strong></a>
 
-   <h2>
+An object or root is said to "contain" a reference if scanning the
+object or root causes that reference to be fixed.</p>
 
-    <a id='section-properties-of-references' name='section-properties-of-references'>Properties Of References</a>
+<p>
 
-   </h2>
+<a id="prop.ref.real" name="prop.ref.real"><strong>.prop.ref.real:</strong></a>
 
-   <p>These properties apply to references in non-leaf objects (.prop.obj.non-leaf), and to references in roots. I have arranged them in pairs; exactly one of the properties in each pair applies to any reference.</p>
+A "real reference" is one that points to an object.</p>
 
-   <p>
+<p><a id="prop.ref.ambiguous" name="prop.ref.ambiguous"><strong>.prop.ref.ambiguous:</strong></a>
 
-    <strong>.prop.ref.containment:</strong>
+An "ambiguous reference" is one that may be interpreted either as a
+reference to an object, or as other data.</p>
 
-     An object or root is said to "contain" a reference if scanning the object or root causes that reference to be fixed.
+<p><a id="prop.ref.strong" name="prop.ref.strong"><strong>.prop.ref.strong:</strong></a>
 
-   </p>
+A "strong reference" keeps the object it refers to alive (unless it is
+explicitly discarded for some other reason).</p>
 
-   <p>
+<p><a id="prop.ref.weak" name="prop.ref.weak"><strong>.prop.ref.weak:</strong></a>
 
-    <strong>.prop.ref.real:</strong>
+A "weak reference does" not keep the object it refers to alive. If the
+object is discarded, the reference will be splatted. "splatting" is
+removing the reference; in the mps, by changing it to NULL. Note that
+there may be various different kinds of weak references, depending on
+their interaction with finalisation -- see <a
+href="#prop.rank.weak">.prop.rank.weak</a> below.</p>
 
-     A "real reference" is one that points to an object.
+<p><a id="prop.ref.fixed" name="prop.ref.fixed"><strong>.prop.ref.fixed:</strong></a>
 
-    <br />
+A "fixed reference" may not be updated by the collector, except by
+splatting if the reference is weak (<a
+href="#prop.ref.weak">.prop.ref.weak</a>).</p>
 
-    <strong>.prop.ref.ambiguous:</strong>
+<p><a id="prop.ref.moving" name="prop.ref.moving"><strong>.prop.ref.moving:</strong></a>
 
-     An "ambiguous reference" is one that may be interpreted either as a reference to an object, or as other data.
+A "moving reference" may be updated by the collector. This means the
+collector has the opportunity to move the object referred to.</p>
 
-   </p>
+<p><a id="prop.ref.immutable" name="prop.ref.immutable"><strong>.prop.ref.immutable:</strong></a>
 
-   <p>
+An "immutable reference" is one the client guarantees not to change.</p>
 
-    <strong>
+<p><a id="prop.ref.mutable" name="prop.ref.mutable"><strong>.prop.ref.mutable:</strong></a>
 
-     .prop
+A "mutable reference" is one the client may change when it likes.</p>
 
-     .ref.strong:
+<p><a id="implications.prop.ref" name="implications.prop.ref"><strong>.implications.prop.ref:</strong></a>
 
-    </strong>
+Because it would be dangerous for the collector to change something
+which wasn't really a reference, ambiguous references
+(<a href="#prop.ref.ambiguous">.prop.ref.ambiguous</a>) must be both fixed (<a href="#prop.ref.fixed">.prop.ref.fixed</a>) and strong
+(<a href="#prop.ref.strong">.prop.ref.strong</a>).</p>
 
-     A "strong reference" keeps the object it refers to alive (unless it is explicitly discarded for some other reason).
+<h2><a id="section-3" name="section-3">3. Ranks</a></h2>
 
-    <br />
+<p>At present, the mps understands only the following types of
+reference, known as ranks:</p>
 
-    <strong>
+<p><a id="prop.rank.exact" name="prop.rank.exact"><strong>.prop.rank.exact:</strong></a>
 
-     .prop
+References of rank <code class="source">mps_rank_exact</code> are
+real, strong and moving (<a href="#prop.ref.real">.prop.ref.real</a>,
+<a href="#prop.ref.strong">.prop.ref.strong</a>, <a
+href="#prop.ref.moving">.prop.ref.moving</a>).</p>
 
-     .ref.weak:
+<p><a id="prop.rank.ambiguous" name="prop.rank.ambiguous"><strong>.prop.rank.ambiguous:</strong></a>
 
-    </strong>
+References of rank <code class="source">mps_rank_ambiguous</code> are
+ambiguous, strong and fixed (<a
+href="#prop.ref.ambiguous">.prop.ref.ambiguous</a>, <a
+href="#prop.ref.strong">.prop.ref.strong</a>, <a
+href="#prop.ref.fixed">.prop.ref.fixed</a>).</p>
 
-     A "weak reference does" not keep the object it refers to alive. If the object is discarded, the reference will be splatted. "splatting" is removing the reference; in the mps, by changing it to NULL. Note that there may be various different kinds of weak references, depending on their interaction with finalisation -- see .prop.rank.weak below.
+<p><a id="prop.rank.weak" name="prop.rank.weak"><strong>.prop.rank.weak:</strong></a>
 
-   </p>
+References of rank <code class="source">mps_rank_weak</code> are real,
+weak and moving (<a href="#prop.ref.real">.prop.ref.real</a>, <a
+href="#prop.ref.weak">.prop.ref.weak</a>, <a
+href="#prop.ref.moving">.prop.ref.moving</a>). This rank is
+"weak-after-final", i.e. a weak reference to an object which would
+have died but was registered for finalisation, will not be splatted
+until the object subsequently dies.</p>
 
-   <p>
+<p>For references in roots, the client may specify whether they are
+mutable (<a href="#prop.ref.mutable">.prop.ref.mutable</a>) or
+immutable (<a href="#prop.ref.immutable">.prop.ref.immutable</a>).</p>
 
-    <strong>
+<p>All references in objects are mutable (<a
+href="#prop.ref.mutable">.prop.ref.mutable</a>), but subject to the
+constraint that the reference will not change without the client
+writing to the object/root that contains it. This is because
+write-barriers are used to maintain remembered sets. The EPVM pool
+class is an exception to this rule: see <a
+href="#prop.pool.remote-references">.prop.pool.remote-references</a>
+below.</p>
 
-     .prop
+<p>Note to developers: <code class="source">mps_rank_final</code> is
+not usable by MPS clients, so I haven't mentioned it. Except for just
+now, that is.</p>
 
-     .ref.fixed:
+<h2><a id="section-4" name="section-4">4. Properties Of Objects</a></h2>
 
-    </strong>
+<p><a id="prop.obj.leaf" name="prop.obj.leaf"><strong>.prop.obj.leaf:</strong></a>
 
-     A "fixed reference" may not be updated by the collector, except by splatting if the reference is weak (.prop.ref.weak).
+A "leaf object" is one that does not (and can not) contain
+references.</p>
 
-    <br />
+<p><a id="prop.obj.non-leaf" name="prop.obj.non-leaf"><strong>.prop.obj.non-leaf:</strong></a>
 
-    <strong>
+A "non-leaf object" is one that may contain references.</p>
 
-     .prop
+<p><a id="prop.obj.collected" name="prop.obj.collected"><strong>.prop.obj.collected:</strong></a>
 
-     .ref.moving:
+A "collected object" is one that may be automatically discarded when
+the collector determines it is no longer needed.</p>
 
-    </strong>
+<p><a id="prop.obj.scanned" name="prop.obj.scanned"><strong>.prop.obj.scanned:</strong></a>
 
-     A "moving reference" may be updated by the collector. This means the collector has the opportunity to move the object referred to.
+A "scanned object" is one that may be scanned by the collector to fix
+references.</p>
 
-   </p>
+<p><a id="prop.obj.manual" name="prop.obj.manual"><strong>.prop.obj.manual:</strong></a>
 
-   <p>
+A "manually-managed" object is one that should be discarded when the
+client explicitly says so. Any object allocated by the MPS can be
+discarded by calling <code class="source">mps_pool_destroy</code>, but we don't consider an object
+to have <a href="#prop.obj.manual">.prop.obj.manual</a> unless there is some more specific way of
+discarding it. (Note that <a href="#prop.obj.collected">.prop.obj.collected</a> and <a href="#prop.obj.manual">.prop.obj.manual</a> are <em>not</em>
+mutually exclusive.)</p>
 
-    <strong>
+<p><a id="prop.obj.base-ref" name="prop.obj.base-ref"><strong>.prop.obj.base-ref:</strong></a>
 
-     .prop
+An object "supports base references only" if only a reference to the
+base of the object is considered to be a reference to the object.</p>
 
-     .ref.immutable:
+<p><a id="prop.obj.internal-ref" name="prop.obj.internal-ref"><strong>.prop.obj.internal-ref:</strong></a>
 
-    </strong>
+An object "supports internal references" if a reference to any byte
+within the object is considered to be a reference to the object.</p>
 
-     An "immutable reference" is one the client guarantees not to change.
+<p><a id="prop.obj.no-protect" name="prop.obj.no-protect"><strong>.prop.obj.no-protect:</strong></a>
 
-    <br />
+An "unprotectable object" is one that the collector promises not to
+place a read or write barrier on.</p>
 
-    <strong>
+<p><a id="prop.obj.protect" name="prop.obj.protect"><strong>.prop.obj.protect:</strong></a>
 
-     .prop
+A "protectable object" is one that the collector may place a read or
+write barrier on.</p>
 
-     .ref.mutable:
+<p><a id="prop.obj.no-move" name="prop.obj.no-move"><strong>.prop.obj.no-move:</strong></a>
 
-    </strong>
+A "non-movable object" is one that the collector will not move.</p>
 
-     A "mutable reference" is one the client may change when it likes.
+<p><a id="prop.obj.move" name="prop.obj.move"><strong>.prop.obj.move:</strong></a>
 
-   </p>
+A "movable object" is one that the collector may move.</p>
 
-   <p>
+<p><a id="prop.obj.finalize" name="prop.obj.finalize"><strong>.prop.obj.finalize:</strong></a>
 
-    <strong>.implications.prop.ref:</strong>
+A "finalizable object" is one that the client may later register for
+finalisation. [At present, this applies only to collected objects
+(<a href="#prop.obj.collected">.prop.obj.collected</a>.)]</p>
 
-     Because it would be dangerous for the collector to change something which wasn't really a reference, ambiguous references (.prop.ref.ambiguous) must be both fixed (.prop.ref.fixed) and strong (.prop.ref.strong).
+<p><a id="prop.obj.formatted" name="prop.obj.formatted"><strong>.prop.obj.formatted:</strong></a>
 
-   </p>
+At the moment, objects are formatted if and only if they have either
+of <a href="#prop.obj.scanned">.prop.obj.scanned</a> or <a
+href="#prop.obj.collected">.prop.obj.collected</a>.  This is a
+coincidence, and indeed the possibility of an unformatted but
+collected pool has been raised (see
+mail.tony.1998-06-30.17-20(0)).</p>
 
-   <h2>
+<h2><a id="section-5" name="section-5">5. Pool And Pool Class Properties</a></h2>
 
-    <a id='section-ranks' name='section-ranks'>Ranks</a>
 
-   </h2>
+<h3><a id="section-5.1" name="section-5.1">5.1. Allocation and freeing</a></h3>
 
-   <p>At present, the mps understands only the following types of reference, known as ranks:</p>
+<p><a id="prop.pool.alloc" name="prop.pool.alloc"><strong>.prop.pool.alloc:</strong></a>
 
-   <p>
+A pool "with alloc" supports an interface for allocating individual
+objects (<code class="source">mps_alloc</code> in the MPS).</p>
 
-    <strong>
+<p><a id="prop.pool.free" name="prop.pool.free"><strong>.prop.pool.free:</strong></a>
 
-     .prop
+A pool "with free" supports an interface for discarding individual
+objects.</p>
 
-     .rank.exact:
+<p><a id="prop.pool.buffered-alloc" name="prop.pool.buffered-alloc"><strong>.prop.pool.buffered-alloc:</strong></a>
 
-    </strong>
+A "buffered pool" supports allocation using allocation points.</p>
 
-    References of rank mps_rank_exact are real, strong and moving (.prop
+<p><a id="prop.pool.save-restore" name="prop.pool.save-restore"><strong>.prop.pool.save-restore:</strong></a>
 
-    .ref.{real, 
+A "save-restore pool" supports "save" and "restore" operations for
+allocating and discarding nested sets of objects.</p>
 
-    strong, 
 
-    moving
+<h3><a id="section-5.2" name="section-5.2">5.2. Collection</a></h3>
 
-    }).
+<p><a id="prop.pool.collection" name="prop.pool.collection"><strong>.prop.pool.collection:</strong></a>
 
-    <br />
+A "collected pool" is one which may be garbage-collected by the MPS.</p>
 
-    <strong>
+<p><a id="prop.pool.collection.auto" name="prop.pool.collection.auto"><strong>.prop.pool.collection.auto:</strong></a>
 
-     .prop
+An "automatically-collected pool" is one where garbage collection is
+under the control of the collector, which decides when collection
+should take place and performs it automatically and incrementally.</p>
 
-     .rank.ambiguous:
+<p><a id="prop.pool.collection.demand" name="prop.pool.collection.demand"><strong>.prop.pool.collection.demand:</strong></a>
 
-    </strong>
+A "demand-collected pool" is one where garbage collection takes place
+when the client explicitly requests it.</p>
 
-    References of rank mps_rank_ambiguous are ambiguous, strong and fixed (.prop
+<p><a id="question.combine.prop.pool.collection" name="question.combine.prop.pool.collection"><strong>.question.combine.prop.pool.collection:</strong></a>
 
-    .ref.{ambiguous, 
+How well can the two of these be combined in the same MPS?
+Consequences for read and write barriers? This is an important
+question, considering the differences between product.dylan and
+product.epcore.</p>
 
-    strong, 
+<p><a id="question.prop.pool.collection.incremental" name="question.prop.pool.collection.incremental"><strong>.question.prop.pool.collection.incremental:</strong></a>
 
-    fixed
+Should there be a separate pool property for being incrementally
+collected? At the moment, all MPS-originated collection is incremental
+and all client-requested collection is non-incremental, irrespective
+of the pools involved, but perhaps this might become a pool property
+in the future.</p>
 
-    }).
 
-    <br />
+<h3><a id="section-5.3" name="section-5.3">5.3. Size and alignment</a></h3>
 
-    <strong>
+<a id="prop.pool.alignment" name="prop.pool.alignment"></a>
 
-     .prop
+<p><a id="prop.pool.alignment.fixed" name="prop.pool.alignment.fixed"><strong>.prop.pool.alignment.fixed:</strong></a>
 
-     .rank.weak:
+A "fixed-alignment pool class" has a fixed object alignment.</p>
 
-    </strong>
+<p><a id="prop.pool.alignment.config" name="prop.pool.alignment.config"><strong>.prop.pool.alignment.config:</strong></a>
 
-     References of rank mps_rank_weak are real, weak and moving (
+A "configurable-alignment pool" class allows the client to specify
+alignment for each pool.</p>
 
-    .prop
+<p><a id="prop.pool.alignment.variable" name="prop.pool.alignment.variable"><strong>.prop.pool.alignment.variable:</strong></a>
 
-    .ref.
+A "variable-alignment pool class" allows the client to specify
+alignment for each object.</p>
 
-    {real, weak,
+<a id="prop.pool.size" name="prop.pool.size"></a>
 
-     moving
+<p><a id="prop.pool.size.fixed" name="prop.pool.size.fixed"><strong>.prop.pool.size.fixed:</strong></a>
 
-    }). This rank is "weak-after-final", i.e. a weak reference to an object which would have died but was registered for finalisation, will not be splatted until the object subsequently dies.
+A "fixed-size pool class" has a fixed object size.</p>
 
-   </p>
+<p><a id="prop.pool.size.config" name="prop.pool.size.config"><strong>.prop.pool.size.config:</strong></a>
 
-   <p>For references in roots, the client may specify whether they are mutable (.prop.ref.mutable) or immutable (.prop.ref.immutable).</p>
+A "configurable-size pool class" allows the client to specify an
+object size for each pool.</p>
 
-   <p>All references in objects are mutable (.prop.ref.mutable), but subject to the constraint that the reference will not change without the client writing to the object/root that contains it. This is because write-barriers are used to maintain remembered sets. The EPVM pool class is an exception to this rule: see .prop.pool.remote-references below.</p>
+<p><a id="prop.pool.size.variable" name="prop.pool.size.variable"><strong>.prop.pool.size.variable:</strong></a>
 
-   <p>Note to developers: mps_rank_final is not usable by mps clients, so I haven't mentioned it. Except for just now, that is.</p>
+A "variable-size pool class" allows the client to specify a size for
+each object.</p>
 
-   <h2>
 
-    <a id='section-properties-of-objects' name='section-properties-of-objects'>Properties Of Objects</a>
+<h3><a id="section-5.4" name="section-5.4">5.4. Special powers</a></h3>
 
-   </h2>
+<p><a id="prop.pool.assoc-object" name="prop.pool.assoc-object"><strong>.prop.pool.assoc-object:</strong></a>
 
-   <p>
+Each object in an "associated-object pool" can specify an associated
+object which the mutator guarantees will be accessible during scanning
+of the first object. (Applies to the AWL pool class, where is it used
+to help Dylan manage weak hash tables.)</p>
 
-    <strong>.prop.obj.leaf:</strong>
+<p><a id="prop.pool.remote-references" name="prop.pool.remote-references"><strong>.prop.pool.remote-references:</strong></a>
 
-     A "leaf object" is one that does not (and can not) contain references.
+The references contained in an object in a "remote-references pool"
+need not be stored directly in the object itself. Therefore, the
+collector may not rely on write-barriers to detect changing
+references. (Applies to the EPVM pool class, where it is used to help
+support the ScriptWorks object format).</p>
 
-   </p>
+<p><a id="prop.pool.ambiguous" name="prop.pool.ambiguous"><strong>.prop.pool.ambiguous:</strong></a>
 
-   <p>
+If a pool "supports ambiguous references", then ambiguous references
+which could be interpreted as references to objects in that pool will
+be so interpreted. i.e. they will keep objects alive. (Does not apply
+to the EPVM pool class.)</p>
 
-    <strong>.prop.obj.non-leaf:</strong>
+<h2><a id="section-6" name="section-6">6. General Issues</a></h2>
 
-     A "non-leaf object" is one that may contain references.
+<p><a id="issue.endian" name="issue.endian"><strong>.issue.endian:</strong></a>
 
-    <br />
+Properties like "whether ref must be to base of object" can perhaps be
+specified both as properties of a reference <em>from</em> a specific
+reference and <em>to</em> a specific object. For example: AMC doesn't
+allow weak references out of it. EPVM doesn't allow ambiguous
+references into it. (Why this is, I have no idea.) For most types of
+properties, the MPS design has made a choice: either it's a property
+at the <em>from</em> end or at the <em>to</em> end. (E.g., base/middle
+is at the <em>to</em> end, rank is (usually) at the <em>from</em>
+end. Format, of course, is always at the <em>from</em> end.)</p>
 
-   </p>
+<h2><a id="section-7" name="section-7">7. A Table Of Pool Classes And Their Properties</a></h2>
 
-   <p>
+<p><a id="table.pool-classes" name="table.pool-classes"><strong>.table.pool-classes:</strong></a>
 
-    <strong>
+In the following table, a "yes" for an object property means (unless
+otherwise indicated) that that property holds for <em>all</em> objects
+in the pool. A "yes" for a rank means that the pool allows objects
+containing references of that rank. Gaps in the table indicate
+properties that aren't applicable: for example is it silly to ask
+whether a pool which doesn't have <a
+href="#prop.obj.scanned">.prop.obj.scanned</a> has <a
+href="#prop.rank.weak">.prop.rank.weak</a>.</p>
 
-     .prop
+<table border="1" cellspacing="1" cellpadding="5">
 
-     .obj.collected:
+<tr valign="top">
 
-    </strong>
+  <th>Name of pool class</th>
 
-     A "collected object" is one that may be automatically discarded when the collector determines it is no longer needed.
+  <th>AMC</th>
 
-    <br />
+  <th>AMCZ</th>
 
-    <strong>
+  <th>AWL</th>
 
-     .prop
+  <th>LO</th>
 
-     .obj.manual:
+  <th>EPVM</th>
 
-    </strong>
+  <th>MV</th>
 
-     A "manually-managed" object is one that should be discarded when the client explicitly says so. Any object allocated by the MPS can be discarded by calling mps_pool_destroy, but we don't consider an object to have .prop.obj.manual unless there is some more specific way of discarding it. (Note that .obj.collect and .obj.manual are _not_ mutually exclusive.)
+  <th>MV2</th>
 
-   </p>
+  <th>EPDL/R</th>
 
-   <p>
+  <th>MVFF</th>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .obj.base-ref:
+  <td><a href="#prop.pool.alloc">.prop.pool.alloc</a></td>
 
-    </strong>
+  <td>no</td>
 
-     An object "supports base references only" if only a reference to the base of the object is considered to be a reference to the object.
+  <td>no</td>
 
-    <br />
+  <td>no</td>
 
-    <strong>.prop</strong>
+  <td>no</td>
 
-    .
+  <td>no</td>
 
-    <strong>obj.internal-ref:</strong>
+  <td>yes</td>
 
-     An object "supports internal references" if a reference to any byte within the object is considered to be a reference to the object.
+  <td>no</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>yes</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .obj.no-protect:
+  <td><a href="#prop.pool.free">.prop.pool.free</a></td>
 
-    </strong>
+  <td>no</td>
 
-     An "unprotectable object" is one that the collector promises not to place a read or write barrier on.
+  <td>no</td>
 
-    <br />
+  <td>no</td>
 
-    <strong>
+  <td>no</td>
 
-     .prop
+  <td>no</td>
 
-     .obj.protect:
+  <td>yes</td>
 
-    </strong>
+  <td>yes</td>
 
-     A "protectable object" is one that the collector may place a read or write barrier on.
+  <td>yes</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+</tr>
 
-    <strong>
+<tr valign="top">
 
-     .prop
+  <td><a href="#prop.pool.buffered-alloc">.prop.pool.buffered-alloc</a></td>
 
-     .obj.no-move:
+  <td>yes</td>
 
-    </strong>
+  <td>yes</td>
 
-     A "non-movable object" is one that the collector will not move.
+  <td>yes</td>
 
-    <br />
+  <td>yes</td>
 
-    <strong>
+  <td>yes</td>
 
-     .prop
+  <td>no</td>
 
-     .obj.move:
+  <td>yes</td>
 
-    </strong>
+  <td>no</td>
 
-     A "movable object" is one that the collector may move.
+  <td>no</td>
 
-   </p>
+</tr>
 
-   <p>
+<tr valign="top">
 
-    <strong>
+  <td><a href="#prop.pool.save-restore">.prop.pool.save-restore</a></td>
 
-     .prop
+  <td>no</td>
 
-     .obj.finalize:
+  <td>no</td>
 
-    </strong>
+  <td>no</td>
 
-     A "finalizable object" is one that the client may later register for finalisation. [At present, this applies only to collected objects (.prop.obj.collected.)]
+  <td>no</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>
+  <td>no</td>
 
-     .prop
+  <td>no</td>
 
-     .obj.formatted:
+  <td>no</td>
 
-    </strong>
+</tr>
 
-     At the moment, objects are formatted if and only if they have either of 
+<tr valign="top">
 
-    .prop
+  <td><a href="#prop.obj.collected">.prop.obj.collected</a></td>
 
-    .obj.scanned or 
+  <td>yes</td>
 
-    .prop
+  <td>yes</td>
 
-    .obj.collected. This is a coincidence, and indeed the possibility of an unformatted but collected pool has been raised (see mail.tony.1998-06-30.17-20(0)).
+  <td>yes</td>
 
-   </p>
+  <td>yes</td>
 
-   <h2>
+  <td>yes</td>
 
-    <a id='section-pool-and-pool-class-properties' name='section-pool-and-pool-class-properties'>Pool And Pool Class Properties</a>
+  <td>no</td>
 
-   </h2>
+  <td>no</td>
 
-   <p>Allocation and freeing</p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .pool.alloc:
+  <td><a href="#prop.obj.scanned">.prop.obj.scanned</a></td>
 
-    </strong>
+  <td>yes</td>
 
-     A pool "with alloc" supports an interface for allocating individual objects (mps_alloc in the MPS).
+  <td>no</td>
 
-    <br />
+  <td>yes</td>
 
-    <strong>
+  <td>no</td>
 
-     .prop
+  <td>yes</td>
 
-     .pool.free:
+  <td>no</td>
 
-    </strong>
+  <td>no</td>
 
-     A pool "with free" supports an interface for discarding individual objects.
+  <td>no</td>
 
-    <br />
+  <td>no</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .pool.buffered-alloc:
+  <td><a href="#prop.obj.manual">.prop.obj.manual</a></td>
 
-    </strong>
+  <td>no</td>
 
-     A "buffered pool" supports allocation using allocation points.
+  <td>no</td>
 
-    <br />
+  <td>no</td>
 
-    <strong>
+  <td>no</td>
 
-     .prop
+  <td>yes<a href="#table.pool-classes.note.1">(1)</a></td>
 
-     .pool.save-restore:
+  <td>yes</td>
 
-    </strong>
+  <td>yes</td>
 
-     A "save-restore pool" supports "save" and "restore" operations for allocating and discarding nested sets of objects.
+  <td>yes</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>Collection</p>
+</tr>
 
-   <p>
+<tr valign="top">
 
-    <strong>
+  <td><a href="#prop.pool.collection">.prop.pool.collection</a></td>
 
-     .prop
+  <td>auto</td>
 
-     .pool.collection.auto:
+  <td>auto</td>
 
-    </strong>
+  <td>auto</td>
 
-     An "automatically-collected pool" is one where garbage collection is under the control of the collector, which decides when collection should take place and performs it automatically and incrementally.
+  <td>auto</td>
 
-    <br />
+  <td>manual</td>
 
-    <strong>
+  <td>&nbsp;</td>
 
-     .prop
+  <td>&nbsp;</td>
 
-     .pool.collection.demand:
+  <td>&nbsp;</td>
 
-    </strong>
+  <td>&nbsp;</td>
 
-     A "demand-collected pool" is one where garbage collection takes place when the client explicitly requests it.
+</tr>
 
-   </p>
+<tr valign="top">
 
-   <p>
+  <td><a href="#prop.obj.non-leaf">.prop.obj.non-leaf</a></td>
 
-    <strong>.question.combine.prop.pool.collection:</strong>
+  <td>yes</td>
 
-     How well can the two of these be combined in the same mps? Consequences for read and write barriers? This is an important question, considering the differences between product.dylan and product.epcore.
+  <td>no</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>.question.prop.pool.collection.incremental:</strong>
+  <td><a href="#table.pool-classes.note.2">(2)</a></td>
 
-     Should there be a separate pool property for being incrementally collected? At the moment, all MPS-originated collection is incremental and all client-requested collection is non-incremental, irrespective of the pools involved, but perhaps this might become a pool property in the future.
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>Size and alignment</p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .pool.alignment.fixed:
+  <td><a href="#prop.rank.exact">.prop.rank.exact</a></td>
 
-    </strong>
+  <td>yes</td>
 
-     A "fixed-alignment pool class" has a fixed object alignment.
+  <td>&nbsp;</td>
 
-    <br />
+  <td>yes</td>
 
-    <strong>
+  <td>&nbsp;</td>
 
-     .prop
+  <td>yes</td>
 
-     .pool.alignment.config:
+  <td>&nbsp;</td>
 
-    </strong>
+  <td>&nbsp;</td>
 
-     A "configurable-alignment pool" class allows the client to specify alignment for each pool.
+  <td>&nbsp;</td>
 
-    <br />
+  <td>&nbsp;</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .pool.alignment.variable:
+  <td><a href="#prop.rank.ambiguous">.prop.rank.ambiguous</a></td>
 
-    </strong>
+  <td>no</td>
 
-     A "variable-alignment pool class" allows the client to specify alignment for each object.
+  <td>&nbsp;</td>
 
-    <br />
+  <td>no</td>
 
-    <strong>
+  <td>&nbsp;</td>
 
-     .prop
+  <td>no</td>
 
-     .pool.size.fixed:
+  <td>&nbsp;</td>
 
-    </strong>
+  <td>&nbsp;</td>
 
-     A "fixed-size pool class" has a fixed object size.
+  <td>&nbsp;</td>
 
-    <br />
+  <td>&nbsp;</td>
 
-    <strong>
+</tr>
 
-     .prop
+<tr valign="top">
 
-     .pool.size.config:
+  <td><a href="#prop.rank.weak">.prop.rank.weak</a></td>
 
-    </strong>
+  <td>no</td>
 
-     A "configurable-size pool class" allows the client to specify an object size for each pool.
+  <td>&nbsp;</td>
 
-    <br />
+  <td>yes</td>
 
-    <strong>
+  <td>&nbsp;</td>
 
-     .prop
+  <td>no</td>
 
-     .pool.size.variable:
+  <td>&nbsp;</td>
 
-    </strong>
+  <td>&nbsp;</td>
 
-     A "variable-size pool class" allows the client to specify a size for each object.
+  <td>&nbsp;</td>
 
-   </p>
+  <td>&nbsp;</td>
 
-   <p>Special Powers</p>
+</tr>
 
-   <p>
+<tr valign="top">
 
-    <strong>
+  <td><a href="#prop.obj.base-ref">.prop.obj.base-ref</a></td>
 
-     .prop
+  <td>yes</td>
 
-     .pool.assoc-object:
+  <td>yes</td>
 
-    </strong>
+  <td>yes</td>
 
-     Each object in an "associated-object pool" can specify an associated object which the mutator guarantees will be accessible during scanning of the first object. (Applies to the AWL pool class, where is it used to help Dylan manage weak hash tables.)
+  <td>yes</td>
 
-   </p>
+  <td>yes<a href="#table.pool-classes.note.2">(2)</a></td>
 
-   <p>
+  <td>&nbsp;</td>
 
-    <strong>
+  <td>&nbsp;</td>
 
-     .prop
+  <td>&nbsp;</td>
 
-     .pool.remote-references:
+  <td>&nbsp;</td>
 
-    </strong>
+</tr>
 
-     The references contained in an object in a "remote-references pool" need not be stored directly in the object itself. Therefore, the collector may not rely on write-barriers to detect changing references. (Applies to the EPVM pool class
+<tr valign="top">
 
-    , where it is used to help support the ScriptWorks object format.
+  <td><a href="#prop.obj.internal-ref">.prop.obj.internal-ref</a></td>
 
-    )
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>
+  <td>no</td>
 
-     .prop
+  <td>yes<a href="#table.pool-classes.note.2">(2)</a></td>
 
-     .pool.ambiguous.not-supported:
+  <td>&nbsp;</td>
 
-    </strong>
+  <td>&nbsp;</td>
 
-     If a pool "does not support ambiguous references", then ambiguous references which could otherwise be interpreted as references to objects in that pool will not be so interpreted. i.e. they will be ignored, and will not keep objects alive. (Applies to the EPVM pool class.)
+  <td>&nbsp;</td>
 
-   </p>
+  <td>&nbsp;</td>
 
-   <h2>
+</tr>
 
-    <a id='section-general-issues' name='section-general-issues'>General Issues</a>
+<tr valign="top">
 
-   </h2>
+  <td><a href="#prop.obj.protect">.prop.obj.protect</a></td>
 
-   <p>
+  <td>yes</td>
 
-    <strong>.issue.endian:</strong>
+  <td>no</td>
 
-     Properties like "whether ref must be to base of object" can perhaps be specified both as properties of a reference _from_ a specific reference and _to_ a specific object. For example: AMC doesn't allow weak references out of it. EPVM doesn't allow ambiguous references into it. (Why this is, I have no idea.) For most types of properties, the MPS design has made a choice: either it's a property at the _from_ end or at the _to_ end. (E.g., base/middle is at the _to_ end, rank is (usually) at the _from_ end. Format, of course, is always at the _from_ end.)
+  <td>yes</td>
 
-   </p>
+  <td>no</td>
 
-   <h2>
+  <td>no</td>
 
-    <a id='section-a-table-of-pool-classes-and-their-properties' name='section-a-table-of-pool-classes-and-their-properties'>A Table Of Pool Classes And Their Properties</a>
+  <td>no</td>
 
-   </h2>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    <strong>.table.pool-classes:</strong>
+  <td>no</td>
 
-     In the following table, a "yes" for an object property means (unless otherwise indicated) that that property holds for _all_ objects in the pool. A "yes" for a rank means that the pool allows objects containing references of that rank. Gaps in the table indicate properties that aren't applicable: for example is it silly to ask whether a pool which doesn't have .prop.obj.scanned has .prop.rank.weak.
+</tr>
 
-   </p>
+<tr valign="top">
 
-   <p>Name of pool class:            AMC    AMCZ   AWL    LO     EPVM   MV     MV2    EPDL/R MVFF</p>
+  <td><a href="#prop.obj.move">.prop.obj.move</a></td>
 
-   <p>
+  <td>yes</td>
 
-    .prop
+  <td>yes</td>
 
-    .pool.alloc               no     no     no     no     no     yes    no     yes    yes
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    .prop
+  <td>no</td>
 
-    .pool.free                no     no     no     no     no     yes    yes    yes    yes
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    .prop
+</tr>
 
-    .pool.buffered-alloc      yes    yes    yes    yes    yes    no     yes    no     no
+<tr valign="top">
 
-   </p>
+  <td><a href="#prop.obj.finalize">.prop.obj.finalize</a></td>
 
-   <p>
+  <td>yes</td>
 
-    .prop
+  <td>yes</td>
 
-    .pool.save-restore        no     no     no     no     yes    no     no     no     no
+  <td>yes</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>no<a href="#table.pool-classes.note.3">(3)</a></td>
 
-    .prop
+  <td>no</td>
 
-    .obj.collected            yes    yes    yes    yes    yes    no     no     no     no
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>no</td>
 
-    .prop
+</tr>
 
-    .obj.manual               no     no     no     no     yes(1) yes    yes    yes    yes
+<tr valign="top">
 
-   </p>
+  <td><a href="#prop.obj.formatted">.prop.obj.formatted</a></td>
 
-   <p>
+  <td>yes</td>
 
-    .prop
+  <td>yes</td>
 
-    .pool.collection          auto   auto   auto   auto   manual
+  <td>yes</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>yes</td>
 
-    .prop
+  <td>no</td>
 
-    .obj.non-leaf             yes    no     yes    no     (2)    no     no     no     no
+  <td>no</td>
 
-   </p>
+  <td>no</td>
 
-   <p>.prop.rank.exact               yes           yes           yes</p>
+  <td>no</td>
 
-   <p>
+</tr>
 
-    .prop
+<tr valign="top">
 
-    .rank.ambiguous           no            no            no
+  <td><a href="#prop.pool.size">.prop.pool.size</a></td>
 
-   </p>
+  <td>var</td>
 
-   <p>
+  <td>var</td>
 
-    .prop
+  <td>var</td>
 
-    .rank.weak                no            yes           no
+  <td>var</td>
 
-   </p>
+  <td>8</td>
 
-   <p>
+  <td>var</td>
 
-    .prop
+  <td>var</td>
 
-    .obj.base-ref             yes    yes    yes    yes    yes(2)
+  <td>var</td>
 
-   </p>
+  <td>var</td>
 
-   <p>
+</tr>
 
-    .prop
+<tr valign="top">
 
-    .obj.internal-ref         no     no     no     no     yes(2)
+  <td><a href="#prop.pool.alignment">.prop.pool.alignment</a></td>
 
-   </p>
+  <td>config</td>
 
-   <p>
+  <td>config</td>
 
-    .prop
+  <td>config</td>
 
-    .obj.protect              yes    no     yes    no     no     no     no     no     no
+  <td>config</td>
 
-   </p>
+  <td>8</td>
 
-   <p>
+  <td><a href="#table.pool-classes.note.4">(4)</a></td>
 
-    .prop
+  <td><a href="#table.pool-classes.note.4">(4)</a></td>
 
-    .obj.move                 yes    yes    no     no     no     no     no     no     no
+  <td>config</td>
 
-   </p>
+  <td>config<a href="#table.pool-classes.note.5">(5)</a></td>
 
-   <p>
+</tr>
 
-    .prop
+<tr valign="top">
 
-    .obj.finalize             yes    yes    yes    yes    no(3)  no     no     no     no
+  <td><a href="#prop.pool.assoc-object">.prop.pool.assoc-object</a></td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>&nbsp;</td>
 
-    .prop
+  <td>yes</td>
 
-    .obj.formatted            yes    yes    yes    yes    yes    no     no     no     no
+  <td>&nbsp;</td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>&nbsp;</td>
 
-    .prop
+  <td>&nbsp;</td>
 
-    .pool.size                var    var    var    var    8      var    var    var    var
+  <td>&nbsp;</td>
 
-   </p>
+  <td>&nbsp;</td>
 
-   <p>
+</tr>
 
-    .prop
+<tr valign="top">
 
-    .pool.alignment           config config config config 8      (4)    (4)    config config(5)
+  <td><a href="#prop.pool.remote-references">.prop.pool.remote-references</a></td>
 
-   </p>
+  <td>no</td>
 
-   <p>
+  <td>&nbsp;</td>
 
-    .prop
+  <td>no</td>
 
-    .pool.assoc-object        no            yes           no
+  <td>&nbsp;</td>
 
-   </p>
+  <td>yes</td>
 
-   <p>
+  <td>&nbsp;</td>
 
-    .prop
+  <td>&nbsp;</td>
 
-    .pool.remote-references   no            no            yes
+  <td>&nbsp;</td>
 
-   </p>
+  <td>&nbsp;</td>
 
-   <p>
+</tr>
 
-    .prop
+<tr valign="top">
 
-    .pool.ambiguous-          no     no     no     no     yes
+  <td><a href="#prop.pool.ambiguous">.prop.pool.ambiguous</a></td>
 
-   </p>
+  <td>no</td>
 
-   <p> not-supported</p>
+  <td>no</td>
 
-   <p>Notes:</p>
+  <td>no</td>
 
-   <p>(1) because EPVM pools are save-restore pools (.prop.pool.save-restore).</p>
+  <td>no</td>
 
-   <p>
+  <td>yes</td>
 
-    (2) EPVM pools can allocate two distinct types of object: one type is non-leaf and supports base-references only (
+  <td>&nbsp;</td>
 
-    .prop
+  <td>&nbsp;</td>
 
-    .obj.non-leaf, 
+  <td>&nbsp;</td>
 
-    .prop
+  <td>&nbsp;</td>
 
-    .obj.base-ref). The other is leaf and supports internal-references (
+</tr>
+</table>
 
-    .prop
+<p>Notes:</p>
 
-    .obj.leaf
+<p><a id="table.pool-classes.note.1"
+name="table.pool-classes.note.1">(1)</a> because EPVM pools are
+save-restore pools (<a
+href="#prop.pool.save-restore">.prop.pool.save-restore</a>).</p>
 
-    , .prop
+<p><a id="table.pool-classes.note.2"
+name="table.pool-classes.note.2">(2)</a> EPVM pools can allocate two
+distinct types of object: one type is non-leaf and supports
+base-references only (<a
+href="#prop.obj.non-leaf">.prop.obj.non-leaf</a>, <a
+href="#prop.obj.base-ref">.prop.obj.base-ref</a>). The other is leaf
+and supports internal-references (<a
+href="#prop.obj.leaf">.prop.obj.leaf</a>, <a
+href="#prop.obj.internal-ref">.prop.obj.internal-ref</a>).</p>
 
-    .obj.internal-ref).
+<p><a id="table.pool-classes.note.3"
+name="table.pool-classes.note.3">(3)</a> Finalisation of EPVM objects
+may be a future requirement for ScriptWorks, so this might change.</p>
 
-   </p>
+<p><a id="table.pool-classes.note.4"
+name="table.pool-classes.note.4">(4)</a> MV and MV2 alignment is
+platform dependent.</p>
 
-   <p>(3) Finalisation of EPVM objects may be a future requirement for ScriptWorks, so this might change.</p>
+<p><a id="table.pool-classes.note.5"
+name="table.pool-classes.note.5">(5)</a> MVFF pools may not have
+alignment less than <code class="source">MPS_PF_ALIGN</code> (which
+should be the "platform alignment").</p>
 
-   <p>(4) MV and MV2 alignment is platform dependent.</p>
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-   <p>(5) MVFF pools may not have alignment less than MPS_PF_ALIGN (which should be the "platform alignment").</p>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-   <h2>
+<table>
 
-    <a id='section-A' name='section-A'>A. References</a>
+<tr valign="top">
 
-   </h2>
+  <td>1998-07-02 12:16:54</td>
 
-   <h2>
+  <td>rit</td>
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+  <td>Created</td>
 
-   </h2>
+</tr>
 
-   <table>
+<tr valign="top">
 
-    <tr valign='top'>
+  <td>1998-07-02 to 2000-05-22</td>
 
-     <td>1998-07-02 11:16:54 +01</td>
+  <td />
 
-     <td>rit</td>
+  <td>Developed at Harlequin</td>
 
-     <td>New document saved</td>
+</tr>
 
-    </tr>
+<tr valign="top">
 
-    <tr valign='top'>
+  <td>2001-09-26</td>
 
-     <td>1998-07-23 18:20:33 +01</td>
+  <td>
 
-     <td>pekka</td>
+<a href="mailto:ndl@ravenbrook.com">NDL</a>
 
-     <td>fixed readership</td>
+</td>
 
-    </tr>
+  <td>Converted from xml to html (second pass).</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1998-08-24 11:54:30 +01</td>
+<tr valign="top">
 
-     <td>rit</td>
+  <td>2001-11-14</td>
 
-     <td>updated following comments from drj and pekka</td>
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-    </tr>
+  <td>Reformatted and adopted.  Added .prop.obj.scanned.</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1998-10-14 12:03:10 +01</td>
+</table>
 
-     <td>rit</td>
+<hr />
 
-     <td>added table column for MVFF pool class</td>
+<p>
 
-    </tr>
+<small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
 
-    <tr valign='top'>
+</p>
 
-     <td>2000-05-22 13:36:03 +01</td>
+<div align="center">
 
-     <td>pekka</td>
+<p>
 
-     <td>change tag from guide.mps.pool-classes</td>
+<code>$Id$</code>
 
-    </tr>
+</p>
 
-    <tr valign='top'>
+</div>
 
-     <td>2001-09-26</td>
+</body>
 
-     <td>
-
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
-
-     </td>
-
-     <td>Converted from xml to html (second pass).</td>
-
-    </tr>
-
-   </table>
-
-   <hr />
-
-   <p>
-
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
-
-   </p>
-
-   <div align='center'>
-
-    <p>
-
-     <code>$Id$</code>
-
-    </p>
-
-   </div>
-
-  </body>
-
- </html>
+</html>
 
