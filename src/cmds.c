@@ -360,7 +360,6 @@ internal_self_insert (c, noautofill)
   /* At first, get multi-byte form of C in STR.  */
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      c = unibyte_char_to_multibyte (c);
       len = CHAR_STRING (c, str);
       if (len == 1)
 	/* If C has modifier bits, this makes C an appropriate
@@ -437,10 +436,19 @@ internal_self_insert (c, noautofill)
 	}
       hairy = 2;
     }
+
+  if (NILP (current_buffer->enable_multibyte_characters))
+    MAKE_CHAR_MULTIBYTE (c);
+  synt = SYNTAX (c);
+
   if (!NILP (current_buffer->abbrev_mode)
-      && SYNTAX (c) != Sword
+      && synt != Sword
       && NILP (current_buffer->read_only)
-      && PT > BEGV && SYNTAX (XFASTINT (Fprevious_char ())) == Sword)
+      && PT > BEGV
+      && (!NILP (current_buffer->enable_multibyte_characters)
+	  ? SYNTAX (XFASTINT (Fprevious_char ())) == Sword
+	  : (SYNTAX (unibyte_char_to_multibyte (XFASTINT (Fprevious_char ())))
+	     == Sword)))
     {
       int modiff = MODIFF;
       Lisp_Object sym;
@@ -508,7 +516,6 @@ internal_self_insert (c, noautofill)
       Vself_insert_face = Qnil;
     }
 
-  synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE
       && !noautofill)
