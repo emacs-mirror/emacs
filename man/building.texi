@@ -652,12 +652,10 @@ That's why @code{load-library} searches for @samp{.elc} files first.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
-  By default, Emacs refuses to load compiled Lisp files which weren't
-compiled with Emacs.  This is because an incompatible change was
-introduced into XEmacs' byte compiler, which could produce files with
-byte codes that cause Emacs to crash.  Set the variable
-@code{load-dangerous-libraries} to t if you want to change this
-behavior.
+  By default, Emacs refuses to load compiled Lisp files which were
+compiled with XEmacs, a modified versions of Emacs---they can cause
+Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
+@code{t} if you want to try loading them.
 
 @node Lisp Eval
 @section Evaluating Emacs-Lisp Expressions
