@@ -9789,7 +9789,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
       if (! make_cursor_line_fully_visible (w))
-	goto too_near_end;
+	{
+	  clear_glyph_matrix (w->desired_matrix);
+	  goto too_near_end;
+	}
       rc = SCROLLING_SUCCESS;
     }
 
@@ -10496,9 +10499,10 @@ redisplay_window (window, just_this_one_p)
 	    w->base_line_number = Qnil;
 
 	  if (!make_cursor_line_fully_visible (w))
+	    clear_glyph_matrix (w->desired_matrix);
 	    /* Drop through and scroll.  */
-	    ;
-	  goto done;
+	  else
+	    goto done;
 	}
       else
 	clear_glyph_matrix (w->desired_matrix);
