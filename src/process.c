@@ -2393,7 +2393,11 @@ read_process_output (proc, channel)
       if (! EQ (Fcurrent_buffer (), obuffer)
 	  || ! EQ (current_buffer->keymap, okeymap))
 #endif
-	record_asynch_buffer_change ();
+	/* But do it only if the caller is actually going to read events.
+	   Otherwise there's no need to make him wake up, and it could
+	   cause trouble (for example it would make Fsit_for return).  */
+	if (waiting_for_user_input_p == -1)
+	  record_asynch_buffer_change ();
 
 #ifdef VMS
       start_vms_process_read (vs);
@@ -3391,7 +3395,11 @@ exec_sentinel (proc, reason)
   if (! EQ (Fcurrent_buffer (), obuffer)
       || ! EQ (current_buffer->keymap, okeymap))
 #endif
-    record_asynch_buffer_change ();
+    /* But do it only if the caller is actually going to read events.
+       Otherwise there's no need to make him wake up, and it could
+       cause trouble (for example it would make Fsit_for return).  */
+    if (waiting_for_user_input_p == -1)
+      record_asynch_buffer_change ();
 
   unbind_to (count, Qnil);
 }
