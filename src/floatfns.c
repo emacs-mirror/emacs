@@ -302,7 +302,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 }
 
 DEFUN ("log", Flog, Slog, 1, 2, 0,
-  "Return the natural logarithm of NUM.
+  "Return the natural logarithm of NUM.\n\
 If second optional argument BASE is given, return log NUM using that base.")
   (num, base)
      register Lisp_Object num, base;

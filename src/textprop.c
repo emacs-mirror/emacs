@@ -424,7 +424,7 @@ Returns nil if unsuccessful.")
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
        Sprevious_single_property_change, 3, 3, 0,
        "Return the position preceding POSITION in OBJECT which has a\n\
-different value for PROPERTY than the text at POSITION.  OBJECT may be
+different value for PROPERTY than the text at POSITION.  OBJECT may be\n\
 a string or buffer.  Returns nil if unsuccessful.")
      (pos, object, prop)
 {
@@ -788,7 +788,7 @@ void
 syms_of_textprop ()
 {
   DEFVAR_INT ("interval-balance-threshold", &interval_balance_threshold,
-	      "Threshold for rebalancing interval trees, expressed as the
+	      "Threshold for rebalancing interval trees, expressed as the\n\
 percentage by which the left interval tree should not differ from the right.");
   interval_balance_threshold = 8;
 
