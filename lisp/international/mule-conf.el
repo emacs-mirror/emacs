@@ -175,7 +175,7 @@
   "ISO/IEC 8859/15" "Latin-9" 203 ?b 142 "8859-15")
 
 (define-iso-single-byte-charset 'iso-8859-16 'latin-iso8859-16
-  "ISO/IEC 8859/16" "Latin-9" 226 ?f nil "8859-16")
+  "ISO/IEC 8859/16" "Latin-10" 226 ?f nil "8859-16")
 
 (define-charset 'thai-tis620
   "TIS620.2533"
@@ -455,7 +455,7 @@
   :code-space [0 255]
   :map "ibm866")
 (define-charset-alias 'cp866 'alternativnyj)
-(define-charset-alias 'ibm 'alternativnyj)
+(define-charset-alias 'ibm866 'alternativnyj)
 
 (define-charset 'koi8-u
   "KOI8-U"
