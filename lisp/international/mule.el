@@ -439,9 +439,6 @@ of ASCII.
 If `use-oldjis' is specified, JIS0208-1976 is designated instead of
 JIS0208-1983.")
 
-;; Fixme: Are translation tables still relevant?  (Not currently
-;; implemented, anyway.)
-;; Fixme: What does cons :bom mean?  Explanation of :endian.
 (defun define-coding-system (name docstring &rest props)
   "Define NAME (a symbol) as a coding system with DOCSTRING and attributes.
 The remaining arguments must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE
@@ -559,11 +556,24 @@ This attributes specifies whether the coding system uses a `byte order
 mark'.  VALUE must nil, t, or cons of coding systems whose
 `:coding-type' is `utf-16'.
 
+If the value is nil, on decoding, don't treat the first two-byte as
+BOM, and on encoding, don't produce BOM bytes.
+
+If the value is t, on decoding, skip the first two-byte as BOM, and on
+encoding, produce BOM bytes accoding to the value of `:endian'.
+
+If the value is cons, on decoding, check the first two-byte.  If theyq
+are 0xFE 0xFF, use the car part coding system of the value.  If they
+are 0xFF 0xFE, use the car part coding system of the value.
+Otherwise, treat them as bytes for a normal character.  On encoding,
+produce BOM bytes accoding to the value of `:endian'.
+
 This attribute has a meaning only when `:coding-type' is `utf-16'.
 
 `:endian'
 
-VALUE must be t or nil.  See the above description for the detail.
+VALUE must be `big' or `little' specifying big-endian and
+little-endian respectively.  The default value is `big'.
 
 This attribute has a meaning only when `:coding-type' is `utf-16'.
 
