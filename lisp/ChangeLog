@@ -1,3 +1,12 @@
+2003-05-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-16-be) 
+	(utf-16-be-with-signature): Cancel the previous change.
+	(utf-16): Add :endinan 'big.
+
+	* international/mule.el (define-coding-system): Fix docstring
+	about :bom and :endian.
+
 2003-04-30  Dave Love  <fx@gnu.org>
 
 	* mule-conf.el (utf-16-be)
@@ -6,12 +15,12 @@
 	* mule-diag.el (describe-character-set): Fix
 	printing dimensions.  Use `,AW(B', not `x'.
 
-2003-04-12  Kenichi Handa  <handa@etlken2>
+2003-04-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el: Register CDAC fonts in
 	face-font-rescale-alist instead of face-resizing-fonts.
 
-2003-03-28  Kenichi Handa  <handa@etlken2>
+2003-03-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (utf-16-le): Renamed from
 	utf-16-le-nosig.

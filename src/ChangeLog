@@ -1,5 +1,24 @@
 2003-05-06  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (Qsignature, Qendian): Delete these variables.
+	(syms_of_coding): Don't initialize them.
+	(CATEGORY_MASK_UTF_16_AUTO): New macro.
+	(detect_coding_utf_16): Add CATEGORY_MASK_UTF_16_AUTO in
+	detect_info->found.
+	(decode_coding_utf_16): Don't detect BOM here.
+	(encode_coding_utf_16): Produce BOM if CODING_UTF_16_BOM (coding)
+	is NOT utf_16_without_bom.
+	(setup_coding_system): For a coding system of type utf-16, check
+	if the attribute :endian is Qbig or not (not nil or not), and set
+	CODING_REQUIRE_DETECTION_MASK if BOM detection is required.
+	(detect_coding): If coding type is utf-16 and BOM detection is
+	required, detect it.
+	(Fdefine_coding_system_internal): For a coding system of type
+	utf-16, check if the attribute :endian is Qbig or not (not nil or
+	not).
+
+2003-05-06  Kenichi Handa  <handa@m17n.org>
+
 	* coding.c (coding_set_source): Fix for the case that the current
 	buffer is different from coding->src_object.
 	(decode_coding_object): Don't use the conversion work buffer if
