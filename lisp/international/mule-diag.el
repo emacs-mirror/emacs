@@ -996,7 +996,18 @@ but still contains full information about each coding system."
   (dolist (coding-system (sort-coding-systems (coding-system-list 'base-only)))
     (if (null arg)
 	(print-coding-system-briefly coding-system 'tightly)
-      (print-coding-system coding-system))))
+      (print-coding-system coding-system)))
+  (let ((first t))
+    (dolist (elt coding-system-alist)
+      (unless (memq (intern (car elt)) coding-system-list)
+	(when first
+	  (princ "\
+####################################################
+# The following coding systems are not yet loaded. #
+####################################################
+")
+	  (setq first nil))
+	(princ-list (car elt))))))
 
 ;;;###autoload
 (defun list-coding-categories ()
