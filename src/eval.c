@@ -1012,7 +1012,7 @@ If a throw happens, it specifies the value to return from `catch'.")
 Lisp_Object
 internal_catch (tag, func, arg)
      Lisp_Object tag;
-     Lisp_Object (*func) P_ ((Lisp_Object));
+     Lisp_Object (*func) ();
      Lisp_Object arg;
 {
   /* This structure is made part of the chain `catchlist'.  */
