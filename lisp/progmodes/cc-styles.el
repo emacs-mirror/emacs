@@ -50,8 +50,7 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 
 
-;; Warning: don't eval-defun this constant or you'll break style inheritance.
-(defconst c-style-alist
+(defvar c-style-alist
   '(("gnu"
      (c-basic-offset . 2)
      (c-comment-only-line-offset . (0 . 0))

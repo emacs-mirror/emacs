@@ -131,8 +131,10 @@
   ;; These are used to collect the init forms from the subsequent
   ;; `c-lang-defvar'.  They are used to build the lambda in
   ;; `c-make-init-lang-vars-fun' below.
-  (defconst c-lang-variable-inits (list nil))
-  (defconst c-lang-variable-inits-tail c-lang-variable-inits))
+  (defvar c-lang-variable-inits nil)
+  (defvar c-lang-variable-inits-tail nil)
+  (setq c-lang-variable-inits (list nil)
+	c-lang-variable-inits-tail c-lang-variable-inits))
 
 (defmacro c-lang-defvar (var val &optional doc)
   "Declares the buffer local variable VAR to get the value VAL at mode
