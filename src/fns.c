@@ -2372,7 +2372,10 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
       elt = XCHAR_TABLE (subtable)->contents[i];
       XSETFASTINT (indices[depth], i);
       charset = XFASTINT (indices[0]) - 128;
-      if (!CHARSET_DEFINED_P (charset))
+      if (depth == 0
+	  && (!CHARSET_DEFINED_P (charset)
+	      || charset == CHARSET_8_BIT_CONTROL
+	      || charset == CHARSET_8_BIT_GRAPHIC))
 	continue;
 
       if (SUB_CHAR_TABLE_P (elt))
