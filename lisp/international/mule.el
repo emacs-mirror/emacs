@@ -1041,7 +1041,7 @@ Use `define-coding-system' instead."
 		   (setq key :valids)))
 	    (setq plist (plist-put plist key (cdr elt))))
 	  plist))
-  (plist-put properties :mnemonic mnemonic)
+  (setq properties (plist-put properties :mnemonic mnemonic))
   (plist-put properties :coding-type type)
   (cond ((eq eol-type 0) (setq eol-type 'unix))
 	((eq eol-type 1) (setq eol-type 'dos))
