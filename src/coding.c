@@ -4238,8 +4238,50 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     }
   if (src - dst > 0) *dst = 0; /* Put an anchor.  */
 
-  if (multibyte && (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte)))
-    inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
+  if (multibyte)
+    {
+      if (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte))
+	inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
+
+      if (! CHAR_HEAD_P (*GPT_ADDR)
+	  && GPT_BYTE > 1
+	  && from_byte == from_byte_orig)
+	{
+	  unsigned char *p0 = GPT_ADDR - 1, *pmin = BEG_ADDR, *p1, *pmax;
+
+	  while (! CHAR_HEAD_P (*p0) && p0 > pmin) p0--;
+	  if (BASE_LEADING_CODE_P (*p0))
+	    {
+	      /* Codes in the range 0240..0377 were inserted after a
+		 multibyte sequence.  We must treat those codes as
+		 tailing constituents of the multibyte sequence.  For
+		 that, we increase byte positions of position keepers
+		 whose char positions are GPT.  */
+	      int byte_increase;
+	      p1 = GPT_ADDR + 2, pmax = p0 + 1 + inserted_byte;
+	      Lisp_Object tail;
+
+	      while (! CHAR_HEAD_P (*p1) && p1 < pmax) p1++;
+	      /* Now, codes from P0 to P1 constitute a single
+                 multibyte character.  */
+
+	      byte_increase = p1 - GPT_ADDR;
+	      if (PT == GPT)
+		current_buffer->pt_byte += byte_increase;
+	      tail = BUF_MARKERS (current_buffer);
+	      while (XSYMBOL (tail) != XSYMBOL (Qnil))
+		{
+		  if (XMARKER (tail)->charpos == GPT)
+		    XMARKER (tail)->bytepos += byte_increase;
+		  tail = XMARKER (tail)->chain;
+		}
+
+	      from_byte += byte_increase;
+	      from_byte_orig = from_byte;
+	      inserted -= byte_increase;
+	    }
+	}
+    }
 
   /* Update various buffer positions for the new text.  */
   GAP_SIZE -= inserted_byte;
