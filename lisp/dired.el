@@ -526,13 +526,16 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
   ;; inset all files listed in the cdr (the car is the passed-in directory
   ;; list).
+  ;; We expand the file names here because the may have been abbreviated
+  ;; in dired-noselect.
   (let ((opoint (point)))
     (if (consp dir-or-list)
 	(progn
 	  (mapcar
-	   (function (lambda (x) (insert-directory x switches wildcard full-p)))
+	   (function (lambda (x) (insert-directory (expand-file-name x)
+						   switches wildcard full-p)))
 	   (cdr dir-or-list)))
-      (insert-directory dir-or-list switches wildcard full-p))
+      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
     (dired-insert-set-properties opoint (point)))
   (setq dired-directory dir-or-list))
 
