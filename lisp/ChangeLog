@@ -1,4 +1,4 @@
-2004-04-07  Kenichi Handa  <handa@etlken2>
+2004-04-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin1-disp.el (latin1-display-setup): Check each
 	character is displayable or not instead of calling
