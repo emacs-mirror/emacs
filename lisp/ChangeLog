@@ -1,4 +1,16 @@
+2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl-macs.el (shiftf): Fix more.  Simplify.
+
 2001-11-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/crm.el (completing-read-multiple): Better preserve
+	the value of require-match in minibuffer-completion-confirm.
+	Use crm-local-completion-map.
+
+	* emacs-lisp/cl-macs.el (shiftf): Fix the fast case so
+	(let ((a 1) (b 2)) (shiftf a b (cons a b)) b) returns (1 . 2).
+	(cl-make-type-test): Use char-valid-p for `character'.
 
 	* info.el (Info-complete-next-re, Info-complete-cache): New vars.
 	(Info-complete-menu-item): Rewrite.  Add the ability to search
