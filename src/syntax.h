@@ -247,7 +247,7 @@ extern char syntax_code_spec[16];
     {									\
       gl_state.b_property = BEGV - 1;					\
       gl_state.e_property = ZV;						\
-      gl_state.offset = BEGV;						\
+      gl_state.offset = BEGV - 1;					\
     }									\
   else if (EQ (object, Qt))						\
     {									\
