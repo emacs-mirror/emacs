@@ -1779,7 +1779,7 @@ print_object (obj, printcharfun, escapeflag)
 		   ? "#<frame " : "#<dead frame "),
 		  -1, -1, printcharfun, 0);
 	  print_string (XFRAME (obj)->name, printcharfun);
-	  sprintf (buf, " 0x%lx\\ ", (unsigned long) (XFRAME (obj)));
+	  sprintf (buf, " 0x%lx", (unsigned long) (XFRAME (obj)));
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('>');
 	}
