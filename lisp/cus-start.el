@@ -85,6 +85,7 @@
 			    (coding-system :tag "Single coding system"
 					   :value undecided)
 			    (function :value ignore))))
+	     (selection-coding-system mule coding-system)
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
