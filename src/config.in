@@ -166,9 +166,13 @@ and this notice must be preserved on all copies.  */
 #undef config_machfile
 #include config_machfile
 
+/* These typedefs shouldn't appear when alloca.s or Makefile.in
+   includes config.h.  */
+#ifndef NOT_C_CODE
 #ifndef SPECIAL_EMACS_INT
 typedef long EMACS_INT;
 typedef unsigned long EMACS_UINT;
+#endif
 #endif
 
 /* Load in the conversion definitions if this system
@@ -263,7 +267,7 @@ typedef unsigned long EMACS_UINT;
    programs assume that if you have a config.h file, you must declare
    the type of getenv.
 
-   This declaration shouldn't appear when alloca.s or ymakefile
+   This declaration shouldn't appear when alloca.s or Makefile.in
    includes config.h.  */
 #ifndef NOT_C_CODE
 extern char *getenv ();
