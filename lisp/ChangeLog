@@ -1,3 +1,8 @@
+2002-07-31  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el: Hide disabling of dired-find-alternate-file behind
+	autoload-cookie.
+
 2002-07-31  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Revert some changes from 2002-07-23 because they
