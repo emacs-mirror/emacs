@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.30) $
+ * $HopeName: MMsrc!config.h(trunk.31) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -122,14 +122,6 @@
 #endif /* MPS_BUILD_MV */
 
 
-
-/* .ams-size: POOLAMS_MINIMUM_BENEFIT_SIZE is the size at which an AMS
- * pool will first be recommended for condemnation. See
- * design.mps.poolams.benefit.guess. This benefit computation is bogus
- * and will go away in time. */
-
-#define POOLAMS_MINIMUM_BENEFIT_SIZE (1024ul * 1024)
-
 /* .epvm.subsequent-segment: POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE is
  * a default for the alignment of subsequent segments (non-initial
  * at each save level) in EPVM.  See
@@ -173,7 +165,6 @@
 #define MPS_PROD_STRING         "epcore"
 #define MPS_PROD_EPCORE
 #define ARENA_SIZE              ((Size)2<<20)
-#define AMC_SIZE_LIMIT          ARENA_SIZE
 /* .nosync.why: ScriptWorks is single-threaded when using the MM. */
 #define THREAD_SINGLE
 #define PROTECTION_NONE
@@ -182,7 +173,6 @@
 #define MPS_PROD_STRING         "dylan"
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
-#define AMC_SIZE_LIMIT          ((Size)64<<20)  /* experimentally reasonable limit */
 #define THREAD_MULTI
 #define PROTECTION
 
@@ -191,10 +181,8 @@
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
 #define ARENA_SIZE              ((Size)2<<20)
-#define AMC_SIZE_LIMIT          ARENA_SIZE
 #else
 #define ARENA_SIZE              ((Size)64<<20)
-#define AMC_SIZE_LIMIT          ARENA_SIZE
 #endif /* MPS_OS_S7 */
 #define THREAD_MULTI
 #define PROTECTION
