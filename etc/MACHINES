@@ -996,6 +996,12 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
   later releases may.
 
+  Some versions of Solaris 8 have a bug in their XIM (X Input Method)
+  implementation which causes Emacs to dump core when one of several
+  frames is closed.  To avoid this, either install patch 108773-12
+  (for Sparc) or 108874-12 (for x86), or configure Emacs with the
+  `--with-xim=no' switch (you can use Leim input methods instead).
+
   On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
   C 5.0 failed, apparently with non-default CFLAGS, most probably due to
   compiler bugs.  Using Sun Solaris 2.7 Sun WorkShop 6 update 1 C
