@@ -36,7 +36,9 @@ new display features described below.
 
 ** This version can be built for the Macintosh, but does not implement
 all of the new display features described below.  The port currently
-lacks unexec, asynchronous processes, and networking support.
+lacks unexec, asynchronous processes, and networking support.  See the
+"Emacs and the Mac OS" appendix in the Emacs manual, for the
+description of aspects specific to the Mac.
 
 
 * Changes in Emacs 21.1
