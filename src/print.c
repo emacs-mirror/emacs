@@ -970,7 +970,7 @@ print_error_message (data, stream)
      *Messages*.  */
   if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
     {
-      char *name = XSYMBOL (Vsignaling_function)->name->data;
+      char *name = XSTRING (SYMBOL_NAME (Vsignaling_function))->data;
       message_dolog (name, strlen (name), 0, 0);
       message_dolog (": ", 2, 0, 0);
       Vsignaling_function = Qnil;
@@ -1490,13 +1490,13 @@ print_object (obj, printcharfun, escapeflag)
     case Lisp_Symbol:
       {
 	register int confusing;
-	register unsigned char *p = XSYMBOL (obj)->name->data;
-	register unsigned char *end = p + STRING_BYTES (XSYMBOL (obj)->name);
+	register unsigned char *p = XSTRING (SYMBOL_NAME (obj))->data;
+	register unsigned char *end = p + STRING_BYTES (XSTRING (SYMBOL_NAME (obj)));
 	register int c;
 	int i, i_byte, size_byte;
 	Lisp_Object name;
 
-	XSETSTRING (name, XSYMBOL (obj)->name);
+	name = SYMBOL_NAME (obj);
 
 	if (p != end && (*p == '-' || *p == '+')) p++;
 	if (p == end)
@@ -1744,9 +1744,9 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      PRINTCHAR (' ');
 	      PRINTCHAR ('\'');
-	      strout (XSYMBOL (h->test)->name->data, -1, -1, printcharfun, 0);
+	      strout (XSTRING (SYMBOL_NAME (h->test))->data, -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      strout (XSYMBOL (h->weak)->name->data, -1, -1, printcharfun, 0);
+	      strout (XSTRING (SYMBOL_NAME (h->weak))->data, -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%d/%d", XFASTINT (h->count),
 		       XVECTOR (h->next)->size);
