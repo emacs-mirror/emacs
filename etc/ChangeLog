@@ -1,3 +1,11 @@
+2002-10-11  Dave Love  <fx@gnu.org>
+
+	* charsets/ibm1047.map: New.
+
+2002-10-10  Dave Love  <fx@gnu.org>
+
+	* charsets/alternativnj.map: New.
+
 2002-06-20  Dave Love  <fx@gnu.org>
 
 	* charsets/tcvn.map: Add missing code points.
