@@ -423,7 +423,6 @@ One characters is treated specially:
 the terminal escape character (normally C-^)
 lets you type a terminal emulator command."
   (interactive)
-  (setq list (cons last-input-char list))
   (cond ((eq last-input-char terminal-escape-char)
 	 (call-interactively 'te-escape))
 	(t
@@ -435,7 +434,6 @@ lets you type a terminal emulator command."
 	 (if (and (integerp last-input-char)
 		  (not (zerop (logand last-input-char (lsh 1 23)))))
 	     (setq last-input-char (+ 128 (logand last-input-char 127))))
-	 (setq list (cons (list 'really last-input-char) list))
 	 ;; Now ignore all but actual characters.
 	 ;; (It ought to be possible to send through function
 	 ;; keys as character sequences if we add a description
