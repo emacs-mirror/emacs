@@ -1,3 +1,8 @@
+2000-03-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* minibuf.c (Fminibuffer_complete): When input is complete but not
+	unique, move cursor to the end of the line.
+
 2000-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (send_process): Remove local variable `procname' that
