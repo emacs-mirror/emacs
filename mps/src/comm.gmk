@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.30) $
+# $HopeName: MMsrc!comm.gmk(trunk.31) $
 # Copyright (C) 1995,1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -124,6 +124,7 @@ CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
 CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG) 
 CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
 CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
+CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
@@ -144,6 +145,10 @@ CFLAGS=$(CFLAGSCOMMON) $(CFHE)
 else
 ifeq ($(VARIETY),wi)
 CFLAGS=$(CFLAGSCOMMON) $(CFWI)
+else
+ifeq ($(VARIETY),ii)
+CFLAGS=$(CFLAGSCOMMON) $(CFII)
+endif
 endif
 endif
 endif
