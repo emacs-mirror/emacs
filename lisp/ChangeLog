@@ -1,3 +1,8 @@
+2003-02-04  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* mail/rmailout.el (rmail-output): If preserving MIME-version,
+	preserve Content-type too.
+
 2003-02-02  John Paul Wallington  <jpw@gnu.org>
 
 	* hexl.el (hexl-mode-map): Bind C-m to `hexl-self-insert-command'.
