@@ -1,3 +1,13 @@
+2005-03-31  Karl Berry  <karl@freefriends.org>
+
+	* textmodes/tex-mode.el (tex-compile): shell-quote-argument,
+	not comint-quote-filename.
+
+2005-03-31  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
+
+	* textmodes/tex-mode.el (tex-start-tex) shell-quote-argument,
+	not comint-quote-filename.
+
 2005-03-31  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* help-fns.el (help-with-tutorial): Revert last change.
@@ -157,7 +167,7 @@
 	* vc.el (vc-do-command): Use a pipe for async processes, so password
 	prompts don't show up at places where the user can't reply.
 
-2005-03-29  Olive Lin  <olive.lin@versateladsl.be>
+2005-03-29  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
 
 	* textmodes/tex-mode.el (tex-send-command): shell-quote-argument
 	on the file name we pass to the inferior shell.
