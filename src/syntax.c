@@ -337,7 +337,7 @@ dec_bytepos (bytepos)
    It should be the last one before POS, or nearly the last.
 
    When open_paren_in_column_0_is_defun_start is nonzero,
-   the beginning of every line is treated as a defun-start.
+   only the beginning of the buffer is treated as a defun-start.
 
    We record the information about where the scan started
    and what its result was, so that another call in the same area
@@ -352,6 +352,12 @@ find_defun_start (pos, pos_byte)
      int pos, pos_byte;
 {
   int opoint = PT, opoint_byte = PT_BYTE;
+
+  if (!open_paren_in_column_0_is_defun_start)
+    {
+      find_start_value_byte = BEGV_BYTE;
+      return BEGV;
+    }
 
   /* Use previous finding, if it's valid and applies to this inquiry.  */
   if (current_buffer == find_start_buffer
@@ -372,24 +378,21 @@ find_defun_start (pos, pos_byte)
      syntax-tables.  */
   gl_state.current_syntax_table = current_buffer->syntax_table;
   gl_state.use_global = 0;
-  if (open_paren_in_column_0_is_defun_start)
+  while (PT > BEGV)
     {
-      while (PT > BEGV)
+      /* Open-paren at start of line means we may have found our
+	 defun-start.  */
+      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
 	{
-	  /* Open-paren at start of line means we may have found our
-	     defun-start.  */
+	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
 	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-	    {
-	      SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-		break;
-	      /* Now fallback to the default value.  */
-	      gl_state.current_syntax_table = current_buffer->syntax_table;
-	      gl_state.use_global = 0;
-	    }
-	  /* Move to beg of previous line.  */
-	  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
+	    break;
+	  /* Now fallback to the default value.  */
+	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.use_global = 0;
 	}
+      /* Move to beg of previous line.  */
+      scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
     }
 
   /* Record what we found, for the next try.  */
