@@ -2432,8 +2432,6 @@ Value is t if waited the full time with no input arriving.")
     error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
-  if (NILP (nodisp))
-    prepare_menu_bars ();
   return sit_for (sec, usec, 0, NILP (nodisp));
 }
 
