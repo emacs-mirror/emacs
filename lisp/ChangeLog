@@ -1,5 +1,8 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (eval-expression-print-level): Change the type
+	of the defcustom to allow nil.
+
 	* emacs-lisp/find-gc.el: Moved here from lisp/.
 
 	* international/quail.el (quail-completion-1): Reverse

@@ -1,5 +1,7 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* display.texi (Conditional Display): Adjust to API change.
+
 	* configure: New file.
 
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>

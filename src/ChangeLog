@@ -1,5 +1,12 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Qbuffer_position, Qposition, Qobject): New variables.
+	(syms_of_xdisp): Initialize them.
+	(handle_single_display_prop): Don't change point, bind `object',
+	`position', and `buffer-position' instead to the object having the
+	`display' property, position in the object and position in the
+	buffer.
+
 	* fileio.c (Finsert_file_contents): Don't change the multibyteness
 	of the buffer if REPLACE is non-nil.
 
