@@ -1,7 +1,7 @@
 #
 #     BUILD FOR OSF/1, ALPHA, DIGITAL C PLATFORM
 #
-# $HopeName: MMsrc!o1alcc.gmk(trunk.3) $
+# $HopeName: MMsrc!o1alcc.gmk(trunk.4) $
 #
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
@@ -17,7 +17,8 @@ PFMDEFS = -D_ANSI_C_SOURCE
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       arenavm.c space.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c protan.c shield.c mpsi.c ld.c vmo1.c event.c
+      trace.c than.c protan.c shield.c mpsi.c ld.c vmo1.c \
+      mpsioan.c event.c
 MPMS = sso1al.s
 AMC = amc.c
 LO = lo.c
