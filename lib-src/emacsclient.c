@@ -325,10 +325,10 @@ main (argc, argv)
 	  char *p = argv[i] + 1;
 	  while (*p >= '0' && *p <= '9') p++;
 	  if (*p != 0)
-	    fprintf (out, "%s/", cwd);
+	    fprintf (out, "%s/", quote_file_name (cwd));
 	}
       else if (*argv[i] != '/')
-	fprintf (out, "%s/", cwd);
+	fprintf (out, "%s/", quote_file_name (cwd));
 
       fprintf (out, "%s ", quote_file_name (argv[i]));
     }
@@ -476,7 +476,8 @@ main (argc, argv)
       modified_arg = quote_file_name (modified_arg);
 
       if (need_cwd)
-	used += strlen (cwd);
+	/* Overestimate in case we have to quote something in CWD.  */
+	used += 2 * strlen (cwd);
       used += strlen (modified_arg) + 1;
       while (used + 2 > size_allocated)
 	{
@@ -487,7 +488,7 @@ main (argc, argv)
 	}
 
       if (need_cwd)
-	strcat (msgp->mtext, cwd);
+	strcat (msgp->mtext, quote_file_name (cwd));
 
       strcat (msgp->mtext, modified_arg);
       strcat (msgp->mtext, " ");
