@@ -944,6 +944,7 @@ Returns the compilation buffer created."
 	;; Fake modeline display as if `start-process' were run.
 	(setq mode-line-process ":run")
 	(force-mode-line-update)
+	(sit-for 0)			; Force redisplay
 	(let ((status (call-process shell-file-name nil outbuf nil "-c"
 				    command)))
 	  (cond ((numberp status)
@@ -958,6 +959,10 @@ exited abnormally with code %d\n"
 					  (concat status "\n")))
 		(t
 		 (compilation-handle-exit 'bizarre status status))))
+	;; Without async subprocesses, the buffer is not yet
+	;; fontified, so fontify it now.
+	(let ((font-lock-verbose nil))	; shut up font-lock messages
+	  (font-lock-fontify-buffer))
 	(message "Executing `%s'...done" command)))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
 	(save-selected-window
@@ -1452,6 +1457,10 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
     (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
     (setcdr (nthcdr 3 loc) t)))		; Set this one as visited.
 
+(defvar compilation-gcpro nil
+  "Internal variable used to keep some values from being GC'd.")
+(make-variable-buffer-local 'compilation-gcpro)
+
 (defun compilation-fake-loc (marker file &optional line col)
   "Preassociate MARKER with FILE.
 FILE should be ABSOLUTE-FILENAME or (RELATIVE-FILENAME . DIRNAME).
@@ -1471,6 +1480,11 @@ call this several times, once each for the last line of one
 region and the first line of the next region."
   (or (consp file) (setq file (list file)))
   (setq file (compilation-get-file-structure file))
+  ;; Between the current call to compilation-fake-loc and the first occurrence
+  ;; of an error message referring to `file', the data is only kept is the
+  ;; weak hash-table compilation-locs, so we need to prevent this entry
+  ;; in compilation-locs from being GC'd away.  --Stef
+  (push file compilation-gcpro)
   (let ((loc (compilation-assq (or line 1) (cdr file))))
     (setq loc (compilation-assq col loc))
     (if (cdr loc)
@@ -1725,6 +1739,7 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.
   (setq compilation-locs (make-hash-table :test 'equal :weakness 'value))
+  (setq compilation-gcpro nil)
   ;; FIXME: the old code reset the directory-stack, so maybe we should
   ;; put a `directory change' marker of some sort, but where?  -stef
   ;;
@@ -1750,5 +1765,5 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
 
 (provide 'compile)
 
-;;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
+;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

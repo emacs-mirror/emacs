@@ -134,7 +134,7 @@ CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 $(ARCH_CFLAGS)
 		  -D_CRTAPI1=_cdecl $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS =
 
-SYS_LDFLAGS	= -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.

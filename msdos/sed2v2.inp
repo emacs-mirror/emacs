@@ -42,6 +42,7 @@
 /^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
 /^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
+/^#undef HAVE_GETRUSAGE *$/s/^.*$/#define HAVE_GETRUSAGE 1/
 /^#undef HAVE_TM_GMTOFF *$/s/^.*$/#define HAVE_TM_GMTOFF 1/
 /^#undef HAVE_MBLEN *$/s/^.*$/#define HAVE_MBLEN 1/
 /^#undef HAVE_STRUCT_TIMEZONE *$/s/^.*$/#define HAVE_STRUCT_TIMEZONE 1/

@@ -58,7 +58,7 @@ enum syntaxcode
 /* Set the syntax entry VAL for char C in table TABLE.  */
 
 #define SET_RAW_SYNTAX_ENTRY(table, c, val)				\
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					\
+  ((((c) & 0xFF) == (c))						\
    ? (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))	\
    : Faset ((table), make_number (c), (val)))
 
@@ -106,7 +106,7 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #endif
 
 #define SYNTAX_ENTRY_INT(c)				\
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+  ((((c) & 0xFF) == (c))				\
    ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,	\
 				 (unsigned char) (c))	\
    : Faref (CURRENT_SYNTAX_TABLE,			\

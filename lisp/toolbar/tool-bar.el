@@ -239,11 +239,14 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
   (tool-bar-add-item-from-menu 'undo "undo" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
-  (tool-bar-add-item-from-menu 'kill-region "cut" nil
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+			       "cut" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
-  (tool-bar-add-item-from-menu 'menu-bar-kill-ring-save "copy")
-  (tool-bar-add-item-from-menu 'yank "paste" nil
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+			       "copy")
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+			       "paste" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
   (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")

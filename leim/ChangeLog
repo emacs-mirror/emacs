@@ -1,3 +1,29 @@
+2004-05-04  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (TIT-SOURCES): Prepend ${srcdir} to each elemnt.
+	(MISC-SOURCES): Likewise.
+
+2004-05-01  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (OTHERS): Ranamed from MISC.
+	(MISC): Renamed from MISC-DIC.
+	(WORLD): Adjuted for the above changes.
+	(TIT-MISC, NON-TIT-MISC): New targets.
+	(all): Don't depend on ${WORLD}.
+	(.NOTPARALLEL, .NO_PARALLEL, ${TIT}, ${MSIC-IDC}): These targets
+	removed.
+	(TIT-SOURCES, MISC-SOURCES): New macros.
+	(changed.tit, changed.misc): New targets.
+	(leim-list.el): Depents on ${NON-TIT-MISC}, changed.tit, and
+	changed.misc.  Generate quail files from TIT and MISC files if
+	necessary.
+	(clean mostlyclean): Delete ${TIT-MISC} instead of ${TIT} and
+	${MISC-DIC}.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
@@ -1393,7 +1419,7 @@
 
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.

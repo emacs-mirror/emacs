@@ -217,7 +217,7 @@ speedbar."
       (gdb-enqueue-input
        (list (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	     `(lambda () (gdb-var-create-handler ,expr))))))
-  (select-window (get-buffer-window gud-comint-buffer)))
+  (select-window (get-buffer-window gud-comint-buffer 'visible)))
 
 (defun gdb-goto-info ()
   (interactive)
@@ -1216,11 +1216,13 @@ current line."
       (let ((line (match-string 2))
 	    (file (match-string 1)))
 	(save-selected-window
-	  (gdb-display-buffer (find-file-noselect
-			       (if (file-exists-p file)
-				   file
-				 (expand-file-name file gdb-cdir))))
-	  (goto-line (string-to-number line))))))
+	  (let* ((buf (find-file-noselect (if (file-exists-p file)
+					      file
+					    (expand-file-name file gdb-cdir))))
+		 (window (gdb-display-buffer buf)))
+		 (with-current-buffer buf
+		   (goto-line (string-to-number line))
+		   (set-window-point window (point))))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
   "Display the file in the source buffer at the selected breakpoint."
@@ -1524,7 +1526,7 @@ the source buffer."
 	   #'(lambda (win)
 	      (if (eq gud-comint-buffer (window-buffer win))
 		  (set-window-dedicated-p win t))))
-	  (setq answer (get-buffer-window buf))
+	  (setq answer (get-buffer-window buf 'visible))
 	  (if (not answer)
 	      (let ((window (get-lru-window 'visible)))
 		(if window
@@ -1548,7 +1550,7 @@ the source buffer."
   (if (eq gdb-selected-view 'source)
 	(gdb-display-buffer buffer)
     (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer)))
-    (get-buffer-window buffer))
+    (get-buffer-window buffer 'visible))
 
 
 ;;; Shared keymap initialization:
@@ -1557,11 +1559,11 @@ the source buffer."
   (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
-  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
-  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
 ;  (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
 )
 
@@ -1569,11 +1571,11 @@ the source buffer."
   (define-key gud-menu-map [displays]
     `(menu-item "GDB-Windows" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
-  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
+  (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
+  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer))
-  (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
 ;  (define-key menu [assembler] '("Machine" . gdb-display-assembler-buffer))
 )
 
@@ -1805,11 +1807,10 @@ BUFFER nil or omitted means use the current buffer."
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
-	      (if (get-buffer-window (current-buffer))
-		  (set-window-margins (get-buffer-window
-				       (current-buffer))
-				      left-margin-width
-				      right-margin-width))))
+	      (if (get-buffer-window (current-buffer) 'visible)
+		  (set-window-margins 
+		   (get-buffer-window (current-buffer) 'visible)
+		   left-margin-width right-margin-width))))
 	  (put-image
 	   (if enabled
 	       (or breakpoint-enabled-icon
@@ -1833,11 +1834,10 @@ BUFFER nil or omitted means use the current buffer."
       (when (< left-margin-width 2)
 	(save-current-buffer
 	  (setq left-margin-width 2)
-	  (if (get-buffer-window (current-buffer))
-	      (set-window-margins (get-buffer-window
-				   (current-buffer))
-				  left-margin-width
-				  right-margin-width))))
+	  (if (get-buffer-window (current-buffer) 'visible)
+	      (set-window-margins 
+	       (get-buffer-window (current-buffer) 'visible)
+	       left-margin-width right-margin-width))))
       (gdb-put-string (if enabled "B" "b") (1+ start)))))
 
 (defun gdb-remove-breakpoint-icons (start end &optional remove-margin)
@@ -1846,11 +1846,10 @@ BUFFER nil or omitted means use the current buffer."
       (remove-images start end))
   (when remove-margin
     (setq left-margin-width 0)
-    (if (get-buffer-window (current-buffer))
-	(set-window-margins (get-buffer-window
-			     (current-buffer))
-			    left-margin-width
-			    right-margin-width))))
+    (if (get-buffer-window (current-buffer) 'visible)
+	(set-window-margins 
+	 (get-buffer-window (current-buffer) 'visible)
+	 left-margin-width right-margin-width))))
 
 
 ;;
@@ -1901,7 +1900,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y))))))))
     (if (not (equal gdb-current-address "main"))
-	(set-window-point (get-buffer-window buffer) pos))))
+	(set-window-point (get-buffer-window buffer 'visible) pos))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))

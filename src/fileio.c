@@ -2349,7 +2349,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 
   /* stat is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
-  if (stat (SDATA (encoded_filename), &statbuf) >= 0)
+  if (lstat (SDATA (encoded_filename), &statbuf) >= 0)
     {
       if (! interactive)
 	Fsignal (Qfile_already_exists,
@@ -2684,11 +2684,11 @@ This is what happens in interactive use with M-x.  */)
   Lisp_Object args[2];
 #endif
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  Lisp_Object encoded_file, encoded_newname;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  Lisp_Object encoded_file, encoded_newname, symlink_target;
 
-  encoded_file = encoded_newname = Qnil;
-  GCPRO4 (file, newname, encoded_file, encoded_newname);
+  symlink_target = encoded_file = encoded_newname = Qnil;
+  GCPRO5 (file, newname, encoded_file, encoded_newname, symlink_target);
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
@@ -2725,10 +2725,17 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
-	  Fcopy_file (file, newname,
-		      /* We have already prompted if it was an integer,
-			 so don't have copy-file prompt again.  */
-		      NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+#ifdef S_IFLNK
+          symlink_target = Ffile_symlink_p (file);
+          if (! NILP (symlink_target))
+            Fmake_symbolic_link (symlink_target, newname,
+                                 NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+          else
+#endif
+            Fcopy_file (file, newname,
+                        /* We have already prompted if it was an integer,
+                           so don't have copy-file prompt again.  */
+                        NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
 	  Fdelete_file (file);
 	}
       else

@@ -67,6 +67,46 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-05-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (barf_or_query_if_file_exists): Use lstat.
+	(Frename_file): Handle renaming of symlinks across file systems.
+	(Frename_file): Put symlink handling inside #ifdef S_IFLNK.
+
+2004-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Qtotal): New var.
+	(syms_of_xdisp): Intern and staticpro it.
+	(calc_line_height_property): New arg total.  Set it if
+	line-spacing property has format (total . VALUE).
+	(x_produce_glyphs): Ignore line-spacing if line-height is 0.
+	Handle total line-spacing property.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_scrollbar_pos): Call XClearWindow to clear
+	"under" scroll bar when size/position changes.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.h (SET_RAW_SYNTAX_ENTRY, SYNTAX_ENTRY_INT): Avoid
+	compiler warnings.
+
+	* Makefile.in (region-cache.o): Depend on config.h.
+
+2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* indent.c (compute_motion): Save vpos in prev_vpos when dealing
+	with continuation lines, too.
+
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* syssignal.h (init_signals): Move decl outside `#ifdef POSIX_SIGNALS'.
+
 2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (calc_line_height_property): YAILOM (yet another

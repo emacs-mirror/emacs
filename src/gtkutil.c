@@ -2760,18 +2760,16 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
-      int winextra = canon_width > width ? (canon_width - width) / 2 : 0;
-      int bottom = top + height;
 
-      gint slider_width;
-      int oldtop, oldleft, oldbottom;
-      GtkRequisition req;
+      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
 
-      /* Get old values.  */
-      xg_find_top_left_in_fixed (wscroll, wfixed, &oldleft, &oldtop);
-      gtk_widget_size_request (wscroll, &req);
-      oldbottom = oldtop + req.height;
+      /* Move and resize to new values.  */
+      gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
+      gtk_widget_set_size_request (wscroll, width, height);
 
+      /* Must force out update so changed scroll bars gets redrawn.  */
+      gdk_window_process_all_updates ();
+      
       /* Scroll bars in GTK has a fixed width, so if we say width 16, it
          will only be its fixed width (14 is default) anyway, the rest is
          blank.  We are drawing the mode line across scroll bars when
@@ -2799,62 +2797,7 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
          the scroll bar and the edge of the window and between the scroll
          bar and the fringe.  */
 
-      if (oldtop != -1 && oldleft != -1)
-        {
-          int gtkextral, gtkextrah;
-          int xl, xr, wbl, wbr;
-          int bottomdiff, topdiff;
-
-          gtk_widget_style_get (wscroll, "slider_width", &slider_width, NULL);
-          gtkextral = width > slider_width ? (width - slider_width) / 2 : 0;
-          gtkextrah = gtkextral ? (width - slider_width - gtkextral) : 0;
-
-          xl = real_left;
-          wbl = gtkextral + winextra;
-          wbr = gtkextrah + winextra;
-          xr = left + gtkextral + slider_width;
-          bottomdiff = abs (oldbottom - bottom);
-          topdiff = abs (oldtop - top);
-
-          if (oldleft != left)
-            {
-              gdk_window_clear_area (wfixed->window, xl, top, wbl, height);
-              gdk_window_clear_area (wfixed->window, xr, top, wbr, height);
-            }
-
-          if (oldtop > top)
-            {
-              gdk_window_clear_area (wfixed->window, xl, top, wbl, topdiff);
-              gdk_window_clear_area (wfixed->window, xr, top, wbr, topdiff);
-            }
-          else if (oldtop < top)
-            {
-              gdk_window_clear_area (wfixed->window, xl, oldtop, wbl, topdiff);
-              gdk_window_clear_area (wfixed->window, xr, oldtop, wbr, topdiff);
-            }
-
-          if (oldbottom > bottom)
-            {
-              gdk_window_clear_area (wfixed->window, xl, bottom, wbl,
-                                     bottomdiff);
-              gdk_window_clear_area (wfixed->window, xr, bottom, wbr,
-                                     bottomdiff);
-            }
-          else if (oldbottom < bottom)
-            {
-              gdk_window_clear_area (wfixed->window, xl, oldbottom, wbl,
-                                     bottomdiff);
-              gdk_window_clear_area (wfixed->window, xr, oldbottom, wbr,
-                                     bottomdiff);
-            }
-        }
-
-      /* Move and resize to new values.  */
-      gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
-      gtk_widget_set_size_request (wscroll, width, height);
-      
-      /* Must force out update so changed scroll bars gets redrawn.  */
-      gdk_window_process_all_updates ();
+      XClearWindow (FRAME_X_DISPLAY (f), GTK_WIDGET_TO_X_WIN (wscroll));
 
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);

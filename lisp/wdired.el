@@ -329,8 +329,8 @@ See `wdired-mode'."
   (buffer-enable-undo) ; Performance hack. See above.
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
-  (run-hooks wdired-mode-hook)
-  (message "Press C-c C-c when finished"))
+  (run-hooks 'wdired-mode-hook)
+  (message (substitute-command-keys "Press \\[wdired-finish-edit] when finished")))
 
 
 ;; Protect the buffer so only the filenames can be changed, and put
@@ -416,7 +416,8 @@ non-nil means return old filename."
     (insert wdired-old-content))
   (wdired-change-to-dired-mode)
   (set-buffer-modified-p nil)
-  (setq buffer-undo-list nil))
+  (setq buffer-undo-list nil)
+  (message "Changes aborted"))
 
 (defun wdired-finish-edit ()
   "Actually rename files based on your editing in the Dired buffer."

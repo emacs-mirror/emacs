@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997, 1998, 2001 Free Software Foundation. Inc.
+;; Copyright (C) 1997, 1998, 2001, 2004 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -30,8 +30,8 @@
 ;; window configuration (i.e. how the frames are partitioned into
 ;; windows) so that the changes can be "undone" using the command
 ;; `winner-undo'.  By default this one is bound to the key sequence
-;; ctrl-x left.  If you change your mind (while undoing), you can
-;; press ctrl-x right (calling `winner-redo').  Even though it uses
+;; ctrl-c left.  If you change your mind (while undoing), you can
+;; press ctrl-c right (calling `winner-redo').  Even though it uses
 ;; some features of Emacs20.3, winner.el should also work with
 ;; Emacs19.34 and XEmacs20, provided that the installed version of
 ;; custom is not obsolete.
@@ -474,8 +474,8 @@ In other words, \"undo\" changes in window configuration."
 
 (unless winner-mode-map
   (setq winner-mode-map (make-sparse-keymap))
-  (define-key winner-mode-map [(control x) left] 'winner-undo)
-  (define-key winner-mode-map [(control x) right] 'winner-redo))
+  (define-key winner-mode-map [(control c) left] 'winner-undo)
+  (define-key winner-mode-map [(control c) right] 'winner-redo))
 
 (unless (or (assq 'winner-mode minor-mode-map-alist)
 	    winner-dont-bind-my-keys)

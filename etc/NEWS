@@ -91,8 +91,26 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 ---
-** The IELM prompt is now, by default, read-only.  This can be
-controlled with the new user option `ielm-prompt-read-only'.
+** The comint prompt can now be made read-only, using the new user
+option `comint-prompt-read-only'.  This is not enabled by default,
+except in IELM buffers.  The read-only status of IELM prompts can be
+controlled with the new user option `ielm-prompt-read-only', which
+overrides `comint-prompt-read-only'.
+
+The new commands `comint-kill-whole-line' and `comint-kill-region'
+support editing comint buffers with read-only prompts.
+
+`comint-kill-whole-line' is like `kill-whole-line', but ignores both
+read-only and field properties.  Hence, it will always kill entire
+lines, including any prompts.
+
+`comint-kill-region' is like `kill-region', except that it ignores
+read-only properties, if it is safe to do so.  This means that if any
+part of a prompt is deleted, then the entire prompt must be deleted
+and that all prompts must stay at the beginning of a line.  If this is
+not the case, then `comint-kill-region' behaves just like
+`kill-region' if read-only are involved: it copies the text to the
+kill-ring, but does not delete it.
 
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
@@ -409,6 +427,8 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 'sql-sqlite'.
 
 ** BibTeX mode:
+*** The new command bibtex-entry-update (bound to C-c C-u) updates
+an existing BibTeX entry.
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 *** bibtex-maintain-sorted-entries can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
@@ -782,6 +802,10 @@ is over the text.  By setting the new variable `mouse-highlight', you
 can optionally enable mouse highlighting only after you move the
 mouse, so that highlighting disappears when you press a key.  You can
 also disable mouse highlighting.
+
+** You can now customize if selecting a region by dragging the mouse
+shall not copy the selected text to the kill-ring by setting the new
+variable mouse-drag-copy-region to nil.
 
 +++
 ** font-lock: in modes like C and Lisp where the fontification assumes that
@@ -2016,13 +2040,14 @@ specified number of evenly sized slices (rows x columns).
 
 ** New line-height and line-spacing properties for newline characters
 
-A newline may now have line-height and line-spacing text properties that
-control the height of the corresponding display row.
+A newline may now have line-height and line-spacing text or overlay
+properties that control the height of the corresponding display row.
 
 If the line-height property value is 0, the newline does not
 contribute to the height of the display row; instead the height of the
-newline glyph is reduced.  This can be used to tile small images or
-image slices without adding blank areas between the images.
+newline glyph is reduced.  Also, a line-spacing property on this
+newline is ignored.  This can be used to tile small images or image
+slices without adding blank areas between the images.
 
 If the line-height property value is a positive integer, the value
 specifies the minimum line height in pixels.  If necessary, the line
@@ -2041,12 +2066,14 @@ is used as additional pixels to insert after the display line; this
 overrides the default frame line-spacing and any buffer local value of
 the line-spacing variable.
 
-If the value is a negative integer, the absolute value is used as the
-total height of the line, i.e. a varying number of pixels are
-inserted after each line to make each line exactly that many pixels high.
-
 If the line-spacing property may be a float or cons, the line spacing
 is calculated as specified above for the line-height property.
+
+If the line-spacing value is a cons (total . SPACING) where SPACING is
+any of the forms described above, the value of SPACING is used as the
+total height of the line, i.e. a varying number of pixels are inserted
+after each line to make each line exactly that many pixels high.
+
 
 ** The buffer local line-spacing variable may now have a float value,
 which is used as a height relative to the default frame line height.

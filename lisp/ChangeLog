@@ -230,6 +230,164 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
+
+	* iswitchb.el (iswitchb-global-map): Fix typo.
+	Removed unwanted ###autoloads from source file.
+
+2004-05-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* wdired.el (wdired-change-to-wdired-mode): Quote wdired-mode-hook
+	in run-hooks. Use substitute-command-keys in message.
+	(wdired-abort-changes): Add message.
+
+2004-05-03  Michael Mauger  <mmaug@yahoo.com>
+
+	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
+	(sql-emacs20-p): Remove.
+	(sql-mode-syntax-table): Use shared GNU EMacs/XEmacs syntax.
+	(sql-builtin-face, sql-doc-face): Remove.
+	(sql-mode-ansi-font-lock-keywords)
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords): Use standard fonts.
+	(sql-product-font-lock): Fix font-lock reset when font rules change.
+	(sql-highlight-product): Remove incorrect font-lock reset logic.
+
+2004-05-04  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-set-parameter): Fix typo.
+
+2004-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix call to read-file-name for edit.
+	Must expand directory for completion to work; and don't mess with
+	process-environment.
+	(ido-read-file-name): If command has ido property, don't use ido
+	if value is ignore, or read as directory if value is dir.
+	Set ido ignore property for dired-do-rename command.
+
+2004-05-04  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): New face, inheriting from
+	font-lock-variable-name-face, to highlight function arguments in
+	`describe-function' and `describe-key'.
+	(help-do-arg-highlight): Auxiliary function to highlight a given
+	list of arguments in a string.
+	(help-highlight-arguments): Highlight the function arguments and
+	all uses of them in the docstring.
+	(describe-function-1): Use it. Do docstring output via `insert',
+	not 'princ', so text attributes are preserved.
+
+	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
+	C-c <left> and C-c <right>, respectively (the previous bindings
+	conflict with prev-buffer, next-buffer).
+
+	* ehelp.el (electric-help-command-loop, electric-help-undefined)
+	(electric-help-help): Check against unmapped commands.
+
+2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-progress-message): Fix docstring.
+	(bibtex-entry-update): New command bound to C-c C-u.
+	(bibtex-text-in-string): Fix regexp.
+	(bibtex-assoc-of-regexp): Remove.
+	(bibtex-progress-message): Fix docstring.
+	(bibtex-inside-field): Use if.
+	(bibtex-assoc-regexp): New function.
+	(bibtex-format-entry): Make code more robust so that it formats
+	also old entries.
+	(bibtex-autokey-demangle-title): Merge with obsolete function
+	bibtex-assoc-of-regexp.
+	(bibtex-field-list): New function.
+	(bibtex-entry): Use bibtex-field-list.
+	(bibtex-parse-entry): Fix docstring.
+	(bibtex-print-help-message): Use bibtex-field-list.
+	(bibtex-make-field): Use bibtex-field-list.
+	(bibtex-entry-index): Bugfix. Return crossref key if required.
+	(bibtex-lessp): Fix docstring.
+
+2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Move comment to intended line.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/tool-bar.el (tool-bar-setup): Use lookup-key for
+	cut/copy/paste in case menu-bar-enable-clipboard is in effect.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-clipboard-yank): Don't exit on error from
+	x-get-selection.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
+2004-05-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--update-indications): Fix last change.
+	(cua-mode): Deactivate mark when cua-mode is enabled.
+
+2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Bind `inhibit-read-only' to t.
+
+2004-05-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer)
+	(gdb-display-source-buffer, gdb-put-breakpoint-icon)
+	(gdb-remove-breakpoint-icons, gdb-assembler-custom): Look for
+	window over visible frames.
+	(gdb-goto-breakpoint): Make buffer display file at breakpoint.
+
+2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-gcpro): New var.
+	(compilation-fake-loc): Use it.
+	(compilation-forget-errors): Reset it.
+
+2004-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-header-face, diff-file-header-face):
+	Use min-colors.
+
+2004-05-02  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-buffer): Remove error message.
+	(bibtex-clean-entry): Disentangle code.
+	(bibtex-realign): New function.
+	(bibtex-reformat): Use mapcar and bibtex-realign.  Do not use
+	bibtex-beginning-of-first-entry and bibtex-skip-to-valid-entry.
+	Remove undocumented optional arg called-by-convert-alien.
+	(bibtex-convert-alien): Use bibtex-realign.  Use bibtex-reformat
+	for sorting instead of bibtex-sort-buffer.
+
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-start): In the
+	no-async-subprocesses branch, call sit-for to give redisplay a
+	chance to show the updated process status in the mode line, and
+	fontify the buffer explicitly after the process exits.
+
+2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-compilation-line-number): Remove.
+	(python-compilation-regexp-alist): Don't use it any more.
+	(python-orig-start, python-input-filter): Remove.
+	(inferior-python-mode): Don't set up comint-input-filter-functions.
+	(python-send-region): Use compilation-fake-loc.
+
+	* progmodes/compile.el (compilation-messages-start): New var.
+	(compilation-mode): Don't setup next-error-function here.
+	(compilation-setup): Set it up here instead (for minor modes as well).
+	Make compilation-messages-start buffer local.
+	(compilation-next-error-function): Use it.
+	(compilation-forget-errors): Set compilation-messages-start.
+
 2004-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only): Update docstring.
