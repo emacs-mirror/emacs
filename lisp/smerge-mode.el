@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.15 2001/11/15 01:25:35 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.16 2002/08/15 00:24:56 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -54,7 +54,7 @@
   :group 'tools
   :prefix "smerge-")
 
-(defcustom smerge-diff-buffer-name "*smerge-diff*"
+(defcustom smerge-diff-buffer-name "*vc-diff*"
   "Buffer name to use for displaying diffs."
   :group 'smerge
   :type '(choice
@@ -183,9 +183,6 @@ Can be nil if the style is undecided, or else:
 ;; Compiler pacifiers
 (defvar font-lock-mode)
 (defvar font-lock-keywords)
-(eval-when-compile
-  (unless (fboundp 'font-lock-fontify-region)
-    (autoload 'font-lock-fontify-region "font-lock")))
 
 ;;;;
 ;;;; Actual code
@@ -217,6 +214,39 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
 			 (or (match-string 3) ""))
 		 t t)
   (smerge-auto-leave))
+
+(defun smerge-combine-with-next ()
+  "Combine the current conflict with the next one."
+  (interactive)
+  (smerge-match-conflict)
+  (let ((ends nil))
+    (dolist (i '(3 2 1 0))
+      (push (if (match-end i) (copy-marker (match-end i) t)) ends))
+    (setq ends (apply 'vector ends))
+    (goto-char (aref ends 0))
+    (if (not (re-search-forward smerge-begin-re nil t))
+	(error "No next conflict")
+      (smerge-match-conflict)
+      (let ((match-data (mapcar (lambda (m) (if m (copy-marker m)))
+				(match-data))))
+	;; First copy the in-between text in each alternative.
+	(dolist (i '(1 2 3))
+	  (when (aref ends i)
+	    (goto-char (aref ends i))
+	    (insert-buffer-substring (current-buffer)
+				     (aref ends 0) (car match-data))))
+	(delete-region (aref ends 0) (car match-data))
+	;; Then move the second conflict's alternatives into the first.
+	(dolist (i '(1 2 3))
+	  (set-match-data match-data)
+	  (when (and (aref ends i) (match-end i))
+	    (goto-char (aref ends i))
+	    (insert-buffer-substring (current-buffer)
+				     (match-beginning i) (match-end i))))
+	(delete-region (car match-data) (cadr match-data))
+	;; Free the markers.
+	(dolist (m match-data) (if m (move-marker m nil)))
+	(mapc (lambda (m) (if m (move-marker m nil))) ends)))))
 
 (defun smerge-keep-base ()
   "Revert to the base version."
@@ -360,33 +390,32 @@ The point is moved to the end of the conflict."
 	(dir default-directory)
 	(file (file-relative-name buffer-file-name))
 	(coding-system-for-read buffer-file-coding-system))
-    (write-region beg1 end1 file1)
-    (write-region beg2 end2 file2)
+    (write-region beg1 end1 file1 nil 'nomessage)
+    (write-region beg2 end2 file2 nil 'nomessage)
     (unwind-protect
 	(with-current-buffer (get-buffer-create smerge-diff-buffer-name)
 	  (setq default-directory dir)
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
-	    (apply 'call-process diff-command nil t nil
-		   (append smerge-diff-switches
-			   (list "-L" (concat name1 "/" file)
-				 "-L" (concat name2 "/" file)
-				 file1 file2))))
+	    (let ((status
+		   (apply 'call-process diff-command nil t nil
+			  (append smerge-diff-switches
+				  (list "-L" (concat name1 "/" file)
+					"-L" (concat name2 "/" file)
+					file1 file2)))))
+	      (if (eq status 0) (insert "No differences found.\n"))))
 	  (goto-char (point-min))
 	  (diff-mode)
 	  (display-buffer (current-buffer) t))
       (delete-file file1)
       (delete-file file2))))
 
-(eval-when-compile
-  ;; compiler pacifiers
-  (defvar smerge-ediff-windows)
-  (defvar smerge-ediff-buf)
-  (defvar ediff-buffer-A)
-  (defvar ediff-buffer-B)
-  (defvar ediff-buffer-C)
-  (unless (fboundp 'ediff-cleanup-mess)
-    (autoload 'ediff-cleanup-mess "ediff-util")))
+;; compiler pacifiers
+(defvar smerge-ediff-windows)
+(defvar smerge-ediff-buf)
+(defvar ediff-buffer-A)
+(defvar ediff-buffer-B)
+(defvar ediff-buffer-C)
 
 (defun smerge-ediff ()
   "Invoke ediff to resolve the conflicts."
