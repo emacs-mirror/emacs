@@ -3845,7 +3845,7 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef HAVE_X_I18N
 	  {
 	    struct frame *f1 = x_any_window_to_frame (dpyinfo,
-						      &event.xclient.window);
+						      event.xclient.window);
 	    /* The necessity of the following line took me
 	       a full work-day to decipher from the docs!!  */
 	    if (f1 != 0 && FRAME_XIC (f1) && XFilterEvent (&event, None))
