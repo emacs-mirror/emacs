@@ -1875,6 +1875,7 @@ but the contents viewed as characters do change.")
   int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
   int begv = BEGV, zv = ZV;
   int narrowed = (BEG != begv || Z != zv);
+  int modified_p = !NILP (Fbuffer_modified_p (Qnil));
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -2104,6 +2105,10 @@ but the contents viewed as characters do change.")
 	  = current_buffer->enable_multibyte_characters;
 	other->prevent_redisplay_optimizations_p = 1;
       }
+
+  /* Restore the modifiedness of the buffer.  */
+  if (!modified_p && !NILP (Fbuffer_modified_p (Qnil)))
+    Fset_buffer_modified_p (Qnil);
 
   return flag;
 }
