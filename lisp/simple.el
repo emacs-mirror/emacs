@@ -350,8 +350,35 @@ the minibuffer, then read and evaluate the result."
 	(setq command-history (cons command command-history)))
     (eval command)))
 
-;; (defvar repeat-complex-command nil)
-
+(defun repeat-complex-command (arg)
+  "Edit and re-evaluate last complex command, or ARGth from last.
+A complex command is one which used the minibuffer.
+The command is placed in the minibuffer as a Lisp form for editing.
+The result is executed, repeating the command as changed.
+If the command has been changed or is not the most recent previous command
+it is added to the front of the command history.
+You can use the minibuffer history commands \\<minibuffer-local-map>\\[next-history-element] and \\[previous-history-element]
+to get different commands to edit and resubmit."
+  (interactive "p")
+  (let ((elt (nth (1- arg) command-history))
+	(minibuffer-history-position arg)
+	(minibuffer-history-sexp-flag t)
+	newcmd)
+    (if elt
+	(let ((minibuffer-history-variable ' command-history))
+	  (setq newcmd (read-from-minibuffer "Redo: "
+					     (prin1-to-string elt)
+					     minibuffer-local-map
+					     t
+					     (cons 'command-history
+						   arg)))
+	  ;; If command to be redone does not match front of history,
+	  ;; add it to the history.
+	  (or (equal newcmd (car command-history))
+	      (setq command-history (cons newcmd command-history)))
+	  (eval newcmd))
+      (ding))))
+
 (defvar minibuffer-history nil)
 (defvar minibuffer-history-sexp-flag nil)
 (setq minibuffer-history-variable 'minibuffer-history)
@@ -371,35 +398,55 @@ the minibuffer, then read and evaluate the result."
 (define-key minibuffer-local-completion-map "\ep" 'previous-history-element)
 (define-key minibuffer-local-must-match-map "\ep" 'previous-history-element)
 
-(defun repeat-complex-command (arg)
-  "Edit and re-evaluate last complex command, or ARGth from last.
-A complex command is one which used the minibuffer.
-The command is placed in the minibuffer as a Lisp form for editing.
-The result is executed, repeating the command as changed.
-If the command has been changed or is not the most recent previous command
-it is added to the front of the command history.
-You can use the minibuffer history commands \\<minibuffer-local-map>\\[next-history-element] and \\[previous-history-element]
-to get different commands to edit and resubmit."
-  (interactive "p")
-  (let ((elt (nth (1- arg) command-history))
-	(minibuffer-history-position arg)
-	(minibuffer-history-sexp-flag t)
-	(repeat-complex-command-flag t)
-	newcmd)
-    (if elt
-	(let ((minibuffer-history-variable ' command-history))
-	  (setq newcmd (read-from-minibuffer "Redo: "
-					     (prin1-to-string elt)
-					     minibuffer-local-map
-					     t
-					     (cons 'command-history
-						   arg)))
-	  ;; If command to be redone does not match front of history,
-	  ;; add it to the history.
-	  (or (equal newcmd (car command-history))
-	      (setq command-history (cons newcmd command-history)))
-	  (eval newcmd))
-      (ding))))
+(define-key minibuffer-local-map "\er" 'previous-matching-history-element)
+(define-key minibuffer-local-ns-map "\er" 'previous-matching-history-element)
+(define-key minibuffer-local-ns-map "\er" 'previous-matching-history-element)
+(define-key minibuffer-local-completion-map "\er"
+  'previous-matching-history-element)
+(define-key minibuffer-local-completion-map "\er"
+  'previous-matching-history-element)
+(define-key minibuffer-local-must-match-map "\er"
+  'previous-matching-history-element)
+
+(define-key minibuffer-local-map "\es" 'next-matching-history-element)
+(define-key minibuffer-local-ns-map "\es" 'next-matching-history-element)
+(define-key minibuffer-local-ns-map "\es" 'next-matching-history-element)
+(define-key minibuffer-local-completion-map "\es"
+  'next-matching-history-element)
+(define-key minibuffer-local-completion-map "\es"
+  'next-matching-history-element)
+(define-key minibuffer-local-must-match-map "\es"
+  'next-matching-history-element)
+
+(put 'previous-matching-history-element 'enable-recursive-minibuffers t)
+(defun previous-matching-history-element (regexp n)
+  (interactive "sPrevious element matching (regexp): \np")
+  (let ((history (symbol-value minibuffer-history-variable))
+	(pos minibuffer-history-position))
+    (while (/= n 0)
+      (setq prevpos pos)
+      (setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
+      (if (= pos prevpos)
+	  (error (if (= pos 1)
+		     "No following item in minibuffer history"
+		   "No preceding item in minibuffer history")))
+      (if (string-match regexp
+			(if minibuffer-history-sexp-flag
+			    (prin1-to-string (nth (1- pos) history))
+			  (nth (1- pos) history)))
+	  (setq n (+ n (if (< n 0) -1 1)))))
+    (setq minibuffer-history-position pos)
+    (erase-buffer)
+    (let ((elt (nth (1- pos) history)))
+      (insert (if minibuffer-history-sexp-flag
+		  (prin1-to-string elt)
+		elt)))
+      (goto-char (point-min))))
+
+(put 'next-matching-history-element 'enable-recursive-minibuffers t)
+(defun next-matching-history-element (regexp n)
+  (interactive "sNext element matching (regexp): \np")
+  (previous-matching-history-element regexp (- n)))
 
 (defun next-history-element (n)
   "Insert the next element of the minibuffer history into the minibuffer."
@@ -423,10 +470,8 @@ to get different commands to edit and resubmit."
 (defun previous-history-element (n)
   "Inserts the previous element of `command-history' into the minibuffer."
   (interactive "p")
-;;  (if repeat-complex-command-flag
   (next-history-element (- n)))
-;;    (repeat-complex-command 1)))
-
+
 (defun goto-line (arg)
   "Goto line ARG, counting from line 1 at beginning of buffer."
   (interactive "NGoto line: ")

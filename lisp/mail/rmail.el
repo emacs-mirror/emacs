@@ -261,6 +261,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "\e\C-m" 'rmail-retry-failure)
   (define-key rmail-mode-map "c" 'rmail-continue)
   (define-key rmail-mode-map "f" 'rmail-forward)
+  (define-key rmail-mode-map "\er" 'rmail-search-backwards)
   (define-key rmail-mode-map "\es" 'rmail-search)
   (define-key rmail-mode-map "<" 'rmail-first-message)
   (define-key rmail-mode-map ">" 'rmail-last-message)
@@ -1108,11 +1109,11 @@ or forward if N is negative."
     (if (>= where (rmail-msgbeg high)) high low)))
 
 (defvar rmail-search-last-regexp nil)
-(defun rmail-search (regexp &optional reversep)
+(defun rmail-search (regexp &optional n)
   "Show message containing next match for REGEXP.
-Search in reverse (earlier messages) with non-nil second arg REVERSEP.
-Interactively, empty argument means use same regexp used last time,
-and reverse search is specified by a negative numeric arg."
+Prefix argument gives repeat count; negative argument means search
+backwards (through earlier messages).
+Interactively, empty argument means use same regexp used last time."
   (interactive
     (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
@@ -1128,7 +1129,9 @@ and reverse search is specified by a negative numeric arg."
 	     (setq rmail-search-last-regexp regexp))
 	    ((not rmail-search-last-regexp)
 	     (error "No previous Rmail search string")))
-      (list rmail-search-last-regexp reversep)))
+      (list rmail-search-last-regexp
+	    (prefix-numeric-value current-prefix-arg))))
+  (or n (setq n 1))
   (message "%sRmail search for %s..."
 	   (if reversep "Reverse " "")
 	   regexp)
@@ -1137,20 +1140,23 @@ and reverse search is specified by a negative numeric arg."
 	(omax (point-max))
 	(opoint (point))
 	win
+	(reversep (< n 0))
 	(msg rmail-current-message))
     (unwind-protect
 	(progn
 	  (widen)
-	  ;; Check messages one by one, advancing message number up or down
-	  ;; but searching forward through each message.
-	  (if reversep
-	      (while (and (null win) (> msg 1))
-		(goto-char (rmail-msgbeg (setq msg (1- msg))))
-		(setq win (re-search-forward
-			   regexp (rmail-msgend msg) t)))
-	    (while (and (null win) (< msg rmail-total-messages))
-	      (goto-char (rmail-msgbeg (setq msg (1+ msg))))
-	      (setq win (re-search-forward regexp (rmail-msgend msg) t)))))
+	  (while (/= n 0)
+	    ;; Check messages one by one, advancing message number up or down
+	    ;; but searching forward through each message.
+	    (if reversep
+		(while (and (null win) (> msg 1))
+		  (goto-char (rmail-msgbeg (setq msg (1- msg))))
+		  (setq win (re-search-forward
+			     regexp (rmail-msgend msg) t)))
+	      (while (and (null win) (< msg rmail-total-messages))
+		(goto-char (rmail-msgbeg (setq msg (1+ msg))))
+		(setq win (re-search-forward regexp (rmail-msgend msg) t))))
+	    (setq n (+ n (if (< n 0) -1 1)))))
       (if win
 	  (progn
 	    ;; If this is a reverse search and we found a message,
@@ -1170,6 +1176,30 @@ and reverse search is specified by a negative numeric arg."
 	(narrow-to-region omin omax)
 	(ding)
 	(message "Search failed: %s" regexp)))))
+
+(defun rmail-search-backwards (regexp &optional n)
+  "Show message containing previous match for REGEXP.
+Prefix argument gives repeat count; negative argument means search
+forward (through later messages).
+Interactively, empty argument means use same regexp used last time."
+  (interactive
+    (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
+	   (prompt
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	   regexp)
+      (if rmail-search-last-regexp
+	  (setq prompt (concat prompt
+			       "(default "
+			       rmail-search-last-regexp
+			       ") ")))
+      (setq regexp (read-string prompt))
+      (cond ((not (equal regexp ""))
+	     (setq rmail-search-last-regexp regexp))
+	    ((not rmail-search-last-regexp)
+	     (error "No previous Rmail search string")))
+      (list rmail-search-last-regexp
+	    (prefix-numeric-value current-prefix-arg))))
+  (rmail-search regexp (- (or n -1))))
 
 ;; Show the first message which has the `unseen' attribute.
 (defun rmail-first-unseen-message ()
