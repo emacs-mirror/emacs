@@ -227,15 +227,6 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
 
-(when (and (not (fboundp 'set-keymap-parents))
-	   (fboundp 'make-composed-keymap))
-  (defun set-keymap-parents (map parents)
-    "Set MAP to inherit from PARENTS.
-PARENTS can be either nil or a keymap or a list of keymaps."
-    (set-keymap-parent map
-		       (if (or (null parents) (keymapp parents)) parents
-			 (make-composed-keymap parents)))))
-
 ;Moved to keymap.c
 ;(defun copy-keymap (keymap)
 ;  "Return a copy of KEYMAP"  
@@ -706,7 +697,6 @@ Do not use `make-local-variable' to make a hook variable buffer-local."
     (make-local-variable hook)
     (set hook (list t)))
   hook)
-(make-obsolete 'make-local-hook "Not necessary any more." "21.1")
 
 (defun add-hook (hook function &optional append local)
   "Add to the value of HOOK the function FUNCTION.
@@ -1255,9 +1245,13 @@ Modifies the match data; use `save-match-data' if necessary."
 (defun subst-char-in-string (fromchar tochar string &optional inplace)
   "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-  (if inplace (error "bouh!"))
-  (mapconcat (lambda (c) (char-to-string (if (equal c fromchar) tochar c)))
-	     string ""))
+  (let ((i (length string))
+	(newstr (if inplace string (copy-sequence string))))
+    (while (> i 0)
+      (setq i (1- i))
+      (if (eq (aref newstr i) fromchar)
+	  (aset newstr i tochar)))
+    newstr))
 
 (defun replace-regexp-in-string (regexp rep string &optional
 					fixedcase literal subexp start)
