@@ -1157,12 +1157,16 @@ If SPEC is nil, return nil."
   (let ((tail spec)
 	result)
     (while tail
-      (let* ((entry (car tail))
-	     (display (nth 0 entry))
-	     (attrs (nth 1 entry)))
-	(setq tail (cdr tail))
+      (let* ((entry (pop tail))
+	     (display (car entry))
+	     (attrs (cdr entry)))
 	(when (face-spec-set-match-display display frame)
-	  (setq result attrs tail nil))))
+	  (setq result (if (listp (car attrs))
+			   ;; Old-style entry, the attribute list is the
+			   ;; first element.
+			   (car attrs)
+			 attrs)
+		tail nil))))
     result))
 
 
