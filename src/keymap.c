@@ -1752,7 +1752,8 @@ describe_buffer_bindings (arg)
      Lisp_Object arg;
 {
   Lisp_Object descbuf, prefix, shadow;
-  register Lisp_Object start1, start2;
+  register Lisp_Object start1;
+  struct gcpro gcpro1;
 
   char *alternate_heading
     = "\
@@ -1763,6 +1764,7 @@ nominal         alternate\n\
   descbuf = XCONS (arg)->car;
   prefix = XCONS (arg)->cdr;
   shadow = Qnil;
+  GCPRO1 (shadow);
 
   Fset_buffer (Vstandard_output);
 
@@ -1819,21 +1821,15 @@ nominal         alternate\n\
 	   because it takes care of other features when doing so.  */
 	char *title, *p;
 
-	if (XTYPE (modes[i]) == Lisp_Symbol)
-	  {
-	    p = title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
-	    *p++ = '`';
-	    bcopy (XSYMBOL (modes[i])->name->data, p,
-		   XSYMBOL (modes[i])->name->size);
-	    p += XSYMBOL (modes[i])->name->size;
-	    *p++ = '\'';
-	  }
-	else
-	  {
-	    p = title = (char *) alloca (40 + 20);
-	    bcopy ("Strangely Named", p, sizeof ("Strangely Named") - 1);
-	    p += sizeof ("Strangely Named") - 1;
-	  }
+	if (XTYPE (modes[i]) != Lisp_Symbol)
+	  abort();
+
+	p = title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
+	*p++ = '`';
+	bcopy (XSYMBOL (modes[i])->name->data, p,
+	       XSYMBOL (modes[i])->name->size);
+	p += XSYMBOL (modes[i])->name->size;
+	*p++ = '\'';
 	bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
 	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
@@ -1860,6 +1856,7 @@ nominal         alternate\n\
 		     "Global Bindings", 0);
 
   Fset_buffer (descbuf);
+  UNGCPRO;
   return Qnil;
 }
 
