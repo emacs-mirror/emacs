@@ -3542,7 +3542,7 @@ see @ref{Packages that do not come with Emacs}.
 @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html, The Emacs Lisp
 List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
 aims to provide one compact list with links to all of the current Emacs
-lisp files on the internet.  The ELL can be browsed over the web, or
+Lisp files on the internet.  The ELL can be browsed over the web, or
 from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el, 
 the @file{ell} package}.
 
