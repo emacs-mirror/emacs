@@ -528,7 +528,7 @@ This returns ARGS with the arguments that have been processed removed."
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
-      (and (face-color-supported-p frame this-color t)
+      (and (color-supported-p this-color frame t)
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
