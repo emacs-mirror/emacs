@@ -55,22 +55,17 @@
 		    (list (aref quail-current-key control-flag)))))))
   control-flag)
 	 
-;; Flag to control the behavior of `quail-japanese-toggle-kana'.
-(defvar quail-japanese-kana-state nil)
-(make-variable-buffer-local 'quail-japanese-kana-state)
-
 ;; Convert Hiragana <-> Katakana in the current translation region.
 (defun quail-japanese-toggle-kana ()
   (interactive)
   (setq quail-translating nil)
   (let ((start (overlay-start quail-conv-overlay))
 	(end (overlay-end quail-conv-overlay)))
-    (setq quail-japanese-kana-state
-	  (if (eq last-command this-command)
-	      (not quail-japanese-kana-state)))
-    (if quail-japanese-kana-state
-	(japanese-hiragana-region start end)
-      (japanese-katakana-region start end))
+    (save-excursion
+      (goto-char start)
+      (if (re-search-forward "\\cH" end t)
+	  (japanese-katakana-region start end)
+	(japanese-hiragana-region start end)))
     (setq quail-conversion-str
 	  (buffer-substring (overlay-start quail-conv-overlay)
 			    (overlay-end quail-conv-overlay)))))
