@@ -2007,18 +2007,17 @@ Do not display messages if SILENT is non-nil."
   (ibuffer-forward-line 0)
   (let* ((bufs (buffer-list))
 	 (blist (ibuffer-filter-buffers
-		(current-buffer)
-		(if (and
-		     (cadr bufs)
-		     (eq ibuffer-always-show-last-buffer
-			 :nomini)
-		     ;; This is a hack.
-		     (string-match " \\*Minibuf"
-				   (buffer-name (cadr bufs))))
-		    (caddr bufs)
-		  (cadr bufs))
-		(ibuffer-current-buffers-with-marks bufs)
-		arg)))
+		 (current-buffer)
+		 (if (and
+		      (cadr bufs)
+		      (eq ibuffer-always-show-last-buffer
+			  :nomini)
+		      (with-current-buffer (cadr bufs)
+			(minibufferp)))
+		     (car (cddr bufs))
+		   (cadr bufs))
+		 (ibuffer-current-buffers-with-marks bufs)
+		 arg)))
     (when (null blist)
       (if (and (featurep 'ibuf-ext)
 	       ibuffer-filtering-qualifiers)

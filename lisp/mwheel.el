@@ -64,7 +64,7 @@
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-button 5
-  "Obsolete.  Use `mouse-whell-up-event'.")
+  "Obsolete.  Use `mouse-wheel-up-event'.")
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
@@ -133,7 +133,7 @@ This can be slightly disconcerting, but some people prefer it."
 		  mouse-wheel-up-event
 		mouse-wheel-down-event))
 	  x)))
-  (fset  'mwheel-event-button 'event-button))
+  (fset 'mwheel-event-button 'event-button))
 
 (if (not (fboundp 'event-window))
     (defun mwheel-event-window (event)

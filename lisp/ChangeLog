@@ -1,3 +1,9 @@
+2002-08-29  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-update): Use `minibufferp'.  Expand `caddr'.
+
+	* mwheel.el (mouse-wheel-up-button): Doc fix.
+
 2002-08-29  Juanma Barranquero  <lektu@terra.es>
 
 	* replace.el (occur-mode-hook): New hook.
@@ -28,7 +34,7 @@
 
 2002-08-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
-        * files.el (find-buffer-visiting): Compare file attributes
+	* files.el (find-buffer-visiting): Compare file attributes
 	using buffer-file-truename.
 
 2002-08-28  Richard M. Stallman  <rms@gnu.org>
