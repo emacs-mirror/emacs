@@ -1287,7 +1287,7 @@ del_range_1 (from, to, prepare)
   from_byte = CHAR_TO_BYTE (from);
   to_byte = CHAR_TO_BYTE (to);
 
-  del_range_2 (from, to, from_byte, to_byte);
+  del_range_2 (from, from_byte, to, to_byte);
 }
 
 /* Like del_range_1 but args are byte positions, not char positions.  */
@@ -1323,7 +1323,7 @@ del_range_byte (from_byte, to_byte, prepare)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
-  del_range_2 (from, to, from_byte, to_byte);
+  del_range_2 (from, from_byte, to, to_byte);
 }
 
 /* Like del_range_1, but positions are specified both as charpos
@@ -1360,7 +1360,7 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
-  del_range_2 (from, to, from_byte, to_byte);
+  del_range_2 (from, from_byte, to, to_byte);
 }
 
 /* Delete a range of text, specified both as character positions
@@ -1368,8 +1368,8 @@ del_range_both (from, from_byte, to, to_byte, prepare)
    while FROM_BYTE and TO_BYTE are byte positions.  */
 
 void
-del_range_2 (from, to, from_byte, to_byte)
-     int from, to, from_byte, to_byte;
+del_range_2 (from, from_byte, to, to_byte)
+     int from, from_byte, to, to_byte;
 {
   register int nbytes_del, nchars_del;
 
