@@ -2416,14 +2416,15 @@ Interactively, prompts for a hex string giving the code."
 	 (?(1x(B . ?$,1Dx(B)
 	 (?(1y(B . ?$,1Dy(B)
 	 (?(1|(B . ?$,1D|(B)
-	 (?(1}(B . ?$,1D}(B))
+	 (?(1}(B . ?$,1D}(B)))
        
-       (other
-	;; latin-jisx0201 is mostly decoded to ascii, with these
-	;; exceptions, so we don't bother with tables for the whole
-	;; thing.
-	(?(J\(B . ?,A%(B)
-	(?(J~(B . ?$,1s>(B))))
+      (other
+       '(
+	 ;; latin-jisx0201 is mostly decoded to ascii, with these
+	 ;; exceptions, so we don't bother with tables for the whole
+	 ;; thing.
+	 (?(J\(B . ?,A%(B)
+	 (?(J~(B . ?$,1s>(B))))
   (let ((table (make-char-table 'safe-chars))
 	safe-charsets)
     (dolist (cs '(vietnamese-viscii lao chinese-sisheng ipa
