@@ -66,9 +66,11 @@
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . "\
-These languages are supported with the Latin-1 (ISO-8859-1) character set:
+This language environment is a generic one for Latin-1 (ISO-8859-1)
+character set which supports the following languages:
  Danish, Dutch, English, Faeroese, Finnish, French, German, Icelandic,
- Irish, Italian, Norwegian, Portuguese, Spanish, and Swedish."))
+ Irish, Italian, Norwegian, Portuguese, Spanish, and Swedish.
+We also have a German specific language environment \"German\"."))
  '("European"))
 
 
@@ -99,10 +101,15 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 	     (unibyte-display . iso-latin-2)
 	     (input-method . "latin-2-prefix")
 	     (documentation . "\
-These languages are supported with the Latin-2 (ISO-8859-2) character set:
+This language environment is a generic one for Latin-2 (ISO-8859-2)
+character set which supports the following languages:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
  Serbo-Croatian or Croatian, Slovak, Slovene, Sorbian (upper and lower),
- and Swedish."))
+ and Swedish.
+We also have specific language environments for the following languages:
+  For Czech, \"Czech\".
+  For Romanian, \"Romanian\".
+  For Slovak, \"Slovak\"."))
  '("European"))
 
 
