@@ -120,6 +120,21 @@ NOTE-END */
 #define FSCALE 256.0
 #endif
 
+#ifdef SOLARIS2
+/* Data type of load average, as read out of kmem.  */
+#define LOAD_AVE_TYPE long
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+/* This is totally uncalibrated. */
+#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
+
+/* j.w.hawtin@lut.ac.uk says Solaris 2.1 on the X86 needs -lkvm, and it 
+   already has FSCALE defined in a system header.  configure thinks solaris
+   X86 has gethostname but it does not work so undefine it.  */
+#define LIBS_MACHINE -lkvm
+#undef HAVE_GETHOSTNAME
+#endif
+
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
