@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
+#include "intervals.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
@@ -10191,6 +10192,11 @@ syms_of_xfns ()
   Qscreen_gamma = intern ("screen-gamma");
   staticpro (&Qscreen_gamma);
   /* This is the end of symbol initialization.  */
+
+  /* Text property `display' should be nonsticky by default.  */
+  Vtext_property_default_nonsticky
+    = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
+
 
   Qlaplace = intern ("laplace");
   staticpro (&Qlaplace);
