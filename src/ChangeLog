@@ -1,3 +1,9 @@
+2001-11-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* eval.c (top_level_value, top_level_set): Remove commented and
+	#ifdef'd-out code.
+	(Fdefvar): Fix usage in doc-string.
+
 2001-11-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c: Include unistd.h, if it exists.
