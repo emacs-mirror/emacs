@@ -1,3 +1,8 @@
+2005-02-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-access-scan-info): Error out in a
+	buffer not visiting a file.
+
 2005-01-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-find-bounds): Set the formula
