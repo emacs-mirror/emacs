@@ -45,7 +45,8 @@
     (if (not (calendar-date-is-visible-p today))
         (generate-calendar-window)
       (update-calendar-mode-line)
-      (calendar-cursor-to-visible-date today))))
+      (calendar-cursor-to-visible-date today)))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-forward-month (arg)
   "Move the cursor forward ARG months.
@@ -64,7 +65,8 @@ Movement is backward if ARG is negative."
     (let ((new-cursor-date (list month day year)))
       (if (not (calendar-date-is-visible-p new-cursor-date))
           (calendar-other-month month year))
-      (calendar-cursor-to-visible-date new-cursor-date))))
+      (calendar-cursor-to-visible-date new-cursor-date)))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-forward-year (arg)
   "Move the cursor forward by ARG years.
@@ -101,7 +103,8 @@ position of the cursor with respect to the calendar as well as possible."
            (cond
             ((calendar-date-is-visible-p old-date) old-date)
             ((calendar-date-is-visible-p today) today)
-            (t (list month 1 year))))))))
+            (t (list month 1 year)))))))
+  (run-hooks 'calendar-move-hook))
 
 (defun scroll-calendar-right (arg)
   "Scroll the displayed calendar window right by ARG months.
@@ -168,7 +171,8 @@ Moves backward if ARG is negative."
         ;; Put the new month on the screen, if needed, and go to the new date.
         (if (not (calendar-date-is-visible-p new-cursor-date))
             (calendar-other-month new-display-month new-display-year))
-        (calendar-cursor-to-visible-date new-cursor-date))))
+        (calendar-cursor-to-visible-date new-cursor-date)))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-backward-day (arg)
   "Move the cursor back ARG days.
@@ -243,7 +247,8 @@ Moves forward if ARG is negative."
                      year)))
       (if (not (calendar-date-is-visible-p last-day))
           (calendar-other-month month year)
-      (calendar-cursor-to-visible-date last-day)))))
+      (calendar-cursor-to-visible-date last-day))))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-beginning-of-year (arg)
   "Move the cursor backward ARG year beginnings."
@@ -253,13 +258,15 @@ Moves forward if ARG is negative."
          (month (extract-calendar-month date))
          (day (extract-calendar-day date))
          (year (extract-calendar-year date))
-         (jan-first (list 1 1 year)))
+         (jan-first (list 1 1 year))
+         (calendar-move-hook nil))
     (if (and (= day 1) (= 1 month))
         (calendar-backward-month (* 12 arg))
       (if (and (= arg 1)
                (calendar-date-is-visible-p jan-first))
           (calendar-cursor-to-visible-date jan-first)
-        (calendar-other-month 1 (- year (1- arg)))))))
+        (calendar-other-month 1 (- year (1- arg))))))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-end-of-year (arg)
   "Move the cursor forward ARG year beginnings."
@@ -269,14 +276,16 @@ Moves forward if ARG is negative."
          (month (extract-calendar-month date))
          (day (extract-calendar-day date))
          (year (extract-calendar-year date))
-         (dec-31 (list 12 31 year)))
+         (dec-31 (list 12 31 year))
+         (calendar-move-hook nil))
     (if (and (= day 31) (= 12 month))
         (calendar-forward-month (* 12 arg))
       (if (and (= arg 1)
                (calendar-date-is-visible-p dec-31))
           (calendar-cursor-to-visible-date dec-31)
         (calendar-other-month 12 (- year (1- arg)))
-        (calendar-cursor-to-visible-date (list 12 31 displayed-year))))))
+        (calendar-cursor-to-visible-date (list 12 31 displayed-year)))))
+  (run-hooks 'calendar-move-hook))
 
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
@@ -311,7 +320,8 @@ Moves forward if ARG is negative."
              2
            month)
          year)))
-  (calendar-cursor-to-visible-date date))
+  (calendar-cursor-to-visible-date date)
+  (run-hooks 'calendar-move-hook))
 
 (provide 'cal-move)
 
