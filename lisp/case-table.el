@@ -88,10 +88,6 @@ This sets the entries for characters UC and LC in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
-  (let ((lu (length (string-as-unibyte (string uc))))
-	(ll (length (string-as-unibyte (string lc)))))
-    (unless (= lu ll)
-      (error "Can't casify chars with different `charset-bytes' values")))
   (aset table uc lc)
   (aset table lc lc)
   (set-char-table-extra-slot table 0 nil)
