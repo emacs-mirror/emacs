@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.93) $
+ * $HopeName: MMsrc!mpmst.h(trunk.94) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -279,7 +279,7 @@ typedef struct SegStruct {      /* segment structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
-  unsigned depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
+  unsigned depth : ShieldDepthWIDTH; /* see impl.c.shield.def.depth */
   AccessSet pm : AccessSetWIDTH; /* protection mode, impl.c.shield */
   AccessSet sm : AccessSetWIDTH; /* shield mode, impl.c.shield */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
@@ -438,7 +438,7 @@ typedef struct SegBufStruct {
 #define FormatSig       ((Sig)0x519F63A2) /* Signature FoRMAT */
 
 typedef struct FormatStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;
   Serial serial;                /* from arena->formatSerial */
   FormatVariety variety;        /* format variety (e.g. A) */
   Arena arena;                  /* owning arena */
@@ -463,7 +463,6 @@ typedef struct FormatStruct {
  * .ld.struct: This must be kept in sync with impl.h.mps.ld.
  * See also impl.c.mpsi.check.ld.
  */
-
 typedef struct LDStruct {
   Epoch epoch;          /* epoch when ld was last reset / init'ed */
   RefSet rs;            /* RefSet of Add'ed references */
@@ -480,7 +479,7 @@ typedef struct LDStruct {
 #define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
 
 typedef struct RootStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;
   Serial serial;                /* from arena->rootSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attachment to arena */
@@ -568,7 +567,7 @@ typedef struct ScanStateStruct {
 
 /* TraceStruct -- tracer state structure */
 
-#define TraceSig        ((Sig)0x51924ACE)
+#define TraceSig ((Sig)0x51924ACE) /* SIGnature TRACE */
 
 typedef struct TraceStruct {
   Sig sig;                      /* design.mps.sig */
@@ -732,7 +731,7 @@ typedef struct ArenaStruct {
   
   /* shield fields (impl.c.shield) */
   Bool insideShield;             /* TRUE if and only if inside shield */
-  Seg shCache[SHIELD_CACHE_SIZE];/* Cache of unsynced segs */
+  Seg shCache[ShieldCacheSIZE];  /* Cache of unsynced segs */
   Size shCacheI;                 /* index into cache */
   Size shCacheLimit;             /* High water mark for cache usage */
   Size shDepth;                  /* sum of depths of all segs */
@@ -751,7 +750,7 @@ typedef struct ArenaStruct {
   /* location dependency fields (impl.c.ld) */
   Epoch epoch;                     /* design.mps.arena.ld.epoch */
   RefSet prehistory;               /* design.mps.arena.ld.prehistory */
-  RefSet history[ARENA_LD_LENGTH]; /* design.mps.arena.ld.history */
+  RefSet history[LDHistoryLENGTH]; /* design.mps.arena.ld.history */
 } ArenaStruct;
 
 
