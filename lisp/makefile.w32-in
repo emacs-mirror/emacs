@@ -38,6 +38,9 @@ EMACS = "$(THISDIR)/../bin/emacs.exe"
 
 EMACSOPT = -batch --no-init-file --no-site-file --multibyte
 
+# Set EMACSLOADPATH correctly (already defined in environment).
+EMACSLOADPATH=$(lisp)
+
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
@@ -144,8 +147,7 @@ cus-load.el:
 	touch $@
 custom-deps: cus-load.el doit
 	@echo Directories: $(WINS)
-	set EMACSLOADPATH=$(lisp)
-	-$(SETLOADPATH) $(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
+	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
 finder-inf.el:
 	echo (provide $(SQUOTE)finder-inf)>> $@
@@ -167,8 +169,7 @@ loaddefs.el:
 
 autoloads: loaddefs.el doit
 	@echo Directories: $(WINS)
-	set EMACSLOADPATH=$(lisp)
-	$(SETLOADPATH) $(emacs) -l autoload --eval $(ARGQUOTE)(setq find-file-hooks nil generated-autoload-file $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) -f batch-update-autoloads $(lisp) $(WINS)
+	$(emacs) -l autoload --eval $(ARGQUOTE)(setq find-file-hooks nil generated-autoload-file $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) -f batch-update-autoloads $(lisp) $(WINS)
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -200,8 +201,7 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 .SUFFIXES: .elc .el
 
 .el.elc:
-	set EMACSLOADPATH=$(lisp)
-	-$(SETLOADPATH) $(emacs) -f batch-byte-compile $<
+	-$(emacs) -f batch-byte-compile $<
 
 $(DONTCOMPILE:.el=.elc):
 	-$(DEL) $@
@@ -219,7 +219,6 @@ $(DONTCOMPILE:.el=.elc):
 compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
 
 compile-files-CMD:
-	set EMACSLOADPATH=$(lisp)
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
 	for %f in ($(lisp) $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
@@ -228,12 +227,12 @@ compile-files-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $$el; \
+	  $(emacs) -f batch-byte-compile $$el; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    echo Compiling $$el; \
-	    EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $$el; \
+	    $(emacs) -f batch-byte-compile $$el; \
 	  done; \
 	done
 
@@ -253,8 +252,7 @@ compile: backup-compiled-files compile-files
 # .elc is present.
 
 recompile: doit
-	set EMACSLOADPATH=$(lisp)
-	$(SETLOADPATH) $(emacs) -f batch-byte-recompile-directory .
+	$(emacs) -f batch-byte-recompile-directory .
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
