@@ -731,6 +731,133 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 		;; dired-sort-mode is nil outside dired
 		minor-mode-alist)))
 
+;; Make menu bar items.
+
+;; Get rid of the Edit menu bar item to save space.
+(define-key dired-mode-map [menu-bar edit] 'undefined)
+
+(define-key dired-mode-map [menu-bar subdir]
+  (cons "Subdir" (make-sparse-keymap "Subdir")))
+
+(define-key dired-mode-map [menu-bar subdir hide-all]
+  '("Hide All" . dired-hide-all))
+(define-key dired-mode-map [menu-bar subdir hide-subdir]
+  '("Hide Subdir" . dired-hide-subdir))
+(define-key dired-mode-map [menu-bar subdir tree-down]
+  '("Tree Down" . dired-tree-down))
+(define-key dired-mode-map [menu-bar subdir tree-up]
+  '("Tree Up" . dired-tree-up))
+(define-key dired-mode-map [menu-bar subdir up]
+  '("Up Directory" . dired-up-directory))
+(define-key dired-mode-map [menu-bar subdir prev-subdir]
+  '("Prev Subdir" . dired-prev-subdir))
+(define-key dired-mode-map [menu-bar subdir next-subdir]
+  '("Next Subdir" . dired-next-subdir))
+(define-key dired-mode-map [menu-bar subdir prev-dirline]
+  '("Prev Dirline" . dired-prev-dirline))
+(define-key dired-mode-map [menu-bar subdir next-dirline]
+  '("Next Dirline" . dired-next-dirline))
+(define-key dired-mode-map [menu-bar subdir insert]
+  '("Insert This Subdir" . dired-maybe-insert-subdir))
+
+(define-key dired-mode-map [menu-bar immediate]
+  (cons "Immediate" (make-sparse-keymap "Immediate")))
+
+(define-key dired-mode-map [menu-bar immediate backup-diff]
+  '("Compare with Backup" . dired-backup-diff))
+(define-key dired-mode-map [menu-bar immediate diff]
+  '("Diff" . dired-diff))
+(define-key dired-mode-map [menu-bar immediate view]
+  '("View This File" . dired-view-file))
+(define-key dired-mode-map [menu-bar immediate display]
+  '("Display in Other Window" . dired-display-file))
+(define-key dired-mode-map [menu-bar immediate find-file-other-window]
+  '("Find in Other Window" . dired-find-file-other-window))
+(define-key dired-mode-map [menu-bar immediate find-file]
+  '("Find This File" . dired-find-file))
+(define-key dired-mode-map [menu-bar immediate create-directory]
+  '("Create Directory..." . dired-create-directory))
+
+(define-key dired-mode-map [menu-bar regexp]
+  (cons "Regexp" (make-sparse-keymap "Regexp")))
+
+(define-key dired-mode-map [menu-bar regexp downcase]
+  '("Downcase" . dired-downcase))
+(define-key dired-mode-map [menu-bar regexp upcase]
+  '("Upcase" . dired-upcase))
+(define-key dired-mode-map [menu-bar regexp hardlink]
+  '("Hardlink..." . dired-do-hardlink-regexp))
+(define-key dired-mode-map [menu-bar regexp symlink]
+  '("Symlink..." . dired-do-symlink-regexp))
+(define-key dired-mode-map [menu-bar regexp rename]
+  '("Rename..." . dired-do-rename-regexp))
+(define-key dired-mode-map [menu-bar regexp copy]
+  '("Copy..." . dired-do-copy-regexp))
+(define-key dired-mode-map [menu-bar regexp flag]
+  '("Flag..." . dired-flag-files-regexp))
+(define-key dired-mode-map [menu-bar regexp mark]
+  '("Mark..." . dired-mark-files-regexp))
+
+(define-key dired-mode-map [menu-bar mark]
+  (cons "Mark" (make-sparse-keymap "Mark")))
+
+(define-key dired-mode-map [menu-bar mark prev]
+  '("Previous Marked" . dired-prev-marked-file))
+(define-key dired-mode-map [menu-bar mark next]
+  '("Next Marked" . dired-next-marked-file))
+(define-key dired-mode-map [menu-bar mark marks]
+  '("Change Marks..." . dired-change-marks))
+(define-key dired-mode-map [menu-bar mark symlinks]
+  '("Mark Symlinks" . dired-mark-symlinks))
+(define-key dired-mode-map [menu-bar mark directories]
+  '("Mark Directories" . dired-mark-directories))
+(define-key dired-mode-map [menu-bar mark directory]
+  '("Mark Old Backups" . dired-clean-directory))
+(define-key dired-mode-map [menu-bar mark executables]
+  '("Mark Executables" . dired-mark-executables))
+(define-key dired-mode-map [menu-bar mark unmark-all]
+  '("Unmark All" . dired-unmark-all-files))
+(define-key dired-mode-map [menu-bar mark files]
+  '("Flag Backup Files" . dired-flag-backup-files))
+(define-key dired-mode-map [menu-bar mark files]
+  '("Flag Auto-save Files" . dired-flag-auto-save-files))
+(define-key dired-mode-map [menu-bar mark deletion]
+  '("Flag" . dired-flag-file-deletion))
+(define-key dired-mode-map [menu-bar mark unmark]
+  '("Unmark" . dired-unmark))
+(define-key dired-mode-map [menu-bar mark mark]
+  '("Mark" . dired-mark))
+
+(define-key dired-mode-map [menu-bar operate]
+  (cons "Operate" (make-sparse-keymap "Operate")))
+
+(define-key dired-mode-map [menu-bar operate chown]
+  '("Change Owner..." . dired-do-chown))
+(define-key dired-mode-map [menu-bar operate chgrp]
+  '("Change Group..." . dired-do-chgrp))
+(define-key dired-mode-map [menu-bar operate chmod]
+  '("Change Mode..." . dired-do-chmod))
+(define-key dired-mode-map [menu-bar operate load]
+  '("Load" . dired-do-load))
+(define-key dired-mode-map [menu-bar operate compile]
+  '("Byte-compile" . dired-do-byte-compile))
+(define-key dired-mode-map [menu-bar operate compress]
+  '("Compress" . dired-do-compress))
+(define-key dired-mode-map [menu-bar operate print]
+  '("Print" . dired-do-print))
+(define-key dired-mode-map [menu-bar operate hardlink]
+  '("Hardlink to..." . dired-do-hardlink))
+(define-key dired-mode-map [menu-bar operate symlink]
+  '("Symlink to..." . dired-do-symlink))
+(define-key dired-mode-map [menu-bar operate command]
+  '("Shell Command..." . dired-do-shell-command))
+(define-key dired-mode-map [menu-bar operate delete]
+  '("Delete" . dired-do-delete))
+(define-key dired-mode-map [menu-bar operate rename]
+  '("Rename to..." . dired-do-rename))
+(define-key dired-mode-map [menu-bar operate copy]
+  '("Copy to..." . dired-do-copy))
+
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
