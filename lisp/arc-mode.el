@@ -236,16 +236,8 @@ Archive and member name will be added.")
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
 
-;; buffer-file-type is a per-buffer variable in the msdog configuration
-(if (boundp 'buffer-file-type) nil
-  (defvar buffer-file-type nil
-    "*Nil for dos-style text file, non-nil otherwise.")
-  (make-variable-buffer-local 'buffer-file-type)
-  (put 'buffer-file-type 'permanent-local t)
-  (setq-default buffer-file-type nil))
-
 (defvar archive-subfile-dos nil
-  "Negation of `buffer-file-type' which see.")
+  "Negation of `buffer-file-type', which see.")
 (make-variable-buffer-local 'archive-subfile-dos)
 (put 'archive-subfile-dos 'permanent-local t)
 
@@ -436,7 +428,8 @@ archive.
 	(setq require-final-newline nil)
 	(make-local-variable 'enable-local-variables)
 	(setq enable-local-variables nil)
-	(setq buffer-file-type t)
+	(if (boundp 'default-buffer-file-type)
+	    (setq buffer-file-type t))
 
 	(make-local-variable 'archive-read-only)
 	(setq archive-read-only (not (file-writable-p (buffer-file-name))))
@@ -737,8 +730,9 @@ This function changes the set of information shown for each files."
           (make-local-variable 'local-write-file-hooks)
           (add-hook 'local-write-file-hooks 'archive-write-file-member)
           (setq archive-subfile-mode descr)
-	  (setq archive-subfile-dos nil
-		buffer-file-type t)
+	  (setq archive-subfile-dos nil)
+	  (if (boundp 'default-buffer-file-type)
+	      (setq buffer-file-type t))
 	  (if (fboundp extractor)
 	      (funcall extractor archive ename)
 	    (archive-*-extract archive ename (symbol-value extractor)))
@@ -852,7 +846,8 @@ This function changes the set of information shown for each files."
       (goto-char (point-min))
       (setq archive-subfile-dos
 	    (or force (not (search-forward-regexp "[^\r]\n" nil t))))
-      (setq buffer-file-type (not archive-subfile-dos))
+      (if (boundp 'default-buffer-file-type)
+	  (setq buffer-file-type (not archive-subfile-dos)))
       (if archive-subfile-dos
           (let ((modified (buffer-modified-p)))
             (buffer-disable-undo (current-buffer))
@@ -876,7 +871,8 @@ This function changes the set of information shown for each files."
                   (while (search-forward "\n" nil t)
                     (replace-match "\r\n"))
                   (setq archive-subfile-dos nil)
-                  (setq buffer-file-type t)
+		  (if (boundp 'default-buffer-file-type)
+		      (setq buffer-file-type t))
                   ;; OK, we're now have explicit ^M^Js -- save and re-unixfy
                   (archive-write-file-member))
               (progn
