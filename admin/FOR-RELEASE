@@ -124,6 +124,32 @@ fit-window-to-buffer works well for me, so I guess
 Electric-pop-up-window can use it.
 
 
+** Partial highlighting of wrapped overlay
+
+From: Ralf Angeli <angeli@iwi.uni-sb.de>
+Date: Mon, 18 Oct 2004 19:09:19 +0200
+
+If you put
+
+(let* ((length (+ (- (window-width) (current-column)) 40))
+       (start (point))
+       (end (+ (point) length))
+       (string (make-string length ?x))
+       ov)
+  (insert string)
+  (setq ov (make-overlay start end))
+  (overlay-put ov 'mouse-face 'highlight)
+  (overlay-put ov 'display string))
+
+into the *scratch* buffer and type `C-x C-e' with point at the last
+parenthesis, you will get a string which does not fit into the line
+and has to be wrapped.  If you move over it with your mouse, you
+should see that only the part on the second line is being highlighted.
+The full string is highlighted only if the 'display property is not
+set.
+
+
+
 * DOCUMENTATION
 
 ** Document Custom Themes.
