@@ -2295,6 +2295,7 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vdebug_on_error;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
+extern int interactive_p P_ ((int));
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
