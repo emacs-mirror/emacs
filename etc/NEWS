@@ -2662,6 +2662,13 @@ temporarily to nil, for example
 
 Likewise, an attempt to split a fixed-height window vertically,
 or a fixed-width window horizontally results in a error.
+
+** The cursor-type frame parameter is now supported on MS-DOS
+terminals.  When Emacs starts, it by default changes the cursor shape
+to a solid box, as it does on Unix.  The `cursor-type' frame parameter
+overrides this as it does on Unix, except that the bar cursor is
+horizontal rather than vertical (since the MS-DOS display doesn't
+support a vertical-bar cursor).
 ^L
 * Emacs 20.5 is a bug-fix release with no user-visible changes.
 
