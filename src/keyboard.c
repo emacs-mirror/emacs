@@ -659,6 +659,7 @@ echo_dash ()
 /* Display the current echo string, and begin echoing if not already
    doing so.  */
 
+void
 echo_now ()
 {
   if (!current_kboard->immediate_echo)
@@ -775,6 +776,7 @@ recursive_edit_1 ()
 
 /* When an auto-save happens, record the "time", and don't do again soon.  */
 
+void
 record_auto_save ()
 {
   last_auto_save = num_nonmacro_input_events;
@@ -941,6 +943,7 @@ cmd_error (data)
   return make_number (0);
 }
 
+void
 cmd_error_internal (data, context)
      Lisp_Object data;
      char *context;
@@ -1550,6 +1553,7 @@ input_poll_signal (signalnum)	/* If we don't have an argument, */
 /* Begin signals to poll for input, if they are appropriate.
    This function is called unconditionally from various places.  */
 
+void
 start_polling ()
 {
 #ifdef POLL_FOR_INPUT
@@ -1580,6 +1584,7 @@ input_polling_used ()
 
 /* Turn off polling.  */
 
+void
 stop_polling ()
 {
 #ifdef POLL_FOR_INPUT
@@ -1619,6 +1624,7 @@ set_poll_suppress_count (count)
 /* Bind polling_period to a value at least N.
    But don't decrease it.  */
 
+void
 bind_polling_period (n)
      int n;
 {
@@ -3024,6 +3030,7 @@ static EMACS_TIME timer_idleness_start_time;
 /* Record the start of when Emacs is idle,
    for the sake of running idle-time timers.  */
 
+void
 timer_start_idle ()
 {
   Lisp_Object timers;
@@ -3049,6 +3056,7 @@ timer_start_idle ()
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */
 
+void
 timer_stop_idle ()
 {
   EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
@@ -4912,7 +4920,7 @@ get_input_pending (addr, do_timers_now)
 
 /* Interface to read_avail_input, blocking SIGIO or SIGALRM if necessary.  */
 
-int
+void
 gobble_input (expected)
      int expected;
 {
@@ -4944,6 +4952,7 @@ gobble_input (expected)
 /* Put a buffer_switch_event in the buffer
    so that read_key_sequence will notice the new current buffer.  */
 
+void
 record_asynch_buffer_change ()
 {
   struct input_event event;
@@ -7355,6 +7364,8 @@ detect_input_pending_run_timers (do_display)
 /* This is called in some cases before a possible quit.
    It cases the next call to detect_input_pending to recompute input_pending.
    So calling this function unnecessarily can't do any harm.  */
+
+void
 clear_input_pending ()
 {
   input_pending = 0;
@@ -7563,6 +7574,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
 /* If STUFFSTRING is a string, stuff its contents as pending terminal input.
    Then in any case stuff anything Emacs has read ahead and not used.  */
 
+void
 stuff_buffered_input (stuffstring)
      Lisp_Object stuffstring;
 {
@@ -7614,6 +7626,7 @@ set_waiting_for_input (time_to_clear)
     quit_throw_to_read_char ();
 }
 
+void
 clear_waiting_for_input ()
 {
   /* Tell interrupt_signal not to throw back to read_char,  */
@@ -7768,6 +7781,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 
 /* Handle a C-g by making read_char return C-g.  */
 
+void
 quit_throw_to_read_char ()
 {
   quit_error_check ();
