@@ -2811,7 +2811,7 @@ Leave point at the location of the call, or after the last expression."
 	(princ "\n")))))
 
 ;;;###autoload
-(defun custom-save-customized ()
+(defun customize-save-customized ()
   "Save all user options which have been set in this session."
   (interactive)
   (mapatoms (lambda (symbol)
