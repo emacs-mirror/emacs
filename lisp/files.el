@@ -1195,6 +1195,8 @@ unless NOMODES is non-nil."
 	(auto-save-mode t)))
   (if nomodes
       nil
+    (and view-read-only view-mode
+	 (view-mode-disable))
     (normal-mode t)
     (if (and buffer-read-only view-read-only
 	     (not (eq (get major-mode 'mode-class) 'special)))
