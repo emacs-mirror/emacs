@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.31) $
+ * $HopeName: MMsrc!trace.c(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.31) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.32) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -176,15 +176,15 @@ static Res TraceStart(Trace trace, Action action)
       /* This is indicated by the rankSet begin non-empty.  Such */
       /* segments may only belong to scannable pools. */
       if(SegRankSet(seg) != RankSetEMPTY) {
-	/* Segments with ranks may only belong to scannable pools. */
-	AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
+        /* Segments with ranks may only belong to scannable pools. */
+        AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
 
-	/* Turn the segment grey if there might be a reference in it */
-	/* to the white set.  This is done by seeing if the summary */
-	/* of references in the segment intersects with the approximation */
-	/* to the white set. */
-	if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY)
-	  PoolGrey(SegPool(seg), trace, seg);
+        /* Turn the segment grey if there might be a reference in it */
+        /* to the white set.  This is done by seeing if the summary */
+        /* of references in the segment intersects with the approximation */
+        /* to the white set. */
+        if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY)
+          PoolGrey(SegPool(seg), trace, seg);
       }
     } while(SegNext(&seg, space, base));
   }
@@ -243,7 +243,7 @@ Res TraceCreate(Trace *traceReturn, Space space, Action action)
   Trace trace;
   Res res;
 
-  AVER(TRACE_MAX == 1);		/* .single-collection */
+  AVER(TRACE_MAX == 1);         /* .single-collection */
 
   AVER(traceReturn != NULL);
   AVERT(Space, space);
@@ -254,10 +254,11 @@ Res TraceCreate(Trace *traceReturn, Space space, Action action)
     if(!TraceSetIsMember(space->busyTraces, ti))
       goto found;
 
-  return ResLIMIT;		/* no trace IDs available */
+  return ResLIMIT;              /* no trace IDs available */
 
 found:
   trace = SpaceTrace(space, ti);
+  AVER(trace->sig == SigInvalid);       /* design.mps.space.trace.invalid */
   space->busyTraces = TraceSetAdd(space->busyTraces, ti);
 
   trace->space = space;
@@ -283,7 +284,7 @@ found:
 failStart:
   PoolTraceEnd(action->pool, trace, action);
 failBegin:
-  trace->sig = SigInvalid;
+  trace->sig = SigInvalid;              /* design.mps.space.trace.invalid */
   space->busyTraces = TraceSetDel(space->busyTraces, ti);
   return res;
 }
@@ -305,7 +306,7 @@ void TraceDestroy(Trace trace)
   
   PoolTraceEnd(trace->action->pool, trace, trace->action);
   
-  trace->sig = SigInvalid;
+  trace->sig = SigInvalid;              /* design.mps.space.trace.invalid */
   trace->space->busyTraces =
     TraceSetDel(trace->space->busyTraces, trace->ti);
   trace->space->flippedTraces =
@@ -509,9 +510,9 @@ static void TraceReclaim(Trace trace)
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
       if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
-	AVER((SegPool(seg)->class->attr & AttrGC) != 0);
+        AVER((SegPool(seg)->class->attr & AttrGC) != 0);
 
-	PoolReclaim(SegPool(seg), trace, seg);
+        PoolReclaim(SegPool(seg), trace, seg);
       }
     } while(SegNext(&seg, space, base));
   }
@@ -547,13 +548,13 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
     if(SegFirst(&seg, space)) {
       Addr base;
       do {
-	base = SegBase(space, seg);
-	if(RankSetIsMember(SegRankSet(seg), rank) &&
-	   TraceSetIsMember(SegGrey(seg), ti)) {
-	  *segReturn = seg;
-	  *rankReturn = rank;
-	  return TRUE;
-	}
+        base = SegBase(space, seg);
+        if(RankSetIsMember(SegRankSet(seg), rank) &&
+           TraceSetIsMember(SegGrey(seg), ti)) {
+          *segReturn = seg;
+          *rankReturn = rank;
+          return TRUE;
+        }
       } while(SegNext(&seg, space, base));
     }
   }
@@ -618,7 +619,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
                   TraceSetUnion(ss.fixed,
                                 TraceSetDiff(ss.summary, ss.white)));
 
-  ss.sig = SigInvalid;			/* just in case */
+  ss.sig = SigInvalid;                  /* just in case */
 
   /* The segment has been scanned, so remove the greyness from it. */
   SegSetGrey(seg, TraceSetDiff(SegGrey(seg), ts));
@@ -780,7 +781,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
       pool = SegPool(seg);
       res = PoolFix(pool, ss, seg, refIO);
       if (res != ResOK)
-	return res;
+        return res;
     }
   }
   ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
