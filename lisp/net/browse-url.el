@@ -1,6 +1,7 @@
 ;;; browse-url.el --- Pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: Dave Love <fx@gnu.org>
@@ -297,7 +298,7 @@ Defaults to the value of `browse-url-netscape-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
-(defcustom browse-url-new-window-p nil
+(defcustom browse-url-new-window-flag nil
   "*If non-nil, always open a new browser window with appropriate browsers.
 Passing an interactive argument to \\[browse-url], or specific browser
 commands reverses the effect of this variable.  Requires Netscape version
@@ -494,12 +495,12 @@ down (this *won't* always work)."
   "Read a URL from the minibuffer, prompting with PROMPT.
 Default to the URL at or before point.  If invoked with a mouse button,
 set point to the position clicked first.  Return a list for use in
-`interactive' containing the URL and `browse-url-new-window-p' or its
+`interactive' containing the URL and `browse-url-new-window-flag' or its
 negation if a prefix argument was given."
   (let ((event (elt (this-command-keys) 0)))
     (and (listp event) (mouse-set-point event)))
   (list (read-string prompt (browse-url-url-at-point))
-	(not (eq (null browse-url-new-window-p)
+	(not (eq (null browse-url-new-window-flag)
 		 (null current-prefix-arg)))))
 
 ;; interactive-p needs to be called at a function's top-level, hence
@@ -507,7 +508,7 @@ negation if a prefix argument was given."
 (defmacro browse-url-maybe-new-window (arg)
   `(if (interactive-p)
        ,arg
-     browse-url-new-window-p))
+     browse-url-new-window-flag))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
@@ -610,7 +611,7 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (interactive-p)
-    (setq args (or args (list browse-url-new-window-p))))
+    (setq args (or args (list browse-url-new-window-flag))))
   (if (functionp browse-url-browser-function)
       (apply browse-url-browser-function url args)
     ;; The `function' can be an alist; look down it for first match
@@ -632,8 +633,8 @@ Doesn't let you edit the URL like `browse-url'.  Variable
   (let ((url (browse-url-url-at-point)))
     (if url
 	(browse-url url (if arg
-			    (not browse-url-new-window-p)
-			  browse-url-new-window-p))
+			    (not browse-url-new-window-flag)
+			  browse-url-new-window-flag))
       (error "No URL found"))))
 
 ;;;###autoload
@@ -646,7 +647,7 @@ to use."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
-    (browse-url-at-point browse-url-new-window-p)))
+    (browse-url-at-point browse-url-new-window-flag)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-specific commands
@@ -685,13 +686,13 @@ one showing the selected frame."
 Default to the URL around or before point.  The strings in variable
 `browse-url-netscape-arguments' are also passed to Netscape.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new Netscape window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-p'.
+the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
   ;; include at least commas; presumably also close parens.
@@ -760,13 +761,13 @@ How depends on `browse-url-netscape-version'."
 Default to the URL around or before point.  The strings in variable
 `browse-url-gnome-moz-arguments' are also passed.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new browser window, otherwise use an
 existing one.  A non-nil interactive prefix argument reverses the
-effect of `browse-url-new-window-p'.
+effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))  
   (apply 'start-process (concat "gnome-moz-remote " url)
 	 nil
@@ -788,13 +789,13 @@ Default to the URL around or before point.  The strings in variable
 program is invoked according to the variable
 `browse-url-mosaic-program'.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new Mosaic window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-p'.
+the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mosaic URL: "))
   (let ((pidfile (expand-file-name "~/.mosaicpid"))
 	pid)
@@ -862,13 +863,13 @@ This function only works for XMosaic version 2.5 or later.  You must
 select `CCI' from XMosaic's File menu, set the CCI Port Address to the
 value of variable `browse-url-CCI-port', and enable `Accept requests'.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new browser window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-p'.
+the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mosaic URL: "))
   (open-network-stream "browse-url" " *browse-url*"
 		       browse-url-CCI-host browse-url-CCI-port)
@@ -900,12 +901,12 @@ Default to the URL around or before point."
   "Ask the w3 WWW browser to load URL.
 Default to the URL around or before point.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new window.  A non-nil interactive
-prefix argument reverses the effect of `browse-url-new-window-p'.
+prefix argument reverses the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "W3 URL: "))
   (require 'w3)				; w3-fetch-other-window not autoloaded
   (if (browse-url-maybe-new-window new-window)
@@ -947,13 +948,13 @@ with possible additional arguments `browse-url-xterm-args'."
 Default to the URL around or before point.  With a prefix argument, run
 a new Lynx process in a new buffer.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new lynx in a new term window,
 otherwise use any existing one.  A non-nil interactive prefix argument
-reverses the effect of `browse-url-new-window-p'.
+reverses the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Lynx URL: "))
   (let* ((system-uses-terminfo t)       ; Lynx uses terminfo
 	 ;; (term-term-name "vt100") ; ??
@@ -1034,13 +1035,13 @@ recipient's address.  Supplying a non-nil interactive prefix argument
 will cause the mail to be composed in another window rather than the
 current one.
 
-When called interactively, if variable `browse-url-new-window-p' is
+When called interactively, if variable `browse-url-new-window-flag' is
 non-nil use `compose-mail-other-window', otherwise `compose-mail'.  A
 non-nil interactive prefix argument reverses the effect of
-`browse-url-new-window-p'.
+`browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-p'."
+used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mailto URL: "))
   (save-excursion
     (let ((to (if (string-match "^mailto:" url)
