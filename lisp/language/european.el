@@ -542,6 +542,66 @@ but select's the Dutch tutorial."))
    (valid-codes (0 . 255))
    (mime-charset . macintosh)))		; per IANA, rfc1345
 
+(defconst diacritic-composition-pattern "\\C^\\c^+")
+
+;;;###autoload
+(defun diacritic-compose-region (beg end)
+  "Compose diacritic characters in the region.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region."
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (while (re-search-forward diacritic-composition-pattern nil t)
+      (compose-region (match-beginning 0) (match-end 0)))))
+
+;;;###autoload
+(defun diacritic-compose-string (string)
+  "Compose diacritic characters in STRING and return the resulting string."
+  (let ((idx 0))
+    (while (setq idx (string-match diacritic-composition-pattern string idx))
+      (compose-string string idx (match-end 0))
+      (setq idx (match-end 0))))
+  string)
+      
+;;;###autoload
+(defun diacritic-compose-buffer ()
+  "Compose diacritic characters in the current buffer."
+  (interactive)
+  (diacritic-compose-region (point-min) (point-max)))
+
+;;;###autoload
+(defun diacritic-post-read-conversion (len)
+  (diacritic-compose-region (point) (+ (point) len))
+  len)
+
+;;;###autoload
+(defun diacritic-composition-function (from to pattern &optional string)
+  "Compose diacritic text in the region FROM and TO.
+The text matches the regular expression PATTERN.
+Optional 4th argument STRING, if non-nil, is a string containing text
+to compose.
+
+The return value is number of composed characters."
+  (if (< (1+ from) to)
+      (prog1 (- to from)
+	(if string
+	    (compose-string string from to)
+	  (compose-region from to))
+	(- to from))))
+
+;; Register a function to compose Unicode diacrtics and marks.
+(let ((patterns '(("\\C^\\c^+" . diacrtic-composition-function))))
+  (let ((c #x300))
+    (while (<= c #x362)
+      (aset composition-function-table (decode-char 'ucs c) patterns)
+      (setq c (1+ c)))
+    (setq c #x20d0)
+    (while (<= c #x20e3)
+      (aset composition-function-table (decode-char 'ucs c) patterns)
+      (setq c (1+ c)))))
+
 (provide 'european)
 
 ;;; european.el ends here
