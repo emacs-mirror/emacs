@@ -1,3 +1,9 @@
+2001-04-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* gmalloc.c (__malloc_size_t) [__GNUC__]: If STDC_HEADERS is not
+	defined, include stddef.h and use __SIZE_TYPE__ instead of size_t.
+	(__memalign_hook): Make the two prototypes consistent.
+
 2001-04-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_window): Make sure to clear the desired glyph
