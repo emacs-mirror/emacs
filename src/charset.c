@@ -23,16 +23,11 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
-
-#ifdef emacs
-
 #include <sys/types.h>
 #include "lisp.h"
 #include "character.h"
@@ -40,13 +35,6 @@ Boston, MA 02111-1307, USA.  */
 #include "coding.h"
 #include "disptab.h"
 #include "buffer.h"
-
-#else  /* not emacs */
-
-#include "mulelib.h"
-
-#endif /* emacs */
-
 
 /*** GENERAL NOTES on CODED CHARACTER SETS (CHARSETS) ***
 
@@ -108,7 +96,7 @@ int charset_primary;
 Lisp_Object Vcharset_ordered_list;
 
 /* Incremented everytime we change Vcharset_ordered_list.  This is
-   unsigned short so that it fits in Lisp_Int and never match with
+   unsigned short so that it fits in Lisp_Int and never matches
    -1.  */
 unsigned short charset_ordered_list_tick;
 
@@ -127,6 +115,13 @@ int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 Lisp_Object Vcharset_map_directory;
 
 Lisp_Object Vchar_unified_charset_table;
+
+/* Defined in chartab.c */
+extern void
+map_char_table_for_charset P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
+				Lisp_Object function, Lisp_Object table,
+				Lisp_Object arg, struct charset *charset,
+				unsigned from, unsigned to));
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
@@ -1140,8 +1135,8 @@ DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 3, 0,
 This means reading the relevant file and installing the table defined
 by CHARSET's `:unify-map' property.
 
-Optional second arg UNIFY-MAP a file name string or vector that has
-the same meaning of the `:unify-map' attribute of the function
+Optional second arg UNIFY-MAP is a file name string or a vector.  It has
+the same meaning as the `:unify-map' attribute in the function
 `define-charset' (which see).
 
 Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
@@ -1281,6 +1276,7 @@ string_xstring_p (string)
     {
       int c = STRING_CHAR_ADVANCE (p);
 
+      /* Fixme: comparison of unsigned expression < 0 is always false */
       if (ENCODE_CHAR (charset, c) < 0)
 	return 2;
     }
