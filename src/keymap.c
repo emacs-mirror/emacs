@@ -854,7 +854,7 @@ DEFUN ("global-set-key", Fglobal_set_key, Sglobal_set_key, 2, 2,
   "kSet key globally: \nCSet key %s to command: ",
   "Give KEY a global binding as COMMAND.\n\
 COMMAND is a symbol naming an interactively-callable function.\n\
-KEY is a string representing a sequence of keystrokes.\n\
+KEY is a key sequence (a string or vector of characters or event types).\n\
 Note that if KEY has a local binding in the current buffer\n\
 that local binding will continue to shadow any global binding.")
   (keys, function)
@@ -872,7 +872,7 @@ DEFUN ("local-set-key", Flocal_set_key, Slocal_set_key, 2, 2,
   "kSet key locally: \nCSet key %s locally to command: ",
   "Give KEY a local binding as COMMAND.\n\
 COMMAND is a symbol naming an interactively-callable function.\n\
-KEY is a string representing a sequence of keystrokes.\n\
+KEY is a key sequence (a string or vector of characters or event types).\n\
 The binding goes in the current buffer's local map,\n\
 which is shared with other buffers in the same major mode.")
   (keys, function)
