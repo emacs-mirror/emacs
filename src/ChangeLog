@@ -1,3 +1,7 @@
+2002-03-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xfns.c (png_load): Remove unused variable `gamma_str'.
+
 2002-03-14  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c (x_real_positions): Handle failure in XQueryTree.
