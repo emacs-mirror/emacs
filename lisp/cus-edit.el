@@ -1322,7 +1322,9 @@ and `face'."
 	       (or (not hidden)
 		   (memq category custom-magic-show-hidden)))
       (insert "   ")
-      (when (eq category 'group)
+      (when (and (eq category 'group)
+		 (not (and (eq custom-buffer-style 'links)
+			   (> (widget-get parent :custom-level) 1))))
 	(insert-char ?\  (* custom-buffer-indent
 			    (widget-get parent :custom-level))))
       (push (widget-create-child-and-convert 
@@ -1341,7 +1343,9 @@ and `face'."
       (when lisp 
 	(insert " (lisp)"))
       (insert "\n"))
-    (when (eq category 'group)
+    (when (and (eq category 'group)
+	       (not (and (eq custom-buffer-style 'links)
+			 (> (widget-get parent :custom-level) 1))))
       (insert-char ?\  (* custom-buffer-indent
 			  (widget-get parent :custom-level))))
     (when custom-magic-show-button
@@ -2467,8 +2471,9 @@ and so forth.  The remaining group tags are shown with
 	  ;; Nested style.
 	  ((eq state 'hidden)
 	   ;; Create level indicator.
-	   (insert-char ?\  (* custom-buffer-indent (1- level)))
-	   (insert "-- ")
+	   (unless (eq custom-buffer-style 'links)
+	     (insert-char ?\  (* custom-buffer-indent (1- level)))
+	     (insert "-- "))
 	   ;; Create tag.
 	   (let ((begin (point)))
 	     (insert tag)
@@ -2496,6 +2501,8 @@ and so forth.  The remaining group tags are shown with
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
+	   (if (and (eq custom-buffer-style 'links) (> level 1))
+	       (widget-put widget :documentation-indent 0))
 	   (widget-default-format-handler widget ?h))
 	  ;; Nested style.
 	  (t				;Visible.
