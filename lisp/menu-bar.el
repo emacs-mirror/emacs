@@ -97,17 +97,24 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-tools-menu [separator-print]
   '("--"))
 
+(defvar menu-bar-print-menu (make-sparse-keymap "Print"))
+
+(define-key menu-bar-print-menu [ps-print-region]
+  '("Postscript Print Region" . ps-print-region-with-faces))
+(define-key menu-bar-print-menu [ps-print-buffer]
+  '("Postscript Print Buffer" . ps-print-buffer-with-faces))
+(define-key menu-bar-print-menu [separator-ps-print]
+  '("--"))
+(define-key menu-bar-print-menu [print-region]
+  '("Print Region" . print-region))
+(define-key menu-bar-print-menu [print-buffer]
+  '("Print Buffer" . print-buffer))
+
+(define-key menu-bar-tools-menu [print]
+  (cons "Print" menu-bar-print-menu))
+
 (put 'print-region 'menu-enable 'mark-active)
 (put 'ps-print-region-with-faces 'menu-enable 'mark-active)
-
-(define-key menu-bar-tools-menu [ps-print-region]
-  '("Postscript Print Region" . ps-print-region-with-faces))
-(define-key menu-bar-tools-menu [ps-print-buffer]
-  '("Postscript Print Buffer" . ps-print-buffer-with-faces))
-(define-key menu-bar-tools-menu [print-region]
-  '("Print Region" . print-region))
-(define-key menu-bar-tools-menu [print-buffer]
-  '("Print Buffer" . print-buffer))
 
 (define-key menu-bar-files-menu [exit-emacs]
   '("Exit Emacs" . save-buffers-kill-emacs))
