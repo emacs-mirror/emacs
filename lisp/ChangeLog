@@ -1,5 +1,8 @@
 2001-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* tar-mode.el (tar-extract): Pay attention to the value of
+	coding-system-for-read, if it is non-nil.
+
 	* calendar/holidays.el (holidays): Add an autoload cookie.  From
 	Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
