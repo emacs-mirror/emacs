@@ -205,6 +205,10 @@ extern int errno;
 #define LOAD_AVE_TYPE long
 #endif
 
+#if defined(alliant) && defined(i860) /* Alliant FX/2800 */
+#define LOAD_AVE_TYPE long
+#endif
+
 #endif /* No LOAD_AVE_TYPE.  */
 
 #ifdef OSF_ALPHA
@@ -239,6 +243,13 @@ extern int errno;
 #endif
 
 #ifdef tek4300
+#define FSCALE 100.0
+#endif
+
+#if defined(alliant) && defined(i860) /* Alliant FX/2800 */
+/* <sys/param.h> defines an incorrect value for FSCALE on an
+   Alliant FX/2800 Concentrix 2.2, according to ghazi@noc.rutgers.edu.  */
+#undef FSCALE
 #define FSCALE 100.0
 #endif
 
@@ -291,11 +302,15 @@ extern int errno;
 #define NLIST_STRUCT
 #endif
 
-#ifdef tex4300
+#ifdef tek4300
 #define NLIST_STRUCT
 #endif
 
 #ifdef butterfly
+#define NLIST_STRUCT
+#endif
+
+#if defined(alliant) && defined(i860) /* Alliant FX/2800 */
 #define NLIST_STRUCT
 #endif
 
