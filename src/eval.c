@@ -2089,7 +2089,8 @@ run_hook_with_args (nargs, args, cond)
      enum run_hooks_condition cond;
 {
   Lisp_Object sym, val, ret;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object globals;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   /* If we are dying or still initializing,
      don't do anything--it would probably crash if we tried.  */
@@ -2109,7 +2110,8 @@ run_hook_with_args (nargs, args, cond)
     }
   else
     {
-      GCPRO2 (sym, val);
+      globals = Qnil;
+      GCPRO3 (sym, val, globals);
 
       for (;
 	   CONSP (val) && ((cond == to_completion)
@@ -2121,7 +2123,6 @@ run_hook_with_args (nargs, args, cond)
 	    {
 	      /* t indicates this hook has a local binding;
 		 it means to run the global binding too.  */
-	      Lisp_Object globals;
 
 	      for (globals = Fdefault_value (sym);
 		   CONSP (globals) && ((cond == to_completion)
@@ -2163,10 +2164,12 @@ run_hook_list_with_args (funlist, nargs, args)
 {
   Lisp_Object sym;
   Lisp_Object val;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object globals;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   sym = args[0];
-  GCPRO2 (sym, val);
+  globals = Qnil;
+  GCPRO3 (sym, val, globals);
 
   for (val = funlist; CONSP (val); val = XCONS (val)->cdr)
     {
@@ -2174,7 +2177,6 @@ run_hook_list_with_args (funlist, nargs, args)
 	{
 	  /* t indicates this hook has a local binding;
 	     it means to run the global binding too.  */
-	  Lisp_Object globals;
 
 	  for (globals = Fdefault_value (sym);
 	       CONSP (globals);
