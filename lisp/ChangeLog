@@ -1,3 +1,7 @@
+2002-08-04  Andreas Schwab  <schwab@suse.de>
+
+	* net/tramp.el (tramp-perl-encode, tramp-perl-decode): Doc fix.
+
 2002-08-03  Andrew Choi  <akochoi@shaw.ca>
 
 	* term/mac-win.el: Set keys to enable mouse wheel support.
