@@ -662,8 +662,6 @@ This does a lot more highlighting.")
 
 (defvar shell-font-lock-keywords
   (list (cons shell-prompt-pattern 'font-lock-keyword-face)
-	(list (concat shell-prompt-pattern "\\([^ \t]+\\)")
-	      1 'font-lock-function-name-face)
 	'("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
 	'("^[^ \t]+:.*$" . font-lock-string-face)
 	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
@@ -687,6 +685,11 @@ This does a lot more highlighting.")
     ("^Subject: \\(.*\\)$" 1 font-lock-function-name-face))
   "Additional expressions to highlight in Rmail mode.")
 
+(defvar rmail-summary-font-lock-keywords
+  '(("^\\s *[0-9]+D.*$" . font-lock-doc-string-face)
+    ("^\\s *[0-9]+-.*$" . font-lock-keyword-face))
+  "Additional expressions to highlight in Rmail Summary mode.")
+
 (defvar compilation-mode-font-lock-keywords
   '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
 ;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
@@ -709,6 +712,8 @@ This does a lot more highlighting.")
 		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
 		  ((eq major-mode 'dired-mode)      dired-font-lock-keywords)
 		  ((eq major-mode 'rmail-mode)      rmail-font-lock-keywords)
+		  ((eq major-mode 'rmail-summary-mode)
+		   rmail-summary-font-lock-keywords)
 		  ((eq major-mode 'compilation-mode)
 		   compilation-mode-font-lock-keywords)
 		  (t nil)))))
