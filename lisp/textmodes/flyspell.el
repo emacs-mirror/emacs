@@ -1221,7 +1221,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
       (progn
 	(setq start (match-beginning 0)
 	      end (point)
-	      word (buffer-substring start end))
+	      word (buffer-substring-no-properties start end))
 	(list word start end)))))
 
 ;*---------------------------------------------------------------------*/
