@@ -1,6 +1,6 @@
 ;;; timer.el --- run a function with args at some time in future
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -41,7 +41,8 @@ the call to the function.  If REPEAT is nil, call it just once."
   (cond ((or (not timer-process) 
              (memq (process-status timer-process) '(exit signal nil)))
          (if timer-process (delete-process timer-process))
-         (setq timer-process (start-process "timer" nil "timer")
+         (setq timer-process (let ((process-connection-type nil))
+			       (start-process "timer" nil "timer"))
                timer-alist nil)
          (set-process-filter   timer-process 'timer-process-filter)
          (set-process-sentinel timer-process 'timer-process-sentinel)
