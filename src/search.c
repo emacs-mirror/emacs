@@ -2187,7 +2187,7 @@ since only regular expressions have distinguished subexpressions.")
      Lisp_Object newtext, fixedcase, literal, string, subexp;
 {
   enum { nochange, all_caps, cap_initial } case_action;
-  register int pos, last;
+  register int pos, pos_byte;
   int some_multiletter_word;
   int some_lowercase;
   int some_uppercase;
@@ -2237,18 +2237,16 @@ since only regular expressions have distinguished subexpressions.")
 
   if (NILP (fixedcase))
     {
-      int beg;
       /* Decide how to casify by examining the matched text. */
+      int last;
+
+      pos = search_regs.start[sub];
+      last = search_regs.end[sub];
 
       if (NILP (string))
-	last = CHAR_TO_BYTE (search_regs.end[sub]);
+	pos_byte = CHAR_TO_BYTE (pos);
       else
-	last = search_regs.end[sub];
-
-      if (NILP (string))
-	beg = CHAR_TO_BYTE (search_regs.start[sub]);
-      else
-	beg = search_regs.start[sub];
+	pos_byte = string_char_to_byte (string, pos);
 
       prevc = '\n';
       case_action = all_caps;
@@ -2260,12 +2258,15 @@ since only regular expressions have distinguished subexpressions.")
       some_nonuppercase_initial = 0;
       some_uppercase = 0;
 
-      for (pos = beg; pos < last; pos++)
+      while (pos < last)
 	{
 	  if (NILP (string))
-	    c = FETCH_BYTE (pos);
+	    {
+	      c = FETCH_CHAR (pos_byte);
+	      INC_BOTH (pos, pos_byte);
+	    }
 	  else
-	    c = XSTRING (string)->data[pos];
+	    FETCH_STRING_CHAR_ADVANCE (c, string, pos, pos_byte);
 
 	  if (LOWERCASEP (c))
 	    {
@@ -2329,11 +2330,11 @@ since only regular expressions have distinguished subexpressions.")
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
-	  int pos_byte;
+	  int length = STRING_BYTES (XSTRING (newtext));
 
 	  accum = Qnil;
 
-	  for (pos_byte = 0, pos = 0; pos_byte < STRING_BYTES (XSTRING (newtext));)
+	  for (pos_byte = 0, pos = 0; pos_byte < length;)
 	    {
 	      int substart = -1;
 	      int subend;
@@ -2425,16 +2426,19 @@ since only regular expressions have distinguished subexpressions.")
   else
     {
       struct gcpro gcpro1;
+      int length = STRING_BYTES (XSTRING (newtext));
+
       GCPRO1 (newtext);
 
-      for (pos = 0; pos < XSTRING (newtext)->size; pos++)
+      for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  int offset = PT - search_regs.start[sub];
 
-	  c = XSTRING (newtext)->data[pos];
+	  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+
 	  if (c == '\\')
 	    {
-	      c = XSTRING (newtext)->data[++pos];
+	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
 	      if (c == '&')
 		Finsert_buffer_substring
 		  (Fcurrent_buffer (),
