@@ -667,6 +667,7 @@ if it is bound, returns nil.  The resulting partial list is returned."
       (dabbrev-filter-elements
        buffer (buffer-list)
        (and (not (eq orig-buffer buffer))
+	    (not (dabbrev--ignore-buffer-p buffer))
 	    (boundp 'dabbrev-friend-buffer-function)
 	    (funcall dabbrev-friend-buffer-function buffer))))))
 
@@ -705,6 +706,17 @@ If IGNORE-CASE is non-nil, accept matches which differ in case."
 
 (defun dabbrev--scanning-message ()
   (message "Scanning `%s'" (buffer-name (current-buffer))))
+
+(defun dabbrev--ignore-buffer-p (buffer)
+  "Return non-nil if BUFFER should be ignored by dabbrev."
+  (let ((bn (buffer-name buffer)))
+    (or (member bn dabbrev-ignored-buffer-names)
+	(let ((tail dabbrev-ignored-buffer-regexps)
+	      (match nil))
+	  (while (and tail (not match))
+	    (setq match (string-match (car tail) bn)
+		  tail (cdr tail)))
+	  match))))
 
 (defun dabbrev--find-expansion (abbrev direction ignore-case)
   "Find one occurrence of ABBREV, and return the expansion.
@@ -776,16 +788,8 @@ of the start of the occurrence."
 		  (setq non-friend-buffer-list
 			(dabbrev-filter-elements
 			 buffer (buffer-list)
-			 (let ((bn (buffer-name buffer)))
-			   (and (not (member bn dabbrev-ignored-buffer-names))
-				(not (memq buffer dabbrev--friend-buffer-list))
-				(not
-				 (let ((tail dabbrev-ignored-buffer-regexps)
-				       (match nil))
-				   (while (and tail (not match))
-				     (setq match (string-match (car tail) bn)
-					   tail (cdr tail)))
-				   match)))))
+			 (and (not (memq buffer dabbrev--friend-buffer-list))
+			      (not (dabbrev--ignore-buffer-p buffer))))
 			dabbrev--friend-buffer-list
 			(append dabbrev--friend-buffer-list
 				non-friend-buffer-list)))))
