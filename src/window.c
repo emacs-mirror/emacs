@@ -654,6 +654,10 @@ coordinates_in_window (w, x, y)
 	    return ON_VERTICAL_BORDER;
 	}
 
+      /* Convert X and Y to window relative coordinates.
+	 Mode line starts at left edge of window.  */
+      *x -= x0;
+      *y -= top_y;
       return part;
     }
 
@@ -703,7 +707,13 @@ coordinates_in_window (w, x, y)
 	  && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	      ? (*x >= left_x + WINDOW_LEFT_FRINGE_WIDTH (w))
 	      : (*x < left_x + lmargin_width)))
-	return ON_LEFT_MARGIN;
+	{
+	  *x -= x0;
+	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    *x -= WINDOW_LEFT_FRINGE_WIDTH (w);
+	  *y -= top_y;
+	  return ON_LEFT_MARGIN;
+	}
 
       /* Convert X and Y to window-relative pixel coordinates.  */
       *x -= left_x;
@@ -717,7 +727,13 @@ coordinates_in_window (w, x, y)
 	  && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	      ? (*x < right_x - WINDOW_RIGHT_FRINGE_WIDTH (w))
 	      : (*x >= right_x - rmargin_width)))
-	return ON_RIGHT_MARGIN;
+	{
+	  *x -= right_x;
+	  if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    *x -= WINDOW_RIGHT_FRINGE_WIDTH (w);
+	  *y -= top_y;
+	  return ON_RIGHT_MARGIN;
+	}
 
       /* Convert X and Y to window-relative pixel coordinates.  */
       *x -= left_x + WINDOW_LEFT_FRINGE_WIDTH (w);
