@@ -1,3 +1,8 @@
+2001-04-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired-aux.el (dired-do-rename-regexp, dired-do-copy-regexp)
+	(dired-do-hardlink-regexp, dired-do-symlink-regexp): Doc fix.
+
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmail.el (rmail-message-regexp-p): Yet another fix.
