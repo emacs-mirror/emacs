@@ -58,7 +58,8 @@ the cursor move to after the first @samp{FO}.  After another @kbd{O}, the
 cursor is after the first @samp{FOO} after the place where you started the
 search.  At each step, the buffer text that matches the search string is
 highlighted, if the terminal can do that; at each step, the current search
-string is updated in the echo area.
+string is updated in the echo area.  Multilingual text can be input by
+toggling input methods with @kbd{C-\} or @kbd{C-^}.
 
   If you make a mistake in typing the search string, you can cancel
 characters with @key{DEL}.  Each @key{DEL} cancels the last character of

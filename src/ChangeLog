@@ -1,9 +1,17 @@
+2001-02-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_tool_bar_lines): Do nothing if frame is
+	minibuffer-only,
+
 2001-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fmodify_frame_parameters): Doc fix.
 
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.h (EMACS_FRAME_H_INCLUDED): Use an include blocker
+	identifier which is not reserved by Standard C.
+	
 	* frame.h (FRAME_RIGHT_SCROLL_BAR_WIDTH): New define.
 
 	* window.c (enum window_part): New enumeration.

@@ -1,3 +1,8 @@
+2001-02-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line): Fix code determining whether or not
+	to use delete-key-deletes-forward-mode.
+
 2001-02-01  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-switches): New user option.
