@@ -1580,10 +1580,9 @@ If point is on a group name, this function operates on that group."
   (format "%s" mode-name))
 
 (define-ibuffer-column process ()
-  (let ((proc (get-buffer-process buffer)))
-    (if proc 
-	(format "(%s %s)" proc (process-status proc))
-      "none")))
+  (ibuffer-aif (get-buffer-process buffer)
+      (format "(%s %s)" it (process-status it))
+    "none"))
 
 (define-ibuffer-column filename ()
   (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
