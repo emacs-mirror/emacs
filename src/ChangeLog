@@ -1,5 +1,7 @@
 2002-07-21  Ken Raeburn  <raeburn@gnu.org>
 
+	* sysdep.c (end_of_text, end_of_data): Unused functions deleted.
+
 	* buffer.c (mmap_realloc): When shrinking, make sure number of
 	pages to unmap is rounded towards zero.
 
