@@ -4813,7 +4813,7 @@ syms_of_xfns ()
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
-  Vx_bitmap_file_path = Fcons (build_string (PATH_BITMAPS), Qnil);
+  Vx_bitmap_file_path = decode_env_path ((char *) 0, PATH_BITMAPS);
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
     "The shape of the pointer when over text.\n\
