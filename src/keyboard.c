@@ -614,10 +614,11 @@ echo_char (c)
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
-	  if ((ptr - current_kboard->echobuf) + name->size + 4 > ECHOBUFSIZE)
+	  if ((ptr - current_kboard->echobuf) + name->size_byte + 4
+	      > ECHOBUFSIZE)
 	    return;
-	  bcopy (name->data, ptr, name->size);
-	  ptr += name->size;
+	  bcopy (name->data, ptr, name->size_byte);
+	  ptr += name->size_byte;
 	}
 
       if (current_kboard->echoptr == current_kboard->echobuf
@@ -681,7 +682,9 @@ echo_now ()
     }
 
   echoing = 1;
-  message1_nolog (current_kboard->echobuf);
+  message2_nolog (current_kboard->echobuf, strlen (current_kboard->echobuf),
+		  ! NILP (current_buffer->enable_multibyte_characters));
+
   echoing = 0;
 
   if (waiting_for_input && !NILP (Vquit_flag))
@@ -945,6 +948,14 @@ cmd_error (data)
   return make_number (0);
 }
 
+/* Take actions on handling an error.  DATA is the data that describes
+   the error.
+
+   CONTEXT is a C-string containing ASCII characters only which
+   describes the context in which the error happened.  If we need to
+   generalize CONTEXT to allow multibyte characters, make it a Lisp
+   string.  */
+
 void
 cmd_error_internal (data, context)
      Lisp_Object data;
@@ -1158,7 +1169,7 @@ command_loop_1 ()
 
 	  Fsit_for (make_number (2), Qnil, Qnil);
 	  /* Clear the echo area.  */
-	  message2 (0, 0);
+	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
 
 	  unbind_to (count, Qnil);
@@ -2177,13 +2188,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (XINT (c) == -1)
 	RETURN_UNGCPRO (c);
 
-      if (STRINGP (Vkeyboard_translate_table)
-	  && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
-      else if ((VECTORP (Vkeyboard_translate_table)
-		&& XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	       || (CHAR_TABLE_P (Vkeyboard_translate_table)
-		   && CHAR_TABLE_ORDINARY_SLOTS > (unsigned) XFASTINT (c)))
+      if ((STRINGP (Vkeyboard_translate_table)
+	   && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	  || (VECTORP (Vkeyboard_translate_table)
+	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
+	      && CHAR_TABLE_ORDINARY_SLOTS > (unsigned) XFASTINT (c)))
 	{
 	  Lisp_Object d;
 	  d = Faref (Vkeyboard_translate_table, c);
@@ -2366,7 +2376,7 @@ record_char (c)
 	    {
 	      putc ('<', dribble);
 	      fwrite (XSYMBOL (dribblee)->name->data, sizeof (char),
-		      XSYMBOL (dribblee)->name->size,
+		      XSYMBOL (dribblee)->name->size_byte,
 		      dribble);
 	      putc ('>', dribble);
 	    }
@@ -4328,7 +4338,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   modifiers = 0;
   name = XSYMBOL (symbol)->name;
 
-  for (i = 0; i+2 <= name->size; )
+  for (i = 0; i+2 <= name->size_byte; )
     {
       int this_mod_end = 0;
       int this_mod = 0;
@@ -4375,7 +4385,7 @@ parse_modifiers_uncached (symbol, modifier_end)
 
       /* Check there is a dash after the modifier, so that it
 	 really is a modifier.  */
-      if (this_mod_end >= name->size || name->data[this_mod_end] != '-')
+      if (this_mod_end >= name->size_byte || name->data[this_mod_end] != '-')
 	break;
 
       /* This modifier is real; look for another.  */
@@ -4386,7 +4396,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   /* Should we include the `click' modifier?  */
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
-      && i + 7 == name->size
+      && i + 7 == name->size_byte
       && strncmp (name->data + i, "mouse-", 6) == 0
       && ('0' <= name->data[i + 6] && name->data[i + 6] <= '9'))
     modifiers |= click_modifier;
@@ -4401,16 +4411,16 @@ parse_modifiers_uncached (symbol, modifier_end)
    prepended to the string BASE[0..BASE_LEN-1].
    This doesn't use any caches.  */
 static Lisp_Object
-apply_modifiers_uncached (modifiers, base, base_len)
+apply_modifiers_uncached (modifiers, base, base_len, base_len_byte)
      int modifiers;
      char *base;
-     int base_len;
+     int base_len, base_len_byte;
 {
   /* Since BASE could contain nulls, we can't use intern here; we have
      to use Fintern, which expects a genuine Lisp_String, and keeps a
      reference to it.  */
-  char *new_mods =
-    (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-double-triple-"));
+  char *new_mods
+    = (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-double-triple-"));
   int mod_len;
 
   {
@@ -4441,9 +4451,10 @@ apply_modifiers_uncached (modifiers, base, base_len)
   {
     Lisp_Object new_name;
 
-    new_name = make_uninit_string (mod_len + base_len);
+    new_name = make_uninit_multibyte_string (mod_len + base_len,
+					     mod_len + base_len_byte);
     bcopy (new_mods, XSTRING (new_name)->data,	       mod_len);
-    bcopy (base,     XSTRING (new_name)->data + mod_len, base_len);
+    bcopy (base,     XSTRING (new_name)->data + mod_len, base_len_byte);
 
     return Fintern (new_name, Qnil);
   }
@@ -4502,7 +4513,7 @@ parse_modifiers (symbol)
       Lisp_Object mask;
 
       unmodified = Fintern (make_string (XSYMBOL (symbol)->name->data + end,
-					 XSYMBOL (symbol)->name->size - end),
+					 XSYMBOL (symbol)->name->size_byte - end),
 			    Qnil);
 
       if (modifiers & ~(((EMACS_INT)1 << VALBITS) - 1))
@@ -4556,7 +4567,8 @@ apply_modifiers (modifiers, base)
       /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
 					     XSYMBOL (base)->name->data,
-					     XSYMBOL (base)->name->size);
+					     XSYMBOL (base)->name->size,
+					     XSYMBOL (base)->name->size_byte);
 
       /* Add the new symbol to the base's cache.  */
       entry = Fcons (index, new_symbol);
@@ -4804,11 +4816,11 @@ parse_solitary_modifier (symbol)
   switch (name->data[0])
     {
 #define SINGLE_LETTER_MOD(BIT)				\
-      if (name->size == 1)				\
+      if (name->size_byte == 1)				\
 	return BIT;
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
-      if (LEN == name->size				\
+      if (LEN == name->size_byte			\
 	  && ! strncmp (name->data, NAME, LEN))		\
 	return BIT;
 
@@ -5697,7 +5709,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
-  nlength = XSTRING (name)->size;
+  nlength = XSTRING (name)->size_byte;
   menu[nlength++] = ':';
   menu[nlength++] = ' ';
   menu[nlength] = 0;
@@ -5840,7 +5852,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	}
 
       /* Prompt with that and read response.  */
-      message1 (menu);
+      message2_nolog (menu, strlen (menu), 
+		      ! NILP (current_buffer->enable_multibyte_characters));
 
       /* Make believe its not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
@@ -6884,7 +6897,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  && ! key_translation_possible
 	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
-		< XSTRING (current_buffer->downcase_table)->size)
+		< XCHAR_TABLE (current_buffer->downcase_table)->size)
 	       && UPPERCASEP (XINT (key) & 0x3ffff))
 	      || (XINT (key) & shift_modifier)))
 	{
@@ -7222,7 +7235,6 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     struct Lisp_String *str;
     Lisp_Object *keys;
     int i;
-    Lisp_Object tem;
 
     this_command_key_count = 0;
     this_single_command_key_start = 0;
@@ -7233,13 +7245,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
     str = XSTRING (function);
     for (i = 0; i < str->size; i++)
-      {
-	XSETFASTINT (tem, str->data[i]);
-	add_command_key (tem);
-      }
+      add_command_key (Faref (function, make_number (i)));
 
-    XSETFASTINT (tem, '\015');
-    add_command_key (tem);
+    add_command_key (make_number ('\015'));
   }
 
   UNGCPRO;
@@ -7282,12 +7290,14 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
 	  newmessage
 	    = (char *) alloca (XSYMBOL (function)->name->size
-			       + XSTRING (binding)->size
+			       + XSTRING (binding)->size_byte
 			       + 100);
 	  sprintf (newmessage, "You can run the command `%s' with %s",
 		   XSYMBOL (function)->name->data,
 		   XSTRING (binding)->data);
-	  message1_nolog (newmessage);
+	  message2_nolog (newmessage,
+			  strlen (newmessage),
+			  STRING_MULTIBYTE (binding));
 	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
 				? Vsuggest_key_bindings : make_number (2)),
 			       Qnil, Qnil)))
@@ -7592,7 +7602,7 @@ stuff_buffered_input (stuffstring)
       register int count;
 
       p = XSTRING (stuffstring)->data;
-      count = XSTRING (stuffstring)->size;
+      count = XSTRING (stuffstring)->size_byte;
       while (count-- > 0)
 	stuff_char (*p++);
       stuff_char ('\n');
