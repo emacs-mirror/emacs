@@ -529,7 +529,6 @@ which will run faster and probably do exactly what you want."
 	(next-rotate-count 0)
 	(replace-count 0)
 	(lastrepl nil)			;Position after last match considered.
-	(match-again t)
 	(message
 	 (if query-flag
 	     (substitute-command-keys
@@ -556,7 +555,7 @@ which will run faster and probably do exactly what you want."
 		    (if (or (eq lastrepl (point))
 			    (and regexp-flag
 				 (eq lastrepl (match-beginning 0))
-				 (not match-again)))
+				 (eq lastrepl (match-end 0))))
 			(if (eobp)
 			    nil
 			  ;; Don't replace the null string 
@@ -565,13 +564,6 @@ which will run faster and probably do exactly what you want."
 			  (funcall search-function search-string nil t))
 		      t))
 
-	  ;; Save the data associated with the real match.
-	  (setq real-match-data (match-data))
-
-	  ;; Before we make the replacement, decide whether the search string
-	  ;; can match again just after this match.
-	  (if regexp-flag
-	      (setq match-again (looking-at search-string)))
 	  ;; If time for a change, advance to next replacement string.
 	  (if (and (listp replacements)
 		   (= next-rotate-count replace-count))
@@ -582,11 +574,11 @@ which will run faster and probably do exactly what you want."
 		(setq replacement-index (% (1+ replacement-index) (length replacements)))))
 	  (if (not query-flag)
 	      (progn
-		(store-match-data real-match-data)
 		(replace-match next-replacement nocasify literal)
 		(setq replace-count (1+ replace-count)))
 	    (undo-boundary)
 	    (let (done replaced key def)
+	      (setq real-match-data (match-data))
 	      ;; Loop reading commands until one of them sets done,
 	      ;; which means it has finished handling this occurrence.
 	      (while (not done)
@@ -658,12 +650,7 @@ which will run faster and probably do exactly what you want."
 		      ((eq def 'edit)
 		       (store-match-data
 			(prog1 (match-data)
-			  (save-excursion (recursive-edit))))
-		       ;; Before we make the replacement,
-		       ;; decide whether the search string
-		       ;; can match again just after this match.
-		       (if regexp-flag
-			   (setq match-again (looking-at search-string))))
+			  (save-excursion (recursive-edit)))))
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
 		       (store-match-data
