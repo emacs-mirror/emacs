@@ -4531,12 +4531,7 @@ x_connection_closed (display, error_message)
   sigunblock (sigmask (SIGALRM));
   TOTALLY_UNBLOCK_INPUT;
 
-  if (waiting_for_input)
-    {
-      message ("%s", error_message);
-      quit_throw_to_read_char ();
-    }
-
+  clear_waiting_for_input ();
   error ("%s", error_message);
 }
 
