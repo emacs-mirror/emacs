@@ -1,3 +1,9 @@
+2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* tar-mode.el (tar-next-line, tar-previous-line): Add doc string,
+	call the argument "arg" to match plain next-line and
+	previous-line.  From Kevin Ryde <user42@zip.com.au>.
+
 2002-02-19  Sam Steingold  <sds@gnu.org>
 
 	* mwheel.el (mouse-wheel-scroll-amount): Can specify different
