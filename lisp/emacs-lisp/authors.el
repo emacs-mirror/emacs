@@ -87,17 +87,39 @@ matches REGEXP, use ALIAS instead.  The special alias \"ignore\" means
 ignore that author.")
 
 
+(defvar authors-obsolete-files-regexps
+  '("vc-\\*\\.el$"
+    "spec.txt$"
+    "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
+  "List of regexps matching obsolete files.
+Changes to files matching one of the regexps in this list are not
+listed.")
+
+
+(defun authors-obsolete-file-p (file)
+  "Return non-nil if FILE is obsolete.
+FILE is considered obsolete if it matches on of the regular expressions
+from `authors-obsolete-files-regexps'."
+  (let (obsolete-p
+	(regexps authors-obsolete-files-regexps))
+    (while (and regexps (not obsolete-p))
+      (setq obsolete-p (string-match (car regexps) file)
+	    regexps (cdr regexps)))
+    obsolete-p))
+
+
 (defun authors-add (author file action table)
   "Record that AUTHOR worked on FILE.
 ACTION is a keyword symbol describing what he did.  Record file,
 author and what he did in hash table TABLE.  See the description of
 `authors-scan-change-log' for the structure of the hash table."
-  (let* ((value (gethash author table))
-	 (entry (assoc file value)))
-    (if (null entry)
-	(puthash author (cons (list file action) value) table)
-      (unless (memq action entry)
-	(nconc entry (list action))))))
+  (unless (authors-obsolete-file-p file)
+    (let* ((value (gethash author table))
+	   (entry (assoc file value)))
+      (if (null entry)
+	  (puthash author (cons (list file action) value) table)
+	(unless (memq action entry)
+	  (nconc entry (list action)))))))
 
 
 (defun authors-process-lines (program &rest args)
