@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#include "intervals.h"
 #include "puresize.h"
 #ifndef standalone
 #include "buffer.h"
@@ -175,6 +176,111 @@ xrealloc (block, size)
   if (!val && size) memory_full ();
   return val;
 }
+
+#ifdef USE_TEXT_PROPERTIES
+#define INTERVAL_BLOCK_SIZE \
+  ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
+
+struct interval_block
+  {
+    struct interval_block *next;
+    struct interval intervals[INTERVAL_BLOCK_SIZE];
+  };
+
+struct interval_block *interval_block;
+static int interval_block_index;
+
+INTERVAL interval_free_list;
+
+static void
+init_intervals ()
+{
+  interval_block
+    = (struct interval_block *) malloc (sizeof (struct interval_block));
+  interval_block->next = 0;
+  bzero (interval_block->intervals, sizeof interval_block->intervals);
+  interval_block_index = 0;
+  interval_free_list = 0;
+}
+
+#define INIT_INTERVALS init_intervals ()
+
+INTERVAL
+make_interval ()
+{
+  INTERVAL val;
+
+  if (interval_free_list)
+    {
+      val = interval_free_list;
+      interval_free_list = interval_free_list->parent;
+    }
+  else
+    {
+      if (interval_block_index == INTERVAL_BLOCK_SIZE)
+	{
+	  register struct interval_block *newi
+	    = (struct interval_block *) malloc (sizeof (struct interval_block));
+
+	  if (!newi)
+	    memory_full ();
+
+	  VALIDATE_LISP_STORAGE (newi, sizeof *newi);
+	  newi->next = interval_block;
+	  interval_block = newi;
+	  interval_block_index = 0;
+	}
+      val = &interval_block->intervals[interval_block_index++];
+    }
+  consing_since_gc += sizeof (struct interval);
+  RESET_INTERVAL (val);
+  return val;
+}
+
+static int total_free_intervals, total_intervals;
+
+/* Mark the pointers of one interval. */
+
+static void
+mark_interval (i)
+     register INTERVAL i;
+{
+  if (XMARKBIT (i->plist))
+    abort ();
+  mark_object (&i->plist);
+  XMARK (i->plist);
+}
+
+static void
+mark_interval_tree (tree)
+     register INTERVAL tree;
+{
+  if (XMARKBIT (tree->plist))
+    return;
+
+  traverse_intervals (tree, 1, &mark_interval);
+}
+
+#define MARK_INTERVAL_TREE(i) \
+  { if (!NULL_INTERVAL_P (i)) mark_interval_tree (i); }
+
+#define UNMARK_BALANCE_INTERVALS(i) \
+{                                   \
+   if (! NULL_INTERVAL_P (i))       \
+     {                              \
+       XUNMARK ((Lisp_Object) (i->parent)); \
+       i = balance_intervals (i);           \
+     } \
+}
+
+#else  /* no interval use */
+
+#define INIT_INTERVALS
+
+#define UNMARK_BALANCE_INTERVALS(i)
+#define MARK_INTERVAL_TREE(i)
+
+#endif /* no interval use */
 
 #ifdef LISP_FLOAT_TYPE
 /* Allocation of float cells, just like conses */
@@ -741,6 +847,7 @@ make_uninit_string (length)
     
   XSTRING (val)->size = length;
   XSTRING (val)->data[length] = 0;
+  INITIALIZE_INTERVAL (XSTRING (val), NULL_INTERVAL);
 
   return val;
 }
@@ -833,7 +940,7 @@ make_pure_string (data, length)
      int length;
 {
   register Lisp_Object new;
-  register int size = sizeof (int) + length + 1;
+  register int size = sizeof (int) + INTERVAL_PTR_SIZE + length + 1;
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
@@ -1302,6 +1409,7 @@ mark_object (objptr)
       {
 	register struct Lisp_String *ptr = XSTRING (obj);
 
+	MARK_INTERVAL_TREE (ptr->intervals);
 	if (ptr->size & MARKBIT)
 	  /* A large string.  Just set ARRAY_MARK_FLAG.  */
 	  ptr->size |= ARRAY_MARK_FLAG;
@@ -1488,6 +1596,8 @@ mark_buffer (buf)
   mark_object (&buffer->name);
   XMARK (buffer->name);
 
+  MARK_INTERVAL_TREE (buffer->intervals);
+
 #if 0
   mark_object (buffer->syntax_table);
 
@@ -1584,6 +1694,40 @@ gc_sweep ()
   }
 #endif /* LISP_FLOAT_TYPE */
 
+#ifdef USE_TEXT_PROPERTIES
+  /* Put all unmarked intervals on free list */
+  {
+    register struct interval_block *iblk;
+    register int lim = interval_block_index;
+    register int num_free = 0, num_used = 0;
+
+    interval_free_list = 0;
+
+    for (iblk = interval_block; iblk; iblk = iblk->next)
+      {
+	register int i;
+
+	for (i = 0; i < lim; i++)
+	  {
+	    if (! XMARKBIT (iblk->intervals[i].plist))
+	      {
+		iblk->intervals[i].parent = interval_free_list;
+		interval_free_list = &iblk->intervals[i];
+		num_free++;
+	      }
+	    else
+	      {
+		num_used++;
+		XUNMARK (iblk->intervals[i].plist);
+	      }
+	  }
+	lim = INTERVAL_BLOCK_SIZE;
+      }
+    total_intervals = num_used;
+    total_free_intervals = num_free;
+  }
+#endif /* USE_TEXT_PROPERTIES */
+
   /* Put all unmarked symbols on free list */
   {
     register struct symbol_block *sblk;
@@ -1670,6 +1814,7 @@ gc_sweep ()
       else
 	{
 	  XUNMARK (buffer->name);
+	  UNMARK_BALANCE_INTERVALS (buffer->intervals);
 
 #if 0
 	  /* Each `struct Lisp_String *' was turned into a Lisp_Object
@@ -1805,7 +1950,8 @@ compact_strings ()
 
 	      /* Copy the string itself to the new place.  */
 	      if (nextstr != newaddr)
-		bcopy (nextstr, newaddr, size + 1 + sizeof (int));
+		bcopy (nextstr, newaddr, size + 1 + sizeof (int)
+		       + INTERVAL_PTR_SIZE);
 
 	      /* Go through NEXTSTR's chain of references
 		 and make each slot in the chain point to
@@ -1882,6 +2028,8 @@ init_alloc_once ()
 #ifdef LISP_FLOAT_TYPE
   init_float ();
 #endif /* LISP_FLOAT_TYPE */
+  INIT_INTERVALS;
+
   ignore_warnings = 0;
   gcprolist = 0;
   staticidx = 0;
