@@ -692,6 +692,9 @@ unshow_buffer (w)
   if (XBUFFER (buf) != XMARKER (w->pointm)->buffer)
     abort ();
 
+  if (w == XWINDOW (XBUFFER (buf)->last_selected_window))
+    XBUFFER (buf)->last_selected_window = Qnil;
+
 #if 0
   if (w == XWINDOW (selected_window)
       || ! EQ (buf, XWINDOW (selected_window)->buffer))
@@ -1842,6 +1845,10 @@ BUFFER can be a buffer or buffer name.")
     }
 
   w->buffer = buffer;
+
+  if (EQ (window, selected_window))
+    XBUFFER (w->buffer)->last_selected_window = window;
+
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
   XSETFASTINT (w->hscroll, 0);
@@ -1917,6 +1924,8 @@ before each command.")
 
   record_buffer (w->buffer);
   Fset_buffer (w->buffer);
+
+  XBUFFER (w->buffer)->last_selected_window = window;
 
   /* Go to the point recorded in the window.
      This is important when the buffer is in more
@@ -3220,6 +3229,9 @@ delete_all_subwindows (w)
     delete_all_subwindows (XWINDOW (w->hchild));
 
   w->height = w->buffer;       /* See Fset_window_configuration for excuse.  */
+
+  if (!NILP (w->buffer))
+    unshow_buffer (w);
 
   /* We set all three of these fields to nil, to make sure that we can
      distinguish this dead window from any live window.  Live leaf
