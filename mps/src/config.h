@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.42) $
+ * $HopeName: MMsrc!config.h(trunk.43) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -148,13 +148,6 @@
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
  * "page" (i.e., segment granule) in the client arena.  It's set at 8192
  * with no particular justification.
- *
- * .segpref.default: ARENA_DEFAULT_SEG_HIGH is a Bool governing whether
- * segments default 'high' (TRUE) or 'low' (FALSE).  For EPcore, non-DL
- * segments should be high to reduce fragmentation of DL pools (see
- * request.epcore.170193).  ARENA_DEFAULT_REFSET has the same role for
- * refset-based placement; again, for EPcore, we reserve half the arena
- * for non-DL.
  */
 
 #define ARENA_CONTROL_EXTENDBY  ((Size)4096)
@@ -165,9 +158,20 @@
 #define ARENA_ZONESHIFT         ((Shift)20)
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
-#define ARENA_DEFAULT_SEG_HIGH          TRUE
-#define ARENA_DEFAULT_REFSET ((RefSet)-1 << (MPS_WORD_WIDTH / 2))
-/* @@@@ knows the implementation of RefSets */
+
+#define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
+/* @@@@ knows the implementation of ZoneSets */
+
+/* .segpref.default: For EPcore, non-DL segments should be placed high */
+/* to reduce fragmentation of DL pools (see request.epcore.170193). */
+#define SegPrefDEFAULT { \
+  SegPrefSig,          /* sig */ \
+  TRUE,                /* high */ \
+  ArenaDefaultZONESET, /* zoneSet */ \
+  FALSE,               /* isCollected */ \
+  FALSE,               /* isGen */ \
+  (Serial)0,           /* gen */ \
+}
 
 
 /* Stack configuration */
@@ -176,9 +180,9 @@
  * Intel platforms and only when using Microsoft build tools (builder.mv)
  */
 #if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
-#define STACK_PROBE_DEPTH       ((Word)500)
+#define StackProbeDEPTH ((Size)500)
 #else
-#define STACK_PROBE_DEPTH       ((Word)0)
+#define StackProbeDEPTH ((Size)0)
 #endif /* MPS_ARCH_I3 */
 
 
