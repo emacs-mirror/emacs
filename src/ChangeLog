@@ -1,6 +1,11 @@
+2004-04-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fgenerate_new_buffer_name): Return NAME argument if
+	IGNORE argument equals NAME.  Doc fix.
+
 2004-04-11  Masatake YAMATO  <jet@gyve.org>
 
-	* buffer.c (fix_start_end_in_overlays): make overlays 
+	* buffer.c (fix_start_end_in_overlays): make overlays
 	empty if they are backwards.
 
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
