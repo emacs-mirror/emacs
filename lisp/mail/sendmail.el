@@ -194,9 +194,13 @@ Prefix arg means don't delete this window."
   (interactive "P")
   (mail-send)
   (bury-buffer (current-buffer))
-  (if (or (one-window-p) arg)
-      (switch-to-buffer (other-buffer (current-buffer)))
-    (delete-window)))
+  (if (and (not arg)
+	   (not (one-window-p))
+	   (save-excursion
+	     (set-buffer (window-buffer (next-window (selected-window) 'not)))
+	     (eq major-mode 'rmail-mode)))
+      (delete-window)
+    (switch-to-buffer (other-buffer (current-buffer)))))
 
 (defun mail-send ()
   "Send the message in the current buffer.
