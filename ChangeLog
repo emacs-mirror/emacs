@@ -1,5 +1,11 @@
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* configure.in: AC_OUTPUT lispref/Makefile. 
+
+	* configure: Regenerated.
+
+2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	The following changes add the ELisp reference manual to the
 	distribution.
 
