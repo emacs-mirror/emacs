@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.93 $")
+(defconst byte-compile-version "$Revision: 2.94 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1249,12 +1249,13 @@ Files in subdirectories of DIRECTORY are processed also."
 This is if a `.elc' file exists but is older than the `.el' file.
 Files in subdirectories of DIRECTORY are processed also.
 
-If the `.elc' file does not exist, normally the `.el' file is *not* compiled.
-But a prefix argument (optional second arg) means ask user,
-for each such `.el' file, whether to compile it.  Prefix argument 0 means
-don't ask and compile the file anyway.
+If the `.elc' file does not exist, normally this function *does not*
+compile the corresponding `.el' file.  However,
+if ARG (the prefix argument) is 0, that means do compile all those files.
+A nonzero ARG means ask the user, for each such `.el' file,
+whether to compile it.
 
-A nonzero prefix argument also means ask about each subdirectory.
+A nonzero ARG also means ask about each subdirectory before scanning it.
 
 If the third argument FORCE is non-nil,
 recompile every `.el' file that already has a `.elc' file."
@@ -1581,13 +1582,13 @@ With argument, insert value in current buffer after the form."
 	(delete-region (point) (progn (re-search-forward "^(")
 				      (beginning-of-line)
 				      (point)))
-	(insert ";;; This file contains multibyte non-ASCII characters\n"
-		";;; and therefore cannot be loaded into Emacs 19.\n")
-	;; Replace "19" or "19.29" with "20", twice.
+	(insert ";;; This file contains utf-8 non-ASCII characters\n"
+		";;; and therefore cannot be loaded into Emacs 21 or earlier.\n")
+	;; Replace "19" or "19.29" with "22", twice.
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "22")
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "22")
 	;; Now compensate for the change in size,
 	;; to make sure all positions in the file remain valid.
 	(setq delta (- (point-max) old-header-end))
@@ -1602,7 +1603,7 @@ With argument, insert value in current buffer after the form."
     (set-buffer outbuffer)
     (goto-char 1)
     ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
-    ;; that is the file-format version number (18, 19 or 20) as a
+    ;; that is the file-format version number (18, 19, 20 or 22) as a
     ;; byte, followed by some nulls.  The primary motivation for doing
     ;; this is to get some binary characters up in the first line of
     ;; the file so that `diff' will simply say "Binary files differ"
@@ -1614,7 +1615,7 @@ With argument, insert value in current buffer after the form."
 
     (insert
      ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 21)
      "\000\000\000\n"
      )
     (insert ";;; Compiled by "
@@ -1673,7 +1674,7 @@ With argument, insert value in current buffer after the form."
 	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
 	   ;; can delete them so as to keep the buffer positions
 	   ;; constant for the actual compiled code.
-	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
+	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
       ;; Here if we want Emacs 18 compatibility.
       (when dynamic-docstrings
 	(error "Version-18 compatibility doesn't support dynamic doc strings"))
@@ -2978,6 +2979,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 mapconcat byte-compile-funarg)
 (byte-defop-compiler-1 mapc byte-compile-funarg)
 (byte-defop-compiler-1 sort byte-compile-funarg-2)
+(byte-defop-compiler-1 map-char-table byte-compile-funarg-2)
+;; map-charset-chars should be funarg but has optional third arg
 (byte-defop-compiler-1 let)
 (byte-defop-compiler-1 let*)
 
@@ -3626,7 +3629,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (or command-line-args-left
       (setq command-line-args-left '(".")))
   (while command-line-args-left
-    (byte-recompile-directory (car command-line-args-left) 0)
+    (byte-recompile-directory (car command-line-args-left))
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 
