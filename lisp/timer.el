@@ -51,7 +51,9 @@ fire repeatedly that many seconds apart."
       (error "Invalid timer"))
   (aset timer 1 (car time))
   (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
-  (aset timer 3 (if (consp (cdr time)) (nth 2 time) 0))
+  (aset timer 3 (or (and (consp (cdr time)) (consp (cdr (cdr time)))
+			 (nth 2 time))
+		    0))
   (aset timer 4 (and (numberp delta) (> delta 0) delta))
   timer)
 
@@ -216,7 +218,9 @@ fire repeatedly that many seconds apart."
 	  ;; Delete from queue.
 	  (cancel-timer timer)
 	  ;; Run handler
-	  (apply (aref timer 5) (aref timer 6))
+	  (condition-case nil
+	      (apply (aref timer 5) (aref timer 6))
+	    (error nil))
 	  ;; Re-schedule if requested.
 	  (if (aref timer 4)
 	      (if (aref timer 7)
@@ -391,7 +395,10 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 		  secs (+ secs (* count itemsize)))
 	  (setq secs nil
 		start (length string)))))
-    secs))
+    (if (= start (length string))
+	secs
+      (if (string-match "\\`[0-9.]+\\'" string)
+	  (string-to-number string)))))
 
 (provide 'timer)
 
