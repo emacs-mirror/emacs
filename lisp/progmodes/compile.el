@@ -1161,7 +1161,7 @@ exited abnormally with code %d\n"
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))
     (define-key map [stop-subjob]
-      '("Stop Compilation" . comint-interrupt-subjob))
+      '("Stop Compilation" . kill-compilation))
     (define-key map [compilation-mode-separator2]
       '("----" . nil))
     (define-key map [compilation-mode-first-error]
