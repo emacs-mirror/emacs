@@ -1155,7 +1155,19 @@ Interactively, empty argument means use same regexp used last time."
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (rmail-toggle-header)))
+    (rmail-toggle-header))
+  ;; Inside save-excursion, some changes to point in the RMAIL buffer are lost.
+  ;; Set point to point-min in the RMAIL buffer, if it is visible.
+  (let ((window (get-buffer-window rmail-buffer)))
+    (if window
+        ;; Using save-window-excursion would lose the new value of point.
+        (let ((owin (selected-window)))
+          (unwind-protect
+              (progn
+                (select-window window)
+                (goto-char (point-min)))
+            (select-window owin))))))
+
 
 (defun rmail-summary-add-label (label)
   "Add LABEL to labels associated with current Rmail message.
