@@ -1,3 +1,8 @@
+1999-10-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* ange-ftp.el (ange-ftp-insert-file-contents): Don't change
+	last-coding-system-used by the call of ange-ftp-set-ascii-mode.
+
 1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/advice.el (ad-activate-internal): Renamed from
