@@ -228,7 +228,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch			do not do interactive display; implies -q\n\
---script FILE           run FILE as an Emacs Lisp script.
+--script FILE           run FILE as an Emacs Lisp script.\n\
 --debug-init		enable Emacs Lisp debugger during init file\n\
 --help			display this help message and exit\n\
 --multibyte, --no-unibyte   run Emacs in multibyte mode\n\
