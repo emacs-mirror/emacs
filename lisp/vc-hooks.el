@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.112 1998/09/14 17:26:39 fx Exp kwzh $
+;; $Id: vc-hooks.el,v 1.113 1998/11/11 18:47:32 kwzh Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -879,15 +879,16 @@ For CVS, the full name of CVS/Entries is returned."
 	   (file-directory-p (concat dirname "CVS/"))
 	   (file-readable-p (concat dirname "CVS/Entries")))
       (let ((file (concat dirname basename))
-            ;; make sure that the file name is searched 
-            ;; case-sensitively
-            (case-fold-search nil)
             buffer)
 	(unwind-protect
 	    (save-excursion
 	      (setq buffer (set-buffer (get-buffer-create "*vc-info*")))
 	      (vc-insert-file (concat dirname "CVS/Entries"))
 	      (goto-char (point-min))
+	      ;; make sure that the file name is searched 
+	      ;; case-sensitively - case-fold-search is a buffer-local
+	      ;; variable, so setting it here won't affect any other buffers
+	      (setq case-fold-search nil)
 	      (cond
 	       ;; entry for a "locally added" file (not yet committed)
 	       ((re-search-forward
