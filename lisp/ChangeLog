@@ -1,3 +1,14 @@
+2002-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-intern): Downcase before interning.
+	(easy-menu-define-key-intern): Function deleted; callers intern
+	and then call easy-menu-define-key.
+	(easy-menu-do-add-item): Explicitly intern the key, but not BEFORE.
+	(easy-menu-define-key): Use easy-menu-name-match to match BEFORE.
+	(easy-menu-name-match): New function.
+	(add-submenu): New function.
+	(easy-menu-get-map-look-for-name): Use easy-menu-name-match.
+
 2002-04-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-adv-search-menu) 
