@@ -126,7 +126,7 @@ INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
 (defun skeleton-proxy (&optional str arg)
   "Insert skeleton defined by variable of same name (see `skeleton-insert').
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
-If no ARG was given, and the region is visible, it defaults to -1 depending
+If no ARG was given, but the region is visible, ARG defaults to -1 depending
 on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
 This command can also be an abbrev expansion (3rd and 4th columns in
 \\[edit-abbrevs]  buffer: \"\"  command-name).
@@ -158,7 +158,7 @@ ignored."
 			   (and skeleton-autowrap
 				(or (eq last-command 'mouse-drag-region)
 				    (and transient-mark-mode mark-active))
-			       -1)))
+				-1)))
 		       (if (stringp str)
 			   str))
       (and skeleton-abbrev-cleanup
@@ -396,32 +396,32 @@ automatically, and you are prompted to fill in the variable parts.")))
 
 
 ;; Maybe belongs into simple.el or elsewhere
-
-;;;(define-skeleton local-variables-section
-;;;  "Insert a local variables section.  Use current comment syntax if any."
-;;;  (completing-read "Mode: " obarray
-;;;		   (lambda (symbol)
-;;;		     (if (commandp symbol)
-;;;			 (string-match "-mode$" (symbol-name symbol))))
-;;;		   t)
-;;;  '(save-excursion
-;;;     (if (re-search-forward page-delimiter nil t)
-;;;	 (error "Not on last page.")))
-;;;  comment-start "Local Variables:" comment-end \n
-;;;  comment-start "mode: " str
-;;;  & -5 | '(kill-line 0) & -1 | comment-end \n
-;;;  ( (completing-read (format "Variable, %s: " skeleton-subprompt)
-;;;		     obarray
-;;;		     (lambda (symbol)
-;;;		       (or (eq symbol 'eval)
-;;;			   (user-variable-p symbol)))
-;;;		     t)
-;;;    comment-start str ": "
-;;;    (read-from-minibuffer "Expression: " nil read-expression-map nil
-;;;			  'read-expression-history) | _
-;;;    comment-end \n)
-;;;  resume:
-;;;  comment-start "End:" comment-end)
+;; ;###autoload
+;;; (define-skeleton local-variables-section
+;;  "Insert a local variables section.  Use current comment syntax if any."
+;;  (completing-read "Mode: " obarray
+;;		   (lambda (symbol)
+;;		     (if (commandp symbol)
+;;			 (string-match "-mode$" (symbol-name symbol))))
+;;		   t)
+;;  '(save-excursion
+;;     (if (re-search-forward page-delimiter nil t)
+;;	 (error "Not on last page.")))
+;;  comment-start "Local Variables:" comment-end \n
+;;  comment-start "mode: " str
+;;  & -5 | '(kill-line 0) & -1 | comment-end \n
+;;  ( (completing-read (format "Variable, %s: " skeleton-subprompt)
+;;		     obarray
+;;		     (lambda (symbol)
+;;		       (or (eq symbol 'eval)
+;;			   (user-variable-p symbol)))
+;;		     t)
+;;    comment-start str ": "
+;;    (read-from-minibuffer "Expression: " nil read-expression-map nil
+;;			  'read-expression-history) | _
+;;    comment-end \n)
+;;  resume:
+;;  comment-start "End:" comment-end)
 
 ;; Variables and command for automatically inserting pairs like () or "".
 
@@ -452,78 +452,79 @@ Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).
 (defun skeleton-pair-insert-maybe (arg)
   "Insert the character you type ARG times.
 
-With no ARG, if `skeleton-pair' is non-nil, and if
-`skeleton-pair-on-word' is non-nil or we are not before or inside a
+With no ARG, if `skeleton-pair' is non-nil, pairing can occur.  If the region
+is visible the pair is wrapped around it depending on `skeleton-autowrap'.
+Else, if `skeleton-pair-on-word' is non-nil or we are not before or inside a
 word, and if `skeleton-pair-filter' returns nil, pairing is performed.
 
 If a match is found in `skeleton-pair-alist', that is inserted, else
 the defaults are used.  These are (), [], {}, <> and `' for the
 symmetrical ones, and the same character twice for the others."
   (interactive "*P")
-  (if (or arg
-	  overwrite-mode
-	  (not skeleton-pair)
-	  (if (not skeleton-pair-on-word) (looking-at "\\w"))
-	  (funcall skeleton-pair-filter))
-      (self-insert-command (prefix-numeric-value arg))
-    (self-insert-command 1)
-    (if skeleton-abbrev-cleanup
-	()
-      ;; (preceding-char) is stripped of any Meta-stuff in last-command-char
-      (if (setq arg (assq (preceding-char) skeleton-pair-alist))
-	  ;; typed char is inserted (car is no real interactor)
-	  (let (skeleton-end-hook)
-	    (skeleton-insert arg))
-	(save-excursion
-	  (insert (or (cdr (assq (preceding-char)
-				 '((?( . ?))
-				   (?[ . ?])
-				   (?{ . ?})
-				   (?< . ?>)
-				   (?` . ?'))))
-		      last-command-char)))))))
+  (let ((mark (and skeleton-autowrap
+		   (or (eq last-command 'mouse-drag-region)
+		       (and transient-mark-mode mark-active))))
+	(skeleton-end-hook))
+    (if (or arg
+	    (not skeleton-pair)
+	    (and (not mark)
+		 (or overwrite-mode
+		     (if (not skeleton-pair-on-word) (looking-at "\\w"))
+		     (funcall skeleton-pair-filter))))
+	(self-insert-command (prefix-numeric-value arg))
+      (setq last-command-char (logand last-command-char 255))
+      (or skeleton-abbrev-cleanup
+	  (skeleton-insert
+	   (cons nil (or (assq last-command-char skeleton-pair-alist)
+			 (assq last-command-char '((?( _ ?))
+						   (?[ _ ?])
+						   (?{ _ ?})
+						   (?< _ ?>)
+						   (?` _ ?')))
+			 `(,last-command-char _ ,last-command-char)))
+	   (if mark -1))))))
 
 
-;;; A more serious example can be found in sh-script.el
-;;;(defun mirror-mode ()
+;; A more serious example can be found in sh-script.el
+;;; (defun mirror-mode ()
 ;;  "This major mode is an amusing little example of paired insertion.
 ;;All printable characters do a paired self insert, while the other commands
 ;;work normally."
 ;;  (interactive)
 ;;  (kill-all-local-variables)
-;;  (make-local-variable 'pair)
-;;  (make-local-variable 'pair-on-word)
-;;  (make-local-variable 'pair-filter)
-;;  (make-local-variable 'pair-alist)
+;;  (make-local-variable 'skeleton-pair)
+;;  (make-local-variable 'skeleton-pair-on-word)
+;;  (make-local-variable 'skeleton-pair-filter)
+;;  (make-local-variable 'skeleton-pair-alist)
 ;;  (setq major-mode 'mirror-mode
 ;;	mode-name "Mirror"
-;;	pair-on-word t
+;;	skeleton-pair-on-word t
 ;;	;; in the middle column insert one or none if odd window-width
-;;	pair-filter (lambda ()
-;;		      (if (>= (current-column)
-;;			      (/ (window-width) 2))
-;;			  ;; insert both on next line
-;;			  (next-line 1)
-;;			;; insert one or both?
-;;			(= (* 2 (1+ (current-column)))
-;;			   (window-width))))
+;;	skeleton-pair-filter (lambda ()
+;;			       (if (>= (current-column)
+;;				       (/ (window-width) 2))
+;;				   ;; insert both on next line
+;;				   (next-line 1)
+;;				 ;; insert one or both?
+;;				 (= (* 2 (1+ (current-column)))
+;;				    (window-width))))
 ;;	;; mirror these the other way round as well
-;;	pair-alist '((?) _ ?()
-;;		     (?] _ ?[)
-;;		     (?} _ ?{)
-;;		     (?> _ ?<)
-;;		     (?/ _ ?\\)
-;;		     (?\\ _ ?/)
-;;		     (?` ?` _ "''")
-;;		     (?' ?' _ "``"))
+;;	skeleton-pair-alist '((?) _ ?()
+;;			      (?] _ ?[)
+;;			      (?} _ ?{)
+;;			      (?> _ ?<)
+;;			      (?/ _ ?\\)
+;;			      (?\\ _ ?/)
+;;			      (?` ?` _ "''")
+;;			      (?' ?' _ "``"))
 ;;	;; in this mode we exceptionally ignore the user, else it's no fun
-;;	pair t)
-;;  (let ((map (make-keymap))
-;;	(i ? ))
-;;    (use-local-map map)
-;;    (setq map (car (cdr map)))
-;;    (while (< i ?\^?)
-;;      (aset map i 'skeleton-pair-insert-maybe)
+;;	skeleton-pair t)
+;;  (let ((map (make-vector 256 'skeleton-pair-insert-maybe))
+;;	(i 0))
+;;    (use-local-map `(keymap ,map))
+;;    (while (< i ? )
+;;      (aset map i nil)
+;;      (aset map (+ i 128) nil)
 ;;      (setq i (1+ i))))
 ;;  (run-hooks 'mirror-mode-hook))
 
