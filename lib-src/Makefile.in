@@ -131,7 +131,7 @@ ${archlibdir}: all
 	    cp $${file} ${archlibdir} ; \
 	    chmod 755 ${archlibdir}/$${file} ; \
 	  done ; \
-        fi
+	fi
 	@echo
 	@echo "Changing the owner and group of Emacs's utility programs to \`bin'."
 	@echo "(You may ignore errors here if you don't care about this.)"
@@ -148,11 +148,11 @@ install: ${archlibdir}
 	for file in ${INSTALLABLES} ; do \
 	  cp $${file} ${bindir}/$${file}.new ; \
 	  chmod 755 ${bindir}/$${file}.new ; \
-        done
+	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
 	  cp ${srcdir}/$${file} ${bindir}/$${file}.new ; \
 	  chmod 755 ${bindir}/$${file}.new ; \
-        done
+	done
 	@echo
 	@echo "Changing the owner and group of utility programs to \`bin'."
 	@echo "(You may ignore errors here if you don't care about this.)"
@@ -161,7 +161,7 @@ install: ${archlibdir}
 	  chown bin ${bindir}/$${file}.new ; \
 	  rm -f ${bindir}/$${file} ; \
 	  mv ${bindir}/$${file}.new ${bindir}/$${file} ; \
-        done
+	done
 
 uninstall:
 	(cd ${bindir}; \
@@ -205,9 +205,9 @@ test-distrib: ${srcdir}/test-distrib.c
 GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
 GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
 getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
-        ${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
+	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
-        ${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
+	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS)
 	$(CC) ${CPP_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
