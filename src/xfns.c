@@ -1789,7 +1789,9 @@ x_set_scroll_bar_width (f, arg, oldval)
 
 /* Subroutines of creating an X frame.  */
 
-/* Make sure that Vx_resource_name is set to a reasonable value.  */
+/* Make sure that Vx_resource_name is set to a reasonable value.
+   Fix it up, or set it to `emacs' if it is too hopeless.  */
+
 static void
 validate_x_resource_name ()
 {
@@ -1834,7 +1836,7 @@ validate_x_resource_name ()
   if (good_count == 0
       || (good_count == 1 && bad_count > 0))
     {
-      Vx_resource_name = make_string ("emacs", 5);
+      Vx_resource_name = build_string ("emacs");
       return;
     }
 
@@ -1873,7 +1875,6 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   register char *value;
   char *name_key;
   char *class_key;
-  Lisp_Object resname;
 
   check_x ();
 
@@ -1888,47 +1889,40 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
   validate_x_resource_name ();
-  resname = Vx_resource_name;
 
-  if (NILP (component))
+  /* Allocate space for the components, the dots which separate them,
+     and the final '\0'.  Make them big enough for the worst case.  */
+  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+			      + (STRINGP (component)
+				 ? XSTRING (component)->size : 0)
+			      + XSTRING (attribute)->size
+			      + 3);
+
+  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+			       + XSTRING (class)->size
+			       + (STRINGP (subclass)
+				  ? XSTRING (subclass)->size : 0)
+			       + 3);
+
+  /* Start with emacs.FRAMENAME for the name (the specific one)
+     and with `Emacs' for the class key (the general one).  */
+  strcpy (name_key, XSTRING (Vx_resource_name)->data);
+  strcpy (class_key, EMACS_CLASS);
+
+  strcat (class_key, ".");
+  strcat (class_key, XSTRING (class)->data);
+
+  if (!NILP (component))
     {
-      /* Allocate space for the components, the dots which separate them,
-	 and the final '\0'.  */
-      name_key = (char *) alloca (XSTRING (resname)->size
-				  + XSTRING (attribute)->size
-				  + 2);
-      class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-				   + XSTRING (class)->size
-				   + 2);
+      strcat (class_key, ".");
+      strcat (class_key, XSTRING (subclass)->data);
 
-      sprintf (name_key, "%s.%s",
-	       XSTRING (resname)->data,
-	       XSTRING (attribute)->data);
-      sprintf (class_key, "%s.%s",
-	       EMACS_CLASS,
-	       XSTRING (class)->data);
+      strcat (name_key, ".");
+      strcat (name_key, XSTRING (component)->data);
     }
-  else
-    {
-      name_key = (char *) alloca (XSTRING (resname)->size
-				  + XSTRING (component)->size
-				  + XSTRING (attribute)->size
-				  + 3);
 
-      class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-				   + XSTRING (class)->size
-				   + XSTRING (subclass)->size
-				   + 3);
-
-      sprintf (name_key, "%s.%s.%s",
-	       XSTRING (resname)->data,
-	       XSTRING (component)->data,
-	       XSTRING (attribute)->data);
-      sprintf (class_key, "%s.%s.%s",
-	       EMACS_CLASS,
-	       XSTRING (class)->data,
-	       XSTRING (subclass)->data);
-    }
+  strcat (name_key, ".");
+  strcat (name_key, XSTRING (attribute)->data);
 
   value = x_get_string_resource (check_x_display_info (Qnil)->xrdb,
 				 name_key, class_key);
@@ -2362,10 +2356,15 @@ x_window (f, window_prompting, minibuffer_only)
 
   BLOCK_INPUT;
 
+  /* Use the resource name as the top-level widget name
+     for looking up resources.  Make a non-Lisp copy
+     for the window manager, so GC relocation won't bother it.
+
+     Elsewhere we specify the window name for the window manager.  */
+     
   {
-    char *str
-      = (STRINGP (f->name) ? (char *)XSTRING (f->name)->data : "emacs");
-    f->namebuf = (char *) xrealloc (f->namebuf, strlen (str) + 1);
+    char *str = (char *) XSTRING (Vx_resource_name)->data;
+    f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -2472,6 +2471,7 @@ x_window (f, window_prompting, minibuffer_only)
   FRAME_X_WINDOW (f) = XtWindow (frame_widget); 
 
   validate_x_resource_name ();
+
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
@@ -2565,6 +2565,7 @@ x_window (f)
 		     attribute_mask, &attributes);
 
   validate_x_resource_name ();
+
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
@@ -2756,6 +2757,10 @@ This function is an internal primitive--use `make-frame' instead.")
 
   check_x ();
 
+  /* Use this general default value to start with
+     until we know if this frame has a specified name.  */
+  Vx_resource_name = Vinvocation_name;
+
   display = x_get_arg (parms, Qdisplay, 0, 0, 0);
   if (EQ (display, Qunbound))
     display = Qnil;
@@ -2771,6 +2776,9 @@ This function is an internal primitive--use `make-frame' instead.")
       && ! EQ (name, Qunbound)
       && ! NILP (name))
     error ("Invalid frame name--not a string or nil");
+
+  if (STRINGP (name))
+    Vx_resource_name = name;
 
   /* See if parent window is specified.  */
   parent = x_get_arg (parms, Qparent_id, NULL, NULL, number);
@@ -4559,10 +4567,13 @@ x_display_info_for_name (name)
 	return dpyinfo;
     }
 
+  /* Use this general default value to start with.  */
+  Vx_resource_name = Vinvocation_name;
+
   validate_x_resource_name ();
 
   dpyinfo = x_term_init (name, (unsigned char *)0,
-			 XSTRING (Vx_resource_name)->data);
+			 (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
     error ("X server %s not responding", XSTRING (name)->data);
@@ -4595,12 +4606,15 @@ terminate Emacs if we can't open the connection.")
   else
     xrm_option = (unsigned char *) 0;
 
+  /* Use this general default value to start with.  */
+  Vx_resource_name = Vinvocation_name;
+
   validate_x_resource_name ();
 
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = x_term_init (display, xrm_option,
-			 XSTRING (Vx_resource_name)->data);
+			 (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
     {
