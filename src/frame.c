@@ -2104,14 +2104,19 @@ If FRAME is nil, describe the currently selected frame.")
   
   if (FRAME_LIVE_P (f))
     {
-      value = Fassq (parameter, f->param_alist);
-      if (CONSP (value))
-	value = XCDR (value);
-      else if (EQ (parameter, Qdisplay_type))
-	/* Avoid consing in a frequent case.  */
-	value = Qnil;
+      if (EQ (parameter, Qname))
+	value = f->name;
       else
-	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
+	{
+	  value = Fassq (parameter, f->param_alist);
+	  if (CONSP (value))
+	    value = XCDR (value);
+	  else if (EQ (parameter, Qdisplay_type))
+	    /* Avoid consing in a frequent case.  */
+	    value = Qnil;
+	  else
+	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
+	}
     }
   
   return value;
