@@ -1,18 +1,19 @@
 ;;; mh-loaddefs.el --- automatically extracted autoloads
 ;;
-;;; Copyright (C) 2003 Free Software Foundation, Inc.
+;;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 ;;; Author: Bill Wohler <wohler@newt.com>
 ;;; Keywords: mail
 ;;; Commentary:
 ;;; Change Log:
 ;;; Code:
 
-;;;### (autoloads (mh-letter-complete mh-open-line mh-fully-kill-draft
-;;;;;;  mh-yank-cur-msg mh-insert-letter mh-send-letter mh-check-whom
-;;;;;;  mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
+;;;### (autoloads (mh-letter-previous-header-field mh-letter-next-header-field-or-indent
+;;;;;;  mh-beginning-of-word mh-complete-word mh-open-line mh-fully-kill-draft
+;;;;;;  mh-yank-cur-msg mh-insert-letter mh-send-letter mh-insert-auto-fields
+;;;;;;  mh-check-whom mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
 ;;;;;;  mh-send-other-window mh-send mh-reply mh-redistribute mh-forward
 ;;;;;;  mh-extract-rejected-mail mh-edit-again) "mh-comp" "mh-comp.el"
-;;;;;;  (16040 52697))
+;;;;;;  (16625 53169))
 ;;; Generated autoloads from mh-comp.el
 
 (autoload (quote mh-edit-again) "mh-comp" "\
@@ -29,13 +30,11 @@ See also documentation for `\\[mh-send]' function." t nil)
 
 (autoload (quote mh-forward) "mh-comp" "\
 Forward messages to the recipients TO and CC.
-Use optional MSG-OR-SEQ argument to specify a message or sequence to forward.
+Use optional RANGE argument to specify a message or sequence to forward.
 Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is forwarded.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 See also documentation for `\\[mh-send]' function." t nil)
 
@@ -104,6 +103,14 @@ called, with no arguments, before the signature is actually inserted." t nil)
 (autoload (quote mh-check-whom) "mh-comp" "\
 Verify recipients of the current letter, showing expansion of any aliases." t nil)
 
+(autoload (quote mh-insert-auto-fields) "mh-comp" "\
+Insert custom fields if To or Cc match `mh-auto-fields-list'.
+Sets buffer-local `mh-insert-auto-fields-done-local' when done and inserted
+something.  If NON-INTERACTIVE is non-nil, do not be verbose and only
+attempt matches if `mh-insert-auto-fields-done-local' is nil.
+
+An `identity' entry is skipped if one was already entered manually." t nil)
+
 (autoload (quote mh-send-letter) "mh-comp" "\
 Send the draft letter in the current buffer.
 If optional prefix argument ARG is provided, monitor delivery.
@@ -143,16 +150,26 @@ Insert a newline and leave point after it.
 In addition, insert newline and quoting characters before text after point.
 This is useful in breaking up paragraphs in replies." t nil)
 
-(autoload (quote mh-letter-complete) "mh-comp" "\
-Perform completion on header field or word preceding point.
-Alias completion is done within the mail header on selected fields and
-by the function designated by `mh-letter-complete-function' elsewhere,
-passing the prefix ARG if any." t nil)
+(autoload (quote mh-complete-word) "mh-comp" "\
+Complete WORD at from CHOICES.
+Any match found replaces the text from BEGIN to END." nil nil)
+
+(autoload (quote mh-beginning-of-word) "mh-comp" "\
+Return position of the N th word backwards." nil nil)
+
+(autoload (quote mh-letter-next-header-field-or-indent) "mh-comp" "\
+Move to next field or indent depending on point.
+In the message header, go to the next field. Elsewhere call
+`indent-relative' as usual with optional prefix ARG." t nil)
+
+(autoload (quote mh-letter-previous-header-field) "mh-comp" "\
+Cycle to the previous header field.
+If we are at the first header field go to the start of the message body." t nil)
 
 ;;;***
 
 ;;;### (autoloads (mh-customize) "mh-customize" "mh-customize.el"
-;;;;;;  (16040 52697))
+;;;;;;  (16625 53481))
 ;;; Generated autoloads from mh-customize.el
 
 (autoload (quote mh-customize) "mh-customize" "\
@@ -163,7 +180,7 @@ are removed." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-goto-cur-msg mh-update-sequences mh-folder-line-matches-show-buffer-p)
-;;;;;;  "mh-e" "mh-e.el" (16040 52698))
+;;;;;;  "mh-e" "mh-e.el" (16627 18152))
 ;;; Generated autoloads from mh-e.el
 
 (autoload (quote mh-folder-line-matches-show-buffer-p) "mh-e" "\
@@ -186,7 +203,7 @@ recenter the folder buffer." nil nil)
 ;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-print-msg mh-page-digest-backwards
 ;;;;;;  mh-page-digest mh-pipe-msg mh-pack-folder mh-list-folders
 ;;;;;;  mh-kill-folder mh-copy-msg mh-burst-digest) "mh-funcs" "mh-funcs.el"
-;;;;;;  (16040 52698))
+;;;;;;  (16625 54011))
 ;;; Generated autoloads from mh-funcs.el
 
 (autoload (quote mh-burst-digest) "mh-funcs" "\
@@ -195,18 +212,18 @@ The message is replaced by its table of contents and the messages from the
 digest are inserted into the folder after that message." t nil)
 
 (autoload (quote mh-copy-msg) "mh-funcs" "\
-Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is copied.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence." t nil)
+Copy the specified RANGE to another FOLDER without deleting them.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use." t nil)
 
 (autoload (quote mh-kill-folder) "mh-funcs" "\
 Remove the current folder and all included messages.
 Removes all of the messages (files) within the specified current folder,
-and then removes the folder (directory) itself." t nil)
+and then removes the folder (directory) itself.
+The value of `mh-kill-folder-suppress-prompt-hook' is a list of functions to
+be called, with no arguments, which should return a value of non-nil if
+verification is not desired." t nil)
 
 (autoload (quote mh-list-folders) "mh-funcs" "\
 List mail folders." t nil)
@@ -229,13 +246,10 @@ Advance displayed message to next digested message." t nil)
 Back up displayed message to previous digested message." t nil)
 
 (autoload (quote mh-print-msg) "mh-funcs" "\
-Print MSG-OR-SEQ on printer.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is printed.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+Print RANGE on printer.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 The variable `mh-lpr-command-format' is used to generate the print command.
 The messages are formatted by mhl. See the variable `mhl-formfile'." t nil)
@@ -274,7 +288,7 @@ Display cheat sheet for the commands of the current prefix in minibuffer." t nil
 ;;;***
 
 ;;;### (autoloads (mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16040 52698))
+;;;;;;  "mh-identity" "mh-identity.el" (16625 54171))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
@@ -292,8 +306,8 @@ Edit the `mh-identity-list' variable to define identity." t nil)
 
 ;;;***
 
-;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16040
-;;;;;;  52698))
+;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16625
+;;;;;;  54212))
 ;;; Generated autoloads from mh-inc.el
 
 (autoload (quote mh-inc-spool-list-set) "mh-inc" "\
@@ -304,12 +318,15 @@ This is called after 'customize is used to alter `mh-inc-spool-list'." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-index-choose mh-namazu-execute-search mh-swish++-execute-search
-;;;;;;  mh-swish-execute-search mh-index-new-messages mh-glimpse-execute-search
-;;;;;;  mh-index-execute-commands mh-index-update-unseen mh-index-visit-folder
-;;;;;;  mh-index-delete-folder-headers mh-index-group-by-folder mh-index-insert-folder-headers
-;;;;;;  mh-index-previous-folder mh-index-next-folder mh-index-parse-search-regexp
-;;;;;;  mh-index-do-search mh-index-search mh-index-update-maps)
-;;;;;;  "mh-index" "mh-index.el" (16040 52698))
+;;;;;;  mh-swish-execute-search mh-index-ticked-messages mh-index-new-messages
+;;;;;;  mh-index-sequenced-messages mh-glimpse-execute-search mh-index-delete-from-sequence
+;;;;;;  mh-index-add-to-sequence mh-index-execute-commands mh-index-update-unseen
+;;;;;;  mh-index-visit-folder mh-index-delete-folder-headers mh-index-group-by-folder
+;;;;;;  mh-index-insert-folder-headers mh-index-previous-folder mh-index-next-folder
+;;;;;;  mh-index-parse-search-regexp mh-index-do-search mh-index-p
+;;;;;;  mh-index-read-data mh-index-search mh-index-create-sequences
+;;;;;;  mh-create-sequence-map mh-index-update-maps) "mh-index" "mh-index.el"
+;;;;;;  (16625 54348))
 ;;; Generated autoloads from mh-index.el
 
 (autoload (quote mh-index-update-maps) "mh-index" "\
@@ -318,6 +335,14 @@ As a side effect msg -> checksum map is updated. Optional argument ORIGIN-MAP
 is a hashtable which maps each message in the index folder to the original
 folder and message from whence it was copied. If present the
 checksum -> (origin-folder, origin-index) map is updated too." nil nil)
+
+(autoload (quote mh-create-sequence-map) "mh-index" "\
+Return a map from msg number to list of sequences in which it is present.
+SEQ-LIST is an assoc list whose keys are sequence names and whose cdr is the
+list of messages in that sequence." nil nil)
+
+(autoload (quote mh-index-create-sequences) "mh-index" "\
+Mirror sequences present in source folders in index folder." nil nil)
 
 (autoload (quote mh-index-search) "mh-index" "\
 Perform an indexed search in an MH mail folder.
@@ -328,8 +353,7 @@ index search, then the search is repeated. Otherwise, FOLDER is searched with
 SEARCH-REGEXP and the results are presented in an MH-E folder. If FOLDER is
 \"+\" then mail in all folders are searched. Optional argument WINDOW-CONFIG
 stores the window configuration that will be restored after the user quits the
-folder containing the index search results. If optional argument UNSEEN-FLAG
-is non-nil, then all the messages are marked as unseen.
+folder containing the index search results.
 
 Four indexing programs are supported; if none of these are present, then grep
 is used. This function picks the first program that is available on your
@@ -360,6 +384,12 @@ procmail recipe should avoid this:
   | formail -R \"X-MHE-Checksum\" \"Old-X-MHE-Checksum\"
 
 This has the effect of renaming already present X-MHE-Checksum headers." t nil)
+
+(autoload (quote mh-index-read-data) "mh-index" "\
+Read index data from file." nil nil)
+
+(autoload (quote mh-index-p) "mh-index" "\
+Non-nil means that this folder was generated by an index search." nil nil)
 
 (autoload (quote mh-index-do-search) "mh-index" "\
 Construct appropriate regexp and call `mh-index-search'." t nil)
@@ -402,6 +432,16 @@ The copies in the searched folder are then deleted/refiled to get the desired
 result. Before deleting the messages we make sure that the message being
 deleted is identical to the one that the user has marked in the index buffer." nil nil)
 
+(autoload (quote mh-index-add-to-sequence) "mh-index" "\
+Add to SEQ the messages in the list MSGS.
+This function updates the source folder sequences. Also makes an attempt to
+update the source folder buffer if we have it open." nil nil)
+
+(autoload (quote mh-index-delete-from-sequence) "mh-index" "\
+Delete from SEQ the messages in MSGS.
+This function updates the source folder sequences. Also makes an attempt to
+update the source folder buffer if present." nil nil)
+
 (autoload (quote mh-glimpse-execute-search) "mh-index" "\
 Execute glimpse and read the results.
 
@@ -435,12 +475,29 @@ daily from cron:
 
 FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search." nil nil)
 
-(autoload (quote mh-index-new-messages) "mh-index" "\
-Display new messages.
-All messages in the `mh-unseen-seq' sequence from FOLDERS are displayed.
+(autoload (quote mh-index-sequenced-messages) "mh-index" "\
+Display messages from FOLDERS in SEQUENCE.
 By default the folders specified by `mh-index-new-messages-folders' are
 searched. With a prefix argument, enter a space-separated list of folders, or
-nothing to search all folders." t nil)
+nothing to search all folders.
+
+Argument SEQUENCE defaults to `mh-unseen-seq' and is the sequence that the
+function searches for in each of the FOLDERS. With a prefix argument, enter a
+sequence to use." t nil)
+
+(autoload (quote mh-index-new-messages) "mh-index" "\
+Display unseen messages.
+All messages in the `unseen' sequence from FOLDERS are displayed.
+By default the folders specified by `mh-index-new-messages-folders'
+are searched. With a prefix argument, enter a space-separated list of
+folders, or nothing to search all folders." t nil)
+
+(autoload (quote mh-index-ticked-messages) "mh-index" "\
+Display ticked messages.
+All messages in the `tick' sequence from FOLDERS are displayed.
+By default the folders specified by `mh-index-ticked-messages-folders'
+are searched. With a prefix argument, enter a space-separated list of
+folders, or nothing to search all folders." t nil)
 
 (autoload (quote mh-swish-execute-search) "mh-index" "\
 Execute swish-e and read the results.
@@ -564,17 +621,14 @@ system." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-junk-whitelist mh-junk-blacklist) "mh-junk"
-;;;;;;  "mh-junk.el" (16040 52698))
+;;;;;;  "mh-junk.el" (16625 54386))
 ;;; Generated autoloads from mh-junk.el
 
 (autoload (quote mh-junk-blacklist) "mh-junk" "\
-Blacklist MSG-OR-SEQ as spam.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is blacklisted.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+Blacklist RANGE as spam.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 First the appropriate function is called depending on the value of
 `mh-junk-choice'. Then if `mh-junk-mail-folder' is a string then the message is
@@ -591,13 +645,10 @@ for the different spam fighting programs:
   - `mh-spamassassin-blacklist'" t nil)
 
 (autoload (quote mh-junk-whitelist) "mh-junk" "\
-Whitelist MSG-OR-SEQ incorrectly classified as spam.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is whitelisted.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+Whitelist RANGE incorrectly classified as spam.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 First the appropriate function is called depending on the value of
 `mh-junk-choice'. Then the message is refiled to `mh-inbox'.
@@ -616,7 +667,7 @@ setting `mh-junk-choice' is not recommended." t nil)
 ;;;;;;  mh-mml-to-mime mh-mhn-directive-present-p mh-revert-mhn-edit
 ;;;;;;  mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-compressed-tar
 ;;;;;;  mh-mhn-compose-anon-ftp mh-mhn-compose-insertion mh-compose-forward
-;;;;;;  mh-compose-insertion) "mh-mime" "mh-mime.el" (16040 52699))
+;;;;;;  mh-compose-insertion) "mh-mime" "mh-mime.el" (16625 54523))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -792,7 +843,7 @@ Toggle display of the raw MIME part." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-do-search mh-pick-do-search mh-do-pick-search
-;;;;;;  mh-search-folder) "mh-pick" "mh-pick.el" (16040 52699))
+;;;;;;  mh-search-folder) "mh-pick" "mh-pick.el" (16625 54571))
 ;;; Generated autoloads from mh-pick.el
 
 (autoload (quote mh-search-folder) "mh-pick" "\
@@ -822,16 +873,19 @@ indexing program specified in `mh-index-program' is used." t nil)
 
 ;;;***
 
-;;;### (autoloads (mh-narrow-to-tick mh-toggle-tick mh-notate-tick
-;;;;;;  mh-thread-refile mh-thread-delete mh-thread-ancestor mh-thread-previous-sibling
+;;;### (autoloads (mh-narrow-to-tick mh-toggle-tick mh-thread-refile
+;;;;;;  mh-thread-delete mh-thread-ancestor mh-thread-previous-sibling
 ;;;;;;  mh-thread-next-sibling mh-thread-forget-message mh-toggle-threads
-;;;;;;  mh-thread-add-spaces mh-thread-inc mh-delete-subject-or-thread
-;;;;;;  mh-delete-subject mh-narrow-to-subject mh-region-to-msg-list
-;;;;;;  mh-interactive-msg-or-seq mh-msg-or-seq-to-msg-list mh-iterate-on-msg-or-seq
-;;;;;;  mh-iterate-on-messages-in-region mh-add-to-sequence mh-notate-cur
-;;;;;;  mh-notate-seq mh-map-to-seq-msgs mh-rename-seq mh-widen mh-put-msg-in-seq
-;;;;;;  mh-narrow-to-seq mh-msg-is-in-seq mh-list-sequences mh-delete-seq)
-;;;;;;  "mh-seq" "mh-seq.el" (16040 52700))
+;;;;;;  mh-thread-add-spaces mh-thread-update-scan-line-map mh-thread-inc
+;;;;;;  mh-delete-subject-or-thread mh-delete-subject mh-narrow-to-range
+;;;;;;  mh-narrow-to-to mh-narrow-to-cc mh-narrow-to-from mh-narrow-to-subject
+;;;;;;  mh-region-to-msg-list mh-interactive-range mh-range-to-msg-list
+;;;;;;  mh-iterate-on-range mh-iterate-on-messages-in-region mh-add-to-sequence
+;;;;;;  mh-notate-cur mh-notate-seq mh-map-to-seq-msgs mh-rename-seq
+;;;;;;  mh-translate-range mh-read-range mh-read-seq-default mh-notate-deleted-and-refiled
+;;;;;;  mh-widen mh-put-msg-in-seq mh-narrow-to-seq mh-msg-is-in-seq
+;;;;;;  mh-list-sequences mh-delete-seq) "mh-seq" "mh-seq.el" (16625
+;;;;;;  54690))
 ;;; Generated autoloads from mh-seq.el
 
 (autoload (quote mh-delete-seq) "mh-seq" "\
@@ -849,16 +903,64 @@ Restrict display of this folder to just messages in SEQUENCE.
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-put-msg-in-seq) "mh-seq" "\
-Add MSG-OR-SEQ to SEQUENCE.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is added to the sequence.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence." t nil)
+Add RANGE to SEQUENCE.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use." t nil)
 
 (autoload (quote mh-widen) "mh-seq" "\
-Remove restrictions from current folder, thereby showing all messages." t nil)
+Remove last restriction from current folder.
+If optional prefix argument ALL-FLAG is non-nil, then unwind to the beginning
+of the view stack thereby showing all messages that the buffer originally
+contained." t nil)
+
+(autoload (quote mh-notate-deleted-and-refiled) "mh-seq" "\
+Notate messages marked for deletion or refiling.
+Messages to be deleted are given by `mh-delete-list' while messages to be
+refiled are present in `mh-refile-list'." nil nil)
+
+(autoload (quote mh-read-seq-default) "mh-seq" "\
+Read and return sequence name with default narrowed or previous sequence.
+PROMPT is the prompt to use when reading. If NOT-EMPTY is non-nil then a
+non-empty sequence is read." nil nil)
+
+(autoload (quote mh-read-range) "mh-seq" "\
+Read a message range with PROMPT.
+
+If FOLDER is non-nil then a range is read from that folder, otherwise use
+`mh-current-folder'.
+
+If DEFAULT is a string then use that as default range to return. If DEFAULT is
+nil then ask user with default answer a range based on the sequences that seem
+relevant. Finally if DEFAULT is t, try to avoid prompting the user. Unseen
+messages, if present, are returned. If the folder has fewer than
+`mh-large-folder' messages then \"all\" messages are returned. Finally as a
+last resort prompt the user.
+
+If EXPAND-FLAG is non-nil then a list of message numbers corresponding to the
+input is returned. If this list is empty then an error is raised. If
+EXPAND-FLAG is nil just return the input string. In this case we don't check
+if the range is empty.
+
+If ASK-FLAG is non-nil, then the user is always queried for a range of
+messages. If ASK-FLAG is nil, then the function checks if the unseen sequence
+is non-empty. If that is the case, `mh-unseen-seq', or the list of messages in
+it depending on the value of EXPAND, is returned. Otherwise if the folder has
+fewer than `mh-large-folder' messages then the list of messages corresponding
+to \"all\" is returned. If neither of the above holds then as a last resort
+the user is queried for a range of messages.
+
+If NUMBER-AS-RANGE-FLAG is non-nil, then if a number, N is read as input, it
+is interpreted as the range \"last:N\".
+
+This function replaces the existing function `mh-read-msg-range'. Calls to:
+  (mh-read-msg-range folder flag)
+should be replaced with:
+  (mh-read-range \"Suitable prompt\" folder t nil flag
+                 mh-interpret-number-as-range-flag)" nil nil)
+
+(autoload (quote mh-translate-range) "mh-seq" "\
+In FOLDER, translate the string EXPR to a list of messages numbers." nil nil)
 
 (autoload (quote mh-rename-seq) "mh-seq" "\
 Rename SEQUENCE to have NEW-NAME." t nil)
@@ -888,39 +990,66 @@ till END. In each step BODY is executed.
 
 If VAR is nil then the loop is executed without any binding." nil (quote macro))
 
-(autoload (quote mh-iterate-on-msg-or-seq) "mh-seq" "\
+(autoload (quote mh-iterate-on-range) "mh-seq" "\
 Iterate an operation over a region or sequence.
 
-VAR is bound to each message in turn in a loop over MSG-OR-SEQ, which can be a
-message number, a list of message numbers, a sequence, or a region in a cons
-cell. In each iteration, BODY is executed.
+VAR is bound to each message in turn in a loop over RANGE, which can be a
+message number, a list of message numbers, a sequence, a region in a cons
+cell, or a MH range (something like last:20) in a string. In each iteration,
+BODY is executed.
 
-The parameter MSG-OR-SEQ is usually created with `mh-interactive-msg-or-seq'
+The parameter RANGE is usually created with `mh-interactive-range'
 in order to provide a uniform interface to MH-E functions." nil (quote macro))
 
-(autoload (quote mh-msg-or-seq-to-msg-list) "mh-seq" "\
-Return a list of messages for MSG-OR-SEQ.
-MSG-OR-SEQ can be a message number, a list of message numbers, a sequence, or
+(autoload (quote mh-range-to-msg-list) "mh-seq" "\
+Return a list of messages for RANGE.
+RANGE can be a message number, a list of message numbers, a sequence, or
 a region in a cons cell." nil nil)
 
-(autoload (quote mh-interactive-msg-or-seq) "mh-seq" "\
-Return interactive specification for message, sequence, or region.
-By convention, the name of this argument is msg-or-seq.
+(autoload (quote mh-interactive-range) "mh-seq" "\
+Return interactive specification for message, sequence, range or region.
+By convention, the name of this argument is RANGE.
 
 If variable `transient-mark-mode' is non-nil and the mark is active, then this
 function returns a cons-cell of the region.
-If optional prefix argument provided, then prompt for message sequence with
-SEQUENCE-PROMPT and return sequence.
+
+If optional prefix argument is provided, then prompt for message range with
+RANGE-PROMPT. A list of messages in that range is returned.
+
+If a MH range is given, say something like last:20, then a list containing
+the messages in that range is returned.
+
 Otherwise, the message number at point is returned.
 
-This function is usually used with `mh-iterate-on-msg-or-seq' in order to
-provide a uniform interface to MH-E functions." nil nil)
+This function is usually used with `mh-iterate-on-range' in order to provide
+a uniform interface to MH-E functions." nil nil)
 
 (autoload (quote mh-region-to-msg-list) "mh-seq" "\
 Return a list of messages within the region between BEGIN and END." nil nil)
 
 (autoload (quote mh-narrow-to-subject) "mh-seq" "\
 Narrow to a sequence containing all following messages with same subject." t nil)
+
+(autoload (quote mh-narrow-to-from) "mh-seq" "\
+Limit to messages with the same From header field as the message at point.
+With a prefix argument, prompt for the regular expression, REGEXP given to
+pick." t nil)
+
+(autoload (quote mh-narrow-to-cc) "mh-seq" "\
+Limit to messages with the same Cc header field as the message at point.
+With a prefix argument, prompt for the regular expression, REGEXP given to
+pick." t nil)
+
+(autoload (quote mh-narrow-to-to) "mh-seq" "\
+Limit to messages with the same To header field as the message at point.
+With a prefix argument, prompt for the regular expression, REGEXP given to
+pick." t nil)
+
+(autoload (quote mh-narrow-to-range) "mh-seq" "\
+Limit to messages in RANGE.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use." t nil)
 
 (autoload (quote mh-delete-subject) "mh-seq" "\
 Mark all following messages with same subject to be deleted.
@@ -938,6 +1067,10 @@ subject for deletion." t nil)
 (autoload (quote mh-thread-inc) "mh-seq" "\
 Update thread tree for FOLDER.
 All messages after START-POINT are added to the thread tree." nil nil)
+
+(autoload (quote mh-thread-update-scan-line-map) "mh-seq" "\
+In threaded view update `mh-thread-scan-line-map'.
+MSG is the message being notated with NOTATION at OFFSET." nil nil)
 
 (autoload (quote mh-thread-add-spaces) "mh-seq" "\
 Add COUNT spaces to each scan line in `mh-thread-scan-line-map'." nil nil)
@@ -966,13 +1099,8 @@ Mark current message and all its children for subsequent deletion." t nil)
 (autoload (quote mh-thread-refile) "mh-seq" "\
 Mark current message and all its children for refiling to FOLDER." t nil)
 
-(autoload (quote mh-notate-tick) "mh-seq" "\
-Highlight current line if MSG is in TICKED-MSGS.
-If optional argument IGNORE-NARROWING is non-nil then highlighting is carried
-out even if folder is narrowed to `mh-tick-seq'." nil nil)
-
 (autoload (quote mh-toggle-tick) "mh-seq" "\
-Toggle tick mark of all messages in region BEGIN to END." t nil)
+Toggle tick mark of all messages in RANGE." t nil)
 
 (autoload (quote mh-narrow-to-tick) "mh-seq" "\
 Restrict display of this folder to just messages in `mh-tick-seq'.
@@ -982,7 +1110,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 ;;;### (autoloads (mh-speed-add-folder mh-speed-invalidate-map mh-speed-flists
 ;;;;;;  mh-speed-view mh-speed-toggle mh-folder-speedbar-buttons)
-;;;;;;  "mh-speed" "mh-speed.el" (16040 52700))
+;;;;;;  "mh-speed" "mh-speed.el" (16625 54721))
 ;;; Generated autoloads from mh-speed.el
 
 (autoload (quote mh-folder-speedbar-buttons) "mh-speed" "\
@@ -1003,7 +1131,9 @@ Optional ARGS are ignored." t nil)
 
 (autoload (quote mh-speed-flists) "mh-speed" "\
 Execute flists -recurse and update message counts.
-If FORCE is non-nil the timer is reset. If FOLDER is non-nil then flists is run
+If FORCE is non-nil the timer is reset.
+
+Any number of optional FOLDERS can be specified. If specified, flists is run
 only for that one folder." t nil)
 
 (autoload (quote mh-speed-invalidate-map) "mh-speed" "\
@@ -1016,7 +1146,7 @@ The function invalidates the latest ancestor that is present." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-get-msg-num mh-goto-address-find-address-at-point)
-;;;;;;  "mh-utils" "mh-utils.el" (16040 52700))
+;;;;;;  "mh-utils" "mh-utils.el" (16625 54979))
 ;;; Generated autoloads from mh-utils.el
 
 (autoload (quote mh-goto-address-find-address-at-point) "mh-utils" "\
@@ -1031,15 +1161,18 @@ not pointing to a message." nil nil)
 
 ;;;***
 
-;;;### (autoloads (mh-alias-add-address-under-point mh-alias-grab-from-field
-;;;;;;  mh-alias-add-alias mh-alias-from-has-no-alias-p mh-alias-address-to-alias
-;;;;;;  mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
-;;;;;;  mh-read-address mh-alias-reload) "mh-alias" "mh-alias.el"
-;;;;;;  (16040 52696))
+;;;### (autoloads (mh-alias-apropos mh-alias-add-address-under-point
+;;;;;;  mh-alias-grab-from-field mh-alias-add-alias mh-alias-from-has-no-alias-p
+;;;;;;  mh-alias-address-to-alias mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
+;;;;;;  mh-read-address mh-alias-reload-maybe mh-alias-reload) "mh-alias"
+;;;;;;  "mh-alias.el" (16625 53006))
 ;;; Generated autoloads from mh-alias.el
 
 (autoload (quote mh-alias-reload) "mh-alias" "\
 Load MH aliases into `mh-alias-alist'." t nil)
+
+(autoload (quote mh-alias-reload-maybe) "mh-alias" "\
+Load new MH aliases." nil nil)
 
 (autoload (quote mh-read-address) "mh-alias" "\
 Read an address from the minibuffer with PROMPT." nil nil)
@@ -1071,6 +1204,9 @@ already has an alias." t nil)
 (autoload (quote mh-alias-add-address-under-point) "mh-alias" "\
 Insert an alias for email address under point." t nil)
 
+(autoload (quote mh-alias-apropos) "mh-alias" "\
+Show all aliases that match REGEXP either in name or content." t nil)
+
 ;;;***
 
 (provide 'mh-loaddefs)
@@ -1079,6 +1215,5 @@ Insert an alias for email address under point." t nil)
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
-
 ;;; arch-tag: bc36a104-1edb-45d5-8aad-a85b45648378
 ;;; mh-loaddefs.el ends here

@@ -1,3 +1,27 @@
+2004-07-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Change name of some funs.
+	(pr-dosify-file-name): New fun.  Replace ps-dosify-path.
+	(pr-unixify-file-name): New fun.  Replace ps-unixify-path.
+	(pr-standard-file-name): New fun.  Replace pr-standard-path.
+	(pr-call-process): Code fix.
+
+2004-07-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (with-selected-window): Doc fix.
+
+2004-07-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (get-buffer-window-list): Doc fix.
+
+2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (switch-to-buffer-other-window): Doc fix.
+
+	* window.el (save-selected-window, one-window-p)
+	(split-window-keep-point, split-window-vertically)
+	(split-window-horizontally): Doc fixes.
+
 2004-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  Now it uses call-process instead of

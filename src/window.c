@@ -395,7 +395,8 @@ decode_any_window (window)
 }
 
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
-       doc: /* Return the buffer that WINDOW is displaying.  */)
+       doc: /* Return the buffer that WINDOW is displaying.
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
@@ -1749,8 +1750,8 @@ DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
        doc: /* Select the ARG'th different window on this frame.
 All windows on current frame are arranged in a cyclic order.
 This command selects the window ARG steps away in that order.
-A negative ARG moves in the opposite order.  If the optional second
-argument ALL_FRAMES is non-nil, cycle through all frames.  */)
+A negative ARG moves in the opposite order.  The optional second
+argument ALL_FRAMES has the same meaning as in `next-window', which see.  */)
      (arg, all_frames)
      Lisp_Object arg, all_frames;
 {
@@ -2068,6 +2069,7 @@ check_all_windows ()
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
        doc: /* Return the window least recently selected or used for display.
 Return a full-width window if possible.
+A minibuffer window is never a candidate.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2087,6 +2089,7 @@ If FRAME is a frame, search only that frame.  */)
 
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
        doc: /* Return the largest window in area.
+A minibuffer window is never a candidate.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2101,6 +2104,7 @@ If FRAME is a frame, search only that frame.  */)
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
        doc: /* Return a window currently displaying BUFFER, or nil if none.
+BUFFER can be a buffer or a buffer name.
 If optional argument FRAME is `visible', search all visible frames.
 If optional argument FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2183,6 +2187,7 @@ value is reasonable when this function is called.  */)
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
        1, 2, "bDelete windows on (buffer): ",
        doc: /* Delete all windows showing BUFFER.
+BUFFER must be a buffer or the name of an existing buffer.
 Optional second argument FRAME controls which frames are affected.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
@@ -2212,7 +2217,8 @@ If FRAME is a frame, search only that frame.  */)
 DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
        Sreplace_buffer_in_windows,
        1, 1, "bReplace buffer in windows: ",
-       doc: /* Replace BUFFER with some other buffer in all windows showing it.  */)
+       doc: /* Replace BUFFER with some other buffer in all windows showing it.
+BUFFER may be a buffer or the name of an existing buffer.  */)
      (buffer)
      Lisp_Object buffer;
 {
@@ -3024,7 +3030,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER as its contents.
-BUFFER can be a buffer or buffer name.
+BUFFER can be a buffer or the name of an existing buffer.
 Optional third arg KEEP-MARGINS non-nil means that WINDOW's current
 display margins, fringe widths, and scroll bar settings are maintained;
 the default is to reset these from BUFFER's local settings or the frame
@@ -3065,7 +3071,7 @@ defaults.  */)
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, make WINDOW's buffer current
-and make WINDOW the frame's selected window.
+and make WINDOW the frame's selected window.  Return WINDOW.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
 
@@ -3249,7 +3255,8 @@ See `same-window-buffer-names' and `same-window-regexps'.  */)
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 3,
        "BDisplay buffer: \nP",
        doc: /* Make BUFFER appear in some window but don't select it.
-BUFFER can be a buffer or a buffer name.
+BUFFER must  be the name of an existing buffer, or, when called from Lisp,
+a buffer.
 If BUFFER is shown already in some window, just use that one,
 unless the window is the selected window and the optional second
 argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).
@@ -3592,7 +3599,11 @@ WINDOW defaults to selected one and SIZE to half its size.
 If optional third arg HORFLAG is non-nil, split side by side
 and put SIZE columns in the first of the pair.  In that case,
 SIZE includes that window's scroll bar, or the divider column to its right.
-Returns the newly-created window.  */)
+Interactively, all arguments are nil.
+
+Returns the newly created window (which is the lower or rightmost one).
+The upper or leftmost window is the original one and remains selected.
+See Info node `(elisp)Splitting Windows' for more details and examples.*/)
      (window, size, horflag)
      Lisp_Object window, size, horflag;
 {
@@ -6457,7 +6468,9 @@ the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */
   DEFVAR_LISP ("display-buffer-function", &Vdisplay_buffer_function,
 	       doc: /* If non-nil, function to call to handle `display-buffer'.
 It will receive two args, the buffer and a flag which if non-nil means
- that the currently selected window is not acceptable.
+that the currently selected window is not acceptable.
+It should choose or create a window, display the specified buffer in it,
+and return the window.
 Commands such as `switch-to-buffer-other-window' and `find-file-other-window'
 work using this function.  */);
   Vdisplay_buffer_function = Qnil;
