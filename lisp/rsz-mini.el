@@ -1,11 +1,13 @@
 ;;; rsz-mini.el --- dynamically resize minibuffer to display entire contents
 
-;; Copyright (C) 1990, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
+
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -58,7 +60,6 @@
 (defgroup resize-minibuffer nil
   "Dynamically resize minibuffer to display entire contents"
   :group 'frames)
-
 
 ;;;###autoload
 (defcustom resize-minibuffer-mode nil
@@ -143,7 +144,8 @@ counterparts."
    ((>= prefix 0)
     (setq resize-minibuffer-mode t))
    (t
-    (setq resize-minibuffer-mode nil))))
+    (setq resize-minibuffer-mode nil)))
+  (add-hook 'minibuffer-setup-hook 'resize-minibuffer-setup))
 
 (defun resize-minibuffer-setup ()
   (cond
@@ -260,10 +262,6 @@ respectively."
                   (frame-width)
                   resize-minibuffer-frame-original-height))
 
-
 (provide 'rsz-mini)
-
-(add-hook 'minibuffer-setup-hook 'resize-minibuffer-setup)
-(resize-minibuffer-mode)
 
 ;; rsz-mini.el ends here
