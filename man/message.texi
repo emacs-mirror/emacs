@@ -22,8 +22,8 @@ Copyright (C) 1996,97,98,99,2000 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being none, with the Front-Cover texts being ``A GNU
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
@@ -776,6 +776,11 @@ to use abonimations like @samp{Aw: } (``antwort'') or @samp{Sv: }
 have to deal with users that use these evil tools, in which case you may
 set this variable to a regexp that matches these prefixes.  Myself, I
 just throw away non-compliant mail.
+
+@item message-alternative-emails
+@vindex message-alternative-emails
+A regexp to match the alternative email addresses.  The first matched
+address (not primary one) is used in the @code{From} field.
 
 @end table
 

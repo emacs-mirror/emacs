@@ -48,6 +48,7 @@ operate on the active region in Transient Mark mode.
 remains visible even when the buffer has been scrolled.  This behavior
 may be disabled by customizing the option `Info-use-header-line'.
 
++++
 ** `gnus-user-agent' is a new possibility for `mail-user-agent'.  It
 is like `message-user-agent', but with all the Gnus paraphernalia.
 
@@ -55,6 +56,7 @@ is like `message-user-agent', but with all the Gnus paraphernalia.
 ** The recommended way of using Iswitchb is via the new global minor
 mode `iswitchb-mode'.
 
++++
 ** Gnus changes.
 
 The Gnus NEWS entries are short, but they reflect sweeping changes in
@@ -553,6 +555,7 @@ terminals having terminal capabilities `vi', `vs', and `ve'.  Blinking
 and related parameters like frequency and delay can be customized in
 the group `cursor'.
 
++++
 ** New font-lock support mode `jit-lock-mode'.
 
 This support mode is roughly equivalent to `lazy-lock' but is
@@ -590,6 +593,7 @@ Horizontal scrolling now happens automatically if
 `automatic-hscrolling' is set (the default).  This setting can be
 customized.
 
++++
 ** Tool bar support.
 
 Emacs supports a tool bar at the top of a frame under X.  For details
