@@ -23,6 +23,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Marck 13 2001
+;;; Fixes for CJK support by Yong Lu <lyongu@yahoo.com>.
+
 ;;; Dir/Hostname tracking and ANSI colorization by
 ;;; Marco Melgazzi <marco@techie.com>.
 
@@ -1269,7 +1272,9 @@ without any interpretation."
   (define-key term-raw-escape-map "\C-q" 'term-pager-toggle)
   ;; The keybinding for term-char-mode is needed by the menubar code.
   (define-key term-raw-escape-map "\C-k" 'term-char-mode)
-  (define-key term-raw-escape-map "\C-j" 'term-line-mode))
+  (define-key term-raw-escape-map "\C-j" 'term-line-mode)
+  ;; It's convenient to have execute-extended-command here.
+  (define-key term-raw-escape-map [?\M-x] 'execute-extended-command))
 
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
@@ -2606,10 +2611,10 @@ See `term-prompt-regexp'."
   (cond (term-current-column)
 	((setq term-current-column (current-column)))))
 
-;;; Move DELTA column right (or left if delta < 0).
+;;; Move DELTA column right (or left if delta < 0 limiting at column 0).
 
 (defun term-move-columns (delta)
-  (setq term-current-column (+ (term-current-column) delta))
+  (setq term-current-column (max 0 (+ (term-current-column) delta)))
   (move-to-column term-current-column t))
 
 ;; Insert COUNT copies of CHAR in the default face.
@@ -2786,19 +2791,21 @@ See `term-prompt-regexp'."
 				   (setq term-current-column nil)
 				   (setq term-start-line-column nil)))
 			    (setq old-point (point))
-			    ;; In the common case that we're at the end of
-			    ;; the buffer, we can save a little work.
-			    (cond ((/= (point) (point-max))
-				   (if term-insert-mode
-				       ;; Inserting spaces, then deleting them,
-				       ;; then inserting the actual text is
-				       ;; inefficient, but it is simple, and
-				       ;; the actual overhead is miniscule.
-				       (term-insert-spaces count))
-				   (term-move-columns count)
-				   (delete-region old-point (point)))
-	(t (setq term-current-column (+ (term-current-column) count))))
-			    (insert (substring str i funny))
+
+			    ;; Insert a string, check how many columns
+			    ;; we moved, then delete that many columns
+			    ;; following point if not eob nor insert-mode.
+			    (let ((old-column (current-column))
+				  columns pos)
+			      (insert (substring str i funny))
+			      (setq term-current-column (current-column)
+				    columns (- term-current-column old-column))
+			      (when (not (or (eobp) term-insert-mode))
+				(setq pos (point))
+				(term-move-columns columns)
+				(delete-region pos (point))))
+			    (setq term-current-column nil)
+							 
 			    (put-text-property old-point (point)
 					       'face term-current-face)
 			    ;; If the last char was written in last column,
