@@ -1,6 +1,12 @@
+2004-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* type-break.el (type-break-emacs-variant): Remove.
+	(type-break-run-at-time, type-break-cancel-function-timers):
+	Use fboundp rather than version name and number.
+
 2004-03-09  Masatake YAMATO  <jet@gyve.org>
 
-	* hexl.el (hexl-mode): Use `make-local-variable' instead of 
+	* hexl.el (hexl-mode): Use `make-local-variable' instead of
 	`make-variable-buffer-local'.
 
 2004-03-08  Michael Albinus  <Michael.Albinus@alcatel.de>
