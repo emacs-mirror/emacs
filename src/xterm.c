@@ -11243,9 +11243,14 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
 	     actually scrolling, so we don't come here.  When not
 	     scrolling, the rows above the old cursor row must have
 	     changed, and in this case these rows must have written
-	     over the cursor image.  Likewise if part of the cursor is
-	     below y1.  */
-	  if ((y0 >= cy0 && y0 < cy1) || (y1 >= cy0 && y1 < cy1))
+	     over the cursor image.
+
+	     Likewise if part of the cursor is below y1, with the
+	     exception of the cursor being in the first blank row at
+	     the buffer and window end because update_text_area
+	     doesn't draw that row.  */
+	  if (((y0 >= cy0 && y0 < cy1) || (y1 >= cy0 && y1 < cy1))
+	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
 	    w->phys_cursor_on_p = 0;
 	}
     }
