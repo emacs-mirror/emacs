@@ -347,7 +347,7 @@ The following variables control the action of the notification:
 
 		    (when appt-display-mode-line
 		      (setq appt-mode-string
-			    (concat  "App't in " min-to-app " min. "))
+			    (concat  " App't in " min-to-app " min. "))
 		      (force-mode-line-update t)
 		      (sit-for 0))
 
