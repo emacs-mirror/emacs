@@ -219,7 +219,9 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
   "Edit file FILENAME in hexl-mode.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
   (interactive "fFilename: ")
-  (find-file filename)
+  (if (eq system-type 'ms-dos)
+      (find-file-binary filename)
+    (find-file filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
@@ -504,7 +506,8 @@ You may also type up to 3 octal digits, to insert a character with that code"
 (defun dehexlify-buffer ()
   "Convert a hexl format buffer to binary."
   (interactive)
-  (shell-command-on-region (point-min) (point-max) dehexlify-command t))
+  (let ((binary-process t)) ; for Ms-Dos
+    (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
 (defun hexl-char-after-point ()
   "Return char for ASCII hex digits at point."
