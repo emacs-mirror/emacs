@@ -159,6 +159,7 @@ static int debug_end_pos;
 /* Nonzero means display mode line highlighted */
 int mode_line_inverse_video;
 
+static void redisplay_internal ();
 static int message_log_check_duplicate ();
 static void echo_area_display ();
 void mark_window_display_accurate ();
@@ -808,6 +809,18 @@ static FRAME_PTR previous_terminal_frame;
 void
 redisplay ()
 {
+  redisplay_internal (0);
+}
+
+/* If PRESERVE_ECHO_AREA is nonzero, it means this redisplay
+   is not in response to any user action; therefore, we should
+   preserve the echo area.  Perhaps in the future avoid recentering windows
+   if it is not necessary; currently that causes some problems.  */
+
+static void
+redisplay_internal (preserve_echo_area)
+     int preserve_echo_area;
+{
   register struct window *w = XWINDOW (selected_window);
   register int pause;
   int must_finish = 0;
@@ -1068,7 +1081,7 @@ redisplay ()
 		(*condemn_scroll_bars_hook) (f);
 
 	      if (FRAME_VISIBLE_P (f))
-		redisplay_windows (FRAME_ROOT_WINDOW (f));
+		redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
 
 	      /* Any scroll bars which redisplay_windows should have nuked
 		 should now go away.  */
@@ -1079,7 +1092,7 @@ redisplay ()
     }
   else if (FRAME_VISIBLE_P (selected_frame))
     {
-      redisplay_window (selected_window, 1);
+      redisplay_window (selected_window, 1, preserve_echo_area);
       if (XFASTINT (w->width) != FRAME_WIDTH (selected_frame))
 	preserve_other_columns (w);
     }
@@ -1233,11 +1246,11 @@ redisplay_preserve_echo_area ()
   if (echo_area_glyphs == 0 && previous_echo_glyphs != 0)
     {
       echo_area_glyphs = previous_echo_glyphs;
-      redisplay ();
+      redisplay_internal (1);
       echo_area_glyphs = 0;
     }
   else
-    redisplay ();
+    redisplay_internal (1);
 }
 
 void
@@ -1371,19 +1384,20 @@ int do_id = 1;
 /* Redisplay WINDOW and its subwindows and siblings.  */
 
 static void
-redisplay_windows (window)
+redisplay_windows (window, preserve_echo_area)
      Lisp_Object window;
+     int preserve_echo_area;
 {
   for (; !NILP (window); window = XWINDOW (window)->next)
-    redisplay_window (window, 0);
+    redisplay_window (window, 0, preserve_echo_area);
 }
 
 /* Redisplay window WINDOW and its subwindows.  */
 
 static void
-redisplay_window (window, just_this_one)
+redisplay_window (window, just_this_one, preserve_echo_area)
      Lisp_Object window;
-     int just_this_one;
+     int just_this_one, preserve_echo_area;
 {
   register struct window *w = XWINDOW (window);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
@@ -1679,8 +1693,16 @@ redisplay_window (window, just_this_one)
 	goto done;
     }
   else if (startp >= BEGV && startp <= ZV
-	   /* Avoid starting display at end of buffer! */
-	   && (startp < ZV || startp == BEGV
+	   && (startp < ZV
+	       /* Avoid starting at end of buffer.  */
+#if 0 /* This change causes trouble for M-! finger & RET.
+	 It will have to be considered later.  */
+	       || ! EQ (window, selected_window)
+	       /* Don't do the recentering if redisplay
+		  is not for no user action.  */
+	       || preserve_echo_area
+#endif
+	       || startp == BEGV
 	       || (XFASTINT (w->last_modified) >= MODIFF)))
     {
       /* Try to redisplay starting at same place as before */
