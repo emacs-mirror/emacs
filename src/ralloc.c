@@ -109,8 +109,9 @@ static int extra_bytes;
 /* Macros for rounding.  Note that rounding to any value is possible
    by changing the definition of PAGE. */
 #define PAGE (getpagesize ())
-#define ALIGNED(addr) (((unsigned int) (addr) & (page_size - 1)) == 0)
-#define ROUNDUP(size) (((unsigned int) (size) + page_size - 1) & ~(page_size - 1))
+#define ALIGNED(addr) (((unsigned long int) (addr) & (page_size - 1)) == 0)
+#define ROUNDUP(size) (((unsigned long int) (size) + page_size - 1) \
+		       & ~(page_size - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
 
 /* Functions to get and return memory from the system.  */
