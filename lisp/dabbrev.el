@@ -711,6 +711,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			dabbrev--friend-buffer-list
 			(append dabbrev--friend-buffer-list
 				non-friend-buffer-list)))))
+	;; Move buffers that are visible on the screen
+	;; to the front of the list.
+	(if dabbrev--friend-buffer-list
+	    (let ((w (next-window (selected-window))))
+	      (while (not (eq w (selected-window)))
+		(setq dabbrev--friend-buffer-list
+		      (cons (window-buffer w)
+			    (delq (window-buffer w) dabbrev--friend-buffer-list)))
+		(setq w (next-window w)))))
 	;; Walk through the buffers
 	(while (and (not expansion) dabbrev--friend-buffer-list)
 	  (setq dabbrev--last-buffer
