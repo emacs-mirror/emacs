@@ -589,6 +589,7 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
+extern Lisp_Object Qleft_margin, Qright_margin;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -4926,6 +4927,15 @@ make_lispy_event (event)
 		  }
 		else if (part == 2)
 		  posn = Qvertical_line;
+		else if (part == 6 || part == 7)
+		  {
+		    int charpos;
+		    Lisp_Object object = marginal_area_string (w, wx, wy, part,
+							       &charpos);
+		    posn = (part == 6) ? Qleft_margin : Qright_margin;
+		    if (STRINGP (object))
+		      string_info = Fcons (object, make_number (charpos));
+		  }
 		else
 		  {
 		    Lisp_Object object;
