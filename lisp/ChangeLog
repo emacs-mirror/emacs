@@ -1,5 +1,8 @@
 2000-12-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (describe-language-environment): Fix
+	for the case that an input method title is not string but a list.
+
 	* ps-bdf.el (bdf-read-font-info): Modify the kludgy code for fonts
 	of wrong SIZE record.
 
