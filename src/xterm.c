@@ -555,7 +555,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	    stippled = 0;
 
 	    if ((!face->font
-		 || (int) face->font == FACE_DEFAULT
+		 || face->font == (XFontStruct *) FACE_DEFAULT
 		 || face->font == f->display.x->font)
 		&& face->background == f->display.x->background_pixel
 		&& face->foreground == f->display.x->foreground_pixel)
@@ -605,7 +605,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	      }
 	  }
 
-	if ((int) font == FACE_DEFAULT)
+	if (font == (XFontStruct *) FACE_DEFAULT)
 	  font = f->display.x->font;
 
 	if (just_foreground)
