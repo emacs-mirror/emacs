@@ -1232,6 +1232,7 @@ Garbage collection happens automatically if you cons more than\n\
   register struct backtrace *backlist;
   register Lisp_Object tem;
   char *omessage = echo_area_glyphs;
+  int omessage_length = echo_area_glyphs_length;
   char stack_top_variable;
   register int i;
 
@@ -1374,7 +1375,7 @@ Garbage collection happens automatically if you cons more than\n\
     gc_cons_threshold = 10000;
 
   if (omessage || minibuf_level > 0)
-    message1 (omessage);
+    message2 (omessage, omessage_length);
   else if (!noninteractive)
     message1 ("Garbage collecting...done");
 
