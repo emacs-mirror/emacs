@@ -2140,14 +2140,21 @@ occurance of text matching `comint-prompt-regexp'."
 	(comint-skip-prompt))
     ;; Use input fields
     (let ((pos (point))
-	  (input-pos nil))
+	  (input-pos nil)
+	  prev-pos)
       (while (/= n 0)
+	(setq prev-pos pos)
 	(setq pos
 	      (if (> n 0)
 		  (next-single-char-property-change pos 'field)
 		(previous-single-char-property-change pos 'field)))
-	(cond ((null pos)
+	(cond ((or (null pos) (= pos prev-pos))
 	       ;; Ran off the end of the buffer.
+	       (when (> n 0)
+		 ;; There's always an input field at the end of the
+		 ;; buffer, but it has a `field' property of nil.
+		 (setq input-pos (point-max)))
+	       ;; stop iterating
 	       (setq n 0))
 	      ((eq (get-char-property pos 'field) 'input)
 	       (setq n (if (< n 0) (1+ n) (1- n)))
