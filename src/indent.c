@@ -576,6 +576,12 @@ struct position val_compute_motion;
    can't hit the requested column exactly (because of a tab or other
    multi-column character), overshoot.
 
+   DID_MOTION is 1 if FROMHPOS has already accounted for overlay strings
+   at FROM.  This is the case if FROMVPOS and FROMVPOS came from an
+   earlier call to compute_motion.  The other common case is that FROMHPOS
+   is zero and FROM is a position that "belongs" at column zero, but might
+   be shifted by overlay strings; in this case DID_MOTION should be 0.
+
    WIDTH is the number of columns available to display text;
    compute_motion uses this to handle continuation lines and such.
    HSCROLL is the number of columns not being displayed at the left
@@ -629,8 +635,9 @@ struct position val_compute_motion;
    the scroll bars if they are turned on.  */
 
 struct position *
-compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, tab_offset, win)
+compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width, hscroll, tab_offset, win)
      int from, fromvpos, fromhpos, to, tovpos, tohpos;
+     int did_motion;
      register int width;
      int hscroll, tab_offset;
      struct window *win;
@@ -651,11 +658,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
-#ifdef USE_TEXT_PROPERTIES
-  /* The next location where the `invisible' property changes */
-  int next_invisible = from;
-  Lisp_Object prop, position;
-#endif
+  /* The next location where the `invisible' property changes, or an
+     overlay starts or ends.  */
+  int next_boundary = from;
 
   /* For computing runs of characters with similar widths.
      Invariant: width_run_width is zero, or all the characters
@@ -683,35 +688,38 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     width_table = 0;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  for (pos = from; pos < to; )
+
+  pos = from;
+  while (1)
     {
-      /* Stop if past the target screen position.  */
-      if (vpos > tovpos
-	  || (vpos == tovpos && hpos >= tohpos))
-	break;
-
-      prev_vpos = vpos;
-      prev_hpos = hpos;
-
-#ifdef USE_TEXT_PROPERTIES
-      /* if the `invisible' property is set, we can skip to
-	 the next property change */
-      while (pos == next_invisible && pos < to)
+      while (pos == next_boundary)
 	{
-	  XSETFASTINT (position, pos);
+	  /* If the caller says that the screen position came from an earlier
+	     call to compute_motion, then we've already accounted for the
+	     overlay strings at point.  This is only true the first time
+	     through, so clear the flag after testing it.  */
+	  if (!did_motion)
+	    /* We need to skip past the overlay strings.  Currently those
+	       strings must contain single-column printing characters;
+	       if we want to relax that restriction, something will have
+	       to be changed here.  */
+	    hpos += overlay_strings (pos, win, (char **)0);
+	  did_motion = 0;
 
-	  /* Give faster response for overlay lookup near POS.  */
-	  recenter_overlay_lists (current_buffer, pos);
+	  if (pos >= to)
+	    break;
 
-	  prop = Fget_char_property (position,
-				     Qinvisible,
-				     Fcurrent_buffer ());
 	  {
-	    Lisp_Object end, limit, proplimit;
+	    Lisp_Object prop, position, end, limit, proplimit;
+
+	    XSETFASTINT (position, pos);
+
+	    /* Give faster response for overlay lookup near POS.  */
+	    recenter_overlay_lists (current_buffer, pos);
 
 	    /* We must not advance farther than the next overlay change.
 	       The overlay change might change the invisible property;
-	       we have no way of telling.  */
+	       or there might be overlay strings to be displayed there.  */
 	    limit = Fnext_overlay_change (position);
 	    /* As for text properties, this gives a lower bound
 	       for where the invisible text property could change.  */
@@ -722,7 +730,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	       in invisible status.  If that is plenty far away,
 	       use that lower bound.  */
 	    if (XFASTINT (proplimit) > pos + 100 || XFASTINT (proplimit) >= to)
-	      next_invisible = XINT (proplimit);
+	      next_boundary = XFASTINT (proplimit);
 	    /* Otherwise, scan for the next `invisible' property change.  */
 	    else
 	      {
@@ -733,18 +741,48 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		  proplimit = limit;
 		end = Fnext_single_property_change (position, Qinvisible,
 						    buffer, proplimit);
-		if (INTEGERP (end) && XINT (end) < to)
-		  next_invisible = XINT (end);
-		else
-		  next_invisible = to;
+		next_boundary = XFASTINT (end);
 	      }
+	    /* if the `invisible' property is set, we can skip to
+	       the next property change */
+	    prop = Fget_char_property (position, Qinvisible,
+				       Fcurrent_buffer ());
 	    if (TEXT_PROP_MEANS_INVISIBLE (prop))
-	      pos = next_invisible;
+	      pos = next_boundary;
 	  }
 	}
+
+      /* Handle right margin.  */
+      if (hpos >= width
+	  && (hpos > width
+	      || (pos < ZV && FETCH_CHAR (pos) != '\n')))
+	{
+	  if (hscroll
+	      || (truncate_partial_width_windows
+		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
+	      || !NILP (current_buffer->truncate_lines))
+	    {
+	      /* Truncating: skip to newline.  */
+	      pos = find_before_next_newline (pos, to, 1);
+	      hpos = width;
+	    }
+	  else
+	    {
+	      /* Continuing.  */
+	      vpos += hpos / width;
+	      tab_offset += hpos - hpos % width;
+	      hpos %= width;
+	    }
+	}
+
+      /* Stop if past the target buffer position or screen position.  */
       if (pos >= to)
 	break;
-#endif
+      if (vpos > tovpos || (vpos == tovpos && hpos >= tohpos))
+	break;
+
+      prev_vpos = vpos;
+      prev_hpos = hpos;
 
       /* Consult the width run cache to see if we can avoid inspecting
          the text character-by-character.  */
@@ -796,128 +834,97 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 
       /* We have to scan the text character-by-character.  */
       else
-        {
-          c = FETCH_CHAR (pos);
-          pos++;
-
-          /* Perhaps add some info to the width_run_cache.  */
-          if (current_buffer->width_run_cache)
-            {
-              /* Is this character part of the current run?  If so, extend
-                 the run.  */
-              if (pos - 1 == width_run_end
-                  && width_table[c] == width_run_width)
-                width_run_end = pos;
-
-              /* The previous run is over, since this is a character at a
-                 different position, or a different width.  */
-              else
-                {
-                  /* Have we accumulated a run to put in the cache?
-                     (Currently, we only cache runs of width == 1).  */
-                  if (width_run_start < width_run_end
-                      && width_run_width == 1)
-                    know_region_cache (current_buffer,
-                                       current_buffer->width_run_cache,
-                                       width_run_start, width_run_end);
-
-                  /* Start recording a new width run.  */
-                  width_run_width = width_table[c];
-                  width_run_start = pos - 1;
-                  width_run_end = pos;
-                }
-            }
-
-          if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-            hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
-          else if (c >= 040 && c < 0177)
-            hpos++;
-          else if (c == '\t')
-            {
-              hpos += tab_width - ((hpos + tab_offset + hscroll - (hscroll > 0)
-                                    /* Add tab_width here to make sure
-                                       positive.  hpos can be negative
-                                       after continuation but can't be
-                                       less than -tab_width.  */
-                                    + tab_width)
-                                   % tab_width);
-            }
-          else if (c == '\n')
-            {
-              if (selective > 0 && indented_beyond_p (pos, selective))
-                {
-                  /* Skip any number of invisible lines all at once */
-                  do
-                    pos = find_before_next_newline (pos, to, 1) + 1;
-                  while (pos < to
-                         && indented_beyond_p (pos, selective));
-                  /* Allow for the " ..." that is displayed for them. */
-                  if (selective_rlen)
-                    {
-                      hpos += selective_rlen;
-                      if (hpos >= width)
-                        hpos = width;
-                    }
-		  --pos;
-                  /* We have skipped the invis text, but not the
-                     newline after.  */
-                }
-              else
-                {
-                  /* A visible line.  */
-                  vpos++;
-                  hpos = 0;
-                  hpos -= hscroll;
-                  /* Count the truncation glyph on column 0 */
-                  if (hscroll > 0)
-                    hpos++;
-                  tab_offset = 0;
-                }
-            }
-          else if (c == CR && selective < 0)
-            {
-              /* In selective display mode,
-                 everything from a ^M to the end of the line is invisible.
-                 Stop *before* the real newline.  */
-              pos = find_before_next_newline (pos, to, 1);
-              /* Allow for the " ..." that is displayed for them. */
-              if (selective_rlen)
-                {
-                  hpos += selective_rlen;
-                  if (hpos >= width)
-                    hpos = width;
-                }
-            }
-          else
-            hpos += (ctl_arrow && c < 0200) ? 2 : 4;
-        }
-
-      /* Handle right margin.  */
-      if (hpos >= width
-	  && (hpos > width
-	      || (pos < ZV
-		  && FETCH_CHAR (pos) != '\n')))
 	{
-	  if (vpos > tovpos
-	      || (vpos == tovpos && hpos >= tohpos))
-	    break;
-	  if (hscroll
-	      || (truncate_partial_width_windows
-		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
-	      || !NILP (current_buffer->truncate_lines))
+	  c = FETCH_CHAR (pos);
+	  pos++;
+
+	  /* Perhaps add some info to the width_run_cache.  */
+	  if (current_buffer->width_run_cache)
 	    {
-	      /* Truncating: skip to newline.  */
-              pos = find_before_next_newline (pos, to, 1);
-	      hpos = width;
+	      /* Is this character part of the current run?  If so, extend
+		 the run.  */
+	      if (pos - 1 == width_run_end
+		  && width_table[c] == width_run_width)
+		width_run_end = pos;
+
+	      /* The previous run is over, since this is a character at a
+		 different position, or a different width.  */
+	      else
+		{
+		  /* Have we accumulated a run to put in the cache?
+		     (Currently, we only cache runs of width == 1).  */
+		  if (width_run_start < width_run_end
+		      && width_run_width == 1)
+		    know_region_cache (current_buffer,
+				       current_buffer->width_run_cache,
+				       width_run_start, width_run_end);
+
+		  /* Start recording a new width run.  */
+		  width_run_width = width_table[c];
+		  width_run_start = pos - 1;
+		  width_run_end = pos;
+		}
+	    }
+
+	  if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	    hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	  else if (c >= 040 && c < 0177)
+	    hpos++;
+	  else if (c == '\t')
+	    {
+	      int tem = (hpos + tab_offset + hscroll - (hscroll > 0)) % tab_width;
+	      if (tem < 0)
+		tem += tab_width;
+	      hpos += tab_width - tem;
+	    }
+	  else if (c == '\n')
+	    {
+	      if (selective > 0 && indented_beyond_p (pos, selective))
+		{
+		  /* Skip any number of invisible lines all at once */
+		  do
+		    pos = find_before_next_newline (pos, to, 1) + 1;
+		  while (pos < to
+			 && indented_beyond_p (pos, selective));
+		  /* Allow for the " ..." that is displayed for them. */
+		  if (selective_rlen)
+		    {
+		      hpos += selective_rlen;
+		      if (hpos >= width)
+			hpos = width;
+		    }
+		  --pos;
+		  /* We have skipped the invis text, but not the
+		     newline after.  */
+		}
+	      else
+		{
+		  /* A visible line.  */
+		  vpos++;
+		  hpos = 0;
+		  hpos -= hscroll;
+		  /* Count the truncation glyph on column 0 */
+		  if (hscroll > 0)
+		    hpos++;
+		  tab_offset = 0;
+		}
+	    }
+	  else if (c == CR && selective < 0)
+	    {
+	      /* In selective display mode,
+		 everything from a ^M to the end of the line is invisible.
+		 Stop *before* the real newline.  */
+	      pos = find_before_next_newline (pos, to, 1);
+	      /* Allow for the " ..." that is displayed for them. */
+	      if (selective_rlen)
+		{
+		  hpos += selective_rlen;
+		  if (hpos >= width)
+		    hpos = width;
+		}
 	    }
 	  else
-	    {
-	      /* Continuing.  */
-	      vpos++;
-	      hpos -= width;
-	      tab_offset += width;
-	    }
-
+	    hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 	}
     }
 
@@ -1022,7 +1029,7 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
     CHECK_LIVE_WINDOW (window, 0);
 
   pos = compute_motion (XINT (from), XINT (XCONS (frompos)->cdr),
-			XINT (XCONS (frompos)->car),
+			XINT (XCONS (frompos)->car), 0,
 			XINT (to), XINT (XCONS (topos)->cdr),
 			XINT (XCONS (topos)->car),
 			XINT (width), hscroll, tab_offset,
@@ -1086,6 +1093,7 @@ vmotion (from, vtarget, w)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
   Lisp_Object window;
   int start_hpos = 0;
+  int did_motion;
 
   XSETWINDOW (window, w);
 
@@ -1131,6 +1139,7 @@ vmotion (from, vtarget, w)
 	  pos = *compute_motion (XFASTINT (prevline), 0,
 				 lmargin + (XFASTINT (prevline) == BEG
 					    ? start_hpos : 0),
+				 0,
 				 from, 1 << (INTBITS - 2), 0,
 				 width, hscroll, 0, w);
 	  vpos -= pos.vpos;
@@ -1157,7 +1166,7 @@ vmotion (from, vtarget, w)
      to determine hpos of starting point */
   if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
     {
-	Lisp_Object propval;
+      Lisp_Object propval;
 
       XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
       while (XFASTINT (prevline) > BEGV
@@ -1176,15 +1185,18 @@ vmotion (from, vtarget, w)
       pos = *compute_motion (XFASTINT (prevline), 0,
 			     lmargin + (XFASTINT (prevline) == BEG
 					? start_hpos : 0),
+			     0,
 			     from, 1 << (INTBITS - 2), 0,
 			     width, hscroll, 0, w);
+      did_motion = 1;
     }
   else
     {
       pos.hpos = lmargin + (from == BEG ? start_hpos : 0);
       pos.vpos = 0;
+      did_motion = 0;
     }
-  return compute_motion (from, vpos, pos.hpos,
+  return compute_motion (from, vpos, pos.hpos, did_motion,
 			 ZV, vtarget, - (1 << (INTBITS - 2)),
 			 width, hscroll, pos.vpos * width, w);
 }
