@@ -107,15 +107,15 @@ Variables controlling indentation style:
     then-clause of an if or body of a while.
  icon-continued-brace-offset
     Extra indentation given to a brace that starts a substatement.
-    This is in addition to icon-continued-statement-offset.
+    This is in addition to `icon-continued-statement-offset'.
  icon-brace-offset
     Extra indentation for line if it starts with an open brace.
  icon-brace-imaginary-offset
     An open brace following other text is treated as if it were
     this far to the right of the start of its line.
 
-Turning on Icon mode calls the value of the variable icon-mode-hook with no args,
-if that value is non-nil."
+Turning on Icon mode calls the value of the variable `icon-mode-hook'
+with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (use-local-map icon-mode-map)
@@ -143,9 +143,8 @@ if that value is non-nil."
   (setq comment-indent-hook 'icon-comment-indent)
   (run-hooks 'icon-mode-hook))
 
-;; This is used by indent-for-comment
-;; to decide how much to indent a comment in Icon code
-;; based on its context.
+;; This is used by indent-for-comment to decide how much to
+;; indent a comment in Icon code based on its context.
 (defun icon-comment-indent ()
   (if (looking-at "^#")
       0	
@@ -187,14 +186,14 @@ if that value is non-nil."
 (defun icon-indent-command (&optional whole-exp)
   (interactive "P")
   "Indent current line as Icon code, or in some cases insert a tab character.
-If icon-tab-always-indent is non-nil (the default), always indent current line.
-Otherwise, indent the current line only if point is at the left margin
+If `icon-tab-always-indent' is non-nil (the default), always indent current
+line.  Otherwise, indent the current line only if point is at the left margin
 or in the line's indentation; otherwise insert a tab.
 
-A numeric argument, regardless of its value,
-means indent rigidly all the lines of the expression starting after point
-so that this line becomes properly indented.
-The relative indentation among the lines of the expression are preserved."
+A numeric argument, regardless of its value, means indent rigidly all the
+lines of the expression starting after point so that this line becomes
+properly indented.  The relative indentation among the lines of the
+expression are preserved."
   (if whole-exp
       ;; If arg, always indent this line as Icon
       ;; and shift remaining lines of expression the same amount.
@@ -402,7 +401,7 @@ Returns nil if line starts inside a string, t if in a comment."
     (icon-is-continuation-line)))
 
 (defun icon-backward-to-start-of-if (&optional limit)
-  "Move to the start of the last ``unbalanced'' if."
+  "Move to the start of the last \"unbalanced\" if."
   (or limit (setq limit (save-excursion (beginning-of-icon-defun) (point))))
   (let ((if-level 1)
 	(case-fold-search nil))
