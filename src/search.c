@@ -2158,13 +2158,15 @@ and `replace-match'.  */)
 
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 5, 0,
        doc: /* Replace text matched by last search with NEWTEXT.
+Leave point at the end of the replacement text.
+
 If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
 Otherwise maybe capitalize the whole text, or maybe just word initials,
 based on the replaced text.
 If the replaced text has only capital letters
 and has at least one multiletter word, convert NEWTEXT to all caps.
-If the replaced text has at least one word starting with a capital letter,
-then capitalize each word in NEWTEXT.
+Otherwise if all words are capitalized in the replaced text,
+capitalize each word in NEWTEXT.
 
 If third arg LITERAL is non-nil, insert NEWTEXT literally.
 Otherwise treat `\\' as special:
@@ -2172,8 +2174,9 @@ Otherwise treat `\\' as special:
   `\\N' means substitute what matched the Nth `\\(...\\)'.
        If Nth parens didn't match, substitute nothing.
   `\\\\' means insert one `\\'.
+Case conversion does not apply to these substitutions.
+
 FIXEDCASE and LITERAL are optional arguments.
-Leaves point at end of replacement text.
 
 The optional fourth argument STRING can be a string to modify.
 This is meaningful when the previous match was done against STRING,
