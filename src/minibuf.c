@@ -86,6 +86,12 @@ Lisp_Object Vminibuffer_history_variable;
 
 Lisp_Object Vminibuffer_history_position;
 
+/* Text properties that are added to minibuffer prompts.
+   These are in addition to the basic `field' property, and stickiness
+   properties.  */
+
+Lisp_Object Vminibuffer_prompt_properties;
+
 Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
 Lisp_Object Qread_file_name_internal;
@@ -521,8 +527,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 			  Qrear_nonsticky, Qt, Qnil);
       Fput_text_property (make_number (BEG), make_number (PT),
 			  Qfield, Qt, Qnil);
-      Fput_text_property (make_number (BEG), make_number (PT),
-			  Qread_only, Qt, Qnil);
+      Fadd_text_properties (make_number (BEG), make_number (PT),
+			    Vminibuffer_prompt_properties, Qnil);
     }
   
   minibuf_prompt_width = current_column ();
@@ -2436,6 +2442,15 @@ This also affects `read-string', but it does not affect `read-minibuffer',\n\
 `read-no-blanks-input', or any of the functions that do minibuffer input\n\
 with completion; they always discard text properties.");
   minibuffer_allow_text_properties = 0;
+
+  DEFVAR_LISP ("minibuffer-prompt-properties", &Vminibuffer_prompt_properties,
+    "Text properties that are added to minibuffer prompts.\n\
+These are in addition to the basic `field' property, and stickiness\n\
+properties.");
+  /* We use `intern' here instead of Qread_only to avoid
+     initialization-order problems.  */
+  Vminibuffer_prompt_properties
+    = Fcons (intern ("read-only"), Fcons (Qt, Qnil));
 
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
