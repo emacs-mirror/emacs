@@ -1836,6 +1836,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
+#if 1
+	  /* Draw the face of the newline character as extending all the 
+	     way to the end of the frame line.  */
+	  if (current_face)
+	    while (p1 < endp)
+	      *p1++ = MAKE_GLYPH (' ', current_face);
+#endif
 	  break;
 	}
       else if (c == '\t')
@@ -1862,6 +1869,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
+#if 1
+	  /* Draw the face of the newline character as extending all the 
+	     way to the end of the frame line.  */
+	  if (current_face)
+	    while (p1 < endp)
+	      *p1++ = MAKE_GLYPH (' ', current_face);
+#endif
 	  break;
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
