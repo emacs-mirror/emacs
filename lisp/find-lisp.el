@@ -162,6 +162,7 @@ It is a function which takes two arguments, the directory and its parent."
 ;; Find-dired all in Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defun find-lisp-find-dired (dir regexp)
   "Find files in DIR, matching REGEXP."
   (interactive "DFind files in directory: \nsMatching regexp: ")
@@ -173,6 +174,7 @@ It is a function which takes two arguments, the directory and its parent."
      "*Find Lisp Dired*")))
 
 ;; Just the subdirectories
+;;;###autoload
 (defun find-lisp-find-dired-subdirectories (dir)
   "Find all subdirectories of DIR."
   (interactive "DFind subdirectories of directory: ")
@@ -276,6 +278,7 @@ It is a function which takes two arguments, the directory and its parent."
     (goto-char (point-min))
     (dired-goto-next-file)))
 
+;;;###autoload
 (defun find-lisp-find-dired-filter (regexp)
   "Change the filter on a find-lisp-find-dired buffer to REGEXP."
   (interactive "sSet filter to regexp: ")
