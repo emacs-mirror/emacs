@@ -3150,7 +3150,7 @@ This function is an internal primitive--use `make-frame' instead.")
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", symbol);
   x_default_parameter (f, parms, Qtitle, Qnil,
-		       "title", "Title", symbol);
+		       "title", "Title", string);
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
