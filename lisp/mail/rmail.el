@@ -3867,6 +3867,23 @@ encoded string (and the same mask) will decode the string."
      (setq i (1+ i)))
    (concat string-vector)))
 
+;;;;  Desktop support
+
+;;;###autoload
+(defun rmail-restore-desktop-buffer (desktop-buffer-file-name
+                                     desktop-buffer-name
+                                     desktop-buffer-misc)
+  "Restore an rmail buffer specified in a desktop file."
+  (condition-case error
+      (progn
+        (rmail-input desktop-buffer-file-name)
+        (if (eq major-mode 'rmail-mode)
+            (current-buffer)
+          rmail-buffer))
+    (file-locked
+      (kill-buffer (current-buffer))
+      nil)))
+
 (provide 'rmail)
 
 ;;; arch-tag: cff0a950-57fe-4f73-a86e-91ff75afd06c

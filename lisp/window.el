@@ -327,8 +327,9 @@ new mode line."
   (with-current-buffer (window-buffer)
     (if view-mode
 	(let ((old-info (assq old-w view-return-to-alist)))
-	  (push (cons new-w (cons (and old-info (car (cdr old-info))) t))
-		view-return-to-alist)))
+	  (if old-info
+	      (push (cons new-w (cons (car (cdr old-info)) t))
+		    view-return-to-alist))))
     new-w))
 
 (defun split-window-horizontally (&optional arg)

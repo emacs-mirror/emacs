@@ -1959,14 +1959,14 @@ spaces are put between sequence elements, etc.  */)
   int len = 0;
   int i, i_byte;
   Lisp_Object *args;
-  int size = Flength (keys);
+  int size = XINT (Flength (keys));
   Lisp_Object list;
   Lisp_Object sep = build_string (" ");
   Lisp_Object key;
   int add_meta = 0;
 
   if (!NILP (prefix))
-    size += Flength (prefix);
+    size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
   args = (Lisp_Object *) alloca (size * 4 * sizeof (Lisp_Object));
@@ -1997,7 +1997,7 @@ spaces are put between sequence elements, etc.  */)
   else if (VECTORP (list))
     size = XVECTOR (list)->size;
   else if (CONSP (list))
-    size = Flength (list);
+    size = XINT (Flength (list));
   else
     wrong_type_argument (Qarrayp, list);
 

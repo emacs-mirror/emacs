@@ -1,4 +1,4 @@
-# Makefile for leim subdirectory in GNU Emacs on the Microsoft W32 API.
+# -*- Makefile -*- for leim subdirectory in GNU Emacs on the Microsoft W32 API.
 # Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 # Licensed to the Free Software Foundation.
 

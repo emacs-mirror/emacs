@@ -2604,18 +2604,13 @@ This function will not modify `match-data'."
 (defun checkdoc-output-mode ()
   "Create and setup the buffer used to maintain checkdoc warnings.
 \\<checkdoc-output-mode-map>\\[checkdoc-find-error]  - Go to this error location."
-  (if (get-buffer checkdoc-diagnostic-buffer)
-      (get-buffer checkdoc-diagnostic-buffer)
-    (save-excursion
-      (set-buffer (get-buffer-create checkdoc-diagnostic-buffer))
-      (kill-all-local-variables)
-      (setq mode-name "Checkdoc"
-	    major-mode 'checkdoc-output-mode)
-      (set (make-local-variable 'font-lock-defaults)
-	   '((checkdoc-output-font-lock-keywords) t t ((?- . "w") (?_ . "w"))))
-      (use-local-map checkdoc-output-mode-map)
-      (run-hooks 'checkdoc-output-mode-hook)
-      (current-buffer))))
+  (kill-all-local-variables)
+  (setq mode-name "Checkdoc"
+	major-mode 'checkdoc-output-mode)
+  (set (make-local-variable 'font-lock-defaults)
+       '((checkdoc-output-font-lock-keywords) t t ((?- . "w") (?_ . "w"))))
+  (use-local-map checkdoc-output-mode-map)
+  (run-mode-hooks 'checkdoc-output-mode-hook))
 
 (defalias 'checkdoc-find-error-mouse 'checkdoc-find-error)
 (defun checkdoc-find-error (&optional event)
@@ -2634,31 +2629,31 @@ This function will not modify `match-data'."
 (defun checkdoc-buffer-label ()
   "The name to use for a checkdoc buffer in the error list."
   (if (buffer-file-name)
-      (file-name-nondirectory (buffer-file-name))
+      (file-relative-name (buffer-file-name))
     (concat "#<buffer "(buffer-name) ">")))
 
 (defun checkdoc-start-section (check-type)
   "Initialize the checkdoc diagnostic buffer for a pass.
 Create the header so that the string CHECK-TYPE is displayed as the
 function called to create the messages."
-  (checkdoc-output-to-error-buffer
-   "\n\n\C-l\n*** "
-   (checkdoc-buffer-label) ": " check-type " V " checkdoc-version))
+  (let ((dir default-directory)
+	(label (checkdoc-buffer-label)))
+    (with-current-buffer (get-buffer-create checkdoc-diagnostic-buffer)
+      (checkdoc-output-mode)
+      (setq default-directory dir)
+      (goto-char (point-max))
+      (insert "\n\n\C-l\n*** " label ": " check-type " V " checkdoc-version))))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."
   (setq checkdoc-pending-errors t)
-  (checkdoc-output-to-error-buffer
-   "\n" (checkdoc-buffer-label) ":"
-   (int-to-string (count-lines (point-min) (or point (point-min)))) ": "
-   msg))
-
-(defun checkdoc-output-to-error-buffer (&rest text)
-  "Place TEXT into the checkdoc diagnostic buffer."
-  (save-excursion
-    (set-buffer (checkdoc-output-mode))
-    (goto-char (point-max))
-    (apply 'insert text)))
+  (let ((text (list "\n" (checkdoc-buffer-label) ":"
+		    (int-to-string
+		     (count-lines (point-min) (or point (point-min))))
+		    ": " msg)))
+    (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
+      (goto-char (point-max))
+      (apply 'insert text))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."

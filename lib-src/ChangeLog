@@ -1,3 +1,7 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
 2004-04-17  Paul Eggert  <eggert@gnu.org>
 
 	* rcs2log (Help): Clarify wording of the usage message.

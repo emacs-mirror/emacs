@@ -538,6 +538,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (setq next-error-function 'occur-next-error)
   (run-hooks 'occur-mode-hook))
 
 (defun occur-revert-function (ignore1 ignore2)
@@ -614,6 +615,21 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Move to the Nth (default 1) previous match in an Occur mode buffer."
   (interactive "p")
   (occur-find-match n #'previous-single-property-change "No earlier matches"))
+
+(defun occur-next-error (&optional argp reset)
+  "Move to the Nth (default 1) next match in an Occur mode buffer.
+Compatibility function for \\[next-error] invocations."
+  (interactive "p")
+  (when reset
+    (occur-find-match 0 #'next-single-property-change "No first match"))
+  (occur-find-match
+   (prefix-numeric-value argp)
+   (if (> 0 (prefix-numeric-value argp))
+       #'previous-single-property-change
+     #'next-single-property-change)
+   "No more matches")
+  (occur-mode-goto-occurrence))
+
 
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.
@@ -800,7 +816,9 @@ See also `multi-occur'."
 	(setq occur-revert-arguments (list regexp nlines bufs)
 	      buffer-read-only t)
 	(if (> count 0)
-	    (display-buffer occur-buf)
+	    (progn
+	      (display-buffer occur-buf)
+	      (setq next-error-last-buffer occur-buf))
 	  (kill-buffer occur-buf)))
       (run-hooks 'occur-hook))))
 

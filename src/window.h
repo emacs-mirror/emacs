@@ -320,7 +320,7 @@ struct window
     |  |   +--------------------------- LEFT_MARGIN_COLS
     |  +------------------------------- LEFT_FRINGE_WIDTH
     +---------------------------------- LEFT_SCROLL_BAR_COLS
-    
+
 */
 
 
@@ -767,8 +767,8 @@ EXFUN (Fdisplay_buffer, 3);
 EXFUN (Fset_window_buffer, 3);
 EXFUN (Fset_window_hscroll, 2);
 EXFUN (Fwindow_hscroll, 1);
-EXFUN (Fset_window_vscroll, 2);
-EXFUN (Fwindow_vscroll, 1);
+EXFUN (Fset_window_vscroll, 3);
+EXFUN (Fwindow_vscroll, 2);
 EXFUN (Fset_window_margins, 3);
 EXFUN (Fwindow_live_p, 1);
 EXFUN (Fset_window_point, 2);

@@ -125,11 +125,6 @@ describing how the process finished.")
 Each function is called with two arguments: the compilation buffer,
 and a string describing how the process finished.")
 
-(defvar compilation-last-buffer nil
-  "The most recent compilation buffer.
-A buffer becomes most recent when its compilation is started
-or when it is used with \\[next-error] or \\[compile-goto-error].")
-
 (defvar compilation-in-progress nil
   "List of compilation processes now running.")
 (or (assq 'compilation-in-progress minor-mode-alist)
@@ -561,17 +556,13 @@ Faces `compilation-error-face', `compilation-warning-face',
 	      (setq dir (previous-single-property-change (point) 'directory)
 		    dir (if dir (or (get-text-property (1- dir) 'directory)
 				    (get-text-property dir 'directory)))))
-	    (setq file (cons file (car dir)) ; top of dir stack is current
-		  file (or (gethash file compilation-locs)
-			   (puthash file (list file fmt) compilation-locs)))))
+	    (setq file (cons file (car dir)))))
       ;; This message didn't mention one, get it from previous
       (setq file (previous-single-property-change (point) 'message)
 	    file (or (if file
-			 (nth 2 (car (or (get-text-property (1- file) 'message)
-					 (get-text-property file 'message)))))
-		     ;; no previous either -- but don't let font-lock fail
-		     (gethash (setq file '("*unknown*")) compilation-locs)
-		     (puthash file (list file fmt) compilation-locs))))
+			 (car (nth 2 (car (or (get-text-property (1- file) 'message)
+					 (get-text-property file 'message))))))
+		     '("*unknown*"))))
     ;; All of these fields are optional, get them only if we have an index, and
     ;; it matched some part of the message.
     (and line
@@ -590,74 +581,84 @@ Faces `compilation-error-face', `compilation-warning-face',
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
 		       2)))
-    ;; Get first already existing marker (if any has one, all have one).
-    ;; Do this first, as the compilation-assq`s may create new nodes.
-    (let* ((marker-line (car (cddr file)))	; a line structure
-	   (marker (nth 3 (cadr marker-line)))	; its marker
-	   (compilation-error-screen-columns compilation-error-screen-columns)
-	   end-marker loc end-loc)
-      (if (not (and marker (marker-buffer marker)))
-	  (setq marker)			; no valid marker for this file
-	(setq loc (or line 1)		; normalize no linenumber to line 1
-	      marker-line)
-	(catch 'marker			; find nearest loc, at least one exists
-	  (dolist (x (cddr file))	; loop over lines
-	    (if (> (or (car x) 1) loc)	; still bigger
-		(setq marker-line x)
-	      (if (or (not marker-line)	; first in list
-		      (> (- (or (car marker-line) 1) loc)
-			 (- loc (or (car x) 1)))) ; current line is nearer
-		  (setq marker-line x))
-	      (throw 'marker t))))
-	(setq marker (nth 3 (cadr marker-line))
-	      marker-line (car marker-line))
-	(with-current-buffer (marker-buffer marker)
-	  (save-restriction
-	    (widen)
-	    (goto-char (marker-position marker))
-	    (when (or end-col end-line)
-	      (beginning-of-line (- (or end-line line) marker-line -1))
-	      (if (< end-col 0)
-		  (end-of-line)
-		(if compilation-error-screen-columns
-		    (move-to-column end-col)
-		  (forward-char end-col)))
-	      (setq end-marker (list (point-marker))))
-	    (beginning-of-line (if end-line
-				   (- end-line line -1)
-				 (- loc marker-line -1)))
-	    (if col
-		(if compilation-error-screen-columns
-		    (move-to-column col)
-		  (forward-char col))
-	      (forward-to-indentation 0))
-	    (setq marker (list (point-marker))))))
+    (compilation-internal-error-properties file line end-line col end-col type fmt)))
 
-      (setq loc (compilation-assq line (cdr file)))
-      (if end-line
-	  (setq end-loc (compilation-assq end-line (cdr file))
-		end-loc (compilation-assq end-col end-loc))
-	(if end-col			; use same line element
-	    (setq end-loc (compilation-assq end-col loc))))
-      (setq loc (compilation-assq col loc))
-      ;; If they are new, make the loc(s) reference the file they point to.
-      (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
-      (if end-loc
-	  (or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+(defun compilation-internal-error-properties (file line end-line col end-col type fmt)
+  "Get the meta-info that will be added as text-properties.
+LINE, END-LINE, COL, END-COL are integers or nil.
+TYPE can be 0, 1, or 2.
+FILE should be (FILENAME . DIRNAME) or nil."
+  (unless file (setq file '("*unknown*")))
+  (setq file (or (gethash file compilation-locs)
+		 (puthash file (list file fmt) compilation-locs)))
+  ;; Get first already existing marker (if any has one, all have one).
+  ;; Do this first, as the compilation-assq`s may create new nodes.
+  (let* ((marker-line (car (cddr file)))	; a line structure
+	 (marker (nth 3 (cadr marker-line)))	; its marker
+	 (compilation-error-screen-columns compilation-error-screen-columns)
+	 end-marker loc end-loc)
+    (if (not (and marker (marker-buffer marker)))
+	(setq marker)			; no valid marker for this file
+      (setq loc (or line 1)		; normalize no linenumber to line 1
+	    marker-line)
+      (catch 'marker		     ; find nearest loc, at least one exists
+	(dolist (x (cddr file))		; loop over lines
+	  (if (> (or (car x) 1) loc)	; still bigger
+	      (setq marker-line x)
+	    (if (or (not marker-line)	; first in list
+		    (> (- (or (car marker-line) 1) loc)
+		       (- loc (or (car x) 1))))	; current line is nearer
+		(setq marker-line x))
+	    (throw 'marker t))))
+      (setq marker (nth 3 (cadr marker-line))
+	    marker-line (car marker-line))
+      (with-current-buffer (marker-buffer marker)
+	(save-restriction
+	  (widen)
+	  (goto-char (marker-position marker))
+	  (when (or end-col end-line)
+	    (beginning-of-line (- (or end-line line) marker-line -1))
+	    (if (< end-col 0)
+		(end-of-line)
+	      (if compilation-error-screen-columns
+		  (move-to-column end-col)
+		(forward-char end-col)))
+	    (setq end-marker (list (point-marker))))
+	  (beginning-of-line (if end-line
+				 (- end-line line -1)
+			       (- loc marker-line -1)))
+	  (if col
+	      (if compilation-error-screen-columns
+		  (move-to-column col)
+		(forward-char col))
+	    (forward-to-indentation 0))
+	  (setq marker (list (point-marker))))))
 
-      ;; Must start with face
-      `(face ,compilation-message-face
-	     message (,loc ,type ,end-loc)
-	     ,@(if compilation-debug
-		   `(debug (,(assoc (with-no-warnings matcher) font-lock-keywords)
-			    ,@(match-data))))
-	     help-echo ,(if col
-			    "mouse-2: visit this file, line and column"
-			  (if line
-			      "mouse-2: visit this file and line"
-			    "mouse-2: visit this file"))
-	     keymap compilation-button-map
-	     mouse-face highlight))))
+    (setq loc (compilation-assq line (cdr file)))
+    (if end-line
+	(setq end-loc (compilation-assq end-line (cdr file))
+	      end-loc (compilation-assq end-col end-loc))
+      (if end-col			; use same line element
+	  (setq end-loc (compilation-assq end-col loc))))
+    (setq loc (compilation-assq col loc))
+    ;; If they are new, make the loc(s) reference the file they point to.
+    (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
+    (if end-loc
+	(or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+
+    ;; Must start with face
+    `(face ,compilation-message-face
+	   message (,loc ,type ,end-loc)
+	   ,@(if compilation-debug
+		 `(debug (,(assoc (with-no-warnings matcher) font-lock-keywords)
+			  ,@(match-data))))
+	   help-echo ,(if col
+			  "mouse-2: visit this file, line and column"
+			(if line
+			    "mouse-2: visit this file and line"
+			  "mouse-2: visit this file"))
+	   keymap compilation-button-map
+	   mouse-face highlight)))
 
 (defun compilation-mode-font-lock-keywords ()
   "Return expressions to highlight in Compilation mode."
@@ -701,6 +702,9 @@ Faces `compilation-error-face', `compilation-warning-face',
 						',(nthcdr 4 item)))
 			     ,(if col `(match-string ,col)))))
 		(,file compilation-error-face t))
+
+	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
+	      (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
 	    `(,(nth 0 item)
 
@@ -962,7 +966,7 @@ exited abnormally with code %d\n"
 	  (select-window outwin)
 	  (goto-char (point-max))))
     ;; Make it so the next C-x ` will use this buffer.
-    (setq compilation-last-buffer outbuf)))
+    (setq next-error-last-buffer outbuf)))
 
 (defun compilation-set-window-height (window)
   "Set the height of WINDOW according to `compilation-window-height'."
@@ -1093,6 +1097,10 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
+  ;; note that compilation-next-error-function is for interfacing
+  ;; with the next-error function in simple.el, and it's only
+  ;; coincidentally named similarly to compilation-next-error
+  (setq next-error-function 'compilation-next-error-function)
   (run-mode-hooks 'compilation-mode-hook))
 
 (defmacro define-compilation-mode (mode name doc &rest body)
@@ -1154,7 +1162,6 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
-  (setq compilation-last-buffer (current-buffer))
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
   (set (make-local-variable 'compilation-locs)
@@ -1271,8 +1278,16 @@ Just inserts the text, but uses `insert-before-markers'."
 	    (insert-before-markers string)
 	    (run-hooks 'compilation-filter-hook))))))
 
+;;; test if a buffer is a compilation buffer, assuming we're in the buffer
+(defsubst compilation-buffer-internal-p ()
+  "Test if inside a compilation buffer."
+  (local-variable-p 'compilation-locs))
+
+;;; test if a buffer is a compilation buffer, using compilation-buffer-internal-p
 (defsubst compilation-buffer-p (buffer)
-  (local-variable-p 'compilation-locs buffer))
+  "Test if BUFFER is a compilation buffer."
+  (with-current-buffer buffer
+    (compilation-buffer-internal-p)))
 
 (defmacro compilation-loop (< property-change 1+ error)
   `(while (,< n 0)
@@ -1303,7 +1318,6 @@ Does NOT find the source line like \\[next-error]."
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
-  (setq compilation-last-buffer (current-buffer))
   (let* ((msg (get-text-property pt 'message))
 	 (loc (car msg))
 	 last)
@@ -1340,25 +1354,6 @@ forwards, if negative).
 Does NOT find the source line like \\[previous-error]."
   (interactive "p")
   (compilation-next-error (- n)))
-
-(defun next-error-no-select (n)
-  "Move point to the next error in the compilation buffer and highlight match.
-Prefix arg N says how many error messages to move forwards (or
-backwards, if negative).
-Finds and highlights the source line like \\[next-error], but does not
-select the source buffer."
-  (interactive "p")
-  (next-error n)
-  (pop-to-buffer compilation-last-buffer))
-
-(defun previous-error-no-select (n)
-  "Move point to previous error in compilation buffer and highlight match.
-Prefix arg N says how many error messages to move backwards (or
-forwards, if negative).
-Finds and highlights the source line like \\[previous-error], but does not
-select the source buffer."
-  (interactive "p")
-  (next-error-no-select (- n)))
 
 (defun compilation-next-file (n)
   "Move point to the next error for a different file than the current one.
@@ -1397,55 +1392,17 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
-;; If compilation-last-buffer is set to a live buffer, use that.
 ;; Otherwise, look for a compilation buffer and signal an error
 ;; if there are none.
 (defun compilation-find-buffer (&optional other-buffer)
-  (if (and (not other-buffer)
-	   (compilation-buffer-p (current-buffer)))
-      ;; The current buffer is a compilation buffer.
-      (current-buffer)
-    (if (and compilation-last-buffer (buffer-name compilation-last-buffer)
-	     (compilation-buffer-p compilation-last-buffer)
-	     (or (not other-buffer) (not (eq compilation-last-buffer
-					     (current-buffer)))))
-	compilation-last-buffer
-      (let ((buffers (buffer-list)))
-	(while (and buffers (or (not (compilation-buffer-p (car buffers)))
-				(and other-buffer
-				     (eq (car buffers) (current-buffer)))))
-	  (setq buffers (cdr buffers)))
-	(if buffers
-	    (car buffers)
-	  (or (and other-buffer
-		   (compilation-buffer-p (current-buffer))
-		   ;; The current buffer is a compilation buffer.
-		   (progn
-		     (if other-buffer
-			 (message "This is the only compilation buffer."))
-		     (current-buffer)))
-	      (error "No compilation started!")))))))
+  (next-error-find-buffer other-buffer 'compilation-buffer-internal-p))
 
 ;;;###autoload
-(defun next-error (&optional n)
-  "Visit next compilation error message and corresponding source code.
-Prefix arg N says how many error messages to move forwards (or
-backwards, if negative).
-
-\\[next-error] normally uses the most recently started compilation or
-grep buffer.  However, it can operate on any buffer with output from
-the \\[compile] and \\[grep] commands, or, more generally, on any
-buffer in Compilation mode or with Compilation Minor mode enabled.  To
-specify use of a particular buffer for error messages, type
-\\[next-error] in that buffer.
-
-Once \\[next-error] has chosen the buffer for error messages,
-it stays with that buffer until you use it in some other buffer which
-uses Compilation mode or Compilation Minor mode.
-
-See variable `compilation-error-regexp-alist' for customization ideas."
+(defun compilation-next-error-function (n &optional reset)
   (interactive "p")
-  (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
+  (set-buffer (compilation-find-buffer))
+  (when reset
+    (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
 	 (last 1)
 	 (loc (compilation-next-error (or n 1) nil
@@ -1491,27 +1448,6 @@ See variable `compilation-error-regexp-alist' for customization ideas."
 		(setcdr (nthcdr 2 col) `(,(point-marker)))))))))
     (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
     (setcdr (nthcdr 3 loc) t)))		; Set this one as visited.
-
-;;;###autoload (define-key ctl-x-map "`" 'next-error)
-
-(defun previous-error (n)
-  "Visit previous compilation error message and corresponding source code.
-Prefix arg N says how many error messages to move backwards (or
-forwards, if negative).
-
-This operates on the output from the \\[compile] and \\[grep] commands."
-  (interactive "p")
-  (next-error (- n)))
-
-(defun first-error (n)
-  "Restart at the first error.
-Visit corresponding source code.
-With prefix arg N, visit the source code of the Nth error.
-This operates on the output from the \\[compile] command."
-  (interactive "p")
-  (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
-  (setq compilation-current-error nil)
-  (next-error n))
 
 (defun compilation-fake-loc (marker file &optional line col)
   "Preassociate MARKER with FILE.
@@ -1732,17 +1668,25 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 
 (defun compilation-compat-error-properties (err)
   "Map old-style error ERR to new-style message."
-  (let* ((dst (cdr err))
-	 (loc (cond ((markerp dst) (list nil nil nil dst))
-		    ((consp dst)
-		     (list (nth 2 dst) (nth 1 dst)
-			   (cons (cdar dst) (caar dst)))))))
-    ;; Must start with a face, for font-lock.
-    `(face nil
-      message ,(list loc 2)
-      help-echo "mouse-2: visit the source location"
-      keymap compilation-button-map
-      mouse-face highlight)))
+  ;; Old-style structure is (MARKER (FILE DIR) LINE COL) or
+  ;; (MARKER . MARKER).
+  (let ((dst (cdr err)))
+    (if (markerp dst)
+	;; Must start with a face, for font-lock.
+	`(face nil
+	  message ,(list (list nil nil nil dst) 2)
+	  help-echo "mouse-2: visit the source location"
+	  keymap compilation-button-map
+	  mouse-face highlight)
+      ;; Too difficult to do it by hand: dispatch to the normal code.
+      (let* ((file (pop dst))
+	     (line (pop dst))
+	     (col (pop dst))
+	     (filename (pop file))
+	     (dirname (pop file))
+	     (fmt (pop file)))
+	(compilation-internal-error-properties
+	 (cons filename dirname) line nil col nil 2 fmt)))))
 
 (defun compilation-compat-parse-errors (limit)
   (when compilation-parse-errors-function

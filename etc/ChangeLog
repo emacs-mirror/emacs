@@ -1,3 +1,7 @@
+2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* TODO: Use outline mode.  Remove compile.el entry (done).
+
 2004-04-18  Juri Linkov  <juri@jurta.org>
 
 	* TUTORIAL.fr, TUTORIAL.pl, TUTORIAL.ru, TUTORIAL.sl, TUTORIAL.sv

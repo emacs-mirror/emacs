@@ -66,29 +66,29 @@ The Lisp code is executed when the node is selected.")
 (put 'Info-enable-active-nodes 'risky-local-variable t)
 
 (defface info-node
-  '((((class color) (background light)) (:foreground "brown" :weight bold :slant italic))
-    (((class color) (background dark)) (:foreground "white" :weight bold :slant italic))
-    (t (:weight bold :slant italic)))
+  '((((class color) (background light)) :foreground "brown" :weight bold :slant italic)
+    (((class color) (background dark)) :foreground "white" :weight bold :slant italic)
+    (t :weight bold :slant italic))
   "Face for Info node names."
   :group 'info)
 
 (defface info-menu-5
-  '((((class color)) (:foreground "red1"))
-    (t (:underline t)))
+  '((((class color)) :foreground "red1")
+    (t :underline t))
   "Face for every third `*' in an Info menu."
   :group 'info)
 
 (defface info-xref
-  '((((class color) (background light)) (:foreground "blue"))
-    (((class color) (background dark)) (:foreground "cyan"))
-    (t (:underline t)))
+  '((((class color) (background light)) :foreground "blue")
+    (((class color) (background dark)) :foreground "cyan")
+    (t :underline t))
   "Face for Info cross-references."
   :group 'info)
 
 (defface info-xref-visited
-  '((((class color) (background light)) (:foreground "magenta4"))
-    (((class color) (background dark)) (:foreground "magenta4"))
-    (t (:underline t)))
+  '((t :inherit info-xref)
+    (((class color) (background light)) :foreground "magenta4")
+    (((class color) (background dark)) :foreground "magenta4"))
   "Face for visited Info cross-references."
   :group 'info)
 
@@ -110,12 +110,12 @@ A header-line does not scroll with the rest of the buffer."
   :group 'info)
 
 (defface info-header-xref
-  '((t (:inherit info-xref)))
+  '((t :inherit info-xref))
   "Face for Info cross-references in a node header."
   :group 'info)
 
 (defface info-header-node
-  '((t (:inherit info-node)))
+  '((t :inherit info-node))
   "Face for Info nodes in a node header."
   :group 'info)
 
@@ -2907,6 +2907,8 @@ Advanced commands:
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
+  (make-local-variable 'desktop-buffer-misc-data-function)
+  (setq desktop-buffer-misc-data-function 'Info-desktop-buffer-misc-data)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (Info-set-mode-line)
@@ -3111,26 +3113,26 @@ the variable `Info-file-list-for-emacs'."
 	   (Info-goto-emacs-command-node command)))))
 
 (defface Info-title-1-face
-  '((((type tty pc) (class color)) (:foreground "yellow" :weight bold))
-    (t (:height 1.2 :inherit Info-title-2-face)))
+  '((((type tty pc) (class color)) :foreground "yellow" :weight bold)
+    (t :height 1.2 :inherit Info-title-2-face))
   "Face for Info titles at level 1."
   :group 'info)
 
 (defface Info-title-2-face
-  '((((type tty pc) (class color)) (:foreground "lightblue" :weight bold))
-    (t (:height 1.2 :inherit Info-title-3-face)))
+  '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
+    (t :height 1.2 :inherit Info-title-3-face))
   "Face for Info titles at level 2."
   :group 'info)
 
 (defface Info-title-3-face
-  '((((type tty pc) (class color)) (:weight bold))
-    (t (:height 1.2 :inherit Info-title-4-face)))
+  '((((type tty pc) (class color)) :weight bold)
+    (t :height 1.2 :inherit Info-title-4-face))
   "Face for Info titles at level 3."
   :group 'info)
 
 (defface Info-title-4-face
-  '((((type tty pc) (class color)) (:weight bold))
-    (t (:weight bold :inherit variable-pitch)))
+  '((((type tty pc) (class color)) :weight bold)
+    (t :weight bold :inherit variable-pitch))
   "Face for Info titles at level 4."
   :group 'info)
 
@@ -3707,6 +3709,23 @@ BUFFER is the buffer speedbar is requesting buttons for."
                 search-failed
 		"^No \".*\" in index$"))
   (add-to-list 'debug-ignored-errors mess))
+
+;;;;  Desktop support
+
+(defun Info-desktop-buffer-misc-data (desktop-dirname)
+  "Auxiliary information to be saved in desktop file."
+  (list Info-current-file Info-current-node))
+
+;;;###autoload
+(defun Info-restore-desktop-buffer (desktop-buffer-file-name
+                                    desktop-buffer-name
+                                    desktop-buffer-misc)
+  "Restore an info buffer specified in a desktop file."
+  (let ((first (nth 0 desktop-buffer-misc))
+        (second (nth 1 desktop-buffer-misc)))
+  (when (and first second)
+    (Info-find-node first second)
+    (current-buffer))))
 
 (provide 'info)
 

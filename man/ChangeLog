@@ -1,3 +1,7 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
 2004-04-18  Juri Linkov  <juri@jurta.org>
 
 	* fixit.texi (Spelling): Remove file extension from ispell xref.

@@ -644,14 +644,16 @@ and `down'."
 	(setq type (car type)))
     (if (symbolp type)
 	(cdr (get type 'event-symbol-elements))
-      (let ((list nil))
-	(or (zerop (logand type ?\M-\^@))
+      (let ((list nil)
+	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
+					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))
+	(if (not (zerop (logand type ?\M-\^@)))
 	    (setq list (cons 'meta list)))
-	(or (and (zerop (logand type ?\C-\^@))
-		 (>= (logand type 127) 32))
+	(if (or (not (zerop (logand type ?\C-\^@)))
+		(< char 32))
 	    (setq list (cons 'control list)))
-	(or (and (zerop (logand type ?\S-\^@))
-		 (= (logand type 255) (downcase (logand type 255))))
+	(if (or (not (zerop (logand type ?\S-\^@)))
+		(/= char (downcase char)))
 	    (setq list (cons 'shift list)))
 	(or (zerop (logand type ?\H-\^@))
 	    (setq list (cons 'hyper list)))
@@ -1329,7 +1331,8 @@ Optional DEFAULT is a default password to use instead of empty input."
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (number-to-string default))))
+					   (and default
+						(number-to-string default)))))
 	    (setq n (cond
 		     ((zerop (length str)) default)
 		     ((stringp str) (read str)))))

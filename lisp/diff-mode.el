@@ -48,7 +48,6 @@
 ;;
 ;; - Refine hunk on a word-by-word basis.
 ;;
-;; - Use the new next-error-function to allow C-x `.
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
@@ -886,9 +885,14 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
-;;;;
-;;;; The main function
-;;;;
+(defun diff-next-error (arg reset)
+  ;; Select a window that displays the current buffer so that point
+  ;; movements are reflected in that window.  Otherwise, the user might
+  ;; never see the hunk corresponding to the source she's jumping to.
+  (pop-to-buffer (current-buffer))
+  (if reset (goto-char (point-min)))
+  (diff-hunk-next arg)
+  (diff-goto-source))
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
@@ -916,6 +920,7 @@ a diff with \\[diff-reverse-direction]."
   ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
+  (set (make-local-variable 'next-error-function) 'diff-next-error)
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))

@@ -149,7 +149,7 @@ DATE1 and DATE2 should be date-time strings."
 
 ;;;###autoload
 (defun time-to-day-in-year (time)
-  "Return the day number within the year of the date month/day/year."
+  "Return the day number within the year corresponding to TIME."
   (let* ((tim (decode-time time))
 	 (month (nth 4 tim))
 	 (day (nth 3 tim))

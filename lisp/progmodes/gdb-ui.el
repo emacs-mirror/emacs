@@ -1,6 +1,6 @@
 ;;; gdb-ui.el --- User Interface for running GDB
 
-;; Author: Nick Roberts <nick@nick.uklinux.net>
+;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
@@ -1141,10 +1141,18 @@ static char *magick[] = {
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
 
+(defconst gdb-frame-parameters
+  '((height . 12) (width . 60)
+    (unsplittable . t)
+    (tool-bar-lines . nil)
+    (menu-bar-lines . nil)
+    (minibuffer . nil)))
+
 (defun gdb-frame-breakpoints-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1264,8 +1272,9 @@ current line."
 
 (defun gdb-frame-stack-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-stack-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-stack-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1340,8 +1349,9 @@ the source buffer."
 
 (defun gdb-frame-threads-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-threads-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-threads-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1421,8 +1431,9 @@ the source buffer."
 
 (defun gdb-frame-registers-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-registers-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-registers-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 ;;
 ;; Locals buffer.
@@ -1492,8 +1503,9 @@ the source buffer."
 
 (defun gdb-frame-locals-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-locals-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-locals-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 
 ;;;; Window management
@@ -1514,7 +1526,7 @@ the source buffer."
 		  (set-window-dedicated-p win t))))
 	  (setq answer (get-buffer-window buf))
 	  (if (not answer)
-	      (let ((window (get-lru-window)))
+	      (let ((window (get-lru-window 'visible)))
 		(if window
 		    (progn
 		      (set-window-buffer window buf)
@@ -1525,7 +1537,7 @@ the source buffer."
 	  (if (eq gud-comint-buffer (window-buffer win))
 	      (set-window-dedicated-p win nil)))))
     (if must-split
-	(let* ((largest (get-largest-window))
+	(let* ((largest (get-largest-window 'visible))
 	       (cur-size (window-height largest))
 	       (new-size (and size (< size cur-size) (- cur-size size))))
 	  (setq answer (split-window largest new-size))
@@ -1590,8 +1602,9 @@ the source buffer."
 
 (defun gdb-frame-gdb-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdba)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdba))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 (defun gdb-display-gdb-buffer ()
   (interactive)
@@ -1920,8 +1933,9 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-frame-assembler-buffer ()
   (interactive)
-  (switch-to-buffer-other-frame
-   (gdb-get-create-buffer 'gdb-assembler-buffer)))
+  (select-frame (make-frame gdb-frame-parameters))
+  (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
 
 ;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output

@@ -1,5 +1,4 @@
-#
-#  Makefile definition file for building GNU Emacs on the Microsoft W32 API.
+#  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
 #  Copyright (c) 2000-2001 Free Software Foundation, Inc.
 #
 #  GNU Emacs is free software; you can redistribute it and/or modify

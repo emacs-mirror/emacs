@@ -926,12 +926,9 @@ the faces: please specify bold, italic, underline, shadow and box.)
 (defun cperl-putback-char (c)		; Emacs 19
   (set 'unread-command-events (list c))) ; Avoid undefined warning
 
-(if (boundp 'unread-command-events)
-    (if cperl-xemacs-p
-	(defun cperl-putback-char (c)	; XEmacs >= 19.12
-	  (setq unread-command-events (list (eval '(character-to-event c))))))
-  (defun cperl-putback-char (c)		; XEmacs <= 19.11
-    (set 'unread-command-event (eval '(character-to-event c))))) ; Avoid warnings
+(if cperl-xemacs-p
+    (defun cperl-putback-char (c)	; XEmacs >= 19.12
+      (setq unread-command-events (list (eval '(character-to-event c))))))
 
 (or (fboundp 'uncomment-region)
     (defun uncomment-region (beg end)

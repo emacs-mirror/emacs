@@ -1557,7 +1557,8 @@ Buffers menu is regenerated."
 
 	 (setq buffers-menu (cons 'keymap (cons "Select Buffer" buffers-menu)))
 	 (define-key (current-global-map) [menu-bar buffer]
-	   (cons "Buffers" buffers-menu)))))
+	   ;; Call copy-sequence so the string is not pure.
+	   (cons (copy-sequence "Buffers") buffers-menu)))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
 

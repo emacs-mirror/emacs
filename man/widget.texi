@@ -680,7 +680,7 @@ image, with either a @file{.xpm} (if supported) or @file{.xbm} extension.
 @end deffn
 
 @deffn{User Option} widget-glyph-enable
-If non-nil, allow glyphs to appear on displays where they are supported.
+If non-@code{nil}, allow glyphs to appear on displays where they are supported.
 @end deffn
 
 
@@ -813,7 +813,7 @@ Face used for highlighting the editable field.  Default is
 @item :secret
 Character used to display the value.  You can set this to e.g.@: @code{?*}
 if the field contains a password or other secret information.  By
-default, this is nil, and the value is not secret.
+default, this is @code{nil}, and the value is not secret.
 
 @vindex valid-regexp@r{ keyword}
 @item :valid-regexp
@@ -865,12 +865,12 @@ specified @var{type} arguments.
 
 @vindex case-fold@r{ keyword}
 @item :case-fold
-Set this to nil if you don't want to ignore case when prompting for a
+Set this to @code{nil} if you don't want to ignore case when prompting for a
 choice through the minibuffer.
 
 @vindex children@r{ keyword}
 @item :children
-A list whose @code{car} is the widget representing the currently chosen
+A list whose @sc{car} is the widget representing the currently chosen
 type in the buffer.
 
 @vindex choice@r{ keyword}
@@ -1064,9 +1064,9 @@ Insert a literal @samp{%}.
 @item :greedy
 Usually a checklist will only match if the items are in the exact
 sequence given in the specification.  By setting @code{:greedy} to
-non-nil, it will allow the items to come in any sequence.  However, if
-you extract the value they will be in the sequence given in the
-checklist, i.e.@: the original sequence is forgotten.
+non-@code{nil}, it will allow the items to come in any sequence.
+However, if you extract the value they will be in the sequence given
+in the checklist, i.e.@: the original sequence is forgotten.
 
 @vindex button-args@r{ keyword}
 @item :button-args
@@ -1141,7 +1141,7 @@ The widgets representing the elements of the list.
 
 @vindex args@r{ keyword}
 @item :args
-List whose @code{car} is the type of the list elements.
+List whose @sc{car} is the type of the list elements.
 @end table
 
 @node group,  , editable-list, Basic Types
@@ -1164,7 +1164,7 @@ The value is a list, with one member for each @var{type}.
 @section Sexp Types
 @cindex sexp types
 
-A number of widgets for editing @dfn{s-expressions} (lisp types), sexp
+A number of widgets for editing @dfn{s-expressions} (Lisp types), sexp
 for short, are also available.  These basically fall in several
 categories described in this section.
 
@@ -1180,7 +1180,7 @@ categories described in this section.
 @subsection The Constant Widgets
 @cindex constant widgets
 
-The @code{const} widget can contain any lisp expression, but the user is
+The @code{const} widget can contain any Lisp expression, but the user is
 prohibited from editing it, which is mainly useful as a component of one
 of the composite widgets.
 
@@ -1217,7 +1217,7 @@ An immutable symbol that is bound as a function.
 @subsection Generic Sexp Widget
 @cindex generic sexp widget
 
-The @code{sexp} widget can contain any lisp expression, and allows the
+The @code{sexp} widget can contain any Lisp expression, and allows the
 user to edit it inline in the buffer.
 
 The syntax for the @code{sexp} widget is:
@@ -1278,8 +1278,8 @@ Keywords:
 @table @code
 @vindex must-match@r{ keyword}
 @item :must-match
-If this is set to non-nil, only existing file names will be allowed in
-the minibuffer.
+If this is set to non-@code{nil}, only existing file names will be
+allowed in the minibuffer.
 @end table
 @end deffn
 
@@ -1289,7 +1289,7 @@ Similar to the @code{file} widget.
 @end deffn
 
 @deffn Widget symbol
-Allows you to edit a lisp symbol in an editable field.
+Allows you to edit a Lisp symbol in an editable field.
 @end deffn
 
 @deffn Widget function
@@ -1309,8 +1309,8 @@ Allows you to edit a number in an editable field.
 @end deffn
 
 @deffn Widget boolean
-Allows you to edit a boolean.  In lisp this means a variable which is
-either nil meaning false, or non-nil meaning true.
+Allows you to edit a boolean.  In Lisp this means a variable which is
+either @code{nil} meaning false, or non-@code{nil} meaning true.
 @end deffn
 
 
@@ -1330,8 +1330,8 @@ where each @var{component} must be a widget type.  Each component widget
 will be displayed in the buffer, and will be editable by the user.
 
 @deffn Widget cons
-The value of a @code{cons} widget is a cons-cell where the @code{car} is
-the value of the first component and the @code{cdr} is the value of the
+The value of a @code{cons} widget is a cons-cell where the @sc{car} is
+the value of the first component and the @sc{cdr} is the value of the
 second component.  There must be exactly two components.
 @end deffn
 
@@ -1432,7 +1432,8 @@ In @var{widget} return the value for @var{property}.
 @end defun
 
 @defun widget-member widget property
-Non-nil if @var{widget} has a value (even nil) for property @var{property}.
+Non-@code{nil} if @var{widget} has a value (even @code{nil}) for
+property @var{property}.
 @end defun
 
 Occasionally it can be useful to know which kind of widget you have,
@@ -1475,7 +1476,7 @@ all its ancestors.
 @end lisp
 
 You can check if a widget has been made inactive by examining the value
-of the @code{:inactive} keyword.  If this is non-nil, the widget itself
+of the @code{:inactive} keyword.  If this is non-@code{nil}, the widget itself
 has been deactivated.  This is different from using the @code{:active}
 keyword, in that the latter tells you if the widget @strong{or} any of
 its ancestors have been deactivated.  Do not attempt to set the
@@ -1500,7 +1501,7 @@ Define a new widget type named @var{name} from @code{class}.
 @var{name} and class should both be symbols, @code{class} should be one
 of the existing widget types.
 
-The third argument @var{DOC} is a documentation string for the widget.
+The third argument @var{doc} is a documentation string for the widget.
 
 After the new widget has been defined, the following two calls will
 create identical widgets:
@@ -1653,7 +1654,7 @@ Function to prompt for a value in the minibuffer.  The function should
 take four arguments, @var{widget}, @var{prompt}, @var{value}, and
 @var{unbound} and should return a value for widget entered by the user.
 @var{prompt} is the prompt to use.  @var{value} is the default value to
-use, unless @var{unbound} is non-nil, in which case there is no default
+use, unless @var{unbound} is non-@code{nil}, in which case there is no default
 value.  The function should read the value using the method most natural
 for this widget, and does not have to check that it matches.
 @end table
@@ -1719,7 +1720,7 @@ Keymap used in @code{widget-minor-mode}.
 @defun widget-prompt-value widget prompt [ value unbound ]
 Prompt for a value matching @var{widget}, using @var{prompt}.
 The current value is assumed to be @var{value}, unless @var{unbound} is
-non-nil.@refill
+non-@code{nil}.@refill
 @end defun
 
 @defun widget-get-sibling widget
