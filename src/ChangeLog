@@ -1,10 +1,17 @@
+2002-04-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* doc.c (reread_doc_file): Return whether reload was attempted.
+	(Fdocumentation, Fdocumentation_property): Don't try to reload
+	if the doc is 0 and only ask once.
+
+	* Makefile.in (lisp, shortlisp): Add ucs-tables.elc.
+
 2002-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keyboard.c (read_char): If the event was Qselect_window,
 	restore timer_idleness_start_time to its previous value.
 
-	* msdos.c (dos_rawgetc): Generate SELECT_WINDOW_EVENTs when
-	required.
+	* msdos.c (dos_rawgetc): Generate SELECT_WINDOW_EVENTs when required.
 
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -13,7 +20,7 @@
 	* marker.c (buf_charpos_to_bytepos, buf_bytepos_to_charpos):
 	Use BEG and BEG_BYTE.
 
-	* doc.c (get_doc_string): Return nil of the location is wrong.
+	* doc.c (get_doc_string): Return nil if the location is wrong.
 	(reread_doc_file): New fun.
 	(Fdocumentation, Fdocumentation_property):
 	Call it if get_doc_string fails.
