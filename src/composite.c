@@ -782,12 +782,12 @@ See `find-composition' for more detail.")
   if (!NILP (string))
     {
       CHECK_STRING (string, 2);
-      if (XINT (pos) < 0 || XINT (pos) >= XSTRING (string)->size)
+      if (XINT (pos) < 0 || XINT (pos) > XSTRING (string)->size)
 	args_out_of_range (string, pos);
     }
   else
     {
-      if (XINT (pos) < BEGV || XINT (pos) >= ZV)
+      if (XINT (pos) < BEGV || XINT (pos) > ZV)
 	args_out_of_range (Fcurrent_buffer (), pos);
     }
 
