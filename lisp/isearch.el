@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/04/24 15:27:35 $|$Revision: 1.89 $
+;; |$Date: 1995/04/25 22:28:40 $|$Revision: 1.90 $
 
 ;; This file is part of GNU Emacs.
 
@@ -464,7 +464,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 			     
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word-p)
-  "Start isearch minor mode.  Called by isearch-forward, etc."
+  "Start isearch minor mode.  Called by `isearch-forward', etc.
+
+\\{isearch-mode-map}"
 
   ;; Initialize global vars.
   (setq isearch-forward forward
