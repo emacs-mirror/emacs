@@ -32,6 +32,11 @@
 	(sgml-get-context): Better handling of improperly nested tags.
 	(sgml-show-context): Don't use the FULL arg of sgml-get-context.
 
+2002-07-13  Andreas Schwab  <schwab@suse.de>
+
+	* mail/mailabbrev.el (mail-abbrev-make-syntax-table): Check the
+	inherited table entry.
+
 2002-07-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-in): Handle the case where no
