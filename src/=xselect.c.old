@@ -165,9 +165,12 @@ own_selection (selection_type, time)
 {
   Window owner_window, selecting_window;
 
-  if ((EQ (selection_type, Qprimary) && !NILP (Vx_selection_value))
-      || ((EQ (selection_type, Qsecondary)) && !NILP (Vx_secondary_selection_value))
-      || ((EQ (selection_type, Qclipboard)) && !NILP (Vx_clipboard_value)))
+  if ((selection_type == XA_PRIMARY
+       && !NILP (Vx_selection_value))
+      || (selection_type == XA_SECONDARY
+          && !NILP (Vx_secondary_selection_value))
+      || (selection_type == Xatom_clipboard
+          && !NILP (Vx_clipboard_value)))
     return 1;
 
   selecting_window = FRAME_X_WINDOW (selected_frame);
@@ -570,6 +573,8 @@ x_send_incremental (event)
 
 /* Requesting the value of a selection.  */
 
+static Lisp_Object x_selection_arrival ();
+
 /* Predicate function used to match a requested event. */
 
 Bool
@@ -668,7 +673,7 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
     error ("Invalid X selection type");
 }
 
-Lisp_Object
+static Lisp_Object
 x_selection_arrival (event, requestor_window, requestor_time)
      register XSelectionEvent *event;
      Window requestor_window;
