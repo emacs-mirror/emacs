@@ -7,7 +7,7 @@
 
 	* Makefile.in (tags): Depend on $(lwlibdir)/TAGS.
 	($(lwlibdir)TAGS): New target.
-	(TAGS): Fix depedency list.
+	(TAGS): Fix dependency list.
 
 	* xterm.c (x_list_fonts): Make sure XFreeFont is called
 	with input blocked.
