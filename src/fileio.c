@@ -102,7 +102,10 @@ extern char *strerror ();
    redirector allows the six letters between 'Z' and 'a' as well. */
 #ifdef MSDOS
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
-#define DRIVE_LETTER(x) (x)
+/* Need to lower-case the drive letter, or else expanded
+   filenames will sometimes compare inequal, because
+   `expand-file-name' doesn't always down-case the drive letter.  */
+#define DRIVE_LETTER(x) (tolower (x))
 #endif
 #ifdef WINDOWSNT
 #define IS_DRIVE(x) isalpha (x)
