@@ -41,11 +41,17 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "charset.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
 Lisp_Object Vdoc_file_name, Vhelp_manyarg_func_alist;
 
 Lisp_Object Qfunction_documentation;
-
-extern char *index ();
 
 extern Lisp_Object Voverriding_local_map;
 
@@ -228,9 +234,9 @@ get_doc_string (filepos, unibyte, definition)
       if (!nread)
 	break;
       if (p == get_doc_string_buffer)
-	p1 = index (p + offset, '\037');
+	p1 = (char *) index (p + offset, '\037');
       else
-	p1 = index (p, '\037');
+	p1 = (char *) index (p, '\037');
       if (p1)
 	{
 	  *p1 = 0;
@@ -475,7 +481,6 @@ when doc strings are referred to later in the dumped Emacs.")
   register char *p, *end;
   Lisp_Object sym, fun, tem;
   char *name;
-  extern char *index ();
 
 #ifndef CANNOT_DUMP
   if (NILP (Vpurify_flag))
@@ -532,7 +537,7 @@ when doc strings are referred to later in the dumped Emacs.")
       /* p points to ^_Ffunctionname\n or ^_Vvarname\n.  */
       if (p != end)
 	{
-	  end = index (p, '\n');
+	  end = (char *) index (p, '\n');
 	  sym = oblookup (Vobarray, p + 2,
 			  multibyte_chars_in_text (p + 2, end - p - 2),
 			  end - p - 2);

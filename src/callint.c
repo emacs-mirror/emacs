@@ -27,7 +27,13 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "mocklisp.h"
 
-extern char *index ();
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 extern Lisp_Object Qcursor_in_echo_area;
 
@@ -449,7 +455,7 @@ supply if the command inquires which events were used to invoke it.")
     {
       strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
       prompt1[sizeof prompt1 - 1] = 0;
-      tem1 = index (prompt1, '\n');
+      tem1 = (char *) index (prompt1, '\n');
       if (tem1) *tem1 = 0;
       /* Fill argstrings with a vector of C strings
 	 corresponding to the Lisp strings in visargs.  */

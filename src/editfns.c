@@ -42,6 +42,14 @@ Boston, MA 02111-1307, USA.  */
 
 #include "systime.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -1138,7 +1146,6 @@ name, or nil if there is no such user.")
 {
   struct passwd *pw;
   register unsigned char *p, *q;
-  extern char *index ();
   Lisp_Object full;
 
   if (NILP (uid))
@@ -3017,8 +3024,6 @@ Use %% to put a single % into the output.")
   {
     int start, end;
   } *info = 0;
-
-  extern char *index ();
 
   /* It should not be necessary to GCPRO ARGS, because
      the caller in the interpreter should take care of that.  */
