@@ -2722,7 +2722,6 @@ usage: (make-network-process &rest ARGS)  */)
   int xerrno = 0;
   int s = -1, outch, inch;
   struct gcpro gcpro1;
-  int retry = 0;
   int count = SPECPDL_INDEX ();
   int count1;
   Lisp_Object QCaddress;  /* one of QClocal or QCremote */
