@@ -4222,7 +4222,7 @@ get_next_display_element (it)
 	     If it->multibyte_p is zero, eight-bit characters that
 	     don't have corresponding multibyte char code are also
 	     translated to octal form.  */
-	  else if (((it->c < ' '
+	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->multibyte_p
