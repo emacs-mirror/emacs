@@ -39,12 +39,14 @@ a file name as a string.")
 
 (defun rmail-output-menu (event)
   "Output current message to another Rmail file, chosen with a menu.
+Also set the default for subsequent \\[rmail-output-to-rmail-file] commands.
 The variables `rmail-secondary-file-directory' and
 `rmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive "e")
   (let ((file-name (rmail-secondary-file-menu event)))
     (if file-name
-	(rmail-output-to-rmail-file file-name))))
+	(rmail-output-to-rmail-file
+	 (setq rmail-default-rmail-file file-name)))))
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
@@ -56,7 +58,7 @@ buffer visiting that file.
 If the file exists and is not an Rmail file, 
 the message is appended in inbox format.
 
-The default file name comes from `rmail-last-rmail-file',
+The default file name comes from `rmail-default-rmail-file',
 which is updated to the name you use in this command.
 
 A prefix argument N says to output N consecutive messages
