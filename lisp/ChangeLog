@@ -1,3 +1,10 @@
+2003-01-15  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-hist.el (eshell-save-history-on-exit): Renamed
+	`eshell-ask-to-save-history' to `eshell-save-history-on-exit',
+	because the former name is somewhat unrelated to the variables'
+	possible values.
+
 2003-01-15  Deepak Goel  <deego@gnufans.org>
 
 	* calc/README: Add new maintainer. 
@@ -6,7 +13,6 @@
 
 	* calc/calc.el (calc-bug-address): Change address to
 	deego@gnufans.org
-
 
 2003-01-15  Andrew Innes  <andrewi@gnu.org>
 
