@@ -1,5 +1,8 @@
 2004-08-22  David Kastrup  <dak@gnu.org>
 
+	* textmodes/reftex-auc.el, progmodes/meta-mode.el: Update AUCTeX
+	information.
+
 	* speedbar.el, iswitchb.el, ido.el: Update AUCTeX information.
 
 2004-08-22  Andreas Schwab  <schwab@suse.de>
