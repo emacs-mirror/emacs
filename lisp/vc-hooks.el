@@ -216,7 +216,7 @@ visiting FILE."
 			(narrow-to-region (match-beginning 1) (match-end 1))
 			(goto-char (point-min))
 			(while (re-search-forward lock-pattern nil t)
-			  (replace-match "-" t t))
+			  (replace-match (if (eobp) "" "-") t t))
 			(buffer-string)))
 		     (status
 		      (if (not (string-equal locks ""))
