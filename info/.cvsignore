@@ -43,3 +43,4 @@ calc
 calc-[1-9]*
 eintr
 eintr-[1-9]*
+tramp
