@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(MMdevel_action2.3) $
+ * $HopeName: MMsrc!mpsi.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(MMdevel_action2.3) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.23) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -96,22 +96,22 @@ static Bool mpsi_check(void)
   /* See impl.h.mps.result-codes and impl.h.mpmtypes.result-codes. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_res_t, Res));
-  CHECKL((Word)MPS_RES_OK == (Word)ResOK);
-  CHECKL((Word)MPS_RES_FAIL == (Word)ResFAIL);
-  CHECKL((Word)MPS_RES_RESOURCE == (Word)ResRESOURCE);
-  CHECKL((Word)MPS_RES_MEMORY == (Word)ResMEMORY);
-  CHECKL((Word)MPS_RES_LIMIT == (Word)ResLIMIT);
-  CHECKL((Word)MPS_RES_UNIMPL == (Word)ResUNIMPL);
-  CHECKL((Word)MPS_RES_IO == (Word)ResIO);
+  CHECKL((int)MPS_RES_OK == (int)ResOK);
+  CHECKL((int)MPS_RES_FAIL == (int)ResFAIL);
+  CHECKL((int)MPS_RES_RESOURCE == (int)ResRESOURCE);
+  CHECKL((int)MPS_RES_MEMORY == (int)ResMEMORY);
+  CHECKL((int)MPS_RES_LIMIT == (int)ResLIMIT);
+  CHECKL((int)MPS_RES_UNIMPL == (int)ResUNIMPL);
+  CHECKL((int)MPS_RES_IO == (int)ResIO);
 
   /* Check that external and internal rank numbers match. */
   /* See impl.h.mps.ranks and impl.h.mpmtypes.ranks. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_rank_t, Rank));
-  CHECKL((Word)MPS_RANK_AMBIG == (Word)RankAMBIG);
-  CHECKL((Word)MPS_RANK_EXACT == (Word)RankEXACT);
-  CHECKL((Word)MPS_RANK_WEAK == (Word)RankWEAK);
-  CHECKL((Word)MPS_RANK_FINAL == (Word)RankFINAL);
+  CHECKL((int)MPS_RANK_AMBIG == (int)RankAMBIG);
+  CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
+  CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
+  CHECKL((int)MPS_RANK_FINAL == (int)RankFINAL);
 
   /* The external idea of a word width and the internal one */
   /* had better match.  See design.mps.interface.c.cons. */
