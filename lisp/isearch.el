@@ -109,12 +109,14 @@ string, and RET terminates editing and does a nonincremental search."
   :type 'boolean
   :group 'isearch)
 
-(defcustom search-whitespace-regexp "\\(?:\\s-+\\)"
+(defcustom search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to regular expression incremental search.
-You might want to use something like \"\\\\(?:[ \\t\\r\\n]+\\\\)\" instead.
-In the Customization buffer, that is `\\(?:[' followed by a space,
-a tab, a carriage return (control-M), a newline, and `]+\\)'."
+When you put a space or spaces in the incremental regexp, it stands for
+this, unless it is inside of a regexp construct such as [...] or *, + or ?.
+You might want to use something like \"[ \\t\\r\\n]+\" instead.
+In the Customization buffer, that is `[' followed by a space,
+a tab, a carriage return (control-M), a newline, and `]+'."
   :type 'regexp
   :group 'isearch)
 
@@ -260,8 +262,6 @@ Default value, nil, means edit the string instead."
     (define-key map "\r" 'isearch-exit)
     (define-key map "\C-j" 'isearch-printing-char)
     (define-key map "\t" 'isearch-printing-char)
-    (define-key map " " 'isearch-whitespace-chars)
-    (define-key map [?\S-\ ] 'isearch-whitespace-chars)
 
     (define-key map    "\C-w" 'isearch-yank-word-or-char)
     (define-key map "\M-\C-w" 'isearch-del-char)
@@ -485,7 +485,12 @@ the calling function until the search is done."
 Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input
-is treated as a regexp.  See \\[isearch-forward] for more info."
+is treated as a regexp.  See \\[isearch-forward] for more info.
+
+In regexp incremental searches, a space or spaces normally matches
+any whitespace (the variable `search-whitespace-regexp' controls
+precisely what that means).  If you want to search for a literal space
+and nothing else, enter `[ ]'."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 
@@ -1676,11 +1681,19 @@ Isearch mode."
     ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
-    (and enable-multibyte-characters
-	 (>= char ?\200)
-	 (<= char ?\377)
-	 (setq char (unibyte-char-to-multibyte char)))
-    (isearch-process-search-char char)))
+    (if (and isearch-regexp (= char ?\ ))
+	(if (condition-case err
+		(progn
+		  (string-match isearch-string "")
+		  nil)
+	      (error (equal (cadr err) "Unmatched [ or [^")))
+	    (isearch-process-search-char char)
+	  (isearch-process-search-string "[ ]" " "))
+      (and enable-multibyte-characters
+	   (>= char ?\200)
+	   (<= char ?\377)
+	   (setq char (unibyte-char-to-multibyte char)))
+      (isearch-process-search-char char))))
 
 (defun isearch-return-char ()
   "Convert return into newline for incremental search.
@@ -1703,22 +1716,6 @@ Obsolete."
       (if current-input-method
 	  (isearch-process-search-multibyte-characters char)
 	(isearch-process-search-char char)))))
-
-(defun isearch-whitespace-chars ()
-  "Match all whitespace chars, if in regexp mode.
-If you want to search for just a space, type \\<isearch-mode-map>\\[isearch-quote-char] SPC."
-  (interactive)
-  (if isearch-regexp
-      (if (and search-whitespace-regexp (not isearch-within-brackets)
-	       (not isearch-invalid-regexp))
-	  (isearch-process-search-string search-whitespace-regexp " ")
-	(isearch-printing-char))
-    (progn
-      ;; This way of doing word search doesn't correctly extend current search.
-      ;;      (setq isearch-word t)
-      ;;      (setq isearch-adjusted t)
-      ;;      (goto-char isearch-barrier)
-      (isearch-printing-char))))
 
 (defun isearch-process-search-char (char)
   ;; Append the char to the search string, update the message and re-search.
@@ -1960,6 +1957,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
       (let ((inhibit-point-motion-hooks search-invisible)
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
+	    (search-spaces-regexp search-whitespace-regexp)
 	    (retry t))
 	(if isearch-regexp (setq isearch-invalid-regexp nil))
 	(setq isearch-within-brackets nil)
@@ -2373,7 +2371,8 @@ search string to change or the window to scroll)."
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.
 Attempt to do the search exactly the way the pending isearch would."
-  (let ((case-fold-search isearch-case-fold-search))
+  (let ((case-fold-search isearch-case-fold-search)
+	(search-spaces-regexp search-whitespace-regexp))
     (funcall (isearch-search-fun)
              isearch-string
              (if isearch-forward
