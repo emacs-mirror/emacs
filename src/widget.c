@@ -35,6 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "xterm.h"
 
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 
