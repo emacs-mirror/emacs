@@ -1950,10 +1950,33 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New functions posn-at-point and posn-at-x-y returns mouse click
+like position information for a visible buffer position or a window
+pixel coordinate.
+
+** Function pos-visible-in-window-p how return pixel coordinates and
+partial visiblity state of corresponding row if `partially' arg is
+non-nil.
+
 ** The function `eql' is now available without requiring the CL package.
 
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
+
+** Support for displaying image slices
+
+*** New display property (slice X Y WIDTH HEIGHT) may be used with
+an image property to display only a specific slice of the image.
+
+*** Function insert-image has new optional fourth arg to
+specify image slice (X Y WIDTH HEIGHT).
+
+*** New function insert-sliced-image inserts a given image as a
+specified number of evenly sized slices (rows x columns).
+
+*** Trailing newlines no longer contribute to the height of a display
+row; instead the height of the newline glyph is reduced.  This allows
+sliced images to use a height less than the default line height.
 
 ** Enhancements to stretch display properties
 
