@@ -131,16 +131,19 @@ changing it.")
       (define-key global-map facemenu-key facemenu-keymap))
 
   ;; Define basic keys
-  (define-key facemenu-menu [update]    '("Update Menu" . facemenu-update))
-  (define-key facemenu-menu [display]   '("Display" . list-faces-display))
-  (define-key facemenu-menu [sep1]      '("-------------"))
-  (define-key facemenu-menu [remove]    '("Remove Properties" . 
-					  facemenu-remove-all))
-  (define-key facemenu-menu [read-only] '("Read-Only". facemenu-set-read-only))
-  (define-key facemenu-menu [invisible] '("Invisible"
-					  . facemenu-set-invisible))
-  (define-key facemenu-menu [sep2]      '("---Special---"))
-  (define-key facemenu-menu [other]     '("Other..." . facemenu-set-face))
+  ;; We construct this list structure explicitly because a quoted constant
+  ;; would be pure.
+  (define-key facemenu-menu [other]     (cons "Other..." 'facemenu-set-face))
+  (define-key facemenu-menu [sep2]      (list "---Special---"))
+  (define-key facemenu-menu [invisible] (cons "Invisible"
+					  'facemenu-set-invisible))
+  (define-key facemenu-menu [read-only] (cons "Read-Only"
+					      'facemenu-set-read-only))
+  (define-key facemenu-menu [remove]    (cons "Remove Properties"
+					      'facemenu-remove-all))
+  (define-key facemenu-menu [sep1]      (list "-------------"))
+  (define-key facemenu-menu [display]   (cons "Display" 'list-faces-display))
+  (define-key facemenu-menu [update]    (cons "Update Menu" 'facemenu-update))
 
   ;; Define commands for face-changing
   (facemenu-iterate
