@@ -63,6 +63,7 @@ We also have specific language environments for the following languages:
   For Dutch, \"Dutch\".
   For German, \"German\".
   For Spanish, \"Spanish\".
+  For French, \"French\".
 
 Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
