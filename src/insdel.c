@@ -944,7 +944,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   offset_intervals (current_buffer, PT, nchars);
 
-  GAP_SIZE -= nbytes;
+  GAP_SIZE -= outgoing_nbytes;
   GPT += nchars;
   ZV += nchars;
   Z += nchars;
