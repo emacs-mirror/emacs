@@ -187,8 +187,8 @@ or like this:
  (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
 with zero or more ARGUMENTS.  The former format creates a simple element in
 the index alist when it matches; the latter creates a special element
-of the form  (NAME FUNCTION POSITION-MARKER ARGUMENTS...)
-with FUNCTION and ARGUMENTS beiong copied from `imenu-generic-expression'.
+of the form  (NAME POSITION-MARKER FUNCTION ARGUMENTS...)
+with FUNCTION and ARGUMENTS copied from `imenu-generic-expression'.
 
 MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
