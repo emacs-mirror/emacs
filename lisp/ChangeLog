@@ -1,5 +1,8 @@
 2001-11-08  Miles Bader  <miles@gnu.org>
 
+	* subr.el (functionp): Make work correctly for macros and unbound
+	symbols.
+
 	* comint.el (comint-send-input): Fix description of
 	`comint-process-echoes' in the doc-string.
 
