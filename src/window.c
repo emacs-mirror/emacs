@@ -1657,6 +1657,10 @@ before each command.")
 
   w = XWINDOW (window);
 
+  if (MINI_WINDOW_P (w)
+      && NILP (call1 (intern ("minibuffer-window-active-p"), window)))
+    error ("Attempt to select inactive minibuffer window");
+
   if (NILP (w->buffer))
     error ("Trying to select deleted window or non-leaf window");
 
