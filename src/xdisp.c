@@ -1790,7 +1790,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
-	  if (pos == next_face_change)
+	  if (pos == next_face_change && FRAME_X_P (f))
 	    current_face = compute_char_face (f, w, pos,
 					      region_beg, region_end,
 					      &next_face_change);
