@@ -1258,6 +1258,27 @@ stop_polling ()
     }
 #endif
 }
+
+/* Set the value of poll_suppress_count to COUNT
+   and start or stop polling accordingly.  */
+
+void
+set_poll_suppress_count (count)
+     int count;
+{
+#ifdef POLL_FOR_INPUT
+  if (count == 0 && poll_suppress_count != 0)
+    {
+      poll_suppress_count = 1;
+      start_polling ();
+    }
+  else if (count != 0 && poll_suppress_count == 0)
+    {
+      stop_polling ();
+    }
+  poll_suppress_count = count;
+#endif
+}
 
 /* Applying the control modifier to CHARACTER.  */
 int
