@@ -5512,12 +5512,19 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0 && name[0] != '*')
         {
+	  int bufsize;
+	  unsigned char *buf;
+
           setup_coding_system
             (Fcheck_coding_system (Vw32_system_coding_system), &coding);
+	  bufsize = encoding_buffer_size (&coding, strlen (name));
+	  buf = (unsigned char *) alloca (bufsize);
           coding.mode |= CODING_MODE_LAST_BLOCK;
-          encode_coding (&coding, name, lplogfont->lfFaceName,
-                         strlen (name), LF_FACESIZE-1);
-	  lplogfont->lfFaceName[coding.produced] = 0;
+          encode_coding (&coding, name, buf, strlen (name), bufsize);
+	  if (coding.produced >= LF_FACESIZE)
+	    coding.produced = LF_FACESIZE - 1;
+	  buf[coding.produced] = 0;
+	  strcpy (lplogfont->lfFaceName, buf);
 	}
       else
         {
