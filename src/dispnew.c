@@ -24,37 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef NEED_TIME_H
-#include <time.h>
-#else /* not NEED_TIME_H */
-#ifdef HAVE_TIMEVAL
-#include <sys/time.h>
-#endif /* HAVE_TIMEVAL */
-#endif /* not NEED_TIME_H */
-
-#ifdef HAVE_TERMIO
-#include <termio.h>
-#ifdef TCOUTQ
-#undef TIOCOUTQ
-#define TIOCOUTQ TCOUTQ
-#endif /* TCOUTQ defined */
-#include <fcntl.h>
-#else
-#ifndef VMS
-#include <sys/ioctl.h>
-#endif /* not VMS */
-#endif /* not HAVE_TERMIO */
-
-/* Allow m- file to inhibit use of FIONREAD.  */
-#ifdef BROKEN_FIONREAD
-#undef FIONREAD
-#endif
-
-/* Interupt input is not used if there is no FIONREAD.  */
-#ifndef FIONREAD
-#undef SIGIO
-#endif
-
 #include "termchar.h"
 #include "termopts.h"
 #include "cm.h"
@@ -66,6 +35,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "disptab.h"
 #include "indent.h"
+
+#include "systerm.h"
+#include "systime.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -81,8 +53,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif
 
-/* Nonzero means do not assume anything about current
-   contents of actual terminal screen */
+/* Nonzero upon entry to redisplay means do not assume anything about
+   current contents of actual terminal screen; clear and redraw it.  */
 
 int screen_garbaged;
 
@@ -1052,8 +1024,8 @@ update_screen (s, force, inhibit_hairy_id)
 		  fflush (stdout);
 		  if (preempt_count == 1)
 		    {
-#ifdef TIOCOUTQ
-		      if (ioctl (0, TIOCOUTQ, &outq) < 0)
+#ifdef EMACS_OUTQSIZE
+		      if (EMACS_OUTQSIZE (0, &outq) < 0)
 			/* Probably not a tty.  Ignore the error and reset
 			 * the outq count. */
 			outq = PENDING_OUTPUT_COUNT (stdout);
@@ -1809,9 +1781,7 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
      Lisp_Object n, millisec;
 {
 #ifndef subprocesses
-#ifdef HAVE_TIMEVAL
-  struct timeval timeout, end_time, garbage1;
-#endif /* HAVE_TIMEVAL */
+  EMACS_TIME timeout, end_time;
 #endif /* no subprocesses */
   int usec = 0;
   int sec;
@@ -1823,7 +1793,7 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
 
   if (!NILP (millisec))
     {
-#ifndef HAVE_TIMEVAL
+#ifndef EMACS_HAS_USECS
       error ("millisecond sit-for not supported on %s", SYSTEM_TYPE);
 #else
       usec = sec % 1000 * 1000;
@@ -1844,29 +1814,18 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
     (rather than defined (H_S) && defined (H_T))
    is because the VMS preprocessor doesn't grok `defined' */
 #ifdef HAVE_SELECT
-#ifdef HAVE_TIMEVAL
-  gettimeofday (&end_time, &garbage1);
-  end_time.tv_sec += sec;
-  end_time.tv_usec += usec;
-  if (end_time.tv_usec >= 1000000)
-    end_time.tv_sec++, end_time.tv_usec -= 1000000;
-
+  EMACS_GET_TIME (end_time);
+  EMACS_SET_SECS_USECS (timeout, sec, usec);
+  EMACS_ADD_TIME (end_time, timeout);
+ 
   while (1)
     {
-      gettimeofday (&timeout, &garbage1);
-      timeout.tv_sec = end_time.tv_sec - timeout.tv_sec;
-      timeout.tv_usec = end_time.tv_usec - timeout.tv_usec;
-      if (timeout.tv_usec < 0)
-	timeout.tv_usec += 1000000, timeout.tv_sec--;
-      if (timeout.tv_sec < 0)
-	break;
-      if (!select (1, 0, 0, 0, &timeout))
+      EMACS_GET_TIME (timeout);
+      EMACS_SUB_TIME (timeout, end_time, timeout);
+      if (EMACS_TIME_NEG_P (timeout)
+	  || !select (1, 0, 0, 0, &timeout))
 	break;
     }
-#else /* not HAVE_TIMEVAL */
-  /* Is it safe to quit out of `sleep'?  I'm afraid to trust it.  */
-  sleep (sec);
-#endif /* HAVE_TIMEVAL */
 #else /* not HAVE_SELECT */
   sleep (sec);
 #endif /* HAVE_SELECT */
@@ -1889,11 +1848,7 @@ Value is t if waited the full time with no input arriving.")
      Lisp_Object n, millisec, nodisp;
 {
 #ifndef subprocesses
-#ifdef HAVE_TIMEVAL
-  struct timeval timeout;
-#else
-  int timeout_sec;
-#endif
+  EMACS_TIME timeout;
   int waitchannels;
 #endif /* no subprocesses */
   int usec = 0;
@@ -1913,7 +1868,7 @@ Value is t if waited the full time with no input arriving.")
 
   if (!NILP (millisec))
     {
-#ifndef HAVE_TIMEVAL
+#ifndef EMACS_HAS_USECS
       error ("millisecond sleep-for not supported on %s", SYSTEM_TYPE);
 #else
       usec = sec % 1000 * 1000;
@@ -1934,14 +1889,8 @@ Value is t if waited the full time with no input arriving.")
 #ifdef VMS
   input_wait_timeout (XINT (n));
 #else				/* not VMS */
-#ifndef HAVE_TIMEVAL
-  timeout_sec = sec;
-  select (1, &waitchannels, 0, 0, &timeout_sec);
-#else /* HAVE_TIMEVAL */
-  timeout.tv_sec = sec;  
-  timeout.tv_usec = usec;
+  EMACS_SET_SECS_USECS (timeout, sec, usec);
   select (1, &waitchannels, 0, 0, &timeout);
-#endif /* HAVE_TIMEVAL */
 #endif /* not VMS */
 
   immediate_quit = 0;
@@ -1956,14 +1905,14 @@ DEFUN ("sleep-for-millisecs", Fsleep_for_millisecs, Ssleep_for_millisecs,
   (n)
      Lisp_Object n;
 {
-#ifndef HAVE_TIMEVAL
+#ifndef EMACS_HAS_USECS
   error ("sleep-for-millisecs not supported on %s", SYSTEM_TYPE);
 #else
   CHECK_NUMBER (n, 0);
   wait_reading_process_input (XINT (n) / 1000, XINT (n) % 1000 * 1000,
 			      0, 0);
   return Qnil;
-#endif /* HAVE_TIMEVAL */
+#endif /* EMACS_HAS_USECS */
 }
 
 char *terminal_type;

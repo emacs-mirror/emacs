@@ -52,6 +52,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "commands.h"
 
+#include "systerm.h"
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -124,15 +126,10 @@ fatal_error_signal (sig)
   fatal_error_in_progress = 1;
 
   /* If we are controlling the terminal, reset terminal modes */
-#if defined(TIOCGPGRP) || defined(HAVE_TERMIOS)
+#ifdef EMACS_HAVE_TTY_PGRP
   {
     int tpgrp;
-    if (
-#ifdef HAVE_TERMIOS
-	(tpgrp = tcgetpgrp (0)) != -1
-#else
-	ioctl(0, TIOCGPGRP, &tpgrp) == 0
-#endif
+    if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
 	&& tpgrp == getpgrp (0))
       {
 	reset_sys_modes ();
