@@ -118,7 +118,7 @@ The returned string has no composition information."
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "h'uM"
 ;;;
-;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B         4$(7"Hx!#Ax!"Ur'"_0"H"A"U"_1(B
+;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B         4$(7"Hx!"Rx!"Ur'"_0"H"A"U"_1(B
 ;;;
 ;;;                             M
 ;;;             b s b s         h
@@ -144,7 +144,7 @@ The returned string has no composition information."
     ;; If 'a follows a consonant, turn it into the subjoined form.
     (if (and (= char ?$(7"A(B)
 	     (aref (char-category-set (car last)) ?0))
-	(setq char ?$(7#A(B))
+	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
 
     (cond
      ;; Compose upper vowel sign vertically over.
@@ -153,27 +153,30 @@ The returned string has no composition information."
 
      ;; Compose lower vowel sign vertically under.
      ((aref (char-category-set char) ?3)
-      (setq rule stack-under))
+      (if (eq char ?$(7"Q(B)		;; `$(7"Q(B' should not visible when composed.
+	  (setq rule nil)
+	(setq rule stack-under)))
 
      ;; Transform ra-mgo (superscribed r) if followed by a subjoined
      ;; consonant other than w, ', y, r.
      ((and (= (car last) ?$(7"C(B)
-	   (not (memq char '(?$(7#>(B ?$(7#A(B ?$(7#B(B ?$(7#C(B))))
-      (setcar last ?$(7#P(B)
+	   (not (memq char '(?$(7#>(B ?$(7"R(B ?$(7#B(B ?$(7#C(B))))
+      (setcar last ?$(7!"(B) ;; modified for newfont by Tomabechi 1999/12/10
       (setq rule stack-under))
 
      ;; Transform initial base consonant if followed by a subjoined
      ;; consonant but 'a.
      (t
       (let ((laststr (char-to-string (car last))))
-	(if (and (/= char ?$(7#A(B)
-		 (string-match "[$(7"!(B-$(7"="?"@"D(B-$(7"J(B]" laststr))
+	(if (and (/= char ?$(7"R(B) ;; modified for new font by Tomabechi
+		 (string-match "[$(7"!(B-$(7"="?"@"D(B-$(7"J"K(B]" laststr))
 	    (setcar last (string-to-char
 			  (cdr (assoc (char-to-string (car last))
 				      tibetan-base-to-subjoined-alist)))))
 	(setq rule stack-under))))
 
-    (setcdr last (list rule char))))
+    (if rule
+	(setcdr last (list rule char)))))
 
 ;;;###autoload
 (defun tibetan-compose-string (str)
@@ -231,10 +234,45 @@ The returned string has no composition information."
 	      (forward-char 1))
 	    (compose-region from to components)))))))
 
+(defvar tibetan-decompose-precomposition-alist
+  (mapcar (function (lambda (x) (cons (string-to-char (cdr x)) (car x))))
+	  tibetan-precomposition-rule-alist))
+
 ;;;###autoload
-(defalias 'tibetan-decompose-region 'decompose-region)
+(defun tibetan-decompose-region (from to)
+  "Decompose Tibetan text in the region FROM and TO.
+This is different from decompose-region because precomposed Tibetan characters
+are decomposed into normal Tiebtan character sequences."
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (decompose-region from to)
+    (goto-char from)
+    (while (not (eobp))
+      (let* ((char (following-char))
+	     (slot (assq char tibetan-decompose-precomposition-alist)))
+	(if slot
+	    (progn
+	      (delete-char 1)
+	      (insert (cdr slot)))
+	  (forward-char 1))))))
+
+
 ;;;###autoload
-(defalias 'tibetan-decompose-string 'decompose-string)
+(defun tibetan-decompose-string (str)
+  "Decompose Tibetan string STR.
+This is different from decompose-string because precomposed Tibetan characters
+are decomposed into normal Tiebtan character sequences."
+  (let ((new "")
+	(len (length str))
+	(idx 0)
+	char slot)
+    (while (< idx len)
+      (setq char (aref str idx)
+	    slot (assq (aref str idx) tibetan-decompose-precomposition-alist)
+	    new (concat new (if slot (cdr slot) (char-to-string char)))
+	    idx (1+ idx)))
+    new))
 
 ;;;###autoload
 (defun tibetan-composition-function (from to pattern &optional string)
