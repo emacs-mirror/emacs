@@ -1,5 +1,11 @@
 2002-06-29  Andreas Schwab  <schwab@suse.de>
 
+	* term/mac-win.el: Use directory-free-space-program instead of
+	obsolete variable dired-free-space-program.  On Darwin, don't set
+	directory-free-space-program, shell-file-name and
+	process-connection-type; set directory-free-space-args to not
+	include `-P' and use utf-8 for file name coding system.
+
 	* simple.el (shell-command-on-region): Handle errors and signals
 	from shell command execution.
 	(display-message-or-buffer): Fix last change.
