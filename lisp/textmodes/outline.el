@@ -386,25 +386,22 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion
-    (goto-char beg)
-    (while (< (point) end)
-      (let ((overlays (overlays-at (point))))
-	(while overlays
-	  (let ((o (car overlays)))
-	    (if (overlay-get o prop)
-		;; Either push this overlay outside beg...end
-		;; or split it to exclude beg...end
-		;; or delete it entirely (if it is contained in beg...end).
-		(if (< (overlay-start o) beg)
-		    (if (> (overlay-end o) end)
-			(let ((o1 (outline-copy-overlay o)))
-			  (move-overlay o1 (overlay-start o1) beg)
-		      (move-overlay o (overlay-start o) beg)))
+    (let ((overlays (overlays-in beg end)))
+      (while overlays
+	(let ((o (car overlays)))
+	  (if (overlay-get o prop)
+	      ;; Either push this overlay outside beg...end
+	      ;; or split it to exclude beg...end
+	      ;; or delete it entirely (if it is contained in beg...end).
+	      (if (< (overlay-start o) beg)
 		  (if (> (overlay-end o) end)
-		      (move-overlay o end (overlay-end o))
-		    (delete-overlay o)))))
-	  (setq overlays (cdr overlays))))
-      (goto-char (next-overlay-change (point))))))
+		      (let ((o1 (outline-copy-overlay o)))
+			(move-overlay o1 (overlay-start o1) beg)
+		    (move-overlay o (overlay-start o) beg)))
+		(if (> (overlay-end o) end)
+		    (move-overlay o end (overlay-end o))
+		  (delete-overlay o)))))
+	(setq overlays (cdr overlays))))))
 
 ;; Make a copy of overlay O, with the same beginning, end and properties.
 (defun outline-copy-overlay (o)
