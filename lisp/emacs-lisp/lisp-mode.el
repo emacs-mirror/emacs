@@ -767,6 +767,10 @@ is the buffer position of the start of the containing expression."
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
 (put 'eval-after-load 'lisp-indent-function 1)
+(put 'dolist 'lisp-indent-function 1)
+(put 'dotimes 'lisp-indent-function 1)
+(put 'when 'lisp-indent-function 1)
+(put 'unless 'lisp-indent-function 1)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.
