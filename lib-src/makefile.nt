@@ -72,7 +72,8 @@ MOVEMAILOBJS =  $(BLD)\movemail.obj \
 		$(GETOPTOBJS)
 
 $(BLD)\movemail.exe:	$(MOVEMAILOBJS) getopt.h
-		$(LINK) -out:$@ $(LINK_FLAGS) -debug:FULL $(MOVEMAILOBJS) $(LIBS) wsock32.lib
+# put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
+		$(LINK) -out:$@ $(LINK_FLAGS) -debug:FULL $(MOVEMAILOBJS) wsock32.lib $(LIBS)
 
 ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\getopt.obj \
