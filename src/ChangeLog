@@ -1,5 +1,9 @@
 2001-11-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* intervals.c (graft_intervals_into_buffer):
+	Remove #ifdef'd-out code.
+	(graft_intervals_into_buffer): Remove unused variable `middle'.
+
 	* lread.c (Feval_region): Remove obsolete #ifdef'd-out
 	code (eval-current-buffer).
 	Change doc-string comments to `new style' [w/`doc:' keyword].
