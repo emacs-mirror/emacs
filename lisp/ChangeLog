@@ -1,3 +1,8 @@
+2005-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Fall back to non-ido command if
+	initial directory is on slow ftp (or tramp) host.
+
 2005-03-31  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/autoload.el (make-autoload):
