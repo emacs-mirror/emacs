@@ -3,10 +3,10 @@
 ;; Copyright(C) 1987, 1993, 1994, 1996, 1997, 1998, 1999
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.7 $
+;; Ada Core Technologies's version:   $Revision: 1.8 $
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
-;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
+;; Maintainer: Emmanuel Briot <briot@gnat.com>
 ;; Keywords: languages, ada
 ;; Rolf Ebert's version: 2.26
 
