@@ -1,3 +1,7 @@
+2002-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs.c (Fdump_emacs): Fix a typo in "command-line-processed".
+
 2002-03-26  Richard M. Stallman  <rms@gnu.org>
 
 	* fns.c (Fsubstring_no_properties): New function.
