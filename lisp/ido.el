@@ -2514,7 +2514,7 @@ for first matching file."
     (when (and (or ido-rotate-temp ido-rotate-file-list-default)
 	       (> (length text) 0))
       (let ((elt (assoc text res)))
-	(unless (eq elt (car res))
+	(when (and elt (not (eq elt (car res))))
 	  (setq res (delq elt res))
 	  (setq res (cons elt res)))))
     (message nil)
