@@ -626,7 +626,7 @@ the result of compiling @file{@var{lib}.el}; it is better to load the
 compiled file, since it will load and run faster.
 
   If @code{load-library} finds that @file{@var{lib}.el} is newer than
-@file{@var{lib}.elc} file, it prints a warning, because it's likely that
+@file{@var{lib}.elc} file, it issues a warning, because it's likely that
 somebody made changes to the @file{.el} file and forgot to recompile
 it.
 
