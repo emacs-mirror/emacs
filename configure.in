@@ -785,7 +785,7 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  sparc-*-linux-gnu* )
+  sparc-*-linux-gnu* | sparc64-*-linux-gnu* )
     machine=sparc opsys=gnu-linux
   ;;
 
@@ -1115,7 +1115,7 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h sys/systeminfo.h termios.h limits.h string.h)
+AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1251,7 +1251,8 @@ HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
   old_c_flags="${CFLAGS}"
   CFLAGS="${LD_SWITCH_X_SITE}"
-  AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11)
+  AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
+    AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
   CFLAGS="${old_c_flags}"
 
   if test "${HAVE_XAW3D}" = "yes"; then
@@ -1265,7 +1266,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_xpm}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE}"
-    AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11)
+    AC_CHECK_HEADER(X11/xpm.h,
+      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1280,7 +1282,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11)
+    AC_CHECK_HEADER(jpeglib.h,
+      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1295,7 +1298,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(png, png_set_expand, HAVE_PNG=yes, , -lX11 -lz -lm)
+    AC_CHECK_HEADER(png.h,
+      AC_CHECK_LIB(png, png_set_expand, HAVE_PNG=yes, , -lX11 -lz -lm))
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1310,7 +1314,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(tiff34, TIFFGetVersion, HAVE_TIFF=yes, , -lX11)
+    AC_CHECK_HEADER(tiff34/tiffio.h,
+      AC_CHECK_LIB(tiff34, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1325,7 +1330,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_gif}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(ungif, DGifOpenFileName, HAVE_GIF=yes, , -lX11)
+    AC_CHECK_HEADER(gif_lib.h,
+      AC_CHECK_LIB(ungif, DGifOpenFileName, HAVE_GIF=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
