@@ -46,6 +46,10 @@ Emacs with Leim.
 
 * Changes in Emacs 21.4
 
+** The commands M-x customize-face and M-x customize-face-other-window
+now look at the text at point.  If that text has a face specified,
+the commands suggest to customize that face.
+
 ** Limited support for charset unification has been added.
 By default, Emacs now knows how to translate latin-N chars between their
 charset and some other latin-N charset or unicode.  You can force a
