@@ -39,7 +39,6 @@
 ;;   or t), which means that copying from the vcursor will be turned
 ;;   off after any operation not involving the vcursor, but the
 ;;   vcursor itself will be left alone.
-;; - should now work unmodified under XEmacs
 ;; - works on dumb terminals with Emacs 19.29 and later
 ;; - new keymap vcursor-map for binding to a prefix key
 ;; - vcursor-compare-windows substantially improved
@@ -344,14 +343,11 @@ disable the vcursor."
   :group 'vcursor)
 
 ;; Needed for defcustom, must be up here
-(if (not (string-match "XEmacs" emacs-version))
-    (defun vcursor-cs-binding (base &optional meta)
-      (read (concat "[" (if meta "M-" "") "C-S-" base "]")))
-  (require 'overlay)
-  (defun vcursor-cs-binding (base &optional meta)
-    (read (concat "[(" (if meta "meta " "") "control shift "
-		  base ")]")))
-  )
+(defun vcursor-cs-binding (base &optional meta)
+  (vector (let ((key (list 'control 'shift (intern base))))
+	    (if meta
+		(cons 'meta key)
+	      key))))
 
 (defun vcursor-bind-keys (var value)
   "Alter the value of the variable VAR to VALUE, binding keys as required.
@@ -563,7 +559,6 @@ If that's disabled, don't go anywhere but don't complain."
   (and (overlayp vcursor-overlay)
        (overlay-buffer vcursor-overlay)
        (set-buffer (overlay-buffer vcursor-overlay))
-       (overlay-start vcursor-overlay)	; needed for XEmacs
        (goto-char (overlay-start vcursor-overlay)))
   )
 
