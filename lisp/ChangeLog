@@ -1,5 +1,8 @@
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-diag.el (describe-char-after): Make *Help*
+	buffer inherit multibyteness of the current buffer.
+
 	* international/mule.el (make-char): Docstring adjusted for the
 	change of make-char-internal.
 
