@@ -3,6 +3,8 @@
 	* frame.el (auto-raise-mode): When enabling the mode,
 	immediately raise the selected frame.
 	
+	* indent.el (indent-region): Doc fix.
+
 1999-10-24  Stephen Eglen  <stephen@gnu.org>
 
 	* progmodes/octave-mod.el (octave-auto-indent): Remove :version so
