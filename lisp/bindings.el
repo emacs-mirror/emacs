@@ -271,7 +271,7 @@ Keymap to display on major and minor modes.")
 	;; 	  "\
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete")
+	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete this")
        (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
