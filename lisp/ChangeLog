@@ -1,3 +1,35 @@
+2004-04-30  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-mode-map):
+	Add key binding `C-x C-s' to `Custom-save'.
+
+	* outline.el (outline-blank-line): New var.
+	(outline-next-preface, outline-show-heading)
+	(outline-end-of-subtree): Use it.
+
+	* dired-aux.el (dired-touch-initial): New fun.
+	(dired-do-chxxx): Call it for op-symbol `touch'.
+
+	* bindings.el (propertized-buffer-identification):
+	Replace `(:weight bold)' by `Buffer-menu-buffer-face'.
+	Add C-M-arrow keys for consistency.
+
+	* files.el (confirm-kill-emacs):
+	Change group from top-level `emacs' to `convenience'.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Push mark on the first call of successive command calls.
+	(insert-pair): New fun created from `insert-parentheses' with
+	`open' and `close' arguments added.  Enclose active regions
+	in paired characters.  Compare adjacent characters syntax with
+	inserted characters syntax before inserting a space.
+	(insert-parentheses): Call `insert-pair' with ?\( ?\).
+
+	* delsel.el: Don't put `delete-selection' property
+	on `insert-parentheses' symbol to take advantage of
+	region handling in `insert-pair' function.
+	Suggested by Stephan Stahl <stahl@eos.franken.de>
+
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Add support for changing cursor types;
