@@ -1,5 +1,9 @@
 2001-02-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_scrolling): If point is in the line below the
+	window, make sure to move the iterator at least a canonical
+	char height down.
+
 	* window.c (Fmove_to_window_line): Don't add 1 if window is
 	vscrolled.
 
