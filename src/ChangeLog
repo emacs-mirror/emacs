@@ -1,3 +1,7 @@
+2005-03-24  Stefan  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_next_display_element): Also use `\ ' & `\-' for latin-9.
+
 2005-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* xfaces.c (lookup_derived_face): Add arg SIGNAL_P.
@@ -17,7 +21,7 @@
 2005-03-22  David Kastrup  <dak@gnu.org>
 
 	* textprop.c (Fnext_char_property_change)
-	(Fprevious_char_property_change): allow marker as limit.
+	(Fprevious_char_property_change): Allow marker as limit.
 	(Fnext_single_char_property_change)
 	(Fprevious_single_char_property_change): Check that limit is a
 	number in strings.
@@ -51,8 +55,7 @@
 
 2005-03-17  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (syms_of_coding): Docstring of coding-category-list
-	fixed.
+	* coding.c (syms_of_coding): Docstring of coding-category-list fixed.
 
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
