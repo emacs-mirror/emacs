@@ -231,7 +231,9 @@ echo "Making links to \`vms'."
 echo "Making sure copying notices are all copies of \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
 cp etc/COPYING ${tempdir}/etc/COPYING
-for subdir in lisp external-lisp src lib-src info shortnames; do
+# I think we're not going to distribute anything in external-lisp, so
+# I've removed it from this list.
+for subdir in lisp src lib-src info shortnames; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
