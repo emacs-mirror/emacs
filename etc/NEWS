@@ -1409,6 +1409,7 @@ appointments, paydays or anything else using a sexp.
 year and day number, and moves to that date. Negative day numbers
 count backward from the end of the year.
 
+---
 ** The functions `holiday-easter-etc' and `holiday-advent' now take
 arguments, and only report on the specified holiday rather than all.
 This makes customization of the variable `christian-holidays' simpler,
