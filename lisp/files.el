@@ -257,6 +257,8 @@ and ignores this variable.")
     (defalias 'lock-buffer 'ignore))
 (or (fboundp 'unlock-buffer)
     (defalias 'unlock-buffer 'ignore))
+(or (fboundp 'file-locked-p)
+    (defalias 'file-locked-p 'ignore))
 
 ;; This hook function provides support for ange-ftp host name
 ;; completion.  It runs the usual ange-ftp hook, but only for
