@@ -147,8 +147,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* we use djgcc's malloc */
-/* #define SYSTEM_MALLOC */
+/* Avoid incompatibilities between gmalloc.c and system header files
+   in how to declare valloc.  */
+#define GMALLOC_INHIBIT_VALLOC
+
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 
