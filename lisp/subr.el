@@ -208,6 +208,42 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 			  c)))
 	    (append key nil))))
 
+(defsubst eventp (obj)
+  "True if the argument is an event object."
+  (or (integerp obj)
+      (and (symbolp obj)
+	   (get obj 'event-symbol-elements))
+      (and (consp obj)
+	   (symbolp (car obj))
+	   (get (car obj) 'event-symbol-elements))))
+
+(defun event-modifiers (event)
+  "Returns a list of symbols representing the modifier keys in event EVENT.
+The elements of the list may include `meta', `control',
+`shift', `hyper', `super', `alt'.
+See also the function `event-modifier-bits'."
+  (let ((type event))
+    (if (listp type)
+	(setq type (car type)))
+    (if (symbolp type)
+	(cdr (get type 'event-symbol-elements))
+      (let ((list nil))
+	(or (zerop (logand type (lsh 1 23)))
+	    (setq list (cons 'meta list)))
+	(or (and (zerop (logand type (lsh 1 22)))
+		 (>= (logand type 127) 32))
+	    (setq list (cons 'control list)))
+	(or (and (zerop (logand type (lsh 1 21)))
+		 (= (logand type 255) (downcase (logand type 255))))
+	    (setq list (cons 'shift list)))
+	(or (zerop (logand type (lsh 1 20)))
+	    (setq list (cons 'hyper list)))
+	(or (zerop (logand type (lsh 1 19)))
+	    (setq list (cons 'super list)))
+	(or (zerop (logand type (lsh 1 18)))
+	    (setq list (cons 'alt list)))
+	list))))
+
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
   (let ((original (make-symbol "match-data")))
