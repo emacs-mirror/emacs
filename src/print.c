@@ -1069,12 +1069,13 @@ print (obj, printcharfun, escapeflag)
   /* Construct Vprint_number_table for print-gensym and print-circle.  */
   if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
     {
-      int i, index = 0;
+      int i, start, index;
       /* Construct Vprint_number_table.  */
+      start = index = print_number_index;
       print_preprocess (obj);
       /* Remove unnecessary objects, which appear only once in OBJ;
 	 that is, whose status is Qnil.  */
-      for (i = 0; i < print_number_index; i++)
+      for (i = start; i < print_number_index; i++)
 	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 	  {
 	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
@@ -1138,6 +1139,12 @@ print_preprocess (obj)
 	    }
 	}
       PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
+      /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
+	 always print the gensym with a number.  This is a special for
+	 the lisp function byte-compile-output-docform.  */
+      if (! NILP (Vprint_continuous_numbering) && SYMBOLP (obj)
+	  && NILP (XSYMBOL (obj)->obarray))
+	PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
       print_number_index++;
 
       switch (XGCTYPE (obj))
