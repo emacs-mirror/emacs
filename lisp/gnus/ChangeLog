@@ -3,6 +3,8 @@
 	* mm-encode.el (mm-content-transfer-encoding-defaults): Set
 	default to base64. Add application/emacs-lisp.
 
+	* mail-source.el (mail-source-fetch-directory): Run scripts.
+
 2002-02-16  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-msg.el (gnus-post-method): Fix doc.

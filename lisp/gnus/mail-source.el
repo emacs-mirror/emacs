@@ -1,5 +1,5 @@
 ;;; mail-source.el --- functions for fetching mail
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -276,6 +276,9 @@ Common keywords should be listed here.")
        (:path (or (getenv "MAIL")
 		  (expand-file-name (user-login-name) rmail-spool-directory))))
       (directory
+       (:prescript)
+       (:prescript-delay)
+       (:postscript)
        (:path)
        (:suffix ".spool")
        (:predicate identity))
@@ -609,6 +612,9 @@ If ARGS, PROMPT is used as an argument to `format'."
 (defun mail-source-fetch-directory (source callback)
   "Fetcher for directory sources."
   (mail-source-bind (directory source)
+    (mail-source-run-script
+     prescript (format-spec-make ?t path)
+     prescript-delay)
     (let ((found 0)
 	  (mail-source-string (format "directory:%s" path)))
       (dolist (file (directory-files
@@ -617,6 +623,8 @@ If ARGS, PROMPT is used as an argument to `format'."
 		   (funcall predicate file)
 		   (mail-source-movemail file mail-source-crash-box))
 	  (incf found (mail-source-callback callback file))))
+      (mail-source-run-script
+       postscript (format-spec-make ?t path))
       found)))
 
 (defun mail-source-fetch-pop (source callback)
