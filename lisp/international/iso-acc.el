@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@mh.nl>
-;; Version: 1.4
+;; Version: 1.7
 
 ;; This file is part of GNU Emacs.
 
@@ -22,10 +22,11 @@
 
 ;;; Commentary:
 
-;; Function `iso-accents' activates a minor mode (`iso-accents-minor-mode')
-;; in which typewriter "dead keys" are emulated.  The purpose of this
-;; emulation is to provide a simple means for inserting accented
-;; characters according to the ISO-8859-1 character set.
+;; Function `iso-accents-mode' activates a minor mode
+;; (`iso-accents-minor-mode') in which typewriter "dead keys" are
+;; emulated.  The purpose of this emulation is to provide a simple
+;; means for inserting accented characters according to the ISO-8859-1
+;; character set.
 ;;
 ;; In `iso-accents-minor-mode', pseudo accent characters are used to
 ;; introduce accented keys.  The pseudo-accent characterss are:
@@ -106,11 +107,11 @@
     )
   "Association list for ISO accent combinations.")
 
-(defun iso-accents-dead-key ()
+(defun iso-accents-accent-key ()
   "Modify the following character by adding an accent to it."
   (interactive)
 
-  ;; Pick up the dead-key.
+  ;; Pick up the accent character.
   (let ((first-char last-command-char))
 
     ;; Display it and backup.
@@ -136,14 +137,33 @@
 
 (defvar iso-accents-minor-mode nil
   "*Non-nil enables ISO-accents mode.
+Setting this variable makes it local to the current buffer.
 See `iso-accents-mode'."
+(make-variable-buffer-local 'iso-accents-minor-mode)
 
+;; A minor mode map `iso-accents-prefix-map' is used to activate the
+;; dead key handling depending on the value of iso-accents-minor-mode.
 (defvar iso-accents-prefix-map nil
   "Keymap for ISO-accents minor mode.")
 
+;; Create the minor-mode keymap, if needed.
+(or iso-accents-prefix-map
+    (progn
+      (setq iso-accents-prefix-map (make-sparse-keymap))
+      (define-key iso-accents-prefix-map "'"  'iso-accents-dead-key)
+      (define-key iso-accents-prefix-map "`"  'iso-accents-dead-key)
+      (define-key iso-accents-prefix-map "^"  'iso-accents-dead-key)
+      (define-key iso-accents-prefix-map "\"" 'iso-accents-dead-key)))
+
+;; Add the dead key minor mode map to the minor mode maps.
+(or (assq 'iso-accents-minor-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	  (cons (cons 'iso-accents-minor-mode iso-accents-prefix-map)
+		minor-mode-map-alist)))
+
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
-;; If so, uncomment the next three lines.
+;; If so, uncomment the next four lines.
 ;; (or (assq 'iso-accents-minor-mode minor-mode-map-alist)
 ;;     (setq minor-mode-alist
 ;; 	  (append minor-mode-alist
@@ -151,7 +171,7 @@ See `iso-accents-mode'."
 
 ;;;###autoload
 (defun iso-accents-mode (&optional arg)
-  "Toggle a minor mode in which accent modify the following letter.
+  "Toggle a minor mode in which accents modify the following letter.
 This permits easy insertion of accented characters according to ISO-8859-1.
 When Iso-accents mode is enabled, accent character keys
 \(', \", ^ and ~) do not self-insert; instead, they modify the following
@@ -159,15 +179,8 @@ letter key so that it inserts an ISO accented letter.
 
 With an argument, a positive argument enables ISO-accents mode, 
 and a negative argument disables it."
-;; When called, a buffer local variable iso-accents-minor-mode is created
-;; to record iso-accents-minor-mode status.
-;; A minor mode map `iso-accents-prefix-map' is used to activate the dead
-;; key handling dependend on the value of iso-accents-minor-mode.
 
   (interactive "P")
-
-  ;; Create buffer local variable iso-accents-minor-mode.
-  (make-local-variable 'iso-accents-minor-mode)
 
   (if (if arg
 	  ;; Negative arg means switch it off.
@@ -177,22 +190,6 @@ and a negative argument disables it."
       (setq iso-accents-minor-mode nil)
 
     ;; Enable electric accents.
-    (setq iso-accents-minor-mode t)
-
-    ;; Create the minor-mode keymap, if needed.
-    (or iso-accents-prefix-map
-	(progn
-	  (setq iso-accents-prefix-map (make-sparse-keymap))
-	  (define-key iso-accents-prefix-map "'"  'iso-accents-dead-key)
-	  (define-key iso-accents-prefix-map "`"  'iso-accents-dead-key)
-	  (define-key iso-accents-prefix-map "^"  'iso-accents-dead-key)
-	  (define-key iso-accents-prefix-map "\"" 'iso-accents-dead-key)
-
-	  ;; Add the dead key minor mode map to the minor mode maps.
-	  (or (assq 'iso-accents-minor-mode minor-mode-map-alist)
-	      (setq minor-mode-map-alist
-		    (cons (cons 'iso-accents-minor-mode iso-accents-prefix-map)
-			  minor-mode-map-alist)))))))
+    (setq iso-accents-minor-mode t)))
 
 ;;; iso-acc.el ends here
-
