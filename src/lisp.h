@@ -2153,8 +2153,8 @@ EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fupdate_coding_systems_internal, 0);
 EXFUN (Fencode_coding_string, 4);
 EXFUN (Fdecode_coding_string, 4);
-extern Lisp_Object detect_coding_system P_ ((const unsigned char *, int, int,
-					     int, Lisp_Object));
+extern Lisp_Object detect_coding_system P_ ((const unsigned char *, int,
+					     int, int, int, Lisp_Object));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
 extern void syms_of_coding P_ ((void));
