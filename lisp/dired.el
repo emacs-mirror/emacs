@@ -868,7 +868,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "*m" 'dired-mark)
     (define-key map "*u" 'dired-unmark)
     (define-key map "*?" 'dired-unmark-all-files)
-    (define-key map "*!" 'dired-unmark-all-files-no-query)
+    (define-key map "*!" 'dired-unmark-all-marks)
     (define-key map "*\177" 'dired-unmark-backward)
     (define-key map "*\C-n" 'dired-next-marked-file)
     (define-key map "*\C-p" 'dired-prev-marked-file)
@@ -994,7 +994,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map [menu-bar mark marks]
       '("Change Marks..." . dired-change-marks))
     (define-key map [menu-bar mark unmark-all]
-      '("Unmark All" . dired-unmark-all-files-no-query))
+      '("Unmark All" . dired-unmark-all-marks))
     (define-key map [menu-bar mark symlinks]
       '("Mark Symlinks" . dired-mark-symlinks))
     (define-key map [menu-bar mark directories]
@@ -2211,7 +2211,7 @@ OLD and NEW are both characters used to mark files."
 	      (subst-char-in-region (match-beginning 0)
 				    (match-end 0) old new)))))))
 
-(defun dired-unmark-all-files-no-query ()
+(defun dired-unmark-all-marks ()
   "Remove all marks from all files in the Dired buffer."
   (interactive)
   (dired-unmark-all-files ?\r))
