@@ -1634,6 +1634,11 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   int retry = 0;
   int count = specpdl_ptr - specpdl;
 
+#ifdef WINDOWSNT
+  /* Ensure socket support is loaded if available. */
+  init_winsock (TRUE);
+#endif
+
   GCPRO4 (name, buffer, host, service);
   CHECK_STRING (name, 0);
   CHECK_STRING (host, 0);
