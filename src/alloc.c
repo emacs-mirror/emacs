@@ -1091,10 +1091,9 @@ allocate_string_data (s, nchars, nbytes)
   
   /* If S had already data assigned, mark that as free by setting its
      string back-pointer to null, and recording the size of the data
-     in it.. Copy old string contents to the new sdata.  */
+     in it.  */
   if (old_data)
     {
-      bcopy (old_data->u.data, s->data, old_nbytes);
       old_data->u.nbytes = old_nbytes;
       old_data->string = NULL;
     }
