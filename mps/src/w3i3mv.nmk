@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.1)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -9,14 +9,14 @@ PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <arenvm> <vmnt> <addrmap> <space> <pool> <poolclas> <poolmfs> \
-      <poolmv> <pools> <root> <fix> <format> <buffer>
+      <poolmv> <pools> <root> <fix> <format> <buffer> <locknt>
 TESTLIB = <testlib>
 
 #!INCLUDE mv.nmk
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.1)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -55,7 +55,7 @@ TESTLIB = <testlib>
 # [These only test if the symbol is defined; there is opportunity to be more
 #  comprehensive]
 #
-# %%PART: Add checks for the parameter eith the sources for the new part.
+# %%PART: Add checks for the parameter with the sources for the new part.
 
 !IFNDEF PFM
 !ERROR mv.nmk: PFM not defined
@@ -110,7 +110,7 @@ LINKER = link
 LINKFLAGSCOMMON = /nologo
 LFDEBUG = /PROFILE /DEBUG:full /DEBUGTYPE:cv
 LFRELEASE = /RELEASE
-LFDEVEL = $(LINKFLAGSDEB)
+LFDEVEL = $(LFDEBUG)
 
 # Library manager
 # %%VARIETY: define a macro containing the flags for the new variety
@@ -174,20 +174,20 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: stdcover.exe mpmstres.exe std.lib mpm.lib
+all: lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-stdcover.exe mpmstres.exe std.lib mpm.lib:
-	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
+  $(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the platform
 
 clean:
-	$(ECHO) $(PFM): $@
-        -echo y | rmdir/s $(PFM)
-        -deltree /Y $(PFM)
+  $(ECHO) $(PFM): $@
+  -echo y | rmdir/s $(PFM)
+  -deltree /Y $(PFM)
 
 # target target
 # %%VARIETY: Add a recusive make call for the new variety
@@ -195,9 +195,9 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=devel variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=debug variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=release variety
+  $(MAKE) /nologo /f $(PFM).nmk VARIETY=devel variety
+  $(MAKE) /nologo /f $(PFM).nmk VARIETY=debug variety
+  $(MAKE) /nologo /f $(PFM).nmk VARIETY=release variety
 !ENDIF
 !ENDIF
 
@@ -225,11 +225,15 @@ $(PFM)\$(VARIETY)\stdcover.exe: $(PFM)\$(VARIETY)\stdcover.obj $(STDOBJ)
 
 $(PFM)\$(VARIETY)\mpmstres.exe: $(PFM)\$(VARIETY)\mpmstres.obj $(MPMOBJ) $(STDOBJ)
 
+$(PFM)\$(VARIETY)\lockcov.exe:  $(PFM)\$(VARIETY)\lockcov.obj $(MPMOBJ) $(STDOBJ)
+
+$(PFM)\$(VARIETY)\lockutnt.exe:  $(PFM)\$(VARIETY)\lockutnt.obj $(MPMOBJ) $(STDOBJ)
+
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+  $(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+  $(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
 
@@ -239,19 +243,19 @@ $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
 # [builds objects for static linking with libc]
 
 {}.c{$(PFM)\$(VARIETY)}.obj:
-	$(ECHO) $@
-	@if not exist $(PFM) mkdir $(PFM)
-        @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-        cl /c $(CFLAGS) /ML /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
-
+  $(ECHO) $@
+  @if not exist $(PFM) mkdir $(PFM)
+  @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+  cl /c $(CFLAGS) /MT /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+#             %%mt ^^
 # Depenencies
 # [we can't build these at the moment]
 
 # Executables
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
-	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libc.lib
-
+  $(ECHO) $@
+  $(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libcmt.lib
+#                                  %%mt^^^^^^
 #!INCLUDE depend.mak
 
