@@ -30,6 +30,10 @@ extern int poll_suppress_count;
    Initialized by the terminal-specific lisp files.  */
 extern Lisp_Object Vfunction_key_map;
 
+/* Buffer holding the key that invoked the current command.  */
+extern Lisp_Object *this_command_keys;
+extern int this_command_key_count;	/* Size in use.  */
+
 
 /* Macros for dealing with lispy events.  */
 
@@ -59,6 +63,7 @@ extern Lisp_Object Qvscrollbar_part, Qvslider_part;
 extern Lisp_Object Qvthumbup_part, Qvthumbdown_part;
 extern Lisp_Object Qhscrollbar_part, Qhslider_part;
 extern Lisp_Object Qhthumbleft_part, Qhthumbright_part;
+extern Lisp_Object Qswitch_frame;
 
 /* Properties on event heads.  */
 extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
