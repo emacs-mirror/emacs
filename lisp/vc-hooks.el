@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.3
@@ -166,12 +166,10 @@ visiting FILE."
   ;; 2. Insert the first few characters of the master file into a work
   ;; buffer.
   ;;  
-  ;; 3. Search work buffer for line starting with "date" indicating enough
-  ;; of header was included; if not found, then keep inserting characters
-  ;; until "date" is located.
+  ;; 3. Search work buffer for "locks...;" phrase; if not found, then
+  ;; keep inserting more characters until the phrase is found.
   ;; 
-  ;; 4. Search work buffer for line starting with "locks", extract
-  ;; all the locks currently enabled, and remove control characters
+  ;; 4. Extract the locks, and remove control characters
   ;; separating them, like newlines; the string " user1:revision1
   ;; user2:revision2 ..." is returned.
 
@@ -181,7 +179,7 @@ visiting FILE."
   ;; The modeline can get quite cluttered when there are multiple locks.
 
   (let ((master (vc-name file))
-	found status)
+	found)
 
     ;; If master file exists, then parse its contents, otherwise we return the 
     ;; nil value of this if form.
