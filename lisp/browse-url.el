@@ -262,7 +262,16 @@ regexp should probably be \".\" to specify a default browser."
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
-  "*The name by which to invoke Netscape."
+  ;; Info about netscape-remote from Kurt Swanson in gnu.emacs.gnus
+  "*The name by which to invoke Netscape.
+
+It is said that source is available for a program `netscape-remote'
+which starts up very much quicker than `netscape' and that it is
+useful to set this variable to the name of a script which invokes that
+program like:
+ #!/bin/sh
+ /usr/local/bin/netscape-remote \"$@\" > /dev/null 2>&1
+"
   :type 'string
   :group 'browse-url)
 
@@ -301,45 +310,34 @@ commands reverses the effect of this variable.  Requires Netscape version
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-(defvar browse-url-path-regexp
-  "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
-  "A regular expression to match the host, path or e-mail part of a URL.")
-
-(defvar browse-url-short-regexp
-  (concat "[-A-Za-z0-9.]+" browse-url-path-regexp)
-  "A regular expression probably matching a URL without an access scheme.
-Hostname matching is stricter in this case than for
-``browse-url-regexp''.")
-
-(defvar browse-url-regexp
-  (concat
-   "\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
-   browse-url-path-regexp)
-  "A regular expression probably matching a complete URL.")
-
-(defvar browse-url-markedup-regexp
-  "<URL:[^>]+>"
-  "A regular expression matching a URL marked up per RFC1738.
-This may be broken across lines.")
-
 (defcustom browse-url-filename-alist
-  '(("^/+" . "file:/"))
-  "*An alist of (REGEXP . STRING) pairs.
+  '(("^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*" . "ftp://\\2/")
+    ;; The above loses the username to avoid the browser prompting for
+    ;; it in anonymous cases.  If it's not anonymous the next regexp
+    ;; applies.
+    ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
+    ("^/+" . "file:/"))
+  "*An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
 Any substring of a filename matching one of the REGEXPs is replaced by
-the corresponding STRING.  All pairs are applied in the order given.
-The default value prepends `file:' to any path beginning with `/'.
-Used by the `browse-url-of-file' command.
+the corresponding STRING using `replace-match', not treating STRING
+literally.  All pairs are applied in the order given.  The default
+value converts ange-ftp/EFS-style paths into ftp URLs and prepends
+`file:' to any path beginning with `/'.
 
-For example, to map EFS filenames to URLs:
+For example, adding to the default a specific translation of an ange-ftp
+address to an HTTP URL:
 
     (setq browse-url-filename-alist
 	  '((\"/webmaster@webserver:/home/www/html/\" .
 	     \"http://www.acme.co.uk/\")
+            (\"^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*\" . \"ftp://\\2/\")
+            (\"^/\\([^:@]+@\\)?\\([^:]+\\):/*\" . \"ftp://\\1\\2/\")
 	    (\"^/+\" . \"file:/\")))
 "
   :type '(repeat (cons :format "%v"
                        (regexp :tag "Regexp")
                        (string :tag "Replacement")))
+  :version "20.3"
   :group 'browse-url)
 
 (defcustom browse-url-save-file nil
@@ -512,8 +510,7 @@ interactively.  Turn the filename into a URL with function
 
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
-Use variable `browse-url-filename-alist' to map filenames to URLs.
-Convert EFS file names of the form /USER@HOST:PATH to ftp://HOST/PATH."
+Use variable `browse-url-filename-alist' to map filenames to URLs."
   ;; URL-encode special chars, do % first
   (let ((s 0))
     (while (setq s (string-match "%" file s))
@@ -529,12 +526,7 @@ Convert EFS file names of the form /USER@HOST:PATH to ftp://HOST/PATH."
 	     (to-string (cdr map)))
 	(setq maps (cdr maps))
 	(and (string-match from-re file)
-	     (setq file (replace-match to-string t t file))))))
-  ;; Check for EFS path
-  (and (string-match "^/\\([^:@]+@\\)?\\([^:]+\\):/*" file)
-       (setq file (concat "ftp://"
-			  (substring file (match-beginning 2) (match-end 2))
-			  "/" (substring file (match-end 0)))))
+	     (setq file (replace-match to-string t nil file))))))
   file)
 
 ;;;###autoload
