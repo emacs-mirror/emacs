@@ -1,3 +1,8 @@
+2003-06-01  Andreas Schwab  <schwab@suse.de>
+
+	* man.el (Man-name-regexp): Also match Latin-1 soft hyphen.
+	(Man-build-references-alist): Handle Latin-1 soft hyphen.
+
 2003-05-31  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-buffer-ignore): Update custom type to
