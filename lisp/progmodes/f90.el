@@ -65,7 +65,7 @@
 ;; The function f90-comment-region toggles insertion of
 ;; the variable f90-comment-region in every line of the region.
 
-;; One common convention for free vs. fixed format is that free-format files
+;; One common convention for free vs. fixed format is that free format files
 ;; have the ending .f90 or .f95 while fixed format files have the ending .f.
 ;; Emacs automatically loads Fortran files in the appropriate mode based
 ;; on extension. You can modify this by adjusting the variable auto-mode-alist.
@@ -150,11 +150,11 @@
 ;; Also thanks to the authors of the fortran and pascal modes, on which some
 ;; of this code is built.
 
+;;; Code:
+
 ;; TODO
 ;; Support for hideshow, align.
 ;; OpenMP, preprocessor highlighting.
-
-;;; Code:
 
 (defvar comment-auto-fill-only-comments)
 (defvar font-lock-keywords)
@@ -162,94 +162,94 @@
 ;; User options
 
 (defgroup f90 nil
-  "Major mode for editing Fortran 90,95 code."
+  "Major mode for editing free format Fortran 90,95 code."
   :group 'languages)
 
 (defgroup f90-indent nil
-  "Indentation in free-format Fortran."
+  "Indentation in free format Fortran."
   :prefix "f90-"
-  :group 'f90)
+  :group  'f90)
 
 
 (defcustom f90-do-indent 3
   "*Extra indentation applied to DO blocks."
-  :type 'integer
+  :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-if-indent 3
   "*Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
-  :type 'integer
+  :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-type-indent 3
   "*Extra indentation applied to TYPE, INTERFACE and BLOCK DATA blocks."
-  :type 'integer
+  :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-program-indent 2
-  "*Extra indentation applied to PROGRAM/MODULE/SUBROUTINE/FUNCTION blocks."
-  :type 'integer
+  "*Extra indentation applied to PROGRAM, MODULE, SUBROUTINE, FUNCTION blocks."
+  :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-continuation-indent 5
-  "*Extra indentation applied to F90 continuation lines."
-  :type 'integer
+  "*Extra indentation applied to continuation lines."
+  :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-comment-region "!!$"
   "*String inserted by \\[f90-comment-region] at start of each line in region."
-  :type 'string
+  :type  'string
   :group 'f90-indent)
 
 (defcustom f90-indented-comment-re "!"
-  "*Regexp saying which comments to indent like code."
-  :type 'regexp
+  "*Regexp matching comments to indent as code."
+  :type  'regexp
   :group 'f90-indent)
 
 (defcustom f90-directive-comment-re "!hpf\\$"
   "*Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
-  :type 'regexp
+  :type  'regexp
   :group 'f90-indent)
 
 (defcustom f90-beginning-ampersand t
   "*Non-nil gives automatic insertion of \& at start of continuation line."
-  :type 'boolean
+  :type  'boolean
   :group 'f90)
 
 (defcustom f90-smart-end 'blink
   "*From an END statement, check and fill the end using matching block start.
 Allowed values are 'blink, 'no-blink, and nil, which determine
 whether to blink the matching beginning."
-  :type '(choice (const blink) (const no-blink) (const nil))
+  :type  '(choice (const blink) (const no-blink) (const nil))
   :group 'f90)
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
   "*Regexp holding list of delimiters at which lines may be broken."
-  :type 'regexp
+  :type  'regexp
   :group 'f90)
 
 (defcustom f90-break-before-delimiters t
   "*Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
-  :type 'boolean
+  :type  'boolean
   :group 'f90)
 
 (defcustom f90-auto-keyword-case nil
   "*Automatic case conversion of keywords.
 The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
-  :type '(choice (const downcase-word) (const upcase-word)
-		 (const capitalize-word) (const nil))
+  :type  '(choice (const downcase-word) (const upcase-word)
+                  (const capitalize-word) (const nil))
   :group 'f90)
 
 (defcustom f90-leave-line-no nil
   "*If non-nil, line numbers are not left justified."
-  :type 'boolean
+  :type  'boolean
   :group 'f90)
 
 (defcustom f90-mode-hook nil
   "Hook run when entering F90 mode."
-  :type 'hook
+  :type    'hook
   :options '(f90-add-imenu-menu)
-  :group 'f90)
+  :group   'f90)
 
 ;; User options end here.
 
@@ -455,52 +455,63 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (define-key map "-"        'f90-electric-insert)
     (define-key map "*"        'f90-electric-insert)
     (define-key map "/"        'f90-electric-insert)
+
+    (easy-menu-define f90-menu map "Menu for F90 mode."
+      `("F90"
+        ("Customization"
+         ,(custom-menu-create 'f90)
+         ["Set"  Custom-set t]
+         ["Save" Custom-save t]
+         ["Reset to Current" Custom-reset-current t]
+         ["Reset to Saved"   Custom-reset-saved t]
+         ["Reset to Standard Settings" Custom-reset-standard t]
+         )
+        "--"
+        ["Indent Subprogram"       f90-indent-subprogram       t]
+        ["Mark Subprogram"         f90-mark-subprogram         t]
+        ["Beginning of Subprogram" f90-beginning-of-subprogram t]
+        ["End of Subprogram"       f90-end-of-subprogram       t]
+        "--"
+        ["(Un)Comment Region" f90-comment-region mark-active]
+        ["Indent Region"      f90-indent-region  mark-active]
+        ["Fill Region"        f90-fill-region    mark-active]
+        "--"
+        ["Break Line at Point"     f90-break-line t]
+        ["Join with Previous Line" f90-join-lines t]
+        ["Insert Block End"        f90-insert-end t]
+        "--"
+        ("Highlighting"
+         ["Toggle font-lock-mode" font-lock-mode :selected font-lock-mode
+          :style toggle]
+         "--"
+         ["Light highlighting (level 1)"    f90-font-lock-1 t]
+         ["Moderate highlighting (level 2)" f90-font-lock-2 t]
+         ["Heavy highlighting (level 3)"    f90-font-lock-3 t]
+         ["Maximum highlighting (level 4)"  f90-font-lock-4 t]
+         )
+        ("Change Keyword Case"
+         ["Upcase Keywords (buffer)"     f90-upcase-keywords     t]
+         ["Capitalize Keywords (buffer)" f90-capitalize-keywords t]
+         ["Downcase Keywords (buffer)"   f90-downcase-keywords   t]
+         "--"
+         ["Upcase Keywords (region)"     f90-upcase-region-keywords
+          mark-active]
+         ["Capitalize Keywords (region)" f90-capitalize-region-keywords
+          mark-active]
+         ["Downcase Keywords (region)"   f90-downcase-region-keywords
+          mark-active]
+         )
+        "--"
+        ["Toggle auto-fill"   auto-fill-mode :selected auto-fill-function
+         :style toggle]
+        ["Toggle abbrev-mode" abbrev-mode    :selected abbrev-mode
+         :style toggle]
+        ["Add imenu Menu" f90-add-imenu-menu
+         :active   (not (lookup-key (current-local-map) [menu-bar index]))
+         :included (fboundp 'imenu-add-to-menubar)]))
     map)
   "Keymap used in F90 mode.")
 
-
-(easy-menu-define f90-menu f90-mode-map "Menu for F90 mode."
-  '("F90"
-    ["Indent Subprogram"       f90-indent-subprogram       t]
-    ["Mark Subprogram"         f90-mark-subprogram         t]
-    ["Beginning of Subprogram" f90-beginning-of-subprogram t]
-    ["End of Subprogram"       f90-end-of-subprogram       t]
-    "--"
-    ["(Un)Comment Region" f90-comment-region mark-active]
-    ["Indent Region"      f90-indent-region  mark-active]
-    ["Fill Region"        f90-fill-region    mark-active]
-    "--"
-    ["Break Line at Point"     f90-break-line t]
-    ["Join with Previous Line" f90-join-lines t]
-    ["Insert Block End"        f90-insert-end t]
-    "--"
-    ("Highlighting"
-     ["Toggle font-lock-mode" font-lock-mode :selected font-lock-mode
-      :style toggle]
-     "--"
-     ["Light highlighting (level 1)"    f90-font-lock-1 t]
-     ["Moderate highlighting (level 2)" f90-font-lock-2 t]
-     ["Heavy highlighting (level 3)"    f90-font-lock-3 t]
-     ["Maximum highlighting (level 4)"  f90-font-lock-4 t]
-     )
-    ("Change Keyword Case"
-     ["Upcase Keywords (buffer)"     f90-upcase-keywords     t]
-     ["Capitalize Keywords (buffer)" f90-capitalize-keywords t]
-     ["Downcase Keywords (buffer)"   f90-downcase-keywords   t]
-     "--"
-     ["Upcase Keywords (region)"     f90-upcase-region-keywords mark-active]
-     ["Capitalize Keywords (region)" f90-capitalize-region-keywords
-      mark-active]
-     ["Downcase Keywords (region)"   f90-downcase-region-keywords mark-active]
-     )
-    "--"
-    ["Toggle auto-fill"   auto-fill-mode :selected auto-fill-function
-     :style toggle]
-    ["Toggle abbrev-mode" abbrev-mode    :selected abbrev-mode :style toggle]
-    ["Add imenu Menu" f90-add-imenu-menu
-     :active (not (lookup-key (current-local-map) [menu-bar index]))
-     :included (fboundp 'imenu-add-to-menubar)]
-    ))
 
 (defun f90-font-lock-1 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-1'."
@@ -595,7 +606,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
        "\\)"
        "[ \t]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)")
       4)))
-  "Generic imenu expression for F90 mode.")
+  "Value for `imenu-generic-expression' in F90 mode.")
 
 (defun f90-add-imenu-menu ()
   "Add an imenu menu to the menubar."
@@ -680,10 +691,11 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 ;;;###autoload
 (defun f90-mode ()
   "Major mode for editing Fortran 90,95 code in free format.
+For fixed format code, use `fortran-mode'.
 
+\\[f90-indent-line] indents the current line.
 \\[f90-indent-new-line] indents current line and creates a new\
  indented line.
-\\[f90-indent-line] indents the current line.
 \\[f90-indent-subprogram] indents the current subprogram.
 
 Type `? or `\\[help-command] to display a list of built-in\
@@ -752,8 +764,6 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)           ; auto buffer local
-  (easy-menu-add f90-menu)
-  ;; Setting up things for font-lock.
   (set (make-local-variable 'font-lock-defaults)
        '((f90-font-lock-keywords f90-font-lock-keywords-1
                                  f90-font-lock-keywords-2
@@ -763,7 +773,10 @@ with no args, if that value is non-nil."
   ;; Tell imenu how to handle f90.
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
-        f90-imenu-generic-expression)
+       f90-imenu-generic-expression)
+  (set (make-local-variable 'beginning-of-defun-function)
+       'f90-beginning-of-subprogram)
+  (set (make-local-variable 'end-of-defun-function) 'f90-end-of-subprogram)
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
   (run-hooks 'f90-mode-hook))
@@ -1282,7 +1295,7 @@ A block is a subroutine, if-endif, etc."
 
 
 (defun f90-mark-subprogram ()
-  "Put mark at end of F90 subprogram, point at beginning, push marks."
+  "Put mark at end of F90 subprogram, point at beginning, push mark."
   (interactive)
   (let ((pos (point)) program)
     (f90-end-of-subprogram)
@@ -1318,7 +1331,7 @@ in the region, or, if already present, remove it."
   "Indent current line as F90 code.
 Unless optional argument NO-UPDATE is non-nil, call `f90-update-line'
 after indenting."
-  (interactive)
+  (interactive "*P")
   (let (indent no-line-number (pos (make-marker)) (case-fold-search t))
     (set-marker pos (point))
     (beginning-of-line)                ; digits after & \n are not line-nos
@@ -1342,10 +1355,10 @@ after indenting."
     (set-marker pos nil)))
 
 (defun f90-indent-new-line ()
-  "Reindent current line, insert a newline and indent the newline.
+  "Re-indent current line, insert a newline and indent the newline.
 An abbrev before point is expanded if the variable `abbrev-mode' is non-nil.
 If run in the middle of a line, the line is not broken."
-  (interactive)
+  (interactive "*")
   (let (string cont (case-fold-search t))
     (if abbrev-mode (expand-abbrev))
     (beginning-of-line)                ; reindent where likely to be needed
@@ -1473,7 +1486,7 @@ If run in the middle of a line, the line is not broken."
 
 (defun f90-indent-subprogram ()
   "Properly indent the subprogram containing point."
-  (interactive)
+  (interactive "*")
   (save-excursion
     (let ((program (f90-mark-subprogram)))
       (if program
@@ -1491,7 +1504,7 @@ If run in the middle of a line, the line is not broken."
   "Break line at point, insert continuation marker(s) and indent.
 Unless in a string or comment, or if the optional argument NO-UPDATE
 is non-nil, call `f90-update-line' after inserting the continuation marker."
-  (interactive)
+  (interactive "*P")
   (cond ((f90-in-string)
          (insert "&\n&"))
         ((f90-in-comment)
@@ -1517,7 +1530,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'.
 Update keyword case first."
-  (interactive)
+  (interactive "*")
   ;; Break line before or after last delimiter (non-word char) if
   ;; position is beyond fill-column.
   ;; Will not break **, //, or => (as specified by f90-no-break-re).
@@ -1536,7 +1549,7 @@ Update keyword case first."
 
 (defun f90-join-lines (&optional arg)
   "Join current line to previous, fix whitespace, continuation, comments.
-With an argument, join current line to following line.
+With optional argument ARG, join current line to following line.
 Like `join-line', but handles F90 syntax."
   (interactive "*P")
   (beginning-of-line)
@@ -1564,7 +1577,7 @@ Like `join-line', but handles F90 syntax."
     (goto-char beg-region)
     (while go-on
       ;; Join as much as possible.
-      (while (progn 
+      (while (progn
                (end-of-line)
                (skip-chars-backward " \t")
                (eq (preceding-char) ?&))
@@ -1662,7 +1675,7 @@ Leave point at the end of line."
 
 (defun f90-insert-end ()
   "Insert a complete end statement matching beginning of present block."
-  (interactive)
+  (interactive "*")
   (let ((f90-smart-end (or f90-smart-end 'blink)))
     (insert "end")
     (f90-indent-new-line)))
@@ -1703,17 +1716,17 @@ Any other key combination is executed normally."
 
 (defun f90-upcase-keywords ()
   "Upcase all F90 keywords in the buffer."
-  (interactive)
+  (interactive "*")
   (f90-change-keywords 'upcase-word))
 
 (defun f90-capitalize-keywords ()
   "Capitalize all F90 keywords in the buffer."
-  (interactive)
+  (interactive "*")
   (f90-change-keywords 'capitalize-word))
 
 (defun f90-downcase-keywords ()
   "Downcase all F90 keywords in the buffer."
-  (interactive)
+  (interactive "*")
   (f90-change-keywords 'downcase-word))
 
 (defun f90-upcase-region-keywords (beg end)
