@@ -1,3 +1,8 @@
+2002-06-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/ange-ftp.el (backup-buffer): Delete `ange-ftp' property.
+	This is not a handled operation.
+
 2002-06-21  Kim F. Storm  <storm@filanet.dk>
 
 	* emulation/cua-base.el (cua--prefix-arg): Make register prefixes
