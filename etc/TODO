@@ -166,3 +166,5 @@
 
 * Add support for SVG (Scalable Vector Graphics) rendering to 
   Emacs.
+
+* Use the XIE X extension, if available, for image display.
