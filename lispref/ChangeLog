@@ -1,3 +1,7 @@
+2004-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Minor cleanup.
+
 2004-05-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add `file-remote-p' as operation
