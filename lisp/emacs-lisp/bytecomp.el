@@ -2420,9 +2420,15 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (setq for-effect nil)))
 
 (defun byte-compile-setq-default (form)
-  (byte-compile-form
-   (cons 'set-default (cons (list 'quote (nth 1 form))
-			    (nthcdr 2 form)))))
+  (let ((args (cdr form)))
+    (if args
+	(while args
+	  (byte-compile-form
+	   (list 'set-default (list 'quote (car args)) (car (cdr args))))
+	  (setq args (cdr (cdr args))))
+      ;; (setq-default), with no arguments.
+      (byte-compile-form nil for-effect))
+    (setq for-effect nil)))
 
 (defun byte-compile-quote (form)
   (byte-compile-constant (car (cdr form))))
