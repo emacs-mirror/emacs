@@ -537,6 +537,11 @@ Non-nil third argument means not to show the message."
   ;; From profile file, set mh-user-path, mh-draft-folder,
   ;; mh-unseen-seq, mh-previous-seq, mh-inbox.
   (mh-find-progs)
+  (and mh-auto-folder-collect
+       (let ((mh-no-install t))		;only get folders if MH installed
+	 (condition-case err
+	     (mh-make-folder-list-background)
+	   (file-error))))		;so don't complain if not installed
   (save-excursion
     ;; Be sure profile is fully expanded before switching buffers
     (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
@@ -970,12 +975,5 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
     new-list))
 
 (provide 'mh-utils)
-
-(and (not noninteractive)
-     mh-auto-folder-collect
-     (let ((mh-no-install t))		;only get folders if MH installed
-       (condition-case err
-	   (mh-make-folder-list-background)
-	 (file-error))))		;so don't complain if not installed
 
 ;;; mh-utils.el ends here
