@@ -1,9 +1,10 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
+
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 3.0
+;; Version: 3.1
 ;; Keywords: tpu edt tpu-edt
 
 ;; This file is part of GNU Emacs.
@@ -22,14 +23,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
+
 
 ;;;
-;;;  Revision Information
+;;;  Revision and Version Information
 ;;;
-(defconst tpu-revision "$Revision: 6.6 $"
-  "Revision number of TPU-edt.")
-(defconst tpu-revision-date "$Date: 1993/08/01 21:45:31 $"
-  "Date current revision of TPU-edt was created.")
+(defconst tpu-version "3.1" "TPU-edt version number.")
+(defconst tpu-revision "$Revision: 6.10 $" "Revision number of TPU-edt.")
 
 
 ;;;
@@ -91,6 +92,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defvar GOLD-SS3-map (make-sparse-keymap)
   "Maps the function keys on the VT100 keyboard preceeded by GOLD-SS3.")
 
+(defvar tpu-global-map nil "TPU-edt global keymap.")
 (defvar tpu-original-global-map (copy-keymap global-map)
   "Original global keymap.")
 
@@ -116,6 +118,8 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defvar tpu-last-deleted-char ""
   "Last character deleted by a TPU-edt character-delete command.")
 
+(defvar tpu-searching-forward t
+  "If non-nil, TPU-edt is searching in the forward direction.")
 (defvar tpu-search-last-string ""
   "Last text searched for by the TPU-edt search commands.")
 
@@ -129,6 +133,8 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "True when TPU-edt is operating in the backward direction.")
 (defvar tpu-control-keys t
   "If non-nil, control keys are set to perform TPU functions.")
+(defvar tpu-xkeys-file nil
+  "File containing TPU-edt X key map.")
 
 (defvar tpu-rectangle-string nil
   "Mode line string to identify rectangular mode.")
@@ -312,6 +318,8 @@ current version of emacs."
       (read-from-minibuffer prompt nil nil nil history-symbol)
     (read-string prompt)))
 
+(defvar tpu-last-answer nil "Most recent response to tpu-y-or-n-p.")
+
 (defun tpu-y-or-n-p (prompt &optional not-yes)
   "Prompt for a y or n answer with positive default.
 Optional second argument NOT-YES changes default to negative.
@@ -415,11 +423,9 @@ With argument, fill and justify."
 (defun tpu-version nil
   "Print the TPU-edt version number."
   (interactive)
-  (message (concat "TPU-edt revision "
-		   (substring tpu-revision 11 -2)
-		   " by Rob Riepel (riepel@networking.stanford.edu)  "
-		   (substring tpu-revision-date 12 -11) "/"
-		   (substring tpu-revision-date 9 11))))
+  (message
+   "TPU-edt version %s by Rob Riepel (riepel@networking.stanford.edu)"
+   tpu-version))
 
 (defun tpu-reset-screen-size (height width)
   "Sets the screen size."
@@ -727,6 +733,8 @@ its ASCII decimal value."
 ;;;
 ;;;  Define key
 ;;;
+(defvar tpu-saved-control-r nil "Saved value of Control-r.")
+
 (defun tpu-end-define-macro-key (key)
   "Ends the current macro definition"
   (interactive "kPress the key you want to use to do what was just learned: ")
@@ -771,12 +779,12 @@ kills modified buffers without asking."
 (defun tpu-next-file-buffer nil
   "Go to next buffer in ring that is visiting a file."
   (interactive)
-  (setq starting-buffer (buffer-name))
-  (switch-to-buffer (car (reverse (buffer-list))))
-  (while (and (not (equal (buffer-name) starting-buffer))
-              (not (buffer-file-name)))
-    (switch-to-buffer (car (reverse (buffer-list)))))
-  (if (equal (buffer-name) starting-buffer) (error "No other buffers.")))
+  (let ((starting-buffer (buffer-name)))
+    (switch-to-buffer (car (reverse (buffer-list))))
+    (while (and (not (equal (buffer-name) starting-buffer))
+		(not (buffer-file-name)))
+      (switch-to-buffer (car (reverse (buffer-list)))))
+    (if (equal (buffer-name) starting-buffer) (error "No other buffers."))))
 
 (defun tpu-next-window nil
   "Move to the next window."
@@ -821,7 +829,7 @@ The search is performed in the current direction."
   "Search for a string or regular expression.
 The search is begins in the forward direction."
   (interactive)
-  (setq searching-forward t)
+  (setq tpu-searching-forward t)
   (tpu-set-search t)
   (tpu-search-internal ""))
 
@@ -829,7 +837,7 @@ The search is begins in the forward direction."
   "Search for a string or regular expression.
 The search is begins in the reverse direction."
   (interactive)
-  (setq searching-forward nil)
+  (setq tpu-searching-forward nil)
   (tpu-set-search t)
   (tpu-search-internal ""))
 
@@ -853,8 +861,8 @@ The search is performed in the current direction."
 (defun tpu-set-search (&optional arg)
   "Set the search functions and set the search direction to the current
 direction.  If an argument is specified, don't set the search direction."
-  (if (not arg) (setq searching-forward (if tpu-advance t nil)))
-  (cond (searching-forward
+  (if (not arg) (setq tpu-searching-forward (if tpu-advance t nil)))
+  (cond (tpu-searching-forward
 	 (cond (tpu-regexp-p
 		(fset 'tpu-emacs-search 're-search-forward)
 		(fset 'tpu-emacs-rev-search 're-search-backward))
@@ -884,7 +892,7 @@ direction.  If an argument is specified, don't set the search direction."
 	 (tpu-adjust-search t)
 	 (let ((found nil) (pos nil))
 	   (save-excursion
-	     (let ((searching-forward (not searching-forward)))
+	     (let ((tpu-searching-forward (not tpu-searching-forward)))
 	       (tpu-adjust-search)
 	       (setq found (tpu-emacs-rev-search tpu-search-last-string nil t))
 	       (setq pos (match-beginning 0))))
@@ -892,7 +900,7 @@ direction.  If an argument is specified, don't set the search direction."
 	   (cond (found
 		  (cond ((tpu-y-or-n-p
 			  (format "Found in %s direction.  Go there? "
-				  (if searching-forward "reverse" "forward")))
+				  (if tpu-searching-forward "reverse" "forward")))
 			 (goto-char pos) (tpu-set-match)
 			 (tpu-toggle-search-direction))))
 
@@ -907,7 +915,7 @@ direction.  If an argument is specified, don't set the search direction."
 (defun tpu-adjust-search (&optional arg)
   "For forward searches, move forward a character before searching,
 and backward a character after a failed search.  Arg means end of search."
-  (if searching-forward
+  (if tpu-searching-forward
       (cond (arg (if (not (bobp)) (forward-char -1)))
 	    (t (if (not (eobp)) (forward-char 1))))))
 
@@ -915,11 +923,11 @@ and backward a character after a failed search.  Arg means end of search."
   "Toggle the TPU-edt search direction.
 Used for reversing a search in progress."
   (interactive)
-  (setq searching-forward (not searching-forward))
+  (setq tpu-searching-forward (not tpu-searching-forward))
   (tpu-set-search t)
   (and (interactive-p)
        (message "Searching %sward."
-		(if searching-forward "for" "back"))))
+		(if tpu-searching-forward "for" "back"))))
 
 
 ;;;
@@ -1199,7 +1207,7 @@ A negative argument means replace all occurrences of the search string."
 	 (while (and (not (= num 0)) (or (tpu-mark) (tpu-check-match)))
 	   (let ((beg (point)))
 	     (tpu-replace)
-	     (if searching-forward (forward-char -1) (goto-char beg))
+	     (if tpu-searching-forward (forward-char -1) (goto-char beg))
 	     (if (= num 1) (tpu-search-internal tpu-search-last-string)
 	       (tpu-search-internal-core tpu-search-last-string)))
 	   (setq num (1- num))))
@@ -1230,7 +1238,7 @@ A negative argument means replace all occurrences of the search string."
 			(let ((beg (point)))
 			  (replace-match to (not case-replace) (not tpu-regexp-p))
 			  (setq strings (1+ strings))
-			  (if searching-forward (forward-char -1) (goto-char beg)))
+			  (if tpu-searching-forward (forward-char -1) (goto-char beg)))
 			(tpu-search-internal from t))
 
 		       ((or (= ans ?n) (= ans ?N) (= ans ?\C-?))
@@ -1241,13 +1249,13 @@ A negative argument means replace all occurrences of the search string."
 			  (let ((beg (point)))
 			    (replace-match to (not case-replace) (not tpu-regexp-p))
 			    (setq strings (1+ strings))
-			    (if searching-forward (forward-char -1) (goto-char beg)))
+			    (if tpu-searching-forward (forward-char -1) (goto-char beg)))
 			  (tpu-search-internal-core from t)
 			  (while (tpu-check-match)
 			    (let ((beg (point)))
 			      (replace-match to (not case-replace) (not tpu-regexp-p))
 			      (setq strings (1+ strings))
-			      (if searching-forward (forward-char -1) (goto-char beg)))
+			      (if tpu-searching-forward (forward-char -1) (goto-char beg)))
 			    (tpu-search-internal-core from t)))
 			(setq doit nil))
 
@@ -1255,7 +1263,7 @@ A negative argument means replace all occurrences of the search string."
 			(let ((beg (point)))
 			  (replace-match to (not case-replace) (not tpu-regexp-p))
 			  (setq strings (1+ strings))
-			  (if searching-forward (forward-char -1) (goto-char beg)))
+			  (if tpu-searching-forward (forward-char -1) (goto-char beg)))
 			(setq doit nil))
 
 		       ((or (= ans ?q) (= ans ?Q))
@@ -2034,7 +2042,7 @@ If FILE is nil, try to load a default file.  The default file names are
   (interactive "fX key definition file: ")
   (cond (file
 	 (setq file (expand-file-name file)))
-	((boundp 'tpu-xkeys-file)
+	(tpu-xkeys-file
 	 (setq file (expand-file-name tpu-xkeys-file)))
 	(tpu-gnu-emacs19-p
 	 (setq file (expand-file-name "~/.tpu-gnu-keys")))
@@ -2043,6 +2051,8 @@ If FILE is nil, try to load a default file.  The default file names are
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
+	 (switch-to-buffer "*scratch*")
+	 (erase-buffer)
 	 (insert "
 
      Ack!!  You're running TPU-edt under X-windows without loading an
