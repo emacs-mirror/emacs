@@ -1918,9 +1918,13 @@ This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-chars
-  (if (memq system-type '(ms-dos windows-nt))
-      "~/A-Za-z0-9_^$!#%&{}@`'.()-"
-    "~/A-Za-z0-9+@:_.$#%,={}-")
+  (cond
+   ((eq system-type 'ms-dos)
+    "~/A-Za-z0-9_^$!#%&{}@`'.()-")
+   ((eq system-type 'windows-nt)
+    "~/A-Za-z0-9_^$!#%&{}@`'.,:()-")
+   (t   
+    "~/A-Za-z0-9+@:_.$#%,={}-"))
   "String of characters valid in a file name.
 
 This is a good thing to set in mode hooks.")
