@@ -391,7 +391,7 @@ determine where and by how much buffers are scrolled.
 ** Emacs' auto-save list files are now by default stored in a
 sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
 (On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
-You can customize `auto-save-list-prefix' to change this location.
+You can customize `auto-save-list-file-prefix' to change this location.
 
 +++
 ** The function `getenv' is now callable interactively.
