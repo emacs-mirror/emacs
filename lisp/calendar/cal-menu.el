@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -100,6 +100,12 @@
   '("French Date" . calendar-goto-french-date))
 (define-key calendar-mode-map [menu-bar goto mayan]
   (cons "Mayan Date" (make-sparse-keymap "Mayan")))
+(define-key calendar-mode-map [menu-bar goto ethiopic]
+  '("Ethiopic Date" . calendar-goto-ethiopic-date))
+(define-key calendar-mode-map [menu-bar goto coptic]
+  '("Coptic Date" . calendar-goto-coptic-date))
+(define-key calendar-mode-map [menu-bar goto chinese]
+  '("Chinese Date" . calendar-goto-chinese-date))
 (define-key calendar-mode-map [menu-bar goto julian]
   '("Julian Date" . calendar-goto-julian-date))
 (define-key calendar-mode-map [menu-bar goto islamic]
@@ -268,30 +274,48 @@ ERROR is t, otherwise just returns nil."
 (defun calendar-mouse-print-dates ()
   "Pop up menu of equivalent dates to mouse selected date."
   (interactive)
-  (let ((date (calendar-event-to-date)))
-    (x-popup-menu
-     event
-     (list
-      "Date Menu"
-      (append
-       (list
-        (concat (calendar-date-string date) " (Gregorian)")
-        (list (calendar-day-of-year-string date))
-        (list (format "ISO date: %s" (calendar-iso-date-string date)))
-        (list (format "Julian date: %s" (calendar-julian-date-string date)))
-        (list (format "Astronomical (Julian) date (before noon): %s"
-                      (calendar-astro-date-string date)))
-        (list (format "Hebrew date (before sunset): %s"
-                      (calendar-hebrew-date-string date))))
-       (let ((i (calendar-islamic-date-string date)))
-         (if (not (string-equal i ""))
-             (list (list (format "Islamic date (before sunset): %s" i)))))
-       (let ((f (calendar-french-date-string date)))
-         (if (not (string-equal f ""))
-             (list (list (format "French Revolutionary date: %s" f)))))
-       (list
-	(list
-         (format "Mayan date: %s" (calendar-mayan-date-string date)))))))))
+  (let ((date (calendar-event-to-date))
+        (selection
+         (x-popup-menu
+          event
+          (list
+           "Date Menu"
+           (append
+            (list
+             (concat (calendar-date-string date) " (Gregorian)")
+             (list (calendar-day-of-year-string date))
+             (list (format "ISO date: %s" (calendar-iso-date-string date)))
+             (list (format "Julian date: %s"
+                           (calendar-julian-date-string date)))
+             (list
+              (format "Astronomical (Julian) day number (after noon UTC): %s"
+                           (calendar-astro-date-string date)))
+             (list (format "Hebrew date (before sunset): %s"
+                           (calendar-hebrew-date-string date))))
+            (let ((i (calendar-islamic-date-string date)))
+              (if (not (string-equal i ""))
+                  (list (list (format "Islamic date (before sunset): %s" i)))))
+;      too slow to leave this in all the time!
+;       (list
+;        (list (format "Chinese date: %s" (calendar-chinese-date-string date))))
+;       so instead,
+            (list '("Chinese date (select to echo Chinese date)"
+                    . calendar-print-chinese-date))
+            (let ((c (calendar-coptic-date-string date)))
+              (if (not (string-equal c ""))
+                  (list (list (format "Coptic date: %s" c)))))
+            (let ((e (calendar-ethiopic-date-string date)))
+              (if (not (string-equal e ""))
+                  (list (list (format "Ethiopic date: %s" e)))))
+            (let ((f (calendar-french-date-string date)))
+              (if (not (string-equal f ""))
+                  (list (list (format "French Revolutionary date: %s" f)))))
+            (list
+             (list
+              (format "Mayan date: %s"
+                      (calendar-mayan-date-string date)))))))))
+        (and selection (call-interactively selection))))
+
 
 (defun calendar-mouse-2-date-menu (event)
   "Pop up menu for Mouse-2 for selected date in the calendar window."
@@ -302,7 +326,7 @@ ERROR is t, otherwise just returns nil."
            event
            (list "Menu"
                  (list
-                  (calendar-date-string date t t)
+                  (calendar-date-string date t nil)
                   '("Holidays" . calendar-mouse-holidays)
                   '("Mark date" . calendar-mouse-set-mark)
                   '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
