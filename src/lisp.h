@@ -1395,6 +1395,7 @@ extern void message1_nolog ();
 extern void message2 ();
 extern void message2_nolog ();
 extern void message_dolog ();
+extern void message_log_maybe_newline ();
 
 /* Defined in alloc.c */
 extern Lisp_Object Vpurify_flag;
