@@ -453,7 +453,7 @@ as a menu label.")
 
   CHECK_GFX (Qnil);
 
-  xpos = CtoSX (XWINDOW(window)->left + XINT(X_Position));
+  xpos = CtoSX (WINDOW_LEFT_MARGIN (XWINDOW (window)) + XINT(X_Position));
   ypos = CtoSY (XWINDOW(window)->top  + XINT(Y_Position));
 #ifdef  Menu_Base_Kludge
   {static Lisp_Object symbol[2];
