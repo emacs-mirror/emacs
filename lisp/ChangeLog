@@ -1,3 +1,8 @@
+2002-01-09  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.el (viper-set-hooks): zap viper-unfriendly bindings in
+	flyspell-mouse-map.
+	
 2002-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Bind max-specpdl-size.

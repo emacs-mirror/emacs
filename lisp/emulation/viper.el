@@ -828,6 +828,13 @@ remains buffer-local."
   (defvar emerge-startup-hook)
   (add-hook 'emerge-startup-hook 'viper-change-state-to-emacs)
 
+  ;; Zap bad bindings in flyspell-mouse-map, which prevent ESC from working
+  ;; over misspelled words (due to the overlay keymaps)
+  (defvar flyspell-mode-hook)
+  (add-hook 'flyspell-mode-hook
+	    '(lambda ()
+	       (define-key flyspell-mouse-map viper-ESC-key nil)))
+
   ;; Tell vc-diff to put *vc* in Vi mode
   (if (featurep 'vc)
       (defadvice vc-diff (after viper-vc-ad activate)
