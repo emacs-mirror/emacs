@@ -1,4 +1,4 @@
-/* Terminal hooks for Windows NT port of GNU Emacs.
+/* Terminal hooks for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -492,7 +492,7 @@ set_terminal_modes (void)
 
       SetConsoleActiveScreenBuffer (cur_screen);
 
-      /* make cursor big and visible (100 on Win95 makes it disappear)  */
+      /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
       cci.dwSize = 99;
       cci.bVisible = TRUE;
       (void) SetConsoleCursorInfo (cur_screen, &cci);
@@ -539,7 +539,7 @@ reset_kbd (void)
 typedef int (*term_hook) ();
 
 void
-initialize_win_nt_display (void)
+initialize_w32_display (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
   
