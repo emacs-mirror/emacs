@@ -3799,8 +3799,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
 #ifdef DOS_NT
-  int buffer_file_type
-    = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
+  int buffer_file_type = O_BINARY;
 #endif /* DOS_NT */
   struct coding_system coding;
 
