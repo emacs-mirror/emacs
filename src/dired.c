@@ -668,10 +668,12 @@ Otherwise, list elements are:\n\
   First integer has high-order 16 bits of time, second has low 16 bits.\n\
  5. Last modification time, likewise.\n\
  6. Last status change time, likewise.\n\
- 7. Size in bytes (-1, if number is out of range).\n\
+ 7. Size in bytes.\n\
+  This is a floating point number if the size is too large for an integer.\n\
  8. File modes, as a string of ten letters or dashes as in ls -l.\n\
  9. t iff file's gid would change if file were deleted and recreated.\n\
-10. inode number.\n\
+10. inode number.  If inode number is larger than the Emacs integer,\n\
+  this is a list of two integers: first the high, then the low 16 bits.\n\
 11. Device number.\n\
 \n\
 If file does not exist, returns nil.")
@@ -717,9 +719,9 @@ If file does not exist, returns nil.")
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
   values[7] = make_number ((int) s.st_size);
-  /* If the size is out of range, give back -1.  */
+  /* If the size is out of range for an integer, return a float.  */
   if (XINT (values[7]) != s.st_size)
-    XSETINT (values[7], -1);
+    values[7] = make_float ((double)s.st_size);
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
 #ifdef BSD4_3 /* Gross kludge to avoid lack of "#if defined(...)" in VMS */
