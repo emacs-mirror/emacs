@@ -1444,7 +1444,7 @@ x_get_arg (alist, param, attribute, class, type)
 		      || !strcmp (XSTRING (tem)->data, "false"))
 		  return Qnil;
 		else
-		  return intern (tem);
+		  return Fintern (tem, Qnil);
 	      }
 
 	    default:
