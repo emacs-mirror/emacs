@@ -1,3 +1,12 @@
+2000-04-16  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Remove obsolete localcpp stuff.
+	(GETLOADAVG_OBJ): Don't define.
+	(obj): Move LIBOBJS...
+	(otherobj): ... to here.
+	(MSDOS_OBJ): Convert to make variable -- preprocessing zapped
+	whitespace-only lines after the continuation (Irix).
+
 2000-04-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (xpm_load) [DEBUG_X_COLORS]: Register colors.
