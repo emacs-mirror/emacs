@@ -1496,10 +1496,10 @@ This variable is permanent-local.")
     (setq comint-last-prompt-overlay nil)))
 
 (defun comint-carriage-motion (string)
-  "Handle carriage returns in comint output.
-Translate carraige return/linefeed sequences to linefeeds.
-Let single carriage returns delete to the beginning of the line.
-Let backspaces delete the previous character.
+  "Handle carriage control characters in comint output.
+Translate carriage return/linefeed sequences to linefeeds.
+Make single carriage returns delete to the beginning of the line.
+Make backspaces delete the previous character.
 
 This function should be in the list `comint-output-filter-functions'."
   (save-match-data
