@@ -1668,6 +1668,10 @@ file.  You can disable this by setting the variable
 Tar-mode @kbd{w} key is bound to @code{woman-find-file} on the current
 line's archive member.
 
+  For more information about setting up and using @kbd{M-x woman}, see
+@ref{Top, WoMan, Browse UN*X Manual Pages WithOut Man, woman, The WoMan
+Manual}.
+
   Eventually the GNU project hopes to replace most man pages with
 better-organized manuals that you can browse with Info.  @xref{Misc
 Help}.  Since this process is only partially completed, it is still
