@@ -423,7 +423,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
   (cond ((eq cont 'same)
 	 ;; Use the ambient value of tags-file-name.
 	 (or tags-file-name
-	     (error (substitute-command-keys
+	     (error "%s"
+		    (substitute-command-keys
 		     (concat "No tags table in use!  "
 			     "Use \\[visit-tags-table] to select one.")))))
 
@@ -1308,7 +1309,8 @@ if the file was newly read in, the value is the filename."
   "Form for `tags-loop-continue' to eval to change one file.")
 
 (defvar tags-loop-scan
-  '(error (substitute-command-keys
+  '(error "%s"
+	  (substitute-command-keys
 	   "No \\[tags-search] or \\[tags-query-replace] in progress."))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
@@ -1555,7 +1557,8 @@ for \\[find-tag] (which see)."
   (interactive)
   (or tags-table-list
       tags-file-name
-      (error (substitute-command-keys
+      (error "%s"
+	     (substitute-command-keys
 	      "No tags table loaded.  Try \\[visit-tags-table].")))
   (let ((pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
