@@ -1664,7 +1664,7 @@ created."
 
 (defface secondary-selection
   '((((type tty) (class color))
-     (:background "cyan"))
+     (:background "cyan" :foreground "black"))
     (((class color) (background light))
      (:background "yellow"))
     (((class color) (background dark))
