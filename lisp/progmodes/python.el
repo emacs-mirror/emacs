@@ -1141,6 +1141,14 @@ def _emacs_args (name):  # get arglist of name for eldoc &c
 print '_emacs_ok'"))
   (unless noshow (pop-to-buffer (setq python-buffer "*Python*"))))
 
+(defun python-send-command (command)
+  "Like `python-send-string' but resets `compilation-minor-mode'."
+  (let ((end (marker-position (process-mark (python-proc)))))
+    (compilation-forget-errors)
+    (python-send-string command)
+    (set-marker compilation-parsing-end end)
+    (setq compilation-last-buffer (current-buffer))))
+
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."
   ;; The region is evaluated from a temporary file.  This avoids
@@ -1170,14 +1178,11 @@ print '_emacs_ok'"))
     (write-region start end f t 'nomsg)
     (when python-buffer
       (with-current-buffer python-buffer
-	(let ((end (marker-position (process-mark (python-proc)))))
-	  (set (make-local-variable 'python-orig-start) orig-start)
-	  (set (make-local-variable 'compilation-error-list) nil)
-	  (let ((comint-input-filter-functions
-		 (delete 'python-input-filter comint-input-filter-functions)))
-	    (python-send-string command))
-	  (set-marker compilation-parsing-end end)
-	  (setq compilation-last-buffer (current-buffer)))))))
+	(set (make-local-variable 'python-orig-start) orig-start)
+	(let ((comint-input-filter-functions
+	       ;; Don't reset python-orig-start.
+	       (remq 'python-input-filter comint-input-filter-functions)))
+	  (python-send-command command))))))
 
 (defun python-send-string (string)
   "Evaluate STRING in inferior Python process."
@@ -1242,25 +1247,17 @@ module-qualified names."
 				   (file-name-nondirectory file-name)))
   (when python-buffer
     (with-current-buffer python-buffer
-      (let ((end (marker-position (process-mark (python-proc)))))
-	(set (make-local-variable 'compilation-error-list) nil)
-	;; (set (make-local-variable 'compilation-old-error-list) nil)
-	(let ((comint-input-filter-functions
-	       (delete 'python-input-filter comint-input-filter-functions)))
-	  (set (make-local-variable 'python-orig-start) nil)
-	  ;; Fixme: I'm not convinced by this logic from python-mode.el.
-	  (python-send-string
-	   (if (string-match "\\.py\\'" file-name)
-	       ;; Fixme: make sure the directory is in the path list
-	       (let ((module (file-name-sans-extension
-			      (file-name-nondirectory file-name))))
-		 (format "\
+      ;; Fixme: I'm not convinced by this logic from python-mode.el.
+      (python-send-command
+       (if (string-match "\\.py\\'" file-name)
+	   ;; Fixme: make sure the directory is in the path list
+	   (let ((module (file-name-sans-extension
+			  (file-name-nondirectory file-name))))
+	     (format "\
 if globals().has_key(%S): reload(%s)
 else: import %s
 " module module module))
-	     (format "execfile('%s')" file-name))))
-	(set-marker compilation-parsing-end end)
-	(setq compilation-last-buffer (current-buffer))))))
+	 (format "execfile('%s')" file-name))))))
 
 ;; Fixme: Should this start a process if there isn't one?  (Unlike cmuscheme.)
 (defun python-proc ()
