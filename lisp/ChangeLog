@@ -1,3 +1,7 @@
+2000-12-02  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/eldoc.el (eldoc): Don't make parent of itself.
+
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (make-char): Fix last change.
