@@ -52,7 +52,6 @@
 ;; -rv			*reverseVideo
 ;; -selectionTimeout    .selectionTimeout
 ;; -synchronous		*synchronous
-;; -title		.title
 ;; -xrm
 
 ;; An alist of X options and the function which handles them.  See
@@ -463,11 +462,11 @@ turn off scroll bars; otherwise, turn on scroll bars."
 ;;; If you are running xclipboard, this means you can effectively
 ;;; have a window on a copy of the kill-ring.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
-;;; with older X application.
+;;; with older X applications.
 (defun x-select-text (text)
   (x-set-cut-buffer 0 text)
-  (x-own-selection text 'clipboard)
-  (x-own-selection text)
+  (x-set-selection 'clipboard text)
+  (x-set-selection 'primary text)
   (setq x-last-selected-text text))
 
 ;;; Return the value of the current X selection.  For compatibility
@@ -480,7 +479,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
     ;; as if they were unset.
     (setq text (x-get-cut-buffer 0))
     (if (string= text "") (setq text nil))
-    (or text (setq text (x-get-cut-buffer 0)))
+    (or text (setq text (x-selection 'primary)))
     (if (string= text "") (setq text nil))
 
     (cond
