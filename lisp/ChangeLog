@@ -1,3 +1,7 @@
+2004-07-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* international/utf-8.el (utf-translate-cjk-mode): Doc fix.
+
 2004-07-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (defcustom): Doc fix.
