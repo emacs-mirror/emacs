@@ -324,7 +324,10 @@ telling what files the command may have changed.  Type
 \\[dired-do-redisplay] to redisplay the marked files.
 
 The shell command has the top level directory as working directory, so
-output files usually are created there instead of in a subdir."
+output files usually are created there instead of in a subdir.
+
+In a noninteractive call (from Lisp code), you must specify
+the list of file names explicitly with the FILE-LIST argument."
 ;;Functions dired-run-shell-command and dired-shell-stuff-it do the
 ;;actual work and can be redefined for customization.
   (interactive
