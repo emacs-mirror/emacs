@@ -1309,10 +1309,8 @@ set_search_regs (beg, len)
      the match position.  */
   if (search_regs.num_regs == 0)
     {
-      regoff_t *starts, *ends;
-
-      starts = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-      ends = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+      search_regs.start = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+      search_regs.end = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
       search_regs.num_regs = 2;
     }
 
@@ -1941,6 +1939,8 @@ save_search_regs ()
       saved_search_regs.start = search_regs.start;
       saved_search_regs.end = search_regs.end;
       search_regs.num_regs = 0;
+      search_regs.start = 0;
+      search_regs.end = 0;
 
       search_regs_saved = 1;
     }
