@@ -73,6 +73,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FIRST_PTY_LETTER 'a'
 
 /*
+ *	Define HAVE_TERMIO if the system provides sysV-style ioctls
+ *	for terminal control.
+ */
+
+#define HAVE_TERMIO
+
+/*
  *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
  *	Look in <sys/time.h> for a timeval structure.
  */
