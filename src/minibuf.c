@@ -1436,7 +1436,7 @@ It can find the completion buffer in `standard-output'.")
 	  if (i & 1)
 	    {
 	      if (XTYPE (Vstandard_output) == Lisp_Buffer)
-		Findent_to (make_number (35), make_number (1));
+		Findent_to (make_number (35), make_number (2));
 	      else
 		{
 		  do
