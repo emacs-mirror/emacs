@@ -1296,12 +1296,12 @@ struct face
   unsigned background_defaulted_p : 1;
 
   /* 1 means that either no color is specified for underlining or that
-     the the specified color couldn't be loaded.  Use the foreground
-     color when drawing in that case. */
+     specified color couldn't be loaded.  Use the foreground color
+     when drawing in that case. */
   unsigned underline_defaulted_p : 1; 
 
   /* 1 means that either no color is specified for the corresponding
-     attribute or that the the specified color couldn't be loaded.
+     attribute or that the specified color couldn't be loaded.
      Use the foreground color when drawing in that case. */
   unsigned overline_color_defaulted_p : 1;
   unsigned strike_through_color_defaulted_p : 1;

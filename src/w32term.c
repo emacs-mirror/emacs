@@ -1858,7 +1858,7 @@ x_append_stretch_glyph (it, object, width, height, ascent)
    4. `:height HEIGHT' specifies that the height of the stretch produced
    should be HEIGHT, measured in canonical character units.
 
-   5. `:relative-height FACTOR' specifies that the height of the the
+   5. `:relative-height FACTOR' specifies that the height of the
    stretch should be FACTOR times the height of the characters having
    the glyph property.
 
@@ -7273,7 +7273,7 @@ fast_find_position (w, pos, hpos, vpos, x, y, stop)
 }
 
 
-/* Find the position of the the glyph for position POS in OBJECT in
+/* Find the position of the glyph for position POS in OBJECT in
    window W's current matrix, and return in *X/*Y the pixel
    coordinates, and return in *HPOS/*VPOS the column/row of the glyph.
 
