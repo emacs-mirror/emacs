@@ -2218,6 +2218,17 @@ the emacs-mule encoding.  Also, files stored in the emacs-mule
 encoding using Emacs 20 with additional private charsets defined will
 probably not be read correctly by Emacs 21.
 
+** Not really a change (yet), but a projected one that of which you
+should be aware of: The variable `directory-sep-char' is deprecated,
+and should not be used.  It was always ignored on GNU/Linux and Unix
+systems and on MS-DOS, but the MS-Windows port tried to support it by
+adapting the behavior of certain primitives to the value of this
+variable.  It turned out that such support cannot be reliable, so it
+was decided to remove this variable in the near future.  Lisp programs
+are well advised not to set it to anything but '/', because any
+different value will not have any effect when support for this
+variable is removed.
+
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
