@@ -552,7 +552,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (error "No%s dynamic expansion for `%s' found"
 	     (if old " further" "") abbrev))
      (t
-      (if (not (eq dabbrev--last-buffer dabbrev--last-buffer-found))
+      (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
+		   (minibuffer-window-active-p (selected-window))))
 	  (progn
 	    (message "Expansion found in '%s'"
 		     (buffer-name dabbrev--last-buffer))
