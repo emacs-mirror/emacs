@@ -5737,10 +5737,12 @@ x_put_x_image (f, ximg, pixmap, width, height)
 
 
 /***********************************************************************
-			      Searching files
+			      File Handling
  ***********************************************************************/
 
 static Lisp_Object x_find_image_file P_ ((Lisp_Object));
+static char *slurp_file P_ ((char *, int *));
+
 
 /* Find image file FILE.  Look in data-directory, then
    x-bitmap-file-path.  Value is the full name of the file found, or
@@ -5771,17 +5773,55 @@ x_find_image_file (file)
 }
 
 
+/* Read FILE into memory.  Value is a pointer to a buffer allocated
+   with xmalloc holding FILE's contents.  Value is null if an error
+   occured.  *SIZE is set to the size of the file.  */
+
+static char *
+slurp_file (file, size)
+     char *file;
+     int *size;
+{
+  FILE *fp = NULL;
+  char *buf = NULL;
+  struct stat st;
+
+  if (stat (file, &st) == 0
+      && (fp = fopen (file, "r")) != NULL
+      && (buf = (char *) xmalloc (st.st_size),
+	  fread (buf, 1, st.st_size, fp) == st.st_size))
+    {
+      *size = st.st_size;
+      fclose (fp);
+    }
+  else
+    {
+      if (fp)
+	fclose (fp);
+      if (buf)
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+    }
+  
+  return buf;
+}
+
+
 
 /***********************************************************************
 			      XBM images
  ***********************************************************************/
 
+static int xbm_scan P_ ((char **, char *, char *, int *));
 static int xbm_load P_ ((struct frame *f, struct image *img));
-static int xbm_load_image_from_file P_ ((struct frame *f, struct image *img,
-					 Lisp_Object file));
+static int xbm_load_image P_ ((struct frame *f, struct image *img,
+			       char *, char *));
 static int xbm_image_p P_ ((Lisp_Object object));
-static int xbm_read_bitmap_file_data P_ ((char *, int *, int *,
-					  unsigned char **));
+static int xbm_read_bitmap_data P_ ((char *, char *, int *, int *,
+				     unsigned char **));
+static int xbm_file_p P_ ((Lisp_Object));
 
 
 /* Indices of image specification fields in xbm_format, below.  */
@@ -5862,6 +5902,10 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
+   4. A string containing an in-memory XBM file.  WIDTH and HEIGHT
+   may not be specified in this case because they are defined in the
+   XBM file.
+
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
    foreground and background of the frame on which the image is
@@ -5882,6 +5926,12 @@ xbm_image_p (object)
   if (kw[XBM_FILE].count)
     {
       if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_DATA].count)
+	return 0;
+    }
+  else if (kw[XBM_DATA].count && xbm_file_p (kw[XBM_DATA].value))
+    {
+      /* In-memory XBM file.  */
+      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_FILE].count)
 	return 0;
     }
   else
@@ -5961,30 +6011,31 @@ xbm_image_p (object)
    scanning a number, store its value in *IVAL.  */
 
 static int
-xbm_scan (fp, sval, ival)
-     FILE *fp;
+xbm_scan (s, end, sval, ival)
+     char **s, *end;
      char *sval;
      int *ival;
 {
   int c;
   
   /* Skip white space.  */
-  while ((c = fgetc (fp)) != EOF && isspace (c))
+  while (*s < end && (c = *(*s)++, isspace (c)))
     ;
 
-  if (c == EOF)
+  if (*s >= end)
     c = 0;
   else if (isdigit (c))
     {
       int value = 0, digit;
       
-      if (c == '0')
+      if (c == '0' && *s < end)
 	{
-	  c = fgetc (fp);
+	  c = *(*s)++;
 	  if (c == 'x' || c == 'X')
 	    {
-	      while ((c = fgetc (fp)) != EOF)
+	      while (*s < end)
 		{
+		  c = *(*s)++;
 		  if (isdigit (c))
 		    digit = c - '0';
 		  else if (c >= 'a' && c <= 'f')
@@ -5999,33 +6050,33 @@ xbm_scan (fp, sval, ival)
 	  else if (isdigit (c))
 	    {
 	      value = c - '0';
-	      while ((c = fgetc (fp)) != EOF
-		     && isdigit (c))
+	      while (*s < end
+		     && (c = *(*s)++, isdigit (c)))
 		value = 8 * value + c - '0';
 	    }
 	}
       else
 	{
 	  value = c - '0';
-	  while ((c = fgetc (fp)) != EOF
-		 && isdigit (c))
+	  while (*s < end
+		 && (c = *(*s)++, isdigit (c)))
 	    value = 10 * value + c - '0';
 	}
 
-      if (c != EOF)
-	ungetc (c, fp);
+      if (*s < end)
+	*s = *s - 1;
       *ival = value;
       c = XBM_TK_NUMBER;
     }
   else if (isalpha (c) || c == '_')
     {
       *sval++ = c;
-      while ((c = fgetc (fp)) != EOF
-	     && (isalnum (c) || c == '_'))
+      while (*s < end
+	     && (c = *(*s)++, (isalnum (c) || c == '_')))
 	*sval++ = c;
       *sval = 0;
-      if (c != EOF)
-	ungetc (c, fp);
+      if (*s < end)
+	*s = *s - 1;
       c = XBM_TK_IDENT;
     }
 
@@ -6034,18 +6085,19 @@ xbm_scan (fp, sval, ival)
 
 
 /* Replacement for XReadBitmapFileData which isn't available under old
-   X versions.  FILE is the name of the bitmap file to read.  Set
-   *WIDTH and *HEIGHT to the width and height of the image.  Return in
-   *DATA the bitmap data allocated with xmalloc.  Value is non-zero if
-   successful.  */
+   X versions.  CONTENTS is a pointer to a buffer to parse; END is the
+   buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
+   the image.  Return in *DATA the bitmap data allocated with xmalloc.
+   Value is non-zero if successful.  DATA null means just test if
+   CONTENTS looks like an im-memory XBM file.  */
 
 static int
-xbm_read_bitmap_file_data (file, width, height, data)
-     char *file;
+xbm_read_bitmap_data (contents, end, width, height, data)
+     char *contents, *end;
      int *width, *height;
      unsigned char **data;
 {
-  FILE *fp;
+  char *s = contents;
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
@@ -6055,7 +6107,7 @@ xbm_read_bitmap_file_data (file, width, height, data)
   int LA1;
 
 #define match() \
-     LA1 = xbm_scan (fp, buffer, &value)
+     LA1 = xbm_scan (&s, end, buffer, &value)
 
 #define expect(TOKEN)		\
      if (LA1 != (TOKEN)) 	\
@@ -6069,13 +6121,10 @@ xbm_read_bitmap_file_data (file, width, height, data)
      else							\
        goto failure
 
-  fp = fopen (file, "r");
-  if (fp == NULL)
-    return 0;
-
   *width = *height = -1;
-  *data = NULL;
-  LA1 = xbm_scan (fp, buffer, &value);
+  if (data)
+    *data = NULL;
+  LA1 = xbm_scan (&s, end, buffer, &value);
 
   /* Parse defines for width, height and hot-spots.  */
   while (LA1 == '#')
@@ -6098,6 +6147,8 @@ xbm_read_bitmap_file_data (file, width, height, data)
 
   if (*width < 0 || *height < 0)
     goto failure;
+  else if (data == NULL)
+    goto success;
 
   /* Parse bits.  Must start with `static'.  */
   expect_ident ("static");
@@ -6166,13 +6217,12 @@ xbm_read_bitmap_file_data (file, width, height, data)
 	}
     }
 
-  fclose (fp);
+ success:
   return 1;
 
  failure:
   
-  fclose (fp);
-  if (*data)
+  if (data && *data)
     {
       xfree (*data);
       *data = NULL;
@@ -6185,35 +6235,21 @@ xbm_read_bitmap_file_data (file, width, height, data)
 }
 
 
-/* Load XBM image IMG which will be displayed on frame F from file
-   SPECIFIED_FILE.  Value is non-zero if successful.  */
+/* Load XBM image IMG which will be displayed on frame F from buffer
+   CONTENTS.  END is the end of the buffer.  Value is non-zero if
+   successful.  */
 
 static int
-xbm_load_image_from_file (f, img, specified_file)
+xbm_load_image (f, img, contents, end)
      struct frame *f;
      struct image *img;
-     Lisp_Object specified_file;
+     char *contents, *end;
 {
   int rc;
   unsigned char *data;
   int success_p = 0;
-  Lisp_Object file;
-  struct gcpro gcpro1;
   
-  xassert (STRINGP (specified_file));
-  file = Qnil;
-  GCPRO1 (file);
-
-  file = x_find_image_file (specified_file);
-  if (!STRINGP (file))
-    {
-      image_error ("Cannot find image file `%s'", specified_file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
-	  
-  rc = xbm_read_bitmap_file_data (XSTRING (file)->data, &img->width,
-				  &img->height, &data);
+  rc = xbm_read_bitmap_data (contents, end, &img->width, &img->height, &data);
   if (rc)
     {
       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
@@ -6245,7 +6281,7 @@ xbm_load_image_from_file (f, img, specified_file)
       if (img->pixmap == 0)
 	{
 	  x_clear_image (f, img);
-	  image_error ("Unable to create X pixmap for `%s'", file, Qnil);
+	  image_error ("Unable to create X pixmap for `%s'", img->spec, Qnil);
 	}
       else
 	success_p = 1;
@@ -6255,11 +6291,25 @@ xbm_load_image_from_file (f, img, specified_file)
   else
     image_error ("Error loading XBM image `%s'", img->spec, Qnil);
 
-  UNGCPRO;
   return success_p;
 }
 
 
+/* Value is non-zero if DATA looks like an in-memory XBM file.  */
+
+static int
+xbm_file_p (data)
+     Lisp_Object data;
+{
+  int w, h;
+  return (STRINGP (data)
+	  && xbm_read_bitmap_data (XSTRING (data)->data,
+				   (XSTRING (data)->data
+				    + STRING_BYTES (XSTRING (data))),
+				   &w, &h, NULL));
+}
+
+    
 /* Fill image IMG which is used on frame F with pixmap data.  Value is
    non-zero if successful.  */
 
@@ -6276,26 +6326,60 @@ xbm_load (f, img)
   /* If IMG->spec specifies a file name, create a non-file spec from it.  */
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
-    success_p = xbm_load_image_from_file (f, img, file_name);
+    {
+      Lisp_Object file;
+      char *contents;
+      int size;
+      struct gcpro gcpro1;
+      
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+	{
+	  image_error ("Cannot find image file `%s'", file_name, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      contents = slurp_file (XSTRING (file)->data, &size);
+      if (contents == NULL)
+	{
+	  image_error ("Error loading XBM image `%s'", img->spec, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      success_p = xbm_load_image (f, img, contents, contents + size);
+      UNGCPRO;
+    }
   else
     {
       struct image_keyword fmt[XBM_LAST];
       Lisp_Object data;
+      unsigned char *bitmap_data;
       int depth;
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       char *bits;
-      int parsed_p;
+      int parsed_p, height, width;
+      int in_memory_file_p = 0;
 
-      /* Parse the list specification.  */
+      /* See if data looks like an in-memory XBM file.  */
+      data = image_spec_value (img->spec, QCdata, NULL);
+      in_memory_file_p = xbm_file_p (data);
+
+      /* Parse the image specification.  */
       bcopy (xbm_format, fmt, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
-      img->width = XFASTINT (fmt[XBM_WIDTH].value);
-      img->height = XFASTINT (fmt[XBM_HEIGHT].value);
-      xassert (img->width > 0 && img->height > 0);
+      if (!in_memory_file_p)
+	{
+	  img->width = XFASTINT (fmt[XBM_WIDTH].value);
+	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
+	  xassert (img->width > 0 && img->height > 0);
+	}
 
       BLOCK_INPUT;
       
@@ -6310,45 +6394,50 @@ xbm_load (f, img)
 	background = x_alloc_image_color (f, img, fmt[XBM_BACKGROUND].value,
 					  background);
 
-      /* Set bits to the bitmap image data.  */
-      data = fmt[XBM_DATA].value;
-      if (VECTORP (data))
+      if (in_memory_file_p)
+	success_p = xbm_load_image (f, img, XSTRING (data)->data,
+				    (XSTRING (data)->data
+				     + STRING_BYTES (XSTRING (data))));
+      else
 	{
-	  int i;
-	  char *p;
-	  int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
-	  
-	  p = bits = (char *) alloca (nbytes * img->height);
-	  for (i = 0; i < img->height; ++i, p += nbytes)
+	  if (VECTORP (data))
 	    {
-	      Lisp_Object line = XVECTOR (data)->contents[i];
-	      if (STRINGP (line))
-		bcopy (XSTRING (line)->data, p, nbytes);
-	      else
-		bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
+	      int i;
+	      char *p;
+	      int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	  
+	      p = bits = (char *) alloca (nbytes * img->height);
+	      for (i = 0; i < img->height; ++i, p += nbytes)
+		{
+		  Lisp_Object line = XVECTOR (data)->contents[i];
+		  if (STRINGP (line))
+		    bcopy (XSTRING (line)->data, p, nbytes);
+		  else
+		    bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
+		}
 	    }
-	}
-      else if (STRINGP (data))
-	bits = XSTRING (data)->data;
-      else
-	bits = XBOOL_VECTOR (data)->data;
+	  else if (STRINGP (data))
+	    bits = XSTRING (data)->data;
+	  else
+	    bits = XBOOL_VECTOR (data)->data;
 
-      /* Create the pixmap.  */
-      depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
-      img->pixmap
-	= XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
-				       FRAME_X_WINDOW (f),
-				       bits,
-				       img->width, img->height,
-				       foreground, background,
-				       depth);
-      if (img->pixmap)
-	success_p = 1;
-      else
-	{
-	  image_error ("Unable to create pixmap for XBM image `%s'",
-		       img->spec, Qnil);
-	  x_clear_image (f, img);
+	  /* Create the pixmap.  */
+	  depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+	  img->pixmap
+	    = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
+					   FRAME_X_WINDOW (f),
+					   bits,
+					   img->width, img->height,
+					   foreground, background,
+					   depth);
+	  if (img->pixmap)
+	    success_p = 1;
+	  else
+	    {
+	      image_error ("Unable to create pixmap for XBM image `%s'",
+			   img->spec, Qnil);
+	      x_clear_image (f, img);
+	    }
 	}
 
       UNBLOCK_INPUT;
@@ -7175,42 +7264,6 @@ pbm_scan_number (s, end)
 }
 
 
-/* Read FILE into memory.  Value is a pointer to a buffer allocated
-   with xmalloc holding FILE's contents.  Value is null if an error
-   occured.  *SIZE is set to the size of the file.  */
-
-static char *
-pbm_read_file (file, size)
-     Lisp_Object file;
-     int *size;
-{
-  FILE *fp = NULL;
-  char *buf = NULL;
-  struct stat st;
-
-  if (stat (XSTRING (file)->data, &st) == 0
-      && (fp = fopen (XSTRING (file)->data, "r")) != NULL
-      && (buf = (char *) xmalloc (st.st_size),
-	  fread (buf, 1, st.st_size, fp) == st.st_size))
-    {
-      *size = st.st_size;
-      fclose (fp);
-    }
-  else
-    {
-      if (fp)
-	fclose (fp);
-      if (buf)
-	{
-	  xfree (buf);
-	  buf = NULL;
-	}
-    }
-  
-  return buf;
-}
-
-
 /* Load PBM image IMG for use on frame F.  */
 
 static int 
@@ -7242,7 +7295,7 @@ pbm_load (f, img)
 	  return 0;
 	}
 
-      contents = pbm_read_file (file, &size);
+      contents = slurp_file (XSTRING (file)->data, &size);
       if (contents == NULL)
 	{
 	  image_error ("Error reading `%s'", file, Qnil);
