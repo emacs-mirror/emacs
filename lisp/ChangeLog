@@ -1,3 +1,11 @@
+2001-02-10  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (delete-key-deletes-forward-mode):
+	Change `let' to `let*' to fix gross bug in last change.
+
+	* repeat.el (repeat): Don't let execute-kbd-macro alter
+	real-last-command.
+
 2001-02-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (eval-expression): Doc fix.
@@ -402,7 +410,7 @@
 	from 2001-01-12.  It is not needed, since backspace is mapped into
 	DEL.
 
-2001-01-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-27  Richard M. Stallman  <rms@gnu.org>
 
 	* dabbrev.el (dabbrev--substitute-expansion):
 	Treat a one-capital-letter abbrev as "not all upper case",
@@ -469,7 +477,7 @@
 	* loadup.el (Top-level) [ms-dos]: Don't load international/ccl
 	twice.
 
-2001-01-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (next-line): Don't let `newline' expand abbrevs.
 	Simplify slightly.
@@ -791,7 +799,7 @@
 	* bookmark.el (bookmark-maybe-historicize-string):
 	Use new backquote syntax.
 
-2001-01-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (last): Handle a list that doesn't end in nil.
 
@@ -1100,7 +1108,7 @@
 	accepts extra latin codes, register such codes as safe for the
 	coding system.
 
-2001-01-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-1): In non-batch case,
 	don't mention the file name or the date here, because they are
