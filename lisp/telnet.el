@@ -171,21 +171,24 @@ rejecting one login and prompting for the again for a username and password.")
 		     comint-last-input-end)))
 
 ;;;###autoload
-(defun telnet (arg)
+(defun telnet (host)
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer *HOST-telnet*.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen telnet connection to host: ")
-  (let ((name (concat arg "-telnet" )))
-    (switch-to-buffer (make-comint name "telnet"))
-    (set-process-filter (get-process name) 'telnet-initial-filter)
-    ;; Don't send the `open' cmd till telnet is ready for it.
-    (accept-process-output (get-process name))
-    (erase-buffer)
-    (send-string  name (concat "open " arg "\n"))
-    (telnet-mode)
-    (setq comint-input-sender 'telnet-simple-send)
-    (setq telnet-count telnet-initial-count)))
+  (let* ((name (concat host "-telnet" ))
+	 (buffer (get-buffer (concat "*" name "*"))))
+    (if (and buffer (get-buffer-process buffer))
+	(switch-to-buffer (concat "*" name "*"))
+      (switch-to-buffer (make-comint name "telnet"))
+      (set-process-filter (get-process name) 'telnet-initial-filter)
+      ;; Don't send the `open' cmd till telnet is ready for it.
+      (accept-process-output (get-process name))
+      (erase-buffer)
+      (send-string  name (concat "open " host "\n"))
+      (telnet-mode)
+      (setq comint-input-sender 'telnet-simple-send)
+      (setq telnet-count telnet-initial-count))))
 
 (defun telnet-mode ()
   "This mode is for using telnet (or rsh) from a buffer to another host.
@@ -205,13 +208,13 @@ Data is sent to the remote host when RET is typed.
   (run-hooks 'telnet-mode-hook))
 
 ;;;###autoload
-(defun rsh (arg)
+(defun rsh (host)
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer *HOST-rsh*.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
-  (let ((name (concat arg "-rsh" )))
+  (let ((name (concat host "-rsh" )))
     (switch-to-buffer (make-comint name "rsh"))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
