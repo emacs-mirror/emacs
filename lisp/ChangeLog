@@ -1,3 +1,12 @@
+2002-05-13  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-enable-cursor-indications): Default off.
+	(cua-mode): Print Enabled/Disabled messages if interactive.
+	Disable delete-selection-mode and pc-selection-mode when cua-mode
+	is enabled; reenable if cua-mode is turned off.
+	Remember setting of transient-mark-mode when cua-mode is enabled;
+	restore if cua-mode is disabled.
+
 2002-05-13  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Change the "English please" msg.
