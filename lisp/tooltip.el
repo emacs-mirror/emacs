@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
@@ -40,8 +40,6 @@
   :group 'tools
   :version "21.1"
   :tag "Tool Tips")
-
-(defvar tooltip-mode)
 
 (defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
@@ -122,11 +120,9 @@ position to pop up the tooltip."
   "*Non-nil means show tooltips in GUD sessions."
   :type 'boolean
   :tag "GUD"
-  :set #'(lambda (symbol on)
-	   (setq tooltip-gud-tips-p on))
   :group 'tooltip)
 
-(defcustom tooltip-gud-modes '(gud-mode c-mode c++-mode)
+(defcustom tooltip-gud-modes '(gud-mode c-mode c++-mode fortran-mode)
   "List of modes for which to enable GUD tips."
   :type 'sexp
   :tag "GUD modes"
@@ -187,26 +183,23 @@ This might return nil if the event did not occur over a buffer."
 ;; would be accompanied by a full redisplay.
 
 ;;;###autoload
-(defun tooltip-mode (&optional arg)
-  "Mode for tooltip display.
+(define-minor-mode tooltip-mode
+  "Toggle Tooltip display.
 With ARG, turn tooltip mode on if and only if ARG is positive."
-  (interactive "P")
+  :global t
+  :group 'tooltip
   (unless (fboundp 'x-show-tip)
     (error "Sorry, tooltips are not yet available on this system"))
-  (let* ((on (if arg
-		 (> (prefix-numeric-value arg) 0)
-	       (not tooltip-mode)))
-	 (hook-fn (if on 'add-hook 'remove-hook)))
-    (setq tooltip-mode on)
+  (let ((hook-fn (if tooltip-mode 'add-hook 'remove-hook)))
     (funcall hook-fn 'change-major-mode-hook 'tooltip-change-major-mode)
     (tooltip-activate-mouse-motions-if-enabled)
     (funcall hook-fn 'pre-command-hook 'tooltip-hide)
     (funcall hook-fn 'tooltip-hook 'tooltip-gud-tips)
     (funcall hook-fn 'tooltip-hook 'tooltip-help-tips)
-    (setq show-help-function (if on 'tooltip-show-help-function nil))
+    (setq show-help-function (if tooltip-mode 'tooltip-show-help-function nil))
     ;; `ignore' is the default binding for mouse movements.
     (define-key global-map [mouse-movement]
-      (if on 'tooltip-mouse-motion 'ignore))))
+      (if tooltip-mode 'tooltip-mouse-motion 'ignore))))
 
 
 ;;; Timeout for tooltip display
@@ -246,16 +239,14 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
 (defun tooltip-activate-mouse-motions-if-enabled ()
   "Reconsider for all buffers whether mouse motion events are desired."
   (remove-hook 'post-command-hook 'tooltip-activate-mouse-motions-if-enabled)
-  (let ((buffers (buffer-list)))
+  (dolist (buffer (buffer-list))
     (save-excursion
-      (while buffers
-	(set-buffer (car buffers))
-	(if (and tooltip-mode
-		 tooltip-gud-tips-p
-		 (memq major-mode tooltip-gud-modes))
-	    (tooltip-activate-mouse-motions t)
-	  (tooltip-activate-mouse-motions nil))
-	(setq buffers (cdr buffers))))))
+      (set-buffer buffer)
+      (if (and tooltip-mode
+	       tooltip-gud-tips-p
+	       (memq major-mode tooltip-gud-modes))
+	  (tooltip-activate-mouse-motions t)
+	(tooltip-activate-mouse-motions nil)))))
 
 (defvar tooltip-mouse-motions-active nil
   "Locally t in a buffer if tooltip processing of mouse motion is enabled.")
@@ -441,12 +432,11 @@ region for the tip window to be shown.  If tooltip-gud-dereference is t,
 add a `*' in front of the printed expression.
 
 This function must return nil if it doesn't handle EVENT."
-  (let (gud-buffer process)
+  (let (process)
     (when (and (eventp event)
 	       tooltip-gud-tips-p
 	       (boundp 'gud-comint-buffer)
-	       (setq gud-buffer gud-comint-buffer)
-	       (setq process (get-buffer-process gud-buffer))
+	       (setq process (get-buffer-process gud-comint-buffer))
 	       (posn-point (event-end event))
 	       (progn (setq tooltip-gud-event event)
 		      (eval (cons 'and tooltip-gud-display))))
@@ -464,9 +454,11 @@ This function must return nil if it doesn't handle EVENT."
 		    expr)))))))
 
 (defun gdb-tooltip-print ()
-  (tooltip-show
+  (tooltip-show 
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
-     (buffer-string))))
+     (let ((string (buffer-string)))
+       ;; remove newline for tooltip-use-echo-area
+       (substring string 0 (- (length string) 1))))))
 
 
 ;;; Tooltip help.
@@ -519,23 +511,6 @@ Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message)
     t))
-
-
-;;; Do this after all functions have been defined that are called from
-;;; `tooltip-mode'.  The actual default value of `tooltip-mode' is set
-;;; in startup.el.
-
-;;;###autoload
-(defcustom tooltip-mode nil
-  "Non-nil if Tooltip mode is enabled.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `tooltip-mode'."
-  :set (lambda (symbol value)
-	 (tooltip-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :require 'tooltip
-  :group 'tooltip)
 
 (provide 'tooltip)
 
