@@ -3566,6 +3566,10 @@ mark_memory (start, end)
     mark_maybe_pointer (*pp);
 }
 
+/* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in
+   the GCC system configuration.  In gcc 3.2, the only systems for
+   which this is so are i386-sco5 non-ELF, i386-sysv3 (maybe included
+   by others?) and ns32k-pc532-min.  */
 
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
 
@@ -3593,6 +3597,10 @@ solution for your system.\n\
 \n\
 Please take a look at the function mark_stack in alloc.c, and\n\
 try to find a way to make it work on your system.\n\
+\n\
+Note that you may get false negatives, depending on the compiler.\n\
+In particular, you need to use -O with GCC for this test.\n\
+\n\
 Please mail the result to <emacs-devel@gnu.org>.\n\
 "
 
