@@ -789,7 +789,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	(start 0)
 	(list nil))
     (while (string-match rexp string start)
-      (or (eq start 0)
+      (or (eq (match-beginning 0) 0)
 	  (setq list
 		(cons (substring string start (match-beginning 0))
 		      list)))
