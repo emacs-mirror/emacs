@@ -1,6 +1,7 @@
 2002-11-15  Dave Love  <fx@gnu.org>
 
-	* configure.in: Tidy up various quoting issues throughout.
+	* configure.in: Tidy up various quoting issues throughout.  Use
+	AC_GNU_SOURCE.
 	(AH_BOTTOM): Fix #endif protecting config.h.  Maybe include
 	alloca.h.  Define GC_SETJMP_WORKS, GC_LISP_OBJECT_ALIGNMENT.
 	Maybe define bcopy, bzero, bcmp.
@@ -8,6 +9,7 @@
 	non-existent machine file).
 	(sys/vlimit.h, sys/resource.h, fsync, __restrict): Test for.
 	(term.h, X11/Xaw3d/Scrollbar.h): Avoid warning from test.
+	(nlist.h): Move test up.
 
 2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
 
