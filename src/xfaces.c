@@ -7301,7 +7301,7 @@ compute_char_face (f, ch, prop)
   if (NILP (prop))
     {
       struct face *face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-      face_id = FACE_FOR_CHAR (f, face, ch);
+      face_id = FACE_FOR_CHAR (f, face, ch, -1, Qnil);
     }
   else
     {
@@ -7313,7 +7313,7 @@ compute_char_face (f, ch, prop)
       if (! ASCII_CHAR_P (ch))
 	{
 	  face = FACE_FROM_ID (f, face_id);
-	  face_id = FACE_FOR_CHAR (f, face, ch);
+	  face_id = FACE_FOR_CHAR (f, face, ch, -1, Qnil);
 	}
     }
 
