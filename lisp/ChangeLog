@@ -1,3 +1,8 @@
+2002-08-31  Andreas Schwab  <schwab@suse.de>
+
+	* font-core.el (font-lock-change-mode): Avoid changing buffer
+	state in any way.
+
 2002-08-30  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/diary-lib.el (diary-mail-entries): Don't overwrite
