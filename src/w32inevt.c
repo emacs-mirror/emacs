@@ -49,6 +49,9 @@ extern void reinvoke_input_signal (void);
 /* from dispnew.c */
 extern int change_frame_size (FRAME_PTR, int, int, int, int);
 
+/* from w32console.c */
+extern int w32_use_full_screen_buffer;
+
 /* from w32fns.c */
 extern Lisp_Object Vw32_alt_is_meta;
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
@@ -688,11 +691,10 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	      numchars -= add;
 	      break;
 
-#if 0
             case WINDOW_BUFFER_SIZE_EVENT:
-	      resize_event (&queue_ptr->Event.WindowBufferSizeEvent);
+	      if (w32_use_full_screen_buffer)
+		resize_event (&queue_ptr->Event.WindowBufferSizeEvent);
 	      break;
-#endif
             
             case MENU_EVENT:
             case FOCUS_EVENT:
@@ -711,7 +713,8 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
   /* We don't get told about changes in the window size (only the buffer
      size, which we no longer care about), so we have to check it
      periodically.  */
-  maybe_generate_resize_event ();
+  if (!w32_use_full_screen_buffer)
+    maybe_generate_resize_event ();
 
   UNBLOCK_INPUT;
   return ret;
