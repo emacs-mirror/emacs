@@ -33,3 +33,5 @@
 
 (eval-after-load "quail/PY-b5"
   '(quail-defrule "ling2" ?$(0!r(B nil t))
+
+;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e
