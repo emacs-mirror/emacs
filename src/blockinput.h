@@ -98,12 +98,12 @@ extern int pending_atimers;
    and also reinvoke any pending signal.  */
 
 #define TOTALLY_UNBLOCK_INPUT			\
-  if (interrupt_input_blocked != 0)		\
+  do if (interrupt_input_blocked != 0)		\
     {						\
       interrupt_input_blocked = 1;		\
       UNBLOCK_INPUT;				\
     }						\
-  else
+  while (0)
 
 /* Undo any number of BLOCK_INPUT calls down to level LEVEL,
    and also (if the level is now 0) reinvoke any pending signal.  */
