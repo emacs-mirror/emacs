@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 AC_PREREQ(2.4.1)dnl
 AC_INIT(src/lisp.h)
-AC_CONFIG_HEADER(src/config.h)
+AC_CONFIG_HEADER(src/config.h:src/config.in)
 
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/site-lisp'
@@ -1368,16 +1368,17 @@ test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 changequote([, ])dnl
 
-AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
-	man/Makefile lwlib/Makefile src/Makefile.in, [
+AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
+	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in cpp etc ; do
   test -d ${dir} || mkdir ${dir}
 done
 
-# Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
-# after src/config.h is built, since we rely on that file.
+# Build src/Makefile from ${srcdir}/src/Makefile.c
+# and lib-src/Makefile from ${srcdir}/lib-src/Makefile.c
+# This must be done after src/config.h is built, since we rely on that file.
 
 changequote(, )dnl The horror, the horror.
 # Now get this: Some word that is part of the ${srcdir} directory name
@@ -1396,10 +1397,10 @@ echo creating lib-src/Makefile
 ( cd lib-src
   rm -f junk.c junk1.c junk2.c
   sed -e '/start of cpp stuff/q' \
-      < Makefile.in > junk1.c
+      < Makefile.c > junk1.c
   sed -e '1,/start of cpp stuff/d'\
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
-      < Makefile.in > junk.c
+      < Makefile.c > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
@@ -1412,10 +1413,10 @@ echo creating src/Makefile
 ( cd src
   rm -f junk.c junk1.c junk2.c
   sed -e '/start of cpp stuff/q' \
-      < Makefile.in > junk1.c
+      < Makefile.c > junk1.c
   sed -e '1,/start of cpp stuff/d'\
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
-      < Makefile.in > junk.c
+      < Makefile.c > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
