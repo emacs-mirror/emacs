@@ -1160,6 +1160,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 		  :help "Edit file at cursor"))
     (define-key map [menu-bar immediate create-directory]
       '(menu-item "Create Directory..." dired-create-directory))
+    (define-key map [menu-bar immediate wdired-mode]
+      '(menu-item "Edit File Names" wdired-change-to-wdired-mode))
 
     (define-key map [menu-bar regexp]
       (cons "Regexp" (make-sparse-keymap "Regexp")))
