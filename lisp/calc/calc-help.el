@@ -593,7 +593,7 @@ C-w  Describe how there is no warranty for Calc."
      "Why; Line-nums, line-Breaks; <, =, > (justify); Plain"
      "\" (strings); Truncate, [, ]; SPC (refresh), RET, @"
      "SHIFT + language: Normal, One-line, Big, Unformatted"
-     "SHIFT + language: C, Pascal, Fortran; TeX, Eqn"
+     "SHIFT + language: C, Pascal, Fortran; TeX, LaTeX, Eqn"
      "SHIFT + language: Mathematica, W=Maple")
    "display" ?d))
 
