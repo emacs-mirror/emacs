@@ -668,6 +668,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   int old_data_index, new_data2_index;
   int old_mdebug_index;
   struct stat stat_buf;
+  int old_file_size;
 
   /* Open the old file, allocate a buffer of the right size, and read
      in the file contents.  */
@@ -680,15 +681,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (fstat (old_file, &stat_buf) == -1)
     fatal ("Can't fstat (%s): errno %d\n", old_name, errno);
 
-  old_base = malloc (stat_buf.st_size);
-
-  if (old_base == 0)
+  /* We cannot use malloc here because that may use sbrk.  If it does,
+     we'd dump our temporary buffers with Emacs, and we'd have to be
+     extra careful to use the correct value of sbrk(0) after
+     allocating all buffers in the code below, which we aren't.  */
+  old_file_size = stat_buf.st_size;
+  old_base = mmap (NULL, old_file_size, PROT_READ | PROT_WRITE,
+		   MAP_ANON | MAP_PRIVATE, -1, 0);
+  if (old_base == (caddr_t) -1)
     fatal ("Can't allocate buffer for %s\n", old_name);
-
-#ifdef DEBUG
-  fprintf (stderr, "%s: malloc(%d) -> %x\n", old_name, stat_buf.st_size,
-	   old_base);
-#endif
 
   if (read (old_file, old_base, stat_buf.st_size) != stat_buf.st_size)
     fatal ("Didn't read all of %s: errno %d\n", old_name, errno);
@@ -774,15 +775,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (ftruncate (new_file, new_file_size))
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
 
-  new_base = malloc (new_file_size);
-
-  if (new_base == 0)
+  new_base = mmap (NULL, new_file_size, PROT_READ | PROT_WRITE,
+		   MAP_ANON | MAP_PRIVATE, -1, 0);
+  if (new_base == (caddr_t) -1)
     fatal ("Can't allocate buffer for %s\n", old_name);
-
-#ifdef DEBUG
-  fprintf (stderr, "%s: malloc(%d) -> %x\n", new_name, new_file_size
-	   new_base);
-#endif
 
   new_file_h = (ElfW(Ehdr) *) new_base;
   new_program_h = (ElfW(Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
@@ -1202,8 +1198,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     fatal ("Didn't write %d bytes to %s: errno %d\n", 
 	   new_file_size, new_base, errno);
 
-  free (old_base);
-  free (new_base);
+  munmap (old_base, old_file_size);
+  munmap (new_base, new_file_size);
 
   /* Close the files and make the new file executable.  */
 
