@@ -1036,6 +1036,7 @@ unrequest_sigio ()
 }
 
 #else /* ! _CX_UX */
+#ifndef MSDOS
 
 void
 request_sigio ()
@@ -1054,7 +1055,8 @@ unrequest_sigio ()
 
   croak ("unrequest_sigio");
 }
- 
+
+#endif /* MSDOS */
 #endif /* _CX_UX */
 #endif /* STRIDE */
 #endif /* FASYNC */
