@@ -1,3 +1,8 @@
+2002-07-29  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (check-ispell-version): Bind default-directory
+	to avoid errors.  Kill the old temp buffer at the beginning.
+
 2002-07-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* scroll-all.el (scroll-all-mode): Make argument optional.  Doc fix.
@@ -10,7 +15,7 @@
 2002-07-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (ctext-post-read-conversion): Add support
-	for emboded utf-8 encodng (ESC % G ... ESC % @).
+	for embedded utf-8 encoding (ESC % G ... ESC % @).
 
 2002-07-28  Kenichi Handa  <handa@etl.go.jp>
 

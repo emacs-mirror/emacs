@@ -58,6 +58,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 * Changes in Emacs 21.4
 
 +++
+** The mode line position information now comes before the major mode.
+When the file is maintained under version control, that information
+appears between the position information and the major mode.
+   
++++
 ** You can now customize the use of window fringes.  To control this
 for all frames, use M-x fringe-mode or the Show/Hide submenu of the
 top-level Options menu, or customize the `fringe-mode' variable.  To
@@ -607,6 +612,17 @@ now uses normal-erase-is-backspace-mode.
 ** The variable `auto-save-file-name-transforms' now has a third element that
 controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
+
++++
+** Diary sexp entries can have custom marking in the calendar.
+Diary sexp functions which only apply to certain days (such as
+`diary-block' or `diary-cyclic' now take an optional parameter MARK,
+which is the name of a face or a single-character string indicating
+how to highlight the day in the calendar display.  Specifying a
+single-character string as @var{mark} places the character next to the
+day in the calendar.  Specifying a face highlights the day with that
+face.  This lets you have different colors or markings for vacations,
+appointments, paydays or anything else using a sexp.
 
 ** VC Changes
 
