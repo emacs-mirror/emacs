@@ -609,7 +609,7 @@ groups after non-groups, if nil do not order groups at all."
   (sort (copy-sequence items)
    (lambda (a b)
      (let ((typea (nth 1 a)) (typeb (nth 1 b))
-	   (namea (symbol-name (nth 0 a))) (nameb (symbol-name (nth 0 b))))
+	   (namea (nth 0 a)) (nameb (nth 0 b)))
        (cond ((not order-groups)
 	      ;; Since we don't care about A and B order, maybe sort.
 	      (when sort-alphabetically
