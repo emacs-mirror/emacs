@@ -947,10 +947,11 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			 (setq line 0))))))))
       ;; If 3 or more files visited, and not all visible,
       ;; show user what they all are.
-      (if (> file-count 2)
-	  (or (get-buffer-window first-file-buffer)
-	      (progn (other-window 1)
-		     (buffer-menu)))))))
+      (and (> file-count 2)
+	   (not noninteractive)
+	   (or (get-buffer-window first-file-buffer)
+	       (progn (other-window 1)
+		      (buffer-menu)))))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
