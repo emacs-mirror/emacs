@@ -810,10 +810,8 @@ already is one.)"
   ;; Ignore the last created offset pair.
   (setcdr edebug-current-offset (cdr (cdr edebug-current-offset))))
 
-(def-edebug-spec edebug-storing-offsets (form body))
-(put 'edebug-storing-offsets 'lisp-indent-hook 1)
-
 (defmacro edebug-storing-offsets (point &rest body)
+  (declare (debug (form body)) (indent 1))
   `(unwind-protect
        (progn
 	 (edebug-store-before-offset ,point)
@@ -837,15 +835,13 @@ already is one.)"
     ))
 
 (defun edebug-read-storing-offsets (stream)
-  (let ((class (edebug-next-token-class))
-	func
-	edebug-read-dotted-list) ; see edebug-store-after-offset
+  (let (edebug-read-dotted-list) ; see edebug-store-after-offset
     (edebug-storing-offsets (point)
-      (if (setq func (assq class edebug-read-alist))
-	  (funcall (cdr func) stream)
-	;; anything else, just read it.
-	(edebug-original-read stream))
-      )))
+      (funcall
+       (or (cdr (assq (edebug-next-token-class) edebug-read-alist))
+	   ;; anything else, just read it.
+	   'edebug-original-read)
+       stream))))
 
 (defun edebug-read-symbol (stream)
   (edebug-original-read stream))
@@ -857,25 +853,20 @@ already is one.)"
   ;; Turn 'thing into (quote thing)
   (forward-char 1)
   (list
-   (edebug-storing-offsets (point)  'quote)
+   (edebug-storing-offsets (1- (point)) 'quote)
    (edebug-read-storing-offsets stream)))
+
+(defvar edebug-read-backquote-level 0
+  "If non-zero, we're in a new-style backquote.
+It should never be negative.  This controls how we read comma constructs.")
 
 (defun edebug-read-backquote (stream)
   ;; Turn `thing into (\` thing)
-  (let ((opoint (point)))
-    (forward-char 1)
-    ;; Generate the same structure of offsets we would have
-    ;; if the resulting list appeared verbatim in the input text.
-    (edebug-storing-offsets opoint
-      (list
-       (edebug-storing-offsets opoint  '\`)
-       (edebug-read-storing-offsets stream)))))
-
-(defvar edebug-read-backquote-new nil
-  "Non-nil if reading the inside of a new-style backquote with no parens around it.
-Value of nil means reading the inside of an old-style backquote construct
-which is surrounded by an extra set of parentheses.
-This controls how we read comma constructs.")
+  (forward-char 1)
+  (list
+   (edebug-storing-offsets (1- (point)) '\`)
+   (let ((edebug-read-backquote-level (1+ edebug-read-backquote-level)))
+     (edebug-read-storing-offsets stream))))
 
 (defun edebug-read-comma (stream)
   ;; Turn ,thing into (\, thing).  Handle ,@ and ,. also.
@@ -890,11 +881,12 @@ This controls how we read comma constructs.")
 	     (forward-char 1)))
       ;; Generate the same structure of offsets we would have
       ;; if the resulting list appeared verbatim in the input text.
-      (if edebug-read-backquote-new
-	  (list
-	   (edebug-storing-offsets opoint symbol)
-	   (edebug-read-storing-offsets stream))
-	(edebug-storing-offsets opoint symbol)))))
+      (if (zerop edebug-read-backquote-level)
+	  (edebug-storing-offsets opoint symbol)
+	(list
+	 (edebug-storing-offsets opoint symbol)
+	 (let ((edebug-read-backquote-level (1- edebug-read-backquote-level)))
+	   (edebug-read-storing-offsets stream)))))))
 
 (defun edebug-read-function (stream)
   ;; Turn #'thing into (function thing)
@@ -902,11 +894,11 @@ This controls how we read comma constructs.")
   (cond ((eq ?\' (following-char))
 	 (forward-char 1)
 	 (list
-	  (edebug-storing-offsets (point)
+	  (edebug-storing-offsets (- (point) 2)
 	    (if (featurep 'cl) 'function* 'function))
 	  (edebug-read-storing-offsets stream)))
 	((memq (following-char) '(?: ?B ?O ?X ?b ?o ?x ?1 ?2 ?3 ?4 ?5 ?6
-				    ?7 ?8 ?9 ?0))
+				  ?7 ?8 ?9 ?0))
 	 (backward-char 1)
 	 (edebug-original-read stream))
 	(t (edebug-syntax-error "Bad char after #"))))
@@ -916,18 +908,17 @@ This controls how we read comma constructs.")
   (prog1
       (let ((elements))
 	(while (not (memq (edebug-next-token-class) '(rparen dot)))
-	  (if (eq (edebug-next-token-class) 'backquote)
-	      (let ((edebug-read-backquote-new (not (null elements)))
-		    (opoint (point)))
-		(if edebug-read-backquote-new
-		    (setq elements (cons (edebug-read-backquote stream) elements))
-		  (forward-char 1)	; Skip backquote.
-		  ;; Call edebug-storing-offsets here so that we
-		  ;; produce the same offsets we would have had
-		  ;; if the backquote were an ordinary symbol.
-		  (setq elements (cons (edebug-storing-offsets opoint '\`)
-				       elements))))
-	    (setq elements (cons (edebug-read-storing-offsets stream) elements))))
+	  (if (and (eq (edebug-next-token-class) 'backquote)
+		   (null elements)
+		   (zerop edebug-read-backquote-level))
+	      (progn
+		;; Old style backquote.
+		(forward-char 1)	; Skip backquote.
+		;; Call edebug-storing-offsets here so that we
+		;; produce the same offsets we would have had
+		;; if the backquote were an ordinary symbol.
+		(push (edebug-storing-offsets (1- (point)) '\`) elements))
+	    (push (edebug-read-storing-offsets stream) elements)))
 	(setq elements (nreverse elements))
 	(if (eq 'dot (edebug-next-token-class))
 	    (let (dotted-form)
@@ -947,7 +938,7 @@ This controls how we read comma constructs.")
   (prog1
       (let ((elements))
 	(while (not (eq 'rbracket (edebug-next-token-class)))
-	  (setq elements (cons (edebug-read-storing-offsets stream) elements)))
+	  (push (edebug-read-storing-offsets stream) elements))
 	(apply 'vector (nreverse elements)))
     (forward-char 1)			; skip \]
     ))
@@ -1983,7 +1974,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   [&optional ("interactive" interactive)]
 	   def-body))
 (def-edebug-spec defmacro
-  (&define name lambda-list def-body))
+  (&define name lambda-list [&optional ("declare" &rest sexp)] def-body))
 
 (def-edebug-spec arglist lambda-list)  ;; deprecated - use lambda-list.
 
