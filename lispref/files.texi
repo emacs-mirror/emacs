@@ -1526,6 +1526,14 @@ value of @code{?/}.
 @end defvar
 @end ignore
 
+@defun file-name-extension filename &optional period
+This function returns @var{filename}'s final ``extension,'' if any,
+after applying @code{file-name-sans-versions} to remove any
+version/backup part.  If @var{period} is non-nil, then the returned
+value includes the period that delimits the extension, and if
+@var{filename} has no extension, the value is @code{""}.
+@end defun
+
 @node Directory Names
 @comment  node-name,  next,  previous,  up
 @subsection Directory Names
