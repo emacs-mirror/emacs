@@ -415,7 +415,8 @@ The return value is @var{window}.
 
 @defmac save-selected-window forms@dots{}
 This macro records the selected window, executes @var{forms}
-in sequence, then restores the earlier selected window.
+in sequence, then restores the earlier selected window, unless it
+is no longer alive.
 
 This macro does not save or restore anything about the sizes, arrangement
 or contents of windows; therefore, if the @var{forms} change them,
