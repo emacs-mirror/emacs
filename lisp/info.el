@@ -2003,7 +2003,7 @@ If no reference to follow, moves to the next node, or up if none."
     :help "Search for regular expression in this Info file"]
    ["Goto Node..." Info-goto-node
     :help "Go to a named node"]
-   ["Last" Info-last Info-history
+   ["Last" Info-last :active Info-history
     :help "Go to the last node you were at"]
    ("Index..."
     ["Lookup a String" Info-index
@@ -2012,7 +2012,7 @@ If no reference to follow, moves to the next node, or up if none."
      :help "Look for another occurrence of previous item"])
    ["Edit" Info-edit :help "Edit contents of this node"
     :active Info-enable-edit]
-   ["Exit" Info-exit t]))
+   ["Exit" Info-exit :help "Stop reading Info"]))
 
 
 (defvar info-tool-bar-map
@@ -2022,6 +2022,7 @@ If no reference to follow, moves to the next node, or up if none."
 	(tool-bar-add-item-from-menu 'Info-prev "left_arrow" Info-mode-map)
 	(tool-bar-add-item-from-menu 'Info-next "right_arrow" Info-mode-map)
 	(tool-bar-add-item-from-menu 'Info-up "up_arrow" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-last "undo" Info-mode-map)
 	(tool-bar-add-item-from-menu 'Info-top-node "home" Info-mode-map)
 	(tool-bar-add-item-from-menu 'Info-index "index" Info-mode-map)
 	(tool-bar-add-item-from-menu 'Info-goto-node "jump_to" Info-mode-map)
