@@ -236,7 +236,7 @@
   (define-key tc-mode-map "1" 'tc-merge)
   (define-key tc-mode-map "2" 'tc-two-columns)
   (define-key tc-mode-map "b" 'tc-associate-buffer)
-  (define-key tc-mode-map "k" 'tc-kill-association)
+  (define-key tc-mode-map "e" 'tc-dissociate)
   (define-key tc-mode-map "\C-l" 'tc-recenter)
   (define-key tc-mode-map "o" 'tc-associated-buffer)
   (define-key tc-mode-map "s" 'tc-split)
@@ -472,7 +472,7 @@ See  \\[tc-two-columns]  and  `lisp/two-column.el'  for further details."
 	(next-line 1)))))
 
 ;;;###autoload
-(defun tc-kill-association ()
+(defun tc-dissociate ()
   "Turn off two-column minor mode in current and associated buffer.
 If the associated buffer is unmodified and empty, it is killed."
   (interactive)
