@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.19 1997/10/16 21:21:16 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.21 1997/10/18 13:31:40 os10000 Exp $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -77,7 +77,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id:$
+;;      $Id: todo-mode.el,v 1.21 1997/10/18 13:31:40 os10000 Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -250,6 +250,20 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.20  1997/10/17  15:41:57  os10000
+;; Thanks to Harald Backer <harald.backer@fou.telenor.no>, we now have
+;; the following facilities available:
+;;
+;; Added todo-print, todo-top-priorities and todo-jump with matching
+;; variables; Parameterized todo-header, todo-category-beg,
+;; todo-category-end and todo-category-sep; Added autoload comments;
+;; todo-category-select: Modified regexp to make category names unique;
+;; todo-forward-item: Added optional COUNT vaiable; todo-insert-item:
+;; Rewrote completing read entry.
+;;
+;; Also, check out the extended list of things left to be done to this
+;; package at the end of the documentation!
+;;
 ;; Revision 1.19  1997/10/16  21:21:16  os10000
 ;; Jari Aalto <jari.aalto@poboxes.com> writes:
 ;;
@@ -259,7 +273,7 @@
 ;;     automatically generated from the source file.  As an example, I
 ;;     generated the attached page using the following command:
 ;;     ripdoc.pls < todo-mode.el | t2html.pls -a "Oliver.Seidel" -e \
-;;     Oliver.Seidel@cl.cam.ac.uk -simple
+;;     Oliver.Seidel@cl.cam.ac.uk -simple -base
 ;;
 ;; And of course I appreciate it.  Jari's stuff can be found at:
 ;; ftp://cs.uta.fi/pub/ssjaaa/, while I'm making the rev 1.18 page
@@ -562,9 +576,9 @@ TODO categories. Use `todo-categories' instead.")
   0)
 
 ;;;### autoload
-(defun todo-insert-item ()
+(defun todo-insert-item (ARG)
   "Insert new TODO list entry."
-  (interactive)
+  (interactive "P")
   (let* ((new-item (concat todo-prefix " "
 			   (read-from-minibuffer
                             "New TODO entry: "
@@ -583,21 +597,24 @@ TODO categories. Use `todo-categories' instead.")
             (if cat-exists
                 (- (length todo-categories) (length cat-exists))
               (todo-add-category category))))
-    (todo-show)
-    (setq todo-previous-line 0)
-    (let ((top 1)
-          (bottom (1+ (count-lines (point-min) (point-max)))))
-      (while (> (- bottom top) todo-insert-threshold)
-        (let* ((current (/ (+ top bottom) 2))
-               (answer (if (< current bottom)
-                           (todo-more-important-p current) nil)))
-          (if answer
-              (setq bottom current)
-            (setq top (1+ current)))))
-      (setq top (/ (+ top bottom) 2))
-      ;; goto-line doesn't have the desired behavior in a narrowed buffer
-      (goto-char (point-min))
-      (forward-line (1- top)))
+    (if (not ARG)
+	(progn
+	  (todo-show)
+	  (setq todo-previous-line 0)
+	  (let ((top 1)
+		(bottom (1+ (count-lines (point-min) (point-max)))))
+	    (while (> (- bottom top) todo-insert-threshold)
+	      (let* ((current (/ (+ top bottom) 2))
+		     (answer (if (< current bottom)
+				 (todo-more-important-p current) nil)))
+		(if answer
+		    (setq bottom current)
+		  (setq top (1+ current)))))
+	    (setq top (/ (+ top bottom) 2))
+	    ;; goto-line doesn't have the desired behavior in a narrowed buffer
+	    (goto-char (point-min))
+	    (forward-line (1- top))))
+      (beginning-of-line))
     (insert new-item "\n")
     (todo-backward-item)
     (save-buffer)
