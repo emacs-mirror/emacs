@@ -1,5 +1,12 @@
 2003-04-18  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emulation/cua-base.el (cua-mode): Use define-minor-mode.
+	(cua-global-mark-face): Fix face format.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Only echo a message
+	if the body didn't do so already.
+	(easy-mmode-define-keymap): Remove unused var `suppress'.
+
 	* view.el (view-read-only): Move to files.el.
 	* files.el (view-read-only): Move from view.el.
 
