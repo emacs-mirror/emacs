@@ -579,7 +579,7 @@ The possible settings for `align-region-separate' are:
      (run-if   . ,(function
 		   (lambda ()
 		     (eq '- current-prefix-arg))))))
-  "*An list describing all of the available alignment rules.
+  "*A list describing all of the available alignment rules.
 The format is:
 
    ((TITLE
@@ -777,7 +777,7 @@ The following attributes are meaningful:
      (regexp . "^\\s-*#\\s-*\\(if\\w*\\|endif\\)\\(.*\\)$")
      (group  . 2)
      (modes  . align-c++-modes)))
-  "*An list describing text that should be excluded from alignment.
+  "*A list describing text that should be excluded from alignment.
 See the documentation for `align-rules-list' for more info."
   :type align-exclude-rules-list-type
   :group 'align)
