@@ -19,8 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _FONTSET_H
-#define _FONTSET_H
+#ifndef EMACS_FONTSET_H
+#define EMACS_FONTSET_H
 
 /* This data type is used for the font_table field of window system
    depending data area (e.g. struct x_display_info on X window).  */
@@ -232,4 +232,4 @@ extern Lisp_Object fontset_name P_ ((int));
 extern Lisp_Object fontset_ascii P_ ((int));
 extern int fontset_height P_ ((int));
 
-#endif /* _FONTSET_H */
+#endif /* EMACS_FONTSET_H */
