@@ -521,7 +521,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-quote-list)
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
-  (set-marker comint-accum-marker nil))
+  (set-marker comint-accum-marker nil)
+  ;; This behavior is not useful in comint buffers, and is annoying
+  (set (make-local-variable 'next-line-add-newlines) nil))
 
 (if comint-mode-map
     nil
@@ -574,10 +576,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
     (cons "In/Out" (make-sparse-keymap "In/Out")))
   (define-key comint-mode-map [menu-bar inout delete-output]
     '("Delete Current Output Group" . comint-delete-output))
-  (define-key comint-mode-map [menu-bar inout write-output]
-    '("Write Current Output Group to File" . comint-write-output))
   (define-key comint-mode-map [menu-bar inout append-output-to-file]
     '("Append Current Output Group to File" . comint-append-output-to-file))
+  (define-key comint-mode-map [menu-bar inout write-output]
+    '("Write Current Output Group to File" . comint-write-output))
   (define-key comint-mode-map [menu-bar inout next-prompt]
     '("Forward Output Group" . comint-next-prompt))
   (define-key comint-mode-map [menu-bar inout previous-prompt]
@@ -1914,6 +1916,14 @@ otherwise."
     (forward-line 0)
     (write-region comint-last-input-end (point) filename
 		  append nil nil mustbenew)))
+
+;; This function exists for the benefit of the menu; from the keyboard,
+;; users can just use `comint-write-output' with a prefix arg.
+(defun comint-append-output-to-file (filename)
+  "Append output from interpreter since last input to FILENAME.
+Any prompt at the end of the output is not written."
+  (interactive "fAppend output to file: ")
+  (comint-write-output filename t))
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
