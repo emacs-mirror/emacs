@@ -327,9 +327,12 @@ by a visible newline, it displays an ellipsis.
 @end table
 @end defvar
 
+@vindex line-move-ignore-invisible
   Ordinarily, commands that operate on text or move point do not care
-whether the text is invisible.  However, the user-level line motion
-commands explicitly ignore invisible newlines.
+whether the text is invisible.  The user-level line motion commands
+explicitly ignore invisible newlines if
+@code{line-move-ignore-invisible} is non-@code{nil}, but only because
+they are explicitly programmed to do so.
 
 @node Selective Display
 @section Selective Display
