@@ -1882,7 +1882,14 @@ This function is useful for creating multiple shell process buffers
 or multiple mail buffers, etc."
   (interactive)
   (save-match-data
-    (let* ((base-name (if (string-match "<[0-9]+>\\'" (buffer-name))
+    (let* ((base-name (if (and (string-match "<[0-9]+>\\'" (buffer-name))
+			       (not (and buffer-file-name
+					 (string= (buffer-name)
+						  (file-name-nondirectory
+						   buffer-file-name)))))
+			  ;; If the existing buffer name has a <NNN>,
+			  ;; which isn't part of the file name (if any),
+			  ;; then get rid of that.
 			  (substring (buffer-name) 0 (match-beginning 0))
 			(buffer-name)))
 	   (new-buf (generate-new-buffer base-name))
