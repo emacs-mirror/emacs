@@ -2078,6 +2078,7 @@ check_all_windows ()
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
        doc: /* Return the window least recently selected or used for display.
+Return a full-width window if possible.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
