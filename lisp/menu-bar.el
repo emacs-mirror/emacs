@@ -70,6 +70,8 @@
   '("Print Buffer" . print-buffer))
 (define-key menu-bar-file-menu [kill-buffer]
   '("Kill Buffer" . kill-this-buffer))
+(define-key menu-bar-file-menu [insert-file]
+  '("Insert File" . insert-file))
 (define-key menu-bar-file-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
 (define-key menu-bar-file-menu [write-file]
