@@ -1793,6 +1793,7 @@ extern void init_syntax_once P_ ((void));
 extern void syms_of_syntax P_ ((void));
 
 /* Defined in fns.c */
+extern void sweep_weak_hash_tables P_ ((void));
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
 unsigned sxhash P_ ((Lisp_Object, int));
@@ -2302,6 +2303,7 @@ extern Lisp_Object Vfundamental_mode_abbrev_table;
 extern void syms_of_abbrev P_ ((void));
 
 /* defined in search.c */
+extern void shrink_regexp_cache P_ ((void));
 EXFUN (Fstring_match, 3);
 extern void restore_match_data P_ ((void));
 EXFUN (Fmatch_data, 2);
