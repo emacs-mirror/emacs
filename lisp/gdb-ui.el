@@ -25,12 +25,12 @@
 
 ;;; Commentary:
 
-;;  This file is based on gdba.el from GDB 5.0 written by Jim Kingdon and uses
-;;  GDB's annotation interface. It has been extended to use features of Emacs
-;;  21 such as the display margin for breakpoints and the toolbar. It also has
-;;  new buffers and lots of other new features such as formatted auto-display
-;;  of arrays and structures (see the GDB-UI section in the Emacs info
-;;  manual).
+;;  This file is based on gdba.el from GDB 5.0 written by Tom Lord and Jim
+;;  Kingdon and uses GDB's annotation interface. It has been extended to use
+;;  features of Emacs 21 such as the display margin for breakpoints and the
+;;  toolbar. It also has new buffers and lots of other new features such as
+;;  formatted auto-display of arrays and structures (see the GDB-UI section in
+;;  the Emacs info manual). Start the debugger with M-x gdba.
 
 ;;  You don't need to know about annotations to use this mode as a graphical
 ;;  user interface to GDB. However, if you are interested developing the mode
@@ -141,6 +141,7 @@ The following interactive lisp functions help control operation :
   ;;
   (gdb-clear-inferior-io)
   ;;
+  (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n"
@@ -149,7 +150,7 @@ The following interactive lisp functions help control operation :
   (run-hooks 'gdba-mode-hook))
 
 (defun gud-display ()
-  "Display (possibly dereferenced) C expression at point."
+  "Auto-display (possibly dereferenced) C expression at point."
   (interactive)
   (save-excursion
     (let ((expr (gud-find-c-expr)))
@@ -165,6 +166,9 @@ The following interactive lisp functions help control operation :
     (gdb-enqueue-input
      (list (concat "server display " expr "\n") 'ignore))))
 
+; this would messy because these bindings don't work with M-x gdb
+; (define-key global-map "\C-x\C-a\C-a" 'gud-display)
+; (define-key gud-minor-mode-map "\C-c\C-a" 'gud-display)
 
 ;; The completion process filter is installed temporarily to slurp the
 ;; output of GDB up to the next prompt and build the completion list.
@@ -726,18 +730,18 @@ output from the current command if that happens to be appropriate."
 				       "::" gdb-expression))
 	;;else put * back on if necessary
 	(setq gdb-expression (concat char gdb-expression)))
-      (setq header-line-format (concat "-- " gdb-expression " %-"))))
+      (if (not header-line-format)
+	  (setq header-line-format (concat "-- " gdb-expression " %-")))))
   ;;
   ;;-if scalar/string
   (if (not (re-search-forward "##" nil t))
       (progn
 	(save-excursion
 	  (set-buffer gdb-expression-buffer-name)
-	  (setq buffer-read-only nil)
-	  (delete-region (point-min) (point-max))
-	  (insert-buffer-substring
-	   (gdb-get-buffer 'gdb-partial-output-buffer))
-	  (setq buffer-read-only t)))
+	  (let ((buffer-read-only nil))
+	    (delete-region (point-min) (point-max))
+	    (insert-buffer-substring
+	     (gdb-get-buffer 'gdb-partial-output-buffer)))))
     ;; display expression name...
     (goto-char (point-min))
     (let ((start (progn (point)))
@@ -766,11 +770,10 @@ output from the current command if that happens to be appropriate."
     (set-buffer gdb-expression-buffer-name)
     (if gdb-dive-display-number
 	(progn
-	  (setq buffer-read-only nil)
-	  (goto-char (point-max))
-	  (insert "\n")
-	  (insert-text-button "[back]" 'type 'gdb-display-back)
-	  (setq buffer-read-only t))))
+	  (let ((buffer-read-only nil))
+	    (goto-char (point-max))
+	    (insert "\n")
+	    (insert-text-button "[back]" 'type 'gdb-display-back)))))
   (gdb-clear-partial-output)
   (gdb-set-output-sink 'user)
   (setq gdb-display-in-progress nil))
@@ -901,19 +904,18 @@ output from the current command if that happens to be appropriate."
 	(num 0))
     (save-excursion
       (set-buffer gdb-expression-buffer-name)
-      (setq buffer-read-only nil)
-      (if (string-equal gdb-annotation-arg "\*") (insert "\*"))
-      (while (<= num gdb-nesting-level)
-	(insert "\t")
-	(setq num (+ num 1)))
-      (insert-buffer-substring (gdb-get-buffer
-				'gdb-partial-output-buffer)
-			       start end)
-      (put-text-property (- (point) (- end start)) (- (point) 1)
-			 'mouse-face 'highlight)
-      (put-text-property (- (point) (- end start)) (- (point) 1)
-                         'local-map gdb-dive-map)
-      (setq buffer-read-only t))
+      (let ((buffer-read-only nil))
+	(if (string-equal gdb-annotation-arg "\*") (insert "\*"))
+	(while (<= num gdb-nesting-level)
+	  (insert "\t")
+	  (setq num (+ num 1)))
+	(insert-buffer-substring (gdb-get-buffer
+				  'gdb-partial-output-buffer)
+				 start end)
+	(put-text-property (- (point) (- end start)) (- (point) 1)
+			   'mouse-face 'highlight)
+	(put-text-property (- (point) (- end start)) (- (point) 1)
+			   'local-map gdb-dive-map)))
     (delete-region start end)))
 
 (defvar gdb-values)
@@ -971,76 +973,75 @@ output from the current command if that happens to be appropriate."
 
 (defun gdb-array-format1 ()
   (setq gdb-display-string "")
-  (setq buffer-read-only nil)
-  (delete-region (point-min) (point-max))
-  (let ((gdb-value-list (split-string gdb-values  ", ")))
-    (string-match "\\({+\\)" (car gdb-value-list))
-    (let* ((depth (- (match-end 1) (match-beginning 1)))
-	   (indices  (make-vector depth '0))
-	   (index 0) (num 0) (array-start "")
-	   (array-stop "") (array-slice "") (array-range nil)
-	   (flag t) (indices-string ""))
-      (dolist (gdb-value gdb-value-list)
-	(string-match "{*\\([^}]*\\)\\(}*\\)" gdb-value)
+  (let ((buffer-read-only nil))
+    (delete-region (point-min) (point-max))
+    (let ((gdb-value-list (split-string gdb-values  ", ")))
+      (string-match "\\({+\\)" (car gdb-value-list))
+      (let* ((depth (- (match-end 1) (match-beginning 1)))
+	     (indices  (make-vector depth '0))
+	     (index 0) (num 0) (array-start "")
+	     (array-stop "") (array-slice "") (array-range nil)
+	     (flag t) (indices-string ""))
+	(dolist (gdb-value gdb-value-list)
+	  (string-match "{*\\([^}]*\\)\\(}*\\)" gdb-value)
+	  (setq num 0)
+	  (while (< num depth)
+	    (setq indices-string
+		  (concat indices-string
+			  "[" (int-to-string (aref indices num)) "]"))
+	    (if (not (= (aref gdb-array-start num) -1))
+		(if (or (< (aref indices num) (aref gdb-array-start num))
+			(> (aref indices num) (aref gdb-array-stop num)))
+		    (setq flag nil))
+	      (aset gdb-array-size num (aref indices num)))
+	    (setq num (+ num 1)))
+	  (if flag
+	      (let ((gdb-display-value (match-string 1 gdb-value)))
+		(setq gdb-display-string (concat gdb-display-string " "
+						 gdb-display-value))
+		(insert
+		 (concat indices-string "\t" gdb-display-value "\n"))))
+	  (setq indices-string "")
+	  (setq flag t)
+	  ;; 0<= index < depth, start at right : (- depth 1)
+	  (setq index (- (- depth 1)
+			 (- (match-end 2) (match-beginning 2))))
+	  ;;don't set for very last brackets
+	  (when (>= index 0)
+	    (aset indices index (+ 1 (aref indices index)))
+	    (setq num (+ 1 index))
+	    (while (< num depth)
+	      (aset indices num 0)
+	      (setq num (+ num 1)))))
 	(setq num 0)
 	(while (< num depth)
-	  (setq indices-string
-		(concat indices-string
-			"[" (int-to-string (aref indices num)) "]"))
-	  (if (not (= (aref gdb-array-start num) -1))
-	      (if (or (< (aref indices num) (aref gdb-array-start num))
-		      (> (aref indices num) (aref gdb-array-stop num)))
-		  (setq flag nil))
-	    (aset gdb-array-size num (aref indices num)))
+	  (if (= (aref gdb-array-start num) -1)
+	      (progn
+		(aset gdb-array-start num 0)
+		(aset gdb-array-stop num (aref indices num))))
+	  (setq array-start (int-to-string (aref gdb-array-start num)))
+	  (setq array-stop (int-to-string (aref gdb-array-stop num)))
+	  (setq array-range (concat "[" array-start
+				    ":" array-stop "]"))
+	  (put-text-property 1 (+ (length array-start)
+				  (length array-stop) 2)
+			     'mouse-face 'highlight array-range)
+	  (put-text-property 1 (+ (length array-start)
+				  (length array-stop) 2)
+			     'local-map gdb-array-slice-map array-range)
+	  (goto-char (point-min))
+	  (setq array-slice (concat array-slice array-range))
 	  (setq num (+ num 1)))
-	(if flag
-	    (let ((gdb-display-value (match-string 1 gdb-value)))
-	      (setq gdb-display-string (concat gdb-display-string " "
-					       gdb-display-value))
-	      (insert
-	       (concat indices-string "\t" gdb-display-value "\n"))))
-	(setq indices-string "")
-	(setq flag t)
-	;; 0<= index < depth, start at right : (- depth 1)
-	(setq index (- (- depth 1)
-		       (- (match-end 2) (match-beginning 2))))
-	;;don't set for very last brackets
-	(when (>= index 0)
-	  (aset indices index (+ 1 (aref indices index)))
-	  (setq num (+ 1 index))
-	  (while (< num depth)
-	    (aset indices num 0)
-	    (setq num (+ num 1)))))
-      (setq num 0)
-      (while (< num depth)
-	(if (= (aref gdb-array-start num) -1)
-	    (progn
-	      (aset gdb-array-start num 0)
-	      (aset gdb-array-stop num (aref indices num))))
-	(setq array-start (int-to-string (aref gdb-array-start num)))
-	(setq array-stop (int-to-string (aref gdb-array-stop num)))
-	(setq array-range (concat "[" array-start
-				  ":" array-stop "]"))
-	(put-text-property 1 (+ (length array-start)
-				(length array-stop) 2)
-			   'mouse-face 'highlight array-range)
-	(put-text-property 1 (+ (length array-start)
-				(length array-stop) 2)
-			   'local-map gdb-array-slice-map array-range)
 	(goto-char (point-min))
-	(setq array-slice (concat array-slice array-range))
-	(setq num (+ num 1)))
-      (goto-char (point-min))
-      (insert "Array Size : ")
-      (setq num 0)
-      (while (< num depth)
+	(insert "Array Size : ")
+	(setq num 0)
+	(while (< num depth)
+	  (insert
+	   (concat "["
+		   (int-to-string (+ (aref gdb-array-size num) 1)) "]"))
+	  (setq num (+ num 1)))
 	(insert
-	 (concat "["
-		 (int-to-string (+ (aref gdb-array-size num) 1)) "]"))
-	(setq num (+ num 1)))
-      (insert
-       (concat "\n     Slice : " array-slice "\n\nIndex\tValues\n\n"))))
-  (setq buffer-read-only t))
+	 (concat "\n     Slice : " array-slice "\n\nIndex\tValues\n\n"))))))
 
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb. Handle a burst of output from GDB."
@@ -1268,8 +1269,11 @@ output from the current command if that happens to be appropriate."
 		(if (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
 		    (progn
 		      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")
-		      (let ((line (match-string 2))
+		      (let ((line (match-string 2)) (buffer-read-only nil)
 			    (file (match-string 1)))
+			(put-text-property (progn (beginning-of-line) (point))
+					   (progn (end-of-line) (point))
+					   'mouse-face 'highlight)
 			(save-excursion
 			  (set-buffer
 			   (find-file-noselect 
@@ -1632,15 +1636,18 @@ the source buffer."
 		    (if (not (memq (string-to-int number) display-list))
 			(kill-buffer 
 			 (get-buffer (concat "*display " number "*")))))))))
-      (dolist (frame (frame-list))
-	(let ((frame-name (frame-parameter frame 'name)))
-	  (if (string-match "\\*display \\([0-9]+\\)\\*" frame-name)
-	      (progn
-		(let ((number (match-string 1 frame-name)))
-		  (if (not (memq (string-to-int number) display-list))
-		      (progn (kill-buffer
-			      (get-buffer (concat "*display " number "*")))
-			     (delete-frame frame)))))))))))
+      (gdb-delete-frames display-list))))
+
+(defun gdb-delete-frames (display-list)
+  (dolist (frame (frame-list))
+    (let ((frame-name (frame-parameter frame 'name)))
+      (if (string-match "\\*display \\([0-9]+\\)\\*" frame-name)
+	  (progn
+	    (let ((number (match-string 1 frame-name)))
+	      (if (not (memq (string-to-int number) display-list))
+		  (progn (kill-buffer
+			  (get-buffer (concat "*display " number "*")))
+			 (delete-frame frame)))))))))
 
 (defvar gdb-display-mode-map
   (let ((map (make-sparse-keymap))
@@ -1921,6 +1928,7 @@ static char *magick[] = {
 Use this command to exit a debugging session cleanly and reset
 things like the toolbar and margin in the source buffers."
   (interactive)
+  (gdb-delete-frames '())
   (dolist (buffer (buffer-list))
     (save-excursion
       (set-buffer buffer)
@@ -1961,7 +1969,6 @@ buffers."
     (if gdb-many-windows
 	(gdb-setup-windows)
       (gdb-display-breakpoints-buffer)
-      (gdb-display-stack-buffer)
       (gdb-display-display-buffer)
       (delete-other-windows)
       (split-window)
@@ -2221,8 +2228,10 @@ BUFFER nil or omitted means use the current buffer."
   (save-excursion 
     (set-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer))
     (goto-char (point-min))
-    (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)")
-	(setq gdb-current-frame (match-string 1)))))
+    (if (looking-at "^#[0-9]*\\s-*0x\\S-* in \\(\\S-*\\)")
+	(setq gdb-current-frame (match-string 1))
+      (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)")
+	  (setq gdb-current-frame (match-string 1))))))
 
 (provide 'gdb-ui)
 
