@@ -888,6 +888,15 @@ specify a value for the ``variable'' named @code{coding}.  The ``value''
 must be a coding system name that Emacs recognizes.  @xref{Coding
 Systems}.
 
+  The @code{eval} pseudo-variable, described below, can be specified in
+the first line as well.
+
+@cindex shell scripts, and local file variables
+  In shell scripts, the first line is used to identify the script
+interpreter, so you cannot put any local variables there.  To accomodate
+for this, when Emacs visits a shell script, it looks for local variable
+specifications in the @emph{second} line.
+
   A @dfn{local variables list} goes near the end of the file, in the
 last page.  (It is often best to put it on a page by itself.)  The local
 variables list starts with a line containing the string @samp{Local
