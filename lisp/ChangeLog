@@ -1,3 +1,9 @@
+2002-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-defun): Fixed bug that
+	caused existing function definitions to be overridden by
+	phonies when the bytecomp environment is restored.
+
 2002-11-15  Nick Roberts  <nick@nick.uklinux.net>
 
 	* toolbar/gud-break.pbm, toolbar/gud-cont.pbm, toolbar/gud-display.pbm,
