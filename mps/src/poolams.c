@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.35) $
+ * $HopeName: MMsrc!poolams.c(trunk.36) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.35) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.36) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -1177,42 +1177,32 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-/* PoolClassAMSStruct -- the pool class descriptor */
+/* AMSPoolClass -- the class definition */
 
-static PoolClassStruct PoolClassAMSStruct = {
-  PoolClassSig,
-  "AMS",
-  sizeof(AMSStruct),
-  offsetof(AMSStruct, poolStruct),
-  NULL,                      /* super */
-  AttrFMT | AttrSCAN | AttrBUF | AttrBUF_RESERVE | AttrGC | AttrINCR_RB,
-  AMSInit,
-  AMSFinish,
-  PoolNoAlloc,               /* design.mps.poolams.no-alloc */
-  PoolNoFree,                /* design.mps.poolams.no-free */
-  AMSBufferInit,
-  AMSBufferFill,
-  AMSBufferEmpty,
-  PoolTrivBufferFinish,
-  PoolTrivTraceBegin,
-  PoolSegAccess,
-  AMSWhiten,                 /* condemn (whiten) */
-  PoolTrivGrey,              /* design.mps.poolams.colour.determine */
-  AMSBlacken,
-  AMSScan,
-  AMSFix,                    /* fix */
-  AMSFix,                    /* emergency fix */
-  AMSReclaim,
-  AMSBenefit,
-  PoolCollectAct,
-  PoolTrivRampBegin,
-  PoolTrivRampEnd,
-  PoolNoWalk,
-  AMSDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig               /* impl.h.mpm.class.end-sig */
-};
+/* impl.h.poolams contains the type definition. Hence the use */
+/* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
+DEFINE_CLASS(AMSPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  PoolClassMixInFormat(this);
+  this->name = "AMS";
+  this->size = sizeof(AMSStruct);
+  this->offset = offsetof(AMSStruct, poolStruct);
+  this->init = AMSInit;
+  this->finish = AMSFinish;
+  this->bufferInit = AMSBufferInit;
+  this->bufferFill = AMSBufferFill;
+  this->bufferEmpty = AMSBufferEmpty;
+  this->whiten = AMSWhiten;
+  this->blacken = AMSBlacken;
+  this->scan = AMSScan;
+  this->fix = AMSFix;
+  this->fixEmergency = AMSFix;
+  this->reclaim = AMSReclaim;
+  this->benefit = AMSBenefit;
+  this->describe = AMSDescribe;
+}
 
 /* AMSCheck -- the check method for an AMS */
 
@@ -1220,8 +1210,7 @@ Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
   CHECKD(Pool, AMSPool(ams));
-  /* Can't check the class until we have a class inclusion predicate. */
-  /* CHECKL(AMSPool(ams)->class == &PoolClassAMSStruct); */
+  CHECKL(IsSubclass(AMSPool(ams)->class, EnsureAMSPoolClass()));
   CHECKL(PoolAlignment(AMSPool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(Action, AMSAction(ams));
@@ -1245,5 +1234,5 @@ Bool AMSCheck(AMS ams)
 
 mps_class_t mps_class_ams(void)
 {
-  return (mps_class_t)&PoolClassAMSStruct;
+  return (mps_class_t)EnsureAMSPoolClass();
 }

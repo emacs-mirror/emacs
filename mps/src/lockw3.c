@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!lockw3.c(trunk.8) $
+ *  $HopeName: MMsrc!lockw3.c(trunk.9) $
  *
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  *
@@ -32,7 +32,7 @@
 
 #include "mpswin.h"
 
-SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.8) $");
+SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.9) $");
 
 
 Bool LockCheck(Lock lock)
@@ -92,3 +92,29 @@ void LockReleaseRecursive(Lock lock)
   --lock->claims;
   LeaveCriticalSection(&lock->cs);
 }
+
+
+/* Global locking is performed by a normal lock. */
+
+static LockStruct globalLockStruct;
+static Lock globalLock = &globalLockStruct;
+static Bool globalLockInit = FALSE; /* TRUE iff globalLock initialized */
+
+void LockClaimGlobalRecursive()
+{
+  /* Ensure the global lock has been initialized */
+  /* There is a race condition initializing the lock. */
+  if (!globalLockInit) {
+    LockInit(globalLock);
+    globalLockInit = TRUE;
+  }
+  AVER(globalLockInit);
+  LockClaimRecursive(globalLock);
+}
+
+void LockReleaseGlobalRecursive()
+{
+  AVER(globalLockInit);
+  LockReleaseRecursive(globalLock);
+}
+

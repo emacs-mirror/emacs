@@ -2,7 +2,7 @@
  *
  *                          RECURSIVE LOCKS
  *
- *  $HopeName: MMsrc!lock.h(trunk.2) $
+ *  $HopeName: MMsrc!lock.h(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -71,6 +71,13 @@
  *  already owned by this thread.  In particular, it may not be
  *  called by recursiveUse().
  *
+ *  LockClaimGlobalRecursive & LockReleaseGlobalRecursive are
+ *  similar to LockClaimRecursive & LockReleaseRecursive
+ *  except that they lock an implicit global lock. This may be 
+ *  used for locking access to data structures which are global,
+ *  such as class objects.
+ *  
+ * 
  */
 
 #ifndef lock_h
@@ -133,5 +140,32 @@ extern void LockReleaseMPM(Lock lock);
 /*  == Validation == */
 
 extern Bool LockCheck(Lock lock);
+
+
+/*  == Global locks == */
+
+
+/*  == LockClaimGlobalRecursive ==
+ *
+ *  This is called to increase the number of claims on the global lock.
+ *  LockClaimRecursive will wait until the lock is not owned by another
+ *  thread and return with the lock owned.
+ *  This can be called recursively.
+ */
+
+extern void LockClaimGlobalRecursive(void);
+
+
+
+/*  == LockReleaseGlobalRecursive ==
+ *
+ *  This is called to reduce the number of claims on the global lock.
+ *  If the number of claims drops to zero, ownership is relinquished.
+ *  This must not be called without possession of the lock.
+ */
+
+extern void LockReleaseGlobalRecursive(void);
+
+
 
 #endif /* lock_h */

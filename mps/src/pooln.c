@@ -1,6 +1,6 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.22) $
+ * $HopeName: MMsrc!pooln.c(trunk.23) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers
@@ -9,7 +9,7 @@
 #include "pooln.h"
 #include "mpm.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.22) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.23) $");
 
 
 typedef struct PoolNStruct {
@@ -249,44 +249,36 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-static PoolClassStruct PoolClassNStruct = {
-  PoolClassSig,
-  "N",
-  sizeof(PoolNStruct),                  /* size */
-  offsetof(PoolNStruct, poolStruct),    /* offset */
-  NULL,                                 /* super */
-  AttrSCAN | AttrALLOC | AttrFREE | AttrBUF | AttrBUF_RESERVE | AttrGC,
-  NInit,
-  NFinish,
-  NAlloc,
-  NFree,
-  NBufferInit,
-  NBufferFill,
-  NBufferEmpty,
-  NBufferFinish,
-  PoolNoTraceBegin,
-  PoolNoAccess,
-  NWhiten,                              /* whiten/condemn */
-  NGrey,
-  NBlacken,
-  NScan,
-  NFix,                                 /* fix */
-  NFix,                                 /* emergency fix */
-  NReclaim,
-  PoolNoBenefit,
-  PoolNoAct,
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,
-  NDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+DEFINE_POOL_CLASS(NPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractPoolClass);
+  this->name = "N";
+  this->size = sizeof(PoolNStruct);
+  this->offset = offsetof(PoolNStruct, poolStruct);
+  this->attr = AttrSCAN | AttrALLOC | AttrFREE | AttrBUF |
+                 AttrBUF_RESERVE | AttrGC;
+  this->init = NInit;
+  this->finish = NFinish;
+  this->alloc = NAlloc;
+  this->free = NFree;
+  this->bufferInit = NBufferInit;
+  this->bufferFill = NBufferFill;
+  this->bufferEmpty = NBufferEmpty;
+  this->bufferFinish = NBufferFinish;
+  this->whiten = NWhiten;
+  this->grey = NGrey;
+  this->blacken = NBlacken;
+  this->scan = NScan;
+  this->fix = NFix;
+  this->fixEmergency = NFix;
+  this->reclaim = NReclaim;
+  this->describe = NDescribe;
+}
 
 
 PoolClass PoolClassN(void)
 {
-  return &PoolClassNStruct;
+  return EnsureNPoolClass();
 }
 
 
@@ -294,7 +286,7 @@ Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
   CHECKD(Pool, &poolN->poolStruct);
-  CHECKL(poolN->poolStruct.class == &PoolClassNStruct);
+  CHECKL(poolN->poolStruct.class == EnsureNPoolClass());
   UNUSED(poolN); /* impl.c.mpm.check.unused */
 
   return TRUE;

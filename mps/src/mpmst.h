@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.69) $
+ * $HopeName: MMsrc!mpmst.h(trunk.70) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -32,6 +32,8 @@
 #include "config.h"
 #include "mpmtypes.h"
 
+#include "protocol.h"
+
 #if defined(MPS_OS_W3)
 /* windows.h included for CRITICAL_SECTION only, see .lock.win32 */
 #include "mpswin.h"
@@ -60,20 +62,18 @@ typedef struct RingStruct {     /* double-ended queue structure */
  * PoolClassXXX() returning a PoolClass pointing to a PoolClassStruct
  * of methods which implement the memory management policy.
  *
- * .class.end-sig: The class structure has another copy of the
- * signature at the end.  This causes the compiler to complain
- * if the class structure is extended without modifying static
- * initializers.
+ * .class.end-sig: The class structure has a signature at the 
+ * end.  This causes the compiler to complain if the class 
+ * structure is extended without modifying static initializers.
  */
 
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
 typedef struct PoolClassStruct {
-  Sig sig;                      /* design.mps.sig */
+  ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
-  PoolClass super;              /* superclass */
   Attr attr;                    /* attributes */
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolFinishMethod finish;      /* finish the pool descriptor */
@@ -99,7 +99,7 @@ typedef struct PoolClassStruct {
   PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
-  Sig endSig;                   /* .class.end-sig */
+  Sig sig;                      /* .class.end-sig */
 } PoolClassStruct;
 
 

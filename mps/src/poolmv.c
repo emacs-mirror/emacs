@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.34) $
+ * $HopeName: MMsrc!poolmv.c(trunk.35) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -30,7 +30,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.34) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.35) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -713,58 +713,37 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
 /* Pool class MV */
 
-static PoolClassStruct poolClassMVStruct = {
-  PoolClassSig,
-  "MV",
-  sizeof(MVStruct),                     /* size */
-  offsetof(MVStruct, poolStruct),       /* offset */
-  NULL,                                 /* super */
-  AttrALLOC | AttrFREE | AttrBUF,
-  MVInit,
-  MVFinish,
-  MVAlloc,
-  MVFree,
-  PoolTrivBufferInit,
-  PoolTrivBufferFill,
-  PoolTrivBufferEmpty,
-  PoolTrivBufferFinish,
-  PoolNoTraceBegin,
-  PoolNoAccess,
-  PoolNoWhiten,                         /* whiten/condemn */
-  PoolNoGrey,
-  PoolNoBlacken,
-  PoolNoScan,
-  PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* emergency fix */
-  PoolNoReclaim,
-  PoolNoBenefit,
-  PoolNoAct,
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,
-  MVDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
 
-PoolClass PoolClassMV(void)
+DEFINE_POOL_CLASS(MVPoolClass, this)
 {
-  return &poolClassMVStruct;
+  INHERIT_CLASS(this, AbstractBufferPoolClass);
+  PoolClassMixInAllocFree(this);
+  this->name = "MV";
+  this->size = sizeof(MVStruct);
+  this->offset = offsetof(MVStruct, poolStruct);
+  this->init = MVInit;
+  this->finish = MVFinish;
+  this->alloc = MVAlloc;
+  this->free = MVFree;
+  this->describe = MVDescribe;
+}
+
+
+MVPoolClass PoolClassMV(void)
+{
+  return EnsureMVPoolClass();
 }
 
 
 /* Pool class MVDebug */
 
-static PoolClassStruct poolClassMVDebugStruct;
-
-static PoolClass poolClassMVDebug(void)
+DEFINE_POOL_CLASS(MVDebugPoolClass, this)
 {
-  /* This code has to be idempotent to avoid locking. */
-  EnsureDebugClass(&poolClassMVDebugStruct, PoolClassMV());
-  poolClassMVDebugStruct.name = "MVDBG";
-  poolClassMVDebugStruct.size = sizeof(MVDebugStruct);
-  poolClassMVDebugStruct.debugMixin = MVDebugMixin;
-  return &poolClassMVDebugStruct;
+  INHERIT_CLASS(this, MVPoolClass);
+  PoolClassMixInDebug(this);
+  this->name = "MVDBG";
+  this->size = sizeof(MVDebugStruct);
+  this->debugMixin = MVDebugMixin;
 }
 
 
@@ -775,12 +754,12 @@ static PoolClass poolClassMVDebug(void)
 
 mps_class_t mps_class_mv(void)
 {
-  return (mps_class_t)(PoolClassMV());
+  return (mps_class_t)(EnsureMVPoolClass());
 }
 
 mps_class_t mps_class_mv_debug(void)
 {
-  return (mps_class_t)(poolClassMVDebug());
+  return (mps_class_t)(EnsureMVDebugPoolClass());
 }
 
 
@@ -844,8 +823,7 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, &mv->poolStruct);
-  CHECKL(mv->poolStruct.class == &poolClassMVStruct
-         || mv->poolStruct.class == &poolClassMVDebugStruct);
+  CHECKL(IsSubclass(mv->poolStruct.class, EnsureMVPoolClass()));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);

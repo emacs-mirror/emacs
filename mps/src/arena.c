@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.56) $
+ * $HopeName: MMsrc!arena.c(trunk.57) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.56) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.57) $");
 
 
 /* Forward declarations */
@@ -95,46 +95,24 @@ static void NSEGFinish(Pool pool)
   nseg->sig = SigInvalid;
 }
 
-static PoolClassStruct PoolClassNSEGStruct = {
-  PoolClassSig,
-  "NSEG",                               /* name */
-  sizeof(NSEGStruct),                   /* size */
-  offsetof(NSEGStruct, poolStruct),     /* offset */
-  NULL,                                 /* super */
-  0,                                    /* attr */
-  NSEGInit,                             /* init */
-  NSEGFinish,                           /* finish */
-  PoolNoAlloc,                          /* alloc */
-  PoolNoFree,                           /* free */
-  PoolNoBufferInit,                     /* bufferInit */
-  PoolNoBufferFill,                     /* bufferFill */
-  PoolNoBufferEmpty,                    /* bufferEmpty */
-  PoolNoBufferFinish,                   /* bufferFinish */
-  PoolNoTraceBegin,			/* traceBegin */
-  PoolNoAccess,                         /* access */
-  PoolNoWhiten,                         /* whiten */
-  PoolNoGrey,                           /* grey */
-  PoolNoBlacken,                        /* blacken */
-  PoolNoScan,                           /* scan */
-  PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* emergency fix */
-  PoolNoReclaim,                        /* reclaim */
-  PoolNoBenefit,			/* benefit */
-  PoolNoAct,                            /* act */
-  PoolNoRampBegin,                      /* ramp begin */
-  PoolNoRampEnd,                        /* ramp end */
-  PoolNoWalk,                           /* walk */
-  PoolTrivDescribe,                     /* describe */
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+
+DEFINE_POOL_CLASS(NSEGPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractPoolClass);
+  this->name = "NSEG";
+  this->size = sizeof(NSEGStruct);
+  this->offset = offsetof(NSEGStruct, poolStruct);
+  this->init = NSEGInit;
+  this->finish = NSEGFinish;
+}
 
 
 static Bool NSEGCheck(NSEG nseg)
 {
+  NSEGPoolClass nsegcl = EnsureNSEGPoolClass();
   CHECKS(NSEG, nseg);
   CHECKD(Pool, &nseg->poolStruct);
-  CHECKL(nseg->poolStruct.class == &PoolClassNSEGStruct);
+  CHECKL(nseg->poolStruct.class == nsegcl);
 
   return TRUE;
 }
@@ -647,7 +625,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 
   /* initialize the reservoir, design.mps.reservoir */
   res = PoolInit(&arena->reservoirStruct.poolStruct, 
-                 arena, &PoolClassNSEGStruct);
+                 arena, EnsureNSEGPoolClass());
   if(res != ResOK) 
     goto failReservoirInit;
 
