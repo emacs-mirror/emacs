@@ -864,7 +864,7 @@ Do the same for the keys of the same name."
 			"Case-Insensitive Search %s"
 			"Ignore letter-case in search"))
 (define-key menu-bar-options-menu [auto-fill-mode]
-  '(menu-item "Word Wrap in Text Modes (Auto Fill)"
+  '(menu-item "Word Wrap in Text Modes"
               (lambda ()
 		(interactive)
 		(toggle-text-mode-auto-fill)
@@ -872,7 +872,7 @@ Do the same for the keys of the same name."
 		;; might have changed outside customize.
 		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
 		(customize-mark-as-set 'text-mode-hook))
-	      :help "Automatically fill text between left and right margins"
+	      :help "Automatically fill text between left and right margins (Auto Fill)"
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
@@ -891,20 +891,20 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [highlight-paren-mode]
   (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
-			"Paren Match Highlighting (Show Paren mode)"
+			"Paren Match Highlighting"
 			"Show Paren mode %s"
-			"Highlight matching/mismatched parentheses at cursor"))
+			"Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Active Region Highlighting (Transient Mark mode)"
+			"Active Region Highlighting"
 			"Transient Mark mode %s"
-			"Make text in active region stand out in color"
+			"Make text in active region stand out in color (Transient Mark mode)"
 			(:enable (not cua-mode))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
-			"Syntax Highlighting (Global Font Lock mode)"
+			"Syntax Highlighting"
 			"Global Font Lock mode %s"
-			"Colorize text based on language syntax"))
+			"Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items

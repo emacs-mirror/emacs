@@ -1,3 +1,8 @@
+2002-06-30  Simon Josefsson  <jas@extundo.com>
+
+	* menu-bar.el (menu-bar-options-menu): Move elisp mode names from
+	menu entry into balloon help.
+
 2002-06-30  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (directory-free-space-args): Don't use `-P' on Darwin.
