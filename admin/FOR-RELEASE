@@ -1,24 +1,5 @@
 Tasks needed before the next release.
 
-* DOCUMENTATION
-
-** Finish updating the Emacs Lisp manual.
-
-** Finish checking the Emacs Lisp manual.
-
-** Update the Emacs manual.
-
-** Check the Emacs Manual.
-
-** Add missing years in copyright notices of all files.
-
-** Update man/info.texi.
-
-** Update man/ack.texi.
-
-** Update AUTHORS.
-
-
 * NEW FEATURES
 
 ** Test the mbox branch of Rmail.
@@ -41,6 +22,178 @@ isearch faces.
 * GTK RELATED BUGS
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
+
+
+* DOCUMENTATION
+
+** Finish updating the Emacs Lisp manual.
+
+*** New display properties (KFS to provide input).
+
+** Update the Emacs manual.
+
+*** Update man/info.texi.
+
+*** Update man/ack.texi.
+
+** Add missing years in copyright notices of all files.
+
+** Update AUTHORS.
+
+** Reorder NEWS entries.
+
+** Check the Emacs manual.
+
+Write you name/initials in the DONE column when you have
+proof-read the corresponding manual section.
+
+DONE	SECTION
+---------------------------------------------
+	man/abbrevs.texi
+	man/ack.texi
+	man/ada-mode.texi
+	man/anti.texi
+	man/autotype.texi
+	man/back.texi
+	man/basic.texi
+	man/buffers.texi
+	man/building.texi
+	man/calc.texi
+	man/calendar.texi
+	man/cc-mode.texi
+	man/cl.texi
+	man/cmdargs.texi
+	man/commands.texi
+	man/custom.texi
+	man/dired.texi
+	man/dired-x.texi
+	man/display.texi
+	man/doclicense.texi
+	man/ebrowse.texi
+	man/ediff.texi
+	man/emacs-mime.texi
+	man/emacs.texi
+	man/emacs-xtra.texi
+	man/entering.texi
+	man/eshell.texi
+	man/eudc.texi
+	man/faq.texi
+	man/files.texi
+	man/fixit.texi
+	man/flymake.texi
+	man/forms.texi
+	man/frames.texi
+	man/glossary.texi
+	man/gnus-faq.texi
+	man/gnus.texi
+	man/gnu.texi
+	man/help.texi
+	man/idlwave.texi
+	man/indent.texi
+	man/info.texi
+	man/killing.texi
+	man/kmacro.texi
+	man/macos.texi
+	man/maintaining.texi
+	man/major.texi
+	man/mark.texi
+	man/message.texi
+	man/mh-e.texi
+	man/mini.texi
+	man/misc.texi
+	man/msdog.texi
+	man/mule.texi
+	man/m-x.texi
+	man/pcl-cvs.texi
+	man/pgg.texi
+	man/picture.texi
+	man/programs.texi
+	man/reftex.texi
+	man/regs.texi
+	man/rmail.texi
+	man/screen.texi
+	man/sc.texi
+	man/search.texi
+	man/sending.texi
+	man/ses.texi
+	man/sieve.texi
+	man/smtpmail.texi
+	man/speedbar.texi
+	man/texinfo.tex
+	man/text.texi
+	man/tramp.texi
+	man/trampver.texi
+	man/trouble.texi
+	man/viper.texi
+	man/vip.texi
+	man/widget.texi
+	man/windows.texi
+	man/woman.texi
+	man/xresources.texi
+
+** Check the Emacs Lisp manual.
+
+Write you name/initials in the DONE column when you have
+proof-read the corresponding manual section.
+
+DONE	SECTION
+---------------------------------------------
+	lispref/abbrevs.texi
+	lispref/advice.texi
+	lispref/anti.texi
+	lispref/back.texi
+	lispref/backups.texi
+	lispref/buffers.texi
+	lispref/calendar.texi
+	lispref/commands.texi
+	lispref/compile.texi
+	lispref/control.texi
+	lispref/customize.texi
+	lispref/debugging.texi
+	lispref/display.texi
+	lispref/doclicense.texi
+	lispref/edebug.texi
+	lispref/elisp-covers.texi
+	lispref/elisp.texi
+	lispref/errors.texi
+	lispref/eval.texi
+	lispref/files.texi
+	lispref/frames.texi
+	lispref/front-cover-1.texi
+	lispref/functions.texi
+	lispref/gpl.texi
+	lispref/hash.texi
+	lispref/help.texi
+	lispref/hooks.texi
+	lispref/index.texi
+	lispref/internals.texi
+	lispref/intro.texi
+	lispref/keymaps.texi
+	lispref/lay-flat.texi
+	lispref/lists.texi
+	lispref/loading.texi
+	lispref/locals.texi
+	lispref/macros.texi
+	lispref/maps.texi
+	lispref/markers.texi
+	lispref/minibuf.texi
+	lispref/modes.texi
+	lispref/nonascii.texi
+	lispref/numbers.texi
+	lispref/objects.texi
+	lispref/os.texi
+	lispref/positions.texi
+	lispref/processes.texi
+	lispref/searching.texi
+	lispref/sequences.texi
+	lispref/streams.texi
+	lispref/strings.texi
+	lispref/symbols.texi
+	lispref/syntax.texi
+	lispref/text.texi
+	lispref/tips.texi
+	lispref/variables.texi
+	lispref/windows.texi
 
 
 Local variables:
