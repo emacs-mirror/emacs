@@ -64,7 +64,7 @@
 ;;       cal-persia.el                 Persian calendar
 ;;       cal-tex.el                    Calendars in LaTeX
 ;;       cal-x.el                      X-windows dedicated frame functions
-;;       diary.el                      Diary functions
+;;       diary-lib.el                  Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       lunar.el                      Phases of the moon
 ;;       solar.el                      Sunrise/sunset, equinoxes/solstices
