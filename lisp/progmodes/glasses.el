@@ -257,7 +257,6 @@ recognized according to the current value of the variable `glasses-separator'."
 					   'glasses-mode)
 			       'help-echo "mouse-2: turn off Glasses mode")))
 
-
 ;;;###autoload
 (defun glasses-mode (&optional arg)
   "Minor mode for making identifiers likeThis readable.
@@ -284,7 +283,8 @@ at places they belong to."
 	    (remove-hook 'after-change-functions 'glasses-change t)
 	    (remove-hook 'local-write-file-hooks
 			 'glasses-convert-to-unreadable t))))
-      (setq glasses-mode new-flag))))
+      (setq glasses-mode new-flag)
+      (force-mode-line-update))))
 
 
 ;;; Announce
