@@ -1672,7 +1672,7 @@ Both LENGTH and INIT must be numbers.  */)
   CHECK_NUMBER (init);
 
   c = XINT (init);
-  if (SINGLE_BYTE_CHAR_P (c))
+  if (ASCII_CHAR_P (c))
     {
       nbytes = XINT (length);
       val = make_uninit_string (nbytes);
