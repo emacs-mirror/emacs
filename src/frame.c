@@ -1578,7 +1578,8 @@ and nil for X and Y.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (mouse_position_hook)
+  if (FRAME_TERMCAP_P (f)
+      && mouse_position_hook)
     (*mouse_position_hook) (&f, -1,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
@@ -1852,7 +1853,8 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
   /* Do like the documentation says. */
   Fmake_frame_visible (frame);
 
-  if (frame_raise_lower_hook)
+  if (FRAME_TERMCAP_P (XFRAME (frame))
+      && frame_raise_lower_hook)
     (*frame_raise_lower_hook) (XFRAME (frame), 1);
 
   return Qnil;
@@ -1872,7 +1874,8 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
 
   CHECK_LIVE_FRAME (frame);
 
-  if (frame_raise_lower_hook)
+  if (FRAME_TERMCAP_P (XFRAME (frame))
+      && frame_raise_lower_hook)
     (*frame_raise_lower_hook) (XFRAME (frame), 0);
 
   return Qnil;
@@ -1917,7 +1920,8 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
 
   XFRAME (frame)->focus_frame = focus_frame;
 
-  if (!FRAME_TERMCAP_P (XFRAME (frame)) && frame_rehighlight_hook)
+  if (!FRAME_TERMCAP_P (XFRAME (frame))
+      && frame_rehighlight_hook)
     (*frame_rehighlight_hook) (XFRAME (frame));
 
   return Qnil;
