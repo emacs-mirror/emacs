@@ -159,7 +159,10 @@ Boston, MA 02111-1307, USA.  */
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 
-#ifndef _LP64
+#if _MIPS_SZLONG != 64
+/* fixme: should there be 64-bit defiitions?  (The ones below aren't
+   OK.)  */
+
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
