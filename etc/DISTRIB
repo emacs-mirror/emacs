@@ -50,8 +50,9 @@ on Apollo computers, though with some deficiencies that reflect
 problems in these operating systems.  See the file `MACHINES' in this
 directory (see above) for a full list of machines that GNU Emacs has
 been tested on, with machine-specific installation notes and warnings.
-There is also an MS-DOS that works on newer MS-DOS machines, and
-an MS-Windows and a Mac version.
+There is also an MS-DOS version that works on MS-DOS and all platforms
+that have some kind of ``DOS box'', and also an MS-Windows and a Mac
+version.
 
 Note that there is significant variation between Unix systems
 supposedly running the same version of Unix; it is possible that what
