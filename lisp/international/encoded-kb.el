@@ -31,7 +31,7 @@
 (defvar encoded-kbd-mode-map
   (let ((map (make-sparse-keymap))
 	(i 128))
-    (define-key map "\e" 'encoded-kbd-handle-iso2022-esc)
+    (define-key map "\e" 'encoded-kbd-iso2022-esc-prefix)
     (while (< i 256)
       (define-key map (vector i) 'encoded-kbd-handle-8bit)
       (setq i (1+ i)))
@@ -52,9 +52,9 @@
     (define-key map ")" 'encoded-kbd-iso2022-designation-prefix)
     (define-key map "," 'encoded-kbd-iso2022-designation-prefix)
     (define-key map "-" 'encoded-kbd-iso2022-designation-prefix)
-    (append map '((t . encoded-kbd-outernal-command)))
     map)
   "Keymap for handling ESC code in Encoded-kbd mode.")
+(fset 'encoded-kbd-iso2022-esc-prefix encoded-kbd-iso2022-esc-map)
 
 (defvar encoded-kbd-iso2022-esc-dollar-map
   (let ((map (make-sparse-keymap)))
@@ -65,19 +65,19 @@
     (define-key map "@" 'encoded-kbd-iso2022-designation)
     (define-key map "A" 'encoded-kbd-iso2022-designation)
     (define-key map "B" 'encoded-kbd-iso2022-designation)
-    (append map '((t . encoded-kbd-outernal-command)))
     map)
-  "Keymap for handling ESC $ sequence handling in Encoded-kbd mode.")
+  "Keymap for handling ESC $ sequence in Encoded-kbd mode.")
 (fset 'encoded-kbd-iso2022-esc-dollar-prefix
       encoded-kbd-iso2022-esc-dollar-map)
 
 (defvar encoded-kbd-iso2022-designation-map
   (let ((map (make-sparse-keymap))
-	(i 48))
-    (while (< i 128)
-      (define-key map (char-to-string i) 'encoded-kbd-iso2022-designation)
-      (setq i (1+ i)))
-    (append map '((t . encoded-kbd-outernal-command)))
+	(l charset-list))
+    (while l
+      (define-key map
+	(char-to-string (charset-iso-final-char (car l)))
+	'encoded-kbd-iso2022-designation)
+      (setq l (cdr l)))
     map)
   "Keymap for handling ISO2022 designation sequence in Encoded-kbd mode.")
 (fset 'encoded-kbd-iso2022-designation-prefix
@@ -89,6 +89,7 @@
     (while (< i 128)
       (define-key map (char-to-string i) 'encoded-kbd-self-insert-iso2022-7bit)
       (setq i (1+ i)))
+    (define-key map "\e" 'encoded-kbd-iso2022-esc-prefix)
     map)
   "Keymap for handling non-ASCII character set in Encoded-kbd mode.")
 
@@ -121,43 +122,39 @@ The following key sequence may cause multilingual text insertion."
   (let ((key-seq (this-command-keys))
 	intermediate-char final-char
 	reg dimension chars charset)
-    (if (= (length key-seq) 3)
-	;; (ESC) $ <intermediate-char> <final-char>
-	(setq intermediate-char (aref key-seq 1)
+    (if (= (length key-seq) 4)
+	;; ESC $ <intermediate-char> <final-char>
+	(setq intermediate-char (aref key-seq 2)
 	      dimension 2
 	      chars (if (< intermediate-char ?,) 94 96)
-	      final-char (aref key-seq 2)
+	      final-char (aref key-seq 3)
 	      reg (mod intermediate-char 4))
       (if (= (aref key-seq 1) ?$)
-	  ;; (ESC) $ <final-char>
+	  ;; ESC $ <final-char>
 	  (setq dimension 2
 		chars 94
-		final-char (aref key-seq 1)
+		final-char (aref key-seq 2)
 		reg 0)
-	;; (ESC) <intermediate-char> <final-char>
-	(setq intermediate-char (aref key-seq 0)
+	;; ESC <intermediate-char> <final-char>
+	(setq intermediate-char (aref key-seq 1)
 	      dimension 1
 	      chars (if (< intermediate-char ?,) 94 96)
-	      final-char (aref key-seq 1)
+	      final-char (aref key-seq 2)
 	      reg (mod intermediate-char 4))))
     (if (setq charset (iso-charset dimension chars final-char))
 	(aset encoded-kbd-iso2022-designations reg charset)
       (error "Character set of DIMENSION %s, CHARS %s, FINAL-CHAR `%c' is not supported"
 	     dimension chars final-char))
 
-    (if (eq (aref encoded-kbd-iso2022-designations
+    (if (memq (aref encoded-kbd-iso2022-designations
 		 (aref encoded-kbd-iso2022-invocations 0))
-	    'ascii)
+	      '(ascii latin-jisx0201))
 	;; Graphic plane 0 (0x20..0x7f) is for ASCII.  We don't have
 	;; to handle characters in this range specially.
 	(throw 'exit nil)
       ;; Graphic plane 0 is for non-ASCII.
-      (setq overriding-local-map encoded-kbd-iso2022-non-ascii-map))))
-
-(defun encoded-kbd-handle-iso2022-esc ()
-  (interactive)
-  (let ((overriding-local-map encoded-kbd-iso2022-esc-map))
-    (recursive-edit)))
+      (let ((overriding-local-map encoded-kbd-iso2022-non-ascii-map))
+	(recursive-edit)))))
 
 (defun encoded-kbd-handle-8bit ()
   "Handle an 8-bit character enterned in Encoded-kbd mode."
@@ -227,12 +224,13 @@ The following key sequence may cause multilingual text insertion."
 			      (read-char-exclusive)))))
     (self-insert-command 1)))
 
+;;;###autoload
 (defun encoded-kbd-mode (&optional arg)
   "Toggle Encoded-kbd minor mode.
 With arg, turn Keyboard-kbd mode on in and only if arg is positive.
 
 When in Encoded-kbd mode, a text sent from a terminal keyboard
-is accepted as a multilingual text encoded in a coding-system
+is accepted as a multilingual text encoded in a coding system
 set by the command `set-keyboard-coding-system'"
   (interactive "P")
   (setq encoded-kbd-mode
@@ -261,13 +259,13 @@ set by the command `set-keyboard-coding-system'"
 	       (let ((flags (coding-vector-flags coding))
 		     (i 0))
 		 (while (< i 4)
-		   (if (and (aref flags i)
-			    (> (aref flags i) 0))
+		   (if (charsetp (aref flags i))
 		       (aset encoded-kbd-iso2022-designations i
 			     (aref flags i)))
 		   (setq i (1+ i))))
 	       (make-variable-buffer-local 'encoded-kbd-iso2022-invocations)
-	       (setq encoded-kbd-iso2022-invocations (make-vector 3 0))
+	       (setq encoded-kbd-iso2022-invocations (make-vector 3 nil))
+	       (aset encoded-kbd-iso2022-invocations 0 0)
 	       (aset encoded-kbd-iso2022-invocations 1 1))
 
 	      ((= (coding-vector-type coding) 3) ; BIG5
@@ -279,8 +277,22 @@ set by the command `set-keyboard-coding-system'"
 	       (setq encoded-kbd-mode nil)
 	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
 		      (keyboard-coding-system))))
-
-	(run-hooks 'encoded-kbd-mode-hook)))
+	(setq inactivate-current-input-method-function 'encoded-kbd-mode)
+	(setq describe-current-input-method-function 'encoded-kbd-mode-help)
+	(run-hooks 'encoded-kbd-mode-hook))
+    (setq describe-current-input-method-function nil)
+    (setq current-input-method nil))
   (force-mode-line-update))
+
+;;;###autoload
+(defun encoded-kbd-select-terminal (terminal coding-system)
+  "Activate Encoded-Kbd mode appropriately for TERMINAL using CODING-SYSTEM."
+  (interactive "STerminal name: \nzcoding-system: ")
+  (if window-system
+      (error "Should run emacs on an ordinary terminal"))
+  (set-terminal-coding-system coding-system)
+  (set-keyboard-coding-system coding-system)
+  (setq current-input-method-title terminal)
+  (encoded-kbd-mode t))
 
 ;;; encoded-kb.el ends here
