@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -1419,7 +1419,8 @@ The locations are of the format used in Info-history, i.e.
 
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
-  "Go to the Info node in the Emacs manual for command COMMAND."
+  "Go to the Info node in the Emacs manual for command COMMAND.
+The command is found by looking up in Emacs manual's Command Index."
   (interactive "CFind documentation for command: ")
   (or (commandp command)
       (signal 'wrong-type-argument (list 'commandp command)))
@@ -1448,7 +1449,8 @@ The locations are of the format used in Info-history, i.e.
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the Info node in the Emacs manual the command bound to KEY, a string.
-Interactively, if the binding is execute-extended-command, a command is read."
+Interactively, if the binding is execute-extended-command, a command is read.
+The command is found by looking up in Emacs manual's Command Index."
   (interactive "kFind documentation for key:")
   (let ((command (key-binding key)))
     (cond ((null command)
