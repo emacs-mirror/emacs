@@ -1,3 +1,8 @@
+2000-07-17  Sam Steingold  <sds@gnu.org>
+
+	* files.el (insert-directory): Call `split-string' instead of
+	re-implementing it.
+
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/vms-pmail.el: Change maintainer to FSF.
@@ -196,7 +201,7 @@
 	* battery.el, info-look.el: Change author's mail address.
 
 2000-07-07  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
-	
+
 	* mail/rmail.el (rmail-clear-headers): Don't throw an error
 	if rmail-ignored-headers is nil.
 	(rmail-retry-failure): Bind rmail-ignored-headers and
@@ -213,7 +218,7 @@
 
 	* rmail.el (mail-unsent-separator): Changed "the" to "\\w+", as
 	exim can use "your message" instead of "the message".
-	
+
 2000-07-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* facemenu.el: Docstrings fixes.
@@ -224,7 +229,7 @@
 	backwards over `=' not to bump into BOBP.
 
 2000-07-05  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-diff.el (ediff-wordify): Use syntax table.
 	* ediff-init.el (ediff-has-face-support-p): Use
 	ediff-color-display-p.
@@ -233,7 +238,7 @@
 	Got rid of special cases for NeXT and OS/2.
 	* ediff-wind.el (ediff-setup-control-frame): Set proper modeline
 	face.
-	
+
 2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/lucid.el: Require CL.
@@ -250,7 +255,7 @@
 
 	* emacs-lisp/cl-extra.el (cl-old-mapc): Removed; don't defalias mapc.
 	(cl-mapc): Use mapc instead of cl-old-mapc.
-	
+
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt: Add support for `bootstrap' and related targets.
@@ -403,7 +408,7 @@
 	* replace.el (perform-replace): Undo change of 2000-04-04.
 	Instead, move backward 1 character at the end of the loop when
 	necessary.
-	
+
 	* faces.el (fringe): Change face for different backgrounds.
 
 	* eshell/esh-module.el (toplevel): Load defgroup's differently;
@@ -467,7 +472,7 @@
 	* comint.el (comint-substitute-in-file-name): Call replace-match
 	with second and third arg t.
 
-	* cus-edit.el (custom-button-face, custom-button-pressed-face): 
+	* cus-edit.el (custom-button-face, custom-button-pressed-face):
 	Specify foreground color.
 
 	* faces.el (tool-bar, mode-line, header-line): Specify foreground

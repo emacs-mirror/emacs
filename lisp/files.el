@@ -3217,7 +3217,7 @@ See also `auto-save-file-name-p'."
 	    (let ((fn (file-name-nondirectory buffer-file-name)))
 	      (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
 	      (concat (file-name-directory buffer-file-name)
-		      "#" (match-string 1 fn) 
+		      "#" (match-string 1 fn)
 		      "." (match-string 3 fn) "#"))
 	  (concat (file-name-directory filename)
 		  "#"
@@ -3444,8 +3444,8 @@ This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
   ;; We need the directory in order to find the right handler.
-  (let ((handler (find-file-name-handler (expand-file-name file)
-					 'insert-directory)))
+  (let* ((file (expand-file-name file))
+         (handler (find-file-name-handler file 'insert-directory)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
@@ -3459,61 +3459,53 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	       (coding-system-for-write coding-system-for-read)
 	       (result
 		(if wildcard
-		    ;; Run ls in the directory of the file pattern we asked for.
-		    (let ((default-directory
-			    (if (file-name-absolute-p file)
-				(file-name-directory file)
-			      (file-name-directory (expand-file-name file))))
+		    ;; Run ls in the directory of the file pattern we asked for
+		    (let ((default-directory (file-name-directory file))
 			  (pattern (file-name-nondirectory file))
 			  (beg 0))
-		      ;; Quote some characters that have special meanings in shells;
-		      ;; but don't quote the wildcards--we want them to be special.
-		      ;; We also currently don't quote the quoting characters
-		      ;; in case people want to use them explicitly to quote
-		      ;; wildcard characters.
+		      ;; Quote some characters that have special
+		      ;; meanings in shells; but don't quote the
+		      ;; wildcards--we want them to be special.
+		      ;; We also currently don't quote the quoting
+		      ;; characters in case people want to use them
+		      ;; explicitly to quote wildcard characters.
 		      (while (string-match "[ \t\n;<>&|()#$]" pattern beg)
 			(setq pattern
 			      (concat (substring pattern 0 (match-beginning 0))
 				      "\\"
 				      (substring pattern (match-beginning 0)))
 			      beg (1+ (match-end 0))))
-		      (call-process shell-file-name nil t nil
-				    "-c" (concat "\\";; Disregard shell aliases!
-						 insert-directory-program
-						 " -d "
-						 (if (stringp switches)
-						     switches
-						   (mapconcat 'identity switches " "))
-						 " -- "
-						  pattern)))
+		      (call-process
+                       shell-file-name nil t nil
+                       "-c" (concat "\\" ; Disregard shell aliases!
+                                    insert-directory-program
+                                    " -d "
+                                    (if (stringp switches)
+                                        switches
+                                        (mapconcat 'identity switches " "))
+                                    " -- "
+                                    pattern)))
 		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		  ;; directory if FILE is a symbolic link.
 		  (apply 'call-process
 			  insert-directory-program nil t nil
-			  (let (list)
-			    (if (listp switches)
-				(setq list switches)
-			      (if (not (equal switches ""))
-				  (progn
-				    ;; Split the switches at any spaces
-				    ;; so we can pass separate options as separate args.
-				    (while (string-match " " switches)
-				      (setq list (cons (substring switches 0 (match-beginning 0))
-						       list)
-					    switches (substring switches (match-end 0))))
-				    (setq list (nreverse (cons switches list))))))
-			    (append list
-				    ;; Avoid lossage if FILE starts with `-'.
-				    '("--")
-				    (progn
-				      (if (string-match "\\`~" file)
-					  (setq file (expand-file-name file)))
-				      (list
-				       (if full-directory-p
-					   (concat (file-name-as-directory file) ".")
-					 file)))))))))
+                          (append
+                           (if (listp switches) switches
+                               (unless (equal switches "")
+                                 ;; Split the switches at any spaces so we can
+                                 ;; pass separate options as separate args.
+                                 (split-string switches)))
+                           ;; Avoid lossage if FILE starts with `-'.
+                           '("--")
+                           (progn
+                             (if (string-match "\\`~" file)
+                                 (setq file (expand-file-name file)))
+                             (list
+                              (if full-directory-p
+                                  (concat (file-name-as-directory file) ".")
+                                  file))))))))
 	  (if (/= result 0)
-	      ;; We get here if ls failed.
+	      ;; We get here if `insert-directory-program' failed.
 	      ;; Access the file to get a suitable error.
 	      (access-file file "Reading directory")
 	    ;; Replace "total" with "used", to avoid confusion.
@@ -3534,7 +3526,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		      (forward-word -1)
 		      (setq available (buffer-substring (point) end))))
 		  (insert " available " available))))))))))
-		    
+
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
 If any of these functions returns nil, killing Emacs is cancelled.
