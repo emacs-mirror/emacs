@@ -1,3 +1,9 @@
+2002-03-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
+	Use the other-window instead of the other-frame functions when
+	the window is dedicated.
+
 2002-03-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* textmodes/bibtex.el (bibtex-make-field): Call bibtex-find-text
@@ -9,7 +15,7 @@
 	name does not contain characters that are invalid for DOS/Windows
 	filesystems.
 
-	* dos-fns.el, w32-fns.el: (make-auto-save-file-name):
+	* dos-fns.el, w32-fns.el (make-auto-save-file-name):
 	Remove replacement functions.
 
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
@@ -61,7 +67,7 @@
 
 2002-03-05  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-init.el: comments.
+	* ediff-init.el: Comments.
 
 	* ediff-hook.el: Got rid of autoloads. Not needed, since the hook
 	is loaded.
