@@ -976,7 +976,7 @@ clean: mostlyclean
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
-	rm -f paths.h config.h Makefile Makefile.in ../etc/DOC-*
+	rm -f paths.h config.h Makefile Makefile.c ../etc/DOC-*
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
@@ -988,8 +988,8 @@ extraclean: distclean
 
 /* The rule for the [sm] files has to be written a little funny to
    avoid looking like a C comment to CPP. */
-SOURCES = *.[ch] [sm]/?* COPYING Makefile.in.in \
-	config.h.in README COPYING ChangeLog vms.pp-trans
+SOURCES = *.[ch] [sm]/?* COPYING Makefile.in \
+	config.in paths.in README COPYING ChangeLog vms.pp-trans
 unlock:
 	chmod u+w $(SOURCES)
 
