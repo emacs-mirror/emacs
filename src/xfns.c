@@ -198,6 +198,8 @@ struct face *x_face_table[MAX_FACES_AND_GLYPHS];
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
 
+/* This function can be called during GC, so use XGCTYPE.  */
+
 struct frame *
 x_window_to_frame (wdesc)
      int wdesc;
@@ -205,10 +207,11 @@ x_window_to_frame (wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
+       tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XTYPE (frame) != Lisp_Frame)
+      if (XGCTYPE (frame) != Lisp_Frame)
         continue;
       f = XFRAME (frame);
       if (FRAME_X_WINDOW (f) == wdesc
