@@ -1,3 +1,14 @@
+2004-09-09  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-bind-to-key): Associate dedicated macro
+	counter and format with binding.
+	(kmacro-name-last-macro): New defun.  Like name-last-kbd-macro, but
+	the declared macro uses own macro counter and format.  Give symbol
+	kmacro property.
+	(kmacro-keymap): Bind kmacro-name-last-macro to n.
+	(kmacro-start-macro, kmacro-end-macro, kmacro-call-macro)
+	(kmacro-end-and-call-macro): Doc fix.
+
 2004-09-09  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-clear-preserve-buffers): Remove

@@ -1,3 +1,8 @@
+2004-09-09  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi (Save Keyboard Macro): Replace `name-last-kbd-macro'
+	with new `kmacro-name-last-macro'.
+
 2004-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* makefile.w32-in (sieve, pgg): Use $(infodir).
