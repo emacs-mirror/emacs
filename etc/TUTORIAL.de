@@ -1,4 +1,4 @@
-Einführung in Emacs.  (c) 1997, 1999 Free Software Foundation, Inc.
+Einführung in Emacs.  (c) 2002 Free Software Foundation, Inc.
 
 Emacs-Befehle beinhalten im allgemeinen die CONTROL-Taste (manchmal
 auch als CTRL, CTL oder STRG beschriftet) sowie die META-Taste (auch
@@ -143,7 +143,7 @@ verläßt.
    bewegen und beobachten Sie, was geschieht.
 
 Wenn zeichenweise Cursorbewegung zu langsam ist, dann kann man den
-Cursor wortweise bewegen.  M-f (Meta-f) bewegt den Cursor ein Wort
+Cursor wortweise bewegen.  M-f (META-f) bewegt den Cursor ein Wort
 vor, und M-b ein Wort zurück.
 
 >> Geben Sie ein paarmal M-f und M-b ein.
@@ -158,9 +158,9 @@ analog, aber in die entgegengesetzte Richtung.
    zwischen Wörtern zu beobachten.
 
 Beachten Sie die Parallele zwischen C-f und C-b einerseits und M-f und
-M-b andererseits.  Sehr oft werden mit `Meta-' beginnende Befehle für
+M-b andererseits.  Sehr oft werden mit `META-' beginnende Befehle für
 Operationen verwendet, die mit Sprache zu tun haben (Wörter, Sätze,
-Absätze), während Control-Befehle mit den Text-Basiseinheiten
+Absätze), während CONTROL-Befehle mit den Text-Basiseinheiten
 operieren, unabhängig davon, was Sie gerade editieren (Zeichen,
 Buchstaben, Zeilen etc).
 
@@ -217,14 +217,14 @@ Cursor einschließlich der Wort- und Satzbewegungsbefehle:
 >> Probieren Sie diese Befehle jetzt ein paarmal zur Übung.
    Es sind die meistverwendeten Befehle innerhalb Emacs.
 
-Zwei weitere wichtige Befehle für die Cursorbewegung sind M-< (Meta
-Kleiner-als) und M-> (Meta Größer-als), welche zum Anfang bzw. zum
+Zwei weitere wichtige Befehle für die Cursorbewegung sind M-< (META
+Kleiner-als) und M-> (META Größer-als), welche zum Anfang bzw. zum
 Ende des ganzen Textes springen.
 
 Bei den meisten Terminal-Tastaturen befindet sich `<' über dem Komma,
-d.h. Sie müssen zusätzlich die Shift-Taste verwenden (der Umschalter
+d.h. Sie müssen zusätzlich die SHIFT-Taste verwenden (der Umschalter
 ist auf deutschen Tastaturen normalerweise mit einem dicken
-Aufwärtspfeil markiert).  Ohne Shift-Taste würden Sie M-Komma
+Aufwärtspfeil markiert).  Ohne SHIFT-Taste würden Sie M-Komma
 eingeben.
 
 [Standardmäßig sind die Tasten `Pos1' und `Ende' mit M-< bzw. M->
@@ -234,12 +234,13 @@ belegt.]
    zu gelangen.  Verwenden Sie dann C-v, um wieder hierher zu kommen.
 
 Ein weiteres, oft benütztes Konzept in Emacs ist die Markierung
-(`mark').  Der Grundbefehl dazu ist C-SPC (oder gleichwertig C-@); mit
-ihm kann eine Markierung gesetzt werden.  Mit C-u C-SPC kommt man zu
-dieser Markierung zurück, falls man den Cursor inzwischen weiterbewegt
-hat.  Viele Befehle, die große Sprünge in einem Text ausführen (so
-auch M-> und M-<) setzen eine Markierung implizit, was in der
-untersten Zeile (dem Echobereich, s.u.) als `Mark set' angezeigt wird.
+(`mark').  Der Grundbefehl dazu ist C-SPC (oder gleichwertig C-@,
+`SPC' bezeichnet die Leertaste, engl. `space key'); mit ihm kann eine
+Markierung gesetzt werden.  Mit C-u C-SPC kommt man zu dieser
+Markierung zurück, falls man den Cursor inzwischen weiterbewegt hat.
+Viele Befehle, die große Sprünge in einem Text ausführen (so auch M->
+und M-<) setzen eine Markierung implizit, was in der untersten Zeile
+(dem Echobereich, s.u.) als `Mark set' angezeigt wird.
 
 >> Verwenden Sie jetzt M-> (bzw. `Ende'), um zum Ende der Einführung
    zu springen und benützen Sie C-u C-SPC, um hierher zurückzukehren.
@@ -262,6 +263,8 @@ Ziffern und dann der Befehl selbst.  Alternativ können Sie die
 META-Taste (bzw. EDIT- oder ALT-Taste) gedrückt halten und dann die
 Ziffern des Wiederholungszählers eingeben.  Wir empfehlen allerdings,
 die C-u-Methode zu lernen, da sie mit jedem Terminal funktioniert.
+Das numerische Argument wird auch `Präfix-Argument' genannt, da man
+es vor dem zugehörigen Befehl eingibt.
 
 Beispiel: C-u 8 C-f bewegt den Cursor acht Zeichen vorwärts.
 
@@ -270,8 +273,12 @@ Beispiel: C-u 8 C-f bewegt den Cursor acht Zeichen vorwärts.
    hierher.
 	
 Wie gesagt, die meisten Befehle verwenden das numerische Argument als
-Wiederholungszähler.  Bestimmte Befehle jedoch benützen es für andere
-Zwecke.  C-v und M-v gehören dazu.  Gibt man diesen Befehlen einen
+Wiederholungszähler, jedoch nicht alle.  Einige davon, die allerdings
+noch nicht besprochen wurden, benützen es als Flag (`Flagge'), d.h.,
+allein das Vorhandensein eines Präfix-Arguments, unabhängig von seinem
+Wert, signalisiert dem Befehl, etwas anderes zu tun.
+
+C-v und M-v sind weitere Ausnahmen.  Gibt man diesen Befehlen einen
 Parameter n, dann verschieben sie den Bildschirminhalt nicht um eine
 ganze Bildschirmseite, sondern um n Zeilen.  Beispiel: C-u 4 C-v
 verschiebt den Bildschirminhalt um vier Zeilen.
@@ -282,11 +289,11 @@ Der Bildschirminhalt sollte jetzt um acht Zeilen nach oben verschoben
 sein.  Wollen Sie ihn nach unten verschieben, dann geben Sie M-v mit
 einem numerischen Argument ein.
 
-Wenn Sie X verwenden, dann befindet sich ein schmaler, langgezogener
-rechteckiger Bereich im Regelfall auf der linken Seite des
-Emacs-Fensters.  Dieser Bereich wird Scrollbar genannt
-(`Verschiebungsbalken').  Sie können Text verschieben, indem Sie mit
-der Maus auf den Scrollbar klicken.
+Wenn Sie eine graphische Oberfläche wie X oder MS-Windows verwenden,
+dann befindet sich ein schmaler, langgezogener rechteckiger Bereich im
+Regelfall auf der linken Seite des Emacs-Fensters.  Dieser Bereich
+wird Scrollbar genannt (`Verschiebungsbalken').  Sie können Text
+verschieben, indem Sie mit der Maus auf den Scrollbar klicken.
 
 >> Drücken Sie die mittlere Taste (oder die linke und rechte Taste
    gleichzeitig, falls Sie eine Zwei-Tasten-Maus verwenden) innerhalb
@@ -331,9 +338,8 @@ aus und fragt Sie, ob Sie ihn wirklich ausführen wollen.
 Antworten Sie mit y (für `yes') oder drücken Sie die Leertaste, wenn
 Sie den Befehl ausführen wollen, sonst mit n.
 
->> Geben Sie <ESC> : ein (<ESC> gefolgt von einem Doppelpunkt; das ist
-   ein deaktivierter Befehl) und drücken Sie n als Antwort auf die
-   Frage.
+>> Geben Sie C-x C-l ein (das ist ein deaktivierter Befehl) und
+   drücken Sie n als Antwort auf die Frage.
 
 
 * FENSTER
@@ -400,7 +406,8 @@ gegebenenfalls die Tastaturbelegung verändern können.]
 
 Wenn eine Textzeile zu lang wird für eine Bildschirmzeile, dann wird
 sie auf einer zweiten Bildschirmzeile `fortgesetzt'.  Ein
-`Backslash'-Zeichen (`\') am rechten Rand verdeutlicht das.
+`Backslash'-Zeichen (`\') bzw. ein kleiner gebogener Pfeil (bei
+graphischen Oberflächen) am rechten Rand verdeutlicht das.
 
 >> Fügen Sie Text ein, bis Sie den rechten Rand erreicht haben.  Fügen
    Sie weiter Text ein.  Beobachten Sie, wie eine Fortsetzungszeile
@@ -446,6 +453,21 @@ möglich, ganze Wörter, Sätze oder Zeilen zu löschen:
 
 Beachten Sie bitte, daß <Delete> je nach Tastaturbelegung die Del-
 (Entf-) oder die Backspace- (Rückwärtspfeil-) Taste sein kann.
+
+Eine andere, einheitliche Methode zum Löschen von Text ist das
+Befehlspaar C-@ (oder C-SPC) und C-w.  Gehen sie zum Anfang des zu
+löschenden Textes und drücken Sie C-@ oder C-SPC.  Gehen Sie dann zum
+Ende des zu löschenden Textes und drücken Sie C-w, um ihn zu
+entfernen.
+
+>> Bewegen Sie den Cursor zum Buchstaben `E' am Anfang des letzten
+   Absatzes.
+>> Drücken Sie C-SPC.  Emacs sollte die Meldung `Mark set' am unteren
+   Bildschirmrand zeigen.
+>> Bewegen Sie den Cursor zum Buchstaben `A' in der zweiten Zeile des
+   letzten Absatzes.
+>> Geben Sie C-w ein.  Der ganze Text, beginnend mit dem `E' und
+   endend vor dem `A', ist nun gelöscht.
 
 Löschen Sie mehr als ein Zeichen auf einmal, dann speichert Emacs den
 gelöschten Text, damit Sie ihn bei Bedarf wieder zurückholen können.
@@ -611,7 +633,7 @@ Augenblick bearbeiten Sie eine Datei mit dem Namen `TUTORIAL.de'
 (genauer gesagt, Emacs hat eine identische Kopie geladen).
 
 Die Befehle für das Laden und Speichern von Dateien bestehen aus zwei
-Zeichen: Beide beginnen mit Control-x.  Es gibt eine ganze Reihe von
+Zeichen: Beide beginnen mit CONTROL-x.  Es gibt eine ganze Reihe von
 Kommandos, die mit C-x beginnen; viele von ihnen haben mit Dateien,
 Puffern (s.u.) und ähnlichem zu tun.  All diese Befehle sind zwei,
 drei oder vier Zeichen lang -- Sie haben bereits C-x u kennengelernt.
@@ -801,6 +823,7 @@ haben:
         C-x C-b         zeige Pufferliste an
         C-x C-c         beende Emacs
         C-x u           widerrufen
+        C-x 1           lösche alle Fenster außer eines
 
 Ein Beispiel für einen Befehl mit langen Namen ist replace-string, der
 global (also in der ganzen Datei bzw. Puffer) eine Zeichenkette durch
@@ -875,7 +898,10 @@ oberhalb des Bildschirms.  Ist der Dateianfang zu sehen, dann
 erscheint `--Top--' anstelle von `--00%--'.  Analog dazu erscheint
 `--Bot--' (für das englische Wort `bottom'), wenn das Dateiende
 sichtbar ist.  Wenn Sie einen Text betrachten, der komplett auf den
-Bildschirm paßt, dann erscheint `--All--'.
+Bildschirm paßt, dann erscheint `--All--'.]
+
+Das `L' und die nachfolgenden Ziffern geben die aktuelle Zeilennummer
+an, in denen sich der Cursor befindet.
 
 Am Anfang der Zeile sehen Sie `-1:**'.  Die Zeichen vor dem
 Doppelpunkt geben an, in welcher Kodierung der Text ist und welche
@@ -924,14 +950,14 @@ den Textmodus verwenden.  [Falls Ihre Tastatur keine Umlaut-Tasten
 hat, müssen Sie noch einen weiteren Nebenmodus aktivieren.  Lesen Sie
 dazu den Abschnitt `MULE' weiter unten.]
 
->> Geben Sie `M-x text-mode<Return>' ein.
+>> Geben Sie `M-x text mode<Return>' ein.
 
 Sie brauchen keine Angst zu haben, daß sich die bisher dargestellte
-Tastaturbelegung stark ändert.  Beobachten Sie z.B. die Befehle M-f
-und M-b: Apostrophe werden nun als Teil eines Wortes betrachtet (wie
-man's leicht an diesem Beispiel ausprobieren kann), wohingegen im
-Fundamentalmodus Apostrophe als Worttrenner (`word-separator')
-behandelt werden.
+Tastaturbelegung von Emacs stark ändert.  Beobachten Sie z.B. die
+Befehle M-f und M-b: Apostrophe werden nun als Teil eines Wortes
+betrachtet (wie man's leicht an diesem Beispiel ausprobieren kann),
+wohingegen im Fundamentalmodus Apostrophe als Worttrenner
+(`word-separator') behandelt werden.
 
 Normalerweise ist das eben genannte Beispiel die Methode von
 Hauptmodi: Die meisten Befehle tun `das gleiche', arbeiten aber
@@ -959,11 +985,11 @@ Editieren von Text, ist der automatische Zeilenumbruch (`Auto Fill
 mode').  Ist dieser Modus aktiviert, dann bricht Emacs die laufende
 Zeile selbsttätig zwischen Wörtern um, sobald sie zu lang wird.
 
-Sie können den Zeilenumbruchmodus einschalten mittels `M-x
-auto-fill-mode<Return>'.  Wenn der Modus aktiviert ist, können Sie ihn
-mit dem gleichen Befehl wieder ausschalten.  Mit anderen Worten, der
-Befehl verhält sich wie ein Lichttaster, der bei Betätigung entweder
-das Licht ein- oder ausschaltet, je nachdem, ob das Licht vorher
+Sie können den Zeilenumbruchmodus einschalten mittels `M-x auto fill
+mode<Return>'.  Wenn der Modus aktiviert ist, können Sie ihn mit dem
+gleichen Befehl wieder ausschalten.  Mit anderen Worten, der Befehl
+verhält sich wie ein Lichttaster, der bei Betätigung entweder das
+Licht ein- oder ausschaltet, je nachdem, ob das Licht vorher
 ausgeschaltet bzw. eingeschaltet war.  Wir sagen, daß dieser Befehl
 den Modus umschaltet (`toggle').
 
@@ -1051,8 +1077,8 @@ ersten "c".  Drücken Sie dagegen ein paar mal C-s, um weitere
 letzten Auftreten von "cu" zurückspringen, und erst wenn es kein
 weiteres "cu" mehr gibt, springt der Cursor zum ersten "c" zurück.
 
-Die Suche wird ebenfalls beendet, wenn Sie ein Control- oder
-Meta-Zeichen eingeben (mit ein paar Ausnahmen -- Zeichen, die
+Die Suche wird ebenfalls beendet, wenn Sie ein CONTROL- oder
+META-Zeichen eingeben (mit ein paar Ausnahmen -- Zeichen, die
 bei einer Suche speziell gehandhabt werden wie C-s oder C-r).
 
 C-s versucht, die Zeichenkette NACH der aktuellen Cursorposition zu
@@ -1074,7 +1100,7 @@ als ein Fenster zur gleichen Zeit auf dem Bildschirm darzustellen.
    bleibt im oberen.
 
 >> Verwenden Sie C-M-v, um im unteren Fenster zu blättern (Sie können
-   statt dessen auch ESC C-v verwenden, falls Sie keine Meta-Taste
+   statt dessen auch ESC C-v verwenden, falls Sie keine META-Taste
    haben; siehe auch weiter unten).
 
 >> Mittels C-x o (das `o' steht für das englische Wort `other', `das
@@ -1112,8 +1138,8 @@ ist, daß ESC ein eigenes Zeichen ist und keine Modifizier-Taste wie
 META oder CTRL.
 
 Der umgekehrte Befehl zu M-C-v ist M-C-S-v, um im anderen Fenster
-rückwärts zu blättern (d.h., Sie müssen die Meta-Taste sowie die
-Control- und Shift-Taste zusammen mit `v' betätigen) -- jetzt werden
+rückwärts zu blättern (d.h., Sie müssen die META-Taste sowie die
+CONTROL- und SHIFT-Taste zusammen mit `v' betätigen) -- jetzt werden
 Sie wahrscheinlich verstehen, warum manche Kritiker das Wort Emacs als
 Abkürzung von Escape-Meta-Alt-Control-Shift betrachten.  Leider
 funktioniert diese Befehlsfolge normalerweise nur mit dem X Window
@@ -1427,8 +1453,8 @@ Probleme mit der Adaption von GNU-Programmen an das Deutsche
 diskutiert werden.
 
 
-RECHTLICHES
------------
+* RECHTLICHES
+-------------
 
 Die englische Version dieser Einführung hat eine lange Vorgeschichte.
 Stuart Cracraft hat für die Urversion von Emacs das erste Tutorial
