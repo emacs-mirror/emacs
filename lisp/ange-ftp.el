@@ -1383,6 +1383,10 @@ then kill the related ftp process."
   "Quote any characters in STRING that may confuse the ftp process."
   (apply (function concat)
 	 (mapcar (function
+		  ;; This is said to be wrong; ftp is said to
+		  ;; need quoting only for ", and that by doubling it.
+		  ;; But experiment says this kind of quoting is correct
+		  ;; when talking to ftp on GNU/Linux systems.
 		   (lambda (char)
 		     (if (or (<= char ? )
 			     (> char ?\~)
@@ -1971,6 +1975,8 @@ Create a new process if needed."
 	 (proc (get-process name)))
     (if (and proc (memq (process-status proc) '(run open)))
 	proc
+      ;; Must delete dead process so that new process can reuse the name.
+      (if proc (delete-process proc))
       (let ((pass (ange-ftp-quote-string
 		   (ange-ftp-get-passwd host user)))
 	    (account (ange-ftp-quote-string
