@@ -782,7 +782,7 @@ The Init File, @file{~/.emacs}
 
 Dealing with Emacs Trouble
 
-* DEL Gets Help::       What to do if @key{DEL} doesn't delete.
+* DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::     `[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.

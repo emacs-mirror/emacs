@@ -128,19 +128,19 @@ in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
 @kbd{C-h P} to read the @file{PROBLEMS} file.
 
 @menu
-* DEL Doesn't Delete::  What to do if @key{DEL} doesn't delete.
-* Stuck Recursive::     `[...]' in mode line around the parentheses.
-* Screen Garbled::      Garbage on the screen.
-* Text Garbled::        Garbage in the text.
-* Unasked-for Search::  Spontaneous entry to incremental search.
-* Memory Full::         How to cope when you run out of memory.
-* After a Crash::       Recovering editing in an Emacs session that crashed.
-* Emergency Escape::    Emergency escape---
-                          What to do if Emacs stops responding.
-* Total Frustration::   When you are at your wits' end.
+* DEL Does Not Delete::  What to do if @key{DEL} doesn't delete.
+* Stuck Recursive::       `[...]' in mode line around the parentheses.
+* Screen Garbled::        Garbage on the screen.
+* Text Garbled::          Garbage in the text.
+* Unasked-for Search::    Spontaneous entry to incremental search.
+* Memory Full::           How to cope when you run out of memory.
+* After a Crash::         Recovering editing in an Emacs session that crashed.
+* Emergency Escape::      Emergency escape---
+                            What to do if Emacs stops responding.
+* Total Frustration::     When you are at your wits' end.
 @end menu
 
-@node DEL Doesn't Delete
+@node DEL Does Not Delete
 @subsection If @key{DEL} Fails to Delete
 @cindex @key{DEL} vs @key{BACKSPACE}
 @cindex @key{BACKSPACE} vs @key{DEL}

@@ -137,7 +137,7 @@ equivalent to @key{DEL}.  As a result, @key{BACKSPACE} and/or @key{DELETE}
 keys normally do the right things.  But in some unusual cases Emacs
 gets the wrong information from the system.  If these keys don't do
 what they ought to do, you need to tell Emacs which key to use for
-@key{DEL}.  @xref{DEL Doesn't Delete}, for how to do this.
+@key{DEL}.  @xref{DEL Does Not Delete}, for how to do this.
 
 @findex normal-erase-is-backspace-mode
   On most text-only terminals, Emacs cannot tell which keys the
@@ -146,7 +146,7 @@ fit your keyboard.  The uniform plan is that the ASCII @key{DEL}
 character deletes, and the ASCII @key{BS} (backspace) character asks
 for help (it is the same as @kbd{C-h}).  If this is not right for your
 keyboard, such as if you find that the key which ought to delete backwards
-enters Help instead, see @ref{DEL Doesn't Delete}.
+enters Help instead, see @ref{DEL Does Not Delete}.
 
 @kindex M-\
 @findex delete-horizontal-space

@@ -60,7 +60,7 @@ be @key{DEL}, and sets it up that way.  But in some cases, especially
 with text-only terminals, you will need to tell Emacs which key to use
 for that purpose.  If the large key not far above the @key{RET} or
 @key{ENTER} key doesn't delete backwards, you need to do this.
-@xref{DEL Doesn't Delete}, for an explanation of how.
+@xref{DEL Does Not Delete}, for an explanation of how.
 
   Most PC keyboards have both a @key{BACKSPACE} key a short ways above
 @key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  On these
