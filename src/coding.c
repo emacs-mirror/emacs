@@ -3467,7 +3467,13 @@ code_convert_region (b, e, coding, encodep)
 				   &consumed));
 
       TEMP_SET_PT_BOTH (shrunk_beg, shrunk_beg_byte);
-      insert (buf, produced);
+
+      if (encodep)
+	/* If we just encoded, treat the result as single-byte.  */
+	insert_1_both (buf, produced, produced, 0, 1, 0);
+      else
+	insert (buf, produced);
+
       del_range_byte (PT_BYTE, PT_BYTE + shrunk_len_byte, 1);
 
       if (opoint >= end)
@@ -3539,14 +3545,14 @@ code_convert_string (str, coding, encodep, nocopy)
          is in a buffer, after setting a temporary buffer, call
          code_convert_region.  */
       int count = specpdl_ptr - specpdl;
-      int len = XSTRING (str)->size;
+      int len = XSTRING (str)->size_byte;
       Lisp_Object result;
       struct buffer *old = current_buffer;
 
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       temp_output_buffer_setup (" *code-converting-work*");
       set_buffer_internal (XBUFFER (Vstandard_output));
-      insert_from_string (str, 0, len, 0);
+      insert_from_string (str, 0, 0, XSTRING (str)->size, len, 0);
       code_convert_region (make_number (BEGV), make_number (ZV),
 			   coding, encodep);
       result = make_buffer_string (BEGV, ZV, 0);
@@ -3556,15 +3562,16 @@ code_convert_string (str, coding, encodep, nocopy)
 
   /* We may be able to shrink the conversion region.  */
   begp = XSTRING (str)->data;
-  endp = begp + XSTRING (str)->size;
+  endp = begp + XSTRING (str)->size_byte;
   shrink_conversion_area (&begp, &endp, coding, encodep);
 
   if (begp == endp)
     /* We need no conversion.  */
     return (NILP (nocopy) ? Fcopy_sequence (str) : str);
 
+  /* We assume that head_skip and tail_skip count single-byte characters.  */
   head_skip = begp - XSTRING (str)->data;
-  tail_skip = XSTRING (str)->size - head_skip - (endp - begp);
+  tail_skip = XSTRING (str)->size_byte - head_skip - (endp - begp);
 
   GCPRO1 (str);
 
@@ -3587,6 +3594,11 @@ code_convert_string (str, coding, encodep, nocopy)
 
   UNGCPRO;
 
+  if (encodep)
+    /* When encoding, the result is all single-byte characters.  */
+    return make_unibyte_string (buf, head_skip + produced + tail_skip);
+
+  /* When decoding, count properly the number of chars in the string.  */
   return make_string (buf, head_skip + produced + tail_skip);
 }
 
