@@ -1227,7 +1227,7 @@ and nil is returned.")
   (count)
      Lisp_Object count;
 {
-  int val;
+  int val, prompt_end;
   CHECK_NUMBER (count, 0);
 
   if (!(val = scan_words (PT, XINT (count))))
@@ -1236,16 +1236,15 @@ and nil is returned.")
       return Qnil;
     }
 
-  /* If in a mini-buffer and moving backwards, stop in front of the
-     prompt if we are currently in front of it.  This prevents
-     accidentially moving into the read-only prompt.  */
-  if (INTEGERP (current_buffer->minibuffer_prompt_length))
-    {
-      int prompt_end = XFASTINT (current_buffer->minibuffer_prompt_length);
-      if (PT > prompt_end && val < prompt_end)
-	val = prompt_end;
-    }
-  
+  /* If in a mini-buffer and moving backwards, stop at the end of the
+     prompt.  This prevents accidentially moving into the read-only
+     prompt.  */
+  if (INTEGERP (current_buffer->minibuffer_prompt_length)
+      && (prompt_end = XINT (current_buffer->minibuffer_prompt_length),
+	  ((PT > prompt_end && val < prompt_end)
+	   || (PT < prompt_end && val > prompt_end))))
+    val = prompt_end;
+    
   SET_PT (val);
   return Qt;
 }
