@@ -1,3 +1,25 @@
+2003-02-05  Juanma Barranquero  <lektu@terra.es>
+
+	* font-lock.el (font-lock-reference-face): Add obsolescence
+	declaration and remove redundant info from docstring.
+
+	* log-edit.el (cvs-commit-buffer-require-final-newline)
+	(cvs-changelog-full-paragraphs): Likewise.
+
+	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button)
+	(mouse-wheel-click-button): Likewise.
+
+	* pcvs-defs.el (cvs-diff-ignore-marks, cvs-diff-buffer-name): Likewise.
+
+	* vc.el (vc-annotate-display, vc-checkout-carefully): Likewise.
+
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates)
+	(vc-header-alist): Likewise.
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-keymap): Likewise.
+
+	* textmodes/outline.el (outline-visible): Likewise.
+
 2003-02-05  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-define-mode-map):
