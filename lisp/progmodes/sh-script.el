@@ -609,8 +609,13 @@ See `sh-feature'.")
     (rc eval identity es)
 
     (sh eval sh-append shell
+	;; Variable names.
 	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
-	  font-lock-variable-name-face))
+	  font-lock-variable-name-face)
+	;; Function names.
+	'("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
+	'("\\<\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
+	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
 
     ;; The next entry is only used for defining the others
     (shell eval sh-append executable-font-lock-keywords
