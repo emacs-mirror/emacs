@@ -123,7 +123,7 @@ Floating-point numbers of equal value are `eql', but they may not be `eq'."
 ;;; can safely be used in .emacs files.
 
 (defmacro incf (place &optional x)
-  "(incf PLACE [X]): increment PLACE by X (1 by default).
+  "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE."
   (if (symbolp place)
@@ -131,7 +131,7 @@ The return value is the incremented value of PLACE."
     (list 'callf '+ place (or x 1))))
 
 (defmacro decf (place &optional x)
-  "(decf PLACE [X]): decrement PLACE by X (1 by default).
+  "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE."
   (if (symbolp place)
@@ -139,7 +139,7 @@ The return value is the decremented value of PLACE."
     (list 'callf '- place (or x 1))))
 
 (defmacro pop (place)
-  "(pop PLACE): remove and return the head of the list stored in PLACE.
+  "Remove and return the head of the list stored in PLACE.
 Analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE))), though more
 careful about evaluating each argument only once and in the right order.
 PLACE may be a symbol, or any generalized variable allowed by `setf'."
@@ -148,7 +148,7 @@ PLACE may be a symbol, or any generalized variable allowed by `setf'."
     (cl-do-pop place)))
 
 (defmacro push (x place)
-  "(push X PLACE): insert X at the head of the list stored in PLACE.
+  "Insert X at the head of the list stored in PLACE.
 Analogous to (setf PLACE (cons X PLACE)), though more careful about
 evaluating each argument only once and in the right order.  PLACE may
 be a symbol, or any generalized variable allowed by `setf'."

@@ -127,7 +127,7 @@ and BODY is implicitly surrounded by (block NAME ...)."
     (if (car res) (list 'progn (car res) form) form)))
 
 (defmacro function* (func)
-  "(function* SYMBOL-OR-LAMBDA): introduce a function.
+  "Introduce a function.
 Like normal `function', except that if argument is a lambda form, its
 ARGLIST allows full Common Lisp conventions."
   (if (eq (car-safe func) 'lambda)
@@ -352,13 +352,13 @@ If `load' is in WHEN, BODY is evaluated when loaded after top-level compile.
 If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level."
   (if (and (fboundp 'cl-compiling-file) (cl-compiling-file)
 	   (not cl-not-toplevel) (not (boundp 'for-effect)))  ; horrible kludge
-      (let ((comp (or (memq 'compile when) (memq ':compile-toplevel when)))
+      (let ((comp (or (memq 'compile when) (memq :compile-toplevel when)))
 	    (cl-not-toplevel t))
-	(if (or (memq 'load when) (memq ':load-toplevel when))
+	(if (or (memq 'load when) (memq :load-toplevel when))
 	    (if comp (cons 'progn (mapcar 'cl-compile-time-too body))
 	      (list* 'if nil nil body))
 	  (progn (if comp (eval (cons 'progn body))) nil)))
-    (and (or (memq 'eval when) (memq ':execute when))
+    (and (or (memq 'eval when) (memq :execute when))
 	 (cons 'progn body))))
 
 (defun cl-compile-time-too (form)
@@ -369,7 +369,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level."
 	 (cons 'progn (mapcar 'cl-compile-time-too (cdr form))))
 	((eq (car-safe form) 'eval-when)
 	 (let ((when (nth 1 form)))
-	   (if (or (memq 'eval when) (memq ':execute when))
+	   (if (or (memq 'eval when) (memq :execute when))
 	       (list* 'eval-when (cons 'compile when) (cddr form))
 	     form)))
 	(t (eval form) form)))
@@ -397,7 +397,7 @@ The result of the body appears to the compiler as a quoted constant."
 ;;; Conditional control structures.
 
 (defmacro case (expr &rest clauses)
-  "(case EXPR CLAUSES...): evals EXPR, chooses from CLAUSES on that value.
+  "Eval EXPR and choose from CLAUSES on that value.
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
 against each key in each KEYLIST; the corresponding BODY is evaluated.
 If no clause succeeds, case returns nil.  A single atom may be used in
@@ -430,12 +430,12 @@ Key values are compared by `eql'."
       (list 'let (list (list temp expr)) body))))
 
 (defmacro ecase (expr &rest clauses)
-  "(ecase EXPR CLAUSES...): like `case', but error if no case fits.
+  "Like `case', but error if no case fits.
 `otherwise'-clauses are not allowed."
   (list* 'case expr (append clauses '((ecase-error-flag)))))
 
 (defmacro typecase (expr &rest clauses)
-  "(typecase EXPR CLAUSES...): evals EXPR, chooses from CLAUSES on that value.
+  "Evals EXPR, chooses from CLAUSES on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
 typecase returns nil.  A TYPE of `t' or `otherwise' is allowed only in the
@@ -460,7 +460,7 @@ final clause, and matches if no other keys match."
       (list 'let (list (list temp expr)) body))))
 
 (defmacro etypecase (expr &rest clauses)
-  "(etypecase EXPR CLAUSES...): like `typecase', but error if no case fits.
+  "Like `typecase', but error if no case fits.
 `otherwise'-clauses are not allowed."
   (list* 'typecase expr (append clauses '((ecase-error-flag)))))
 
@@ -468,7 +468,7 @@ final clause, and matches if no other keys match."
 ;;; Blocks and exits.
 
 (defmacro block (name &rest body)
-  "(block NAME BODY...): define a lexically-scoped block named NAME.
+  "Define a lexically-scoped block named NAME.
 NAME may be any symbol.  Code inside the BODY forms can call `return-from'
 to jump prematurely out of the block.  This differs from `catch' and `throw'
 in two respects:  First, the NAME is an unevaluated symbol rather than a
@@ -502,19 +502,19 @@ called from BODY."
     (if cl-found (setcdr cl-found t)))
   (byte-compile-normal-call (cons 'throw (cdr cl-form))))
 
-(defmacro return (&optional res)
-  "(return [RESULT]): return from the block named nil.
+(defmacro return (&optional result)
+  "Return from the block named nil.
 This is equivalent to `(return-from nil RESULT)'."
-  (list 'return-from nil res))
+  (list 'return-from nil result))
 
-(defmacro return-from (name &optional res)
-  "(return-from NAME [RESULT]): return from the block named NAME.
+(defmacro return-from (name &optional result)
+  "Return from the block named NAME.
 This jump out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp."
   (let ((name2 (intern (format "--cl-block-%s--" name))))
-    (list 'cl-block-throw (list 'quote name2) res)))
+    (list 'cl-block-throw (list 'quote name2) result)))
 
 
 ;;; The "loop" macro.
@@ -1168,7 +1168,7 @@ before assigning any symbols SYM to the corresponding values."
 ;;; Binding control structures.
 
 (defmacro progv (symbols values &rest body)
-  "(progv SYMBOLS VALUES BODY...): bind SYMBOLS to VALUES dynamically in BODY.
+  "Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each SYMBOL in the first list is bound to the corresponding VALUE in the
 second list (or made unbound if VALUES is shorter than SYMBOLS); then the
@@ -1253,7 +1253,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...)."
 
 (defvar cl-closure-vars nil)
 (defmacro lexical-let (bindings &rest body)
-  "(lexical-let BINDINGS BODY...): like `let', but lexically scoped.
+  "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp."
   (let* ((cl-closure-vars cl-closure-vars)
@@ -1295,7 +1295,7 @@ lexical closures as in Common Lisp."
 	    ebody))))
 
 (defmacro lexical-let* (bindings &rest body)
-  "(lexical-let* BINDINGS BODY...): like `let*', but lexically scoped.
+  "Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp."
   (if (null bindings) (cons 'progn body)
@@ -1528,7 +1528,7 @@ Example: (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))."
 (defsetf gethash (x h &optional d) (store) (list 'cl-puthash x store h))
 (defsetf nth (n x) (store) (list 'setcar (list 'nthcdr n x) store))
 (defsetf subseq (seq start &optional end) (new)
-  (list 'progn (list 'replace seq new ':start1 start ':end1 end) new))
+  (list 'progn (list 'replace seq new :start1 start :end1 end) new))
 (defsetf symbol-function fset)
 (defsetf symbol-plist setplist)
 (defsetf symbol-value set)
@@ -1819,7 +1819,7 @@ before assigning any PLACEs to the corresponding values."
 		  (cl-setf-do-store (nth 1 method) (list 'cdr temp)))))))
 
 (defmacro remf (place tag)
-  "(remf PLACE TAG): remove TAG from property list PLACE.
+  "Remove TAG from property list PLACE.
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The form returns true if TAG was found and removed, nil otherwise."
   (let* ((method (cl-setf-do-modify place t))
@@ -1978,7 +1978,7 @@ Like `callf', but PLACE is the second argument of FUNC, not the first."
 				       rargs)))))))
 
 (defmacro define-modify-macro (name arglist func &optional doc)
-  "(define-modify-macro NAME ARGLIST FUNC): define a `setf'-like modify macro.
+  "Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other arguments
 from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
   (if (memq '&key arglist) (error "&key not allowed in define-modify-macro"))
@@ -2025,31 +2025,31 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors."
     (while opts
       (let ((opt (if (consp (car opts)) (caar opts) (car opts)))
 	    (args (cdr-safe (cl-pop opts))))
-	(cond ((eq opt ':conc-name)
+	(cond ((eq opt :conc-name)
 	       (if args
 		   (setq conc-name (if (car args)
 				       (symbol-name (car args)) ""))))
-	      ((eq opt ':constructor)
+	      ((eq opt :constructor)
 	       (if (cdr args)
 		   (cl-push args constrs)
 		 (if args (setq constructor (car args)))))
-	      ((eq opt ':copier)
+	      ((eq opt :copier)
 	       (if args (setq copier (car args))))
-	      ((eq opt ':predicate)
+	      ((eq opt :predicate)
 	       (if args (setq predicate (car args))))
-	      ((eq opt ':include)
+	      ((eq opt :include)
 	       (setq include (car args)
 		     include-descs (mapcar (function
 					    (lambda (x)
 					      (if (consp x) x (list x))))
 					   (cdr args))))
-	      ((eq opt ':print-function)
+	      ((eq opt :print-function)
 	       (setq print-func (car args)))
-	      ((eq opt ':type)
+	      ((eq opt :type)
 	       (setq type (car args)))
-	      ((eq opt ':named)
+	      ((eq opt :named)
 	       (setq named t))
-	      ((eq opt ':initial-offset)
+	      ((eq opt :initial-offset)
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
 	      (t
@@ -2140,7 +2140,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors."
 				   (list 'nth pos 'cl-x)))))) forms)
 	      (cl-push (cons accessor t) side-eff)
 	      (cl-push (list 'define-setf-method accessor '(cl-x)
-			     (if (cadr (memq ':read-only (cddr desc)))
+			     (if (cadr (memq :read-only (cddr desc)))
 				 (list 'error (format "%s is a read-only slot"
 						      accessor))
 			       (list 'cl-struct-setf-expander 'cl-x
@@ -2229,12 +2229,12 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors."
 
 ;;; Types and assertions.
 
-(defmacro deftype (name args &rest body)
-  "(deftype NAME ARGLIST BODY...): define NAME as a new data type.
+(defmacro deftype (name arglist &rest body)
+  "Define NAME as a new data type.
 The type name can then be used in `typecase', `check-type', etc."
   (list 'eval-when '(compile load eval)
 	(cl-transform-function-property
-	 name 'cl-deftype-handler (cons (list* '&cl-defs ''('*) args) body))))
+	 name 'cl-deftype-handler (cons (list* '&cl-defs ''('*) arglist) body))))
 
 (defun cl-make-type-test (val type)
   (if (memq type '(character string-char)) (setq type '(integer 0 255)))
@@ -2404,7 +2404,7 @@ Otherwise, return result of last FORM."
 ;;; Compiler macros.
 
 (defmacro define-compiler-macro (func args &rest body)
-  "(define-compiler-macro FUNC ARGLIST BODY...): Define a compiler-only macro.
+  "Define a compiler-only macro.
 This is like `defmacro', but macro expansion occurs only if the call to
 FUNC is compiled (i.e., not interpreted).  Compiler macros should be used
 for optimizing the way calls to FUNC are compiled; the form returned by
@@ -2505,7 +2505,7 @@ surrounded by (block NAME ...)."
 	(t form)))
 
 (define-compiler-macro member* (&whole form a list &rest keys)
-  (let ((test (and (= (length keys) 2) (eq (car keys) ':test)
+  (let ((test (and (= (length keys) 2) (eq (car keys) :test)
 		   (cl-const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) (list 'memq a list))
 	  ((eq test 'equal) (list 'member a list))
@@ -2527,7 +2527,7 @@ surrounded by (block NAME ...)."
 	  (t form))))
 
 (define-compiler-macro assoc* (&whole form a list &rest keys)
-  (let ((test (and (= (length keys) 2) (eq (car keys) ':test)
+  (let ((test (and (= (length keys) 2) (eq (car keys) :test)
 		   (cl-const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) (list 'assq a list))
 	  ((eq test 'equal) (list 'assoc a list))
@@ -2538,7 +2538,7 @@ surrounded by (block NAME ...)."
 
 (define-compiler-macro adjoin (&whole form a list &rest keys)
   (if (and (cl-simple-expr-p a) (cl-simple-expr-p list)
-	   (not (memq ':key keys)))
+	   (not (memq :key keys)))
       (list 'if (list* 'member* a list keys) list (list 'cons a list))
     form))
 
