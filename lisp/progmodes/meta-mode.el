@@ -685,92 +685,6 @@ If the list was changed, sort the list and remove duplicates first."
 
 
 
-;;; Filling paragraphs.
-
-(defun meta-fill-paragraph (&optional justify)
-  "Like \\[fill-paragraph], but handle Metafont or MetaPost comments.
-If any part of the current line is a comment, fill the comment or the
-paragraph of it that point is in, preserving the comment's indentation
-and initial semicolons."
-  (interactive "P")
-  (let (has-comment             ; Non-nil if line contains a comment.
-        has-code-and-comment    ; Non-nil if line contains code and a comment.
-        comment-fill-prefix     ; If has-comment, fill-prefix for the comment.
-        )
-    ;; Figure out what kind of comment we are looking at.
-    (save-excursion
-      (beginning-of-line)
-      (cond
-       ;; A line with nothing but a comment on it?
-       ((looking-at (concat "[ \t]*" comment-start-skip))
-        (setq has-comment t)
-        (setq comment-fill-prefix
-              (buffer-substring (match-beginning 0) (match-end 0))))
-       ;; A line with some code, followed by a comment?
-       ((condition-case nil
-            (save-restriction
-              (narrow-to-region (point-min)
-                                (save-excursion (end-of-line) (point)))
-              (while (not (looking-at (concat comment-start "\\|$")))
-                (skip-chars-forward (concat "^" comment-start "\n\"\\\\"))
-                (cond
-                 ((eq (char-after (point)) ?\\) (forward-char 2))
-                 ((eq (char-after (point)) ?\") (forward-sexp 1))))
-              (looking-at comment-start-skip))
-          (error nil))
-        (setq has-comment t
-              has-code-and-comment t)
-        (setq comment-fill-prefix
-              (concat (make-string (/ (current-column) 8) ?\t)
-                      (make-string (% (current-column) 8) ?\ )
-                      (buffer-substring (match-beginning 0) (match-end 0)))))
-       ))
-    (if (not has-comment)
-        (fill-paragraph justify)
-      ;; Narrow to include only the comment, and then fill the region.
-      (save-excursion
-        (save-restriction
-          (beginning-of-line)
-          (narrow-to-region
-           ;; Find the first line we should include in the region to fill.
-           (save-excursion
-             (while (and (zerop (forward-line -1))
-                         (looking-at (concat "^[ \t]*" comment-start))))
-             (or (looking-at (concat ".*" comment-start))
-                 (forward-line 1))
-             (point))
-           ;; Find the beginning of the first line past the region to fill.
-           (save-excursion
-             (while (progn (forward-line 1)
-                           (looking-at (concat "^[ \t]*" comment-start))))
-             (point)))
-          (let* ((paragraph-start
-                  (concat paragraph-start "\\|[ \t%]*$"))
-                 (paragraph-separate
-                  (concat paragraph-start "\\|[ \t%]*$"))
-                 (paragraph-ignore-fill-prefix nil)
-                 (fill-prefix comment-fill-prefix)
-                 (after-line (if has-code-and-comment
-                                 (save-excursion (forward-line 1) (point))))
-                 (end (progn (forward-paragraph)
-                             (or (bolp) (newline 1))
-                             (point)))
-                 (beg (progn (backward-paragraph)
-                             (if (eq (point) after-line) (forward-line -1))
-                             (point)))
-                 (after-pos  (save-excursion
-                               (goto-char beg)
-                               (if (not (looking-at fill-prefix))
-                                   (progn
-                                     (re-search-forward comment-start-skip)
-                                     (point)))))
-                 )
-            (fill-region-as-paragraph beg end justify nil after-pos))
-          )))
-    t))
-
-
-
 ;;; Editing commands.
 
 (defcustom meta-begin-defun-regexp
@@ -1041,8 +955,6 @@ The environment marked is the one that contains point or follows point."
 
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'meta-comment-indent)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'meta-fill-paragraph)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'meta-indent-line)
   ;; No need to define a mode-specific 'indent-region-function.
