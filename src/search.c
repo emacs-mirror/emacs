@@ -857,7 +857,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
      int posix;
 {
   register int np;
-  int lim;
+  int lim, lim_byte;
   int n = direction;
 
   if (!NILP (count))
@@ -868,20 +868,26 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 
   CHECK_STRING (string, 0);
   if (NILP (bound))
-    lim = n > 0 ? ZV : BEGV;
+    {
+      if (n > 0)
+	lim = ZV, lim_byte = ZV_BYTE;
+      else
+	lim = BEGV, lim_byte = BEGV_BYTE;
+    }
   else
     {
       CHECK_NUMBER_COERCE_MARKER (bound, 1);
       lim = XINT (bound);
+      lim_byte = CHAR_TO_BYTE (lim);
       if (n > 0 ? lim < PT : lim > PT)
 	error ("Invalid search bound (wrong side of point)");
       if (lim > ZV)
-	lim = ZV;
+	lim = ZV, lim_byte = ZV_BYTE;
       if (lim < BEGV)
-	lim = BEGV;
+	lim = BEGV, lim_byte = BEGV_BYTE;
     }
 
-  np = search_buffer (string, PT, lim, n, RE,
+  np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
 		       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents
 		       : 0),
@@ -897,7 +903,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 	{
 	  if (lim < BEGV || lim > ZV)
 	    abort ();
-	  SET_PT (lim);
+	  SET_PT_BOTH (lim, lim_byte);
 	  return Qnil;
 #if 0 /* This would be clean, but maybe programs depend on
 	 a value of nil here.  */
@@ -965,10 +971,13 @@ trivial_regexp_p (regexp)
    for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 static int
-search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
+search_buffer (string, pos, pos_byte, lim, lim_byte, n,
+	       RE, trt, inverse_trt, posix)
      Lisp_Object string;
      int pos;
+     int pos_byte;
      int lim;
+     int lim_byte;
      int n;
      int RE;
      Lisp_Object *trt;
@@ -1005,8 +1014,6 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
   if (RE && !trivial_regexp_p (string))
     {
       struct re_pattern_buffer *bufp;
-      int pos_byte = CHAR_TO_BYTE (pos);
-      int lim_byte = CHAR_TO_BYTE (lim);
 
       bufp = compile_pattern (string, &search_regs, trt, posix,
 			      !NILP (current_buffer->enable_multibyte_characters));
@@ -1105,8 +1112,6 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
     }
   else				/* non-RE case */
     {
-      int pos_byte = CHAR_TO_BYTE (pos);
-      int lim_byte = CHAR_TO_BYTE (lim);
 #ifdef C_ALLOCA
       int BM_tab_space[0400];
       BM_tab = &BM_tab_space[0];
