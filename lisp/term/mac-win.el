@@ -246,6 +246,12 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 ;; (prefer-coding-system 'mac-roman)
 
+;; Map certain keypad keys into ASCII characters that people usually expect
+(define-key function-key-map [return] [?\C-m])
+(define-key function-key-map [M-return] [?\M-\C-m])
+;; Tell read-char how to convert special chars to ASCII
+(put 'return 'ascii-character 13)
+
 ;;
 ;; Available colors
 ;;

@@ -1,3 +1,8 @@
+2002-10-04  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (keycode_to_xkeysym_table): Change return to be 
+	treated like an X keysym
+
 2002-10-03  Jan D.  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket): For ConfigureNotify, with x and y == 0,

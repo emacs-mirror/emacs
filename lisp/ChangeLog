@@ -1,3 +1,7 @@
+2002-10-04  Steven Tamm  <steventamm@mac.com>
+
+	* term/mac-win.el: Add lines to handle the new [return] event.
+
 2002-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-paragraph): Give up if there's no
