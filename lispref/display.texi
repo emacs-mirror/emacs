@@ -1463,7 +1463,7 @@ This variable specifies a list of directories for searching
 for bitmap files, for the @code{:stipple} attribute.
 @end defvar
 
-@defun pixmap-spec-p object
+@defun bitmap-spec-p object
 This returns @code{t} if @var{object} is a valid bitmap
 specification, suitable for use with @code{:stipple}.
 It returns @code{nil} otherwise.
