@@ -364,6 +364,7 @@ Lisp_Object Qframe_update_face_colors;
 
 Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
+Lisp_Object Qmode_line_inactive;
 extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
@@ -6106,6 +6107,7 @@ realize_basic_faces (f)
   if (realize_default_face (f))
     {
       realize_named_face (f, Qmode_line, MODE_LINE_FACE_ID);
+      realize_named_face (f, Qmode_line_inactive, MODE_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qfringe, FRINGE_FACE_ID);
       realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
@@ -7204,6 +7206,8 @@ syms_of_xfaces ()
   staticpro (&Qborder);
   Qmouse = intern ("mouse");
   staticpro (&Qmouse);
+  Qmode_line_inactive = intern ("mode-line-inactive");
+  staticpro (&Qmode_line_inactive);
   Qtty_color_desc = intern ("tty-color-desc");
   staticpro (&Qtty_color_desc);
   Qtty_color_by_index = intern ("tty-color-by-index");
