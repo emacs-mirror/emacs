@@ -414,7 +414,10 @@ release the mouse button.  Otherwise, it does not."
 				     mouse-drag-overlay start-point)))))))))
       (if (consp event)
 	  (let ((fun (key-binding (vector (car event)))))
-	    (if (fboundp fun)
+	    ;; Run the binding of the terminating up-event, if possible.
+	    ;; In the case of a multiple click, it gives the wrong results,
+	    ;; because it would fail to set up a region.
+	    (if (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
 		(funcall fun event)
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
