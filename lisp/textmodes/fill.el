@@ -244,14 +244,16 @@ act as a paragraph-separator."
 		;; just use it (this subsumes the 2 checks used previously).
 		;; Used when first line is `/* ...' and second-line is
 		;; ` * ...'.
-		(string-match
-		 (concat "\\`"
-			 (mapconcat
-			  (lambda (c) (regexp-quote (string c)))
-			  (replace-regexp-in-string "[ \t]+" "" first-line-prefix)
-			  "?")
-			 "?\\'")
-		 (replace-regexp-in-string "[ \t]+" "" second-line-prefix))
+		(let ((flp (replace-regexp-in-string
+			    "[ \t]+" "" first-line-prefix)))
+		  (if (equal flp "")
+		      (string-match "\\`[ \t]*\\'" second-line-prefix)
+		    (string-match
+		     (concat "\\`"
+			     (mapconcat
+			      (lambda (c) (regexp-quote (string c))) flp "?")
+			     "?\\'")
+		     (replace-regexp-in-string "[ \t]+" "" second-line-prefix))))
 		second-line-prefix
 
 	      ;; Use the longest common substring of both prefixes,
