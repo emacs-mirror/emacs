@@ -2234,7 +2234,7 @@ make_lispy_event (event)
       /* A simple keystroke.  */
     case ascii_keystroke:
       {
-	int c = XFASTINT (event->code);
+	int c = XFASTINT (event->code) & 0377;
 	/* Turn ASCII characters into control characters
 	   when proper.  */
 	if (event->modifiers & ctrl_modifier)
