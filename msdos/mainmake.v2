@@ -91,12 +91,14 @@ install: all
 
 FRC:
 
+# We cannot use [a-zA-Z]* like the mainline distribution does, because
+# that causes all file names to be returned in upper-case on DOS...
 TAGS tags:	lib-src FRC
 	cd lib-src
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
 	cd lisp
-	../bin/etags [a-zA-Z]*.el [a-zA-Z]*/[a-zA-Z]*.el
+	../bin/etags .../*.el
 	cd ..
 	cd src
 	../bin/etags --include=../lisp/TAGS \
