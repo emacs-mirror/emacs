@@ -1,5 +1,8 @@
 2002-06-29  Andreas Schwab  <schwab@suse.de>
 
+	* simple.el (shell-command-on-region): Handle errors and signals
+	from shell command execution.
+
 	* dired.el (dired-view-file): Quote file name for
 	dired-run-shell-command.
 
