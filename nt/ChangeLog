@@ -1,3 +1,23 @@
+2000-09-03  Andrew Innes  <andrewi@gnu.org>
+
+	* addsection.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
+	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
+
+	* preprep.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
+	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
+
+	* gmake.defs (CFLAGS): No need for -D_ANONYMOUS_UNION
+	-D_ANONYMOUS_STRUCT on compile line.
+	(EMACS_EXTRA_C_FLAGS): No need for -DORDINARY_LINK.
+	(ARCH_CFLAGS): Change optimization flags to -O2.
+	(FOREACH, FORVAR, FORDO, ENDFOR): New definitions.
+	(ARGQUOTE, DQUOTE): New defines.
+
+	* nmake.defs (CFLAGS): No need for -D_ANONYMOUS_UNION
+	-D_ANONYMOUS_STRUCT on compile line.
+	(FOREACH, FORVAR, FORDO, ENDFOR): New definitions.
+	(ARGQUOTE, DQUOTE): New defines.
+
 2000-08-22  Andrew Innes  <andrewi@gnu.org>
 
 	* configure.bat: New file.

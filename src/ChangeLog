@@ -1,3 +1,13 @@
+2000-09-03  Andrew Innes  <andrewi@gnu.org>
+
+	* s/ms-w32.h (ORDINARY_LINK): New define.
+
+	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define
+	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
+
+	* makefile.w32-in (clean): Don't delete config.h and epaths.h.
+	(distclean): Delete them here instead.
+
 2000-09-03  Jason Rumney  <jasonr@gnu.org>
 
 	* ChangeLog: Remove -unix from coding. Let Emacs autodetect, as
