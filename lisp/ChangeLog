@@ -1,3 +1,17 @@
+2000-01-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Renamed from
+	eval-last-sexp.  Don't bind debug-on-error here.
+	(eval-last-sexp): New function.  Bind debug-on-error if
+	eval-expression-debug-on-error is non-nil.
+	(eval-defun-2, eval-defun): Likewise.
+
+	* simple.el (eval-expression): Don't bind debug-on-error if
+	eval-expression-debug-on-error is nil.  Detect changed
+	debug-on-error, and propagate new value to global binding, if
+	eval-expression-debug-on-error is non-nil,
+	(eval-expression-debug-on-error): Change doc string.
+	
 2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/edebug.el (with-syntax-table): Add a def-edebug-spec.
