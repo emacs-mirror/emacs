@@ -65,6 +65,10 @@
 (defvar cua--rectangle-overlays nil)
 (make-variable-buffer-local 'cua--rectangle-overlays)
 
+(defvar cua--overlay-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'cua-rotate-rectangle)))
+
 (defvar cua--virtual-edges-debug nil)
 
 ;; Per-buffer CUA mode undo list.
@@ -274,8 +278,10 @@ Knows about CUA rectangle highlighting in addition to standard undo."
     (move-to-column mc)
     (set-mark (point))
     (goto-char pp)
+    ;; Move cursor inside rectangle, except if char at rigth edge is a tab.
     (if (and (if (cua--rectangle-right-side)
-		 (= (move-to-column pc) (- pc tab-width))
+		 (and (= (move-to-column pc) (- pc tab-width))
+		      (not (eolp)))
 	       (> (move-to-column pc) pc))
 	     (not (bolp)))
 	(backward-char 1))
@@ -285,7 +291,11 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 
 (defun cua--forward-line (n)
   ;; Move forward/backward one line.  Returns t if movement.
-  (= (forward-line n) 0))
+  (let ((pt (point)))
+    (and (= (forward-line n) 0)
+	 ;; Deal with end of buffer
+	 (or (not (eobp))
+	     (goto-char pt)))))
 
 (defun cua--rectangle-resized ()
   ;; Refresh state after resizing rectangle
@@ -843,6 +853,7 @@ If command is repeated at same position, delete the rectangle."
  	     (overlay-put overlay 'before-string bs)
 	     (overlay-put overlay 'after-string as)
 	     (overlay-put overlay 'face rface)
+	     (overlay-put overlay 'keymap cua--overlay-keymap)
 	     (setq new (cons overlay new))))))
     ;; Trim old trailing overlays.
     (mapcar (function delete-overlay) old)
