@@ -541,11 +541,7 @@ Please send all bug fixes and enhancements to
 ;;   box       - text will be surrounded by a box.
 ;;   outline   - only the text border font will be printed.
 ;;
-;; See documentation for `ps-extend-face' and `ps-extend-face-list'.
-;;
-;; Besides remapping existing faces it is also possible to create new faces
-;; using `ps-new-faces' (see the documentation) for both the screen and
-;; printing presentation.
+;; See the documentation for `ps-extend-face' and `ps-extend-face-list'.
 ;;
 ;; Let's, for example, remap font-lock-keyword-face to another foreground color
 ;; and bold attribute:
@@ -560,24 +556,11 @@ Please send all bug fixes and enhancements to
 ;;       (font-lock-keyword-face       "RoyalBlue" nil underline))
 ;;     'MERGE)
 ;;
-;; And if we wish to create new faces and extend:
-;;
-;;    (ps-new-faces
-;;     ;; new faces for screen
-;;     '((my-obsolete-face "White"     "FireBrick" italic underline bold)
-;;       (my-keyword-face  "Blue")
-;;       (my-comment-face  "FireBrick" nil         italic)
-;;       (my-string-face   "Grey40"    nil         italic))
-;;     ;; face extension for printing
-;;     '((my-keyword-face nil nil bold)
-;;       (my-comment-face nil nil bold)
-;;       (font-lock-function-name-face "Blue"      nil bold)
-;;       (font-lock-variable-name-face "Sienna"    nil bold italic)
-;;       (font-lock-keyword-face       "RoyalBlue" nil underline))
-;;     'OVERRIDE 'MERGE)
-;;
 ;; Note: the only attributes that have effect on screen are: bold, italic and
 ;; underline. All other screen effect is ignored.
+;;
+;; If you want to use a new face, define it first with `defface',
+;; and then call `ps-extend-face' to specify how to print it.
 ;;
 ;;
 ;; How Ps-Print Has A Text And/Or Image On Background
@@ -2237,8 +2220,8 @@ An element of this list has the following form:
    FG foreground color (string or nil)
    BG background color (string or nil)
 
-This list should not be handled directly, but through `ps-new-faces',
-`ps-extend-face' and `ps-extend-face-list'.
+Don't change this list directly; instead, use
+`ps-extend-face' and `ps-extend-face-list' to change it.
 See documentation for `ps-extend-face' for valid extension symbol.
 See also `font-lock-face-attributes'.")
 
@@ -2268,47 +2251,6 @@ Each symbol correspond to one bit in a bit vector.")
 
 (defvar font-lock-face-attributes nil)
 
-
-;;;###autoload
-(defun ps-new-faces (face-screen &optional face-extension override-p merge-p)
-  "Create new faces from FACE-SCREEN.
-
-The FACE-SCREEN elements are added to `font-lock-face-attributes'.
-If optional OVERRIDE-P is non-nil, faces that already exist in
-`font-lock-face-attributes' are overrided.
-
-If optional MERGE-p is non-nil, extensions in FACE-EXTENSION are merged with
-face extension in `ps-print-face-extension-alist'; otherwise, overrides.
-
-The arguments FACE-SCREEN and FACE-EXTENSION are lists whose elements are:
-
-   (FACE-NAME FOREGROUND BACKGROUND EXTENSION...)
-
-FACE-NAME is a face name.
-
-FOREGROUND and BACKGROUND may be nil or a string that denotes the
-foreground and background colors respectively.
-
-EXTENSION is some valid extension symbol (see `ps-extend-face')."
-  (let ((mapfun (if override-p
-		    '(lambda (face)
-		       (let ((face-attributes (ps-extension-to-screen-face face)))
-			 (font-lock-make-face face-attributes)
-			 (ps-override-list 'font-lock-face-attributes
-					   face-attributes)
-			 (ps-override-list 'ps-print-face-extension-alist
-					   (ps-extension-to-bit-face face))))
-		  '(lambda (face)
-		     (let ((face-attributes (ps-extension-to-screen-face face)))
-		       (font-lock-make-face face-attributes)
-		       (add-to-list 'font-lock-face-attributes
-				    face-attributes)
-		       (add-to-list 'ps-print-face-extension-alist
-				    (ps-extension-to-bit-face face))))
-		  ))
-	maplist)
-    (mapcar mapfun face-screen)
-    (ps-extend-face-list face-extension merge-p)))
 
 
 (defun ps-override-list (sym-list element)
