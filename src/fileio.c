@@ -270,7 +270,7 @@ report_file_error (string, data)
 	/* System error messages are capitalized.  Downcase the initial
 	   unless it is followed by a slash.  */
 	if (SREF (errstring, 1) != '/')
-	  SREF (errstring, 0) = DOWNCASE (SREF (errstring, 0));
+	  SSET (errstring, 0, DOWNCASE (SREF (errstring, 0)));
 
 	Fsignal (Qfile_error,
 		 Fcons (build_string (string), Fcons (errstring, data)));
@@ -1301,8 +1301,8 @@ See also the function `substitute-in-file-name'.  */)
 	  if (strcmp (nm - 2, SDATA (name)) != 0)
 	    {
 	      name = make_string (nm - 2, p - nm + 2);
-	      SREF (name, 0) = DRIVE_LETTER (drive);
-	      SREF (name, 1) = ':';
+	      SSET (name, 0, DRIVE_LETTER (drive));
+	      SSET (name, 1, ':');
 	    }
 	  return name;
 #else /* not DOS_NT */
@@ -6015,22 +6015,22 @@ provides a file dialog box.  */)
   if (homedir != 0
       && STRINGP (dir)
       && !strncmp (homedir, SDATA (dir), strlen (homedir))
-      && IS_DIRECTORY_SEP (SDATA (dir)[strlen (homedir)]))
+      && IS_DIRECTORY_SEP (SREF (dir, strlen (homedir))))
     {
       dir = make_string (SDATA (dir) + strlen (homedir) - 1,
 			 SBYTES (dir) - strlen (homedir) + 1);
-      SREF (dir, 0) = '~';
+      SSET (dir, 0, '~');
     }
   /* Likewise for default_filename.  */
   if (homedir != 0
       && STRINGP (default_filename)
       && !strncmp (homedir, SDATA (default_filename), strlen (homedir))
-      && IS_DIRECTORY_SEP (SDATA (default_filename)[strlen (homedir)]))
+      && IS_DIRECTORY_SEP (SREF (default_filename, strlen (homedir))))
     {
       default_filename
 	= make_string (SDATA (default_filename) + strlen (homedir) - 1,
 		       SBYTES (default_filename) - strlen (homedir) + 1);
-      SREF (default_filename, 0) = '~';
+      SSET (default_filename, 0, '~');
     }
   if (!NILP (default_filename))
     {
