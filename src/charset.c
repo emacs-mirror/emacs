@@ -1,5 +1,5 @@
 /* Basic multilingual character support.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -91,6 +91,9 @@ int n_cmpchars;
 /* Variables used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
 int _fetch_multibyte_char_len;
+
+/* Offset to add to a non-ASCII value when inserting it.  */
+int nonascii_insert_offset;
 
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
@@ -267,6 +270,26 @@ unify_char (table, c, charset, c1, c2)
   return MAKE_CHAR (alt_charset, c1, c2);
 }
 
+#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
+
+/* Convert the unibyte character C to multibyte
+   based on nonascii_insert_offset.  Note that copy_text in insdel.c
+   has similar code.  */
+
+int
+unibyte_char_to_multibyte (c)
+     int c;
+{
+  if (c >= 0200 && c < 0400)
+    {
+      if (nonascii_insert_offset > 0)
+	c += nonascii_insert_offset;
+      else
+	c += DEFAULT_NONASCII_INSERT_OFFSET;
+    }
+  return c;
+}
+
 /* Update the table Vcharset_table with the given arguments (see the
    document of `define-charset' for the meaning of each argument).
    Several other table contents are also updated.  The caller should
@@ -1664,6 +1687,13 @@ syms_of_charset ()
   DEFVAR_INT ("leading-code-private-22", &leading_code_private_22,
     "Leading-code of private TYPE9Nx9N charset of column-width 2.");
   leading_code_private_22 = LEADING_CODE_PRIVATE_22;
+
+  DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
+    "Offset to add to a non-ascii code 0200...0377 when inserting it.\n\
+This applies only when multibyte characters are enabled, and it serves\n\
+to convert a Latin-1 or similar 8-bit character code to the corresponding\n\
+Emacs character code.");
+  nonascii_insert_offset = 0;
 }
 
 #endif /* emacs */
