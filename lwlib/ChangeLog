@@ -1,3 +1,8 @@
+2000-12-11  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c (draw_separator) <SEPARATOR_SHADOW_ETCHED_IN_DASH>:
+	<SEPARATOR_SHADOW_ETCHED_OUT_DASH>: Fix call of draw_separator.
+
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (xm_arm_callback): Fix last change.
