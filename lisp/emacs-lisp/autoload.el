@@ -392,7 +392,10 @@ This uses `update-file-autoloads' (which see) do its work."
 			      dirs)))
 	autoloads-file
 	top-dir)
-    (setq autoloads-file (locate-library generated-autoload-file))
+    (setq autoloads-file
+	  (expand-file-name generated-autoload-file
+			    (expand-file-name "lisp"
+					      source-directory)))
     (setq top-dir (file-name-directory autoloads-file))
     (save-excursion
       (set-buffer (find-file-noselect autoloads-file))
