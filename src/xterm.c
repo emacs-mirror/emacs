@@ -3732,6 +3732,14 @@ XTread_socket (sd, bufp, numchars, expected)
 					| dpyinfo->hyper_mod_mask
 					| dpyinfo->alt_mod_mask);
 
+		  /* In case Meta is ComposeCharacter,
+		     clear its status.  According to Markus Ehrnsperger
+		     Markus.Ehrnsperger@lehrstuhl-bross.physik.uni-muenchen.de
+		     this enables ComposeCharacter to work whether or
+		     not it is combined with Meta.  */
+		  if (modifiers & dpyinfo->meta_mod_mask)
+		    bzero (&compose_status, sizeof (compose_status));
+
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
