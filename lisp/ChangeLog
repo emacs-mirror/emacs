@@ -1,3 +1,12 @@
+2002-06-12  Colin Walters  <walters@debian.org>
+
+	* font-core.el (font-lock-core-only): Variable deleted.  All uses
+	removed.
+	(font-lock-set-defaults): Variable alist settings moved back into
+	font-lock-set-defaults-1.
+	(turn-on-font-lock-if-enabled): Always turn on font-lock unless it
+	is specifically excluded by the user.
+
 2002-06-11  Richard M. Stallman  <rms@gnu.org>
 
 	* format.el (format-alist): Document new element PRESERVE.
