@@ -1,6 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992
+;;	Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -42,10 +43,7 @@ Second arg is file name of change log.  If nil, uses `change-log-default-name'.
 Third arg OTHER-WINDOW non-nil means visit in other window."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
-  (let* ((default (if (eq system-type 'vax-vms)
-			   "$CHANGE_LOG$.TXT"
-			 "ChangeLog"))
-	 (full-name (if whoami
+  (let* ((full-name (if whoami
 			(read-input "Full name: " (user-full-name))
 		      (user-full-name)))
 	 ;; Note that some sites have room and phone number fields in
@@ -59,21 +57,25 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 			(read-input "Site name: " (system-name))
 		      (system-name)))
 	 (defun (add-log-current-defun))
-	 (entry (and buffer-file-name
-		     (file-name-nondirectory buffer-file-name)))
-	 entry-position entry-boundary empty-entry)
-    ;; Never want to add a change log entry for the ChangeLog buffer itself:
-    (if (equal default entry)
-	(setq entry nil
-	      formatted-revision nil
-	      defun nil))
+	 entry entry-position empty-entry)
     (or file-name
 	(setq file-name (or change-log-default-name
 			    default-directory)))
-    (if (file-directory-p file-name)
-	(setq file-name (concat (file-name-as-directory file-name)
-				(change-log-name))))
+    (setq file-name (if (file-directory-p file-name)
+			(expand-file-name (change-log-name) file-name)
+		      (expand-file-name file-name)))
     (set (make-local-variable 'change-log-default-name) file-name)
+    (if buffer-file-name
+	(setq entry (if (string-match
+			 (concat "^" (regexp-quote (file-name-directory
+						    file-name)))
+			 buffer-file-name)
+			(substring buffer-file-name (match-end 0))
+		      (file-name-nondirectory buffer-file-name))))
+    ;; Never want to add a change log entry for the ChangeLog buffer itself.
+    (if (equal file-name entry)
+	(setq entry nil
+	      defun nil))
     (if (and other-window (not (equal file-name buffer-file-name)))
 	(find-file-other-window file-name)
       (find-file file-name))
@@ -91,54 +93,65 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	       (1- (point))))
     (if (and entry
 	     (not empty-entry))
-	;; Look for today's entry for same file
+	;; Look for today's entry for the same file.
 	;; If there is an empty entry (just a `*'), take the hint and
 	;; use it.  This is so that C-x a from the ChangeLog buffer
 	;; itself can be used to force the next entry to be added at
 	;; the beginning, even if there are today's entries for the
 	;; same file (but perhaps different revisions).
-	(setq entry-boundary (save-excursion
-			       (and (re-search-forward "\n[A-Z]" nil t)
-				    (point)))
-	      entry-position (save-excursion
-			       (and (re-search-forward
-				     (concat
-				      (regexp-quote (concat "* " entry))
-				      ;; don't accept `foo.bar' when
-				      ;; looking for `foo':
-				      "[ \n\t,]")
-				     entry-boundary
-				     t)
-				    (1- (match-end 0))))))
+	(let ((entry-boundary (save-excursion
+				(and (re-search-forward "\n[A-Z]" nil t)
+				     (point)))))
+	  (setq entry-position (save-excursion
+				 (and (re-search-forward
+				       (concat
+					(regexp-quote (concat "* " entry))
+					;; don't accept `foo.bar' when
+					;; looking for `foo':
+					"[ \n\t,:]")
+				       entry-boundary
+				       t)
+				      (1- (match-end 0)))))))
     (cond (entry-position
-	    ;; Move to existing entry for same file.
-	    (goto-char entry-position)
-	    (search-forward "\n\n")
-	    (forward-line -1))
+	   ;; Move to the existing entry for the same file.
+	   (goto-char entry-position)
+	   (re-search-forward "^\\s *$")
+	   (open-line 1)
+	   (indent-relative-maybe))
 	  (empty-entry
-	   ;; Put this file name into existing empty entry.
-	    (goto-char empty-entry)
-	    (insert (or entry "")))
+	   ;; Put this file name into the existing empty entry.
+	   (goto-char empty-entry)
+	   (if entry
+	       (insert entry)))
 	  (t
-	    ;; Make a new entry
-	    (forward-line 1)
-	    (while (looking-at "\\sW")
-	      (forward-line 1))
-	    (delete-region (point)
-			   (progn
-			     (skip-chars-backward "\n")
-			     (point)))
-	    (open-line 3)
-	    (forward-line 2)
-	    (indent-to left-margin)
-	    (insert "* " (or entry ""))))
+	   ;; Make a new entry.
+	   (forward-line 1)
+	   (while (looking-at "\\sW")
+	     (forward-line 1))
+	   (delete-region (point)
+			  (progn
+			    (skip-chars-backward "\n")
+			    (point)))
+	   (open-line 3)
+	   (forward-line 2)
+	   (indent-to left-margin)
+	   (insert "* " (or entry ""))))
     ;; Point is at the entry for this file,
     ;; either at the end of the line or at the first blank line.
     (if defun
 	(progn
-	  ;; Make it easy to get rid of the defun name.
+	  ;; Make it easy to get rid of the function name.
 	  (undo-boundary)
-	  (insert "(" defun "): ")))))
+	  (insert (if (save-excursion
+			(beginning-of-line 1)
+			(looking-at "\\s *$")) 
+		      ""
+		    " ")
+		  "(" defun "): "))
+      (if (not (save-excursion
+		 (beginning-of-line 1)
+		 (looking-at "\\s *\\(\\*\\s *\\)?$")))
+	  (insert ":")))))
 
 ;;;###autoload
 (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
@@ -155,14 +168,16 @@ Interactively, with a prefix argument, the file name is prompted for."
   (add-change-log-entry whoami file-name t))
 
 (defun change-log-mode ()
+  "Major mode for editting change logs; like Indented Text Mode.
+New log entries are usually made with \\[add-change-log-entry]."
   (interactive)
   (kill-all-local-variables)
   (indented-text-mode)
   (setq major-mode 'change-log-mode)
   (setq mode-name "Change Log")
   ;; Let each entry behave as one paragraph:
-  (set (make-local-variable 'paragraph-start) "^$\\|^^L")
-  (set (make-local-variable 'paragraph-separate) "^$\\|^^L")
+  (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
+  (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
   ;; Let all entries for one day behave as one page.
   ;; Note that a page boundary is also a paragraph boundary.
   ;; Unfortunately the date line of a page actually belongs to
@@ -170,6 +185,8 @@ Interactively, with a prefix argument, the file name is prompted for."
   ;; page moving cmds go to the end of the match, and Emacs
   ;; regexps don't have a context feature.
   (set (make-local-variable 'page-delimiter) "^[A-Z][a-z][a-z] .*\n\\|^")
+  (set (make-local-variable 'version-control) 'never)
+  (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (run-hooks 'change-log-mode-hook))
 
 (defvar add-log-current-defun-header-regexp
@@ -231,5 +248,3 @@ Has a preference of looking backwards."
 				     t)
 		 (buffer-substring (match-beginning 1)
 				   (match-end 1))))))))
-
-;;; add-log.el ends here
