@@ -35,4 +35,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  coming from libraries.
 */
 
-char my_edata = 0;
+char my_edata[] = "End of Emacs initialized data";
+
