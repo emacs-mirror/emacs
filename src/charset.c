@@ -906,7 +906,7 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
   "Return a list of charsets in STR.\n\
 Optional arg TABLE if non-nil is a translation table to look up.\n\
 \n\
-If the region contains invalid multiybte characters,\n\
+If the string contains invalid multiybte characters,\n\
 `unknown' is included in the returned list.\n\
 \n\
 If STR is unibyte, the returned list may contain\n\
