@@ -4,7 +4,7 @@
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: mouse
-;; Version: $Revision: 1.20 $
+;; Version: 2.0
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +18,7 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;;; Commentary:
+;;; Commentary: ===========================================================
 ;;
 ;; This module provides multi-click mouse support for GNU Emacs versions
 ;; 19.18 and later.  I've tried to make it behave more like standard X
@@ -42,15 +42,19 @@
 ;;
 ;;   * Clicking mouse-2 pastes contents of primary selection.
 ;;
-;;   * Pressing mouse-2 while selecting or extending copies selected text
+;;   * Pressing mouse-2 while selecting or extending copies selection
 ;;     to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
+;;     
+;;   * Double-clicking mouse-3 also kills selection.
 ;;
-;; This module requires my thingatpt.el module, version 1.14 or later, which
-;; it uses to find the bounds of words, lines, sexps, etc.
+;; This module requires my thingatpt.el module, which it uses to find the
+;; bounds of words, lines, sexps, etc.
 ;;
 ;; Thanks to KevinB@bartley.demon.co.uk for his useful input.
 ;;
-;;    You may also want to use one or more of following:
+;;--- Customisation -------------------------------------------------------
+;;
+;; * You may want to use none or more of following:
 ;;
 ;;      ;; Enable region highlight
 ;;      (transient-mark-mode 1)
@@ -60,8 +64,6 @@
 ;;      
 ;;      ;; Enable pending-delete
 ;;      (delete-selection-mode 1)
-;;
-;;--- Customisation -------------------------------------------------------
 ;;
 ;; * You can control the way mouse-sel binds it's keys by setting the value
 ;;   of mouse-sel-default-bindings before loading mouse-sel.
@@ -141,7 +143,7 @@
 ;;   nesting level.  This also means the selection cannot be extended out
 ;;   of the enclosing nesting level.  This is INTENTIONAL.
 
-;;; Code:
+;;; Code: =================================================================
 
 (provide 'mouse-sel)
 
@@ -150,10 +152,8 @@
 
 ;;=== Version =============================================================
 
-(defconst mouse-sel-version (substring "$Revision: 1.20 $" 11 -2)
-  "The revision number of mouse-sel (as string).  The complete RCS id is:
-
-  $Id: mouse-sel.el,v 1.20 1993/09/30 23:57:32 mike Exp $")
+(defconst mouse-sel-version "2.0" 
+  "The version number of mouse-sel (as string).")
 
 ;;=== User Variables ======================================================
 
@@ -186,21 +186,21 @@ Ie. 4 clicks = 1 click, 5 clicks = 2 clicks, etc.")
 used on windowing systems other than X Windows.")
 
 (defvar mouse-sel-set-selection-function 
-  (if (eq window-system 'x) 
+  (if (fboundp 'x-set-selection)
       (function (lambda (s) (x-set-selection 'PRIMARY s)))
     (function (lambda (s) (setq mouse-sel-selection s))))
   "Function to call to set selection.
 Called with one argument, the text to select.")
 
 (defvar mouse-sel-get-selection-function
-  (if (eq window-system 'x) 
+  (if (fboundp 'x-get-selection)
       'x-get-selection 
     (function (lambda () mouse-sel-selection)))
   "Function to call to get the selection.
-Called with no argument, it should return the selected text.")
+Called with no argument.")
 
 (defvar mouse-sel-check-selection-function
-  (if (eq window-system 'x) 
+  (if (fboundp 'x-selection-owner-p)
       'x-selection-owner-p 
     nil)
   "Function to check whether emacs still owns the selection.
@@ -278,7 +278,8 @@ This should be bound to a down-mouse event."
 		 (overlay-get mouse-drag-overlay 'face))
 
     ;; Bar cursor
-    (modify-frame-parameters (selected-frame) '((cursor-type . bar)))
+    (if (fboundp 'modify-frame-parameters)
+	(modify-frame-parameters (selected-frame) '((cursor-type . bar))))
 
     ;; Handle dragging
     (unwind-protect
@@ -390,11 +391,16 @@ This should be bound to a down-mouse event."
 	     ((memq (car-safe last-input-event) '(down-mouse-1 down-mouse-3))
 	      (kill-region overlay-start overlay-end)
 	      (deactivate-mark)
-	      (read-event) (read-event)))))
+	      (read-event) (read-event))
+	     ((eq (car-safe last-input-event) 'double-mouse-3)
+	      (kill-region overlay-start overlay-end)
+	      (deactivate-mark)))))
 
       ;; Restore cursor
-      (modify-frame-parameters (selected-frame) 
-			       (list (cons 'cursor-type orig-cursor-type)))
+      (if (fboundp 'modify-frame-parameters)
+	  (modify-frame-parameters 
+	   (selected-frame) (list (cons 'cursor-type orig-cursor-type))))
+      
       ;; Remove overlay
       (or mouse-sel-retain-highlight
 	  (delete-overlay mouse-drag-overlay)))))
