@@ -634,9 +634,10 @@ Buffer local variable.")
 (put 'term-scroll-show-maximum-output 'permanent-local t)
 (put 'term-ptyp 'permanent-local t)
 
-;; Do FORMS if running under Emacs-19.
+;; Do FORMS if running under Emacs 19 or later.
 (defmacro term-if-emacs19 (&rest forms)
-  (if (string-match "^19" emacs-version) (cons 'progn forms)))
+  (if (string-match "^\\(19\\|[2-9][0-9]\\)" emacs-version)
+      (cons 'progn forms)))
 ;; True if running under XEmacs (previously Lucid Emacs).
 (defmacro term-is-xemacs ()  '(string-match "Lucid" emacs-version))
 ;; Do FORM if running under XEmacs (previously Lucid Emacs).
