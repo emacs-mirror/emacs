@@ -1472,50 +1472,84 @@ code-point in CCS.  Currently not supported and just ignored.  */)
 }
 
 
-DEFUN ("make-char", Fmake_char, Smake_char, 1, 4, 0,
-       doc: /* Return a character of CHARSET whose position code is CODE.
+DEFUN ("make-char", Fmake_char, Smake_char, 1, 5, 0,
+       doc:
+       /* Return a character of CHARSET whose position codes are CODEn.
 
-If dimension of CHARSET is two, and the third optional arg CODE2 is
-non-nil, CODE actually specifies the first byte of the position code,
-and CODE2 specifies the second byte.
-
-If dimension of CHARSET is three, and the third optional arg CODE2 and
-the fourth optional arg CODE3 are both non-nil, CODE actually
-specifies the first byte of the position code, CODE2 the second byte,
-and CODE3 the third byte.  */)
-     (charset, code, code2, code3)
-     Lisp_Object charset, code, code2, code3;
+CODE1 through CODE4 are optional, but if you don't supply sufficient
+position codes, it is assumed that the minimum code in each dimension
+are specified.  */)
+     (charset, code1, code2, code3, code4)
+     Lisp_Object charset, code1, code2, code3, code4;
 {
   int id, dimension;
   struct charset *charsetp;
-  unsigned c;
+  unsigned code;
+  int c;
 
   CHECK_CHARSET_GET_ID (charset, id);
   charsetp = CHARSET_FROM_ID (id);
 
   if (NILP (code))
-    code = make_number (CHARSET_MIN_CODE (charsetp));
+    return make_number (CHARSET_MIN_CHAR (charsetp));
+
+  dimension = CHARSET_DIMENSION (charsetp);
+  if (NILP (code1))
+    code = charsetp->code_space[(dimension - 1) * 4];
   else
     {
-      CHECK_NATNUM (code);
-      dimension = CHARSET_DIMENSION (charsetp);
-
-      if (!NILP (code2))
+      CHECK_NATNUM (code1);
+      if (XFASTINT (code1) >= 0x100)
+	args_out_of_range (make_number (0xFF), code1);
+      code = XFASTINT (code1);
+    }
+  if (dimension > 1)
+    {
+      code <<= 8;
+      if (NILP (code2))
+	code |= charsetp->code_space[(dimension - 2) * 4];
+      else
 	{
 	  CHECK_NATNUM (code2);
-	  if (dimension == 3)
-	    CHECK_NATNUM (code3);
+	  if (XFASTINT (code2) >= 0x100)
+	    args_out_of_range (make_number (0xFF), code2);
+	  code |= XFASTINT (code2);
+	}
+
+      if (dimension > 2)
+	{
+	  code <<= 8;
+	  if (NILP (code3))
+	    code |= charsetp->code_space[(dimension - 3) * 4];
+	  else
+	    {
+	      CHECK_NATNUM (code3);
+	      if (XFASTINT (code3) >= 0x100)
+		args_out_of_range (make_number (0xFF), code3);
+	      code |= XFASTINT (code3);
+	    }
+
+	  if (dimension > 3)
+	    {
+	      code <<= 8;
+	      if (NILP (code4))
+		code |= charsetp->code_space[0];
+	      else
+		{
+		  CHECK_NATNUM (code4);
+		  if (XFASTINT (code4) >= 0x100)
+		    args_out_of_range (make_number (0xFF), code4);
+		  code |= XFASTINT (code4);
+		}
+	    }
 	}
     }
 
-  if (dimension == 1 || NILP (code2))
-    c = XFASTINT (code);
-  else if (dimension == 2)
-    c = (XFASTINT (code) << 8) | XFASTINT (code2);
-  else if (dimension == 3)
-    c = (XFASTINT (code) << 16) | (XFASTINT (code2) << 8) | XFASTINT (code3);
-
-  c = DECODE_CHAR (charsetp, c);
+  if (CHARSET_ISO_FINAL (charsetp) >= 0)
+    code &= 0x7F7F7F7F;
+  c = DECODE_CHAR (charsetp, code);
+  if (c < 0)
+    error ("Invalid code(s)");
   return make_number (c);
 }
 
