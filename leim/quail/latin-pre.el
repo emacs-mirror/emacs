@@ -738,13 +738,14 @@ For example, the character named `aogonek' is obtained by `/a'."
     caron    |   ~    | ~z -> ,b8(B
    cedilla   |   ~    | ~c -> ,bg(B
     misc     | \" ~ /  | \"s -> ,b_(B  ~d -> ,bp(B  ~t -> ,b~(B  /a -> ,be(B  /e -> ,bf(B  /o -> ,bx(B
+             | \" ~ /  | /o -> ,b=(B
    symbol    |   ~    | ~> -> ,b;(B  ~< -> ,b+(B  ~! -> ,b!(B  ~? -> ,b?(B  ~~ -> ,b8(B
              |   ~    | ~s -> ,b'(B  ~e -> ,b$(B  ~. -> ,b7(B  ~$ -> ,b#(B  ~u -> ,b5(B
              |   ~    | ~- -> ,b-(B  ~= -> ,b/(B
    symbol    |  _ /   | _o -> ,b:(B  _a -> ,b*(B  // -> ,b0(B  /\\ -> ,bW(B  _y -> ,b%(B
-             |  _ /   | _: -> ,bw(B  /c -> ,b"(B  _o -> ,b=(B  _O -> ,b<(B  /p -> ,b6(B
+             |  _ /   | _: -> ,bw(B  /c -> ,b"(B  ~p -> ,b6(B
              |  _ /   | /= -> ,b,(B
-   symbol    |   ^    | ^r -> ,b.(B  ^c -> ,b)(B  ^1 -> ,b9(B  ^2 -> ,b2(B  ^3 -> ,b3(B
+   symbol    |   ^    | ^r -> ,b.(B  ^c -> ,b)(B  ^1 -> ,b9(B  ^2 -> ,b2(B  ^3 -> ,b3(B  _a -> ,b*(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -797,7 +798,6 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("\"s" ?,b_(B)
  ("\"u" ?,b|(B)
  ("\"y" ?,b(B)
- ("~s" ?,b((B)
  ("\" " ?\")
  ("~A" ?,bC(B)
  ("~C" ?,bG(B)
@@ -835,11 +835,11 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("_:" ?,bw(B)
  ("/c" ?,b"(B)
  ("/\\" ?,bW(B)
- ("_o" ?,b=(B)
- ("_O" ?,b<(B)
+ ("/o" ?,b=(B)				; clash with ,bx(B, but ,bf(B uses /
+ ("/O" ?,b<(B)
  ("\"Y" ?,b>(B)
  ("~s" ?,b'(B)
- ("/p" ?,b6(B)
+ ("~p" ?,b6(B)
  ;; Is this the best option for Euro entry?
  ("~e" ?,b$(B)
  ("~." ?,b7(B)
