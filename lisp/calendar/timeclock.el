@@ -273,13 +273,13 @@ positive.  Returns the new status of timeclock modeline display
 		  (> (prefix-numeric-value arg) 0)
 		(not timeclock-modeline-display))))
     (if on-p
-	(let ((list-entry (memq 'global-mode-string
-				mode-line-format)))
+	(let ((list-entry (or (memq 'global-mode-string mode-line-format)
+			      ;; In Emacs 21.3 we must use assq
+			      (assq 'global-mode-string mode-line-format))))
 	  (unless (or (null list-entry)
 		      (memq 'timeclock-mode-string mode-line-format))
-	    (setcdr list-entry
-		    (cons 'timeclock-mode-string
-			  (cdr list-entry))))
+	    (setcdr list-entry (cons 'timeclock-mode-string
+				     (cdr list-entry))))
 	  (unless (memq 'timeclock-update-modeline timeclock-event-hook)
 	    (add-hook 'timeclock-event-hook 'timeclock-update-modeline))
 	  (when timeclock-update-timer
