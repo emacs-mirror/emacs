@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(MMQA_harness_dev.2) $
+# $HopeName: MMQA_harness!script:clib(trunk.4) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -29,7 +29,7 @@ sub clib {
    if (&compile($tlfile, $tlobj)) {
    } else {
     $success = 0;
-    &logcomment(" failed on %tlfile.");
+    &logcomment(" failed on $tlfile.");
    }
   }
  }
