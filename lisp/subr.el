@@ -923,6 +923,7 @@ Optional DEFAULT is a default password to use instead of empty input."
 			     (make-string (length pass) ?.))
 		    (setq c (read-char-exclusive nil t))
 		    (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+	(clear-this-command-keys)
 	(if (= c ?\C-u)
 	    (progn
 	      (and (arrayp pass) (fillarray pass ?\0))
@@ -938,7 +939,6 @@ Optional DEFAULT is a default password to use instead of empty input."
 		(let ((new-pass (substring pass 0 -1)))
 		  (and (arrayp pass) (fillarray pass ?\0))
 		  (setq pass new-pass))))))
-      (clear-this-command-keys)
       (message nil)
       (or pass default ""))))
 
