@@ -9507,7 +9507,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	amount_to_scroll = scroll_max;
       else
 	{
-	  aggressive = current_buffer->scroll_down_aggressively;
+	  aggressive = current_buffer->scroll_up_aggressively;
 	  height = (WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w)
 		    - WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w));
 	  if (NUMBERP (aggressive))
@@ -9561,7 +9561,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    amount_to_scroll = scroll_max;
 	  else
 	    {
-	      aggressive = current_buffer->scroll_up_aggressively;
+	      aggressive = current_buffer->scroll_down_aggressively;
 	      height = (WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (w)
 			- WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w));
 	      if (NUMBERP (aggressive))
