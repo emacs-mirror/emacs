@@ -724,6 +724,8 @@ otherwise pop it")
 
 (defconst byte-compile-last-warned-form nil)
 
+;; Log a message STRING in *Compile-Log*.
+;; Also log the current function and file if not already done.
 (defun byte-compile-log-1 (string &optional fill)
   (cond (noninteractive
 	 (if (or byte-compile-current-file
@@ -767,6 +769,19 @@ otherwise pop it")
 	   )))
   (setq byte-compile-current-file nil
 	byte-compile-last-warned-form byte-compile-current-form))
+
+;; Log the start of a file in *Compile-Log*, and mark it as done.
+;; But do nothing in batch mode.
+(defun byte-compile-log-file ()
+  (and byte-compile-current-file (not noninteractive)
+       (save-excursion
+	 (set-buffer (get-buffer-create "*Compile-Log*"))
+	 (insert "\n\^L\nCompiling "
+		 (if (stringp byte-compile-current-file)
+		     (concat "file " byte-compile-current-file)
+		   (concat "buffer " (buffer-name byte-compile-current-file)))
+		 " at " (current-time-string) "\n")
+	 (setq byte-compile-current-file nil))))
 
 (defun byte-compile-warn (format &rest args)
   (setq format (apply 'format format args))
@@ -1059,15 +1074,19 @@ otherwise pop it")
 		)
 	      body)))
 
-(defvar byte-compile-warnings-point-max)
+(defvar byte-compile-warnings-point-max nil)
 (defmacro displaying-byte-compile-warnings (&rest body)
   (list 'let
-	'((byte-compile-warnings-point-max
-	   (if (boundp 'byte-compile-warnings-point-max)
-	       byte-compile-warnings-point-max
-	     (save-excursion
-	       (set-buffer (get-buffer-create "*Compile-Log*"))
-	       (point-max)))))
+	'((byte-compile-warnings-point-max byte-compile-warnings-point-max))
+     ;; Log the file name.
+     '(byte-compile-log-file)
+     ;; Record how much is logged now.
+     ;; We will display the log buffer if anything more is logged
+     ;; before the end of BODY.
+     '(or byte-compile-warnings-point-max
+	  (save-excursion
+	    (set-buffer (get-buffer-create "*Compile-Log*"))
+	    (setq byte-compile-warnings-point-max (point-max))))
      (list 'unwind-protect
 	   (list 'condition-case 'error-info
 		 (cons 'progn body)
