@@ -1,3 +1,8 @@
+2003-03-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (update_menu_bar): Set w->update_mode_line to Qt
+	so tool bar gets updated.
+
 2003-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* data.c (store_symval_forwarding): Re-instate part of the code

@@ -7905,11 +7905,16 @@ update_menu_bar (f, save_match_data)
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
 
-#if 0 /* The if statement below this if statement used to include the
+#if 1 /* The if statement below this if statement used to include the
          condition !NILP (w->update_mode_line), rather than using
          update_mode_lines directly, and this if statement may have
          been added to make that condition work.  Now the if
          statement below matches its comment, this isn't needed.  */
+  /* We need to set w->update_mode_line to Qt so that update_tool_bar
+     rebuilds tool bar items.  For example, to notice when a tool bar item
+     goes from enabled to disabled state.
+     A better way would be to notice tool bar, menu bar and mode line
+     changes separately, but for now update_mode_line is all we got.  */
   if (update_mode_lines)
     w->update_mode_line = Qt;
 #endif
