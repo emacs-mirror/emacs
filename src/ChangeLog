@@ -1,3 +1,9 @@
+1999-10-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs.c (standard_args): Add `file' as synonym for `visit',
+	`execute' as synonym for `eval'.
+	(main): Add new options to usage message.
+
 1999-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* data.c (Qhash_table): New.
