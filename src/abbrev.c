@@ -283,6 +283,8 @@ Returns t if expansion took place.")
 
   if (INTERACTIVE && !EQ (minibuf_window, selected_window))
     {
+      /* Add an undo boundary, in case we are doing this for
+	 a self-inserting command which has avoided making one so far.  */
       SET_PT (wordend);
       Fundo_boundary ();
     }
