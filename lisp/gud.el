@@ -1,9 +1,8 @@
 ;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, or dbx under Emacs
 
-;; Author: Eric S. Raymond <eric@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Version: 1.1
 ;; Keywords: unix, tools
-
-;;	%W%
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -31,19 +30,66 @@
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.
 
-;; Note: use of this package with sdb requires that your tags.el support
-;; the find-tag-noselect entry point.  Stock distributions up to 18.57 do 
-;; *not* include this feature; if it's not included with this file, email
-;; esr@snark.thyrsus.com for it or get 18.58.
+;; This code will not work under Emacs 18.  It relies on Emacs 19's
+;; minor-mode-keymap support and the find-tag-noselect entry point of etags.
 
-;; Further note: due to lossage in the Emacs-18 byte compiler, compiled
-;; versions of this code will fail with a complaint about gud-step if
-;; you invoke the gdb or sdb initializers.  This should be fixed in 19.
+;;; Change Log:
+
+;; Version 1.1:		ESR	6 Apr 1993
+;;   * Facility to accept and parse command-line switches other than the
+;;     filename added.
+;;   * System V Release 4 support added.
+;;   * Can now set temporary breakpoints in sdb.
+;;   * A GUD minor mode using the 19 minor-mode-keymap facilities is now
+;;     enabled in visited C buffers.
+;;   * Command bindings are now automatically the same in gud-minor-mode
+;;     as they are in the GUD buffer itself, and use ^XX as a common
+;;     prefix (for compatibility with electric-debug).
+;;   * There is a new command for printing the C expression around point.
+
+;; Version 1.0:		ESR
+;;   * Created.
 
 ;;; Code:
 
 (require 'comint)
 (require 'etags)
+
+;; ======================================================================
+;; minor-mode machinery for C buffers visited by GUD
+
+(defvar gud-key-prefix "\C-xX"
+  "Prefix of all GUD minor-mode commands valid in C buffers.")
+
+(defvar gud-minor-mode nil)
+(or (assq 'gud-minor-mode minor-mode-alist)
+    (setq minor-mode-alist
+	  (cons '(gud-minor-mode " GUD") minor-mode-alist)))
+
+(defvar gud-mode-map nil)
+(if gud-mode-map
+    nil
+    (setq gud-mode-map (make-sparse-keymap))
+    (define-key gud-mode-map gud-key-prefix (make-sparse-keymap))
+    (define-key gud-mode-map (concat gud-key-prefix "\C-l") 'gud-refresh)
+    )
+
+(or (assq 'gud-minor-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	  (cons
+	   (cons 'gud-minor-mode gud-mode-map)
+	   minor-mode-map-alist)))
+
+(defun gud-minor-mode (&optional enable)
+  "GUD minor mode is enabled in C buffers visited due to a GUD stop at
+breakpoint.  All GUD-specific commands defined in GUD major mode will work,
+but they get their current file and current line number from the context of
+this buffer."
+  (interactive "P")
+  (setq gud-minor-mode
+	(if (null enable) (not gud-minor-mode)
+	  (> (prefix-numeric-value enable) 0)))
+)
 
 ;; ======================================================================
 ;; the overloading mechanism
@@ -56,17 +102,17 @@ This association list has elements of the form
    (function (lambda (p) (fset (car p) (symbol-function (cdr p)))))
    gud-overload-alist))
 
-(defun gud-debugger-startup (f d)
+(defun gud-debugger-startup (file args)
   (error "GUD not properly entered."))
 
-(defun gud-marker-filter (proc s)
+(defun gud-marker-filter (str)
   (error "GUD not properly entered."))
 
-(defun gud-visit-file (f)
+(defun gud-find-file (f)
   (error "GUD not properly entered."))
 
-(defun gud-set-break (proc f n rest)
-  (error "GUD not properly entered."))
+;; ======================================================================
+;; command definition
 
 ;; This macro is used below to define some basic debugger interface commands.
 ;; Of course you may use `gud-def' with any other debugger command, including
@@ -74,29 +120,46 @@ This association list has elements of the form
 
 ;; A macro call like (gud-def FUNC NAME KEY DOC) expands to a form
 ;; which defines FUNC to send the command NAME to the debugger, gives
-;; it the docstring DOC, and binds that function to KEY.  NAME should
-;; be a string.  If a numeric prefix argument is given to FUNC, it
-;; gets sent after NAME.
+;; it the docstring DOC, and binds that function to KEY in the GUD
+;; major mode.  The function is also bound in the GUD minor-mode
+;; keymap.  If a numeric prefix argument is given to FUNC, it gets
+;; sent after NAME.
 
-(defmacro gud-def (func name key &optional doc)
-  (let* ((cstr (list 'if '(not (= 1 arg))
-		     (list 'format "%s %s" name 'arg)
-		     name)))
-    (list 'progn
- 	  (list 'defun func '(arg)
-		(or doc "")
-		'(interactive "p")
-		(list 'gud-call cstr))
-	  (if key
-	      (list 'define-key 'gud-mode-map key  (list 'quote func))))))
+(defmacro gud-def (func cmd key &optional doc)
+  "Define FUNC to be a command sending STR and bound to KEY, with
+optional doc string DOC.  Certain %-escapes in the string arguments
+are interpreted specially if present.  These are:
+
+  %f	name of current source file. 
+  %l	number of current source line
+  %e	text of the C lvalue or function-call expression surrounding point.
+  %a	text of the hexadecimal address surrounding point
+  %p	prefix argument to the command (if any) as a number
+
+  The `current' source file is the file of the current buffer (if we're in a
+C file with gud-minor-mode active) or the source file current at the last
+break or step (if we're in the GUD buffer).
+  The `current' line is that of the current buffer (if we're in a source
+file with gud-minor-mode active) or the source line number at the last
+break or step (if we're in the GUD buffer)."
+  (list 'progn
+	(list 'defun func '(arg)
+	      (or doc "")
+	      '(interactive "p")
+	      (list 'gud-call cmd 'arg))
+	(if key
+	    (list 'define-key
+		  'gud-mode-map
+		  (concat gud-key-prefix key)
+		  (list 'quote func)))))
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
-;; indications of the current pc.
+;; indications of the current program counter.
 (defvar gud-last-frame nil)
 
-;; All debugger-specific information is collected here
-;; Here's how it works, in case you ever need to add a debugger to the table.
+;; All debugger-specific information is collected here.
+;; Here's how it works, in case you ever need to add a debugger to the mode.
 ;;
 ;; Each entry must define the following at startup:
 ;;
@@ -104,11 +167,10 @@ This association list has elements of the form
 ;; comint-prompt-regexp
 ;; gud-<name>-debugger-startup
 ;; gud-<name>-marker-filter
-;; gud-<name>-visit-file
-;; gud-<name>-set-break
+;; gud-<name>-find-file
 ;;
 ;; The job of the startup-command method is to fire up a copy of the debugger,
-;; given an object file and source directory.
+;; given a list of debugger arguments.
 ;;
 ;; The job of the marker-filter method is to detect file/line markers in
 ;; strings and set the global gud-last-frame to indicate what display
@@ -117,26 +179,17 @@ This association list has elements of the form
 ;; can filter the debugger's output, interpreting some and passing on
 ;; the rest.
 ;;
-;; The job of the visit-file method is to visit and return the buffer indicated
+;; The job of the find-file method is to visit and return the buffer indicated
 ;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
 ;; something else.
-;;
-;; The job of the gud-set-break method is to send the commands
-;; necessary to set a breakpoint at a given line in a given source
-;; file.  If its third argument TEMP is non-nil, the breakpoint set
-;; should be temporary - it should be deleted when it is reached.  If
-;; the debugger doesn't support such breakpoints, it should set an
-;; ordinary breakpoint.
-;;
-;; Debugger-specific information begins here:
 
 ;; ======================================================================
 ;; gdb functions
 
-(defun gud-gdb-debugger-startup (f d)
-  (make-comint (concat "gud-" f) "gdb" nil "-fullname" "-cd" d f))
+(defun gud-gdb-debugger-startup (file args)
+  (apply 'make-comint (concat "gud-" file) "gdb" nil "-fullname" args))
 
-(defun gud-gdb-marker-filter (proc string)
+(defun gud-gdb-marker-filter (string)
   (if (string-match  "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n" string)
       (progn
 	(setq gud-last-frame
@@ -152,33 +205,33 @@ This association list has elements of the form
 	 ))
     string))
 
-(defun gud-gdb-visit-file (f)
+(defun gud-gdb-find-file (f)
   (find-file-noselect f))
 
-(defun gud-gdb-set-break (proc f n temp) 
-  (gud-call "%s %s:%d" (if temp "tbreak" "break") f n))
-
 ;;;###autoload
-(defun gdb (path)
+(defun gdb (args)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "fRun gdb on file: ")
+  (interactive "sgdb ")
   (gud-overload-functions '((gud-debugger-startup . gud-gdb-debugger-startup)
 			    (gud-marker-filter    . gud-gdb-marker-filter)
-			    (gud-visit-file       . gud-gdb-visit-file)
-			    (gud-set-break        . gud-gdb-set-break)))
+			    (gud-find-file        . gud-gdb-find-file)
+			    ))
 
-  (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
-  (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
-  (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
-  (gud-def gud-cont   "cont"   "\C-c\C-r" "Continue with display")
+  (gud-def gud-break  "break %f:%l"  "b" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "tbreak %f:%l" "t" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l"     "d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"      "s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"     "i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"      "n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"         "r" "Continue with display.")
+  (gud-def gud-finish "finish"       "f" "Finish executing current function.")
+  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "print %e"     "p" "Evaluate C expression at point.")
 
-  (gud-def gud-finish "finish" "\C-c\C-f" "Finish executing current function")
-  (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
-  (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
-
-  (gud-common-init path)
+  (gud-common-init args)
 
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (run-hooks 'gdb-mode-hook)
@@ -188,47 +241,68 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; sdb functions
 
-(defun gud-sdb-debugger-startup (f d)
-  (make-comint (concat "gud-" f) "sdb" nil f "-" d))
+(defvar gud-sdb-needs-tags (not (file-exists-p "/var"))
+  "If nil, we're on a System V Release 4 and don't need the tags hack.")
 
-(defun gud-sdb-marker-filter (proc string)
-  (if (string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+(defvar gud-sdb-lastfile nil)
+
+(defun gud-sdb-debugger-startup (file args)
+  (apply 'make-comint (concat "gud-" file) "sdb" nil args))
+
+(defun gud-sdb-marker-filter (string)
+  (cond 
+   ;; System V Release 3.2 uses this format
+   ((string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
 		    string)
-      (setq gud-last-frame
-	    (cons
-	     (substring string (match-beginning 2) (match-end 2))
-	     (string-to-int 
-	      (substring string (match-beginning 3) (match-end 3))))))
+    (setq gud-last-frame
+	  (cons
+	   (substring string (match-beginning 2) (match-end 2))
+	   (string-to-int 
+	    (substring string (match-beginning 3) (match-end 3))))))
+   ;; System V Release 4.0 
+   ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n"
+		       string)
+    (setq gud-sdb-lastfile
+	  (substring string (match-beginning 2) (match-end 2))))
+   ((and gud-sdb-lastfile (string-match "^\\([0-9]+\\):" string))
+	 (setq gud-last-frame
+	       (cons
+		gud-sdb-lastfile
+		(string-to-int 
+		 (substring string (match-beginning 1) (match-end 1))))))
+   (t 
+    (setq gud-sdb-lastfile nil)))
   string)
 
-(defun gud-sdb-visit-file (f)
-  (find-tag-noselect f))
-
-;;; We'll just ignore the TEMP argument for now; I don't know how to
-;;; set temporary breakpoints in sdb.  (See the description of the
-;;; gud-set-break method for details.)
-(defun gud-sdb-set-break (proc f n temp)
-  (gud-queue-send (format "e %s" f) (format "%d b" n)))
+(defun gud-sdb-find-file (f)
+  (if gud-sdb-needs-tags
+      (find-tag-noselect f)
+    (find-file-noselect f)))
 
 ;;;###autoload
-(defun sdb (path)
+(defun sdb (args)
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "fRun sdb on file: ")
-  (if (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name)))
+  (interactive "ssdb ")
+  (if (and gud-sdb-needs-tags
+	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
   (gud-overload-functions '((gud-debugger-startup . gud-sdb-debugger-startup)
 			    (gud-marker-filter    . gud-sdb-marker-filter)
-			    (gud-visit-file       . gud-sdb-visit-file)
-			    (gud-set-break        . gud-sdb-set-break)))
+			    (gud-find-file        . gud-sdb-find-file)
+			    ))
 
-  (gud-def gud-step  "s"   "\C-c\C-s"	"Step one source line with display")
-  (gud-def gud-stepi "i"   "\C-c\C-i"	"Step one instruction with display")
-  (gud-def gud-next  "S"   "\C-c\C-n"	"Step one source line (skip functions)")
-  (gud-def gud-cont  "c"   "\C-c\C-r"	"Continue with display (`resume')")
+  (gud-def gud-break  "%l b" "b"   "Set breakpoint at current line.")
+  (gud-def gud-tbreak "%l c" "t"   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "%l d" "d"   "Remove breakpoint at current line")
+  (gud-def gud-step   "s %p" "s"   "Step one source line with display.")
+  (gud-def gud-stepi  "i %p" "i"   "Step one instruction with display.")
+  (gud-def gud-next   "S %p" "n"   "Step one line (skip functions).")
+  (gud-def gud-cont   "c"    "r"   "Continue with display.")
+  (gud-def gud-print  "%e/"  "p"   "Evaluate C expression at point.")
 
-  (gud-common-init path)
+  (gud-common-init args)
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (run-hooks 'sdb-mode-hook)
@@ -237,10 +311,10 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; dbx functions
 
-(defun gud-dbx-debugger-startup (f d)
-  (make-comint (concat "gud-" f) "dbx" nil f))
+(defun gud-dbx-debugger-startup (file args)
+  (apply 'make-comint (concat "gud-" file) "dbx" nil args))
 
-(defun gud-dbx-marker-filter (proc string)
+(defun gud-dbx-marker-filter (string)
   (if (string-match
        "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\"" string)
       (setq gud-last-frame
@@ -250,35 +324,32 @@ and source-file directory for your debugger."
 	      (substring string (match-beginning 1) (match-end 1))))))
   string)
 
-(defun gud-dbx-visit-file (f)
+(defun gud-dbx-find-file (f)
   (find-file-noselect f))
 
-;;; We'll just ignore the TEMP argument for now; I don't know how to
-;;; set temporary breakpoints in dbx.  (See the description of the
-;;; gud-set-break method for details.)
-(defun gud-dbx-set-break (proc f n temp)
-  (gud-call "stop at \"%s\":%d" f n))
-
 ;;;###autoload
-(defun dbx (path)
+(defun dbx (args)
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "fRun dbx on file: ")
+  (interactive "sdbx")
   (gud-overload-functions '((gud-debugger-startup . gud-dbx-debugger-startup)
 			    (gud-marker-filter    . gud-dbx-marker-filter)
-			    (gud-visit-file       . gud-dbx-visit-file)
-			    (gud-set-break        . gud-dbx-set-break)))
+			    (gud-find-file        . gud-dbx-find-file)
+			    ))
 
-  (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
-  (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
-  (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
-  (gud-def gud-cont   "cont"   "\C-c\C-r" "Continue with display (`resume')")
+  (gud-def gud-break  "stop at \"%f\":%l"
+	   			  "b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l"  "d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"	  "s" "Step one line with display.")
+  (gud-def gud-stepi  "stepi %p"  "i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"	  "n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"	  "r" "Continue with display.")
+  (gud-def gud-up     "up %p"	  "<" "Up (numeric arg) stack frames.")
+  (gud-def gud-down   "down %p"	  ">" "Down (numeric arg) stack frames.")
+  (gud-def gud-print  "print %e"  "p" "Evaluate C expression at point.")
 
-  (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
-  (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
-
-  (gud-common-init path)
+  (gud-common-init args)
   (setq comint-prompt-regexp  "^[^)]*dbx) *")
 
   (run-hooks 'dbx-mode-hook)
@@ -287,15 +358,6 @@ and source-file directory for your debugger."
 ;;
 ;; End of debugger-specific information
 ;;
-
-(defvar gud-mode-map nil
-  "Keymap for gud-mode.")
-
-(defvar gud-commands nil
-  "List of strings or functions used by send-gud-command.
-It is for customization by you.")
-
-(defvar gud-command-queue nil)
 
 ;;; When we send a command to the debugger via gud-call, it's annoying
 ;;; to see the command and the new prompt inserted into the debugger's
@@ -339,15 +401,6 @@ It is for customization by you.")
 ;;; prompt alone.
 (defvar gud-delete-prompt-marker nil)
 
-(if gud-mode-map
-   nil
-  (setq gud-mode-map (copy-keymap comint-mode-map))
-  (define-key gud-mode-map "\C-c\C-l" 'gud-refresh))
-
-;; Global mappings --- we'll invoke these from a source buffer.
-(define-key ctl-x-map " " 'gud-break)
-(define-key ctl-x-map "&" 'send-gud-command)
-
 
 (defun gud-mode ()
   "Major mode for interacting with an inferior debugger process.
@@ -356,52 +409,56 @@ It is for customization by you.")
 M-x dbx.  Each entry point finishes by executing a hook; gdb-mode-hook,
 sdb-mode-hook or dbx-mode-hook respectively.
 
-After startup, the following commands are available:
+After startup, the following commands are available in both the GUD
+interaction buffer and any source buffer GUD visits due to a breakpoint stop
+or step operation:
 
 \\{gud-mode-map}
 
-\\[gud-refresh] displays in the other window the last line referred to
+\\[gud-break] sets a breakpoint at the current file and line.  In the
+GUD buffer, the current file and line are those of the last breakpoint or
+step.  In a source buffer, they are the buffer's file and current line.
+
+\\[gud-refresh] displays in the source window the last line referred to
 in the gud buffer.
 
-\\[gud-step], \\[gud-next], and \\[gud-stepi] in the gud window,
-do a step-one-line, step-one-line (not entering function calls), and 
-step-one-instruction and then update the other window
-with the current file and position.  \\[gud-cont] continues
-execution.
+\\[gud-step], \\[gud-next], and \\[gud-stepi] do a step-one-line,
+step-one-line (not entering function calls), and step-one-instruction
+and then update the source window with the current file and position.
+\\[gud-cont] continues execution.
 
-The above commands are common to all supported debuggers.  If you are
-using gdb or dbx, the following additional commands will be available:
+\\[gud-print] tries to find the largest C lvalue or function-call expression
+around point, and sends it to the debugger for value display.
 
-\\[gud-up] pops up through an enclosing stack frame.  \\[gud-down] drops
-back down through one.
+The above commands are common to all supported debuggers.
+
+Under gdb and sdb, \\[gud-tbreak] behaves exactly like \\[gud-break],
+except that the breakpoint is temporary; that is, it is removed when
+execution stops on it.
+
+Under gdb and dbx, \\[gud-up] pops up through an enclosing stack
+frame.  \\[gud-down] drops back down through one.
 
 If you are using gdb, \\[gdb-finish] runs execution to the return from
 the current function and stops.
 
-These functions repeat themselves the appropriate number of times if you give a
-prefix argument.
+All pre-defined functions for which the concept make sense repeat
+themselves the appropriate number of times if you give a prefix
+argument.
 
-If you are in a source file, you may do the following:
-
-Set a breakpoint at the current line by doing \\[gud-break].  This causes
-an appropriate set-break to be send to the debugger; of course, if the file
-you're visiting doesn't correspond to any code in the executable this will
-have no effect or raise an error.
-
-Execute a user-defined command at point with \\[send-gud-command]; the
-prefix argument is taken as an index into the list of strings gud-commands.
-A %s in a gud-commands string is substituted with a number or address picked
-up from point.
+You may use the gud-def macro in the initialization hook to define other
+commands.
 
 Other commands for interacting with the debugger process are inherited from
 comint mode, which see."
   (interactive)
   (comint-mode)
-; (kill-all-local-variables)
   (setq major-mode 'gud-mode)
   (setq mode-name "Debugger")
   (setq mode-line-process '(": %s"))
-  (use-local-map gud-mode-map)
+  (use-local-map (copy-keymap comint-mode-map))
+  (define-key (current-local-map)
+    gud-key-prefix (lookup-key gud-mode-map gud-key-prefix))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
@@ -410,78 +467,87 @@ comint mode, which see."
   (run-hooks 'gud-mode-hook)
 )
 
-(defvar current-gud-buffer nil)
+(defvar gud-comint-buffer nil)
 
-(defun gud-common-init (path)
-  ;; perform initializations common to all debuggers
-  (setq path (expand-file-name path))
-  (let ((file (file-name-nondirectory path)))
-    (switch-to-buffer (concat "*gud-" file "*"))
-    (setq default-directory (file-name-directory path))
-    (or (bolp) (newline))
-    (insert "Current directory is " default-directory "\n")
-    (gud-debugger-startup file default-directory))
+(defun gud-common-init (args)
+  ;; Perform initializations common to all debuggers
+  ;; There *must* be a cleaner way to lex the arglist...
+  (let (file i)
+    (if (string= args "")
+	(setq args nil)
+      (set-buffer (get-buffer-create "*gud-scratch*"))
+      (erase-buffer)
+      (insert args)
+      (goto-char (point-max))
+      (insert "\")")
+      (goto-char (point-min))
+      (insert "(\"")
+      (while (re-search-forward " +" nil t)
+	(replace-match "\" \"" nil nil))
+      (goto-char (point-min))
+      (while (re-search-forward "\"\"" nil t)
+	(replace-match "" nil nil))
+      (setq args (read (buffer-string)))
+      (kill-buffer (current-buffer)))
+    (setq i (1- (length args)))
+    (while (and (>= i 0) (not (= (aref (nth i args) 0) ?-)))
+      (setq file (nth i args)) (setq i (1- i)))
+    (let* ((path (expand-file-name file))
+	   (filepart (file-name-nondirectory path)))
+      (switch-to-buffer (concat "*gud-" filepart "*"))
+      (setq default-directory (file-name-directory path))
+      (or (bolp) (newline))
+      (insert "Current directory is " default-directory "\n")
+      (gud-debugger-startup filepart args)))
   (gud-mode)
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
   (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
-  (setq gud-command-queue nil)
   (gud-set-buffer)
   )
 
 (defun gud-set-buffer ()
   (cond ((eq major-mode 'gud-mode)
-	(setq current-gud-buffer (current-buffer)))))
-
-(defun gud-filter (proc string)
-  ;; This function is responsible for inserting output from your debugger
-  ;; into the buffer.  The hard work is done by the method that is
-  ;; the value of gud-marker-filter.
-  (let ((inhibit-quit t))
-    (gud-filter-insert proc (gud-marker-filter proc string))
-    ;; If we've got queued commands and we see a prompt, pop one and send it.
-    ;; In theory we should check that a prompt has been issued before sending
-    ;; queued commands.  In practice, command responses from the first through
-    ;; penultimate elements of a command sequence are short enough that we
-    ;; don't really have to bother.
-    (if gud-command-queue
-	(progn
-	  (gud-call (car gud-command-queue))
-	  (setq gud-command-queue (cdr gud-command-queue))
-	  )
-      )))
+	(setq gud-comint-buffer (current-buffer)))))
 
-(defun gud-filter-insert (proc string)
+;; These functions are responsible for inserting output from your debugger
+;; into the buffer.  The hard work is done by the method that is
+;; the value of gud-marker-filter.
+
+(defun gud-filter (proc string)
   ;; Here's where the actual buffer insertion is done
-  (save-excursion
-    (set-buffer (process-buffer proc))
-    (let ((moving (= (point) (process-mark proc)))
-	  (output-after-point (< (point) (process-mark proc))))
-      (save-excursion
-	(goto-char (process-mark proc))
-	;; If we have been so requested, delete the debugger prompt.
-	(if (marker-buffer gud-delete-prompt-marker)
-	    (progn
-	      (delete-region (point) gud-delete-prompt-marker)
-	      (set-marker gud-delete-prompt-marker nil)))
-	(insert-before-markers string)
-	;; Check for a filename-and-line number.
-	;; Don't display the specified file
-	;; unless (1) point is at or after the position where output appears
-	;; and (2) this buffer is on the screen.
-	(if (and gud-last-frame
-		 (not output-after-point)
-		 (get-buffer-window (current-buffer)))
-	    (gud-display-frame)))
-      (if moving (goto-char (process-mark proc))))))
+  (let ((inhibit-quit t))
+    (save-excursion
+      (set-buffer (process-buffer proc))
+      (let ((moving (= (point) (process-mark proc)))
+	    (output-after-point (< (point) (process-mark proc))))
+	(save-excursion
+	  (goto-char (process-mark proc))
+	  ;; If we have been so requested, delete the debugger prompt.
+	  (if (marker-buffer gud-delete-prompt-marker)
+	      (progn
+		(delete-region (point) gud-delete-prompt-marker)
+		(set-marker gud-delete-prompt-marker nil)))
+	  (insert-before-markers (gud-marker-filter string))
+	  ;; Check for a filename-and-line number.
+	  ;; Don't display the specified file
+	  ;; unless (1) point is at or after the position where output appears
+	  ;; and (2) this buffer is on the screen.
+	  (if (and gud-last-frame
+		   (not output-after-point)
+		   (get-buffer-window (current-buffer)))
+	      (gud-display-frame)))
+	(if moving (goto-char (process-mark proc)))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
+	 (setq gud-minor-mode nil)
 	 (set-process-buffer proc nil))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
+	 (setq gud-minor-mode nil)
 	 (setq overlay-arrow-position nil)
 	 ;; Fix the mode line.
 	 (setq mode-line-process
@@ -509,19 +575,12 @@ comint mode, which see."
 	     ;; if obuf is the gud buffer.
 	     (set-buffer obuf))))))
 
-
-(defun gud-refresh (&optional arg)
-  "Fix up a possibly garbled display, and redraw the arrow."
-  (interactive "P")
-  (recenter arg)
-  (gud-display-frame))
-
 (defun gud-display-frame ()
   "Find and obey the last filename-and-line marker from the debugger.
 Obeying it means displaying in another window the specified file and line."
   (interactive)
   (if gud-last-frame
-   (progn 
+   (progn
      (gud-set-buffer)
      (gud-display-line (car gud-last-frame) (cdr gud-last-frame))
      (setq gud-last-frame nil))))
@@ -529,13 +588,18 @@ Obeying it means displaying in another window the specified file and line."
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
 ;; Put the overlay-arrow on the line LINE in that buffer.
+;; Most of the trickiness in here comes from wanting to preserve the current
+;; region-restriction if that's possible.  We use an explicit display-buffer
+;; to get around the fact that this is called inside a save-excursion.
 
 (defun gud-display-line (true-file line)
-  (let* ((buffer (gud-visit-file true-file))
-	 (window (display-buffer buffer t))
+  (let* ((buffer (gud-find-file true-file))
+	 (window (display-buffer buffer))
 	 (pos))
     (save-excursion
       (set-buffer buffer)
+      (make-local-variable 'gud-minor-mode)
+      (setq gud-minor-mode t)
       (save-restriction
 	(widen)
 	(goto-line line)
@@ -548,62 +612,60 @@ Obeying it means displaying in another window the specified file and line."
 	     (widen)
 	     (goto-char pos))))
     (set-window-point window overlay-arrow-position)))
-
-(defun gud-call (command &rest args)
-  "Invoke the debugger COMMAND displaying source in other window."
-  (interactive)
-  (gud-set-buffer)
-  (let ((command (concat (apply 'format command args) "\n"))
-	(proc (get-buffer-process current-gud-buffer)))
 
-    ;; Arrange for the current prompt to get deleted.
-    (save-excursion
-      (set-buffer current-gud-buffer)
-      (goto-char (process-mark proc))
-      (beginning-of-line)
-      (if (looking-at comint-prompt-regexp)
-	  (set-marker gud-delete-prompt-marker (point))))
+;;; The gud-call function must do the right thing whether its invoking
+;;; keystroke is from the GUD buffer itself (via major-mode binding)
+;;; or a C buffer in GUD minor mode.  In the former case, we want to
+;;; supply data from gud-last-frame.  Here's how we do it:
 
-    (goto-char (point-max))
-    (process-send-string proc command)))
-
-(defun gud-queue-send (&rest cmdlist)
-  ;; Send the first command, queue the rest for send after successive
-  ;; send on subsequent prompts
-  (interactive)
-  (gud-call (car cmdlist))
-  (setq gud-command-queue (append gud-command-queue (cdr cmdlist))))
-
-(defun gud-apply-from-source (func &rest args)
-  ;; Apply a method from the gud buffer environment, passing it file
-  ;; and line, then ARGS.  This is intended to be used for gud
-  ;; commands called from a source file.
-  (if (not buffer-file-name)
-      (error "There is no file associated with this buffer")) 
-  (let ((file (file-name-nondirectory buffer-file-name))
-	(line (save-restriction (widen) (1+ (count-lines 1 (point))))))
-    (save-excursion
-      (gud-set-buffer)
-      (apply func
-	     (get-buffer-process current-gud-buffer)
-	     file
-	     line
-	     args)
-      )))
-
-(defun gud-break (arg)
-  "Set breakpoint at this source line.
-With prefix argument, set a temporary breakpoint, if the debugger in
-use supports such things.  (A temporary breakpoint is one which will
-be deleted when it is reached.)"
-  (interactive "P")
-  (gud-apply-from-source 'gud-set-break arg))
+(defun gud-format-command (str arg)
+  (let ((minor (not (eq (current-buffer) gud-comint-buffer))))
+    (if (string-match "\\(.*\\)%f\\(.*\\)" str)
+	(progn
+	  (setq str (concat
+		     (substring str (match-beginning 1) (match-end 1))
+		     (if minor
+			 (buffer-file-name)
+		       (car gud-last-frame))
+		     (substring str (match-beginning 2) (match-end 2))))))
+    (if (string-match "\\(.*\\)%l\\(.*\\)" str)
+	(progn
+	  (setq str (concat
+		     (substring str (match-beginning 1) (match-end 1))
+		     (if minor
+			 (save-excursion
+			   (beginning-of-line)
+			   (save-restriction (widen) 
+					     (1+ (count-lines 1 (point)))))
+		       (cdr gud-last-frame))
+		     (substring str (match-beginning 2) (match-end 2))))))
+    (if (string-match "\\(.*\\)%e\\(.*\\)" str)
+	(progn
+	  (setq str (concat
+		     (substring str (match-beginning 1) (match-end 1))
+		     (find-c-expr)
+		     (substring str (match-beginning 2) (match-end 2))))))
+    (if (string-match "\\(.*\\)%a\\(.*\\)" str)
+	(progn
+	  (setq str (concat
+		     (substring str (match-beginning 1) (match-end 1))
+		     (gud-read-address)
+		     (substring str (match-beginning 2) (match-end 2))))))
+    (if (string-match "\\(.*\\)%p\\(.*\\)" str)
+	(progn
+	  (setq str (concat
+		     (substring str (match-beginning 1) (match-end 1))
+		     (if arg (int-to-string arg) "")
+		     (substring str (match-beginning 2) (match-end 2))))))
+    )
+  str
+  )
 
 (defun gud-read-address ()
   "Return a string containing the core-address found in the buffer at point."
   (save-excursion
     (let ((pt (point)) found begin)
-      (setq found (if (search-backward "0x" (- pt 7) t)(point)))
+      (setq found (if (search-backward "0x" (- pt 7) t) (point)))
       (cond
        (found (forward-char 2)
 	      (buffer-substring found
@@ -618,26 +680,183 @@ be deleted when it is reached.)"
 	  (forward-char -1)
 	  (buffer-substring begin (point)))))))
 
+(defun gud-call (fmt &optional arg)
+  (let ((msg (gud-format-command fmt arg)))
+    (message "Command: %s" msg)
+    (sit-for 0)
+    (gud-basic-call msg)))
 
-(defun send-gud-command (arg)
-  "This command reads the number where the cursor is positioned.  A numeric arg
-selects the ARG'th member COMMAND of the list gud-commands.  If COMMAND is a
-string, (format COMMAND ADDR) is inserted at the end of the debugger buffer,
-otherwise (funcall COMMAND ADDR) is inserted.
-   For example, \"p (rtx)%s->fld[0].rtint\" is a possible string to be a
-member of gud-commands."
+(defun gud-basic-call (command)
+  "Invoke the debugger COMMAND displaying source in other window."
+  (interactive)
+  (gud-set-buffer)
+  (let ((command (concat command "\n"))
+	(proc (get-buffer-process gud-comint-buffer)))
+
+    ;; Arrange for the current prompt to get deleted.
+    (save-excursion
+      (set-buffer gud-comint-buffer)
+      (goto-char (process-mark proc))
+      (beginning-of-line)
+      (if (looking-at comint-prompt-regexp)
+	  (set-marker gud-delete-prompt-marker (point))))
+    (process-send-string proc command)))
+
+(defun gud-refresh (&optional arg)
+  "Fix up a possibly garbled display, and redraw the arrow."
   (interactive "P")
-  (let (comm addr)
-    (if arg (setq comm (nth arg gud-commands)))
-    (setq addr (gud-read-address))
-    (if (eq (current-buffer) current-gud-buffer)
-	(set-mark (point)))
-    (cond (comm
-	   (setq comm
-		 (if (stringp comm) (format comm addr) (funcall comm addr))))
-	  (t (setq comm addr)))
-    (switch-to-buffer current-gud-buffer)
-    (goto-char (point-max))
-    (insert-string comm)))
+  (recenter arg)
+  (gud-display-frame))
+
+;;; Code for parsing expressions out of C code.  The single entry point is
+;;; find-c-expr, which tries to return an lvalue expression from around point.
+;;;
+;;; The rest of this file is a hacked version of gdbsrc.el by
+;;; Debby Ayers <ayers@asc.slb.com>,
+;;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
+;;; ??? We're waiting on papers from these people
+
+(defun find-c-expr ()
+  "Returns the C expr that surrounds point."
+  (interactive)
+  (save-excursion
+    (let ((p) (expr) (test-expr))
+      (setq p (point))
+      (setq expr (expr-cur))
+      (setq test-expr (expr-prev))
+      (while (expr-compound test-expr expr)
+	(setq expr (cons (car test-expr) (cdr expr)))
+	(goto-char (car expr))
+	(setq test-expr (expr-prev))
+	)
+      (goto-char p)
+      (setq test-expr (expr-next))
+      (while (expr-compound expr test-expr)
+	(setq expr (cons (car expr) (cdr test-expr)))
+	(setq test-expr (expr-next))
+	)
+      (buffer-substring (car expr) (cdr expr))
+      )
+    )
+  )
+
+(defun expr-cur ()
+  "Returns the expr that point is in; point is set to beginning of expr.
+The expr is represented as a cons cell, where the car specifies the point in
+the current buffer that marks the beginning of the expr and the cdr specifies 
+the character after the end of the expr"
+  (let ((p (point)) (begin) (end))
+    (back-expr)
+    (setq begin (point))
+    (forw-expr)
+    (setq end (point))
+    (if (>= p end) 
+	(progn
+	 (setq begin p)
+	 (goto-char p)
+	 (forw-expr)
+	 (setq end (point))
+	 )
+      )
+    (goto-char begin)
+    (cons begin end)
+    )
+  )
+
+(defun back-expr ()
+  "Version of backward-sexp that catches errors"
+  (condition-case nil
+      (backward-sexp)
+    (error t)))
+
+(defun forw-expr ()
+  "Version of forward-sexp that catches errors"
+  (condition-case nil
+     (forward-sexp)
+    (error t)))
+
+(defun expr-prev ()
+  "Returns the previous expr, point is set to beginning of that expr.
+The expr is represented as a cons cell, where the car specifies the point in
+the current buffer that marks the beginning of the expr and the cdr specifies 
+the character after the end of the expr"
+  (let ((begin) (end))
+    (back-expr)
+    (setq begin (point))
+    (forw-expr)
+    (setq end (point))
+    (goto-char begin)
+    (cons begin end)))
+
+(defun expr-next ()
+  "Returns the following expr, point is set to beginning of that expr.
+The expr is represented as a cons cell, where the car specifies the point in
+the current buffer that marks the beginning of the expr and the cdr specifies 
+the character after the end of the expr"
+  (let ((begin) (end))
+    (forw-expr)
+    (forw-expr)
+    (setq end (point))
+    (back-expr)
+    (setq begin (point))
+    (cons begin end)
+    )
+  )
+
+(defun expr-compound-sep (span-start span-end)
+  "Returns '.' for '->' & '.', returns ' ' for white space,
+returns '?' for other puctuation."  
+  (let ((result ? )
+	(syntax))
+    (while (< span-start span-end)
+      (setq syntax (char-syntax (char-after span-start)))
+      (cond
+       ((= syntax ? ) t)
+       ((= syntax ?.) (setq syntax (char-after span-start))
+	(cond 
+	 ((= syntax ?.) (setq result ?.))
+	 ((and (= syntax ?-) (= (char-after (+ span-start 1)) ?>))
+	  (setq result ?.)
+	  (setq span-start (+ span-start 1)))
+	 (t (setq span-start span-end)
+	    (setq result ??)))))
+      (setq span-start (+ span-start 1)))
+    result 
+    )
+  )
+
+(defun expr-compound (first second)
+  "Returns non-nil if the concatenation of two exprs results in a single C 
+token. The two exprs are represented as a cons cells, where the car 
+specifies the point in the current buffer that marks the beginning of the 
+expr and the cdr specifies the character after the end of the expr
+Link exprs of the form:
+      Expr -> Expr
+      Expr . Expr
+      Expr (Expr)
+      Expr [Expr]
+      (Expr) Expr
+      [Expr] Expr"
+  (let ((span-start (cdr first))
+	(span-end (car second))
+	(syntax))
+    (setq syntax (expr-compound-sep span-start span-end))
+    (cond
+     ((= (car first) (car second)) nil)
+     ((= (cdr first) (cdr second)) nil)
+     ((= syntax ?.) t)
+     ((= syntax ? )
+	 (setq span-start (char-after (- span-start 1)))
+	 (setq span-end (char-after span-end))
+	 (cond
+	  ((= span-start ?) ) t )
+	  ((= span-start ?] ) t )
+          ((= span-end ?( ) t )
+	  ((= span-end ?[ ) t )
+	  (t nil))
+	 )
+     (t nil))
+    )
+  )
 
 ;;; gud.el ends here
