@@ -314,6 +314,10 @@ struct kboard;
 #define free unexec_free
 #endif
 
+/* This makes create_process in process.c save and restore signal
+   handlers correctly.  Suggested by Nozomu Ando.*/
+#define POSIX_SIGNALS
+
 /* Reroute calls to SELECT to the version defined in mac.c to fix the
    problem of Emacs requiring an extra return to be typed to start
    working when started from the command line.  */
