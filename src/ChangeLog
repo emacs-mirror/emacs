@@ -1,3 +1,8 @@
+2001-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w32term.c (x_set_glyph_string_background_width)
+	(show_mouse_face): Track the last changes in xterm.c.
+
 2001-08-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_set_glyph_string_background_width): Set the glyph
