@@ -6140,6 +6140,10 @@ x_list_fonts (f, pattern, size, maxnames)
     list = Fassoc (key,
 		   XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
 
+  /* Now LIST has the form (KEY . FONT-DATA-LIST), where KEY is a
+    pattern which matches font names in FONT-DATA-LIST, FONT-DATA-LIST
+    is a list of cons cells for the form (FONTNAME . FONTWIDTH).  */
+
   if (!NILP (list))
     list = XCONS (list)->cdr;
   else
@@ -6167,7 +6171,8 @@ x_list_fonts (f, pattern, size, maxnames)
 	      /* Count the number of dashes in NAMES[I].  If there are
 		 14 dashes, and the field value following 12th dash
 		 (AVERAGE_WIDTH) is 0, this is a auto-scaled font
-		 which is of no use.  Let's ignore it.  */
+		 which is usually too ugly to be used for editing.
+		 Let's ignore it.  */
 	      while (*p)
 		if (*p++ == '-')
 		  {
