@@ -1,8 +1,8 @@
-;; f90.el --- Fortran-90 mode (free format) for GNU Emacs.
+;; f90.el --- Fortran-90 mode (free format) for GNU Emacs and GNU XEmacs.
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <tfkte@fy.chalmers.se>
-;; Created: Jan 21, 1995
+;; Created: Apr. 13, 1995
 ;; Keywords: fortran, f90, languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -86,7 +86,9 @@
 ;;                        f90-auto-keyword-case nil
 ;;                        f90-auto-hilit19 t
 ;;                        f90-leave-line-no  nil
-;;                        f90-startup-message t)
+;;                        f90-startup-message t
+;;                        indent-tabs-mode nil
+;;                  )
 ;;       ;;The rest is not default.
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
 ;;       (f90-auto-fill-mode 1)      ; turn on auto-filling
@@ -108,6 +110,9 @@
 ;;   b) To use font-lock-mode, nothing special is needed.
 ;; 4) For FIXED FORMAT code, use the ordinary fortran mode.
 ;; 5) This mode does not work under emacs-18.x.
+;; 6) Preprocessor directives, i.e., lines starting with # are left-justified
+;;    and are untouched by all case-changing commands. There is, at present, no
+;;    mechanism for treating multi-line directives (continued by \ ).
 
 ;; List of user commands
 ;;   f90-previous-statement         f90-next-statement
@@ -194,7 +199,7 @@ whether to blink the matching beginning.")
     "elseif" "elsewhere" "end" "enddo" "endfile" "endif" "entry" "equivalence"
     "exit" "external" "forall" "format" "function" "goto" "if" "implicit"
     "include" "inquire" "integer" "intent" "interface" "intrinsic" "logical"
-    "module" "namelist" "none" "nullify" "open" "optional" "parameter"
+    "module" "namelist" "none" "nullify" "only" "open" "optional" "parameter"
     "pause" "pointer" "precision" "print" "private" "procedure" "program"
     "public" "read" "real" "recursive" "return" "rewind" "save" "select"
     "sequence" "stop" "subroutine" "target" "then" "type" "use" "where"
@@ -262,6 +267,10 @@ whether to blink the matching beginning.")
 		  'font-lock-function-name-face)
     '("^[ \t]*\\(type\\)[ \t]+\\sw+" 1 font-lock-keyword-face)
     '("^[ \t]*type[ \t]+\\(\\sw+\\)" 1 font-lock-function-name-face)
+    '("^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::\
+[ \t]*\\(\\sw+\\)" 1 font-lock-keyword-face)
+    '("^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::\
+[ \t]*\\(\\sw+\\)" 3 font-lock-function-name-face)
     '("^[ \t]*\\(end[ \t]*\\)?interface\\>" . font-lock-keyword-face)
     '("^[ \t]*contains\\>" . font-lock-keyword-face)))
   "For consideration as a value of `f90-font-lock-keywords-1'.
@@ -272,8 +281,8 @@ This does fairly subdued highlighting of comments and function names.")
    (append f90-font-lock-keywords-1
     (list
      ;; Variable declarations
-     '("\\(\\(real\\|integer\\|character\\|complex\\|logical\\|type\\).*\\)::"
-       1 font-lock-type-face)
+     '("\\(\\(real\\|integer\\|character\\|complex\\|logical\\|\
+type[ \t]*(\\sw+)\\).*\\)::" 1 font-lock-type-face)
      '("implicit[ \t]*none" . font-lock-keyword-face)
      '("^[ \t]*\\(\\sw+[ \t]*:[ \t]*\\)?\\(do\\([ \t]*while\\)?\\)\\>"
        2 font-lock-keyword-face)
@@ -352,7 +361,7 @@ This highlights variable types, \"keywords,\" etc.")
 	    nil f90-face-string)
       (list "!" "$" f90-face-comment)
       (list "\\(\\(real\\|integer\\|character\\|complex\\|logical\
-\\|type\\).*\\)::" 1 f90-face-decl)
+\\|type[ \t]*(\\sw+)\\).*\\)::" 1 f90-face-decl)
       (list "implicit[ \t]*none" nil f90-face-decl)
       (list "^[ \t]*\\(program\\|module\\)[ \t]+\\sw+" 1 f90-face-prog)
       (list "^[ \t]*\\(program\\|module\\)[ \t]+\\(\\sw+\\)" 2 f90-face-label)
@@ -366,6 +375,8 @@ This highlights variable types, \"keywords,\" etc.")
 		    "subroutine\\|type\\)[ \t]+\\(\\sw+\\)") 2 f90-face-label)
       (list "^[ \t]*\\(type\\)[ \t]+\\sw+" 1 f90-face-type)
       (list "^[ \t]*type[ \t]+\\(\\sw+\\)" 1 f90-face-label)
+      (list "^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::[ \t]*\\(\\sw+\\)" 1 f90-face-type)
+      (list "^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::[ \t]*\\(\\sw+\\)" 3 f90-face-label)
       (list "^[ \t]*\\(end[ \t]*\\)?interface\\>" nil f90-face-interface)
       (list "^[ \t]*contains\\>" nil f90-face-contains)
       (list "^[ \t]*\\(\\sw+[ \t]*:[ \t]*\\)?\\(do\\([ \t]*while\\)?\\)\\>"
@@ -533,6 +544,9 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defconst f90-end-type-re 
   "end[ \t]*\\(type\\|interface\\|block[ \t]*data\\)\\>")
 (defconst f90-no-break-re  "\\(\\*\\*\\|//\\|=>\\)")
+(defconst f90-p-type-re
+  (concat "\\(type\\)[ \t]*,[ \t]*\\(public\\|private\\)"
+	  "[ \t]*::[ \t]*\\(" f90-symbol-re "\\)\\>"))
 ;; A temporary position to make region operators faster
 (defvar f90-cache-position nil)
 (make-variable-buffer-local 'f90-cache-position)
@@ -682,12 +696,13 @@ with no args, if that value is non-nil."
   (setq comment-indent-function 'f90-comment-indent)
   (make-local-variable 'abbrev-all-caps)
   (setq abbrev-all-caps t)
+  (setq indent-tabs-mode nil)
   ;; Setting up things for font-lock
   (if (string-match "Lucid" emacs-version)
       (put 'f90-mode 'font-lock-keywords-case-fold-search t)
-    ;; (make-local-variable 'font-lock-keywords) ; for version <= 19.28 
+    ;; (make-local-variable 'font-lock-keywords) ; for Emacs version <= 19.28 
     ;; (setq font-lock-keywords f90-font-lock-keywords)
-    (make-local-variable 'font-lock-defaults) ; for version > 19.28
+    (make-local-variable 'font-lock-defaults) ; for Emacs version > 19.28
     (setq font-lock-defaults '(f90-font-lock-keywords t))
     )
   (make-local-variable 'font-lock-keywords-case-fold-search)
@@ -835,6 +850,8 @@ Name is non-nil only for type."
   (cond 
    ((looking-at (concat "\\(type\\)[ \t]+\\(" f90-symbol-re "\\)\\>"))
     (list (f90-match-piece 1) (f90-match-piece 2)))
+   ((looking-at f90-p-type-re)
+    (list (f90-match-piece 1) (f90-match-piece 3)))
    ((looking-at "\\(interface\\)\\>")
     (list (f90-match-piece 1) nil))
    ((looking-at "\\(block[ \t]*data\\)\\>")
@@ -902,6 +919,7 @@ case\\|where\\|forall\\)\\>")
 block[ \t]*data\\)\\>")
 	       (looking-at "\\(contains\\|continue\\|\\sw+[ \t]*:\\)")
 	       (looking-at "type[ \t]+\\sw+")
+	       (looking-at f90-p-type-re)
 	       (re-search-forward "\\(function\\|subroutine\\)" eol t))))))
 
 (defsubst f90-update-line ()
@@ -1553,10 +1571,14 @@ Any other key combination is executed normally."
       (while (re-search-forward keyword-re end t)
 	(if (progn
 	      (setq state (parse-partial-sexp ref-point (point)))
-	      (and (not (nth 3 state)) (not (nth 4 state))))
-	    (progn
-	      (setq ref-point (point))
-	      (funcall change-word -1)))))))
+	      (or (nth 3 state) (nth 4 state)
+		  (save-excursion	; Check for cpp directive.
+		    (beginning-of-line)
+		    (skip-chars-forward " \t0-9")
+		    (looking-at "#"))))
+	    ()
+	  (setq ref-point (point))
+	  (funcall change-word -1))))))
 
 (provide 'f90)
 
