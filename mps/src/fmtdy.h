@@ -1,6 +1,6 @@
 /* impl.h.fmtdy: DYLAN OBJECT FORMAT
  *
- * $HopeName: MMsrc!fmtdy.h(trunk.5) $
+ * $HopeName: MMsrc!fmtdy.h(trunk.6) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  */
 
@@ -28,16 +28,17 @@ extern mps_bool_t dylan_check(mps_addr_t addr);
 extern void dylan_pad(mps_addr_t addr, size_t size);
 extern int dylan_wrapper_check(mps_word_t *w);
 
-#define WW 0
-#define WC 1
-#define WM 2
-#define WF 3
-#define WV 4
-#define WS 5
-#define WP 6
+/* Constants describing wrappers. Used only for debugging / testing */
+#define WW 0    /* offset of Wrapper-Wrapper */
+#define WC 1    /* offset of Class pointer*/
+#define WM 2    /* offset of subtype Mask */
+#define WF 3    /* offset of Fixed part descriptor */
+#define WV 4    /* offset of Vector part descriptor */
+#define WS 5    /* offset of Size field for pattern vector */
+#define WP 6    /* offset of Pattern 0, if present */
 
-#define BASIC_WRAPPER_SIZE (WS + 1)
+#define BASIC_WRAPPER_SIZE (WS + 1) /* size of wrapper with no patterns */
 
-#define ALIGN           sizeof(mps_word_t)
+#define ALIGN sizeof(mps_word_t)    /* alignment for Dylan format */
 
 #endif /* fmtdy_h */
