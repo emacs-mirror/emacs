@@ -2298,7 +2298,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Assume the mouse has moved out of the X window.
      If it has actually moved in, we will get an EnterNotify.  */
-  x_mouse_leave ();
+  x_mouse_leave (FRAME_X_DISPLAY_INFO (f));
 
   switch (status)
     {
