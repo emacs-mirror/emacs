@@ -796,7 +796,7 @@ fontset_pattern_regexp (pattern)
 	{
 	  if (*p0 == '-')
 	    ndashes++;
-	  else if (*p0 == '*')
+	  else if (*p0 == '*' && p0 > SDATA (pattern) && p0[-1] != '\\')
 	    nstars++;
 	}
 
@@ -811,7 +811,7 @@ fontset_pattern_regexp (pattern)
       *p1++ = '^';
       for (p0 = (char *) SDATA (pattern); *p0; p0++)
 	{
-	  if (*p0 == '*')
+	  if (*p0 == '*' && p0 > SDATA (pattern) && p0[-1] != '\\')
 	    {
 	      if (ndashes < 14)
 		*p1++ = '.';
