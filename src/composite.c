@@ -2,6 +2,9 @@
    Copyright (C) 1999 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
    Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -23,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "intervals.h"
 
 /* Emacs uses special text property `composition' to support character
@@ -152,18 +155,6 @@ Lisp_Object Qcomposition_function_table;
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
 
-/* Return how many columns C will occupy on the screen.  It always
-   returns 1 for control characters and 8-bit characters because those
-   are just ignored in a composition.  */
-#define CHAR_WIDTH(c) \
-  (SINGLE_BYTE_CHAR_P (c) ? 1 : CHARSET_WIDTH (CHAR_CHARSET (c)))
-
-/* The following macros for hash table are copied from fns.c.  */
-/* Value is the key part of entry IDX in hash table H.  */
-#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
-/* Value is the value part of entry IDX in hash table H.  */
-#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
-
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
    the sequence is PROP.  STRING, if non-nil, is a string that
