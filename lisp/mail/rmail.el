@@ -498,7 +498,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (cons "Move" (make-sparse-keymap "Move")))
 
 (define-key rmail-mode-map [menu-bar move search-back]
-  '("Search Back..." . rmail-search-backward))
+  '("Search Back..." . rmail-search-backwards))
 
 (define-key rmail-mode-map [menu-bar move search]
   '("Search..." . rmail-search))
@@ -1633,30 +1633,6 @@ or forward if N is negative."
          (save-excursion 
            (search-forward "*** EOOH ***" (point-max)) (point))))
     (re-search-forward regexp end t)))
-
-(defun rmail-search-backward (regexp &optional n)
-  "Show message containing next match for REGEXP.
-Prefix argument gives repeat count; negative argument means search
-backwards (through earlier messages).
-Interactively, empty argument means use same regexp used last time."
-  (interactive
-    (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
-	   (prompt
-	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
-	   regexp)
-      (if rmail-search-last-regexp
-	  (setq prompt (concat prompt
-			       "(default "
-			       rmail-search-last-regexp
-			       ") ")))
-      (setq regexp (read-string prompt))
-      (cond ((not (equal regexp ""))
-	     (setq rmail-search-last-regexp regexp))
-	    ((not rmail-search-last-regexp)
-	     (error "No previous Rmail search string")))
-      (list rmail-search-last-regexp
-	    (prefix-numeric-value current-prefix-arg))))
-  (rmail-search regexp (- n)))
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
