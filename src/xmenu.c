@@ -731,6 +731,7 @@ cached information about equivalent key sequences.")
   Lisp_Object x, y, window;
   int keymaps = 0;
   int menubarp = 0;
+  int for_click = 0;
   struct gcpro gcpro1;
 
   if (! NILP (position))
@@ -768,6 +769,7 @@ cached information about equivalent key sequences.")
 	    }
 	  else
 	    {
+	      for_click = 1;
 	      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
 	      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
@@ -890,7 +892,7 @@ cached information about equivalent key sequences.")
   /* Display them in a menu.  */
   BLOCK_INPUT;
 
-  selection = xmenu_show (f, xpos, ypos, menubarp,
+  selection = xmenu_show (f, xpos, ypos, menubarp, for_click,
 			  keymaps, title, &error_name);
   UNBLOCK_INPUT;
 
@@ -1526,7 +1528,8 @@ free_frame_menubar (f)
 /* F is the frame the menu is for.
    X and Y are the frame-relative specified position,
    relative to the inside upper left corner of the frame F.
-   MENUBARP is 1 if the click that asked for this menu came from the menu bar.
+   MENUBARP is 1 if this menu came from the menu bar.
+   FOR_CLICK if this menu was invoked for a mouse click.
    KEYMAPS is 1 if this menu was specified with keymaps;
     in that case, we return a list containing the chosen item's value
     and perhaps also the pane's prefix.
@@ -1557,11 +1560,12 @@ popup_selection_callback (widget, id, client_data)
 }
 
 static Lisp_Object
-xmenu_show (f, x, y, menubarp, keymaps, title, error)
+xmenu_show (f, x, y, menubarp, for_click, keymaps, title, error)
      FRAME_PTR f;
      int x;
      int y;
      int menubarp;		/* This arg is unused in Xt version.  */
+     int for_click;
      int keymaps;
      Lisp_Object title;
      char **error;
@@ -2075,11 +2079,12 @@ xdialog_show (f, menubarp, keymaps, title, error)
 #else /* not USE_X_TOOLKIT */
 
 static Lisp_Object
-xmenu_show (f, x, y, menubarp, keymaps, title, error)
+xmenu_show (f, x, y, menubarp, for_click, keymaps, title, error)
      FRAME_PTR f;
      int x, y;
-     int keymaps;
      int menubarp;
+     int for_click;
+     int keymaps;
      Lisp_Object title;
      char **error;
 {
