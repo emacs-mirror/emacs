@@ -238,29 +238,29 @@ blessmail: ${SUBDIR_MAKEFILES} src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
-Makefile: Makefile.in config.status
+Makefile: $(srcdir)/Makefile.in config.status
 	./config.status
 
-src/Makefile: src/Makefile.in config.status
+src/Makefile: $(srcdir)/src/Makefile.in config.status
 	./config.status
 
-src/config.stamp: src/config.in config.status
+src/config.stamp: $(srcdir)/src/config.in config.status
 	./config.status
 	touch src/config.stamp
 
-lib-src/Makefile: lib-src/Makefile.in config.status
+lib-src/Makefile: $(srcdir)/lib-src/Makefile.in config.status
 	./config.status
 
-man/Makefile: man/Makefile.in config.status
+man/Makefile: $(srcdir)/man/Makefile.in config.status
 	./config.status
 
-oldXMenu/Makefile: oldXMenu/Makefile.in config.status
+oldXMenu/Makefile: $(srcdir)/oldXMenu/Makefile.in config.status
 	./config.status
 
-lwlib/Makefile: lwlib/Makefile.in config.status
+lwlib/Makefile: $(srcdir)/lwlib/Makefile.in config.status
 	./config.status
 
-leim/Makefile: leim/Makefile.in config.status
+leim/Makefile: $(srcdir)/leim/Makefile.in config.status
 	./config.status
 
 # ==================== Installation ====================
