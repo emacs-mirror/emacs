@@ -20,3 +20,6 @@
    with this, you may need to link with the resolver library; to do
    that, copy the following definition to config.h.  */
 /* #define LIBS_SYSTEM -lresolv */
+
+/* Tell GNU malloc to compensate for a bug in localtime.  */
+#define SUNOS_LOCALTIME_BUG
