@@ -456,7 +456,7 @@ which prepares for a second click to delete the text."
 	  ;; Make the undo list by hand so it is shared.
 	  (if (not (eq buffer-undo-list t))
 	      (setq buffer-undo-list
-		    (cons (cons (car kill-ring) start)
+		    (cons (cons (car kill-ring) (marker-position start))
 			  buffer-undo-list))))
       ;; Otherwise, save this region.
       (save-excursion
