@@ -513,7 +513,7 @@ File names returned are absolute."
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
-Returns the buffer containing the tag's definition moves its point there,
+Returns the buffer containing the tag's definition and moves its point there,
 but does not select the buffer.
 The default for TAGNAME is the expression in the buffer near point.
 
@@ -637,9 +637,12 @@ See documentation of variable `tags-file-name'."
 ;; specified source file and return.  Qualified matches are remembered to
 ;; avoid repetition.  State is saved so that the loop can be continued.
 
-(defun find-tag-in-order (pattern search-forward-func order
-				  next-line-after-failure-p matching
-				  first-search)
+(defun find-tag-in-order (pattern
+			  search-forward-func
+			  order
+			  next-line-after-failure-p
+			  matching
+			  first-search)
   (let (file				;name of file containing tag
 	tag-info			;where to find the tag in FILE
 	tags-table-file			;name of tags file
