@@ -462,7 +462,7 @@ has the form `(ANNOTATION PARAM ...)'."
   "Decode a `display' property for text between START and END.
 PARAM is a `<param>' found for the property.
 Value is a list `(START END SYMBOL VALUE)' with START and END denoting
-the range of text to assign text property SYMBOL with value VALUE "
+the range of text to assign text property SYMBOL with value VALUE."
   (let ((prop (when (stringp param)
 		(condition-case ()
 		    (car (read-from-string param))
