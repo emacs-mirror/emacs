@@ -173,6 +173,17 @@ tgetstr (cap, area)
   return tgetst1 (ptr, area);
 }
 
+#ifdef IS_EBCDIC_HOST
+/* Table, indexed by a character in range 0200 to 0300 with 0200 subtracted,
+   gives meaning of character following \, or a space if no special meaning.
+   Sixteen characters per line within the string.  */
+
+static char esctab[]
+  = " \057\026  \047\014         \
+     \025   \015      \
+   \005 \013          \
+                ";
+#else
 /* Table, indexed by a character in range 0100 to 0140 with 0100 subtracted,
    gives meaning of character following \, or a space if no special meaning.
    Eight characters per line within the string.  */
@@ -182,6 +193,7 @@ static char esctab[]
       \012 \
   \015 \011 \013 \
         ";
+#endif
 
 /* PTR points to a string value inside a termcap entry.
    Copy that value, processing \ and ^ abbreviations,
@@ -245,12 +257,21 @@ tgetst1 (ptr, area)
 		  p++;
 		}
 	    }
+#ifdef IS_EBCDIC_HOST
+	  else if (c >= 0200 && c < 0360)
+	    {
+	      c1 = esctab[(c & ~0100) - 0200];
+	      if (c1 != ' ')
+		c = c1;
+	    }
+#else
 	  else if (c >= 0100 && c < 0200)
 	    {
 	      c1 = esctab[(c & ~040) - 0100];
 	      if (c1 != ' ')
 		c = c1;
 	    }
+#endif
 	}
       *r++ = c;
     }
