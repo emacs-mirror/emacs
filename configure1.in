@@ -280,7 +280,7 @@ if [ "${configuration}" = "" ]; then
     echo "- Looks like this is a ${configuration}" 1>&2
   else
     echo '- Failed to guess the system type.  You need to tell me.' 1>&2
-    echo "${short_usage}") >&2
+    echo "${short_usage}" >&2
     exit 1
   fi
 fi
