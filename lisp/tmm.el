@@ -1,10 +1,11 @@
 ;;; tmm.el --- text mode access to menu-bar
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2001
+;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: FSF
+;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -25,13 +26,7 @@
 
 ;;; Commentary:
 
-;; To use this package add 
-
-;; (autoload 'tmm-menubar 'tmm "Text mode substitute for menubar" t) 
-;; (global-set-key [f10] 'tmm-menubar)
-;; to your .emacs file. You can also add your own access to different
-;; menus available in Window System Emacs modeling definition after
-;; tmm-menubar.
+;; This package provides text mode access to the menu bar.
 
 ;;; Code:
 
@@ -101,7 +96,7 @@ See the documentation for `tmm-prompt'."
   (tmm-menubar (car (posn-x-y (event-start event)))))
 
 (defcustom tmm-mid-prompt "==>"
-  "*String to insert between shortcut and menu item. 
+  "*String to insert between shortcut and menu item.
 If nil, there will be no shortcuts. It should not consist only of spaces,
 or else the correct item might not be found in the `*Completions*' buffer."
   :type 'string
@@ -110,10 +105,10 @@ or else the correct item might not be found in the `*Completions*' buffer."
 (defvar tmm-mb-map nil
   "A place to store minibuffer map.")
 
-(defcustom tmm-completion-prompt 
+(defcustom tmm-completion-prompt
   "Press PageUp Key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
-the item in the minibuffer, and press RET when you are done, or press the 
+the item in the minibuffer, and press RET when you are done, or press the
 marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
 "
   "*Help text to insert on the top of the completion buffer.
@@ -123,8 +118,8 @@ in which case the standard introduction text is deleted too."
   :group 'tmm)
 
 (defcustom tmm-shortcut-style '(downcase upcase)
-  "*What letters to use as menu shortcuts. 
-Must be either one of the symbols `downcase' or `upcase', 
+  "*What letters to use as menu shortcuts.
+Must be either one of the symbols `downcase' or `upcase',
 or else a list of the two in the order you prefer."
   :type '(choice (const downcase)
 		 (const upcase)
@@ -133,7 +128,7 @@ or else a list of the two in the order you prefer."
 
 (defcustom tmm-shortcut-words 2
   "*How many successive words to try for shortcuts, nil means all.
-If you use only one of `downcase' or `upcase' for `tmm-shortcut-style', 
+If you use only one of `downcase' or `upcase' for `tmm-shortcut-style',
 specify nil for this variable."
   :type '(choice integer (const nil))
   :group 'tmm)
@@ -234,7 +229,7 @@ Its value should be an event that has a binding in MENU."
 	   ;; We just did the inner level of a -popup menu.
 	   choice)
 	  ;; We just did the outer level.  Do the inner level now.
-	  (not-menu (tmm-prompt choice t)) 
+	  (not-menu (tmm-prompt choice t))
 	  ;; We just handled a menu keymap and found another keymap.
 	  ((keymapp choice)
 	   (if (symbolp choice)
@@ -265,7 +260,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defsubst tmm-add-one-shortcut (elt)
 ;; uses the free vars tmm-next-shortcut-digit and tmm-short-cuts
   (let* ((str (car elt))
-        (paren (string-match "(" str))  
+        (paren (string-match "(" str))
         (pos 0) (word 0) char)
     (catch 'done                        ; ??? is this slow?
       (while (and (or (not tmm-shortcut-words) ; no limit on words
@@ -274,7 +269,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
                   (not (and paren (> pos paren)))) ; don't go past "(binding.."
         (if (or (= pos 0)
                 (/= (aref str (1- pos)) ?.)) ; avoid file extensions
-            (let ((shortcut-style                 
+            (let ((shortcut-style
                    (if (listp tmm-shortcut-style) ; convert to list
                        tmm-shortcut-style
                      (list tmm-shortcut-style))))
@@ -330,7 +325,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (let ((win (selected-window)))
     (setq tmm-old-mb-map (tmm-define-keys t))
     ;; Get window and hide it for electric mode to get correct size
-    (save-window-excursion 
+    (save-window-excursion
       (let ((completions
 	     (mapcar 'car minibuffer-completion-table)))
         (or tmm-completion-prompt
@@ -375,7 +370,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	  (delete-region (minibuffer-prompt-end) (point-max))
 	  (mapc (lambda (elt)
 		  (if (string=
-		       (substring (car elt) 0 
+		       (substring (car elt) 0
 				  (min (1+ (length tmm-mid-prompt))
 				       (length (car elt))))
 		       (concat (char-to-string c) tmm-mid-prompt))
@@ -393,14 +388,14 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
 
-(defun tmm-get-keymap (elt &optional in-x-menu) 
+(defun tmm-get-keymap (elt &optional in-x-menu)
   "Prepends (DOCSTRING EVENT BINDING) to free variable `tmm-km-list'.
 The values are deduced from the argument ELT, that should be an
 element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).
 This function adds the element only if it is not already present.
 It uses the free variable `tmm-table-undef' to keep undefined keys."
-  (let (km str cache plist filter (event (car elt)))
+  (let (km str cache plist filter visible (event (car elt)))
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
@@ -438,6 +433,9 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (setq filter (plist-get plist :filter))
 	       (if filter
 		   (setq km (funcall filter km)))
+	       (setq visible (plist-get plist :visible))
+	       (if visible
+		   (setq km (and (eval visible) km)))
 	       (and str
 		    (consp (nth 3 elt))
 		    (stringp (cdr (nth 3 elt))) ; keyseq cache
@@ -489,7 +487,7 @@ of `menu-bar-final-items'."
 	(progn
 	  ;; Otherwise, it is a prefix, so make a list of the subcommands.
 	  ;; Make a list of all the bindings in all the keymaps.
-	  (setq allbind (mapcar 'cdr (minor-mode-key-binding keyseq))) 
+	  (setq allbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
 	  (setq allbind (cons (local-key-binding keyseq) allbind))
 	  (setq allbind (cons (global-key-binding keyseq) allbind))
 	  ;; Merge all the elements of ALLBIND into one keymap.
