@@ -7538,7 +7538,8 @@ glyph_rect (f, x, y, rect)
 }
 
 /* Record the position of the mouse in last_mouse_glyph.  */
-static void remember_mouse_glyph (f1, gx, gy)
+static void
+remember_mouse_glyph (f1, gx, gy)
      struct frame * f1;
      int gx, gy;
 {
