@@ -1,13 +1,17 @@
-/*  impl.c.locv
+/* impl.c.locv
  *
- *            Leaf Object Pool Class Coverage Test
+ *           Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.8) $
+ * $HopeName: MMsrc!locv.c(trunk.8) $
  *
- *  Copyright (C) 1996 Harlequin Group, all rights reserved
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
- *  This is (not much of) a coverage test for the Leaf Object
- *  pool (PoolClassLO).
+ * This is (not much of) a coverage test for the Leaf Object
+ * pool (PoolClassLO).
+ *
+ * .hack.stdio: On platform.susplc the assert macro in assert.h uses
+ * stderr without declaring it.  Therefore using the assert macro will
+ * not work unless stderr has been declared by #including <stdio.h>.
  */
 
 #include "testlib.h"
@@ -15,6 +19,9 @@
 #include "mpsclo.h"
 
 #include <assert.h>
+#ifdef MPS_PF_SUSPLC
+#include <stdio.h>	/* .hack.stdio */
+#endif
 
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
