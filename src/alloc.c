@@ -1699,9 +1699,10 @@ Lisp_Object *last_marked[LAST_MARKED_SIZE];
 int last_marked_index;
 
 static void
-mark_object (objptr)
-     Lisp_Object *objptr;
+mark_object (argptr)
+     Lisp_Object *argptr;
 {
+  Lisp_Object *objptr = argptr;
   register Lisp_Object obj;
 
  loop:
