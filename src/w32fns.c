@@ -5585,6 +5585,7 @@ w32_load_system_font (f,fontname,size)
     struct font_info *fontp;
     LOGFONT lf;
     BOOL ok;
+    int codepage;
     int i;
 
     if (!fontname || !x_to_w32_font (fontname, &lf))
@@ -5616,7 +5617,8 @@ w32_load_system_font (f,fontname,size)
       {
 	HDC hdc;
 	HANDLE oldobj;
-        int codepage = w32_codepage_for_font (fontname);
+
+        codepage = w32_codepage_for_font (fontname);
 
 	hdc = GetDC (dpyinfo->root_window);
 	oldobj = SelectObject (hdc, font->hfont);
@@ -5691,6 +5693,10 @@ w32_load_system_font (f,fontname,size)
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
     charset = xlfd_charset_of_font (fontname);
+
+  /* Cache the W32 codepage for a font.  This makes w32_encode_char
+     (called for every glyph during redisplay) much faster.  */
+    fontp->codepage = codepage;
 
     /* Work out the font's full name.  */
     full_name = (char *)xmalloc (100);
