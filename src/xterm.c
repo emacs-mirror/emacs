@@ -399,6 +399,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+static int cursor_in_mouse_face_p P_ ((struct window *));
 static int clear_mouse_face P_ ((struct x_display_info *));
 static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
 static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
@@ -4384,14 +4385,23 @@ x_draw_stretch_glyph_string (s)
       /* Clear rest using the GC of the original non-cursor face.  */
       if (width < s->background_width)
 	{
-	  GC gc = s->face->gc;
 	  int x = s->x + width, y = s->y;
 	  int w = s->background_width - width, h = s->height;
 	  XRectangle r;
+	  GC gc;
 
+	  if (s->row->mouse_face_p
+	      && cursor_in_mouse_face_p (s->w))
+	    {
+	      x_set_mouse_face_gc (s);
+	      gc = s->gc;
+	    }
+	  else
+	    gc = s->face->gc;
+  
 	  x_get_glyph_string_clip_rect (s, &r);
 	  XSetClipRectangles (s->display, gc, 0, 0, &r, 1, Unsorted);
-
+	  
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
@@ -11198,6 +11208,35 @@ x_erase_phys_cursor (w)
  mark_cursor_off:
   w->phys_cursor_on_p = 0;
   w->phys_cursor_type = NO_CURSOR;
+}
+
+
+/* Non-zero if physical cursor of window W is within mouse face.  */
+
+static int
+cursor_in_mouse_face_p (w)
+     struct window *w;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+  int in_mouse_face = 0;
+  
+  if (WINDOWP (dpyinfo->mouse_face_window)
+      && XWINDOW (dpyinfo->mouse_face_window) == w)
+    {
+      int hpos = w->phys_cursor.hpos;
+      int vpos = w->phys_cursor.vpos;
+
+      if (vpos >= dpyinfo->mouse_face_beg_row
+	  && vpos <= dpyinfo->mouse_face_end_row
+	  && (vpos > dpyinfo->mouse_face_beg_row
+	      || hpos >= dpyinfo->mouse_face_beg_col)
+	  && (vpos < dpyinfo->mouse_face_end_row
+	      || hpos < dpyinfo->mouse_face_end_col
+	      || dpyinfo->mouse_face_past_end))
+	in_mouse_face = 1;
+    }
+
+  return in_mouse_face;
 }
 
 
