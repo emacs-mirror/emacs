@@ -748,7 +748,13 @@ x_reply_selection_request (event, format, data, size, type)
      delivered before uncatch errors.  */
   XSync (display, False);
   UNBLOCK_INPUT;
+
+  /* GTK queues events in addition to the queue in Xlib.  So we
+     UNBLOCK to enter the event loop and get possible errors delivered,
+     and then BLOCK again because x_uncatch_errors requires it.  */
+  BLOCK_INPUT;
   x_uncatch_errors (display, count);
+  UNBLOCK_INPUT;
 }
 
 /* Handle a SelectionRequest event EVENT.
