@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -278,11 +278,11 @@ and the latter avoids underlining any whitespace at all."
   :group 'gnus-article-emphasis
   :type 'regexp)
 
-(defface gnus-emphasis-bold '((t (:bold t)))
+(defface gnus-emphasis-bold '((t (:weight bold)))
   "Face used for displaying strong emphasized text (*word*)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-italic '((t (:italic t)))
+(defface gnus-emphasis-italic '((t (:slant italic)))
   "Face used for displaying italic emphasized text (/word/)."
   :group 'gnus-article-emphasis)
 
@@ -290,20 +290,20 @@ and the latter avoids underlining any whitespace at all."
   "Face used for displaying underlined emphasized text (_word_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-underline-bold '((t (:bold t :underline t)))
+(defface gnus-emphasis-underline-bold '((t (:weight bold :underline t)))
   "Face used for displaying underlined bold emphasized text (_*word*_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-underline-italic '((t (:italic t :underline t)))
+(defface gnus-emphasis-underline-italic '((t (:slant italic :underline t)))
   "Face used for displaying underlined italic emphasized text (_/word/_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-bold-italic '((t (:bold t :italic t)))
+(defface gnus-emphasis-bold-italic '((t (:weight bold :slant italic)))
   "Face used for displaying bold italic emphasized text (/*word*/)."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-underline-bold-italic
-  '((t (:bold t :italic t :underline t)))
+  '((t (:weight bold :slant italic :underline t)))
   "Face used for displaying underlined bold italic emphasized text.
 Esample: (_/*word*/_)."
   :group 'gnus-article-emphasis)
@@ -489,7 +489,7 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
 
 (defface gnus-signature-face
   '((t
-     (:italic t)))
+     (:slant italic)))
   "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
@@ -502,7 +502,7 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
       (background light))
      (:foreground "red3"))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for displaying from headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -515,7 +515,7 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
       (background light))
      (:foreground "red4"))
     (t
-     (:bold t :italic t)))
+     (:weight bold :slant italic)))
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -523,12 +523,12 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
 (defface gnus-header-newsgroups-face
   '((((class color)
       (background dark))
-     (:foreground "yellow" :italic t))
+     (:foreground "yellow" :slant italic))
     (((class color)
       (background light))
-     (:foreground "MidnightBlue" :italic t))
+     (:foreground "MidnightBlue" :slant italic))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for displaying newsgroups headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -541,7 +541,7 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
       (background light))
      (:foreground "maroon"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -549,12 +549,12 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
 (defface gnus-header-content-face
   '((((class color)
       (background dark))
-     (:foreground "forest green" :italic t))
+     (:foreground "forest green" :slant italic))
     (((class color)
       (background light))
-     (:foreground "indianred4" :italic t))
+     (:foreground "indianred4" :slant italic))
     (t
-     (:italic t)))  "Face used for displaying header content."
+     (:slant italic)))  "Face used for displaying header content."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
 

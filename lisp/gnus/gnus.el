@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
+;;               1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -325,10 +325,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-1-face
   '((((class color)
       (background dark))
-     (:foreground "PaleTurquoise" :bold t))
+     (:foreground "PaleTurquoise" :weight bold))
     (((class color)
       (background light))
-     (:foreground "ForestGreen" :bold t))
+     (:foreground "ForestGreen" :weight bold))
     (t
      ()))
   "Level 1 newsgroup face.")
@@ -347,10 +347,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-2-face
   '((((class color)
       (background dark))
-     (:foreground "turquoise" :bold t))
+     (:foreground "turquoise" :weight bold))
     (((class color)
       (background light))
-     (:foreground "CadetBlue4" :bold t))
+     (:foreground "CadetBlue4" :weight bold))
     (t
      ()))
   "Level 2 newsgroup face.")
@@ -369,10 +369,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-3-face
   '((((class color)
       (background dark))
-     (:bold t))
+     (:weight bold))
     (((class color)
       (background light))
-     (:bold t))
+     (:weight bold))
     (t
      ()))
   "Level 3 newsgroup face.")
@@ -391,10 +391,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-4-face
   '((((class color)
       (background dark))
-     (:bold t))
+     (:weight bold))
     (((class color)
       (background light))
-     (:bold t))
+     (:weight bold))
     (t
      ()))
   "Level 4 newsgroup face.")
@@ -413,10 +413,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-5-face
   '((((class color)
       (background dark))
-     (:bold t))
+     (:weight bold))
     (((class color)
       (background light))
-     (:bold t))
+     (:weight bold))
     (t
      ()))
   "Level 5 newsgroup face.")
@@ -435,10 +435,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-6-face
   '((((class color)
       (background dark))
-     (:bold t))
+     (:weight bold))
     (((class color)
       (background light))
-     (:bold t))
+     (:weight bold))
     (t
      ()))
   "Level 6 newsgroup face.")
@@ -457,10 +457,10 @@ be set in `.emacs' instead."
 (defface gnus-group-news-low-face
   '((((class color)
       (background dark))
-     (:foreground "DarkTurquoise" :bold t))
+     (:foreground "DarkTurquoise" :weight bold))
     (((class color)
       (background light))
-     (:foreground "DarkGreen" :bold t))
+     (:foreground "DarkGreen" :weight bold))
     (t
      ()))
   "Low level newsgroup face.")
@@ -479,12 +479,12 @@ be set in `.emacs' instead."
 (defface gnus-group-mail-1-face
   '((((class color)
       (background dark))
-     (:foreground "aquamarine1" :bold t))
+     (:foreground "aquamarine1" :weight bold))
     (((class color)
       (background light))
-     (:foreground "DeepPink3" :bold t))
+     (:foreground "DeepPink3" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Level 1 mailgroup face.")
 
 (defface gnus-group-mail-1-empty-face
@@ -495,18 +495,18 @@ be set in `.emacs' instead."
       (background light))
      (:foreground "DeepPink3"))
     (t
-     (:italic t :bold t)))
+     (:slant italic :weight bold)))
   "Level 1 empty mailgroup face.")
 
 (defface gnus-group-mail-2-face
   '((((class color)
       (background dark))
-     (:foreground "aquamarine2" :bold t))
+     (:foreground "aquamarine2" :weight bold))
     (((class color)
       (background light))
-     (:foreground "HotPink3" :bold t))
+     (:foreground "HotPink3" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Level 2 mailgroup face.")
 
 (defface gnus-group-mail-2-empty-face
@@ -517,18 +517,18 @@ be set in `.emacs' instead."
       (background light))
      (:foreground "HotPink3"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Level 2 empty mailgroup face.")
 
 (defface gnus-group-mail-3-face
   '((((class color)
       (background dark))
-     (:foreground "aquamarine3" :bold t))
+     (:foreground "aquamarine3" :weight bold))
     (((class color)
       (background light))
-     (:foreground "magenta4" :bold t))
+     (:foreground "magenta4" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Level 3 mailgroup face.")
 
 (defface gnus-group-mail-3-empty-face
@@ -545,12 +545,12 @@ be set in `.emacs' instead."
 (defface gnus-group-mail-low-face
   '((((class color)
       (background dark))
-     (:foreground "aquamarine4" :bold t))
+     (:foreground "aquamarine4" :weight bold))
     (((class color)
       (background light))
-     (:foreground "DeepPink4" :bold t))
+     (:foreground "DeepPink4" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Low level mailgroup face.")
 
 (defface gnus-group-mail-low-empty-face
@@ -561,7 +561,7 @@ be set in `.emacs' instead."
       (background light))
      (:foreground "DeepPink4"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Low level empty mailgroup face.")
 
 ;; Summary mode faces.
@@ -578,23 +578,23 @@ be set in `.emacs' instead."
 (defface gnus-summary-high-ticked-face
   '((((class color)
       (background dark))
-     (:foreground "pink" :bold t))
+     (:foreground "pink" :weight bold))
     (((class color)
       (background light))
-     (:foreground "firebrick" :bold t))
+     (:foreground "firebrick" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for high interest ticked articles.")
 
 (defface gnus-summary-low-ticked-face
   '((((class color)
       (background dark))
-     (:foreground "pink" :italic t))
+     (:foreground "pink" :slant italic))
     (((class color)
       (background light))
-     (:foreground "firebrick" :italic t))
+     (:foreground "firebrick" :slant italic))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for low interest ticked articles.")
 
 (defface gnus-summary-normal-ticked-face
@@ -611,23 +611,23 @@ be set in `.emacs' instead."
 (defface gnus-summary-high-ancient-face
   '((((class color)
       (background dark))
-     (:foreground "SkyBlue" :bold t))
+     (:foreground "SkyBlue" :weight bold))
     (((class color)
       (background light))
-     (:foreground "RoyalBlue" :bold t))
+     (:foreground "RoyalBlue" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for high interest ancient articles.")
 
 (defface gnus-summary-low-ancient-face
   '((((class color)
       (background dark))
-     (:foreground "SkyBlue" :italic t))
+     (:foreground "SkyBlue" :slant italic))
     (((class color)
       (background light))
-     (:foreground "RoyalBlue" :italic t))
+     (:foreground "RoyalBlue" :slant italic))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for low interest ancient articles.")
 
 (defface gnus-summary-normal-ancient-face
@@ -643,12 +643,12 @@ be set in `.emacs' instead."
 
 (defface gnus-summary-high-unread-face
   '((t
-     (:bold t)))
+     (:weight bold)))
   "Face used for high interest unread articles.")
 
 (defface gnus-summary-low-unread-face
   '((t
-     (:italic t)))
+     (:slant italic)))
   "Face used for low interest unread articles.")
 
 (defface gnus-summary-normal-unread-face
@@ -660,26 +660,26 @@ be set in `.emacs' instead."
   '((((class color)
       (background dark))
      (:foreground "PaleGreen"
-		  :bold t))
+		  :weight bold))
     (((class color)
       (background light))
      (:foreground "DarkGreen"
-		  :bold t))
+		  :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for high interest read articles.")
 
 (defface gnus-summary-low-read-face
   '((((class color)
       (background dark))
      (:foreground "PaleGreen"
-		  :italic t))
+		  :slant italic))
     (((class color)
       (background light))
      (:foreground "DarkGreen"
-		  :italic t))
+		  :slant italic))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for low interest read articles.")
 
 (defface gnus-summary-normal-read-face

@@ -1,3 +1,8 @@
+2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 
+	Adapt face definitions to use :weight and :slant.
+
 2001-12-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* gnus-mlspl.el (gnus-group-split-fancy): Doc fix (add reference
@@ -5,7 +10,11 @@
 
 2001-12-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* mm-view.el: Partially sync with the Gnus CVS.
+	* mm-view.el (mm-inline-text): w3-coding-system-for-mime-charset
+	may not defined. From: Raja R Harinath <harinath@cs.umn.edu>.
+
+	* mm-view.el (mm-inline-message): Insert a newline unless bolp.
+
 	* gnus-sum.el (gnus-summary-save-article): Nix
 	gnus-display-mime-function and gnus-article-prepare-hook.
 
@@ -40,8 +49,23 @@
 
 	* gnus-util.el (gnus-directory-sep-char-regexp): New variable.
 	* gnus-score.el (gnus-score-find-bnews): Use it.
-	* mm-util.el: Sync. Read ChangeLog in Gnus CVS.
+	* mm-util.el (mm-iso-8859-x-to-15-region): Use
+	insert-before-markers.
+	From Jesper Harder <harder@ifa.au.dk>
+	* mm-util.el (mm-coding-system-priorities): Add backslash in the doc.
+	* mm-util.el (mm-coding-system-priorities): New variable.
+	(mm-sort-coding-systems-predicate): New function.
+	(mm-find-mime-charset-region): Resort coding systems if needed.
+	Suggested by Katsumi Yamaoka <yamaoka@jpl.org>.
 
+	* mm-util.el (mm-iso-8859-15-compatible): Fix doc.
+	(mm-hack-charsets): Fix doc.
+	
+	* mm-util.el (mm-iso-8859-15-compatible): Add inconvertible chars.
+	(mm-iso-8859-x-to-15-table): Ditto.
+	(mm-iso-8859-x-to-15-region): Ditto.
+	(mm-find-mime-charset-region): Ditto.
+	
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
 	(gnus-summary-limit-to-author): Ditto.
 	(gnus-summary-limit-to-extra): Ditto.
@@ -75,8 +99,17 @@
 
 2001-10-30  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* mm-util.el, nnultimate.el, nnweb.el, nnslashdot.el: Sync with
-	the Gnus CVS.
+	* mm-util.el (mm-iso-8859-x-to-15-region): New function.
+	(mm-hack-charsets): New variable.
+	(mm-iso-8859-15-compatible): New variable.
+	(mm-iso-8859-x-to-15-table): New variable.
+	(mm-find-mime-charset-region): Add parameter hack-charsets.
+
+	* mm-util.el (mm-charset-to-coding-system): Return nil, if charset
+	is nil.
+
+	* nnultimate.el, nnweb.el, nnslashdot.el: Update, because the web
+	pages are changed.
 
 	* mm-util.el (mm-mime-mule-charset-alist): Move down and call
 	mm-coding-system-p. Don't correct it only in XEmacs.

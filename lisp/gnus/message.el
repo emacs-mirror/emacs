@@ -1,5 +1,5 @@
 ;;; message.el --- composing mail and news messages  -*- coding: iso-latin-1 -*-
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -716,24 +716,24 @@ Defaults to `text-mode-abbrev-table'.")
 (defface message-header-to-face
   '((((class color)
       (background dark))
-     (:foreground "green2" :bold t))
+     (:foreground "green2" :weight bold))
     (((class color)
       (background light))
-     (:foreground "MidnightBlue" :bold t))
+     (:foreground "MidnightBlue" :weight bold))
     (t
-     (:bold t :italic t)))
+     (:weight bold :slant italic)))
   "Face used for displaying From headers."
   :group 'message-faces)
 
 (defface message-header-cc-face
   '((((class color)
       (background dark))
-     (:foreground "green4" :bold t))
+     (:foreground "green4" :weight bold))
     (((class color)
       (background light))
      (:foreground "MidnightBlue"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying Cc headers."
   :group 'message-faces)
 
@@ -743,21 +743,21 @@ Defaults to `text-mode-abbrev-table'.")
      (:foreground "green3"))
     (((class color)
       (background light))
-     (:foreground "navy blue" :bold t))
+     (:foreground "navy blue" :weight bold))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying subject headers."
   :group 'message-faces)
 
 (defface message-header-newsgroups-face
   '((((class color)
       (background dark))
-     (:foreground "yellow" :bold t :italic t))
+     (:foreground "yellow" :weight bold :slant italic))
     (((class color)
       (background light))
-     (:foreground "blue4" :bold t :italic t))
+     (:foreground "blue4" :weight bold :slant italic))
     (t
-     (:bold t :italic t)))
+     (:weight bold :slant italic)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
 
@@ -769,7 +769,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "steel blue"))
     (t
-     (:bold t :italic t)))
+     (:weight bold :slant italic)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
 
@@ -781,7 +781,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "cornflower blue"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying header names."
   :group 'message-faces)
 
@@ -793,7 +793,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "blue"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying X-Header headers."
   :group 'message-faces)
 
@@ -805,7 +805,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "brown"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying the separator."
   :group 'message-faces)
 
@@ -817,7 +817,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "red"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying cited text names."
   :group 'message-faces)
 
@@ -829,7 +829,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "ForestGreen"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying MML."
   :group 'message-faces)
 
