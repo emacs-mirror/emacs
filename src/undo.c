@@ -306,8 +306,10 @@ Return what remains of the list.")
 		  if (XINT (car) < BEGV
 		      || XINT (cdr) > ZV)
 		    error ("Changes to be undone are outside visible portion of buffer");
-		  Fdelete_region (car, cdr);
+		  /* Set point first thing, so that undoing this undo
+		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
+		  Fdelete_region (car, cdr);
 		}
 	      else if (XTYPE (car) == Lisp_String && XTYPE (cdr) == Lisp_Int)
 		{
