@@ -27,22 +27,6 @@
 ;; the result. 
 ;;
 
-;; Installation:
-;;
-;; Place the following in your .emacs file:
-;; 
-;; ;; redefines dired-get-filename as a switch function
-;;
-;; (require 'advice)
-;; (defadvice dired-get-filename (around check-mode activate)
-;;   "Use an alternative function in Locate mode"
-;;   (cond ((eq major-mode 'locate-mode)
-;;	  (setq ad-return-value (locate-get-filename)))
-;;	 (t
-;;	  ad-do-it)))
-;;
-;; DOS and WINDOWS Users:
-;;
 ;;;;; Building a database of files ;;;;;;;;;
 ;; 
 ;; You can create a simple files database with a port of the Unix find command
@@ -236,11 +220,6 @@
 (defconst locate-filename-indentation 4
  "The amount of indentation for each file.")
 
-;; 32 is the ASCII code for SPACE character
-(defconst locate-indentation-string
-  (make-string locate-filename-indentation 32)
- "The indentation string for each file.")
-
 (defun locate-get-file-positions ()
   (save-excursion
      (end-of-line)
@@ -285,6 +264,13 @@
         mode-name           "Locate"
         default-directory   "/"
 	dired-subdir-alist  (list (cons "/" (point-min-marker))))
+  (make-local-variable 'dired-move-to-filename-regexp)
+  (setq dired-move-to-filename-regexp
+	(make-string locate-filename-indentation ?\ ))
+  (make-local-variable 'dired-actual-switches)
+  (setq dired-actual-switches "")
+  (make-local-variable 'dired-permission-flags-regexp)
+  (setq dired-permission-flags-regexp "^\\(    \\)")
   (run-hooks 'locate-mode-hook))
 
 (defun locate-do-setup ()
@@ -304,15 +290,10 @@
 
       (locate-insert-header search-string)
       
-      (while (progn
-	       (locate-set-indentation)
-	       (locate-set-properties)
-	       (zerop (forward-line)))))))
-
-(defun locate-set-indentation ()
-  (save-excursion
-    (beginning-of-line)
-    (insert locate-indentation-string)))
+      (while (not (eobp))
+	(insert-char ?\  locate-filename-indentation t)
+	(locate-set-properties)
+	(forward-line 1)))))
 
 (defun locate-set-properties ()
   (save-excursion
@@ -355,8 +336,7 @@
 	  locate-regexp-match
 	  (concat locate-regexp-match ": \n"))
     
-    (insert locate-indentation-string 
-	    (apply 'format locate-format-string (reverse locate-format-args)))
+    (insert (apply 'format locate-format-string (reverse locate-format-args)))
     
     (save-excursion
       (goto-char (point-min))
