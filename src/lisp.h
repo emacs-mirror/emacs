@@ -2595,6 +2595,7 @@ extern void syms_of_casetab P_ ((void));
 
 extern int echoing;
 extern Lisp_Object echo_message_buffer;
+extern struct kboard *echo_kboard;
 extern void cancel_echoing P_ ((void));
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
