@@ -1,3 +1,11 @@
+2003-01-15  Dave Love  <fx@gnu.org>
+
+	* international/ucs-tables.el: Set up tables for 8859-6.
+
+	* server.el (server-window): Customize.
+	(server-mode): New.
+	(server-unload-hook): Call server-start.
+
 2003-01-15  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-hist.el (eshell-save-history-on-exit): Renamed
