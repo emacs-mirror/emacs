@@ -149,7 +149,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 	   (run-hooks 'window-setup-hook)))))
 
 (defun command-line ()
-  ;; See if we should import version-control from the envionment variable.
+  ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
     (cond ((eq vc nil))			;don't do anything if not set
 	  ((or (string= vc "t")
