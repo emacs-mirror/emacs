@@ -3421,9 +3421,8 @@ decide_coding_unwind (unwind_data)
 
 /* Unwind-function for reading from a file in insert-file-contents.
 
-   INFO is a pair (INSERTED-BYTES . VISIT).  INSERTED-BYTES is the
-   number of bytes successfully inserted into current_buffer.  VISIT
-   is the same as the parameter VISIT Of insert-file-contents.
+   INSERTED_BYTES is the number of bytes successfully inserted into
+   current_buffer.
 
    When reading is interrupted by C-g, this leaves the newly read part
    of the current buffer undecoded.  If this happens in a multibyte
@@ -3438,16 +3437,22 @@ decide_coding_unwind (unwind_data)
 	    +--------- the gap ---------+	 */
 
 static Lisp_Object
-unwind_read (info)
-     Lisp_Object info;
+unwind_read (inserted_bytes)
+     Lisp_Object inserted_bytes;
 {
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      int nbytes = XINT (XCAR (info));
-      int visit = !NILP (XCDR (info));
+      int nbytes = XINT (inserted_bytes);
+      Lisp_Object args[3];
+      char *action;
 
-      if (visit || Z == nbytes)
-	current_buffer->enable_multibyte_characters = Qnil;
+      if (Z == nbytes)
+	{
+	  /* Buffer was previously empty.  Switch it to unibyte
+	     because newly inserted text is not decoded.  */
+	  current_buffer->enable_multibyte_characters = Qnil;
+	  action = "buffer made unibyte";
+	}
       else
 	{
 	  ZV -= nbytes;
@@ -3458,7 +3463,15 @@ unwind_read (info)
 	  GPT = PT;
 	  GPT_BYTE = PT_BYTE;
 	  GAP_SIZE = nbytes + GAP_SIZE;
+	  
+	  action = "no text inserted";
 	}
+
+      
+      args[0] = build_string ("Quit while inserting text in buffer `%s': %s");
+      args[1] = current_buffer->name;
+      args[2] = build_string (action);
+      Fmessage (3, args);
     }
       
   return Qnil;
@@ -4187,8 +4200,7 @@ actually used.")
       /* Allow quitting out of the actual I/O.  If a C-g interrupts
 	 this, make sure that no invalid characters remain
 	 in the undecoded part read.  */
-      record_unwind_protect (unwind_read,
-			     Fcons (make_number (inserted), visit));
+      record_unwind_protect (unwind_read, make_number (inserted));
       immediate_quit = 1;
       QUIT;
       this = emacs_read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
