@@ -1,3 +1,17 @@
+2000-06-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (Fdump_colors) [DEBUG_X_COLORS]: New function.
+	(syms_of_xfaces): Defsubr Sdump_colors.
+	(x_free_colors): Don't treat b&w specially on default visual.
+	(x_free_dpy_colors): New function.
+	(free_face_colors): Don't check visual class; it's done
+	in x_free_colors.
+
+	* xterm.c (x_frame_of_widget): New function.
+	(x_alloc_nearest_color_for_widget): Use it.
+	(x_copy_dpy_color): New function.
+	(x_destroy_window): Free various colors.
+
 2000-06-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.h (EMACS_CCL_H): Renamed from _CCL_H.
@@ -20,7 +34,7 @@
 
 2000-06-11  Gerd Moellmann  <gerd@gnu.org>
 
-	* xmenu.c (xmenu_show): Case second parameter of lw_popup_menu
+	* xmenu.c (xmenu_show): Cast second parameter of lw_popup_menu
 	to `XEvent *'.
 
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>

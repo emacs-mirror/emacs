@@ -1,3 +1,9 @@
+2000-06-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (make_shadow_gcs): Free and copy colors so that
+	color reference counts are right.
+	(release_shadow_gcs): Free colors.
+
 2000-06-06  Dave Love  <fx@gnu.org>
 
 	* xlwmenu.c (x_alloc_nearest_color_for_widget, x_catch_errors)
