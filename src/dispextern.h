@@ -1786,6 +1786,16 @@ struct it_slice
   Lisp_Object height;
 };
 
+enum it_method {
+  GET_FROM_BUFFER = 0,
+  GET_FROM_DISPLAY_VECTOR,
+  GET_FROM_COMPOSITION,
+  GET_FROM_STRING,
+  GET_FROM_C_STRING,
+  GET_FROM_IMAGE,
+  GET_FROM_STRETCH,
+  NUM_IT_METHODS
+};
 
 struct it
 {
@@ -1796,9 +1806,8 @@ struct it
   /* The window's frame.  */
   struct frame *f;
 
-  /* Function to call to load this structure with the next display
-     element.  */
-  int (* method) P_ ((struct it *it));
+  /* Method to use to load this structure with the next display element.  */
+  enum it_method method;
 
   /* The next position at which to check for face changes, invisible
      text, overlay strings, end of text etc., which see.  */
