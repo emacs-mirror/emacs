@@ -189,58 +189,10 @@ int line_number_displayed;
 /* Maximum buffer size for which to display line numbers.  */
 int line_number_display_limit;
 
-/* Specify m, a string, as a message in the minibuf.  If m is 0, clear out
-   any existing message, and let the minibuffer text show through.  */
-
-void
-message1 (m)
-     char *m;
-{
-  if (noninteractive)
-    {
-      if (noninteractive_need_newline)
-	putc ('\n', stderr);
-      noninteractive_need_newline = 0;
-      if (cursor_in_echo_area != 0)
-	fprintf (stderr, "%s", m);
-      else
-	fprintf (stderr, "%s\n", m);
-      fflush (stderr);
-    }
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
-  else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
-    {
-#ifdef MULTI_FRAME
-      Lisp_Object minibuf_frame;
-
-      choose_minibuf_frame ();
-      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-      FRAME_SAMPLE_VISIBILITY (XFRAME (minibuf_frame));
-      if (FRAME_VISIBLE_P (selected_frame)
-	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
-#endif
-
-      if (m)
-	{
-	  echo_area_glyphs = m;
-	  echo_area_glyphs_length = strlen (m);
-	}
-      else
-	echo_area_glyphs = previous_echo_glyphs = 0;
-
-      do_pending_window_change ();
-      echo_area_display ();
-      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
-      do_pending_window_change ();
-    }
-}
-
 /* Display an echo area message M with a specified length of LEN chars.
-   This way, null characters can be included.  Do not pass text that is
-   stored in a Lisp string.  */
+   The string may include null characters.  If m is 0, clear out any
+   existing message, and let the minibuffer text show through.
+   Do not pass text that is stored in a Lisp string.  */
 
 void
 message2 (m, len)
@@ -286,6 +238,13 @@ message2 (m, len)
       update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
       do_pending_window_change ();
     }
+}
+
+void
+message1 (m)
+     char *m;
+{
+  message2 (m, (m ? strlen (m) : 0));
 }
 
 /* Truncate what will be displayed in the echo area
