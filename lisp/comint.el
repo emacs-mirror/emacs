@@ -159,7 +159,7 @@ Good choices:
 
 This is a good thing to set in mode hooks.")
 
-(defvar comint-input-autoexpand 'history
+(defvar comint-input-autoexpand nil
   "*If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
