@@ -1,3 +1,16 @@
+2004-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* woman.el (woman): Don't call interactive-p.
+
+	* pcomplete.el (pcomplete): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* menu-bar.el (menu-bar-make-toggle): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* man.el (Man-cleanup-manpage): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
 2004-10-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
 	* progmodes/flymake.el (flymake-split-string): Use
