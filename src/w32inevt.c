@@ -484,7 +484,7 @@ w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
 
   if (NILP (new_state)
       || (NUMBERP (new_state)
-	  && (XUINT (new_state)) & 1 != cur_state))
+	  && ((XUINT (new_state)) & 1) != cur_state))
     {
       faked_key = vk_code;
 
