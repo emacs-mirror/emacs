@@ -53,6 +53,16 @@ Lisp_Object Qarith_error;
 
 #ifdef LISP_FLOAT_TYPE
 
+/* Work around a problem that happens because math.h on hpux 7
+   defines two static variables--which, in Emacs, are not really static,
+   because `static' is defined as nothing.  The problem is that they are
+   defined both here and in lread.c.
+   These macros prevent the name conflict.  */
+#if defined (HPUX) && !defined (HPUX8)
+#define _MAXLDBL floatfns_maxldbl
+#define _NMAXLDBL floatfns_nmaxldbl
+#endif
+
 #include <math.h>
 
 #ifndef hpux
