@@ -228,7 +228,7 @@ This also sets the following values:
 		 base coding-system))
     (set-default-coding-systems (or base coding-system))))
 
-(defun find-safe-coding-system-list-subset-p (list1 list2)
+(defun subset-p (list1 list2)
   "Return non-nil if all elements in LIST1 are included in LIST2.
 Comparison done with EQ."
   (catch 'tag
@@ -238,50 +238,58 @@ Comparison done with EQ."
       (setq list1 (cdr list1)))
     t))
 
-(defun find-safe-coding-system (from to)
+(defun find-coding-systems-region (from to)
   "Return a list of proper coding systems to encode a text between FROM and TO.
 All coding systems in the list can safely encode any multibyte characters
 in the text.
 
 If the text contains no multibyte charcters, return a list of a single
-element `undecided'.
+element `undecided'."
+  (find-coding-systems-for-charsets (find-charset-region from to)))
 
-Kludgy feature: if FROM is a string, the string is the target text,
-and TO is ignored."
-  (let ((charset-list (if (stringp from) (find-charset-string from)
-			(find-charset-region from to))))
-    (if (or (null charset-list)
-	    (and (= (length charset-list) 1)
-		 (eq 'ascii (car charset-list))))
-	'(undecided)
-      (let ((l coding-system-list)
-	    (prefered-codings
-	     (mapcar (function
-		      (lambda (x)
-			(get-charset-property x 'prefered-coding-system)))
-		     charset-list))
-	    codings coding safe)
-	(while l
-	  (setq coding (car l) l (cdr l))
-	  (if (and (eq coding (coding-system-base coding))
-		   (setq safe (coding-system-get coding 'safe-charsets))
-		   (or (eq safe t)
-		       (find-safe-coding-system-list-subset-p
-			charset-list safe)))
-	      ;; We put the higher priority to coding systems included
-	      ;; in PREFERED-CODINGS, and within them, put the higher
-	      ;; priority to coding systems which support smaller
-	      ;; number of charsets.
-	      (let ((priority
-		     (logior (if (coding-system-get coding 'mime-charset)
-				 256 0)
-			     (if (memq coding prefered-codings) 128 0)
-			     (if (> (coding-system-type coding) 0) 64 0)
-			     (if (consp safe) (- 64 (length safe)) 0))))
-		(setq codings (cons (cons priority coding) codings)))))
-	(mapcar 'cdr
-		(sort codings (function (lambda (x y) (> (car x) (car y))))))
-	))))
+(defun find-coding-systems-string (string)
+  "Return a list of proper coding systems to encode STRING.
+All coding systems in the list can safely encode any multibyte characters
+in STRING.
+
+If STRING contains no multibyte charcters, return a list of a single
+element `undecided'."
+  (find-coding-systems-for-charsets (find-charset-string string)))
+
+(defun find-coding-systems-for-charsets (charsets)
+  "Return a list of proper coding systems to encode characters of CHARSETS.
+CHARSETS is a list of character sets."
+  (if (or (null charsets)
+	  (and (= (length charsets) 1)
+	       (eq 'ascii (car charsets))))
+      '(undecided)
+    (let ((l coding-system-list)
+	  (prefered-codings
+	   (mapcar (function
+		    (lambda (x)
+		      (get-charset-property x 'prefered-coding-system)))
+		   charsets))
+	  codings coding safe)
+      (while l
+	(setq coding (car l) l (cdr l))
+	(if (and (eq coding (coding-system-base coding))
+		 (setq safe (coding-system-get coding 'safe-charsets))
+		 (or (eq safe t)
+		     (subset-p charsets safe)))
+	    ;; We put the higher priority to coding systems included
+	    ;; in PREFERED-CODINGS, and within them, put the higher
+	    ;; priority to coding systems which support smaller
+	    ;; number of charsets.
+	    (let ((priority
+		   (logior (if (coding-system-get coding 'mime-charset)
+			       256 0)
+			   (if (memq coding prefered-codings) 128 0)
+			   (if (> (coding-system-type coding) 0) 64 0)
+			   (if (consp safe) (- 64 (length safe)) 0))))
+	      (setq codings (cons (cons priority coding) codings)))))
+      (mapcar 'cdr
+	      (sort codings (function (lambda (x y) (> (car x) (car y))))))
+      )))
 
 (defun select-safe-coding-system (from to &optional default-coding-system)
   "Ask a user to select a safe coding system from candidates.
@@ -299,7 +307,9 @@ Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
   (or default-coding-system
       (setq default-coding-system buffer-file-coding-system))
-  (let ((safe-coding-systems (find-safe-coding-system from to)))
+  (let ((safe-coding-systems (if (stringp from)
+				 (find-coding-systems-string from)
+			       (find-coding-systems-region from to))))
     (if (or (eq (car safe-coding-systems) 'undecided)
 	    (and default-coding-system
 		 (memq (coding-system-base default-coding-system)
