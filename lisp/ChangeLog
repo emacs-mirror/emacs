@@ -25,6 +25,12 @@
 
 2002-07-31  Richard M. Stallman  <rms@gnu.org>
 
+	* makefile.w32-in (compile-after-backup): Renamed from `compile'.
+	Use `compile-always'.
+	(bootstrap): Use `compile', not `compile-files'.  Use `update-subdirs'.
+	(compile): Renamed from `compile-files'.
+	(compile-CMD, compile-SH): Renamed from `compile-files-*'.
+
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
 	Check that (car elt) is a string.
 
