@@ -916,22 +916,30 @@ extern struct glyph_row scratch_glyph_row;
       : 0)
 
 /* Return the current height of the mode line of window W.  If not
-   known from W's current glyph matrix, return a default based on the
-   height of the font of the face `modeline'.  */
+   known from current_mode_line_height, look at W's current glyph
+   matrix, or return a default based on the height of the font of the
+   face `mode-line'.  */
 
-#define CURRENT_MODE_LINE_HEIGHT(W)			\
-     (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-      ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-      : estimate_mode_line_height (XFRAME ((W)->frame), MODE_LINE_FACE_ID))
+#define CURRENT_MODE_LINE_HEIGHT(W)				\
+     (current_mode_line_height >= 0				\
+      ? current_mode_line_height				\
+      : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
+	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
+	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
+				      MODE_LINE_FACE_ID)))
 
 /* Return the current height of the top line of window W.  If not
-   known from W's current glyph matrix, return an estimation based on
-   the height of the font of the face `top-line'.  */
+   known from current_header_line_height, look at W's current glyph
+   matrix, or return an estimation based on the height of the font of
+   the face `header-line'.  */
 
-#define CURRENT_HEADER_LINE_HEIGHT(W)					   \
-      (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)			   \
-      ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)			   \
-      : estimate_mode_line_height (XFRAME ((W)->frame), HEADER_LINE_FACE_ID))
+#define CURRENT_HEADER_LINE_HEIGHT(W)				\
+      (current_header_line_height >= 0				\
+       ? current_header_line_height				\
+       : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
+	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
+	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
+				       HEADER_LINE_FACE_ID)))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -2154,6 +2162,7 @@ extern int redisplaying_p;
 extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
+extern int current_mode_line_height, current_header_line_height;
 
 /* Defined in sysdep.c */
 
