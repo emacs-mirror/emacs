@@ -551,7 +551,8 @@ the user from the mailer."
 ;; This does the real work of sending a message via sendmail.
 ;; It is called via the variable send-mail-function.
 
-(defvar sendmail-coding-system 'coding-system-iso-2022-7
+;;;###autoload
+(defvar sendmail-coding-system nil
   "Coding system to which to encode the mail.")
 
 (defun sendmail-send-it ()
