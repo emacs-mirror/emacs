@@ -1,3 +1,14 @@
+2000-08-20  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp.el (defun-prompt-regexp, parens-require-spaces):
+	Doc fix.
+	(down-list, backward-up-list, up-list, kill-sexp)
+	(backward-kill-sexp, mark-sexp): Make arg optional.
+	(lisp-complete-symbol): Add optional arg PREDICATE.
+
+	* cus-start.el: Add display-buffer-reuse-frames,
+	file-coding-system-alist.
+
 2000-08-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Clear realized faces after
