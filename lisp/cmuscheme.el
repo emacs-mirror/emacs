@@ -269,7 +269,7 @@ of scheme-program-name).  Runs the hooks from inferior-scheme-mode-hook
   "*Template for issuing commands to compile arbitrary Scheme expressions.")
 
 (defun scheme-compile-region (start end)
-  "Compile the current region in the inferior Scheme process
+  "Compile the current region in the inferior Scheme process.
 \(A BEGIN is wrapped around the region: (BEGIN <region>))"
   (interactive "r")
   (comint-send-string (scheme-proc) (format scheme-compile-exp-command
@@ -298,29 +298,29 @@ With argument, positions cursor at end of buffer."
 	 (goto-char (point-max)))))
 
 (defun scheme-send-region-and-go (start end)
-  "Send the current region to the inferior Scheme process,
-and switch to the process buffer."
+  "Send the current region to the inferior Scheme process.
+Then switch to the process buffer."
   (interactive "r")
   (scheme-send-region start end)
   (switch-to-scheme t))
 
 (defun scheme-send-definition-and-go ()
-  "Send the current definition to the inferior Scheme, 
-and switch to the process buffer."
+  "Send the current definition to the inferior Scheme. 
+Then switch to the process buffer."
   (interactive)
   (scheme-send-definition)
   (switch-to-scheme t))
 
 (defun scheme-compile-definition-and-go ()
-  "Compile the current definition in the inferior Scheme, 
-and switch to the process buffer."
+  "Compile the current definition in the inferior Scheme. 
+Then switch to the process buffer."
   (interactive)
   (scheme-compile-definition)
   (switch-to-scheme t))
 
 (defun scheme-compile-region-and-go (start end)
-  "Compile the current region in the inferior Scheme, 
-and switch to the process buffer."
+  "Compile the current region in the inferior Scheme. 
+Then switch to the process buffer."
   (interactive "r")
   (scheme-compile-region start end)
   (switch-to-scheme t))
@@ -332,7 +332,8 @@ considered a scheme source file by scheme-load-file and scheme-compile-file.
 Used by these commands to determine defaults.")
 
 (defvar scheme-prev-l/c-dir/file nil
-  "Caches the (directory . file) pair used in the last scheme-load-file or
+  "Caches the last (directory . file) pair.
+Caches the last pair used in the last scheme-load-file or
 scheme-compile-file command. Used for determining the default in the 
 next one.")
 
