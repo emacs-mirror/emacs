@@ -37,7 +37,7 @@ extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
 extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
-				   char *, int, int, int));
+				   char *, int, int, int, int));
 extern int current_minor_maps P_ ((Lisp_Object **, Lisp_Object **));
 extern void initial_define_key P_ ((Lisp_Object, int, char *));
 extern void initial_define_lispy_key P_ ((Lisp_Object, char *, char *));
