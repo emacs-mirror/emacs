@@ -1,3 +1,13 @@
+2002-03-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* font-lock.el (java-font-lock-extra-types): Add "URL" as separate
+	item.  Doc fix.
+
+	* image.el (image-type-from-file-header): Make temporary buffer
+	unibyte.
+
+	* subr.el (add-to-list): Doc fix.
+
 2002-03-07  Miles Bader  <miles@gnu.org>
 
 	* pcomplete.el (pcomplete-entries): Expand environment variables
@@ -10,7 +20,7 @@
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
 	* startup.el (command-line): Add call to emacs-session-restore if
-	both x-session-id and x-session-previous-id are strings
+	both x-session-id and x-session-previous-id are strings.
 
 	* term/x-win.el (x-handle-smid): New function.
 	(emacs-session-filename): New function.
