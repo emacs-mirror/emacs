@@ -652,7 +652,7 @@ ask user whether to create buffer, or 'never to never create new buffer."
 (defcustom ido-separator nil
   "*String used by ido to separate the alternatives in the minibuffer.
 Obsolete.  Set 3rd element of `ido-decorations' instead."
-  :type 'string
+  :type '(choice string (const nil))
   :group 'ido)
 
 (defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]")
