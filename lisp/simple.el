@@ -1265,7 +1265,7 @@ specifies the value of ERROR-BUFFER."
 				     (current-buffer)))))
 	;; Preserve the match data in case called from a program.
 	(save-match-data
-	  (if (string-match "[ \t]*&[ \t]*$" command)
+	  (if (string-match "[ \t]*&[ \t]*\\'" command)
 	      ;; Command ending with ampersand means asynchronous.
 	      (let ((buffer (get-buffer-create
 			     (or output-buffer "*Async Shell Command*")))
