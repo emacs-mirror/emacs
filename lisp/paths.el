@@ -62,9 +62,7 @@ normally should come last (so that local files override standard ones).")
 (defvar gnus-default-nntp-server ""
   ;; set this to your local server
   "The name of the host running an NNTP server.
-If it is a string such as \":DIRECTORY\", then ~/DIRECTORY
-is used as a news spool.  `gnus-nntp-server' is initialised from NNTPSERVER
-environment variable or, if none, this value.")
+The null string means use the local host as the server site.")
 
 (defvar gnus-nntp-service "nntp"
   "NNTP service name, usually \"nntp\" or 119).
