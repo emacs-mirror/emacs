@@ -78,6 +78,13 @@ BODY should be a list of lisp expressions."
 (defsubst cddr (x)
   "Return the cdr of the cdr of X."
   (cdr (cdr x)))
+
+(defun last (x)
+  "Return the last element of the list X.
+If X is nil, return nil."
+  (while (cdr x)
+    (setq x (cdr x)))
+  x)
 
 ;;;; Keymap support.
 
