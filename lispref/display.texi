@@ -1532,12 +1532,21 @@ or by adding additional vertical space below one or all lines.
 @kindex line-height @r{(text property)}
   A newline can have a @code{line-height} text or overlay property
 that controls the total height of the display line ending in that
-newline.  If the property value is zero, the displayed height of the
+newline.
+
+  If the property value is a list @code{(@var{height} @var{total})},
+then @var{height} is used as the actual property value for the
+@code{line-height}, and @var{total} specifies the total displayed
+height of the line, so the line spacing added below the line equals
+the @var{total} height minus the actual line height.  In this case,
+the other ways to specify the line spacing are ignored.
+
+  If the property value is @code{t}, the displayed height of the
 line is exactly what its contents demand; no line-spacing is added.
 This case is useful for tiling small images or image slices without
 adding blank areas between the images.
 
-  If the property value is not zero, it is a height spec.  A height
+  If the property value is not @code{t}, it is a height spec.  A height
 spec stands for a numeric height value; this heigh spec specifies the
 actual line height, @var{line-height}.  There are several ways to
 write a height spec; here's how each of them translates into a numeric
@@ -1549,14 +1558,17 @@ If the height spec is a positive integer, the height value is that integer.
 @item @var{float}
 If the height spec is a float, @var{float}, the numeric height value
 is @var{float} times the frame's default line height.
-@item (@var{ratio} . @var{face})
+@item (@var{face} . @var{ratio})
 If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of face @var{face}.  @var{ratio} can
-be any type of number.  If @var{face} is @code{t}, it refers to the
-current face.
+be any type of number, or @code{nil} which means a ratio of 1.
+If @var{face} is @code{t}, it refers to the current face.
+@item (@code{nil} . @var{ratio})
+If the height spec is a cons of the format shown, the numeric height
+is @var{ratio} times the height of the contents of the line.
 @end table
 
-  Thus, any valid nonzero property value specifies a height in pixels,
+  Thus, any valid non-@code{t} property value specifies a height in pixels,
 @var{line-height}, one way or another.  If the line contents' height
 is less than @var{line-height}, Emacs adds extra vertical space above
 the line to achieve the total height @var{line-height}.  Otherwise,
@@ -1594,18 +1606,6 @@ spacing of each line.  The value is a height spec, and it translates
 into a Lisp value as described above.  However, in this case the
 numeric height value specifies the line spacing, rather than the line
 height.
-
-  There is one exception, however: if the @var{line-spacing} value is
-a cons @code{(total . @var{spacing})}, then @var{spacing} itself is
-treated as a heigh spec, and specifies the total displayed height of
-the line, so the line spacing equals the specified amount minus the
-line height.  This differs from using the @code{line-height} property
-because it adds space at the bottom of the line instead of the top.
-
-  If you specify both @code{line-spacing} using @code{total} and
-@code{line-height}, they are not redundant.  First @code{line-height}
-goes to work, adding space above the line contents.  Then
-@code{line-spacing} goes to work, adding space below the contents.
 
 @node Faces
 @section Faces
