@@ -145,6 +145,11 @@ when you hit the end of the current node."
   :type 'boolean
   :group 'info)
 
+(defcustom Info-hide-note-references t
+  "*If non-nil, hide the section reference in *note and * menu items."
+  :type 'boolean
+  :group 'info)
+
 (defcustom Info-mode-hook '(turn-on-font-lock)
   "Hooks run when `info-mode' is called."
   :type 'hook
@@ -2744,8 +2749,9 @@ the variable `Info-file-list-for-emacs'."
 				   '(font-lock-face info-xref
 						    mouse-face highlight
 						    help-echo "mouse-2: go to this node"))
-	      (add-text-properties (match-beginning 3) (match-end 3)
-				   '(invisible t intangible t)))))
+	      (if Info-hide-note-references
+		  (add-text-properties (match-beginning 3) (match-end 3)
+				       '(invisible t intangible t))))))
 
 	(goto-char (point-min))
 	(if (and (search-forward "\n* Menu:" nil t)
@@ -2763,10 +2769,11 @@ the variable `Info-file-list-for-emacs'."
 				     '(font-lock-face info-xref
 				       mouse-face highlight
 				       help-echo "mouse-2: go to this node"))
-		(add-text-properties (match-beginning 2) (match-end 2)
-				     (list 'display 
-					   (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )
-					   'intangible t)))))
+		(if Info-hide-note-references
+		    (add-text-properties (match-beginning 2) (match-end 2)
+					 (list 'display 
+					       (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )
+					       'intangible t))))))
 
 	(Info-fontify-menu-headers)
 	(set-buffer-modified-p nil)))))
