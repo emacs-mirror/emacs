@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.19) $
+ * $HopeName: MMsrc!seg.c(trunk.20) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.19) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.20) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -188,7 +188,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
   RingInit(SegPoolRing(seg));
 
-  /* Class specific initialization cames last */
+  /* Class specific initialization comes last */
   res = class->init(seg, pool, base, size, withReservoirPermit, args);
   if(res != ResOK) {
     goto failInit;
@@ -419,8 +419,8 @@ Size SegSize(Seg seg)
 Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 {
   Tract tract;
-  AVER_CRITICAL(segReturn != NULL);   /* .seg.critcial */
-  AVERT_CRITICAL(Arena, arena);       /* .seg.critcial */
+  AVER_CRITICAL(segReturn != NULL);   /* .seg.critical */
+  AVERT_CRITICAL(Arena, arena);       /* .seg.critical */
   if (TractOfAddr(&tract, arena, addr)) {
     return TRACT_SEG(segReturn, tract);
   } else {
@@ -492,6 +492,121 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
   return FALSE;
 }
 
+
+
+/* SegMerge -- Merge two adjacent segments
+ *
+ * The lo segment is updated to merge the two, and then returned.
+ * The hi segment is discarded.
+ */
+
+Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
+             Bool withReservoirPermit, ...)
+{
+  SegClass class;
+  Addr base, mid, limit;
+  Arena arena;
+  Res res;
+  va_list args;
+
+  AVER(NULL != mergedSegReturn);
+  AVERT(Seg, segLo);
+  AVERT(Seg, segHi);
+  class = segLo->class;
+  AVER(segHi->class == class);
+  AVER(SegPool(segLo) == SegPool(segHi));
+  base = SegBase(segLo);
+  mid = SegLimit(segLo);
+  limit = SegLimit(segHi);
+  AVER(SegBase(segHi) == SegLimit(segLo));
+  AVER(BoolCheck(withReservoirPermit));
+  arena = PoolArena(SegPool(segLo));
+
+  /* See impl.c.shield.shield.flush */
+  ShieldFlush(arena);
+
+  /* Invoke class-specific methods to do the merge */
+  va_start(args, withReservoirPermit);
+  res = class->merge(segLo, segHi, base, mid, limit, 
+                     withReservoirPermit, args);
+  va_end(args);
+  if (ResOK != res)
+    goto failMerge;
+
+  EVENT_PPP(SegMerge, segLo, segLo, segHi);
+  /* Deallocate segHi object */
+  ControlFree(arena, segHi, class->size);
+  AVERT(Seg, segLo);
+  *mergedSegReturn = segLo;
+  return ResOK;
+
+failMerge:
+  AVERT(Seg, segLo); /* check original segs are still valid */
+  AVERT(Seg, segHi);
+  return res;
+}
+
+
+/* SegSplit -- Split a segment
+ *
+ * The segment is split at the indicated position.
+ * The original segment is modified to be the new low segment.
+ * A new segment is allocated as the hi segment.
+ */
+
+Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
+             Bool withReservoirPermit, ...)
+{
+  Addr base, limit;
+  SegClass class;
+  Seg segNew;
+  Arena arena;
+  Res res;
+  va_list args;
+
+  AVER(NULL != segLoReturn);
+  AVER(NULL != segHiReturn);
+  AVERT(Seg, seg);
+  class = seg->class;
+  arena = PoolArena(SegPool(seg));
+  base = SegBase(seg);
+  limit = SegLimit(seg);
+  AVERT(Arena, arena);
+  AVER(AddrIsAligned(at, arena->alignment));
+  AVER(at > base);
+  AVER(at < limit);
+  AVER(BoolCheck(withReservoirPermit));
+
+  /* See impl.c.shield.shield.flush */
+  ShieldFlush(arena);
+
+  /* Allocate the new segment object from the control pool */
+  res = ControlAlloc((void **)&segNew, arena, class->size,
+                     withReservoirPermit);
+  if (ResOK != res)
+    goto failControl;
+
+  /* Invoke class-specific methods to do the split */
+  va_start(args, withReservoirPermit);
+  res = class->split(seg, segNew, base, at, limit, 
+                     withReservoirPermit, args);
+  va_end(args);
+  if (ResOK != res)
+    goto failSplit;
+
+  EVENT_PPPA(SegSplit, seg, segNew, seg, at);
+  AVERT(Seg, seg);
+  AVERT(Seg, segNew);
+  *segLoReturn = seg;
+  *segHiReturn = segNew;
+  return ResOK;
+
+failSplit:
+  ControlFree(arena, segNew, class->size);
+failControl:
+  AVERT(Seg, seg); /* check the original seg is still valid */
+  return res;
+}
 
 
 /* Class Seg -- The most basic segment class
@@ -682,6 +797,176 @@ static void segNoSetBuffer(Seg seg, Buffer buffer)
   if (buffer != NULL)
     AVERT(Buffer, buffer);
   NOTREACHED;
+}
+
+
+
+/* segNoMerge -- merge method for segs which don't support merge */
+
+static Res segNoMerge(Seg seg, Seg segHi, 
+                      Addr base, Addr mid, Addr limit,
+                      Bool withReservoirPermit, va_list args)
+{
+  AVERT(Seg, seg);
+  AVERT(Seg, segHi);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == mid);
+  AVER(SegBase(segHi) == mid);
+  AVER(SegLimit(segHi) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+  UNUSED(args);
+  NOTREACHED;
+  return ResFAIL;
+}
+
+
+/* segTrivMerge -- Basic Seg merge method 
+ *
+ * .similar: Segments must be "sufficiently similar". 
+ * See design.mps.seg.merge.inv.similar 
+ */
+
+static Res segTrivMerge(Seg seg, Seg segHi, 
+                        Addr base, Addr mid, Addr limit,
+                        Bool withReservoirPermit, va_list args)
+{
+  Pool pool;
+  Size align;
+  Arena arena;
+  Tract tract;
+  Addr addr;
+
+  AVERT(Seg, seg);
+  AVERT(Seg, segHi);
+  pool = SegPool(seg);
+  arena = PoolArena(pool);
+  align = ArenaAlign(arena);
+  AVER(AddrIsAligned(base, align));
+  AVER(AddrIsAligned(mid, align));
+  AVER(AddrIsAligned(limit, align));
+  AVER(base < mid);
+  AVER(mid < limit);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == mid);
+  AVER(SegBase(segHi) == mid);
+  AVER(SegLimit(segHi) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+  UNUSED(args);
+
+  /* .similar.  */
+  AVER(seg->rankSet == segHi->rankSet);
+  AVER(seg->white == segHi->white);
+  AVER(seg->nailed == segHi->nailed);
+  AVER(seg->grey == segHi->grey);
+  AVER(seg->pm == segHi->pm);
+  AVER(seg->sm == segHi->sm);
+  AVER(seg->depth == segHi->depth);
+  /* Neither segment may be exposed, or in the shield cache */
+  /* (see impl.c.shield.def.depth). */
+  AVER(seg->depth == 0);
+
+  /* Update main fields of seg. Finish segHi. */
+  RingRemove(SegPoolRing(segHi));
+  RingFinish(SegPoolRing(segHi));
+  segHi->sig = SigInvalid;
+  /* no need to update fields which match. See .similar */
+
+  seg->limit = limit;
+  TRACT_FOR(tract, addr, arena, mid, limit) {
+    AVER(TractHasSeg(tract));
+    AVER(segHi == TractP(tract));
+    AVER(TractPool(tract) == pool);
+    TRACT_SET_SEG(tract, seg);
+  }
+  AVER(addr == seg->limit);
+  AVERT(Seg, seg);
+  return ResOK;
+}
+
+
+/* segNoSplit -- split method for segs which don't support splitting */
+
+static Res segNoSplit(Seg seg, Seg segHi, 
+                      Addr base, Addr mid, Addr limit,
+                      Bool withReservoirPermit, va_list args)
+{
+  AVERT(Seg, seg);
+  AVER(segHi != NULL);  /* can't check fully, it's not initialized */
+  AVER(base < mid);
+  AVER(mid < limit);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+  UNUSED(args);
+  NOTREACHED;
+  return ResFAIL;
+
+}
+
+
+/* segTrivSplit -- Basic Seg split method */
+
+static Res segTrivSplit(Seg seg, Seg segHi, 
+                        Addr base, Addr mid, Addr limit,
+                        Bool withReservoirPermit, va_list args)
+{
+  Tract tract;
+  Pool pool;
+  Addr addr;
+  Size align;
+  Arena arena;
+
+  AVERT(Seg, seg);
+  AVER(segHi != NULL);  /* can't check fully, it's not initialized */
+  pool = SegPool(seg);
+  arena = PoolArena(pool);
+  align = ArenaAlign(arena);
+  AVER(AddrIsAligned(base, align));
+  AVER(AddrIsAligned(mid, align));
+  AVER(AddrIsAligned(limit, align));
+  AVER(base < mid);
+  AVER(mid < limit);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+  UNUSED(args);
+
+  /* Segment may not be exposed, or in the shield cache */
+  /* (see impl.c.shield.def.depth). */
+  AVER(seg->depth == 0);
+  
+  /* Full initialization for segHi. Just modify seg. */
+  seg->limit = mid;
+  segHi->limit = limit;
+  segHi->rankSet = seg->rankSet;
+  segHi->white = seg->white;
+  segHi->nailed = seg->nailed;
+  segHi->grey = seg->grey;
+  segHi->pm = seg->pm;
+  segHi->sm = seg->sm;
+  segHi->depth = seg->depth;
+  segHi->firstTract = NULL;
+  segHi->class = seg->class;
+  segHi->sig = SegSig;
+
+  TRACT_FOR(tract, addr, arena, mid, limit) {
+    AVER(TractHasSeg(tract));
+    AVER(seg == TractP(tract));
+    AVER(TractPool(tract) == pool);
+    TRACT_SET_SEG(tract, segHi);
+    if (addr == mid) {
+      AVER(segHi->firstTract == NULL);
+      segHi->firstTract = tract;
+    }
+    AVER(segHi->firstTract != NULL);
+  }
+  AVER(addr == segHi->limit);
+
+  RingInit(SegPoolRing(segHi));
+  RingAppend(&pool->segRing, SegPoolRing(segHi));
+  AVERT(Seg, seg);
+  AVERT(Seg, segHi);
+  return ResOK;
 }
 
 
@@ -1143,6 +1428,174 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
+/* gcSegMerge -- GCSeg merge method 
+ *
+ * .buffer: Can't merge two segments both with buffers.
+ * See design.mps.seg.merge.inv.buffer.
+ */
+
+static Res gcSegMerge(Seg seg, Seg segHi, 
+                      Addr base, Addr mid, Addr limit,
+                      Bool withReservoirPermit, va_list args)
+{
+  SegClass super;
+  GCSeg gcseg, gcsegHi;
+  TraceSet grey;
+  Buffer buf;
+  Res res;
+
+  AVERT(Seg, seg);
+  AVERT(Seg, segHi);
+  gcseg = SegGCSeg(seg);
+  gcsegHi = SegGCSeg(segHi);
+  AVERT(GCSeg, gcseg);
+  AVERT(GCSeg, gcsegHi);
+  AVER(base < mid);
+  AVER(mid < limit);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == mid);
+  AVER(SegBase(segHi) == mid);
+  AVER(SegLimit(segHi) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+
+  buf = gcsegHi->buffer;      /* any buffer on segHi must be reassigned */
+  AVER(buf == NULL || gcseg->buffer == NULL); /* See .buffer */
+  grey = SegGrey(segHi);      /* check greyness */
+  AVER(SegGrey(seg) == grey);
+
+  /* Merge the superclass fields via next-method call */
+  super = EnsureSegClass();
+  res = super->merge(seg, segHi, base, mid, limit, 
+                     withReservoirPermit, args);
+  if(res != ResOK)
+    goto failSuper;
+
+  /* Update fields of gcseg. Finish gcsegHi. */
+  gcseg->summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
+  if(grey != TraceSetEMPTY) {
+    RingRemove(&gcsegHi->greyRing);
+    segHi->grey = TraceSetEMPTY;
+
+    STATISTIC_STAT
+      ({
+        TraceId ti; Trace trace;
+        Arena arena = PoolArena(SegPool(seg));
+        
+        TRACE_SET_ITER(ti, trace, grey, arena)
+          --trace->greySegCount;
+        TRACE_SET_ITER_END(ti, trace, grey, arena);
+      });
+  }
+  gcsegHi->summary = RefSetEMPTY;
+  gcsegHi->sig = SigInvalid;
+  RingFinish(&gcsegHi->greyRing);
+
+  /* Reassign any buffer that was connected to segHi  */
+  if (NULL != buf) {
+    AVER(gcseg->buffer == NULL);
+    gcseg->buffer = buf;
+    gcsegHi->buffer = NULL;
+    BufferReassignSeg(buf, seg);
+  }
+
+  AVERT(GCSeg, gcseg);
+  return ResOK;
+
+failSuper:
+  AVERT(GCSeg, gcseg);
+  AVERT(GCSeg, gcsegHi);
+  return res;
+}
+
+
+/* gcSegSplit -- GCSeg split method */
+
+static Res gcSegSplit(Seg seg, Seg segHi, 
+                      Addr base, Addr mid, Addr limit,
+                      Bool withReservoirPermit, va_list args)
+{
+  SegClass super;
+  GCSeg gcseg, gcsegHi;
+  Buffer buf;
+  TraceSet grey;
+  Res res;
+
+  AVERT(Seg, seg);
+  AVER(segHi != NULL);  /* can't check fully, it's not initialized */
+  gcseg = SegGCSeg(seg);
+  gcsegHi = SegGCSeg(segHi);
+  AVERT(GCSeg, gcseg);
+  AVER(base < mid);
+  AVER(mid < limit);
+  AVER(SegBase(seg) == base);
+  AVER(SegLimit(seg) == limit);
+  AVER(BoolCheck(withReservoirPermit));
+  
+  grey = SegGrey(seg);
+  buf = gcseg->buffer; /* Look for buffer to reassign to segHi */
+  if (buf != NULL) {
+    if (BufferLimit(buf) > mid) {
+      /* Existing buffer extends above the split point */
+      AVER(BufferBase(buf) > mid); /* check it's all above the split */
+    } else {
+      buf = NULL; /* buffer lies below split and is unaffected */
+    }
+  }    
+
+  /* Split the superclass fields via next-method call */
+  super = EnsureSegClass();
+  res = super->split(seg, segHi, base, mid, limit, 
+                     withReservoirPermit, args);
+  if(res != ResOK)
+    goto failSuper;
+
+  /* Full initialization for segHi. */
+  gcsegHi->summary = gcseg->summary;
+  gcsegHi->buffer = NULL;
+  segHi->grey = grey;
+  RingInit(&gcsegHi->greyRing);
+  gcsegHi->sig = GCSegSig;
+  if (grey != TraceSetEMPTY) {
+    /* segHi is grey. Add to appropriate grey list */
+    Rank rank;
+    Arena arena = PoolArena(SegPool(seg));
+    AVER(RankSetIsSingle(segHi->rankSet));
+    for(rank = 0; rank < RankMAX; ++rank)
+      if(RankSetIsMember(segHi->rankSet, rank)) {
+        RingInsert(ArenaGreyRing(arena, rank), &gcsegHi->greyRing);
+        break;
+      }
+    AVER(rank != RankMAX); /* there should've been a match */
+
+    STATISTIC_STAT
+      ({
+        TraceId ti; Trace trace;
+        
+        TRACE_SET_ITER(ti, trace, grey, arena)
+          ++trace->greySegCount;
+          if(trace->greySegCount > trace->greySegMax)
+            trace->greySegMax = trace->greySegCount;
+        TRACE_SET_ITER_END(ti, trace, grey, arena);
+      });
+  }
+
+  /* Reassign buffer if it's now connected to segHi  */
+  if (NULL != buf) {
+    gcsegHi->buffer = buf;
+    gcseg->buffer = NULL;
+    BufferReassignSeg(buf, segHi);
+  }
+
+  AVERT(GCSeg, gcseg);
+  AVERT(GCSeg, gcsegHi);
+  return ResOK;
+
+failSuper:
+  AVERT(GCSeg, gcseg);
+  return res;
+}
+
+
 /* gcSegDescribe -- GCSeg  description method */
 
 static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
@@ -1190,6 +1643,8 @@ Bool SegClassCheck(SegClass class)
   CHECKL(FUNCHECK(class->setWhite));
   CHECKL(FUNCHECK(class->setRankSet));
   CHECKL(FUNCHECK(class->setRankSummary));
+  CHECKL(FUNCHECK(class->merge));
+  CHECKL(FUNCHECK(class->split));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(SegClass, class);
   return TRUE;
@@ -1213,9 +1668,12 @@ DEFINE_CLASS(SegClass, class)
   class->setWhite = segNoSetWhite;
   class->setRankSet = segNoSetRankSet;
   class->setRankSummary = segNoSetRankSummary;
+  class->merge = segTrivMerge;
+  class->split = segTrivSplit;
   class->describe = segTrivDescribe;
   class->sig = SegClassSig;
 }
+
 
 /* GCSegClass -- GC-supporting segment class definition */
  
@@ -1236,6 +1694,21 @@ DEFINE_CLASS(GCSegClass, class)
   class->setWhite = gcSegSetWhite;
   class->setRankSet = gcSegSetRankSet;
   class->setRankSummary = gcSegSetRankSummary;
+  class->merge = gcSegMerge;
+  class->split = gcSegSplit;
   class->describe = gcSegDescribe;
 }
 
+
+/* SegClassMixInNoSplitMerge -- Mix-in for unsupported merge
+ *
+ * Classes which don't support segment splitting and merging
+ * may mix this in to ensure that erroneous calls are checked.
+ */
+
+void SegClassMixInNoSplitMerge(SegClass class)
+{
+  /* Can't check class because it's not initialized yet */
+  class->merge = segNoMerge;
+  class->split = segNoSplit;
+}
