@@ -482,7 +482,8 @@ If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
   (when tooltip-gud-dereference
     (setq expr (concat "*" expr)))
   (case tooltip-gud-debugger
-    ((gdb dbx) (concat "print " expr))
+    (gdb (concat "server print " expr))
+    (dbx (concat "print " expr))
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
     (perldb expr)))
