@@ -785,7 +785,7 @@ system which uses fontsets)."
 	(insert-section 6 "Fontsets")
 	(save-excursion (list-fontsets t))
 	(insert-buffer-substring "*Help*"))
-      (help-mode))))
+      (print-help-return-message))))
 
 
 ;;; DUMP DATA FILE
