@@ -1375,7 +1375,7 @@ string_xstring_p (string)
 static void
 find_charsets_in_text (ptr, nchars, nbytes, charsets, table)
      const unsigned char *ptr;
-     int nchars, nbytes;
+     EMACS_INT nchars, nbytes;
      Lisp_Object charsets, table;
 {
   const unsigned char *pend = ptr + nbytes;
@@ -1424,7 +1424,8 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
      Lisp_Object beg, end, table;
 {
   Lisp_Object charsets;
-  int from, from_byte, to, stop, stop_byte, i;
+  EMACS_INT from, from_byte, to, stop, stop_byte;
+  int i;
   Lisp_Object val;
 
   validate_region (&beg, &end);
@@ -2073,8 +2074,6 @@ init_charset_once ()
 void
 syms_of_charset ()
 {
-  char *p;
-
   DEFSYM (Qcharsetp, "charsetp");
 
   DEFSYM (Qascii, "ascii");
@@ -2084,8 +2083,6 @@ syms_of_charset ()
 
   DEFSYM (Qgl, "gl");
   DEFSYM (Qgr, "gr");
-
-  p = (char *) xmalloc (30000);
 
   staticpro (&Vcharset_ordered_list);
   Vcharset_ordered_list = Qnil;
