@@ -1,4 +1,4 @@
-@c This is part of the Emacs manual.
+\@c This is part of the Emacs manual.
 @c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
@@ -17,6 +17,7 @@ display it.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
 * Display Custom::         Information on variables for customizing display.
+* Cursor Display::         Features for displaying the cursor.
 @end menu
 
 @node Scrolling
@@ -459,16 +460,35 @@ will be done less frequently.
 by means of a display table.  @xref{Display Tables,, Display Tables,
 elisp, The Emacs Lisp Reference Manual}.
 
+@cindex busy-cursor display
+@vindex busy-cursor-delay
+  On a window system, Emacs can optionally display the mouse pointer
+in a special shape to say that Emacs is busy.  To turn this feature on
+or off, customize the group @code{cursor}.  You can also control the
+amount of time Emacs must remain busy before the busy indicator is
+displayed, by setting the variable @code{busy-cursor-delay}.
+
+@node Cursor Display
+@section Displaying the Cursor
+
 @findex hl-line-mode
 @findex blink-cursor-mode
 @cindex cursor, locating visually
 @cindex cursor, blinking
   There are a number of ways to customize the display of the cursor.
 @kbd{M-x hl-line-mode} enables or disables a global minor mode which
-highlights the line around point.  On window systems, the command
+highlights the line containing point.  On window systems, the command
 @kbd{M-x blink-cursor-mode} turns on or off the blinking of the
 cursor.  (On terminals, the terminal itself blinks the cursor, and
 Emacs has no control over it.)
 
   You can customize the cursor's color, and whether it blinks, using
 the @code{cursor} Custom group (@pxref{Easy Customization}).
+
+@vindex x-stretch-cursor
+@cindex wide block cursor
+  When displaying on a window system, Emacs can optionally draw the
+block cursor as wide as the character under the cursor---for example,
+if the cursor is on a tab character, it would cover the full width
+occupied by that tab character.  To enable this feature, set the
+variable @code{x-stretch-cursor} to a non-@code{nil} value.
