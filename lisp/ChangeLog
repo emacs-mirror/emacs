@@ -1,3 +1,8 @@
+2001-03-10  Dave Love  <fx@gnu.org>
+
+	* toolbar/tool-bar.el (tool-bar-setup): Don't suppress write-file
+	and save-buffer if buffer-file-name non-nil.  From rms.
+
 2001-03-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-do-command): If the destination buffer is already
