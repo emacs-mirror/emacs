@@ -1,3 +1,8 @@
+2001-07-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (KBD_BUFFER_SIZE) [!HAVE_WINDOW_SYSTEM]: Increase
+	to 4096 because of paste problems reported on GNU/Linux.
+
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (unwind_read): Function removed.
