@@ -113,7 +113,8 @@ is nil, REGEXP matches only half a section.")
 						(match-beginning subexpr)
 						(match-end subexpr)))))
 				    (save-excursion
-				      (set-buffer (find-file-noselect file))
+				      (save-match-data
+					(set-buffer (find-file-noselect file)))
 				      (save-excursion
 					(goto-line line)
 					(point-marker)))))
