@@ -723,7 +723,6 @@ case "${canonical}" in
       *-bsd4.1* ) 					opsys=bsd4-1 ;;
       *-bsd4.2* | *-ultrix[0-3].* | *-ultrix4.0* )	opsys=bsd4-2 ;;
       *-bsd4.3* | *-ultrix* ) 				opsys=bsd4-3 ;;
-      *-bsd386* | *-bsdi* )				opsys=bsd386 ;;
       *-sysv[01]* | *-sysvr[01]* ) 			opsys=usg5-0 ;;
       *-sysv2* | *-sysvr2* )				opsys=usg5-2 ;;
       *-vms* ) 						opsys=vms ;;
@@ -757,7 +756,8 @@ case "${canonical}" in
       *-xenix* )		opsys=xenix ;;
       *-linux* )		opsys=linux ;;
       *-sco3.2v4* )		opsys=sco4 ; NON_GNU_CPP=/lib/cpp  ;;
-      *-bsd386* | *-bsdi* )	opsys=bsd386 ;;
+      *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
+      *-bsdi2* )		opsys=bsdos2 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=mach2 ;;
