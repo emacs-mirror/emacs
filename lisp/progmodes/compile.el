@@ -5,7 +5,6 @@
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
 ;; Keywords: tools, processes
-;; Info-Node: Emacs:Compilation
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +21,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This package provides the compile and grep facilities documented in
+;; the Emacs user's manual.
 
 ;;; Code:
 
