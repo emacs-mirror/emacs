@@ -1,3 +1,7 @@
+2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (handle_fontified_prop): Don't bind after-change-functions.
+
 2001-10-08  Sam Steingold  <sds@gnu.org>
 
 	* keymap.c (current-active-maps): Quote newlines (compilation error).
