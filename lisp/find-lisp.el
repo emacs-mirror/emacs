@@ -119,8 +119,7 @@ Argument DIR is the directory containing FILE."
   "Find files in DIRECTORY which match REGEXP."
   (let ((file-predicate      'find-lisp-default-file-predicate)
 	(directory-predicate 'find-lisp-default-directory-predicate)
-	(find-lisp-regexp regexp)
-	)
+	(find-lisp-regexp regexp))
     (find-lisp-find-files-internal
      directory
      file-predicate
@@ -135,34 +134,28 @@ directory.
 
 DIRECTORY-PREDICATE is used to decide whether to descend into directories.
 It is a function which takes two arguments, the directory and its parent."
-  (or (string-match "/$" directory)
-      (setq directory (concat directory "/")))
+  (setq directory (file-name-as-directory directory))
   (let (results sub-results)
-    (mapcar
-     (function
-      (lambda(file)
-	(let ((fullname (expand-file-name file directory)))
-	  (and (file-readable-p (expand-file-name file directory))
+    (dolist (file (directory-files directory nil nil t))
+      (let ((fullname (expand-file-name file directory)))
+	(when (file-readable-p (expand-file-name file directory))
+	  ;; If a directory, check it we should descend into it
+	  (and (file-directory-p fullname)
+	       (funcall directory-predicate file directory)
 	       (progn
-		 ;; If a directory, check it we should descend into it
-		 (and (file-directory-p fullname)
-		      (funcall directory-predicate file directory)
-		      (progn
-			(setq sub-results
-			      (find-lisp-find-files-internal
-			       fullname
-			       file-predicate
-			       directory-predicate))
-			(if results
-			    (nconc results sub-results)
-			  (setq results sub-results))))
-		 ;; For all files and directories, call the file predicate
-		 (and (funcall file-predicate file directory)
-		      (if results
-			  (nconc results (list fullname))
-			(setq results (list fullname))))
-		 )))))
-     (directory-files directory nil nil t))
+		 (setq sub-results
+		       (find-lisp-find-files-internal
+			fullname
+			file-predicate
+			directory-predicate))
+		 (if results
+		     (nconc results sub-results)
+		   (setq results sub-results))))
+	  ;; For all files and directories, call the file predicate
+	  (and (funcall file-predicate file directory)
+	       (if results
+		   (nconc results (list fullname))
+		 (setq results (list fullname)))))))
     results))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
