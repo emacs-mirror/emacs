@@ -68,6 +68,7 @@ Boston, MA 02111-1307, USA.  */
 /* #include <sys/param.h>  */
 
 #include "charset.h"
+#include "coding.h"
 #include "ccl.h"
 #include "frame.h"
 #include "dispextern.h"
@@ -9026,6 +9027,7 @@ XTread_socket (sd, bufp, numchars, expected)
   struct frame *f;
   int event_found = 0;
   struct x_display_info *dpyinfo;
+  struct coding_system coding;
 
   if (interrupt_input_blocked)
     {
@@ -9044,6 +9046,18 @@ XTread_socket (sd, bufp, numchars, expected)
 
   ++handling_signal;
   
+  /* The input should be decoded if it is from XIM.  Currently the
+     locale of XIM is the same as that of the system.  So, we can use
+     Vlocale_coding_system which is initialized properly at Emacs
+     startup time.  */
+  setup_coding_system (Vlocale_coding_system, &coding);
+  coding.src_multibyte = 0;
+  coding.dst_multibyte = 1;
+  /* The input is converted to events, thus we can't handle
+     composition.  Anyway, there's no XIM that gives us composition
+     information.  */
+  coding.composing = COMPOSITION_DISABLED;
+
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -9500,9 +9514,20 @@ XTread_socket (sd, bufp, numchars, expected)
 	      if (f != 0)
 		{
 		  KeySym keysym, orig_keysym;
-		  /* al%imercury@uunet.uu.net says that making this 81 instead of
-		     80 fixed a bug whereby meta chars made his Emacs hang.  */
-		  unsigned char copy_buffer[81];
+		  /* al%imercury@uunet.uu.net says that making this 81
+		     instead of 80 fixed a bug whereby meta chars made
+		     his Emacs hang.
+
+		     It seems that some version of XmbLookupString has
+		     a bug of not returning XBufferOverflow in
+		     status_return even if the input is too long to
+		     fit in 81 bytes.  So, we must prepare sufficient
+		     bytes for copy_buffer.  513 bytes (256 chars for
+		     two-byte character set) seems to be a faily good
+		     approximation.  -- 2000.8.10 handa@etl.go.jp  */
+		  unsigned char copy_buffer[513];
+		  unsigned char *copy_bufptr = copy_buffer;
+		  int copy_bufsiz = sizeof (copy_buffer);
 		  int modifiers;
 
 		  event.xkey.state
@@ -9531,8 +9556,6 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
-		      unsigned char *copy_bufptr = copy_buffer;
-		      int copy_bufsiz = sizeof (copy_buffer);
 		      Status status_return;
 
 		      nbytes = XmbLookupString (FRAME_XIC (f),
@@ -9561,11 +9584,13 @@ XTread_socket (sd, bufp, numchars, expected)
 			abort ();
 		    }
 		  else
-		    nbytes = XLookupString (&event.xkey, copy_buffer,
-					    80, &keysym, &compose_status);
+		    nbytes = XLookupString (&event.xkey, copy_bufptr,
+					    copy_bufsiz, &keysym,
+					    &compose_status);
 #else
-		  nbytes = XLookupString (&event.xkey, copy_buffer,
-					  80, &keysym, &compose_status);
+		  nbytes = XLookupString (&event.xkey, copy_bufptr,
+					  copy_bufsiz, &keysym,
+					  &compose_status);
 #endif
 
 		  orig_keysym = keysym;
@@ -9660,14 +9685,54 @@ XTread_socket (sd, bufp, numchars, expected)
 		      else if (numchars > nbytes)
 			{
 			  register int i;
+			  register int c;
+			  unsigned char *p, *pend;
+			  int nchars, len;
 
 			  for (i = 0; i < nbytes; i++)
 			    {
-			      if (temp_index == sizeof temp_buffer / sizeof (short))
+			      if (temp_index == (sizeof temp_buffer
+						 / sizeof (short)))
 				temp_index = 0;
-			      temp_buffer[temp_index++] = copy_buffer[i];
-			      bufp->kind = ascii_keystroke;
-			      bufp->code = copy_buffer[i];
+			      temp_buffer[temp_index++] = copy_bufptr[i];
+			    }
+
+			  if (/* If the event is not from XIM, */
+			      event.xkey.keycode != 0
+			      /* or the current locale doesn't request
+				 decoding of the intup data, ... */
+			      || coding.type == coding_type_raw_text
+			      || coding.type == coding_type_no_conversion)
+			    {
+			      /* ... we can use the input data as is.  */
+			      nchars = nbytes;
+			    }
+			  else
+			    { 
+			      /* We have to decode the input data.  */
+			      int require;
+			      unsigned char *p;
+
+			      require = decoding_buffer_size (&coding, nbytes);
+			      p = (unsigned char *) alloca (require);
+			      coding.mode |= CODING_MODE_LAST_BLOCK;
+			      decode_coding (&coding, copy_bufptr, p,
+					     nbytes, require);
+			      nbytes = coding.produced;
+			      nchars = coding.produced_char;
+			      copy_bufptr = p;
+			    }
+
+			  /* Convert the input data to a sequence of
+			     character events.  */
+			  for (i = 0; i < nbytes; i += len)
+			    {
+			      c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+							  nbytes - i, len);
+			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+					    ? ascii_keystroke
+					    : multibyte_char_keystroke);
+			      bufp->code = c;
 			      XSETFRAME (bufp->frame_or_window, f);
 			      bufp->arg = Qnil;
 			      bufp->modifiers
@@ -9677,8 +9742,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			      bufp++;
 			    }
 
-			  count += nbytes;
-			  numchars -= nbytes;
+			  count += nchars;
+			  numchars -= nchars;
 
 			  if (keysym == NoSymbol)
 			    break;
