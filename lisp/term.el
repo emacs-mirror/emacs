@@ -815,6 +815,8 @@ is buffer-local.")
      [ "Enable paging" term-pager-toggle (not term-pager-count)]
      [ "Disable paging" term-pager-toggle term-pager-count])))
 
+(put 'term-mode 'mode-class 'special)
+
 (defun term-mode ()
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
