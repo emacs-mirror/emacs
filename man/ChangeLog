@@ -1,3 +1,93 @@
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Incremental Search): Update wording for M-%.
+
+2004-09-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* killing.texi (Killing): Correct description of kill commands in
+	read-only buffer.
+
+2004-09-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* building.texi (Compilation Mode): Add a paragraph about rules
+	for finding the compilation buffer for `next-error'.
+
+	* search.texi (Other Repeating Search): Mention that Occur mode
+	supports the next-error functionality.
+
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Regexp Replace): Add missing backslash to \footnote.
+
+2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Basic Keyboard Macro):
+	`apply-macro-to-region-lines' now operates on all lines that begin
+	in the region, rather than on all complete lines in the region.
+
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and drop): Add documentation about
+	x-dnd-test-function and x-dnd-known-types.
+
+2004-08-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.texi: Various minor changes in addition to:
+	(Indentation Commands): Correct description of `indent-relative'.
+	(Tab Stops): <TAB> is no longer bound to `tab-to-tab-stop' in Text
+	mode.  The *Tab Stops* buffer uses Overwrite Mode.
+	(Just Spaces): `untabify' converts sequences of at least two
+	spaces to tabs.
+
+2004-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Emacs for MS-DOS): Update URLs for the MS-DOS port of
+	Emacs and related programs.
+
+2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Secondary Selection): Setting the secondary
+	selection with M-Drag-Mouse-1 does not alter the kill ring,
+	setting it with M-Mouse-1 and M-Mouse-3 does.
+	(Mode Line Mouse): C-Mouse-2 on scroll bar now also works for
+	toolkit scroll bars.
+	(Scroll Bars): Ditto.
+
+	* windows.texi (Basic Window): When using a window system, the value
+	of point in a non-selected window is indicated by a hollow box.
+	(Split Window): Side by side windows are separated by a scroll bar,
+	if scroll bars are used.
+	C-Mouse-2 on scroll bar now also works for toolkit scroll bars.
+	(Change Window): Correct Mouse-2 vs Mouse-3 mess-up.
+	(Window Convenience): Update bindings for `winner-undo' and
+	`winner-redo'.
+
+	* ack.texi (Acknowledgments): Use `@unnumbered'.
+	* misc.texi : Adapt sectioning in Info to the node structure.
+	(Invoking emacsclient): Make "Invoking emacsclient" a subsection
+	of "Using Emacs as a Server".
+	* building.texi (Building): Interchange nodes (for correct numbering).
+	* programs.texi (Programs): Interchange nodes (for correct numbering).
+	* killing.texi, entering.texi, commands.texi: Adapt sectioning in
+	Info to the node structure.
+	* emacs.texi: Make "GNU GENERAL PUBLIC LICENSE" an appendix.
+	Rearrange order of nodes and sections such that both "GNU GENERAL
+	PUBLIC LICENSE" and "GNU Free Documentation License" appear at the
+	end, as appropriate for appendices.
+	(Acknowledgments): Put inside @iftex instead of @ifnotinfo.
+	Use `@unnumberedsec'.
+	* trouble.texi: Adapt sectioning in Info to the node structure.
+	Adapt node pointers to change in emacs.texi.
+	* cmdargs.texi, doclicense.texi: Adapt node pointers.
+
+2004-08-27  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi: Fix texinfo usage, esp. doublequotes.
+	(Difference between Emacs and XEmacs): Some clarification.
+
+	* faq.texi (Difference between Emacs and XEmacs):
+	Explain not to contrast XEmacs with GNU Emacs.
+
 2004-08-26  Richard M. Stallman  <rms@gnu.org>
 
 	* faq.texi (Difference between Emacs and XEmacs): Rewrite.

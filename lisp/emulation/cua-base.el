@@ -141,30 +141,39 @@
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
 ;; region to copy, kill, fill a.s.o. the virtual rectangle.
 ;;
-;; cua-mode's superior rectangle support is based on using a true visual
-;; representation of the selected rectangle. To start a rectangle, use
-;; [S-return] and extend it using the normal movement keys (up, down,
-;; left, right, home, end, C-home, C-end). Once the rectangle has the
-;; desired size, you can cut or copy it using C-x and C-c (or C-w and M-w),
-;; and you can subsequently insert it - as a rectangle - using C-v (or
-;; C-y).  So the only new command you need to know to work with
-;; cua-mode rectangles is S-return!
+;; cua-mode's superior rectangle support uses a true visual
+;; representation of the selected rectangle, i.e. it highlights the
+;; actual part of the buffer that is currently selected as part of the
+;; rectangle.  Unlike emacs' traditional rectangle commands, the
+;; selected rectangle always as straight left and right edges, even
+;; when those are in the middle of a TAB character or beyond the end
+;; of the current line.  And it does this without actually modifying
+;; the buffer contents (it uses display overlays to visualize the
+;; virtual dimensions of the rectangle).
+;;
+;; This means that cua-mode's rectangles are not limited to the actual
+;; contents of the buffer, so if the cursor is currently at the end of a
+;; short line, you can still extend the rectangle to include more columns
+;; of longer lines in the same rectangle.  And you can also have the
+;; left edge of a rectangle start in the middle of a TAB character.
+;; Sounds strange? Try it!
+;;
+;; To start a rectangle, use [S-return] and extend it using the normal
+;; movement keys (up, down, left, right, home, end, C-home,
+;; C-end). Once the rectangle has the desired size, you can cut or
+;; copy it using C-x and C-c (or C-w and M-w), and you can
+;; subsequently insert it - as a rectangle - using C-v (or C-y).  So
+;; the only new command you need to know to work with cua-mode
+;; rectangles is S-return!
 ;;
 ;; Normally, when you paste a rectangle using C-v (C-y), each line of
 ;; the rectangle is inserted into the existing lines in the buffer.
 ;; If overwrite-mode is active when you paste a rectangle, it is
 ;; inserted as normal (multi-line) text.
 ;;
-;; Furthermore, cua-mode's rectangles are not limited to the actual
-;; contents of the buffer, so if the cursor is currently at the end of a
-;; short line, you can still extend the rectangle to include more columns
-;; of longer lines in the same rectangle.  Sounds strange? Try it!
-;;
-;; You can enable padding for just this rectangle by pressing [M-p];
-;; this works like entering `picture-mode' where the tabs and spaces
-;; are automatically converted/inserted to make the rectangle truly
-;; rectangular. Or you can do it for all rectangles by setting the
-;; `cua-auto-expand-rectangles' variable.
+;; If you prefer the traditional rectangle marking (i.e. don't want
+;; straight edges), [M-p] toggles this for the current rectangle,
+;; or you can customize cua-virtual-rectangle-edges.
 
 ;; And there's more: If you want to extend or reduce the size of the
 ;; rectangle in one of the other corners of the rectangle, just use
@@ -204,8 +213,8 @@
 ;;       a supplied format string (prompt)
 ;; [M-o] opens the rectangle by moving the highlighted text to the
 ;;       right of the rectangle and filling the rectangle with blanks.
-;; [M-p] toggles rectangle padding, i.e. insert tabs and spaces to
-;;       make rectangles truly rectangular
+;; [M-p] toggles virtual straight rectangle edges
+;; [M-P] inserts tabs and spaces (padding) to make real straight edges
 ;; [M-q] performs text filling on the rectangle
 ;; [M-r] replaces REGEXP (prompt) by STRING (prompt) in rectangle
 ;; [M-R] reverse the lines in the rectangle
@@ -347,12 +356,25 @@ managers, so try setting this to nil, if prefix override doesn't work."
 
 ;;; Rectangle Customization
 
-(defcustom cua-auto-expand-rectangles nil
-  "*If non-nil, rectangles are padded with spaces to make straight edges.
-This implies modifying buffer contents by expanding tabs and inserting spaces.
-Consequently, this is inhibited in read-only buffers.
-Can be toggled by [M-p] while the rectangle is active,"
+(defcustom cua-virtual-rectangle-edges t
+  "*If non-nil, rectangles have virtual straight edges.
+Note that although rectangles are always DISPLAYED with straight edges, the
+buffer is NOT modified, until you execute a command that actually modifies it.
+\[M-p] toggles this feature when a rectangle is active."
   :type 'boolean
+  :group 'cua)
+
+(defcustom cua-auto-tabify-rectangles 1000
+  "*If non-nil, automatically tabify after rectangle commands.
+This basically means that `tabify' is applied to all lines that
+are modified by inserting or deleting a rectangle.  If value is
+an integer, cua will look for existing tabs in a region around
+the rectangle, and only do the conversion if any tabs are already
+present.  The number specifies then number of characters before
+and after the region marked by the rectangle to search."
+  :type '(choice (number :tag "Auto detect (limit)")
+		 (const :tag "Disabled" nil)
+		 (other :tag "Enabled" t))
   :group 'cua)
 
 (defcustom cua-enable-rectangle-auto-help t
@@ -412,7 +434,6 @@ Can be toggled by [M-p] while the rectangle is active,"
 				       (frame-parameter nil 'cursor-color)
 				       "red")
   "Normal (non-overwrite) cursor color.
-Also used to indicate that rectangle padding is not in effect.
 Default is to load cursor color from initial or default frame parameters.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
@@ -462,7 +483,6 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "*Cursor color used when overwrite mode is set, if non-nil.
-Also used to indicate that rectangle padding is in effect.
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
@@ -806,7 +826,8 @@ If global mark is active, copy from register or one character."
   (interactive "P")
   (setq arg (cua--prefix-arg arg))
   (let ((regtxt (and cua--register (get-register cua--register)))
-	(count (prefix-numeric-value arg)))
+	(count (prefix-numeric-value arg))
+	paste-column paste-lines)
     (cond
      ((and cua--register (not regtxt))
       (message "Nothing in register %c" cua--register))
@@ -825,7 +846,12 @@ If global mark is active, copy from register or one character."
 	  ;; the same region that we are going to delete.
 	  ;; That would make yank a no-op.
 	  (if cua--rectangle
-	      (cua--delete-rectangle)
+	      (progn
+		(goto-char (min (mark) (point)))
+		(setq paste-column (cua--rectangle-left))
+		(setq paste-lines (cua--delete-rectangle))
+		(if (= paste-lines 1)
+		    (setq paste-lines nil))) ;; paste all
 	    (if (string= (buffer-substring (point) (mark))
 			 (car kill-ring))
 		(current-kill 1))
@@ -843,7 +869,8 @@ If global mark is active, copy from register or one character."
 	    (setq this-command 'cua--paste-rectangle)
 	    (undo-boundary)
 	    (setq buffer-undo-list (cons pt buffer-undo-list)))
-	  (cua--insert-rectangle (cdr cua--last-killed-rectangle))
+	  (cua--insert-rectangle (cdr cua--last-killed-rectangle)
+				 nil paste-column paste-lines)
 	  (if arg (goto-char pt))))
        (t (yank arg)))))))
 
@@ -1033,9 +1060,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	   ((and buffer-read-only
 		 cua-read-only-cursor-color)
 	    cua-read-only-cursor-color)
-	   ((and cua-overwrite-cursor-color
-		 (or overwrite-mode
-		     (and cua--rectangle (cua--rectangle-padding))))
+	   ((and cua-overwrite-cursor-color overwrite-mode)
 	    cua-overwrite-cursor-color)
 	   (t cua-normal-cursor-color)))
 	 (color (if (consp cursor) (cdr cursor) cursor))

@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,00,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2004
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Killing and Moving Text
@@ -25,6 +26,10 @@ one buffer and yank it in another buffer.
 
 @end iftex
 
+@ifnottex
+@raisesections
+@end ifnottex
+
 @node Killing, Yanking, Mark, Top
 @section Deletion and Killing
 
@@ -45,11 +50,12 @@ can use the @kbd{C-x u} (@code{undo}) command to undo it
   You cannot kill read-only text, since such text does not allow any
 kind of modification.  But some users like to use the kill commands to
 copy read-only text into the kill ring, without actually changing it.
-If you set the variable @code{kill-read-only-ok} to a non-@code{nil}
-value, the kill commands work specially in a read-only buffer: they
-move over text, and copy it to the kill ring, without actually
-deleting it from the buffer.  When this happens, a message in the echo
-area tells you what is happening.
+Therefore, the kill commands work specially in a read-only buffer:
+they move over text, and copy it to the kill ring, without actually
+deleting it from the buffer.  Normally, Emacs beeps and prints an
+error message when this happens.  But if you set the variable
+@code{kill-read-only-ok} to a non-@code{nil} value, it just prints a
+message in the echo area, telling you what is happening.
 
   The delete commands include @kbd{C-d} (@code{delete-char}) and
 @key{DEL} (@code{delete-backward-char}), which delete only one
@@ -645,6 +651,10 @@ rectangle shifts right.
   The command @kbd{M-x string-insert-rectangle} is similar to
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
+
+@ifnottex
+@lowersections
+@end ifnottex
 
 @ignore
    arch-tag: d8da8f96-0928-449a-816e-ff2d3497866c

@@ -772,26 +772,6 @@ Assumes the tags table is the current buffer."
 	(all-completions string (tags-completion-table) predicate)
       (try-completion string (tags-completion-table) predicate))))
 
-;; Return a default tag to search for, based on the text at point.
-(defun find-tag-default ()
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (if (or (re-search-backward "\\sw\\|\\s_"
-				(save-excursion (beginning-of-line) (point))
-				t)
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
-			       (save-excursion (end-of-line) (point))
-			       t))
-	(progn (goto-char (match-end 0))
-	       (buffer-substring-no-properties
-                (point)
-                (progn (forward-sexp -1)
-                       (while (looking-at "\\s'")
-                         (forward-char 1))
-                       (point))))
-      nil)))
-
 ;; Read a tag name from the minibuffer with defaulting and completion.
 (defun find-tag-tag (string)
   (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))

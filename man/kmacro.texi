@@ -71,7 +71,7 @@ Insert in the buffer a keyboard macro's definition, as Lisp code.
 @item C-x C-k e
 Edit a previously defined keyboard macro (@code{edit-kbd-macro}).
 @item C-x C-k r
-Run the last keyboard macro on each complete line in the region
+Run the last keyboard macro on each line that begins in the region
 (@code{apply-macro-to-region-lines}).
 @end table
 
@@ -174,8 +174,8 @@ before appending to it.
 @findex apply-macro-to-region-lines
 @kindex C-x C-k r
   The command @kbd{C-x C-k r} (@code{apply-macro-to-region-lines})
-repeats the last defined keyboard macro on each complete line within
-the current region.  It does this line by line, by moving point to the
+repeats the last defined keyboard macro on each line that begins in
+the region.  It does this line by line, by moving point to the
 beginning of the line and then executing the macro.
 
 @node Keyboard Macro Ring

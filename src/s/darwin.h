@@ -243,11 +243,18 @@ Boston, MA 02111-1307, USA.  */
    specific headers.  */
 #define C_SWITCH_SYSTEM -fpascal-strings -fno-common -DMAC_OSX -I../mac/src
 
-/* Link in the Carbon lib.  The -headerpad option tells ld (see man
-   page) to leave room at the end of the header for adding load
-   commands.  Needed for dumping.  0x690 is the total size of 30
-   segment load commands (at 56 each).  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -framework QuickTime -lstdc++ -Xlinker -headerpad -Xlinker 690
+/* Link in the Carbon lib. */
+#ifdef HAVE_CARBON
+#define LIBS_CARBON -framework Carbon -framework QuickTime
+#else
+#define LIBS_CARBON -framework Carbon
+#endif
+
+/* The -headerpad option tells ld (see man page) to leave room at the
+   end of the header for adding load commands.  Needed for dumping.
+   0x690 is the total size of 30 segment load commands (at 56
+   each).  */
+#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_CARBON -Xlinker -headerpad -Xlinker 690
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 

@@ -1,3 +1,218 @@
+2004-09-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Bind `buffer-read-only'
+	locally around the call to `revert-buffer'.
+
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-toggle-regexp): Set `isearch-success' and
+	`isearch-adjusted' to `t'.
+	(isearch-toggle-case-fold): Set `isearch-success' to `t'.
+	(isearch-message-prefix): Add "pending" for isearch-adjusted.
+	(isearch-other-meta-char): Restore isearch-point unconditionally.
+	(isearch-query-replace): Add new arg `regexp-flag' and use it.
+	Set point to start of match if region is not active in transient
+	mark mode (to include the current match to region boundaries).
+	Push the search string to `query-replace-from-history-variable'.
+	Add prompt "Query replace regexp" for isearch-regexp.
+	Add region beginning/end as last arguments of `perform-replace.'
+	(isearch-query-replace-regexp): Replace code by the call to
+	`isearch-query-replace' with arg `t'.
+
+2004-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (normal-top-level): Undo previous TERM change.
+
+2004-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--overlay-keymap): New keymap for
+	highlight overlays; allow using RET when cursor is over a button.
+	(cua--highlight-rectangle): Use it.
+	(cua--rectangle-set-corners): Don't move backwards at eol.
+	(cua--forward-line): Don't move into void after eob.
+
+	* emulation/cua-rect.el (cua--rectangle-set-corners): Ensure that
+	point is set (and displayed) inside rectangle.
+	(cua--rectangle-operation): Fix for highlight of empty lines.
+	(cua--highlight-rectangle): Fix highlight for tabs.
+	Position cursor at left/right edge of rectangle using new `cursor'
+	property on overlay strings.
+	(cua--indent-rectangle): Don't tabify.
+	(cua-rotate-rectangle): Ignore that point has moved.
+
+2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add ASCII equivalents for some function keys.
+	(mode-line-frame-identification): Sync with x-win.el.
+
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-buffer-name): Compare major
+	mode with second element of compilation-arguments instead of third
+	to reflect latest changes in compilation-arguments structure.
+	(recompile): Use global variable `compilation-directory' to get
+	recent compilation directory only when `recompile' is invoked NOT
+	in the compilation buffer.  Otherwise, use `default-directory' of
+	the compilation buffer.
+	(compilation-error-properties): Allow to funcall col and end-col.
+	(compilation-mode-font-lock-keywords): Check col and end-col by
+	`integerp'.
+	(compilation-goto-locus): If end-mk is non-nil in transient mark
+	mode don't activate the mark (and don't display message in
+	push-mark), but highlight overlay between mk and end-mk.
+
+	* progmodes/grep.el (grep-highlight-matches): New defcustom.
+	(grep-regexp-alist): Add rule to highlight grep matches.
+	(grep-process-setup): Set env-vars GREP_OPTIONS and GREP_COLOR.
+
+	* info.el (Info-fontify-node): Don't compute other-tag
+	if Info-hide-note-references=hide.
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point):
+	Try `find-tag-default' when other methods failed.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Do not push mark if inhibit-mark-movement is non-nil.
+
+	* textmodes/ispell.el (ispell-html-skip-alists):
+	Fix backslashes in docstring.
+
+2004-09-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-wrap-function)
+	(isearch-push-state-function): New defvars.
+	(isearch-pop-fun-state): New defsubst.
+	(isearch-top-state): Call function saved in `isearch-pop-fun-state'.
+	(isearch-push-state): Set the result of calling
+	`isearch-push-state-function' to the `isearch-pop-fun-state' field.
+	(isearch-cancel): Call function saved in `isearch-pop-fun-state' to
+	restore the mode-specific starting point of terminated search.
+	(isearch-abort): Call `isearch-cancel' instead of its duplicated code.
+	(isearch-repeat): Call `isearch-wrap-function' if defined.
+	(isearch-message-prefix): Don't add prefix "over" to the message
+	for wrapped search if `isearch-wrap-function' is defined.
+	(isearch-search): Call function saved in `isearch-pop-fun-state' to
+	restore the mode-specific starting point of failed search.
+
+	* info.el (Info-search-whitespace-regexp): Fix backslashes.
+	(Info-search): Add new optional arguments for the sake of isearch.
+	Replace whitespace in Info-search-whitespace-regexp literally.
+	Add backward search.  Don't call `Info-select-node' if regexp is
+	found in the same Info node.  Don't add node to Info-history for
+	wrapped isearch.
+	(Info-search-backward, Info-isearch-search, Info-isearch-wrap)
+	(Info-isearch-push-state, Info-isearch-pop-state): New funs.
+	(Info-mode): Set local variables `isearch-search-fun-function',
+	`isearch-wrap-function', `isearch-push-state-function',
+	`search-whitespace-regexp'.
+
+	* isearch.el: Remove ancient Change Log section.
+	(isearch-string, isearch-message-string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets)
+	(isearch-case-fold-search): Add suffix `-state' to state-related
+	defsubsts to avoid name clashes with other function names.
+
+	* simple.el (next-error): New defgroup and defface.
+	(next-error-highlight, next-error-highlight-no-select):
+	New defcustoms.
+	(next-error-no-select): Let-bind next-error-highlight to the value
+	of next-error-highlight-no-select before calling `next-error'.
+
+	* progmodes/compile.el (compilation-goto-locus):
+	Use `next-error' face instead of `region'.  Set 4-th argument of
+	`move-overlay' to `current-buffer' to move overlay to different
+	source buffers.  Use new variable `next-error-highlight'.
+
+	* simple.el (next-error-find-buffer): Move the rule
+	"if current buffer is a next-error capable buffer" after the
+	rule "if next-error-last-buffer is set to a live buffer".
+	Simplify to test all rules in one `or'.
+	(next-error): Doc fix.
+	(next-error, previous-error, first-error)
+	(next-error-no-select, previous-error-no-select):
+	Make arguments optional.
+
+2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.el (apply-macro-to-region-lines): Make it operate on all
+	lines that begin in the region, rather than on all complete lines
+	in the region.
+
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-protocol-alist): Document update.
+	(x-dnd-known-types): Defcustom it.
+	(x-dnd-handle-motif): Print message-atom in error message.
+
+2004-08-30  John Paul Wallington  <jpw@gnu.org>
+
+	* textmodes/tex-mode.el (tex-validate-buffer): Use distinct
+	strings rather than programatically constructing message.
+
+2004-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Don't turn S-a into A.
+	Don't return a string that would read as the wrong character code.
+
+2004-08-29  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-auto-expand-rectangles): Remove
+	automatic rectangle padding feature; replace by non-destructive
+	virtual rectangle edges feature.
+	(cua-virtual-rectangle-edges): New defcustom.
+	(cua-auto-tabify-rectangles): New defcustom.
+	(cua-paste): If paste into a marked rectangle, insert rectangle at
+	current column, even if virtual; also paste exactly as many lines
+	as has been marked (ignore additional lines or add empty lines),
+	but paste whole source if only one line is marked.
+	(cua--update-indications): No longer use overwrite-cursor to
+	indicate rectangle padding
+
+	* emulation/cua-rect.el (cua--rectangle-padding): Remove.
+	(cua--rectangle-virtual-edges): New defun.
+	(cua--rectangle-get-corners): Remove optional PAD arg.
+	(cua--rectangle-set-corners): Never do padding.
+	(cua--forward-line): Remove optional PAD arg.  Simplify.
+	(cua-resize-rectangle-right, cua-resize-rectangle-left)
+	(cua-resize-rectangle-down, cua-resize-rectangle-up):
+	(cua-resize-rectangle-bot, cua-resize-rectangle-top)
+	(cua-resize-rectangle-page-up, cua-resize-rectangle-page-down)
+	(cua--rectangle-move): Never do padding.  Simplify.
+	(cua--tabify-start): New defun.
+	(cua--rectangle-operation): Add tabify arg.  All callers changed.
+	(cua--pad-rectangle): Remove.
+	(cua--delete-rectangle): Handle delete with virtual edges.
+	(cua--extract-rectangle): Add spaces if rectangle has virtual edges.
+	(cua--insert-rectangle): Handle insert at virtual column.
+	Perform auto-tabify if necessary.
+	(cua--activate-rectangle): Remove optional FORCE arg.
+	Never do padding.  Simplify.
+	(cua--highlight-rectangle): Enhance for virtual edges.
+	(cua-toggle-rectangle-padding): Remove command.
+	(cua-toggle-rectangle-virtual-edges): New command.
+	(cua-sequence-rectangle): Add optional TABIFY arg.  Callers changed.
+	(cua--rectangle-post-command): Don't force rectangle padding.
+	(cua--init-rectangles): Bind M-p to cua-toggle-rectangle-virtual-edges.
+
+2004-08-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.el (edit-tab-stops-buffer): Doc fix.
+
+2004-08-28  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/grep.el (grep-default-command): Use find-tag-default.
+	(grep-tag-default): Function deleted.
+
+	* subr.el (find-tag-default): Moved from etags.el.
+
+	* progmodes/etags.el (find-tag-default): Moved to subr.el.
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Put `shift' modifier
+	into the basic character if it has an uppercase form.
+
 2004-08-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-8-post-read-conversion): If the
@@ -534,7 +749,6 @@
 	(ps-generate-string-list): Comment fix.
 	(ps-message-log-max): Code fix.
 
-
 2004-07-22  Michael Piotrowski  <mxp@dynalabs.de>  (tiny change)
 
 	* ps-print.el (ps-begin-file): Improve the DSC compliance of the
@@ -554,11 +768,9 @@
 
 2004-07-20  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
-	(fill-delete-newlines): Call sentence-end as function.
-	(fill-nobreak-p, canonically-space-region): Likewise.
-	(fill-nobreak-p): If this break point is at the end of the line,
-	don't consider the newline which follows as a reason to return t.
+	* textmodes/fill.el (fill-nobreak-p): If this break point is
+	at the end of the line, don't consider the newline which follows
+	as a reason to return t.
 
 2004-07-19  John Paul Wallington  <jpw@gnu.org>
 

@@ -1,3 +1,9 @@
+2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrevs.texi (Abbrev Expansion): `abbrev-start-location' can be
+	an integer or a marker.
+	(Abbrev Expansion): Replace example for `pre-abbrev-expand-hook'.
+
 2004-08-22  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Major Mode Conventions): Discuss rebinding of

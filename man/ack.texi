@@ -4,7 +4,7 @@
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments, Screen, Concept Index, Top
-@chapter Acknowledgments
+@unnumbered Acknowledgments
 
 Many people have contributed code included in the Free Software
 Foundation's distribution of GNU Emacs.  To show our appreciation for

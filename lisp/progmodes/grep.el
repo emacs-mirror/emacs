@@ -64,6 +64,21 @@ will be parsed and highlighted as soon as you try to move to them."
   :version "21.4"
   :group 'grep)
 
+(defcustom grep-highlight-matches t
+  "*Non-nil to use special markers to highlight grep matches.
+
+Some grep programs are able to surround matches with special
+markers in grep output.  Such markers can be used to highlight
+matches in grep mode.
+
+This option sets the environment variable GREP_COLOR to specify
+markers for highlighting and GREP_OPTIONS to add the --color
+option in front of any explicit grep options before starting
+the grep."
+  :type 'boolean
+  :version "21.4"
+  :group 'grep)
+
 (defcustom grep-scroll-output nil
   "*Non-nil to scroll the *grep* buffer window as output appears.
 
@@ -230,6 +245,23 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
   '(("^\\(.+?\\)[:( \t]+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
 \\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[:) \t]" 1 (2 . 5) (4 . 6))
+    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+     1 2
+     ((lambda ()
+        (setq compilation-error-screen-columns nil)
+        (- (match-beginning 5) (match-end 3) 8))
+      .
+      (lambda () (- (match-end 5) (match-end 3) 8)))
+     nil nil
+     (4 (list 'face nil 'invisible t 'intangible t))
+     (5 (list 'face compilation-column-face))
+     (6 (list 'face nil 'invisible t 'intangible t))
+     ;; highlight other matches on the same line
+     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+      nil nil
+      (1 (list 'face nil 'invisible t 'intangible t))
+      (2 (list 'face compilation-column-face) t)
+      (3 (list 'face nil 'invisible t 'intangible t))))
     ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
@@ -300,6 +332,10 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
 Set up `compilation-exit-message-function' and run `grep-setup-hook'."
+  (when grep-highlight-matches
+    ;; Modify `process-environment' locally bound in `compilation-start'
+    (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=always"))
+    (setenv "GREP_COLOR" "01;41"))
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
@@ -384,9 +420,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (let ((tag-default
 	 (funcall (or find-tag-default-function
 		      (get major-mode 'find-tag-default-function)
-		      ;; We use grep-tag-default instead of
-		      ;; find-tag-default, to avoid loading etags.
-		      'grep-tag-default)))
+		      'find-tag-default)))
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
     ;; Replace the thing matching for with that around cursor.
@@ -456,25 +490,6 @@ temporarily highlight in visited source lines."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist))
-
-;; This is a copy of find-tag-default from etags.el.
-;;;###autoload
-(defun grep-tag-default ()
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (when (or (re-search-backward "\\sw\\|\\s_"
-				  (save-excursion (beginning-of-line) (point))
-				  t)
-	      (re-search-forward "\\(\\sw\\|\\s_\\)+"
-				 (save-excursion (end-of-line) (point))
-				 t))
-      (goto-char (match-end 0))
-      (buffer-substring (point)
-			(progn (forward-sexp -1)
-			       (while (looking-at "\\s'")
-				 (forward-char 1))
-			       (point))))))
 
 ;;;###autoload
 (defun grep-find (command-args)
