@@ -1,5 +1,19 @@
 2001-01-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (STRING_BYTES) [GC_CHECK_STRING_BYTES]: Call
+	function string_bytes.
+	(GC_CHECK_STRING_BYTES): Moved here from alloc.c.
+
+	* alloc.c (CHECK_STRING_BYTES) [GC_CHECK_STRING_BYTES]: New macro.
+	(check_sblock, string_bytes) [GC_CHECK_STRING_BYTES]: New functions.
+	(check_string_bytes) [GC_CHECK_STRING_BYTES]: Add parameter ALL_P.
+	(allocate_string) [GC_CHECK_STRING_BYTES]: Always check strings in
+	the current sblock.
+	(mark_object) [GC_CHECK_STRING_BYTES]: Use CHECK_STRING_BYTES.
+	(gc_sweep) [GC_CHECK_STRING_BYTES]: Call check_string_bytes
+	after sweeping strings, and at the end.
+	(GC_CHECK_STRING_BYTES): Moved to lisp.h.
+
 	* alloc.c (Fgarbage_collect): Use a record_unwind_protect to
 	ensure that pop_message is called.
 
