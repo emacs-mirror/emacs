@@ -23,10 +23,6 @@
  *  is somewhat abused here) is loaded first!
  *
  */
-#ifdef emacs
-#include <config.h>
-#endif
-
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/file.h>
@@ -34,6 +30,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <a.out.h>
+
+/* Do this after the above #include's in case a configuration file wants
+   to define things for this file based on what <a.out.h> defines.  */
+#ifdef emacs
+#include <config.h>
+#endif
+
 
 /* NetBSD needs this bit, but SunOS does not have it.  */
 #ifndef MAP_FILE
