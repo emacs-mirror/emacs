@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.64 2003/09/24 11:55:45 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -927,17 +927,18 @@ is non-nil."
     ;; This is intentionally different from the algorithm that CVS uses
     ;; (which is based on textual comparison), because there can be problems
     ;; generating a time string that looks exactly like the one from CVS.
-    (let ((mtime (nth 5 (file-attributes file)))
-          (parsed-time
-           (parse-time-string (concat (match-string 2) " +0000"))))
-      (cond ((and (not (string-match "\\+" (match-string 2)))
-                  (car parsed-time)
-                  (equal mtime (apply 'encode-time parsed-time)))
-             (vc-file-setprop file 'vc-checkout-time mtime)
-             (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-            (t
-             (vc-file-setprop file 'vc-checkout-time 0)
-             (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
+    (let ((mtime (nth 5 (file-attributes file))))
+      (require 'parse-time)
+      (let ((parsed-time
+	     (parse-time-string (concat (match-string 2) " +0000"))))
+	(cond ((and (not (string-match "\\+" (match-string 2)))
+		    (car parsed-time)
+		    (equal mtime (apply 'encode-time parsed-time)))
+	       (vc-file-setprop file 'vc-checkout-time mtime)
+	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+	      (t
+	       (vc-file-setprop file 'vc-checkout-time 0)
+	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
 
 (provide 'vc-cvs)
 
