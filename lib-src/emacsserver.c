@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
-#include <signal.h>
+#include <sys/signal.h>
 #include <../src/config.h>
 #undef read
 #undef write
@@ -52,7 +52,6 @@ main ()
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/socket.h>
-#include <sys/signal.h>
 #include <sys/un.h>
 #include <stdio.h>
 #include <errno.h>
@@ -384,7 +383,6 @@ main (argc, argv)
 #else  /* This is the SYSV IPC section */
 
 #include <sys/types.h>
-#include <sys/signal.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <setjmp.h>
