@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!testlib.h(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -15,7 +15,7 @@
 #ifndef testlib_h
 #define testlib_h
 
-#include "std.h"
+#include "mpm.h"
 
 /*  == SUCCEED OR DIE ==
  *
