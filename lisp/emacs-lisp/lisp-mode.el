@@ -209,25 +209,25 @@ if that value is non-nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (prin1 (let ((stab (syntax-table)))
-	   (eval (unwind-protect
-		     (save-excursion
-		       (set-syntax-table emacs-lisp-mode-syntax-table)
-		       (forward-sexp -1)
-		       (read (current-buffer)))
-		   (set-syntax-table stab))))
-	 (if arg (current-buffer) t)))
+  (let ((standard-output (if arg (current-buffer) t)))
+    (prin1 (let ((stab (syntax-table)))
+	     (eval (unwind-protect
+		       (save-excursion
+			 (set-syntax-table emacs-lisp-mode-syntax-table)
+			 (forward-sexp -1)
+			 (read (current-buffer)))
+		     (set-syntax-table stab)))))))
 
 (defun eval-defun (arg)
   "Evaluate defun that point is in or before.
 Print value in minibuffer.
 With argument, insert value in current buffer after the defun."
   (interactive "P")
-  (prin1 (eval (save-excursion
-		 (end-of-defun)
-		 (beginning-of-defun)
-		 (read (current-buffer))))
-	 (if arg (current-buffer) t)))
+  (let ((standard-output (if arg (current-buffer) t)))
+    (prin1 (eval (save-excursion
+		   (end-of-defun)
+		   (beginning-of-defun)
+		   (read (current-buffer)))))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
