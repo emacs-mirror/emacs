@@ -265,7 +265,6 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
   Lisp_Object fun;
-  Lisp_Object funcar;
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
