@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,10 +123,11 @@ struct window
     Lisp_Object last_modified;
     /* Value of point at that time */
     Lisp_Object last_point;
-    /* Pointer to this window's vertical scrollbar, tagged as an
-       integer.  If this window is newly created and we haven't
-       displayed a scrollbar in it yet, or if the frame doesn't have
-       any scrollbars, this is nil.  */
+    /* This window's vertical scrollbar.  This field is only for use
+       by the window-system-dependent code which implements the
+       scrollbars; it can store anything it likes here.  If this
+       window is newly created and we haven't displayed a scrollbar in
+       it yet, or if the frame doesn't have any scrollbars, this is nil.  */
     Lisp_Object vertical_scrollbar;
 
 /* The rest are currently not used or only half used */

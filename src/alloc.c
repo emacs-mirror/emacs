@@ -1,11 +1,11 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1497,6 +1497,8 @@ mark_object (objptr)
 	mark_object (&ptr->selected_window);
 	mark_object (&ptr->minibuffer_window);
 	mark_object (&ptr->param_alist);
+	mark_object (&ptr->scrollbars);
+	mark_object (&ptr->condemned_scrollbars);
       }
       break;
 #endif /* not MULTI_FRAME */

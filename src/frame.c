@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1989, 1992 Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -160,8 +160,9 @@ make_frame (mini_p)
   f->explicit_name = 0;
   f->can_have_scrollbars = 0;
   f->has_vertical_scrollbars = 0;
-
   f->param_alist = Qnil;
+  f->scrollbars = Qnil;
+  f->condemned_scrollbars = Qnil;
 
   root_window = make_window ();
   if (mini_p)
