@@ -1929,7 +1929,7 @@ bool-vector.  IDX starts at 0.  */)
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt);
+      CHECK_CHARACTER (newelt);
 
       nbytes = SBYTES (array);
 
@@ -1966,7 +1966,8 @@ bool-vector.  IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
-      if (XINT (newelt) < 0 || ASCII_CHAR_P (XINT (newelt)))
+      if (XINT (newelt) < 0 || ASCII_CHAR_P (XINT (newelt))
+	  || CHAR_BYTE8_P (XINT (newelt)))
 	SSET (array, idxval, XINT (newelt));
       else
 	{
