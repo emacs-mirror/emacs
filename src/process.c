@@ -3666,6 +3666,7 @@ The value takes effect when `start-process' is called.");
 #include "lisp.h"
 #include "systime.h"
 #include "termopts.h"
+#include "sysselect.h"
 
 extern int frame_garbaged;
 
