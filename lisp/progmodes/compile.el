@@ -262,6 +262,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; Perl -w:
     ;; syntax error at automake line 922, near "':'"
     (".* at \\([^ ]+\\) line \\([0-9]+\\)," 1 2)
+
+    ;; Oracle pro*c:
+    ;; Semantic error at line 528, column 5, file erosacqdb.pc:
+    ("Semantic error at line \\([0-9]+\\), column \\([0-9]+\\), file \\(.*\\):"
+     3 1 2)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
