@@ -620,8 +620,12 @@ to an optional list of FLAGS."
 		 (vc-resynch-buffer file t (not (buffer-modified-p buffer)))))
 	(error "%s needs update" (buffer-name))))
 
-     ;; if there is no lock on the file, assert one and get it
-     ((not (setq owner (vc-locking-user file)))
+     ;; If there is no lock on the file, assert one and get it.
+     ;; (With implicit checkout, make sure not to lose unsaved changes.)
+     ((progn (and (eq (vc-checkout-model file) 'implicit)
+                  (buffer-modified-p buffer)
+                  (vc-buffer-sync))
+             (not (setq owner (vc-locking-user file))))
       (if (and vc-checkout-carefully
 	       (not (vc-workfile-unchanged-p file t)))
 	  (if (save-window-excursion
