@@ -56,26 +56,41 @@ inherit all the commands defined in this map.")
   (define-key text-mode-map "\eS" 'center-paragraph))
 
 
-;(defun non-saved-text-mode ()
-;  "Like text-mode, but delete auto save file when file is saved for real."
-;  (text-mode)
-;  (make-local-variable 'delete-auto-save-files)
-;  (setq delete-auto-save-files t))
-
 (defun text-mode ()
-  "Major mode for editing text intended for humans to read.
-Special commands:
+  "Major mode for editing text written for humans to read.
+In this mode, paragraphs are delimited only by blank lines.
+You can thus get the full benefit of adaptive filling
+ (see the variable `adaptive-fill-mode').
 \\{text-mode-map}
-Turning on Text mode calls the value of the variable `text-mode-hook',
-if that value is non-nil."
+Turning on Text mode runs the normal hook `text-mode-hook'."
   (interactive)
   (kill-all-local-variables)
   (use-local-map text-mode-map)
-  (setq mode-name "Text")
-  (setq major-mode 'text-mode)
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table text-mode-syntax-table)
+  (make-local-variable 'paragraph-start)
+  (setq paragraph-start (concat "$\\|" page-delimiter))
+  (make-local-variable 'paragraph-separate)
+  (setq paragraph-separate paragraph-start)
+  (setq mode-name "Text")
+  (setq major-mode 'text-mode)
   (run-hooks 'text-mode-hook))
+
+(defun spaced-text-mode ()
+  "Major mode for editing text, with leading spaces starting a paragraph.
+In this mode, you do not need blank lines between paragraphs
+when the first line of the following paragraph starts with whitespace.
+Special commands:
+\\{text-mode-map}
+Turning on Spaced Text mode runs the normal hook `spaced-text-mode-hook'."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map text-mode-map)
+  (setq mode-name "Spaced Text")
+  (setq major-mode 'spaced-text-mode)
+  (setq local-abbrev-table text-mode-abbrev-table)
+  (set-syntax-table text-mode-syntax-table)
+  (run-hooks 'text-mode-hook 'spaced-text-mode-hook))
 
 (defvar indented-text-mode-map ()
   "Keymap for Indented Text mode.
@@ -88,28 +103,17 @@ All the commands defined in Text mode are inherited unless overridden.")
   (let ((newmap (make-sparse-keymap)))
     (define-key newmap "\t" 'indent-relative)
     (setq indented-text-mode-map (nconc newmap text-mode-map))))
-
+      
 (defun indented-text-mode ()
-  "Major mode for editing text with indented paragraphs.
-In this mode, paragraphs are delimited only by blank lines.
-You can thus get the benefit of adaptive filling
- (see the variable `adaptive-fill-mode').
-\\{indented-text-mode-map}
-Turning on `indented-text-mode' calls the value of the variable
-`text-mode-hook', if that value is non-nil."
+  "Major mode for editing text which is often indented.
+This is like Text mode except that TAB runs `indent-relative'.
+\\{text-mode-map}
+Turning on Indented Text mode runs the normal hook `indented-text-mode-hook'."
   (interactive)
-  (kill-all-local-variables)
-  (use-local-map text-mode-map)
-  (define-abbrev-table 'text-mode-abbrev-table ())
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
+  (text-mode)
+  (use-local-map indented-text-mode-map)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'indent-relative-maybe)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (use-local-map indented-text-mode-map)
   (setq mode-name "Indented Text")
   (setq major-mode 'indented-text-mode)
   (run-hooks 'text-mode-hook 'indented-text-mode-hook))
