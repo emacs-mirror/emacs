@@ -738,14 +738,19 @@ Do not specify them in other calls."
 		  (setq done t))))))))
     filename))
 
-(defun file-chase-links (filename)
+(defun file-chase-links (filename &optional limit)
   "Chase links in FILENAME until a name that is not a link.
-Does not examine containing directories for links,
-unlike `file-truename'."
-  (let (tem (count 100) (newname filename))
-    (while (setq tem (file-symlink-p newname))
+Unlike `file-truename', this does not check whether a parent
+directory name is a symbolic link.
+If the optional argument LIMIT is a number,
+it means chase no more than that many links and then stop."
+  (let (tem (newname filename)
+	    (count 0)
+	    (max (max limit 100)))
+    (while (and (or (null limit) (< count limit))
+		(setq tem (file-symlink-p newname)))
       (save-match-data
-	(if (= count 0)
+	(if (= count max)
 	    (error "Apparent cycle of symbolic links for %s" filename))
 	;; In the context of a link, `//' doesn't mean what Emacs thinks.
 	(while (string-match "//+" tem)
