@@ -776,20 +776,22 @@ current_minor_maps (modeptr, mapptr)
 	      {
 		BLOCK_INPUT;
 		cmm_size *= 2;
-		newmodes = (Lisp_Object *)
-		  realloc (cmm_modes, cmm_size * sizeof (Lisp_Object));
-		newmaps  = (Lisp_Object *)
-		  realloc (cmm_maps,  cmm_size * sizeof (Lisp_Object));
+		newmodes
+		  = (Lisp_Object *) realloc (cmm_modes,
+					     cmm_size * sizeof (Lisp_Object));
+		newmaps
+		  = (Lisp_Object *) realloc (cmm_maps,
+					     cmm_size * sizeof (Lisp_Object));
 		UNBLOCK_INPUT;
 	      }
 	    else
 	      {
 		BLOCK_INPUT;
 		cmm_size = 30;
-		newmodes = (Lisp_Object *)
-		  malloc (cmm_size * sizeof (Lisp_Object));
-		newmaps  = (Lisp_Object *)
-		  malloc (cmm_size * sizeof (Lisp_Object));
+		newmodes
+		  = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
+		newmaps
+		  = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
 		UNBLOCK_INPUT;
 	      }
 
