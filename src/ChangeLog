@@ -1,3 +1,7 @@
+2001-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (current_column_1): Fix handling of scan_bytes for mb chars.
+
 2001-11-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (note_mouse_highlight): Fix type of variable `ignore'.

@@ -1,3 +1,15 @@
+2001-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* net/net-utils.el (network-connection-service-abbrev-alist):
+	New variable.
+
+	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): 
+	Advance to start of 3rd sexp by moving fwd and backing over it.
+	At first three elements, act like defun.
+
+	* delsel.el (delete-selection-pre-hook): Handle and resignal
+	file-supersession errors to interact properly with userlock.el.
+
 2001-11-18  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/fortran.el (fortran-mode-syntax-table): Specify
