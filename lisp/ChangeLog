@@ -1,3 +1,17 @@
+2003-02-14  Dave Love  <fx@gnu.org>
+
+	* international/code-pages.el: Undo `Trailing whitepace deleted.'
+	damage.
+	(cp1125, mik): Nullify mime-charset.
+
+	* language/cyrillic.el ("Cyrillic-KOI8"): Fix input-method.
+	("Russian"): New.
+	("Bulgarian"): Add tutorial.
+
+	* international/mule-cmds.el (locale-language-names): Use Italian,
+	Russian, Turkish, Chinese-EUC-TW.
+	(set-locale-environment): Set ps-paper-type.
+
 2003-02-14  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
 
 	* time.el (display-time-string-forms): Add face property to mail

@@ -88,10 +88,8 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** New language environments "malayalam" and "tamil".
-
-** New input methods "malayalam-itrans", "tamil-itrans",
-"malayalam-inscript", and "tamil-inscript".
+** The default for the paper size (variable ps-paper-type) is taken
+from the locale.
 
 ** Init file changes
 
@@ -141,7 +139,7 @@ to alter the file.)
 revisits the current file using a coding system that you specify.
 
 ---
-** `ps-print' can now print Unicode characters.
+** `ps-print' can now print characters from the mule-unicode charsets.
 
 Printing text with characters from the mule-unicode-* sets works with
 ps-print, provided that you have installed the appropriate BDF fonts.
@@ -173,19 +171,23 @@ faces.
 
 ** New language environments: French, Ukrainian, Windows-1251, Tajik,
 Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
-Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian.
+Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian,
+Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW.  (Set up
+automatically according to the locale.)
 
 ** Indian support has been updated.
 The in-is13194 coding system is now Unicode-based.  CDAC fonts are
 assumed.  There is a framework for supporting various
-Indian scripts, but currently still only Devanagari is supported.
+Indian scripts, but currently only Devanagari, Malayalam and Tamil are
+supported.
 
 ---
 ** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
 ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
 vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
 latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
-bulgarian-phonetic, dutch, slovenian, croatian.
+bulgarian-phonetic, dutch, slovenian, croatian, malayalam-inscript,
+tamil-inscript.
 
 ---
 ** A new coding system `euc-tw' has been added for traditional Chinese
@@ -3441,7 +3443,7 @@ added.
 *** An "alignment error" bug was fixed when a manual spelling
 correction is made and re-checked.
 
-*** An Italian, Portuguese, and Slovak dictionary definition has been added.
+*** Italian, Portuguese, and Slovak dictionary definitions have been added.
 
 *** Region skipping performance has been vastly improved in some
 cases.

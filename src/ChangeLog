@@ -1,3 +1,7 @@
+2003-02-14  Dave Love  <fx@gnu.org>
+
+	* fns.c (Flanginfo): Doc fix.
+
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* lread.c (read_escape): Interpret \s as a SPACE character, except
