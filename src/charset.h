@@ -376,19 +376,19 @@ extern Lisp_Object Vcharset_symbol_table;
 #define CHARSET_SYMBOL(charset) \
   XVECTOR (Vcharset_symbol_table)->contents[charset]
 
-/* 1 if CHARSET is valid, else 0.  */
+/* 1 if CHARSET is in valid value range, else 0.  */
 #define CHARSET_VALID_P(charset)					 \
   ((charset) == 0							 \
    || ((charset) >= 0x80 && (charset) <= MAX_CHARSET_OFFICIAL_DIMENSION2) \
    || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1 && (charset) <= MAX_CHARSET))
 
-/* 1 if CHARSET is already defined, else 0.  */
+/* 1 if CHARSET is already defined (and not CHARSET_COMPOSITION), else 0.  */
 #define CHARSET_DEFINED_P(charset)			\
   (((charset) >= 0) && ((charset) <= MAX_CHARSET)	\
    && !NILP (CHARSET_TABLE_ENTRY (charset)))
 
 /* Since the information CHARSET-BYTES and CHARSET-WIDTH of
-   Vcharset_table can be retrieved only from the first byte of
+   Vcharset_table can be retrieved only the first byte of
    multi-byte form (an ASCII code or a base leading-code), we provide
    here tables to be used by macros BYTES_BY_CHAR_HEAD and
    WIDTH_BY_CHAR_HEAD for faster information retrieval.  */
@@ -451,12 +451,16 @@ extern int width_by_char_head[256];
    position-codes are C1 and C2.  DIMENSION1 character ignores C2.  */
 #define MAKE_NON_ASCII_CHAR(charset, c1, c2)				\
   ((charset) == CHARSET_COMPOSITION					\
-   ? MAKE_COMPOSITE_CHAR (((c1) << 7) + (c2))				\
+   ? ((c2) < 0								\
+      ? (((charset) - 0x70) << 7) + (c1)				\
+      : MAKE_COMPOSITE_CHAR (((c1) << 7) + (c2)))			\
    : (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1	\
-      ? (((charset) - 0x70) << 7) | (c1)				\
+      ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))		\
       : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2			\
-	 ? (((charset) - 0x8F) << 14) | ((c1) << 7) | (c2)		\
-	 : (((charset) - 0xE0) << 14) | ((c1) << 7) | (c2))))
+	 ? ((((charset) - 0x8F) << 14)					\
+	    | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))	\
+	 : ((((charset) - 0xE0) << 14)					\
+	    | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2))))))
 
 /* Return a composite character of which CMPCHAR-ID is ID.  */
 #define MAKE_COMPOSITE_CHAR(id) (MIN_CHAR_COMPOSITION + (id))
@@ -466,10 +470,10 @@ extern int width_by_char_head[256];
 
 /* Return a character of which charset is CHARSET and position-codes
    are C1 and C2.  DIMENSION1 character ignores C2.  */
-#define MAKE_CHAR(charset, c1, c2)		 	\
-  ((charset) == CHARSET_ASCII			 	\
-   ? (c1)					 	\
-   : MAKE_NON_ASCII_CHAR ((charset), (c1) & 0x7F, (c2) & 0x7F))
+#define MAKE_CHAR(charset, c1, c2)	\
+  ((charset) == CHARSET_ASCII		\
+   ? (c1)				\
+   : MAKE_NON_ASCII_CHAR ((charset), (c1), (c2)))
 
 /* If GENERICP is nonzero, return nonzero iff C is a valid normal or
    generic character.  If GENERICP is zero, return nonzero iff C is a
@@ -484,22 +488,43 @@ extern int width_by_char_head[256];
 
 #define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
-/* Check if the character C is valid as a multibyte character.  */
+/* Parse string STR of length LENGTH (>= 2) and check if a composite
+   character is at STR.  Actually, the whole multibyte sequence
+   starting with LEADING_CODE_COMPOSITION is treated as a single
+   multibyte character.  So, here, we just set BYTES to LENGTH.  */
 
-#define VALID_MULTIBYTE_CHAR_P(c)					  \
-  ((c) < MIN_CHAR_OFFICIAL_DIMENSION2					  \
-   ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD2 (c)	  \
-						   + 0xF0])		  \
-      && CHAR_FIELD3 (c) >= 32)						  \
-   : ((c) < MIN_CHAR_PRIVATE_DIMENSION2					  \
-      ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD1 (c)	  \
-						      + 0x10F])		  \
-	 && CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)		  \
-      : ((c) < MIN_CHAR_COMPOSITION					  \
-	 ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD1 (c) \
-							 + 0x160])	  \
-	    && CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)		  \
-	 : (c) < MIN_CHAR_COMPOSITION + n_cmpchars)))
+#define PARSE_COMPOSITE_SEQ(str, length, bytes)	\
+  do {						\
+    (bytes) = (length);				\
+  } while (0)
+
+
+/* Parse string STR of length LENGTH (>= 2) and check if a
+   non-composite multibyte character is at STR.  Set BYTES to the
+   actual sequence length.  */
+
+#define PARSE_CHARACTER_SEQ(str, length, bytes)	\
+  do {						\
+    (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]);	\
+    if ((bytes) > (length))			\
+      (bytes) = (length);			\
+  } while (0)
+
+/* Parse string STR of length LENGTH and check if a multibyte
+   characters is at STR.  If so, set BYTES for that character, else
+   set BYTES to 1.  */
+
+#define PARSE_MULTIBYTE_SEQ(str, length, bytes)			\
+  do {								\
+    int i = 1;							\
+    while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
+    if (i == 1)							\
+      (bytes) = 1;						\
+    else if ((str)[0] == LEADING_CODE_COMPOSITION)		\
+      PARSE_COMPOSITE_SEQ (str, i, bytes);			\
+    else							\
+      PARSE_CHARACTER_SEQ (str, i, bytes);			\
+  } while (0)
 
 /* The charset of non-ASCII character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
@@ -521,12 +546,19 @@ extern int width_by_char_head[256];
 
 /* The charset of character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
-   We store -1 in C2 if the character is just 2 bytes.  */
+   We store -1 in C2 if the dimension of the charset 1.  */
 
 #define SPLIT_CHAR(c, charset, c1, c2)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
    ? charset = CHARSET_ASCII, c1 = (c), c2 = -1	 	\
    : SPLIT_NON_ASCII_CHAR (c, charset, c1, c2))
+
+/* Return 1 iff character C has valid printable glyph.  */
+#define CHAR_PRINTABLE_P(c)		\
+  (SINGLE_BYTE_CHAR_P (c)		\
+   || ((c) >= MIN_CHAR_COMPOSITION	\
+       ? (c) < MAX_CHAR			\
+       : char_printable_p (c)))
 
 /* The charset of the character at STR is stored in CHARSET, and the
    position-codes are stored in C1 and C2.
@@ -580,23 +612,20 @@ extern int iso_charset_table[2][2][128];
 #define STRING_CHAR(str, len)				\
   (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
    ? (unsigned char) *(str)				\
-   : string_to_non_ascii_char (str, len, 0, 0))
+   : string_to_non_ascii_char (str, len, 0))
 
-/* This is like STRING_CHAR but the third arg ACTUAL_LEN is set to
-   the length of the multi-byte form.  Just to know the length, use
+/* This is like STRING_CHAR but the third arg ACTUAL_LEN is set to the
+   length of the multi-byte form.  Just to know the length, use
    MULTIBYTE_FORM_LENGTH.  */
 
-#define STRING_CHAR_AND_LENGTH(str, len, actual_len)	    	\
-  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1		\
-   ? (actual_len = 1), (unsigned char) *(str)		    	\
-   : string_to_non_ascii_char (str, len, &actual_len, 0))
+#define STRING_CHAR_AND_LENGTH(str, len, actual_len)	\
+  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
+   ? ((actual_len) = 1), (unsigned char) *(str)		\
+   : string_to_non_ascii_char (str, len, &(actual_len)))
 
 /* This is like STRING_CHAR_AND_LENGTH but the third arg ACTUAL_LEN
    does not include garbage bytes following the multibyte character.  */
-#define STRING_CHAR_AND_CHAR_LENGTH(str, len, actual_len)    	\
-  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1		\
-   ? (actual_len = 1), (unsigned char) *(str)		    	\
-   : string_to_non_ascii_char (str, len, &actual_len, 1))
+#define STRING_CHAR_AND_CHAR_LENGTH STRING_CHAR_AND_LENGTH
 
 /* Fetch the "next" multibyte character from Lisp string STRING
    at byte position BYTEIDX, character position CHARIDX.
@@ -654,36 +683,45 @@ else
 
 #ifdef emacs
 
-/* Increase the buffer point POS of the current buffer to the next
-   character boundary.  This macro relies on the fact that *GPT_ADDR
-   and *Z_ADDR are always accessible and the values are '\0'.  No
-   range checking of POS.  */
-#define INC_POS(pos)				\
-  do {						\
-    unsigned char *p = BYTE_POS_ADDR (pos);	\
-    pos++;					\
-    if (BASE_LEADING_CODE_P (*p++))		\
-      while (!CHAR_HEAD_P (*p)) p++, pos++;	\
+/* Increase the buffer byte position POS_BYTE of the current buffer to
+   the next character boundary.  This macro relies on the fact that
+   *GPT_ADDR and *Z_ADDR are always accessible and the values are
+   '\0'.  No range checking of POS.  */
+#define INC_POS(pos_byte)				\
+  do {							\
+    unsigned char *p = BYTE_POS_ADDR (pos_byte);	\
+    if (BASE_LEADING_CODE_P (*p))			\
+      {							\
+	int len, bytes;					\
+	len = Z_BYTE - pos_byte;			\
+	PARSE_MULTIBYTE_SEQ (p, len, bytes);		\
+	pos_byte += bytes;				\
+      }							\
+    else						\
+      pos_byte++;					\
   } while (0)
 
-/* Decrease the buffer point POS of the current buffer to the previous
-   character boundary.  No range checking of POS.  */
-#define DEC_POS(pos)						\
-  do {								\
-    unsigned char *p, *p_min;					\
-    								\
-    pos--;							\
-    if (pos < GPT_BYTE)						\
-      p = BEG_ADDR + pos - 1, p_min = BEG_ADDR;			\
-    else							\
-      p = BEG_ADDR + GAP_SIZE + pos - 1, p_min = GAP_END_ADDR;	\
-    if (p > p_min && !CHAR_HEAD_P (*p))				\
-      {								\
-	int pos_saved = pos--;					\
-	p--;							\
-	while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;	\
-	if (!BASE_LEADING_CODE_P (*p)) pos = pos_saved;		\
-      }								\
+/* Decrease the buffer byte position POS_BYTE of the current buffer to
+   the previous character boundary.  No range checking of POS.  */
+#define DEC_POS(pos_byte)						\
+  do {									\
+    unsigned char *p, *p_min;						\
+    									\
+    pos_byte--;								\
+    if (pos_byte < GPT_BYTE)						\
+      p = BEG_ADDR + pos_byte - 1, p_min = BEG_ADDR;			\
+    else								\
+      p = BEG_ADDR + GAP_SIZE + pos_byte - 1, p_min = GAP_END_ADDR;	\
+    if (p > p_min && !CHAR_HEAD_P (*p))					\
+      {									\
+	unsigned char *pend = p--;					\
+	int len, bytes;							\
+	while (p > p_min && !CHAR_HEAD_P (*p)) p--;			\
+	len = pend + 1 - p;						\
+	PARSE_MULTIBYTE_SEQ (p, len, bytes);				\
+	if (bytes == len)						\
+	  pos_byte -= len - 1;						\
+      }									\
   } while (0)
 
 /* Increment both CHARPOS and BYTEPOS, each in the appropriate way.  */
@@ -712,41 +750,50 @@ do								\
   }								\
 while (0)
 
-/* Increase the buffer point POS of the current buffer to the next
-   character boundary.  This macro relies on the fact that *GPT_ADDR
-   and *Z_ADDR are always accessible and the values are '\0'.  No
-   range checking of POS.  */
-#define BUF_INC_POS(buf, pos)				\
-  do {							\
-    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos);	\
-    pos++;						\
-    if (BASE_LEADING_CODE_P (*p++))			\
-      while (!CHAR_HEAD_P (*p)) p++, pos++;		\
+/* Increase the buffer byte position POS_BYTE of the current buffer to
+   the next character boundary.  This macro relies on the fact that
+   *GPT_ADDR and *Z_ADDR are always accessible and the values are
+   '\0'.  No range checking of POS_BYTE.  */
+#define BUF_INC_POS(buf, pos_byte)				\
+  do {								\
+    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos_byte);	\
+    if (BASE_LEADING_CODE_P (*p))				\
+      {								\
+	int len, bytes;						\
+	len = BUF_Z_BYTE (buf) - pos_byte;			\
+	PARSE_MULTIBYTE_SEQ (p, len, bytes);			\
+	pos_byte += bytes;					\
+      }								\
+    else							\
+      pos_byte++;						\
   } while (0)
 
-/* Decrease the buffer point POS of the current buffer to the previous
-   character boundary.  No range checking of POS.  */
-#define BUF_DEC_POS(buf, pos)				      	\
-  do {							      	\
-    unsigned char *p, *p_min;				      	\
-    int pos_saved = --pos;				      	\
-    if (pos < BUF_GPT_BYTE (buf))			      	\
-      {								\
-	p = BUF_BEG_ADDR (buf) + pos - 1;			\
-	p_min = BUF_BEG_ADDR (buf);				\
-      }								\
-    else						      	\
-      {								\
-	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos - 1;	\
-	p_min = BUF_GAP_END_ADDR (buf);				\
-      }								\
-    if (p > p_min && !CHAR_HEAD_P (*p))				\
-      {								\
-	int pos_saved = pos--;					\
-	p--;							\
-	while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;	\
-	if (!BASE_LEADING_CODE_P (*p)) pos = pos_saved;		\
-      }								\
+/* Decrease the buffer byte position POS_BYTE of the current buffer to
+   the previous character boundary.  No range checking of POS_BYTE.  */
+#define BUF_DEC_POS(buf, pos_byte)					\
+  do {									\
+    unsigned char *p, *p_min;						\
+    pos_byte--;								\
+    if (pos_byte < BUF_GPT_BYTE (buf))					\
+      {									\
+	p = BUF_BEG_ADDR (buf) + pos_byte - 1;				\
+	p_min = BUF_BEG_ADDR (buf);					\
+      }									\
+    else								\
+      {									\
+	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - 1;	\
+	p_min = BUF_GAP_END_ADDR (buf);					\
+      }									\
+    if (p > p_min && !CHAR_HEAD_P (*p))					\
+      {									\
+	unsigned char *pend = p--;					\
+	int len, bytes;							\
+	while (p > p_min && !CHAR_HEAD_P (*p)) p--;			\
+	len = pend + 1 - p;						\
+	PARSE_MULTIBYTE_SEQ (p, len, bytes);				\
+	if (bytes == len)						\
+	  pos_byte -= len - 1;						\
+      }									\
   } while (0)
 
 #endif /* emacs */
@@ -806,9 +853,9 @@ extern void invalid_character P_ ((int));
 extern int translate_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_non_ascii_string P_ ((const unsigned char *, int, int *,
 				       unsigned char *, unsigned char *));
-extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *,
-					 int));
+extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *));
 extern int non_ascii_char_to_string P_ ((int, unsigned char *, unsigned char **));
+extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
 extern int str_cmpchar_id P_ ((const unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
