@@ -28,3 +28,13 @@
 #define HAVE_TERMIOS
 #define NO_TERMIO
 #endif
+
+/* According to ngorelic@speclab.cr.usgs.gov,
+   references to the X11R4 directoriess in these variables
+   (inherited from hpux8.h)
+   cause the wrong libraries to be found,
+   and the options to specify the X11R5 directories are unnecessary
+   since the R5 files are found without them.  */
+#undef LIB_X11_LIB
+#undef C_SWITCH_X_SYSTEM
+#undef LD_SWITCH_X_DEFAULT
