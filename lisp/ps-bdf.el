@@ -39,7 +39,7 @@
       (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
-The default value is '("/usr/local/share/emacs/fonts/bdf").")
+The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;; MS-DOS users like to move the binary around after it's built, but
 ;; the value above is computed at loadup time.
