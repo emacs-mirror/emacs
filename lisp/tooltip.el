@@ -330,7 +330,7 @@ ACTIVATEP non-nil means activate mouse motion events."
 ;;; Displaying tips
 
 (defun tooltip-set-param (alist key value)
-  "Change the value of KEY in alist ALIAS to VALUE.
+  "Change the value of KEY in alist ALIST to VALUE.
 If there's no association for KEY in ALIST, add one, otherwise 
 change the existing association.  Value is the resulting alist."
   (let ((param (assq key alist)))

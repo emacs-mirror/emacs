@@ -7,6 +7,7 @@
 	string.
 	(tooltip-show): Mention in the doc string the `top' and `left'
 	parameters in tooltip-frame-parameters, and x-max-tooltip-size.
+	(tooltip-set-param): Doc fix.
 
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
