@@ -1143,11 +1143,11 @@ Copied from `icomplete-exhibit' with two changes:
 	  (iswitchb-set-common-completion)
 
 	  ;; Insert the match-status information:
-	  (insert-string (iswitchb-completions 
-			  contents
-			  minibuffer-completion-table
-			  minibuffer-completion-predicate
-			  (not minibuffer-completion-confirm)))))))
+	  (insert (iswitchb-completions 
+		   contents
+		   minibuffer-completion-table
+		   minibuffer-completion-predicate
+		   (not minibuffer-completion-confirm)))))))
 
 (defun iswitchb-completions (name candidates predicate require-match)
   "Return the string that is displayed after the user's text.
