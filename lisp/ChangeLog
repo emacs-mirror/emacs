@@ -1,3 +1,17 @@
+2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gud-watch): Load tooltip, if necessary.
+	(gdb-var-create-handler): Force speedbar-update-flag to be non-nil.
+	(gdb-var-delete): Make interactive (really).
+	(gdb-edit-value): Make non-interactive.
+
+	* progmodes/gud.el (gud-install-speedbar-variables): Bind
+	gdb-var-delete to "D".
+	(gud-speedbar-menu-items): Add gdb-var-delete and, indirectly,
+	gdb-edit-value.
+	(gud-speedbar-buttons): Remove gdb-var-delete from tag-line.
+	(gud-gdb-marker-filter): Add comment for annotations.
+
 2004-02-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (generate-calendar)

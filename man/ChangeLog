@@ -1,3 +1,7 @@
+2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (Watch Expressions):  Update.
+
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
 	* cmdargs.texi (Action Arguments): Add alias --find-file.  Add
