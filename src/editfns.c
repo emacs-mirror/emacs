@@ -164,7 +164,8 @@ init_editfns ()
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
-       doc: /* Convert arg CHARACTER to a string containing that character.  */)
+       doc: /* Convert arg CHAR to a string containing that character.
+usage: (char-to-string CHAR)  */)
      (character)
      Lisp_Object character;
 {
