@@ -94,12 +94,13 @@ struct backtrace
     char evalargs;
   };
 
-#ifdef MULTI_PERDISPLAY
-PERDISPLAY *current_perdisplay;
-PERDISPLAY *all_perdisplays;
-int display_locked;
+#ifdef MULTI_KBOARD
+KBOARD *initial_kboard;
+KBOARD *current_kboard;
+KBOARD *all_kboards;
+int kboard_locked;
 #else
-PERDISPLAY the_only_perdisplay;
+KBOARD the_only_kboard;
 #endif
 
 /* Non-nil disable property on a command means
@@ -516,11 +517,11 @@ echo_prompt (str)
 
   if (len > ECHOBUFSIZE - 4)
     len = ECHOBUFSIZE - 4;
-  bcopy (str, current_perdisplay->echobuf, len);
-  current_perdisplay->echoptr = current_perdisplay->echobuf + len;
-  *current_perdisplay->echoptr = '\0';
+  bcopy (str, current_kboard->echobuf, len);
+  current_kboard->echoptr = current_kboard->echobuf + len;
+  *current_kboard->echoptr = '\0';
 
-  current_perdisplay->echo_after_prompt = len;
+  current_kboard->echo_after_prompt = len;
 
   echo ();
 }
@@ -534,11 +535,11 @@ echo_char (c)
 {
   extern char *push_key_description ();
 
-  if (current_perdisplay->immediate_echo)
+  if (current_kboard->immediate_echo)
     {
-      char *ptr = current_perdisplay->echoptr;
+      char *ptr = current_kboard->echoptr;
 
-      if (ptr != current_perdisplay->echobuf)
+      if (ptr != current_kboard->echobuf)
 	*ptr++ = ' ';
 
       /* If someone has passed us a composite event, use its head symbol.  */
@@ -546,7 +547,7 @@ echo_char (c)
 
       if (INTEGERP (c))
 	{
-	  if (ptr - current_perdisplay->echobuf > ECHOBUFSIZE - 6)
+	  if (ptr - current_kboard->echobuf > ECHOBUFSIZE - 6)
 	    return;
 
 	  ptr = push_key_description (XINT (c), ptr);
@@ -554,14 +555,13 @@ echo_char (c)
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
-	  if (((ptr - current_perdisplay->echobuf) + name->size + 4)
-	      > ECHOBUFSIZE)
+	  if ((ptr - current_kboard->echobuf) + name->size + 4 > ECHOBUFSIZE)
 	    return;
 	  bcopy (name->data, ptr, name->size);
 	  ptr += name->size;
 	}
 
-      if (current_perdisplay->echoptr == current_perdisplay->echobuf
+      if (current_kboard->echoptr == current_kboard->echobuf
 	  && EQ (c, Vhelp_char))
 	{
 	  strcpy (ptr, " (Type ? for further options)");
@@ -569,7 +569,7 @@ echo_char (c)
 	}
 
       *ptr = 0;
-      current_perdisplay->echoptr = ptr;
+      current_kboard->echoptr = ptr;
 
       echo ();
     }
@@ -580,21 +580,21 @@ echo_char (c)
 
 echo_dash ()
 {
-  if (!current_perdisplay->immediate_echo
-      && current_perdisplay->echoptr == current_perdisplay->echobuf)
+  if (!current_kboard->immediate_echo
+      && current_kboard->echoptr == current_kboard->echobuf)
     return;
   /* Do nothing if we just printed a prompt.  */
-  if (current_perdisplay->echo_after_prompt
-      == current_perdisplay->echoptr - current_perdisplay->echobuf)
+  if (current_kboard->echo_after_prompt
+      == current_kboard->echoptr - current_kboard->echobuf)
     return;
   /* Do nothing if not echoing at all.  */
-  if (current_perdisplay->echoptr == 0)
+  if (current_kboard->echoptr == 0)
     return;
 
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
-  current_perdisplay->echoptr[0] = '-';
-  current_perdisplay->echoptr[1] = 0;
+  current_kboard->echoptr[0] = '-';
+  current_kboard->echoptr[1] = 0;
 
   echo ();
 }
@@ -604,10 +604,10 @@ echo_dash ()
 
 echo ()
 {
-  if (!current_perdisplay->immediate_echo)
+  if (!current_kboard->immediate_echo)
     {
       int i;
-      current_perdisplay->immediate_echo = 1;
+      current_kboard->immediate_echo = 1;
 
       for (i = 0; i < this_command_key_count; i++)
 	{
@@ -621,7 +621,7 @@ echo ()
     }
 
   echoing = 1;
-  message1_nolog (current_perdisplay->echobuf);
+  message1_nolog (current_kboard->echobuf);
   echoing = 0;
 
   if (waiting_for_input && !NILP (Vquit_flag))
@@ -632,9 +632,9 @@ echo ()
 
 cancel_echoing ()
 {
-  current_perdisplay->immediate_echo = 0;
-  current_perdisplay->echoptr = current_perdisplay->echobuf;
-  current_perdisplay->echo_after_prompt = -1;
+  current_kboard->immediate_echo = 0;
+  current_kboard->echoptr = current_kboard->echobuf;
+  current_kboard->echo_after_prompt = -1;
 }
 
 /* Return the length of the current echo string.  */
@@ -642,7 +642,7 @@ cancel_echoing ()
 static int
 echo_length ()
 {
-  return current_perdisplay->echoptr - current_perdisplay->echobuf;
+  return current_kboard->echoptr - current_kboard->echobuf;
 }
 
 /* Truncate the current echo message to its first LEN chars.
@@ -653,8 +653,8 @@ static void
 echo_truncate (len)
      int len;
 {
-  current_perdisplay->echobuf[len] = '\0';
-  current_perdisplay->echoptr = current_perdisplay->echobuf + len;
+  current_kboard->echobuf[len] = '\0';
+  current_kboard->echoptr = current_kboard->echobuf + len;
   truncate_echo_area (len);
 }
 
@@ -751,18 +751,18 @@ recursive_edit_unwind (buffer)
   return Qnil;
 }
 
-#ifdef MULTI_PERDISPLAY
+#ifdef MULTI_KBOARD
 static void
-unlock_display ()
+unlock_kboard ()
 {
   if (CONSP (Vunread_command_events))
     {
-      current_perdisplay->kbd_queue
-	= nconc2 (Vunread_command_events, current_perdisplay->kbd_queue);
-      current_perdisplay->kbd_queue_has_data = 1;
+      current_kboard->kbd_queue
+	= nconc2 (Vunread_command_events, current_kboard->kbd_queue);
+      current_kboard->kbd_queue_has_data = 1;
     }
   Vunread_command_events = Qnil;
-  display_locked = 0;
+  kboard_locked = 0;
 }
 #endif
 
@@ -790,8 +790,8 @@ cmd_error (data)
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
-#ifdef MULTI_PERDISPLAY
-  unlock_display ();
+#ifdef MULTI_KBOARD
+  unlock_kboard ();
 #endif
 
   return make_number (0);
@@ -990,8 +990,8 @@ command_loop_1 ()
   int no_direct;
   int prev_modiff;
   struct buffer *prev_buffer;
-#ifdef MULTI_PERDISPLAY
-  int was_locked = display_locked;
+#ifdef MULTI_KBOARD
+  int was_locked = kboard_locked;
 #endif
 
   Vdeactivate_mark = Qnil;
@@ -1125,10 +1125,10 @@ command_loop_1 ()
       XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* If we're building a prefix argument, override minus and digits.  */
-      if (current_perdisplay->prefix_partial && i == 1 && NATNUMP (keybuf[0]))
+      if (current_kboard->prefix_partial && i == 1 && NATNUMP (keybuf[0]))
 	{
 	  if (XFASTINT (keybuf[0]) == '-'
-	      && NILP (current_perdisplay->prefix_value))
+	      && NILP (current_kboard->prefix_value))
 	    cmd = Qnegative_argument;
 	  else if (XFASTINT (keybuf[0]) >= '0' && XFASTINT (keybuf[0]) <= '9')
 	    cmd = Qdigit_argument;
@@ -1146,14 +1146,14 @@ command_loop_1 ()
 	{
 	  /* nil means key is undefined.  */
 	  bitch_at_user ();
-	  current_perdisplay->defining_kbd_macro = Qnil;
+	  current_kboard->defining_kbd_macro = Qnil;
 	  update_mode_lines = 1;
 	  clear_prefix_arg ();
 	}
       else
 	{
-	  current_prefix_partial = current_perdisplay->prefix_partial;
-	  if (current_perdisplay->prefix_partial)
+	  current_prefix_partial = current_kboard->prefix_partial;
+	  if (current_kboard->prefix_partial)
 	    finalize_prefix_arg ();
 
 	  if (NILP (Vprefix_arg) && ! no_direct)
@@ -1303,7 +1303,7 @@ command_loop_1 ()
 	 3) we want to leave this_command_key_count non-zero, so that
 	 read_char will realize that it is re-reading a character, and
 	 not echo it a second time.  */
-      if (NILP (Vprefix_arg) && !current_perdisplay->prefix_partial)
+      if (NILP (Vprefix_arg) && !current_kboard->prefix_partial)
 	{
 	  last_command = this_command;
 	  cancel_echoing ();
@@ -1324,13 +1324,13 @@ command_loop_1 ()
     finalize:
       /* Install chars successfully executed in kbd macro.  */
 
-      if (!NILP (current_perdisplay->defining_kbd_macro) && NILP (Vprefix_arg)
-	  && !current_perdisplay->prefix_partial)
+      if (!NILP (current_kboard->defining_kbd_macro) && NILP (Vprefix_arg)
+	  && !current_kboard->prefix_partial)
 	finalize_kbd_macro_chars ();
 
-#ifdef MULTI_PERDISPLAY
+#ifdef MULTI_KBOARD
       if (!was_locked)
-	unlock_display ();
+	unlock_kboard ();
 #endif
     }
 }
@@ -1517,8 +1517,8 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
-#ifdef MULTI_PERDISPLAY
-static jmp_buf wrong_display_jmpbuf;
+#ifdef MULTI_KBOARD
+static jmp_buf wrong_kboard_jmpbuf;
 #endif
 
 /* read a character from the keyboard; call the redisplay if needed */
@@ -1647,23 +1647,23 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (!NILP (Vinhibit_quit))
 	Vquit_flag = Qnil;
 
-#ifdef MULTI_PERDISPLAY
+#ifdef MULTI_KBOARD
       {
-	PERDISPLAY *perd = get_perdisplay (selected_frame);
-	if (perd != current_perdisplay)
+	KBOARD *kb = FRAME_KBOARD (selected_frame);
+	if (kb != current_kboard)
 	  {
-	    Lisp_Object *tailp = &perd->kbd_queue;
-	    /* We shouldn't get here if we were locked onto one display!  */
-	    if (display_locked)
+	    Lisp_Object *tailp = &kb->kbd_queue;
+	    /* We shouldn't get here if we were locked onto one kboard!  */
+	    if (kboard_locked)
 	      abort ();
 	    while (CONSP (*tailp))
 	      tailp = &XCONS (*tailp)->cdr;
 	    if (!NILP (*tailp))
 	      abort ();
 	    *tailp = Fcons (c, Qnil);
-	    perd->kbd_queue_has_data = 1;
-	    current_perdisplay = perd;
-	    longjmp (wrong_display_jmpbuf, 1);
+	    kb->kbd_queue_has_data = 1;
+	    current_kboard = kb;
+	    longjmp (wrong_kboard_jmpbuf, 1);
 	  }
       }
 #endif
@@ -1672,7 +1672,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
   if (echo_area_glyphs && *echo_area_glyphs
-      && echo_area_glyphs != current_perdisplay->echobuf)
+      && echo_area_glyphs != current_kboard->echobuf)
     cancel_echoing ();
   else
     /* If already echoing, continue.  */
@@ -1701,7 +1701,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
-  if (minibuf_level == 0 && !current_perdisplay->immediate_echo
+  if (minibuf_level == 0 && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
@@ -1795,20 +1795,20 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (NILP (c))
     {
-      /* Primary consideration goes to current_perdisplay's side queue.
+      /* Primary consideration goes to current_kboard's side queue.
 	 If that's empty, then we check the other side queues and throw
 	 if we find something there.  Finally, we read from the main queue,
 	 and if that gives us something we can't use yet, we put it on the
 	 appropriate side queue and try again.  */
-      if (current_perdisplay->kbd_queue_has_data)
+      if (current_kboard->kbd_queue_has_data)
 	{
-	  if (!CONSP (current_perdisplay->kbd_queue))
+	  if (!CONSP (current_kboard->kbd_queue))
 	    abort ();
-	  c = XCONS (current_perdisplay->kbd_queue)->car;
-	  current_perdisplay->kbd_queue
-	    = XCONS (current_perdisplay->kbd_queue)->cdr;
-	  if (NILP (current_perdisplay->kbd_queue))
-	    current_perdisplay->kbd_queue_has_data = 0;
+	  c = XCONS (current_kboard->kbd_queue)->car;
+	  current_kboard->kbd_queue
+	    = XCONS (current_kboard->kbd_queue)->cdr;
+	  if (NILP (current_kboard->kbd_queue))
+	    current_kboard->kbd_queue_has_data = 0;
 	  input_pending = readable_events ();
 #ifdef MULTI_FRAME
 	  if (EVENT_HAS_PARAMETERS (c)
@@ -1819,22 +1819,22 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
       else
 	{
-	  PERDISPLAY *perd;
-#ifdef MULTI_PERDISPLAY
-	  if (!display_locked)
+	  KBOARD *kb;
+#ifdef MULTI_KBOARD
+	  if (!kboard_locked)
 	    {
-	      for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-		if (perd->kbd_queue_has_data)
+	      for (kb = all_kboards; kb; kb = kb->next_kboard)
+		if (kb->kbd_queue_has_data)
 		  {
-		    current_perdisplay = perd;
-		    longjmp (wrong_display_jmpbuf, 1);
+		    current_kboard = kb;
+		    longjmp (wrong_kboard_jmpbuf, 1);
 		  }
 	    }
 #endif
 
-	wrong_display:
+	wrong_kboard:
 	  /* Actually read a character, waiting if necessary.  */
-	  while (c = kbd_buffer_get_event (&perd), NILP (c))
+	  while (c = kbd_buffer_get_event (&kb), NILP (c))
 	    {
 	      if (commandflag >= 0
 		  && !input_pending && !detect_input_pending ())
@@ -1843,20 +1843,20 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		  redisplay ();
 		}
 	    }
-#ifdef MULTI_PERDISPLAY
-	  if (perd != current_perdisplay)
+#ifdef MULTI_KBOARD
+	  if (kb != current_kboard)
 	    {
-	      Lisp_Object *tailp = &perd->kbd_queue;
+	      Lisp_Object *tailp = &kb->kbd_queue;
 	      while (CONSP (*tailp))
 		tailp = &XCONS (*tailp)->cdr;
 	      if (!NILP (*tailp))
 		abort ();
 	      *tailp = Fcons (c, Qnil);
-	      perd->kbd_queue_has_data = 1;
-	      if (display_locked)
-		goto wrong_display;
-	      current_perdisplay = perd;
-	      longjmp (wrong_display_jmpbuf, 1);
+	      kb->kbd_queue_has_data = 1;
+	      if (kboard_locked)
+		goto wrong_kboard;
+	      current_kboard = kb;
+	      longjmp (wrong_kboard_jmpbuf, 1);
 	    }
 #endif
 	}
@@ -2137,16 +2137,16 @@ readable_events ()
   if (FRAMEP (do_mouse_tracking) && mouse_moved)
     return 1;
 #endif
-  if (display_locked)
+  if (kboard_locked)
     {
-      if (current_perdisplay->kbd_queue_has_data)
+      if (current_kboard->kbd_queue_has_data)
 	return 1;
     }
   else
     {
-      PERDISPLAY *perd;
-      for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-	if (perd->kbd_queue_has_data)
+      KBOARD *kb;
+      for (kb = all_kboards; kb; kb = kb->next_kboard)
+	if (kb->kbd_queue_has_data)
 	  return 1;
     }
   return 0;
@@ -2155,9 +2155,9 @@ readable_events ()
 /* Set this for debugging, to have a way to get out */
 int stop_character;
 
-#ifdef MULTI_PERDISPLAY
-static PERDISPLAY *
-event_to_perdisplay (event)
+#ifdef MULTI_KBOARD
+static KBOARD *
+event_to_kboard (event)
      struct input_event *event;
 {
   Lisp_Object frame;
@@ -2172,7 +2172,7 @@ event_to_perdisplay (event)
   if (!FRAMEP (frame))
     return 0;
   else
-    return get_perdisplay (XFRAME (frame));
+    return FRAME_KBOARD (XFRAME (frame));
 }
 #endif
 
@@ -2199,24 +2199,24 @@ kbd_buffer_store_event (event)
       if (c == quit_char)
 	{
 	  extern SIGTYPE interrupt_signal ();
-#ifdef MULTI_PERDISPLAY
-	  PERDISPLAY *perd;
+#ifdef MULTI_KBOARD
+	  KBOARD *kb;
 	  struct input_event *sp;
 
-	  if (display_locked
-	      && (perd = get_perdisplay (XFRAME (event->frame_or_window)),
-		  perd != current_perdisplay))
+	  if (kboard_locked
+	      && (kb = FRAME_KBOARD (XFRAME (event->frame_or_window)),
+		  kb != current_kboard))
 	    {
-	      perd->kbd_queue
+	      kb->kbd_queue
 		= Fcons (make_lispy_switch_frame (event->frame_or_window),
 			 Fcons (make_number (c), Qnil));
-	      perd->kbd_queue_has_data = 1;
+	      kb->kbd_queue_has_data = 1;
 	      for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
 		{
 		  if (sp == kbd_buffer + KBD_BUFFER_SIZE)
 		    sp = kbd_buffer;
 
-		  if (event_to_perdisplay (sp) == perd)
+		  if (event_to_kboard (sp) == kb)
 		    {
 		      sp->kind = no_event;
 		      sp->frame_or_window = Qnil;
@@ -2297,7 +2297,7 @@ kbd_buffer_store_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (PERDISPLAY **perdp)
+kbd_buffer_get_event (KBOARD **kbp)
 {
   register int c;
   Lisp_Object obj;
@@ -2306,7 +2306,7 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
     {
       c = getchar ();
       XSETINT (obj, c);
-      *perdp = all_perdisplays;  /* There'd better be exactly one!  */
+      *kbp = all_kboards;  /* There'd better be exactly one!  */
       return obj;
     }
 
@@ -2367,12 +2367,12 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
 
       last_event_timestamp = event->timestamp;
 
-#ifdef MULTI_PERDISPLAY
-      *perdp = event_to_perdisplay (event);
-      if (*perdp == 0)
-	*perdp = all_perdisplays;  /* Better than returning null ptr?  */
+#ifdef MULTI_KBOARD
+      *kbp = event_to_kboard (event);
+      if (*kbp == 0)
+	*kbp = current_kboard;  /* Better than returning null ptr?  */
 #else
-      *perdp = &the_only_perdisplay;
+      *kbp = &the_only_kboard;
 #endif
 
       obj = Qnil;
@@ -2445,11 +2445,11 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
 	  kbd_fetch_ptr = event + 1;
 	}
       /* Just discard these, by returning nil.
-	 With MULTI_PERDISPLAY, these events are used as placeholders
+	 With MULTI_KBOARD, these events are used as placeholders
 	 when we need to randomly delete events from the queue.
 	 (They shouldn't otherwise be found in the buffer,
 	 but on some machines it appears they do show up
-	 even without MULTI_PERDISPLAY.)  */
+	 even without MULTI_KBOARD.)  */
       else if (event->kind == no_event)
 	kbd_fetch_ptr = event + 1;
 
@@ -2500,7 +2500,7 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
       Lisp_Object x, y;
       unsigned long time;
 
-      *perdp = current_perdisplay;
+      *kbp = current_kboard;
       /* Note that this uses F to determine which display to look at.
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
@@ -4700,12 +4700,12 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	 is pressed.  Help characters are not recorded because menu prompting
 	 is not used on replay.
 	 */
-      orig_defn_macro = current_perdisplay->defining_kbd_macro;
-      current_perdisplay->defining_kbd_macro = Qnil;
+      orig_defn_macro = current_kboard->defining_kbd_macro;
+      current_kboard->defining_kbd_macro = Qnil;
       do
 	obj = read_char (commandflag, 0, 0, Qnil, 0);
       while (BUFFERP (obj));
-      current_perdisplay->defining_kbd_macro = orig_defn_macro;
+      current_kboard->defining_kbd_macro = orig_defn_macro;
 
       if (!INTEGERP (obj))
 	return obj;
@@ -4716,7 +4716,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	  && (!INTEGERP (menu_prompt_more_char)
 	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
 	{
-	  if (!NILP (current_perdisplay->defining_kbd_macro))
+	  if (!NILP (current_kboard->defining_kbd_macro))
 	    store_kbd_macro_char (obj);
 	  return obj;
 	}
@@ -5097,35 +5097,35 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  struct buffer *buf = current_buffer;
 
 	  {
-#ifdef MULTI_PERDISPLAY
-	    PERDISPLAY *interrupted_perdisplay = current_perdisplay;
+#ifdef MULTI_KBOARD
+	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = selected_frame;
-	    if (setjmp (wrong_display_jmpbuf))
+	    if (setjmp (wrong_kboard_jmpbuf))
 	      {
 		if (!NILP (delayed_switch_frame))
 		  {
-		    interrupted_perdisplay->kbd_queue
+		    interrupted_kboard->kbd_queue
 		      = Fcons (delayed_switch_frame,
-			       interrupted_perdisplay->kbd_queue);
+			       interrupted_kboard->kbd_queue);
 		    delayed_switch_frame = Qnil;
 		  }
 		while (t > 0)
-		  interrupted_perdisplay->kbd_queue
-		    = Fcons (keybuf[--t], interrupted_perdisplay->kbd_queue);
+		  interrupted_kboard->kbd_queue
+		    = Fcons (keybuf[--t], interrupted_kboard->kbd_queue);
 
 		/* If the side queue is non-empty, ensure it begins with a
 		   switch-frame, so we'll replay it in the right context.  */
-		if (CONSP (interrupted_perdisplay->kbd_queue)
-		    && (key = XCONS (interrupted_perdisplay->kbd_queue)->car,
+		if (CONSP (interrupted_kboard->kbd_queue)
+		    && (key = XCONS (interrupted_kboard->kbd_queue)->car,
 			!(EVENT_HAS_PARAMETERS (key)
 			  && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)),
 				 Qswitch_frame))))
 		  {
 		    Lisp_Object frame;
 		    XSETFRAME (frame, interrupted_frame);
-		    interrupted_perdisplay->kbd_queue
+		    interrupted_kboard->kbd_queue
 		      = Fcons (make_lispy_switch_frame (frame),
-			       interrupted_perdisplay->kbd_queue);
+			       interrupted_kboard->kbd_queue);
 		  }
 		mock_input = 0;
 		orig_local_map = get_local_map (PT, current_buffer);
@@ -6088,7 +6088,7 @@ DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
 Also cancel any kbd macro being defined.")
   ()
 {
-  current_perdisplay->defining_kbd_macro = Qnil;
+  current_kboard->defining_kbd_macro = Qnil;
   update_mode_lines++;
 
   Vunread_command_events = Qnil;
@@ -6186,7 +6186,7 @@ stuff_buffered_input (stuffstring)
     }
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
-     Should we ignore anything that was typed in at the "wrong" display?  */
+     Should we ignore anything that was typed in at the "wrong" kboard?  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
@@ -6458,38 +6458,39 @@ The elements of this list correspond to the arguments of\n\
 
 
 /*
- * Set up a perdisplay object with reasonable initial values.
+ * Set up a new kboard object with reasonable initial values.
  */
 void
-init_perdisplay (perd)
-     PERDISPLAY *perd;
+init_kboard (kb)
+     KBOARD *kb;
 {
-  perd->prefix_factor = Qnil;
-  perd->prefix_value = Qnil;
-  perd->prefix_sign = 1;
-  perd->prefix_partial = 0;
-  perd->kbd_queue = Qnil;
-  perd->kbd_queue_has_data = 0;
-  perd->immediate_echo = 0;
-  perd->echoptr = perd->echobuf;
-  perd->echo_after_prompt = -1;
-  perd->kbd_macro_buffer = 0;
-  perd->kbd_macro_bufsize = 0;
-  perd->defining_kbd_macro = Qnil;
-  perd->Vlast_kbd_macro = Qnil;
+  kb->prefix_factor = Qnil;
+  kb->prefix_value = Qnil;
+  kb->prefix_sign = 1;
+  kb->prefix_partial = 0;
+  kb->kbd_queue = Qnil;
+  kb->kbd_queue_has_data = 0;
+  kb->immediate_echo = 0;
+  kb->echoptr = kb->echobuf;
+  kb->echo_after_prompt = -1;
+  kb->kbd_macro_buffer = 0;
+  kb->kbd_macro_bufsize = 0;
+  kb->defining_kbd_macro = Qnil;
+  kb->Vlast_kbd_macro = Qnil;
+  kb->reference_count = 0;
 }
 
 /*
- * Destroy the contents of a perdisplay object, but not the object itself.
+ * Destroy the contents of a kboard object, but not the object itself.
  * We use this just before deleteing it, or if we're going to initialize
  * it a second time.
  */
 void
-wipe_perdisplay (perd)
-     PERDISPLAY *perd;
+wipe_kboard (kb)
+     KBOARD *kb;
 {
-  if (perd->kbd_macro_buffer)
-    xfree (perd->kbd_macro_buffer);
+  if (kb->kbd_macro_buffer)
+    xfree (kb->kbd_macro_buffer);
 }
 
 init_keyboard ()
@@ -6520,15 +6521,15 @@ init_keyboard ()
 
   if (!initialized)
     {
-#ifdef MULTI_PERDISPLAY
-      current_perdisplay = (PERDISPLAY *)xmalloc (sizeof (PERDISPLAY));
-      all_perdisplays = current_perdisplay;
+#ifdef MULTI_KBOARD
+      current_kboard = (KBOARD *)xmalloc (sizeof (KBOARD));
+      all_kboards = current_kboard;
 #endif
-      current_perdisplay->next_perdisplay = 0;
+      current_kboard->next_kboard = 0;
     }
   if (initialized)
-    wipe_perdisplay (current_perdisplay);
-  init_perdisplay (current_perdisplay);
+    wipe_kboard (current_kboard);
+  init_kboard (current_kboard);
 
   if (initialized)
     Ffillarray (kbd_buffer_frame_or_window, Qnil);
