@@ -1,3 +1,7 @@
+2001-01-17  Dave Love  <fx@gnu.org>
+
+	* termcap.src: New version from http://www.tuxedo.org/~esr/terminfo/.
+
 2001-01-14  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (get_language_from_langname): Renamed from
