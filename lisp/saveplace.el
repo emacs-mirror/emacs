@@ -125,16 +125,17 @@ To save places automatically in all files, put this in your `.emacs' file:
   (or save-place-loaded (load-save-place-alist-from-file))
   (if buffer-file-name
       (progn
-        (let ((cell (assoc buffer-file-name save-place-alist)))
+        (let ((cell (assoc buffer-file-name save-place-alist))
+	      (position (if (not (eq major-mode 'hexl-mode))
+			    (point)
+			  (1+ (hexl-current-address)))))
           (if cell
-              (setq save-place-alist (delq cell save-place-alist))))
-        (if save-place
-            (setq save-place-alist
-		  (cons (cons buffer-file-name
-			      (if (not (eq major-mode 'hexl-mode))
-				  (point)
-				(1+ (hexl-current-address))))
-                        save-place-alist))))))
+              (setq save-place-alist (delq cell save-place-alist)))
+	  (if (and save-place
+		   (not (= position 1)))  ;; Optimize out the degenerate case.
+	      (setq save-place-alist
+		    (cons (cons buffer-file-name position)
+			  save-place-alist)))))))
 
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file)))
