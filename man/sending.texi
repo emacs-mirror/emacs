@@ -162,7 +162,9 @@ copy of every message to some other @var{address}, set the variable
 This field contains the name of one file and directs Emacs to append a
 copy of the message to that file when you send the message.  If the file
 is in Rmail format, Emacs writes the message in Rmail format; otherwise,
-Emacs writes the message in system mail file format.
+Emacs writes the message in system mail file format.  To specify
+more than one file, use several @samp{FCC} fields, with one file
+name in each field.
 
 @vindex mail-archive-file-name
 To put a fixed file name in the @samp{FCC} field each time you start
@@ -207,14 +209,14 @@ This field lists the message IDs of related previous messages.  Rmail
 sets up this field automatically when you reply to a message.
 @end table
 
-  The @samp{To}, @samp{CC}, @samp{BCC} and @samp{FCC} header fields can
-appear any number of times, and each such header field can contain
-multiple addresses, separated by commas.  This way, you can specify any
-number of places to send the message.  A @samp{To}, @samp{CC}, or
-@samp{BCC} field can also have continuation lines: one or more lines
-starting with whitespace, following the starting line of the field, are
-considered part of the field.  Here's an example of a @samp{To} field
-with a continuation line:@refill
+  The @samp{To}, @samp{CC}, and @samp{BCC} header fields can appear
+any number of times, and each such header field can contain multiple
+addresses, separated by commas.  This way, you can specify any number
+of places to send the message.  These fields can also have
+continuation lines: one or more lines starting with whitespace,
+following the starting line of the field, are considered part of the
+field.  Here's an example of a @samp{To} field with a continuation
+line:@refill
 
 @example
 @group
@@ -485,12 +487,14 @@ the full name, and what style to use, as in @code{mail-from-style}
 (@pxref{Mail Headers}).
 
   For completion purposes, the valid mailing addresses are taken to be
-the local users' names plus your personal mail aliases.  You can specify
-additional sources of valid addresses; use the customization buffer
-to see the options for this.
+the local users' names plus your personal mail aliases.  You can
+specify additional sources of valid addresses; look at customization
+group @samp{mailalias} to see the options for this
+(@pxref{Customization Groups}).
 
-  If you type @kbd{M-@key{TAB}} in the body of the message, it invokes
-@code{ispell-complete-word}, as in Text mode.
+  If you type @kbd{M-@key{TAB}} in the body of the message,
+@code{mail-complete} invokes @code{ispell-complete-word}, as in Text
+mode.
 
 @node Citing Mail
 @subsection Citing Mail
@@ -648,7 +652,7 @@ entering an outgoing message:
 @findex fortune-to-signature
 @cindex fortune cookies
   You can use the @code{fortune} program to put a ``fortune cookie''
-message into outpoing mail.  To do this, add
+message into outgoing mail.  To do this, add
 @code{fortune-to-signature} to @code{mail-setup-hook}:
 
 @example
@@ -665,7 +669,7 @@ message into outpoing mail.  To do this, add
 and sending mail---Mail mode.  Emacs has alternative facilities for
 editing and sending mail, including
 MH-E and Message mode, not documented in this manual.
-@xref{,MH-E,,mh-e, The Emacs Interface to MH}.  @xref{,Message,,message,
+@xref{MH-E,,,mh-e, The Emacs Interface to MH}.  @xref{Message,,,message,
 Message Manual}.  You can choose any of them as your preferred method.
 The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
 whichever agent you have specified.  So do various other Emacs commands
