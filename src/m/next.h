@@ -99,9 +99,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LIB_GCC
 
+#if 0  /* ohl@chico.harvard.edu says to do this.  */
 /* Compile "strict bsd" to avoid warnings from include files */
 
 #define C_SWITCH_MACHINE	-bsd
+#endif
 
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
