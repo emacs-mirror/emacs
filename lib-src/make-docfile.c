@@ -401,6 +401,8 @@ scan_c_file (filename, mode)
   c = '\n';
   while (!feof (infile))
     {
+      int doc_keyword = 0;
+
       if (c != '\n' && c != '\r')
 	{
 	  c = getc (infile);
@@ -467,8 +469,9 @@ scan_c_file (filename, mode)
 	continue;
       c = read_c_string_or_comment (infile, -1, 0);
 
-      /* DEFVAR_LISP ("name", addr /\* doc *\/)
-	 DEFVAR_LISP ("name", addr, doc)  */
+      /* DEFVAR_LISP ("name", addr, "doc")
+	 DEFVAR_LISP ("name", addr /\* doc *\/)
+	 DEFVAR_LISP ("name", addr, doc: /\* doc *\/)  */
 
       if (defunflag)
 	commas = 5;
@@ -507,7 +510,7 @@ scan_c_file (filename, mode)
 	    goto eof;
 	  c = getc (infile);
 	}
-      
+
       while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
 	c = getc (infile);
       
@@ -518,9 +521,18 @@ scan_c_file (filename, mode)
 	c = getc (infile);
       if (c == ',')
 	{
-          c = getc (infile);
-          while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
-            c = getc (infile);
+	  c = getc (infile);
+	  while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
+	    c = getc (infile);
+	  while ((c >= 'a' && c <= 'z') || (c >= 'Z' && c <= 'Z'))
+	    c = getc (infile);
+	  if (c == ':')
+	    {
+	      doc_keyword = 1;
+	      c = getc (infile);
+	      while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
+		c = getc (infile);
+	    }
 	}
 
       if (c == '"'
@@ -544,13 +556,16 @@ scan_c_file (filename, mode)
 	     won't give the names of the arguments, so we shouldn't bother
 	     trying to find them.
 
-	     Old:  DEFUN (..., "DOC") (args)
-	     New:  DEFUN (..., /\* DOC *\/ (args))  */
+	     Various doc-string styles:
+	      0: DEFUN (..., "DOC") (args)            [!comment]
+	      1: DEFUN (..., /\* DOC *\/ (args))      [comment && !doc_keyword]
+	      2: DEFUN (..., doc: /\* DOC *\/) (args) [comment && doc_keyword]
+	  */
 	  if (defunflag && maxargs != -1)
 	    {
 	      char argbuf[1024], *p = argbuf;
 
-	      if (!comment)
+	      if (!comment || doc_keyword)
 		while (c != ')')
 		  {
 		    if (c < 0)
