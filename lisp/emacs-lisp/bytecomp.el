@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.102 $")
+(defconst byte-compile-version "$Revision: 2.103 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3810,16 +3810,12 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete-variable 'inhibit-local-variables
 		"use enable-local-variables (with the reversed sense)."
 		"before 19.15")
-(make-obsolete-variable 'unread-command-char
-  "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
-  "before 19.15")
 (make-obsolete-variable 'unread-command-event
   "use unread-command-events; which is a list of events rather than a single event."
   "before 19.15")
 (make-obsolete-variable 'suspend-hooks 'suspend-hook "before 19.15")
 (make-obsolete-variable 'comment-indent-hook 'comment-indent-function "before 19.15")
 (make-obsolete-variable 'meta-flag "use the set-input-mode function instead." "before 19.34")
-(make-obsolete-variable 'executing-macro 'executing-kbd-macro "before 19.34")
 (make-obsolete-variable 'before-change-function
   "use before-change-functions; which is a list of functions rather than a single function."
   "before 19.34")
@@ -3827,10 +3823,6 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   "use after-change-functions; which is a list of functions rather than a single function."
   "before 19.34")
 (make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face "before 19.34")
-(make-obsolete-variable 'post-command-idle-hook
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
-(make-obsolete-variable 'post-command-idle-delay
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
 (provide 'byte-compile)
 (provide 'bytecomp)
