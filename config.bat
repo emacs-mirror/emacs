@@ -121,7 +121,9 @@ Goto End
 set djgpp_ver=1
 If ErrorLevel 20 set djgpp_ver=2
 rm -f junk.c junk junk.exe
-rem DJECHO is used by the top-level Makefile
+rem The v1.x build does not need djecho
+if "%DJGPP_VER%" == "1" Goto djechoOk
+rem DJECHO is used by the top-level Makefile in the v2.x build
 Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
 If Exist junk.$$$ Goto djechoOk
