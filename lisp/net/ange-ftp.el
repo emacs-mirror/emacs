@@ -678,7 +678,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH \\(KERBEROS\\|GSSAPI\\)\\|^KERBEROS\\|"
-	  "^227 .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
+	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "*Regular expression matching ftp messages that can be ignored."
   :group 'ange-ftp
   :type 'regexp)
