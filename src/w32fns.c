@@ -1185,7 +1185,9 @@ defined_color (f, color, color_def, alloc)
 
   if (!NILP (tem)) 
     {
-      *color_def = XUINT (tem);
+      /* map color to nearest in (default) palette, to avoid
+	 dithering on limited color displays. */
+      *color_def = XUINT (tem) | 0x2000000;
       return 1;
     } 
   else 
@@ -2777,12 +2779,16 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_MOVE:
     case WM_SIZE:
     case WM_KILLFOCUS:
-    case WM_CLOSE:
     case WM_VSCROLL:
     case WM_SYSCOMMAND:
     case WM_COMMAND:
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
+
+    case WM_CLOSE:
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 0;
+
     case WM_WINDOWPOSCHANGING:
       {
 	WINDOWPLACEMENT wp;
