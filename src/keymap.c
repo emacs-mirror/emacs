@@ -568,17 +568,25 @@ the front of KEYMAP.")
 
 /* Value is number if KEY is too long; NIL if valid but has no definition. */
 
-DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 2, 0,
+DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
   "In keymap KEYMAP, look up key sequence KEY.  Return the definition.\n\
 nil means undefined.  See doc of `define-key' for kinds of definitions.\n\
+\n\
 A number as value means KEY is \"too long\";\n\
 that is, characters or symbols in it except for the last one\n\
 fail to be a valid sequence of prefix characters in KEYMAP.\n\
 The number is how many characters at the front of KEY\n\
-it takes to reach a non-prefix command.")
-  (keymap, key)
+it takes to reach a non-prefix command.\n\
+\n\
+Normally, `lookup-key' ignores bindings for t, which act as default\n\
+bindings, used when nothing else in the keymap applies; this makes it\n\
+useable as a general function for probing keymaps.  However, if the\n\
+third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will\n\
+recognize the default bindings, just as `read-key-sequence' does.")
+  (keymap, key, accept_default)
      register Lisp_Object keymap;
      Lisp_Object key;
+     Lisp_Object accept_default;
 {
   register int idx;
   register Lisp_Object tem;
@@ -586,6 +594,7 @@ it takes to reach a non-prefix command.")
   register Lisp_Object c;
   int metized = 0;
   int length;
+  int t_ok = ! NILP (accept_default);
 
   keymap = get_keymap (keymap);
 
@@ -618,7 +627,7 @@ it takes to reach a non-prefix command.")
 	  idx++;
 	}
 
-      cmd = get_keyelt (access_keymap (keymap, c, 0));
+      cmd = get_keyelt (access_keymap (keymap, c, t_ok));
       if (idx == length)
 	return cmd;
 
@@ -727,11 +736,17 @@ current_minor_maps (modeptr, mapptr)
   return i;
 }
 
-DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 1, 0,
+DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 2, 0,
   "Return the binding for command KEY in current keymaps.\n\
-KEY is a string, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.")
-  (key)
+KEY is a string or vector, a sequence of keystrokes.\n\
+The binding is probably a symbol with a function definition.\n\
+\n\
+Normally, `key-binding' ignores bindings for t, which act as default\n\
+bindings, used when nothing else in the keymap applies; this makes it\n\
+useable as a general function for probing keymaps.  However, if the\n\
+third optional argument ACCEPT-DEFAULT is non-nil, `key-binding' will\n\
+recognize the default bindings, just as `read-key-sequence' does.")
+  (key, accept_default)
      Lisp_Object key;
 {
   Lisp_Object *maps, value;
@@ -741,52 +756,58 @@ The binding is probably a symbol with a function definition.")
   for (i = 0; i < nmaps; i++)
     if (! NILP (maps[i]))
       {
-	value = Flookup_key (maps[i], key);
+	value = Flookup_key (maps[i], key, accept_default);
 	if (! NILP (value) && XTYPE (value) != Lisp_Int)
 	  return value;
       }
 
   if (! NILP (current_buffer->keymap))
     {
-      value = Flookup_key (current_buffer->keymap, key);
+      value = Flookup_key (current_buffer->keymap, key, accept_default);
       if (! NILP (value) && XTYPE (value) != Lisp_Int)
 	return value;
     }
 
-  value = Flookup_key (current_global_map, key);
+  value = Flookup_key (current_global_map, key, accept_default);
   if (! NILP (value) && XTYPE (value) != Lisp_Int)
     return value;
   
   return Qnil;
 }
 
-DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 1, 0,
+DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
   "Return the binding for command KEYS in current local keymap only.\n\
 KEYS is a string, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.")
-  (keys)
-     Lisp_Object keys;
+The binding is probably a symbol with a function definition.\n\
+\n\
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
+bindings; see the description of `lookup-key' for more details about this.")
+  (keys, accept_default)
+     Lisp_Object keys, accept_default;
 {
   register Lisp_Object map;
   map = current_buffer->keymap;
   if (NILP (map))
     return Qnil;
-  return Flookup_key (map, keys);
+  return Flookup_key (map, keys, accept_default);
 }
 
-DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 1, 0,
+DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
   "Return the binding for command KEYS in current global keymap only.\n\
 KEYS is a string, a sequence of keystrokes.\n\
 The binding is probably a symbol with a function definition.\n\
 This function's return values are the same as those of lookup-key\n\
-(which see).")
-  (keys)
-     Lisp_Object keys;
+(which see).\n\
+\n\
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
+bindings; see the description of `lookup-key' for more details about this.")
+  (keys, accept_default)
+     Lisp_Object keys, accept_default;
 {
-  return Flookup_key (current_global_map, keys);
+  return Flookup_key (current_global_map, keys, accept_default);
 }
 
-DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 1, 0,
+DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
   "Find the visible minor mode bindings of KEY.\n\
 Return an alist of pairs (MODENAME . BINDING), where MODENAME is the\n\
 the symbol which names the minor mode binding KEY, and BINDING is\n\
@@ -794,8 +815,12 @@ KEY's definition in that mode.  In particular, if KEY has no\n\
 minor-mode bindings, return nil.  If the first binding is a\n\
 non-prefix, all subsequent bindings will be omitted, since they would\n\
 be ignored.  Similarly, the list doesn't include non-prefix bindings\n\
-that come after prefix bindings.")
-  (key)
+that come after prefix bindings.\n\
+\n\
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
+bindings; see the description of `lookup-key' for more details about this.")
+  (key, accept_default)
+     Lisp_Object key, accept_default;
 {
   Lisp_Object *modes, *maps;
   int nmaps;
@@ -806,7 +831,7 @@ that come after prefix bindings.")
 
   for (i = j = 0; i < nmaps; i++)
     if (! NILP (maps[i])
-	&& ! NILP (binding = Flookup_key (maps[i], key))
+	&& ! NILP (binding = Flookup_key (maps[i], key, accept_default))
 	&& XTYPE (binding) != Lisp_Int)
       {
 	if (! NILP (get_keymap (binding)))
@@ -1362,7 +1387,7 @@ indirect definition itself.")
 	     means undefined.  */
 	  if (!NILP (local_keymap))
 	    {
-	      binding = Flookup_key (local_keymap, sequence);
+	      binding = Flookup_key (local_keymap, sequence, Qnil);
 	      if (!NILP (binding) && XTYPE (binding) != Lisp_Int)
 		{
 		  if (XTYPE (definition) == Lisp_Cons)
@@ -1573,7 +1598,7 @@ describe_map_tree (startmap, partial, shadow)
 	 what we should use.  */
       else
 	{
-	  sh = Flookup_key (shadow, Fcar (elt));
+	  sh = Flookup_key (shadow, Fcar (elt), Qt);
 	  if (XTYPE (sh) == Lisp_Int)
 	    sh = Qnil;
 	}
@@ -1691,7 +1716,7 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
 	      Lisp_Object tem;
 
 	      XVECTOR (kludge)->contents[0] = tem1;
-	      tem = Flookup_key (shadow, kludge);
+	      tem = Flookup_key (shadow, kludge, Qt);
 	      if (!NILP (tem)) continue;
 	    }
 
@@ -1784,7 +1809,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 	  Lisp_Object tem;
 	  
 	  XVECTOR (kludge)->contents[0] = make_number (i);
-	  tem = Flookup_key (shadow, kludge);
+	  tem = Flookup_key (shadow, kludge, Qt);
 
 	  if (!NILP (tem)) continue;
 	}
