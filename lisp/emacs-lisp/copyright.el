@@ -40,7 +40,8 @@
   :type '(choice (integer :tag "Limit")
 		 (const :tag "No limit")))
 
-
+;; Cleaner to specify Latin-1 coding for this file, and not use both
+;; unibyte and multibyte copyright symbol characters?
 (defcustom copyright-regexp
   "\\([\251Å©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
 \\|[Cc]opyright\\s *:?\\s *[\251Å©]\\)\
@@ -156,5 +157,10 @@ copyright, if any, are updated as well."
   comment-end)
 
 (provide 'copyright)
+
+;; For the copyright sign:
+;; Local Variables:
+;; coding: emacs-mule
+;; End:
 
 ;; copyright.el ends here
