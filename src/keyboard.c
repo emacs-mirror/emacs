@@ -6306,8 +6306,8 @@ menu_bar_items (old)
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
       {
-	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0, 0),
-			  0, 0);
+	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0, 1),
+			  0, 1);
 	if (CONSP (def))
 	  menu_bar_one_keymap (def);
       }
@@ -6959,8 +6959,7 @@ tool_bar_items (reuse, nitems)
       {
 	Lisp_Object keymap;
 
-	/* Why set the `noinherit' flag ?  -sm  */
-	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 1, 0), 0, 0);
+	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 0, 1), 0, 1);
 	if (CONSP (keymap))
 	  {
 	    Lisp_Object tail;
