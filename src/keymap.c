@@ -2244,9 +2244,9 @@ indirect definition itself.")
      Lisp_Object firstonly, noindirect;
 {
   Lisp_Object sequences, keymaps;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
+  Lisp_Object result;
 
   /* Find the relevant keymaps.  */
   if (CONSP (keymap) && KEYMAPP (XCAR (keymap)))
@@ -2266,6 +2266,10 @@ indirect definition itself.")
      We don't really need to check `keymap'.  */
   if (nomenus && NILP (noindirect) && NILP (keymap))
     {
+      Lisp_Object *defns;
+      int i, n;
+      struct gcpro gcpro1, gcpro2;
+      
       /* Check heuristic-consistency of the cache.  */
       if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
 	where_is_cache = Qnil;
@@ -2285,25 +2289,36 @@ indirect definition itself.")
 	  where_is_cache_keymaps = keymaps;
 	}
 
+      /* We want to process definitions from the last to the first.
+	 Instead of consing, copy definitions to a vector and step
+	 over that vector.  */
       sequences = Fgethash (definition, where_is_cache, Qnil);
-      /* Verify that the key bindings are not shadowed.  */
-      /* key-binding can GC. */
-      GCPRO3 (definition, sequences, keymaps);
-      for (sequences = Fnreverse (sequences);
-	   CONSP (sequences);
-	   sequences = XCDR (sequences))
-	if (EQ (shadow_lookup (keymaps, XCAR (sequences), Qnil), definition)
-	    && ascii_sequence_p (XCAR (sequences)))
-	  RETURN_UNGCPRO (XCAR (sequences));
-      RETURN_UNGCPRO (Qnil);
+      n = Flength (sequences);
+      defns = (Lisp_Object *) alloca (n * sizeof *defns);
+      for (i = 0; CONSP (sequences); sequences = XCDR (sequences))
+	defns[i++] = XCAR (sequences);
+      
+      /* Verify that the key bindings are not shadowed.  Note that
+	 the following can GC.  */
+      GCPRO2 (definition, keymaps);
+      result = Qnil;
+      for (i = n - 1; i >= 0; --i)
+	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition)
+	    && ascii_sequence_p (defns[i]))
+	  break;
+
+      result = i >= 0 ? defns[i] : Qnil;
+      UNGCPRO;
     }
   else
     {
       /* Kill the cache so that where_is_internal_1 doesn't think
 	 we're filling it up.  */
       where_is_cache = Qnil;
-      return where_is_internal (definition, keymaps, firstonly, noindirect);
+      result = where_is_internal (definition, keymaps, firstonly, noindirect);
     }
+
+  return result;
 }
 
 /* This is the function that Fwhere_is_internal calls using map_char_table.
