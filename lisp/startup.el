@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000, 01, 02
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1168,6 +1168,9 @@ where FACE is a valid face specification, as it can be used with
 	  (insert-image img (propertize "xxx" 'help-echo help-echo
 					'keymap map)))
 	(insert "\n"))))
+  (fancy-splash-insert
+   :face '(variable-pitch :background "red")
+   "\n!! This version is ALPHA status.  It may lose your data!!\n\n")
   (if (eq system-type 'gnu/linux)
       (fancy-splash-insert
        :face '(variable-pitch :foreground "red")
@@ -1191,7 +1194,7 @@ where FACE is a valid face specification, as it can be used with
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2001 Free Software Foundation, Inc.")
+			 "Copyright (C) 2002 Free Software Foundation, Inc.")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
