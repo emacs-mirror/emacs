@@ -1,3 +1,11 @@
+2000-11-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (shell-command, display-message-or-buffer)
+	(shell-command-on-region): Mention resize-mini-windows in the doc
+	string.
+	(display-message-or-buffer): Take the value of resize-mini-windows
+	into account.
+
 2000-11-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* macros.el (insert-kbd-macro): Print semi-colons as `?\;'.

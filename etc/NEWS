@@ -2675,6 +2675,7 @@ strings that have been consed so far.
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
 
++++
 ** The user-option `resize-mini-windows' controls how Emacs resizes
 mini-windows.
 

@@ -1,5 +1,15 @@
 2000-11-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (syms_of_xdisp): Change doc of max-mini-window-height.
+	(resize_mini_window): Return quickly if Vresize_mini_window is
+	nil.  Don't return if Vmax_mini_window_height is nil.
+
+	* xdisp.c (Vresize_mini_window, Qgrow_only): New variables.
+	(syms_of_xdisp): Initialize them.
+	(resize_mini_window): Act according to the setting of
+	Vresize_mini_window.
+	(syms_of_xdisp): Initialize Vmenu_bar_update_hook to nil.
+
 	* xterm.c (x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]: Map the
 	scroll bar widget after configuring it, so that it will appear at
 	the right position from the start.
