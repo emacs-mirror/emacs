@@ -1,3 +1,23 @@
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	Version 2.0.29 released.
+
+	* tramp.texi (Installation): In Emacs, use M-x
+	texinfo-format-buffer RET, not M-x makeinfo-buffer RET.  Reported
+	by gebser@ameritech.net.
+
+2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): Explain a workaround if
+	another package loads accidently Ange-FTP.
+
+2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Add function
+	`tramp-parse-sconfig'.  Change example of
+	`tramp-set-completion-function', because parsing of ssh config
+	files looks more natural.
+
 2003-02-01  Kevin Ryde  <user42@zip.com.au>
 
         * glossary.texi (Glossary): Correction to cl cross reference.

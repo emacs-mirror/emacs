@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.28
+2.0.29
 @end macro
 
 @c Entries for @command{install-info} to use
@@ -64,7 +64,7 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software
 Foundation, Inc.
 
 @quotation
@@ -148,7 +148,7 @@ well as the usual Savannah archives.
 * Overview::                    What @tramp{} can and cannot do.
 
 For the end user:
-* Obtaining @tramp{}::          How to obtain @tramp{}.
+* Obtaining @tramp{}::             How to obtain @tramp{}.
 * History::                     History of @tramp{}.
 * Installation::                Installing @tramp{} with your @value{emacs-name}.
 * Configuration::               Configuring @tramp{} for use.
@@ -471,7 +471,7 @@ d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
 Something similar can be done to create the info manual.  Just change
 to directory @file{~/@value{emacs-dir}/tramp/texi} and load the
 @file{tramp.texi} file in @value{emacs-name}.  Then press @kbd{M-x
-makeinfo-buffer @key{RET}} to generate @file{tramp.info}.
+texinfo-format-buffer @key{RET}} to generate @file{tramp.info}.
 
 @item
 Tell @value{emacs-name} about the new Lisp directory and the
@@ -1207,15 +1207,15 @@ for @var{method}.
 Example:
 @example
 (tramp-set-completion-function "ssh"
- '((tramp-parse-shosts "/etc/ssh_known_hosts")
-   (tramp-parse-shosts "~/.ssh/known_hosts")))
+ '((tramp-parse-sconfig "/etc/ssh_config")
+   (tramp-parse-sconfig "~/.ssh/config")))
 
-     @result{} ((tramp-parse-shosts "/etc/ssh_known_hosts")
-         (tramp-parse-shosts "~/.ssh/known_hosts"))
+     @result{} ((tramp-parse-sconfig "/etc/ssh_config")
+         (tramp-parse-sconfig "~/.ssh/config"))
 @end example
 @end defun
 
-The following predefined functions parsing configuration files exists:
+The following predefined functions parsing configuration files exist:
 
 @table @asis
 @item @code{tramp-parse-rhosts}
@@ -1229,8 +1229,14 @@ specified.
 @findex tramp-parse-shosts
 
 This function parses files which are syntactical equivalent to
-@file{/etc/ssh_known_hosts}.  Since there are no user names specified
+@file{~/.ssh/known_hosts}.  Since there are no user names specified
 in such files, it can return host names only.
+
+@item @code{tramp-parse-sconfig}
+@findex tramp-parse-shosts
+
+This function returns the host nicnames defined by @code{Host} entries
+in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-hosts}
 @findex tramp-parse-hosts
@@ -1745,17 +1751,49 @@ Emacs?  I think there was some issue with @command{ssh}?
 
 
 @item
-I can't stop EFS starting with XEmacs
+I can't stop @value{ftp-package-name} starting with @value{emacs-name}
 
-Not all the older versions of @tramp{} supported XEmacs correctly. The
-first thing to do is to make sure that you have the latest version of
-@tramp{} installed.
+@ifset emacs
+@value{ftp-package-name} is loaded from @tramp{} automatically if you
+require a file by the ftp method.  Unfortunately, there are some Lisp
+packages which make @value{ftp-package-name} file name handlers active.
+You can see it applying @kbd{C-h v file-name-handler-alist}:
+
+@example
+file-name-handler-alist's value is 
+(("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
+ ("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
+ ("^/[^/]*$" . tramp-completion-file-name-handler)
+ ("\\`/[^/:]+:" . tramp-file-name-handler)
+ ("\\`/:" . file-name-non-special))
+@end example
+
+Please try to find out which package is responsible for loading
+@value{ftp-package-name}, and raise a bug report.
+
+A workaround is to require @value{ftp-package-name} before @tramp{} in
+your @file{~/.emacs}, because @tramp{} cleans up the entries in
+@code{file-name-handler-alist}:
+
+@lisp
+;; @value{ftp-package-name} temporarily required
+(require 'ange-ftp)
+;; @tramp{} cleans up @code{file-name-handler-alist}
+(require 'tramp)
+@end lisp
+@end ifset
+
+@ifset xemacs
+Not all the older versions of @tramp{} supported @value{emacs-name}
+correctly.  The first thing to do is to make sure that you have the
+latest version of @tramp{} installed.
 
 If you do, please try and find out exactly the conditions required for
-the EFS handlers to fire. If you can, putting a breakpoint on
-@code{efs-ftp-path} and sending in the stack trace along with your bug
-report would make it easier for the developers to work out what is
-going wrong.
+the @value{ftp-package-name} handlers to fire.  If you can, putting a
+breakpoint on @code{efs-ftp-path} and sending in the stack trace along
+with your bug report would make it easier for the developers to work out
+what is going wrong.
+@end ifset
 
 
 @item
@@ -1765,7 +1803,7 @@ When you log in to the remote machine, do you see the output of
 @command{ls} in color? If so, this may be the cause of your problems.
 
 @command{ls} outputs @acronym{ANSI} escape sequences that your terminal
-emulator interprets to set the colors. These escape sequences will
+emulator interprets to set the colors.  These escape sequences will
 confuse @tramp{} however.
 
 In your @file{.bashrc}, @file{.profile} or equivalent on the remote
@@ -1773,7 +1811,7 @@ machine you probably have an alias configured that adds the option
 @option{--color=yes} or @option{--color=auto}.
 
 You should remove that alias and ensure that a new login @emph{does not}
-display the output of @command{ls} in color. If you still cannot use
+display the output of @command{ls} in color.  If you still cannot use
 filename completion, report a bug to the @tramp{} developers.
 
 
