@@ -1952,6 +1952,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
 				    make_number (startp));
 	      startp = marker_position (w->start);
+	      startp_byte = marker_byte_position (w->start);
 	    }
 	}
       XSETFASTINT (w->last_modified, 0);
@@ -2203,7 +2204,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && startp >= BEGV && startp <= ZV)
     {
       int this_scroll_margin = scroll_margin;
-      int scroll_margin_pos;
+      int scroll_margin_pos, scroll_margin_bytepos;
 
       /* Don't use a scroll margin that is negative or too large.  */
       if (this_scroll_margin < 0)
@@ -2217,14 +2218,19 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	{
 	  pos = *vmotion (scroll_margin_pos, -this_scroll_margin, w);
 	  scroll_margin_pos = pos.bufpos;
+	  scroll_margin_bytepos = pos.bytepos;
 	}
+      else
+	scroll_margin_bytepos = CHAR_TO_BYTE (scroll_margin_pos);
+
       if (PT >= scroll_margin_pos)
 	{
 	  struct position pos;
 	  pos = *compute_motion (scroll_margin_pos, 0, 0, 0,
 				 PT, XFASTINT (w->height), 0,
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
-				 pos_tab_offset (w, startp, startp_byte),
+				 pos_tab_offset (w, scroll_margin_pos,
+						 scroll_margin_bytepos),
 				 w);
 	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
@@ -2263,7 +2269,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  pos = *compute_motion (PT, 0, 0, 0,
 				 scroll_margin_pos, XFASTINT (w->height), 0,
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
-				 pos_tab_offset (w, startp, startp_byte),
+				 pos_tab_offset (w, PT, PT_BYTE),
 				 w);
 	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
