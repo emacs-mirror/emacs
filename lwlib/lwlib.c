@@ -28,18 +28,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
 
-#if defined(__GNUC__) && !defined(alloca)
-#define alloca __builtin_alloca
-#endif
-
-#if ((!__GNUC__) && !defined(__hpux)) && !defined(_AIX)
-#include <alloca.h>
-#endif
-
-#if defined(_AIX)
-#pragma alloca
-#endif
-
 #if defined (USE_LUCID)
 #include "lwlib-Xlw.h"
 #endif
@@ -73,6 +61,27 @@ all_widget_info = NULL;
 static void
 instanciate_widget_instance (/* widget_instance* instance */);
 
+lwlib_memset (address, value, length)
+     char *address;
+     int value;
+     int length;
+{
+  int i;
+
+  for (i = 0; i < length; i++)
+    address[i] = value;
+}
+
+lwlib_bcopy (from, to, length)
+     char *from;
+     char *to;
+     int length;
+{
+  int i;
+
+  for (i = 0; i < length; i++)
+    to[i] = from[i];
+}
 /* utility functions for widget_instance and widget_info */
 char *
 safe_strdup (s)
@@ -133,7 +142,7 @@ malloc_widget_value ()
       wv = (widget_value *) malloc (sizeof (widget_value));
       malloc_cpt++;
     }
-  memset (wv, 0, sizeof (widget_value));
+  lwlib_memset (wv, 0, sizeof (widget_value));
   return wv;
 }
 
@@ -255,7 +264,7 @@ free_widget_info (info)
   safe_free_str (info->type);
   safe_free_str (info->name);
   free_widget_value_tree (info->val);
-  memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
+  lwlib_memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
   free (info);
 }
 
@@ -297,7 +306,7 @@ static void
 free_widget_instance (instance)
      widget_instance* instance;
 {
-  memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
+  lwlib_memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
   free (instance);
 }
 
@@ -555,11 +564,13 @@ name_to_widget (instance, name)
   else
     {
       int length = strlen (name) + 2;
-      char* real_name = (char *) alloca (length);
+      char* real_name = (char *) xmalloc (length);
       real_name [0] = '*';
       strcpy (real_name + 1, name);
       
       widget = XtNameToWidget (instance->widget, real_name);
+
+      free (real_name);
     }
   return widget;
 }
