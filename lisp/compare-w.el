@@ -35,7 +35,7 @@
   :prefix "compare-"
   :group 'tools)
 
-(defcustom compare-windows-whitespace "[ \t\n]+"
+(defcustom compare-windows-whitespace "\\s-+"
   "*Regexp that defines whitespace sequences for \\[compare-windows].
 Changes in whitespace are optionally ignored.
 
