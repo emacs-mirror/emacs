@@ -942,7 +942,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
     (define-key map "f" 'dired-find-file)
-    (define-key map "w" 'dired-show-file-type)
     (define-key map "\C-m" 'dired-advertised-find-file)
     (define-key map "g" 'revert-buffer)
     (define-key map "h" 'describe-mode)
@@ -960,6 +959,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "u" 'dired-unmark)
     (define-key map "v" 'dired-view-file)
     (define-key map "x" 'dired-do-flagged-delete)
+    (define-key map "y" 'dired-show-file-type)
     (define-key map "+" 'dired-create-directory)
     ;; moving
     (define-key map "<" 'dired-prev-dirline)
