@@ -93,7 +93,7 @@ Which Function mode doesn't do anything until you use Imenu."
   :group 'which-func
   :type '(repeat (symbol :tag "Major mode")))
 
-(defcustom which-func-maxout 100000
+(defcustom which-func-maxout 500000
   "Don't automatically compute the Imenu menu if buffer is this big or bigger.
 Zero means compute the Imenu menu regardless of size."
   :group 'which-func
@@ -164,13 +164,12 @@ It creates the Imenu index for the buffer, if necessary."
        (which-func-mode -1)
        (error "Error in which-func-update: %s" info)))))
 
+;;;###autoload
+(defalias 'which-func-mode 'which-function-mode)
+
 ;; This is the name people would normally expect.
 ;;;###autoload
-(defalias 'which-function-mode 'which-func-mode-global)
-;;;###autoload
-(defalias 'which-func-mode 'which-func-mode-global)
-;;;###autoload
-(define-minor-mode which-func-mode-global
+(define-minor-mode which-function-mode
   "Toggle Which Function mode, globally.
 When Which Function mode is enabled, the current function name is
 continuously displayed in the mode line, in certain major modes.
