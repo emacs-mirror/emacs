@@ -489,7 +489,9 @@ hierarchy would be replaced with the new directory."
 
 (defcustom speedbar-use-images (and (or (fboundp 'defimage)
 					(fboundp 'make-image-specifier))
-				    window-system)
+				    (if (fboundp 'display-graphic-p)
+					(display-graphic-p)
+				      window-system))
   "*Non nil if speedbar should display icons."
   :group 'speedbar
   :type 'boolean)
@@ -733,7 +735,9 @@ PATH-EXPRESSION to `speedbar-ignored-path-expressions'."
 			      (or (fboundp 'run-with-idle-timer)
 				  (fboundp 'start-itimer)
 				  (boundp 'post-command-idle-hook))
-			      window-system)
+			      (if (fboundp 'display-graphic-p)
+				  (display-graphic-p)
+				window-system))
   "*Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's path.
 When speedbar is active, use:
@@ -876,7 +880,9 @@ This basically creates a sparse keymap, and makes it's parent be
       :style toggle :selected speedbar-update-flag])
    (if (and (or (fboundp 'defimage)
 		(fboundp 'make-image-specifier))
-	    window-system)
+	    (if (fboundp 'display-graphic-p)
+		(display-graphic-p)
+	      window-system))
        (list
 	["Use Images" speedbar-toggle-images
 	 :style toggle :selected speedbar-use-images]))
