@@ -16,10 +16,13 @@ ordinary editing.
 
   Arguments starting with @samp{-} are @dfn{options}.  Other arguments
 specify files to visit.  Emacs visits the specified files while it
-starts up.  The last file name on your command line becomes the current
-buffer; the other files are also present in other buffers.  As usual,
-the special argument @samp{--} says that all subsequent arguments
-are file names, not options, even if they start with @samp{-}.
+starts up.  The last file name on your command line becomes the
+current buffer; the other files are also visited in other buffers.  If
+there are two files, they are both displayed; otherwise the last file
+is displayed along with a buffer list that shows what other buffers
+there are.  As with most programs, the special argument @samp{--} says
+that all subsequent arguments are file names, not options, even if
+they start with @samp{-}.
 
   Emacs command options can specify many things, such as the size and
 position of the X window Emacs uses, its colors, and so on.  A few
@@ -268,16 +271,18 @@ to work with.
 a suspension.  To prepare for this, put the following code in your
 @file{.emacs} file (@pxref{Hooks}):
 
+@c `resume-suspend-hook' is correct.  It is the name of a function.
 @example
 (add-hook 'suspend-hook 'resume-suspend-hook)
 (add-hook 'suspend-resume-hook 'resume-process-args)
 @end example
 
   As further preparation, you must execute the shell script
-@file{emacs.csh} (if you use csh as your shell) or @file{emacs.bash} (if
-you use bash as your shell).  These scripts define an alias named
+@file{emacs.csh} (if you use csh as your shell) or @file{emacs.bash}
+(if you use bash as your shell).  These scripts define an alias named
 @code{edit}, which will resume Emacs giving it new command line
-arguments such as files to visit.
+arguments such as files to visit.  The scripts are found in the
+@file{etc} subdirectory of the Emacs distribution.
 
   Only action arguments work properly when you resume Emacs.  Initial
 arguments are not recognized---it's too late to execute them anyway.
@@ -295,7 +300,7 @@ Server}).
 server Emacs running.  However, they cannot determine this with complete
 accuracy.  They may think that a server is still running when in
 actuality you have killed that Emacs, because the file
-@file{/tmp/.esrv@dots{}} still exists.  If this happens, find that
+@file{/tmp/esrv@dots{}} still exists.  If this happens, find that
 file and delete it.
 
 @node Environment
@@ -357,9 +362,6 @@ to be set, but it uses their values if they are set.
 @item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
-@item DOMAINNAME
-The name of the Internet domain that the machine running Emacs is
-located in.  Used by the Gnus package.
 @item EMACS_UNIBYTE
 @cindex unibyte operation, environment variable
 Defining this environment variable with a nonempty value directs Emacs
@@ -789,13 +791,13 @@ initial Emacs frame.  Here is the format for specifying the window
 geometry:
 
 @table @samp
-@item -g @var{width}x@var{height}@r{@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}
+@item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex -g
 Specify window size @var{width} and @var{height} (measured in character
 columns and lines), and positions @var{xoffset} and @var{yoffset}
 (measured in pixels).
 
-@item --geometry=@var{width}x@var{height}@r{@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}
+@item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex --geometry
 This is another way of writing the same thing.
 @end table
@@ -853,11 +855,11 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 @cindex borders (X Window System)
 
   An Emacs frame has an internal border and an external border.  The
-internal border is an extra strip of the background color around all
-four edges of the frame.  Emacs itself adds the internal border.  The
-external border is added by the window manager outside the internal
-border; it may contain various boxes you can click on to move or iconify
-the window.
+internal border is an extra strip of the background color around the
+text portion of the frame.  Emacs itself draws the internal border.
+The external border is added by the window manager outside the frame;
+depending on the window manager you use, it may contain various boxes
+you can click on to move or iconify the window.
 
 @table @samp
 @item -ib @var{width}
@@ -888,10 +890,11 @@ external border is 2.
 @appendixsec Frame Titles
 
   An Emacs frame may or may not have a specified title.  The frame
-title, if specified, appears in window decorations and icons as the name
-of the frame.  If an Emacs frame has no specified title, the default
-title is the name of the executable program (if there is only one frame)
-or the selected window's buffer name (if there is more than one frame).
+title, if specified, appears in window decorations and icons as the
+name of the frame.  If an Emacs frame has no specified title, the
+default title has the form @samp{@var{invocation-name}@@@var{machine}}
+(if there is only one frame) or the selected window's buffer name (if
+there is more than one frame).
 
   You can specify a title for the initial Emacs frame with a command
 line option:
@@ -993,8 +996,8 @@ resources.  Thus, this example specifies 2 as the default width for all
 borders, but overrides this value with 4 for the external border:
 
 @example
-emacs.Borderwidth: 2
-emacs.borderwidth: 4
+emacs.BorderWidth: 2
+emacs.borderWidth: 4
 @end example
 
   The order in which the lines appear in the file does not matter.
@@ -1281,7 +1284,7 @@ Emacs.pane.menubar.popup_*.File.Save (current buffer).fontList: 8x16
 @end smallexample
 
 @noindent
-For an item in a second-level submenu, such as @samp{Spell-Check Message}
+For an item in a second-level submenu, such as @samp{Complete Word}
 under @samp{Spell Checking} under @samp{Tools}, the resource fits this
 template:
 
@@ -1293,8 +1296,7 @@ Emacs.pane.menubar.popup_*.popup_*.@var{menu}.@var{resource}: @var{value}
 For example,
 
 @smallexample
-Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Spell-Check Message:
-  @var{value}
+Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Complete Word: @var{value}
 @end smallexample
 
 @noindent
