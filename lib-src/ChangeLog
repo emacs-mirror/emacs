@@ -1,3 +1,7 @@
+2002-06-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* b2m.pl: New file.
+
 2002-06-21  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: (F_getit, Fortran_functions, Ada_getit, Asm_labels)
