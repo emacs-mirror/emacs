@@ -128,7 +128,7 @@ translators to read other languages for them.\n\n")
 		    default-enable-multibyte-characters))
     (insert "\n")
     (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug:\n\n") 
+	    "and the precise symptoms of the bug:\n\n")
     (setq user-point (point))
     (insert "\n\n\n"
 	    "Recent input:\n")
@@ -236,7 +236,15 @@ If you want to mail it to someone else instead,
 please insert the proper e-mail address after \"To: \",
 and send the mail again using \\[mail-send-and-exit].")))
       (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
-    ))
+
+    ;; Unclutter
+    (mail-text)
+    (let ((p (point)))
+      (re-search-forward (concat "^In " (emacs-version)))
+      (delete-region p (match-beginning 0)))
+    (re-search-forward "Please describe.+\n.+precise symptoms.+bug:\n*"
+                       (point-max) t)
+    (replace-match "Symptoms:\n")))
 
 (provide 'emacsbug)
 
