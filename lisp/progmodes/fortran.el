@@ -405,8 +405,7 @@ format style.")
   (define-key fortran-mode-map "\C-c\C-p" 'fortran-previous-statement)
   (define-key fortran-mode-map "\C-c\C-n" 'fortran-next-statement)
   (define-key fortran-mode-map "\C-c\C-d" 'fortran-join-line) ; like f90
-  (define-key fortran-mode-map
-    "\M-^" 'fortran-join-line) ; basically a delete-indentation equivalent
+  (define-key fortran-mode-map "\M-^" 'fortran-join-line) ; subvert delete-indentation
   (define-key fortran-mode-map "\C-xnd" 'fortran-narrow-to-subprogram)
   ;(define-key fortran-mode-map "\t" 'fortran-indent-line)
   (define-key fortran-mode-map "0" 'fortran-electric-line-number)
@@ -457,10 +456,11 @@ format style.")
        ["Fill Statement/Comment" fill-paragraph  t]
        "----"
        ["Add imenu menu"
-        (progn (imenu-add-to-menubar "Index")
+        (progn (imenu-add-menubar-index)
                ;; Prod menu bar to update -- is this the right way?
                (menu-bar-mode 1))
-        t]))))
+        (not (and (boundp 'imenu--index-alist)
+		  imenu--index-alist))]))))
 
 (defvar fortran-mode-abbrev-table nil)
 (if fortran-mode-abbrev-table
