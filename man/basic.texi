@@ -47,8 +47,8 @@ still before the @samp{B}.
 labeled @key{DEL}, @key{BACKSPACE} or @key{DELETE} which is a short
 distance above the @key{RET} or @key{ENTER} key.  This is the key you
 normally use, outside Emacs, for erasing the last character that you
-typed.  Regardless of the label on that key, Emacs always thinks of it
-as @key{DEL}, and that's what we call it in this manual.
+typed.  Regardless of the label on that key, Emacs thinks of it as
+@key{DEL}, and that's what we call it in this manual.
 
   The @key{DEL} key deletes the character @emph{before} the cursor.
 As a consequence, the cursor and all the characters after it move
