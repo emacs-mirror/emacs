@@ -1,3 +1,7 @@
+2003-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* lread.c (read1): Fix last change; "`" is not always special.
+
 2003-02-18  Andrew Choi  <akochoi@shaw.ca>
 
 	* unexmacosx.c (copy_data_segment): Also copy __cfstring section.
