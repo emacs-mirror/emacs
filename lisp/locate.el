@@ -167,7 +167,7 @@
 
 ;;;### autoload
 (defun locate (search-string &optional filter)
-  "Run the \\[locate] command, putting results in `*Locate*' buffer."
+  "Run the program `locate', putting results in `*Locate*' buffer."
   (interactive
       (list (read-from-minibuffer "Locate: " nil nil
 		  nil 'locate-history-list)))
