@@ -1,5 +1,7 @@
 2004-09-18  Richard M. Stallman  <rms@gnu.org>
 
+	* buffer.c (syms_of_buffer) <default-major-mode>: Doc fix.
+
 	* xdisp.c (try_window_reusing_current_matrix):
 	Handle the case where we reach the old displayed text,
 	out of sync with the old line boundary.
