@@ -1231,10 +1231,9 @@ GNU projects under a revision control system generally possess
 maintained by the revision control system: each time you check in a
 change, you must fill out a @dfn{log entry} for the change (@pxref{Log
 Buffer}).  This kind of log is called the @dfn{version control log},
-or sometimes the @dfn{revision control log}, `@samp{*rcs*} log', or
-`@samp{*cvs*} log'.
+also the @dfn{revision control log}, @dfn{RCS log}, or @dfn{CVS log}.
 
-The other kind of log the change log file, typically called
+The other kind of log is the change log file, typically a file called
 @file{ChangeLog}.  It provides a chronological record of all changes
 to a large portion of a program---one directory and its
 subdirectories.  A small program would use one @file{ChangeLog} file;
