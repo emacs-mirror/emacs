@@ -3,6 +3,8 @@
 	* printing.el (pr-update-menus): Modify interactive declaration.
 	Reported by Drew Adams <drew.adams@oracle.com>.
 
+	* progmodes/ebnf-abn.el (ebnf-abn-parser): Handle initial comments.
+
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
@@ -945,12 +947,12 @@
 
 2004-02-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: Doc fix.
+	* progmodes/ebnf-abn.el: Doc fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-repeat): Code fix.
 
-	* ebnf2ps.el: Doc fix.
+	* progmodes/ebnf2ps.el: Doc fix.
 	(ebnf-syntax-directory, ebnf-syntax-file): New funs.
 
 2004-02-28  Juri Linkov  <juri@jurta.org>
@@ -1016,8 +1018,8 @@
 
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf2ps.el: Doc fix.  For compatibility with Emacs 20, define
-	assq-delete-all if it's not defined.
+	* progmodes/ebnf2ps.el: Doc fix.  For compatibility with Emacs 20,
+	define assq-delete-all if it's not defined.
 	(ebnf-generate-region): Code fix.
 
 	* printing.el: Doc fix.
@@ -1026,12 +1028,13 @@
 
 2004-02-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: New file, implements an ABNF parser.
+	* progmodes/ebnf-abn.el: New file, implements an ABNF parser.
 
-	* ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New arrow shapes:
-	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.
-	Fix a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
-	Reported by Markus Dreyer <mdreyer@ix.urz.uni-heidelberg.de>.
+	* progmodes/ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New
+	arrow shapes: semi-up-hollow, semi-up-full, semi-down-hollow and
+	semi-down-full.  Fix a bug on productions like test = {"test"}* | (
+	"tt" ["test"] ).  Reported by Markus Dreyer
+	<mdreyer@ix.urz.uni-heidelberg.de>.
 	(ebnf-version): New version number (4.0).
 	(ebnf-print-directory, ebnf-print-file, ebnf-spool-directory)
 	(ebnf-spool-file, ebnf-eps-directory, ebnf-eps-file)
@@ -1051,18 +1054,19 @@
 	(ebnf-make-terminal1, ebnf-make-or-more1, ebnf-make-repeat)
 	(ebnf-token-repeat): Code fix.
 
-	* ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc, %right, %left
-	and %prec.  Suggested by Matthew K. Junker <junker@alum.mit.edu>.
+	* progmodes/ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc,
+	%right, %left and %prec.  Suggested by Matthew K. Junker
+	<junker@alum.mit.edu>.
 	(ebnf-yac-definitions, ebnf-yac-lex): Code fix.
 
-	* ebnf-iso.el: Doc fix.
+	* progmodes/ebnf-iso.el: Doc fix.
 	(ebnf-iso-token-table, ebnf-iso-non-terminal-chars): Adjust vars.
 	(ebnf-iso-lex): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Code fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 
