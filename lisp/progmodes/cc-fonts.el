@@ -514,26 +514,21 @@ stuff.  Used on level 1 and higher."
 (defun c-font-lock-invalid-string ()
   ;; Assuming the point is after the opening character of a string,
   ;; fontify that char with `c-invalid-face-name' if the string
-  ;; decidedly isn't terminated properly.  Assumes the string already
-  ;; is syntactically fontified.
-  (let ((end (1+ (c-point 'eol))))
-    (and (eq (get-text-property (point) 'face) 'font-lock-string-face)
-	 (= (next-single-property-change (point) 'face nil end) end)
-	 ;; We're at eol inside a string.  The first check above is
-	 ;; necessary in XEmacs since it doesn't fontify the string
-	 ;; delimiters themselves.  Thus an empty string won't have
-	 ;; the string face anywhere.
-	 (if (c-major-mode-is '(c-mode c++-mode objc-mode pike-mode))
-	     ;; There's no \ before the newline.
-	     (not (eq (char-before (1- end)) ?\\))
-	   ;; Quoted newlines aren't supported.
-	   t)
-	 (if (c-major-mode-is 'pike-mode)
-	     ;; There's no # before the string, so newlines
-	     ;; aren't allowed.
-	     (not (eq (char-before (1- (point))) ?#))
-	   t)
-	 (c-put-font-lock-face (1- (point)) (point) c-invalid-face-name))))
+  ;; decidedly isn't terminated properly.
+  (let ((start (1- (point))))
+    (save-excursion
+      (and (nth 3 (parse-partial-sexp start (c-point 'eol)))
+	   (if (c-major-mode-is '(c-mode c++-mode objc-mode pike-mode))
+	       ;; There's no \ before the newline.
+	       (not (eq (char-before (point)) ?\\))
+	     ;; Quoted newlines aren't supported.
+	     t)
+	   (if (c-major-mode-is 'pike-mode)
+	       ;; There's no # before the string, so newlines
+	       ;; aren't allowed.
+	       (not (eq (char-before start) ?#))
+	     t)
+	   (c-put-font-lock-face start (1+ start) c-invalid-face-name)))))
 
 (c-lang-defconst c-basic-matchers-before
   "Font lock matchers for basic keywords, labels, references and various
@@ -1497,15 +1492,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			   ;; identifier as a type and then backed up again in
 			   ;; this case.
 			   identifier-type
-			   (or (eq identifier-type 'found)
+			   (or (memq identifier-type '(found known))
 			       (and (eq (char-after identifier-start) ?~)
 				    ;; `at-type' probably won't be 'found for
 				    ;; destructors since the "~" is then part
 				    ;; of the type name being checked against
 				    ;; the list of known types, so do a check
 				    ;; without that operator.
-				    (c-check-type (1+ identifier-start)
-						  identifier-end))))
+				    (or (save-excursion
+					  (goto-char (1+ identifier-start))
+					  (c-forward-syntactic-ws)
+					  (c-with-syntax-table
+					      c-identifier-syntax-table
+					    (looking-at c-known-type-key)))
+					(c-check-type (1+ identifier-start)
+						      identifier-end)))))
 		  (throw 'at-decl-or-cast t))
 
 		(if got-identifier
