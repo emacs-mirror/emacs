@@ -104,7 +104,7 @@ NOTE-END */
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 #define LOAD_AVE_CVT(x) (((double) (x)) * 100.0 / FSCALE)
-  
+
 #define FSCALE 256.0         /* determined by experimentation...  */
 #endif
 
@@ -178,6 +178,11 @@ NOTE-END */
 /* '__fltused' is unresolved w/o Slibcfp.a */
 #define LIB_STANDARD /lib/386/Slibcfp.a /lib/386/Slibc.a
 #else /* not XENIX */
+
+#ifdef SOLARIS2
+#define VALBITS 26
+#define GCTYPEBITS 5
+#endif
 
 /* this brings in alloca() if we're using cc */
 #ifdef USG
