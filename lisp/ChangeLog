@@ -1,5 +1,9 @@
 2001-01-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (global-map): Bind <home> to beginning-of-line,
+	<end> to end-of-line, C-<home> to beginning-of-buffer, and
+	C-<end> to end-of-buffer.
+
 	* language/european.el: Add Dutch and Spanish language info
 	to be able to use the appropriate tutorials.
 
