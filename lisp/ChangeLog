@@ -1,3 +1,14 @@
+2004-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-adjust-current-row-cache): Don't allow the current
+	row to become negative.
+	(term-emulate-terminal): Fix insert mode. Handle tab insertion at
+	the end of the line. Fix scroll down. Add comments.
+	(term-handle-ansi-escape): Don't exceed terminal width when moving
+	right.  
+	(term-scroll-region): Move the cursor after setting the scroll
+	region. 
+
 2004-10-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* indent.el (set-left-margin, set-right-margin): Rename `lm' arg
