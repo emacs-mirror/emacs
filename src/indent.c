@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,88,93,94,95,98,2000,01,02,2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -374,8 +374,8 @@ current_column ()
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
   if (BUF_INTERVALS (current_buffer)
-      || !NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after)
+      || current_buffer->overlays_before
+      || current_buffer->overlays_after
       || Z != Z_BYTE)
     return current_column_1 ();
 
