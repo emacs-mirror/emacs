@@ -1,3 +1,8 @@
+2002-04-03  Richard M. Stallman  <rms@gnu.org>
+
+	* shell.el (shell-mode): Don't reinit comint-input-ring
+	if that was already done.
+
 2002-04-03  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* solar.el (solar-spring-or-summer-season): Deleted.
