@@ -1,3 +1,7 @@
+2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-stop-on-user-input): Further doc fix.
+
 2005-02-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-fallback-command): Pass user input to fallback command.
