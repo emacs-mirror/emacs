@@ -81,7 +81,7 @@ with a definition that really does change some file names."
 (defvar msdos-shells '("command.com" "4dos.com" "ndos.com")
   "*List of shells that use `/c' instead of `-c' and a backslashed command.")
 
-(defconst register-name-alist
+(defvar register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
     (al . (0 . 0)) (bl . (1 . 0)) (cl . (2 . 0)) (dl . (3 . 0))
