@@ -365,6 +365,9 @@ Default value, nil, means edit the string instead."
 ;   case in the search string is ignored.
 (defvar isearch-case-fold-search nil)
 
+;; Used to save default value while isearch is active
+(defvar isearch-original-minibuffer-message-timeout nil)
+
 (defvar isearch-adjusted nil)
 (defvar isearch-slow-terminal-mode nil)
 ;;; If t, using a small window.
@@ -536,7 +539,12 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-opened-overlays nil
 	isearch-input-method-function input-method-function
 	isearch-input-method-local-p (local-variable-p 'input-method-function)
-	regexp-search-ring-yank-pointer nil)
+	regexp-search-ring-yank-pointer nil
+
+	;; Save the original value of `minibuffer-message-timeout', and
+	;; set it to nil so that isearch's messages don't get timed out.
+	isearch-original-minibuffer-message-timeout minibuffer-message-timeout
+	minibuffer-message-timeout nil)
 
   ;; We must bypass input method while reading key.  When a user type
   ;; printable character, appropriate input method is turned on in
@@ -631,6 +639,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-terminal-local-map nil)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
+  (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight t)
   (isearch-lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
@@ -777,6 +786,12 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	      (isearch-recursive-edit isearch-recursive-edit)
 	      ;; Save current configuration so we can restore it here.
 	      (isearch-window-configuration (current-window-configuration))
+
+	      ;; Temporarily restore `minibuffer-message-timeout'.
+	      (minibuffer-message-timeout
+	       isearch-original-minibuffer-message-timeout)
+	      (isearch-original-minibuffer-message-timeout
+	       isearch-original-minibuffer-message-timeout)
 	      )
 
 	  ;; Actually terminate isearching until editing is done.
