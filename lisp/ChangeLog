@@ -1,3 +1,17 @@
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (replace-dehighlight): Use lazy-highlight-cleanup.
+	(query-replace-highlight, query-replace-lazy-highlight)
+	(query-replace): Definitions moved up.  Doc fix.
+
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (lazy-highlight): Group renamed from isearch-lazy-...
+	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
+	(lazy-highlight-interval, lazy-highlight-max-at-a-time)
+	(lazy-highlight-face): Renamed from isearch-lazy-...
+	Change all references to them.
+
 2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-file): Doc fix for defcustom.
@@ -24,7 +38,7 @@
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
-2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>
+2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
 

@@ -1,3 +1,8 @@
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Don't correct preserve_y
+	for CURRENT_HEADER_LINE_HEIGHT when moving backwards.
+
 2005-01-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (w32_load_bdf_font): Set fontp->average_width and
