@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2002/07/10 09:16:38 $
+;; Date: $Date: 2002/09/06 09:36:57 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -54,7 +54,7 @@
 ;;   The newest version of this file can be found on the maintainers
 ;;   web site.
 ;; 
-;;     http://www.strw.leidenuniv.el/~dominik/Tools/idlwave
+;;     http://www.idlwave.org/
 ;; 
 ;; DOCUMENTATION
 ;; =============
@@ -665,7 +665,7 @@ IDL has currently stepped.")
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
    For Postscript and HTML versions of the documentation, check IDLWAVE's
-   homepage at `http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave'.
+   homepage at `http://www.idlwave.org/'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 7. Keybindings

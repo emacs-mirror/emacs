@@ -29,7 +29,7 @@ engine) or retrievable from general Usenet archive services.
 
 You might find bug-fixes or enhancements in these places.
 
- * Ada: <URL:http://www.ada-france.org/ada-mode>
+ * Ada: <URL:http://libre.act-europe.fr/adamode/>
 
  * Autorevert, CWarn and Follow:
    <URL:http://www.andersl.com/emacs/>
@@ -96,7 +96,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
- * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
+ * Webjump: <URL:http://www.neilvandyke.org/webjump/>
 
  * Whitespace; <URL:http://www.dsmit.com/lisp/>
 
@@ -107,7 +107,7 @@ You might find bug-fixes or enhancements in these places.
    * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
-   * Perl: <URL:ftp://ftp.cpan.org/CPAN/doc/manual/texinfo/perl5/> (or
+   * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/perl5/> (or
    CPAN mirrors)
 
 * Packages and add-ons not bundled with Emacs
@@ -223,7 +223,7 @@ Several are for Debian GNU/Linux in particular.
    <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
    list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
 
- * X-Symbol: <URL:http://www.fmi.uni-passau.de/~wedler/x-symbol/emacs.html>
+ * X-Symbol: <URL:http://x-symbol.sourceforge.net/>
    Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
    better advantage of Emacs 21 features.)
 

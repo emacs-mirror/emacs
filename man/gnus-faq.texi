@@ -130,14 +130,14 @@ on it (unless you use Gnus as your mailer reader, that is). The mailing
 list is mainly for developers and testers.
 
 Gnus has a home World Wide Web page at@*
-@file{http://www.ifi.uio.no/~larsi/ding.html}.
+@file{http://www.gnus.org/}.
    
 Gnus has a write up in the X Applications FAQ at@*
 @file{http://www.ee.ryerson.ca:8080/~elf/xapps/Q-III.html}.
    
 The Gnus manual is also available on the World Wide Web. The canonical
 source is in Norway at@*
-@file{http://www.ifi.uio.no/~larsi/ding-manual/gnus_toc.html}.
+@file{http://www.gnus.org/manual/gnus_toc.html}.
 
 There are three mirrors in the United States:
 @enumerate

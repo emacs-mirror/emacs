@@ -19,7 +19,7 @@
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER John-David Smith
 @set MAINTAINER-EMAIL jdsmith@@astro.cornell.edu
-@set IDLWAVE-HOMEPAGE http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave
+@set IDLWAVE-HOMEPAGE http://idlwave.org/
 @c %**end of header
 @finalout
 
@@ -239,16 +239,16 @@ Here are a number of screenshots showing IDLWAVE in action.
 
 @itemize @bullet
 @item
-@uref{http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave/font-lock.gif,
+@uref{http://idlwave.org/screenshots/font-lock.gif,
 XEmacs 21.1 with formatted and fontified code} 
 @item
-@uref{http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave/rinfo.gif,
+@uref{http://idlwave.org/screenshots/rinfo.gif,
 XEmacs 21.1 displaying routine info}
 @item
-@uref{http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave/complete.gif, 
+@uref{http://idlwave.org/screenshots/complete.gif,
 XEmacs 21.1 completing a keyword}
 @item
-@uref{http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave/shell.gif,
+@uref{http://idlwave.org/screenshots/shell.gif,
 XEmacs 21.1 with debugging toolbar; execution stopped at a breakpoint} 
 @end itemize
 @end ifnottex
