@@ -120,7 +120,8 @@ By default, this is the file specified by `mail-personal-alias-file'."
 	    (cond ((get-file-buffer file)
 		   (insert (save-excursion
 			     (set-buffer (get-file-buffer file))
-			     (buffer-substring (point-min) (point-max)))))
+			     (buffer-substring-no-properties
+			      (point-min) (point-max)))))
 		  ((file-exists-p file) (insert-file-contents file))
 		  ((file-exists-p (setq file (concat "~/" file)))
 		   (insert-file-contents file))
@@ -139,8 +140,8 @@ By default, this is the file specified by `mail-personal-alias-file'."
 	    ;; handle `source' directives -- Eddy/1994/May/25
 	    (cond ((re-search-forward "^source[ \t]+" nil t)
 		   (re-search-forward "\\S-+")
-		   (setq file
-			 (buffer-substring (match-beginning 0) (match-end 0)))
+		   (setq file (buffer-substring-no-properties
+			       (match-beginning 0) (match-end 0)))
 		   (beginning-of-line)
 		   (insert "# ") ; to ensure we don't re-process this file
 		   (beginning-of-line))
@@ -153,7 +154,7 @@ By default, this is the file specified by `mail-personal-alias-file'."
 	      (end-of-line)
 	      (define-mail-alias
 		name
-		(buffer-substring start (point))
+		(buffer-substring-no-properties start (point))
 		t)))
 	  mail-aliases)
       (if buffer (kill-buffer buffer))
