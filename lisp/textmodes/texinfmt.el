@@ -2382,17 +2382,17 @@ If used within a line, follow `@bullet' with braces."
 (put 'direntry 'texinfo-end 'texinfo-end-direntry)
 (defun texinfo-end-direntry ()
   (texinfo-discard-command)
-  (insert "END-INFO-DIR-ENTRY\n")
+  (insert "END-INFO-DIR-ENTRY\n\n")
   (texinfo-pop-stack 'direntry))
 
 (put 'dircategory 'texinfo-format 'texinfo-format-dircategory)
 (defun texinfo-format-dircategory ()
-  (texinfo-discard-command)
-  (delete-region (point)
-                 (progn
-                  (skip-chars-forward " ")
-                  (point)))
-  (insert "INFO-DIR-SECTION "))
+  (let ((str (texinfo-parse-arg-discard)))
+    (delete-region (point)
+		   (progn
+		     (skip-chars-forward " ")
+		     (point)))
+    (insert "INFO-DIR-SECTION " str "\n")))
 
 ;;; @cartouche 
 
@@ -3964,7 +3964,6 @@ the @ifeq command."
 (put 'shorttitlepage 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'summarycontents 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'input 'texinfo-format 'texinfo-discard-line-with-args)
-(put 'dircategory 'texinfo-format 'texinfo-discard-line-with-args)
 
 
 ;;; Some commands cannot be handled
