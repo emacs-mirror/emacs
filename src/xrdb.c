@@ -38,7 +38,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef SYSV
 #define SYSV
 #endif
-#include <unistd.h>
 #endif /* USG5 */
 
 #endif /* 1 */
