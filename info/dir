@@ -22,6 +22,7 @@ Emacs
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Dired-X: (dired-x).   Dired Extra Features.
 * Ediff: (ediff).	A comprehensive visual interface to diff & patch.
+* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
 * Ada mode: (ada-mode). The GNU Emacs mode for editing Ada code.
