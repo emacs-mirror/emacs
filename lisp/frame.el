@@ -701,7 +701,14 @@ If FRAME is omitted, describe the currently selected frame."
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
 To get the frame's current default font, use `frame-parameters'."
-  (interactive "sFont name: ")
+  (interactive 
+   (list
+    (let ((completion-ignore-case t))
+      (completing-read "Font name: "
+		       (mapcar #'list
+			       ;; x-list-fonts will fail with an error
+			       ;; if this frame doesn't support fonts.
+			       (x-list-fonts "*" nil (selected-frame)))))))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name)))
   ;; Update faces that want a bold or italic version of the default font.
