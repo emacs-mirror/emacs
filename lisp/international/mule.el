@@ -1513,14 +1513,18 @@ and the contents of `file-coding-system-alist'."
 				   sgml-html-meta-auto-coding-function)
   "A list of functions which attempt to determine a coding system.
 
-Each function in this list should be written to operate on the current
-buffer, but should not modify it in any way.  It should take one
-argument SIZE, past which it should not search.  If a function
-succeeds in determining a coding system, it should return that coding
-system.  Otherwise, it should return nil.
+Each function in this list should be written to operate on the
+current buffer, but should not modify it in any way.  The buffer
+will contain undecoded text of parts of the file.  Each function
+should take one argument, SIZE, which says how many
+characters (starting from point) it should look at.
 
-Any `coding:' tags present have a higher priority than the
-functions in this list."
+If one of these functions succeeds in determining a coding
+system, it should return that coding system.  Otherwise, it
+should return nil.
+
+If a file has a `coding:' tag, that takes precedence over these
+functions, so they won't be called at all."
   :group 'files
   :group 'mule
   :type '(repeat function))
