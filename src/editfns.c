@@ -1328,9 +1328,14 @@ insert1 (arg)
 
 DEFUN ("insert", Finsert, Sinsert, 0, MANY, 0,
   "Insert the arguments, either strings or characters, at point.\n\
-Point and before-insertion-markers move forward so that it ends up\n\
+Point and before-insertion markers move forward to end up\n\
  after the inserted text.\n\
-Any other markers at the point of insertion remain before the text.")
+Any other markers at the point of insertion remain before the text.\n\
+\n\
+If the current buffer is multibyte, unibyte strings are converted\n\
+to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
+If the current buffer is unibyte, multiibyte strings are converted\n\
+to unibyte for insertion.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -1342,9 +1347,14 @@ Any other markers at the point of insertion remain before the text.")
 DEFUN ("insert-and-inherit", Finsert_and_inherit, Sinsert_and_inherit,
    0, MANY, 0,
   "Insert the arguments at point, inheriting properties from adjoining text.\n\
-Point and before-insertion-markers move forward so that it ends up\n\
+Point and before-insertion markers move forward to end up\n\
  after the inserted text.\n\
-Any other markers at the point of insertion remain before the text.")
+Any other markers at the point of insertion remain before the text.\n\
+\n\
+If the current buffer is multibyte, unibyte strings are converted\n\
+to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
+If the current buffer is unibyte, multiibyte strings are converted\n\
+to unibyte for insertion.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -1356,9 +1366,12 @@ Any other markers at the point of insertion remain before the text.")
 
 DEFUN ("insert-before-markers", Finsert_before_markers, Sinsert_before_markers, 0, MANY, 0,
   "Insert strings or characters at point, relocating markers after the text.\n\
-Point and before-insertion-markers move forward so that it ends up\n\
- after the inserted text.\n\
-Any other markers at the point of insertion also end up after the text.")
+Point and markers move forward to end up after the inserted text.\n\
+\n\
+If the current buffer is multibyte, unibyte strings are converted\n\
+to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
+If the current buffer is unibyte, multiibyte strings are converted\n\
+to unibyte for insertion.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -1372,8 +1385,12 @@ Any other markers at the point of insertion also end up after the text.")
 DEFUN ("insert-before-markers-and-inherit", Finsert_and_inherit_before_markers,
   Sinsert_and_inherit_before_markers, 0, MANY, 0,
   "Insert text at point, relocating markers and inheriting properties.\n\
-Point moves forward so that it ends up after the inserted text.\n\
-Any other markers at the point of insertion also end up after the text.")
+Point and markers move forward to end up after the inserted text.\n\
+\n\
+If the current buffer is multibyte, unibyte strings are converted\n\
+to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
+If the current buffer is unibyte, multiibyte strings are converted\n\
+to unibyte for insertion.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -1547,7 +1564,8 @@ update_buffer_properties (start, end)
 DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
   "Return the contents of part of the current buffer as a string.\n\
 The two arguments START and END are character positions;\n\
-they can be in either order.")
+they can be in either order.\n\
+The string returned is multibyte if the buffer is multibyte.")
   (start, end)
      Lisp_Object start, end;
 {
