@@ -659,9 +659,12 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
 	 (candidates (cp-supported-codepages)))
      (list (completing-read "Setup DOS Codepage: (default 437) " candidates
 			    nil t nil nil "437"))))
-  (let ((cp (format "cp%s" codepage)))
-    (cp-make-coding-systems-for-codepage
-     cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))
+  (let* ((cp (format "cp%s" codepage))
+	 (cp-defined (intern-soft cp)))
+    (or (and cp-defined  ;; avoid defining if already defined
+	     (coding-system-p cp-defined))
+	(cp-make-coding-systems-for-codepage
+	 cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp)))))
 
 (provide 'codepage)
 
