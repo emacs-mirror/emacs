@@ -1121,9 +1121,14 @@ INTEGER optionally contains a sign.
   #25rah 
     => 267
 
-** The function documentation-property now evaluates the value of
+** The function `documentation-property' now evaluates the value of
 the given property to obtain a a string if it doesn't refer to etc/DOC
 and isn't a string.
+
+** If called for a symbol, the function `documentation' now looks for
+a `function-documentation' property of that symbol.  If it has a non-nil
+value, the documentation is taken from that value.  If the value is
+not a string, it is evaluated to obtain a string.
 
 +++
 ** The last argument of `define-key-after' defaults to t for convenience.

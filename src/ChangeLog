@@ -1,5 +1,11 @@
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* doc.c (Qfunction_documentation): New variable.
+	(syms_of_doc): Initialize Qfunction_documentation.
+	(Fdocumentation): If FUNCTION is a symbol with non-nil
+	`function-documentation' property, return a documentation derived
+	from that.
+
 	* buffer.c (syms_of_buffer): Add default-cursor-type.
 	(init_buffer_once): Don't let cursor_type have a local value
 	in every buffer.
