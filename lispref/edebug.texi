@@ -1077,15 +1077,14 @@ For example, (for i from 1 to 10 do (print i))."
   ...)
 @end example
 
-@defspec declare (edebug @var{specification})
-Specify which expressions of a call to the macro in which the
-declaration appears are forms to be evaluated.  For simple macros, the
-@var{specification} often looks very similar to the formal argument list
-of the macro definition, but specifications are much more general than
-macro arguments.
-@end defspec
+  The Edebug specifation says which parts of a call to the macro are
+forms to be evaluated.  For simple macros, the @var{specification}
+often looks very similar to the formal argument list of the macro
+definition, but specifications are much more general than macro
+arguments.  @xref{Defining Macros}, for more explanation of
+the @code{declare} special form.
 
-You can also define an edebug specification for a macro separately
+  You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
 @code{edebug} declarations is preferred, and more convenient, for
 macro definitions in Lisp, but @code{def-edebug-spec} makes it
