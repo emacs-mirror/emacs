@@ -53,9 +53,7 @@
 	(setq nonascii-insert-offset nonascii-offset)))
 
   (if input-method
-      (progn
-	(setq default-input-method input-method)
-	(setq-default default-input-method input-method)))
+      (setq default-input-method input-method))
 
   ;; If this is a Latin-N character set, set up syntax for it in
   ;; single-byte mode.
@@ -68,7 +66,7 @@
  'iso-latin-1 2 ?1
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-1, Compound Text Encoding)"
  '((ascii t) (latin-iso8859-1 t) nil nil
-   nil ascii-eol ascii-cntl))
+   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil nil t))
 
 (define-coding-system-alias 'iso-8859-1 'iso-latin-1)
 (define-coding-system-alias 'latin-1 'iso-latin-1)
