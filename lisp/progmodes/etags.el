@@ -420,8 +420,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	 (or tags-file-name
 	     (error "%s"
 		    (substitute-command-keys
-		     (concat "No tags table in use!  "
-			     "Use \\[visit-tags-table] to select one.")))))
+		     (concat "No tags table in use; "
+			     "use \\[visit-tags-table] to select one")))))
 
 	((eq t cont)
 	 ;; Find the next table.
@@ -1302,7 +1302,7 @@ if the file was newly read in, the value is the filename."
     (and novisit
 	 (get-buffer " *next-file*")
 	 (kill-buffer " *next-file*"))
-    (error "All files processed."))
+    (error "All files processed"))
   (let* ((next (car next-file-list))
 	 (new (not (get-file-buffer next))))
     ;; Advance the list before trying to find the file.
@@ -1324,7 +1324,7 @@ if the file was newly read in, the value is the filename."
 (defvar tags-loop-scan
   '(error "%s"
 	  (substitute-command-keys
-	   "No \\[tags-search] or \\[tags-query-replace] in progress."))
+	   "No \\[tags-search] or \\[tags-query-replace] in progress"))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
 \`tags-loop-operate'.  Otherwise, move on to the next file.")
@@ -1573,7 +1573,7 @@ for \\[find-tag] (which see)."
       tags-file-name
       (error "%s"
 	     (substitute-command-keys
-	      "No tags table loaded.  Try \\[visit-tags-table].")))
+	      "No tags table loaded; try \\[visit-tags-table]")))
   (let ((pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
 			      'find-tag-default)))
