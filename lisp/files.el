@@ -4072,6 +4072,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 
 	  (when (string-match "--dired\\>" switches)
 	    (forward-line -2)
+            (when (looking-at "//SUBDIRED//")
+              (delete-region (point) (progn (forward-line 1) (point)))
+              (forward-line -1))
 	    (let ((end (line-end-position)))
 	      (forward-word 1)
 	      (forward-char 3)
