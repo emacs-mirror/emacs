@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Version:    5.15
+;; Version:    5.16
 ;; Keywords:   c languages oop
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -80,6 +80,15 @@
 (eval-when-compile
   (require 'cc-menus))
 (require 'cc-defs)
+
+(defvar c-buffer-is-cc-mode nil
+  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
+Otherwise, this variable is nil.  I.e. this variable is non-nil for
+`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode', and any
+other non-CC Mode mode that calls `c-initialize-cc-mode'
+\(e.g. `awk-mode').")
+(make-variable-buffer-local 'c-buffer-is-cc-mode)
+(put 'c-buffer-is-cc-mode 'permanent-local t)
 
 
 ;; Other modes and packages which depend on CC Mode should do the
@@ -185,7 +194,6 @@ Key bindings:
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
 	c-access-key c-C++-access-key
-	c-double-slash-is-comments-p t
 	c-recognize-knr-p nil
 	imenu-generic-expression cc-imenu-c++-generic-expression)
   (run-hooks 'c-mode-common-hook)
@@ -226,7 +234,6 @@ Key bindings:
  	c-class-key c-ObjC-class-key
 	c-baseclass-key nil
 	c-access-key c-ObjC-access-key
-	c-double-slash-is-comments-p t
 	c-method-key c-ObjC-method-key)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'objc-mode-hook)
@@ -267,7 +274,6 @@ Key bindings:
  	c-comment-start-regexp c-Java-comment-start-regexp
   	c-class-key c-Java-class-key
 	c-method-key c-Java-method-key
-	c-double-slash-is-comments-p t
  	c-baseclass-key nil
 	c-recognize-knr-p nil
  	c-access-key c-Java-access-key
@@ -312,7 +318,6 @@ Key bindings:
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
 	c-access-key c-C++-access-key
-	c-double-slash-is-comments-p t
 	c-recognize-knr-p nil)
 ;;	imenu-generic-expression cc-imenu-c++-generic-expression)
   (run-hooks 'c-mode-common-hook)
@@ -321,7 +326,7 @@ Key bindings:
 
 
 ;; defuns for submitting bug reports
-(defconst c-version "5.15"
+(defconst c-version "5.16"
   "CC Mode version number.")
 
 (defconst c-mode-help-address
