@@ -162,12 +162,6 @@ performance.")
 ;; Required to support terminfo systems
 (defconst te-terminal-name-prefix "emacs-virtual")
 (defvar te-terminal-name nil)
-(defvar te-terminfo-systems-regexp "^[^-]*-[^-]*-\\(hpux\\|sysv\\)"
-  "Regexp to match system configurations for which we use terminfo.
-That means we provide a Terminfo terminal definition instead
-of a Termcap terminal definition, for the emulated terminal.
-On all other systems, we use termcap.")
-
 
 ;;;;  escape map
 
@@ -1227,7 +1221,7 @@ of the terminal-emulator"
 (defun te-create-terminfo ()
   "Create and compile a terminfo entry for the virtual terminal. This is kept 
 in the /tmp directory"
-  (if (and (string-match te-terminfo-systems system-configuration)
+  (if (and system-uses-terminfo
 	   (not (file-exists-p (concat  "/tmp/" 
 					(substring te-terminal-name-prefix 0 1)
 					"/" te-terminal-name))))
