@@ -896,10 +896,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	    if (!cmpcharp)
 	      {
-		if (require_clipping)
+		if (require_clipping || FONT_WIDTH (font) != glyph_width)
 		  for (i = 0; i < len; i++)
 		    {
-		      if (i > 0) 
+		      if (require_clipping && i > 0) 
 			XSetClipOrigin (FRAME_X_DISPLAY (f), gc,
 					glyph_width * i, 0);
 		      if (background_filled)
@@ -5096,9 +5096,9 @@ x_connection_closed (display, error_message)
 
   /* Indicate that this display is dead.  */
 
-  #ifdef USE_X_TOOLKIT
+#ifdef USE_X_TOOLKIT
   XtCloseDisplay (display);
-  #endif
+#endif
 
   dpyinfo->display = 0;
 
@@ -6416,7 +6416,7 @@ x_load_font (f, fontname, size)
     unsigned long value;
 
     if (!NILP (font_names))
-      fontname = XSTRING (XCONS (font_names)->car)->data;
+      fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
 
     BLOCK_INPUT;
     font = (XFontStruct *) XLoadQueryFont (FRAME_X_DISPLAY (f), fontname);
