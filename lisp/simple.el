@@ -563,7 +563,7 @@ to get different commands to edit and resubmit."
 	  (setq newcmd
 		(let ((print-level nil)
 		      (minibuffer-history-position arg)
-		      (minibuffer-history-sexp-flag t))
+		      (minibuffer-history-sexp-flag (1+ (minibuffer-depth))))
 		  (read-from-minibuffer
 		   "Redo: " (prin1-to-string elt) read-expression-map t
 		   (cons 'command-history arg))))
@@ -587,7 +587,9 @@ except when an alternate history list is specified.")
 (defvar minibuffer-history-sexp-flag nil
   "Non-nil when doing history operations on `command-history'.
 More generally, indicates that the history list being acted on
-contains expressions rather than strings.")
+contains expressions rather than strings.
+It is only valid if its value equals the current minibuffer depth,
+to handle recursive uses of the minibuffer.")
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)
 (defvar minibuffer-history-search-history nil)
@@ -639,7 +641,6 @@ With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive
    (let* ((enable-recursive-minibuffers t)
-	  (minibuffer-history-sexp-flag nil)
 	  (regexp (read-from-minibuffer "Previous element matching (regexp): "
 					nil
 					minibuffer-local-map
@@ -666,7 +667,8 @@ If N is negative, find the next or Nth next match."
 		     "No later matching history item"
 		   "No earlier matching history item")))
       (if (string-match regexp
-			(if minibuffer-history-sexp-flag
+			(if (eq minibuffer-history-sexp-flag
+				(minibuffer-depth))
 			    (let ((print-level nil))
 			      (prin1-to-string (nth (1- pos) history)))
 			  (nth (1- pos) history)))
@@ -674,7 +676,7 @@ If N is negative, find the next or Nth next match."
     (setq minibuffer-history-position pos)
     (erase-buffer)
     (let ((elt (nth (1- pos) history)))
-      (insert (if minibuffer-history-sexp-flag
+      (insert (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 		  (let ((print-level nil))
 		    (prin1-to-string elt))
 		elt)))
@@ -690,7 +692,6 @@ With prefix argument N, search for Nth next match.
 If N is negative, find the previous or Nth previous match."
   (interactive
    (let* ((enable-recursive-minibuffers t)
-	  (minibuffer-history-sexp-flag nil)
 	  (regexp (read-from-minibuffer "Next element matching (regexp): "
 					nil
 					minibuffer-local-map
@@ -728,7 +729,7 @@ If N is negative, find the previous or Nth previous match."
 	      (t (setq elt (nth (1- minibuffer-history-position)
 				(symbol-value minibuffer-history-variable)))))
 	(insert
-	 (if minibuffer-history-sexp-flag
+	 (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 	     (let ((print-level nil))
 	       (prin1-to-string elt))
 	   elt))
