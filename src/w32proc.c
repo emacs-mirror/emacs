@@ -1,5 +1,5 @@
 /* Process support for Windows NT port of GNU EMACS.
-   Copyright (C) 1992 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -320,6 +320,11 @@ remove_child (child_process *cp)
 /* Wait for any of our existing child processes to die
    When it does, close its handle
    Return the pid and fill in the status if non-NULL.  */
+
+/* From callproc.c */
+extern int synch_process_alive;
+extern int synch_process_retcode;
+
 int 
 win32_wait (int *status)
 {
@@ -392,16 +397,22 @@ win32_wait (int *status)
     }
   
   cp = cps[active];
-#ifdef FULL_DEBUG
-  DebPrint (("Wait signaled with process pid %d\n", cp->pid));
-#endif
-  
+
   if (status)
     {
-      /* In process.c the default WAITTYPE is defined.
-	 Since we can't determine anything about why a process died
-	 we can only return a code that looks like WIFEXITED */
-      *status = (retval & 0x7fffff) << 8;
+      *status = retval;
+    }
+  else if (synch_process_alive)
+    {
+      synch_process_alive = 0;
+      synch_process_retcode = retval;
+
+      TerminateThread (cp->thrd, 0);
+      CloseHandle (cp->thrd);
+      CloseHandle (cp->char_consumed);
+      CloseHandle (cp->char_avail);
+      CloseHandle (cp->process);
+      DEACTIVATE_CHILD (cp);
     }
   
   return cp->pid;
@@ -522,8 +533,8 @@ extern HANDLE keyboard_handle;
 extern int proc_buffered_char[];
 
 int 
-select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	EMACS_TIME *timeout)
+sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+	    EMACS_TIME *timeout)
 {
   SELECT_TYPE orfds;
   DWORD timeout_ms;
@@ -535,7 +546,11 @@ select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL) 
     {
+#ifdef HAVE_TIMEVAL
+      Sleep (timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
+#else
       Sleep ((*timeout) * 1000);
+#endif
       return 0;
     }
 
@@ -598,7 +613,12 @@ select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   /* Nothing to look for, so we didn't find anything */
   if (nh == 0) 
     {
-      Sleep ((*timeout) * 1000);
+      if (timeout)
+#ifdef HAVE_TIMEVAL
+	Sleep (timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
+#else
+	Sleep ((*timeout) * 1000);
+#endif
       return 0;
     }
   
@@ -612,7 +632,11 @@ select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
      so the reader thread will signal an error condition, thus, the wait
      will wake up
      */
+#ifdef HAVE_TIMEVAL
+  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
+#else
   timeout_ms = timeout ? *timeout*1000 : INFINITE;
+#endif
   active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
   if (active == WAIT_FAILED)
     {
