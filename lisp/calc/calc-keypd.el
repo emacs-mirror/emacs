@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-keypd.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -30,45 +30,42 @@
 
 
 
-;;; Pictorial interface to Calc using the X window system mouse.
+;;; Pictorial interface to Calc using a mouse.
 
 (defvar calc-keypad-buffer nil)
 (defvar calc-keypad-menu 0)
 (defvar calc-keypad-full-layout nil)
 (defvar calc-keypad-input nil)
 (defvar calc-keypad-prev-input nil)
-(defvar calc-keypad-prev-x-left-click nil)
-(defvar calc-keypad-prev-x-middle-click nil)
-(defvar calc-keypad-prev-x-right-click nil)
 (defvar calc-keypad-said-hello nil)
 
 (defvar calc-keypad-map nil)
-(if calc-keypad-map
-    ()
-  (setq calc-keypad-map (make-sparse-keymap))
-  (define-key calc-keypad-map " " 'calc-keypad-press)
-  (define-key calc-keypad-map "\r" 'calc-keypad-press)
-  (define-key calc-keypad-map "\t" 'calc-keypad-menu)
-  (define-key calc-keypad-map "q" 'calc-keypad-off))
+(unless calc-keypad-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " 'calc-keypad-press)
+    (define-key map (kbd "RET") 'calc-keypad-press)
+    (define-key map (kbd "TAB") 'calc-keypad-menu)
+    (define-key map "q" 'calc-keypad-off)
+    (define-key map [(mouse-3)] 'calc-keypad-right-click)
+    (define-key map [(mouse-2)] 'calc-keypad-middle-click)
+    (define-key map [(mouse-1)] 'calc-keypad-left-click)
+    (setq calc-keypad-map map)))
 
 (defun calc-do-keypad (&optional full-display interactive)
-  (if (string-match "^19" emacs-version)
-      (error "Sorry, calc-keypad not yet implemented for Emacs 19"))
   (calc-create-buffer)
   (let ((calcbuf (current-buffer)))
-    (or (and calc-keypad-buffer
-	     (buffer-name calc-keypad-buffer))
-	(progn
-	  (setq calc-keypad-buffer (get-buffer-create "*Calc Keypad*"))
-	  (set-buffer calc-keypad-buffer)
-	  (use-local-map calc-keypad-map)
-	  (setq major-mode 'calc-keypad)
-	  (setq mode-name "Calculator")
-	  (put 'calc-keypad 'mode-class 'special)
-	  (make-local-variable 'calc-main-buffer)
-	  (setq calc-main-buffer calcbuf)
-	  (calc-keypad-redraw)
-	  (calc-trail-buffer)))
+    (unless (and calc-keypad-buffer
+		 (buffer-name calc-keypad-buffer))
+      (setq calc-keypad-buffer (get-buffer-create "*Calc Keypad*"))
+      (set-buffer calc-keypad-buffer)
+      (use-local-map calc-keypad-map)
+      (setq major-mode 'calc-keypad)
+      (setq mode-name "Calculator")
+      (put 'calc-keypad 'mode-class 'special)
+      (make-local-variable 'calc-main-buffer)
+      (setq calc-main-buffer calcbuf)
+      (calc-keypad-redraw)
+      (calc-trail-buffer))
     (let ((width 29)
 	  (height 17)
 	  win old-win)
@@ -85,16 +82,7 @@
 	    (bury-buffer calc-keypad-buffer)
 	    (if (one-window-p)
 		(switch-to-buffer (other-buffer))
-	      (delete-window win))
-	    (if (and calc-keypad-prev-x-left-click
-		     (eq (aref mouse-map 0) 'calc-keypad-x-right-click)
-		     (eq (aref mouse-map 1) 'calc-keypad-x-middle-click)
-		     (eq (aref mouse-map 2) 'calc-keypad-x-left-click))
-		(progn
-		  (aset mouse-map 0 calc-keypad-prev-x-right-click)
-		  (aset mouse-map 1 calc-keypad-prev-x-middle-click)
-		  (aset mouse-map 2 calc-keypad-prev-x-left-click)
-		  (setq calc-keypad-prev-x-left-click nil))))
+	      (delete-window win)))
 	(setq calc-was-keypad-mode t
 	      old-win (get-largest-window))
 	(if (or (< (window-height old-win) (+ height 6))
@@ -126,24 +114,14 @@
 	  (split-window win (- (window-height win) height 1))
 	  (set-window-buffer win calcbuf))
 	(select-window old-win)
-	(if (and (eq window-system 'x)
-		 (not calc-keypad-prev-x-left-click))
-	    (progn
-	      (setq calc-keypad-prev-x-right-click (aref mouse-map 0)
-		    calc-keypad-prev-x-middle-click (aref mouse-map 1)
-		    calc-keypad-prev-x-left-click (aref mouse-map 2))
-	      (aset mouse-map 0 'calc-keypad-x-right-click)
-	      (aset mouse-map 1 'calc-keypad-x-middle-click)
-	      (aset mouse-map 2 'calc-keypad-x-left-click)))
 	(message "Welcome to GNU Emacs Calc!  Use the left and right mouse buttons.")
 	(run-hooks 'calc-keypad-start-hook)
 	(and calc-keypad-said-hello interactive
 	     (progn
 	       (sit-for 2)
 	       (message "")))
-	(setq calc-keypad-said-hello t))))
-  (setq calc-keypad-input nil)
-)
+	(setq calc-keypad-said-hello t)))
+    (setq calc-keypad-input nil)))
 
 (defun calc-keypad-off ()
   (interactive)
@@ -252,13 +230,13 @@
 	       (beep))
 	      ((and (> (minibuffer-depth) 0))
 	       (cond (isstring
-		      (setq unread-command-char (aref (car cmd) 0)))
+		      (push (aref (car cmd) 0) unread-command-events))
 		     ((eq cmd 'calc-pop)
-		      (setq unread-command-char ?\177))
+		      (push ?\177 unread-command-events))
 		     ((eq cmd 'calc-enter)
-		      (setq unread-command-char 13))
+		      (push 13 unread-command-events))
 		     ((eq cmd 'calc-undo)
-		      (setq unread-command-char 7))
+		      (push 7 unread-command-events))
 		     (t
 		      (beep))))
 	      ((and input (string-match "STO\\|RCL" input))
@@ -368,54 +346,29 @@
       (calc-keypad-show-input)))
 )
 
-(defun calc-keypad-x-left-click (arg)
+(defun calc-keypad-left-click (event)
   "Handle a left-button mouse click in Calc Keypad window."
-  (let (coords)
-    (if (and calc-keypad-buffer
-	     (buffer-name calc-keypad-buffer)
-	     (get-buffer-window calc-keypad-buffer)
-	     (setq coords (coordinates-in-window-p
-			   arg (get-buffer-window calc-keypad-buffer))))
-	(let ((win (selected-window)))
-	  (unwind-protect
-	      (progn
-		(x-mouse-set-point arg)
-		(calc-keypad-press))
-	    (and (window-point win)
-		 (select-window win))))
-      (funcall calc-keypad-prev-x-left-click arg)))
-)
+  (interactive "e")
+  (goto-char (posn-point (event-start event)))
+  (calc-keypad-press))
 
-(defun calc-keypad-x-right-click (arg)
+(defun calc-keypad-right-click (event)
   "Handle a right-button mouse click in Calc Keypad window."
-  (if (and calc-keypad-buffer
-	   (buffer-name calc-keypad-buffer)
-	   (get-buffer-window calc-keypad-buffer)
-	   (coordinates-in-window-p
-	    arg (get-buffer-window calc-keypad-buffer)))
-      (save-excursion
-	(set-buffer calc-keypad-buffer)
-	(calc-keypad-menu))
-    (funcall calc-keypad-prev-x-right-click arg))
-)
+  (interactive "e")
+  (save-excursion
+    (set-buffer calc-keypad-buffer)
+    (calc-keypad-menu)))
 
-(defun calc-keypad-x-middle-click (arg)
+(defun calc-keypad-middle-click (event)
   "Handle a middle-button mouse click in Calc Keypad window."
-  (if (and calc-keypad-buffer
-	   (buffer-name calc-keypad-buffer)
-	   (get-buffer-window calc-keypad-buffer)
-	   (coordinates-in-window-p
-	    arg (get-buffer-window calc-keypad-buffer)))
-      (save-excursion
-	(set-buffer calc-keypad-buffer)
-	(calc-keypad-menu-back))
-    (funcall calc-keypad-prev-x-middle-click arg))
-)
+  (interactive "e")
+  (with-current-buffer calc-keypad-buffer
+    (calc-keypad-menu-back)))
 
 (defun calc-keypad-menu ()
   (interactive)
-  (or (eq major-mode 'calc-keypad)
-      (error "Must be in *Calc Keypad* buffer for this command"))
+  (unless (eq major-mode 'calc-keypad)
+    (error "Must be in *Calc Keypad* buffer for this command"))
   (while (progn (setq calc-keypad-menu (% (1+ calc-keypad-menu)
 					  (length calc-keypad-menus)))
 		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
