@@ -992,39 +992,6 @@ Special value `always' suppresses confirmation.")
 	      (dired-normalize-subdir
 	       (dired-replace-in-string regexp newtext (car elt)))))))
 
-(defun dired-expand-newtext (string newtext)
-  ;; Expand \& and \1..\9 (referring to STRING) in NEWTEXT, using match data.
-  ;; Note that in Emacs 18 match data are clipped to current buffer
-  ;; size...so the buffer should better not be smaller than STRING.
-  (let ((pos 0)
-	(len (length newtext))
-	(expanded-newtext ""))
-    (while (< pos len)
-      (setq expanded-newtext
-	    (concat expanded-newtext
-		    (let ((c (aref newtext pos)))
-		      (if (= ?\\ c)
-			  (cond ((= ?\& (setq c
-					      (aref newtext
-						    (setq pos (1+ pos)))))
-				 (substring string
-					    (match-beginning 0)
-					    (match-end 0)))
-				((and (>= c ?1) (<= c ?9))
-				 ;; return empty string if N'th
-				 ;; sub-regexp did not match:
-				 (let ((n (- c ?0)))
-				   (if (match-beginning n)
-				       (substring string
-						  (match-beginning n)
-						  (match-end n))
-				     "")))
-				(t
-				 (char-to-string c)))
-			(char-to-string c)))))
-      (setq pos (1+ pos)))
-    expanded-newtext))
-
 ;; The basic function for half a dozen variations on cp/mv/ln/ln -s.
 (defun dired-create-files (file-creator operation fn-list name-constructor
 					&optional marker-char)
