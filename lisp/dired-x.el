@@ -185,12 +185,12 @@ plus those ending with extensions in `dired-omit-extensions'."
   :group 'dired-x)
 (make-variable-buffer-local 'dired-omit-files-p)
 
-(defcustom dired-omit-files "^#\\|^\\.$\\|^\\.\\.$"
+(defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "*Filenames matching this regexp will not be displayed.
 This only has effect when `dired-omit-files-p' is t.  See interactive function
 `dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
-`dired-omit-extensions'.  The default is to omit  `.', `..', and auto-save
-files."
+`dired-omit-extensions'.  The default is to omit  `.', `..', auto-save
+files and lock files."
   :type 'regexp
   :group 'dired-x)
 
