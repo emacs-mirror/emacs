@@ -402,6 +402,14 @@ struct buffer
        A list => `invisible' property means invisible
                  if it is memq in that list.  */
     Lisp_Object invisibility_spec;
+
+    /* If redisplay goes beyond this point in the buffer,
+       run redisplay-end-trigger-hook.  */
+    Lisp_Object redisplay_end_trigger;
+
+    /* These are so we don't have to recompile everything
+       the next few times we add a new slot.  */
+    Lisp_Object extra1, extra2, extra3;
   };
 
 /* This points to the current buffer.  */
