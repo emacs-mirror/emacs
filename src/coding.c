@@ -3125,7 +3125,8 @@ get_conversion_buffer (size)
 
 DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
   "Return t if OBJECT is nil or a coding-system.\n\
-See document of make-coding-system for coding-system object.")
+See the documentation of `make-coding-system' for information\n\
+about coding-system objects.")
   (obj)
      Lisp_Object obj;
 {
@@ -3173,8 +3174,8 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.")
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
        1, 1, 0,
   "Check validity of CODING-SYSTEM.\n\
-If valid, return CODING-SYSTEM, else `coding-system-error' is signaled.\n\
-CODING-SYSTEM is valid if it is a symbol and has \"coding-system\" property.\n\
+If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.\n\
+It is valid if it is a symbol with a non-nil `coding-system' property.\n\
 The value of property should be a vector of length 5.")
   (coding_system)
      Lisp_Object coding_system;
@@ -3185,7 +3186,7 @@ The value of property should be a vector of length 5.")
   while (1)
     Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
 }
-
+
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 2, 0,
   "Detect coding system of the text in the region between START and END.\n\
@@ -3276,7 +3277,7 @@ If only ASCII characters are found, it returns `undecided'\n\
 
   return val;
 }
-
+
 /* Scan text in the region between *BEGP and *ENDP, skip characters
    which we never have to encode to (iff ENCODEP is 1) or decode from
    coding system CODING at the head and tail, then set BEGP and ENDP
@@ -3383,7 +3384,7 @@ shrink_conversion_area (begp, endp, coding, encodep)
   *endp = end_addr;
   return;
 }
-
+
 /* Encode into or decode from (according to ENCODEP) coding system CODING
    the text between char positions B and E.  */
 
@@ -3467,11 +3468,11 @@ code_convert_region (b, e, coding, encodep)
 
       TEMP_SET_PT_BOTH (shrunk_beg, shrunk_beg_byte);
 
-      if (encodep)
-	/* If we just encoded, treat the result as single-byte.  */
-	insert_1_both (buf, produced, produced, 0, 1, 0);
-      else
-	insert (buf, produced);
+      /* We let the number of characters in the result
+	 be computed in accord with enable-multilibyte-characters
+	 even when encoding.  Otherwise the buffer contents
+	 will be inconsistent.  */
+      insert (buf, produced);
 
       del_range_byte (PT_BYTE, PT_BYTE + shrunk_len_byte, 1);
 
@@ -3520,6 +3521,52 @@ code_convert_region (b, e, coding, encodep)
   return make_number (len);
 }
 
+DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
+       3, 3, "r\nzCoding system: ",
+  "Decode current region by specified coding system.\n\
+When called from a program, takes three arguments:\n\
+START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
+Return length of decoded text.")
+  (b, e, coding_system)
+     Lisp_Object b, e, coding_system;
+{
+  struct coding_system coding;
+
+  CHECK_NUMBER_COERCE_MARKER (b, 0);
+  CHECK_NUMBER_COERCE_MARKER (e, 1);
+  CHECK_SYMBOL (coding_system, 2);
+
+  if (NILP (coding_system))
+    return make_number (XFASTINT (e) - XFASTINT (b));
+  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
+    error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
+
+  return code_convert_region (b, e, &coding, 0);
+}
+
+DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
+       3, 3, "r\nzCoding system: ",
+  "Encode current region by specified coding system.\n\
+When called from a program, takes three arguments:\n\
+START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
+Return length of encoded text.")
+  (b, e, coding_system)
+     Lisp_Object b, e, coding_system;
+{
+  struct coding_system coding;
+
+  CHECK_NUMBER_COERCE_MARKER (b, 0);
+  CHECK_NUMBER_COERCE_MARKER (e, 1);
+  CHECK_SYMBOL (coding_system, 2);
+
+  if (NILP (coding_system))
+    return make_number (XFASTINT (e) - XFASTINT (b));
+  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
+    error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
+
+  return code_convert_region (b, e, &coding, 1);
+}
+
 /* Encode or decode (according to ENCODEP) the text of string STR
    using coding CODING.  If NOCOPY is nil, we never return STR
    itself, but always a copy.  If NOCOPY is non-nil, we return STR
@@ -3601,52 +3648,6 @@ code_convert_string (str, coding, encodep, nocopy)
   return make_string (buf, head_skip + produced + tail_skip);
 }
 
-DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
-       3, 3, "r\nzCoding system: ",
-  "Decode current region by specified coding system.\n\
-When called from a program, takes three arguments:\n\
-START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
-Return length of decoded text.")
-  (b, e, coding_system)
-     Lisp_Object b, e, coding_system;
-{
-  struct coding_system coding;
-
-  CHECK_NUMBER_COERCE_MARKER (b, 0);
-  CHECK_NUMBER_COERCE_MARKER (e, 1);
-  CHECK_SYMBOL (coding_system, 2);
-
-  if (NILP (coding_system))
-    return make_number (XFASTINT (e) - XFASTINT (b));
-  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
-
-  return code_convert_region (b, e, &coding, 0);
-}
-
-DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
-       3, 3, "r\nzCoding system: ",
-  "Encode current region by specified coding system.\n\
-When called from a program, takes three arguments:\n\
-START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
-Return length of encoded text.")
-  (b, e, coding_system)
-     Lisp_Object b, e, coding_system;
-{
-  struct coding_system coding;
-
-  CHECK_NUMBER_COERCE_MARKER (b, 0);
-  CHECK_NUMBER_COERCE_MARKER (e, 1);
-  CHECK_SYMBOL (coding_system, 2);
-
-  if (NILP (coding_system))
-    return make_number (XFASTINT (e) - XFASTINT (b));
-  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
-
-  return code_convert_region (b, e, &coding, 1);
-}
-
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 3, 0,
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
@@ -3688,7 +3689,7 @@ if the encoding operation is trivial.")
 
   return code_convert_string (string, &coding, 1, nocopy);
 }
-
+
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
   "Decode a JISX0208 character of shift-jis encoding.\n\
 CODE is the character code in SJIS.\n\
@@ -3765,7 +3766,7 @@ Return the corresponding character code in Big5.")
     XSETFASTINT (val, 0);
   return val;
 }
-
+
 DEFUN ("set-terminal-coding-system-internal",
        Fset_terminal_coding_system_internal,
        Sset_terminal_coding_system_internal, 1, 1, 0, "")
@@ -3794,7 +3795,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
 
 DEFUN ("terminal-coding-system",
        Fterminal_coding_system, Sterminal_coding_system, 0, 0, 0,
-  "Return coding-system of your terminal.")
+  "Return coding system specified for terminal output.")
   ()
 {
   return terminal_coding.symbol;
@@ -3813,7 +3814,7 @@ DEFUN ("set-keyboard-coding-system-internal",
 
 DEFUN ("keyboard-coding-system",
        Fkeyboard_coding_system, Skeyboard_coding_system, 0, 0, 0,
-  "Return coding-system of what is sent from terminal keyboard.")
+  "Return coding system specified for decoding keyboard input.")
   ()
 {
   return keyboard_coding.symbol;
