@@ -1,3 +1,11 @@
+2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
+	(gdb-source-info): Don't display source at startup, if required.
+	(gdb-show-main): New option.
+	(gdba): Update documentation.
+	(gdb-source): Cover case of auto-display output.
+
 2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el: Delete obsolete autoload's and defvar's.
@@ -12,13 +20,11 @@
 
 	* files.el (buffer-stale-function): Doc change.
 
-2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
+2004-03-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
-	(gdb-source-info): Don't display source at startup, if required.
-	(gdb-show-main): New option.
-	(gdba): Update documentation.
-	(gdb-source): Cover case of auto-display output.
+	* printing.el: New tip on Tips section.
+	(pr-version): New version number (6.7.4).
+	(pr-shell-file-name): Initialization fix.
 
 2004-03-31  Juri Linkov  <juri@jurta.org>
 
