@@ -168,54 +168,77 @@ The Lisp value REGISTER is a character."
     (if (null val)
 	(message "Register %s is empty" (single-key-description register))
       (with-output-to-temp-buffer "*Output*"
-	(princ "Register ")
-	(princ (single-key-description register))
-	(princ " contains ")
-	(cond
-	 ((numberp val)
-	  (princ val))
+	(describe-register-1 register t)))))
 
-	 ((markerp val)
-	  (let ((buf (marker-buffer val)))
-	    (if (null buf)
-		(princ "a marker in no buffer")
-	      (princ "a buffer position:\nbuffer ")
-	      (princ (buffer-name buf))
-	      (princ ", position ")
-	      (princ (marker-position val)))))
+(defun list-registers ()
+  "Display a list of nonempty registers saying briefly what they contain."
+  (interactive)
+  (let ((list (copy-sequence register-alist)))
+    (setq list (sort list (lambda (a b) (< (car a) (car b)))))
+    (with-output-to-temp-buffer "*Output*"
+      (dolist (elt list)
+	(when (get-register (car elt))
+	  (describe-register-1 (car elt))
+	  (terpri))))))
 
-	 ((and (consp val) (window-configuration-p (car val)))
-	  (princ "a window configuration."))
+(defun describe-register-1 (register &optional verbose)
+  (princ "Register ")
+  (princ (single-key-description register))
+  (princ " contains ")
+  (cond
+   ((numberp val)
+    (princ val))
 
-	 ((and (consp val) (frame-configuration-p (car val)))
-	  (princ "a frame configuration."))
+   ((markerp val)
+    (let ((buf (marker-buffer val)))
+      (if (null buf)
+	  (princ "a marker in no buffer")
+	(princ "a buffer position:\n    buffer ")
+	(princ (buffer-name buf))
+	(princ ", position ")
+	(princ (marker-position val)))))
 
-	 ((and (consp val) (eq (car val) 'file))
-	  (princ "the file ")
-	  (prin1 (cdr val))
-	  (princ "."))
+   ((and (consp val) (window-configuration-p (car val)))
+    (princ "a window configuration."))
 
-	 ((and (consp val) (eq (car val) 'file-query))
-	  (princ "a file-query reference:\nfile ")
-	  (prin1 (car (cdr val)))
-	  (princ ",\nposition ")
-	  (princ (car (cdr (cdr val))))
-	  (princ "."))
+   ((and (consp val) (frame-configuration-p (car val)))
+    (princ "a frame configuration."))
 
-	 ((consp val)
+   ((and (consp val) (eq (car val) 'file))
+    (princ "the file ")
+    (prin1 (cdr val))
+    (princ "."))
+
+   ((and (consp val) (eq (car val) 'file-query))
+    (princ "a file-query reference:\n    file ")
+    (prin1 (car (cdr val)))
+    (princ ",\n    position ")
+    (princ (car (cdr (cdr val))))
+    (princ "."))
+
+   ((consp val)
+    (if verbose
+	(progn
 	  (princ "the rectangle:\n")
 	  (while val
+	    (princ "    ")
 	    (princ (car val))
 	    (terpri)
 	    (setq val (cdr val))))
+      (princ "a rectangle starting with ")
+      (princ (car val))))
 
-	 ((stringp val)
+   ((stringp val)
+    (if verbose
+	(progn
 	  (princ "the text:\n")
 	  (princ val))
-
-	 (t
-	  (princ "Garbage:\n")
-	  (prin1 val)))))))
+      (princ "text starting with\n    ")
+      (string-match "[^ \t\n].\\{,20\\}" val)
+      (princ (match-string 0 val))))
+   (t
+    (princ "Garbage:\n")
+    (if verbose (prin1 val)))))
 
 (defun insert-register (register &optional arg)
   "Insert contents of register REGISTER.  (REGISTER is a character.)
