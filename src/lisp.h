@@ -1571,6 +1571,7 @@ extern Lisp_Object Fgoto_char ();
 extern Lisp_Object Fpoint_min_marker (), Fpoint_max_marker ();
 extern Lisp_Object Fpoint_min (), Fpoint_max ();
 extern Lisp_Object Fpoint (), Fpoint_marker (), Fmark_marker ();
+extern Lisp_Object Fline_beginning_position (), Fline_end_position ();
 extern Lisp_Object Ffollowing_char (), Fprevious_char (), Fchar_after ();
 extern Lisp_Object Finsert (), Finsert_and_inherit ();
 extern Lisp_Object Finsert_before_markers ();
