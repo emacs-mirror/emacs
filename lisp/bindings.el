@@ -88,7 +88,10 @@ Normally nil in most modes, since there is no process to display.")
 	(interactive "e")
 	(save-selected-window
 	  (select-window (posn-window (event-start event)))
-	  (toggle-read-only))))
+	  (let ((binding (key-binding "\C-x\C-q")))
+	    (if binding
+		(funcall binding)
+	      (toggle-read-only))))))
     (set-text-properties 0 (length s)
 			 (list 'help-echo
 			       "Read-only status: mouse-2 toggles it"
