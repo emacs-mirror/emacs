@@ -311,7 +311,7 @@ programs.  Emacs does not require any of these environment variables
 to be set, but it uses their values if they are set.
 
 @table @env
-@item @item CDPATH
+@item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
 @item DOMAINNAME
