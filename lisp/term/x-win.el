@@ -685,7 +685,8 @@ This is in addition to the primary selection.")
 			    x-cut-buffer-max))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
-(if (string-match "X11/NeWS - Sun Microsystems Inc\\."
+;; This has ,? to match both on Sunos and on Solaris.
+(if (string-match " Sun Microsystems,? Inc\\."
 		  (x-server-vendor))
     (menu-bar-enable-clipboard))
 
