@@ -190,7 +190,7 @@ This function moves point forward @var{count} words (or backward if
 @var{count} is negative).  ``Moving one word'' means moving until point
 crosses a word-constituent character and then encounters a
 word-separator character.  However, this function cannot move point past
-the boundary of the accessible part of the buffer, or across a field
+the boundary of the accessible portion of the buffer, or across a field
 boundary (@pxref{Fields}).  The most common case of a field boundary is
 the end of the prompt in the minibuffer.
 
@@ -491,7 +491,6 @@ thus take time proportional to the distance scanned.  If you intend to
 use them heavily, Emacs provides caches which may improve the
 performance of your code.  @xref{Truncation, cache-long-line-scans}.
 
-
 @defun vertical-motion count &optional window
 This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
@@ -505,6 +504,27 @@ The window @var{window} is used for obtaining parameters such as the
 width, the horizontal scrolling, and the display table.  But
 @code{vertical-motion} always operates on the current buffer, even if
 @var{window} currently displays some other buffer.
+@end defun
+
+@defun count-screen-lines &optional beg end count-final-newline window
+This function returns the number of screen lines in the text from
+@var{beg} to @var{end}.  The number of screen lines may be different
+from the number of actual lines, due to line continuation, the display
+table, etc.  If @var{beg} and @var{end} are @code{nil} or omitted,
+they default to the beginning and end of the accessible portion of the
+buffer.
+
+If the region ends with a newline, that is ignored unless the optional
+third argument @var{count-final-newline} is non-@code{nil}.
+
+The optional fourth argument @var{window} specifies the window for
+obtaining parameters such as width, horizontal scrolling, and so on.
+The default is to use the selected window's parameters.
+
+Like @code{vertical-motion}, @code{count-screen-lines} always uses the
+current buffer, regardless of which buffer is displayed in
+@var{window}.  This makes possible to use @code{count-screen-lines} in
+any buffer, whether or not it is currently displayed in some window.
 @end defun
 
 @deffn Command move-to-window-line count
@@ -527,24 +547,6 @@ In an interactive call, @var{count} is the numeric prefix argument.
 The value returned is the window line number point has moved to, with
 the top line in the window numbered 0.
 @end deffn
-
-@defun count-screen-lines &optional beg end count-final-newline window
-This function returns the number of the screen lines occupied by the
-text between positions @var{beg} and @var{end}.  These arguments default
-to the beginning and end of the accessible portion of the buffer.
-
-If region ends with a newline, it is significant if
-@var{count-final-newline} is non-@code{nil}.  Otherwise it is ignored.
-
-The argument @var{window} specifies the window used for obtaining
-parameters such as width, horizontal scrolling, and so on.  The default
-is the selected window.
-
-Like @code{vertical-motion}, @code{count-screen-lines} always uses the
-current buffer, regardless of which buffer is displayed in @var{window}.
-This makes possible to use @code{count-screen-lines} in any buffer,
-whether or not it is currently displayed in some window.
-@end defun
 
 @defun compute-motion from frompos to topos width offsets window
 This function scans the current buffer, calculating screen positions.
