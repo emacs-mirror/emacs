@@ -1197,7 +1197,8 @@ print_preprocess (obj)
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || COMPILEDP (obj) || CHAR_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
-	  && SYMBOLP (obj) && NILP (XSYMBOL (obj)->obarray)))
+	  && SYMBOLP (obj)
+	  && !SYMBOL_INTERNED_P (obj)))
     {
       /* In case print-circle is nil and print-gensym is t,
 	 add OBJ to Vprint_number_table only when OBJ is a symbol.  */
@@ -1235,8 +1236,9 @@ print_preprocess (obj)
 	  /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
 	     always print the gensym with a number.  This is a special for
 	     the lisp function byte-compile-output-docform.  */
-	  if (! NILP (Vprint_continuous_numbering) && SYMBOLP (obj)
-	      && NILP (XSYMBOL (obj)->obarray))
+	  if (!NILP (Vprint_continuous_numbering)
+	      && SYMBOLP (obj)
+	      && !SYMBOL_INTERNED_P (obj))
 	    PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
 	  print_number_index++;
 	}
@@ -1288,7 +1290,8 @@ print_object (obj, printcharfun, escapeflag)
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || COMPILEDP (obj) || CHAR_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
-	  && SYMBOLP (obj) && NILP (XSYMBOL (obj)->obarray)))
+	  && SYMBOLP (obj)
+	  && !SYMBOL_INTERNED_P (obj)))
     {
       if (NILP (Vprint_circle) && NILP (Vprint_gensym))
 	{
@@ -1505,7 +1508,7 @@ print_object (obj, printcharfun, escapeflag)
 	else
 	  confusing = 0;
 
-	if (! NILP (Vprint_gensym) && NILP (XSYMBOL (obj)->obarray))
+	if (! NILP (Vprint_gensym) && !SYMBOL_INTERNED_P (obj))
 	  {
 	    PRINTCHAR ('#');
 	    PRINTCHAR (':');
