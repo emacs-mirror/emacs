@@ -1,5 +1,8 @@
 2004-07-09  Mark A. Hershberger  <mah@everybody.org>
 
+	* progmodes/cperl-mode.el (cperl-mode): Adapt defun-prompt-regexp
+	so that it is more understanding of whitespace.
+
 	* xml.el (xml-maybe-do-ns, xml-parse-tag): Produce elements in the
 	form
 	(("ns" . "element") (attr-list) children) instead of
