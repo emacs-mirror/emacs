@@ -124,7 +124,9 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-files-menu [recover-session]
   '(menu-item "Recover Crashed Session..." recover-session
 	      :enable (and auto-save-list-file-prefix
-			   (directory-files
+			   (file-directory-p
+                            (file-name-directory auto-save-list-file-prefix))
+                           (directory-files
 			    (file-name-directory auto-save-list-file-prefix)
 			    nil
 			    (concat "\\`"
