@@ -3004,6 +3004,12 @@ Non-nil second argument means save only current buffer.")
   char *omessage = echo_area_glyphs;
   extern int minibuf_level;
   int do_handled_files;
+  Lisp_Object oquit;
+
+  /* Ordinarily don't quit within this function,
+     but don't make it impossible to quit (in case we get hung in I/O).  */
+  oquit = Vquit_flag;
+  Vquit_flag = Qnil;
 
   /* No GCPRO needed, because (when it matters) all Lisp_Object variables
      point to non-strings reached from Vbuffer_alist.  */
@@ -3077,6 +3083,8 @@ Non-nil second argument means save only current buffer.")
 
   if (auto_saved && NILP (no_message))
     message1 (omessage ? omessage : "Auto-saving...done");
+
+  Vquit_flag = oquit;
 
   auto_saving = 0;
   return Qnil;
