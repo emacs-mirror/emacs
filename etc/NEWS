@@ -1465,7 +1465,7 @@ use for the modifiers.  For example, the following two lines swap
 Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
-
+
 * New modes and packages in 21.4
 
 +++
@@ -1683,6 +1683,9 @@ in Indented-Text mode.
 a match if part of it has a read-only property.
 
 ** The new Lisp library fringe.el controls the apperance of fringes.
+
+** `cfengine-mode' is a major mode for editing GNU Cfengine
+configuration files.
 
 * Lisp Changes in Emacs 21.4
 
