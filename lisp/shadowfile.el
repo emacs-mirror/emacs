@@ -1,9 +1,9 @@
-;;; shadowfile.el --- automatic file copying for Emacs 19
+;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Keywords: comm
+;; Keywords: comm files
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;;  This package helps you to keep identical copies of files in more than one
 ;;  place - possibly on different machines.  When you save a file, it checks
@@ -31,11 +31,10 @@
 
 ;; Installation & Use:
 
-;;  Put (require 'shadowfile) in your .emacs; add clusters (if necessary)
-;;  and file groups with shadow-define-cluster,
+;;  Add clusters (if necessary) and file groups with shadow-define-cluster,
 ;;  shadow-define-literal-group, and shadow-define-regexp-group (see the
-;;  documentation for these functions for information on how and when to
-;;  use them).  After doing this once, everything should be automatic.
+;;  documentation for these functions for information on how and when to use
+;;  them).  After doing this once, everything should be automatic.
 
 ;;  The lists of clusters and shadows are saved in a file called .shadows,
 ;;  so that they can be remembered from one emacs session to another, even
@@ -74,9 +73,9 @@
 ;;  Please report any bugs to me (boris@gnu.org).  Also let me know
 ;;  if you have suggestions or would like to be informed of updates.
 
+
 ;;; Code:
 
-(provide 'shadowfile)
 (require 'ange-ftp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -86,6 +85,7 @@
 (defgroup shadow nil
   "Automatic file copying when saving a file."
   :prefix "shadow-"
+  :link '(emacs-commentary-link "shadowfile")
   :group 'files)
 
 (defcustom shadow-noquery nil
@@ -101,15 +101,15 @@ is no buffer currently visiting the file."
   :group 'shadow)
 
 (defcustom shadow-inhibit-overload nil
-  "If nonnil, shadowfile won't redefine C-x C-c.
+  "If nonnil, shadowfile won't redefine \\[save-buffers-kill-emacs].
 Normally it overloads the function `save-buffers-kill-emacs' to check
 for files have been changed and need to be copied to other systems."
   :type 'boolean
   :group 'shadow)
 
 (defcustom shadow-info-file nil
-  "File to keep shadow information in.  
-The shadow-info-file should be shadowed to all your accounts to
+  "File to keep shadow information in.
+The `shadow-info-file' should be shadowed to all your accounts to
 ensure consistency.  Default: ~/.shadows"
   :type '(choice (const nil) file)
   :group 'shadow)
@@ -117,8 +117,8 @@ ensure consistency.  Default: ~/.shadows"
 (defcustom shadow-todo-file nil
   "File to store the list of uncopied shadows in.
 This means that if a remote system is down, or for any reason you cannot or
-decide not to copy your shadow files at the end of one emacs session, it will
-remember and ask you again in your next emacs session.
+decide not to copy your shadow files at the end of one Emacs session, it will
+remember and ask you again in your next Emacs session.
 This file must NOT be shadowed to any other system, it is host-specific.
 Default: ~/.shadow_todo"
   :type '(choice (const nil) file)
@@ -140,7 +140,7 @@ Default: ~/.shadow_todo"
 ;;;
 
 (defvar shadow-clusters nil
-  "List of host clusters \(see shadow-define-cluster).")
+  "List of host clusters \(see `shadow-define-cluster').")
 
 (defvar shadow-literal-groups nil
   "List of files that are shared between hosts.
@@ -149,8 +149,8 @@ shadow-define-group.")
 
 (defvar shadow-regexp-groups nil
   "List of file types that are shared between hosts.
-This list contains shadow structures with regexps matching filenames, 
-created by shadow-define-regexp-group.")
+This list contains shadow structures with regexps matching filenames,
+created by `shadow-define-regexp-group'.")
 
 ;;;
 ;;; Other internal variables:
@@ -169,8 +169,7 @@ created by shadow-define-regexp-group.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun shadow-union (a b)
-  "Add members of list A to list B
-if they are not equal to items already in B."
+  "Add members of list A to list B if not equal to items already in B."
   (if (null a)
       b
     (if (member (car a) b)
@@ -178,8 +177,7 @@ if they are not equal to items already in B."
       (shadow-union (cdr a) (cons (car a) b)))))
 
 (defun shadow-find (func list)
-  "If FUNC applied to some element of LIST is nonnil, 
-return the first such element."
+  "If FUNC applied to some element of LIST is nonnil, return first such element."
   (while (and list (not (funcall func (car list))))
     (setq list (cdr list)))
   (car list))
@@ -200,8 +198,8 @@ Nondestructive; actually returns a copy of the list with the elements removed."
 	((concat (car strings) " " (shadow-join (cdr strings) sep)))))
 
 (defun shadow-regexp-superquote (string)
-  "Like regexp-quote, but includes the ^ and $ 
-to make sure regexp matches nothing but STRING."
+  "Like `regexp-quote', but includes the ^ and $.
+This makes sure regexp matches nothing but STRING."
   (concat "^" (regexp-quote string) "$"))
 
 (defun shadow-suffix (prefix string)
@@ -223,12 +221,12 @@ PREFIX."
 ;;; either.
 
 (defun shadow-make-cluster (name primary regexp)
-  "Creates a shadow cluster 
-called NAME, using the PRIMARY hostname, REGEXP matching all hosts in the
-cluster.  The variable shadow-clusters associates the names of clusters to
-these structures. 
-   This function is for program use: to create clusters interactively, use
-shadow-define-cluster instead."
+  "Create a shadow cluster.
+It is called NAME, uses the PRIMARY hostname and REGEXP matching all
+hosts in the cluster.  The variable `shadow-clusters' associates the
+names of clusters to these structures.  This function is for program
+use: to create clusters interactively, use `shadow-define-cluster'
+instead."
   (list name primary regexp))
 
 (defmacro shadow-cluster-name (cluster)
@@ -244,14 +242,14 @@ shadow-define-cluster instead."
   (list 'elt cluster 2))
 
 (defun shadow-set-cluster (name primary regexp)
-  "Put cluster NAME on the list of clusters,
-replacing old definition if any.  PRIMARY and REGEXP are the
+  "Put cluster NAME on the list of clusters.
+Replace old definition, if any.  PRIMARY and REGEXP are the
 information defining the cluster.  For interactive use, call
-shadow-define-cluster instead."
+`shadow-define-cluster' instead."
   (let ((rest (shadow-remove-if
 	       (function (lambda (x) (equal name (car x))))
 	       shadow-clusters)))
-    (setq shadow-clusters 
+    (setq shadow-clusters
 	  (cons (shadow-make-cluster name primary regexp)
 		rest))))
 
@@ -269,8 +267,7 @@ shadow-define-cluster instead."
 ;;; SITES
 
 (defun shadow-site-cluster (site)
-  "Given a SITE \(hostname or cluster name), return the cluster
-that it is in, or nil."
+  "Given a SITE \(hostname or cluster name), return cluster it is in, or nil."
   (or (assoc site shadow-clusters)
       (shadow-find
        (function (lambda (x)
@@ -287,7 +284,7 @@ that it is in, or nil."
       ans)))
 
 (defun shadow-site-match (site1 site2)
-  "Nonnil iff SITE1 is or includes SITE2.  
+  "Nonnil iff SITE1 is or includes SITE2.
 Each may be a host or cluster name; if they are clusters, regexp of site1 will
 be matched against the primary of site2."
   (or (string-equal site1 site2) ; quick check
@@ -298,7 +295,7 @@ be matched against the primary of site2."
 	  (string-equal site1 primary2)))))
 
 (defun shadow-get-user (site)
-  "Returns the default username for a site."
+  "Return the default username for a SITE."
   (ange-ftp-get-user (shadow-site-primary site)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -306,9 +303,9 @@ be matched against the primary of site2."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun shadow-parse-fullpath (fullpath)
-  "Parse PATH into \(site user path) list,
-or leave it alone if it already is one.  Returns nil if the argument is not a
-full ange-ftp pathname."
+  "Parse FULLPATH into \(site user path) list.
+Leave it alone if it already is one.  Returns nil if the argument is
+not a full ange-ftp pathname."
   (if (listp fullpath)
       fullpath
     (ange-ftp-ftp-name fullpath)))
@@ -324,7 +321,7 @@ Argument can be a simple path, full ange-ftp path, or already a hup list."
 (defsubst shadow-make-fullpath (host user path)
   "Make an ange-ftp style fullpath out of HOST, USER (optional), and PATH.
 This is probably not as general as it ought to be."
-  (concat "/" 
+  (concat "/"
 	  (if user (concat user "@"))
 	  host ":"
 	  path))
@@ -335,9 +332,9 @@ This is probably not as general as it ought to be."
     (shadow-make-fullpath (nth 0 hup) (nth 1 hup) newpath)))
 
 (defun shadow-local-file (file)
-  "If FILENAME is at this site,
-remove /user@host part.  If refers to a different system or a different user on
-this system, return nil."
+  "If FILE is at this site, remove /user@host part.
+If refers to a different system or a different user on this system,
+return nil."
   (let ((hup (shadow-parse-fullpath file)))
     (cond ((null hup) file)
 	  ((and (shadow-site-match (nth 0 hup) shadow-system-name)
@@ -346,9 +343,8 @@ this system, return nil."
 	  (t nil))))
 
 (defun shadow-expand-cluster-in-file-name (file)
-  "If hostname part of FILE is a cluster, expand it
-into the cluster's primary hostname.  Will return the pathname bare if it is
-a local file."
+  "If hostname part of FILE is a cluster, expand it to cluster's primary hostname.
+Will return the pathname bare if it is a local file."
   (let ((hup (shadow-parse-path file))
 	cluster)
     (cond ((null hup) file)
@@ -362,14 +358,15 @@ a local file."
   (file-truename (expand-file-name file default)))
 
 (defun shadow-contract-file-name (file)
-  "Simplify FILENAME
-by replacing (when possible) home directory with ~, and hostname with cluster
-name that includes it.  Filename should be absolute and true."
+  "Simplify FILE.
+Do so by replacing (when possible) home directory with ~, and hostname
+with cluster name that includes it.  Filename should be absolute and
+true."
   (let* ((hup (shadow-parse-path file))
 	 (homedir (if (shadow-local-file hup)
 		      shadow-homedir
 		    (file-name-as-directory
-		     (nth 2 (shadow-parse-fullpath 
+		     (nth 2 (shadow-parse-fullpath
 			     (expand-file-name
 			      (shadow-make-fullpath
 			       (nth 0 hup) (nth 1 hup) "~")))))))
@@ -380,7 +377,7 @@ name that includes it.  Filename should be absolute and true."
 	 (shadow-cluster-name cluster)
        (nth 0 hup))
      (nth 1 hup)
-     (if suffix 
+     (if suffix
 	 (concat "~/" suffix)
        (nth 2 hup)))))
 
@@ -397,7 +394,7 @@ local filename."
 	 (string-equal (nth 1 pattern-sup) (nth 1 file-sup))))))
 
 (defun shadow-file-match (pattern file &optional regexp)
- "Returns t if PATTERN matches FILE.
+ "Return t if PATTERN matches FILE.
 If REGEXP is supplied and nonnil, the pathname part of the pattern is a regular
 expression, otherwise it must match exactly.  The sites and usernames must
 match---see shadow-same-site.  The pattern must be in full ange-ftp format, but
@@ -406,7 +403,7 @@ expansion or contraction, you must do that yourself first."
  (let* ((pattern-sup (shadow-parse-fullpath pattern))
 	(file-sup (shadow-parse-path file)))
    (and (shadow-same-site pattern-sup file-sup)
-	(if regexp 
+	(if regexp
 	    (string-match (nth 2 pattern-sup) (nth 2 file-sup))
 	  (string-equal (nth 2 pattern-sup) (nth 2 file-sup))))))
  
@@ -414,8 +411,9 @@ expansion or contraction, you must do that yourself first."
 ;;; User-level Commands
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defun shadow-define-cluster (name)
-  "Edit \(or create) the definition of a cluster.
+  "Edit \(or create) the definition of a cluster NAME.
 This is a group of hosts that share directories, so that copying to or from
 one of them is sufficient to update the file on all of them.  Clusters are
 defined by a name, the network address of a primary host \(the one we copy
@@ -424,13 +422,13 @@ in the cluster."
   (interactive (list (completing-read "Cluster name: " shadow-clusters () ())))
   (let* ((old (shadow-get-cluster name))
 	 (primary (read-string "Primary host: "
-			       (if old (shadow-cluster-primary old) 
+			       (if old (shadow-cluster-primary old)
 				 name)))
 	 (regexp   (let (try-regexp)
 		     (while (not
-			     (string-match 
+			     (string-match
 			      (setq try-regexp
-				    (read-string 
+				    (read-string
 				     "Regexp matching all host names: "
 				     (if old (shadow-cluster-regexp old)
 				       (shadow-regexp-superquote primary))))
@@ -438,8 +436,8 @@ in the cluster."
 		       (message "Regexp doesn't include the primary host!")
 		       (sit-for 2))
 		     try-regexp))
-;	 (username (read-no-blanks-input 
-;		    (format "Username [default: %s]: " 
+;	 (username (read-no-blanks-input
+;		    (format "Username [default: %s]: "
 ;			    (shadow-get-user primary))
 ;		    (if old (or (shadow-cluster-username old) "")
 ;		      (user-login-name))))
@@ -447,13 +445,14 @@ in the cluster."
 ;    (if (string-equal "" username) (setq username nil))
     (shadow-set-cluster name primary regexp)))
 
+;;;###autoload
 (defun shadow-define-literal-group ()
   "Declare a single file to be shared between sites.
 It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
-specific hostnames, or names of clusters \(see shadow-define-cluster)."
+specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   (interactive)
-  (let* ((hup (shadow-parse-fullpath 
+  (let* ((hup (shadow-parse-fullpath
 	       (shadow-contract-file-name (buffer-file-name))))
 	 (path (nth 2 hup))
 	 user site group)
@@ -461,7 +460,7 @@ specific hostnames, or names of clusters \(see shadow-define-cluster)."
       (setq user (read-string (format "Username [default %s]: "
 				      (shadow-get-user site)))
 	    path (read-string "Filename: " path))
-      (setq group (cons (shadow-make-fullpath site 
+      (setq group (cons (shadow-make-fullpath site
 					      (if (string-equal "" user)
 						  (shadow-get-user site)
 						user)
@@ -470,16 +469,17 @@ specific hostnames, or names of clusters \(see shadow-define-cluster)."
     (setq shadow-literal-groups (cons group shadow-literal-groups)))
   (shadow-write-info-file))
 
+;;;###autoload
 (defun shadow-define-regexp-group ()
   "Make each of a group of files be shared between hosts.
 Prompts for regular expression; files matching this are shared between a list
-of sites, which are also prompted for. The filenames must be identical on all
+of sites, which are also prompted for.  The filenames must be identical on all
 hosts \(if they aren't, use shadow-define-group instead of this function).
 Each site can be either a hostname or the name of a cluster \(see
-shadow-define-cluster)."
+`shadow-define-cluster')."
   (interactive)
-  (let ((regexp (read-string 
-		 "Filename regexp: " 
+  (let ((regexp (read-string
+		 "Filename regexp: "
 		 (if (buffer-file-name)
 		     (shadow-regexp-superquote
 		      (nth 2
@@ -489,11 +489,11 @@ shadow-define-cluster)."
 	site sites usernames)
     (while (setq site (shadow-read-site))
       (setq sites (cons site sites))
-      (setq usernames 
+      (setq usernames
 	    (cons (read-string (format "Username for %s: " site)
 			       (shadow-get-user site))
 		  usernames)))
-    (setq shadow-regexp-groups 
+    (setq shadow-regexp-groups
 	  (cons (shadow-make-group regexp sites usernames)
 		shadow-regexp-groups))
     (shadow-write-info-file)))
@@ -506,16 +506,16 @@ shadow-define-cluster)."
 				  (shadow-shadows-of (buffer-file-name)))
 			  " ")))
     (message "%s"
-	     (if (zerop (length msg)) 
+	     (if (zerop (length msg))
 		 "No shadows."
 	       msg))))
 
 (defun shadow-copy-files (&optional arg)
   "Copy all pending shadow files.
 With prefix argument, copy all pending files without query.
-Pending copies are stored in variable shadow-files-to-copy, and in
-shadow-todo-file if necessary.  This function is invoked by
-shadow-save-buffers-kill-emacs, so it is not usually necessary to
+Pending copies are stored in variable `shadow-files-to-copy', and in
+`shadow-todo-file' if necessary.  This function is invoked by
+`shadow-save-buffers-kill-emacs', so it is not usually necessary to
 call it manually."
   (interactive "P")
   (if (and (not shadow-files-to-copy) (interactive-p))
@@ -534,17 +534,17 @@ call it manually."
   "Cancel the instruction to copy some files.
 Prompts for which copy operations to cancel.  You will not be asked to copy
 them again, unless you make more changes to the files.  To cancel a shadow
-permanently, remove the group from shadow-literal-groups or
-shadow-regexp-groups."
+permanently, remove the group from `shadow-literal-groups' or
+`shadow-regexp-groups'."
   (interactive)
   (map-y-or-n-p (function (lambda (pair)
-			    (format "Cancel copying %s to %s? " 
+			    (format "Cancel copying %s to %s? "
 				    (car pair) (cdr pair))))
-		(function (lambda (pair) 
+		(function (lambda (pair)
 			    (shadow-remove-from-todo pair)))
 		shadow-files-to-copy
 		'("shadow" "shadows" "cancel copy"))
-  (message "There are %d shadows to be updated." 
+  (message "There are %d shadows to be updated."
 	   (length shadow-files-to-copy))
   (shadow-write-todo-file))
 
@@ -553,7 +553,7 @@ shadow-regexp-groups."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun shadow-make-group (regexp sites usernames)
-  "Makes a description of a file group---
+  "Make a description of a file group---
 actually a list of regexp ange-ftp file names---from REGEXP \(name of file to
 be shadowed), list of SITES, and corresponding list of USERNAMES for each
 site."
@@ -564,18 +564,18 @@ site."
 
 (defun shadow-copy-file (s)
   "Copy one shadow file."
-  (let* ((buffer 
-	  (cond ((get-file-buffer 
+  (let* ((buffer
+	  (cond ((get-file-buffer
 		  (abbreviate-file-name (shadow-expand-file-name (car s)))))
 		((not (file-readable-p (car s)))
 		 (if (y-or-n-p
-		      (format "Cannot find file %s--cancel copy request?"
+		      (format "Cannot find file %s--cancel copy request? "
 			      (car s)))
 		     (shadow-remove-from-todo s))
 		 nil)
 		((or (eq t shadow-noquery)
-		     (y-or-n-p 
-		      (format "No buffer for %s -- update shadow anyway?"
+		     (y-or-n-p
+		      (format "No buffer for %s -- update shadow anyway? "
 			      (car s))))
 		 (find-file-noselect (car s)))))
 	 (to (shadow-expand-cluster-in-file-name (cdr s))))
@@ -583,15 +583,15 @@ site."
       (set-buffer buffer)
       (save-restriction
 	(widen)
-	(condition-case i 
+	(condition-case i
 	    (progn
 	      (write-region (point-min) (point-max) to)
 	      (shadow-remove-from-todo s))
 	  (error (message "Shadow %s not updated!" (cdr s))))))))
 
 (defun shadow-shadows-of (file)
-  "Returns copy operations needed to update FILE.
-Filename should have clusters expanded, but otherwise can have any format.  
+  "Return copy operations needed to update FILE.
+Filename should have clusters expanded, but otherwise can have any format.
 Return value is a list of dotted pairs like \(from . to), where from
 and to are absolute file names."
   (or (symbol-value (intern-soft file shadow-hashtable))
@@ -599,7 +599,7 @@ and to are absolute file names."
 			     (or (shadow-local-file file) file)
 			     shadow-homedir))
 	     (canonical-file (shadow-contract-file-name absolute-file))
-	     (shadows 
+	     (shadows
 	      (mapcar (function (lambda (shadow)
 				  (cons absolute-file shadow)))
 		      (append
@@ -610,29 +610,28 @@ and to are absolute file names."
 	(set (intern file shadow-hashtable) shadows))))
 
 (defun shadow-shadows-of-1 (file groups regexp)
-  "Return list of FILE's shadows in GROUPS, 
-which are considered as regular expressions if third arg REGEXP is true."
+  "Return list of FILE's shadows in GROUPS.
+Consider them as regular expressions if third arg REGEXP is true."
   (if groups
       (let ((nonmatching
-	     (shadow-remove-if 
+	     (shadow-remove-if
 	      (function (lambda (x) (shadow-file-match x file regexp)))
 	      (car groups))))
 	(append (cond ((equal nonmatching (car groups)) nil)
-		      (regexp 
+		      (regexp
 		       (let ((realpath (nth 2 (shadow-parse-fullpath file))))
-			 (mapcar 
-			  (function 
-			   (lambda (x) 
+			 (mapcar
+			  (function
+			   (lambda (x)
 			     (shadow-replace-path-component x realpath)))
 			  nonmatching)))
 		      (t nonmatching))
 		(shadow-shadows-of-1 file (cdr groups) regexp)))))
 
 (defun shadow-add-to-todo ()
-  "If current buffer has shadows, add them to the list
-of files needing to be copied."
-  (let ((shadows (shadow-shadows-of 
-		  (shadow-expand-file-name 
+  "If current buffer has shadows, add them to the list needing to be copied."
+  (let ((shadows (shadow-shadows-of
+		  (shadow-expand-file-name
 		   (buffer-file-name (current-buffer))))))
     (when shadows
       (setq shadow-files-to-copy
@@ -645,15 +644,15 @@ of files needing to be copied."
   nil)     ; Return nil for write-file-hooks
 
 (defun shadow-remove-from-todo (pair)
-  "Remove PAIR from shadow-files-to-copy.
+  "Remove PAIR from `shadow-files-to-copy'.
 PAIR must be (eq to) one of the elements of that list."
-  (setq shadow-files-to-copy 
+  (setq shadow-files-to-copy
 	(shadow-remove-if (function (lambda (s) (eq s pair)))
 			  shadow-files-to-copy)))
 
 (defun shadow-read-files ()
-  "Visits and loads shadow-info-file and shadow-todo-file,
-thus restoring shadowfile's state from your last emacs session.
+  "Visit and load `shadow-info-file' and `shadow-todo-file'.
+Thus restores shadowfile's state from your last Emacs session.
 Returns t unless files were locked; then returns nil."
   (interactive)
   (if (and (fboundp 'file-locked-p)
@@ -672,18 +671,18 @@ Returns t unless files were locked; then returns nil."
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-info-file))
 	  (erase-buffer)
-	  (message "Data recovered from %s." 
+	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
 	(eval-current-buffer))
       (when shadow-todo-file
-	(set-buffer (setq shadow-todo-buffer 
+	(set-buffer (setq shadow-todo-buffer
 			  (find-file-noselect shadow-todo-file)))
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-todo-file))
 	  (erase-buffer)
-	  (message "Data recovered from %s." 
+	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
 	(eval-current-buffer nil))
@@ -691,9 +690,9 @@ Returns t unless files were locked; then returns nil."
     t))
 
 (defun shadow-write-info-file ()
-  "Write out information to shadow-info-file.
-Also clears shadow-hashtable, since when there are new shadows defined, the old
-hashtable info is invalid."
+  "Write out information to `shadow-info-file'.
+Also clear `shadow-hashtable', since when there are new shadows
+defined, the old hashtable info is invalid."
   (shadow-invalidate-hashtable)
   (if shadow-info-file
       (save-excursion
@@ -706,7 +705,7 @@ hashtable info is invalid."
 	(shadow-insert-var 'shadow-regexp-groups))))
 
 (defun shadow-write-todo-file (&optional save)
-  "Write out information to shadow-todo-file.  
+  "Write out information to shadow-todo-file.
 With nonnil argument also saves the buffer."
   (save-excursion
     (if (not shadow-todo-buffer)
@@ -720,7 +719,7 @@ With nonnil argument also saves the buffer."
   (if (and shadow-todo-buffer (buffer-modified-p shadow-todo-buffer))
       (save-excursion
 	(set-buffer shadow-todo-buffer)
-	(condition-case nil		; have to continue even in case of 
+	(condition-case nil		; have to continue even in case of
 	    (basic-save-buffer)		; error, otherwise kill-emacs might
 	  (error			; not work!
 	   (message "WARNING: Can't save shadow todo file; it is locked!")
@@ -736,7 +735,7 @@ SYMBOL must be the name of a variable whose value is a list."
   (let ((standard-output (current-buffer)))
     (insert (format "(setq %s" variable))
     (cond ((consp (eval variable))
-	   (insert "\n  '(") 
+	   (insert "\n  '(")
 	   (prin1 (car (eval variable)))
 	   (let ((rest (cdr (eval variable))))
 	     (while rest
@@ -787,7 +786,7 @@ look for files that have been changed and need to be copied to other systems."
        (kill-emacs)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Lucid Emacs compatibility 
+;;; Lucid Emacs compatibility
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This is on hold until someone tells me about a working version of
@@ -798,7 +797,7 @@ look for files that have been changed and need to be copied to other systems."
 ;  (require 'ange-ftp)
 ;  (require 'map-ynp)
 ;  (if (not (fboundp 'file-truename))
-;      (fset 'shadow-expand-file-name 
+;      (fset 'shadow-expand-file-name
 ;	    (symbol-function 'symlink-expand-file-name)))
 ;  (if (not (fboundp 'ange-ftp-ftp-name))
 ;      (fset 'ange-ftp-ftp-name
@@ -808,19 +807,18 @@ look for files that have been changed and need to be copied to other systems."
 ;;; Hook us up
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; File shadowing is activated at load time, unless this this file is
-;;; being preloaded, in which case it is added to after-init-hook.
-;;; Thanks to Richard Caley for this scheme.
-
+;;;###autoload
 (defun shadow-initialize ()
+  "Set up file shadowing."
+  (interactive)
   (if (null shadow-homedir)
       (setq shadow-homedir
 	    (file-name-as-directory (shadow-expand-file-name "~"))))
   (if (null shadow-info-file)
-      (setq shadow-info-file 
+      (setq shadow-info-file
 	    (shadow-expand-file-name "~/.shadows")))
   (if (null shadow-todo-file)
-      (setq shadow-todo-file 
+      (setq shadow-todo-file
 	    (shadow-expand-file-name "~/.shadow_todo")))
   (if (not (shadow-read-files))
       (progn
@@ -829,11 +827,19 @@ look for files that have been changed and need to be copied to other systems."
 	(sit-for 3))
     (when (and (not shadow-inhibit-overload)
 	       (not (fboundp 'shadow-orig-save-buffers-kill-emacs)))
-      (fset 'shadow-orig-save-buffers-kill-emacs 
-	    (symbol-function 'save-buffers-kill-emacs))
-      (fset 'save-buffers-kill-emacs
-	    (symbol-function 'shadow-save-buffers-kill-emacs)))
+      (defalias 'shadow-orig-save-buffers-kill-emacs
+	(symbol-function 'save-buffers-kill-emacs))
+      (defalias 'save-buffers-kill-emacs 'shadow-save-buffers-kill-emacs))
     (add-hook 'write-file-hooks 'shadow-add-to-todo)
     (define-key ctl-x-4-map "s" 'shadow-copy-files)))
 
+(defun shadowfile-unload-hook ()
+  (if (fboundp 'shadow-orig-save-buffers-kill-emacs)
+      (fset 'save-buffers-kill-emacs
+	    (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
+  (remove-hook 'write-file-hooks 'shadow-add-to-todo))
+
+(provide 'shadowfile)
+
 ;;; shadowfile.el ends here
+
