@@ -139,24 +139,20 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 				  find-variable-regexp
 				find-function-regexp)
 			      (regexp-quote (symbol-name symbol))))
-	      (syn-table (syntax-table))
 	      (case-fold-search))
-	  (unwind-protect
-	      (progn
-		(set-syntax-table emacs-lisp-mode-syntax-table)
-		(goto-char (point-min))
-		(if (or (re-search-forward regexp nil t)
-			(re-search-forward
-			 (concat "^([^ ]+ +"
-				 (regexp-quote (symbol-name symbol))
-				 "\\>")
-			 nil t))
-		    (progn
-		      (beginning-of-line)
-		      (cons (current-buffer) (point)))
-		  (error "Cannot find definition of `%s' in library `%s'"
-			 symbol library)))
-	    (set-syntax-table syn-table)))))))
+	  (with-syntax-table emacs-lisp-mode-syntax-table
+	    (goto-char (point-min))
+	    (if (or (re-search-forward regexp nil t)
+		    (re-search-forward
+		     (concat "^([^ ]+ +"
+			     (regexp-quote (symbol-name symbol))
+			     "\\>")
+		     nil t))
+		(progn
+		  (beginning-of-line)
+		  (cons (current-buffer) (point)))
+	      (error "Cannot find definition of `%s' in library `%s'"
+		     symbol library))))))))
 
 ;;;###autoload
 (defun find-function-noselect (function)
