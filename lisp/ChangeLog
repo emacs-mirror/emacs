@@ -4,6 +4,20 @@
 
 2004-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (undo-extra-outer-limit): New variable.
+	(undo-outer-limit-truncate): Test and set it.
+
+	* emacs-lisp/lisp.el (mark-sexp, mark-defun): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* simple.el (mark-word): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* textmodes/paragraphs.el (mark-paragraph): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* startup.el (site-run-file): Don't allow setting it with Custom.
+
 	* simple.el (buffer-disable-undo): Fix previous change.
 
 2004-12-27  Masatake YAMATO  <jet@gyve.org>
