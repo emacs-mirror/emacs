@@ -9,12 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/08/21 20:12:18 vinicius>
-;; Version:	6.0
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
+;; Time-stamp:	<2000/10/10 14:04:29 vinicius>
+;; Version:	6.1
+;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.0"
-  "ps-print.el, v 6.0 <2000/08/21 vinicius>
+(defconst ps-print-version "6.1"
+  "ps-print.el, v 6.1 <2000/10/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -183,13 +183,20 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-printer-name' determines the name of a local printer for
 ;; printing PostScript files.
 ;;
+;; The variable `ps-printer-name-option' determines the option used by some
+;; utilities to indicate the printer name, it's used only when
+;; `ps-printer-name' is a non-empty string.  If you're using lpr utility to
+;; print, for example, `ps-printer-name-option' should be set to "-P".
+;;
 ;; NOTE: `ps-lpr-command' and `ps-lpr-switches' take their initial values
 ;;       from the variables `lpr-command' and `lpr-switches'.  If you have
 ;;       `lpr-command' set to invoke a pretty-printer such as `enscript',
 ;;       then ps-print won't work properly.  `ps-lpr-command' must name
 ;;       a program that does not format the files it prints.
 ;;       `ps-printer-name' takes its initial value from the variable
-;;       `printer-name'.
+;;       `printer-name'.  `ps-printer-name-option' tries to guess which system
+;;       Emacs is running and takes its initial value in accordance with this
+;;       guess.
 ;;
 ;; The variable `ps-print-region-function' specifies a function to print the
 ;; region on a PostScript printer.
@@ -201,9 +208,10 @@ Please send all bug fixes and enhancements to
 ;; feeding takes place.  The default is nil (automatic feeding).
 ;;
 ;; If you're using Emacs for Windows 95/98/NT or MS-DOS, don't forget to
-;; customize the following variables: `ps-printer-name', `ps-lpr-command',
-;; `ps-lpr-switches' and `ps-spool-config'.  See these variables documentation
-;; in the code or by typing, for example, C-h v ps-printer-name RET.
+;; customize the following variables: `ps-printer-name',
+;; `ps-printer-name-option', `ps-lpr-command', `ps-lpr-switches' and
+;; `ps-spool-config'.  See these variables documentation in the code or by
+;; typing, for example, C-h v ps-printer-name RET.
 ;;
 ;;
 ;; The Page Layout
@@ -1367,7 +1375,8 @@ Please send all bug fixes and enhancements to
   :group 'emacs)
 
 (defgroup ps-print nil
-  "PostScript generator for Emacs 19"
+  "PostScript generator for Emacs"
+  :link '(emacs-library-link :tag "Source Lisp File" "ps-print.el")
   :prefix "ps-"
   :group 'wp
   :group 'postscript)
@@ -1536,38 +1545,71 @@ For more information about PostScript document comments, see:
 				printer-name)
   "*The name of a local printer for printing PostScript files.
 
-On Unix-like systems, a string value should be a name understood by
-lpr's -P option; a value of nil means use the value of `printer-name'
-instead.  Any other value will be ignored.
+On Unix-like systems, a string value should be a name understood by lpr's -P
+option; a value of nil means use the value of `printer-name' instead.
 
-On MS-DOS and MS-Windows systems, a string value is taken as the name of
-the printer device or port to which PostScript files are written,
-provided `ps-lpr-command' is \"\".  By default it is the same as
-`printer-name'; typical non-default settings would be \"LPT1\" to
-\"LPT3\" for parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for
-serial printers, or \"//hostname/printer\" for a shared network printer.
-You can also set it to a name of a file, in which case the output gets
-appended to that file.  \(Note that `ps-print' package already has
-facilities for printing to a file, so you might as well use them instead
-of changing the setting of this variable.\)  If you want to silently
-discard the printed output, set this to \"NUL\"."
+On MS-DOS and MS-Windows systems, a string value is taken as the name of the
+printer device or port to which PostScript files are written, provided
+`ps-lpr-command' is \"\".  By default it is the same as `printer-name'; typical
+non-default settings would be \"LPT1\" to \"LPT3\" for parallel printers, or
+\"COM1\" to \"COM4\" or \"AUX\" for serial printers, or \"//hostname/printer\"
+for a shared network printer.  You can also set it to a name of a file, in
+which case the output gets appended to that file.  \(Note that `ps-print'
+package already has facilities for printing to a file, so you might as well use
+them instead of changing the setting of this variable.\)  If you want to
+silently discard the printed output, set this to \"NUL\".
+
+Set to t, if the utility given by `ps-lpr-command' needs an empty printer name.
+
+Any other value is treated as t, that is, an empty printer name.
+
+See also `ps-printer-name-option' for documentation."
   :type '(choice :menu-tag "Printer Name"
 		 :tag "Printer Name"
 		 (const :tag "Same as printer-name" nil)
+		 (const :tag "No Printer Name" t)
 		 (file :tag "Print to file")
 		 (string :tag "Pipe to ps-lpr-command"))
+  :group 'ps-print-printer)
+
+(defcustom ps-printer-name-option
+  (cond (ps-windows-system
+	 "/D:")
+	(ps-lp-system
+	 "-d")
+	(t
+	 "-P" ))
+  "*Option for `ps-printer-name' variable (see it).
+
+On Unix-like systems, if it's been used lpr utility, it should be the string
+\"-P\"; if it's been used lp utility, it should be the string \"-d\".
+
+On MS-DOS and MS-Windows systems, if it's been used print utility, it should be
+the string \"/D:\".
+
+For any other printing utility, see the proper manual or documentation.
+
+Set to \"\" or nil, if the utility given by `ps-lpr-command' needs an empty
+option printer name option.
+
+Any other value is treated as nil, that is, an empty printer name option.
+
+This variable is used only when `ps-printer-name' is a non-empty string."
+  :type '(choice :menu-tag "Printer Name Option"
+		 :tag "Printer Name Option"
+		 (const :tag "None" nil)
+		 (string :tag "Option"))
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
   "*Name of program for printing a PostScript file.
 
-On MS-DOS and MS-Windows systems, if the value is an empty string then
-Emacs will write directly to the printer port named by `ps-printer-name'.
-The programs `print' and `nprint' (the standard print programs on Windows
-NT and Novell Netware respectively) are handled specially, using
-`ps-printer-name' as the destination for output; any other program is
-treated like `lpr' except that an explicit filename is given as the last
-argument."
+On MS-DOS and MS-Windows systems, if the value is an empty string then Emacs
+will write directly to the printer port named by `ps-printer-name'.  The
+programs `print' and `nprint' (the standard print programs on Windows NT and
+Novell Netware respectively) are handled specially, using `ps-printer-name' as
+the destination for output; any other program is treated like `lpr' except that
+an explicit filename is given as the last argument."
   :type 'string
   :group 'ps-print-printer)
 
@@ -1893,8 +1935,8 @@ Any other value is treated as `zebra'."
 (defcustom ps-line-number-start 1
   "*Specify the starting point in the interval given by `ps-line-number-step'.
 
-For example, if `ps-line-number-step' is set to 3 and `ps-line-number-start' is set to 3, the
-printing will look like:
+For example, if `ps-line-number-step' is set to 3 and `ps-line-number-start' is
+set to 3, the printing will look like:
 
       one line
       one line
@@ -2706,7 +2748,8 @@ The table depends on the current ps-print setup."
 \(setq ps-print-color-p         %s
       ps-lpr-command           %S
       ps-lpr-switches          %s
-      ps-printer-name          %S
+      ps-printer-name          %s
+      ps-printer-name-option   %s
       ps-print-region-function %s
       ps-manual-feed           %S
 
@@ -2779,7 +2822,8 @@ The table depends on the current ps-print setup."
    ps-print-color-p
    ps-lpr-command
    (ps-print-quote ps-lpr-switches)
-   ps-printer-name
+   (ps-print-quote ps-printer-name)
+   (ps-print-quote ps-printer-name-option)
    (ps-print-quote ps-print-region-function)
    ps-manual-feed
    (ps-print-quote ps-paper-type)
@@ -3145,10 +3189,10 @@ If EXTENSION is any other symbol, it is ignored."
 ;; Internal functions and variables
 
 
-(make-local-hook 'ps-print-hook)
-(make-local-hook 'ps-print-begin-sheet-hook)
-(make-local-hook 'ps-print-begin-page-hook)
-(make-local-hook 'ps-print-begin-column-hook)
+(defvar ps-print-hook nil)
+(defvar ps-print-begin-sheet-hook nil)
+(defvar ps-print-begin-page-hook nil)
+(defvar ps-print-begin-column-hook nil)
 
 
 (defun ps-print-without-faces (from to &optional filename region-p)
@@ -4865,7 +4909,6 @@ EndDSCPage\n")
 	     (composition		; a composite sequence
 	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
 
-					; characters from ^@ to ^_ and
 	     ((> match 255)		; a multi-byte character
 	      (let* ((charset (char-charset match))
 		     (composition (find-composition match-point to))
@@ -4874,7 +4917,7 @@ EndDSCPage\n")
 		    (while (and (< (point) stop) (eq (charset-after) charset))
 		      (forward-char 1)))
 		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
-
+					; characters from ^@ to ^_ and
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
@@ -5380,15 +5423,6 @@ If FACE is not a valid face name, it is used default face."
   (setq ps-selected-pages nil))
 
 
-(defvar ps-printer-name-option
-  (cond (ps-windows-system
-	 "-P")
-	(ps-lp-system
-	 "-d")
-	(t
-	 "-P" )))
-
-
 ;; Permit dynamic evaluation at print time of `ps-lpr-switches'.
 (defun ps-do-despool (filename)
   (if (or (not (boundp 'ps-spool-buffer))
@@ -5411,10 +5445,13 @@ If FACE is not a valid face name, it is used default face."
 				    (and (boundp 'printer-name)
 					 printer-name)))
 	       (ps-lpr-switches
-		(append (and (stringp ps-printer-name)
-			     (list (concat ps-printer-name-option
-					   ps-printer-name)))
-			ps-lpr-switches)))
+		(append ps-lpr-switches
+			(and (stringp ps-printer-name)
+			     (string< "" ps-printer-name)
+			     (list (concat
+				    (and (stringp ps-printer-name-option)
+					 ps-printer-name-option)
+				    ps-printer-name))))))
 	  (apply (or ps-print-region-function 'call-process-region)
 		 (point-min) (point-max) ps-lpr-command nil
 		 (and (fboundp 'start-process) 0)
