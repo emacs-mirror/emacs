@@ -9537,7 +9537,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  int message_p = push_message ();
 	  int count = SPECPDL_INDEX ();
 
-	  record_unwind_protect (push_message_unwind, Qnil);
+	  record_unwind_protect (pop_message_unwind, Qnil);
 	  binding = Fkey_description (bindings);
 
 	  newmessage
