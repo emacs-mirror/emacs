@@ -51,7 +51,6 @@ SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT-GB=\
-	quail/CTLau.elc		\
 	quail/CCDOSPY.elc	\
 	quail/Punct.elc		\
 	quail/QJ.elc		\
@@ -62,7 +61,6 @@ TIT-GB=\
 TIT-BIG5=\
 	quail/4Corner.elc	\
 	quail/ARRAY30.elc	\
-	quail/CTLauB.elc	\
 	quail/ECDICT.elc	\
 	quail/ETZY.elc		\
 	quail/Punct-b5.elc	\
@@ -125,7 +123,9 @@ MISC-DIC=\
 	quail/tsang-cns.elc	\
 	quail/quick-cns.elc	\
 	quail/PY.elc		\
-	quail/ZIRANMA.elc
+	quail/ZIRANMA.elc	\
+	quail/CTLau.elc		\
+	quail/CTLauB.elc
 
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
