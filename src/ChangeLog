@@ -1,3 +1,17 @@
+2002-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* process.c (Fmake_network_process): Only support server sockets
+	when we can make them non-blocking.
+
+	* s/ms-w32.h (HAVE_SELECT): Define.
+
+	* w32.h (FILE_NDELAY): New flag.
+
+	* w32.c (sys_getpeername, fcntl): New functions.
+	(_sys_read_ahead): Temporarily block on non-blocking sockets.
+
+	* w32proc.c: include sys/file.h.
+
 2002-05-03  Colin Walters  <walters@verbum.org>
 
 	* callproc.c (Vgame_score_directory): Renamed to
