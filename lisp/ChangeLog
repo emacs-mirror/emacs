@@ -1,3 +1,9 @@
+2000-03-22  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: N-up last page fix.
+	(ps-print-version): New version number (5.1.1).
+	(ps-end-file, ps-end-job, ps-generate): Code fix.
+	
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* files.el (find-file-run-dired): Update docstring.

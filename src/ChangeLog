@@ -1,3 +1,10 @@
+2000-03-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (lface_same_font_attributes_p): Compare font attributes
+	as strings only if both are known to be strings.
+
+	* s/openbsd.h (LIBS_TERMCAP): Undef.
+
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (CHAR_CHARSET, CHARSET_LEADING_CODE_BASE): Add default
