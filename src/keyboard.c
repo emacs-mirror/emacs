@@ -2739,7 +2739,14 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
   if (NILP (*slot))
     {
       /* No; let's create it.  */
-      *slot = intern (name_table[symbol_num]);
+      if (name_table[symbol_num])
+	*slot = intern (name_table[symbol_num]);
+      else
+	{
+	  char buf[20];
+	  sprintf (buf, "key-%d", symbol_num);
+	  *slot = intern (buf);
+	}
 
       /* Fill in the cache entries for this symbol; this also 	
 	 builds the Qevent_symbol_elements property, which the user
