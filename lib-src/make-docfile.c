@@ -63,6 +63,10 @@ int scan_c_file ();
 #undef chdir
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 /* Stdio stream for output to the DOC file.  */
 FILE *outfile;
 
