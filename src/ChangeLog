@@ -1,3 +1,18 @@
+2001-11-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): Do not use owner-draw for disabled
+	menu items.  From David Ponce <dponce@wanadoo.fr>.
+	(w32_dialog_show) [HAVE_DIALOGS]: Compile whole function
+	conditionally.
+	(w32_menu_display_help): New argument OWNER. Rewritten to store a
+	help event in the owner frame's keyboard buffer.
+
+	* w32fns.c (w32_wnd_proc) <WM_MENUSELECT>: Display help directly.
+	(Fx_show_tip): Don't subtract last width from row width.
+
+	* w32term.c (w32_read_socket) <WM_MENUSELECT>: Remove.
+	(w32_read_socket): Use EQ to compare frames.
+
 2001-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
