@@ -429,7 +429,7 @@ install-arch-indep: mkdir info
 	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* ccmode* cl* dired-x* ebrowse* ediff* efaq* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* vip* widget* woman*; do \
+	   for f in ada-mode* autotype* ccmode* cl* dired-x* ebrowse* ediff* efaq* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* vip* widget* woman*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
