@@ -1,3 +1,9 @@
+2004-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-enable-dot-prefix): Doc fix.
+	(ido-enable-dot-prefix): New defcustom.
+	(ido-set-matches1): Use it.
+
 2004-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/bibtex.el (bibtex-mark-active)
