@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.13 $")
+(defconst byte-compile-version "$Revision: 2.14 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2556,6 +2556,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		     (cdr (cdr form))))
        form))))
 
+(defun byte-compile-funarg-2 (form)
+  ;; (sort ... '(lambda (x) ..)) ==> (sort ... (function (lambda (x) ..)))
+  ;; for cases where it's guaranteed that second arg will be used as a lambda.
+  (byte-compile-normal-call
+   (let ((fn (nth 2 form)))
+     (if (and (eq (car-safe fn) 'quote)
+	      (eq (car-safe (nth 1 fn)) 'lambda))
+	 (cons (car form)
+	       (cons (nth 1 form)
+		     (cons (cons 'function (cdr fn))
+			   (cdr (cdr (cdr form))))))
+       form))))
+
 ;; (function foo) must compile like 'foo, not like (symbol-function 'foo).
 ;; Otherwise it will be incompatible with the interpreter,
 ;; and (funcall (function foo)) will lose with autoloads.
@@ -2682,6 +2695,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 mapcar byte-compile-funarg)
 (byte-defop-compiler-1 mapatoms byte-compile-funarg)
 (byte-defop-compiler-1 mapconcat byte-compile-funarg)
+(byte-defop-compiler-1 sort byte-compile-funarg-2)
 (byte-defop-compiler-1 let)
 (byte-defop-compiler-1 let*)
 
