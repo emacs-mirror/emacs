@@ -31,11 +31,13 @@
  (put 'face-name 'byte-optimizer nil)
  (put 'face-id 'byte-optimizer nil)
  (put 'face-font 'byte-optimizer nil)
+ (put 'face-font-explicit 'byte-optimizer nil)
  (put 'face-foreground 'byte-optimizer nil)
  (put 'face-background 'byte-optimizer nil)
  (put 'face-stipple 'byte-optimizer nil)
  (put 'face-underline-p 'byte-optimizer nil)
  (put 'set-face-font 'byte-optimizer nil)
+ (put 'set-face-font-auto 'byte-optimizer nil)
  (put 'set-face-foreground 'byte-optimizer nil)
  (put 'set-face-background 'byte-optimizer nil)
  (put 'set-face-stipple 'byte-optimizer nil)
@@ -48,7 +50,7 @@
 
 ;;; Type checkers.
 (defsubst internal-facep (x)
-  (and (vectorp x) (= (length x) 9) (eq (aref x 0) 'face)))
+  (and (vectorp x) (= (length x) 10) (eq (aref x 0) 'face)))
 
 (defun facep (x)
   "Return t if X is a face name or an internal face vector."
@@ -77,6 +79,10 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
   of the form (bold), (italic) or (bold italic).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 3))
+
+(defun face-font-explicit (face &optional frame)
+  "Return non-nil if this face's font was explicitly specified."
+  (aref (internal-get-face face frame) 9))
 
 (defun face-foreground (face &optional frame)
   "Return the foreground color name of face FACE, or nil if unspecified.
@@ -153,7 +159,28 @@ in that frame; otherwise change each frame."
   (if (stringp font)
       (setq font (or (query-fontset font)
 		     (x-resolve-font-name font 'default frame))))
+  (internal-set-face-1 face 'font font 3 frame)
+  ;; Record that this face's font was set explicitly, not automatically,
+  ;; unless we are setting it to nil.
+  (internal-set-face-1 face nil (not (null font)) 9 frame))
+
+(defun set-face-font-auto (face font &optional frame)
+  "Change the font of face FACE to FONT (a string), for an automatic change.
+An automatic change means that we don't change the \"explicit\" flag;
+if the font was derived from the frame font before, it is now.
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame."
+  (interactive (internal-face-interactive "font"))
+  (if (stringp font)
+      (setq font (or (query-fontset font)
+		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame))
+
+(defun set-face-font-explicit (face flag &optional frame)
+  "Set the explicit-font flag of face FACE to FLAG.
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame."
+  (internal-set-face-1 face 'font flag 9 frame))
 
 (defun set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
@@ -403,9 +430,9 @@ If NAME is already a face, it is simply returned."
 	    (if (eq name 'inverse-video)
 		(or (eq value (aref internal-face index))
 		    (invert-face face frame))
-	      (if (fboundp 'set-face-attribute-internal)
-		  (set-face-attribute-internal (face-id face)
-					       name value frame))))
+	      (and name (fboundp 'set-face-attribute-internal)
+		   (set-face-attribute-internal (face-id face)
+						name value frame))))
 	(aset internal-face index value)))))
 
 
@@ -470,7 +497,7 @@ and always make a face whose attributes are all nil.
 If the face already exists, it is unmodified."
   (interactive "SMake face: ")
   (or (internal-find-face name)
-      (let ((face (make-vector 9 nil)))
+      (let ((face (make-vector 10 nil)))
 	(aset face 0 'face)
 	(aset face 1 name)
 	(let* ((frames (frame-list))
@@ -611,6 +638,8 @@ to NEW-FACE on frame NEW-FRAME."
 	  (set-face-font new-face (face-font old-face frame) new-frame)
 	(error
 	 (set-face-font new-face nil new-frame)))
+      (set-face-font-explicit new-face (face-font-explicit old-face frame)
+			      new-frame)
       (set-face-foreground new-face (face-foreground old-face frame) new-frame)
       (set-face-background new-face (face-background old-face frame) new-frame)
       (set-face-stipple new-face
@@ -700,7 +729,7 @@ set its foreground and background to the default background and foreground."
 (defun internal-try-face-font (face font &optional frame)
   "Like set-face-font, but returns nil on failure instead of an error."
   (condition-case ()
-      (set-face-font face font frame)
+      (set-face-font-auto face font frame)
     (error nil)))
 
 ;; Manipulating font names.
@@ -1126,6 +1155,10 @@ See `defface' for information about SPEC."
 	     (display (nth 0 entry))
 	     (attrs (nth 1 entry)))
 	(setq tail (cdr tail))
+	;; If the font was set automatically, clear it out
+	;; to allow it to be set it again.
+	(unless (face-font-explicit face frame)
+	  (set-face-font face nil frame))
 	(modify-face face nil nil nil nil nil nil frame)
 	(when (face-spec-set-match-display display frame)
 	  (face-spec-set-1 face frame attrs ':foreground 'set-face-foreground)
@@ -1219,7 +1252,7 @@ If FRAME is nil, the current FRAME is used."
 				     (vector 'face
 					     (face-name (cdr elt))
 					     (face-id (cdr elt))
-					     nil nil nil nil nil nil)))
+					     nil nil nil nil nil nil nil)))
 			    global-face-data))
 	      (set-frame-face-alist frame faces)
 
@@ -1274,7 +1307,7 @@ If FRAME is nil, the current FRAME is used."
 		       (get face 'face-defface-spec)))
 	     (global (cdr (assq face global-face-data)))
 	     (local (cdr (car rest))))
-	(when spec 
+	(when spec
 	  (face-spec-set face spec frame))
 	(face-fill-in face global frame)
 	(make-face-x-resource-internal local frame))
