@@ -1,5 +1,6 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97,98,99,2000 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -92,9 +93,7 @@ static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 
-static Lisp_Object swap_in_symval_forwarding ();
-
-Lisp_Object set_internal ();
+static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
 Lisp_Object
 wrong_type_argument (predicate, value)
@@ -773,12 +772,16 @@ do_symval_forwarding (valcontents)
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell
    of SYMBOL.  If SYMBOL is buffer-local, VALCONTENTS should be the
    buffer-independent contents of the value cell: forwarded just one
-   step past the buffer-localness.  */
+   step past the buffer-localness.
+
+   BUF non-zero means set the value in buffer BUF instead of the
+   current buffer.  This only plays a role for per-buffer variables.  */
 
 void
-store_symval_forwarding (symbol, valcontents, newval)
+store_symval_forwarding (symbol, valcontents, newval, buf)
      Lisp_Object symbol;
      register Lisp_Object valcontents, newval;
+     struct buffer *buf;
 {
   switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
@@ -814,14 +817,18 @@ store_symval_forwarding (symbol, valcontents, newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
 
-	    PER_BUFFER_VALUE (current_buffer, offset) = newval;
+	    if (buf == NULL)
+	      buf = current_buffer;
+	    PER_BUFFER_VALUE (buf, offset) = newval;
 	  }
 	  break;
 
 	case Lisp_Misc_Kboard_Objfwd:
-	  (*(Lisp_Object *)((char *)current_kboard
-			    + XKBOARD_OBJFWD (valcontents)->offset))
-	    = newval;
+	  {
+	    char *base = (char *) current_kboard;
+	    char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
+	    *(Lisp_Object *) p = newval;
+	  }
 	  break;
 
 	default:
@@ -861,7 +868,7 @@ swap_in_global_binding (symbol)
   
   /* Select the global binding in the symbol.  */
   XCAR (cdr) = cdr;
-  store_symval_forwarding (symbol, valcontents, XCDR (cdr));
+  store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
   XBUFFER_LOCAL_VALUE (valcontents)->frame = Qnil;
@@ -915,7 +922,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
       store_symval_forwarding (symbol,
 			       XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
-			       Fcdr (tem1));
+			       Fcdr (tem1), NULL);
     }
   return XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
 }
@@ -1136,9 +1143,9 @@ set_internal (symbol, newval, buf, bindflag)
   /* If storing void (making the symbol void), forward only through
      buffer-local indicator, not through Lisp_Objfwd, etc.  */
   if (voide)
-    store_symval_forwarding (symbol, Qnil, newval);
+    store_symval_forwarding (symbol, Qnil, newval, buf);
   else
-    store_symval_forwarding (symbol, innercontents, newval);
+    store_symval_forwarding (symbol, innercontents, newval, buf);
 
   /* If we just set a variable whose current binding is frame-local,
      store the new value in the frame parameter too.  */
@@ -1282,8 +1289,9 @@ for this variable.")
     = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
   alist_element_buffer = Fcar (current_alist_element);
   if (EQ (alist_element_buffer, current_alist_element))
-    store_symval_forwarding (symbol, XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
-			     value);
+    store_symval_forwarding (symbol,
+			     XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
+			     value, NULL);
 
   return value;
 }
@@ -2274,9 +2282,20 @@ If the base used is not 10, floating point is not recognized.")
 
 
 enum arithop
-  { Aadd, Asub, Amult, Adiv, Alogand, Alogior, Alogxor, Amax, Amin };
+  {
+    Aadd,
+    Asub,
+    Amult,
+    Adiv,
+    Alogand,
+    Alogior,
+    Alogxor,
+    Amax,
+    Amin
+  };
 
-extern Lisp_Object float_arith_driver ();
+static Lisp_Object float_arith_driver P_ ((double, int, enum arithop,
+					   int, Lisp_Object *));
 extern Lisp_Object fmod_float ();
 
 Lisp_Object
@@ -2287,7 +2306,7 @@ arith_driver (code, nargs, args)
 {
   register Lisp_Object val;
   register int argnum;
-  register EMACS_INT accum;
+  register EMACS_INT accum = 0;
   register EMACS_INT next;
 
   switch (SWITCH_ENUM_CAST (code))
@@ -2296,32 +2315,43 @@ arith_driver (code, nargs, args)
     case Alogxor:
     case Aadd:
     case Asub:
-      accum = 0; break;
+      accum = 0;
+      break;
     case Amult:
-      accum = 1; break;
+      accum = 1;
+      break;
     case Alogand:
-      accum = -1; break;
+      accum = -1;
+      break;
+    default:
+      break;
     }
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
-      val = args[argnum];    /* using args[argnum] as argument to CHECK_NUMBER_... */
+      /* Using args[argnum] as argument to CHECK_NUMBER_... */
+      val = args[argnum];
       CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val, argnum);
 
-      if (FLOATP (val)) /* time to do serious math */
-	return (float_arith_driver ((double) accum, argnum, code,
-				    nargs, args));
-      args[argnum] = val;    /* runs into a compiler bug. */
+      if (FLOATP (val))
+	return float_arith_driver ((double) accum, argnum, code,
+				   nargs, args);
+      args[argnum] = val;
       next = XINT (args[argnum]);
       switch (SWITCH_ENUM_CAST (code))
 	{
-	case Aadd: accum += next; break;
+	case Aadd:
+	  accum += next;
+	  break;
 	case Asub:
 	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
 	  break;
-	case Amult: accum *= next; break;
+	case Amult:
+	  accum *= next;
+	  break;
 	case Adiv:
-	  if (!argnum) accum = next;
+	  if (!argnum)
+	    accum = next;
 	  else
 	    {
 	      if (next == 0)
@@ -2329,11 +2359,23 @@ arith_driver (code, nargs, args)
 	      accum /= next;
 	    }
 	  break;
-	case Alogand: accum &= next; break;
-	case Alogior: accum |= next; break;
-	case Alogxor: accum ^= next; break;
-	case Amax: if (!argnum || next > accum) accum = next; break;
-	case Amin: if (!argnum || next < accum) accum = next; break;
+	case Alogand:
+	  accum &= next;
+	  break;
+	case Alogior:
+	  accum |= next;
+	  break;
+	case Alogxor:
+	  accum ^= next;
+	  break;
+	case Amax:
+	  if (!argnum || next > accum)
+	    accum = next;
+	  break;
+	case Amin:
+	  if (!argnum || next < accum)
+	    accum = next;
+	  break;
 	}
     }
 
@@ -2344,7 +2386,7 @@ arith_driver (code, nargs, args)
 #undef isnan
 #define isnan(x) ((x) != (x))
 
-Lisp_Object
+static Lisp_Object
 float_arith_driver (accum, argnum, code, nargs, args)
      double accum;
      register int argnum;
