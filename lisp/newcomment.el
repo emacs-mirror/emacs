@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.29 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.30 2001/02/22 01:47:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -233,7 +233,9 @@ This is obsolete because you might as well use \\[newline-and-indent]."
       (set (make-local-variable 'comment-start-skip)
 	   (concat "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
-		   "+\\)\\s-*")))
+		   ;; Let's not allow any \s- but only [ \t] since \n
+		   ;; might be both a comment-end marker and \s-.
+		   "+\\)[ \t]*")))
     (unless comment-end-skip
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
@@ -346,15 +348,18 @@ and raises an error or returns nil of NOERROR is non-nil."
   "Find the beginning of the enclosing comment.
 Returns nil if not inside a comment, else moves point and returns
 the same as `comment-search-forward'."
-  (let ((pt (point))
-	(cs (comment-search-backward nil t)))
-    (when cs
-      (if (save-excursion
-	    (goto-char cs)
-	    (if (comment-forward 1) (> (point) pt) (eobp)))
-	  cs
-	(goto-char pt)
-	nil))))
+  ;; HACK ATTACK!
+  ;; We should really test `in-string-p' but that can be expensive.
+  (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)
+    (let ((pt (point))
+	  (cs (comment-search-backward nil t)))
+      (when cs
+	(if (save-excursion
+	      (goto-char cs)
+	      (if (comment-forward 1) (> (point) pt) (eobp)))
+	    cs
+	  (goto-char pt)
+	  nil)))))
 
 (defun comment-forward (&optional n)
   "Skip forward over N comments.
