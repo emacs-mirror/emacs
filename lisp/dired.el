@@ -345,7 +345,7 @@ Optional second argument SWITCHES specifies the `ls' options used.
 \(Interactively, use a prefix argument to be able to specify SWITCHES.)
 Dired displays a list of files in DIRNAME (which may also have
 shell wildcards appended to select certain files).  If DIRNAME is a cons,
-its first element is taken as the directory name and the resr as an explicit
+its first element is taken as the directory name and the rest as an explicit
 list of files to make directory entries for.
 \\<dired-mode-map>\
 You can move around in it with the usual commands.
