@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.13";
+char pot_etags_version[] = "@(#) pot revision number is 15.15";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1530,10 +1530,18 @@ process_file (file, lang)
   if (retval < 0)
     pfatal (file);
 
+  /* If not Ctags, and if this is not metasource and if it contained no #line
+     directives, we can write the tags and free curfdp an all nodes pointing to
+     it. */
+  if (!CTAGS
+      && curfdp == fdhead	/* no #line directives in this file */
+      && !curfdp->lang->metasource)
+    {
+      /* Write tags for file curfdp->taggedfname. */
+      ;
+    }
+
  cleanup:
-  /* Memory leak here: if this is not metasource and if it contained no #line
-     directives, curfdp could be freed, and so could all nodes pointing to it
-     if not CTAGS. */
   if (compressed_name) free (compressed_name);
   if (uncompressed_name) free (uncompressed_name);
   return;
@@ -1663,9 +1671,6 @@ find_entries (inf)
 	  {
 	    fdesc *badfdp = *fdpp;
 
-	    *fdpp = badfdp->next; /* remove the bad description from the list */
-	    fdpp = &badfdp->next; /* advance the list pointer */
-
 	    if (DEBUG)
 	      fprintf (stderr,
 		       "Removing references to \"%s\" obtained from \"%s\"\n",
@@ -1673,6 +1678,8 @@ find_entries (inf)
 
 	    /* Delete the tags referring to badfdp. */
 	    invalidate_nodes (badfdp, nodehead);
+
+	    *fdpp = badfdp->next; /* remove the bad description from the list */
 
 	    /* Delete badfdp. */
 	    if (badfdp->infname != NULL) free (badfdp->infname);
