@@ -81,6 +81,11 @@ extern int h_errno;
 #include <unistd.h>
 #endif
 
+/* Get SI_SRPC_DOMAIN, if it is available.  */
+#ifdef HAVE_SYS_SYSTEMINFO_H
+#include <sys/systeminfo.h>
+#endif
+
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
 #include <dos.h>
 #include "dosfns.h"
@@ -2233,6 +2238,44 @@ init_system_name ()
 	}
     }
 #endif /* HAVE_SOCKETS */
+#if (HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)) || HAVE_GETDOMAINNAME
+  if (! index (hostname, '.'))
+    {
+      /* The hostname is not fully qualified.  Append the domain name.  */
+
+      int hostlen = strlen (hostname);
+      int domain_size = 256;
+
+      for (;;)
+	{
+	  char *fqdn = (char *) alloca (hostlen + 1 + domain_size);
+	  char *domain = fqdn + hostlen + 1;
+#if HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)
+	  int sys_domain_size = sysinfo (SI_SRPC_DOMAIN, domain, domain_size);
+	  if (sys_domain_size <= 0)
+	    break;
+	  if (domain_size < sys_domain_size)
+	    {
+	      domain_size = sys_domain_size;
+	      continue;
+	    }
+#else /* HAVE_GETDOMAINNAME */
+	  if (getdomainname (domain, domain_size - 1) != 0 || ! *domain)
+	    break;
+	  domain[domain_size - 1] = '\0';
+	  if (strlen (domain) == domain_size - 1)
+	    {
+	      domain_size *= 2;
+	      continue;
+	    }
+#endif /* HAVE_GETDOMAINNAME */
+	  strcpy (fqdn, hostname);
+	  fqdn[hostlen] = '.';
+	  hostname = fqdn;
+	  break;
+	}
+    }
+#endif /*! ((HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)) || HAVE_GETDOMAINNAME)*/
   Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
