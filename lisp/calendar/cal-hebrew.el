@@ -460,7 +460,7 @@ nil if it is not visible in the current calendar window."
              (list (calendar-gregorian-from-absolute (+ abs-p 33))
                    "Lag BaOmer")
              (list (calendar-gregorian-from-absolute (+ abs-p 43))
-                   "Yom Yerushalim")
+                   "Yom Yerushalaim")
              (list (calendar-gregorian-from-absolute (+ abs-p 49))
                    "Erev Shavuot")
              (list (calendar-gregorian-from-absolute (+ abs-p 51))
