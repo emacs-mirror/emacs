@@ -31,6 +31,8 @@ variable.
 * Local Variables::       Variable values that exist only temporarily.
 * Void Variables::        Symbols that lack values.
 * Defining Variables::    A definition says a symbol is used as a variable.
+* Tips for Defining::     How to avoid bad results from quitting
+                            within the code to initialize a variable.
 * Accessing Variables::   Examining values of variables whose names
                             are known only at run time.
 * Setting Variables::     Storing new values in variables.
@@ -554,6 +556,71 @@ local binding's value; the global binding is not changed.  This is not
 what we really want.  To prevent it, use these special forms at top
 level in a file, where normally no local binding is in effect, and make
 sure to load the file before making a local binding for the variable.
+
+@node Tips for Defining
+@section Tips for Defining Variables Robustly
+
+  When defining and initializing a variable that holds a complicated
+value (such as a keymap with bindings in it), it's best to put the
+entire computation of the value into the @code{defvar}, like this:
+
+@example
+(defvar my-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key my-mode-map "\C-c\C-a" 'my-command)
+    @dots{}
+    map)
+  @var{docstring})
+@end example
+
+@noindent
+This method has several benefits.  First, if the user quits while
+loading the file, the variable is either still uninitialized or
+initialized properly, never in-between.  If it is uninitialized,
+reloading the file will initialize it properly.  Second, reloading the
+file once the variable is initialized will not alter it; that is
+important if the user has run hooks to alter part of the contents (such
+as, to rebind keys).  Third, evaluating the @code{defvar} form with
+@kbd{C-M-x} @emph{will} reinitialize the map completely.
+
+  Putting so much code in the @code{defvar} form has one disadvantage:
+it puts the documentation string far away from the line which names the
+variable.  Here's a safe way to avoid that:
+
+@example
+(defvar my-mode-map nil
+  @var{docstring})
+(if my-mode-map
+    nil
+  (let ((map (make-sparse-keymap)))
+    (define-key my-mode-map "\C-c\C-a" 'my-command)
+    @dots{}
+    (setq my-mode-map map)))
+@end example
+
+@noindent
+This has all the same advantages as putting the initialization inside
+the @code{defvar}, except that you must type @kbd{C-M-x} twice, once on
+each form, if you do want to reinitialize the variable.
+
+  But be careful not to write the code like this:
+
+@example
+(defvar my-mode-map nil
+  @var{docstring})
+(if my-mode-map
+    nil
+  (setq my-mode-map (make-sparse-keymap))
+  (define-key my-mode-map "\C-c\C-a" 'my-command)
+  @dots{})
+@end example
+
+@noindent
+This code sets the variable, then alters it, but only if the variable
+had been @code{ni}.  If the user quits just after the @code{setq}, that
+leaves the variable neither correctly initialized nor void nor
+@code{nil}.  Once that happens, reloading the file will not initialize
+the variable; it will remain incomplete.
 
 @node Accessing Variables
 @section Accessing Variable Values
