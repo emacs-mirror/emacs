@@ -3064,7 +3064,55 @@ buffer.  The default is to use the @code{arrow} (non-text) pointer.
 insert images into text, and also control other aspects of how text
 displays.  The value of the @code{display} property should be a
 display specification, or a list or vector containing several display
-specifications.  The rest of this section describes several kinds of
+specifications.
+
+  Some kinds of @code{display} properties specify something to display
+instead of the text that has the property.  In this case, ``the text''
+means all the consecutive characters that have the same Lisp object as
+their @code{display} property; these characters are replaced as a
+single unit.  By contrast, characters that have similar but distinct
+Lisp objects as their @code{display} properties are handled
+separately.  Here's a function that illustrates this point:
+
+@example
+(defun foo ()
+  (goto-char (point-min))
+  (dotimes (i 5)
+    (let ((string (concat "A")))
+      (put-text-property (point) (1+ (point)) 'display string)
+      (forward-char 1)
+      (put-text-property (point) (1+ (point)) 'display string)
+      (forward-char 1))))
+@end example
+
+@noindent
+It gives each of the first ten characters in the buffer string
+@code{"A"} as the @code{display} property, but they don't all get the
+same string.  The first two characters get the same string, so they
+together are replaced with one @samp{A}.  The next two characters get
+a second string, so they together are replaced with one @samp{A}.
+Likewise for each following pair of characters.  Thus, the ten
+characters appear as five A's.  This function would have the same
+results:
+
+@example
+(defun foo ()
+  (goto-char (point-min))
+  (dotimes (i 5)
+    (let ((string (concat "A")))
+      (put-text-property (point) (2+ (point)) 'display string)
+      (put-text-property (point) (1+ (point)) 'display string)
+      (forward-char 2))))
+@end example
+
+@noindent
+This illustrates that what matters is the property value for
+each character.  If two consecutive characters have the same
+object as the @code{display} property value, it's irrelevent
+whether they got this property from a single call to
+@code{put-text-property} or from two different calls.
+
+  The rest of this section describes several kinds of
 display specifications and what they mean.
 
 @menu
@@ -3216,6 +3264,9 @@ the value of the expressions.
 in the @code{display} text property.
 
 @table @code
+@item @var{string}
+Display @var{string} instead of the text that has this property.
+
 @item (image . @var{image-props})
 This display specification is an image descriptor (@pxref{Images}).
 When used as a display specification, it means to display the image
