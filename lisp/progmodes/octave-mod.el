@@ -176,7 +176,9 @@ parenthetical grouping.")
 	 'font-lock-keyword-face)
    ;; Fontify all builtin operators.
    (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
-	 'font-lock-builtin-face)
+	 (if (boundp 'font-lock-builtin-face)
+	     'font-lock-builtin-face
+	   'font-lock-preprocessor-face))
    ;; Fontify all builtin variables.
    (cons (concat "\\<\\("
 		 (mapconcat 'identity octave-variables "\\|")
