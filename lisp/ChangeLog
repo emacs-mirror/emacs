@@ -1,3 +1,10 @@
+2001-03-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/rmailout.el (rmail-output-to-rmail-file): When writing the
+	Babyl header to the newly-created output file, bind
+	coding-system-for-write to either rmail-file-coding-system or
+	emacs-mule-unix.
+
 2001-03-10  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-setup): Don't suppress write-file
