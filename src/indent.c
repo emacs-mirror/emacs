@@ -587,9 +587,12 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   int width_run_end   = from;
   int width_run_width = 0;
   Lisp_Object *width_table;
+  Lisp_Object buffer;
 
   /* The next buffer pos where we should consult the width run cache. */
   int next_width_run = from;
+
+  XSETBUFFER (buffer, current_buffer);
 
   width_run_cache_on_off ();
   if (dp == buffer_display_table ())
@@ -618,25 +621,39 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
       while (pos == next_invisible && pos < to)
 	{
 	  XSETFASTINT (position, pos);
+
+	  /* Give faster response for overlay lookup near POS.  */
+	  recenter_overlay_lists (current_buffer, pos);
+
 	  prop = Fget_char_property (position,
 				     Qinvisible,
 				     Fcurrent_buffer ());
 	  {
-	    Lisp_Object end, limit;
+	    Lisp_Object end, limit, proplimit;
 
-	    recenter_overlay_lists (current_buffer, pos);
-	    /* This is just an estimate to give reasonable
-	       performance; nothing should go wrong if it is too small.  */
+	    /* Get a quit lower bound for how soon property might change.  */
 	    limit = Fnext_overlay_change (position);
-	    if (XFASTINT (limit) > pos + 100)
-	      XSETFASTINT (limit, pos + 100);
-	    end = Fnext_single_property_change (position, Qinvisible,
-						Fcurrent_buffer (), limit);
-	    if (INTEGERP (end))
-	      next_invisible = XINT (end);
+	    proplimit = Fnext_property_change (position, buffer, Qt);
+	    if (XFASTINT (proplimit) < XFASTINT (limit))
+	      limit = proplimit;
+	    /* LIMIT is now a lower bound for the next change
+	       in invisible status.  If that is plenty far away,
+	       use that lower bound.  */
+	    if (XFASTINT (limit) > pos + 100 || XFASTINT (limit) >= to)
+	      next_invisible = XINT (limit);
+	    /* Otherwise, scan for the next `invisible' property change.  */
 	    else
-	      next_invisible = to;
-	    if (! NILP (prop))
+	      {
+		/* Don't scan terribly far.  */
+		XSETFASTINT (limit, min (pos + 100, to));
+		end = Fnext_single_property_change (position, Qinvisible,
+						    buffer, limit);
+		if (INTEGERP (end) && XINT (end) < to)
+		  next_invisible = XINT (end);
+		else
+		  next_invisible = to;
+	      }
+	    if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	      pos = next_invisible;
 	  }
 	}
@@ -995,15 +1012,18 @@ vmotion (from, vtarget, width, hscroll, window)
 	 to determine hpos of starting point */
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
+	  Lisp_Object propval;
+
 	  XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
 	  while (XFASTINT (prevline) > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline), selective))
 #ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
-		     || ! NILP (Fget_char_property (prevline,
-						    Qinvisible,
-						    window))
+		     || (propval = Fget_char_property (prevline,
+						       Qinvisible,
+						       window),
+			 TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
 		 ))
 	    XSETFASTINT (prevline,
@@ -1036,6 +1056,8 @@ vmotion (from, vtarget, width, hscroll, window)
       XSETFASTINT (prevline, from);
       while (1)
 	{
+	  Lisp_Object propval;
+
 	  XSETFASTINT (prevline,
 		       find_next_newline_no_quit (XFASTINT (prevline) - 1,
 						  -1));
@@ -1044,7 +1066,9 @@ vmotion (from, vtarget, width, hscroll, window)
 		   || ! indented_beyond_p (XFASTINT (prevline), selective))
 #ifdef USE_TEXT_PROPERTIES
 		  /* watch out for newlines with `invisible' property */
-		  && NILP (Fget_char_property (prevline, Qinvisible, window))
+		  && (propval = Fget_char_property (prevline, Qinvisible,
+						    window),
+		      ! TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
 		  ))
 	    break;
