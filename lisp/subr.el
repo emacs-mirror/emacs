@@ -72,7 +72,7 @@ DOCSTRING is an optional documentation string.
  But documentation strings are usually not useful in nameless functions.
 INTERACTIVE should be a call to the function `interactive', which see.
 It may also be omitted.
-BODY should be a list of lisp expressions."
+BODY should be a list of Lisp expressions."
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
@@ -1464,7 +1464,7 @@ Replaces `category' properties with their defined properties."
 Strip text properties from the inserted text according to
 `yank-excluded-properties'.  Otherwise just like (insert STRING).
 
-If STRING has a non-nil yank-handler property on the first character,
+If STRING has a non-nil `yank-handler' property on the first character,
 the normal insert behaviour is modified in various ways.  The value of
 the yank-handler property must be a list with one to five elements
 with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO COMMAND).
