@@ -926,10 +926,14 @@ to record whether we upcased the expansion, downcased it, or did neither."
 		    (cond ((equal abbrev (upcase abbrev)) 'upcase)
 			  ((equal abbrev (downcase abbrev)) 'downcase)))))
 
-    ;; Convert newlines to spaces.
+    ;; Convert whitespace to single spaces.
     (if dabbrev--eliminate-newlines
-	(while (string-match "\n" expansion)
-	  (setq expansion (replace-match " " nil nil expansion))))
+	;; Start searching at end of ABBREV so that any whitespace
+	;; carried over from the existing text is not changed.
+	(let ((pos (length abbrev)))
+	  (while (string-match "[\n \t]+" expansion pos)
+	    (setq pos (1+ (match-beginning 0)))
+	    (setq expansion (replace-match " " nil nil expansion)))))
 
     (if old
 	(save-excursion
