@@ -485,15 +485,16 @@ The R column contains a % for buffers that are read-only."
 		(indent-to 27 1)
 		(princ mode))
 	      (indent-to 40 1)
+	      (or file
+		  ;; No visited file.  Check local value of
+		  ;; list-buffers-directory.
+		  (save-excursion
+		    (set-buffer buffer)
+		    (if (and (boundp 'list-buffers-directory)
+			     list-buffers-directory)
+			(setq file list-buffers-directory))))
 	      (if file
-		  (princ file)
-		;; No visited file.  Check local value of
-		;; list-buffers-directory.
-		(save-excursion
-		  (set-buffer buffer)
-		  (if (and (boundp list-buffers-directory)
-			   list-buffers-directory)
-		      (princ list-buffers-directory))))
+		  (princ file))
 	      (princ "\n"))))
 	  (setq bl (cdr bl)))))
     ;; DESIRED-POINT doesn't have to be set; it is not when the
