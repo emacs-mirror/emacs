@@ -488,10 +488,17 @@ extern int width_by_char_head[256];
 
 #define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
-/* Parse string STR of length LENGTH (>= 2) and check if a composite
-   character is at STR.  Actually, the whole multibyte sequence
-   starting with LEADING_CODE_COMPOSITION is treated as a single
-   multibyte character.  So, here, we just set BYTES to LENGTH.  */
+/* Parse composite character string STR of length LENGTH (>= 2) and
+   set BYTES to the length of actual multibyte sequence.
+
+   It is assumed that *STR is LEADING_CODE_COMPOSITION and the
+   following (LENGTH - 1) bytes satisfy !CHAR_HEAD_P.
+
+   Actually, the whole multibyte sequence starting with
+   LEADING_CODE_COMPOSITION is treated as a single multibyte
+   character.  So, here, we just set BYTES to LENGTH.
+
+   This macro should be called only from PARSE_MULTIBYTE_SEQ.  */
 
 #define PARSE_COMPOSITE_SEQ(str, length, bytes)	\
   do {						\
@@ -499,9 +506,15 @@ extern int width_by_char_head[256];
   } while (0)
 
 
-/* Parse string STR of length LENGTH (>= 2) and check if a
-   non-composite multibyte character is at STR.  Set BYTES to the
-   actual sequence length.  */
+/* Parse non-composite multibyte character string STR of length
+   LENGTH (>= 2) and set BYTES to the length of actual multibyte
+   sequence.
+
+   It is assumed that *STR is one of base leading codes (excluding
+   LEADING_CODE_COMPOSITION) and the following (LENGTH - 1) bytes
+   satisfy !CHAR_HEAD_P.
+
+   This macro should be called only from PARSE_MULTIBYTE_SEQ.  */
 
 #define PARSE_CHARACTER_SEQ(str, length, bytes)	\
   do {						\
@@ -517,13 +530,18 @@ extern int width_by_char_head[256];
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)			\
   do {								\
     int i = 1;							\
-    while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
-    if (i == 1)							\
-      (bytes) = 1;						\
-    else if ((str)[0] == LEADING_CODE_COMPOSITION)		\
-      PARSE_COMPOSITE_SEQ (str, i, bytes);			\
+    if (ASCII_BYTE_P (*str))					\
+      bytes = 1;						\
     else							\
-      PARSE_CHARACTER_SEQ (str, i, bytes);			\
+      {								\
+	while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
+	if (i == 1)						\
+	  (bytes) = 1;						\
+	else if ((str)[0] == LEADING_CODE_COMPOSITION)		\
+	  PARSE_COMPOSITE_SEQ (str, i, bytes);			\
+	else							\
+	  PARSE_CHARACTER_SEQ (str, i, bytes);			\
+      }								\
   } while (0)
 
 /* The charset of non-ASCII character C is stored in CHARSET, and the
@@ -546,7 +564,7 @@ extern int width_by_char_head[256];
 
 /* The charset of character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
-   We store -1 in C2 if the dimension of the charset 1.  */
+   We store -1 in C2 if the dimension of the charset is 1.  */
 
 #define SPLIT_CHAR(c, charset, c1, c2)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
@@ -622,10 +640,6 @@ extern int iso_charset_table[2][2][128];
   (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
    ? ((actual_len) = 1), (unsigned char) *(str)		\
    : string_to_non_ascii_char (str, len, &(actual_len)))
-
-/* This is like STRING_CHAR_AND_LENGTH but the third arg ACTUAL_LEN
-   does not include garbage bytes following the multibyte character.  */
-#define STRING_CHAR_AND_CHAR_LENGTH STRING_CHAR_AND_LENGTH
 
 /* Fetch the "next" multibyte character from Lisp string STRING
    at byte position BYTEIDX, character position CHARIDX.
