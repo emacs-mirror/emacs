@@ -311,6 +311,7 @@ Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
 Lisp_Object Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
+Lisp_Object QCcategory;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -8313,6 +8314,9 @@ usage: (define-coding-system-internal ...)  */)
 	   XSYMBOL (coding_type)->name->data);
 
   CODING_ATTR_CATEGORY (attrs) = make_number (category);
+  CODING_ATTR_PLIST (attrs)
+    = Fcons (QCcategory, Fcons (AREF (Vcoding_category_table, category),
+				CODING_ATTR_PLIST (attrs)));
 
   eol_type = args[coding_arg_eol_type];
   if (! NILP (eol_type)
@@ -8622,6 +8626,8 @@ syms_of_coding ()
   DEFSYM (Qvalid_codes, "valid-codes");
 
   DEFSYM (Qemacs_mule, "emacs-mule");
+
+  DEFSYM (QCcategory, ":category");
 
   Vcoding_category_table
     = Fmake_vector (make_number (coding_category_max), Qnil);
