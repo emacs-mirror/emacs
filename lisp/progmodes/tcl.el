@@ -1,12 +1,12 @@
 ;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.60 $
+;; Version: $Revision: 1.61 $
 
 ;; This file is part of GNU Emacs.
 
@@ -103,14 +103,19 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'outline)
+  (require 'dabbrev)
+  (require 'add-log))
+
 ;; I sure wish Emacs had a package that made it easy to extract this
 ;; sort of information.  Strange definition works with XEmacs 20.0.
 (defconst tcl-using-emacs-19 (not (string-match "18\\." emacs-version))
-  "Non-nil if using Emacs 19.")
+  "Non-nil if using Emacs 19 or later.")
 
 (defconst tcl-using-emacs-19-23
   (or (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
-      (string-match "^20\\." emacs-version))
+      (string-match "^[2-9][0-9]\\." emacs-version))
   "Non-nil if using Emacs 19-23 or later.")
 
 (defconst tcl-using-xemacs-19 (string-match "XEmacs" emacs-version)
@@ -122,12 +127,12 @@
 ;; you have 19.22 or earlier, comment this out, or get imenu.
 (and (fboundp 'eval-when-compile)
      (eval-when-compile
-       (if (and (string-match "19\\." emacs-version)
+       (if (and (not (string< emacs-version "19.23"))
 		(not (string-match "XEmacs" emacs-version)))
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.60 $")
+(defconst tcl-version "$Revision: 1.61 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -194,7 +199,7 @@ taken to mean `smart'.  The default is `smart'."
 (defcustom tcl-help-directory-list nil
   "*List of topmost directories containing TclX help files."
   :group 'tcl
-  :type '(list directory))
+  :type '(repeat directory))
 
 (defcustom tcl-use-smart-word-finder t
   "*If not nil, use smart way to find current word, for Tcl help feature."
@@ -209,7 +214,7 @@ taken to mean `smart'.  The default is `smart'."
 (defcustom tcl-command-switches nil
   "*List of switches to supply to the `tcl-application' program."
   :group 'tcl
-  :type '(list string))
+  :type '(repeat string))
 
 (defcustom tcl-prompt-regexp "^\\(% \\|\\)"
   "*If not nil, a regexp that will match the prompt in the inferior process.
@@ -298,7 +303,7 @@ quoted for Tcl."
 ;; Emacs does menus via keymaps.  Do it in a function in case we
 ;; later decide to add it to inferior Tcl mode as well.
 (defun tcl-add-emacs-menu (map)
-  (define-key map [menu-bar] (make-sparse-keymap))
+  (define-key map [menu-bar] (make-sparse-keymap "Tcl"))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
   (let ((menu (make-lucid-menu-keymap "Tcl" tcl-xemacs-menu)))
@@ -599,16 +604,16 @@ An end of a defun is found by moving forward from the beginning of one."
 
 ;; We can now use begining-of-defun as long as we set up a
 ;; certain regexp.  In Emacs 18, we need our own function.
-(fset 'tcl-beginning-of-defun
-      (if tcl-using-emacs-19
-	  'beginning-of-defun
-	'tcl-internal-beginning-of-defun))
+(defalias 'tcl-beginning-of-defun
+  (if tcl-using-emacs-19
+      'beginning-of-defun
+    'tcl-internal-beginning-of-defun))
 
 ;; Ditto end-of-defun.
-(fset 'tcl-end-of-defun
-      (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
-	  'end-of-defun
-	'tcl-internal-end-of-defun))
+(defalias 'tcl-end-of-defun
+  (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
+      'end-of-defun
+    'tcl-internal-end-of-defun))
 
 ;; Internal mark-defun that is used for losing Emacsen.
 (defun tcl-internal-mark-defun ()
