@@ -1376,6 +1376,27 @@ however, on a console terminal or in @code{xterm}, you can arrange for
 Meta to be converted to @kbd{ESC} and still be able type 8-bit
 characters present directly on the keyboard or using @kbd{Compose} or
 @kbd{AltGr} keys.  @xref{User Input}.
+
+@kindex C-x 8
+@cindex @code{iso-transl} library
+@cindex compose character
+@cindex dead character
+@item
+For Latin-1 only, you can use the key @kbd{C-x 8} as a ``compose
+character'' prefix for entry of non-@acronym{ASCII} Latin-1 printing
+characters.  @kbd{C-x 8} is good for insertion (in the minibuffer as
+well as other buffers), for searching, and in any other context where
+a key sequence is allowed.
+
+@kbd{C-x 8} works by loading the @code{iso-transl} library.  Once that
+library is loaded, the @key{ALT} modifier key, if the keyboard has
+one, serves the same purpose as @kbd{C-x 8}: use @key{ALT} together
+with an accent character to modify the following letter.  In addition,
+if the keyboard has keys for the Latin-1 ``dead accent characters,''
+they too are defined to compose with the following character, once
+@code{iso-transl} is loaded.
+
+Use @kbd{C-x 8 C-h} to list all the available @kbd{C-x 8} translations.
 @end itemize
 
 @node Charsets
