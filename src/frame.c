@@ -885,11 +885,11 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (FRAME_INSERT_COST (f))
     free (FRAME_INSERT_COST (f));
   if (FRAME_DELETEN_COST (f))
-    FRAME_DELETEN_COST (f);
+    free (FRAME_DELETEN_COST (f));
   if (FRAME_INSERTN_COST (f))
-    FRAME_INSERTN_COST (f);
+    free (FRAME_INSERTN_COST (f));
   if (FRAME_DELETE_COST (f))
-    FRAME_DELETE_COST (f);
+    free (FRAME_DELETE_COST (f));
 
   /* Since some events are handled at the interrupt level, we may get
      an event for f at any time; if we zero out the frame's display
