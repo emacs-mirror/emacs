@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.11) $
+ * $HopeName: MMsrc!poolamc.c(trunk.12) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.11) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.12) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -48,7 +48,7 @@ typedef struct AMCGenStruct {
 
 
 /* .ramp.generation: The ramp gen has serial AMCTopGen+1. */
-#define AMCRampGen AMCTopGen+1
+#define AMCRampGen (AMCTopGen+1)
 
 enum { outsideRamp, beginRamp, ramping, finishRamp, collectingRamp };
 
@@ -682,12 +682,15 @@ static double AMCBenefit(Pool pool, Action action)
     break;
   default:
     if(gen->serial == AMCGenFinal) {
-      f = 1e99; /* Don't ever collect the final generation. */
+      return 0; /* Don't ever collect the final generation. */
     } else if(gen->serial == AMCRampGen) {
       if(amc->rampMode == finishRamp)
         return 1e99; /* do it now */
       else
-        f = gen->size != 0 ? AMCRampGenFrequency : 1e99;
+        if(gen->size != 0)
+          f = AMCRampGenFrequency;
+        else
+          return 0; /* Don't collect an empty ramp gen. */
     } else {
       f = inRampMode
             ? (AMCGen2RampmodeFrequency
@@ -906,11 +909,13 @@ static Res AMCAct(Pool pool, Action action)
     Seg seg = SegOfPoolRing(node);
     Serial segGenNum = AMCSegGen(seg)->serial;
 
-    /* Condemn the given generation and all previous ones; note the */
-    /* unusual numbering of the ramp gen (.ramp.generation). */
+    /* Condemn the given generation and all previous ones; note that */
+    /* despite the numbering of the ramp gen (.ramp.generation), we */
+    /* consider it to be between AMCRampGenFollows and the next gen. */
     if(genNum == AMCRampGen
        ? (segGenNum <= AMCRampGenFollows || segGenNum == AMCRampGen)
-       : segGenNum <= genNum)
+       : (segGenNum <= genNum
+          || (segGenNum == AMCRampGen && genNum > AMCRampGenFollows)))
       condemnedSet = RefSetUnion(condemnedSet, RefSetOfSeg(arena, seg));
   }
 
@@ -1849,6 +1854,7 @@ static Bool AMCCheck(AMC amc)
   if(amc->afterRampGen != NULL)
     CHECKD(AMCGen, amc->afterRampGen);
   /* nothing to check for rampCount */
+  CHECKL(amc->rampMode >= outsideRamp && amc->rampMode <= collectingRamp);
 
   CHECKL((unsigned long)(Serial)AMCTopGen == AMCTopGen);
   CHECKL(AMCTopGen >= 2); /* AMCBenefit assumes three gens */
