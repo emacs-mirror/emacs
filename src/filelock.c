@@ -685,7 +685,7 @@ unlock_buffer (buffer)
     unlock_file (buffer->file_truename);
 }
 
-DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 0, 1, 0,
+DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
   "Return nil if the FILENAME is not locked,\n\
 t if it is locked by you, else a string of the name of the locker.")
   (filename)
