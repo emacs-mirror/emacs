@@ -712,7 +712,7 @@ void TraceDestroy(Trace trace)
     /* Notify all the chains. */
     RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
       Chain chain = RING_ELT(Chain, chainRing, chainNode);
-     
+
       ChainEndGC(chain, trace);
     }
   } else {
@@ -1422,7 +1422,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
           if (TraceSetIsMember(SegGrey(seg), trace))
             trace->foundation += size;
         }
-       
+
         if ((SegPool(seg)->class->attr & AttrGC)
             && !TraceSetIsMember(SegWhite(seg), trace))
           trace->notCondemned += size;
@@ -1509,11 +1509,12 @@ static void traceQuantum(Trace trace)
 
 /* TracePoll -- Check if there's any tracing work to be done */
 
-void TracePoll(Globals globals)
+Bool TracePoll(Globals globals)
 {
   Trace trace;
   Res res;
   Arena arena;
+  Bool done = FALSE;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
@@ -1549,6 +1550,7 @@ void TracePoll(Globals globals)
         /* Run out of time, should really try a smaller collection. @@@@ */
         finishingTime = 0.0;
       TraceStart(trace, TraceTopGenMortality, finishingTime);
+      done = TRUE;
     } else { /* Find the nursery most over its capacity. */
       Ring node, nextNode;
       double firstTime = 0.0;
@@ -1577,6 +1579,7 @@ void TracePoll(Globals globals)
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);
         TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+        done = TRUE;
       }
     } /* (dynamicDeferral > 0.0) */
   } /* (arena->busyTraces == TraceSetEMPTY) */
@@ -1588,11 +1591,13 @@ void TracePoll(Globals globals)
     traceQuantum(trace);
     if (trace->state == TraceFINISHED)
       TraceDestroy(trace);
+    done = TRUE;
   }
-  return;
+  return done;
 
 failCondemn:
   TraceDestroy(trace);
+  return FALSE;
 }
 
 
@@ -1611,7 +1616,7 @@ void ArenaRelease(Globals globals)
 {
   AVERT(Globals, globals);
   globals->clamped = FALSE;
-  TracePoll(globals);
+  (void)TracePoll(globals);
 }
 
 

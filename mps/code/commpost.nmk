@@ -17,7 +17,7 @@
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
-     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
      eventcnv.exe
 
@@ -32,7 +32,7 @@ swall: mmsw.lib epvmss.exe replaysw.exe
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe epvmss.exe \
-     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
      replay.exe replaysw.exe eventcnv.exe \
      mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
@@ -218,6 +218,10 @@ $(PFM)\$(VARIETY)\replaysw.exe: $(PFM)\$(VARIETY)\replaysw.obj \
 
 $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
