@@ -169,7 +169,7 @@ glyph_to_str_cpy (glyphs, str)
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
-/* Index of first unused element of FRAME_MESSAGE_BUF(selected_frame). */
+/* Index of first unused element of FRAME_MESSAGE_BUF(mini_frame). */
 static int printbufidx;
 
 static void
@@ -193,6 +193,9 @@ printchar (ch, fun)
 
   if (EQ (fun, Qt))
     {
+      struct frame *mini_frame
+	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+
       if (noninteractive)
 	{
 	  putchar (ch);
@@ -200,18 +203,18 @@ printchar (ch, fun)
 	  return;
 	}
 
-      if (echo_area_glyphs != FRAME_MESSAGE_BUF (selected_frame)
+      if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
 	  || !message_buf_print)
 	{
-	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
+	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
-      if (printbufidx < FRAME_WIDTH (selected_frame) - 1)
-	FRAME_MESSAGE_BUF (selected_frame)[printbufidx++] = ch;
-      FRAME_MESSAGE_BUF (selected_frame)[printbufidx] = 0;
+      if (printbufidx < FRAME_WIDTH (mini_frame) - 1)
+	FRAME_MESSAGE_BUF (mini_frame)[printbufidx++] = ch;
+      FRAME_MESSAGE_BUF (mini_frame)[printbufidx] = 0;
       echo_area_glyphs_length = printbufidx;
 
       return;
@@ -241,6 +244,9 @@ strout (ptr, size, printcharfun)
     }
   if (EQ (printcharfun, Qt))
     {
+      struct frame *mini_frame
+	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+
       i = size >= 0 ? size : strlen (ptr);
 #ifdef MAX_PRINT_CHARS
       if (max_print)
@@ -254,21 +260,21 @@ strout (ptr, size, printcharfun)
 	  return;
 	}
 
-      if (echo_area_glyphs != FRAME_MESSAGE_BUF (selected_frame)
+      if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
 	  || !message_buf_print)
 	{
-	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
+	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
-      if (i > FRAME_WIDTH (selected_frame) - printbufidx - 1)
-	i = FRAME_WIDTH (selected_frame) - printbufidx - 1;
-      bcopy (ptr, &FRAME_MESSAGE_BUF (selected_frame) [printbufidx], i);
+      if (i > FRAME_WIDTH (mini_frame) - printbufidx - 1)
+	i = FRAME_WIDTH (mini_frame) - printbufidx - 1;
+      bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], i);
       printbufidx += i;
       echo_area_glyphs_length = printbufidx;
-      FRAME_MESSAGE_BUF (selected_frame) [printbufidx] = 0;
+      FRAME_MESSAGE_BUF (mini_frame) [printbufidx] = 0;
 
       return;
     }
