@@ -88,7 +88,7 @@ CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 
 CHINESE-CNS=${NON-TIT-CNS} 
 
-JAPANESE=${srcdir}/quail/japanese.el ${srcdir}/skk/skkdic.el
+JAPANESE=${srcdir}/quail/japanese.el ${srcdir}/ja-dic/ja-dic.el
 
 KOREAN=	${srcdir}/quail/hangul.el	\
 	${srcdir}/quail/hangul3.el	\
@@ -161,16 +161,16 @@ leim-list.el: ${SUBDIRS} ${WORLD}
 install: all
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -rf ${INSTALLDIR}/leim-list.el; \
-	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
+	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
-	    tar -cf - leim-list.el quail skk \
+	    tar -cf - leim-list.el quail ja-dic \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  else \
 	    tar -cf - leim-list.el quail \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	    cd ${srcdir}; \
-	    tar -cf - quail/* skk \
+	    tar -cf - quail/* ja-dic \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
 	else true; fi

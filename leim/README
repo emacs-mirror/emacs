@@ -22,9 +22,9 @@ don't need this file because we distribute an Emacs Lisp source file
 skk/skkdic.el which has already been converted from the source
 dictionary (See below).
 
-skk:
+ja-dic:
 
-This directory contains Emacs Lisp source file skkdic.el which is
+This directory contains Emacs Lisp source file ja-dic.el which is
 generated from a source dictionary in SKK-DIC directory.  In addition,
-it contains a byte compiled file skkdic.elc for users convenience
-because it takes rather long time to byte-compile skkdic.el.
+it contains a byte compiled file ja-dic.elc for users convenience
+because it takes rather long time to byte-compile ja-dic.el.
