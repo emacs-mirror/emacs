@@ -1,5 +1,9 @@
 2004-06-26  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
+	* net/tramp.el (tramp-handle-file-remote-p): New implementation to
+	agree with new return value of `file-remote-p'.
+	This syncs with Tramp 2.0.42.
+
 	* net/ange-ftp.el (ange-ftp-file-remote-p): New return value,
 	according to new documentation of `file-remote-p'.
 
