@@ -1,3 +1,15 @@
+2004-04-25  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Also recognize severe Irix et al. messages.
+	(compilation-normalize-filename, compile-abbreviate-directory):
+	Delete functions.
+	(compilation-get-file-structure): New function inherits
+	functionality of the two preceding ones.
+	(compilation-internal-error-properties, compilation-fake-loc): Use
+	it so that different paths to the same file share the same
+	markers.  Also optimize finding adjacent marker slightly.
+
 2004-04-25  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (insert-sliced-image): Add line-spacing t property
