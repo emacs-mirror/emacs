@@ -168,6 +168,7 @@ Commands:
 (add-hook 'temp-buffer-show-hook 'help-mode-maybe)
 
 (defun help-quit ()
+  "Just exit from the Help command's command loop."
   (interactive)
   nil)
 
