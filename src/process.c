@@ -631,14 +631,12 @@ closed -- for a network stream connection that is closed.\n\
 nil -- if arg is a process name and no such process exists.\n\
 PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
 nil, indicating the current buffer's process.")
-/* command -- for a command channel opened to Emacs by another process.\n\
-   external -- for an i/o channel opened to Emacs by another process.\n\  */
   (proc)
      register Lisp_Object proc;
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
-  proc = get_process (proc);
+  proc = Fget_process (proc);
   if (NILP (proc))
     return proc;
   p = XPROCESS (proc);
