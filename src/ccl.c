@@ -1076,10 +1076,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	    if (stack_idx >= 256
 		|| prog_id < 0
-		|| prog_id >= XVECTOR (Vccl_program_table)->size
-		|| (slot = XVECTOR (Vccl_program_table)->contents[prog_id],
-		    !VECTORP (slot))
-		|| !VECTORP (XVECTOR (slot)->contents[1]))
+		|| prog_id >= ASIZE (Vccl_program_table)
+		|| (slot = AREF (Vccl_program_table, prog_id), !VECTORP (slot))
+		|| !VECTORP (AREF (slot, 1)))
 	      {
 		if (stack_idx > 0)
 		  {
@@ -1092,7 +1091,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;
 	    ccl_prog_stack_struct[stack_idx].ic = ic;
 	    stack_idx++;
-	    ccl_prog = XVECTOR (XVECTOR (slot)->contents[1])->contents;
+	    ccl_prog = XVECTOR (AREF (slot, 1))->contents;
 	    ic = CCL_HEADER_MAIN;
 	  }
 	  break;
@@ -1430,20 +1429,19 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		for (;i < j;i++)
 		  {
 
-		    size = XVECTOR (Vcode_conversion_map_vector)->size;
+		    size = ASIZE (Vcode_conversion_map_vector);
 		    point = XINT (ccl_prog[ic++]);
 		    if (point >= size) continue;
-		    map =
-		      XVECTOR (Vcode_conversion_map_vector)->contents[point];
+		    map = AREF (Vcode_conversion_map_vector, point);
 
 		    /* Check map varidity.  */
 		    if (!CONSP (map)) continue;
 		    map = XCDR (map);
 		    if (!VECTORP (map)) continue;
-		    size = XVECTOR (map)->size;
+		    size = ASIZE (map);
 		    if (size <= 1) continue;
 
-		    content = XVECTOR (map)->contents[0];
+		    content = AREF (map, 0);
 
 		    /* check map type,
 		       [STARTPOINT VAL1 VAL2 ...] or
@@ -1453,14 +1451,14 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			point = XUINT (content);
 			point = op - point + 1;
 			if (!((point >= 1) && (point < size))) continue;
-			content = XVECTOR (map)->contents[point];
+			content = AREF (map, point);
 		      }
 		    else if (EQ (content, Qt))
 		      {
 			if (size != 4) continue;
-			if ((op >= XUINT (XVECTOR (map)->contents[2]))
-			    && (op < XUINT (XVECTOR (map)->contents[3])))
-			  content = XVECTOR (map)->contents[1];
+			if ((op >= XUINT (AREF (map, 2)))
+			    && (op < XUINT (AREF (map, 3))))
+			  content = AREF (map, 1);
 			else
 			  continue;
 		      }
@@ -1586,7 +1584,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			break;
 		      }
 		  }
-		map_vector_size = XVECTOR (Vcode_conversion_map_vector)->size;
+		map_vector_size = ASIZE (Vcode_conversion_map_vector);
 		
 		do {
 		  for (;map_set_rest_length > 0;i++, ic++, map_set_rest_length--)
@@ -1607,17 +1605,16 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			}
 
 		      if (point >= map_vector_size) continue;
-		      map = (XVECTOR (Vcode_conversion_map_vector)
-			     ->contents[point]);
+		      map = AREF (Vcode_conversion_map_vector, point);
 
 		      /* Check map varidity.  */
 		      if (!CONSP (map)) continue;
 		      map = XCDR (map);
 		      if (!VECTORP (map)) continue;
-		      size = XVECTOR (map)->size;
+		      size = ASIZE (map);
 		      if (size <= 1) continue;
 
-		      content = XVECTOR (map)->contents[0];
+		      content = AREF (map, 0);
 
 		      /* check map type,
 			 [STARTPOINT VAL1 VAL2 ...] or
@@ -1627,14 +1624,14 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			  point = XUINT (content);
 			  point = op - point + 1;
 			  if (!((point >= 1) && (point < size))) continue;
-			  content = XVECTOR (map)->contents[point];
+			  content = AREF (map, point);
 			}
 		      else if (EQ (content, Qt))
 			{
 			  if (size != 4) continue;
-			  if ((op >= XUINT (XVECTOR (map)->contents[2])) &&
-			      (op < XUINT (XVECTOR (map)->contents[3])))
-			    content = XVECTOR (map)->contents[1];
+			  if ((op >= XUINT (AREF (map, 2))) &&
+			      (op < XUINT (AREF (map, 3))))
+			    content = AREF (map, 1);
 			  else
 			    continue;
 			}
@@ -1707,12 +1704,12 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		int size, point;
 		j = XINT (ccl_prog[ic++]); /* map_id */
 		op = reg[rrr];
-		if (j >= XVECTOR (Vcode_conversion_map_vector)->size)
+		if (j >= ASIZE (Vcode_conversion_map_vector))
 		  {
 		    reg[RRR] = -1;
 		    break;
 		  }
-		map = XVECTOR (Vcode_conversion_map_vector)->contents[j];
+		map = AREF (Vcode_conversion_map_vector, j);
 		if (!CONSP (map))
 		  {
 		    reg[RRR] = -1;
@@ -1724,8 +1721,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		    reg[RRR] = -1;
 		    break;
 		  }
-		size = XVECTOR (map)->size;
-		point = XUINT (XVECTOR (map)->contents[0]);
+		size = ASIZE (map);
+		point = XUINT (AREF (map, 0));
 		point = op - point + 1;
 		reg[RRR] = 0;
 		if ((size <= 1) ||
@@ -1734,7 +1731,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		else
 		  {
 		    reg[RRR] = 0;
-		    content = XVECTOR (map)->contents[point];
+		    content = AREF (map, point);
 		    if (NILP (content))
 		      reg[RRR] = -1;
 		    else if (NUMBERP (content))
@@ -1875,11 +1872,11 @@ resolve_symbol_ccl_program (ccl)
   Lisp_Object result, contents, val;
 
   result = ccl;
-  veclen = XVECTOR (result)->size;
+  veclen = ASIZE (result);
 
   for (i = 0; i < veclen; i++)
     {
-      contents = XVECTOR (result)->contents[i];
+      contents = AREF (result, i);
       if (INTEGERP (contents))
 	continue;
       else if (CONSP (contents)
@@ -1895,7 +1892,7 @@ resolve_symbol_ccl_program (ccl)
 
 	  val = Fget (XCAR (contents), XCDR (contents));
 	  if (NATNUMP (val))
-	    XVECTOR (result)->contents[i] = val;
+	    AREF (result, i) = val;
 	  else
 	    unresolved = 1;
 	  continue;
@@ -1910,17 +1907,17 @@ resolve_symbol_ccl_program (ccl)
 
 	  val = Fget (contents, Qtranslation_table_id);
 	  if (NATNUMP (val))
-	    XVECTOR (result)->contents[i] = val;
+	    AREF (result, i) = val;
 	  else
 	    {
 	      val = Fget (contents, Qcode_conversion_map_id);
 	      if (NATNUMP (val))
-		XVECTOR (result)->contents[i] = val;
+		AREF (result, i) = val;
 	      else
 		{
 		  val = Fget (contents, Qccl_program_idx);
 		  if (NATNUMP (val))
-		    XVECTOR (result)->contents[i] = val;
+		    AREF (result, i) = val;
 		  else
 		    unresolved = 1;
 		}
@@ -1955,22 +1952,22 @@ ccl_get_compiled_code (ccl_prog)
 
   val = Fget (ccl_prog, Qccl_program_idx);
   if (! NATNUMP (val)
-      || XINT (val) >= XVECTOR (Vccl_program_table)->size)
+      || XINT (val) >= ASIZE (Vccl_program_table))
     return Qnil;
-  slot = XVECTOR (Vccl_program_table)->contents[XINT (val)];
+  slot = AREF (Vccl_program_table, XINT (val));
   if (! VECTORP (slot)
-      || XVECTOR (slot)->size != 3
-      || ! VECTORP (XVECTOR (slot)->contents[1]))
+      || ASIZE (slot) != 3
+      || ! VECTORP (AREF (slot, 1)))
     return Qnil;
-  if (NILP (XVECTOR (slot)->contents[2]))
+  if (NILP (AREF (slot, 2)))
     {
-      val = resolve_symbol_ccl_program (XVECTOR (slot)->contents[1]);
+      val = resolve_symbol_ccl_program (AREF (slot, 1));
       if (! VECTORP (val))
 	return Qnil;
-      XVECTOR (slot)->contents[1] = val;
-      XVECTOR (slot)->contents[2] = Qt;
+      AREF (slot, 1) = val;
+      AREF (slot, 2) = Qt;
     }
-  return XVECTOR (slot)->contents[1];
+  return AREF (slot, 1);
 }
 
 /* Setup fields of the structure pointed by CCL appropriately for the
@@ -2031,7 +2028,7 @@ See the documentation of  `define-ccl-program' for the detail of CCL program.  *
 
   val = Fget (object, Qccl_program_idx);
   return ((! NATNUMP (val)
-	   || XINT (val) >= XVECTOR (Vccl_program_table)->size)
+	   || XINT (val) >= ASIZE (Vccl_program_table))
 	  ? Qnil : Qt);
 }
 
@@ -2061,12 +2058,12 @@ programs.  */)
     error ("Invalid CCL program");
 
   CHECK_VECTOR (reg);
-  if (XVECTOR (reg)->size != 8)
+  if (ASIZE (reg) != 8)
     error ("Length of vector REGISTERS is not 8");
 
   for (i = 0; i < 8; i++)
-    ccl.reg[i] = (INTEGERP (XVECTOR (reg)->contents[i])
-		  ? XINT (XVECTOR (reg)->contents[i])
+    ccl.reg[i] = (INTEGERP (AREF (reg, i))
+		  ? XINT (AREF (reg, i))
 		  : 0);
 
   ccl_driver (&ccl, (unsigned char *)0, (unsigned char *)0, 0, 0, (int *)0);
@@ -2075,7 +2072,7 @@ programs.  */)
     error ("Error in CCL program at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
-    XSETINT (XVECTOR (reg)->contents[i], ccl.reg[i]);
+    XSETINT (AREF (reg, i), ccl.reg[i]);
   return Qnil;
 }
 
@@ -2119,7 +2116,7 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
     error ("Invalid CCL program");
 
   CHECK_VECTOR (status);
-  if (XVECTOR (status)->size != 9)
+  if (ASIZE (status) != 9)
     error ("Length of vector STATUS is not 9");
   CHECK_STRING (str);
 
@@ -2127,14 +2124,14 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
 
   for (i = 0; i < 8; i++)
     {
-      if (NILP (XVECTOR (status)->contents[i]))
-	XSETINT (XVECTOR (status)->contents[i], 0);
-      if (INTEGERP (XVECTOR (status)->contents[i]))
-	ccl.reg[i] = XINT (XVECTOR (status)->contents[i]);
+      if (NILP (AREF (status, i)))
+	XSETINT (AREF (status, i), 0);
+      if (INTEGERP (AREF (status, i)))
+	ccl.reg[i] = XINT (AREF (status, i));
     }
-  if (INTEGERP (XVECTOR (status)->contents[i]))
+  if (INTEGERP (AREF (status, i)))
     {
-      i = XFASTINT (XVECTOR (status)->contents[8]);
+      i = XFASTINT (AREF (status, 8));
       if (ccl.ic < i && i < ccl.size)
 	ccl.ic = i;
     }
@@ -2145,8 +2142,8 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
   produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
 			 STRING_BYTES (XSTRING (str)), outbufsize, (int *) 0);
   for (i = 0; i < 8; i++)
-    XSET (XVECTOR (status)->contents[i], Lisp_Int, ccl.reg[i]);
-  XSETINT (XVECTOR (status)->contents[8], ccl.ic);
+    XSET (AREF (status, i), Lisp_Int, ccl.reg[i]);
+  XSETINT (AREF (status, 8), ccl.ic);
   UNGCPRO;
 
   if (NILP (unibyte_p))
@@ -2178,7 +2175,7 @@ Return index number of the registered CCL program.  */)
      (name, ccl_prog)
      Lisp_Object name, ccl_prog;
 {
-  int len = XVECTOR (Vccl_program_table)->size;
+  int len = ASIZE (Vccl_program_table);
   int idx;
   Lisp_Object resolved;
 
@@ -2203,16 +2200,16 @@ Return index number of the registered CCL program.  */)
     {
       Lisp_Object slot;
 
-      slot = XVECTOR (Vccl_program_table)->contents[idx];
+      slot = AREF (Vccl_program_table, idx);
       if (!VECTORP (slot))
 	/* This is the first unsed slot.  Register NAME here.  */
 	break;
 
-      if (EQ (name, XVECTOR (slot)->contents[0]))
+      if (EQ (name, AREF (slot, 0)))
 	{
 	  /* Update this slot.  */
-	  XVECTOR (slot)->contents[1] = ccl_prog;
-	  XVECTOR (slot)->contents[2] = resolved;
+	  AREF (slot, 1) = ccl_prog;
+	  AREF (slot, 2) = resolved;
 	  return make_number (idx);
 	}
     }
@@ -2225,8 +2222,8 @@ Return index number of the registered CCL program.  */)
 
       new_table = Fmake_vector (make_number (len * 2), Qnil);
       for (j = 0; j < len; j++)
-	XVECTOR (new_table)->contents[j]
-	  = XVECTOR (Vccl_program_table)->contents[j];
+	AREF (new_table, j)
+	  = AREF (Vccl_program_table, j);
       Vccl_program_table = new_table;
     }
 
@@ -2234,10 +2231,10 @@ Return index number of the registered CCL program.  */)
     Lisp_Object elt;
 
     elt = Fmake_vector (make_number (3), Qnil);
-    XVECTOR (elt)->contents[0] = name;
-    XVECTOR (elt)->contents[1] = ccl_prog;
-    XVECTOR (elt)->contents[2] = resolved;
-    XVECTOR (Vccl_program_table)->contents[idx] = elt;
+    AREF (elt, 0) = name;
+    AREF (elt, 1) = ccl_prog;
+    AREF (elt, 2) = resolved;
+    AREF (Vccl_program_table, idx) = elt;
   }
 
   Fput (name, Qccl_program_idx, make_number (idx));
@@ -2261,7 +2258,7 @@ Return index number of the registered map.  */)
      (symbol, map)
      Lisp_Object symbol, map;
 {
-  int len = XVECTOR (Vcode_conversion_map_vector)->size;
+  int len = ASIZE (Vcode_conversion_map_vector);
   int i;
   Lisp_Object index;
 
@@ -2270,7 +2267,7 @@ Return index number of the registered map.  */)
   
   for (i = 0; i < len; i++)
     {
-      Lisp_Object slot = XVECTOR (Vcode_conversion_map_vector)->contents[i];
+      Lisp_Object slot = AREF (Vcode_conversion_map_vector, i);
 
       if (!CONSP (slot))
 	break;
@@ -2291,15 +2288,15 @@ Return index number of the registered map.  */)
       int j;
 
       for (j = 0; j < len; j++)
-	XVECTOR (new_vector)->contents[j]
-	  = XVECTOR (Vcode_conversion_map_vector)->contents[j];
+	AREF (new_vector, j)
+	  = AREF (Vcode_conversion_map_vector, j);
       Vcode_conversion_map_vector = new_vector;
     }
 
   index = make_number (i);
   Fput (symbol, Qcode_conversion_map, map);
   Fput (symbol, Qcode_conversion_map_id, index);
-  XVECTOR (Vcode_conversion_map_vector)->contents[i] = Fcons (symbol, map);
+  AREF (Vcode_conversion_map_vector, i) = Fcons (symbol, map);
   return index;
 }
 
