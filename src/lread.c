@@ -1461,7 +1461,6 @@ STREAM or the value of `standard-input' may be:
      Lisp_Object stream;
 {
   extern Lisp_Object Fread_minibuffer ();
-  Lisp_Object tem;
   if (NILP (stream))
     stream = Vstandard_input;
   if (EQ (stream, Qt))
@@ -2513,7 +2512,9 @@ read1 (readcharfun, pch, first_in_list)
 	      /* Kind of a hack; this will probably fail if characters
 		 in the symbol name were escaped.  Not really a big
 		 deal, though.  */
-	      Fcons (Fcons (result, readchar_count - Flength (Fsymbol_name (result))),
+	      Fcons (Fcons (result,
+			    make_number (readchar_count
+					 - XFASTINT (Flength (Fsymbol_name (result))))),
 		     Vread_symbol_positions_list);
 	  return result;
 	}
