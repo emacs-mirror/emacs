@@ -808,11 +808,12 @@ The default is not to surround any existing words with the braces."
 
 (defun texinfo-insert-@node ()
   "Insert the string `@node' in a Texinfo buffer.
-This also inserts on the following line a comment indicating
-the order of arguments to @node."
+Insert a comment on the following line indicating the order of
+arguments to @node.  Insert a carriage return after the comment line.
+Leave point after `@node'."
   (interactive)
-  (insert "@node \n@comment  node-name,  next,  previous,  up")
-  (forward-line -1)
+  (insert "@node \n@comment  node-name,  next,  previous,  up\n")
+  (forward-line -2)
   (forward-char 6))
 
 (defun texinfo-insert-@noindent ()
