@@ -1,3 +1,16 @@
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compile-goto-error): Select the buffer/window
+	corresponding to the event.
+
+	* url/url.el (url-retrieve): Use with-current-buffer.
+
+	* url/url-http.el (url-http-parse-headers, url-http-file-exists-p):
+	Remove unused var `version'.
+
+	* url/url-handlers.el (url-handler-mode): New minor mode.
+	(url-setup-file-name-handlers): Remove.
+
 2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
 
 	* loadup.el: Add cygwin to system-type list, for unexec() support.
