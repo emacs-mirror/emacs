@@ -68,6 +68,7 @@
   ;; - we only refresh spots in the current window.
   ;; FIXME: do we actually know that (current-buffer) = (window-buffer) ?
   (with-local-quit
+  (condition-case err
    (let* ((spots (cvs-partition
 		  (lambda (x)
 		    ;; We refresh any spot in the current window as well
@@ -79,11 +80,7 @@
 				 (current-buffer)))))
 		  reveal-open-spots))
 	  (old-ols (mapcar 'cdr (car spots)))
-	  (repeat t)
-	  ;; `post-command-hook' binds it to t, but the user might want to
-	  ;; interrupt our work if we somehow get stuck in an infinite loop.
-	  (inhibit-quit nil)
-	  inv open)
+	  (repeat t))
      (setq reveal-open-spots (cdr spots))
      ;; Open new overlays.
      (while repeat
@@ -93,23 +90,27 @@
 			  (overlays-at (point))))
 	 (push (cons (selected-window) ol) reveal-open-spots)
 	 (setq old-ols (delq ol old-ols))
-	 (when (setq inv (overlay-get ol 'invisible))
-	   (when (or (overlay-get ol 'isearch-open-invisible)
-		     (and (consp buffer-invisibility-spec)
-			  (assq inv buffer-invisibility-spec)))
-	     (overlay-put ol 'reveal-invisible inv)
-	     (overlay-put ol 'invisible nil)
-	     (when (setq open (get inv 'reveal-toggle-invisible))
+	 (let ((open (overlay-get ol 'reveal-toggle-invisible)))
+	   (when (or open
+		     (let ((inv (overlay-get ol 'invisible)))
+		       (and inv (symbolp inv)
+			    (or (setq open (or (get inv 'reveal-toggle-invisible)
+					       (get ol 'isearch-open-invisible-temporary)))
+				(overlay-get ol 'isearch-open-invisible)
+				(and (consp buffer-invisibility-spec)
+				     (assq inv buffer-invisibility-spec)))
+			    (overlay-put ol 'reveal-invisible inv))))
+	     (if (null open)
+		 (overlay-put ol 'invisible nil)
 	       ;; Use the provided opening function and repeat (since the
 	       ;; opening function might have hidden a subpart around point).
 	       (setq repeat t)
 	       (condition-case err
-		   (funcall open ol t)
+		   (funcall open ol nil)
 		 (error (message "!!Reveal-show: %s !!" err))))))))
      ;; Close old overlays.
      (dolist (ol old-ols)
-       (when (and (setq inv (overlay-get ol 'reveal-invisible))
-		  (eq (current-buffer) (overlay-buffer ol))
+       (when (and (eq (current-buffer) (overlay-buffer ol))
 		  (not (rassq ol reveal-open-spots)))
 	 (if (and (>= (point) (save-excursion
 				(goto-char (overlay-start ol))
@@ -120,11 +121,16 @@
 	     ;; Still near the overlay: keep it open.
 	     (push (cons (selected-window) ol) reveal-open-spots)
 	   ;; Really close it.
-	   (overlay-put ol 'invisible inv)
-	   (when (setq open (get inv 'reveal-toggle-invisible))
-	     (condition-case err
-		 (funcall open ol nil)
-	       (error (message "!!Reveal-hide: %s !!" err))))))))))
+	   (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
+	     (if (or open
+		     (and (setq inv (overlay-get ol 'reveal-invisible))
+			  (setq open (or (get inv 'reveal-toggle-invisible)
+					 (get ol 'isearch-open-invisible-temporary)))))
+		 (condition-case err
+		     (funcall open ol t)
+		   (error (message "!!Reveal-hide: %s !!" err)))
+	       (overlay-put ol 'invisible inv)))))))
+   (error (message "Reveal: %s" err)))))
 
 ;;;###autoload
 (define-minor-mode reveal-mode
