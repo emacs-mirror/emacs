@@ -1,5 +1,7 @@
 2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
 
+	* dired-x.el (dired-clean-tex): Doc fix.
+
 	* language/chinese.el ("Chinese-GB", "Chinese-BIG5"): Set up for
 	using a Chinese tutorial.
 
