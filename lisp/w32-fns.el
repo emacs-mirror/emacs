@@ -257,7 +257,8 @@ with a definition that really does change some file names."
   (let ((name (copy-sequence filename))
 	(start 0))
     ;; leave ':' if part of drive specifier
-    (if (eq (aref name 1) ?:)
+    (if (and (> (length name) 1)
+	     (eq (aref name 1) ?:))
 	(setq start 2))
     ;; destructively replace invalid filename characters with !
     (while (string-match "[?*:<>|\"\000-\037]" name start)
