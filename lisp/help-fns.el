@@ -452,6 +452,37 @@ BUFFER defaults to the current buffer."
 	  (insert "\nThe parent syntax table is:")
 	  (describe-vector table 'internal-describe-syntax-value))))))
 
+(defun help-describe-category-set (value)
+  (insert (cond
+	   ((null value) "default")
+	   ((char-table-p value) "deeper char-table ...")
+	   (t (condition-case err
+		  (category-set-mnemonics value)
+		(error "invalid"))))))
+
+;;;###autoload
+(defun describe-categories (&optional buffer)
+  "Describe the category specifications in the current category table.
+The descriptions are inserted in a buffer, which is then displayed."
+  (interactive)
+  (setq buffer (or buffer (current-buffer)))
+  (help-setup-xref (list #'describe-categories buffer) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
+    (let ((table (with-current-buffer buffer (category-table))))
+      (with-current-buffer standard-output
+	(describe-vector table 'help-describe-category-set)
+	(let ((docs (char-table-extra-slot table 0)))
+	  (if (or (not (vectorp docs)) (/= (length docs) 95))
+	      (insert "Invalid first extra slot in this char table\n")
+	    (insert "Meanings of mnemonic characters are:\n")
+	    (dotimes (i 95)
+	      (let ((elt (aref docs i)))
+		(when elt
+		  (insert (+ i ?\ ) ": " elt "\n"))))
+	    (while (setq table (char-table-parent table))
+	      (insert "\nThe parent category table is:")
+	      (describe-vector table 'help-describe-category-set))))))))
+
 (provide 'help-fns)
 
 ;;; help-fns.el ends here
