@@ -1,3 +1,11 @@
+2004-12-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-user-define-formula): Put default values
+	for function names in prompts.
+	(calc-user-define-permanent, calc-user-define-composition)
+	(calc-user-define-formula): Remove the need for "calcFunc-" in the
+	default input for algebraic functions.
+
 2004-12-29  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc-rcs.el (vc-rcs-annotate-command):
