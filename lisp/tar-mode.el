@@ -678,19 +678,23 @@ appear on disk when you save the tar-file's buffer."
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
-	   (tarname (if (buffer-file-name)
-			(file-name-nondirectory (buffer-file-name))
-		      (buffer-name)))
+	   (tarname (buffer-name))
 	   (bufname (concat (file-name-nondirectory name)
 			    " ("
 			    tarname
 			    ")"))
 	   (read-only-p (or buffer-read-only view-p))
 	   (buffer (get-buffer bufname))
-	   (just-created nil))
-      (if buffer
+	   (just-created nil)
+	   (new-buffer-file-name (expand-file-name
+				  ;; `:' is not allowed on Windows
+				  (concat tarname "!" name))))
+      (if (and buffer
+	       ;; Check that the buffer is visiting the same file
+	       (equal (buffer-file-name buffer) new-buffer-file-name))
 	  nil
-	(setq buffer (get-buffer-create bufname))
+	(setq buffer (generate-new-buffer bufname))
+	(setq bufname (buffer-name buffer))
 	(setq just-created t)
 	(unwind-protect
 	    (progn
@@ -706,9 +710,7 @@ appear on disk when you save the tar-file's buffer."
 		      (set-buffer-multibyte t))
 		  (insert-buffer-substring tar-buffer start end))
 		(goto-char (point-min))
-		(setq buffer-file-name
-		      ;; `:' is not allowed on Windows
-		      (expand-file-name (concat tarname "!" name)))
+		(setq buffer-file-name new-buffer-file-name)
 		(setq buffer-file-truename
 		      (abbreviate-file-name buffer-file-name))
 		;; We need to mimic the parts of insert-file-contents
