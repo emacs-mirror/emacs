@@ -1,5 +1,7 @@
 2001-02-21  Dave Love  <fx@gnu.org>
 
+	* custom.el (custom-initialize-changed, defcustom): Doc fix.
+
 	* international/mule-cmds.el, international/mule.el: Doc fixes.
 
 	* play/fortune.el: Fix autoload cookies.  Add types to defcustoms.
