@@ -69,3 +69,6 @@
 
 /* Enable a special hack in XTread_socket.  */
 #define X_IO_BUG
+
+/* Override hpux.h which undefs this flag.  */
+#define HAVE_SYS_WAIT_H
