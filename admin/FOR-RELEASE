@@ -28,8 +28,6 @@ isearch faces.
 
 ** Finish updating the Emacs Lisp manual.
 
-*** New display properties (KFS to provide input).
-
 ** Update the Emacs manual.
 
 *** Update man/info.texi.
