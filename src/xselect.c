@@ -323,9 +323,11 @@ x_get_local_selection (selection_symbol, target_type)
   else if (CONSP (target_type)
 	   && XCONS (target_type)->car == QMULTIPLE)
     {
-      Lisp_Object pairs = XCONS (target_type)->cdr;
-      int size = XVECTOR (pairs)->size;
+      Lisp_Object pairs;
+      int size;
       int i;
+      pairs = XCONS (target_type)->cdr;
+      size = XVECTOR (pairs)->size;
       /* If the target is MULTIPLE, then target_type looks like
 	  (MULTIPLE . [[SELECTION1 TARGET1] [SELECTION2 TARGET2] ... ])
 	 We modify the second element of each pair in the vector and
@@ -333,7 +335,8 @@ x_get_local_selection (selection_symbol, target_type)
        */
       for (i = 0; i < size; i++)
 	{
-	  Lisp_Object pair = XVECTOR (pairs)->contents [i];
+	  Lisp_Object pair;
+	  pair = XVECTOR (pairs)->contents [i];
 	  XVECTOR (pair)->contents [1]
 	    = x_get_local_selection (XVECTOR (pair)->contents [0],
 				     XVECTOR (pair)->contents [1]);
@@ -594,13 +597,18 @@ x_handle_selection_request (event)
      struct input_event *event;
 {
   struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object local_selection_data = Qnil;
+  Lisp_Object local_selection_data;
   Lisp_Object selection_symbol;
-  Lisp_Object target_symbol = Qnil;
-  Lisp_Object converted_selection = Qnil;
+  Lisp_Object target_symbol;
+  Lisp_Object converted_selection;
   Time local_selection_time;
-  Lisp_Object successful_p = Qnil;
+  Lisp_Object successful_p;
   int count;
+
+  local_selection_data = Qnil;
+  target_symbol = Qnil;
+  converted_selection = Qnil;
+  successful_p = Qnil;
 
   GCPRO3 (local_selection_data, converted_selection, target_symbol);
 
@@ -676,7 +684,8 @@ x_handle_selection_request (event)
 
   /* Let random lisp code notice that the selection has been asked for.  */
   {
-    Lisp_Object rest = Vx_sent_selection_hooks;
+    Lisp_Object rest;
+    rest = Vx_sent_selection_hooks;
     if (!EQ (rest, Qunbound))
       for (; CONSP (rest); rest = Fcdr (rest))
 	call3 (Fcar (rest), selection_symbol, target_symbol, successful_p);
