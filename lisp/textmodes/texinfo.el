@@ -387,12 +387,18 @@ chapter."
   ;; bindings for inserting strings
   (define-key texinfo-mode-map "\C-c\C-o"     'texinfo-insert-block)
   (define-key texinfo-mode-map "\C-c\C-c\C-d" 'texinfo-start-menu-description)
+  (define-key texinfo-mode-map "\C-c\C-c\C-s" 'texinfo-insert-@strong)
+  (define-key texinfo-mode-map "\C-c\C-c\C-e" 'texinfo-insert-@emph)
 
   (define-key texinfo-mode-map "\C-c\C-cv"    'texinfo-insert-@var)
+  (define-key texinfo-mode-map "\C-c\C-cu"    'texinfo-insert-@url)
   (define-key texinfo-mode-map "\C-c\C-ct"    'texinfo-insert-@table)
   (define-key texinfo-mode-map "\C-c\C-cs"    'texinfo-insert-@samp)
+  ;; (define-key texinfo-mode-map "\C-c\C-cr"    'texinfo-insert-@uref)
+  (define-key texinfo-mode-map "\C-c\C-cq"    'texinfo-insert-@quotation)
   (define-key texinfo-mode-map "\C-c\C-co"    'texinfo-insert-@noindent)
   (define-key texinfo-mode-map "\C-c\C-cn"    'texinfo-insert-@node)
+  (define-key texinfo-mode-map "\C-c\C-cm"    'texinfo-insert-@email)
   (define-key texinfo-mode-map "\C-c\C-ck"    'texinfo-insert-@kbd)
   (define-key texinfo-mode-map "\C-c\C-ci"    'texinfo-insert-@item)
   (define-key texinfo-mode-map "\C-c\C-cf"    'texinfo-insert-@file)
@@ -661,6 +667,20 @@ The default is not to surround any existing words with the braces."
   (interactive "P")
   (texinfo-insert-@-with-arg "dfn" arg))
 
+(defun texinfo-insert-@email (&optional arg)
+  "Insert a `@email{...}' command in a Texinfo buffer.
+A numeric argument says how many words the braces should surround.
+The default is not to surround any existing words with the braces."
+  (interactive "P")
+  (texinfo-insert-@-with-arg "email" arg))
+
+(defun texinfo-insert-@emph (&optional arg)
+  "Insert a `@emph{...}' command in a Texinfo buffer.
+A numeric argument says how many words the braces should surround.
+The default is not to surround any existing words with the braces."
+  (interactive "P")
+  (texinfo-insert-@-with-arg "emph" arg))
+
 (defun texinfo-insert-@example ()
   "Insert the string `@example' in a Texinfo buffer."
   (interactive)
@@ -700,12 +720,24 @@ the order of arguments to @node."
   (interactive)
   (insert "@noindent\n"))
 
+(defun texinfo-insert-@quotation ()
+  "Insert the string `@quotation' in a Texinfo buffer."
+  (interactive)
+  (insert "@quotation\n"))
+
 (defun texinfo-insert-@samp (&optional arg)
   "Insert a `@samp{...}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
   (interactive "P")
   (texinfo-insert-@-with-arg "samp" arg))
+
+(defun texinfo-insert-@strong (&optional arg)
+  "Insert a `@strong{...}' command in a Texinfo buffer.
+A numeric argument says how many words the braces should surround.
+The default is not to surround any existing words with the braces."
+  (interactive "P")
+  (texinfo-insert-@-with-arg "strong" arg))
 
 (defun texinfo-insert-@table (&optional arg)
   "Insert the string `@table' in a Texinfo buffer."
@@ -718,6 +750,13 @@ A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
   (interactive "P")
   (texinfo-insert-@-with-arg "var" arg))
+
+(defun texinfo-insert-@url (&optional arg)
+  "Insert a `@url{}' command in a Texinfo buffer.
+A numeric argument says how many words the braces should surround.
+The default is not to surround any existing words with the braces."
+  (interactive "P")
+  (texinfo-insert-@-with-arg "url" arg))
 
 ;;; Texinfo file structure
 
