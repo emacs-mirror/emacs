@@ -37,6 +37,18 @@
   "Texinfo Mode"
   :group 'docs)
 
+;;;###autoload
+(defcustom texinfo-open-quote "``"
+  "*String inserted by typing \\[texinfo-insert-quote] to open a quotation."
+  :type 'string
+  :group 'texinfo)
+
+;;;###autoload
+(defcustom texinfo-close-quote "''"
+  "*String inserted by typing \\[texinfo-insert-quote] to close a quotation."
+  :type 'string
+  :group 'texinfo)
+
 
 ;;; Autoloads:
 
@@ -241,6 +253,7 @@ chapter."
 ;;; Code:
 
 ;;; Don't you dare insert any `require' calls at top level in this file--rms.
+(eval-when-compile (require 'cl)) ;; for ignore-errors
 
 (defvar texinfo-section-list
   '(("top" 1)
@@ -655,18 +668,23 @@ Puts point on a blank line between them."
     (and (re-search-backward (concat "@\\(end\\s +\\)?" env) bound t)
 	 (looking-at (concat "@" env)))))
 
-(autoload 'tex-insert-quote "tex-mode" nil t)
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for TeXinfo.
-Inserts a plain \" if inside @code or @example, else inserts `` or ''
-by calling `tex-insert-quote'."
+Usually inserts the value of `texinfo-open-quote' (normally ``) or
+`texinfo-close-quote' (normally ''), depending on the context.
+With prefix argument or inside @code or @example, inserts a plain \"."
   (interactive "*P")
   (let ((top (or (save-excursion (re-search-backward "@node\\>" nil t))
 		 (point-min))))
-    (if (or (texinfo-inside-env-p "example\\>" top)
+    (if (or arg
+	    (texinfo-inside-env-p "example\\>" top)
 	    (texinfo-inside-macro-p "@code\\>" top))
 	(self-insert-command (prefix-numeric-value arg))
-      (tex-insert-quote arg))))
+      (insert
+       (cond ((= (preceding-char) ?\\) ?\")
+	     ((memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
+	      texinfo-open-quote)
+	     (t texinfo-close-quote))))))
 	
 ;; The following texinfo-insert-@end command not only inserts a SPC
 ;; after the @end, but tries to find out what belongs there.  It is
