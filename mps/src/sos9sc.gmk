@@ -1,7 +1,7 @@
 #
 #     BUILD FOR Solaris/UltraSPARC/SunPro C PLATFORM
 #
-#  $HopeName: MMsrc!soussc.gmk(MMdevel_sw_eq.2) $
+#  $HopeName: MMsrc!soussc.gmk(trunk.2) $
 #
 #  This is the GNU makefile for platform.soussc
 #
@@ -15,6 +15,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c \
       trace.c than.c protso.c shield.c mpsi.c ld.c
 MPMPS = ssussp.s
 AMC = amc.c
+MRG = poolmrg.c
 LO = lo.c
 DW = fmtdy.c dw.c
 SW = assert.c ring.c mpm.c arenacl.c space.c pool.c poolmfs.c \
