@@ -1,3 +1,10 @@
+2000-09-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/tex-mode.el (latex-outline-regexp): Don't use `list*';
+	it's a function from CL.
+	(latex-imenu-create-index): Replace eval-when-compile with progn
+	because latex-section-alist is not bound while compiling.
+
 2000-09-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-minor-mode): Use define-minor-mode.
