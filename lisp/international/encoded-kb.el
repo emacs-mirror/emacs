@@ -223,7 +223,7 @@ The following key sequence may cause multilingual text insertion."
 (defun encoded-kbd-self-insert-ccl ()
   (interactive)
   (let ((str (char-to-string last-command-char))
-	(ccl (car (aref (coding-system-spec (keyboard-coding-system)) 4)))
+	(ccl (coding-system-get (keyboard-coding-system) :ccl-decoder))
 	(vec [nil nil nil nil nil nil nil nil nil])
 	result)
     (while (= (length (setq result (ccl-execute-on-string ccl vec str t))) 0)
@@ -310,41 +310,32 @@ as a multilingual text encoded in a coding system set by
 	       (setq encoded-kbd-mode nil) 
 	       (error "No coding system for keyboard input is set"))
 
-	      ((= (coding-system-type coding) 1) ; SJIS
+	      ((eq (coding-system-type coding) 'sjis)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))	
 	       (setq encoded-kbd-coding 'sjis))
 
-	      ((= (coding-system-type coding) 2) ; ISO2022
-	       (if (aref (coding-system-flags coding) 7) ; 7-bit only
+	      ((eq (coding-system-type coding) 'iso-2022)
+	       (if (memq '7-bit (coding-system-get coding :flags))
 		   (setq encoded-kbd-coding 'iso2022-7)
 		 (set-input-mode
 		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		  'use-8th-bit (nth 3 saved-input-mode))	
 		 (setq encoded-kbd-coding 'iso2022-8))
-	       (setq encoded-kbd-iso2022-designations (make-vector 4 nil))
-	       (let ((flags (coding-system-flags coding))
-		     (i 0))
-		 (while (< i 4)
-		   (if (charsetp (aref flags i))
-		       (aset encoded-kbd-iso2022-designations i
-			     (aref flags i))
-		     (if (charsetp (car-safe (aref flags i)))
-		       (aset encoded-kbd-iso2022-designations i
-			     (car (aref flags i)))))
-		   (setq i (1+ i))))
+	       (setq encoded-kbd-iso2022-designations
+		     (coding-system-get coding :designation))
 	       (setq encoded-kbd-iso2022-invocations (make-vector 3 nil))
 	       (aset encoded-kbd-iso2022-invocations 0 0)
 	       (aset encoded-kbd-iso2022-invocations 1 1))
 
-	      ((= (coding-system-type coding) 3) ; BIG5
+	      ((eq (coding-system-type coding) 'big5)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))	
 	       (setq encoded-kbd-coding 'big5))
 
-	      ((= (coding-system-type coding) 4) ; CCL based coding
+	      ((eq (coding-system-type coding) 'ccl)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))	

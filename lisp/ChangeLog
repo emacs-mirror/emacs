@@ -1,3 +1,7 @@
+2002-05-13  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el: Speling fixes.
+
 2002-05-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (fontset-plain-name): Handle the case
