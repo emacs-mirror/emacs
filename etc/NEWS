@@ -10,6 +10,14 @@ For older news, see the file ONEWS.
 
 ** There are two new resources for colormap handling under X.
 
+*** The X resource `synchronous', class `Synchronous', specifies
+whether Emacs should run in synchronous mode.  Synchronous mode
+is useful for debugging X problems.
+
+Example:
+
+	emacs.synchronous: true
+
 *** The X resource `visualClass, class `VisualClass', specifies the
 visual Emacs should use.  The resource's value should be a string of
 the form `CLASS-DEPTH', where CLASS is the name of the visual class,
