@@ -817,6 +817,7 @@ extern int find_charset_in_str P_ ((unsigned char *, int, int *,
 				    Lisp_Object, int));
 extern int strwidth P_ ((unsigned char *, int));
 extern int char_bytes P_ ((int));
+extern int char_valid_p P_ ((int, int));
 
 extern Lisp_Object Vtranslation_table_vector;
 
