@@ -1,3 +1,15 @@
+2004-05-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Apply file name handler for operation
+	`file-remote-p'.  It isn' a property any longer.
+	(file-relative-name): `fh' and `fd' get the required value via
+	`find-file-name-handler' already.
+
+	* ange-ftp.el (ange-ftp-file-remote-p): New defun.
+	(top): Remove setting of `file-remote-p' property for
+	`ange-ftp-hook-function'.  Add `ange-ftp' property to
+	`file-remote-p'.
+
 2004-05-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.0.41 of Tramp released.
