@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Author: Jonathan Yavner <jyavner@engineer.com>
-;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
+;; Author: Jonathan Yavner <jyavner@member.fsf.org>
+;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: spreadsheet
 
 ;; This file is part of GNU Emacs.
