@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.11) $
+ * $HopeName: MMsrc!poollo.c(trunk.12) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.11) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.12) $");
 
 
 /* MACROS */
@@ -27,8 +27,6 @@ SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.11) $");
 #define LOGen ((Serial)1)
 
 #define PoolPoolLO(pool)        PARENT(LOStruct, poolStruct, pool)
-
-#define loGroupBuffer(group)    SegBuffer((group)->seg)
 
 #define ActionLO(action)        PARENT(LOStruct, actionStruct, action)
 
@@ -41,7 +39,6 @@ typedef struct LOStruct *LO;
 
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
-  RingStruct groupRing;         /* ring of groups */
   Shift alignShift;             /* log_2 of pool alignment */
   ActionStruct actionStruct;    /* action of collecting this pool */
   Size objectsSize;             /* total size of all objects */
@@ -61,50 +58,150 @@ static Pool (LOPool)(LO lo)
 }
 
 
-/* LOGroupStruct -- group structure */
+/* LOGSegStruct -- LO segment structure */
 
-typedef struct LOGroupStruct *LOGroup;
+typedef struct LOSegStruct *LOSeg;
 
-#define LOGroupSig      ((Sig)0x51970960) /* SIGnature LO GROup */
+#define LOSegSig      ((Sig)0x519705E9) /* SIGnature LO SEG */
 
-typedef struct LOGroupStruct {
-  Sig sig;                      /* impl.h.misc.sig */
-  LO lo;                        /* owning LO */
-  RingStruct loRing;            /* attachment to the LO structure */
-  BT mark;                      /* mark bit table */
-  BT alloc;                     /* alloc bit table */
-  Seg seg;                      /* segment containing objects */
-  Count free;                   /* number of free grains */
-} LOGroupStruct;
+typedef struct LOSegStruct {
+  GCSegStruct gcSegStruct;  /* superclass fields must come first */
+  LO lo;                    /* owning LO */
+  BT mark;                  /* mark bit table */
+  BT alloc;                 /* alloc bit table */
+  Count free;               /* number of free grains */
+  Sig sig;                  /* impl.h.misc.sig */
+} LOSegStruct;
 
+#define SegLOSeg(seg)             ((LOSeg)(seg))
+#define LOSegSeg(loseg)           ((Seg)(loseg))
 
-static Bool LOGroupCheck(LOGroup group)
+static Bool LOSegCheck(LOSeg loseg)
 {
-  CHECKS(LOGroup, group);
-  CHECKU(LO, group->lo);
-  CHECKL(RingCheck(&group->loRing));
-  CHECKL(group->mark != NULL);
-  CHECKL(group->alloc != NULL);
-  CHECKL(SegCheck(group->seg));
-  CHECKL(group->free <= /* Could check exactly */
-         SegSize(group->seg) >> group->lo->alignShift);
+  CHECKS(LOSeg, loseg);
+  CHECKL(GCSegCheck(&loseg->gcSegStruct));
+  CHECKU(LO, loseg->lo);
+  CHECKL(loseg->mark != NULL);
+  CHECKL(loseg->alloc != NULL);
+  CHECKL(loseg->free <= /* Could check exactly */
+         SegSize(LOSegSeg(loseg)) >> loseg->lo->alignShift);
   return TRUE;
 }
 
 
-static Count loGroupBits(LOGroup group)
+/* loSegInit -- Init method for LO segments */
+
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, 
+                     Bool reservoirPermit, va_list args)
+{
+  SegClass super;
+  LOSeg loseg;
+  LO lo;
+  Res res;
+  Size tablebytes;      /* # bytes in each control array */
+  Arena arena;
+  /* number of bits needed in each control array */
+  unsigned long bits; 
+  void *p;
+
+  AVERT(Seg, seg);
+  loseg = SegLOSeg(seg);
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  /* no useful checks for base and size */
+  AVER(BoolCheck(reservoirPermit));
+  lo = PoolPoolLO(pool);
+  AVERT(LO, lo);
+
+  /* Initialize the superclass fields first via next-method call */
+  super = EnsureGCSegClass();
+  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  if(res != ResOK)
+    return res;
+
+  AVER(SegWhite(seg) == TraceSetEMPTY);
+
+  bits = size >> lo->alignShift;
+  tablebytes = BTSize(bits);
+  res = ControlAlloc(&p, arena, tablebytes, reservoirPermit);
+  if(res != ResOK)
+    goto failMarkTable;
+  loseg->mark = p;
+  res = ControlAlloc(&p, arena, tablebytes, reservoirPermit);
+  if(res != ResOK)
+    goto failAllocTable;
+  loseg->alloc = p;
+  BTResRange(loseg->alloc, 0, bits);
+  BTSetRange(loseg->mark, 0, bits);
+  loseg->lo = lo;
+  loseg->free = bits;
+  loseg->sig = LOSegSig;
+  AVERT(LOSeg, loseg);
+  return ResOK;
+
+failAllocTable:
+  ControlFree(arena, loseg->mark, tablebytes);
+failMarkTable:
+  return res;
+}
+
+
+/* loSegFinish -- Finish method for LO segments */
+
+static void loSegFinish(Seg seg)
+{
+  LO lo;
+  LOSeg loseg;
+  SegClass super;
+  Pool pool;
+  Arena arena;
+  Size tablesize;
+  unsigned long bits;
+
+  AVERT(Seg, seg);
+  loseg = SegLOSeg(seg);
+  AVERT(LOSeg, loseg);
+  pool = SegPool(seg);
+  lo = PoolPoolLO(pool);
+  AVERT(LO, lo);
+  arena = PoolArena(pool);
+
+  bits = SegSize(seg) >> lo->alignShift;
+  tablesize = BTSize(bits);
+  ControlFree(arena, (Addr)loseg->alloc, tablesize);
+  ControlFree(arena, (Addr)loseg->mark, tablesize);
+  loseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  super = EnsureGCSegClass();
+  super->finish(seg);
+}
+  
+
+/* LOSegClass -- Class definition for LO segments */
+
+DEFINE_SEG_CLASS(LOSegClass, class)
+{
+  INHERIT_CLASS(class, GCSegClass);
+  class->name = "LOSEG";
+  class->size = sizeof(LOSegStruct);
+  class->init = loSegInit;
+  class->finish = loSegFinish;
+}
+
+
+static Count loSegBits(LOSeg loseg)
 {
   LO lo;
   Size size;
 
-  AVERT(LOGroup, group);
+  AVERT(LOSeg, loseg);
 
-  lo = group->lo;
+  lo = loseg->lo;
   AVERT(LO, lo);
-  size = SegSize(group->seg);
+  size = SegSize(LOSegSeg(loseg));
   return size >> lo->alignShift;
 }
-
 
 
 /* Conversion between indexes and Addrs */
@@ -115,38 +212,38 @@ static Count loGroupBits(LOGroup group)
   (AddrAdd((base), (i) << (lo)->alignShift))
 
 
-static void loGroupFree(LOGroup group,
-                        Index baseIndex, Index limitIndex)
+static void loSegFree(LOSeg loseg, Index baseIndex, Index limitIndex)
 {
   Count bits;
   Size size;
 
-  AVERT(LOGroup, group);
+  AVERT(LOSeg, loseg);
   AVER(baseIndex < limitIndex);
 
-  bits = loGroupBits(group);
+  bits = loSegBits(loseg);
   AVER(limitIndex <= bits);
 
-  AVER(BTIsSetRange(group->alloc, baseIndex, limitIndex));
-  BTResRange(group->alloc, baseIndex, limitIndex);
-  BTSetRange(group->mark, baseIndex, limitIndex);
-  group->free += limitIndex - baseIndex;
+  AVER(BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
+  BTResRange(loseg->alloc, baseIndex, limitIndex);
+  BTSetRange(loseg->mark, baseIndex, limitIndex);
+  loseg->free += limitIndex - baseIndex;
 
-  size = (limitIndex - baseIndex) << group->lo->alignShift;
-  AVER(size <= group->lo->objectsSize);
-  group->lo->objectsSize -= size;
+  size = (limitIndex - baseIndex) << loseg->lo->alignShift;
+  AVER(size <= loseg->lo->objectsSize);
+  loseg->lo->objectsSize -= size;
 }
 
 
-/* Find a free block of size size in the group.
+/* Find a free block of size size in the segment.
  * Return pointer to base and limit of block (which may be
  * bigger than the requested size to accommodate buffering).
  */
-static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
-                         LOGroup group, Size size)
+static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
+                          LOSeg loseg, Size size)
 {
   Index baseIndex, limitIndex;
   LO lo;
+  Seg seg;
   Arena arena;
   Count agrains;
   unsigned long tablesize;
@@ -154,9 +251,10 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
 
   AVER(bReturn != NULL);
   AVER(lReturn != NULL);
-  AVERT(LOGroup, group);
+  AVERT(LOSeg, loseg);
 
-  lo = group->lo;
+  lo = loseg->lo;
+  seg = LOSegSeg(loseg);
   AVER(SizeIsAligned(size, LOPool(lo)->alignment));
   arena = PoolArena(LOPool(lo));
 
@@ -164,16 +262,16 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
   /* of the allocation request */
   agrains = size >> lo->alignShift;
   AVER(agrains >= 1);
-  AVER(agrains <= group->free);
-  AVER(size <= SegSize(group->seg));
+  AVER(agrains <= loseg->free);
+  AVER(size <= SegSize(seg));
 
-  if(loGroupBuffer(group) != NULL) {
-    /* Don't bother trying to allocate from a buffered group */
+  if(SegBuffer(seg) != NULL) {
+    /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
   }
 
-  tablesize = SegSize(group->seg) >> lo->alignShift;
-  if(!BTFindLongResRange(&baseIndex, &limitIndex, group->alloc,
+  tablesize = SegSize(seg) >> lo->alignShift;
+  if(!BTFindLongResRange(&baseIndex, &limitIndex, loseg->alloc,
                      0, tablesize, agrains)) {
     return FALSE;
   }
@@ -181,7 +279,7 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
   /* check that BTFindLongResRange really did find enough space */
   AVER(baseIndex < limitIndex);
   AVER((limitIndex-baseIndex) << lo->alignShift >= size);
-  segBase = SegBase(group->seg);
+  segBase = SegBase(seg);
   *bReturn = loAddrOfIndex(segBase, lo, baseIndex);
   *lReturn = loAddrOfIndex(segBase, lo, limitIndex);
 
@@ -189,132 +287,63 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
 }
 
 
-/* Creates a group of size at least size.
- * Groups will be ArenaAlign aligned */
-static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size,
-                         Bool withReservoirPermit)
+/* loSegCreate -- Creates a segment of size at least size.
+ *
+ * Segments will be ArenaAlign aligned .
+ */
+
+static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
+                       Bool withReservoirPermit)
 {
   LO lo;
-  LOGroup group;
+  Seg seg;
+  Res res;
   SegPrefStruct segPrefStruct;
   Serial gen;
-  Res res;
-  Seg seg;
-  Size asize;           /* aligned size */
-  Size tablebytes;      /* # bytes in each control array */
   Arena arena;
-  /* number of bits needed in each control array */
-  unsigned long bits; 
-  void *p;
+  Size asize;           /* aligned size */
 
-  AVER(groupReturn != NULL);
+  AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
-
-  lo = PARENT(LOStruct, poolStruct, pool);
+  lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
   arena = PoolArena(pool);
-
   asize = SizeAlignUp(size, ArenaAlign(arena));
-  
-  res = ControlAlloc(&p, arena, (Size)sizeof(LOGroupStruct), 
-                     withReservoirPermit);
-  if(res != ResOK)
-    goto failGroup;
-  group = (LOGroup)p;
-
   segPrefStruct = *SegPrefDefault();
   gen = lo->gen;
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
-  res = SegAlloc(&seg, &segPrefStruct, asize, pool, withReservoirPermit);
-  if(res != ResOK)
-    goto failSeg;
+  res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct, 
+                 asize, pool, withReservoirPermit);
+  if (ResOK != res)
+    return res;
 
-  group->seg = seg;
-  SegSetP(seg, (void *)group);
-
-  bits = asize >> lo->alignShift;
-  tablebytes = BTSize(bits);
-  res = ControlAlloc(&p, arena, tablebytes, withReservoirPermit);
-  if(res != ResOK)
-    goto failMarkTable;
-  group->mark = p;
-  res = ControlAlloc(&p, arena, tablebytes, withReservoirPermit);
-  if(res != ResOK)
-    goto failAllocTable;
-  group->alloc = p;
-  BTResRange(group->alloc, 0, bits);
-  BTSetRange(group->mark, 0, bits);
-
-  AVER(SegWhite(seg) == TraceSetEMPTY);
-
-  group->lo = lo;
-  RingInit(&group->loRing);
-  RingAppend(&lo->groupRing, &group->loRing);
-
-  group->free = bits;
-
-  group->sig = LOGroupSig;
-
-  AVERT(LOGroup, group);
-
-  *groupReturn = group;
+  *loSegReturn = SegLOSeg(seg);
   return ResOK;
-
-failAllocTable:
-  ControlFree(arena, group->mark, tablebytes);
-failMarkTable:
-  SegFree(seg);
-failSeg:
-  ControlFree(arena, group, (Size)sizeof(LOGroupStruct));
-failGroup:
-  return res;
-}
-
-
-static void loGroupDestroy(LOGroup group)
-{
-  LO lo;
-  Size tablesize;
-  Arena arena;
-  unsigned long bits;
-
-  AVERT(LOGroup, group);
-
-  lo = group->lo;
-  arena = PoolArena(LOPool(lo));
-
-  bits = SegSize(group->seg) >> lo->alignShift;
-  tablesize = BTSize(bits);
-
-  group->sig = SigInvalid;
-  SegFree(group->seg);
-  ControlFree(arena, (Addr)group->alloc, tablesize);
-  ControlFree(arena, (Addr)group->mark, tablesize);
-  RingRemove(&group->loRing);
-  ControlFree(arena, group, (Size)sizeof(LOGroupStruct));
 }
 
 
 /* consider implementing Reclaim using Walk @@@@ */
-static void loGroupReclaim(LOGroup group, Trace trace)
+static void loSegReclaim(LOSeg loseg, Trace trace)
 {
   Addr p, base, limit;
   Bool marked;
   Count bytesReclaimed = (Count)0;
+  Seg seg;
   LO lo;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
 
-  AVERT(LOGroup, group);
+  AVERT(LOSeg, loseg);
   AVERT(Trace, trace);
 
-  lo = group->lo;
-  base = SegBase(group->seg);
-  limit = SegLimit(group->seg);
+  seg = LOSegSeg(loseg);
+  lo = loseg->lo;
+  base = SegBase(seg);
+  limit = SegLimit(seg);
   marked = FALSE;
 
   /* i is the index of the current pointer,
@@ -324,7 +353,7 @@ static void loGroupReclaim(LOGroup group, Trace trace)
    */
   p = base;
   while(p < limit) {
-    Buffer buffer = loGroupBuffer(group);
+    Buffer buffer = SegBuffer(seg);
     Addr q;
     Index i;
 
@@ -341,35 +370,35 @@ static void loGroupReclaim(LOGroup group, Trace trace)
       AVER(p < BufferGetInit(buffer) || BufferLimit(buffer) <= p);
     }
     i = loIndexOfAddr(base, lo, p);
-    if(!BTGet(group->alloc, i)) {
+    if(!BTGet(loseg->alloc, i)) {
       /* This grain is free */
       p = AddrAdd(p, LOPool(lo)->alignment);
       continue;
     }
     q = (*LOPool(lo)->format->skip)(p);
-    if(BTGet(group->mark, i)) {
+    if(BTGet(loseg->mark, i)) {
       marked = TRUE;
       ++preservedInPlaceCount;
       preservedInPlaceSize += AddrOffset(p, q);
     } else {
       Index j = loIndexOfAddr(base, lo, q);
       /* This object is not marked, so free it */
-      loGroupFree(group, i, j);
+      loSegFree(loseg, i, j);
       bytesReclaimed += AddrOffset(p, q);
     }
     p = q;
   }
   AVER(p == limit);
 
-  AVER(bytesReclaimed <= SegSize(group->seg));
+  AVER(bytesReclaimed <= SegSize(seg));
   trace->reclaimSize += bytesReclaimed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
-  SegSetWhite(group->seg, TraceSetDel(SegWhite(group->seg), trace->ti));
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 
   if(!marked) {
-    loGroupDestroy(group);
+    SegFree(seg);
   }
 }
 
@@ -382,7 +411,7 @@ static void LOWalk(Pool pool, Seg seg,
 {
   Addr base;
   LO lo;
-  LOGroup group;
+  LOSeg loseg;
   Index i, limit;
 
   AVERT(Pool, pool);
@@ -392,8 +421,8 @@ static void LOWalk(Pool pool, Seg seg,
 
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
-  group = (LOGroup)SegP(seg);
-  LOGroupCheck(group);
+  loseg = SegLOSeg(seg);
+  AVERT(LOSeg, loseg);
 
   base = SegBase(seg);
   limit = SegSize(seg) >> lo->alignShift;
@@ -419,7 +448,7 @@ static void LOWalk(Pool pool, Seg seg,
       /* either before the buffer, or after it, never in it */
       AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
     }
-    if(!BTGet(group->alloc, i)) {
+    if(!BTGet(loseg->alloc, i)) {
       /* This grain is free */
       ++i;
       continue;
@@ -448,7 +477,6 @@ static Res LOInit(Pool pool, va_list arg)
   
   lo = PoolPoolLO(pool);
   
-  RingInit(&lo->groupRing);
   pool->format = format;
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift = 
@@ -474,12 +502,13 @@ static void LOFinish(Pool pool)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  RING_FOR(node, &lo->groupRing, nextNode) {
-    LOGroup group = RING_ELT(LOGroup, loRing, node);
-    loGroupDestroy(group);
+  RING_FOR(node, &pool->segRing, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    LOSeg loseg = SegLOSeg(seg);
+    AVERT(LOSeg, loseg);
+    SegFree(seg);
   }
 
-  RingFinish(&lo->groupRing);
   ActionFinish(&lo->actionStruct);
   lo->sig = SigInvalid;
 }
@@ -492,7 +521,7 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   Res res;
   Ring node, nextNode;
   LO lo;
-  LOGroup group;
+  LOSeg loseg;
   Arena arena;
   Addr base, limit;
 
@@ -510,35 +539,37 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   arena = PoolArena(pool);
 
-  /* Try to find a group with enough space already. */
-  RING_FOR(node, &lo->groupRing, nextNode) {
-    group = RING_ELT(LOGroup, loRing, node);
-    if(group->free << lo->alignShift >= size &&
-       loGroupFindFree(&base, &limit, group, size)) {
+  /* Try to find a segment with enough space already. */
+  RING_FOR(node, &pool->segRing, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    loseg = SegLOSeg(seg);
+    AVERT(LOSeg, loseg);
+    if(loseg->free << lo->alignShift >= size &&
+       loSegFindFree(&base, &limit, loseg, size)) {
       goto found;
     }
   }
 
-  /* No group had enough space, so make a new one. */
-  res = loGroupCreate(&group, pool, size, withReservoirPermit);
+  /* No segment had enough space, so make a new one. */
+  res = loSegCreate(&loseg, pool, size, withReservoirPermit);
   if(res != ResOK) {
-    goto failGroup;
+    goto failCreate;
   }
-  base = SegBase(group->seg);
-  limit = SegLimit(group->seg);
+  base = SegBase(LOSegSeg(loseg));
+  limit = SegLimit(LOSegSeg(loseg));
 
 found:
   {
     Index baseIndex, limitIndex;
     Addr segBase;
-    segBase = SegBase(group->seg);
+    segBase = SegBase(LOSegSeg(loseg));
     /* mark the newly buffered region as allocated */
     baseIndex = loIndexOfAddr(segBase, lo, base);
     limitIndex = loIndexOfAddr(segBase, lo, limit);
-    AVER(BTIsResRange(group->alloc, baseIndex, limitIndex));
-    AVER(BTIsSetRange(group->mark, baseIndex, limitIndex));
-    BTSetRange(group->alloc, baseIndex, limitIndex);
-    group->free -= limitIndex - baseIndex;
+    AVER(BTIsResRange(loseg->alloc, baseIndex, limitIndex));
+    AVER(BTIsSetRange(loseg->mark, baseIndex, limitIndex));
+    BTSetRange(loseg->alloc, baseIndex, limitIndex);
+    loseg->free -= limitIndex - baseIndex;
   }
 
   /* update live object size */
@@ -550,12 +581,12 @@ found:
   *limitReturn = limit;
   return ResOK;
 
-failGroup:
+failCreate:
   return res;
 }
 
 
-/* Synchronise the buffer with the alloc Bit Table in the group. */
+/* Synchronise the buffer with the alloc Bit Table in the segment. */
 
 static void LOBufferEmpty(Pool pool, Buffer buffer, 
                           Addr init, Addr limit)
@@ -563,7 +594,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
   LO lo;
   Addr base, segBase;
   Seg seg;
-  LOGroup group;
+  LOSeg loseg;
   Index baseIndex, initIndex, limitIndex;
   Arena arena;
 
@@ -576,11 +607,9 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
   AVER(SegCheck(seg));
   AVER(init <= limit);
   
-  group = (LOGroup)SegP(seg);
-
-  AVERT(LOGroup, group);
-  AVER(group->seg == seg);
-  AVER(group->lo == lo);
+  loseg = SegLOSeg(seg);
+  AVERT(LOSeg, loseg);
+  AVER(loseg->lo == lo);
 
   arena = PoolArena(pool);
   base = BufferBase(buffer);
@@ -598,9 +627,9 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
   /* Record the unused portion at the end of the buffer */
   /* as being free. */
   AVER(baseIndex == limitIndex ||
-       BTIsSetRange(group->alloc, baseIndex, limitIndex));
+       BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
   if(initIndex != limitIndex) {
-    loGroupFree(group, initIndex, limitIndex);
+    loSegFree(loseg, initIndex, limitIndex);
   }
 }
 
@@ -610,7 +639,6 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
 static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
-  LOGroup group;
   unsigned long bits;
   
   AVERT(Pool, pool);
@@ -622,13 +650,13 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   if(SegBuffer(seg) == NULL) {
-    group = (LOGroup)SegP(seg);
-    AVERT(LOGroup, group);
+    LOSeg loseg = SegLOSeg(seg);
+    AVERT(LOSeg, loseg);
 
-    bits = SegSize(group->seg) >> lo->alignShift;
+    bits = SegSize(seg) >> lo->alignShift;
     /* allocated objects should be whitened, free areas should */
     /* be left "black" */
-    BTCopyInvertRange(group->alloc, group->mark, 0, bits);
+    BTCopyInvertRange(loseg->alloc, loseg->mark, 0, bits);
     /* @@@@ We could subtract all the free grains. */
     trace->condemned += SegSize(seg);
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
@@ -641,7 +669,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   LO lo;
-  LOGroup group;
+  LOSeg loseg;
   Ref ref;
 
   AVERT_CRITICAL(Pool, pool);
@@ -652,9 +680,8 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   ref = *refIO;
   lo = PARENT(LOStruct, poolStruct, pool);
   AVERT_CRITICAL(LO, lo);
-  group = (LOGroup)SegP(seg);
-  AVERT_CRITICAL(LOGroup, group);
-  AVER_CRITICAL(group->seg == seg);
+  loseg = SegLOSeg(seg);
+  AVERT_CRITICAL(LOSeg, loseg);
 
   ss->wasMarked = TRUE;         /* design.mps.fix.protocol.was-marked */
 
@@ -671,12 +698,12 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     Size i = AddrOffset(SegBase(seg),
                         (Addr)ref) >> lo->alignShift;
 
-    if(!BTGet(group->mark, i)) {
+    if(!BTGet(loseg->mark, i)) {
       ss->wasMarked = FALSE;  /* design.mps.fix.protocol.was-marked */
       if(ss->rank == RankWEAK) {
         *refIO = (Addr)0;
       } else {
-        BTSet(group->mark, i);
+        BTSet(loseg->mark, i);
       }
     }
   } break;
@@ -693,7 +720,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 static void LOReclaim(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
-  LOGroup group;
+  LOSeg loseg;
 
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
@@ -703,8 +730,8 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   AVER(TraceSetIsMember(SegWhite(seg), trace->ti));
 
-  group = (LOGroup)SegP(seg);
-  loGroupReclaim(group, trace);
+  loseg = SegLOSeg(seg);
+  loSegReclaim(loseg, trace);
 
   lo->lastRememberedSize = lo->objectsSize;
 }
@@ -785,7 +812,6 @@ static Bool LOCheck(LO lo)
   CHECKS(LO, lo);
   CHECKD(Pool, &lo->poolStruct);
   CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
-  CHECKL(RingCheck(&lo->groupRing));
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(1uL << lo->alignShift == PoolAlignment(&lo->poolStruct));
   CHECKD(Action, &lo->actionStruct);
