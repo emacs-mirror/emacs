@@ -28,18 +28,20 @@
 
 (quail-define-package
  "latin-1-postfix" "Latin-1" "1<" t
- "Latin-1 characters input method with postfix modifiers
+ "Latin-1 character input method with postfix modifiers
 
-    effect   | postfix | examples
+             | postfix | examples
  ------------+---------+----------
-    acute    |    '    | a' -> ,Aa(B
-    grave    |    `    | a` -> ,A`(B
+  acute      |    '    | a' -> ,Aa(B
+  grave      |    `    | a` -> ,A`(B
   circumflex |    ^    | a^ -> ,Ab(B
   diaeresis  |    \"    | a\" -> ,Ad(B
-    tilde    |    ~    | a~ -> ,Ac(B
-   cedilla   |    ,    | c, -> ,Ag(B
-   nordic    |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
-   special   |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   << -> ,A+(B   >> -> ,A;(B
+  tilde      |    ~    | a~ -> ,Ac(B
+  cedilla    |    ,    | c, -> ,Ag(B
+  nordic     |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
+  others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   << -> ,A+(B   >> -> ,A;(B
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -55,7 +57,6 @@
  ("a~" ?,Ac(B)
  ("a\"" ?,Ad(B)
  ("a/" ?,Ae(B)
-
  ("E`" ?,AH(B)
  ("E'" ?,AI(B)
  ("E^" ?,AJ(B)
@@ -66,78 +67,139 @@
  ("e^" ?,Aj(B)
  ("e\"" ?,Ak(B)
  ("e/" ?,Af(B)
-
  ("I`" ?,AL(B)
- ("I'" ?,AM(B)
- ("I^" ?,AN(B)
- ("I\"" ?,AO(B)
  ("i`" ?,Al(B)
+ ("I'" ?,AM(B)
  ("i'" ?,Am(B)
+ ("I^" ?,AN(B)
  ("i^" ?,An(B)
+ ("I\"" ?,AO(B)
  ("i\"" ?,Ao(B)
-
  ("O`" ?,AR(B)
- ("O'" ?,AS(B)
- ("O^" ?,AT(B)
- ("O~" ?,AU(B)
- ("O\"" ?,AV(B)
- ("O/" ?,AX(B)
  ("o`" ?,Ar(B)
+ ("O'" ?,AS(B)
  ("o'" ?,As(B)
+ ("O^" ?,AT(B)
  ("o^" ?,At(B)
+ ("O~" ?,AU(B)
  ("o~" ?,Au(B)
+ ("O\"" ?,AV(B)
  ("o\"" ?,Av(B)
+ ("O/" ?,AX(B)
  ("o/" ?,Ax(B)
-
  ("U`" ?,AY(B)
- ("U'" ?,AZ(B)
- ("U^" ?,A[(B)
- ("U\"" ?,A\(B)
  ("u`" ?,Ay(B)
+ ("U'" ?,AZ(B)
  ("u'" ?,Az(B)
+ ("U^" ?,A[(B)
  ("u^" ?,A{(B)
+ ("U\"" ?,A\(B)
  ("u\"" ?,A|(B)
-
  ("Y'" ?,A](B)
  ("y'" ?,A}(B)
-
+ ("y\"" ?,A(B)
  ("D/" ?,AP(B)
  ("d/" ?,Ap(B)
-
  ("T/" ?,A^(B)
  ("t/" ?,A~(B)
-
  ("s/" ?,A_(B)
-
  ("C," ?,AG(B)
  ("c," ?,Ag(B)
-
  ("N~" ?,AQ(B)
  ("n~" ?,Aq(B)
-
  ("?/" ?,A?(B)
  ("!/" ?,A!(B)
  ("<<" ?,A+(B)
- (">>" ?,A;(B))
+ (">>" ?,A;(B)
+
+ ("A``" ["A`"])
+ ("A''" ["A'"])
+ ("A^^" ["A^"])
+ ("A~~" ["A~"])
+ ("A\"\"" ["A\""])
+ ("A//" ["A/"])
+ ("a``" ["a`"])
+ ("a''" ["a'"])
+ ("a^^" ["a^"])
+ ("a~~" ["a~"])
+ ("a\"\"" ["a\""])
+ ("a//" ["a/"])
+ ("E``" ["E`"])
+ ("E''" ["E'"])
+ ("E^^" ["E^"])
+ ("E\"\"" ["E\""])
+ ("E//" ["E/"])
+ ("e``" ["e`"])
+ ("e''" ["e'"])
+ ("e^^" ["e^"])
+ ("e\"\"" ["e\""])
+ ("e//" ["e/"])
+ ("I``" ["I`"])
+ ("i``" ["i`"])
+ ("I''" ["I'"])
+ ("i''" ["i'"])
+ ("I^^" ["I^"])
+ ("i^^" ["i^"])
+ ("I\"\"" ["I\""])
+ ("i\"\"" ["i\""])
+ ("O``" ["O`"])
+ ("o``" ["o`"])
+ ("O''" ["O'"])
+ ("o''" ["o'"])
+ ("O^^" ["O^"])
+ ("o^^" ["o^"])
+ ("O~~" ["O~"])
+ ("o~~" ["o~"])
+ ("O\"\"" ["O\""])
+ ("o\"\"" ["o\""])
+ ("O//" ["O/"])
+ ("o//" ["o/"])
+ ("U``" ["U`"])
+ ("u``" ["u`"])
+ ("U''" ["U'"])
+ ("u''" ["u'"])
+ ("U^^" ["U^"])
+ ("u^^" ["u^"])
+ ("U\"\"" ["U\""])
+ ("u\"\"" ["u\""])
+ ("Y''" ["Y'"])
+ ("y''" ["y'"])
+ ("y\"\"" ["y\""])
+ ("D//" ["D/"])
+ ("d//" ["d/"])
+ ("T//" ["T/"])
+ ("t//" ["t/"])
+ ("s//" ["s/"])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
+ ("N~~" ["N~"])
+ ("n~~" ["n~"])
+ ("?//" ["?/"])
+ ("!//" ["!/"])
+ ("<<<" ["<<"])
+ (">>>" [">>"])
+ )
 
 (quail-define-package
  "latin-2-postfix" "Latin-2" "2<" t
- "Latin-2 characters input method with postfix modifiers
+ "Latin-2 character input method with postfix modifiers
 
-    effect   | postfix | examples
+             | postfix | examples
  ------------+---------+----------
-    acute    |    '    | a' -> ,Ba(B
-    ogonek   |    ,    | a, -> ,B1(B
+  acute      |    '    | a' -> ,Ba(B
+  ogonek     |    ,    | a, -> ,B1(B
   diaeresis  |    \"    | a\" -> ,Bd(B
   circumflex |    ^    | a^ -> ,Bb(B
-    breve    |    ~    | a~ -> ,Bc(B
-   cedilla   |    ,    | c, -> ,Bg(B
-    caron    |    ~    | c~ -> ,Bh(B
-  dbl. acute |    ''   | o'' -> ,Bu(B
-     ring    |    .    | u. -> ,By(B
-     dot     |    .    | z. -> ,B?(B
-    stroke   |    /    | d/ -> ,Bp(B
-   special   |    /    | s/ -> ,B_(B
+  breve      |    ~    | a~ -> ,Bc(B
+  cedilla    |    ,    | c, -> ,Bg(B
+  caron      |    ~    | c~ -> ,Bh(B
+  dbl. acute |    :    | o: -> ,Bu(B
+  ring       |    .    | u. -> ,By(B
+  dot        |    .    | z. -> ,B?(B
+  stroke     |    /    | d/ -> ,Bp(B
+  others     |    /    | s/ -> ,B_(B
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -163,7 +225,7 @@
  ("N'" ?,BQ(B)
  ("N~" ?,BR(B)
  ("O'" ?,BS(B)
- ("O''" [",BU(B" ",BS(B'"])
+ ("O:" ?,BU(B)
  ("O\"" ?,BV(B)
  ("O^" ?,BT(B)
  ("R'" ?,B@(B)
@@ -174,7 +236,7 @@
  ("T," ?,B^(B)
  ("T~" ?,B+(B)
  ("U'" ?,BZ(B)
- ("U''" [",B[(B" ",BZ(B'"])
+ ("U:" ?,B[(B)
  ("U\"" ?,B\(B)
  ("U." ?,BY(B)
  ("Y'" ?,B](B)
@@ -203,7 +265,7 @@
  ("n'" ?,Bq(B)
  ("n~" ?,Br(B)
  ("o'" ?,Bs(B)
- ("o''" [",Bu(B" ",Bs(B'"])
+ ("o:" ?,Bu(B)
  ("o\"" ?,Bv(B)
  ("o^" ?,Bt(B)
  ("r'" ?,B`(B)
@@ -215,31 +277,115 @@
  ("t," ?,B~(B)
  ("t~" ?,B;(B)
  ("u'" ?,Bz(B)
- ("u''" [",B{(B" ",Bz(B'"])
+ ("u:" ?,B{(B)
  ("u\"" ?,B|(B)
  ("u." ?,By(B)
  ("y'" ?,B}(B)
  ("z'" ?,B<(B)
  ("z." ?,B?(B)
  ("z~" ?,B>(B)
+
+ ("A''" ["A'"])
+ ("A,," ["A,"])
+ ("A\"\"" ["A\""])
+ ("A^^" ["A^"])
+ ("A~~" ["A~"])
+ ("C''" ["C'"])
+ ("C,," ["C,"])
+ ("C~~" ["C~"])
+ ("D//" ["D/"])
+ ("D~~" ["D~"])
+ ("E''" ["E'"])
+ ("E,," ["E,"])
+ ("E\"\"" ["E\""])
+ ("E~~" ["E~"])
+ ("I''" ["I'"])
+ ("I^^" ["I^"])
+ ("L''" ["L'"])
+ ("L//" ["L/"])
+ ("L~~" ["L~"])
+ ("N''" ["N'"])
+ ("N~~" ["N~"])
+ ("O''" ["O'"])
+ ("O::" ["O:"])
+ ("O\"\"" ["O\""])
+ ("O^^" ["O^"])
+ ("R''" ["R'"])
+ ("R~~" ["R~"])
+ ("S''" ["S'"])
+ ("S,," ["S,"])
+ ("S~~" ["S~"])
+ ("T,," ["T,"])
+ ("T~~" ["T~"])
+ ("U''" ["U'"])
+ ("U::" ["U:"])
+ ("U\"\"" ["U\""])
+ ("U.." ["U."])
+ ("Y''" ["Y'"])
+ ("Z''" ["Z'"])
+ ("Z.." ["Z."])
+ ("Z~~" ["Z~"])
+ ("a''" ["a'"])
+ ("a,," ["a,"])
+ ("a\"\"" ["a\""])
+ ("a^^" ["a^"])
+ ("a~~" ["a~"])
+ ("c''" ["c'"])
+ ("c,," ["c,"])
+ ("c~~" ["c~"])
+ ("d//" ["d/"])
+ ("d~~" ["d~"])
+ ("e''" ["e'"])
+ ("e,," ["e,"])
+ ("e\"\"" ["e\""])
+ ("e~~" ["e~"])
+ ("i''" ["i'"])
+ ("i^^" ["i^"])
+ ("l''" ["l'"])
+ ("l//" ["l/"])
+ ("l~~" ["l~"])
+ ("n''" ["n'"])
+ ("n~~" ["n~"])
+ ("o''" ["o'"])
+ ("o::" ["o:"])
+ ("o\"\"" ["o\""])
+ ("o^^" ["o^"])
+ ("r''" ["r'"])
+ ("r~~" ["r~"])
+ ("s''" ["s'"])
+ ("s,," ["s,"])
+ ("s//" ["s/"])
+ ("s~~" ["s~"])
+ ("t,," ["t,"])
+ ("t~~" ["t~"])
+ ("u''" ["u'"])
+ ("u::" ["u:"])
+ ("u\"\"" ["u\""])
+ ("u.." ["u."])
+ ("y''" ["y'"])
+ ("z''" ["z'"])
+ ("z.." ["z."])
+ ("z~~" ["z~"])
  )
 
 (quail-define-package
  "latin-3-postfix" "Latin-3" "3<" t
- "Latin-3 characters input method with postfix modifiers
+ "Latin-3 character input method with postfix modifiers
 
-    effect   | postfix | examples
+             | postfix | examples
  ------------+---------+----------
-    acute    |    '    | a' -> ,Ca(B
-    grave    |    `    | a` -> ,C`(B
+  acute      |    '    | a' -> ,Ca(B
+  grave      |    `    | a` -> ,C`(B
   circumflex |    ^    | a^ -> ,Cb(B
   diaeresis  |    \"    | a\" -> ,Cd(B
-     dot     |    .    | c. -> ,Ce(B   i. -> ,C9(B   I. -> ,C)(B
-   cedilla   |    ,    | c, -> ,Cg(B
-    breve    |    ~    | g~ -> ,C;(B
-    tilde    |    ~    | n~ -> ,Cq(B
-   stroke    |    /    | h/ -> ,C1(B
-   special   |    /    | s/ -> ,C_(B
+  dot        |    .    | c. -> ,Ce(B   i. -> ,C9(B   I. -> ,C)(B
+  cedilla    |    ,    | c, -> ,Cg(B
+  breve      |    ~    | g~ -> ,C;(B
+  tilde      |    ~    | n~ -> ,Cq(B
+  stroke     |    /    | h/ -> ,C1(B
+  others     |    /    | s/ -> ,C_(B
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -314,26 +460,100 @@
  ("u\"" ?,C|(B)
  ("u~" ?,C}(B)
  ("z." ?,C?(B)
+
+ ("A``" ["A`"])
+ ("A''" ["A'"])
+ ("A^^" ["A^"])
+ ("A\"\"" ["A\""])
+ ("C.." ["C."])
+ ("C^^" ["C^"])
+ ("C,," ["C,"])
+ ("E``" ["E`"])
+ ("E''" ["E'"])
+ ("E^^" ["E^"])
+ ("E\"\"" ["E\""])
+ ("G~~" ["G~"])
+ ("G.." ["G."])
+ ("G^^" ["G^"])
+ ("H//" ["H/"])
+ ("H^^" ["H^"])
+ ("I.." ["I."])
+ ("I``" ["I`"])
+ ("I''" ["I'"])
+ ("I^^" ["I^"])
+ ("I\"\"" ["I\""])
+ ("J^^" ["J^"])
+ ("N~~" ["N~"])
+ ("O``" ["O`"])
+ ("O''" ["O'"])
+ ("O^^" ["O^"])
+ ("O\"\"" ["O\""])
+ ("S,," ["S,"])
+ ("S^^" ["S^"])
+ ("U``" ["U`"])
+ ("U''" ["U'"])
+ ("U^^" ["U^"])
+ ("U\"\"" ["U\""])
+ ("U~~" ["U~"])
+ ("Z.." ["Z."])
+ ("a``" ["a`"])
+ ("a''" ["a'"])
+ ("a^^" ["a^"])
+ ("a\"\"" ["a\""])
+ ("c.." ["c."])
+ ("c^^" ["c^"])
+ ("c,," ["c,"])
+ ("e``" ["e`"])
+ ("e''" ["e'"])
+ ("e^^" ["e^"])
+ ("e\"\"" ["e\""])
+ ("g~~" ["g~"])
+ ("g.." ["g."])
+ ("g^^" ["g^"])
+ ("h//" ["h/"])
+ ("h^^" ["h^"])
+ ("i.." ["i."])
+ ("i``" ["i`"])
+ ("i''" ["i'"])
+ ("i^^" ["i^"])
+ ("i\"\"" ["i\""])
+ ("j^^" ["j^"])
+ ("n~~" ["n~"])
+ ("o``" ["o`"])
+ ("o''" ["o'"])
+ ("o^^" ["o^"])
+ ("o\"\"" ["o\""])
+ ("s,," ["s,"])
+ ("s//" ["s/"])
+ ("s^^" ["s^"])
+ ("u``" ["u`"])
+ ("u''" ["u'"])
+ ("u^^" ["u^"])
+ ("u\"\"" ["u\""])
+ ("u~~" ["u~"])
+ ("z.." ["z."])
  )
 
 (quail-define-package
  "latin-4-postfix" "Latin-4" "4<" t
  "Latin-4 characters input method with postfix modifiers
 
-    effect   | postfix | examples
+             | postfix | examples
  ------------+---------+----------
-    acute    |    '    | a' -> ,Da(B
+  acute      |    '    | a' -> ,Da(B
   circumflex |    ^    | a^ -> ,Db(B
   diaeresis  |    \"    | a\" -> ,Dd(B
-    ogonek   |    ,    | a, -> ,D1(B
-    macron   |    -    | a- -> ,D`(B
-    tilde    |    ~    | a~ -> ,Dc(B
-    caron    |    ~    | c~ -> ,Dh(B
-     dot     |    .    | e. -> ,Dl(B
-   cedilla   |    ,    | k, -> ,Ds(B   g, -> ,D;(B
-   stroke    |    /    | d/ -> ,Dp(B
-   nordic    |    /    | a/ -> ,De(B   e/ -> ,Df(B   o/ -> ,Dx(B
-   special   |    /    | s/ -> ,D_(B   n/ -> ,D?(B   k/ -> ,D"(B
+  ogonek     |    ,    | a, -> ,D1(B
+  macron     |    -    | a- -> ,D`(B
+  tilde      |    ~    | a~ -> ,Dc(B
+  caron      |    ~    | c~ -> ,Dh(B
+  dot        |    .    | e. -> ,Dl(B
+  cedilla    |    ,    | k, -> ,Ds(B   g, -> ,D;(B
+  stroke     |    /    | d/ -> ,Dp(B
+  nordic     |    /    | a/ -> ,De(B   e/ -> ,Df(B   o/ -> ,Dx(B
+  others     |    /    | s/ -> ,D_(B   n/ -> ,D?(B   k/ -> ,D"(B
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -419,24 +639,109 @@
  ("u~" ?,D}(B)
  ("u-" ?,D~(B)
  ("z~" ?,D>(B)
+
+ ("A,," ["A,"])
+ ("A--" ["A-"])
+ ("A''" ["A'"])
+ ("A^^" ["A^"])
+ ("A~~" ["A~"])
+ ("A\"\"" ["A\""])
+ ("A//" ["A/"])
+ ("C~~" ["C~"])
+ ("D//" ["D/"])
+ ("E//" ["E/"])
+ ("E--" ["E-"])
+ ("E''" ["E'"])
+ ("E,," ["E,"])
+ ("E\"\"" ["E\""])
+ ("E.." ["E."])
+ ("G,," ["G,"])
+ ("I~~" ["I~"])
+ ("I,," ["I,"])
+ ("I''" ["I'"])
+ ("I^^" ["I^"])
+ ("I--" ["I-"])
+ ("K,," ["K,"])
+ ("L,," ["L,"])
+ ("N//" ["N/"])
+ ("N,," ["N,"])
+ ("O--" ["O-"])
+ ("O^^" ["O^"])
+ ("O~~" ["O~"])
+ ("O\"\"" ["O\""])
+ ("O//" ["O/"])
+ ("R,," ["R,"])
+ ("S~~" ["S~"])
+ ("T//" ["T/"])
+ ("U,," ["U,"])
+ ("U''" ["U'"])
+ ("U^^" ["U^"])
+ ("U\"\"" ["U\""])
+ ("U~~" ["U~"])
+ ("U--" ["U-"])
+ ("Z~~" ["Z~"])
+ ("a,," ["a,"])
+ ("a--" ["a-"])
+ ("a''" ["a'"])
+ ("a^^" ["a^"])
+ ("a~~" ["a~"])
+ ("a\"\"" ["a\""])
+ ("a//" ["a/"])
+ ("c~~" ["c~"])
+ ("d//" ["d/"])
+ ("e//" ["e/"])
+ ("e--" ["e-"])
+ ("e''" ["e'"])
+ ("e,," ["e,"])
+ ("e\"\"" ["e\""])
+ ("e.." ["e."])
+ ("g,," ["g,"])
+ ("i~~" ["i~"])
+ ("i,," ["i,"])
+ ("i''" ["i'"])
+ ("i^^" ["i^"])
+ ("i--" ["i-"])
+ ("k//" ["k/"])
+ ("k,," ["k,"])
+ ("l,," ["l,"])
+ ("n//" ["n/"])
+ ("n,," ["n,"])
+ ("o--" ["o-"])
+ ("o^^" ["o^"])
+ ("o~~" ["o~"])
+ ("o\"\"" ["o\""])
+ ("o//" ["o/"])
+ ("r,," ["r,"])
+ ("s//" ["s/"])
+ ("s~~" ["s~"])
+ ("t//" ["t/"])
+ ("u,," ["u,"])
+ ("u''" ["u'"])
+ ("u^^" ["u^"])
+ ("u\"\"" ["u\""])
+ ("u~~" ["u~"])
+ ("u--" ["u-"])
+ ("z~~" ["z~"])
  )
 
 (quail-define-package
  "latin-5-postfix" "Latin-5" "5<" t
  "Latin-5 characters input method with postfix modifiers
 
-    effect   | postfix | examples
+             | postfix | examples
  ------------+---------+----------
-    acute    |    '    | a' -> ,Ma(B
-    grave    |    `    | a` -> ,M`(B
+  acute      |    '    | a' -> ,Ma(B
+  grave      |    `    | a` -> ,M`(B
   circumflex |    ^    | a^ -> ,Mb(B
   diaeresis  |    \"    | a\" -> ,Md(B
-    tilde    |    ~    | a~ -> ,Mc(B
-    breve    |    ~    | g~ -> ,Mp(B
-   cedilla   |    ,    | c, -> ,Mg(B
-     dot     |    .    | i. -> ,M}(B   I. -> ,M](B
-   nordic    |    /    | a/ -> ,Me(B   e/ -> ,Mf(B   o/ -> ,Mx(B
-   special   |    /    | s/ -> ,M_(B
+  tilde      |    ~    | a~ -> ,Mc(B
+  breve      |    ~    | g~ -> ,Mp(B
+  cedilla    |    ,    | c, -> ,Mg(B
+  dot        |    .    | i. -> ,M}(B   I. -> ,M](B
+  nordic     |    /    | a/ -> ,Me(B   e/ -> ,Mf(B   o/ -> ,Mx(B
+  others     |    /    | s/ -> ,M_(B
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -502,80 +807,183 @@
  ("u^" ?,M{(B)
  ("u`" ?,My(B)
  ("y\"" ?,M(B)
+
+ ("A''" ["A'"])
+ ("A//" ["A/"])
+ ("A\"\"" ["A\""])
+ ("A^^" ["A^"])
+ ("A``" ["A`"])
+ ("A~~" ["A~"])
+ ("C,," ["C,"])
+ ("E''" ["E'"])
+ ("E//" ["E/"])
+ ("E\"\"" ["E\""])
+ ("E^^" ["E^"])
+ ("E``" ["E`"])
+ ("G~~" ["G~"])
+ ("I''" ["I'"])
+ ("I.." ["I."])
+ ("I\"\"" ["I\""])
+ ("I^^" ["I^"])
+ ("I``" ["I`"])
+ ("N~~" ["N~"])
+ ("O''" ["O'"])
+ ("O//" ["O/"])
+ ("O\"\"" ["O\""])
+ ("O^^" ["O^"])
+ ("O``" ["O`"])
+ ("O~~" ["O~"])
+ ("S,," ["S,"])
+ ("U''" ["U'"])
+ ("U\"\"" ["U\""])
+ ("U^^" ["U^"])
+ ("U``" ["U`"])
+ ("a''" ["a'"])
+ ("a//" ["a/"])
+ ("a\"\"" ["a\""])
+ ("a^^" ["a^"])
+ ("a``" ["a`"])
+ ("a~~" ["a~"])
+ ("c,," ["c,"])
+ ("e''" ["e'"])
+ ("e//" ["e/"])
+ ("e\"\"" ["e\""])
+ ("e^^" ["e^"])
+ ("e``" ["e`"])
+ ("g~~" ["g~"])
+ ("i''" ["i'"])
+ ("i.." ["i."])
+ ("i\"\"" ["i\""])
+ ("i^^" ["i^"])
+ ("i``" ["i`"])
+ ("n~~" ["n~"])
+ ("o''" ["o'"])
+ ("o//" ["o/"])
+ ("o\"\"" ["o\""])
+ ("o^^" ["o^"])
+ ("o``" ["o`"])
+ ("o~~" ["o~"])
+ ("s,," ["s,"])
+ ("s//" ["s/"])
+ ("u''" ["u'"])
+ ("u\"\"" ["u\""])
+ ("u^^" ["u^"])
+ ("u``" ["u`"])
+ ("y\"\"" ["y\""])
  )
 
 (quail-define-package
  "danish-postfix" "Latin-1" "DA<" t
- "Danish input method (rule: AE -> ,AF(B, OE -> ,AX(B, AA -> ,AE(B, E' -> ,AI(B)"
+ "Danish input method (rule: AE -> ,AF(B, OE -> ,AX(B, AA -> ,AE(B, E' -> ,AI(B)
+
+Doubling the postfix separates the letter and postfix: e.g. aee -> ae
+"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AF(B)
  ("ae" ?,Af(B)
-
  ("OE" ?,AX(B)
  ("oe" ?,Ax(B)
-
  ("AA" ?,AE(B)
  ("aa" ?,Ae(B)
-
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
+
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("AAA" ["AA"])
+ ("aaa" ["aa"])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
  )
 
 (quail-define-package
  "esperanto-postfix" "Latin-3" "EO<" t
  "Esperanto input method with postfix modifiers
 
-Preceding ^ or following x will produce accented characters,
-e.g. ^C -> ,CF(B, Gx -> ,CX(B.
+A following ^ or x will produce an accented character,
+e.g. c^ -> ,Cf(B, gx -> ,Cx(B, u^ -> ,C}(B.
+
+Doubling the postfix separates the letter and postfix,
+e.g. a'' -> a'.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("Cx" ?,CF(B)
- ("^C" ?,CF(B)
+ ("C^" ?,CF(B)
  ("cx" ?,Cf(B)
- ("^c" ?,Cf(B)
-
+ ("c^" ?,Cf(B)
  ("Gx" ?,CX(B)
- ("^G" ?,CX(B)
+ ("G^" ?,CX(B)
  ("gx" ?,Cx(B)
- ("^g" ?,Cx(B)
-
+ ("g^" ?,Cx(B)
  ("Hx" ?,C&(B)
- ("^H" ?,C&(B)
+ ("H^" ?,C&(B)
  ("hx" ?,C6(B)
- ("^h" ?,C6(B)
-
+ ("h^" ?,C6(B)
  ("Jx" ?,C,(B)
- ("^J" ?,C,(B)
+ ("J^" ?,C,(B)
  ("jx" ?,C<(B)
- ("^j" ?,C<(B)
-
+ ("j^" ?,C<(B)
  ("Sx" ?,C^(B)
- ("^S" ?,C^(B)
+ ("S^" ?,C^(B)
  ("sx" ?,C~(B)
- ("^s" ?,C~(B)
-
+ ("s^" ?,C~(B)
  ("Ux" ?,C](B)
- ("^U" ?,C](B)
- ("~U" ?,C](B)
+ ("U^" ?,C](B)
  ("ux" ?,C}(B)
- ("^u" ?,C}(B)
- ("~u" ?,C}(B)
+ ("u^" ?,C}(B)
+
+ ("Cxx" ["Cx"])
+ ("C^^" ["C^"])
+ ("cxx" ["cx"])
+ ("c^^" ["c^"])
+ ("Gxx" ["Gx"])
+ ("G^^" ["G^"])
+ ("gxx" ["gx"])
+ ("g^^" ["g^"])
+ ("Hxx" ["Hx"])
+ ("H^^" ["H^"])
+ ("hxx" ["hx"])
+ ("h^^" ["h^"])
+ ("Jxx" ["Jx"])
+ ("J^^" ["J^"])
+ ("jxx" ["jx"])
+ ("j^^" ["j^"])
+ ("Sxx" ["Sx"])
+ ("S^^" ["S^"])
+ ("sxx" ["sx"])
+ ("s^^" ["s^"])
+ ("Uxx" ["Ux"])
+ ("U^^" ["U^"])
+ ("uxx" ["ux"])
+ ("u^^" ["u^"])
  )
 
 (quail-define-package
  "finnish-postfix" "Latin-1" "FI<" t
- "Finnish (Suomi) input method (rule: AE -> ,AD(B, OE -> ,AV(B)"
+ "Finnish (Suomi) input method
+
+AE  -> ,AD(B
+AEE -> AE
+OE  -> ,AV(B
+OEE -> OE
+"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AD(B)
  ("ae" ?,Ad(B)
-
  ("OE" ?,AV(B)
  ("oe" ?,Av(B)
+
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
  )
 
 (quail-define-package
@@ -583,9 +991,12 @@ e.g. ^C -> ,CF(B, Gx -> ,CX(B.
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
-Par exemple A` -> ,A@(B, E' -> ,AI(B.
+Par exemple: a` -> ,A`(B, e' -> ,Ai(B.
 
-,AG(B, ,A+(B, et ,A;(B sont produits par C/, <<, et >>.
+,AG(B, ,A+(B, et ,A;(B sont produits par C,, <<, et >>.
+
+En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
+Par exemple: e'' -> e'
 
 <e dans l'o> n'est pas disponible."
  nil t nil nil nil nil nil nil nil nil t)
@@ -595,7 +1006,6 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
  ("A^" ?,AB(B)
  ("a`" ?,A`(B)
  ("a^" ?,Ab(B)
-
  ("E`" ?,AH(B)
  ("E'" ?,AI(B)
  ("E^" ?,AJ(B)
@@ -604,48 +1014,84 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
  ("e'" ?,Ai(B)
  ("e^" ?,Aj(B)
  ("e\"" ?,Ak(B)
-
  ("I^" ?,AN(B)
  ("I\"" ?,AO(B)
  ("i^" ?,An(B)
  ("i\"" ?,Ao(B)
-
  ("O^" ?,AT(B)
  ("o^" ?,At(B)
-
  ("U`" ?,AY(B)
  ("U^" ?,A[(B)
  ("U\"" ?,A\(B)
  ("u`" ?,Ay(B)
  ("u^" ?,A{(B)
  ("u\"" ?,A|(B)
-
- ("C/" ?,AG(B)
- ("c/" ?,Ag(B)
-
+ ("C," ?,AG(B)
+ ("c," ?,Ag(B)
  ("<<" ?,A+(B)
  (">>" ?,A;(B)
+
+ ("A``" ["A`"])
+ ("A^^" ["A^"])
+ ("a``" ["a`"])
+ ("a^^" ["a^"])
+ ("E``" ["E`"])
+ ("E''" ["E'"])
+ ("E^^" ["E^"])
+ ("E\"\"" ["E\""])
+ ("e``" ["e`"])
+ ("e''" ["e'"])
+ ("e^^" ["e^"])
+ ("e\"\"" ["e\""])
+ ("I^^" ["I^"])
+ ("I\"\"" ["I\""])
+ ("i^^" ["i^"])
+ ("i\"\"" ["i\""])
+ ("O^^" ["O^"])
+ ("o^^" ["o^"])
+ ("U``" ["U`"])
+ ("U^^" ["U^"])
+ ("U\"\"" ["U\""])
+ ("u``" ["u`"])
+ ("u^^" ["u^"])
+ ("u\"\"" ["u\""])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
+ ("<<<" ["<<"])
+ (">>>" [">>"])
  )
 
 (quail-define-package
  "german-postfix" "Latin-1" "DE<" t
- "German (Deutsch) input method (rule: AE -> ,AD(B, OE -> ,AV(B, UE -> ,A\(B, sz -> ,A_(B)
+ "German (Deutsch) input method
 
-,A_(B can also be input by 'ss' followed by M-n."
+ae  -> ,Ad(B
+aee -> ae
+oe  -> ,Av(B
+oee -> oe
+ue  -> ,A|(B
+uee -> ue
+sz  -> ,A_(B
+szz -> sz
+"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AD(B)
  ("ae" ?,Ad(B)
-
  ("OE" ?,AV(B)
  ("oe" ?,Av(B)
-
  ("UE" ?,A\(B)
  ("ue" ?,A|(B)
-
  ("sz" ?,A_(B)
- ("ss" ["ss" ?,A_(B])
+
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("UEE" ["UE"])
+ ("uee" ["ue"])
+ ("szz" ["sz"])
  )
 
 (quail-define-package
@@ -661,39 +1107,53 @@ Y' -> ,A](B
 AE -> ,AF(B
 OE -> ,AV(B
 D/ -> ,AP(B (eth)
-T/ -> ,A^(B (thorn)"
- nil t nil nil nil nil nil nil nil nil t)
+T/ -> ,A^(B (thorn)
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,AA(B)
  ("a'" ?,Aa(B)
-
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
-
  ("I'" ?,AM(B)
  ("i'" ?,Am(B)
-
  ("O'" ?,AS(B)
  ("o'" ?,As(B)
-
  ("U'" ?,AZ(B)
  ("u'" ?,Az(B)
-
  ("Y'" ?,A](B)
  ("y'" ?,A}(B)
-
  ("AE" ?,AF(B)
  ("ae" ?,Af(B)
-
  ("OE" ?,AV(B)
  ("oe" ?,Av(B)
-
  ("D/" ?,AP(B)
  ("d/" ?,Ap(B)
-
  ("T/" ?,A^(B)
  ("t/" ?,A~(B)
+
+ ("A''" ["A'"])
+ ("a''" ["a'"])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
+ ("I''" ["I'"])
+ ("i''" ["i'"])
+ ("O''" ["O'"])
+ ("o''" ["o'"])
+ ("U''" ["U'"])
+ ("u''" ["u'"])
+ ("Y''" ["Y'"])
+ ("y''" ["y'"])
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("D//" ["D/"])
+ ("d//" ["d/"])
+ ("T//" ["T/"])
+ ("t//" ["t/"])
  )
 
 (quail-define-package
@@ -705,66 +1165,104 @@ E` -> ,AH(B
 I` -> ,AL(B
 O` -> ,AR(B
 U` -> ,AY(B
+
+Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A`" ?,A@(B)
  ("a`" ?,A`(B)
-
  ("E`" ?,AH(B)
  ("e`" ?,Ah(B)
-
  ("I`" ?,AL(B)
  ("i`" ?,Al(B)
-
  ("O`" ?,AR(B)
  ("o`" ?,Ar(B)
-
  ("U`" ?,AY(B)
  ("u`" ?,Ay(B)
+
+ ("A``" ["A`"])
+ ("a``" ["a`"])
+ ("E``" ["E`"])
+ ("e``" ["e`"])
+ ("I``" ["I`"])
+ ("i``" ["i`"])
+ ("O``" ["O`"])
+ ("o``" ["o`"])
+ ("U``" ["U`"])
+ ("u``" ["u`"])
  )
 
 (quail-define-package
  "norwegian-postfix" "Latin-1" "NO<" t
- "Norwegian (Norsk) input method (rule: AE->,AF(B, OE->,AX(B, AA->,AE(B, E'->,AI(B)"
+ "Norwegian (Norsk) input method (rule: AE->,AF(B, OE->,AX(B, AA->,AE(B, E'->,AI(B)
+
+Doubling the postfix separates the letter and postfix: e.g. aee -> ae
+"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AF(B)
  ("ae" ?,Af(B)
-
  ("OE" ?,AX(B)
  ("oe" ?,Ax(B)
-
  ("AA" ?,AE(B)
  ("aa" ?,Ae(B)
-
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
+
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("AAA" ["AA"])
+ ("aaa" ["aa"])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
  )
 
 (quail-define-package
  "scandinavian-postfix" "Latin-1" "SC<" t
- "Scandinavian input method (rule: AE->,AD(B/,AF(B, OE->,AV(B/,AX(B, AA->,AE(B, E'->,AI(B)
-
+ "Scandinavian input method with postfix modifiers
 Supported languages are Swidish, Norwegian, Danish, and Finnish.
 
-You can toggle between ,AD(B and ,AF(B, or between OE and ,AV(B, by typing M-n
-when the character is underlined.
-" nil nil nil nil nil nil nil nil nil nil t)
+ae -> ,Af(B
+oe -> ,Ax(B
+aa -> ,Ae(B
+a\" -> ,Ad(B
+o\" -> ,Av(B
+e' -> ,Ai(B
+
+Doubling the postfix separates the letter and postfix:
+aee -> ae, o\"\" -> o\", etc.
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("AE" [?,AD(B ?,AF(B])
- ("ae" [?,Ad(B ?,Af(B])
-
+ ("AE" ?,AF(B)
+ ("ae" ?,Af(B)
+ ("OE" ?,AX(B)
+ ("oe" ?,Ax(B)
  ("AA" ?,AE(B)
  ("aa" ?,Ae(B)
-
- ("OE" [?,AV(B ?,AX(B])
- ("oe" [?,Av(B ?,Ax(B])
-
+ ("A\"" ?,AD(B)
+ ("a\"" ?,Ad(B)
+ ("O\"" ?,AV(B)
+ ("o\"" ?,Av(B)
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
+
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("AAA" ["AA"])
+ ("aaa" ["aa"])
+ ("A\"\"" ["A\""])
+ ("a\"\"" ["a\""])
+ ("O\"\"" ["O\""])
+ ("o\"\"" ["o\""])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
  )
 
 (quail-define-package
@@ -779,48 +1277,68 @@ U' -> ,AZ(B
 N~ -> ,AQ(B
 !/ -> ,A!(B
 ?/ -> ,A?(B
+
+Doubling the postfix separates the letter and postfix:
+a'' -> a', n~~ -> n~, etc.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,AA(B)
  ("a'" ?,Aa(B)
-
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
-
  ("I'" ?,AM(B)
  ("i'" ?,Am(B)
-
  ("O'" ?,AS(B)
  ("o'" ?,As(B)
-
  ("U'" ?,AZ(B)
  ("u'" ?,Az(B)
-
  ("N~" ?,AQ(B)
  ("n~" ?,Aq(B)
-
  ("?/" ?,A?(B)
  ("!/" ?,A!(B)
+
+ ("A''" ["A'"])
+ ("a''" ["a'"])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
+ ("I''" ["I'"])
+ ("i''" ["i'"])
+ ("O''" ["O'"])
+ ("o''" ["o'"])
+ ("U''" ["U'"])
+ ("u''" ["u'"])
+ ("N~~" ["N~"])
+ ("n~~" ["n~"])
+ ("?//" ["?/"])
+ ("!//" ["!/"])
  )
 
 (quail-define-package
  "swedish-postfix" "Latin-1" "SV<" t
- "Swedish (Svenska) input method (rule: AA -> ,AE(B, AE -> ,AD(B, OE -> ,AV(B, E' -> ,AI(B)"
- nil t nil nil nil nil nil nil nil nil t)
+ "Swedish (Svenska) input method (rule: AA -> ,AE(B, AE -> ,AD(B, OE -> ,AV(B, E' -> ,AI(B)
+
+Doubling the postfix separates the letter and postfix: e.g. aee -> ae
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AA" ?,AE(B)
  ("aa" ?,Ae(B)
-
  ("AE" ?,AD(B)
  ("ae" ?,Ad(B)
-
  ("OE" ?,AV(B)
  ("oe" ?,Av(B)
-
  ("E'" ?,AI(B)
  ("e'" ?,Ai(B)
+
+ ("AAA" ["AA"])
+ ("aaa" ["aa"])
+ ("AEE" ["AE"])
+ ("aee" ["ae"])
+ ("OEE" ["OE"])
+ ("oee" ["oe"])
+ ("E''" ["E'"])
+ ("e''" ["e'"])
  )
 
 (quail-define-package
@@ -830,42 +1348,56 @@ N~ -> ,AQ(B
 Note for I, ,C9(B, ,C)(B, i.
 
 A^ -> ,CB(B
-C/ -> ,CG(B
+C, -> ,CG(B
 G^ -> ,C+(B
 I  -> I
 i  -> ,C9(B
-I' -> ,C)(B
-i' -> i
+I. -> ,C)(B
+i. -> i
 O\" -> ,CV(B
-S/ -> ,C*(B
+S, -> ,C*(B
 U\" -> ,C\(B
 U^ -> ,C[(B
+
+Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A^" ?,CB(B)
  ("a^" ?,Cb(B)
-
- ("C/" ?,CG(B)
- ("c/" ?,Cg(B)
-
+ ("C," ?,CG(B)
+ ("c," ?,Cg(B)
  ("G^" ?,C+(B)
  ("g^" ?,C;(B)
-
- ("I'" ?,C)(B)
+ ("I." ?,C)(B)
  ("i" ?,C9(B)
- ("i'" ?i)
-
+ ("i." ?i)
  ("O\"" ?,CV(B)
  ("o\"" ?,Cv(B)
-
- ("S/" ?,C*(B)
- ("s/" ?,C:(B)
-
+ ("S," ?,C*(B)
+ ("s," ?,C:(B)
  ("U\"" ?,C\(B)
  ("u\"" ?,C|(B)
  ("U^" ?,C[(B)
  ("u^" ?,C{(B)
+
+ ("A^^" ["A^"])
+ ("a^^" ["a^"])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
+ ("G^^" ["G^"])
+ ("g^^" ["g^"])
+ ("I.." ["I."])
+ ("i" ["i"])
+ ("i.." ["i."])
+ ("O\"\"" ["O\""])
+ ("o\"\"" ["o\""])
+ ("S,," ["S,"])
+ ("s,," ["s,"])
+ ("U\"\"" ["U\""])
+ ("u\"\"" ["u\""])
+ ("U^^" ["U^"])
+ ("u^^" ["u^"])
  )
 
 (quail-define-package
@@ -1057,6 +1589,9 @@ pr,Ai(Bfixes:  ^ pour circonflexe,  ,A((B pour tr,Ai(Bma.
  ("{e" ?,Ak(B)
  ("{i" ?,Ao(B)
  ("{u" ?,A|(B)
+
+ ("[[" ?^)
+ ("{{" ?,A((B)
  )
 
 ;;
@@ -1105,6 +1640,8 @@ Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
  ("'O" ?,AS(B)
  ("'U" ?,AZ(B)
  ("'Y" ?,A](B)
+
+ ("''" ?,A4(B)
  )
 
 ;;
