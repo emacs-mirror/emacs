@@ -2295,8 +2295,8 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 (if (eq system-type 'vax-vms)
     (load "dired-vms"))
 
-(run-hooks 'dired-load-hook)		; for your customizations
-
 (provide 'dired)
+
+(run-hooks 'dired-load-hook)		; for your customizations
 
 ;;; dired.el ends here
