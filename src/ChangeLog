@@ -1,3 +1,7 @@
+2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
+
+	* config.in: Regenerate (add HAVE_GETRUSAGE).
+
 2004-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (syms_of_frame): Fix the example in the doc string.
