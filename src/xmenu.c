@@ -68,7 +68,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/CoreP.h>
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
+#ifdef USE_LUCID
 #include <X11/Xaw/Paned.h>
+#endif /* USE_LUCID */
 #include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #include "../oldXMenu/XMenu.h"
@@ -1738,6 +1740,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    + f->output_data.x->menubar_widget->core.border_width)
 	 : 0);
 
+#ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
         Dimension ibw = 0;
@@ -1745,6 +1748,7 @@ set_frame_menubar (f, first_time, deep_p)
 		       XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
+#endif /* USE_LUCID */
 
     f->output_data.x->menubar_height = menubar_size;
   }
