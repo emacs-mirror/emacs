@@ -64,7 +64,6 @@ This is used to optimize refilling.")
 (defun refill-adjust-ignorable-overlay (overlay afterp beg end &optional len)
   "Adjust OVERLAY to not include the about-to-be-modified region."
   (when (not afterp)
-    (message "adjust: %s-%s" beg end)
     (save-excursion
       (goto-char beg)
       (forward-line -1)
@@ -99,7 +98,6 @@ This is used to optimize refilling.")
 		     fill-prefix))
 		  ;; Turn off adaptive-fill-mode temporarily
 		  (adaptive-fill-mode nil))
-	      (message "refill-at %s: %s-%s" pos oend end)
 	      (save-restriction
 		(if use-hard-newlines
 		    (fill-region oend end arg)
