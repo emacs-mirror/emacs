@@ -17,8 +17,11 @@
 	* apropos.el (button): New require.
 
 	* help-funs.el: New file, contents mostly from `help.el'.
-	(describe-variable): Use `condition-case' instead of `ignore-errors'.
+	(describe-variable): Use `condition-case' instead of
+	`ignore-errors'.
+	
 	* help-mode.el: New file, contents mostly from `help.el'.
+	
 	* help.el: Don't require `view' when compiling.
 	(help-with-tutorial, describe-function, describe-function-1)
 	(variable-at-point, describe-variable, locate-library):
@@ -39,9 +42,13 @@
 	(load-symbol-file-load-history, symbol-file):
 	Functions moved into `subr.el'.
 	(symbol-file-load-history-loaded): Variable moved into `subr.el'.
-	(view-lossage): Call `help-setup-xref' instead of doing it manually.
+	(view-lossage): Call `help-setup-xref' instead of doing it
+	manually.
+	
 	* subr.el (symbol-file-load-history-loaded) 
-	(load-symbol-file-load-history, symbol-file): Moved from `help.el'.
+	(load-symbol-file-load-history, symbol-file): Moved from
+	`help.el'.
+	
 	* loadup.el ("button"): Load removed.
 
 	* button.el (define-button-type): Respect any `supertype' property.
