@@ -249,6 +249,8 @@ looking_at_1 (string, posix)
       s1 = ZV - BEGV;
       s2 = 0;
     }
+
+  re_match_object = Qnil;
   
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT - BEGV, &search_regs,
@@ -325,6 +327,8 @@ string_match_1 (regexp, string, start, posix)
 			   ? DOWNCASE_TABLE : 0),
 			  posix);
   immediate_quit = 1;
+  re_match_object = string;
+  
   val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
 		   &search_regs);
@@ -374,6 +378,8 @@ fast_string_match (regexp, string)
 
   bufp = compile_pattern (regexp, 0, 0, 0);
   immediate_quit = 1;
+  re_match_object = string;
+  
   val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, 0, XSTRING (string)->size,
 		   0);
@@ -671,299 +677,6 @@ find_before_next_newline (from, to, cnt)
   return pos;
 }
 
-Lisp_Object skip_chars ();
-
-DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
-  "Move point forward, stopping before a char not in STRING, or at pos LIM.\n\
-STRING is like the inside of a `[...]' in a regular expression\n\
-except that `]' is never special and `\\' quotes `^', `-' or `\\'.\n\
-Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.\n\
-With arg \"^a-zA-Z\", skips nonletters stopping before first letter.\n\
-Returns the distance traveled, either zero or positive.")
-  (string, lim)
-     Lisp_Object string, lim;
-{
-  return skip_chars (1, 0, string, lim);
-}
-
-DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
-  "Move point backward, stopping after a char not in STRING, or at pos LIM.\n\
-See `skip-chars-forward' for details.\n\
-Returns the distance traveled, either zero or negative.")
-  (string, lim)
-     Lisp_Object string, lim;
-{
-  return skip_chars (0, 0, string, lim);
-}
-
-DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
-  "Move point forward across chars in specified syntax classes.\n\
-SYNTAX is a string of syntax code characters.\n\
-Stop before a char whose syntax is not in SYNTAX, or at position LIM.\n\
-If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
-This function returns the distance traveled, either zero or positive.")
-  (syntax, lim)
-     Lisp_Object syntax, lim;
-{
-  return skip_chars (1, 1, syntax, lim);
-}
-
-DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
-  "Move point backward across chars in specified syntax classes.\n\
-SYNTAX is a string of syntax code characters.\n\
-Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.\n\
-If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
-This function returns the distance traveled, either zero or negative.")
-  (syntax, lim)
-     Lisp_Object syntax, lim;
-{
-  return skip_chars (0, 1, syntax, lim);
-}
-
-Lisp_Object
-skip_chars (forwardp, syntaxp, string, lim)
-     int forwardp, syntaxp;
-     Lisp_Object string, lim;
-{
-  register unsigned char *p, *pend;
-  register unsigned int c;
-  register int ch;
-  unsigned char fastmap[0400];
-  /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
-     of which codes don't fit in FASTMAP.  In that case, we set the
-     first byte of multibyte form (i.e. base leading-code) in FASTMAP
-     and set the actual ranges of characters in CHAR_RANGES.  In the
-     form "X-Y" of STRING, both X and Y must belong to the same
-     character set because a range striding across character sets is
-     meaningless.  */
-  int *char_ranges
-    = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
-  int n_char_ranges = 0;
-  int negate = 0;
-  register int i;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-
-  CHECK_STRING (string, 0);
-
-  if (NILP (lim))
-    XSETINT (lim, forwardp ? ZV : BEGV);
-  else
-    CHECK_NUMBER_COERCE_MARKER (lim, 1);
-
-  /* In any case, don't allow scan outside bounds of buffer.  */
-  /* jla turned this off, for no known reason.
-     bfox turned the ZV part on, and rms turned the
-     BEGV part back on.  */
-  if (XINT (lim) > ZV)
-    XSETFASTINT (lim, ZV);
-  if (XINT (lim) < BEGV)
-    XSETFASTINT (lim, BEGV);
-
-  p = XSTRING (string)->data;
-  pend = p + XSTRING (string)->size;
-  bzero (fastmap, sizeof fastmap);
-
-  if (p != pend && *p == '^')
-    {
-      negate = 1; p++;
-    }
-
-  /* Find the characters specified and set their elements of fastmap.
-     If syntaxp, each character counts as itself.
-     Otherwise, handle backslashes and ranges specially.  */
-
-  while (p != pend)
-    {
-      c = *p;
-      if (multibyte)
-	{
-	  ch = STRING_CHAR (p, pend - p);
-	  p += BYTES_BY_CHAR_HEAD (*p);
-	}
-      else
-	{
-	  ch = c;
-	  p++;
-	}
-      if (syntaxp)
-	fastmap[syntax_spec_code[c]] = 1;
-      else
-	{
-	  if (c == '\\')
-	    {
-	      if (p == pend) break;
-	      c = *p++;
-	    }
-	  if (p != pend && *p == '-')
-	    {
-	      unsigned int ch2;
-
-	      p++;
-	      if (p == pend) break;
-	      if (SINGLE_BYTE_CHAR_P (ch))
-		while (c <= *p)
-		  {
-		    fastmap[c] = 1;
-		    c++;
-		  }
-	      else
-		{
-		  fastmap[c] = 1; /* C is the base leading-code.  */
-		  ch2 = STRING_CHAR (p, pend - p);
-		  if (ch <= ch2)
-		    char_ranges[n_char_ranges++] = ch,
-		    char_ranges[n_char_ranges++] = ch2;
-		}
-	      p += multibyte ? BYTES_BY_CHAR_HEAD (*p) : 1;
-	    }
-	  else
-	    {
-	      fastmap[c] = 1;
-	      if (!SINGLE_BYTE_CHAR_P (ch))
-		char_ranges[n_char_ranges++] = ch,
-		char_ranges[n_char_ranges++] = ch;
-	    }
-	}
-    }
-
-  /* If ^ was the first character, complement the fastmap.  In
-     addition, as all multibyte characters have possibility of
-     matching, set all entries for base leading codes, which is
-     harmless even if SYNTAXP is 1.  */
-
-  if (negate)
-    for (i = 0; i < sizeof fastmap; i++)
-      {
-	if (!multibyte || !BASE_LEADING_CODE_P (i))
-	  fastmap[i] ^= 1;
-	else
-	  fastmap[i] = 1;
-      }
-
-  {
-    int start_point = PT;
-    int pos = PT;
-
-    immediate_quit = 1;
-    if (syntaxp)
-      {
-	if (forwardp)
-	  {
-	    if (multibyte)
-	      while (pos < XINT (lim)
-		     && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
-		INC_POS (pos);
-	    else
-	      while (pos < XINT (lim)
-		     && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
-		pos++;
-	  }
-	else
-	  {
-	    if (multibyte)
-	      while (pos > XINT (lim))
-		{
-		  int savepos = pos;
-		  DEC_POS (pos);
-		  if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
-		    {
-		      pos = savepos;
-		      break;
-		    }
-		}
-	    else
-	      while (pos > XINT (lim)
-		     && fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
-		pos--;
-	  }
-      }
-    else
-      {
-	if (forwardp)
-	  {
-	    if (multibyte)
-	      while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos))])
-		{
-		  if (!BASE_LEADING_CODE_P (c))
-		    pos++;
-		  else if (n_char_ranges)
-		    {
-		      /* We much check CHAR_RANGES for a multibyte
-			 character.  */
-		      ch = FETCH_MULTIBYTE_CHAR (pos);
-		      for (i = 0; i < n_char_ranges; i += 2)
-			if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
-			  break;
-		      if (!(negate ^ (i < n_char_ranges)))
-			break;
-
-		      INC_POS (pos);
-		    }
-		  else
-		    {
-		      if (!negate) break;
-		      INC_POS (pos);
-		    }
-		}
-	    else
-	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
-		pos++;
-	  }
-	else
-	  {
-	    if (multibyte)
-	      while (pos > XINT (lim))
-		{
-		  int savepos = pos;
-		  DEC_POS (pos);
-		  if (fastmap[(c = FETCH_BYTE (pos))])
-		    {
-		      if (!BASE_LEADING_CODE_P (c))
-			;
-		      else if (n_char_ranges)
-			{
-			  /* We much check CHAR_RANGES for a multibyte
-			     character.  */
-			  ch = FETCH_MULTIBYTE_CHAR (pos);
-			  for (i = 0; i < n_char_ranges; i += 2)
-			    if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
-			      break;
-			  if (!(negate ^ (i < n_char_ranges)))
-			    {
-			      pos = savepos;
-			      break;
-			    }
-			}
-		      else
-			if (!negate)
-			  {
-			    pos = savepos;
-			    break;
-			  }
-		    }
-		  else
-		    {
-		      pos = savepos;
-		      break;
-		    }
-		}
-	    else
-	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
-		pos--;
-	  }
-      }
-    if (multibyte
-	/* INC_POS or DEC_POS might have moved POS over LIM.  */
-	&& (forwardp ? (pos > XINT (lim)) : (pos < XINT (lim))))
-      pos = XINT (lim);
-
-    SET_PT (pos);
-    immediate_quit = 0;
-
-    return make_number (PT - start_point);
-  }
-}
-
 /* Subroutines of Lisp buffer search functions. */
 
 static Lisp_Object
@@ -1145,6 +858,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	  s1 = ZV - BEGV;
 	  s2 = 0;
 	}
+      re_match_object = Qnil;
+  
       while (n < 0)
 	{
 	  int val;
@@ -2273,10 +1988,6 @@ syms_of_search ()
   defsubr (&Sposix_looking_at);
   defsubr (&Sstring_match);
   defsubr (&Sposix_string_match);
-  defsubr (&Sskip_chars_forward);
-  defsubr (&Sskip_chars_backward);
-  defsubr (&Sskip_syntax_forward);
-  defsubr (&Sskip_syntax_backward);
   defsubr (&Ssearch_forward);
   defsubr (&Ssearch_backward);
   defsubr (&Sword_search_forward);
