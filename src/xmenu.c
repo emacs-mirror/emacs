@@ -1,5 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1684,7 +1685,8 @@ set_frame_menubar (f, first_time, deep_p)
       set_buffer_internal_1 (XBUFFER (buffer));
 
       /* Run the Lucid hook.  */
-      call1 (Vrun_hooks, Qactivate_menubar_hook);
+      safe_run_hooks (Qactivate_menubar_hook);
+      
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
