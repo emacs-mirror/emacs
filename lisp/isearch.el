@@ -1417,11 +1417,15 @@ If there is no completion possible, say so and continue searching."
   "Return t if there are no upper case chars in STRING.
 If REGEXP-FLAG is non-nil, disregard letters preceded by `\\' (but not `\\\\')
 since they have special meaning in a regexp."
-  (let ((case-fold-search nil))
-    (not (string-match (if regexp-flag "\\(^\\|\\\\\\\\\\|[^\\]\\)[A-Z]"
-			 "[A-Z]")
-		       string))))
-
+  (let (quote-flag (i 0) (len (length string)) found) 
+    (while (and (not found) (< i len))
+      (let ((char (aref string i)))
+	(if (and regexp-flag (eq char ?\\))
+	    (setq quote-flag (not quote-flag))
+	  (if (and (not quote-flag) (not (eq char (downcase char))))
+	      (setq found t))))
+      (setq i (1+ i)))
+    (not found)))
 
 ;; Portability functions to support various Emacs versions.
 
