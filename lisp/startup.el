@@ -143,6 +143,8 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setq default-directory (abbreviate-file-name default-directory))
     (unwind-protect
 	(command-line)
+      ;; Do this again, in case .emacs defined more abbreviations.
+      (setq default-directory (abbreviate-file-name default-directory))
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
