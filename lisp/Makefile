@@ -3,21 +3,14 @@
 #
 EMACS = emacs
 SOURCES = *.el COPYING Makefile
-lisptagsfiles = [a-zA-Z]*.el term/[a-zA-Z]*.el
-
-unlock:
-	chmod u+w $(SOURCES)
-
-relock:
-	chmod -w $(SOURCES)
-	chmod +w version.el finder-inf.el loaddefs.el
+lisptagsfiles = [a-zA-Z]*.el */[a-zA-Z]*.el
 
 doit:
 
-cus-load.el: doit
+custom-deps: doit
 	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies
 
-finder-inf.el: doit
+finder-data: doit
 	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist
 
 autoloads: doit
