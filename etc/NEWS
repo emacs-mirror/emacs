@@ -12,11 +12,11 @@ For older news, see the file ONEWS.
 the --without-pop configure option, should that be necessary.
 
 ** There are new configure options associated with the support for
-images and toolkit scrollbars.  Use the --help option to list them.
+images and toolkit scrollbars.  Use the --help option in `configure'
+to list them.
 
 ** There is a new option `without-xim' that instructs Emacs to not
 use X Input Methods (XIM), if they these are available.
-
 
 * Changes in Emacs 21.1
 
@@ -422,7 +422,8 @@ Faces with a weight greater than normal are displayed extra-bright, if
 the terminal supports it.  Faces with a weight less than normal and
 italic faces are displayed dimmed, if the terminal supports it.
 Underlined faces are displayed underlined if possible.  Other face
-attributes like overlines, strike-through, box are ignored.
+attributes such as `overline', `strike-through', and `box' are ignored
+on terminals.
 
 ** Sound support
 
@@ -487,10 +488,10 @@ lisp-complete-symbol.
 
 ** Emacs now resizes mini-windows if appropriate.
 
-If a message is longer than one line, or mini-buffer contents are
-longer than one line, Emacs now resizes the mini-window unless it is
-on a frame of its own.  You can control the maximum mini-window size
-by setting the following variable:
+If a message is longer than one line, or minibuffer contents are
+longer than one line, Emacs now resizes the minibuffer window unless
+it is on a frame of its own.  You can control the maximum minibuffer
+window size by setting the following variable:
 
 - User option: max-mini-window-height
 
@@ -983,7 +984,7 @@ Latin-8 and Latin-9 correspond respectively to the ISO character sets
 8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
 There is currently no specific input method support for them.
 
-** Fortran mode has a new command `fortran-strip-sqeuence-nos' to
+** Fortran mode has a new command `fortran-strip-sequence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now
 appropriate for C-style escape sequences in strings.
 
