@@ -293,8 +293,7 @@ A large number or nil slows down menu responsiveness.")
 		    (setq tail buffers)
 		    (while tail
 		      (let ((elt (car tail)))
-			(if (not (string-match "^ "
-					       (buffer-name elt)))
+			(or (eq ?\ (aref (buffer-name elt) 0))
 			    (setq alist (cons
 					 (cons
 					  (format
