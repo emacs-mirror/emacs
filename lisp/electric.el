@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes.
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1995 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -29,18 +29,22 @@
 ;;; Code:
 
 ;; This loop is the guts for non-standard modes which retain control
-;; until some event occurs.  It is a `do-forever', the only way out is to
-;; throw.  It assumes that you have set up the keymap, window, and
+;; until some event occurs.  It is a `do-forever', the only way out is
+;; to throw.  It assumes that you have set up the keymap, window, and
 ;; everything else: all it does is read commands and execute them -
 ;; providing error messages should one occur (if there is no loop
 ;; function - which see).  The required argument is a tag which should
-;; expect a value of nil if the user decides to punt. The
-;; second argument is a prompt string (defaults to "->").  Given third
-;; argument non-nil, it INHIBITS quitting unless the user types C-g at
-;; toplevel.  This is so user can do things like C-u C-g and not get
-;; thrown out.  Fourth argument, if non-nil, should be a function of two
-;; arguments which is called after every command is executed.  The fifth
-;; argument, if provided, is the state variable for the function.  If the
+;; expect a value of nil if the user decides to punt. The second
+;; argument is the prompt to be used: if nil, use "->", if 'noprompt,
+;; don't use a prompt, if a string, use that string as prompt, and if
+;; a function of no variable, it will be evaluated in every iteration
+;; of the loop and its return value, which can be nil, 'noprompt or a
+;; string, will be used as prompt.  Given third argument non-nil, it
+;; INHIBITS quitting unless the user types C-g at toplevel.  This is
+;; so user can do things like C-u C-g and not get thrown out.  Fourth
+;; argument, if non-nil, should be a function of two arguments which
+;; is called after every command is executed.  The fifth argument, if
+;; provided, is the state variable for the function.  If the
 ;; loop-function gets an error, the loop will abort WITHOUT throwing
 ;; (moral: use unwind-protect around call to this function for any
 ;; critical stuff).  The second argument for the loop function is the
@@ -49,11 +53,18 @@
 (defun Electric-command-loop (return-tag
 			      &optional prompt inhibit-quit
 					loop-function loop-state)
-  (if (not prompt) (setq prompt "->"))
-  (let (cmd (err nil))
+
+  (let (cmd 
+        (err nil) 
+        (prompt-string prompt))
     (while t
-      (setq cmd (read-key-sequence (if (stringp prompt)
-				       prompt (funcall prompt))))
+      (if (not (or (stringp prompt) (eq prompt nil) (eq prompt 'noprompt)))
+          (setq prompt-string (funcall prompt)))
+      (if (not (stringp prompt-string))
+          (if (eq prompt-string 'noprompt)
+              (setq prompt-string nil)
+            (setq prompt-string "->")))
+      (setq cmd (read-key-sequence prompt-string))
       (setq last-command-char (aref cmd (1- (length cmd)))
 	    this-command (key-binding cmd)
 	    cmd this-command)
