@@ -1,4 +1,16 @@
-2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
+2002-04-19  Dave Lambert <dlambert@acm.org>
+
+	Theses change implement an underscore-like (`hbar') cursor.
+
+	* xterm.h (text_cursor_kinds): New enumeration member HBAR_CURSOR.
+
+	* xterm.c (x_draw_bar_cursor): New argument KIND; callers changed.
+	Handle the `hbar' cursor type.
+	(x_display_and_set_cursor): Handle the HBAR_CURSOR case.
+
+	* xfns.c (Qhbar): New variable.
+	(syms_of_xfns): intern and staticpro it.
+	(x_specified_cursor_type): Handle `hbar' cursor.
 
 	* s/sol2-5.h (bcopy, bzero, bcmp): Define only if HAVE_BCOPY is
 	not defined.
