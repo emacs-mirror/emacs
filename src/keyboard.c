@@ -1454,6 +1454,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
   if (minibuf_level == 0 && !immediate_echo && this_command_key_count > 0
+      && ! noninteractive
       && echo_keystrokes > 0
       && (echo_area_glyphs == 0 || *echo_area_glyphs == 0))
     {
@@ -1783,8 +1784,8 @@ kbd_buffer_store_event (event)
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  {
-	    Lisp_Object focus =
-	      FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
+	    Lisp_Object focus
+	      = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
 
 	    if (NILP (focus))
 	      internal_last_event_frame = event->frame_or_window;
@@ -1816,13 +1817,23 @@ kbd_buffer_store_event (event)
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
       kbd_store_ptr->kind = event->kind;
-      kbd_store_ptr->code = event->code;
-      kbd_store_ptr->part = event->part;
-      kbd_store_ptr->frame_or_window = event->frame_or_window;
-      kbd_store_ptr->modifiers = event->modifiers;
-      kbd_store_ptr->x = event->x;
-      kbd_store_ptr->y = event->y;
-      kbd_store_ptr->timestamp = event->timestamp;
+      if (event->kind == selection_request_event)
+	{
+	  /* We must not use the ordinary copying code for this case,
+	     since `part' is an enum and copying it might not copy enough
+	     in this case.  */
+	  bcopy (event, kbd_store_ptr, sizeof (*event));
+	}
+      else
+	{
+	  kbd_store_ptr->code = event->code;
+	  kbd_store_ptr->part = event->part;
+	  kbd_store_ptr->frame_or_window = event->frame_or_window;
+	  kbd_store_ptr->modifiers = event->modifiers;
+	  kbd_store_ptr->x = event->x;
+	  kbd_store_ptr->y = event->y;
+	  kbd_store_ptr->timestamp = event->timestamp;
+	}
       (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_store_ptr
 						      - kbd_buffer]
        = event->frame_or_window);
@@ -4156,21 +4167,21 @@ read_key_sequence (keybuf, bufsize, prompt)
 			    }
 			}
 
-		      new_head =
-			apply_modifiers (modifiers, XCONS (breakdown)->car);
-		      new_click =
-			Fcons (new_head, Fcons (EVENT_START (key), Qnil));
+		      new_head
+			= apply_modifiers (modifiers, XCONS (breakdown)->car);
+		      new_click
+			= Fcons (new_head, Fcons (EVENT_START (key), Qnil));
 
 		      /* Look for a binding for this new key.  follow_key
 			 promises that it didn't munge submaps the
 			 last time we called it, since key was unbound.  */
-		      first_binding =
-			(follow_key (new_click,
-				     nmaps   - local_first_binding,
-				     submaps + local_first_binding,
-				     defs    + local_first_binding,
-				     submaps + local_first_binding)
-			 + local_first_binding);
+		      first_binding
+			= (follow_key (new_click,
+				       nmaps   - local_first_binding,
+				       submaps + local_first_binding,
+				       defs    + local_first_binding,
+				       submaps + local_first_binding)
+			   + local_first_binding);
 
 		      /* If that click is bound, go for it.  */
 		      if (first_binding < nmaps)
@@ -5375,7 +5386,7 @@ all input characters will have the control modifier applied to them.\n\
 \n\
 Note that the character ?\C-@, equivalent to the integer zero, does\n\
 not count as a control character; rather, it counts as a character\n\
-with no modifiers; thus, setting extra_keyboard_modifiers to zero\n\
+with no modifiers; thus, setting `extra-keyboard-modifiers' to zero\n\
 cancels any modification.");
   extra_keyboard_modifiers = 0;
 
