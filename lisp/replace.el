@@ -125,8 +125,9 @@ strings or patterns."
 					 ;; Swallow a space after 'foo
 					 ;; but not after (quote foo).
 					 (and (eq (car-safe (car pos)) 'quote)
-					      (= ?\( (aref to 0))))
-				     (string-match " " to (cdr pos)))
+					      (not (= ?\( (aref to 0)))))
+				     (eq (string-match " " to (cdr pos))
+					 (cdr pos)))
 				(1+ (cdr pos))
 			      (cdr pos))))
 		       (setq to (substring to end)))))
@@ -212,7 +213,7 @@ In interactive calls, the replacement text can contain `\\,'
 followed by a Lisp expression.  Each
 replacement evaluates that expression to compute the replacement
 string.  Inside of that expression, `\\&' is a string denoting the
-whole match as a sting, `\\N' for a partial match, `\\#&' and `\\#N'
+whole match as a string, `\\N' for a partial match, `\\#&' and `\\#N'
 for the whole or a partial match converted to a number with
 `string-to-number', and `\\#' itself for the number of replacements
 done so far (starting with zero).
