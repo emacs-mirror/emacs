@@ -1,3 +1,7 @@
+2002-09-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/thai.el (thai-kesmanee): Fix the mapping of `"' and `}'.
+
 2002-07-24  Dave Love  <fx@gnu.org>
 
 	* quail/latin-alt.el ("latin-alt-postfix"): New.
@@ -16,13 +20,13 @@
 	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
 	("ukrainian-computer", "belarusian", "bulgarian-bds")
 	("russian-computer"): New.
-	("bulgarian-phonetic"): Renamed from bulgarian-pho.  Add ,A'(B, ,Lp(B, ,LN(B.
+	("bulgarian-phonetic"): Renamed from bulgarian-pho.  Add ,A'(B, $,1uV(B, ,LN(B.
 	("russian-typewriter"): Renamed from cyrillic-jcuken.
 
 2002-06-20  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el ("latin-3-prefix"): Remove bogus Latin-3
-	characters and ~o -> ,Cu(B, ~O -> ,CU(B.
+	characters and ~o -> $,1 A(B, ~O -> $,1 @(B.
 
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -74,9 +78,9 @@
 	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
 	Don't define "~," at all.
 
-2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* quail/latin-pre.el (latin-2-prefix): Add ,BL(B and ,Bl(B.
+	* quail/latin-pre.el (latin-2-prefix): Add $,1 :(B and $,1 ;(B.
 	From "Dr. Eduard Werner" <edi.werner@gmx.de>.
 
 2002-01-10  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -132,7 +136,7 @@
 	("lithuanian-numeric", "lithuanian-keyboard", "latvian-keyboard"):
 	New.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -237,7 +241,7 @@
 	"chinese-py".
 	("chinese-tonepy-punct"): Copy the QUAIL-MAP of "chinese-tonepy".
 
-2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el
 	* quail/czech.el, quail/devanagari.el, quail/ethiopic.el
@@ -310,7 +314,7 @@
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/latin-ltx.el: Add more translations.  From
-	jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+	jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
 
 2001-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -393,7 +397,7 @@
 
 	* quail/slovak.el ("slovak"): Translate "=q" to "`".
 
-2001-03-16  Pavel Jan,Bm(Bk ml.  <Pavel@Janik.cz>
+2001-03-16  Pavel Jan,Am(Bk ml.  <Pavel@Janik.cz>
 
 	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
 	"=q", "+q", "=Q", and "+Q".
@@ -479,8 +483,8 @@
 
 2000-12-18  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate ,b((B entry.
-	Change ,b=(B, ,b<(B, ,b6(B.
+	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate $,1!!(B entry.
+	Change $,1 s(B, $,1 r(B, ,A6(B.
 
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 
@@ -605,7 +609,7 @@
 
 2000-08-29  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("latin-9-prefix"): Change entries for ,b=(B and ,b<(B.
+	* quail/latin-pre.el ("latin-9-prefix"): Change entries for $,1 s(B and $,1 r(B.
 
 	* Makefile.in: ja-dic <- skk in several places.
 
