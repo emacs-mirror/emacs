@@ -718,7 +718,10 @@ If there is no such live buffer, return nil."
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
 find-file-hooks, etc.
-  This function ensures that none of these modifications will take place."
+  This function ensures that none of these modifications will take place.
+
+This function does not work for remote files, because it turns off
+file name handlers and remote file access uses a file name handler."
   (let ((file-name-handler-alist nil)
 	(format-alist nil)
 	(after-insert-file-functions nil)
@@ -966,6 +969,9 @@ run `normal-mode' explicitly."
     ("change.log\\'" . change-log-mode)
     ("changelo\\'" . change-log-mode)
     ("ChangeLog.[0-9]+\\'" . change-log-mode)
+    ;; for MSDOS and MS-Windows (which are case-insensitive)
+    ("changelog\\'" . change-log-mode)
+    ("changelog.[0-9]+\\'" . change-log-mode)
     ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
     ("\\.scm\\.[0-9]*\\'" . scheme-mode)
     ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
