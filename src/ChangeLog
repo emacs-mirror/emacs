@@ -1,3 +1,128 @@
+2001-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* widget.c (EmacsFrameSetCharSize): Remove unused variables `ac'
+	and al[].
+
+	* composite.c (run_composition_function): Remove unused variable
+	`val'.
+	(update_compositions): Remove unused variable `hook'.
+
+	* intervals.c (get_local_map): Remove unused variable `tem'.
+
+	* doprnt.c (doprnt1): Remove unused variable `size'.
+
+	* fns.c (Flength): Remove unused variable `tail'.
+	(Fdelete): Remove unused variable `size'.
+
+	* editfns.c (Ftranspose_regions): Remove unused variables `gcpro1'
+	and `gcpro2'.
+
+	* doc.c (Fsnarf_documentation): Remove unused variables `fun' and
+	`tem'.
+
+	* data.c (find_symbol_value): Remove extra 3rd argument in the
+	call to swap_in_symval_forwarding.
+
+	* undo.c (Fprimitive_undo): Remove unused block-scope variable
+	`end'.
+
+	* search.c (shrink_regexp_cache): Remove unused variable `cpp'.
+	(trivial_regexp_p): Remove unused variable `c'.
+	(boyer_moore): Remove unused variable `k'.
+
+	* indent.c (current_column): Remove unused variable `stopchar'.
+	(Fcompute_motion): Remove unused variable `contin'.
+
+	* casefiddle.c (casify_object): Remove unused variable `tolen'.
+
+	* dired.c (directory_files_internal): Fix a typo in a comment.
+	Remove an unused variable `handler'.
+	(file_name_completion): Remove unused function-scope variable
+	`dp'.
+	(Ffile_attributes) <dirname, sdir>: Make declarations conditioned
+	on BSD4_2.
+
+	* fileio.c (e_write): Remove unused variable
+	`require_encoding_p'.
+
+	* marker.c (Fmarker_position): Remove unused variables `pos', `i',
+	and `buf'.
+	(Fmarker_insertion_type): Remove unused variable `buf'.
+
+	* insdel.c (make_gap): Remove unused variable `result'.
+
+	* keyboard.c (record_char): Remove unused function-scope variable
+	`help'.
+	(kbd_buffer_get_event): Remove unused block-scope variable `idx'.
+	(menu_bar_items): Remove unused function-scope variable `tem'.
+
+	* fontset.c (fontset_ref): Remove unused variable `i'.
+	(fontset_set): Remove unused variables `j' and `tmp'.
+	(make_fontset): Remove unused variables `i', `j', `elt' and
+	`base_elt'.
+	(make_fontset_for_ascii_face): Remove unused variable `name'.
+	(fs_load_font): Remove unused variable `font_idx'.
+	(fs_query_fontset): Remove unused function-local variable
+	`fontset'.
+	(list_fontsets): Remove unused variable `tail'.
+	(Fnew_fontset): Remove unused variables `family' and `registry'.
+	(accumulate_font_info): Remove unused variable `tmp'.
+	(Ffontset_font): Remove unused variable `id'.
+	(syms_of_fontset): Remove unused variable `i'.
+
+	* xfns.c (x_display_info_for_name): Cast 0 to "char *" in the call
+	to x_term_init.
+	(lookup_image): Remove unused variable `file'.
+	(xbm_load): Remove unused variables `bitmap_data', `height', and
+	`width'.  Remove function-local variable `i', leave the
+	block-local one.
+	(gif_load): Remove unused variable `inc'.
+
+	* xterm.c (XTread_socket): Remove unused variables `p' and
+	`pend'.
+	(XTread_socket) <LeaveNotify>: Remove unused variable `frame',
+	leave only the one in the inner block.
+
+	* xfaces.c (face_fontset, realize_default_face): Remove unused
+	variable `fontset'.
+	(face_at_buffer_position): Remove unused variable `multibyte_p'.
+
+	* term.c (encode_terminal_code): Remove unused variable `c'.
+
+	* ccl.c (Fccl_execute): Cast ccl_driver parameters to `unsigned
+	char *' instead of `char *'.
+
+	* category.c (Fcategory_docstring): Remove unused variable `doc'.
+	(Fget_unused_category): Remove unused variable
+	`docstring_vector'.
+	(Fchar_category_set): Remove unused variables `val', `charset',
+	`c1' and `c2'.
+
+	* coding.c (detect_coding_iso2022, setup_coding_system): Remove
+	unused variable `i'.
+	(detect_coding_mask): Remove unused variable `idx'.
+	(detect_coding): Remove unused variable `i'.
+	(ccl_coding_driver): Remove unused variable `result'.
+	(run_pre_post_conversion_on_str): Remove unused variable `prev'.
+	(decode_coding_string): Remove unused variables `to' and
+	`gcpro1'.
+	(encode_coding_string): Remove unused variables `gcpro1' and
+	`saved_coding_symbol'.
+	(Ffind_coding_systems_region_internal): Remove function-local
+	variable args[], leave only the block-local one.
+	(code_convert_region1): Remove unused variable `len'.
+
+	* charset.c (char_printable_p): Remove unused variable `chars'.
+	(Fsplit_char, Fchar_bytes): Remove unused variable `val'.
+	(str_to_multibyte): Remove unused variable `c'.
+
+	* window.c (size_window): Remove block-local variable `min_size'.
+
+	* xdisp.c (make_cursor_line_fully_visible): Remove unused variable
+	`header_line_height'.
+	(append_space, extend_face_to_end_of_line): Declare `saved_what'
+	enum display_element_type.
+
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_connection_closed): Catch X errors around all

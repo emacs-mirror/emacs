@@ -1,3 +1,20 @@
+2001-01-02  Eli Zaretskii  <a34785@is.elta.co.il>
+
+	* ebrowse.c (enter_namespace, main): Cast variables to shut up
+	compiler warnings.
+	(yyerror): Change parameter declarations to be of type long, so
+	that they can take pointers on 64-bit platforms.
+
+	* emacsclient.c (main): Remove unused local variable statbfr.
+	(main) <homedir>: Make its declaration conditional on
+	SERVER_HOME_DIR, to avoid compiler warnings.
+
+	* emacsserver.c (main) <homedir>: Make its declaration conditional
+	on SERVER_HOME_DIR, to avoid compiler warnings.
+
+	* fakemail.c (readline): Cast buffer to "long *" to pacify
+	over-zealous compilers.
+
 2000-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.c (canonicalize_filename) [DOS_NT]: Fix last change.
