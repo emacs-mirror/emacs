@@ -1,3 +1,10 @@
+2004-01-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess): Declare size as EMACS_INT to not
+	lose bits.
+	(print_object): Likewise.
+	* alloc.c (Fpurecopy): Likewise.
+
 2004-01-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* window.c (Fwindow_minibuffer_p): Doc fix.
