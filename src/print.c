@@ -1356,7 +1356,8 @@ print_check_string_charset_prop (interval, string)
       for (i = 0; i < LENGTH (interval); i++)
 	{
 	  FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
-	  if (! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
+	  if (! ASCII_CHAR_P (c)
+	      && ! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
 	    {
 	      print_check_string_result |= PRINT_STRING_UNSAFE_CHARSET_FOUND;
 	      break;
