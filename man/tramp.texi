@@ -12,7 +12,7 @@
 @c Makefile, so you should edit the top-level Makefile to change
 @c the version number.
 @macro trampver{}
-2.0.21
+2.0.22
 @end macro
 
 @c Entries for @command{install-info} to use
@@ -1317,15 +1317,14 @@ host names only.
 @item @code{tramp-parse-passwd}
 @findex tramp-parse-passwd
 
-Finally a method which parses @file{/etc/passwd} like files.
-Obviously, it can return user names only.
-@end table
+A function which parses @file{/etc/passwd} like files.  Obviously, it
+can return user names only.
 
-@ifset emacs
-A function which parses @file{~/.netrc"} file syntax doesn't exist in
-@tramp{}, because this task is delegated to
-@value{ftp-package-name}. Its customization should be used instead.
-@end ifset
+@item @code{tramp-parse-netrc}
+@findex tramp-parse-netrc
+
+Finally, a function which parses @file{~/.netrc} like files.
+@end table
 
 If you want to keep your own data in a file, with your own structure,
 you might provide such a function as well.  This function must meet

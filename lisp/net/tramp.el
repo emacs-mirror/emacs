@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.21"
+(defconst tramp-version "2.0.22"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -656,7 +656,7 @@ See `tramp-methods' for a list of possibilities for METHOD."
   (unless (memq system-type '(windows-nt))
     '((tramp-parse-rhosts "/etc/hosts.equiv")
       (tramp-parse-rhosts "~/.rhosts")))
-  "Default list of (FUNNCTION FILE) pairs to be examined for rsh methods."
+  "Default list of (FUNCTION FILE) pairs to be examined for rsh methods."
 )
 
 ;; Default values for non-Unices seeked
@@ -668,21 +668,28 @@ See `tramp-methods' for a list of possibilities for METHOD."
       (tramp-parse-rhosts "~/.rhosts")
       (tramp-parse-rhosts "~/.shosts")
       (tramp-parse-shosts "~/.ssh/known_hosts")))
-  "Default list of (FUNNCTION FILE) pairs to be examined for ssh methods."
+  "Default list of (FUNCTION FILE) pairs to be examined for ssh methods."
 )
 
 ;; Default values for non-Unices seeked
 (defconst tramp-completion-function-alist-telnet
   (unless (memq system-type '(windows-nt))
     '((tramp-parse-hosts "/etc/hosts")))
-  "Default list of (FUNNCTION FILE) pairs to be examined for telnet methods."
+  "Default list of (FUNCTION FILE) pairs to be examined for telnet methods."
 )
 
 ;; Default values for non-Unices seeked
 (defconst tramp-completion-function-alist-su
   (unless (memq system-type '(windows-nt))
     '((tramp-parse-passwd "/etc/passwd")))
-  "Default list of (FUNNCTION FILE) pairs to be examined for su methods."
+  "Default list of (FUNCTION FILE) pairs to be examined for su methods."
+)
+
+;; Default values for non-Unices seeked
+(defconst tramp-completion-function-alist-ftp
+  (unless (memq system-type '(windows-nt))
+    '((tramp-parse-netrc "~/.netrc")))
+  "Default list of (FUNCTION FILE) pairs to be examined for ftp methods."
 )
 
 (defcustom tramp-completion-function-alist
@@ -708,6 +715,7 @@ See `tramp-methods' for a list of possibilities for METHOD."
 	(cons "krlogin"  tramp-completion-function-alist-rsh)
  	(cons "plink"    tramp-completion-function-alist-ssh)
  	(cons "pscp"     tramp-completion-function-alist-ssh)
+ 	(cons "ftp"      tramp-completion-function-alist-ftp)
  	(cons "fcp"      nil)
      )
   "*Alist of methods for remote files.
@@ -720,9 +728,7 @@ names from FILE for completion.  The following predefined FUNCTIONs exists:
  * `tramp-parse-shosts' for \"ssh_known_hosts\" like files,
  * `tramp-parse-hosts'  for \"/etc/hosts\" like files, and
  * `tramp-parse-passwd' for \"/etc/passwd\" like files.
-
-A FUNCTION parsing \".netrc\" file syntax doesn't exist in TRAMP. This
-task is delegated to ange-ftp; its customization should be used instead.
+ * `tramp-parse-netrc ' for \".netrc\" like files.
 
 FUNCTION can also see a customer defined function.  For more details see
 the info pages."
@@ -934,7 +940,7 @@ Derived from `tramp-postfix-multi-hop-format'."
   :type 'regexp)
 
 (defcustom tramp-user-regexp
-  "[^:@/]*"
+  "[^:@/ \t]*"
   "*Regexp matching user names."
   :group 'tramp
   :type 'regexp)
@@ -3611,10 +3617,6 @@ Return (nil) if arg is nil."
 
   (let*
       ((fullname (concat directory filename))
-       ;; prepare ange-ftp fix
-       (fix-ange-ftp-string
-	(concat tramp-ftp-method tramp-postfix-single-method-format))
-       (fix-ange-ftp (string-match (concat "^" fix-ange-ftp-string) filename))
        ;; local files
        (result
 	(if (tramp-completion-mode fullname)
@@ -3658,25 +3660,7 @@ Return (nil) if arg is nil."
 
 	    ;; Possible methods
 	    (setq result
-		  (append result (tramp-get-completion-methods m))))
-
-	  ;; Ange-ftp completions.
-	  ;; Filename might have the form "ftp:xxx". Ange-ftp isn't able to
-	  ;; handle the prefix "ftp:" correctly in
-	  ;; `ange-ftp-file-name-all-completions'; it simply calls 
-	  ;;`(all-completions file (ange-ftp-generate-root-prefixes))'.
-	  ;; So we must wrap around.
-	  (when (tramp-ange-ftp-file-name-p nil m)
-	    (setq result (append result
-	      (mapcar
-	       '(lambda (x) (if fix-ange-ftp (concat fix-ange-ftp-string x) x))
-	       (catch 'tramp-forward-to-ange-ftp
-		 (tramp-invoke-ange-ftp
-		  'file-name-all-completions
-		  (if fix-ange-ftp
-		      (substring filename (length fix-ange-ftp-string))
-		    filename)
-		  directory)))))))
+		  (append result (tramp-get-completion-methods m)))))
 
       (setq v (delq car v))))
 
@@ -3852,13 +3836,13 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
    (t (setq user nil
 	    host nil)))
 
-  (when (or user host)
+  (unless (zerop (+ (length user) (length host)))
     ;; we must remove leading "/".
     (substring (tramp-make-tramp-file-name nil method user host nil) 1)))
 
 (defun tramp-parse-rhosts (filename)
   "Return a list of (user host) tuples allowed to access.
-Either user or host may be nil"
+Either user or host may be nil."
 
   (let (res)
     (when (file-exists-p filename)
@@ -3866,7 +3850,7 @@ Either user or host may be nil"
 	(insert-file-contents filename)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (add-to-list 'res (tramp-parse-rhosts-group)))))
+	  (push (tramp-parse-rhosts-group) res))))
     res))
 
 ;; Taken from gnus/netrc.el
@@ -3878,7 +3862,7 @@ Either user or host may be nil"
 
 (defun tramp-parse-rhosts-group ()
    "Return a (user host) tuple allowed to access.
-Either user or host may be nil"
+Either user or host may be nil."
 
    (let ((result)
 	 (regexp
@@ -3903,7 +3887,7 @@ User is always nil."
 	(insert-file-contents filename)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (add-to-list 'res (tramp-parse-shosts-group)))))
+	  (push (tramp-parse-shosts-group) res))))
     res))
 
 (defun tramp-parse-shosts-group ()
@@ -3932,7 +3916,7 @@ User is always nil."
 	(insert-file-contents filename)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (add-to-list 'res (tramp-parse-hosts-group)))))
+	  (push (tramp-parse-hosts-group) res))))
     res))
 
 (defun tramp-parse-hosts-group ()
@@ -3964,12 +3948,12 @@ Host is always \"localhost\"."
 	  (insert-file-contents filename)
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (add-to-list 'res (tramp-parse-passwd-group)))))
+	    (push (tramp-parse-passwd-group) res))))
       res)))
 
 (defun tramp-parse-passwd-group ()
    "Return a (user host) tuple allowed to access.
-User is always nil."
+Host is always \"localhost\"."
 
    (let ((result)
 	 (regexp (concat "^\\(" tramp-user-regexp "\\):")))
@@ -3977,6 +3961,36 @@ User is always nil."
      (narrow-to-region (point) (tramp-point-at-eol))
      (when (re-search-forward regexp nil t)
        (setq result (list (match-string 1) "localhost")))
+     (widen)
+     (forward-line 1)
+     result))
+
+(defun tramp-parse-netrc (filename)
+  "Return a list of (user host) tuples allowed to access.
+User may be nil."
+
+  (let (res)
+    (when (file-exists-p filename)
+      (with-temp-buffer
+	(insert-file-contents filename)
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (push (tramp-parse-netrc-group) res))))
+    res))
+
+(defun tramp-parse-netrc-group ()
+   "Return a (user host) tuple allowed to access.
+User may be nil."
+
+   (let ((result)
+	 (regexp
+	  (concat
+	   "^[ \t]*machine[ \t]+" "\\(" tramp-host-regexp "\\)"
+	   "\\([ \t]+login[ \t]+" "\\(" tramp-user-regexp "\\)" "\\)?")))
+
+     (narrow-to-region (point) (tramp-point-at-eol))
+     (when (re-search-forward regexp nil t)
+       (setq result (list (match-string 3) (match-string 1))))
      (widen)
      (forward-line 1)
      result))
@@ -6461,7 +6475,7 @@ report.
 ;;    without ":". Hmm. Worth a bug report?
 ;; ** Acknowledge port numbers.
 ;; ** Extend `tramp-get-completion-su' for NIS and shadow passwords.
-;; ** Unify `tramp-parse-{rhosts,shosts,hosts,passwd}'.
+;; ** Unify `tramp-parse-{rhosts,shosts,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.
 ;; ** Decide whiche files to take for searching user/host names depending on
 ;;    operating system (windows-nt) in `tramp-completion-function-alist'.
