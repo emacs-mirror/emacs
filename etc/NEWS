@@ -403,8 +403,8 @@ the buffer whose process should be used from the mini-buffer.
 *** RET is now bound in the Rmail summary to rmail-summary-goto-msg,
 like `j'.
 
-*** There is a new user option `rmail-digest-end-regexp's that can be
-used to specify regular expressions to detect the line that ends a
+*** There is a new user option `rmail-digest-end-regexps' that
+specifies the regular expressions to detect the line that ends a
 digest message.
 
 ** Changes to TeX mode

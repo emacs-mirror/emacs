@@ -1,5 +1,14 @@
 2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
+	* emacs-lisp/lisp.el (beginning-of-defun-function):
+	Variable renamed from beginning-of-defun.
+	Do not call make-variable-buffer-local.
+	(beginning-of-defun-raw): Use new variable name; doc fix.
+	(beginning-of-defun): Doc fix.
+	(end-of-defun-function): Variable renamed from end-of-defun.
+	Do not call make-variable-buffer-local.
+	(end-of-defun): Use new variable name; doc fix.
+
 	* emacs-lisp/cl-macs.el (dolist, dotimes): Moved to subr.el.
 
 	* subr.el (dolist, dotimes): Moved from cl-macs.el.
