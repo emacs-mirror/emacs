@@ -1,3 +1,8 @@
+2003-09-23  Dave Love  <fx@gnu.org>
+
+	* process.c (Fnetwork_interface_info): Use
+	HAVE_STRUCT_IFREQ... macros.
+
 2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
 
 	* term.c (set_tty_color_mode): Use INTEGERP to test whether a

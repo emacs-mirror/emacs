@@ -1,3 +1,7 @@
+2003-09-23  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check members of struct ifreq.
+
 2003-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* configure.in: Add checks for sys/ioctl.h and net/if.h.
