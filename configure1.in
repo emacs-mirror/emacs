@@ -1439,6 +1439,7 @@ fi
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 ]
 AC_SUBST(version)
+AC_SUBST(configuration)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
