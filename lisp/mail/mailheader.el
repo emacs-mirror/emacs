@@ -1,4 +1,4 @@
-;;; mail-header.el --- Mail header parsing, merging, formatting
+;;; mailheader.el --- Mail header parsing, merging, formatting
 
 ;; Copyright (C) 1996 by Free Software Foundation, Inc.
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package provides an abstraction to RFC822-style messages, used in
-;; mail news, and some other systems.  The simple syntactic rules for such
+;; mail, news, and some other systems.  The simple syntactic rules for such
 ;; headers, such as quoting and line folding, are routinely reimplemented
 ;; in many individual packages.  This package removes the need for this
 ;; redundancy by representing message headers as association lists,
@@ -46,7 +46,8 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 ;; Make the byte-compiler shut up.
 (defvar headers)
@@ -179,4 +180,4 @@ A key of nil has as its value a list of defaulted headers to ignore."
 
 (provide 'mailheader)
 
-;;; mail-header.el ends here
+;;; mailheader.el ends here
