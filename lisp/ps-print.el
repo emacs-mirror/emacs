@@ -6,11 +6,11 @@
 ;; Author:     Jacques Duthen <duthen@cegelec-red.fr>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <97/08/09 1:30:17 vinicius>
-;; Version:    3.05
+;; Time-stamp: <97/08/27 13:00:37 vinicius>
+;; Version:    3.05.1
 
-(defconst ps-print-version "3.05"
-  "ps-print.el, v 3.05 <97/08/09 vinicius>
+(defconst ps-print-version "3.05.1"
+  "ps-print.el, v 3.05.1 <97/08/24 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -365,16 +365,15 @@ Please send all bug fixes and enhancements to
 ;; Line Number
 ;; -----------
 ;;
-;; The variable `ps-line-number' determines if lines will be
-;; numerated (non-nil value) or not (nil value).
-;; The default is not numerated (nil value).
+;; The variable `ps-line-number' specifies whether to number each line;
+;; non-nil means do so.  The default is nil (don't number each line).
 ;;
 ;;
 ;; Zebra Stripes
 ;; -------------
 ;;
-;; Zebra stripes are a kind of background which you can request
-;; to appear "underneath" the text.  They look like this:
+;; Zebra stripes are a kind of background that appear "underneath" the text
+;; and can make the text easier to read.  They look like this:
 ;;
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
@@ -386,14 +385,17 @@ Please send all bug fixes and enhancements to
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;;
-;; The X's here represent a rectangle area filled with a light gray color.
-;; The height, in lines, of the gray area pis controlled by
+;; The X's here represent rectangles filled with a light gray color.
+;; Each rectangle extends all the way across the page.
+;;
+;; The height, in lines, of each rectangle is controlled by
 ;; the variable `ps-zebra-stripe-height', which is 3 by default.
 ;; The distance between stripes equals the height of a stripe.
 ;; 
-;; The variable `ps-zebra-stripe' determines if zebra stripe lines will be
-;; printed (non-nil value) or not (nil value).
-;; The default is not print zebra stripes (nil value).
+;; The variable `ps-zebra-stripe' controls whether to print zebra stripes.
+;; Non-nil means yes, nil means no.  The default is nil.
+;;
+;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
 ;;
 ;; Font managing
@@ -439,7 +441,7 @@ Please send all bug fixes and enhancements to
 ;; - generate the PostScript image to a file (C-u M-x ps-print-buffer)
 ;; - open this file and find the line:
 ;;	`% 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage'
-;; - delete the leading `%' (which is the Postscript comment character)
+;; - delete the leading `%' (which is the PostScript comment character)
 ;; - replace in this line `Courier' by the new font (say `Helvetica')
 ;;   to get the line:
 ;;	`3 cm 20 cm moveto  10 /Helvetica ReportFontInfo  showpage'
@@ -480,8 +482,8 @@ Please send all bug fixes and enhancements to
 ;; by uncommenting the line:
 ;;	% 3 cm 20 cm moveto  ReportAllFontInfo           showpage
 ;;
-;; The postscript file should be sent to YOUR postscript printer.
-;; If you send it to ghostscript or to another postscript printer,
+;; The PostScript file should be sent to YOUR PostScript printer.
+;; If you send it to ghostscript or to another PostScript printer,
 ;; you may get slightly different results.
 ;; Anyway, as ghostscript fonts are autoload, you won't get
 ;; much font info.
@@ -542,20 +544,20 @@ Please send all bug fixes and enhancements to
 ;;   overline  - like underline, but the line is over the text.
 ;;   shadow    - text will have a shadow.
 ;;   box       - text will be surrounded by a box.
-;;   outline   - only the contour of the characters will be printed.
+;;   outline   - print characters as hollow outlines.
 ;;
 ;; See the documentation for `ps-extend-face' and `ps-extend-face-list'.
 ;;
 ;; Let's, for example, remap font-lock-keyword-face to another foreground color
 ;; and bold attribute:
 ;;
-;;    (ps-extend-face '(font-lock-keyword-face "RoyalBlue" nil bold))
-;;
-;; Note: the only attributes that have effect on screen are: bold, italic and
-;; underline. All other screen effect is ignored.
+;;    (ps-extend-face '(font-lock-keyword-face "RoyalBlue" nil bold) 'MERGE)
 ;;
 ;; If you want to use a new face, define it first with `defface',
 ;; and then call `ps-extend-face' to specify how to print it.
+;;
+;; NOTE: the only face attributes that have an effect are bold, italic and
+;;       underline.  All other attributes are ignored.
 ;;
 ;;
 ;; How Ps-Print Has A Text And/Or Image On Background
@@ -609,7 +611,7 @@ Please send all bug fixes and enhancements to
 ;;    4. Print background texts only for current page (if any)
 ;;    5. Print background images only for current page (if any)
 ;;    6. Print header
-;;    7. Print buffer text (with faces, if specified) with line number
+;;    7. Print buffer text (with faces, if specified) and line number
 ;;
 ;;
 ;; Utilities
@@ -631,8 +633,9 @@ Please send all bug fixes and enhancements to
 ;; the correspondence between a number of pages and the maximum font
 ;; size which allow the number of lines of the current buffer or of
 ;; its current region to fit in this number of pages.
-;; Note: line folding is not taken into account in this process
-;; and could change the results.
+;;
+;; NOTE: line folding is not taken into account in this process and could
+;;       change the results.
 ;;
 ;;
 ;; New since version 1.5
@@ -660,7 +663,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [jack] 960517 Jacques Duthen <duthen@cegelec-red.fr>
 ;;
-;; Font familiy and float size for text and header.
+;; Font family and float size for text and header.
 ;; Landscape mode.
 ;; Multiple columns.
 ;; Tools for page setup.
@@ -704,7 +707,6 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Add `ps-print-hook' (I don't know how to do that (yet!)).
 ;; Add 4-up capability (really needed?).
-;; Add line numbers (should not be too hard).
 ;; Add `ps-non-bold-faces' and `ps-non-italic-faces' (should be easy).
 ;; Put one header per page over the columns (easy but needed?).
 ;; Improve the memory management for big files (hard?).
@@ -1255,10 +1257,12 @@ this variable."
   :type 'boolean
   :group 'ps-print)
 
-(defvar ps-adobe-tag "%!PS-Adobe-3.0\n"
+(defcustom ps-adobe-tag "%!PS-Adobe-3.0\n"
   "*Contains the header line identifying the output as PostScript.
 By default, `ps-adobe-tag' contains the standard identifier.  Some
-printers require slightly different versions of this line.")
+printers require slightly different versions of this line."
+  :type 'string
+  :group 'ps-print)
 
 (defcustom ps-build-face-reference t
   "*Non-nil means build the reference face lists.
@@ -1318,7 +1322,7 @@ are using a window system, so it has a way to determine color values."
   "Generate and print a PostScript image of the region.
 Like `ps-print-buffer', but prints just the current region."
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
-  (ps-print-without-faces from to filename))
+  (ps-print-without-faces from to filename t))
 
 
 ;;;###autoload
@@ -1328,9 +1332,7 @@ Like `ps-print-region', but includes font, color, and underline
 information in the generated image.  This command works only if you
 are using a window system, so it has a way to determine color values."
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
-  (ps-generate (current-buffer) from to
-	       'ps-generate-postscript-with-faces)
-  (ps-print-with-faces from to filename))
+  (ps-print-with-faces from to filename t))
 
 
 ;;;###autoload
@@ -1363,7 +1365,7 @@ Like `ps-spool-buffer', but spools just the current region.
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive "r")
-  (ps-spool-without-faces from to))
+  (ps-spool-without-faces from to t))
 
 
 ;;;###autoload
@@ -1375,7 +1377,7 @@ are using a window system, so it has a way to determine color values.
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive "r")
-  (ps-spool-with-faces from to))
+  (ps-spool-with-faces from to t))
 
 ;;;###autoload
 (defun ps-despool (&optional filename)
@@ -1419,21 +1421,30 @@ using the current ps-print setup."
 ;;;###autoload
 (defun ps-setup ()
   "*Return the current setup"
-  (format "
- (setq ps-print-color-p  %s
+  (format
+   "
+\(setq ps-print-color-p  %s
       ps-lpr-command    \"%s\"
       ps-lpr-switches   %s
 
-      ps-paper-type       '%s
-      ps-landscape-mode   %s
+      ps-paper-type        '%s
+      ps-landscape-mode    %s
       ps-number-of-columns %s
 
-      ps-left-margin   %s
-      ps-right-margin  %s
-      ps-inter-column  %s
-      ps-bottom-margin %s
-      ps-top-margin    %s
-      ps-header-offset %s
+      ps-zebra-stripe    %s
+      ps-number-of-zebra %s
+      ps-line-number     %s
+
+      ps-print-background-image %s
+
+      ps-print-background-text %s
+
+      ps-left-margin        %s
+      ps-right-margin       %s
+      ps-inter-column       %s
+      ps-bottom-margin      %s
+      ps-top-margin         %s
+      ps-header-offset      %s
       ps-header-line-pad    %s
       ps-print-header       %s
       ps-print-header-frame %s
@@ -1441,35 +1452,40 @@ using the current ps-print setup."
       ps-show-n-of-n        %s
       ps-spool-duplex       %s
 
-      ps-font-family             '%s
-      ps-font-size               %s
-      ps-header-font-family      '%s
-      ps-header-font-size        %s
-      ps-header-title-font-size  %s)
+      ps-font-family            '%s
+      ps-font-size              %s
+      ps-header-font-family     '%s
+      ps-header-font-size       %s
+      ps-header-title-font-size %s)
 "
-  ps-print-color-p
-  ps-lpr-command
-  ps-lpr-switches
-  ps-paper-type
-  ps-landscape-mode
-  ps-number-of-columns
-  ps-left-margin
-  ps-right-margin
-  ps-inter-column
-  ps-bottom-margin
-  ps-top-margin
-  ps-header-offset
-  ps-header-line-pad
-  ps-print-header
-  ps-print-header-frame
-  ps-header-lines
-  ps-show-n-of-n
-  ps-spool-duplex
-  ps-font-family
-  ps-font-size
-  ps-header-font-family
-  ps-header-font-size
-  ps-header-title-font-size))
+   ps-print-color-p
+   ps-lpr-command
+   ps-lpr-switches
+   ps-paper-type
+   ps-landscape-mode
+   ps-number-of-columns
+   ps-zebra-stripe
+   ps-number-of-zebra
+   ps-line-number
+   ps-print-background-image
+   ps-print-background-text
+   ps-left-margin
+   ps-right-margin
+   ps-inter-column
+   ps-bottom-margin
+   ps-top-margin
+   ps-header-offset
+   ps-header-line-pad
+   ps-print-header
+   ps-print-header-frame
+   ps-header-lines
+   ps-show-n-of-n
+   ps-spool-duplex
+   ps-font-family
+   ps-font-size
+   ps-header-font-family
+   ps-header-font-size
+   ps-header-title-font-size))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
@@ -1920,17 +1936,19 @@ StandardEncoding 46 82 getinterval aload pop
 
 /BeginDSCPage {
   % ---- when 1st column, save the state of the page
-  ColumnIndex 1 eq { /pageState save def
-  0 PrintStartY moveto			% move to where printing will start
-  Zebra {printZebra}if
-  printGlobalBackground
-  printLocalBackground
-  } if
+  ColumnIndex 1 eq { /pageState save def } if
   % ---- save the state of the column
   /columnState save def
 } def
 
 /BeginPage {
+  % ---- when 1st column, print all background effects
+  ColumnIndex 1 eq {
+  0 PrintStartY moveto			% move to where printing will start
+  Zebra {printZebra}if
+  printGlobalBackground
+  printLocalBackground
+  } if
   PrintHeader {
     PrintHeaderFrame { HeaderFrame } if
     HeaderText
@@ -2137,7 +2155,6 @@ StandardEncoding 46 82 getinterval aload pop
 (defvar ps-output-tail nil)
 
 (defvar ps-page-count 0)
-(defvar ps-showpage-count 0)
 (defvar ps-showline-count 1)
 
 (defvar ps-background-pages nil)
@@ -2191,10 +2208,6 @@ and the text it contains.")
 (defvar ps-height-remaining)
 (defvar ps-width-remaining)
 
-(defvar ps-ref-bold-faces nil)
-(defvar ps-ref-italic-faces nil)
-(defvar ps-ref-underlined-faces nil)
-
 (defvar ps-print-color-scale nil)
 
 
@@ -2203,7 +2216,7 @@ and the text it contains.")
 
 
 (defvar ps-print-face-extension-alist nil
-  "Alist of symbolic faces with extension features (box, outline, etc).
+  "Alist of symbolic faces *WITH* extension features (box, outline, etc).
 An element of this list has the following form:
 
    (FACE . [BITS FG BG])
@@ -2215,10 +2228,19 @@ An element of this list has the following form:
    FG foreground color (string or nil)
    BG background color (string or nil)
 
-Don't change this list directly; instead, use
-`ps-extend-face' and `ps-extend-face-list' to change it.
-See documentation for `ps-extend-face' for valid extension symbol.
-See also `font-lock-face-attributes'.")
+Don't change this list directly; instead,
+use `ps-extend-face' and `ps-extend-face-list'.
+See documentation for `ps-extend-face' for valid extension symbol.")
+
+
+(defvar ps-print-face-alist nil
+  "Alist of symbolic faces *WITHOUT* extension features (box, outline, etc).
+
+An element of this list has the same form as an element of
+`ps-print-face-extension-alist'.
+
+Don't change this list directly; this list is used by `ps-face-attributes',
+`ps-map-face' and `ps-build-reference-face-lists'.")
 
 
 (defconst ps-print-face-map-alist
@@ -2235,51 +2257,15 @@ Each symbol correspond to one bit in a bit vector.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Creating and Remapping Faces
-
-
-(require 'font-lock)
-
-
-;; The definition below is necessary because some emacs variant does not
-;; define it on font-lock package.
-
-(defvar font-lock-face-attributes nil)
-
-
-
-(defun ps-override-list (sym-list element)
-  (let ((maplist (assq (car element) (symbol-value sym-list))))
-    (if maplist
-	(setcdr maplist (cdr element))
-      (set sym-list (cons element (symbol-value sym-list)))
-      )))
-
-
-(defun ps-extension-to-bit-face (face-extension)
-  (cons (nth 0 face-extension)
-	(vector (ps-extension-bit face-extension)
-		(nth 1 face-extension)
-		(nth 2 face-extension))))
-
-
-(defun ps-extension-to-screen-face (face)
-  (let ((face-name       (nth 0 face))
-	(face-foreground (nth 1 face))
-	(face-background (nth 2 face))
-	(face-attributes (nthcdr 3 face)))
-    (list face-name face-foreground face-background
-	  (and (memq 'bold face-attributes) t)
-	  (and (memq 'italic face-attributes) t)
-	  (and (memq 'underline face-attributes) t))))
+;; Remapping Faces
 
 
 ;;;###autoload
 (defun ps-extend-face-list (face-extension-list &optional merge-p)
   "Extend face in `ps-print-face-extension-alist'.
 
-If optional MERGE-P is non-nil, extensions in FACE-EXTENSION are merged with
-face extension in `ps-print-face-extension-alist'; otherwise, overrides.
+If optional MERGE-P is non-nil, extensions in FACE-EXTENSION-LIST are merged
+with face extension in `ps-print-face-extension-alist'; otherwise, overrides.
 
 The elements in FACE-EXTENSION-LIST is like those for `ps-extend-face'.
 
@@ -2293,8 +2279,8 @@ See `ps-extend-face' for documentation."
 (defun ps-extend-face (face-extension &optional merge-p)
   "Extend face in `ps-print-face-extension-alist'.
 
-If optional MERGE-p is non-nil, extensions in FACE-EXTENSION are merged with
-face extensions in `ps-print-face-extension-alist'; otherwise, overrides.
+If optional MERGE-P is non-nil, extensions in FACE-EXTENSION-LIST are merged
+with face extensions in `ps-print-face-extension-alist'; otherwise, overrides.
 
 The elements of FACE-EXTENSION list have the form:
 
@@ -2313,7 +2299,7 @@ EXTENSION is one of the following symbols:
    overline  - like underline, but the line is over the text.
    shadow    - text will have a shadow.
    box       - text will be surrounded by a box.
-   outline   - only the text border font will be printed.
+   outline   - print characters as hollow outlines.
 
 If EXTENSION is any other symbol, it is ignored."
   (let* ((face-name  (nth 0 face-extension))
@@ -2351,60 +2337,48 @@ If EXTENSION is any other symbol, it is ignored."
 ;; Internal functions and variables
 
 
-(defun ps-print-without-faces (from to &optional filename)
+(defun ps-print-without-faces (from to &optional filename region-p)
+  (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript)
   (ps-do-despool filename))
 
 
-(defun ps-spool-without-faces (from to)
+(defun ps-spool-without-faces (from to &optional region-p)
+  (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript))
 
 
-(defun ps-print-with-faces (from to &optional filename)
-  (ps-initialize-faces)
+(defun ps-print-with-faces (from to &optional filename region-p)
+  (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces)
   (ps-do-despool filename))
 
 
-(defun ps-spool-with-faces (from to)
-  (ps-initialize-faces)
+(defun ps-spool-with-faces (from to &optional region-p)
+  (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
 
 
-(defvar ps-initialize-faces nil)
+(defsubst ps-count-lines (from to)
+  (+ (count-lines from to)
+     (save-excursion (goto-char to)
+		     (if (= (current-column) 0) 1 0))))
 
 
-(defun ps-initialize-faces ()
-  (or ps-initialize-faces
-      (progn
-	(setq ps-initialize-faces t)
-	(mapcar 'ps-map-font-lock font-lock-face-attributes))))
+(defvar ps-printing-region nil
+  "Variable used to indicate if it is printing a region.
+If non-nil, it is a cons, the car of which is the line number
+where the region begins, and its cdr is the total number of lines
+in the buffer.  Formatting functions can use this information
+to print the original line number (and not the number of lines printed),
+and to indicate in the header that the printout is of a partial file.")
 
 
-(defun ps-map-font-lock (face)
-  (let* ((face-map (ps-screen-to-bit-face face))
-	 (ps-face-bit (cdr (assq (car face-map)
-				 ps-print-face-extension-alist))))
-    (if ps-face-bit
-	;; if face exists, merge both
-	(let ((face-bit (cdr face-map)))
-	  (aset ps-face-bit 0 (logior (aref ps-face-bit 0) (aref face-bit 0)))
-	  (or (aref ps-face-bit 1) (aset ps-face-bit 1 (aref face-bit 1)))
-	  (or (aref ps-face-bit 2) (aset ps-face-bit 2 (aref face-bit 2))))
-      ;; if face does not exist, insert it
-      (setq ps-print-face-extension-alist
-	    (cons face-map ps-print-face-extension-alist))
-      )))
-
-
-(defun ps-screen-to-bit-face (face)
-  (let ((face-name (car face))
-	(face-foreground (nth 1 face))
-	(face-background (nth 2 face))
-	(face-bit (logior (if (nth 3 face) 1 0) ; bold
-			  (if (nth 4 face) 2 0)	; italic
-			  (if (nth 5 face) 4 0)))) ; underline
-    (cons face-name (vector face-bit face-foreground face-background))))
+(defun ps-printing-region (region-p)
+  (setq ps-printing-region
+	(and region-p
+	     (cons (ps-count-lines (point-min) (region-beginning))
+		   (ps-count-lines (point-min) (point-max))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2750,12 +2724,6 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-output-boolean (name bool)
   (ps-output (format "/%s %s def\n" name (if bool "true" "false"))))
 
-(defsubst ps-count-lines (from to)
-  (+ (count-lines from to)
-     (save-excursion (goto-char to)
-		     (if (= (current-column) 0) 1 0))))
-
-
 (defun ps-background-pages (page-list func)
   (if page-list
       (mapcar
@@ -2868,11 +2836,11 @@ page-height == bm + print-height + tm - ho - hh
    ps-print-background-image))
 
 
-(defun ps-background ()
+(defun ps-background (page-number)
   (let (has-local-background)
     (mapcar '(lambda (range)
-	       (and (<= (aref range 0) ps-page-count)
-		    (<= ps-page-count (aref range 1))
+	       (and (<= (aref range 0) page-number)
+		    (<= page-number (aref range 1))
 		    (if has-local-background
 			(ps-output (aref range 2))
 		      (setq has-local-background t)
@@ -2884,15 +2852,14 @@ page-height == bm + print-height + tm - ho - hh
 
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
-  (setq ps-showpage-count 0
-	ps-showline-count 1
+  (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
 	ps-background-text-count 0
 	ps-background-image-count 0
 	ps-background-pages nil
 	ps-background-all-pages nil)
 
   (ps-output ps-adobe-tag)
-  (ps-output "%%Title: " (buffer-name)) ;Take job name from name of
+  (ps-output "%%Title: " (buffer-name))	;Take job name from name of
 					;first buffer printed
   (ps-output "\n%%Creator: " (user-full-name))
   (ps-output "\n%%CreationDate: "
@@ -2933,9 +2900,7 @@ page-height == bm + print-height + tm - ho - hh
 
   (ps-output (format "/LineHeight   %s def\n" ps-line-height)
 	     (format "/LinesPerColumn %d def\n"
-		     (round (/ (+ (if ps-print-header
-				      (- ps-print-height (ps-header-height))
-				    ps-print-height)
+		     (round (/ (+ ps-print-height
 				  (* ps-line-height 0.45))
 			       ps-line-height))))
 
@@ -2943,7 +2908,10 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output (format "/NumberOfZebra %d def\n" ps-zebra-stripe-height))
 
   (ps-output-boolean "PrintLineNumber" ps-line-number)
-  (ps-output (format "/Lines %d def\n" (ps-count-lines (point-min) (point-max))))
+  (ps-output (format "/Lines %d def\n"
+		     (if ps-printing-region
+			 (cdr ps-printing-region)
+		       (ps-count-lines (point-min) (point-max)))))
 
   (ps-background-text)
   (ps-background-image)
@@ -2990,6 +2958,7 @@ page-height == bm + print-height + tm - ho - hh
    ((string= (buffer-name) "sokoban.el")
     "Super! C'est sokoban.el!")
    (t (concat
+       (and ps-printing-region "Subset of: ")
        (buffer-name)
        (and (buffer-modified-p) " (unsaved)")))))
 
@@ -3003,29 +2972,29 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output "\nEndDoc\n\n%%EOF\n"))
 
 
-(defun ps-header-height ()
-  (+ ps-header-title-line-height
-     (* ps-header-line-height (1- ps-header-lines))
-     (* 2 ps-header-pad)))
-
-
 (defun ps-next-page ()
   (ps-end-page)
   (ps-flush-output)
   (ps-begin-page))
+
+(defun ps-header-page (&optional inc-p)
+  (if (zerop (mod ps-page-count ps-number-of-columns))
+      ;; Print only when a new real page begins.
+      (let ((page-number (1+ (/ ps-page-count ps-number-of-columns))))
+	(ps-output (format "\n%%%%Page: %d %d\n" page-number page-number))
+	(ps-output "BeginDSCPage\n")
+	(ps-background page-number)
+	(and inc-p (incf ps-page-count)))
+    ;; Print when any other page begins.
+    (ps-output "BeginDSCPage\n")))
 
 (defun ps-begin-page (&optional dummypage)
   (ps-get-page-dimensions)
   (setq ps-width-remaining  ps-print-width)
   (setq ps-height-remaining ps-print-height)
 
-  ;; Print only when a new real page begins.
-  (when (zerop (mod ps-page-count ps-number-of-columns))
-    (ps-output (format "\n%%%%Page: %d %d\n"
-		       (1+ (/ ps-page-count ps-number-of-columns))
-		       (1+ (/ ps-page-count ps-number-of-columns)))))
+  (ps-header-page)
 
-  (ps-output "BeginDSCPage\n")
   (ps-output (format "/LineNumber %d def\n" ps-showline-count)
 	     (format "/PageNumber %d def\n" (incf ps-page-count)))
   (ps-output "/PageCount 0 def\n")
@@ -3035,23 +3004,17 @@ page-height == bm + print-height + tm - ho - hh
     (ps-generate-header "HeaderLinesRight"   ps-right-header)
     (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
 
-  (ps-background)
-
   (ps-output "BeginPage\n")
   (ps-set-font  ps-current-font)
   (ps-set-bg    ps-current-bg)
   (ps-set-color ps-current-color))
 
 (defun ps-end-page ()
-  (setq ps-showpage-count (+ 1 ps-showpage-count))
-  (ps-output "EndPage\n")
-  (ps-output "EndDSCPage\n"))
+  (ps-output "EndPage\nEndDSCPage\n"))
 
 (defun ps-dummy-page ()
-  (setq ps-showpage-count (+ 1 ps-showpage-count))
-  (ps-output "%%Page: " (format "- %d\n" ps-showpage-count)
-	     "BeginDSCPage
-/PrintHeader false def
+  (ps-header-page t)
+  (ps-output "/PrintHeader false def
 BeginPage
 EndPage
 EndDSCPage\n"))
@@ -3135,9 +3098,7 @@ EndDSCPage\n"))
     (ps-output "false BG\n")))
 
 (defun ps-set-color (color)
-  (if (setq ps-current-color color)
-      nil
-    (setq ps-current-color ps-default-fg))
+  (setq ps-current-color (or color ps-default-fg))
   (ps-output (format ps-color-format (nth 0 ps-current-color)
 		     (nth 1 ps-current-color) (nth 2 ps-current-color))
 	     " FG\n"))
@@ -3175,7 +3136,7 @@ EndDSCPage\n"))
     ;; pagefeeds, control characters, and plot each chunk.
     (while (< from to)
       (if (re-search-forward "[\000-\037\177-\377]" to t)
-	  ;; region whith some control characters
+	  ;; region with some control characters
 	  (let ((match (char-after (match-beginning 0))))
 	    (if (= match ?\t)		; tab
 		(let ((linestart
@@ -3233,39 +3194,22 @@ EndDSCPage\n"))
 	(t (error "No available function to determine X color values."))))
 
 
-(defun ps-get-face (face)
-  "Return face description on `ps-print-face-extension-alist'.
+(defun ps-face-attributes (face)
+  "Return face attribute vector.
 
-If FACE is not in `ps-print-face-extension-alist',
-insert it and return the description.
+If FACE is not in `ps-print-face-extension-alist' or in
+`ps-print-face-alist', insert it on `ps-print-face-alist' and
+return the attribute vector.
 
 If FACE is not a valid face name, it is used default face."
-  (or (assq face ps-print-face-extension-alist)
-      (let* ((the-face (if (facep face) face 'default))
-	     (font (face-font the-face t))
-	     (new-face
-	      (cons the-face
-		    (vector
-		     (logior (if (memq 'bold font) 1 0)
-			     (if (memq 'italic font) 2 0)
-			     (if (face-underline-p the-face) 4 0))
-		     (face-foreground the-face)
-		     (face-background the-face)))))
-	(or (and (eq the-face 'default)
-		 (assq the-face ps-print-face-extension-alist))
-	    (setq ps-print-face-extension-alist
-		  (cons new-face
-			ps-print-face-extension-alist)))
-	new-face)))
-
-
-(defun ps-face-attributes (face)
-  (let* ((face-vector (cdr (ps-get-face face)))
-	 (effects (logior (aref face-vector 0)
-			  (if (memq face ps-ref-bold-faces) 1 0)
-			  (if (memq face ps-ref-italic-faces) 2 0)
-			  (if (memq face ps-ref-underlined-faces) 4 0))))
-    (vector effects (aref face-vector 1) (aref face-vector 2))))
+  (cdr (or (assq face ps-print-face-extension-alist)
+	   (assq face ps-print-face-alist)
+	   (let* ((the-face (if (facep face) face 'default))
+		  (new-face (ps-screen-to-bit-face the-face)))
+	     (or (and (eq the-face 'default)
+		      (assq the-face ps-print-face-alist))
+		 (setq ps-print-face-alist (cons new-face ps-print-face-alist)))
+	     new-face))))
 
 
 (defun ps-face-attribute-list (face-or-list)
@@ -3326,7 +3270,7 @@ If FACE is not a valid face name, it is used default face."
 (defun ps-face-bold-p (face)
   (if (eq ps-print-emacs-type 'emacs)
       (ps-emacs-face-kind-p face 'bold "-\\(bold\\|demibold\\)-"
-			  ps-bold-faces)
+			    ps-bold-faces)
     (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold"
 			   ps-bold-faces)))
 
@@ -3341,32 +3285,58 @@ If FACE is not a valid face name, it is used default face."
   (or (face-underline-p face)
       (memq face ps-underlined-faces)))
 
+
 ;; Ensure that face-list is fbound.
 (or (fboundp 'face-list) (defalias 'face-list 'list-faces))
 
+
 (defun ps-build-reference-face-lists ()
+  (setq ps-print-face-alist nil)
   (if ps-auto-font-detect
-      (let ((faces (face-list))
-	    the-face)
-	(setq ps-ref-bold-faces nil
-	      ps-ref-italic-faces nil
-	      ps-ref-underlined-faces nil)
-	(while faces
-	  (setq the-face (car faces))
-	  (if (ps-face-italic-p the-face)
-	      (setq ps-ref-italic-faces
-		    (cons the-face ps-ref-italic-faces)))
-	  (if (ps-face-bold-p the-face)
-	      (setq ps-ref-bold-faces
-		    (cons the-face ps-ref-bold-faces)))
-	  (if (ps-face-underlined-p the-face)
-	      (setq ps-ref-underlined-faces
-		    (cons the-face ps-ref-underlined-faces)))
-	  (setq faces (cdr faces))))
-    (setq ps-ref-bold-faces ps-bold-faces)
-    (setq ps-ref-italic-faces ps-italic-faces)
-    (setq ps-ref-underlined-faces ps-underlined-faces))
+      (mapcar 'ps-map-face (face-list))
+    (mapcar 'ps-set-face-bold ps-bold-faces)
+    (mapcar 'ps-set-face-italic ps-italic-faces)
+    (mapcar 'ps-set-face-underline ps-underlined-faces))
   (setq ps-build-face-reference nil))
+
+
+(defun ps-set-face-bold (face)
+  (ps-set-face-attribute face 1))
+
+(defun ps-set-face-italic (face)
+  (ps-set-face-attribute face 2))
+
+(defun ps-set-face-underline (face)
+  (ps-set-face-attribute face 4))
+
+
+(defun ps-set-face-attribute (face effect)
+  (let ((face-bit (cdr (ps-map-face face))))
+    (aset face-bit 0 (logior (aref face-bit 0) effect))))
+
+
+(defun ps-map-face (face)
+  (let* ((face-map (ps-screen-to-bit-face face))
+	 (ps-face-bit (cdr (assq (car face-map) ps-print-face-alist))))
+    (if ps-face-bit
+	;; if face exists, merge both
+	(let ((face-bit (cdr face-map)))
+	  (aset ps-face-bit 0 (logior (aref ps-face-bit 0) (aref face-bit 0)))
+	  (or (aref ps-face-bit 1) (aset ps-face-bit 1 (aref face-bit 1)))
+	  (or (aref ps-face-bit 2) (aset ps-face-bit 2 (aref face-bit 2))))
+      ;; if face does not exist, insert it
+      (setq ps-print-face-alist (cons face-map ps-print-face-alist)))
+    face-map))
+
+
+(defun ps-screen-to-bit-face (face)
+  (cons face
+	(vector (logior (if (ps-face-bold-p face) 1 0) ; bold
+			(if (ps-face-italic-p face) 2 0) ; italic
+			(if (ps-face-underlined-p face) 4 0)) ; underline
+		(face-foreground face)
+		(face-background face))))
+
 
 (defun ps-mapper (extent list)
   (nconc list (list (list (extent-start-position extent) 'push extent)
@@ -3650,6 +3620,33 @@ If FACE is not a valid face name, it is used default face."
 (defmacro ps-s-prsc ()
   `(if (eq ps-print-emacs-type 'emacs) [S-f22] '(shift f22)))
 
+;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
+;; `ps-left-headers' specially for mail messages.
+(defun ps-rmail-mode-hook ()
+  (local-set-key (ps-prsc) 'ps-rmail-print-message-from-summary)
+  (setq ps-header-lines 3
+	ps-left-header
+	;; The left headers will display the message's subject, its
+	;; author, and the name of the folder it was in.
+	'(ps-article-subject ps-article-author buffer-name)))
+
+;; See `ps-gnus-print-article-from-summary'.  This function does the
+;; same thing for rmail.
+(defun ps-rmail-print-message-from-summary ()
+  (interactive)
+  (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
+
+;; Used in `ps-rmail-print-article-from-summary',
+;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
+(defun ps-print-message-from-summary (summary-buffer summary-default)
+  (let ((ps-buf (or (and (boundp summary-buffer)
+			 (symbol-value summary-buffer))
+		    summary-default)))
+    (and (get-buffer ps-buf)
+	 (save-excursion
+	   (set-buffer ps-buf)
+	   (ps-spool-buffer-with-faces)))))
+
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in `ps-left-headers'.
 (defun ps-article-subject ()
@@ -3684,7 +3681,7 @@ If FACE is not a valid face name, it is used default face."
 	   (t fromstring)))
       "From ???")))
 
-;; A hook to bind to gnus-Article-prepare-hook.  This will set the
+;; A hook to bind to `gnus-article-prepare-hook'.  This will set the
 ;; `ps-left-headers' specially for gnus articles.  Unfortunately,
 ;; `gnus-article-mode-hook' is called only once, the first time the *Article*
 ;; buffer enters that mode, so it would only work for the first time
@@ -3697,9 +3694,8 @@ If FACE is not a valid face name, it is used default face."
 	;; author, and the newsgroup it was in.
 	(list 'ps-article-subject 'ps-article-author 'gnus-newsgroup-name)))
 
-;; A hook to bind to vm-mode-hook to locally bind prsc and set the
-;; ps-left-headers specially for mail messages.  This header setup would
-;; also work, I think, for RMAIL.
+;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
+;; `ps-left-headers' specially for mail messages.
 (defun ps-vm-mode-hook ()
   (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
   (setq ps-header-lines 3)
@@ -3716,22 +3712,13 @@ If FACE is not a valid face name, it is used default face."
 ;; sb:  Updated for Gnus 5.
 (defun ps-gnus-print-article-from-summary ()
   (interactive)
-  (let ((ps-buf (or (and (boundp 'gnus-article-buffer)
-			 (symbol-value 'gnus-article-buffer))
-		    "*Article*")))
-    (if (get-buffer ps-buf)
-	(save-excursion
-	  (set-buffer ps-buf)
-	  (ps-spool-buffer-with-faces)))))
+  (ps-print-message-from-summary 'gnus-article-buffer "*Article*"))
 
 ;; See `ps-gnus-print-article-from-summary'.  This function does the
 ;; same thing for vm.
 (defun ps-vm-print-message-from-summary ()
   (interactive)
-  (if (and (boundp 'vm-mail-buffer) (symbol-value 'vm-mail-buffer))
-      (save-excursion
-	(set-buffer (symbol-value 'vm-mail-buffer))
-	(ps-spool-buffer-with-faces))))
+  (ps-print-message-from-summary 'vm-mail-buffer ""))
 
 ;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
 ;; prsc.
