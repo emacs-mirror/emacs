@@ -60,7 +60,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -104,9 +104,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* the data segment on this machine always starts at address 0x40000000. */
 
 #define DATA_SEG_BITS 0x40000000
-
-#define VALBITS    26
-#define GCTYPEBITS 5
 
 #define DATA_START    0x40000000
 #define TEXT_START    0x00000000

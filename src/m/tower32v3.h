@@ -59,7 +59,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -119,11 +119,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define TEXT_START 0
 #undef static
 #define START_FILES pre-crt0.o /lib/crt1.o
-
-/* This is needed since many Tower models start the data/bss segment at
-   an address as large as 0x2000000.  */
-#define VALBITS 26
-#define GCTYPEBITS 5
 
 /* The OS has an implementation of symlinks that is semantically different
    from BSD, but for some silly reason it partly has the same syntax.  */

@@ -64,7 +64,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -111,11 +111,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-
-/* Use 26 bits instead of 24 for internal pointer values */
-
-#define VALBITS 26
-#define GCTYPEBITS 5
 
 /* Define ADDR_CORRECT(ADDR) to be a macro to correct an int which is
    the bit pattern of a pointer to a byte into an int which is the

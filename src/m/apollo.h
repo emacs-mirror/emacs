@@ -69,11 +69,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_ALLOCA
 
-/* DN460 has a 28 bit virtual address space, and 26 bits are often used */
-
-#define VALBITS 26
-#define GCTYPEBITS 5
-
 /* Prevent -lg from being used for debugging.  Not needed.  */
 
 #define LIBS_DEBUG

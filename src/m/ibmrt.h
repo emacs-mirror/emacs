@@ -58,7 +58,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -107,9 +107,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The text segment always starts at a fixed address.
    This way we don't need to have a label _start defined.  */
 #define TEXT_START 0
-
-#define VALBITS 26
-#define GCTYPEBITS 5
 
 /* Taking a pointer to a char casting it as int pointer */
 /* and then taking the int which the int pointer points to */

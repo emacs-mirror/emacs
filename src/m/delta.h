@@ -62,7 +62,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_UNION_TYPE 
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
+   the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
@@ -124,12 +124,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define NO_SOCK_SIGIO */
 
 
-/* Define these if you want to edit files up to 32Mbytes.
-   Leaving them undefined (files up to 8 Mbytes) should be more efficient. */
-  
-/* #define VALBITS 26
-   #define GCTYPEBITS 5 */
-
 /* Undefine this if you don't want the machine slow down when a buffer
    is modified. */
 
