@@ -969,7 +969,7 @@ update_menu_bar (window, just_this_one)
 	{
 	  struct buffer *prev = current_buffer;
 	  current_buffer = XBUFFER (w->buffer);
-	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
+	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 	  current_buffer = prev;
 #ifdef USE_X_TOOLKIT
 	  set_frame_menubar (f);
@@ -2388,6 +2388,7 @@ display_menu_bar (w)
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int maxendcol = FRAME_WIDTH (f);
   int hpos = 0;
+  int i;
 
 #ifndef USE_X_TOOLKIT
   if (FRAME_MENU_BAR_LINES (f) <= 0)
@@ -2395,14 +2396,15 @@ display_menu_bar (w)
 
   get_display_line (f, vpos, 0);
 
-  for (tail = FRAME_MENU_BAR_ITEMS (f); CONSP (tail); tail = XCONS (tail)->cdr)
+  items = FRAME_MENU_BAR_ITEMS (f);
+  for (i = 0; i < XVECTOR (items)->size; i += 3)
     {
-      Lisp_Object string;
+      Lisp_Object pos, string;
+      string = XVECTOR (items)->contents[i + 1];
+      if (NILP (string))
+	break;
 
-      string = XCONS (XCONS (XCONS (tail)->car)->cdr)->car;
-
-      /* Record in each item its hpos.  */
-      XFASTINT (XCONS (XCONS (XCONS (tail)->car)->cdr)->cdr) = hpos;
+      XFASTINT (XVECTOR (items)->contents[i + 2]) = hpos;
 
       if (hpos < maxendcol)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
