@@ -1,3 +1,8 @@
+2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* alloc.c (Flist): Reindent.
+	(Fvector): Likewise.
+
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (XTread_socket): Don't update focus for EnterNotify or
