@@ -981,7 +981,7 @@ dispatch_dummy_expose (w, x, y)
   dummy.x = x;
   dummy.y = y;
 
-  XtDispatchEvent (&dummy);
+  XtDispatchEvent ((XEvent *) &dummy);
 }
 
 static int
@@ -1204,7 +1204,7 @@ set_frame_menubar (f, first_time)
 	prev_wv->next = wv;
       else 
 	save_wv->contents = wv;
-      wv->name = XSTRING (string)->data;
+      wv->name = (char *) XSTRING (string)->data;
       wv->value = 0;
       wv->enabled = 1;
       prev_wv = wv;
@@ -1264,11 +1264,17 @@ initialize_frame_menubar (f)
   set_frame_menubar (f, 1);
 }
 
-/* Nonzero if position X, Y relative to inside of frame F
-   is in some other menu bar item.  */
+/* Horizontal bounds of the current menu bar item.  */
 
 static int this_menu_bar_item_beg;
 static int this_menu_bar_item_end;
+
+/* Horizontal position of the end of the last menu bar item.  */
+
+static int last_menu_bar_item_end;
+
+/* Nonzero if position X, Y is in the menu bar and in some menu bar item
+   but not in the current menu bar item.  */
 
 static int
 other_menu_bar_item_p (f, x, y)
@@ -1278,7 +1284,7 @@ other_menu_bar_item_p (f, x, y)
   return (y >= 0
 	  && y < f->display.x->menubar_widget->core.height
 	  && x >= 0
-	  && x < f->display.x->menubar_widget->core.width
+	  && x < last_menu_bar_item_end
 	  && (x >= this_menu_bar_item_end
 	      || x < this_menu_bar_item_beg));
 }
@@ -1387,10 +1393,13 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   struct event_queue *queue = NULL;
   struct event_queue *queue_tmp;
 
+  Position root_x, root_y;
+
   *error = NULL;
 
   this_menu_bar_item_beg = -1;
   this_menu_bar_item_end = -1;
+  last_menu_bar_item_end = -1;
 
   /* Figure out which menu bar item, if any, this menu is for.  */
   if (menubarp)
@@ -1406,7 +1415,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  xend += (string_width (menubar, menubar_item->name) 
 		   + 2 * (menubar->menu.horizontal_spacing
 			  + menubar->menu.shadow_thickness));
-	  if (x < xend)
+	  if (x >= xbeg && x < xend)
 	    {
 	      x = xbeg + 4;
 	      y = 0;
@@ -1414,19 +1423,19 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 		 to a different item.  */
 	      this_menu_bar_item_beg = xbeg;
 	      this_menu_bar_item_end = xend;
-	      break;
 	    }
 	}
+      last_menu_bar_item_end = xend;
     }
   if (menubar_item == 0)
     menubarp = 0;
 
   /* Offset the coordinates to root-relative.  */
-  x += (f->display.x->widget->core.x
-	+ f->display.x->widget->core.border_width);
-  y += (f->display.x->widget->core.y 
-	+ f->display.x->widget->core.border_width
-		 + f->display.x->menubar_widget->core.height);
+  XtTranslateCoords (f->display.x->widget,
+		     x, y + f->display.x->menubar_widget->core.height,
+		     &root_x, &root_y);
+  x = root_x;
+  y = root_y;
 
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
@@ -1508,9 +1517,9 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	    prev_wv->next = wv;
 	  else 
 	    save_wv->contents = wv;
-	  wv->name = XSTRING (item_name)->data;
+	  wv->name = (char *) XSTRING (item_name)->data;
 	  if (!NILP (descrip))
-	    wv->key = XSTRING (descrip)->data;
+	    wv->key = (char *) XSTRING (descrip)->data;
 	  wv->value = 0;
 	  wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	  wv->enabled = !NILP (enable);
@@ -1831,8 +1840,8 @@ xdialog_show (f, menubarp, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = XSTRING (descrip)->data;
-	wv->value = XSTRING (item_name)->data;
+	  wv->key = (char *) XSTRING (descrip)->data;
+	wv->value = (char *) XSTRING (item_name)->data;
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
 	prev_wv = wv;
@@ -1979,7 +1988,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   char *datap;
   int ulx, uly, width, height;
   int dispwidth, dispheight;
-  int i;
+  int i, j;
+  int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
 
@@ -2058,6 +2068,27 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
+
+	  /* Find the width of the widest item in this pane.  */
+	  maxwidth = 0;
+	  j = i;
+	  while (j < menu_items_used)
+	    {
+	      Lisp_Object item;
+	      item = XVECTOR (menu_items)->contents[j];
+	      if (EQ (item, Qt))
+		break;
+	      if (NILP (item))
+		{
+		  j++;
+		  continue;
+		}
+	      width = XSTRING (item)->size;
+	      if (width > maxwidth)
+		maxwidth = width;
+
+	      j += MENU_ITEMS_ITEM_LENGTH;
+	    }
 	}
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
@@ -2067,16 +2098,40 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip;
+	  unsigned char *item_data;
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  if (!NILP (descrip))
-	    item_name = concat2 (item_name, descrip);
+	    {
+	      int gap = maxwidth - XSTRING (item_name)->size;
+#ifdef C_ALLOCA
+	      Lisp_Object spacer;
+	      spacer = Fmake_string (make_number (gap), make_number (' '));
+	      item_name = concat2 (item_name, spacer);
+	      item_name = concat2 (item_name, descrip);
+	      item_data = XSTRING (item_name)->data;
+#else
+	      /* if alloca is fast, use that to make the space,
+		 to reduce gc needs.  */
+	      item_data
+		= (unsigned char *) alloca (maxwidth
+					    + XSTRING (descrip)->size + 1);
+	      bcopy (XSTRING (item_name)->data, item_data,
+		     XSTRING (item_name)->size);
+	      for (j = XSTRING (item_name)->size; j < maxwidth; j++)
+		item_data[j] = ' ';
+	      bcopy (XSTRING (descrip)->data, item_data + j,
+		     XSTRING (descrip)->size);
+	      item_data[j + XSTRING (descrip)->size] = 0;
+#endif
+	    }
+	  else
+	    item_data = XSTRING (item_name)->data;
 
-	  if (XMenuAddSelection (XDISPLAY menu, lpane, 0,
-				 XSTRING (item_name)->data,
+	  if (XMenuAddSelection (XDISPLAY menu, lpane, 0, item_data,
 				 !NILP (enable))
 	      == XM_FAILURE)
 	    {
@@ -2087,7 +2142,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
-  
+
   /* All set and ready to fly.  */
   XMenuRecompute (XDISPLAY menu);
   dispwidth = DisplayWidth (x_current_display, XDefaultScreen (x_current_display));
