@@ -241,7 +241,7 @@ Lisp_Object Vstandard_display_table;
 
 int cursor_in_echo_area;
 
-Lisp_Object Qdisplay_table;
+Lisp_Object Qdisplay_table, Qredisplay_dont_pause;
 
 
 /* The currently selected frame.  In a single-frame version, this
@@ -4695,8 +4695,9 @@ update_frame_1 (f, force_p, inhibit_id_p)
   if (preempt_count <= 0)
     preempt_count = 1;
 
-  detect_input_pending ();
-  if (input_pending && !force_p)
+  if (redisplay_dont_pause)
+    force_p = 1;
+  else if (!force_p && detect_input_pending ())
     {
       pause = 1;
       goto do_pause;
@@ -6225,6 +6226,8 @@ syms_of_display ()
 
   Qdisplay_table = intern ("display-table");
   staticpro (&Qdisplay_table);
+  Qredisplay_dont_pause = intern ("redisplay-dont-pause");
+  staticpro (&Qredisplay_dont_pause);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
     "*The output baud rate of the terminal.\n\
