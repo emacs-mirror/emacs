@@ -282,8 +282,7 @@ have a chance to specify a file name with the minibuffer.
 
 If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
-		   (list (read-file-name "Run rmail on RMAIL file: "
-					 nil nil t))))
+		   (list (read-file-name "Run rmail on RMAIL file: "))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name)))
     ;; Like find-file, but in the case where a buffer existed
