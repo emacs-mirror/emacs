@@ -49,11 +49,6 @@
 (autoload 'calendar-holiday-list "holidays" nil t)
 (autoload 'calendar-iso-from-absolute "cal-iso" nil t)
 
-
-(defun cal-tex-version ()
-  (interactive)
-  (message "Version 1, October 11, 1995"))
-
 ;;;
 ;;; Customizable variables 
 ;;;
@@ -252,7 +247,7 @@ Optional prefix argument specifies number of years."
 
 (defun cal-tex-cursor-year-landscape (&optional arg)
   "Make a buffer with LaTeX commands for the year cursor is on.
-Optional prefix argument specifies numeber of years."
+Optional prefix argument specifies number of years."
   (interactive "P")
   (cal-tex-year (extract-calendar-year (calendar-cursor-to-date t))
                 (if arg arg 1)
@@ -597,7 +592,8 @@ this is only an upper bound."
 ;;;
 
 (defun cal-tex-cursor-week (&optional arg)
-  "One page calendar for week indicated by cursor.
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
@@ -647,8 +643,8 @@ Holidays are included if `cal-tex-holidays' is t."
     (run-hooks 'cal-tex-hook)))
 
 (defun cal-tex-cursor-week2 (&optional arg)
-  "Make a buffer with LaTeX commands for the week cursor is on.
-The printed output will be on two pages.
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
@@ -726,10 +722,10 @@ Holidays are included if `cal-tex-holidays' is t."
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-(defun cal-tex-cursor-week3 (&optional arg)
-  "One page ISO style calendar for the ISO week indicated by cursor.
+(defun cal-tex-cursor-week-iso (&optional arg)
+  "Make a buffer with LaTeX commands for a one page ISO-style weekly calendar.
 Optional prefix argument specifies number of weeks.
-Diary entries are included if cal-tex-diary is t.
+Diary entries are included if `cal-tex-diary' is t.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
   (let* ((n (if arg arg 1))
@@ -857,10 +853,11 @@ Holidays are included if `cal-tex-holidays' is t."
      (cal-tex-arg height)
      (cal-tex-nl))))
 
-(defun cal-tex-cursor-week4 (&optional arg)
-  "One page calendar for week indicated by cursor.
-Week begins on Monday.
-Optional prefix argument specifies number of weeks."
+(defun cal-tex-cursor-week-monday (&optional arg)
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in, and starts on Monday.
+Optional prefix argument specifies number of weeks.
+Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
   (let* ((n (if arg arg 1))
          (date (calendar-gregorian-from-absolute
@@ -931,10 +928,10 @@ Optional prefix argument specifies number of weeks."
      (cal-tex-e-framebox)
      (cal-tex-hspace "1cm")))
 
-(defun cal-tex-cursor-week5 (&optional arg)
+(defun cal-tex-cursor-filofax-2week (&optional arg)
   "Two-weeks-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
-Diary entries are included if cal-tex-diary is t.
+Diary entries are included if `cal-tex-diary' is t.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
   (let* ((n (if arg arg 1))
@@ -1032,11 +1029,11 @@ Holidays are included if `cal-tex-holidays' is t."
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-(defun cal-tex-cursor-week6 (&optional arg)
+(defun cal-tex-cursor-filofax-week (&optional arg)
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
 Weeks start on Monday. 
-Diary entries are included if cal-tex-diary is t.
+Diary entries are included if `cal-tex-diary' is t.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive "P")
   (let* ((n (if arg arg 1))
