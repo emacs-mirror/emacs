@@ -1,3 +1,18 @@
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* files.el (find-file-existing): New function.
+
+	* menu-bar.el (menu-bar-files-menu): Make "Open File..." call
+	find-file-existing.  Add "New File..." that calls find-file.
+
+	* diropen.pbm diropen.xpm: New files.
+	
+	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
+	icon diropen.  New tool bar item find-file-existing uses icon open.
+
+	* dired.el (dired-read-dir-and-switches): Call read-driectory-name
+	instead of read-file-name.
+
 2004-11-02  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.08.
