@@ -1946,6 +1946,8 @@ Returns the window displaying BUFFER.")
 	window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
+	  Lisp_Object upper, lower, other;
+
 	  window = Fget_lru_window (frames);
 	  /* If the LRU window is selected, and big enough,
 	     and can be split, split it.  */
@@ -1974,6 +1976,24 @@ Returns the window displaying BUFFER.")
 	  if (NILP (window))
 	    window = Fframe_first_window (Fselected_frame ());
 #endif
+	  /* If window appears above or below another,
+	     even out their heights.  */
+	  if (!NILP (XWINDOW (window)->prev))
+	    other = upper = XWINDOW (window)->prev, lower = window;
+	  if (!NILP (XWINDOW (window)->next))
+	    other = lower = XWINDOW (window)->next, upper = window;
+	  if (!NILP (other)
+	      /* Check that OTHER and WINDOW are vertically arrayed.  */
+	      && XWINDOW (other)->top != XWINDOW (window)->top
+	      && XWINDOW (other)->height > XWINDOW (window)->height)
+	    {
+	      int total = XWINDOW (other)->height + XWINDOW (window)->height;
+	      struct window *old_selected_window = selected_window;
+
+	      selected_window = XWINDOW (upper);
+	      change_window_height (total / 2 - XWINDOW (upper)->height, 0);
+	      selected_window = old_selected_window;
+	    }
 	}
     }
   else
