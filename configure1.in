@@ -1332,6 +1332,9 @@ echo " - whether the GNU malloc routines are usable."
 ### GCC 2.5 on Linux needs them to be different because it treats -g
 ### as implying static linking.
 
+### If the CFLAGS env var is specified, we use that value
+### instead of the default.
+
 ### It's not important that this name contain the PID; you can't run
 ### two configures in the same directory and have anything work
 ### anyway.
@@ -1412,12 +1415,16 @@ configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-eval `${CPP} -Isrc ${tempcname} \
-       | grep 'configure___' \
-       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
-eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
-       | grep 'configure___' \
-       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
+if [ "x$CFLAGS" = x ]; then
+  eval `${CPP} -Isrc ${tempcname} \
+	 | grep 'configure___' \
+	 | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
+  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
+	 | grep 'configure___' \
+	 | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
+else
+  REAL_CFLAGS="$CFLAGS"
+fi
 rm ${tempcname}
 
 ### Compute the unexec source name from the object name.
