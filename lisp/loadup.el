@@ -76,6 +76,7 @@
 (load "international/mule-cmds")
 (load "case-table")
 (load "international/characters")
+(load "international/ccl")
 (load "international/utf-8")
 
 (let ((set-case-syntax-set-multibyte t))
