@@ -536,16 +536,22 @@ struct PERDISPLAY
 /* The perdisplay object associated with a particular frame.  */
 extern PERDISPLAY *get_perdisplay ();
 
-/* The perdisplay object associated with the currently executing command.  */
+/* The perdisplay object associated with the command currently being read
+   or executed.  */
 extern PERDISPLAY *current_perdisplay;
 
 /* A list of all perdisplay objects, linked through next_perdisplay.  */
 extern PERDISPLAY *all_perdisplays;
+
+/* Nonzero if current_perdisplay has exclusive use of the keyboard.
+   Usually this means that a command is being executed.  */
+extern int display_locked;
 #else
 extern PERDISPLAY the_only_perdisplay;
 #define get_perdisplay(f) (&the_only_perdisplay)
 #define current_perdisplay (&the_only_perdisplay)
 #define all_perdisplays (&the_only_perdisplay)
+#define display_locked 1
 #endif
 
 /* In a cons, the markbit of the car is the gc mark bit */
