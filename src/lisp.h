@@ -950,10 +950,14 @@ extern Lisp_Object Fdefault_value (), Fset_default (), Fdefault_boundp ();
 
 extern Lisp_Object Faref (), Faset (), Farray_length ();
 
-extern Lisp_Object Fstring_to_int (), Fint_to_string ();
-extern Lisp_Object Feqlsign (), Fgtr (), Flss (), Fgeq (), Fleq (), Fneq (), Fzerop ();
-extern Lisp_Object Fplus (), Fminus (), Ftimes (), Fquo (), Frem (), Fmax (), Fmin ();
-extern Lisp_Object Flogand (), Flogior (), Flogxor (), Flognot (), Flsh (), Fash ();
+extern Lisp_Object Fstring_to_number (), Fint_to_string ();
+extern Lisp_Object Feqlsign (), Fgtr (), Flss (), Fgeq (), Fleq ();
+extern Lisp_Object Fneq (), Fzerop ();
+extern Lisp_Object Fplus (), Fminus (), Ftimes (), Fquo (), Frem ();
+extern Lisp_Object Fmax (), Fmin ();
+extern Lisp_Object Flogand (), Flogior (), Flogxor (), Flognot ();
+extern Lisp_Object Flsh (), Fash ();
+
 extern Lisp_Object Fadd1 (), Fsub1 ();
 
 extern Lisp_Object make_number ();
