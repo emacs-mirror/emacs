@@ -2625,11 +2625,13 @@ Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
     (let ((regexp
-	   (format "\\(^\\|[^\\]\\)\\([%s]\\)"
+	   (format "[%s]"
 	    (mapconcat 'char-to-string comint-file-name-quote-list ""))))
       (save-match-data
-	(while (string-match regexp filename)
-	  (setq filename (replace-match "\\1\\\\\\2" nil nil filename)))
+	(let ((i 0))
+	  (while (string-match regexp filename i)
+	    (setq filename (replace-match "\\\\\\&" nil nil filename))
+	    (setq i (1+ (match-end 0)))))
 	filename))))
 
 (defun comint-unquote-filename (filename)
