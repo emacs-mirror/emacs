@@ -1080,7 +1080,8 @@ is treated as a character."
   "UTF-8."
   :coding-type 'utf-8
   :mnemonic ?U
-  :charset-list '(unicode))
+  :charset-list '(unicode)
+  :mime-charset 'utf-8)
 
 (define-coding-system-alias 'mule-utf-8 'utf-8)
 
