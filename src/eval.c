@@ -2768,15 +2768,17 @@ specbind (symbol, value)
       || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
       || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
     {
-      Lisp_Object buffer;
+      Lisp_Object current_buffer, binding_buffer;
       /* For a local variable, record both the symbol and which
 	 buffer's value we are saving.  */
-      buffer = Fcurrent_buffer ();
+      current_buffer = Fcurrent_buffer ();
+      binding_buffer = current_buffer;
       /* If the variable is not local in this buffer,
 	 we are saving the global value, so restore that.  */
-      if (NILP (Flocal_variable_p (symbol, buffer)))
-	buffer = Qnil;
-      specpdl_ptr->symbol = Fcons (symbol, buffer);
+      if (NILP (Flocal_variable_p (symbol, binding_buffer)))
+	binding_buffer = Qnil;
+      specpdl_ptr->symbol
+	= Fcons (symbol, Fcons (binding_buffer, current_buffer));
     }
   else
     specpdl_ptr->symbol = symbol;
@@ -2822,12 +2824,16 @@ unbind_to (count, value)
 	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
+      /* If the symbol is a list, it is really
+	 (SYMBOL BINDING_BUFFER . CURRENT_BUFFER)
+	 and it indicates we bound a variable that has
+	 buffer-local bindings.  */
       else if (CONSP (specpdl_ptr->symbol))
 	{
 	  Lisp_Object symbol, buffer;
 
 	  symbol = XCAR (specpdl_ptr->symbol);
-	  buffer = XCDR (specpdl_ptr->symbol);
+	  buffer = XCAR (XCDR (specpdl_ptr->symbol));
 
 	  /* Handle restoring a default value.  */
 	  if (NILP (buffer))
