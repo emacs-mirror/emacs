@@ -289,13 +289,6 @@ detailed description of this mode.
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer 0)))
 
-(defun gdb-goto-info ()
-  "Go to Emacs info node: GDB Graphical Interface."
-  (interactive)
-  (select-frame (make-frame))
-  (require 'info)
-  (Info-goto-node "(emacs)GDB Graphical Interface"))
-
 (defconst gdb-var-create-regexp
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
 
