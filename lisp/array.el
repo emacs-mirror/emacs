@@ -947,4 +947,6 @@ array in this buffer."
 	  (+ (floor (1- max-column) columns-per-line)
 	     (if rows-numbered 2 1)))))
 
+(provide 'array)
+
 ;;; array.el ends here
