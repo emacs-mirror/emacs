@@ -1,3 +1,20 @@
+2000-02-22  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table)
+	(lisp-mode-map, lisp-interaction-mode-map): Define all inside
+	defvar.
+	(lisp-mode-syntax-table): Set up for #|...|# comments.
+	(lisp-imenu-generic-expression): Purecopy strings.  Use syntax
+	classes.  Match `defface'.
+	(emacs-lisp-mode-hook): Add checkdoc-minor-mode to options.
+	(eval-defun-1): Fix for defcustom.
+	(lisp-indent-region): Doc fix.
+
+	* subr.el (when, unless, split-string): Doc fix.
+	(read-passwd): Move call of clear-this-command-keys to the right
+	place.
+	(replace-regexps-in-string): New function.
+
 2000-02-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (describe-variable): Set syntax table to
