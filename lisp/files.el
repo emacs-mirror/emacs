@@ -1250,6 +1250,7 @@ that are visiting the various files."
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
       (kill-local-variable 'buffer-file-coding-system)
+      (kill-local-variable 'cursor-type)
       (erase-buffer)
       (and (default-value 'enable-multibyte-characters)
 	   (not rawfile)
