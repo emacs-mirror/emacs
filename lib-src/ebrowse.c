@@ -498,7 +498,7 @@ void skip_matching P_ ((void));
 void member P_ ((struct sym *, int));
 void class_body P_ ((struct sym *, int));
 void class_definition P_ ((struct sym *, int, int, int));
-void declaration P_ ((int, int));
+void declaration P_ ((int));
 unsigned parm_list P_ ((int *));
 char *operator_name P_ ((int *));
 struct sym *parse_classname P_ ((void));
@@ -534,10 +534,12 @@ xmalloc (nbytes)
      int nbytes;
 {
   void *p = malloc (nbytes);
-  if (p)
-    return p;
-  yyerror ("out of memory");
-  exit (1);
+  if (p == NULL)
+    {
+      yyerror ("out of memory");
+      exit (1);
+    }
+  return p;
 }
 
 
@@ -549,10 +551,12 @@ xrealloc (p, sz)
      int sz;
 {
   p = realloc (p, sz);
-  if (p)
-    return p;
-  yyerror ("out of memory");
-  exit (1);
+  if (p == NULL)
+    {
+      yyerror ("out of memory");
+      exit (1);
+    }
+  return p;
 }
 
 
@@ -2931,7 +2935,6 @@ class_definition (containing, tag, flags, nested)
      int flags;
      int nested;
 {
-  register int token;
   struct sym *current;
   struct sym *base_class;
 
@@ -2957,7 +2960,7 @@ class_definition (containing, tag, flags, nested)
 
       while (!done)
         {
-          switch (token = LA1)
+          switch (LA1)
             {
             case VIRTUAL: case PUBLIC: case PROTECTED: case PRIVATE: 
               MATCH ();
@@ -3025,8 +3028,7 @@ class_definition (containing, tag, flags, nested)
 /* Parse a declaration.  */
 
 void
-declaration (is_extern, flags)
-     int is_extern;
+declaration (flags)
      int flags;
 {
   char *id = NULL;
@@ -3301,7 +3303,7 @@ globals (start_flags)
           return 0;
           
         default:
-          declaration (0, flags);
+          declaration (flags);
           flags = start_flags;
           break;
         }
