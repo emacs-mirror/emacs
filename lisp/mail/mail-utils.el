@@ -150,7 +150,7 @@ Return a modified address list."
        ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
        (setq pos 0)
        (while (setq pos (string-match
-			  "[ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*"
+                          "\\([ \t]?\\)[ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*"
 			  address pos))
 	 ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
 	 (if (and (> (length address) (match-end 0))
@@ -158,7 +158,7 @@ Return a modified address list."
 	     (setq pos (match-end 0))
 	   (setq address
 		 (mail-string-delete address
-				     pos (match-end 0)))))
+                                     (match-end 1) (match-end 0)))))
        ;; Retain only part of address in <> delims, if there is such a thing.
        (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)[^,]*<\\([^>,:]*>\\)"
 				      address))
