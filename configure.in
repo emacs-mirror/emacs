@@ -1134,7 +1134,7 @@ dnl see the `changequote' comment above.
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="${CC} -E -no-cpp-precomp"
+    CPP="${CC-cc} -E -no-cpp-precomp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
