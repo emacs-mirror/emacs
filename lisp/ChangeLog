@@ -1,8 +1,8 @@
 2000-06-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* isearch.el (isearch-update): Set disable-point-adjustment to t
-	to prevent the point moved to the end of a composition when a part
-	of a composition is searched.
+	to prevent the point moving to the end of a composition when a
+	part of a composition is searched.
 	(isearch-other-meta-char): If the key invoking this command can be
 	mapped by function-key-map to a printing char, call
 	isearch-process-search-char directly.
