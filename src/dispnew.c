@@ -1258,7 +1258,7 @@ update_frame (f, force, inhibit_hairy_id)
 			outq = PENDING_OUTPUT_COUNT (stdout);
 #endif
 		      outq *= 10;
-		      if (baud_rate <= outq)
+		      if (baud_rate <= outq && baud_rate > 0)
 			sleep (outq / baud_rate);
 		    }
 		}
