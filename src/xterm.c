@@ -2135,8 +2135,8 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
 	x_scroll_bar_set_handle (bar, 0, top_range, 0);
       else
 	{
-	  int start = (position * top_range) / whole;
-	  int end = ((position + portion) * top_range) / whole;
+	  int start = ((double) position * top_range) / whole;
+	  int end = ((double) (position + portion) * top_range) / whole;
 
 	  x_scroll_bar_set_handle (bar, start, end, 0);
 	}
