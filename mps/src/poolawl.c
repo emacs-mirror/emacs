@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.30) $
+ * $HopeName: MMsrc!poolawl.c(trunk.31) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.30) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.31) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -319,8 +319,8 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
 found:
   {
     Index i, j;
-    i = AddrOffset(SegBase(group->seg), base) >> awl->alignShift;
-    j = AddrOffset(SegBase(group->seg), limit) >> awl->alignShift;
+    i = awlIndexOfAddr(SegBase(group->seg), awl, base);
+    j = awlIndexOfAddr(SegBase(group->seg), awl, limit);
     AVER(i < j);
     BTSetRange(group->alloc, i, j);
     /* Objects are allocated black. */
@@ -353,8 +353,8 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 
   segBase = SegBase(BufferSeg(buffer));
 
-  i = AddrOffset(segBase, BufferGetInit(buffer)) >> awl->alignShift;
-  j = AddrOffset(segBase, BufferLimit(buffer)) >> awl->alignShift;
+  i = awlIndexOfAddr(segBase, awl, BufferGetInit(buffer));
+  j = awlIndexOfAddr(segBase, awl, BufferLimit(buffer));
   AVER(i <= j);
   if(i < j) {
     BTResRange(group->alloc, i, j);
@@ -541,7 +541,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 	continue;
       }
     }
-    i = AddrOffset(base, p) >> awl->alignShift;
+    i = awlIndexOfAddr(base, awl, p);
     /* design.mps.poolawl.fun.scan.free */
     if(!BTGet(group->alloc, i)) {
       p = AddrAdd(p, pool->alignment);
@@ -631,7 +631,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(AWLGroup, group);
 
   ref = *refIO;
-  i = AddrOffset(SegBase(seg), ref) >> awl->alignShift;
+  i = awlIndexOfAddr(SegBase(seg), awl, ref);
   
   ss->wasMarked = TRUE;
 
@@ -698,13 +698,12 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
       if(p == BufferScanLimit(buffer) &&
 	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
-	i = AddrOffset(base, BufferLimit(buffer)) >> awl->alignShift;
+	i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
 	continue;
       }
     }
-    j = AddrOffset(base,
-                   AddrAlignUp(awl->format->skip(p), pool->alignment)) >>
-        awl->alignShift;
+    j = awlIndexOfAddr(base, awl,
+                       AddrAlignUp(awl->format->skip(p), pool->alignment));
     AVER(j <= group->grains);
     if(BTGet(group->mark, i)) {
       AVER(BTGet(group->scanned, i));
