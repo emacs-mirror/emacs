@@ -1431,10 +1431,10 @@ configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
+eval `${CPP} -Isrc ${tempcname} \
+       | grep 'configure___' \
+       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
 if [ "x$CFLAGS" = x ]; then
-  eval `${CPP} -Isrc ${tempcname} \
-	 | grep 'configure___' \
-	 | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
   eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
 	 | grep 'configure___' \
 	 | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
