@@ -329,11 +329,18 @@ accessible."
 	(funcall handler 'file-local-copy file)
       nil)))
 
-(defun file-truename (filename)
+(defun file-truename (filename &optional counter prev-dirs)
   "Return the truename of FILENAME, which should be absolute.
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
-containing it, until no links are left at any level."
+containing it, until no links are left at any level.
+
+The arguments COUNTER and PREV-DIRS are used only in recursive calls.
+Do not specify them in other calls."
+  ;; COUNTER can be a cons cell whose car is the count of how many more links
+  ;; to chase before getting an error.
+  ;; PREV-DIRS can be a cons cell whose car is an alist
+  ;; of truenames we've just recently computed.
   (if (or (string= filename "~")
 	  (and (string= (substring filename 0 1) "~")
 	       (string-match "~[^/]*" filename)))
@@ -341,37 +348,60 @@ containing it, until no links are left at any level."
 	(setq filename (expand-file-name filename))
 	(if (string= filename "")
 	    (setq filename "/"))))
-  (let ((handler (find-file-name-handler filename 'file-truename)))
-    ;; For file name that has a special handler, call handler.
-    ;; This is so that ange-ftp can save time by doing a no-op.
-    (if handler
-	(funcall handler 'file-truename filename)
-      (let ((dir (file-name-directory filename))
-	    target dirfile)
-	;; Get the truename of the directory.
-	(setq dirfile (directory-file-name dir))
-	;; If these are equal, we have the (or a) root directory.
-	(or (string= dir dirfile)
-	    (setq dir (file-name-as-directory (file-truename dirfile))))
-	(if (equal ".." (file-name-nondirectory filename))
-	    (directory-file-name (file-name-directory (directory-file-name dir)))
-	  (if (equal "." (file-name-nondirectory filename))
-	      (directory-file-name dir)
-	    ;; Put it back on the file name.
-	    (setq filename (concat dir (file-name-nondirectory filename)))
-	    ;; Is the file name the name of a link?
-	    (setq target (file-symlink-p filename))
-	    (if target
-		;; Yes => chase that link, then start all over
-		;; since the link may point to a directory name that uses links.
-		;; We can't safely use expand-file-name here
-		;; since target might look like foo/../bar where foo
-		;; is itself a link.  Instead, we handle . and .. above.
-		(if (file-name-absolute-p target)
-		    (file-truename target)
-		  (file-truename (concat dir target)))
-	      ;; No, we are done!
-	      filename)))))))
+  (or counter (setq counter (list 100)))
+  (or prev-dirs (setq prev-dirs (list nil)))
+  (let (done)
+    ;; If this file directly leads to a link, process that iteratively
+    ;; so that we don't use lots of stack.
+    (while (not done)
+      (setcar counter (1- (car counter)))
+      (if (< (car counter) 0)
+	  (error "Apparent cycle of symbolic links for %s" filename))
+      (let ((handler (find-file-name-handler filename 'file-truename)))
+	;; For file name that has a special handler, call handler.
+	;; This is so that ange-ftp can save time by doing a no-op.
+	(if handler
+	    (setq filename (funcall handler 'file-truename filename)
+		  done t)
+	  (let ((dir (file-name-directory filename))
+		target dirfile)
+	    ;; Get the truename of the directory.
+	    (setq dirfile (directory-file-name dir))
+	    ;; If these are equal, we have the (or a) root directory.
+	    (or (string= dir dirfile)
+		;; If this is the same dir we last got the truename for,
+		;; save time--don't recalculate.
+		(if (assoc dir (car prev-dirs))
+		    (setq dir (cdr (assoc dir (car prev-dirs))))
+		  (let ((old dir)
+			(new (file-name-as-directory (file-truename dirfile counter prev-dirs))))
+		    (setcar prev-dirs (cons (cons old new) (car prev-dirs)))
+		    (setq dir new))))
+	    (if (equal ".." (file-name-nondirectory filename))
+		(setq filename
+		      (directory-file-name (file-name-directory (directory-file-name dir)))
+		      done t)
+	      (if (equal "." (file-name-nondirectory filename))
+		  (setq filename (directory-file-name dir)
+			done t)
+		;; Put it back on the file name.
+		(setq filename (concat dir (file-name-nondirectory filename)))
+		;; Is the file name the name of a link?
+		(setq target (file-symlink-p filename))
+		(if target
+		    ;; Yes => chase that link, then start all over
+		    ;; since the link may point to a directory name that uses links.
+		    ;; We can't safely use expand-file-name here
+		    ;; since target might look like foo/../bar where foo
+		    ;; is itself a link.  Instead, we handle . and .. above.
+		    (setq filename
+			  (if (file-name-absolute-p target)
+			      target
+			    (concat dir target))
+			  done nil)
+		  ;; No, we are done!
+		  (setq done t))))))))
+    filename))
 
 (defun file-chase-links (filename)
   "Chase links in FILENAME until a name that is not a link.
@@ -1105,6 +1135,7 @@ If `enable-local-variables' is nil, this function does not check for a
   "Variables to be ignored in a file's local variable spec.")
 
 ;; Get confirmation before setting these variables as locals in a file.
+(put 'debugger 'risky-local-variable t)
 (put 'enable-local-eval 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
