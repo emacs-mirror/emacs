@@ -2611,7 +2611,7 @@ read_input_waiting ()
 
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, buf, 256, 1, 0);
+	nread = (*read_socket_hook) (0, buf, 256, 1);
       else
 	nread = -1;
 
