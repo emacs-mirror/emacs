@@ -474,7 +474,9 @@ If specified column is within a character, point goes after that character.\n\
 If it's past end of line, point goes to end of line.\n\n\
 A non-nil second (optional) argument FORCE means, if the line\n\
 is too short to reach column COLUMN then add spaces/tabs to get there,\n\
-and if COLUMN is in the middle of a tab character, change it to spaces.")
+and if COLUMN is in the middle of a tab character, change it to spaces.\n\
+\n\
+The return value is the current column.")
   (column, force)
      Lisp_Object column, force;
 {
@@ -764,6 +766,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      /* Truncating: skip to newline.  */
 	      pos = find_before_next_newline (pos, to, 1);
 	      hpos = width;
+	      /* If we just skipped next_boundary,
+		 loop around in the main while
+		 and handle it.  */
+	      if (pos >= next_boundary)
+		next_boundary = pos + 1;
 	    }
 	  else
 	    {
@@ -914,6 +921,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		 everything from a ^M to the end of the line is invisible.
 		 Stop *before* the real newline.  */
 	      pos = find_before_next_newline (pos, to, 1);
+	      /* If we just skipped next_boundary,
+		 loop around in the main while
+		 and handle it.  */
+	      if (pos > next_boundary)
+		next_boundary = pos;
 	      /* Allow for the " ..." that is displayed for them. */
 	      if (selective_rlen)
 		{
