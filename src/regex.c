@@ -20,12 +20,10 @@
    USA.	 */
 
 /* TODO:
-   - use analyze_first to optimize non-empty loops
    - clean up multibyte issues
    - structure the opcode space into opcode+flag.
-   - merge with glic's regex.[ch]
-
-   That's it for now    -sm */
+   - merge with glibc's regex.[ch]
+ */
 
 /* AIX requires this to be the first thing in the file. */
 #if defined (_AIX) && !defined (REGEX_MALLOC)
@@ -1542,6 +1540,8 @@ static boolean at_endline_loc_p _RE_ARGS((const unsigned char *p,
 					  const unsigned char *pend,
 					  reg_syntax_t syntax));
 static unsigned char *skip_one_char _RE_ARGS((unsigned char *p));
+static int analyse_first _RE_ARGS((unsigned char *p, unsigned char *pend,
+				   char *fastmap, const int multibyte));
 
 /* Fetch the next character in the uncompiled pattern---translating it
    if necessary.  Also cast from a signed character in the constant
@@ -2134,6 +2134,9 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    boolean simple = skip_one_char (laststart) == b;
 		    unsigned int startoffset = 0;
+		    re_opcode_t ofj =
+		      (simple || !analyse_first (laststart, b, NULL, 0)) ?
+		      on_failure_jump : on_failure_jump_loop;
 		    assert (skip_one_char (laststart) <= b);
 		    
 		    if (!zero_times_ok && simple)
@@ -2152,14 +2155,13 @@ regex_compile (pattern, size, syntax, bufp)
 		    GET_BUFFER_SPACE (6);
 		    if (!zero_times_ok)
 		      /* A + loop.  */
-		      STORE_JUMP (on_failure_jump_loop, b, b + 6);
+		      STORE_JUMP (ofj, b, b + 6);
 		    else
 		      /* Simple * loops can use on_failure_keep_string_jump
 			 depending on what follows.  But since we don't know
 			 that yet, we leave the decision up to
 			 on_failure_jump_smart.  */
-		      INSERT_JUMP (simple ? on_failure_jump_smart
-				   : on_failure_jump_loop,
+		      INSERT_JUMP (simple ? on_failure_jump_smart : ofj,
 				   laststart + startoffset, b + 6);
 		    b += 3;
 		    STORE_JUMP (jump, b, laststart + startoffset);
@@ -2180,10 +2182,13 @@ regex_compile (pattern, size, syntax, bufp)
 		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
 		  {
+		    boolean emptyp = analyse_first (laststart, b, NULL, 0);
+
 		    /* The non-greedy multiple match looks like a repeat..until:
 		       we only need a conditional jump at the end of the loop */
-		    BUF_PUSH (no_op);
-		    STORE_JUMP (on_failure_jump_nastyloop, b, laststart);
+		    if (emptyp) BUF_PUSH (no_op);
+		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
+				: on_failure_jump, b, laststart);
 		    b += 3;
 		    if (zero_times_ok)
 		      {
@@ -3268,26 +3273,23 @@ group_in_compile_stack (compile_stack, regnum)
   return false;
 }
 
-/* re_compile_fastmap computes a ``fastmap'' for the compiled pattern in
-   BUFP.  A fastmap records which of the (1 << BYTEWIDTH) possible
-   characters can start a string that matches the pattern.  This fastmap
-   is used by re_search to skip quickly over impossible starting points.
+/* analyse_first.
+   If fastmap is non-NULL, go through the pattern and fill fastmap
+   with all the possible leading chars.  If fastmap is NULL, don't
+   bother filling it up (obviously) and only return whether the
+   pattern could potentially match the empty string.
 
-   Character codes above (1 << BYTEWIDTH) are not represented in the
-   fastmap, but the leading codes are represented.  Thus, the fastmap
-   indicates which character sets could start a match.
+   Return 1  if p..pend might match the empty string.
+   Return 0  if p..pend matches at least one char.
+   Return -1 if p..pend matches at least one char, but fastmap was not
+      updated accurately.
+   Return -2 if an error occurred.  */
 
-   The caller must supply the address of a (1 << BYTEWIDTH)-byte data
-   area as BUFP->fastmap.
-
-   We set the `fastmap', `fastmap_accurate', and `can_be_null' fields in
-   the pattern buffer.
-
-   Returns 0 if we succeed, -2 if an internal error.   */
-
-int
-re_compile_fastmap (bufp)
-     struct re_pattern_buffer *bufp;
+static int
+analyse_first (p, pend, fastmap, multibyte)
+     unsigned char *p, *pend;
+     char *fastmap;
+     const int multibyte;
 {
   int j, k;
   boolean not;
@@ -3297,13 +3299,6 @@ re_compile_fastmap (bufp)
 #ifndef REGEX_MALLOC
   char *destination;
 #endif
-
-  register char *fastmap = bufp->fastmap;
-  unsigned char *pattern = bufp->buffer;
-  unsigned long size = bufp->used;
-  unsigned char *p = pattern;
-  register unsigned char *pend = pattern + size;
-  const boolean multibyte = bufp->multibyte;
 
 #if defined (REL_ALLOC) && defined (REGEX_MALLOC)
   /* This holds the pointer to the failure stack, when
@@ -3321,12 +3316,9 @@ re_compile_fastmap (bufp)
      flag is set true.	*/
   boolean match_any_multibyte_characters = false;
 
-  assert (fastmap != NULL && p != NULL);
+  assert (p);
 
   INIT_FAIL_STACK ();
-  bzero (fastmap, 1 << BYTEWIDTH);  /* Assume nothing's valid.	*/
-  bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
-  bufp->can_be_null = 0;
 
   /* The loop below works as follows:
      - It has a working-list kept in the PATTERN_STACK and which basically
@@ -3344,7 +3336,7 @@ re_compile_fastmap (bufp)
      never set `p' (or push) anything `<= p1'.  */
 
   /* If can_be_null is set, then the fastmap will not be used anyway.  */
-  while (!bufp->can_be_null)
+  while (1)
     {
       /* `p1' is used as a marker of how far back a `on_failure_jump'
 	 can go without being ignored.  It is normally equal to `p'
@@ -3356,22 +3348,18 @@ re_compile_fastmap (bufp)
 	 as used for the *? operator.  */
       unsigned char *p1 = p;
 
-      if (p >= pend || *p == succeed)
+      if (p >= pend)
 	{
+	  if (path_can_be_null)
+	    return (RESET_FAIL_STACK (), 1);
+
 	  /* We have reached the (effective) end of pattern.  */
-	  if (!PATTERN_STACK_EMPTY ())
-	    {
-	      bufp->can_be_null |= path_can_be_null;
+	  if (PATTERN_STACK_EMPTY ())
+	    return (RESET_FAIL_STACK (), 0);
 
-	      /* Reset for next path.  */
-	      path_can_be_null = true;
-
-	      p = (unsigned char*) POP_PATTERN_OP ();
-
-	      continue;
-	    }
-	  else
-	    break;
+	  p = (unsigned char*) POP_PATTERN_OP ();
+	  path_can_be_null = true;
+	  continue;
 	}
 
       /* We should never be about to go beyond the end of the pattern.	*/
@@ -3379,6 +3367,9 @@ re_compile_fastmap (bufp)
 
       switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
 	{
+	case succeed:
+	  p = pend;
+	  continue;
 
 	case duplicate:
 	  /* If the first character has to match a backreference, that means
@@ -3393,15 +3384,15 @@ re_compile_fastmap (bufp)
 	 with `break'.	*/
 
 	case exactn:
-	  fastmap[p[1]] = 1;
+	  if (fastmap) fastmap[p[1]] = 1;
 	  break;
 
 
 	case anychar:
 	  /* We could put all the chars except for \n (and maybe \0)
 	     but we don't bother since it is generally not worth it.  */
-	  bufp->can_be_null = 1;
-	  continue;
+	  if (!fastmap) break;
+	  return (RESET_FAIL_STACK (), -1);
 
 
 	case charset_not:
@@ -3476,8 +3467,7 @@ re_compile_fastmap (bufp)
 #else  /* emacs */
 	  /* This match depends on text properties.  These end with
 	     aborting optimizations.  */
-	  bufp->can_be_null = 1;
-	  continue;
+	  return (RESET_FAIL_STACK (), -1);
 
 	case categoryspec:
 	case notcategoryspec:
@@ -3593,10 +3583,43 @@ re_compile_fastmap (bufp)
       p = pend;
     } /* while p */
 
-  /* Set `can_be_null' for the last path (also the first path, if the
-     pattern is empty).	 */
-  bufp->can_be_null |= path_can_be_null;
-  RESET_FAIL_STACK ();
+  return (RESET_FAIL_STACK (), 0);
+} /* analyse_first */
+
+/* re_compile_fastmap computes a ``fastmap'' for the compiled pattern in
+   BUFP.  A fastmap records which of the (1 << BYTEWIDTH) possible
+   characters can start a string that matches the pattern.  This fastmap
+   is used by re_search to skip quickly over impossible starting points.
+
+   Character codes above (1 << BYTEWIDTH) are not represented in the
+   fastmap, but the leading codes are represented.  Thus, the fastmap
+   indicates which character sets could start a match.
+
+   The caller must supply the address of a (1 << BYTEWIDTH)-byte data
+   area as BUFP->fastmap.
+
+   We set the `fastmap', `fastmap_accurate', and `can_be_null' fields in
+   the pattern buffer.
+
+   Returns 0 if we succeed, -2 if an internal error.   */
+
+int
+re_compile_fastmap (bufp)
+     struct re_pattern_buffer *bufp;
+{
+  char *fastmap = bufp->fastmap;
+  int analysis;
+
+  assert (fastmap && bufp->buffer);
+
+  bzero (fastmap, 1 << BYTEWIDTH);  /* Assume nothing's valid.	*/
+  bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
+
+  analysis = analyse_first (bufp->buffer, bufp->buffer + bufp->used,
+			    fastmap, bufp->multibyte);
+  if (analysis < -1)
+    return analysis;
+  bufp->can_be_null = (analysis != 0);
   return 0;
 } /* re_compile_fastmap */
 
