@@ -602,9 +602,9 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 
 (defun tar-subfile-mode (p)
   "Minor mode for editing an element of a tar-file.
-This mode redefines the save-buffer command to save the current buffer back
-into its associated tar-file buffer.  You must save that buffer to actually
-save your changes to disk."
+This mode arranges for \"saving\" this buffer to write the data
+into the tar-file buffer that it came from.  The changes will actually
+appear on disk when you save the tar-file's buffer."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
@@ -731,9 +731,9 @@ save your changes to disk."
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
-		(tar-subfile-mode 1)		
-		(setq buffer-read-only read-only-p)
-		(set-buffer-modified-p nil))
+		(setq buffer-read-only read-only-p)		
+		(set-buffer-modified-p nil)
+		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
 	  (narrow-to-region 1 tar-header-offset)))
       (if view-p
