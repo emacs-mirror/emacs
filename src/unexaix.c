@@ -151,9 +151,9 @@ static void write_segment (int, char *, char *);
  * driving logic.
  */
 int unexec (char *new_name, char *a_name,
-	    uintptr_t data_start,
-	    uintptr_t bss_start,
-	    uintptr_t entry_address)
+	    unsigned data_start,
+	    unsigned bss_start,
+	    unsigned entry_address)
 {
   int new = -1, a_out = -1;
 
