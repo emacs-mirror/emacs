@@ -896,9 +896,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       syms_of_xfaces ();
 #endif
 
-#ifdef HAVE_MENUS
       syms_of_xmenu ();
-#endif /* HAVE_MENUS */
 
 #ifdef HAVE_NTGUI
       syms_of_win32term ();
