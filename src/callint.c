@@ -610,7 +610,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   /* If we used a marker to hold point, mark, or an end of the region,
      temporarily, convert it to an integer now.  */
-  for (i = 0; i++; i < count)
+  for (i = 1; i <= count; i++)
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
