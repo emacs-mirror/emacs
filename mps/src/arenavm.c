@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.54) $
+ * $HopeName: MMsrc!arenavm.c(trunk.55) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -24,7 +24,7 @@
  *
  * .improve.table.zone-zero: It would be better to make sure that the
  * page tables are in zone zero, since that zone is least useful for
- * GC. (but it would change how findFreeInRefSet avoids allocating
+ * GC. (but it would change how VMFindFreeInRefSet avoids allocating
  * over the tables, see .alloc.skip)@@@@
  */
 
@@ -32,7 +32,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.54) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.55) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -517,7 +517,7 @@ static Res VMArenaBootAlloc(void **pReturn, VMArenaBoot boot,
  * Can be specified as 0 to indicate no block desired.
  */
 static Res VMArenaChunkCreate(VMArenaChunk *chunkReturn,
-			      void **spareReturn,
+                              void **spareReturn,
                               Bool primary, VMArena vmArena,
                               Size size, size_t spareSize)
 {
@@ -685,7 +685,8 @@ static void VMArenaChunkDestroy(VMArenaChunk chunk)
  * to do the generic part of init.
  */
 
-static Res VMArenaInit(Arena *arenaReturn, va_list args)
+static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
+                       va_list args)
 {
   Size userSize;        /* size requested by user */
   Size chunkSize;       /* size actually created */
@@ -698,6 +699,8 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
 
   userSize = va_arg(args, Size);
   AVER(arenaReturn != NULL);
+  AVER((ArenaClass)mps_arena_class_vm() == class ||
+       (ArenaClass)mps_arena_class_vmnz() == class);
   AVER(userSize > 0);
 
   res = VMArenaChunkCreate(&chunk, &spare, TRUE /* is primary */,
@@ -717,7 +720,7 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
 
   arena = VMArenaArena(vmArena);
   /* impl.c.arena.init.caller */
-  ArenaInit(arena, (ArenaClass)mps_arena_class_vm());
+  ArenaInit(arena, class);
 
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of zones as will fit into a reference set (the number of */
@@ -899,7 +902,7 @@ static Bool tablePageInUse(VMArenaChunk chunk, Addr tablePage)
  */
 
 static Bool unusedTablePages(Addr *pagesBaseReturn,
-			     Addr *pagesLimitReturn,
+                             Addr *pagesLimitReturn,
                              VMArenaChunk chunk,
                              Index baseIndex, Index limitIndex)
 {
@@ -1043,7 +1046,7 @@ static Bool findFreeInArea(Index *baseReturn,
 }
 
 
-/* findFreeInRefSet -- try to allocate a segment with a RefSet
+/* VMFindFreeInRefSet -- try to allocate a segment with a RefSet
  * 
  * This function finds the intersection of refSet and the set of free
  * pages and tries to find a free run of pages in the resulting set of
@@ -1058,8 +1061,8 @@ static Bool findFreeInArea(Index *baseReturn,
  * globally, as opposed to (currently) just within an interval.
  */
 
-static Bool findFreeInRefSet(Index *baseReturn,
-			     VMArenaChunk *chunkReturn,
+static Bool VMFindFreeInRefSet(Index *baseReturn,
+                             VMArenaChunk *chunkReturn,
                              VMArena vmArena, Size size, RefSet refSet,
                              Bool downwards)
 {
@@ -1092,9 +1095,9 @@ static Bool findFreeInRefSet(Index *baseReturn,
     while(base < chunk->limit) {
       if(RefSetIsMember(arena, refSet, base)) {
         /* Search for a run of zone stripes which are in the RefSet */
-	/* and the arena.  Adding the zoneSize might wrap round (to */
-	/* zero, because limit is aligned to zoneSize, which is a */
-	/* power of two). */
+        /* and the arena.  Adding the zoneSize might wrap round (to */
+        /* zero, because limit is aligned to zoneSize, which is a */
+        /* power of two). */
         limit = base;
         do {
           /* advance limit to next higher zone stripe boundary */
@@ -1126,7 +1129,7 @@ static Bool findFreeInRefSet(Index *baseReturn,
         base = limit;
       } else {
         /* Adding the zoneSize might wrap round (to zero, because */
-	/* base is aligned to zoneSize, which is a power of two). */
+        /* base is aligned to zoneSize, which is a power of two). */
         base = AddrAlignUp(AddrAdd(base, 1), zoneSize);
         AVER(base > chunkBase || base == (Addr)0);
         if(base >= chunk->limit || base < chunkBase) {
@@ -1178,7 +1181,7 @@ static Serial vmGenOfSegPref(VMArena vmArena, SegPref pref)
 
 static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
                       VMArena vmArena, SegPref pref, Size size,
-		      Bool barge)
+                      Bool barge)
 {
   RefSet refSet;
 
@@ -1197,7 +1200,7 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
   /* probably the least of our worries. */
 
   /* .segalloc.improve.map: Define a function that takes a list */
-  /* (say 4 long) of RefSets and tries findFreeInRefSet on */
+  /* (say 4 long) of RefSets and tries VMFindFreeInRefSet on */
   /* each one in turn.  Extra RefSet args that weren't needed */
   /* could be RefSetEMPTY */
 
@@ -1212,10 +1215,10 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
     /* Note that each is a superset of the previous, unless */
     /* blacklisted zones have been allocated (or the default */
     /* is used). */
-    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+    if(VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
                         RefSetDiff(refSet, vmArena->blacklist),
                         pref->high) ||
-       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+       VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
                         RefSetUnion(refSet,
                                     RefSetDiff(vmArena->freeSet, 
                                                vmArena->blacklist)),
@@ -1228,10 +1231,10 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
       /* do not barge into other zones, give up now */
       return FALSE;
     }
-    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+    if(VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
                         RefSetDiff(RefSetUNIV, vmArena->blacklist),
                         pref->high) ||
-       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+       VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
                         RefSetUNIV, pref->high))
     {
       /* found */
@@ -1245,15 +1248,15 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
     /*   - Any zone. */
     /* Note that each is a superset of the previous, unless */
     /* blacklisted zones have been allocated. */
-    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+    if(VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
                          RefSetInter(refSet, vmArena->blacklist),
                          pref->high) ||
-       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+       VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
                          refSet, pref->high) ||
-       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+       VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
                          RefSetUnion(refSet, vmArena->blacklist),
                          pref->high) ||
-       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+       VMFindFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
                          RefSetUNIV, pref->high)) {
       return TRUE;
     }
@@ -1261,11 +1264,95 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
   return FALSE;
 }
 
+/* VMExtend -- Extend the arena by making a new chunk
+ *
+ * .extend.arg.vmarena: vmArena.  The VMArena obviously.
+ * .extend.arg.size: size.  size of segment that we wish
+ *   to allocate after the extension.
+ */
+static Res VMExtend(VMArena vmArena, Size size)
+{
+  VMArenaChunk newChunk;
+  Size chunkSize;
+  Res res;
 
-/* VMSegAlloc -- allocate a segment from the arena */
+  /* Internal static function, so no checking. */
 
-static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
-                      Pool pool)
+  /* @@@@ .improve.debug: chunkSize (calculated below) won't */
+  /* be big enough if the tables of the new chunk are */
+  /* more than vmArena->extendBy (because there will be few than */
+  /* size bytes free in the new chunk).  Fix this. */
+  chunkSize = vmArena->extendBy + size;
+  res = VMArenaChunkCreate(&newChunk, NULL /* spare */,
+                           FALSE /* primary */, vmArena,
+                           chunkSize, 0 /* spareSize */);
+  /* .improve.chunk-create.fail: If we fail we could try again */
+  /* (with a smaller size say).  We don't do this. */
+  if(ResOK == res) {
+    RingAppend(&vmArena->chunkRing, &newChunk->arenaRing);
+  }
+
+  return res;
+}
+
+/* Used in abstracting allocation policy between VM and VMNZ */
+typedef Res (*VMSegAllocPolicyMethod)(Index *, VMArenaChunk *,
+                                      VMArena, SegPref, Size);
+
+static Res VMSegAllocPolicy(Index *baseIndexReturn,
+                            VMArenaChunk *chunkReturn,
+                            VMArena vmArena,
+                            SegPref pref,
+                            Size size)
+{
+  /* internal and static, no checking */
+
+  if(!VMSegFind(baseIndexReturn, chunkReturn,
+                vmArena, pref, size, FALSE)) {
+    /* try and extend, but don't worry if we can't */
+    (void)VMExtend(vmArena, size);
+
+    /* We may or may not have a new chunk at this point */
+    /* we proceed to try the allocation again anyway. */
+    /* We specify barging, but if we have got a new chunk */
+    /* then hopefully we won't need to barge. */
+    if(!VMSegFind(baseIndexReturn, chunkReturn,
+                  vmArena, pref, size, TRUE)) {
+      /* .improve.alloc-fail: This could be because the request was */
+      /* too large, or perhaps the arena is fragmented.  We could */
+      /* return a more meaningful code. */
+      return ResRESOURCE;
+    }
+  }
+  return ResOK;
+}
+
+static Res VMNZSegAllocPolicy(Index *baseIndexReturn,
+                              VMArenaChunk *chunkReturn,
+                              VMArena vmArena,
+                              SegPref pref,
+                              Size size)
+{
+  /* internal and static, no checking */
+
+  if(VMFindFreeInRefSet(baseIndexReturn, chunkReturn, vmArena, size, 
+                      RefSetUNIV,
+                      pref->high)) {
+    return ResOK;
+  }
+  return ResRESOURCE;
+}
+
+/* VMSegAllocComm -- allocate a segment from the arena
+ *
+ * Common code used by mps_arena_class_vm and
+ * mps_arena_class_vmnz. */
+
+static Res VMSegAllocComm(Seg *segReturn,
+                          VMSegAllocPolicyMethod policy,
+                          SegPref pref,
+                          Size size,
+                          Pool pool)
 {
   Addr addr, unmappedPagesBase, unmappedPagesLimit;
   Arena arena;
@@ -1278,6 +1365,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   VMArenaChunk chunk;
 
   AVER(segReturn != NULL);
+  AVER(FunCheck((Fun)policy));
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
@@ -1301,35 +1389,12 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
     return ResCOMMIT_LIMIT;
   }
 
-  if(!VMSegFind(&baseIndex, &chunk, vmArena, pref, size, FALSE)) {
-    VMArenaChunk newChunk;
-    Size chunkSize;
-    /* @@@@ .improve.debug: chunkSize (calculated below) won't */
-    /* be big enough if the tables of the new chunk are */
-    /* more than vmArena->extendBy (because there will be few than */
-    /* size bytes free in the new chunk).  Fix this. */
-    chunkSize = vmArena->extendBy + size;
-    res = VMArenaChunkCreate(&newChunk, NULL /* spare */,
-                             FALSE /* primary */, vmArena,
-                             chunkSize, 0 /* spareSize */);
-    /* .improve.chunk-create.fail: If we fail we could try again */
-    /* (with a smaller size say).  We don't do this. */
-    if(ResOK == res) {
-      RingAppend(&vmArena->chunkRing, &newChunk->arenaRing);
-    }
-    /* We may or may not have a new chunk at this point */
-    /* we proceed to try the allocation again anyway. */
-    /* We specify barging, but if we have got a new chunk */
-    /* then hopefully we won't need to. */
-    if(!VMSegFind(&baseIndex, &chunk, vmArena, pref, size, TRUE)) {
-      /* .improve.alloc-fail: This could be because the request was */
-      /* too large, or perhaps the arena is fragmented.  We could */
-      /* return a more meaningful code. */
-      return ResRESOURCE;
-    }
+  res = (*policy)(&baseIndex, &chunk, vmArena, pref, size);
+  if(res != ResOK) {
+    return res;
   }
 
-  /* chunk (and baseIndex) should be initialised by VMSegFind */
+  /* chunk (and baseIndex) should be initialised by policy */
   AVERT(VMArenaChunk, chunk);
 
   /* .alloc.early-map: Map in the segment memory before actually */
@@ -1395,6 +1460,23 @@ failTableMap:
   VMArenaUnmap(vmArena, chunk->vm, addr, AddrAdd(addr, size));
 failSegMap:
   return res;
+}
+
+
+static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
+                      Pool pool)
+{
+  /* All checks performed in common VMSegAllocComm */
+  return VMSegAllocComm(segReturn,
+                        VMSegAllocPolicy, pref, size, pool);
+}
+
+static Res VMNZSegAlloc(Seg *segReturn, SegPref pref, Size size,
+                        Pool pool)
+{
+  /* All checks performed in common VMSegAllocComm */
+  return VMSegAllocComm(segReturn,
+                        VMNZSegAllocPolicy, pref, size, pool);
 }
 
 static VMArenaChunk VMArenaChunkOfSeg(VMArena vmArena, Seg seg)
@@ -1657,7 +1739,7 @@ static Bool VMIsReservedAddr(Arena arena, Addr addr)
  */
 
 static Bool segSearchInChunk(Seg *segReturn,
-			     VMArenaChunk chunk, Index i)
+                             VMArenaChunk chunk, Index i)
 {
   AVER(segReturn != NULL);
   AVERT(VMArenaChunk, chunk);
@@ -1842,7 +1924,37 @@ static ArenaClassStruct ArenaClassVMStruct = {
   ArenaClassSig
 };
 
+static ArenaClassStruct ArenaClassVMNZStruct = {
+  ArenaClassSig,
+  "VMNZ",                               /* name */
+  sizeof(VMArenaStruct),                /* size */
+  offsetof(VMArenaStruct, arenaStruct), /* offset */
+  VMArenaInit,                          /* init */
+  VMArenaFinish,                        /* finish */
+  VMArenaReserved,                      /* reserved */
+  VMArenaCommitted,                     /* committed */
+  ArenaNoExtend,                        /* extend */
+  ArenaNoRetract,                       /* retract */
+  VMIsReservedAddr,                     /* isReserved */
+  VMNZSegAlloc,                         /* segAlloc */
+  VMSegFree,                            /* segFree */
+  VMSegBase,                            /* segBase */
+  VMSegLimit,                           /* segLimit */
+  VMSegSize,                            /* segSize */
+  VMSegOfAddr,                          /* segOfAddr */
+  VMSegFirst,                           /* segFirst */
+  VMSegNext,                            /* segNext */
+  ArenaTrivDescribe,                    /* describe */
+  ArenaClassSig
+};
+
 mps_arena_class_t mps_arena_class_vm(void)
 {
   return (mps_arena_class_t)&ArenaClassVMStruct;
+}
+
+/* VMNZ is just VMArena with a different segment allocation policy */
+mps_arena_class_t mps_arena_class_vmnz(void)
+{
+  return (mps_arena_class_t)&ArenaClassVMNZStruct;
 }
