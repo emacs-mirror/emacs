@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.13) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.14) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
 
@@ -28,6 +28,7 @@
 #define ambigRootsCOUNT  50
 #define OBJECTS         4000
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
+#define FILLER_OBJECT_SIZE 1024
 
 static mps_pool_t amcpool;
 static mps_ap_t ap;
@@ -107,6 +108,55 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 {
   testlib_unused(s);
   return mps_fix(ss, (mps_addr_t *)p);
+}
+
+/* == arena_commit_test ==
+ *
+ * intended to test:
+ *   MPS_RES_COMMIT_LIMIT
+ *   mps_arena_commit_limit
+ *   mps_arena_commit_limit_set
+ *   mps_arena_committed
+ *   mps_arena_reserved
+ * incidentally tests:
+ *   mps_alloc
+ *   mps_class_mv
+ *   mps_pool_create
+ *   mps_pool_destroy
+ */
+static void arena_commit_test(mps_arena_t arena)
+{
+  mps_pool_t pool;
+  size_t committed;
+  size_t reserved;
+  size_t limit;
+  void *p;
+  mps_res_t res;
+
+  reserved = mps_arena_reserved(arena);
+  committed = mps_arena_committed(arena);
+  if(reserved < committed) {
+    fprintf(stderr, "Error: amount returned by mps_arena_reserved is\n"
+		    "less than amount returned by mps_arena_committed.\n");
+    abort();
+  }
+  die(mps_pool_create(&pool, arena, mps_class_mv(),
+		      0x1000, 1024, 16384), "commit pool create");
+  limit = mps_arena_commit_limit(arena);
+  mps_arena_commit_limit_set(arena, committed);
+  while((res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE)) == MPS_RES_OK)
+    ;
+  if(res != MPS_RES_COMMIT_LIMIT) {
+    fprintf(stderr, "Unexpected: Allocation failed for reason other than "
+		    "MPS_RES_COMMIT_LIMIT, res = %d\n", res);
+  }
+  mps_arena_commit_limit_set(arena, limit);
+  res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
+  if(res != MPS_RES_OK) {
+    fprintf(stderr, "Unexpected: Allocation failed after raising "
+		    " commit_limit, res = %d\n", res);
+  }
+  mps_pool_destroy(pool);
 }
 
 
@@ -209,6 +259,8 @@ static void *test(void *arg, size_t s)
     if(exactRoots[r] != objNULL)
       assert(dylan_check(exactRoots[r]));
   }
+
+  arena_commit_test(arena);
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
