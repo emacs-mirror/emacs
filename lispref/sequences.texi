@@ -703,3 +703,22 @@ This returns @code{t} if @var{object} is a bool-vector,
 and @code{nil} otherwise.
 @end defun
 
+  Here is an example of creating, examining, and updating a
+bool-vector.  Note that the printed form represents up to 8 boolean
+values as a single character.
+
+@example
+(setq bv (make-bool-vector 5 t))
+     @result{} #&5"^_"
+(aref bv 1)
+     @result{} t
+(aset bv 3 nil)
+     @result{} nil
+bv
+     @result{} #&5"^W"
+@end example
+
+@noindent
+These results make sense because the binary codes for control-_ and
+control-W are 11111 and 10111, respectively.
+
