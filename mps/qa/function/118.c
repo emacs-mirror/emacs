@@ -1,10 +1,9 @@
-/* $HopeName: MMQA_test_function!118.c(trunk.1) $
+/* $HopeName: MMQA_test_function!118.c(trunk.2) $
 TEST_HEADER
  summary = Collect with a fully initialised (but not committed) buffer
  language = c
  link = testlib.o
 END_HEADER
- * Copyright (C) 1998 Harlequin Group, all rights reserved
  */
 
 #include "testlib.h"
@@ -47,11 +46,15 @@ static void simple_pad(mps_addr_t addr, size_t size)
 {
 }
 
+static void simple_copy(mps_addr_t obj, mps_addr_t to) {
+ error("copy method not implemented in this test");
+}
+
 struct mps_fmt_A_s simple_fmt_A = {
   4,
   &simple_scan,
   &simple_skip,
-  NULL,
+  &simple_copy,
   &simple_fwd,
   &simple_is_fwd,
   &simple_pad
@@ -74,17 +77,20 @@ static mps_addr_t make(void)
   return p;
 }
 
-static void *test(void *arg, size_t s)
+static void test(void)
 {
   mps_addr_t busy_init;
   mps_ap_t busy_ap;
   mps_arena_t arena;
+  mps_thr_t thread;
   mps_fmt_t format;
   mps_pool_t pool;
   unsigned long i;
 
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "arena_create");
+
+  die(mps_thread_reg(&thread, arena), "thread_reg");
 
   die(mps_fmt_create_A(&format, arena, &simple_fmt_A), "fmt_create");
 
@@ -111,23 +117,14 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
-
-  return NULL;
+  mps_thread_dereg(thread);
+  mps_arena_destroy(arena);
 }
 
 
 int main(void)
 {
-  mps_arena_t arena;
-  mps_thr_t thread;
-  void *r;
-
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create\n");
-  die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
-  mps_thread_dereg(thread);
-  mps_arena_destroy(arena);
+  easy_tramp(test);
 
   pass();
   return 0;
