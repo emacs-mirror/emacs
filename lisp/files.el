@@ -2005,29 +2005,42 @@ beginning and `after-revert-hook' at the end."
 	     ;; Get rid of all undo records for this buffer.
 	     (or (eq buffer-undo-list t)
 		 (setq buffer-undo-list nil))
-	     (let ((buffer-read-only nil)
-		   ;; Don't make undo records for the reversion.
-		   (buffer-undo-list t))
-	       (if revert-buffer-insert-file-contents-function
-		   (funcall revert-buffer-insert-file-contents-function
-			    file-name auto-save-p)
-		 (if (not (file-exists-p file-name))
-		     (error "File %s no longer exists!" file-name))
-		 ;; Bind buffer-file-name to nil
-		 ;; so that we don't try to lock the file.
-		 (let ((buffer-file-name nil))
-		   (or auto-save-p
-		       (unlock-buffer)))
-		 (widen)
-		 (insert-file-contents file-name (not auto-save-p)
-				       nil nil t)))
-	     (goto-char (min opoint (point-max)))
-	     ;; Recompute the truename in case changes in symlinks
-	     ;; have changed the truename.
-	     (setq buffer-file-truename
-		   (abbreviate-file-name (file-truename buffer-file-name)))
-	     (after-find-file nil nil t t)
-	     (run-hooks 'after-revert-hook)
+	     ;; Effectively copy the after-revert-hook status,
+	     ;; since after-find-file will clobber it.
+	     (let ((global-hook (default-value 'after-revert-hook))
+		   (local-hook-p (local-variable-p 'after-revert-hook))
+		   (local-hook (and (local-variable-p 'after-revert-hook)
+				    after-revert-hook)))
+	       (let (buffer-read-only
+		     ;; Don't make undo records for the reversion.
+		     (buffer-undo-list t))
+		 (if revert-buffer-insert-file-contents-function
+		     (funcall revert-buffer-insert-file-contents-function
+			      file-name auto-save-p)
+		   (if (not (file-exists-p file-name))
+		       (error "File %s no longer exists!" file-name))
+		   ;; Bind buffer-file-name to nil
+		   ;; so that we don't try to lock the file.
+		   (let ((buffer-file-name nil))
+		     (or auto-save-p
+			 (unlock-buffer)))
+		   (widen)
+		   (insert-file-contents file-name (not auto-save-p)
+					 nil nil t)))
+	       (goto-char (min opoint (point-max)))
+	       ;; Recompute the truename in case changes in symlinks
+	       ;; have changed the truename.
+	       (setq buffer-file-truename
+		     (abbreviate-file-name (file-truename buffer-file-name)))
+	       (after-find-file nil nil t t)
+	       ;; Run after-revert-hook as it was before we reverted.
+	       (setq-default revert-buffer-internal-hook global-hook)
+	       (if local-hook-p
+		   (progn
+		     (make-local-variable 'revert-buffer-internal-hook)
+		     (setq revert-buffer-internal-hook local-hook))
+		 (kill-local-variable 'revert-buffer-internal-hook))
+	       (run-hooks 'revert-buffer-internal-hook))
 	     t)))))
 
 (defun recover-file (file)
