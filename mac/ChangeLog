@@ -1,5 +1,7 @@
 2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* src/macmenu.c (Fx_popup_menu): Use Fkeymap_prompt.
+
 	* src/macterm.c: Include keymap.h.
 	(note_mode_line_highlight): Use KEYMAPP.
 

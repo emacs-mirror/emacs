@@ -23,12 +23,23 @@
 
 	* keymap.h: New file.  Extracted from lisp.h.
 
+	* keymap.c (Fkeymap_prompt, Fcurrent_active_maps): New funs.
+	(accessible_keymaps_1): New function.
+	(Faccessible_keymaps, accessible_keymaps_char_table): Use it.
+	(Fwhere_is_internal): Use Fcurrent_active_maps.
+	(Fdescribe_buffer_bindings): Renamed from describe_buffer_bindings.
+	Insert in current buffer rather than standard-output.
+	Don't call `help-mode'.  Export to elisp.
+	(describe_buffer_bindings): New wrapper.
+	(syms_of_keymap): Defsubr Skeymap_prompt, Scurrent_active_maps
+	and Sdescribe_buffer_bindings.
+
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* atimer.c (alarm_signal_handler) [USG && !POSIX_SIGNALS]: 
+	* atimer.c (alarm_signal_handler) [USG && !POSIX_SIGNALS]:
 	Remove code setting signal handler.
 
-	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]: 
+	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]:
 	Clear ICRNL and INLCR.  From Daiki Ueno <ueno@unixuser.org>.
 
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -37,11 +48,11 @@
 
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c, xmenu.c, xfns.c, xdisp.c, window.c: 
+	* xterm.c, xmenu.c, xfns.c, xdisp.c, window.c:
 	* w32term.c, w32menu.c, w32console.c, w32bdf.c, w32.c, term.c
-	* sysdep.c, sound.c, search.c, scroll.c, minibuf.c, keymap.c 
+	* sysdep.c, sound.c, search.c, scroll.c, minibuf.c, keymap.c
 	* intervals.c, insdel.c, indent.c, fns.c, fileio.c, editfns.c
-	* dispnew.c, dired.c, charset.c, xfaces.c, alloc.c, atimer.c: 
+	* dispnew.c, dired.c, charset.c, xfaces.c, alloc.c, atimer.c:
 	Don't define min/max.
 
 	* lisp.h (min, max): New macros.
@@ -57,8 +68,7 @@
 	* editfns.c: Include ctype.h.
 
 	* xterm.c: USE_LUCID can be defined iff USE_X_TOOLKIT is defined.
-	(xm_scroll_callback) [USE_MOTIF]: Remove unused variable
-	`percent'.
+	(xm_scroll_callback) [USE_MOTIF]: Remove unused variable `percent'.
 	(x_set_toolkit_scroll_bar_thumb) [USE_MOTIF]: Remove unused
 	variable `sb'.
 
@@ -105,12 +115,11 @@
 	* alloc.c (inhibit_garbage_collection): Simplify.
 	(Fmemory_use_counts): Ditto.
 
-	* data.c (most_positive_fixnum, most_negative_fixnum): New
-	variables.
+	* data.c (most_positive_fixnum, most_negative_fixnum): New variables.
 	(syms_of_data): DEFVAR_INT most-positive-fixnum and
 	most-negative-fixnum.
 
-	* lisp.h (MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM) 
+	* lisp.h (MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM)
 	(FIXNUM_OVERFLOW_P): New macros.
 
 2001-10-06  Miles Bader  <miles@gnu.org>
@@ -132,10 +141,10 @@
 
 2001-10-05  Miles Bader  <miles@gnu.org>
 
-	* minibuf.c (Fminibuffer_prompt_end, Fminibuffer_contents) 
-	(Fminibuffer_contents_no_properties, Fdelete_minibuffer_contents): 
+	* minibuf.c (Fminibuffer_prompt_end, Fminibuffer_contents)
+	(Fminibuffer_contents_no_properties, Fdelete_minibuffer_contents):
 	New functions (were in simple.el).
-	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word) 
+	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word)
 	(read_minibuf, do_completion, Fminibuffer_completion_help): Use them.
 	(syms_of_minibuf): Initialize them.
 
@@ -148,8 +157,7 @@
 
 	* w32fns.c (x_to_w32_color): Fix argument to alloca.
 	(w32_load_system_font): Don't believe what GetLanguageFontInfo
-	says; query codepage info directly to determine if font is double
-	byte.
+	says; query codepage info directly to determine if font is double byte.
 	(x_to_w32_charset): Handle private format for unknown charsets.
 	Handle wildcards in charset spec, by ignoring them.
 	(w32_codepage_for_font): Fix argument to alloca.  Don't remove
