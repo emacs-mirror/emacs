@@ -1,3 +1,8 @@
+2002-04-23  Colin Walters  <walters@verbum.org>
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
+	Handle the case where we're already viewing the score file.
+
 2002-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* menu-bar.el (menu-bar-goto-menu): Fix bindings for next-tag and
