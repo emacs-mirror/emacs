@@ -431,12 +431,15 @@ This function is the default value of `auto-composition-function' (which see)."
   (save-buffer-state nil
     (save-excursion
       (save-match-data
-	(let ((start pos)
-	      (limit (if string (length string) (point-max)))
-	      ch func newpos)
-	  (setq limit (or (text-property-any pos limit 'auto-composed t string)
-			  limit)
-		pos (catch 'tag
+	(condition-case nil
+	    (let ((start pos)
+		  (limit (if string (length string) (point-max)))
+		  ch func newpos)
+	      (setq limit
+		    (or (text-property-any pos limit 'auto-composed t string)
+			limit)
+		    pos 
+		    (catch 'tag
 		      (if string
 			  (while (< pos limit)
 			    (setq ch (aref string pos))
@@ -459,7 +462,8 @@ This function is the default value of `auto-composition-function' (which see)."
 			      (setq pos newpos)
 			    (setq pos (1+ pos)))))
 		      limit))
-	  (put-text-property start pos 'auto-composed t string))))))
+	      (put-text-property start pos 'auto-composed t string))
+	  (error nil))))))
 
 (setq auto-composition-function 'auto-compose-chars)
 
