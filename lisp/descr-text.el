@@ -214,6 +214,27 @@ otherwise."
 	(widget-insert "There are text properties here:\n")
 	(describe-property-list properties)))))
 
+(defcustom describe-char-unidata-list nil
+  "List of Unicode-based character property names shown by `describe-char'."
+  :group 'mule
+  :version "22.1"
+  :type '(set
+	  (const :tag "Unicode Name" name)
+	  (const :tag "Unicode general category " general-category)
+	  (const :tag "Unicode canonical combining class"
+		 canonical-combining-class)
+	  (const :tag "Unicode bidi class" bidi-class)
+	  (const :tag "Unicode decomposition mapping" decomposition)
+	  (const :tag "Unicode decimal digit value" decimal-digit-value)
+	  (const :tag "Unicode digit value" digit-value)
+	  (const :tag "Unicode numeric value" numeric-value)
+	  (const :tag "Unicode mirrored" mirrored)
+	  (const :tag "Unicode old name" old-name)
+	  (const :tag "Unicode ISO 10646 comment" iso-10646-comment)
+	  (const :tag "Unicode simple uppercase mapping" uppercase)
+	  (const :tag "Unicode simple lowercase mapping" lowercase)
+	  (const :tag "Unicode simple titlecase mapping" titlecase)))
+
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
 This is the UnicodeData.txt file from the Unicode consortium, used for
@@ -239,7 +260,8 @@ the time of writing it is at
 (defun describe-char-unicode-data (char)
   "Return a list of Unicode data for unicode CHAR.
 Each element is a list of a property description and the property value.
-The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
+The list is null if CHAR isn't found in `describe-char-unicodedata-file'.
+This function is semi-obsolete.  Use `get-char-code-property'."
   (when describe-char-unicodedata-file
     (unless (file-exists-p describe-char-unicodedata-file)
       (error "`unicodedata-file' %s not found" describe-char-unicodedata-file))
@@ -289,91 +311,20 @@ The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
 				  (concat (match-string 1 name) ">")
 				name)))
 	       (list "Category"
-		     (cdr (assoc
-			   (nth 1 fields)
-			   '(("Lu" . "uppercase letter")
-			     ("Ll" . "lowercase letter")
-			     ("Lt" . "titlecase letter")
-			     ("Mn" . "non-spacing mark")
-			     ("Mc" . "spacing-combining mark")
-			     ("Me" . "enclosing mark")
-			     ("Nd" . "decimal digit")
-			     ("Nl" . "letter number")
-			     ("No" . "other number")
-			     ("Zs" . "space separator")
-			     ("Zl" . "line separator")
-			     ("Zp" . "paragraph separator")
-			     ("Cc" . "other control")
-			     ("Cf" . "other format")
-			     ("Cs" . "surrogate")
-			     ("Co" . "private use")
-			     ("Cn" . "not assigned")
-			     ("Lm" . "modifier letter")
-			     ("Lo" . "other letter")
-			     ("Pc" . "connector punctuation")
-			     ("Pd" . "dash punctuation")
-			     ("Ps" . "open punctuation")
-			     ("Pe" . "close punctuation")
-			     ("Pi" . "initial-quotation punctuation")
-			     ("Pf" . "final-quotation punctuation")
-			     ("Po" . "other punctuation")
-			     ("Sm" . "math symbol")
-			     ("Sc" . "currency symbol")
-			     ("Sk" . "modifier symbol")
-			     ("So" . "other symbol")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'general-category (intern val))
+			   val)))
 	       (list "Combining class"
-		     (cdr (assoc
-			   (string-to-number (nth 2 fields))
-			   '((0 . "Spacing")
-			     (1 . "Overlays and interior")
-			     (7 . "Nuktas")
-			     (8 . "Hiragana/Katakana voicing marks")
-			     (9 . "Viramas")
-			     (10 . "Start of fixed position classes")
-			     (199 . "End of fixed position classes")
-			     (200 . "Below left attached")
-			     (202 . "Below attached")
-			     (204 . "Below right attached")
-			     (208 . "Left attached (reordrant around \
-single base character)")
-			     (210 . "Right attached")
-			     (212 . "Above left attached")
-			     (214 . "Above attached")
-			     (216 . "Above right attached")
-			     (218 . "Below left")
-			     (220 . "Below")
-			     (222 . "Below right")
-			     (224 . "Left (reordrant around single base \
-character)")
-			     (226 . "Right")
-			     (228 . "Above left")
-			     (230 . "Above")
-			     (232 . "Above right")
-			     (233 . "Double below")
-			     (234 . "Double above")
-			     (240 . "Below (iota subscript)")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'canonical-combining-class (intern val))
+			   val)))
 	       (list "Bidi category"
-		     (cdr (assoc
-			   (nth 3 fields)
-			   '(("L" . "Left-to-Right")
-			     ("LRE" . "Left-to-Right Embedding")
-			     ("LRO" . "Left-to-Right Override")
-			     ("R" . "Right-to-Left")
-			     ("AL" . "Right-to-Left Arabic")
-			     ("RLE" . "Right-to-Left Embedding")
-			     ("RLO" . "Right-to-Left Override")
-			     ("PDF" . "Pop Directional Format")
-			     ("EN" . "European Number")
-			     ("ES" . "European Number Separator")
-			     ("ET" . "European Number Terminator")
-			     ("AN" . "Arabic Number")
-			     ("CS" . "Common Number Separator")
-			     ("NSM" . "Non-Spacing Mark")
-			     ("BN" . "Boundary Neutral")
-			     ("B" . "Paragraph Separator")
-			     ("S" . "Segment Separator")
-			     ("WS" . "Whitespace")
-			     ("ON" . "Other Neutrals")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'bidi-class (intern val))
+			   val)))
 	       (list
 		"Decomposition"
 		(if (nth 4 fields)
@@ -383,14 +334,9 @@ character)")
 			  (setq info (match-string 1 info))
 			(setq info nil))
 		      (if info (setq parts (cdr parts)))
-		      ;; Maybe printing ? for unrepresentable unicodes
-		      ;; here and below should be changed?
 		      (setq parts (mapconcat
 				   (lambda (arg)
-				     (string (or (decode-char
-						  'ucs
-						  (string-to-number arg 16))
-						 ??)))
+				     (string (string-to-number arg 16)))
 				   parts " "))
 		      (concat info parts))))
 	       (list "Decimal digit value"
@@ -405,23 +351,14 @@ character)")
 	       (list "Old name" (nth 9 fields))
 	       (list "ISO 10646 comment" (nth 10 fields))
 	       (list "Uppercase" (and (nth 11 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 11 fields) 16))
-						  ??))))
+				      (string (string-to-number
+					       (nth 11 fields) 16))))
 	       (list "Lowercase" (and (nth 12 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 12 fields) 16))
-						  ??))))
+				      (string (string-to-number
+					       (nth 12 fields) 16))))
 	       (list "Titlecase" (and (nth 13 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 13 fields) 16))
-						  ??)))))))))))
+				      (string (string-to-number
+					       (nth 13 fields) 16)))))))))))
 
 ;; Return information about how CHAR is displayed at the buffer
 ;; position POS.  If the selected frame is on a graphic display,
@@ -490,13 +427,6 @@ as well as widgets, buttons, overlays, and text properties."
 		   (mapcar #'(lambda (x) (format "%c:%s  "
 						 x (category-docstring x)))
 			   (category-set-mnemonics category-set)))))
-	    ,@(let ((props (aref char-code-property-table char))
-		    ps)
-		(when props
-		  (while props
-		    (push (format "%s:" (pop props)) ps)
-		    (push (format "%s;" (pop props)) ps))
-		  (list (cons "Properties" (nreverse ps)))))
 	    ("to input"
 	     ,@(let ((key-list (and (eq input-method-function
 					'quail-input-method)
@@ -653,6 +583,24 @@ as well as widgets, buttons, overlays, and text properties."
 		      (or (cdr elt) "-- not encodable --"))))
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
+
+	(if (not describe-char-unidata-list)
+	    (insert "\nCharacter code properties are not shown: ")
+	  (insert "\nCharacter code properties: "))
+	(widget-create 'link
+		       :notify (lambda (&rest ignore)
+				 (customize-variable
+				  'describe-char-unidata-list))
+		       "customize what to show")
+	(insert "\n")
+	(dolist (elt describe-char-unidata-list)
+	  (let ((val (get-char-code-property char elt))
+		description)
+	    (when val
+	      (setq description (char-code-property-description elt val))
+	      (if description
+		  (insert (format "  %s: %s (%s)\n" elt val description))
+		(insert (format "  %s: %s\n" elt val))))))
 
 	(describe-text-properties pos (current-buffer))
 	(describe-text-mode)))))
