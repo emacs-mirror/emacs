@@ -485,6 +485,8 @@ static int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
 static int expose_window_tree P_ ((struct window *, XRectangle *));
+static void expose_overlaps P_ ((struct window *, struct glyph_row *,
+				 struct glyph_row *));
 static int expose_window P_ ((struct window *, XRectangle *));
 static void expose_area P_ ((struct window *, struct glyph_row *,
 			     XRectangle *, enum glyph_row_area));
@@ -6070,6 +6072,39 @@ x_phys_cursor_in_rect_p (w, r)
 }
 
 
+/* Redraw those parts of glyphs rows during expose event handling that
+   overlap other rows.  Redrawing of an exposed line writes over parts
+   of lines overlapping that exposed line; this function fixes that.
+
+   W is the window being exposed.  FIRST_OVERLAPPING_ROW is the first
+   row in W's current matrix that is exposed and overlaps other rows.
+   LAST_OVERLAPPING_ROW is the last such row.  */
+
+static void
+expose_overlaps (w, first_overlapping_row, last_overlapping_row)
+     struct window *w;
+     struct glyph_row *first_overlapping_row;
+     struct glyph_row *last_overlapping_row;
+{
+  struct glyph_row *row;
+  
+  for (row = first_overlapping_row; row <= last_overlapping_row; ++row)
+    if (row->overlapping_p)
+      {
+	xassert (row->enabled_p && !row->mode_line_p);
+	  
+	if (row->used[LEFT_MARGIN_AREA])
+	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
+  
+	if (row->used[TEXT_AREA])
+	  x_fix_overlapping_area (w, row, TEXT_AREA);
+  
+	if (row->used[RIGHT_MARGIN_AREA])
+	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
+      }
+}
+
+
 /* Redraw the part of window W intersection rectangle FR.  Pixel
    coordinates in FR are frame-relative.  Call this function with
    input blocked.  Value is non-zero if the exposure overwrites
@@ -6111,6 +6146,7 @@ expose_window (w, fr)
       int yb = window_text_bottom_y (w);
       struct glyph_row *row;
       int cursor_cleared_p;
+      struct glyph_row *first_overlapping_row, *last_overlapping_row;
   
       TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
 	      r.x, r.y, r.width, r.height));
@@ -6129,7 +6165,8 @@ expose_window (w, fr)
       else
 	cursor_cleared_p = 0;
 
-      /* Find the first row intersecting the rectangle R.  */
+      /* Update lines intersecting rectangle R.  */
+      first_overlapping_row = last_overlapping_row = NULL;
       for (row = w->current_matrix->rows;
 	   row->enabled_p;
 	   ++row)
@@ -6142,6 +6179,13 @@ expose_window (w, fr)
 	      || (r.y >= y0 && r.y < y1)
 	      || (r.y + r.height > y0 && r.y + r.height < y1))
 	    {
+	      if (row->overlapping_p)
+		{
+		  if (first_overlapping_row == NULL)
+		    first_overlapping_row = row;
+		  last_overlapping_row = row;
+		}
+	      
 	      if (expose_line (w, row, &r))
 		mouse_face_overwritten_p = 1;
 	    }
@@ -6162,6 +6206,10 @@ expose_window (w, fr)
 
       if (!w->pseudo_window_p)
 	{
+	  /* Fix the display of overlapping rows.  */
+	  if (first_overlapping_row)
+	    expose_overlaps (w, first_overlapping_row, last_overlapping_row);
+	  
 	  /* Draw border between windows.  */
 	  x_draw_vertical_border (w);
       
