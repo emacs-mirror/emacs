@@ -461,7 +461,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 
 
 (defun describe-key (key)
-  "Display documentation of the function invoked by KEY.  KEY is a string."
+  "Display documentation of the function invoked by KEY.
+KEY should be a key sequence--when calling from a program,
+pass a string or a vector."
   (interactive "kDescribe key: ")
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
