@@ -169,43 +169,41 @@ Should be called narrowed to the head of the message."
 The buffer may be narrowed."
   (require 'message)			; for message-posting-charset
   (let ((charsets
-	 (mapcar
-	  'mm-mime-charset
-	  (mm-find-charset-region (point-min) (point-max))))
-	(cs (list 'us-ascii (car message-posting-charset)))
-	found)
-    (while charsets
-      (unless (memq (pop charsets) cs)
-	(setq found t)))
-    found))
+	 (mm-find-mime-charset-region (point-min) (point-max))))
+    (and charsets (not (equal charsets (list message-posting-charset))))))
 
 (defun rfc2047-dissect-region (b e)
   "Dissect the region between B and E into words."
   (let ((word-chars "-A-Za-z0-9!*+/")
 	;; Not using ietf-drums-specials-token makes life simple.
 	mail-parse-mule-charset
-	words point current
+	words point nonascii
 	result word)
     (save-restriction
       (narrow-to-region b e)
       (goto-char (point-min))
       (skip-chars-forward "\000-\177")
+      ;; Fixme: This loop used to check charsets when it found
+      ;; non-ASCII characters.  That's removed, since it doesn't make
+      ;; much sense in Emacs 22 and doesn't seem necessary in Emacs
+      ;; 21, even.  I'm not sure exactly what it should be doing, and
+      ;; it needs another look, especially for efficiency's sake.  -- fx
       (while (not (eobp))
-	(setq point (point))
+	(setq point (point)
+	      nonascii nil)
 	(skip-chars-backward word-chars b)
 	(unless (eq b (point))
 	  (push (cons (buffer-substring b (point)) nil) words))
-	(setq b (point))
+	(setq b (point)
+	      nonascii t)
 	(goto-char point)
-	(setq current (mm-charset-after))
 	(forward-char 1)
 	(skip-chars-forward word-chars)
-	(while (and (not (eobp))
-		    (eq (mm-charset-after) current))
+	(while (not (eobp))
 	  (forward-char 1)
 	  (skip-chars-forward word-chars))
 	(unless (eq b (point))
-	  (push (cons (buffer-substring b (point)) current) words))
+	  (push (cons (buffer-substring b (point)) nonascii) words))
 	(setq b (point))
 	(skip-chars-forward "\000-\177"))
       (unless (eq b (point))
@@ -251,8 +249,7 @@ The buffer may be narrowed."
 	  ;; Insert blank between encoded words
 	  (if (eq (char-before) ?=) (insert " "))
 	  (rfc2047-encode (point)
-			  (progn (insert (car word)) (point))
-			  (cdr word))))
+			  (progn (insert (car word)) (point)))))
       (rfc2047-fold-region (point-min) (point-max)))))
 
 (defun rfc2047-encode-string (string)
@@ -262,10 +259,15 @@ The buffer may be narrowed."
     (rfc2047-encode-region (point-min) (point-max))
     (buffer-string)))
 
-(defun rfc2047-encode (b e charset)
-  "Encode the word in the region B to E with CHARSET."
-  (let* ((mime-charset (mm-mime-charset charset))
-	 (cs (mm-charset-to-coding-system mime-charset))
+(defun rfc2047-encode (b e)
+  "Encode the word in the region B to E."
+  (let* ((buff (current-buffer))
+	 (mime-charset (with-temp-buffer
+			 (insert-buffer-substring buff b e)
+			 (mm-find-mime-charset-region b e)))
+	 (cs (if (> (length mime-charset) 1)
+		 (mm-charset-to-coding-system mime-charset)
+	       (error "Can't encode word: %s" (buffer-substring b e))))
 	 (encoding (or (cdr (assq mime-charset
 				  rfc2047-charset-encoding-alist))
 		       'B))
