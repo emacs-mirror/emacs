@@ -34,6 +34,11 @@ Boston, MA 02111-1307, USA.  */
 #define GC_CHECK_STRING_BYTES 1
 #endif /* 0 */
 
+#ifndef _LP64
+# if SIZEOF_LONG == 8 && SIZEOF_INT_P == 8
+#  define _LP64
+# endif
+#endif
 
 /* These are default choices for the types to use.  */
 #ifdef _LP64
@@ -147,6 +152,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Overlay,
     Lisp_Misc_Kboard_Objfwd,
     Lisp_Misc_Save_Value,
+/*     Lisp_Misc_Weak_Box, */
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
@@ -321,7 +327,7 @@ enum pvec_type
 
 #ifdef NO_UNION_TYPE
 
-/* One need to override this if there must be high bits set in data space
+/* One needs to override this if there must be high bits set in data space
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
     on all machines, but would penalize machines which don't need it)
  */
@@ -499,6 +505,7 @@ extern size_t pure_size;
 #define XOVERLAY(a) (&(XMISC(a)->u_overlay))
 #define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
 #define XSAVE_VALUE(a) (&(XMISC(a)->u_save_value))
+#define XWEAK_BOX(a) (&(XMISC(a)->u_weak_box))
 
 /* Pseudovector types.  */
 
@@ -1107,14 +1114,45 @@ struct Lisp_Marker
   /* The remaining fields are meaningless in a marker that
      does not point anywhere.  */
 
-  /* For markers that point somewhere,
-     this is used to chain of all the markers in a given buffer.  */
-  Lisp_Object chain;
+  /* For markers that point somewhere, this is used to chain of all
+     the markers in a given buffer.
+     Re-named from `chain' to make sure it doesn't get used directly,
+     in new code, just via the macros below.  */
+  Lisp_Object chain_;
   /* This is the char position where the marker points.  */
   int charpos;
   /* This is the byte position.  */
   int bytepos;
 };
+
+#ifdef BOEHM_GC
+/* We need to mangle elements of the buffer chain so that they're not
+   recognized as pointers which GC-protect the rest of the chain.
+   These macros hide that.
+   
+   Adding one to the XPNTR value works providing the GC library is
+   compiled with ALL_INTERIOR_POINTERS undefined; then a pointer one
+   past the start of an allocated object doesn't GC-protect it.  Treat
+   nil, the end of the chain, transparently for ease of checking for
+   the end.  */
+extern Lisp_Object mask_temp;
+/* The first case here is what we should be using.  It causes crashes
+   which need debugging.  */
+#if 0
+# define GC_MASK_OBJECT(o) (NILP (o) ? o : XSET (mask_temp, XTYPE (o), XPNTR (o) + 1))
+# define GC_UNMASK_OBJECT(o) \
+          (NILP (o) ? o : XSET (mask_temp, XTYPE (o), XPNTR (o) - 1))
+#else
+# define GC_MASK_OBJECT(o) (o)
+# define GC_UNMASK_OBJECT(o) (o)
+#endif
+#else  /* BOEHM_GC */
+# define GC_MASK_OBJECT(o) (o)
+# define GC_UNMASK_OBJECT(o) (o)
+#endif /* BOEHM_GC */
+#define MARKER_CHAIN(m) GC_UNMASK_OBJECT ((m)->chain_)
+#define XSET_MARKER_CHAIN(marker, value) \
+          (marker)->chain_ = GC_MASK_OBJECT (value)
 
 /* Forwarding pointer to an int variable.
    This is allowed only in the value cell of a symbol,
@@ -1247,6 +1285,18 @@ struct Lisp_Save_Value
     int integer;
   };
 
+#if 0
+#ifdef BOEHM_GC
+/* Hold a Lisp object which isn't protected from GC unless it's
+   referenced from elsewhere. */
+struct Lisp_Weak_Box
+  {
+    int type : 16;	/* = Lisp_Misc_Weak_Box */
+    int spacer : 16;
+    Lisp_Object content;
+  };
+#endif
+#endif
 
 /* To get the type field of a union Lisp_Misc, use XMISCTYPE.
    It uses one of these struct subtypes to get the type field.  */
@@ -1263,6 +1313,9 @@ union Lisp_Misc
     struct Lisp_Overlay u_overlay;
     struct Lisp_Kboard_Objfwd u_kboard_objfwd;
     struct Lisp_Save_Value u_save_value;
+#ifdef BOEHM_GC
+/*     struct Lisp_Weak_Box u_weak_box; */
+#endif
   };
 
 /* Lisp floating point type */
@@ -1401,7 +1454,11 @@ typedef unsigned char UCHAR;
 /* Data type checking */
 
 #define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
+#ifdef BOEHM_GC
+#define GC_NILP(x) NILP(x)
+#else
 #define GC_NILP(x) GC_EQ (x, Qnil)
+#endif
 
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #define GC_NUMBERP(x) (GC_INTEGERP (x) || GC_FLOATP (x))
@@ -1886,7 +1943,7 @@ struct gcpro
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 #endif
 
-#if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
+#if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS) || defined (BOEHM_GC)
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
 /* You get warnings from MIPSPro...  */
@@ -2025,6 +2082,24 @@ while (0)
 /* Call staticpro (&var) to protect static variable `var'.  */
 
 void staticpro P_ ((Lisp_Object *));
+
+#ifdef BOEHM_GC
+# define XGC_FREE xgc_free
+# define XGC_MALLOC xgc_malloc
+# define XGC_MALLOC_ATOMIC xgc_malloc
+/* GC_MALLOC returns zeroed memory.  */
+# define XGC_CALLOC(n,s) xgc_malloc ((n) * (s))
+# define XGC_REALLOC xgc_realloc
+/* It's probably best not to free explicitly.  */
+/* # define XGC_FREE(p)  */
+# define XGC_FREE xgc_free
+#else
+# define XGC_FREE xfree
+# define XGC_MALLOC xmalloc
+# define XGC_MALLOC_ATOMIC xmalloc
+# define XGC_CALLOC xcalloc
+# define XGC_REALLOC xrealloc
+#endif
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
@@ -2477,13 +2552,23 @@ extern Lisp_Object make_float P_ ((double));
 extern void display_malloc_warning P_ ((void));
 extern int inhibit_garbage_collection P_ ((void));
 extern Lisp_Object make_save_value P_ ((void *, int));
+/* extern Lisp_Object make_weak_box P_ ((Lisp_Object)); */
 extern void free_marker P_ ((Lisp_Object));
 extern void free_cons P_ ((struct Lisp_Cons *));
 extern void init_alloc_once P_ ((void));
 extern void init_alloc P_ ((void));
 extern void syms_of_alloc P_ ((void));
 extern struct buffer * allocate_buffer P_ ((void));
-
+extern int inhibit_gc_count;
+#ifndef BOEHM_GC
+#define INHIBIT_GARBAGE_COLLECTION \
+  inhibit_gc_count = inhibit_garbage_collection ()
+#define REENABLE_GARBAGE_COLLECTION \
+  unbind_to (inhibit_gc_count, Qnil)
+#else  /* BOEHM_GC */
+#define INHIBIT_GARBAGE_COLLECTION GC_disable ()
+#define REENABLE_GARBAGE_COLLECTION GC_enable ()
+#endif
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print P_ ((Lisp_Object));
@@ -2582,7 +2667,7 @@ EXFUN (Fcatch, UNEVALLED);
 EXFUN (Fthrow, 2) NO_RETURN;
 EXFUN (Funwind_protect, UNEVALLED);
 EXFUN (Fcondition_case, UNEVALLED);
-EXFUN (Fsignal, 2);
+EXFUN (Fsignal, 2);		/* Can't be NO_RETURN.  */
 EXFUN (Fautoload, 5);
 EXFUN (Fcommandp, 2);
 EXFUN (Feval, 1);
