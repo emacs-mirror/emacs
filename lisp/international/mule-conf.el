@@ -218,7 +218,7 @@
 
 ;; 2-byte 2-column charsets.  Valid range of CHARSET-ID is 245..254.
 
-;; Ethiopic characters (Amahric and Tigrigna).
+;; Ethiopic characters (Amharic and Tigrigna).
 (define-charset 245 'ethiopic
   [2 94 2 0 ?3 0 "Ethiopic" "Ethiopic characters" "Ethiopic characters"])
 
