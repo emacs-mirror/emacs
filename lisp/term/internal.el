@@ -293,7 +293,7 @@ list.  You can (and should) also run it whenever the value of
 ;; DOS terminal; in unibyte mode we want to see all 8-bit characters
 ;; verbatim.  In both cases, we want the entire range of 8-bit
 ;; characters to arrive at our display code verbatim.
-(standard-display-8bit 127 254)
+(standard-display-8bit 127 255)
 
 (if default-enable-multibyte-characters
     ;; We want this in multibyte version only, since unibyte version
