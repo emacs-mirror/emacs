@@ -78,6 +78,8 @@
 
 	* mail-source.el (mail-sources): Revert to nil.
 
+	* nnmail (nnmail-spool-file): Revert to `((file))'.
+
 	* qp.el: Don't require mm-util.
 	(quoted-printable-decode-region): Rewritten.
 	(quoted-printable-decode-string, quoted-printable-encode-region):

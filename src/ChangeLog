@@ -1,3 +1,16 @@
+2000-10-06  Dave Love  <fx@gnu.org>
+
+	* terminfo.c (ospeed): Don't declare.
+
+	* sysdep.c: Don't include string.h.
+	(h_errno): Declare conditional also on TRY_AGAIN.
+
+	* charset.c (Ffind_charset_string): Doc fix.
+
+	* fns.c (Fbase64_encode_region, Fbase64_encode_string) 
+	(Fbase64_decode_region, Fbase64_decode_string): More explicit
+	error messages.
+
 2000-10-05  Dave Love  <fx@gnu.org>
 
 	* xmenu.c (Fx_popup_menu, Fx_popup_dialog): Check for tool-bar
