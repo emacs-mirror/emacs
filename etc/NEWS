@@ -190,7 +190,7 @@ tooltip display in the group `tooltip'.
 ** When using a windowing terminal, each Emacs window now has a cursor
 of its own.  By default, when a window is selected, the cursor is
 solid; otherwise, it is hollow.  The user-option
-`show-cursor-in-non-selected-windows' controls how to display the
+`cursor-in-non-selected-windows' controls how to display the
 cursor in non-selected windows.  If nil, no cursor is shown, if
 non-nil a hollow box cursor is shown.
 
