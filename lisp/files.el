@@ -2536,7 +2536,10 @@ and `list-directory-verbose-switches'."
       (terpri)
       (save-excursion
 	(set-buffer "*Directory*")
-	(setq default-directory (file-name-directory dirname))
+	(setq default-directory
+	      (if (file-directory-p dirname)
+		  (file-name-as-directory dirname)
+		(file-name-directory dirname)))
 	(let ((wildcard (not (file-directory-p dirname))))
 	  (insert-directory dirname switches wildcard (not wildcard)))))))
 
