@@ -326,9 +326,11 @@ at the end of the buffer."
 (defun outline-next-heading ()
   "Move to the next (possibly invisible) heading line."
   (interactive)
-  (if (re-search-forward (concat "\n\\(?:" outline-regexp "\\)")
+  ;; Make sure we don't match the heading we're at.
+  (if (and (bolp) (not (eobp))) (forward-char 1))
+  (if (re-search-forward (concat "^\\(?:" outline-regexp "\\)")
 			 nil 'move)
-      (goto-char (1+ (match-beginning 0)))))
+      (goto-char (match-beginning 0))))
 
 (defun outline-previous-heading ()
   "Move to the previous (possibly invisible) heading line."
