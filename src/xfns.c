@@ -9474,6 +9474,34 @@ tiff_size_of_memory (data)
 }
 
 
+static void
+tiff_error_handler (title, format, ap)
+     const char *title, *format;
+     va_list ap;
+{
+  char buf[512];
+  int len;
+  
+  len = sprintf (buf, "TIFF error: %s ", title);
+  vsprintf (buf + len, format, ap);
+  add_to_log (buf, Qnil, Qnil);
+}
+
+
+static void
+tiff_warning_handler (title, format, ap)
+     const char *title, *format;
+     va_list ap;
+{
+  char buf[512];
+  int len;
+  
+  len = sprintf (buf, "TIFF warning: %s ", title);
+  vsprintf (buf + len, format, ap);
+  add_to_log (buf, Qnil, Qnil);
+}
+
+
 /* Load TIFF image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
@@ -9496,6 +9524,9 @@ tiff_load (f, img)
   specified_data = image_spec_value (img->spec, QCdata, NULL);
   file = Qnil;
   GCPRO1 (file);
+
+  TIFFSetErrorHandler (tiff_error_handler);
+  TIFFSetWarningHandler (tiff_warning_handler);
 
   if (NILP (specified_data))
     {
