@@ -1689,7 +1689,8 @@ The default status is as follows:
       ;; case the user has used standard-display-european earlier in
       ;; this session.  (The MS-DOS port doesn't use that setup, so it
       ;; doesn't need to undo it.)
-      (standard-display-default (if (eq window-system 'pc) 128 160) 255)
+      (dotimes (i 128)
+	(aset standard-display-table (+ i 128) nil))
       (aset standard-display-table 146 nil))
     (or (eq window-system 'pc)
       (set-terminal-coding-system coding))))
