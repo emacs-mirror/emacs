@@ -119,7 +119,7 @@ with name concatenation.")
 (defvar imenu-generic-expression nil
   "The regex pattern to use for creating a buffer index.
 
-If non-nil this pattern is passed to `imenu-create-index-with-pattern'
+If non-nil this pattern is passed to `imenu--generic-function'
 to create a buffer index.
 
 The value should be an alist with elements that look like this:
@@ -465,7 +465,9 @@ as a way for the user to ask to recalculate the buffer's index alist."
       ;; Get the index
       (setq imenu--index-alist
 	    (save-excursion
-	      (funcall imenu-create-index-function))))
+	      (save-restriction
+		(widen)
+		(funcall imenu-create-index-function)))))
   (or imenu--index-alist noerror
       (error "No items suitable for an index found in this buffer"))
   (or imenu--index-alist
@@ -881,10 +883,7 @@ See the command `imenu' for more information."
 (defun imenu (index-item)
   "Jump to a place in the buffer chosen using a buffer menu or mouse menu.
 See `imenu-choose-buffer-index' for more information."
-  (interactive
-   (list (save-restriction 
-	   (widen)
-	   (imenu-choose-buffer-index))))
+  (interactive (list (imenu-choose-buffer-index)))
   ;; Convert a string to an alist element.
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
