@@ -556,19 +556,21 @@ This command uses a special history list for its arguments, so you can
 easily repeat a grep command.
 
 A prefix argument says to default the argument based upon the current
-tag the cursor is over."
+tag the cursor is over, substituting it into the last grep command
+in the grep command history (or into `grep-command'
+if that history list is empty)."
   (interactive
-   (let (grep-default)
-     (when (and current-prefix-arg grep-history)
+   (let (grep-default (arg current-prefix-arg))
+     (when arg
        (let* ((tag-default
 	       (funcall (or find-tag-default-function
 			    (get major-mode 'find-tag-default-function)
 			    ;; We use grep-tag-default instead of
 			    ;; find-tag-default, to avoid loading etags.
 			    'grep-tag-default))))
-	 (setq grep-default (car grep-history))
+	 (setq grep-default (or (car grep-history) grep-command))
 	 ;; Replace the thing matching for with that around cursor
-	 (if (string-match "[^ ]+\\s +\\(-[^ ]+\\)*\\s *\\(\"[^\"]+\"\\|[^ ]+\\)" grep-default)
+	 (if (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)" grep-default)
 	     (setq grep-default (replace-match tag-default t t
 					       grep-default 2)))))
      (list (read-from-minibuffer "Run grep (like this): "
