@@ -1,3 +1,8 @@
+2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* calendar/time-date.el (time-to-number-of-days): New function.
+	Imported from from Gnus.
+
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/make-mode.el: Fix comments.
