@@ -2932,6 +2932,8 @@ typically for purposes of moderating a list."
   (interactive "sResend to: ")
   (require 'sendmail)
   (require 'mailalias)
+  (unless (eq rmail-buffer (current-buffer))
+    (error "Not an Rmail buffer"))
   (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
