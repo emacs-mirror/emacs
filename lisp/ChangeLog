@@ -1,3 +1,8 @@
+2001-02-02  Miles Bader  <miles@gnu.org>
+
+	* image-file.el (insert-image-file): When visiting an image,
+	suppress the cursor in the image buffer.
+
 2001-02-01  Dave Love  <fx@gnu.org>
 
 	* progmodes/f90.el (f90-mode): Remove startup message.
