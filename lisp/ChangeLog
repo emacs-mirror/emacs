@@ -1,3 +1,30 @@
+2001-12-07  Dave Love  <fx@gnu.org>
+
+	* language/european.el (diacritic-composition-pattern): New constant.
+	(diacritic-compose-region, diacritic-compose-string) 
+	(diacritic-compose-buffer, diacritic-post-read-conversion) 
+	(diacritic-composition-function): New functions.
+
+	* international/utf-8.el (ucs-mule-to-mule-unicode): New
+	translation table.
+	(ccl-encode-mule-utf-8): Use it.
+	(utf-8-untranslated-to-ucs, utf-8-help-echo, utf-8-compose)
+	(utf-8-post-read-conversion, utf-8-pre-write-conversion): New
+	function.
+	(utf-8-subst-table): New variable.
+	(utf-8-compose-scripts): New option.
+	(mule-utf-8): Update safe-charsets, pre-write and post-read
+	conversion.
+
+	* international/ucs-tables.el, international/utf-8-subst.el: New
+	file.
+
+	* international/characters.el: Don't set word syntax (the default)
+	explicitly.  Add a diacritic category.  Add info for Unicode
+	equivalents of characters in various Mule charsets and for extra
+	Unicode characters.  Don't define specific categories for
+	Indian/Devanagari, since they aren't used.
+
 2001-12-06  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/fill.el (set-justification): Rename arg VALUE to STYLE.
