@@ -394,6 +394,7 @@ Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
+static Lisp_Object Qlatin_1, Qutf_8;
 
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 extern Lisp_Object x_icon_type P_ ((struct frame *));
@@ -9935,18 +9936,6 @@ XTread_socket (sd, bufp, numchars, expected)
 
   ++handling_signal;
   
-  /* The input should be decoded if it is from XIM.  Currently the
-     locale of XIM is the same as that of the system.  So, we can use
-     Vlocale_coding_system which is initialized properly at Emacs
-     startup time.  */
-  setup_coding_system (Vlocale_coding_system, &coding);
-  coding.src_multibyte = 0;
-  coding.dst_multibyte = 1;
-  /* The input is converted to events, thus we can't handle
-     composition.  Anyway, there's no XIM that gives us composition
-     information.  */
-  coding.composing = COMPOSITION_DISABLED;
-
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -10457,6 +10446,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  unsigned char *copy_bufptr = copy_buffer;
 		  int copy_bufsiz = sizeof (copy_buffer);
 		  int modifiers;
+		  Lisp_Object coding_system = Qlatin_1;
 
 		  event.xkey.state
 		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
@@ -10486,6 +10476,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      Status status_return;
 
+		      coding_system = Vlocale_coding_system;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
 						&event.xkey, copy_bufptr,
 						copy_bufsiz, &keysym,
@@ -10499,6 +10490,26 @@ XTread_socket (sd, bufp, numchars, expected)
 						    copy_bufsiz, &keysym,
 						    &status_return);
 			}
+#ifdef X_HAVE_UTF8_STRING
+		      else if (status_return == XLookupKeySym)
+			{  /* Try again but with utf-8.  */
+			  coding_system = Qutf_8;
+			  nbytes = Xutf8LookupString (FRAME_XIC (f),
+						      &event.xkey, copy_bufptr,
+						      copy_bufsiz, &keysym,
+						      &status_return);
+			  if (status_return == XBufferOverflow)
+			    {
+			      copy_bufsiz = nbytes + 1;
+			      copy_bufptr = (char *) alloca (copy_bufsiz);
+			      nbytes = Xutf8LookupString (FRAME_XIC (f),
+							  &event.xkey,
+							  copy_bufptr,
+							  copy_bufsiz, &keysym,
+							  &status_return);
+			    }
+			}
+#endif
 
 		      if (status_return == XLookupNone)
 			break;
@@ -10625,6 +10636,17 @@ XTread_socket (sd, bufp, numchars, expected)
 			  register int c;
 			  int nchars, len;
 
+			  /* The input should be decoded with `coding_system'
+			     which depends on which X*LookupString function
+			     we used just above and the locale.  */
+			  setup_coding_system (coding_system, &coding);
+			  coding.src_multibyte = 0;
+			  coding.dst_multibyte = 1;
+			  /* The input is converted to events, thus we can't
+			     handle composition.  Anyway, there's no XIM that
+			     gives us composition information.  */
+			  coding.composing = COMPOSITION_DISABLED;
+
 			  for (i = 0; i < nbytes; i++)
 			    {
 			      if (temp_index == (sizeof temp_buffer
@@ -10633,31 +10655,20 @@ XTread_socket (sd, bufp, numchars, expected)
 			      temp_buffer[temp_index++] = copy_bufptr[i];
 			    }
 
-			  if (/* If the event is not from XIM, */
-			      event.xkey.keycode != 0
-			      /* or the current locale doesn't request
-				 decoding of the intup data, ... */
-			      || coding.type == coding_type_raw_text
-			      || coding.type == coding_type_no_conversion)
-			    {
-			      /* ... we can use the input data as is.  */
-			      nchars = nbytes;
-			    }
-			  else
-			    { 
-			      /* We have to decode the input data.  */
-			      int require;
-			      unsigned char *p;
+			  {
+			    /* Decode the input data.  */
+			    int require;
+			    unsigned char *p;
 
-			      require = decoding_buffer_size (&coding, nbytes);
-			      p = (unsigned char *) alloca (require);
-			      coding.mode |= CODING_MODE_LAST_BLOCK;
-			      decode_coding (&coding, copy_bufptr, p,
-					     nbytes, require);
-			      nbytes = coding.produced;
-			      nchars = coding.produced_char;
-			      copy_bufptr = p;
-			    }
+			    require = decoding_buffer_size (&coding, nbytes);
+			    p = (unsigned char *) alloca (require);
+			    coding.mode |= CODING_MODE_LAST_BLOCK;
+			    decode_coding (&coding, copy_bufptr, p,
+					   nbytes, require);
+			    nbytes = coding.produced;
+			    nchars = coding.produced_char;
+			    copy_bufptr = p;
+			  }
 
 			  /* Convert the input data to a sequence of
 			     character events.  */
@@ -15079,6 +15090,11 @@ syms_of_xterm ()
 
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
+
+  staticpro (&Qutf_8);
+  Qutf_8 = intern ("utf-8");
+  staticpro (&Qlatin_1);
+  Qlatin_1 = intern ("latin-1");
 
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
