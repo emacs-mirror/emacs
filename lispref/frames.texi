@@ -1382,7 +1382,7 @@ the text representation that X11 normally uses.
 
 @cindex clipboard support (for MS-Windows)
 When Emacs runs on MS-Windows, it does not implement X selections in
-general, but it it does support the clipboard.  @code{x-get-selection}
+general, but it does support the clipboard.  @code{x-get-selection}
 and @code{x-set-selection} on MS-Windows support the text data type
 only; if the clipboard holds other types of data, Emacs treats the
 clipboard as empty.
