@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = UNALIGNED addr_t to mps_reserve
  language = c
  link = testlib.o newfmt.o

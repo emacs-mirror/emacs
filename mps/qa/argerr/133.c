@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = UNALIGNED space for mps_root_create_reg
  language = c
  link = testlib.o

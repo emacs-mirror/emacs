@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = NULL addr for is_stale
  language = c
  link = testlib.o

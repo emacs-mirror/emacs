@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = unaligned 2nd arg to mps_free
  language = c
  link = testlib.o

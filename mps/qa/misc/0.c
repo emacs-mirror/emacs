@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = cause segv and see if has usual effect
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = wrong 3rd arg to mps_free
  language = c
  link = testlib.o

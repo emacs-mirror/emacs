@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = MPS_RANK_MAX+1 rank for mps_root_create
  language = c
  link = testlib.o

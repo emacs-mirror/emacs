@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = -1 as third argument to mps_alloc (MV)
  language = c
  link = testlib.o

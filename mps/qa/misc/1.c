@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = access location in last 4 bytes of address space.
  language = c
  link = testlib.o
