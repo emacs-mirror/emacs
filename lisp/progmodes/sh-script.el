@@ -639,13 +639,14 @@ with your script for an edit-interpret-debug cycle."
 						(current-column)))))
 	skeleton-filter 'sh-feature
 	skeleton-newline-indent-rigidly t)
-  ;; parse or insert magic number for exec() and set all variables depending
-  ;; on the shell thus determined
-  (goto-char (point-min))
-  (sh-set-shell
-   (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
-       (match-string 1)
-     sh-shell-file))
+  (save-excursion
+    ;; parse or insert magic number for exec() and set all variables depending
+    ;; on the shell thus determined
+    (goto-char (point-min))
+    (sh-set-shell
+     (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
+	 (match-string 1)
+       sh-shell-file)))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -692,29 +693,28 @@ This adds rules for comments and assignments."
   (sh-font-lock-keywords-1 t))
 
 
-(defun sh-set-shell (shell)
+(defun sh-set-shell (shell &optional no-query-flag insert-flag)
   "Set this buffer's shell to SHELL (a string).
 Makes this script executable via `executable-set-magic'.
 Calls the value of `sh-set-shell-hook' if set."
   (interactive (list (completing-read "Name or path of shell: "
 				      interpreter-mode-alist
-				      (lambda (x) (eq (cdr x) 'sh-mode)))))
-  (if (eq this-command 'sh-set-shell)
-      ;; prevent querying
-      (setq this-command 'executable-set-magic))
+				      (lambda (x) (eq (cdr x) 'sh-mode)))
+		     (eq executable-query 'function)
+		     t))
   (setq sh-shell (intern (file-name-nondirectory shell))
 	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
-		     sh-shell)
-	sh-shell-file (executable-set-magic shell (sh-feature sh-shell-arg))
+		     sh-shell))
+  (setq sh-shell-file (executable-set-magic shell (sh-feature sh-shell-arg)))
+  (setq require-final-newline (sh-feature sh-require-final-newline)
 ;;;	local-abbrev-table (sh-feature sh-abbrevs)
-	require-final-newline (sh-feature sh-require-final-newline)
 	font-lock-keywords nil		; force resetting
+	font-lock-syntax-table nil
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	mode-line-process (format "[%s]" sh-shell)
 	process-environment (default-value 'process-environment)
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
-  (setq font-lock-syntax-table)
   (save-excursion
     (while (search-forward "=" nil t)
       (sh-assignment 0)))
