@@ -1,5 +1,10 @@
 2002-04-23  Miles Bader  <miles@gnu.org>
 
+	* menu-bar.el (menu-bar-update-buffers): Don't use constant lists
+	for command menu entries, since the low-level menu code modifies
+	them.  Cache the resulting list.
+	(menu-bar-buffers-menu-command-entries): New variable.
+
 	* menu-bar.el (menu-bar-update-buffers): Add `Select Named Buffer'.
 	Add separator line before commands
 	Remove old crufty code that tried to line things up by adding
