@@ -576,8 +576,7 @@ Their results are gathered into an index alist."
 	((and imenu-generic-expression)
 	 (imenu--generic-function imenu-generic-expression)) 
 	(t
-	 (error "The mode \"%s\" does not take full advantage of imenu.el yet."
-		mode-name))))      
+	 (error "The mode `%s' does not support Imenu" mode-name))))
 
 (defun imenu--replace-spaces (name replacement)
   ;; Replace all spaces in NAME with REPLACEMENT.
