@@ -1422,6 +1422,10 @@ unless NOMODES is non-nil."
   ;; before altering a backup file.
   (when (backup-file-name-p buffer-file-name)
     (setq buffer-read-only t))
+  ;; When a file is marked read-only,
+  ;; make the buffer read-only even if root is looking at it.
+  (when (zerop (logand (file-modes (buffer-file-name)) #o222))
+    (setq buffer-read-only t))
   (unless nomodes
     (when (and view-read-only view-mode)
       (view-mode-disable))
@@ -2041,7 +2045,15 @@ is specified, returning t if it is specified."
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
 
-(put 'c-add-style 'safe-local-eval-function t)
+(defcustom safe-local-eval-forms nil
+  "*Expressions that are considered \"safe\" in an `eval:' local variable.
+Add expressions to this list if you want Emacs to evaluate them, when
+they appear in an `eval' local variable specification, without first
+asking you for confirmation."
+  :group 'find-file
+  :version "21.4"
+  :type '(repeat sexp))
+
 (put 'c-set-style 'safe-local-eval-function t)
 
 (defun hack-one-local-variable-quotep (exp)
@@ -2055,23 +2067,37 @@ is specified, returning t if it is specified."
 
 (defun hack-one-local-variable-eval-safep (exp)
   "Return t if it is safe to eval EXP when it is found in a file."
-  (and (consp exp)
-       (or (and (eq (car exp) 'put)
-		(hack-one-local-variable-quotep (nth 1 exp))
-		(hack-one-local-variable-quotep (nth 2 exp))
-		(memq (nth 1 (nth 2 exp))
-		      '(lisp-indent-hook))
-		;; Only allow safe values of lisp-indent-hook;
-		;; not functions.
-		(or (numberp (nth 3 exp))
-		    (equal (nth 3 exp) ''defun)))
-	   (and (symbolp (car exp))
-		(get (car exp) 'safe-local-eval-function)
-		(let ((ok t))
-		  (dolist (arg (cdr exp))
-		    (unless (hack-one-local-variable-constantp arg)
-		      (setq ok nil)))
-		  ok)))))
+  (or (not (consp exp))
+      ;; Detect certain `put' expressions.
+      (and (eq (car exp) 'put)
+	   (hack-one-local-variable-quotep (nth 1 exp))
+	   (hack-one-local-variable-quotep (nth 2 exp))
+	   (memq (nth 1 (nth 2 exp))
+		 '(lisp-indent-hook))
+	   ;; Only allow safe values of lisp-indent-hook;
+	   ;; not functions.
+	   (or (numberp (nth 3 exp))
+	       (equal (nth 3 exp) ''defun)))
+      ;; Allow expressions that the user requested.
+      (member exp safe-local-eval-forms)
+      ;; Certain functions can be allowed with safe arguments
+      ;; or can specify verification functions to try.
+      (and (symbolp (car exp))
+	   (let ((prop (get (car exp) 'safe-local-eval-function)))
+	     (cond ((eq prop t)
+		    (let ((ok t))
+		      (dolist (arg (cdr exp))
+			(unless (hack-one-local-variable-constantp arg)
+			  (setq ok nil)))
+		      ok))
+		   ((functionp prop)
+		    (funcall prop exp))
+		   ((listp prop)
+		    (let ((ok nil))
+		      (dolist (function prop)
+			(if (funcall function exp)
+			    (setq ok t)))
+		      ok)))))))
 
 (defun hack-one-local-variable (var val)
   "\"Set\" one variable in a local variables spec.
@@ -2942,6 +2968,9 @@ After saving the buffer, this function runs `after-save-hook'."
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
+You can answer `y' to save, `n' not to save, or `C-r' to look at the
+buffer in question with `view-buffer' before deciding.
+
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
