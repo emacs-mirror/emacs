@@ -935,9 +935,40 @@ and nil for X and Y.")
   return Fcons (lispy_dummy, Fcons (x, y));
 }
 
+DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
+       Smouse_pixel_position, 0, 0, 0,
+  "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
+The position is given in pixel units, where (0, 0) is the\n\
+upper-left corner.\n\
+If Emacs is running on a mouseless terminal or hasn't been programmed\n\
+to read the mouse position, it returns the selected frame for FRAME\n\
+and nil for X and Y.")
+  ()
+{
+  FRAME_PTR f;
+  Lisp_Object lispy_dummy;
+  enum scroll_bar_part party_dummy;
+  Lisp_Object x, y;
+  int col, row;
+  unsigned long long_dummy;
+
+  f = selected_frame;
+  x = y = Qnil;
+
+  /* It's okay for the hook to refrain from storing anything.  */
+  if (mouse_position_hook)
+    (*mouse_position_hook) (&f,
+			    &lispy_dummy, &party_dummy,
+			    &x, &y,
+			    &long_dummy);
+  XSET (lispy_dummy, Lisp_Frame, f);
+  return Fcons (lispy_dummy, Fcons (x, y));
+}
+
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
   "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
-WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
+WARNING:  If you use this under X windows,\n\
+you should call `unfocus-frame' afterwards.")
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
@@ -950,6 +981,28 @@ WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
   if (FRAME_X_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XFRAME (frame), x, y);
+#endif
+
+  return Qnil;
+}
+
+DEFUN ("set-mouse-pixel-position", Fset_mouse_pixel_position,
+       Sset_mouse_pixel_position, 3, 3, 0,
+  "Move the mouse pointer to pixel position (X,Y) in FRAME.\n\
+WARNING:  If you use this under X windows,\n\
+you should call `unfocus-frame' afterwards.")
+  (frame, x, y)
+     Lisp_Object frame, x, y;
+{
+  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_NUMBER (x, 2);
+  CHECK_NUMBER (y, 1);
+
+  /* I think this should be done with a hook.  */
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (XFRAME (frame)))
+    /* Warping the mouse will cause  enternotify and focus events. */
+    x_set_mouse_pixel_position (XFRAME (frame), x, y);
 #endif
 
   return Qnil;
@@ -1650,7 +1703,9 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sprevious_frame);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
+  defsubr (&Smouse_pixel_position);
   defsubr (&Sset_mouse_position);
+  defsubr (&Sset_mouse_pixel_position);
 #if 0
   defsubr (&Sframe_configuration);
   defsubr (&Srestore_frame_configuration);
