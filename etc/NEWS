@@ -254,6 +254,8 @@ in the region, rather than on all complete lines in the region.
 for matching the beginning and end of a symbol.  A symbol is a
 non-empty sequence of either word or symbol constituent characters, as
 specified by the syntax table.
+---
+*** rx.el has new corresponding `symbol-end' and `symbol-start' elements.
 
 ** Passing resources on the command line now works on MS Windows.
 You can use --xrm to pass resource settings to Emacs, overriding any
