@@ -1,3 +1,13 @@
+2001-06-22  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-make-toggle): Construct the
+	function's doc string from HELP, not DOC, and make it accurate by
+	adding "Toggle whether to " at the front and downcasing the initial.
+	Change the HELP arg in some calls to make it fit this usage.
+
+	* menu-bar.el (toggle-debug-on-quit, toggle-debug-on-error):
+	Undo previous change.
+
 2001-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* indent.el (indent-relative-maybe, indent-relative): Doc fix.
