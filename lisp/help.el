@@ -96,6 +96,7 @@
 (define-key help-mode-map "\C-c\C-c" 'help-follow)
 (define-key help-mode-map "\t" 'help-next-ref)
 (define-key help-mode-map [backtab] 'help-previous-ref)
+(define-key help-mode-map [(shift tab)] 'help-previous-ref)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
 
