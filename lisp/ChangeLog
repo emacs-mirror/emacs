@@ -1,3 +1,7 @@
+2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ls-lisp.el (ls-lisp-format): Leave a blank before "root".
+
 2001-04-11  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-ls.el (eshell-ls-insert-directory): Set
