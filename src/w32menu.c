@@ -1721,7 +1721,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
              restricted to 16-bits..  */
-	  wv->call_data = (void *) (EMACS_INT) i;
+	  wv->call_data = !NILP (def) ? (void *) (EMACS_INT) i : 0;
 	  wv->enabled = !NILP (enable);
 	  prev_wv = wv;
 
@@ -2047,7 +2047,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
     fuFlags = MF_SEPARATOR;
   else 
     {
-      if (wv->enabled)
+      if (wv->enabled && wv->call_data != 0)
 	fuFlags = MF_STRING;
       else
 	fuFlags = MF_STRING | MF_GRAYED;
