@@ -1,3 +1,10 @@
+1999-10-11  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
+
+	* pop.c: Use "pop3" as the POP service name on all platforms,
+	instead of using "pop" on Unix and "pop3" on Windows NT.  "pop3"
+	has been the standard service name since RFC 1340 was published in
+	July 1992, so I think it's safe to start using it by default.
+
 1999-09-27  Dave Love  <fx@gnu.org>
 
 	* make-docfile.c (scan_lisp_file): Fix typo causing infloop.
