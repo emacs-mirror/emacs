@@ -13,14 +13,20 @@
 
 #undef LD_SWITCH_SYSTEM
 
+/* `#ifdef USE_MOTIF' won't work here, since USE_MOTIF isn't defined yet.
+   Instead, dynamically check whether USE_MOTIF expands to something.  */
+#define NOT_USING_MOTIF { set x USE_MOTIF; test "$$2" = "USE_MOTIF"; }
+
 #ifndef __GNUC__
-#define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib LD_SWITCH_X_SITE_AUX -R/usr/dt/lib -L/usr/dt/lib
+#define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib LD_SWITCH_X_SITE_AUX \
+  `NOT_USING_MOTIF || echo ' -R/usr/dt/lib'`
 #else /* GCC */
 /* We use ./prefix-args because we don't know whether LD_SWITCH_X_SITE_AUX
    has anything in it.  It can be empty.
    This works ok in temacs.  */
 #define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib \
- `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX` -R/usr/dt/lib -L/usr/dt/lib
+ `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX` \
+  `NOT_USING_MOTIF || echo ' -R/usr/dt/lib -L/usr/dt/lib'`
 #endif /* GCC */
 
 /* Gregory Neil Shapiro <gshapiro@hhmi.org> reports the Motif header files
