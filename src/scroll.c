@@ -256,10 +256,6 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
     {
-      bcopy (current_frame->nruns, temp_frame->nruns,
-	     current_frame->height * sizeof (int));
-      bcopy (current_frame->face_list, temp_frame->face_list,
-	     current_frame->height * sizeof (struct run *));
       bcopy (current_frame->top_left_x, temp_frame->top_left_x,
 	     current_frame->height * sizeof (short));
       bcopy (current_frame->top_left_y, temp_frame->top_left_y,
@@ -268,6 +264,8 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
 	     current_frame->height * sizeof (short));
       bcopy (current_frame->pix_height, temp_frame->pix_height,
 	     current_frame->height * sizeof (short));
+      bcopy (current_frame->max_ascent, temp_frame->max_ascent,
+	     current_frame->height * sizeof (int));
     }
 #endif
 
