@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.34 1994/03/12 00:22:13 kwzh Exp rms $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.35 1994/04/30 04:22:22 rms Exp rms $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -824,6 +824,7 @@ the hash tables.")
 (put 'gnus-article-mode 'mode-class 'special)
 
 (autoload 'gnus-uu-ctl-map "gnus-uu" nil nil 'keymap)
+(autoload 'gnus-uu-mark-article "gnus-uu" nil t)
 
 ;;(put 'gnus-eval-in-buffer-window 'lisp-indent-hook 1)
 
@@ -1696,6 +1697,7 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
   (setq gnus-summary-mode-map (make-keymap))
   (suppress-keymap gnus-summary-mode-map)
   (define-key gnus-summary-mode-map "\C-c\C-v" 'gnus-uu-ctl-map)
+  (define-key gnus-summary-mode-map "#" 'gnus-uu-mark-article)
   (define-key gnus-summary-mode-map " " 'gnus-summary-next-page)
   (define-key gnus-summary-mode-map "\177" 'gnus-summary-prev-page)
   (define-key gnus-summary-mode-map "\r" 'gnus-summary-scroll-up)
