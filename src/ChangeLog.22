@@ -1,3 +1,8 @@
+2004-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fset_fontset_font): Call find_font_encoding with
+	concatenation of family and registry.
+
 2004-12-06  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (BYTE8_STRING): Fix typo.
