@@ -1098,16 +1098,23 @@ The value of this variable is used when Font Lock mode is turned on."
 (defun font-lock-after-fontify-buffer ()
   (cond (fast-lock-mode
 	 (fast-lock-after-fontify-buffer))
-	(jit-lock-mode
-	 (jit-lock-after-fontify-buffer))
+	;; Useless now that jit-lock intercepts font-lock-fontify-buffer.  -sm
+	;; (jit-lock-mode
+	;;  (jit-lock-after-fontify-buffer))
 	(lazy-lock-mode
 	 (lazy-lock-after-fontify-buffer))))
 
 (defun font-lock-after-unfontify-buffer ()
   (cond (fast-lock-mode
 	 (fast-lock-after-unfontify-buffer))
-	(jit-lock-mode
-	 (jit-lock-after-unfontify-buffer))
+	;; Useless as well.  It's only called when:
+	;; - turning off font-lock: it does not matter if we leave spurious
+	;;   `fontified' text props around since jit-lock-mode is also off.
+	;; - font-lock-default-fontify-buffer fails: this is not run
+	;;   any more anyway.   -sm
+	;; 
+	;; (jit-lock-mode
+	;;  (jit-lock-after-unfontify-buffer))
 	(lazy-lock-mode
 	 (lazy-lock-after-unfontify-buffer))))
 
@@ -3163,6 +3170,7 @@ See also `java-font-lock-extra-types'.")
 
 ;; Install ourselves:
 
+;; Useful for the popup-menu for mouse-3 on the modeline.
 (unless (assq 'font-lock-mode minor-mode-alist)
   (push '(font-lock-mode nil) minor-mode-alist))
 
