@@ -1063,9 +1063,6 @@ The only difference with cyrillic-translit is that \"sht\" translates as
  ("\\" ?$,1(n(B)
  ("q" ?$,1(o(B))
 
-(provide 'bul-bel)
-;;; bul-bel.el ends here
-
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
