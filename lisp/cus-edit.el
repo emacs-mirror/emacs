@@ -636,19 +636,19 @@ groups after non-groups, if nil do not order groups at all."
   "Set changes in all modified options."
   (interactive)
   (let ((children custom-options))
-    (mapcar (lambda (child)
-	      (when (eq (widget-get child :custom-state) 'modified)
-		(widget-apply child :custom-set)))
+    (mapc (lambda (child)
+	    (when (eq (widget-get child :custom-state) 'modified)
+	      (widget-apply child :custom-set)))
 	    children)))
 
 (defun Custom-save ()
   "Set all modified group members and save them."
   (interactive)
   (let ((children custom-options))
-    (mapcar (lambda (child)
-	      (when (memq (widget-get child :custom-state)
-			  '(modified set changed rogue))
-		(widget-apply child :custom-save)))
+    (mapc (lambda (child)
+	    (when (memq (widget-get child :custom-state)
+			'(modified set changed rogue))
+	      (widget-apply child :custom-save)))
 	    children))
   (custom-save-all))
 
@@ -674,22 +674,22 @@ when the action is chosen.")
   "Reset all modified group members to their current value."
   (interactive)
   (let ((children custom-options))
-    (mapcar (lambda (widget)
-	      (and (default-boundp (widget-value widget))
-		   (if (memq (widget-get widget :custom-state)
-			     '(modified changed))
-		       (widget-apply widget :custom-reset-current))))
+    (mapc (lambda (widget)
+	    (and (default-boundp (widget-value widget))
+		 (if (memq (widget-get widget :custom-state)
+			   '(modified changed))
+		     (widget-apply widget :custom-reset-current))))
 	    children)))
 
 (defun Custom-reset-saved (&rest ignore)
   "Reset all modified or set group members to their saved value."
   (interactive)
   (let ((children custom-options))
-    (mapcar (lambda (widget)
-	      (and (get (widget-value widget) 'saved-value)
-		   (if (memq (widget-get widget :custom-state)
-			     '(modified set changed rogue))
-		       (widget-apply widget :custom-reset-saved))))
+    (mapc (lambda (widget)
+	    (and (get (widget-value widget) 'saved-value)
+		 (if (memq (widget-get widget :custom-state)
+			   '(modified set changed rogue))
+		     (widget-apply widget :custom-reset-saved))))
 	    children)))
 
 (defun Custom-reset-standard (&rest ignore)
@@ -699,11 +699,11 @@ This operation eliminates any saved settings for the group members,
 making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
-    (mapcar (lambda (widget)
-	      (and (get (widget-value widget) 'standard-value)
-		   (if (memq (widget-get widget :custom-state)
-			     '(modified set changed saved rogue))
-		       (widget-apply widget :custom-reset-standard))))
+    (mapc (lambda (widget)
+	    (and (get (widget-value widget) 'standard-value)
+		 (if (memq (widget-get widget :custom-state)
+			   '(modified set changed saved rogue))
+		     (widget-apply widget :custom-reset-standard))))
 	    children)))
 
 ;;; The Customize Commands
@@ -1291,6 +1291,7 @@ Un-customize all values in this buffer.  They get their standard settings."
 		 :action #'Custom-buffer-done)
   (widget-insert "\n\n")
   (message "Creating customization items...")
+  (buffer-disable-undo)
   (setq custom-options
 	(if (= (length options) 1)
 	    (mapcar (lambda (entry)
@@ -1320,9 +1321,10 @@ Un-customize all values in this buffer.  They get their standard settings."
     (widget-insert "\n"))
   (message "Creating customization items ...%2d%%done" 100)
   (unless (eq custom-buffer-style 'tree)
-    (mapcar 'custom-magic-reset custom-options))
+    (mapc 'custom-magic-reset custom-options))
   (message "Creating customization setup...")
   (widget-setup)
+  (buffer-enable-undo)
   (goto-char (point-min))
   (message "Creating customization buffer...done"))
 
@@ -2547,7 +2549,7 @@ Match frames with dark backgrounds.")
   "Customize face."
   :sample-face 'custom-face-tag-face
   :help-echo "Set or reset this face."
-  :documentation-property (lambda (face) (face-doc-string face))
+  :documentation-property #'face-doc-string)
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
@@ -3273,7 +3275,7 @@ Creating group members... %2d%%"
 					  (widget-insert "\n"))))
 				    members)))
 	     (message "Creating group magic...")
-	     (mapcar 'custom-magic-reset children)
+	     (mapc 'custom-magic-reset children)
 	     (message "Creating group state...")
 	     (widget-put widget :children children)
 	     (custom-group-state-update widget)
@@ -3326,42 +3328,42 @@ Optional EVENT is the location for the menu."
 (defun custom-group-set (widget)
   "Set changes in all modified group members."
   (let ((children (widget-get widget :children)))
-    (mapcar (lambda (child)
-	      (when (eq (widget-get child :custom-state) 'modified)
-		(widget-apply child :custom-set)))
+    (mapc (lambda (child)
+	    (when (eq (widget-get child :custom-state) 'modified)
+	      (widget-apply child :custom-set)))
 	    children )))
 
 (defun custom-group-save (widget)
   "Save all modified group members."
   (let ((children (widget-get widget :children)))
-    (mapcar (lambda (child)
-	      (when (memq (widget-get child :custom-state) '(modified set))
-		(widget-apply child :custom-save)))
+    (mapc (lambda (child)
+	    (when (memq (widget-get child :custom-state) '(modified set))
+	      (widget-apply child :custom-save)))
 	    children )))
 
 (defun custom-group-reset-current (widget)
   "Reset all modified group members."
   (let ((children (widget-get widget :children)))
-    (mapcar (lambda (child)
-	      (when (eq (widget-get child :custom-state) 'modified)
-		(widget-apply child :custom-reset-current)))
+    (mapc (lambda (child)
+	    (when (eq (widget-get child :custom-state) 'modified)
+	      (widget-apply child :custom-reset-current)))
 	    children )))
 
 (defun custom-group-reset-saved (widget)
   "Reset all modified or set group members."
   (let ((children (widget-get widget :children)))
-    (mapcar (lambda (child)
-	      (when (memq (widget-get child :custom-state) '(modified set))
-		(widget-apply child :custom-reset-saved)))
+    (mapc (lambda (child)
+	    (when (memq (widget-get child :custom-state) '(modified set))
+	      (widget-apply child :custom-reset-saved)))
 	    children )))
 
 (defun custom-group-reset-standard (widget)
   "Reset all modified, set, or saved group members."
   (let ((children (widget-get widget :children)))
-    (mapcar (lambda (child)
-	      (when (memq (widget-get child :custom-state)
-			  '(modified set saved))
-		(widget-apply child :custom-reset-standard)))
+    (mapc (lambda (child)
+	    (when (memq (widget-get child :custom-state)
+			'(modified set saved))
+	      (widget-apply child :custom-reset-standard)))
 	    children )))
 
 (defun custom-group-state-update (widget)
