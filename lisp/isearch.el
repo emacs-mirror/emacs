@@ -1236,7 +1236,9 @@ Obsolete."
     (if (and enable-multibyte-characters
 	     (>= char ?\200)
 	     (<= char ?\377))
-	(isearch-process-search-char (unibyte-char-to-multibyte char))
+	(if (keyboard-coding-system)
+	    (isearch-process-search-multibyte-characters char)
+	  (isearch-process-search-char (unibyte-char-to-multibyte char)))
       (if current-input-method
 	  (isearch-process-search-multibyte-characters char)
 	(isearch-process-search-char char)))))
