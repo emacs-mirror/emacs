@@ -1,8 +1,7 @@
 /*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.13) $
- *
- *  Copyright (C) 1995, 1996, 1998 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!qs.c(trunk.14) $
+ *  Copyright (C) 1995, 1996, 1998 Harlequin Group plc, all rights reserved.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -32,9 +31,6 @@
 #include "mpstd.h"
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
-#endif
-#ifdef MPS_OS_SU
-#include "ossu.h"
 #endif
 
 
@@ -478,7 +474,6 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
-
   while(base < limit) {
     mps_res_t res;
 
@@ -489,7 +484,6 @@ static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   }
 
   assert(base == limit);
-
   return MPS_RES_OK;
 }
 
@@ -550,6 +544,7 @@ int main(void)
   mps_tramp(&r, &go, NULL, 0);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
