@@ -955,6 +955,9 @@ update_frame (f, force, inhibit_hairy_id)
   register int downto, leftmost;
 #endif
 
+  if (preempt_count <= 0)
+    preempt_count = 1;
+
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
 
   detect_input_pending ();
@@ -1025,7 +1028,8 @@ update_frame (f, force, inhibit_hairy_id)
 			outq = PENDING_OUTPUT_COUNT (stdout);
 #endif
 		      outq *= 10;
-		      sleep (outq / baud_rate);
+		      if (baud_rate > 0)
+			sleep (outq / baud_rate);
 		    }
 		}
 	      if ((i - 1) % preempt_count == 0)
