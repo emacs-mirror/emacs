@@ -264,6 +264,7 @@ Boston, MA 02111-1307, USA.  */
 #undef  HAVE_SETRLIMIT
 #undef  HAVE_SETPGID
 #undef  HAVE_GETCWD
+/* Some systems do not have this.  */
 #define HAVE_SHUTDOWN
 
 #undef  LOCALTIME_CACHE
