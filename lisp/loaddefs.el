@@ -5586,7 +5586,7 @@ Transcribe Ethiopic characters in ASCII depending on the file extension." nil ni
 
 ;;;### (autoloads (eudc-load-eudc eudc-query-form eudc-expand-inline
 ;;;;;;  eudc-get-phone eudc-get-email eudc-set-server) "eudc" "net/eudc.el"
-;;;;;;  (14461 58260))
+;;;;;;  (14463 3149))
 ;;; Generated autoloads from net/eudc.el
 
 (autoload (quote eudc-set-server) "eudc" "\
@@ -5621,6 +5621,8 @@ queries the server for the existing fields and displays a corresponding form." t
 (autoload (quote eudc-load-eudc) "eudc" "\
 Load the Emacs Unified Directory Client.
 This does nothing except loading eudc by autoload side-effect." t nil)
+
+(cond ((not (string-match "XEmacs" emacs-version)) (defvar eudc-tools-menu (make-sparse-keymap "Directory Search")) (fset (quote eudc-tools-menu) (symbol-value (quote eudc-tools-menu))) (define-key eudc-tools-menu [phone] (quote ("Get Phone" . eudc-get-phone))) (define-key eudc-tools-menu [email] (quote ("Get Email" . eudc-get-email))) (define-key eudc-tools-menu [separator-eudc-email] (quote ("--"))) (define-key eudc-tools-menu [expand-inline] (quote ("Expand Inline Query" . eudc-expand-inline))) (define-key eudc-tools-menu [query] (quote ("Query with Form" . eudc-query-form))) (define-key eudc-tools-menu [separator-eudc-query] (quote ("--"))) (define-key eudc-tools-menu [new] (quote ("New Server" . eudc-set-server))) (define-key eudc-tools-menu [load] (quote ("Load Hotlist of Servers" . eudc-load-eudc)))) (t (let ((menu (quote ("Directory Search" ["Load Hotlist of Servers" eudc-load-eudc t] ["New Server" eudc-set-server t] ["---" nil nil] ["Query with Form" eudc-query-form t] ["Expand Inline Query" eudc-expand-inline t] ["---" nil nil] ["Get Email" eudc-get-email t] ["Get Phone" eudc-get-phone t])))) (if (not (featurep (quote eudc-autoloads))) (if (string-match "XEmacs" emacs-version) (if (and (featurep (quote menubar)) (not (featurep (quote infodock)))) (add-submenu (quote ("Tools")) menu)) (require (quote easymenu)) (cond ((fboundp (quote easy-menu-add-item)) (easy-menu-add-item nil (quote ("tools")) (easy-menu-create-menu (car menu) (cdr menu)))) ((fboundp (quote easy-menu-create-keymaps)) (define-key global-map [menu-bar tools eudc] (cons "Directory Search" (easy-menu-create-keymaps "Directory Search" (cdr menu)))))))))))
 
 ;;;***
 
