@@ -127,8 +127,12 @@ call_process_cleanup (fdpid)
 #else /* not MSDOS */
   register int pid = XFASTINT (Fcdr (fdpid));
 
+
   if (call_process_exited)
-    return Qnil;
+    {
+      close (XFASTINT (Fcar (fdpid)));
+      return Qnil;
+    }
 
   if (EMACS_KILLPG (pid, SIGINT) == 0)
     {
@@ -330,6 +334,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_retcode = 0;
 
 #ifdef MSDOS /* MW, July 1993 */
+    /* ??? Someone who knows MSDOG needs to check whether this properly
+       closes all descriptors that it opens.  */
     pid = run_msdos_command (new_argv, current_dir, filefd, outfilefd);
     close (outfilefd);
     fd1 = -1; /* No harm in closing that one!  */
@@ -337,6 +343,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     if (fd[0] < 0)
       {
 	unlink (tempfile);
+	close (filefd);
 	report_file_error ("Cannot re-open temporary file", Qnil);
       }
 #else /* not MSDOS */
@@ -355,15 +362,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       }
 #endif /* not MSDOS */
 
-#if 0
-    /* Tell SIGCHLD handler to look for this pid.  */
-    synch_process_pid = pid;
-    /* Now let SIGCHLD come through.  */
-    sigsetmask (mask);
-#endif
-
     environ = save_environ;
 
+    /* Close most of our fd's, but not fd[0]
+       since we will use that to read input from.  */
     close (filefd);
     if (fd1 >= 0)
       close (fd1);
@@ -371,12 +373,15 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   if (pid < 0)
     {
-      close (fd[0]);
+      if (fd[0] >= 0)
+	close (fd[0]);
       report_file_error ("Doing vfork", Qnil);
     }
 
   if (XTYPE (buffer) == Lisp_Int)
     {
+      if (fd[0] >= 0)
+	close (fd[0]);
 #ifndef subprocesses
       /* If Emacs has been built with asynchronous subprocess support,
 	 we don't need to do this, I think because it will then have
@@ -386,6 +391,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       return Qnil;
     }
 
+  /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
 #ifdef MSDOS
