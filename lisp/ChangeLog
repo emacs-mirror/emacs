@@ -1,5 +1,8 @@
 2000-05-26  Dave Love  <fx@gnu.org>
 
+	* disp-table.el (standard-display-underline): Don't use
+	internal-find-face.
+
 	* mail/reporter.el: Maintainer change.  Doc fixes.
 	(reporter-version): Deleted.
 
