@@ -673,14 +673,19 @@ This function acts on multiple buffers; otherwise, it is exactly like
 `occur'."
   (interactive
    (cons
-    (let ((bufs (list (read-buffer "First buffer to search: "
-				   (current-buffer) t)))
-	  (buf nil))
+    (let* ((bufs (list (read-buffer "First buffer to search: "
+				    (current-buffer) t)))
+	   (buf nil)
+	   (ido-ignore-item-temp-list bufs))
       (while (not (string-equal
-		   (setq buf (read-buffer "Next buffer to search (RET to end): "
-					  nil t))
+		   (setq buf (read-buffer 
+			      (if (eq read-buffer-function 'ido-read-buffer)
+				  "Next buffer to search (C-j to end): "
+				"Next buffer to search (RET to end): ")
+			      nil t))
 		   ""))
-	(push buf bufs))
+	(add-to-list 'bufs buf)
+	(setq ido-ignore-item-temp-list bufs))
       (nreverse (mapcar #'get-buffer bufs)))
     (occur-read-primary-args)))
   (occur-1 regexp nlines bufs))
