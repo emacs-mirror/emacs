@@ -731,8 +731,8 @@ concat (nargs, args, target_type, last_special)
 		CHECK_NUMBER (elt, 0);
 		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
 		  {
-		    XSTRING (val)->data[toindex++] = XINT (elt);
-		    toindex_byte++;
+		    XSTRING (val)->data[toindex_byte++] = XINT (elt);
+		    toindex++;
 		  }
 		else
 		  /* If we have any multibyte characters,
