@@ -913,7 +913,7 @@ KEY is a string representing a sequence of keystrokes.")
 }
 
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 2, 0,
-  "Define COMMAND as a prefix command.\n\
+  "Define COMMAND as a prefix command.  COMMAND should be a symbol.\n\
 A new sparse keymap is stored as COMMAND's function definition and its value.\n\
 If a second optional argument MAPVAR is given, the map is stored as\n\
 its value instead of as COMMAND's value; but COMMAND is still defined\n\
