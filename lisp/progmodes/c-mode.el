@@ -80,8 +80,6 @@
 (define-key c-mode-map [menu-bar c forward-stmt]
   '("Forward Statement" . c-end-of-statement))
 
-;; cmacexp is lame because it uses no preprocessor symbols.
-;; It isn't very extensible either -- hardcodes /lib/cpp.
 (autoload 'c-macro-expand "cmacexp"
   "Display the result of expanding all C macros occurring in the region.
 The expansion is entirely correct because it uses the C preprocessor."
