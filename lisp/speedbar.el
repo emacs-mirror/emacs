@@ -3,9 +3,9 @@
 ;;; Copyright (C) 1996, 97, 98 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.7.2c
+;; Version: 0.7.3
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.16 1998/09/18 09:21:27 schwab Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.17 1998/10/04 13:00:45 zappo Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -372,11 +372,7 @@ is attached to."
   '(minibuffer nil width 20 border-width 0
 	       internal-border-width 0 unsplittable t
 	       default-toolbar-visible-p nil has-modeline-p nil
-	       menubar-visible-p nil
-	       ;; I don't see the particular value of these three, but...
-	       text-pointer-glyph [cursor-font :data "top_left_arrow"]
-	       nontext-pointer-glyph [cursor-font :data "top_left_arrow"]
-	       selection-pointer-glyph [cursor-font :data "hand2"])
+	       menubar-visible-p nil)
   "*Parameters to use when creating the speedbar frame in XEmacs.
 Parameters not listed here which will be added automatically are
 `height' which will be initialized to the height of the frame speedbar
@@ -423,6 +419,18 @@ Available methods are:
 	   (const :tag "Create groups from common prefixes." prefix-group)
 	   (const :tag "Group loose tags into their own group." simple-group))
 	  ))
+
+(defcustom speedbar-tag-group-name-minimum-length 4
+  "*The minimum length of a prefix group name before expanding.
+Thus, if the `speedbar-tag-hierarchy-method' includes `prefix-group'
+and one such groups common characters is less than this number of
+characters, then the group name will be changed to the form of:
+  worda to wordb
+instead of just
+  word
+This way we won't get silly looking listings."
+  :group 'speedbar
+  :type 'integer)
 
 (defcustom speedbar-tag-split-minimum-length 20
   "*Minimum length before we stop trying to create sub-lists in tags.
@@ -928,6 +936,16 @@ directories.")
   "Never set this by hand.  Value is t when S-mouse activity occurs.")
 
 
+;;; Compatibility
+;;
+(if (fboundp 'frame-parameter)
+
+    (defalias 'speedbar-frame-parameter 'frame-parameter)
+  
+  (defun speedbar-frame-parameter (frame parameter)
+    "Return FRAME's PARAMETER value."
+    (cdr (assoc parameter (frame-parameters frame)))))
+
 ;;; Mode definitions/ user commands
 ;;
 
@@ -983,17 +1001,24 @@ supported at a time.
 	  (raise-frame speedbar-frame)
 	(setq speedbar-frame
 	      (if speedbar-xemacsp
-		  (make-frame (nconc (list 'height
-					   (speedbar-needed-height))
-				     speedbar-frame-plist))
-		(let* ((mh (frame-parameter nil 'menu-bar-lines))
-		       (cfx (frame-parameter nil 'left))
-		       (cfy (frame-parameter nil 'top))
+		  ;; Only guess height if it is not specified.
+		  (if (member 'height speedbar-frame-plist)
+		      (make-frame speedbar-frame-plist)
+		    (make-frame (nconc (list 'height
+					     (speedbar-needed-height))
+				       speedbar-frame-plist)))
+		(let* ((mh (speedbar-frame-parameter nil 'menu-bar-lines))
+		       (cfx (speedbar-frame-parameter nil 'left))
+		       (cfy (speedbar-frame-parameter nil 'top))
 		       (cfw (frame-pixel-width))
 		       (params
-			(append
-			 speedbar-frame-parameters
-			 (list (cons 'height (+ mh (frame-height))))))
+			;; Only add a guessed height if one is not specified
+			;; in the input parameters.
+			(if (assoc 'height speedbar-frame-parameters)
+			    speedbar-frame-parameters
+			  (append
+			   speedbar-frame-parameters
+			   (list (cons 'height (+ mh (frame-height)))))))
 		       (frame
 			(if (or (< emacs-major-version 20)
 				(not (eq window-system 'x)))
@@ -1002,21 +1027,50 @@ supported at a time.
 				(x-sensitive-text-pointer-shape
 				 x-pointer-hand2))
 			    (make-frame params)))))
-		  (if (listp cfx) (setq cfx (eval cfx)))
-		  (if (listp cfy) (setq cfx (eval cfy)))
-		  (if (and window-system (not (eq window-system 'pc)))
-		      (set-frame-position frame
-					  ;; Decide which side to put it
-					  ;; on.  200 is just a buffer
-					  ;; for the left edge of the
-					  ;; screen.  The extra 10 is just
-					  ;; dressings for window decorations.
-					  (if (< cfx 200)
-					      (+ cfx cfw 10)
-					    (- cfx (frame-pixel-width frame)
-					       10))
-					  cfy))
-		  frame)))
+		  ;; Position speedbar frame.
+		  (if (or (not window-system) (eq window-system 'pc)
+			  (assoc 'left speedbar-frame-parameters)
+			  (assoc 'top speedbar-frame-parameters))
+		      ;; Do no positioning if not on a windowing system,
+		      ;; or if left/top were specified in the parameters.
+		      frame
+		    (let ((cfx
+			   (if (not (consp cfx))
+			       cfx
+			     ;; If cfx is a list, that means we grow
+			     ;; from a specific edge of the display.
+			     ;; Convert that to the distance from the
+			     ;; left side of the display.
+			     (if (eq (car cfx) '-)
+				 ;; A - means distance from the right edge
+				 ;; of the display, or DW - cfx - framewidth
+				 (- (x-display-pixel-width) (car (cdr cfx))
+				    (frame-pixel-width))
+			       (car (cdr cfx))))))
+		      (modify-frame-parameters
+		       frame
+		       (list
+			(cons
+			 'left
+			 ;; Decide which side to put it
+			 ;; on.  200 is just a buffer
+			 ;; for the left edge of the
+			 ;; screen.  The extra 10 is just
+			 ;; dressings for window decorations.
+			 (let ((sfw (frame-pixel-width frame)))
+			   (let ((left-guess (- cfx 10 sfw))
+				 (right-guess (+ cfx cfw 5)))
+			     (let ((left-margin left-guess)
+				   (right-margin
+				    (- (x-display-pixel-width)
+				       right-guess 5 sfw)))
+			       (cond ((>= left-margin 0) left-guess)
+				     ((>= right-margin 0) right-guess)
+				     ;; otherwise choose side we overlap less
+				     ((> left-margin right-margin) 0)
+				     (t (- (x-display-pixel-width) sfw 5)))))))
+			(cons 'top cfy)))
+		      frame)))))
 	;; reset the selection variable
 	(setq speedbar-last-selected-file nil)
 	;; Put the buffer into the frame
@@ -2227,6 +2281,10 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 	    (setq newlst (cons (car lst) newlst))
 	  (setq sublst (cons (car lst) sublst)))
 	(setq lst (cdr lst)))
+      ;; Reverse newlst because it was made backwards.
+      ;; Sublist doesn't need reversing because the act
+      ;; of binning things will reverse it for us.
+      (setq newlst (nreverse newlst))
       ;; Now, first find out how long our list is.  Never let a
       ;; list get-shorter than our minimum.
       (if (<= (length sublst) speedbar-tag-split-minimum-length)
@@ -2250,7 +2308,9 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 	;; group combinding those two sub-lists.
 	(setq diff-idx 0)
 	(while (> 256 diff-idx)
-	  (let ((l (aref bins diff-idx)))
+	  (let ((l (nreverse ;; Reverse the list since they are stuck in
+		    ;; backwards.
+		    (aref bins diff-idx))))
 	    (if l
 		(let ((tmp (cons (try-completion "" l) l)))
 		  (if (or (> (length l) speedbar-tag-regroup-maximum-length)
@@ -2268,12 +2328,23 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 						  junk-list)))
 			 ((= num-shorts-grouped 1)
 			  ;; Only one short group?  Just stick it in
-			  ;; there by itself.
-			  (setq work-list
-				(cons (cons (try-completion
-					     "" short-group-list)
-					    (nreverse short-group-list))
-				      work-list)))
+			  ;; there by itself.  Make a group, and find
+			  ;; a subexpression
+			  (let ((subexpression (try-completion
+						"" short-group-list)))
+			    (if (< (length subexpression)
+				   speedbar-tag-group-name-minimum-length)
+				(setq subexpression
+				      (concat short-start-name
+					      " ("
+					      (substring
+					       (car (car short-group-list))
+					       (length short-start-name))
+					      ")")))
+			    (setq work-list
+				  (cons (cons subexpression
+					      short-group-list)
+					work-list))))
 			 (short-group-list
 			  ;; Multiple groups to be named in a special
 			  ;; way by displaying the range over which we
@@ -2288,7 +2359,7 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 			(setq short-group-list nil
 			      short-start-name nil
 			      short-end-name nil
-				num-shorts-grouped 0)))
+			      num-shorts-grouped 0)))
 		  ;; Ok, now that we cleaned up the short-group-list,
 		  ;; we can deal with this new list, to decide if it
 		  ;; should go on one of these sub-lists or not.
@@ -2311,7 +2382,7 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 	;; there by itself.
 	(setq work-list
 	      (cons (cons (try-completion "" short-group-list)
-			  (nreverse short-group-list))
+			  short-group-list)
 		    work-list)))
        (short-group-list
 	;; Multiple groups to be named in a special
@@ -2319,17 +2390,16 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 	;; have grouped them.
 	(setq work-list
 	      (cons (cons (concat short-start-name " to " short-end-name)
-			  (nreverse short-group-list))
+			  short-group-list)
 		    work-list))))
+      ;; Reverse the work list nreversed when consing.
+      (setq work-list (nreverse work-list))
       ;; Now, stick our new list onto the end of
       (if work-list
 	  (if junk-list
-	      (append (nreverse newlst)
-		      (nreverse work-list)
-		      junk-list)
-	    (append (nreverse newlst)
-		    (nreverse work-list)))
-	(append (nreverse newlst) junk-list))))
+	      (append newlst work-list junk-list)
+	    (append newlst work-list))
+	(append  newlst junk-list))))
    ((eq method 'trim-words)
     (let ((newlst nil)
 	  (sublst nil)
@@ -2377,7 +2447,13 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
   "Adjust the tag hierarchy in LST, and return it.
 This uses `speedbar-tag-hierarchy-method' to determine how to adjust
 the list.  See it's value for details."
-  (let ((methods speedbar-tag-hierarchy-method))
+  (let* ((f (save-excursion
+	      (forward-line -1)
+	      (speedbar-line-path)))
+	 (methods (if (get-file-buffer f)
+		      (save-excursion (set-buffer (get-file-buffer f))
+				      speedbar-tag-hierarchy-method)
+		    speedbar-tag-hierarchy-method)))
     (while methods
       (setq lst (speedbar-apply-one-tag-hierarchy-method lst (car methods))
 	    methods (cdr methods)))
@@ -2618,9 +2694,9 @@ interrupted by the user."
 	    (speedbar-stealthy-update-recurse t))
 	(unwind-protect
 	    (speedbar-with-writable
-	     (while (and l (funcall (car l)))
-	       ;;(sit-for 0)
-	       (setq l (cdr l))))
+	      (while (and l (funcall (car l)))
+		;;(sit-for 0)
+		(setq l (cdr l))))
 	  ;;(message "Exit with %S" (car l))
 	  ))))
 
@@ -2852,11 +2928,11 @@ that will occur on your system."
    (file-exists-p (concat path "RCS/" name ",v"))
    (file-exists-p (concat path "RCS/" name))
    ;; Local SCCS file name
-   (file-exists-p (concat path "SCCS/p." name))
+   (file-exists-p (concat path "SCCS/s." name))
    ;; Remote SCCS file name
    (let ((proj-dir (getenv "PROJECTDIR")))
      (if proj-dir
-         (file-exists-p (concat proj-dir "/SCCS/p." name))
+         (file-exists-p (concat proj-dir "/SCCS/s." name))
        nil))
    ;; User extension
    (run-hook-with-args 'speedbar-vc-in-control-hook path name)
@@ -3061,7 +3137,7 @@ Otherwise do not move and return nil."
 	    (goto-char dest)
 	    nil))))))
 
-(defun speedbar-line-path (depth)
+(defun speedbar-line-path (&optional depth)
   "Retrieve the pathname associated with the current line.
 This may require traversing backwards from DEPTH and combining the default
 directory with these items."
@@ -3069,6 +3145,11 @@ directory with these items."
    ((string= speedbar-initial-expansion-list-name "files")
     (save-excursion
       (save-match-data
+	(if (not depth)
+	    (progn
+	      (beginning-of-line)
+	      (looking-at "^\\([0-9]+\\):")
+	      (setq depth (string-to-int (match-string 1)))))
 	(let ((path nil))
 	  (setq depth (1- depth))
 	  (while (/= depth -1)
@@ -3204,15 +3285,15 @@ subdirectory chosen will be at INDENT level."
   "Delete text from point to indentation level INDENT or greater.
 Handles end-of-sublist smartly."
   (speedbar-with-writable
-   (save-excursion
-     (end-of-line) (forward-char 1)
-     (let ((start (point)))
-       (while (and (looking-at "^\\([0-9]+\\):")
-		   (> (string-to-int (match-string 1)) indent)
-		   (not (eobp)))
-	 (forward-line 1)
-	 (beginning-of-line))
-       (delete-region start (point))))))
+    (save-excursion
+      (end-of-line) (forward-char 1)
+      (let ((start (point)))
+	(while (and (looking-at "^\\([0-9]+\\):")
+		    (> (string-to-int (match-string 1)) indent)
+		    (not (eobp)))
+	  (forward-line 1)
+	  (beginning-of-line))
+	(delete-region start (point))))))
 
 (defun speedbar-dired (text token indent)
   "Speedbar click handler for directory expand button.
