@@ -3351,7 +3351,7 @@ w32_createwindow (f)
   FRAME_W32_WINDOW (f) = hwnd
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
-		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
+		    f->output_data.w32->dwStyle,
 		    f->output_data.w32->left_pos,
 		    f->output_data.w32->top_pos,
 		    rect.right - rect.left,
@@ -4062,9 +4062,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
           release_frame_dc (f, hdc);
 
 #if defined (W32_DEBUG_DISPLAY)
-          DebPrint (("WM_ERASEBKGND: erasing %d,%d-%d,%d\n",
-                     wmsg.rect.left, wmsg.rect.top, wmsg.rect.right,
-                     wmsg.rect.bottom));
+          DebPrint (("WM_ERASEBKGND (frame %p): erasing %d,%d-%d,%d\n",
+		     f,
+                     wmsg.rect.left, wmsg.rect.top,
+		     wmsg.rect.right, wmsg.rect.bottom));
 #endif /* W32_DEBUG_DISPLAY */
 	}
       return 1;
@@ -4084,6 +4085,13 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   	PAINTSTRUCT paintStruct;
         RECT update_rect;
 
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f == 0)
+	  {
+            DebPrint (("WM_PAINT received for unknown window %p\n", hwnd));
+	    return 0;
+	  }
+
         /* MSDN Docs say not to call BeginPaint if GetUpdateRect
            fails.  Apparently this can happen under some
            circumstances.  */
@@ -4101,9 +4109,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	      wmsg.rect = paintStruct.rcPaint;
 
 #if defined (W32_DEBUG_DISPLAY)
-            DebPrint (("WM_PAINT: painting %d,%d-%d,%d\n", wmsg.rect.left,
-                       wmsg.rect.top, wmsg.rect.right, wmsg.rect.bottom));
-            DebPrint (("WM_PAINT: update region is %d,%d-%d,%d\n",
+            DebPrint (("WM_PAINT (frame %p): painting %d,%d-%d,%d\n",
+		       f,
+		       wmsg.rect.left, wmsg.rect.top,
+		       wmsg.rect.right, wmsg.rect.bottom));
+            DebPrint (("  [update region is %d,%d-%d,%d]\n",
                        update_rect.left, update_rect.top,
                        update_rect.right, update_rect.bottom));
 #endif
