@@ -2082,16 +2082,7 @@ read_process_output (proc, channel)
       specbind (Qinhibit_quit, Qt);
       call2 (outstream, proc, make_string (chars, nchars));
 
-      /* Deactivate the mark now, so it doesn't happen
-	 *after* the following command.  */
-      if (!NILP (current_buffer->mark_active))
-	{
-	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
-	    {
-	      current_buffer->mark_active = Qnil;
-	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
-	    }
-	}
+      /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
 
 #ifdef VMS
@@ -2153,17 +2144,7 @@ read_process_output (proc, channel)
       if (XFASTINT (old_begv) != BEGV || XFASTINT (old_zv) != ZV)
 	Fnarrow_to_region (old_begv, old_zv);
 
-      /* Deactivate the mark now, so it doesn't happen
-	 *after* the following command.  */
-      if (!NILP (current_buffer->mark_active))
-	{
-	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
-	    {
-	      current_buffer->mark_active = Qnil;
-	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
-	    }
-	}
-
+      /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
 
       current_buffer->read_only = old_read_only;
