@@ -219,7 +219,7 @@ Returns one of:
 	   pos)
 
       ;; is this an empty element ?
-      (if (looking-at "/>")
+      (if (looking-at "/[ \t\n]*>")
 	  (progn
 	    (forward-char 2)
 	    (nreverse (cons '("") children)))
