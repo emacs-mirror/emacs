@@ -18,6 +18,10 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** hide-ifdef-mode now uses overlays rather than selective-display
+to hide its text.  This should be mostly transparent but slightly
+changes the behavior of motion commands line C-e and C-p.
+
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.
 Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
