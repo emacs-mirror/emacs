@@ -10,7 +10,7 @@
 	* international/characters.el: Setup cases of GREEK-FINAL-SIGMA,
 	Y-WITH-DIAERESIS, I-WITH-DOT-ABOVE, DOTLESS-i.
 
-	* case-table.el (get-upcase-table): New function. 
+	* case-table.el (get-upcase-table): New function.
 	(copy-case-table): Copy upcaes table too if non-nil.
 	(set-case-syntax-delims): Maintain upcase table too.
 	(set-case-syntax-pair): Likewise.
@@ -151,7 +151,7 @@
 
 2005-01-29  Richard M. Stallman  <rms@gnu.org>
 
-	* ses.el (undo-more): defadvice deleted.
+	* ses.el (undo-more): Delete defadvice.
 	(ses-begin-change): Doc fix.
 
 	* dired.el (dired-mode-map): Remap `undo' and `advertised-undo'
@@ -169,7 +169,7 @@
 
 	* simple.el (undo): Fix the test for continuing a series of undos.
 	(undo-more): Set pending-undo-list to t when we reach end.
-	(pending-undo-list): defvar moved up.
+	(pending-undo-list): Move up defvar.
 
 	* wid-edit.el (widget-button-click):
 	Shorten the range of the track-mouse binding.
@@ -193,6 +193,20 @@
 	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
 	(gdb-assembler-custom): Update to recognise breakpoint information
 	added on 2005-01-19.
+
+2005-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-variables): Set comment-add.
+	(dsssl-mode): Use define-derived-mode.
+	(scheme-mode-initialize): Remove.
+	(scheme-mode): Use run-mode-hooks.
+
+	* cus-edit.el (customize-group-other-window)
+	(custom-buffer-create-other-window): Don't override special-display-*.
+	(custom-mode-map): Make it dense.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Make sure `defvar' always
+	sets the default value.
 
 2005-01-28  Eli Zaretskii  <eliz@gnu.org>
 
