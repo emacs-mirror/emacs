@@ -639,9 +639,9 @@ Do the same for the keys of the same name."
 			(show-paren-mode)))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Highlight Active Region"
+			"Highlight Marked Text (transient-mark mode)"
 			"Transient Mark mode %s"
-			"Highlight marked region when active"))
+			"Highlight the marked region when active"))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
 			"Highlight Syntactically"
