@@ -223,7 +223,7 @@ mouse_init ()
   mouse_moveto (0, 0);
   mouse_visible = 0;
 }
-
+
 /* ------------------------- Screen control ----------------------
  *
  */
@@ -776,8 +776,6 @@ dos_get_saved_screen (screen, rows, cols)
   return 0;
 #endif  
 }
-
-
 
 /* ----------------------- Keyboard control ----------------------
  *
@@ -1619,8 +1617,16 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
   IT_cursor_to (row, col);
   xfree (text);
 }
-
+
 /* --------------------------- X Menu emulation ---------------------- */
+
+/* Report availability of menus.  */
+
+int
+have_menus_p ()
+{
+  return 1;
+}
 
 /* Create a brand new menu structure.  */
 
@@ -1853,8 +1859,7 @@ x_pixel_height (struct frame *f)
   return FRAME_HEIGHT (f);
 }
 #endif /* !HAVE_X_WINDOWS */
-
-
+
 /* ----------------------- DOS / UNIX conversion --------------------- */
 
 /* Destructively turn backslashes into slashes.  */
@@ -2308,8 +2313,7 @@ croak (badfunc)
   reset_sys_modes ();
   exit (1);
 }
-
-
+
 /* ------------------------- Compatibility functions -------------------
  *	gethostname
  *	gettimeofday
