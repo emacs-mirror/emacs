@@ -37,6 +37,7 @@
     ("EDT" .  -400)
     ("AST" .  -400)			;by <clamen@CS.CMU.EDU>
     ("NST" .  -330)			;by <clamen@CS.CMU.EDU>
+    ("UT"  .  +000)
     ("GMT" .  +000)
     ("BST" .  +100)
     ("MET" .  +100)
