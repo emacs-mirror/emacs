@@ -2940,7 +2940,7 @@ restoring it to the state of a face that has never been customized."
   :convert-widget 'widget-value-convert-widget
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
-  :format "%t: %[select face%] %v"
+  :format "%{%t%}: %[select face%] %v"
   :tag "Face"
   :value 'default
   :value-create 'widget-face-value-create
