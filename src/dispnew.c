@@ -1794,22 +1794,32 @@ bitch_at_user ()
 
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
   "Pause, without updating display, for SECONDS seconds.\n\
-Optional second arg MILLISECONDS specifies an additional wait period,\n\
-in milliseconds.\n\
-\(Not all operating systems support milliseconds.)")
+SECONDS may be a floating-point value, meaning that you can wait for a\n\
+fraction of a second.  Optional second arg MILLISECONDS specifies an\n\
+additional wait period, in milliseconds; this may be useful if your\n\
+Emacs was built without floating point support.\n\
+\(Not all operating systems support waiting for a fraction of a second.)")
   (seconds, milliseconds)
      Lisp_Object seconds, milliseconds;
 {
   int sec, usec;
 
-  CHECK_NUMBER (seconds, 0);
-  sec = XINT (seconds);
-  
   if (NILP (milliseconds))
     XSET (milliseconds, Lisp_Int, 0);
   else
     CHECK_NUMBER (milliseconds, 1);
-  usec = XINT (milliseconds);
+  usec = XINT (milliseconds) * 1000;
+
+#ifdef LISP_FLOAT_TYPE
+  {
+    double duration = extract_float (seconds);
+    sec = (int) duration;
+    usec += (duration - sec) * 1000000;
+  }
+#else
+  CHECK_NUMBER (seconds, 0);
+  sec = XINT (seconds);
+#endif
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
@@ -1934,9 +1944,11 @@ sit_for (sec, usec, reading, display)
 
 DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
   "Perform redisplay, then wait for SECONDS seconds or until input is available.\n\
-Optional second arg MILLISECONDS specifies an additional wait period, in\n\
-milliseconds.\n\
-\(Not all operating systems support milliseconds.)\n\
+SECONDS may be a floating-point value, meaning that you can wait for a\n\
+fraction of a second.  Optional second arg MILLISECONDS specifies an\n\
+additional wait period, in milliseconds; this may be useful if your\n\
+Emacs was built without floating point support.\n\
+\(Not all operating systems support waiting for a fraction of a second.)\n\
 Optional third arg non-nil means don't redisplay, just wait for input.\n\
 Redisplay is preempted as always if input arrives, and does not happen\n\
 if input is available before it starts.\n\
@@ -1946,14 +1958,22 @@ Value is t if waited the full time with no input arriving.")
 {
   int sec, usec;
 
-  CHECK_NUMBER (seconds, 0);
-  sec = XINT (seconds);
-
   if (NILP (milliseconds))
     XSET (milliseconds, Lisp_Int, 0);
   else
     CHECK_NUMBER (milliseconds, 1);
-  usec = XINT (milliseconds);
+  usec = XINT (milliseconds) * 1000;
+
+#ifdef LISP_FLOAT_TYPE
+  {
+    double duration = extract_float (seconds);
+    sec = (int) duration;
+    usec += (duration - sec) * 1000000;
+  }
+#else
+  CHECK_NUMBER (seconds, 0);
+  sec = XINT (seconds);
+#endif
 
 #ifndef EMACS_HAS_USECS
   if (usec != 0 && sec == 0)
