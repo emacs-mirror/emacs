@@ -1,5 +1,11 @@
 2002-07-30  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/indian.el (in-is13194): Give correct `safe-chars' property.
+	(devanagari): Define it as an alias of in-is13194.
+
+	* international/mule.el (safe-chars): Put
+	`char-table-extra-slots' property with value 0.
+
 	* files.el (revert-buffer): Fix previous change.
 
 2002-07-29  Richard M. Stallman  <rms@gnu.org>
