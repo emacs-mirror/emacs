@@ -3,45 +3,35 @@
 ;; Copyright (C) 1994 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
-;; Version: $Id: 0.2 ALPHA RELEASE WITH BUGS $
 ;; Keywords: c, faces, tools
 
-;; LCD Archive Entry:
-;; cpp|Per Abrahamsen|abraham@iesd.auc.dk|
-;; Highlight or hide text according to cpp conditionals|
-;; $Date: 1994-07-20 $|$Revision: 0.2 $|~/misc/cpp.Z|
+;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Comments:
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;; Parse a text for C preprocessor conditionals, and highlight or hide
 ;; the text inside the conditionals as you wish.
 
-;; Insert the following in your `emacs' to activate it.  This assumes
-;; you use BAW's superior cc-mode instead of Boring Old C-Mode.
-
-;; (autoload 'cpp-parse-buffer "cpp" "Parse and display cpp conditionals." t)
-  
-;; (eval-after-load "cc-mode"
+;; You might want to bind keys as follows.
+;;
 ;;   '(progn
 ;;      (define-key c-mode-map "\C-c\C-x" 'cpp-parse-buffer)
 ;;      (define-key-after (bar (lookup-key c-mode-map [ menu-bar c ]))
-;;        [ cpp-parse ] '("Parse Conditionals" . cpp-parse-buffer) 'up))))
-
-;; Requires GNU Emacs 19.
+;;        [ cpp-parse ] '("Parse Conditionals" . cpp-parse-buffer) 'up)))
 
 ;;; Todo:
 
@@ -770,4 +760,3 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 (provide 'cpp)
 
 ;;; cpp.el ends here
-
