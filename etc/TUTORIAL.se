@@ -1,22 +1,16 @@
-Detta dokument är baserat på den engelska handledningen, som har
-Copyright (c) 1985, 1996 Free Software Foundation, Inc. Se slutet av
-dokumentet för villkor och förutsättningar.
+Detta är den Svenska användarhandledningen till Emacs. I slutet finns
+kopieringsvillkoren. Copyright (c) 1985, 1996, 1998, 2001, 2002 Free
+Software Foundation, Inc.
 
-Detta är den Svenska användarhandledningen till Emacs.
-
-Emacs-kommandon innebär ofta användning av kontrolltangenten (oftast
+Emacs-kommandon innebär ofta användning av kontrolltangenten (vanligen
 märkt CTRL eller CTL) eller META-tangenten (på vissa tangentbord märkt
-ALT eller EDIT). Istället för att skriva META eller KONTROLL kommer vi
-här att använda följande förkortningar:
+ALT eller EDIT). Vi använder här följande förkortningar:
 
- C-<chr> betyder att du skall hålla ner kontrolltangenten samtidigt
-         som du skriver bokstaven <chr>. Alltså betyder C-f: håll ner
-         kontrolltangenten och tryck f.
- M-<chr> betyder att du skall hålla ned META-, EDIT- eller
-         ALT-tangenten samtidigt som du skriver <chr>. Om du inte har
-         någon META-, EDIT- eller ALT-tangent kan du trycka <ESC>,
-         släppa tangenten och sedan trycka bokstaven <chr>. När vi
-         skriver <ESC> avser vi ESC-tangenten.
+ C-<chr> håll ner kontrolltangenten samtidigt som du skriver bokstaven
+         <chr>. C-f betyder: håll ner kontrolltangenten och tryck f.
+ M-<chr> håll ner META-tangenten samtidigt som du skriver <chr>. Om
+         META-tangent saknas trycker du <ESC>, ESC-tangenten, släpper
+         den och trycker sedan <chr>.
 
 Viktigt: För att avsluta Emacs trycker du C-x C-c (två tecken).
 Tecknen ">>" i vänstermarginalen anger att du kan prova ett
@@ -24,9 +18,8 @@ kommando. Till exempel:
 <<Tomma rader sätts in runt nästa rad när help-with-tutorial aktiveras>>
 [Tomma rader av pedagogiska skäl. Texten fortsätter nedanför.]
 >> Tryck C-v (View next screen) för att hoppa till nästa skärmbild.
-        Prova nu. Håll ned kontrolltangenten och tryck v.
-        Från och med nu bör du göra detta när du är färdig med en
-        skärmbild.
+        Prova nu. Håll ned kontrolltangenten och tryck v. Gör så i
+        fortsättningen när du är färdig med en skärmbild.
 
 Notera att det är ett överlapp på två rader när du byter från
 skärmbild till skärmbild. Detta är för att behålla sammanhanget när du
