@@ -612,7 +612,8 @@ find_interval (tree, position)
   if (relative_position > TOTAL_LENGTH (tree))
     abort ();			/* Paranoia */
 
-  tree = balance_possible_root_interval (tree);
+  if (!handling_signal)
+    tree = balance_possible_root_interval (tree);
 
   while (1)
     {
@@ -720,7 +721,9 @@ previous_interval (interval)
 
 /* Find the interval containing POS given some non-NULL INTERVAL
    in the same tree.  Note that we need to update interval->position
-   if we go down the tree.  */
+   if we go down the tree.
+   To speed up the process, we assume that the ->position of
+   I and all its parents is already uptodate.  */
 INTERVAL
 update_interval (i, pos)
      register INTERVAL i;
