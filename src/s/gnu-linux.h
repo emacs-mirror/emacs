@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #define USG
 /* #define BSD_SYSTEM */
 #define LINUX
+#define GNU_LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
