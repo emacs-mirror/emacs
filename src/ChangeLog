@@ -1,3 +1,9 @@
+2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (a_write): Remove redundant semi-colons.
+	(e_write): Return -1 if failed to write all the data.
+	This fixes the changes made at 1999-12-15.
+
 2000-04-12  Dave Love  <fx@gnu.org>
 
 	* fns.c (mapcar1): Test for null vals to support mapc.
