@@ -1,5 +1,12 @@
 2002-01-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* net/ldap.el (ldap-search-internal): Skip error message from
+	ldapsearch.  Allow listing attribute names only.  Do not open
+	non-existent files.
+
+	* net/eudcb-ldap.el (eudc-ldap-get-field-list): Do not try to
+	call non-existent function.
+
 	* net/eudc.el (top-level): Revert previous change.
 
 	* net/net-utils.el (nslookup-font-lock-keywords): Defvar font-lock
