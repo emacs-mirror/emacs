@@ -1548,8 +1548,8 @@ Useful if you accidentally suspend the top-level process."
   "Delete ARG characters forward or send an EOF to subprocess.
 Sends an EOF only if point is at the end of the buffer and there is no input."
   (interactive "p")
-  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-    (if (and (eobp) (= (point) (marker-position pmark)))
+  (let ((proc (get-buffer-process (current-buffer))))
+    (if (and (eobp) proc (= (point) (marker-position (process-mark proc))))
 	(process-send-eof)
       (delete-char arg))))
 
