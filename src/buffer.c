@@ -45,7 +45,7 @@ extern int errno;
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
@@ -2085,9 +2085,9 @@ but the contents viewed as characters do change.  */)
 	      p = GAP_END_ADDR;
 	      stop = Z;
 	    }
-	  if (MULTIBYTE_STR_AS_UNIBYTE_P (p, bytes))
-	    p += bytes, pos += bytes;
-	  else
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
 	      c = STRING_CHAR (p, stop - pos);
 	      /* Delete all bytes for this 8-bit character but the
@@ -2104,6 +2104,11 @@ but the contents viewed as characters do change.  */)
 		zv -= bytes;
 	      stop = Z;
 	    }
+	  else
+	    {
+	      bytes = BYTES_BY_CHAR_HEAD (*p);
+	      p += bytes, pos += bytes;
+	    }
 	}
       if (narrowed)
 	Fnarrow_to_region (make_number (begv), make_number (zv));
@@ -2112,11 +2117,11 @@ but the contents viewed as characters do change.  */)
     {
       int pt = PT;
       int pos, stop;
-      unsigned char *p;
+      unsigned char *p, *pend;
 
       /* Be sure not to have a multibyte sequence striding over the GAP.
-	 Ex: We change this: "...abc\201 _GAP_ \241def..."
-	     to: "...abc _GAP_ \201\241def..."  */
+	 Ex: We change this: "...abc\302 _GAP_ \241def..."
+	     to: "...abc _GAP_ \302\241def..."  */
 
       if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
@@ -2137,6 +2142,7 @@ but the contents viewed as characters do change.  */)
       pos = BEG;
       stop = GPT;
       p = BEG_ADDR;
+      pend = GPT_ADDR;
       while (1)
 	{
 	  int bytes;
@@ -2146,10 +2152,11 @@ but the contents viewed as characters do change.  */)
 	      if (pos == Z)
 		break;
 	      p = GAP_END_ADDR;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 	      
-	  if (UNIBYTE_STR_AS_MULTIBYTE_P (p, stop - pos, bytes))
+	  if ((bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
 	    p += bytes, pos += bytes;
 	  else
 	    {
@@ -4260,8 +4267,6 @@ buffer_slot_type_mismatch (offset)
 #if MAP_ANON == 0
 #include <fcntl.h>
 #endif
-
-#include "coding.h"
 
 
 /* Memory is allocated in regions which are mapped using mmap(2).
