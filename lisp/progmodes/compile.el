@@ -1388,6 +1388,32 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		 (setq alist (car alist))
 	       (error "compilation-parse-errors: impossible regexp match!"))
 
+	     ;; Some compilers (e.g. Sun's java compiler, reportedly)
+	     ;; produce bogus file names like "./bar//foo.c" for the file
+	     ;; "bar/foo.c"; expand-file-name will collapse these into
+	     ;; "/foo.c" and fail to find the appropriate file.  So we look
+	     ;; for doubled slashes in the file name and fix them up in the
+	     ;; buffer.  It is essential here to save the match-data not
+	     ;; only because the `search-forward' overwrites it, but
+	     ;; because the internally stored data returned by
+	     ;; `match-beginning' and `match-end' is integer locations
+	     ;; instead of markers; the deletions we do here make all the
+	     ;; later position values incorrect.  However, when we extract
+	     ;; the positions with (match-data), we get a list of markers
+	     ;; that do compensate properly for insertions and deletions
+	     ;; automagically.
+	     (let* ((data (match-data))
+		    ;; We extract from DATA here instead of just using
+		    ;; `(match-end (nth 1 alist))' because we need a marker
+		    ;; that will track the end of the file name properly
+		    ;; after we delete some characters in the middle of it.
+		    (end (nth (1+ (* 2 (nth 1 alist))) data)))
+	       (save-excursion
+		 (goto-char (1+ (nth (* 2 (nth 1 alist)) data)))
+		 (while (search-forward "//" end t)
+		   (delete-char -1)))
+	       (store-match-data data))
+
 	     ;; Extract the file name and line number from the error message.
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
 		   (filename (buffer-substring (match-beginning (nth 1 alist))
