@@ -1,3 +1,8 @@
+2005-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (notice_overwritten_cursor): Check that phys_cursor.vpos
+	is valid.  If not, clear phys_cursor_on_p and return.
+
 2005-03-07  Andreas Schwab  <schwab@suse.de>
 
 	* blockinput.h (UNBLOCK_INPUT_TO): Always call UNBLOCK_INPUT.
