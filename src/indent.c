@@ -1262,7 +1262,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  int newpos;
 
 	  /* Don't skip invisible if we are already at the margin.  */
-	  if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
+	  if (vpos > tovpos || (vpos == tovpos && hpos >= tohpos))
 	    {
 	      if (contin_hpos && prev_hpos == 0
 		  && hpos > tohpos
@@ -1444,7 +1444,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  break;
 	}
 
-      if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
+      if (vpos > tovpos || (vpos == tovpos && hpos >= tohpos))
 	{
 	  if (contin_hpos && prev_hpos == 0
 	      && hpos > tohpos
