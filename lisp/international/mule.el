@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -1122,7 +1122,8 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion))
+  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
+    ("\\`;ELC   " . emacs-mule))	; Emacs 20-compiled
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.
