@@ -24,7 +24,7 @@
 /* #define DEBUG 1 */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+# include <config.h>
 #endif
 
 #ifdef _LIBC
@@ -37,50 +37,52 @@
    If the host has a `zic' command with a `-L leapsecondfilename' option,
    then it supports leap seconds; otherwise it probably doesn't.  */
 #ifndef LEAP_SECONDS_POSSIBLE
-#define LEAP_SECONDS_POSSIBLE 1
+# define LEAP_SECONDS_POSSIBLE 1
 #endif
 
 #include <sys/types.h>		/* Some systems define `time_t' here.  */
 #include <time.h>
 
 #if HAVE_LIMITS_H
-#include <limits.h>
+# include <limits.h>
 #endif
 
 #if DEBUG
-#include <stdio.h>
-#if STDC_HEADERS
-#include <stdlib.h>
-#endif
+# include <stdio.h>
+# if STDC_HEADERS
+#  include <stdlib.h>
+# endif
 /* Make it work even if the system's libc has its own mktime routine.  */
-#define mktime my_mktime
+# define mktime my_mktime
 #endif /* DEBUG */
 
 #ifndef __P
-#if defined (__GNUC__) || (defined (__STDC__) && __STDC__)
-#define __P(args) args
-#else
-#define __P(args) ()
-#endif  /* GCC.  */
+# if defined (__GNUC__) || (defined (__STDC__) && __STDC__)
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif  /* GCC.  */
 #endif  /* Not __P.  */
 
 #ifndef CHAR_BIT
-#define CHAR_BIT 8
+# define CHAR_BIT 8
 #endif
 
 #ifndef INT_MIN
-#define INT_MIN (~0 << (sizeof (int) * CHAR_BIT - 1))
+# define INT_MIN (~0 << (sizeof (int) * CHAR_BIT - 1))
 #endif
 #ifndef INT_MAX
-#define INT_MAX (~0 - INT_MIN)
+# define INT_MAX (~0 - INT_MIN)
 #endif
 
 #ifndef TIME_T_MIN
-#define TIME_T_MIN (0 < (time_t) -1 ? (time_t) 0 \
-		    : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1))
+/* The outer cast to time_t works around a bug in Cray C 5.0.3.0.  */
+# define TIME_T_MIN ((time_t) \
+		    (0 < (time_t) -1 ? (time_t) 0 \
+		     : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1)))
 #endif
 #ifndef TIME_T_MAX
-#define TIME_T_MAX (~ (time_t) 0 - TIME_T_MIN)
+# define TIME_T_MAX (~ (time_t) 0 - TIME_T_MIN)
 #endif
 
 #define TM_YEAR_BASE 1900
@@ -89,7 +91,7 @@
 #ifndef __isleap
 /* Nonzero if YEAR is a leap year (every 4 years,
    except every 100th isn't, and every 400th is).  */
-#define	__isleap(year)	\
+# define __isleap(year)	\
   ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
 #endif
 
@@ -109,11 +111,11 @@ time_t __mktime_internal __P ((struct tm *,
 
 
 #ifdef _LIBC
-#define localtime_r __localtime_r
+# define localtime_r __localtime_r
 #else
-#if ! HAVE_LOCALTIME_R && ! defined (localtime_r)
+# if ! HAVE_LOCALTIME_R && ! defined localtime_r
 /* Approximate localtime_r as best we can in its absence.  */
-#define localtime_r my_localtime_r
+#  define localtime_r my_mktime_localtime_r
 static struct tm *localtime_r __P ((const time_t *, struct tm *));
 static struct tm *
 localtime_r (t, tp)
@@ -126,7 +128,7 @@ localtime_r (t, tp)
   *tp = *l;
   return tp;
 }
-#endif /* ! HAVE_LOCALTIME_R && ! defined (localtime_r) */
+# endif /* ! HAVE_LOCALTIME_R && ! defined (localtime_r) */
 #endif /* ! _LIBC */
 
 
