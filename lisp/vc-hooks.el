@@ -924,7 +924,7 @@ control system name."
   ;; visit the real file instead.  If the real file is already visited in 
   ;; another buffer, make that buffer current, and kill the buffer 
   ;; that visits the link.
-  (let* ((truename (abbreviate-file-name (file-truename buffer-file-name)))
+  (let* ((truename (abbreviate-file-name (file-chase-links buffer-file-name)))
          (true-buffer (find-buffer-visiting truename))
 	 (this-buffer (current-buffer)))
     (if (eq true-buffer this-buffer)
@@ -958,7 +958,18 @@ control system name."
             (cond ((eq vc-follow-symlinks nil)
                    (message
         "Warning: symbolic link to %s-controlled source file" link-type))
-                  ((eq vc-follow-symlinks 'ask)
+                  ((or (not (eq vc-follow-symlinks 'ask))
+		       ;; If we already visited this file by following
+		       ;; the link, don't ask again if we try to visit
+		       ;; it again.  GUD does that, and repeated questions
+		       ;; are painful.
+		       (get-file-buffer
+			(abbreviate-file-name (file-chase-links buffer-file-name))))
+		       
+		   (vc-follow-link)
+		   (message "Followed link to %s" buffer-file-name)
+		   (vc-find-file-hook))
+                  (t
                    (if (yes-or-no-p (format
         "Symbolic link to %s-controlled source file; follow link? " link-type))
                        (progn (vc-follow-link)
@@ -966,10 +977,7 @@ control system name."
                               (vc-find-file-hook))
                      (message 
         "Warning: editing through the link bypasses version control")
-                     ))
-                  (t (vc-follow-link)
-                     (message "Followed link to %s" buffer-file-name)
-                     (vc-find-file-hook))))))))))
+                     ))))))))))
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
