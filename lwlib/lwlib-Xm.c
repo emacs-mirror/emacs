@@ -493,7 +493,8 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
   old_children = XtCompositeChildren (widget, &old_num_children);
 
   /* Allocate the children array */
-  for (num_children = 0, cur = val; cur; num_children++, cur = cur->next);
+  for (num_children = 0, cur = val; cur; num_children++, cur = cur->next)
+    ;
   children = (Widget*)XtMalloc (num_children * sizeof (Widget));
 
   /* WIDGET should be a RowColumn.  */
@@ -609,12 +610,6 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
      children.. --gerd.  */
   if (button)
     XtVaSetValues (widget, XmNmenuHelpWidget, button, NULL);
-
-  /* LessTif apparently doesn't recompute centered text when more
-     widgets are added.  So, do it after all widgets have been
-     created.  */
-  if (title)
-    XtVaSetValues (title, XmNalignment, XmALIGNMENT_CENTER, NULL);
 
   if (num_children)
     XtManageChildren (children, num_children);
@@ -1906,7 +1901,6 @@ xm_pop_down_callback (widget, closure, call_data)
      XtPointer call_data;
 {
   widget_instance *instance = (widget_instance *) closure;
-  fprintf (stderr, "%p\n", call_data);
 
   if ((!instance->pop_up_p && XtParent (widget) == instance->widget)
       || XtParent (widget) == instance->parent)
