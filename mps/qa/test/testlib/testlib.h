@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.6) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.7) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -14,11 +14,14 @@ test_lib.h
 
 const char *err_text(mps_res_t err);
 
-/* pass, fail: write result=pass/fail to stdout and
-   exit (0 or 1 as appropriate)
+/* finish, fail: write completed=yes/no to stdout and
+   exit (0 or 1 as appropriate).
+   pass is provided for compatibility with old tests, and is
+   a synonym for finish.
 */
 
 void pass(void);
+void finish(void);
 void fail(void);
 
 /* report: print variable and value to stdout
