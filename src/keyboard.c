@@ -6231,7 +6231,15 @@ turns into this character followed by foo.");
   DEFVAR_LISP ("last-command", &last_command,
     "The last command executed.  Normally a symbol with a function definition,\n\
 but can be whatever was found in the keymap, or whatever the variable\n\
-`this-command' was set to by that command.");
+`this-command' was set to by that command.\n\
+\n\
+The value `mode-exit' is special; it means that the previous command\n\
+read an event that told it to exit, and it did so and unread that event.\n\
+In other words, the present command is the event that made the previous\n\
+command exit.\n\
+\n\
+The value `kill-region' is special; it means that the previous command\n\
+was a kill command.");
   last_command = Qnil;
 
   DEFVAR_LISP ("this-command", &this_command,
