@@ -464,7 +464,9 @@ This returns ARGS with the arguments that have been processed removed."
   (interactive)
   (if (eq (cdr (assq 'visibility (frame-parameters))) t)
       (iconify-frame)
-    (make-frame-visible)))
+    (let ((foo (selected-frame)))
+      (make-frame-invisible foo)
+      (make-frame-visible foo))))
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
