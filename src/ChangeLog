@@ -1,5 +1,11 @@
 2001-10-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xfns.c (x_laplace_read_row, x_laplace_write_row): Prototypes
+	removed.
+
+	* xdisp.c (invisible_text_between_p): Put prototype inside #if
+	0 because unused.
+
 	* bytecode.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
 
