@@ -1,19 +1,18 @@
 2001-07-23  Francesco Potorti`  <pot@gnu.org>
 
-	* uniquify.el: overall speedup changes when using many buffers.
+	* uniquify.el: Overall speedup changes when using many buffers.
 	(uniquify-fix-item-base, uniquify-fix-item-filename,
-	uniquify-fix-item-buffer): Changed defmacro to defalias
-	(cosmetic change).
+	uniquify-fix-item-buffer): Changed defmacro to defalias (cosmetic).
 	(uniquify-fix-item-unrationalized-buffer): Deleted: was the fourth
-	place in the item, but waas never used.
+	place in the item, but was never used.
 	(uniquify-fix-item-min-proposed): New defalias: the fourth place
-	in the item is now used as cache for the porposed name.
+	in the item is now used as cache for the proposed name.
 	(uniquify-rationalize-file-buffer-names): Move computation made on
 	newbuffile out of the loop, in the newbuffile-nd local var.  Use
 	dolist (cosmetic change).  Compute the proposed name for the most
 	common case and cache it in the fourth place in the item.
-	(uniquify-rationalize-file-buffer-names): Used to return a a list of
-	buffer whose name was changed, but that return value was never
+	(uniquify-rationalize-file-buffer-names): Used to return a a list
+	of buffer whose name was changed, but that return value was never
 	used.
 	(uniquify-item-lessp): Replaces uniquify-filename-lessp, works on
 	the cached proposed name, does much less consing and is quicker.
@@ -25,7 +24,7 @@
 	(uniquify-rationalize-conflicting-sublist): Explicitely reset the
 	uniquify-possibly-resolvable flag, which is no more bound locally.
 	(uniquify-rename-buffer): Do not set the old unrationalised-buffer
-	flag, which does not exis
+	flag, which does not exist any more.
 
 2001-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
