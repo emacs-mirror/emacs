@@ -200,8 +200,8 @@ This variable used in TAB format mode.")
      '("'[^'\n]*'?" . font-lock-string-face)
      ;;
      ;; Program, subroutine and function declarations, plus calls.
-     (list (concat "\\<\\(block[ \t]*data\\|call\\|function\\|program\\|"
-                   "subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
+     (list (concat "\\<\\(block[ \t]*data\\|call\\|entry\\|function\\|"
+                   "program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
            '(1 font-lock-keyword-face)
            '(2 font-lock-function-name-face nil t))))
   "For consideration as a value of `fortran-font-lock-keywords'.
