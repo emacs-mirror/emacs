@@ -1252,9 +1252,9 @@ to use and more reliable (no dependence on goal column, etc.)."
 This means moving to the end of each line moved onto.
 The beginning of a blank line does not count as the end of a line.")
 
-(make-variable-buffer-local
- (defvar goal-column nil
-   "*Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil."))
+(defvar goal-column nil
+  "*Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil.")
+(make-variable-buffer-local 'goal-column)
 
 (defvar temporary-goal-column 0
   "Current goal column for vertical motion.
@@ -1293,7 +1293,8 @@ When the `track-eol' feature is doing its job, the value is 9999.")
 Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
 With a non-nil argument, clears out the goal column
-so that \\[next-line] and \\[previous-line] resume vertical motion."
+so that \\[next-line] and \\[previous-line] resume vertical motion.
+The goal column is stored in the variable `goal-column'."
   (interactive "P")
   (if arg
       (progn
