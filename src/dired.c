@@ -295,6 +295,19 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+#ifdef MSDOS
+#if __DJGPP__ > 1
+  /* Some fields of struct stat are *very* expensive to compute on MS-DOS,
+     but aren't required here.  Avoid computing the following fields:
+     st_inode, st_size and st_nlink for directories, and the execute bits
+     in st_mode for non-directory files with non-standard extensions.  */
+
+  unsigned short save_djstat_flags = _djstat_flags;
+
+  _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
+#endif
+#endif
+
 #ifdef VMS
   extern DIRENTRY * readdirver ();
 
@@ -495,6 +508,12 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
   UNGCPRO;
   bestmatch = unbind_to (count, bestmatch);
+
+#ifdef MSDOS
+#if __DJGPP__ > 1
+  _djstat_flags = save_djstat_flags;
+#endif
+#endif
 
   if (all_flag || NILP (bestmatch))
     return bestmatch;
