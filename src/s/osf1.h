@@ -17,3 +17,10 @@
 #endif
 
 #define SYSV_SYSTEM_DIR
+
+/* Declare malloc and realloc in a way that is clean.
+   But not in makefiles!  */
+
+#ifndef THIS_IS_YMAKEFILE
+extern void *malloc (), *realloc ();
+#endif
