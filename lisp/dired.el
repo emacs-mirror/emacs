@@ -1,6 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001
+;;  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -740,7 +741,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	       (save-excursion
 		 (dired-move-to-end-of-filename)
 		 (point))
-	       '(mouse-face 'highlight
+	       '(mouse-face highlight
 		 help-echo "mouse-2: visit this file in other window")))
 	(error nil))
       (forward-line 1))))
