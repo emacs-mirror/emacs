@@ -4247,6 +4247,7 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef XK_ISO_Left_Tab
 			   || (keysym >= XK_ISO_Left_Tab && keysym <= XK_ISO_Enter)
 #endif
+			   || (keysym >= XK_Kanji && keysym <= XK_Eisu_toggle)
 			   || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
 			   || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
