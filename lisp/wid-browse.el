@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9905
+;; Version: 1.9914
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -282,7 +282,7 @@ With arg, turn widget mode on if and only if arg is positive."
   (interactive "P")
   (cond ((null arg)
 	 (setq widget-minor-mode (not widget-minor-mode)))
-	((<= 0 arg)
+	((<= arg 0)
 	 (setq widget-minor-mode nil))
 	(t
 	 (setq widget-minor-mode t)))

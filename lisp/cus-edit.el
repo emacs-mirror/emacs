@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9908
+;; Version: 1.9914
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -246,6 +246,16 @@
   :group 'customize
   :group 'faces)
 
+(defgroup custom-buffer nil
+  "Control the customize buffers."
+  :prefix "custom-"
+  :group 'customize)
+
+(defgroup custom-menu nil
+  "Control how the customize menus."
+  :prefix "custom-"
+  :group 'customize)
+
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
   :group 'abbrev)
@@ -401,7 +411,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 
 (defcustom custom-unlispify-menu-entries t
   "Display menu entries as words instead of symbols if non nil."
-  :group 'customize
+  :group 'custom-menu
   :type 'boolean)
 
 (defun custom-unlispify-menu-entry (symbol &optional no-suffix)
@@ -440,7 +450,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 
 (defcustom custom-unlispify-tag-names t
   "Display tag names as words instead of symbols if non nil."
-  :group 'customize
+  :group 'custom-buffer
   :type 'boolean)
 
 (defun custom-unlispify-tag-name (symbol)
@@ -518,49 +528,59 @@ if that fails, the doc string with `custom-guess-doc-alist'."
 
 ;;; Sorting.
 
-(defcustom custom-buffer-sort-predicate 'custom-buffer-sort-alphabetically
+(defcustom custom-buffer-sort-predicate 'ignore
   "Function used for sorting group members in buffers.
 The value should be useful as a predicate for `sort'.  
 The list to be sorted is the value of the groups `custom-group' property."
-  :type '(radio (function-item custom-buffer-sort-alphabetically)
+  :type '(radio (const :tag "Unsorted" ignore)
+		(const :tag "Alphabetic" custom-sort-items-alphabetically)
 		(function :tag "Other"))
-  :group 'customize)
+  :group 'custom-buffer)
 
-(defun custom-buffer-sort-alphabetically (a b)
-  "Return t iff is A should be before B.
-A and B should be members of a `custom-group' property. 
-The members are sorted alphabetically, except that all groups are
-sorted after all non-groups."
-  (cond ((and (eq (nth 1 a) 'custom-group) 
-	      (not (eq (nth 1 b) 'custom-group)))
-	 nil)
-	((and (eq (nth 1 b) 'custom-group) 
-	      (not (eq (nth 1 a) 'custom-group)))
-	 t)
-	(t
-	 (string-lessp (symbol-name (nth 0 a)) (symbol-name (nth 0 b))))))
+(defcustom custom-buffer-order-predicate 'custom-sort-groups-last
+  "Function used for sorting group members in buffers.
+The value should be useful as a predicate for `sort'.  
+The list to be sorted is the value of the groups `custom-group' property."
+  :type '(radio (const :tag "Groups first" custom-sort-groups-first)
+		(const :tag "Groups last" custom-sort-groups-last)
+		(function :tag "Other"))
+  :group 'custom-buffer)
 
-(defcustom custom-menu-sort-predicate 'custom-menu-sort-alphabetically
+(defcustom custom-menu-sort-predicate 'ignore
   "Function used for sorting group members in menus.
 The value should be useful as a predicate for `sort'.  
 The list to be sorted is the value of the groups `custom-group' property."
-  :type '(radio (function-item custom-menu-sort-alphabetically)
+  :type '(radio (const :tag "Unsorted" ignore)
+		(const :tag "Alphabetic" custom-sort-items-alphabetically)
 		(function :tag "Other"))
-  :group 'customize)
+  :group 'custom-menu)
 
-(defun custom-menu-sort-alphabetically (a b)
-  "Return t iff is A should be before B.
-A and B should be members of a `custom-group' property. 
-The members are sorted alphabetically, except that all groups are
-sorted before all non-groups."
-  (cond ((and (eq (nth 1 a) 'custom-group) 
-	      (not (eq (nth 1 b) 'custom-group)))
-	 t)
-	((and (eq (nth 1 b) 'custom-group) 
-	      (not (eq (nth 1 a) 'custom-group)))
-	 nil)
-	(t
-	 (string-lessp (symbol-name (nth 0 a)) (symbol-name (nth 0 b))))))
+(defcustom custom-menu-order-predicate 'custom-sort-groups-first
+  "Function used for sorting group members in menus.
+The value should be useful as a predicate for `sort'.  
+The list to be sorted is the value of the groups `custom-group' property."
+  :type '(radio (const :tag "Groups first" custom-sort-groups-first)
+		(const :tag "Groups last" custom-sort-groups-last)
+		(function :tag "Other"))
+  :group 'custom-menu)
+
+(defun custom-sort-items-alphabetically (a b)
+  "Return t iff A is alphabetically before B and the same custom type.
+A and B should be members of a `custom-group' property."
+  (and (eq (nth 1 a) (nth 1 b))
+       (string-lessp (symbol-name (nth 0 a)) (symbol-name (nth 0 b)))))
+
+(defun custom-sort-groups-first (a b)
+  "Return t iff A a custom group and B is a not.
+A and B should be members of a `custom-group' property."
+  (and (eq (nth 1 a) 'custom-group)
+       (not (eq (nth 1 b) 'custom-group))))
+
+(defun custom-sort-groups-last (a b)
+  "Return t iff B a custom group and A is a not.
+A and B should be members of a `custom-group' property."
+  (and (eq (nth 1 b) 'custom-group)
+       (not (eq (nth 1 a) 'custom-group))))
 
 ;;; Custom Mode Commands.
 
@@ -897,7 +917,7 @@ that option."
   "If non-nil, only show a single reset button in customize buffers.
 This button will have a menu with all three reset operations."
   :type 'boolean
-  :group 'customize)
+  :group 'custom-buffer)
 
 (defun custom-buffer-create-internal (options)
   (message "Creating customization buffer...")
@@ -1017,38 +1037,49 @@ Reset all visible items in this buffer to their standard settings."
 
 ;;; The `custom-magic' Widget.
 
+(defgroup custom-magic-faces nil
+  "Faces used by the magic button."
+  :group 'custom-faces
+  :group 'custom-buffer)
+
 (defface custom-invalid-face '((((class color))
 				(:foreground "yellow" :background "red"))
 			       (t
 				(:bold t :italic t :underline t)))
-  "Face used when the customize item is invalid.")
+  "Face used when the customize item is invalid."
+  :group 'custom-magic-faces)
 
 (defface custom-rogue-face '((((class color))
 			      (:foreground "pink" :background "black"))
 			     (t
 			      (:underline t)))
-  "Face used when the customize item is not defined for customization.")
+  "Face used when the customize item is not defined for customization."
+  :group 'custom-magic-faces)
 
 (defface custom-modified-face '((((class color)) 
 				 (:foreground "white" :background "blue"))
 				(t
 				 (:italic t :bold)))
-  "Face used when the customize item has been modified.")
+  "Face used when the customize item has been modified."
+  :group 'custom-magic-faces)
 
 (defface custom-set-face '((((class color)) 
 				(:foreground "blue" :background "white"))
 			       (t
 				(:italic t)))
-  "Face used when the customize item has been set.")
+  "Face used when the customize item has been set."
+  :group 'custom-magic-faces)
 
 (defface custom-changed-face '((((class color)) 
 				(:foreground "white" :background "blue"))
 			       (t
 				(:italic t)))
-  "Face used when the customize item has been changed.")
+  "Face used when the customize item has been changed."
+  :group 'custom-magic-faces)
 
 (defface custom-saved-face '((t (:underline t)))
-  "Face used when the customize item has been saved.")
+  "Face used when the customize item has been saved."
+  :group 'custom-magic-faces)
 
 (defconst custom-magic-alist '((nil "#" underline "\
 uninitialized, you should not see this.")
@@ -1123,7 +1154,7 @@ If non-nil and not the symbol `long', only show first word."
   :type '(choice (const :tag "no" nil)
 		 (const short)
 		 (const long))
-  :group 'customize)
+  :group 'custom-buffer)
 
 (defcustom custom-magic-show-hidden '(option face)
   "Control whether the state button is shown for hidden items.
@@ -1131,12 +1162,12 @@ The value should be a list with the custom categories where the state
 button should be visible.  Possible categories are `group', `option',
 and `face'."
   :type '(set (const group) (const option) (const face))
-  :group 'customize)
+  :group 'custom-buffer)
 
 (defcustom custom-magic-show-button nil
   "Show a magic button indicating the state of each customization option."
   :type 'boolean
-  :group 'customize)
+  :group 'custom-buffer)
 
 (define-widget 'custom-magic 'default
   "Show and manipulate state for a customization option."
@@ -2176,8 +2207,9 @@ and so forth.  The remaining group tags are shown with
       (custom-load-widget widget)
       (let* ((level (widget-get widget :custom-level))
 	     (symbol (widget-value widget))
-	     (members (sort (get symbol 'custom-group) 
-			    custom-buffer-sort-predicate))
+	     (members (sort (sort (copy-sequence (get symbol 'custom-group))
+				  custom-buffer-sort-predicate)
+			    custom-buffer-order-predicate))
 	     (prefixes (widget-get widget :custom-prefixes))
 	     (custom-prefix-list (custom-prefix-add symbol prefixes))
 	     (length (length members))
@@ -2199,7 +2231,6 @@ and so forth.  The remaining group tags are shown with
 				   (unless (eq (preceding-char) ?\n)
 				     (widget-insert "\n"))))
 			       members)))
-	(put symbol 'custom-group members)
 	(message "Creating group magic...")
 	(mapcar 'custom-magic-reset children)
 	(message "Creating group state...")
@@ -2465,7 +2496,7 @@ Leave point at the location of the call, or after the last expression."
 (defcustom custom-menu-nesting 2
   "Maximum nesting in custom menus."
   :type 'integer
-  :group 'customize)
+  :group 'custom-menu)
 
 (defun custom-face-menu-create (widget symbol)
   "Ignoring WIDGET, create a menu entry for customization face SYMBOL."
@@ -2518,9 +2549,9 @@ The menu is in a format applicable to `easy-menu-define'."
 	     (< (length (get symbol 'custom-group)) widget-menu-max-size))
 	(let ((custom-prefix-list (custom-prefix-add symbol
 						     custom-prefix-list))
-	      (members (sort (get symbol 'custom-group)
-			     custom-menu-sort-predicate)))
-	  (put symbol 'custom-group members)
+	      (members (sort (sort (copy-sequence (get symbol 'custom-group))
+				   custom-menu-sort-predicate)
+			     custom-menu-order-predicate)))
 	  (custom-load-symbol symbol)
 	  `(,(custom-unlispify-menu-entry symbol t)
 	    ,item
@@ -2579,7 +2610,7 @@ The format is suitable for use with `easy-menu-define'."
 (defcustom custom-mode-hook nil
   "Hook called when entering custom-mode."
   :type 'hook
-  :group 'customize)
+  :group 'custom-buffer )
 
 (defun custom-mode ()
   "Major mode for editing customization buffers.

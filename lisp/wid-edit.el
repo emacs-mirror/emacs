@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9908
+;; Version: 1.9914
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -123,17 +123,21 @@ is the string or buffer containing the text."
 		   "http://www.dina.kvl.dk/~abraham/custom/")
   :prefix "widget-"
   :group 'extensions
-  :group 'faces
   :group 'hypermedia)
+
+(defgroup widget-faces nil
+  "Faces used by the widget library."
+  :group 'widgets
+  :group 'faces)
 
 (defface widget-button-face '((t (:bold t)))
   "Face used for widget buttons."
-  :group 'widgets)
+  :group 'widget-faces)
 
 (defcustom widget-mouse-face 'highlight
   "Face used for widget buttons when the mouse is above them."
   :type 'face
-  :group 'widgets)
+  :group 'widget-faces)
 
 (defface widget-field-face '((((class grayscale color)
 			       (background light))
@@ -144,7 +148,7 @@ is the string or buffer containing the text."
 			     (t 
 			      (:italic t)))
   "Face used for editable fields."
-  :group 'widgets)
+  :group 'widget-faces)
 
 ;;; Utility functions.
 ;;
@@ -347,14 +351,15 @@ minibuffer."
 				(t 
 				 (:italic t)))
   "Face used for inactive widgets."
-  :group 'widgets)
+  :group 'widget-faces)
 
 (defun widget-specify-inactive (widget from to)
   "Make WIDGET inactive for user modifications."
   (unless (widget-get widget :inactive)
     (let ((overlay (make-overlay from to nil t nil)))
       (overlay-put overlay 'face 'widget-inactive-face)
-      (overlay-put overlay 'mouse-face 'widget-inactive-face)
+      ;; This is disabled, as it makes the mouse cursor change shape.
+      ;; (overlay-put overlay 'mouse-face 'widget-inactive-face)
       (overlay-put overlay 'evaporate t)
       (overlay-put overlay 'priority 100)
       (overlay-put overlay (if (string-match "XEmacs" emacs-version)
@@ -473,6 +478,26 @@ This is only meaningful for radio buttons or checkboxes in a list."
 	(when (eq (widget-get child :button) widget)
 	  (throw 'child child)))
       nil)))
+
+(defun widget-map-buttons (function &optional buffer maparg)
+  "Map FUNCTION over the buttons in BUFFER.
+FUNCTION is called with the arguments WIDGET and MAPARG.
+
+If FUNCTION returns non-nil, the walk is cancelled.
+
+The arguments MAPARG, and BUFFER default to nil and (current-buffer),
+respectively."
+  (let ((cur (point-min))
+	(widget nil)
+	(parent nil)
+	(overlays (if buffer
+		      (save-excursion (set-buffer buffer) (overlay-lists))
+		    (overlay-lists))))
+    (setq overlays (append (car overlays) (cdr overlays)))
+    (while (setq cur (pop overlays))
+      (setq widget (overlay-get cur 'button))
+      (if (and widget (funcall function widget maparg))
+	  (setq overlays nil)))))
 
 ;;; Glyphs.
 
@@ -720,6 +745,31 @@ The optional ARGS are additional keyword arguments."
     (apply 'insert args)
     (widget-specify-text from (point))))
 
+(defun widget-convert-text (type from to &optional button-from button-to)
+  "Return a widget of type TYPE with endpoint FROM TO.
+No text will be inserted to the buffer, instead the text between FROM
+and TO will be used as the widgets end points. If optional arguments
+BUTTON-FROM and BUTTON-TO are given, these will be used as the widgets
+button end points."
+  (let ((widget (widget-convert type))
+	(from (copy-marker from))
+	(to (copy-marker to)))
+    (widget-specify-text from to)
+    (set-marker-insertion-type from t)
+    (set-marker-insertion-type to nil)
+    (widget-put widget :from from)
+    (widget-put widget :to to)
+    (when button-from
+      (widget-specify-button widget button-from button-to))
+    widget))
+
+(defun widget-convert-button (type from to)
+  "Return a widget of type TYPE with endpoint FROM TO.
+No text will be inserted to the buffer, instead the text between FROM
+and TO will be used as the widgets end points, as well as the widgets
+button end points."
+  (widget-convert-text type from to from to))
+
 ;;; Keymap and Commands.
 
 (defvar widget-keymap nil
@@ -783,7 +833,7 @@ Recommended as a parent keymap for modes using widgets.")
     (t
      (:bold t :underline t)))
   "Face used for pressed buttons."
-  :group 'widgets)
+  :group 'widget-faces)
 
 (defun widget-button-click (event)
   "Invoke button below mouse pointer."
@@ -1017,7 +1067,8 @@ When not inside a field, move to the previous button or field."
 	    widget-field-list (cons field widget-field-list))
       (let ((from (car (widget-get field :field-overlay)))
 	    (to (cdr (widget-get field :field-overlay))))
-	(widget-specify-field field from to)
+	(widget-specify-field field 
+			      (marker-position from) (marker-position to))
 	(set-marker from nil)
 	(set-marker to nil))))
   (widget-clear-undo)
@@ -1037,16 +1088,19 @@ When not inside a field, move to the previous button or field."
 
 (defun widget-field-buffer (widget)
   "Return the start of WIDGET's editing field."
-  (overlay-buffer (widget-get widget :field-overlay)))
+  (let ((overlay (widget-get widget :field-overlay)))
+    (and overlay (overlay-buffer overlay))))
 
 (defun widget-field-start (widget)
   "Return the start of WIDGET's editing field."
-  (overlay-start (widget-get widget :field-overlay)))
+  (let ((overlay (widget-get widget :field-overlay)))
+    (and overlay (overlay-start overlay))))
 
 (defun widget-field-end (widget)
   "Return the end of WIDGET's editing field."
-  ;; Don't subtract one if local-map works at the end of the overlay.
-  (1- (overlay-end (widget-get widget :field-overlay))))
+  (let ((overlay (widget-get widget :field-overlay)))
+    ;; Don't subtract one if local-map works at the end of the overlay.
+    (and overlay (1- (overlay-end overlay)))))
 
 (defun widget-field-find (pos)
   "Return the field at POS.
@@ -1253,32 +1307,34 @@ If that does not exists, call the value of `widget-complete-field'."
 
 (defun widget-default-format-handler (widget escape)
   ;; We recognize the %h escape by default.
-  (let* ((buttons (widget-get widget :buttons))
-	 (doc-property (widget-get widget :documentation-property))
-	 (doc-try (cond ((widget-get widget :doc))
-			((symbolp doc-property)
-			 (documentation-property (widget-get widget :value)
-						 doc-property))
-			(t
-			 (funcall doc-property (widget-get widget :value)))))
-	 (doc-text (and (stringp doc-try)
-			(> (length doc-try) 1)
-			doc-try)))
+  (let* ((buttons (widget-get widget :buttons)))
     (cond ((eq escape ?h)
-	   (when doc-text
-	     (and (eq (preceding-char) ?\n)
-		  (widget-get widget :indent)
-		  (insert-char ?  (widget-get widget :indent)))
-	     ;; The `*' in the beginning is redundant.
-	     (when (eq (aref doc-text  0) ?*)
-	       (setq doc-text (substring doc-text 1)))
-	     ;; Get rid of trailing newlines.
-	     (when (string-match "\n+\\'" doc-text)
-	       (setq doc-text (substring doc-text 0 (match-beginning 0))))
-	     (push (widget-create-child-and-convert
-		    widget 'documentation-string
-		    doc-text)
-		   buttons)))
+	   (let* ((doc-property (widget-get widget :documentation-property))
+		  (doc-try (cond ((widget-get widget :doc))
+				 ((symbolp doc-property)
+				  (documentation-property 
+				   (widget-get widget :value)
+				   doc-property))
+				 (t
+				  (funcall doc-property
+					   (widget-get widget :value)))))
+		  (doc-text (and (stringp doc-try)
+				 (> (length doc-try) 1)
+				 doc-try)))
+	     (when doc-text
+	       (and (eq (preceding-char) ?\n)
+		    (widget-get widget :indent)
+		    (insert-char ?  (widget-get widget :indent)))
+	       ;; The `*' in the beginning is redundant.
+	       (when (eq (aref doc-text  0) ?*)
+		 (setq doc-text (substring doc-text 1)))
+	       ;; Get rid of trailing newlines.
+	       (when (string-match "\n+\\'" doc-text)
+		 (setq doc-text (substring doc-text 0 (match-beginning 0))))
+	       (push (widget-create-child-and-convert
+		      widget 'documentation-string
+		      doc-text)
+		     buttons))))
 	  (t 
 	   (error "Unknown escape `%c'" escape)))
     (widget-put widget :buttons buttons)))
@@ -2476,7 +2532,7 @@ when he invoked the menu."
 				      (:foreground "dark green"))
 				     (t nil))
   "Face used for documentation text."
-  :group 'widgets)
+  :group 'widget-faces)
 
 (define-widget 'documentation-string 'item
   "A documentation string."
@@ -2488,11 +2544,11 @@ when he invoked the menu."
 (defun widget-documentation-string-value-create (widget)
   ;; Insert documentation string.
   (let ((doc (widget-value widget))
-	(shown (widget-get (widget-get widget :parent) :documentation-shown)))
+	(shown (widget-get (widget-get widget :parent) :documentation-shown))
+	(start (point)))
     (if (string-match "\n" doc)
 	(let ((before (substring doc 0 (match-beginning 0)))
 	      (after (substring doc (match-beginning 0)))
-	      (start (point))
 	      buttons)
 	  (insert before " ")
 	  (widget-specify-doc widget start (point))
@@ -2507,7 +2563,8 @@ when he invoked the menu."
 	    (insert after)
 	    (widget-specify-doc widget start (point)))
 	  (widget-put widget :buttons buttons))
-      (insert doc)))
+      (insert doc)
+      (widget-specify-doc widget start (point))))
   (insert "\n"))
 
 (defun widget-documentation-string-action (widget &rest ignore)
@@ -2665,6 +2722,41 @@ It will read a directory name from the minibuffer when invoked."
   :prompt-match 'boundp
   :prompt-history 'widget-variable-prompt-value-history
   :tag "Variable")
+
+(when (featurep 'mule)
+  (defvar widget-coding-system-prompt-value-history nil
+    "History of input to `widget-coding-system-prompt-value'.")
+  
+  (define-widget 'coding-system 'symbol
+    "A MULE coding-system."
+    :format "%{%t%}: %v"
+    :tag "Coding system"
+    :prompt-history 'widget-coding-system-prompt-value-history
+    :prompt-value 'widget-coding-system-prompt-value
+    :action 'widget-coding-system-action)
+  
+  (defun widget-coding-system-prompt-value (widget prompt value unbound)
+    ;; Read coding-system from minibuffer.
+    (intern
+     (completing-read (format "%s (default %s) " prompt value)
+		      (mapcar (function
+			       (lambda (sym)
+				 (list (symbol-name sym))
+				 ))
+			      (coding-system-list)))))
+
+  (defun widget-coding-system-action (widget &optional event)
+    ;; Read a file name from the minibuffer.
+    (let ((answer
+	   (widget-coding-system-prompt-value
+	    widget
+	    (widget-apply widget :menu-tag-get)
+	    (widget-value widget)
+	    t)))
+      (widget-value-set widget answer)
+      (widget-apply widget :notify widget event)
+      (widget-setup)))
+  )
 
 (define-widget 'sexp 'editable-field
   "An arbitrary lisp expression."
