@@ -5038,7 +5038,7 @@ lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
      (arg, set_minimum)
-     register Lisp_Object arg;
+     register Lisp_Object arg, set_minimum;
 {
   Lisp_Object result;
   int hscroll;
