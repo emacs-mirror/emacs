@@ -27,6 +27,7 @@ SQUOTE='
 # '
 
 lisp = $(CURDIR)
+srcdir = $(CURDIR)/..
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -45,13 +46,15 @@ lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
 
-# Files which should not be compiled.
+# Files which should not be compiled.  If you change the name `DONTCOMPILE'
+# to something different, you'll have to change make-dist as well, and
+# modify the lists in $lisp and $shortlisp on src/Makefile.in.
+#
 # - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
 #   no point compiling it, although it doesn't hurt.
 
 DONTCOMPILE = \
 	$(lisp)/cus-load.el \
-	$(lisp)/cus-start.el \
 	$(lisp)/emacs-lisp/cl-specs.el \
 	$(lisp)/eshell/esh-maint.el \
 	$(lisp)/eshell/esh-groups.el \
@@ -67,6 +70,20 @@ DONTCOMPILE = \
 	$(lisp)/international/latin-8.el \
 	$(lisp)/international/latin-9.el \
 	$(lisp)/international/mule-conf.el \
+	$(lisp)/language/czech.el \
+	$(lisp)/language/devanagari.el \
+	$(lisp)/language/english.el \
+	$(lisp)/language/greek.el \
+	$(lisp)/language/hebrew.el \
+	$(lisp)/language/japanese.el \
+	$(lisp)/language/korean.el \
+	$(lisp)/language/lao.el \
+	$(lisp)/language/misc-lang.el \
+	$(lisp)/language/romanian.el \
+	$(lisp)/language/slovak.el \
+	$(lisp)/language/thai.el \
+	$(lisp)/language/utf-8-lang.el \
+	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
@@ -94,7 +111,6 @@ DONTCOMPILE = \
 	$(lisp)/term/vt400.el \
 	$(lisp)/term/vt420.el \
 	$(lisp)/term/wyse50.el \
-	$(lisp)/term/xterm.el \
 	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done to
@@ -148,10 +164,7 @@ custom-deps: cus-load.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
-finder-inf.el:
-	echo (provide $(SQUOTE)finder-inf)>> $@
-
-finder-data: finder-inf.el doit
+finder-data: doit
 	@echo Directories: $(WINS)
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
 
@@ -196,11 +209,16 @@ update-subdirs-SH: doit
 
 updates: update-subdirs autoloads finder-data custom-deps
 
+# Update the AUTHORS file.
+
+update-authors:
+	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	$(ETAGS) $(lisptagsfiles1) $(lisptagsfiles2)
 
-TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
-	$(ETAGS) -o TAGS-LISP $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
+TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
+	$(ETAGS) -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
 
 .SUFFIXES: .elc .el
 
@@ -210,8 +228,10 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 $(DONTCOMPILE:.el=.elc):
 	-$(DEL) $@
 
-# Compile all Lisp files, except those from DONTCOMPILE.  This
-# compiles files unconditionally.  All .elc files are made writable
+# Compile all Lisp files, except those from DONTCOMPILE,
+# but don't recompile those that are up to date.
+
+# All .elc files are made writable
 # before compilation in case we checked out read-only (CVS option -r).
 # Files MUST be compiled one by one.  If we compile several files in a
 # row we can't make sure that the compilation environment is clean.
@@ -220,14 +240,18 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
+compile: subdirs.el compile-$(SHELLTYPE) doit
 
-compile-files-CMD:
+compile-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
-	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
-	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
+	for %f in ($(COMPILE_FIRST)) do \
+	  if not exist %f \
+	    $(emacs) -f batch-byte-compile-if-not-done %f
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do \
+	  if not exist %f/%g \
+	    $(emacs) -f batch-byte-compile-if-not-done %f/%g
 
-compile-files-SH:
+compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -235,9 +259,45 @@ compile-files-SH:
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
-	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile $$el; \
+	    if test -f $$el; \
+	    then \
+	      echo Compiling $$el; \
+	      $(emacs) -f batch-byte-compile-if-not-done $$el; \
+	    fi \
 	  done; \
+	done
+
+# Compile all Lisp files, except those from DONTCOMPILE.  This
+# is like `compile' but compiles files unconditionally.
+compile-always: subdirs.el compile-always-$(SHELLTYPE) doit
+
+compile-always-CMD:
+#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
+	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
+
+compile-always-SH:
+#	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
+	for el in $(COMPILE_FIRST); do \
+	  echo Compiling $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	done
+	for dir in $(lisp) $(WINS); do \
+	  for el in $$dir/*.el; do \
+	    echo Compiling $$el; \
+	    $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  done; \
+	done
+
+compile-calc: compile-calc-$(SHELLTYPE)
+
+compile-calc-CMD:
+	for %f in ($(lisp)/calc/*.el) do $(emacs) -f batch-byte-compile %f
+
+compile-calc-SH: 
+	for el in $(lisp)/calc/*.el; do \
+	  echo Compiling $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -256,7 +316,7 @@ compile: backup-compiled-files compile-files
 # .elc is present.
 
 recompile: doit
-	$(emacs) -f batch-byte-recompile-directory .
+	$(emacs) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
@@ -278,7 +338,7 @@ bootstrap-clean-SH:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: autoloads compile-files custom-deps
+bootstrap: update-subdirs autoloads compile finder-data custom-deps
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
