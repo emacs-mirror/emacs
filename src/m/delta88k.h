@@ -153,7 +153,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * we have Berkeley style <sys/time.h>
  */
 #define HAVE_TIMEVAL
-#define HAVE_GETTIMEOFDAY
 
 /* SysV88 has select(). */
 #define HAVE_SELECT
