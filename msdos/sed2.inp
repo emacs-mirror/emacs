@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------
+# -sed2.inp-------------------------------------------------------------
 # Configuration script for config.h
 # ----------------------------------------------------------------------
 /^#undef LISP_FLOAT_TYPE *$/s/undef/define/
@@ -18,10 +18,12 @@
 /^#undef HAVE_RANDOM *$/s/undef/define/
 /^#undef HAVE_MKDIR *$/s/undef/define/
 /^#undef HAVE_RMDIR *$/s/undef/define/
+/^#undef HAVE_BCMP *$/s/undef/define/
 /^#undef HAVE_BCOPY *$/s/undef/define/
 /^#undef HAVE_FREXP *$/s/undef/define/
 /^#undef HAVE_FTIME *$/s/undef/define/
 s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
+s/^#undef CONFIGURATION *$/#define CONFIGURATION "msdos"/
 s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/dos386.h"!
