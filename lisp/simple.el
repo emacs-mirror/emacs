@@ -1077,7 +1077,13 @@ is not *inside* the region START...END."
 (defvar shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument.")
 
-(defun shell-command (command &optional output-buffer)
+(defvar shell-command-default-error-buffer nil
+  "*Buffer name for `shell-command' and `shell-command-on-region' error output.
+This buffer is used when `shell-command' or 'shell-command-on-region'
+is run interactively.  A value of nil means that output to stderr and
+stdout will be intermixed in the output stream.")
+
+(defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 
 If COMMAND ends in ampersand, execute it asynchronously.
@@ -1104,34 +1110,64 @@ says to put the output in some other buffer.
 If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
 If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in current buffer.  (This cannot be done asynchronously.)
-In either case, the output is inserted after point (leaving mark after it)."
+In either case, the output is inserted after point (leaving mark after it).
+
+If the optional third argument ERROR-BUFFER is non-nil, it is a buffer
+or buffer name to which to direct the command's standard error output.
+If it is nil, error output is mingled with regular output.
+In an interactive call, the variable `shell-command-default-error-buffer'
+specifies the value of ERROR-BUFFER."
+
   (interactive (list (read-from-minibuffer "Shell command: "
 					   nil nil nil 'shell-command-history)
-		     current-prefix-arg))
+		     current-prefix-arg
+		     shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
 				 'shell-command)))
     (if handler
-	(funcall handler 'shell-command command output-buffer)
+	(funcall handler 'shell-command command output-buffer error-buffer)
       (if (and output-buffer
 	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
-	  (progn (barf-if-buffer-read-only)
-		 (push-mark)
-		 ;; We do not use -f for csh; we will not support broken use of
-		 ;; .cshrcs.  Even the BSD csh manual says to use
-		 ;; "if ($?prompt) exit" before things which are not useful
-		 ;; non-interactively.  Besides, if someone wants their other
-		 ;; aliases for shell commands then they can still have them.
-		 (call-process shell-file-name nil t nil
-			       shell-command-switch command)
-		 ;; This is like exchange-point-and-mark, but doesn't
-		 ;; activate the mark.  It is cleaner to avoid activation,
-		 ;; even though the command loop would deactivate the mark
-		 ;; because we inserted text.
-		 (goto-char (prog1 (mark t)
-			      (set-marker (mark-marker) (point)
-					  (current-buffer)))))
+	  (let ((error-file
+		 (if error-buffer 
+		     (concat (file-name-directory temp-file-name-pattern)
+			     (make-temp-name "scor"))
+		   nil)))
+	    (barf-if-buffer-read-only)
+	    (push-mark)
+	    ;; We do not use -f for csh; we will not support broken use of
+	    ;; .cshrcs.  Even the BSD csh manual says to use
+	    ;; "if ($?prompt) exit" before things which are not useful
+	    ;; non-interactively.  Besides, if someone wants their other
+	    ;; aliases for shell commands then they can still have them.
+	    (call-process shell-file-name nil 
+			  (if error-file
+			      (list t error-file)
+			    t)
+			  nil shell-command-switch command)
+	    (when (and error-file (file-exists-p error-file))
+	      (if (< 0 (nth 7 (file-attributes error-file)))
+		  (with-current-buffer (get-buffer-create error-buffer)
+		    (let ((pos-from-end (- (point-max) (point))))
+		      (or (bobp)
+			  (insert "\f\n"))
+		      ;; Do no formatting while reading error file,
+		      ;; because that can run a shell command, and we
+		      ;; don't want that to cause an infinite recursion.
+		      (format-insert-file error-file nil)
+		      ;; Put point after the inserted errors.
+		      (goto-char (- (point-max) pos-from-end)))
+		    (display-buffer (current-buffer))))
+	      (delete-file error-file))
+	    ;; This is like exchange-point-and-mark, but doesn't
+	    ;; activate the mark.  It is cleaner to avoid activation,
+	    ;; even though the command loop would deactivate the mark
+	    ;; because we inserted text.
+	    (goto-char (prog1 (mark t)
+			 (set-marker (mark-marker) (point)
+				     (current-buffer)))))
 	;; Preserve the match data in case called from a program.
 	(save-match-data
 	  (if (string-match "[ \t]*&[ \t]*$" command)
@@ -1160,8 +1196,8 @@ In either case, the output is inserted after point (leaving mark after it)."
 		  (require 'shell) (shell-mode)
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  ))
-	    (shell-command-on-region (point) (point) command output-buffer)
-	    ))))))
+	    (shell-command-on-region (point) (point) command
+				     output-buffer nil error-buffer)))))))
 
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself.
@@ -1170,12 +1206,6 @@ In either case, the output is inserted after point (leaving mark after it)."
       (message "%s: %s." 
 	       (car (cdr (cdr (process-command process))))
 	       (substring signal 0 -1))))
-
-(defvar shell-command-on-region-default-error-buffer nil
-  "*Name of buffer that `shell-command-on-region' uses for stderr.
-This buffer is used when `shell-command-on-region' is run interactively.
-A nil value for this variable means that output to stderr and stdout
-will be intermixed in the output stream.")
 
 (defun shell-command-on-region (start end command
 				      &optional output-buffer replace
@@ -1217,9 +1247,8 @@ around it.
 If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
-In an interactive call, the variable
-`shell-command-on-region-default-error-buffer' specifies the value
-of ERROR-BUFFER."
+In an interactive call, the variable `shell-command-default-error-buffer'
+specifies the value of ERROR-BUFFER."
   (interactive (let ((string
 		      ;; Do this before calling region-beginning
 		      ;; and region-end, in case subprocess output
@@ -1233,7 +1262,7 @@ of ERROR-BUFFER."
 		       string
 		       current-prefix-arg
 		       current-prefix-arg
-		       shell-command-on-region-default-error-buffer)))
+		       shell-command-default-error-buffer)))
   (let ((error-file
 	 (if error-buffer 
 	     (concat (file-name-directory temp-file-name-pattern)
@@ -1300,13 +1329,18 @@ of ERROR-BUFFER."
 			     0
 			   (count-lines (point-min) (point-max))))))
 	    (cond ((= lines 0)
-		   (if success
-		       (message "(Shell command %sed with no output)"
+		   (if (and error-file
+			    (< 0 (nth 7 (file-attributes error-file))))
+		       (message "(Shell command %sed with some error output)"
 				(if (equal 0 exit-status)
 				    "succeed"
-				  "fail")))
+				  "fail"))
+		     (message "(Shell command %sed with no output)"
+			      (if (equal 0 exit-status)
+				  "succeed"
+				"fail")))
 		   (kill-buffer buffer))
-		  ((and success (= lines 1))
+		  ((= lines 1)
 		   (message "%s"
 			    (save-excursion
 			      (set-buffer buffer)
@@ -1318,12 +1352,20 @@ of ERROR-BUFFER."
 		     (set-buffer buffer)
 		     (goto-char (point-min)))
 		   (display-buffer buffer)))))))
-    (if (and error-file (file-exists-p error-file))
-	(save-excursion
-	  (set-buffer (get-buffer-create error-buffer))
-	  ;; Do no formatting while reading error file, for fear of looping.
-	  (format-insert-file error-file nil)
-	  (delete-file error-file)))
+    (when (and error-file (file-exists-p error-file))
+      (if (< 0 (nth 7 (file-attributes error-file)))
+	  (with-current-buffer (get-buffer-create error-buffer)
+	    (let ((pos-from-end (- (point-max) (point))))
+	      (or (bobp)
+		  (insert "\f\n"))
+	      ;; Do no formatting while reading error file,
+	      ;; because that can run a shell command, and we
+	      ;; don't want that to cause an infinite recursion.
+	      (format-insert-file error-file nil)
+	      ;; Put point after the inserted errors.
+	      (goto-char (- (point-max) pos-from-end)))
+	    (display-buffer (current-buffer))))
+      (delete-file error-file))
     exit-status))
        
 (defun shell-command-to-string (command)
