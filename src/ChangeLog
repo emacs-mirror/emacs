@@ -1,3 +1,7 @@
+2002-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fcopy_file): Fix backward test of KEEP_TIME.
+
 2002-10-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sysdep.c [MSDOS] (request_sigio, unrequest_sigio):
