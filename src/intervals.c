@@ -478,17 +478,17 @@ split_interval_right (interval, offset)
     {
       interval->right = new;
       new->total_length = new_length;
-
-      return new;
     }
-
-  /* Insert the new node between INTERVAL and its right child.  */
-  new->right = interval->right;
-  interval->right->parent = new;
-  interval->right = new;
-  new->total_length = new_length + new->right->total_length;
-
-  balance_an_interval (new);
+  else
+    {
+      /* Insert the new node between INTERVAL and its right child.  */
+      new->right = interval->right;
+      interval->right->parent = new;
+      interval->right = new;
+      new->total_length = new_length + new->right->total_length;
+      balance_an_interval (new);
+    }
+  
   balance_possible_root_interval (interval);
 
   return new;
@@ -524,17 +524,17 @@ split_interval_left (interval, offset)
     {
       interval->left = new;
       new->total_length = new_length;
-
-      return new;
     }
-
-  /* Insert the new node between INTERVAL and its left child.  */
-  new->left = interval->left;
-  new->left->parent = new;
-  interval->left = new;
-  new->total_length = new_length + new->left->total_length;
-
-  balance_an_interval (new);
+  else
+    {
+      /* Insert the new node between INTERVAL and its left child.  */
+      new->left = interval->left;
+      new->left->parent = new;
+      interval->left = new;
+      new->total_length = new_length + new->left->total_length;
+      balance_an_interval (new);
+    }
+  
   balance_possible_root_interval (interval);
 
   return new;
