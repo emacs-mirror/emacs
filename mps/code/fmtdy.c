@@ -182,7 +182,7 @@ int dylan_wrapper_check(mps_word_t *w)
   /* size.  This assumes that DylanWorks is only going to use byte */
   /* vectors in the non-word case. */
 
-  /* Variable part format 6 is reserved. */ 
+  /* Variable part format 6 is reserved. */
   assert(vf != 6);
 
   /* There should be no shift in word vector formats. */
@@ -240,6 +240,32 @@ static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
 
   return MPS_RES_OK;
 }
+
+/* dylan_weak_dependent -- returns the linked object, if any.
+ */
+
+extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
+{
+  mps_word_t *object;
+  mps_word_t *wrapper;
+  mps_word_t fword;
+  mps_word_t fl;
+  mps_word_t ff;
+
+  assert(parent != NULL);
+  object = (mps_word_t *)parent;
+  wrapper = (mps_word_t *)object[0];
+  assert(dylan_wrapper_check(wrapper));
+  fword = wrapper[3];
+  ff = fword & 3;
+  /* traceable fixed part */
+  assert(ff == 1);
+  fl = fword & ~3uL;
+  /* at least one fixed field */
+  assert(fl >= 1);
+  return (mps_addr_t) object[1];
+}
+
 
 /* Scan weakly a contiguous array of references in [base, limit). */
 /* Only required to scan vectors for Dylan Weak Tables. */
