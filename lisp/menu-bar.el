@@ -540,7 +540,7 @@ Do the same for the keys of the same name."
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
-(defmacro menu-bar-make-toggle (name variable doc message help &rest body)
+(defmacro menu-bar-make-toggle (name variable doc message help &optional props &rest body)
   `(progn
      (defun ,name ()
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
@@ -566,6 +566,7 @@ Do the same for the keys of the same name."
 			(interactive)
 			(,name)
 			(customize-mark-as-set ',variable))
+		 ,@(if props props)
 		 :help ,help
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
@@ -583,7 +584,7 @@ Do the same for the keys of the same name."
     (dolist (elt '(line-number-mode column-number-mode scroll-bar-mode
 		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style
-		   case-fold-search show-paren-mode
+		   case-fold-search cua-mode show-paren-mode
 		   transient-mark-mode global-font-lock-mode
 		   display-time-mode auto-compression-mode
 		   current-language-environment default-input-method
@@ -777,6 +778,7 @@ Do the same for the keys of the same name."
 			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
 			"Uniquify buffer names by adding parent directory names"
+			() ; no props
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
@@ -784,6 +786,16 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-options-menu [edit-options-separator]
   '("--"))
+(define-key menu-bar-options-menu [cua-mode]
+  '(menu-item "CUA-style cut and paste"
+	      (lambda ()
+		(interactive)
+		(cua-mode nil)
+		(customize-mark-as-set 'cua-mode)
+		(message "CUA-style cut and paste %s"
+			 (if cua-mode "enabled" "disabled")))
+	      :help "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
+	      :button (:toggle . cua-mode)))
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 			"Case-Insensitive Search"
@@ -824,7 +836,8 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
 			"Active Region Highlighting (Transient Mark mode)"
 			"Transient Mark mode %s"
-			"Make text in active region stand out in color"))
+			"Make text in active region stand out in color"
+			(:enable (not cua-mode))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
 			"Syntax Highlighting (Global Font Lock mode)"
