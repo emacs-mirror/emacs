@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.61) $
+ * $HopeName: MMsrc!mpm.h(trunk.62) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -66,16 +66,16 @@ extern Size (PointerOffset)(Pointer base, Pointer limit);
   ((Size)((char *)(limit) - (char *)(base)))
 
 extern Addr (AddrAdd)(Addr addr, Size size);
-#define AddrAdd(p, s)           ((Addr)PointerAdd((Pointer)p, s))
+#define AddrAdd(p, s)           ((Addr)PointerAdd((Pointer)(p), (s)))
 
 extern Addr (AddrSub)(Addr addr, Size size);
-#define AddrSub(p, s)           ((Addr)PointerSub((Pointer)p, s))
+#define AddrSub(p, s)           ((Addr)PointerSub((Pointer)(p), (s)))
 
 extern Size (AddrOffset)(Addr base, Addr limit);
-#define AddrOffset(b, l)        (PointerOffset((Pointer)b, (Pointer)l))
+#define AddrOffset(b, l)        (PointerOffset((Pointer)(b), (Pointer)(l)))
 
 extern Addr (AddrAlignDown)(Addr addr, Align align);
-#define AddrAlignDown(p, a)     ((Addr)WordAlignDown((Word)p, a))
+#define AddrAlignDown(p, a)     ((Addr)WordAlignDown((Word)(p), (a)))
 
 
 /* Logs and Powers
@@ -95,11 +95,11 @@ extern Shift SizeFloorLog2(Size size);
 
 #define AddrWord(a)             ((Word)(a))
 #define SizeWord(s)             ((Word)(s))
-#define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), a)
-#define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), a))
-#define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), a)
-#define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), a))
-#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), a))
+#define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
+#define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
+#define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
+#define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
+#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
 
 
 /* Formatted Output -- see design.mps.writef, impl.c.mpm */
@@ -281,7 +281,7 @@ extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->class->fix)(pool, ss, seg, refIO))
+  ((*(pool)->class->fix)((pool), (ss), (seg), (refIO)))
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolBenefit(Pool pool, Action action);
 extern Res PoolAct(Pool pool, Action action);
@@ -352,15 +352,15 @@ extern Res PoolCollectAct(Pool pool, Action action);
 
 /* Trace Interface -- see impl.c.trace */
 
-#define TraceSetSingle(ti)      BS_SINGLE(TraceSet, ti)
-#define TraceSetIsMember(ts, ti)BS_IS_MEMBER(ts, ti)
-#define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, ts, ti)
-#define TraceSetDel(ts, ti)     BS_DEL(TraceSet, ts, ti)
-#define TraceSetUnion(ts1, ts2) BS_UNION(ts1, ts2)
-#define TraceSetInter(ts1, ts2) BS_INTER(ts1, ts2)
-#define TraceSetDiff(ts1, ts2)  BS_DIFF(ts1, ts2)
-#define TraceSetSuper(ts1, ts2) BS_SUPER(ts1, ts2)
-#define TraceSetSub(ts1, ts2)   BS_SUB(ts1, ts2)
+#define TraceSetSingle(ti)      BS_SINGLE(TraceSet, (ti))
+#define TraceSetIsMember(ts, ti)BS_IS_MEMBER((ts), (ti))
+#define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, (ts), (ti))
+#define TraceSetDel(ts, ti)     BS_DEL(TraceSet, (ts), (ti))
+#define TraceSetUnion(ts1, ts2) BS_UNION((ts1), (ts2))
+#define TraceSetInter(ts1, ts2) BS_INTER((ts1), (ts2))
+#define TraceSetDiff(ts1, ts2)  BS_DIFF((ts1), (ts2))
+#define TraceSetSuper(ts1, ts2) BS_SUPER((ts1), (ts2))
+#define TraceSetSub(ts1, ts2)   BS_SUB((ts1), (ts2))
 
 
 extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
@@ -514,7 +514,7 @@ Ref ArenaRead(Arena arena, Addr addr);
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) \
-  (&arena->greyRing[rank])
+  (&(arena)->greyRing[rank])
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
@@ -569,9 +569,9 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 #define SegSummary(seg)         ((RefSet)(seg)->_summary)
 #define SegBuffer(seg)          ((seg)->_buffer)
 #define SegPoolRing(seg)        (&(seg)->_poolRing)
-#define SegOfPoolRing(node)     RING_ELT(Seg, _poolRing, node)
+#define SegOfPoolRing(node)     RING_ELT(Seg, _poolRing, (node))
 #define SegGreyRing(seg)        (&(seg)->_greyRing)
-#define SegOfGreyRing(node)     RING_ELT(Seg, _greyRing, node)
+#define SegOfGreyRing(node)     RING_ELT(Seg, _greyRing, (node))
 
 #define SegSetSingle(seg, s)    ((void)((seg)->_single = (s)))
 #define SegSetPM(seg, mode)     ((void)((seg)->_pm = (mode)))
@@ -619,7 +619,7 @@ extern Addr BufferScanLimit(Buffer buffer);
 extern AP (BufferAP)(Buffer buffer);
 #define BufferAP(buffer)        (&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
-#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, ap)
+#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, (ap))
 extern Arena BufferArena(Buffer buffer);
 #define BufferArena(buffer)     ((buffer)->arena)
 extern Pool (BufferPool)(Buffer buffer);
@@ -659,23 +659,23 @@ extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 extern Bool RankCheck(Rank rank);
 extern Bool RankSetCheck(RankSet rankSet);
 
-#define RankSetIsMember(rs, r)  BS_IS_MEMBER(rs, r)
-#define RankSetSingle(r)        BS_SINGLE(RankSet, r)
+#define RankSetIsMember(rs, r)  BS_IS_MEMBER((rs), (r))
+#define RankSetSingle(r)        BS_SINGLE(RankSet, (r))
 #define RankSetIsSingle(r)      BS_IS_SINGLE(r)
-#define RankSetUnion(rs1, rs2)  BS_UNION(rs1, rs2)
-#define RankSetDel(rs, r)       BS_DEL(RankSet, rs, r)
+#define RankSetUnion(rs1, rs2)  BS_UNION((rs1), (rs2))
+#define RankSetDel(rs, r)       BS_DEL(RankSet, (rs), (r))
 
 #define RefSetZone(arena, addr) \
-  (((Word)(addr) >> arena->zoneShift) & (MPS_WORD_WIDTH - 1))
-#define RefSetUnion(rs1, rs2)   BS_UNION(rs1, rs2)
-#define RefSetInter(rs1, rs2)   BS_INTER(rs1, rs2)
+  (((Word)(addr) >> (arena)->zoneShift) & (MPS_WORD_WIDTH - 1))
+#define RefSetUnion(rs1, rs2)   BS_UNION((rs1), (rs2))
+#define RefSetInter(rs1, rs2)   BS_INTER((rs1), (rs2))
 #define RefSetAdd(arena, rs, addr) \
-  BS_ADD(RefSet, rs, RefSetZone(arena, addr))
+  BS_ADD(RefSet, (rs), RefSetZone((arena), (addr)))
 #define RefSetIsMember(arena, rs, addr) \
-  BS_IS_MEMBER(rs, RefSetZone(arena, addr))
-#define RefSetSuper(rs1, rs2)   BS_SUPER(rs1, rs2)
-#define RefSetDiff(rs1, rs2)    BS_DIFF(rs1, rs2)
-#define RefSetSub(rs1, rs2)     BS_SUB(rs1, rs2)
+  BS_IS_MEMBER((rs), RefSetZone((arena), (addr)))
+#define RefSetSuper(rs1, rs2)   BS_SUPER((rs1), (rs2))
+#define RefSetDiff(rs1, rs2)    BS_DIFF((rs1), (rs2))
+#define RefSetSub(rs1, rs2)     BS_SUB((rs1), (rs2))
 
 extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
