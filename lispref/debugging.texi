@@ -140,7 +140,7 @@ enter the debugger.
 
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
-@code{debug-on-error} to @code{t} while loading the init file., and
+@code{debug-on-error} to @code{t} while loading the init file, and
 bypasses the @code{condition-case} which normally catches errors in the
 init file.
 

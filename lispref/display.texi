@@ -3162,7 +3162,7 @@ Emacs is displaying using X.
 @item pc
 Emacs is displaying using MS-DOS.
 @item w32
-Emacs is displaying using Windows NT or Windows 9x.
+Emacs is displaying using Windows.
 @item mac
 Emacs is displaying using a Macintosh.
 @item nil

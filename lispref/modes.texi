@@ -1644,7 +1644,7 @@ variables @code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function}:
 
 @defvar imenu-prev-index-position-function
-If this variable is non-@code{nil}, its value should be a funtion that
+If this variable is non-@code{nil}, its value should be a function that
 finds the next ``definition'' to put in the buffer index, scanning
 backward in the buffer from point.  It should return @code{nil} if it
 doesn't find another ``definition'' before point.  Otherwise it shuould

@@ -216,7 +216,7 @@ to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
 (``sweep'') phase of the garbage collector arranges to reuse them.
 
-??? Maybe add something describing weak hash tables here?
+@c ??? Maybe add something describing weak hash tables here?
 
 @cindex free list
   The sweep phase puts unused cons cells onto a @dfn{free list}
@@ -562,7 +562,7 @@ you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
 
   You must not use C initializers for static or global variables unless
-the variables are never stored in once Emacs is dumped.  These variables
+the variables are never written once Emacs is dumped.  These variables
 with initializers are allocated in an area of memory that becomes
 read-only (on certain operating systems) as a result of dumping Emacs.
 @xref{Pure Storage}.
@@ -745,7 +745,7 @@ Here is a list of the @code{struct buffer_text} fields:
 
 @table @code
 @item beg
-This field contains the Actual address of the buffer contents.
+This field contains the actual address of the buffer contents.
 
 @item got
 This holds the character position of the gap in the buffer.
@@ -879,7 +879,7 @@ the last time the buffer was displayed in a window.
 This flag is set when narrowing changes in a buffer.
 
 @item prevent_redisplay_optimizations_p
-A flag indicating the redisplay optiomizations should not be used 
+this flag indicates that redisplay optimizations should not be used 
 to display this buffer.
 
 @item undo_list

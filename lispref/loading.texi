@@ -756,7 +756,7 @@ rather than replacing that element.  @xref{Eval}.
 
   Preloaded libraries don't contribute initially to @code{load-history}.
 Instead, preloading writes information about preloaded libraries into a
-file, which can be loaded later on to to add information to
+file, which can be loaded later on to add information to
 @code{load-history} describing the preloaded files.  This file is
 installed in @code{exec-directory} and has a name of the form
 @file{fns-@var{emacsversion}.el}.

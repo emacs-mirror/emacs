@@ -2094,7 +2094,7 @@ commands when you click on them---in effect, a kind of graphical menu
 bar.  Emacs supports tool bars starting with version 21.
 
   The frame parameter @code{tool-bar-lines} (X resource @samp{toolBar})
-controls how may lines' worth of height to reserve for the tool bar.  A
+controls how many lines' worth of height to reserve for the tool bar.  A
 zero value suppresses the tool bar.  If the value is nonzero, and
 @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar expands and
 contracts automatically as needed to hold the specified contents.
@@ -2133,7 +2133,7 @@ one of them is used, depending on circumstances:
 
 @table @asis
 @item item 0
-Used when the iitem is enabled and selected.
+Used when the item is enabled and selected.
 @item item 1
 Used when the item is enabled and deselected.
 @item item 2

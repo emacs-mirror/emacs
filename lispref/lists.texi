@@ -42,7 +42,7 @@ see @ref{Cons Cell Type}.)  @sc{cdr} is pronounced ``could-er.''
 its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
 
   A list is a series of cons cells ``chained together,'' so that each
-cell refers to the next one.  There one cons cell for each element of
+cell refers to the next one.  There is one cons cell for each element of
 the list.  By convention, the @sc{car}s of the cons cells hold the
 elements of the list, and the @sc{cdr}s are used to chain the list: the
 @sc{cdr} slot of each cons cell refers to the following cons cell.  The
