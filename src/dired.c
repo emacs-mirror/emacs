@@ -144,6 +144,8 @@ directory_files_internal (directory, full, match, nosort, attrs)
   int needsep = 0;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  DIRENTRY *dp;
+  int retry_p;
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
@@ -182,6 +184,8 @@ directory_files_internal (directory, full, match, nosort, attrs)
      an error is signaled while the directory stream is open, we
      have to make sure it gets closed, and setting up an
      unwind_protect to do so would be a pain.  */
+ retry:
+  
   d = opendir (XSTRING (dirfilename)->data);
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -203,14 +207,9 @@ directory_files_internal (directory, full, match, nosort, attrs)
     needsep = 1;
 #endif /* not VMS */
 
-  /* Loop reading blocks */
-  while (1)
+  /* Loop reading blocks until EOF or error.  */
+  while ((dp = readdir (d)) != NULL)
     {
-      DIRENTRY *dp = readdir (d);
-
-      if (dp == NULL)
-	break;
-      
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  int len;
@@ -295,10 +294,21 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	}
     }
 
+  retry_p = 0;
+#ifdef EAGAIN
+  retry_p |= errno == EAGAIN;
+#endif
+#ifdef EINTR
+  retry_p |= errno == EINTR;
+#endif
+
   closedir (d);
 
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
+
+  if (retry_p)
+    goto retry;
 
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
