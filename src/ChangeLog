@@ -1,3 +1,18 @@
+2004-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (_widget_value): Added lname and lkey.
+	(digest_single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* w32menu.c (globals_of_w32menu): Check for Unicode API.
+	(digest_single_submenu, w32_menu_show): Encode menu strings as
+	UTF-8 if Unicode API is available.
+	(utf8to16): New function.
+	(add_menu_item): Use it when calling Unicode API.
+	
 2004-09-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): Look for non-nil `cursor' property
