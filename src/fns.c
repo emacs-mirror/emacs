@@ -1746,7 +1746,7 @@ Returns the beginning of the reversed list.  */)
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-    doc: /* Reverse LIST, copying.  Returns the beginning of the reversed list.
+       doc: /* Reverse LIST, copying.  Returns the beginning of the reversed list.
 See also the function `nreverse', which is used more often.  */)
      (list)
      Lisp_Object list;
