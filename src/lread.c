@@ -803,16 +803,16 @@ nil means discard it; anything else is stream for print.\n\
 \n\
 If there is no error, point does not move.  If there is an error,\n\
 point remains at the end of the last character read from the buffer.")
-  (bufname, printflag)
-     Lisp_Object bufname, printflag;
+  (buffer, printflag)
+     Lisp_Object buffer, printflag;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, buf;
 
-  if (NILP (bufname))
+  if (NILP (buffer))
     buf = Fcurrent_buffer ();
   else
-    buf = Fget_buffer (bufname);
+    buf = Fget_buffer (buffer);
   if (NILP (buf))
     error ("No such buffer.");
 
@@ -867,8 +867,8 @@ nil means discard it; anything else is stream for printing it.\n\
 \n\
 If there is no error, point does not move.  If there is an error,\n\
 point remains at the end of the last character read from the buffer.")
-  (b, e, printflag)
-     Lisp_Object b, e, printflag;
+  (start, end, printflag)
+     Lisp_Object start, end, printflag;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, cbuf;
@@ -885,9 +885,9 @@ point remains at the end of the last character read from the buffer.")
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
 
-  /* This both uses b and checks its type.  */
-  Fgoto_char (b);
-  Fnarrow_to_region (make_number (BEGV), e);
+  /* This both uses start and checks its type.  */
+  Fgoto_char (start);
+  Fnarrow_to_region (make_number (BEGV), end);
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval, !NILP (printflag));
 
   return unbind_to (count, Qnil);
@@ -1835,23 +1835,23 @@ DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
 If there is none, one is created by this function and returned.\n\
 A second optional argument specifies the obarray to use;\n\
 it defaults to the value of `obarray'.")
-  (str, obarray)
-     Lisp_Object str, obarray;
+  (string, obarray)
+     Lisp_Object string, obarray;
 {
   register Lisp_Object tem, sym, *ptr;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (string, 0);
 
-  tem = oblookup (obarray, XSTRING (str)->data, XSTRING (str)->size);
+  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
   if (!INTEGERP (tem))
     return tem;
 
   if (!NILP (Vpurify_flag))
-    str = Fpurecopy (str);
-  sym = Fmake_symbol (str);
+    string = Fpurecopy (string);
+  sym = Fmake_symbol (string);
 
   ptr = &XVECTOR (obarray)->contents[XINT (tem)];
   if (SYMBOLP (*ptr))
@@ -1866,17 +1866,17 @@ DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
   "Return the canonical symbol whose name is STRING, or nil if none exists.\n\
 A second optional argument specifies the obarray to use;\n\
 it defaults to the value of `obarray'.")
-  (str, obarray)
-     Lisp_Object str, obarray;
+  (string, obarray)
+     Lisp_Object string, obarray;
 {
   register Lisp_Object tem;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (string, 0);
 
-  tem = oblookup (obarray, XSTRING (str)->data, XSTRING (str)->size);
+  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
   if (!INTEGERP (tem))
     return tem;
   return Qnil;
