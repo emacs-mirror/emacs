@@ -127,7 +127,7 @@ The value of this variable is used when JIT Lock mode is turned on."
 		 (other :tag "syntax-driven" syntax-driven))
   :group 'jit-lock)
 
-(defcustom jit-lock-defer-time nil ;; 0.5
+(defcustom jit-lock-defer-time nil ;; 0.25
   "Idle time after which deferred fontification should take place.
 If nil, fontification is not deferred."
   :group 'jit-lock
