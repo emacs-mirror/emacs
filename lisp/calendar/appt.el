@@ -125,7 +125,7 @@ To be detected, the diary entry must have the time
 as the first thing on a line.")
 
 ;;;###autoload
-(defvar appt-message-warning-time 10
+(defvar appt-message-warning-time 12
   "*Time in minutes before an appointment that the warning begins.")
 
 ;;;###autoload
@@ -145,7 +145,7 @@ as the first thing on a line.")
   "*Non-nil means display appointment message in another window.")
 
 ;;;###autoload
-(defvar appt-display-duration 5
+(defvar appt-display-duration 10
   "*The number of seconds an appointment message is displayed.")
 
 ;;;###autoload
@@ -162,7 +162,7 @@ The number before each time/message is the time in minutes from midnight.")
 (defconst max-time 1439
   "11:59pm in minutes - number of minutes in a day minus 1.")
 
-(defvar appt-display-interval 1
+(defvar appt-display-interval 3
   "*Number of minutes to wait between checking the appointment list.")
   
 (defvar appt-buffer-name " *appt-buf*"
