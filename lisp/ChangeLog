@@ -1,3 +1,8 @@
+2002-04-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* isearch.el (isearch-message-prefix): Use minibuffer-prompt face
+	for prompt.
+
 2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/iso-acc.el (iso-accents-accent-key): Use `vector'
