@@ -274,6 +274,8 @@ and source-file directory for your debugger."
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-complete-list)
 
+(defvar gud-comint-buffer nil)
+
 (defun gud-gdb-complete-command ()
   "Perform completion on the GDB command preceding point.
 This is implemented using the GDB `complete' command which isn't
@@ -873,8 +875,6 @@ comint mode, which see."
   (setq gud-delete-prompt-marker (make-marker))
   (run-hooks 'gud-mode-hook)
 )
-
-(defvar gud-comint-buffer nil)
 
 ;; Chop STRING into words separated by SPC or TAB and return a list of them.
 (defun gud-chop-words (string)
