@@ -480,14 +480,16 @@ to the following files.  The syntax is:
 --regex=[@var{@{language@}}]/@var{tagregexp}/[@var{nameregexp}/]@var{modifiers}
 @end smallexample
 
-  or else:
+@noindent
+or else:
 
 @smallexample
 --regex=@@@var{regexfile}
 @end smallexample
 
 @noindent
-where @var{tagregexp} is used to find the tags.  It is always
+where @var{tagregexp} is a regular expression used to find the tags.
+It is always
 anchored, that is, it behaves as if preceded by @samp{^}.  If you want
 to account for indentation, just match any initial number of blanks by
 beginning your regular expression with @samp{[ \t]*}.  In the regular
@@ -516,7 +518,8 @@ TAB (horizontal tab).
 VT (vertical tab).
 @end table
 
-  The syntax of regular expressions in @code{etags} is the same as in
+@noindent
+The syntax of regular expressions in @code{etags} is the same as in
 Emacs.
 
   You should not match more characters with @var{tagregexp} than that
@@ -527,37 +530,42 @@ pick out just the tag.  This will enable Emacs to find tags more
 accurately and to do completion on tag names more reliably.  You can
 find some examples below.
 
-  A @samp{--regex} option can be restricted to match only files of a
-given language using the optional prefix @var{@{language@}}.  This is
-particularly useful when storing many predefined regular expressions
-for @code{etags} in a file.
+  The suggested separator character used to delimit @var{tagregexp}
+and @var{nameregex} is @samp{/}, as in the example above.  However,
+you can use any other character as a separator, as long as it is
+different from space, tab, braces or the @samp{@@} character.  If you
+need to use the separator as part of the regular expression, you must
+precede it by the @samp{\} character.
 
   The @var{modifiers} are a sequence of 0 or more characters that
-modify the way @code{etags} does the matching.  Without modifiers,
-each regexp is applied sequentially to each line of the input file, in
+modify the way @code{etags} does the matching for that particular
+@samp{--regex} option.  Without modifiers, the regular expression
+is applied sequentially to each line of the input file, in
 a case-sensitive way.  The modifiers and their meanings are:
 
 @table @samp
 @item i
 ignore case when matching.
 @item m
-do not match line by line; rather, match the whole file, so that
-multi-line matches are possible.
+do not match line by line; rather, match this regular expression
+against the whole file, so that multi-line matches are possible.
 @item s
 implies @samp{m}, and causes dots in @var{tagregexp} to match newlines
 as well.
 @end table
 
-  A @var{regexfile} is the name of a file where regular expressions
-are stored, one per line.  Lines beginning with space or tab are
-ignored, and can be used for adding comments.
+  A @var{regexfile} is the name of a file where the arguments of
+@samp{--regex} options are stored, one per line.  The syntax is the
+same as the one used for the @samp{--regex} option, without the
+initial @samp{--regex=} part.  Lines beginning with space or tab are
+ignored: they can be used to include comments in the @var{regexfile}.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
 you can see from the following example:
 
 @smallexample
-etags --regex=/@var{reg1}/ voo.doo --regex=/@var{reg2}/ \
+etags --regex=/@var{reg1}/i voo.doo --regex=/@var{reg2}/m \
     bar.ber -R --lang=lisp los.er
 @end smallexample
 
@@ -566,13 +574,18 @@ Here @code{etags} chooses the parsing language for @file{voo.doo} and
 @file{bar.ber} according to their contents.  @code{etags} also uses
 @var{reg1} to recognize additional tags in @file{voo.doo}, and both
 @var{reg1} and @var{reg2} to recognize additional tags in
-@file{bar.ber}.  @code{etags} uses the Lisp tags rules, and no regexp
-matching, to recognize tags in @file{los.er}.
+@file{bar.ber}.  @var{reg1} is checked against each line of
+@file{voo.doo} and @file{bar.ber}, in a case-insensitive way, while
+@var{reg2} is checked against the whole @file{bar.ber} file,
+permitting multi-line matches, in a case-sensitive way.  @code{etags}
+uses the Lisp tags rules, and no regexp matching, to recognize tags in
+@file{los.er}.
 
-  You can specify a regular expression for a particular language, by
-writing @samp{@{lang@}} in front of it.  Then @code{etags} will use
-the regular expression only for files of that language.  (@samp{etags
---help} prints the list of languages recognized by @code{etags}.)  The
+  A @samp{--regex} option can be restricted to match only files of a
+given language using the optional prefix @var{@{language@}}.
+(@samp{etags --help} prints the list of languages recognized by
+@code{etags}.)  This is particularly useful when storing many
+predefined regular expressions for @code{etags} in a file.  The
 following example tags the @code{DEFVAR} macros in the Emacs source
 files, for the C language only:
 
