@@ -843,7 +843,9 @@ your locale specification (@pxref{Language Environments}).
 
 @kindex C-x RET k
 @findex set-keyboard-coding-system
+@vindex keyboard-coding-system
   The command @kbd{C-x @key{RET} k} (@code{set-keyboard-coding-system})
+or the Custom option @code{keyboard-coding-system}
 specifies the coding system for keyboard input.  Character-code
 translation of keyboard input is useful for terminals with keys that
 send non-ASCII graphic characters---for example, some terminals designed
@@ -1160,15 +1162,13 @@ characters:
 @itemize @bullet
 @cindex 8-bit input
 @item
+@findex set-keyboard-coding-system
+@vindex keyboard-coding-system
 If your keyboard can generate character codes 128 and up, representing
-non-ASCII characters, you can execute the following expression to enable
-Emacs to understand them:
-
-@example
-(set-input-mode (car (current-input-mode))
-                (nth 1 (current-input-mode))
-                0)
-@end example
+non-ASCII characters, use the command @code{M-x
+set-keyboard-coding-system} or the Custom option
+@code{keyboard-coding-system} to specify this in the same way as for
+multibyte usage (@pxref{Specify Coding}).
 
 It is not necessary to do this under a window system which can
 distinguish 8-bit characters and Meta keys.  If you do this on a normal
