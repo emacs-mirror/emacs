@@ -1,3 +1,20 @@
+2000-05-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el (From Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk)
+	(woman-mapcan, woman-parse-man.conf)
+	(woman-toggle-use-extended-font, woman-toggle-use-symbol-font)
+	(woman-reset-emulation, woman-select-symbol-fonts): New functions.
+	(woman-parse-colon-path): Call woman-mapcan.  Recognize Cygwin
+	path syntax better.
+	(woman-man.conf-path, woman-use-own-frame): New defcustoms.
+	(woman-manpath): Call woman-parse-man.conf.
+	(woman-emulation): New defcustom, defaults to nroff.
+	(woman-font-support): New defconst.
+	(woman-use-symbol-font): New defcustom.
+	(woman-menu): Add new menu items: "Colored/BW", "Advanced",
+	"Emulation".
+	Many functions: Doc fix.
+
 2000-05-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-simple-translation-keymap): Map
