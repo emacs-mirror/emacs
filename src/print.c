@@ -519,8 +519,10 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	    }
 
 	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
-	  message_enable_multibyte = 1;
 	}
+
+      if (multibyte)
+	message_enable_multibyte = 1;
 
       /* Compute how much of the new text will fit there.  */
       if (size_byte > FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1)
