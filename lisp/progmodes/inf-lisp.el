@@ -362,17 +362,17 @@ Prefix argument means switch to the Lisp buffer afterwards."
   "Switch to the inferior Lisp process buffer.
 With argument, positions cursor at end of buffer."
   (interactive "P")
-  (if (get-buffer inferior-lisp-buffer)
+  (if (get-buffer-process inferior-lisp-buffer)
       (let ((pop-up-frames
 	     ;; Be willing to use another frame
 	     ;; that already has the window in it.
 	     (or pop-up-frames
 		 (get-buffer-window inferior-lisp-buffer t))))
 	(pop-to-buffer inferior-lisp-buffer))
-    (error "No current inferior Lisp buffer"))
-  (cond (eob-p
+      (run-lisp inferior-lisp-program))
+  (when eob-p
 	 (push-mark)
-	 (goto-char (point-max)))))
+    (goto-char (point-max))))
 
 
 ;;; Now that lisp-compile/eval-defun/region takes an optional prefix arg,
