@@ -246,10 +246,9 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 	  ;; Get the current time and convert it to minutes
 	  ;; from midnight. ie. 12:01am = 1, midnight = 0.
 
-	  (let* ((cur-hour(string-to-int 
-			   (substring (current-time-string) 11 13)))
-		 (cur-min (string-to-int 
-			   (substring (current-time-string) 14 16)))
+	  (let* ((now (decode-time))
+		 (cur-hour (nth 2 now))
+		 (cur-min (nth 1 now))
 		 (cur-comp-time (+ (* cur-hour 60) cur-min)))
 
 	    ;; At the first check after 12:01am, we should update our 
@@ -530,10 +529,9 @@ The time should be in either 24 hour format or am/pm format."
 	;; that are earlier than the present time can
 	;; be removed.
 
-	(let* ((cur-hour(string-to-int 
-			 (substring (current-time-string) 11 13)))
-	       (cur-min (string-to-int 
-			 (substring (current-time-string) 14 16)))
+	(let* ((now (decode-time))
+	       (cur-hour (nth 2 now))
+	       (cur-min (nth 1 now))
 	       (cur-comp-time (+ (* cur-hour 60) cur-min))
 	       (appt-comp-time (car (car (car appt-time-msg-list)))))
 
