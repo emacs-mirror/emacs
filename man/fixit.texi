@@ -162,6 +162,8 @@ Check and correct spelling of the word at point (@code{ispell-word}).
 @item M-@key{TAB}
 Complete the word before point based on the spelling dictionary
 (@code{ispell-complete-word}).
+@item M-x ispell
+Spell-check the active region or the current buffer.
 @item M-x ispell-buffer
 Check and correct spelling of each word in the buffer.
 @item M-x ispell-region
@@ -208,6 +210,12 @@ you various alternatives for what to do about it.
 spelling in an email message you are writing, use @kbd{M-x
 ispell-message}; that checks the whole buffer, but does not check
 material that is indented or appears to be cited from other messages.
+
+@findex ispell
+@cindex spell-checking the active region
+  The @kbd{M-x ispell} command spell-checks the active region if the
+Transient Mark mode is on (@pxref{Transient Mark}), otherwise it
+spell-checks the current buffer.
 
   Each time these commands encounter an incorrect word, they ask you
 what to do.  They display a list of alternatives, usually including
