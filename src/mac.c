@@ -26,10 +26,12 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <utime.h>
 #include <dirent.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <pwd.h>
 #include <sys/param.h>
+#include <stdlib.h>
 #if __MWERKS__
 #include <unistd.h>
 #endif
@@ -2767,6 +2769,140 @@ sys_select (n, rfds, wfds, efds, timeout)
     return 1;
   else
     return select (n, rfds, wfds, efds, timeout);
+}
+
+
+/* Set up environment variables so that Emacs can correctly find its
+   support files when packaged as an application bundle.  Directories
+   placed in /usr/local/share/emacs/<emacs-version>/, /usr/local/bin,
+   and /usr/local/libexec/emacs/<emacs-version>/<system-configuration>
+   by `make install' by default can instead be placed in
+   .../Emacs.app/Contents/Resources/ and
+   .../Emacs.app/Contents/MacOS/.  Each of these environment variables
+   is changed only if it is not already set.  Presumably if the user
+   sets an environment variable, he will want to use files in his path
+   instead of ones in the application bundle.  */
+void
+init_mac_osx_environment ()
+{
+  CFBundleRef bundle;
+  CFURLRef bundleURL;
+  CFStringRef cf_app_bundle_pathname;
+  int app_bundle_pathname_len;
+  char *app_bundle_pathname;
+  char *p, *q;
+  struct stat st;
+
+  /* Fetch the pathname of the application bundle as a C string into
+     app_bundle_pathname.  */
+
+  bundle = CFBundleGetMainBundle ();
+  if (!bundle)
+    return;
+
+  bundleURL = CFBundleCopyBundleURL (bundle);
+  if (!bundleURL)
+    return;
+
+  cf_app_bundle_pathname = CFURLCopyFileSystemPath (bundleURL,
+						    kCFURLPOSIXPathStyle);
+  app_bundle_pathname_len = CFStringGetLength (cf_app_bundle_pathname);
+  app_bundle_pathname = (char *) alloca (app_bundle_pathname_len + 1);
+
+  if (!CFStringGetCString (cf_app_bundle_pathname,
+			   app_bundle_pathname,
+			   app_bundle_pathname_len + 1,
+			   kCFStringEncodingISOLatin1))
+    {
+      CFRelease (cf_app_bundle_pathname);
+      return;
+    }
+
+  CFRelease (cf_app_bundle_pathname);
+
+  /* P should have sufficient room for the pathname of the bundle plus
+     the subpath in it leading to the respective directories.  Q
+     should have three times that much room because EMACSLOADPATH can
+     have the value "<path to lisp dir>:<path to leim dir>:<path to
+     site-lisp dir>".  */
+  p = (char *) alloca (app_bundle_pathname_len + 50);
+  q = (char *) alloca (3 * app_bundle_pathname_len + 150);
+  if (!getenv ("EMACSLOADPATH"))
+    {
+      q[0] = '\0';
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/lisp");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	strcat (q, p);
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/leim");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/site-lisp");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      if (q[0] != '\0')
+	setenv ("EMACSLOADPATH", q, 1);
+    }
+
+  if (!getenv ("EMACSPATH"))
+    {
+      q[0] = '\0';
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/MacOS/bin");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	strcat (q, p);
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/MacOS/libexec");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      if (q[0] != '\0')
+	setenv ("EMACSPATH", q, 1);
+    }
+
+  if (!getenv ("EMACSDATA"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/etc");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("EMACSDATA", p, 1);
+    }
+
+  if (!getenv ("EMACSDOC"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/etc");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("EMACSDOC", p, 1);
+    }
+
+  if (!getenv ("INFOPATH"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/info");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("INFOPATH", p, 1);
+    }
 }
 #endif /* MAC_OSX */
 

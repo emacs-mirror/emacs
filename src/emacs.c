@@ -1363,6 +1363,11 @@ main (argc, argv, envp)
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
+#ifdef MAC_OSX
+  if (initialized)
+    init_mac_osx_environment ();
+#endif
+
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */

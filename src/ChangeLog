@@ -1,3 +1,9 @@
+2002-08-15  Andrew Choi  <akochoi@shaw.ca>
+
+	* mac.c (init_mac_osx_environment): New function.
+
+	* emacs.c (main) [MAC_OSX]: Call init_mac_osx_environment.
+
 2002-08-14  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (Fstart_kbd_macro): Added NO-EXEC argument to inhibit
