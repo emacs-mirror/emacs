@@ -1,3 +1,7 @@
+2000-05-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (arabic-iso8859-6): Fix typo.
+
 2000-05-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (remove-hook): `setq' hook-value, not `set'.
