@@ -2105,26 +2105,30 @@ the body of the original message."
 	(or (re-search-forward mail-unsent-separator nil t)
 	    (error "Cannot parse this as a failure message")))
       (save-restriction
-	;; One message contained a few random lines before the old
-	;; message header.  The first line of the message started with
-	;; two hyphens.  A blank line follows these random lines.
-	(skip-chars-forward "\n")
-	(if (looking-at "^--")
-	    (progn
-	      (search-forward "\n\n")
-	      (skip-chars-forward "\n")))
-	(narrow-to-region (point) (point-max))
-	;; Now mail-fetch-field will get from headers of the original message,
-	;; not from the headers of the rejection.
-	(setq to   (mail-fetch-field "To")
-	      subj (mail-fetch-field "Subject")
-	      irp2 (mail-fetch-field "In-reply-to")
-	      cc   (mail-fetch-field "Cc"))
-	;; Get the entire text (not headers) of the original message.
-	(setq orig-message
-	      (buffer-substring
-	       (progn (search-forward "\n\n") (point))
-	       (point-max)))))
+	(let ((old-end (point-max)))
+	  ;; One message contained a few random lines before the old
+	  ;; message header.  The first line of the message started with
+	  ;; two hyphens.  A blank line follows these random lines.
+	  (skip-chars-forward "\n")
+	  (if (looking-at "^--")
+	      (progn
+		(search-forward "\n\n")
+		(skip-chars-forward "\n")))
+	  (narrow-to-region (point) (point-max))
+	  (goto-char (point-min))
+	  (search-forward "\n\n")
+	  (narrow-to-region (point-min) (point))
+	  ;; Now mail-fetch-field will get from headers of the original message,
+	  ;; not from the headers of the rejection.
+	  (setq to   (mail-fetch-field "To")
+		subj (mail-fetch-field "Subject")
+		irp2 (mail-fetch-field "In-reply-to")
+		cc   (mail-fetch-field "Cc"))
+	  ;; Get the entire text (not headers) of the original message.
+	  (goto-char (point-max))
+	  (widen)
+	  (setq orig-message
+		(buffer-substring (point) old-end)))))
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
@@ -2176,11 +2180,19 @@ This has an effect only if a summary buffer exists.")
     ;; If requested, make sure the summary is displayed.
     (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
 	 rmail-redisplay-summary
-	 (display-buffer rmail-summary-buffer))
+	 (if (get-buffer-window rmail-summary-buffer 0)
+	     ;; It's already in some frame; show that one.
+	     (let ((frame (window-frame
+			   (get-buffer-window rmail-summary-buffer 0))))
+	       (make-frame-visible frame)
+	       (raise-frame frame))
+	   (display-buffer rmail-summary-buffer)))
     ;; If requested, set the height of the summary window.
     (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
 	 rmail-summary-window-size
 	 (setq window (get-buffer-window rmail-summary-buffer))
+	 ;; Don't try to change the size if just one window in frame.
+	 (not (eq window (frame-root-window (window-frame window))))
 	 (unwind-protect 
 	     (progn
 	       (select-window window)
