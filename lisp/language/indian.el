@@ -73,13 +73,13 @@ The default value is `devanagari'.")
     ;; Shorten (r1 = (((((r1 - 32) * 96) + r2) - 32) % 256))
     (r1 = ((((r1 * 96) + r2) - ,(+ (* 32 96) 32)) % 256))))
 
-(setq font-ccl-encoder-alist
-      (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
-	    font-ccl-encoder-alist))
+;;(setq font-ccl-encoder-alist
+;;      (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
+;;	    font-ccl-encoder-alist))
 
-(setq font-ccl-encoder-alist
-      (cons '("ISO10646.*-1" . ccl-encode-unicode-font)
-	    font-ccl-encoder-alist))
+;;(setq font-ccl-encoder-alist
+;;      (cons '("ISO10646.*-1" . ccl-encode-unicode-font)
+;;	    font-ccl-encoder-alist))
 
 (provide 'indian)
 
