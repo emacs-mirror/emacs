@@ -1,3 +1,9 @@
+2004-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu-prev-index-position-function)
+	(imenu-extract-index-name-function, imenu-name-lookup-function)
+	(imenu--index-alist): Docstring redundancy fix.
+
 2004-07-25  Lars Hansen  <larsh@math.ku.dk>
 
 	* wdired.el (wdired-finish-edit): Require dired-aux before locally
@@ -74,8 +80,8 @@
 
 2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
-	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New
-	docstring.  From Luc Teirlinck.
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	New docstring.  From Luc Teirlinck.
 
 2004-07-17  Luc Teirlinck  <teirllm@auburn.edu>
 
