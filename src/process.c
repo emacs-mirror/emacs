@@ -2953,10 +2953,11 @@ exec_sentinel (proc, reason)
 status_notify ()
 {
   register Lisp_Object proc, buffer;
-  Lisp_Object tail = Qnil;
-  Lisp_Object msg = Qnil;
+  Lisp_Object tail, msg;
   struct gcpro gcpro1, gcpro2;
 
+  tail = Qnil;
+  msg = Qnil;
   /* We need to gcpro tail; if read_process_output calls a filter
      which deletes a process and removes the cons to which tail points
      from Vprocess_alist, and then causes a GC, tail is an unprotected
@@ -3008,10 +3009,11 @@ status_notify ()
 	     when a process becomes runnable.  */
 	  else if (!EQ (symbol, Qrun) && !NILP (buffer))
 	    {
-	      Lisp_Object ro = XBUFFER (buffer)->read_only;
-	      Lisp_Object tem;
+	      Lisp_Object ro, tem;
 	      struct buffer *old = current_buffer;
 	      int opoint;
+
+	      ro = XBUFFER (buffer)->read_only;
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */
