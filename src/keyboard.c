@@ -632,7 +632,7 @@ echo ()
     }
 
   echoing = 1;
-  message1 (echobuf);
+  message2_nolog (echobuf, strlen (echobuf));
   echoing = 0;
 
   if (waiting_for_input && !NILP (Vquit_flag))
