@@ -1058,7 +1058,7 @@ component is other than `artist-do-continously' or 1."
 ;;; The artist-mode
 ;;; ---------------------------------
 
-;;;### autoload
+;;;###autoload
 (defun artist-mode (&optional state)
   "Toggle artist mode. With arg, turn artist mode on if arg is positive.
 Artist lets you draw lines, squares, rectangles and poly-lines, ellipses
