@@ -5075,7 +5075,7 @@ move_it_by_lines (it, dvpos, need_y_p)
 	{
 	  int shortage = 0, charpos;
 
-	  if (FETCH_BYTE (IT_BYTEPOS (*it) == '\n'))
+	  if (FETCH_BYTE (IT_BYTEPOS (*it)) == '\n')
 	    charpos = IT_CHARPOS (*it) + 1;
 	  else
 	    charpos = scan_buffer ('\n', IT_CHARPOS (*it), 0, dvpos,
