@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.2) $
+# $HopeName: MMsrc!commpre.nmk(trunk.3) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -20,6 +20,7 @@
 #   MPM      list of sources which make up the "mpm" part for this
 #            platform.  Each source is stripped of its .c extension
 #            and surrounded in angle brackets (<>)
+#   PLINTH   as above for the "plinth" part
 #   AMC      as above for the "amc" part
 #   LO       as above for the "lo" part
 #   MRG      as above for the "mrg" part
@@ -53,6 +54,9 @@
 !ENDIF
 !IFNDEF MPM
 !ERROR mv.nmk: MPM not defined
+!ENDIF
+!IFNDEF PLINTH
+!ERROR mv.nmk: PLINTH not defined
 !ENDIF
 !IFNDEF LO
 !ERROR mv.nmk: LO not defined
