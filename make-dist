@@ -37,6 +37,7 @@ while [ $# -gt 0 ]; do
     # for creating incremental or patch distributions
     "--newer")
       newer=$2
+      new=.new
       shift
     ;;
     * )
@@ -76,7 +77,7 @@ fi
 
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
-emacsname="emacs-${version}"
+emacsname="emacs-${version}${new}"
 tempdir="${tempparent}/${emacsname}"
 
 # This trap ensures that the staging directory will be cleaned up even
