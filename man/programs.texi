@@ -1582,6 +1582,16 @@ named @samp{*Man @var{topic}*}.  These buffers use a special major mode,
 Man mode, that facilitates scrolling and examining other manual pages.
 For details, type @kbd{C-h m} while in a man page buffer.
 
+@cindex sections of manual pages
+  Man pages are subdivided into @dfn{sections}, and some man pages have
+identical names, but belong to different sections.  To read a man page
+from a certain section, type @kbd{@var{topic}(@var{section})} or
+@kbd{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts for
+the topic.  For example, to read the man page for the C library function
+@code{chmod} (as opposed to a command by the same name), type @kbd{M-x
+manual-entry @key{RET} chmod(2v) @key{RET}} (assuming @code{chmod} is in
+section @code{2v}).
+
 @vindex Man-fontify-manpage-flag
   For a long man page, setting the faces properly can take substantial
 time.  By default, Emacs uses faces in man pages if Emacs can display
@@ -1612,6 +1622,11 @@ page.
   With a numeric argument, @kbd{M-x woman} recomputes the list of the
 manual pages used for completion.  This is useful if you add or delete
 manual pages.
+
+  If you type a name of a manual page and @kbd{M-x woman} finds that
+several manual pages by the same name exist in different sections, it
+pops up a window with possible candidates asking you to choose one of
+them.
 
 @vindex woman-manpath
   By default, @kbd{M-x woman} looks up the manual pages in directories
