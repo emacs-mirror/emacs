@@ -4,7 +4,6 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
-;; X-URL: http://www.emacs.org/~johnw/eshell.html
 
 ;; This file is part of GNU Emacs.
 

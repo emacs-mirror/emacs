@@ -1,5 +1,8 @@
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
+	* align.el, pcomplete.el, calendar/timeclock.el,
+	eshell/esh-module.el, eshell/eshell.el: Removed URL reference.
+
 	* calendar/timeclock.el (timeclock-find-discrep): A fix to same
 	faulty math, where holiday hours were being computing as seconds.
 

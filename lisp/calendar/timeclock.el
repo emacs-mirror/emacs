@@ -6,7 +6,6 @@
 ;; Created: 25 Mar 1999
 ;; Version: 2.2
 ;; Keywords: calendar data
-;; X-URL: http://www.emacs.org/~johnw/emacs.html
 
 ;; This file is part of GNU Emacs.
 

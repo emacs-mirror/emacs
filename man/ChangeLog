@@ -1,5 +1,8 @@
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
+	* eshell.texi (Installation): Changed URL reference for where to
+	download Eshell from.
+
 	* Makefile.in: Added build targets for eshell.texi.
 
 	* eshell.texi: New file.  Note that this file is only just
