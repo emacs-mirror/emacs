@@ -1,3 +1,7 @@
+2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist (etc): Don't distribute gfdl.1.
+
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
