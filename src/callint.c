@@ -81,7 +81,7 @@ F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
 m -- Value of mark as number.  Does not do I/O.\n\
 n -- Number read using minibuffer.\n\
-N -- Prefix arg converted to number, or if none, do like code `n'.\n\
+N -- Raw prefix arg, or if none, do like code `n'.\n\
 p -- Prefix arg converted to number.  Does not do I/O.\n\
 P -- Prefix arg in raw form.  Does not do I/O.\n\
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.\n\
