@@ -119,7 +119,7 @@ w32_get_string_resource (name, class, dwexptype)
 
 char *
 x_get_string_resource (rdb, name, class)
-     char *rdb;
+     XrmDatabase rdb;
      char *name, *class;
 {
   if (rdb)
