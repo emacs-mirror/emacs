@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/01/15 16:24:47 $|$Revision: 1.61 $
+;; |$Date: 1994/01/16 23:40:50 $|$Revision: 1.62 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1240,7 +1240,8 @@ If there is no completion possible, say so and continue searching."
 	  isearch-invalid-regexp (nth 7 cmd)
 	  isearch-wrapped (nth 8 cmd)
 	  isearch-barrier (nth 9 cmd)
-	  isearch-within-brackets (nth 10 cmd))
+	  isearch-within-brackets (nth 10 cmd)
+	  isearch-case-fold-search (nth 11 cmd))
     (goto-char (car (cdr (cdr cmd))))))
 
 (defun isearch-pop-state ()
@@ -1254,7 +1255,7 @@ If there is no completion possible, say so and continue searching."
 		    isearch-success isearch-forward isearch-other-end 
 		    isearch-word
 		    isearch-invalid-regexp isearch-wrapped isearch-barrier
-		    isearch-within-brackets)
+		    isearch-within-brackets isearch-case-fold-search)
 	      isearch-cmds)))
 
 
