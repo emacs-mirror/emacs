@@ -419,7 +419,7 @@ status_message (status)
 	signame = "unknown";
       string = build_string (signame);
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      SREF (string, 0) = DOWNCASE (SREF (string, 0));
+      SSET (string, 0, DOWNCASE (SREF (string, 0)));
       return concat2 (string, string2);
     }
   else if (EQ (symbol, Qexit))
