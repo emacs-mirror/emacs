@@ -287,7 +287,7 @@ function definitions, values or properties are considered."
 				     new))
 		     (setq list (cdr list)))
 		   (setq list (nreverse new))))
-	     (with-output-to-temp-buffer " *Completions*"
+	     (with-output-to-temp-buffer "*Completions*"
 	       (display-completion-list list)))
 	   (message "Making completion list...%s" "done")))))
 
