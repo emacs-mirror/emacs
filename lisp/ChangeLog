@@ -1,3 +1,8 @@
+2004-11-06  Peter Heslin  <pj@heslin.eclipse.co.uk>  (tiny change)
+
+	* outline.el (hide-body): Don't hide lines at the top of the file
+	that precede the first header line.
+
 2004-11-06  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* align.el (align-areas): Delete whitespace before reindenting, so
