@@ -429,7 +429,7 @@ The DTD must end before the position END in the current buffer."
      ((string= modifier "*")
       (list '* elem))
      ((string= modifier "?")
-      (list '? elem))
+      (list '\? elem))
      (t
       elem))))
 
