@@ -3983,8 +3983,11 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
   it->current.dpvec_index = -1;
   xassert (charpos >= 0);
   
-  /* Use the setting of MULTIBYTE if specified.  */
-  if (multibyte >= 0)
+  /* If STRING is specified, use its multibyteness, otherwise use the
+     setting of MULTIBYTE, if specified.  */
+  if (STRINGP (string))
+    it->multibyte_p = STRING_MULTIBYTE (string);
+  else if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
   
   if (s == NULL)
@@ -13943,9 +13946,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
   struct glyph_row *row = it->glyph_row;
 
   /* Initialize the iterator IT for iteration over STRING beginning
-     with index START.  We assume that IT may be modified here (which
-     means that display_line has to do something when displaying a
-     mini-buffer prompt, which it does).  */
+     with index START.  */
   reseat_to_string (it, string, lisp_string, start,
 		    precision, field_width, multibyte);
 
