@@ -2098,10 +2098,10 @@ x_set_menu_bar_lines (f, value, oldval)
   set_menu_bar_lines (f, value, oldval);
 }
 
-/* This was copied from xfns.c  */
+/* This was copied from xfaces.c  */
 
-Lisp_Object Qbackground_color;
-Lisp_Object Qforeground_color;
+extern Lisp_Object Qbackground_color;
+extern Lisp_Object Qforeground_color;
 Lisp_Object Qreverse;
 extern Lisp_Object Qtitle;
 
@@ -5229,11 +5229,7 @@ For example, if a block cursor is over a tab, it will be drawn as\n\
 wide as that tab on the display.  (No effect on MS-DOS.)");
   x_stretch_cursor_p = 0;
 
-  /* The following three are from xfns.c:  */
-  Qbackground_color = intern ("background-color");
-  staticpro (&Qbackground_color);
-  Qforeground_color = intern ("foreground-color");
-  staticpro (&Qforeground_color);
+  /* The following two are from xfns.c:  */
   Qbar = intern ("bar");
   staticpro (&Qbar);
   Qcursor_type = intern ("cursor-type");
