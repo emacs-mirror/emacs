@@ -1,3 +1,26 @@
+2000-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (Frecursive_edit): Make sure redisplay can happen.
+
+	* xdisp.c (handle_single_display_prop): Use safe_call1.
+	(safe_call): Renamed from call_function.
+	(safe_call1): New function.
+	(handle_fontified_prop): Use safe_call1 instead of call1.
+	(safe_eval): Renamed from eval_form.
+	(safe_eval_handler): Renamed from eval_handler.
+	(handle_single_display_prop, display_mode_element): Use safe_eval
+	instead of eval_form.
+
+	* xfaces.c (merge_face_heights): Use safe_call instead of
+	call_function.
+
+	* keyboard.c (show_help_echo): Use safe_call instead of
+	call_function; use safe_eval instead of eval_form.
+
+	* lisp.h (safe_call): Renamed from call_function.
+	(safe_eval): Renamed from eval_form.
+	(safe_call1): Add prototype.
+
 2000-10-05  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* xfns.c (image_ascent): Rearrange ascent calculation for the
