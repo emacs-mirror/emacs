@@ -263,6 +263,15 @@ a few seconds and then invoke Make again.  In one particular case,
 waiting for 10 or more seconds between the two Make invocations seemed
 to work around the problem.
 
+Similar problems can happen if your machine NFS-mounts a directory
+onto itself.  Suppose the Emacs sources live in `/usr/local/src' and
+you are working on the host called `marvin'.  Then an entry in the
+`/etc/fstab' file like the following is asking for trouble:
+
+    marvin:/usr/local/src /usr/local/src ...options.omitted...
+
+The solution is to remove this line from `etc/fstab'.
+
 * Accented ISO-8859-1 characters are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
