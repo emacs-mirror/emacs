@@ -1956,11 +1956,18 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  FRAME_FOREGROUND_PIXEL (f)
-    = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  struct w32_output *x = f->output_data.w32;
+  PIX_TYPE fg, old_fg;
+
+  fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  old_fg = FRAME_FOREGROUND_PIXEL (f);
+  FRAME_FOREGROUND_PIXEL (f) = fg;
 
   if (FRAME_W32_WINDOW (f) != 0)
     {
+      if (x->cursor_pixel == old_fg)
+	x->cursor_pixel = fg;
+
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -2367,6 +2374,7 @@ x_set_font (f, arg, oldval)
   Lisp_Object result;
   Lisp_Object fontset_name;
   Lisp_Object frame;
+  int old_fontset = FRAME_FONTSET (f);
 
   CHECK_STRING (arg, 1);
 
@@ -2384,7 +2392,14 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
-      if (!NILP (Fequal (result, oldval)))
+      if (STRINGP (fontset_name))
+	{
+	  /* Fontset names are built from ASCII font names, so the
+	     names may be equal despite there was a change.  */
+	  if (old_fontset == FRAME_FONTSET (f))
+	    return;
+	}
+      else if (!NILP (Fequal (result, oldval)))
         return;
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
@@ -6624,12 +6639,18 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     int FontType;
     enumfont_t * lpef;
 {
-  /* Ignore struck out, underlined and vertical versions of fonts.  */
-  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline
-      || lplf->elfLogFont.lfEscapement != 0
-      || lplf->elfLogFont.lfOrientation != 0)
+  /* Ignore underlined and struck out versions of fonts.  */
+  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline)
     return 1;
-  
+
+  /* Only return fonts with names starting with @ if they were
+     explicitly specified, since Microsoft uses an initial @ to
+     denote fonts for vertical writing, without providing a more
+     convenient way of identifying them.  */
+  if (lplf->elfLogFont.lfFaceName[0] == '@'
+      && lpef->logfont.lfFaceName[0] != '@')
+    return 1;
+
   /* Check that the character set matches if it was specified */
   if (lpef->logfont.lfCharSet != DEFAULT_CHARSET &&
       lplf->elfLogFont.lfCharSet != lpef->logfont.lfCharSet)
@@ -6680,7 +6701,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 
     /* TODO: List all relevant charsets if charset not specified. */
     if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100, charset))
-      return 0;
+      return 1;
 
     if (NILP (*(lpef->pattern))
         || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
@@ -6850,11 +6871,11 @@ w32_list_fonts (f, pattern, size, maxnames)
         FARPROC enum_font_families_ex
           = GetProcAddress ( gdi32, "EnumFontFamiliesExA");
 
-        /* We do our own pattern matching so we can handle wildcards.  */
-        font_match_pattern.lfFaceName[0] = 0;
+	/* We do our own pattern matching so we can handle wildcards.  */
+	font_match_pattern.lfFaceName[0] = 0;
         font_match_pattern.lfPitchAndFamily = 0;
-        /* We can use the charset, because if it is a wildcard it will
-           be DEFAULT_CHARSET anyway.  */
+        /* We can use the charset, because if it has a wildcard it will
+           translate to DEFAULT_CHARSET anyway.  */
         font_match_pattern.lfCharSet = ef.logfont.lfCharSet;
 
         ef.hdc = GetDC (dpyinfo->root_window);
@@ -12890,8 +12911,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
   "Read file name, prompting with PROMPT in directory DIR.\n\
 Use a file selection dialog.\n\
 Select DEFAULT-FILENAME in the dialog's file selection box, if\n\
-specified.  Don't let the user enter a file name in the file\n\
-selection dialog's entry field, if MUSTMATCH is non-nil.")
+specified.  Ensure that file exists if MUSTMATCH is non-nil.")
   (prompt, dir, default_filename, mustmatch)
      Lisp_Object prompt, dir, default_filename, mustmatch;
 {
@@ -12952,6 +12972,9 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
       bzero (&file_details, sizeof (file_details));
       file_details.lStructSize = sizeof (file_details);
       file_details.hwndOwner = FRAME_W32_WINDOW (f);
+      /* Undocumented Bug in Common File Dialog:
+	 If a filter is not specified, shell links are not resolved.  */
+      file_details.lpstrFilter = "All Files (*.*)\0*.*\0\0";
       file_details.lpstrFile = filename;
       file_details.nMaxFile = sizeof (filename);
       file_details.lpstrInitialDir = init_dir;
