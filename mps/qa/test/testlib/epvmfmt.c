@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.4) $
+/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.5) $
 */
 
 #include "mps.h"
@@ -61,10 +61,16 @@ struct mps_fmt_A_s fmtepvm =
 */
 
 psobj *allocepvm(mps_ap_t ap, int size) {
+ psobj *a;
+ die(allocrepvm(&a, ap, size), "Reserve: ");
+ return a;
+}
+
+mps_res_t allocrepvm(psobj **q, mps_ap_t ap, int size) {
  mps_addr_t p;
- psobj *q;
  int i;
  size_t bytes;
+ mps_res_t res;
 
  asserts(sizeof(struct psobj) == 8, "Aaarg! How can EPVM pools possibly work");
  bytes = size*8;
@@ -73,19 +79,22 @@ psobj *allocepvm(mps_ap_t ap, int size) {
 
  do
  {
-  die(mps_reserve(&p, ap, bytes), "Reserve: ");
-  q=p;
+  res = mps_reserve(&p, ap, bytes);
+  if (res != MPS_RES_OK) {
+   return res;
+  }
+  *q=p;
 
   for(i=0; i<size; i+=1)
   {
-   (q+i)->obj  = NULL;
-   (q+i)->size = 0;
+   (*q+i)->obj  = NULL;
+   (*q+i)->size = 0;
   }
  }
  while (!mps_commit(ap, p, bytes));
  commentif(alloccomments, "allocated %p.", q);
 
- return q;
+ return MPS_RES_OK;
 }
 
 void splatepvm(psobj *obj) {
