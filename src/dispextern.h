@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1585,10 +1585,6 @@ struct it
      OVERLAY_STRING_CHUNK_SIZE.  */
   int n_overlay_strings;
 
-  /* If non-zero, an additional overlay start position to take overlay
-     strings from.  */
-  int add_overlay_start;
-
   /* If non-nil, a Lisp string being processed.  If
      current.overlay_string_index >= 0, this is an overlay string from
      pos.  */
@@ -2142,7 +2138,7 @@ void init_iterator P_ ((struct it *, struct window *, int,
 void init_iterator_to_row_start P_ ((struct it *, struct window *,
 				     struct glyph_row *));
 int get_next_display_element P_ ((struct it *));
-void set_iterator_to_next P_ ((struct it *));
+void set_iterator_to_next P_ ((struct it *, int));
 void produce_glyphs P_ ((struct it *));
 void produce_special_glyphs P_ ((struct it *, enum display_element_type));
 void start_display P_ ((struct it *, struct window *, struct text_pos));
