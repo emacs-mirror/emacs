@@ -1,3 +1,7 @@
+2000-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* help.el (help-insert-xref-button): Fix a typo in doc string.
+
 2000-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Fix
