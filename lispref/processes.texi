@@ -432,7 +432,9 @@ Information}).
 subprocess, and removes it from the list of active processes.  It sends
 a signal to the subprocess to make the subprocess terminate, but this is
 not guaranteed to happen immediately.  The process object itself
-continues to exist as long as other Lisp objects point to it.
+continues to exist as long as other Lisp objects point to it.  The
+process mark continues to point to the same place as before (usually
+into a buffer where output from the process was being inserted).
 
   You can delete a process explicitly at any time.  Processes are
 deleted automatically after they terminate, but not necessarily right
