@@ -1,3 +1,18 @@
+2001-12-06  Paul Eggert  <eggert@twinsun.com>
+
+	* config.in (HAVE_WORKING_VFORK): New #undefs.
+	* process.c (create_process):
+	Use HAVE_WORKING_VFORK, not HAVE_VFORK.
+	* m/cnvrgnt.h (HAVE_VFORK): Remove #define.
+	* m/ibm370aix.h (HAVE_VFORK): Remove #undef.
+	* m/ibmps2-aix.h (HAVE_VFORK): Remove #define.
+	* m/intel386.h (HAVE_VFORK): Likewise.
+	* m/mips-siemens.h (HAVE_VFORK): Likewise.
+	* m/mips.h (HAVE_VFORK): Likewise.
+	* s/freebsd.h (vfork): Remove #define.
+	* s/lynxos.h (HAVE_VFORK): Remove #undef.
+	* s/usg5-4-2.h: Fix comment about vfork.
+
 2001-12-06  Richard M. Stallman  <rms@gnu.org>
 
 	* s/hpux10.h (random): Add undef.
