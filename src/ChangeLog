@@ -1,3 +1,8 @@
+2002-11-29  Dave Love  <fx@gnu.org>
+
+	* fns.c (Frequire): Don't call LOADHIST_ATTACH if feature was
+	already provided.
+
 2002-11-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (start_display): Check more intelligently for
