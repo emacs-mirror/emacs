@@ -1612,7 +1612,8 @@ N is the digit argument used to invoke this command."
 		 ;; so we can scroll back through it.
 		 (goto-char (point-max))))
 	 (recenter -1))
-	((and (not (equal (Info-extract-pointer "up")
+	((and (Info-no-error (Info-extract-pointer "prev"))
+	      (not (equal (Info-extract-pointer "up")
 			  (Info-extract-pointer "prev"))))
 	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
@@ -1664,22 +1665,25 @@ in other ways.)"
 
 (defun Info-scroll-down ()
   "Scroll one screenful back in Info, considering all nodes as one sequence.
-Within the menu of a node, this goes to its last subnode.
-When you scroll past the beginning of a node, that goes to the
-previous node or back up to the parent node."
+If point is within the menu of a node, and `Info-scroll-prefer-subnodes'
+is non-nil, this goes to its last subnode.  When you scroll past the
+beginning of a node, that goes to the previous node or back up to the
+parent node."
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
       (set-window-start (selected-window) (point)))
   (let* ((case-fold-search t)
 	 (current-point (point))
-	 (virtual-end (save-excursion
-			(beginning-of-line)
-			(setq current-point (point))
-			(goto-char (point-min))
-			(search-forward "\n* Menu:"
-					current-point
-					t))))
+	 (virtual-end
+	  (and Info-scroll-prefer-subnodes
+	       (save-excursion
+		 (beginning-of-line)
+		 (setq current-point (point))
+		 (goto-char (point-min))
+		 (search-forward "\n* Menu:"
+				 current-point
+				 t)))))
     (if (or virtual-end (pos-visible-in-window-p (point-min)))
 	(Info-last-preorder)
       (scroll-down))))
