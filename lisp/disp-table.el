@@ -94,12 +94,11 @@
     (setq l (1+ l))))
 
 ;;;###autoload
+;; This function does NOT take terminal-dependent escape sequences.
+;; For that, you need to go through create-glyph.  Use one of the
+;; other functions below, or roll your own.
 (defun standard-display-ascii (c s)
-  "Display character C using string S.
-S is usually a terminal-dependent escape sequence.
-This function is meaningless for an X frame."
-  (if window-system
-      (error "Cannot use string glyphs in a windowing system"))
+  "Display character C using printable string S."
   (or standard-display-table
       (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c (apply 'vector (append s nil))))
