@@ -1,3 +1,10 @@
+2004-06-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-goto-node): Add autoload.
+	(Info-toc): Add substring-no-properties on Info file name.
+	(Info-mode, info, Info-toc, Info-mode-menu): Doc fix.
+	(Info-mode-map): Bind L to Info-history, T to Info-toc.
+
 2004-06-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-environment): Load
@@ -2242,17 +2249,21 @@
 	(desktop-buffer-info-misc-data): Rename to
 	Info-desktop-buffer-misc-data and move to info.el.
 	(desktop-read): Add message about number of buffers restored/failed.
+
 	* dired.el (dired-restore-desktop-buffer) Move from desktop.el.
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
 	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
 	(dired-mode): Bind desktop-buffer-misc-data-function.
+
 	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
 	(Info-mode): Bind desktop-buffer-misc-data-function.
+
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
+
 	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 
