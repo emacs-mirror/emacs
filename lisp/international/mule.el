@@ -512,7 +512,7 @@ conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
 merged with the already-specified end-of-line conversion.
 However, if the optional prefix argument FORCE is non-nil,
 them CODING-SYSTEM is used exactly as specified."
-  (interactive "zBuffer-file-coding-system: \nP")
+  (interactive "zCoding system for visited file: \nP")
   (check-coding-system coding-system)
   (if (null force)
       (let ((x (coding-system-eol-type buffer-file-coding-system))
