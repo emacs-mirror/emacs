@@ -2205,7 +2205,7 @@ extern Lisp_Object menu_bar_items P_ ((Lisp_Object));
 extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events ();
 EXFUN (Fevent_convert_list, 1);
-EXFUN (Fread_key_sequence, 4);
+EXFUN (Fread_key_sequence, 5);
 EXFUN (Fset_input_mode, 4);
 extern int detect_input_pending P_ ((void));
 extern int detect_input_pending_run_timers P_ ((int));
