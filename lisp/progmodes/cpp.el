@@ -49,7 +49,7 @@
 ;;; Customization:
 (defgroup cpp nil
   "Highlight or hide text according to cpp conditionals."
-  :group 'C
+  :group 'c
   :prefix "cpp-")
 
 (defcustom cpp-config-file (convert-standard-filename ".cpp.el")
