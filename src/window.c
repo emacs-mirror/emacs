@@ -2277,12 +2277,12 @@ size_window (window, size, width_p, nodelete_p)
      Preserve it as long as that is at all possible.  */
   if (width_p)
     {
-      old_size = XFASTINT (w->width);
+      old_size = XINT (w->width);
       min_size = window_min_width;
     }
   else
     {
-      old_size = XFASTINT (w->height);
+      old_size = XINT (w->height);
       min_size = window_min_height;
     }
   
@@ -2341,18 +2341,22 @@ size_window (window, size, width_p, nodelete_p)
     {
       int fixed_size, each, extra, n;
       int resize_fixed_p, nfixed;
-      int last_pos, first_pos, nchildren;
+      int last_pos, first_pos, nchildren, total;
 
       /* Determine the fixed-size portion of the this window, and the
 	 number of child windows.  */
-      fixed_size = nchildren = nfixed = 0;
+      fixed_size = nchildren = nfixed = total = 0;
       for (child = *forward; !NILP (child); child = c->next, ++nchildren)
 	{
+	  int child_size;
+	  
 	  c = XWINDOW (child);
+	  child_size = width_p ? XINT (c->width) : XINT (c->height);
+	  total += child_size;
+	  
 	  if (window_fixed_size_p (c, width_p, 0))
 	    {
-	      fixed_size += (width_p
-			     ? XFASTINT (c->width) : XFASTINT (c->height));
+	      fixed_size += child_size;
 	      ++nfixed;
 	    }
 	}
@@ -2365,11 +2369,11 @@ size_window (window, size, width_p, nodelete_p)
       /* Compute how many lines/columns to add to each child.  The
 	 value of extra takes care of rounding errors.  */
       n = resize_fixed_p ? nchildren : nchildren - nfixed;
-      each = (size - old_size) / n;
-      extra = (size - old_size) - n * each;
+      each = (size - total) / n;
+      extra = (size - total) - n * each;
 
       /* Compute new children heights and edge positions.  */
-      first_pos = width_p ? XFASTINT (w->left) : XFASTINT (w->top);
+      first_pos = width_p ? XINT (w->left) : XINT (w->top);
       last_pos = first_pos;
       for (child = *forward; !NILP (child); child = c->next)
 	{
@@ -2412,7 +2416,7 @@ size_window (window, size, width_p, nodelete_p)
 	  {
 	    int child_size;
 	    c = XWINDOW (child);
-	    child_size = width_p ? XFASTINT (c->width) : XFASTINT (c->height);
+	    child_size = width_p ? XINT (c->width) : XINT (c->height);
 	    size_window (child, child_size, width_p, 0);
 	  }
     }
