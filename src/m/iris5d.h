@@ -115,7 +115,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef UNEXEC
 #undef UNEXEC
 #endif
-#define UNEXEC unexsgi.o
+#define UNEXEC unexelf.o
 
 #define TEXT_START 0x400000
 
