@@ -592,7 +592,6 @@ initialize_w32_display (void)
 
   read_socket_hook = w32_console_read_socket;
   mouse_position_hook = w32_console_mouse_position;
-  estimate_mode_line_height_hook = 0;
 
   /* Initialize interrupt_handle.  */
   init_crit ();
