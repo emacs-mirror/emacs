@@ -1,6 +1,6 @@
 /*  ==== POOL CLASS AMC TEST ====
  *
- *  $HopeName: MMsrc!amcss.c(trunk.2) $
+ *  $HopeName: MMsrc!amcss.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,7 +20,6 @@
 #include "pool.h"
 #include "amc.h"
 #include "buffer.h"
-#include "coll.h"
 #include "prot.h"
 #include "testlib.h"
 #include <stdio.h>
@@ -28,6 +27,8 @@
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
+
+SRCID("$HopeName$");
 
 
 #define NR_EXACT_ROOTS	50
@@ -221,7 +222,6 @@ static void *test(void *arg, size_t s)
   mps_root_t exactRoot, ambigRoot;
   mps_word_t i, j;
   unsigned collections;
-  Coll coll;
   mps_form_A_s f;
 
   space = (mps_space_t)arg;
@@ -261,13 +261,6 @@ static void *test(void *arg, size_t s)
   for(i=0; i<OBJECTS; ++i)
   {
     unsigned c;
-
-    if(i == 2000) {
-      die(CollCreate(&coll, (Pool)pool), "CollCreate");
-      die(SchedProcAdd(SpaceSched((Space)space),
-	  CollProc, coll, 0), "SchedProcAdd");
-      {int k; for(k=0; k<NR_EXACT_ROOTS; ++k) probe(exactRoots[k]);}
-    }
 
     c = AMCCollections((Pool)pool);
 
