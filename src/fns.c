@@ -949,6 +949,8 @@ each unibyte character to a multibyte character.")
   (string)
      Lisp_Object string;
 {
+  CHECK_STRING (string, 0);
+
   return string_make_multibyte (string);
 }
 
@@ -960,6 +962,8 @@ by using just the low 8 bits.")
   (string)
      Lisp_Object string;
 {
+  CHECK_STRING (string, 0);
+
   return string_make_unibyte (string);
 }
 
@@ -970,6 +974,8 @@ If STRING is unibyte, the result is STRING itself.")
   (string)
      Lisp_Object string;
 {
+  CHECK_STRING (string, 0);
+
   if (STRING_MULTIBYTE (string))
     {
       string = Fcopy_sequence (string);
@@ -986,6 +992,8 @@ If STRING is multibyte, the result is STRING itself.")
   (string)
      Lisp_Object string;
 {
+  CHECK_STRING (string, 0);
+
   if (! STRING_MULTIBYTE (string))
     {
       int nbytes = STRING_BYTES (XSTRING (string));
