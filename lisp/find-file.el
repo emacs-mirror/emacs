@@ -906,7 +906,7 @@ Also remember that name in `ff-function-name'."
 ;;
 (defun ff-set-point-accordingly ()
   "Find the function specified in `ff-function-name'.
-That name was previously  etermined by `ff-which-function-are-we-in'."
+That name was previously determined by `ff-which-function-are-we-in'."
   (if ff-function-name
       (progn
         (goto-char (point-min))
