@@ -294,12 +294,9 @@ check_x_frame (frame)
   FRAME_PTR f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
   return f;
@@ -315,9 +312,10 @@ check_x_display_info (frame)
 {
   if (NILP (frame))
     {
-      if (FRAME_X_P (selected_frame)
-	  && FRAME_LIVE_P (selected_frame))
-	return FRAME_X_DISPLAY_INFO (selected_frame);
+      struct frame *sf = XFRAME (selected_frame);
+      
+      if (FRAME_X_P (sf) && FRAME_LIVE_P (sf))
+	return FRAME_X_DISPLAY_INFO (sf);
       else if (x_display_list != 0)
 	return x_display_list;
       else
@@ -2583,6 +2581,7 @@ x_get_resource_string (attribute, class)
 {
   char *name_key;
   char *class_key;
+  struct frame *sf = SELECTED_FRAME ();
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
@@ -2596,7 +2595,7 @@ x_get_resource_string (attribute, class)
 	   attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  return x_get_string_resource (FRAME_X_DISPLAY_INFO (selected_frame)->xrdb,
+  return x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
 				name_key, class_key);
 }
 
@@ -5448,8 +5447,8 @@ Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-Lisp_Object QCtype, QCdata, QCfile, QCascent, QCmargin, QCrelief;
-extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground;
+Lisp_Object QCtype, QCdata, QCascent, QCmargin, QCrelief;
+extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex;
 
@@ -9956,7 +9955,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
      Lisp_Object prompt, dir, default_filename, mustmatch;
 {
   int result;
-  struct frame *f = selected_frame;
+  struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
   Widget dialog, text, list, help;
   Arg al[10];
@@ -10124,7 +10123,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   int id = -1;
   
   if (valid_image_p (spec))
-    id = lookup_image (selected_frame, spec);
+    id = lookup_image (SELECTED_FRAME (), spec);
 
   debug_print (spec);
   return make_number (id);
@@ -10403,8 +10402,6 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&Qxbm);
   QCtype = intern (":type");
   staticpro (&QCtype);
-  QCfile = intern (":file");
-  staticpro (&QCfile);
   QCalgorithm = intern (":algorithm");
   staticpro (&QCalgorithm);
   QCheuristic_mask = intern (":heuristic-mask");
