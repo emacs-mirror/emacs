@@ -3910,7 +3910,7 @@ hashfn_user_defined (h, key)
   hash = Ffuncall (2, args);
   if (!INTEGERP (hash))
     Fsignal (Qerror,
-	     list2 (build_string ("Illegal hash code returned from \
+	     list2 (build_string ("Invalid hash code returned from \
 user-supplied hash function"),
 		    hash));
   return XUINT (hash);
@@ -3924,7 +3924,7 @@ user-supplied hash function"),
    `equal' or a symbol denoting a user-defined test named TEST with
    test and hash functions USER_TEST and USER_HASH.
 
-   Give the table initial capacity SIZE, SIZE > 0, an integer.
+   Give the table initial capacity SIZE, SIZE >= 0, an integer.
 
    If REHASH_SIZE is an integer, it must be > 0, and this hash table's
    new size when it becomes full is computed by adding REHASH_SIZE to
@@ -3952,12 +3952,15 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
 
   /* Preconditions.  */
   xassert (SYMBOLP (test));
-  xassert (INTEGERP (size) && XINT (size) > 0);
+  xassert (INTEGERP (size) && XINT (size) >= 0);
   xassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
 	   || (FLOATP (rehash_size) && XFLOATINT (rehash_size) > 1.0));
   xassert (FLOATP (rehash_threshold)
 	   && XFLOATINT (rehash_threshold) > 0
 	   && XFLOATINT (rehash_threshold) <= 1.0);
+
+  if (XFASTINT (size) == 0)
+    size = make_number (1);
 
   /* Allocate a vector, and initialize it.  */
   len = VECSIZE (struct Lisp_Hash_Table);
@@ -4669,7 +4672,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
 
       prop = Fget (test, Qhash_table_test);
       if (!CONSP (prop) || XFASTINT (Flength (prop)) < 2)
-	Fsignal (Qerror, list2 (build_string ("Illegal hash table test"),
+	Fsignal (Qerror, list2 (build_string ("Invalid hash table test"),
 				test));
       user_test = Fnth (make_number (0), prop);
       user_hash = Fnth (make_number (1), prop);
@@ -4680,9 +4683,9 @@ to `key-and-value'.  Default value of WEAK is nil.")
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
   size = i < 0 ? make_number (DEFAULT_HASH_SIZE) : args[i];
-  if (!INTEGERP (size) || XINT (size) <= 0)
+  if (!INTEGERP (size) || XINT (size) < 0)
     Fsignal (Qerror,
-	     list2 (build_string ("Illegal hash table size"),
+	     list2 (build_string ("Invalid hash table size"),
 		    size));
 
   /* Look for `:rehash-size SIZE'.  */
@@ -4692,7 +4695,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
       || (INTEGERP (rehash_size) && XINT (rehash_size) <= 0)
       || XFLOATINT (rehash_size) <= 1.0)
     Fsignal (Qerror,
-	     list2 (build_string ("Illegal hash table rehash size"),
+	     list2 (build_string ("Invalid hash table rehash size"),
 		    rehash_size));
 
   /* Look for `:rehash-threshold THRESHOLD'.  */
@@ -4702,7 +4705,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
       || XFLOATINT (rehash_threshold) <= 0.0
       || XFLOATINT (rehash_threshold) > 1.0)
     Fsignal (Qerror,
-	     list2 (build_string ("Illegal hash table rehash threshold"),
+	     list2 (build_string ("Invalid hash table rehash threshold"),
 		    rehash_threshold));
 
   /* Look for `:weakness WEAK'.  */
@@ -4715,7 +4718,7 @@ to `key-and-value'.  Default value of WEAK is nil.")
       && !EQ (weak, Qvalue)
       && !EQ (weak, Qkey_or_value)
       && !EQ (weak, Qkey_and_value))
-    Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"),
+    Fsignal (Qerror, list2 (build_string ("Invalid hash table weakness"),
 			    weak));
 
   /* Now, all args should have been used up, or there's a problem.  */
