@@ -1,5 +1,7 @@
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
+	* international/utf-16.el: Don't provide utf-16.
+
 	* international/utf-8.el (ccl-decode-mule-utf-8): Remove
 	unnecessary line.
 
