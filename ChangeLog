@@ -2,6 +2,13 @@
 
 	* configure.in: Fix typo.
 
+2002-09-05  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Look for LessTif in /usr/X11R6/LessTif/ before Motif.
+
+	* configure.in: Handle $GCC_LINK_TEST_OPTIONS and 
+	$NON_GCC_LINK_TEST_OPTIONS after the AC_PROG_... macros.
+
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (install-arch-indep): Do not remove DOC file
