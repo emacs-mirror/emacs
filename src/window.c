@@ -57,6 +57,9 @@ static int window_min_size_1 P_ ((struct window *, int));
 static int window_min_size P_ ((struct window *, int, int *));
 static int window_fixed_size_p P_ ((struct window *, int, int));
 static void size_window P_ ((Lisp_Object, int, int, int));
+static void foreach_window_1 P_ ((struct window *, void (*fn) (), int, int,
+				  int, int));
+static void freeze_window_start P_ ((struct window *, int));
 
 
 /* This is the window in which the terminal's cursor should
@@ -226,6 +229,7 @@ make_window ()
   p->vscroll = 0;
   XSETWINDOW (val, p);
   XSETFASTINT (p->last_point, 0);
+  p->frozen_window_start_p = 0;
   return val;
 }
 
@@ -743,14 +747,6 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
     Fgoto_char (pos);
   else
     set_marker_restricted (w->pointm, pos, w->buffer);
-
-  /* If mini-window is resized, make it not restore its saved window
-     configuration.  This function being called indicates that the
-     current window configuration is being changed.  These changes
-     would be undone if resize_mini_window would restore its saved
-     configuration.  */
-  if (resize_mini_frame == XFRAME (w->frame))
-    Vresize_mini_config = Qnil;
   
   return pos;
 }
@@ -776,14 +772,6 @@ from overriding motion of point in order to display at this exact start.")
   if (!EQ (window, selected_window))
     windows_or_buffers_changed++;
 
-  /* If mini-window is resized, make it not restore its saved window
-     configuration.  This function being called indicates that the
-     current window configuration is being changed.  These changes
-     would be undone if resize_mini_window would restore its saved
-     configuration.  */
-  if (resize_mini_frame == XFRAME (w->frame))
-    Vresize_mini_config = Qnil;
-  
   return pos;
 }
 
@@ -937,6 +925,7 @@ replace_window (old, replacement)
   XSETFASTINT (p->window_end_vpos, 0);
   XSETFASTINT (p->window_end_pos, 0);
   p->window_end_valid = Qnil;
+  p->frozen_window_start_p = 0;
 
   p->next = tem = o->next;
   if (!NILP (tem))
@@ -2356,14 +2345,6 @@ set_window_buffer (window, buffer, run_hooks_p)
 
   w->buffer = buffer;
 
-  /* If mini-window is resized, make it not restore its saved window
-     configuration.  This function being called indicates that the
-     current window configuration is being changed.  These changes
-     would be undone if resize_mini_window would restore its saved
-     configuration.  */
-  if (resize_mini_frame == XFRAME (w->frame))
-    Vresize_mini_config = Qnil;
-  
   if (EQ (window, selected_window))
     b->last_selected_window = window;
 
@@ -4712,6 +4693,75 @@ multiple of the canonical character height of WINDOW.")
   return Qnil;
 }
        
+
+/* Call FN for all leaf windows on frame F.  FN is called with the
+   first argument being a pointer to the leaf window, and with
+   additional arguments A1..A4.  */
+
+void
+foreach_window (f, fn, a1, a2, a3, a4)
+     struct frame *f;
+     void (* fn) ();
+     int a1, a2, a3, a4;
+{
+  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, a1, a2, a3, a4);
+}
+
+
+/* Helper function for foreach_window.  Call FN for all leaf windows
+   reachable from W.  FN is called with the first argument being a
+   pointer to the leaf window, and with additional arguments A1..A4.  */
+
+static void
+foreach_window_1 (w, fn, a1, a2, a3, a4)
+     struct window *w;
+     void (* fn) ();
+     int a1, a2, a3, a4;
+{
+  while (w)
+    {
+      if (!NILP (w->hchild))
+ 	foreach_window_1 (XWINDOW (w->hchild), fn, a1, a2, a3, a4);
+      else if (!NILP (w->vchild))
+ 	foreach_window_1 (XWINDOW (w->vchild), fn, a1, a2, a3, a4);
+      else
+	fn (w, a1, a2, a3, a4);
+      
+      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+    }
+}
+
+
+/* Freeze or unfreeze the window start of W if unless it is a
+   mini-window or the selected window.  FREEZE_P non-zero means freeze
+   the window start.  */
+
+static void
+freeze_window_start (w, freeze_p)
+     struct window *w;
+     int freeze_p;
+{
+  if (w == XWINDOW (selected_window)
+      || MINI_WINDOW_P (w)
+      || (MINI_WINDOW_P (XWINDOW (selected_window))
+	  && w == XWINDOW (Vminibuf_scroll_window)))
+    freeze_p = 0;
+  
+  w->frozen_window_start_p = freeze_p;
+}
+
+
+/* Freeze or unfreeze the window starts of all leaf windows on frame
+   F, except the selected window and a mini-window.  FREEZE_P non-zero
+   means freeze the window start.  */
+
+void
+freeze_window_starts (f, freeze_p)
+     struct frame *f;
+     int freeze_p;
+{
+  foreach_window (f, freeze_window_start, freeze_p);
+}
 
 
 /***********************************************************************
