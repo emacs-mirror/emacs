@@ -92,16 +92,16 @@
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
-				"defgeneric" "defmethod") t)
-			     "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)")))
+				"defgeneric" "defmethod") t))
+			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
 			     (regexp-opt
 			      '("defvar" "defconst" "defconstant" "defcustom"
-				"defparameter" "define-symbol-macro") t)
-			     "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)")))
+				"defparameter" "define-symbol-macro") t))
+			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
@@ -109,8 +109,8 @@
 			     (regexp-opt
 			      '("defgroup" "deftype" "defstruct" "defclass"
 				"define-condition" "define-widget" "defface"
-				"defpackage") t)
-			     "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")))
+				"defpackage") t))
+			   "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -155,13 +155,9 @@
 ;; The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 ;; (uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
 (defun lisp-mode-variables (&optional lisp-syntax)
-  (cond (lisp-syntax
-	  (set-syntax-table lisp-mode-syntax-table)))
+  (when lisp-syntax
+    (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat page-delimiter "\\|$" ))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'fill-paragraph-function)
@@ -169,8 +165,8 @@
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
-  (make-local-variable 'adaptive-fill-mode)
-  (setq adaptive-fill-mode nil)
+  ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
+  ;;(set (make-local-variable 'adaptive-fill-mode) nil)
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'lisp-mode-auto-fill)
   (make-local-variable 'indent-line-function)
@@ -617,6 +613,11 @@ which see."
       (max (if (bolp) 0 (1+ (current-column)))
 	   comment-column))))
 
+;; This function just forces a more costly detection of comments (using
+;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of
+;; taking a `;' inside a string started on another line for a comment starter.
+;; Note: `newcomment' gets it right in 99% of the cases if you're using
+;;       font-lock, anyway, so we could get rid of it.   -stef
 (defun lisp-mode-auto-fill ()
   (if (> (current-column) (current-fill-column))
       (if (save-excursion
@@ -1054,8 +1055,8 @@ and initial semicolons."
 	  (error nil))
 	(setq has-comment t has-code-and-comment t)
 	(setq comment-fill-prefix
-	      (concat (make-string (/ (current-column) 8) ?\t)
-		      (make-string (% (current-column) 8) ?\ )
+	      (concat (make-string (/ (current-column) tab-width) ?\t)
+		      (make-string (% (current-column) tab-width) ?\ )
 		      (buffer-substring (match-beginning 0) (match-end 0)))))))
 
     (if (not has-comment)
@@ -1068,7 +1069,10 @@ and initial semicolons."
         ;; filled para at following comment lines and keywords
         ;; (typically in `defcustom').
 	(let ((paragraph-start (concat paragraph-start
-                                       "\\|\\s-*[\(;:\"]")))
+                                       "\\|\\s-*[\(;:\"]"))
+	      ;; Avoid filling the first line of docstring.
+	      (paragraph-separate
+	       (concat paragraph-separate "\\|\\s-*\".*\\.$")))
           (fill-paragraph justify))
 
       ;; Narrow to include only the comment, and then fill the region.
@@ -1078,16 +1082,13 @@ and initial semicolons."
 	  (narrow-to-region
 	   ;; Find the first line we should include in the region to fill.
 	   (save-excursion
-	     (while (and (zerop (forward-line -1))
-			 (looking-at "^[ \t]*;")))
-	     ;; We may have gone too far.  Go forward again.
-	     (or (looking-at ".*;")
-		 (forward-line 1))
+	     (while (and (looking-at "[ \t]*;")
+			 (zerop (forward-line -1))))
 	     (point))
 	   ;; Find the beginning of the first line past the region to fill.
 	   (save-excursion
 	     (while (progn (forward-line 1)
-			   (looking-at "^[ \t]*;")))
+			   (looking-at "[ \t]*;")))
 	     (point)))
 
 	  ;; Lines with only semicolons on them can be paragraph boundaries.
