@@ -1,5 +1,14 @@
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_single_display_prop): Add parameter
+	DISPLAY_REPLACED_BEFORE_P.  If it is non-zero ignore display
+	properties which replace the display of text with something else.
+	(handle_display_prop): Call handle_single_display_prop with
+	additional argument saying if we already replaced text display
+	with something else.  Use AREF.
+	(with_echo_area_buffer_unwind_data, display_menu_bar) 
+	(decode_mode_spec_coding): Use AREF and ASIZE.
+
 	* vms-pp.c, vmsdir.h, vmsmap.c, vmsproc.h, vms-pp.trans, vmsfns.c,
 	* vmspaths.h, vmstime.c, vms-pwd.h, vmsgmalloc.c, vmsproc.c,
 	* vmstime.h: Files removed.
