@@ -210,8 +210,7 @@ EMACS = `echo emacs | sed '$(TRANSFORM)'`
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`
 
 # Subdirectories to make recursively.  `lisp' is not included
-# because the compiled lisp files are part of the distribution
-# and you cannot remake them without installing Emacs first.
+# because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
 SUBDIR = lib-src src
 
