@@ -75,8 +75,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef PBaseSize
 /* AIX 3.1's X is somewhere between X11R3 and X11R4.  It has
    PBaseSize, but not XWithdrawWindow, XSetWMName, XSetWMNormalHints,
-   XSetWMIconName.  */
-#ifndef AIX
+   XSetWMIconName.  
+   AIX 3.2 is at least X11R4.  */
+#if (!defined AIX) || (defined AIX3_2)
 #define HAVE_X11R4
 #endif
 #endif
