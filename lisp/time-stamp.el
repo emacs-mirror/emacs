@@ -40,7 +40,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.20 1996/11/05 18:27:41 rms Exp rms $
+;; $Id: time-stamp.el,v 1.21 1996/12/13 01:49:23 rms Exp rms $
 
 ;;; Code:
 
@@ -60,14 +60,23 @@ If `error', the format is not used.  If `ask', the user is queried about
 using the time-stamp-format.  If `warn', a warning is displayed.
 If nil, no notification is given.")
 
-(defvar time-stamp-format "%y-%m-%d %H:%M:%S %u"
+(defvar time-stamp-format "%Y-%m-%d %H:%M:%S %u"
   "*Format of the string inserted by \\[time-stamp].
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
 
 A string is used with `format-time-string'.
 For example, to get the format used by the `date' command,
-use \"%3a %3b %2d %H:%M:%S %Z %y\"")
+use \"%3a %3b %2d %H:%M:%S %Z %y\".
+
+In addition to the features of `format-time-string',
+you can use the following %-constructs:
+
+%f  file name without directory
+%F  full file name
+%h  mail host name
+%s  system name
+%u  user's login name")
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
 ;;; time-stamp-end in your .emacs or you will be incompatible
@@ -194,11 +203,39 @@ With arg, turn time stamping on if and only if arg is positive."
 	  (> (prefix-numeric-value arg) 0)))
     (message "time-stamp is now %s." (if time-stamp-active "active" "off")))
 
+(defconst time-stamp-no-file "(no file)"
+  "String to use when the buffer is not associated with a file.")
+
+(defun time-stamp-string-preprocess (format)
+  "Process occurrences in FORMAT of %f, %F, %h, %s and %u.
+These are replaced with the file name (nondirectory part),
+full file name, host name for mail, system name, and user name.
+Do not alter other %-combinations, and do detect %%."
+  (let ((result "") (pos 0) (case-fold-search nil)
+	(file (or buffer-file-name "(no file)")))
+    (while (string-match "%[%uhfFs]" format pos)
+      (setq result (concat result (substring format pos (match-beginning 0))))
+      (let ((char (aref format (1+ (match-beginning 0)))))
+	(cond ((= char ?%)
+	       (setq result (concat result "%%")))
+	      ((= char ?u)
+	       (setq result (concat result (user-login-name))))
+	      ((= char ?f)
+	       (setq result (concat result (file-name-nondirectory file))))
+	      ((= char ?f)
+	       (setq result (concat result file)))
+	      ((= char ?s)
+	       (setq result (concat result (system-name))))
+	      ((= char ?h)
+	       (setq result (concat result (time-stamp-mail-host-name))))))
+      (setq pos (match-end 0)))
+    (concat result (substring format pos))))
 
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
   (if (stringp time-stamp-format)
-      (format-time-string time-stamp-format (current-time))
+      (format-time-string (time-stamp-string-preprocess time-stamp-format)
+			  (current-time))
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)
