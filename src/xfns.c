@@ -5451,7 +5451,7 @@ Lisp_Object Qxbm;
 Lisp_Object QCtype, QCdata, QCfile, QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
-extern Lisp_Object QCimage;
+Lisp_Object QCindex;
 
 /* Other symbols.  */
 
@@ -8869,7 +8869,7 @@ gif_load (f, img)
       return 0;
     }
 
-  image = image_spec_value (img->spec, QCimage, NULL);
+  image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   if (ino >= gif->ImageCount)
     {
@@ -10400,6 +10400,8 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&QCpt_width);
   QCpt_height = intern (":pt-height");
   staticpro (&QCpt_height);
+  QCindex = intern (":index");
+  staticpro (&QCindex);
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
 
