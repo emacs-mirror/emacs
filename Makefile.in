@@ -4,10 +4,6 @@
 
 # make all	to compile and build Emacs.
 # make install	to install it.
-# make install.sysv to install on system V.  Note that on system V you
-#		must change mandir to /usr/local/man/man1.
-# make install.xenix  to install on Xenix.
-# make install.aix    to install on AIX.
 # make TAGS	to update tags tables.
 #
 # make clean  or  make mostlyclean
@@ -145,7 +141,7 @@ lisppath=${locallisppath}:${lispdir}
 # entry for the directory containing the installed lisp
 # files has been replaced with ../lisp.  This should be a
 # colon-separated list of directories.
-buildlisppath=../lisp
+buildlisppath=${srcdir}/lisp
 
 @inst_paths@# Where to install the other architecture-independent
 @inst_paths@# data files distributed with Emacs (like the tutorial,
@@ -186,8 +182,7 @@ buildlisppath=../lisp
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
-INSTALL = install
-INSTALLFLAGS = -c
+INSTALL = install -c
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL}
 
@@ -317,6 +312,9 @@ Makefile:
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
+## On AIX, use tar xBf.
+## On Xenix, use tar xpf.
+
 ## We delete each directory in ${COPYDESTS} before we copy into it;
 ## that way, we can reinstall over directories that have been put in
 ## place with their files read-only (perhaps because they are checked
@@ -328,8 +326,8 @@ install: all mkdir
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
 	   [ -d $${dir} ] \
-           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
-           && (echo "Copying $${dir}..." ; \
+	   && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
+	   && (echo "Copying $${dir}..." ; \
 	       rm -rf $${dest} ; mkdir $${dest} ; \
 	       (cd $${dir}; tar cf - . )|(cd $${dest}; umask 0; tar xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
@@ -341,131 +339,19 @@ install: all mkdir
 	 done
 	-(cd ${srcdir}/info ; \
 	  if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
-	    ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 ./dir ${infodir}/dir ; \
+	    ${INSTALL_DATA} dir ${infodir}/dir ; \
 	  fi ; \
 	  if [ "`echo *.info*`" != "*.info*" ]; then \
 	    for f in *.info* ; do \
-	      ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $$f ${infodir}/$$f ; \
+	      ${INSTALL_DATA} $$f ${infodir}/$$f ; \
 	    done ; \
 	  fi)
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
-	  ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $${page}.1 \
-	    ${mandir}/$${page}${manext} ; \
+	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -m 1755 src/emacs \
-	  ${bindir}/emacs-${version}
-	-rm -f ${bindir}/emacs
-	ln ${bindir}/emacs-${version} ${bindir}/emacs
-
-## If we let lib-src do its own installation, that means we
-## don't have to duplicate the list of utilities to install in
-## this Makefile as well.
-install.sysv: all mkdir
-	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
-	-set ${COPYDESTS} ; \
-	 for dir in ${COPYDIR} ; do \
-	   dest=$$1 ; shift ; \
-	   [ -d $${dir} ] \
-           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
-           && (rm -rf $${dest} ; mkdir $${dest} ; \
-	       (cd $${dir}; find . -print | cpio -pdum $${dest} ) ; \
-	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-		 rm -rf $${subdir}/RCS ; \
-		 rm -rf $${subdir}/CVS ; \
-		 rm -f  $${subdir}/\#* ; \
-		 rm -f  $${subdir}/*~ ; \
-	       done) ; \
-	 done
-	-(cd info ; \
-	  if [ ! -f ${infodir}/dir ]; then \
-	    cpset ./dir ${infodir} 444 bin bin ; \
-	  fi ; \
-	  if [ "`echo *.info*`" != "*.info*" ]; then \
-	    for f in *.info* ; do \
-	       cpset $$f ${infodir} 444 bin bin ; \
-	    done ; \
-	  fi)
-	-for page in emacs etags ctags ; do \
-	  cpset etc/$${page}.1 ${mandir}/$${page}${manext} 444 bin bin ; \
-	done
-	-/bin/rm -f ${bindir}/emacs
-	-cpset src/emacs ${bindir}/emacs-${version} 1755 bin bin
-	-ln ${bindir}/emacs-${version} ${bindir}/emacs
-  
-## If we let lib-src do its own installation, that means we
-## don't have to duplicate the list of utilities to install in
-## this Makefile as well.
-install.xenix: all mkdir
-	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
-	-set ${COPYDESTS} ; \
-	 for dir in ${COPYDIR} ; do \
-	   dest=$$1 ; shift ; \
-	   [ -d $${dir} ] \
-           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
-           && (rm -rf $${dest} ; mkdir $${dest} ; \
-	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xpf - );\
-	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-		 rm -rf $${subdir}/RCS ; \
-		 rm -rf $${subdir}/CVS ; \
-		 rm -f  $${subdir}/\#* ; \
-		 rm -f  $${subdir}/*~ ; \
-	       done) ; \
-	 done
-	-(cd info ; \
-	  if [ ! -f ${infodir}/dir ]; then \
-	    cp ./dir ${infodir} ; \
-	    chmod 444 ${infodir}/dir ; \
-	  fi ; \
-	  if [ "`echo *.info*`" != "*.info*" ]; then \
-	    for f in *.info* ; do \
-	       cp $$f ${infodir} ; \
-	       chmod 444 ${infodir}/$$f ; \
-	    done ; \
-	  fi)
-	for page in emacs etags ctags ; do \
-	  cp etc/$${page}.1 ${mandir}/$${page}${manext} ; \
-	  chmod 444 ${mandir}/$${page}${manext} ; \
-	done
-	-mv -f ${bindir}/emacs ${bindir}/emacs.old
-	cp src/emacs ${bindir}/emacs-${version}
-	ln ${bindir}/emacs-${version} ${bindir}/emacs
-	chmod 1755 ${bindir}/emacs
-	-rm -f ${bindir}/emacs.old
-
-## If we let lib-src do its own installation, that means we
-## don't have to duplicate the list of utilities to install in
-## this Makefile as well.
-install.aix: all mkdir
-	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
-	-set ${COPYDESTS} ; \
-	 for dir in ${COPYDIR} ; do \
-	   dest=$$1 ; shift ; \
-	   [ -d $${dir} ] \
-           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
-           && (rm -rf $${dest} ; mkdir $${dest} ; \
-	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xBf - );\
-	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-		 rm -rf $${subdir}/RCS ; \
-		 rm -rf $${subdir}/CVS ; \
-		 rm -f  $${subdir}/\#* ; \
-		 rm -f  $${subdir}/*~ ; \
-	       done) ; \
-	 done
-	-(cd info ; \
-	  if [ ! -f ${infodir}/dir ]; then \
-	    ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} ./dir ; \
-	  fi ; \
-	  if [ "`echo *.info*`" != "*.info*" ]; then \
-	    for f in *.info* ; do \
-	       ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} $$f ; \
-	    done ; \
-	  fi)
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -M 1755 -f ${bindir} src/emacs
-	mv ${bindir}/emacs ${bindir}/emacs-${version}
-	for page in emacs etags ctags ; do \
-	  ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${mandir} etc/$${page}.1 ;\
-	done
-	-rm -f ${bindir}/emacs
+	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
+	chmod 1755  ${bindir}/emacs-${version}
+	rm -f ${bindir}/emacs
 	ln ${bindir}/emacs-${version} ${bindir}/emacs
 
 ### Build all the directories we're going to install Emacs in.	Since
