@@ -1,3 +1,9 @@
+1999-11-23  Ken Raeburn  <raeburn@gnu.org>
+
+	* configure.in: Restore Kerberos code deleted on 1999-05-29 that
+	didn't need to be deleted.  Check for the k5crypto library as well
+	as the crypto library; MIT Kerberos 1.1 changed the name.
+
 1999-11-18  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix NON_GNU_CPP for Irix 6 to avoid failing tests.

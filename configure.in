@@ -43,6 +43,18 @@ AC_ARG_WITH(pop,
 else :
 fi],
 AC_DEFINE(MAIL_USE_POP))
+AC_ARG_WITH(kerberos,
+[  --with-kerberos         support Kerberos-authenticated POP],
+[AC_DEFINE(KERBEROS)])
+AC_ARG_WITH(kerberos5,
+[  --with-kerberos5         support Kerberos version 5 authenticated POP],
+[if test "${with_kerberos5+set}" = set; then
+  if test "${with_kerberos+set}" != set; then
+    with_kerberos=yes
+    AC_DEFINE(KERBEROS)
+  fi
+fi
+AC_DEFINE(KERBEROS5)])
 AC_ARG_WITH(hesiod,
 [  --with-hesiod           support Hesiod to get the POP server host],
 [AC_DEFINE(HESIOD)])
@@ -1796,6 +1808,32 @@ __fpending ftello getloadavg mblen mbrlen strsignal)
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
 AC_CHECK_LIB(ncurses, tparm)
+
+# These tell us which Kerberos-related libraries to use.
+if test "${with_kerberos+set}" = set; then
+  AC_CHECK_LIB(com_err, com_err)
+  AC_CHECK_LIB(k5crypto, mit_des_cbc_encrypt)
+  AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
+  AC_CHECK_LIB(krb5, krb5_init_context)
+  if test "${with_kerberos5+set}" != set; then
+    AC_CHECK_LIB(des425, des_cbc_encrypt,,
+		 AC_CHECK_LIB(des, des_cbc_encrypt))
+    AC_CHECK_LIB(krb4, krb_get_cred,,
+		 AC_CHECK_LIB(krb, krb_get_cred))
+  fi
+
+  if test "${with_kerberos5+set}" = set; then
+    AC_CHECK_HEADERS(krb5.h)
+  else
+    AC_CHECK_HEADERS(des.h,,
+		     AC_CHECK_HEADERS(kerberosIV/des.h,,
+				      AC_CHECK_HEADERS(kerberos/des.h)))
+    AC_CHECK_HEADERS(krb.h,,
+		     AC_CHECK_HEADERS(kerberosIV/krb.h,,
+				      AC_CHECK_HEADERS(kerberos/krb.h)))
+  fi
+  AC_CHECK_HEADERS(com_err.h)
+fi
 
 # Solaris requires -lintl if you want strerror (which calls dgettext)
 # to return localized messages.
