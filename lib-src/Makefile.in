@@ -150,7 +150,7 @@ MOVE_FLAGS=
 #undef alloca
 #endif
 
-/* Some machines don't find the standard C libraries in the usual place.  */
+/* Some machines don\'t find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD_LIBSRC
 #define LIB_STANDARD_LIBSRC -lc
@@ -251,7 +251,7 @@ CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 /* This was all of CPP_CFLAGS except -Demacs.
    Now that -Demacs has been deleted from CPP_CFLAGS,
-   this is actually the same as CPP_CFLAGS, but let's not delete it yet.  */
+   this is actually the same as CPP_CFLAGS, but let\'s not delete it yet.  */
 BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
@@ -272,7 +272,7 @@ blessmail:
 
 maybe-blessmail: BLESSMAIL
 #ifdef MOVEMAIL_NEEDS_BLESSING
-/* Don't charge ahead and do it!  Let the installer decide.
+/* Don\'t charge ahead and do it!  Let the installer decide.
 	  ./blessmail ${archlibdir}/movemail  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
@@ -294,15 +294,15 @@ ${archlibdir}: all
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file ${archlibdir}/$$file ; \
 	  done ; \
         fi
+	$(top_srcdir)/mkinstalldirs ${gamedir}
+	touch ${gamedir}/snake-scores
+	touch ${gamedir}/tetris-scores
 /* If the following commands fail, that is not a big deal.
    update-game-score will detect at runtime that it is not setuid,
    and handle things accordingly. */
-	if test ${gamedir} != no && chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
-	  $(top_srcdir)/mkinstalldirs ${gamedir}; \
+	if chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
 	  chown ${gameuser} ${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx ${gamedir}; \
-	  touch ${gamedir}/snake-scores; \
-	  touch ${gamedir}/tetris-scores; \
 	fi
         if [ `(cd ${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
@@ -362,7 +362,7 @@ tags: TAGS
 TAGS: etags
 	etags *.[ch]
 
-/* This verifies that the non-ASCII characters in the file `testfile'
+/* This verifies that the non-ASCII characters in the file \`testfile\'
    have not been clobbered by whatever means were used to copy and
    distribute Emacs.  If they were clobbered, all the .elc files were
    clobbered too.  */
@@ -396,7 +396,7 @@ etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 ebrowse: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
 
-/* We depend on etags to assure that parallel makes don't write two
+/* We depend on etags to assure that parallel makes don\'t write two
    etags.o files on top of each other.  */
 ctags: etags
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
@@ -444,7 +444,9 @@ hexl: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 update-game-score: ${srcdir}/update-game-score.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
+	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c \
+	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
+	  $(LOADLIBES) -o update-game-score
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */
