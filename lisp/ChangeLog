@@ -1,10 +1,31 @@
+2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texnfo-upd.el: Require texinfo.
+	(defmacro, defgroup): Remove.
+	(texinfo-section-to-generic-alist): Remove.
+	Use texinfo-section-list instead (i.e. level is changed string->int).
+	(texinfo-filter): New function.
+	(texinfo-chapter-level-regexp, texinfo-subsubsection-level-regexp)
+	(texinfo-subsection-level-regexp, texinfo-section-level-regexp):
+	Use it.  And use regexp-opt.
+	(texinfo-find-higher-level-node, texinfo-hierarchic-level) 
+	(texinfo-update-menu-region-beginning) 
+	(texinfo-update-menu-same-level-regexps) 
+	(texinfo-update-menu-higher-regexps, texinfo-update-menu-lower-regexps) 
+	(texinfo-update-the-node, texinfo-sequentially-update-the-node): Update.
+	(texinfo-update-node, texinfo-every-node-update) 
+	(texinfo-sequential-node-update): Remove autoload cookie.
+
+	* textmodes/texinfo.el (texinfo-section-list): Change majorheading to 2.
+	(texinfo-font-lock-syntactic-keywords): Use syntax-strings.
+	(texinfo-chapter-level-regexp): Remove.
+	(texinfo-mode): Hard code texinfo-chapter-level-regexp.
+
 2000-11-06  Dave Love  <fx@gnu.org>
 
-	* autoinsert.el (auto-insert-alist) <latex-mode>: Use
-	\documentclass.
+	* autoinsert.el (auto-insert-alist) <latex-mode>: Use \documentclass.
 
-	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Match
-	defun*.
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Match defun*.
 
 2000-11-06  Kenichi Handa  <handa@etl.go.jp>
 
