@@ -1112,29 +1112,31 @@ of the old one in the permanent bookmark record."
                   (and (file-exists-p altname)
                        altname)))))
         (save-excursion
-          (if info-node
-              ;; Info nodes must be visited with care.
-              (progn
-                (require 'info)
-                (Info-find-node file info-node))
-            ;; Else no Info.  Can do an ordinary find-file:
-            (set-buffer (find-file-noselect file))
-            (goto-char place))
+          (save-window-excursion
+            (if info-node
+                ;; Info nodes must be visited with care.
+                (progn
+                  (require 'info)
+                  (Info-find-node file info-node))
+              ;; Else no Info.  Can do an ordinary find-file:
+              (set-buffer (find-file-noselect file))
+              (goto-char place))
 
-          ;; Go searching forward first.  Then, if forward-str exists and
-          ;; was found in the file, we can search backward for behind-str.
-          ;; Rationale is that if text was inserted between the two in the
-          ;; file, it's better to be put before it so you can read it,
-          ;; rather than after and remain perhaps unaware of the changes.
-          (if forward-str
-              (if (search-forward forward-str (point-max) t)
-                  (goto-char (match-beginning 0))))
-          (if behind-str
-              (if (search-backward behind-str (point-min) t)
-                  (goto-char (match-end 0))))
-          ;; added by db
-          (setq bookmark-current-bookmark str)
-          (cons (current-buffer) (point)))
+            ;; Go searching forward first.  Then, if forward-str exists and
+            ;; was found in the file, we can search backward for behind-str.
+            ;; Rationale is that if text was inserted between the two in the
+            ;; file, it's better to be put before it so you can read it,
+            ;; rather than after and remain perhaps unaware of the changes.
+            (if forward-str
+                (if (search-forward forward-str (point-max) t)
+                    (goto-char (match-beginning 0))))
+            (if behind-str
+                (if (search-backward behind-str (point-min) t)
+                    (goto-char (match-end 0))))
+            ;; added by db
+            (setq bookmark-current-bookmark str)
+            (cons (current-buffer) (point))))
+
       ;; Else unable to find the marked file, so ask if user wants to
       ;; relocate the bookmark, else remind them to consider deletion.
       (ding)
@@ -1896,7 +1898,10 @@ With a prefix arg, prompts for a file to save them in."
   "Make the other window select this line's bookmark.
 The current window remains selected."
   (interactive)
-  (let ((bookmark (bookmark-bmenu-bookmark)))
+  (let ((bookmark (bookmark-bmenu-bookmark))
+        (pop-up-windows t)
+        same-window-buffer-names 
+        same-window-regexps)
     (if (bookmark-bmenu-check-position)
 	(let* ((pair (bookmark-jump-noselect bookmark))
                (buff (car pair))
