@@ -257,11 +257,11 @@ static unsigned mouse_move_timer = 0;
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
 
-typedef BOOL (WINAPI * TrackMouseEvent_Proc) (
-    IN OUT LPTRACKMOUSEEVENT lpEventTrack
-    );
+typedef BOOL (WINAPI * TrackMouseEvent_Proc)
+  (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 
-TrackMouseEvent_Proc track_mouse_event_fn=NULL;
+TrackMouseEvent_Proc track_mouse_event_fn = NULL;
+ClipboardSequence_Proc clipboard_sequence_fn = NULL;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -14483,11 +14483,15 @@ versions of Windows) characters.  */);
 void globals_of_w32fns ()
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
-	/*
-		TrackMouseEvent not available in all versions of Windows, so must load
-		it dynamically.  Do it once, here, instead of every time it is used.
+  /*
+    TrackMouseEvent not available in all versions of Windows, so must load
+    it dynamically.  Do it once, here, instead of every time it is used.
   */
-  track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
+  track_mouse_event_fn = (TrackMouseEvent_Proc)
+    GetProcAddress (user32_lib, "TrackMouseEvent");
+  /* ditto for GetClipboardSequenceNumber.  */
+  clipboard_sequence_fn = (ClipboardSequence_Proc)
+    GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
 }
 
 /* Initialize image types. Based on which libraries are available.  */
