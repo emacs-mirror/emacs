@@ -138,6 +138,7 @@ no aliases, which is represented by this being a table with no entries.)")
 
 ;;;###autoload
 (defun mail-abbrevs-setup ()
+  "Initialize use of the `mailabbrev' package."
   (if (and (not (vectorp mail-abbrevs))
 	   (file-exists-p mail-personal-alias-file))
       (build-mail-abbrevs))
