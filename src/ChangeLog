@@ -1,3 +1,9 @@
+2000-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (skip_debugger): Prevent a compiler warning.
+	(Fcondition_case): Likewise.
+	(Fbacktrace_frame): Use a null interactive spec.
+
 2000-10-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (x_find_ccl_program): Check also fontp->full_name.
