@@ -325,7 +325,7 @@ extern void stuff_buffered_input P_ ((Lisp_Object));
 extern void clear_waiting_for_input P_ ((void));
 extern void swallow_events P_ ((int));
 extern int help_char_p P_ ((Lisp_Object));
-extern void quit_throw_to_read_char P_ ((void));
+extern void quit_throw_to_read_char P_ ((void)) NO_RETURN;
 extern void cmd_error_internal P_ ((Lisp_Object, char *));
 extern void timer_start_idle P_ ((void));
 extern void timer_stop_idle P_ ((void));
