@@ -2259,7 +2259,7 @@ Interactively, if the binding is `execute-extended-command', a command is read.
 The command is found by looking up in Emacs manual's Command Index
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
-  (interactive "kFind documentation for key:")
+  (interactive "kFind documentation for key: ")
   (let ((command (key-binding key)))
     (cond ((null command)
 	   (message "%s is undefined" (key-description key)))
