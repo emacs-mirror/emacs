@@ -633,29 +633,20 @@ You may have to tweak the syntax of the `at' command to suit your
 system.  Alternatively, you can specify a cron entry:
 0 1 * * * diary-rem.sh
 to run it every morning at 1am."
-  (interactive "p")
-  (let ((text nil)
-	;; Use the fancy-diary-display as it doesn't hide rest of
-	;; diary file with ^M characters.  It also looks nicer.
-	(diary-display-hook 'fancy-diary-display))	
-    (if (not current-prefix-arg)
-	(setq ndays diary-mail-days))
-    (calendar)
-    (view-diary-entries ndays)
-    (set-buffer fancy-diary-buffer)
-    (setq text (buffer-substring (point-min) (point-max)))
-
-    ;; Now send text as a mail message.
+  (interactive "P")
+  (let* ((diary-display-hook 'fancy-diary-display)
+         (diary-list-include-blanks t)
+         (text (progn (list-diary-entries (calendar-current-date)
+                                          (if ndays ndays diary-mail-days))
+                      (set-buffer fancy-diary-buffer)
+                      (buffer-substring (point-min) (point-max)))))
     (mail)
-    (mail-to)
-    (insert diary-mail-addr)
-    (mail-subject)
-    (insert "Diary entries generated ")
-    (insert (format-time-string "%a %d %b %Y" (current-time)))
-    (mail-text)
-    (insert text)
-    (mail-send-and-exit nil)
-    (exit-calendar)))
+    (mail-to) (insert diary-mail-addr)
+    (mail-subject) (insert "Diary entries generated "
+                           (calendar-date-string (calendar-current-date)))
+    (mail-text) (insert text)
+    (mail-send-and-exit nil)))
+
 
 (defun diary-name-pattern (string-array &optional fullname)
   "Convert an STRING-ARRAY, an array of strings to a pattern.
@@ -1295,9 +1286,10 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
               (d2 (extract-calendar-day last))
               (y2 (extract-calendar-year last)))
 	 (if (or (and (= m1 m2)	; only possible base dates in one month
-		      (or (and (listp month) (memq m1 month))
-			  (eq month t)
-			  (= m1 month))
+		      (or (eq month t)
+			  (if (listp month)
+                              (memq m1 month)
+			    (= m1 month)))
 		      (let ((d (or day (if (> n 0)
 					   1
 					 (calendar-last-day-of-month m1 y1)))))
@@ -1308,21 +1300,24 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 		      (or
 		       ;; m1, d1 works as a base date
 		       (and
-			(or (and (listp month) (memq m1 month))
-			    (eq month t)
-			    (= m1 month))
+			(or (eq month t)
+			    (if (listp month)
+                                (memq m1 month)
+			      (= m1 month)))
 			(<= d1 (or day (if (> n 0)
 					   1
 					 (calendar-last-day-of-month m1 y1)))))
 		       ;; m2, d2 works as a base date
-		       (and (or (and (listp month) (memq m2 month))
-				(eq month t)
-				(= m2 month))
+		       (and (or (eq month t)
+				(if (listp month)
+                                    (memq m2 month)
+				  (= m2 month)))
 			    (<= (or day (if (> n 0)
 					    1
 					  (calendar-last-day-of-month m2 y2)))
 				d2)))))
 	     entry))))
+
 
 (defun diary-anniversary (month day year)
   "Anniversary diary entry.
