@@ -1665,7 +1665,7 @@ coding_allocate_composition_data (coding, char_offset)
 
 #define DECODE_COMPOSITION_END(c1)					\
   do {									\
-    if (! COMPOSING (coding))						\
+    if (! COMPOSING_P (coding))						\
       {									\
 	*dst++ = ISO_CODE_ESC;						\
 	*dst++ = c1;							\
