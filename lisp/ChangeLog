@@ -1,3 +1,29 @@
+1999-11-16  Anders Lindgren  <AndersL@andersl.com>
+	
+	* font-lock.el: System for adding and removing keywords.
+	Both local (previously added keyword) and global keywords
+	can be removed.
+	(font-lock-remove-keywords): New user-level function.
+	(font-lock-update-removed-keyword-alist): New internal function.
+	(font-lock-removed-keywords-alist): New variable.
+	(font-lock-add-keywords): Updates `font-lock-removed-keywords-alist'.
+	Empty `font-lock-keywords-alist' when `append' is `set' to avoid
+	growing datastructures.
+	(font-lock-set-defaults): Removes keywords stored in
+	`font-lock-removed-keywords-alist' after local keywords added.
+
+1999-12-16  Anders Lindgren  <andersl@andersl.com>
+
+	* font-lock.el (c-keywords, c++-keywords): Better "case" support for
+	complex constant expressions, e.g. "case 1<<A_BIT_NO:".
+
+	* font-lock.el (c-keywords): Only highlight preprocessor
+	directives when spelled correctly.
+
+	* font-lock.el (font-lock-match-c++-structor-declaration,
+	c++-keywords): Fontify constructors and destructors with function
+	face inside C++ class declarations.
+	
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): If there is no #!-line, use
