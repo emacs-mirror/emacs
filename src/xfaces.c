@@ -586,6 +586,32 @@ unregister_colors (pixels, n)
     unregister_color (pixels[i]);
 }
 
+
+DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
+  "Dump currently allocated colors and their reference counts to stderr.")
+  ()
+{
+  int i, n;
+
+  fputc ('\n', stderr);
+  
+  for (i = n = 0; i < sizeof color_count / sizeof color_count[0]; ++i)
+    if (color_count[i])
+      {
+	fprintf (stderr, "%3d: %5d", i, color_count[i]);
+	++n;
+	if (n % 5 == 0)
+	  fputc ('\n', stderr);
+	else
+	  fputc ('\t', stderr);
+      }
+
+  if (n % 5 != 0)
+    fputc ('\n', stderr);
+  return Qnil;
+}
+
+
 #endif /* DEBUG_X_COLORS */
 
 /* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
@@ -604,43 +630,41 @@ x_free_colors (f, pixels, npixels)
      necessary and some servers don't allow it.  So don't do it.  */
   if (class != StaticColor && class != StaticGray && class != TrueColor)
     {
-      Display *dpy = FRAME_X_DISPLAY (f);
-      Colormap cmap = FRAME_X_COLORMAP (f);
-      Screen *screen = FRAME_X_SCREEN (f);
-      int default_cmap_p = cmap == DefaultColormapOfScreen (screen);
-
-      if (default_cmap_p)
-	{
-	  /* Be paranoid.  If using the default color map, don't ever
-	     try to free the default black and white colors.  */
-	  int screen_no = XScreenNumberOfScreen (screen);
-	  unsigned long black = BlackPixel (dpy, screen_no);
-	  unsigned long white = WhitePixel (dpy, screen_no);
-	  unsigned long *px;
-	  int i, j;
-	  
-	  px = (unsigned long *) alloca (npixels * sizeof *px);
-	  for (i = j = 0; i < npixels; ++i)
-	    if (pixels[i] != black && pixels[i] != white)
-	      px[j++] = pixels[i];
-
-	  if (j)
-	    {
-	      XFreeColors (dpy, cmap, px, j, 0);
+      XFreeColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+		   pixels, npixels, 0);
 #ifdef DEBUG_X_COLORS
-	      unregister_colors (px, j);
+      unregister_colors (pixels, npixels);
 #endif
-	    }
-	}
-      else
-	{
-	  XFreeColors (dpy, cmap, pixels, npixels, 0);
-#ifdef DEBUG_X_COLORS
-	  unregister_colors (pixels, npixels);
-#endif
-	}
     }
 }
+
+
+/* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
+   color values.  Interrupt input must be blocked when this function
+   is called.  */
+
+void
+x_free_dpy_colors (dpy, screen, cmap, pixels, npixels)
+     Display *dpy;
+     Screen *screen;
+     Colormap cmap;
+     unsigned long *pixels;
+     int npixels;
+{
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+  int class = dpyinfo->visual->class;
+
+  /* If display has an immutable color map, freeing colors is not
+     necessary and some servers don't allow it.  So don't do it.  */
+  if (class != StaticColor && class != StaticGray && class != TrueColor)
+    {
+      XFreeColors (dpy, cmap, pixels, npixels, 0);
+#ifdef DEBUG_X_COLORS
+      unregister_colors (pixels, npixels);
+#endif
+    }
+}
+
 
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
@@ -930,7 +954,6 @@ clear_font_table (f)
      struct frame *f;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Lisp_Object rest, frame;
   int i;
 
   xassert (FRAME_WINDOW_P (f));
@@ -1179,6 +1202,7 @@ load_face_font (f, face, c)
  ***********************************************************************/
 
 /* A version of defined_color for non-X frames.  */
+
 int
 tty_defined_color (f, color_name, color_def, alloc)
      struct frame *f;
@@ -1235,11 +1259,13 @@ tty_defined_color (f, color_name, color_def, alloc)
   return status;
 }
 
-/* Decide if color named COLOR is valid for the display associated
-   with the frame F; if so, return the rgb values in COLOR_DEF.  If
-   ALLOC is nonzero, allocate a new colormap cell.
+
+/* Decide if color named COLOR_NAME is valid for the display
+   associated with the frame F; if so, return the rgb values in
+   COLOR_DEF.  If ALLOC is nonzero, allocate a new colormap cell.
 
    This does the right thing for any type of frame.  */
+
 int
 defined_color (f, color_name, color_def, alloc)
      struct frame *f;
@@ -1266,15 +1292,15 @@ defined_color (f, color_name, color_def, alloc)
     abort ();
 }
 
-/* Given the index of the tty color, return its name, a Lisp string.  */
+
+/* Given the index IDX of a tty color on frame F, return its name, a
+   Lisp string.  */
 
 Lisp_Object
 tty_color_name (f, idx)
      struct frame *f;
      int idx;
 {
-  char *color;
-
   if (idx >= 0 && !NILP (Ffboundp (Qtty_color_by_index)))
     {
       Lisp_Object frame;
@@ -1304,6 +1330,7 @@ tty_color_name (f, idx)
 
   return Qunspecified;
 }
+
 
 /* Return non-zero if COLOR_NAME is a shade of gray (or white or
    black) on frame F.  The algorithm is taken from 20.2 faces.el.  */
@@ -1391,6 +1418,7 @@ COLOR must be a valid color name.")
   return Qnil;
 }
 
+
 /* Load color with name NAME for use by face FACE on frame F.
    TARGET_INDEX must be one of LFACE_FOREGROUND_INDEX,
    LFACE_BACKGROUND_INDEX, LFACE_UNDERLINE_INDEX, LFACE_OVERLINE_INDEX,
@@ -1467,6 +1495,7 @@ load_color (f, face, name, target_index)
   return color.pixel;
 }
 
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Load colors for face FACE which is used on frame F.  Colors are
@@ -1534,60 +1563,52 @@ free_face_colors (f, face)
      struct face *face;
 {
 #ifdef HAVE_X_WINDOWS
-  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
-  
-  /* If display has an immutable color map, freeing colors is not
-     necessary and some servers don't allow it.  So don't do it.  */
-  if (class != StaticColor
-      && class != StaticGray
-      && class != TrueColor)
+  BLOCK_INPUT;
+      
+  if (!face->foreground_defaulted_p)
     {
-      BLOCK_INPUT;
-      
-      if (!face->foreground_defaulted_p)
-	{
-	  x_free_colors (f, &face->foreground, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-      
-      if (!face->background_defaulted_p)
-	{
-	  x_free_colors (f, &face->background, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-
-      if (face->underline_p
-	  && !face->underline_defaulted_p)
-	{
-	  x_free_colors (f, &face->underline_color, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-
-      if (face->overline_p
-	  && !face->overline_color_defaulted_p)
-	{
-	  x_free_colors (f, &face->overline_color, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-
-      if (face->strike_through_p
-	  && !face->strike_through_color_defaulted_p)
-	{
-	  x_free_colors (f, &face->strike_through_color, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-
-      if (face->box != FACE_NO_BOX
-	  && !face->box_color_defaulted_p)
-	{
-	  x_free_colors (f, &face->box_color, 1);
-	  IF_DEBUG (--ncolors_allocated);
-	}
-
-      UNBLOCK_INPUT;
+      x_free_colors (f, &face->foreground, 1);
+      IF_DEBUG (--ncolors_allocated);
     }
+      
+  if (!face->background_defaulted_p)
+    {
+      x_free_colors (f, &face->background, 1);
+      IF_DEBUG (--ncolors_allocated);
+    }
+
+  if (face->underline_p
+      && !face->underline_defaulted_p)
+    {
+      x_free_colors (f, &face->underline_color, 1);
+      IF_DEBUG (--ncolors_allocated);
+    }
+
+  if (face->overline_p
+      && !face->overline_color_defaulted_p)
+    {
+      x_free_colors (f, &face->overline_color, 1);
+      IF_DEBUG (--ncolors_allocated);
+    }
+
+  if (face->strike_through_p
+      && !face->strike_through_color_defaulted_p)
+    {
+      x_free_colors (f, &face->strike_through_color, 1);
+      IF_DEBUG (--ncolors_allocated);
+    }
+
+  if (face->box != FACE_NO_BOX
+      && !face->box_color_defaulted_p)
+    {
+      x_free_colors (f, &face->box_color, 1);
+      IF_DEBUG (--ncolors_allocated);
+    }
+
+  UNBLOCK_INPUT;
 #endif /* HAVE_X_WINDOWS */
 }
+
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
@@ -6730,6 +6751,10 @@ syms_of_xfaces ()
 #endif /* GLYPH_DEBUG */
   defsubr (&Sclear_face_cache);
   defsubr (&Stty_suppress_bold_inverse_default_colors);
+
+#ifdef DEBUG_X_COLORS
+  defsubr (&Sdump_colors);
+#endif
 
   DEFVAR_LISP ("font-list-limit", &Vfont_list_limit,
     "*Limit for font matching.\n\
