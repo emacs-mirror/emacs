@@ -1037,7 +1037,6 @@ where FACE is a valid face specification, as it can be used with
 				      splash-buffer))
 	  (add-hook 'pre-command-hook 'fancy-splash-pre-command)
 	  (recursive-edit))
-      (trace-to-stderr "EXITTT\n")
       (cancel-timer timer)
       (remove-hook 'pre-command-hook 'fancy-splash-pre-command)
       (use-global-map old-global-map)
