@@ -748,6 +748,13 @@ Return the list of results."
 @end smallexample
 @end defun
 
+@defun mapc function sequence
+@tindex mapc
+@code{mapc} is like @code{mapcar} except that @var{function} is used for
+side-effects only---the values it returns are ignored, not collected
+into a list.  @code{mapc} always returns @var{sequence}.
+@end defun
+
 @defun mapconcat function sequence separator
 @code{mapconcat} applies @var{function} to each element of
 @var{sequence}: the results, which must be strings, are concatenated.
