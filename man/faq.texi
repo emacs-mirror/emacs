@@ -1223,6 +1223,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 * Replacing highlighted text::  
 * Editing MS-DOS files::        
 * Filling paragraphs with a single space::  
+* Escape sequences in shell output::   
 @end menu
 
 @node Setting up a customization file, Colors on a TTY, Common requests, Common requests
@@ -2526,7 +2527,7 @@ MS-DOS files as they are loaded and saved, allowing you to ignore the
 different conventions that Unix and MS-DOS have for delineating the end
 of a line.
 
-@node Filling paragraphs with a single space,  , Editing MS-DOS files, Common requests
+@node Filling paragraphs with a single space,  Escape sequences in shell output, Editing MS-DOS files, Common requests
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
 @cindex One space following periods
 @cindex Single space following periods
@@ -2539,6 +2540,28 @@ following two lines to your @file{.emacs} file:
 (setq sentence-end "[.?!][]\"')@}]*\\($\\|[ \t]\\)[ \t\n]*")
 (setq sentence-end-double-space nil)
 @end lisp
+
+@node Escape sequences in shell output, , Filling paragraphs with a single space, Common requests
+@section Why do I get these strange escape sequences when I run
+@code{ls} from the Shell mode?
+@cindex Escape sequences in @code{ls} output
+@cindex @code{ls} in Shell mode
+
+This happens because @code{ls} is aliased to @samp{ls --color} in your
+shell init file.  You have two alternatives to solve this:
+
+@itemize @bullet
+@item
+Make the alias conditioned on the @code{EMACS} variable in the
+environment.  When Emacs runs a subsidiary shell, it exports the
+@code{EMACS} variable with the value @code{t} to that shell.  You can
+unalias @code{ls} when that happens, thus limiting the alias to your
+interactive sessions.
+
+@item
+Install the @code{ansi-color} package (bundled with Emacs 21.1 and
+later), which converts these ANSI escape sequences into colors.
+@end itemize
 
 @c ------------------------------------------------------------
 @node    Bugs and problems, Compiling and installing Emacs, Common requests, Top
