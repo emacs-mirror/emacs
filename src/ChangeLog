@@ -5,7 +5,7 @@
 
 	* dispnew.c (update_text_area): Put code which decrements the
 	stop position when the row's face extends to the end of the
-	line in ,Ad(Bif 0.
+	line in #if 0.
 
 	* xfns.c (x_set_mouse_color): Fix color allocation.
 
