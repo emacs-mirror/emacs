@@ -353,6 +353,7 @@ This is necessary if one wants to dump man.el with emacs."
        "-e '/^[A-za-z].*Last[ \t]change:/d'"
        "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
        "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
+       "-e '/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d'"
        ))
      (cons
       Man-awk-command
