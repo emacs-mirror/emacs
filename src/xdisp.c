@@ -11563,11 +11563,14 @@ try_window_id (w)
   else
     abort ();
 
+#if 0 /* This leads to problems, for instance when the cursor is
+	 at ZV, and the cursor line displays no text.  */
   /* Disable rows below what's displayed in the window.  This makes
      debugging easier.  */
   enable_glyph_matrix_rows (current_matrix,
 			    XFASTINT (w->window_end_vpos) + 1,
 			    bottom_vpos, 0);
+#endif
   
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
