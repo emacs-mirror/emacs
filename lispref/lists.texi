@@ -1118,11 +1118,11 @@ sample-list
 @end group
 @group
 (delq 'c sample-list)
-     @result{} (a c (4))
+     @result{} (a b (4))
 @end group
 @group
 sample-list
-     @result{} (a c (4))
+     @result{} (a b (4))
 @end group
 @end example
 
