@@ -117,7 +117,7 @@ Problems:
 	* Mac, Windows and DOS support is broken, probably doesn't
 	  even compile -- this will be solved later.
 
-	* Only tested on my GNU/Linux box and on Solaris 8.
+	* Only tested on my GNU/Linux box, Solaris 8 and FreeBSD.
 
 NEWS
 ----
@@ -172,8 +172,10 @@ Dan Nicolaescu <dann at ics dot uci dot edu>
 Gergely Nagy <algernon at debian dot org>
 Mark Plaksin <happy at mcplaksin dot org>
 Francisco Borges <borges at let dot rug dot nl>
+Frank Ruell <stoerte at dreamwarrior dot net>
 
-Richard Stallman was kind enough to review my patches.
+Richard Stallman was kind enough to review an earlier version of my
+patches.
 
 CHANGELOG
 ---------
@@ -182,6 +184,10 @@ See arch logs.
 
 THINGS TO DO
 ------------
+
+** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
+   what if we'd blow it up into several separate functions (with a
+   compatibility definition)?
 
 ** Emacs assumes that all terminal frames have the same locale
    settings as Emacs itself.  This may lead to bogus results in a
@@ -196,8 +202,10 @@ THINGS TO DO
    single_kboard under X.  This is very confusing.)
 
 ** Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
-   parameter or the frame-tty-type function instead.
-   (M-x tags-search "TERM" helps with this.)
+   parameter or the frame-tty-type function instead.  (M-x tags-search
+   "TERM" helps with this.)  Update: Actually, all getenv invocations
+   should be checked for multi-tty compatibility, and an interface
+   must be implemented to get the remote client's environment.
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
@@ -206,7 +214,7 @@ THINGS TO DO
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
    trivial, getopt_long does not seem to support two-letter ``short''
-   options.)
+   options.  Patches are welcome.) :-)
 
 ** Mark Plaksin suggests that emacsclient should accept the same
    X-related command-line arguments as Emacs.  Most of the X-related
@@ -216,6 +224,9 @@ THINGS TO DO
 ** Gergely Nagy suggests that C-x # should only kill the current
    frame, not any other emacsclient frame that may have the same file
    opened for editing.  I think I agree with him.
+
+** Miles Bader suggests that C-x C-c on an emacsclient frame should
+   only close the frame, not exit the entire Emacs session.
 
 ** Make `struct display' accessible to Lisp programs.  Accessor functions:
 
@@ -288,12 +299,12 @@ THINGS TO DO
 
 ** Do a grep on XXX and ?? for more issues.
 
-** Understand Emacs's low-level input system (it seems complicated) :-)
-   What does interrupt_input do?  I tried to disable it for raw
-   secondary tty support, but it does not seem to do anything useful.
-   (Update: Look again. X unconditionally enables this, maybe that's
-   why raw terminal support is broken again.  I really do need to
-   understand input.)
+** Understand Emacs's low-level input system (it's black magic) :-)
+   What exactly does interrupt_input do?  I tried to disable it for
+   raw secondary tty support, but it does not seem to do anything
+   useful.  (Update: Look again. X unconditionally enables this, maybe
+   that's why raw terminal support is broken again.  I really do need
+   to understand input.)
 
 ** Maybe standard-display-table should be display-local.
 
@@ -465,6 +476,7 @@ DIARY OF CHANGES
    around request_sigio, maybe one of them did it).
    read_input_waiting is only used in sys_select, don't change
    it.)  (Update: After adding X support, it's broken again.)
+   (Update^2: No it isn't.) :-)
 
 -- Find out why does Emacs abort when it wants to close its
    controlling tty.  Hint: chan_process[] array.  Hey, maybe
@@ -478,7 +490,7 @@ DIARY OF CHANGES
    fcntl kernel behaviour could be emulated by emacsclient.
 
    (Done.  Simply disabled the SIGIO emulation hack in emacsclient.)
-   (Update: it was added back.)
+   (Update: it was added back.)  (Update^2: and removed again.)
 
 -- server.el: There are issues with saving files in buffers of closed
    clients.  Try editing a file with emacsclient -f, and (without
@@ -576,7 +588,7 @@ DIARY OF CHANGES
    from working correctly on a tty frame during a combo session.)
 
 -- If there are no frames on its controlling terminal, Emacs should
-   exit if the uses presses C-c there.
+   exit if the user presses C-c there.
 
    (Done, as far as possible.  See the SIGTERM comment in
    interrupt_signal on why this seems to be impossible to solve this
@@ -691,7 +703,6 @@ DIARY OF CHANGES
 
    (Fixed.)
 
-
 -- Dan Nicolaescu noticed that starting emacsclient on the same
    terminal device that is the controlling tty of the Emacs process
    gives unexpected results.
@@ -709,7 +720,7 @@ DIARY OF CHANGES
    about face problems.  This can even lock up Emacs (if the recursive
    frame sets single_kboard).  Update: the face problems are caused by
    bugs in term.el, not in multi-tty.  The lockup is caused by
-   single_kboard mode, and is not easily solvable.  The best thing to
+   single_kboard mode, and is not easily resolvable.  The best thing to
    do is to simply refuse to create a tty frame of type `eterm'.
 
    (Fixed, changed emacsclient to check for TERM=eterm.  The face
