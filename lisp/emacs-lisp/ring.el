@@ -36,16 +36,18 @@
 
 ;;; Code:
 
-(provide 'history)
+(provide 'ring)
 
+;;;###autoload
 (defun ring-p (x) 
   "T if X is a ring; NIL otherwise."
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (car (cdr x)))
        (vectorp (cdr (cdr x)))))
 
+;;;###autoload
 (defun make-ring (size)
-  "Make a ring that can contain SIZE elts"
+  "Make a ring that can contain SIZE elts."
   (cons 1 (cons 0 (make-vector (+ size 1) nil))))
 
 (defun ring-plus1 (index veclen)
@@ -80,7 +82,7 @@ item to make room."
   "Remove the oldest item retained on the ring."
   (if (ring-empty-p ring) (error "Ring empty")
       (let ((tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	(set-car (cdr ring) (ring-minus1 tl (length vec)))
+	(setcar (cdr ring) (ring-minus1 tl (length vec)))
 	(aref vec tl))))
 
 ;;; This isn't actually used in this package. I just threw it in in case
@@ -105,10 +107,10 @@ item to make room."
 		(aset vec hd (aref vec tl))
 		(setq tl (ring-minus1 tl len))
 		(setq n (- n 1))))
-	    (set-car ring hd)
-	    (set-car (cdr ring) tl)))))
+	    (setcar ring hd)
+	    (setcar (cdr ring) tl)))))
 
-(defun comint-mod (n m)
+(defun ring-mod (n m)
   "Returns N mod M.  M is positive.
 Answer is guaranteed to be non-negative, and less than m."
   (let ((n (% n m)))
@@ -120,9 +122,8 @@ Answer is guaranteed to be non-negative, and less than m."
   (let ((numelts (ring-length ring)))
     (if (= numelts 0) (error "indexed empty ring")
 	(let* ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring)))
-	       (index (comint-mod index numelts))
-	       (vec-index (comint-mod (+ index hd) 
-				      (length vec))))
+	       (index (ring-mod index numelts))
+	       (vec-index (ring-mod (+ index hd) (length vec))))
 	  (aref vec vec-index)))))
 
 ;;; ring.el ends here
