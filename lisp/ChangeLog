@@ -1,3 +1,62 @@
+2004-04-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-history): Doc fix.
+	(Info-history-list): New var.
+	(info-xref): Change magenta4 to blue, remove bold for dark and
+	light backgrounds, change bold to underline for non-color classes.
+	(info-xref-visited): New face.
+	(Info-fontify-visited-nodes): New custom.
+	(Info-hide-note-references): Add new value `hide'.  Doc fix.
+	(Info-reference-name): New var.
+	(Info-selection-hook): New custom.
+	(Info-edit-mode-hook): New var.
+	(Info-find-file): New fun.
+	(Info-find-node): Move part of code to Info-find-file.
+	(Info-find-node-2): Add anchors to Info-history-list.  Move point
+	to the place with the reference name if name is defined.
+	(Info-select-node): Add current node to Info-history-list.
+	(Info-goto-node): Switch to *info* from *info-history* *info-toc*.
+	(Info-search-whitespace-regexp): New custom.
+	(Info-search-case-fold): New var.
+	(Info-search): Add "case-sensitively" to the prompt.  Use
+	Info-search-whitespace-regexp.  Set Info-search-case-fold.
+	(Info-search-case-sensitively, Info-search-next): New fun.
+	(Info-up): Move point to the menu item of the current node.
+	(Info-history): New fun.  Add *info-history* to same-window-buffer-names.
+	(Info-toc): New fun.  Add *info-toc* to same-window-buffer-names.
+	(Info-insert-toc): New fun.
+	(Info-build-toc): New fun.
+	(Info-follow-reference): Add new arg `fork'.  Doc fix.
+	Replace [ \n\t]* by [ \n\t]+ in the *Note regexp.  For references
+	with the same name prefer the reference closest to point.
+	(Info-next-reference): Replace * by + in the *Note regexp.
+	Add regexp for http:// and ftp://.  Skip the *Note prefix.
+	(Info-prev-reference): Replace * by + in the *Note regexp.
+	Add regexp for http:// and ftp://.  Skip the *Note prefix.
+	(Info-follow-nearest-node): Add new arg `fork'.
+	(Info-try-follow-nearest-node): Add new arg `fork'.
+	Call browse-url for http:// and ftp:// references.
+	Set Info-reference-name for index entries.
+	(Info-mode-menu): Add menu items for Info-search-case-sensitively,
+	Info-search-next, Info-history, Info-toc, clone-buffer.
+	(Info-menu-update): Replace * by + in the *Note regexp.
+	(Info-mode): Add documentation for Info-history, Info-toc,
+	Info-search-case-sensitively, Info-search-next, clone-buffer.
+	(Info-fontify-menu-headers): Remove fun.  Move code to
+	Info-fontify-node.
+	(Info-fontify-node): Add docstring.  Add local vars
+	fontify-visited-p and not-fontified-p.  If not-fontified-p is t
+	then fontify header line, titles, menu headers, http and ftp
+	references, refill paragraphs.  If not-fontified-p is t or
+	fontify-visited-p is t then fontify cross references, menu items.
+	Fontify menu headers.  Fontify http and ftp references.  Change
+	regexp for cross references to require whitespace after *Note, add
+	matching groups for file and node names.  Remove hack for quote.
+	Use display property for Info-hide-note-references=t.  Use fifth
+	or fourth match for help-echo.  Display visited nodes in a
+	different face.  Unhide file names of external references.  Unhide
+	newlines.  Display visited menu items in a different face.
+
 2004-04-07  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* info.el (Info-hide-cookies-node): New function.
