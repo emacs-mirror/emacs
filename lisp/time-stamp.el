@@ -82,6 +82,7 @@ do so in the local variables section of the time-stamped file itself.")
 \(which see) and the following match of  time-stamp-end  on the same line,
 then writes the time stamp specified by  time-stamp-format  between them.")
 
+;;;###autoload
 (defun time-stamp ()
   "Update the time stamp string in the buffer.
 Only does its thing if the variable  time-stamp-active  is non-nil.
