@@ -73,6 +73,7 @@ static void set_alarm P_ ((void));
 static void schedule_atimer P_ ((struct atimer *));
 static struct atimer *append_atimer_lists P_ ((struct atimer *,
 					       struct atimer *));
+SIGTYPE alarm_signal_handler ();
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
