@@ -662,6 +662,15 @@ The generated code is inserted on prologue part."
 (defconst ps-mule-prologue
   "%%%% Start of Mule Section
 
+/Latin1Encoding {	% newname fontname  |  font
+    findfont dup length dict begin
+	{ 1 index /FID ne { def } { pop pop } ifelse } forall
+        /Encoding ISOLatin1Encoding def
+	currentdict
+    end
+    definefont
+} bind def
+
 %% Redefine fonts for multiple charsets.
 /ReDefFont {		     % fontname encoding fdepvector size  |  -
   20 dict begin
@@ -678,7 +687,7 @@ The generated code is inserted on prologue part."
   currentdict
   end			% fontname dic
   definefont pop
-} def
+} bind def
 "
   "PostScript code for printing multi-byte characters.")
 
@@ -1293,8 +1302,9 @@ This checks if all multi-byte characters in the region are printable or not."
      (list (if (ps-mule-font-spec-src (cdr (car font-spec-alist)))
 	       ;; We ignore a font specfied in ps-font-info-database.
 	       (format "/V%s VTOP%d def\n" fonttag font-type)
-	     (format "/V%s [ VTOP%d aload pop ] def V%s 0 /%s findfont put\n"
-		     fonttag font-type fonttag ps-font))
+	     (format "/V%s [ VTOP%d aload pop ] def\n
+V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
+		     fonttag font-type fonttag ps-font ps-font))
 	   (format "/%s ETOP%d V%s %f ReDefFont\n"
 		   fonttag font-type fonttag size)))))
 
