@@ -1448,8 +1448,13 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       host_info.h_name = 0;
       host_info.h_aliases = 0;
       host_info.h_addrtype = AF_INET;
-      host_info.h_addr_list  =  &(addr_list[0]);
-      addr_list[0] = (char*)(&numeric_addr);
+#ifdef h_addr
+      /* Older machines have only one address slot called h_addr.
+	 Newer machines have h_addr_list, but #define h_addr to
+	 be its first element.  */
+      host_info.h_addr_list = &(addr_list[0]);
+#endif
+      host_info.h_addr = (char*)(&numeric_addr);
       addr_list[1] = 0;
       host_info.h_length = strlen (addr_list[0]);
     }
