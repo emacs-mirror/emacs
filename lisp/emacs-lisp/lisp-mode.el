@@ -1082,8 +1082,11 @@ and initial semicolons."
 	  (narrow-to-region
 	   ;; Find the first line we should include in the region to fill.
 	   (save-excursion
-	     (while (and (looking-at "[ \t]*;")
-			 (zerop (forward-line -1))))
+	     (while (and (zerop (forward-line -1))
+			 (looking-at "[ \t]*;")))
+	     ;; We may have gone too far.  Go forward again.
+	     (or (looking-at ".*;")
+		 (forward-line 1))
 	     (point))
 	   ;; Find the beginning of the first line past the region to fill.
 	   (save-excursion
