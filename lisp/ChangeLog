@@ -1,3 +1,8 @@
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-mcvs.el (vc-mcvs-print-log, vc-mcvs-diff):
+	* vc-arch.el (vc-arch-diff): Add optional `buffer' arg.
+
 2004-05-28  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (eval-expression-print-format): New fun.

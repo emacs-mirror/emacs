@@ -1,3 +1,14 @@
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c: Undo Kim's recent changes and fix the same bug differently.
+	(marker_blocks_pending_free): Remove.
+	(Fgarbage_collect): Sweep after cleaning up undo-lists.
+	Mark the undo lists after claning them up.
+	Don't free block in marker_blocks_pending_free.
+	(mark_buffer): Don't mark undo_list.
+	(gc_sweep): Sweep hash-tables and strings first.
+	Do free marker blocks that are empty.
+
 2004-05-28  Jim Blandy  <jimb@redhat.com>
 
 	* regex.c (print_partial_compiled_pattern): Add missing 'break'
