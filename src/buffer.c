@@ -2057,9 +2057,9 @@ verify_overlay_modification (start, end)
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
-      if (insertion
-	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
-	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
+      /* Test for intersecting intervals.  This does the right thing
+	 for both insertion and deletion.  */
+      if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
 	{
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
 	  if (!NILP (prop))
@@ -2103,9 +2103,9 @@ verify_overlay_modification (start, end)
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
-      if (insertion
-	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
-	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
+      /* Test for intersecting intervals.  This does the right thing
+	 for both insertion and deletion.  */
+      if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
 	{
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
 	  if (!NILP (prop))
