@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.47) $
+ * $HopeName: MMsrc!arenavm.c(trunk.48) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.47) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.48) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -1115,7 +1115,7 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
   /* .segalloc.improve.map: Define a function that takes a list */
   /* (say 4 long) of RefSets and tries findFreeInRefSet on */
   /* each one in turn.  Extra RefSet args that weren't needed */
-  /* could be RefSetUNIV */
+  /* could be RefSetEMPTY */
 
   if(pref->isCollected) { /* GC'd segment */
     /* We look for space in the following places (in order) */
@@ -1127,25 +1127,30 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
     /*   - Any zone; */
     /* Note that each is a superset of the previous, unless blacklisted */
     /* zones have been allocated (or the default is used). */
-    if(!findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
-			 RefSetDiff(refSet, vmArena->blacklist),
-			 pref->high) &&
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
-                         RefSetUnion(refSet,
-				     RefSetDiff(vmArena->freeSet, 
-						vmArena->blacklist)),
-						pref->high) &&
-       !barge)
+    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+		        RefSetDiff(refSet, vmArena->blacklist),
+		        pref->high) ||
+       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+                        RefSetUnion(refSet,
+				    RefSetDiff(vmArena->freeSet, 
+					       vmArena->blacklist)),
+					       pref->high))
     {
+      /* found */
+      return TRUE;
+    }
+    if(!barge) {
+      /* do not barge into other zones, give up now */
       return FALSE;
     }
-    if(!findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
-			 RefSetDiff(RefSetUNIV, vmArena->blacklist),
-			 pref->high) && 
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
-			 RefSetUNIV, pref->high))
+    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+		        RefSetDiff(RefSetUNIV, vmArena->blacklist),
+		        pref->high) ||
+       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+		        RefSetUNIV, pref->high))
     {
-      return FALSE;
+      /* found */
+      return TRUE;
     }
   } else { /* non-GC'd segment */
     /* We look for space in the following places (in order) */
@@ -1155,21 +1160,22 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
     /*   - Any zone. */
     /* Note that each is a superset of the previous, unless blacklisted */
     /* zones have been allocated. */
-    if(!findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+    if(findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
 			 RefSetInter(refSet, vmArena->blacklist),
-			 pref->high) &&
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
-			 refSet, pref->high) && 
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+			 pref->high) ||
+       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+			 refSet, pref->high) ||
+       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
 			 RefSetUnion(refSet, vmArena->blacklist),
-			 pref->high) && 
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
+			 pref->high) ||
+       findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
 			 RefSetUNIV, pref->high)) {
-      return FALSE;
+      return TRUE;
     }
   }
-  return TRUE;
+  return FALSE;
 }
+
 
 /* VMSegAlloc -- allocate a segment from the arena */
 
