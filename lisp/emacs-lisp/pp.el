@@ -134,7 +134,9 @@ value."
       (pp (car values)))
     (save-excursion
       (set-buffer "*Pp Eval Output*")
-      (emacs-lisp-mode))))
+      (emacs-lisp-mode)
+      (make-local-variable 'font-lock-verbose)
+      (setq font-lock-verbose nil))))
 
 ;;;###autoload
 (defun pp-eval-last-sexp (arg)
