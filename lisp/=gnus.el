@@ -2287,7 +2287,7 @@ If argument UNREAD is non-nil, only unread article is selected."
 		    (let ((char (read-char)))
 		      (if (= char cmd)
 			  (gnus-Subject-next-group nil)
-			(setq unread-command-char char))))
+			(setq unread-command-event char))))
 		   )
 	     ))
 	  )))
