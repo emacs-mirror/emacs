@@ -360,12 +360,12 @@ message_dolog (m, len, nlflag, multibyte)
 	      prev_bol = PT;
 	      prev_bol_byte = PT_BYTE;
 
-	      dup = message_log_check_duplicate (prev_bol, this_bol,
-						 prev_bol_byte, this_bol_byte);
+	      dup = message_log_check_duplicate (prev_bol, prev_bol_byte,
+						 this_bol, this_bol_byte);
 	      if (dup)
 		{
-		  del_range_both (prev_bol, prev_bol_byte,
-				  this_bol, this_bol_byte, 0);
+		  del_range_both (prev_bol, this_bol,
+				  prev_bol_byte, this_bol_byte, 0);
 		  if (dup > 1)
 		    {
 		      char dupstr[40];
@@ -385,7 +385,7 @@ message_dolog (m, len, nlflag, multibyte)
 	    {
 	      scan_newline (Z, Z_BYTE, BEG, BEG_BYTE,
 			    -XFASTINT (Vmessage_log_max) - 1, 0);
-	      del_range_both (BEG, BEG_BYTE, PT, PT_BYTE, 0);
+	      del_range_both (BEG, PT, BEG_BYTE, PT_BYTE, 0);
 	    }
 	}
       BEGV = XMARKER (oldbegv)->charpos;
