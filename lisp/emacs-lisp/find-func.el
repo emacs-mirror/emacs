@@ -128,7 +128,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 				 (locate-library (concat library ".gz")
 						 t path)))))))
     (if (not filename)
-	(error "The library \"%s\" is not in the path." library))
+	(error "The library `%s' is not in the path" library))
     (with-current-buffer (find-file-noselect filename)
       (save-match-data
 	(let ((regexp (format (if variable-p
@@ -144,7 +144,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 		    (progn
 		      (beginning-of-line)
 		      (cons (current-buffer) (point)))
-		  (error "Cannot find definition of `%s' in library \"%s\"" 
+		  (error "Cannot find definition of `%s' in library `%s'" 
 			 symbol library)))
 	    (set-syntax-table syn-table)))))))
 
