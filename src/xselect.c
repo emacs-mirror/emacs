@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "process.h"
 #include "termhooks.h"
+#include "keyboard.h"
 
 #include <X11/Xproto.h>
 
@@ -170,6 +171,86 @@ static EMACS_INT x_selection_timeout;
 static void lisp_data_to_selection_data ();
 static Lisp_Object selection_data_to_lisp_data ();
 static Lisp_Object x_get_window_property_as_lisp_data ();
+
+
+
+/* Define a queue to save up SelectionRequest events for later handling.  */
+
+struct selection_event_queue
+  {
+    struct input_event event;
+    struct selection_event_queue *next;
+  };
+
+static struct selection_event_queue *selection_queue;
+
+/* Nonzero means queue up certain events--don't process them yet.  */
+
+static int x_queue_selection_requests;
+
+/* Queue up an X event *EVENT, to be processed later.  */
+
+static void
+x_queue_event (event)
+     struct input_event *event;
+{
+  struct selection_event_queue *queue_tmp;
+
+  /* Don't queue repeated requests */
+  for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
+    {
+      if (!bcmp (&queue_tmp->event, event, sizeof (*event)))
+	{
+	  TRACE1 ("IGNORE DUP SELECTION EVENT %08x", (unsigned long)queue_tmp);
+	  return;
+	}
+    }
+
+  queue_tmp
+    = (struct selection_event_queue *) xmalloc (sizeof (struct selection_event_queue));
+
+  if (queue_tmp != NULL)
+    {
+      TRACE1 ("QUEUE SELECTION EVENT %08x", (unsigned long)queue_tmp);
+      queue_tmp->event = *event;
+      queue_tmp->next = selection_queue;
+      selection_queue = queue_tmp;
+    }
+}
+
+/* Start queuing SelectionRequest events.  */
+
+static void
+x_start_queuing_selection_requests ()
+{
+  if (x_queue_selection_requests)
+    abort ();
+
+  x_queue_selection_requests++;
+  TRACE1 ("x_start_queuing_selection_requests %d", x_queue_selection_requests);
+}
+
+/* Stop queuing SelectionRequest events.  */
+
+static void
+x_stop_queuing_selection_requests ()
+{
+  TRACE1 ("x_stop_queuing_selection_requests %d", x_queue_selection_requests);
+  --x_queue_selection_requests;
+
+  /* Take all the queued events and put them back
+     so that they get processed afresh.  */
+
+  while (selection_queue != NULL)
+    {
+      struct selection_event_queue *queue_tmp = selection_queue;
+      TRACE1 ("RESTORE SELECTION EVENT %08x", (unsigned long)queue_tmp);
+      kbd_buffer_unget_event (&queue_tmp->event);
+      selection_queue = queue_tmp->next;
+      xfree ((char *)queue_tmp);
+    }
+}
+
 
 /* This converts a Lisp symbol to a server Atom, avoiding a server
    roundtrip whenever possible.  */
@@ -560,13 +641,10 @@ static struct prop_location *property_change_reply_object;
 static struct prop_location *property_change_wait_list;
 
 static Lisp_Object
-queue_selection_requests_unwind (frame)
-     Lisp_Object frame;
+queue_selection_requests_unwind (tem)
+     Lisp_Object tem;
 {
-  FRAME_PTR f = XFRAME (frame);
-
-  if (! NILP (frame))
-    x_stop_queuing_selection_requests (FRAME_X_DISPLAY (f));
+  x_stop_queuing_selection_requests ();
   return Qnil;
 }
 
@@ -664,10 +742,10 @@ x_reply_selection_request (event, format, data, size, type)
 	 bother trying to queue them.  */
       if (!NILP (frame))
 	{
-	  x_start_queuing_selection_requests (display);
+	  x_start_queuing_selection_requests ();
 
 	  record_unwind_protect (queue_selection_requests_unwind,
-				 frame);
+				 Qnil);
 	}
 
       if (x_window_to_frame (dpyinfo, window)) /* #### debug */
@@ -701,6 +779,8 @@ x_reply_selection_request (event, format, data, size, type)
 		  XGetAtomName (display, reply.property));
 	  wait_for_property_change (wait_object);
 	}
+      else
+	unexpect_property_change (wait_object);
 
       TRACE0 ("Got ACK");
       while (bytes_remaining)
@@ -774,7 +854,7 @@ x_reply_selection_request (event, format, data, size, type)
 /* Handle a SelectionRequest event EVENT.
    This is called from keyboard.c when such an event is found in the queue.  */
 
-void
+static void
 x_handle_selection_request (event)
      struct input_event *event;
 {
@@ -788,6 +868,8 @@ x_handle_selection_request (event)
   int count;
   struct x_display_info *dpyinfo
     = x_display_info_for_display (SELECTION_EVENT_DISPLAY (event));
+
+  TRACE0 ("x_handle_selection_request");
 
   local_selection_data = Qnil;
   target_symbol = Qnil;
@@ -883,7 +965,7 @@ x_handle_selection_request (event)
    client cleared out our previously asserted selection.
    This is called from keyboard.c when such an event is found in the queue.  */
 
-void
+static void
 x_handle_selection_clear (event)
      struct input_event *event;
 {
@@ -895,6 +977,8 @@ x_handle_selection_clear (event)
   Time local_selection_time;
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
   struct x_display_info *t_dpyinfo;
+
+  TRACE0 ("x_handle_selection_clear");
 
   /* If the new selection owner is also Emacs,
      don't clear the new selection.  */
@@ -963,6 +1047,24 @@ x_handle_selection_clear (event)
       }
   }
 }
+
+void
+x_handle_selection_event (event)
+     struct input_event *event;
+{
+  TRACE0 ("x_handle_selection_event");
+
+  if (event->kind == SELECTION_REQUEST_EVENT)
+    {
+      if (x_queue_selection_requests)
+	x_queue_event (event);
+      else
+	x_handle_selection_request (event);
+    }
+  else
+    x_handle_selection_clear (event);
+}
+
 
 /* Clear all selections that were made from frame F.
    We do this when about to delete a frame.  */
@@ -1094,12 +1196,14 @@ unexpect_property_change (location)
 /* Remove the property change expectation element for IDENTIFIER.  */
 
 static Lisp_Object
-wait_for_property_change_unwind (identifierval)
-     Lisp_Object identifierval;
+wait_for_property_change_unwind (loc)
+     Lisp_Object loc;
 {
-  unexpect_property_change ((struct prop_location *)
-			    (XFASTINT (XCAR (identifierval)) << 16
-			     | XFASTINT (XCDR (identifierval))));
+  struct prop_location *location = XSAVE_VALUE (loc)->pointer;
+
+  unexpect_property_change (location);
+  if (location == property_change_reply_object)
+    property_change_reply_object = 0;
   return Qnil;
 }
 
@@ -1112,18 +1216,17 @@ wait_for_property_change (location)
 {
   int secs, usecs;
   int count = SPECPDL_INDEX ();
-  Lisp_Object tem;
 
-  tem = Fcons (Qnil, Qnil);
-  XSETCARFASTINT (tem, (EMACS_UINT)location >> 16);
-  XSETCDRFASTINT (tem, (EMACS_UINT)location & 0xffff);
+  if (property_change_reply_object)
+    abort ();
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
-  record_unwind_protect (wait_for_property_change_unwind, tem);
+  record_unwind_protect (wait_for_property_change_unwind,
+			 make_save_value (location, 0));
 
   XSETCAR (property_change_reply, Qnil);
-
   property_change_reply_object = location;
+
   /* If the event we are waiting for arrives beyond here, it will set
      property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
@@ -1154,7 +1257,8 @@ x_handle_property_notify (event)
 
   while (rest)
     {
-      if (rest->property == event->atom
+      if (!rest->arrived
+	  && rest->property == event->atom
 	  && rest->window == event->window
 	  && rest->display == event->display
 	  && rest->desired_state == event->state)
@@ -1170,11 +1274,6 @@ x_handle_property_notify (event)
 	  if (rest == property_change_reply_object)
 	    XSETCAR (property_change_reply, Qt);
 
-	  if (prev)
-	    prev->next = rest->next;
-	  else
-	    property_change_wait_list = rest->next;
-	  xfree (rest);
 	  return;
 	}
 
@@ -1300,10 +1399,10 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
      bother trying to queue them.  */
   if (!NILP (frame))
     {
-      x_start_queuing_selection_requests (display);
+      x_start_queuing_selection_requests ();
 
       record_unwind_protect (queue_selection_requests_unwind,
-			     frame);
+			     Qnil);
     }
   UNBLOCK_INPUT;
 
@@ -1459,10 +1558,10 @@ receive_incremental_selection (display, window, property, target_type,
   BLOCK_INPUT;
   XSelectInput (display, window, STANDARD_EVENT_SET | PropertyChangeMask);
   TRACE1 ("  Delete property %s",
-	  SDATA (XSYMBOL (x_atom_to_symbol (display, property))->xname));
+	  SDATA (SYMBOL_NAME (x_atom_to_symbol (display, property))));
   XDeleteProperty (display, window, property);
   TRACE1 ("  Expect new value of property %s",
-	  SDATA (XSYMBOL (x_atom_to_symbol (display, property))->xname));
+	  SDATA (SYMBOL_NAME (x_atom_to_symbol (display, property))));
   wait_object = expect_property_change (display, window, property,
 					PropertyNewValue);
   XFlush (display);
@@ -1492,7 +1591,6 @@ receive_incremental_selection (display, window, property, target_type,
 
 	  if (! waiting_for_other_props_on_window (display, window))
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
-	  unexpect_property_change (wait_object);
 	  /* Use xfree, not XFree, because x_get_window_property
 	     calls xmalloc itself.  */
 	  if (tmp_data) xfree (tmp_data);
