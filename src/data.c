@@ -1567,8 +1567,8 @@ or a byte-code object.  IDX starts at 0.")
 	}
       else
 	{
-	  int idx[4];		/* For charset, code1, code2, and anchor.  */
-	  int i;
+	  int idx[3];		/* For charset, code1, and code2.  */
+	  int i, len;
 	  Lisp_Object sub_array;
 
 	  /* There's no reason to treat a composite character
@@ -1580,11 +1580,11 @@ or a byte-code object.  IDX starts at 0.")
 	    idxval = cmpchar_component (idxval, 0);
 #endif
 	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
-	  idx[3] = 0;
+	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 3 : (idx[1] ? 2 : 1);
 
 	try_parent_char_table:
 	  sub_array = array;
-	  for (i = 0; idx[i]; i++)
+	  for (i = 0; i < len; i++)
 	    {
 	      val = XCHAR_TABLE (sub_array)->contents[idx[i]];
 	      if (NILP (val))
@@ -1677,14 +1677,14 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 	XCHAR_TABLE (array)->contents[idxval] = newelt;
       else
 	{
-	  int idx[4];		/* For charset, code1, code2, and anchor.  */
-	  int i;
+	  int idx[3];		/* For charset, code1, and code2.  */
+	  int i, len;
 	  Lisp_Object val;
 
 	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
-	  idx[3] = 0;
+	  len = (COMPOSITE_CHAR_P (idxval) || idx[2]) ? 2 : (idx[1] ? 1 : 0);
 
-	  for (i = 0; idx[i + 1]; i++)
+	  for (i = 0; i < len; i++)
 	    {
 	      val = XCHAR_TABLE (array)->contents[idx[i]];
 	      if (CHAR_TABLE_P (val))
