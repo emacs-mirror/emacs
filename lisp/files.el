@@ -801,14 +801,12 @@ If there is no such live buffer, return nil."
 	  found))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
-  "Like `insert-file-contents', q.v., but only reads in the file.
-A buffer may be modified in several ways after reading into the buffer due
-to advanced Emacs features, such as file-name-handlers, format decoding,
-find-file-hooks, etc.
-  This function ensures that none of these modifications will take place.
+  "Like `insert-file-contents', but only reads in the file literally.
+A buffer may be modified in several ways after reading into the buffer,
+to Emacs features such as format decoding, character code
+conversion, find-file-hooks, automatic uncompression, etc.
 
-This function does not work for remote files, because it turns off
-file name handlers and remote file access uses a file name handler."
+This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
