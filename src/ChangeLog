@@ -1,5 +1,8 @@
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (show_busy_cursor): Check for live frames more
+	thoroughly.
+
 	* process.c (wait_reading_process_input): Check for pending
 	input when running timers.
 
