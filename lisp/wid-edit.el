@@ -3412,8 +3412,7 @@ To use this type, you must define :match or :match-alternatives."
   (require 'facemenu)			; for facemenu-color-alist
   (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
 						 (point)))
-	 (list (or facemenu-color-alist
-		   (mapcar 'list (defined-colors))))
+	 (list (or facemenu-color-alist (defined-colors)))
 	 (completion (try-completion prefix list)))
     (cond ((eq completion t)
 	   (message "Exact match."))
