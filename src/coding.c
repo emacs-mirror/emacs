@@ -2690,7 +2690,7 @@ detect_coding_mask (src, src_bytes)
       /* C is an ISO2022 specific control code of C0.  */
       mask = detect_coding_iso2022 (src, src_end);
       src++;
-      if (mask == CODING_CATEGORY_MASK_ANY)
+      if (mask == 0)
 	/* No valid ISO2022 code follows C.  Try again.  */
 	goto label_loop_detect_coding;
       mask |= CODING_CATEGORY_MASK_RAW_TEXT;
@@ -2851,7 +2851,7 @@ detect_eol (coding, src, src_bytes)
 	}
       /* Else, let's decode only text code anyway.  */
 #endif /* 0 */
-      eol_type == CODING_EOL_LF;
+      eol_type = CODING_EOL_LF;
     }
 
   coding_system = coding->symbol;
