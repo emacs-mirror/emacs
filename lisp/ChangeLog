@@ -1,7 +1,7 @@
 2005-01-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Set new optional fourth arg in
-	posn-x-y to t to access left-margin.
+	posn-at-x-y to t to access left-margin.
 
 2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
 
