@@ -202,8 +202,12 @@ INSTALL_STRIP =
 
 # ============================= Targets ==============================
 
+# Program name transformation.
+TRANSFORM = @program_transform_name@
+
 # What emacs should be called when installed.
-EMACS = emacs
+EMACS = `echo emacs | sed '$(TRANSFORM)'`
+EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
@@ -331,10 +335,10 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/emacs-${version}
-	-chmod 1755  ${bindir}/emacs-${version}
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/${EMACSFULL}
+	-chmod 1755  ${bindir}/$(EMACSFULL)
 	rm -f ${bindir}/$(EMACS)
-	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
+	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
 	-unset CDPATH; \
 	for f in `cd lib-src && echo fns-*.el`; do \
 	  if test -r lib-src/$$f ; then \

@@ -31,6 +31,9 @@ YACC=@YACC@
 version=@version@
 configuration=@configuration@
 
+# Program name transformation.
+TRANSFORM = @program_transform_name@
+
 # ==================== Where To Install Things ====================
 
 # The default location for installation.  Everything is placed in
@@ -296,17 +299,19 @@ install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/$${file} ; \
-	  chmod a+rx ${bindir}/$${file}; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  chmod a+rx ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
-	  chmod a+rx ${bindir}/$${file}; \
+	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
+	  chmod a+rx ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 
 uninstall:
 	(cd ${bindir}; \
-	 rm -f ${INSTALLABLES} ${INSTALLABLE_SCRIPTS})
+	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
+	  rm -f ${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	done)
 	(cd ${archlibdir}; \
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
