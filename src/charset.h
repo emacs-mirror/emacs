@@ -106,7 +106,7 @@ Boston, MA 02111-1307, USA.  */
 #define LEADING_CODE_EXT_MAX 0xFE
 
 /* Definition of minimum/maximum charset of each DIMENSION.  */
-#define MIN_CHARSET_OFFICIAL_DIMENSION1	0x81
+#define MIN_CHARSET_OFFICIAL_DIMENSION1	0x80
 #define MAX_CHARSET_OFFICIAL_DIMENSION1	0x8F
 #define MIN_CHARSET_OFFICIAL_DIMENSION2	0x90
 #define MAX_CHARSET_OFFICIAL_DIMENSION2 0x99
@@ -204,7 +204,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
 /* Minimum character code of character of each DIMENSION.  */
 #define MIN_CHAR_OFFICIAL_DIMENSION1 \
-  ((MIN_CHARSET_OFFICIAL_DIMENSION1 - 0x70) << 7)
+  ((0x81 - 0x70) << 7)
 #define MIN_CHAR_PRIVATE_DIMENSION1 \
   ((MIN_CHARSET_PRIVATE_DIMENSION1 - 0x70) << 7)
 #define MIN_CHAR_OFFICIAL_DIMENSION2 \
