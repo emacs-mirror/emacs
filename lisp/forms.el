@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.4 $
+;; Version: $Revision: 2.3 $
 
 ;; This file is part of GNU Emacs.
 
@@ -266,10 +266,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.4 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.3 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.4 1993/10/20 20:39:47 jv Exp $")
+  $Id: forms.el,v 2.3 1993/10/21 00:43:51 rms Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -545,6 +545,10 @@ Commands:                        Equivalent keys in read-only mode:
     ;;(message "forms: building keymap... done.")
     )
 
+  ;; set the major mode indicator
+  (setq major-mode 'forms-mode)
+  (setq mode-name "Forms")
+
   ;; find the data file
   (setq forms--file-buffer (find-file-noselect forms-file))
 
@@ -565,9 +569,6 @@ Commands:                        Equivalent keys in read-only mode:
 	(setq forms-read-only t)))
 
   ;;(message "forms: proceeding setup...")
-  ;; set the major mode indicator
-  (setq major-mode 'forms-mode)
-  (setq mode-name "Forms")
 
   ;; Since we aren't really implementing a minor mode, we hack the modeline
   ;; directly to get the text " View " into forms-read-only form buffers.  For
