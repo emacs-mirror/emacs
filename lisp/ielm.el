@@ -52,34 +52,19 @@
 (defcustom ielm-prompt-read-only t
   "If non-nil, the IELM prompt is read only.
 Setting this variable does not affect existing IELM runs.
-
-You can give the IELM prompt more highly customized read-only
-type properties, by setting this option to nil, and then setting
-`ielm-prompt', outside of Custom, to a string with the desired
-text properties.
-
-Interrupting the IELM process with \\<ielm-map>\\[comint-interrupt-subjob],
-and then restarting it using \\[ielm], makes the then current
-default value affect _new_ prompts.  However, executing \\[ielm]
-does not have this effect on *ielm* buffers with a running process.
-For IELM buffers that are not called `*ielm*', you can execute
-\\[inferior-emacs-lisp-mode] in that IELM buffer to update the value,
-for new prompts.  This works even if the buffer has a running process."
+This works by setting the buffer-local value of `comint-prompt-read-only'.
+Setting that value directly affects new prompts in the current buffer."
   :type 'boolean
   :group 'ielm
   :version "21.4")
 
 (defcustom ielm-prompt "ELISP> "
   "Prompt used in IELM.
-Setting the default value does not affect existing IELM runs.
-`inferior-emacs-lisp-mode' converts this into a buffer-local
-variable in IELM buffers.  The buffer-local value is meant for
-internal use by IELM.  Do not try to set the buffer-local value
-yourself in any way, unless you really know what you are doing.
+Setting this variable does not affect existing IELM runs.
 
 Interrupting the IELM process with \\<ielm-map>\\[comint-interrupt-subjob],
 and then restarting it using \\[ielm], makes the then current
-_default_ value affect _new_ prompts.  Unless the new prompt
+default value affect _new_ prompts.  Unless the new prompt
 differs only in text properties from the old one, IELM will no
 longer recognize the old prompts.  However, executing \\[ielm]
 does not update the prompt of an *ielm* buffer with a running process.
@@ -88,6 +73,12 @@ For IELM buffers that are not called `*ielm*', you can execute
 for new prompts.  This works even if the buffer has a running process."
   :type 'string
   :group 'ielm)
+
+(defvar ielm-prompt-internal "ELISP> "
+  "Stored value of `ielm-prompt' in the current IELM buffer.
+This is an internal variable used by IELM.  Its purpose is to
+prevent a running IELM process from being messed up when the user
+customizes `ielm-prompt'.")
 
 (defcustom ielm-dynamic-return t
   "*Controls whether \\<ielm-map>\\[ielm-return] has intelligent behaviour in IELM.
@@ -178,9 +169,7 @@ This variable is buffer-local.")
   (define-key ielm-map "\C-c\C-v" 'ielm-print-working-buffer))
 
 (defvar ielm-font-lock-keywords
-  (list
-   (cons (concat "^" (regexp-quote ielm-prompt)) 'font-lock-keyword-face)
-   '("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)"
+  '(("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)"
      (1 font-lock-comment-face)
      (2 font-lock-constant-face)))
   "Additional expressions to highlight in ielm buffers.")
@@ -283,8 +272,7 @@ simply inserts a newline."
 (defun ielm-send-input nil
   "Evaluate the Emacs Lisp expression after the prompt."
   (interactive)
-  (let ((buf (current-buffer))
-	ielm-input)			; set by ielm-input-sender
+  (let (ielm-input)			; set by ielm-input-sender
     (comint-send-input)			; update history, markers etc.
     (ielm-eval-input ielm-input)))
 
@@ -407,7 +395,7 @@ simply inserts a newline."
 	    (setq ** *)
 	    (setq * ielm-result))
 	  (setq ielm-output (concat ielm-output "\n"))))
-    (setq ielm-output (concat ielm-output ielm-prompt))
+    (setq ielm-output (concat ielm-output ielm-prompt-internal))
     (comint-output-filter (ielm-process) ielm-output)))
 
 ;;; Process and marker utilities
@@ -478,20 +466,13 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
   (make-local-variable 'comint-dynamic-complete-functions)
-  (set (make-local-variable 'ielm-prompt)
-       (if ielm-prompt-read-only
-	   (propertize ielm-prompt
-		       'read-only t
-		       'rear-nonsticky t
-		       'front-sticky '(read-only))
-	 ielm-prompt))
+  (set (make-local-variable 'ielm-prompt-internal) ielm-prompt)
+  (set (make-local-variable 'comint-prompt-read-only) ielm-prompt-read-only)
   (setq comint-dynamic-complete-functions
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
   (make-local-variable 'comint-completion-addsuffix)
-  (setq comint-completion-addsuffix
-	(cons (char-to-string directory-sep-char) ""))
-
+  (setq comint-completion-addsuffix '("/" . ""))
   (setq major-mode 'inferior-emacs-lisp-mode)
   (setq mode-name "IELM")
   (setq mode-line-process '(":%s on " (:eval (buffer-name ielm-working-buffer))))
@@ -541,7 +522,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
         (add-text-properties
          (point-min) (point-max)
          '(rear-nonsticky t field output inhibit-line-move-field-capture t))))
-    (comint-output-filter (ielm-process) ielm-prompt)
+    (comint-output-filter (ielm-process) ielm-prompt-internal)
     (set-marker comint-last-input-start (ielm-pm))
     (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter))
 
@@ -568,7 +549,7 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
   (let (old-point)
     (unless (comint-check-proc "*ielm*")
       (with-current-buffer (get-buffer-create "*ielm*")
-	(unless (eq (buffer-size) 0) (setq old-point (point)))
+	(unless (zerop (buffer-size)) (setq old-point (point)))
 	(inferior-emacs-lisp-mode)))
     (pop-to-buffer "*ielm*")
     (when old-point (push-mark old-point))))
