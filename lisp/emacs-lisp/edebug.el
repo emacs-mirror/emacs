@@ -8,9 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1994/04/05 01:21:06 $|3.5|~/modes/edebug.el|
-
-;; Version 3.5 ($Revision: 1.19 $ from Emacs 19)
+;; |$Date: 1994/04/05 01:21:06 $|$Revision: 3.5 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -82,6 +80,8 @@
 ;;; liberte@cs.uiuc.edu
 
 ;;; ===============================
+;;; $Header: /import/kaplan/kaplan/liberte/Edebug/RCS/edebug.el,v 3.5 1994/04/08 21:39:52 liberte Exp liberte $
+;;; $Log: edebug.el,v $
 ;;; Revision 3.5  1994/04/04  21:39:52  liberte
 ;;; * Change "-emacs-" to "-original-" throughout.
 ;;; * (edebug-last-sexp) Fix missing ";;"
@@ -107,7 +107,7 @@
 ;;; For the rest of the revision history, see edebug-history.
 
 (defconst edebug-version
-  (let ((raw-version "3.5"))
+  (let ((raw-version "$Revision: 3.5 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -153,25 +153,24 @@
 
 (defvar edebug-setup-hook nil
   "*Functions to call before edebug is used.
-Its value is reset to nil after being used, so each time it is set
-to a new function, that function will be called once and only once.")
+Each time it is set to a new value, Edebug will call those functions
+once and then `edebug-setup-hook' is reset to nil.  You could use this
+to load up Edebug specifications associated with a package you are
+using but only when you also use Edebug.")
 
 (defvar edebug-all-defs nil
-  "*If non-nil, evaluation of any defining forms will use Edebug.
-`eval-defun' without prefix arg and `eval-region' will use
-`edebug-eval-top-level-form'.
-
-If nil, `eval-region' evaluates normally, but `eval-defun' with prefix arg
-uses `edebug-eval-top-level-form'.  `eval-region' is called by `eval-defun',
+  "*If non-nil, evaluation of any defining forms will instrument for Edebug.
+This applies to `eval-defun', `eval-region', `eval-buffer', and
+`eval-current-buffer'.  `eval-region' is also called by
 `eval-last-sexp', and `eval-print-last-sexp'.
 
 You can use the command `edebug-all-defs' to toggle the value of this
-variable.  You may wish to make this variable local to each
-buffer with (make-local-variable 'edebug-all-defs) in your
+variable.  You may wish to make it local to each buffer with
+(make-local-variable 'edebug-all-defs) in your
 `emacs-lisp-mode-hook'.")
 
 (defvar edebug-all-forms nil
-  "*Non-nil means edebug the evaluation of all forms.
+  "*Non-nil evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
 Use the command edebug-all-forms to toggle the value of this option.")
 
@@ -186,15 +185,15 @@ and some not, you should specify an edebug-form-spec.
 This option is going away soon.")
 
 (defvar edebug-stop-before-symbols nil
-  "*Non-nil causes edebug to stop before symbols as well as after.
-In any case, it is possible to stop before a symbol with a breakpoint or
-interrupt.")
+  "*Non-nil causes Edebug to stop before symbols as well as after.  
+In any case, a breakpoint or interrupt may stop before a symbol.
+
+This option is going away soon.")
 
 (defvar edebug-save-windows t
-  "*If non-nil, save and restore window configuration on edebug calls.
-It takes some time to save and restore, so if your program does not care
-what happens to the window configurations, it is better to set this
-variable to nil.
+  "*If non-nil, Edebug saves and restores the window configuration.
+That takes some time, so if your program does not care what happens to
+the window configurations, it is better to set this variable to nil.
 
 If the value is a list, only the listed windows are saved and
 restored.  
@@ -202,49 +201,43 @@ restored.
 `edebug-toggle-save-windows' may be used to change this variable.")
 
 (defvar edebug-save-displayed-buffer-points nil
-  "*If non-nil, save and restore the points of all displayed buffers.
+  "*If non-nil, save and restore point in all displayed buffers.
 
-Saving and restoring buffer points is necessary if you are debugging
-code that changes the point of a buffer which is displayed in a
-non-selected window.  If edebug or the user then selects the
+Saving and restoring point in other buffers is necessary if you are
+debugging code that changes the point of a buffer which is displayed
+in a non-selected window.  If Edebug or the user then selects the
 window, the buffer's point will be changed to the window's point.
 
-But this is an expensive operation since it visits each
-window and therefore each displayed buffer twice for each edebug call,
-so it is best to avoid it if you can.")
+Saving and restoring point in all buffers is expensive, since it
+requires selecting each window twice, so enable this only if you need
+it.")
 
 (defvar edebug-initial-mode 'step
-  "*Initial execution mode for Edebug, if non-nil.  
-This is used when edebug is first entered for each recursive-edit
-level.  Possible values are nil (which means leave
-edebug-execution-mode as is), step, (the default), next, go,
+  "*Initial execution mode for Edebug, if non-nil.  If this variable
+is non-@code{nil}, it specifies the initial execution mode for Edebug
+when it is first activated.  Possible values are step, next, go,
 Go-nonstop, trace, Trace-fast, continue, and Continue-fast.")
 
 (defvar edebug-trace nil
-  "*Non-nil if edebug should show a trace of function entry and exit.
-Tracing output is displayed in a buffer named by the variable
-edebug-trace-buffer, one function entry or exit per line, indented by
-the stack depth.  You can customize by replacing functions
-edebug-print-trace-before and edebug-print-trace-after.")
+  "*Non-nil means display a trace of function entry and exit.
+Tracing output is displayed in a buffer named `*edebug-trace*', one
+function entry or exit per line, indented by the recursion level.  
+
+You can customize by replacing functions `edebug-print-trace-before'
+and `edebug-print-trace-after'.")
 
 (defvar edebug-test-coverage nil
   "*If non-nil, Edebug tests coverage of all expressions debugged.
 This is done by comparing the result of each expression
 with the previous result. Coverage is considered OK if two different
-results are found.  So to sufficiently test the coverage of your code,
-try to execute it under conditions that evaluate all expressions more
-than once, and produce different results for each expression.
+results are found.
 
 Use `edebug-display-freq-count' to display the frequency count and
 coverage information for a definition.")
 
 (defvar edebug-continue-kbd-macro nil
-  "*If non-nil, continue executing any keyboard macro that is
-executing outside.  Use this with caution since it is not debugged.")
-
-(defvar edebug-global-break-condition nil
-  "*If non-nil, an expression to test for at every stop point.
-If the result is non-nil, then break.  Errors are ignored.")
+  "*If non-nil, continue defining or executing any keyboard macro.
+Use this with caution since it is not debugged.")
 
 
 (defvar edebug-print-length 50
@@ -273,6 +266,11 @@ After execution is resumed, the error is signaled again.")
 
 (defvar edebug-on-quit t
   "*Value bound to `debug-on-quit' while Edebug is active.")
+
+(defvar edebug-global-break-condition nil
+  "*If non-nil, an expression to test for at every stop point.
+If the result is non-nil, then break.  Errors are ignored.")
+
 
 ;;;; Form spec utilities.
 ;;; ===============================
@@ -328,7 +326,8 @@ except when debugging needs suggest otherwise."
     newsymbol))
 ))
 
-(if (not (fboundp 'keywordp))
+;; Only used by CL-like code.
+'(if (not (fboundp 'keywordp))
     (defun keywordp (object)
       "Return t if OBJECT is a keyword.
 A keyword is a symbol that starts with "":""."
@@ -1432,7 +1431,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 	  (cond
 	   ;; Check for constant symbols that dont get wrapped.
 	   ((or (memq form '(t nil))
-		(keywordp form))
+		(and (fboundp 'keywordp) (keywordp form)))
 	    form)
 
 	   ;; This option may go away.
@@ -1997,7 +1996,7 @@ expressions; a `progn' form will be returned enclosing these forms."
    edebug-spec-list
    stringp
    [lambda-list-keywordp &rest edebug-spec]
-   [keywordp gate edebug-spec]
+   ;; [keywordp gate edebug-spec] ;; need keywordp for this.
    edebug-spec-p  ;; Including all the special ones e.g. form.
    symbolp;; a predicate
    ))
@@ -4500,7 +4499,7 @@ Print result in minibuffer."
 
   (byte-compile-resolve-functions 
    '(reporter-submit-bug-report 
-     gensym keywordp;; cl.el
+     gensym ;; also in cl.el
      ;; Interfaces to standard functions.
      edebug-original-eval-defun 
      edebug-original-read
@@ -4561,4 +4560,5 @@ Print result in minibuffer."
 (provide 'edebug)
 
 ;;; edebug.el ends here
+
 
