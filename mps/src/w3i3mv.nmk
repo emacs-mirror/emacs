@@ -1,6 +1,6 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.67) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.68) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3i3mv
@@ -21,7 +21,7 @@ MPM = <assert> <ring> <mpm> <bt> <protocol> \
 SW  = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <lockw3> \
+      <root> <format> <buffer> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <thw3i3> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
@@ -41,7 +41,7 @@ AMS = <poolams>
 AWL = <poolawl>
 LO = <poollo>
 SNC = <poolsnc>
-DW  = <fmtdy>
+DW = <fmtdy>
 DWTEST = <fmtdytst>
 POOLN = <pooln>
 ARENAAN = <arenaan>
