@@ -3496,7 +3496,7 @@ This does code conversion according to the value of\n\
     total = READ_BUF_SIZE;
 
   if (NILP (visit) && total > 0)
-    prepare_to_modify_buffer (PT, PT);
+    prepare_to_modify_buffer (PT, PT, NULL);
 
   move_gap (PT);
   if (GAP_SIZE < total)
