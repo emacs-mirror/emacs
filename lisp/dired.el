@@ -2770,7 +2770,14 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 ;; So anything that does not contain these is sort "by name".
 
 (defvar dired-ls-sorting-switches "SXU"
-  "String of `ls' switches (single letters) except `t' that influence sorting.")
+  "String of `ls' switches \(single letters\) except `t' that influence sorting.
+
+This indicates to Dired which option switches to watch out for because they
+will change the sorting order behavior of `ls'.
+
+To change the default sorting order \(e.g. add a `-v' option\), see the
+variable `dired-listing-switches'.  To temporarily override the listing
+format, use `\\[universal-argument] \\[dired]'.")
 
 (defvar dired-sort-by-date-regexp
   (concat "^-[^" dired-ls-sorting-switches
