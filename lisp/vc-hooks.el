@@ -218,6 +218,10 @@ value of this flag.")
 
 (defun vc-fetch-master-properties (file)
   ;; Fetch those properties of FILE that are stored in the master file.
+  ;; For an RCS file, we don't get vc-latest-version vc-your-latest-version
+  ;; here because that is slow.
+  ;; That gets done if/when the functions vc-latest-version
+  ;; and vc-your-latest-version get called.
   (save-excursion
     (cond
      ((eq (vc-backend file) 'SCCS)
@@ -236,22 +240,15 @@ value of this flag.")
 
      ((eq (vc-backend file) 'RCS)
       (set-buffer (get-buffer-create "*vc-info*"))
-      (vc-insert-file (vc-name file) "^desc")
+      (vc-insert-file (vc-name file) "^locks")
       (vc-parse-buffer 
        (list '("^head[ \t\n]+\\([^;]+\\);" 1)
 	     '("^branch[ \t\n]+\\([^;]+\\);" 1)
-	     '("^locks\\([^;]+\\);" 1)
-	     '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
-	     (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
-			   "date[ \t]+\\([0-9.]+\\);[ \t]+"
-			   "author[ \t]+"
-			   (regexp-quote (user-login-name)) ";") 1 2))
+	     '("^locks\\([^;]+\\);" 1))
        file
        '(vc-head-version
 	 vc-default-branch
-	 vc-master-locks
-	 vc-latest-version
-	 vc-your-latest-version))
+	 vc-master-locks))
       ;; determine vc-top-version: it is either the head version, 
       ;; or the tip of the default branch
       (let ((default-branch (vc-file-getprop file 'vc-default-branch)))
@@ -265,7 +262,9 @@ value of this flag.")
 			default-branch)
 	  (vc-file-setprop file 'vc-top-version default-branch))
 	 ;; else, search for the tip of the default branch
-	 (t (vc-parse-buffer (list (list 
+	 (t (erase-buffer)
+	    (vc-insert-file (vc-name file) "^desc")
+	    (vc-parse-buffer (list (list 
 	       (concat "^\\(" 
 		       (regexp-quote default-branch)
 		       "\\.[0-9]+\\)\ndate[ \t]+\\([0-9.]+\\);") 1 2))
@@ -293,7 +292,7 @@ value of this flag.")
        ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
        ;; and CVS 1.4a1 says "Repository revision:".
        '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
-      ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
+	 ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
        file
        '(vc-latest-version vc-cvs-status))
       ;; Translate those status values that are needed into symbols.
@@ -332,11 +331,14 @@ value of this flag.")
       (cond  
        ;; search for $Id or $Header
        ;; -------------------------
-       ((re-search-forward "\\$\\(Id\\|Header\\): [^ ]+ \\([0-9.]+\\) "
-			   nil t)
+       ((or (and (search-forward "$Id: " nil t)
+		 (looking-at "[^ ]+ \\([0-9.]+\\) "))
+	    (and (progn (goto-char (point-min))
+			(search-forward "$Headers: " nil t))
+		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
 	;; if found, store the revision number ...
-	(let ((rev (buffer-substring (match-beginning 2)
-				     (match-end 2))))
+	(let ((rev (buffer-substring (match-beginning 1)
+				     (match-end 1))))
 	  ;; ... and check for the locking state
 	  (if (re-search-forward 
 	       (concat "\\=[0-9]+/[0-9]+/[0-9]+ "    ; date
@@ -544,13 +546,13 @@ value of this flag.")
 (defun vc-latest-version (file)
   ;; Return version level of the latest version of FILE
   (cond ((vc-file-getprop file 'vc-latest-version))
-	(t (vc-fetch-master-properties file)
+	(t (vc-fetch-properties file)
 	   (vc-file-getprop file 'vc-latest-version))))
 
 (defun vc-your-latest-version (file)
   ;; Return version level of the latest version of FILE checked in by you
   (cond ((vc-file-getprop file 'vc-your-latest-version))
-	(t (vc-fetch-master-properties file)
+	(t (vc-fetch-properties file)
 	   (vc-file-getprop file 'vc-your-latest-version))))
 
 (defun vc-top-version (file)
@@ -561,6 +563,29 @@ value of this flag.")
   (cond ((vc-file-getprop file 'vc-top-version))
 	(t (vc-fetch-master-properties file)
 	   (vc-file-getprop file 'vc-top-version))))
+
+(defun vc-fetch-properties (file)
+  ;; Fetch vc-latest-version and vc-your-latest-version
+  ;; if that wasn't already done.
+  (vc-backend-dispatch
+   file
+   ;; SCCS
+   (vc-fetch-master-properties file)
+   ;; RCS
+   (progn
+     (set-buffer (get-buffer-create "*vc-info*"))
+     (vc-insert-file (vc-name file) "^desc")
+     (vc-parse-buffer 
+      (list '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
+	    (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
+			  "date[ \t]+\\([0-9.]+\\);[ \t]+"
+			  "author[ \t]+"
+			  (regexp-quote (user-login-name)) ";") 1 2))
+      file
+      '(vc-latest-version vc-your-latest-version)))
+   ;; CVS
+   (vc-fetch-master-properties file)
+   ))
 
 (defun vc-workfile-version (file)
   ;; Return version level of the current workfile FILE
