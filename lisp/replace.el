@@ -330,20 +330,24 @@ Interactively it is the prefix arg.
 The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
 \\[describe-mode] in that buffer will explain how."
-  (interactive (list (let* ((default (car regexp-history))
-			    (input 
-			     (read-from-minibuffer
-			      (if default
-				  (format "List lines matching regexp (default `%s'): " default)
-				"List lines matching regexp: ")
-			      nil nil nil
-			      'regexp-history)))
-		       (if (> (length input) 0) input
-			 (setcar regexp-history default)))
-		     current-prefix-arg))
-  (setq nlines (if nlines (prefix-numeric-value nlines)
-		 list-matching-lines-default-context-lines))
-  (let ((first t)
+  (interactive
+   (list (let* ((default (car regexp-history))
+		(input
+		 (read-from-minibuffer
+		  (if default
+		      (format "List lines matching regexp (default `%s'): "
+			      default)
+		    "List lines matching regexp: ")
+		  nil nil nil 'regexp-history)))
+	   (if (string-equal input "")
+	       default
+	     (set-text-properties 0 (length input) nil input)
+	     input))
+	 current-prefix-arg))
+  (let ((nlines (if nlines
+		    (prefix-numeric-value nlines)
+		  list-matching-lines-default-context-lines))
+	(first t)
 	(buffer (current-buffer))
 	(dir default-directory)
 	(linenum 1)
