@@ -807,6 +807,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		  {
 		    detect_coding (&process_coding, bufptr, nread);
 		    if (process_coding.composing != COMPOSITION_DISABLED)
+		      /* We have not yet allocated the composition
+			 data because the coding type was undecided.  */
 		      coding_allocate_composition_data (&process_coding, PT);
 		  }
 		if (process_coding.cmp_data)

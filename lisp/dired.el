@@ -202,10 +202,11 @@ with the buffer narrowed to the listing."
 
 ;; Fixme: This should use mailcap.
 (defcustom dired-view-command-alist
-  '(("[.]\\(ps\\|ps_pages\\|eps\\)\\'" . "gv -spartan -color -watch %s")
-    ("[.]pdf\\'" . "xpdf %s")
-    ("[.]\\(jpe?g\\|gif\\|png\\)\\'" . "eog %s")
-    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1 %s"))
+  '(("\\.\\(ps\\|ps_pages\\|eps\\)\\'" . "gv %s")
+    ("\\.pdf\\'" . "xpdf %s")
+    ;; ("\\.pod\\'" . "perldoc %s")
+    ("\\.\\(jpe?g\\|gif\\|png\\)\\'" . "eog %s")
+    ("\\.dvi\\'" . "xdvi %s"))
   "Alist specifying how to view special types of files.
 Each element has the form (REGEXP . SHELL-COMMAND).
 When the file name matches REGEXP, `dired-view-file'
@@ -797,6 +798,112 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	(dired-insert-directory dir dired-actual-switches
 				file-list (not file-list) t)))))
 
+(defun dired-align-file (beg end)
+  "Align the fields of a file to the ones of surrounding lines.
+BEG..END is the line where the file info is located."
+  ;; Some versions of ls try to adjust the size of each field so as to just
+  ;; hold the largest element ("largest" in the current invocation, of
+  ;; course).  So when a single line is output, the size of each field is
+  ;; just big enough for that one output.  Thus when dired refreshes one
+  ;; line, the alignment if this line w.r.t the rest is messed up because
+  ;; the fields of that one line will generally be smaller.
+  ;;
+  ;; To work around this problem, we here add spaces to try and re-align the
+  ;; fields as needed.  Since this is purely aesthetic, it is of utmost
+  ;; importance that it doesn't mess up anything like
+  ;; `dired-move-to-filename'.  To this end, we limit ourselves to adding
+  ;; spaces only, and to only add them at places where there was already at
+  ;; least one space.  This way, as long as `dired-move-to-filename-regexp'
+  ;; always matches spaces with "*" or "+", we know we haven't made anything
+  ;; worse.  There is one spot where the exact number of spaces is
+  ;; important, which is just before the actual filename, so we refrain from
+  ;; adding spaces there (and within the filename as well, of course).
+  (save-excursion
+    (let (file file-col other other-col)
+      ;; Check the there is indeed a file, and that there is anoter adjacent
+      ;; file with which to align, and that additional spaces are needed to
+      ;; align the filenames.
+      (when (and (setq file (progn (goto-char beg)
+				   (dired-move-to-filename nil end)))
+		 (setq file-col (current-column))
+		 (setq other
+		       (or (and (goto-char beg)
+				(zerop (forward-line -1))
+				(dired-move-to-filename))
+			   (and (goto-char beg)
+				(zerop (forward-line 1))
+				(dired-move-to-filename))))
+		 (setq other-col (current-column))
+		 (/= file other)
+		 ;; Make sure there is some work left to do.
+		 (> other-col file-col))
+	;; If we've only looked at the line above, check to see if the line
+	;; below exists as well and if so, align with the shorter one.
+	(when (and (< other file)
+		   (goto-char beg)
+		   (zerop (forward-line 1))
+		   (dired-move-to-filename))
+	  (let ((alt-col (current-column)))
+	    (when (< alt-col other-col)
+	      (setq other-col alt-col)
+	      (setq other (point)))))
+	;; Keep positions uptodate when we insert stuff.
+	(if (> other file) (setq other (copy-marker other)))
+	(setq file (copy-marker file))
+	;; Main loop.
+	(goto-char beg)
+	(while (and (> other-col file-col)
+		    (skip-chars-forward "^ ")
+		    ;; Skip the spaces, and make sure there's at least one.
+		    (> (skip-chars-forward " ") 0)
+		    ;; Don't touch anything just before (and after) the
+		    ;; beginning of the filename.
+		    (> file (point)))
+	  ;; We're now just in front of a field, with a space behind us.
+	  (let* ((curcol (current-column))
+		 ;; Nums are right-aligned.
+		 (num-align (looking-at "[0-9]"))
+		 ;; Let's look at the other line, in the same column: we
+		 ;; should be either near the end of the previous field, or
+		 ;; in the space between that field and the next.
+		 ;; [ Of course, it's also possible that we're already within
+		 ;; the next field or even past it, but that's unlikely since
+		 ;; other-col > file-col. ]
+		 ;; Let's find the distance to the alignment-point (either
+		 ;; the beginning or the end of the next field, depending on
+		 ;; whether this field is left or right aligned).
+		 (align-pt-offset
+		  (save-excursion
+		    (goto-char other)
+		    (move-to-column curcol)
+		    (when (looking-at
+			   (concat
+			    (if (eq (char-before) ?\ ) " *" "[^ ]* *")
+			    (if num-align "[0-9][^ ]*")))
+		      (- (match-end 0) (match-beginning 0)))))
+		 ;; Now, the number of spaces to insert is align-pt-offset
+		 ;; minus the distance to the equivalent point on the
+		 ;; current line.
+		 (spaces
+		  (if (not num-align)
+		      align-pt-offset
+		    (and align-pt-offset
+			 (save-excursion
+			   (skip-chars-forward "^ ")
+			   (- align-pt-offset (- (current-column) curcol)))))))
+	    (when (and spaces (> spaces 0))
+	      (setq file-col (+ spaces file-col))
+	      (if (> file-col other-col)
+		  (setq spaces (- spaces (- file-col other-col))))
+	      (insert-char ?\s spaces)
+	      ;; Let's just make really sure we did not mess up.
+	      (unless (save-excursion
+			(equal (dired-move-to-filename) (marker-position file)))
+		;; Damn!  We messed up: let's revert the change.
+		(delete-char (- spaces))))))
+	(set-marker file nil)))))
+			 
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -815,7 +922,10 @@ If HDR is non-nil, insert a header line with the directory name."
     ;; with the new value of dired-move-to-filename-regexp.
     (if file-list
 	(dolist (f file-list)
-	  (insert-directory f switches nil nil))
+	  (let ((beg (point)))
+	    (insert-directory f switches nil nil)
+	    ;; Re-align fields, if necessary.
+	    (dired-align-file beg (point))))
       (insert-directory dir switches wildcard (not wildcard)))
     ;; Quote certain characters, unless ls quoted them for us.
     (if (not (string-match "b" dired-actual-switches))
@@ -1762,6 +1872,8 @@ regardless of the language.")
 ;; Move to first char of filename on this line.
 ;; Returns position (point) or nil if no filename on this line."
 (defun dired-move-to-filename (&optional raise-error eol)
+  "Move to the beginning of the filename on the current line.
+Return the position of the beginning of the filename, or nil if none found."
   ;; This is the UNIX version.
   (or eol (setq eol (line-end-position)))
   (beginning-of-line)
@@ -1774,8 +1886,10 @@ regardless of the language.")
       (goto-char (match-end 0)))
      ((re-search-forward dired-permission-flags-regexp eol t)
       ;; Ha!  There *is* a file.  Our regexp-from-hell just failed to find it.
-      (funcall (if raise-error 'error 'message)
-	       "Unrecognized line!  Check dired-move-to-filename-regexp"))
+      (if raise-error
+	  (error "Unrecognized line!  Check dired-move-to-filename-regexp"))
+      (beginning-of-line)
+      nil)
      (raise-error
       (error "No file on this line")))))
 
@@ -1818,9 +1932,9 @@ regardless of the language.")
 	    (or no-error (error "No file on this line"))))
 	;; Move point to end of name:
 	(if symlink
-	    (if (search-forward " ->" eol t)
+	    (if (search-forward " -> " eol t)
 		(progn
-		  (forward-char -3)
+		  (forward-char -4)
 		  (and used-F
 		       dired-ls-F-marks-symlinks
 		       (eq (preceding-char) ?@)	;; did ls really mark the link?
@@ -1885,7 +1999,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
   (setq dir (file-name-as-directory dir))
-  (let ((alist dired-buffers) result elt buf pattern)
+  (let ((alist dired-buffers) result elt buf)
     (while alist
       (setq elt (car alist)
 	    buf (cdr elt))

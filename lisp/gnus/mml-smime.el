@@ -25,9 +25,12 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (require 'smime)
 (require 'mm-decode)
 (autoload 'message-narrow-to-headers "message")
+(autoload 'message-fetch-field "message")
 
 (defun mml-smime-sign (cont)
   (when (null smime-keys)

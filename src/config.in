@@ -136,7 +136,7 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
 
-/* Define to 1 if this OS has exec shield. */
+/* Define to 1 if this OS has exec shield and we can handle it. */
 #undef HAVE_EXECSHIELD
 
 /* Define to 1 if you have the <fcntl.h> header file. */

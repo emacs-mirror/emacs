@@ -102,7 +102,7 @@ expression, which is evaluated to get the string to insert.")
 (defconst enriched-annotation-regexp "<\\(/\\)?\\([-A-Za-z0-9]+\\)>"
   "Regular expression matching enriched-text annotations.")
 
-(defconst enriched-translations
+(defvar enriched-translations
   '((face          (bold-italic "bold" "italic")
 		   (bold        "bold")
 		   (italic      "italic")

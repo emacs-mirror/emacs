@@ -915,7 +915,9 @@ header line with the old Message-ID."
 		     (not to-address)))
 	    ;; This is news.
 	    (if post
-		(message-news (or to-group group))
+		(message-news
+		 (or to-group
+		     (and (not (gnus-virtual-group-p pgroup)) group)))
 	      (set-buffer gnus-article-copy)
 	      (gnus-msg-treat-broken-reply-to)
 	      (message-followup (if (or newsgroup-p force-news)
@@ -1801,9 +1803,11 @@ this is a reply."
 		;; Obsolete format of header match.
 		(and (gnus-buffer-live-p gnus-article-copy)
 		     (with-current-buffer gnus-article-copy
-		       (let ((header (message-fetch-field (pop style))))
-			 (and header
-			      (string-match (pop style) header))))))
+		       (save-restriction
+			 (nnheader-narrow-to-headers)
+			 (let ((header (message-fetch-field (pop style))))
+			   (and header
+				(string-match (pop style) header)))))))
 	       ((or (symbolp match)
 		    (functionp match))
 		(cond
@@ -1819,9 +1823,11 @@ this is a reply."
 		  ;; New format of header match.
 		  (and (gnus-buffer-live-p gnus-article-copy)
 		       (with-current-buffer gnus-article-copy
-			 (let ((header (message-fetch-field (nth 1 match))))
-			   (and header
-				(string-match (nth 2 match) header))))))
+			 (save-restriction
+			   (nnheader-narrow-to-headers)
+			   (let ((header (message-fetch-field (nth 1 match))))
+			     (and header
+				  (string-match (nth 2 match) header)))))))
 		 (t
 		  ;; This is a form to be evaled.
 		  (eval match)))))

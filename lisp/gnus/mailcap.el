@@ -1,5 +1,5 @@
 ;;; mailcap.el --- MIME media types configuration
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;       Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
@@ -135,23 +135,21 @@
       (non-viewer . t)
       (type   . "application/zip")
       ("copiousoutput"))
-     ;; Prefer free viewers.
      ("pdf"
       (viewer . "gv -safer %s")
       (type . "application/pdf")
       (test . window-system)
       ("print" . ,(concat "pdf2ps %s - | " mailcap-print-command)))
      ("pdf"
-      (viewer . "xpdf %s")
+      (viewer . "gpdf %s")
       (type . "application/pdf")
       ("print" . ,(concat "pdftops %s - | " mailcap-print-command))
       (test . (eq window-system 'x)))
      ("pdf"
-      (viewer . "acroread %s")
-      (type   . "application/pdf")
-      ("print" . ,(concat "cat %s | acroread -toPostScript | "
-			  mailcap-print-command))
-      (test . window-system))
+      (viewer . "xpdf %s")
+      (type . "application/pdf")
+      ("print" . ,(concat "pdftops %s - | " mailcap-print-command))
+      (test . (eq window-system 'x)))
      ("pdf"
       (viewer . ,(concat "pdftotext %s -"))
       (type   . "application/pdf")

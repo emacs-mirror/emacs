@@ -4260,7 +4260,7 @@ actually used.  */)
       if (how_much < 0)
 	{
 	  xfree (conversion_buffer);
-
+	  coding_free_composition_data (&coding);
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
 		   SDATA (orig_filename), emacs_strerror (errno));
@@ -4282,6 +4282,7 @@ actually used.  */)
       if (bufpos == inserted)
 	{
 	  xfree (conversion_buffer);
+	  coding_free_composition_data (&coding);
 	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
@@ -5717,6 +5718,9 @@ auto_save_1 ()
       && stat (SDATA (current_buffer->filename), &st) >= 0)
     /* But make sure we can overwrite it later!  */
     auto_save_mode_bits = st.st_mode | 0600;
+  else if (! NILP (current_buffer->filename))
+    /* Remote files don't cooperate with stat.  */
+    auto_save_mode_bits = XINT (Ffile_modes (current_buffer->filename)) | 0600;
   else
     auto_save_mode_bits = 0666;
 

@@ -450,6 +450,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		    ;; actually are hard newlines in the text.
 		    (let (use-hard-newlines)
 		      (when (and (string= type "text/plain")
+				 (not (string= (cdr (assq 'sign cont)) "pgp"))
 				 (or (null (assq 'format cont))
 				     (string= (cdr (assq 'format cont))
 					      "flowed"))
@@ -591,7 +592,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	  (insert-buffer-substring (cdr (assq 'buffer cont))))
 	 ((and (setq filename (cdr (assq 'filename cont)))
 	       (not (equal (cdr (assq 'nofile cont)) "yes")))
-	  (mm-insert-file-contents filename))
+	  (mm-insert-file-contents filename nil nil nil nil t))
 	 (t
 	  (insert (cdr (assq 'contents cont)))))
 	(goto-char (point-min))

@@ -3568,6 +3568,7 @@ handle_single_display_prop (it, prop, object, position,
 	  && CONSP (XCDR (prop)))
 	{
 	  unsigned face_id = DEFAULT_FACE_ID;
+	  int fringe_bitmap;
 
 	  /* Save current settings of IT so that we can restore them
 	     when we are finished with the glyph property value.  */
@@ -3578,8 +3579,8 @@ handle_single_display_prop (it, prop, object, position,
 
 #ifdef HAVE_WINDOW_SYSTEM
 	  value = XCAR (XCDR (prop));
-	  if (!NUMBERP (value)
-	      || !valid_fringe_bitmap_id_p (XINT (value)))
+	  if (!SYMBOLP (value)
+	      || !(fringe_bitmap = lookup_fringe_bitmap (value)))
 	    return 0;
 
 	  if (CONSP (XCDR (XCDR (prop))))
@@ -3608,12 +3609,12 @@ handle_single_display_prop (it, prop, object, position,
 
 	  if (EQ (XCAR (prop), Qleft_fringe))
 	    {
-	      it->left_user_fringe_bitmap = XINT (value);
+	      it->left_user_fringe_bitmap = fringe_bitmap;
 	      it->left_user_fringe_face_id = face_id;
 	    }
 	  else
 	    {
-	      it->right_user_fringe_bitmap = XINT (value);
+	      it->right_user_fringe_bitmap = fringe_bitmap;
 	      it->right_user_fringe_face_id = face_id;
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */

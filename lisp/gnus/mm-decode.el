@@ -623,14 +623,14 @@ Postpone undisplaying of viewers for types in
   "Copy the contents of the current buffer to a fresh buffer."
   (save-excursion
     (let ((obuf (current-buffer))
-	  (multibyte enable-multibyte-characters)
 	  beg)
       (goto-char (point-min))
       (search-forward-regexp "^\n" nil t)
       (setq beg (point))
-      (set-buffer (generate-new-buffer " *mm*"))
-      ;; Preserve the data's unibyteness (for url-insert-file-contents).
-      (set-buffer-multibyte multibyte)
+      (set-buffer
+       ;; Preserve the data's unibyteness (for url-insert-file-contents).
+       (let ((default-enable-multibyte-characters (mm-multibyte-p)))
+	 (generate-new-buffer " *mm*")))
       (insert-buffer-substring obuf beg)
       (current-buffer))))
 

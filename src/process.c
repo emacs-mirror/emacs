@@ -5203,6 +5203,7 @@ send_process (proc, buf, len, object)
       object = p->encoding_buf;
       encode_coding (coding, (char *) buf, SDATA (object),
 		     len, SBYTES (object));
+      coding_free_composition_data (coding);
       len = coding->produced;
       buf = SDATA (object);
     }
