@@ -127,11 +127,7 @@ buf_charpos_to_bytepos (b, charpos)
   tail = BUF_MARKERS (b);
   while (XSYMBOL (tail) != XSYMBOL (Qnil))
     {
-      int i = XMARKER (tail)->bufpos;
-      CONSIDER (XMARKER (tail)->charpos,
-		(i > gapend_byte ? i - BUF_GAP_SIZE (b)
-		 : i > BUF_GPT_BYTE (b) ? BUF_GPT_BYTE (b)
-		 : i));
+      CONSIDER (XMARKER (tail)->charpos, XMARKER (tail)->bytepos);
 
       /* If we are down to a range of 50 chars,
 	 don't bother checking any other markers;
@@ -281,14 +277,7 @@ buf_bytepos_to_charpos (b, bytepos)
   tail = BUF_MARKERS (b);
   while (XSYMBOL (tail) != XSYMBOL (Qnil))
     {
-      int marker_bytepos = XMARKER (tail)->bufpos;
-
-      if (marker_bytepos > BUF_GPT_BYTE (b) + BUF_GAP_SIZE (b))
-	marker_bytepos -= BUF_GAP_SIZE (b);
-      else if (marker_bytepos > BUF_GPT_BYTE (b))
-	marker_bytepos = BUF_GPT_BYTE (b);
-
-      CONSIDER (marker_bytepos, XMARKER (tail)->charpos);
+      CONSIDER (XMARKER (tail)->bytepos, XMARKER (tail)->charpos);
 
       /* If we are down to a range of 50 chars,
 	 don't bother checking any other markers;
@@ -441,7 +430,7 @@ Returns MARKER.")
   if (MARKERP (position) && b == XMARKER (position)->buffer
       && b == m->buffer)
     {
-      m->bufpos = XMARKER (position)->bufpos;
+      m->bytepos = XMARKER (position)->bytepos;
       m->charpos = XMARKER (position)->charpos;
       return marker;
     }
@@ -461,10 +450,7 @@ Returns MARKER.")
   if (charno > bytepos)
     abort ();
 
-  if (bytepos > BUF_GPT_BYTE (b))
-    bytepos += BUF_GAP_SIZE (b);
-
-  m->bufpos = bytepos;
+  m->bytepos = bytepos;
   m->charpos = charno;
 
   if (m->buffer != b)
@@ -520,7 +506,7 @@ set_marker_restricted (marker, pos, buffer)
   if (MARKERP (pos) && b == XMARKER (pos)->buffer
       && b == m->buffer)
     {
-      m->bufpos = XMARKER (pos)->bufpos;
+      m->bytepos = XMARKER (pos)->bytepos;
       m->charpos = XMARKER (pos)->charpos;
       return marker;
     }
@@ -540,10 +526,7 @@ set_marker_restricted (marker, pos, buffer)
   if (charno > bytepos)
     abort ();
 
-  if (bytepos > BUF_GPT_BYTE (b))
-    bytepos += BUF_GAP_SIZE (b);
-
-  m->bufpos = bytepos;
+  m->bytepos = bytepos;
   m->charpos = charno;
 
   if (m->buffer != b)
@@ -603,10 +586,7 @@ set_marker_both (marker, buffer, charpos, bytepos)
   if (charpos > bytepos)
     abort ();
 
-  if (bytepos > BUF_GPT_BYTE (b))
-    bytepos += BUF_GAP_SIZE (b);
-
-  m->bufpos = bytepos;
+  m->bytepos = bytepos;
   m->charpos = charpos;
 
   if (m->buffer != b)
@@ -666,10 +646,7 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
   if (charpos > bytepos)
     abort ();
 
-  if (bytepos > BUF_GPT_BYTE (b))
-    bytepos += BUF_GAP_SIZE (b);
-
-  m->bufpos = bytepos;
+  m->bytepos = bytepos;
   m->charpos = charpos;
 
   if (m->buffer != b)
@@ -759,15 +736,10 @@ marker_byte_position (marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
-  register int i = m->bufpos;
+  register int i = m->bytepos;
 
   if (!buf)
     error ("Marker does not point anywhere");
-
-  if (i > BUF_GPT_BYTE (buf) + BUF_GAP_SIZE (buf))
-    i -= BUF_GAP_SIZE (buf);
-  else if (i > BUF_GPT_BYTE (buf))
-    i = BUF_GPT_BYTE (buf);
 
   if (i < BUF_BEG_BYTE (buf) || i > BUF_Z_BYTE (buf))
     abort ();
