@@ -59,7 +59,7 @@
   ;; (define-skeleton foo ...), (define-generic-mode 'foo ...),
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode)\\s-+'?\
+\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\\)\\s-+'?\
 %s\\(\\s-\\|$\\|\(\\|\)\\)"
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
