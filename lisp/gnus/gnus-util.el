@@ -804,7 +804,7 @@ ARG is passed to the first function."
 ;;;
 
 (defun gnus-parse-netrc (file)
-  "Parse FILE and return an list of all entries in the file."
+  "Parse FILE and return a list of all entries in the file."
   (when (file-exists-p file)
     (with-temp-buffer
       (let ((tokens '("machine" "default" "login"
@@ -984,7 +984,7 @@ Entries without port tokens default to DEFAULTPORT."
   (property value start end properties &optional object)
   "Like `gnus-add-text-properties', only applied on where PROPERTY is VALUE."
   (let (point)
-    (while (and start 
+    (while (and start
 		(setq point (text-property-not-all start end property value)))
       (gnus-add-text-properties start point properties object)
       (setq start (text-property-any point end property value)))
@@ -995,7 +995,7 @@ Entries without port tokens default to DEFAULTPORT."
   (property value start end properties &optional object)
   "Like `remove-text-properties', only applied on where PROPERTY is VALUE."
   (let (point)
-    (while (and start 
+    (while (and start
 		(setq point (text-property-not-all start end property value)))
       (remove-text-properties start point properties object)
       (setq start (text-property-any point end property value)))
