@@ -1294,6 +1294,7 @@ lexical closures as in Common Lisp."
 			  (or (consp x) (setq x (list x)))
 			  (cl-push (gensym (format "--%s--" (car x)))
 				   cl-closure-vars)
+			  (set (car cl-closure-vars) [bad-lexical-ref])
 			  (list (car x) (cadr x) (car cl-closure-vars))))
 		       bindings))
 	 (ebody 
