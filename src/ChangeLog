@@ -3,6 +3,9 @@
 	* window.c (window_scroll_pixel_based): Move outside a
 	multi-glyph character before setting new window start.
 
+	* xdisp.c (in_display_vector_p): New function.
+	* dispextern.h (in_display_vector_p): Declare.
+
 2003-06-10  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (window_scroll_pixel_based): Fix check for reaching BEGV.

@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2003
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2212,6 +2212,7 @@ void move_it_vertically P_ ((struct it *, int));
 void move_it_vertically_backward P_ ((struct it *, int));
 void move_it_by_lines P_ ((struct it *, int, int));
 void move_it_past_eol P_ ((struct it *));
+int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
