@@ -10749,9 +10749,10 @@ static void XPutPixel (ximg, x, y, color)
     rowbytes += 4 - (rowbytes % 4);
 
   pixel = ximg->data + y * rowbytes + x * 3;
-  *pixel = GetRValue (color);
+  /* Windows bitmaps are in BGR order.  */
+  *pixel = GetBValue (color);
   *(pixel + 1) = GetGValue (color);
-  *(pixel + 2) = GetBValue (color);
+  *(pixel + 2) = GetRValue (color);
 }
 
 
