@@ -1688,87 +1688,94 @@ with RCS)."
   ;; Retrieve a copy of a saved version into a workfile
   (let ((filename (or workfile file)))
     (message "Checking out %s..." filename)
-  (save-excursion
-    ;; Change buffers to get local value of vc-checkin-switches.
-    (set-buffer (or (get-file-buffer file) (current-buffer)))
-    (vc-backend-dispatch file
-     (if workfile ;; SCCS
-	 ;; Some SCCS implementations allow checking out directly to a
-	 ;; file using the -G option, but then some don't so use the
-	 ;; least common denominator approach and use the -p option
-	 ;; ala RCS.
-	 (let ((vc-modes (logior (file-modes (vc-name file))
-				 (if writable 128 0)))
-	       (failed t))
-	   (unwind-protect
-	       (progn
-		   (apply 'vc-do-command
-			  0 "/bin/sh" file 'MASTER "-c"
-			  ;; Some shells make the "" dummy argument into $0
-			  ;; while others use the shell's name as $0 and
-			  ;; use the "" as $1.  The if-statement
-			  ;; converts the latter case to the former.
-			  (format "if [ x\"$1\" = x ]; then shift; fi; \
+    (save-excursion
+      ;; Change buffers to get local value of vc-checkin-switches.
+      (set-buffer (or (get-file-buffer file) (current-buffer)))
+      (vc-backend-dispatch file
+	(if workfile;; SCCS
+	    ;; Some SCCS implementations allow checking out directly to a
+	    ;; file using the -G option, but then some don't so use the
+	    ;; least common denominator approach and use the -p option
+	    ;; ala RCS.
+	    (let ((vc-modes (logior (file-modes (vc-name file))
+				    (if writable 128 0)))
+		  (failed t))
+	      (unwind-protect
+		  (progn
+		    (apply 'vc-do-command
+			   0 "/bin/sh" file 'MASTER "-c"
+			   ;; Some shells make the "" dummy argument into $0
+			   ;; while others use the shell's name as $0 and
+			   ;; use the "" as $1.  The if-statement
+			   ;; converts the latter case to the former.
+			   (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec get \"$@\""
-				  (logand 511 (lognot vc-modes))
-				  (logand 511 (lognot (default-file-modes))))
-			  ""		; dummy argument for shell's $0
-			  filename 
-			  (if writable "-e")
-			  "-p" (and rev
-				    (concat "-r" (vc-lookup-triple file rev)))
-			  vc-checkout-switches)
-		   (setq failed nil))
-	     (and failed (file-exists-p filename) (delete-file filename))))
-       (vc-do-command 0 "get" file 'MASTER	;; SCCS
-		      (if writable "-e")
-		      (and rev (concat "-r" (vc-lookup-triple file rev)))))
-     (if workfile ;; RCS
-	 ;; RCS doesn't let us check out into arbitrary file names directly.
-	 ;; Use `co -p' and make stdout point to the correct file.
-	 (let ((vc-modes (logior (file-modes (vc-name file))
-				 (if writable 128 0)))
-	       (failed t))
-	   (unwind-protect
-	       (progn
-		   (vc-do-command
-		      0 "/bin/sh" file 'MASTER "-c"
-		      ;; See the SCCS case, above, regarding the if-statement.
-		      (format "if [ x\"$1\" = x ]; then shift; fi; \
+				   (logand 511 (lognot vc-modes))
+				   (logand 511 (lognot (default-file-modes))))
+			   ""		; dummy argument for shell's $0
+			   filename 
+			   (if writable "-e")
+			   "-p" (and rev
+				     (concat "-r" (vc-lookup-triple file rev)))
+			   vc-checkout-switches)
+		    (setq failed nil))
+		(and failed (file-exists-p filename) (delete-file filename))))
+	  (apply 'vc-do-command 0 "get" file 'MASTER;; SCCS
+		 (if writable "-e")
+		 (and rev (concat "-r" (vc-lookup-triple file rev))))
+	  vc-checkout-switches)
+	(if workfile;; RCS
+	    ;; RCS doesn't let us check out into arbitrary file names directly.
+	    ;; Use `co -p' and make stdout point to the correct file.
+	    (let ((vc-modes (logior (file-modes (vc-name file))
+				    (if writable 128 0)))
+		  (failed t))
+	      (unwind-protect
+		  (progn
+		    (apply 'vc-do-command
+			   0 "/bin/sh" file 'MASTER "-c"
+			   ;; See the SCCS case, above, regarding the
+			   ;; if-statement.
+			   (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec co \"$@\""
-			      (logand 511 (lognot vc-modes))
-			      (logand 511 (lognot (default-file-modes))))
-		      "" ; dummy argument for shell's $0
-		      filename
-		      (if writable "-l")
-		      (concat "-p" rev))
-		   (setq failed nil))
-	     (and failed (file-exists-p filename) (delete-file filename))))
-       (vc-do-command 0 "co" file 'MASTER
-		      (if writable "-l")
-		      (and rev (concat "-r" rev))))
-     (if workfile ;; CVS
-	 ;; CVS is much like RCS
-	 (let ((failed t))
-	   (unwind-protect
-	       (progn
-		 (vc-do-command
-		  0 "/bin/sh" file 'BASE "-c"
-		  "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
-		  ""			; dummy argument for shell's $0
-		  workfile
-		  (concat "-r" rev)
-		  "-p")
-		 (setq failed nil))
-	     (and failed (file-exists-p filename) (delete-file filename))))
-       (vc-do-command 0 "cvs" file 'BASE
-		      (and rev (concat "-r" rev))
-		      file))
-     )
+				   (logand 511 (lognot vc-modes))
+				   (logand 511 (lognot (default-file-modes))))
+			   ""		; dummy argument for shell's $0
+			   filename
+			   (if writable "-l")
+			   (concat "-p" rev)
+			   vc-checkout-switches)
+		    (setq failed nil))
+		(and failed (file-exists-p filename) (delete-file filename))))
+	  (apply 'vc-do-command 0 "co" file 'MASTER
+		 (if writable "-l")
+		 (and rev (concat "-r" rev)))
+	  vc-checkout-switches)
+	(if workfile;; CVS
+	    ;; CVS is much like RCS
+	    (let ((failed t))
+	      (unwind-protect
+		  (progn
+		    (apply 'vc-do-command
+			   0 "/bin/sh" file 'BASE "-c"
+			   "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
+			   ""		; dummy argument for shell's $0
+			   workfile
+			   (concat "-r" rev)
+			   "-p"
+			   vc-checkout-switches)
+		    (setq failed nil))
+		(and failed (file-exists-p filename) (delete-file filename))))
+	  (apply 'vc-do-command 0 "cvs" file 'BASE
+		 (and rev (concat "-r" rev))
+		 file
+		 vc-checkout-switches))
+	))
     (or workfile
-	(vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file))))
+	(vc-file-setprop file
+			 'vc-checkout-time (nth 5 (file-attributes file))))
     (message "Checking out %s...done" filename))
   )
 
