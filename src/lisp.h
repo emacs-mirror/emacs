@@ -79,6 +79,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Buffer_Local_Value,
     Lisp_Misc_Some_Buffer_Local_Value,
     Lisp_Misc_Overlay,
+    Lisp_Misc_Display_Objfwd,
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
@@ -383,6 +384,7 @@ extern int pure_size;
 #define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
 #define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
 #define XOVERLAY(a) (&(XMISC(a)->u_overlay))
+#define XDISPLAY_OBJFWD(a) (&(XMISC(a)->u_display_objfwd))
 
 /* Pseudovector types.  */
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
@@ -753,6 +755,15 @@ struct Lisp_Overlay
     Lisp_Object start, end, plist;
   };
 
+/* Like Lisp_Objfwd except that value lives in a slot in the
+   current perdisplay.  */
+struct Lisp_Display_Objfwd
+  {
+    int type : 16;	/* = Lisp_Misc_Display_Objfwd */
+    int spacer : 16;
+    int offset;
+  };
+
 
 union Lisp_Misc
   {
@@ -765,6 +776,7 @@ union Lisp_Misc
     struct Lisp_Buffer_Objfwd u_buffer_objfwd;
     struct Lisp_Buffer_Local_Value u_buffer_local_value;
     struct Lisp_Overlay u_overlay;
+    struct Lisp_Display_Objfwd u_display_objfwd;
   };
 
 #ifdef LISP_FLOAT_TYPE
@@ -923,6 +935,8 @@ typedef unsigned char UCHAR;
 #define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 #define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
+#define DISPLAY_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Display_Objfwd)
+#define GC_DISPLAY_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Display_Objfwd)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */
