@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.19 2001/02/01 15:10:16 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.20 2001/02/02 07:21:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -296,7 +296,7 @@ This is only possible if CVS is responsible for FILE's directory."
     ;; vc-cvs-checkout-model).
     (vc-file-setprop file 'vc-checkout-model nil)
     ;; if this was an explicit check-in, remove the sticky tag
-    (if rev (vc-do-command t 0 "cvs" file "update" "-A"))))
+    (if rev (vc-do-command nil 0 "cvs" file "update" "-A"))))
 
 (defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
@@ -461,7 +461,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-cvs-print-log (file)
   "Get change log associated with FILE."
-  (vc-do-command t (if (vc-cvs-stay-local-p file) 'async 0)
+  (vc-do-command nil (if (vc-cvs-stay-local-p file) 'async 0)
                  "cvs" file "log"))
 
 (defun vc-cvs-show-log-entry (version)
@@ -504,11 +504,11 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	    (error "No revisions of %s exist" file)
 	  ;; we regard this as "changed".
 	  ;; diff it against /dev/null.
-          (apply 'vc-do-command t
+          (apply 'vc-do-command "*vc-diff*"
                  1 "diff" file
                  (append diff-switches-list '("/dev/null"))))
       (setq status
-            (apply 'vc-do-command t
+            (apply 'vc-do-command "*vc-diff*"
                    (if (vc-cvs-stay-local-p file) 'async 1)
                    "cvs" file "diff"
                    (and oldvers (concat "-r" oldvers))
