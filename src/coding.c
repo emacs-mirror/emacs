@@ -3086,8 +3086,9 @@ setup_coding_system (coding_system, coding)
 	  {
 	    Lisp_Object this;
 
-	    for (this = XCONS (val)->car; CONSP (val); val = XCONS (val)->cdr)
+	    for (; CONSP (val); val = XCONS (val)->cdr)
 	      {
+		this = XCONS (val)->car;
 		if (INTEGERP (this)
 		    && XINT (this) >= 0 && XINT (this) < 256)
 		  coding->spec.ccl.valid_codes[XINT (this)] = 1;
@@ -3605,6 +3606,9 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   struct ccl_program *ccl
     = encodep ? &coding->spec.ccl.encoder : &coding->spec.ccl.decoder;
   int result;
+
+  if (encodep)
+    ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
 
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
