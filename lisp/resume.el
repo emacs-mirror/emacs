@@ -1,4 +1,4 @@
-;; process command line arguments from within a suspended emacs job
+;; Process command line arguments from within a suspended Emacs job
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is not yet part of GNU Emacs, but soon will be.
@@ -17,111 +17,144 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
-;;
-;; by Joe Wells
-;; jbw@bucsf.bu.edu
-;; joew@uswat.uswest.com (maybe, ... the mailer there sucks)
 
-;; Stephan Gildea suggested bug fix (gildea@bbn.com).
+;; Created by: Joe Wells, jbw@bucsf.bu.edu
+;; Created on: 1988?
+;; Last modified by: Joe Wells, jbw@dodge
+;; Last modified on: Thu Jun 14 15:20:41 1990
+;; Filename: resume.el
+;; Purpose: handle command line arguments when resuming suspended job
+
+;; Stephen Gildea suggested bug fix (gildea@bbn.com).
 ;; Ideas from Michael DeCorte and other people.
 
 ;; For csh users, insert the following alias in your .cshrc file
-;; (after removing the leading double semicolons):
+;; (after removing the leading double semicolons, of course):
 ;;
-;;# The following line could be just EMACS=emacs, but this depends on
+;;# The following line could be just EMACS_CMD=emacs, but this depends on
 ;;# your site.
-;;set EMACS=emacs
-;;set EMACS_PATTERN="^\[[0-9]\]  . Stopped ............ $EMACS"
+;;if (! $?EMACS_CMD) set EMACS_CMD=emacs
+;;set JOBS_FILE=/tmp/jobs.$USER.$$
+;;set ARGS_FILE=~/.emacs_args
+;;set STOP_PATT='^\[[0-9]*\] *[ +-] Stopped ............ '
+;;set SUNVIEW_CMD='emacstool -nw -f emacstool-init -f server-start'
+;;set X_CMD=\'\''$EMACS_CMD -i -f server-start'
 ;;alias emacs \
 ;;' \\
-;;   jobs >! /tmp/jobs$$ \\
-;;   && grep "$EMACS_PATTERN" /tmp/jobs$$ >& /dev/null \\
-;;   && echo `pwd` \!* >! ~/.emacs_args && eval "%$EMACS" \\
-;;|| test -S ~/.emacs_server && emacsclient \!* \\
-;;|| test "$?DISPLAY" = 1 && eval "\$EMACS -i \!* &" \\
-;;|| test "$?WINDOW_PARENT" = 1 && eval "emacstool -f emacstool-init \!* &" \\
-;;|| eval "\$EMACS -nw \!*"'
+;;   jobs >! "$JOBS_FILE" \\
+;;   && grep "$STOP_PATT$EMACS_CMD" "$JOBS_FILE" >& /dev/null \\
+;;   && echo `pwd` \!* >! "$ARGS_FILE" && ""fg %$EMACS_CMD \\
+;;|| if (! -e ~/.emacs_server || -f ~/.emacs_server) set status=1 \\
+;;   && emacsclient \!* \\
+;;|| @ status=1 - $?DISPLAY && eval "$X_CMD -i \!* &" \\
+;;|| @ status=1 - $?WINDOW_PARENT && eval "$SUNVIEW_CMD \!* &" \\
+;;|| ""$EMACS_CMD -nw \!* \\
+;;'
 ;;
 ;; The alias works as follows:
-;; 1. If there is a suspended emacs jobs that is a child of the
+;; 1. If there is a suspended Emacs job that is a child of the
 ;; current shell, place its arguments in the ~/.emacs_args file and
 ;; resume it.
 ;; 2. Else if the ~/.emacs_server socket has been created, presume an
-;; emacs server is running and attempt to connect to it.  If no emacs
+;; Emacs server is running and attempt to connect to it.  If no Emacs
 ;; server is listening on the socket, this will fail.
 ;; 3. Else if the DISPLAY environment variable is set, presume we are
-;; running under X Windows and start a new X Gnu Emacs process in the
-;; background.
+;; running under X Windows and start a new GNU Emacs process in the
+;; background as an X client.
 ;; 4. Else if the WINDOW_PARENT environment variable is set, presume we
-;; are running under Sunview and Suntools and start an emacstool
-;; process in the background.
-;; 5. Else start a regular emacs process.
+;; are running under SunView and start an emacstool process in the
+;; background.
+;; 5. Else start a regular Emacs process.
 ;;
 ;; Notes:
-;; "test -S" checks if a unix domain socket by that name exists.
 ;; The output of the "jobs" command is not piped directly into "grep"
 ;; because that would run the "jobs" command in a subshell.
 ;; Before resuming a suspended emacs, the current directory and all
-;; command line arguments are placed in a file.
-;; The command to run emacs is always preceded by a \ to prevent
-;; possible alias loops.
-;; The "-nw" switch in the last line is is undocumented, and it means
-;; no windowing system.
-
-(setq suspend-resume-hook 'resume-process-args)
-(setq suspend-hook 'resume-preparation)
+;; command line arguments are placed in a file name ~/.emacs_args.
+;; The "-nw" switch to Emacs means no windowing system.
 
-(defvar emacs-args-file "~/.emacs_args"
+;; Insert this in your .emacs file:
+;;(setq suspend-resume-hook 'resume-process-args)
+;;(setq suspend-hook 'empty-args-file)
+;;(autoload 'empty-args-file "resume")
+;;(autoload 'resume-process-args "resume")
+
+;; Finally, put the rest in a file named "resume.el" in a lisp library
+;; directory.
+
+(defvar emacs-args-file (expand-file-name "~/.emacs_args")
   "*This file is where arguments are placed for a suspended emacs job.")
 
-(defun resume-preparation ()
-  (condition-case ()
-      (delete-file emacs-args-file)
-    (error nil)))
+(defvar emacs-args-buffer " *Command Line Args*"
+  "Buffer that is used by resume-process-args.")
 
 (defun resume-process-args ()
-  "This should be called from inside of suspend-resume-hook.
-Grabs the contents of the file whose name is stored in
-emacs-args-file, and processes these arguments like command line options."
-  (let ((resume-start-buffer (current-buffer))
-	(resume-args-buffer (get-buffer-create " *Command Line Args*"))
-	resume-args)
+  "This should be called from inside of suspend-resume-hook.  This
+grabs the contents of the file whose name is stored in
+emacs-args-file, and processes these arguments like command line
+options."
+  (let ((start-buffer (current-buffer))
+	(args-buffer (get-buffer-create emacs-args-buffer))
+	length args)
     (unwind-protect
 	(progn
-	  (set-buffer resume-args-buffer)
+	  (set-buffer args-buffer)
 	  (erase-buffer)
-	  ;; Get the contents of emacs-args-file, then delete the file.
+	  ;; get the contents of emacs-args-file
 	  (condition-case ()
-	      (progn
-		(insert-file-contents emacs-args-file)
-		(delete-file emacs-args-file))
-	    ;; The file doesn't exist or we can't delete it, ergo no arguments.
-	    ;; (If we can't delete it now, we probably couldn't delete it
-	    ;; before suspending, and that implies it may be vestigial.)
-	    (file-error (erase-buffer)))
-	  ;; Get the arguments from the buffer.
-	  (goto-char (point-min))
-	  (while (progn (skip-chars-forward " \t\n") (not (eobp)))
-	    (setq resume-args
-		  (cons (buffer-substring (point)
-					  (progn
-					    (skip-chars-forward "^ \t\n")
-					    (point)))
-			     resume-args)))
-	  (cond (resume-args
-		 ;; Arguments are now in reverse order.
-		 (setq resume-args (nreverse resume-args))
-		 ;; The "first argument" is really a default directory to use
-		 ;; while processing the rest of the arguments.
-		 (setq default-directory (concat (car resume-args) "/"))
-		 ;; Actually process the arguments.
-		 (command-line-1  (cdr resume-args)))))
+	      (let ((result (insert-file-contents emacs-args-file)))
+		(setq length (car (cdr result))))
+	    ;; the file doesn't exist, ergo no arguments
+	    (file-error
+	      (erase-buffer)
+	      (setq length 0)))
+	  (if (<= length 0)
+	      (setq args nil)
+	    ;; get the arguments from the buffer
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (skip-chars-forward " \t\n")
+	      (let ((begin (point)))
+		(skip-chars-forward "^ \t\n")
+		(setq args (cons (buffer-substring begin (point)) args)))
+	      (skip-chars-forward " \t\n"))
+	    ;; arguments are now in reverse order
+	    (setq args (nreverse args))
+	    ;; make sure they're not read again
+	    (erase-buffer))		
+	  (write-buffer-to-file (current-buffer) emacs-args-file)
+	  ;; if nothing was in buffer, args will be null
+	  (or (null args)
+	      (setq default-directory (file-name-as-directory (car args))
+		    args (cdr args)))
+	  ;; actually process the arguments
+	  (command-line-1 args))
       ;; If the command line args don't result in a find-file, the
-      ;; buffer will be left in resume-args-buffer.  So we change back to the
+      ;; buffer will be left in args-buffer.  So we change back to the
       ;; original buffer.  The reason I don't just use
       ;; (let ((default-directory foo))
       ;;    (command-line-1 args))
       ;; in the context of the original buffer is because let does not
       ;; work properly with buffer-local variables.
-      (if (eq (current-buffer) resume-args-buffer)
-	  (set-buffer resume-start-buffer)))))
+      (if (eq (current-buffer) args-buffer)
+	  (set-buffer start-buffer)))))
+
+(defun empty-args-file ()
+  "This empties the contents of the file whose name is specified by
+emacs-args-file."
+  (save-excursion
+    (set-buffer (get-buffer-create emacs-args-buffer))
+    (erase-buffer)
+    (write-buffer-to-file (current-buffer) emacs-args-file)))
+
+(defun write-buffer-to-file (buffer file)
+  "Writes the contents of BUFFER into FILE, if permissions allow."
+  (if (not (file-writable-p file))
+      (error "No permission to write file %s" file))
+  (save-excursion
+    (set-buffer buffer)
+    (clear-visited-file-modtime)
+    (save-restriction
+      (widen)
+      (write-region (point-min) (point-max) file nil 'quiet))
+    (set-buffer-modified-p nil)))
