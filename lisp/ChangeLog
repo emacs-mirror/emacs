@@ -1,4 +1,10 @@
-2002-07-11  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (locale-language-names): Change "mk"
+	(Macedoninan), "ru" (Russian), and "sp" (Serbian with Cyrillic
+	alphabet) to "Cyrillic-ISO".
+
+2002-07-11  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-default-method): New default method "sm"
 	which I guess to be good for most people.
