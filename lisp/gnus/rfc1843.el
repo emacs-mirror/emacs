@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'mm-util)
 
 (defvar rfc1843-word-regexp
