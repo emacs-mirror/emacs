@@ -25,6 +25,4 @@ s!^	\./!	go32 ./!
 /^UTILITIES=/s/ timer//
 /^all *:/s/$/ make-docfile/
 /-o make-docfile/a\
-	coff2exe make-docfile\
-
-# Blank line above
+	coff2exe make-docfile
