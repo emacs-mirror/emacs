@@ -66,6 +66,7 @@ void vreport(const char *str, const char *format, va_list args)
  fprintf(stdout, "!%s=", str);
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
+ fflush(NULL);
 }
 
 /* cdie
@@ -120,6 +121,7 @@ void vcomment(const char *format, va_list args)
  fprintf(stdout, "%% ");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
+ fflush(NULL);
 }
 
 /* commentif(boolean, "comment")
@@ -160,6 +162,7 @@ void verror(const char *format, va_list args)
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
+ fflush(NULL);
  myabort();
 }
 
@@ -178,6 +181,7 @@ void asserts(int expr, const char *format, ...)
   fprintf(stdout, "!asserttext=");
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
+  fflush(NULL);
   va_end(args);
   myabort();
  }
