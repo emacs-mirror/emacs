@@ -31,6 +31,7 @@
 ;; Pacify the byte-compiler
 (eval-when-compile
   (require 'compare-w)
+  (require 'cl)
   (require 'skeleton))
 
 (require 'shell)
@@ -266,7 +267,21 @@ Should be a simple file name with no extension or directory specification.")
   "File name that \\[tex-print] prints.
 Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
-(defvar tex-mode-syntax-table nil
+(easy-mmode-defsyntax tex-mode-syntax-table
+  '((?% . "<")
+    (?\n . ">")
+    (?\f . ">")
+    (?\C-@ . "w")
+    (?' . "w")
+    (?@ . "_")
+    (?* . "_")
+    (?\t . " ")
+    (?~ . " ")
+    (?$ . "$$")
+    (?\\ . "/")
+    (?\" . ".")
+    (?& . ".")
+    (?_ . "."))
   "Syntax table used while in TeX mode.")
 
 ;;;;
@@ -527,6 +542,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
   (tex-define-common-keys tex-mode-map)
   (define-key tex-mode-map "\"" 'tex-insert-quote)
   (define-key tex-mode-map "\n" 'tex-terminate-paragraph)
+  (define-key tex-mode-map "\M-\r" 'latex-insert-item)
   (define-key tex-mode-map "\C-c}" 'up-list)
   (define-key tex-mode-map "\C-c{" 'tex-insert-braces)
   (define-key tex-mode-map "\C-c\C-r" 'tex-region)
@@ -738,6 +754,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'tex-face-alist) tex-latex-face-alist)
   (set (make-local-variable 'fill-nobreak-predicate)
        'latex-fill-nobreak-predicate)
+  (set (make-local-variable 'indent-line-function) 'latex-indent)
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
@@ -790,28 +807,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 
 (defun tex-common-initialization ()
   (use-local-map tex-mode-map)
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (if (null tex-mode-syntax-table)
-      (let ((char 0))
-	(setq tex-mode-syntax-table (make-syntax-table))
-	(set-syntax-table tex-mode-syntax-table)
-	(while (< char ? )
-	  (modify-syntax-entry char ".")
-	  (setq char (1+ char)))
-	(modify-syntax-entry ?\C-@ "w")
-	(modify-syntax-entry ?\t " ")
-	(modify-syntax-entry ?\n ">")
-	(modify-syntax-entry ?\f ">")
-	(modify-syntax-entry ?$ "$$")
-	(modify-syntax-entry ?% "<")
-	(modify-syntax-entry ?\\ "/")
-	(modify-syntax-entry ?\" ".")
-	(modify-syntax-entry ?& ".")
-	(modify-syntax-entry ?_ ".")
-	(modify-syntax-entry ?@ "_")
-	(modify-syntax-entry ?~ " ")
-	(modify-syntax-entry ?' "w"))
-    (set-syntax-table tex-mode-syntax-table))
+  (set-syntax-table tex-mode-syntax-table)
   ;; Regexp isearch should accept newline and formfeed as whitespace.
   (set (make-local-variable 'search-whitespace-regexp) "[ \t\r\n\f]+")
   ;; A line containing just $$ is treated as a paragraph separator.
@@ -1059,6 +1055,11 @@ Puts point on a blank line between them."
   \n _ \n
   "\\end{" str ?\} >)
 
+(define-skeleton latex-insert-item
+  "Insert a \item macro."
+  nil
+  \n "\\item " >)
+
 
 ;;;;
 ;;;; LaTeX syntax navigation
@@ -1073,7 +1074,8 @@ Puts point on a blank line between them."
 (defun tex-next-unmatched-end ()
   "Leave point at the end of the next `\\end' that is unended."
   (while (and (re-search-forward "\\\\\\(begin\\|end\\)\\s *{[^}]+}")
-              (looking-at "\\\\begin"))
+	      (save-excursion (goto-char (match-beginning 0))
+			      (looking-at "\\\\begin")))
     (tex-next-unmatched-end)))
 
 (defun tex-goto-last-unclosed-latex-block ()
@@ -1139,6 +1141,27 @@ Mark is left at original location."
       (scan-error
        (goto-char pos)
        (signal (car err) (cdr err))))))
+
+(defun latex-syntax-after ()
+  "Like (char-syntax (char-after)) but aware of multi-char elements."
+  (if (looking-at "\\\\end\\>") ?\) (char-syntax (char-after))))
+
+(defun latex-skip-close-parens ()
+  "Like (skip-syntax-forward \" )\") but aware of multi-char elements."
+  (let ((forward-sexp-function nil))
+    (while (progn (skip-syntax-forward " )")
+		  (looking-at "\\\\end\\>"))
+      (forward-sexp 2))))
+
+(defun latex-down-list ()
+  "Like (down-list 1) but aware of multi-char elements."
+  (forward-comment (point-max))
+  (let ((forward-sexp-function nil))
+    (if (not (looking-at "\\\\begin\\>"))
+	(down-list 1)
+      (forward-sexp 1)
+      ;; Skip arguments.
+      (while (looking-at "[ \t]*\\s(") (forward-sexp)))))
 
 (defun tex-close-latex-block ()
   "Creates an \\end{...} to match the last unclosed \\begin{...}."
@@ -1354,18 +1377,14 @@ for the error messages."
 	     (error-text (regexp-quote (match-string 3)))
 	     (filename
 	      (save-excursion
-		(unwind-protect
-		    (progn
-		      (set-syntax-table tex-error-parse-syntax-table)
-		      (backward-up-list 1)
-		      (skip-syntax-forward "(_")
-		      (while (not (file-readable-p
-				   (thing-at-point 'filename)))
-			(skip-syntax-backward "(_")
-			(backward-up-list 1)
-			(skip-syntax-forward "(_"))
-		      (thing-at-point 'filename))
-		  (set-syntax-table old-syntax-table))))
+		(with-syntax-table tex-error-parse-syntax-table
+		  (backward-up-list 1)
+		  (skip-syntax-forward "(_")
+		  (while (not (file-readable-p (thing-at-point 'filename)))
+		    (skip-syntax-backward "(_")
+		    (backward-up-list 1)
+		    (skip-syntax-forward "(_"))
+		  (thing-at-point 'filename))))
 	     (new-file
 	      (or (null last-filename)
 		  (not (string-equal last-filename filename))))
@@ -1670,6 +1689,101 @@ Runs the shell command defined by `tex-show-queue-command'."
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))
+
+;;;;
+;;;; LaTeX indentation
+;;;;
+
+(defvar tex-indent-allhanging t)
+(defvar tex-indent-arg 4)
+(defvar tex-indent-basic 2)
+(defvar tex-indent-item tex-indent-basic)
+(defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
+
+(easy-mmode-defsyntax tex-latex-indent-syntax-table
+  '((?$ . "."))
+  "Syntax table used while computing indentation."
+  :copy tex-mode-syntax-table)
+
+(defun latex-indent (&optional arg)
+  (with-syntax-table tex-latex-indent-syntax-table
+    ;; TODO: Rather than ignore $, we should try to be more clever about it.
+    (let ((indent
+	   (save-excursion
+	     (beginning-of-line)
+	     (latex-find-indent))))
+      (if (< indent 0) (setq indent 0))
+      (if (<= (current-column) (current-indentation))
+	  (indent-line-to indent)
+	(save-excursion (indent-line-to indent))))))
+
+(defun latex-find-indent (&optional virtual)
+  "Find the proper indentation of text after point.
+VIRTUAL if non-nil indicates that we're only trying to find the indentation
+  in order to determine the indentation of something else.
+There might be text before point."
+  (save-excursion
+    (skip-chars-forward " \t")
+    (or
+     ;; Trust the current indentation, if such info is applicable.
+     (and virtual (>= (current-indentation) (current-column))
+	  (current-indentation))
+     ;; Put leading close-paren where the matching open brace would be.
+     (and (eq (latex-syntax-after) ?\))
+	  (ignore-errors
+	    (save-excursion
+	      (latex-skip-close-parens)
+	      (latex-backward-sexp-1)
+	      (latex-find-indent 'virtual))))
+     ;; Default (maybe an argument)
+     (let ((pos (point))
+	   (char (char-after))
+	   ;; Outdent \item if necessary.
+	   (indent (if (looking-at tex-indent-item-re) (- tex-indent-item) 0))
+	   up-list-pos)
+       ;; Find the previous point which determines our current indentation.
+       (condition-case err
+	   (progn
+	     (latex-backward-sexp-1)
+	     (while (> (current-column) (current-indentation))
+	       (latex-backward-sexp-1)))
+	 (scan-error
+	  (setq up-list-pos (nth 2 err))))
+       (if (integerp up-list-pos)
+	   ;; Have to indent relative to the open-paren.
+	   (progn
+	     (goto-char up-list-pos)
+	     (if (and (not tex-indent-allhanging)
+		      (> pos (progn (latex-down-list)
+				    (forward-comment (point-max))
+				    (point))))
+		 ;; Align with the first element after the open-paren.
+		 (current-column)
+	       ;; We're the first element after a hanging brace.
+	       (goto-char up-list-pos)
+	       (+ indent tex-indent-basic (latex-find-indent 'virtual))))
+	 ;; We're now at the beginning of a line.
+	 (if (not (and (not virtual) (eq (char-after) ?\\)))
+	     ;; Nothing particular here: just keep the same indentation.
+	     (+ indent (current-column))
+	   ;; We're now looking at a macro call.
+	   (if (looking-at tex-indent-item-re)
+	       ;; Indenting relative to an item, have to re-add the outdenting.
+	       (+ indent (current-column) tex-indent-item)
+	     (let ((col (current-column)))
+	       (if (not (eq (char-syntax char) ?\())
+		   ;; If the first char was not an open-paren, there's
+		   ;; a risk that this is really not an argument to the
+		   ;; macro at all.
+		   (+ indent col)
+		 (forward-sexp 1)
+		 (if (< (line-end-position)
+			(save-excursion (forward-comment (point-max))
+					(point)))
+		     ;; we're indenting the first argument.
+		     (min (current-column) (+ tex-indent-arg col))
+		   (skip-syntax-forward " ")
+		   (current-column)))))))))))
 
 (run-hooks 'tex-mode-load-hook)
 
