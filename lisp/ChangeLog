@@ -1,3 +1,8 @@
+2003-07-01  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* simple.el (vis-mode): Update documentation string to reflect
+	earlier changes.
+
 2003-06-30  Richard M. Stallman  <rms@gnu.org>
 
 	* loadup.el (pure-space-overflow): Set it if overflow.
