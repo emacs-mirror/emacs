@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.6 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.7 2001/07/16 07:46:48 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -70,10 +70,10 @@ to confuse some users sometimes."
 
 (defface cvs-header-face
   '((((class color) (background dark))
-     (:foreground "lightyellow" :bold t))
+     (:foreground "lightyellow" :weight bold))
     (((class color) (background light))
-     (:foreground "blue4" :bold t))
-    (t (:bold t)))
+     (:foreground "blue4" :weight bold))
+    (t (:weight bold)))
   "PCL-CVS face used to highlight directory changes."
   :group 'pcl-cvs)
 
@@ -91,7 +91,7 @@ to confuse some users sometimes."
      (:foreground "red"))
     (((class color) (background light))
      (:foreground "red"))
-    (t (:italic t)))
+    (t (:slant italic)))
   "PCL-CVS face used to highlight unknown file status."
   :group 'pcl-cvs)
 
@@ -109,21 +109,21 @@ to confuse some users sometimes."
      (:foreground "orange"))
     (((class color) (background light))
      (:foreground "orange"))
-    (t (:italic t)))
+    (t (:slant italic)))
   "PCL-CVS face used to highlight status of files needing action."
   :group 'pcl-cvs)
 
 (defface cvs-marked-face
   '((((class color) (background dark))
-     (:foreground "green" :bold t))
+     (:foreground "green" :weight bold))
     (((class color) (background light))
-     (:foreground "green3" :bold t))
-    (t (:bold t)))
+     (:foreground "green3" :weight bold))
+    (t (:weight bold)))
   "PCL-CVS face used to highlight marked file indicator."
   :group 'pcl-cvs)
 
 (defface cvs-msg-face
-  '((t (:italic t)))
+  '((t (:slant italic)))
   "PCL-CVS face used to highlight CVS messages."
   :group 'pcl-cvs)
 

@@ -552,40 +552,40 @@ when syntaxifying a chunk of buffer."
 
       (defface cperl-nonoverridable-face
 	`((((class grayscale) (background light))
-	   (:background "Gray90" :italic t :underline t))
+	   (:background "Gray90" :slant italic :underline t))
 	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :italic t :underline t :bold t))
+	   (:foreground "Gray80" :slant italic :underline t :weight bold))
 	  (((class color) (background light))
 	   (:foreground "chartreuse3"))
 	  (((class color) (background dark))
 	   (:foreground ,cperl-dark-foreground))
-	  (t (:bold t :underline t)))
+	  (t (:weight bold :underline t)))
 	"Font Lock mode face used to highlight array names."
 	:group 'cperl-faces)
 
       (defface cperl-array-face
 	`((((class grayscale) (background light))
-	   (:background "Gray90" :bold t))
+	   (:background "Gray90" :weight bold))
 	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :bold t))
+	   (:foreground "Gray80" :weight bold))
 	  (((class color) (background light))
-	   (:foreground "Blue" :background "lightyellow2" :bold t))
+	   (:foreground "Blue" :background "lightyellow2" :weight bold))
 	  (((class color) (background dark))
-	   (:foreground "yellow" :background ,cperl-dark-background :bold t))
-	  (t (:bold t)))
+	   (:foreground "yellow" :background ,cperl-dark-background :weight bold))
+	  (t (:weight bold)))
 	"Font Lock mode face used to highlight array names."
 	:group 'cperl-faces)
 
       (defface cperl-hash-face
 	`((((class grayscale) (background light))
-	   (:background "Gray90" :bold t :italic t))
+	   (:background "Gray90" :weight bold :slant italic))
 	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :bold t :italic t))
+	   (:foreground "Gray80" :weight bold :slant italic))
 	  (((class color) (background light))
-	   (:foreground "Red" :background "lightyellow2" :bold t :italic t))
+	   (:foreground "Red" :background "lightyellow2" :weight bold :slant italic))
 	  (((class color) (background dark))
-	   (:foreground "Red" :background ,cperl-dark-background :bold t :italic t))
-	  (t (:bold t :italic t)))
+	   (:foreground "Red" :background ,cperl-dark-background :weight bold :slant italic))
+	  (t (:weight bold :slant italic)))
 	"Font Lock mode face used to highlight hash names."
 	:group 'cperl-faces)))
 

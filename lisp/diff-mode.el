@@ -173,27 +173,27 @@ when editing big diffs)."
 
 (defface diff-header-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "blue1" :bold t))
+     (:foreground "blue1" :weight bold))
     (((type tty pc) (class color) (background dark))
-     (:foreground "green" :bold t))
+     (:foreground "green" :weight bold))
     (((class color) (background light))
      (:background "grey85"))
     (((class color) (background dark))
      (:background "grey45"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "`diff-mode' face inherited by hunk and index header faces.")
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "yellow" :bold t))
+     (:foreground "yellow" :weight bold))
     (((type tty pc) (class color) (background dark))
-     (:foreground "cyan" :bold t))
+     (:foreground "cyan" :weight bold))
     (((class color) (background light))
-     (:background "grey70" :bold t))
+     (:background "grey70" :weight bold))
     (((class color) (background dark))
-     (:background "grey60" :bold t))
-    (t (:bold t)))			; :height 1.3
+     (:background "grey60" :weight bold))
+    (t (:weight bold)))			; :height 1.3
   "`diff-mode' face used to highlight file header lines.")
 (defvar diff-file-header-face 'diff-file-header-face)
 
@@ -219,9 +219,9 @@ when editing big diffs)."
 
 (defface diff-changed-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "magenta" :bold t :italic t))
+     (:foreground "magenta" :weight bold :slant italic))
     (((type tty pc) (class color) (background dark))
-     (:foreground "yellow" :bold t :italic t))
+     (:foreground "yellow" :weight bold :slant italic))
     (t ()))
   "`diff-mode' face used to highlight changed lines.")
 (defvar diff-changed-face 'diff-changed-face)

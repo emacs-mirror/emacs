@@ -63,7 +63,7 @@
 ;; have to be fixed-width.  So we just pick one that looks different from the
 ;; default.
 (defface fixed
-  '((t (:bold t)))
+  '((t (:weight bold)))
   "Face used for text that must be shown in fixed width.
 Currently, emacs can only display fixed-width fonts, but this may change.
 This face is used for text specifically marked as fixed-width, for example
@@ -71,7 +71,7 @@ in text/enriched files."
   :group 'enriched)
 
 (defface excerpt
-  '((t (:italic t)))
+  '((t (:slant italic)))
   "Face used for text that is an excerpt from another document.
 This is used in Enriched mode for text explicitly marked as an excerpt."
   :group 'enriched)

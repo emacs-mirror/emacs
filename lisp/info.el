@@ -61,9 +61,9 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-node
-  '((((class color) (background light)) (:foreground "brown" :bold t :italic t))
-    (((class color) (background dark)) (:foreground "white" :bold t :italic t))
-    (t (:bold t :italic t)))
+  '((((class color) (background light)) (:foreground "brown" :weight bold :slant italic))
+    (((class color) (background dark)) (:foreground "white" :weight bold :slant italic))
+    (t (:weight bold :slant italic)))
   "Face for Info node names."
   :group 'info)
 
@@ -74,9 +74,9 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((class color) (background light)) (:foreground "magenta4" :bold t))
-    (((class color) (background dark)) (:foreground "cyan" :bold t))
-    (t (:bold t)))
+  '((((class color) (background light)) (:foreground "magenta4" :weight bold))
+    (((class color) (background dark)) (:foreground "cyan" :weight bold))
+    (t (:weight bold)))
   "Face for Info cross-references."
   :group 'info)
 
