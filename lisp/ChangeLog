@@ -1,3 +1,7 @@
+2002-03-14  Miles Bader  <miles@gnu.org>
+
+	* net/rlogin.el (rlogin-mode): Use `define-derived-mode'.
+
 2002-03-14  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/picture.el (picture-insert)
