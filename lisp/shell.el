@@ -385,6 +385,7 @@ buffer."
   (setq font-lock-defaults '(shell-font-lock-keywords t))
   (make-local-variable 'shell-dirstack)
   (setq shell-dirstack nil)
+  (make-local-variable 'shell-last-dir)
   (setq shell-last-dir nil)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
