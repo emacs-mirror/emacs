@@ -1424,10 +1424,9 @@ you must reload generic-x to enable the specified modes."
       installshield-system-variables-list
       'font-lock-variable-name-face "[^_]" "[^_]"))
    ;; system functions
-   (eval-when-compile
-     (generic-make-keywords-list
-      installshield-system-functions-list
-      'font-lock-function-name-face "[^_]" "[^_]"))
+   (generic-make-keywords-list
+    installshield-system-functions-list
+    'font-lock-function-name-face "[^_]" "[^_]")
    ;; type keywords
    (eval-when-compile
      (generic-make-keywords-list
