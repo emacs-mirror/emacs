@@ -26,12 +26,11 @@
 
 ;;; MULE related key bindings and menus.
 
-(defvar mule-keymap nil
+(defvar mule-keymap (make-sparse-keymap)
   "Keymap for MULE (Multilingual environment) specific commands.")
-(define-prefix-command 'mule-keymap)
 
 ;; Keep "C-x C-m ..." for mule specific commands.
-(define-key ctl-x-map "\C-m" 'mule-keymap)
+(define-key ctl-x-map "\C-m" mule-keymap)
 
 (define-key mule-keymap "m" 'toggle-enable-multibyte-characters)
 (define-key mule-keymap "f" 'set-buffer-file-coding-system)
@@ -49,9 +48,8 @@
 (define-key help-map "C" 'describe-coding-system)
 (define-key help-map "h" 'view-hello-file)
 
-(defvar mule-menu-keymap nil
+(defvar mule-menu-keymap (make-sparse-keymap "Mule")
   "Keymap for MULE (Multilingual environment) menu specific commands.")
-(define-prefix-command 'mule-menu-keymap)
 
 (define-key global-map [menu-bar mule] (cons "Mule" mule-menu-keymap))
 
