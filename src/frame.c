@@ -314,7 +314,7 @@ make_terminal_frame ()
 }
 
 DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, 0,
-  "Select the frame FRAME.  FRAMES's selected window becomes \"the\"\n\
+  "Select the frame FRAME.  FRAME's selected window becomes \"the\"\n\
 selected window.  If the optional parameter NO-ENTER is non-nil, don't\n\
 focus on that frame.")
   (frame, no_enter)
@@ -364,7 +364,8 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
 }
 
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
-       "Returns the root-window of FRAME.")
+       "Returns the root-window of FRAME.\n\
+If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
@@ -378,7 +379,8 @@ DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
 
 DEFUN ("frame-selected-window", Fframe_selected_window,
        Sframe_selected_window, 0, 1, 0,
-  "Return the selected window of frame object FRAME.")
+  "Return the selected window of frame object FRAME.\n\
+If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
@@ -513,13 +515,14 @@ prev_frame (frame, minibuf)
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
+By default, skip minibuffer-only frames.
 If omitted, FRAME defaults to the selected frame.\n\
-If optional argument MINIBUF is nil or omitted, exclude minibuffer-only frames.\n\
-If MINIBUF is a window, include only frames using that window for their\n\
+If optional argument MINIFRAME is non-nil, include minibuffer-only frames.\n\
+If MINIFRAME is a window, include only frames using that window for their\n\
 minibuffer.\n\
-If MINIBUF is non-nil and not a window, include all frames.")
+If MINIFRAME is non-nil and not a window, include all frames.")
   (frame, miniframe)
-Lisp_Object frame, miniframe;
+     Lisp_Object frame, miniframe;
 {
   Lisp_Object tail;
 
@@ -770,7 +773,8 @@ DEFUN ("restore-frame-configuration", Frestore_frame_configuration,
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, 0,
   "Make the frame FRAME visible (assuming it is an X-window).\n\
-Also raises the frame so that nothing obscures it.")
+Also raises the frame so that nothing obscures it.\n\
+If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
@@ -789,7 +793,8 @@ Also raises the frame so that nothing obscures it.")
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
        0, 1, "",
-  "Make the frame FRAME invisible (assuming it is an X-window).")
+  "Make the frame FRAME invisible (assuming it is an X-window).\n\
+If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
@@ -808,7 +813,8 @@ DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
 
 DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
        0, 1, "",
-  "Make the frame FRAME into an icon.")
+  "Make the frame FRAME into an icon.\n\
+If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
