@@ -1,3 +1,7 @@
+2001-10-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c: Put doc strings in comments.
+
 2001-10-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (DEFUN, DEFVAR_LISP, ...) [DOC_STRINGS_IN_COMMENTS]:
