@@ -137,19 +137,30 @@ Commands:
   (interactive)
   nil)
 
+(defvar help-with-tutorial-alist
+  '(("German" . "TUTORIAL.de")
+    ("Korean" . "TUTORIAL.kr")
+    ("Japanese" . "TUTORIAL.jp")
+    ("Thai" . "TUTORIAL.th")
+    ("English" . "TUTORIAL"))
+  "Alist mapping language names to their translated Emacs tutorial files.")
+
 (defun help-with-tutorial (&optional arg)
   "Select the Emacs learn-by-doing tutorial.
 If there is a tutorial version written in the language
 of the selected language environment, that version is used.
 If there's no tutorial in that language, `TUTORIAL' is selected.
-With arg, you are asked to select which language."
+With arg, you are asked to choose which language."
   (interactive "P")
   (let (lang filename file)
     (if arg
-	(or (setq lang (read-language-name 'tutorial "Language: "))
-	    (error "No tutorial file of the specified language"))
+	(or (setq lang
+		  (let* ((completion-ignore-case t))
+		    (completing-read "Language: " help-with-tutorial-alist
+				     nil t)))
+	    (error "No tutorial file in language"))
       (setq lang current-language-environment))
-    (setq filename (or (get-language-info lang 'tutorial)
+    (setq filename (or (cdr (assoc lang help-with-tutorial-alist))
 		       "TUTORIAL"))
     (setq file (expand-file-name (concat "~/" filename)))
     (delete-other-windows)
