@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.99 $")
+(defconst byte-compile-version "$Revision: 2.100 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3762,7 +3762,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete 'dot-marker 'point-marker "before 19.15")
 
 (make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
-(make-obsolete 'baud-rate "use the baud-rate variable instead" "before 19.15")
+(make-obsolete 'baud-rate "use the baud-rate variable instead." "before 19.15")
 (make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
 (make-obsolete 'define-function 'defalias "20.1")
 (make-obsolete-variable 'auto-fill-hook 'auto-fill-function "before 19.15")
@@ -3779,7 +3779,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   "before 19.15")
 (make-obsolete-variable 'suspend-hooks 'suspend-hook "before 19.15")
 (make-obsolete-variable 'comment-indent-hook 'comment-indent-function "before 19.15")
-(make-obsolete-variable 'meta-flag "Use the set-input-mode function instead." "before 19.34")
+(make-obsolete-variable 'meta-flag "use the set-input-mode function instead." "before 19.34")
 (make-obsolete-variable 'executing-macro 'executing-kbd-macro "before 19.34")
 (make-obsolete-variable 'before-change-function
   "use before-change-functions; which is a list of functions rather than a single function."
