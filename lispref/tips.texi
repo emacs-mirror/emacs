@@ -483,6 +483,17 @@ longer the case---documentation strings now take up very little space in
 a running Emacs.
 
 @item
+Format the documentation string so that it fits in an Emacs window on an
+80-column screen.  It is a good idea for most lines to be no wider than
+60 characters.  The first line should not be wider than 67 characters
+or it will look bad in the output of @code{apropos}.
+
+You can fill the text if that looks good.  However, rather than blindly
+filling the entire documentation string, you can often make it much more
+readable by choosing certain line breaks with care.  Use blank lines
+between topics if the documentation string is long.
+
+@item
 The first line of the documentation string should consist of one or two
 complete sentences that stand on their own as a summary.  @kbd{M-x
 apropos} displays just the first line, and if that line's contents don't
@@ -503,7 +514,7 @@ documentation string as an imperative--for instance, use ``Return the
 cons of A and B.'' in preference to ``Returns the cons of A and B@.''
 Usually it looks good to do likewise for the rest of the first
 paragraph.  Subsequent paragraphs usually look better if each sentence
-has a proper subject.
+is indicative and has a proper subject.
 
 @item
 Write documentation strings in the active voice, not the passive, and in
@@ -527,17 +538,6 @@ In Dired, visit the file or directory named on this line.
 
 @item
 Do not start or end a documentation string with whitespace.
-
-@item
-Format the documentation string so that it fits in an Emacs window on an
-80-column screen.  It is a good idea for most lines to be no wider than
-60 characters.  The first line should not be wider than 67 characters
-or it will look bad in the output of @code{apropos}.
-
-You can fill the text if that looks good.  However, rather than blindly
-filling the entire documentation string, you can often make it much more
-readable by choosing certain line breaks with care.  Use blank lines
-between topics if the documentation string is long.
  
 @item
 @strong{Do not} indent subsequent lines of a documentation string so
