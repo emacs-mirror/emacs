@@ -2206,7 +2206,7 @@ The value of this variable is used when Font Lock mode is turned on."
   :group 'font-lock-extra-types)
 
 (defcustom java-font-lock-extra-types
-  '("[A-Z\300-\326\330-\337]\\sw*[a-z]\\sw*")
+  '("[A-Z\300-\326\330-\337]\\sw*[a-zA-Z]\\sw*")
   "*List of extra types to fontify in Java mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"[A-Z\300-\326\330-\337]\\\\sw*[a-z]\\\\sw*\") means capitalised
