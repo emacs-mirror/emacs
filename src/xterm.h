@@ -339,6 +339,11 @@ struct x_display_info
   XIM xim;
   XIMStyles *xim_styles;
 #endif
+
+  /* If non-null, a cache of the colors in the color map.  Don't
+     use this directly, call x_color_cells instead.  */
+  XColor *color_cells;
+  int ncolor_cells;
 };
 
 /* This checks to make sure we have a display.  */
@@ -978,6 +983,8 @@ extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
 #endif
+extern void x_query_colors P_ ((struct frame *f, XColor *, int));
+extern void x_query_color P_ ((struct frame *f, XColor *));
 
 /* Defined in xselect.c */
 
