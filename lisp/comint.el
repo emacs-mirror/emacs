@@ -380,22 +380,10 @@ buffer.  The hook comint-exec-hook is run after each exec."
 	     (var (and (string-match "^[^=]*=" vv)
 		       (substring vv 0 (match-end 0)))))
 	(setq old-env (cdr old-env))
-	(cond ((not (and var (comint-mem var vars)))
+	(cond ((not (and var (member var vars)))
 	       (if var (setq var (cons var vars)))
 	       (setq ans (cons vv ans))))))
     (nreverse ans)))
-
-;;; This should be in emacs, but it isn't.
-(defun comint-mem (item list &optional elt=)
-  "Test to see if ITEM is equal to an item in LIST.
-Option comparison function ELT= defaults to equal."
-  (let ((elt= (or elt= (function equal)))
-	(done nil))
-    (while (and list (not done))
-      (if (funcall elt= item (car list))
-	  (setq done list)
-	  (setq list (cdr list))))
-    done))
 
 
 ;;; Input history retrieval commands
@@ -424,17 +412,9 @@ Option comparison function ELT= defaults to equal."
 		     (if (> arg 0) -1
 			 (if (< arg 0) 1 0))))
 	   (setq comint-input-ring-index
-		 (comint-mod (+ comint-input-ring-index arg) len))
+		 (ring-mod (+ comint-input-ring-index arg) len))
 	   (message "%d" (1+ comint-input-ring-index))
 	   (insert (ring-ref comint-input-ring comint-input-ring-index))))))
-
-(defun comint-mod (n m)
-  "Returns N mod M.  M is positive.
-Answer is guaranteed to be non-negative, and less than m."
-  (let ((n (% n m)))
-    (if (>= n 0) n
-	(+ n
-	   (if (>= m 0) m (- m)))))) ; (abs m)
 
 (defun comint-next-input (arg)
   "Cycle forwards through input history."
