@@ -3202,16 +3202,26 @@ This function is an internal primitive--use `make-frame' instead.")
   {
     Lisp_Object font;
 
-    font = x_get_arg (parms, Qfont, "font", "Font", string);
-    if (!STRINGP (font))
-      font = x_get_arg (parms, Qfontset, "fontset", "Fontset", string);
+    /* Determine font by the following priority.
+       1. `font' parameter in parms.
+       2. `font' parameter in Vdefault_frame_alist.
+       3. X resource "font" ("Font").
+       4. Select a plausible font be heuristics at least for ASCII.  */
+    tem = Fassq (Qfont, parms);
+    if (NILP (tem))
+      tem = Fassq (Qfont, Vdefault_frame_alist);
+    if (!NILP (tem))
+      font = Fcdr (tem);
+    if (! STRINGP (font))
+      font = x_get_arg (parms, Qfont, "font", "Font", string);
+
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
       {
-	Lisp_Object fontset = Fquery_fontset (font);
-	if (STRINGP (fontset))
-	  font = x_new_fontset (f, XSTRING (fontset)->data);
+	tem = Fquery_fontset (font);
+	if (STRINGP (tem))
+	  font = x_new_fontset (f, XSTRING (tem)->data);
 	else
 	  font = x_new_font (f, XSTRING (font)->data);
       }
@@ -3231,7 +3241,7 @@ This function is an internal primitive--use `make-frame' instead.")
     if (! STRINGP (font))
       font = build_string ("fixed");
 
-    x_default_parameter (f, parms, Qfont, font, 
+    x_default_parameter (f, parms, Qfont, font,
 			 "font", "Font", string);
   }
 
