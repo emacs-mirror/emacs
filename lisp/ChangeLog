@@ -131,14 +131,10 @@
 
 	* files.el (display-time-string): Fix last change.
 
-<<<<<<< ChangeLog
->>>>>>> 1.3683
-=======
 2002-04-07  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-checkin): Pass the required argument to `error'.
 
->>>>>>> 1.3687
 2002-04-07  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (set-default-coding-systems)
@@ -152,7 +148,6 @@
 
 	* simple.el (play-sound): Move to subr.el.
 
->>>>>>> 1.3679
 2002-04-06  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (display-time-string-forms): Mark as risky.

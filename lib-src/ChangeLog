@@ -1,5 +1,20 @@
 2002-04-10  Colin Walters  <walters@verbum.org>
 
+	* update-game-score.c: (toplevel): Include stdarg.h.
+	(MAX_DATA_LEN, MAX_SCORES): New.
+	(SCORE_FILE_PREFIX): If HAVE_SHARED_GAME_DIR is not defined,
+	default to ~/.emacs.d/games.
+	(get_user_id): Don't zero uid in the case where we can't get the
+	username.
+	(lose): New function.
+	(main): Actually use `max', and default it to MAX_SCORES.
+	Correctly handle new default for SCORE_FILE_PREFIX.  Use `lose'
+	function.
+	(read_score): Handle the case of reading unamelen characters, then
+	finishing.  Use mktemp if mkstemp isn't available.
+	(lock_file, unlock_file): Delete unused versions.
+	(lock_file): Always sleep, even if we unlinked the lock file.
+
 	* Makefile.in (gamedir, gameuser): New variables.
 	(toplevel, UTILITIES): Add update-game-score.
 	(${archlibdir}): Handle HAVE_SHARED_GAME_DIR.

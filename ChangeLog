@@ -1,3 +1,8 @@
+2002-04-10  Colin Walters  <walters@verbum.org>
+
+	* configure.in: Add --game-dir, --game-user.  Test to see if we
+	can use them.
+
 2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add --with-sound.

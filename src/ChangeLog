@@ -1,5 +1,7 @@
 2002-04-10  Colin Walters  <walters@verbum.org>
 
+	* config.in: Add HAVE_SHARED_GAME_DIR.
+
 	* callproc.c: (Vgame_score_directory): New variable.
 	(syms_of_callproc) <Vgame_score_directory>: DEFVAR_LISP.
 
