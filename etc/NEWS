@@ -105,7 +105,7 @@ in the current input method to input a character at point.
 ** Commands winner-redo and winner-undo, from winner.el, are now bound to
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
-** Help commands `describe-funcion' and `describe-key' now show function
+** Help commands `describe-function' and `describe-key' now show function
 arguments in lowercase italics on displays that support it.  To change the
 default, customize face `help-argument-name' or redefine the function
 `help-default-arg-highlight'.
@@ -2042,6 +2042,12 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** The sentinel is now called whan a network process is deleted with
+delete-process.  The status message passed to the sentinel for a
+deleted network process is "deleted".  The message passed to the
+sentinel when the connection is closed by the remote peer has been
+changed to "connection broken by remote peer".
 
 ** If the buffer's undo list for the current command gets longer than
 undo-outer-limit, garbage collection empties it.  This is to prevent

@@ -895,9 +895,15 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   ;; Moves point if the next ARG files are redisplayed.
   (interactive "P\np")
   (if (and test-for-subdir (dired-get-subdir))
-      (dired-insert-subdir
-       (dired-get-subdir)
-       (if arg (read-string "Switches for listing: " dired-actual-switches)))
+      (let* ((dir (dired-get-subdir))
+	     (switches (cdr (assoc-string dir dired-switches-alist))))
+	(dired-insert-subdir
+	 dir
+	 (when arg
+	   (read-string "Switches for listing: "
+			(or switches
+			    dired-subdir-switches
+			    dired-actual-switches)))))
     (message "Redisplaying...")
     ;; message much faster than making dired-map-over-marks show progress
     (dired-uncache
@@ -1207,9 +1213,10 @@ Special value `always' suppresses confirmation."
 	  (dired-advertise)))))
 
 (defun dired-rename-subdir-2 (elt dir to)
-  ;; Update the headerline and dired-subdir-alist element of directory
-  ;; described by alist-element ELT to reflect the moving of DIR to TO.
-  ;; Thus, ELT describes either DIR itself or a subdir of DIR.
+  ;; Update the headerline and dired-subdir-alist element, as well as
+  ;; dired-switches-alist element, of directory described by
+  ;; alist-element ELT to reflect the moving of DIR to TO.  Thus, ELT
+  ;; describes either DIR itself or a subdir of DIR.
   (save-excursion
     (let ((regexp (regexp-quote (directory-file-name dir)))
 	  (newtext (directory-file-name to))
@@ -1223,10 +1230,12 @@ Special value `always' suppresses confirmation."
 	(if (re-search-forward regexp (match-end 1) t)
 	    (replace-match newtext t t)
 	  (error "Expected to find `%s' in headerline of %s" dir (car elt))))
-      ;; Update buffer-local dired-subdir-alist
-      (setcar elt
-	      (dired-normalize-subdir
-	       (dired-replace-in-string regexp newtext (car elt)))))))
+      ;; Update buffer-local dired-subdir-alist and dired-switches-alist
+      (let ((cons (assoc-string (car elt) dired-switches-alist))
+	    (cur-dir (dired-normalize-subdir
+		      (dired-replace-in-string regexp newtext (car elt)))))
+	(setcar elt cur-dir)
+	(when cons (setcar cons cur-dir))))))
 
 ;; The basic function for half a dozen variations on cp/mv/ln/ln -s.
 (defun dired-create-files (file-creator operation fn-list name-constructor
@@ -1722,7 +1731,8 @@ This function takes some pains to conform to `ls -lR' output."
   (interactive
    (list (dired-get-filename)
 	 (if current-prefix-arg
-	     (read-string "Switches for listing: " dired-actual-switches))))
+	     (read-string "Switches for listing: "
+			  (or dired-subdir-switches dired-actual-switches)))))
   (let ((opoint (point)))
     ;; We don't need a marker for opoint as the subdir is always
     ;; inserted *after* opoint.
@@ -1749,14 +1759,19 @@ This function takes some pains to conform to `ls -lR' output."
   (interactive
    (list (dired-get-filename)
 	 (if current-prefix-arg
-	     (read-string "Switches for listing: " dired-actual-switches))))
+	     (read-string "Switches for listing: "
+			  (or dired-subdir-switches dired-actual-switches)))))
   (setq dirname (file-name-as-directory (expand-file-name dirname)))
-  (dired-insert-subdir-validate dirname switches)
   (or no-error-if-not-dir-p
       (file-directory-p dirname)
       (error  "Attempt to insert a non-directory: %s" dirname))
   (let ((elt (assoc dirname dired-subdir-alist))
-	 switches-have-R mark-alist case-fold-search buffer-read-only)
+	(cons (assoc-string dirname dired-switches-alist))
+	(modflag (buffer-modified-p))
+	(old-switches switches)
+	switches-have-R mark-alist case-fold-search buffer-read-only)
+    (and (not switches) cons (setq switches (cdr cons)))
+    (dired-insert-subdir-validate dirname switches)
     ;; case-fold-search is nil now, so we can test for capital `R':
     (if (setq switches-have-R (and switches (string-match "R" switches)))
 	;; avoid duplicated subdirs
@@ -1767,9 +1782,23 @@ This function takes some pains to conform to `ls -lR' output."
       (dired-insert-subdir-newpos dirname)) ; else compute new position
     (dired-insert-subdir-doupdate
      dirname elt (dired-insert-subdir-doinsert dirname switches))
-    (if switches-have-R (dired-build-subdir-alist switches))
+    (when old-switches
+      (if cons
+	  (setcdr cons switches)
+	(push (cons dirname switches) dired-switches-alist)))
+    (when switches-have-R
+      (dired-build-subdir-alist switches)
+      (dolist (cur-ass dired-subdir-alist)
+	(let ((cur-dir (car cur-ass)))
+	  (and (dired-in-this-tree cur-dir dirname)
+	       (not (string= cur-dir dirname))
+	       (let ((cur-cons (assoc-string cur-dir dired-switches-alist)))
+		 (if cur-cons
+		     (setcdr cur-cons switches)
+		   (push (cons cur-dir switches) dired-switches-alist)))))))
     (dired-initial-position dirname)
-    (save-excursion (dired-mark-remembered mark-alist))))
+    (save-excursion (dired-mark-remembered mark-alist))
+    (restore-buffer-modified-p modflag)))
 
 ;; This is a separate function for dired-vms.
 (defun dired-insert-subdir-validate (dirname &optional switches)
@@ -1777,17 +1806,18 @@ This function takes some pains to conform to `ls -lR' output."
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
   (or (dired-in-this-tree dirname (expand-file-name default-directory))
       (error  "%s: not in this directory tree" dirname))
-  (if switches
+  (let ((real-switches (or switches dired-subdir-switches)))
+    (when real-switches
       (let (case-fold-search)
 	(mapcar
 	 (function
 	  (lambda (x)
-	    (or (eq (null (string-match x switches))
+	    (or (eq (null (string-match x real-switches))
 		    (null (string-match x dired-actual-switches)))
-		(error "Can't have dirs with and without -%s switches together"
-		       x))))
+		(error
+		 "Can't have dirs with and without -%s switches together" x))))
 	 ;; all switches that make a difference to dired-get-filename:
-	 '("F" "b")))))
+	 '("F" "b"))))))
 
 (defun dired-alist-add (dir new-marker)
   ;; Add new DIR at NEW-MARKER.  Sort alist.
@@ -1855,16 +1885,15 @@ With optional arg REMEMBER-MARKS, return an alist of marked files."
   ;; Return the boundary of the inserted text (as list of BEG and END).
   (save-excursion
     (let ((begin (point)))
-      (message "Reading directory %s..." dirname)
       (let ((dired-actual-switches
 	     (or switches
+		 dired-subdir-switches
 		 (dired-replace-in-string "R" "" dired-actual-switches))))
 	(if (equal dirname (car (car (last dired-subdir-alist))))
 	    ;; If doing the top level directory of the buffer,
 	    ;; redo it as specified in dired-directory.
 	    (dired-readin-insert)
 	  (dired-insert-directory dirname dired-actual-switches nil nil t)))
-      (message "Reading directory %s...done" dirname)
       (list begin (point)))))
 
 (defun dired-insert-subdir-doupdate (dirname elt beg-end)
@@ -2007,10 +2036,12 @@ marks the files listed in the subdirectory that point is in."
 Lower levels are unaffected."
   ;; With optional REMEMBER-MARKS, return a mark-alist.
   (interactive)
-  (let ((beg (dired-subdir-min))
-	(end (dired-subdir-max))
-	buffer-read-only cur-dir)
-    (setq cur-dir (dired-current-directory))
+  (let* ((beg (dired-subdir-min))
+	 (end (dired-subdir-max))
+	 (modflag (buffer-modified-p))
+	 (cur-dir (dired-current-directory))
+	 (cons (assoc-string cur-dir dired-switches-alist))
+	 buffer-read-only)
     (if (equal cur-dir default-directory)
 	(error "Attempt to kill top level directory"))
     (prog1
@@ -2018,7 +2049,10 @@ Lower levels are unaffected."
       (delete-region beg end)
       (if (eobp)			; don't leave final blank line
 	  (delete-char -1))
-      (dired-unsubdir cur-dir))))
+      (dired-unsubdir cur-dir)
+      (when cons
+	(setq dired-switches-alist (delete cons dired-switches-alist)))
+      (restore-buffer-modified-p modflag))))
 
 (defun dired-unsubdir (dir)
   ;; Remove DIR from the alist
@@ -2077,19 +2111,21 @@ Optional prefix arg is a repeat factor.
 Use \\[dired-hide-all] to (un)hide all directories."
   (interactive "p")
   (dired-hide-check)
-  (while (>=  (setq arg (1- arg)) 0)
-    (let* ((cur-dir (dired-current-directory))
-	   (hidden-p (dired-subdir-hidden-p cur-dir))
-	   (elt (assoc cur-dir dired-subdir-alist))
-	   (end-pos (1- (dired-get-subdir-max elt)))
-	   buffer-read-only)
-      ;; keep header line visible, hide rest
-      (goto-char (dired-get-subdir-min elt))
-      (skip-chars-forward "^\n\r")
-      (if hidden-p
-	  (subst-char-in-region (point) end-pos ?\r ?\n)
-	(subst-char-in-region (point) end-pos ?\n ?\r)))
-    (dired-next-subdir 1 t)))
+  (let ((modflag (buffer-modified-p)))
+    (while (>=  (setq arg (1- arg)) 0)
+      (let* ((cur-dir (dired-current-directory))
+	     (hidden-p (dired-subdir-hidden-p cur-dir))
+	     (elt (assoc cur-dir dired-subdir-alist))
+	     (end-pos (1- (dired-get-subdir-max elt)))
+	     buffer-read-only)
+	;; keep header line visible, hide rest
+	(goto-char (dired-get-subdir-min elt))
+	(skip-chars-forward "^\n\r")
+	(if hidden-p
+	    (subst-char-in-region (point) end-pos ?\r ?\n)
+	  (subst-char-in-region (point) end-pos ?\n ?\r)))
+      (dired-next-subdir 1 t))
+    (restore-buffer-modified-p modflag)))
 
 ;;;###autoload
 (defun dired-hide-all (arg)
@@ -2098,7 +2134,8 @@ If there is already something hidden, make everything visible again.
 Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
   (interactive "P")
   (dired-hide-check)
-  (let (buffer-read-only)
+  (let ((modflag (buffer-modified-p))
+	buffer-read-only)
     (if (save-excursion
 	  (goto-char (point-min))
 	  (search-forward "\r" nil t))
@@ -2107,7 +2144,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
       ;; hide
       (let ((pos (point-max))		; pos of end of last directory
 	    (alist dired-subdir-alist))
-	(while alist			; while there are dirs before pos
+	(while alist		        ; while there are dirs before pos
 	  (subst-char-in-region (dired-get-subdir-min (car alist)) ; pos of prev dir
 				(save-excursion
 				  (goto-char pos) ; current dir
@@ -2116,7 +2153,8 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 				  (point))
 				?\n ?\r)
 	  (setq pos (dired-get-subdir-min (car alist)))	; prev dir gets current dir
-	  (setq alist (cdr alist)))))))
+	  (setq alist (cdr alist)))))
+    (restore-buffer-modified-p modflag)))
 
 ;;;###end dired-ins.el
 

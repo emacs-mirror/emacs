@@ -1,5 +1,5 @@
 /* Graphical user interface functions for Mac OS.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3803,13 +3803,15 @@ x_create_tip_frame (dpyinfo, parms, text)
   window_prompting = x_figure_window_size (f, parms, 0);
 
   {
-    BLOCK_INPUT;
     Rect r;
 
+    BLOCK_INPUT;
     SetRect (&r, 0, 0, 1, 1);
     if (CreateNewWindow (kHelpWindowClass,
-			 kWindowNoActivatesAttribute
-			 | kWindowIgnoreClicksAttribute,
+#ifdef MAC_OS_X_VERSION_10_2
+			 kWindowIgnoreClicksAttribute |
+#endif
+			 kWindowNoActivatesAttribute,
 			 &r, &tip_window) == noErr)
       {
 	FRAME_MAC_WINDOW (f) = tip_window;

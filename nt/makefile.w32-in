@@ -139,7 +139,7 @@ bootstrap-nmake:
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\lisp
-	$(MAKE) $(MFLAGS) bootstrap
+	$(MAKE) $(MFLAGS) SHELL=$(SHELLTYPE) bootstrap
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) DOC
 	cd ..\nt

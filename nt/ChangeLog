@@ -1,3 +1,12 @@
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
+	the lisp/ directory, set SHELL to $(SHELLTYPE); this avoids
+	calling non-existent cmdproxy.exe on boostrappings after a
+	previous install followed by realclean.
+
+	* nmake.defs: Add quote in comment to resync font-locking.
+
 2004-06-04  Juanma Barranquero  <lektu@terra.es>
 
 	* INSTALL: Reword the section on image support.  Add reference to
@@ -14,7 +23,7 @@
 	* makefile.nt, ebuild.bat, install.bat, fast-install.bat:
 	* makefile.def: Remove.
 
-	* nmake.defs (SYS_LDFLAGS): Add -nologo
+	* nmake.defs (SYS_LDFLAGS): Add -nologo.
 
 	* makefile.w32-in (info-gmake, info-nmake): New targets.
 	(info): Use them.
@@ -29,7 +38,7 @@
 
 2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
-	* runemacs.c (WinMain): Let emacs environment default to parent.
+	* runemacs.c (WinMain): Let Emacs environment default to parent.
 
 2004-03-11  Jason Rumney  <jasonr@gnu.org>
 
@@ -50,7 +59,7 @@
 
 2003-11-22  Lars Hansen  <larsh@math.ku.dk>
 
-	* inc/grp.h: Added.
+	* inc/grp.h: New file.
 
 2003-09-03  Peter Runestig  <peter@runestig.com>
 
@@ -186,7 +195,7 @@
 	* INSTALL: Update table of versions of make that are suitable
 	for building Emacs, based on recent feedback.
 
-	* TODO, _emacs, emacs.bat.in, debug.bat.in: Removed.
+	* TODO, _emacs, emacs.bat.in, debug.bat.in: Remove.
 
 2001-11-19  Andrew Innes  <andrewi@gnu.org>
 

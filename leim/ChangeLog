@@ -1,3 +1,10 @@
+2004-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (leim-list.el): Depend on leim-ext.el.  Append the
+	contents of leim-ext.el to leim-list.el.
+
+	* leim-ext.el: New file.
+
 2004-05-17  Werner Lemberg  <wl@gnu.org>
 
 	* quail/sisheng.el: New file.

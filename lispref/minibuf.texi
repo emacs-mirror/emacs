@@ -23,6 +23,7 @@ for reading an argument.
 * Object from Minibuffer::    How to read a Lisp object or expression.
 * Minibuffer History::	      Recording previous minibuffer inputs
 				so the user can reuse them.
+* Initial Input::             Specifying initial contents for the minibuffer.
 * Completion::                How to invoke and customize completion.
 * Yes-or-No Queries::         Asking a question with a simple answer.
 * Multiple Queries::	      Asking a series of similar questions.
@@ -168,25 +169,9 @@ the setting of @code{enable-multibyte-characters} (@pxref{Text
 Representations}) from whichever buffer was current before entering the
 minibuffer.
 
-If @var{initial-contents} is a string, @code{read-from-minibuffer}
-inserts it into the minibuffer, leaving point at the end, before the
-user starts to edit the text.  The minibuffer appears with this text as
-its initial contents.
-
-Alternatively, @var{initial-contents} can be a cons cell of the form
-@code{(@var{string} . @var{position})}.  This means to insert
-@var{string} in the minibuffer but put point at @emph{one-indexed}
-@var{position} in the minibuffer, rather than at the end.  Any integer
-value less or equal to one puts point at the beginning of the string.
-
-@strong{Usage note:} The @var{initial-contents} argument and the
-@var{default} argument are two alternative features for more or less the
-same job.  It does not make sense to use both features in a single call
-to @code{read-from-minibuffer}.  In general, we recommend using
-@var{default}, since this permits the user to insert the default value
-when it is wanted, but does not burden the user with deleting it from
-the minibuffer on other occasions.  For an exception to this rule,
-see @ref{Minibuffer History}.
+Use of @var{initial-contents} is mostly deprecated; we recommend using
+a non-@code{nil} value only in conjunction with specifying a cons cell
+for @var{hist}.  @xref{Initial Input}.
 @end defun
 
 @defun read-string prompt &optional initial history default inherit-input-method
@@ -440,9 +425,11 @@ symbol @var{variable}.  @code{previous-history-element} will display
 the most recent element of the history list in the minibuffer.  If you
 specify a positive @var{startpos}, the minibuffer history functions
 behave as if @code{(elt @var{variable} (1- @var{STARTPOS}))} were the
-history element currently shown in the minibuffer.  For consistency,
-you should also specify that element of the history as the initial
-minibuffer contents.
+history element currently shown in the minibuffer.
+
+For consistency, you should also specify that element of the history
+as the initial minibuffer contents, using the @var{initial} argument
+to the minibuffer input function (@pxref{Initial Input}).
 @end table
 
   If you don't specify @var{hist}, then the default history list
@@ -506,6 +493,45 @@ A history list for arguments that are shell commands.
 A history list for arguments that are Lisp expressions to evaluate.
 @end defvar
 
+@node Initial Input
+@section Initial Input
+
+Several of the functions for minibuffer input have an argument called
+@var{initial} or @var{initial-contents}.  This is a mostly-deprecated
+feature for specifiying that the minibuffer should start out with
+certain text, instead of empty as usual.
+
+If @var{initial} is a string, the minibuffer starts out containing the
+text of the string, with point at the end, when the user starts to
+edit the text.  If the user simply types @key{RET} to exit the
+minibuffer, it will use the initial input string to determine the
+value to return.
+
+@strong{We discourage use of a non-@code{nil} value for
+@var{initial}}, because initial input is an intrusive interface.
+History lists and default values provide a much more convenient method
+to offer useful default inputs to the user.
+
+There is just one situation where you should specify a string for an
+@var{initial} argument.  This is when you specify a cons cell for the
+@var{hist} or @var{history} argument.  @xref{Minibuffer History}.
+
+@var{initial} can also be a cons cell of the form @code{(@var{string}
+. @var{position})}.  This means to insert @var{string} in the
+minibuffer but put point at @var{position} within the string's text.
+
+As a historical accident, @var{position} was implemented
+inconsistently in different functions.  In @code{completing-read},
+@var{position}'s value is interpreted as origin-zero; that is, a value
+of 0 means the beginning of the string, 1 means after the first
+character, etc.  In @code{read-minibuffer}, and the other
+non-completion minibuffer input functions that support this argument,
+1 means the beginning of the string 2 means after the first character,
+etc.
+
+Use of a cons cell as the value for @var{initial} arguments is
+deprecated in user code.
+ 
 @node Completion
 @section Completion
 @cindex completion
@@ -797,22 +823,10 @@ The argument @var{hist} specifies which history list variable to use for
 saving the input and for minibuffer history commands.  It defaults to
 @code{minibuffer-history}.  @xref{Minibuffer History}.
 
-If @var{initial} is non-@code{nil}, @code{completing-read} inserts it
-into the minibuffer as part of the input, with point at the end.  Then
-it allows the user to edit the input, providing several commands to
-attempt completion.  @var{initial} can also be a cons cell of the form
-@code{(@var{string} .  @var{position})}.  In that case, point is put at
-@emph{zero-indexed} position @var{position} in @var{string}.  Note
-that this is different from @code{read-from-minibuffer} and related
-functions, which use a one-indexed position.  In most cases, we
-recommend using @var{default}, and not @var{initial}.
-
-@strong{We discourage use of a non-@code{nil} value for
-@var{initial}}, because it is an intrusive interface.  The history
-list feature (which did not exist when we introduced @var{initial})
-offers a far more convenient and general way for the user to get the
-default and edit it, and it is always available.  For an exception to
-this rule, see @ref{Minibuffer History}.
+The argument @var{initial} is mostly deprecated; we recommend using a
+non-@code{nil} value only in conjunction with specifying a cons cell
+for @var{hist}.  @xref{Initial Input}.  For default input, use
+@var{default} instead.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method (@pxref{Input

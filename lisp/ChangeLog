@@ -231,6 +231,92 @@
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
 2004-06-03  Karl Fogel  <kfogel@red-bean.com>
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Inherit from italic face only
+	if the frame supports it.
+
+2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm,
+	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm
+	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm
+	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm
+	* toolbar/preferences.pbm, toolbar/print.pbm, toolbar/right_arrow.pbm
+	* toolbar/save.pbm, toolbar/saveas.pbm, toolbar/search.pbm
+	* toolbar/spell.pbm, toolbar/undo.pbm, toolbar/up_arrow.pbm:
+	New conversions from xpm files.
+
+	* toolbar/README: New file.
+
+2004-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Undo previous change.
+
+2004-06-05  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (debug-ignored-errors): Add regexps for history
+	related messages.  Remove $ from "No further undo information".
+	Move Ediff's messages to ediff.el.
+
+	* ediff.el: Move Ediff's debug-ignored-errors from bindings.el.
+
+	* cus-edit.el (custom-display): Add `min-colors'.
+
+	* custom.el (defface): Add `supports' to docstring.
+
+	* help-fns.el (help-argument-name): Add :group 'help.
+
+2004-06-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-dired.el (find-ls-subdir-switches): New user option.
+	(find-dired): No longer call `abbreviate-file-name' on DIR.
+	Set `dired-subdir-switches' buffer-locally.
+
+	* locate.el: Merge the two `Commentary' sections.
+	(locate-ls-subdir-switches): New user option.
+	(locate): Update for other changes.
+	(locate-mode-map): Restore Dired binding for mouse-2.
+	Bind `locate-mouse-view-file' to M-mouse-2.
+	Bind `l' to `locate-do-redisplay'.
+	(locate-main-listing-line-p, locate-do-redisplay): New functions.
+	(locate-mouse-view-file, locate-tags, locate-find-directory):
+	Print message if used outside main listing.
+	(locate-mode): Update docstring.  Make `*Locate*' buffer read-only.
+	Various changes to support inserted subdirectories.
+	(locate-insert-header): Change header of *Locate* buffer.
+
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Change interactive default switches.
+	(dired-rename-subdir-2): Update `dired-switches-alist'.
+	(dired-insert-subdir, dired-kill-subdir):
+	Handle `dired-switches-alist'.  Do not mark buffer modified.
+	(dired-insert-subdir-validate): Handle `dired-subdir-switches'.
+	(dired-insert-subdir-doinsert): Omit messages.
+	Handle `dired-subdir-switches'.
+	(dired-hide-subdir, dired-hide-all): Do not mark buffer modified.
+
+	* dired.el (dired-subdir-switches, dired-switches-alist):
+	New vars.
+	(dired-insert-old-subdirs): Do not repeatedly delete and reinsert
+	subdirs if -R switch is used for a subdir.
+	(dired-mode): Set `dired-switches-alist'.
+	(dired-build-subdir-alist): Only print number of directories in
+	echo area when invoked interactively.
+
+2004-06-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.el (dired-omit-mode): Rename from
+	dired-omit-files-p.  Use define-minor-mode to define it.
+	(dired-omit-files-p): Add as alias for dired-omit-mode.
+	(dired-omit-toggle): Delete.  Replaced by dired-omit-mode and
+	dired-mark-omitted.
+	(dired-mark-omitted): Add.  Bind to M-O.
+
+2004-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* ps-print.el: Fix typos (kein'ichi -> ken'ichi)
+
 2004-06-05  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-argument-name): Reintroduce face.
@@ -893,28 +979,20 @@
 
 2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/close.pbm, toolbar/close.xpm
-	* toolbar/copy.pbm, toolbar/copy.xpm
-	* toolbar/cut.pbm, toolbar/cut.xpm
-	* toolbar/help.pbm, toolbar/help.xpm
-	* toolbar/home.pbm, toolbar/home.xpm
-	* toolbar/index.pbm, toolbar/index.xpm
-	* toolbar/jump_to.pbm, toolbar/jump_to.xpm
-	* toolbar/left_arrow.pbm, toolbar/left_arrow.xpm
-	* toolbar/new.pbm, toolbar/new.xpm
-	* toolbar/open.pbm, toolbar/open.xpm
-	* toolbar/paste.pbm, toolbar/paste.xpm
-	* toolbar/preferences.pbm, toolbar/preferences.xpm
-	* toolbar/print.pbm, toolbar/print.xpm
-	* toolbar/right_arrow.pbm, toolbar/right_arrow.xpm
-	* toolbar/save.pbm, toolbar/save.xpm
-	* toolbar/saveas.pbm, toolbar/saveas.xpm
-	* toolbar/search.pbm, toolbar/search.xpm
-	* toolbar/spell.pbm, toolbar/spell.xpm
-	* toolbar/undo.pbm, toolbar/undo.xpm
-	* toolbar/up_arrow.pbm, toolbar/up_arrow.xpm: New icons from
-	GTK+ version 2.
-
+	* toolbar/close.pbm, toolbar/close.xpm, toolbar/copy.pbm
+	* toolbar/copy.xpm, toolbar/cut.pbm, toolbar/cut.xpm
+	* toolbar/help.pbm, toolbar/help.xpm, toolbar/home.pbm
+	* toolbar/home.xpm, toolbar/index.pbm, toolbar/index.xpm
+	* toolbar/jump_to.pbm, toolbar/jump_to.xpm, toolbar/left_arrow.pbm
+	* toolbar/left_arrow.xpm, toolbar/new.pbm, toolbar/new.xpm
+	* toolbar/open.pbm, toolbar/open.xpm, toolbar/paste.pbm
+	* toolbar/paste.xpm, toolbar/preferences.pbm, toolbar/preferences.xpm
+	* toolbar/print.pbm, toolbar/print.xpm, toolbar/right_arrow.pbm
+	* toolbar/right_arrow.xpm, toolbar/save.pbm, toolbar/save.xpm
+	* toolbar/saveas.pbm, toolbar/saveas.xpm, toolbar/search.pbm
+	* toolbar/search.xpm, toolbar/spell.pbm, toolbar/spell.xpm
+	* toolbar/undo.pbm, toolbar/undo.xpm, toolbar/up_arrow.pbm
+	* toolbar/up_arrow.xpm: New icons from GTK+ version 2.
 
 2004-05-15  Kim F. Storm  <storm@cua.dk>
 
@@ -3449,7 +3527,7 @@
 	if the source location can't be found.
 	(edebug-compute-previous-result): Use prin1-char.
 
-	* emacs-lisp/checkdoc.el (checkdoc-error): Dont' assume point-min == 1.
+	* emacs-lisp/checkdoc.el (checkdoc-error): Don't assume point-min == 1.
 	(debug-ignored-errors): Add an entry.
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory): Ignore hidden dir.
