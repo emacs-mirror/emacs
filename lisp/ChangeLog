@@ -1,3 +1,8 @@
+2003-02-07  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* language/european.el ("French", "Italian"): New languages.
+	("German", "Slovenian", "Latin-1"): Fix doc strings.
+
 2003-02-06  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (update-subdirs-CMD): Fix generation of
