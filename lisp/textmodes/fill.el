@@ -85,11 +85,15 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		(setq fill-prefix (buffer-substring start (point))))
 	    (goto-char (min from to))
 	    (if (eolp) (forward-line 1))
-	    ;; If paragraph has only one line, don't assume
+	    ;; If paragraph has only one line, don't assume in general
 	    ;; that additional lines would have the same starting
 	    ;; decoration.  Assume no indentation.
-;;	    (re-search-forward adaptive-fill-regexp)
-;;	    (setq fill-prefix (make-string (current-column) ?\ ))
+	    ;; But if left-margin is nonzero, we can assume ordinary
+	    ;; lines do have indentation.
+	    (if (> left-margin 0)
+		(progn
+		  (re-search-forward adaptive-fill-regexp)
+		  (setq fill-prefix (make-string (current-column) ?\ ))))
 	    )))
 
     (save-restriction
