@@ -4860,15 +4860,18 @@ Default face attributes override any local face attributes.  */)
    return fonts with the same size as the font of a face.  This is
    done in fontset.el.  */
 
-DEFUN ("face-font", Fface_font, Sface_font, 1, 2, 0,
+DEFUN ("face-font", Fface_font, Sface_font, 1, 3, 0,
        doc: /* Return the font name of face FACE, or nil if it is unspecified.
+The font name is, by default, for ASCII characters.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
   The font default for a face is either nil, or a list
   of the form (bold), (italic) or (bold italic).
-If FRAME is omitted or nil, use the selected frame.  */)
-     (face, frame)
-     Lisp_Object face, frame;
+If FRAME is omitted or nil, use the selected frame.  And, in this case,
+if the optional third argument CHARACTER is given,
+return the font name used for CHARACTER.  */)
+     (face, frame, character)
+     Lisp_Object face, frame, character;
 {
   if (EQ (frame, Qt))
     {
@@ -4890,7 +4893,17 @@ If FRAME is omitted or nil, use the selected frame.  */)
       struct frame *f = frame_or_selected_frame (frame, 1);
       int face_id = lookup_named_face (f, face);
       struct face *face = FACE_FROM_ID (f, face_id);
-      return face ? build_string (face->font_name) : Qnil;
+
+      if (! face)
+	return Qnil;
+      if (NILP (character))
+	return build_string (face->font_name);
+      CHECK_CHARACTER (character);
+      face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
+      face = FACE_FROM_ID (f, face_id);
+      return (face->font && face->font_name
+	      ? build_string (face->font_name)
+	      : Qnil);
     }
 }
 
