@@ -1004,7 +1004,7 @@ static const char *re_error_msgid[] =
 #endif
 
 /* Roughly the maximum number of failure points on the stack.  Would be
-   exactly that if always used MAX_FAILURE_SPACE each time we failed.
+   exactly that if always used MAX_FAILURE_ITEMS items each time we failed.
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.  */
 #if defined (MATCH_MAY_ALLOCATE)
@@ -1221,7 +1221,10 @@ typedef struct
 #endif
 
 /* We push at most this many items on the stack.  */
-#define MAX_FAILURE_ITEMS ((num_regs - 1) * NUM_REG_ITEMS + NUM_NONREG_ITEMS)
+/* We used to use (num_regs - 1), which is the number of registers
+   this regexp will save; but that was changed to 5
+   to avoid stack overflow for a regexp with lots of parens.  */
+#define MAX_FAILURE_ITEMS (5 * NUM_REG_ITEMS + NUM_NONREG_ITEMS)
 
 /* We actually push this many items.  */
 #define NUM_FAILURE_ITEMS				\
