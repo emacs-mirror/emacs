@@ -2520,7 +2520,6 @@ try_window_id (window)
   int selective = (INTEGERP (current_buffer->selective_display)
 		   ? XINT (current_buffer->selective_display)
 		   : !NILP (current_buffer->selective_display) ? -1 : 0);
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
   int delta;
@@ -2599,11 +2598,7 @@ try_window_id (window)
       val.hpos = bp.prevhpos - width + lmargin;
       val.tab_offset = bp.tab_offset + bp.prevhpos - width;
       did_motion = 1;
-      pos--;
-      if (multibyte)
-	DEC_POS (pos_byte);
-      else
-	pos_byte--;
+      DEC_BOTH (pos, pos_byte);
     }
 
   bp.vpos = vpos;
@@ -2866,11 +2861,7 @@ try_window_id (window)
 	{
 	  val.hpos = xp.prevhpos - width + lmargin;
 	  val.tab_offset = xp.tab_offset + bp.prevhpos - width;
-	  pos--;
-	  if (multibyte)
-	    DEC_POS (pos_byte);
-	  else
-	    pos_byte--;
+	  DEC_BOTH (pos, pos_byte);
 	}
 
       blank_end_of_window = 1;
@@ -3277,12 +3268,9 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       if (left_edge->vpos > vpos
           || left_edge->hpos > 0)
         {
-          pos = left_edge->bufpos - 1;
+          pos = left_edge->bufpos;
 	  pos_byte = left_edge->bytepos;
-	  if (multibyte)
-	    DEC_POS (pos_byte);
-	  else
-	    pos_byte--;
+	  DEC_BOTH (pos, pos_byte);
           hpos = left_edge->prevhpos;
         }
       else
@@ -3926,11 +3914,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	    {
 	      *p1++ = fix_glyph (f, continuer, 0);
 	      val.vpos = 0;
-	      lastpos--;
-	      if (multibyte)
-		DEC_POS (lastpos_byte);
-	      else
-		lastpos_byte--;
+	      DEC_BOTH (lastpos, lastpos_byte);
 	      val.tab_offset = taboffset + width;
 	    }
 	}
