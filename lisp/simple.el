@@ -816,7 +816,9 @@ When calling from a program, nil means \"no arg\",
 a number counts as a prefix arg."
   (interactive "P")
   (kill-region (point)
-	       (progn
+	       ;; Don't shift point before doing the delete; that way,
+	       ;; undo will record the right position of point.
+	       (save-excursion
 		 (if arg
 		     (forward-line (prefix-numeric-value arg))
 		   (if (eobp)
@@ -1241,7 +1243,7 @@ a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.
 
 If you are thinking of using this in a Lisp program, consider using
-`forward-line' with negative argument instead..  It is usually easier
+`forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (line-move (- arg))
