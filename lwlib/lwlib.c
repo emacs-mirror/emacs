@@ -238,6 +238,7 @@ copy_widget_value_tree (val, change)
   copy->selected = val->selected;
   copy->edited = False;
   copy->change = change;
+  copy->this_one_change = change;
   copy->contents = copy_widget_value_tree (val->contents, change);
   copy->call_data = val->call_data;
   copy->next = copy_widget_value_tree (val->next, change);
@@ -439,7 +440,7 @@ merge_widget_value (val1, val2, level)
      widget_value* val2;
      int level;
 {
-  change_type change;
+  change_type change, this_one_change;
   widget_value* merged_next;
   widget_value* merged_contents;
 
@@ -530,6 +531,8 @@ merge_widget_value (val1, val2, level)
       val1->contents = merged_contents;
     }
 
+  this_one_change = change;
+
   merged_next = merge_widget_value (val1->next, val2->next, level);
 
   if (val1->next && !merged_next)
@@ -548,6 +551,7 @@ merge_widget_value (val1, val2, level)
 
   val1->next = merged_next;
 
+  val1->this_one_change = this_one_change;
   val1->change = change;
   
   if (change > NO_CHANGE && val1->toolkit_data)
