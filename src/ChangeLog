@@ -1,5 +1,8 @@
 2004-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (command_loop_1): Print a message describing the key
+	the user just pressed when this key has no binding.
+
 	* sysdep.c (sys_signal): Don't use SA_RESTART if SYNC_INPUT is set.
 	(emacs_open, emacs_read, emacs_write): Check QUIT when interrupted.
 

@@ -1618,7 +1618,10 @@ command_loop_1 ()
       if (NILP (Vthis_command))
 	{
 	  /* nil means key is undefined.  */
+	  Lisp_Object keys = Fvector (i, keybuf);
+	  keys = Fkey_description (keys, Qnil);
 	  bitch_at_user ();
+	  message_with_string ("%s is undefined", keys, 0);
 	  current_kboard->defining_kbd_macro = Qnil;
 	  update_mode_lines = 1;
 	  current_kboard->Vprefix_arg = Qnil;
