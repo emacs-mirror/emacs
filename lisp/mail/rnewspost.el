@@ -400,11 +400,13 @@ original message into it."
 
 ;@@ the guts of news-reply and news-post-news should be combined. -tower
 ;;;###autoload
-(defun news-post-news ()
+(defun news-post-news (&optional noquery)
   "Begin editing a new USENET news article to be posted.
-Type \\[describe-mode] once editing the article to get a list of commands."
+Type \\[describe-mode] once editing the article to get a list of commands.
+If NOQUERY is non-nil, we do not query before doing the work."
   (interactive)
-  (if (y-or-n-p "Are you sure you want to post to all of USENET? ")
+  (if (or noquery
+	  (y-or-n-p "Are you sure you want to post to all of USENET? "))
       (let ((buffer (current-buffer)))
 	(save-restriction
 	  (and (not (= 0 (buffer-size))) ;@@real problem is non-existence of
