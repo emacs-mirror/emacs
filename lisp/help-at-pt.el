@@ -1,6 +1,6 @@
 ;;; help-at-pt.el --- local help through the keyboard
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Luc Teirlinck <teirllm@auburn.edu>
 ;; Keywords: help
@@ -98,6 +98,13 @@ mainly meant for use from Lisp."
 	(message "%s" help)
       (if (not arg) (message "No local help at point")))))
 
+(defvar help-at-pt-timer nil
+  "Non-nil means that a timer is set that checks for local help.
+If non-nil, this is the value returned by the call of
+`run-with-idle-timer' that set that timer.  This variable is used
+internally to enable `help-at-pt-display-when-idle'.  Do not set it
+yourself.")
+
 (defcustom help-at-pt-timer-delay 1
   "*Delay before displaying local help.
 This is used if `help-at-pt-display-when-idle' is enabled.
@@ -112,17 +119,13 @@ active, but if one is already active, Custom will make it use the
 new value."
   :group 'help-at-pt
   :type 'number
+  :initialize 'custom-initialize-default
   :set (lambda (variable value)
 	 (set-default variable value)
-	 (when (and (boundp 'help-at-pt-timer) help-at-pt-timer)
-	   (timer-set-idle-time help-at-pt-timer value t))))
-
-(defvar help-at-pt-timer nil
-  "Non-nil means that a timer is set that checks for local help.
-If non-nil, this is the value returned by the call of
-`run-with-idle-timer' that set that timer.  This variable is used
-internally to enable `help-at-pt-display-when-idle'.  Do not set it
-yourself.")
+	 (and (boundp 'help-at-pt-timer)
+	      help-at-pt-timer
+	      (timer-set-idle-time help-at-pt-timer value t)))
+  :version "21.4")
 
 ;;;###autoload
 (defun help-at-pt-cancel-timer ()
@@ -144,7 +147,6 @@ This is done by setting a timer, if none is currently active."
 	  (run-with-idle-timer
 	   help-at-pt-timer-delay t #'help-at-pt-maybe-display))))
 
-;;;###autoload
 (defcustom help-at-pt-display-when-idle 'never
   "*Automatically show local help on point-over.
 If the value is t, the string obtained from any `kbd-help' or
@@ -226,7 +228,8 @@ properties, to enable buffer local values."
 	       (help-at-pt-cancel-timer)
 	     (help-at-pt-set-timer)))
   :set-after '(help-at-pt-timer-delay)
-  :require 'help-at-pt)
+  :require 'help-at-pt
+  :version "21.4")
 
 ;; Function for use in `help-at-pt-set-timer'.
 (defun help-at-pt-maybe-display ()
