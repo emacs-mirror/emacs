@@ -2421,7 +2421,7 @@ no input is received in the stopped state.
 This function returns a list of network interface names and their
 current network addresses.
 
-*** New function get-network-interface-info.
+*** New function network-interface-info.
 
 This function returns the network address, hardware address, current
 status, and other information about a specific network interface.
