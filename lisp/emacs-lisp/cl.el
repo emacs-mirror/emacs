@@ -403,22 +403,6 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
   "Return the tenth element of the list LIST."
   (nth 9 x))
 
-(defun caar (x)
-  "Return the `car' of the `car' of X."
-  (car (car x)))
-
-(defun cadr (x)
-  "Return the `car' of the `cdr' of X."
-  (car (cdr x)))
-
-(defun cdar (x)
-  "Return the `cdr' of the `car' of X."
-  (cdr (car x)))
-
-(defun cddr (x)
-  "Return the `cdr' of the `cdr' of X."
-  (cdr (cdr x)))
-
 (defun caaar (x)
   "Return the `car' of the `car' of the `car' of X."
   (car (car (car x))))
