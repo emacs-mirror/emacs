@@ -856,7 +856,9 @@ function, it is changed to a list of functions."
 	      (set (make-local-variable hook) (list t)))
     ;; Detect the case where make-local-variable was used on a hook
     ;; and do what we used to do.
-    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
+    (when (and (local-variable-p hook)
+	       (not (and (consp (symbol-value hook))
+			 (memq t (symbol-value hook)))))
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
@@ -878,31 +880,32 @@ FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
 list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
 
 The optional third argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed."
+the hook's buffer-local value rather than its default value."
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
-  (if local (unless (local-variable-if-set-p hook)
-	      (set (make-local-variable hook) (list t)))
+  ;; Do nothing if LOCAL is t but this hook has no local binding.
+  (unless (and local (not (local-variable-p hook)))
     ;; Detect the case where make-local-variable was used on a hook
     ;; and do what we used to do.
-    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
-      (setq local t)))
-  (let ((hook-value (if local (symbol-value hook) (default-value hook))))
-    ;; Remove the function, for both the list and the non-list cases.
-    (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
-	(if (equal hook-value function) (setq hook-value nil))
-      (setq hook-value (delete function (copy-sequence hook-value))))
-    ;; If the function is on the global hook, we need to shadow it locally
-    ;;(when (and local (member function (default-value hook))
-    ;;	       (not (member (cons 'not function) hook-value)))
-    ;;  (push (cons 'not function) hook-value))
-    ;; Set the actual variable
-    (if (not local)
-	(set-default hook hook-value)
-      (if (equal hook-value '(t))
-	  (kill-local-variable hook)
-	(set hook hook-value)))))
+    (when (and (local-variable-p hook)
+	       (not (and (consp (symbol-value hook))
+			 (memq t (symbol-value hook)))))
+      (setq local t))
+    (let ((hook-value (if local (symbol-value hook) (default-value hook))))
+      ;; Remove the function, for both the list and the non-list cases.
+      (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+	  (if (equal hook-value function) (setq hook-value nil))
+	(setq hook-value (delete function (copy-sequence hook-value))))
+      ;; If the function is on the global hook, we need to shadow it locally
+      ;;(when (and local (member function (default-value hook))
+      ;;	       (not (member (cons 'not function) hook-value)))
+      ;;  (push (cons 'not function) hook-value))
+      ;; Set the actual variable
+      (if (not local)
+	  (set-default hook hook-value)
+	(if (equal hook-value '(t))
+	    (kill-local-variable hook)
+	  (set hook hook-value))))))
 
 (defun add-to-list (list-var element &optional append)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
