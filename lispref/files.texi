@@ -1104,8 +1104,10 @@ the value has the form @code{(@var{high} . @var{low})}, where @var{low}
 holds the low 16 bits.
 
 @item
-The file system number of the file system that the file is in.  This
-element and the file's inode number together give enough information to
+The file system number of the file system that the file is in.
+Depending on the magnitude of the value, this can be either an integer
+or a cons cell, in the same manner as the inode number.  This element
+and the file's inode number together give enough information to
 distinguish any two files on the system---no two files can have the same
 values for both of these numbers.
 @end enumerate
