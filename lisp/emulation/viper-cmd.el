@@ -950,7 +950,7 @@ as a Meta key and any number of multiple escapes is allowed."
 (defun viper-envelop-ESC-key ()
   (let ((event last-input-event)
 	(keyseq [nil])
-	inhibit-quit)
+	(inhibit-quit t))
     (if (viper-ESC-event-p event)
 	(progn
 	  (if (viper-fast-keysequence-p)
@@ -2548,7 +2548,8 @@ These keys are ESC, RET, and LineFeed"
   ))
 
 (defun viper-replace-char-subr (com arg)
-  (let (char inhibit-quit)
+  (let ((inhibit-quit t)
+	char)
     (viper-set-complex-command-for-undo)
     (or (eq viper-intermediate-command 'viper-repeat)
 	(viper-special-read-and-insert-char))

@@ -1,3 +1,8 @@
+2001-09-13  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper-cmd.el (viper-replace-char-subr, viper-envelop-ESC-key):
+	inhibit quit.
+	
 2001-09-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (make-auto-save-file-name): If long file names are not
