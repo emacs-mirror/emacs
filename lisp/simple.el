@@ -1230,7 +1230,9 @@ With argument, rotate that many kills forward (or backward, if negative)."
 Puts mark after the inserted text.
 BUFFER may be a buffer or a buffer name."
   (interactive (list (progn (barf-if-buffer-read-only)
-			    (read-buffer "Insert buffer: " (other-buffer) t))))
+			    (read-buffer "Insert buffer: " 
+					 (other-buffer (current-buffer) t)
+					 t))))
   (or (bufferp buffer)
       (setq buffer (get-buffer buffer)))
   (let (start end newmark)
