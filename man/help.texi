@@ -54,9 +54,9 @@ other variables, in case the feature you are looking for is controlled
 by an option, not a command.  @xref{Apropos}.
 
 @item M-x apropos-documentation @var{topic} @key{RET}
-This searches the @emph{documentation strings} of all variables and
-functions (not their names) for a match for @var{topic}, a regular
-expression.  @xref{Apropos}.
+This searches the @emph{documentation strings} (the built-in short
+descriptions) of all variables and functions (not their names) for a
+match for @var{topic}, a regular expression.  @xref{Apropos}.
 
 @item C-h i emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
