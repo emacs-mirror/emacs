@@ -2855,22 +2855,25 @@ re_compile_fastmap (bufp)
 
 
         case anychar:
-          /* `.' matches anything ...  */
-	  for (j = 0; j < (1 << BYTEWIDTH); j++)
-            fastmap[j] = 1;
+	  {
+	    int fastmap_newline = fastmap['\n'];
 
-          /* ... except perhaps newline.  */
-          if (!(bufp->syntax & RE_DOT_NEWLINE))
-            fastmap['\n'] = 0;
+	    /* `.' matches anything ...  */
+	    for (j = 0; j < (1 << BYTEWIDTH); j++)
+	      fastmap[j] = 1;
 
-          /* Return if we have already set `can_be_null'; if we have,
-             then the fastmap is irrelevant.  Something's wrong here.  */
-	  else if (bufp->can_be_null)
-	    return 0;
+	    /* ... except perhaps newline.  */
+	    if (!(bufp->syntax & RE_DOT_NEWLINE))
+	      fastmap['\n'] = fastmap_newline;
 
-          /* Otherwise, have to check alternative paths.  */
-	  break;
+	    /* Return if we have already set `can_be_null'; if we have,
+	       then the fastmap is irrelevant.  Something's wrong here.  */
+	    else if (bufp->can_be_null)
+	      return 0;
 
+	    /* Otherwise, have to check alternative paths.  */
+	    break;
+	  }
 
 #ifdef emacs
         case syntaxspec:
@@ -3598,17 +3601,21 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
              longest match, try backtracking.  */
           if (d != end_match_2)
 	    {
+	      /* 1 if this match ends in the same string (string1 or string2)
+		 as the best previous match.  */
+	      boolean same_str_p = (FIRST_STRING_P (match_end) 
+				    == MATCHING_IN_FIRST_STRING);
+	      /* 1 if this match is the best seen so far.  */
+	      boolean best_match_p = (same_str_p ? d > match_end
+				      : !MATCHING_IN_FIRST_STRING);
+
               DEBUG_PRINT1 ("backtracking.\n");
               
               if (!FAIL_STACK_EMPTY ())
                 { /* More failure points to try.  */
-                  boolean same_str_p = (FIRST_STRING_P (match_end) 
-	        	                == MATCHING_IN_FIRST_STRING);
 
                   /* If exceeds best match so far, save it.  */
-                  if (!best_regs_set
-                      || (same_str_p && d > match_end)
-                      || (!same_str_p && !MATCHING_IN_FIRST_STRING))
+                  if (!best_regs_set || best_match_p)
                     {
                       best_regs_set = true;
                       match_end = d;
@@ -3624,8 +3631,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
                   goto fail;	       
                 }
 
-              /* If no failure points, don't restore garbage.  */
-              else if (best_regs_set)   
+              /* If no failure points, don't restore garbage.  And if
+                 last match is real best match, don't restore second
+                 best one. */
+              else if (best_regs_set && !best_match_p)
                 {
   	        restore_best_regs:
                   /* Restore best match.  It may happen that `dend ==
