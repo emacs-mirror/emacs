@@ -548,17 +548,8 @@ into icons, regardless of the window manager.")
 	    
       (setq frame-A (ediff-window-frame ediff-window-A)
 	    designated-minibuffer-frame (ediff-window-frame
-					 (minibuffer-window frame-A)))
-      (if ediff-xemacs-p
-	  ()
-	(if (not (eq designated-minibuffer-frame default-minibuffer-frame))
-	    (progn
-	      (setq default-minibuffer-frame designated-minibuffer-frame)
-	      (if (ediff-frame-live-p ediff-control-frame)
-		  (ediff-delete-frame ediff-control-frame)))
-	  ))
-      )
-    
+					 (minibuffer-window frame-A))))
+
     (ediff-setup-control-frame control-buf)
     ))
 
@@ -732,16 +723,7 @@ into icons, regardless of the window manager.")
 	    
       (setq frame-A (ediff-window-frame ediff-window-A)
 	    designated-minibuffer-frame (ediff-window-frame
-					 (minibuffer-window frame-A)))
-      (if ediff-xemacs-p
-	  ()
-	(if (not (eq designated-minibuffer-frame default-minibuffer-frame))
-	    (progn
-	      (setq default-minibuffer-frame designated-minibuffer-frame)
-	      (if (ediff-frame-live-p ediff-control-frame)
-		  (ediff-delete-frame ediff-control-frame)))
-	  ))
-      )
+					 (minibuffer-window frame-A))))
     
     ;; It is unlikely that we'll implement ediff-windows that would compare
     ;; 3 windows at once. So, we don't use buffer C here.
@@ -786,15 +768,17 @@ into icons, regardless of the window manager.")
       (run-hooks 'ediff-before-setup-control-frame-hooks))
   
     (setq old-ctl-frame (ediff-eval-in-buffer ctl-buffer ediff-control-frame))
-    (if (ediff-frame-live-p old-ctl-frame)
+    (if (and (ediff-frame-live-p old-ctl-frame)
+	     (eq (window-frame (cdr (assq 'minibuffer (frame-parameters old-ctl-frame))))
+		 designated-minibuffer-frame))
 	(setq ctl-frame old-ctl-frame)
       (redraw-display)
-      ;; frame should be made while ctl-buff is current, so that
-      ;; the local default-minibuffer-frame will be consulted and
-      ;; that ediff-control-frame-parameters will have the right value.
+      ;; Make the frame while ctl-buff is current, so that
+      ;; ediff-control-frame-parameters will have the right value.
       (ediff-eval-in-buffer ctl-buffer
-	(setq ctl-frame (ediff-make-frame 
-			 ediff-control-frame-parameters)))
+	(let ((default-minibuffer-frame designated-minibuffer-frame))
+	  (setq ctl-frame (ediff-make-frame 
+			   ediff-control-frame-parameters))))
       (ediff-eval-in-buffer ctl-buffer (setq ediff-control-frame ctl-frame)))
     
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
