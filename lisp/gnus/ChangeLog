@@ -1,3 +1,8 @@
+2000-12-07  Dave Love  <fx@gnu.org>
+
+	* gnus-audio.el (gnus-audio-directory)
+	* smiley-ems.el (smiley-data-directory): Fix :type.
+
 2000-12-05  Dave Love  <fx@gnu.org>
 
 	* starttls.el: New file.
