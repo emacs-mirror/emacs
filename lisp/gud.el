@@ -68,16 +68,16 @@
 ;; before use.)
 (defvar gud-menu-map (make-sparse-keymap "Gud") nil)
 (define-key gud-menu-map [refresh] '("Refresh" . gud-refresh))
-(define-key gud-menu-map [remove] '("Remove breakpoint" . gud-remove))
+(define-key gud-menu-map [remove] '("Remove Breakpoint" . gud-remove))
 (define-key gud-menu-map [tbreak] nil)	; gdb, sdb and xdb
-(define-key gud-menu-map [break] '("Set breakpoint" . gud-break))
+(define-key gud-menu-map [break] '("Set Breakpoint" . gud-break))
 (define-key gud-menu-map [up] nil)	; gdb, dbx, and xdb
 (define-key gud-menu-map [down] nil)	; gdb, dbx, and xdb
-(define-key gud-menu-map [print] '("Print expression" . gud-print))
+(define-key gud-menu-map [print] '("Print Expression" . gud-print))
 (define-key gud-menu-map [finish] nil)	; gdb or xdb
-(define-key gud-menu-map [stepi] '("Step instruction" . gud-stepi))
-(define-key gud-menu-map [step] '("Step line" . gud-step))
-(define-key gud-menu-map [next] '("Next line" . gud-next))
+(define-key gud-menu-map [stepi] '("Step Instruction" . gud-stepi))
+(define-key gud-menu-map [step] '("Step Line" . gud-step))
+(define-key gud-menu-map [next] '("Next Line" . gud-next))
 (define-key gud-menu-map [cont] '("Continue" . gud-cont))
 
 ;; ======================================================================
@@ -246,10 +246,10 @@ and create such a submap in that new map."
       (set-buffer buf)
       (gud-make-debug-menu)
       (local-set-key [menu-bar debug tbreak]
-		     '("Temporary breakpoint" . gud-tbreak))
-      (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
-      (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-      (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+		     '("Temporary Breakpoint" . gud-tbreak))
+      (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+      (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+      (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
       buf)))
 
 (defvar gdb-minibuffer-local-map nil
@@ -289,10 +289,10 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
-  (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
-  (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
-  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+  (local-set-key [menu-bar debug tbreak] '("Temporary Breakpoint" . gud-tbreak))
+  (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'gdb-mode-hook)
@@ -464,7 +464,7 @@ available with older versions of GDB."
 		 (find-file-noselect f))))
       (set-buffer buf)
       (gud-make-debug-menu)
-      (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
+      (local-set-key [menu-bar debug tbreak] '("Temporary Breakpoint" . gud-tbreak))
       buf)))
 
 ;;;###autoload
@@ -500,7 +500,7 @@ and source-file directory for your debugger."
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (setq paragraph-start comint-prompt-regexp)
   (local-set-key [menu-bar debug tbreak]
-    '("Temporary breakpoint" . gud-tbreak))
+    '("Temporary Breakpoint" . gud-tbreak))
   (run-hooks 'sdb-mode-hook)
   )
 
@@ -695,8 +695,8 @@ This works in IRIX 4, 5 and 6.")
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
       (gud-make-debug-menu)
-      (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-      (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+      (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+      (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
       buf)))
 
 ;;;###autoload
@@ -756,8 +756,8 @@ and source-file directory for your debugger."
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (setq paragraph-start comint-prompt-regexp)
-  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+  (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
   (run-hooks 'dbx-mode-hook)
   )
 
@@ -826,12 +826,11 @@ containing the executable being debugged.")
 	    (set-buffer buf)
 	    (gud-make-debug-menu)
 	    (local-set-key [menu-bar debug tbreak]
-			   '("Temporary breakpoint" . gud-tbreak))
+			   '("Temporary Breakpoint" . gud-tbreak))
 	    (local-set-key [menu-bar debug finish]
-			   '("Finish function" . gud-finish))
-	    (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-	    (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-	    (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+			   '("Finish Function" . gud-finish))
+	    (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+	    (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
 	    buf)
 	nil))))
 
@@ -868,10 +867,10 @@ directories if your program contains sources from more than one directory."
 
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
-  (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
-  (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
-  (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
-  (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+  (local-set-key [menu-bar debug tbreak] '("Temporary Breakpoint" . gud-tbreak))
+  (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
   (run-hooks 'xdb-mode-hook))
 
 ;; ======================================================================
