@@ -4718,6 +4718,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (replace)
     {
       int saved_from = from;
+      int saved_inhibit_modification_hooks;
 
       prepare_to_modify_buffer (from, to, &from);
       if (saved_from != from)
@@ -4726,6 +4727,14 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  from_byte = CHAR_TO_BYTE (from), to_byte = CHAR_TO_BYTE (to);
 	  len_byte = to_byte - from_byte;
 	}
+
+      /* The code conversion routine can not preserve text properties
+	 for now.  So, we must remove all text properties in the
+	 region.  Here, we must suppress all modification hooks.  */
+      saved_inhibit_modification_hooks = inhibit_modification_hooks;
+      inhibit_modification_hooks = 1;
+      Fset_text_properties (make_number (from), make_number (to), Qnil, Qnil);
+      inhibit_modification_hooks = saved_inhibit_modification_hooks;
     }
 
   if (! encodep && CODING_REQUIRE_DETECTION (coding))
@@ -4840,17 +4849,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       from += head_skip;
       to -= tail_skip;
       len -= total_skip; len_byte -= total_skip;
-    }
-
-  /* The code conversion routine can not preserve text properties for
-     now.  So, we must remove all text properties in the region.
-     Here, we must suppress all modification hooks.  */
-  if (replace)
-    {
-      int saved_inhibit_modification_hooks = inhibit_modification_hooks;
-      inhibit_modification_hooks = 1;
-      Fset_text_properties (make_number (from), make_number (to), Qnil, Qnil);
-      inhibit_modification_hooks = saved_inhibit_modification_hooks;
     }
 
   /* For converion, we must put the gap before the text in addition to
