@@ -1,3 +1,18 @@
+2002-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (define-mail-abbrev): Define as system abbrev.
+	(mail-abbrev-in-expansion-header-p): Copy the code of mail-header-end
+	to avoid needing sendmail.el at run time.
+
+	* bindings.el (mode-line-minor-mode-keymap): Definition moved up.
+	Initialization moved up too.
+	(mode-line-modes): Use :propertize.
+	(mode-line-mode-menu-keymap): Var deleted.
+	(mode-line-copied-mode-name): Var deleted.
+	(mode-line-mode-name): Function deleted.
+	(mode-line-mode-menu): Each item now shows its mode line lighter.
+	(minor-mode-alist): Don't call propertize here.
+
 2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/pascal.el (pascal-imenu-generic-expression): Add

@@ -1,3 +1,23 @@
+2002-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector) 
+	(Fthis_single_command_keys, Fthis_single_command_raw_keys) 
+	(Fclear_this_command_keys): Doc fixes.
+
+	* xfaces.c (Finternal_make_lisp_face, Finternal_copy_lisp_face) 
+	(update_face_from_frame_parameter): Increment face_change_count
+	and windows_or_buffers_changed to force redisplay using changed faces.
+
+	* xdisp.c (QCpropertize): New variable.
+	(mode_line_proptrans_alist): New variable.
+	(display_mode_element): New arg PROPS; all calls changed.
+	Implement this, for strings.
+	Handle literal output of strings by sharing the
+	main-line code for strings, using local var `literal'.
+	Handle :propertize feature.
+	(syms_of_xdisp): Initialze and staticpro QCpropertize and 
+	mode_line_proptrans_alist.
+	
 2002-02-11  Kim F. Storm  <no-spam@cua.dk>
 
 	* window.c: (Vmode_line_in_non_selected_windows): New variable.
@@ -69,7 +89,7 @@
 
 2002-02-07  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* lisp.h (Fx_file_dialog): Export (for Motif code in fileio.c).
+	* lisp.h (Fx_file_dialog): Add extern decl (used in fileio.c).
 
 2002-02-07  Kim F. Storm  <storm@cua.dk>
 
