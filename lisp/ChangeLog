@@ -1,3 +1,12 @@
+2004-03-15  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el: (ruler-mode-left-fringe-cols)
+	(ruler-mode-right-fringe-cols, ruler-mode-left-scroll-bar-cols)
+	(ruler-mode-right-scroll-bar-cols): Remove.
+	(ruler-mode-window-col, ruler-mode-mouse-set-left-margin)
+	(ruler-mode-mouse-set-right-margin, ruler-mode-ruler): Use
+	fringe-columns and scroll-bar-columns.
+
 2004-03-15  Masatake YAMATO  <jet@gyve.org>
 
 	* hl-line.el (hl-line-range-function): New variable.

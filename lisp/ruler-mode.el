@@ -299,25 +299,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
 
-(defsubst ruler-mode-left-fringe-cols (&optional real)
-  "Return the width, measured in columns, of the left fringe area.
-If optional argument REAL is non-nil, return a real floating point
-number instead of a rounded integer value."
-  (fringe-columns 'left real))
-
-(defsubst ruler-mode-right-fringe-cols (&optional real)
-  "Return the width, measured in columns, of the right fringe area.
-If optional argument REAL is non-nil, return a real floating point
-number instead of a rounded integer value."
-  (fringe-columns 'right real))
-
-(defmacro ruler-mode-right-scroll-bar-cols ()
-  "Return the width, measured in columns, of the right vertical scrollbar."
-  '(scroll-bar-columns 'right))
-
-(defmacro ruler-mode-left-scroll-bar-cols ()
-  "Return the width, measured in columns, of the left vertical scrollbar."
-  '(scroll-bar-columns 'left))
 
 (defsubst ruler-mode-full-window-width ()
   "Return the full width of the selected window."
@@ -330,8 +311,8 @@ N is a column number relative to selected frame."
   (- n
      (car (window-edges))
      (or (car (window-margins)) 0)
-     (ruler-mode-left-fringe-cols)
-     (ruler-mode-left-scroll-bar-cols)))
+     (fringe-columns 'left)
+     (scroll-bar-columns 'left)))
 
 (defun ruler-mode-mouse-set-left-margin (start-event)
   "Set left margin end to the graduation where the mouse pointer is on.
@@ -344,10 +325,10 @@ START-EVENT is the mouse click event."
       (save-selected-window
         (select-window (posn-window start))
         (setq col (- (car (posn-col-row start)) (car (window-edges))
-                     (ruler-mode-left-scroll-bar-cols))
+                     (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
-                     (ruler-mode-left-scroll-bar-cols)
-                     (ruler-mode-right-scroll-bar-cols)))
+                     (scroll-bar-columns 'left)
+                     (scroll-bar-columns 'right)))
         (when (and (>= col 0) (< col w))
           (setq lm (window-margins)
                 rm (or (cdr lm) 0)
@@ -366,10 +347,10 @@ START-EVENT is the mouse click event."
       (save-selected-window
         (select-window (posn-window start))
         (setq col (- (car (posn-col-row start)) (car (window-edges))
-                     (ruler-mode-left-scroll-bar-cols))
+                     (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
-                     (ruler-mode-left-scroll-bar-cols)
-                     (ruler-mode-right-scroll-bar-cols)))
+                     (scroll-bar-columns 'left)
+                     (scroll-bar-columns 'right)))
         (when (and (>= col 0) (< col w))
           (setq lm  (window-margins)
                 rm  (or (cdr lm) 0)
@@ -649,11 +630,11 @@ Optional argument PROPS specifies other text properties to apply."
   (when ruler-mode
     (let* ((w     (window-width))
            (m     (window-margins))
-           (lsb   (ruler-mode-left-scroll-bar-cols))
-           (lf    (ruler-mode-left-fringe-cols t))
+           (lsb   (scroll-bar-columns 'left))
+           (lf    (fringe-columns 'left t))
            (lm    (or (car m) 0))
-           (rsb   (ruler-mode-right-scroll-bar-cols))
-           (rf    (ruler-mode-right-fringe-cols t))
+           (rsb   (scroll-bar-columns 'right))
+           (rf    (fringe-columns 'right t))
            (rm    (or (cdr m) 0))
            (ruler (make-string w ruler-mode-basic-graduation-char))
            (i     0)
