@@ -61,27 +61,27 @@ in the file it applies to.")
     (cons "Hide" (make-sparse-keymap "Hide")))
 
   (define-key outline-mode-map [menu-bar hide hide-subtree]
-    '("Hide Subtree" . outline-hide-subtree))
+    '("Hide Subtree" . hide-subtree))
   (define-key outline-mode-map [menu-bar hide hide-entry]
-    '("Hide Entry" . outline-hide-entry))
+    '("Hide Entry" . hide-entry))
   (define-key outline-mode-map [menu-bar hide hide-body]
-    '("Hide Body" . outline-hide-body))
+    '("Hide Body" . hide-body))
   (define-key outline-mode-map [menu-bar hide hide-leaves]
-    '("Hide Leaves" . outline-hide-leaves))
+    '("Hide Leaves" . hide-leaves))
 
   (define-key outline-mode-map [menu-bar show]
     (cons "Show" (make-sparse-keymap "Show")))
 
   (define-key outline-mode-map [menu-bar show show-subtree]
-    '("Show Subtree" . outline-show-subtree))
+    '("Show Subtree" . show-subtree))
   (define-key outline-mode-map [menu-bar show show-children]
-    '("Show Children" . outline-show-children))
+    '("Show Children" . show-children))
   (define-key outline-mode-map [menu-bar show show-branches]
-    '("Show Branches" . outline-show-branches))
+    '("Show Branches" . show-branches))
   (define-key outline-mode-map [menu-bar show show-entry]
-    '("Show Entry" . outline-show-entry))
+    '("Show Entry" . show-entry))
   (define-key outline-mode-map [menu-bar show show-all]
-    '("Show All" . outline-show-all))
+    '("Show All" . show-all))
 
   (define-key outline-mode-map [menu-bar headings]
     (cons "Headings" (make-sparse-keymap "Headings")))
