@@ -298,7 +298,7 @@ install-arch-dep: mkdir
 
 ## Note that we copy DOC* and then delete DOC
 ## as a workaround for a bug in tar on Ultrix 4.2.
-nstall-arch-indep: mkdir
+install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	for dir in ${COPYDIR} ; do \
 	  if [ `(cd $$1 && /bin/pwd)` != `(cd $${dir} && /bin/pwd)` ] ; then \
