@@ -110,8 +110,8 @@ static void doHelp(void)
                "read                     -> <old>          Read filter\n"
                "set <mask>               -> <old> <new>    Set filter\n"
                "reset <mask>             -> <old> <new>    Reset filter\n"
-               "flip <mask>              -> <old> <new>    Toggle filter\n"
-               "intern <string>          -> <id>           Intern string\n"
+               "flip <mask>              -> <old> <new>    Toggle filter\n");
+  (void)printf("intern <string>          -> <id>           Intern string\n"
                "label <address> <id>                       Label address\n"
                "flush                                      Flush buffer\n"
                "help                                       Print this message\n"

@@ -223,17 +223,17 @@ static void help(void)
          "d                 destroy the current BT\n"
          "s <i>             set the bit index 'i'\n"
          "r <i>             reset the bit index 'i'\n"
-         "g <i>             get the bit index 'i'\n"
-         "sr [<i> <i>]      set the specified range\n"
+         "g <i>             get the bit index 'i'\n");
+  printf("sr [<i> <i>]      set the specified range\n"
          "rr [<i> <i>]      reset the specified range\n"
          "is [<i> <i>]      is the specified range set?\n"
-         "ir [<i> <i>]      is the specified range reset?\n"
-         "f <l> [<i> <i>]   find a reset range of length 'l'.\n"
+         "ir [<i> <i>]      is the specified range reset?\n");
+  printf("f <l> [<i> <i>]   find a reset range of length 'l'.\n"
          "fh <l> [<i> <i>]  find a reset range length 'l', working downwards\n"
          "fl <l> [<i> <i>]  find a reset range of length at least 'l'\n"
          "q                 quit\n"
-         "?                 print this message\n"
-         "\n"
+         "?                 print this message\n");
+  printf("\n"
          "No way of testing BTSize, BTRangesSame, or BTCopyInvertRange.\n");
 }
 
