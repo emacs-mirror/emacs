@@ -350,7 +350,8 @@ DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "T if OBJECT is an array (string or 
   (object)
      Lisp_Object object;
 {
-  if (VECTORP (object) || STRINGP (object))
+  if (VECTORP (object) || STRINGP (object)
+      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
     return Qt;
   return Qnil;
 }
