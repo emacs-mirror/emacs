@@ -1,3 +1,11 @@
+2003-05-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdba): Accommodate Fortran programs.
+	(gud-gdba-command-name): Use -noasync in all cases (as Fortran
+	seems to require it also).
+	(gdb-source-info): Parse correctly when compilation directory
+	specifies host also (IRIX).
+
 2003-05-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-checkout): Don't leave the branch when
