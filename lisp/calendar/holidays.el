@@ -127,7 +127,7 @@ The holidays are those in the list calendar-holidays."
     (if (not holiday-list)
         (message "No holidays known for %s" date-string)
       (if (<= (length msg) (frame-width))
-          (message msg)
+          (message "%s" msg)
         (set-buffer (get-buffer-create holiday-buffer))
         (setq buffer-read-only nil)
         (calendar-set-mode-line date-string)
