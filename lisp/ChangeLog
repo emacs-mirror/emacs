@@ -1,3 +1,7 @@
+2000-10-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* startup.el (fancy-splash-text): Remove superfluous quote.
+
 2000-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-screens): Don't add a pre-command hook.
