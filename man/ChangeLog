@@ -1,3 +1,8 @@
+2003-07-04  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.texi (Top, Help-Small-Screen): Remove accidentally added
+	next, prev and up pointers.
+
 2003-07-02  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.texi (Help): Mention existence of Emacs and stand-alone
