@@ -1,3 +1,7 @@
+2003-02-11  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (DONTCOMPILE): Add malayalam.el and tamil.el.
+
 2003-02-11  Kenichi Handa  <handa@m17n.org>
 
 	* loadup.el: Load "language/malayalam" and "language/tamil".
@@ -105,7 +109,7 @@
 
 	* printing.el (pr-get-symbol): Define during compile.
 
-2003-02-07  Vinicius Jose Latorre <vinicius@cpqd.com.br>
+2003-02-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* printing.el: New file.
 
