@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C, C++, Objective-C, and Java code
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Authors:    1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
@@ -9,7 +9,7 @@
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages oop
 
-(defconst c-version "5.19"
+(defconst c-version "5.20"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -79,6 +79,15 @@
 
 ;;; Code:
 
+;; sigh.  give in to the pressure, but make really sure all the
+;; definitions we need are here
+(if (or (not (fboundp 'functionp))
+	(not (fboundp 'char-before))
+	(not (c-safe (char-after) t))
+	(not (fboundp 'when))
+	(not (fboundp 'unless)))
+    (require 'cc-mode-19))
+
 (eval-when-compile
   (require 'cc-menus))
 (require 'cc-defs)
@@ -92,6 +101,10 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
 (make-variable-buffer-local 'c-buffer-is-cc-mode)
 (put 'c-buffer-is-cc-mode 'permanent-local t)
 
+(defvar c-initialize-on-load t
+  "When non-nil, CC Mode initializes when the cc-mode.el file is loaded.")
+  
+
 
 ;; Other modes and packages which depend on CC Mode should do the
 ;; following to make sure everything is loaded and available for their
@@ -101,14 +114,8 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
 ;; (c-initialize-cc-mode)
 
 ;;;###autoload
-(defun c-initialize-cc-mode ()
+(defun c-initialize-cc-mode (&optional skip-styles)
   (setq c-buffer-is-cc-mode t)
-  ;; sigh.  give in to the pressure, but make really sure all the
-  ;; definitions we need are here
-  (if (or (not (fboundp 'functionp))
-	  (not (fboundp 'char-before))
-	  (not (c-safe (char-after) t)))
-      (require 'cc-mode-19))
   ;; make sure all necessary components of CC Mode are loaded in.
   (let ((initprop 'cc-mode-is-initialized))
     (require 'cc-vars)
@@ -121,7 +128,8 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
     ;; run the initialization hook, but only once
     (or (get 'c-initialize-cc-mode initprop)
 	(progn
-	  (c-initialize-builtin-style)
+	  (or skip-styles
+	      (c-initialize-builtin-style))
 	  (run-hooks 'c-initialization-hook)
 	  (put 'c-initialize-cc-mode initprop t)))
     ))
@@ -239,7 +247,9 @@ Key bindings:
 	c-baseclass-key nil
 	c-access-key c-ObjC-access-key
 	c-method-key c-ObjC-method-key
-	imenu-create-index-function 'cc-imenu-objc-function)
+	imenu-create-index-function 'cc-imenu-objc-function
+	imenu-case-fold-search nil
+	)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'objc-mode-hook)
   (c-update-modeline))
@@ -278,7 +288,7 @@ Key bindings:
  	c-conditional-key c-Java-conditional-key
  	c-comment-start-regexp c-Java-comment-start-regexp
   	c-class-key c-Java-class-key
-	c-method-key c-Java-method-key
+	c-method-key nil
  	c-baseclass-key nil
 	c-recognize-knr-p nil
  	c-access-key c-Java-access-key
@@ -324,8 +334,10 @@ Key bindings:
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
 	c-access-key c-C++-access-key
-	c-recognize-knr-p nil)
-;;	imenu-generic-expression cc-imenu-c++-generic-expression)
+	c-recognize-knr-p nil
+;;	imenu-generic-expression cc-imenu-c++-generic-expression
+;;	imenu-case-fold-search nil
+	)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'idl-mode-hook)
   (c-update-modeline))
@@ -343,13 +355,10 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-;; Get reporter-submit-bug-report when byte-compiling
-(eval-when-compile
-  (require 'reporter))
-
 (defun c-submit-bug-report ()
   "Submit via mail a bug report on CC Mode."
   (interactive)
+  (require 'reporter)
   (require 'cc-vars)
   ;; load in reporter
   (let ((reporter-prompt-for-summary-p t)
@@ -409,6 +418,16 @@ Key bindings:
       nil
       "Dear Barry,"
       ))))
+
+
+;; Initialize everything.  This is backwards compatible with older
+;; .emacs files that just did a (require 'cc-mode) and expected
+;; everything to work (e.g. for CC Mode 4).  Maybe this should just
+;; happen by default, but previous versions of CC Mode 5 did not
+;; initialize by default.  I'm really not sure what is the right thing
+;; to do.
+(when c-initialize-on-load
+  (c-initialize-cc-mode))
 
 
 (provide 'cc-mode)
