@@ -1980,7 +1980,7 @@ display_buffer_1 (window)
 }
 
 DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
-  "Returns non-nil if BUFFER-NAME would use a special display function.
+  "Returns non-nil if a buffer named BUFFER-NAME would be created specially.
 The value is actually t if the frame should be called with default frame
 parameters, and a list of frame parameters if they were specified.
 See `special-display-buffer-names', and `special-display-regexps'.")
