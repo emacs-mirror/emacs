@@ -1,3 +1,8 @@
+2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-indent): Save excursion around call to
+	comment-indent-function.
+
 2000-11-29  Miles Bader  <miles@gnu.org>
 
 	* subr.el (member-ignore-case): Return the tail of the list who's
