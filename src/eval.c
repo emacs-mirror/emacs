@@ -3074,10 +3074,6 @@ unbind_to (count, value)
 
       if (specpdl_ptr->func != 0)
 	(*specpdl_ptr->func) (specpdl_ptr->old_value);
-      /* Note that a "binding" of nil is really an unwind protect,
-	 so in that case the "old value" is a list of forms to evaluate.  */
-      else if (NILP (specpdl_ptr->symbol))
-	Fprogn (specpdl_ptr->old_value);
       /* If the symbol is a list, it is really (SYMBOL WHERE
 	 . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
 	 frame.  If WHERE is a buffer or frame, this indicates we
