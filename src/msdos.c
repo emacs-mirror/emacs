@@ -864,12 +864,13 @@ static void
 IT_set_face (int face)
 {
   struct frame *sf = SELECTED_FRAME();
-  struct face *fp = FACE_FROM_ID (sf, face);
-  unsigned long fg, bg;
+  struct face *fp  = FACE_FROM_ID (sf, face);
+  struct face *dfp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
+  unsigned long fg, bg, dflt_fg, dflt_bg;
 
   if (!fp)
     {
-      fp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
+      fp = dfp;
       /* The default face for the frame should always be realized and
 	 cached.  */
       if (!fp)
@@ -878,6 +879,8 @@ IT_set_face (int face)
   screen_face = face;
   fg = fp->foreground;
   bg = fp->background;
+  dflt_fg = dfp->foreground;
+  dflt_bg = dfp->background;
 
   /* Don't use invalid colors.  In particular, FACE_TTY_DEFAULT_*
      colors mean use the colors of the default face, except that if
@@ -896,8 +899,7 @@ IT_set_face (int face)
 
   /* Make sure highlighted lines really stand out, come what may.  */
   if ((highlight || fp->tty_reverse_p)
-      && (fg == FRAME_FOREGROUND_PIXEL (sf)
-	  && bg == FRAME_BACKGROUND_PIXEL (sf)))
+      && (fg == dflt_fg && bg == dflt_bg))
     {
       unsigned long tem = fg;
 
@@ -2271,17 +2273,13 @@ DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
      (frame)
      Lisp_Object frame;
 {
-  int reverse;
   struct frame *f;
 
   CHECK_FRAME (frame, 0);
   f= XFRAME (frame);
-  reverse = EQ (Fcdr (Fassq (intern ("reverse"), f->param_alist)), Qt);
 
-  initial_screen_colors[0]
-    = reverse ? FRAME_BACKGROUND_PIXEL (f) : FRAME_FOREGROUND_PIXEL (f);
-  initial_screen_colors[1]
-    = reverse ? FRAME_FOREGROUND_PIXEL (f) : FRAME_BACKGROUND_PIXEL (f);
+  initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
+  initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
 }
 
 void
@@ -2300,8 +2298,10 @@ IT_set_frame_parameters (f, alist)
   int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int was_reverse = reverse;
   int redraw = 0, fg_set = 0, bg_set = 0;
+  int need_to_reverse;
   unsigned long orig_fg;
   unsigned long orig_bg;
+  Lisp_Object frame_bg, frame_fg;
   extern Lisp_Object Qdefault, QCforeground, QCbackground;
 
   /* If we are creating a new frame, begin with the original screen colors
@@ -2314,6 +2314,15 @@ IT_set_frame_parameters (f, alist)
     }
   orig_fg = FRAME_FOREGROUND_PIXEL (f);
   orig_bg = FRAME_BACKGROUND_PIXEL (f);
+  frame_fg = Fcdr (Fassq (Qforeground_color, f->param_alist));
+  frame_bg = Fcdr (Fassq (Qbackground_color, f->param_alist));
+  /* frame_fg and frame_bg could be nil if, for example,
+     f->param_alist is nil, e.g. if we are called from
+     Fmake_terminal_frame.  */
+  if (NILP (frame_fg))
+    frame_fg = build_string (unspecified_fg);
+  if (NILP (frame_bg))
+    frame_bg = build_string (unspecified_bg);
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
@@ -2340,8 +2349,9 @@ IT_set_frame_parameters (f, alist)
       if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
     }
-	
-  if (termscript && reverse && !was_reverse)
+
+  need_to_reverse = reverse && !was_reverse;
+  if (termscript && need_to_reverse)
     fprintf (termscript, "<INVERSE-VIDEO>\n");
 
   /* Now process the alist elements in reverse of specified order.  */
@@ -2355,25 +2365,25 @@ IT_set_frame_parameters (f, alist)
 
       if (EQ (prop, Qforeground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val, reverse
+	  unsigned long new_color = load_color (f, NULL, val, need_to_reverse
 						? LFACE_BACKGROUND_INDEX
 						: LFACE_FOREGROUND_INDEX);
 	  if (new_color !=  FACE_TTY_DEFAULT_COLOR
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
+	      FRAME_FOREGROUND_PIXEL (f) = new_color;
 	      /* Make sure the foreground of the default face for this
 		 frame is changed as well.  */
 	      XSETFRAME (frame, f);
-	      if (reverse)
+	      if (need_to_reverse)
 		{
-		  FRAME_BACKGROUND_PIXEL (f) = new_color;
 		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
 						     val, frame);
+		  prop = Qbackground_color;
 		}
 	      else
 		{
-		  FRAME_FOREGROUND_PIXEL (f) = new_color;
 		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
 						     val, frame);
 		}
@@ -2385,25 +2395,25 @@ IT_set_frame_parameters (f, alist)
 	}
       else if (EQ (prop, Qbackground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val, reverse
+	  unsigned long new_color = load_color (f, NULL, val, need_to_reverse
 						? LFACE_FOREGROUND_INDEX
 						: LFACE_BACKGROUND_INDEX);
 	  if (new_color != FACE_TTY_DEFAULT_COLOR
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
+	      FRAME_BACKGROUND_PIXEL (f) = new_color;
 	      /* Make sure the background of the default face for this
 		 frame is changed as well.  */
 	      XSETFRAME (frame, f);
-	      if (reverse)
+	      if (need_to_reverse)
 		{
-		  FRAME_FOREGROUND_PIXEL (f) = new_color;
 		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
 						     val, frame);
+		  prop = Qforeground_color;
 		}
 	      else
 		{
-		  FRAME_BACKGROUND_PIXEL (f) = new_color;
 		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
 						     val, frame);
 		}
@@ -2432,26 +2442,26 @@ IT_set_frame_parameters (f, alist)
 
   /* If they specified "reverse", but not the colors, we need to swap
      the current frame colors.  */
-  if (reverse && !was_reverse)
+  if (need_to_reverse)
     {
       Lisp_Object frame;
 
       if (!fg_set)
 	{
-	  FRAME_BACKGROUND_PIXEL (f) = orig_fg;
 	  XSETFRAME (frame, f);
 	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
 					     tty_color_name (f, orig_fg),
 					     frame);
+	  store_frame_param (f, Qbackground_color, frame_fg);
 	  redraw = 1;
 	}
       if (!bg_set)
 	{
-	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
 	  XSETFRAME (frame, f);
 	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
 					     tty_color_name (f, orig_bg),
 					     frame);
+	  store_frame_param (f, Qforeground_color, frame_bg);
 	  redraw = 1;
 	}
     }
