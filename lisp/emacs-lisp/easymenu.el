@@ -174,7 +174,8 @@ is a list of menu items, as above."
 		   (setq name (concat name " ...")))
 	       (if (symbolp callback)
 		   (fset command callback)
-		 (fset command (list 'lambda () '(interactive) callback)))))
+		 (fset command (list 'lambda () '(interactive) callback)))
+	       (put command 'menu-alias t)))
 	(if (null command)
 	    ;; Handle inactive strings specially--allow any number
 	    ;; of identical ones.
