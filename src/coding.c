@@ -1902,6 +1902,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       switch (emacs_code_class[c1])
 	{
 	case EMACS_ascii_code:
+	  c2 = 0;
 	  ENCODE_ISO_CHARACTER (CHARSET_ASCII, c1, /* dummy */ c2);
 	  break;
 
@@ -1943,6 +1944,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 	case EMACS_leading_code_2:
 	  ONE_MORE_BYTE (c2);
+	  c3 = 0;
 	  if (c2 < 0xA0)
 	    {
 	      /* invalid sequence */
@@ -1956,6 +1958,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 	case EMACS_leading_code_3:
 	  TWO_MORE_BYTES (c2, c3);
+	  c4 = 0;
 	  if (c2 < 0xA0 || c3 < 0xA0)
 	    {
 	      /* invalid sequence */
