@@ -1,3 +1,7 @@
+2004-10-31  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (margin_glyphs_to_reserve): Don't use ncols_scale_factor.
+
 2004-10-28  Will  <will@glozer.net>
 
 	* macterm.c: allow user to assign key modifiers to the Mac Option
