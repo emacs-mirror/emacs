@@ -1974,10 +1974,10 @@ message contains an appointment, don't make a diary entry."
 	  (throw 'finished t))))
     nil))
 
-(defun diary-from-outlook (&optional donotask)
+(defun diary-from-outlook (&optional noconfirm)
   "Maybe snarf diary entry from current Outlook-generated message.
 Currently knows about Gnus and Rmail modes.  Unless the optional
-argument DONOTASK is non-nil (which is the case when this
+argument NOCONFIRM is non-nil (which is the case when this
 function is called interactively), then if an entry is found the
 user is asked to confirm its addition."
   (interactive "p")
@@ -1987,7 +1987,7 @@ user is asked to confirm its addition."
 	       ((memq major-mode '(gnus-summary-mode gnus-article-mode))
 		#'diary-from-outlook-gnus)
 	       (t (error "Don't know how to snarf in `%s'" major-mode)))))
-    (funcall func donotask)))
+    (funcall func noconfirm)))
 
 
 (defvar gnus-article-mime-handles)
@@ -1997,9 +1997,9 @@ user is asked to confirm its addition."
 (autoload 'gnus-narrow-to-body "gnus")
 (autoload 'mm-get-part "mm-decode")
 
-(defun diary-from-outlook-gnus (&optional donotask)
+(defun diary-from-outlook-gnus (&optional noconfirm)
   "Maybe snarf diary entry from Outlook-generated message in Gnus.
-Unless the optional argument DONOTASK is non-nil (which is the case when
+Unless the optional argument NOCONFIRM is non-nil (which is the case when
 this function is called interactively), then if an entry is found the
 user is asked to confirm its addition.
 Add this function to `gnus-article-prepare-hook' to notice appointments
@@ -2015,7 +2015,7 @@ automatically."
 		    (gnus-narrow-to-body)
 		    (buffer-string)))))
       (when (diary-from-outlook-internal t)
-	(when (or donotask (y-or-n-p "Snarf diary entry? "))
+	(when (or noconfirm (y-or-n-p "Snarf diary entry? "))
 	  (diary-from-outlook-internal)
 	  (message "Diary entry added"))))))
 
@@ -2024,9 +2024,9 @@ automatically."
 
 (defvar rmail-buffer)
 
-(defun diary-from-outlook-rmail (&optional donotask)
+(defun diary-from-outlook-rmail (&optional noconfirm)
   "Maybe snarf diary entry from Outlook-generated message in Rmail.
-Unless the optional argument DONOTASK is non-nil (which is the case when
+Unless the optional argument NOCONFIRM is non-nil (which is the case when
 this function is called interactively), then if an entry is found the
 user is asked to confirm its addition."
   (interactive "p")
@@ -2037,7 +2037,7 @@ user is asked to confirm its addition."
 				    (point))
 				  (point-max))))
       (when (diary-from-outlook-internal t)
-	(when (or donotask (y-or-n-p "Snarf diary entry? "))
+	(when (or noconfirm (y-or-n-p "Snarf diary entry? "))
 	  (diary-from-outlook-internal)
 	  (message "Diary entry added"))))))
 
