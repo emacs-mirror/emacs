@@ -674,7 +674,7 @@ It can also be nil, if the definition is not associated with any file."
 			 (t t))))
       (if (listp arglist)
 	  (progn
-	    (princ (cons function
+	    (princ (cons (if (symbolp function) function "anonymous")
 			 (mapcar (lambda (arg)
 				   (if (memq arg '(&optional &rest))
 				       arg
