@@ -78,6 +78,8 @@ endif
 
 MAKETYPE=gmake
 
+THISDIR		= .
+
 # Cygwin has changed quoting rules somewhat since b20, in a way that
 # affects makefiles using sh as the command processor, so we need to
 # detect which rules to use.

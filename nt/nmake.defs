@@ -24,12 +24,13 @@ SHELLTYPE=CMD
 
 MAKETYPE=nmake
 
+CURDIR		= $(MAKEDIR:\=/)
+THISDIR		= $(MAKEDIR)
+
 ALL_DEPS	= $**
 
 SUBSYSTEM_WINDOWS=-subsystem:windows
 SUBSYSTEM_CONSOLE=-subsystem:console
-
-CURDIR		= $(MAKEDIR:\=/)
 
 # INSTALL_DIR is the directory into which emacs will be installed.
 #
