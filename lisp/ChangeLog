@@ -1,3 +1,13 @@
+2003-02-24  Dave Love  <fx@gnu.org>
+
+	* obsolete/cplus-md.el: Deleted.  (Requires removed c-mode.el.)
+
+	* env.el (read-envvar-name): Decode names.
+	(substitute-env-vars): Use eval-when-compile and char class.
+	(setenv): Doc fix.  Encode the data (after checking that's
+	possible).
+	(getenv): Encode the name and decode the result.
+
 2003-02-24  Ken Manheimer  <klm@zope.com>
 
 	* allout.el (allout-pre-command-business): Fix docstring.
