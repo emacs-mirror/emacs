@@ -1,3 +1,8 @@
+2005-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-record-expression): Add a missing
+	format to `message'.  Inspired by Deepak Goel <deego@gnufans.org>.
+
 2005-03-25  Richard M. Stallman  <rms@gnu.org>
 
 	* filesets.el (filesets-init): Add autoload.
@@ -5,7 +10,7 @@
 	* mail/mailalias.el (mail-directory): Doc fix.
 
 2005-03-25  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
-	
+
 	* mail/mailalias.el (mail-directory-process): Do nothing if
 	mail-directory-process is an atom.
 	(mail-get-names): Ignore mail-directory-names if it is an atom.
@@ -18,8 +23,8 @@
 
 2005-03-26  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-util.el (detect-coding-with-priority): Call
-	update-coding-systems-internal before detect-coding-region.
+	* international/mule-util.el (detect-coding-with-priority):
+	Call update-coding-systems-internal before detect-coding-region.
 
 2005-03-26  Nick Roberts  <nickrob@snap.net.nz>
 
