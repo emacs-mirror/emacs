@@ -10344,7 +10344,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       if (w != XWINDOW (selected_window)
 	  || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
 	{
-	  if (MINI_WINDOW_P (w))
+	  extern int cursor_in_non_selected_windows;
+	  
+	  if (MINI_WINDOW_P (w) || !cursor_in_non_selected_windows)
 	    new_cursor_type = NO_CURSOR;
 	  else
 	    new_cursor_type = HOLLOW_BOX_CURSOR;
