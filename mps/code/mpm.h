@@ -471,7 +471,7 @@ extern void (ArenaPoll)(Globals globals);
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
 
-extern Bool (ArenaStep)(Globals globals, double interval);
+extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);

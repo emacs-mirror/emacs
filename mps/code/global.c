@@ -185,9 +185,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   CHECKL(arena->tracedSize >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
-  CHECKL(arena->savedStepTime >= 0.0);
-  CHECKL(arena->lastStep >= 0);
-  CHECKL(arena->lastCollected >= 0);
+  CHECKL(arena->lastWorldCollect >= 0);
 
   /* can't write a check for arena->epoch */
 
@@ -269,9 +267,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
   arena->tracedSize = 0.0;
   arena->tracedTime = 0.0;
-  arena->savedStepTime = 0.0;
-  arena->lastStep = mps_clock();
-  arena->lastCollected = mps_clock();
+  arena->lastWorldCollect = mps_clock();
   arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -558,13 +554,58 @@ void ArenaPoll(Globals globals)
 
   globals->insidePoll = TRUE;
 
-  (void)ArenaStep(globals, 0.0);
+  (void)ArenaStep(globals, 0.0, 0.0);
 
   globals->insidePoll = FALSE;
 }
 #endif
 
-Bool ArenaStep(Globals globals, double interval)
+/* Work out whether we have enough time here to collect the world,
+ * and whether much time has passed since the last time we did that
+ * opportunistically. */
+static Bool arenaShouldCollectWorld(Arena arena,
+                                    double interval,
+                                    double multiplier,
+                                    Word now,
+                                    Word clocks_per_sec)
+{
+  double scanRate;
+  Size arenaSize;
+  double arenaScanTime;
+  double sinceLastWorldCollect;
+
+  /* don't collect the world if we're not given any time */
+  if ((interval > 0.0) && (multiplier > 0.0)) {
+    /* don't collect the world if we're already collecting. */
+    if (arena->busyTraces == TraceSetEMPTY) {
+      /* don't collect the world if it's very small */
+      arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+      if (arenaSize > 1000000) {
+        /* how long would it take to collect the world? */
+        if ((arena->tracedSize > 1000000.0) &&
+            (arena->tracedTime > 1.0))
+          scanRate = arena->tracedSize / arena->tracedTime;
+        else
+          scanRate = 25000000.0; /* a reasonable default. */
+        arenaScanTime = arenaSize / scanRate;
+        arenaScanTime += 0.1;   /* for overheads. */
+
+        /* how long since we last collected the world? */
+        sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                 (double) clocks_per_sec);
+        /* have to be offered enough time, and it has to be a long time
+         * since we last did it. */
+        if ((interval * multiplier > arenaScanTime) &&
+            sinceLastWorldCollect > arenaScanTime * 10.0) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
+Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
   double size;
   Size scanned;
@@ -575,15 +616,23 @@ Bool ArenaStep(Globals globals, double interval)
 
   AVERT(Globals, globals);
   AVER(interval >= 0.0);
+  AVER(multiplier >= 0.0);
 
   arena = GlobalsArena(globals);
   clocks_per_sec = mps_clocks_per_sec();
 
   start = mps_clock();
-  end = start + interval * clocks_per_sec;
+  end = start + (Word)(interval * clocks_per_sec);
   AVER(end >= start);
 
   stepped = FALSE;
+
+  if (arenaShouldCollectWorld(arena, interval, multiplier,
+                              start, clocks_per_sec)) {
+    ArenaStartCollect(globals);
+    arena->lastWorldCollect = start;
+    stepped = TRUE;
+  }
 
   /* loop while there is work to do and time on the clock. */
   do {
@@ -597,61 +646,6 @@ Bool ArenaStep(Globals globals, double interval)
 
   if (stepped) {
     arena->tracedTime += (now - start) / (double) clocks_per_sec;
-    arena->savedStepTime = 0.0;
-    arena->lastStep = now;
-  } else if (interval > 0.0) {
-    /* All the CPU time since we last took a sensible step has been
-     * spent in the mutator.  If this is large, the mutator is busy
-     * and doing an opportunistic collect-world is not a good idea.
-     * But if it is small, and we have accumulated a lot of step time
-     * since then, then the mutator is offering us a lot of time in
-     * comparison to the amount of time it is taking, and can be
-     * considered idle for our purposes.
-     *
-     * Here 'large' and 'small' can be assessed by comparing amounts
-     * of time to the amount of time it would take to scan the arena.
-     *
-     * The problem here is spotting when we are idle.  Suppose that
-     * the mutator was busy a while ago, and there was a collection: a
-     * non-trivial step.  Then the mutator continued for a while but
-     * then went idle.  The continuing calls to mps_arena_step()
-     * continue to save up time but it never looks as if the mutator
-     * is really idle.
-     *
-     * So we need a better heuristic.  If we save up enough time, we
-     * can probably kick off a collection anyway, regardless of
-     * apparent mutator busyness.
-     */
-    double scanRate;
-    Size arenaSize;
-    double arenaScanTime;
-    double sinceLastStep;
-
-    arena->savedStepTime += interval;
-
-    if ((arena->tracedSize > 1000000.0) &&
-        (arena->tracedTime > 1.0))
-      scanRate = arena->tracedSize / arena->tracedTime;
-    else
-      scanRate = 25000000.0; /* a reasonable default. */
-
-    arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-    arenaScanTime = arenaSize / scanRate;
-    if (arenaScanTime < 1.0)
-      arenaScanTime = 1.0;     /* clamp below to avoid being too eager */
-    sinceLastStep = (now - arena->lastStep) / (double) clocks_per_sec;
-    if ((arena->lastStep > arena->lastCollected) &&
-        ((arena->savedStepTime > arenaScanTime * 4.0) ||
-         ((arena->savedStepTime > arenaScanTime) &&
-          ((sinceLastStep < arenaScanTime / 10.0))))) {
-      /* either we've accumulated masses of step time since the last
-       * step, or the mutator seems idle and we've accumulated quite a
-       * bit. */
-      ArenaStartCollect(globals);
-      arena->savedStepTime = 0.0;
-      arena->lastStep = now;
-      arena->lastCollected = now;
-    }
   }
 
   size = globals->fillMutatorSize;

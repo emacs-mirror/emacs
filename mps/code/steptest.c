@@ -26,7 +26,7 @@
 #define objCOUNT          2000000
 #define clockSetFREQ      10000
 #define multiStepFREQ     500000
-#define multiStepSTEPS    100
+#define multiStepMULT     100
 
 #define genCOUNT          3
 #define gen1SIZE          750  /* kB */
@@ -273,11 +273,11 @@ static mps_addr_t make(void)
 
 /* call mps_arena_step() */
 
-static void test_step(mps_arena_t arena)
+static void test_step(mps_arena_t arena, double multiplier)
 {
     mps_bool_t res;
     double t1 = my_clock();
-    res = mps_arena_step(arena, 0.1);
+    res = mps_arena_step(arena, 0.1, multiplier);
     t1 = time_since(t1);
     if (res) {
         if (t1 > max_step_time)
@@ -301,7 +301,7 @@ static void *test(void *arg, size_t s)
     mps_chain_t chain;
     mps_root_t exactRoot, ambigRoot;
     unsigned long objs;
-    size_t i, j;
+    size_t i;
     mps_message_t message;
     size_t live, condemned, not_condemned;
     size_t messages;
@@ -376,11 +376,10 @@ static void *test(void *arg, size_t s)
         ++objs;
 
         if (objs % step_frequencies[test_number] == 0)
-            test_step(arena);
+            test_step(arena, 0.0);
 
         if (objs % multiStepFREQ == 0)
-            for (j=0; j<multiStepSTEPS; ++j)
-                test_step(arena);
+            test_step(arena, multiStepMULT);
 
         if (objs % clockSetFREQ == 0)
             set_clock_timing();
