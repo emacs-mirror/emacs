@@ -1,5 +1,13 @@
 2000-12-19  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
+	* progmodes/idlw-rinfo.el: Fixed copyright notice.
+
+	* progmodes/idlw-toolbar.el: Fixed copyright notice.
+
+	* progmodes/idlw-shell.el: Fixed copyright notice.
+
+	* progmodes/idlwave.el: Fixed copyright notice.
+
 	* textmodes/reftex-dcr.el (reftex-view-crossref): added SPACE and
 	TAB as key separators.
 
