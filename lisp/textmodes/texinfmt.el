@@ -37,7 +37,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.39 of 24 Nov 2002")
+(defvar texinfmt-version "2.40 of  6 Dec 2002")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
@@ -825,7 +825,16 @@ lower types.")
 
 (defun texinfo-format-scan ()
   (texinfo-format-convert (point-min) (point-max))
-  ;; Scan for @-commands.
+  ;; Search for @copying, which has to be first since the
+  ;; @insertcopying command then inserts the text elsewhere.
+  (goto-char (point-min))
+  (when (search-forward "@copying" nil t)
+    (texinfo-copying))
+  (while (search-forward "@insertcopying" nil t)
+    (delete-region (match-beginning 0) (match-end 0))
+
+    (texinfo-insertcopying))
+  ;; Scan for other @-commands.
   (goto-char (point-min))
   (while (search-forward "@" nil t)
     ;;
@@ -931,7 +940,30 @@ lower types.")
   
   (cond (texinfo-stack
          (goto-char (nth 2 (car texinfo-stack)))
-         (error "Unterminated @%s" (car (car texinfo-stack))))))
+         (error "Unterminated @%s" (car (car texinfo-stack)))))
+
+  ;; Remove excess whitespace
+  (whitespace-cleanup))
+
+(defvar texinfo-copying-text "" 
+  "Text of the copyright notice and copying permissions.")
+
+(defun texinfo-copying ()
+  "Copy the copyright notice and copying permissions from the Texinfo file, 
+as indicated by the @copying ... @end copying command; 
+insert the text with the @insertcopying command."
+  (let ((beg (progn (beginning-of-line) (point)))
+        (end  (progn (re-search-forward "^@end copying[ \t]*\n") (point))))
+    (setq texinfo-copying-text
+          (buffer-substring-no-properties
+           (save-excursion (goto-char beg) (forward-line 1) (point))
+           (save-excursion (goto-char end) (forward-line -1) (point))))
+    (delete-region beg end)))
+
+(defun texinfo-insertcopying ()
+  "Insert the copyright notice and copying permissions from the Texinfo file, 
+which are indicated by the @copying ... @end copying command."
+  (insert (concat "\n" texinfo-copying-text)))
 
 (put 'begin 'texinfo-format 'texinfo-format-begin)
 (defun texinfo-format-begin ()
@@ -2135,8 +2167,8 @@ This command is executed when texinfmt sees @item inside @multitable."
     (setq fill-column existing-fill-column)))
 
 
-;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifplaintext
-;;  @ifnottex, @ifnotinfo, @ifnothtml, @ifnotplaintext
+;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifplaintext, @ifxml, @xml
+;;  @ifnottex, @ifnotinfo, @ifnothtml, @ifnotplaintext, @ifnotxml
 
 (put 'ifinfo 'texinfo-format 'texinfo-discard-line)
 (put 'ifinfo 'texinfo-end 'texinfo-discard-command)
@@ -2159,6 +2191,12 @@ This command is executed when texinfmt sees @item inside @multitable."
                  (progn (re-search-forward "@end ifplaintext[ \t]*\n")
                         (point))))
 
+(put 'ifxml 'texinfo-format 'texinfo-format-ifxml)
+(defun texinfo-format-ifxml ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "^@end ifxml[ \t]*\n")
+                        (point))))
+
 (put 'tex 'texinfo-format 'texinfo-format-tex)
 (defun texinfo-format-tex ()
   (delete-region texinfo-command-start
@@ -2169,6 +2207,12 @@ This command is executed when texinfmt sees @item inside @multitable."
 (defun texinfo-format-html ()
   (delete-region texinfo-command-start
                  (progn (re-search-forward "@end html[ \t]*\n")
+                        (point))))
+
+(put 'xml 'texinfo-format 'texinfo-format-xml)
+(defun texinfo-format-xml ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "^@end xml[ \t]*\n")
                         (point))))
 
 (put 'ifnotinfo 'texinfo-format 'texinfo-format-ifnotinfo)
@@ -2185,6 +2229,9 @@ This command is executed when texinfmt sees @item inside @multitable."
 
 (put 'ifnothtml 'texinfo-format 'texinfo-discard-line)
 (put 'ifnothtml 'texinfo-end 'texinfo-discard-command)
+
+(put 'ifnotxml 'texinfo-format 'texinfo-discard-line)
+(put 'ifnotxml 'texinfo-end 'texinfo-discard-command)
 
 
 ;;; @titlepage
