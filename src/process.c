@@ -3853,6 +3853,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   for (;;)
     {
       int nfds;
+      int timeout_reduced_for_timers = 0;
 
       if (XINT (read_kbd))
 	FD_SET (0, &waitchannels);
@@ -3865,12 +3866,37 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) >= 0)
 	QUIT;
 
+      /* Compute time from now till when time limit is up */
+      /* Exit if already run out */
       if (timeout_p)
 	{
 	  EMACS_GET_TIME (*timeout_p);
 	  EMACS_SUB_TIME (*timeout_p, end_time, *timeout_p);
 	  if (EMACS_TIME_NEG_P (*timeout_p))
 	    break;
+	}
+
+      /* If our caller will not immediately handle keyboard events,
+	 run timer events directly.
+	 (Callers that will immediately read keyboard events
+	 call timer_delay on their own.)  */
+      if (read_kbd >= 0)
+	{
+	  EMACS_TIME timer_delay;
+	  int old_timers_run = timers_run;
+	  timer_delay = timer_check (1);
+	  if (timers_run != old_timers_run && do_display)
+	    redisplay_preserve_echo_area ();
+	  if (! EMACS_TIME_NEG_P (timer_delay) && timeout_p)
+	    {
+	      EMACS_TIME difference;
+	      EMACS_SUB_TIME (difference, timer_delay, *timeout_p);
+	      if (EMACS_TIME_NEG_P (difference))
+		{
+		  *timeout_p = timer_delay;
+		  timeout_reduced_for_timers = 1;
+		}
+	    }
 	}
 
       /* Cause C-g and alarm signals to take immediate action,
@@ -3883,9 +3909,23 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (frame_garbaged && do_display)
 	redisplay_preserve_echo_area ();
 
-      if (XINT (read_kbd) && detect_input_pending ())
-	nfds = 0;
-      else
+      nfds = 1;
+      if (XINT (read_kbd) < 0 && detect_input_pending ())
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending ())
+	    nfds = 0;
+	}
+
+      if ((XINT (read_kbd) > 0) 
+	  && detect_input_pending_run_timers (do_display))
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending_run_timers (do_display))
+	    nfds = 0;
+	}
+
+      if (nfds)
 	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
 		       timeout_p);
 
@@ -3914,7 +3954,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If we have timed out (nfds == 0) or found some input (nfds > 0),
 	 we should exit.  */
-      if (nfds >= 0)
+      if (nfds >= 0 && ! timeout_reduced_for_timers)
 	break;
     }
 
