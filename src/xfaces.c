@@ -385,6 +385,10 @@ Lisp_Object Qforeground_color, Qbackground_color;
 Lisp_Object Qface;
 extern Lisp_Object Qmouse_face;
 
+/* Property for basic faces which other faces cannot inherit.  */
+
+Lisp_Object Qface_no_inherit;
+
 /* Error symbol for wrong_type_argument in load_pixmap.  */
 
 Lisp_Object Qbitmap_spec_p;
@@ -3865,8 +3869,11 @@ Value is a vector of face attributes.  */)
      depend on the face, make sure they are all removed.  This is done
      by incrementing face_change_count.  The next call to
      init_iterator will then free realized faces.  */
-  ++face_change_count;
-  ++windows_or_buffers_changed;
+  if (NILP (Fget (face, Qface_no_inherit)))
+    {
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
 
   xassert (LFACEP (lface));
   check_lface (lface);
@@ -3941,8 +3948,11 @@ The value is TO.  */)
      depend on the face, make sure they are all removed.  This is done
      by incrementing face_change_count.  The next call to
      init_iterator will then free realized faces.  */
-  ++face_change_count;
-  ++windows_or_buffers_changed;
+  if (NILP (Fget (to, Qface_no_inherit)))
+    {
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
 
   return to;
 }
@@ -4299,6 +4309,7 @@ FRAME 0 means change the face on all frames, and change the default
      by incrementing face_change_count.  The next call to
      init_iterator will then free realized faces.  */
   if (!EQ (frame, Qt)
+      && NILP (Fget (face, Qface_no_inherit))
       && (EQ (attr, QCfont)
 	  || NILP (Fequal (old_value, value))))
     {
@@ -4451,6 +4462,7 @@ update_face_from_frame_parameter (f, param, new_value)
      struct frame *f;
      Lisp_Object param, new_value;
 {
+  Lisp_Object face = Qnil;
   Lisp_Object lface;
 
   /* If there are no faces yet, give up.  This is the case when called
@@ -4459,17 +4471,10 @@ update_face_from_frame_parameter (f, param, new_value)
   if (NILP (f->face_alist))
     return;
 
-  /* Changing a named face means that all realized faces depending on
-     that face are invalid.  Since we cannot tell which realized faces
-     depend on the face, make sure they are all removed.  This is done
-     by incrementing face_change_count.  The next call to
-     init_iterator will then free realized faces.  */
-  ++face_change_count;
-  ++windows_or_buffers_changed;
-
   if (EQ (param, Qforeground_color))
     {
-      lface = lface_from_face_name (f, Qdefault, 1);
+      face = Qdefault;
+      lface = lface_from_face_name (f, face, 1);
       LFACE_FOREGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
       realize_basic_faces (f);
@@ -4484,28 +4489,44 @@ update_face_from_frame_parameter (f, param, new_value)
       XSETFRAME (frame, f);
       call1 (Qframe_update_face_colors, frame);
 
-      lface = lface_from_face_name (f, Qdefault, 1);
+      face = Qdefault;
+      lface = lface_from_face_name (f, face, 1);
       LFACE_BACKGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
       realize_basic_faces (f);
     }
-  if (EQ (param, Qborder_color))
+  else if (EQ (param, Qborder_color))
     {
-      lface = lface_from_face_name (f, Qborder, 1);
+      face = Qborder;
+      lface = lface_from_face_name (f, face, 1);
       LFACE_BACKGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
     }
   else if (EQ (param, Qcursor_color))
     {
-      lface = lface_from_face_name (f, Qcursor, 1);
+      face = Qcursor;
+      lface = lface_from_face_name (f, face, 1);
       LFACE_BACKGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
     }
   else if (EQ (param, Qmouse_color))
     {
-      lface = lface_from_face_name (f, Qmouse, 1);
+      face = Qmouse;
+      lface = lface_from_face_name (f, face, 1);
       LFACE_BACKGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
+    }
+
+  /* Changing a named face means that all realized faces depending on
+     that face are invalid.  Since we cannot tell which realized faces
+     depend on the face, make sure they are all removed.  This is done
+     by incrementing face_change_count.  The next call to
+     init_iterator will then free realized faces.  */
+  if (!NILP (face)
+      && NILP (Fget (face, Qface_no_inherit)))
+    {
+      ++face_change_count;
+      ++windows_or_buffers_changed;
     }
 }
 
@@ -7758,6 +7779,8 @@ syms_of_xfaces ()
 {
   Qface = intern ("face");
   staticpro (&Qface);
+  Qface_no_inherit = intern ("face-no-inherit");
+  staticpro (&Qface_no_inherit);
   Qbitmap_spec_p = intern ("bitmap-spec-p");
   staticpro (&Qbitmap_spec_p);
   Qframe_update_face_colors = intern ("frame-update-face-colors");
