@@ -1085,8 +1085,8 @@ PROPS are additional properties."
   '(menu-item "Compile..." compile
 	      :help "Invoke compiler or Make, view compilation errors"))
 (define-key menu-bar-tools-menu [grep]
-  '(menu-item "Search Files (Grep)..." grep
-	      :help "Search files for strings or regexps (with Grep)"))
+  '(menu-item "Search Files (with grep)..." grep
+	      :help "Search files for strings or regexps (with grep)"))
 
 
 ;; The "Help" menu items
