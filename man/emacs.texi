@@ -1002,7 +1002,6 @@ S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
 @end ifnotinfo
 
-
 @node Intro, Glossary, Distrib, Top
 @unnumbered Introduction
 
