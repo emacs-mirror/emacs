@@ -1094,7 +1094,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
 	  (setq p2 (dired-move-to-end-of-filename no-error-if-not-filep))))
     ;; nil if no file on this line, but no-error-if-not-filep is t:
-    (if (setq file (and p1 p2 (buffer-substring p1 p2)))
+    (if (setq file (and p1 p2 (format "%s" (buffer-substring p1 p2))))
 	;; Check if ls quoted the names, and unquote them.
 	;; Using read to unquote is much faster than substituting
 	;; \007 (4 chars) -> ^G  (1 char) etc. in a lisp loop.
