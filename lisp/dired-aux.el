@@ -787,27 +787,6 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	  (subst-char-in-region opoint (1+ opoint) ?\040 char))))
   (dired-move-to-filename))
 
-(defun dired-fun-in-all-buffers (directory file fun &rest args)
-  ;; In all buffers dired'ing DIRECTORY, run FUN with ARGS.
-  ;; If the buffer has a wildcard pattern, check that it matches FILE.
-  ;; (FILE does not include a directory component.)
-  ;; FILE may be nil, in which case ignore it.
-  ;; Return list of buffers where FUN succeeded (i.e., returned non-nil).
-  (let ((buf-list (dired-buffers-for-dir (expand-file-name directory)
-					 file))
-	(obuf (current-buffer))
-	buf success-list)
-    (while buf-list
-      (setq buf (car buf-list)
-	    buf-list (cdr buf-list))
-      (unwind-protect
-	  (progn
-	    (set-buffer buf)
-	    (if (apply fun args)
-		(setq success-list (cons (buffer-name buf) success-list))))
-	(set-buffer obuf)))
-    success-list))
-
 ;;;###autoload
 (defun dired-add-file (filename &optional marker-char)
   (dired-fun-in-all-buffers
