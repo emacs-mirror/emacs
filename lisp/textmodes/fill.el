@@ -97,16 +97,22 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    )))
 
     (save-restriction
-      (goto-char (max from to))
-      ;; If specified region ends before a newline,
-      ;; include that newline.
-      (if (and (eolp) (not (eobp)) (not (bolp)))
-	  (forward-char 1))
-      (narrow-to-region (min from to) (point))
-      (goto-char (point-min))
+      (let (end)
+	(goto-char (max from to))
+	;; If specified region ends before a newline,
+	;; include that newline.
+	(if (and (eolp) (not (eobp)) (not (bolp)))
+	    (forward-char 1))
+	(setq end (point))
+	(setq from (min from to))
+	(goto-char from)
+	(beginning-of-line)
+	(narrow-to-region (point) end))
       (skip-chars-forward "\n")
       (narrow-to-region (point) (point-max))
-      (setq from (point))
+      (if (> from (point))
+	  (goto-char from)
+	(setq from (point)))
       (goto-char (point-max))
       (let ((fpre (and fill-prefix (not (equal fill-prefix ""))
 		       (regexp-quote fill-prefix))))
@@ -116,13 +122,13 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	     (progn
 	       (if (>= (length fill-prefix) fill-column)
 		   (error "fill-prefix too long for specified width"))
-	       (goto-char (point-min))
+	       (goto-char from)
 	       (forward-line 1)
 	       (while (not (eobp))
 		 (if (looking-at fpre)
 		     (delete-region (point) (match-end 0)))
 		 (forward-line 1))
-	       (goto-char (point-min))
+	       (goto-char from)
 	       (and (looking-at fpre) (forward-char (length fill-prefix)))
 	       (setq from (point)))))
       ;; from is now before the text to fill,
@@ -260,22 +266,27 @@ Prefix arg (non-nil third arg, if called from program) means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive "r\nP")
-  (save-restriction
-    (goto-char (max from to))
-    ;; If specified region ends before a newline,
-    ;; include that newline.
-    (if (and (eolp) (not (eobp)) (not (bolp)))
-	(forward-char 1))
-    (narrow-to-region (min from to) (point))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let ((initial (point))
-	    (end (progn
-		   (forward-paragraph 1) (point))))
-	(forward-paragraph -1)
-	(if (>= (point) initial)
-	    (fill-region-as-paragraph (point) end justify-flag)
-	  (goto-char end))))))
+  (let (end beg)
+    (save-restriction
+      (goto-char (max from to))
+      ;; If specified region ends before a newline,
+      ;; include that newline.
+      (if (and (eolp) (not (eobp)) (not (bolp)))
+	  (forward-char 1))
+      (setq end (point))
+      (goto-char (setq beg (min from to)))
+      (beginning-of-line)
+      (narrow-to-region (point) end)
+      (while (not (eobp))
+	(let ((initial (point))
+	      (end (progn
+		     (forward-paragraph 1) (point))))
+	  (forward-paragraph -1)
+	  (if (< (point) beg)
+	      (goto-char beg))
+	  (if (>= (point) initial)
+	      (fill-region-as-paragraph (point) end justify-flag)
+	    (goto-char end)))))))
 
 (defun justify-current-line ()
   "Add spaces to line point is in, so it ends at `fill-column'."
