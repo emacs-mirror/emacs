@@ -1007,12 +1007,14 @@ and the meta character is unread so that it applies to editing the string."
 	 (main-event (aref key 0))
 	 (keylist (listify-key-sequence key)))
     (cond ((and (= (length key) 1)
-		(lookup-key function-key-map key))
+		(let ((lookup (lookup-key function-key-map key)))
+		  (not (or (null lookup) (integerp lookup)))))
 	   ;; Handle a function key that translates into something else.
 	   ;; If the key has a global definition too,
 	   ;; exit and unread the key itself, so its global definition runs.
 	   ;; Otherwise, unread the translation,
 	   ;; so that the translated key takes effect within isearch.
+	   (cancel-kbd-macro-events)
 	   (if (lookup-key global-map key)
 	       (progn 
 		 (isearch-done)
@@ -1035,12 +1037,14 @@ and the meta character is unread so that it applies to editing the string."
 				copy)
 			      nil)))
 	   (setcar keylist (- main-event (- ?\C-\S-a ?\C-a)))
+	   (cancel-kbd-macro-events)
 	   (apply 'isearch-unread keylist))
 	  ((eq search-exit-option 'edit)
 	   (apply 'isearch-unread keylist)
 	   (isearch-edit-string))
 	  (search-exit-option
 	   (let (window)
+	     (cancel-kbd-macro-events)
 	     (apply 'isearch-unread keylist)
 	     ;; Properly handle scroll-bar and mode-line clicks
 	     ;; for which a dummy prefix event was generated as (aref key 0).
