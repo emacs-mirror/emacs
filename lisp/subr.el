@@ -2048,10 +2048,11 @@ If function is a command (see `commandp'), value is a list of the form
 
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.
-Return the modified alist."
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
   (let ((tail alist))
     (while tail
-      (if (eq (car (car tail)) key)
+      (if (and (consp (car tail)) (eq (car (car tail)) key))
 	  (setq alist (delq (car tail) alist)))
       (setq tail (cdr tail)))
     alist))
