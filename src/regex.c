@@ -883,7 +883,7 @@ static const char *re_error_msg[] =
    ralloc heap) shift the data out from underneath the regexp
    routines.  */
 #if defined (REL_ALLOC)
-#if ! defined (HAVE_ALLOCA) || defined (C_ALLOCA)
+#if defined (C_ALLOCA)
 #define MATCH_SHOULD_NOT_ALLOCA
 #endif
 #endif
@@ -924,7 +924,7 @@ typedef struct
 
 /* Initialize `fail_stack'.  Do `return -2' if the alloc fails.  */
 
-#ifdef MATCH_SHOULD_NOT_ALLOCA
+#ifndef MATCH_SHOULD_NOT_ALLOCA
 #define INIT_FAIL_STACK()						\
   do {									\
     fail_stack.stack = (fail_stack_elt_t *)				\
