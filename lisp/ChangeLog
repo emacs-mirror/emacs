@@ -1,5 +1,7 @@
 2005-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add \bfseries.
+
 	* fast-lock.el:
 	* lazy-lock.el: Move them to the obsolete subdir.
 
