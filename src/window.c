@@ -1936,8 +1936,10 @@ Returns the window displaying BUFFER.")
 #endif
 	window = Fget_largest_window (frames);
 
-      /* If we got a tall enough full-width window, split it.  */
+      /* If we got a tall enough full-width window that can be split,
+	 split it.  */
       if (!NILP (window)
+	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	  && window_height (window) >= split_height_threshold
 	  && (XFASTINT (XWINDOW (window)->width)
 	      == FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (window))))))
@@ -1945,8 +1947,10 @@ Returns the window displaying BUFFER.")
       else
 	{
 	  window = Fget_lru_window (frames);
-	  /* If the LRU window is selected, and big enough, split it.  */
+	  /* If the LRU window is selected, and big enough,
+	     and can be split, split it.  */
 	  if (!NILP (window)
+	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	      && (EQ (window, selected_window)
 		  || EQ (XWINDOW (window)->parent, Qnil))
 	      && window_height (window) >= window_min_height << 1)
