@@ -1,5 +1,9 @@
 2000-12-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* smerge-mode.el (smerge-basic-map): Use `=' rather than `d'.
+	Use minibuffer menu prompt for the `=' prefix.
+	(smerge-command-prefix): Change default to C-^.
+
 	* skeleton.el (skeleton-internal-1): Make sure the first line of
 	the region is also re-indented.
 	(skeleton-end-newline): New var.
