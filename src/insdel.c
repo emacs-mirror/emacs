@@ -1038,19 +1038,16 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
-   starting at GPT_ADDR.  This funciton assumes PT == GPT.  */
+   starting at GPT_ADDR.  */
 
 void
 insert_from_gap (nchars, nbytes)
      register int nchars, nbytes;
 {
-  if (PT != GPT)
-    abort ();
-
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
-  record_insert (PT, nchars);
+  record_insert (GPT, nchars);
   MODIFF++;
 
   GAP_SIZE -= nbytes;
@@ -1065,15 +1062,16 @@ insert_from_gap (nchars, nbytes)
   if (GPT_BYTE < GPT)
     abort ();
 
-  adjust_overlays_for_insert (PT, nchars);
-  adjust_markers_for_insert (PT, PT_BYTE,
-			     PT + nchars, PT_BYTE + nbytes,
+  adjust_overlays_for_insert (GPT, nchars);
+  adjust_markers_for_insert (GPT, GPT_BYTE,
+			     GPT + nchars, GPT_BYTE + nbytes,
 			     0);
 
   if (BUF_INTERVALS (current_buffer) != 0)
     offset_intervals (current_buffer, PT, nchars);
 
-  adjust_point (nchars, nbytes);
+  if (GPT - nchars < PT)
+    adjust_point (nchars, nbytes);
 
   CHECK_MARKERS ();
 }
