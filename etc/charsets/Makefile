@@ -47,12 +47,11 @@ MAPS =	8859-2.map \
 	viscii.map \
 	koi8-r.map \
 	ibm866.map \
-	mac-roman.map \
-	gb18030-bmp.map
+	mac-roman.map
 
 all: ${MAPS}
 
-GLIBCDIR=../../../src/glibc-2.2.4/localedata/charmaps
+GLIBCDIR=../../../m17n-db/glibc-2.3/localedata/charmaps
 ICUDIR=../../../icu/data
 
 8859-%.map: ${GLIBCDIR}/ISO-8859-%
@@ -148,8 +147,13 @@ mac-roman.map: ${GLIBCDIR}/MACINTOSH
 	  '/^<U[^x]*x[89A-Fa-f]/s/<U\(....\)[^x]*x\(..\).*/0x\2 0x\1/p' \
 	  < $< > $@
 
-gb18030-bmp.map: ${ICUDIR}/gb18030.ucm gb18030.awk
-	${SED} -n -e '/CHARMAP/,/END CHARMAP/p' < $< | gawk -f gb18030.awk > $@
+gb18030-2.map: ${GLIBCDIR}/GB18030 gb18030-2.awk
+	${SED} -n '/^<U....>[ 	]*\/x..\/x..[ 	]/ p' < $< \
+	| ${SED} -e 's,<U\([^>]*\)>[ 	]*/x\(..\)/x\(..\).*$$,0x\2\3 0x\1,' \
+	| sort | gawk -f gb18030-2.awk > $@
+
+gb18030-4byte.map: gb18030-2.map gb18030-4.awk
+	gawk -f gb18030-4.awk < $< > $@
 
 maintainer-clean:
 	rm -rf ${MAPS}
