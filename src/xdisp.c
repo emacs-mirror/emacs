@@ -12471,7 +12471,8 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 
 
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
-       doc: /* Like `format', but print result to stderr.  */)
+       doc: /* Like `format', but print result to stderr.
+usage: (trace-to-stderr STRING &rest OBJECTS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
