@@ -2332,9 +2332,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 			  x, y, ButtonReleaseMask, &datap);
 
 
+#ifdef HAVE_X_WINDOWS
   /* Assume the mouse has moved out of the X window.
      If it has actually moved in, we will get an EnterNotify.  */
   x_mouse_leave (FRAME_X_DISPLAY_INFO (f));
+#endif
 
   switch (status)
     {
