@@ -1479,8 +1479,8 @@ newsgroup."
 	    (setcdr active (cdr cache-active))))))))
 
 (defun gnus-activate-group (group &optional scan dont-check method)
-  ;; Check whether a group has been activated or not.
-  ;; If SCAN, request a scan of that group as well.
+  "Check whether a group has been activated or not.
+If SCAN, request a scan of that group as well."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
 	active)
     (and (inline (gnus-check-server method))

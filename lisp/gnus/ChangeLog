@@ -1,3 +1,36 @@
+2004-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-preview): Use `pop-to-buffer'.
+
+	* message.el (message-goto-mail-followup-to): Insert after "To".
+	(message-carefully-insert-headers): Add comment.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add help texts.
+
+	* gnus-art.el (gnus-button-alist): Improve
+	`gnus-button-handle-library' entry.
+
+	* gnus-art.el (gnus-button-alist): Fixed regexp for manual links.
+
+	* gnus-group.el (gnus-group-get-new-news-this-group): Added
+	doc-string.
+
+	* gnus-start.el (gnus-activate-group): Added doc-string.
+
+	* gnus-art.el (gnus-button-handle-man, gnus-button-alist): Try to
+	handle manual section.
+
+	* imap.el (imap-store-password): New variable.
+	(imap-interactive-login): Use it.
+	Suggested by Mark Plaksin <happy@mcplaksin.org>.
+
+	* gnus-art.el (gnus-button-alist, gnus-header-button-alist): Allow
+	/ in mailto URLs.
+
+	* spam.el (spam-directory): Derive from `gnus-directory'.
+
+	* gnus-sum.el (gnus-pick-line-number): Add autoload.
+
 2004-10-17  Richard M. Stallman  <rms@gnu.org>
 
 	* gnus-registry.el (gnus-registry-unload-hook): 

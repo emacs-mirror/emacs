@@ -44,6 +44,7 @@
 (autoload 'gnus-cache-write-active "gnus-cache")
 (autoload 'gnus-mailing-list-insinuate "gnus-ml" nil t)
 (autoload 'turn-on-gnus-mailing-list-mode "gnus-ml" nil t)
+(autoload 'gnus-pick-line-number "gnus-salt" nil t)
 (autoload 'mm-uu-dissect "mm-uu")
 (autoload 'gnus-article-outlook-deuglify-article "deuglify"
   "Deuglify broken Outlook (Express) articles and redisplay."
@@ -2238,8 +2239,12 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Pipe through a filter..." gnus-summary-pipe-output t]
 	      ["Add to SOUP packet" gnus-soup-add-article t]
 	      ["Print with Muttprint..." gnus-summary-muttprint t]
-	      ["Print" gnus-summary-print-article t])
-	     ("Backend"
+	      ["Print" gnus-summary-print-article
+	       ,@(if (featurep 'xemacs) '(t)
+		   '(:help "Generate and print a PostScript image"))])
+	     ("Copy, move,... (Backend)"
+	      ,@(if (featurep 'xemacs) '(t)
+		  '(:help "Copying, moving, expiring articles..."))
 	      ["Respool article..." gnus-summary-respool-article t]
 	      ["Move article..." gnus-summary-move-article
 	       (gnus-check-backend-function
@@ -2330,7 +2335,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
       `("Post"
 	["Send a message (mail or news)" gnus-summary-post-news
 	 ,@(if (featurep 'xemacs) '(t)
-	     '(:help "Post an article"))]
+	     '(:help "Compose a new message (mail or news)"))]
 	["Followup" gnus-summary-followup
 	 ,@(if (featurep 'xemacs) '(t)
 	     '(:help "Post followup to this article"))]

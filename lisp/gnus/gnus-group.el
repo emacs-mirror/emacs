@@ -3599,7 +3599,8 @@ re-scanning.  If ARG is non-nil and not a number, this will force
 (defun gnus-group-get-new-news-this-group (&optional n dont-scan)
   "Check for newly arrived news in the current group (and the N-1 next groups).
 The difference between N and the number of newsgroup checked is returned.
-If N is negative, this group and the N-1 previous groups will be checked."
+If N is negative, this group and the N-1 previous groups will be checked.
+If DONT-SCAN is non-nil, scan non-activated groups as well."
   (interactive "P")
   (let* ((groups (gnus-group-process-prefix n))
 	 (ret (if (numberp n) (- n (length groups)) 0))

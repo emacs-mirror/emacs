@@ -224,11 +224,11 @@ only you can cancel your own messages, which is nice.  The downside
 is that if you lose your @file{.emacs} file (which is where Gnus
 stores the secret cancel lock password (which is generated
 automatically the first time you use this feature)), you won't be
-able to cancel your message.  If you yourself want to manage a password,
+able to cancel your message.  If you want to manage a password yourself,
 you can put something like the following in your @file{~/.gnus.el} file:
 
 @lisp
-(setq canlock-password "Salam Shalom"
+(setq canlock-password "geheimnis"
       canlock-password-for-verify canlock-password)
 @end lisp
 
