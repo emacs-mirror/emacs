@@ -414,8 +414,8 @@ file://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @end example
 
 These schemes are defined in RFC 1808.
-@samp{ftp:} and @samp{file:} are synonomous in this library.  They
-allow reading arbitary files from hosts.  Either @samp{ange-ftp}
+@samp{ftp:} and @samp{file:} are synonymous in this library.  They
+allow reading arbitrary files from hosts.  Either @samp{ange-ftp}
 (Emacs) or @samp{efs} (XEmacs) is used to retrieve them from remote
 hosts.  Local files are accessed directly.
 
@@ -468,7 +468,7 @@ The form of a mailto URL is
 @example
 @samp{mailto:@var{mailbox}[?@var{header}=@var{contents}[&@var{header}=@var{contents}]]}
 @end example
-@noindent where an arbitary number of @var{header}s can be added.  If the
+@noindent where an arbitrary number of @var{header}s can be added.  If the
 @var{header} is @samp{body}, then @var{contents} is put in the body
 otherwise a @var{header} header field is created with @var{contents}
 as its contents.  Note that the URL library does not consider any
@@ -510,7 +510,7 @@ Similar to the @samp{news} versions.
 @samp{snews} is the same as @samp{nntp} except that the default port
 is :563.
 @cindex SSL
-(It is tunnelled through SSL.)
+(It is tunneled through SSL.)
 
 An @samp{nntp} URL is the same as a news URL, except that the URL may
 specify an article by its number.
@@ -940,7 +940,7 @@ This specifies the default server, it takes the form
 where @var{version} can be either 4 or 5.
 @end defopt
 @defvar socks-password
-If this is @code{nil} then you will be asked for the passward,
+If this is @code{nil} then you will be asked for the password,
 otherwise it will be used as the password for authenticating you to
 the @sc{socks} server.
 @end defvar
@@ -1010,7 +1010,7 @@ opened by the URL library.
 @c @cindex resolver, hostname
 @c Some C libraries do not include the hostname resolver routines in
 @c their static libraries.  If Emacs was linked statically, and was not
-@c linked with the resolver libraries, it wil not be able to get to any
+@c linked with the resolver libraries, it will not be able to get to any
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
 @c (@url{http://129.79.254.191/} works, but
@@ -1052,8 +1052,8 @@ The history `list' is actually a hash table,
 strings.  The times are in the format returned by @code{current-time}.
 
 @defun url-history-update-url url time
-This function updates the hsitory table with an entry for @var{url}
-accessed at the gievn @var{time}.
+This function updates the history table with an entry for @var{url}
+accessed at the given @var{time}.
 @end defun
 
 @defopt url-history-track
