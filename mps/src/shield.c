@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.10) $
+ * $HopeName: MMsrc!shield.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.10) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.11) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -258,6 +258,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
 
   SegSetDepth(seg, SegDepth(seg) + 1);
   ++arena->shDepth;
+  /* design.mps.trace.fix.noaver */
   AVER_CRITICAL(arena->shDepth > 0);
   AVER_CRITICAL(SegDepth(seg) > 0);
   if(SegPM(seg) & mode)
