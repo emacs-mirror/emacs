@@ -761,10 +761,12 @@ To make a hook variable buffer-local, always use
     ;; Set the actual variable
     (if local (set hook hook-value) (set-default hook hook-value))))
 
-(defun add-to-list (list-var element)
+(defun add-to-list (list-var element &optional append)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
 The test for presence of ELEMENT is done with `equal'.
-If ELEMENT is added, it is added at the beginning of the list.
+If ELEMENT is added, it is added at the beginning of the list,
+unless the optional argument APPEND is non-nil, in which case
+ELEMENT is added at the end.
 
 If you want to use `add-to-list' on a variable that is not defined
 until a certain package is loaded, you should put the call to `add-to-list'
@@ -773,7 +775,10 @@ into a hook function that will be run only after loading the package.
 other hooks, such as major mode hooks, can do the job."
   (if (member element (symbol-value list-var))
       (symbol-value list-var)
-    (set list-var (cons element (symbol-value list-var)))))
+    (set list-var
+	 (if append
+	     (append (symbol-value list-var) (list element))
+	   (cons element (symbol-value list-var))))))
 
 ;;;; Specifying things to do after certain files are loaded.
 
