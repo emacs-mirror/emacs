@@ -41,7 +41,7 @@ references another object:
 @table @asis
 @item Print name
 @cindex print name cell
-The @dfn{print name cell} holds a string which names the symbol for
+The @dfn{print name cell} holds a string that names the symbol for
 reading and printing.  See @code{symbol-name} in @ref{Creating Symbols}.
 
 @item Value
@@ -93,7 +93,7 @@ to see a property list there.
   The function cell or the value cell may be @dfn{void}, which means
 that the cell does not reference any object.  (This is not the same
 thing as holding the symbol @code{void}, nor the same as holding the
-symbol @code{nil}.)  Examining a cell which is void results in an error,
+symbol @code{nil}.)  Examining a cell that is void results in an error,
 such as @samp{Symbol's value as variable is void}.
 
   The four functions @code{symbol-name}, @code{symbol-value},
@@ -194,18 +194,24 @@ given hash code; to look for a given name, it is sufficient to look
 through all the symbols in the bucket for that name's hash code.
 
 @cindex interning
-  If a symbol with the desired name is found, then it is used.  If no
-such symbol is found, then a new symbol is created and added to the
-obarray bucket.  Adding a symbol to an obarray is called @dfn{interning}
-it, and the symbol is then called an @dfn{interned symbol}.
+  If a symbol with the desired name is found, the reader uses that
+symbol.  If the obarray does not contain a symbol with that name, the
+reader makes a new symbol and adds it to the obarray.  Finding or adding
+a symbol with a certain name is called @dfn{interning} it, and the
+symbol is then called an @dfn{interned symbol}.
+
+  Interning ensures that each obarray has just one symbol with any
+particular name.  Other like-named symbols may exist, but not in the
+same obarray.  Thus, the reader gets the same symbols for the same
+names, as long as you keep reading with the same obarray.
 
 @cindex symbol equality
 @cindex uninterned symbol
-  If a symbol is not in the obarray, then there is no way for Lisp to
-find it when its name is read.  Such a symbol is called an
-@dfn{uninterned symbol} relative to the obarray.  An uninterned symbol
-has all the other characteristics of interned symbols; it has the same
-four cells and they work in the usual way.
+  No obarray contains all symbols; in fact, some symbols are not in any
+obarray.  They are called @dfn{uninterned symbols}.  An uninterned
+symbol has the same four cells as other symbols; however, the only way
+to gain access to it is by finding it in some other object or as the
+value of a variable.
 
   In Emacs Lisp, an obarray is actually a vector.  Each element of the
 vector is a bucket; its value is either an interned symbol whose name
@@ -323,7 +329,7 @@ This variable is the standard obarray for use by @code{intern} and
 @end defvar
 
 @defun mapatoms function &optional obarray
-This function call @var{function} for each symbol in the obarray
+This function calls @var{function} for each symbol in the obarray
 @var{obarray}.  It returns @code{nil}.  If @var{obarray} is omitted, it
 defaults to the value of @code{obarray}, the standard obarray for
 ordinary symbols.
@@ -353,9 +359,9 @@ example using @code{mapatoms}.
 elements stored in the property list cell of a symbol.  Each of the
 pairs associates a property name (usually a symbol) with a property or
 value.  Property lists are generally used to record information about a
-symbol, such as how to compile it, the name of the file where it was
-defined, or perhaps even the grammatical class of the symbol
-(representing a word) in a language understanding system.
+symbol, such as its documentation as a variable, the name of the file
+where it was defined, or perhaps even the grammatical class of the
+symbol (representing a word) in a language-understanding system.
 
   Character positions in a string or buffer can also have property lists.
 @xref{Text Properties}.

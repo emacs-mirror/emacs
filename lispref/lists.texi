@@ -31,10 +31,10 @@ the whole list.
 @cindex @code{nil} and lists
 
   Lists in Lisp are not a primitive data type; they are built up from
-@dfn{cons cells}.  A cons cell is a data object which represents an ordered
-pair.  It records two Lisp objects, one labeled as the @sc{car}, and the
-other labeled as the @sc{cdr}.  These names are traditional; @sc{cdr} is
-pronounced ``could-er.''
+@dfn{cons cells}.  A cons cell is a data object that represents an
+ordered pair.  It records two Lisp objects, one labeled as the @sc{car},
+and the other labeled as the @sc{cdr}.  These names are traditional; see
+@ref{Cons Cell Type}.  @sc{cdr} is pronounced ``could-er.''
 
   A list is a series of cons cells chained together, one cons cell per
 element of the list.  By convention, the @sc{car}s of the cons cells are
@@ -44,6 +44,11 @@ of the last cons cell is @code{nil}.  This asymmetry between the
 @sc{car} and the @sc{cdr} is entirely a matter of convention; at the
 level of cons cells, the @sc{car} and @sc{cdr} slots have the same
 characteristics.
+
+@cindex list structure
+  Because most cons cells are used as part of lists, the phrase
+@dfn{list structure} has come to mean any structure made out of cons
+cells.
 
   The symbol @code{nil} is considered a list as well as a symbol; it is
 the list with no elements.  For convenience, the symbol @code{nil} is
@@ -134,8 +139,8 @@ two-element list:
 @end group
 @end example
 
-  @xref{List Type}, for the read and print syntax of lists, and for more
-``box and arrow'' illustrations of lists.
+  @xref{Cons Cell Type}, for the read and print syntax of cons cells and
+lists, and for more ``box and arrow'' illustrations of lists.
 
 @node List-related Predicates
 @section Predicates on Lists
@@ -155,7 +160,7 @@ otherwise.  @code{nil} is not a cons cell, although it @emph{is} a list.
 This function returns @code{t} if @var{object} is an atom, @code{nil}
 otherwise.  All objects except cons cells are atoms.  The symbol
 @code{nil} is an atom and is also a list; it is the only Lisp object
-which is both.
+that is both.
 
 @example
 (atom @var{object}) @equiv{} (not (consp @var{object}))
@@ -433,15 +438,22 @@ elements have the identical value @var{object}.  Compare
 @defun append &rest sequences
 @cindex copying lists
 This function returns a list containing all the elements of
-@var{sequences}.  The @var{sequences} may be lists, vectors, or strings.
-All arguments except the last one are copied, so none of them are
-altered.
+@var{sequences}.  The @var{sequences} may be lists, vectors, or strings,
+but the last one should be a list.  All arguments except the last one
+are copied, so none of them are altered.
 
-  The final argument to @code{append} may be any object but it is
-typically a list.  The final argument is not copied or converted; it
-becomes part of the structure of the new list.
+More generally, the final argument to @code{append} may be any Lisp
+object.  The final argument is not copied or converted; it becomes the
+@sc{cdr} of the last cons cell in the new list.  If the final argument
+is itself a list, then its elements become in effect elements of the
+result list.  If the final element is not a list, the result is a
+``dotted list'' since its final @sc{cdr} is not @code{nil} as required
+in a true list.
 
-  Here is an example:
+See @code{nconc} in @ref{Rearrangement}, for a way to join lists with no
+copying.
+
+Here is an example of using @code{append}:
 
 @example
 @group
@@ -463,11 +475,11 @@ more-trees
 @end group
 @end example
 
-You can see what happens by looking at a box diagram.  The variable
-@code{trees} is set to the list @code{(pine oak)} and then the variable
-@code{more-trees} is set to the list @code{(maple birch pine oak)}.
-However, the variable @code{trees} continues to refer to the original
-list:
+You can see how @code{append} works by looking at a box diagram.  The
+variable @code{trees} is set to the list @code{(pine oak)} and then the
+variable @code{more-trees} is set to the list @code{(maple birch pine
+oak)}.  However, the variable @code{trees} continues to refer to the
+original list:
 
 @smallexample
 @group
@@ -527,8 +539,20 @@ If no @var{sequences} are given, @code{nil} is returned:
 @end group
 @end example
 
-See @code{nconc} in @ref{Rearrangement}, for a way to join lists with no
-copying.
+Here are some examples where the final argument is not a list:
+
+@example
+(append '(x y) 'z)
+     @result{} (x y z)
+(append '(x y) [z])
+     @result{} (x y [z])
+@end example
+
+@noindent
+The second example shows that when the final argument is a sequence but
+not a list, the sequence's elements do not become elements of the
+resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
+any other non-list final argument.
 
 Integers are also allowed as arguments to @code{append}.  They are
 converted to strings of digits making up the decimal print
@@ -606,8 +630,9 @@ new @sc{car} or @sc{cdr}.
 @node Setcar
 @subsection Altering List Elements with @code{setcar}
 
-  Changing the @sc{car} of a cons cell is done with @code{setcar}, which
-replaces one element of a list with a different element.
+  Changing the @sc{car} of a cons cell is done with @code{setcar}.  When
+used on a list, @code{setcar} replaces one element of a list with a
+different element.
 
 @defun setcar cons object
 This function stores @var{object} as the new @sc{car} of @var{cons},
@@ -710,8 +735,8 @@ x2:              |
   The lowest-level primitive for modifying a @sc{cdr} is @code{setcdr}:
 
 @defun setcdr cons object
-This function stores @var{object} into the @sc{cdr} of @var{cons}.  The
-value returned is @var{object}, not @var{cons}.
+This function stores @var{object} as the new @sc{cdr} of @var{cons},
+replacing its previous @sc{cdr}.  It returns the value @var{object}.
 @end defun
 
   Here is an example of replacing the @sc{cdr} of a list with a
@@ -813,6 +838,15 @@ modifying the @sc{cdr}s of their component cons cells.  We call these
 functions ``destructive'' because they chew up the original lists passed
 to them as arguments, to produce a new list that is the returned value.
 
+@ifinfo
+  See @code{delq}, in @ref{Sets And Lists}, for another function
+that modifies cons cells.
+@end ifinfo
+@iftex
+   The function @code{delq} in the following section is another example
+of destructive list manipulation.
+@end iftex
+
 @defun nconc &rest lists
 @cindex concatenating lists
 @cindex joining lists
@@ -895,10 +929,10 @@ each time you run it!  Here is what happens:
 @defun nreverse list
 @cindex reversing a list
   This function reverses the order of the elements of @var{list}.
-Unlike @code{reverse}, @code{nreverse} alters its argument destructively
-by reversing the @sc{cdr}s in the cons cells forming the list.  The cons
-cell which used to be the last one in @var{list} becomes the first cell
-of the value.
+Unlike @code{reverse}, @code{nreverse} alters its argument by reversing
+the @sc{cdr}s in the cons cells forming the list.  The cons cell that
+used to be the last one in @var{list} becomes the first cell of the
+value.
 
   For example:
 
@@ -966,6 +1000,11 @@ sorted order.  If you wish to make a sorted copy without destroying the
 original, copy it first with @code{copy-sequence} and then sort.
 
 Sorting does not change the @sc{car}s of the cons cells in @var{list};
+each cons cell in the result contains the same element that it contained
+before.  The result differs from the argument @var{list} because the
+cells themselves have been reordered.
+
+Sorting does not change the @sc{car}s of the cons cells in @var{list};
 the cons cell that originally contained the element @code{a} in
 @var{list} still has @code{a} in its @sc{car} after sorting, but it now
 appears in a different position in the list due to the change of
@@ -1003,15 +1042,6 @@ See @code{documentation} in @ref{Accessing Documentation}, for a
 useful example of @code{sort}.
 @end defun
 
-@ifinfo
-  See @code{delq}, in @ref{Sets And Lists}, for another function
-that modifies cons cells.
-@end ifinfo
-@iftex
-   The function @code{delq} in the following section is another example
-of destructive list manipulation.
-@end iftex
-
 @node Sets And Lists
 @section Using Lists as Sets
 @cindex lists as sets
@@ -1042,8 +1072,8 @@ compare @var{object} against the elements of the list.  For example:
 
 @example
 @group
-(memq 2 '(1 2 3 2 1))
-     @result{} (2 3 2 1)
+(memq 'b '(a b c b a))
+     @result{} (b c b a)
 @end group
 @group
 (memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
@@ -1075,29 +1105,29 @@ removing it involves changing the @sc{cdr}s (@pxref{Setcdr}).
 
 @example
 @group
-(setq sample-list '(1 2 3 (4)))
-     @result{} (1 2 3 (4))
+(setq sample-list '(a b c (4)))
+     @result{} (a b c (4))
 @end group
 @group
-(delq 1 sample-list)
-     @result{} (2 3 (4))
-@end group
-@group
-sample-list
-     @result{} (1 2 3 (4))
-@end group
-@group
-(delq 2 sample-list)
-     @result{} (1 3 (4))
+(delq 'a sample-list)
+     @result{} (b c (4))
 @end group
 @group
 sample-list
-     @result{} (1 3 (4))
+     @result{} (a b c (4))
+@end group
+@group
+(delq 'c sample-list)
+     @result{} (a c (4))
+@end group
+@group
+sample-list
+     @result{} (a c (4))
 @end group
 @end example
 
-Note that @code{(delq 2 sample-list)} modifies @code{sample-list} to
-splice out the second element, but @code{(delq 1 sample-list)} does not
+Note that @code{(delq 'b sample-list)} modifies @code{sample-list} to
+splice out the second element, but @code{(delq 'a sample-list)} does not
 splice anything---it just returns a shorter list.  Don't assume that a
 variable which formerly held the argument @var{list} now has fewer
 elements, or that it still holds the original list!  Instead, save the
@@ -1114,7 +1144,7 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 @example
 @group
 (delq '(4) sample-list)
-     @result{} (1 3 (4))
+     @result{} (a c (4))
 @end group
 @end example
 
@@ -1258,7 +1288,7 @@ For example:
      @result{} nil
 @end smallexample
 
-Here is another example in which the keys and values are not symbols:
+Here is another example, in which the keys and values are not symbols:
 
 @smallexample
 (setq needles-per-cluster
@@ -1353,18 +1383,18 @@ the new alist without changing the old one.
 @group
 (setq needles-per-cluster
       '((2 . ("Austrian Pine" "Red Pine"))
-        (3 . "Pitch Pine")
-        (5 . "White Pine")))
+        (3 . ("Pitch Pine"))
+        (5 . ("White Pine"))))
 @result{}
 ((2 "Austrian Pine" "Red Pine")
- (3 . "Pitch Pine")
- (5 . "White Pine"))
+ (3 "Pitch Pine")
+ (5 "White Pine"))
 
 (setq copy (copy-alist needles-per-cluster))
 @result{}
 ((2 "Austrian Pine" "Red Pine")
- (3 . "Pitch Pine")
- (5 . "White Pine"))
+ (3 "Pitch Pine")
+ (5 "White Pine"))
 
 (eq needles-per-cluster copy)
      @result{} nil
@@ -1373,10 +1403,22 @@ the new alist without changing the old one.
 (eq (car needles-per-cluster) (car copy))
      @result{} nil
 (cdr (car (cdr needles-per-cluster)))
-     @result{} "Pitch Pine"
+     @result{} ("Pitch Pine")
 (eq (cdr (car (cdr needles-per-cluster)))
     (cdr (car (cdr copy))))
      @result{} t
+@end group
+@end example
+
+  This example shows how @code{copy-alist} makes it possible to change
+the associations of one copy without affecting the other:
+
+@example
+@group
+(setcdr (assq 3 needles-per-cluster)
+        '("Martian Vacuum Pine"))
+(cdr (assq 3 needles-per-cluster))
+     @result{} ("Pitch Pine")
 @end group
 @end smallexample
 @end defun

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/objects
-@node Types of Lisp Object, Numbers, Introduction, Top
+@node Lisp Data Types, Numbers, Introduction, Top
 @chapter Lisp Data Types
 @cindex object
 @cindex Lisp object
@@ -40,8 +40,8 @@ it as a number; Lisp knows it is a vector, not a number.
   In most languages, the programmer must declare the data type of each
 variable, and the type is known by the compiler but not represented in
 the data.  Such type declarations do not exist in Emacs Lisp.  A Lisp
-variable can have any type of value, and remembers the type of any value
-you store in it.
+variable can have any type of value, and it remembers whatever value
+you store in it, type and all.
 
   This chapter describes the purpose, printed representation, and read
 syntax of each of the standard types in GNU Emacs Lisp.  Details on how
@@ -132,7 +132,7 @@ latter are unique to Emacs Lisp.
 * Character Type::      The representation of letters, numbers and
                         control characters.
 * Sequence Type::       Both lists and arrays are classified as sequences.
-* List Type::           Lists gave Lisp its name (not to mention reputation).
+* Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
 * String Type::         An (efficient) array of characters.
 * Vector Type::         One-dimensional arrays.
@@ -170,7 +170,7 @@ to note that the Emacs Lisp arithmetic functions do not check for
 overflow.  Thus @code{(1+ 8388607)} is @minus{}8388608 on 24-bit
 implementations.@refill
 
-  The read syntax for numbers is a sequence of (base ten) digits with an
+  The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
 printed representation produced by the Lisp interpreter never has a
 leading @samp{+} or a final @samp{.}.
@@ -242,10 +242,10 @@ character @kbd{a}.
 @end example
 
   You can use the same syntax for punctuation characters, but it is
-often a good idea to add a @samp{\} to prevent Lisp mode from getting
-confused.  For example, @samp{?\ } is the way to write the space
-character.  If the character is @samp{\}, you @emph{must} use a second
-@samp{\} to quote it: @samp{?\\}.
+often a good idea to add a @samp{\} so that the Emacs commands for
+editing Lisp code don't get confused.  For example, @samp{?\ } is the
+way to write the space character.  If the character is @samp{\}, you
+@emph{must} use a second @samp{\} to quote it: @samp{?\\}.
 
 @cindex whitespace
 @cindex bell character
@@ -336,10 +336,10 @@ outside of strings as well.)
 
   The read syntax for meta characters uses @samp{\M-}.  For example,
 @samp{?\M-A} stands for @kbd{M-A}.  You can use @samp{\M-} together with
-octal codes, @samp{\C-}, or any other syntax for a character.  Thus, you
-can write @kbd{M-A} as @samp{?\M-A}, or as @samp{?\M-\101}.  Likewise,
-you can write @kbd{C-M-b} as @samp{?\M-\C-b}, @samp{?\C-\M-b}, or
-@samp{?\M-\002}.
+octal character codes (see below), with @samp{\C-}, or with any other
+syntax for a character.  Thus, you can write @kbd{M-A} as @samp{?\M-A},
+or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
+@samp{?\M-\C-b}, @samp{?\C-\M-b}, or @samp{?\M-\002}.
 
   The case of an ordinary letter is indicated by its character code as
 part of @sc{ASCII}, but @sc{ASCII} has no way to represent whether a
@@ -388,6 +388,74 @@ space, tab, newline and formfeed.  However, it is cleaner to use one of
 the easily readable escape sequences, such as @samp{\t}, instead of an
 actual whitespace character such as a tab.
 
+@node Symbol Type
+@subsection Symbol Type
+
+  A @dfn{symbol} in GNU Emacs Lisp is an object with a name.  The symbol
+name serves as the printed representation of the symbol.  In ordinary
+use, the name is unique---no two symbols have the same name.
+
+  A symbol can serve as a variable, as a function name, or to hold a
+property list.  Or it may serve only to be distinct from all other Lisp
+objects, so that its presence in a data structure may be recognized
+reliably.  In a given context, usually only one of these uses is
+intended.  But you can use one symbol in all of these ways,
+independently.
+
+@cindex @samp{\} in symbols
+@cindex backslash in symbols
+  A symbol name can contain any characters whatever.  Most symbol names
+are written with letters, digits, and the punctuation characters
+@samp{-+=*/}.  Such names require no special punctuation; the characters
+of the name suffice as long as the name does not look like a number.
+(If it does, write a @samp{\} at the beginning of the name to force
+interpretation as a symbol.)  The characters @samp{_~!@@$%^&:<>@{@}} are
+less often used but also require no special punctuation.  Any other
+characters may be included in a symbol's name by escaping them with a
+backslash.  In contrast to its use in strings, however, a backslash in
+the name of a symbol simply quotes the single character that follows the
+backslash.  For example, in a string, @samp{\t} represents a tab
+character; in the name of a symbol, however, @samp{\t} merely quotes the
+letter @kbd{t}.  To have a symbol with a tab character in its name, you
+must actually use a tab (preceded with a backslash).  But it's rare to
+do such a thing.
+
+@cindex CL note---case of letters
+@quotation
+@b{Common Lisp note:} in Common Lisp, lower case letters are always
+``folded'' to upper case, unless they are explicitly escaped.  This is
+in contrast to Emacs Lisp, in which upper case and lower case letters
+are distinct.
+@end quotation
+
+  Here are several examples of symbol names.  Note that the @samp{+} in
+the fifth example is escaped to prevent it from being read as a number.
+This is not necessary in the last example because the rest of the name
+makes it invalid as a number.
+
+@example
+@group
+foo                 ; @r{A symbol named @samp{foo}.}
+FOO                 ; @r{A symbol named @samp{FOO}, different from @samp{foo}.}
+char-to-string      ; @r{A symbol named @samp{char-to-string}.}
+@end group
+@group
+1+                  ; @r{A symbol named @samp{1+}}
+                    ;   @r{(not @samp{+1}, which is an integer).}
+@end group
+@group
+\+1                 ; @r{A symbol named @samp{+1}}
+                    ;   @r{(not a very readable name).}
+@end group
+@group
+\(*\ 1\ 2\)         ; @r{A symbol named @samp{(* 1 2)} (a worse name).}
+@c the @'s in this next line use up three characters, hence the
+@c apparent misalignment of the comment.
++-*/_~!@@$%^&=:<>@{@}  ; @r{A symbol named @samp{+-*/_~!@@$%^&=:<>@{@}}.}
+                    ;   @r{These characters need not be escaped.}
+@end group
+@end example
+
 @node Sequence Type
 @subsection Sequence Types
 
@@ -399,8 +467,9 @@ considered a sequence.
   Arrays are further subdivided into strings and vectors.  Vectors can
 hold elements of any type, but string elements must be characters in the
 range from 0 to 255.  However, the characters in a string can have text
-properties; vectors do not support text properties even when their
-elements happen to be characters.
+properties like characters in a buffer (@pxref{Text Properties});
+vectors do not support text properties even when their elements happen
+to be characters.
 
   Lists, strings and vectors are different, but they have important
 similarities.  For example, all have a length @var{l}, and all have
@@ -416,16 +485,19 @@ sequence twice, you get two sequences with equal contents.  There is one
 exception: the empty list @code{()} always stands for the same object,
 @code{nil}.
 
-@node List Type
-@subsection List Type
+@node Cons Cell Type
+@subsection Cons Cell and List Types
 @cindex address field of register
 @cindex decrement field of register
 
-  A @dfn{list} is a series of cons cells, linked together.  A @dfn{cons
-cell} is an object comprising two pointers named the @sc{car} and the
-@sc{cdr}.  Each of them can point to any Lisp object, but when the cons
-cell is part of a list, the @sc{cdr} points either to another cons cell
-or to the empty list.  @xref{Lists}, for functions that work on lists.
+  A @dfn{cons cell} is an object comprising two pointers named the
+@sc{car} and the @sc{cdr}.  Each of them can point to any Lisp object.
+
+  A @dfn{list} is a series of cons cells, linked together so that the
+@sc{cdr} of each cons cell points either to another cons cell or to the
+empty list.  @xref{Lists}, for functions that work on lists.  Because
+most cons cells are used as part of lists, the phrase @dfn{list
+structure} has come to refer to any structure made out of cons cells.
 
   The names @sc{car} and @sc{cdr} have only historical meaning now.  The
 original Lisp implementation ran on an @w{IBM 704} computer which
@@ -449,16 +521,16 @@ right parenthesis.
    Upon reading, each object inside the parentheses becomes an element
 of the list.  That is, a cons cell is made for each element.  The
 @sc{car} of the cons cell points to the element, and its @sc{cdr} points
-to the next cons cell which holds the next element in the list.  The
-@sc{cdr} of the last cons cell is set to point to @code{nil}.
+to the next cons cell of the list, which holds the next element in the
+list.  The @sc{cdr} of the last cons cell is set to point to @code{nil}.
 
 @cindex box diagrams, for lists
 @cindex diagrams, boxed, for lists
   A list can be illustrated by a diagram in which the cons cells are
 shown as pairs of boxes.  (The Lisp reader cannot read such an
-illustration; unlike the textual notation, which can be understood both
-humans and computers, the box illustrations can only be understood by
-humans.)  The following represents the three-element list @code{(rose
+illustration; unlike the textual notation, which can be understood by
+both humans and computers, the box illustrations can be understood only
+by humans.)  The following represents the three-element list @code{(rose
 violet buttercup)}:
 
 @example
@@ -642,7 +714,7 @@ functions that work on alists.
 
   An @dfn{array} is composed of an arbitrary number of slots for
 referring to other Lisp objects, arranged in a contiguous block of
-memory.  Accessing any element of an array takes a the same amount of
+memory.  Accessing any element of an array takes the same amount of
 time.  In contrast, accessing an element of a list requires time
 proportional to the position of the element in the list.  (Elements at
 the end of a list take longer to access than elements at the beginning
@@ -694,14 +766,20 @@ string constant, this sets the 2**7 bit of the character in the string.
 This is not the same representation that the meta modifier has in a
 character on its own (not inside a string).  @xref{Character Type}.
 
-  Strings cannot hold characters that have the hyper, super or alt
+  Strings cannot hold characters that have the hyper, super, or alt
 modifiers; they can hold @sc{ASCII} control characters, but no others.
 They do not distinguish case in @sc{ASCII} control characters.
 
-  In contrast with the C programming language, Emacs Lisp allows
-newlines in string literals.  But an escaped newline---one that is
-preceded by @samp{\}---does not become part of the string; i.e., the
-Lisp reader ignores an escaped newline in a string literal.
+  The printed representation of a string consists of a double-quote, the
+characters it contains, and another double-quote.  However, you must
+escape any backslash or double-quote characters in the string with a
+backslash, like this: @code{"this \" is an embedded quote"}.
+
+  The newline character is not special in the read syntax for strings;
+if you write a new line between the double-quotes, it becomes a
+character in the string.  But an escaped newline---one that is preceded
+by @samp{\}---does not become part of the string; i.e., the Lisp reader
+ignores an escaped newline while reading a string.
 @cindex newline in strings
 
 @example
@@ -713,11 +791,6 @@ ignored if escaped."
 in documentation strings, 
 but the newline is ignored if escaped."
 @end example
-
-  The printed representation of a string consists of a double-quote, the
-characters it contains, and another double-quote.  However, any
-backslash or double-quote characters in the string are preceded with a
-backslash like this: @code{"this \" is an embedded quote"}.
 
   A string can hold properties of the text it contains, in addition to
 the characters themselves.  This enables programs that copy text between
@@ -764,76 +837,8 @@ for evaluation.
 
   @xref{Vectors}, for functions that work with vectors.
 
-@node Symbol Type
-@subsection Symbol Type
-
-  A @dfn{symbol} in GNU Emacs Lisp is an object with a name.  The symbol
-name serves as the printed representation of the symbol.  In ordinary
-use, the name is unique---no two symbols have the same name.
-
-  A symbol can serve as a variable, as a function name, or to hold a
-property list.  Or it may serve only to be distinct from all other Lisp
-objects, so that its presence in a data structure may be recognized
-reliably.  In a given context, usually only one of these uses is
-intended.  But you can use one symbol in all of these ways,
-independently.
-
-@cindex @samp{\} in symbols
-@cindex backslash in symbols
-  A symbol name can contain any characters whatever.  Most symbol names
-are written with letters, digits, and the punctuation characters
-@samp{-+=*/}.  Such names require no special punctuation; the characters
-of the name suffice as long as the name does not look like a number.
-(If it does, write a @samp{\} at the beginning of the name to force
-interpretation as a symbol.)  The characters @samp{_~!@@$%^&:<>@{@}} are
-less often used but also require no special punctuation.  Any other
-characters may be included in a symbol's name by escaping them with a
-backslash.  In contrast to its use in strings, however, a backslash in
-the name of a symbol quotes the single character that follows the
-backslash, without conversion.  For example, in a string, @samp{\t}
-represents a tab character; in the name of a symbol, however, @samp{\t}
-merely quotes the letter @kbd{t}.  To have a symbol with a tab character
-in its name, you must actually use a tab (preceded with a backslash).
-But it's rare to do such a thing.
-
-@cindex CL note---case of letters
-@quotation
-@b{Common Lisp note:} in Common Lisp, lower case letters are always
-``folded'' to upper case, unless they are explicitly escaped.  This is
-in contrast to Emacs Lisp, in which upper case and lower case letters
-are distinct.
-@end quotation
-
-  Here are several examples of symbol names.  Note that the @samp{+} in
-the fifth example is escaped to prevent it from being read as a number.
-This is not necessary in the last example because the rest of the name
-makes it invalid as a number.
-
-@example
-@group
-foo                 ; @r{A symbol named @samp{foo}.}
-FOO                 ; @r{A symbol named @samp{FOO}, different from @samp{foo}.}
-char-to-string      ; @r{A symbol named @samp{char-to-string}.}
-@end group
-@group
-1+                  ; @r{A symbol named @samp{1+}}
-                    ;   @r{(not @samp{+1}, which is an integer).}
-@end group
-@group
-\+1                 ; @r{A symbol named @samp{+1}}
-                    ;   @r{(not a very readable name).}
-@end group
-@group
-\(*\ 1\ 2\)         ; @r{A symbol named @samp{(* 1 2)} (a worse name).}
-@c the @'s in this next line use up three characters, hence the
-@c apparent misalignment of the comment.
-+-*/_~!@@$%^&=:<>@{@}  ; @r{A symbol named @samp{+-*/_~!@@$%^&=:<>@{@}}.}
-                    ;   @r{These characters need not be escaped.}
-@end group
-@end example
-
-@node Lisp Function Type
-@subsection Lisp Function Type
+@node Function Type
+@subsection Function Type
 
   Just as functions in other programming languages are executable,
 @dfn{Lisp function} objects are pieces of executable code.  However,
@@ -853,8 +858,8 @@ Lisp expressions in Lisp programs.  However, you can construct or obtain
 a function object at run time and then call it with the primitive
 functions @code{funcall} and @code{apply}.  @xref{Calling Functions}.
 
-@node Lisp Macro Type
-@subsection Lisp Macro Type
+@node Macro Type
+@subsection Macro Type
 
   A @dfn{Lisp macro} is a user-defined construct that extends the Lisp
 language.  It is represented as an object much like a function, but with
@@ -887,8 +892,8 @@ Calls to the redefined function from Lisp will use the new definition,
 but calls from C code may still use the built-in definition.
 
   The term @dfn{function} refers to all Emacs functions, whether written
-in Lisp or C.  @xref{Lisp Function Type}, for information about the
-functions written in Lisp.@refill
+in Lisp or C.  @xref{Function Type}, for information about the
+functions written in Lisp.
 
   Primitive functions have no read syntax and print in hash notation
 with the name of the subroutine.
@@ -977,9 +982,10 @@ object.
   Each buffer has a designated position called @dfn{point}
 (@pxref{Positions}).  At any time, one buffer is the @dfn{current
 buffer}.  Most editing commands act on the contents of the current
-buffer in the neighborhood of point.  Many other functions manipulate or
-test the characters in the current buffer; a whole chapter in this
-manual is devoted to describing these functions (@pxref{Text}).
+buffer in the neighborhood of point.  Many of the standard Emacs
+functions manipulate or test the characters in the current buffer; a
+whole chapter in this manual is devoted to describing these functions
+(@pxref{Text}).
 
   Several other data structures are associated with each buffer:
 
@@ -995,7 +1001,7 @@ a local variable binding list (@pxref{Buffer-Local Variables}).
 @end itemize
 
 @noindent
-The local keymap and variable list contain entries which individually
+The local keymap and variable list contain entries that individually
 override global bindings or values.  These are used to customize the
 behavior of programs in different buffers, without actually changing the
 programs.
@@ -1144,8 +1150,8 @@ Area}).
   Streams have no special printed representation or read syntax, and
 print as whatever primitive type they are.
 
-  @xref{Streams}, for a description of various functions related to
-streams, including various parsing and printing functions.
+  @xref{Streams, Reading and Printing}, for a description of functions
+related to streams, including parsing and printing functions.
 
 @node Keymap Type
 @subsection Keymap Type
@@ -1167,7 +1173,7 @@ character is punctuation, but in Lisp mode it is a valid character in a
 symbol.  These modes specify different interpretations by changing the
 syntax table entry for @samp{+}, at index 43 in the syntax table.
 
-  Syntax tables are only used for scanning text in buffers, not for
+  Syntax tables are used only for scanning text in buffers, not for
 reading Lisp expressions.  The table the Lisp interpreter uses to read
 expressions is built into the Emacs source code and cannot be changed;
 thus, to change the list delimiters to be @samp{@{} and @samp{@}}
@@ -1212,7 +1218,7 @@ a type that the function can use.
   All built-in functions do check the types of their actual arguments
 when appropriate, and signal a @code{wrong-type-argument} error if an
 argument is of the wrong type.  For example, here is what happens if you
-pass an argument to @code{+} which it cannot handle:
+pass an argument to @code{+} that it cannot handle:
 
 @example
 @group
@@ -1279,8 +1285,8 @@ with references to further information.
 @item markerp
 @xref{Predicates on Markers, markerp}.
 
-@item natnump
-@xref{Predicates on Numbers, natnump}.
+@item wholenump
+@xref{Predicates on Numbers, wholenump}.
 
 @item nlistp
 @xref{List-related Predicates, nlistp}.
@@ -1334,8 +1340,8 @@ with references to further information.
 
   Here we describe two functions that test for equality between any two
 objects.  Other functions test equality between objects of specific
-types, e.g., strings.  See the appropriate chapter describing the data
-type for these predicates.
+types, e.g., strings.  For these predicates, see the appropriate chapter
+describing the data type.
 
 @defun eq object1 object2
 This function returns @code{t} if @var{object1} and @var{object2} are
