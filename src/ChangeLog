@@ -1,3 +1,7 @@
+2000-12-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (stack_idx_of_map_multiple): Don't use C initializier.
+
 2000-12-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* coding.h (code_convert_string1): Declare.
