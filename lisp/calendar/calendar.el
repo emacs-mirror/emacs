@@ -204,7 +204,6 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
   :group 'view)
 
-(add-to-list 'facemenu-unlisted-faces 'diary-face)
 (defvar diary-face 'diary-face
   "Face name to use for diary entries.")
 (defface diary-face
@@ -217,13 +216,11 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   "Face for highlighting diary entries."
   :group 'diary)
 
-(add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
 (defface calendar-today-face
   '((t (:underline t)))
   "Face for indicating today's date."
   :group 'diary)
 
-(add-to-list 'facemenu-unlisted-faces 'holiday-face)
 (defface holiday-face
   '((((class color) (background light))
      :background "pink")
@@ -233,6 +230,12 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
      :inverse-video t))
   "Face for indicating dates that have holidays."
   :group 'diary)
+
+(eval-after-load "facemenu"
+  '(progn
+     (add-to-list 'facemenu-unlisted-faces 'diary-face)
+     (add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
+     (add-to-list 'facemenu-unlisted-faces 'holiday-face)))
 
 (defcustom diary-entry-marker
   (if (not (display-color-p))
@@ -2476,19 +2479,16 @@ rather than a date."
   "Array of capitalized strings giving, in order, the month names.")
 
 (defvar calendar-font-lock-keywords
-  (list
-   '("[A-Z][a-z]+ -?[0-9]+" . font-lock-function-name-face) ; month and year
-   (cons
-    (concat (substring (aref calendar-day-name-array 6) 0 2)
-	    "\\|"
-	    (substring (aref calendar-day-name-array 0) 0 2))
-    'font-lock-comment-face)
-   (cons
-    (mapconcat 'identity
-	       (mapcar '(lambda (x) (substring x 0 2))
-		       calendar-day-name-array)
-	       "\\|")
-    'font-lock-reference-face))
+  `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
+	      " -?[0-9]+")
+     . font-lock-function-name-face) ; month and year
+    (,(regexp-opt
+       (list (substring (aref calendar-day-name-array 6) 0 2)
+	     (substring (aref calendar-day-name-array 0) 0 2)))
+     ;; Saturdays and Sundays are hilited differently.
+     . font-lock-comment-face)
+    (,(regexp-opt (mapcar (lambda (x) (substring x 0 2)) calendar-day-name-array))
+     . font-lock-reference-face))
   "Default keywords to highlight in Calendar mode.")
 
 
