@@ -1309,6 +1309,17 @@ static int read_key_sequence P_ ((Lisp_Object *, int, Lisp_Object,
 void safe_run_hooks P_ ((Lisp_Object));
 static void adjust_point_for_property P_ ((int));
 
+/* Cancel hourglass from protect_unwind.
+   ARG is not used.  */
+#ifdef HAVE_X_WINDOWS
+static Lisp_Object
+cancel_hourglass_unwind (arg)
+     Lisp_Object arg;
+{
+  cancel_hourglass ();
+}
+#endif
+
 Lisp_Object
 command_loop_1 ()
 {
@@ -1632,21 +1643,28 @@ command_loop_1 ()
 	    }
 
 	  /* Here for a command that isn't executed directly */
-
+          
+          {
 #ifdef HAVE_X_WINDOWS
-	  if (display_hourglass_p)
-	    start_hourglass ();
+            int scount = specpdl_ptr - specpdl;
+
+            if (display_hourglass_p)
+              {
+                record_unwind_protect (cancel_hourglass_unwind, Qnil);
+                start_hourglass ();
+              }
 #endif
 
-	  nonundocount = 0;
-	  if (NILP (current_kboard->Vprefix_arg))
-	    Fundo_boundary ();
-	  Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
+            nonundocount = 0;
+            if (NILP (current_kboard->Vprefix_arg))
+              Fundo_boundary ();
+            Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
 #ifdef HAVE_X_WINDOWS
-	  if (display_hourglass_p)
-	    cancel_hourglass ();
+            if (display_hourglass_p)
+              unbind_to (scount, Qnil);
 #endif
+          }
 	}
     directly_done: ;
       current_kboard->Vlast_prefix_arg = Vcurrent_prefix_arg;

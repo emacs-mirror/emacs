@@ -489,10 +489,6 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
   if (! NILP (delayed_switch_frame))
     unread_switch_frame = delayed_switch_frame;
 
-#ifdef HAVE_WINDOW_SYSTEM
-  if (display_hourglass_p)
-    start_hourglass ();
-#endif
   return val;
 }
 

@@ -1,3 +1,10 @@
+2003-03-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (cancel_hourglass_unwind): New function.
+	(command_loop_1): Cancel hourglass with unwind-protect.
+
+	* lread.c (read_filtered_event): Remove call to start_hourglass.
+
 2003-03-07  Kenichi Handa  <handa@etlken2>
 
 	* coding.c (CODING_ADD_COMPOSITION_COMPONENT): If the number of
