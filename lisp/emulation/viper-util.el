@@ -684,7 +684,8 @@
   (and (featurep 'vc-hooks)
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
-       (not (vc-locking-user file))))
+       (not (memq (vc-state file) '(edited needs-merge)))
+       (not (stringp (vc-state file)))))
 
 ;; checkout if visited file is checked in
 (defun viper-maybe-checkout (buf)
