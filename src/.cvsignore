@@ -13,3 +13,5 @@ obj-spd
 prefix-args
 stamp-oldxmenu
 temacs
+_gdbinit
+gdb.ini
