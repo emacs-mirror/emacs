@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.13) $
+ * $HopeName: MMsrc!eventcom.h(trunk.14) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -88,6 +88,11 @@ typedef Word EventType;
 #define EventMeterInit      ((EventType)0xEF3E2141) /* METer INIt */
 #define EventMeterValues    ((EventType)0xEF3E2FA7) /* METer VALues */
 #define EventCBSInit        ((EventType)0xEFCB5141) /* CBS INIt */
+#define EventTraceStatCondemn ((EventType)0xEF26A5C0) /* TRAce Stat COndemn */
+#define EventTraceStatScan  ((EventType)0xEF26A55C) /* TRAce Stat SCan */
+#define EventTraceStatFix   ((EventType)0xEF26A5F8) /* TRAce Stat FiX */
+#define EventTraceStatReclaim ((EventType)0xEF26A56E) /* TRAce Stat REclaim */
+#define EventArenaWriteFaults ((EventType)0xEFA6436F) /* AReNa WRite Faults */
 
 
 #endif /* eventcom_h */
