@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -253,6 +253,7 @@
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
 	     ;; xterm.c
+	     (x-use-underline-position-properties display boolean "21.3")
 	     (x-stretch-cursor display boolean "21.1")))
       this symbol group type native-p version
       ;; This function turns a value
