@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName$
+ * $HopeName: MMsrc!arenacl.c(trunk.19) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName$");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.19) $");
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -337,18 +337,18 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   if (pref->high)
     b = BTFindShortResRangeHigh(&baseIndex, &limitIndex,
 				chunk->allocTable,
-				0, chunk->pages,
+				chunk->ullagePages, chunk->pages,
 				pages);
   else 
     b = BTFindShortResRange(&baseIndex, &limitIndex,
 			    chunk->allocTable,
-			    0, chunk->pages,
+			    chunk->ullagePages, chunk->pages,
 			    pages);
 
   if (!b)
     return ResRESOURCE;
 
-  /* check commit limit, note that if there are multiple reasons */
+  /* Check commit limit.  Note that if there are multiple reasons */
   /* for failing the allocation we attempt to return other result codes */
   /* in preference to ResCOMMIT_LIMIT.  See design.mps.arena.commit-limit */
   if (ArenaCommitted(arena) + pages * ChunkPageSize(chunk)
