@@ -916,6 +916,11 @@ A char-table for width (columns) of each character.  */);
   DEFVAR_LISP ("printable-chars", &Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
+  Fset_char_table_range (Vprintable_chars,
+			 Fcons (make_number (32), make_number (126)), Qt);
+  Fset_char_table_range (Vprintable_chars,
+			 Fcons (make_number (160),
+				make_number (MAX_5_BYTE_CHAR)), Qt);
 
   DEFVAR_LISP ("char-script-table", &Vchar_script_table,
 	       doc: /* Char table of script symbols.
