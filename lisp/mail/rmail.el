@@ -895,8 +895,8 @@ argument causes us to read a file name and use that file as the inbox."
 			      (let ((beg (point))
 				    (eol (progn (end-of-line) (point))))
 				(read (buffer-substring beg eol)))))))
-		 (if size
-		     (goto-char (+ header-end size))))
+		 (and size (numberp size) (>= size 0)
+		      (goto-char (+ header-end size))))
 
 	       (if (re-search-forward
 		    (concat "^[\^_]?\\("
