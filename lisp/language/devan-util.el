@@ -1,4 +1,4 @@
-;;; devan-util.el --- Support for composing Devanagari characters -*-coding: iso2022-7bit;-*-
+;;; devan-util.el --- Support for composing Devanagari characters -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
