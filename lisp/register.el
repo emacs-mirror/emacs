@@ -34,14 +34,16 @@
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
 NAME is a character (a number).  CONTENTS is a string, number,
 frame configuration, mark or list.
-A list represents a rectangle; its elements are strings.")
+A list of strings represents a rectangle.
+A list of the form (file . NAME) represents the file named NAME.")
 
 (defun get-register (char)
   "Return contents of Emacs register named CHAR, or nil if none."
   (cdr (assq char register-alist)))
 
 (defun set-register (char value)
-  "Set contents of Emacs register named CHAR to VALUE.  Returns VALUE."
+  "Set contents of Emacs register named CHAR to VALUE.  Returns VALUE.
+See the documentation of the variable `register-alist' for possible VALUE."
   (let ((aelt (assq char register-alist)))
     (if aelt
 	(setcdr aelt value)
@@ -74,6 +76,8 @@ Argument is a character, naming the register."
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (char)
   "Move point to location stored in a register.
+If the register contains a file name, find that file.
+ \(To put a file name in a register, you must use `set-register'.)
 If the register contains a window configuration (one frame) or a frame
 configuration (all frames), restore that frame or all frames accordingly.
 Argument is a character, naming the register."
@@ -87,6 +91,8 @@ Argument is a character, naming the register."
      ((markerp val)
       (switch-to-buffer (marker-buffer val))
       (goto-char val))
+     ((and (consp val) (eq (car val) 'file))
+      (find-file (cdr val)))
      (t
       (error "Register doesn't contain a buffer position or configuration")))))
 
