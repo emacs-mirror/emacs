@@ -1,6 +1,6 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
-# $HopeName: MMsrc!sc.gmk(trunk.3) $
+# $HopeName: MMsrc!cx.gmk(trunk.1) $
 #
 # This file is included by platform makefiles that generate a c
 # cross-reference using the cxref tool.
@@ -13,16 +13,15 @@
 # it may be the same.
 
 
-# We need a symbol for a non-empty defintion with empty value
+# We need a symbol for a non-empty definition with empty value
 ifdef MPS_EMPTY
-error "dc.gmk: MPS_EMPTY defined"
+error "cx.gmk: MPS_EMPTY defined"
 endif
 
 CC = cxref
 CFLAGSCOMPILER = -d -R -W30,10,30,20
-CFLAGSHOT = $(MPS_EMPTY)
-CFLAGSCOOL = $(MPS_EMPTY)
-CFLAGSINTERNAL = $(MPS_EMPTY)
-CFLAGSEXTERNAL = $(MPS_EMPTY)
+CFLAGSDEBUG = $(MPS_EMPTY)
+CFLAGSOPT = $(MPS_EMPTY)
+CFLAGSOPTNODEBUG = $(MPS_EMPTY)
 
 include comm.gmk
