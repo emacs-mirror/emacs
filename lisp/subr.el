@@ -191,7 +191,7 @@ KEY must contain just one event type--it must be a string or vector
 of length 1."
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
-  (if (> (length key) 0)
+  (if (> (length key) 1)
       (error "multi-event key specified in `define-key-after'"))
   (let ((tail keymap) done inserted
 	(first (aref key 0)))
