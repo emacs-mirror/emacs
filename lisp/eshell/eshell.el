@@ -3,6 +3,7 @@
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Version: 2.4.2
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
