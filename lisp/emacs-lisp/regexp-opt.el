@@ -122,9 +122,6 @@ in REGEXP."
 (eval-when-compile
   (require 'cl))
 
-(unless (fboundp 'make-bool-vector)
-  (defalias 'make-bool-vector 'make-vector))
-
 (defun regexp-opt-group (strings &optional paren lax)
   "Return a regexp to match a string in STRINGS.
 If PAREN non-nil, output regexp parentheses around returned regexp.
@@ -169,7 +166,7 @@ so we can use character sets rather than grouping parenthesis."
       (let (letters rest)
 	;; Collect one-char strings
 	(dolist (s strings)
-	  (if (= (length s) 1) (push s letters) (push s rest)))
+	  (if (= (length s) 1) (push (string-to-char s) letters) (push s rest)))
 
 	(if rest
 	    ;; several one-char strings: take them and recurse
@@ -227,13 +224,13 @@ so we can use character sets rather than grouping parenthesis."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;
-  (let* ((charwidth 256)				; Yeah, right.
-	 (charmap (make-bool-vector charwidth nil))
+  (let* ((charmap (make-char-table 'case-table))
+	 (start -1) (end -2)
 	 (charset "")
 	 (bracket "") (dash "") (caret ""))
     ;;
     ;; Make a character map but extract character set meta characters.
-    (dolist (char (mapcar 'string-to-char chars))
+    (dolist (char chars)
       (case char
 	(?\]
 	 (setq bracket "]"))
@@ -245,14 +242,23 @@ so we can use character sets rather than grouping parenthesis."
 	 (aset charmap char t))))
     ;;
     ;; Make a character set from the map using ranges where applicable.
-    (dotimes (char charwidth)
-      (let ((start char))
-	(while (and (< char charwidth) (aref charmap char))
-	  (incf char))
-	(cond ((> char (+ start 3))
-	       (setq charset (format "%s%c-%c" charset start (1- char))))
-	      ((> char start)
-	       (setq charset (format "%s%c" charset (setq char start)))))))
+    (map-char-table
+     (lambda (c v)
+       (when v
+	 (if (= (1- c) end) (setq end c)
+	   (if (> end (+ start 2))
+	       (setq charset (format "%s%c-%c" charset start end))
+	     (while (>= end start)
+	       (setq charset (format "%s%c" charset start))
+	       (incf start)))
+	   (setq start c end c))))
+     charmap)
+    (when (>= end start)
+      (if (> end (+ start 2))
+	  (setq charset (format "%s%c-%c" charset start end))
+	(while (>= end start)
+	  (setq charset (format "%s%c" charset start))
+	  (incf start))))
     ;;
     ;; Make sure a caret is not first and a dash is first or last.
     (if (and (string-equal charset "") (string-equal bracket ""))
