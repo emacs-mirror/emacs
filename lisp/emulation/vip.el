@@ -6,6 +6,8 @@
 
 ;;; Commentary:
 
+;; A full-featured vi(1) emulator.
+;;
 ;; In Japan, the author's address is: masahiko@sato.riec.tohoku.junet
 ;;
 ;; Send suggestions and bug reports to one of the above addresses.
@@ -274,7 +276,7 @@ Type `n' to quit this window for now.\n")
   (vip-change-mode 'emacs-mode))
 
 
-;; escape to emacs mode termporarilly
+;; escape to emacs mode temporarily
 
 (defun vip-get-editor-command (l-map g-map &optional str)
   "Read characters from keyboard until an editor command is formed, using

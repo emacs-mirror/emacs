@@ -20,6 +20,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;;; Facilities to display current time/date and a new-mail indicator
+;;; in the Emacs mode line.  The single entry point is `display-time'.
+
 ;;; Code:
 
 (defvar display-time-mail-file nil

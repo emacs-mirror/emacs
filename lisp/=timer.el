@@ -20,6 +20,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package gives you the capability to run Emacs Lisp commands at
+;; specified simes in the future, either as one-shots or periodically.
+;; The single entry point is `run-at-time'.
+
 ;;; Code:
 
 (defvar timer-process nil)

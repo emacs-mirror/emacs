@@ -21,6 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package deals with the primitive form of underlining
+;; consisting of prefixing each character with "_\^h".  The entry
+;; point `underline-region' performs such underlining on a region.
+;; The entry point `ununderline-region' removes it.
+
 ;;; Code:
 
 ;;;###autoload

@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides the `view' major mode documented in the Emacs
+;; user's manual.
+
 ;;; Code:
 
 (defvar view-mode-map nil)

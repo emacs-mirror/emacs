@@ -20,6 +20,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package can be used to arrange for automatic uncompress of
+;; files packed with the UNIX compress(1) utility when they are visited.
+;; All that's necessary is to load it.  This can conveniently be done from
+;; your .emacs file.
+
 ;;; Code:
 
 ;; When we are about to make a backup file,

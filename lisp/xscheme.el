@@ -3,7 +3,7 @@
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: languages
+;; Keywords: languages lisp
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +23,10 @@
 
 ;;; Commentary:
 
-;;; Requires C-Scheme release 5 or later
-;;; Changes to Control-G handler require runtime version 13.85 or later
+;; A major mode for editing Scheme and interacting with MIT's C-Scheme.
+;;
+;; Requires C-Scheme release 5 or later
+;; Changes to Control-G handler require runtime version 13.85 or later
 
 ;;; Code:
 
