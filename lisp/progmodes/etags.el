@@ -120,7 +120,7 @@ If nil, and the symbol that is the value of `major-mode'
 has a `find-tag-default-function' property (see `put'), that is used.
 Otherwise, `find-tag-default' is used."
   :group 'etags
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom find-tag-marker-ring-length 16
   "*Length of marker rings `find-tag-marker-ring' and `tags-location-ring'."
