@@ -4736,7 +4736,7 @@ x_wm_set_size_hint (f, prompting, spec_x, spec_y)
       if (hints.flags & USSize)
 	size_hints.flags |= USSize;
     }
-
+#if defined (PWinGravity)
   switch (((spec_x < 0) << 1) + (spec_y < 0))
     {
     case 0:
@@ -4753,6 +4753,7 @@ x_wm_set_size_hint (f, prompting, spec_x, spec_y)
       break;
     }
   size_hints.flags |= PWinGravity;
+#endif /* PWinGravity */
 
 #ifdef HAVE_X11R4
   XSetWMNormalHints (x_current_display, window, &size_hints);
