@@ -45,7 +45,8 @@
 
 (require 'case-table)
 
-(let ((tbl (standard-case-table)))
+(let ((tbl (standard-case-table))
+      (set-case-syntax-charset 'iso-8859-15))
   (set-case-syntax 160 " " tbl)		;no-break space
   (set-case-syntax 161 "." tbl)		;inverted exclamation mark
   (set-case-syntax 162 "w" tbl)		;cent sign
@@ -107,11 +108,6 @@
   (set-case-syntax-pair 222 254 tbl)	;latin letter thorn
   (set-case-syntax 223 "w" tbl)		;latin small letter sharp s
   (set-case-syntax 247 "_" tbl))	;division sign
-
-;; When preloading this file, don't provide the feature.
-;; Explicit `require' is used to load this for 8-bit characters.
-(or set-case-syntax-set-multibyte
-    (provide 'latin-9))
 
 ;;; Don't compile this file: src/Makefile.in instructs make-docfile
 ;;; to look at the .el file!
