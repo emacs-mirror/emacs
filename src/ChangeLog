@@ -1,5 +1,13 @@
 2003-05-29  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (setup_coding_system): If coding has
+	post-read-conversion or pre-write-conversion, set
+	CODING_REQUIRE_DECODING_MASK and CODING_REQUIRE_ENCODING_MASK
+	respectively.
+	(decode_coding_gap): Run post-read-conversion if any.
+
+2003-05-29  Kenichi Handa  <handa@m17n.org>
+
 	* coding.c (make_conversion_work_buffer): Change the work buffer
 	name to the same one as that of Emacs 21.
 
