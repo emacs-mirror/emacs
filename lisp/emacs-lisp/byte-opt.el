@@ -265,7 +265,7 @@
 	  form)
       ;; else
       (when (and (consp fn) (eq (car fn) 'autoload))
-	(load (nth 1 fn))
+	(load (nth 2 fn))
 	(setq fn (or (and (fboundp name) (symbol-function name))
 		     (cdr (assq name byte-compile-function-environment)))))
       (if (and (consp fn) (eq (car fn) 'autoload))
