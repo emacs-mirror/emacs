@@ -1,3 +1,7 @@
+2002-06-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el (printable-chars): Setup correctly.
+
 2002-06-02  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add selection-coding-system.

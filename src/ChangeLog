@@ -1,3 +1,8 @@
+2002-06-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* character.c (syms_of_character): Set the default value of
+	Vprintable_chars to Qnil.
+
 2002-05-31  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): Change indian.elc to indian.el.
