@@ -446,7 +446,7 @@ set_frame_size (ew)
 	    * FONT_WIDTH (frame->output_data.x->font)));
 
     frame->output_data.x->flags_areas_extra
-      = 2 * FRAME_FLAGS_AREA_WIDTH (frame);
+      = FRAME_FLAGS_AREA_WIDTH (frame);
 
     change_frame_size (frame, h, w, 1, 0, 0);
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
@@ -922,7 +922,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
 
   f->output_data.x->flags_areas_extra
-    = 2 * FRAME_FLAGS_AREA_WIDTH (f);
+    = FRAME_FLAGS_AREA_WIDTH (f);
 
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
