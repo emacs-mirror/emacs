@@ -86,8 +86,6 @@
 
 ;;; Code:
 
-(provide 'facemenu)
-
 (eval-when-compile 
   (require 'help)
   (require 'button))
@@ -466,7 +464,7 @@ These special properties include `invisible', `intangible' and `read-only'."
   "Read a color using the minibuffer."
   (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
-				  (mapcar 'list (defined-colors)))
+				  (defined-colors))
 			      nil t)))
     (if (equal "" col)
 	nil
@@ -735,4 +733,5 @@ Returns the non-nil value it found, or nil if all were nil."
 
 (facemenu-update)
 
+(provide 'facemenu)
 ;;; facemenu.el ends here
