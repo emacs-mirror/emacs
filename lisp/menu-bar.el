@@ -624,7 +624,7 @@ A large number or nil slows down menu responsiveness.")
     (define-key map [menu-bar minibuf space]
       '("Complete Word" . minibuffer-complete-word))
     (define-key map [menu-bar minibuf tab]
-      '("Complete" . 'minibuffer-complete))
+      '("Complete" . minibuffer-complete))
     ))
  (list minibuffer-local-must-match-map
        minibuffer-local-completion-map))
