@@ -225,7 +225,7 @@ get_bloc (size)
   new_bloc->data = get_more_space (size);
   new_bloc->size = size;
   new_bloc->next = NIL_BLOC;
-  new_bloc->variable = NIL;
+  new_bloc->variable = (POINTER *) NIL;
 
   if (first_bloc)
     {
@@ -437,7 +437,11 @@ malloc_init (start, warn_func)
 
   malloc_initialized = 1;
   __morecore = r_alloc_sbrk;
+
   virtual_break_value = break_value = sbrk (0);
+  if (break_value == (POINTER)NULL)
+    (*warn_func)("Malloc initialization returned 0 from sbrk(0).");
+
   page_break_value = (POINTER) ROUNDUP (break_value);
   bzero (break_value, (page_break_value - break_value));
   use_relocatable_buffers = 1;
