@@ -156,6 +156,7 @@ is okay.  See `mode-line-format'.")
 	"^No further undo information$"
 	"^Save not confirmed$"
 	"^Recover-file cancelled\\.$"
+	"^Cannot switch buffers in a dedicated window$"
 
 	;; comint
 	"^Not at command line$"
@@ -181,6 +182,8 @@ is okay.  See `mode-line-format'.")
 
 	;; info
 	"^Node has no Previous$"
+	"^No menu in this node$"
+	"^Node has no Next$"
 	"^No \".*\" in index$"
 
 	;; imenu
