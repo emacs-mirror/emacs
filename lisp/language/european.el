@@ -57,7 +57,9 @@
 	(setq nonascii-insert-offset nonascii-offset)))
 
   (if input-method
-      (setq default-input-method input-method))
+      (progn
+	(setq default-input-method input-method)
+	(setq-default default-input-method input-method)))
 
   ;; If this is a Latin-N character set, set up syntax for it in
   ;; single-byte mode.
