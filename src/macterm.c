@@ -69,6 +69,7 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include "keyboard.h"
 #include "frame.h"
@@ -7867,6 +7868,14 @@ mac_handle_window_event (next_handler, event, data)
 
   switch (GetEventKind (event))
     {
+    case kEventWindowUpdate:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      do_window_update (wp);
+      break;
+
     case kEventWindowBoundsChanging:
       result = CallNextEventHandler (next_handler, event);
       if (result != eventNotHandledErr)
@@ -7924,7 +7933,8 @@ install_window_handler (window)
 {
   OSErr err = noErr;
 #if USE_CARBON_EVENTS
-  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowBoundsChanging}};
+  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowUpdate},
+			   {kEventClassWindow, kEventWindowBoundsChanging}};
   static EventHandlerUPP handle_window_event_UPP = NULL;
 
   if (handle_window_event_UPP == NULL)
@@ -8019,24 +8029,28 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
         int i;
 
         /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++)
+        for (i = 1; i <= num_files_to_open; i++)
 	  {
-	    FSSpec fs;
-	    Str255 path_name, unix_path_name;
 #ifdef MAC_OSX
 	    FSRef fref;
-#endif
+	    char unix_path_name[MAXPATHLEN];
+
+	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
+			       &actual_type, &fref, sizeof (FSRef),
+			       &actual_size);
+	    if (err != noErr || actual_type != typeFSRef)
+	      continue;
+
+	    if (FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name))
+		== noErr)
+#else
+	    FSSpec fs;
+	    Str255 path_name, unix_path_name;
 
 	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
 			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) break;
+	    if (err != noErr) continue;
 
-#ifdef MAC_OSX
-	    err = FSpMakeFSRef (&fs, &fref);
-	    if (err != noErr) break;
-
-	    if (FSRefMakePath (&fref, unix_path_name, 255) == noErr)
-#else
 	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
 					fs.name) &&
 		mac_to_posix_pathname (path_name, unix_path_name, 255))
@@ -8072,18 +8086,21 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
   FlavorFlags theFlags;
   OSErr result;
 
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
   switch (message)
     {
     case kDragTrackingEnterHandler:
       CountDragItems (theDrag, &items);
-      can_accept = 1;
+      can_accept = 0;
       for (index = 1; index <= items; index++)
 	{
 	  GetDragItemReferenceNumber (theDrag, index, &theItem);
 	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-	  if (result != noErr)
+	  if (result == noErr)
 	    {
-	      can_accept = 0;
+	      can_accept = 1;
 	      break;
 	    }
 	}
@@ -8094,7 +8111,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
 	{
 	  RgnHandle hilite_rgn = NewRgn ();
 	  Rect r;
+	  struct frame *f = mac_window_to_frame (window);
 
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  GetWindowPortBounds (window, &r);
 	  OffsetRect (&r, -r.left, -r.top);
 	  RectRgn (hilite_rgn, &r);
@@ -8110,6 +8129,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
     case kDragTrackingLeaveWindow:
       if (can_accept)
 	{
+	  struct frame *f = mac_window_to_frame (window);
+
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  HideDragHilite (theDrag);
 	  SetThemeCursor (kThemeArrowCursor);
 	}
@@ -8133,8 +8155,10 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
   OSErr result;
   ItemReference theItem;
   HFSFlavor data;
-  FSRef fref;
   Size size = sizeof (HFSFlavor);
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
 
   drag_and_drop_file_list = Qnil;
   GetDragMouse (theDrag, &mouse, 0L);
@@ -8147,11 +8171,11 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       if (result == noErr)
 	{
 #ifdef MAC_OSX
-	  FSRef frref;
+	  FSRef fref;
+	  char unix_path_name[MAXPATHLEN];
 #else
-	  Str255 path_name;
+	  Str255 path_name, unix_path_name;
 #endif
-	  Str255 unix_path_name;
 	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
 #ifdef MAC_OSX
 	  /* Use Carbon routines, otherwise it converts the file name
@@ -8169,8 +8193,6 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 					  strlen (unix_path_name)),
 		     drag_and_drop_file_list);
 	}
-      else
-	continue;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
@@ -8730,8 +8752,9 @@ XTread_socket (sd, expected, hold_quit)
 	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 	      != eventNotHandledErr)
 	    break;
-#endif
+#else
 	  do_window_update ((WindowPtr) er.message);
+#endif
 	  break;
 
 	case osEvt:

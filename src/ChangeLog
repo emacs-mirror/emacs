@@ -1,3 +1,29 @@
+2005-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c: Include sys/param.h.
+	[TARGET_API_MAC_CARBON] (mac_nav_event_callback): New declaration
+	and function.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Use MAXPATHLEN for size
+	of filename string.  Set event callback function when creating
+	dialog boxes.  Add code conversions for filenames.  Don't dispose
+	apple event descriptor record if failed to create it.
+
+	* macterm.c: Include sys/param.h.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): Add handler for
+	kEventWindowUpdate.
+	(install_window_handler) [USE_CARBON_EVENTS]: Register it.
+	(do_ae_open_documents) [TARGET_API_MAC_CARBON]: Get FSRef instead
+	of FSSpec from apple event descriptor record.
+	(do_ae_open_documents) [TARGET_API_MAC_CARBON]: Use MAXPATHLEN for
+	size of filename string.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Likewise.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Return error when a
+	file dialog is in action.
+	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Likewise.  Reject
+	only when there are no filename items.  Set background color
+	before (un)highlighting the window below the dragged items.
+	(XTread_socket) [!USE_CARBON_EVENTS]: Don't call do_window_update.
+
 2005-01-05  Romain Francoise  <romain@orebokech.com>
 
 	* term.c (encode_terminal_code): Fix buffer size computation.
