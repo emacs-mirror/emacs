@@ -1,3 +1,19 @@
+2003-03-06  Juanma Barranquero  <lektu@terra.es>
+
+	* w32term.h (struct w32_display_info): Add xrdb member to support
+	passing resources via -xrm on Windows.
+
+	* w32term.c (w32_make_rdb): New function.
+	(w32_term_init): Use it to initialize xrdb member of w32_display_info
+	struct.  Delete leftover code.
+
+	* w32fns.c (Fx_get_resource, x_get_resource_string): Pass xrdb to check
+	for resources passed on the command line.
+
+	* w32reg.c (w32_get_rdb_resource): New function.
+	(x_get_string_resource): Use it, so resources passed with -xrm
+	supercede the ones in the registry.
+
 2003-03-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_detect_focus_change): Call x_any_window_to_frame
