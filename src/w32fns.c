@@ -277,7 +277,6 @@ Lisp_Object Qfullboth;
 
 extern Lisp_Object Qtop;
 extern Lisp_Object Qdisplay;
-extern Lisp_Object Qtool_bar_lines;
 
 /* State variables for emulating a three button mouse. */
 #define LMOUSE 1
@@ -2292,6 +2291,13 @@ x_set_cursor_color (f, arg, oldval)
 
   if (FRAME_W32_WINDOW (f) != 0)
     {
+      BLOCK_INPUT;
+      /* Update frame's cursor_gc.  */
+      f->output_data.w32->cursor_gc->foreground = fore_pixel;
+      f->output_data.w32->cursor_gc->background = pixel;
+
+      UNBLOCK_INPUT;
+
       if (FRAME_VISIBLE_P (f))
 	{
 	  x_update_cursor (f, 0);
@@ -5671,7 +5677,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (0),
+  x_default_parameter (f, parms, Qtool_bar_lines, make_number (HAVE_IMAGES),
                        "toolBar", "ToolBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
@@ -8142,7 +8148,6 @@ DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
 }
 
 
-
 /***********************************************************************
 			    Image types
  ***********************************************************************/
@@ -8968,20 +8973,23 @@ clear_image_cache (f, force_p)
     {
       EMACS_TIME t;
       unsigned long old;
-      int i, any_freed_p = 0;
+      int i, nfreed;
 
       EMACS_GET_TIME (t);
       old = EMACS_SECS (t) - XFASTINT (Vimage_cache_eviction_delay);
       
-      for (i = 0; i < c->used; ++i)
+      /* Block input so that we won't be interrupted by a SIGIO
+	 while being in an inconsistent state.  */
+      BLOCK_INPUT;
+      
+      for (i = nfreed = 0; i < c->used; ++i)
 	{
 	  struct image *img = c->images[i];
 	  if (img != NULL
-	      && (force_p
-		  || (img->timestamp > old)))
+	      && (force_p || (img->timestamp < old)))
 	    {
 	      free_image (f, img);
-	      any_freed_p = 1;
+	      ++nfreed;
 	    }
 	}
 
@@ -8989,11 +8997,22 @@ clear_image_cache (f, force_p)
 	 Emacs was iconified for a longer period of time.  In that
 	 case, current matrices may still contain references to
 	 images freed above.  So, clear these matrices.  */
-      if (any_freed_p)
+      if (nfreed)
 	{
-	  clear_current_matrices (f);
+	  Lisp_Object tail, frame;
+	  
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      struct frame *f = XFRAME (frame);
+	      if (FRAME_W32_P (f)
+		  && FRAME_X_IMAGE_CACHE (f) == c)
+		clear_current_matrices (f);
+	    }
+
 	  ++windows_or_buffers_changed;
 	}
+
+      UNBLOCK_INPUT;
     }
 }
 
