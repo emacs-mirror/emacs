@@ -5007,10 +5007,13 @@ get_next_display_element (it)
 		       || (it->c != '\n'
 			   && it->glyph_row && it->glyph_row->mode_line_p)
 		       || (it->c != '\n' && it->c != '\t'))
-		    : it->multibyte_p ? !CHAR_PRINTABLE_P (it->c)
-		    : (it->c >= 127
-		       && (! unibyte_display_via_language_environment
-			   || (UNIBYTE_CHAR_HAS_MULTIBYTE_P (it->c))))))
+		    : (it->multibyte_p
+		       ? (!CHAR_PRINTABLE_P (it->c)
+			  || it->c == 0xA0 /* NO-BREAK SPACE */
+			  || it->c == 0xAD /* SOFT HYPHEN */)
+		       : (it->c >= 127
+			  && (! unibyte_display_via_language_environment
+			      || (UNIBYTE_CHAR_HAS_MULTIBYTE_P (it->c)))))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -5050,7 +5053,7 @@ get_next_display_element (it)
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		}
-	      else if (it->c == 0x8a0 || it->c == 0x8ad)
+	      else if (it->c == 0xA0 || it->c == 0xAD)
 		{
 		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
 		  if (it->dp
@@ -5061,7 +5064,7 @@ get_next_display_element (it)
 		    g = FAST_MAKE_GLYPH ('\\', face_id);
 		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c == 0x8ad ? '-' : ' ', face_id);
+		  g = FAST_MAKE_GLYPH (it->c == 0xAD ? '-' : ' ', face_id);
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		}
