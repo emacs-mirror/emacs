@@ -99,8 +99,7 @@
 ;; Section: Configuration.
 
 (defvar archive-dos-members t
-  "*If non-nil then recognize member files using ^M^J as line terminator
-and do The Right Thing.")
+  "*If non-nil then recognize member files using ^M^J as line terminator.")
 
 (defvar archive-tmpdir
   (expand-file-name
@@ -109,9 +108,9 @@ and do The Right Thing.")
   "*Directory for temporary files made by arc-mode.el")
 
 (defvar archive-remote-regexp "^/[^/:]*[^/:.]:"
-  "*Regexp recognizing archive files names that are not local (i.e., are
-not proper file names outside Emacs).  A local copy a the archive will
-be used when updating.")
+  "*Regexp recognizing archive files names that are not local.
+A non-local file is one whose file name is not proper outside Emacs.
+A local copy a the archive will be used when updating.")
 
 (defvar archive-extract-hooks nil
   "*Hooks to run when an archive member has been extracted.")
@@ -122,8 +121,9 @@ be used when updating.")
 ;; to extract to stdout without junk getting added.
 (defvar archive-arc-extract
   '("arc" "x")
-  "*Program and its options to run in order to extract an arc file member
-to the current directory.  Archive and member name will be added.")
+  "*Program and its options to run in order to extract an arc file member.
+Extraction should happen to the current directory.  Archive and member
+name will be added.")
 
 (defvar archive-arc-expunge
   '("arc" "d")
@@ -139,8 +139,9 @@ Archive and member name will be added.")
 
 (defvar archive-lzh-extract
   '("lha" "pq")
-  "*Program and its options to run in order to extract an lzh file member
-to standard output.  Archive and member name will be added.")
+  "*Program and its options to run in order to extract an lzh file member.
+Extraction should happen to standard output.  Archive and member name will
+be added.")
 
 (defvar archive-lzh-expunge
   '("lha" "d")
@@ -155,15 +156,15 @@ Archive and member name will be added.")
 ;; Zip archive configuration
 
 (defvar archive-zip-use-pkzip (memq system-type '(ms-dos windows-nt))
-  "*If non-nil then all zip options default to values suitable when using
-pkzip and pkunzip.  Only set to true for msdog systems!")
+  "*If non-nil then pkzip option are used instead of zip options.
+Only set to true for msdog systems!")
 
 (defvar archive-zip-extract
   (if archive-zip-use-pkzip '("pkunzip" "-e") '("unzip" "-qq" "-c"))
-  "*Program and its options to run in order to extract a zip file member
-to standard output.  Archive and member name will be added.\n
-If `archive-zip-use-pkzip' is non-nil then this program is expected to
-extract to a file junking the directory part of the name.")
+  "*Program and its options to run in order to extract a zip file member.
+Extraction should happen to standard output.  Archive and member name will
+be added.  If `archive-zip-use-pkzip' is non-nil then this program is
+expected to extract to a file junking the directory part of the name.")
 
 ;; For several reasons the latter behaviour is not desireable in general.
 ;; (1) It uses more disk space.  (2) Error checking is worse or non-
@@ -183,20 +184,22 @@ file.  Archive and member name will be added.")
 
 (defvar archive-zip-update-case
   (if archive-zip-use-pkzip archive-zip-update '("zip" "-q" "-k"))
-  "*Program and its options to run in order to update a case fiddled
-zip file member.  Options should ensure that specified directory will
-be put into the zip file.  Archive and member name will be added.")
+  "*Program and its options to run in order to update a case fiddled zip member.
+Options should ensure that specified directory will be put into the zip file.
+Archive and member name will be added.")
 
 (defvar archive-zip-case-fiddle t
-  "*If non-nil then zip file members are mapped to lower case if created
-by a system that under single case file names.")
+  "*If non-nil then zip file members are case fiddled.
+Case fiddling will only happen for members created by a system that
+uses caseless file names.")
 ;; ------------------------------
 ;; Zoo archive configuration
 
 (defvar archive-zoo-extract
   '("zoo" "xpq")
-  "*Program and its options to run in order to extract a zoo file member
-to standard output.  Archive and member name will be added.")
+  "*Program and its options to run in order to extract a zoo file member.
+Extraction should happen to standard output.  Archive and member name will
+be added.")
 
 (defvar archive-zoo-expunge
   '("zoo" "DqPP")
@@ -259,9 +262,9 @@ a vector of [ext-file-name int-file-name case-fiddled mode ...]")
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
 
 (defun archive-l-e (str &optional len)
-  "Convert little endian string/vector to integer.  Alternatively, first
-argument may be a buffer position in the current buffer in which case a
-second arguemnt, length, should be supplied."
+  "Convert little endian string/vector to integer.
+Alternatively, first argument may be a buffer position in the current buffer
+in which case a second argument, length, should be supplied."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
@@ -293,8 +296,7 @@ second arguemnt, length, should be supplied."
     str))
 
 (defun archive-calc-mode (oldmode newmode &optional error)
-  "From the integer OLDMODE and the string NEWMODE calculate a new file
-mode.\n
+  "From the integer OLDMODE and the string NEWMODE calculate a new file mode.
 NEWMODE may be an octal number including a leading zero in which case it
 will become the new mode.\n
 NEWMODE may also be a relative specification like \"og-rwx\" in which case
@@ -380,8 +382,8 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
     0))
 
 (defun archive-get-descr (&optional noerror)
-  "Return the descriptor vector for file at point.  Do not signal an error
-if optional second argument NOERROR is non-nil."
+  "Return the descriptor vector for file at point.
+Does not signal an error if optional second argument NOERROR is non-nil."
   (let ((no (archive-get-lineno)))
     (if (and (>= (point) archive-file-list-start)
              (< no (length archive-files)))
@@ -397,8 +399,8 @@ if optional second argument NOERROR is non-nil."
 
 ;;;###autoload
 (defun archive-mode (&optional force)
-  "Major mode for viewing an archive file as a dired-like listing of its
-contents.  You can move around using the usual cursor motion commands.
+  "Major mode for viewing an archive file in a dired-like way.
+You can move around using the usual cursor motion commands.
 Letters no longer insert themselves.
 Type `e' to pull a file out of the archive and into its own buffer;
 or click mouse-2 on the file's line in the archive mode buffer.
@@ -638,9 +640,9 @@ is visible (and the real data of the buffer is hidden)."
   (setq archive-file-list-end (point-marker)))
 
 (defun archive-alternate-display ()
-  "Toggle alternative display.  To avoid very long lines some archive mode
-don't show all information.  This function changes the set of information
-shown for each files."
+  "Toggle alternative display.
+To avoid very long lines some archive mode don't show all information.
+This function changes the set of information shown for each files."
   (interactive)
   (setq archive-alternate-display (not archive-alternate-display))
   (archive-resummarize))
@@ -676,8 +678,7 @@ shown for each files."
 	(set-buffer-modified-p (or modified (not unchanged))))))
 
 (defun archive-delete-local (name)
-  "Delete (robust) the file NAME and its parents up to and including the
-value of `archive-tmpdir'."
+  "Delete file NAME and its parents up to and including `archive-tmpdir'."
   (let ((again t)
 	(top (directory-file-name (file-name-as-directory archive-tmpdir))))
     (condition-case nil
@@ -802,8 +803,7 @@ value of `archive-tmpdir'."
   (archive-extract 'view))
 
 (defun archive-add-new-member (arcbuf name)
-  "Add the file in the current buffer to the archive in ARCBUF naming it
-NAME."
+  "Add current buffer to the archive in ARCBUF naming it NAME."
   (interactive
    (list (get-buffer
 	  (read-buffer "Buffer containing archive: "
@@ -844,8 +844,7 @@ NAME."
 ;; Section: IO stuff
 
 (defun archive-check-dos (&optional force)
-  "*If this looks like a buffer with ^M^J as line terminator then remove
-those ^Ms and set archive-subfile-dos."
+  "*Possibly handle a buffer with ^M^J terminated lines."
   (save-restriction
     (widen)
     (save-excursion
@@ -1009,8 +1008,7 @@ Use \\[archive-unmark-all-files] to remove all marks."
   (archive-next-line (- p)))
 
 (defun archive-chmod-entry (new-mode)
-  "Change the protection bits associated with all marked or this member
-in the archive.\n\
+  "Change the protection bits associated with all marked or this member.
 The new protection bits can either be specified as an octal number or
 as a relative change like \"g+rw\" as for chmod(2)"
   (interactive "sNew mode (octal or relative): ")
