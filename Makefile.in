@@ -202,15 +202,15 @@ MFLAGS =
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
 # When installing the info files, we need to do special things to
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
-COPYDIR = etc ${srcdir}/lisp ${srcdir}/external-lisp
-COPYDESTS = ${etcdir} ${lispdir} ${externallispdir}
+COPYDIR = etc ${srcdir}/etc ${srcdir}/lisp ${srcdir}/external-lisp
+COPYDESTS = ${etcdir} ${etcdir} ${lispdir} ${externallispdir}
 
 all:	src/paths.h ${SUBDIR}
 
@@ -240,7 +240,7 @@ src:	lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all ${MFLAGS} \
-		CC='${CC}' CFLAGS='${CFLAGS}' \
+		CC='${CC}' CFLAGS='${CFLAGS}' prefix='${prefix}' \
 		srcdir='${srcdir}/$@' libdir='${libdir}'
 
 ## We build the makefiles for the subdirectories here so that we can
@@ -255,13 +255,14 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  echo "# running \`make lib-src/Makefile' at the top of the" ;	\
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
-	  /bin/sed < ${srcdir}/lib-src/Makefile.in			\
+	  sed < ${srcdir}/lib-src/Makefile.in				\
 	  -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
 	  -e 's|^\(configname *=\).*$$|\1'"${configuration}"'|'		\
 	  -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'			\
 	  -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
 	  -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
-	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
+	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/lib-src|'		\
+	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/lib-src|'		\
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	  -e 's|^\(ALLOCA *=\).*$$|\1'"${ALLOCA}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
@@ -280,8 +281,9 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  echo "# running \`make src/Makefile' at the top of the" ;	\
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
-	  /bin/sed < ${srcdir}/src/Makefile.in				\
-	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
+	  sed < ${srcdir}/src/Makefile.in				\
+	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/src|'		\
+	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/src|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	  -e 's|^LN_S *=.*$$|LN_S='"${LN_S}"'|'				\
 	  -e 's|^CFLAGS *=.*$$|CFLAGS='"${CFLAGS}"'|' 			\
@@ -290,10 +292,21 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	chmod -w src/Makefile
 
 oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
-	echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile.in'."
 	rm -f oldXMenu/Makefile.tmp
-	cp "${srcdir}"/oldXMenu/Makefile oldXMenu/Makefile
-
+	@echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile'."
+	@(echo "# This file is generated from \`${srcdir}/oldXMenu/Makefile'." ; \
+	  echo "# If you are thinking about editing it, you should seriously consider" ; \
+	  echo "# running \`make oldXMenu/Makefile' at the top of the" ; \
+	  echo "# Emacs build tree instead, or editing" ;		\
+	  echo "# \`${srcdir}/oldXMenu/Makefile.in' itself." ;		\
+	  sed < ${srcdir}/oldXMenu/Makefile				\
+	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
+	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
+	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
+	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
+	  -e '/^# DIST: /d') > oldXMenu/Makefile.tmp
+	@${srcdir}/move-if-change oldXMenu/Makefile.tmp oldXMenu/Makefile
+	chmod -w oldXMenu/Makefile
 
 Makefile:
 	./config.status
@@ -318,7 +331,7 @@ install: all mkdir
            && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
            && (echo "Copying $${dir}..." ; \
 	       rm -rf $${dest} ; mkdir $${dest} ; \
-	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ); \
+	       (cd $${dir}; tar cf - . )|(cd $${dest}; umask 0; tar xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 		 rm -rf $${subdir}/RCS ; \
 		 rm -rf $${subdir}/CVS ; \
@@ -326,8 +339,8 @@ install: all mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
-	-(cd info ; \
-	  if [ ! -f ${infodir}/dir ]; then \
+	-(cd ${srcdir}/info ; \
+	  if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	    ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 ./dir ${infodir}/dir ; \
 	  fi ; \
 	  if [ "`echo *.info*`" != "*.info*" ]; then \
@@ -335,8 +348,8 @@ install: all mkdir
 	      ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $$f ${infodir}/$$f ; \
 	    done ; \
 	  fi)
-	for page in emacs etags ctags ; do \
-	  ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 etc/$${page}.1 \
+	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
+	  ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $${page}.1 \
 	    ${mandir}/$${page}${manext} ; \
 	done
 	${INSTALL_PROGRAM} ${INSTALLFLAGS} -m 1755 src/emacs \

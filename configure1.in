@@ -102,7 +102,7 @@ The --run-in-place option sets up default values for the path
 
 The --srcdir=DIR option specifies that the configuration and build
 	processes should look for the Emacs source code in DIR, when
-	DIR is not the current directory.  This option doesn't work yet.
+	DIR is not the current directory.
 
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, it removes config.status."
@@ -196,8 +196,6 @@ Set it to either \`yes' or \`no'."
 	    shift; val="$1"
 	  fi
           srcdir="${val}"
-
-	  echo "${progname}: Beware - the \`--srcdir' option doesn't work yet." >&2
 	;;
 
 	## Has the user tried to tell us where the X files are?
@@ -320,7 +318,9 @@ fi
 if [ ! -d ./oldXMenu ]; then
   mkdir ./oldXMenu
 fi
-
+if [ ! -d ./etc ]; then
+  mkdir ./etc
+fi
 
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
@@ -678,7 +678,7 @@ case "${configuration}" in
   ;;
 
   ## Suns
-  *-sun-sunos* | *-sun-bsd* )
+  *-sun-sunos* | *-sun-bsd* | *-sun-solaris* )
     case "${configuration}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
@@ -690,6 +690,7 @@ case "${configuration}" in
     case "${configuration}" in
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
+      *-sunos5* | *-solaris* ) opsys=sol2 ;;
       *			  ) opsys=bsd4-2   ;;
     esac
   ;;
