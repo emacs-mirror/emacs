@@ -961,6 +961,7 @@ dnl checks for compiler characteristics
 AC_CONST
 
 dnl checks for operating system services
+AC_LONG_FILE_NAMES
 
 dnl other checks for UNIX variants
 [
