@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.13) $
+ *  $HopeName: MMsrc!mps.h(trunk.14) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -120,7 +120,7 @@ enum
  * client in a restricted manner described in the MPS Interface
  * documentation, in order to perform fast in-line allocation.
  *
- * .ap: Keep in sync with impl.h.buffer.ap.
+ * .ap: Keep in sync with impl.h.mpmst.ap.
  */
 
 typedef struct mps_ap_s {       /* allocation point descriptor */
@@ -168,7 +168,7 @@ typedef void       (*mps_fmt_pad_t)    (mps_addr_t base, size_t size);
  * The fields of the ss structure should not be accessed by the client
  * except via macros supplied in this interface.
  *
- * .ss: Keep in sync with impl.h.mpmst.ss.
+ * .ss: See also impl.c.mpsi.check.ss and impl.h.mpmst.ss.
  */
 
 typedef struct mps_ss_s {
@@ -224,7 +224,7 @@ extern mps_assert_t mps_assert_default(void);
 /* Spaces */
 
 extern mps_res_t mps_space_create_wmem(mps_space_t *mps_space_o,
-				       mps_addr_t base, size_t size);
+                                       mps_addr_t base, size_t size);
 extern mps_res_t mps_space_create(mps_space_t *mps_space_o);
 extern void mps_space_destroy(mps_space_t mps_space);
 
