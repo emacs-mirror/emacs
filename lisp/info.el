@@ -2872,13 +2872,19 @@ the variable `Info-file-list-for-emacs'."
 		(goto-char start)
 		(skip-syntax-backward " ")
 		(setq other-tag
-		      (cond
-		       ((<= (point) (point-min))
-			"See ")
-		       ((memq (char-before) '(nil ?\. ?! ))
-			"See ")
-		       ((memq (char-before) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
-			"see ")))
+		      (cond ((memq (char-before) '(nil ?\. ?! ??))
+			     "See ")
+			    ((memq (char-before) '(?\, ?\; ?\: ?-))
+			     "see ")
+			    ((memq (char-before) '(?\( ?\[ ?\{))
+			     ;; Check whether the paren is preceded by
+			     ;; an end of sentence
+			     (skip-syntax-backward " (")
+			     (if (memq (char-before) '(nil ?\. ?! ??))
+				 "See "
+			       "see "))
+			    ((save-match-data (looking-at "\n\n"))
+			     "See ")))
 		(goto-char next))
 	      (if hide-tag
 		  (add-text-properties (match-beginning 1) (match-end 1)
