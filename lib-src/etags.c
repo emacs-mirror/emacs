@@ -109,8 +109,10 @@ extern int errno;
 #define C_STAR	0x00003		/* C* */
 #define YACC	0x10000		/* yacc file */
 
-#define streq(s,t)	((DEBUG &&!(s)&&!(t)&&(abort(),1)) || !strcmp(s,t))
-#define strneq(s,t,n)	((DEBUG &&!(s)&&!(t)&&(abort(),1)) || !strncmp(s,t,n))
+#define streq(s,t)	((DEBUG && (s) == NULL && (t) == NULL	\
+			  && (abort (), 1)) || !strcmp (s, t))
+#define strneq(s,t,n)	((DEBUG && (s) == NULL && (t) == NULL	\
+			  && (abort (), 1)) || !strncmp (s, t, n))
 
 #define lowcase(c)	tolower ((char)c)
 
