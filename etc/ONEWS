@@ -87,7 +87,7 @@ To use this package, put in your ~/.emacs:
 
  (setq font-lock-support-mode 'lazy-lock-mode)
 
-To control the package behaviour, see the documentation for `lazy-lock-mode'.
+To control the package behavior, see the documentation for `lazy-lock-mode'.
 
 ** Changes in BibTeX mode.
 
@@ -988,7 +988,7 @@ file status.
 
 If you do want unmodified files to be write-protected, set your
 CVSREAD environment variable.  VC sees this and behaves accordingly;
-that will give you the behaviour of Emacs 19.29, similar to that under
+that will give you the behavior of Emacs 19.29, similar to that under
 RCS and SCCS.  In this mode, if the variable vc-mistrust-permissions
 is nil, VC learns the modification state from the file permissions.
 When setting CVSREAD for the first time, you should check out the
@@ -1029,7 +1029,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.5 2001/01/31 15:19:32 gerd Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.6 2002/01/12 15:36:53 pj Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -4178,7 +4178,7 @@ C-c C-h lists the input history in a `*Help*' buffer.
 
 There are new menu bar items for completion/input/output/signal commands.
 
-Input behaviour is configurable.  Variables control whether some windows
+Input behavior is configurable.  Variables control whether some windows
 showing the buffer scroll to the bottom before insertion.  These are
 `comint-scroll-to-bottom-on-input' and `before-change-function'.  By default,
 insertion causes the selected window to scroll to the bottom before insertion
@@ -4259,7 +4259,7 @@ Directory tracking is more robust.  It can cope with command sequences
 and forked commands, and can detect the failure of directory changing
 commands in most circumstances.  It's still not infallible, of course.
 
-You can now configure the behaviour of `pushd'.  Variables control
+You can now configure the behavior of `pushd'.  Variables control
 whether `pushd' behaves like `cd' if no argument is given
 (`shell-pushd-tohome'), pop rather than rotate with a numeric argument
 (`shell-pushd-dextract'), and only add directories to the directory
