@@ -1,5 +1,8 @@
 2002-01-24  Richard M. Stallman  <rms@gnu.org>
 
+	* term/x-win.el (x-handle-geometry): Put sizes on both
+	initial-frame-alist and default-frame-alist.
+
 	* cus-edit.el (custom-save-all): Bind file-precious-flag to t
 	for saving .emacs.
 
