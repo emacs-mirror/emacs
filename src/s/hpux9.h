@@ -4,8 +4,10 @@
 
 #define HPUX9
 
+/* If Emacs doesn't seem to work when built to use GNU malloc, you
+   probably need to get the latest patches to the HP/UX compiler.
+   See `etc/MACHINES' for more information.  */
 #if 0
-/* Try some debugging and see if gnu malloc hurts us */
 #define SYSTEM_MALLOC 1
 #undef GNU_MALLOC
 #undef REL_ALLOC
