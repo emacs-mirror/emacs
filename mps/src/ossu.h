@@ -1,6 +1,6 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!ossu.h(trunk.1) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -73,6 +73,6 @@ extern int system(const char *string);
 
 /* string.h things */
 
-extern char *memset(char *, int, size_t);
+extern void *memset(void *, int, size_t);
 
 #endif
