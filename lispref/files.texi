@@ -322,19 +322,25 @@ version of the file before saving it.
 @end itemize
 @end deffn
 
-@deffn Command save-some-buffers &optional save-silently-p exiting
+@deffn Command save-some-buffers &optional save-silently-p pred
 This command saves some modified file-visiting buffers.  Normally it
 asks the user about each buffer.  But if @var{save-silently-p} is
 non-@code{nil}, it saves all the file-visiting buffers without querying
 the user.
 
-The optional @var{exiting} argument, if non-@code{nil}, requests this
-function to offer also to save certain other buffers that are not
-visiting files.  These are buffers that have a non-@code{nil}
-buffer-local value of @code{buffer-offer-save}.  (A user who says @samp{yes} to
-saving one of these is asked to specify a file name to use.)  The
-@code{save-buffers-kill-emacs} function passes a non-@code{nil} value
-for this argument.
+The optional @var{pred} argument controls which buffers to ask about.
+If it is @code{nil}, that means to ask only about file-visiting buffers.
+If it is @code{t}, that means also offer to save certain other non-file
+buffers---those that have a non-@code{nil} buffer-local value of
+@code{buffer-offer-save}.  (A user who says @samp{yes} to saving a
+non-file buffer is asked to specify the file name to use.)  The
+@code{save-buffers-kill-emacs} function passes the value @code{t} for
+@var{pred}.
+
+If @var{pred} is neither @code{t} nor @code{nil}, then it should be
+a function of no arguments.  It will be called in each buffer to decide
+whether to offer to save that buffer.  If it returns a non-@code{nil}
+value in a certain buffer, that means do offer to save that buffer.
 @end deffn
 
 @deffn Command write-file filename &optional confirm

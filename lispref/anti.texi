@@ -27,7 +27,9 @@ freely in Lisp programs, with no effects except what you implement for
 yourself.  With no images, who needs the @code{display} text property?
 
 @item
-The @code{field} text property has no special meaning.
+The @code{field} text property has no special meaning; buffers are no
+longer subdivided into fields.  (The division of information into
+fields is always rather arbitrary.)
 
 @item
 Faces have fewer attributes.  The attributes @code{:family},
