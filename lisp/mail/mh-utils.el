@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.7 1996/01/09 23:19:28 kwzh Exp erik $
+;; $Id: mh-utils.el,v 1.8 1996/01/14 07:34:30 erik Exp kwzh $
 
 ;;; Code:
 
@@ -893,23 +893,23 @@ Non-nil third argument means not to show the message."
   (cond ((eql status 0)			;success
 	 status)
 	((stringp status)		;kill string
-	 (error (format "%s: %s" command status)))
+	 (error "%s: %s" command status))
 	(t				;exit code
 	 (cond
 	  ((= (buffer-size) 0)		;program produced no error message
-	   (error (format "%s: exit code %d" command status)))
+	   (error "%s: exit code %d" command status))
 	  (t
 	   ;; will error message fit on one line?
 	   (goto-line 2)
 	   (if (and (< (buffer-size) (screen-width))
 		    (eobp))
-	       (error (buffer-substring 1 (progn (goto-char 1)
+	       (error "%s"
+		      (buffer-substring 1 (progn (goto-char 1)
 						 (end-of-line)
 						 (point))))
 	     (display-buffer (current-buffer))
-	     (error (format
-		     "%s failed with status %d.  See error message in other window."
-		     command status))))))))
+	     (error "%s failed with status %d.  See error message in other window."
+		    command status)))))))
 
 
 (defun mh-expand-file-name (filename &optional default)
