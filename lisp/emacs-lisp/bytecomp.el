@@ -3325,6 +3325,10 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete-variable 'after-change-function
   "use after-change-functions; which is a list of functions rather than a single function.")
 (make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face)
+(make-obsolete-variable 'post-command-idle-hook
+  "use timers instead, with `run-with-idle-timer'.")
+(make-obsolete-variable 'post-command-idle-delay
+  "use timers instead, with `run-with-idle-timer'.")
 
 (provide 'byte-compile)
 (provide 'bytecomp)
