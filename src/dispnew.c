@@ -131,7 +131,6 @@ static void free_glyph_matrix P_ ((struct glyph_matrix *));
 static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
 				     int, int, struct dim));
 static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
-static void swap_glyphs_in_rows P_ ((struct glyph_row *, struct glyph_row *));
 static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
 static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
 static void fill_up_frame_row_with_spaces P_ ((struct glyph_row *, int));
@@ -1054,6 +1053,7 @@ increment_row_positions (row, delta, delta_bytes)
 }
 
 
+#if 0
 /* Swap glyphs between two glyph rows A and B.  This exchanges glyph
    contents, i.e. glyph structure contents are exchanged between A and
    B without changing glyph pointers in A and B.  */
@@ -1092,6 +1092,7 @@ swap_glyphs_in_rows (a, b)
     }
 }
 
+#endif /* 0 */
 
 /* Exchange pointers to glyph memory between glyph rows A and B.  */
 
@@ -1189,6 +1190,8 @@ glyph_row_slice_p (window_row, frame_row)
 }
 
 
+#if 0
+
 /* Find the row in the window glyph matrix WINDOW_MATRIX being a slice
    of ROW in the frame matrix FRAME_MATRIX.  Value is null if no row
    in WINDOW_MATRIX is found satisfying the condition.  */
@@ -1210,6 +1213,7 @@ find_glyph_row_slice (window_matrix, frame_matrix, row)
   return i < window_matrix->nrows ? window_matrix->rows + i : 0;
 }
 
+#endif /* 0 */
 
 /* Prepare ROW for display.  Desired rows are cleared lazily,
    i.e. they are only marked as to be cleared by setting their
