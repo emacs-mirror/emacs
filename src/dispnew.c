@@ -2491,7 +2491,7 @@ init_display ()
 #ifdef HAVE_NTGUI
   if (!inhibit_window_system) 
     {
-      Vwindow_system = intern ("win32");
+      Vwindow_system = intern ("w32");
       Vwindow_system_version = make_number (1);
       return;
     }
