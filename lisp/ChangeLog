@@ -1,5 +1,9 @@
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-save-delete): Move in front of local
+	variables, otherwise long Custom entries would make them
+	ineffective.
+
 	* uniquify.el: Set maintainer to FSF.
 
 2001-03-07  Eli Zaretskii  <eliz@is.elta.co.il>
