@@ -248,7 +248,6 @@ This should be bound to a down-mouse event."
   (setq mouse-sel-selection-type
 	(mouse-sel-determine-selection-type (event-click-count EVENT)))
   (let ((object-bounds (bounds-of-thing-at-point mouse-sel-selection-type)))
-    (setq foo object-bounds)
     (if object-bounds
 	(progn
 	  (setq mark-active t)
@@ -334,7 +333,6 @@ This should be bound to a down-mouse event."
 		 (t (goto-char (posn-point end)))
 
 		 )
-		(setq foo1 (cons (list min max (point)) foo1))
 		;; Determine direction of drag
 		(cond
 		 ((and (not direction) (not (eq min max)))
