@@ -759,14 +759,18 @@ A printed representation of an object is text which describes that object.  */)
 {
   PRINTDECLARE;
   Lisp_Object printcharfun;
-  struct gcpro gcpro1, gcpro2;
-  Lisp_Object tem;
+  /* struct gcpro gcpro1, gcpro2; */
+  Lisp_Object save_deactivate_mark;
+  int count = specpdl_ptr - specpdl;
+
+  specbind (Qinhibit_modification_hooks, Qt);
 
   /* Save and restore this--we are altering a buffer
      but we don't want to deactivate the mark just for that.
      No need for specbind, since errors deactivate the mark.  */
-  tem = Vdeactivate_mark;
-  GCPRO2 (object, tem);
+  save_deactivate_mark = Vdeactivate_mark;
+  /* GCPRO2 (object, save_deactivate_mark); */
+  abort_on_gc++;
 
   printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
@@ -781,10 +785,11 @@ A printed representation of an object is text which describes that object.  */)
   Ferase_buffer ();
   set_buffer_internal (old);
 
-  Vdeactivate_mark = tem;
-  UNGCPRO;
+  Vdeactivate_mark = save_deactivate_mark;
+  /* UNGCPRO; */
 
-  return object;
+  abort_on_gc--;
+  return unbind_to (count, object);
 }
 
 DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
