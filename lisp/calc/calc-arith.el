@@ -1609,6 +1609,50 @@
 	    (math-reject-arg b "*Division by zero"))
 	a))))
 
+;; For math-div-symb-fancy
+(defvar math-trig-inverses
+  '((calcFunc-sin . calcFunc-csc)
+    (calcFunc-cos . calcFunc-sec)
+    (calcFunc-tan . calcFunc-cot)
+    (calcFunc-sec . calcFunc-cos)
+    (calcFunc-csc . calcFunc-sin)
+    (calcFunc-cot . calcFunc-tan)
+    (calcFunc-sinh . calcFunc-csch)
+    (calcFunc-cosh . calcFunc-sech)
+    (calcFunc-tanh . calcFunc-coth)
+    (calcFunc-sech . calcFunc-cosh)
+    (calcFunc-csch . calcFunc-sinh)
+    (calcFunc-coth . calcFunc-tanh)))
+
+(defvar math-div-trig)
+(defvar math-div-non-trig)
+
+(defun math-div-new-trig (tr)
+  (if math-div-trig
+      (setq math-div-trig
+            (list '* tr math-div-trig))
+    (setq math-div-trig tr)))
+
+(defun math-div-new-non-trig (ntr)
+  (if math-div-non-trig
+      (setq math-div-non-trig 
+            (list '* ntr math-div-non-trig))
+    (setq math-div-non-trig ntr)))
+
+(defun math-div-isolate-trig (expr)
+  (if (eq (car-safe expr) '*)
+      (progn
+        (math-div-isolate-trig-term (nth 1 expr))
+        (math-div-isolate-trig (nth 2 expr)))
+    (math-div-isolate-trig-term expr)))
+
+(defun math-div-isolate-trig-term (term)
+  (let ((fn (assoc (car-safe term) math-trig-inverses)))
+    (if fn
+        (math-div-new-trig
+         (cons (cdr fn) (cdr term)))
+      (math-div-new-non-trig term))))
+
 (defun math-div-symb-fancy (a b)
   (or (and math-simplify-only
 	   (not (equal a math-simplify-only))
@@ -1667,6 +1711,15 @@
 		    (list 'calcFunc-idn (math-div a (nth 1 b))))
 	       (and (math-known-matrixp a)
 		    (math-div a (nth 1 b)))))
+      (and math-simplifying
+           (let ((math-div-trig nil)
+                 (math-div-non-trig nil))
+             (math-div-isolate-trig b)
+             (if math-div-trig
+                 (if math-div-non-trig
+                     (math-div (math-mul a math-div-trig) math-div-non-trig)
+                   (math-mul a math-div-trig))
+               nil)))
       (if (and calc-matrix-mode
 	       (or (math-known-matrixp a) (math-known-matrixp b)))
 	  (math-combine-prod a b nil t nil)
@@ -2674,6 +2727,8 @@
 	 invb
 	 (math-looks-negp (nth 2 b)))
     (math-mul a (math-pow (nth 1 b) (math-neg (nth 2 b)))))
+   ((and math-simplifying
+         (math-combine-prod-trig a b)))
    (t (let ((apow 1) (bpow 1))
 	(and (consp a)
 	     (cond ((and (eq (car a) '^)
@@ -2770,6 +2825,83 @@
 			(condition-case err
 			    (math-pow a apow)
 			  (inexact-result (list '^ a apow)))))))))))
+
+(defun math-combine-prod-trig (a b)
+  (cond
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-sec)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-tan (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cos (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-sec)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cot (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-tan)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sin (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-tan)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-tan)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sec (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sec)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-csc (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-sech)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-tanh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cosh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-sech)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-coth (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-tanh)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sinh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-tanh)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-tanh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sech (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sech)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-csch (cdr a)))
+   (t
+    nil)))
 
 (defun math-mul-or-div (a b ainv binv)
   (if (or (Math-vectorp a) (Math-vectorp b))
