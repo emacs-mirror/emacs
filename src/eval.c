@@ -1211,6 +1211,8 @@ See also the function `condition-case'.")
   extern int waiting_for_input;
   Lisp_Object debugger_value;
   Lisp_Object string;
+  Lisp_Object real_error_symbol;
+  Lisp_Object combined_data;
 
   quit_error_check ();
   immediate_quit = 0;
@@ -1221,11 +1223,16 @@ See also the function `condition-case'.")
   TOTALLY_UNBLOCK_INPUT;
 #endif
 
+  if (NILP (error_symbol))
+    real_error_symbol = Fcar (data);
+  else
+    real_error_symbol = error_symbol;
+
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function))
     call2 (Vsignal_hook_function, error_symbol, data);
 
-  conditions = Fget (error_symbol, Qerror_conditions);
+  conditions = Fget (real_error_symbol, Qerror_conditions);
 
   for (; handlerlist; handlerlist = handlerlist->next)
     {
@@ -1244,7 +1251,7 @@ See also the function `condition-case'.")
 	{
 	  /* We can't return values to code which signaled an error, but we
 	     can continue code which has signaled a quit.  */
-	  if (EQ (error_symbol, Qquit))
+	  if (EQ (real_error_symbol, Qquit))
 	    return Qnil;
 	  else
 	    error ("Cannot return from the debugger in an error");
@@ -1257,8 +1264,9 @@ See also the function `condition-case'.")
 	  struct handler *h = handlerlist;
 
 	  handlerlist = allhandlers;
-	  if (EQ (data, memory_signal_data))
-	    unwind_data = memory_signal_data;
+
+	  if (NILP (error_symbol))
+	    unwind_data = data;
 	  else
 	    unwind_data = Fcons (error_symbol, data);
 	  h->chosen_clause = clause;
@@ -1273,7 +1281,7 @@ See also the function `condition-case'.")
   if (catchlist != 0)
     Fthrow (Qtop_level, Qt);
 
-  if (! EQ (data, memory_signal_data))
+  if (! NILP (error_symbol))
     data = Fcons (error_symbol, data);
 
   string = Ferror_message_string (data);
@@ -1344,6 +1352,10 @@ skip_debugger (conditions, data)
 }
 
 /* Value of Qlambda means we have called debugger and user has continued.
+   There are two ways to pass SIG and DATA:
+    - SIG is the error symbol, and DATA is the rest of the data.
+    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
+
    Store value returned from debugger into *DEBUGGER_VALUE_PTR.  */
 
 static Lisp_Object
@@ -1364,20 +1376,31 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
     {
       int count = specpdl_ptr - specpdl;
       int debugger_called = 0;
+      Lisp_Object sig_symbol, combined_data;
+
+      if (NILP (sig))
+	{
+	  combined_data = data;
+	  sig_symbol = Fcar (data);
+	}
+      else
+	{
+	  combined_data = Fcons (sig, data);
+	  sig_symbol = sig;
+	}
 
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
-      if ((EQ (sig, Qquit)
+      if ((EQ (sig_symbol, Qquit)
 	   ? debug_on_quit
 	   : wants_debugger (Vdebug_on_error, conditions))
-	  && ! skip_debugger (conditions, Fcons (sig, data))
+	  && ! skip_debugger (conditions, combined_data)
 	  && when_entered_debugger < num_nonmacro_input_events)
 	{
 	  specbind (Qdebug_on_error, Qnil);
 	  *debugger_value_ptr
 	    = call_debugger (Fcons (Qerror,
-				    Fcons (Fcons (sig, data),
-					   Qnil)));
+				    Fcons (combined_data, Qnil)));
 	  debugger_called = 1;
 	}
       /* If there is no handler, return saying whether we ran the debugger.  */
