@@ -1,3 +1,20 @@
+2002-09-05  Dave Love  <fx@gnu.org>
+
+	* s/usg5-4.h: Fix last change.
+
+	* unexelf.c (unexec): Make .got handling not SGI-specific.
+
+	* syntax.c (syms_of_syntax) <multibyte-syntax-as-symbol>: Doc fix.
+
+	* regex.c: Use `ifdef HAVE_ALLOCA_H', not `if HAVE_ALLOCA_H'.
+
+	* keyboard.c (read_key_sequence): Fix type error.
+
+	* buffer.c (Fset_buffer_multibyte, Fset_buffer_multibyte): Fix
+	type error.
+
+	* fontset.c (fontset_add): Return Lisp_Object.
+
 2002-09-03  Dave Love  <fx@gnu.org>
 
 	* charset.h (charset_ordered_list_tick): Declare extern.

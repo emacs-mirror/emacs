@@ -1,3 +1,22 @@
+2002-09-05  Dave Love  <fx@gnu.org>
+
+	* mm-util.el (mm-hack-charsets, mm-iso-8859-15-compatible) 
+	(mm-iso-8859-x-to-15-table): Deleted.
+	(mm-find-mime-charset-region): Remove hack-charsets stuff.
+
+	* rfc2047.el (message-posting-charset): defvar when compiling.
+	(rfc2047-header-encoding-alist): Add `address-mime' part.
+	(rfc2047-charset-encoding-alist): Use B for iso-8859-7.  Doc fix.
+	(rfc2047-q-encoding-alist): Augment header list.
+	(rfc2047-encodable-p): Use mm-find-mime-charset-region.
+	(rfc2047-special-chars, rfc2047-non-special-chars): New.
+	(rfc2047-dissect-region, rfc2047-encode-region, rfc2047-encode):
+	Rewritten to avoid charset stuff and to take account of rfc2822
+	tokens.
+	(rfc2047-encode-message-header): Don't include header name field
+	in encoding.  Add `address-mime' case and bind
+	rfc2047-special-chars for `mime' case.
+
 2002-08-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* qp.el (quoted-printable-decode-region): Insert bytes by
