@@ -97,6 +97,22 @@ struct MacFontStruct {
 typedef struct MacFontStruct MacFontStruct;
 typedef struct MacFontStruct XFontStruct;
 
+/* Structure borrowed from Xlib.h to represent two-byte characters.  */
+
+typedef struct {
+  unsigned char byte1;
+  unsigned char byte2;
+} XChar2b;
+
+#define STORE_XCHAR2B(chp, b1, b2) \
+  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
+
+#define XCHAR2B_BYTE1(chp) \
+  ((chp)->byte1)
+
+#define XCHAR2B_BYTE2(chp) \
+  ((chp)->byte2)
+
 
 /* Emulate X GC's by keeping color and font info in a structure.  */
 typedef struct _XGCValues
