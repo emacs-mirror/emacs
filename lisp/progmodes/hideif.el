@@ -958,7 +958,10 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (defun hide-ifdef-use-define-alist (name)
   "Set `hide-ifdef-env' to the define list specified by NAME."
-  (interactive "SUse define list: ")
+  (interactive
+   (list (completing-read "Use define list: "
+			  hide-ifdef-define-alist nil t)))
+  (if (stringp name) (setq name (intern name)))
   (let ((define-list (assoc name hide-ifdef-define-alist)))
     (if define-list
 	(setq hide-ifdef-env
