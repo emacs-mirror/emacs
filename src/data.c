@@ -506,6 +506,8 @@ DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0, "Make SYMBOL's functi
      register Lisp_Object sym;
 {
   CHECK_SYMBOL (sym, 0);
+  if (NILP (sym) || EQ (sym, Qt))
+    return Fsignal (Qsetting_constant, Fcons (sym, Qnil));
   XSYMBOL (sym)->function = Qunbound;
   return sym;
 }
@@ -546,7 +548,8 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
      register Lisp_Object sym, newdef;
 {
   CHECK_SYMBOL (sym, 0);
-
+  if (NILP (sym) || EQ (sym, Qt))
+    return Fsignal (Qsetting_constant, Fcons (sym, Qnil));
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (sym)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
