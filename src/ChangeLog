@@ -1,5 +1,9 @@
 2002-04-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (notice_overwritten_cursor): Handle the special case
+	of the cursor being in the first blank non-text line at the
+	end of a window.
+	
 	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor)
 	(x_draw_phys_cursor_glyph): Set phys_cursor_width here.
 	(x_display_and_set_cursor): Don't set phys_cursor_width here, for
