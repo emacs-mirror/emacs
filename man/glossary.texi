@@ -933,7 +933,7 @@ or following the stylistic conventions of human language.
 The tool bar is a line (sometimes multiple lines) of icons at the top
 of an Emacs frame.  Clicking on one of these icons executes a command.
 You can think of this as a graphical relative of the menu bar (q.v.).
-@xref{Tool Bar}.
+@xref{Tool Bars}.
 
 @item Top Level
 Top level is the normal state of Emacs, in which you are editing the
