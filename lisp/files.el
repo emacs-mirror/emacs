@@ -298,7 +298,8 @@ functions are called.")
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
 These hooks are considered to pertain to the visited file.
-So this list is cleared if you change the visited file name.
+So any buffer-local binding of `write-file-hooks' is
+discarded if you change the visited file name with \\[set-visited-file-name].
 
 Don't make this variable buffer-local; instead, use `local-write-file-hooks'.
 See also `write-contents-hooks'.")
