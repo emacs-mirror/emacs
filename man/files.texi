@@ -1378,6 +1378,7 @@ file, just as it does with RCS in its normal (locking) mode.
 @node Advanced C-x C-q
 @subsubsection Advanced Control in @kbd{C-x C-q}
 
+@cindex specify version number to check in/out
   When you give a prefix argument to @code{vc-next-action} (@kbd{C-u
 C-x C-q}), it still performs the next logical version control
 operation, but accepts additional arguments to specify precisely how
@@ -1398,6 +1399,7 @@ C-q @key{RET}} is a convenient way to get the latest version of a file from
 the repository.
 
 @item
+@cindex specify name of version control system
 Instead of the version number, you can also specify the name of a
 version control system.  This is useful when one file is being managed
 with two version control systems at the same time (@pxref{Local
@@ -1564,6 +1566,7 @@ registering a file with CVS, you must subsequently commit the initial
 version by typing @kbd{C-x C-q}.
 
 @vindex vc-default-init-version
+@cindex specify initial version number to register
   The initial version number for a newly registered file is 1.1, by
 default.  You can specify a different default by setting the variable
 @code{vc-default-init-version}, or you can give @kbd{C-x v i} a numeric
