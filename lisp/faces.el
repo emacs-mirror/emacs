@@ -1148,7 +1148,7 @@ selected frame."
 	    (goto-char beg)
 	    (forward-line 1)
 	    (while (not (eobp))
-	      (insert "                          ")
+	      (insert-char ?  (1+ face-name-max-length))
 	      (forward-line 1))))
 	(goto-char (point-min)))
       (print-help-return-message))
