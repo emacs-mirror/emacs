@@ -135,6 +135,13 @@ enum iso_code_class_type
    on output.  */
 #define CODING_FLAG_ISO_DESIGNATE_AT_BOL 0x0400
 
+/* If set, do not encode unexpected charactes on output.  */
+#define CODING_FLAG_ISO_SAFE		0x0800
+
+/* A character to be produced on output if encoding of the original
+   character is prohibited by CODING_FLAG_ISO_SAFE.  */
+#define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* `?' */
+
 /* Structure of the field `spec.iso2022' in the structure `coding_system'.  */
 struct iso2022_spec
 {
@@ -421,6 +428,10 @@ extern Lisp_Object Vlast_coding_system_used;
    structure contains information of a coding-system specified by the
    function `set-terminal-coding-system'.  */
 extern struct coding_system terminal_coding;
+
+/* Coding system to be used to encode text for terminal display when
+   terminal coding system is nil.  */
+extern struct coding_system safe_terminal_coding;
 
 /* Coding-system of what is sent from terminal keyboard.  This
    structure contains information of a coding-system specified by the
