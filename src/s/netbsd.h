@@ -77,14 +77,14 @@
    says where to find X windows at run time.  We convert it to a -rpath option
    which is what OSF1 uses.  */
 #define LD_SWITCH_SYSTEM_tmp `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp /usr/local/lib
+#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -L/usr/pkg/lib -L/usr/local/lib
 
 /* The following is needed to make `configure' find Xpm, Xaw3d and
    image include and library files if using /usr/bin/gcc.  That
    compiler seems to be modified to not find headers in
    /usr/local/include or libs in /usr/local/lib by default.  */
 
-#define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/local/include -L/usr/local/lib
+#define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/pkg/include -I/usr/local/include -L/usr/pkg/lib -L/usr/local/lib
 
 #endif /* __ELF__ */
 
