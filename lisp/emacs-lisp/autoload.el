@@ -51,11 +51,13 @@ read and an autoload made for it.  If there is further text on the line,
 that text will be copied verbatim to `generated-autoload-file'.")
 
 (defconst generate-autoload-section-header "\f\n;;;### "
-  "String inserted before the form identifying
-the section of autoloads for a file.")
+  "String that marks the form at the start of a new file's autoload section.")
 
 (defconst generate-autoload-section-trailer "\n;;;***\n"
   "String which indicates the end of the section of autoloads for a file.")
+
+(defconst generate-autoload-section-continuation ";;;;;; "
+  "String to add on each continuation of the section header form.")
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
@@ -131,6 +133,27 @@ Returns nil if FORM is not a defun, define-skeleton, defmacro or defcustom."
   (setq file (expand-file-name file))
   (file-relative-name file
 		      (file-name-directory generated-autoload-file)))
+
+(defun autoload-read-section-header ()
+  "Read a section header form.
+Since continuation lines have been marked as comments,
+we must copy the text of the form and remove those comment
+markers before we call `read'."
+  (save-match-data
+    (let ((beginning (point))
+	  string)
+      (forward-line 1)
+      (while (looking-at generate-autoload-section-continuation)
+	(forward-line 1))
+      (setq string (buffer-substring beginning (point)))
+      (with-current-buffer (get-buffer-create " *autoload*")
+	(erase-buffer)
+	(insert string)
+	(goto-char (point-min))
+	(while (search-forward generate-autoload-section-continuation nil t)
+	  (replace-match " "))
+	(goto-char (point-min))
+	(read (current-buffer))))))
 
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
@@ -269,12 +292,24 @@ are used."
 	(setq output-end (point-marker))))
     (if done-any
 	(progn
+	  ;; Insert the section-header line
+	  ;; which lists the file name and which functions are in it, etc.
 	  (insert generate-autoload-section-header)
 	  (prin1 (list 'autoloads autoloads-done load-name
 		       (autoload-trim-file-name file)
 		       (nth 5 (file-attributes file)))
 		 outbuf)
 	  (terpri outbuf)
+	  ;; Break that line at spaces, to avoid very long lines.
+	  ;; Make each sub-line into a comment.
+	  (with-current-buffer outbuf
+	    (save-excursion
+	      (forward-line -1)
+	      (while (not (eolp))
+		(move-to-column 64)
+		(skip-chars-forward "^ \n")
+		(or (eolp)
+		    (insert "\n" generate-autoload-section-continuation)))))
 	  (insert ";;; Generated autoloads from "
 		  (autoload-trim-file-name file) "\n")
 	  ;; Warn if we put a line in loaddefs.el
@@ -325,9 +360,7 @@ are used."
 	  ;; Look for the section for LOAD-NAME.
 	  (while (and (not found)
 		      (search-forward generate-autoload-section-header nil t))
-	    (let ((form (condition-case ()
-			    (read (current-buffer))
-			  (end-of-file nil))))
+	    (let ((form (autoload-read-section-header)))
 	      (cond ((string= (nth 2 form) load-name)
 		     ;; We found the section for this file.
 		     ;; Check if it is up to date.
@@ -394,7 +427,9 @@ Autoload section for %s is up to date."
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
 	      (generate-file-autoloads file))))
-      (if (interactive-p) (save-buffer)))))
+      (and (interactive-p)
+	   (buffer-modified-p)
+	   (save-buffer)))))
 
 ;;;###autoload
 (defun update-autoloads-from-directories (&rest dirs)
@@ -420,9 +455,7 @@ This uses `update-file-autoloads' (which see) do its work."
       (save-excursion
 	(goto-char (point-min))
 	(while (search-forward generate-autoload-section-header nil t)
-	  (let* ((form (condition-case ()
-			   (read (current-buffer))
-			 (end-of-file nil)))
+	  (let* ((form (autoload-read-section-header))
 		 (file (nth 3 form)))
 	    (cond ((not (stringp file)))
 		  ((not (file-exists-p (expand-file-name file top-dir)))
