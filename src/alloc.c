@@ -256,6 +256,7 @@ EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
 extern void mark_kboards P_ ((void));
+extern void mark_backtrace P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
@@ -4282,20 +4283,6 @@ struct catchtag
     struct catchtag *next;
 };
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  int nargs;		/* Length of vector.  */
-  /* If nargs is UNEVALLED, args points to slot holding list of
-     unevalled args.  */
-  char evalargs;
-  /* Nonzero means call value of debugger when done with this operation. */
-  char debug_on_exit;
-};
-
-
 
 /***********************************************************************
 			  Protection from GC
@@ -4330,7 +4317,6 @@ returns nil, because real GC can't be done.  */)
   register struct specbinding *bind;
   struct catchtag *catch;
   struct handler *handler;
-  register struct backtrace *backlist;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4459,17 +4445,7 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
-  for (backlist = backtrace_list; backlist; backlist = backlist->next)
-    {
-      mark_object (*backlist->function);
-
-      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
-	i = 0;
-      else
-	i = backlist->nargs - 1;
-      for (; i >= 0; i--)
-	mark_object (backlist->args[i]);
-    }
+  mark_backtrace ();
   mark_kboards ();
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
