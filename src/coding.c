@@ -383,6 +383,9 @@ Lisp_Object Vlatin_extra_code_table;
 /* Flag to inhibit code conversion of end-of-line format.  */
 int inhibit_eol_conversion;
 
+/* Flag to inhibit ISO2022 escape sequence detection.  */
+int inhibit_iso_escape_detection;
+
 /* Flag to make buffer-file-coding-system inherit from process-coding.  */
 int inherit_process_coding_system;
 
@@ -835,6 +838,8 @@ detect_coding_iso2022 (src, src_end)
       switch (c)
 	{
 	case ISO_CODE_ESC:
+	  if (inhibit_iso_escape_detection)
+	    break;
 	  single_shifting = 0;
 	  ONE_MORE_BYTE (c);
 	  if (c >= '(' && c <= '/')
@@ -904,6 +909,8 @@ detect_coding_iso2022 (src, src_end)
 	  break;
 
 	case ISO_CODE_SO:
+	  if (inhibit_iso_escape_detection)
+	    break;
 	  single_shifting = 0;
 	  if (shift_out == 0
 	      && (reg[1] >= 0
@@ -917,6 +924,8 @@ detect_coding_iso2022 (src, src_end)
 	  break;
 	  
 	case ISO_CODE_SI:
+	  if (inhibit_iso_escape_detection)
+	    break;
 	  single_shifting = 0;
 	  if (shift_out == 1)
 	    {
@@ -933,6 +942,8 @@ detect_coding_iso2022 (src, src_end)
 	  {
 	    int newmask = CODING_CATEGORY_MASK_ISO_8_ELSE;
 
+	    if (inhibit_iso_escape_detection)
+	      break;
 	    if (c != ISO_CODE_CSI)
 	      {
 		if (coding_system_table[CODING_CATEGORY_IDX_ISO_8_1]->flags
@@ -6406,6 +6417,32 @@ coding system used in each operation can't encode the text.\n\
 The default value is `select-safe-coding-system' (which see).");
   Vselect_safe_coding_system_function = Qnil;
 
+  DEFVAR_BOOL ("inhibit-iso-eacape-detection",
+	       &inhibit_iso_escape_detection,
+    "If non-nil, Emacs ignores ISO2022's escape sequence on code detection.\n\
+\n\
+By default, on reading a file, Emacs tries to detect how the text is\n\
+encoded.  This code detection is sensitive to escape sequences.  If\n\
+the sequence is valid as ISO2022, the code is detemined as one of\n\
+ISO2022 encoding, and the file is decoded by the corresponding coding\n\
+system (e.g. `iso-2022-7bit').\n\
+\n\
+However, there may be a case that you want to read escape sequences in\n\
+a file as is.  In such a case, you can set this variable to non-nil.\n\
+Then, as the code detection ignores any escape sequences, no file is\n\
+detected as some of ISO2022 encoding.  The result is that all escape\n\
+sequences become visible in a buffer.\n\
+\n\
+The default value is nil, and it is strongly recommended not to change\n\
+it.  That is because many Emacs Lisp source files that contain\n\
+non-ASCII characters are encoded by the coding system `iso-2022-7bit'\n\
+in Emacs's distribution, and they won't be decoded correctly on\n\
+reading if you suppress escapse sequence detection.\n\
+\n\
+The other way to read escape sequences in a file without decoding is\n\
+to explicitely specify some coding system that doesn't use ISO2022's\n\
+escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].");
+  inhibit_iso_escape_detection = 0;
 }
 
 char *
