@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.34) $
+ * $HopeName: MMsrc!poolawl.c(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,10 +16,12 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.34) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.35) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
+
+#define AWLGen  ((Serial)1) /* "generation" for AWL pools */
 
 /* design.mps.poolawl.poolstruct */
 typedef struct AWLStruct {
@@ -28,6 +30,7 @@ typedef struct AWLStruct {
   Shift alignShift;
   ActionStruct actionStruct;
   double lastCollected;
+  Serial gen;               /* associated generation (for SegAlloc) */
   Sig sig;
 } AWLStruct, *AWL;
 
@@ -127,6 +130,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   }
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
+  SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
   res = SegAlloc(&seg, &segPrefStruct, size, pool);
   if(res != ResOK)
     goto failSegAlloc;
@@ -217,6 +221,7 @@ static Res AWLInit(Pool pool, va_list arg)
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
   awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
+  awl->gen = AWLGen;
   awl->sig = AWLSig;
 
   AVERT(AWL, awl);
@@ -745,6 +750,13 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
 }
 
 
+/* AWL Frequency hack. */
+/* If this is smaller than AMCGen1Frequency (see impl.c.amc) */
+/* then this will determine when generation 1 and this pool get */
+/* collected.  If this is larger than AMCGen1Frequency then */
+/* AMCGen1Frequency will determine when generation and this pool */
+/* get collected */
+unsigned long AWLFrequency = 40;
 /* @@@@ completely made-up benefit calculation: each AWL pool gradually
  * becomes a better candidate for collection as allocation goes
  * by. Starting a trace on a pool makes it a bad candidate. nickb
@@ -761,7 +773,7 @@ static double AWLBenefit(Pool pool, Action action)
   AVER(awl == ActionAWL(action));
 
   return (ArenaMutatorAllocSize(PoolArena(pool)) - awl->lastCollected) -
-            10*1024*1024.0;
+            AWLFrequency*1024*1024.0;
 }
 
 static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
@@ -863,6 +875,8 @@ static Bool AWLCheck(AWL awl)
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
   CHECKL(ArenaMutatorAllocSize(awl->poolStruct.arena) >= awl->lastCollected);
+  /* 30 is just a sanity check really, not a constraint */
+  CHECKL(0 <= awl->gen && awl->gen <= 30);
   return TRUE;
 }
 
