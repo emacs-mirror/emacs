@@ -1,7 +1,7 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.11) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!awlut.c(trunk.12) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -13,19 +13,25 @@
  */
 
 
-#include "mps.h"
-#include "mpscawl.h"
-#include "mpsclo.h"
-#include "fmtdy.h"
-#include "testlib.h"
-
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include "mps.h"
+#include "mpscawl.h"
+#include "mpsclo.h"
+#include "mpsavm.h"
+#include "fmtdy.h"
+#include "testlib.h"
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
 
+
+#define testArenaSIZE     ((size_t)64<<20)
 #define TABLE_SLOTS 50
 #define ITERATIONS 5000
 #define CHATTER 100
@@ -34,9 +40,11 @@
 /* see impl.h.testlib */
 #define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
 
+
 static mps_word_t bogus_class;
 
 #define UNINIT 0x041412ED
+
 
 static mps_word_t wrapper_wrapper[] = {
   UNINIT,                       /* wrapper */
@@ -217,18 +225,18 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
 
 
 struct guff_s {
-  mps_space_t space;
+  mps_arena_t arena;
   mps_thr_t thr;
 };
 
 /* v serves two purposes:
  * A pseudo stack base for the stack root.
  * Pointer to a guff structure, which packages some values needed
- * (space and thr mostly) */
+ * (arena and thr mostly) */
 static void *setup(void *v, size_t s)
 {
   struct guff_s *guff;
-  mps_space_t space;
+  mps_arena_t arena;
   mps_pool_t leafpool;
   mps_pool_t tablepool;
   mps_fmt_t dylanfmt;
@@ -239,19 +247,19 @@ static void *setup(void *v, size_t s)
 
   guff = (struct guff_s *)v;
   (void)s;
-  space = guff->space;
+  arena = guff->arena;
   thr = guff->thr;
 
-  die(mps_root_create_reg(&stack, space, MPS_RANK_AMBIG, 0, thr,
+  die(mps_root_create_reg(&stack, arena, MPS_RANK_AMBIG, 0, thr,
                           mps_stack_scan_ambig, v, 0),
       "Root Create\n");
-  die(mps_fmt_create_A(&dylanfmt, space, dylan_fmt_A()),
+  die(mps_fmt_create_A(&dylanfmt, arena, dylan_fmt_A()),
       "Format Create\n");
-  die(mps_fmt_create_A(&dylanweakfmt, space, dylan_fmt_A_weak()),
+  die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
       "Format Create (weak)\n");
-  die(mps_pool_create(&leafpool, space, mps_class_lo(), dylanfmt),
+  die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
-  die(mps_pool_create(&tablepool, space, mps_class_awl(), dylanweakfmt),
+  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt),
       "Table Pool Create\n");
   die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
       "Leaf AP Create\n");
@@ -278,7 +286,7 @@ static void *setup(void *v, size_t s)
 int main(void)
 {
   struct guff_s guff;
-  mps_space_t space;
+  mps_arena_t arena;
   mps_thr_t thread;
   void *r;
 
@@ -286,13 +294,15 @@ int main(void)
   initialise_wrapper(string_wrapper);
   initialise_wrapper(table_wrapper);
 
-  die(mps_space_create(&space), "space_create");
-  die(mps_thread_reg(&thread, space), "thread_reg");
-  guff.space = space;
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "arena_create\n");
+  die(mps_thread_reg(&thread, arena), "thread_reg");
+  guff.arena = arena;
   guff.thr = thread;
   mps_tramp(&r, setup, &guff, 0);
   mps_thread_dereg(thread);
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
