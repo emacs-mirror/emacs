@@ -1,3 +1,13 @@
+2000-07-24  Andrew Innes  <andrewi@gnu.org>
+
+	* timer.el (timer-activate-when-idle): Add optional parameter
+	DONT-WAIT.  Update docstring.
+	(run-with-idle-timer): Specify extra parameter to
+	timer-activate-when-idle, so that timer will be activated
+	immediately if Emacs is already idle.
+
+	* w32-fns.el (w32-using-nt): Fix docstring.
+
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* mouse.el (popup-menu): Set last-command-event.
