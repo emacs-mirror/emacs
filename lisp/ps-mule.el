@@ -574,16 +574,38 @@ STRING should contain only ASCII characters."
 %% Working dictionary for general use.
 /MuleDict 10 dict def
 
+%% Adjust /RelativeCompose properly by checking /BaselineOffset.
+/AdjustRelativeCompose {	% fontdict  |-  fontdict
+  dup length 2 add dict begin
+    { 1 index /FID ne { def } { pop pop } ifelse } forall
+    currentdict /BaselineOffset known {
+	BaselineOffset false eq { /BaselinfOffset 0 def } if
+    } {
+      /BaselineOffset 0 def
+    } ifelse
+    currentdict /RelativeCompose known not {
+      /RelativeCompose [ 0 0 ] def
+    } {
+      RelativeCompose false ne {
+        [ BaselineOffset RelativeCompose BaselineOffset add
+          [ FontMatrix { FontSize div } forall ] transform ]
+        /RelativeCompose exch def
+      } if
+    } ifelse
+    currentdict
+  end
+} def
+
 %% Define already scaled font for non-ASCII character sets.
 /DefFontMule {			% fontname size basefont  |-  --
-  findfont exch scalefont definefont pop
+  findfont exch scalefont AdjustRelativeCompose definefont pop
 } bind def
 
 %% Define already scaled font for ASCII character sets.
 /DefAsciiFontMule {		% fontname size basefont  |-
   MuleDict begin
   findfont dup /Encoding get /ISOLatin1Encoding exch def
-  exch scalefont reencodeFontISO
+  exch scalefont AdjustRelativeCompose reencodeFontISO
   end
 } def
 
@@ -727,10 +749,10 @@ the sequence."
     currentfont /FontType get 3 eq { %ifelse
 	stringwidth pop pop
     } {
-	currentpoint /y exch def pop
+	currentpoint /y exch def /x exch def
 	false charpath flattenpath pathbbox
-	y sub /URY exch def pop
-	y sub /LLY exch def pop
+	y sub /URY exch def x sub /URX exch def
+	y sub /LLY exch def x sub /LLX exch def
     } ifelse
     grestore
 } bind def
@@ -752,7 +774,10 @@ the sequence."
     grestore
     /Effect Effectsave 8 32 add and def	% enable only shadow and outline
     false BG
-    gsave SpaceWidth mul 0 rmoveto dup GetPathBox S grestore
+    gsave
+	SpaceWidth mul 0 rmoveto dup GetPathBox S
+	/RIGHT currentpoint pop def
+    grestore
     /y currentpoint exch pop def
     /HIGH URY y add def /LOW LLY y add def
 } bind def
@@ -762,7 +787,11 @@ the sequence."
     /bg bgsave def /bgcolor bgcolorsave def
     /Effect Effectsave def
     /Cmpchar false def
-    CmpcharWidth SpaceWidth mul 0 rmoveto
+    CmpcharRelativeCompose false eq {
+	CmpcharWidth SpaceWidth mul 0 rmoveto
+    } {
+	RIGHT currentpoint exch pop moveto
+    } ifelse
 } bind def
 
 %% Rule base composition
@@ -781,20 +810,26 @@ the sequence."
     currentpoint pop btm LLY sub moveto
     S
     grestore
+    /CmpcharRelativeCompose false def
 } bind def
 
 %% Relative composition
 /RLC {				% str  |-  --
     gsave
     dup GetPathBox
-    CmpcharRelativeCompose type /integertype eq {
-	LLY CmpcharRelativeCompose gt {	% compose on top
+    LLX 0 lt { RIGHT currentpoint exch pop moveto } if
+    CmpcharRelativeCompose type /arraytype eq {
+	LLY CmpcharRelativeCompose 1 get gt {	% compose on top
 	    currentpoint pop HIGH LLY sub CmpcharRelativeSkip add moveto
 	    /HIGH HIGH URY LLY sub add CmpcharRelativeSkip add def
-	} { URY 0 le {			% compose under bottom
-	    currentpoint pop LOW LLY add CmpcharRelativeSkip sub moveto
+	} { URY CmpcharRelativeCompose 0 get le { % compose under bottom
+	    currentpoint pop LOW URY sub CmpcharRelativeSkip sub moveto
 	    /LOW LOW URY LLY sub sub CmpcharRelativeSkip sub def
-    } if } ifelse } if
+	} {
+	    /y currentpoint exch pop def
+	    y URY add dup HIGH gt { /HIGH exch def } { pop } ifelse
+	    y LLY add dup LOW lt { /LOW exch def } { pop } ifelse
+	} ifelse } ifelse } if
     S
     grestore
 } bind def
@@ -958,9 +993,9 @@ NewBitmapDict
 	Cmpchar { %ifelse
 	    /FontMatrix get [ exch { size div } forall ] /mtrx exch def
 	    bmp 3 get bmp 4 get mtrx transform
-	    /LLY exch def pop
+	    /LLY exch def /LLX exch def
 	    bmp 1 get bmp 3 get add bmp 2 get bmp 4 get add mtrx transform
-	    /URY exch def pop
+	    /URY exch def /URX exch def
 	} {
 	    pop
 	} ifelse
