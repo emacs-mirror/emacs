@@ -77,6 +77,12 @@
 
 (define-key help-map "v" 'describe-variable)
 
+(define-key help-map "q" 'help-quit)
+
+(defun help-quit ()
+  (interactive)
+  nil)
+
 (defun help-with-tutorial ()
   "Select the Emacs learn-by-doing tutorial."
   (interactive)
@@ -259,10 +265,12 @@ of the key sequence that ran this command."
 	(insert "\n")))
     (print-help-return-message)))
 
+(defalias 'help 'help-for-help)
 (make-help-screen help-for-help
   "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w, or ? for more help:"
   "You have typed \\[help-command], the help character.  Type a Help option:
-\(Use \\<help-map>\\[scroll-up] or \\[scroll-down] to scroll through this text.)
+\(Use \\<help-map>\\[scroll-up] or \\[scroll-down] to scroll through this text.
+Type \\<help-map>\\[help-quit] to exit the Help command.)
 
 a  command-apropos.  Give a substring, and see a list of commands
 	(functions interactively callable) that contain
