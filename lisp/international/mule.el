@@ -620,6 +620,33 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
       (setq i (1+ i)))
     subsidiaries))
 
+(defun transform-make-coding-system-args (name type &optional doc-string props)
+  "For internal use only.
+Transform XEmacs style args for `make-coding-system' to Emacs style.
+Value is a list of transformed arguments."
+  (let ((mnemonic (string-to-char (or (plist-get props 'mnemonic) "?")))
+	(eol-type (plist-get props 'eol-type))
+	properties tmp)
+    (cond
+     ((eq eol-type 'lf) (setq eol-type 'unix))
+     ((eq eol-type 'crlf) (setq eol-type 'dos))
+     ((eq eol-type 'cr) (setq eol-type 'mac)))
+    (if (setq tmp (plist-get props 'post-read-conversion))
+	(setq properties (plist-put properties 'post-read-conversion tmp)))
+    (if (setq tmp (plist-get props 'pre-write-conversion))
+	(setq properties (plist-put properties 'pre-write-conversion tmp)))
+    (cond
+     ((eq type 'ccl)
+      `(,name 4
+	      ,mnemonic
+	      ,doc-string
+	      (,(plist-get props 'decode) . ,(plist-get props 'encode))
+	      ,properties
+	      ,eol-type))
+     (t
+      (error "Unsupported XEmacs style arguments for make-coding-style: %S"
+	     `(,name ,type ,doc-string ,props))))))
+
 (defun make-coding-system (coding-system type mnemonic doc-string
 					 &optional
 					 flags
@@ -714,6 +741,22 @@ treated as a compiled CCL code.
 
 2. If PROPERTIES is just a list of character sets, the list is set as
 a value of `safe-charsets' in PLIST."
+
+  ;; For compatiblity with XEmacs, we check the type of TYPE.  If it
+  ;; is a symbol, perhaps, this fucntion is called with arguments of
+  ;; XEmacs style.  Here, try to transform that kind of arguments to
+  ;; Emacs style.
+  (if (symbolp type)
+      (let ((args (transform-make-coding-system-args coding-system type
+						     mnemonic doc-string)))
+	(setq coding-system (car args)
+	      type (nth 1 nargs)
+	      mnemonic (nth 2 args)
+	      doc-string (nth 3 args)
+	      flags (nth 4 args)
+	      properties (nth 5 args)
+	      eol-type (nth 6 args))))
+
   ;; Set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
 	(no-initial-designation t)
