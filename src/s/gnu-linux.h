@@ -209,5 +209,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Work around a bug in glibc with _longjmp. */
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE
 
-/* Let's try this out, just in case.  */
-#define SIGNALS_VIA_CHARACTERS
+/* Let's try this out, just in case.
+   Nah.  Rik Faith <faith@cs.unc.edu> says it doesn't work well.  */
+/* #define SIGNALS_VIA_CHARACTERS */
