@@ -1,3 +1,9 @@
+2004-04-07  Kenichi Handa  <handa@etlken2>
+
+	* international/latin1-disp.el (latin1-display-setup): Check each
+	character is displayable or not instead of calling
+	latin1-display-check-font.
+
 2004-04-06  Kenichi Handa  <handa@m17n.org>
 
 	* language/ethio-util.el (ethio-sera-being-called-by-w3): New
