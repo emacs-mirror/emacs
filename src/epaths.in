@@ -18,9 +18,13 @@
 #define PATH_EXEC "/usr/local/lib/emacs/etc"
 
 /* Where Emacs should look for its architecture-independent data
-   files, like the docstring file.  The lisp variable data-directory
+   files, like the NEWS file.  The lisp variable data-directory
    is set to this value.  */
 #define PATH_DATA "/usr/local/lib/emacs/data"
+
+/* Where Emacs should look for its docstring file.  The lisp variable
+   doc-directory is set to this value.  */
+#define PATH_DOC "/usr/local/lib/emacs/data"
 
 /* The name of the directory that contains lock files with which we
    record what files are being modified in Emacs.  This directory
@@ -32,4 +36,3 @@
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
 #define PATH_INFO "/usr/local/info"
-
