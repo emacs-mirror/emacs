@@ -84,6 +84,13 @@ in case it has been renamed.
 
 ** New modes and packages
 
++++
+*** Calc is now part of the Emacs distribution.
+
+Calc is an advanced desk calculator and mathematical tool written in
+Emacs Lisp.  Its documentation is in a separate manual; within Emacs,
+type "C-h i m calc RET" to read that manual.
+
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
 change the `fill-column', `window-margins' and `tab-stop-list'
