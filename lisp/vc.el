@@ -1086,7 +1086,7 @@ Interactively, supply a prefix arg to make VERBOSE non-nil.
 
 If the optional third argument NESTED is non-nil,
 scan the entire tree of subdirectories of the current directory."
-  (interactive "FVC status of directory: \nP")
+  (interactive "DVC status of directory: \nP")
   (let* (nonempty
 	 (dl (length dir))
 	 (filelist nil) (userlist nil)
