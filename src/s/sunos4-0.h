@@ -24,6 +24,13 @@
 
 #define SYSTEM_MALLOC
 
+/* SunOS 4.x cc <stdlib.h> declares abort and free to return int.  */
+
+#ifndef __STDC__
+#define ABORT_RETURN_TYPE int
+#define FREE_RETURN_TYPE int
+#endif
+
 #ifdef __GNUC__
 /* We must define mkdir with this arg prototype
    to match GCC's fixed stat.h.  */
