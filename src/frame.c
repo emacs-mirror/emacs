@@ -1058,7 +1058,7 @@ and nil for X and Y.")
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
-    (*mouse_position_hook) (&f,
+    (*mouse_position_hook) (&f, 0,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
@@ -1095,12 +1095,14 @@ and nil for X and Y.")
   f = selected_frame;
   x = y = Qnil;
 
+#ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
-    (*mouse_position_hook) (&f,
+    (*mouse_position_hook) (&f, 0,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
+#endif
   XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
@@ -2144,7 +2146,7 @@ DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
       Lisp_Object x, y;
       unsigned long long_dummy;
 
-      (*mouse_position_hook) (&f,
+      (*mouse_position_hook) (&f, 0,
 			      &lispy_dummy, &party_dummy,
 			      &x, &y,
 			      &long_dummy);      
