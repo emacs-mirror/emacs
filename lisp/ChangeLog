@@ -1,3 +1,11 @@
+2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.el (kmacro-default-counter-format): New var.
+	(kmacro-set-format): Use it.  Delete `(printf format)' from prompt.
+	(kmacro-display): Remove `nil' from `and' form.  Delete call to
+	`format' inside `message'.
+	(kmacro-start-macro): Use `kmacro-default-counter-format'.
+
 2004-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-header-msg): New function.

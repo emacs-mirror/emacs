@@ -1,3 +1,13 @@
+2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi: Several small changes in addition to the following.
+	(Keyboard Macro Ring): Describe behavior of `C-x C-k C-k' when
+	defining a keyboard macro.
+	Mention `kmacro-ring-max'.
+	(Keyboard Macro Counter): Clarify description of
+	`kmacro-insert-counter', `kmacro-set-counter',
+	`kmacro-add-counter' and `kmacro-set-format'.
+
 2004-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* custom.texi (File Variables): Add `unibyte' and make it more
