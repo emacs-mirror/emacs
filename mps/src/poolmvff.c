@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName$
+ * $HopeName: MMsrc!poolmvff.c(trunk.14) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -24,7 +24,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.13) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.14) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -418,7 +418,7 @@ static Res MVFFBufferFill(Seg *segReturn,
 
 /* MVFFBufferEmpty -- return unused portion of this buffer */
 
-static void MVFFBufferEmpty(Pool pool, Buffer buffer)
+static void MVFFBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   MVFF mvff;
   Addr base, limit;
@@ -427,8 +427,8 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer)
   mvff = PoolPoolMVFF(pool);
   AVERT(MVFF, mvff);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
 
   base = BufferGetInit(buffer);
   limit = BufferLimit(buffer);
