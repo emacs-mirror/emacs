@@ -1,4 +1,4 @@
-;;; ibuf-ext.el --- extensions for ibuffer -*-byte-compile-dynamic: t;-*-
+;;; ibuf-ext.el --- extensions for ibuffer 
 
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Created: 2 Dec 2001
 ;; Keywords: buffer, convenience
 
-;; This file is not currently part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -45,6 +45,16 @@
     (while (setq entry (assoc key alist))
       (setq alist (delete entry alist)))
     alist))
+
+(defun ibuffer-split-list (ibuffer-split-list-fn ibuffer-split-list-elts)
+  (let ((hip-crowd nil)
+	(lamers nil))
+    (dolist (ibuffer-split-list-elt ibuffer-split-list-elts)
+      (if (funcall ibuffer-split-list-fn ibuffer-split-list-elt) 
+	  (push ibuffer-split-list-elt hip-crowd)
+	(push ibuffer-split-list-elt lamers)))
+    ;; Too bad Emacs Lisp doesn't have multiple values.
+    (list (nreverse hip-crowd) (nreverse lamers))))
 
 (defcustom ibuffer-never-show-predicates nil
   "A list of predicates (a regexp or function) for buffers not to display.
@@ -136,6 +146,13 @@ to this variable."
 (defvar ibuffer-cached-filter-formats nil)
 (defvar ibuffer-compiled-filter-formats nil)  
 
+(defvar ibuffer-filtering-groups nil
+  "A list like ((\"NAME\" ((SYMBOL . QUALIFIER) ...) ...) which groups buffers.
+See also `ibuffer-filtering-alist'.")
+
+(defvar ibuffer-hidden-filtering-groups nil
+  "A list of filtering groups which are currently hidden.")
+
 (defcustom ibuffer-old-time 72
   "The number of hours before a buffer is considered \"old\"."
   :type '(choice (const :tag "72 hours (3 days)" 72)
@@ -218,6 +235,68 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 				  major-mode)))))
   (ibuffer-update nil t))
 
+;;;###autoload
+(defun ibuffer-mouse-toggle-filter-group (event)
+  "Toggle the display status of the filter group chosen with the mouse."
+  (interactive "e")
+  (ibuffer-toggle-filter-group-1 (save-excursion
+				   (mouse-set-point event)
+				   (point))))
+
+;;;###autoload
+(defun ibuffer-toggle-filter-group ()
+  "Toggle the display status of the filter group on this line."
+  (interactive) 
+  (ibuffer-toggle-filter-group-1 (point)))
+
+(defun ibuffer-toggle-filter-group-1 (posn)	
+  (let ((name (get-text-property posn 'ibuffer-filter-group-name)))
+    (unless (stringp name)
+      (error "No filtering group name present"))
+    (if (member name ibuffer-hidden-filtering-groups)
+	(setq ibuffer-hidden-filtering-groups
+	      (delete name ibuffer-hidden-filtering-groups))
+      (push name ibuffer-hidden-filtering-groups))
+    (ibuffer-update nil t)))
+
+;;;###autoload
+(defun ibuffer-forward-filter-group (&optional count)
+  "Move point forwards by COUNT filtering groups."
+  (interactive "P")
+  (unless count
+    (setq count 1))
+  (when (> count 0)
+    (when (get-text-property (point) 'ibuffer-filter-group-name)
+      (goto-char (next-single-property-change
+		  (point) 'ibuffer-filter-group-name
+		  nil (point-max))))
+    (goto-char (next-single-property-change
+		(point) 'ibuffer-filter-group-name
+		nil (point-max)))
+    (ibuffer-forward-filter-group (1- count)))
+  (ibuffer-forward-line 0))
+
+;;;###autoload
+(defun ibuffer-backward-filter-group (&optional count)
+  "Move point backwards by COUNT filtering groups."
+  (interactive "P")
+  (unless count
+    (setq count 1))
+  (when (> count 0)
+    (when (get-text-property (point) 'ibuffer-filter-group-name)
+      (goto-char (previous-single-property-change
+		  (point) 'ibuffer-filter-group-name
+		  nil (point-min))))
+    (goto-char (previous-single-property-change
+		(point) 'ibuffer-filter-group-name
+		nil (point-min)))
+    (ibuffer-backward-filter-group (1- count)))
+  (when (= (point) (point-min))
+    (goto-char (point-max))
+    (ibuffer-backward-filter-group 1))
+  (ibuffer-forward-line 0))
+
+;;;###autoload (autoload 'ibuffer-do-shell-command-pipe "ibuf-ext.el")
 (define-ibuffer-op shell-command-pipe (command)
   "Pipe the contents of each marked buffer to shell command COMMAND."
   (:interactive "sPipe to shell command: "
@@ -227,6 +306,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
    (point-min) (point-max) command
    (get-buffer-create "* ibuffer-shell-output*")))
 
+;;;###autoload (autoload 'ibuffer-do-shell-command-pipe-replace "ibuf-ext.el")
 (define-ibuffer-op shell-command-pipe-replace (command)
   "Replace the contents of marked buffers with output of pipe to COMMAND."
   (:interactive "sPipe to shell command (replace): "
@@ -238,6 +318,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
     (shell-command-on-region (point-min) (point-max)
 			     command nil t)))
 
+;;;###autoload (autoload 'ibuffer-do-shell-command-file "ibuf-ext.el")
 (define-ibuffer-op shell-command-file (command)
   "Run shell command COMMAND separately on files of marked buffers."
   (:interactive "sShell command on buffer's file: "
@@ -249,7 +330,8 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 			      buffer-file-name
 			    (make-temp-file
 			     (substring (buffer-name) 0 (min 10 (length (buffer-name))))))))))
-			  
+
+;;;###autoload (autoload 'ibuffer-do-eval "ibuf-ext.el")
 (define-ibuffer-op eval (form)
   "Evaluate FORM in each of the buffers.
 Does not display the buffer during evaluation. See
@@ -259,6 +341,7 @@ Does not display the buffer during evaluation. See
    :modifier-p :maybe)
   (eval form))
 
+;;;###autoload (autoload 'ibuffer-do-view-and-eval "ibuf-ext.el")
 (define-ibuffer-op view-and-eval (form)
   "Evaluate FORM while displaying each of the marked buffers.
 To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
@@ -273,12 +356,14 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (eval form))
       (switch-to-buffer ibuffer-buf))))
 
+;;;###autoload (autoload 'ibuffer-do-rename-uniquely "ibuf-ext.el")
 (define-ibuffer-op rename-uniquely ()
   "Rename marked buffers as with `rename-uniquely'."
   (:opstring "renamed"
    :modifier-p t)
   (rename-uniquely))
 
+;;;###autoload (autoload 'ibuffer-do-revert "ibuf-ext.el")
 (define-ibuffer-op revert ()
   "Revert marked buffers as with `revert-buffer'."
   (:dangerous t
@@ -287,6 +372,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
    :modifier-p :maybe)
   (revert-buffer t t))
 
+;;;###autoload (autoload 'ibuffer-do-replace-regexp "ibuf-ext.el")
 (define-ibuffer-op replace-regexp (from-str to-str)
   "Perform a `replace-regexp' in marked buffers."
   (:interactive
@@ -306,6 +392,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (replace-match to-str))))
     t))
 
+;;;###autoload (autoload 'ibuffer-do-query-replace "ibuf-ext.el")
 (define-ibuffer-op query-replace (&rest args)
   "Perform a `query-replace' in marked buffers."
   (:interactive
@@ -321,6 +408,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	(apply #'query-replace args)))
     t))
 
+;;;###autoload (autoload 'ibuffer-do-query-replace-regexp "ibuf-ext.el")
 (define-ibuffer-op query-replace-regexp (&rest args)
   "Perform a `query-replace-regexp' in marked buffers."
   (:interactive
@@ -336,6 +424,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	(apply #'query-replace-regexp args)))
     t))
 
+;;;###autoload (autoload 'ibuffer-do-print "ibuf-ext.el")
 (define-ibuffer-op print ()
   "Print marked buffers as with `print-buffer'."
   (:opstring "printed"
@@ -387,6 +476,59 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (funcall (caddr filterdat)
 		   buf
 		   (cdr filter))))))))))
+
+(defun ibuffer-generate-filter-groups (bmarklist)
+  (let ((filtering-group-alist (append ibuffer-filtering-groups
+				       (list (cons "Default" nil)))))
+;;     (dolist (hidden ibuffer-hidden-filtering-groups)
+;;       (setq filtering-group-alist (ibuffer-delete-alist
+;; 				   hidden filtering-group-alist)))
+    (let ((vec (make-vector (length filtering-group-alist) nil))
+	  (i 0))
+      (dolist (filtergroup filtering-group-alist)
+	(let ((filterset (cdr filtergroup)))
+	  (multiple-value-bind (hip-crowd lamers)
+	      (ibuffer-split-list (lambda (bufmark)
+				    (ibuffer-included-in-filters-p (car bufmark)
+								   filterset))
+				  bmarklist)
+	    (aset vec i hip-crowd)
+	    (incf i)
+	    (setq bmarklist lamers))))
+      (let ((ret nil))
+	(dotimes (j i ret)
+	  (push (cons (car (nth j filtering-group-alist))
+		      (aref vec j))
+		ret))))))
+
+;;;###autoload
+(defun ibuffer-filters-to-filter-group (name)
+  "Make the current filters into a filtering group."
+  (interactive "sName for filtering group: ")
+  (when (null ibuffer-filtering-qualifiers)
+    (error "No filters in effect"))
+  (push (cons name ibuffer-filtering-qualifiers) ibuffer-filtering-groups)
+  (ibuffer-filter-disable))
+
+;;;###autoload
+(defun ibuffer-pop-filter-group ()
+  "Remove the first filtering group."
+  (interactive)
+  (when (null ibuffer-filtering-groups)
+    (error "No filtering groups active"))
+  (pop ibuffer-filtering-groups)
+  (ibuffer-update nil t))
+
+;;;###autoload
+(defun ibuffer-jump-to-filter-group (name)
+  "Move point to the filter group whose name is NAME."
+  (interactive (list nil))
+  (let ((table (ibuffer-current-filter-groups)))
+    (when (interactive-p)
+      (setq name (completing-read "Jump to filter group: " table nil t)))
+    (ibuffer-aif (assoc name table)
+	(goto-char (cdr it))
+      (error "No filter group with name %s" name))))
 
 ;;;###autoload
 (defun ibuffer-filter-disable ()
@@ -511,7 +653,7 @@ Interactively, prompt for NAME, and use the current filters."
       ibuffer-filtering-qualifiers)))
   (ibuffer-aif (assoc name ibuffer-saved-filters)
       (setcdr it filters)
-      (push (list name filters) ibuffer-saved-filters))
+    (push (list name filters) ibuffer-saved-filters))
   (ibuffer-maybe-save-saved-filters)
   (ibuffer-update-mode-name))
 
@@ -575,6 +717,7 @@ of replacing the current filters."
   
 ;;; Extra operation definitions
 
+;;;###autoload (autoload 'ibuffer-filter-by-mode "ibuf-ext.el")
 (define-ibuffer-filter mode 
   "Toggle current view to buffers with major mode QUALIFIER."
   (:description "major mode"
@@ -592,21 +735,22 @@ of replacing the current filters."
 			 "")))))
   (eq qualifier (with-current-buffer buf major-mode)))
 
+;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext.el")
 (define-ibuffer-filter name 
   "Toggle current view to buffers with name matching QUALIFIER."
   (:description "buffer name"
-   :reader
-   (read-from-minibuffer "Filter by name (regexp): "))
+   :reader (read-from-minibuffer "Filter by name (regexp): "))
   (string-match qualifier (buffer-name buf)))
 
+;;;###autoload (autoload 'ibuffer-filter-by-filename "ibuf-ext.el")
 (define-ibuffer-filter filename
   "Toggle current view to buffers with filename matching QUALIFIER."
   (:description "filename"
-   :reader
-   (read-from-minibuffer "Filter by filename (regexp): "))
+   :reader (read-from-minibuffer "Filter by filename (regexp): "))
   (ibuffer-awhen (buffer-file-name buf)
     (string-match qualifier it)))
 
+;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext.el")
 (define-ibuffer-filter size-gt 
   "Toggle current view to buffers with size greater than QUALIFIER."
   (:description "size greater than"
@@ -615,6 +759,7 @@ of replacing the current filters."
   (> (with-current-buffer buf (buffer-size))
      qualifier))
 
+;;;###autoload (autoload 'ibuffer-filter-by-size-lt  "ibuf-ext.el")
 (define-ibuffer-filter size-lt 
    "Toggle current view to buffers with size less than QUALIFIER."
   (:description "size less than"
@@ -622,22 +767,22 @@ of replacing the current filters."
    (string-to-number (read-from-minibuffer "Filter by size less than: ")))
   (< (with-current-buffer buf (buffer-size))
      qualifier))
-  
+
+;;;###autoload (autoload 'ibuffer-filter-by-content "ibuf-ext.el")
 (define-ibuffer-filter content
    "Toggle current view to buffers whose contents match QUALIFIER."
   (:description "content"
-   :reader
-   (read-from-minibuffer "Filter by content (regexp): "))
+   :reader (read-from-minibuffer "Filter by content (regexp): "))
   (with-current-buffer buf
     (save-excursion
       (goto-char (point-min))
       (re-search-forward qualifier nil t))))
 
+;;;###autoload (autoload 'ibuffer-filter-by-predicate "ibuf-ext.el")
 (define-ibuffer-filter predicate
    "Toggle current view to buffers for which QUALIFIER returns non-nil."
   (:description "predicate"
-   :reader
-   (read-minibuffer "Filter by predicate (form): "))
+   :reader (read-minibuffer "Filter by predicate (form): "))
   (with-current-buffer buf
     (eval qualifier)))
 
@@ -672,6 +817,7 @@ Default sorting modes are:
 	     "normal"))
   (ibuffer-redisplay t))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-major-mode "ibuf-ext.el")
 (define-ibuffer-sorter major-mode
   "Sort the buffers by major modes.
 Ordering is lexicographic."
@@ -685,6 +831,7 @@ Ordering is lexicographic."
 				  (car b)
 				major-mode)))))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-mode-name "ibuf-ext.el")
 (define-ibuffer-sorter mode-name
   "Sort the buffers by their mode name.
 Ordering is lexicographic."
@@ -698,6 +845,7 @@ Ordering is lexicographic."
 		     (car b)
 		   mode-name))))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-alphabetic "ibuf-ext.el")
 (define-ibuffer-sorter alphabetic
   "Sort the buffers by their names.
 Ordering is lexicographic."
@@ -706,6 +854,7 @@ Ordering is lexicographic."
    (buffer-name (car a))
    (buffer-name (car b))))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-size "ibuf-ext.el")
 (define-ibuffer-sorter size
  "Sort the buffers by their size."
   (:description "size")
@@ -1051,22 +1200,7 @@ You can then feed the file name(s) to other commands with C-y.
   "View lines which match REGEXP in all marked buffers.
 Optional argument NLINES says how many lines of context to display: it
 defaults to one."
-  (interactive
-   (list (let* ((default (car regexp-history))
-		(input
-		 (read-from-minibuffer
-		  (if default
-		      (format "List lines matching regexp (default `%s'): "
-			      default)
-		    "List lines matching regexp: ")
-		  nil
-		  nil
-		  nil
-		  'regexp-history)))
-	   (if (equal input "")
-	       default
-	     input))
-	 current-prefix-arg))
+  (interactive (occur-read-primary-args))
   (if (or (not (integerp nlines))
 	  (< nlines 0))
       (setq nlines 1))
