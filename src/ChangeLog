@@ -1,5 +1,8 @@
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* keymap.c (push_key_description): Don't convert eight-bit-control
+	and eight-bit-graphic to multibyte character.
+
 	* charset.c (Fmake_char_internal): If CHARSET doesn't have a
 	generic character and CODE1 is nil, return the smallest character
 	in CHARSET.
