@@ -2166,9 +2166,9 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 
 #define CONVERTED_BYTE_SIZE(MULTIBYTE, STRING)				\
   (((MULTIBYTE) && ! STRING_MULTIBYTE (STRING))				\
-   ? XSTRING (STRING)->size_byte					\
-   : count_size_as_multibyte (XSTRING (STRING)->data,			\
-			      XSTRING (STRING)->size_byte))
+   ? count_size_as_multibyte (XSTRING (STRING)->data,			\
+			      XSTRING (STRING)->size_byte)		\
+   : XSTRING (STRING)->size_byte)
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
   "Format a string out of a control-string and arguments.\n\
@@ -2199,6 +2199,7 @@ Use %% to put a single % into the output.")
   int multibyte = 0;
   unsigned char *this_format;
   int longest_format = 0;
+  Lisp_Object val;
 
   extern char *index ();
 
@@ -2246,6 +2247,8 @@ Use %% to put a single % into the output.")
 	    /* For `S', prin1 the argument and then treat like a string.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qnil);
+	    if (STRING_MULTIBYTE (tem))
+	      multibyte = 1;
 	    args[n] = tem;
 	    goto string;
 	  }
@@ -2287,6 +2290,8 @@ Use %% to put a single % into the output.")
 	    /* Anything but a string, convert to a string using princ.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qt);
+	    if (STRING_MULTIBYTE (tem))
+	      multibyte = 1;
 	    args[n] = tem;
 	    goto string;
 	  }
@@ -2385,11 +2390,13 @@ Use %% to put a single % into the output.")
 	*p++ = *format++, nchars++;
     }
 
+  val = make_multibyte_string (buf, nchars, p - buf);
+
   /* If we allocated BUF with malloc, free it too.  */
   if (total >= 1000)
     xfree (buf);
 
-  return make_multibyte_string (buf, nchars, p - buf);
+  return val;
 }
 
 /* VARARGS 1 */
