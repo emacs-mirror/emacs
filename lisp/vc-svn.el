@@ -81,13 +81,15 @@ A string or list of strings passed to the checkin program by
   :type '(repeat string)
   :group 'vc)
 
-(defcustom vc-svn-use-edit nil
+(defconst vc-svn-use-edit nil
+  ;; Subversion does not provide this feature (yet).
   "*Non-nil means to use `svn edit' to \"check out\" a file.
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $SVNREAD set)."
-  :type 'boolean
-  :version "21.4"
-  :group 'vc)
+  ;; :type 'boolean
+  ;; :version "21.4"
+  ;; :group 'vc
+  )
 
 ;;;
 ;;; State-querying functions
@@ -151,6 +153,9 @@ This is only meaningful if you don't use the implicit checkout model
   ;; It looks like Subversion has no equivalent of CVSREAD.
   'implicit)
 
+;; vc-svn-mode-line-string doesn't exist because the default implementation
+;; works just fine.
+
 (defun vc-svn-dired-state-info (file)
   "SVN-specific version of `vc-dired-state-info'."
   (let ((svn-state (vc-state file)))
@@ -171,11 +176,7 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-svn-register-switches' are passed to
 the SVN command (in that order)."
-  (apply 'vc-svn-command nil 0 file
-	 "add"
-	 ;; (and comment (string-match "[^\t\n ]" comment)
-	 ;; 	(concat "-m" comment))
-	 (vc-switches 'SVN 'register)))
+  (apply 'vc-svn-command nil 0 file "add" (vc-switches 'SVN 'register)))
 
 (defun vc-svn-responsible-p (file)
   "Return non-nil if SVN thinks it is responsible for FILE."
@@ -240,13 +241,13 @@ This is only possible if SVN is responsible for FILE's directory.")
     ;; Check out a particular version (or recreate the file).
     (vc-file-setprop file 'vc-workfile-version nil)
     (apply 'vc-svn-command nil 0 file
-	   "-w"
 	   "update"
 	   ;; default for verbose checkout: clear the sticky tag so
 	   ;; that the actual update will get the head of the trunk
-	   (if (or (not rev) (string= rev ""))
-	       "-A"
-	     (concat "-r" rev))
+	   (cond
+	    ((null rev) "-rBASE")
+	    ((or (eq rev t) (equal rev "")) nil)
+	    (t (concat "-r" rev)))
 	   switches)))
 
 (defun vc-svn-delete-file (file)
@@ -376,29 +377,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
-  (with-current-buffer "*vc-diff*"
-    (setq default-directory dir)
-    (if (vc-stay-local-p dir)
-        ;; local diff: do it filewise, and only for files that are modified
-        (vc-file-tree-walk
-         dir
-         (lambda (f)
-           (vc-exec-after
-            `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
-               ;; possible optimization: fetch the state of all files
-               ;; in the tree via vc-svn-dir-state-heuristic
-               (unless (vc-up-to-date-p ',f)
-                 (message "Looking at %s" ',f)
-                 (vc-diff-internal ',f ',rev1 ',rev2))))))
-      ;; svn diff: use a single call for the entire tree
-      (let ((coding-system-for-read (or coding-system-for-read 'undecided))
-	    (switches (vc-switches 'SVN 'diff)))
-        (apply 'vc-svn-command "*vc-diff*" 1 nil "diff"
-	       (append
-		(when rev1
-		  (list "-r" (if rev2 (concat rev1 ":" rev2) rev1)))
-		(when switches
-		  (list "-x" (mapconcat 'identity switches " ")))))))))
+  (vc-svn-diff (file-name-as-directory dir) rev1 rev2))
 
 ;;;
 ;;; Snapshot system
@@ -407,46 +386,19 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-create-snapshot (dir name branchp)
   "Assign to DIR's current version a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
-workspace is immediately moved to that new branch)."
-  (vc-svn-command nil 0 dir "tag" "-c" (if branchp "-b") name)
-  (when branchp (vc-svn-command nil 0 dir "update" "-r" name)))
+workspace is immediately moved to that new branch).
+NAME is assumed to be a URL."
+  (vc-svn-command nil 0 dir "copy" name)
+  (when branchp (vc-svn-retrieve-snapshot dir name nil)))
 
 (defun vc-svn-retrieve-snapshot (dir name update)
   "Retrieve a snapshot at and below DIR.
 NAME is the name of the snapshot; if it is empty, do a `svn update'.
-If UPDATE is non-nil, then update (resynch) any affected buffers."
-  (with-current-buffer (get-buffer-create "*vc*")
-    (let ((default-directory dir)
-	  (sticky-tag))
-      (erase-buffer)
-      (if (or (not name) (string= name ""))
-	  (vc-svn-command t 0 nil "update")
-	(vc-svn-command t 0 nil "update" "-r" name)
-	(setq sticky-tag name))
-      (when update
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (if (looking-at "\\([CMUP]\\) \\(.*\\)")
-	      (let* ((file (expand-file-name (match-string 2) dir))
-		     (state (match-string 1))
-		     (buffer (find-buffer-visiting file)))
-		(when buffer
-		  (cond
-		   ((or (string= state "U")
-			(string= state "P"))
-		    (vc-file-setprop file 'vc-state 'up-to-date)
-		    (vc-file-setprop file 'vc-workfile-version nil)
-		    (vc-file-setprop file 'vc-checkout-time
-				     (nth 5 (file-attributes file))))
-		   ((or (string= state "M")
-			(string= state "C"))
-		    (vc-file-setprop file 'vc-state 'edited)
-		    (vc-file-setprop file 'vc-workfile-version nil)
-		    (vc-file-setprop file 'vc-checkout-time 0)))
-		  (vc-file-setprop file 'vc-svn-sticky-tag sticky-tag)
-		  (vc-resynch-buffer file t t))))
-	  (forward-line 1))))))
-
+If UPDATE is non-nil, then update (resynch) any affected buffers.
+NAME is assumed to be a URL."
+  (vc-svn-command nil 0 dir "switch" name)
+  ;; FIXME: parse the output and obey `update'.
+  )
 
 ;;;
 ;;; Miscellaneous
