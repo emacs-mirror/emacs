@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.2)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.4)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -10,15 +10,17 @@ PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
-      <collect> <ref> <trace>
+      <collect> <ref> <trace> \
+      <than> <thnti3>
 AMC = <amc> <amcgroup>
+DW  = <dw> <dwformat>
 TESTLIB = <testlib>
 
 #!INCLUDE mv.nmk
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.2)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.4)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -40,6 +42,7 @@ TESTLIB = <testlib>
 #            and surrounded in angle brackets (<>)
 #   MPM      as above for the "mpm" part
 #   AMC      as above for the "amc" part
+#   DW      as above for the "amc" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -74,6 +77,9 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF AMC
 !ERROR mv.nmk: AMC not defined
+!ENDIF
+!IFNDEF DW
+!ERROR mv.nmk: DW not defined
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR mv.nmk: TESTLIB not defined
@@ -156,6 +162,8 @@ MPMOBJ0 = $(MPM:<=nti3mv\debug\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\debug\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=nti3mv\debug\)
+DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\debug\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -169,6 +177,8 @@ MPMOBJ0 = $(MPM:<=nti3mv\release\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\release\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=nti3mv\release\)
+DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\release\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -182,6 +192,8 @@ MPMOBJ0 = $(MPM:<=nti3mv\devel\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\devel\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=nti3mv\devel\)
+DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\devel\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -205,12 +217,13 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib
+all: dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
+    mpmstres.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
+dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 amcdev.cov:
@@ -266,7 +279,11 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
 	$(MPMOBJ) $(STDOBJ)
 
-$(PFM)\$(VARIETY)\amcdev.exe:  $(PFM)\$(VARIETY)\amcdev.obj $(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+$(PFM)\$(VARIETY)\amcdev.exe:  $(PFM)\$(VARIETY)\amcdev.obj \
+	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
+	$(DWOBJ) $(MPMOBJ) $(STDOBJ) $(AMCOBJ)
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
@@ -289,6 +306,12 @@ $(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
 	cl /c $(CFLAGS) /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+
+{}.asm{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	ml /nologo /c /coff /FR$*.sbr  /Fo$@ $<
 
 # Coverage files
 {$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
