@@ -5940,7 +5940,7 @@ realize_default_face (f)
       frame_font = Fassq (Qfont, f->param_alist);
       xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
       frame_font = XCDR (frame_font);
-      set_lface_from_font_name (f, lface, frame_font, 0, 1);
+      set_lface_from_font_name (f, lface, frame_font, 1, 1);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
