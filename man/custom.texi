@@ -127,7 +127,7 @@ you are in the minibuffer and completion is active.  @xref{Completion
 Options}.
 
   Line Number mode enables continuous display in the mode line of the
-line number of point and Column Number mode enables display of the
+line number of point, and Column Number mode enables display of the
 column number.  @xref{Mode Line}.
 
   Scroll Bar mode gives each window a scroll bar (@pxref{Scroll Bars}).
@@ -459,21 +459,27 @@ File Coding System Alist: [Hide]
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: undecided
             Encoding: nil
-[INS
+[INS]
    [State]: this option is unchanged from its standard setting.
 Alist to decide a coding system to use for a file I/O operation. [Hide]
-@dots{}
+The format is ((PATTERN . VAL) ...),
+where PATTERN is a regular expression matching a file name,
+@r{[@dots{}more lines of documentation@dots{}]}
 @end smallexample
 
 @noindent
-Each association in the list appears starting on a separate line with
-several editable or active fields.
+Each association in the list appears on four lines, with several
+editable or ``active'' fields.  You can edit the regexps and coding
+systems using ordinary editing commands.  You can also invoke
+@samp{[Value Menu]} to switch to a kind of value---for instance, to
+specify a function instead of a pair of coding systems.
 
-  You can edit the regexps and coding systems or select @samp{[Value
-Menu]} to change the choice for the second part of the pair, e.g.@: to a
-function.  To delete an item from the list or to add one after another
-item, invoke @samp{[DEL]} or @samp{[INS]} respectively at that item.  An inserted item appears with some default values.
-Invoke @samp{[+]} to append an extra item to the current list.
+To delete an association from the list, invoke the @samp{[DEL]} button
+for that item.  To add an association, invoke @samp{[INS]} at the
+position where you want to add it.  There is an @samp{[INS]} button
+between each pair of association, another at the beginning and another
+at the end, so you can add the new association at any position in the
+list.
 
 @kindex TAB @r{(customization buffer)}
 @kindex S-TAB @r{(customization buffer)}
@@ -486,10 +492,9 @@ field; @kbd{S-@key{TAB}} (@code{widget-backward}) moves backward to the
 previous active or editable field.
 
   Typing @key{RET} on an editable field also moves forward, just like
-@key{TAB}.  The reason for this is that people have a tendency to type
-@key{RET} when they are finished editing a field.  If you have occasion
-to insert a newline in an editable field, use @kbd{C-o} or @kbd{C-q
-C-j}.
+@key{TAB}.  We set it up this way because people often type @key{RET}
+when they are finished editing a field.  To insert a newline within an
+editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 
 @cindex saving option value
   Setting the option changes its value in the current Emacs session;
@@ -520,10 +525,11 @@ so that you will get the standard value in future Emacs sessions.
 @end table
 
 @cindex comments on customized options
-Sometimes it is useful to record a comment on the value of an option
-which you have customized.  Use the @samp{Add Comment} item from the
-@samp{[State]} menu to provide a field in which to edit a comment which
-will be saved and redisplayed if you re-customize the option later.
+  Sometimes it is useful to record a comment about a specific
+customization.  Use the @samp{Add Comment} item from the
+@samp{[State]} menu to create a field for entering the comment.  The
+comment you enter will be saved, and displayed again if you again view
+the same option in a customization buffer, even in another session.
 
   The state of a group indicates whether anything in that group has been
 edited, set or saved.  You can select @samp{Set for Current Session},
@@ -752,8 +758,9 @@ lambda expression.
 
 @group
 (add-hook 'c-mode-common-hook
-  (lambda ()
-    (c-add-style "my-style" my-c-style t)))
+  (function
+    (lambda ()
+      (c-add-style "my-style" my-c-style t))))
 @end group
 @end example
 
@@ -1417,9 +1424,11 @@ to add local bindings (not very useful, we admit) for @kbd{C-c n} and
 
 @example
 (add-hook 'texinfo-mode-hook
-          (lambda ()
-            (define-key texinfo-mode-map "\C-cp" 'backward-paragraph)
-            (define-key texinfo-mode-map "\C-cn" 'forward-paragraph)))
+          '(lambda ()
+             (define-key texinfo-mode-map "\C-cp"
+                         'backward-paragraph)
+             (define-key texinfo-mode-map "\C-cn"
+                         'forward-paragraph)))
 @end example
 
   @xref{Hooks}.
@@ -1720,20 +1729,20 @@ because the terminal sends the same character in both cases.
 @subsection Non-ASCII Characters on the Keyboard
 
 If your keyboard has keys that send non-ASCII characters, such as
-accented letters, rebinding these keys is a bit tricky.  There are
-two solutions you can use.  One is to specify a keyboard coding system,
+accented letters, rebinding these keys is a bit tricky.  There are two
+solutions you can use.  One is to specify a keyboard coding system,
 using @code{set-keyboard-coding-system} (@pxref{Specify Coding}).
-Then you can bind these keys in the usual way,@footnote{Note that you
+Then you can bind these keys in the usual way@footnote{Note that you
 should avoid the string syntax for binding 8-bit characters, since
-they will be interpreted as meta keys.  @xref{(elisp)Strings of
-Events}.} by writing
+they will be interpreted as meta keys.  @xref{Strings of
+Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 
 @example
 (global-set-key [?@var{char}] 'some-function)
 @end example
 
 @noindent
-and typing the key you want to bind to insert @var{char}.
+Type @kbd{C-q} followe dby the key you want to bind, to insert @var{char}.
 
 If you don't specify the keyboard coding system, that approach won't
 work.  Instead, you need to find out the actual code that the terminal
@@ -2162,7 +2171,7 @@ Turn on Auto Fill mode automatically in Text mode and related modes.
 
 @example
 (add-hook 'text-mode-hook
-  (lambda () (auto-fill-mode 1)))
+  '(lambda () (auto-fill-mode 1)))
 @end example
 
 This shows how to add a hook function to a normal hook variable
