@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.296 2001/02/01 17:41:06 fx Exp $
+;; $Id: vc.el,v 1.297 2001/02/26 13:45:06 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -240,7 +240,7 @@
 ;;
 ;; * print-log (file)
 ;;
-;;   Insert the revision log of FILE into the current buffer.
+;;   Insert the revision log of FILE into the *vc* buffer.
 ;;
 ;; - show-log-entry (version)
 ;;
@@ -277,7 +277,7 @@
 ;;
 ;; * diff (file &optional rev1 rev2)
 ;;
-;;   Insert the diff for FILE into the current buffer.  If REV1 and REV2
+;;   Insert the diff for FILE into the *vc-diff* buffer.  If REV1 and REV2
 ;;   are non-nil, report differences from REV1 to REV2.  If REV1 is nil,
 ;;   use the current workfile version (as found in the repository) as the
 ;;   older version; if REV2 is nil, use the current workfile contents as
@@ -826,19 +826,24 @@ and is passed 3 argument: the COMMAND, the FILE and the FLAGS.")
 
 (defun vc-do-command (buffer okstatus command file &rest flags)
   "Execute a version control command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the current
-buffer (which is assumed to be properly setup) if BUFFER is t.  The
-command is considered successful if its exit status does not exceed
-OKSTATUS (if OKSTATUS is nil, that means to ignore errors, if it is 'async,
-that means not to wait for termination of the subprocess).  FILE is
-the name of the working file (may also be nil, to execute commands
-that don't expect a file name).  If an optional list of FLAGS is present,
+Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
+current buffer if BUFFER is t.  If the destination buffer is not
+already current, set it up properly and erase it.  The command is
+considered successful if its exit status does not exceed OKSTATUS (if
+OKSTATUS is nil, that means to ignore errors, if it is 'async, that
+means not to wait for termination of the subprocess).  FILE is the
+name of the working file (may also be nil, to execute commands that
+don't expect a file name).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
   (and file (setq file (expand-file-name file)))
   (if vc-command-messages
       (message "Running %s on %s..." command file))
   (save-current-buffer
-    (unless (eq buffer t) (vc-setup-buffer buffer))
+    (unless (or (eq buffer t)
+                (and (stringp buffer)
+                     (string= (buffer-name) buffer))
+                (eq buffer (current-buffer)))
+      (vc-setup-buffer buffer))
     (let ((squeezed nil)
 	  (inhibit-read-only t)
 	  (status 0))
@@ -1727,17 +1732,18 @@ files in or below it."
 				    rel2-default ") ")
 			  "Newer version (default: current source): ")
 			nil nil rel2-default))))
-  (vc-setup-buffer "*vc-diff*")
   (if (file-directory-p file)
       ;; recursive directory diff
-      (let ((inhibit-read-only t))
+      (progn
+        (vc-setup-buffer "*vc-diff*")
 	(if (string-equal rel1 "") (setq rel1 nil))
 	(if (string-equal rel2 "") (setq rel2 nil))
-	(insert "Diffs between "
-		(or rel1 "last version checked in")
-		" and "
-		(or rel2 "current workfile(s)")
-		":\n\n")
+        (let ((inhibit-read-only t))
+          (insert "Diffs between "
+                  (or rel1 "last version checked in")
+                  " and "
+                  (or rel2 "current workfile(s)")
+                  ":\n\n"))
 	(setq default-directory (file-name-as-directory file))
 	;; FIXME: this should do a single exec in CVS.
 	(vc-file-tree-walk
@@ -1759,7 +1765,7 @@ files in or below it."
 			 file
 		       (vc-version-backup-file file rel2))))
       (if (and file-rel1 file-rel2)
-	  (apply 'vc-do-command t 1 "diff" nil
+	  (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
 		 (append (if (listp diff-switches)
 			     diff-switches
 			   (list diff-switches))
@@ -1768,8 +1774,8 @@ files in or below it."
                            (list vc-diff-switches))
 			 (list (file-relative-name file-rel1)
 			       (file-relative-name file-rel2))))
-	(cd (file-name-directory file))
 	(vc-call diff file rel1 rel2))))
+  (set-buffer "*vc-diff*")
   (if (and (zerop (buffer-size))
 	   (not (get-buffer-process (current-buffer))))
       (progn
@@ -2363,9 +2369,8 @@ allowed and simply skipped)."
   (interactive)
   (vc-ensure-vc-buffer)
   (let ((file buffer-file-name))
-    (vc-setup-buffer nil)
-    (setq default-directory (file-name-directory file))
     (vc-call print-log file)
+    (set-buffer "*vc*")
     (pop-to-buffer (current-buffer))
     (if (fboundp 'log-view-mode) (log-view-mode))
     (vc-exec-after
