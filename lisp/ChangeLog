@@ -1,3 +1,9 @@
+2005-02-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-regexp-alist): Match an optional ^[[K
+	that some versions of grep produce.
+	(grep-mode-font-lock-keywords): Likewise.
+
 2005-02-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-location-list): New variable.

@@ -253,7 +253,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
   '(("^\\(.+?\\)[: \t]+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
 \\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[: \t]" 1 (2 . 5) (4 . 6))
-    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
      1 2
      ;; Calculate column positions (beg . end) of first grep match on a line
      ((lambda ()
@@ -293,7 +293,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (1 compilation-warning-face)
       (2 compilation-line-face))
      ;; Highlight grep matches and delete markers
-     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
       (2 grep-match-face)
       ((lambda (p))
        (progn
