@@ -15,6 +15,11 @@
 	overlay works.  Use a let when making comint-last-prompt-overlay,
 	so that the code is easier to read.
 
+2000-09-12  Francesco Potorti`  <pot@gnu.org>
+
+	* mail/sendmail.el (mail-mode-fill-paragraph): Do not get the
+	filed name if it's not there.
+
 2000-09-12  Dave Love  <fx@gnu.org>
 
 	* simple.el (read-mail-command): Doc fix.
