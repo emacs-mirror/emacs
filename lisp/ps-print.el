@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2002/09/11 15:52:39 vinicius>
-;; Version: 6.5.7
+;; Time-stamp: <2002/09/13 10:10:20 vinicius>
+;; Version: 6.5.8
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.7"
-  "ps-print.el, v 6.5.7 <2002/09/11 vinicius>
+(defconst ps-print-version "6.5.8"
+  "ps-print.el, v 6.5.8 <2002/09/13 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -49,8 +49,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; This package provides printing of Emacs buffers on PostScript printers; the
 ;; buffer's bold and italic text attributes are preserved in the printer
-;; output.  ps-print is intended for use with Emacs or Lucid Emacs, together
-;; with a fontifying package such as font-lock or hilit.
+;; output.  ps-print is intended for use with Emacs or XEmacs, together with a
+;; fontifying package such as font-lock or hilit.
 ;;
 ;; ps-print uses the same face attributes defined through font-lock or hilit to
 ;; print a PostScript file, but some faces are better seeing on the screen than
@@ -1329,7 +1329,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch and Emacs 19 not supported.  At all.
+;; Epoch, Lucid and Emacs 19 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1442,6 +1442,20 @@ Please send all bug fixes and enhancements to
       (error "`ps-print' requires floating point support"))
 
 
+  (defvar ps-print-emacs-type
+    (let ((case-fold-search t))
+      (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	    ((string-match "Lucid" emacs-version)
+	     (error "`ps-print' doesn't support Lucid"))
+	    ((string-match "Epoch" emacs-version)
+	     (error "`ps-print' doesn't support Epoch"))
+	    (t
+	     (unless (and (boundp 'emacs-major-version)
+			  (> emacs-major-version 19))
+	       (error "`ps-print' only supports Emacs 20 and higher"))
+	     'emacs))))
+
+
   ;; For Emacs 20.2 and the earlier version.
 
   (or (fboundp 'set-buffer-multibyte)
@@ -1510,16 +1524,6 @@ Please send all bug fixes and enhancements to
     (memq system-type '(usg-unix-v dgux hpux irix)))
 
 
-  (defvar ps-print-emacs-type
-    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	  ((string-match "Lucid" emacs-version) 'lucid)
-	  ((string-match "Epoch" emacs-version) 'epoch)
-	  (t 'emacs)))
-
-  (or (memq ps-print-emacs-type '(lucid xemacs))
-      (require 'faces))			; face-font, face-underline-p,
-					; x-font-regexp
-
   (defun ps-xemacs-color-name (color)
     (if (ps-x-color-specifier-p color)
 	(ps-x-color-name color)
@@ -1533,7 +1537,7 @@ Please send all bug fixes and enhancements to
 	 (defalias 'ps-face-foreground-name 'face-foreground)
 	 (defalias 'ps-face-background-name 'face-background)
 	 )
-	(t				; xemacs, lucid, epoch
+	(t				; xemacs
 	 (defalias 'ps-mark-active-p 'region-active-p)
 	 (defun ps-face-foreground-name (face)
 	   (ps-xemacs-color-name (face-foreground face)))
@@ -3177,13 +3181,13 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   (or (cond
        ((eq ps-print-emacs-type 'emacs)	; emacs
 	data-directory)
-       ((fboundp 'locate-data-directory) ; emacsens (xemacs, etc.)
+       ((fboundp 'locate-data-directory) ; xemacs
 	(locate-data-directory "ps-print"))
-       ((boundp 'data-directory)	; emacsens (xemacs, etc.)
+       ((boundp 'data-directory)	; xemacs
 	data-directory)
        (t				; don't know what to do
 	nil))
-      (error "ps-postscript-code-directory isn't set properly"))
+      (error "`ps-postscript-code-directory' isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -3642,7 +3646,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (eval-and-compile
-  (and (memq ps-print-emacs-type '(lucid xemacs))
+  (and (eq ps-print-emacs-type 'xemacs)
        ;; XEmacs change: Need to check for emacs-major-version too.
        (or (< emacs-major-version 19)
 	   (and (= emacs-major-version 19) (< emacs-minor-version 12)))
@@ -3707,7 +3711,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	       (memq face ps-italic-faces)))
 	 )
 
-	(t				; xemacs, lucid, epoch
+	(t				; xemacs
 
 	 ;; to avoid XEmacs compilation gripes
 	 (defvar coding-system-for-write   nil)
@@ -3829,7 +3833,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
       ;; PostScript output.
       "%0.3f %0.3f %0.3f"
 
-    ;; Lucid emacsen will have to make do with %s (princ) for floats.
+    ;; XEmacs will have to make do with %s (princ) for floats.
     "%s %s %s"))
 
 ;; These values determine how much print-height to deduct when headers/footers
@@ -4690,11 +4694,11 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 ;; Emacs understands the %f format; we'll use it to limit color RGB values
 ;; to three decimals to cut down some on the size of the PostScript output.
-;; Lucid emacsen will have to make do with %s (princ) for floats.
+;; XEmacs will have to make do with %s (princ) for floats.
 
 (defvar ps-float-format (if (eq ps-print-emacs-type 'emacs)
 			    "%0.3f "	; emacs
-			  "%s "))	; Lucid emacsen
+			  "%s "))	; xemacs
 
 
 (defun ps-float-format (value &optional default)
@@ -6184,7 +6188,7 @@ If FACE is not a valid face name, it is used default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((memq ps-print-emacs-type '(xemacs lucid))
+       ((eq ps-print-emacs-type 'xemacs)
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
