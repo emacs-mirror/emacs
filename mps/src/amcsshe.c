@@ -1,6 +1,6 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
- * $HopeName: MMsrc!amcsshe.c(trunk.1) $
+ * $HopeName: MMsrc!amcsshe.c(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-  adjust_collection_freq(0.0);
+  adjust_collection_freq(0.2);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
