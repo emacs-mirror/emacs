@@ -664,6 +664,9 @@ of face names.  Attributes from inherited faces are merged into the face
 like an underlying face would be, with higher priority than underlying faces."
   (let ((where (if (null frame) 0 frame)))
     (setq args (purecopy args))
+    ;; If we set the new-frame defaults, this face is modified outside Custom.
+    (if (memq where '(0 t))
+	(put face 'face-modified t))
     (while args
       (internal-set-lisp-face-attribute face (car args)
 					(purecopy (cadr args))
@@ -1378,7 +1381,11 @@ If SPEC is nil, do nothing."
 	       (setq attribute nil))))
 	(when attribute
 	  (set-face-attribute face frame attribute value)))
-      (setq attrs (cdr (cdr attrs))))))
+      (setq attrs (cdr (cdr attrs)))))
+  ;; When we reset the face based on its spec, then it is unmodified
+  ;; as far as Custom is concerned.
+  (if (null frame)
+      (put face 'face-modified nil)))
 
 
 (defun face-attr-match-p (face attrs &optional frame)
