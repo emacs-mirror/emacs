@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.35) $
+ * $HopeName: MMsrc!amcss.c(trunk.36) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -62,11 +62,12 @@ static mps_addr_t make(void)
 }
 
 
-static void test_stepper(mps_addr_t object, void *p, size_t s)
+static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pol,
+                         void *p, size_t s)
 {
-  (*(unsigned long *)p)++;
+  testlib_unused(object); testlib_unused(fmt); testlib_unused(pol);
   testlib_unused(s);
-  testlib_unused(object);
+  (*(unsigned long *)p)++;
 }
 
 
@@ -137,9 +138,9 @@ static void *test(void *arg, size_t s)
       if(collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
-	mps_amc_apply(pool, test_stepper, &object_count, 0);
+	mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
 	mps_arena_release(arena);
-	printf("mps_amc_apply stepped on %lu objects.\n", object_count);
+	printf("stepped on %lu objects.\n", object_count);
       }
       if(collections == rampSwitch) {
         rampSwitch += rampSIZE;
