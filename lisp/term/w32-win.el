@@ -144,6 +144,29 @@
 (global-set-key [mouse-wheel] 'mouse-wheel-scroll-line)
 (global-set-key [C-mouse-wheel] 'mouse-wheel-scroll-screen)
 
+(defun w32-drag-n-drop-debug (event) 
+  "Print the drag-n-drop event in a readable form."
+  (interactive "e") 
+  (princ event))
+
+(defun w32-drag-n-drop (event)
+  "Edit the files listed in the drag-n-drop event.
+Switch to a buffer editing the last file dropped."
+  (interactive "e")
+  (mapcar 'find-file (car (cdr (cdr event))))
+  (raise-frame))
+
+(defun w32-drag-n-drop-other-frame (event)
+  "Edit the files listed in the drag-n-drop event, in other frames.
+May create new frames, or reuse existing ones.  The frame editing
+the last file dropped is selected."
+  (interactive "e")
+  (mapcar 'find-file-other-frame (car (cdr (cdr event)))))
+
+;; Bind the drag-n-drop event.
+(global-set-key [drag-n-drop] 'w32-drag-n-drop)
+(global-set-key [C-drag-n-drop] 'w32-drag-n-drop-other-frame)
+
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
