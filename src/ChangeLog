@@ -1,3 +1,8 @@
+2002-06-14  Juanma Barranquero  <lektu@terra.es>
+
+	* composite.c (Fcompose_region_internal, Fcompose_string_internal):
+	Fix typos.
+
 2002-06-14  Kim F. Storm  <storm@cua.dk>
 
 	* insdel.c (insert_1_both, insert_from_string_1)
