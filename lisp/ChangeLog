@@ -1,3 +1,9 @@
+2003-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-font-lock-keywords): New var.
+	(dcl-font-lock-defaults): Newvar.
+	(dcl-mode): Make and init local var `font-lock-defaults'.
+
 2003-03-06  Kevin Rodgers  <kevin.rodgers@ihs.com>
 
 	* ffap.el (dired-at-point): Check whether the user can create a
