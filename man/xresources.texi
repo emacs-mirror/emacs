@@ -23,9 +23,10 @@ describes the X resources that Emacs recognizes and how to use them.
 @node Resources
 @appendixsec X Resources
 @cindex resources
+@cindex X resources
+@cindex @file{~/.Xdefaults} file
+@cindex @file{~/.Xresources} file
 
-@cindex X resources, @file{~/.Xdefaults} file
-@cindex X resources, @file{~/.Xresources} file
   Programs running under the X Window System organize their user
 options under a hierarchy of classes and resources.  You can specify
 default values for these options in your X resources file, usually
@@ -40,7 +41,6 @@ collection of related options, for one program or for several programs
 (optionally even for all programs).
 
 @cindex Registry (MS-Windows)
-@cindex @file{.Xdefaults} file, and MS-Windows
   MS-Windows systems don't support @file{~/.Xdefaults} files, but
 Emacs compiled for Windows looks for X resources in the Windows
 Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
@@ -204,12 +204,6 @@ Give frames menu bars if @samp{on}; don't have menu bars if
 @samp{off}.  @xref{Lucid Resources}, and @ref{LessTif Resources}, for
 how to control the appearance of the menu bar if you have one.
 
-@item @code{toolBar} (class @code{ToolBar})
-Number of lines to reserve for the tool bar.  A zero value suppresses
-the tool bar.  If the value is non-zero and
-@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
-will be changed automatically so that all tool bar items are visible.
-
 @item @code{minibuffer} (class @code{Minibuffer})
 If @samp{none}, don't make a minibuffer in this frame.
 It will use a separate minibuffer frame instead.
@@ -252,6 +246,12 @@ useful for debugging X problems.
 
 @item @code{title} (class @code{Title})
 Name to display in the title bar of the initial Emacs frame.
+
+@item @code{toolBar} (class @code{ToolBar})
+Number of lines to reserve for the tool bar.  A zero value suppresses
+the tool bar.  If the value is non-zero and
+@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
+will be changed automatically so that all tool bar items are visible.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
