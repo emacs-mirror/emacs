@@ -3591,10 +3591,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  count++;
 		  numchars--;
 		}
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    case MapNotify:
 	      /* We use x_top_window_to_frame because map events can come
@@ -3623,10 +3620,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		       in case this is the second frame.  */
 		    record_asynch_buffer_change ();
 		}
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	      /* Turn off processing if we become fully obscured. */
 	    case VisibilityNotify:
@@ -3790,7 +3784,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  else
 		    abort ();
 		}
-	      break;
+	      goto OTHER;
 
 	      /* Here's a possible interpretation of the whole
 		 FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If you get a
@@ -3818,10 +3812,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 so update things that depend on mouse position.  */
 	      if (f)
 		note_mouse_movement (f, &event.xmotion);
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    case FocusIn:
 	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
@@ -3835,11 +3826,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		XSetICFocus (FRAME_XIC (f));
 #endif
 
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
-
 
 	    case LeaveNotify:
 	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -3860,10 +3847,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			x_new_focus_frame (dpyinfo, 0);
 		    }
 		}
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    case FocusOut:
 	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
@@ -3878,10 +3862,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		XUnsetICFocus (FRAME_XIC (f));
 #endif
 
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    case MotionNotify:
 	      {
@@ -3905,10 +3886,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    clear_mouse_face (dpyinfo);
 		  }
 	      }
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    case ConfigureNotify:
 	      f = x_any_window_to_frame (dpyinfo, event.xconfigure.window);
@@ -3997,11 +3975,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 /* #endif */
 		  }
 		}
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#else
-	      break;
-#endif
 
 	    case ButtonPress:
 	    case ButtonRelease:
@@ -4103,14 +4077,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		case MappingKeyboard:
 		  XRefreshKeyboardMapping (&event.xmapping);
 		}
-#ifdef USE_X_TOOLKIT
 	      goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
 
 	    default:
-#ifdef USE_X_TOOLKIT
 	    OTHER:
+#ifdef USE_X_TOOLKIT
 	      BLOCK_INPUT;
 	      XtDispatchEvent (&event);
 	      UNBLOCK_INPUT;
