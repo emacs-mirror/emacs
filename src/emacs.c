@@ -1975,12 +1975,12 @@ You must run Emacs in batch mode in order to dump it.")
   malloc_state_ptr = malloc_get_state ();
 #endif
 
-#ifdef REL_ALLOC_MMAP
+#ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
   unexec (XSTRING (filename)->data,
 	  !NILP (symfile) ? XSTRING (symfile)->data : 0, my_edata, 0, 0);
-#ifdef REL_ALLOC_MMAP
+#ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif
 #ifdef DOUG_LEA_MALLOC
