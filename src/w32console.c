@@ -123,10 +123,14 @@ clear_frame (void)
   FRAME_PTR  f = PICK_FRAME ();
   COORD	     dest;
   int        n, r;
+  CONSOLE_SCREEN_BUFFER_INFO info;
+
+  GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
   hl_mode (0);
   
-  n = FRAME_HEIGHT (f) * FRAME_WIDTH (f);
+  /* Remember that the screen buffer might be wider than the window.  */
+  n = FRAME_HEIGHT (f) * info.dwSize.X;
   dest.X = dest.Y = 0;
 
   FillConsoleOutputAttribute (cur_screen, char_attr, n, dest, &r);
@@ -333,16 +337,14 @@ write_glyphs (register GLYPH *string, register int len)
   FRAME_PTR f = PICK_FRAME ();
   register char *ptr;
   GLYPH glyph;
-  WORD *attrs;
   char *chars;
   int i;
   
   if (len <= 0)
     return;
 
-  attrs = alloca (len * sizeof (*attrs));
   chars = alloca (len * sizeof (*chars));
-  if (attrs == NULL || chars == NULL)
+  if (chars == NULL)
     {
       printf ("alloca failed in write_glyphs\n");
       return;
@@ -379,12 +381,8 @@ write_glyphs (register GLYPH *string, register int len)
   /* Number of characters we have in the buffer.  */
   len = ptr-chars;
   
-  /* Fill in the attributes for these characters.  */
-  for (i = 0; i < len; i++)
-    attrs[i] = char_attr;
-  
-  /* Write the attributes.  */
-  if (!WriteConsoleOutputAttribute (cur_screen, attrs, len, cursor_coords, &i))
+  /* Set the attribute for these characters.  */
+  if (!FillConsoleOutputAttribute (cur_screen, char_attr, len, cursor_coords, &i))
     {
       printf ("Failed writing console attributes: %d\n", GetLastError ());
       fflush (stdout);
