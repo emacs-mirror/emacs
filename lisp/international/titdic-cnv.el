@@ -272,7 +272,9 @@
     (insert "(quail-define-rules\n")
     (while (null (eobp))
       (if (or (= (following-char) ?#) (= (following-char) ?\n))
-	  (insert ";; ")
+	  (progn
+	    (insert ";; ")
+	    (forward-line 1))
 	(insert "(\"")
 	(setq pos (point))
 	(skip-chars-forward "^ \t")
@@ -303,24 +305,32 @@
 		(delete-region (match-beginning 1) (match-end 1)))
 	    ))
 
-	;; Modify the current line to meet the syntax of Quail package.
 	(goto-char pos)
-	(if tit-phrase
+	(if (eolp)
+	    ;; This entry contains no translations.  Let's ignore it.
 	    (progn
-	      ;; PHRASE1 PHRASE2 ... => ["PHRASE1" "PHRASE2" ...]
-	      (insert "[\"")
-	      (skip-chars-forward "^ \t\n")
-	      (while (not (eolp))
-		(insert "\"")
-		(forward-char 1)
-		(insert "\"")
-		(skip-chars-forward "^ \t\n"))
-	      (insert "\"])"))
-	  ;; TRANSLATIONS => "TRANSLATIONS"
-	  (insert "\"")
-	  (end-of-line)
-	  (insert "\")")))
-      (forward-line 1))
+	      (beginning-of-line)
+	      (setq pos (point))
+	      (forward-line 1)
+	      (delete-region pos (point)))
+
+	  ;; Modify the current line to meet the syntax of Quail package.
+	  (if tit-phrase
+	      (progn
+		;; PHRASE1 PHRASE2 ... => ["PHRASE1" "PHRASE2" ...]
+		(insert "[\"")
+		(skip-chars-forward "^ \t\n")
+		(while (not (eolp))
+		  (insert "\"")
+		  (forward-char 1)
+		  (insert "\"")
+		  (skip-chars-forward "^ \t\n"))
+		(insert "\"])"))
+	    ;; TRANSLATIONS => "TRANSLATIONS"
+	    (insert "\"")
+	    (end-of-line)
+	    (insert "\")"))
+	  (forward-line 1))))
     (insert ")\n")))
 
 ;;;###autoload
