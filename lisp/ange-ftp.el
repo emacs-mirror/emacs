@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.22 $")
+(defconst ange-ftp-version "$Revision: 1.23 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3621,7 +3621,15 @@ system TYPE.")
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))
-
+
+(defun ange-ftp-load (file)
+  (if (ange-ftp-ftp-name file)
+      (let ((copy (ange-ftp-file-local-copy file)))
+	(unwind-protect
+	    (load copy)
+	  (delete-file copy)))
+    (ange-ftp-real-load file)))
+
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
 (defun ange-ftp-unhandled-file-name-directory (filename)
   (file-name-directory ange-ftp-tmp-name-template))
@@ -3783,6 +3791,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-name-sans-versions 'ange-ftp 'ange-ftp-file-name-sans-versions)
 (put 'dired-uncache 'ange-ftp 'ange-ftp-dired-uncache)
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
+(put 'load 'ange-ftp 'ange-ftp-load)
 
 ;; Turn off truename processing to save time.
 ;; Treat each name as its own truename.
@@ -3876,6 +3885,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-real-shell-command (&rest args)
   (let (file-name-handler-alist)
     (apply 'shell-command args)))
+(defun ange-ftp-real-load (&rest args)
+  (let (file-name-handler-alist)
+    (apply 'load args)))
 
 ;; Here we support using dired on remote hosts.
 ;; I have turned off the support for using dired on foreign directory formats.
