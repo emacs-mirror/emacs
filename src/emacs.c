@@ -66,13 +66,14 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
+#undef setpgrp
 #define setpgrp setpgid
 #endif
 #endif
 
-extern void malloc_warning ();
-extern void set_time_zone_rule ();
-extern char *index ();
+extern void malloc_warning P_ ((char *));
+extern void set_time_zone_rule P_ ((char *));
+extern char *index P_ ((const char *, int));
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
