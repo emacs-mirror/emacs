@@ -614,7 +614,7 @@ no color is set and a warning is issued."
   (let ((name (symbol-name symbol))
 	foreground)
     (cond ((internal-find-face symbol))
-	  ((and window-system
+	  ((and (display-color-p)
 		(or (setq foreground (string-match "^fg:" name))
 		    (string-match "^bg:" name)))
 	   (let ((face (make-face symbol))
