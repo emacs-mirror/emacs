@@ -1,3 +1,8 @@
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* eval.c (Fcalled_interactively_p): Rename from Fcall_interactive_p.
+	(syms_of_eval): Defsubr it.
+
 2004-11-02  Richard M. Stallman  <rms@gnu.org>
 
 	* insdel.c (replace_range_2): New function.
