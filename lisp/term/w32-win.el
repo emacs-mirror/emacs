@@ -884,6 +884,13 @@ fixed width fonts that most people will have like Terminal and
 Courier. These fonts are used in the font menu if the variable
 `w32-use-w32-font-dialog' is nil.")
 
+;;; Enable Japanese fonts on Windows to be used by default.
+(put-charset-property 'katakana-jisx0201 'x-charset-registry "JISX0208-SJIS")
+(put-charset-property 'latin-jisx0201 'x-charset-registry "JISX0208-SJIS")
+(put-charset-property 'japanese-jisx0208 'x-charset-registry "JISX0208-SJIS")
+(put-charset-property 'japanese-jisx0208-1978 'x-charset-registry
+                      "JISX0208-SJIS")
+
 (defun mouse-set-font (&rest fonts)
   "Select a font. If `w32-use-w32-font-dialog' is non-nil (the default),
 use the Windows font dialog. Otherwise use a pop-up menu (like Emacs
