@@ -1,3 +1,8 @@
+2003-01-28  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuf-ext.el (ibuffer-yank-filter-group): Move check for empty
+	filter group kill-ring out of `interactive' declaration.
+
 2003-01-28  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-vars.el, progmodes/cc-mode.el
