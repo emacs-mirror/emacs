@@ -37,12 +37,11 @@
 
 ;;;###autoload
 (defun move-to-column-force (column &optional flag)
-  "Obsolete.  Use `move-to-column'.
-If COLUMN is within a multi-column character, replace it by spaces and tab.
+  "If COLUMN is within a multi-column character, replace it by spaces and tab.
 As for `move-to-column', passing anything but nil or t in FLAG will move to
 the desired column only if the line is long enough."
   (move-to-column column (or flag t)))
-(make-obsolete 'move-to-column-force "move-to-column" "21.2")
+(make-obsolete 'move-to-column-force 'move-to-column "21.2")
 
 ;; not used any more --dv
 ;; extract-rectangle-line stores lines into this list
