@@ -268,7 +268,7 @@ static void do_line_dance ();
 static int XTcursor_to ();
 static int XTclear_end_of_line ();
 static int x_io_error_quitter ();
-void x_catch_errors ();
+int x_catch_errors ();
 void x_uncatch_errors ();
 
 #if 0
@@ -2705,6 +2705,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	Window win, child;
 	int win_x, win_y;
 	int parent_x, parent_y;
+	int count;
 
 	win = root;
 
@@ -2712,7 +2713,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	   structure is changing at the same time this function
 	   is running.  So at least we must not crash from them.  */
 
-	x_catch_errors (FRAME_X_DISPLAY (*fp));
+	count = x_catch_errors (FRAME_X_DISPLAY (*fp));
 
 	if (FRAME_X_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
 	    && FRAME_LIVE_P (last_mouse_frame))
@@ -2772,7 +2773,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
 	  f1 = 0;
 
-	x_uncatch_errors (FRAME_X_DISPLAY (*fp));
+	x_uncatch_errors (FRAME_X_DISPLAY (*fp), count);
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -4938,6 +4939,138 @@ x_text_icon (f, icon_name)
   return 0;
 }
 
+#define X_ERROR_MESSAGE_SIZE 200
+
+/* If non-nil, this should be a string.
+   It means catch X errors  and store the error message in this string.  */
+
+static Lisp_Object x_error_message_string;
+
+/* An X error handler which stores the error message in
+   x_error_message_string.  This is called from x_error_handler if
+   x_catch_errors is in effect.  */
+
+static int
+x_error_catcher (display, error)
+     Display *display;
+     XErrorEvent *error;
+{
+  XGetErrorText (display, error->error_code,
+		 XSTRING (x_error_message_string)->data,
+		 X_ERROR_MESSAGE_SIZE);
+}
+
+/* Begin trapping X errors for display DPY.  Actually we trap X errors
+   for all displays, but DPY should be the display you are actually
+   operating on.
+
+   After calling this function, X protocol errors no longer cause
+   Emacs to exit; instead, they are recorded in the string
+   stored in x_error_message_string.
+
+   Calling x_check_errors signals an Emacs error if an X error has
+   occurred since the last call to x_catch_errors or x_check_errors.
+
+   Calling x_uncatch_errors resumes the normal error handling.  */
+
+void x_check_errors ();
+static Lisp_Object x_catch_errors_unwind ();
+
+int
+x_catch_errors (dpy)
+     Display *dpy;
+{
+  int count = specpdl_ptr - specpdl;
+
+  /* Make sure any errors from previous requests have been dealt with.  */
+  XSync (dpy, False);
+
+  record_unwind_protect (x_catch_errors_unwind, x_error_message_string);
+
+  x_error_message_string = make_uninit_string (X_ERROR_MESSAGE_SIZE);
+  XSTRING (x_error_message_string)->data[0] = 0;
+
+  return count;
+}
+
+/* Unbind the binding that we made to check for X errors.  */
+
+static Lisp_Object
+x_catch_errors_unwind (old_val)
+     Lisp_Object old_val;
+{
+  x_error_message_string = old_val;
+  return Qnil;
+}
+
+/* If any X protocol errors have arrived since the last call to
+   x_catch_errors or x_check_errors, signal an Emacs error using
+   sprintf (a buffer, FORMAT, the x error message text) as the text.  */
+
+void
+x_check_errors (dpy, format)
+     Display *dpy;
+     char *format;
+{
+  /* Make sure to catch any errors incurred so far.  */
+  XSync (dpy, False);
+
+  if (XSTRING (x_error_message_string)->data[0])
+    error (format, XSTRING (x_error_message_string)->data);
+}
+
+/* Nonzero if we had any X protocol errors on DPY
+   since we did x_catch_errors.  */
+
+int
+x_had_errors_p (dpy)
+     Display *dpy;
+{
+  /* Make sure to catch any errors incurred so far.  */
+  XSync (dpy, False);
+
+  return XSTRING (x_error_message_string)->data[0] != 0;
+}
+
+/* Stop catching X protocol errors and let them make Emacs die.
+   DPY should be the display that was passed to x_catch_errors.
+   COUNT should be the value that was returned by
+   the corresponding call to x_catch_errors.  */
+
+void
+x_uncatch_errors (dpy, count)
+     Display *dpy;
+     int count;
+{
+  unbind_to (count, Qnil);
+}
+
+#if 0
+static unsigned int x_wire_count;
+x_trace_wire ()
+{
+  fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
+}
+#endif /* ! 0 */
+
+
+/* Handle SIGPIPE, which can happen when the connection to a server
+   simply goes away.  SIGPIPE is handled by x_connection_signal.
+   Don't need to do anything, because the write which caused the 
+   SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
+   which will do the appropriate cleanup for us. */
+   
+static SIGTYPE
+x_connection_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+#ifdef USG
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (signalnum, x_connection_signal);
+#endif /* USG */
+}
+
 /* Handling X errors.  */
 
 /* Handle the loss of connection to display DISPLAY.  */
@@ -5026,6 +5159,22 @@ x_error_quitter (display, error)
   x_connection_closed (display, buf1);
 }
 
+/* This is the first-level handler for X protocol errors.
+   It calls x_error_quitter or x_error_catcher.  */
+
+static int
+x_error_handler (display, error)
+     Display *display;
+     XErrorEvent *error;
+{
+  char buf[256], buf1[356];
+
+  if (! NILP (x_error_message_string))
+    x_error_catcher (display, error);
+  else
+    x_error_quitter (display, error);
+}
+
 /* This is the handler for X IO errors, always.
    It kills all frames on the display that we lost touch with.
    If that was the only one, it prints an error message and kills Emacs.  */
@@ -5039,125 +5188,6 @@ x_io_error_quitter (display)
   sprintf (buf, "Connection lost to X server `%s'", DisplayString (display));
   x_connection_closed (display, buf);
 }
-
-/* Handle SIGPIPE, which can happen when the connection to a server
-   simply goes away.  SIGPIPE is handled by x_connection_signal.
-   Don't need to do anything, because the write which caused the 
-   SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
-   which will do the appropriate cleanup for us. */
-   
-static SIGTYPE
-x_connection_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls. */
-{
-#ifdef USG
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signalnum, x_connection_signal);
-#endif /* USG */
-}
-
-/* A buffer for storing X error messages.  */
-static char *x_caught_error_message;
-#define X_CAUGHT_ERROR_MESSAGE_SIZE 200
-
-/* An X error handler which stores the error message in
-   x_caught_error_message.  This is what's installed when
-   x_catch_errors is in effect.  */
-
-static int
-x_error_catcher (display, error)
-     Display *display;
-     XErrorEvent *error;
-{
-  XGetErrorText (display, error->error_code,
-		 x_caught_error_message, X_CAUGHT_ERROR_MESSAGE_SIZE);
-}
-
-
-/* Begin trapping X errors for display DPY.  Actually we trap X errors
-   for all displays, but DPY should be the display you are actually
-   operating on.
-
-   After calling this function, X protocol errors no longer cause
-   Emacs to exit; instead, they are recorded in x_cfc_error_message.
-
-   Calling x_check_errors signals an Emacs error if an X error has
-   occurred since the last call to x_catch_errors or x_check_errors.
-
-   Calling x_uncatch_errors resumes the normal error handling.  */
-
-void x_catch_errors (), x_check_errors (), x_uncatch_errors ();
-
-void
-x_catch_errors (dpy)
-     Display *dpy;
-{
-  /* Make sure any errors from previous requests have been dealt with.  */
-  XSync (dpy, False);
-
-  /* Set up the error buffer.  */
-  x_caught_error_message
-    = (char*) xmalloc (X_CAUGHT_ERROR_MESSAGE_SIZE);
-  x_caught_error_message[0] = '\0';
-
-  /* Install our little error handler.  */
-  XSetErrorHandler (x_error_catcher);
-}
-
-/* If any X protocol errors have arrived since the last call to
-   x_catch_errors or x_check_errors, signal an Emacs error using
-   sprintf (a buffer, FORMAT, the x error message text) as the text.  */
-
-void
-x_check_errors (dpy, format)
-     Display *dpy;
-     char *format;
-{
-  /* Make sure to catch any errors incurred so far.  */
-  XSync (dpy, False);
-
-  if (x_caught_error_message[0])
-    {
-      char buf[X_CAUGHT_ERROR_MESSAGE_SIZE + 56];
-
-      sprintf (buf, format, x_caught_error_message);
-      x_uncatch_errors (dpy);
-      error (buf);
-    }
-}
-
-/* Nonzero if we had any X protocol errors since we did x_catch_errors.  */
-
-int
-x_had_errors_p (dpy)
-     Display *dpy;
-{
-  /* Make sure to catch any errors incurred so far.  */
-  XSync (dpy, False);
-
-  return x_caught_error_message[0] != 0;
-}
-
-/* Stop catching X protocol errors and let them make Emacs die.  */
-
-void
-x_uncatch_errors (dpy)
-     Display *dpy;
-{
-  xfree (x_caught_error_message);
-  x_caught_error_message = 0;
-  XSetErrorHandler (x_error_quitter);
-}
-
-#if 0
-static unsigned int x_wire_count;
-x_trace_wire ()
-{
-  fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
-}
-#endif /* ! 0 */
-
 
 /* Changing the font of the frame.  */
 
@@ -6831,6 +6861,7 @@ x_term_init (display_name, xrm_option, resource_name)
     Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
     Font font;
+    int count;
     
     d.addr = (XPointer)&dpy;
     d.size = sizeof (Display *);
@@ -6838,12 +6869,12 @@ x_term_init (display_name, xrm_option, resource_name)
     fr.size = sizeof (XtDefaultFont);
     to.size = sizeof (Font *);
     to.addr = (XPointer)&font;
-    x_catch_errors (dpy);
+    count = x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
-    x_uncatch_errors (dpy);
+    x_uncatch_errors (dpy, count);
   }
 #endif
 
@@ -6959,7 +6990,7 @@ x_initialize ()
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
-  XSetErrorHandler (x_error_quitter);
+  XSetErrorHandler (x_error_handler);
   XSetIOErrorHandler (x_io_error_quitter);
 
   /* Disable Window Change signals;  they are handled by X events. */
@@ -6973,6 +7004,9 @@ x_initialize ()
 void
 syms_of_xterm ()
 {
+  staticpro (&x_error_message_string);
+  x_error_message_string = Qnil;
+
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
 
