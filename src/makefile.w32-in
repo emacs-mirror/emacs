@@ -232,7 +232,7 @@ install:        $(ALL)
 # 
 clean:
 	- $(DEL) *~ "s/*~" "m/*~"
-	- $(DEL) *.pdb
+	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 
 distclean:	clean

@@ -238,7 +238,7 @@ install:	$(INSTALL_FILES)
 # Maintenance
 # 
 clean:
-		- $(DEL) *~ *.pdb DOC*
+		- $(DEL) *~ DOC* $(COMPILER_TEMP_FILES)
 		- $(DEL) ctags.c
 		- $(DEL_TREE) $(OBJDIR)
 
