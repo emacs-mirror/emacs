@@ -40,13 +40,17 @@ struct Lisp_Process
     Lisp_Object tty_name;
     /* Name of this process */
     Lisp_Object name;
-    /* List of command arguments that this process was run with */
+    /* List of command arguments that this process was run with.
+       Is set to t for a stopped network process; nil otherwise. */
     Lisp_Object command;
     /* (funcall FILTER PROC STRING)  (if FILTER is non-nil)
        to dispose of a bunch of chars from the process all at once */
     Lisp_Object filter;
     /* (funcall SENTINEL PROCESS) when process state changes */
     Lisp_Object sentinel;
+    /* (funcall LOG SERVER CLIENT MESSAGE) when a server process
+       accepts a connection from a client.  */
+    Lisp_Object log;
     /* Buffer that output is going to */
     Lisp_Object buffer;
     /* Number of this process */
@@ -54,11 +58,12 @@ struct Lisp_Process
     /* Non-nil if this is really a command channel */
     Lisp_Object command_channel_p;
     /* t if this is a real child process.
-       For a net connection, it is (HOST SERVICE).  */
+       For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
-    /* Non-nil means kill silently if Emacs is exited.  */
+    /* Non-nil means kill silently if Emacs is exited.
+       This is the inverse of the `query-on-exit' flag.  */
     Lisp_Object kill_without_query;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  */
