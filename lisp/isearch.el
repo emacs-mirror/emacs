@@ -778,40 +778,40 @@ REGEXP says which ring to use."
 
 (defsubst isearch-string (frame)
   "Return the search string in FRAME."
-  (aref 0 frame))
+  (aref frame 0))
 (defsubst isearch-message-string (frame)
   "Return the search string to display to the user in FRAME."
-  (aref 1 frame))
+  (aref frame 1))
 (defsubst isearch-point (frame)
   "Return the point in FRAME."
-  (aref 2 frame))
+  (aref frame 2))
 (defsubst isearch-success (frame)
   "Return the success flag in FRAME."
-  (aref 3 frame))
+  (aref frame 3))
 (defsubst isearch-forward-flag (frame)
   "Return the searching-forward flag in FRAME."
-  (aref 4 frame))
+  (aref frame 4))
 (defsubst isearch-other-end (frame)
   "Return the other end of the match in FRAME."
-  (aref 5 frame))
+  (aref frame 5))
 (defsubst isearch-word (frame)
   "Return the search-by-word flag in FRAME."
-  (aref 6 frame))
+  (aref frame 6))
 (defsubst isearch-invalid-regexp (frame)
   "Return the regexp error message in FRAME, or nil if its regexp is valid."
-  (aref 7 frame))
+  (aref frame 7))
 (defsubst isearch-wrapped (frame)
   "Return the search-wrapped flag in FRAME."
-  (aref 8 frame))
+  (aref frame 8))
 (defsubst isearch-barrier (frame)
   "Return the barrier value in FRAME."
-  (aref 9 frame))
+  (aref frame 9))
 (defsubst isearch-within-brackets (frame)
   "Return the in-character-class flag in FRAME."
-  (aref 10 frame))
+  (aref frame 10))
 (defsubst isearch-case-fold-search (frame)
   "Return the case-folding flag in FRAME."
-  (aref 11 frame))
+  (aref frame 11))
 
 (defun isearch-top-state ()
   (let ((cmd (car isearch-cmds)))
