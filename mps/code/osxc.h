@@ -18,12 +18,6 @@
 #endif
 
 
-/* cabs doesn't have a proper prototype; taken from glibc 2.0.6 manual. */
-/* Define a structure tag to avoid warnings. */
-struct mps_complex { double real, imag; };
-extern double cabs(struct mps_complex z);
-
-
 #endif /* osxc_h */
 
 
