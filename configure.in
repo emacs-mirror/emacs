@@ -258,11 +258,11 @@ case "${canonical}" in
     # This is needed to find X11R6.1 libraries for certain tests.
     NON_GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
     GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    # This is necessary on 5.0 to avoid mangling src/Makefile due to
-    # non-traditional preprocessing with the current compiler defaults.
-    # OSF 4 can also have that compiler version, and there seems always
-    # to have been a usable /usr/bin/cpp.
-    NON_GNU_CPP='cpp'
+    # NON_GNU_CPP is necessary on 5.0 to avoid mangling src/Makefile
+    # due to non-traditional preprocessing with the current compiler
+    # defaults.  OSF 4 can also have that compiler version, and there
+    # seems always to have been a usable /usr/bin/cpp.
+    NON_GNU_CPP=/usr/bin/cpp
     case "${canonical}" in
     alpha*-dec-osf[5-9]*)
       opsys=osf5-0 ;;
