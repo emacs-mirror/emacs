@@ -1593,7 +1593,7 @@ do_completion ()
   completedp = NILP (tem);
   if (completedp)
     {
-      Ferase_field (make_number (ZV)); /* Some completion happened */
+      Fdelete_field (make_number (ZV)); /* Some completion happened */
       Finsert (1, &completion);
     }
 
@@ -1837,7 +1837,7 @@ Return nil if there is no valid completion, else t.")
 	if (! EQ (substituted, tem))
 	  {
 	    tem = substituted;
-	    Ferase_field (make_number (ZV));
+	    Fdelete_field (make_number (ZV));
 	    insert_from_string (tem, 0, 0, XSTRING (tem)->size,
 				STRING_BYTES (XSTRING (tem)), 0);
 	  }
@@ -1945,7 +1945,7 @@ Return nil if there is no valid completion, else t.")
 
   /* Otherwise insert in minibuffer the chars we got */
 
-  Ferase_field (make_number (ZV));
+  Fdelete_field (make_number (ZV));
   insert_from_string (completion, 0, 0, i, i_byte, 1);
   return Qt;
 }
