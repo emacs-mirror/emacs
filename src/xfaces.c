@@ -7914,7 +7914,7 @@ merge_faces (f, face_name, face_id, base_face_id)
       if (face_id < 0 || face_id >= lface_id_to_name_size)
 	return base_face_id;
       face_name = lface_id_to_name[face_id];
-      face_id = lookup_derived_face (f, face_name, 0, base_face_id);
+      face_id = lookup_derived_face (f, face_name, base_face_id);
       if (face_id >= 0)
 	return face_id;
       return base_face_id;
@@ -7941,7 +7941,7 @@ merge_faces (f, face_name, face_id, base_face_id)
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */
-  return lookup_face (f, attrs, 0, NULL);
+  return lookup_face (f, attrs);
 }
 
 
