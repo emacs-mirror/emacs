@@ -57,6 +57,9 @@ Other features we would like:
 * Make desktop.el save the "frame configuration" of Emacs (in some
   useful sense).
 
+* Give desktop.el a feature to switch between different named
+  desktops.
+
 * Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
   Love started on this.]

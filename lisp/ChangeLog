@@ -58,7 +58,12 @@
 	Put a `read-face-name' prop on the entire line.
 	(describe-face): Handle multiple faces via read-face-name.
 
-	* textmodes/tex-mode.el (tex-start-tex): Fix previous change.
+	* textmodes/tex-mode.el (tex-start-options): New variable.
+	(tex-start-commands): New variable.
+	(tex-start-options-string): Variable deleted.
+	(tex-start-tex): Use tex-start-options and tex-start-commands,
+	not tex-start-options-string.
+	(tex-command): Doc fix.
 
 2002-04-26  Sam Steingold  <sds@gnu.org>
 
