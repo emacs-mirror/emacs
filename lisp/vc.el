@@ -470,7 +470,7 @@ lock steals will raise an error.
     (if vc-dired-mode
 	(let ((files (dired-get-marked-files)))
 	  (if (= (length files) 1)
-	      (find-file-other-window (dired-get-filename))
+	      (find-file-other-window (car files))
 	    (vc-start-entry nil nil nil
 			    "Enter a change comment for the marked files."
 			    'vc-next-action-dired)
@@ -528,7 +528,7 @@ lock steals will raise an error.
   ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
   ;; is nil, pop up a VC-log buffer, emit MSG, and set the
   ;; action on close to ACTION; otherwise, do action immediately.
-  ;; Remember the file's buffer in parent-buffer (current one if no file).
+  ;; Remember the file's buffer in vc-parent-buffer (current one if no file).
   ;; AFTER-HOOK specifies the local value for vc-log-operation-hook.
   (let ((parent (if file (find-file-noselect file) (current-buffer))))
     (if comment
@@ -676,12 +676,11 @@ If nil, uses `change-log-default-name'."
 	(ring-insert vc-comment-ring (buffer-string))
 	))
   ;; Sync parent buffer in case the user modified it while editing the comment.
+  ;; But not if it is a vc-dired buffer.
   (save-excursion
-    (let ((buffer (get-file-buffer vc-log-file)))
-      (if buffer
-	  (progn
-	    (set-buffer buffer)
-	    (vc-buffer-sync)))))
+    (set-buffer vc-parent-buffer)
+    (or vc-dired-mode
+	(vc-buffer-sync)))
   ;; OK, do it to it
   (if vc-log-operation
       (save-excursion
