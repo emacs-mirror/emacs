@@ -1,6 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4109,7 +4110,7 @@ detect_coding (coding, src, src_bytes)
   if (! mask)
     idx = CODING_CATEGORY_IDX_RAW_TEXT;
 
-  val = XSYMBOL (XVECTOR (Vcoding_category_table)->contents[idx])->value;
+  val = SYMBOL_VALUE (XVECTOR (Vcoding_category_table)->contents[idx]);
 
   if (coding->eol_type != CODING_EOL_UNDECIDED)
     {
@@ -6862,7 +6863,7 @@ call this function")
     {
       Lisp_Object val;
 
-      val = XSYMBOL (XVECTOR (Vcoding_category_table)->contents[i])->value;
+      val = SYMBOL_VALUE (XVECTOR (Vcoding_category_table)->contents[i]);
       if (!NILP (val))
 	{
 	  if (! coding_system_table[i])

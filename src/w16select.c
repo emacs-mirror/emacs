@@ -1,5 +1,5 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
-   Copyright (C) 1996, 1997 Free Software Foundation.
+   Copyright (C) 1996, 1997, 2001 Free Software Foundation.
    
 This file is part of GNU Emacs.
 
@@ -714,8 +714,8 @@ and t is the same as `SECONDARY'.")
      into the clipboard if we run under Windows, so we cannot check
      the clipboard alone.)  */
   if ((EQ (selection, Qnil) || EQ (selection, QPRIMARY))
-      && ! NILP (XSYMBOL (Fintern_soft (build_string ("kill-ring"),
-					Qnil))->value))
+      && ! NILP (SYMBOL_VALUE (Fintern_soft (build_string ("kill-ring"),
+					     Qnil))))
     return Qt;
 
   if (EQ (selection, QCLIPBOARD))

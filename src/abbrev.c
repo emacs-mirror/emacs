@@ -1,5 +1,6 @@
 /* Primitives for word-abbrev mode.
-   Copyright (C) 1985, 1986, 1993, 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1996, 1998, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -128,7 +129,7 @@ which is incremented each time the abbrev is used.")
 
   sym = Fintern (name, table);
 
-  oexp = XSYMBOL (sym)->value;
+  oexp = SYMBOL_VALUE (sym);
   ohook = XSYMBOL (sym)->function;
   if (!((EQ (oexp, expansion)
 	 || (STRINGP (oexp) && STRINGP (expansion)
@@ -189,12 +190,13 @@ The default is to try buffer's mode-specific abbrev table, then global table.")
       sym = Qnil;
       if (!NILP (current_buffer->abbrev_table))
 	sym = Fintern_soft (abbrev, current_buffer->abbrev_table);
-      if (NILP (XSYMBOL (sym)->value))
+      if (NILP (SYMBOL_VALUE (sym)))
 	sym = Qnil;
       if (NILP (sym))
 	sym = Fintern_soft (abbrev, Vglobal_abbrev_table);
     }
-  if (NILP (XSYMBOL (sym)->value)) return Qnil;
+  if (NILP (SYMBOL_VALUE (sym)))
+    return Qnil;
   return sym;
 }
 
@@ -290,10 +292,10 @@ Returns the abbrev symbol, if expansion took place.")
 		    wordend - wordstart, wordend_byte - wordstart_byte);
   else
     XSETFASTINT (sym, 0);
-  if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
+  if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     sym = oblookup (Vglobal_abbrev_table, buffer,
 		    wordend - wordstart, wordend_byte - wordstart_byte);
-  if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
+  if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     return value;
 
   if (INTERACTIVE && !EQ (minibuf_window, selected_window))
@@ -318,7 +320,7 @@ Returns the abbrev symbol, if expansion took place.")
 
   /* If this abbrev has an expansion, delete the abbrev
      and insert the expansion.  */
-  expansion = XSYMBOL (sym)->value;
+  expansion = SYMBOL_VALUE (sym);
   if (STRINGP (expansion))
     {
       SET_PT (wordstart);
@@ -404,7 +406,7 @@ is not undone.")
       Lisp_Object val;
       int zv_before;
 
-      val = XSYMBOL (Vlast_abbrev)->value;
+      val = SYMBOL_VALUE (Vlast_abbrev);
       if (!STRINGP (val))
 	error ("value of abbrev-symbol must be a string");
       zv_before = ZV;
@@ -426,13 +428,13 @@ write_abbrev (sym, stream)
      Lisp_Object sym, stream;
 {
   Lisp_Object name;
-  if (NILP (XSYMBOL (sym)->value))
+  if (NILP (SYMBOL_VALUE (sym)))
     return;
   insert ("    (", 5);
   XSETSTRING (name, XSYMBOL (sym)->name);
   Fprin1 (name, stream);
   insert (" ", 1);
-  Fprin1 (XSYMBOL (sym)->value, stream);
+  Fprin1 (SYMBOL_VALUE (sym), stream);
   insert (" ", 1);
   Fprin1 (XSYMBOL (sym)->function, stream);
   insert (" ", 1);
@@ -446,14 +448,14 @@ describe_abbrev (sym, stream)
 {
   Lisp_Object one;
 
-  if (NILP (XSYMBOL (sym)->value))
+  if (NILP (SYMBOL_VALUE (sym)))
     return;
   one = make_number (1);
   Fprin1 (Fsymbol_name (sym), stream);
   Findent_to (make_number (15), one);
   Fprin1 (XSYMBOL (sym)->plist, stream);
   Findent_to (make_number (20), one);
-  Fprin1 (XSYMBOL (sym)->value, stream);
+  Fprin1 (SYMBOL_VALUE (sym), stream);
   if (!NILP (XSYMBOL (sym)->function))
     {
       Findent_to (make_number (45), one);
