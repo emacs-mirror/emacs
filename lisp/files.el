@@ -2400,7 +2400,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
     ;			      (file-symlink-p buffer-file-name)
 			      backup-by-copying
 			      ;; Don't rename a suid or sgid file.
-			      (< 0 (logand modes #o6000))
+			      (and modes (< 0 (logand modes #o6000)))
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
 			      (and (or backup-by-copying-when-mismatch
