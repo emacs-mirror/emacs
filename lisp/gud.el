@@ -2427,10 +2427,17 @@ It is saved for when this flag is not set.")
 	 ;; buffer killed
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
-	 (set-process-buffer proc nil))
+	 (set-process-buffer proc nil)
+	 (if (eq gud-minor-mode-type 'gdba)
+	     (gdb-reset)
+	   (gud-reset)))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
+	 (with-current-buffer gud-comint-buffer
+	   (if (eq gud-minor-mode 'gdba)
+	       (gdb-reset)
+	     (gud-reset)))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
 	   ;;  process-buffer is current-buffer
@@ -2455,6 +2462,23 @@ It is saved for when this flag is not set.")
 	     ;; Restore old buffer, but don't restore old point
 	     ;; if obuf is the gud buffer.
 	     (set-buffer obuf))))))
+
+(defvar gud-minor-mode-type nil)
+
+(defun gud-kill-buffer-hook ()
+  (if gud-minor-mode
+      (setq gud-minor-mode-type gud-minor-mode)))
+
+(add-hook 'kill-buffer-hook 'gud-kill-buffer-hook)
+
+(defun gud-reset ()
+  (dolist (buffer (buffer-list))
+    (if (not (eq buffer gud-comint-buffer))
+	(save-excursion
+	  (set-buffer buffer)
+	  (when gud-minor-mode
+	    (setq gud-minor-mode nil)
+	    (kill-local-variable 'tool-bar-map))))))
 
 (defun gud-display-frame ()
   "Find and obey the last filename-and-line marker from the debugger.
