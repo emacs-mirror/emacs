@@ -552,6 +552,13 @@ the `ido-work-directory-list' list."
   :type '(repeat regexp)
   :group 'ido)
 
+
+(defcustom ido-enable-tramp-completion t
+  "*Non-nil means that ido shall perform tramp method and server name completion.
+A tramp file name uses the following syntax: /method:user@host:path."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-record-ftp-work-directories t
   "*Non-nil means that ftp paths are recorded in work directory list."
   :type 'boolean
@@ -636,7 +643,7 @@ See also `ido-dir-file-cache' and `ido-save-directory-list-file'."
   :type 'boolean
   :group 'ido)
 
-(defcustom ido-enter-single-matching-directory nil
+(defcustom ido-enter-single-matching-directory 'slash
   "*Automatically enter sub-directory if it is the only matching item, if non-nil.
 If value is 'slash, only enter if typing final slash, else do it always."
   :type '(choice (const :tag "Never" nil) 
@@ -973,27 +980,47 @@ it doesn't interfere with other minibuffer usage.")
 (defun ido-toggle-trace (arg)
   (interactive "P")
   (setq ido-trace-enable (or arg (not ido-trace-enable)))
+  (if ido-trace-enable
+      (message "IDO trace on"))
   (let ((b (get-buffer " *IDO Trace*")))
     (if b
 	(if ido-trace-enable
 	    (kill-buffer b)
-	  (pop-to-buffer b t t)))))
+	  (pop-to-buffer b t t)
+	  (setq truncate-lines t)))))
+
+(defun ido-is-tramp-root (&optional dir)
+  (setq dir (or dir ido-current-directory))
+  (and ido-enable-tramp-completion
+       (string-match "\\`/[^/][^/]+:\\([^/:@]+@\\)?\\'" dir)))
 
 (defun ido-is-root-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
-  (if (memq system-type '(windows-nt ms-dos))
-      (string-match "\\`[a-zA-Z]:[/\\]\\'" dir)
-    (string-equal "/" dir)))
+  (or
+   (string-equal "/" dir)
+   (and (memq system-type '(windows-nt ms-dos))
+	(string-match "\\`[a-zA-Z]:[/\\]\\'" dir))
+   (if ido-enable-tramp-completion
+       (ido-is-tramp-root dir)
+     (string-match "\\`/[^:/][^:/]+:\\'" dir))))
 
 (defun ido-is-ftp-directory (&optional dir)
-  (string-match "\\`/[^/:][^/:]+:/" (or dir ido-current-directory)))
+  (string-match 
+   (if ido-enable-tramp-completion
+       "\\`/[^/:][^/:]+:"  ;; like tramp-file-name-regexp-unified, but doesn't match single drive letters
+     "\\`/[^/:][^/:]+:/")
+   (or dir ido-current-directory)))
 
 (defun ido-is-slow-ftp-host (&optional dir)
   (and (or ido-slow-ftp-hosts ido-slow-ftp-host-regexps)
        (setq dir (or dir ido-current-directory))
        ;; (featurep 'ange-ftp)
        ;; (ange-ftp-ftp-name dir)
-       (string-match "\\`/\\([^/:]*@\\)?\\([^@/:][^@/:]+\\):/" dir)
+       (string-match 
+	(if ido-enable-tramp-completion
+	    "\\`/\\([^/]+[@:]\\)*\\([^@/:][^@/:]+\\):"
+	  "\\`/\\([^/:]*@\\)?\\([^@/:][^@/:]+\\):/")
+	dir)
        (let ((host (substring dir (match-beginning 2) (match-end 2))))
 	 (or (member host ido-slow-ftp-hosts)
 	     (let ((re ido-slow-ftp-host-regexps))
@@ -1014,11 +1041,15 @@ it doesn't interfere with other minibuffer usage.")
 
 (defun ido-may-cache-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
-  (if (and (memq system-type '(windows-nt ms-dos))
-	   (string-match "\\`[a-zA-Z]:[/\\]\\'" dir))
-      nil
-    (or (not (ido-is-ftp-directory dir))
-	(ido-cache-ftp-valid))))
+  (cond
+   ((and (ido-is-root-directory dir)
+	 (or ido-enable-tramp-completion
+	     (memq system-type '(windows-nt ms-dos))))
+    nil)
+   ((not (ido-is-ftp-directory dir))
+    t)
+   ((ido-cache-ftp-valid)
+    t)))
 
 (defun ido-pp (list &optional sep)
   (let ((print-level nil) (eval-expression-print-level nil)
@@ -1328,6 +1359,7 @@ This function also adds a hook to the minibuffer."
   (setq dir (ido-name dir))
   (cond
    ((string-match "/\\'" dir) dir)
+   ((ido-is-tramp-root dir) dir)
    (fix-it (concat dir "/"))
    (t nil)))
 
@@ -1459,7 +1491,7 @@ If INITIAL is non-nil, it specifies the initial input string."
     (ido-define-mode-map)
     (setq ido-text-init initial)
     (while (not done)
-      (ido-trace "\n_LOOP_")
+      (ido-trace "\n_LOOP_" ido-text-init)
       (setq ido-exit nil)
       (setq ido-rescan t)
       (setq ido-rotate nil)
@@ -1612,7 +1644,6 @@ If INITIAL is non-nil, it specifies the initial input string."
 		    (setq ido-text-init f
 			  path nil))))))
 	 (t
-	  (setq ido-text-init nil)
 	  (setq ido-text-init (read-string (concat prompt "[EDIT] ") ido-final-text))))
 	nil)
 
@@ -1625,9 +1656,14 @@ If INITIAL is non-nil, it specifies the initial input string."
        ((eq ido-exit 'updir)
 	;; cannot go up if already at the root-dir (Unix) or at the
 	;; root-dir of a certain drive (Windows or MS-DOS).
-        (or (ido-is-root-directory)
-	    (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1))))
-	(setq ido-set-default-item t))
+        (if (ido-is-tramp-root)
+	    (when (string-match "\\`\\(/\\([^/]+[:@]\\)*\\)\\([^/]+\\)[:@]\\'" ido-current-directory)
+	      (setq ido-text-init (match-string 3 ido-current-directory))
+	      (ido-set-current-directory (match-string 1 ido-current-directory))
+	      (setq ido-set-default-item t))
+	  (unless (ido-is-root-directory)
+	    (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1)))
+	    (setq ido-set-default-item t))))
 
        ;; Handling the require-match must be done in a better way.
        ((and require-match (not (ido-existing-item-p)))
@@ -1654,14 +1690,15 @@ If INITIAL is non-nil, it specifies the initial input string."
 	  (or (ido-is-root-directory)
 	      (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1))))
 	  (setq ido-set-default-item t))
-	 ((and (string-equal ido-current-directory "/")
-	       (string-match "..:\\'" ido-selected)) ;; Ange-ftp 
-	  (ido-set-current-directory "/" ido-selected)
+
+	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") ido-selected)
+	       (ido-is-root-directory)) ;; Ange-ftp or Tramp
+	  (ido-set-current-directory ido-current-directory ido-selected)
+	  (ido-trace "tramp prefix" ido-selected)
 	  (if (ido-is-slow-ftp-host)
 	      (setq ido-exit 'fallback
 		    done t)
 	    (setq ido-set-default-item t)))
-
 	 ((or (string-match "[/\\][^/\\]" ido-selected)
 	      (and (memq system-type '(windows-nt ms-dos))
 		   (string-match "\\`.:" ido-selected)))
@@ -1936,7 +1973,10 @@ If INITIAL is non-nil, it specifies the initial input string."
       (when ido-completion-buffer
 	(call-interactively (setq this-command ido-cannot-complete-command))))
 	  
-     ((= 1 (length ido-matches))
+     ((and (= 1 (length ido-matches))
+	   (not (and ido-enable-tramp-completion
+		     (string-equal ido-current-directory "/")
+		     (string-match "..[@:]\\'" (car ido-matches)))))
       ;; only one choice, so select it.
       (exit-minibuffer))
 	  
@@ -2582,6 +2622,32 @@ for first matching file."
       (nconc ido-temp-list items)
     (setq ido-temp-list items)))
 
+(defun ido-file-name-all-completions1 (dir)
+  (if (and ido-enable-tramp-completion
+	   (string-match "\\`/\\([^/:]+:\\([^/:@]+@\\)?\\)\\'" dir))
+
+      ;; Trick tramp's file-name-all-completions handler to DTRT, as it
+      ;; has some pretty obscure requirements.  This seems to work...
+      ;; /ftp:		=> (f-n-a-c "/ftp:" "")
+      ;; /ftp:kfs:	=> (f-n-a-c "" "/ftp:kfs:")
+      ;; /ftp:kfs@      => (f-n-a-c "ftp:kfs@" "/")
+      ;; /ftp:kfs@kfs:  => (f-n-a-c "" "/ftp:kfs@kfs:")
+      ;; Currently no attempt is made to handle multi: stuff.
+
+      (let* ((prefix (match-string 1 dir))
+	     (user-flag (match-beginning 2))
+	     (len (and prefix (length prefix)))
+	     compl)
+	(if user-flag
+	    (setq dir (substring dir 1)))
+	(require 'tramp nil t)
+	(ido-trace "tramp complete" dir)
+	(setq compl (file-name-all-completions dir (if user-flag "/" "")))
+	(if (> len 0)
+	    (mapcar (lambda (c) (substring c len)) compl)
+	  compl))
+    (file-name-all-completions "" dir)))
+
 (defun ido-file-name-all-completions (dir)
   ;; Return name of all files in DIR
   ;; Uses and updates ido-dir-file-cache
@@ -2608,13 +2674,13 @@ for first matching file."
 	  (if (and ftp (file-readable-p dir))
 	      (setq mtime (cons 'ftp (ido-time-stamp))))
 	  (if mtime
-	      (setq cached (cons dir (cons mtime (file-name-all-completions "" dir)))
+	      (setq cached (cons dir (cons mtime (ido-file-name-all-completions1 dir)))
 		    ido-dir-file-cache (cons cached ido-dir-file-cache)))
 	  (if (> (length ido-dir-file-cache) ido-max-dir-file-cache)
 	      (setcdr (nthcdr (1- ido-max-dir-file-cache) ido-dir-file-cache) nil)))
 	(and cached
 	     (cdr (cdr cached))))
-    (file-name-all-completions "" dir)))
+    (ido-file-name-all-completions1 dir)))
 
 (defun ido-remove-cached-dir (dir)
   ;; Remove dir from ido-dir-file-cache
@@ -2628,7 +2694,7 @@ for first matching file."
 (defun ido-make-file-list1 (dir &optional merged)
   ;; Return list of non-ignored files in DIR
   ;; If MERGED is non-nil, each file is cons'ed with DIR
-  (and (file-directory-p dir)
+  (and (or (ido-is-tramp-root dir) (file-directory-p dir))
        (delq nil 
 	     (mapcar
 	      (lambda (name)
@@ -2676,7 +2742,7 @@ for first matching file."
 (defun ido-make-dir-list1 (dir &optional merged)
   ;; Return list of non-ignored subdirs in DIR
   ;; If MERGED is non-nil, each subdir is cons'ed with DIR
-  (and (file-directory-p dir)
+  (and (or (ido-is-tramp-root dir) (file-directory-p dir))
        (delq nil 
 	     (mapcar
 	      (lambda (name)
@@ -2750,7 +2816,9 @@ for first matching file."
 (defun ido-set-matches1 (items &optional do-full)
   ;; Return list of matches in items
   (let* ((case-fold-search  ido-case-fold)
-	 (rexq (if ido-enable-regexp ido-text (regexp-quote ido-text)))
+	 (slash (and (not ido-enable-prefix) (ido-final-slash ido-text)))
+	 (text (if slash (substring ido-text 0 -1) ido-text))
+	 (rexq (concat (if ido-enable-regexp text (regexp-quote text)) (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
 	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" re))
 		       (concat "\\`" re "\\'")))
@@ -3304,188 +3372,199 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   ;; 1. It prints a default file name when there is no text yet entered.
   ;; 2. It calls my completion routine rather than the standard completion.
 
-  (if (= ido-use-mycompletion-depth (minibuffer-depth))
-      (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) (point-max)))
-	    (buffer-undo-list t)
-	    try-single-dir-match)
+  (when (= ido-use-mycompletion-depth (minibuffer-depth))
+    (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) (point-max)))
+	  (buffer-undo-list t)
+	  try-single-dir-match
+	  refresh)
 
-	(ido-trace "\nexhibit" this-command)
-	(ido-trace "dir" ido-current-directory)
-	(ido-trace "contents" contents)
-	(ido-trace "list" ido-cur-list)
-	(ido-trace "matches" ido-matches)
-	(ido-trace "rescan" ido-rescan)
+      (ido-trace "\nexhibit" this-command)
+      (ido-trace "dir" ido-current-directory)
+      (ido-trace "contents" contents)
+      (ido-trace "list" ido-cur-list)
+      (ido-trace "matches" ido-matches)
+      (ido-trace "rescan" ido-rescan)
 
-	(save-excursion
-	  (goto-char (point-max))
-	  ;; Register the end of input, so we know where the extra stuff (match-status info) begins:
-	  (if (not (boundp 'ido-eoinput))
-	      ;; In case it got wiped out by major mode business:
-	      (make-local-variable 'ido-eoinput))
-	  (setq ido-eoinput (point))
+      (save-excursion
+	(goto-char (point-max))
+	;; Register the end of input, so we know where the extra stuff (match-status info) begins:
+	(unless (boundp 'ido-eoinput)
+	  ;; In case it got wiped out by major mode business:
+	  (make-local-variable 'ido-eoinput))
+	(setq ido-eoinput (point))
 
-	  ;; Handle explicit directory changes
-	  (and
-	   (memq ido-cur-item '(file dir))
-	   (> (length contents) 1)
-	   (cond
-	    ((ido-final-slash contents)  ;; xxx/
-	     (ido-trace "final slash" contents)
-	     (cond 
-	      ((string-equal contents "~/")
-	       (ido-set-current-home)
-	       t)
-	      ((string-equal contents "../")
-	       (ido-up-directory t)
-	       t)
-	      ((string-equal contents "./")
-	       t)
-	      ((string-match contents "\\`~[a-zA-Z0-9]/\\'")
-	       (ido-set-current-home contents)
-	       t)
-	      ((string-match "[$][A-Za-z0-9_]+/\\'" contents)
-	       (let ((exp (condition-case ()
-			      (expand-file-name
-			       (substitute-in-file-name (substring contents 0 -1))
-			       ido-current-directory)
-			    (error nil))))
-		 (ido-trace contents exp)
-		 (if (and exp (file-directory-p exp))
-		     (progn
-		       (ido-set-current-directory (file-name-directory exp))
-		       (setq ido-text-init (file-name-nondirectory exp))
-		       t)
-		   nil)))
-	      ((and (memq system-type '(windows-nt ms-dos))
-		    (string-equal (substring contents 1) ":/"))
-	       (ido-set-current-directory (file-name-directory contents))
-	       t)
-	      ((string-equal (substring contents -2 -1) "/")
-	       (ido-set-current-directory 
-		(if (memq system-type '(windows-nt ms-dos))
-		    (expand-file-name "/" ido-current-directory)
-		  "/"))
-	       t)
-	      (t 
-	       (setq try-single-dir-match t)
-	       nil)))
+	;; Handle explicit directory changes
+	(cond
+	 ((eq ido-cur-item 'buffer)
+	  )
 
-	    ((and (string-equal ido-current-directory "/")
-		  (string-match "..:\\'" contents)) ;; Ange-ftp 
-	     (ido-set-current-directory "/" contents)
-	     (when (ido-is-slow-ftp-host)
-	       (setq ido-exit 'fallback)
-	       (exit-minibuffer))
-	     t)
+	 ((= (length contents) 0)
+	  )
 
-	    ((and (string-equal (substring contents -2 -1) "/")
-		  (not (string-match "[$]" contents)))
-	     (ido-set-current-directory
-	      (cond
-	       ((= (length contents) 2)
-		"/")
-	       (ido-matches
-		(concat ido-current-directory (car ido-matches)))
-	       (t
-		(concat ido-current-directory (substring contents 0 -1)))))
-	     (setq ido-text-init (substring contents -1))
-	     t)
+	 ((= (length contents) 1)
+	  (when (and (ido-is-tramp-root) (string-equal contents "/"))
+	    (ido-set-current-directory ido-current-directory contents)
+	    (setq refresh t))
+	  )
 
-	    ((and (not ido-use-merged-list)
-		  (not (ido-final-slash contents))
-		  (eq ido-try-merged-list t)
-		  (numberp ido-auto-merge-work-directories-length)
-		  (> ido-auto-merge-work-directories-length 0)
-		  (= (length contents) ido-auto-merge-work-directories-length)
-		  (not (and ido-auto-merge-inhibit-characters-regexp
-			    (string-match ido-auto-merge-inhibit-characters-regexp contents)))
-		  (not (input-pending-p)))
-	     (setq ido-use-merged-list 'auto
-		   ido-text-init contents
-		   ido-rotate-temp t)
-	     t))
-	   (progn
-	     (ido-trace "refresh on /" ido-text-init)
-	     (setq ido-exit 'refresh)
-	     (exit-minibuffer)))
-
-	  ;; Update the list of matches
-	  (setq ido-text contents)
-	  (ido-set-matches)
-	  (ido-trace "new    " ido-matches)
-
-	  (when (and ido-enter-single-matching-directory
-		     ido-matches
-		     (null (cdr ido-matches))
-		     (ido-final-slash (car ido-matches))
-		     (or try-single-dir-match
-			 (eq ido-enter-single-matching-directory t)))
-	    (ido-trace "single match" (car ido-matches))
-	    (ido-set-current-directory 
-	     (concat ido-current-directory (car ido-matches)))
-	    (setq ido-exit 'refresh)
+	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") contents)
+	       (ido-is-root-directory)) ;; Ange-ftp or tramp
+	  (ido-set-current-directory ido-current-directory contents)
+	  (when (ido-is-slow-ftp-host)
+	    (setq ido-exit 'fallback)
 	    (exit-minibuffer))
+	  (setq refresh t))
 
-	  (when (and (not ido-matches)
-		   ; ido-rescan
+	 ((ido-final-slash contents)  ;; xxx/
+	  (ido-trace "final slash" contents)
+	  (cond 
+	   ((string-equal contents "~/")
+	    (ido-set-current-home)
+	    (setq refresh t))
+	   ((string-equal contents "../")
+	    (ido-up-directory t)
+	    (setq refresh t))
+	   ((string-equal contents "./")
+	    (setq refresh t))
+	   ((string-match "\\`~[a-zA-Z0-9]+/\\'" contents)
+	    (ido-trace "new home" contents)
+	    (ido-set-current-home contents)
+	    (setq refresh t))
+	   ((string-match "[$][A-Za-z0-9_]+/\\'" contents)
+	    (let ((exp (condition-case ()
+			   (expand-file-name
+			    (substitute-in-file-name (substring contents 0 -1))
+			    ido-current-directory)
+			 (error nil))))
+	      (ido-trace contents exp)
+	      (when (and exp (file-directory-p exp))
+		(ido-set-current-directory (file-name-directory exp))
+		(setq ido-text-init (file-name-nondirectory exp))
+		(setq refresh t))))
+	   ((and (memq system-type '(windows-nt ms-dos))
+		 (string-equal (substring contents 1) ":/"))
+	    (ido-set-current-directory (file-name-directory contents))
+	    (setq refresh t))
+	   ((string-equal (substring contents -2 -1) "/")
+	    (ido-set-current-directory 
+	     (if (memq system-type '(windows-nt ms-dos))
+		 (expand-file-name "/" ido-current-directory)
+	       "/"))
+	    (setq refresh t))
+	   (t
+	    (ido-trace "try single dir")
+	    (setq try-single-dir-match t))))
+
+	 ((and (string-equal (substring contents -2 -1) "/")
+	       (not (string-match "[$]" contents)))
+	  (ido-set-current-directory
+	   (cond
+	    ((= (length contents) 2)
+	     "/")
+	    (ido-matches
+	     (concat ido-current-directory (car ido-matches)))
+	    (t
+	     (concat ido-current-directory (substring contents 0 -1)))))
+	  (setq ido-text-init (substring contents -1))
+	  (setq refresh t))
+
+	 ((and (not ido-use-merged-list)
+	       (not (ido-final-slash contents))
+	       (eq ido-try-merged-list t)
+	       (numberp ido-auto-merge-work-directories-length)
+	       (> ido-auto-merge-work-directories-length 0)
+	       (= (length contents) ido-auto-merge-work-directories-length)
+	       (not (and ido-auto-merge-inhibit-characters-regexp
+			 (string-match ido-auto-merge-inhibit-characters-regexp contents)))
+	       (not (input-pending-p)))
+	  (setq ido-use-merged-list 'auto
+		ido-text-init contents
+		ido-rotate-temp t)
+	  (setq refresh t))
+
+	 (t nil))
+
+	(when refresh
+	  (ido-trace "refresh on /" ido-text-init)
+	  (setq ido-exit 'refresh)
+	  (exit-minibuffer))
+
+	;; Update the list of matches
+	(setq ido-text contents)
+	(ido-set-matches)
+	(ido-trace "new    " ido-matches)
+
+	(when (and ido-enter-single-matching-directory
+		   ido-matches
+		   (null (cdr ido-matches))
+		   (ido-final-slash (car ido-matches))
+		   (or try-single-dir-match
+		       (eq ido-enter-single-matching-directory t)))
+	  (ido-trace "single match" (car ido-matches))
+	  (ido-set-current-directory 
+	   (concat ido-current-directory (car ido-matches)))
+	  (setq ido-exit 'refresh)
+	  (exit-minibuffer))
+
+	(when (and (not ido-matches)
+		   ;; ido-rescan ?
 		   ido-process-ignore-lists
 		   ido-ignored-list)
-	      (let ((ido-process-ignore-lists nil)
-		    (ido-rotate ido-rotate)
-		    (ido-cur-list ido-ignored-list))
-		(ido-trace "try all" ido-ignored-list)
-		(ido-set-matches))
-	      (when ido-matches
-		(ido-trace "found  " ido-matches)
-		(setq ido-rescan t)
-		(setq ido-process-ignore-lists-inhibit t)
-		(setq ido-text-init ido-text)
-		(setq ido-exit 'refresh)
-		(exit-minibuffer)))
+	  (let ((ido-process-ignore-lists nil)
+		(ido-rotate ido-rotate)
+		(ido-cur-list ido-ignored-list))
+	    (ido-trace "try all" ido-ignored-list)
+	    (ido-set-matches))
+	  (when ido-matches
+	    (ido-trace "found  " ido-matches)
+	    (setq ido-rescan t)
+	    (setq ido-process-ignore-lists-inhibit t)
+	    (setq ido-text-init ido-text)
+	    (setq ido-exit 'refresh)
+	    (exit-minibuffer)))
 
-	  (when (and
-		 ido-rescan
-		 (not ido-matches)
-		 (memq ido-cur-item '(file dir))
-		 (not (ido-is-root-directory))
-		 (> (length contents) 1)
-		 (not (string-match "[$]" contents)))
-	    (ido-trace "merge?")
-	    (if ido-use-merged-list
-		(ido-undo-merge-work-directory contents nil)
-	      (when (and (eq ido-try-merged-list t)
-			 (numberp ido-auto-merge-work-directories-length)
-			 (= ido-auto-merge-work-directories-length 0)
-			 (not (and ido-auto-merge-inhibit-characters-regexp
-				   (string-match ido-auto-merge-inhibit-characters-regexp contents)))
-			 (not (input-pending-p)))
-		(ido-trace "\n*start timer*")
-		(setq ido-auto-merge-timer
-		      (run-with-timer ido-auto-merge-delay-time nil 'ido-initiate-auto-merge (current-buffer))))))
+	(when (and
+	       ido-rescan
+	       (not ido-matches)
+	       (memq ido-cur-item '(file dir))
+	       (not (ido-is-root-directory))
+	       (> (length contents) 1)
+	       (not (string-match "[$]" contents)))
+	  (ido-trace "merge?")
+	  (if ido-use-merged-list
+	      (ido-undo-merge-work-directory contents nil)
+	    (when (and (eq ido-try-merged-list t)
+		       (numberp ido-auto-merge-work-directories-length)
+		       (= ido-auto-merge-work-directories-length 0)
+		       (not (and ido-auto-merge-inhibit-characters-regexp
+				 (string-match ido-auto-merge-inhibit-characters-regexp contents)))
+		       (not (input-pending-p)))
+	      (ido-trace "\n*start timer*")
+	      (setq ido-auto-merge-timer
+		    (run-with-timer ido-auto-merge-delay-time nil 'ido-initiate-auto-merge (current-buffer))))))
 	  
-	  (setq ido-rescan t)
+	(setq ido-rescan t)
 
-	  (if (and ido-use-merged-list 
-		   ido-matches
-		   (not (string-equal (car (cdr (car ido-matches))) ido-current-directory)))
-	      (progn
-		(ido-set-current-directory (car (cdr (car ido-matches))))
-		(setq ido-use-merged-list t
-		      ido-exit 'keep
-		      ido-text-init ido-text)
-		(exit-minibuffer)))
+	(if (and ido-use-merged-list 
+		 ido-matches
+		 (not (string-equal (car (cdr (car ido-matches))) ido-current-directory)))
+	    (progn
+	      (ido-set-current-directory (car (cdr (car ido-matches))))
+	      (setq ido-use-merged-list t
+		    ido-exit 'keep
+		    ido-text-init ido-text)
+	      (exit-minibuffer)))
 
-	  ;; Insert the match-status information:
-	  (ido-set-common-completion)
-	  (let ((inf (ido-completions 
-		     contents
-		     minibuffer-completion-table
-		     minibuffer-completion-predicate
-		     (not minibuffer-completion-confirm))))
-	    (ido-trace "inf" inf)
-	    (insert inf))
-	  
-	  ))))
+	;; Insert the match-status information:
+	(ido-set-common-completion)
+	(let ((inf (ido-completions 
+		    contents
+		    minibuffer-completion-table
+		    minibuffer-completion-predicate
+		    (not minibuffer-completion-confirm))))
+	  (ido-trace "inf" inf)
+	  (insert inf))
+	))))
 
 (defun ido-completions (name candidates predicate require-match)
   ;; Return the string that is displayed after the user's text.
