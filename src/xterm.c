@@ -7915,39 +7915,12 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	mask |= CWHeight;
       
 #ifdef USE_TOOLKIT_SCROLL_BARS
-      
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-	{
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      pixel_left + pixel_width - scroll_bar_area_width,
-		      pixel_top,
-		      (scroll_bar_area_width
-		       - pixel_width
-		       + VERTICAL_SCROLL_BAR_WIDTH_TRIM),
-		      pixel_height, False);
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      (pixel_left
-		       + pixel_width
-		       - VERTICAL_SCROLL_BAR_WIDTH_TRIM),
-		      pixel_top,
-		      VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      pixel_height, False);
-	}
-      else
-	{
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      pixel_left, pixel_top,
-		      VERTICAL_SCROLL_BAR_WIDTH_TRIM, pixel_height, False);
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      (pixel_left
-		       + pixel_width
-		       - VERTICAL_SCROLL_BAR_WIDTH_TRIM),
-		      pixel_top,
-		      (scroll_bar_area_width
-		       - pixel_width
-		       + VERTICAL_SCROLL_BAR_WIDTH_TRIM),
-		      pixel_height, False);
-	}
+
+      /* Since toolkit scroll bars are smaller than the space reserved
+	 for them on the frame, we have to clear "under" them.  */
+      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  pixel_left, pixel_top,
+		  pixel_width + 1, pixel_height, False);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
