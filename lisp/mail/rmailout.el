@@ -122,6 +122,11 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			;; If MSG is non-nil, buffer is in RMAIL mode.
 			(if msg
 			    (progn
+			      ;; Turn on auto save mode, if it's off in this
+			      ;; buffer but enabled by default.
+			      (and (not buffer-auto-save-file-name)
+				   auto-save-default
+				   (auto-save-mode t))
 			      (rmail-maybe-set-message-counters)
 			      (widen)
 			      (narrow-to-region (point-max) (point-max))
