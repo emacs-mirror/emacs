@@ -49,13 +49,13 @@ The key sequence \"Z<key>\" can be used for \"０..Ａ..ａ..\
 The key sequence \"H<key-sequence>\" can be used for \"ㅥㅦ...\".
 The key sequnece \"S<key>\" can be used for such symbols as \"￥￡‰...\".
 
-You can use the key M-i to know the avairable key combination.
-For instance, typing \"S\" followed by \"M-i\" will tell you
+You can use the key TAB to know the avairable key combination.
+For instance, typing \"S\" followed by TAB will tell you
  which key you should type to input some specific symbol.
 --- Example ---
 <key sequence>		r	k	r	k
 <string inserted>	ㄱ	가	각	가가
-<key sequence>		r	k	r	<M-SP>	k
+<key sequence>		r	k	r	<C-SP>	k
 <string inserted>	ㄱ	가	각	각	각ㅏ"
  nil t t nil nil nil t)
 
