@@ -12343,7 +12343,6 @@ x_new_fontset (f, fontsetname)
     /* Can't load ASCII font.  */
     return Qnil;
 
-  fontset = fs_query_fontset (result, 0);
   if (fontset < 0)
     fontset = new_fontset_from_font_name (result);
 
