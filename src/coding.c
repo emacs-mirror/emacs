@@ -6314,8 +6314,11 @@ detect_coding_system (src, src_bytes, highest, multibytep)
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 3, 0,
-       doc: /* Detect coding system of the text in the region between START and END.
-Return a list of possible coding systems ordered by priority.
+       doc: /* Detect how the byte sequence in the region is encoded.
+Return a list of possible coding systems used on decoding a byte
+sequence containing the bytes in the region between START and END when
+the coding system `undecided' is specified.  The list is ordered by
+priority decided in the current language environment.
 
 If only ASCII characters are found, it returns a list of single element
 `undecided' or its subsidiary coding system according to a detected
