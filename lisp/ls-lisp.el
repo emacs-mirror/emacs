@@ -177,7 +177,7 @@ are: A a c i r S s t u"
 	      (search-backward "total \007")
 	      (goto-char (match-end 0))
 	      (delete-char -1)
-	      (insert (format "%d" (if (zerop sum) 0 (1+ (/ sum 1024)))))))
+	      (insert (format "%.0f" (fceiling (/ sum 1024.0))))))
 	;; if not full-directory-p, FILE *must not* end in /, as
 	;; file-attributes will not recognize a symlink to a directory
 	;; must make it a relative filename as ls does:
@@ -246,7 +246,7 @@ are: A a c i r S s t u"
 		(format "%6d " (nth 10 file-attr)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(format "%4d " (1+ (/ (nth 7 file-attr) 1024))))
+		(format "%4d " (fceiling (/ (nth 7 file-attr) 1024.0))))
 	    (nth 8 file-attr)		; permission bits
 	    ;; numeric uid/gid are more confusing than helpful
 	    ;; Emacs should be able to make strings of them.
