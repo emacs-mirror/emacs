@@ -653,6 +653,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (setq small-temporary-file-directory
 	(if (eq system-type 'ms-dos)
 	    (getenv "TMPDIR")))
+  (setq auto-save-file-name-transforms
+	(list (list "\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
+		    ;; Don't put "\\2" inside expand-file-name, since
+		    ;; it will be transformed to "/2" on DOS/Windows.
+		    (concat (expand-file-name temporary-file-directory)
+			    "\\2"))))
 
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
