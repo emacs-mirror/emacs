@@ -707,7 +707,11 @@ specified in X resources."
                   (create-fontset-from-fontset-spec
                    (concat fontset ", ascii:" font) styles)
                   )))))
-      (w32-create-initial-fontsets)))
+      ;; This cannot be run yet, as creating fontsets requires a
+      ;; Window to be initialised so the fonts can be listed.
+      ;; Add it to a hook so it gets run later.
+      (add-hook 'before-init-hook 'w32-create-initial-fontsets)
+      ))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
