@@ -1,3 +1,9 @@
+2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-preoutput-leftover): New var.
+	(python-preoutput-filter): Use it.
+	(python-send-receive): Loop until all the result has been received.
+
 2005-03-28  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-mode-map): Add ellipsis to "Compare directories".
