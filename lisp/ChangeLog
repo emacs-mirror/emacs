@@ -1,3 +1,11 @@
+2004-10-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* buff-menu.el (Buffer-menu-revert-function): Emulate save-excursion.
+	(Buffer-menu-beginning): New helper function.
+	(Buffer-menu-execute): Use it.
+	(Buffer-menu-select): Use it.
+	(Buffer-menu-sort): Use it and also keep markers.
+
 2004-10-17  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (news-directory): Renamed from news-path.  Old name alias.
@@ -24,7 +32,7 @@
 
 	* help-at-pt.el (help-at-pt-unload-hook): Use add-hook; no defvar.
 
-	* frame.el (special-display-popup-frame): 
+	* frame.el (special-display-popup-frame):
 	Make the buffer current as its frame is created.
 
 	* delsel.el (delsel-unload-hook): Set as a variable.
