@@ -60,6 +60,10 @@ Point is at the end of the segment of this line within the rectangle."
 	 (setq begextra (- (current-column) startcol))
 	 (setq startpos (point))
 	 (move-to-column endcol coerce-tabs)
+	 ;; If we overshot, move back one character
+	 ;; so that endextra will be positive.
+	 (if (and (not coerce-tabs) (> (current-column) endcol))
+	     (backward-char 1))
 	 (setq endextra (- endcol (current-column)))
 	 (if (< begextra 0)
 	     (setq endextra (+ endextra begextra)
