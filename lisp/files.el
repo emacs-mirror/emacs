@@ -17,8 +17,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -220,7 +221,11 @@ and the rest are not called.
 This variable is meant to be used for hooks that pertain to the
 buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
-major mode does clear it if you have made it buffer local.
+major mode does clear it.
+
+This variable automatically becomes buffer-local whenever it is set.
+If you use `add-hooks' to add elements to the list, use nil for the
+LOCAL argument.
 
 See also `write-file-hooks'.")
 (make-variable-buffer-local 'write-contents-hooks)
@@ -982,9 +987,9 @@ run `normal-mode' explicitly."
     ("\\.y\\'" . c-mode)
     ("\\.lex\\'" . c-mode)
     ("\\.oak\\'" . scheme-mode)
-    ("\\.sgm\\'" . sgml-mode)
-    ("\\.sgml\\'" . sgml-mode)
+    ("\\.sgml?\\'" . sgml-mode)
     ("\\.dtd\\'" . sgml-mode)
+    ("\\.s?html?\\'" . html-mode)
     ;; .emacs following a directory delimiter
     ;; in either Unix or VMS syntax.
     ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
