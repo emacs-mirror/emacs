@@ -701,6 +701,7 @@ This cannot be done asynchronously."
 		      (error "Shell command in progress")))
 		(save-excursion
 		  (set-buffer buffer)
+		  (setq buffer-read-only nil)
 		  (erase-buffer)
 		  (display-buffer buffer)
 		  (setq default-directory directory)
@@ -788,7 +789,8 @@ deleted."
 	      ;; If the input is the same buffer as the output,
 	      ;; delete everything but the specified region,
 	      ;; then replace that region with the output.
-	      (progn (delete-region end (point-max))
+	      (progn (setq buffer-read-only nil)
+		     (delete-region end (point-max))
 		     (delete-region (point-min) start)
 		     (call-process-region (point-min) (point-max)
 					  shell-file-name t t nil
@@ -797,6 +799,7 @@ deleted."
 	    ;; Clear the output buffer, then run the command with output there.
 	    (save-excursion
 	      (set-buffer buffer)
+	      (setq buffer-read-only nil)
 	      (erase-buffer))
 	    (call-process-region start end shell-file-name
 				 nil buffer nil
