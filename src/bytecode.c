@@ -475,14 +475,14 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case BRgoto:
 	  QUIT;
-	  pc += *pc - 127;
+	  pc += (int) *pc - 127;
 	  break;
 
 	case BRgotoifnil:
 	  if (NILP (POP))
 	    {
 	      QUIT;
-	      pc += *pc - 128;
+	      pc += (int) *pc - 128;
 	    }
 	  pc++;
 	  break;
@@ -491,7 +491,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (!NILP (POP))
 	    {
 	      QUIT;
-	      pc += *pc - 128;
+	      pc += (int) *pc - 128;
 	    }
 	  pc++;
 	  break;
