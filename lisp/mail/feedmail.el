@@ -527,7 +527,7 @@ chance of being wrong.  It also honors `mail-from-style'.  Better to set
 this variable explicitly to the string you want or find some other way
 to arrange for the message to get a From: line."
   :group 'feedmail-headers
-  :type '(choice (const nil) string)
+  :type '(choice (const t) (const nil) string)
   )
 
 
@@ -637,7 +637,7 @@ used.  If the value of `feedmail-message-id-suffix' contains an \"@\" character,
 the string will be used verbatim, else an \"@\" character will be prepended
 automatically."
   :group 'feedmail-headers
-  :type 'string
+  :type '(choice (const nil) string)
   )
 
 ;; this was suggested in various forms by several people; first was
