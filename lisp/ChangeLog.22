@@ -1,3 +1,15 @@
+2003-09-10  Dave Love  <fx@gnu.org>
+
+	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function): 
+	* progmodes/sh-script.el (sh-font-lock-syntactic-face-function): 
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-face-function): 
+	* eshell/esh-opt.el (eshell-process-option): 
+	* emulation/keypad.el (keypad-setup): 
+	* emacs-lisp/lisp-mode.el (prin1-char): 
+	* generic.el (generic-mode-set-comments): 
+	* edmacro.el (edmacro-parse-keys): 
+	* disp-table.el (standard-display-default): Use characterp.
+
 2003-06-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (utf-16-be): Make it an alias of
