@@ -218,7 +218,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	seem to wait for the output to drain properly, so use System V.
  */
 
-/* #define HAVE_TERMIO */
+#define HAVE_TERMIO
+#define SIGNALS_VIA_CHARACTERS
 
 /*
  *	DG/UX 4.10 needs the following to turn on berkeley ioctl's.
