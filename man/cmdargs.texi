@@ -1095,6 +1095,9 @@ Horizontal spacing between the arrow (which indicates a submenu) and
 the associated text.  Default is 10.
 @item shadowThickness
 Thickness of shadow line around the widget.
+@item margin
+The margin of the menu bar in character widths.  The default of 4 makes
+the menu bar appear like the LessTif/Motif one.
 @end table
 
 @node Motif Resources
