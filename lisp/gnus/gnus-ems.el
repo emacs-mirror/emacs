@@ -208,7 +208,7 @@
 (defun gnus-article-display-xface (beg end)
   "Display an XFace header from between BEG and END in the current article.
 Requires support for images in your Emacs and the external programs
-`uncompface', `icontopbm' and `ppmtoxbm'.  On a GNU/Linux system these
+`uncompface', and `icontopbm'.  On a GNU/Linux system these
 might be in packages with names like `compface' or `faces-xface' and
 `netpbm' or `libgr-progs', for instance.
 
@@ -239,18 +239,15 @@ for XEmacs."
 		   (eq 0 (call-process-region (point-min) (point-max)
 					      "icontopbm"
 					      'delete '(t nil)))
-		   (eq 0 (call-process-region (point-min) (point-max)
-					      "pbmtoxbm"
-					      'delete '(t nil)))
 		   ;; Miles Bader says that faces don't look right as
 		   ;; light on dark.
 		   (if (eq 'dark (cdr-safe (assq 'background-mode
 						 (frame-parameters))))
-		       (setq image (create-image (buffer-string) 'xbm t
+		       (setq image (create-image (buffer-string) 'pbm t
 						 :ascent 'center
 						 :foreground "black"
 						 :background "white"))
-		     (setq image (create-image (buffer-string) 'xbm t
+		     (setq image (create-image (buffer-string) 'pbm t
 					       :ascent 'center))))))
 	  (ring-insert gnus-article-xface-ring-internal (cons data image))))
       (when image
