@@ -1,5 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -720,6 +720,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      variable in their environment.  */
   char ppid_env_var_buffer[64];
   char *extra_env[] = {ppid_env_var_buffer, NULL};
+  char *sepchars = " \t";
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
@@ -815,6 +816,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	escape_char = is_cygnus_app ? '"' : '\\';
     }
   
+  /* Cygwin apps needs quoting a bit more often */ 
+  if (escape_char == '"')
+    sepchars = "\r\n\t\f '";
+
   /* do argv...  */
   arglen = 0;
   targ = argv;
@@ -828,7 +833,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	need_quotes = 1;
       for ( ; *p; p++)
 	{
-	  if (*p == '"')
+	  if (escape_char == '"' && *p == '\\')
+	    /* If it's a Cygwin app, \ needs to be escaped.  */
+	    arglen++;
+	  else if (*p == '"')
 	    {
 	      /* allow for embedded quotes to be escaped */
 	      arglen++;
@@ -842,7 +850,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 		  arglen += escape_char_run;
 		}
 	    }
-	  else if (*p == ' ' || *p == '\t')
+	  else if (strchr (sepchars, *p) != NULL)
 	    {
 	      need_quotes = 1;
 	    }
@@ -876,7 +884,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       if (do_quoting)
 	{
 	  for ( ; *p; p++)
-	    if (*p == ' ' || *p == '\t' || *p == '"')
+	    if ((strchr (sepchars, *p) != NULL) || *p == '"')
 	      need_quotes = 1;
 	}
       if (need_quotes)
@@ -916,6 +924,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 		  /* escape all quote chars, even at beginning or end */
 		  *parg++ = escape_char;
 		}
+	      else if (escape_char == '"' && *p == '\\')
+		*parg++ = '\\';
 	      *parg++ = *p;
 
 	      if (*p == escape_char && escape_char != '"')
