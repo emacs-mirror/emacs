@@ -1943,9 +1943,8 @@ kbd_buffer_get_event ()
 	  wait_reading_process_input (0, 0, minus_one, 1);
 
 	  if (!interrupt_input && EVENT_QUEUES_EMPTY)
-	    {
-	      read_avail_input (0);
-	    }
+	    /* Pass 1 for EXPECT since we just waited to have input.  */
+	    read_avail_input (1);
 	}
 #endif /* not VMS */
     }
