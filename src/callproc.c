@@ -41,6 +41,13 @@ extern char *sys_errlist[];
 #include <fcntl.h>
 #endif
 
+#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/param.h>
+#include <errno.h>
+#endif /* MSDOS */
+
 #ifndef O_RDONLY
 #define O_RDONLY 0
 #endif
@@ -64,6 +71,10 @@ extern char **environ;
 #endif
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
+
+#ifdef MSDOS
+Lisp_Object Vbinary_process;
+#endif
 
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
 Lisp_Object Vconfigure_info_directory;
@@ -101,6 +112,13 @@ Lisp_Object
 call_process_cleanup (fdpid)
      Lisp_Object fdpid;
 {
+#ifdef MSDOS
+  /* for MSDOS fdpid is really (fd . tempfile)  */
+  register Lisp_Object file = Fcdr (fdpid);
+  close (XFASTINT (Fcar (fdpid)));
+  if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
+    unlink (XSTRING (file)->data);
+#else /* not MSDOS */
   register int pid = XFASTINT (Fcdr (fdpid));
 
   if (EMACS_KILLPG (pid, SIGINT) == 0)
@@ -117,6 +135,7 @@ call_process_cleanup (fdpid)
     }
   synch_process_alive = 0;
   close (XFASTINT (Fcar (fdpid)));
+#endif /* not MSDOS */
   return Qnil;
 }
 
@@ -144,10 +163,20 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   register unsigned char **new_argv
     = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
   struct buffer *old = current_buffer;
+#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+  char *outf, *tempfile;
+  int outfilefd;
+#endif
 #if 0
   int mask;
 #endif
   CHECK_STRING (args[0], 0);
+
+#ifndef subprocesses
+  /* Without asynchronous processes we cannot have BUFFER == 0.  */
+  if (nargs >= 3 && XTYPE (args[2]) == Lisp_Int)
+    error ("Operating system cannot handle asynchronous subprocesses");
+#endif /* subprocesses */
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
@@ -228,11 +257,41 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     }
   new_argv[0] = XSTRING (path)->data;
 
+#ifdef MSDOS /* MW, July 1993 */
+  /* These vars record information from process termination.
+     Clear them now before process can possibly terminate,
+     to avoid timing error if process terminates soon.  */
+  synch_process_death = 0;
+  synch_process_retcode = 0;
+
+  if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
+    strcpy (tempfile = alloca (strlen (outf) + 20), outf);
+  else
+    {
+      tempfile = alloca (20);
+      *tempfile = '\0';
+    }
+  dostounix_filename (tempfile);
+  if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/') 
+    strcat (tempfile, "/");
+  strcat (tempfile, "detmp.XXX");
+  mktemp (tempfile);
+
+  outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
+  if (outfilefd < 0)
+    {
+      close (filefd);
+      report_file_error ("Opening process output file", Fcons (tempfile, Qnil));
+    }
+#endif
+
   if (XTYPE (buffer) == Lisp_Int)
     fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
   else
     {
+#ifndef MSDOS
       pipe (fd);
+#endif
 #if 0
       /* Replaced by close_process_descs */
       set_exclusive_use (fd[0]);
@@ -258,6 +317,17 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_death = 0;
     synch_process_retcode = 0;
 
+#ifdef MSDOS /* MW, July 1993 */
+    pid = run_msdos_command (new_argv, current_dir, filefd, outfilefd);
+    close (outfilefd);
+    fd1 = -1; /* No harm in closing that one!  */
+    fd[0] = open (tempfile, NILP (Vbinary_process) ? O_TEXT : O_BINARY);
+    if (fd[0] < 0)
+      {
+	unlink (tempfile);
+	report_file_error ("Cannot re-open temporary file", Qnil);
+      }
+#else /* not MSDOS */
     pid = vfork ();
 
     if (pid == 0)
@@ -271,6 +341,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif /* USG */
 	child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
       }
+#endif /* not MSDOS */
 
 #if 0
     /* Tell SIGCHLD handler to look for this pid.  */
@@ -282,7 +353,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     environ = save_environ;
 
     close (filefd);
-    close (fd1);
+    if (fd1 >= 0)
+      close (fd1);
   }
 
   if (pid < 0)
@@ -302,8 +374,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       return Qnil;
     }
 
+#ifdef MSDOS
+  /* MSDOS needs different cleanup information.  */
+  record_unwind_protect (call_process_cleanup,
+			 Fcons (make_number (fd[0]), build_string (tempfile)));
+#else
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
+#endif /* not MSDOS */
 
 
   if (XTYPE (buffer) == Lisp_Buffer)
@@ -372,14 +450,35 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
      register Lisp_Object *args;
 {
   register Lisp_Object filename_string, start, end;
+#ifdef MSDOS
+  char *tempfile;
+#else
   char tempfile[20];
+#endif
   int count = specpdl_ptr - specpdl;
+#ifdef MSDOS
+  char *outf = '\0';
+
+  if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
+    strcpy (tempfile = alloca (strlen (outf) + 20), outf);
+  else
+    {
+      tempfile = alloca (20);
+      *tempfile = '\0';
+    }
+  dostounix_filename (tempfile);
+  if (tempfile[strlen (tempfile) - 1] != '/')
+    strcat (tempfile, "/");
+  strcat (tempfile, "detmp.XXX");
+#else /* not MSDOS */
 
 #ifdef VMS
   strcpy (tempfile, "tmp:emacsXXXXXX.");
 #else
   strcpy (tempfile, "/tmp/emacsXXXXXX");
 #endif
+#endif /* not MSDOS */
+
   mktemp (tempfile);
 
   filename_string = build_string (tempfile);
@@ -424,9 +523,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      int set_pgrp;
      Lisp_Object current_dir;
 {
+#ifdef MSDOS
+  /* The MSDOS port of gcc cannot fork, vfork, ... so we must call system
+     instead.  */
+#else /* not MSDOS */
   char **env;
 
-  register int pid = getpid();
+  register int pid = getpid ();
 
   {
     extern int emacs_priority;
@@ -514,7 +617,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
   /* Make sure that in, out, and err are not actually already in
      descriptors zero, one, or two; this could happen if Emacs is
-     started with its standard in, our, or error closed, as might
+     started with its standard in, out, or error closed, as might
      happen under X.  */
   in = relocate_fd (in, 3);
   out = relocate_fd (out, 3);
@@ -554,6 +657,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   write (1, "Couldn't exec the program ", 26);
   write (1, new_argv[0], strlen (new_argv[0]));
   _exit (1);
+#endif /* not MSDOS */
 }
 
 /* Move the file descriptor FD so that its number is not less than MIN.
@@ -647,13 +751,13 @@ egetenv (var)
 #endif /* not VMS */
 
 /* This is run before init_cmdargs.  */
-
+  
 init_callproc_1 ()
 {
   char *data_dir = egetenv ("EMACSDATA");
     
   Vdata_directory
-    = Ffile_name_as_directory (build_string (data_dir ? data_dir
+    = Ffile_name_as_directory (build_string (data_dir ? data_dir 
 					     : PATH_DATA));
 
   /* Check the EMACSPATH environment variable, defaulting to the
@@ -739,6 +843,12 @@ set_process_environment ()
 
 syms_of_callproc ()
 {
+#ifdef MSDOS
+  DEFVAR_LISP ("binary-process", &Vbinary_process,
+    "*If non-nil then new subprocesses are assumed to produce binary output.");
+  Vbinary_process = Qnil;
+#endif
+
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
     "*File name to load inferior shells from.\n\
 Initialized from the SHELL environment variable.");
