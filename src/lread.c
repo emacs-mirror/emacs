@@ -1826,7 +1826,8 @@ defvar_lisp_nopro (namestring, address)
 #ifndef standalone
 
 /* Similar but define a variable whose value is the Lisp Object stored in
- the current buffer.  address is the address of the slot in the buffer that is current now. */
+   the current buffer.  address is the address of the slot in the buffer
+   that is current now. */
 
 void
 defvar_per_buffer (namestring, address, type, doc)
@@ -1842,11 +1843,10 @@ defvar_per_buffer (namestring, address, type, doc)
   sym = intern (namestring);
   offset = (char *)address - (char *)current_buffer;
 
-  XSETBUFFER_OBJFWD (XSYMBOL (sym)->value,
-		     (Lisp_Object *) offset);
+  XSETBUFFER_OBJFWD (XSYMBOL (sym)->value, offset);
   *(Lisp_Object *)(offset + (char *)&buffer_local_symbols) = sym;
   *(Lisp_Object *)(offset + (char *)&buffer_local_types) = type;
-  if (*(int *)(offset + (char *)&buffer_local_flags) == 0)
+  if (XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags)) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags */
     abort ();
