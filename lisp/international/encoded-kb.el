@@ -244,7 +244,7 @@ The following key sequence may cause multilingual text insertion."
       (dotimes (i 9) (aset vec i nil))
       (setq str (format "%s%c" str (read-char-exclusive))))
     (setq unread-command-events
-	  (append (string-to-list result) unread-command-events))))
+	  (append result unread-command-events))))
 
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
