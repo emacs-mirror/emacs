@@ -1,5 +1,8 @@
 2000-06-13  Dave Love  <fx@gnu.org>
 
+	* help.el (describe-function-1): Kluge around cases of functions
+	fset to subrs whose doc doesn't match their symbol-name.
+
 	* image.el (insert-image): Default STRING to a space.
 
 	* info.el Doc fixes.
