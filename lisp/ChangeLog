@@ -1,3 +1,32 @@
+2001-07-23  Francesco Potorti`  <pot@gnu.org>
+
+	* uniquify.el: overall speedup changes when using many buffers.
+	(uniquify-fix-item-base, uniquify-fix-item-filename,
+	uniquify-fix-item-buffer): Changed defmacro to defalias
+	(cosmetic change).
+	(uniquify-fix-item-unrationalized-buffer): Deleted: was the fourth
+	place in the item, but waas never used.
+	(uniquify-fix-item-min-proposed): New defalias: the fourth place
+	in the item is now used as cache for the porposed name.
+	(uniquify-rationalize-file-buffer-names): Move computation made on
+	newbuffile out of the loop, in the newbuffile-nd local var.  Use
+	dolist (cosmetic change).  Compute the proposed name for the most
+	common case and cache it in the fourth place in the item.
+	(uniquify-rationalize-file-buffer-names): Used to return a a list of
+	buffer whose name was changed, but that return value was never
+	used.
+	(uniquify-item-lessp): Replaces uniquify-filename-lessp, works on
+	the cached proposed name, does much less consing and is quicker.
+	(uniquify-filename-lessp): Deleted.
+	(uniquify-rationalize-a-list): Use dolist (cosmetic change).  Do
+	not bind locally the uniquify-possibly-resolvable flag.  Use the
+	cached proposed name is possible.
+	(uniquify-get-proposed-name): Arguments changed, callers changed.
+	(uniquify-rationalize-conflicting-sublist): Explicitely reset the
+	uniquify-possibly-resolvable flag, which is no more bound locally.
+	(uniquify-rename-buffer): Do not set the old unrationalised-buffer
+	flag, which does not exis
+
 2001-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-unicode-translations): Fix the appearance of
@@ -13,9 +42,9 @@
 	(fortune) <defgroup>: Add :link.
 	(fortune-from-region): Use eq, not eql.
 	From Dave Love <fx@gnu.org>.
-	
+
 	* play/animate.el (animate-birthday-present): Function removed.
-	
+
 	* play/animate.el: New file.
 
 2001-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -25,14 +54,14 @@
 	canonicalized names of the directories instead of inode numbers.
 
 2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-util.el: Copyright years.
 	(ediff-choose-syntax-table): New function.
 	(ediff-setup): Use ediff-choose-syntax-table.
 	(ediff-file-checked-out-p,ediff-file-checked-in-p): Check if
 	vc-state is available.
 	(ediff-make-temp-file): Use ediff-coding-system-for-write.
-	
+
 	* ediff-init.el (ediff-with-syntax-table): New macro, uses
 	with-syntax-table.
 	(ediff-coding-system-for-read): From ediff-diff.el
@@ -42,21 +71,21 @@
 	(ediff-file-remote-p): Use file-remote-p, if available.
 	(ediff-listable-file): New function.
 	(ediff-file-attributes): Use ediff-listable-file.
-	
+
 	* ediff-mult.el (ediff-meta-insert-file-info1): Use
 	ediff-listable-file.
-	
+
 	* ediff-ptch.el (ediff-prompt-for-patch-file): Use
 	ediff-coding-system-for-read.
 	(ediff-patch-file-internal): Use ediff-coding-system-for-write.
-	
+
 	* ediff-diff.el (ediff-coding-system-for-read): Moved to ediff-init.el.
 	(ediff-match-diff3-line,ediff-get-diff3-group): Improved pattern.
-	
+
 	* ediff.el: Date of last update, copyright years.
-	
+
 	* ediff-wind (ediff-setup-control-frame): Nill->nil.
-	
+
 	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
 	(ex-cmd-assoc,ex-compile,ex-cmd-one-letr): New functions.
@@ -65,14 +94,14 @@
 	(viper-get-ex-com-subr,viper-ex,ex-mark): Changed to use the new
 	ex-token-list.
 	(viper-get-ex-address-subr): Convert registers to char data type.
-	
+
 	* viper-util.el (viper-int-to-char,viper-char-equal): New
 	functions.
 	(viper-memq-char): Use viper-int-to-char.
 	(viper-file-checked-in-p): Use vc-locking-user, if vc doesn't have
 	vc-locking-state.
 	(viper-read-key): Use viper-read-key-sequence.
-	
+
 	* viper.el (viper-major-mode-modifier-list): Added
 	inferior-emacs-lisp-mode.
 	(this-major-mode-requires-vi-state): New function that uses simple
@@ -81,7 +110,7 @@
 	(viper-non-hook-settings): Don't advise read-key-sequence.
 	(viper-read-key-sequence): New function that replaces the
 	previously used advice to read-key-sequence.
-	
+
 	* viper-cmd.el (viper-test-com-defun,viper-exec-change)
 	(viper-exec-Change,viper-execute-com,viper-insert,viper-append)
 	(viper-Append,viper-Insert,viper-open-line,viper-Open-line)
@@ -94,11 +123,11 @@
 	(viper-minibuffer-standard-hook,viper-read-string-with-history):
 	Don't override existing minibuffer-setup-hook.
 	(viper-mark-point,viper-goto-mark-subr,viper-brac-function):
-	Convert registers to char data type. 
+	Convert registers to char data type.
 	(viper-autoindent): Use viper-indent-line.
-	
-	* viper-keym.el: Use viper-exec-key-in-emacs. 
-	
+
+	* viper-keym.el: Use viper-exec-key-in-emacs.
+
 2001-07-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* server.el (server-visit-files): Fix variable name typo.
