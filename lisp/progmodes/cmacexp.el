@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.8 1994/02/07 05:39:56 rms Exp rms $
+;; Version: $Id: cmacexp.el,v 1.9 1994/02/07 05:40:46 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -26,8 +26,7 @@
 ;;; Commentary:
 
 ;; In C mode C-M-x is bound to c-macro-expand.  The result of the
-;; expansion is put in a separate buffer.  The buffer is put in
-;; view-mode if the Inge Frick's view.el is installed.  A user option
+;; expansion is put in a separate buffer.  A user option
 ;; allows the window displaying the buffer to be optimally sized.
 ;;
 ;; When called with a C-u prefix, c-macro-expand replaces the selected
@@ -109,16 +108,9 @@
 ;; ACKNOWLEDGEMENTS ==================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
-;; reporting and suggestion of new features, to Inge Fricks for her
-;; help with view.el and to Dave Gillespie for his suggestions on
-;; calc's use.  This work has been partially inspired by Don Maszle
-;; and Jonathan Segal's.
-
-;; By the way, I recommend you Inge Frick's view.el.  It works like
-;; the standard view, but *it is not recursive* and has some more
-;; commands.  Moreover it is a minor mode, so you preserve all your
-;; major mode keybindings (well, not always :).  Mail me to obtain a
-;; copy, or get it by anonymous ftp in fly.cnuce.cnr.it:pub/view.el.
+;; reporting and suggestion of new features and to Dave Gillespie for
+;; his suggestions about calc.  This work has been partially inspired by
+;; Don Maszle and Jonathan Segal's.
 
 ;; BUGS ==============================================================
 
@@ -230,20 +222,14 @@ For non interactive use, see the c-macro-expansion function."
 
   (goto-char (point-min))
   (c-mode)
-  (require 'view)			;load view.el
   (let ((oldwinheight (window-height))
 	(alreadythere			;the window was already there
 	 (get-buffer-window (current-buffer)))
-	(popped nil)			;the window popped changing the layout 
-	(niceview			;is this Inge Fricks's view.el?
-	 (boundp 'view-kill-when-finished)))
-
+	(popped nil))			;the window popped changing the layout 
     (or alreadythere
 	(progn
 	  (display-buffer (current-buffer) t)
 	  (setq popped (/= oldwinheight (window-height)))))
-    (if niceview
-	(view-mode 1))			;set view mode
     (if (and c-macro-shrink-window-p	;user wants fancy shrinking :\)
 	     (or alreadythere popped))
 	;; Enlarge up to half screen, or shrink properly.
@@ -288,6 +274,7 @@ Returns the output as a string."
 					 buffer-file-name))
 		      (substring buffer-file-name (match-end 0))
 		    (buffer-name)))
+	(start-state)
 	(linenum 0)
 	(linelist ()))
     (unwind-protect
@@ -306,18 +293,25 @@ Returns the output as a string."
 
 	  (insert " ")
 
+	  (save-excursion
+	    (goto-char start)
+	    (setq start-state (parse-partial-sexp 1 (point))))
 	  ;; Now we insert the #line directives after all #endif or
 	  ;; #else following START. 
 	  ;(switch-to-buffer outbuf) (debug)	;debugging instructions
 	  (while (re-search-backward "\n#\\(endif\\|else\\)\\>" start 'move)
-	    (if (equal (nthcdr 3 (parse-partial-sexp 1 (point)))
+	    (if (equal (nthcdr 3 (parse-partial-sexp start (point) start-state))
 		       '(nil nil nil 0)) ;neither in string nor in
 					 ;comment nor after quote
 		(progn
 		  (goto-char (match-end 0))
-		  (setq linenum (count-lines 1 (point)))
+;;		  (setq linenum (count-lines 1 (point)))
 		  (setq linelist
-			(cons (format "\n# %d \"%s\"\n" linenum filename)
+			;; This used to be a #line command
+			;; but it's not guaranteed that the output
+			;; will have properly matching commands.
+			;; Only the *line numbers* have to agree!
+			(cons (format "\n???!!!???!!!!\n")
 			      linelist))
 		  (insert (car linelist))
 		  (skip-chars-backward "^#")
@@ -327,8 +321,8 @@ Returns the output as a string."
 	  ;; We are at START.  Insert the first #line directive.  This
 	  ;; must work even inside a string or comment, or after a
 	  ;; quote.
-	  (setq linenum (+ (count-lines 1 (point))
-			   (if (bolp) 1 0)))
+;;;	  (setq linenum (+ (count-lines 1 (point))
+;;;			   (if (bolp) 1 0)))
 	  (setq linelist
 		(cons
 		 (let* ((startstat (parse-partial-sexp 1 start))
@@ -337,7 +331,7 @@ Returns the output as a string."
 			(startafterquote (nth 5 startstat)))
 		   (concat (if startafterquote " ")
 			   (cond (startinstring "\"") (startincomment "*/"))
-			   (format "\n# %d \"%s\"\n" linenum filename)
+			   (format "\n???!!!???!!!!")
 			   (cond (startinstring "\"") (startincomment "/*"))
 			   (if startafterquote "\\")))
 		 linelist))
@@ -349,13 +343,8 @@ Returns the output as a string."
 	  (call-process-region 1 (point-max) "sh" t t nil "-c"
 			       (concat cppcommand " 2>/dev/null"))
 
-	  ;; Look for the `# nn "file.c"' lines from the last to the first
-	  ;; and delete them.
-	  (setq linelist (reverse linelist))
-	  (while (progn
-		   (if (search-backward (car linelist) nil t)
-		       (replace-match ""))
-		   (setq linelist (cdr linelist))))
+	  (while (search-backward "\n???!!!???!!!!" nil t)
+	    (replace-match ""))
 	  
 	  ;; Compute the return value, keeping in account the space
 	  ;; inserted at the end of the buffer.
