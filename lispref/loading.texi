@@ -172,6 +172,18 @@ the current directory, Emacs 18 temporarily adds the current directory
 to the front of @code{load-path} so the file can be found there.  Newer
 Emacs versions also find such files in the current directory, but
 without altering @code{load-path}.
+
+Dumping Emacs uses a special value of @code{load-path}.  If the value of
+@code{load-path} at the end of dumping is unchanged (that is, still the
+same special value), the dumped Emacs switches to the ordinary
+@code{load-path} value when it starts up, as decribed above.  But if
+@code{load-path} has any other value at the end of dumping, that value
+is used for execution of the dumped Emacs also.
+
+Therefore, if you want to change @code{load-path} temporarily for
+loading a few libraries in @file{site-init.el} or @file{site-load.el},
+you should bind @code{load-path} locally with @code{let} around the
+calls to @code{load}.
 @end defopt
 
 @defvar load-in-progress
