@@ -223,7 +223,7 @@ Fourth and fifth arg START and END specify the region to operate on."
 	   (if (and transient-mark-mode mark-active)
 	       (region-end)))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
-		   t t delimited nil nil start end))
+		   t 'literal delimited nil nil start end))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -1057,7 +1057,7 @@ make, or the user didn't cancel the call."
 	(case-fold-search (and case-fold-search
 			       (string-equal from-string
 					     (downcase from-string))))
-	(literal (not regexp-flag))
+	(literal (or (not regexp-flag) (eq regexp-flag 'literal)))
 	(search-function (if regexp-flag 're-search-forward 'search-forward))
 	(search-string from-string)
 	(real-match-data nil)		; the match data for the current match
