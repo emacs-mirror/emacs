@@ -1242,14 +1242,14 @@ and selects that window."
 (defvar x-fixed-font-alist
   '("Font menu"
     ("Misc"
-     ("6x10" "-misc-fixed-medium-r-normal--10-100-75-75-c-60-*-1")
-     ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1")
-     ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1")
+     ("6x10" "-misc-fixed-medium-r-normal--10-100-75-75-c-60-*-1" "6x10")
+     ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1" "6x12")
+     ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1" "6x13")
      ("lucida 13"
       "-b&h-lucidatypewriter-medium-r-normal-sans-0-0-0-0-m-0-*-1")
-     ("7x13" "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-1")
-     ("7x14" "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")
-     ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")
+     ("7x13" "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-1" "7x13")
+     ("7x14" "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1" "7x14")
+     ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1" "9x15")
      ("")
      ("clean 8x8" "-schumacher-clean-medium-r-normal--*-80-*-*-c-*-*-1")
      ("clean 8x14" "-schumacher-clean-medium-r-normal--*-140-*-*-c-*-*-1")
@@ -1298,37 +1298,47 @@ and selects that window."
     )
   "X fonts suitable for use in Emacs.")
 
-(defun mouse-set-font (&optional font)
+(defun mouse-set-font (&rest fonts)
   "Select an emacs font from a list of known good fonts"
   (interactive
    (x-popup-menu last-nonmenu-event x-fixed-font-alist))
-  (if font
-      (progn (modify-frame-parameters (selected-frame)
-				      (list (cons 'font font)))
-	     ;; Update some standard faces too.
-	     (set-face-font 'bold nil (selected-frame)) 
-	     (make-face-bold 'bold (selected-frame) t)
-	     (set-face-font 'italic nil (selected-frame))
-	     (make-face-italic 'italic (selected-frame) t)
-	     (set-face-font 'bold-italic nil (selected-frame))
-	     (make-face-bold-italic 'bold-italic (selected-frame) t)
-	     ;; Update any nonstandard faces whose definition is
-	     ;; "a bold/italic/bold&italic version of the frame's font".
-	     (let ((rest global-face-data))
-	       (while rest
-		 (condition-case nil
-		     (if (listp (face-font (cdr (car rest))))
-			 (let ((bold (memq 'bold (face-font (cdr (car rest)))))
-			       (italic (memq 'italic (face-font (cdr (car rest))))))
-			   (if (and bold italic)
-			       (make-face-bold-italic (car (car rest)) (selected-frame))
-			     (if bold
-				 (make-face-bold (car (car rest)) (selected-frame))
-			       (if italic
-				   (make-face-italic (car (car rest)) (selected-frame)))))))
-		   (error nil))
-		 (setq rest (cdr rest))))
-	     )))
+  (let (font)
+    (setq foo font bar fonts)
+    (while fonts
+      (condition-case nil
+	  (progn
+	    (modify-frame-parameters (selected-frame)
+				     (list (cons 'font (car fonts))))
+	    (setq font (car fonts))
+	    (setq fonts nil))
+	(error (setq fonts (cdr fonts)))))
+    (if font
+	(progn
+	  ;; Update some standard faces too.
+	  (set-face-font 'bold nil (selected-frame)) 
+	  (make-face-bold 'bold (selected-frame) t)
+	  (set-face-font 'italic nil (selected-frame))
+	  (make-face-italic 'italic (selected-frame) t)
+	  (set-face-font 'bold-italic nil (selected-frame))
+	  (make-face-bold-italic 'bold-italic (selected-frame) t)
+	  ;; Update any nonstandard faces whose definition is
+	  ;; "a bold/italic/bold&italic version of the frame's font".
+	  (let ((rest global-face-data))
+	    (while rest
+	      (condition-case nil
+		  (if (listp (face-font (cdr (car rest))))
+		      (let ((bold (memq 'bold (face-font (cdr (car rest)))))
+			    (italic (memq 'italic (face-font (cdr (car rest))))))
+			(if (and bold italic)
+			    (make-face-bold-italic (car (car rest)) (selected-frame))
+			  (if bold
+			      (make-face-bold (car (car rest)) (selected-frame))
+			    (if italic
+				(make-face-italic (car (car rest)) (selected-frame)))))))
+		(error nil))
+	      (setq rest (cdr rest))))
+	  )
+      (error "Font not found"))))
 
 ;;; Bindings for mouse commands.
 
