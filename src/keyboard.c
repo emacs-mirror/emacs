@@ -2508,6 +2508,7 @@ make_lispy_event (event)
 		int hpos;
 		int i;
 
+		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
 		for (i = 0; i < XVECTOR (items)->size; i += 3)
 		  {
