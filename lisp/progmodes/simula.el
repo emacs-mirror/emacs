@@ -1731,7 +1731,7 @@ If not nil and not t, move to limit of search and return nil."
 ;
 ;;; function used by hilit19
 ;(defun simula-find-next-comment-region (param)
-;  "Return region (start end) cons of comment after point, or NIL"
+;  "Return region (start end) cons of comment after point, or nil."
 ;  (let (start end)
 ;    ;; This function is called repeatedly, check if point is
 ;    ;; where we left it in the last call
