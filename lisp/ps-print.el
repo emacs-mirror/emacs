@@ -302,29 +302,11 @@
 ;; formats for; it should contain one of the symbols ps-letter,
 ;; ps-legal, or ps-a4.  The default is ps-letter.
 ;;
-;; 
-;; Installing ps-print
-;; -------------------
 ;;
-;; 1. Place ps-print.el somewhere in your load-path and byte-compile
-;;    it.  You can ignore all byte-compiler warnings; they are the
-;;    result of multi-Emacs support.  This step is necessary only if
-;;    you're installing your own ps-print; if ps-print came with your
-;;    copy of Emacs, this been done already.
+;; Make sure that the variables ps-lpr-command and ps-lpr-switches
+;; contain appropriate values for your system; see the usage notes
+;; below and the documentation of these variables.
 ;;
-;; 2. Place in your .emacs file the line
-;;
-;;        (require 'ps-print)
-;;
-;;    to load ps-print.  Or you may cause any of the ps-print commands
-;;    to be autoloaded with an autoload command such as:
-;;
-;;      (autoload 'ps-print-buffer "ps-print"
-;;        "Generate and print a PostScript image of the buffer..." t)
-;;
-;; 3. Make sure that the variables ps-lpr-command and ps-lpr-switches
-;;    contain appropriate values for your system; see the usage notes
-;;    below and the documentation of these variables.
 ;; 
 ;; New since version 1.5
 ;; ---------------------
@@ -603,9 +585,9 @@ number, prompt the user for the name of the file to save in."
 ;;;###autoload
 (defun ps-print-buffer-with-faces (&optional filename)
   "Generate and print a PostScript image of the buffer.
-
 Like `ps-print-buffer', but includes font, color, and underline
-information in the generated image."
+information in the generated image.  This command works only if you
+are using a window system, so it has a way to determine color values."
   (interactive (list (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) (point-min) (point-max)
 	       'ps-generate-postscript-with-faces)
@@ -615,7 +597,6 @@ information in the generated image."
 ;;;###autoload
 (defun ps-print-region (from to &optional filename)
   "Generate and print a PostScript image of the region.
-
 Like `ps-print-buffer', but prints just the current region."
 
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
@@ -627,9 +608,9 @@ Like `ps-print-buffer', but prints just the current region."
 ;;;###autoload
 (defun ps-print-region-with-faces (from to &optional filename)
   "Generate and print a PostScript image of the region.
-
 Like `ps-print-region', but includes font, color, and underline
-information in the generated image."
+information in the generated image.  This command works only if you
+are using a window system, so it has a way to determine color values."
 
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) from to
@@ -640,7 +621,6 @@ information in the generated image."
 ;;;###autoload
 (defun ps-spool-buffer ()
   "Generate and spool a PostScript image of the buffer.
-
 Like `ps-print-buffer' except that the PostScript image is saved in a
 local buffer to be sent to the printer later.
 
@@ -653,9 +633,9 @@ Use the command `ps-despool' to send the spooled images to the printer."
 ;;;###autoload
 (defun ps-spool-buffer-with-faces ()
   "Generate and spool a PostScript image of the buffer.
-
 Like `ps-spool-buffer', but includes font, color, and underline
-information in the generated image.
+information in the generated image.  This command works only if you
+are using a window system, so it has a way to determine color values."
 
 Use the command `ps-despool' to send the spooled images to the printer."
 
@@ -667,7 +647,6 @@ Use the command `ps-despool' to send the spooled images to the printer."
 ;;;###autoload
 (defun ps-spool-region (from to)
   "Generate a PostScript image of the region and spool locally.
-
 Like `ps-spool-buffer', but spools just the current region.
 
 Use the command `ps-despool' to send the spooled images to the printer."
@@ -679,9 +658,9 @@ Use the command `ps-despool' to send the spooled images to the printer."
 ;;;###autoload
 (defun ps-spool-region-with-faces (from to)
   "Generate a PostScript image of the region and spool locally.
-
 Like `ps-spool-region', but includes font, color, and underline
-information in the generated image.
+information in the generated image.  This command works only if you
+are using a window system, so it has a way to determine color values."
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive "r")
