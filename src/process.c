@@ -5054,7 +5054,6 @@ send_process (proc, buf, len, object)
     {
       int require = encoding_buffer_size (coding, len);
       int from_byte = -1, from = -1, to = -1;
-      unsigned char *temp_buf = NULL;
 
       if (BUFFERP (object))
 	{
@@ -5090,8 +5089,6 @@ send_process (proc, buf, len, object)
 		     len, SBYTES (object));
       len = coding->produced;
       buf = SDATA (object);
-      if (temp_buf)
-	xfree (temp_buf);
     }
 
 #ifdef VMS
