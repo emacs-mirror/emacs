@@ -850,7 +850,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "7" 'Info-nth-menu-item)
   (define-key Info-mode-map "8" 'Info-nth-menu-item)
   (define-key Info-mode-map "9" 'Info-nth-menu-item)
-  (define-key Info-mode-map "0" 'Info-nth-menu-item)
+  (define-key Info-mode-map "0" 'undefined)
   (define-key Info-mode-map "?" 'Info-summary)
   (define-key Info-mode-map "]" 'Info-forward-node)
   (define-key Info-mode-map "[" 'Info-backward-node)
