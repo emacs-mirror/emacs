@@ -101,127 +101,130 @@ You may call with no args, or you may pass nil as the first arg and
 any other args you like.  In that case, the list of args after the
 first will be printed into the backtrace buffer."
   (interactive)
-  (unless noninteractive
-    (message "Entering debugger..."))
-  (let (debugger-value
-	(debug-on-error nil)
-	(debug-on-quit nil)
-	(debugger-buffer (let ((default-major-mode 'fundamental-mode))
-			   (get-buffer-create "*Backtrace*")))
-	(debugger-old-buffer (current-buffer))
-	(debugger-step-after-exit nil)
-	;; Don't keep reading from an executing kbd macro!
-	(executing-kbd-macro nil)
-	;; Save the outer values of these vars for the `e' command
-	;; before we replace the values.
-	(debugger-outer-match-data (match-data))
-	(debugger-outer-load-read-function load-read-function)
-	(debugger-outer-overriding-local-map overriding-local-map)
-	(debugger-outer-overriding-terminal-local-map
-	 overriding-terminal-local-map)
-	(debugger-outer-track-mouse track-mouse)
-	(debugger-outer-last-command last-command)
-	(debugger-outer-this-command this-command)
-	(debugger-outer-unread-command-char unread-command-char)
-	(debugger-outer-unread-command-events unread-command-events)
-	(debugger-outer-unread-post-input-method-events
-	 unread-post-input-method-events)
-	(debugger-outer-last-input-event last-input-event)
-	(debugger-outer-last-command-event last-command-event)
-	(debugger-outer-last-nonmenu-event last-nonmenu-event)
-	(debugger-outer-last-event-frame last-event-frame)
-	(debugger-outer-standard-input standard-input)
-	(debugger-outer-standard-output standard-output)
-	(debugger-outer-inhibit-redisplay inhibit-redisplay)
-	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
-    ;; Set this instead of binding it, so that `q'
-    ;; will not restore it.
-    (setq overriding-terminal-local-map nil)
-    ;; Don't let these magic variables affect the debugger itself.
-    (let ((last-command nil) this-command track-mouse
-	  (unread-command-char -1) unread-command-events
-	  unread-post-input-method-events
-	  last-input-event last-command-event last-nonmenu-event
-	  last-event-frame
-	  overriding-local-map
-	  load-read-function
-	  ;; If we are inside a minibuffer, allow nesting
-	  ;; so that we don't get an error from the `e' command.
-	  (enable-recursive-minibuffers
-	   (or enable-recursive-minibuffers (> (minibuffer-depth) 0)))
-	  (standard-input t) (standard-output t)
-	  inhibit-redisplay
-	  (cursor-in-echo-area nil))
-      (unwind-protect
-	  (save-excursion
-	    (save-window-excursion
-	      (pop-to-buffer debugger-buffer)
-	      (debugger-mode)
-	      (debugger-setup-buffer debugger-args)
-	      (when noninteractive
-		;; If the backtrace is long, save the beginning
-		;; and the end, but discard the middle.
-		(when (> (count-lines (point-min) (point-max))
-			 debugger-batch-max-lines)
-		  (goto-char (point-min))
-		  (forward-line (/ 2 debugger-batch-max-lines))
-		  (let ((middlestart (point)))
-		    (goto-char (point-max))
-		    (forward-line (- (/ 2 debugger-batch-max-lines)
-				     debugger-batch-max-lines))
-		    (delete-region middlestart (point)))
-		  (insert "...\n"))
-		(goto-char (point-min))
-		(message (buffer-string))
-		(kill-emacs))
-	      (if (eq (car debugger-args) 'debug)
-		  ;; Skip the frames for backtrace-debug, byte-code, and debug.
-		  (backtrace-debug 3 t))
-	      (debugger-reenable)
-	      (message "")
-	      (let ((inhibit-trace t)
-		    (standard-output nil)
-		    (buffer-read-only t))
-		(message "")
-		;; Make sure we unbind buffer-read-only in the right buffer.
-		(save-excursion
-		  (recursive-edit)))))
-	;; Kill or at least neuter the backtrace buffer, so that users
-	;; don't try to execute debugger commands in an invalid context.
-	(if (get-buffer-window debugger-buffer 'visible)
-	    ;; Still visible despite the save-window-excursion?  Maybe it
-	    ;; it's in a pop-up frame.  It would be annoying to delete and
-	    ;; recreate it every time the debugger stops, so instead we'll
-	    ;; erase it but leave it visible.
+  (if inhibit-redisplay
+      ;; Don't really try to enter debugger within an eval from redisplay.
+      debugger-value
+    (unless noninteractive
+      (message "Entering debugger..."))
+    (let (debugger-value
+	  (debug-on-error nil)
+	  (debug-on-quit nil)
+	  (debugger-buffer (let ((default-major-mode 'fundamental-mode))
+			     (get-buffer-create "*Backtrace*")))
+	  (debugger-old-buffer (current-buffer))
+	  (debugger-step-after-exit nil)
+	  ;; Don't keep reading from an executing kbd macro!
+	  (executing-kbd-macro nil)
+	  ;; Save the outer values of these vars for the `e' command
+	  ;; before we replace the values.
+	  (debugger-outer-match-data (match-data))
+	  (debugger-outer-load-read-function load-read-function)
+	  (debugger-outer-overriding-local-map overriding-local-map)
+	  (debugger-outer-overriding-terminal-local-map
+	   overriding-terminal-local-map)
+	  (debugger-outer-track-mouse track-mouse)
+	  (debugger-outer-last-command last-command)
+	  (debugger-outer-this-command this-command)
+	  (debugger-outer-unread-command-char unread-command-char)
+	  (debugger-outer-unread-command-events unread-command-events)
+	  (debugger-outer-unread-post-input-method-events
+	   unread-post-input-method-events)
+	  (debugger-outer-last-input-event last-input-event)
+	  (debugger-outer-last-command-event last-command-event)
+	  (debugger-outer-last-nonmenu-event last-nonmenu-event)
+	  (debugger-outer-last-event-frame last-event-frame)
+	  (debugger-outer-standard-input standard-input)
+	  (debugger-outer-standard-output standard-output)
+	  (debugger-outer-inhibit-redisplay inhibit-redisplay)
+	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area))
+      ;; Set this instead of binding it, so that `q'
+      ;; will not restore it.
+      (setq overriding-terminal-local-map nil)
+      ;; Don't let these magic variables affect the debugger itself.
+      (let ((last-command nil) this-command track-mouse
+	    (unread-command-char -1) unread-command-events
+	    unread-post-input-method-events
+	    last-input-event last-command-event last-nonmenu-event
+	    last-event-frame
+	    overriding-local-map
+	    load-read-function
+	    ;; If we are inside a minibuffer, allow nesting
+	    ;; so that we don't get an error from the `e' command.
+	    (enable-recursive-minibuffers
+	     (or enable-recursive-minibuffers (> (minibuffer-depth) 0)))
+	    (standard-input t) (standard-output t)
+	    inhibit-redisplay
+	    (cursor-in-echo-area nil))
+	(unwind-protect
 	    (save-excursion
-	      (set-buffer debugger-buffer)
-	      (erase-buffer)
-	      (fundamental-mode))
-	  (kill-buffer debugger-buffer))
-	(set-match-data debugger-outer-match-data)))
-    ;; Put into effect the modified values of these variables
-    ;; in case the user set them with the `e' command.
-    (setq load-read-function debugger-outer-load-read-function)
-    (setq overriding-local-map debugger-outer-overriding-local-map)
-    (setq overriding-terminal-local-map
-	  debugger-outer-overriding-terminal-local-map)
-    (setq track-mouse debugger-outer-track-mouse)
-    (setq last-command debugger-outer-last-command)
-    (setq this-command debugger-outer-this-command)
-    (setq unread-command-char debugger-outer-unread-command-char)
-    (setq unread-command-events debugger-outer-unread-command-events)
-    (setq unread-post-input-method-events
-	  debugger-outer-unread-post-input-method-events)
-    (setq last-input-event debugger-outer-last-input-event)
-    (setq last-command-event debugger-outer-last-command-event)
-    (setq last-nonmenu-event debugger-outer-last-nonmenu-event)
-    (setq last-event-frame debugger-outer-last-event-frame)
-    (setq standard-input debugger-outer-standard-input)
-    (setq standard-output debugger-outer-standard-output)
-    (setq inhibit-redisplay debugger-outer-inhibit-redisplay)
-    (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area)
-    (setq debug-on-next-call debugger-step-after-exit)
-    debugger-value))
+	      (save-window-excursion
+		(pop-to-buffer debugger-buffer)
+		(debugger-mode)
+		(debugger-setup-buffer debugger-args)
+		(when noninteractive
+		  ;; If the backtrace is long, save the beginning
+		  ;; and the end, but discard the middle.
+		  (when (> (count-lines (point-min) (point-max))
+			   debugger-batch-max-lines)
+		    (goto-char (point-min))
+		    (forward-line (/ 2 debugger-batch-max-lines))
+		    (let ((middlestart (point)))
+		      (goto-char (point-max))
+		      (forward-line (- (/ 2 debugger-batch-max-lines)
+				       debugger-batch-max-lines))
+		      (delete-region middlestart (point)))
+		    (insert "...\n"))
+		  (goto-char (point-min))
+		  (message (buffer-string))
+		  (kill-emacs))
+		(if (eq (car debugger-args) 'debug)
+		    ;; Skip the frames for backtrace-debug, byte-code, and debug.
+		    (backtrace-debug 3 t))
+		(debugger-reenable)
+		(message "")
+		(let ((inhibit-trace t)
+		      (standard-output nil)
+		      (buffer-read-only t))
+		  (message "")
+		  ;; Make sure we unbind buffer-read-only in the right buffer.
+		  (save-excursion
+		    (recursive-edit)))))
+	  ;; Kill or at least neuter the backtrace buffer, so that users
+	  ;; don't try to execute debugger commands in an invalid context.
+	  (if (get-buffer-window debugger-buffer 'visible)
+	      ;; Still visible despite the save-window-excursion?  Maybe it
+	      ;; it's in a pop-up frame.  It would be annoying to delete and
+	      ;; recreate it every time the debugger stops, so instead we'll
+	      ;; erase it but leave it visible.
+	      (save-excursion
+		(set-buffer debugger-buffer)
+		(erase-buffer)
+		(fundamental-mode))
+	    (kill-buffer debugger-buffer))
+	  (set-match-data debugger-outer-match-data)))
+      ;; Put into effect the modified values of these variables
+      ;; in case the user set them with the `e' command.
+      (setq load-read-function debugger-outer-load-read-function)
+      (setq overriding-local-map debugger-outer-overriding-local-map)
+      (setq overriding-terminal-local-map
+	    debugger-outer-overriding-terminal-local-map)
+      (setq track-mouse debugger-outer-track-mouse)
+      (setq last-command debugger-outer-last-command)
+      (setq this-command debugger-outer-this-command)
+      (setq unread-command-char debugger-outer-unread-command-char)
+      (setq unread-command-events debugger-outer-unread-command-events)
+      (setq unread-post-input-method-events
+	    debugger-outer-unread-post-input-method-events)
+      (setq last-input-event debugger-outer-last-input-event)
+      (setq last-command-event debugger-outer-last-command-event)
+      (setq last-nonmenu-event debugger-outer-last-nonmenu-event)
+      (setq last-event-frame debugger-outer-last-event-frame)
+      (setq standard-input debugger-outer-standard-input)
+      (setq standard-output debugger-outer-standard-output)
+      (setq inhibit-redisplay debugger-outer-inhibit-redisplay)
+      (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area)
+      (setq debug-on-next-call debugger-step-after-exit)
+      debugger-value)))
 
 (defun debugger-setup-buffer (debugger-args)
   "Initialize the `*Backtrace*' buffer for entry to the debugger.
