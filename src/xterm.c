@@ -6000,6 +6000,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         {
           x_check_fullscreen (f);
 
+#ifdef USE_GTK
+          /* This seems to be needed for GTK 2.6.  */
+          x_clear_area (event.xexpose.display,
+                        event.xexpose.window,
+                        event.xexpose.x, event.xexpose.y,
+                        event.xexpose.width, event.xexpose.height,
+                        FALSE);
+#endif
           if (f->async_visible == 0)
             {
               f->async_visible = 1;

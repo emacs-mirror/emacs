@@ -1,3 +1,7 @@
+2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.
+
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (window_scroll_pixel_based): Only look at
