@@ -4140,7 +4140,7 @@ Select the new buffer in another window.
 Optional second arg NORECORD non-nil means do not put this buffer at
 the front of the list of recently selected ones."
   (interactive "bClone buffer in other window: ")
-  (let ((popup-windows t))
+  (let ((pop-up-windows t))
     (set-buffer buffer)
     (clone-indirect-buffer nil t norecord)))
 
