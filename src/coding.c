@@ -308,7 +308,7 @@ Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qdefault_char;
 Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
-Lisp_Object Qsignature, Qendian, Qbig, Qlittle;
+Lisp_Object Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
 
@@ -626,6 +626,7 @@ enum coding_category
 #define CATEGORY_MASK_ISO_7_ELSE	(1 << coding_category_iso_7_else)
 #define CATEGORY_MASK_ISO_8_ELSE	(1 << coding_category_iso_8_else)
 #define CATEGORY_MASK_UTF_8		(1 << coding_category_utf_8)
+#define CATEGORY_MASK_UTF_16_AUTO	(1 << coding_category_utf_16_auto)
 #define CATEGORY_MASK_UTF_16_BE		(1 << coding_category_utf_16_be)
 #define CATEGORY_MASK_UTF_16_LE		(1 << coding_category_utf_16_le)
 #define CATEGORY_MASK_UTF_16_BE_NOSIG	(1 << coding_category_utf_16_be_nosig)
@@ -1357,12 +1358,14 @@ detect_coding_utf_16 (coding, detect_info)
 
   if ((c1 == 0xFF) && (c2 == 0xFE))
     {
-      detect_info->found |= CATEGORY_MASK_UTF_16_LE;
+      detect_info->found |= (CATEGORY_MASK_UTF_16_LE
+			     | CATEGORY_MASK_UTF_16_AUTO);
       detect_info->rejected |= CATEGORY_MASK_UTF_16_BE;
     }
   else if ((c1 == 0xFE) && (c2 == 0xFF))
     {
-      detect_info->found |= CATEGORY_MASK_UTF_16_BE;
+      detect_info->found |= (CATEGORY_MASK_UTF_16_BE
+			     | CATEGORY_MASK_UTF_16_AUTO);
       detect_info->rejected |= CATEGORY_MASK_UTF_16_LE;
     }
  no_more_source:
@@ -1387,7 +1390,7 @@ decode_coding_utf_16 (coding)
 
   CODING_GET_INFO (coding, attr, eol_type, charset_list);
 
-  if (bom != utf_16_without_bom)
+  if (bom == utf_16_with_bom)
     {
       int c, c1, c2;
 
@@ -1395,33 +1398,22 @@ decode_coding_utf_16 (coding)
       ONE_MORE_BYTE (c1);
       ONE_MORE_BYTE (c2);
       c = (c1 << 8) | c2;
-      if (bom == utf_16_with_bom)
+
+      if (endian == utf_16_big_endian
+	  ? c != 0xFEFF : c != 0xFFFE)
 	{
-	  if (endian == utf_16_big_endian
-	      ? c != 0xFEFF : c != 0xFFFE)
-	    {
-	      /* We are sure that there's enouph room at CHARBUF.  */
-	      *charbuf++ = c1;
-	      *charbuf++ = c2;
-	      coding->errors++;
-	    }
+	  /* The first two bytes are not BOM.  Treat them as bytes
+	     for a normal character.  */
+	  src = src_base;
+	  coding->errors++;
 	}
-      else
-	{
-	  if (c == 0xFEFF)
-	    CODING_UTF_16_ENDIAN (coding)
-	      = endian = utf_16_big_endian;
-	  else if (c == 0xFFFE)
-	    CODING_UTF_16_ENDIAN (coding)
-	      = endian = utf_16_little_endian;
-	  else
-	    {
-	      CODING_UTF_16_ENDIAN (coding)
-		= endian = utf_16_big_endian;
-	      src = src_base;
-	    }
-	}
-      CODING_UTF_16_BOM (coding) = utf_16_with_bom;
+      CODING_UTF_16_BOM (coding) = utf_16_without_bom;
+    }
+  else if (bom == utf_16_detect_bom)
+    {
+      /* We have already tried to detect BOM and failed in
+	 detect_coding.  */
+      CODING_UTF_16_BOM (coding) = utf_16_without_bom;
     }
 
   while (1)
@@ -1494,7 +1486,7 @@ encode_coding_utf_16 (coding)
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
 
-  if (bom == utf_16_with_bom)
+  if (bom != utf_16_without_bom)
     {
       ASSURE_DESTINATION (safe_room);
       if (big_endian)
@@ -4859,7 +4851,7 @@ setup_coding_system (coding_system, coding)
 				    : EQ (val, Qt) ? utf_16_with_bom
 				    : utf_16_without_bom);
       val = AREF (attrs, coding_attr_utf_16_endian);
-      CODING_UTF_16_ENDIAN (coding) = (NILP (val) ? utf_16_big_endian
+      CODING_UTF_16_ENDIAN (coding) = (EQ (val, Qbig) ? utf_16_big_endian
 				       : utf_16_little_endian);
       CODING_UTF_16_SURROGATE (coding) = 0;
       coding->detector = detect_coding_utf_16;
@@ -4867,6 +4859,8 @@ setup_coding_system (coding_system, coding)
       coding->encoder = encode_coding_utf_16;
       coding->common_flags
 	|= (CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK);
+      if (CODING_UTF_16_BOM (coding) == utf_16_detect_bom)
+	coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
     }
   else if (EQ (coding_type, Qccl))
     {
@@ -5283,6 +5277,25 @@ detect_coding (coding)
 		  setup_coding_system (CODING_ID_NAME (this->id), coding);
 		  break;
 		}
+	}
+    }
+  else if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qutf_16))
+    {
+      Lisp_Object coding_systems;
+      struct coding_detection_info detect_info;
+
+      coding_systems
+	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_16_bom);
+      detect_info.found = detect_info.rejected = 0;
+      if (CONSP (coding_systems)
+	  && detect_coding_utf_16 (coding, &detect_info)
+	  && (detect_info.found & (CATEGORY_MASK_UTF_16_LE
+				   | CATEGORY_MASK_UTF_16_BE)))
+	{
+	  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+	    setup_coding_system (XCAR (coding_systems), coding);
+	  else
+	    setup_coding_system (XCDR (coding_systems), coding);
 	}
     }
 
@@ -7957,15 +7970,20 @@ usage: (define-coding-system-internal ...)  */)
       ASET (attrs, coding_attr_utf_16_bom, bom);
 
       endian = args[coding_arg_utf16_endian];
+      CHECK_SYMBOL (endian);
+      if (NILP (endian))
+	endian = Qbig;
+      else if (! EQ (endian, Qbig) && ! EQ (endian, Qlittle))
+	error ("Invalid endian: %s", XSYMBOL (endian)->name->data);
       ASET (attrs, coding_attr_utf_16_endian, endian);
 
       category = (CONSP (bom)
 		  ? coding_category_utf_16_auto
 		  : NILP (bom)
-		  ? (NILP (endian)
+		  ? (EQ (endian, Qbig)
 		     ? coding_category_utf_16_be_nosig
 		     : coding_category_utf_16_le_nosig)
-		  : (NILP (endian)
+		  : (EQ (endian, Qbig)
 		     ? coding_category_utf_16_be
 		     : coding_category_utf_16_le));
     }
@@ -8407,8 +8425,6 @@ syms_of_coding ()
   DEFSYM (Qutf_8, "utf-8");
 
   DEFSYM (Qutf_16, "utf-16");
-  DEFSYM (Qsignature, "signature");
-  DEFSYM (Qendian, "endian");
   DEFSYM (Qbig, "big");
   DEFSYM (Qlittle, "little");
 
