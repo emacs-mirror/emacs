@@ -426,8 +426,14 @@ it is displayed along with the global value."
 		(save-excursion
 		  (forward-line -1)
 		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
-	    (princ "Documentation:")
-	    (terpri)
+ 	    ;; Mention if it's an alias
+            (let ((alias (condition-case nil
+                             (indirect-variable variable)
+                           (error variable))))
+              (unless (eq alias variable)
+                (princ (format "This variable is an alias for `%s'." alias))
+                (terpri)
+                (terpri)))
 	    (let ((obsolete (get variable 'byte-obsolete-variable)))
 	      (when obsolete
 		(princ "This variable is obsolete")
@@ -438,16 +444,6 @@ it is displayed along with the global value."
 		(terpri)))
 	    (let ((doc (documentation-property variable 'variable-documentation)))
 	      (princ (or doc "Not documented as a variable.")))
-	    
-	    ;; Mention if the variable is an alias.
-	    (let ((alias (condition-case nil
-			     (indirect-variable variable)
-			   (error variable))))
-	      (unless (eq alias variable)
-		(terpri)
-		(terpri)
-		(princ (format "This variable is an alias for `%s'." alias))))
-	    
 	    ;; Make a link to customize if this variable can be customized.
 	    ;; Note, it is not reliable to test only for a custom-type property
 	    ;; because those are only present after the var's definition
