@@ -57,7 +57,7 @@ reinserts the fill prefix in each resulting line."
 (defconst adaptive-fill-mode t
   "*Non-nil means determine a paragraph's fill prefix from its text.")
 
-(defconst adaptive-fill-regexp "[ \t]*\\([#;>*] +\\)?"
+(defconst adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, whatever text matches this pattern
 on the second line of a paragraph is used as the standard indentation
