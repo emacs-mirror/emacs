@@ -1713,6 +1713,7 @@ extern int running_asynch_code;
 extern Lisp_Object Fget_process (), Fget_buffer_process (), Fprocessp ();
 extern Lisp_Object Fprocess_status (), Fkill_process ();
 extern Lisp_Object Fprocess_send_eof ();
+extern Lisp_Object Qprocessp;
 
 /* defined in callproc.c */
 extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
