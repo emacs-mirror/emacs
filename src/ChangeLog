@@ -1,3 +1,8 @@
+2001-07-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (valid_image_p): Protect better against invalid image
+	specifications.  Previous code could signal an error.
+
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.c (current_column): Fix column computation in the 
