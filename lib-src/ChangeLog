@@ -1,3 +1,10 @@
+2002-01-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* b2m.c (main): Parenthesize assignment when used as truth value
+	to prevent gcc warnings.
+
+	* fakemail.c: Include <config.h>.
+
 2001-12-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cvtmail.c, emacsclient.c, emacsserver.c, pop.c, sorted-doc.c,
