@@ -105,7 +105,6 @@ DONTCOMPILE = \
 	$(lisp)/term/vt400.el \
 	$(lisp)/term/vt420.el \
 	$(lisp)/term/wyse50.el \
-	$(lisp)/term/xterm.el \
 	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done to
