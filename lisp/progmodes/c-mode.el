@@ -220,7 +220,7 @@ if that value is non-nil."
   (setq local-abbrev-table c-mode-abbrev-table)
   (set-syntax-table c-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -308,11 +308,11 @@ preserving the comment indentation or line-starting decorations."
 	       ;; should not be filled into paragraphs they are next to.
 	       (concat 
 		paragraph-start
-		"\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$"))
+		"\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$"))
 	      (paragraph-separate
 	       (concat
 		paragraph-separate
-		"\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$")))
+		"\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$")))
 	  (save-excursion
 	    (beginning-of-line)
 	    ;; Move up to first line of this comment.
@@ -419,11 +419,11 @@ preserving the comment indentation or line-starting decorations."
 		 ;; should not be filled into paragraphs they are next to.
 		 (concat 
 		  paragraph-start
-		  "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$"))
+		  "\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$"))
 		(paragraph-separate
 		 (concat
 		  paragraph-separate
-		  "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$"))
+		  "\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$"))
 		(chars-to-delete 0))
 	    (save-restriction
 	      ;; Don't fill the comment together with the code following it.
