@@ -664,6 +664,11 @@ Lisp_Object Vglobal_disable_point_adjustment;
 
 static EMACS_TIME timer_idleness_start_time;
 
+/* After Emacs stops being idle, this saves the last value
+   of timer_idleness_start_time from when it was idle.  */
+
+static EMACS_TIME timer_last_idleness_start_time;
+
 
 /* Global variable declarations.  */
 
@@ -4015,6 +4020,8 @@ timer_start_idle ()
     return;
 
   EMACS_GET_TIME (timer_idleness_start_time);
+
+  timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
   for (timers = Vtimer_idle_list; CONSP (timers); timers = XCDR (timers))
@@ -8368,6 +8375,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     keymap may have changed, so replay the sequence.  */
 	  if (BUFFERP (key))
 	    {
+	      EMACS_TIME initial_idleness_start_time
+		= timer_last_idleness_start_time;
+
+	      /* Resume idle state, using the same start-time as before.  */
+	      timer_start_idle ();
+	      timer_idleness_start_time = initial_idleness_start_time;
+
 	      mock_input = t;
 	      /* Reset the current buffer from the selected window
 		 in case something changed the former and not the latter.
