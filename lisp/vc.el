@@ -404,6 +404,26 @@ If nil, VC itself computes this value when it is first needed."
   ;; return the branch part of a revision number REV
   (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
 
+(defun vc-minor-part (rev)
+  ;; return the minor version number of a revision number REV
+  (string-match "[0-9]+\\'" rev)
+  (substring rev (match-beginning 0) (match-end 0)))
+
+(defun vc-previous-version (rev)
+  ;; guess the previous version number
+  (let ((branch (vc-branch-part rev))
+        (minor-num (string-to-number (vc-minor-part rev))))
+    (if (> minor-num 1)
+        ;; version does probably not start a branch or release
+        (concat branch "." (number-to-string (1- minor-num)))
+      (if (vc-trunk-p rev)
+          ;; we are at the beginning of the trunk --
+          ;; don't know anything to return here
+          ""
+        ;; we are at the beginning of a branch --
+        ;; return version of starting point
+        (vc-branch-part branch)))))
+
 ;; File property caching
 
 (defun vc-clear-context ()
@@ -1253,40 +1273,54 @@ and two version designators specifying which versions to compare."
 	 "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
-      (if nil ;;; (not (vc-locking-user file))
-	  ;; This seems like feeping creaturism -- rms.
-          ;; if the file is not locked, ask for older version to compare with
-          (let ((old (read-string 
-                      "File is unchanged; version to compare with: ")))
-            (vc-version-diff file old ""))
-        (vc-buffer-sync not-urgent)
-        (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
-        (if unchanged
-            (message "No changes to %s since latest version" file)
-          (vc-backend-diff file)
-          ;; Ideally, we'd like at this point to parse the diff so that
-          ;; the buffer effectively goes into compilation mode and we
-          ;; can visit the old and new change locations via next-error.
-          ;; Unfortunately, this is just too painful to do.  The basic
-          ;; problem is that the `old' file doesn't exist to be
-          ;; visited.  This plays hell with numerous assumptions in
-          ;; the diff.el and compile.el machinery.
-          (set-buffer "*vc-diff*")
-          (setq default-directory (file-name-directory file))
-          (if (= 0 (buffer-size))
-              (progn
-                (setq unchanged t)
-                (message "No changes to %s since latest version" file))
-            (pop-to-buffer "*vc-diff*")
-            (goto-char (point-min))
-            (shrink-window-if-larger-than-buffer)))
-        (not unchanged)))))
+      (vc-buffer-sync not-urgent)
+      (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
+      (if unchanged
+          (message "No changes to %s since latest version" file)
+        (vc-backend-diff file)
+        ;; Ideally, we'd like at this point to parse the diff so that
+        ;; the buffer effectively goes into compilation mode and we
+        ;; can visit the old and new change locations via next-error.
+        ;; Unfortunately, this is just too painful to do.  The basic
+        ;; problem is that the `old' file doesn't exist to be
+        ;; visited.  This plays hell with numerous assumptions in
+        ;; the diff.el and compile.el machinery.
+        (set-buffer "*vc-diff*")
+        (setq default-directory (file-name-directory file))
+        (if (= 0 (buffer-size))
+            (progn
+              (setq unchanged t)
+              (message "No changes to %s since latest version" file))
+          (pop-to-buffer "*vc-diff*")
+          (goto-char (point-min))
+          (shrink-window-if-larger-than-buffer)))
+      (not unchanged))))
 
 (defun vc-version-diff (file rel1 rel2)
   "For FILE, report diffs between two stored versions REL1 and REL2 of it.
 If FILE is a directory, generate diffs between versions for all registered
 files in or below it."
-  (interactive "FFile or directory to diff: \nsOlder version: \nsNewer version: ")
+  (interactive 
+   (let ((file (read-file-name "File or directory to diff: "
+                                default-directory buffer-file-name t 
+                                (file-name-nondirectory buffer-file-name)))
+         (rel1-default nil) (rel2-default nil))
+     ;; compute default versions based on the file state
+     (cond
+      ;; if it's a directory, don't supply any version defauolt
+      ((file-directory-p file) 
+       nil)
+      ;; if the file is locked, use current version as older version
+      ((vc-locking-user file)
+       (setq rel1-default (vc-workfile-version file)))
+      ;; if the file is not locked, use last and previous version as default
+      (t
+       (setq rel1-default (vc-previous-version (vc-workfile-version file)))
+       (setq rel2-default (vc-workfile-version file))))
+     ;; construct argument list
+     (list file 
+           (read-string "Older version: " rel1-default)
+           (read-string "Newer version: " rel2-default))))
   (if (string-equal rel1 "") (setq rel1 nil))
   (if (string-equal rel2 "") (setq rel2 nil))
   (if (file-directory-p file)
@@ -2401,12 +2435,11 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
 			 (and rev (not (string= rev ""))
 			      (concat "-r" rev))
 			 switches)
-		;; If no revision was specified, simply make the file writable.
-		(and writable 
-		     (or (eq (vc-checkout-model file) 'manual)
-			 (zerop (logand 128 (file-modes file))))
-		     (set-file-modes file (logior 128 (file-modes file)))))
-	      (if rev (vc-file-setprop file 'vc-workfile-version nil))))
+		;; If no revision was specified, call "cvs edit" to make
+                ;; the file writeable.
+		(and writable (eq (vc-checkout-model file) 'manual)
+                     (vc-do-command nil 0 "cvs" file 'WORKFILE "edit")))
+              (if rev (vc-file-setprop file 'vc-workfile-version nil))))
 	  (cond 
 	   ((not workfile)
 	    (vc-file-clear-masterprops file)
@@ -2531,6 +2564,11 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
 	  ;; if this was an explicit check-in, remove the sticky tag
 	  (if rev
 	      (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
+          ;; Forget the checkout model, because we might have assumed
+          ;; a wrong one when we found the file.  After commit, we can
+          ;; tell it from the permissions of the file 
+          ;; (see vc-checkout-model).
+          (vc-file-setprop file 'vc-checkout-model nil)
 	  (vc-file-setprop file 'vc-locking-user 'none)
 	  (vc-file-setprop file 'vc-checkout-time 
 			   (nth 5 (file-attributes file)))))))
