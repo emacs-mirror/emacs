@@ -1,5 +1,10 @@
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
+	* term.el (term-if-emacs19): Macro deleted.
+	Callers changed to use progn instead.
+
+	* frame.el (blink-cursor-mode): Doc fix.
+
 	* files.el (find-backup-file-name): Use make-backup-file-name.
 
 	* emacs-lisp/edebug.el (edebug-window-live-p): Always alias to

@@ -1,3 +1,7 @@
+2001-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_object): Clarify indication of insertion type.
+
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (syms_of_coding): Document that locale-coding-system is
