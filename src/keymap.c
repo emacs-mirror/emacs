@@ -1254,8 +1254,8 @@ current_minor_maps (modeptr, mapptr)
 
 DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
   0, 1, 0,
-  "Return a list of the currently active keymaps.
-OLP if non-nil indicates that we should obey `overriding-local-map' and
+  "Return a list of the currently active keymaps.\n\
+OLP if non-nil indicates that we should obey `overriding-local-map' and\n\
 `overriding-terminal-local-map'.")
      (olp)
      Lisp_Object olp;

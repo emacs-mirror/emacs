@@ -1,3 +1,7 @@
+2001-10-08  Sam Steingold  <sds@gnu.org>
+
+	* keymap.c (current-active-maps): Quote newlines (compilation error).
+
 2001-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (lisp, shortlisp): Replace bindings.el with
