@@ -1574,7 +1574,7 @@ or a byte-code object.  IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_SINGLE_BYTE_SLOTS)
+      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
 	{
 	  /* For ASCII and 8-bit European characters, the element is
              stored in the top table.  */
@@ -1702,7 +1702,7 @@ IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_SINGLE_BYTE_SLOTS)
+      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
 	XCHAR_TABLE (array)->contents[idxval] = newelt;
       else
 	{
