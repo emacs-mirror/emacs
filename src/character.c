@@ -837,7 +837,8 @@ string_escape_byte8 (string)
 
 DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
        doc: /*
-Concatenate all the argument characters and make the result a string.  */)
+Concatenate all the argument characters and make the result a string.
+usage: (string &rest CHARACTERS)  */)
      (n, args)
      int n;
      Lisp_Object *args;
