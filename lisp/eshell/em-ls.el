@@ -1,8 +1,9 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Modified: Rafael Sepúlveda <drs@gnulinux.org.mx>
 
 ;; This file is part of GNU Emacs.
 
@@ -288,12 +289,16 @@ instead."
   (defvar error-func)
   (defvar flush-func)
   (defvar human-readable)
+  (defvar ignore)
+  (defvar ignore-backups)
   (defvar ignore-pattern)
+  (defvar indicator-style)
   (defvar insert-func)
   (defvar listing-style)
   (defvar numeric-uid-gid)
   (defvar reverse-list)
   (defvar show-all)
+  (defvar show-full-time)
   (defvar show-recursive)
   (defvar show-size)
   (defvar sort-method)
@@ -307,63 +312,167 @@ instead."
    "ls" (if eshell-ls-initial-args
 	    (list eshell-ls-initial-args args)
 	  args)
-   `((?a "all" nil show-all
-	 "show all files in directory")
+   `((?a "all" all show-all
+	 "do not hide entries starting with .")
+     (?A "almost-all" almost show-all
+	 "do not list implied . and ..")
+     (?B "ignore-backups" nil ignore-backups
+	 "do not list implied entries that match ending\n\t\t\t    with `eshell-ls-backup-regexp'")
      (?c nil by-ctime sort-method
 	 "sort by modification time")
+     (?C nil by-columns listing-style
+	 "list entries by columns")
      (?d "directory" nil dir-literal
 	 "list directory entries instead of contents")
+     (?F "classify" classify indicator-style
+	 "append indicator (one of */=@|) to entries")
+     (nil "full-time" nil show-full-time
+	  "list both full date and full time")
+     (?g nil nil ignore
+	 "(ignored)")
      (?k "kilobytes" 1024 block-size
-	 "using 1024 as the block size")
+	 "like --block-size=1024")
      (?h "human-readable" 1024 human-readable
 	 "print sizes in human readable format")
-     (?H "si" 1000 human-readable
-	 "likewise, but use powers of 1000 not 1024")
+     (nil "si" 1000 human-readable
+	  "likewise, but use powers of 1000 not 1024")
+     (?H nil -1 human-readable
+	 "same as `--si' for now; soon to change\n\t\t\t   to conform to POSIX")
+     (nil "indicator-style" t indicator-style
+	  "append indicator with style WORD to entry names:\n\t\t\t   none (default), classify (-F), file-type (-p)")
      (?I "ignore" t ignore-pattern
 	 "do not list implied entries matching pattern")
      (?l nil long-listing listing-style
 	 "use a long listing format")
+     (?L "deference" nil dereference-links
+	 "list entries pointed to by symbolic links")
      (?n "numeric-uid-gid" nil numeric-uid-gid
 	 "list numeric UIDs and GIDs instead of names")
+     (?p "file-type" file-type indicator-style
+	 "append indicator (one of /=@|) to entries")
      (?r "reverse" nil reverse-list
 	 "reverse order while sorting")
+     (?R "recursive" nil show-recursive
+	 "list subdirectories recursively")
      (?s "size" nil show-size
 	 "print size of each file, in blocks")
+     (?S nil by-size sort-method
+	 "sort by file size")
      (?t nil by-mtime sort-method
 	 "sort by modification time")
      (?u nil by-atime sort-method
 	 "sort by last access time")
-     (?x nil by-lines listing-style
-	 "list entries by lines instead of by columns")
-     (?C nil by-columns listing-style
-	 "list entries by columns")
-     (?L "deference" nil dereference-links
-	 "list entries pointed to by symbolic links")
-     (?R "recursive" nil show-recursive
-	 "list subdirectories recursively")
-     (?S nil by-size sort-method
-	 "sort by file size")
      (?U nil unsorted sort-method
 	 "do not sort; list entries in directory order")
+     (?x nil by-lines listing-style
+	 "list entries by lines instead of by columns")
      (?X nil by-extension sort-method
 	 "sort alphabetically by entry extension")
+     (?v nil by-version sort-method
+	 "sort by version")
      (?1 nil single-column listing-style
 	 "list one file per line")
      (nil "help" nil nil
-	  "show this usage display")
+	  "display this help and exit")
      :external "ls"
      :usage "[OPTION]... [FILE]...
 List information about the FILEs (the current directory by default).
-Sort entries alphabetically across.")
+Sort entries alphabetically if none of -cftuSUX nor --sort.")
+;; FIXME: Pending GNU 'ls' implementations and/or revisions.
+;;
+;;   -b, --escape               print octal escapes for nongraphic characters
+;;       --block-size=SIZE      use SIZE-byte blocks
+;;   -c                         with -lt: sort by, and show, ctime (time of last
+;;                                modification of file status information)
+;;                                with -l: show ctime and sort by name
+;;                                otherwise: sort by ctime
+;;       --color[=WHEN]         control whether color is used to distinguish file
+;;                                types.  WHEN may be `never', `always', or `auto'
+;;   -D, --dired                generate output designed for Emacs' dired mode
+;;   -f                         do not sort, enable -aU, disable -lst
+;;       --format=WORD          across -x, commas -m, horizontal -x, long -l,
+;;                                single-column -1, verbose -l, vertical -C
+;;   -G, --no-group             inhibit display of group information
+;;       --indicator-style=WORD append indicator with style WORD to entry names:
+;;                                none (default), classify (-F), file-type (-p)
+;;   -i, --inode                print index number of each file
+;;   -I, --ignore=PATTERN       do not list implied entries matching shell PATTERN
+;;   -L, --dereference          show file information for referents of symlinks
+;;   -m                         fill width with a comma separated list of entries
+;;   -n, --numeric-uid-gid      list numeric UIDs and GIDs instead of names
+;;   -N, --literal              print raw entry names (don't treat e.g. control
+;;                                characters specially)
+;;   -o                         use long listing format without group info
+;;   -q, --hide-control-chars   print ? instead of non graphic characters
+;;       --show-control-chars   show non graphic characters as-is (default
+;;                              unless program is `ls' and output is a terminal)
+;;   -Q, --quote-name           enclose entry names in double quotes
+;;       --quoting-style=WORD   use quoting style WORD for entry names:
+;;                                literal, locale, shell, shell-always, c, escape
+;;   -s, --size                 print size of each file, in blocks
+;;       --sort=WORD            extension -X, none -U, size -S, time -t,
+;;                                version -v
+;;                              status -c, time -t, atime -u, access -u, use -u
+;;       --time=WORD            show time as WORD instead of modification time:
+;;                                atime, access, use, ctime or status; use
+;;                                specified time as sort key if --sort=time
+;;   -T, --tabsize=COLS         assume tab stops at each COLS instead of 8
+;;   -u                         with -lt: sort by, and show, access time
+;;                                with -l: show access time and sort by name
+;;                                otherwise: sort by access time
+;;   -w, --width=COLS           assume screen width instead of current value
+;;       --version              output version information and exit
+
+;; By default, color is not used to distinguish types of files.  That is
+;; equivalent to using --color=none.  Using the --color option without the
+;; optional WHEN argument is equivalent to using --color=always.  With
+;; --color=auto, color codes are output only if standard output is connected
+;; to a terminal (tty).
+
+;; Report bugs to <bug-fileutils@gnu.org>.
+
    ;; setup some defaults, based on what the user selected
    (unless block-size
      (setq block-size eshell-ls-default-blocksize))
    (unless listing-style
      (setq listing-style 'by-columns))
+   (when (eq -1 human-readable)
+     (message "%s" (concat "ls: Warning: the meaning of -H will change "
+			   "in the future to conform to POSIX.\n"
+			   "Use --si for the old meaning."))
+     (setq human-readable 1000))
+   (when indicator-style
+;     (set-text-properties 0 (length indicator-style) nil indicator-style))
+     (cond
+      ((string= "classify" indicator-style)
+       (setq indicator-style 'classify))
+      ((string= "file-type" indicator-style)
+       (setq indicator-style 'file-type))
+      ((string= "none" indicator-style)
+       (setq indicator-style nil))
+      (t
+       (error (concat 
+	       (format "ls: invalid argument `%s' for `--indicator-style'\n" indicator-style)
+	       "Valid arguments are:\n"
+	       "  - `none'\n"
+	       "  - `classify'\n"
+	       "  - `file-type'\n"
+	       "Try `ls --help' for more information.\n" )))))
+
    (unless args
      (setq args (list ".")))
+   (when show-full-time
+     (setq listing-style 'long-listing))
+
    (let ((eshell-ls-exclude-regexp eshell-ls-exclude-regexp) ange-cache)
-     (when ignore-pattern
+     (when ignore-backups ; `-B' parameter
+       (setq eshell-ls-exclude-regexp
+	     (if eshell-ls-exclude-regexp
+		 (concat "\\(" eshell-ls-exclude-regexp "\\|"
+			 eshell-ls-backup-regexp "\\)")
+	       eshell-ls-backup-regexp)))
+
+     (when ignore-pattern ; `-I' parameter
        (unless (eshell-using-module 'eshell-glob)
 	 (error (concat "-I option requires that `eshell-glob'"
 			" be a member of `eshell-modules-list'")))
@@ -457,7 +566,7 @@ whose cdr is the list of file attributes."
 		(if show-size
 		    (concat (eshell-ls-size-string attrs size-width) " "))
 		(format
-		 "%s%4d %-8s %-8s "
+		 "%s%5d %-8s %-8s "
 		 (or (nth 8 attrs) "??????????")
 		 (or (nth 1 attrs) 0)
 		 (or (let ((user (nth 2 attrs)))
@@ -484,19 +593,21 @@ whose cdr is the list of file attributes."
 		      (concat (make-string (- 8 len) ? ) str)
 		    str))
 		" " (format-time-string
-		     (concat
-		      "%b %e "
-		      (if (= (nth 5 (decode-time (current-time)))
-			     (nth 5 (decode-time
-				     (nth (cond
-					   ((eq sort-method 'by-atime) 4)
-					   ((eq sort-method 'by-ctime) 6)
-					   (t 5)) attrs))))
-			  "%H:%M"
-			" %Y")) (nth (cond
-			((eq sort-method 'by-atime) 4)
-			((eq sort-method 'by-ctime) 6)
-			(t 5)) attrs)) " ")))
+		     (if show-full-time
+			 "%a %b %d %T %Y"
+		       (concat
+			"%b %e "
+			(if (= (nth 5 (decode-time (current-time)))
+			       (nth 5 (decode-time
+				       (nth (cond
+					     ((eq sort-method 'by-atime) 4)
+					     ((eq sort-method 'by-ctime) 6)
+					     (t 5)) attrs))))
+			    "%H:%M"
+			  " %Y"))) (nth (cond
+					 ((eq sort-method 'by-atime) 4)
+					 ((eq sort-method 'by-ctime) 6)
+					 (t 5)) attrs)) " ")))
 	  (funcall insert-func line file "\n"))))))
 
 (defun eshell-ls-dir (dirinfo &optional insert-name root-dir size-width)
@@ -518,9 +629,14 @@ relative to that directory."
 			       (expand-file-name dir)))
 			    (cdr dirinfo))) ":\n"))
 	(let ((entries (eshell-directory-files-and-attributes
-			dir nil (and (not show-all)
-				     eshell-ls-exclude-hidden
-				     "\\`[^.]") t)))
+			dir nil
+			(or
+			 (and (eq show-all 'almost)
+			      "^\\(....*\\|.[^.]\\)$")
+			 (and (not (eq show-all 'all))
+			      eshell-ls-exclude-hidden
+			      "\\`[^.]"))
+			t)))
 	  (when (and (not show-all) eshell-ls-exclude-regexp)
 	    (while (and entries (string-match eshell-ls-exclude-regexp
 					      (caar entries)))
@@ -584,8 +700,6 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
 		      (eshell-ls-compare-entries l r 5 'eshell-time-less-p))
 		     ((eq sort-method 'by-ctime)
 		      (eshell-ls-compare-entries l r 6 'eshell-time-less-p))
-		     ((eq sort-method 'by-size)
-		      (eshell-ls-compare-entries l r 7 '<))
 		     ((eq sort-method 'by-extension)
 		      (let ((lx (file-name-extension
 				 (directory-file-name (car l))))
@@ -600,9 +714,23 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
 			 ((not rx) nil)
 			 (t
 			  (string-lessp lx rx)))))
-		     (t
+		     ((eq sort-method 'by-size)
+		      (eshell-ls-compare-entries l r 7 '<))
+		     ((eq sort-method 'by-version)
 		      (string-lessp (directory-file-name (car l))
-				    (directory-file-name (car r)))))))
+				    (directory-file-name (car r))))
+
+		     (t
+		      (let* ((dir-l (directory-file-name (car l)))
+			     (lx (if (= (aref dir-l 0) ?.)
+				     (substring dir-l 1)
+				   dir-l))
+			     (dir-r (directory-file-name (car r)))
+			     (rx (if (= (aref dir-r 0) ?.)
+				     (substring dir-r 1)
+				   dir-r)))
+			(string-lessp lx rx))))))
+
 	       (if reverse-list
 		   (not result)
 		 result)))))))
@@ -843,58 +971,105 @@ to use, and each member of which is the width of that column
 (defun eshell-ls-decorated-name (file)
   "Return FILE, possibly decorated.
 Use TRUENAME for predicate tests, if passed."
-  (if eshell-ls-use-colors
-      (let ((face
-	     (cond
-	      ((not (cdr file))
-	       'eshell-ls-missing-face)
+      (let ((classify-indicator
+	      (when (and
+		     (cdr file)
+		     (or
+		      (eq indicator-style 'classify)
+		      (eq indicator-style 'file-type)))
+		(cond
+		 ((stringp (cadr file))
+		   (if (not (eq listing-style 'long-listing)) ;avoid showing `@' in long listing
+		       "@")) ;symlinks
+		 
+		 ((eq (cadr file) t)
+		  "/") ;directory
 
-	      ((stringp (cadr file))
-	       'eshell-ls-symlink-face)
+		 ((and (stringp (car (nthcdr 9 file)))
+		       (string-match "p" (substring (car (nthcdr 9 file)) 0 1)))
+		  "|") ;FIFO
+		 ((and (stringp (car (nthcdr 9 file)))
+		       (string-match "s" (substring (car (nthcdr 9 file)) 0 1)))
+		  "=") ;socket
 
-	      ((eq (cadr file) t)
-	       'eshell-ls-directory-face)
+		 ((and (/= (user-uid) 0)
+		       (not (eq indicator-style 'file-type)) ;inhibith * in -p
+		       (eshell-ls-applicable (cdr file) 3
+					     'file-executable-p (car file)))
+		  "*")))) ;executable
 
-	      ((not (eshell-ls-filetype-p (cdr file) ?-))
-	       'eshell-ls-special-face)
+	     (face
+	      (when eshell-ls-use-colors
+		(cond
+		 ((not (cdr file))
+		  'eshell-ls-missing-face)
+		 
+		 ((stringp (cadr file))
+		  (if (file-exists-p (cadr file))
+		      'eshell-ls-symlink-face
+		    'eshell-ls-broken-symlink-face))
+		 
+		 ((eq (cadr file) t)
+		  'eshell-ls-directory-face)
+		 
+		 ((not (eshell-ls-filetype-p (cdr file) ?-))
+		  (cond
+		   ((and (stringp (car (nthcdr 9 file)))
+		    (string-match "p" (substring (car (nthcdr 9 file)) 0 1)))
+		       'eshell-ls-fifo-face)
+		   ((and (stringp (car (nthcdr 9 file)))
+			 (string-match "s" (substring (car (nthcdr 9 file)) 0 1)))
+		       'eshell-ls-socket-face)
+		      (t
+		       'eshell-ls-special-face)))
+		 
+		 ((and (/= (user-uid) 0) ; root can execute anything
+		       (eshell-ls-applicable (cdr file) 3
+					     'file-executable-p (car file)))
+		  'eshell-ls-executable-face)
+		 
+		 ((not (eshell-ls-applicable (cdr file) 1
+					     'file-readable-p (car file)))
+		  'eshell-ls-unreadable-face)
+		 
+		 ((string-match eshell-ls-archive-regexp (car file))
+		  'eshell-ls-archive-face)
+		 
+		 ((string-match eshell-ls-backup-regexp (car file))
+		  'eshell-ls-backup-face)
+		 
+		 ((string-match eshell-ls-product-regexp (car file))
+		  'eshell-ls-product-face)
+		 
+		 ((string-match eshell-ls-clutter-regexp (car file))
+		  'eshell-ls-clutter-face)
+		 
+		 ((if eshell-ls-highlight-alist
+		  (let ((tests eshell-ls-highlight-alist)
+			value)
+		    (while tests
+		      (if (funcall (caar tests) (car file) (cdr file))
+			  (setq value (cdar tests) tests nil)
+			(setq tests (cdr tests))))
+		    value)))
+		 	
+		 ;; this should be the last evaluation, even after user defined alist.
+		 ((not (eshell-ls-applicable (cdr file) 2
+					     'file-writable-p (car file)))
+		  'eshell-ls-readonly-face)))))
 
-	      ((and (/= (user-uid) 0) ; root can execute anything
-		    (eshell-ls-applicable (cdr file) 3
-					  'file-executable-p (car file)))
-	       'eshell-ls-executable-face)
-
-	      ((not (eshell-ls-applicable (cdr file) 1
-					  'file-readable-p (car file)))
-	       'eshell-ls-unreadable-face)
-
-	      ((string-match eshell-ls-archive-regexp (car file))
-	       'eshell-ls-archive-face)
-
-	      ((string-match eshell-ls-backup-regexp (car file))
-	       'eshell-ls-backup-face)
-
-	      ((string-match eshell-ls-product-regexp (car file))
-	       'eshell-ls-product-face)
-
-	      ((string-match eshell-ls-clutter-regexp (car file))
-	       'eshell-ls-clutter-face)
-
-	      ((not (eshell-ls-applicable (cdr file) 2
-					  'file-writable-p (car file)))
-	       'eshell-ls-readonly-face)
-	      (eshell-ls-highlight-alist
-	       (let ((tests eshell-ls-highlight-alist)
-		     value)
-		 (while tests
-		   (if (funcall (caar tests) (car file) (cdr file))
-		       (setq value (cdar tests) tests nil)
-		     (setq tests (cdr tests))))
-		 value)))))
-	(if face
-	    (add-text-properties 0 (length (car file))
-				 (list 'face face)
-				 (car file)))))
-  (car file))
+	(when (and face (not (get-text-property 0 'classify-indicator (car file))))
+	  (add-text-properties 0 (length (car file))
+			       (list 'face face)
+			       (car file)))
+	
+	(when (and classify-indicator (not (get-text-property 0 'classify-indicator (car file))))
+	  (setcar file (concat (car file) classify-indicator))
+	  (add-text-properties 0 (length (car file))
+			       (list 'classify-indicator t)
+			       (car file))))
+      
+      (car file))
 
 ;;; Code:
 

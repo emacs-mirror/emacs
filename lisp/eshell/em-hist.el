@@ -805,8 +805,7 @@ Moves relative to START, or `eshell-history-index'."
 	 (motion (if (> arg 0) 1 -1))
 	 (n (mod (- (or start (eshell-search-start arg)) motion) len))
 	 (tried-each-ring-item nil)
-	 (case-fold-search (or (eshell-under-windows-p)
-			       (eshell-under-cygwin-p)))
+	 (case-fold-search (eshell-under-windows-p))
 	 (prev nil))
     ;; Do the whole search as many times as the argument says.
     (while (and (/= arg 0) (not tried-each-ring-item))
