@@ -1,3 +1,9 @@
+2005-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/ispell.el (ispell-looking-at): New function.
+	(ispell-process-line): Use ispell-looking-at to compare the ispell
+	output and the buffer contents.
+
 2005-01-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-display-raw): Fix docstring.
