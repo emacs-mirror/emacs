@@ -1,3 +1,23 @@
+2004-02-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (setup-default-fontset): Register
+	"JISX0213.2004-1".
+
+	* international/mule-diag.el (list-character-sets): Fix the first
+	line message.
+	(sort-listed-character-sets): Adjusted for the change of
+	list-characters-sets-1.
+	(list-character-sets-1): List supplementary character sets in a
+	different section.
+	(list-charset-chars): Validate charset at early stage.
+
+	* international/characters.el: Fix `han' script range.
+
+	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
+	:code-space.
+	(cp932-2-byte): Fix :code-space.
+	(unicode-smp, unicode-sip, unicode-ssp): New charsets.
+
 2004-02-03  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
