@@ -220,13 +220,21 @@ static void *call_f(void *p, size_t s)
  return NULL;
 }
 
+#if defined(MMQA_VERS_SW)
 
-void easy_tramp(void (*f)(void))
-{
+void easy_tramp(void (*f)(void)) {
+ call_f(&f, (size_t) 0);
+}
+
+#else
+
+void easy_tramp(void (*f)(void)) {
  void *result;
 
  mps_tramp(&result, call_f, &f, (size_t)0);
 }
+
+#endif
 
 /* pause(n) waits for n seconds
 */
