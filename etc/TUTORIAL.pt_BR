@@ -15,7 +15,7 @@ abreviações:
           <chr>. Escrevemos <ESC> para tecla ESC.
 
 
-Nota importante: para terminar a seção do Emacs, digite C-x C-c. (Dois 
+Nota importante: para terminar a seção do Emacs, digite C-x C-c. (Dois
 caracteres.) Os caracteres ">>" na margem esquerda indicam direções para
 você tentar usar um comando. Por exemplo:
 <<Linhas vazias inseridas ao redor da linha seguinte por
@@ -384,7 +384,7 @@ ira matar todo o texto entre as duas posições.
    antes do . (ponto).
 
 A diferença entra "matar" e "deletar" é que o texto "matado" pode ser
-re-inserido, onde os textos "deletados" não podem ser re-inseridos. 
+re-inserido, onde os textos "deletados" não podem ser re-inseridos.
 Re-inserção de um texto matado chama-se colar (yanking). Geralmente, o
 comando que pode remover bastante texto mata o texto (eles fazem com que
 você possa colar (yank) o texto), enquanto os comandos que removem um
@@ -534,7 +534,7 @@ finalizado.
 Em pouco tempo o conteúdo do arquivo aparece na tela, e você poderá
 editar o conteúdo dele. Quando você terminar de fazer suas alterações
 permanentes digite o comando
-       
+
        C-x C-s  Salve o arquivo
 
 Isso copia o texto do Emacs para o arquivo. A primeira vez que você
@@ -669,7 +669,7 @@ Emacs te pergunta no rodapé da tela M-x e você deve digitar o nome do
 comando; nesse caso, "replace-string". Apenas digite "repl s<TAB>" e o
 Emacs ira completar o nome. (<TAB> é a tecla Tab, usualmente encontrando
 abaixo do CapsLock ou Shift bem na extremidade do teclado.). Termine o
-comando com <Return>. 
+comando com <Return>.
 
 O comando replace-string requer dois argumentos - a string para ser
 trocada, e a string que ira substitui-la. Você precisa terminar cada
@@ -897,7 +897,7 @@ de uma janela na tela ao mesmo tempo.
    da janela.
 >> Use C-v e M-v no rodapé da janela para roda-la.
    Continue lendo essas direções na janela do topo.
-   
+
 >> Digite C-x o novamente para mover o cursor de volta para a janela
    do topo.
    O cursor na janela do topo esta exatamente como estava antes.
@@ -1080,5 +1080,10 @@ As condições para copiar o Emacs especificamente são mais complexas, mas
 no mesmo espírito. Por favor, leia o arquivo COPYING e dê copias do GNU
 Emacs para seus amigos. Ajude a erradicar o obstrucionismo de software
 ("proprietário") usando, escrevendo, e compartilhando software livre!
+
+;;; Local Variables:
+;;;   coding: latin-1
+;;;   sentence-end-double-space: nil
+;;; End:
 
 ;;; arch-tag: 8ea256d6-2c4a-49ee-ac08-0ea6ef25bf8d
