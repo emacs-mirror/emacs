@@ -181,12 +181,11 @@ Lisp_Object;
 #endif /* NO_UNION_TYPE */
 
 
-/* If union type is not wanted, define Lisp_Object as just a number
-   and define the macros below to extract fields by shifting */
+/* If union type is not wanted, define Lisp_Object as just a number.  */
 
 #ifdef NO_UNION_TYPE
-
 #define Lisp_Object EMACS_INT
+#endif /* NO_UNION_TYPE */
 
 #ifndef VALMASK
 #define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
@@ -243,8 +242,6 @@ enum pvec_type
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
-
-#endif /* NO_UNION_TYPE */
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
