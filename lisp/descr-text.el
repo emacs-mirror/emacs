@@ -566,7 +566,7 @@ as well as widgets, buttons, overlays, and text properties."
 			     "by this font (glyph code)\n"
 			     (format "     %s (0x%02X)"
 				     (car display) (cdr display)))
-			  "no font avairable")
+			  "no font available")
 		      (if display
 			  (format "terminal code %s" display)
 			"not encodable for terminal"))))))
