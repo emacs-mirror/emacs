@@ -446,7 +446,7 @@
 		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark 
 		  ("(1\(B"		"w"	?9) ; semivowel lower
 		  ("(1p(B-(1y(B"	"w"	?6) ; digit
-		  ("(1Of(B"		"_"	?0) ; symbol
+		  ("(1Of(B"		"_"	?5) ; symbol
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
