@@ -35,10 +35,10 @@
 	* toolbar/copy-locol.xpm, toolbar/cut-locol.xpm
 	* toolbar/help-locol.xpm, toolbar/home-locol.xpm
 	* toolbar/index-locol.xpm, toolbar/jump_to-locol.xpm
-	* toolbar/left_arrow-locol.xpm toolbar/new-locol.xpm
+	* toolbar/left_arrow-locol.xpm, toolbar/new-locol.xpm
 	* toolbar/open-locol.xpm, toolbar/paste-locol.xpm
 	* toolbar/preferences-locol.xpm, toolbar/print-locol.xpm
-	* toolbar/right_arrow-locol.xpm toolbar/save-locol.xpm
+	* toolbar/right_arrow-locol.xpm, toolbar/save-locol.xpm
 	* toolbar/saveas-locol.xpm, toolbar/search-locol.xpm
 	* toolbar/spell-locol.xpm, toolbar/undo-locol.xpm
 	* toolbar/up_arrow-locol.xpm:
