@@ -1,5 +1,8 @@
 2002-11-24  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/sendmail.el (mail-signature): Handle case where
+	value of mail-signature is a string.
+
 	* menu-bar.el (menu-bar-describe-menu): Add "What's This?" item.
 
 	* faces.el (face-set-after-frame-default): Ignore errors
