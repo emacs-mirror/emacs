@@ -112,7 +112,7 @@ choose_minibuf_frame ()
   if (selected_frame != 0
       && !EQ (minibuf_window, selected_frame->minibuffer_window))
     {
-#ifdef MSDOS
+#if defined(MSDOS) && !defined(HAVE_X_WINDOWS)
       selected_frame->minibuffer_window = minibuf_window;
 #else
       /* I don't think that any frames may validly have a null minibuffer
