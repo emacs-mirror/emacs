@@ -338,7 +338,24 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
      1 2 3)
-    )
+
+    ;; VMS, various compilers:
+    ;;
+    ;; 40    FORMAT (I3,)
+    ;; ................^
+    ;; %F90-W-ERROR, An extra comma appears in the format list.
+    ;; at line number 13 in file DISK$:[USER]SAMP_MESS.FOR;4
+    ;;
+    ;;  return *this ;
+    ;; .........^
+    ;; %CXX-E-BADNONREFINI, a reference of type "Field &"
+    ;; (not const-qualified) cannot be initialized with a value of type "Field3d"
+    ;; at line number 175 in file USER:[RMS.CXX_STUFF]HELPER.C;33
+    ("^.+\n.+\n%[A-Z0-9]+-[FEWI]-[A-Z]+, .*\nat line number \\([0-9]+\\) in file \\(.*\\)"
+     2 1)
+    ("^.+\n.+\n%[A-Z0-9]+-[FEWI]-[A-Z]+, .*\n.*\nat line number \\([0-9]+\\) in file \\(.*\\)"
+     2 1)
+    ("^.+\n.+\n%[A-Z0-9]+-[FEWI]-[A-Z]+, .*\n.*\n.*\nat line number \\([0-9]+\\) in file \\(.*\\)" 2 1))
 
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
@@ -782,7 +799,8 @@ Returns the compilation buffer created."
 	(erase-buffer)
 	(buffer-enable-undo (current-buffer))
 	(setq default-directory thisdir)
-	(insert "cd " thisdir "\n" command "\n")
+	(insert (if (eq system-type 'vax-vms) "set default" "cd")
+		" " thisdir "\n" command "\n")
 	(set-buffer-modified-p nil))
       ;; If we're already in the compilation buffer, go to the end
       ;; of the buffer, so point will track the compilation output.
