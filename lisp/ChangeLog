@@ -1,3 +1,8 @@
+2002-04-26  Miles Bader  <miles@gnu.org>
+
+	* cus-edit.el (customize-face, customize-face-other-window):
+	Use default instead of initial-input for suggested face.
+
 2002-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* cus-edit.el (customize-face-other-window, customize-face):
