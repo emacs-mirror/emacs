@@ -13,6 +13,10 @@ Tasks needed before the next release.
 ** Make Rmail find the best version of movemail.
 To be done by Sergey Poznyakoff <gray@Mirddin.farlep.net>.
 
+** Make VC-over-Tramp work where possible, or at least fail
+gracefully if something isn't supported over Tramp.
+To be done by Andre Spiegel <spiegel@gnu.org>.
+
 * FATAL ERRORS
 
 ** Investigate face cache related crash.
