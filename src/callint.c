@@ -723,7 +723,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 
 		tem = Fread_from_minibuffer (build_string (callint_message),
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
-					     Qnil);
+					     Qnil, Qnil);
 		if (! STRINGP (tem) || SCHARS (tem) == 0)
 		  args[i] = Qnil;
 		else
