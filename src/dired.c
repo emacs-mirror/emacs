@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2004
+   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2004, 2005
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -114,7 +114,6 @@ extern void filemodestring P_ ((struct stat *, char *));
 
 extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
