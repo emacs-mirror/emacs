@@ -31,7 +31,8 @@ VPATH=@srcdir@
 
 
 # The makeinfo program is part of the Texinfo distribution.
-MAKEINFO = makeinfo
+# Use --force so that it generates output even if there are errors.
+MAKEINFO = makeinfo --force
 INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/message ../info/sieve ../info/pgg ../info/emacs-mime \
