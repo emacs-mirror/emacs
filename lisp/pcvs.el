@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.29 2001/09/22 20:23:16 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.30 2001/10/30 04:41:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -173,22 +173,26 @@
 (defun cvs-reread-cvsrc ()
   "Reset the default arguments to those in the `cvs-cvsrc-file'."
   (interactive)
-  (let ((cvsrc (cvs-file-to-string cvs-cvsrc-file)))
-    (when (stringp cvsrc)
-      ;; fetch the values
-      (dolist (cmd '("cvs" "checkout" "status" "log" "diff" "tag"
-		     "add" "commit" "remove" "update"))
-	(let* ((sym (intern (concat "cvs-" cmd "-flags")))
-	       (val (when (string-match (concat "^" cmd "\\s-\\(.*\\)$") cvsrc)
-		      (cvs-string->strings (match-string 1 cvsrc)))))
-	  (cvs-flags-set sym 0 val)))
-      ;; ensure that cvs doesn't have -q or -Q
-      (cvs-flags-set 'cvs-cvs-flags 0
-		     (cons "-f"
-			   (cdr (cvs-partition
-				 (lambda (x) (member x '("-q" "-Q")))
-				 (cvs-flags-query 'cvs-cvs-flags
-						  nil 'noquery))))))))
+  (condition-case nil
+      (with-temp-buffer
+	(insert-file-contents cvs-cvsrc-file)
+	;; fetch the values
+	(dolist (cmd '("cvs" "checkout" "status" "log" "diff" "tag"
+		       "add" "commit" "remove" "update"))
+	  (goto-char (point-min))
+	  (let* ((sym (intern (concat "cvs-" cmd "-flags")))
+		 (val (when (re-search-forward
+			     (concat "^" cmd "\\s-+\\(.*\\)$") nil t)
+			(cvs-string->strings (match-string 1)))))
+	    (cvs-flags-set sym 0 val)))
+	;; ensure that cvs doesn't have -q or -Q
+	(cvs-flags-set 'cvs-cvs-flags 0
+		       (cons "-f"
+			     (cdr (cvs-partition
+				   (lambda (x) (member x '("-q" "-Q")))
+				   (cvs-flags-query 'cvs-cvs-flags
+						    nil 'noquery))))))
+      (file-error nil)))
 
 ;; initialize to cvsrc's default values
 (cvs-reread-cvsrc)
