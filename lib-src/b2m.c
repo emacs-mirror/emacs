@@ -189,6 +189,8 @@ main (argc, argv)
       if (printing)
 	puts (data.buffer);
     }
+
+  return 0;
 }
 
 
