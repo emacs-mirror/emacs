@@ -124,16 +124,6 @@ enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
 
-/* This data type is used for the font_table field
-   of struct x_display_info.  */
-
-struct font_info
-{
-  XFontStruct *font;
-  char *name;
-  char *full_name;
-};
-
 /* Structure recording X pixmap and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -266,13 +256,18 @@ struct x_display_info
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
   /* EditRes protocol */
   Atom Xatom_editres;
-  /* Atom `FONT' */
-  Atom Xatom_FONT;
 
   /* More atoms, which are selection types.  */
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
+  Xatom_COMPOUND_TEXT,
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
   Xatom_ATOM_PAIR;
+
+  /* More atoms for font properties.  The last two are private
+     properties, see the comments in src/fontset.h.  */
+  Atom Xatom_PIXEL_SIZE,
+  Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE;
+
 #ifdef MULTI_KBOARD
   struct kboard *kboard;
 #endif
@@ -297,6 +292,10 @@ struct x_display_info
      frame.  It differs from x_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
+
+  /* The null pixel used for filling a character background with
+     background color of a gc.  */
+  Pixmap null_pixel;
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
@@ -308,10 +307,16 @@ extern struct x_display_info *x_display_list;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;
 
+/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
+extern Lisp_Object Vx_pixel_size_width_font_regexp;
+
 extern struct x_display_info *x_display_info_for_display ();
 extern struct x_display_info *x_display_info_for_name ();
 
 extern struct x_display_info *x_term_init ();
+
+extern Lisp_Object x_list_fonts ();
+extern struct font_info *x_get_font_info(), *x_load_font (), *x_query_font ();
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -382,7 +387,15 @@ struct x_output
      icon. */
   int icon_bitmap;
 
+  /* Default ASCII font of this frame.  */
   XFontStruct *font;
+
+  /* The baseline position of the default ASCII font.  */
+  int font_baseline;
+
+  /* If a fontset is specified for this frame instead of font, this
+     value contains an ID of the fontset, else -1.  */
+  int fontset;
 
   /* Pixel values used for various purposes.
      border_pixel may be -1 meaning use a gray tile.  */
@@ -496,6 +509,7 @@ struct x_output
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 #define FRAME_FONT(f) ((f)->output_data.x->font)
+#define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
 #define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
 #define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
 
@@ -507,6 +521,9 @@ struct x_output
 
 /* This is the `Screen *' which frame F is on.  */
 #define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
+
+/* This is the 'font_info *' which frame F has.  */
+#define FRAME_X_FONT_TABLE(f) (FRAME_X_DISPLAY_INFO (f)->font_table)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.x->pixel_width)
