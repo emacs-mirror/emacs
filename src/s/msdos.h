@@ -215,5 +215,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    likes that */
 #define FILE_SYSTEM_CASE Fdowncase
 
+/* bcopy under djgpp is quite safe */
+#define GAP_USE_BCOPY
+#define BCOPY_UPWARD_SAFE 1
+#define BCOPY_DOWNWARD_SAFE 1
+
 /* MSDOS doesn't really have this function.  */
 #define getppid() 1
