@@ -1,3 +1,22 @@
+# ==== S7PPAC MPW MAKE FILE ====
+#
+# $HopeName$
+#
+# Copyright (C) 1996 Harlequin Group, all rights reserved
+#
+
+# This only knows about making the mmsw libraries for MM/EP-core.
+# 
+# To invoke:
+#
+#  BuildProgram -d Variety mmsw
+#
+# (this builds mmsw_RO.o and mmsw_DP.o)
+#
+# to clean everything else away:
+#
+#  BuildProgram -d Variety clean
+
 COptions    = -ansi strict -proto strict -typecheck strict -w error ¶
               -d TARGET_VAR_{Variety} -d TARGET_VM_RM -sym full
 
