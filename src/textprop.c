@@ -624,14 +624,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
   i = validate_interval_range (object, &pos, &pos, soft);
-  if (NULL_INTERVAL_P (i))
-    return limit;
 
-  next = next_interval (i);
   /* If LIMIT is t, return start of next interval--don't
      bother checking further intervals.  */
   if (EQ (limit, Qt))
     {
+      if (NULL_INTERVAL_P (i))
+	next = i;
+      else
+	next = next_interval (i);
+	
       if (NULL_INTERVAL_P (next))
 	XSETFASTINT (pos, (STRINGP (object)
 			   ? XSTRING (object)->size
@@ -640,6 +642,11 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 	XSETFASTINT (pos, next->position - (STRINGP (object)));
       return pos;
     }
+
+  if (NULL_INTERVAL_P (i))
+    return limit;
+
+  next = next_interval (i);
 
   while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
