@@ -1,3 +1,16 @@
+2000-05-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (Fload): Add a comment about the meaning of
+	Vuser_init_file being t.
+
+	* puresize.h (BASE_PURESIZE): Increase to 675000.
+
+	* s/gnu-linux.h (setpgrp): Don't define it here because this
+	prevents compilation on GNU/Linux systems with glib 2.2.
+
+	* callproc.c, emacs.c, sysdep.c (setpgrp) [HAVE_SETPGID]: Define
+	as setpgid.
+	
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add disp-table.elc,

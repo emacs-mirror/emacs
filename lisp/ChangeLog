@@ -1,5 +1,9 @@
 2000-05-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (command-line): Determine source file of compiled
+	user init file differently.  Warn if compiled user init file
+	is older than its source file.
+
 	* ffap.el (ffap-url-regexp): Add `https'.
 	
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>

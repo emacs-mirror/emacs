@@ -37,10 +37,10 @@ Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
-Invariant Sections being Copying and GNU Free Documentation License, the
-Front-Cover texts being ``A GNU Manual'', and with the Back-Cover Texts
-being (a) (see below).  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
+Invariant Sections being ``Copying'', with the Front-Cover texts being
+``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A copy
+of the license is included in the section entitled ``GNU Free
+Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
@@ -52,7 +52,7 @@ Software Foundation raise funds for GNU development.''
 @subtitle For Emacs Version 21
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.6, September 1999
+@subtitle Revision 2.6, May 2000
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -64,7 +64,7 @@ Free Software Foundation, Inc.
 @sp 2
 Edition 2.6 @*
 Revised for Emacs Version 21.1,@*
-September 1999.@*
+May 2000.@*
 @sp 2
 ISBN 1-882114-73-6
 
@@ -76,10 +76,10 @@ Boston, MA  02111-1307  USA
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
-Invariant Sections being Copying and GNU Free Documentation License, the
-Front-Cover texts being ``A GNU Manual'', and with the Back-Cover Texts
-being (a) (see below).  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
+Invariant Sections being ``Copying'', with the Front-Cover texts being
+``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A copy
+of the license is included in the section entitled ``GNU Free
+Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
