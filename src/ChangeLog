@@ -1,3 +1,21 @@
+2000-12-14  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (Fx_hide_tip): Avoid unnecessary work when there's
+	nothing to do.  Bind inhibit-quit.
+	(tip_frame): Make it a Lisp_Object.
+	(x_create_tip_frame): Set tip_frame after it has been added to
+	Vframe_list.
+	(Fx_show_tip): Don't set tip_frame here.
+	(image_cache_refcount, dpyinfo_refcount) [GLYPH_DEBUG]: New
+	variables.
+	(unwind_create_frame, unwind_create_tip_frame): New functions.
+	(Fx_create_frame, x_create_tip_frame): Handle errors signaled
+	while a frame is only partially constructed.
+
+	* w32term.c (clear_mouse_face): Treat tip_frame as a Lisp_Object.
+	(x_free_frame_resources): New function.
+	(x_destroy_window): Use it.
+
 2000-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_backspace_delete_keys_p): New function.
