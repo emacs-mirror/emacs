@@ -84,7 +84,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
   (setq file-name
 	(expand-file-name file-name
 			  (file-name-directory rmail-default-rmail-file)))
-  (if (and (file-readable-p file-name) (not (rmail-file-p file-name)))
+  (if (and (file-readable-p file-name) (not (mail-file-babyl-p file-name)))
       (rmail-output file-name count)
     (rmail-maybe-set-message-counters)
     (setq file-name (abbreviate-file-name file-name))
@@ -192,17 +192,6 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		(delete-region (point)
 			       (progn (forward-line 1) (point)))))))))
 
-;; Returns t if file FILE is an Rmail file.
-;;;###autoload
-(defun rmail-file-p (file)
-  (let ((buf (generate-new-buffer " *rmail-file-p*")))
-    (unwind-protect
-	(save-excursion
-	  (set-buffer buf)
-	  (insert-file-contents file nil 0 100)
-	  (looking-at "BABYL OPTIONS:"))
-      (kill-buffer buf))))
-
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
 (defun rmail-output (file-name &optional count noattribute from-gnus)
@@ -255,7 +244,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(expand-file-name file-name
 			  (and rmail-default-file
 			       (file-name-directory rmail-default-file))))
-  (if (and (file-readable-p file-name) (rmail-file-p file-name))
+  (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
       (rmail-output-to-rmail-file file-name count)
     (let ((orig-count count)
 	  (rmailbuf (current-buffer))
