@@ -1933,19 +1933,28 @@ Attempt to do the search exactly the way the pending isearch would."
                      isearch-lazy-highlight-start))
         (let ((found (isearch-lazy-highlight-search))) ;do search
           (if found
-              ;; found the next match
-              (let ((ov (make-overlay (match-beginning 0)
-                                      (match-end 0))))
-                (overlay-put ov 'face 'isearch-lazy-highlight-face)
-                (overlay-put ov 'priority 0)
-                (setq isearch-lazy-highlight-overlays
-                      (cons ov isearch-lazy-highlight-overlays))
-                (setq isearch-lazy-highlight-timer
-                      (run-at-time isearch-lazy-highlight-interval nil
-                                   'isearch-lazy-highlight-update))
-                (if isearch-forward
-                    (setq isearch-lazy-highlight-end (point))
-                  (setq isearch-lazy-highlight-start (point))))
+	      (progn
+		;; Don't put a second overlay with a different face
+		;; over/under the overlay isearch uses to highlight the
+		;; current match.  That can lead to odd looking face
+		;; combinations.
+		(unless (memq isearch-overlay
+			      (overlays-at (match-beginning 0)))
+		  ;; found the next match
+		  (let ((ov (make-overlay (match-beginning 0)
+					  (match-end 0))))
+		    (overlay-put ov 'face isearch-lazy-highlight-face)
+		    (overlay-put ov 'priority 0)
+		    (setq isearch-lazy-highlight-overlays
+			  (cons ov isearch-lazy-highlight-overlays))))
+		  
+		(setq isearch-lazy-highlight-timer
+		      (run-at-time isearch-lazy-highlight-interval nil
+				   'isearch-lazy-highlight-update))
+		(if isearch-forward
+		    (setq isearch-lazy-highlight-end (point))
+		  (setq isearch-lazy-highlight-start (point))))
+
             ;; found no next match
             (when (not isearch-lazy-highlight-wrapped)
               ;; let's try wrapping around the end of the buffer
