@@ -1985,25 +1985,30 @@ Finding/Getting Emacs and Related Packages
 
 84:  Where can I get Emacs for my PC running Microsoft Windows?
 
-  * If you compile GNU Emacs with the tools listed above, it will run under
+  GNU Emacs has been fully ported to Windows NT and Windows 95/98.  
+  If you have MSVC 4.0 or greater, then you can compile GNU Emacs
+  directly from the source distribution.  First read the file
+  nt/README, and then the file nt/INSTALL, for step by step
+  instructions on how to compile and install GNU Emacs on your system.
+
+  You can also download precompiled distributions of GNU Emacs from:
+
+    ftp://ftp.cs.washington.edu/pub/ntemacs
+
+  If you need the gunzip and tar utilities for unpacking distributions,
+  you can download precompiled versions from:
+
+    ftp://ftp.cs.washington.edu/pub/ntemacs/utilities
+
+  For more information on configuring your favorite package to run with
+  GNU Emacs on Windows NT/95/98, see the following FAQ:
+
+    http://www.cs.washington.edu/homes/voelker/ntemacs.html
+    ftp://ftp.cs.washington.edu/pub/ntemacs/docs/ntemacs.html
+
+  If you are running Windows 3.11, and if you compile GNU Emacs for MSDOS
+  with the tools listed in the previous question, it will run under
   Microsoft Windows in a DOS box.
-
-  There are currently two other ports of Emacs that runs under Microsoft
-  Windows:
-
-  * Oemacs 
-
-    Current version of Oemacs4.1 is based on Emacs-19.19 and runs in either
-    MS-DOS or Microsoft Windows.  There is rumor that the author Darryl
-    Okahata <darrylo@sr.hp.com> would not update unless there is
-    demonstrated interest.  It is nearly a full porting of GNU Emacs except
-    that shell-mode does not work due to the limitation of MS-DOS.
-    Anonymous ftp information:
-
-      ftp.coast.net:SimTel/vendors/gnu/oemacs/
-
-  * The other uses a proprietary X Windows emulator and therefore
-    the FSF does not think it deserves publicity.
 
 85:  Where can I get Emacs for my PC running OS/2?
 
