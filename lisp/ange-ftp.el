@@ -27,16 +27,6 @@
 ;;; from within GNU Emacs as simple and transparent as possible.  A subset of
 ;;; the common file-handling routines are extended to interact with FTP.
 
-;;; Installation:
-;;;
-;;; Byte-compile ange-ftp.el to ange-ftp.elc and put them both in a directory
-;;; on your load-path.  Load the package from your .emacs file with:
-;;;
-;;;   (require 'ange-ftp).
-;;;
-;;; ange-ftp can't sensibly be auto-loaded; you are either using it, or you
-;;; ain't.
-
 ;;; Usage:
 ;;;
 ;;; Some of the common GNU Emacs file-handling operations have been made
@@ -1397,9 +1387,7 @@ file."
   (if (and (stringp buffer-file-name)
 	   (ange-ftp-ftp-path buffer-file-name))
       (progn
-	(auto-save-mode ange-ftp-auto-save)
-	(make-variable-buffer-local 'revert-buffer-function)
-	(setq revert-buffer-function 'ange-ftp-revert-buffer))))
+	(auto-save-mode ange-ftp-auto-save))))
 
 (defun ange-ftp-kill-ftp-process (buffer)
   "If the BUFFER's visited filename or default-directory is an ftp filename
@@ -3017,25 +3005,6 @@ ftp transfers."
 		     filename))))
       (ange-ftp-real-insert-file-contents filename visit))))
  
-(defun ange-ftp-revert-buffer (arg noconfirm)
-  "Revert this buffer from a remote file using ftp."
-  (let ((opoint (point)))
-    (cond ((null buffer-file-name)
-	   (error "Buffer does not seem to be associated with any file"))
-	  ((or noconfirm
-	       (yes-or-no-p (format "Revert buffer from file %s? "
-				    buffer-file-name)))
-	   (let ((buffer-read-only nil))
-	     ;; Set buffer-file-name to nil
-	     ;; so that we don't try to lock the file.
-	     (let ((buffer-file-name nil))
-	       (unlock-buffer)
-	       (erase-buffer))
-	     (insert-file-contents buffer-file-name t))
-	   (goto-char (min opoint (point-max)))
-	   (after-find-file nil)
-	   t))))
-
 (defun ange-ftp-expand-symlink (file dir)
   (if (file-name-absolute-p file)
       (ange-ftp-replace-path-component dir file)
@@ -3687,15 +3656,34 @@ to the directory part of the contents of the current buffer."
 ;;; Define the handler for special file names
 ;;; that causes ange-ftp to be invoked.
 
-;;; omitted:
-;;; diff
+;;;###autoload
+(defun ange-ftp-hook-function (operation &rest args)
+  (let ((fn (get operation 'ange-ftp)))
+    (if fn (apply fn args)
+      (let (file-name-handler-alist)
+	(apply operation args)))))
+
+;;;###autoload
+(or (assoc ":" file-name-handler-alist)
+    (setq file-name-handler-alist
+	  (cons '(":" . ange-ftp-hook-function)
+		file-name-handler-alist)))
+
+;;; The above two forms are sufficient to cause this file to be loaded
+;;; if the user ever uses a file name with a colon in it.
+
+;;; This sets the mode 
+(or (memq 'ange-ftp-set-buffer-mode find-file-hooks)
+    (setq find-file-hooks
+	  (cons 'ange-ftp-set-buffer-mode find-file-hooks)))
+
+;;; Now say where to find the handlers for particular operations.
 
 (put 'file-name-directory 'ange-ftp 'ange-ftp-file-name-directory)
 (put 'file-name-nondirectory 'ange-ftp 'ange-ftp-file-name-nondirectory)
 (put 'file-name-as-directory 'ange-ftp 'ange-ftp-file-name-as-directory)
 (put 'directory-file-name 'ange-ftp 'ange-ftp-directory-file-name)
 (put 'expand-file-name 'ange-ftp 'ange-ftp-expand-file-name)
-
 (put 'make-directory 'ange-ftp 'ange-ftp-make-directory)
 (put 'delete-directory 'ange-ftp 'ange-ftp-delete-directory)
 (put 'insert-file-contents 'ange-ftp 'ange-ftp-insert-file-contents)
@@ -3716,9 +3704,10 @@ to the directory part of the contents of the current buffer."
 (put 'file-attributes 'ange-ftp 'ange-ftp-file-attributes)
 (put 'file-name-all-completions 'ange-ftp 'ange-ftp-file-name-all-completions)
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
+
+;;; Define ways of getting at unmodified Emacs primitives,
+;;; turning off our handler.
 
-;;; Now define ways of getting at the unmodified Emacs primitive,
-;;; turning off the hooks.
 (defun ange-ftp-real-file-name-directory (&rest args)
   (let (file-name-handler-alist)
     (apply 'file-name-directory args)))
@@ -3791,22 +3780,6 @@ to the directory part of the contents of the current buffer."
 (defun ange-ftp-real-file-name-completion (&rest args)
   (let (file-name-handler-alist)
     (apply 'file-name-completion args)))
-
-(defun ange-ftp-hook-function (operation &rest args)
-  (let ((fn (get operation 'ange-ftp)))
-    (if fn (apply fn args)
-      (let (file-name-handler-alist)
-	(apply operation args)))))
-
-(or (assoc ":" file-name-handler-alist)
-    (setq file-name-handler-alist
-	  (cons '(":" . ange-ftp-hook-function)
-		file-name-handler-alist)))
-
-(or (memq 'ange-ftp-set-buffer-mode find-file-hooks)
-    (setq find-file-hooks
-	  (cons 'ange-ftp-set-buffer-mode find-file-hooks)))
-
 
 ;;; This is obsolete and won't work
 
