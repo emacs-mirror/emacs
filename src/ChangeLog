@@ -1,5 +1,8 @@
 2002-03-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_movement): Put code for
+	x_autoselect_window_p in #if 0.
+
 	* lread.c (Fload): Don't assume that message_with_ntring uses the
 	string it is given like a C string.
 
