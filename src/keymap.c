@@ -355,6 +355,7 @@ PARENT should be nil or another keymap.")
    if EVENT is also a prefix in MAP's parent,
    make sure that SUBMAP inherits that definition as its own parent.  */
 
+void
 fix_submap_inheritance (map, event, submap)
      Lisp_Object map, event, submap;
 {
@@ -2713,7 +2714,7 @@ This is text showing the elements of vector matched against indices.")
    indices at higher levels in this char-table,
    and CHAR_TABLE_DEPTH says how many levels down we have gone.  */
 
-void.
+void
 describe_vector (vector, elt_prefix, elt_describer,
 		 partial, shadow, entire_map,
 		 indices, char_table_depth)
