@@ -1500,19 +1500,30 @@ To test for the availability of a given feature, use featurep like this:
 *** New function open-network-stream-nowait.
 
 This function initiates a non-blocking connect and returns immediately
-before the connection is established.  The filter and sentinel
-functions can be specified as arguments to open-network-stream-nowait.
-When the non-blocking connect completes, the sentinel is called with
-the status matching "open" or "failed".
+without waiting for the connection to be established.  It takes the
+filter and sentinel functions as arguments; when the non-blocking
+connect completes, the sentinel is called with a status string
+matching "open" or "failed".
 
 *** New function open-network-stream-server.
-MORE INFO NEEDED HERE.
+
+This function creates a network server process for a TCP service.
+When a client connects to the specified service, a new subprocess
+is created to handle the new connection, and the sentinel function
+is called for the new process.
 
 *** New functions process-datagram-address and set-process-datagram-address.
-MORE INFO NEEDED HERE.
+
+These functions are used with datagram-based network processes to get
+and set the current address of the remote partner.
 
 *** New function format-network-address.
-MORE INFO NEEDED HERE.
+
+This function reformats the lisp representation of a network address
+to a printable string.  For example, an IP address A.B.C.D and port
+number P is represented as a five element vector [A B C D P], and the
+printable string returned for this vector is "A.B.C.D:P".  See the doc
+string for other formatting options.
 
 *** By default, the function process-contact still returns (HOST SERVICE)
 for a network process.  Using the new optional KEY arg, the complete list
