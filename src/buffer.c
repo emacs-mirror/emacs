@@ -426,6 +426,7 @@ reset_buffer (b)
   XSETFASTINT (b->overlay_center, 1);
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
+  b->file_format = Qnil;
 }
 
 /* Reset buffer B's local variables info.
@@ -2691,6 +2692,7 @@ init_buffer_once ()
   buffer_defaults.display_table = Qnil;
   buffer_defaults.undo_list = Qnil;
   buffer_defaults.mark_active = Qnil;
+  buffer_defaults.file_format = Qnil;
   buffer_defaults.overlays_before = Qnil;
   buffer_defaults.overlays_after = Qnil;
   XSETFASTINT (buffer_defaults.overlay_center, 1);
@@ -2749,6 +2751,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.display_table, 0x2000);
   XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
+  XSETFASTINT (buffer_local_flags.file_format, 0x20000);
 #ifdef DOS_NT
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
 #endif
@@ -3249,6 +3252,11 @@ functions; it should only affect their performance.");
 
   DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll, Qnil,
   "Value of point before the last series of scroll operations, or nil.");
+
+  DEFVAR_PER_BUFFER ("buffer-file-format", &current_buffer->file_format, Qnil,
+    "List of formats to use when saving this buffer.\n\
+Formats are defined by `format-alist'.  This variable is\n\
+set when a file is visited.  Automatically local in all buffers.");
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
