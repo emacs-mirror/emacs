@@ -2089,7 +2089,7 @@ but the contents viewed as characters do change.  */)
 	    p++, pos++;
 	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
-	      c = STRING_CHAR (p, stop - pos);
+	      c = STRING_CHAR_AND_LENGTH (p, stop - pos, bytes);
 	      /* Delete all bytes for this 8-bit character but the
 		 last one, and change the last one to the charcter
 		 code.  */
@@ -2176,6 +2176,7 @@ but the contents viewed as characters do change.  */)
 		zv += bytes;
 	      if (pos <= pt)
 		pt += bytes;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 	}
