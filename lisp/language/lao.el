@@ -47,4 +47,9 @@
 (aset use-default-ascent ?(1B(B t)
 (aset ignore-relative-composition ?(1\(B t)
 
+;; Register a function to compose Lao characters.
+(aset composition-function-table (make-char 'lao)
+      '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
+	 . lao-composition-function)))
+
 ;;; lao.el ends here
