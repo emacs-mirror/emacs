@@ -1024,7 +1024,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 ")
   "Initial message displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed."
-  :type 'string)
+  :type '(choice (text :tag "Message")
+		 (const :tag "none" nil))
+  :group 'initialization)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
