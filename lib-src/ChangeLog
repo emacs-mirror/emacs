@@ -1,3 +1,14 @@
+2002-06-21  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: (F_getit, Fortran_functions, Ada_getit, Asm_labels)
+	(Python_functions, PHP_functions, PHP_functions, PHP_functions)
+	(PHP_functions, PHP_functions, Cobol_paragraphs)
+	(Makefile_targets, Postscript_functions, Texinfo_nodes)
+	(prolog_pr, erlang_func, erlang_attribute)
+	(Perl_functions, Perl_functions, Pascal_functions)
+	(TeX_commands, get_tag): Use make_tag instead of pfnote.
+	(get_tag): Prototype changed, all callers changed.
+
 2002-06-20  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: Use, together with etags.el, an optimised form of tags,
