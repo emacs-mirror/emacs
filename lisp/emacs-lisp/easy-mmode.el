@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -135,11 +135,9 @@ BODY contains code that will be executed each time the mode is (dis)activated.
     (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
 		(get-text-property 0 'keymap lighter))
       (setq lighter
-	    (apply 'propertize lighter
-		   'local-map (make-mode-line-mouse2-map mode)
-		   (unless (get-text-property 0 'help-echo lighter)
-		     (list 'help-echo
-			   (format "mouse-2: turn off %s" pretty-name))))))
+	    (propertize lighter
+			'local-map mode-line-minor-mode-keymap
+			'help-echo "mouse-3: minor mode menu")))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
