@@ -44,6 +44,7 @@
 ;;; Code:
 
 (require 'base64)
+(eval-when-compile (require 'cl))
 
 (defvar utf7-direct-encoding-chars " -%'-*,-[]-}"
   "Character ranges which do not need escaping in UTF-7.")
