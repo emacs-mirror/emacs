@@ -693,7 +693,8 @@ init_environment (argc, argv, skip_args)
 
   /* Find our root from argv[0].  Assuming argv[0] is, say,
      "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
-  _fixpath (argv[0], root = alloca (MAXPATHLEN + 20));
+  root = alloca (MAXPATHLEN + 20);
+  _fixpath (argv[0], root);
   strlwr (root);
   len = strlen (root);
   while (len > 0 && root[len] != '/' && root[len] != ':')
