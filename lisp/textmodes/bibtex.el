@@ -988,7 +988,7 @@ was parsed for keys the last time.")
 (defconst bibtex-entry-maybe-empty-head
   (concat bibtex-entry-head "?")
   "Regexp matching the header line of a maybe empty BibTeX entry
-(possibly without reference key).")
+\(possibly without reference key).")
 
 (defconst bibtex-type-in-head 1
   "Regexp subexpression number of the type part in `bibtex-entry-head'.")
@@ -1404,7 +1404,7 @@ delimiters if present."
 The value is actually the tail of LIST whose car matches STRING."
   (let (case-fold-search)
     (while (and list
-                (not (string-match (concat "^" (car list) "$") string)))
+                (not (string-match (concat "\\`\\(?:" (car list) "\\)\\'") string)))
       (setq list (cdr list)))
     list))
 
@@ -1414,7 +1414,7 @@ element of ALIST (case ignored). The value is actually the element
 of LIST whose car matches STRING."
   (let ((case-fold-search t))
     (while (and alist
-                (not (string-match (concat "^" (caar alist) "$") string)))
+                (not (string-match (concat "\\`\\(?:" (caar alist) "\\)\\'") string)))
       (setq alist (cdr alist)))
     (car alist)))
 
@@ -1824,7 +1824,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 
               ;; update page dashes
               (if (and (memq 'page-dashes format)
-                       (string-match "^\\(OPT\\)?pages\\'" field-name)
+                       (string-match "\\`\\(OPT\\)?pages\\'" field-name)
                        (progn (goto-char beg-text)
                               (looking-at
                                "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
@@ -1965,21 +1965,21 @@ and return results as a list."
                       ;; Name is of the form "von Last, First" or
                       ;; "von Last, Jr, First"
                       ;; --> Take the first capital part before the comma
-                      (substring fullname (match-beginning 1) (match-end 1)))
+                      (match-string 1 fullname))
                      ((string-match "\\([^, ]*\\)," fullname)
                       ;; Strange name: we have a comma, but nothing capital
                       ;; So we accept even lowercase names
-                      (substring fullname (match-beginning 1) (match-end 1)))
-                     ((string-match "\\(\\<[a-z][^ ]*[ ]+\\)+\\([A-Z][^ ]*\\)"
+                      (match-string 1 fullname))
+                     ((string-match "\\(\\<[a-z][^ ]* +\\)+\\([A-Z][^ ]*\\)"
                                     fullname)
                       ;; name is of the form "First von Last", "von Last",
                       ;; "First von von Last", or "d'Last"
                       ;; --> take the first capital part after the "von" parts
-                      (substring fullname (match-beginning 2) (match-end 2)))
-                     ((string-match "\\([^ ]+\\)[ ]*$" fullname)
+                      (match-string 2 fullname))
+                     ((string-match "\\([^ ]+\\) *\\'" fullname)
                       ;; name is of the form "First Middle Last" or "Last"
                       ;; --> take the last token
-                      (substring fullname (match-beginning 1) (match-end 1)))
+                      (match-string 1 fullname))
                      (t (error "Name `%s' is incorrectly formed" fullname)))))
     (bibtex-autokey-abbrev
      (funcall bibtex-autokey-name-case-convert name)
@@ -2233,7 +2233,7 @@ Use `bibtex-predefined-strings' and bib files `bibtex-string-files'."
           (case-fold-search)
           compl)
       (dolist (filename bibtex-string-files)
-        (unless (string-match "\.bib$" filename)
+        (unless (string-match "\\.bib\\'" filename)
           (setq filename (concat filename ".bib")))
         ;; test filenames
         (let (fullfilename bounds found)
@@ -2523,7 +2523,7 @@ non-nil.
   (set (make-local-variable 'comment-start-skip)
        (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
   (set (make-local-variable 'comment-column) 0)
-  (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[a-zA-Z0-9]+")
+  (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[a-zA-Z0-9]+[ \t]*")
   (set (make-local-variable 'outline-regexp) "[ \t]*@")
   (set (make-local-variable 'fill-prefix) (make-string (+ bibtex-entry-offset
                                                          bibtex-contline-indentation)
@@ -2902,7 +2902,7 @@ Return position of entry if KEY is found or nil if not found."
                 (when (re-search-forward (concat "^[ \t]*\\("
                                                  bibtex-entry-type
                                                  "\\)[ \t]*[({][ \t\n]*\\("
-                                                 key "\\)")
+                                                 (regexp-quote key) "\\)")
                                          nil t)
                   (match-beginning 2)))))
     (cond (pnt
