@@ -231,7 +231,7 @@ The following keywords are meaningful:
         in customization menus and buffers.
 :load FILE
         Load file FILE (a string) before displaying this customization
-        item.  Loading is done with `load-library', and only if the file is
+        item.  Loading is done with `load', and only if the file is
         not already loaded.
 :set-after VARIABLE
 	Specifies that SYMBOL should be set after VARIABLE when
@@ -379,6 +379,17 @@ If there already is an entry for OPTION and WIDGET, nothing is done."
     (unless (member entry members)
       (put group 'custom-group (nconc members (list entry))))))
 
+(defun custom-group-of-mode (mode)
+  "Return the custom group corresponding to the major or minor MODE.
+If no such group is found, return nil."
+  (or (get mode 'custom-mode-group)
+      (if (or (get mode 'custom-group)
+	      (and (string-match "-mode\\'" (symbol-name mode))
+		   (get (setq mode (intern (substring (symbol-name mode)
+						      0 (match-beginning 0))))
+			'custom-group)))
+	  mode)))
+
 ;;; Properties.
 
 (defun custom-handle-all-keywords (symbol args type)
@@ -472,38 +483,27 @@ LOAD should be either a library file name, or a feature name."
 (defun custom-load-symbol (symbol)
   "Load all dependencies for SYMBOL."
   (unless custom-load-recursion
-    (let ((custom-load-recursion t)
-	  (loads (get symbol 'custom-loads))
-	  load)
-      (while loads
-	(setq load (car loads)
-	      loads (cdr loads))
-	(cond ((symbolp load)
-	       (condition-case nil
-		   (require load)
-		 (error nil)))
-	      ;; Don't reload a file already loaded.
-	      ((and (boundp 'preloaded-file-list)
-		    (member load preloaded-file-list)))
+    (let ((custom-load-recursion t))
+      (dolist (load (get symbol 'custom-loads))
+	(cond ((symbolp load) (condition-case nil (require load) (error nil)))
+	      ;; This is subsumed by the test below, but it's much faster.
 	      ((assoc load load-history))
 	      ;; This was just (assoc (locate-library load) load-history)
 	      ;; but has been optimized not to load locate-library
 	      ;; if not necessary.
-	      ((let (found (regexp (regexp-quote load)))
+	      ((let ((regexp (concat "\\(\\`\\|/\\)" (regexp-quote load)
+				     "\\(\\'\\|\\.\\)"))
+		     (found nil))
 		 (dolist (loaded load-history)
 		   (and (stringp (car loaded))
 			(string-match regexp (car loaded))
-			(eq (locate-library load) (car loaded))
 			(setq found t)))
 		 found))
 	      ;; Without this, we would load cus-edit recursively.
 	      ;; We are still loading it when we call this,
 	      ;; and it is not in load-history yet.
 	      ((equal load "cus-edit"))
-	      (t
-	       (condition-case nil
-		   (load-library load)
-		 (error nil))))))))
+	      (t (condition-case nil (load load) (error nil))))))))
 
 ;;; Initializing.
 
