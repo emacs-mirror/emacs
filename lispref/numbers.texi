@@ -39,23 +39,22 @@ where Emacs does not support them.
 @section Integer Basics
 
   The range of values for an integer depends on the machine.  The
-range is @minus{}8388608 to 8388607 (24 bits; i.e.,
+range is @minus{}8388608 to 8388607 (28 bits; i.e.,
 @ifinfo 
--2**23
+-2**27
 @end ifinfo
 @tex 
-$-2^{23}$ 
+$-2^{27}$ 
 @end tex
 to 
 @ifinfo 
-2**23 - 1)
+2**27 - 1)
 @end ifinfo
 @tex 
-$2^{23}-1$)
+$2^{27}-1$)
 @end tex
-on most machines, but on others it is @minus{}16777216 to 16777215 (25
-bits), or @minus{}33554432 to 33554431 (26 bits).  Many examples in this
-chapter assume an integer has 24 bits.
+on most machines, but some machines may have a wider range.  Many
+examples in this chapter assume an integer has 28 bits.
 @cindex overflow
 
   The Lisp reader reads an integer as a sequence of digits with optional
@@ -66,7 +65,7 @@ initial sign and optional final period.
  1.              ; @r{The integer 1.}
 +1               ; @r{Also the integer 1.}
 -1               ; @r{The integer @minus{}1.}
- 16777217        ; @r{Also the integer 1, due to overflow.}
+ 268435457       ; @r{Also the integer 1, due to overflow.}
  0               ; @r{The integer 0.}
 -0               ; @r{The integer 0.}
 @end example
@@ -75,10 +74,10 @@ initial sign and optional final period.
 bitwise operators (@pxref{Bitwise Operations}), it is often helpful to
 view the numbers in their binary form.
 
-  In 24-bit binary, the decimal integer 5 looks like this:
+  In 28-bit binary, the decimal integer 5 looks like this:
 
 @example
-0000 0000  0000 0000  0000 0101
+0000  0000 0000  0000 0000  0000 0101
 @end example
 
 @noindent
@@ -88,12 +87,12 @@ between groups of 8 bits, to make the binary integer easier to read.)
   The integer @minus{}1 looks like this:
 
 @example
-1111 1111  1111 1111  1111 1111
+1111  1111 1111  1111 1111  1111 1111
 @end example
 
 @noindent
 @cindex two's complement
-@minus{}1 is represented as 24 ones.  (This is called @dfn{two's
+@minus{}1 is represented as 28 ones.  (This is called @dfn{two's
 complement} notation.)
 
   The negative integer, @minus{}5, is creating by subtracting 4 from
@@ -101,24 +100,24 @@ complement} notation.)
 @minus{}5 looks like this:
 
 @example
-1111 1111  1111 1111  1111 1011
+1111  1111 1111  1111 1111  1111 1011
 @end example
 
   In this implementation, the largest 24-bit binary integer is the
-decimal integer 8,388,607.  In binary, it looks like this:
+decimal integer 134,217,727.  In binary, it looks like this:
 
 @example
-0111 1111  1111 1111  1111 1111
+0111  1111 1111  1111 1111  1111 1111
 @end example
 
   Since the arithmetic functions do not check whether integers go
-outside their range, when you add 1 to 8,388,607, the value is the
-negative integer @minus{}8,388,608:
+outside their range, when you add 1 to 134,217,727, the value is the
+negative integer @minus{}134,217,728:
 
 @example
-(+ 1 8388607)
-     @result{} -8388608
-     @result{} 1000 0000  0000 0000  0000 0000
+(+ 1 134217727)
+     @result{} -134217728
+     @result{} 1000  0000 0000  0000 0000  0000 0000
 @end example
 
   Many of the following functions accept markers for arguments as well
@@ -651,12 +650,12 @@ produces @minus{}2 on a 24-bit machine:
      @result{} -2
 @end example
 
-In binary, in the 24-bit implementation, the argument looks like this:
+In binary, in the 28-bit implementation, the argument looks like this:
 
 @example
 @group
-;; @r{Decimal 8,388,607}
-0111 1111  1111 1111  1111 1111         
+;; @r{Decimal 134.217,727}
+0111  1111 1111  1111 1111  1111 1111         
 @end group
 @end example
 
@@ -666,7 +665,7 @@ which becomes the following when left shifted:
 @example
 @group
 ;; @r{Decimal @minus{}2}
-1111 1111  1111 1111  1111 1110         
+1111  1111 1111  1111 1111  1111 1110         
 @end group
 @end example
 
@@ -724,9 +723,9 @@ looks like this:
 @group
 (ash -6 -1) @result{} -3            
 ;; @r{Decimal @minus{}6 becomes decimal @minus{}3.}
-1111 1111  1111 1111  1111 1010
+1111  1111 1111  1111 1111  1111 1010
      @result{} 
-1111 1111  1111 1111  1111 1101
+1111  1111 1111  1111 1111  1111 1101
 @end group
 @end example
 
@@ -735,11 +734,11 @@ In contrast, shifting the pattern of bits one place to the right with
 
 @example
 @group
-(lsh -6 -1) @result{} 8388605       
-;; @r{Decimal @minus{}6 becomes decimal 8,388,605.}
-1111 1111  1111 1111  1111 1010
+(lsh -6 -1) @result{} 134217725
+;; @r{Decimal @minus{}6 becomes decimal 134,217,725.}
+1111  1111 1111  1111 1111  1111 1010
      @result{} 
-0111 1111  1111 1111  1111 1101
+0111  1111 1111  1111 1111  1111 1101
 @end group
 @end example
 
@@ -749,34 +748,34 @@ Here are other examples:
 @c     with smallbook but not with regular book! --rjc 16mar92
 @smallexample
 @group
-                   ;  @r{             24-bit binary values}
+                   ;  @r{             28-bit binary values}
 
-(lsh 5 2)          ;   5  =  @r{0000 0000  0000 0000  0000 0101}
-     @result{} 20         ;      =  @r{0000 0000  0000 0000  0001 0100}
+(lsh 5 2)          ;   5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+     @result{} 20         ;      =  @r{0000  0000 0000  0000 0000  0001 0100}
 @end group
 @group
 (ash 5 2)
      @result{} 20
-(lsh -5 2)         ;  -5  =  @r{1111 1111  1111 1111  1111 1011}
-     @result{} -20        ;      =  @r{1111 1111  1111 1111  1110 1100}
+(lsh -5 2)         ;  -5  =  @r{1111  1111 1111  1111 1111  1111 1011}
+     @result{} -20        ;      =  @r{1111  1111 1111  1111 1111  1110 1100}
 (ash -5 2)
      @result{} -20
 @end group
 @group
-(lsh 5 -2)         ;   5  =  @r{0000 0000  0000 0000  0000 0101}
-     @result{} 1          ;      =  @r{0000 0000  0000 0000  0000 0001}
+(lsh 5 -2)         ;   5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+     @result{} 1          ;      =  @r{0000  0000 0000  0000 0000  0000 0001}
 @end group
 @group
 (ash 5 -2)
      @result{} 1
 @end group
 @group
-(lsh -5 -2)        ;  -5  =  @r{1111 1111  1111 1111  1111 1011}
-     @result{} 4194302    ;      =  @r{0011 1111  1111 1111  1111 1110}
+(lsh -5 -2)        ;  -5  =  @r{1111  1111 1111  1111 1111  1111 1011}
+     @result{} 4194302    ;      =  @r{0011  1111 1111  1111 1111  1111 1110}
 @end group
 @group
-(ash -5 -2)        ;  -5  =  @r{1111 1111  1111 1111  1111 1011}
-     @result{} -2         ;      =  @r{1111 1111  1111 1111  1111 1110}
+(ash -5 -2)        ;  -5  =  @r{1111  1111 1111  1111 1111  1111 1011}
+     @result{} -2         ;      =  @r{1111  1111 1111  1111 1111  1111 1110}
 @end group
 @end smallexample
 @end defun
@@ -813,23 +812,23 @@ because its binary representation consists entirely of ones.  If
 
 @smallexample
 @group
-                   ; @r{               24-bit binary values}
+                   ; @r{               28-bit binary values}
 
-(logand 14 13)     ; 14  =  @r{0000 0000  0000 0000  0000 1110}
-                   ; 13  =  @r{0000 0000  0000 0000  0000 1101}
-     @result{} 12         ; 12  =  @r{0000 0000  0000 0000  0000 1100}
+(logand 14 13)     ; 14  =  @r{0000  0000 0000  0000 0000  0000 1110}
+                   ; 13  =  @r{0000  0000 0000  0000 0000  0000 1101}
+     @result{} 12         ; 12  =  @r{0000  0000 0000  0000 0000  0000 1100}
 @end group
 
 @group
-(logand 14 13 4)   ; 14  =  @r{0000 0000  0000 0000  0000 1110}
-                   ; 13  =  @r{0000 0000  0000 0000  0000 1101}
-                   ;  4  =  @r{0000 0000  0000 0000  0000 0100}
-     @result{} 4          ;  4  =  @r{0000 0000  0000 0000  0000 0100}
+(logand 14 13 4)   ; 14  =  @r{0000  0000 0000  0000 0000  0000 1110}
+                   ; 13  =  @r{0000  0000 0000  0000 0000  0000 1101}
+                   ;  4  =  @r{0000  0000 0000  0000 0000  0000 0100}
+     @result{} 4          ;  4  =  @r{0000  0000 0000  0000 0000  0000 0100}
 @end group
 
 @group
 (logand)
-     @result{} -1         ; -1  =  @r{1111 1111  1111 1111  1111 1111}
+     @result{} -1         ; -1  =  @r{1111  1111 1111  1111 1111  1111 1111}
 @end group
 @end smallexample
 @end defun
@@ -845,18 +844,18 @@ passed just one argument, it returns that argument.
 
 @smallexample
 @group
-                   ; @r{              24-bit binary values}
+                   ; @r{              28-bit binary values}
 
-(logior 12 5)      ; 12  =  @r{0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{0000 0000  0000 0000  0000 0101}
-     @result{} 13         ; 13  =  @r{0000 0000  0000 0000  0000 1101}
+(logior 12 5)      ; 12  =  @r{0000  0000 0000  0000 0000  0000 1100}
+                   ;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+     @result{} 13         ; 13  =  @r{0000  0000 0000  0000 0000  0000 1101}
 @end group
 
 @group
-(logior 12 5 7)    ; 12  =  @r{0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{0000 0000  0000 0000  0000 0101}
-                   ;  7  =  @r{0000 0000  0000 0000  0000 0111}
-     @result{} 15         ; 15  =  @r{0000 0000  0000 0000  0000 1111}
+(logior 12 5 7)    ; 12  =  @r{0000  0000 0000  0000 0000  0000 1100}
+                   ;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+                   ;  7  =  @r{0000  0000 0000  0000 0000  0000 0111}
+     @result{} 15         ; 15  =  @r{0000  0000 0000  0000 0000  0000 1111}
 @end group
 @end smallexample
 @end defun
@@ -872,18 +871,18 @@ result is 0, which is an identity element for this operation.  If
 
 @smallexample
 @group
-                   ; @r{              24-bit binary values}
+                   ; @r{              28-bit binary values}
 
-(logxor 12 5)      ; 12  =  @r{0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{0000 0000  0000 0000  0000 0101}
-     @result{} 9          ;  9  =  @r{0000 0000  0000 0000  0000 1001}
+(logxor 12 5)      ; 12  =  @r{0000  0000 0000  0000 0000  0000 1100}
+                   ;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+     @result{} 9          ;  9  =  @r{0000  0000 0000  0000 0000  0000 1001}
 @end group
 
 @group
-(logxor 12 5 7)    ; 12  =  @r{0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{0000 0000  0000 0000  0000 0101}
-                   ;  7  =  @r{0000 0000  0000 0000  0000 0111}
-     @result{} 14         ; 14  =  @r{0000 0000  0000 0000  0000 1110}
+(logxor 12 5 7)    ; 12  =  @r{0000  0000 0000  0000 0000  0000 1100}
+                   ;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
+                   ;  7  =  @r{0000  0000 0000  0000 0000  0000 0111}
+     @result{} 14         ; 14  =  @r{0000  0000 0000  0000 0000  0000 1110}
 @end group
 @end smallexample
 @end defun
@@ -898,9 +897,9 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @example
 (lognot 5)             
      @result{} -6
-;;  5  =  @r{0000 0000  0000 0000  0000 0101}
+;;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
 ;; @r{becomes}
-;; -6  =  @r{1111 1111  1111 1111  1111 1010}
+;; -6  =  @r{1111  1111 1111  1111 1111  1111 1010}
 @end example
 @end defun
 
@@ -970,7 +969,10 @@ This function returns the logarithm of @var{arg}, with base 10.  If
 @end defun
 
 @defun expt x y
-This function returns @var{x} raised to power @var{y}.
+This function returns @var{x} raised to power @var{y}.  If both
+arguments are integers and @var{y} is positive, the result is an
+integer; in this case, it is truncated to fit the range of possible
+integer values.
 @end defun
 
 @defun sqrt arg
