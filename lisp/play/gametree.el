@@ -67,21 +67,17 @@
 
 ;;  and the cursor is positioned on the new line just after the move
 ;;  number, so you can start typing the new analysis.  That's it,
-;;  quite simple.  If you want more, read on.
+;;  quite simple.  
 
-;;; ToDo:
-
-;;  BIG: automatic score reducer.  It should be possible to label the
-;;  leaf variations with numeric scores (instead of the Informant-like
-;;  symbols used in the example) and have the program apply the
-;;  min-max algorithm to score the internal nodes.  That's about as
-;;  far as one can go in a postal game while honestly claiming not to
-;;  use computer analysis.
-
-;;  I'd definitely like to hear from you if you use this, and even
-;;  more if you have suggestions for improvement, ranging from bug
-;;  reports to feature requests.  (But be warned that I am a fan of
-;;  simplicity and orthogonality).
+;;  As of version 1.1, a simple score reducer has been implemented.
+;;  As you type in leaf variations, you can add a numerical score tag
+;;  to them with C-c ; . Then, with the cursor on a variation higher
+;;  up in the tree, you can do C-c ^ and the program will compute the
+;;  reduced score of the internal variation based on the scores of its
+;;  children (which are recursively computed).  You can use any range
+;;  of numbers you wish as scores, maybe -1000 to 1000 or 0 to 100,
+;;  all that matters to the program is that higher means better for
+;;  White, lower means better for Black.
 
 ;;; Code:
 
@@ -142,6 +138,35 @@ file, the local value will be saved there and restored the next time
 the file is visited (subject to the usual restriction via
 `enable-local-variables'), and the layout will be set accordingly.")
 
+(defvar gametree-score-opener "{score="
+  "*The string which opens a score tag, and precedes the actual score.")
+
+(defvar gametree-score-manual-flag "!"
+  "*String marking the line as manually (as opposed to automatically) scored.")
+
+(defvar gametree-score-closer "}"
+  "*The string which closes a score tag, and follows the actual score.")
+
+(defvar gametree-score-regexp
+  (concat "[^\n\^M]*\\("
+          (regexp-quote gametree-score-opener)
+          "[ 	]*\\("
+          (regexp-quote gametree-score-manual-flag)
+          "[ 	]*\\)?\\([-+]?[0-9]+\\)"
+          (regexp-quote gametree-score-closer)
+          "[ 	]*\\)[\n\^M]")
+  "*Regular expression matching lines that guide the program in scoring.
+Its third parenthetical group should match the actual score.  Its
+first parenthetical group should match the entire score tag.  Its
+second parenthetical group should be an optional flag that marks the
+line as *manually* (as opposed to automatically) scored, which
+prevents the program from recursively applying the scoring algorithm
+on the subtree headed by the marked line, and makes it use the manual
+score instead.")
+
+(defvar gametree-default-score 0
+  "*Score to assume for branches lacking score tags.")
+
 ;;;; Helper functions
 
 (defun gametree-prettify-heading ()
@@ -184,6 +209,9 @@ should be no leading white space."
     (re-search-forward (concat "\\=" outline-regexp) nil t)
     (gametree-looking-at-ply)))
 
+(defsubst gametree-forward-line ()
+  (re-search-forward "[\n\^M]" nil 'move))
+
 (defun gametree-current-branch-depth ()
   "Return the depth of the current variation in the analysis tree.
 This value is simply the outline heading level of the current line."
@@ -192,10 +220,26 @@ This value is simply the outline heading level of the current line."
     (if (looking-at outline-regexp)
         (outline-level) 0)))
 
+(defun gametree-transpose-following-leaves ()
+  "Move the current leaf variation behind all others on the same level."
+  (let ((following-leaves
+         (save-excursion
+           (gametree-forward-line)
+           (let ((p (point)))
+             (while (and (not (eobp))
+                         (= 0 (gametree-current-branch-depth)))
+               (gametree-forward-line))
+             (prog1 (buffer-substring p (point))
+               (delete-region p (point)))))))
+    (save-excursion
+      (beginning-of-line 1)
+      (insert following-leaves))))
+        
+
 ;;;; Functions related to the task of saving and restoring current
 ;;;; outline layout
 
-(defun gametree-show-children-and-entry ()
+(defsubst gametree-show-children-and-entry ()
   (show-children)
   (show-entry))
 
@@ -284,6 +328,50 @@ This value is simply the outline heading level of the current line."
           (let ((standard-output (current-buffer)))
             (princ gametree-local-layout))))))          
 
+
+;;;; Scoring functions
+
+(defun gametree-current-branch-score ()
+  "Return score of current variation according to its score tag.
+When no score tag is present, use the value of `gametree-default-score'."
+  (if (looking-at gametree-score-regexp)
+      (string-to-int (match-string 3))
+    gametree-default-score))
+
+(defun gametree-compute-reduced-score ()
+  "Return current internal node score computed recursively from subnodes.
+Subnodes which have been manually scored are honored."
+  (if (or
+       (= 0 (gametree-current-branch-depth))
+       (save-excursion (gametree-forward-line) (eobp))
+       (and (looking-at gametree-score-regexp)
+            (not (null (match-string 2)))))
+      (gametree-current-branch-score)
+    (let ((depth (gametree-current-branch-depth)))
+      (save-excursion
+        (gametree-forward-line)
+        ;; the case of a leaf node has already been handled, so here I
+        ;; know I am on the 1st line of the current subtree.  This can
+        ;; be either a leaf child, or a subheading.
+        (let ((running gametree-default-score)
+              (minmax
+               (if (= 0 (mod (gametree-current-branch-ply) 2))
+                   'max 'min)))
+          (while (and (not (eobp))
+                      (= 0 (gametree-current-branch-depth))) ;handle leaves
+            (setq running (funcall minmax running
+                                   (gametree-current-branch-score)))
+            (gametree-forward-line))
+          (let ((done (and (not (eobp))
+                           (< depth (gametree-current-branch-depth)))))
+            (while (not done)           ;handle subheadings
+              (setq running (funcall minmax running
+                                     (gametree-compute-reduced-score)))
+              (setq done (condition-case nil
+                             (outline-forward-same-level 1)
+                           (error nil)))))
+          running)))))
+
 ;;;; Commands
 
 (defun gametree-insert-new-leaf (&optional at-depth)
@@ -295,7 +383,7 @@ on the current line first.
 
 With a numeric arg AT-DEPTH, first go up the tree until a node of
 depth AT-DEPTH or smaller is found."
-  (interactive "P")
+  (interactive "*P")
   (if (zerop (gametree-current-branch-depth))
       (outline-up-heading 0))
   (if at-depth
@@ -333,7 +421,7 @@ With a numerical argument AT-MOVE, split the variation before
 White's AT-MOVEth move, or Black's if negative.  The last option will
 only work of Black's moves are explicitly numbered, for instance 
 `1. e4 1: e5'."
-  (interactive "P")
+  (interactive "*P")
   (if at-move (progn
           (end-of-line 1)
           (let ((limit (point)))
@@ -345,6 +433,7 @@ only work of Black's moves are explicitly numbered, for instance
               (if (> at-move 0) gametree-full-ply-regexp
                 gametree-half-ply-regexp)) limit))
           (goto-char (match-beginning 0))))
+  (gametree-transpose-following-leaves)
   (let* ((pt (set-marker (make-marker) (point)))
          (plys (gametree-current-branch-ply))
          (depth (gametree-current-branch-depth))
@@ -387,9 +476,11 @@ only work of Black's moves are explicitly numbered, for instance
 (defun gametree-merge-line ()
   "Merges a variation with its only child.
 Does *not* check if the variation has in fact a unique child; users beware."
-  (interactive)
+  (interactive "*")
   (if (zerop (gametree-current-branch-depth))
       (outline-up-heading 0))
+  (if (looking-at gametree-score-regexp)
+      (delete-region (match-beginning 1) (match-end 1)))
   (end-of-line 1)
   (let ((prev-depth (save-excursion (forward-line 1)
                                     (gametree-current-branch-depth))))
@@ -399,6 +490,42 @@ Does *not* check if the variation has in fact a unique child; users beware."
           (beginning-of-line 1)
           (delete-char (gametree-current-branch-depth))
           (gametree-prettify-heading)))))
+
+(defun gametree-insert-score (score &optional auto)
+  "Insert a score tag with value SCORE at the end of the current line.
+If this line already has a score tag, just jump to it and alter it.
+When called from a program, optional AUTO flag tells if the score is
+being entered automatically (and thus should lack the manual mark)."
+  (interactive "*P")
+  (beginning-of-line 1)
+  (if (looking-at gametree-score-regexp)
+      (progn
+        (goto-char (match-beginning 3))
+        (if (and auto (not (null (match-string 2))))
+            (delete-region (match-beginning 2) (match-end 2)))
+        (if (not (null score))
+            (delete-region (match-beginning 3) (match-end 3)))
+        (if (and (not auto) (null (match-string 2)))
+            (insert gametree-score-manual-flag)))
+    (end-of-line 1)
+    (if (= 0 (save-excursion (skip-chars-backward " \t")))
+        (insert " "))
+    (insert gametree-score-opener)
+    (if (not auto) (insert gametree-score-manual-flag))
+    (save-excursion (insert gametree-score-closer)))
+  (if (not (null score))
+      (save-excursion
+        (insert (int-to-string (prefix-numeric-value score))))))    
+  
+(defun gametree-compute-and-insert-score ()
+  "Compute current node score, maybe recursively from subnodes. Insert it.
+Subnodes which have been manually scored are honored."
+  (interactive "*")
+  (let ((auto (not (and (looking-at gametree-score-regexp)
+                        (not (null (match-string 2))))))
+        (score (gametree-compute-reduced-score)))
+    (gametree-insert-score score auto)))
+
 
 (defun gametree-layout-to-register (register)
   "Store current tree layout in register REGISTER.
@@ -413,7 +540,7 @@ Argument is a character, naming the register."
 (defun gametree-apply-register-layout (char)
   "Return to a tree layout stored in a register.
 Argument is a character, naming the register."
-  (interactive "cApply layout from register: ")
+  (interactive "*cApply layout from register: ")
   (save-excursion
     (goto-char (point-min))
     (gametree-apply-layout (get-register char) 0 t)))
@@ -426,7 +553,8 @@ buffer, it is replaced by the new value.  See the documentation for
 `gametree-local-layout' for more information."
   (interactive)
   (gametree-save-layout)
-  (gametree-hack-file-layout)
+  (let ((inhibit-read-only t))
+    (gametree-hack-file-layout))
   nil)
 
 (define-derived-mode gametree-mode outline-mode "GameTree"
@@ -448,6 +576,8 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 (define-key gametree-mode-map "\C-c\C-r/" 'gametree-layout-to-register)
 (define-key gametree-mode-map "\C-c\C-rj" 'gametree-apply-register-layout)
 (define-key gametree-mode-map "\C-c\C-y" 'gametree-save-and-hack-layout)
+(define-key gametree-mode-map "\C-c;" 'gametree-insert-score)
+(define-key gametree-mode-map "\C-c^" 'gametree-compute-and-insert-score)
 
 ;;;; Goodies for mousing users
 (and (fboundp 'track-mouse)
