@@ -31,8 +31,6 @@
   ;; Warning suppression -- can't require x-win in batch:
   (autoload 'xw-defined-colors "x-win"))
 
-(require 'cus-face)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.
