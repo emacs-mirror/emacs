@@ -71,8 +71,11 @@ Lisp_Object Vkill_emacs_hook;
   on subsequent starts.  */
 int initialized;
 
-/* Variable whose value is symbol giving operating system type */
+/* Variable whose value is symbol giving operating system type.  */
 Lisp_Object Vsystem_type;
+
+/* Variable whose value is string giving configuration built for.  */
+Lisp_Object Vsystem_configuration;
   
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
@@ -151,6 +154,19 @@ fatal_error_signal (sig)
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
+
+#ifdef SIGDANGER
+
+/* Handle bus errors, illegal instruction, etc. */
+SIGTYPE
+memory_warning_signal (sig)
+     int sig;
+{
+  signal (sig, memory_warning_signal);
+
+  malloc_warning ("Operating system warns that virtual memory is running low.\n");
+}
+#endif
 
 /* Code for dealing with Lisp access to the Unix command line */
 
@@ -447,8 +463,12 @@ main (argc, argv, envp)
       signal (SIGXFSZ, fatal_error_signal);
 #endif /* SIGXFSZ */
 
+#ifdef SIGDANGER
+      /* This just means available memory is getting low.  */
+      signal (SIGDANGER, memory_warning_signal);
+#endif
+
 #ifdef AIX
-      signal (SIGDANGER, fatal_error_signal);
       signal (20, fatal_error_signal);
       signal (21, fatal_error_signal);
       signal (22, fatal_error_signal);
@@ -896,6 +916,10 @@ syms_of_emacs ()
   DEFVAR_LISP ("system-type", &Vsystem_type,
     "Value is symbol indicating type of operating system you are using.");
   Vsystem_type = intern (SYSTEM_TYPE);
+
+  DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
+    "Value is string indicating configuration Emacs was built for.");
+  Vsystem_configuration = build_string (CONFIGURATION);
 
   DEFVAR_BOOL ("noninteractive", &noninteractive1,
     "Non-nil means Emacs is running without interactive terminal.");
