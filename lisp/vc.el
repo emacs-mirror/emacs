@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.331 2002/03/06 13:51:28 gerd Exp $
+;; $Id: vc.el,v 1.332 2002/07/16 17:47:33 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1919,8 +1919,7 @@ The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
         (if buf (with-current-buffer buf
                   buffer-file-coding-system)))
       ;; otherwise, try to find one based on the file name
-      (car (find-operation-coding-system 'insert-file-contents
-                                         file))
+      (car (find-operation-coding-system 'insert-file-contents file))
       ;; and a final fallback
       'undecided))
 
@@ -2511,7 +2510,7 @@ allowed and simply skipped)."
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
   (if (vc-find-backend-function backend 'print-log)
-      (with-temp-buffer
+      (with-current-buffer "*vc*"
 	(vc-call print-log file)
 	(vc-call wash-log file)
 	(buffer-string))))
@@ -2947,6 +2946,10 @@ Uses `rcs2log' which only works for RCS and CVS."
 (defvar vc-annotate-ratio nil "Global variable.")
 (defvar vc-annotate-backend nil "Global variable.")
 
+(defconst vc-annotate-font-lock-keywords
+  ;; The fontification is done by vc-annotate-lines instead of font-lock.
+  '((vc-annotate-lines)))
+
 (defun vc-annotate-get-backend (buffer)
   "Return the backend matching \"Annotate\" buffer BUFFER.
 Return nil if no match made.  Associations are made based on
@@ -2959,6 +2962,9 @@ Return nil if no match made.  Associations are made based on
 You can use the mode-specific menu to alter the time-span of the used
 colors.  See variable `vc-annotate-menu-elements' for customizing the
 menu items."
+  (set (make-local-variable 'truncate-lines) t)
+  (set (make-local-variable 'font-lock-defaults)
+       '(vc-annotate-font-lock-keywords t))
   (vc-annotate-add-menu))
 
 (defun vc-annotate-display-default (&optional ratio)
@@ -3065,20 +3071,19 @@ use; you may override this using the second optional arg MODE."
     (display-buffer buffer))
   (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
       (vc-annotate-mode))
-  (cond ((null vc-annotate-display-mode) (vc-annotate-display-default
-					  vc-annotate-ratio))
-	((symbolp vc-annotate-display-mode) ; One of the auto-scaling modes
-	 (cond ((eq vc-annotate-display-mode 'scale)
-		(vc-annotate-display-autoscale))
-	       ((eq vc-annotate-display-mode 'fullscale)
-		(vc-annotate-display-autoscale t))
-	       (t (error "No such display mode: %s"
-			 vc-annotate-display-mode))))
+  (cond ((null vc-annotate-display-mode)
+	 (vc-annotate-display-default vc-annotate-ratio))
+	;; One of the auto-scaling modes
+	((eq vc-annotate-display-mode 'scale)
+	 (vc-annotate-display-autoscale))
+	((eq vc-annotate-display-mode 'fullscale)
+	 (vc-annotate-display-autoscale t))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
 	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons
 				       vc-annotate-color-map))))
-	(t (error "Error in display mode select"))))
+	(t (error "No such display mode: %s"
+		  vc-annotate-display-mode))))
 
 ;;;; (defun vc-BACKEND-annotate-command (file buffer) ...)
 ;;;;  Execute "annotate" on FILE by using `call-process' and insert
@@ -3194,43 +3199,40 @@ or OFFSET if present."
 
 (defun vc-annotate-display (&optional color-map offset)
   "Highlight `vc-annotate' output in the current buffer.
-COLOR-MAP, if present, overrides `vc-annotate-color-map'.  The
-annotations are relative to the current time, unless overridden by
-OFFSET.
+COLOR-MAP, if present, overrides `vc-annotate-color-map'.
+The annotations are relative to the current time, unless overridden by OFFSET.
 
 This function is obsolete, and has been replaced by
-`vc-annotate-select'."
-  (save-excursion
-  (goto-char (point-min))		; Position at the top of the buffer.
-  ;; Delete old overlays
-  (mapcar
-   (lambda (overlay)
-     (if (overlay-get overlay 'vc-annotation)
-	 (delete-overlay overlay)))
-   (overlays-in (point-min) (point-max)))
-  (goto-char (point-min))		; Position at the top of the buffer.
-    (let (difference)
-      (while (setq difference (vc-annotate-difference offset))
-      (let*
-	  ((color (or (vc-annotate-compcar
-		       difference (or color-map vc-annotate-color-map))
-		      (cons nil vc-annotate-very-old-color)))
-	   ;; substring from index 1 to remove any leading `#' in the name
-	   (face-name (concat "vc-annotate-face-" (substring (cdr color) 1)))
-	   ;; Make the face if not done.
-	   (face (or (intern-soft face-name)
-		     (let ((tmp-face (make-face (intern face-name))))
-		       (set-face-foreground tmp-face (cdr color))
-		       (if vc-annotate-background
+`vc-annotate-display-select'."
+  (if (and color-map (not (eq color-map vc-annotate-color-map)))
+      (set (make-local-variable 'vc-annotate-color-map) color-map))
+  (set (make-local-variable 'vc-annotate-offset) offset)
+  (font-lock-mode 1))
+
+(defvar vc-annotate-offset nil)
+
+(defun vc-annotate-lines (limit)
+  (let (difference)
+    (while (and (< (point) limit)
+		(setq difference (vc-annotate-difference vc-annotate-offset)))
+      (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
+			(cons nil vc-annotate-very-old-color)))
+	     ;; substring from index 1 to remove any leading `#' in the name
+	     (face-name (concat "vc-annotate-face-" (substring (cdr color) 1)))
+	     ;; Make the face if not done.
+	     (face (or (intern-soft face-name)
+		       (let ((tmp-face (make-face (intern face-name))))
+			 (set-face-foreground tmp-face (cdr color))
+			 (if vc-annotate-background
 			     (set-face-background tmp-face
 						  vc-annotate-background))
-		       tmp-face)))	; Return the face
-	   (point (point))
-	   overlay)
+			 tmp-face)))	; Return the face
+	     (point (point))
+	     overlay)
 	(forward-line 1)
-	(setq overlay (make-overlay point (point)))
-	(overlay-put overlay 'face face)
-	  (overlay-put overlay 'vc-annotation t))))))
+	(put-text-property point (point) 'face face)))
+    ;; Pretend to font-lock there were no matches.
+    nil))
 
 ;; Collect back-end-dependent stuff here
 
