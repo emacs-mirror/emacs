@@ -1,3 +1,9 @@
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-replacement-list): Add subscripts.
+	(math-read-subscripts): New variable.
+	(math-read-preprocess-string): Process subscripts.
+
 2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-prompt-read-only): Doc fix.
