@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.19 1999/01/23 13:23:26 zappo Exp rms $
+;; X-RCS: $Id: speedbar.el,v 1.20 1999/01/31 04:39:37 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -1698,6 +1698,7 @@ it from the speedbar buffer."
   "Display info about a tag that is on the current line.
 nil if not applicable."
   (save-excursion
+    (beginning-of-line)
     (if (re-search-forward " > \\([^ ]+\\)$"
 			   (save-excursion(end-of-line)(point)) t)
 	(let ((tag (match-string 1))
