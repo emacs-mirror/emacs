@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
 #define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
 
-#define DISP_CHAR_VECTOR(dp, c) ((dp)->contents[c])
+#define DISP_CHAR_VECTOR(dp, c) ((c) < 0x80 ? (dp)->contents[c] : Qnil)
 
 /* Defined in window.c.  */
 extern struct Lisp_Char_Table *window_display_table ();
