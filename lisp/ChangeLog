@@ -1,3 +1,13 @@
+2003-02-11  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (toplevel): Don't require `font-lock';
+	require `font-core' instead, even though it is dumped.
+
+	* ibuf-ext.el (ibuffer-save-with-custom, ibuffer-add-to-tmp-hide)
+	(ibuffer-add-to-tmp-show): Doc fixes.
+
+	* language/tamil.el ("Tamil"): Doc fix.
+
 2003-02-11  Juanma Barranquero  <lektu@terra.es>
 
 	* info-xref.el (info-xref-check-buffer): Fix typo.
