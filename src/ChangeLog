@@ -1,3 +1,8 @@
+2004-11-22  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Provide sensible fall-back
+	value for non-nil indicate-buffer-boundaries setting.
+
 2004-11-22  Markus Rost  <rost@ias.edu>
 
 	* minibuf.c (Fminibuffer_complete_and_exit): Fix previous change.
