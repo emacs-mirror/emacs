@@ -1,3 +1,9 @@
+2000-08-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-start-translation): Bind locally
+	last-command-event, last-command, and this-command.
+	(quail-start-conversion): Likewise.
+
 2000-08-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/executable.el
