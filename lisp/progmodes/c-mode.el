@@ -48,6 +48,9 @@
   (define-key c-mode-map "\ea" 'c-beginning-of-statement)
   (define-key c-mode-map "\ee" 'c-end-of-statement)
   (define-key c-mode-map "\eq" 'c-fill-paragraph)
+  (define-key c-mode-map "\C-c\C-n" 'c-forward-conditional)
+  (define-key c-mode-map "\C-c\C-p" 'c-backward-conditional)
+  (define-key c-mode-map "\C-c\C-u" 'c-up-conditional)
   (define-key c-mode-map "\177" 'backward-delete-char-untabify)
   (define-key c-mode-map "\t" 'c-indent-command))
 
@@ -1252,15 +1255,28 @@ move forward to the end of the containing preprocessor conditional.
 When going backwards, `#elif' is treated like `#else' followed by `#if'.
 When going forwards, `#elif' is ignored."
   (interactive "p")
-  (let* ((forward (< count 0))
+  (c-forward-conditional (- count) t))
+
+(defun c-backward-conditional (count &optional up-flag)
+  "Move back across a preprocessor conditional, leaving mark behind.
+A prefix argument acts as a repeat count.  With a negative argument,
+move forward across a preprocessor conditional."
+  (interactive "p")
+  (c-forward-conditional (- count) up-flag))
+
+(defun c-forward-conditional (count &optional up-flag)
+  "Move forward across a preprocessor conditional, leaving mark behind.
+A prefix argument acts as a repeat count.  With a negative argument,
+move backward across a preprocessor conditional."
+  (interactive "p")
+  (let* ((forward (> count 0))
 	 (increment (if forward -1 1))
 	 (search-function (if forward 're-search-forward 're-search-backward))
 	 (opoint (point))
 	 (new))
     (save-excursion
       (while (/= count 0)
-	(if forward (end-of-line))
-	(let ((depth 0) found)
+	(let ((depth (if up-flag 0 -1)) found)
 	  (save-excursion
 	    ;; Find the "next" significant line in the proper direction.
 	    (while (and (not found)
@@ -1276,7 +1292,7 @@ When going forwards, `#elif' is ignored."
 	      (beginning-of-line)
 	      ;; Now verify it is really a preproc line.
 	      (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\)")
-		  (progn
+		  (let ((prev depth))
 		    ;; Update depth according to what we found.
 		    (beginning-of-line)
 		    (cond ((looking-at "[ \t]*#[ \t]*endif")
@@ -1285,16 +1301,22 @@ When going forwards, `#elif' is ignored."
 			   (if (and forward (= depth 0))
 			       (setq found (point))))
 			  (t (setq depth (- depth increment))))
+		    ;; If we are trying to move across, and we find
+		    ;; an end before we find a beginning, get an error.
+		    (if (and (< prev 0) (< depth prev))
+			(error (if forward
+				   "No following conditional at this level"
+				 "No previous conditional at this level")))
+		    ;; When searching forward, start from next line
+		    ;; so that we don't find the same line again.
+		    (if forward (forward-line 1))
 		    ;; If this line exits a level of conditional, exit inner loop.
 		    (if (< depth 0)
-			(setq found (point)))
-		    ;; When searching forward, start from end of line
-		    ;; so that we don't find the same line again.
-		    (if forward (end-of-line))))))
+			(setq found (point)))))))
 	  (or found
 	      (error "No containing preprocessor conditional"))
 	  (goto-char (setq new found)))
-	(setq count (- count increment))))
+	(setq count (+ count increment))))
     (push-mark)
     (goto-char new)))
 
