@@ -193,7 +193,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_AIX_SMT_EXP
 
 #undef HAVE_MKTIME
-#if HAVE_MKTIME && ! defined (_NEXT_SOURCE)
+#if ! HAVE_MKTIME || defined (_NEXT_SOURCE)
 #define mktime emacs_mktime
 #endif
 
