@@ -1,6 +1,6 @@
 ;;; generic-x.el --- Extra Modes for generic-mode -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2003 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -1411,20 +1411,8 @@ you must reload generic-x to enable the specified modes."
    (modify-syntax-entry ?\r "> b"   rul-generic-mode-syntax-table)
    (modify-syntax-entry ?\n "> b"   rul-generic-mode-syntax-table)
 
-   (cond
-       ;; XEmacs 19 & 20 & 21
-    ((memq '8-bit c-emacs-features)
-     (modify-syntax-entry ?/  ". 1456" rul-generic-mode-syntax-table)
-       (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
-       )
-    ;; Emacs 19 & 20
-    ((memq '1-bit c-emacs-features)
-     (modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
-       (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
-       )
-    ;; incompatible
-    (t (error "Run Mode is incompatible with this version of Emacs"))
-    )
+   (modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
+   (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
 
    ;; here manually instead
    (defun generic-rul-mode-setup-function ()
