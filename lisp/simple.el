@@ -3035,13 +3035,10 @@ in the definition is used to check that VALUE is valid."
 					   'set-variable-value-history)))))
 		 (list var val)))
 
-  (let ((type (get var 'custom-type))
-	widget)
+  (let ((type (get var 'custom-type)))
     (when type
       ;; Match with custom type.
       (require 'wid-edit)
-      (unless (listp type)
-	(setq widget (list type)))
       (setq type (widget-convert type))
       (unless (widget-apply type :match val)
 	(error "Value `%S' does not match type %S of %S" 
