@@ -1769,9 +1769,11 @@ x_figure_window_size (f, parms)
     }
 
   f->display.x->vertical_scroll_bar_extra
-    = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+       ? 0
+       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-       : 0);
+       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->display.x->font)));
   f->display.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->display.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
