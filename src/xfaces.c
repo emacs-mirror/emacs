@@ -90,7 +90,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    vector).  These are called "frame faces".
       Element 0 is the default face --- the one used for normal text.
       Element 1 is the modeline face.
-   These faces have their GC's set; the rest do not.  (See src/xterm.h.)
+   These faces have their GC's set; the rest do not.
+   If faces[i] is filled in (i.e. non-zero) on one frame, then it must
+   be filled in on all frames.  Code assumes that face ID's can be
+   used on any frame.  (See src/xterm.h.)
 
    The global variables `face_vector' and `nfaces' define another
    array of struct face pointers, with their GC's set.  This array
@@ -457,6 +460,22 @@ init_frame_faces (f)
   ensure_face_ready (f, 1);
 
   recompute_basic_faces (f);
+
+  /* Supposedly, we only apply this function to newly-created frames.  */
+  if (selected_frame == f)
+    abort ();
+
+  /* Make sure that all faces valid on the selected frame are also valid
+     on this new frame.  */
+  {
+    int i;
+    int n_faces = selected_frame->display.x->n_faces;
+    struct face **faces = selected_frame->display.x->faces;
+
+    for (i = 2; i < n_faces; i++)
+      if (faces[i])
+	ensure_face_ready (f, i);
+  }
 }
 
 
