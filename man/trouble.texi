@@ -137,11 +137,59 @@ normally, and how to recognize them and correct them.
 
 @node DEL Gets Help
 @subsection If @key{DEL} Fails to Delete
+@cindex @key{DEL} vs @key{BACKSPACE}
+@cindex @key{BACKSPACE} vs @key{DEL}
 
-  If you find that @key{DEL} enters Help like @kbd{Control-h} instead of
-deleting a character, your terminal is sending the wrong code for
-@key{DEL}.  You can work around this problem by changing the keyboard
-translation table (@pxref{Keyboard Translations}).
+  Every keyboard has a large key, a little ways above the @key{RET}
+or @key{ENTER} key, which you normally use outside Emacs to erase
+the last character that you typed.  We call this key @key{DEL}.
+
+  When Emacs starts up using a window system, it determines
+automatically which key should be @key{DEL}.  In some unusual cases
+Emacs gets the wrong information from the system.  If the @key{DEL}
+key deletes forwards instead of backwards, that is probably what
+happened---Emacs ought to be treating the @key{DELETE} key as
+@key{DEL}, but it isn't.
+
+  With a window system, if the @key{DEL} key says @key{BACKSPACE} and
+there is a @key{DELETE} key elsewhere, but the @key{DELETE} key
+deletes backward instead of forward, that too suggests Emacs got the
+wrong information---but in the opposite sense.  It ought to be
+treating the @key{BACKSPACE} key as @key{DEL}, but it isn't.
+
+  On a text-only terminal, if you find the @key{DEL} key prompts for a
+Help command like @kbd{Control-h}, instead of deleting a character, it
+means that key is actually sending the @key{BS} character.  Emacs
+ought to be treating @key{BS} as @key{DEL}, but it isn't.
+
+  In all of those cases, the immediate remedy is the same: use the
+command @kbd{M-x normal-erase-is-backspace-mode}.  That should make
+the proper @key{DEL} key work.  On a text-only terminal, if you do
+want to ask for help, use @key{F1} or @kbd{C-?}.
+
+@findex normal-erase-is-backspace-mode
+  To fix the problem automatically for every Emacs session, you can
+put one of the following lines into your @file{.emacs} file
+(@pxref{Init File}).  For the first case above, where @key{DEL}
+deletes forwards instead of backwards, use this line:
+
+@lisp
+(normal-erase-is-backspace-mode 0)
+@end lisp
+
+@noindent
+For the other two cases, use this line:
+
+@lisp
+(normal-erase-is-backspace-mode 1)
+@end lisp
+
+@vindex normal-erase-is-backspace
+  Another way to fix the problem for every Emacs session is to
+customize the variable @code{normal-erase-is-backspace}: the value
+@code{t} specifies the mode where @key{BS} or @key{BACKSPACE} is
+@key{DEL}, and @code{nil} specifies the other mode.  @xref{Easy
+Customization}.
 
 @node Stuck Recursive
 @subsection Recursive Editing Levels
