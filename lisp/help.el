@@ -212,29 +212,29 @@ describes the minor mode."
     (print-help-return-message)))
 
 (make-help-screen help-for-help
-  "A B C F I K L M N P S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
+  "a b c f i k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
   "You have typed \\[help-for-help], the help character.  Type a Help option:
 
-A  command-apropos.   Give a substring, and see a list of commands
+a  command-apropos.   Give a substring, and see a list of commands
               (functions interactively callable) that contain
 	      that substring.  See also the  apropos  command.
-B  describe-bindings.  Display table of all key bindings.
-C  describe-key-briefly.  Type a command key sequence;
+b  describe-bindings.  Display table of all key bindings.
+c  describe-key-briefly.  Type a command key sequence;
 	      it prints the function name that sequence runs.
-F  describe-function.  Type a function name and get documentation of it.
-I  info. The  info  documentation reader.
-K  describe-key.  Type a command key sequence;
+f  describe-function.  Type a function name and get documentation of it.
+i  info. The  info  documentation reader.
+k  describe-key.  Type a command key sequence;
 	      it displays the full documentation.
-L  view-lossage.  Shows last 100 characters you typed.
-M  describe-mode.  Print documentation of current major mode,
+l  view-lossage.  Shows last 100 characters you typed.
+m  describe-mode.  Print documentation of current major mode,
 	      which describes the commands peculiar to it.
-N  view-emacs-news.  Shows emacs news file.
-P  finder-by-keyword. Find packages matching a given topic keyword.
-S  describe-syntax.  Display contents of syntax table, plus explanations
-T  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
-V  describe-variable.  Type name of a variable;
+n  view-emacs-news.  Shows emacs news file.
+p  finder-by-keyword. Find packages matching a given topic keyword.
+s  describe-syntax.  Display contents of syntax table, plus explanations
+t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
+v  describe-variable.  Type name of a variable;
 	      it displays the variable's documentation and value.
-W  where-is.  Type command name; it prints which keystrokes
+w  where-is.  Type command name; it prints which keystrokes
 	      invoke that command.
 C-c print Emacs copying permission (General Public License).
 C-d print Emacs ordering information.
