@@ -396,20 +396,21 @@ internal_self_insert (c, noautofill)
          The correct value should be calculated only when necessary.  */
       int target_clm = 0;
 
-      /* Overwriting in binary-mode always substitute C2 by C.  But,
-	 overwriting in textual-mode does this substitution in the
-	 case that C is not NEWLINE and C2 is not NEWLINE nor TAB.  If
-	 C2 is TAB, the substitution is done only when C2 is currently
-	 expanded to 0 column, or more than 20 columns, or more than
-	 the width of C.  */
+      /* Overwriting in binary-mode always replaces C2 by C.
+	 Overwriting in textual-mode doesn't always do that.
+	 It inserts newlines in the usual way,
+	 and inserts any character at end of line
+	 or before a tab if it doesn't use the whole width of the tab.  */
       if (EQ (overwrite, Qoverwrite_mode_binary)
 	  || (c != '\n'
 	      && c2 != '\n'
-	      && (target_clm = current_column() + WIDTH_BY_CHAR_HEAD (str[0]),
-		  (c2 != '\t'
-		   || XINT (current_buffer->tab_width) <= 0
-		   || XFASTINT (current_buffer->tab_width) > 20
-		   || !(target_clm % XFASTINT (current_buffer->tab_width))))))
+	      && ! (c2 == '\t'
+		    && XINT (current_buffer->tab_width) > 0
+		    && XFASTINT (current_buffer->tab_width) < 20
+		    && ((NILP (current_buffer->enable_multibyte_characters)
+			 ? (target_clm = current_column () + 1)
+			 : (target_clm = current_column () + WIDTH_BY_CHAR_HEAD (str[0]))),
+			target_clm % XFASTINT (current_buffer->tab_width)))))
 	{
 	  int pos = PT;
 
