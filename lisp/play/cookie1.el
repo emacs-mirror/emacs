@@ -33,16 +33,21 @@
 ;; functions `pick-random' and `shuffle-vector' may be of interest to
 ;; programmers.
 ;;
-;; The code expects phrase files to be in ITS-style LINS format
-;; (strings terminated by ASCII 0 characters, leading whitespace
-;; ignored).  Everything up to the first delimiter is treated as a
-;; comment.  Other formats (notably UNIX fortune-file format) could
-;; easily be supported by changing the `cookie-delimiter' constant.
+;; The code expects phrase files to be in one of two formats:
+;;
+;; * ITS-style LINS format (strings terminated by ASCII 0 characters,
+;; leading whitespace ignored).
+;;
+;; * UNIX fortune file format (quotes terminated by %% on a line by itself).
+;;
+;; Everything up to the first delimiter is treated as a comment.  Other
+;; formats could be supported by adding alternates to the regexp
+;; `cookie-delimiter'.
 ;;
 ;; This code derives from Steve Strassman's 1987 spook.el package, but
-;; has been generalized so that it supports multiple simultaneous cookie
-;; databases.  It is intended to be called from other packages such as
-;; yow.el and spook.el.
+;; has been generalized so that it supports multiple simultaneous
+;; cookie databases and fortune files.  It is intended to be called
+;; from other packages such as yow.el and spook.el.
 ;;
 ;; TO DO: teach cookie-snarf to auto-detect ITS PINS or UNIX fortune(6)
 ;; format and do the right thing.
@@ -52,7 +57,7 @@
 ; Randomize the seed in the random number generator.
 (random t)
 
-(defconst cookie-delimiter "\0"
+(defconst cookie-delimiter "\n%%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 
 (defun cookie (phrase-file startmsg endmsg)
@@ -92,10 +97,10 @@ subsequent calls on the same file won't go to disk."
 	    (result nil))
 	(set-buffer buf)
 	(insert-file-contents (expand-file-name phrase-file))
-	(search-forward cookie-delimiter)
+	(re-search-forward cookie-delimiter)
 	(while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
 	  (let ((beg (point)))
-	    (search-forward "\0")
+	    (re-search-forward cookie-delimiter)
 	    (setq result (cons (buffer-substring beg (1- (point)))
 			       result))))
 	(kill-buffer buf)
