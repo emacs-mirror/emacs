@@ -280,6 +280,14 @@ automatically."
       (setcdr (assq 'latin-iso8859-1 fontlist) (cdr (assq 'ascii fontlist))))
   fontlist)
 
+(defun fontset-name-p (fontset)
+  "Return non-nil if FONTSET is valid as fontset name.
+A valid fontset name should conform to XLFD (X Logical Font Description)
+with \"fontset\" in `<CHARSET_REGISTRY> field."
+  (and (string-match xlfd-tight-regexp fontset)
+       (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
+		"fontset")))
+
 ;; Return a list to be appended to `x-fixed-font-alist' when
 ;; `mouse-set-font' is called.
 (defun generate-fontset-menu ()
@@ -324,6 +332,15 @@ automatically."
 	    name))
       fontset)))
 
+(defvar uninstanciated-fontset-alist nil
+  "Alist of fontset names vs. information for instanciating them.
+Each element has the form (FONTSET STYLE BASE-FONTSET), where
+FONTSET is a name of fontset not yet instanciated.
+STYLE is a style of FONTSET, one of the followings:
+  bold, demobold, italic, oblique,
+  bold-italic, demibold-italic, bold-oblique, demibold-oblique.
+BASE-FONTSET is a name of fontset base from which FONSET is instanciated.")
+
 (defun create-fontset-from-fontset-spec (fontset-spec &optional style noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
@@ -347,27 +364,49 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 	  (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
 			       fontlist))))
 
-    ;; If STYLE is specified, modify fontset name (NAME) and FONTLIST.
-    (let ((func (cdr (assq style '((bold . x-make-font-bold)
-				   (italic . x-make-font-italic)
-				   (bold-italic . x-make-font-bold-italic)))))
-	  (l fontlist)
-	  new-name)
-      (if (and func
-	       (setq new-name (funcall func name)))
-	  (progn
-	    (setq name new-name)
-	    (while l
-	      (if (setq new-name (funcall func (cdr (car l))))
-		  (setcdr (car l) new-name))
-	      (setq l (cdr l))))))
-
     ;; If NAME conforms to XLFD, complement FONTLIST for charsets not
     ;; specified in FONTSET-SPEC.
     (let ((xlfd-fields (x-decompose-font-name name)))
       (if xlfd-fields
 	  (setq fontlist
 		(x-complement-fontset-spec xlfd-fields fontlist))))
+
+    ;; If STYLE is specified, modify fontset name (NAME) and FONTLIST.
+    (if nil
+	(let ((func (cdr (assq style '((bold . x-make-font-bold)
+				       (italic . x-make-font-italic)
+				       (bold-italic . x-make-font-bold-italic)))))
+	      (l fontlist)
+	      new-name)
+	  (if (and func
+		   (setq new-name (funcall func name)))
+	      (progn
+		(setq name new-name)
+		(while l
+		  (if (setq new-name (funcall func (cdr (car l))))
+		      (setcdr (car l) new-name))
+		  (setq l (cdr l))))))
+      (let ((funcs-alist
+	     '((bold x-make-font-bold)
+	       (demibold x-make-font-demibold)
+	       (italic x-make-font-italic)
+	       (oblique x-make-font-oblique)
+	       (bold-italic x-make-font-bold x-make-font-italic)
+	       (demibold-italic x-make-font-demibold x-make-font-italic)
+	       (bold-oblique x-make-font-bold x-make-font-oblique)
+	       (demibold-oblique x-make-font-demibold x-make-font-oblique)))
+	    new-name style funcs)
+	(while funcs-alist
+	  (setq funcs (car funcs-alist))
+	  (setq style (car funcs))
+	  (setq funcs (cdr funcs))
+	  (setq new-name name)
+	  (while funcs
+	    (setq new-name (funcall (car funcs) new-name))
+	    (setq funcs (cdr funcs)))
+	  (setq uninstanciated-fontset-alist
+		(cons (list new-name style name) uninstanciated-fontset-alist))
+	  (setq funcs-alist (cdr funcs-alist)))))
 
     (if (and noerror (query-fontset name))
 	;; Don't try to create an already existing fontset.
@@ -382,6 +421,51 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 		(setq fontset-alias-alist
 		      (cons (cons name alias) fontset-alias-alist))))))))
 
+(defun instanciate-fontset (fontset)
+  "Create a new fontset FONTSET if it is not yet instanciated.
+Return FONTSET if it is created successfully, else return nil."
+  (let ((fontset-data (assoc fontset uninstanciated-fontset-alist)))
+    (if (null fontset-data)
+	nil
+      (let ((style (nth 1 fontset-data))
+	    (base-fontset (nth 2 fontset-data))
+	    (funcs-alist
+	     '((bold x-make-font-bold)
+	       (demibold x-make-font-demibold)
+	       (italic x-make-font-italic)
+	       (oblique x-make-font-oblique)
+	       (bold-italic x-make-font-bold x-make-font-italic)
+	       (demibold-italic x-make-font-demibold x-make-font-italic)
+	       (bold-oblique x-make-font-bold x-make-font-oblique)
+	       (demibold-oblique x-make-font-demibold x-make-font-oblique)))
+	    ascii-font font font2 funcs)
+	(setq uninstanciated-fontset-alist
+	      (delete fontset-data uninstanciated-fontset-alist))
+	(setq fontset-data (assoc base-fontset global-fontset-alist))
+	(setq ascii-font (cdr (assq 'ascii (cdr fontset-data))))
+	(setq funcs (cdr (assq style funcs-alist)))
+	(if (= (length funcs) 1)
+	    (and (setq font (funcall (car funcs) ascii-font))
+		 (setq font (x-resolve-font-name font 'default)))
+	  (and (setq font (funcall (car funcs) ascii-font))
+	       (not (equal font ascii-font))
+	       (setq font2 (funcall (nth 1 funcs) font))
+	       (not (equal font2 font))
+	       (setq font (x-resolve-font-name font2 'default))))
+	(when font
+	  (let ((new-fontset-data (copy-alist fontset-data)))
+	    (setq funcs (cdr (assq style funcs-alist)))
+	    (while funcs
+	      (setcar new-fontset-data
+		      (funcall (car funcs) (car new-fontset-data)))
+	      (let ((l (cdr new-fontset-data)))
+		(while l
+		  (if (setq font (funcall (car funcs) (cdr (car l))))
+		      (setcdr (car l) font))
+		  (setq l (cdr l))))
+	      (setq funcs (cdr funcs)))
+	    (new-fontset (car new-fontset-data) (cdr new-fontset-data))
+	    (car new-fontset-data)))))))
 
 ;; Create standard fontset from 16 dots fonts which are the most widely
 ;; installed fonts.  Fonts for Chinese-GB, Korean, and Chinese-CNS are
