@@ -9,6 +9,9 @@
 	(sql-sybase): Use it.  Add sql-database to the list of parameters
 	provided for login.  The options -w 2048 -n are not used any more.
 
+	* comint.el (comint-read-input-ring): Bugfix such that the first
+	and the last entry of the input ring file are not lost.
+
 2000-10-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Internal variable changes to defcustom,

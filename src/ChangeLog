@@ -1,5 +1,10 @@
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (access_keymap): If IDX has a meta prefix, and there's
+	no map for meta_prefix_char, don't try to use it as a keymap.
+	Instead, if T_OK is non-zero, look up a default binding, if any,
+	otherwise, if T_OK is zero, return nil.
+
 	* xfns.c (x_to_xcolors, x_set_mouse_color, lookup_pixel_color)
 	(x_to_xcolors, png_load): Use x_query_color.
 

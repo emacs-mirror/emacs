@@ -1,3 +1,8 @@
+2000-10-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* display.texi (Display Vars): Fix description of the role of
+	baud-rate for window-systems.
+
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* sending.texi (Distracting NSA): Change the example.
