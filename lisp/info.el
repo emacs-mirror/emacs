@@ -329,14 +329,6 @@ to read a file name from the minibuffer."
 	  (goto-char (nth 2 (car hl)))
 	(Info-restore-point (cdr hl)))))
 
-(defun Info-restore-point (hl)
-  "If this node has been visited, restore the point value when we left."
-  (if hl
-      (if (and (equal (nth 0 (car hl)) Info-current-file)
-	       (equal (nth 1 (car hl)) Info-current-node))
-	  (goto-char (nth 2 (car hl)))
-	(Info-restore-point (cdr hl)))))
-
 (defvar Info-last-search nil
   "Default regexp for \\<info-mode-map>\\[Info-search] command to search for.")
 
