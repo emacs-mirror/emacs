@@ -30,15 +30,14 @@ Boston, MA 02111-1307, USA.
 #include <windows.h>
 #include <string.h>
 
-/* Disable features in headers that require a Window System for
-   console mode.  */
-#undef HAVE_WINDOW_SYSTEM
 #include "lisp.h"
 #include "charset.h"
 #include "coding.h"
-#include "frame.h"
 #include "disptab.h"
 #include "termhooks.h"
+/* Disable features in dispextern.h that require a Window System.  */
+#undef HAVE_WINDOW_SYSTEM
+#include "frame.h"
 #include "w32inevt.h"
 #include "dispextern.h"
 
@@ -724,6 +723,11 @@ initialize_w32_display (void)
       SET_FRAME_WIDTH (SELECTED_FRAME (), 1 + info.srWindow.Right - 
 		       info.srWindow.Left);
     }
+
+  /* Setup w32_display_info structure for this frame. */
+
+  w32_initialize_display_info (build_string ("Console"));
+
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
