@@ -258,6 +258,49 @@ Setting a breakpoint in the function `x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
+Some bugs related to the X protocol disappear when Emacs runs in a
+synchronous mode.  To track down those bugs, we suggest the following
+procedure:
+
+  - Run Emacs under a debugger and put a breakpoint inside the
+    primitive function which, when called from Lisp, triggers the X
+    protocol errors.  For example, if the errors happen when you
+    delete a frame, put a breakpoint inside `Fdelete_frame'.
+
+  - When the breakpoint breaks, step through the code, looking for
+    calls to X functions (the ones whose names begin with "X" or
+    "Xt" or "Xm").
+
+  - Insert calls to `XSync' before and after each call to the X
+    functions, like this:
+
+       XSync (f->output_data.x->display_info->display, 0);
+
+    where `f' is the pointer to the `struct frame' of the selected
+    frame, normally available via XFRAME (selected_frame).  (Most
+    functions which call X already have some variable that holds the
+    pointer to the frame, perhaps called `f' or `sf', so you shouldn't
+    need to compute it.)
+
+    If your debugger can call functions in the program being debugged,
+    you should be able to issue the calls to `XSync' without recompiling
+    Emacs.  For example, with GDB, just type:
+
+       call XSync (f->output_data.x->display_info->display, 0)
+
+    before and immediately after the suspect X calls.  If your
+    debugger does not support this, you will need to add these pairs
+    of calls in the source and rebuild Emacs.
+
+    Either way, systematically step through the code and issue these
+    calls until you find the first X function called by Emacs after
+    which a call to `XSync' winds up in the function
+    `x_error_quitter'.  The first X function call for which this
+    happens is the one that generated the X protocol error.
+
+  - You should now look around this offending X call and try to figure
+    out what is wrong with it.
+
 ** If the symptom of the bug is that Emacs fails to respond
 
 Don't assume Emacs is `hung'--it may instead be in an infinite loop.
