@@ -5947,7 +5947,7 @@ don't show a cursor.")
 
 DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
-  "Value is non-nil if next redisplay will display a cursor in WINDOW.
+  "Value is non-nil if next redisplay will display a cursor in WINDOW.\n\
 WINDOW nil or omitted means report on the selected window.")
   (window)
      Lisp_Object window;
