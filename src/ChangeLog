@@ -1,3 +1,7 @@
+1999-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_write_glyphs): Track last changes to struct glyph.
+
 1999-12-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dispnew.c (mode_line_string): Support MS-DOS frames.
