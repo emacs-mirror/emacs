@@ -1,5 +1,7 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* sysdep.c (getwd) [!HAVE_GETWD]: Unblock input before returning.
+
 	* editfns.c (Fcurrent_time_zone): Accept spaces in timezone
 	names.
 

@@ -1,5 +1,8 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* wid-edit.el (widget-color-sample-face-get): Don't make
+	faces for undefined colors.
+
 	* version.el (emacs-version): Include LessTif/Motif version info.
 
 2001-04-04  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
