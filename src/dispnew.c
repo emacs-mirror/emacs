@@ -3938,6 +3938,7 @@ update_text_area (w, vpos)
       || desired_row->phys_height != current_row->phys_height
       || desired_row->visible_height != current_row->visible_height
       || current_row->overlapped_p
+      || current_row->mouse_face_p
       || current_row->x != desired_row->x)
     {
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
