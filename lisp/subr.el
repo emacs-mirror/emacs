@@ -421,7 +421,7 @@ as returned by the `event-start' and `event-end' functions."
   (nth 2 position))
 
 (defun posn-col-row (position)
-  "Return the row and column in POSITION, measured in characters.
+  "Return the column and row in POSITION, measured in characters.
 POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions.
@@ -429,12 +429,14 @@ For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar."
   (let ((pair   (nth 2 position))
 	(window (posn-window position)))
-    (if (eq (if (symbolp (nth 1 position)) (nth 1 position)
-	      (car (nth 1 position)))
+    (if (eq (if (consp (nth 1 position))
+		(car (nth 1 position))
+	      (nth 1 position))
 	    'vertical-scroll-bar)
 	(cons 0 (scroll-bar-scale pair (1- (window-height window))))
-      (if (eq (if (symbolp (nth 1 position)) (nth 1 position)
-		(car (nth 1 position)))
+      (if (eq (if (consp (nth 1 position))
+		  (car (nth 1 position))
+		(nth 1 position))
 	      'horizontal-scroll-bar)
 	  (cons (scroll-bar-scale pair (window-width window)) 0)
 	(let* ((frame (if (framep window) window (window-frame window)))
