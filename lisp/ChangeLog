@@ -1,3 +1,7 @@
+2002-11-15  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule.el (set-buffer-file-coding-system): Redo prev chg.
+
 2002-11-15  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-use-other-window, ibuffer-use-header-line)
