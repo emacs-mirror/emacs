@@ -1,5 +1,7 @@
 2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* simple.el (kill-append): Doc fix.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Adapt
 	outline-regexp to the new conventions for commenting out code.
 
