@@ -1299,7 +1299,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (strcmp (nm - 2, SDATA (name)) != 0)
 	    {
 	      name
-		= make_specified_string (nm, -1, strlen (nm),
+		= make_specified_string (nm - 2, -1, p - nm + 2,
 					 STRING_MULTIBYTE (name));
 	      SSET (name, 0, DRIVE_LETTER (drive));
 	      SSET (name, 1, ':');
