@@ -36,7 +36,7 @@ casify_object (flag, obj)
 
   while (1)
     {
-      if (XTYPE (obj) == Lisp_Int)
+      if (INTEGERP (obj))
 	{
 	  c = XINT (obj);
 	  if (c >= 0 && c <= 0400)
@@ -48,7 +48,7 @@ casify_object (flag, obj)
 	    }
 	  return obj;
 	}
-      if (XTYPE (obj) == Lisp_String)
+      if (STRINGP (obj))
 	{
 	  obj = Fcopy_sequence (obj);
 	  len = XSTRING (obj)->size;
