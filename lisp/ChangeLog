@@ -1,3 +1,8 @@
+2003-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (indian-font-char-index-table): Fix the
+	order of CDAC fonts.
+
 2003-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (pop-global-mark-quick-repeat): Remove defcustom.
