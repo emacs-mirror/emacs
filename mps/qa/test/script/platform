@@ -29,7 +29,7 @@ sub platform_settings {
   if ($PLATFORM =~ "^sos8gp") {
    &settings_gprof();
   }
- } elsif ($PLATFORM =~ "::unix") {
+ } elsif ($PLATFORM =~ "__unix") {
   &logcomment("I don't know anything specific about $PLATFORM --");
   &logcomment("using generic unix/gcc settings.");
   &settings_unix();
