@@ -2326,8 +2326,9 @@ If FRAME is nil, search only the selected frame\n\
   (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
 {
-  register Lisp_Object window, tem;
+  register Lisp_Object window, tem, swp;
 
+  swp = Qnil;
   buffer = Fget_buffer (buffer);
   CHECK_BUFFER (buffer, 0);
 
@@ -2342,8 +2343,8 @@ If FRAME is nil, search only the selected frame\n\
      in the selected window.  */
   if (NILP (not_this_window))
     {
-      tem = Fsame_window_p (XBUFFER (buffer)->name);
-      if (!NILP (tem))
+      swp = Fsame_window_p (XBUFFER (buffer)->name);
+      if (!NILP (swp) && !no_switch_window (selected_window))
 	{
 	  Fswitch_to_buffer (buffer, Qnil);
 	  return display_buffer_1 (selected_window);
@@ -2367,7 +2368,7 @@ If FRAME is nil, search only the selected frame\n\
     }
 
   /* Certain buffer names get special handling.  */
-  if (!NILP (Vspecial_display_function))
+  if (!NILP (Vspecial_display_function) && NILP (swp))
     {
       tem = Fspecial_display_p (XBUFFER (buffer)->name);
       if (EQ (tem, Qt))
