@@ -655,7 +655,8 @@ deeper in parentheses (@minus{}@var{arg} levels).
 @deffn Command forward-sexp &optional arg
 This function moves forward across @var{arg} (default 1) balanced expressions.
 Balanced expressions include both those delimited by parentheses and
-other kinds, such as words and string constants.  For example,
+other kinds, such as words and string constants
+@xref{Parsing Expressions}.  For example,
 
 @example
 @group
