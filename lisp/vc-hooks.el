@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.126 2000/10/27 13:26:18 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.127 2000/11/04 18:24:50 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -215,15 +215,12 @@ exists and its contents were successfully inserted."
     (if (not limit)
         (insert-file-contents file)
       (if (not blocksize) (setq blocksize 8192))
-      (let (found s)
-        (while (not found)
-          (setq s (buffer-size))
-          (goto-char (1+ s))
-          (setq found
-                (or (zerop (cadr (insert-file-contents
-                                  file nil s (+ s blocksize))))
-                    (progn (beginning-of-line)
-                           (re-search-forward limit nil t)))))))
+      (let ((filepos 0))
+        (while
+	    (and (< 0 (cadr (insert-file-contents
+			     file nil filepos (incf filepos blocksize))))
+		 (progn (beginning-of-line)
+			(not (re-search-forward limit nil 'move)))))))
     (set-buffer-modified-p nil)
     t))
 
