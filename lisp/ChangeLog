@@ -1,3 +1,12 @@
+2000-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-text): New variable.
+	(fancy-splash-delay, fancy-splash-image): New user-options.
+	(fancy-splash-insert, fancy-splash-head, fancy-splash-tail)
+	(fancy-splash-screens): New functions.
+	(command-line-1): If display has a `display' frame parameter, has
+	colors, and we have XPM support, show more fancy splash screens.
+	
 2000-09-19  Dave Love  <fx@gnu.org>
 
 	* map-ynp.el (map-y-or-n-p): Check use-dialog-box.  Don't lose
