@@ -101,7 +101,7 @@ in the current window."
 			     (or hpos
 				 ;; HPOS unspecified, so compute
 				 ;; it so as to center the string.
-				 (/ (- (window-width) (length string)) 2)))))
+				 (max 0 (/ (- (window-width) (length string)) 2))))))
     (dotimes (i animate-n-steps)
       ;; Bind buffer-undo-list so it will be unchanged when we are done.
       ;; (We're going to undo all our changes anyway.)
