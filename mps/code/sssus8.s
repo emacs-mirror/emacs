@@ -2,7 +2,7 @@
 !
 !                      STACK SCANNING
 !
-!  $HopeName: MMsrc!sssos9sc.S(trunk.1) $
+!  $HopeName: MMsrc!sssus8.s(trunk.5) $
 !
 !  Copyright (C) 1995 Harlequin Group, all rights reserved
 !

@@ -1,6 +1,6 @@
 /* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
- * $HopeName: MMsrc!prmci3w3.c(trunk.1) $
+ * $HopeName: MMsrc!prmci3w3.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -23,7 +23,7 @@
 #include "prmci3.h"
 #include "mpm.h"
 
-SRCID(prmci3w3, "$HopeName$");
+SRCID(prmci3w3, "$HopeName: MMsrc!prmci3w3.c(trunk.2) $");
 
 
 /* Prmci3AddressHoldingReg -- Return an address for a given machine register */

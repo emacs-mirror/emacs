@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.63) $
+ * $HopeName: MMsrc!buffer.c(trunk.64) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -26,7 +26,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.63) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.64) $");
 
 
 /* forward declarations */

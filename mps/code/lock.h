@@ -1,6 +1,6 @@
 /* impl.h.lock: RECURSIVE LOCKS
  *
- * $HopeName: MMsrc!lock.h(trunk.5) $
+ * $HopeName: MMsrc!lock.h(trunk.6) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .description: [@@@@ Should be combined with design.mps.lock]

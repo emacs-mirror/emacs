@@ -1,6 +1,6 @@
 /* impl.h.ring: RING INTERFACE
  *
- * $HopeName: MMsrc!ring.h(MMdevel_pekka_locus.1) $
+ * $HopeName: MMsrc!ring.h(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 

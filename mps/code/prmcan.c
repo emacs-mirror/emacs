@@ -1,6 +1,6 @@
 /* impl.c.prmcan: PROTECTION MUTATOR CONTEXT (ANSI)
  *
- * $HopeName: MMsrc!prmcan.c(trunk.1) $
+ * $HopeName: MMsrc!prmcan.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.prot for the generic design of the interface
@@ -14,7 +14,7 @@
 
 #include "mpm.h"
 
-SRCID(prmcan, "$HopeName$");
+SRCID(prmcan, "$HopeName: MMsrc!prmcan.c(trunk.2) $");
 
 
 /* ProtCanStepInstruction -- can the current instruction be single-stepped */

@@ -1,6 +1,6 @@
 /* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
  *
- * $HopeName: MMsrc!abqtest.c(trunk.5) $
+ * $HopeName: MMsrc!abqtest.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -20,7 +20,7 @@ struct itimerspec; /* stop complaints from time.h */
 #include <math.h>
 
 
-SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.5) $");
+SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.6) $");
 
 
 static ABQStruct abq; /* the ABQ which we will use */

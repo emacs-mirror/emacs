@@ -1,6 +1,6 @@
 /* impl.c.boot: BOOTSTRAP ALLOCATOR
  *
- * $HopeName: MMsrc!boot.c(MMdevel_pekka_locus.2) $
+ * $HopeName: MMsrc!boot.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .overview: A structure and protocols for allocating memory from a
@@ -14,7 +14,7 @@
 #include "boot.h"
 #include "mpm.h"
 
-SRCID(boot, "$HopeName: MMsrc!boot.c(MMdevel_pekka_locus.2) $");
+SRCID(boot, "$HopeName: MMsrc!boot.c(trunk.2) $");
 
 
 #define BootBlockSig ((Sig)0x519B002B) /* SIGnature BOOT Block */

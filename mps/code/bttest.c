@@ -1,6 +1,6 @@
 /* impl.c.bttest: BIT TABLE TEST
  *
- * $HopeName: MMsrc!bttest.c(trunk.4) $
+ * $HopeName: MMsrc!bttest.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -19,7 +19,7 @@ struct itimerspec; /* stop complaints from time.h */
 #include <time.h>
 
 
-SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.4) $");
+SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.5) $");
 
 
 static BT bt; /* the BT which we will use */

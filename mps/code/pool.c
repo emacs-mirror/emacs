@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.75) $
+ * $HopeName: MMsrc!pool.c(trunk.76) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -31,7 +31,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.75) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.76) $");
 
 
 /* PoolClassCheck -- check a pool class */

@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.63) $
+ * $HopeName: MMsrc!mps.h(trunk.64) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.

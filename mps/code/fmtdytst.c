@@ -1,6 +1,6 @@
 /* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
  *
- * $HopeName: MMsrc!fmtdytst.c(trunk.5) $
+ * $HopeName: MMsrc!fmtdytst.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group.  All rights reserved.
  *
  * .readership: MPS developers, Dylan developers.

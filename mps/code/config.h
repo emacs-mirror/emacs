@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.46) $
+ * $HopeName: MMsrc!config.h(trunk.47) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE

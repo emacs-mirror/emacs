@@ -1,6 +1,6 @@
 /*  impl.h.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
- * $HopeName: MMsrc!poolmv2.h(trunk.2) $
+ * $HopeName: MMsrc!poolmv2.h(trunk.3) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  * 
  * .purpose: The implementation of the new manual-variable pool class

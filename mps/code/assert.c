@@ -1,6 +1,6 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName$
+ * $HopeName: MMsrc!assert.c(trunk.12) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * This source provides the AssertFail function which is
@@ -11,7 +11,7 @@
 #include "check.h"
 #include "mpm.h"
 
-SRCID(assert, "$HopeName: MMsrc!assert.c(trunk.11) $");
+SRCID(assert, "$HopeName: MMsrc!assert.c(trunk.12) $");
 
 
 /* CheckLevel -- Control check level 

@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.13) $
+ * $HopeName: MMsrc!event.c(trunk.14) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .sources: mps.design.event
@@ -25,7 +25,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.13) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.14) $");
 
 
 #ifdef EVENT /* .trans.ifdef */

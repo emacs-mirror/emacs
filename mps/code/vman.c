@@ -1,6 +1,6 @@
 /* impl.c.vman: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
  *
- * $HopeName: MMsrc!vman.c(trunk.21) $
+ * $HopeName: MMsrc!vman.c(trunk.22) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>     /* for malloc and free */
 #include <string.h>     /* for memset */
 
-SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.21) $");
+SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.22) $");
 
 
 /* VMStruct -- virtual memory structure */

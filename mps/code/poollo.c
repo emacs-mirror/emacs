@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.19) $
+ * $HopeName: MMsrc!poollo.c(trunk.20) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -12,7 +12,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.19) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.20) $");
 
 
 #define LOGen ((Serial)1)

@@ -1,6 +1,6 @@
 /* impl.h.prmci3: PROTECTION MUTATOR CONTEXT (Intel 386)
  *
- * $HopeName: $
+ * $HopeName: MMsrc!prmci3.h(trunk.1) $
  * Copyright (C) 1999 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MPS developers.

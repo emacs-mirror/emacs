@@ -1,6 +1,6 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.12) $
+ * $HopeName: MMsrc!ref.c(trunk.13) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.12) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.13) $");
 
 
 /* RankCheck -- check a rank value */
