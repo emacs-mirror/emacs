@@ -23,7 +23,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* lint */
 
 
+#ifdef USE_TEXT_PROPERTIES
+#define SET_PT(position) (set_point ((position), current_buffer))
+#define TEMP_SET_PT(position) (temp_set_point ((position), current_buffer))
+
+#define BUF_SET_PT(buffer, position) (set_point ((position), (buffer)))
+#define BUF_TEMP_SET_PT(buffer, position) (temp_set_point ((position), (buffer)))
+
+#else  /* don't support text properties */
+
 #define SET_PT(position) (current_buffer->text.pt = (position))
+#define TEMP_SET_PT(position) (current_buffer->text.pt = (position))
+
+#define BUF_SET_PT(buffer, position) (buffer->text.pt = (position))
+#define BUF_TEMP_SET_PT(buffer, position) (buffer->text.pt = (position))
+#endif /* don't support text properties */
 
 /* Character position of beginning of buffer.  */ 
 #define BEG (1)
@@ -70,8 +84,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Now similar macros for a specified buffer.
    Note that many of these evaluate the buffer argument more than once.  */
-
-#define BUF_SET_PT(buffer, position) (buffer->text.pt = (position))
 
 /* Character position of beginning of buffer.  */ 
 #define BUF_BEG(buf) (1)
@@ -161,6 +173,9 @@ struct buffer
     /* Position in buffer at which display started
        the last time this buffer was displayed */
     int last_window_start;
+
+    /* Properties of this buffer's text -- conditionally compiled. */
+    DECLARE_INTERVALS
 
     /* This is a special exception -- as this slot should not be
        marked by gc_sweep, and as it is not lisp-accessible as
