@@ -216,7 +216,7 @@ to be deleted."
 
 ;;;###autoload
 (defun delete-extract-rectangle (start end &optional fill)
-  "Delete the contents of the region-rectangle.
+  "Delete the contents of the rectangle with corners at START and END.
 Return it as a list of strings, one for each line of the rectangle.
 
 When called from a program the rectangle's corners are START and END.
