@@ -6128,7 +6128,7 @@ SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
 Emacs was built without floating point support.
-\(Not all operating systems support waiting for a fraction of a second.  */
+\(Not all operating systems support waiting for a fraction of a second.)  */
        (seconds, milliseconds))
      Lisp_Object seconds, milliseconds;
 {
