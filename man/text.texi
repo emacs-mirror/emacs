@@ -1897,23 +1897,27 @@ format.
   The @code{excerpt} face is intended for quotations.  This face is the
 same as @code{italic} unless you customize it (@pxref{Face Customization}).
 
-  The @code{fixed} face is meant to say, ``Use a fixed-width font for this
-part of the text.''  Emacs currently supports only fixed-width fonts;
-therefore, the @code{fixed} annotation is not necessary now.  However,
-we plan to support variable width fonts in future Emacs versions, and
-other systems that display text/enriched format may not use a
-fixed-width font as the default.  So if you specifically want a certain
-part of the text to use a fixed-width font, you should specify the
+  The @code{fixed} face means, ``Use a fixed-width font for this part
+of the text.''  This makes a visible difference only if you have
+specified a variable-width font in the default face; however, even if
+the default font is fixed-width, applying the @code{fixed} face to a
+part of the text will cause that part of the text to appear in a
+fixed-width font, if the file is ever displayed with a variable-width
+default font.  This applies to Emacs and to other systems that display
+text/enriched format.  So if you specifically want a certain part of
+the text to use a fixed-width font, you should specify the
 @code{fixed} face for that part.
 
-  The @code{fixed} face is normally defined to use a different font from
-the default.  However, different systems have different fonts installed,
-so you may need to customize this.
+  The @code{fixed} face is normally set up to use a different font
+from the default, even if the default face is also fixed-width.
+Different systems have different fonts installed, so you may need to
+customize this.  @xref{Face Customization}.
 
-  If your terminal cannot display different faces, you will not be able
-to see them, but you can still edit documents containing faces.  You can
-even add faces and colors to documents.  They will be visible when the
-file is viewed on a terminal that can display them.
+  If your terminal cannot display different faces, you will not be
+able to see them, but you can still edit documents containing faces,
+and even add faces and colors to documents.  The faces you specify
+will be visible when the file is viewed on a terminal that can display
+them.
 
 @node Format Colors
 @subsection Colors in Formatted Text
