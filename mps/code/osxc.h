@@ -1,7 +1,7 @@
 /* osxc.h: MacOS X (Carbon-compatible) system header hacks
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2005 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This header fixes bugs in the system headers.
  */
@@ -11,17 +11,7 @@
 #define osxc_h
 
 
-#ifdef MPS_BUILD_GC
-/* __inline__ is supposed to do nothing in gcc -ansi, but there's a bug in */
-/* DP3, that causes it to signal error (for __sputc in stdio.h). */
-#define __inline__
-#endif
-
-
-/* cabs doesn't have a proper prototype; taken from glibc 2.0.6 manual. */
-/* Define a structure tag to avoid warnings. */
-struct mps_complex { double real, imag; };
-extern double cabs(struct mps_complex z);
+/* There's nothing to fix. */
 
 
 #endif /* osxc_h */
@@ -29,7 +19,7 @@ extern double cabs(struct mps_complex z);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
