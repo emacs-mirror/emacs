@@ -1287,7 +1287,7 @@ update_menu_bar (f, save_match_data)
   if (update_mode_lines)
     w->update_mode_line = Qt;
 
-  if (FRAME_X_P (f)
+  if (FRAME_WINDOW_P (f)
       ?
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
       FRAME_EXTERNAL_MENU_BAR (f) 
@@ -1333,7 +1333,7 @@ update_menu_bar (f, save_match_data)
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
-	  if (FRAME_X_P (f))
+	  if (FRAME_WINDOW_P (f))
 	    set_frame_menubar (f, 0, 0);
 #endif /* USE_X_TOOLKIT || HAVE_NTGUI */
 
@@ -1754,7 +1754,7 @@ done:
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (update_mode_line
-      && (FRAME_X_P (f)
+      && (FRAME_WINDOW_P (f)
 	  ?
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	  FRAME_EXTERNAL_MENU_BAR (f) 
