@@ -4985,7 +4985,7 @@ make_lispy_position (f, x, y, time)
 	{
 	  Lisp_Object string;
 	  int charpos;
-	  
+
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
 	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
@@ -5468,7 +5468,7 @@ make_lispy_event (event)
       {
 	Lisp_Object position;
 	Lisp_Object head;
-	
+
 	/* Build the position as appropriate for this mouse click.  */
 	struct frame *f = XFRAME (event->frame_or_window);
 
@@ -6573,6 +6573,7 @@ record_asynch_buffer_change ()
    buffer of input_events as we used to do.  Instead, we just allocate
    a small buffer of input events -- and then poll for more input if we
    read a full buffer of input events.  */
+
 #define NREAD_INPUT_EVENTS 8
 
 static int
@@ -6587,7 +6588,6 @@ read_avail_input (expected)
       int discard = 0;
       int nr;
 
-      
       do {
 	struct input_event buf[NREAD_INPUT_EVENTS];
 
@@ -6726,7 +6726,7 @@ read_avail_input (expected)
 	  buf.code = cbuf[i];
 	  buf.frame_or_window = selected_frame;
 	  buf.arg = Qnil;
-	  
+
 	  kbd_buffer_store_event (&buf);
 	  /* Don't look at input that follows a C-g too closely.
 	     This reduces lossage due to autorepeat on C-g.  */
@@ -8268,7 +8268,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
      int do_funcall;
 {
   Lisp_Object next;
-  
+
   next = access_keymap (map, key, 1, 0, 1);
 
   /* Handle symbol with autoload definition.  */
@@ -8283,7 +8283,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
       && (!NILP (Farrayp (XSYMBOL (next)->function))
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
-	    
+
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
      its value instead.  */
@@ -9297,7 +9297,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* Adjust the function-key-map counters.  */
 	      fkey.end += diff;
 	      fkey.start += diff;
-	      
+
 	      goto replay_sequence;
 	    }
 	}
@@ -11305,7 +11305,7 @@ keys_of_keyboard ()
   /* Handling it at such a low-level causes read_key_sequence to get
    * confused because it doesn't realize that the current_buffer was
    * changed by read_char.
-   * 
+   *
    * initial_define_lispy_key (Vspecial_event_map, "select-window",
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",
