@@ -41,6 +41,7 @@ extern Lisp_Object Flookup_key ();
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
+Lisp_Object Qcursor_in_echo_area;
 
 static int internal_equal ();
 
@@ -1558,8 +1559,10 @@ Also accepts Space to mean yes, or Delete to mean no.")
   register int answer;
   Lisp_Object xprompt;
   Lisp_Object args[2];
-  int ocech = cursor_in_echo_area;
   struct gcpro gcpro1, gcpro2;
+  int count = specpdl_ptr - specpdl;
+
+  specbind (Qcursor_in_echo_area, Qt);
 
   map = Fsymbol_value (intern ("query-replace-map"));
 
@@ -1569,6 +1572,8 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
+      
+
 #ifdef HAVE_MENUS
       if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
 	  && have_menus_p ())
@@ -1642,9 +1647,9 @@ Also accepts Space to mean yes, or Delete to mean no.")
       cursor_in_echo_area = -1;
       message_nolog ("%s(y or n) %c",
 		     XSTRING (xprompt)->data, answer ? 'y' : 'n');
-      cursor_in_echo_area = ocech;
     }
 
+  unbind_to (count, Qnil);
   return answer ? Qt : Qnil;
 }
 
@@ -1823,6 +1828,8 @@ syms_of_fns ()
   staticpro (&Qrequire);
   Qyes_or_no_p_history = intern ("yes-or-no-p-history");
   staticpro (&Qyes_or_no_p_history);
+  Qcursor_in_echo_area = intern ("cursor-in-echo-area");
+  staticpro (&Qcursor_in_echo_area);
 
   DEFVAR_LISP ("features", &Vfeatures,
     "A list of symbols which are the features of the executing emacs.\n\
