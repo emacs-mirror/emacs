@@ -478,7 +478,7 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 ;; return a list of file names listed in the buffer beginning at point
 ;; If optional arg is supplied, assume each filename is listed on a separate
 ;; line
-(defun vip-get-filenames-from-buffer (one-per-line)
+(defun vip-get-filenames-from-buffer (&optional one-per-line)
   (let ((skip-chars (if one-per-line "\t\n" " \t\n"))
 	 result fname delim)
     (skip-chars-forward skip-chars)
