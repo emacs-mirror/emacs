@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 02, 2003
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98,1999,2000,01,02,03,2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2772,7 +2772,7 @@ It returns the number of characters changed.  */)
   modify_region (current_buffer, pos, XINT (end));
 
   cnt = 0;
-  for (; pos < end; )
+  for (; pos < XINT (end); )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str;
