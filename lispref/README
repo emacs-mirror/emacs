@@ -11,7 +11,7 @@ Emacs bugs, use bug-gnu-emacs@gnu.org.  To ask questions, use the
 newsgroup gnu.emacs.help.
 
 * The Emacs Lisp Reference Manual is quite large.  It totals around
-700 pages in smallbook format; the info files total almost two
+900 pages in smallbook format; the info files total almost two
 megabytes.
 
 * You can format this manual either for Info or for printing hardcopy
@@ -44,4 +44,4 @@ commands in the shell:
 with `make-permuted-index'.  
 
 ** To make an Info file, you need to install Texinfo, then run
-`make elisp'.
+`make elisp'.  To install the Info files, run `make install'.
