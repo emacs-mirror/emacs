@@ -2015,15 +2015,12 @@ compact_strings ()
 DEFUN ("memory-limit", Fmemory_limit, Smemory_limit, 0, 0, "",
   "Return the address of the last byte Emacs has allocated, divided by 1024.\n\
 This may be helpful in debugging Emacs's memory usage.\n\
-If called interactively, print the result in the minibuffer.")
+The value is divided by 1024 to make sure it will fit in a lisp integer.")
   ()
 {
   Lisp_Object end;
 
-  XSET (end, Lisp_Int, (int) sbrk (0));
-
-  if (! NILP (Finteractive_p))
-    message ("Memory limit at %dk.", XINT (end));
+  XSET (end, Lisp_Int, (int) sbrk (0) / 1024);
 
   return end;
 }
