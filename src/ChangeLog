@@ -1,5 +1,8 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xfaces.c (Finternal_set_alternative_font_family_alist):
+	Reindent.
+
 	* xdisp.c (Fdump_tool_bar_row): Reindent.
 
 	* minibuf.c (Fminibuffer_complete_word): Reindent.
