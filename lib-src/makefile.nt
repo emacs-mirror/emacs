@@ -1,0 +1,326 @@
+#  Makefile for GNU Emacs lib-src directory.
+#   Geoff Voelker (voelker@cs.washington.edu)
+#  Copyright (C) 1994 Free Software Foundation, Inc.
+#
+#  This file is part of GNU Emacs.
+#  
+#  GNU Emacs is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2, or (at your option)
+#  any later version.
+#  
+#  GNU Emacs is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with GNU Emacs; see the file COPYING.  If not, write to
+#  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#
+
+# 
+# Sets up the system dependent macros.
+#
+!include ..\nt\makefile.def
+
+LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 -DNO_ARCHIVES=1 -I..\src
+OBJDIR	      	= obj
+BLD	      	= $(OBJDIR)\$(ARCH)
+
+LINK_FLAGS	= $(ARCH_LDFLAGS) -debug:PARTIAL -machine:$(ARCH) -subsystem:console -entry:mainCRTStartup
+
+ALL	        = $(BLD)\make-docfile.exe \
+		$(BLD)\hexl.exe		\
+		$(BLD)\wakeup.exe	\
+		$(BLD)\ctags.exe	\
+		$(BLD)\etags.exe
+
+		
+# don't know what (if) to do with these yet...
+#
+#		$(BLD)\sorted-doc.exe	\
+#		$(BLD)\env.exe		\
+#		$(BLD)\server.exe	\
+#		$(BLD)\emacstool.exe	\
+#		$(BLD)\fakemail.exe	\
+#		$(BLD)\leditcfns.exe	\
+#		$(BLD)\movemail.exe	\
+#		$(BLD)\emacsclient.exe	\
+#		$(BLD)\cvtmail.exe	\
+#		$(BLD)\digest-doc.exe	\
+#		$(BLD)\test-distrib.exe	\
+
+
+LIBS	      =	$(SYS_LIB_DIR)\setargv.obj	\
+		$(SYS_LIB_DIR)\kernel32.lib	\
+		$(SYS_LIB_DIR)\libc.lib
+
+#		$(SYS_LIB_DIR)\advapi32.lib	\
+
+$(BLD)\make-docfile.exe: 	$(LIBS) $(BLD)\make-docfile.obj
+$(BLD)\hexl.exe:		$(LIBS) $(BLD)\hexl.obj
+$(BLD)\ctags.exe: 		$(BLD)\etags.exe
+	copy $(BLD)\etags.exe $(BLD)\ctags.exe
+$(BLD)\wakeup.exe: 		$(LIBS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj
+		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj $(LIBS)
+
+make-docfile:	$(BLD)\make-docfile.exe
+wakeup:		$(BLD)\wakeup.exe
+etags:		$(BLD)\etags.exe
+hexl:		$(BLD)\hexl.exe
+
+ETAGSOBJ      = $(BLD)\etags.obj \
+		$(BLD)\getopt.obj \
+		$(BLD)\getopt1.obj \
+		$(BLD)\ntlib.obj
+
+$(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
+	link32 -out:$@ -debug:PARTIAL -machine:$(ARCH) -align:0x1000 -subsystem:console -entry:mainCRTStartup $(ETAGSOBJ) $(LIBS)
+
+#
+# don't know what to do with these yet...
+#
+# $(BLD)\sorted-doc.exe: 		$(LIBS) $(BLD)\sorted-doc.obj
+# $(BLD)\yow.exe: 		$(LIBS) $(BLD)\yow.obj
+# $(BLD)\emacstool.exe: 	$(LIBS) $(BLD)\emacstool.obj
+# $(BLD)\env.exe: 		$(LIBS) $(BLD)\env.obj
+# $(BLD)\fakemail.exe: 		$(LIBS) $(BLD)\fakemail.obj
+# $(BLD)\leditcfns.exe: 	$(LIBS) $(BLD)\leditcfns.obj
+# $(BLD)\server.exe: 		$(LIBS) $(BLD)\server.obj
+# $(BLD)\wakeup.exe: 		$(LIBS) $(BLD)\wakeup.obj
+# $(BLD)\movemail.exe: 		$(LIBS) $(BLD)\movemail.obj
+# $(BLD)\cvtmail.exe: 		$(LIBS) $(BLD)\cvtmail.obj
+# $(BLD)\digest-doc.exe: 	$(LIBS) $(BLD)\digest-doc.obj
+# $(BLD)\emacsclient.exe: 	$(LIBS) $(BLD)\emacsclient.obj
+# $(BLD)\qsort.exe: 		$(LIBS) $(BLD)\qsort.obj
+# $(BLD)\test-distrib.exe: 	$(LIBS) $(BLD)\test-distrib.obj
+
+#
+# From ..\makefile.nt, with .obj changed to .o
+#
+obj = abbrev.o alloc.o alloca.o buffer.o bytecode.o callint.o callproc.o casefiddle.o cm.o cmds.o data.o dired.o dispnew.o doc.o  doprnt.o editfns.o eval.o fileio.o filelock.o filemode.o fns.o  indent.o insdel.o keyboard.o keymap.o lastfile.o lread.o macros.o marker.o minibuf.o xfaces.o mocklisp.o nt.o ntheap.o ntinevt.o ntproc.o ntterm.o print.o process.o regex.o scroll.o search.o syntax.o sysdep.o term.o termcap.o tparam.o undo.o unexnt.o window.o xdisp.o casetab.o floatfns.o frame.o gmalloc.o intervals.o ralloc.o textprop.o vm-limit.o
+
+lispdir = ..\lisp
+
+#
+# These are the lisp files that are loaded up in loadup.el
+#
+lisp= \
+	$(lispdir)\subr.elc \
+	$(lispdir)\byte-run.elc \
+	$(lispdir)\map-ynp.elc \
+	$(lispdir)\loaddefs.el \
+	$(lispdir)\simple.elc \
+	$(lispdir)\help.elc \
+	$(lispdir)\files.elc \
+	$(lispdir)\indent.elc \
+	$(lispdir)\window.elc \
+	$(lispdir)\frame.elc \
+	$(lispdir)\mouse.elc \
+	$(lispdir)\menu-bar.elc \
+	$(lispdir)\scroll-bar.elc \
+	$(lispdir)\select.elc \
+	$(lispdir)\paths.el \
+	$(lispdir)\startup.elc \
+	$(lispdir)\lisp.elc \
+	$(lispdir)\page.elc \
+	$(lispdir)\register.elc \
+	$(lispdir)\paragraphs.elc \
+	$(lispdir)\lisp-mode.elc \
+	$(lispdir)\text-mode.elc \
+	$(lispdir)\fill.elc \
+	$(lispdir)\c-mode.elc \
+	$(lispdir)\isearch.elc \
+	$(lispdir)\replace.elc \
+	$(lispdir)\abbrev.elc \
+	$(lispdir)\buff-menu.elc \
+	$(lispdir)\winnt.elc \
+	$(lispdir)\float-sup.elc \
+	$(lispdir)\vc-hooks.elc \
+	$(lispdir)\version.el
+
+DOC	      = DOC 
+$(DOC):		$(BLD)\make-docfile.exe
+		- rm -f $(DOC)
+		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
+		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
+		$(CP) $(DOC) ..\etc
+		- mkdir ..\src\$(OBJDIR)
+		- mkdir ..\src\$(OBJDIR)\etc
+		$(CP) $(DOC) ..\src\$(OBJDIR)\etc
+
+{$(BLD)}.obj{$(BLD)}.exe:
+		$(LINK) -out:$@ $(LINK_FLAGS) $*.obj $(LIBS)
+
+.c{$(BLD)}.obj:
+		$(CC) $(CFLAGS) -Fo$@ $<
+
+#
+# Build the executables
+#
+all:		$(BLD) $(ALL) $(DOC)
+
+#
+# Assuming INSTALL_DIR is defined, build and install emacs in it.
+#
+INSTALL_FILES = $(ALL)
+install:	$(INSTALL_FILES)
+		- mkdir $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\etags.exe $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\ctags.exe $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\hexl.exe $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\wakeup.exe $(INSTALL_DIR)\bin\wakeup
+		- mkdir $(INSTALL_DIR)\etc
+		$(CP) $(DOC) $(INSTALL_DIR)\etc
+
+#
+# Maintenance
+# 
+clean:;		- del /q *~
+		- delnode /q deleted
+		- delnode /q obj
+		- del /q DOC
+
+#
+# Headers we would preprocess if we could.
+#
+..\src\config.h:	..\nt\src\config.h
+			cp ..\nt\src\config.h ..\src\config.h
+..\src\paths.h:		..\nt\src\paths.h
+			cp ..\nt\src\paths.h ..\src\paths.h
+
+### DEPENDENCIES ###
+
+EMACS_ROOT	= ..
+SRC		= .
+
+$(BLD)\alloca.obj : \
+	$(SRC)\alloca.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\src\blockinput.h
+
+$(BLD)\b2m.obj : \
+	$(SRC)\b2m.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h
+
+$(BLD)\cvtmail.obj : \
+	$(SRC)\cvtmail.c
+
+$(BLD)\digest-doc.obj : \
+	$(SRC)\digest-doc.c
+
+$(BLD)\emacsclient.obj : \
+	$(SRC)\emacsclient.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h
+
+$(BLD)\emacsserver.obj : \
+	$(SRC)\emacsserver.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h
+
+$(BLD)\emacstool.obj : \
+	$(SRC)\emacstool.c \
+	$(EMACS_ROOT)\nt\inc\sys\file.h
+
+$(BLD)\etags.obj : \
+	$(SRC)\etags.c \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(SRC)\getopt.h
+
+$(BLD)\fakemail.obj : \
+	$(SRC)\fakemail.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h
+
+$(BLD)\getdate.obj : \
+	$(SRC)\getdate.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(MSTOOLS_SYS)\types.h
+
+$(BLD)\getopt.obj : \
+	$(SRC)\getopt.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\getopt.h
+
+$(BLD)\getopt1.obj : \
+	$(SRC)\getopt1.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\getopt.h
+
+$(BLD)\hexl.obj : \
+	$(SRC)\hexl.c
+
+$(BLD)\leditcfns.obj : \
+	$(SRC)\leditcfns.c
+
+$(BLD)\make-docfile.obj : \
+	$(SRC)\make-docfile.c
+
+$(BLD)\make-path.obj : \
+	$(SRC)\make-path.c
+
+$(BLD)\movemail.obj : \
+	$(SRC)\movemail.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(EMACS_ROOT)\src\vmsproc.h \
+	$(EMACS_ROOT)\lib-src\..\src\syswait.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h
+
+$(BLD)\profile.obj : \
+	$(SRC)\profile.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(EMACS_ROOT)\src\vmstime.h \
+	$(EMACS_ROOT)\lib-src\..\src\systime.h
+
+$(BLD)\qsort.obj : \
+	$(SRC)\qsort.c
+
+$(BLD)\sorted-doc.obj : \
+	$(SRC)\sorted-doc.c
+
+$(BLD)\tcp.obj : \
+	$(SRC)\tcp.c
+
+$(BLD)\test-distrib.obj : \
+	$(SRC)\test-distrib.c
+
+$(BLD)\timer.obj : \
+	$(SRC)\timer.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h
+
+$(BLD)\wakeup.obj : \
+	$(SRC)\wakeup.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h
+
+$(BLD)\yow.obj : \
+	$(SRC)\yow.c \
+	$(EMACS_ROOT)\lib-src\..\src\paths.h

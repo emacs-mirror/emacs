@@ -1,0 +1,940 @@
+#  Makefile for GNU Emacs on Windows NT
+#  Copyright (c) 1992, 1993, 1994 Free Software Foundation, Inc.
+#   Tim Fleehart (apollo@online.com)
+#   Geoff Voelker (voelker@cs.washington.edu)
+#
+#  This file is part of GNU Emacs.
+#  
+#  GNU Emacs is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2, or (at your option)
+#  any later version.
+#  
+#  GNU Emacs is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with GNU Emacs; see the file COPYING.  If not, write to
+#  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#
+
+# 
+# Sets up the system dependent macros.
+#
+!include ..\nt\makefile.def
+
+#
+# HAVE_CONFIG_H is required by some generic gnu sources stuck into
+# the emacs source tree.
+#
+LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc -Zi
+
+EMACS           = $(BLD)\emacs.exe
+TEMACS          = $(BLD)\temacs.exe
+TLIB            = $(BLD)\temacs.lib
+TOBJ            = $(BLD)\emacs.obj
+
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
+
+# -debug:PARTIAL -debugtype:COFF
+
+#
+# Split up the objects into two sets so that we don't run out of
+# command line space when we link them into a library.
+#
+OBJ1 =  $(BLD)\abbrev.obj       \
+	$(BLD)\alloc.obj        \
+	$(BLD)\alloca.obj       \
+	$(BLD)\buffer.obj       \
+	$(BLD)\bytecode.obj     \
+	$(BLD)\callint.obj      \
+	$(BLD)\callproc.obj     \
+	$(BLD)\casefiddle.obj	\
+	$(BLD)\cm.obj           \
+	$(BLD)\cmds.obj         \
+	$(BLD)\data.obj         \
+	$(BLD)\dired.obj        \
+	$(BLD)\dispnew.obj      \
+	$(BLD)\doc.obj          \
+	$(BLD)\doprnt.obj       \
+	$(BLD)\editfns.obj      \
+	$(BLD)\eval.obj         \
+	$(BLD)\fileio.obj       \
+	$(BLD)\filelock.obj     \
+	$(BLD)\filemode.obj     \
+	$(BLD)\fns.obj          \
+	$(BLD)\indent.obj       \
+	$(BLD)\insdel.obj       \
+	$(BLD)\keyboard.obj     \
+	$(BLD)\keymap.obj       \
+	$(BLD)\lastfile.obj     \
+	$(BLD)\lread.obj        \
+	$(BLD)\macros.obj       \
+	$(BLD)\marker.obj       \
+	$(BLD)\minibuf.obj      \
+	$(BLD)\xfaces.obj       \
+	$(BLD)\mocklisp.obj
+
+OBJ2 =  $(BLD)\nt.obj           \
+	$(BLD)\ntheap.obj       \
+	$(BLD)\ntinevt.obj      \
+	$(BLD)\ntproc.obj       \
+	$(BLD)\ntterm.obj       \
+	$(BLD)\print.obj        \
+	$(BLD)\process.obj      \
+	$(BLD)\regex.obj        \
+	$(BLD)\scroll.obj       \
+	$(BLD)\search.obj       \
+	$(BLD)\syntax.obj       \
+	$(BLD)\sysdep.obj       \
+	$(BLD)\term.obj         \
+	$(BLD)\termcap.obj      \
+	$(BLD)\tparam.obj       \
+	$(BLD)\undo.obj         \
+	$(BLD)\unexnt.obj       \
+	$(BLD)\window.obj       \
+	$(BLD)\xdisp.obj        \
+	$(BLD)\casetab.obj      \
+	$(BLD)\floatfns.obj     \
+	$(BLD)\frame.obj        \
+	$(BLD)\gmalloc.obj      \
+	$(BLD)\intervals.obj    \
+	$(BLD)\ralloc.obj       \
+	$(BLD)\textprop.obj     \
+	$(BLD)\vm-limit.obj
+
+LIBS =  $(TLIB)                         \
+	$(SYS_LIB_DIR)\setargv.obj      \
+	$(SYS_LIB_DIR)\kernel32.lib     \
+	$(SYS_LIB_DIR)\advapi32.lib     \
+	$(SYS_LIB_DIR)\libc.lib
+
+#
+# Build the executable and dump it.
+#
+all:            $(BLD) $(EMACS) 
+
+#
+# Headers we would preprocess if we could.
+#
+PREPARED_HEADERS = config.h paths.h
+config.h:	..\nt\src\config.h
+		cp ..\nt\src\config.h config.h
+paths.h:	..\nt\src\paths.h
+		cp ..\nt\src\paths.h paths.h
+
+#
+# The dumped executable
+#
+emacs:          $(EMACS)
+$(EMACS):       $(PREPARED_HEADERS) $(TEMACS)
+		cd $(BLD)
+		temacs.exe -batch -l loadup dump
+		cd ..\..
+
+#
+# The undumped executable
+#
+temacs:         $(BLD) $(TEMACS)
+$(TEMACS):      $(LIBS) $(TOBJ)
+		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(LIBS)
+
+#
+# Build the library.  Split up the build into two phases...otherwise we 
+# run out of command line space.
+#
+$(TLIB):        $(OBJ1) $(OBJ2)
+		@- $(AR) -out:$(TLIB) $(OBJ1)
+		@- $(AR) -out:$(TLIB) $(TLIB) $(OBJ2)
+
+#
+# Object files.
+#
+.c{$(BLD)}.obj:
+		$(CC) $(CFLAGS) -Fo$@ $<
+
+#
+# Assuming INSTALL_DIR is defined, build and install emacs in it.
+#
+install:        all
+		- mkdir $(INSTALL_DIR)\bin
+		$(CP) $(EMACS) $(INSTALL_DIR)\bin
+
+#
+# Maintenance
+# 
+clean:;         - del /q *~
+		- delnode /q deleted
+		- delnode /q obj
+
+#
+# These files are the ones that compile conditionally on CANNOT_DUMP...
+# this target is mostly used for debugging.
+#
+cleandump:;     cd $(BLD) && - del callproc.obj data.obj dispnew.obj doc.obj editfns.obj emacs.obj lread.obj process.obj sysdep.obj term.obj ntheap.obj unexnt.obj
+
+
+### DEPENDENCIES ###
+
+EMACS_ROOT	= ..
+SRC		= .
+
+$(BLD)\abbrev.obj : \
+	$(SRC)\abbrev.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h
+
+$(BLD)\alloc.obj : \
+	$(SRC)\alloc.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\puresize.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h \
+	$(SRC)\frame.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\syssignal.h
+
+$(BLD)\alloca.obj : \
+	$(SRC)\alloca.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\blockinput.h
+
+$(BLD)\buffer.obj : \
+	$(SRC)\buffer.c \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\window.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\indent.h \
+	$(SRC)\blockinput.h
+
+$(BLD)\bytecode.obj : \
+	$(SRC)\bytecode.c \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\syntax.h
+
+$(BLD)\callint.obj : \
+	$(SRC)\callint.c \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\window.h \
+	$(SRC)\mocklisp.h
+
+$(BLD)\callproc.obj : \
+	$(SRC)\callproc.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\msdos.h \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\process.h \
+	$(SRC)\syssignal.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h
+
+$(BLD)\casefiddle.obj : \
+	$(SRC)\casefiddle.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h \
+	$(SRC)\syntax.h
+	$(CC) $(CFLAGS) -Fo$@ casefiddle.c
+
+$(BLD)\casetab.obj : \
+	$(SRC)\casetab.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h
+
+$(BLD)\cm.obj : \
+	$(SRC)\cm.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\cm.h \
+	$(SRC)\termhooks.h
+
+$(BLD)\cmds.obj : \
+	$(SRC)\cmds.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\syntax.h
+
+$(BLD)\data.obj : \
+	$(SRC)\data.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\puresize.h \
+	$(SRC)\buffer.h \
+	$(SRC)\syssignal.h
+
+$(BLD)\dired.obj : \
+	$(SRC)\dired.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\vmsdir.h \
+	$(SRC)\ndir.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h \
+	$(SRC)\regex.h
+
+$(BLD)\dispnew.obj : \
+	$(SRC)\dispnew.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termopts.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\cm.h \
+	$(SRC)\buffer.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\commands.h \
+	$(SRC)\disptab.h \
+	$(SRC)\indent.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h \
+	$(SRC)\xterm.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h
+
+$(BLD)\doc.obj : \
+	$(SRC)\doc.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\keyboard.h
+
+$(BLD)\doprnt.obj : \
+	$(SRC)\doprnt.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h
+
+$(BLD)\dosfns.obj : \
+	$(SRC)\dosfns.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\frame.h \
+	$(SRC)\dosfns.h \
+	$(SRC)\msdos.h
+
+$(BLD)\editfns.obj : \
+	$(SRC)\editfns.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\uaf.h \
+	$(SRC)\vms-pwd.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h
+
+$(BLD)\emacs.obj : \
+	$(SRC)\emacs.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h \
+	$(SRC)\syssignal.h \
+	$(SRC)\process.h
+
+$(BLD)\eval.obj : \
+	$(SRC)\eval.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\commands.h \
+	$(SRC)\keyboard.h
+
+$(BLD)\fileio.obj : \
+	$(SRC)\fileio.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\uaf.h \
+	$(SRC)\vms-pwd.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h \
+	$(SRC)\msdos.h \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(SRC)\vmsdir.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h
+
+$(BLD)\filelock.obj : \
+	$(SRC)\filelock.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\uaf.h \
+	$(SRC)\vms-pwd.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\lisp.h \
+	$(EMACS_ROOT)\src\paths.h \
+	$(SRC)\buffer.h \
+	$(SRC)\vmsdir.h \
+	$(SRC)\ndir.h
+
+$(BLD)\filemode.obj : \
+	$(SRC)\filemode.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h
+
+$(BLD)\floatfns.obj : \
+	$(SRC)\floatfns.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\syssignal.h
+
+$(BLD)\fns.obj : \
+	$(SRC)\fns.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h
+
+$(BLD)\frame.obj : \
+	$(SRC)\frame.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\frame.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\window.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h \
+	$(SRC)\keyboard.h
+
+$(BLD)\getloadavg.obj : \
+	$(SRC)\getloadavg.c \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h
+
+$(BLD)\gmalloc.obj : \
+	$(SRC)\gmalloc.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(SRC)\getpagesize.h
+	$(CC) $(CFLAGS) -D__STDC__ -Fo$@ gmalloc.c
+
+$(BLD)\hftctl.obj : \
+	$(SRC)\hftctl.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h
+
+$(BLD)\indent.obj : \
+	$(SRC)\indent.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\indent.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termopts.h \
+	$(SRC)\disptab.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h
+
+$(BLD)\insdel.obj : \
+	$(SRC)\insdel.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h \
+	$(SRC)\blockinput.h
+
+$(BLD)\intervals.obj : \
+	$(SRC)\intervals.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\buffer.h \
+	$(SRC)\puresize.h
+	$(CC) $(CFLAGS) -Fo$@ intervals.c
+
+$(BLD)\keyboard.obj : \
+	$(SRC)\keyboard.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termopts.h \
+	$(SRC)\lisp.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\macros.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\disptab.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\msdos.h \
+	$(SRC)\syssignal.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h \
+	$(SRC)\xterm.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h
+
+$(BLD)\keymap.obj : \
+	$(SRC)\keymap.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\blockinput.h
+
+$(BLD)\lastfile.obj : \
+	$(SRC)\lastfile.c
+
+$(BLD)\lread.obj : \
+	$(SRC)\lread.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(EMACS_ROOT)\src\paths.h \
+	$(SRC)\commands.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\msdos.h
+
+$(BLD)\macros.obj : \
+	$(SRC)\macros.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\macros.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h
+
+$(BLD)\marker.obj : \
+	$(SRC)\marker.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h
+
+$(BLD)\minibuf.obj : \
+	$(SRC)\minibuf.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\syntax.h
+
+$(BLD)\mocklisp.obj : \
+	$(SRC)\mocklisp.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h
+
+$(BLD)\nt.obj : \
+	$(SRC)\nt.c \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h \
+	$(SRC)\ntheap.h
+
+$(BLD)\ntheap.obj : \
+	$(SRC)\ntheap.c \
+	$(SRC)\ntheap.h
+
+$(BLD)\ntinevt.obj : \
+	$(SRC)\ntinevt.c \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\frame.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\termhooks.h
+
+$(BLD)\ntproc.obj : \
+	$(SRC)\ntproc.c \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\nt.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h
+
+$(BLD)\ntterm.obj : \
+	$(SRC)\ntterm.c \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\frame.h \
+	$(SRC)\disptab.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\ntinevt.h
+
+$(BLD)\prefix-args.obj : \
+	$(SRC)\prefix-args.c
+
+$(BLD)\print.obj : \
+	$(SRC)\print.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\process.h \
+	$(SRC)\termchar.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h
+
+$(BLD)\process.obj : \
+	$(SRC)\process.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h \
+	$(SRC)\window.h \
+	$(SRC)\buffer.h \
+	$(SRC)\process.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\commands.h \
+	$(SRC)\frame.h \
+	$(SRC)\syssignal.h \
+	$(SRC)\vmsproc.h \
+	$(SRC)\syswait.h \
+	$(SRC)\lisp.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h \
+	$(SRC)\termopts.h
+
+$(BLD)\ralloc.obj : \
+	$(SRC)\ralloc.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(SRC)\getpagesize.h
+
+$(BLD)\regex.obj : \
+	$(SRC)\regex.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\s\s-windowsnt.h \
+	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\syntax.h \
+	$(SRC)\regex.h
+
+$(BLD)\scroll.obj : \
+	$(SRC)\scroll.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\termchar.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h
+
+$(BLD)\search.obj : \
+	$(SRC)\search.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\syntax.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\regex.h
+
+$(BLD)\sunfns.obj : \
+	$(SRC)\sunfns.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\window.h \
+	$(SRC)\buffer.h \
+	$(SRC)\termhooks.h
+
+$(BLD)\syntax.obj : \
+	$(SRC)\syntax.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\commands.h \
+	$(SRC)\buffer.h \
+	$(SRC)\syntax.h
+
+$(BLD)\sysdep.obj : \
+	$(SRC)\sysdep.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\blockinput.h \
+	$(SRC)\dosfns.h \
+	$(SRC)\msdos.h \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h \
+	$(SRC)\systty.h \
+	$(SRC)\vmsproc.h \
+	$(SRC)\syswait.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termopts.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\process.h \
+	$(SRC)\vmsdir.h \
+	$(SRC)\ndir.h \
+	$(SRC)\syssignal.h \
+	$(SRC)\vmstime.h \
+	$(SRC)\systime.h \
+	$(SRC)\uaf.h \
+	$(SRC)\vms-pwd.h \
+	$(EMACS_ROOT)\src\acldef.h \
+	$(EMACS_ROOT)\src\chpdef.h
+
+$(BLD)\term.obj : \
+	$(SRC)\term.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termopts.h \
+	$(SRC)\cm.h \
+	$(SRC)\lisp.h \
+	$(SRC)\frame.h \
+	$(SRC)\disptab.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\keyboard.h
+
+$(BLD)\termcap.obj : \
+	$(SRC)\termcap.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(EMACS_ROOT)\nt\inc\sys\file.h
+
+$(BLD)\terminfo.obj : \
+	$(SRC)\terminfo.c
+
+$(BLD)\textprop.obj : \
+	$(SRC)\textprop.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h \
+	$(SRC)\buffer.h \
+	$(SRC)\window.h
+
+$(BLD)\tparam.obj : \
+	$(SRC)\tparam.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h
+
+$(BLD)\undo.obj : \
+	$(SRC)\undo.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\commands.h
+
+$(BLD)\unexnt.obj : \
+	$(SRC)\unexnt.c \
+	$(SRC)\ntheap.h
+
+$(BLD)\widget.obj : \
+	$(SRC)\widget.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\xterm.h \
+	$(SRC)\frame.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\widget.h \
+	$(SRC)\widgetprv.h
+
+$(BLD)\window.obj : \
+	$(SRC)\window.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\commands.h \
+	$(SRC)\indent.h \
+	$(SRC)\termchar.h \
+	$(SRC)\disptab.h \
+	$(SRC)\keyboard.h
+
+$(BLD)\xdisp.obj : \
+	$(SRC)\xdisp.c \
+	$(EMACS_ROOT)\src\s\s-windowsnt.h \
+	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\frame.h \
+	$(SRC)\window.h \
+	$(SRC)\termchar.h \
+	$(SRC)\buffer.h \
+	$(SRC)\indent.h \
+	$(SRC)\commands.h \
+	$(SRC)\macros.h \
+	$(SRC)\disptab.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\intervals.h
