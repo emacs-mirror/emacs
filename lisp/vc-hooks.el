@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc-hooks.el,v 1.5 1992/10/20 18:43:33 rms Exp rms $	
+;;	$Id: vc-hooks.el,v 1.6 1992/10/24 20:07:08 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -134,6 +134,9 @@ visiting FILE."
 
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
+  ;; Recompute whether file is version controlled,
+  ;; if user has killed the buffer and revisited.
+  (vc-file-setprop buffer-file-name 'vc-backend nil)
   (if (and (vc-mode-line buffer-file-name) (not vc-make-backup-files))
       (progn
 	(make-local-variable 'make-backup-files)
