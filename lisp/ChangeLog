@@ -1,3 +1,8 @@
+2004-12-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command):
+	Fix omission bug: Call `vc-setup-buffer'.
+
 2004-12-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (recode-region): New function.
