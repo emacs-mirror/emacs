@@ -988,7 +988,8 @@ buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
-	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h
+	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h \
+        composite.h
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h composite.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
 category.o: category.c category.h buffer.h charset.h $(config_h)
