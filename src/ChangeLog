@@ -1,3 +1,9 @@
+2000-04-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_frame_line): When writing a whole line, make
+	sure cursor is in the right row afterwards, otherwise a use of
+	capability `ch' in cmgoto might leave the cursor in the row below.
+
 2000-04-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (struct Lisp_Buffer_Cons): Remove.
