@@ -2282,20 +2282,19 @@ unless optional argument SOFT is non-nil."
 	      ;; Set WIN to the pos of the comment-start.
 	      ;; But if the comment is empty, look at preceding lines
 	      ;; to find one that has a nonempty comment.
-	      (let ((win (match-beginning 0)))
+
+	      ;; If comment-start-skip contains a \(...\) pair,
+	      ;; the real comment delimiter starts at the end of that pair.
+	      (let ((win (or (match-end 1) (match-beginning 0))))
 		(while (and (eolp) (not (bobp))
 			    (let (opoint)
 			      (beginning-of-line)
 			      (setq opoint (point))
 			      (forward-line -1)
 			      (re-search-forward comment-start-skip opoint t)))
-		  (setq win (match-beginning 0)))
+		  (setq win (or (match-end 1) (match-beginning 0))))
 		;; Indent this line like what we found.
 		(goto-char win)
-		;; If comment-start-skip contains a \(...\) pair,
-		;; the real comment delimiter starts at the end of that pair.
-		(if (match-end 1)
-		    (goto-char (match-end 1)))
 		(setq comcol (current-column))
 		(setq comstart
 		      (buffer-substring (point) (match-end 0)))))))
