@@ -1543,7 +1543,7 @@ forms print in the new syntax.");
 
   DEFVAR_LISP ("print-gensym", &Vprint_gensym,
     "Non-nil means print uninterned symbols so they will read as uninterned.\n\
-I.e., the value of (make-symbol "foobar") prints as #:foobar.\n\
+I.e., the value of (make-symbol \"foobar\") prints as #:foobar.\n\
 When the uninterned symbol appears within a larger data structure,\n\
 in addition use the #...# and #...= constructs as needed,\n\
 so that multiple references to the same symbol are shared once again\n\
