@@ -760,7 +760,7 @@ ${libsrc}make-docfile:
 #define MAKE_PARALLEL
 #endif
 
-temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) $(OLDXMENU) ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
+temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
@@ -806,6 +806,13 @@ shortnames:
 #endif
 
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
+
+/* We use stamp-xmenu with these two deps
+   to both ensure that lwlib gets remade based on its dependencies
+   in its own makefile,
+   and remake temacs if lwlib gets changed by this.  */
+stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU) 
+	touch stamp-oldxmenu
 
 #ifdef USE_X_TOOLKIT
 $(OLDXMENU): really-lwlib
