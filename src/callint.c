@@ -435,7 +435,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'd':		/* Value of point.  Does not do I/O.  */
-	  XFASTINT (args[i]) = point;
+	  XSETFASTINT (args[i], point);
 	  /* visargs[i] = Qnil; */
 	  varies[i] = 1;
 	  break;
@@ -481,7 +481,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark ();
 	  /* visargs[i] = Qnil; */
-	  XFASTINT (args[i]) = marker_position (current_buffer->mark);
+	  XSETFASTINT (args[i], marker_position (current_buffer->mark));
 	  varies[i] = 2;
 	  break;
 
@@ -513,9 +513,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  /* visargs[i+1] = Qnil; */
 	  foo = marker_position (current_buffer->mark);
 	  /* visargs[i] = Qnil; */
-	  XFASTINT (args[i]) = point < foo ? point : foo;
+	  XSETFASTINT (args[i], point < foo ? point : foo);
 	  varies[i] = 3;
-	  XFASTINT (args[++i]) = point > foo ? point : foo;
+	  XSETFASTINT (args[++i], point > foo ? point : foo);
 	  varies[i] = 4;
 	  break;
 
@@ -600,7 +600,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
   Lisp_Object val;
   
   if (NILP (raw))
-    XFASTINT (val) = 1;
+    XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))
     XSETINT (val, -1);
   else if (CONSP (raw))
@@ -608,7 +608,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
   else if (INTEGERP (raw))
     val = raw;
   else
-    XFASTINT (val) = 1;
+    XSETFASTINT (val, 1);
 
   return val;
 }
