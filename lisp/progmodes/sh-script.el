@@ -1247,6 +1247,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'imenu-generic-expression)
   (make-local-variable 'sh-electric-rparen-needed-here)
   (make-local-variable 'sh-indent-supported-here)
+  (make-local-variable 'font-lock-unfontify-region-function)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
 	;; not very clever, but enables wrapping skeletons around regions
@@ -1272,6 +1273,8 @@ with your script for an edit-interpret-debug cycle."
 	  nil nil
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
 	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords))
+	font-lock-unfontify-region-function 
+		'sh-font-lock-unfontify-region-function
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -3194,6 +3197,17 @@ Return values:
   "A dummy function to prevent font-lock from re-fontifying a change.
 Otherwise,  we fontify something and font-lock overwrites it."
   )
+
+;; The default font-lock-unfontify-region-function removes 
+;; syntax-table properties,  and so removes our information.
+(defun sh-font-lock-unfontify-region-function (beg end)
+  (let* ((modified (buffer-modified-p)) (buffer-undo-list t)
+	 (inhibit-read-only t) (inhibit-point-motion-hooks t)
+	 before-change-functions after-change-functions
+	 deactivate-mark buffer-file-name buffer-file-truename)
+    (remove-text-properties beg end '(face nil))
+    (when (and (not modified) (buffer-modified-p))
+      (set-buffer-modified-p nil))))
 
 (defun sh-set-char-syntax (where new-prop)
   "Set the character's syntax table property at WHERE to be NEW-PROP."
