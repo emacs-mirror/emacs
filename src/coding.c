@@ -1928,6 +1928,8 @@ decode_coding_sjis_big5 (coding, source, destination,
 		/* To process C2 again, SRC is subtracted by 1.  */
 		*dst++ = c1, src--;
 	    }
+	  else if (coding->eol_type == CODING_EOL_CR)
+	    *dst++ = '\n';
 	  else
 	    *dst++ = c1;
 	}
@@ -2329,7 +2331,7 @@ setup_coding_system (coding_system, coding)
   coding->character_unification_table_for_decode = Qnil;
   coding->character_unification_table_for_encode = Qnil;
 
-  Vlast_coding_system_used = coding->symbol = coding_system;
+  coding->symbol = coding_system;
   eol_type = Qnil;
 
   /* Get values of property `coding-system' and `eol-type'.
