@@ -35,6 +35,9 @@ Lisp_Object Vcommand_history;
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
 
+Lisp_Object Qlist;
+Lisp_Object preserved_fns;
+
 /* This comment supplies the doc string for interactive,
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
@@ -250,12 +253,44 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     }
   else if (string == 0)
     {
+      Lisp_Object input;
       i = num_input_chars;
+      input = specs;
+      /* Compute the arg values using the user's expression.  */
       specs = Feval (specs);
       if (i != num_input_chars || !NILP (record))
-	Vcommand_history
-	  = Fcons (Fcons (function, quotify_args (Fcopy_sequence (specs))),
-		   Vcommand_history);
+	{
+	  /* We should record this command on the command history.  */
+	  Lisp_Object values, car;
+	  /* Make a copy of the list of values, for the command history,
+	     and turn them into things we can eval.  */
+	  values = quotify_args (Fcopy_sequence (specs));
+	  /* If the list of args was produced with an explicit call to `list',
+	     look for elements that were computed with (region-beginning)
+	     or (region-end), and put those expressions into VALUES
+	     instead of the present values.  */
+	  car = Fcar (input);
+	  if (EQ (car, Qlist))
+	    {
+	      Lisp_Object intail, valtail;
+	      for (intail = Fcdr (input), valtail = values;
+		   CONSP (valtail);
+		   intail = Fcdr (intail), valtail = Fcdr (valtail))
+		{
+		  Lisp_Object elt;
+		  elt = Fcar (intail);
+		  if (CONSP (elt))
+		    {
+		      Lisp_Object presflag;
+		      presflag = Fmemq (Fcar (elt), preserved_fns);
+		      if (!NILP (presflag))
+			Fsetcar (valtail, Fcar (intail));
+		    }
+		}
+	    }
+	  Vcommand_history
+	    = Fcons (Fcons (function, values), Vcommand_history);
+	}
       return apply1 (function, specs);
     }
 
@@ -553,6 +588,15 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
 
 syms_of_callint ()
 {
+  preserved_fns = Fcons (intern ("region-beginning"),
+			 Fcons (intern ("region-end"),
+				Fcons (intern ("point"),
+				       Fcons (intern ("mark"), Qnil))));
+  staticpro (&preserved_fns);
+
+  Qlist = intern ("list");
+  staticpro (&Qlist);
+
   Qminus = intern ("-");
   staticpro (&Qminus);
 
