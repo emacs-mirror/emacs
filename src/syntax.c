@@ -1390,7 +1390,6 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	 style a. if it is non-nil, we are in comment style b */
       oldstate = Fcdr (oldstate);
       oldstate = Fcdr (oldstate);
-      oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
       state.comstyle = !NILP (tem);
     }
