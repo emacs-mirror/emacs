@@ -17,11 +17,12 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype \
-		../info/idlwave ../info/eudc ../info/ebrowse
+		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
-		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi
+		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
+		 pcl-cvs.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -103,6 +104,11 @@ cc-mode.dvi: cc-mode.texi
 	cd $(srcdir); $(MAKEINFO) ada-mode.texi
 ada-mode.dvi: ada-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ada-mode.texi
+
+../info/pcl-cvs: pcl-cvs.texi
+	cd $(srcdir); $(MAKEINFO) pcl-cvs.texi
+pcl-cvs.dvi: pcl-cvs.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/pcl-cvs.texi
 
 ../info/cl: cl.texi
 	cd $(srcdir); $(MAKEINFO) cl.texi
