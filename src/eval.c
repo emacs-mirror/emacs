@@ -710,16 +710,17 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
 }
 
 
-DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 2, 0,
+DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make SYMBOL a variable alias for symbol ALIASED.
 Setting the value of SYMBOL will subsequently set the value of ALIASED,
 and getting the value of SYMBOL will return the value ALIASED has.
-ALIASED nil means remove the alias; SYMBOL is unbound after that.  */)
-     (symbol, aliased)
-     Lisp_Object symbol, aliased;
+ALIASED nil means remove the alias; SYMBOL is unbound after that.
+Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.  */)
+     (symbol, aliased, docstring)
+     Lisp_Object symbol, aliased, docstring;
 {
   struct Lisp_Symbol *sym;
-  
+
   CHECK_SYMBOL (symbol);
   CHECK_SYMBOL (aliased);
 
@@ -731,7 +732,9 @@ ALIASED nil means remove the alias; SYMBOL is unbound after that.  */)
   sym->value = aliased;
   sym->constant = SYMBOL_CONSTANT_P (aliased);
   LOADHIST_ATTACH (symbol);
-  
+  if (!NILP (docstring))
+    Fput (symbol, Qvariable_documentation, docstring);
+
   return aliased;
 }
 
