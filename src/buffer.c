@@ -230,6 +230,9 @@ The value is never nil.")
   if (!NILP (buf))
     return buf;
 
+  if (XSTRING (name)->size == 0)
+    error ("Empty string for buffer name is not allowed");
+
   b = (struct buffer *) xmalloc (sizeof (struct buffer));
 
   BUF_GAP_SIZE (b) = 20;
