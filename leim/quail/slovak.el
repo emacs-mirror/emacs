@@ -38,7 +38,7 @@
 (quail-define-package
  "slovak" "Slovak" "SK" nil
  "Standard Slovak keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?+)
