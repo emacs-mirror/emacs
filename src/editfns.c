@@ -735,6 +735,9 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   return Flist (9, list_args);
 }
 
+static char days_per_month[11]
+  = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
+
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
   "Convert SEC, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
 This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
@@ -749,7 +752,6 @@ If you them to stand for years above 1900, you must do that yourself.")
 {
   time_t time;
   int fullyear, mon, days, seconds, tz = 0;
-  static char days_per_month[11] = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
 
   CHECK_NATNUM (sec, 0);
   CHECK_NATNUM (minute, 1);
