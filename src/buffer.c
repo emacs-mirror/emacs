@@ -1949,7 +1949,7 @@ sort_overlays (overlay_vec, noverlays, w)
 
 struct sortstr
 {
-  Lisp_Object string;
+  Lisp_Object string, string2;
   int size;
   int priority;
 };
@@ -1987,10 +1987,9 @@ cmp_for_strings (as1, as2)
 }
 
 static void
-record_overlay_string (ssl, str, pri, size)
+record_overlay_string (ssl, str, str2, pri, size)
      struct sortstrlist *ssl;
-     Lisp_Object str;
-     Lisp_Object pri;
+     Lisp_Object str, str2, pri;
      int size;
 {
   if (ssl->used == ssl->size)
@@ -2003,19 +2002,26 @@ record_overlay_string (ssl, str, pri, size)
 		  xrealloc (ssl->buf, ssl->size * sizeof (struct sortstr)));
     }
   ssl->buf[ssl->used].string = str;
+  ssl->buf[ssl->used].string2 = str2;
   ssl->buf[ssl->used].size = size;
   ssl->buf[ssl->used].priority = (INTEGERP (pri) ? XINT (pri) : 0);
   ssl->used++;
   ssl->bytes += XSTRING (str)->size;
+  if (STRINGP (str2))
+    ssl->bytes += XSTRING (str2)->size;
 }
 
 /* Return the concatenation of the strings associated with overlays that
    begin or end at POS, ignoring overlays that are specific to a window
    other than W.  The strings are concatenated in the appropriate order:
    shorter overlays nest inside longer ones, and higher priority inside
-   lower.  Returns the string length, and stores the contents indirectly
-   through PSTR, if that variable is non-null.  The string may be
-   overwritten by subsequent calls.  */
+   lower.  Normally all of the after-strings come first, but zero-sized
+   overlays have their after-strings ride along with the before-strings
+   because it would look strange to print them inside-out.
+
+   Returns the string length, and stores the contents indirectly through
+   PSTR, if that variable is non-null.  The string may be overwritten by
+   subsequent calls.  */
 int
 overlay_strings (pos, w, pstr)
      int pos;
@@ -2042,14 +2048,17 @@ overlay_strings (pos, w, pstr)
       window = Foverlay_get (overlay, Qwindow);
       if (WINDOWP (window) && XWINDOW (window) != w)
 	continue;
-      if (endpos == pos
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
-	record_overlay_string (&overlay_tails, str,
-			       Foverlay_get (overlay, Qpriority),
-			       endpos - startpos);
       if (startpos == pos
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
 	record_overlay_string (&overlay_heads, str,
+			       (startpos == endpos
+				? Foverlay_get (overlay, Qafter_string)
+				: Qnil),
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
+      else if (endpos == pos
+	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
+	record_overlay_string (&overlay_tails, str, Qnil,
 			       Foverlay_get (overlay, Qpriority),
 			       endpos - startpos);
     }
@@ -2068,14 +2077,17 @@ overlay_strings (pos, w, pstr)
       window = Foverlay_get (overlay, Qwindow);
       if (WINDOWP (window) && XWINDOW (window) != w)
 	continue;
-      if (endpos == pos
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
-	record_overlay_string (&overlay_tails, str,
-			       Foverlay_get (overlay, Qpriority),
-			       endpos - startpos);
       if (startpos == pos
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
 	record_overlay_string (&overlay_heads, str,
+			       (startpos == endpos
+				? Foverlay_get (overlay, Qafter_string)
+				: Qnil),
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
+      else if (endpos == pos
+	       && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
+	record_overlay_string (&overlay_tails, str, Qnil,
 			       Foverlay_get (overlay, Qpriority),
 			       endpos - startpos);
     }
@@ -2107,7 +2119,15 @@ overlay_strings (pos, w, pstr)
 	  tem = overlay_heads.buf[i].string;
 	  bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
 	  p += XSTRING (tem)->size;
+	  tem = overlay_heads.buf[i].string2;
+	  if (STRINGP (tem))
+	    {
+	      bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
+	      p += XSTRING (tem)->size;
+	    }
 	}
+      if (p != overlay_str_buf + total)
+	abort ();
       if (pstr)
 	*pstr = overlay_str_buf;
       return total;
