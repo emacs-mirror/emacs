@@ -359,12 +359,13 @@ bit output with no translation."
                (cons xlfd-charset (cons windows-charset codepage)))
   )
 
-(w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
+;; The last charset we add becomes the "preferred" charset for the return
+;; value from w32-select-font etc, so list the most important charsets last.
 (w32-add-charset-info "iso8859-14" 'w32-charset-ansi  28604)
 (w32-add-charset-info "iso8859-15" 'w32-charset-ansi  28605)
-(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "ksc5601.1987" 'w32-charset-hangeul 949)
 (w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
 (w32-add-charset-info "gb2312" 'w32-charset-gb2312 936)
@@ -376,22 +377,23 @@ bit output with no translation."
       (w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
       (w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
       (w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
-      (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
       (w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
       (w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
       (w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)
       (w32-add-charset-info "iso8859-9" 'w32-charset-turkish 1254)
       (w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
       (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
+      (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
       (w32-add-charset-info "tis620" 'w32-charset-thai 874)
       (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
       (w32-add-charset-info "mac" 'w32-charset-mac nil)))
 (if (boundp 'w32-unicode-charset-defined)
     (progn
-      (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t)
-      (w32-add-charset-info "unicode" 'w32-charset-unicode t))
+      (w32-add-charset-info "unicode" 'w32-charset-unicode t)
+      (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t))
   ;; If unicode windows charset is not defined, use ansi fonts.
   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+(w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
 
 (make-obsolete-variable 'w32-enable-italics
                         'w32-enable-synthesized-fonts "21.1")
