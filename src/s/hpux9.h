@@ -59,3 +59,13 @@
 
 /* Tested in getloadavg.c.  */
 #define HAVE_PSTAT_GETDYNAMIC
+
+/* Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
+   has a broken `rint' in some library versions including math library
+   version number A.09.05.
+
+   You can fix the math library by installing patch number PHSS_4630.
+   But we can fix it more reliably for Emacs like this. */
+#undef HAVE_RINT
+
+
