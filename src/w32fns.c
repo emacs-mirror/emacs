@@ -1080,6 +1080,10 @@ x_report_frame_params (f, alistptr)
        	   make_number (f->output_data.w32->left_fringe_width));
   store_in_alist (alistptr, Qright_fringe,
        	   make_number (f->output_data.w32->right_fringe_width));
+  store_in_alist (alistptr, Qscroll_bar_width,
+           make_number (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+                        ? FRAME_SCROLL_BAR_PIXEL_WIDTH(f)
+                        : 0));
   sprintf (buf, "%ld", (long) FRAME_W32_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
