@@ -1348,6 +1348,15 @@ where they were found."
       (and (search-forward "\177" (save-excursion (end-of-line) (point)) t)
 	   (re-search-backward re bol t)))))
 
+(defcustom tags-loop-revert-buffers nil
+  "*Non-nil means tags-scanning loops should offer to reread changed files.
+These loops normally read each file into Emacs, but when a file
+is already visited, they use the existing buffer.
+When this flag is non-nil, they offer to revert the existing buffer
+in the case where the file has changed since you visited it."
+  :type 'boolean
+  :group 'etags)
+
 ;;;###autoload
 (defun next-file (&optional initialize novisit)
   "Select next file among files in current tags table.
@@ -1398,10 +1407,17 @@ if the file was newly read in, the value is the filename."
 	 (kill-buffer " *next-file*"))
     (error "All files processed"))
   (let* ((next (car next-file-list))
-	 (new (not (get-file-buffer next))))
+	 (buffer (get-file-buffer next))
+	 (new (not buffer)))
     ;; Advance the list before trying to find the file.
     ;; If we get an error finding the file, don't get stuck on it.
     (setq next-file-list (cdr next-file-list))
+    ;; Optionally offer to revert buffers
+    ;; if the files have changed on disk.
+    (and buffer tags-loop-revert-buffers
+	 (not (verify-visited-file-modtime buffer))
+	 (with-current-buffer buffer
+	   (revert-buffer t)))
     (if (not (and new novisit))
 	(set-buffer (find-file-noselect next novisit))
       ;; Like find-file, but avoids random warning messages.
