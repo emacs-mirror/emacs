@@ -108,33 +108,18 @@
     (define-key map "\C-c\C-c" 'comment-region)
     map))
 
-(defun m4-end-m4 (process event)
-  (cond ((equal event "kill\n") (princ "m4 process done"))
-	(t (princ
-	    (format "Process: %s had the event `%s'" process event)))))
-
-(defun m4-start-m4 ()
-  (eval (append (append '(start-process "m4process" "*m4 output*" m4-program)
-		m4-program-options) '("-e")))
-  (set-process-sentinel (get-process "m4process") 'm4-end-m4))
-
 (defun m4-m4-buffer ()
   "send contents of the current buffer to m4"
   (interactive)
-  (m4-start-m4)
-  (process-send-region "m4process" (point-min) (point-max))
-  (process-send-eof "m4process")
-  (switch-to-buffer-other-window "*m4 output*")
-  (delete-process "m4process"))
-
+  (shell-command-on-region (point-min) (point-max) m4-program "*m4-output*"
+			   nil)
+  (switch-to-buffer-other-window "*m4-output*"))
 
 (defun m4-m4-region ()
   "send contents of the current region to m4"
   (interactive)
-  (m4-start-m4)
-  (process-send-region "m4process" (point) (mark))
-  (process-send-eof "m4process")
-  (switch-to-buffer-other-window "*m4 output*"))
+  (shell-command-on-region (point) (mark) m4-program "*m4-output*" nil)
+  (switch-to-buffer-other-window "*m4-output*"))
 
 ;;;###autoload
 (defun m4-mode ()
