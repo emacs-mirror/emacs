@@ -380,7 +380,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (widen)
   (setq Info-current-node nil)
   (unwind-protect
-      (progn
+      ;; Bind case-fold-search in case the user sets it to nil.
+      (let ((case-fold-search t))
         ;; Switch files if necessary
         (or (null filename)
             (equal Info-current-file filename)
@@ -546,6 +547,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			       Info-dir-file-attributes))))
       (insert Info-dir-contents)
     (let ((dirs Info-directory-list)
+	  ;; Bind this in case the user sets it to nil.
+	  (case-fold-search t)
 	  buffers buffer others nodes dirs-done)
 
       (setq Info-dir-file-attributes nil)
@@ -718,34 +721,36 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 ;; Select the info node that point is in.
 (defun Info-select-node ()
-  (save-excursion
-   ;; Find beginning of node.
-   (search-backward "\n\^_")
-   (forward-line 2)
-   ;; Get nodename spelled as it is in the node.
-   (re-search-forward "Node:[ \t]*")
-   (setq Info-current-node
-	 (buffer-substring-no-properties (point)
-					 (progn
-					  (skip-chars-forward "^,\t\n")
-					  (point))))
-   (Info-set-mode-line)
-   ;; Find the end of it, and narrow.
-   (beginning-of-line)
-   (let (active-expression)
-     (narrow-to-region (point)
-		       (if (re-search-forward "\n[\^_\f]" nil t)
-			   (prog1
-			    (1- (point))
-			    (if (looking-at "[\n\^_\f]*execute: ")
-				(progn
-				  (goto-char (match-end 0))
-				  (setq active-expression
-					(read (current-buffer))))))
-			 (point-max)))
-     (if Info-enable-active-nodes (eval active-expression))
-     (if Info-fontify (Info-fontify-node))
-     (run-hooks 'Info-selection-hook))))
+  ;; Bind this in case the user sets it to nil.
+  (let ((case-fold-search t))
+    (save-excursion
+     ;; Find beginning of node.
+     (search-backward "\n\^_")
+     (forward-line 2)
+     ;; Get nodename spelled as it is in the node.
+     (re-search-forward "Node:[ \t]*")
+     (setq Info-current-node
+	   (buffer-substring-no-properties (point)
+					   (progn
+					    (skip-chars-forward "^,\t\n")
+					    (point))))
+     (Info-set-mode-line)
+     ;; Find the end of it, and narrow.
+     (beginning-of-line)
+     (let (active-expression)
+       (narrow-to-region (point)
+			 (if (re-search-forward "\n[\^_\f]" nil t)
+			     (prog1
+			      (1- (point))
+			      (if (looking-at "[\n\^_\f]*execute: ")
+				  (progn
+				    (goto-char (match-end 0))
+				    (setq active-expression
+					  (read (current-buffer))))))
+			   (point-max)))
+       (if Info-enable-active-nodes (eval active-expression))
+       (if Info-fontify (Info-fontify-node))
+       (run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
@@ -809,7 +814,9 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 (defun Info-build-node-completions ()
   (or Info-current-file-completions
-      (let ((compl nil))
+      (let ((compl nil)
+	    ;; Bind this in case the user sets it to nil.
+	    (case-fold-search t))
 	(save-excursion
 	  (save-restriction
 	    (if (marker-buffer Info-tag-table-marker)
@@ -924,16 +931,18 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; If there is none, use ERRORNAME in the error message; 
 ;; if ERRORNAME is nil, just return nil.
 (defun Info-extract-pointer (name &optional errorname)
-  (save-excursion
-   (goto-char (point-min))
-   (forward-line 1)
-   (if (re-search-backward (concat name ":") nil t)
-       (progn
-	 (goto-char (match-end 0))
-	 (Info-following-node-name))
-     (if (eq errorname t)
-	 nil
-       (error "Node has no %s" (capitalize (or errorname name)))))))
+  ;; Bind this in case the user sets it to nil.
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line 1)
+      (if (re-search-backward (concat name ":") nil t)
+	  (progn
+	    (goto-char (match-end 0))
+	    (Info-following-node-name))
+	(if (eq errorname t)
+	    nil
+	  (error "Node has no %s" (capitalize (or errorname name))))))))
 
 ;; Return the node name in the buffer following point.
 ;; ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
@@ -995,6 +1004,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 NAME may be an abbreviation of the reference name."
   (interactive
    (let ((completion-ignore-case t)
+	 (case-fold-search t)
 	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
        ;; Store end and beginning of line.
@@ -1053,7 +1063,8 @@ NAME may be an abbreviation of the reference name."
 	   (list (if (equal input "")
 		     default input)))
        (error "No cross-references in this node"))))
-  (let (target beg i (str (concat "\\*note " (regexp-quote footnotename))))
+  (let (target beg i (str (concat "\\*note " (regexp-quote footnotename)))
+	       (case-fold-search t))
     (while (setq i (string-match " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
       (setq i (+ i 6)))
@@ -1190,29 +1201,31 @@ Completion is allowed, and the menu item point is on is the default."
   
 (defun Info-extract-menu-item (menu-item)
   (setq menu-item (regexp-quote menu-item))
-  (save-excursion
-    (goto-char (point-min))
-    (or (search-forward "\n* menu:" nil t)
-	(error "No menu in this node"))
-    (or (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
-	(re-search-forward (concat "\n\\* +" menu-item) nil t)
-	(error "No such item in menu"))
-    (beginning-of-line)
-    (forward-char 2)
-    (Info-extract-menu-node-name)))
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char (point-min))
+      (or (search-forward "\n* menu:" nil t)
+	  (error "No menu in this node"))
+      (or (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
+	  (re-search-forward (concat "\n\\* +" menu-item) nil t)
+	  (error "No such item in menu"))
+      (beginning-of-line)
+      (forward-char 2)
+      (Info-extract-menu-node-name))))
 
 ;; If COUNT is nil, use the last item in the menu.
 (defun Info-extract-menu-counting (count)
-  (save-excursion
-    (goto-char (point-min))
-    (or (search-forward "\n* menu:" nil t)
-	(error "No menu in this node"))
-    (if count
-	(or (search-forward "\n* " nil t count)
-	    (error "Too few items in menu"))
-      (while (search-forward "\n* " nil t)
-	nil))
-    (Info-extract-menu-node-name)))
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char (point-min))
+      (or (search-forward "\n* menu:" nil t)
+	  (error "No menu in this node"))
+      (if count
+	  (or (search-forward "\n* " nil t count)
+	      (error "Too few items in menu"))
+	(while (search-forward "\n* " nil t)
+	  nil))
+      (Info-extract-menu-node-name))))
 
 (defun Info-nth-menu-item ()
   "Go to the node of the Nth menu item.
@@ -1424,7 +1437,8 @@ previous node or back up to the parent node."
   "Move cursor to the next cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
-	(old-pt (point)))
+	(old-pt (point))
+	(case-fold-search t))
     (or (eobp) (forward-char 1))
     (or (re-search-forward pat nil t)
 	(progn
@@ -1443,7 +1457,8 @@ previous node or back up to the parent node."
   "Move cursor to the previous cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
-	(old-pt (point)))
+	(old-pt (point))
+	(case-fold-search t))
     (or (re-search-backward pat nil t)
 	(progn
 	  (goto-char (point-max))
@@ -1471,7 +1486,8 @@ Give a blank topic name to go to the Index node itself."
 	(rnode nil)
 	(pattern (format "\n\\* +\\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
 			 (regexp-quote topic)))
-	node)
+	node
+	(case-fold-search t))
     (Info-goto-node "Top")
     (or (search-forward "\n* menu:" nil t)
 	(error "No index"))
@@ -1546,17 +1562,18 @@ Give a blank topic name to go to the Index node itself."
 
 (defun Info-find-index-name (name)
   "Move point to the place within the current node where NAME is defined."
-  (if (or (re-search-forward (format
-			      "[a-zA-Z]+: %s\\( \\|$\\)"
-			      (regexp-quote name)) nil t)
-	  (search-forward (format "`%s'" name) nil t)
-	  (and (string-match "\\`.*\\( (.*)\\)\\'" name)
-	       (search-forward
-		(format "`%s'" (substring name 0 (match-beginning 1)))
-		nil t))
-	  (search-forward name nil t))
-      (beginning-of-line)
-    (goto-char (point-min))))
+  (let ((case-fold-search t))
+    (if (or (re-search-forward (format
+				"[a-zA-Z]+: %s\\( \\|$\\)"
+				(regexp-quote name)) nil t)
+	    (search-forward (format "`%s'" name) nil t)
+	    (and (string-match "\\`.*\\( (.*)\\)\\'" name)
+		 (search-forward
+		  (format "`%s'" (substring name 0 (match-beginning 1)))
+		  nil t))
+	    (search-forward name nil t))
+	(beginning-of-line)
+      (goto-char (point-min)))))
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
@@ -1605,32 +1622,33 @@ SIG optional fourth argument, controls action on no match
     nil: return nil
     t: beep
     a string: signal an error, using that string."
-  (save-excursion
-    (goto-char pos)
-    ;; First look for a match for START that goes across POS.
-    (while (and (not (bobp)) (> (point) (- pos (length start)))
-		(not (looking-at start)))
-      (forward-char -1))
-    ;; If we did not find one, search back for START
-    ;; (this finds only matches that end at or before POS).
-    (or (looking-at start)
-	(progn
-	  (goto-char pos)
-	  (re-search-backward start (max (point-min) (- pos 200)) 'yes)))
-    (let (found)
-      (while (and (re-search-forward all (min (point-max) (+ pos 200)) 'yes)
-		  (not (setq found (and (<= (match-beginning 0) pos)
-					(> (match-end 0) pos))))))
-      (if (and found (<= (match-beginning 0) pos)
-	       (> (match-end 0) pos))
-	  (buffer-substring (match-beginning 1) (match-end 1))
-	(cond ((null errorstring)
-	       nil)
-	      ((eq errorstring t)
-	       (beep)
-	       nil)
-	      (t
-	       (error "No %s around position %d" errorstring pos)))))))
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char pos)
+      ;; First look for a match for START that goes across POS.
+      (while (and (not (bobp)) (> (point) (- pos (length start)))
+		  (not (looking-at start)))
+	(forward-char -1))
+      ;; If we did not find one, search back for START
+      ;; (this finds only matches that end at or before POS).
+      (or (looking-at start)
+	  (progn
+	    (goto-char pos)
+	    (re-search-backward start (max (point-min) (- pos 200)) 'yes)))
+      (let (found)
+	(while (and (re-search-forward all (min (point-max) (+ pos 200)) 'yes)
+		    (not (setq found (and (<= (match-beginning 0) pos)
+					  (> (match-end 0) pos))))))
+	(if (and found (<= (match-beginning 0) pos)
+		 (> (match-end 0) pos))
+	    (buffer-substring (match-beginning 1) (match-end 1))
+	  (cond ((null errorstring)
+		 nil)
+		((eq errorstring t)
+		 (beep)
+		 nil)
+		(t
+		 (error "No %s around position %d" errorstring pos))))))))
 
 (defun Info-mouse-follow-nearest-node (click)
   "\\<Info-mode-map>Follow a node reference near point.
@@ -1778,7 +1796,8 @@ If no reference to follow, moves to the next node, or up if none."
 	;; Update reference menu.  Code stolen from `Info-follow-reference'.
 	(let ((items nil)
 	      str i entries current 
-	      (number 0))
+	      (number 0)
+	      (case-fold-search t))
 	  (save-excursion
 	    (goto-char (point-min))
 	    (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
@@ -2061,7 +2080,8 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 
 (defun Info-fontify-node ()
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((buffer-read-only nil)
+	  (case-fold-search t))
       (goto-char (point-min))
       (when (looking-at "^File: [^,: \t]+,?[ \t]+")
 	(goto-char (match-end 0))
@@ -2187,7 +2207,8 @@ NODE is an optional argument that is used to represent the
 specific node to expand."
   (if (and (not node)
 	   (save-excursion (goto-char (point-min))
-			   (looking-at "Info Nodes:")))
+			   (let ((case-fold-search t))
+			     (looking-at "Info Nodes:"))))
       ;; Update our "current node" maybe?
       nil
     ;; We cannot use the generic list code, that depends on all leaves
@@ -2276,6 +2297,7 @@ Optional THISFILE represends the filename of"
     ;; Scan the created buffer
     (goto-char (point-min))
     (let ((completions nil)
+	  (case-fold-search t)
 	  (thisfile (progn (string-match "^(\\([^)]+\\))" nodespec)
 			   (match-string 1 nodespec))))
       ;; Always skip the first one...
@@ -2298,7 +2320,8 @@ Optional THISFILE represends the filename of"
   "Create a speedbar display to help navigation in an Info file.
 BUFFER is the buffer speedbar is requesting buttons for."
   (if (save-excursion (goto-char (point-min))
-		      (not (looking-at "Info Nodes:")))
+		      (let ((case-fold-search t))
+			(not (looking-at "Info Nodes:"))))
       (erase-buffer))
   (Info-speedbar-hierarchy-buttons nil 0)
   )
