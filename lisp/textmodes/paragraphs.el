@@ -29,7 +29,12 @@
 ;;; Code:
 
 (defconst paragraph-start "^[ \t\n\f]" "\
-*Regexp for beginning of a line that starts OR separates paragraphs.")
+*Regexp for beginning of a line that starts OR separates paragraphs.
+This regexp should match lines that separate paragraphs
+and should also match lines that start a paragraph
+\(and are part of that paragraph).
+The variable `paragraph-separate' specifies how to distinguish
+lines that start paragraphs from lines that separate them.")
 
 (defconst paragraph-separate "^[ \t\f]*$" "\
 *Regexp for beginning of a line that separates paragraphs.
