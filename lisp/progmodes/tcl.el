@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.48 $
+;; Version: $Revision: 1.49 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/12/07 18:18:21 $|$Revision: 1.48 $|~/modes/tcl.el.Z|
+;; $Date: 1995/12/07 18:27:47 $|$Revision: 1.49 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.49  1995/12/07  18:27:47  tromey
+;; (add-log-tcl-defun): Don't use tcl-beginning-of-defun; just go to end
+;; of line before searching.
+;;
 ;; Revision 1.48  1995/12/07  18:18:21  tromey
 ;; (add-log-tcl-defun): Now uses tcl-beginning-of-defun.
 ;;
@@ -290,6 +294,7 @@
 ;; Jesper Pedersen <blackie@imada.ou.dk>
 ;; dfarmer@evolving.com (Doug Farmer)
 ;; "Chris Alfeld" <calfeld@math.utah.edu>
+;; Ben Wing <wing@666.com>
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -339,8 +344,8 @@
 ;;; Code:
 
 ;; I sure wish Emacs had a package that made it easy to extract this
-;; sort of information.
-(defconst tcl-using-emacs-19 (string-match "19\\." emacs-version)
+;; sort of information.  Strange definition works with XEmacs 20.0.
+(defconst tcl-using-emacs-19 (not (string-match "18\\." emacs-version))
   "Nil unless using Emacs 19 (XEmacs or FSF).")
 
 ;; FIXME this will break on Emacs 19.100.
@@ -362,7 +367,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.48 $")
+(defconst tcl-version "$Revision: 1.49 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
