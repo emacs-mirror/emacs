@@ -1658,7 +1658,9 @@ between them, return t; otherwise return nil.")
 	}
       while (code == Swhitespace || code == Sendcomment);
 
-      if (code != Scomment && code != Scomment_fence)
+      if (code == Scomment_fence)
+	comstyle = ST_COMMENT_STYLE;
+      else if (code != Scomment)
 	{
 	  immediate_quit = 0;
 	  DEC_BOTH (from, from_byte);
