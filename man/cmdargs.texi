@@ -282,6 +282,10 @@ When Emacs is set-up to use the X windowing system, it inherits the
 use of a large number of environment variables from the X library.  See
 the X documentation for more information.
 
+The command @kbd{M-x setenv} sets a variable in the environment of the
+Emacs process and its subprocesses and @kbd{M-x getenv} gets the value
+of a variable.
+
 @menu
 * General Variables::   Environment variables that all versions of Emacs use.
 * Misc Variables::      Certain system-specific variables.
@@ -945,6 +949,11 @@ Name to display in the icon.
 @item @code{internalBorder} (class @code{BorderWidth})
 Width in pixels of the internal border.
 
+@item @code{lineSpacing} (class LineSpacing)
+@cindex line spacing
+@cindex leading
+Additional space (@dfn{leading}) between lines in pixels.
+
 @item @code{menuBar} (class @code{MenuBar})
 Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
 
@@ -958,21 +967,53 @@ Font name for menu pane titles, in non-toolkit versions of Emacs.
 @item @code{pointerColor} (class @code{Foreground})
 Color of the mouse cursor.
 
+@item @code{privateColormap} (class @code{PrivateColormap})
+Specify that Emacs should use a private colormap if it is using the
+default visual, and that visual is of class PseudoColor.  Recognized
+resource values are @samp{true} and @samp{on}.
+
 @item @code{reverseVideo} (class @code{ReverseVideo})
 Switch foreground and background default colors if @samp{on}, use colors as
 specified if @samp{off}.
 
-@item @code{verticalScrollBars} (class @code{ScrollBars})
-Give frames scroll bars if @samp{on}; don't have scroll bars if
-@samp{off}.
+@item @code{screenGamma} (class @code{ScreenGamma})
+@cindex gamma correction
+Specify the gamma correction for colors, equivalent to the frame
+parameter @code{screen-gamma}.
 
 @item @code{selectionFont} (class @code{Font})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
 toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
 Resources}.)
 
+@item @code{synchronous} (class @code{Synchronous})
+Specify whether Emacs should run in synchronous mode if @samp{true}.
+Synchronous mode is useful for debugging X problems.
+
 @item @code{title} (class @code{Title})
 Name to display in the title bar of the initial Emacs frame.
+
+@item @code{verticalScrollBars} (class @code{ScrollBars})
+Give frames scroll bars if @samp{on}; don't have scroll bars if
+@samp{off}.
+
+@item @code{visualClass} (class @code{VisualClass})
+Specify the visual Emacs should use.  The resource's value should be a
+string of the form @samp{@var{CLASS}-@var{DEPTH}}, where @var{class} is
+the name of the visual class, and @var{depth} is the requested color
+depth as a decimal number.  Valid visual class names are
+@samp{TrueColor}, @samp{PseudoColor}, @samp{DirectColor},
+@samp{StaticColor}, @samp{GrayScale} and @samp{StaticGray}.
+
+Visual class names specified as X resource are case-insensitive, i.e.@:
+@samp{pseudocolor}, @samp{Pseudocolor} and @samp{PseudoColor} all have
+the same meaning.
+
+@pindex xdpyinfo
+The program @command{xdpyinfo} can be used to list the visual classes
+supported on your display, and which depths they have.  If
+@code{visualClass} is not specified, Emacs uses the display's default
+visual.
 @end table
 
   Here are resources for controlling the appearance of particular faces
