@@ -454,7 +454,7 @@ Environment variables are expanded, see function substitute-in-file-name."
 	   (if shell-dirtrackp "ON" "OFF")))
 
 ;;; For your typing convenience:
-(fset 'dirtrack-toggle 'shell-dirtrack-toggle)
+(defalias 'dirtrack-toggle 'shell-dirtrack-toggle)
 
 
 (defun shell-resync-dirs ()
@@ -502,7 +502,7 @@ command again."
 	  (error (message "Couldn't cd.")))))))
 
 ;;; For your typing convenience:
-(fset 'dirs 'shell-resync-dirs)
+(defalias 'dirs 'shell-resync-dirs)
 
 
 ;;; Show the current dirstack on the message line.

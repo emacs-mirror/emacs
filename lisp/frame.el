@@ -237,7 +237,7 @@ These supercede the values given in `default-frame-alist'.")
 				  t)))
 
 ;; Alias, kept temporarily.
-(fset 'new-frame 'make-frame)
+(defalias 'new-frame 'make-frame)
 (defun make-frame (&optional parameters)
   "Create a new frame, displaying the current buffer.
 
@@ -426,8 +426,8 @@ Horizontal scroll bars aren't implemented yet."
 
 
 ;;;; Aliases for backward compatibility with Emacs 18.
-(fset 'screen-height 'frame-height)
-(fset 'screen-width 'frame-width)
+(defalias 'screen-height 'frame-height)
+(defalias 'screen-width 'frame-width)
 
 (defun set-screen-width (cols &optional pretend)
   "Obsolete function to change the size of the screen to COLS columns.\n\
@@ -454,7 +454,7 @@ should use `set-frame-width' instead."
 ;;;; Key bindings
 (defvar ctl-x-5-map (make-sparse-keymap)
   "Keymap for frame commands.")
-(fset 'ctl-x-5-prefix ctl-x-5-map)
+(defalias 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 (define-key ctl-x-5-map "2" 'new-frame)

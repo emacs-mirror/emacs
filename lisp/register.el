@@ -71,7 +71,7 @@ Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
   (set-register char (current-frame-configuration)))
 
-(fset 'register-to-point 'jump-to-register)
+(defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (char)
   "Move point to location stored in a register.
 If the register contains a window configuration (one frame) or a frame

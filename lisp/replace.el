@@ -146,7 +146,7 @@ which will run faster and will not set the mark or print anything."
 (defvar regexp-history nil
   "History list for some commands that read regular expressions.")
 
-(fset 'delete-non-matching-lines 'keep-lines)
+(defalias 'delete-non-matching-lines 'keep-lines)
 (defun keep-lines (regexp)
   "Delete all lines except those containing matches for REGEXP.
 A match split across lines preserves all the lines it lies in.
@@ -173,7 +173,7 @@ Applies to all lines after point."
 	(and (not (eobp)) (= (match-beginning 0) (match-end 0))
 	     (forward-char 1))))))
 
-(fset 'delete-matching-lines 'flush-lines)
+(defalias 'delete-matching-lines 'flush-lines)
 (defun flush-lines (regexp)
   "Delete lines containing matches for REGEXP.
 If a match is split across lines, all the lines it lies in are deleted.
@@ -189,7 +189,7 @@ Applies to lines after point."
 				     (point))
 		     (progn (forward-line 1) (point))))))
 
-(fset 'count-matches 'how-many)
+(defalias 'count-matches 'how-many)
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
   (interactive (list (read-from-minibuffer
@@ -258,7 +258,7 @@ in the buffer that the occurrences were found in.
 match.  A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after.")
 
-(fset 'list-matching-lines 'occur)
+(defalias 'list-matching-lines 'occur)
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.

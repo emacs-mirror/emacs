@@ -40,10 +40,10 @@
 ;; For Emacs V18 compatibility
 (and (not (fboundp 'user-original-login-name))
      (fboundp 'user-real-login-name)
-     (fset 'user-original-login-name 'user-real-login-name))
+     (defalias 'user-original-login-name 'user-real-login-name))
 (and (not (fboundp 'buffer-disable-undo))
      (fboundp 'buffer-flush-undo)
-     (fset 'buffer-disable-undo 'buffer-flush-undo))
+     (defalias 'buffer-disable-undo 'buffer-flush-undo))
 
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"

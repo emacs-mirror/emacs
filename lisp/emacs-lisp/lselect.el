@@ -28,8 +28,8 @@
 ;;; all upper-case; this may seem tasteless, but it makes there be a 1:1
 ;;; correspondence between these symbols and X Atoms (which are upcased.)
 
-(fset 'x-get-cutbuffer 'x-get-cut-buffer)
-(fset 'x-store-cutbuffer 'x-set-cut-buffer)
+(defalias 'x-get-cutbuffer 'x-get-cut-buffer)
+(defalias 'x-store-cutbuffer 'x-set-cut-buffer)
 
 (or (find-face 'primary-selection)
     (make-face 'primary-selection))

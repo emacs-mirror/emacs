@@ -214,7 +214,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 (defvar tex-shell-map nil
   "Keymap for the tex-shell.  A comint-mode-map with a few additions.")
 
-;(fset 'TeX-mode 'tex-mode) 		;in loaddefs.
+;(defalias 'TeX-mode 'tex-mode) 		;in loaddefs.
 
 ;;; This would be a lot simpler if we just used a regexp search,
 ;;; but then it would be too slow.
@@ -244,9 +244,9 @@ is used."
     (if mode (funcall mode)
       (funcall tex-default-mode))))
 ;;;###autoload
-(fset 'TeX-mode 'tex-mode)
+(defalias 'TeX-mode 'tex-mode)
 ;;;###autoload
-(fset 'LaTeX-mode 'latex-mode)
+(defalias 'LaTeX-mode 'latex-mode)
 
 ;;;###autoload
 (defun plain-tex-mode ()
@@ -299,7 +299,7 @@ subshell is initiated, the value of tex-shell-hook is called."
   (setq tex-trailer "\\bye\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'plain-tex-mode-hook))
 ;;;###autoload
-(fset 'plain-TeX-mode 'plain-tex-mode)
+(defalias 'plain-TeX-mode 'plain-tex-mode)
 
 ;;;###autoload
 (defun latex-mode ()

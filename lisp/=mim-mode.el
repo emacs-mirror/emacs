@@ -148,7 +148,7 @@ moving down a level of structure.")
 non-whitespace character in column 0 to be a toplevel object, otherwise
 only open paren syntax characters will be considered.")
 
-(fset 'mdl-mode 'mim-mode)
+(defalias 'mdl-mode 'mim-mode)
 
 (defun mim-mode ()
   "Major mode for editing Mim (MDL in MDL) code.

@@ -548,7 +548,7 @@ they are not defaultly assigned to keys."
      picture-mode-old-mode-name)))
 
 ;;;###autoload
-(fset 'picture-mode 'edit-picture)
+(defalias 'picture-mode 'edit-picture)
 
 (defun picture-mode-exit (&optional nostrip)
   "Undo edit-picture and return to previous major mode.

@@ -377,7 +377,7 @@ The appearance of the screen can be customized by the variables
       (other-window -1)
       (setq tc-other other))))
 
-(fset 'tc-mode 'tc-two-columns)
+(defalias 'tc-mode 'tc-two-columns)
 
 ;;;###autoload
 (defun tc-associate-buffer ()

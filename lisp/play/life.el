@@ -117,7 +117,7 @@ generations (this defaults to 1)."
 	(life-increment-generation)
 	(life-display-generation sleeptime)))))
 
-(fset 'life-mode 'life)
+(defalias 'life-mode 'life)
 (put 'life-mode 'mode-class 'special)
 
 (random t)

@@ -24,7 +24,7 @@
 ;;; Code:
 
 ;; This is for temporary compatibility with pre-release Emacs 19.
-(fset 'x-selection 'x-get-selection)
+(defalias 'x-selection 'x-get-selection)
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection, 

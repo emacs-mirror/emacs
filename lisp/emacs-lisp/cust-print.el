@@ -167,7 +167,7 @@ Any pair that has the same PREDICATE is first removed."
 ;; Saving and restoring internal printing routines.
 
 (defun cust-print-set-function-cell (symbol-pair)
-  (fset (car symbol-pair) 
+  (defalias (car symbol-pair) 
 	(symbol-function (car (cdr symbol-pair)))))
 
 
@@ -300,8 +300,8 @@ string argument will also work.  The string is generated with
 	(circle-level (or print-level -1))
 	)
 
-    (fset 'cust-print-internal-printer internal-printer)
-    (fset 'cust-print-low-level-prin 
+    (defalias 'cust-print-internal-printer internal-printer)
+    (defalias 'cust-print-low-level-prin 
 	  (cond
 	   ((or custom-print-list
 		custom-print-vector
@@ -311,7 +311,7 @@ string argument will also work.  The string is generated with
 	   (circle-table
 	    'cust-print-object)
 	   (t 'cust-print-internal-printer)))
-    (fset 'cust-print-prin (if circle-table 'cust-print-circular 'cust-print-low-level-prin))
+    (defalias 'cust-print-prin (if circle-table 'cust-print-circular 'cust-print-low-level-prin))
 
     (cust-print-prin object)
     object))

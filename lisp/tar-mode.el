@@ -1119,8 +1119,8 @@ itself."
 
 
 (if (not (fboundp 'tar-real-normal-mode))
-    (fset 'tar-real-normal-mode (symbol-function 'normal-mode)))
-(fset 'normal-mode 'tar-normal-mode)
+    (defalias 'tar-real-normal-mode (symbol-function 'normal-mode)))
+(defalias 'normal-mode 'tar-normal-mode)
 
 (provide 'tar-mode)
 

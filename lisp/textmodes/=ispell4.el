@@ -268,7 +268,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	 (ispell-next))))
 
 ;;;###autoload
-(fset 'ispell-buffer 'ispell)
+(defalias 'ispell-buffer 'ispell)
 
 (defun ispell-next ()
   "Resume command loop for most recent ispell command."
