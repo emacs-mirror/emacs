@@ -22,6 +22,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 #include "buffer.h"
 #include "window.h"
+
+#ifndef NULL
+#define NULL (void *)0
+#endif
 
 
 /* NOTES:  previous- and next- property change will have to skip
@@ -543,7 +547,8 @@ overlays are considered only if they are associated with OBJECT.")
       len = 40;
       overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 
-      noverlays = overlays_at (posn, 0, &overlay_vec, &len, &next_overlay);
+      noverlays = overlays_at (posn, 0, &overlay_vec, &len,
+			       &next_overlay, NULL);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
@@ -551,7 +556,8 @@ overlays are considered only if they are associated with OBJECT.")
 	{
 	  len = noverlays;
 	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays = overlays_at (posn, 0, &overlay_vec, &len, &next_overlay);
+	  noverlays = overlays_at (posn, 0, &overlay_vec, &len,
+				   &next_overlay, NULL);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
