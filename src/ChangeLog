@@ -1,3 +1,19 @@
+2000-06-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/isc4-0.h (sigblock): Redefined to pass a pointer as second
+	argument to sigprocmask.
+
+	* s/sco5.h (sigblock): Redefined to pass a pointer as second
+	argument to sigprocmask.
+
+	* syssignal.h (sigblock, sigunblock) [USG5_4]: Set
+	sigprocmask_set, and pass a pointer to it to sigprocmask.
+
+	* sysdep.c (sigprocmask_set): New variable.
+
+	* fileio.c (make_temp_name): Don't use `%s' in string passed to
+	report_file_error.
+
 2000-06-20  Sam Steingold  <sds@gnu.org>
 
 	* xrdb.c: Don't declare xmalloc, xrealloc.

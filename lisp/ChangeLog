@@ -1,3 +1,12 @@
+2000-06-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* version.el (emacs-version): Use ISO date format.
+
+	* emulation/pc-select.el (pc-selection-mode): Bind `M-\d'
+	instead of `M-backspace'.
+
+	* simple.el (turn-off-auto-fill): New function.
+
 2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* jit-lock.el (with-buffer-prepared-for-jit-lock):

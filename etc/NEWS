@@ -1218,6 +1218,9 @@ with the diary features.
 *** autoarg.el provides a feature reported from Twenex Emacs whereby
 numeric keys supply prefix args rather than self inserting.
 
+*** The function `turn-off-auto-fill' unconditionally turns off Auto
+Fill mode.
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
