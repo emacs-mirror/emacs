@@ -7490,8 +7490,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  fkey_start = fkey_end = t;
 		  fkey_map = Vfunction_key_map;
 
-		  /* Do pass the results through key-translation-map.  */
-		  keytran_start = keytran_end = 0;
+		  /* Do pass the results through key-translation-map.
+		     But don't retranslate what key-translation-map
+		     has already translated.  */
+		  keytran_end = keytran_start;
 		  keytran_map = Vkey_translation_map;
 
 		  goto replay_sequence;
@@ -7607,7 +7609,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		/* Don't pass the results of key-translation-map
 		   through function-key-map.  */
 		fkey_start = fkey_end = t;
-		fkey_map = Vkey_translation_map;
+		fkey_map = Vfunction_key_map;
 
 		goto replay_sequence;
 	      }
