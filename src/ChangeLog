@@ -1,3 +1,7 @@
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* fontset.c (fontset_pattern_regexp): Use unsigned char.
+
 2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
