@@ -6682,6 +6682,7 @@ x_load_font (f, fontname, size)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_names;
+  int count;
 
   /* Get a list of all the fonts that match this name.  Once we
      have a list of matching fonts, we compare them against the fonts
@@ -6718,7 +6719,16 @@ x_load_font (f, fontname, size)
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
 
     BLOCK_INPUT;
+    count = x_catch_errors (FRAME_X_DISPLAY (f));
     font = (XFontStruct *) XLoadQueryFont (FRAME_X_DISPLAY (f), fontname);
+    if (x_had_errors_p (FRAME_X_DISPLAY (f)))
+      {
+	/* This error is perhaps due to insufficient memory on X
+	   server.  Let's just ignore it.  */
+	font = NULL;
+	x_clear_errors (FRAME_X_DISPLAY (f));
+      }
+    x_uncatch_errors (FRAME_X_DISPLAY (f), count);
     UNBLOCK_INPUT;
     if (!font)
       return NULL;
