@@ -81,7 +81,8 @@
   "*The name or IP address of the CCSO (PH/QI) server.
 A port number may be specified by appending a colon and a
 number to the name of the server."
-  :type  '(string :tag "Server")
+  :type  '(choice (string :tag "Server")
+		  (const nil))
   :group 'ph)
 
 (defcustom ph-strict-return-matches t
