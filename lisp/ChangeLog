@@ -1,5 +1,8 @@
 2001-12-18  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (eval-expression-print-level)
+	(eval-expression-print-length): Doc fixes.
+
 	* international/mule-diag.el (describe-character-set):
 	Fix the arg to help-xref-button.
 

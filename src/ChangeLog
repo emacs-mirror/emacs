@@ -1,3 +1,12 @@
+2001-12-18  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.c (scmp): Function moved from minibuf.c.
+	Delete multibyte handling--used only on encoded strings.
+
+	* minibuf.c (scmp): Function moved to dired.c.
+
+	* fns.c (merge): Add QUIT call.
+
 2001-12-18  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): Add language/utf-8-lang.el,
