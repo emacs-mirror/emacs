@@ -460,6 +460,7 @@ extern Lisp_Object make_number ();
 #define XFLOAT(a) (eassert (GC_FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
 
 /* Misc types.  */
+
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
 #define XMISCTYPE(a)   (XMARKER (a)->type)
 #define XMARKER(a) (&(XMISC(a)->u_marker))
@@ -472,13 +473,13 @@ extern Lisp_Object make_number ();
 #define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
+
 #define XPROCESS(a) (eassert (GC_PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
 #define XWINDOW(a) (eassert (GC_WINDOWP(a)),(struct window *) XPNTR(a))
 #define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
 #define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
 #define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
 #define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
-
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -490,10 +491,12 @@ extern Lisp_Object make_number ();
 #define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
 
 /* Misc types.  */
+
 #define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
 
 /* Pseudovector types.  */
+
 #define XSETPSEUDOVECTOR(a, b, code) \
   (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
 #define XSETWINDOW_CONFIGURATION(a, b) \
@@ -505,6 +508,13 @@ extern Lisp_Object make_number ();
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
+
+/* Convenience macros for dealing with Lisp arrays.  */
+
+#define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
+#define ASET(ARRAY, IDX, VAL)	(AREF ((ARRAY), (IDX)) = (VAL))
+#define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
+
 
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
 
