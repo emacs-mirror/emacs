@@ -897,13 +897,13 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			    (and (not complete)
 				 (looking-at pascal-sub-block-re))
 			    (throw 'nesting 'block))
+			   (;--No known statements
+			    (bobp)
+			    (throw 'nesting 'unknown))
 			   (;--Found complete statement
 			    (save-excursion (forward-sexp 1)
 					    (= (following-char) ?\;))
 			    (setq complete t))
-			   (;--No known statements
-			    (bobp)
-			    (throw 'nesting 'unknown))
 			   )))))
 
       ;; Return type of block and indent level.
