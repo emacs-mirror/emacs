@@ -1106,15 +1106,10 @@ an error; that sets the match data in a meaningless but harmless way.
 @node Saving Match Data
 @subsection Saving and Restoring the Match Data
 
-  All asynchronous process functions (filters and sentinels) and
-functions that use @code{recursive-edit} should save and restore the
-match data if they do a search or if they let the user type arbitrary
-commands.  Saving the match data is useful in other cases as
-well---whenever you want to access the match data resulting from an
-earlier search, notwithstanding another intervening search.
-
-  This example shows the problem that can arise if you fail to
-attend to this requirement:
+  When you call a function that may do a search, you may need to save
+and restore the match data around that call, if you want to preserve the
+match data from an earlier search for later use.  Here is an example
+that shows the problem that arises if you fail to save the match data:
 
 @example
 @group
@@ -1127,13 +1122,11 @@ attend to this requirement:
 @end group
 @end example
 
-  In Emacs versions 19 and later, you can save and restore the match
-data with @code{save-match-data}:
+  You can save and restore the match data with @code{save-match-data}:
 
 @defspec save-match-data body@dots{}
 This special form executes @var{body}, saving and restoring the match
-data around it.  This is useful if you wish to do a search without
-altering the match data that resulted from an earlier search.
+data around it.
 @end defspec
 
   You can use @code{set-match-data} together with @code{match-data} to
@@ -1148,6 +1141,10 @@ useful for writing code that can run in Emacs 18.  Here is how:
     (set-match-data data)))
 @end group
 @end example
+
+  Emacs automatically saves and restores the match data when it runs
+process filter functions (@pxref{Filter Functions}) and process
+sentinels (@pxref{Sentinels}).
 
 @ignore
   Here is a function which restores the match data provided the buffer
