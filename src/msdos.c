@@ -157,6 +157,17 @@ mouse_off ()
     }
 }
 
+static void
+mouse_get_xy (int *x, int *y)
+{
+  union REGS regs;
+
+  regs.x.ax = 0x0003;
+  int86 (0x33, &regs, &regs);
+  *x = regs.x.cx / 8;
+  *y = regs.x.dx / 8;
+}
+
 void
 mouse_moveto (x, y)
      int x, y;
@@ -203,17 +214,6 @@ mouse_released (b, xp, yp)
   return (regs.x.bx != 0);
 }
 
-static void
-mouse_get_xy (int *x, int *y)
-{
-  union REGS regs;
-
-  regs.x.ax = 0x0003;
-  int86 (0x33, &regs, &regs);
-  *x = regs.x.cx / 8;
-  *y = regs.x.dx / 8;
-}
-
 void
 mouse_get_pos (f, insist, bar_window, part, x, y, time)
      FRAME_PTR *f;
@@ -223,17 +223,18 @@ mouse_get_pos (f, insist, bar_window, part, x, y, time)
      unsigned long *time;
 {
   int ix, iy;
-  union REGS regs;
+  Lisp_Object frame, tail;
 
-  regs.x.ax = 0x0003;
-  int86 (0x33, &regs, &regs);
+  /* Clear the mouse-moved flag for every frame on this display.  */
+  FOR_EACH_FRAME (tail, frame)
+    XFRAME (frame)->mouse_moved = 0;
+
   *f = selected_frame;
   *bar_window = Qnil;
   mouse_get_xy (&ix, &iy);
-  selected_frame->mouse_moved = 0;
-  *x = make_number (ix);
-  *y = make_number (iy);
   *time = event_timestamp ();
+  *x = make_number (mouse_last_x = ix);
+  *y = make_number (mouse_last_y = iy);
 }
 
 static void
@@ -783,63 +784,20 @@ IT_update_end ()
 {
 }
 
-/* This was more or less copied from xterm.c
-
-   Nowadays, the corresponding function under X is `x_set_menu_bar_lines_1'
-   on xfns.c  */
-
-static void
-IT_set_menu_bar_lines (window, n)
-     Lisp_Object window;
-     int n;
+/* set-window-configuration on window.c needs this.  */
+void
+x_set_menu_bar_lines (f, value, oldval)
+     struct frame *f;
+     Lisp_Object value, oldval;
 {
-  struct window *w = XWINDOW (window);
-
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
-  XSETFASTINT (w->top, XFASTINT (w->top) + n);
-  XSETFASTINT (w->height, XFASTINT (w->height) - n);
-
-  /* Handle just the top child in a vertical split.  */
-  if (!NILP (w->vchild))
-    IT_set_menu_bar_lines (w->vchild, n);
-
-  /* Adjust all children in a horizontal split.  */
-  for (window = w->hchild; !NILP (window); window = w->next)
-    {
-      w = XWINDOW (window);
-      IT_set_menu_bar_lines (window, n);
-    }
+  set_menu_bar_lines (f, value, oldval);
 }
 
 /* This was copied from xfns.c  */
 
 Lisp_Object Qbackground_color;
 Lisp_Object Qforeground_color;
-
-void
-x_set_menu_bar_lines (f, value, oldval)
-     struct frame *f;
-     Lisp_Object value, oldval;
-{
-  int nlines;
-  int olines = FRAME_MENU_BAR_LINES (f);
-
-  /* Right now, menu bars don't work properly in minibuf-only frames;
-     most of the commands try to apply themselves to the minibuffer
-     frame itslef, and get an error because you can't switch buffers
-     in or split the minibuffer window.  */
-  if (FRAME_MINIBUF_ONLY_P (f))
-    return;
-
-  if (INTEGERP (value))
-    nlines = XINT (value);
-  else
-    nlines = 0;
-
-  FRAME_MENU_BAR_LINES (f) = nlines;
-  IT_set_menu_bar_lines (f->root_window, nlines - olines);
-}
+extern Lisp_Object Qtitle;
 
 /* IT_set_terminal_modes is called when emacs is started,
    resumed, and whenever the screen is redrawn!  */
@@ -1010,9 +968,21 @@ IT_set_frame_parameters (f, alist)
 		fprintf (termscript, "<BGCOLOR %lu>\n", new_color);
 	    }
 	}
-      else if (EQ (prop, intern ("menu-bar-lines")))
-	x_set_menu_bar_lines (f, val, 0);
+      else if (EQ (prop, Qtitle))
+	{
+	  x_set_title (f, val);
+	  if (termscript)
+	    fprintf (termscript, "<TITLE: %s>\n", XSTRING (val)->data);
+	}
+      else if (EQ (prop, intern ("reverse")) && EQ (val, Qt))
+	{
+	  unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
 
+	  FRAME_FOREGROUND_PIXEL (f) = FRAME_BACKGROUND_PIXEL (f);
+	  FRAME_BACKGROUND_PIXEL (f) = fg;
+	  if (termscript)
+	    fprintf (termscript, "<INVERSE-VIDEO>\n");
+	}
       store_frame_param (f, prop, val);
 
     }
