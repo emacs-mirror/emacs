@@ -7460,6 +7460,11 @@ redisplay_tool_bar (f)
   if (auto_resize_tool_bars_p)
     {
       int nlines;
+
+      /* If we couldn't display everything, change the tool-bar's
+	 height.  */
+      if (IT_STRING_CHARPOS (it) < it.end_charpos)
+	change_height_p = 1;
       
       /* If there are blank lines at the end, except for a partially
 	 visible blank line at the end that is smaller than
