@@ -37,9 +37,8 @@
 ;; To disable it after loading, set variable uniquify-buffer-name-style to nil.
 ;; For other options, see "User-visible variables", below.
 
-;; uniquify.el works under Emacs, XEmacs, and InfoDock.
-
-;; Doesn't correctly handle buffer names created by M-x write-file in Emacs 18.
+;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
+;; and InfoDock is available from the maintainer.
 
 ;;; Change Log:
 
@@ -163,11 +162,12 @@ pathname elements.  Arguments cause only a subset of buffers to be renamed."
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
     (setq fix-list
-	  (sort fix-list 'uniquify-filename-sort))
+	  (sort fix-list 'uniquify-fix-list-filename-lessp))
     ;; bringing conflicting names together
     (uniquify-rationalize-a-list fix-list depth)
     (mapcar 'uniquify-unrationalized-buffer fix-list)))
 
+;; uniquify's version of buffer-file-name
 (defun uniquify-buffer-file-name (buffer)
   "Return name of file BUFFER is visiting, or nil if none.
 Works on dired buffers as well as ordinary file-visiting buffers."
@@ -176,10 +176,11 @@ Works on dired buffers as well as ordinary file-visiting buffers."
 	(set-buffer buffer)
 	list-buffers-directory)))
 
-(defun uniquify-filename-sort (s1 s2)
+(defun uniquify-fix-list-filename-lessp (fixlist1 fixlist2)
   (uniquify-filename-lessp
-   (uniquify-fix-list-filename s1) (uniquify-fix-list-filename s2)))
+   (uniquify-fix-list-filename fixlist1) (uniquify-fix-list-filename fixlist2)))
 
+;; This examines the filename components in reverse order.
 (defun uniquify-filename-lessp (s1 s2)
   (let ((s1f (file-name-nondirectory s1))
 	(s2f (file-name-nondirectory s2)))
