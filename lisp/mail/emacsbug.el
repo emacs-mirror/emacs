@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
 
-;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
