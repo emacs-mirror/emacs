@@ -1571,12 +1571,13 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	   enough space for all, and try again.  */
 	len = 10;
 	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
 	if (noverlays > len)
 	  {
 	    len = noverlays;
 	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	    noverlays = overlays_at (pos,
+				     0, &overlay_vec, &len, NULL, NULL, 0);
 	  }
 	  
 	/* Sort overlays into increasing priority order.  */
@@ -3066,9 +3067,6 @@ and then the scan code.")
 }
 
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
-
-extern void kbd_buffer_store_event (struct input_event *);
-
 static int
 dos_rawgetc ()
 {
