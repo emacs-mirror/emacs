@@ -708,7 +708,7 @@ static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
-static void make_cursor_line_fully_visible P_ ((struct window *));
+static int make_cursor_line_fully_visible P_ ((struct window *));
 static int try_scrolling P_ ((Lisp_Object, int, int, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
@@ -9284,9 +9284,11 @@ run_window_scroll_functions (window, startp)
 
 
 /* Modify the desired matrix of window W and W->vscroll so that the
-   line containing the cursor is fully visible.  */
+   line containing the cursor is fully visible.  If this requires
+   larger matrices than are allocated, set fonts_changed_p and return
+   0.  */
 
-static void
+static int
 make_cursor_line_fully_visible (w)
      struct window *w;
 {
@@ -9297,7 +9299,7 @@ make_cursor_line_fully_visible (w)
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
   if (w->cursor.vpos < 0)
-    return;
+    return 1;
   
   matrix = w->desired_matrix;
   row = MATRIX_ROW (matrix, w->cursor.vpos);
@@ -9305,13 +9307,13 @@ make_cursor_line_fully_visible (w)
   /* If the cursor row is not partially visible, there's nothing
      to do.  */
   if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
-    return;
+    return 1;
 
   /* If the row the cursor is in is taller than the window's height,
      it's not clear what to do, so do nothing.  */
   window_height = window_box_height (w);
   if (row->height >= window_height)
-    return;
+    return 1;
 
   if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
     {
@@ -9334,6 +9336,16 @@ make_cursor_line_fully_visible (w)
      the correct y-position.  */
   if (w == XWINDOW (selected_window))
     this_line_y = w->cursor.y;
+
+  /* If vscrolling requires a larger glyph matrix, arrange for a fresh
+     redisplay with larger matrices.  */
+  if (matrix->nrows < required_matrix_height (w))
+    {
+      fonts_changed_p = 1;
+      return 0;
+    }
+
+  return 1;
 }
 
 
@@ -9351,6 +9363,13 @@ make_cursor_line_fully_visible (w)
    
    -1	if new fonts have been loaded so that we must interrupt
    redisplay, adjust glyph matrices, and try again.  */
+
+enum
+{
+  SCROLLING_SUCCESS,
+  SCROLLING_FAILED,
+  SCROLLING_NEED_LARGER_MATRICES
+};
 
 static int
 try_scrolling (window, just_this_one_p, scroll_conservatively,
@@ -9441,7 +9460,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       dy = 1 + it.current_y - y0;
       
       if (dy > scroll_max)
-	return 0;
+	return SCROLLING_FAILED;
       
       /* Move the window start down.  If scrolling conservatively,
 	 move it just enough down to make point visible.  If
@@ -9464,7 +9483,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	}
 
       if (amount_to_scroll <= 0)
-	return 0;
+	return SCROLLING_FAILED;
 
       move_it_vertically (&it, amount_to_scroll);
       startp = it.current.pos;
@@ -9498,7 +9517,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
 	  dy = it.current_y - y0;
 	  if (dy > scroll_max)
-	    return 0;
+	    return SCROLLING_FAILED;
 	  
 	  /* Compute new window start.  */
 	  start_display (&it, w, startp);
@@ -9518,7 +9537,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    }
 
 	  if (amount_to_scroll <= 0)
-	    return 0;
+	    return SCROLLING_FAILED;
 	  
 	  move_it_vertically (&it, - amount_to_scroll);
 	  startp = it.current.pos;
@@ -9531,11 +9550,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   /* Display the window.  Give up if new fonts are loaded, or if point
      doesn't appear.  */
   if (!try_window (window, startp))
-    rc = -1;
+    rc = SCROLLING_NEED_LARGER_MATRICES;
   else if (w->cursor.vpos < 0)
     {
       clear_glyph_matrix (w->desired_matrix);
-      rc = 0;
+      rc = SCROLLING_FAILED;
     }
   else
     {
@@ -9546,9 +9565,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	w->base_line_number = Qnil;
       
       /* If cursor ends up on a partially visible line, shift display
-	 lines up or down.  */
-      make_cursor_line_fully_visible (w);
-      rc = 1;
+	 lines up or down.  If that fails because we need larger
+	 matrices, give up.  */
+      if (!make_cursor_line_fully_visible (w))
+	rc = SCROLLING_NEED_LARGER_MATRICES;
+      else
+	rc = SCROLLING_SUCCESS;
     }
 
   return rc;
@@ -9630,13 +9652,25 @@ compute_window_start_on_continuation_line (w)
 /* Try cursor movement in case text has not changes in window WINDOW,
    with window start STARTP.  Value is
 
-   1	if successful
+   CURSOR_MOVEMENT_SUCCESS if successful
    
-   0	if this method cannot be used
-   
-   -1	if we know we have to scroll the display.  *SCROLL_STEP is
-   set to 1, under certain circumstances, if we want to scroll as
-   if scroll-step were set to 1.  See the code.  */
+   CURSOR_MOVEMENT_CANNOT_BE_USED if this method cannot be used
+
+   CURSOR_MOVEMENT_MUST_SCROLL if we know we have to scroll the
+   display.  *SCROLL_STEP is set to 1, under certain circumstances, if
+   we want to scroll as if scroll-step were set to 1.  See the code.
+
+   CURSOR_MOVEMENT_NEED_LARGER_MATRICES if we need larger matrices, in
+   which case we have to abort this redisplay, and adjust matrices
+   first.  */
+
+enum 
+{
+  CURSOR_MOVEMENT_SUCCESS,
+  CURSOR_MOVEMENT_CANNOT_BE_USED,
+  CURSOR_MOVEMENT_MUST_SCROLL,
+  CURSOR_MOVEMENT_NEED_LARGER_MATRICES
+};
 
 static int
 try_cursor_movement (window, startp, scroll_step)
@@ -9646,7 +9680,7 @@ try_cursor_movement (window, startp, scroll_step)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  int rc = 0;
+  int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
   
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
@@ -9704,17 +9738,17 @@ try_cursor_movement (window, startp, scroll_step)
 	 not paused redisplay.  Give up if that row is not valid.  */
       if (w->last_cursor.vpos < 0
 	  || w->last_cursor.vpos >= w->current_matrix->nrows)
-	rc = -1;
+	rc = CURSOR_MOVEMENT_MUST_SCROLL;
       else
 	{
 	  row = MATRIX_ROW (w->current_matrix, w->last_cursor.vpos);
 	  if (row->mode_line_p)
 	    ++row;
 	  if (!row->enabled_p)
-	    rc = -1;
+	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	}
 
-      if (rc == 0)
+      if (rc == CURSOR_MOVEMENT_CANNOT_BE_USED)
 	{
 	  int scroll_p = 0;
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
@@ -9797,14 +9831,14 @@ try_cursor_movement (window, startp, scroll_step)
 	      || PT > MATRIX_ROW_END_CHARPOS (row))
 	    {
 	      /* if PT is not in the glyph row, give up.  */
-	      rc = -1;
+	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	    }
 	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
 		  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
-		rc = -1;
+		rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	      else if (row->height > window_box_height (w))
 		{
 		  /* If we end up in a partially visible line, let's
@@ -9812,22 +9846,24 @@ try_cursor_movement (window, startp, scroll_step)
 		     than the window, in which case we can't do much
 		     about it.  */
 		  *scroll_step = 1;
-		  rc = -1;
+		  rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		}
 	      else
 		{
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
 		  try_window (window, startp);
-		  make_cursor_line_fully_visible (w);
-		  rc = 1;
+		  if (!make_cursor_line_fully_visible (w))
+		    rc = CURSOR_MOVEMENT_NEED_LARGER_MATRICES;
+		  else
+		    rc = CURSOR_MOVEMENT_SUCCESS;
 		}
 	    }
 	  else if (scroll_p)
-	    rc = -1;
+	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	  else
 	    {
 	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-	      rc = 1;
+	      rc = CURSOR_MOVEMENT_SUCCESS;
 	    }
 	}
     }
@@ -10101,11 +10137,12 @@ redisplay_window (window, just_this_one_p)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp))
-		goto finish_scroll_bars;
+		goto need_larger_matrices;
 	    }
 	}
 
-      make_cursor_line_fully_visible (w);
+      if (!make_cursor_line_fully_visible (w))
+	goto need_larger_matrices;
 #if GLYPH_DEBUG
       debug_method_add (w, "forced window start");
 #endif
@@ -10116,12 +10153,22 @@ redisplay_window (window, just_this_one_p)
      not moved off the frame.  */
   if (current_matrix_up_to_date_p
       && (rc = try_cursor_movement (window, startp, &temp_scroll_step),
-	  rc != 0))
+	  rc != CURSOR_MOVEMENT_CANNOT_BE_USED))
     {
-      if (rc == -1)
-	goto try_to_scroll;
-      else
-	goto done;
+      switch (rc)
+	{
+	case CURSOR_MOVEMENT_SUCCESS:
+	  goto done;
+	  
+	case CURSOR_MOVEMENT_NEED_LARGER_MATRICES:
+	  goto need_larger_matrices;
+	  
+	case CURSOR_MOVEMENT_MUST_SCROLL:
+	  goto try_to_scroll;
+	  
+	default:
+	  abort ();
+	}
     }
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
@@ -10145,7 +10192,7 @@ redisplay_window (window, just_this_one_p)
 #endif
 
       if (fonts_changed_p)
-	goto finish_scroll_bars;
+	goto need_larger_matrices;
       if (tem > 0)
 	goto done;
 
@@ -10180,7 +10227,7 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (fonts_changed_p)
-	goto finish_scroll_bars;
+	goto need_larger_matrices;
       
       if (w->cursor.vpos >= 0)
 	{
@@ -10190,7 +10237,8 @@ redisplay_window (window, just_this_one_p)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
 	  
-	  make_cursor_line_fully_visible (w);
+	  if (!make_cursor_line_fully_visible (w))
+	    goto need_larger_matrices;
 	  goto done;
 	}
       else
@@ -10225,10 +10273,20 @@ redisplay_window (window, just_this_one_p)
 			      scroll_conservatively,
 			      scroll_step,
 			      temp_scroll_step);
-      if (rc > 0)
-	goto done;
-      else if (rc < 0)
-	goto finish_scroll_bars;
+      switch (rc)
+	{
+	case SCROLLING_SUCCESS:
+	  goto done;
+	  
+	case SCROLLING_NEED_LARGER_MATRICES:
+	  goto need_larger_matrices;
+	  
+	case SCROLLING_FAILED:
+	  break;
+	  
+	default:
+	  abort ();
+	}
     }
 
   /* Finally, just choose place to start which centers point */
@@ -10289,7 +10347,7 @@ redisplay_window (window, just_this_one_p)
      have to start a new redisplay since we need to re-adjust glyph
      matrices.  */
   if (fonts_changed_p)
-    goto finish_scroll_bars;
+    goto need_larger_matrices;
 
   /* If cursor did not appear assume that the middle of the window is
      in the first line of the window.  Do it again with the next line.
@@ -10329,7 +10387,8 @@ redisplay_window (window, just_this_one_p)
       set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
     }
   
-  make_cursor_line_fully_visible (w);
+  if (!make_cursor_line_fully_visible (w))
+    goto need_larger_matrices;
 
  done:
 
@@ -10379,7 +10438,7 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (fonts_changed_p)
-	goto finish_scroll_bars;
+	goto need_larger_matrices;
     }
 
   if (!line_number_displayed
@@ -10419,6 +10478,8 @@ redisplay_window (window, just_this_one_p)
 #endif
     }
 
+ need_larger_matrices:
+  ;
  finish_scroll_bars:
 
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
