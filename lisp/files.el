@@ -1184,6 +1184,11 @@ if you wish to pass an empty string as the argument."
   (kill-local-variable 'local-write-file-hooks)
   (kill-local-variable 'revert-buffer-function)
   (kill-local-variable 'backup-inhibited)
+  ;; If buffer was read-only because of version control,
+  ;; that reason is gone now, so make it writable.
+  (if vc-mode
+      (setq buffer-read-only nil))
+  (kill-local-variable 'vc-mode)
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
   (and (not (funcall backup-enable-predicate buffer-file-name))
