@@ -80,7 +80,7 @@
   :group 'hypermedia)
 
 
-;;; I don't expect users to want fontify'ing without highlighting.
+;; I don't expect users to want fontify'ing without highlighting.
 (defcustom goto-address-fontify-p t
   "*Non-nil means URLs and e-mail addresses in buffer are fontified.
 But only if `goto-address-highlight-p' is also non-nil."
@@ -102,10 +102,10 @@ But only if `goto-address-highlight-p' is also non-nil."
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp thing-at-point-url-regexp
-;;;   (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
-;;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
-;;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
-;;; 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
+  ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
+  ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
+  ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
+  ;; 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
   "A regular expression probably matching a URL.")
 
 (defvar goto-address-highlight-keymap
@@ -178,8 +178,8 @@ and `goto-address-fontify-p'."
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t))))))))
 
-;;; code to find and goto addresses; much of this has been blatantly
-;;; snarfed from browse-url.el
+;; code to find and goto addresses; much of this has been blatantly
+;; snarfed from browse-url.el
 
 ;;;###autoload
 (defun goto-address-at-mouse (event)

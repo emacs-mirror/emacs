@@ -26,15 +26,15 @@
 
 ;;; Commentary:
  
-;;; manages receiving a stream asynchronously, 
-;;; parsing it into transactions, and then calling
-;;; handler functions
+;; manages receiving a stream asynchronously,
+;; parsing it into transactions, and then calling
+;; handler functions
 
-;;; Our basic structure is the queue/process/buffer triple.  Each entry
-;;; of the queue is a regexp/closure/function triple.  We buffer
-;;; bytes from the process until we see the regexp at the head of the
-;;; queue.  Then we call the function with the closure and the
-;;; collected bytes.
+;; Our basic structure is the queue/process/buffer triple.  Each entry
+;; of the queue is a regexp/closure/function triple.  We buffer
+;; bytes from the process until we see the regexp at the head of the
+;; queue.  Then we call the function with the closure and the
+;; collected bytes.
 
 ;;; Code:
 
