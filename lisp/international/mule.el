@@ -308,39 +308,47 @@ See also the documentation of `make-char'."
 Return nil if such a character is not supported.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and the result is
-translated through the char table `utf-8-translation-table-for-decode'.
+translated through the translation-table named
+`utf-translation-table-for-decode' or the translation-hash-table named
+`utf-subst-table-for-decode'.
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
-    (let ((c (cond
-	      ((< code-point 160)
-	       code-point)
-	      ((< code-point 256)
-	       (make-char 'latin-iso8859-1 code-point))
-	      ((< code-point #x2500)
-	       (setq code-point (- code-point #x0100))
-	       (make-char 'mule-unicode-0100-24ff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
-	      ((< code-point #x3400)
-	       (setq code-point (- code-point #x2500))
-	       (make-char 'mule-unicode-2500-33ff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
-	      ((and (>= code-point #xe000) (< code-point #x10000))
-	       (setq code-point (- code-point #xe000))
-	       (make-char 'mule-unicode-e000-ffff
-			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32))))))
-      (if (and c (aref utf-8-translation-table-for-decode c))
-	  (aref utf-8-translation-table-for-decode c)
-	c)))))
+    (or (gethash code-point
+		 (get 'utf-subst-table-for-decode 'translation-hash-table))
+	(let ((c (cond
+		  ((< code-point 160)
+		   code-point)
+		  ((< code-point 256)
+		   (make-char 'latin-iso8859-1 code-point))
+		  ((< code-point #x2500)
+		   (setq code-point (- code-point #x0100))
+		   (make-char 'mule-unicode-0100-24ff
+			      (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
+		  ((< code-point #x3400)
+		   (setq code-point (- code-point #x2500))
+		   (make-char 'mule-unicode-2500-33ff
+			      (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
+		  ((and (>= code-point #xe000) (< code-point #x10000))
+		   (setq code-point (- code-point #xe000))
+		   (make-char 'mule-unicode-e000-ffff
+			      (+ (/ code-point 96) 32)
+			      (+ (% code-point 96) 32))))))
+	  (when c
+	    (or (aref (get 'utf-translation-table-for-decode
+			   'translation-table) c)
+		c)))))))
 
 (defun encode-char (char ccs &optional restriction)
   "Return code-point in coded character set CCS that corresponds to CHAR.
 Return nil if CHAR is not included in CCS.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and CHAR is first
-translated through the char-table `ucs-mule-to-mule-unicode'.
+translated through the translation-table named
+`utf-translation-table-for-encode' or the translation-hash-table named
+`utf-subst-table-for-encode'.
 
 CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
@@ -353,25 +361,29 @@ code-point in CCS.  Currently not supported and just ignored."
 	 (charset (car split))
 	 trans)
     (cond ((eq ccs 'ucs)
-	   (setq trans (aref ucs-mule-to-mule-unicode char))
-	   (if trans
-	       (setq split (split-char trans)
-		     charset (car split)))
-	   (cond ((eq charset 'ascii)
-		  char)
-		 ((eq charset 'latin-iso8859-1)
-		  (+ (nth 1 split) 128))
-		 ((eq charset 'mule-unicode-0100-24ff)
-		  (+ #x0100 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'mule-unicode-2500-33ff)
-		  (+ #x2500 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'mule-unicode-e000-ffff)
-		  (+ #xe000 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32))))
-		 ((eq charset 'eight-bit-control)
-		  char))))))
+	   (or (gethash char (get 'utf-subst-table-for-encode
+				  'translation-hash-table))
+	       (let ((table (get 'utf-translation-table-for-encode
+				 'translation-table)))
+		 (setq trans (aref table char))
+		 (if trans
+		     (setq split (split-char trans)
+			   charset (car split)))
+		 (cond ((eq charset 'ascii)
+			char)
+		       ((eq charset 'latin-iso8859-1)
+			(+ (nth 1 split) 128))
+		       ((eq charset 'mule-unicode-0100-24ff)
+			(+ #x0100 (+ (* (- (nth 1 split) 32) 96)
+				     (- (nth 2 split) 32))))
+		       ((eq charset 'mule-unicode-2500-33ff)
+			(+ #x2500 (+ (* (- (nth 1 split) 32) 96)
+				     (- (nth 2 split) 32))))
+		       ((eq charset 'mule-unicode-e000-ffff)
+			(+ #xe000 (+ (* (- (nth 1 split) 32) 96)
+				     (- (nth 2 split) 32))))
+		       ((eq charset 'eight-bit-control)
+			char))))))))
 
 
 ;; Coding system stuff
