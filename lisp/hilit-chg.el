@@ -195,16 +195,6 @@
 
 ;;; Code:
 
-;; ========== Remove when undo-in-progress is set by emacs ========
-(unless (boundp 'undo-in-progress)
-  (message "advising undo...")
-  (eval-when-compile (require 'advice))
-  (defvar undo-in-progress nil) ;; only undo should change this!
-  (defadvice undo (around record-this-is-an-undo activate)
-    (let ((undo-in-progress t))
-      ad-do-it)))
-;; ================================================================
-
 (require 'wid-edit)
 
 ;; ====================== Customization =======================
@@ -1198,5 +1188,5 @@ from `global-highlight-changes' when turning on global Highlight Changes mode.
 
 
 (provide 'hilit-chg)
-;;; hilit-chg.el ends here
 
+;;; hilit-chg.el ends here
