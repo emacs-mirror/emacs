@@ -40,7 +40,7 @@ their `Resent-' variants.
 
 Optional second arg EXCLUDE may be a regular expression defining text to be
 removed from alias expansions."
-  (sendmail-synch-aliases)
+  (sendmail-sync-aliases)
   (if (eq mail-aliases t)
       (progn (setq mail-aliases nil) (build-mail-aliases)))
   (goto-char beg)
@@ -174,7 +174,7 @@ if it is quoted with double-quotes."
 
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
   ;; Read the defaults first, if we have not done so.
-  (sendmail-synch-aliases)
+  (sendmail-sync-aliases)
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
