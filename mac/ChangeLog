@@ -1,3 +1,13 @@
+2001-12-01  Kim F. Storm  <storm@cua.dk>
+
+	The following changes add left-fringe and right-fringe
+	frame parameters to adjust fringe widths, or remove one or
+	both fringes.  See ../src/ChangeLog for details.
+
+	* inc/macterm.h: Merged changes from xterm.h.
+	* src/macterm.c: Merged changes from xterm.c.
+	* src/macfns.c: Merged changes from xfns.c.
+
 2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
