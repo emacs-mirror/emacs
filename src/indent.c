@@ -50,6 +50,8 @@ int last_known_column_point;
 /* Value of MODIFF when current_column was called */
 int last_known_column_modified;
 
+static int current_column_1 ();
+
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Char_Table *
