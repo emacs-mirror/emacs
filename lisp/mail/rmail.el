@@ -796,30 +796,20 @@ original copy."
   (interactive "FRun rmail on RMAIL file: ")
   (rmail filename))
 
-;; Return a list of file names for all files in or under START
-;; whose names match rmail-secondary-file-regexp.
-;; This includes START itself, if that name matches.
-;; But normally START is a directory.
+
+;; This used to scan subdirectories recursively, but someone pointed out
+;; that if the user wants that, person can put all the files in one dir.
+;; And the recursive scan was slow.  So I took it out.
+;; rms, Sep 1996.
 (defun rmail-find-all-files (start)
+  "Return list of file in dir START that match `rmail-secondary-file-regexp'."
   (if (file-accessible-directory-p start)
       ;; Don't sort here.
-      (let ((files (directory-files start t
-				    rmail-secondary-file-regexp t))
-	    (ret nil)
-	    file)
-	(while files
-	  (setq file (car files))
-	  (setq files (cdr files))
-	  (or (member (file-name-nondirectory start) '("." ".."))
-	      (setq ret (nconc
-			 (rmail-find-all-files file)
-			 ret))))
+      (let* ((case-fold-search t)
+	     (files (directory-files start t rmail-secondary-file-regexp)))
 	;; Sort here instead of in directory-files
 	;; because this list is usually much shorter.
-	(sort ret 'string<))
-    (let ((case-fold-search nil))
-      (if (string-match rmail-secondary-file-regexp start)
-	  (list (file-name-nondirectory start))))))
+	(sort files 'string<))))
 
 (defun rmail-list-to-menu (menu-name l action &optional full-name)
   (let ((menu (make-sparse-keymap menu-name)))
@@ -907,86 +897,112 @@ It returns t if it got any new messages."
   ;; Get rid of all undo records for this buffer.
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
-  (unwind-protect
-      (let ((opoint (point))
-	    (new-messages 0)
-	    (delete-files ())
-	    ;; If buffer has not changed yet, and has not been saved yet,
-	    ;; don't replace the old backup file now.
-	    (make-backup-files (and make-backup-files (buffer-modified-p)))
-	    (buffer-read-only nil)
-	    ;; Don't make undo records for what we do in getting mail.
-	    (buffer-undo-list t)
-	    success)
-	(goto-char (point-max))
-	(skip-chars-backward " \t\n")	    ; just in case of brain damage
-	(delete-region (point) (point-max)) ; caused by require-final-newline
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region (point) (point))
-	    ;; Read in the contents of the inbox files,
-	    ;; renaming them as necessary,
-	    ;; and adding to the list of files to delete eventually.
-	    (if file-name
-		(rmail-insert-inbox-text (list file-name) nil)
-	      (setq delete-files (rmail-insert-inbox-text rmail-inbox-list t)))
-	    ;; Scan the new text and convert each message to babyl format.
-	    (goto-char (point-min))
-	    (unwind-protect
-		(save-excursion
-		  (setq new-messages (rmail-convert-to-babyl-format)
-			success t))
-	      ;; If we could not convert the file's inboxes,
-	      ;; rename the files we tried to read
-	      ;; so we won't over and over again.
-	      (if (and (not file-name) (not success))
-		  (let ((files delete-files)
-			(count 0))
-		    (while files
-		      (while (file-exists-p (format "RMAILOSE.%d" count))
-			(setq count (1+ count)))
-		      (rename-file (car files)
-				   (format "RMAILOSE.%d" count))
-		      (setq files (cdr files))))))
-	    (or (zerop new-messages)
-		(let (success)
-		  (widen)
-		  (search-backward "\n\^_" nil t)
-		  (narrow-to-region (point) (point-max))
-		  (goto-char (1+ (point-min)))
-		  (rmail-count-new-messages)
-		  (run-hooks 'rmail-get-new-mail-hook)
-		  (save-buffer)))
-	    ;; Delete the old files, now that babyl file is saved.
-	    (while delete-files
-	      (condition-case ()
-		  ;; First, try deleting.
+  (let ((all-files (if file-name (list file-name)
+		     rmail-inbox-list)))
+    (unwind-protect
+	(while all-files
+	  (let ((opoint (point))
+		(new-messages 0)
+		(delete-files ())
+		;; If buffer has not changed yet, and has not been saved yet,
+		;; don't replace the old backup file now.
+		(make-backup-files (and make-backup-files (buffer-modified-p)))
+		(buffer-read-only nil)
+		;; Don't make undo records for what we do in getting mail.
+		(buffer-undo-list t)
+		success
+		;; Files to insert this time around.
+		files
+		;; Last names of those files.
+		file-last-names)
+	    ;; Pull files off all-files onto files
+	    ;; as long as there is no name conflict.
+	    ;; A conflict happens when two inbox file names
+	    ;; have the same last component.
+	    (while (and all-files
+			(not (member (file-name-nondirectory (car all-files))
+				     file-last-names)))
+	      (setq files (cons (car all-files) files)
+		    file-last-names
+		    (cons (file-name-nondirectory (car all-files)) files))
+	      (setq all-files (cdr all-files)))
+	    ;; Put them back in their original order.
+	    (setq files (nreverse files))
+
+	    (goto-char (point-max))
+	    (skip-chars-backward " \t\n")	    ; just in case of brain damage
+	    (delete-region (point) (point-max)) ; caused by require-final-newline
+	    (save-excursion
+	      (save-restriction
+		(narrow-to-region (point) (point))
+		;; Read in the contents of the inbox files,
+		;; renaming them as necessary,
+		;; and adding to the list of files to delete eventually.
+		(if file-name
+		    (rmail-insert-inbox-text files nil)
+		  (setq delete-files (rmail-insert-inbox-text files t)))
+		;; Scan the new text and convert each message to babyl format.
+		(goto-char (point-min))
+		(unwind-protect
+		    (save-excursion
+		      (setq new-messages (rmail-convert-to-babyl-format)
+			    success t))
+		  ;; If we could not convert the file's inboxes,
+		  ;; rename the files we tried to read
+		  ;; so we won't over and over again.
+		  (if (and (not file-name) (not success))
+		      (let ((delfiles delete-files)
+			    (count 0))
+			(while delfiles
+			  (while (file-exists-p (format "RMAILOSE.%d" count))
+			    (setq count (1+ count)))
+			  (rename-file (car delfiles)
+				       (format "RMAILOSE.%d" count))
+			  (setq delfiles (cdr delfiles))))))
+		(or (zerop new-messages)
+		    (let (success)
+		      (widen)
+		      (search-backward "\n\^_" nil t)
+		      (narrow-to-region (point) (point-max))
+		      (goto-char (1+ (point-min)))
+		      (rmail-count-new-messages)
+		      (run-hooks 'rmail-get-new-mail-hook)
+		      (save-buffer)))
+		;; Delete the old files, now that babyl file is saved.
+		(while delete-files
 		  (condition-case ()
-		      (delete-file (car delete-files))
-		    (file-error
-		     ;; If we can't delete it, truncate it.
-		     (write-region (point) (point) (car delete-files))))
-		(file-error nil))
-	      (setq delete-files (cdr delete-files)))))
-	(if (= new-messages 0)
-	    (progn (goto-char opoint)
-		   (if (or file-name rmail-inbox-list)
-		       (message "(No new mail has arrived)"))
-		   nil)
-	  (if (rmail-summary-exists)
-	      (rmail-select-summary
-		(rmail-update-summary)))
-	  (message "%d new message%s read"
-		   new-messages (if (= 1 new-messages) "" "s"))
-	  ;; Move to the first new message
-	  ;; unless we have other unseen messages before it.
-	  (rmail-show-message (rmail-first-unseen-message))
-	  (run-hooks 'rmail-after-get-new-mail-hook)
-	  t))
-    ;; Don't leave the buffer screwed up if we get a disk-full error.
-    (rmail-show-message)))
+		      ;; First, try deleting.
+		      (condition-case ()
+			  (delete-file (car delete-files))
+			(file-error
+			 ;; If we can't delete it, truncate it.
+			 (write-region (point) (point) (car delete-files))))
+		    (file-error nil))
+		  (setq delete-files (cdr delete-files)))))
+	    (if (= new-messages 0)
+		(progn (goto-char opoint)
+		       (if (or file-name rmail-inbox-list)
+			   (message "(No new mail has arrived)"))
+		       nil)
+	      (if (rmail-summary-exists)
+		  (rmail-select-summary
+		    (rmail-update-summary)))
+	      (message "%d new message%s read"
+		       new-messages (if (= 1 new-messages) "" "s"))
+	      ;; Move to the first new message
+	      ;; unless we have other unseen messages before it.
+	      (rmail-show-message (rmail-first-unseen-message))
+	      (run-hooks 'rmail-after-get-new-mail-hook)
+	      t)))
+      ;; Don't leave the buffer screwed up if we get a disk-full error.
+      (rmail-show-message))))
 
 (defun rmail-insert-inbox-text (files renamep)
+  ;; Detect a locked file now, so that we avoid moving mail
+  ;; out of the real inbox file.  (That could scare people.)
+  (or (memq (file-locked-p buffer-file-name) '(nil t))
+      (error "RMAIL file %s is locked"
+	     (file-name-nondirectory buffer-file-name)))
   (let (file tofile delete-files movemail popmail)
     (while files
       (setq file (file-truename
@@ -1142,7 +1158,7 @@ Optional DEFAULT is password to start with."
 	(invalid-input-resync
 	 (function (lambda ()
 		     (message "Invalid Babyl format in inbox!")
-		     (sit-for 1)
+		     (sit-for 3)
 		     ;; Try to get back in sync with a real message.
 		     (if (re-search-forward
 			  (concat mmdf-delim1 "\\|^From") nil t)
@@ -1647,16 +1663,17 @@ If summary buffer is currently displayed, update current message there also."
 		     blurb "No following message"))
 	      (t
 	       (setq rmail-current-message n))))
-      (let ((beg (rmail-msgbeg n))
-	    (end (rmail-msgend n)))
+      (let ((beg (rmail-msgbeg n)))
 	(goto-char beg)
 	(forward-line 1)
-	(if (= (following-char) ?0)
-	    (progn
+	;; Clear the "unseen" attribute when we show a message.
+	(rmail-set-attribute "unseen" nil)
+	;; Reformat the header, or else find the reformatted header.
+	(let ((end (rmail-msgend n)))
+	  (if (= (following-char) ?0)
 	      (rmail-reformat-message beg end)
-	      (rmail-set-attribute "unseen" nil))
-	  (search-forward "\n*** EOOH ***\n" end t)
-	  (narrow-to-region (point) end))
+	    (search-forward "\n*** EOOH ***\n" end t)
+	    (narrow-to-region (point) end)))
 	(goto-char (point-min))
 	(rmail-display-labels)
 	(rmail-highlight-headers)
