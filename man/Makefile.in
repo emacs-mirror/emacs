@@ -48,6 +48,7 @@ EMACSSOURCES= \
 	${srcdir}/buffers.texi \
 	${srcdir}/windows.texi \
 	${srcdir}/frames.texi \
+	${srcdir}/mule.texi \
 	${srcdir}/major.texi \
 	${srcdir}/indent.texi \
 	${srcdir}/text.texi \
