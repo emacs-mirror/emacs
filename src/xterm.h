@@ -412,6 +412,9 @@ struct x_display
      This should always be filled_box_cursor or bar_cursor.  */
   enum text_cursor_kinds desired_cursor;
 
+  /* Width of bar cursor (if we are using that).  */
+  int cursor_width;
+
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
      member of the hints structure, does not leave the corresponding
