@@ -31,6 +31,7 @@
 (eval-when-compile
   (require 'wid-edit))
 
+;;;###autoload
 (defun custom-theme-create ()
   "Create a custom theme."
   (interactive)
