@@ -1,0 +1,30 @@
+`emacs-lisp-intro-2.00.tar' contains:
+
+        size  filename
+
+        2102  INSTALL
+        1482  MANIFEST
+       10295  Makefile
+         358  Makefile.am
+       10215  Makefile.in
+        5642  README
+        3542  aclocal.m4
+        7129  drawers.eps
+       36057  configure
+         142  configure.in
+       12136  cons-1.eps
+       12523  cons-2.eps
+       12420  cons-2a.eps
+       12984  cons-3.eps
+       13866  cons-4.eps
+       12986  cons-5.eps
+      772149  emacs-lisp-intro.texi
+        5584  install-sh
+       10252  lambda-1.eps
+       10278  lambda-2.eps
+       10275  lambda-3.eps
+        4650  missing
+         732  mkinstalldirs
+      207383  texinfo.tex
+
+###
