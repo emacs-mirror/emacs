@@ -1,3 +1,8 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired
+	buffers.
+
 2001-10-29  Alex Schroeder  <kensanata@yahoo.com>
 
 	* progmodes/sql.el (sql-mysql): Doc change by RMS.

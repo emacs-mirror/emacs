@@ -510,7 +510,10 @@ Should never be used as marker by the user or other packages.")
 (defun dired-omit-startup ()
   (or (assq 'dired-omit-files-p minor-mode-alist)
       (setq minor-mode-alist
-            (append '((dired-omit-files-p " Omit")) minor-mode-alist))))
+            (append '((dired-omit-files-p
+		       (:eval (if (eq major-mode 'dired-mode)
+				  " Omit" ""))))
+		    minor-mode-alist))))
 
 (defun dired-omit-toggle (&optional flag)
   "Toggle omitting files matching `dired-omit-files' and `dired-omit-extensions'.
