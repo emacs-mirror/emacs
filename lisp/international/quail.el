@@ -271,7 +271,10 @@ LEIM is available from the same ftp directory as Emacs."))
 
 (defvar quail-translation-keymap
   (let ((map (make-keymap))
-	(i 32))
+	(i 0))
+    (while (< i ?\ )
+      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
+      (setq i (1+ i)))
     (while (< i 127)
       (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
