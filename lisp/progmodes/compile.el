@@ -313,7 +313,7 @@ Returns the compilation buffer created."
 	(set-buffer outbuf)
 	(compilation-mode)
 	(buffer-disable-undo (current-buffer))
-	(setq buffer-read-only t)
+	;; (setq buffer-read-only t)  ;;; Non-ergonomic.
 	(set (make-local-variable 'compilation-parse-errors-function) parser)
 	(set (make-local-variable 'compilation-error-message) error-message)
 	(set (make-local-variable 'compilation-error-regexp-alist) regexp-alist)
@@ -614,7 +614,7 @@ Does NOT find the source line like \\[next-error]."
 	     (or (not limit-search)
 		 (> compilation-parsing-end limit-search))
 	     (or (not find-at-least)
-		 (> (length compilation-error-list) find-at-least)))
+		 (>= (length compilation-error-list) find-at-least)))
 	;; Since compilation-error-list is non-nil, it points to a specific
 	;; error the user wanted.  So don't move it around.
 	nil
