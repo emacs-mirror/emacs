@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.10) $
+ * $HopeName: MMsrc!trace.c(trunk.11) $
  */
 
 #include "std.h"
@@ -14,7 +14,7 @@
 #include "rootst.h"
 #include <limits.h>
 
-SRCID("$HopeName: MMsrc!trace.c(trunk.10) $");
+SRCID("$HopeName: MMsrc!trace.c(trunk.11) $");
 
 Bool ScanStateIsValid(ScanState ss, ValidationType validParam)
 {
@@ -98,6 +98,7 @@ Error TraceFlip(Space space, TraceId ti, RefSet condemned)
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
   ss.condemned = space->trace[ti].condemned;
+  ss.summary = RefSetEmpty;
   ss.space = space;
   ss.traceId = ti;
   ss.sig = ScanStateSig;
@@ -198,17 +199,53 @@ Error TraceFix(ScanState ss, Ref *refIO)
 Error TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 {
   Error e;
+  Addr *p;
+  Ref ref;
 
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
 
-  while(base < limit) {
-    e = TraceFix(ss, base);
-    if(e != ErrSUCCESS)
-      return e;
-    ++base;
-  }
+  TRACE_SCAN_BEGIN(ss) {
+    p = base;
+  loop:
+    if(p >= limit) goto out;
+    ref = *p++;
+    if(!TRACE_FIX1(ss, ref)) goto loop;
+    e = TRACE_FIX2(ss, p-1);
+    if(e == ErrSUCCESS) goto loop;
+    return e;
+  out:
+    AVER(p == limit);
+  } TRACE_SCAN_END(ss);
+  
+  return ErrSUCCESS;
+}
+
+Error TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
+{
+  Error e;
+  Addr *p;
+  Ref ref;
+
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base < limit);
+
+  TRACE_SCAN_BEGIN(ss) {
+    p = base;
+  loop:
+    if(p >= limit) goto out;
+    ref = *p++;
+    if(((Addr)ref&3) != 0)   /* only fix 4-aligned pointers */
+      goto loop;             /* not a pointer */
+    if(!TRACE_FIX1(ss, ref)) goto loop;
+    e = TRACE_FIX2(ss, p-1);
+    if(e == ErrSUCCESS) goto loop;
+    return e;
+  out:
+    AVER(p == limit);
+  } TRACE_SCAN_END(ss);
   
   return ErrSUCCESS;
 }
@@ -224,6 +261,7 @@ Error TraceRun(Space space, TraceId ti, Bool *finishedReturn)
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
   ss.condemned = space->trace[ti].condemned;
+  ss.summary = RefSetEmpty;
   ss.space = space;
   ss.traceId = ti;
   ss.sig = ScanStateSig;
