@@ -203,13 +203,14 @@ Type SPC to scroll through this section and its subsections."))))
 
 (defun report-emacs-bug-hook ()
   (save-excursion
-    (goto-char (point-max))
-    (skip-chars-backward " \t\n")
-    (if (and (= (- (point) (point-min))
-		(length report-emacs-bug-orig-text))
-	     (equal (buffer-substring (point-min) (point))
-		    report-emacs-bug-orig-text))
-	(error "No text entered in bug report"))
+    (save-excursion
+      (goto-char (point-max))
+      (skip-chars-backward " \t\n")
+      (if (and (= (- (point) (point-min))
+		  (length report-emacs-bug-orig-text))
+	       (equal (buffer-substring (point-min) (point))
+		      report-emacs-bug-orig-text))
+	  (error "No text entered in bug report")))
 
     ;; Check the buffer contents and reject non-English letters.
     (save-excursion
