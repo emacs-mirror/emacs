@@ -340,28 +340,31 @@ Leave one space or none, according to the context."
   "Delete all spaces and tabs around point.
 If BACKWARD-ONLY is non-nil, only delete spaces before point."
   (interactive "*")
-  (delete-region
-   (if backward-only
-       (point)
+  (let ((orig-pos (point)))
+    (delete-region
+     (if backward-only
+	 orig-pos
+       (progn
+	 (skip-chars-forward " \t")
+	 (constrain-to-field nil orig-pos t)))
      (progn
-       (skip-chars-forward " \t" (field-end))
-       (point)))
-   (progn
-     (skip-chars-backward " \t" (field-beginning nil t))
-     (point))))
+       (skip-chars-backward " \t")
+       (constrain-to-field nil orig-pos)))))
 
 (defun just-one-space ()
   "Delete all spaces and tabs around point, leaving one space."
   (interactive "*")
-  (skip-chars-backward " \t" (field-beginning))
-  (if (= (following-char) ? )
-      (forward-char 1)
-    (insert ? ))
-  (delete-region
-   (point)
-   (progn
-     (skip-chars-forward " \t" (field-end nil t))
-     (point))))
+  (let ((orig-pos (point)))
+    (skip-chars-backward " \t")
+    (constrain-to-field nil orig-pos)
+    (if (= (following-char) ? )
+	(forward-char 1)
+      (insert ? ))
+    (delete-region
+     (point)
+     (progn
+       (skip-chars-forward " \t")
+       (constrain-to-field nil orig-pos t)))))
 
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
