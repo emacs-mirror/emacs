@@ -949,6 +949,7 @@ if test x"${opsys}" = x; then
     *-sysv2 | *-sysvr2 )		opsys=usg5-2 ;;
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
     *-sysv3* | *-sysvr3* )		opsys=usg5-3 ;;
+    *-sysv4.2uw* )			opsys=unixware ;;
     *-sysv4.1* | *-sysvr4.1* )
 	NON_GNU_CPP=/usr/lib/cpp
 	opsys=usg5-4 ;;
@@ -1737,7 +1738,8 @@ test "${exec_prefix}" != NONE &&
 changequote([, ])dnl
 
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
-	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in, [
+	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
+	leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in cpp etc lisp ; do
@@ -1800,5 +1802,8 @@ if test ! -f src/.gdbinit && test -f $top_srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $top_srcdir/src/.gdbinit > src/.gdbinit
 fi
+
+# This is how we know whether to re-run configure in certain cases.
+touch src/config.stamp
 
 ], [CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
