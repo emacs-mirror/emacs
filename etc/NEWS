@@ -594,10 +594,10 @@ and its use is deprecated.
 
 ** LessTif support.
 
-Emacs now runs with the Lesstif toolkit (see
+Emacs now runs with the LessTif toolkit (see
 <http://www.lesstif.org>).  You will need version 0.92 or later.
-Please use Lesstif's Motif 1.2 emulation; it's Motif 2.0 and 2.1
-emulation are known not to work with Emacs.
+Please use LessTif's Motif 1.2 emulation; the emulations of Motif 2.0
+and 2.1 are known not to work well with Emacs.
 
 ** Toolkit scroll bars.
 
@@ -1031,7 +1031,7 @@ strings, starting with a `#'.  The default value of this variable is "^#".
 ** Changes to Rmail mode
 
 *** The new user-option rmail-user-mail-address-regexp can be
-set to fine tune the identification of of the correspondent when
+set to fine tune the identification of the correspondent when
 receiving new mail.  If it matches the address of the sender, the
 recipient is taken as correspondent of a mail.  If nil, the default,
 `user-login-name' and `user-mail-address' are used to exclude yourself
@@ -2160,7 +2160,7 @@ long promised.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
-** The new hook `kbd-macro-termination-hook' is run at the end of of
+** The new hook `kbd-macro-termination-hook' is run at the end of
 function execute-kbd-macro.  Functions on this hook are called with no
 args.  The hook is run independent of how the macro was terminated
 (signal or normal termination).
@@ -4346,7 +4346,7 @@ A double dashed line in the menu's foreground color.
 
 - `--shadow-etched-in' or `--:shadowEtchedIn'
 
-A single line with 3D sunken appearance.  This is the the form
+A single line with 3D sunken appearance.  This is the form
 displayed for item names consisting of dashes only.
 
 - `--shadow-etched-out' or `--:shadowEtchedOut'
@@ -6047,7 +6047,7 @@ The supported properties include
 		  It should return a binding to use instead.
 :keys DESCRIPTION
 		  DESCRIPTION is a string that describes an equivalent keyboard
-                  binding for for REAL-BINDING.  DESCRIPTION is expanded with
+                  binding for REAL-BINDING.  DESCRIPTION is expanded with
                   `substitute-command-keys' before it is used.
 :key-sequence KEY-SEQUENCE
 		  KEY-SEQUENCE is a key-sequence for an equivalent
@@ -7253,7 +7253,7 @@ C++, ; for lisp).
 *** When doing `hs-hide-all' it is now possible to also hide the comments
 in the file if `hs-hide-comments-when-hiding-all' is set.
 
-*** The new function `hs-hide-initial-comment' hides the the comments at
+*** The new function `hs-hide-initial-comment' hides the comments at
 the beginning of the files.  Finally those huge RCS logs don't stay in your
 way!  This is run by default when entering the `hs-minor-mode'.
 
