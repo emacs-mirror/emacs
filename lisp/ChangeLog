@@ -1,3 +1,16 @@
+2002-02-18  Colin Walters  <walters@verbum.org>
+
+	* calc/calcalg2.el (math-solve-get-int): Convert return value from
+	`math-get-from-counter' to a string before calling `concat' on it.
+
+	* calc/calc-maint.el (calc-split-manual): Look for calc.texi.
+	(calc-public-autoloads): Obsolete; remove.
+	(calc-private-autoloads): Ditto.
+	(calc-add-autoloads): Ditto.
+
+	* calc/calc-macs.el (calc-with-default-simplification): Use &rest
+	for body.
+
 2002-02-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-win.el (x-option-alist, x-long-option-alist)
