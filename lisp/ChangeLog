@@ -45,6 +45,15 @@
 	* progmodes/inf-lisp.el, progmodes/scheme.el:
 	Use `lisp-mode-shared-map' instead of `shared-lisp-mode-map'.
 
+2000-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texinfo.el: Update copyright and fix typo.
+
+	* desktop.el (desktop-modes-not-to-save): New var.
+	(desktop-save-buffer-p): Use it.
+	Also, obey desktop-buffers-not-to-save even for non-file buffers.
+	(desktop-buffer-file): Use pop-to-buffer if switch-to-buffer fails.
+
 2000-10-10  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-add-item)
