@@ -1,5 +1,11 @@
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (expose_window_tree, expose_frame): Don't compute 
+	intersections here.
+	(expose_window): Do it here instead.
+	(x_draw_glyph_string): Fix a computation of the underline
+	position.
+
 	* bytecode.c (BYTE_CODE_QUIT): New macro.
 	(Fbyte_code): Use BYTE_CODE_QUIT instead of QUIT.
 
