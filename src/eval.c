@@ -884,7 +884,9 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 
 DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
   "(catch TAG BODY...): eval BODY allowing nonlocal exits using `throw'.\n\
-TAG is evalled to get the tag to use.  Then the BODY is executed.\n\
+TAG is evalled to get the tag to use; it must not be nil.\n\
+\n\
+Then the BODY is executed.\n\
 Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.\n\
 If no throw happens, `catch' returns the value of the last BODY form.\n\
 If a throw happens, it specifies the value to return from `catch'.")
