@@ -1,5 +1,15 @@
 2004-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* simple.el (next-error-follow-mode)
+	(next-error-follow-mode-post-command-hook): New functions.
+	(next-error-follow-last-line): New defvar.
+
+	* diff-mode.el (diff-mode-map): Bind
+	toggle-next-error-follow-mode.
+	* progmodes/compile.el (compilation-mode-map): Likewise.
+	* progmodes/grep.el (grep-mode-map): Likewise.
+	* replace.el (occur-mode-map): Likewise.
+
 	* newcomment.el (uncomment-region): Bind comment-use-global-state
 	to nil.
 
