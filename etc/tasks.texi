@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate October 21, 1999
+@set lastupdate November  1, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -19,7 +19,9 @@
 @top GNU Task List
 
 This file is updated automatically from @file{tasks.texi}, which was
-last updated on @value{lastupdate}.
+last updated on @value{lastupdate}.  See also
+@uref{http://www.gnu.org/help/help.html#helpgnu} for other suggested
+tasks.
 @end ifinfo
 
 @menu
