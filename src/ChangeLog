@@ -1,3 +1,8 @@
+2003-01-30  Harald Maier  <Harald.Maier.BW@t-online.de>  (tiny change)
+
+	* w32heap.c: Don't redefine _heap_init and _heap_term on MSVC 7 build
+	environments.
+
 2003-01-24  Andreas Schwab  <schwab@suse.de>
 
 	* minibuf.c (Fminibuffer_message): Verify type of parameter.
