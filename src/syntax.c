@@ -1420,6 +1420,9 @@ skip_chars (forwardp, string, lim)
   if (multibyte)
     char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
 
+  str = XSTRING (string)->data;
+  size_byte = STRING_BYTES (XSTRING (string));
+
   i_byte = 0;
   if (i_byte < size_byte
       && XSTRING (string)->data[0] == '^')
@@ -1432,9 +1435,6 @@ skip_chars (forwardp, string, lim)
 
      If STRING contains non-ASCII characters, setup char_ranges for
      them and use fastmap only for their leading codes.  */
-
-  str = XSTRING (string)->data;
-  size_byte = STRING_BYTES (XSTRING (string));
 
   if (! string_multibyte)
     {
@@ -1662,9 +1662,8 @@ skip_chars (forwardp, string, lim)
 	    }
 	else
 	  {
-	    while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
-	      pos++;
-	    pos_byte = pos;
+	    while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos_byte)])
+	      pos++, pos_byte++;
 	  }
       }
     else
@@ -1693,9 +1692,8 @@ skip_chars (forwardp, string, lim)
 	    }
 	else
 	  {
-	    while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
-	      pos--;
-	    pos_byte = pos;
+	    while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos_byte - 1)])
+	      pos--, pos_byte--;
 	  }
       }
 
@@ -1738,18 +1736,19 @@ skip_syntaxes (forwardp, string, lim)
 
   bzero (fastmap, sizeof fastmap);
 
+  if (STRING_BYTES (XSTRING (string)) > XSTRING (string)->size)
+    /* As this is very rare case, don't consider efficiency.  */
+    string = string_make_unibyte (string);
+
+  str = XSTRING (string)->data;
+  size_byte = STRING_BYTES (XSTRING (string));
+
   i_byte = 0;
   if (i_byte < size_byte
       && XSTRING (string)->data[0] == '^')
     {
       negate = 1; i_byte++;
     }
-
-  if (STRING_BYTES (XSTRING (string)) > XSTRING (string)->size)
-    /* As this is very rare case, don't consider efficiency.  */
-    string = string_make_unibyte (string);
-  str = XSTRING (string)->data;
-  size_byte = STRING_BYTES (XSTRING (string));
 
   /* Find the syntaxes specified and set their elements of fastmap.  */
 
@@ -1791,14 +1790,13 @@ skip_syntaxes (forwardp, string, lim)
 	  {
 	    while (pos < XINT (lim))
 	      {
-		c = FETCH_BYTE (pos);
+		c = FETCH_BYTE (pos_byte);
 		MAKE_CHAR_MULTIBYTE (c);
 		if (fastmap[(int) SYNTAX (c)])
 		  break;
-		pos++;
+		pos++, pos_byte++;
 		UPDATE_SYNTAX_TABLE_FORWARD (pos);
 	      }
-	    pos_byte = pos;
 	  }
       }
     else
@@ -1826,16 +1824,15 @@ skip_syntaxes (forwardp, string, lim)
 	    if (pos > XINT (lim))
 	      while (1)
 		{
-		  c = FETCH_BYTE (pos - 1);
+		  c = FETCH_BYTE (pos_byte - 1);
 		  MAKE_CHAR_MULTIBYTE (c);
 		  if (! fastmap[(int) SYNTAX (c)])
 		    break;
-		  pos--;
+		  pos--, pos_byte--;
 		  if (pos <= XINT (lim))
 		    break;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		}
-	    pos_byte = pos;
 	  }
       }
 
