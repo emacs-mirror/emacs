@@ -1,3 +1,8 @@
+2000-11-28  Miles Bader  <miles@gnu.org>
+
+	* wid-edit.el (widget-choose): Make sure pop-up window is large
+	enough to display all the choices, as there's no way to scroll it.
+
 2000-11-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el: Make the coding system no-conversion
