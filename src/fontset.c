@@ -1378,7 +1378,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
     {
       name = Fdowncase (name);
       val = split_font_name_into_vector (name);
-      if (NILP (val))
+      if (NILP (val) || NILP (AREF (val, 12)) || NILP (AREF (val, 13)))
 	error ("Fontset name must be in XLFD format");
       if (strcmp (SDATA (AREF (val, 12)), "fontset"))
 	error ("Registry field of fontset name must be \"fontset\"");
