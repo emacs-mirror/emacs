@@ -176,11 +176,12 @@ otherwise."
       (describe-text-properties-1 pos output-buffer)
     (if (not (or (text-properties-at pos) (overlays-at pos)))
 	(message "This is plain text.")
-      (let ((buffer (current-buffer)))
-	(when (eq buffer (get-buffer "*Help*"))
-	  (error "Can't do self inspection"))
+      (let ((buffer (current-buffer))
+	    (target-buffer "*Help*"))
+	(when (eq buffer (get-buffer target-buffer))
+	  (setq target-buffer "*Help-2*"))
 	(save-excursion
-	  (with-output-to-temp-buffer "*Help*"
+	  (with-output-to-temp-buffer target-buffer
 	    (set-buffer standard-output)
 	    (setq output-buffer (current-buffer))
 	    (widget-insert "Text content at position " (format "%d" pos) ":\n\n")
