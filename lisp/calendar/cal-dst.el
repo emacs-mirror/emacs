@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight savings rules.
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -250,7 +250,7 @@ it can't find."
 		    (list t1-name t0-name t2-rules t1-rules t2-time t1-time)
 		    )))))))))))
 
-;;; The following six defvars relating to daylight savings time should NOT be
+;;; The following eight defvars relating to daylight savings time should NOT be
 ;;; marked to go into loaddefs.el where they would be evaluated when Emacs is
 ;;; dumped.  These variables' appropriate values depend on the conditions under
 ;;; which the code is INVOKED; so it's inappropriate to initialize them when
@@ -329,6 +329,58 @@ If the locale never uses daylight savings time, set this to nil.")
   (or (car (nthcdr 7 calendar-current-time-zone-cache))
       calendar-daylight-savings-starts-time)
   "*Number of minutes after midnight that daylight savings time ends.")
+
+(defun dst-in-effect (date)
+  "True if on absolute DATE daylight savings time is in effect.
+Fractional part of DATE is time of day."
+  (let* ((year (extract-calendar-year
+                (calendar-gregorian-from-absolute (floor date))))
+         (dst-starts (and (eval calendar-daylight-savings-starts)
+                          (+ (calendar-absolute-from-gregorian
+                              (eval calendar-daylight-savings-starts))
+                             (/ calendar-daylight-savings-starts-time
+                                60.0 24.0))))
+         (dst-ends (and (eval calendar-daylight-savings-ends)
+                        (+ (calendar-absolute-from-gregorian
+                            (eval calendar-daylight-savings-ends))
+                           (/ (- calendar-daylight-savings-ends-time
+                                 calendar-daylight-time-offset)
+                              60.0 24.0)))))
+    (and (and dst-starts dst-ends
+              (or (and (< dst-starts dst-ends);; northern hemi.
+                       (<= dst-starts date) (< date dst-ends))
+                  (and (< dst-ends dst-starts);; southern hemi.
+                       (<= dst-starts date) (< date dst-ends))
+                  (and dst-starts (not dst-ends) (<= dst-starts date))
+                  (and dst-ends (not dst-starts) (< date dst-ends)))))))
+
+(defun dst-adjust-time (date time &optional style)
+  "Adjust, to account for dst on DATE, decimal fraction standard TIME.
+Returns a list (date adj-time zone) where `date' and `adj-time' are the values
+adjusted for `zone'; here `date' is a list (month day year), `adj-time' is a
+decimal fraction time, and `zone' is a string.
+
+Optional parameter STYLE forces the result time to be standard time when its
+value is 'standard and daylight savings time (if available) when its value is
+'daylight.
+
+Conversion to daylight savings time is done according to
+`calendar-daylight-savings-starts', `calendar-daylight-savings-ends',
+`calendar-daylight-savings-starts-time',
+`calendar-daylight-savings-ends-time', and
+`calendar-daylight-savings-offset'."
+
+  (let* ((rounded-abs-date (+ (calendar-absolute-from-gregorian date)
+			      (/ (round (* 60 time)) 60.0 24.0)))
+         (dst (dst-in-effect rounded-abs-date))
+	 (time-zone (if dst
+			calendar-daylight-time-zone-name
+			calendar-standard-time-zone-name))
+	 (time (+ rounded-abs-date
+                  (if dst (/ calendar-daylight-time-offset 24.0 60.0) 0))))
+    (list (calendar-gregorian-from-absolute (truncate time))
+          (* 24.0 (- time (truncate time)))
+          time-zone)))
 
 (provide 'cal-dst)
 
