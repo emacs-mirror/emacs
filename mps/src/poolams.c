@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.34) $
+ * $HopeName: MMsrc!poolams.c(trunk.35) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.34) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.35) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -881,11 +881,11 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(AddrIsAligned((Addr)ref, PoolAlignment(pool)));
     AVER_CRITICAL(AMS_ALLOCED(group, i));
     if(AMSIsWhite(group, i)) {
-      ++ss->forwardCount; /* slightly inaccurate terminology */
       ss->wasMarked = FALSE;
       if(ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
       } else {
+        ++ss->preservedInPlaceCount; /* Size updated on reclaim */
         if(SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
           /* design.mps.poolams.fix.to-black */
           Addr next;
@@ -987,6 +987,9 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   group->free += reclaimed;
   trace->reclaimSize += reclaimed << ams->grainShift;
+  /* preservedInPlaceCount is updated on fix */
+  trace->preservedInPlaceSize += 
+    (group->grains - group->free) << ams->grainShift;
 
   if(group->free == group->grains && SegBuffer(seg) == NULL) {
     /* No survivors */

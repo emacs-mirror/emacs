@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.53) $
+ * $HopeName: MMsrc!poolawl.c(trunk.54) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.53) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.54) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -932,7 +932,6 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     if(!BTGet(group->mark, i)) {
-      ++ss->forwardCount; /* slightly inaccurate terminology */
       ss->wasMarked = FALSE;
       if(ss->rank == RankWEAK) {
         *refIO = (Ref)0;
@@ -959,6 +958,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLGroup group;
   Index i;
   Count oldFree;
+  Count preservedInPlaceCount = (Count)0;
+  Size preservedInPlaceSize = (Size)0;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -977,7 +978,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   i = 0; oldFree = group->free;
   while(i < group->grains) {
-    Addr p;
+    Addr p, q;
     Index j;
     if(!BTGet(group->alloc, i)) {
       ++i;
@@ -993,13 +994,15 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
         continue;
       }
     }
-    j = awlIndexOfAddr(base, awl,
-                       AddrAlignUp(pool->format->skip(p), pool->alignment));
+    q = AddrAlignUp(pool->format->skip(p), pool->alignment);
+    j = awlIndexOfAddr(base, awl, q);
     AVER(j <= group->grains);
     if(BTGet(group->mark, i)) {
       AVER(BTGet(group->scanned, i));
       BTSetRange(group->mark, i, j);
       BTSetRange(group->scanned, i, j);
+      ++preservedInPlaceCount;
+      preservedInPlaceSize += AddrOffset(p, q);
     } else {
       BTResRange(group->mark, i, j);
       BTSetRange(group->scanned, i, j);
@@ -1011,6 +1014,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(i == group->grains);
 
   trace->reclaimSize += (group->free - oldFree) << awl->alignShift;
+  trace->preservedInPlaceCount += preservedInPlaceCount;
+  trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 }
 

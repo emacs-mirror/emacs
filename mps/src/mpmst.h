@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.67) $
+ * $HopeName: MMsrc!mpmst.h(trunk.68) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -534,7 +534,10 @@ typedef struct ScanStateStruct {
   Count whiteSegRefCount;       /* refs which refer to white segs */
   Count nailCount;              /* segments nailed by ambig refs */
   Count snapCount;              /* refs snapped to forwarded objs */
-  Count forwardCount;           /* objects forwarded */
+  Count forwardedCount;         /* objects preserved by moving */
+  Size forwardedSize;           /* bytes preserved by moving */
+  Count preservedInPlaceCount;  /* objects preserved in place */
+  Size preservedInPlaceSize;    /* bytes preserved in place */
   Size copiedSize;              /* bytes copied */
   Size scannedSize;             /* bytes scanned */
 } ScanStateStruct;
@@ -553,6 +556,7 @@ typedef struct TraceStruct {
   TraceState state;             /* current state of trace */
   Bool emergency;               /* true iff ran out of memory during trace */
   Size condemned;               /* condemned bytes */
+  Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
   Size rate;                    /* segs to scan per increment */
   Count rootScanCount;          /* number of roots scanned */
@@ -569,8 +573,11 @@ typedef struct TraceStruct {
   Count whiteSegRefCount;       /* refs which refer to white segs */
   Count nailCount;              /* segments nailed by ambig refs */
   Count snapCount;              /* refs snapped to forwarded objs */
-  Count forwardCount;           /* objects forwarded */
   Count faultCount;             /* read barrier faults */
+  Count forwardedCount;         /* objects preserved by moving */
+  Size forwardedSize;           /* bytes preserved by moving */
+  Count preservedInPlaceCount;  /* objects preserved in place */
+  Size preservedInPlaceSize;    /* bytes preserved in place */
   Count reclaimCount;           /* segments reclaimed */
   Count reclaimSize;            /* bytes reclaimed */
 } TraceStruct;
