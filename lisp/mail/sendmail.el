@@ -179,7 +179,7 @@ actually occur.")
   "Normal hook run before sending mail, in Mail mode.")
 
 (defun sendmail-synch-aliases ()
-  (let ((modtime (nth 5 (file-attributes "~/.mailrc"))))
+  (let ((modtime (nth 5 (file-attributes (or (getenv "MAILRC") "~/.mailrc")))))
     (or (equal mail-alias-modtime modtime)
 	(setq mail-alias-modtime modtime
 	      mail-aliases t))))
