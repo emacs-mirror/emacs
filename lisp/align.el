@@ -1,6 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2002 Free Sofware Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: convenience languages lisp
@@ -1417,7 +1417,7 @@ aligner would have dealt with are."
 			      (if name
 				  (message
 				   "Aligning `%s' (rule %d of %d) %d%%..."
-				   rule-index rule-count
+				   name rule-index rule-count
 				   (/ (* (- (point) real-beg) 100)
 				      (- end-mark real-beg)))
 				(message
