@@ -493,11 +493,17 @@ This function is called after the function pointed out by
 	    tail (cdr elt)
 	    alist (cdr alist) 
 	    head (car elt)) 
-      (if (string= str head)
-	  (setq alist nil res elt)
-	(if (and (listp tail)
-		 (setq res (imenu--in-alist str tail)))
-	    (setq alist nil))))
+      ;; A nested ALIST element looks like
+      ;;   (INDEX-NAME (INDEX-NAME . INDEX-POSITION) ...)
+      ;; while a bottom-level element looks like
+      ;;   (INDEX-NAME . INDEX-POSITION)
+      ;; We are only interested in the bottom-level elements, so we need to
+      ;; recurse if TAIL is a list.
+      (cond ((listp tail)
+	     (if (setq res (imenu--in-alist str tail))
+		 (setq alist nil)))
+	    ((string= str head)
+	     (setq alist nil res elt))))
     res))
 
 (defun imenu-default-create-index-function ()
