@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
@@ -2062,16 +2062,16 @@ Emacs supports saving state by using a hook called
 @code{emacs-save-session-functions}.  Each function in this hook is
 called when the session manager tells Emacs that the window system is
 shutting down.  The functions are called with the current buffer set
-to a temporary buffer.  Each functions can use @code{insert} to add
+to a temporary buffer.  Each function can use @code{insert} to add
 Lisp code to this buffer.  At the end, Emacs saves the buffer in a
-file that Emacs will load in order to restart the saved session.
+file that another Emacs will later load in order to restart the saved session.
 
 If a function in @code{emacs-save-session-functions} returns
 non-@code{nil}, Emacs tells the session manager to cancel the
 shutdown.
 @end defvar
 
-Here is an example that just inserts some text into *scratch* when
+Here is an example that just inserts some text into @samp{*scratch*} when
 Emacs is restarted by the session manager.
 
 @example
