@@ -273,8 +273,10 @@ is a string or list of strings, it represents a shell command to run
 to return a true or false shell value for the validity.")
 
 (defcustom mailcap-download-directory nil
-  "*Where downloaded files should go by default."
-  :type 'directory
+  "*Directory to which `mailcap-save-binary-file' downloads files by default.
+Nil means your home directory."
+  :type '(choice (const :tag "Home directory" nil)
+		 directory)
   :group 'mailcap)
 
 ;;;
