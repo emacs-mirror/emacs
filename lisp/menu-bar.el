@@ -206,7 +206,8 @@
 (define-key menu-bar-search-menu [search-fwd]
   '("Search" . nonincremental-search-forward))
 
-(define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
+(if (fboundp 'start-process)
+    (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map)))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [props] '("Text Properties" . facemenu-menu))
 
