@@ -1090,7 +1090,7 @@ command_loop_1 ()
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
-      XSET (last_point_position_buffer, Lisp_Buffer, prev_buffer);
+      XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* Execute the command.  */
 
@@ -1500,7 +1500,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (unread_command_char != -1)
     {
-      XSET (c, Lisp_Int, unread_command_char);
+      XSETINT (c, unread_command_char);
       unread_command_char = -1;
 
       if (this_command_key_count == 0)
@@ -1531,7 +1531,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (EQ (Vexecuting_macro, Qt)
 	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
-	  XSET (c, Lisp_Int, -1);
+	  XSETINT (c, -1);
 	  return c;
 	}
       
@@ -1571,9 +1571,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (_setjmp (getcjmp))
     {
-      XSET (c, Lisp_Int, quit_char);
+      XSETINT (c, quit_char);
 #ifdef MULTI_FRAME
-      XSET (internal_last_event_frame, Lisp_Frame, selected_frame);
+      XSETFRAME (internal_last_event_frame, selected_frame);
       Vlast_event_frame = internal_last_event_frame;
 #endif
       /* If we report the quit char as an event,
@@ -1916,7 +1916,7 @@ Normally, mouse motion is ignored.")
   int count = specpdl_ptr - specpdl;
   Lisp_Object val;
 
-  XSET (val, Lisp_Int, do_mouse_tracking);
+  XSETINT (val, do_mouse_tracking);
   record_unwind_protect (tracking_off, val);
 
   if (!input_pending && !detect_input_pending ())
@@ -2048,7 +2048,7 @@ kbd_buffer_get_event ()
   if (noninteractive)
     {
       c = getchar ();
-      XSET (obj, Lisp_Int, c);
+      XSETINT (obj, c);
       return obj;
     }
 
@@ -2077,7 +2077,7 @@ kbd_buffer_get_event ()
 	{
 	  Lisp_Object minus_one;
 
-	  XSET (minus_one, Lisp_Int, -1);
+	  XSETINT (minus_one, -1);
 	  wait_reading_process_input (0, 0, minus_one, 1);
 
 	  if (!interrupt_input && EVENT_QUEUES_EMPTY)
@@ -2146,7 +2146,7 @@ kbd_buffer_get_event ()
       else if (event->kind == buffer_switch_event)
 	{
 	  /* The value doesn't matter here; only the type is tested.  */
-	  XSET (obj, Lisp_Buffer, current_buffer);
+	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
       /* Just discard these, by returning nil.
@@ -2216,7 +2216,7 @@ kbd_buffer_get_event ()
 
 	  frame = FRAME_FOCUS_FRAME (f);
 	  if (NILP (frame))
-	    XSET (frame, Lisp_Frame, f);
+	    XSETFRAME (frame, f);
 
 	  if (! EQ (frame, internal_last_event_frame)
 	      && XFRAME (frame) != selected_frame)
@@ -2712,9 +2712,9 @@ make_lispy_event (event)
 		else if (part == 2)
 		  posn = Qvertical_line;
 		else
-		  XSET (posn, Lisp_Int,
-			buffer_posn_from_coords (XWINDOW (window),
-						 column, row));
+		  XSETINT (posn,
+			   buffer_posn_from_coords (XWINDOW (window),
+						    column, row));
 	      }
 
 	    position
@@ -2921,13 +2921,13 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	  else if (area == 2)
 	    posn = Qvertical_line;
 	  else
-	    XSET (posn, Lisp_Int,
-		  buffer_posn_from_coords (XWINDOW (window), column, row));
+	    XSETINT (posn,
+		     buffer_posn_from_coords (XWINDOW (window), column, row));
 	}
 #ifdef MULTI_FRAME
       else if (frame != 0)
 	{
-	  XSET (window, Lisp_Frame, frame);
+	  XSETFRAME (window, frame);
 	  posn = Qnil;
 	}
 #endif
@@ -3330,7 +3330,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
   Lisp_Object value;
   Lisp_Object symbol_int;
 
-  XSET (symbol_int, Lisp_Int, symbol_num);
+  XSETINT (symbol_int, symbol_num);
 
   /* Is this a request for a valid symbol?  */
   if (symbol_num < 0 || symbol_num >= table_size)
@@ -3600,9 +3600,9 @@ read_avail_input (expected)
 	  if (meta_key != 2)
 	    cbuf[i] &= ~0x80;
 	    
-	  XSET (buf[i].code,		Lisp_Int,   cbuf[i]);
+	  XSETINT (buf[i].code, cbuf[i]);
 #ifdef MULTI_FRAME
-	  XSET (buf[i].frame_or_window, Lisp_Frame, selected_frame);
+	  XSETFRAME (buf[i].frame_or_window, selected_frame);
 #else
 	  buf[i].frame_or_window = Qnil;
 #endif
@@ -4297,7 +4297,7 @@ follow_key (key, nmaps, current, defs, next)
 	  next[i] = Qnil;
 
       current = next;
-      XSET (key, Lisp_Int, XFASTINT (key) & ~CHAR_META);
+      XSETINT (key, XFASTINT (key) & ~CHAR_META);
     }
 
   first_binding = nmaps;
@@ -6089,7 +6089,7 @@ so that you can determine whether the command was run by mouse or not.");
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
     "Meta-prefix character code.  Meta-foo as command input\n\
 turns into this character followed by foo.");
-  XSET (meta_prefix_char, Lisp_Int, 033);
+  XSETINT (meta_prefix_char, 033);
 
   DEFVAR_LISP ("last-command", &last_command,
     "The last command executed.  Normally a symbol with a function definition,\n\
@@ -6146,7 +6146,7 @@ If the last event came from a keyboard macro, this is set to `macro'.");
     "Character to recognize as meaning Help.\n\
 When it is read, do `(eval help-form)', and display result if it's a string.\n\
 If the value of `help-form' is nil, this char can be read normally.");
-  XSET (Vhelp_char, Lisp_Int, Ctl ('H'));
+  XSETINT (Vhelp_char, Ctl ('H'));
 
   DEFVAR_LISP ("help-form", &Vhelp_form,
     "Form to execute when character `help-char' is read.\n\
@@ -6195,7 +6195,7 @@ Otherwise, menu prompting uses the echo area.");
   DEFVAR_LISP ("menu-prompt-more-char", &menu_prompt_more_char,
     "Character to see next line of menu prompt.\n\
 Type this character while in a menu prompt to rotate around the lines of it.");
-  XSET (menu_prompt_more_char, Lisp_Int, ' ');
+  XSETINT (menu_prompt_more_char, ' ');
 
   DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
     "A mask of additional modifier keys to use with every keyboard character.\n\
