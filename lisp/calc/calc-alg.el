@@ -1618,5 +1618,4 @@
 				    (math-scale-int 1 (- (nth 2 f)))))))
       f))
 
-;;; arch-tag: 52e7dcdf-9688-464d-a02b-4bbe789348d0
 ;;; calc-alg.el ends here

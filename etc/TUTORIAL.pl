@@ -1248,4 +1248,3 @@ u¿ywaj±c, tworz±c i dziel±c siê oprogramowaniem swobodnym.
 
 
 
-;;; arch-tag: 6c6b7445-4cd5-44ca-a101-7f4697b92f60

@@ -512,5 +512,4 @@
  ("gml"	"僖凞喜噫囍姬嬉希憙憘戱晞曦熙熹熺犧禧稀羲")
  ("glf"	"詰"))
 
-;;; arch-tag: f83c4a34-ee8a-4d7f-95a2-e18816c57182
 ;;; hanja.el ends here

@@ -334,5 +334,4 @@ You can enable directory tracking by adding this function to
 
 (provide 'dirtrack)
 
-;;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
 ;;; dirtrack.el ends here

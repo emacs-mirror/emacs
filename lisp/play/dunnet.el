@@ -3369,5 +3369,4 @@ File not found")))
 
 (provide 'dunnet)
 
-;;; arch-tag: 4cc8e47c-d9e1-4ef4-936b-578e7f529558
 ;;; dunnet.el ends here

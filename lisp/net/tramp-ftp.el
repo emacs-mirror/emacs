@@ -138,5 +138,4 @@ pass to the OPERATION."
 ;;   Furthermore, there are no backup files on FTP hosts.
 ;;   Worth further investigations.
 
-;;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

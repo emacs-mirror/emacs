@@ -113,6 +113,3 @@ char *_getpty();
 #define NARROWPROTO 1
 
 #define USE_MMAP_FOR_BUFFERS 1
-
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */

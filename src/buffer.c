@@ -3741,13 +3741,15 @@ buffer.  */)
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      XOVERLAY (overlay)->next = b->overlays_after;
-      b->overlays_after = XOVERLAY (overlay);
+      if (b->overlays_after)
+	XOVERLAY (overlay)->next = b->overlays_after;
+    b->overlays_after = XOVERLAY (overlay);
     }
   else
     {
-      XOVERLAY (overlay)->next = b->overlays_before;
-      b->overlays_before = XOVERLAY (overlay);
+      if (b->overlays_before)
+	XOVERLAY (overlay)->next = b->overlays_before;
+    b->overlays_before = XOVERLAY (overlay);
     }
 
   /* This puts it in the right list, and in the right order.  */
@@ -5891,6 +5893,3 @@ keys_of_buffer ()
      initialized when that function gets called.  */
   Fput (intern ("erase-buffer"), Qdisabled, Qt);
 }
-
-/* arch-tag: e48569bf-69a9-4b65-a23b-8e68769436e1
-   (do not change this comment) */

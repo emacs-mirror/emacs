@@ -5361,7 +5361,3 @@ recursion.
 @setchapternewpage odd
 @contents
 @bye
-
-@ignore
-   arch-tag: b61e7200-3bfa-4a70-a9d3-095e152696f8
-@end ignore

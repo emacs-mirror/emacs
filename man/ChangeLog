@@ -1,72 +1,3 @@
-2003-09-03  Peter Runestig  <peter@runestig.com>
-
-	* makefile.w32-in: New file.
-
-2003-08-29  Richard M. Stallman  <rms@gnu.org>
-
-	* misc.texi (Saving Emacs Sessions): Correct previous change.
-
-2003-08-26  Per Abrahamsen  <abraham@dina.kvl.dk>
-
-	* widget.texi (User Interface): Explain the need of static text
-	around an editable field.
-
-2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
-
-	* widget.texi (Basic Types): The argument to `:help-echo' can now
-	be a form that evaluates to a string.
-
-	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
-	chapter.
-	(Intro): Include kmacro.texi after fixit.texi instead of after
-	custom.texi. (As suggested by Kim Storm.)
-
-2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
-
-	* fixit.texi (Fixit): Update `Next' pointer.
-	* files.texi (Files): Update `Previous' pointer.
-	* kmacro.texi (Keyboard Macros): Remove redundant node and
-	section.
-	* emacs.texi (Intro): Include kmacro.texi after custom.texi.
-	(Suggested by Kim Storm.)
-	* Makefile (EMACSSOURCES): Add kmacro.texi. (Suggested by Kim
-	Storm.)
-
-2003-08-18  Kim F. Storm  <storm@cua.dk>
-
-	* kmacro.texi: New file describing enhanced keyboard macro
-	functionality.  Replaces old description in custom.texi.
-
-	* custom.texi (Customization): Add xref to Keyboard Macros chapter.
-	(Keyboard Macros): Move to new kmacro.texi file.
-
-	* emacs.texi (Keyboard Macros): Reference new keyboard macro topics.
-
-	* calc.texi (Queries in Macros): Update xref to keyboard macro query.
-
-2003-08-17  Edward M. Reingold  <reingold@emr.cs.iit.edu>
-
-	* calendar.texi (Specified Dates): Add `calendar-goto-day-of-year'.
-
-2003-08-17  Alex Schroeder  <alex@gnu.org>
-
-	* misc.texi (Saving Emacs Sessions): Manual M-x desktop-save not
-	required.
-
-2003-08-16  Richard M. Stallman  <rms@gnu.org>
-
-	* dired-x.texi (Shell Command Guessing): Explain *.
-
-2003-08-16  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny change)
-
-	* pcl-cvs.texi (Log Edit Mode): Fix key binding for
-	log-edit-insert-changelog.
-
-2003-08-05  Richard M. Stallman  <rms@gnu.org>
-
-	* programs.texi (Lisp Indent): Don't describe
-	lisp-indent-function property here.  Use xref to Lisp Manual.
-
 2003-08-03  Karl Berry  <karl@gnu.org>
 
 	* info.texi: need @contents.
@@ -902,12 +833,10 @@
 	University of Washington.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: iso-2022-7bit-unix
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
-
-;;; arch-tag: f1d62776-3ed5-4811-9d96-267252577dbd

@@ -194,6 +194,3 @@ get_lim_data ()
 #endif /* not WINDOWSNT */
 #endif /* not USG */
 #endif /* not NO_LIM_DATA */
-
-/* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
-   (do not change this comment) */

@@ -1044,5 +1044,4 @@ old-style time formats for entries are supported."
 
 (provide 'add-log)
 
-;;; arch-tag: 81eee6fc-088f-4372-a37f-80ad9620e762
 ;;; add-log.el ends here

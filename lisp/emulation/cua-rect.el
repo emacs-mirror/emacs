@@ -1382,5 +1382,4 @@ With prefix arg, indent to that column."
 
   (setq cua--rectangle-initialized t))
 
-;;; arch-tag: b730df53-17b9-4a89-bd63-4a71ec196731
 ;;; cua-rect.el ends here

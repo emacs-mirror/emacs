@@ -1205,5 +1205,4 @@ have 30 days), and has Passover start on Tuesday.")
 
 (provide 'cal-hebrew)
 
-;;; arch-tag: aaab6718-7712-42ac-a32d-28fe1f944f3c
 ;;; cal-hebrew.el ends here

@@ -5712,6 +5712,3 @@ init_fns ()
 {
   Vweak_hash_tables = Qnil;
 }
-
-/* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31
-   (do not change this comment) */

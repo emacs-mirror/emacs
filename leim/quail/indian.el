@@ -329,5 +329,4 @@
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
 
-;;; arch-tag: 9e5a621e-f7d5-4fce-9543-0a51b407c940
 ;;; indian.el ends here

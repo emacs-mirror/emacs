@@ -1277,25 +1277,21 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  */)
-     (arg)
-     Lisp_Object arg;
+     (count)
+     Lisp_Object count;
 {
   int orig_val, val;
+  CHECK_NUMBER (count);
 
-  if (NILP (arg))
-    XSETFASTINT (arg, 1);
-  else
-    CHECK_NUMBER (arg);
-
-  val = orig_val = scan_words (PT, XINT (arg));
+  val = orig_val = scan_words (PT, XINT (count));
   if (! orig_val)
-    val = XINT (arg) > 0 ? ZV : BEGV;
+    val = XINT (count) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
   val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
@@ -3110,6 +3106,3 @@ See the info node `(elisp)Syntax Properties' for a description of the
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
-
-/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
-   (do not change this comment) */

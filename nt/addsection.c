@@ -534,6 +534,3 @@ main (int argc, char **argv)
 }
 
 /* eof */
-
-/* arch-tag: 17e2b0aa-8c17-4bd1-b24b-1cda689245fa
-   (do not change this comment) */

@@ -2670,5 +2670,4 @@ been weeded out."
 
 (provide 'feedmail)
 
-;;; arch-tag: ec27b380-11c0-4dfd-8436-f636cf2bb992
 ;;; feedmail.el ends here

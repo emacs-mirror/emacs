@@ -566,5 +566,4 @@ The descriptions are inserted in a buffer, which is then displayed."
 
 (provide 'help-fns)
 
-;;; arch-tag: 9e10331c-ae81-4d13-965d-c4819aaab0b3
 ;;; help-fns.el ends here

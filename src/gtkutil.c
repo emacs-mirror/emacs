@@ -3275,6 +3275,3 @@ xg_initialize ()
 }
 
 #endif /* USE_GTK */
-
-/* arch-tag: fe7104da-bc1e-4aba-9bd1-f349c528f7e3
-   (do not change this comment) */

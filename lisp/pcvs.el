@@ -2043,12 +2043,7 @@ Returns a list of FIS that should be `cvs remove'd."
 	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect
-		     (yes-or-no-p 
-		      (let ((nfiles (length files)))
-			(if (= 1 nfiles)
-			    (format "Delete file: \"%s\" ? " 
-				    (cvs-fileinfo->file (car files)))
-			  (format "Delete %d files? " nfiles))))
+		     (yes-or-no-p (format "Delete %d files? " (length files)))
 		   (cvs-bury-buffer tmpbuf cvs-buffer))))
 	(progn (message "Aborting") nil)
       (dolist (fi files)
@@ -2316,5 +2311,4 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (provide 'pcvs)
 
-;;; arch-tag: 8e3a7494-0453-4389-9ab3-a557ce9fab61
 ;;; pcvs.el ends here

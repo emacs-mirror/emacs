@@ -5223,7 +5223,7 @@ This does code conversion according to the value of
     return Qnil;
 
   if (!auto_saving)
-    message_with_string ((INTEGERP (append)
+    message_with_string ((! INTEGERP (append)
 			  ? "Updated %s"
 			  : ! NILP (append)
 			  ? "Added to %s"
@@ -6591,6 +6591,3 @@ a non-nil value.  */);
   defsubr (&Sunix_sync);
 #endif
 }
-
-/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
-   (do not change this comment) */

@@ -1922,5 +1922,4 @@ The background and foreground is used in the image."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: 778d2a20-82e2-4276-be9d-309386776a68
 ;;; mh-customize.el ends here

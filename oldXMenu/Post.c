@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/Post.c,v 1.3 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvs/emacs/oldXMenu/Post.c,v 1.2 2000/01/27 15:30:47 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -83,6 +83,3 @@ XMenuPost(display, menu, p_num, s_num, x_pos, y_pos, event_mask)
 	    return(data);
     }
 }
-
-/* arch-tag: 7b6104e5-fa32-4342-aa17-05296a30dd70
-   (do not change this comment) */

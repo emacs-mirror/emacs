@@ -2657,5 +2657,4 @@ surrounded by (block NAME ...).
 ;;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
 ;;; End:
 
-;;; arch-tag: afd947a6-b553-4df1-bba5-000be6388f46
 ;;; cl-macs.el ends here

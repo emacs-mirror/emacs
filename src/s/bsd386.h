@@ -43,6 +43,3 @@
 #endif
 
 #define GETPGRP_NO_ARG 1
-
-/* arch-tag: 867e3bb8-e9df-4763-9c82-8f4accb8209e
-   (do not change this comment) */

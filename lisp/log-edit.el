@@ -630,5 +630,4 @@ Sort REGIONS front-to-back first."
 
 (provide 'log-edit)
 
-;;; arch-tag: 8089b39c-983b-4e83-93cd-ed0a64c7fdcc
 ;;; log-edit.el ends here

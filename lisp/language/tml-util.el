@@ -364,5 +364,4 @@ PATTERN regexp."
 
 (provide 'tml-util)
 
-;;; arch-tag: 4d1c9737-e7b1-44cf-a040-4f64c50e773e
 ;;; tml-util.el ends here

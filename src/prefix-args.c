@@ -71,6 +71,3 @@ Echo each ARG preceded by PREFIX and a space.\n", progname);
 
   exit (0);
 }
-
-/* arch-tag: 08136d70-e5c0-49c7-bcd8-b4850233977a
-   (do not change this comment) */

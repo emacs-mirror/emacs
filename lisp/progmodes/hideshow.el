@@ -941,5 +941,4 @@ Key bindings:
 
 (provide 'hideshow)
 
-;;; arch-tag: 378b6852-e82a-466a-aee8-d9c73859a65e
 ;;; hideshow.el ends here

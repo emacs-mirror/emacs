@@ -1999,7 +1999,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      attribute changes of named faces, recompute them.  When running
      in batch mode, the face cache of Vterminal_frame is null.  If
      we happen to get called, make a dummy face cache.  */
-  if (noninteractive && FRAME_FACE_CACHE (it->f) == NULL)
+  if (
+#ifndef WINDOWSNT
+      noninteractive &&
+#endif
+      FRAME_FACE_CACHE (it->f) == NULL)
     init_frame_faces (it->f);
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
@@ -10065,18 +10069,15 @@ redisplay_internal (preserve_echo_area)
 	    }
 	}
 
-      if (!pause)
+      /* Do the mark_window_display_accurate after all windows have
+	 been redisplayed because this call resets flags in buffers
+	 which are needed for proper redisplay.  */
+      for (i = 0; i < n; ++i)
 	{
-	  /* Do the mark_window_display_accurate after all windows have
-	     been redisplayed because this call resets flags in buffers
-	     which are needed for proper redisplay.  */
-	  for (i = 0; i < n; ++i)
-	    {
-	      struct frame *f = updated[i];
-	      mark_window_display_accurate (f->root_window, 1);
-	      if (frame_up_to_date_hook)
-		frame_up_to_date_hook (f);
-	    }
+	  struct frame *f = updated[i];
+	  mark_window_display_accurate (f->root_window, 1);
+	  if (frame_up_to_date_hook)
+	    frame_up_to_date_hook (f);
 	}
     }
   else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
@@ -18706,11 +18707,6 @@ get_window_cursor_type (w, width, active_cursor)
       return FRAME_BLINK_OFF_CURSOR (f);
     }
 
-#if 0
-  /* Some people liked having a permanently visible blinking cursor,
-     while others had very strong opinions against it.  So it was
-     decided to remove it.  KFS 2003-09-03 */
-
   /* Finally perform built-in cursor blinking:
        filled box      <->   hollow box
        wide [h]bar     <->   narrow [h]bar
@@ -18725,7 +18721,6 @@ get_window_cursor_type (w, width, active_cursor)
       *width = 1;
       return cursor_type;
     }
-#endif
 
   return NO_CURSOR;
 }
@@ -21058,5 +21053,3 @@ init_xdisp ()
 }
 
 
-/* arch-tag: eacc864d-bb6a-4b74-894a-1a4399a1358b
-   (do not change this comment) */

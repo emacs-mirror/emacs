@@ -1310,6 +1310,4 @@ The converted character representation is stored in rAX."
 (add-to-list 'auto-mode-alist '("\\.mixal\\'" . mixal-mode))
 
 (provide 'mixal-mode)
-
-;;; arch-tag: be7c128a-bf61-4951-a90e-9398267ce3f3
 ;;; mixal-mode.el ends here

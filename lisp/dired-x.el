@@ -2,7 +2,7 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Maintainer: nobody (want to volunteer?)
+;; Maintainer: FSF (unless Dodd can be found)
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
@@ -1665,5 +1665,4 @@ variables `dired-x-variable-list' in the message."
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
 
-;;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

@@ -601,7 +601,3 @@ provides a different and customizable mouse buffer menu which you may
 prefer.  It replaces the bindings of @code{mouse-buffer-menu},
 normally on @kbd{C-Down-Mouse-1}, and the menu bar buffer menu.  You
 can customize the menu in the @code{msb} Custom group.
-
-@ignore
-   arch-tag: 08c43460-f4f4-4b43-9cb5-1ea9ad991695
-@end ignore

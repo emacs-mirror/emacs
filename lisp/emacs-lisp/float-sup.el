@@ -60,5 +60,4 @@
 
 (provide 'lisp-float-type)
 
-;;; arch-tag: e7837072-a4af-4d08-9953-8a3e755abf9d
 ;;; float-sup.el ends here

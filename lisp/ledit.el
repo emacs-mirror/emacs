@@ -156,5 +156,4 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
 
 (provide 'ledit)
 
-;;; arch-tag: f0f1ca13-8d31-478c-ae1b-b448c55a8faf
 ;;; ledit.el ends here

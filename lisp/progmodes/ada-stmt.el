@@ -3,7 +3,7 @@
 ;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.16 $
+;; Ada Core Technologies's version:   $Revision: 1.23 $
 
 ;; This file is part of GNU Emacs.
 
@@ -486,5 +486,4 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 
 (provide 'ada-stmt)
 
-;;; arch-tag: 94f51555-cc0e-44e5-8865-8788aae8ecd3
 ;;; ada-stmt.el ends here

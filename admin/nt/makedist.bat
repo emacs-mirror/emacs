@@ -122,7 +122,3 @@ echo   (e.g., %0 19.34 emacs-19.34.5 d:\andrewi\distfiles)
 echo Or: %0 emacs-version dist-basename distfiles "zipfiles" short-version
 echo   (e.g., %0 20.6 emacs-20.6 d:\andrewi\distfiles zipfiles 206)
 :end
-
-goto skipArchTag
-   arch-tag: 6e2ddd92-c1c9-4992-b6b5-207aaab72f68
-:skipArchTag

@@ -307,5 +307,4 @@ following the containing message."
 
 (provide 'undigest)
 
-;;; arch-tag: 3a28b9fb-c1f5-43ef-9278-285f3e4b874d
 ;;; undigest.el ends here

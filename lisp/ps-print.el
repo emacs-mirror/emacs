@@ -6872,5 +6872,4 @@ It is assumed that the length of STRING is not zero.")
 
 (provide 'ps-print)
 
-;;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here

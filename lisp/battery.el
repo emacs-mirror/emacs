@@ -271,5 +271,4 @@ The following %-sequences are provided:
 
 (provide 'battery)
 
-;;; arch-tag: 65916f50-4754-4b6b-ac21-0b510f545a37
 ;;; battery.el ends here

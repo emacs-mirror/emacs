@@ -347,7 +347,3 @@ can type the item's letter or digit to select the item.
   Some of the commands in the menu bar have ordinary key bindings as
 well; if so, the menu lists one equivalent key binding in parentheses
 after the item itself.
-
-@ignore
-   arch-tag: 104ba40e-d972-4866-a542-a98be94bdf2f
-@end ignore

@@ -310,5 +310,4 @@ and then select the region of un-tablified names and use
 
 (provide 'macros)
 
-;;; arch-tag: 346ed1a5-1220-4bc8-b533-961ee704361f
 ;;; macros.el ends here

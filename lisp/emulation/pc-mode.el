@@ -54,5 +54,4 @@ C-Escape does list-buffers."
 
 (provide 'pc-mode)
 
-;;; arch-tag: df007c05-f885-4cd0-8c1e-487d0f8dd9c9
 ;;; pc-mode.el ends here

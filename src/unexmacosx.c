@@ -976,6 +976,3 @@ unexec_free (void *ptr)
   else
     malloc_zone_free (emacs_zone, ptr);
 }
-
-/* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72
-   (do not change this comment) */

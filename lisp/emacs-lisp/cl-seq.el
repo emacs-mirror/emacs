@@ -903,5 +903,4 @@ Keywords supported:  :test :test-not :key"
 
 (run-hooks 'cl-seq-load-hook)
 
-;;; arch-tag: ec1cc072-9006-4225-b6ba-d6b07ed1710c
 ;;; cl-seq.el ends here

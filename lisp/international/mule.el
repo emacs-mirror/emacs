@@ -370,7 +370,7 @@ code-point in CCS.  Currently not supported and just ignored."
 		     (setq split (split-char trans)
 			   charset (car split)))
 		 (cond ((eq charset 'ascii)
-			(or trans char))
+			char)
 		       ((eq charset 'latin-iso8859-1)
 			(+ (nth 1 split) 128))
 		       ((eq charset 'mule-unicode-0100-24ff)
@@ -815,11 +815,6 @@ following properties are recognized:
   The value is a symbol whose name is the `MIME-charset' parameter of
   the coding system.
 
-  o mime-text-unsuitable
-
-  A non-nil value means the `mime-charset' property names a charset
-  which is unsuitable for the top-level media type \"text\".
-
   o valid-codes (meaningful only for a coding system based on CCL)
 
   The value is a list to indicate valid byte ranges of the encoded
@@ -1129,7 +1124,7 @@ If CODING-SYSTEM leaves the text conversion unspecified, or if it
 leaves the end-of-line conversion unspecified, FORCE controls what to
 do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
 buffer's previous `buffer-file-coding-system' value (if it is
-specified there).  Otherwise, leave it unspecified.
+specified there).  Otherwise, levae it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
@@ -1384,32 +1379,6 @@ This alist is used to decode an extened segment of a compound text.")
 	    (decode-coding-region (- (point) bytes) (point) 'utf-8))))
       (goto-char (point-min))
       (- (point-max) (point)))))
-
-;; From X registry 2001/06/01
-;; 20. NON-STANDARD CHARACTER SET ENCODINGS
-
-;; See Section 6 of the Compound Text standard.
-
-;; Name						Reference
-;; ----						---------
-;; "DEC.CNS11643.1986-2"				[53]
-;; 	CNS11643 2-plane using the recommended
-;; 	internal representation scheme
-;; "DEC.DTSCS.1990-2"				[54]
-;; 	DEC Taiwan Supplemental Character Set
-;; "fujitsu.u90x03"				[87]
-;; "ILA"						[62]
-;; 	registry prefix
-;; "IPSYS"						[59]
-;; 	registry prefix
-;; "omron_UDC"					[45]
-;;         omron User Defined Charset
-;; "omron_UDC_ja"					[45]
-;;         omron User Defined Charset for Japanese
-;; "omron_UDC_zh"					[45]
-;;         omron User Defined Charset for Chinese(Main land)
-;; "omron_UDC_tw"					[45]
-;;         omron User Defined Charset for Chinese(Taiwan)
 
 ;; If you add charsets here, be sure to modify the regexp used by
 ;; ctext-pre-write-conversion to look up non-standard charsets.
@@ -2079,5 +2048,4 @@ This function is intended to be added to `auto-coding-functions'."
 ;;;
 (provide 'mule)
 
-;;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here

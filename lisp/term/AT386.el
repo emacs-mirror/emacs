@@ -57,5 +57,4 @@
   (define-key function-key-map "\eN" [27]) ; ALT map
   )
 
-;;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7
 ;;; AT386.el ends here

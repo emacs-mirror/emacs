@@ -1039,5 +1039,4 @@ You are prompted for the job number (use a number shown by a previous
 
 (provide 'texinfo)
 
-;;; arch-tag: 005d7c38-43b9-4b7d-aa1d-aea69bae73e1
 ;;; texinfo.el ends here

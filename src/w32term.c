@@ -895,17 +895,7 @@ w32_per_char_metric (font, char2b, font_type)
   BOOL retval;
 
   xassert (font && char2b);
-
-  /* TODO: This function is currently called through the RIF, and in
-     some cases font_type is UNKNOWN_FONT. We currently allow the
-     cached metrics to be used, which seems to work, but in cases
-     where font_type is UNKNOWN_FONT, we probably haven't encoded
-     char2b appropriately. All callers need checking to see what they
-     are passing.  This is most likely to affect variable width fonts
-     outside the Latin-1 range, particularly in languages like Thai
-     that rely on rbearing and lbearing to provide composition. I
-     don't think that is working currently anyway, but we don't seem
-     to have anyone testing such languages on Windows.  */
+  xassert (font_type != UNKNOWN_FONT);
 
   /* Handle the common cases quickly.  */
   if (!font->bdf && font->per_char == NULL)
@@ -913,8 +903,6 @@ w32_per_char_metric (font, char2b, font_type)
     return &font->max_bounds;
   else if (!font->bdf && *char2b < 128)
     return &font->per_char[*char2b];
-
-  xassert (font_type != UNKNOWN_FONT);
 
   pcm = &font->scratch;
 
@@ -4790,7 +4778,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  if (msg.msg.message == msh_mousewheel)
 	    {
 	      /* Forward MSH_MOUSEWHEEL as WM_MOUSEWHEEL.  */
-	      msg.msg.message = WM_MOUSEWHEEL;
+	      msg.msg.message == WM_MOUSEWHEEL;
 	      prepend_msg (&msg);
 	    }
 	  break;
@@ -6559,6 +6547,3 @@ the cursor have no effect.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
-
-/* arch-tag: 5fa70624-ab86-499c-8a85-473958ee4646
-   (do not change this comment) */

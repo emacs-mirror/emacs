@@ -83,10 +83,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** Under XFree86 4, the display table is modified so that `' is
-displayed as balanced quotes, not the ASCII glyphs whose shape has
-been changed generally in the XFree86 fonts.
-
 ** sql changes.
 
 *** The variable `sql-product' controls the highlightng of different
@@ -448,10 +444,6 @@ The underscore cursor is set by putting `(cursor-type . hbar)' in
 default-frame-alist.  It supports variable heights, like the `bar'
 cursor does.
 
-+++
-** On X, MS Windows, and Mac OS, the blinking cursor's "off" state is
-now controlled by the variable `blink-cursor-alist'.
-
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
 program files that include other program files.
@@ -470,6 +462,11 @@ when Emacs visits them.
 `mpuz' now allows the 2nd factor not to have two identical digits.  By
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
+
++++
+** On X, MS Windows, and Mac OS, the blinking cursor's "off" state is
+now shown as a hollow box or a thin bar.  However, you can control how
+it blinks off by setting the variable `blink-cursor-alist'.
 
 ** The new variable `x-select-request-type' controls how Emacs
 requests X selection.  The default value is nil, which means that
@@ -893,15 +890,6 @@ single-character string as @var{mark} places the character next to the
 day in the calendar.  Specifying a face highlights the day with that
 face.  This lets you have different colors or markings for vacations,
 appointments, paydays or anything else using a sexp.
-
-+++
-** The new function `calendar-goto-day-of-year' (g D) prompts for a
-year and day number, and moves to that date. Negative day numbers
-count backward from the end of the year.
-
-** The function `simple-diary-display' now by default sets a header line.
-This can be controlled through the variables `diary-header-line-flag'
-and `diary-header-line-format'.
 
 ** VC Changes
 
@@ -1661,18 +1649,8 @@ in Indented-Text mode.
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
 
-** The new Lisp library fringe.el controls the apperance of fringes.
 
 * Lisp Changes in Emacs 21.4
-
-** `latin1-char-displayable-p' is obsoleted by `char-displayable-p'.
-
-** New coding system property `mime-text-unsuitable' indicates that
-the coding system's `mime-charset' is not suitable for MIME text
-parts, e.g. utf-16.
-
-** The argument to forward-word, backward-word, forward-to-indentation
-and backward-to-indentation is now optional, and defaults to 1.
 
 +++
 ** The new function `window-inside-edges' returns the edges of the
@@ -1931,7 +1909,6 @@ hash tables defined by the Lisp function `define-translation-hash-table'.
 argument is a minibuffer.  If the argument is omitted it defaults to
 the current buffer.
 
-+++
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
 
@@ -1955,14 +1932,12 @@ file, you can put a `coding:' tags to override it.)
 ** The new function `merge-coding-systems' fills in unspecified aspects
 of one coding system from another coding system.
 
----
 ** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
 specification.  Normally Emacs asks for confirmation before evaluating
 such a form, but if the form appears in this list, no confirmation is
 needed.
 
----
 ** If a function has a non-nil `safe-local-eval-function' property,
 that means it is ok to evaluate some calls to that function when it
 appears in an `eval' local variables specification.  If the property
@@ -1973,7 +1948,6 @@ with the form as argument, and if any returns t, the form is ok to call.
 If the form is not "ok to call", that means Emacs asks for
 confirmation as before.
 
-+++
 ** Controlling the default left and right fringe widths.
 
 The default left and right fringe widths for all windows of a frame
@@ -1993,7 +1967,6 @@ width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
 
-+++
 ** Per-window fringes settings
 
 Windows can now have their own individual fringe widths and position
@@ -2027,7 +2000,6 @@ used to obtain the current settings.  To make `scroll-bar-mode' and
 the buffer in a window, or use `set-window-buffer' to force an update
 of the display margins.
 
-+++
 ** The function `set-window-buffer' now has an optional third argument
 KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
@@ -2040,38 +2012,33 @@ write-file-hooks to write-file-functions,
 write-contents-hooks to write-contents-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
-+++
 ** The new variable `delete-frame-functions' replaces `delete-frame-hook'.
 It was renamed to follow the naming conventions for abnormal hooks.  The old
 name remains available as an alias, but has been marked obsolete.
 
-+++
 ** The `read-file-name' function now takes an additional argument which
 specifies a predicate which the file name read must satify.  The
 new variable `read-file-name-predicate' contains the predicate argument
 while reading the file name from the minibuffer; the predicate in this
 variable is used by read-file-name-internal to filter the completion list.
 
----
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
-+++
 ** The new function `read-directory-name' can be used instead of
 `read-file-name' to read a directory name; when used, completion
 will only show directories.
 
-+++
 ** The new function `file-remote-p' tests a file name and returns
 non-nil if it specifies a remote file (one that Emacs accesses using
 its own special methods and not directly through the file system).
 
----
 ** When a Lisp file uses CL functions at run-time, compiling the file
 now issues warnings about these calls, unless the file performs
 (require 'cl) when loaded.
 
-+++
+** The new Lisp library fringe.el controls the apperance of fringes.
+
 ** The `defmacro' form may contain declarations specifying how to
 indent the macro in Lisp mode and how to debug it with Edebug.  The
 syntax of defmacro has been extended to
@@ -2088,7 +2055,6 @@ declaration specifiers supported are:
 	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
 	equivalent to writing a `def-edebug-spec' for the macro.
 
-+++
 ** Interactive commands can be remapped through keymaps.
 
 This is an alternative to using defadvice or substitute-key-definition
@@ -2145,7 +2111,6 @@ The following changes have been made to provide command remapping:
   command before remapping.  It is equal to `this-command' when the
   command was not remapped.
 
-+++
 ** New variable emulation-mode-map-alists.
 
 Lisp packages using many minor mode keymaps can now maintain their own
@@ -2217,7 +2182,6 @@ properties.  It works at the same level as `default-text-properties',
 although it applies to overlays as well.  This variable was introduced
 to implement the `font-lock-face' property.
 
-+++
 ** New special text property `font-lock-face'.
 
 This property acts like the `face' property, but it is controlled by
@@ -2225,14 +2189,12 @@ M-x font-lock-mode.  It is not, strictly speaking, a builtin text
 property.  Instead, it is implemented inside font-core.el, using the
 new variable `char-property-alias-alist'.
 
-+++
 ** New function remove-list-of-text-properties.
 
 The new function `remove-list-of-text-properties' is almost the same
 as `remove-text-properties'.  The only difference is that it takes
 a list of property names as argument rather than a property list.
 
-+++
 ** New function insert-for-yank.
 
 This function normally works like `insert' but removes the text
@@ -2241,23 +2203,20 @@ inserted text has a `yank-handler' text property on the first
 character of the string, the insertion of the text may be modified in
 a number of ways.  See the description of `yank-handler' below.
 
-+++
 ** New function insert-buffer-substring-as-yank.
 
 This function works like `insert-buffer-substring', but removes the
 text properties in the `yank-excluded-properties' list.
 
-+++
 ** New function insert-buffer-substring-no-properties.
 
 This function is like insert-buffer-substring, but removes all
 text properties from the inserted substring.
 
-+++
 ** New `yank-handler' text property may be used to control how
 previously killed text on the kill-ring is reinserted.
 
-The value of the yank-handler property must be a list with one to four
+The value of the yank-handler property must be a list with one to five
 elements with the following format:
   (FUNCTION PARAM NOEXCLUDE UNDO).
 
@@ -2281,9 +2240,9 @@ by `yank-pop' to undo the insertion of the current object.  It is
 called with two arguments, the start and end of the current region.
 FUNCTION may set `yank-undo-function' to override the UNDO value.
 
-*** The functions kill-new, kill-append, and kill-region now have an
-optional argument to specify the yank-handler text property to put on
-the killed text.
+*** The functions kill-new, kill-append, and kill-region now has an
+optional third argument to specify the yank-handler text property
+to put on the killed text.
 
 *** The function yank-pop will now use a non-nil value of the variable
 `yank-undo-function' (instead of delete-region) to undo the previous
@@ -2405,7 +2364,6 @@ as the "key" bound by that key binding.
 This is relevant only if Lisp code looks for
 the bindings that were made with easymenu.
 
-+++
 ** The function `commandp' takes an additional optional
 argument.  If it is non-nil, then `commandp' checks
 for a function that could be called with `call-interactively',
@@ -2442,19 +2400,16 @@ properties--any specified text properties are discarded.
 This is like window-height but does not count the mode line
 or the header line.
 
-+++
 ** New function format-mode-line.
 
 This returns the mode-line or header-line of the selected (or a
 specified) window as a string with or without text properties.
 
-+++
 ** New functions `lax-plist-get' and `lax-plist-put'.
 
 These functions are like `plist-get' and `plist-put' except that they
 compare the property name using `equal' rather than `eq'.
 
-+++
 ** New function `tool-bar-local-item-from-menu'
 
 The `tool-bar-add-item-from-menu' must not be used (as previously
@@ -12121,5 +12076,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-
-arch-tag: 1aca9dfa-2ac4-4d14-bebf-0007cee12793

@@ -567,5 +567,4 @@ Calls `update-directory-autoloads' on the command line arguments."
 
 (provide 'autoload)
 
-;;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here

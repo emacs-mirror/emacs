@@ -1460,5 +1460,4 @@ defaults to one."
 
 (provide 'ibuf-ext)
 
-;;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

@@ -2363,5 +2363,4 @@ last-command-char is used to decide which action to take."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
 ;;; ediff-mult.el ends here

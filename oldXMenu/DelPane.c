@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/DelPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvs/emacs/oldXMenu/DelPane.c,v 1.1 1999/10/03 19:34:57 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -86,6 +86,3 @@ XMenuDeletePane(display, menu, p_num)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-
-/* arch-tag: 32a5bfd4-4bac-4090-bb53-844110f4908e
-   (do not change this comment) */

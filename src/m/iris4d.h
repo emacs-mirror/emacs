@@ -159,10 +159,7 @@ Boston, MA 02111-1307, USA.  */
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 
-#if _MIPS_SZLONG != 64
-/* fixme: should there be 64-bit defiitions?  (The ones below aren't
-   OK.)  */
-
+#ifndef _LP64
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
@@ -188,6 +185,3 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #endif /* not __GNUC__ */
-
-/* arch-tag: fff5e139-9ae0-465d-afec-837c41ea0aa6
-   (do not change this comment) */

@@ -384,5 +384,4 @@ rectangle which were empty."
 
 (provide 'rect)
 
-;;; arch-tag: 178847b3-1f50-4b03-83de-a6e911cc1d16
 ;;; rect.el ends here

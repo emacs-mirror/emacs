@@ -212,7 +212,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 
 (defvar smtpmail-mail-address nil
-  "Value to use for envelope-from address for mail from ambient buffer.")
+  "Value of `user-mail-address' in ambient buffer.")
 
 ;;;###autoload
 (defun smtpmail-send-it ()
@@ -223,11 +223,7 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
-        ;; Examine this variable now, so that
-	;; local binding in the mail buffer will take effect.
-	(smtpmail-mail-address
-         (or (and mail-specify-envelope-from (mail-envelope-from))
-             user-mail-address))
+	(smtpmail-mail-address user-mail-address)
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -403,14 +399,11 @@ This is relative to `smtpmail-queue-dir'.")
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents file-msg))
-          (let ((smtpmail-mail-address
-                 (or (and mail-specify-envelope-from (mail-envelope-from))
-                     user-mail-address)))
-            (if (not (null smtpmail-recipient-address-list))
-                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
-                                            (current-buffer)))
-                    (error "Sending failed; SMTP protocol error"))
-              (error "Sending failed; no recipients"))))
+	  (if (not (null smtpmail-recipient-address-list))
+	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+					  (current-buffer)))
+		  (error "Sending failed; SMTP protocol error"))
+	    (error "Sending failed; no recipients")))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
 	(delete-region (point-at-bol) (point-at-bol 2)))
@@ -552,12 +545,9 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
-        ;; smtpmail-mail-address should be set to the appropriate
-        ;; buffer-local value by the caller, but in case not:
-        (envelope-from (or smtpmail-mail-address
-                           (and mail-specify-envelope-from
-                                (mail-envelope-from))
-                           user-mail-address))
+	(envelope-from (or (mail-envelope-from)
+			   smtpmail-mail-address
+			   user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -707,7 +697,7 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-                                                     envelope-from
+						     envelope-from
 						     size-part
 						     body-part))
 
@@ -960,5 +950,4 @@ many continuation lines."
 
 (provide 'smtpmail)
 
-;;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
 ;;; smtpmail.el ends here

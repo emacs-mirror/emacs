@@ -554,6 +554,3 @@ syms_of_undo ()
   defsubr (&Sprimitive_undo);
   defsubr (&Sundo_boundary);
 }
-
-/* arch-tag: d546ee01-4aed-4ffb-bb8b-eefaae50d38a
-   (do not change this comment) */

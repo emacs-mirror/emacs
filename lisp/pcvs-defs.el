@@ -507,5 +507,4 @@ message and replace it with a message tell you to change this variable.")
 ;;
 (provide 'pcvs-defs)
 
-;;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
 ;;; pcvs-defs.el ends here

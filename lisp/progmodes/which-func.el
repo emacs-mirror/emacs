@@ -253,5 +253,4 @@ If no function name is found, return nil."
 
 (provide 'which-func)
 
-;;; arch-tag: fa8a55c7-bfe3-4ffc-95ab-01bf21796827
 ;;; which-func.el ends here

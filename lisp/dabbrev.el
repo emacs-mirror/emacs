@@ -851,8 +851,7 @@ of the start of the occurrence."
 
 (defun dabbrev--safe-replace-match (string &optional fixedcase literal)
   (if (eq major-mode 'picture-mode)
-      (with-no-warnings
-       (picture-replace-match string fixedcase literal))
+      (picture-replace-match string fixedcase literal)
     (replace-match string fixedcase literal)))
 
 ;;;----------------------------------------------------------------
@@ -1028,5 +1027,4 @@ Leaves point at the location of the start of the expansion."
 
 (provide 'dabbrev)
 
-;;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
 ;;; dabbrev.el ends here

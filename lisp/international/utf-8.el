@@ -221,7 +221,7 @@ default.  Also, installing them may be rather slow."
 	(setq ucs-mule-cjk-to-unicode
 	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
 	      ucs-unicode-to-mule-cjk
-	      (make-hash-table :test 'eq :size 21500 :rehash-size 1000))
+	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
 	;; Load the files explicitly, to avoid having to keep
 	;; around the large tables they contain (as well as the
 	;; ones which get built).
@@ -831,5 +831,4 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 ;;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
 ;;; 	   . utf-8-compose-function))))
 
-;;; arch-tag: b08735b7-753b-4ae6-b754-0f3efe4515c5
 ;;; utf-8.el ends here

@@ -125,14 +125,6 @@ static Lisp_Object Vmotif_version_string;
 
 #endif /* USE_X_TOOLKIT */
 
-#ifdef USE_GTK
-
-/* GTK+ version info */
-
-static Lisp_Object Vgtk_version_string;
-
-#endif /* USE_GTK */
-
 #ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 #else
@@ -3534,19 +3526,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	;
     }
 
-  /* Set the WM leader property.  GTK does this itself, so this is not
-     needed when using GTK.  */
-  if (dpyinfo->client_leader_window != 0)
-    {
-      BLOCK_INPUT;
-      XChangeProperty (FRAME_X_DISPLAY (f),
-                       FRAME_OUTER_WINDOW (f),
-                       dpyinfo->Xatom_wm_client_leader,
-                       XA_WINDOW, 32, PropModeReplace,
-                       (char *) &dpyinfo->client_leader_window, 1);
-      UNBLOCK_INPUT;
-    }
-
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -6755,37 +6734,7 @@ lookup_rgb_color (f, r, g, b)
   unsigned hash = CT_HASH_RGB (r, g, b);
   int i = hash % CT_SIZE;
   struct ct_color *p;
-  struct x_display_info *dpyinfo;
 
-  /* Handle TrueColor visuals specially, which improves performance by
-     two orders of magnitude.  Freeing colors on TrueColor visuals is
-     a nop, and pixel colors specify RGB values directly.  See also
-     the Xlib spec, chapter 3.1.  */
-  dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  if (dpyinfo->red_bits > 0)
-    {
-      unsigned long pr, pg, pb;
-
-      /* Apply gamma-correction like normal color allocation does.  */
-      if (f->gamma)
-	{
-	  XColor color;
-	  color.red = r, color.green = g, color.blue = b;
-	  gamma_correct (f, &color);
-	  r = color.red, g = color.green, b = color.blue;
-	}
-
-      /* Scale down RGB values to the visual's bits per RGB, and shift
-	 them to the right position in the pixel color.  Note that the
-	 original RGB values are 16-bit values, as usual in X.  */
-      pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
-      pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
-      pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
-
-      /* Assemble the pixel color.  */
-      return pr | pg | pb;
-    }
-  
   for (p = ct_table[i]; p; p = p->next)
     if (p->r == r && p->g == g && p->b == b)
       break;
@@ -10937,19 +10886,6 @@ meaning don't clear the cache.  */);
 #endif /* USE_MOTIF */
 #endif /* USE_X_TOOLKIT */
 
-#ifdef USE_GTK
-  Fprovide (intern ("gtk"), Qnil);
-
-  DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
-               doc: /* Version info for GTK+.  */);
-  {
-    char gtk_version[40];
-    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
-                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = build_string (gtk_version);
-  }
-#endif /* USE_GTK */
-
   /* X window properties.  */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
@@ -11104,6 +11040,3 @@ init_xfns ()
 }
 
 #endif /* HAVE_X_WINDOWS */
-
-/* arch-tag: 55040d02-5485-4d58-8b22-95a7a05f3288
-   (do not change this comment) */

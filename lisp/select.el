@@ -389,5 +389,4 @@ This function returns the string \"emacs\"."
 
 (provide 'select)
 
-;;; arch-tag: bb634f97-8a3b-4b0a-b940-f6e09982328c
 ;;; select.el ends here

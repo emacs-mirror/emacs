@@ -10120,34 +10120,6 @@ same_x_server (name1, name2)
 }
 #endif
 
-/* Count number of set bits in mask and number of bits to shift to
-   get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
-   to 5.  */
-static void
-get_bits_and_offset (mask, bits, offset)
-     unsigned long mask;
-     int *bits;
-     int *offset;
-{
-  int nr = 0;
-  int off = 0;
-
-  while (!(mask & 1))
-    {
-      off++;
-      mask >>= 1;
-    }
-
-  while (mask & 1)
-    {
-      nr++;
-      mask >>= 1;
-    }
-
-  *offset = off;
-  *bits = nr;
-}
-
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -10164,7 +10136,7 @@ x_term_init (display_name, xrm_option, resource_name)
   if (!x_initialized)
     {
       x_initialize ();
-      ++x_initialized;
+      x_initialized = 1;
     }
 
 #ifdef USE_GTK
@@ -10179,6 +10151,8 @@ x_term_init (display_name, xrm_option, resource_name)
        than one, but this remains to be implemented.  */
     if (x_initialized > 1)
       return 0;
+
+    x_initialized++;
 
     for (argc = 0; argc < NUM_ARGV; ++argc)
       argv[argc] = 0;
@@ -10220,7 +10194,7 @@ x_term_init (display_name, xrm_option, resource_name)
       s = make_string (file, strlen (file));
       abs_file = Fexpand_file_name(s, Qnil);
 
-      if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
+      if (! NILP (abs_file) && Ffile_readable_p (abs_file))
         gtk_rc_parse (SDATA (abs_file));
 
       UNGCPRO;
@@ -10369,7 +10343,6 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->height = HeightOfScreen (dpyinfo->screen);
   dpyinfo->width = WidthOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
-  dpyinfo->client_leader_window = 0;
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->icon_bitmap_id = -1;
@@ -10395,20 +10368,6 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
 
-  /* See if we can construct pixel values from RGB values.  */
-  dpyinfo->red_bits = dpyinfo->blue_bits = dpyinfo->green_bits = 0;
-  dpyinfo->red_offset = dpyinfo->blue_offset = dpyinfo->green_offset = 0;
-
-  if (dpyinfo->visual->class == TrueColor)
-    {
-      get_bits_and_offset (dpyinfo->visual->red_mask,
-                           &dpyinfo->red_bits, &dpyinfo->red_offset);
-      get_bits_and_offset (dpyinfo->visual->blue_mask,
-                           &dpyinfo->blue_bits, &dpyinfo->blue_offset);
-      get_bits_and_offset (dpyinfo->visual->green_mask,
-                           &dpyinfo->green_bits, &dpyinfo->green_offset);
-    }
-      
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
@@ -10453,8 +10412,6 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "WM_CONFIGURE_DENIED", False);
   dpyinfo->Xatom_wm_window_moved
     = XInternAtom (dpyinfo->display, "WM_MOVED", False);
-  dpyinfo->Xatom_wm_client_leader
-    = XInternAtom (dpyinfo->display, "WM_CLIENT_LEADER", False);
   dpyinfo->Xatom_editres
     = XInternAtom (dpyinfo->display, "Editres", False);
   dpyinfo->Xatom_CLIPBOARD
@@ -10608,12 +10565,6 @@ x_term_init (display_name, xrm_option, resource_name)
       use_xim = 1;
 #endif
   }
-
-#ifdef HAVE_X_SM
-  /* Only do this for the first display.  */
-  if (x_initialized == 1)
-    x_session_initialize (dpyinfo);
-#endif
 
   UNBLOCK_INPUT;
 
@@ -10828,6 +10779,10 @@ x_initialize ()
 #endif /* SIGWINCH */
 
   signal (SIGPIPE, x_connection_signal);
+
+#ifdef HAVE_X_SM
+  x_session_initialize ();
+#endif
 }
 
 
@@ -10930,6 +10885,3 @@ default is nil, which is the same as `super'.  */);
 }
 
 #endif /* HAVE_X_WINDOWS */
-
-/* arch-tag: 6d4e4cb7-abc1-4302-9585-d84dcfb09d0f
-   (do not change this comment) */

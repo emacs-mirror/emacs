@@ -8827,6 +8827,3 @@ command, this enables the Mac keyboard to be used to enter non-ASCII
 characters directly.  */);
   mac_keyboard_text_encoding = kTextEncodingMacRoman;
 }
-
-/* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b
-   (do not change this comment) */

@@ -230,6 +230,3 @@ so disable it for them.  */
 #define LD_SWITCH_MACHINE -shlib
 #endif
 #endif
-
-/* arch-tag: 2e7f44df-6a61-4a47-aa53-f7961bfeff11
-   (do not change this comment) */

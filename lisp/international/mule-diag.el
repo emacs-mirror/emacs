@@ -1319,5 +1319,4 @@ system which uses fontsets)."
 
 (provide 'mule-diag)
 
-;;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here

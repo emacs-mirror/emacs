@@ -719,7 +719,3 @@ particular elements, like this:
 @end group
 @end example
 @end defvar
-
-@ignore
-   arch-tag: f723a4e0-31b3-453f-8afc-0bf8fd276d57
-@end ignore

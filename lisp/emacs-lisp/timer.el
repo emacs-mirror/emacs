@@ -476,5 +476,4 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 
 (provide 'timer)
 
-;;; arch-tag: b1a9237b-7787-4382-9e46-8f2c3b3273e0
 ;;; timer.el ends here

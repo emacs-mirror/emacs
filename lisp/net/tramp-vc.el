@@ -486,5 +486,4 @@ This makes remote VC work correctly at the cost of some processing time."
 ;; No need to load this again if anyone asks.
 (provide 'tramp-vc)
 
-;;; arch-tag: 27cc42ce-da19-468d-ad5c-a2690558db60
 ;;; tramp-vc.el ends here

@@ -432,5 +432,4 @@
 
 (provide 'mlsupport)
 
-;;; arch-tag: b0ad09bc-8cb2-4be0-8888-2e874839bcbc
 ;;; mlsupport.el ends here

@@ -624,5 +624,4 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 
 (provide 'server)
 
-;;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
 ;;; server.el ends here

@@ -70,5 +70,4 @@
   (define-key news-fkey-prefix "x" [kp-8])
   )
 
-;;; arch-tag: bfe141a0-623b-4b42-b753-5d9353776c5e
 ;;; news.el ends here

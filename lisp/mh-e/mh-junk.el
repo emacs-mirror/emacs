@@ -413,5 +413,4 @@ such as:
 ;;; sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
 ;;; mh-junk.el ends here

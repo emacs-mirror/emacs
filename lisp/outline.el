@@ -987,5 +987,4 @@ convenient way to make a table of contents of the buffer."
 (provide 'outline)
 (provide 'noutline)
 
-;;; arch-tag: 1724410e-7d4d-4f46-b801-49e18171e874
 ;;; outline.el ends here

@@ -356,6 +356,4 @@
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
-
-;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

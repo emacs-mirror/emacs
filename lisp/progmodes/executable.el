@@ -280,5 +280,4 @@ file modes."
 
 (provide 'executable)
 
-;;; arch-tag: 58458d1c-d9db-45ec-942b-8bbb1d5e319d
 ;;; executable.el ends here

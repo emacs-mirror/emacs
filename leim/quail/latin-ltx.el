@@ -679,7 +679,6 @@ system, including many technical ones.  Examples:
  ("\\lesssim" ?$,1y2(B)
  ("\\lfloor" ?$,1zj(B)
  ("\\lhd" ?$,2"!(B)
- ("\\rhd" ?$,2!w(B)
  ("\\ll" ?$,1y*(B)
  ("\\llcorner" ?$,1z~(B)
  ("\\lnapprox" ?$,1zF(B)
@@ -943,5 +942,4 @@ system, including many technical ones.  Examples:
  ("\\rdq" ?\$,1r}(B)
 )
 
-;;; arch-tag: 3daae613-2c53-446e-a0a1-ee2e1ebed15f
 ;;; latin-ltx.el ends here

@@ -1134,7 +1134,7 @@ dnl see the `changequote' comment above.
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="gcc -E -no-cpp-precomp"
+    CPP="cc -E -traditional-cpp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -1900,7 +1900,7 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
   fi
   GLIB_REQUIRED=2.0.1
-  GTK_REQUIRED=2.0.1
+  GTK_REQUIRED=2.2
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Check if --with-pkg-config-prog has been given.
@@ -3085,6 +3085,3 @@ touch src/config.stamp
 
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
-m4_if(dnl	Do not change this comment
-   arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
-)dnl

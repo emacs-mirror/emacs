@@ -1456,7 +1456,3 @@ Size of carryover in encoding.
 Flag to set @code{coding-system} of the process buffer from the
 coding system used to decode process output.
 @end table
-
-@ignore
-   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
-@end ignore

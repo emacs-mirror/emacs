@@ -224,5 +224,4 @@ by johnh@ficus.cs.ucla.edu."
 
 (provide 'mouse-copy)
 
-;;; arch-tag: 3d50293b-c089-4273-b412-4fc96a5f26ff
 ;;; mouse-copy.el ends here

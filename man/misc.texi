@@ -1886,16 +1886,18 @@ Customization}) to set @code{desktop-enable} to a non-@code{nil} value,
 or add these lines at the end of your @file{.emacs} file:
 
 @example
-(require 'desktop)
-(setq desktop-enable t)
+(desktop-load-default)
+(desktop-read)
 @end example
 
 @noindent
 @findex desktop-save
-The first time you exit Emacs, you will be asked whether you want to
-save your session.  Once you have done that, exiting Emacs will save
-the state again in subsequent sessions.  You can also save the state
-at any time, without exiting Emacs, by typing @kbd{M-x desktop-save}.
+The first time you save the state of the Emacs session, you must do it
+manually, with the command @kbd{M-x desktop-save}.  Once you have done
+that, exiting Emacs will save the state again---not only the present
+Emacs session, but also subsequent sessions.  You can also save the
+state at any time, without exiting Emacs, by typing @kbd{M-x
+desktop-save} again.
 
   In order for Emacs to recover the state from a previous session, you
 must start it with the same current directory as you used when you
@@ -2448,7 +2450,3 @@ Likewise, @kbd{M-x snake} provides an implementation of Snake.
 @findex zone
 The command @kbd{M-x zone} plays games with the display when Emacs is
 idle.
-
-@ignore
-   arch-tag: 8f094220-c0d5-4e9e-af7d-3e0da8187474
-@end ignore

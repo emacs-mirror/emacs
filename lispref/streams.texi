@@ -771,14 +771,6 @@ exceeding this limit is abbreviated with an ellipsis.  A value of
 @code{nil} (which is the default) means no limit.
 @end defvar
 
-@defopt eval-expression-print-length
-@defoptx eval-expression-print-level
-These are the values for @code{print-length} and @code{print-level}
-used by @code{eval-expression}, and thus, indirectly, by many
-interactive evaluation commands (@pxref{Lisp Eval,, Evaluating
-Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
-@end defopt
-
   These variables are used for detecting and reporting circular
 and shared structure---but they are only defined in Emacs 21.
 
@@ -811,7 +803,3 @@ This variable holds a vector used internally by printing to implement
 the @code{print-circle} feature.  You should not use it except
 to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
 @end defvar
-
-@ignore
-   arch-tag: 07636b8c-c4e3-4735-9e06-2e864320b434
-@end ignore

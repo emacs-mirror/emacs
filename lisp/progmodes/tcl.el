@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.75 $
+;; Version: $Revision: 1.74 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1510,5 +1510,4 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
-;;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here

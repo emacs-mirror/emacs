@@ -385,7 +385,3 @@ cannot accept mail.
 
 @contents
 @bye
-
-@ignore
-   arch-tag: 6316abdf-b366-4562-87a2-f37e8f894b6f
-@end ignore

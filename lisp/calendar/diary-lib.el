@@ -258,27 +258,6 @@ search."
       (list entry ret-attr))))
 
 
-;; This can be removed once the kill/yank treatment of invisible text
-;; (see etc/TODO) is fixed. -- gm
-(defcustom diary-header-line-flag t
-  "*If non-nil, `simple-diary-display' will show a header line.
-The format of the header is specified by `diary-header-line-format'."
-  :group   'diary
-  :type    'boolean
-  :version "21.4")
-
-(defcustom diary-header-line-format
-  '(:eval (calendar-string-spread
-           (list (if selective-display
-                     "Selective display active - press \"s\" in calendar \
-before edit/copy"
-                   "Diary"))
-           ?\ (frame-width)))
-  "*Format of the header line displayed by `simple-diary-display'.
-Only used if `diary-header-line-flag' is non-nil."
-  :group   'diary
-  :type    'sexp
-  :version "21.4")
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
@@ -332,8 +311,6 @@ These hooks have the following distinct roles:
 	  (setq file-glob-attrs (nth 1 (diary-pull-attrs nil "")))
           (setq selective-display t)
           (setq selective-display-ellipses nil)
-          (if diary-header-line-flag
-              (setq header-line-format diary-header-line-format))
           (setq old-diary-syntax-table (syntax-table))
           (set-syntax-table diary-syntax-table)
           (unwind-protect
@@ -432,6 +409,7 @@ These hooks have the following distinct roles:
                    'list-diary-entries-hook)
         (if diary-display-hook
             (run-hooks 'diary-display-hook)
+          ;; FIXME Error if calendar-setup 'calendar-only -- gm.
           (simple-diary-display))
         (run-hooks 'diary-hook)
         diary-entries-list))))
@@ -488,19 +466,17 @@ changing the variable `diary-include-string'."
   "Display the diary buffer if there are any relevant entries or holidays."
   (let* ((holiday-list (if holidays-in-diary-buffer
                            (check-calendar-holidays original-date)))
-         (hol-string (format "%s%s%s"
-                             date-string
-                             (if holiday-list ": " "")
-                             (mapconcat 'identity holiday-list "; ")))
-         (msg (format "No diary entries for %s" hol-string))
-         ;; If selected window is dedicated (to the calendar),
-         ;; need a new one to display the diary.
-         (pop-up-frames (window-dedicated-p (selected-window))))
-    (calendar-set-mode-line (format "Diary for %s" hol-string))
+         (msg (format "No diary entries for %s %s"
+                      (concat date-string (if holiday-list ":" ""))
+                      (mapconcat 'identity holiday-list "; "))))
+    (calendar-set-mode-line
+     (concat "Diary for " date-string
+             (if holiday-list ": " "")
+             (mapconcat 'identity holiday-list "; ")))
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
                  (string-equal (car (cdr (car diary-entries-list))) "")))
-        (if (< (length msg) (frame-width))
+        (if (<= (length msg) (frame-width))
             (message "%s" msg)
           (set-buffer (get-buffer-create holiday-buffer))
           (setq buffer-read-only nil)
@@ -1613,8 +1589,7 @@ Do nothing if DATE or STRING is nil."
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to `diary-file'."
-  (let ((pop-up-frames (window-dedicated-p (selected-window))))
-    (find-file-other-window (substitute-in-file-name (or file diary-file))))
+  (find-file-other-window (substitute-in-file-name (or file diary-file)))
   (widen)
   (goto-char (point-max))
   (when (let ((case-fold-search t))
@@ -1855,5 +1830,4 @@ names."
 
 (provide 'diary-lib)
 
-;;; arch-tag: 22dd506e-2e33-410d-9ae1-095a0c1b2010
 ;;; diary-lib.el ends here

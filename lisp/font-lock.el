@@ -1929,5 +1929,4 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 (when (eq font-lock-support-mode 'jit-lock-mode)
   (require 'jit-lock))
 
-;;; arch-tag: 682327e4-64d8-4057-b20b-1fbb9f1fc54c
 ;;; font-lock.el ends here

@@ -1363,5 +1363,4 @@ HTML-P is non-nil html markup is added."
 (if (file-readable-p timeclock-file)
     (timeclock-reread-log))
 
-;;; arch-tag: a0be3377-deb6-44ec-b9a2-a7be28436a40
 ;;; timeclock.el ends here

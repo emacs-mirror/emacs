@@ -334,7 +334,3 @@ This returns the rehash threshold of @var{table}.
 @defun hash-table-size table
 This returns the current nominal size of @var{table}.
 @end defun
-
-@ignore
-   arch-tag: 3b5107f9-d2f0-47d5-ad61-3498496bea0e
-@end ignore

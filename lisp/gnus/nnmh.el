@@ -578,5 +578,4 @@ as unread by Gnus.")
 
 (provide 'nnmh)
 
-;;; arch-tag: 36c12a98-3bad-44b3-9953-628078ef0e04
 ;;; nnmh.el ends here

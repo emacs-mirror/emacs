@@ -362,6 +362,3 @@ Boston, MA 02111-1307, USA.  */
 #define GC_LISP_OBJECT_ALIGNMENT 2
 #endif
 #endif
-
-/* arch-tag: 6244ea2a-abd0-44ec-abec-ff3dcc9afea9
-   (do not change this comment) */

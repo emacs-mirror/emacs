@@ -2461,22 +2461,15 @@ for comparison with @code{inhibit-file-name-operation}.
 @end defun
 
 @defun file-local-copy filename
-This function copies file @var{filename} to an ordinary non-magic file
-on the local machine, if it isn't on the local machine already.  Magic
-file names should handle the @code{file-local-copy} operation if they
-refer to files on other machines.  A magic file name that is used for
-other purposes than remote file access should not handle
-@code{file-local-copy}; then this function will treat the file as
-local.
+This function copies file @var{filename} to an ordinary non-magic file,
+if it isn't one already.
 
-If @var{filename} is local, whether magic or not, this function does
-nothing and returns @code{nil}.  Otherwise it returns the file name
-of the local copy file.
-@end defun
+If @var{filename} specifies a magic file name, which programs
+outside Emacs cannot directly read or write, this copies the contents to
+an ordinary file and returns that file's name.
 
-@defun file-remote-p filename
-This functions return @code{t} if @var{filename} is a remote file---that is,
-a magic file name that handles @code{file-local-copy}.
+If @var{filename} is an ordinary file name, not magic, then this function
+does nothing and returns @code{nil}.
 @end defun
 
 @defun unhandled-file-name-directory filename
@@ -2644,7 +2637,3 @@ a list of format names, just like the value of
 @code{buffer-file-format} for writing auto-save files.  This variable is
 always buffer-local in all buffers.
 @end defvar
-
-@ignore
-   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
-@end ignore

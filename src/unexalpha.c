@@ -541,6 +541,3 @@ fatal_unexec (s, arg)
   fputs (".\n", stderr);
   exit (1);
 }
-
-/* arch-tag: 46316c49-ee08-4aa3-942b-00798902f5bd
-   (do not change this comment) */

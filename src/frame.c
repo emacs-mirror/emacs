@@ -4134,6 +4134,3 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
 #endif
 
 }
-
-/* arch-tag: 7dbf2c69-9aad-45f8-8296-db893d6dd039
-   (do not change this comment) */

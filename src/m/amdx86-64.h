@@ -114,6 +114,3 @@ Boston, MA 02111-1307, USA.  */
 
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
-
-/* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
-   (do not change this comment) */

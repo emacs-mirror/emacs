@@ -1823,7 +1823,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
   while (1)
     {
-      int c1, c2 = 0;
+      int c1, c2;
 
       src_base = src;
       ONE_MORE_BYTE (c1);
@@ -3050,7 +3050,7 @@ decode_coding_sjis_big5 (coding, source, destination,
   coding->produced_char = 0;
   while (1)
     {
-      int c, charset, c1, c2 = 0;
+      int c, charset, c1, c2;
 
       src_base = src;
       ONE_MORE_BYTE (c1);
@@ -7881,5 +7881,3 @@ emacs_strerror (error_number)
 
 #endif /* emacs */
 
-/* arch-tag: 3a3a2b01-5ff6-4071-9afe-f5b808d9229d
-   (do not change this comment) */

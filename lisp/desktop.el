@@ -37,17 +37,18 @@
 ;;		- buffer-read-only
 ;;		- some local variables
 
-;; To use this, add these lines to the bottom of your .emacs file:
+;; To use this, first put these two lines in the bottom of your .emacs
+;; file (the later the better):
 ;;
-;;      (require 'desktop)
-;;      (setq desktop-enable t)
+;;	(desktop-load-default)
+;;	(desktop-read)
 ;;
-;; Between the first two lines you may wish to add something that updates the
+;; Between these two lines you may wish to add something that updates the
 ;; variables `desktop-globals-to-save' and/or `desktop-locals-to-save'.  If
 ;; for instance you want to save the local variable `foobar' for every buffer
 ;; in which it is local, you could add the line
 ;;
-;;	(add-to-list 'desktop-locals-to-save 'foobar)
+;;	(setq desktop-locals-to-save (cons 'foobar desktop-locals-to-save))
 ;;
 ;; To avoid saving excessive amounts of data you may also wish to add
 ;; something like the following
@@ -396,7 +397,7 @@ is nil, ask the user where to save the desktop."
       desktop-enable
       (let ((exists (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))))
         (or
-          (eq desktop-save t)
+          (eq desktop-save 't)
           (and exists (memq desktop-save '(ask-if-new if-exists)))
           (and
             (or
@@ -977,5 +978,4 @@ This function always sets `desktop-enable' to t."
 
 (provide 'desktop)
 
-;;; arch-tag: 221907c3-1771-4fd3-9c2e-c6f700c6ede9
 ;;; desktop.el ends here

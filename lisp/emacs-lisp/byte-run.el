@@ -169,5 +169,4 @@ The result of the body appears to the compiler as a quoted constant."
 ;;       (file-format emacs19))"
 ;;   nil)
 
-;;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
 ;;; byte-run.el ends here

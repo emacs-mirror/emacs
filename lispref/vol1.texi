@@ -1017,7 +1017,3 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
-
-@ignore
-   arch-tag: 9594760d-8801-4d1b-aeb9-f3b3166b5be2
-@end ignore

@@ -160,6 +160,3 @@ Boston, MA 02111-1307, USA.  */
 #define rindex strrchr
 
 /* #endif */
-
-/* arch-tag: 4ced5b51-ffe6-4be1-9954-eb40657023a5
-   (do not change this comment) */

@@ -921,6 +921,3 @@ syms_of_marker ()
 	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
 }
-
-/* arch-tag: 50aa418f-cdd0-4838-b64b-94aa4b2a3b74
-   (do not change this comment) */

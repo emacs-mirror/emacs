@@ -76,5 +76,4 @@
 	      lao-transcription-tone-alist)
     (t-state lao-transcription-tone-alist))))
 
-;;; arch-tag: f65e4038-e187-4906-997b-d2de7ed813d2
 ;;; lrt.el ends here

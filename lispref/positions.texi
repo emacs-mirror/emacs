@@ -996,7 +996,3 @@ This is the contents of foo@point{}
 @end group
 @end example
 @end defspec
-
-@ignore
-   arch-tag: 56e8ff26-4ffe-4832-a141-7e991a2d0f87
-@end ignore

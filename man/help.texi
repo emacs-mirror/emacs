@@ -587,7 +587,3 @@ Areas of the mode line are examples.  This help will normally be
 shown in the echo area when you move point into the active text.  In
 a window system you can display the help text as a ``tooltip''
 (sometimes known as ``balloon help'').  @xref{Tooltips}.
-
-@ignore
-   arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
-@end ignore

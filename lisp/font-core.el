@@ -297,4 +297,3 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 ;;; font-core.el ends here
 
-;;; arch-tag: f8c286e1-02f7-41d9-b89b-1b67780aed71

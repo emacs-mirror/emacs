@@ -85,5 +85,4 @@ used to fill to the column."
 
 ;; That's all, folks!
 
-;;; arch-tag: 8e5d5dac-7abf-4722-ab5e-03eb749beaca
 ;;; forms-d2.el ends here

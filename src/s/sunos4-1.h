@@ -31,6 +31,3 @@
 
 /* Define dlopen, dlclose, dlsym.  */
 #define USE_DL_STUBS
-
-/* arch-tag: 154e2eb2-2180-4d66-90b9-7e56a22004f2
-   (do not change this comment) */

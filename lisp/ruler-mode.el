@@ -791,5 +791,4 @@ mouse-2: unset goal column"
 ;; coding: iso-latin-1
 ;; End:
 
-;;; arch-tag: b2f24546-5605-44c4-b67b-c9a4eeba3ee8
 ;;; ruler-mode.el ends here

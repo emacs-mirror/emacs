@@ -1,12 +1,3 @@
-2003-08-25  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
-
-	* etags.c (consider_token): check C++ `operator' only when the
-	token len is long enough.
-
-2003-08-20  Dave Love  <fx@gnu.org>
-
-	* Makefile.in: Remove obsolete references to alloca.
-
 2003-07-29  Ken Brush  <ken@wirex.com>
 
 	* emacsclient.c (main)
@@ -5443,5 +5434,3 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
-
-;;; arch-tag: 2d979296-954c-448e-95c1-b46d134513dc

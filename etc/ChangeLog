@@ -1,11 +1,3 @@
-2003-09-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
-
-	* TODO: Add invisible text kill/yank issue.
-
-2003-08-20  Stephen Eglen  <stephen@gnu.org>
-
-	* MORE.STUFF: Update URLs for several projects.
-
 2003-07-22  Andrew Choi  <akochoi@shaw.ca>
 
 	* PROBLEMS: Truncated process output with pty's on Mac OS X.
@@ -1571,5 +1563,3 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
-
-;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1

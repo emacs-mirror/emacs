@@ -513,6 +513,3 @@ syms_of_sunfns()
   defsubr(&Ssun_get_selection);
   defsubr(&Ssun_menu_internal);
 }
-
-/* arch-tag: 2d7decb7-58f6-41aa-b45b-077ccfab7158
-   (do not change this comment) */

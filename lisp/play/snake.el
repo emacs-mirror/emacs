@@ -412,5 +412,4 @@ Snake mode keybindings:
 
 (provide 'snake)
 
-;;; arch-tag: 512ffc92-cfac-4287-9a4e-92890701a5c8
 ;;; snake.el ends here

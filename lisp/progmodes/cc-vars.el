@@ -1371,7 +1371,7 @@ state.  Set this variable only if your configuration has stopped
 working due to this change.")
 
 (define-widget 'c-extra-types-widget 'radio
-  "Internal CC Mode widget for the `*-font-lock-extra-types' variables."
+  ;; Widget for a list of regexps for the extra types.
   :args '((const :tag "none" nil)
 	  (repeat :tag "types" regexp)))
 
@@ -1402,7 +1402,7 @@ also elsewhere in CC Mode to tell types from other identifiers.")))
 ;; in older versions in Emacs, so depending on the load order we might
 ;; not install the values below.  There's no kludge to cope with this
 ;; (as opposed to the *-font-lock-keywords-* variables) since the old
-;; values work fairly well anyway.
+;; values works fairly well anyway.
 
 (defcustom c-font-lock-extra-types
   '("FILE" "\\sw+_t"
@@ -1675,5 +1675,4 @@ might be present:
 
 (cc-provide 'cc-vars)
 
-;;; arch-tag: d62e9a55-c9fe-409b-b5b6-050b6aa202c9
 ;;; cc-vars.el ends here

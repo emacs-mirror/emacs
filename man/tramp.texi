@@ -2119,7 +2119,3 @@ would have to be installed from the start, too.
 @c ** Use `filename' resp. `file name' consistently.
 @c ** Use `host' resp. `machine' consistently.
 @c ** Consistent small or capitalized words especially in menues.
-
-@ignore
-   arch-tag: f96dd66e-6dd3-4c92-8d77-9c56205ba808
-@end ignore

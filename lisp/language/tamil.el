@@ -40,5 +40,4 @@ South Indian Language Tamil supported in this language environment."))
 
 (provide 'tamil)
 
-;;; arch-tag: 2201ac78-7d1e-4674-9bcb-9923c7a2bd9c
 ;;; tamil.el ends here

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/SetPane.c,v 1.1 1999/10/03 19:35:14 fx Exp $ */
+/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/SetPane.c,v 1.1 1992/04/11 22:10:21 jimb Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -41,6 +41,3 @@ XMenuSetPane(menu, p_num, active)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-
-/* arch-tag: 90bc8d90-031d-41a2-a2c6-04bf94efbc90
-   (do not change this comment) */

@@ -281,6 +281,3 @@ main ()
 
   return 0;
 }
-
-/* arch-tag: ce28f204-1e70-4b34-8210-3d54a5662071
-   (do not change this comment) */

@@ -1283,6 +1283,3 @@ main (argc, argv)
 }
 
 #endif /* TEST */
-
-/* arch-tag: 0e6da124-7269-4785-a9de-094c263d20dc
-   (do not change this comment) */

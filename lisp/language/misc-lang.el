@@ -43,5 +43,4 @@ and Italian.")))
 
 (provide 'misc-lang)
 
-;;; arch-tag: 6953585c-1a1a-4c09-be82-a2518afb6074
 ;;; misc-lang.el ends here

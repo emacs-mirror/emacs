@@ -186,5 +186,4 @@ If DATE is malformed, return a time value of zeros."
 
 (provide 'time-date)
 
-;;; arch-tag: addcf07b-b20a-465b-af72-550b8ac5190f
 ;;; time-date.el ends here

@@ -304,5 +304,4 @@ COMPONENT is the component to search."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: aef2b271-7768-42bd-a782-9a14ba9f83f7
 ;;; mh-pick.el ends here

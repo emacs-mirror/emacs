@@ -3343,7 +3343,7 @@ saying what text to write."
   ;; ordinary or numeric backups.  It might create a directory for
   ;; backups as a side-effect, according to `backup-directory-alist'.
   (let* ((filename (file-name-sans-versions
-		    (make-backup-file-name (expand-file-name filename))))
+		    (make-backup-file-name filename)))
 	 (file (file-name-nondirectory filename))
 	 (dir  (file-name-directory    filename))
 	 (comp (file-name-all-completions file dir))
@@ -4475,5 +4475,4 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 
-;;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

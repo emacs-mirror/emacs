@@ -149,7 +149,6 @@ that you visit a subnode before getting to the end of the menu.
 Setting this option to nil results in behavior similar to the stand-alone
 Info reader program, which visits the first subnode from the menu only
 when you hit the end of the current node."
-  :version "21.4"
   :type 'boolean
   :group 'info)
 
@@ -2256,8 +2255,7 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map " " 'Info-scroll-up)
   (define-key Info-mode-map "\C-m" 'Info-follow-nearest-node)
   (define-key Info-mode-map "\t" 'Info-next-reference)
-  (define-key Info-mode-map [(shift tab)] 'Info-prev-reference)
-  (define-key Info-mode-map [backtab] 'Info-prev-reference)
+  (define-key Info-mode-map "\e\t" 'Info-prev-reference)
   (define-key Info-mode-map "1" 'Info-nth-menu-item)
   (define-key Info-mode-map "2" 'Info-nth-menu-item)
   (define-key Info-mode-map "3" 'Info-nth-menu-item)
@@ -3202,5 +3200,4 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (provide 'info)
 
-;;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
 ;;; info.el ends here

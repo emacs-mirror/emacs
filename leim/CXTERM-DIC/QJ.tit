@@ -1,4 +1,4 @@
-# $Id: QJ.tit,v 1.1 1999/10/08 20:06:51 fx Exp $
+# $Id: QJ.tit,v 1.1 1991/10/27 06:21:16 ygz Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 1
@@ -110,5 +110,3 @@ z	£ú
 |	£ü
 }	£ý
 ~	£þ
-
-# arch-tag: 3ee780cd-600a-49e7-a77b-85b898adc205

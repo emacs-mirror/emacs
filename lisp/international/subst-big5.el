@@ -13937,5 +13937,4 @@
    (#xffe3 ?กร)
    (#xffe5 ?ขD)))
 
-;;; arch-tag: 4fbf5312-bb44-4f23-8ae2-7ab2ee1c540f
 ;;; subst-big5.el ends here

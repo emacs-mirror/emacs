@@ -2539,5 +2539,4 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("s<" ?,B9(B)
  ("z<" ?,B>(B))
 
-;;; arch-tag: 170180fb-9617-4d58-9d51-65ca23c05d94
 ;;; latin-post.el ends here

@@ -1,116 +1,3 @@
-2003-09-03  Peter Runestig  <peter@runestig.com>
-
-	* makefile.w32-in: New file.
-
-2003-08-29  Richard M. Stallman  <rms@gnu.org>
-
-	* display.texi (Overlay Properties): Clarify how priorities
-	affect use of the properties.
-
-2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
-
-	* customize.texi (Type Keywords): Correct the description of
-	`:help-echo' in the case where `motion-doc' is a function.
-
-2003-08-14  John Paul Wallington  <jpw@gnu.org>
-
-	* modes.texi (Emulating Mode Line): Subsection, not section.
-
-2003-08-13  Richard M. Stallman  <rms@gnu.org>
-
-	* elisp.texi (Top): Update subnode lists in menu.
-
-	* text.texi (Insertion): Add insert-buffer-substring-no-properties.
-	(Kill Functions): kill-region has new arg yank-handler.
-	(Yanking): New node.
-	(Yank Commands): Add yank-undo-function.
-	(Low-Level Kill Ring):
-	kill-new and kill-append have new arg yank-handler.
-	(Changing Properties): Add remove-list-of-text-properties.
-	(Atomic Changes): New node.
-
-	* symbols.texi (Other Plists): Add lax-plist-get, lax-plist-put.
-
-	* streams.texi (Output Variables): Add eval-expression-print-length
-	and eval-expression-print-level.
-
-	* os.texi (Time Conversion): For encode-time, explain limits on year.
-
-	* objects.texi (Character Type): Define anchor "modifier bits".
-
-	* modes.texi (Emulating Mode Line): New node.
-	(Search-based Fontification): Font Lock uses font-lock-face property.
-	(Other Font Lock Variables): Likewise.
-
-	* keymaps.texi (Format of Keymaps): Keymaps contain char tables,
-	not vectors.
-	(Active Keymaps): Add emulation-mode-map-alists.
-	(Functions for Key Lookup): key-binding has new arg no-remap.
-	(Remapping Commands): New node.
-	(Scanning Keymaps): where-is-internal has new arg no-remap.
-	(Tool Bar): Add tool-bar-local-item-from-menu.
-	Clarify when to use tool-bar-add-item-from-menu.
-
-	* commands.texi (Interactive Call): commandp has new arg.
-	(Command Loop Info): Add this-original-command.
-
-2003-08-06  John Paul Wallington  <jpw@gnu.org>
-
-	* compile.texi (Compiler Errors): Say `@end defmac' after `@defmac'.
-
-	* display.texi (Warning Basics): Fix typo.
-	(Fringes): Add closing curly bracket and fix typo.
-
-	* elisp.texi (Top): Fix typo.
-
-2003-08-05  Richard M. Stallman  <rms@gnu.org>
-
-	* elisp.texi: Update lists of subnodes.
-
-	* windows.texi (Buffers and Windows): set-window-buffer has new arg.
-
-	* variables.texi (Local Variables): Use lc for example variable names.
-
-	* tips.texi (Library Headers): Explain where to put -*-.
-
-	* strings.texi (Creating Strings): Fix xref for vconcat.
-
-	* sequences.texi (Vector Functions):
-	vconcat no longer allows integer args.
-
-	* minibuf.texi (Reading File Names): read-file-name has new
-	arg PREDICATE.  New function read-directory-name.
-
-	* macros.texi (Defining Macros): Give definition of `declare'
-	(Indenting Macros): New node.
-
-	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
-	(Window Frame Parameters): Make separate table of parameters
-	that are coupled with specific face attributes.
-	(Deleting Frames): delete-frame-hooks renamed to
-	delete-frame-functions.
-
-	* files.texi (Magic File Names): Add file-remote-p.
-	Clarify file-local-copy.
-
-	* edebug.texi (Instrumenting Macro Calls): Don't define `declare'
-	here; instead xref Defining Macros.
-
-	* display.texi (Warnings): New node, and subnodes.
-	(Fringes): New node.
-
-	* debugging.texi (Test Coverage): New node.
-
-	* compile.texi (Compiler Errors): Explain with-no-warnings
-	and other ways to suppress warnings.
-
-	* commands.texi (Interactive Call): Minor clarification.
-
-	* buffers.texi (Buffer File Name): set-visited-file-name
-	renames the buffer too.
-
-	* abbrevs.texi (Abbrev Tables): Add copy-abbrev-table.
-
 2003-07-24  Markus Rost  <rost@math.ohio-state.edu>
 
 	* abbrevs.texi (Abbrev Expansion): Use \s syntax in example.
@@ -851,11 +738,9 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 	for the Project GNU development environment.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: iso-2022-7bit-unix
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

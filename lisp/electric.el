@@ -175,5 +175,4 @@
 
 (provide 'electric)
 
-;;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8
 ;;; electric.el ends here

@@ -437,5 +437,4 @@ Where the new table already has an entry, nothing is copied from the old one."
 
 (provide 'derived)
 
-;;; arch-tag: 630be248-47d1-4f02-afa0-8207de0ebea0
 ;;; derived.el ends here

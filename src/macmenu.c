@@ -2374,6 +2374,3 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_dialog);
 #endif
 }
-
-/* arch-tag: 40b2c6c7-b8a9-4a49-b930-1b2707184cce
-   (do not change this comment) */

@@ -1035,5 +1035,4 @@ language you are using."
 ;; no-update-autoloads: t
 ;; End:
 
-;;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

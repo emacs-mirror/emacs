@@ -581,5 +581,3 @@ void deactivate_scroll_bars (FRAME_PTR);
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
-/* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79
-   (do not change this comment) */

@@ -1652,66 +1652,12 @@ It returns t if it got any new messages."
 			      (save-excursion
 				(skip-chars-forward " \t\n")
 				(point)))
-	       (save-excursion
-		 (let* ((header-end
-			 (progn
-			   (save-excursion
-			     (goto-char start)
-			     (forward-line 1)
-			     (if (looking-at "0")
-				 (forward-line 1)
-			       (forward-line 2))
-			     (save-restriction
-			       (narrow-to-region (point) (point-max))
-			       (rfc822-goto-eoh)
-			       (point)))))
-			(case-fold-search t)
-			(quoted-printable-header-field-end
-			 (save-excursion
-			   (goto-char start)
-			   (re-search-forward
-			    "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-			    header-end t)))
-			(base64-header-field-end
-			 (save-excursion
-			   (goto-char start)
-			   (re-search-forward
-			    "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			    header-end t))))
-		   (if quoted-printable-header-field-end
-		       (save-excursion
-			 (rmail-decode-quoted-printable header-end (point))
-			 ;; Change "quoted-printable" to "8bit",
-			 ;; to reflect the decoding we just did.
-			 (goto-char quoted-printable-header-field-end)
-			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit")))
-		   (if base64-header-field-end
-		       (save-excursion
-			 (base64-decode-region (1+ header-end)
-					       (- (point) 2))
-			 ;; Change "base64" to "8bit", to reflect the
-			 ;; decoding we just did.
-			 (goto-char (1+ header-end))
-			 (while (search-forward "\r\n" (point-max) t)
-			   (replace-match "\n"))
-			 (goto-char base64-header-field-end)
-			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit")))
-		   (setq last-coding-system-used nil)
-		   (or rmail-enable-mime
-		       (not rmail-enable-multibyte)
-		       (let ((mime-charset
-			      (if (and rmail-decode-mime-charset
-				       (save-excursion
-					 (goto-char start)
-					 (search-forward "\n\n" nil t)
-					 (let ((case-fold-search t))
-					   (re-search-backward
-					    rmail-mime-charset-pattern
-					    start t))))
-				  (intern (downcase (match-string 1))))))
-			 (rmail-decode-region start (point) mime-charset)))))
+	       (setq last-coding-system-used nil)
+	       (or rmail-enable-mime
+		   (not rmail-enable-multibyte)
+		   (decode-coding-region start (point)
+					 (or rmail-file-coding-system
+					     'undecided)))
 	       ;; Add an X-Coding-System: header if we don't have one.
 	       (save-excursion
 		 (goto-char start)
@@ -1768,11 +1714,6 @@ It returns t if it got any new messages."
 			 (re-search-forward
 			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
 			  header-end t)))
-		      (base64-header-field-end
-		       (save-excursion
-			 (re-search-forward
-			  "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			  header-end t)))
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
 		       (save-excursion
@@ -1820,14 +1761,6 @@ It returns t if it got any new messages."
 		       ;; Change "quoted-printable" to "8bit",
 		       ;; to reflect the decoding we just did.
 		       (goto-char quoted-printable-header-field-end)
-		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit")))
-		 (if base64-header-field-end
-		     (save-excursion
-		       (base64-decode-region header-end (point))
-		       ;; Change "base64" to "8bit", to reflect the
-		       ;; decoding we just did.
-		       (goto-char base64-header-field-end)
 		       (delete-region (point) (search-backward ":"))
 		       (insert ": 8bit"))))
 
@@ -3822,5 +3755,4 @@ encoded string (and the same mask) will decode the string."
 
 (provide 'rmail)
 
-;;; arch-tag: cff0a950-57fe-4f73-a86e-91ff75afd06c
 ;;; rmail.el ends here

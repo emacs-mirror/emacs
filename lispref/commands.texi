@@ -503,7 +503,7 @@ command is a function, @code{command-execute} calls
 @code{call-interactively}, which reads the arguments and calls the
 command.  You can also call these functions yourself.
 
-@defun commandp object &optional for-call-interactively
+@defun commandp object
 Returns @code{t} if @var{object} is suitable for calling interactively;
 that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
@@ -514,13 +514,11 @@ expressions, autoload objects that are declared as interactive
 (non-@code{nil} fourth argument to @code{autoload}), and some of the
 primitive functions.
 
-A symbol satisfies @code{commandp} if its function definition
-satisfies @code{commandp}.  Keys and keymaps are not commands.
-Rather, they are used to look up commands (@pxref{Keymaps}).
+A symbol satisfies @code{commandp} if its function definition satisfies
+@code{commandp}.
 
-If @var{for-call-interactively} is non-@code{nil}, then
-@code{commandp} returns @code{t} only for objects that
-@code{call-interactively} could call---thus, not for keyboard macros.
+Keys and keymaps are not commands.  Rather, they are used to look up
+commands (@pxref{Keymaps}).
 
 See @code{documentation} in @ref{Accessing Documentation}, for a
 realistic example of using @code{commandp}.
@@ -663,10 +661,6 @@ non-@code{nil}.  Here's how:
     (message "foo")))
 @end example
 
-@noindent
-Defined in this way, the function does display the message when
-called from a keyboard macro.
-
   The numeric prefix argument, provided by @samp{p}, is never @code{nil}.
 
 @node Command Loop Info
@@ -732,14 +726,6 @@ value at the end, like this:
 We do not bind @code{this-command} with @code{let} because that would
 restore the old value in case of error---a feature of @code{let} which
 in this case does precisely what we want to avoid.
-
-@defvar this-original-command
-This has the same value as @code{this-command} except when command
-remapping occurs (@pxref{Remapping Commands}).  In that case,
-@code{this-command} gives the command actually run (the result of
-remapping), and @code{this-original-command} gives the command that
-was specified to run but remapped into another command.
-@end defvar
 
 @defun this-command-keys
 This function returns a string or vector containing the key sequence
@@ -2833,7 +2819,3 @@ This normal hook (@pxref{Standard Hooks}) is run when a keyboard
 macro terminates, regardless of what caused it to terminate (reaching
 the macro end or an error which ended the macro prematurely).
 @end defvar
-
-@ignore
-   arch-tag: e34944ad-7d5c-4980-be00-36a5fe54d4b1
-@end ignore

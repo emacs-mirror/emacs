@@ -46,6 +46,3 @@ extern int closedir(DIR *);
 extern struct dirent *readdir(DIR *);
 
 #endif /* _DIRENT_H */
-
-/* arch-tag: ec3116df-70f9-4a4a-b6d0-1858aaa9ea22
-   (do not change this comment) */

@@ -733,5 +733,4 @@ If argument is nil or an empty string, cancel for all functions."
 
 (provide 'debug)
 
-;;; arch-tag: b6ec7047-f801-4103-9c63-d69322db9d3b
 ;;; debug.el ends here

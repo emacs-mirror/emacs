@@ -39,5 +39,4 @@
 
 (provide 'georgian)
 
-;;; arch-tag: 15499fbb-26d4-4a13-9d78-135eef7d32f5
 ;;; georgian.el ends here

@@ -929,5 +929,4 @@ This only works when `display-time' is enabled."
 
 (provide 'mail-source)
 
-;;; arch-tag: 72948025-1d17-4d6c-bb12-ef1aa2c490fd
 ;;; mail-source.el ends here

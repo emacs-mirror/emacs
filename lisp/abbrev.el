@@ -335,5 +335,4 @@ If called from a Lisp program, arguments are START END &optional NOQUERY."
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
 		(expand-abbrev)))))))
 
-;;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
 ;;; abbrev.el ends here

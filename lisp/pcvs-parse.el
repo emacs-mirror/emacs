@@ -525,5 +525,4 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (provide 'pcvs-parse)
 
-;;; arch-tag: 35418375-1a23-40a0-957d-96b0262f91d6
 ;;; pcvs-parse.el ends here

@@ -57,6 +57,3 @@
 #endif
 
 #endif  /* not HAVE_X11R6 */
-
-/* arch-tag: cb54321a-ed45-4c17-a23e-1c157758da78
-   (do not change this comment) */

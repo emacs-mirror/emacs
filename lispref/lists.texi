@@ -1668,7 +1668,3 @@ of @var{alist}.
      @result{} ((bar 2) (lose 4))
 @end example
 @end defun
-
-@ignore
-   arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
-@end ignore

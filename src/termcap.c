@@ -828,6 +828,3 @@ tprint (cap)
 }
 
 #endif /* TEST */
-
-/* arch-tag: c2e8d427-2271-4fac-95fe-411857238b80
-   (do not change this comment) */

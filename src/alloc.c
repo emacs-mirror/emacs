@@ -552,7 +552,7 @@ xrealloc (block, size)
 }
 
 
-/* Like free but block interrupt input.  */
+/* Like free but block interrupt input..  */
 
 void
 xfree (block)
@@ -738,8 +738,7 @@ lisp_align_malloc (nbytes, type)
 
   if (!free_ablock)
     {
-      int i;
-      EMACS_INT aligned; /* int gets warning casting to 64-bit pointer.  */
+      int i, aligned;
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
@@ -767,23 +766,6 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
-      /* If the memory just allocated cannot be addressed thru a Lisp
-	 object's pointer, and it needs to be, that's equivalent to
-	 running out of memory.  */
-      if (type != MEM_TYPE_NON_LISP)
-	{
-	  Lisp_Object tem;
-	  char *end = (char *) base + ABLOCKS_BYTES - 1;
-	  XSETCONS (tem, end);
-	  if ((char *) XCONS (tem) != end)
-	    {
-	      lisp_malloc_loser = base;
-	      free (base);
-	      UNBLOCK_INPUT;
-	      memory_full ();
-	    }
-	}
-
       /* Initialize the blocks and put them on the free list.
 	 Is `base' was not properly aligned, we can't use the last block.  */
       for (i = 0; i < (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1); i++)
@@ -805,6 +787,21 @@ lisp_align_malloc (nbytes, type)
   ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (int) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
+
+  /* If the memory just allocated cannot be addressed thru a Lisp
+     object's pointer, and it needs to be,
+     that's equivalent to running out of memory.  */
+  if (val && type != MEM_TYPE_NON_LISP)
+    {
+      Lisp_Object tem;
+      XSETCONS (tem, (char *) val + nbytes - 1);
+      if ((char *) XCONS (tem) != (char *) val + nbytes - 1)
+	{
+	  lisp_malloc_loser = val;
+	  free (val);
+	  val = 0;
+	}
+    }
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
@@ -5027,7 +5024,6 @@ mark_object (arg)
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
 	     are protected with staticpro.  */
-	case Lisp_Misc_Save_Value:
 	  break;
 
 	case Lisp_Misc_Overlay:
@@ -5789,6 +5785,3 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
-
-/* arch-tag: 6695ca10-e3c5-4c2c-8bc3-ed26a7dda857
-   (do not change this comment) */

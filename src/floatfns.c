@@ -1075,6 +1075,3 @@ syms_of_floatfns ()
   defsubr (&Sround);
   defsubr (&Struncate);
 }
-
-/* arch-tag: be05bf9d-049e-4e31-91b9-e6153d483ae7
-   (do not change this comment) */

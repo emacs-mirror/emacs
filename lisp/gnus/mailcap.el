@@ -946,5 +946,4 @@ If FORCE, re-parse even if already parsed."
 
 (provide 'mailcap)
 
-;;; arch-tag: 1fd4f9c9-c305-4d2e-9747-3a4d45baa0bd
 ;;; mailcap.el ends here

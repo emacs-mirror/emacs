@@ -392,5 +392,4 @@
 ")
 (goto-char (point-min))
 
-;;; arch-tag: bab5872f-cd3a-4c1c-aedb-047b67646f6c
 ;;; tpu-mapper.el ends here

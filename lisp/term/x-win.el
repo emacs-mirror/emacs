@@ -2456,5 +2456,4 @@ order until succeed.")
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
 
-;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

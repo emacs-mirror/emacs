@@ -753,7 +753,6 @@ in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
 lexicographic order."
   :type 'hook
-  :options '(include-other-diary-files sort-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -786,7 +785,6 @@ diary buffer will not show days for which there are no diary entries, even
 if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t."
   :type 'hook
-  :options '(fancy-diary-display)
   :group 'diary)
 
 ;;;###autoload
@@ -797,7 +795,6 @@ relevant entries.  You can use either or both of `list-hebrew-diary-entries'
 and `list-islamic-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(list-hebrew-diary-entries list-islamic-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -815,7 +812,6 @@ variable `diary-include-string'.  When you use `mark-included-diary-files' as
 part of the mark-diary-entries-hook, you will probably also want to use the
 function `include-other-diary-files' as part of `list-diary-entries-hook'."
   :type 'hook
-  :options '(mark-included-diary-files)
   :group 'diary)
 
 ;;;###autoload
@@ -826,7 +822,6 @@ relevant entries.  You can use either or both of `mark-hebrew-diary-entries'
 and `mark-islamic-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(mark-hebrew-diary-entries mark-islamic-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -1404,10 +1399,6 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 (autoload 'calendar-goto-date "cal-move"
   "Move cursor to DATE."
-  t)
-
-(autoload 'calendar-goto-day-of-year "cal-move"
-  "Move cursor to day of year."
   t)
 
 (autoload 'calendar-only-one-frame-setup "cal-x"
@@ -2020,7 +2011,6 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "\C-x\C-x" 'calendar-exchange-point-and-mark)
   (define-key calendar-mode-map "\e=" 'calendar-count-days-region)
   (define-key calendar-mode-map "gd"  'calendar-goto-date)
-  (define-key calendar-mode-map "gD"  'calendar-goto-day-of-year)
   (define-key calendar-mode-map "gj"  'calendar-goto-julian-date)
   (define-key calendar-mode-map "ga"  'calendar-goto-astro-day-number)
   (define-key calendar-mode-map "gh"  'calendar-goto-hebrew-date)
@@ -2574,12 +2564,10 @@ of full names.  The return value is the ABBREV array, with any nil
 elements replaced by the first three characters taken from the
 corresponding element of FULL.  If optional argument PERIOD is non-nil,
 each element returned has a final `.' character."
-  (let (elem array name)
+  (let (elem array)
     (dotimes (i (length full))
-      (setq name (aref full i)
-            elem (or (aref abbrev i)
-                     (substring name 0
-                                (min calendar-abbrev-length (length name))))
+      (setq elem (or (aref abbrev i)
+                     (substring (aref full i) 0 calendar-abbrev-length))
             elem (format "%s%s" elem (if period "." ""))
             array (append array (list elem))))
     (vconcat array)))
@@ -2627,7 +2615,7 @@ If FILTER is provided, apply it to each key in the alist."
         (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
                                                       'period)))
         alist elem)
-    (dotimes (i (length sequence) (reverse alist))
+    (dotimes (i (1- (length sequence)) (reverse alist))
       (setq index (+ i offset)
             elem (elt sequence i)
             alist
@@ -2897,5 +2885,4 @@ Defaults to today's date if DATE is not given."
 ;;; byte-compile-dynamic: t
 ;;; End:
 
-;;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

@@ -1577,5 +1577,4 @@
     (setq mat (nconc mat (list (math-read-vector)))))
   mat)
 
-;;; arch-tag: 7902a7af-ec69-440a-8635-ebb4db263402
 ;;; calc-vec.el ends here

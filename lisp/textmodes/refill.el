@@ -3,7 +3,6 @@
 ;; Copyright (C) 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
-;; Maintainer: Miles Bader <miles@gnu.org>
 ;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
@@ -257,5 +256,4 @@ refilling if they would cause auto-filling."
 
 (provide 'refill)
 
-;;; arch-tag: 2c4ce9e8-1daa-4a3b-b6f8-fd6ac5bf6138
 ;;; refill.el ends here

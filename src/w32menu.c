@@ -2416,6 +2416,3 @@ void globals_of_w32menu ()
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
 }
-
-/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
-   (do not change this comment) */

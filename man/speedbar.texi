@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: speedbar.texi,v 1.11 2002/10/02 23:24:31 karl Exp $
+@c $Id: speedbar.texi,v 1.10 2002/03/16 19:33:21 eliz Exp $
 
 @setfilename ../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
@@ -1247,7 +1247,3 @@ Two good values are @code{nil} and @code{'statictag}.
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
 @c  LocalWords:  keybindings
-
-@ignore
-   arch-tag: e1fc85f0-1eeb-489f-a8d4-a2bfe711fa02
-@end ignore

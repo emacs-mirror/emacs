@@ -370,5 +370,4 @@
 
 (provide 'ediff-hook)
 
-;;; arch-tag: 512f8656-8a4b-4789-af5d-5c6144498df3
 ;;; ediff-hook.el ends here

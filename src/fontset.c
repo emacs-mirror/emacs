@@ -1515,6 +1515,3 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
 }
-
-/* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537
-   (do not change this comment) */

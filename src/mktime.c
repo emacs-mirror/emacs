@@ -564,6 +564,3 @@ Local Variables:
 compile-command: "gcc -DDEBUG -DHAVE_LIMITS_H -DSTDC_HEADERS -Wall -W -O -g mktime.c -o mktime"
 End:
 */
-
-/* arch-tag: 9456752f-7ddd-47cb-8286-fa807b1355ae
-   (do not change this comment) */

@@ -189,5 +189,4 @@ is nil, raise an error."
 
 (provide 'loadhist)
 
-;;; arch-tag: 70bb846a-c413-4f01-bf88-78dba4ac0798
 ;;; loadhist.el ends here

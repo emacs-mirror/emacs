@@ -3753,5 +3753,4 @@ See `read-file-name' for additional parameters."
 	    ido-current-directory
 	  (concat ido-current-directory filename)))))
 
-;;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
 ;;; ido.el ends here

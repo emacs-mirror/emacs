@@ -2281,6 +2281,3 @@ as well as hooks attached to text properties and overlays.  */);
 
   defsubr (&Scombine_after_change_execute);
 }
-
-/* arch-tag: 9b34b886-47d7-465e-a234-299af411b23d
-   (do not change this comment) */

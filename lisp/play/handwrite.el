@@ -1417,5 +1417,4 @@ end
 (provide 'handwrite)
 
 
-;;; arch-tag: f2285ae9-e41b-4c96-8343-87dce41e44b7
 ;;; handwrite.el ends here

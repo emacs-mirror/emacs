@@ -316,5 +316,4 @@ line of the form #!<interp>."
 
 ;;; Code:
 
-;;; arch-tag: 178d4064-7e60-4745-b81f-bab5d8d7c40f
 ;;; esh-ext.el ends here

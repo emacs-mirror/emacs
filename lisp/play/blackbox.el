@@ -429,5 +429,4 @@ a reflection."
 
 (provide 'blackbox)
 
-;;; arch-tag: 6c474c62-5617-4b10-9b44-ac430168c0e2
 ;;; blackbox.el ends here

@@ -1265,6 +1265,3 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 #endif /* COFF */
 
 #endif /* not CANNOT_DUMP */
-
-/* arch-tag: 62409b69-e27a-4a7c-9413-0210d6b54e7f
-   (do not change this comment) */

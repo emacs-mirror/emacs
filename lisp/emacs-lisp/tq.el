@@ -120,5 +120,4 @@ that's how we tell where the answer ends."
 
 (provide 'tq)
 
-;;; arch-tag: 65dea08c-4edd-4cde-83a5-e8a15b993b79
 ;;; tq.el ends here

@@ -514,5 +514,4 @@ and close the connection."
 
 (provide 'pop3)
 
-;;; arch-tag: 2facc142-1d74-498e-82af-4659b64cac12
 ;;; pop3.el ends here

@@ -969,5 +969,4 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (provide 'hideif)
 
-;;; arch-tag: c6381d17-a59a-483a-b945-658f22277981
 ;;; hideif.el ends here

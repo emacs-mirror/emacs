@@ -105,7 +105,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.6"
+(defconst c-version "5.30.5"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1564,5 +1564,4 @@ This macro does not do any hidden buffer changes."
 
 (cc-provide 'cc-defs)
 
-;;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
 ;;; cc-defs.el ends here

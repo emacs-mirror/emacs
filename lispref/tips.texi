@@ -850,8 +850,7 @@ if we haven't installed it in Emacs yet!
 @end example
 
 @noindent
-The description should be complete in one line.  If the file
-needs a @samp{-*-} specification, put it after @var{description}.
+The description should be complete in one line.
 
   After the copyright notice come several @dfn{header comment} lines,
 each beginning with @samp{;; @var{header-name}:}.  Here is a table of
@@ -946,7 +945,3 @@ This is the @dfn{footer line}; it appears at the very end of the file.
 Its purpose is to enable people to detect truncated versions of the file
 from the lack of a footer line.
 @end table
-
-@ignore
-   arch-tag: 9ea911c2-6b1d-47dd-88b7-0a94e8b27c2e
-@end ignore

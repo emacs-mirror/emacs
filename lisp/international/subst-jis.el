@@ -13002,5 +13002,4 @@
    (#x9fa5 ?íã)
    (#xff5e ?¢·)))
 
-;;; arch-tag: 7f320453-b293-4159-af5e-6f0bab03048c
 ;;; subst-jis.el ends here

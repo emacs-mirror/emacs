@@ -1469,15 +1469,14 @@ only return the directory part of FILE."
 ;; Display the last chunk of output from the ftp process for the given HOST
 ;; USER pair, and signal an error including MSG in the text.
 (defun ange-ftp-error (host user msg)
-  (save-excursion  ;; Prevent pop-to-buffer from changing current buffer.
-    (let ((cur (selected-window))
-	  (pop-up-windows t))
-      (pop-to-buffer
-       (get-buffer-create
-	(ange-ftp-ftp-process-buffer host user)))
-      (goto-char (point-max))
-      (select-window cur))
-    (signal 'ftp-error (list (format "FTP Error: %s" msg)))))
+  (let ((cur (selected-window))
+	(pop-up-windows t))
+    (pop-to-buffer
+     (get-buffer-create
+      (ange-ftp-ftp-process-buffer host user)))
+    (goto-char (point-max))
+    (select-window cur))
+  (signal 'ftp-error (list (format "FTP Error: %s" msg))))
 
 (defun ange-ftp-set-buffer-mode ()
   "Set correct modes for the current buffer if visiting a remote file."
@@ -6049,5 +6048,4 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 
 (provide 'ange-ftp)
 
-;;; arch-tag: 2987ef88-cb56-4ec1-87a9-79132572e316
 ;;; ange-ftp.el ends here

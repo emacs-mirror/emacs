@@ -558,5 +558,4 @@ that variable's value is a string."
 
 (provide 'scheme)
 
-;;; arch-tag: a8f06bc1-ad11-42d2-9e36-ce651df37a90
 ;;; scheme.el ends here

@@ -162,5 +162,4 @@ will be performed."
 
 (provide 'ring)
 
-;;; arch-tag: e707682b-ed69-47c9-b20f-cf2c68cc92d2
 ;;; ring.el ends here

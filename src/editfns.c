@@ -1665,9 +1665,6 @@ for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
 If you want them to stand for years in this century, you must do that yourself.
 
-Years before 1970 are not guaranteed to work.  On some systems,
-year values as low as 1901 do work.
-
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
      (nargs, args)
      int nargs;
@@ -4307,6 +4304,3 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
-
-/* arch-tag: fc3827d8-6f60-4067-b11e-c3218031b018
-   (do not change this comment) */

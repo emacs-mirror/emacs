@@ -1139,5 +1139,4 @@
 (defun calcFunc-expandpow (x n)
   (math-normalize (math-expand-power x n)))
 
-;;; arch-tag: d2566c51-2ccc-45f1-8c50-f3462c2953ff
 ;;; calc-poly.el ends here

@@ -5587,5 +5587,4 @@ It returns COLUMN unless STR contains some wide characters."
 ;; End: ***
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here

@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2003/07/21 21:36:29 $
+;; Date: $Date: 2003/05/06 17:40:52 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -8251,5 +8251,4 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 
 (provide 'idlwave)
 
-;;; arch-tag: f77f3b0c-c37c-424f-a328-0886fd42b6fb
 ;;; idlwave.el ends here

@@ -449,5 +449,4 @@ to writing a completion function."
 
 ;;; Code:
 
-;;; arch-tag: 0e914699-673a-45f8-8cbf-82e1dbc571bc
 ;;; em-cmpl.el ends here

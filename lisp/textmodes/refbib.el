@@ -740,5 +740,4 @@ Please send bug reports and suggestions to
 (provide 'refbib)
 (provide 'refer-to-bibtex)
 
-;;; arch-tag: 664afee2-6e76-4408-ba56-981d8a179586
 ;;; refbib.el ends here

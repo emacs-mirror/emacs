@@ -570,6 +570,3 @@ extern char *getenv ();
 /* #define GLYPH_DEBUG 1 */
 
 #define NO_RETURN /* nothing */
-
-/* arch-tag: 2596b649-b569-448e-8880-373d2a9909b7
-   (do not change this comment) */

@@ -2,7 +2,7 @@
 @c Copyright (C) 1985,86,87,93,94,95,97,99, 2000, 2001
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Files, Buffers, Keyboard Macros, Top
+@node Files, Buffers, Fixit, Top
 @chapter File Handling
 @cindex files
 
@@ -3186,7 +3186,3 @@ powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
-
-@ignore
-   arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
-@end ignore

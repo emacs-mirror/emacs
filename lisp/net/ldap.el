@@ -607,5 +607,4 @@ an alist of attribute/value pairs."
 
 (provide 'ldap)
 
-;;; arch-tag: 47913a76-6155-42e6-ac58-6d28b5d50eb0
 ;;; ldap.el ends here

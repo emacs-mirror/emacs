@@ -533,8 +533,7 @@ Otherwise, one argument `-i' is passed to the shell.
   (interactive
    (list
     (and current-prefix-arg
-	 (read-buffer "Shell buffer: "
-		      (generate-new-buffer-name "*shell*")))))
+	 (read-buffer "Shell buffer: " "*shell*"))))
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
@@ -1065,5 +1064,4 @@ Returns t if successful."
 
 (provide 'shell)
 
-;;; arch-tag: bcb5f12a-c1f4-4aea-a809-2504bd5bd797
 ;;; shell.el ends here

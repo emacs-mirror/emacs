@@ -126,5 +126,4 @@ If called interactively, display a list of matches."
 
 (provide 'yow)
 
-;;; arch-tag: d13db89b-84f1-4141-a5ce-261d1733a65c
 ;;; yow.el ends here

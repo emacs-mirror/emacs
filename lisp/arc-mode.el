@@ -1801,5 +1801,4 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
-;;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

@@ -2399,6 +2399,3 @@ near where the Emacs executable was found.  */);
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
 }
-
-/* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
-   (do not change this comment) */

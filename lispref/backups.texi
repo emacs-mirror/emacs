@@ -729,7 +729,3 @@ This normal hook is run by @code{revert-buffer} after inserting
 the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
 @end defvar
-
-@ignore
-   arch-tag: 295a6321-e5ab-46d5-aef5-0bb4f447a67f
-@end ignore

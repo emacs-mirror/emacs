@@ -620,6 +620,3 @@ keys_of_cmds ()
   initial_define_key (global_map, Ctl ('F'), "forward-char");
   initial_define_key (global_map, 0177, "delete-backward-char");
 }
-
-/* arch-tag: 022ba3cd-67f9-4978-9c5d-7d2b18d8644e
-   (do not change this comment) */

@@ -6510,6 +6510,3 @@ keys_of_window ()
   initial_define_key (global_map, Ctl('L'), "recenter");
   initial_define_key (meta_map, 'r', "move-to-window-line");
 }
-
-/* arch-tag: 90a9c576-0590-48f1-a5f1-6c96a0452d9f
-   (do not change this comment) */

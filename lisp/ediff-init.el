@@ -1762,5 +1762,4 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (provide 'ediff-init)
 
-;;; arch-tag: fa31d384-1e70-4d4b-82a7-3e96307c46f5
 ;;; ediff-init.el ends here

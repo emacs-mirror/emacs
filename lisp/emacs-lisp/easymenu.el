@@ -620,5 +620,4 @@ In some cases we use that to select between the local and global maps."
 
 (provide 'easymenu)
 
-;;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
 ;;; easymenu.el ends here

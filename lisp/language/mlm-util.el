@@ -407,5 +407,4 @@ PATTERN regexp."
 
 (provide 'mlm-util)
 
-;;; arch-tag: 7f25ee67-8f9d-49f2-837b-35c412c00eba
 ;;; devan-util.el ends here

@@ -629,5 +629,4 @@ prevents this.  Also, don't create entries for messages in the `rmail-spam-file'
 
 (provide 'rmail-spam-filter)
 
-;;; arch-tag: 03e1d45d-b72f-4dd7-8f04-e7fd78249746
 ;;; rmail-spam-filter ends here

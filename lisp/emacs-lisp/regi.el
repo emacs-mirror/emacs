@@ -255,5 +255,4 @@ useful information:
 
 (provide 'regi)
 
-;;; arch-tag: 804b4e45-4109-4f76-9a88-21887b881747
 ;;; regi.el ends here

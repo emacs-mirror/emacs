@@ -65,5 +65,4 @@
 
 (provide 'lao)
 
-;;; arch-tag: ba540fd9-6352-4449-a9cd-669afd21fa57
 ;;; lao.el ends here

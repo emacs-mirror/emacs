@@ -498,19 +498,10 @@ This function does various newline cleanups based on the value of
 	(when (save-excursion
 		(skip-chars-backward " \t")
 		(not (bolp)))
-	  (c-newline-and-indent)
-	  ;; Set markers around the newline and indention inserted
-	  ;; above.  We insert the start marker here and not before
-	  ;; the call to kludge around a misfeature in expand-abbrev:
-	  ;; If the line contains e.g. "else" then expand-abbrev will
-	  ;; be called when c-newline-and-indent inserts the newline.
-	  ;; That function first removes the abbrev "else" and then
-	  ;; inserts the expansion, which is an identical "else" in
-	  ;; this case.  So the marker that we put after "else" would
-	  ;; end up before it.
 	  (setq delete-temp-newline
-		(cons (copy-marker (c-point 'eopl) t)
-		      (point-marker))))
+		(list (point-marker)))
+	  (c-newline-and-indent)
+	  (setcdr delete-temp-newline (point-marker)))
 	(unwind-protect
 	    (progn
 	      (if (eq last-command-char ?{)
@@ -3514,5 +3505,4 @@ normally bound to C-o.  See `c-context-line-break' for the details."
 
 (cc-provide 'cc-cmds)
 
-;;; arch-tag: bf0611dc-d1f4-449e-9e45-4ec7c6936677
 ;;; cc-cmds.el ends here

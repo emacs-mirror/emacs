@@ -1301,7 +1301,3 @@ strings in the return value are decoded using
 @code{locale-coding-system}.  @xref{Locales,,, libc, GNU Libc Manual},
 for more information about locales and locale items.
 @end defun
-
-@ignore
-   arch-tag: be705bf8-941b-4c35-84fc-ad7d20ddb7cb
-@end ignore

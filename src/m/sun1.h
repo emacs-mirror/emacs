@@ -74,6 +74,3 @@ NOTE-END  */
 /* Mask for address bits within a memory segment */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
-
-/* arch-tag: 58ec9c79-48bd-4d1b-aad1-65a09a6b0d10
-   (do not change this comment) */

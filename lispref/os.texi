@@ -1233,8 +1233,6 @@ arguments; for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
-For instance, years before 1970 do not work on some systems;
-on others, years as early as 1901 do work.
 @end defun
 
 @node Time Calculations
@@ -2075,7 +2073,3 @@ Emacs is restarted by the session manager.
   nil)
 @end group
 @end example
-
-@ignore
-   arch-tag: 8378814a-30d7-467c-9615-74a80b9988a7
-@end ignore

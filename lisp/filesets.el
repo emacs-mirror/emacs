@@ -2519,5 +2519,4 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 ;;; sentence-end-double-space:t
 ;;; End:
 
-;;; arch-tag: 2c03f85f-c3df-4cec-b0a3-b46fd5592d70
 ;;; filesets.el ends here

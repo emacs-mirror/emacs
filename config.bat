@@ -276,7 +276,3 @@ set $foo$=
 set X11=
 set nodebug=
 set djgpp_ver=
-
-goto skipArchTag
-   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
-:skipArchTag

@@ -42,8 +42,11 @@ A value of nil means to search whole buffer."
   :type '(choice (integer :tag "Limit")
 		 (const :tag "No limit")))
 
-;; The character classes have the Latin-1 version and the Latin-9
-;; version, which is probably enough.
+;; Would it be cleaner to specify Latin-1 coding for this file,
+;; and not use both unibyte and multibyte copyright symbol characters?
+
+;; The character classes include the unibyte (C) sign,
+;; the Latin-1 version, and the Latin-9 version.
 (defcustom copyright-regexp
  "\\([Å©é©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *[Å©é©]\\)\
@@ -191,5 +194,4 @@ version \\([0-9]+\\), or (at"
 ;; coding: emacs-mule
 ;; End:
 
-;;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
 ;;; copyright.el ends here

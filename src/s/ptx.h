@@ -169,6 +169,3 @@ struct timezone
 
 /* Kenneth Stailey <kstailey@eagle.dol-esa.gov> says this is needed.  */
 #define POSIX_SIGNALS
-
-/* arch-tag: 4f5e3abc-643b-413a-bae6-ed212d3af997
-   (do not change this comment) */

@@ -927,6 +927,3 @@ syms_of_doc ()
   defsubr (&Ssnarf_documentation);
   defsubr (&Ssubstitute_command_keys);
 }
-
-/* arch-tag: 56281d4d-6949-43e2-be2e-f6517de744ba
-   (do not change this comment) */

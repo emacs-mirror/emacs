@@ -5298,5 +5298,3 @@ strsignal (code)
 }
 #endif /* HAVE_STRSIGNAL */
 
-/* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
-   (do not change this comment) */

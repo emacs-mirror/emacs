@@ -413,5 +413,4 @@
 		  book salvage)))
       res)))
 
-;;; arch-tag: 82f30ca8-d02f-4b33-84b4-bb6ecd84597b
 ;;; calc-fin.el ends here

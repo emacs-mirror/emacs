@@ -14451,6 +14451,11 @@ versions of Windows) characters.  */);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
 
+#if GLYPH_DEBUG
+  defsubr (&Simagep);
+  defsubr (&Slookup_image);
+#endif
+
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
   defsubr (&Sx_show_tip);
@@ -14599,6 +14604,3 @@ w32_last_error()
 {
   return GetLastError ();
 }
-
-/* arch-tag: 707589ab-b9be-4638-8cdd-74629cc9b446
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/ChgPane.c,v 1.1 1999/10/03 19:34:53 fx Exp $ */
+/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/ChgPane.c,v 1.1 1992/04/11 22:10:17 jimb Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -64,6 +64,3 @@ XMenuChangePane(menu, p_num, label)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-
-/* arch-tag: e267e9de-a3f0-4a0d-8c45-413afa176fd8
-   (do not change this comment) */

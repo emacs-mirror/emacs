@@ -749,5 +749,4 @@ This also does some trivial optimizations to make the form prettier."
 
 (run-hooks 'cl-extra-load-hook)
 
-;;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

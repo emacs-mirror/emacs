@@ -4761,5 +4761,4 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 (provide 'code-pages)
 
-;;; arch-tag: 8b6e3c73-b271-4198-866d-ea6d0ceff1b2
 ;;; code-pages.el ends here

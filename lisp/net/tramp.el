@@ -6642,5 +6642,4 @@ report.
 ;; unhandled-file-name-directory
 ;; vc-registered
 
-;;; arch-tag: 3a21a994-182b-48fa-b0cd-c1d9fede424a
 ;;; tramp.el ends here

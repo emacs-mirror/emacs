@@ -506,7 +506,7 @@ print_string (string, printcharfun)
 	for (i = 0; i < size; i++)
 	  PRINTCHAR (SREF (string, i));
       else
-	for (i = 0; i < size_byte; )
+	for (i = 0; i < size_byte; i++)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
@@ -2170,6 +2170,3 @@ that need to be recorded in the table.  */);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
-
-/* arch-tag: bc797170-94ae-41de-86e3-75e20f8f7a39
-   (do not change this comment) */

@@ -1,4 +1,4 @@
-# $Id: CCDOSPY.tit,v 1.1 1999/10/08 20:06:27 fx Exp $
+# $Id: CCDOSPY.tit,v 1.1 1991/10/27 06:21:16 ygz Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 1
@@ -541,5 +541,3 @@ zui	×ì×í×î×ïŞ©
 zuj	×ê×ëß¬çÚõò
 zun	×ğ×ñß¤é×÷®
 zuo	×ò×ó×ô×õ×ö×÷×ø×ùßòàÜâôëÑìñ
-
-# arch-tag: cc94b635-0552-40f3-8513-5edab6f13ce5

@@ -629,5 +629,4 @@ INHERIT-INPUT-METHOD."
 
 (provide 'crm)
 
-;;; arch-tag: db1911d9-86c6-4a42-b32a-4910701b15a6
 ;;; crm.el ends here

@@ -852,7 +852,3 @@ implement @code{eval-after-load}.
 @end defvar
 
 @c Emacs 19 feature
-
-@ignore
-   arch-tag: df731f89-0900-4389-a436-9105241b6f7a
-@end ignore

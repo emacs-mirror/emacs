@@ -1355,5 +1355,4 @@ Default to the URL around or before point."
 
 (provide 'browse-url)
 
-;;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here

@@ -9,6 +9,3 @@
 
 #undef	KERNEL_FILE
 #define	KERNEL_FILE	"/bsd"
-
-/* arch-tag: 25ce1827-1511-4305-9058-24dd2118b5b4
-   (do not change this comment) */

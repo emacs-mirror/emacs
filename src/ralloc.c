@@ -1286,6 +1286,3 @@ r_alloc_init ()
 
   use_relocatable_buffers = 1;
 }
-
-/* arch-tag: 6a524a15-faff-44c8-95d4-a5da6f55110f
-   (do not change this comment) */

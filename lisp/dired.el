@@ -192,20 +192,6 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
-(defcustom dired-view-command-alist
-  '(("[.]\\(ps\\|ps_pages\\|eps\\)\\'" . "gv -spartan -color -watch %s")
-    ("[.]pdf\\'" . "xpdf %s")
-    ("[.]\\(jpe?g\\|gif\\|png\\)\\'" . "eog %s")
-    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1 %s"))
-  "Alist specifying how to view special types of files.
-Each element has the form (REGEXP . SHELL-COMMAND).
-When the file name matches REGEXP, `dired-view-file'
-invokes SHELL-COMMAND to view the file, processing it through `format'.
-Use `%s' in SHELL-COMMAND to specify where to put the file name."
-  :group 'dired
-  :type '(alist :key-type regexp :value-type string)
-  :version "21.4")
-
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -1406,24 +1392,21 @@ Creates a buffer if necessary."
       (set-buffer (window-buffer window))
       (goto-char pos)
       (setq file (dired-get-file-for-visit)))
-    (if (file-directory-p file)
-	(or (and (cdr dired-subdir-alist)
-		 (dired-goto-subdir file))
-	    (progn
-	      (select-window window)
-	      (dired-other-window file)))
-      (let (cmd)
-	;; Look for some other way to view a certain file.
-	(dolist (elt dired-view-command-alist)
-	  (if (string-match (car elt) file)
-	      (setq cmd (cdr elt))))
-	(if cmd
-	    (call-process shell-file-name nil 0 nil
-			  "-c"
-			  (concat (format cmd (shell-quote-argument file))
-				  " &"))
-	  (select-window window)
-	  (find-file-other-window (file-name-sans-versions file t)))))))
+    (select-window window)
+    (find-file-other-window (file-name-sans-versions file t))))
+
+(defcustom dired-view-command-alist
+  '(("[.]ps\\'" . "gv -spartan -color -watch")
+    ("[.]pdf\\'" . "xpdf")
+    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1"))
+  "Alist specifying how to view special types of files.
+Each element has the form (REGEXP . SHELL-COMMAND).
+When the file name matches REGEXP, `dired-view-file'
+invokes SHELL-COMMAND to view the file, putting the file name
+at the end of the command."
+  :group 'dired
+  :type '(alist :key-type regexp :value-type string)
+  :version "21.4")
 
 (defun dired-view-file ()
   "In Dired, examine a file in view mode, returning to dired when done.
@@ -1444,7 +1427,8 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
 	(if cmd
 	    (call-process shell-file-name nil 0 nil
 			  "-c"
-			  (concat (format cmd (shell-quote-argument file))
+			  (concat cmd " "
+				  (shell-quote-argument file)
 				  " &"))
 	  (view-file file))))))
 
@@ -3130,5 +3114,4 @@ true then the type of the file linked to by FILE is printed instead."
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
-;;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here

@@ -4526,5 +4526,4 @@ logging the message."
 
 (provide 'woman)
 
-;;; arch-tag: eea35e90-552f-4712-a94b-d9ffd3db7651
 ;;; woman.el ends here

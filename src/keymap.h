@@ -52,6 +52,3 @@ typedef void (*map_keymap_function_t)
 extern void map_keymap P_ ((Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload));
 
 #endif
-
-/* arch-tag: 7400d5a1-ef0b-43d0-b366-f4d678bf3ba2
-   (do not change this comment) */

@@ -940,5 +940,4 @@ Returns the new status of auto compression (non-nil means on)."
 
 (provide 'jka-compr)
 
-;;; arch-tag: 3f15b630-e9a7-46c4-a22a-94afdde86ebc
 ;;; jka-compr.el ends here

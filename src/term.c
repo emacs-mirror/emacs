@@ -2159,8 +2159,7 @@ term_init (terminal_type)
 {
   char *area;
   char **address = &area;
-  char *buffer = NULL;
-  int buffer_size = 4096;
+  char buffer[2044];
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
@@ -2171,6 +2170,9 @@ term_init (terminal_type)
   Wcm_clear ();
 
   area = (char *) xmalloc (2044);
+
+  if (area == 0)
+    abort ();
 
   FrameRows = FRAME_LINES (sf);
   FrameCols = FRAME_COLS (sf);
@@ -2200,7 +2202,6 @@ term_init (terminal_type)
 
   Wcm_clear ();
 
-  buffer = (char *) xmalloc (buffer_size);
   status = tgetent (buffer, terminal_type);
   if (status < 0)
     {
@@ -2228,13 +2229,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	     terminal_type);
 #endif
     }
-
-#ifndef TERMINFO
-  if (strlen (buffer) >= buffer_size)
+#ifdef TERMINFO
+  area = (char *) xmalloc (2044);
+#else
+  area = (char *) xmalloc (strlen (buffer));
+#endif /* not TERMINFO */
+  if (area == 0)
     abort ();
-  buffer_size = strlen (buffer);
-#endif
-  area = (char *) xmalloc (buffer_size);
 
   TS_ins_line = tgetstr ("al", address);
   TS_ins_multi_lines = tgetstr ("AL", address);
@@ -2559,8 +2560,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
 #endif /* WINDOWSNT */
-
-  xfree (buffer);
 }
 
 /* VARARGS 1 */
@@ -2596,5 +2595,3 @@ The function should accept no arguments.  */);
   defsubr (&Stty_display_color_cells);
 }
 
-/* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
-   (do not change this comment) */

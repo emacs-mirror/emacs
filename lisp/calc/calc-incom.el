@@ -226,5 +226,4 @@
 	 (error "Interval form is incomplete"))
 	(t (error "Object is incomplete"))))
 
-;;; arch-tag: b8001270-4dc7-481b-a3e3-a952e19b390d
 ;;; calc-incom.el ends here

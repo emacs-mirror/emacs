@@ -93,5 +93,4 @@
 
 (provide 'x-apollo)
 
-;;; arch-tag: 4f3e86f4-557c-44b3-978e-144fc4dc812e
 ;;; x-apollo.el ends here

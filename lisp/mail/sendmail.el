@@ -68,12 +68,11 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 (defcustom mail-specify-envelope-from nil
   "*If non-nil, specify the envelope-from address when sending mail.
 The value used to specify it is whatever is found in
-the variable `mail-envelope-from', with `user-mail-address' as fallback.
+`mail-envelope-from', with `user-mail-address' as fallback.
 
 On most systems, specifying the envelope-from address is a
-privileged operation.  This variable affects sendmail and
-smtpmail -- if you use feedmail to send mail, see instead the
-variable `feedmail-deduce-envelope-from'."
+privileged operation.  This variable is only used if
+`send-mail-function' is set to `sendmail-send-it'."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
@@ -387,11 +386,10 @@ actually occur.")
 
 
 (defun sendmail-sync-aliases ()
-  (when mail-personal-alias-file
-    (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-      (or (equal mail-alias-modtime modtime)
-	  (setq mail-alias-modtime modtime
-		mail-aliases t)))))
+  (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+    (or (equal mail-alias-modtime modtime)
+	(setq mail-alias-modtime modtime
+	      mail-aliases t))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (or mail-default-reply-to
@@ -400,9 +398,8 @@ actually occur.")
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(when mail-personal-alias-file
-	  (if (file-exists-p mail-personal-alias-file)
-	      (build-mail-aliases)))))
+	(if (file-exists-p mail-personal-alias-file)
+	    (build-mail-aliases))))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
@@ -1727,5 +1724,4 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
-;;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

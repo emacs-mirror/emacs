@@ -422,5 +422,3 @@ $(BLD)/timer.$(O) : \
 $(BLD)/yow.$(O) : \
 	$(SRC)/yow.c \
 	$(EMACS_ROOT)/lib-src/../src/paths.h
-
-# arch-tag: c051bc02-a6de-474b-889a-27f7b2fbbcea

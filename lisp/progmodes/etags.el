@@ -2048,5 +2048,4 @@ for \\[find-tag] (which see)."
 
 (provide 'etags)
 
-;;; arch-tag: b897c2b5-08f3-4837-b2d3-0e7d6db1b63e
 ;;; etags.el ends here

@@ -74,5 +74,4 @@ specifying a port number to connect to."
 
 (provide 'starttls)
 
-;;; arch-tag: 648b3bd8-63bd-47f5-904c-7c819aea2297
 ;;; starttls.el ends here

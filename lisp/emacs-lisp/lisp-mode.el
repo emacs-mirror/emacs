@@ -358,9 +358,6 @@ if that value is non-nil."
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
 
-;; Used in old LispM code.
-(defalias 'common-lisp-mode 'lisp-mode)
-
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
@@ -515,30 +512,27 @@ With argument, print output into current buffer."
 						      expr
 						      'args)))))
 			 expr)))))))
-      (eval-last-sexp-print-value value))))
-
-(defun eval-last-sexp-print-value (value)
-  (let ((unabbreviated (let ((print-length nil) (print-level nil))
-			 (prin1-to-string value)))
-	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
-	(char-string (prin1-char value))
-	(beg (point))
-	end)
-    (prog1
-	(prin1 value)
-      (if (and (eq standard-output t) char-string)
-	  (princ (concat " = " char-string)))
-      (setq end (point))
-      (when (and (bufferp standard-output)
-		 (or (not (null print-length))
-		     (not (null print-level)))
-		 (not (string= unabbreviated
-			       (buffer-substring-no-properties beg end))))
-	(last-sexp-setup-props beg end value
-			       unabbreviated
-			       (buffer-substring-no-properties beg end))
-	))))
+      (let ((unabbreviated (let ((print-length nil) (print-level nil))
+			     (prin1-to-string value)))
+	    (print-length eval-expression-print-length)
+	    (print-level eval-expression-print-level)
+	    (char-string (prin1-char value))
+	    (beg (point))
+	    end)
+	(prog1
+	    (prin1 value)
+	  (if (and (eq standard-output t) char-string)
+	      (princ (concat " = " char-string)))
+	  (setq end (point))
+	  (when (and (bufferp standard-output)
+		     (or (not (null print-length))
+			 (not (null print-level)))
+		     (not (string= unabbreviated
+				   (buffer-substring-no-properties beg end))))
+	    (last-sexp-setup-props beg end value
+				   unabbreviated
+				   (buffer-substring-no-properties beg end))
+	    ))))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
@@ -1173,5 +1167,4 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
-;;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003/08/08 23:09:36 vinicius>
+;; Time-stamp: <2003-02-10 10:40:14 jbarranquero>
 ;; Version: 3.6.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
@@ -3594,10 +3594,6 @@ end
 	   (format ebnf-message-float value)))
 
 
-(defvar ebnf-total 0)
-(defvar ebnf-nprod 0)
-
-
 (defsubst ebnf-message-info (messag)
   (message "%s...%3d%%"
 	   messag
@@ -3818,6 +3814,8 @@ end
 
 (defvar ebnf-tree      nil)
 (defvar ebnf-direction "R")
+(defvar ebnf-total     0)
+(defvar ebnf-nprod     0)
 
 
 (defun ebnf-generate-postscript (from to)
@@ -4268,7 +4266,7 @@ end
 
 
 (defun ebnf-begin-job ()
-  (ps-printing-region nil nil nil)
+  (ps-printing-region nil nil)
   (if ebnf-use-float-format
       (setq ebnf-format-float  "%1.3f"
 	    ebnf-message-float "%3.2f")
@@ -5296,5 +5294,4 @@ end
 
 (provide 'ebnf2ps)
 
-;;; arch-tag: 148bc8af-5398-468b-b922-eeb7afef3e4f
 ;;; ebnf2ps.el ends here

@@ -708,20 +708,18 @@ arglist-cont-nonempty."
       (save-excursion
 	(beginning-of-line)
 	(when (c-syntactic-re-search-forward
-	       c-assignment-op-regexp
-	       (c-point 'eol) t t t)
-	  (setq equalp (- (or (match-beginning 1)
-			      (match-end 0))
-			  (c-point 'boi))))))
+	       ;; This regexp avoids matches on ==.
+	       "\\(\\=\\|[^=]\\)=\\([^=]\\|$\\)"
+	       (c-point 'eol) t t)
+	  (setq equalp (- (match-beginning 2) (c-point 'boi))))))
 
     (save-excursion
       (goto-char startpos)
       (if (or (if (c-syntactic-re-search-forward
-		   c-assignment-op-regexp
-		   (min endpos (c-point 'eol)) t t t)
+		   "\\(\\=\\|[^=]\\)=\\([^=]\\|$\\)"
+		   (min endpos (c-point 'eol)) t t)
 		  (progn
-		    (goto-char (or (match-beginning 1)
-				   (match-end 0)))
+		    (goto-char (match-beginning 2))
 		    nil)
 		t)
 	      (save-excursion
@@ -1208,5 +1206,4 @@ For other semicolon contexts, no determination is made."
 
 (cc-provide 'cc-align)
 
-;;; arch-tag: 4d71ed28-bf51-4509-a148-f39669669a2e
 ;;; cc-align.el ends here

@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.159 2003/08/30 10:56:38 eliz Exp $
+;; $Id: vc-hooks.el,v 1.155 2003/07/26 15:54:53 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,15 +40,9 @@
 ;; Customization Variables (the rest is in vc.el)
 
 (defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC.")
-
+(make-obsolete-variable 'vc-ignore-vc-files 'vc-handled-backends)
 (defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates 
- "to define master templates for a given BACKEND, use 
-vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'.")
-
+(make-obsolete-variable 'vc-master-templates 'vc-BACKEND-master-templates)
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
@@ -589,7 +583,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Make a backup copy of FILE, which is assumed in sync with the repository.
 Before doing that, check if there are any old backups and get rid of them."
   (unless (and (fboundp 'msdos-long-file-names)
-               (not (with-no-warnings (msdos-long-file-names))))
+               (not (with-no-warnings msdos-long-file-names)))
     (vc-delete-automatic-version-backups file)
     (copy-file file (vc-version-backup-file-name file)
                nil 'keep-date)))
@@ -848,5 +842,4 @@ Used in `find-file-not-found-functions'."
 
 (provide 'vc-hooks)
 
-;;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here

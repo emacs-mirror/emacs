@@ -804,5 +804,4 @@
 			       math-radix-float-cache))))))))
 
 
-;;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
 ;;; calc-bin.el ends here

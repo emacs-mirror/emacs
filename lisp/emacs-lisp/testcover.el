@@ -334,8 +334,8 @@ always be nil, so we return t for 1-valued."
     result))
 
 (defun testcover-reinstrument-clauses (clauselist)
-  "Reinstrument each list in CLAUSELIST.
-Result is t if every clause is 1-valued."
+  "Reinstruments each list in CLAUSELIST.  Result is t if every
+clause is 1-valued."
   (let ((result t))
     (mapc #'(lambda (x)
 	      (setq result (and (testcover-reinstrument-list x) result)))
@@ -349,13 +349,13 @@ Result is t if every clause is 1-valued."
     (eval-buffer buf t)))
 
 (defmacro 1value (form)
-  "For coverage testing, indicate FORM should always have the same value."
+  "For code-coverage testing, indicate that FORM is expected to always have
+the same value."
   form)
 
 (defmacro noreturn (form)
-  "For coverage testing, indicate that FORM will never return."
-  `(prog1 ,form
-     (error "Form marked with `noreturn' did return")))
+  "For code-coverage testing, indicate that FORM will always signal an error."
+  form)
 
 
 ;;;=========================================================================
@@ -445,5 +445,4 @@ coverage tests.  This function creates many overlays."
   (goto-char (next-overlay-change (point)))
   (end-of-line))
 
-;;; arch-tag: 72324a4a-4a2e-4142-9249-cc56d6757588
 ;; testcover.el ends here.

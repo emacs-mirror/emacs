@@ -437,14 +437,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
     ("Warning:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
      3 1 2)
-
-    ;; See http://ant.apache.org/faq.html
-    ;; Ant Java: works for jikes
-    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:" 1 2 3)
-
-    ;; Ant Java: works for javac
-    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):" 1 2)
-
     )
 
   "Alist that specifies how to match errors in compiler output.
@@ -1751,15 +1743,11 @@ See variables `compilation-parse-errors-function' and
 			   (consp argp))))
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error (argp)
+(defun previous-error ()
   "Visit previous compilation error message and corresponding source code.
-
-A prefix ARGP specifies how many error messages to move;
-negative means move forward to next error messages.
-
-This operates on the output from the \\[compile] and \\[grep] commands."
-  (interactive "P")
-  (next-error (- (prefix-numeric-value argp))))
+This operates on the output from the \\[compile] command."
+  (interactive)
+  (next-error -1))
 
 (defun first-error ()
   "Reparse the error message buffer and start at the first error.
@@ -2384,5 +2372,4 @@ An error message with no file name and no file name has been seen earlier"))
 
 (provide 'compile)
 
-;;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

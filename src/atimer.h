@@ -21,9 +21,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
 
-/* Building alloca.o includes us, and we need lisp.h for the P_ macro
-   in that case.  */
-#include "lisp.h"
 #include "systime.h"		/* for EMACS_TIME */
 
 /* Forward declaration.  */
@@ -85,6 +82,3 @@ void run_all_atimers P_ ((void));
 Lisp_Object unwind_stop_other_atimers P_ ((Lisp_Object));
 
 #endif /* EMACS_ATIMER_H */
-
-/* arch-tag: 02c7c1c8-45bd-4222-b874-4ca44662f60b
-   (do not change this comment) */

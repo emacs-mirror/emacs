@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.43 2003/05/06 17:38:32 lektu Exp $||
+;; Version: $Id: allout.el,v 1.42 2003/02/24 17:29:49 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.43 $"))
+  (let ((rcs-rev "$Revision: 1.42 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -4770,5 +4770,4 @@ so pass them along when appropriate."
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
-;;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
 ;;; allout.el ends here

@@ -538,5 +538,4 @@ The function invalidates the latest ancestor that is present."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: d38ddcd4-3c00-4e37-99bf-8b89dda7b32c
 ;;; mh-speed.el ends here

@@ -3485,11 +3485,11 @@ To use this type, you must define :match or :match-alternatives."
 	 (help-echo (and widget (widget-get widget :help-echo))))
     (if (functionp help-echo)
 	(setq help-echo (funcall help-echo widget)))
-    (if help-echo (message "%s" (eval help-echo)))))
+    (if (stringp help-echo)
+	(message "%s" help-echo))))
 
 ;;; The End:
 
 (provide 'wid-edit)
 
-;;; arch-tag: a076e75e-18a1-4b46-8be5-3f317bcbc707
 ;;; wid-edit.el ends here

@@ -204,5 +204,4 @@ Otherwise, get the diff between the revisions
 
 (provide 'log-view)
 
-;;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
 ;;; log-view.el ends here

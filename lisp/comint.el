@@ -3394,5 +3394,4 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here

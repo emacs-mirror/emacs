@@ -255,7 +255,7 @@ printed form is with @code{format} (@pxref{Formatting Strings}) or
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
-@code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building
+@code{vconcat} in @ref{Vectors}, and @code{append} in @ref{Building
 Lists}.
 @end defun
 
@@ -1007,7 +1007,3 @@ This function makes @var{char} case-invariant, with syntax
 This command displays a description of the contents of the current
 buffer's case table.
 @end deffn
-
-@ignore
-   arch-tag: 700b8e95-7aa5-4b52-9eb3-8f2e1ea152b4
-@end ignore

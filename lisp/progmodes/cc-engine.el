@@ -4272,16 +4272,14 @@ brace."
 	;; otherwise, we could be looking at a hanging member init
 	;; colon
 	(goto-char checkpoint)
-	(while (and
-		(eq (char-before) ?,)
-		;; this will catch member inits with multiple
-		;; line arglists
-		(progn
-		  (forward-char -1)
-		  (c-backward-syntactic-ws (c-point 'bol))
-		  (c-safe (c-backward-sexp 1) t))
-		(or (not (looking-at "\\s\("))
-		    (c-safe (c-backward-sexp 1) t)))
+	(while (eq (char-before) ?,)
+	  ;; this will catch member inits with multiple
+	  ;; line arglists
+	  (forward-char -1)
+	  (c-backward-syntactic-ws (c-point 'bol))
+	  (if (eq (char-before) ?\))
+	      (c-backward-sexp 2)
+	    (c-backward-sexp 1))
 	  (c-backward-syntactic-ws lim))
 	(if (and (eq (char-before) ?:)
 		 (progn
@@ -6822,5 +6820,4 @@ This function does not do any hidden buffer changes."
 
 (cc-provide 'cc-engine)
 
-;;; arch-tag: 149add18-4673-4da5-ac47-6805e4eae089
 ;;; cc-engine.el ends here

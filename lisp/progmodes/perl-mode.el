@@ -929,5 +929,4 @@ With argument, repeat that many times; negative args move backward."
 
 (provide 'perl-mode)
 
-;;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
 ;;; perl-mode.el ends here

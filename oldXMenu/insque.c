@@ -36,6 +36,3 @@ emacs_remque (elem)
   if (prev)
     prev->q_forw = next;
 }
-
-/* arch-tag: a8719d1a-5c3f-4bce-b36b-173106d36165
-   (do not change this comment) */

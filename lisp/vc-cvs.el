@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.62 2003/07/04 22:40:26 monnier Exp $
+;; $Id: vc-cvs.el,v 1.61 2003/05/23 17:57:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -939,5 +939,4 @@ is non-nil."
 
 (provide 'vc-cvs)
 
-;;; arch-tag: 60e1402a-aa53-4607-927a-cf74f144b432
 ;;; vc-cvs.el ends here

@@ -2395,6 +2395,3 @@ pop_up_menu (mw, event)
 
   handle_motion_event (mw, (XMotionEvent*)event);
 }
-
-/* arch-tag: 657f43dd-dfd0-4cc9-910c-52935f01176e
-   (do not change this comment) */

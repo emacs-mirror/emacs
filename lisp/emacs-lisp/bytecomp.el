@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.136 $")
+(defconst byte-compile-version "$Revision: 2.134 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -350,9 +350,6 @@ Elements of the list may be be:
 		      (const free-vars) (const unresolved)
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime) (const cl-functions))))
-
-(defvar byte-compile-not-obsolete-var nil
-  "If non-nil, this is a variable that shouldn't be reported as obsolete.")
 
 (defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
@@ -985,7 +982,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 ;; Also log the current function and file if not already done.
 (defun byte-compile-log-warning (string &optional fill level)
   (let ((warning-prefix-function 'byte-compile-warning-prefix)
-	(warning-type-format "")
+	(warning-group-format "")
 	(warning-fill-prefix (if fill "    ")))
     (display-warning 'bytecomp string level "*Compile-Log*")))
 
@@ -2708,8 +2705,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
        (if (symbolp var) "constant" "nonvariable")
        (prin1-to-string var))
     (if (and (get var 'byte-obsolete-variable)
-	     (memq 'obsolete byte-compile-warnings)
-	     (not (eq var byte-compile-not-obsolete-var)))
+	     (memq 'obsolete byte-compile-warnings))
 	(let* ((ob (get var 'byte-obsolete-variable))
 	       (when (cdr ob)))
 	  (byte-compile-warn "%s is an obsolete variable%s; %s" var
@@ -3612,14 +3608,13 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 			     fun var string))
 	`(put ',var 'variable-documentation ,string))
       (if (cddr form)		; `value' provided
-	  (let ((byte-compile-not-obsolete-var var))
-	    (if (eq fun 'defconst)
-		;; `defconst' sets `var' unconditionally.
-		(let ((tmp (make-symbol "defconst-tmp-var")))
-		  `(funcall '(lambda (,tmp) (defconst ,var ,tmp))
-			    ,value))
-	      ;; `defvar' sets `var' only when unbound.
-	      `(if (not (default-boundp ',var)) (setq-default ,var ,value))))
+	  (if (eq fun 'defconst)
+	      ;; `defconst' sets `var' unconditionally.
+	      (let ((tmp (make-symbol "defconst-tmp-var")))
+		`(funcall '(lambda (,tmp) (defconst ,var ,tmp))
+			  ,value))
+	    ;; `defvar' sets `var' only when unbound.
+	    `(if (not (default-boundp ',var)) (setq-default ,var ,value)))
 	(when (eq fun 'defconst)
 	  ;; This will signal an appropriate error at runtime.
 	  `(eval ',form)))
@@ -4039,5 +4034,4 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 
 (run-hooks 'bytecomp-load-hook)
 
-;;; arch-tag: 9c97b0f0-8745-4571-bfc3-8dceb677292a
 ;;; bytecomp.el ends here

@@ -311,5 +311,4 @@ If the argument is nil, we return the display table to its standard state."
 ;; coding: iso-2022-7bit
 ;; End:
 
-;;; arch-tag: f6d9dd5d-685c-45d6-a5d8-1e2178228b7e
 ;;; cyril-util.el ends here

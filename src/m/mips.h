@@ -217,6 +217,3 @@ NOTE-END  */
 #endif /* BSD_SYSTEM */
 
 #endif /* not NEWSOS5 && not __linux__ */
-
-/* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
-   (do not change this comment) */

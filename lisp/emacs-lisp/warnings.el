@@ -43,7 +43,7 @@
 Each element looks like (LEVEL STRING FUNCTION) and
 defines LEVEL as a severity level.  STRING specifies the
 description of this level.  STRING should use `%s' to
-specify where to put the warning type information,
+specify where to put the warning group information,
 or it can omit the `%s' so as not to include that information.
 
 The optional FUNCTION, if non-nil, is a function to call
@@ -91,26 +91,26 @@ the warning is completely ignored."
 
 (defcustom warning-suppress-log-types nil
   "List of warning types that should not be logged.
-If any element of this list matches the TYPE argument to `display-warning',
+If any element of this list matches the GROUP argument to `display-warning',
 the warning is completely ignored.
-The element must match the first elements of TYPE.
+The element must match the first elements of GROUP.
 Thus, (foo bar) as an element matches (foo bar)
-or (foo bar ANYTHING...) as TYPE.
-If TYPE is a symbol FOO, that is equivalent to the list (FOO),
+or (foo bar ANYTHING...) as GROUP.
+If GROUP is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
   :group 'warnings
   :type '(repeat (repeat symbol))
   :version "21.4")
 
 (defcustom warning-suppress-types nil
-  "List of warning types not to display immediately.
-If any element of this list matches the TYPE argument to `display-warning',
+  "Custom groups for warnings not to display immediately.
+If any element of this list matches the GROUP argument to `display-warning',
 the warning is logged nonetheless, but the warnings buffer is
 not immediately displayed.
-The element must match an initial segment of the list TYPE.
+The element must match an initial segment of the list GROUP.
 Thus, (foo bar) as an element matches (foo bar)
-or (foo bar ANYTHING...) as TYPE.
-If TYPE is a symbol FOO, that is equivalent to the list (FOO),
+or (foo bar ANYTHING...) as GROUP.
+If GROUP is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
   :group 'warnings
@@ -155,9 +155,9 @@ also call that function before the next warning.")
 ;;; safely, testing the existing value, before they call one of the
 ;;; warnings functions.
 ;;;###autoload
-(defvar warning-type-format " (%s)"
-  "Format for displaying the warning type in the warning message.
-The result of formatting the type this way gets included in the
+(defvar warning-group-format " (%s)"
+  "Format for displaying the warning group in the warning message.
+The result of formatting the group this way gets included in the
 message under the control of the string in `warning-levels'.")
 
 (defun warning-numeric-level (level)
@@ -166,19 +166,19 @@ message under the control of the string in `warning-levels'.")
 	 (link (memq elt warning-levels)))
     (length link)))
 
-(defun warning-suppress-p (type suppress-list)
-  "Non-nil if a warning with type TYPE should be suppressed.
+(defun warning-suppress-p (group suppress-list)
+  "Non-nil if a warning with group GROUP should be suppressed.
 SUPPRESS-LIST is the list of kinds of warnings to suppress."
   (let (some-match)
     (dolist (elt suppress-list)
-      (if (symbolp type)
-	  ;; If TYPE is a symbol, the ELT must be (TYPE).
+      (if (symbolp group)
+	  ;; If GROUP is a symbol, the ELT must be (GROUP).
 	  (if (and (consp elt)
-		   (eq (car elt) type)
+		   (eq (car elt) group)
 		   (null (cdr elt)))
 	      (setq some-match t))
-	;; If TYPE is a list, ELT must match it or some initial segment of it.
-	(let ((tem1 type)
+	;; If GROUP is a list, ELT must match it or some initial segment of it.
+	(let ((tem1 group)
 	      (tem2 elt)
 	      (match t))
 	  ;; Check elements of ELT until we run out of them.
@@ -187,7 +187,7 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
 		(setq match nil))
 	    (setq tem1 (cdr tem1)
 		  tem2 (cdr tem2)))
-	  ;; If ELT is an initial segment of TYPE, MATCH is t now.
+	  ;; If ELT is an initial segment of GROUP, MATCH is t now.
 	  ;; So set SOME-MATCH.
 	  (if match
 	      (setq some-match t)))))
@@ -196,10 +196,10 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     some-match))
 
 ;;;###autoload
-(defun display-warning (type message &optional level buffer-name)
+(defun display-warning (group message &optional level buffer-name)
   "Display a warning message, MESSAGE.
-TYPE is the warning type: either a custom group name (a symbol),
-or a list of symbols whose first element is a custom group name.
+GROUP should be a custom group name (a symbol),
+or else a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories, for warning purposes
 only, and you can use whatever symbols you like.)
 
@@ -224,8 +224,8 @@ See also `warning-series', `warning-prefix-function' and
       (setq level (cdr (assq level warning-level-aliases))))
   (or (< (warning-numeric-level level)
 	 (warning-numeric-level warning-minimum-log-level))
-      (warning-suppress-p type warning-suppress-log-types)
-      (let* ((typename (if (consp type) (car type) type))
+      (warning-suppress-p group warning-suppress-log-types)
+      (let* ((groupname (if (consp group) (car group) group))
 	     (buffer (get-buffer-create (or buffer-name "*Warnings*")))
 	     (level-info (assq level warning-levels))
 	     start end)
@@ -243,7 +243,7 @@ See also `warning-series', `warning-prefix-function' and
 	      (setq level-info (funcall warning-prefix-function
 					level level-info)))
 	  (insert (format (nth 1 level-info)
-                          (format warning-type-format typename))
+                          (format warning-group-format groupname))
 		  message)
 	  (newline)
 	  (when (and warning-fill-prefix (not (string-match "\n" message)))
@@ -273,7 +273,7 @@ See also `warning-series', `warning-prefix-function' and
 	  ;; immediate display.
 	  (or (< (warning-numeric-level level)
 		 (warning-numeric-level warning-minimum-level))
-	      (warning-suppress-p type warning-suppress-types)
+	      (warning-suppress-p group warning-suppress-types)
 	      (let ((window (display-buffer buffer)))
 		(when (and (markerp warning-series)
 			   (eq (marker-buffer warning-series) buffer))
@@ -281,13 +281,13 @@ See also `warning-series', `warning-prefix-function' and
 		(sit-for 0)))))))
 
 ;;;###autoload
-(defun lwarn (type level message &rest args)
+(defun lwarn (group level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
 this is equivalent to `display-warning'.
 
-TYPE is the warning type: either a custom group name (a symbol).
-or a list of symbols whose first element is a custom group name.
+GROUP should be a custom group name (a symbol).
+or else a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories and
 can be whatever you like.)
 
@@ -296,17 +296,16 @@ LEVEL should be either :warning, :error, or :emergency.
 	      if you do not attend to it promptly.
 :error     -- invalid data or circumstances.
 :warning   -- suspicious data or circumstances."
-  (display-warning type (apply 'format message args) level))
+  (display-warning group (apply 'format message args) level))
 
 ;;;###autoload
 (defun warn (message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
 this is equivalent to `display-warning', using
-`emacs' as the type and `:warning' as the level."
+`emacs' as the group and `:warning' as the level."
   (display-warning 'emacs (apply 'format message args)))
 
 (provide 'warnings)
 
-;;; arch-tag: faaad1c8-7b2a-4161-af38-5ab4afde0496
 ;;; warnings.el ends here

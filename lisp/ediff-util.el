@@ -4286,5 +4286,4 @@ Mail anyway? (y or n) ")
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: f51099b6-ef4b-470f-88a1-3a0e0b03a879
 ;;; ediff-util.el ends here

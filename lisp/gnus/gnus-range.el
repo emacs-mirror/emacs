@@ -389,5 +389,4 @@ modified."
 
 (provide 'gnus-range)
 
-;;; arch-tag: 4780bdd8-5a15-4aff-be28-18727895b6ad
 ;;; gnus-range.el ends here

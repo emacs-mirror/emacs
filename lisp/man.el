@@ -569,15 +569,19 @@ This guess is based on the text surrounding the cursor."
       (skip-chars-backward "-a-zA-Z0-9._+:")
       (let ((start (point)))
 	(skip-chars-forward "-a-zA-Z0-9._+:")
-	(setq word (buffer-substring-no-properties start (point))))
+	(setq word (buffer-substring start (point))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
-      (concat word
+      (forward-word 1)
+      ;; Use `format' here to clear any text props from `word'.
+      (format "%s%s"
+	      word
 	      (if (looking-at
 		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (match-string-no-properties 1)))))))
+		  (format "(%s)" (match-string 1))
+		"")))))
 
 
 ;; ======================================================================
@@ -1304,5 +1308,4 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (provide 'man)
 
-;;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

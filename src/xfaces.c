@@ -6045,18 +6045,6 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 	return 1;
     }
 
-  if (! compare_pt_p)
-    {
-      /* We prefer a real scalable font; i.e. not what autoscaled.  */
-      int auto_scaled_1 = (font1->numeric[XLFD_POINT_SIZE] == 0
-			   && font1->numeric[XLFD_RESY] > 0);
-      int auto_scaled_2 = (font2->numeric[XLFD_POINT_SIZE] == 0
-			   && font2->numeric[XLFD_RESY] > 0);
-
-      if (auto_scaled_1 != auto_scaled_2)
-	return auto_scaled_2;
-    }
-
   return font1->registry_priority < font2->registry_priority;
 }
 
@@ -6289,10 +6277,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		|| better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
-	      {
-		non_scalable_has_exact_height_p = 1;
-		best = fonts + i;
-	      }
+	      best = fonts + i;
 	  }
 
       if (needs_overstrike)
@@ -6439,7 +6424,7 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
 
   /* Try any family with the given registry.  */
   if (nfonts == 0)
-    nfonts = try_alternative_families (f, Qnil, registry, fonts);
+    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
 
   return nfonts;
 }
@@ -7742,6 +7727,3 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_WINDOW_SYSTEM */
 }
-
-/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
-   (do not change this comment) */

@@ -526,12 +526,10 @@ Do the same for the keys of the same name."
     (cons "Cut" (cons "Delete text in region and copy it to the clipboard"
 		      'clipboard-kill-region)))
 
-  ;; These are Sun server keysyms for the Cut, Copy and Paste keys
-  ;; (also for XFree86 on Sun keyboard):
   (define-key global-map [f20] 'clipboard-kill-region)
   (define-key global-map [f16] 'clipboard-kill-ring-save)
   (define-key global-map [f18] 'clipboard-yank)
-  ;; X11R6 versions:
+  ;; X11R6 versions
   (define-key global-map [cut] 'clipboard-kill-region)
   (define-key global-map [copy] 'clipboard-kill-ring-save)
   (define-key global-map [paste] 'clipboard-yank))
@@ -667,12 +665,12 @@ PROPS are additional properties."
 
 (define-key menu-bar-showhide-menu [column-number-mode]
   (menu-bar-make-mm-toggle column-number-mode
-			   "Column Numbers"
+			   "Show Column Numbers"
 			   "Show the current column number in the mode line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
   (menu-bar-make-mm-toggle line-number-mode
-			   "Line Numbers"
+			   "Show Line Numbers"
 			   "Show the current line number in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
@@ -687,8 +685,8 @@ PROPS are additional properties."
   (customize-mark-as-set 'display-time-mode))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date, Time and Mail" showhide-date-time
-	      :help "Display date, time, mail status in mode line"
+  '(menu-item "Date and Time" showhide-date-time
+	      :help "Display date and time in the mode line"
 	      :button (:toggle . display-time-mode)))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
@@ -872,12 +870,7 @@ PROPS are additional properties."
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
 			"Saving place in files %s"
-			"Visit files of previous session when restarting Emacs"
-                        (require 'saveplace)
-                        ;; Do it by name, to avoid a free-variable
-                        ;; warning during byte compilation.
-                        (set-default
-                         'save-place (not (symbol-value 'save-place)))))
+			"Visit files of previous session when restarting Emacs"))
 
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
@@ -1650,5 +1643,4 @@ turn on menu bars; otherwise, turn off menu bars."
 
 (provide 'menu-bar)
 
-;;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
 ;;; menu-bar.el ends here

@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.20 2003/08/14 04:53:30 kfogel Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.18 2002/12/07 13:38:26 pj Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -1193,7 +1193,7 @@ kill the contents of the buffer with @kbd{C-w}.
 If you work by writing entries in the @file{ChangeLog}
 (@pxref{(emacs)Change Log}) and then commit the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
-@kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
+@kbd{C-a C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
 and uses those paragraphs as the log text.  This text is only inserted
 if the top entry was made under your user name on the current date.
@@ -1443,7 +1443,3 @@ this manual.
 @summarycontents
 @contents
 @bye
-
-@ignore
-   arch-tag: 5c7178ce-56fa-40b0-abd7-f4a09758b235
-@end ignore

@@ -1491,6 +1491,3 @@ emacs_strftimeu (s, maxsize, format, tp, ut)
   return my_strftime (s, maxsize, format, tp, ut, 0);
 }
 #endif
-
-/* arch-tag: 662bc9c4-f8e2-41b6-bf96-b8346d0ce0d8
-   (do not change this comment) */

@@ -30,6 +30,3 @@ struct utsname {
 int uname(struct utsname *name);
 
 #endif
-
-/* arch-tag: 8a013744-4d43-4084-8e2f-d3fb66c83160
-   (do not change this comment) */

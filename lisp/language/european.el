@@ -684,5 +684,4 @@ The return value is the number of composed characters."
 
 (provide 'european)
 
-;;; arch-tag: 9e018b12-fb02-4120-907b-9adeaf84b5c2
 ;;; european.el ends here

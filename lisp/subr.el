@@ -1180,10 +1180,10 @@ Optional DEFAULT is a default password to use instead of empty input."
 		(second (read-passwd "Confirm password: " nil default)))
 	    (if (equal first second)
 		(progn
-		  (and (arrayp second) (clear-string second))
+		  (and (arrayp second) (fillarray second ?\0))
 		  (setq success first))
-	      (and (arrayp first) (clear-string first))
-	      (and (arrayp second) (clear-string second))
+	      (and (arrayp first) (fillarray first ?\0))
+	      (and (arrayp second) (fillarray second ?\0))
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
@@ -1199,18 +1199,18 @@ Optional DEFAULT is a default password to use instead of empty input."
 	(clear-this-command-keys)
 	(if (= c ?\C-u)
 	    (progn
-	      (and (arrayp pass) (clear-string pass))
+	      (and (arrayp pass) (fillarray pass ?\0))
 	      (setq pass ""))
 	  (if (and (/= c ?\b) (/= c ?\177))
 	      (let* ((new-char (char-to-string c))
 		     (new-pass (concat pass new-char)))
-		(and (arrayp pass) (clear-string pass))
-		(clear-string new-char)
+		(and (arrayp pass) (fillarray pass ?\0))
+		(fillarray new-char ?\0)
 		(setq c ?\0)
 		(setq pass new-pass))
 	    (if (> (length pass) 0)
 		(let ((new-pass (substring pass 0 -1)))
-		  (and (arrayp pass) (clear-string pass))
+		  (and (arrayp pass) (fillarray pass ?\0))
 		  (setq pass new-pass))))))
       (message nil)
       (or pass default ""))))
@@ -1550,8 +1550,6 @@ BUFFER may be a buffer or a buffer name.  Arguments START and END are
 character numbers specifying the substring.  They default to the
 beginning and the end of BUFFER.  Strip text properties from the
 inserted text according to `yank-excluded-properties'."
-  ;; Since the buffer text should not normally have yank-handler properties,
-  ;; there is no need to handle them here.
   (let ((opoint (point)))
     (insert-buffer-substring buf start end)
     (remove-yank-excluded-properties opoint (point))))
@@ -2450,5 +2448,4 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
-;;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

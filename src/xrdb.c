@@ -812,6 +812,3 @@ main (argc, argv)
   XCloseDisplay (display);
 }
 #endif /* TESTRM */
-
-/* arch-tag: 37e6fbab-ed05-4363-9e76-6c4109ed511f
-   (do not change this comment) */

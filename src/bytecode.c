@@ -1775,6 +1775,3 @@ integer, it is incremented each time that symbol's function is called.  */);
   }
 #endif
 }
-
-/* arch-tag: b9803b6f-1ed6-4190-8adf-33fd3a9d10e9
-   (do not change this comment) */

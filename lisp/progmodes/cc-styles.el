@@ -618,5 +618,4 @@ any reason to call this function directly."
 
 (cc-provide 'cc-styles)
 
-;;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

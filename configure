@@ -2576,7 +2576,7 @@ _ACEOF
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="gcc -E -no-cpp-precomp"
+    CPP="cc -E -traditional-cpp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -3420,8 +3420,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   for ac_declaration in \
-   ''\
-   '#include <stdlib.h>' \
+   '' \
    'extern "C" void std::exit (int) throw (); using std::exit;' \
    'extern "C" void std::exit (int); using std::exit;' \
    'extern "C" void exit (int) throw ();' \
@@ -3435,8 +3434,8 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdlib.h>
 $ac_declaration
+#include <stdlib.h>
 int
 main ()
 {
@@ -8911,50 +8910,6 @@ _ACEOF
   fi
 fi
 
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-	  #include <X11/Xlib.h>
-	  #include <X11/Xresource.h>
-int
-main ()
-{
-XIMProc  callback;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  HAVE_XIM=yes
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_XIM 1
-_ACEOF
-
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-HAVE_XIM=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-
 
 if test "${with_xim}" != "no"; then
 
@@ -8963,9 +8918,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
-
-
-if test "${HAVE_XIM}" != "no"; then
+if test "${HAVE_X11}" = "yes"; then
   late_CFLAGS=$CFLAGS
   if test "$GCC" = yes; then
     CFLAGS="$CFLAGS --pedantic-errors"

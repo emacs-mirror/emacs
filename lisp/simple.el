@@ -352,16 +352,16 @@ useful for editing binary files."
       (insert-and-inherit char)
       (setq arg (1- arg)))))
 
-(defun forward-to-indentation (&optional arg)
+(defun forward-to-indentation (arg)
   "Move forward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line (or arg 1))
+  (forward-line arg)
   (skip-chars-forward " \t"))
 
-(defun backward-to-indentation (&optional arg)
+(defun backward-to-indentation (arg)
   "Move backward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line (- (or arg 1)))
+  (forward-line (- arg))
   (skip-chars-forward " \t"))
 
 (defun back-to-indentation ()
@@ -661,10 +661,8 @@ the echo area."
 
   (let ((print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
-    (if eval-expression-insert-value
-	(with-no-warnings
-	 (eval-last-sexp-print-value (car values)))
-      (prin1 (car values) t))))
+    (prin1 (car values)
+	   (if eval-expression-insert-value (current-buffer) t))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
@@ -2699,7 +2697,7 @@ If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (or arg (setq arg 1))
+  (unless arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
 	  ;; When adding a newline, don't expand an abbrev.
@@ -2731,7 +2729,7 @@ If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (or arg (setq arg 1))
+  (unless arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
 	  (line-move (- arg))
@@ -3111,11 +3109,11 @@ With argument 0, interchanges line point is in with line mark is in."
      (goto-char (car pos1))
      (insert word2))))
 
-(defun backward-word (&optional arg)
+(defun backward-word (arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
-  (forward-word (- (or arg 1))))
+  (forward-word (- arg)))
 
 (defun mark-word (arg)
   "Set mark arg words away from point.
@@ -3500,8 +3498,7 @@ when it is off screen)."
 			   (point)))))
        (let* ((oldpos (point))
 	      (blinkpos)
-	      (mismatch)
-	      matching-paren)
+	      (mismatch))
 	 (save-excursion
 	   (save-restriction
 	     (if blink-matching-paren-distance
@@ -3515,20 +3512,12 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(save-excursion
-		  (goto-char blinkpos)
-		  (not (looking-at "\\s$")))
-		(setq matching-paren
-		      (or (and parse-sexp-lookup-properties
-			       (let ((prop (get-text-property blinkpos 'syntax-table)))
-				 (and (consp prop)
-				      (eq (car prop) 4)
-				      (cdr prop))))
-			  (matching-paren (char-after blinkpos)))
-		      mismatch
-		      (or (null matching-paren)
+		(/= (char-syntax (char-after blinkpos))
+		    ?\$)
+		(setq mismatch
+		      (or (null (matching-paren (char-after blinkpos)))
 			  (/= (char-after (1- oldpos))
-			      matching-paren))))
+			      (matching-paren (char-after blinkpos))))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
 	       ;; Don't log messages about paren matching.
@@ -4531,6 +4520,4 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 ;
 
 (provide 'simple)
-
-;;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

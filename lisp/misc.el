@@ -92,5 +92,4 @@ With argument, do this that many times."
 
 (provide 'misc)
 
-;;; arch-tag: 908f7884-c19e-4388-920c-9cfa425e449b
 ;;; misc.el ends here

@@ -36,6 +36,7 @@
 #endif
 
 #ifdef DO_BLOCK_INPUT
+# include "lisp.h"
 # include "blockinput.h"
 #endif
 
@@ -57,10 +58,7 @@ you
 lose
 -- must know STACK_DIRECTION at compile-time
 /* Using #error here is not wise since this file should work for
-   old and obscure compilers.  
-
-   As far as I know, using it is OK if it's indented -- at least for
-   pcc-based processors.  -- fx */
+   old and obscure compilers.  */
 #    endif /* STACK_DIRECTION undefined */
 #   endif /* static */
 #  endif /* emacs */
@@ -75,32 +73,38 @@ long i00afunc ();
 #   define ADDRESS_FUNCTION(arg) &(arg)
 #  endif
 
-#  ifndef POINTER_TYPE
-#   ifdef __STDC__
-#    define POINTER_TYPE void
-#   else
-#    define POINTER_TYPE char
-#   endif
-#  endif
+#  ifdef POINTER_TYPE
 typedef POINTER_TYPE *pointer;
+#  else /* not POINTER_TYPE */
+#   if __STDC__
+typedef void *pointer;
+#   else /* not __STDC__ */
+typedef char *pointer;
+#   endif /* not __STDC__ */
+#  endif /* not POINTER_TYPE */
 
 #  ifndef NULL
 #   define NULL 0
 #  endif
 
-/* The Emacs executable needs alloca to call xmalloc, because ordinary
-   malloc isn't protected from input signals.  xmalloc also checks for
-   out-of-memory errors, so we should use it generally.
+/* Different portions of Emacs need to call different versions of
+   malloc.  The Emacs executable needs alloca to call xmalloc, because
+   ordinary malloc isn't protected from input signals.  On the other
+   hand, the utilities in lib-src need alloca to call malloc; some of
+   them are very simple, and don't have an xmalloc routine.
+
+   Non-Emacs programs expect this to call xmalloc.
 
    Callers below should use malloc.  */
 
-#  undef malloc
-#  define malloc xmalloc
-#  undef free
-#  define free xfree
-
-void *xmalloc _P ((size_t));
-void xfree _P ((void *))
+#  ifdef emacs
+#   undef malloc
+#   define malloc xmalloc
+#   ifdef EMACS_FREE
+#    define free EMACS_FREE
+#   endif
+#  endif
+extern pointer malloc ();
 
 /* Define STACK_DIRECTION if you know the direction of stack
    growth for your system; otherwise it will be automatically
@@ -225,8 +229,8 @@ alloca (size)
   /* Allocate combined header + user data storage.  */
 
   {
-    /* Address of header.  */
     register pointer new = malloc (sizeof (header) + size);
+    /* Address of header.  */
 
     if (new == 0)
       abort();
@@ -512,6 +516,3 @@ i00afunc (long address)
 
 # endif /* no alloca */
 #endif /* not GCC version 2 */
-
-/* arch-tag: 5c9901c8-3cd4-453e-bd66-d9035a175ee3
-   (do not change this comment) */

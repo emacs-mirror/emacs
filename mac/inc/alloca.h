@@ -27,6 +27,3 @@ void *__alloca(size_t size);
 #endif
 
 #endif
-
-/* arch-tag: 8d4114d1-633e-49e7-8f18-b5648f9c4511
-   (do not change this comment) */

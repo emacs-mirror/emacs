@@ -239,5 +239,4 @@
 		 "\n"))))
 	    nil t))
 
-;;; arch-tag: 6e32275a-8285-4a4e-b7cf-819aa7c86b8e
 ;;; esh-test.el ends here

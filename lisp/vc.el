@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.359 2003/07/06 19:08:13 jpw Exp $
+;; $Id: vc.el,v 1.358 2003/07/06 17:28:12 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -3467,5 +3467,4 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 ;;
 ;;    Thus, there is no explicit recovery code.
 
-;;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here

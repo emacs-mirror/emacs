@@ -9026,6 +9026,3 @@ init_xfns ()
 #endif
 #endif /* NTEMACS_TODO */
 }
-
-/* arch-tag: d7591289-f374-4377-b245-12f5dbbb8edc
-   (do not change this comment) */

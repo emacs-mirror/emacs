@@ -161,13 +161,12 @@ no aliases, which is represented by this being a table with no entries.)")
   "The modification time of your mail alias file when it was last examined.")
 
 (defun mail-abbrevs-sync-aliases ()
-  (when mail-personal-alias-file
-    (if (file-exists-p mail-personal-alias-file)
-	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-	  (if (not (equal mail-abbrev-modtime modtime))
-	      (progn
-		(setq mail-abbrev-modtime modtime)
-		(build-mail-abbrevs)))))))
+  (if (file-exists-p mail-personal-alias-file)
+      (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	(if (not (equal mail-abbrev-modtime modtime))
+	    (progn
+	      (setq mail-abbrev-modtime modtime)
+	      (build-mail-abbrevs))))))
 
 ;;;###autoload
 (defun mail-abbrevs-setup ()
@@ -626,5 +625,4 @@ Don't use this command in Lisp programs!
 (if mail-abbrevs-mode
     (mail-abbrevs-enable))
 
-;;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

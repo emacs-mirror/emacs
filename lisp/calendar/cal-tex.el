@@ -1781,5 +1781,4 @@ without erasing current contents."
 
 (provide 'cal-tex)
 
-;;; arch-tag: ca8168a4-5a00-4508-a565-17e3bccce6d0
 ;;; cal-tex.el ends here

@@ -751,7 +751,3 @@ pieces of advice is the same.  The only difference is that
 executed even if some previous piece of advice had an error or a
 non-local exit.  If any around-advice is protected, then the whole
 around-advice onion is protected as a result.
-
-@ignore
-   arch-tag: 80c135c2-f1c3-4f8d-aa85-f8d8770d307f
-@end ignore

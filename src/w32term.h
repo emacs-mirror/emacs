@@ -733,6 +733,3 @@ int image_ascent P_ ((struct image *, struct face *));
       ? BDF_1D_FONT : BDF_2D_FONT))
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) ();
-
-/* arch-tag: f201d05a-1240-4fc5-8ea4-ca24d4ee5671
-   (do not change this comment) */

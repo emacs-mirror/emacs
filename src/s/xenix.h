@@ -206,6 +206,3 @@ Boston, MA 02111-1307, USA.  */
    are not declared.  */
 
 #define BROKEN_TIOCGETC
-
-/* arch-tag: 71d3985d-4e53-4572-8276-5dce26bbd076
-   (do not change this comment) */

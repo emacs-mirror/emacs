@@ -2214,5 +2214,4 @@ If that can't be done, return nil."
 
 (provide 'faces)
 
-;;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

@@ -609,6 +609,3 @@ See the documentation of the variable `word-combining-categories'.  */);
 
   category_table_version = 0;
 }
-
-/* arch-tag: 74ebf524-121b-4d9c-bd68-07f8d708b211
-   (do not change this comment) */

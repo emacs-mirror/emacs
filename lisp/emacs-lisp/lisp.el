@@ -157,9 +157,8 @@ normal recipe (see `beginning-of-defun').  Major modes can define this
 if defining `defun-prompt-regexp' is not sufficient to handle the mode's
 needs.
 
-The function (of no args) should go to the line on which the current
-defun starts, and return non-nil, or should return nil if it can't
-find the beginning.")
+The function should go to the line on which the current defun starts,
+and return non-nil, or should return nil if it can't find the beginning.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -446,5 +445,4 @@ considered."
 		   (display-completion-list list)))
 	       (message "Making completion list...%s" "done")))))))
 
-;;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

@@ -323,5 +323,4 @@ and the end of the buffer are still visible."
 
 ;;; Code:
 
-;;; arch-tag: 8c0112c7-379c-4d54-9a1c-204d68786a4b
 ;;; em-smart.el ends here
