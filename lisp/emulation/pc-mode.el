@@ -1,4 +1,4 @@
-;;; pc-mode.el emulate certain key bindings used on PCs.
+;;; pc-mode.el --- emulate certain key bindings used on PCs.
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 

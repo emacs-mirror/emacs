@@ -1,4 +1,4 @@
-;;; iso-acc.el -- minor mode providing electric accent keys
+;;; iso-acc.el --- minor mode providing electric accent keys
 
 ;; Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 

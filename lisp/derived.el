@@ -1,4 +1,4 @@
-;;; derived.el -- allow inheritance of major modes.
+;;; derived.el --- allow inheritance of major modes.
 ;;; (formerly mode-clone.el)
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.

@@ -1,4 +1,4 @@
-;;; TCP/IP stream emulation for GNU Emacs
+;;; tcp.el --- TCP/IP stream emulation for GNU Emacs
 
 ;; Copyright (C) 1988, 1989, 1993 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; soundex.el -- implement Soundex algorithm
+;;; soundex.el --- implement Soundex algorithm
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

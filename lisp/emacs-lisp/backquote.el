@@ -1,4 +1,4 @@
-;;; backquote.el -- implement the ` Lisp construct
+;;; backquote.el --- implement the ` Lisp construct
 
 ;;; Copyright (C) 1990, 1992, 1994 Free Software Foundation, Inc.
 
