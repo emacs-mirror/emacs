@@ -335,8 +335,10 @@ Return what remains of the list.")
   (n, list)
      Lisp_Object n, list;
 {
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object next;
   int count = specpdl_ptr - specpdl;
-  register int arg = XINT (n);
+  register int arg;
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
   Lisp_Object tem;
@@ -348,6 +350,11 @@ Return what remains of the list.")
     list = Fcdr (list);
 #endif
 
+  CHECK_NUMBER (n, 0);
+  arg = XINT (n);
+  next = Qnil;
+  GCPRO2 (next, list);
+
   /* Don't let read-only properties interfere with undo.  */
   if (NILP (current_buffer->read_only))
     specbind (Qinhibit_read_only, Qt);
@@ -356,7 +363,6 @@ Return what remains of the list.")
     {
       while (1)
 	{
-	  Lisp_Object next;
 	  next = Fcar (list);
 	  list = Fcdr (list);
 	  /* Exit inner loop at undo boundary.  */
@@ -455,6 +461,7 @@ Return what remains of the list.")
       arg--;
     }
 
+  UNGCPRO;
   return unbind_to (count, list);
 }
 
