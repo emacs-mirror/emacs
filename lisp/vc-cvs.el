@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.21 2001/03/10 10:49:05 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.22 2001/04/17 05:59:57 eliz Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -73,11 +73,10 @@ This is only meaningful if you don't use the implicit checkout model
 
 (defcustom vc-cvs-stay-local t
   "*Non-nil means use local operations when possible for remote repositories.
-This avoids slow queries over the network.  Turning this option on
-will instruct VC to use only heuristics and past information to
-determine the current status of a file.  The value can also be a
-regular expression to match against the host name of a repository;
-then VC only stays local for hosts that match it."
+This avoids slow queries over the network and instead uses heuristics
+and past information to determine the current status of a file.
+The value can also be a regular expression to match against the host name
+of a repository; then VC only stays local for hosts that match it."
   :type '(choice (const :tag "Always stay local" t)
 		 (string :tag "Host regexp")
 		 (const :tag "Don't stay local" nil))
@@ -209,12 +208,12 @@ special case of a CVS file that is added but not yet committed."
 (defun vc-cvs-dired-state-info (file)
   "CVS-specific version of `vc-dired-state-info'."
   (let* ((cvs-state (vc-state file))
-	 (state (cond ((eq cvs-state 'edited)    "modified")
-		      ((eq cvs-state 'needs-patch)      "patch")
-		      ((eq cvs-state 'needs-merge)         "merge")
+	 (state (cond ((eq cvs-state 'edited)	"modified")
+		      ((eq cvs-state 'needs-patch)	"patch")
+		      ((eq cvs-state 'needs-merge)	"merge")
 		      ;; FIXME: those two states cannot occur right now
-		      ((eq cvs-state 'unlocked-changes) "conflict")
-		      ((eq cvs-state 'locally-added)       "added")
+		      ((eq cvs-state 'unlocked-changes)	"conflict")
+		      ((eq cvs-state 'locally-added)	"added")
 		      )))
     (if state (concat "(" state ")"))))
 
@@ -338,7 +337,7 @@ REV is the revision to check out into WORKFILE."
                           (apply 'vc-do-command
                                  (current-buffer) 0 "cvs" file
                                  "-Q"	; suppress diagnostic output
-                                 "update"
+	 "update"
                                  (and rev (not (string= rev ""))
                                       (concat "-r" rev))
                                  "-p"
@@ -356,7 +355,7 @@ REV is the revision to check out into WORKFILE."
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
-		(and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+      (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
 		     (if vc-cvs-use-edit
 			 (vc-do-command nil 0 "cvs" file "edit")
 		       (set-file-modes file (logior (file-modes file) 128))
@@ -364,14 +363,14 @@ REV is the revision to check out into WORKFILE."
 	      ;; Check out a particular version (or recreate the file).
 	      (vc-file-setprop file 'vc-workfile-version nil)
 	      (apply 'vc-do-command nil 0 "cvs" file
-		     (and editable
-			  (or (not (file-exists-p file))
-			      (not (eq (vc-cvs-checkout-model file)
-				       'implicit)))
-			  "-w")
-		     "update"
-		     ;; default for verbose checkout: clear the sticky tag so
-		     ;; that the actual update will get the head of the trunk
+	   (and editable
+		(or (not (file-exists-p file))
+		    (not (eq (vc-cvs-checkout-model file)
+			     'implicit)))
+		"-w")
+	   "update"
+	   ;; default for verbose checkout: clear the sticky tag so
+	   ;; that the actual update will get the head of the trunk
 		     (if (or (not rev) (string= rev ""))
 			 "-A"
 		       (concat "-r" rev))
