@@ -1,3 +1,9 @@
+2004-10-25  Simon Josefsson  <jas@extundo.com>
+
+	* subr.el (read-passwd): Move to net/password.el.
+
+	* net/password.el (read-passwd): Add.  Autoload it.
+
 2004-10-25  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* mouse-sel.el (mouse-sel-mode): Specify custom group.
