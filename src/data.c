@@ -668,9 +668,9 @@ store_symval_forwarding (sym, valcontents, newval)
     case Lisp_Buffer_Objfwd:
       {
 	unsigned int offset = XUINT (valcontents);
-	Lisp_Object type =
-	  *(Lisp_Object *)(offset + (char *)&buffer_local_types);
+	Lisp_Object type;
 
+	type = *(Lisp_Object *)(offset + (char *)&buffer_local_types);
 	if (! NILP (type) && ! NILP (newval)
 	    && XTYPE (newval) != XINT (type))
 	  buffer_slot_type_mismatch (valcontents, newval);
@@ -786,8 +786,9 @@ DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
   (sym)
      Lisp_Object sym;
 {
-  Lisp_Object val = find_symbol_value (sym);
+  Lisp_Object val;
 
+  val = find_symbol_value (sym);
   if (EQ (val, Qunbound))
     return Fsignal (Qvoid_variable, Fcons (sym, Qnil));
   else
