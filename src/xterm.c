@@ -5106,13 +5106,13 @@ x_new_font (f, newname)
 }
 #endif /* ! defined (HAVE_X11) */
 
-x_calc_absolute_position (f, flags)
+x_calc_absolute_position (f)
      struct frame *f;
-     int flags;
 {
 #ifdef HAVE_X11
   Window win, child;
   int win_x = 0, win_y = 0;
+  int flags = f->display.x->size_hint_flags;
 
   /* Find the position of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
@@ -5169,7 +5169,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   f->display.x->top_pos = yoff;
   f->display.x->left_pos = xoff;
-  x_calc_absolute_position (f, 0);
+  x_calc_absolute_position (f);
 
   BLOCK_INPUT;
 #ifdef USE_X_TOOLKIT
