@@ -1835,7 +1835,7 @@ inside of a \"[...]\" (see `skip-chars-forward')."
 (defun comint-match-partial-filename ()
   "Return the filename at point, or nil if non is found.
 Environment variables are substituted.  See `comint-word'."
-  (let ((filename (comint-word "~/A-Za-z0-9+@:_.$#,={}-")))
+  (let ((filename (comint-word "~/A-Za-z0-9+@:_.$#%,={}-")))
     (and filename (substitute-in-file-name filename))))
 
 
