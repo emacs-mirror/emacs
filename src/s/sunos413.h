@@ -16,3 +16,8 @@
 /* This enables some #undefs in systty.h.  */
 #define BSD_TERMIOS
 #endif
+
+/* barrie@calvin.demon.co.uk says memmove is missing.  */
+#ifndef SYSTEM_MALLOC
+#define MEMMOVE_MISSING
+#endif
