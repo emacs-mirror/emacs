@@ -748,6 +748,26 @@ functions, one each for every macro.  Here's an example:
 Then replace all references to UPDATE_SYNTAX_TABLE_FORWARD in syntax.c
 with a call to the function update_syntax_table_forward.
 
+* Emacs 20 and later fails to load Lisp files at startup.
+
+The typical error message might be like this:
+
+  "Cannot open load file: fontset"
+
+This could happen if you compress the file lisp/subdirs.el.  That file
+tells Emacs what are the directories where it should look for Lisp
+files.  Emacs cannot work with subdirs.el compressed, since the
+Auto-compress mode it needs for this will not be loaded until later,
+when your .emacs file is processed.  (The package `fontset.el' is
+required to set up fonts used to display text on window systems, and
+its loaded very early in the startup procedure.)
+
+Similarly, any other .el file for which there's no corresponding .elc
+file could fail to load if it is compressed.
+
+The solution is to uncompress all .el files which don't have a .elc
+file.
+
 * Attempting to visit remote files via ange-ftp fails.
 
 If the error message is "ange-ftp-file-modtime: Specified time is not
