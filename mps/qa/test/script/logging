@@ -1,11 +1,13 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.4) $
+# $HopeName: MMQA_harness!script:logging(trunk.5) $
 #
 # provides subroutines to help in creating test logs and
 # reports
 #
 
 1;
+
+$: = " \n-\\/";
 
 @LOG_FILES = (STDOUT);
 
@@ -37,6 +39,7 @@ sub describe_test {
   %keyrelations = %spec_rel;
   print $log_test_spec;
   &dispvals;
+  &dispopts;
   if (%parmdefs) {
    %keyvalues = %parmdefs;
    %keyrelations = ();
@@ -68,6 +71,21 @@ sub dispvals {
   $val = $keyvalues{$key};
   $rel = ($keyrelations{$key} || "=");
   write;
+ }
+}
+
+sub dispopts {
+ local ($key, $rel, $val);
+
+ $~ = "LOGVALS";
+
+ print $log_test_opts;
+ foreach $key (sort values %qa_options) {
+  unless (exists $qa_unlogged_opts{$key}) {
+   $val = &getoption($key);
+   $rel = "=";
+   write;
+  }
  }
 }
 
@@ -138,6 +156,7 @@ $barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min      
 #
 
 $log_test_spec   = "SPECIFIED RESULTS\n";
+$log_test_opts   = "MMQA SETTINGS\n";
 $log_test_params = "PARAMETER SETTINGS\n";
 $log_test_res    = "RESULTS\n";
 $log_test_conc   = "CONCLUSION\n";
@@ -145,20 +164,22 @@ $log_test_tran   = "TRANSCRIPT\n";
 $log_test_end    = "END OF TRANSCRIPT\n\n";
 
 format LOGHEAD =
-------------------------------------------------------------------------
-@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+-----------------------------------------------------------------------------
+@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $testconclusion, $testfile
 @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $testtimeline
 .
 
 format LOGVALS =
-  @<<<<<<<<< @< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  @<<<<<<<<<<<<<<<<< @< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $key, $rel, $val
+~~                      ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$val
 .
 
 format LOGCONC =
-  @<<<<<<<<<    @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  @<<<<<<<<<<<<<<<<<    @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $testconclusion, $testconcreason
 
 .
