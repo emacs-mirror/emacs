@@ -1,5 +1,11 @@
 2001-01-28  Andrew Choi  <akochoi@i-cable.com>
 
+	* src/macterm.c (mac_font_pattern_match): Allocate three more
+	bytes to regex for '^', '$', and '\0'.
+
+	* src/macterm.c (x_list_fonts): Protect pattern and newlist from
+	garbage collection.
+	
 	* src/macfns.c (QCconversion): Replaces QCalgorithm.
 
 	* src/macfns.c (image_ascent, lookup_image): Adapt to change of

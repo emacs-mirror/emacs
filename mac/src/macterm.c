@@ -10197,7 +10197,7 @@ mac_font_pattern_match (fontname, pattern)
     char * fontname;
     char * pattern;
 {
-  char *regex = (char *) alloca (strlen (pattern) * 2);
+  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
   char *font_name_copy = (char *) alloca (strlen (fontname) + 1);
   char *ptr;
 
@@ -10424,11 +10424,14 @@ x_list_fonts (struct frame *f,
   Lisp_Object newlist = Qnil;
   int n_fonts = 0;
   int i;
+  struct gcpro gcpro1, gcpro2;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
 
   ptnstr = XSTRING (pattern)->data;
+
+  GCPRO2 (pattern, newlist);
 
   /* Scan and matching bitmap fonts.  */
   for (i = 0; i < font_name_count; i++)
@@ -10444,6 +10447,8 @@ x_list_fonts (struct frame *f,
     }
   
   /* MAC_TODO: add code for matching outline fonts here */
+
+  UNGCPRO;
 
   return newlist;
 }
