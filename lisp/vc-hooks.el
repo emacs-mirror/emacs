@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.163 2004/03/23 20:59:19 monnier Exp $
+;; $Id: vc-hooks.el,v 1.164 2004/03/26 06:06:39 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -772,7 +772,7 @@ Used in `find-file-not-found-functions'."
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
   (let ((backend (vc-backend buffer-file-name)))
-    (if backend (vc-call-backend backend find-file-not-found-hook))))
+    (if backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
   (if (yes-or-no-p
