@@ -1,3 +1,7 @@
+2002-08-04  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* startup.el (fancy-splash-frame): Check selected frame last.
+
 2002-08-04  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.10 released.
