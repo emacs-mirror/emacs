@@ -364,7 +364,6 @@ static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
 static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT, enum mem_type));
 static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
-static void init_stack P_ ((Lisp_Object *));
 static int live_vector_p P_ ((struct mem_node *, void *));
 static int live_buffer_p P_ ((struct mem_node *, void *));
 static int live_string_p P_ ((struct mem_node *, void *));
