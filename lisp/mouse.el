@@ -123,10 +123,13 @@
 
 (defun mouse-delete-window (click)
   "Delete the window you click on.
-This must be bound to a mouse click."
+If the frame has just one window, bury the current buffer instead.
+This command must be bound to a mouse click."
   (interactive "e")
-  (mouse-minibuffer-check click)
-  (delete-window (posn-window (event-start click))))
+  (if (one-window-p t)
+      (bury-buffer)
+    (mouse-minibuffer-check click)
+    (delete-window (posn-window (event-start click)))))
 
 (defun mouse-select-window (click)
   "Select the window clicked on; don't move point."
