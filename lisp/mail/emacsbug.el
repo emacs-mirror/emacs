@@ -1,6 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002
+;; Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -26,7 +27,7 @@
 
 ;;; Commentary:
 
-;; `M-x report-emacs-bug ' starts an email note to the Emacs maintainers
+;; `M-x report-emacs-bug' starts an email note to the Emacs maintainers
 ;; describing a problem.  Here's how it's done...
 
 ;;; Code:
