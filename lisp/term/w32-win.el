@@ -1229,10 +1229,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
     (list face (if (equal value "") nil value))))
 
 ;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font t (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
   "Select a font.
