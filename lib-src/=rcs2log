@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.32 1996/09/30 22:15:13 eggert Exp eggert $
+# $Id: rcs2log,v 1.33 1996/10/12 17:24:45 eggert Exp eggert $
 
 # Copyright 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
@@ -126,7 +126,6 @@ month_data='
 # what's already in ChangeLog; it's the user's responsibility to remove them.
 case $rlog_options in
 '')
-	date=1970-01-01
 	if test -s "$changelog"
 	then
 		e='
@@ -147,10 +146,9 @@ case $rlog_options in
 		'
 		d=`$AWK "$e" <"$changelog"` || exit
 		case $d in
-		?*) date=$d
+		?*) datearg="-d>$d"
 		esac
 	fi
-	datearg="-d>$date"
 esac
 
 # Use TZ specified by ChangeLog local variable, if any.
