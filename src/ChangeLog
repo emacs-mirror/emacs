@@ -5,7 +5,8 @@
 
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* indent.c (skip_invisible): Use new retval of TEXT_PROP_MEANS_INVISIBLE.
+	* indent.c (skip_invisible): Use new retval of
+	TEXT_PROP_MEANS_INVISIBLE.
 
 	* keymap.c (access_keymap): Unify handling of `t' and generic-char.
 	If a parent is reached and noinherit is set, exit immediately.
