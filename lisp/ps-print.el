@@ -1,9 +1,8 @@
 ;;; ps-print.el --- Jim's Pretty-Good PostScript Generator for Emacs 19.
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson <thompson@wg2.waii.com>
-;; Thompson's last version: 1.14
 ;; Keywords: print, PostScript
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +24,12 @@
 ;; LCD Archive Entry:
 ;; ps-print|James C. Thompson|thompson@wg2.waii.com|
 ;; Jim's Pretty-Good PostScript Generator for Emacs 19 (ps-print)|
-;; 26-Feb-1994|1.6|~/packages/ps-print.el|
+;; 26-Feb-1994|2.0|~/packages/ps-print.el|
+
+;; Baseline-version: 2.0.  (Jim's last change version -- this
+;; file may have been edited as part of Emacs without changes to the
+;; version number.  When reporting bugs, please also report the
+;; version of Emacs, if any, that ps-print was distributed with.)
 
 ;;; Commentary:
 
@@ -38,13 +42,6 @@
 ;; preserved in the printer output.  Ps-print is intended for use with
 ;; Emacs 19 or Lucid Emacs, together with a fontifying package such as
 ;; font-lock or hilit.
-;; 
-;; Installing ps-print
-;; -------------------
-;;
-;; Make sure that the variables ps-lpr-command and ps-lpr-switches
-;; contain appropriate values for your system; see the usage notes
-;; below and the documentation of these variables.
 ;;
 ;; Using ps-print
 ;; --------------
@@ -302,10 +299,48 @@
 ;; formats for; it should contain one of the symbols ps-letter,
 ;; ps-legal, or ps-a4.  The default is ps-letter.
 ;;
+;; 
+;; Installing ps-print
+;; -------------------
+;;
+;; 1. Place ps-print.el somewhere in your load-path and byte-compile
+;;    it.  You can ignore all byte-compiler warnings; they are the
+;;    result of multi-Emacs support.  This step is necessary only if
+;;    you're installing your own ps-print; if ps-print came with your
+;;    copy of Emacs, this been done already.
+;;
+;; 2. Place in your .emacs file the line
+;;
+;;        (require 'ps-print)
+;;
+;;    to load ps-print.  Or you may cause any of the ps-print commands
+;;    to be autoloaded with an autoload command such as:
+;;
+;;      (autoload 'ps-print-buffer "ps-print"
+;;        "Generate and print a PostScript image of the buffer..." t)
+;;
+;; 3. Make sure that the variables ps-lpr-command and ps-lpr-switches
+;;    contain appropriate values for your system; see the usage notes
+;;    below and the documentation of these variables.
+;; 
+;; New since version 1.5
+;; ---------------------
+;; Color output capability.
+;;
+;; Automatic detection of font attributes (bold, italic).
+;;
+;; Configurable headers with page numbers.
+;;
+;; Slightly faster.
+;;
+;; Support for different paper sizes.
+;;
+;; Better conformance to PostScript Document Structure Conventions.
+;;
 ;;
 ;; Known bugs and limitations of ps-print:
 ;; --------------------------------------
-;; Automatic font-attribute detection doesn't work will, especially
+;; Automatic font-attribute detection doesn't work well, especially
 ;; with hilit19 and older versions of get-create-face.  Users having
 ;; problems with auto-font detection should use the lists ps-italic-
 ;; faces and ps-bold-faces and/or turn off automatic detection by
@@ -361,8 +396,16 @@
 
 ;;; Code:
 
-(defconst ps-print-thompson-version "1.14"
-  "Report bugs to thompson@wg2.waii.com and bug-gnu-emacs@prep.ai.mit.edu.")
+(defconst ps-print-version "2.0"
+  "ps-print.el,v 2.0 1995/02/12 04:39:48 jct Exp
+
+Jim's last change version -- this file may have been edited as part of
+Emacs without changes to the version number.  When reporting bugs,
+please also report the version of Emacs, if any, that ps-print was
+distributed with.
+
+Please send all bug fixes and enhancements to
+	Jim Thompson <thompson@wg2.waii.com>.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -1263,7 +1306,7 @@ StandardEncoding 46 82 getinterval aload pop
   (ps-output (format "/PrintWidth %d def\n" ps-print-width))
   (ps-output (format "/PrintHeight %d def\n" ps-print-height))
   
-  (ps-output (format "/LineHeight %d def\n" ps-line-height))
+  (ps-output (format "/LineHeight %s def\n" ps-line-height))
   
   (ps-output ps-print-prologue)
 
@@ -1940,4 +1983,5 @@ EndDSCPage\n"))
   (setq ps-lpr-switches '("-Jjct,duplex_long")))
 
 (provide 'ps-print)
+
 ;;; ps-print.el ends here
