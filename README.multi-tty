@@ -71,6 +71,7 @@ HOW TO COMPILE AND TEST
 To try out the multi-tty branch, compile and run the multi-tty branch
 with the following commands:
 
+        find -name "*.elc" | xargs rm   # Delete leftover stuff
    	mkdir +build
 	cd +build
 	../configure <your favourite options>
@@ -86,9 +87,9 @@ or
 
 You'll hopefully have two fully working, independent frames on
 separate terminals. The new frame is closed automatically when you
-have finished editing the specified files (C-x #), but delete-frame
-(C-x 5 0) also works.  Of course, you can create frames on more than
-two tty devices.
+finish editing the specified files (C-x #), but delete-frame (C-x 5 0)
+also works.  Of course, you can create frames on more than two tty
+devices.
 
 Creating new frames on the same tty with C-x 5 2 works, and they
 behave the same way as in previous Emacs versions.  If you exit emacs,
@@ -255,7 +256,6 @@ THINGS TO DO
 
 	$ emacsclient -t
 		C-z
-	$ bg
 	$ emacsclient -t
 		(This fails now.)
 
