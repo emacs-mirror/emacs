@@ -554,7 +554,8 @@ addition, the encoding is fully shown."
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
-  "*Value to use for `debug-on-error' when evaluating in `eval-expression'."
+  "*Non-nil means set `debug-on-error' when evaluating in `eval-expression'.
+If nil, don't change the value of `debug-on-error'."
   :group 'lisp
   :type 'boolean
   :version "21.1")
@@ -570,8 +571,20 @@ Value is also consed on to front of the variable `values'."
 			       nil read-expression-map t
 			       'read-expression-history)
 	 current-prefix-arg))
-  (let ((debug-on-error eval-expression-debug-on-error))
-    (setq values (cons (eval eval-expression-arg) values)))
+  
+  (if (null eval-expression-debug-on-error)
+      (setq values (cons (eval eval-expression-arg) values))
+    (let ((old-value (make-symbol "t")) new-value)
+      ;; Bind debug-on-error to something unique so that we can
+      ;; detect when evaled code changes it.
+      (let ((debug-on-error old-value))
+	(setq values (cons (eval eval-expression-arg) values))
+	(setq new-value debug-on-error))
+      ;; If evaled code has changed the value of debug-on-error,
+      ;; propagate that change to the global binding.
+      (unless (eq old-value new-value)
+	(setq debug-on-error new-value))))
+    
   (let ((print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
     (prin1 (car values)
