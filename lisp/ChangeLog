@@ -1,5 +1,7 @@
 2000-03-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/re-builder.el: New file.
+
 	* mouse.el (mouse-drag-region): Don't run up-event handler
 	if hscroll has changed.
 

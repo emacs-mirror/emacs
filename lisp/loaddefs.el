@@ -631,6 +631,15 @@ This command is obsolete." t nil)
 
 ;;;***
 
+;;;### (autoloads (autoconf-mode) "autoconf" "progmodes/autoconf.el"
+;;;;;;  (14532 61420))
+;;; Generated autoloads from progmodes/autoconf.el
+
+(autoload (quote autoconf-mode) "autoconf" "\
+Major mode for editing Autoconf configure.in files." t nil)
+
+;;;***
+
 ;;;### (autoloads (auto-insert-mode define-auto-insert auto-insert)
 ;;;;;;  "autoinsert" "autoinsert.el" (14410 18534))
 ;;; Generated autoloads from autoinsert.el
@@ -1031,7 +1040,7 @@ a reflection." t nil)
 ;;;;;;  bookmark-load bookmark-save bookmark-write bookmark-delete
 ;;;;;;  bookmark-insert bookmark-rename bookmark-insert-location
 ;;;;;;  bookmark-relocate bookmark-jump bookmark-set) "bookmark"
-;;;;;;  "bookmark.el" (14419 37278))
+;;;;;;  "bookmark.el" (14531 42950))
 ;;; Generated autoloads from bookmark.el
  (define-key ctl-x-map "rb" 'bookmark-jump)
  (define-key ctl-x-map "rm" 'bookmark-set)
@@ -1527,7 +1536,7 @@ name of buffer configuration." t nil)
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (14516 150))
+;;;;;;  "emacs-lisp/bytecomp.el" (14534 23874))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -2526,7 +2535,7 @@ and runs the normal hook `command-history-hook'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14495 18013))
+;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14533 31536))
 ;;; Generated autoloads from emacs-lisp/cl.el
 
 (defvar custom-print-functions nil "\
@@ -2567,8 +2576,8 @@ For use inside Lisp programs, see also `c-macro-expansion'." t nil)
 
 ;;;***
 
-;;;### (autoloads (run-scheme) "cmuscheme" "cmuscheme.el" (13569
-;;;;;;  34340))
+;;;### (autoloads (run-scheme) "cmuscheme" "cmuscheme.el" (14535
+;;;;;;  44845))
 ;;; Generated autoloads from cmuscheme.el
 
 (autoload (quote run-scheme) "cmuscheme" "\
@@ -2630,7 +2639,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal." t nil)
 
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
-;;;;;;  comint-run make-comint) "comint" "comint.el" (14411 60193))
+;;;;;;  comint-run make-comint) "comint" "comint.el" (14535 44845))
 ;;; Generated autoloads from comint.el
 
 (autoload (quote make-comint) "comint" "\
@@ -6010,7 +6019,7 @@ with no args, if that value is non-nil." t nil)
 ;;;;;;  facemenu-remove-special facemenu-remove-all facemenu-remove-face-props
 ;;;;;;  facemenu-set-read-only facemenu-set-intangible facemenu-set-invisible
 ;;;;;;  facemenu-set-face-from-menu facemenu-set-background facemenu-set-foreground
-;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14508 6392))
+;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14529 14394))
 ;;; Generated autoloads from facemenu.el
  (define-key global-map "\M-g" 'facemenu-keymap)
  (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
@@ -6604,7 +6613,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14522 33623))
+;;;;;;  (14535 40196))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -9751,8 +9760,8 @@ This command runs the normal hooks `text-mode-hook' and `mh-letter-mode-hook'." 
 
 ;;;***
 
-;;;### (autoloads (mh-version mh-rmail) "mh-e" "mail/mh-e.el" (14376
-;;;;;;  9267))
+;;;### (autoloads (mh-version mh-rmail) "mh-e" "mail/mh-e.el" (14532
+;;;;;;  63447))
 ;;; Generated autoloads from mail/mh-e.el
 
 (autoload (quote mh-rmail) "mh-e" "\
@@ -9921,7 +9930,7 @@ different buffer menu using the function `msb'." t nil)
 ;;;;;;  list-fontsets describe-fontset describe-font list-coding-categories
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system list-charset-chars read-charset list-character-sets)
-;;;;;;  "mule-diag" "international/mule-diag.el" (14524 58690))
+;;;;;;  "mule-diag" "international/mule-diag.el" (14529 14422))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload (quote list-character-sets) "mule-diag" "\
@@ -10329,7 +10338,7 @@ startup file, `~/.emacs-octave'." t nil)
 ;;;***
 
 ;;;### (autoloads (octave-mode) "octave-mod" "progmodes/octave-mod.el"
-;;;;;;  (14358 1330))
+;;;;;;  (14535 42068))
 ;;; Generated autoloads from progmodes/octave-mod.el
 
 (autoload (quote octave-mode) "octave-mod" "\
@@ -11333,9 +11342,18 @@ See \\[compile]." t nil)
 
 ;;;***
 
+;;;### (autoloads (re-builder) "re-builder" "emacs-lisp/re-builder.el"
+;;;;;;  (14536 1936))
+;;; Generated autoloads from emacs-lisp/re-builder.el
+
+(autoload (quote re-builder) "re-builder" "\
+Call up the RE Builder for the current window." t nil)
+
+;;;***
+
 ;;;### (autoloads (recentf-open-more-files recentf-cleanup recentf-edit-list
-;;;;;;  recentf-save-list recentf-mode) "recentf" "recentf.el" (14522
-;;;;;;  39506))
+;;;;;;  recentf-save-list recentf-mode) "recentf" "recentf.el" (14533
+;;;;;;  31505))
 ;;; Generated autoloads from recentf.el
 
 (autoload (quote recentf-mode) "recentf" "\
@@ -11552,7 +11570,7 @@ Here are all local bindings.
 ;;;***
 
 ;;;### (autoloads (regexp-opt-depth regexp-opt) "regexp-opt" "emacs-lisp/regexp-opt.el"
-;;;;;;  (14495 18015))
+;;;;;;  (14535 45202))
 ;;; Generated autoloads from emacs-lisp/regexp-opt.el
 
 (autoload (quote regexp-opt) "regexp-opt" "\
@@ -11563,10 +11581,7 @@ is enclosed by at least one regexp grouping construct.
 The returned regexp is typically more efficient than the equivalent regexp:
 
  (let ((open-paren (if PAREN \"\\\\(\" \"\")) (close-paren (if PAREN \"\\\\)\" \"\")))
-   (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))
-
-but typically contains more regexp grouping constructs.
-Use `regexp-opt-depth' to count them." nil nil)
+   (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))" nil nil)
 
 (autoload (quote regexp-opt-depth) "regexp-opt" "\
 Return the depth of REGEXP.
@@ -12212,7 +12227,7 @@ scribe-electric-parenthesis
 ;;;;;;  mail-signature mail-personal-alias-file mail-alias-file mail-default-reply-to
 ;;;;;;  mail-archive-file-name mail-header-separator mail-yank-ignored-headers
 ;;;;;;  mail-interactive mail-self-blind mail-specify-envelope-from
-;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14495 18026))
+;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14532 62968))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -13250,7 +13265,7 @@ Try to set `comint-output-filter-functions' like this:
 ;;;### (autoloads (strokes-mode strokes-load-user-strokes strokes-help
 ;;;;;;  strokes-describe-stroke strokes-do-complex-stroke strokes-do-stroke
 ;;;;;;  strokes-read-complex-stroke strokes-read-stroke strokes-global-set-stroke)
-;;;;;;  "strokes" "strokes.el" (13337 50462))
+;;;;;;  "strokes" "strokes.el" (14527 50024))
 ;;; Generated autoloads from strokes.el
 
 (defvar strokes-mode nil "\
@@ -14095,7 +14110,7 @@ This function performs no refilling of the changed text." t nil)
 ;;;***
 
 ;;;### (autoloads (display-time-mode display-time display-time-day-and-date
-;;;;;;  display-time-mode) "time" "time.el" (14495 17997))
+;;;;;;  display-time-mode) "time" "time.el" (14526 14916))
 ;;; Generated autoloads from time.el
 
 (defvar display-time-mode nil "\
@@ -15541,6 +15556,25 @@ If no window is at the desired location, an error is signaled." t nil)
 
 (autoload (quote windmove-default-keybindings) "windmove" "\
 Set up default keybindings for `windmove'." t nil)
+
+;;;***
+
+;;;### (autoloads (winner-mode winner-mode) "winner" "winner.el"
+;;;;;;  (14535 44846))
+;;; Generated autoloads from winner.el
+
+(defvar winner-mode nil "\
+Toggle winner-mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `winner-mode'.")
+
+(custom-add-to-group (quote winner) (quote winner-mode) (quote custom-variable))
+
+(custom-add-load (quote winner-mode) (quote winner))
+
+(autoload (quote winner-mode) "winner" "\
+Toggle Winner mode.
+With arg, turn Winner mode on if and only if arg is positive." t nil)
 
 ;;;***
 

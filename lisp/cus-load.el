@@ -410,7 +410,7 @@
 (put 'shadow 'custom-loads '("shadowfile" "shadow"))
 (put 'hl-line 'custom-loads '("hl-line"))
 (put 'internal 'custom-loads '("startup" "cus-edit"))
-(put 'lisp 'custom-loads '("simple" "lisp" "lisp-mode" "cmuscheme" "ielm" "xscheme" "advice" "bytecomp" "checkdoc" "cl-indent" "cust-print" "edebug" "elp" "find-func" "pp" "shadow" "trace" "scheme"))
+(put 'lisp 'custom-loads '("simple" "lisp" "lisp-mode" "cmuscheme" "ielm" "xscheme" "advice" "bytecomp" "checkdoc" "cl-indent" "cust-print" "edebug" "elp" "find-func" "pp" "re-builder" "shadow" "trace" "scheme"))
 (put 'local 'custom-loads '("calendar"))
 (put 'rlogin 'custom-loads '("rlogin"))
 (put 'debugger 'custom-loads '("debug"))
@@ -516,6 +516,7 @@
 (put 'ielm 'custom-loads '("ielm"))
 (put 'find-dired 'custom-loads '("find-dired"))
 (put 'delphi 'custom-loads '("delphi"))
+(put 're-builder 'custom-loads '("re-builder"))
 (put 'killing 'custom-loads '("simple"))
 (put 'gnus-group-various 'custom-loads '("gnus-group" "gnus"))
 ;;; These are for handling :version.  We need to have a minimum of
