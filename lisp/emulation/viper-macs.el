@@ -150,10 +150,11 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	     '(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
 	    (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
 	(setq message
-	      ":map%s %s"
-	      variant (if (> (length key-seq) 0)
-			  (prin1-to-string (vip-display-macro key-seq))
-			""))
+	      (format
+	       ":map%s %s"
+	       variant (if (> (length key-seq) 0)
+			   (prin1-to-string (vip-display-macro key-seq))
+			 "")))
 	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
@@ -215,20 +216,22 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	      ((member key '(tab (control i) ?\t))
 	       (setq key-seq (subseq key-seq 0 (1- (length key-seq))))
 	       (setq message 
-		     ":unmap%s %s"
-		     variant (if (> (length key-seq) 0)
-				 (prin1-to-string
-				  (vip-display-macro key-seq))
-			       ""))
+		     (format
+		      ":unmap%s %s"
+		      variant (if (> (length key-seq) 0)
+				  (prin1-to-string
+				   (vip-display-macro key-seq))
+				"")))
 	       (setq key-seq
 		     (vip-do-sequence-completion key-seq macro-alist message))
 	       ))
 	(setq message 
-	      ":unmap%s %s"
-	      variant (if (> (length key-seq) 0)
-			  (prin1-to-string
-			   (vip-display-macro key-seq))
-			""))
+	      (format
+	       ":unmap%s %s"
+	       variant (if (> (length key-seq) 0)
+			   (prin1-to-string
+			    (vip-display-macro key-seq))
+			 "")))
 	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
@@ -253,8 +256,11 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
     ))
     
     
+;; Terminate a Vi kbd macro.
+;; optional argument IGNORE, if t, indicates that we are dealing with an
+;; existing macro that needs to be registered, but there is no need to
+;; terminate a kbd macro.
 (defun vip-end-mapping-kbd-macro (&optional ignore)
-  "Terminate kbd macro."
   (interactive)
   (define-key vip-vi-intercept-map "\C-x)" nil)
   (define-key vip-insert-intercept-map "\C-x)" nil)
@@ -769,15 +775,15 @@ there."
   
 ;; if seq of Viper key symbols (representing a macro) can be converted to a
 ;; string--do so. Otherwise, do nothing.
-(defun vip-display-macro (macro-name)
-  (cond ((vip-char-symbol-sequence-p macro-name)
-	 (mapconcat 'symbol-name macro-name ""))
-	((vip-char-array-p macro-name)
-	 (mapconcat 'char-to-string macro-name ""))
-	(t macro-name)))
+(defun vip-display-macro (macro-name-or-body)
+  (cond ((vip-char-symbol-sequence-p macro-name-or-body)
+	 (mapconcat 'symbol-name macro-name-or-body ""))
+	((vip-char-array-p macro-name-or-body)
+	 (mapconcat 'char-to-string macro-name-or-body ""))
+	(t macro-name-or-body)))
     
 (defun vip-events-to-macro (event-seq)
-  (vconcat (mapcar 'vip-event-key event-seq)))
+  (vconcat (delq nil (mapcar 'vip-event-key event-seq))))
   
 ;; convert strings or arrays of characters to Viper macro form
 (defun vip-char-array-to-macro (array)
@@ -788,10 +794,10 @@ there."
       (setq macro vec))
     (vconcat (mapcar 'vip-event-key macro))))
     
-;; For macros bodies and names, goes over and checks if all members are
+;; For macros bodies and names, goes over MACRO and checks if all members are
 ;; names of keys (actually, it only checks if they are symbols or lists
-;; if a digit is found, it is converted into a symbol (0 -> \0, etc).
-;; If not list or vector, doesn't change its argument
+;; if a digit is found, it is converted into a symbol (e.g., 0 -> \0, etc).
+;; If MACRO is not a list or vector -- doesn't change MACRO.
 (defun vip-fixup-macro (macro)
   (let ((len (length macro))
 	(idx 0)
@@ -810,7 +816,6 @@ there."
 			    (setcar (nthcdr idx macro)
 				    (intern (char-to-string (+ ?0 elt)))))
 			   )))
-		;;(setq break t)))
 		((listp elt)
 		 (vip-fixup-macro elt))
 		((symbolp elt) nil)
