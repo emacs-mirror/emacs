@@ -32,9 +32,9 @@
 
   (setq primary-language "Chinese-GB")
 
-  (setq coding-category-iso-8-2 'cn-gb-2312)
-  (setq coding-category-iso-else 'iso-2022-cn)
-  (setq coding-category-big5 'cn-big5)
+  (setq coding-category-iso-8-2 'chinese-iso-8bit)
+  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-big5 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
@@ -44,13 +44,13 @@
      coding-category-iso-8-1
      coding-category-emacs-mule))
 
-  (setq-default buffer-file-coding-system 'cn-gb-2312)
-  (set-terminal-coding-system-internal 'cn-gb-2312)
-  (set-keyboard-coding-system-internal 'cn-gb-2312)
+  (setq-default buffer-file-coding-system 'chinese-iso-8bit)
+  (set-terminal-coding-system-internal 'chinese-iso-8bit)
+  (set-keyboard-coding-system-internal 'chinese-iso-8bit)
   (setq sendmail-coding-system nil
-	rmail-file-coding-system 'iso-2022-cn)
+	rmail-file-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method '("Chinese-GB" . "quail-py")))
+  (setq default-input-method '("Chinese-GB" . "chinese-py")))
 
 ;;;###autoload
 (defun setup-chinese-big5-environment ()
@@ -60,9 +60,9 @@
 
   (setq primary-language "Chinese-BIG5")
 
-  (setq coding-category-iso-8-2 'cn-big5)
-  (setq coding-category-iso-else 'iso-2022-cn)
-  (setq coding-category-big5 'cn-big5)
+  (setq coding-category-iso-8-2 'chinese-big5)
+  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-big5 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
@@ -71,13 +71,13 @@
      coding-category-iso-8-2
      coding-category-emacs-mule))
 
-  (setq-default buffer-file-coding-system 'cn-big5)
-  (set-terminal-coding-system-internal 'cn-big5)
-  (set-keyboard-coding-system-internal 'cn-big5)
+  (setq-default buffer-file-coding-system 'chinese-big5)
+  (set-terminal-coding-system-internal 'chinese-big5)
+  (set-keyboard-coding-system-internal 'chinese-big5)
   (setq sendmail-coding-system nil
-	rmail-file-coding-system 'iso-2022-cn)
+	rmail-file-coding-system 'chienese-iso-7bit)
 
-  (setq default-input-method '("Chinese-BIG5" . "quail-py-b5")))
+  (setq default-input-method '("Chinese-BIG5" . "chinese-b5-py")))
 
 ;;;###autoload
 (defun setup-chinese-cns-environment ()
@@ -87,9 +87,9 @@
 
   (setq primary-language "Chinese-CNS")
 
-  (setq coding-category-iso-else 'iso-2022-cn)
-  (setq coding-category-big5 'cn-big5)
-  (setq coding-category-iso-8-2 'cn-big5)
+  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-big5 'chinese-big5)
+  (setq coding-category-iso-8-2 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
@@ -97,11 +97,11 @@
      coding-category-iso-8-2
      coding-category-big5))
 
-  (setq-default buffer-file-coding-system 'iso-2022-cn)
-  (set-terminal-coding-system-internal 'iso-2022-cn)
-  (set-keyboard-coding-system-internal 'iso-2022-cn)
+  (setq-default buffer-file-coding-system 'chinese-iso-7bit)
+  (set-terminal-coding-system-internal 'chinese-iso-7bit)
+  (set-keyboard-coding-system-internal 'chinese-iso-7bit)
   (setq sendmail-coding-system nil
-	rmail-file-coding-system 'iso-2022-cn)
+	rmail-file-coding-system 'chinese-iso-7bit)
 
   (setq default-input-method '("Chinese-CNS" . "quail-quick-cns")))
 
@@ -142,7 +142,7 @@ Return the length of resulting text."
     (save-restriction
       (narrow-to-region beg end)
 
-      ;; We, at first, convert HZ/ZW to `iso-2022-7',
+      ;; We, at first, convert HZ/ZW to `iso-2022-7bit',
       ;; then decode it.
 
       ;; "~\n" -> "\n"
@@ -157,13 +157,13 @@ Return the length of resulting text."
       (let ((chinese-found nil))
 	(while (re-search-forward hz/zw-start-gb nil t)
 	  (if (= (char-after (match-beginning 0)) ?z)
-	      ;; ZW -> iso-20227-7
+	      ;; ZW -> iso-2022-7bit
 	      (progn
 		(delete-char -2)
 		(insert iso2022-gb-designation)
 		(end-of-line)
 		(insert iso2022-ascii-designation))
-	    ;; HZ -> iso-20227-7
+	    ;; HZ -> iso-2022-7bit
 	    (delete-char -2)
 	    (insert iso2022-gb-designation)
 	    (let ((pos (save-excursion (end-of-line) (point))))
@@ -210,7 +210,7 @@ Return the length of resulting text."
 	  (let ((enable-multibyte-characters nil)
 		pos)
 	    (goto-char (setq pos (match-beginning 0)))
-	    (encode-coding-region pos (point-max) 'iso-2022-7)
+	    (encode-coding-region pos (point-max) 'iso-2022-7bit)
 	    (goto-char pos)
 	    (while (search-forward iso2022-gb-designation nil t)
 	      (delete-char -3)
