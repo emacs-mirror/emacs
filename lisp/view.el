@@ -33,7 +33,7 @@
     nil
   (setq view-mode-map (make-keymap))
   (fillarray (nth 1 view-mode-map) 'View-undefined)
-  (define-key view-mode-map "\C-c" 'view-exit)
+  (define-key view-mode-map "\C-c" (lookup-key global-map "\C-c"))
   (define-key view-mode-map "q" 'view-exit)
   (define-key view-mode-map "-" 'negative-argument)
   (define-key view-mode-map "0" 'digit-argument)
@@ -110,6 +110,8 @@ This command runs the normal hook `view-mode-hook'."
   (let ((old-buf (current-buffer))
 	(had-a-buf (get-file-buffer file-name))
 	(buf-to-view (find-file-noselect file-name)))
+    ;; This used to pass t as second argument,
+    ;; but then the buffer did not show up in the Buffers menu.
     (switch-to-buffer buf-to-view had-a-buf)
     (view-mode old-buf
 	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
@@ -130,9 +132,7 @@ This command runs the normal hook `view-mode-hook'."
   (let ((old-arrangement (current-window-configuration))
 	(had-a-buf (get-file-buffer file-name))
 	(buf-to-view (find-file-noselect file-name)))
-    ;; This used to pass t as second argument,
-    ;; but then the buffer did not show up in the Buffers menu.
-    (switch-to-buffer-other-window)
+    (switch-to-buffer-other-window buf-to-view)
     (view-mode old-arrangement
 	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
 		    'kill-buffer))))
@@ -204,7 +204,7 @@ C-r or r	do reverse incremental search.
 C-n		moves down lines vertically.
 C-p		moves upward lines vertically.
 C-l		recenters the screen.
-q or C-c	exit view-mode and return to previous buffer.
+q		exit view-mode and return to previous buffer.
 
 Entry to this mode runs the normal hook `view-mode-hook'.
 
