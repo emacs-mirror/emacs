@@ -2653,7 +2653,7 @@ In this case, the sign bit is duplicated.")
 DEFUN ("lsh", Flsh, Slsh, 2, 2, 0,
   "Return VALUE with its bits shifted left by COUNT.\n\
 If COUNT is negative, shifting is actually to the right.\n\
-In this case,  zeros are shifted in on the left.")
+In this case, zeros are shifted in on the left.")
   (value, count)
      register Lisp_Object value, count;
 {
