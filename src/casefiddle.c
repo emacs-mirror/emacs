@@ -190,8 +190,8 @@ Lisp_Object
 operate_on_word (arg)
      Lisp_Object arg;
 {
-  Lisp_Object val, end;
-  int farend;
+  Lisp_Object val;
+  int end, farend;
 
   CHECK_NUMBER (arg, 0);
   farend = scan_words (point, XINT (arg));
