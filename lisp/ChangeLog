@@ -1,3 +1,50 @@
+2004-11-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el: Added comment.
+	(math-polynomial-base): Replace variable mpb-top-expr by
+	math-poly-base-top-expr.
+
+	* calc/calc-poly.el (math-poly-base-top-expr): New variable.
+	(math-polynomial-p1): Replace variable mpb-top-expr by declared
+	variable.
+	(math-poly-base-total-base): New variable.
+	(math-total-polynomial-base, math-polynomial-p1): Replace variable
+	mpb-total-base by declared variable.
+	(math-factored-vars, math-to-list): Declare it.
+	(math-fact-expr): New variable.
+	(calcFunc-factors, calcFunc-factor, math-factor-expr)
+	(math-factor-expr-try, math-factor-expr-part): Replace variable
+	expr by declared variable.
+	(math-fet-x): New variable.
+	(math-factor-expr-try, math-factor-poly-coefs): Replace variable x
+	by declared variable.
+	(math-factor-poly-coefs): Make temp a local variable.
+
+	* calc/calc-units.el (calc-convert-units): Make units a local
+	variable.
+	(calc-num-units, calc-den-units): New variables.
+	(calc-explain-units, calc-explain-units-rec): Replace variables
+	num-units and den-units by declared variables.
+	(math-cu-unit-list): New variable.
+	(math-build-units-table, math-compare-unit-names)
+	(math-convert-units, math-convert-units-rec): Replace variable
+	unit-list by declared variable.
+	(math-fbu-base, math-fbu-entry): New variables.
+	(math-find-base-units, math-find-base-units-rec): Replace variables
+	base and entry by declared variables.
+	(math-which-standard): New variable.
+	(math-to-standard-units, math-to-standard-rec): Replace variable
+	which-standard by declared variable.
+	(math-fcu-u): New variable.
+	(math-find-compatible-unit, math-find-compatible-unit-rec):
+	Replace variable u by declared variable.
+	(math-cu-new-units, math-cu-pure): New variables.
+	(math-convert-units, math-convert-units-rec): Replace variables
+	new-units and pure by declared variables.
+	(math-try-cancel-units): New variable.
+	(math-simplify-units-quotient): Replace variable try-cancel-units by
+	declared variable.
+
 2004-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-check-version):
