@@ -80,9 +80,15 @@
 (defun quail-japanese-kanji-kkc ()
   (interactive)
   (let ((from (overlay-start quail-conv-overlay))
-	(to (overlay-end quail-conv-overlay))
-	newfrom)
+	(to (overlay-end quail-conv-overlay)))
     (quail-delete-overlays)
+    (setq quail-current-str nil)
+    (when (= (char-before to) ?n)
+      ;; The last char is `n'.  We had better convert it to `ん'
+      ;; before kana-kanji conversion.
+      (goto-char to)
+      (delete-char -1)
+      (insert ?ん))
     (let ((result (kkc-region from to)))
       (move-overlay quail-conv-overlay from (point))
       (setq quail-conversion-str (buffer-substring from (point)))
