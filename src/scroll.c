@@ -217,9 +217,20 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
       }
 }
 
-/* Perform insert-lines and delete-lines operations
- according to the costs in the matrix.
- Updates the contents of the frame to record what was done. */
+/* Perform insert-lines and delete-lines operations on FRAME
+   according to the costs in MATRIX.
+   Update the frame's current_glyphs info to record what was done.
+
+   WINDOW_SIZE is the number of lines being considered for scrolling
+   and UNCHANGED_AT_TOP is the vpos of the first line being considered.
+   These two arguments can specify any contiguous range of lines.
+ 
+   We also shuffle the charstarts vectors for the lines
+   along with the glyphs; but the results are not quite right,
+   since we cannot offset them for changes in amount of text
+   in this line or that line.  Luckily it doesn't matter,
+   since update_frame and update_line will copy in the proper
+   new charstarts vectors from the frame's desired_glyphs.  */
 
 static void
 do_scrolling (frame, matrix, window_size, unchanged_at_top)
@@ -247,6 +258,8 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
   temp_frame = FRAME_TEMP_GLYPHS (frame);
 
   bcopy (current_frame->glyphs, temp_frame->glyphs,
+	 current_frame->height * sizeof (GLYPH *));
+  bcopy (current_frame->charstarts, temp_frame->charstarts,
 	 current_frame->height * sizeof (GLYPH *));
   bcopy (current_frame->used, temp_frame->used,
 	 current_frame->height * sizeof (int));
@@ -303,6 +316,8 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
 	  /* Old line at vpos j-1 ends up at vpos i-1 */
 	  current_frame->glyphs[i + offset - 1]
 	    = temp_frame->glyphs[j + offset - 1];
+	  current_frame->charstarts[i + offset - 1]
+	    = temp_frame->charstarts[j + offset - 1];
 	  current_frame->used[i + offset - 1]
 	    = temp_frame->used[j + offset - 1];
 	  current_frame->highlight[i + offset - 1]
@@ -337,7 +352,8 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
 	  current_frame->enable[j] = 0;
 	  while (temp_frame->enable[next])
 	    next++;
-	  current_frame->glyphs[j] = temp_frame->glyphs[next++];
+	  current_frame->glyphs[j] = temp_frame->glyphs[next];
+	  current_frame->charstarts[j] = temp_frame->charstarts[next++];
 	}
     }
 
