@@ -84,7 +84,7 @@ completion commands (@pxref{Completion}).
 
 @item
 @code{minibuffer-local-ns-map} is similar, except that @key{SPC} exits
-just like @key{RET}.  This is used mainly for Mocklisp compatibility.
+just like @key{RET}.
 
 @item
 @code{minibuffer-local-completion-map} is for permissive completion.
@@ -520,7 +520,7 @@ for reading certain kinds of names with completion.
 * High-Level Completion::  Convenient special cases of completion
                              (reading buffer name, file name, etc.)
 * Reading File Names::     Using completion to read file names.
-* Programmed Completion::  Finding the completions for a given file name.
+* Programmed Completion::  Writing your own completion-function.
 @end menu
 
 @node Basic Completion
@@ -661,6 +661,22 @@ example for @code{try-completion}:
 If the value of this variable is
 non-@code{nil}, Emacs does not consider case significant in completion.
 @end defvar
+
+@defmac lazy-completion-table var fun &rest args
+This macro provides a way to initialize the variable @var{var} as a
+completion table in a lazy way, not computing its actual contents
+until they are first needed.  You use this macro to produce a value
+that you store in @var{var}.  The actual computation of the proper
+value is done the first time you do completion using @var{var}.  It is
+done by calling @var{fun} with the arguments @var{args}.  The value
+@var{fun} returns becomes the permanent value of @var{var}.
+
+@example
+(defvar foo (lazy-completion-table foo make-my-alist 'global))
+(make-local-variable 'bar)
+(setq bar (lazy-completion-table foo make-my-alist 'local)
+@end example
+@end defmac
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
@@ -1218,6 +1234,15 @@ to use for completion to be encapsulated in a symbol.
 
   Emacs uses programmed completion when completing file names.
 @xref{File Name Completion}.
+
+@defmac dynamic-completion-table function
+This macro is a convenient way to write a function that can act as
+programmed completion function.  The argument @var{function} should be
+a function that takes one argument, a string, and returns an alist of
+possible completions of it.  You can think of
+@code{dynamic-completion-table} as a transducer between that interface
+and the interface for programmed completion functions.
+@end defmac
 
 @node Yes-or-No Queries
 @section Yes-or-No Queries
