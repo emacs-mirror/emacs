@@ -2864,6 +2864,8 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
 extern POINTER_TYPE *xmalloc P_ ((int));
 extern POINTER_TYPE *xrealloc P_ ((POINTER_TYPE *, int));
+extern void xfree P_ ((POINTER_TYPE *));
+
 extern char *xstrdup P_ ((char *));
 
 extern char *egetenv P_ ((char *));
