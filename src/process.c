@@ -70,7 +70,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* not IRIS */
 
 #include "systime.h"
-#include "systerm.h"
+#include "systty.h"
 
 #include "lisp.h"
 #include "window.h"
