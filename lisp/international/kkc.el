@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
-;; Keywords: mule, multilingual, Japanese, SKK
+;; Keywords: mule, multilingual, Japanese
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-(require 'skkdic-utl)
+(require 'ja-dic-utl)
 
 (defvar kkc-input-method-title "漢"
   "String denoting KKC input method.
@@ -163,7 +163,7 @@ area while indicating the current selection by `<N>'."
 ;; Cursor type (`box' or `bar') of the current frame.
 (defvar kkc-cursor-type nil)
 
-;; Lookup SKK dictionary to set list of conversions in
+;; Lookup Japanese dictionary to set list of conversions in
 ;; kkc-current-conversions for key sequence kkc-current-key of length
 ;; LEN.  If no conversion is found in the dictionary, don't change
 ;; kkc-current-conversions and return nil.
