@@ -128,6 +128,27 @@ move point just a little off the screen---less than @var{n} lines---then
 Emacs scrolls the text just far enough to bring point back on screen.
 By default, @code{scroll-conservatively} is 0.
 
+@cindex aggressive scrolling
+@vindex scroll-up-aggressively
+@vindex scroll-down-aggressively 
+  If you prefer a more aggresive scrolling, customize the values of the
+variables @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}.  The value of
+@code{scroll-up-aggressively} should be either nil or a fraction @var{f}
+between 0 and 1.  If it is a fraction, that specifies where on the
+screen to put point when scrolling upward.  More precisely, when a
+window scrolls up because point is above the window start, the new start
+position is chosen to put point @var{f} part of the window height from
+the top.  The larger @var{f}, the more aggressive the scrolling.
+
+A value of @code{nil} is equivalent to .5, since its effect is to center
+point.
+
+Likewise, @code{scroll-down-aggressively} is used for scrolling down.
+The value, @var{f}, specifies how far point should be placed from the
+bottom of the window; thus, as with @code{scroll-up-aggressively}, a
+larger value scrolls more aggressively.
+
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
 to the top or bottom of a window.  Its value is a number of screen
