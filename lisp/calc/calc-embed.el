@@ -1,6 +1,6 @@
 ;;; calc-embed.el --- embed Calc in a buffer
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -48,48 +48,18 @@
 (defvar calc-embedded-some-active nil)
 (make-variable-buffer-local 'calc-embedded-some-active)
 
-(defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
-  "*A regular expression for the opening delimiter of a formula used by
-calc-embedded.")
-
-(defvar calc-embedded-close-formula "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
-  "*A regular expression for the closing delimiter of a formula used by
-calc-embedded.")
-
-(defvar calc-embedded-open-word "^\\|[^-+0-9.eE]"
-  "*A regular expression for the opening delimiter of a formula used by
-calc-embedded-word.")
-
-(defvar calc-embedded-close-word "$\\|[^-+0-9.eE]"
-  "*A regular expression for the closing delimiter of a formula used by
-calc-embedded-word.")
-
-(defvar calc-embedded-open-plain "%%% "
-  "*A string which is the opening delimiter for a \"plain\" formula.
-If calc-show-plain mode is enabled, this is inserted at the front of
-each formula.")
-
-(defvar calc-embedded-close-plain " %%%\n"
-  "*A string which is the closing delimiter for a \"plain\" formula.
-See calc-embedded-open-plain.")
-
-(defvar calc-embedded-open-new-formula "\n\n"
-  "*A string which is inserted at front of formula by calc-embedded-new-formula.")
-
-(defvar calc-embedded-close-new-formula "\n\n"
-  "*A string which is inserted at end of formula by calc-embedded-new-formula.")
-
-(defvar calc-embedded-announce-formula "%Embed\n\\(% .*\n\\)*"
-  "*A regular expression which is sure to be followed by a calc-embedded formula." )
-
-(defvar calc-embedded-open-mode "% "
-  "*A string which should precede calc-embedded mode annotations.
-This is not required to be present for user-written mode annotations.")
-
-(defvar calc-embedded-close-mode "\n"
-  "*A string which should follow calc-embedded mode annotations.
-This is not required to be present for user-written mode annotations.")
-
+;; The following variables are customizable and defined in calc.el.
+(defvar calc-embedded-announce-formula)
+(defvar calc-embedded-open-formula)
+(defvar calc-embedded-close-formula)
+(defvar calc-embedded-open-word)
+(defvar calc-embedded-close-word)
+(defvar calc-embedded-open-plain)
+(defvar calc-embedded-close-plain)
+(defvar calc-embedded-open-new-formula)
+(defvar calc-embedded-close-new-formula)
+(defvar calc-embedded-open-mode)
+(defvar calc-embedded-close-mode)
 
 (defconst calc-embedded-mode-vars '(("precision" . calc-internal-prec)
 				    ("word-size" . calc-word-size)

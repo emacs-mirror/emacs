@@ -469,27 +469,7 @@ This function must return nil if it doesn't handle EVENT."
 (defun tooltip-show-help-function (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (let ((previous-help tooltip-help-message)
-	mp pos)
-    (if (and mouse-1-click-follows-link
-	     (stringp msg)
-	     (save-match-data
-	       (string-match "^mouse-2" msg))
-	     (setq mp (mouse-pixel-position))
-	     (consp (setq pos (cdr mp)))
-	     (car pos) (>= (car pos) 0)
-	     (cdr pos) (>= (cdr pos) 0)
-	     (setq pos (posn-at-x-y (car pos) (cdr pos) (car mp)))
-	     (windowp (posn-window pos)))
-	(with-current-buffer (window-buffer (posn-window pos))
-	  (if (mouse-on-link-p pos)
-	      (setq msg (concat
-		    (cond
-		     ((eq mouse-1-click-follows-link 'double) "double-")
-		     ((and (integerp mouse-1-click-follows-link)
-			   (< mouse-1-click-follows-link 0)) "Long ")
-		     (t ""))
-		    "mouse-1" (substring msg 7))))))
+  (let ((previous-help tooltip-help-message))
     (setq tooltip-help-message msg)
     (cond ((null msg)
 	   ;; Cancel display.  This also cancels a delayed tip, if

@@ -1,6 +1,7 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -152,8 +153,8 @@ For example, you could write
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(or (custom-current-group)
-			   (intern (replace-regexp-in-string
+	    `(:group (or (custom-current-group)
+			 ',(intern (replace-regexp-in-string
 				    "-mode\\'" "" mode-name))))))
 
     `(progn
@@ -253,8 +254,9 @@ With zero or negative ARG turn mode off.
 ;;;
 
 ;;;###autoload
-(defmacro easy-mmode-define-global-mode (global-mode mode turn-on
-						     &rest keys)
+(defalias 'easy-mmode-define-global-mode 'define-global-minor-mode)
+;;;###autoload
+(defmacro define-global-minor-mode (global-mode mode turn-on &rest keys)
   "Make GLOBAL-MODE out of the buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
   and that should try to turn MODE on if applicable for that buffer.
@@ -278,8 +280,8 @@ KEYS is a list of CL-style keyword arguments:
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(or (custom-current-group)
-			   (intern (replace-regexp-in-string
+	    `(:group (or (custom-current-group)
+			 ',(intern (replace-regexp-in-string
 				    "-mode\\'" "" (symbol-name mode)))))))
 
     `(progn

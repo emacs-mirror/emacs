@@ -1935,19 +1935,21 @@ If INITIAL is non-nil, it specifies the initial input string."
   ;; Internal function for ido-find-file and friends
   (unless item
     (setq item 'file))
-  (let* ((ido-current-directory (ido-expand-directory default))
-	 (ido-directory-nonreadable (ido-nonreadable-directory-p ido-current-directory))
-	 (ido-directory-too-big (and (not ido-directory-nonreadable)
-				     (ido-directory-too-big-p ido-current-directory)))
-	 (ido-context-switch-command switch-cmd)
-	 filename)
+  (let ((ido-current-directory (ido-expand-directory default))
+	(ido-context-switch-command switch-cmd)
+        ido-directory-nonreadable ido-directory-too-big
+	filename)
 
-    (cond
-     ((or (not ido-mode) (ido-is-slow-ftp-host))
-      (setq filename t
-	    ido-exit 'fallback))
+    (if (or (not ido-mode) (ido-is-slow-ftp-host))
+	(setq filename t
+	      ido-exit 'fallback)
+      (setq ido-directory-nonreadable
+	    (ido-nonreadable-directory-p ido-current-directory)
+	    ido-directory-too-big
+	    (and (not ido-directory-nonreadable)
+		 (ido-directory-too-big-p ido-current-directory))))
 
-     ((and (eq item 'file)
+    (when (and (eq item 'file)
 	   (or ido-use-url-at-point ido-use-filename-at-point))
       (let (fn d)
 	(require 'ffap)
@@ -1966,7 +1968,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
 	  (setq ido-current-directory d)
-	  (setq initial (file-name-nondirectory fn)))))))
+	  (setq initial (file-name-nondirectory fn))))))
 
     (let (ido-saved-vc-hb
 	  (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))

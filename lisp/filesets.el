@@ -250,8 +250,15 @@ key is supported."
 ;  (customize-set-variable var val))
 ;  (filesets-build-menu))
 
+;; It seems this is a workaround for the XEmacs issue described in the
+;; doc-string of filesets-menu-ensure-use-cached. Under Emacs this is
+;; essentially just `set-default'.
 (defun filesets-set-default (sym val &optional init-flag)
-  "Set-default wrapper function used in conjunction with `defcustom'."
+  "Set-default wrapper function used in conjunction with `defcustom'.
+If SYM is in the list `filesets-ignore-next-set-default', delete
+it from that list, and return nil.  Otherwise, set the value of
+SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
+`custom-initialize-set', otherwise with `set-default'."
   (let ((ignore-flag (member sym filesets-ignore-next-set-default)))
     (if ignore-flag
 	(setq filesets-ignore-next-set-default

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2004 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -16,6 +16,11 @@ arguments and their values are completely ignored.  The recommended way
 to put a new function on such a hook is to call @code{add-hook}.
 @xref{Hooks}, for more information about using hooks.
 
+Every major mode defines a mode hook named
+@samp{@var{modename}-mode-hook}.  The major mode command runs this
+normal hook with @code{run-mode-hooks} as the very last thing it does.
+@xref{Mode Hooks}.  Mode hooks are omitted in the list below.
+
 The variables whose names end in @samp{-hooks} or @samp{-functions} are
 usually @dfn{abnormal hooks}; their values are lists of functions, but
 these functions are called in a special way (they are passed arguments,
@@ -28,118 +33,229 @@ as their values.  (In older Emacs versions, some of these variables had
 names ending in @samp{-hook} even though they were not normal hooks;
 however, we have renamed all of those.)
 
-@c !!! need  xref  to where each hook is documented or else document it
-@c by specifying what is expected, and when it is called relative to
-@c mode initialization.
+@c We need to xref to where each hook is documented or else document
+@c it here.
 
 @table @code
 @item activate-mark-hook
+@xref{The Mark}.
+
 @item after-change-functions
+@xref{Change Hooks}.
+
 @item after-change-major-mode-hook
+@xref{Mode Hooks}.
+
 @item after-init-hook
+@xref{Init File}.
+
 @item after-insert-file-functions
+@xref{Saving Properties}.
+
 @item after-make-frame-functions
+@xref{Creating Frames}.
+
 @item after-revert-hook
+@xref{Reverting}.
+
 @item after-save-hook
-@item apropos-mode-hook
+@xref{Saving Buffers}.
+
 @item auto-fill-function
+@xref{Auto Filling}.
+
 @item auto-save-hook
+@xref{Auto-Saving}.
+
 @item before-change-functions
+@xref{Change Hooks}.
+
 @item before-init-hook
+@xref{Init File}.
+
 @item before-make-frame-hook
+@xref{Creating Frames}.
+
 @item before-revert-hook
+@xref{Reverting}.
+
 @item before-save-hook
+@xref{Saving Buffers}.
+
 @item blink-paren-function
+@xref{Blinking}.
+
 @item buffer-access-fontify-functions
-@item c-mode-hook
+@xref{Lazy Properties}.
+
 @item calendar-load-hook
+@inforef{Calendar Customizing,, emacs-xtra}.
+
 @item change-major-mode-hook
-@item command-history-hook
+@xref{Creating Buffer-Local}.
+
 @item command-line-functions
+@xref{Command-Line Arguments}.
+
 @item comment-indent-function
+@xref{Options for Comments,, Options Controlling Comments, emacs, the
+GNU Emacs Manual}.
+
 @item custom-define-hook
+Hook called after defining each customize option.
+
 @item deactivate-mark-hook
+@xref{The Mark}.
+
 @item desktop-after-read-hook
+Normal hook run after a successful @code{desktop-read}.  May be used
+to show a buffer list.  @xref{Saving Emacs Sessions,, Saving Emacs
+Sessions, emacs, the GNU Emacs Manual}.
+
 @item desktop-no-desktop-file-hook
+Normal hook run when @code{desktop-read} can't find a desktop file.
+May be used to show a dired buffer.  @xref{Saving Emacs Sessions,,
+Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
+
 @item desktop-save-hook
+Normal hook run before the desktop is saved in a desktop file.  This
+is useful for truncating history lists, for example.  @xref{Saving
+Emacs Sessions,, Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
+
 @item diary-display-hook
+@inforef{Fancy Diary Display,, emacs-xtra}.
+
 @item diary-hook
-@item dired-mode-hook
+List of functions called after the display of the diary.  Can be used
+for appointment notification.
+
 @item disabled-command-function
+@xref{Disabling Commands}.
+
 @item echo-area-clear-hook
-@item edit-picture-hook
-@item electric-buffer-menu-mode-hook
-@item electric-command-history-hook
-@item electric-help-mode-hook
-@item emacs-lisp-mode-hook
+@xref{The Echo Area}.
+
+@item emacs-startup-hook
+@xref{Init File}.
+
 @item find-file-hook
+@xref{Visiting Functions}.
+
 @item find-file-not-found-functions
+@xref{Visiting Functions}.
+
 @item first-change-hook
-@item fortran-comment-hook
-@item fortran-mode-hook
-@item indent-mim-hook
+@xref{Change Hooks}.
+
 @item initial-calendar-window-hook
+@inforef{Calendar Customizing,, emacs-xtra}.
+
 @item kbd-macro-termination-hook
+@xref{Keyboard Macros}.
+
 @item kill-buffer-hook
+@xref{Killing Buffers}.
+
 @item kill-buffer-query-functions
+@xref{Killing Buffers}.
+
 @item kill-emacs-hook
+@xref{Killing Emacs}.
+
 @item kill-emacs-query-functions
-@item LaTeX-mode-hook
-@item ledit-mode-hook
+@xref{Killing Emacs}.
+
 @item lisp-indent-function
-@item lisp-interaction-mode-hook
-@item lisp-mode-hook
+
 @item list-diary-entries-hook
-@item mail-mode-hook
+@inforef{Fancy Diary Display,, emacs-xtra}.
+
 @item mail-setup-hook
+@xref{Mail Mode Misc,, Mail Mode Miscellany, emacs, the GNU Emacs
+Manual}.
+
 @item mark-diary-entries-hook
-@item medit-mode-hook
+@inforef{Fancy Diary Display,, emacs-xtra}.
+
 @item menu-bar-update-hook
+@xref{Menu Bar}.
+
 @item minibuffer-setup-hook
+@xref{Minibuffer Misc}.
+
 @item minibuffer-exit-hook
+@xref{Minibuffer Misc}.
+
 @item mouse-position-function
-@item news-mode-hook
-@item news-reply-mode-hook
-@item news-setup-hook
+@xref{Mouse Position}.
+
 @item nongregorian-diary-listing-hook
+@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+
 @item nongregorian-diary-marking-hook
-@item nroff-mode-hook
-@item outline-mode-hook
-@item plain-TeX-mode-hook
+@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+
 @item post-command-hook
+@xref{Command Overview}.
+
 @item pre-abbrev-expand-hook
+@xref{Abbrev Expansion}.
+
 @item pre-command-hook
+@xref{Command Overview}.
+
 @item print-diary-entries-hook
-@item prolog-mode-hook
-@item protect-innocence-hook
+@inforef{Diary Customizing,, emacs-xtra}.
+
 @item redisplay-end-trigger-functions
-@item rmail-edit-mode-hook
-@item rmail-mode-hook
-@item rmail-summary-mode-hook
-@item scheme-indent-hook
-@item scheme-mode-hook
-@item scribe-mode-hook
-@item shell-mode-hook
-@item shell-set-directory-error-hook
+@xref{Window Hooks}.
+
+@item scheme-indent-function
+
 @item suspend-hook
+@xref{Suspending Emacs}.
+
 @item suspend-resume-hook
+@xref{Suspending Emacs}.
+
+@item temp-buffer-setup-hook
+@xref{Temporary Displays}.
+
 @item temp-buffer-show-function
+@xref{Temporary Displays}.
+
+@item temp-buffer-show-hook
+@xref{Temporary Displays}.
+
 @item term-setup-hook
-@item terminal-mode-hook
-@item terminal-mode-break-hook
-@item TeX-mode-hook
-@item text-mode-hook
+@xref{Terminal-Specific}.
+
 @item today-visible-calendar-hook
+@inforef{Calendar Customizing,, emacs-xtra}.
+
 @item today-invisible-calendar-hook
-@item vi-mode-hook
-@item view-hook
+@inforef{Calendar Customizing,, emacs-xtra}.
+
 @item window-configuration-change-hook
+@xref{Window Hooks}.
+
 @item window-scroll-functions
+@xref{Window Hooks}.
+
 @item window-setup-hook
+@xref{Window Systems}.
+
 @item window-size-change-functions
+@xref{Window Hooks}.
+
 @item write-contents-functions
+@xref{Saving Buffers}.
+
 @item write-file-functions
+@xref{Saving Buffers}.
+
 @item write-region-annotate-functions
+@xref{Saving Properties}.
 @end table
 
 @ignore

@@ -1,5 +1,4 @@
-Emacs-inleiding
-Je leest nu de Emacs-inleiding.  De kopieervoorwaarden staan onderaan.
+Emacs-inleiding.  De kopieervoorwaarden staan onderaan.
 Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
 
 De meeste Emacs-commando's gebruiken de CONTROL-toets (soms CTRL of CTL

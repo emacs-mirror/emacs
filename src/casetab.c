@@ -162,7 +162,12 @@ set_case_table (table, standard)
   XCHAR_TABLE (canon)->extras[2] = eqv;
 
   if (standard)
-    Vascii_downcase_table = table;
+    {
+      Vascii_downcase_table = table;
+      Vascii_upcase_table = up;
+      Vascii_canon_table = canon;
+      Vascii_eqv_table = eqv;
+    }
   else
     {
       current_buffer->downcase_table = table;

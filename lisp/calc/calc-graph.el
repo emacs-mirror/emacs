@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -33,14 +33,10 @@
 
 ;;; Graphics
 
-(defvar calc-gnuplot-name "gnuplot"
-  "*Name of GNUPLOT program, for calc-graph features.")
-
-(defvar calc-gnuplot-plot-command nil
-  "*Name of command for displaying GNUPLOT output; %s = file name to print.")
-
-(defvar calc-gnuplot-print-command "lp %s"
-  "*Name of command for printing GNUPLOT output; %s = file name to print.")
+;; The following three variables are customizable and defined in calc.el.
+(defvar calc-gnuplot-name)
+(defvar calc-gnuplot-plot-command)
+(defvar calc-gnuplot-print-command)
 
 (defvar calc-gnuplot-tempfile "calc")
 

@@ -10780,7 +10780,7 @@ the current word list."
       ;; character by character.
       (while this
 	(setq pos (1+ pos)
-	      char (char-after pos)
+	      char (or (char-after pos) 0)
 	      category-set (char-category-set char))
 	;; If the current sequence is recorded in `thai-word-table'
 	;; (i.e. (car THIS) is 1) and the following Thai character is

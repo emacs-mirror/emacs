@@ -1196,8 +1196,9 @@ appear until you deiconify it.
 @opindex -hb
 @itemx --horizontal-scroll-bars
 @opindex --horizontal-scroll-bars
-@cindex horizontal scroll bars, command-line argument
-Enable horizontal scroll bars.
+@c @cindex horizontal scroll bars, command-line argument
+Enable horizontal scroll bars.  Since horizontal scroll bars
+are not yet implemented, this actually does nothing.
 
 @item -vb
 @opindex -vb

@@ -1933,14 +1933,18 @@ allocate_string_data (s, nchars, nbytes)
          mmap'ed data typically have an address towards the top of the
          address space, which won't fit into an EMACS_INT (at least on
          32-bit systems with the current tagging scheme).  --fx  */
+      BLOCK_INPUT;
       mallopt (M_MMAP_MAX, 0);
+      UNBLOCK_INPUT;
 #endif
 
       b = (struct sblock *) lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
+      BLOCK_INPUT;
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      UNBLOCK_INPUT;
 #endif
 
       b->next_free = &b->first_data;
@@ -4743,6 +4747,8 @@ returns nil, because real GC can't be done.  */)
   if (pure_bytes_used_before_overflow)
     return Qnil;
 
+  CHECK_CONS_LIST ();
+
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
   {
@@ -4935,6 +4941,8 @@ returns nil, because real GC can't be done.  */)
 #endif
 
   UNBLOCK_INPUT;
+
+  CHECK_CONS_LIST ();
 
   /* clear_marks (); */
   gc_in_progress = 0;

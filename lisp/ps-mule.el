@@ -1402,6 +1402,7 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 (defun ps-mule-show-warning (charsets from to header-footer-list)
   (let ((table (make-category-table))
 	(buf (current-buffer))
+	(max-unprintable-chars 15)
 	char-pos-list)
     (define-category ?u "Unprintable charset" table)
     (dolist (cs charsets)
@@ -1409,19 +1410,22 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
     (with-category-table table
       (save-excursion
 	(goto-char from)
-	(while (and (< (length char-pos-list) 20)
+	(while (and (<= (length char-pos-list) max-unprintable-chars)
 		    (re-search-forward "\\cu" to t))
-	  (push (cons (preceding-char) (1- (point))) char-pos-list))
-	(setq char-pos-list (nreverse char-pos-list))))
+	  (push (cons (preceding-char) (1- (point))) char-pos-list))))
     (with-output-to-temp-buffer "*Warning*"
       (with-current-buffer standard-output
 	(when char-pos-list
 	  (let ((func #'(lambda (buf pos)
 			  (when (buffer-live-p buf)
 			    (pop-to-buffer buf)
-			    (goto-char pos)))))
+			    (goto-char pos))))
+		(more nil))
+	    (if (>= (length char-pos-list) max-unprintable-chars)
+		(setq char-pos-list (cdr char-pos-list)
+		      more t))
 	    (insert "These characters in the buffer can't be printed:\n")
-	    (dolist (elt char-pos-list)
+	    (dolist (elt (nreverse char-pos-list))
 	      (insert " ")
 	      (insert-text-button (string (car elt))
 				  :type 'help-xref
@@ -1430,8 +1434,10 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 				  'help-function func
 				  'help-args (list buf (cdr elt)))
 	      (insert ","))
-	    ;; Delete the last comma.
-	    (delete-char -1)
+	    (if more
+		(insert " and more...")
+	      ;; Delete the last comma.
+	      (delete-char -1))
 	    (insert "\nClick them to jump to the buffer position,\n"
 		    (substitute-command-keys "\
 or \\[universal-argument] \\[what-cursor-position] will give information about them.\n"))))

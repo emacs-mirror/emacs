@@ -1,5 +1,4 @@
-krótki samouczek Emacsa
-Czytasz w³a¶nie krótki samouczek Emacsa. Copyright (c) 1985, 2001
+krótki samouczek Emacsa. Copyright (c) 1985, 2001
 Free Software Foundation, Inc. Szczegó³y na koñcu pliku.
 
 Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego

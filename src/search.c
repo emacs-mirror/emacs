@@ -293,7 +293,7 @@ looking_at_1 (string, posix)
   CHECK_STRING (string);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : Qnil),
+			   ? current_buffer->case_canon_table : Qnil),
 			  posix,
 			  !NILP (current_buffer->enable_multibyte_characters));
 
@@ -399,7 +399,7 @@ string_match_1 (regexp, string, start, posix)
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : Qnil),
+			   ? current_buffer->case_canon_table : Qnil),
 			  posix,
 			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
@@ -499,7 +499,7 @@ fast_c_string_match_ignore_case (regexp, string)
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
-			  Vascii_downcase_table, 0,
+			  Vascii_canon_table, 0,
 			  0);
   immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
@@ -516,7 +516,7 @@ fast_string_match_ignore_case (regexp, string)
   int val;
   struct re_pattern_buffer *bufp;
 
-  bufp = compile_pattern (regexp, 0, Vascii_downcase_table,
+  bufp = compile_pattern (regexp, 0, Vascii_canon_table,
 			  0, STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
@@ -1175,7 +1175,9 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat = SDATA (string);
-      int charset_base = -1;
+      /* Set to nozero if we find a non-ASCII char that need
+	 translation.  */
+      int charset_base = 0;
       int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
@@ -1221,9 +1223,17 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       base_pat = raw_pattern;
       if (multibyte)
 	{
+	  /* Fill patbuf by translated characters in STRING while
+	     checking if we can use boyer-moore search.  If TRT is
+	     non-nil, we can use boyer-moore search only if TRT can be
+	     represented by the byte array of 256 elements.  For that,
+	     all non-ASCII case-equivalents of all case-senstive
+	     characters in STRING must belong to the same charset and
+	     row.  */
+
 	  while (--len >= 0)
 	    {
-	      unsigned char str[MAX_MULTIBYTE_LENGTH];
+	      unsigned char str_base[MAX_MULTIBYTE_LENGTH], *str;
 	      int c, translated, inverse;
 	      int in_charlen, charlen;
 
@@ -1233,50 +1243,62 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	      if (RE && *base_pat == '\\')
 		{
 		  len--;
+		  raw_pattern_size--;
 		  len_byte--;
 		  base_pat++;
 		}
 
 	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
 
-	      /* Translate the character, if requested.  */
-	      TRANSLATE (translated, trt, c);
-	      /* If translation changed the byte-length, go back
-		 to the original character.  */
-	      charlen = CHAR_STRING (translated, str);
-	      if (in_charlen != charlen)
+	      if (NILP (trt))
 		{
-		  translated = c;
-		  charlen = CHAR_STRING (c, str);
+		  str = base_pat;
+		  charlen = in_charlen;
 		}
-
-	      /* If we are searching for something strange,
-		 an invalid multibyte code, don't use boyer-moore.  */
-	      if (! ASCII_BYTE_P (translated)
-		  && (charlen == 1 /* 8bit code */
-		      || charlen != in_charlen /* invalid multibyte code */
-		      ))
-		boyer_moore_ok = 0;
-
-	      TRANSLATE (inverse, inverse_trt, c);
-
-	      /* Did this char actually get translated?
-		 Would any other char get translated into it?  */
-	      if (translated != c || inverse != c)
+	      else
 		{
-		  /* Keep track of which character set row
-		     contains the characters that need translation.  */
-		  int charset_base_code = c & ~CHAR_FIELD3_MASK;
-		  int inverse_charset_base = inverse & ~CHAR_FIELD3_MASK;
+		  /* Translate the character.  */
+		  TRANSLATE (translated, trt, c);
+		  charlen = CHAR_STRING (translated, str_base);
+		  str = str_base;
 
-		  if (charset_base_code != inverse_charset_base)
-		    boyer_moore_ok = 0;
-		  else if (charset_base == -1)
-		    charset_base = charset_base_code;
-		  else if (charset_base != charset_base_code)
-		    /* If two different rows appear, needing translation,
-		       then we cannot use boyer_moore search.  */
-		    boyer_moore_ok = 0;
+		  /* Check if C has any other case-equivalents.  */
+		  TRANSLATE (inverse, inverse_trt, c);
+		  /* If so, check if we can use boyer-moore.  */
+		  if (c != inverse && boyer_moore_ok)
+		    {
+		      /* Check if all equivalents belong to the same
+			 charset & row.  Note that the check of C
+			 itself is done by the last iteration.  Note
+			 also that we don't have to check ASCII
+			 characters because boyer-moore search can
+			 always handle their translation.  */
+		      while (1)
+			{
+			  if (! ASCII_BYTE_P (inverse))
+			    {
+			      if (SINGLE_BYTE_CHAR_P (inverse))
+				{
+				  /* Boyer-moore search can't handle a
+				     translation of an eight-bit
+				     character.  */
+				  boyer_moore_ok = 0;
+				  break;
+				}
+			      else if (charset_base == 0)
+				charset_base = inverse & ~CHAR_FIELD3_MASK;
+			      else if ((inverse & ~CHAR_FIELD3_MASK)
+				       != charset_base)
+				{
+				  boyer_moore_ok = 0;
+				  break;
+				}
+			    }
+			  if (c == inverse)
+			    break;
+			  TRANSLATE (inverse, inverse_trt, inverse);
+			}
+		    }
 		}
 
 	      /* Store this character into the translated pattern.  */
@@ -1300,6 +1322,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	      if (RE && *base_pat == '\\')
 		{
 		  len--;
+		  raw_pattern_size--;
 		  base_pat++;
 		}
 	      c = *base_pat++;
@@ -1533,16 +1556,18 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
     return n;
 }
 
-/* Do Boyer-Moore search N times for the string PAT,
+/* Do Boyer-Moore search N times for the string BASE_PAT,
    whose length is LEN/LEN_BYTE,
    from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
    DIRECTION says which direction we search in.
    TRT and INVERSE_TRT are translation tables.
+   Characters in PAT are already translated by TRT.
 
-   This kind of search works if all the characters in PAT that have
-   nontrivial translation are the same aside from the last byte.  This
-   makes it possible to translate just the last byte of a character,
-   and do so after just a simple test of the context.
+   This kind of search works if all the characters in BASE_PAT that
+   have nontrivial translation are the same aside from the last byte.
+   This makes it possible to translate just the last byte of a
+   character, and do so after just a simple test of the context.
+   CHARSET_BASE is nonzero iff there is such a non-ASCII character.
 
    If that criterion is not satisfied, do not call this function.  */
 
@@ -1569,8 +1594,13 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   unsigned char simple_translate[0400];
-  int translate_prev_byte = 0;
-  int translate_anteprev_byte = 0;
+  /* These are set to the preceding bytes of a byte to be translated
+     if charset_base is nonzero.  As the maximum byte length of a
+     multibyte character is 4, we have to check at most three previous
+     bytes.  */
+  int translate_prev_byte1 = 0;
+  int translate_prev_byte2 = 0;
+  int translate_prev_byte3 = 0;
 
 #ifdef C_ALLOCA
   int BM_tab_space[0400];
@@ -1636,6 +1666,23 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   for (i = 0; i < 0400; i++)
     simple_translate[i] = i;
 
+  if (charset_base)
+    {
+      /* Setup translate_prev_byte1/2/3 from CHARSET_BASE.  Only a
+	 byte following them are the target of translation.  */
+      int sample_char = charset_base | 0x20;
+      unsigned char str[MAX_MULTIBYTE_LENGTH];
+      int len = CHAR_STRING (sample_char, str);
+
+      translate_prev_byte1 = str[len - 2];
+      if (len > 2)
+	{
+	  translate_prev_byte2 = str[len - 3];
+	  if (len > 3)
+	    translate_prev_byte3 = str[len - 4];
+	}
+    }
+
   i = 0;
   while (i != infinity)
     {
@@ -1645,57 +1692,37 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	i = infinity;
       if (! NILP (trt))
 	{
-	  int ch;
-	  int untranslated;
-	  int this_translated = 1;
+	  /* If the byte currently looking at is a head of a character
+	     to check case-equivalents, set CH to that character.  An
+	     ASCII character and a non-ASCII character matching with
+	     CHARSET_BASE are to be checked.  */
+	  int ch = -1;
 
-	  if (multibyte
-	      /* Is *PTR the last byte of a character?  */
-	      && (pat_end - ptr == 1 || CHAR_HEAD_P (ptr[1])))
+	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
+	    ch = *ptr;
+	  else if (charset_base && CHAR_HEAD_P (*ptr))
 	    {
-	      unsigned char *charstart = ptr;
-	      while (! CHAR_HEAD_P (*charstart))
-		charstart--;
-	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
-	      if (charset_base == (untranslated & ~CHAR_FIELD3_MASK))
-		{
-		  TRANSLATE (ch, trt, untranslated);
-		  if (! CHAR_HEAD_P (*ptr))
-		    {
-		      translate_prev_byte = ptr[-1];
-		      if (! CHAR_HEAD_P (translate_prev_byte))
-			translate_anteprev_byte = ptr[-2];
-		    }
-		}
-	      else
-		{
-		  this_translated = 0;
-		  ch = *ptr;
-		}
-	    }
-	  else if (!multibyte)
-	    TRANSLATE (ch, trt, *ptr);
-	  else
-	    {
-	      ch = *ptr;
-	      this_translated = 0;
+	      ch = STRING_CHAR (ptr, pat_end - ptr);
+	      if (charset_base != (ch & ~CHAR_FIELD3_MASK))
+		ch = -1;
 	    }
 
-	  if (ch > 0400)
-	    j = ((unsigned char) ch) | 0200;
-	  else
-	    j = (unsigned char) ch;
-
+	  j = *ptr;
 	  if (i == infinity)
 	    stride_for_teases = BM_tab[j];
 
 	  BM_tab[j] = dirlen - i;
 	  /* A translation table is accompanied by its inverse -- see */
 	  /* comment following downcase_table for details */
-	  if (this_translated)
+	  if (ch >= 0)
 	    {
 	      int starting_ch = ch;
-	      int starting_j = j;
+	      int starting_j;
+
+	      if (ch > 0400)
+		starting_j = ((unsigned char) ch) | 0200;
+	      else
+		starting_j = (unsigned char) ch;
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
@@ -1821,9 +1848,13 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 			  || ((cursor == tail_end_ptr
 			       || CHAR_HEAD_P (cursor[1]))
 			      && (CHAR_HEAD_P (cursor[0])
-				  || (translate_prev_byte == cursor[-1]
-				      && (CHAR_HEAD_P (translate_prev_byte)
-					  || translate_anteprev_byte == cursor[-2])))))
+				  /* Check if this is the last byte of
+				     a translable character.  */
+				  || (translate_prev_byte1 == cursor[-1]
+				      && (CHAR_HEAD_P (translate_prev_byte1)
+					  || (translate_prev_byte2 == cursor[-2]
+					      && (CHAR_HEAD_P (translate_prev_byte2)
+						  || (translate_prev_byte3 == cursor[-3]))))))))
 			ch = simple_translate[*cursor];
 		      else
 			ch = *cursor;
@@ -1901,9 +1932,13 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 		      || ((ptr == tail_end_ptr
 			   || CHAR_HEAD_P (ptr[1]))
 			  && (CHAR_HEAD_P (ptr[0])
-			      || (translate_prev_byte == ptr[-1]
-				  && (CHAR_HEAD_P (translate_prev_byte)
-				      || translate_anteprev_byte == ptr[-2])))))
+			      /* Check if this is the last byte of a
+				 translable character.  */
+			      || (translate_prev_byte1 == ptr[-1]
+				  && (CHAR_HEAD_P (translate_prev_byte1)
+				      || (translate_prev_byte2 == ptr[-2]
+					  && (CHAR_HEAD_P (translate_prev_byte2)
+					      || translate_prev_byte3 == ptr[-3])))))))
 		    ch = simple_translate[*ptr];
 		  else
 		    ch = *ptr;

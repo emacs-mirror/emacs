@@ -2880,6 +2880,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   if (debug_on_next_call)
     do_debug_on_call (Qlambda);
 
+  CHECK_CONS_LIST ();
+
  retry:
 
   fun = args[0];
@@ -2888,9 +2890,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   if (SUBRP (fun))
     {
-      CHECK_CONS_LIST ();
-
-      if (numargs < XSUBR (fun)->min_args
+       if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
 	  XSETFASTINT (lisp_numargs, numargs);
@@ -2989,6 +2989,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       else if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, args[0]);
+	  CHECK_CONS_LIST ();
 	  goto retry;
 	}
       else

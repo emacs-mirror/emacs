@@ -1,6 +1,5 @@
-Tutorial do Emacs
-Copyright (c) 2004 Free Software Foundation, Inc;  Veja no fim as
-condições.
+Tutorial do Emacs. Veja no fim as condições para cópia.
+Copyright (c) 2004, 2005 Free Software Foundation.
 
 Os comandos do Emacs geralmente envolvem a tecla CONTROL (algumas vezes
 nomeada CTRL ou CTL) ou a tecla META (algumas vezes nomeada EDIT ou
@@ -131,8 +130,8 @@ jeito na direção contraria.
    você pode observar a ação do M-f e M-b de varias lugares dentro e no
    meio de palavras.
 
-Observe o paralelismo entre C-f e C-b em uma mão, e M-f e M-b na
-outra. Muito freqüentemente os caracteres Meta são usados para operações
+Observe o paralelismo entre C-f e C-b por um lado, e M-f e M-b por outro
+lado. Muito freqüentemente os caracteres Meta são usados para operações
 relacionadas com as unidades definidas pela linguagem (palavras,
 sentenças, parágrafos), enquanto caracteres Control operam nas unidades
 básicas que são independente do que você está editando (caracteres,
@@ -860,7 +859,7 @@ manual do Emacs para uma dica de como lhe dar com esse "recurso".
 
 Se você estiver no meio de uma pesquisa incremental e digitar <Delete>,
 você percebera que o ultimo caractere da pesquisa será apagado e a
-pesquisa voltara para o ultimo lugar da pesquisa. Por instancia, imagine
+pesquisa voltara para o ultimo lugar da pesquisa. Por exemplo, imagine
 que você tenha digitado "c", para pesquisar a primeira ocorrência de
 "c". Agora se você digitar "u", o cursor ira mover para a primeira
 ocorrência de "cu". Agora digite <Delete>. Isso ira apagar o "u" da

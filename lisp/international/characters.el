@@ -884,8 +884,8 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs (1- c)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
-  ;;(set-downcase-syntax  ?$,1 P(B ?i tbl)
-  ;;(set-upcase-syntax    ?I ?$,1 Q(B tbl)
+  (set-downcase-syntax  ?$,1 P(B ?i tbl)
+  (set-upcase-syntax    ?I ?$,1 Q(B tbl)
   (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
   (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
   (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)
