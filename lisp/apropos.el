@@ -277,6 +277,9 @@ Returns list of symbols and documentation found."
 			(not (setq local (lookup-key current-local-map key)))
 			(numberp local)
 			(eq command local))
+		    ;; check if this binding is already recorded
+		    ;; (this can happen due to inherited keymaps)
+		    (not (member key (nthcdr 3 item)))
 		    ;; add this key binding to the item in alist
 		    (nconc item (cons key nil))))
 	      ((vectorp (car map))
@@ -305,6 +308,9 @@ Returns list of symbols and documentation found."
 			    (not (setq local (lookup-key current-local-map key)))
 			    (numberp local)
 			    (eq command local))
+			;; check if this binding is already recorded
+			;; (this can happen due to inherited keymaps)
+			(not (member key (nthcdr 3 item)))
 			;; add this key binding to the item in alist
 			(nconc item (cons key nil)))
 		   (setq i (1+ i))))))
