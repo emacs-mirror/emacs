@@ -125,12 +125,12 @@ static char *parseArgs(int argc, char *argv[])
 {
   char *name = "mpsio.log";
   int i = 1;
-  
+
   if (argc >= 1)
     prog = argv[0];
   else
     prog = "unknown";
-  
+
   while (i < argc) { /* consider argument i */
     if (argv[i][0] == '-') { /* it's an option argument */
       switch (argv[i][1]) {
@@ -138,9 +138,9 @@ static char *parseArgs(int argc, char *argv[])
         ++ i;
         if (i == argc)
           usageError();
-        else   
+        else
           name = argv[i];
-        break;   
+        break;
       case 'p': /* partial log */
         partialLog = TRUE;
         break;
@@ -154,7 +154,7 @@ static char *parseArgs(int argc, char *argv[])
           usageError();
         else
           parseEventSpec(argv[i]);
-      } break;   
+      } break;
       case 'b': { /* bucket size */
         ++ i;
         if (i == argc)
@@ -165,7 +165,7 @@ static char *parseArgs(int argc, char *argv[])
           n = sscanf(argv[i], "%lu", &bucketSize);
           if (n != 1) usageError();
         }
-      } break;   
+      } break;
       case 'S': /* style */
         style = argv[i][2]; /* '\0' for human-readable, 'L' for Lisp, */
         break;              /* 'C' for CDF. */
@@ -192,7 +192,7 @@ static void processEvent(EventProc proc, Event event, Word etime)
   if (res != ResOK)
     error("Can't record event: error %d.", res);
   switch(event->any.code) {
-  default: 
+  default:
     break;
   }
 }
@@ -246,7 +246,7 @@ static void reportEventResults(eventCountArray eventCounts)
 {
   EventCode i;
   unsigned long total = 0;
-  
+
   for(i = 0; i <= EventCodeMAX; ++i) {
     total += eventCounts[i];
     if (eventEnabled[i])
@@ -441,7 +441,7 @@ static void readLog(EventProc proc)
         printf("%u", (unsigned)code);
         break;
       }
- 
+
      switch (style) {
      case '\0':
        printf(" %8lu", (ulong)eventTime); break;
@@ -591,11 +591,16 @@ int main(int argc, char *argv[])
   EventProc proc;
   Res res;
 
+#if !defined(MPS_OS_FR)
+  /* GCC -ansi -pedantic -Werror on FreeBSD will fail here
+   * with the warning "statement with no effect". */
+
   assert(CHECKCONV(ulong, Word));
   assert(CHECKCONV(ulong, Addr));
   assert(CHECKCONV(ulong, void *));
   assert(CHECKCONV(unsigned, EventCode));
   assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
+#endif
 
   filename = parseArgs(argc, argv);
 

@@ -1,4 +1,4 @@
-/*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
+/*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
  *
  *  $HopeName: MMsrc!thlii4.c(trunk.2) $
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
@@ -36,17 +36,17 @@
  * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
-#include "prmcli.h"
+#include "prmcfr.h"
 #include "mpm.h"
 
-#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I4)
-#error "Compiling thlii4 when MPS_OS_LI or MPS_ARCH_I4 not defined."
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I4)
+#error "Compiling thfri4 when MPS_OS_FR or MPS_ARCH_I4 not defined."
 #endif
 
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
+SRCID(thfri4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
 
 
 /* ThreadStruct -- thread desriptor */
@@ -243,18 +243,18 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     if(res != ResOK)
       return res;
   } else {
-    struct sigcontext *scp;
+    MutatorFaultContext mfc;
     Addr *stackBase, *stackLimit, stackPtr;
 
-    scp = thread->mfc->scp;
-    if(scp == NULL) {
+    mfc = thread->mfc;
+    if(mfc == NULL) {
       /* .error.suspend */
       /* We assume that the thread must have been destroyed. */
       /* We ignore the situation by returning immediately. */
       return ResOK;
     }
 
-    stackPtr  = (Addr)scp->esp;   /* .i3.sp */
+    stackPtr  = (Addr)mfc->ucontext->uc_mcontext.mc_esp;   /* .i3.sp */
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;
@@ -273,8 +273,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
      * unecessarily scans the rest of the context.  The optimisation
      * to scan only relevent parts would be machine dependent.
      */
-    res = TraceScanAreaTagged(ss, (Addr *)scp,
-           (Addr *)((char *)scp + sizeof(*scp)));
+    res = TraceScanAreaTagged(ss, (Addr *)mfc->ucontext,
+           (Addr *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))));
     if(res != ResOK)
       return res;
   }
