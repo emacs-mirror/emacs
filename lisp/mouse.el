@@ -1206,6 +1206,8 @@ and selects that window."
         choice)
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-start event))))
+      (if completion-reference-buffer
+	  (setq buffer completion-reference-buffer))
       (save-excursion
 	(goto-char (posn-point (event-start event)))
 	(skip-chars-backward "^ \t\n")
@@ -1215,6 +1217,9 @@ and selects that window."
     (set-buffer buffer)
     (mouse-delete-max-match choice)
     (insert choice)
+    ;; Update point in the window that BUFFER is showing in.
+    (let ((window (get-buffer-window buffer t)))
+      (set-window-point window (point)))
     (and (equal buffer (window-buffer (minibuffer-window)))
 	 (minibuffer-complete-and-exit))))
 
