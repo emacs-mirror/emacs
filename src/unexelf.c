@@ -404,6 +404,23 @@ Filesz      Memsz       Flags       Align
 
  */
 
+/*
+ * Modified by rdh@yottayotta.com of Yotta Yotta Incorporated.
+ * 
+ * The code originally used mmap() to create a memory image of the new
+ * and old object files.  This had a few handy features: (1) you get
+ * to use a cool system call like mmap, (2) no need to explicitly
+ * write out the new file before the close, and (3) no swap space
+ * requirements.  Unfortunately, mmap() often fails to work with
+ * nfs-mounted file systems.
+ *
+ * So, instead of relying on the vm subsystem to do the file i/o for
+ * us, it's now done explicitly.  A buffer of the right size for the
+ * file is dynamically allocated, and either the old_name is read into
+ * it, or it is initialized with the correct new executable contents,
+ * and then written to new_name.
+ */
+
 #ifndef emacs
 #define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
 #include <string.h>
@@ -667,7 +684,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   int old_mdebug_index;
   struct stat stat_buf;
 
-  /* Open the old file & map it into the address space. */
+  /* Open the old file, allocate a buffer of the right size, and read
+   * in the file contents. */
 
   old_file = open (old_name, O_RDONLY);
 
@@ -677,16 +695,18 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (fstat (old_file, &stat_buf) == -1)
     fatal ("Can't fstat (%s): errno %d\n", old_name, errno);
 
-  old_base = mmap ((caddr_t) 0, stat_buf.st_size, PROT_READ, MAP_SHARED,
-		   old_file, 0);
+  old_base = malloc (stat_buf.st_size);
 
-  if (old_base == (caddr_t) -1)
-    fatal ("Can't mmap (%s): errno %d\n", old_name, errno);
+  if (old_base == 0)
+    fatal ("Can't allocate buffer for %s\n", old_name);
 
 #ifdef DEBUG
-  fprintf (stderr, "mmap (%s, %x) -> %x\n", old_name, stat_buf.st_size,
+  fprintf (stderr, "%s: malloc(%d) -> %x\n", old_name, stat_buf.st_size,
 	   old_base);
 #endif
+
+  if (read (old_file, old_base, stat_buf.st_size) != stat_buf.st_size)
+    fatal ("Didn't read all of %s: errno %d\n", old_name, errno);
 
   /* Get pointers to headers & section names */
 
@@ -757,9 +777,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if ((unsigned) new_bss_addr < (unsigned) old_bss_addr + old_bss_size)
     fatal (".bss shrank when undumping???\n", 0, 0);
 
-  /* Set the output file to the right size and mmap it.  Set
-   * pointers to various interesting objects.  stat_buf still has
-   * old_file data.
+  /* Set the output file to the right size.  Allocate a buffer to hold
+   * the image of the new file.  Set pointers to various interesting
+   * objects.  stat_buf still has old_file data.
    */
 
   new_file = open (new_name, O_RDWR | O_CREAT, 0666);
@@ -771,16 +791,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (ftruncate (new_file, new_file_size))
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
 
-#ifdef UNEXEC_USE_MAP_PRIVATE
-  new_base = mmap ((caddr_t) 0, new_file_size, PROT_READ | PROT_WRITE,
-		   MAP_PRIVATE, new_file, 0);
-#else
-  new_base = mmap ((caddr_t) 0, new_file_size, PROT_READ | PROT_WRITE,
-		   MAP_SHARED, new_file, 0);
-#endif
+  new_base = malloc (new_file_size);
 
-  if (new_base == (caddr_t) -1)
-    fatal ("Can't mmap (%s): errno %d\n", new_name, errno);
+  if (new_base == 0)
+    fatal ("Can't allocate buffer for %s\n", old_name);
+
+#ifdef DEBUG
+  fprintf (stderr, "%s: malloc(%d) -> %x\n", new_name, new_file_size
+	   new_base);
+#endif
 
   new_file_h = (ElfW(Ehdr) *) new_base;
   new_program_h = (ElfW(Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
@@ -1198,21 +1217,26 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       }
     }
 
-#ifdef UNEXEC_USE_MAP_PRIVATE
-  if (lseek (new_file, 0, SEEK_SET) == -1)
-    fatal ("Can't rewind (%s): errno %d\n", new_name, errno);
+  /* Write out new_file, close it, and free the buffer containing its
+   * contents */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
-    fatal ("Can't write (%s): errno %d\n", new_name, errno);
-#endif
+    fatal ("Didn't write %d bytes to %s: errno %d\n", 
+	   new_file_size, new_base, errno);
 
-  /* Close the files and make the new file executable.  */
+  if (close (new_file))
+    fatal ("Can't close (%s): errno %d\n", new_name, errno);
+
+  free (new_base);
+
+  /* Close old_file, and free the corresponding buffer */
 
   if (close (old_file))
     fatal ("Can't close (%s): errno %d\n", old_name, errno);
 
-  if (close (new_file))
-    fatal ("Can't close (%s): errno %d\n", new_name, errno);
+  free (old_base);
+
+  /* Make the new file executable */
 
   if (stat (new_name, &stat_buf) == -1)
     fatal ("Can't stat (%s): errno %d\n", new_name, errno);
