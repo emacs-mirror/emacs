@@ -769,7 +769,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    }
 	  else
 #endif
-	    TOP = (XINT (num1) == XINT (num2) ? Qt : Qnil);
+	    TOP = (XINT (v1) == XINT (v2) ? Qt : Qnil);
 	  break;
 
 	case Bgtr:
