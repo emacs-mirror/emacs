@@ -560,17 +560,8 @@ main (argc, argv, envp)
 #endif
 
 #ifdef AIX
-      signal (20, fatal_error_signal);
-      signal (21, fatal_error_signal);
-      signal (22, fatal_error_signal);
-      signal (24, fatal_error_signal);
-#if 0 /* mvn@library.ucla.edu says these are SIGIO on AIX 3.2.4.  */
-      signal (23, fatal_error_signal);
-#ifdef SIGIO
-      signal (SIGAIO, fatal_error_signal);
-      signal (SIGPTY, fatal_error_signal);
-#endif
-#endif
+/* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
+      signal (SIGXCPU, fatal_error_signal);
 #ifndef _I386
       signal (SIGIOINT, fatal_error_signal);
 #endif
