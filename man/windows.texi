@@ -20,6 +20,7 @@ one frame.
 * Force Same Window::   Forcing certain buffers to appear in the selected
                           window rather than in another window.
 * Change Window::       Deleting windows and changing their sizes.
+* Window Convenience::  Convenience functions for window handling.
 @end menu
 
 @node Basic Window
@@ -349,6 +350,49 @@ gives the extra lines to other windows in the frame.
   You can also use @kbd{C-x +} (@code{balance-windows}) to even out the
 heights of all the windows in the selected frame.
 
-  @xref{Minibuffer Edit}, for information about the Resize-Minibuffer
-mode, which automatically changes the size of the minibuffer window to
-fit the text in the minibuffer.
+@node Window Convenience
+@section Window Handling Convenience Features and Customization
+
+@findex winner-mode
+@vindex winner-mode
+@cindex undoing window configuration changes
+@cindex window configuration changes, undoing
+@kbd{M-x winner-mode} provides a global minor mode that records the
+changes in the window configuration (i.e. how the frames are partitioned
+into windows) so that the changes can be `undone' using the command
+@kbd{M-x winner-undo}, bound to @kbd{C-x left} by default.  If you
+change your mind (while undoing), you can use @kbd{M-x winner-redo}
+(@kbd{C-x right}).  You can also turn on Winner mode by customizing
+@code{winner-mode}.
+
+@vindex scroll-all-mode
+@findex scroll-all-mode
+@cindex scrolling windows together
+@kbd{M-x scroll-all-mode} provides commands to scroll all visible
+windows together as in CRiSP/Brief emulation (@pxref{Emulation}).  You
+can also turn it on by customizing @code{scroll-all-mode}.  The commands
+provided are @kbd{M-x scroll-all-scroll-down-all}, @kbd{M-x
+scroll-all-page-down-all} and their `up' equivalents.  You would
+probably want to bind these to appropriate keys.
+
+@cindex Windmove package
+@cindex directional window selection
+The Windmove package provides commands to move directionally between
+neighbouring windows in a frame.  @kbd{M-x windmove-right} selects the
+window immediately to the right of the currently-selected one and
+similarly for the `left', `up' and `down' counterparts.  @kbd{M-x
+windmove-default-keybindings} binds these commands to @kbd{S-right}
+etc.  (These bindings will only work under a windowing system.)
+
+@cindex Follow mode
+@cindex windows, synchronizing
+@cindex synchronizing windows
+Follow minor mode (@kbd{M-x follow-mode}) synchronizes several windows
+on the same buffer so that they always display adjacent sections of that
+buffer.  Also if point moves outside a window, another window displaying
+that point is selected if possible, so that you can move between windows
+with normal movement commands.  You can use this facility, for instance,
+to operate effectively with double the number of lines of a file visible
+in a given screen height using side-by-side windows on the same buffer:
+split the window with @kbd{C-x 3} and then use @kbd{M-x follow-mode} to
+synchronize the windows.
