@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
+@c 2000, 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
@@ -1448,6 +1449,7 @@ the text around point.
 @end defun
 
 @defopt sentence-end-double-space
+@anchor{Definition of sentence-end-double-space}
 If this variable is non-@code{nil}, a period followed by just one space
 does not count as the end of a sentence, and the filling functions
 avoid breaking the line at such a place.
