@@ -387,6 +387,8 @@ Indicates that the old completion file has been read in.")
 Used to decide whether to save completions.")
 
 (defvar cmpl-preceding-syntax)
+
+(defvar completion-string)
 
 ;;;---------------------------------------------------------------------------
 ;;; Low level tools
