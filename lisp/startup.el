@@ -304,7 +304,7 @@ from being initialized.")
 
 ;; This function is called from the subdirs.el file.
 (defun normal-top-level-add-to-load-path (dirs)
-  (let ((tail (member default-directory load-path)))
+  (let ((tail (member (directory-file-name default-directory) load-path)))
     (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail)))))
 
 (defun normal-top-level ()
