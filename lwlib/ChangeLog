@@ -1,3 +1,8 @@
+2000-03-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (make_shadow_gcs): Use the widget's colormap instead
+	of the screen's default colormap.
+
 2000-02-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib.c (merge_widget_value): Fix incorrect assignment of

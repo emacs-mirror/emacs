@@ -1,8 +1,34 @@
+2000-03-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_defined_color, x_set_mouse_color, lookup_rgb_color)
+	(lookup_pixel_color, x_laplace, x_build_heuristic_mask)
+	(png_load): Access colormap of frame using FRAME_X_COLORMAP.
+	(x_decode_color): Don't handle allocation of white and black
+	specially.
+	(x_window) [USE_X_TOOLKIT]: Set XtNvisual, XtNdepth, and
+	XtNcolormap resources.
+	(x_window) [!USE_X_TOOLKIT]: Pass colormap to XCreateWindow.
+	(Fx_create_frame): Initialize color members of x_output structure.
+	(xpm_load): Pass colormap to XPM lib.
+
+	* xfaces.c (x_free_colors): Access colormap of frame using
+	FRAME_X_COLORMAP.  Be paranoid about freeing black and white
+	when default colormap is used.
+
+	* xterm.c (x_term_init): Set Colormap member of x_display_info
+	structure.  Copy colormap if resource `privateColormap' is
+	specified (PseudoColor only).
+	(x_setup_relief_color): Access colormap of frame using
+	FRAME_X_COLORMAP.
+
+	* xterm.h (struct x_display_info): Add Colormap member `cmap'.
+	(FRAME_X_COLORMAP, FRAME_X_VISUAL): New macros.
+
 2000-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* xfaces.c Change many FRAME_X... macros to FRAME_WINDOW... or
 	other non-platform-specific equivalents.
-	[WINDOWSNT]: include w32term.h, fontset.h and define X
+	[WINDOWSNT]: Include w32term.h, fontset.h and define X
 	specific functions and macros as their w32 equivalents where
 	non-platform-specifics are not available.
 	[HAVE_X_WINDOWS]: Change most of these to HAVE_WINDOW_SYSTEM.
@@ -17,10 +43,10 @@
 	WINDOWSNT.
 	(font_scalable_p) [WINDOWSNT]: Treat wildcard XLFD_AVGWIDTH as
 	scalable for backward compatibility.
-	(realize_tty_face) [MSDOS]: do the same for WINDOWSNT.
+	(realize_tty_face) [MSDOS]: Do the same for WINDOWSNT.
 	(syms_of_xfaces) [WINDOWSNT]: Allow scalable fonts by default.
 
-	* emacs.c (main) [HAVE_NTGUI]: call syms_of_xfaces instead of
+	* emacs.c (main) [HAVE_NTGUI]: Call syms_of_xfaces instead of
 	syms_of_w32faces.
 
 	* makefile.nt (w32faces.obj): Remove.
@@ -43,8 +69,8 @@
 	(x_per_char_metric): If font's default char is invalid, return
 	metrics of a suitably chosen usable default char.
 	(x_draw_glyph_string_foreground): If font has an invalid default
-	char, replace occurrences of that char with a suitably chosen
-	usable default char.
+	char, replace occurrences of unprintable chars with a suitably
+	chosen usable default char.
 
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
