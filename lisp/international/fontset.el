@@ -315,7 +315,8 @@ FONTLIST.
 If a font specifid for ASCII supports the other charsets (see the
 variable `x-font-name-charset-alist'), add that information to FONTLIST."
   (let* ((slot (assq 'ascii fontlist))
-	 (ascii-font (cdr slot)))
+	 (ascii-font (cdr slot))
+	 ascii-font-spec)
     (if ascii-font
 	(setcdr slot (setq ascii-font (x-resolve-font-name ascii-font)))
       ;; If font for ASCII is not specified, add it.
@@ -326,6 +327,16 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
 
     ;; If the font for ASCII also supports the other charsets, and
     ;; they are not specified in FONTLIST, add them.
+    (setq xlfd-fields (x-decompose-font-name ascii-font))
+    (if (not xlfd-fields)
+	(setq ascii-font-spec ascii-font)
+      (setq ascii-font-spec
+	    (cons (format "%s-%s"
+			  (aref xlfd-fields xlfd-regexp-foundry-subnum)
+			  (aref xlfd-fields xlfd-regexp-family-subnum))
+		  (format "%s-%s"
+			  (aref xlfd-fields xlfd-regexp-registry-subnum)
+			  (aref xlfd-fields xlfd-regexp-encoding-subnum)))))
     (let ((tail x-font-name-charset-alist)
 	  elt)
       (while tail
@@ -337,7 +348,7 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
 		(setq charset (car charsets) charsets (cdr charsets))
 		(or (assq charset fontlist)
 		    (setq fontlist
-			  (cons (cons charset ascii-font) fontlist))))))))
+			  (cons (cons charset ascii-font-spec) fontlist))))))))
     
     fontlist))
 
