@@ -1,5 +1,7 @@
 2002-04-29  Richard M. Stallman  <rms@gnu.org>
 
+	* net/zone-mode.el (zone-mode): Add write-file-hooks hook locally.
+
 	* mail/emacsbug.el (report-emacs-bug-hook): Don't fail completely
 	if the user edits the Emacs version number in the text.
 
