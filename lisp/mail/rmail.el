@@ -128,9 +128,11 @@ Called with region narrowed to unformatted header.")
 (defvar rmail-last-label nil)
 ;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
 (defvar rmail-last-multi-labels nil)
-(defvar rmail-last-file nil)
 (defvar rmail-last-regexp nil)
-(defvar rmail-last-rmail-file (expand-file-name "~/XMAIL"))
+(defvar rmail-default-file nil
+  "*Default file name for \\[rmail-output].")
+(defvar rmail-default-rmail-file (expand-file-name "~/XMAIL")
+  "*Default file name for \\[rmail-output-to-rmail-file].")
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  Note that if you change
@@ -205,8 +207,8 @@ have a chance to specify a file name with the minibuffer."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "
 					 nil nil t))))
-  (or rmail-last-file
-      (setq rmail-last-file (expand-file-name "~/xmail")))
+  (or rmail-default-file
+      (setq rmail-default-file (expand-file-name "~/xmail")))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name)))
     ;; Like find-file, but in the case where a buffer existed
