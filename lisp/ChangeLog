@@ -1,3 +1,7 @@
+2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-internal): Fix previous change.
+
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-drag-mode-line-1): When dragging a mode line upward,

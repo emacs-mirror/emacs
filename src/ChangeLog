@@ -1,5 +1,7 @@
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
+	* fileio.c (Fdo_auto_save): If NO_MESSAGE, don't call push_message.
+
 	* keymap.c (silly_event_symbol_error): New subrtn, from Fdefine_key.
 	Handle modifier bits.  Correct typo in error message.
 
