@@ -1,3 +1,7 @@
+2001-04-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dabbrev.el (dabbrev--select-buffers): Add a doc string.
+
 2001-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (tty-handle-reverse-video): Don't set inverse-video.
