@@ -7,6 +7,7 @@
 
 	* Makefile.in: Ignore exit status of `unset CDPATH' everywhere.
 	On FreeBSD, the exit status is 1 if CDPATH is not set.
+	(install-arch-indep): Install ebrowse.info.
 
 2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
 
