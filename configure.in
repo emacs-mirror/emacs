@@ -2667,7 +2667,7 @@ char *alloca ();
 # endif /* HAVE_ALLOCA_H */
 #endif /* __GNUC__ */
 #ifndef HAVE_SIZE_T
-typedef unsigned size_t
+typedef unsigned size_t;
 #endif
 #endif /* NOT_C_CODE */
 
