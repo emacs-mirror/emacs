@@ -1,3 +1,11 @@
+2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar/diary-lib.el (list-diary-entries): Save diary buffer
+	from diary display excursion.  Store diary buffer's point for
+	`simple-diary-display'.
+	(simple-diary-display): Set window point and start when
+	displaying buffer, to preserve point.
+
 2004-09-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/enriched.el (enriched-translations): Replace defconst
