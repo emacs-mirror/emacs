@@ -57,7 +57,8 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
   ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
   (let ((fill-prefix fill-prefix))
     ;; Figure out how this paragraph is indented, if desired.
-    (if adaptive-fill-mode
+    (if (and adaptive-fill-mode
+	     (or (null fill-prefix) (string= fill-prefix "")))
 	(save-excursion
 	  (goto-char (min from to))
 	  (if (eolp) (forward-line 1))
@@ -105,7 +106,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       ;; Make sure sentences ending at end of line get an extra space.
       ;; loses on split abbrevs ("Mr.\nSmith")
       (goto-char from)
-      (while (re-search-forward "[.?!][])\"']*$" nil t)
+      (while (re-search-forward "[.?!][])}\"']*$" nil t)
 	(insert ? ))
 
       ;; Then change all newlines to spaces.
@@ -123,7 +124,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	(delete-region
 	 (+ (match-beginning 0)
 	    (if (save-excursion
-		  (skip-chars-backward " ])\"'")
+		  (skip-chars-backward " ]})\"'")
 		  (memq (preceding-char) '(?. ?? ?!)))
 		2 1))
 	 (match-end 0)))

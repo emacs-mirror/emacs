@@ -68,6 +68,7 @@ and \"-de\" when dehexlfying a buffer.")
 
 ;; routines
 
+;;;###autoload
 (defun hexl-mode (&optional arg)
   "\\<hexl-mode-map>
 A major mode for editting binary files in hex dump format.
@@ -131,11 +132,10 @@ into the buffer at the current point.
 \\[hexl-insert-decimal-char] will insert a given decimal value (if it is between 0 and 255)
 into the buffer at the current point.
 
-\\[hexl-save-buffer] will save the buffer in is binary format.
-
 \\[hexl-mode-exit] will exit hexl-mode.
 
-Note: \\[write-file] will write the file out in HEXL FORMAT.
+Note: saving the file with any of the usual Emacs commands
+will actually convert it back to binary format while saving.
 
 You can use \\[hexl-find-file] to visit a file in hexl-mode.
 
@@ -155,6 +155,10 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (make-local-variable 'hexl-mode-old-major-mode)
     (setq hexl-mode-old-major-mode major-mode)
     (setq major-mode 'hexl-mode)
+
+    (make-local-variable 'write-contents-hooks)
+    (setq write-contents-hooks
+	  (cons 'hexl-save-buffer write-contents-hooks))
 
     (let ((modified (buffer-modified-p))
  	  (read-only buffer-read-only)
@@ -191,8 +195,11 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 				 (kill-buffer buf)
 				 modified))
 			   (message "(No changes need to be saved)")
-			   nil)))
+			   nil))
+  ;; Return t to indicate we have saved t
+  t)
 
+;;;###autoload
 (defun hexl-find-file (filename)
   "Edit file FILENAME in hexl-mode.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
@@ -202,7 +209,7 @@ Switch to a buffer visiting file FILENAME, creating one in none exists."
       (hexl-mode)))
 
 (defun hexl-mode-exit (&optional arg)
-  "Exit hexl-mode returning to previous mode.
+  "Exit Hexl mode, returning to previous mode.
 With arg, don't unhexlify buffer."
   (interactive "p")
   (if (or (eq arg 1) (not arg))
@@ -623,11 +630,11 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (define-key hexl-mode-map "\e\C-x" 'hexl-insert-hex-char)
     (define-key hexl-mode-map "\e\C-y" 'undefined)
 
-    (define-key hexl-mode-map "\ea" 'hexl-beginning-of-1k-page)
+    (define-key hexl-mode-map "\ea" 'undefined)
     (define-key hexl-mode-map "\eb" 'hexl-backward-word)
     (define-key hexl-mode-map "\ec" 'undefined)
     (define-key hexl-mode-map "\ed" 'undefined)
-    (define-key hexl-mode-map "\ee" 'hexl-end-of-1k-page)
+    (define-key hexl-mode-map "\ee" 'undefined)
     (define-key hexl-mode-map "\ef" 'hexl-forward-word)
     (define-key hexl-mode-map "\eg" 'hexl-goto-hex-address)
     (define-key hexl-mode-map "\eh" 'undefined)
@@ -652,6 +659,8 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
     (define-key hexl-mode-map "\C-c\C-c" 'hexl-mode-exit)
 
+    (define-key hexl-mode-map "\C-x[" 'hexl-beginning-of-1k-page)
+    (define-key hexl-mode-map "\C-x]" 'hexl-end-of-1k-page)
     (define-key hexl-mode-map "\C-x\C-p" 'undefined)
     (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
     (define-key hexl-mode-map "\C-x\C-t" 'undefined))
