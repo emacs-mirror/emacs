@@ -187,6 +187,13 @@ do not use this variable."
   :type 'string
   :group 'file-cache)
 
+(defcustom file-cache-completion-ignore-case completion-ignore-case
+  "If non-nil, file-cache completion should ignore case.
+Defaults to the value of `completion-ignore-case'."
+  :type 'sexp
+  :group 'file-cache
+  )
+
 (defvar file-cache-multiple-directory-message nil)
 
 ;; Internal variables
@@ -468,7 +475,7 @@ the name is considered already unique; only the second substitution
   (interactive "P") 
   (let* 
       (
-       (completion-ignore-case nil)
+       (completion-ignore-case file-cache-completion-ignore-case)
        (case-fold-search       nil)
        (string                 (file-name-nondirectory (buffer-string)))
        (completion-string      (try-completion string file-cache-alist))
@@ -592,6 +599,44 @@ the name is considered already unique; only the second substitution
     (file-cache-minibuffer-complete nil)
     )
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Show parts of the cache
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun file-cache-files-matching-internal (regexp)
+  "Output a list of files whose names (not including directories)
+match REGEXP."
+  (let ((results))
+    (mapcar
+     (function
+      (lambda(cache-element)
+	(and (string-match regexp
+			   (elt cache-element 0))
+	     (if results
+		 (nconc results (list (elt cache-element 0)))
+	       (setq results (list (elt cache-element 0)))))))
+     file-cache-alist)
+    results))
+
+(defun file-cache-files-matching (regexp)
+  "Output a list of files whose names (not including directories)
+match REGEXP."
+  (interactive "sFind files matching regexp: ")
+  (let ((results 
+	 (file-cache-files-matching-internal regexp))
+	buf)
+    (set-buffer 
+     (setq buf (get-buffer-create 
+		"*File Cache Files Matching*")))
+    (erase-buffer)
+    (insert
+     (mapconcat
+      'identity
+      results
+      "\n"))
+    (goto-char (point-min))
+    (display-buffer buf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Debugging functions
