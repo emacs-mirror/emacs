@@ -51,7 +51,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
-Lisp_Object Qread_char, Qget_file_char, Qstandard_input;
+Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character;
 
@@ -535,6 +535,10 @@ build_load_history (stream, source)
   register Lisp_Object tem, tem2;
   register int foundit, loading;
 
+  /* Don't bother recording anything for preloaded files.  */
+  if (!NILP (Vpurify_flag))
+    return;
+
   loading = stream || !NARROWED;
 
   tail = Vload_history;
@@ -582,12 +586,12 @@ build_load_history (stream, source)
       QUIT;
     }
 
-      /* If we're loading, cons the new assoc onto the front of load-history,
-	 the most-recently-loaded position.  Also do this if we didn't find
-	 an existing member for the current source.  */
-      if (loading || !foundit)
-	  Vload_history = Fcons (Fnreverse(Vcurrent_load_list),
-				 Vload_history);
+  /* If we're loading, cons the new assoc onto the front of load-history,
+     the most-recently-loaded position.  Also do this if we didn't find
+     an existing member for the current source.  */
+  if (loading || !foundit)
+    Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
+			   Vload_history);
 }
 
 Lisp_Object
@@ -607,16 +611,14 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 {
   register int c;
   register Lisp_Object val;
-  Lisp_Object oldlist;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
 
   specbind (Qstandard_input, readcharfun);
+  specbind (Qcurrent_load_list, Qnil);
 
-  oldlist = Vcurrent_load_list;
-  GCPRO2 (sourcename, oldlist);
+  GCPRO1 (sourcename);
 
-  Vcurrent_load_list = Qnil;
   LOADHIST_ATTACH (sourcename);
 
   while (1)
@@ -655,8 +657,6 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
     }
 
   build_load_history (stream, sourcename);
-
-  Vcurrent_load_list = oldlist;
   UNGCPRO;
 
   unbind_to (count, Qnil);
@@ -1876,8 +1876,12 @@ The remaining elements of each list are symbols defined as functions\n\
 or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   Vload_history = Qnil;
 
-  staticpro (&Vcurrent_load_list);
+  DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
+    "Used for internal purposes by `load'.");
   Vcurrent_load_list = Qnil;
+
+  Qcurrent_load_list = intern ("current-load-list");
+  staticpro (&Qcurrent_load_list);
 
   Qstandard_input = intern ("standard-input");
   staticpro (&Qstandard_input);
