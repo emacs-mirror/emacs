@@ -173,10 +173,10 @@ A file name is handled if one of the regular expressions in\n\
     Lisp_Object filename;
 {
   /* This function must not munge the match data.  */
+  Lisp_Object chain;
 
   CHECK_STRING (filename, 0);
 
-  Lisp_Object chain;
   for (chain = Vfile_name_handler_alist; XTYPE (chain) == Lisp_Cons;
        chain = XCONS (chain)->cdr)
     {
