@@ -1,3 +1,21 @@
+2003-05-09  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (Fprin1_to_string): Instead of gcpro, set abort_on_gc.
+	Bind Qinhibit_modification_hooks to t so there will be no GC.
+	Rename local `tem' to `save_deactivate_mark'.
+
+	* eval.c (specpdl_ptr): Declare volatile.
+	(unbind_to): Copy the whole binding and decrement specpdl_ptr
+	before doing the work of unbinding it.
+
+	* lisp.h (struct specbinding): Declare elements volatile.
+	(specpdl_ptr): Declare volatile.
+
+	* Makefile.in (alloca.o): Specify -DDO_BLOCK_INPUT in compiling.
+
+	* alloca.c: Test DO_BLOCK_INPUT rather than `emacs'
+	for use of BLOCK_INPUT and inclusion of lisp.h and blockinput.h.
+
 2003-05-08  Dave Love  <fx@gnu.org>
 
 	* coding.c (Vlast_coding_system_used): Doc fix.
