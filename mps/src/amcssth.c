@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.30) $
- * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
+ * $HopeName: MMsrc!amcssth.c(trunk.1) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #define _POSIX_C_SOURCE 199309L
@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <pthread.h>
 #include <time.h>
 
@@ -128,8 +127,8 @@ static void *test(void *arg, size_t s)
       printf("\nCollection %lu, %lu objects.\n",
              c, objs);
       for(r = 0; r < exactRootsCOUNT; ++r)
-        assert(exactRoots[r] == objNULL ||
-               dylan_check(exactRoots[r]));
+        cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
+             "all roots check");
       if(collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
@@ -157,7 +156,7 @@ static void *test(void *arg, size_t s)
     if(r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
       if(exactRoots[i] != objNULL)
-        assert(dylan_check(exactRoots[i]));
+        cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
       if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
@@ -213,6 +212,7 @@ static void *fooey2(void *arg, size_t s)
   return arg;
 }
 
+
 static void *fooey(void *arena)
 {
   void *r;
@@ -227,16 +227,19 @@ static void *fooey(void *arena)
   return r;
 }
 
-int main(void)
+
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   pthread_t pthread1;
   void *r;
 
+  randomize(argc, argv);
+
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create\n");
-  adjust_collection_freq(0.0);
+      "arena_create");
+  adjust_collection_freq(0.2);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   pthread_create(&pthread1, NULL, fooey, (void *)arena);
   mps_tramp(&r, test, arena, 0);
