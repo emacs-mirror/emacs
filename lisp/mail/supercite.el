@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1997 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
-;; Maintainer:    supercite-help@python.org
+;; Maintainer:    Mark Senn <mds@ecn.purdue.edu>
 ;; Created:       February 1993
 ;; Last Modified: 1993/09/22 18:58:46
 ;; Keywords: mail, news
