@@ -280,7 +280,7 @@ x_window_to_frame (wdesc)
       if (XTYPE (frame) != Lisp_Frame)
         continue;
       f = XFRAME (frame);
-      if (f->display.x->window_desc == wdesc
+      if (FRAME_X_WINDOW (f) == wdesc
           || f->display.x->icon_desc == wdesc)
         return f;
     }
@@ -548,7 +548,7 @@ x_report_frame_params (f, alistptr)
        	   make_number (f->display.x->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
        	   make_number (f->display.x->internal_border_width));
-  sprintf (buf, "%d", f->display.x->window_desc);
+  sprintf (buf, "%d", FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
 }
@@ -618,7 +618,7 @@ x_decode_color (arg, def)
 /* Functions called only from `x_set_frame_param'
    to set individual parameters.
 
-   If f->display.x->window_desc is 0,
+   If FRAME_X_WINDOW (f) is 0,
    the frame is being created and its X-window does not exist yet.
    In that case, just record the parameter's new value
    in the standard place; do not attempt to change the window.  */
@@ -629,7 +629,7 @@ x_set_foreground_color (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   f->display.x->foreground_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     {
 #ifdef HAVE_X11
       BLOCK_INPUT;
@@ -645,21 +645,21 @@ x_set_foreground_color (f, arg, oldval)
 			    f->display.x->foreground_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 gray_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 up_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 down_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -689,7 +689,7 @@ x_set_foreground_color (f, arg, oldval)
 			    f->display.x->foreground_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 gray_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -697,14 +697,14 @@ x_set_foreground_color (f, arg, oldval)
 						       XDefaultScreen (x_current_display)));
 
           left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 up_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 down_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -743,7 +743,7 @@ x_set_background_color (f, arg, oldval)
 
   f->display.x->background_pixel = x_decode_color (arg, WHITE_PIX_DEFAULT);
 
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
 #ifdef HAVE_X11
@@ -752,7 +752,7 @@ x_set_background_color (f, arg, oldval)
 		      f->display.x->background_pixel);
       XSetForeground (x_current_display, f->display.x->reverse_gc,
 		      f->display.x->background_pixel);
-      XSetWindowBackground (x_current_display, f->display.x->window_desc,
+      XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
 			    f->display.x->background_pixel);
 
       /* Scroll bars. */
@@ -764,21 +764,21 @@ x_set_background_color (f, arg, oldval)
 				f->display.x->background_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 gray_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 up_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 down_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -808,7 +808,7 @@ x_set_background_color (f, arg, oldval)
 				f->display.x->background_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 gray_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -816,14 +816,14 @@ x_set_background_color (f, arg, oldval)
 						       XDefaultScreen (x_current_display)));
 
           left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 up_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
 					 down_arrow_bits, 16, 16,
 					 f->display.x->foreground_pixel,
 					 f->display.x->background_pixel,
@@ -847,7 +847,7 @@ x_set_background_color (f, arg, oldval)
         }
 #else
       temp = XMakeTile (f->display.x->background_pixel);
-      XChangeBackground (f->display.x->window_desc, temp);
+      XChangeBackground (FRAME_X_WINDOW (f), temp);
       XFreePixmap (temp);
 #endif				/* not HAVE_X11 */
       UNBLOCK_INPUT;
@@ -875,6 +875,10 @@ x_set_mouse_color (f, arg, oldval)
 
   BLOCK_INPUT;
 #ifdef HAVE_X11
+
+  /* It's not okay to crash if the user selects a screwey cursor.  */
+  x_catch_errors ();
+
   if (!EQ (Qnil, Vx_pointer_shape))
     {
       CHECK_NUMBER (Vx_pointer_shape, 0);
@@ -900,6 +904,10 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     mode_cursor = XCreateFontCursor (x_current_display, XC_xterm);
+
+  /* Check and report errors with the above calls.  */
+  x_check_errors ("can't set cursor shape: %s");
+  x_uncatch_errors ();
 
   {
     XColor fore_color, back_color;
@@ -929,9 +937,9 @@ x_set_mouse_color (f, arg, oldval)
 			  GXcopy);
 #endif /* X10 */
 
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     {
-      XDefineCursor (XDISPLAY f->display.x->window_desc, cursor);
+      XDefineCursor (XDISPLAY FRAME_X_WINDOW (f), cursor);
     }
 
   if (cursor != f->display.x->text_cursor && f->display.x->text_cursor != 0)
@@ -974,7 +982,7 @@ x_set_cursor_color (f, arg, oldval)
 	fore_pixel = f->display.x->background_pixel;
     }
 
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     {
 #ifdef HAVE_X11
       BLOCK_INPUT;
@@ -1037,14 +1045,14 @@ x_set_border_pixel (f, pix)
 {
   f->display.x->border_pixel = pix;
 
-  if (f->display.x->window_desc != 0 && f->display.x->border_width > 0)
+  if (FRAME_X_WINDOW (f) != 0 && f->display.x->border_width > 0)
     {
       Pixmap temp;
       int mask;
 
       BLOCK_INPUT;
 #ifdef HAVE_X11
-      XSetWindowBorder (x_current_display, f->display.x->window_desc,
+      XSetWindowBorder (x_current_display, FRAME_X_WINDOW (f),
        		 pix);
       if (f->display.x->h_scrollbar)
         XSetWindowBorder (x_current_display, f->display.x->h_slider,
@@ -1058,7 +1066,7 @@ x_set_border_pixel (f, pix)
        		     BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
       else
         temp = XMakeTile (pix);
-      XChangeBorder (f->display.x->window_desc, temp);
+      XChangeBorder (FRAME_X_WINDOW (f), temp);
       XFreePixmap (XDISPLAY temp);
 #endif /* not HAVE_X11 */
       UNBLOCK_INPUT;
@@ -1094,7 +1102,7 @@ x_set_icon_type (f, arg, oldval)
   /* If the window was unmapped (and its icon was mapped),
      the new icon is not mapped, so map the window in its stead.  */
   if (f->visible)
-    XMapWindow (XDISPLAY f->display.x->window_desc);
+    XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -1129,7 +1137,7 @@ x_set_border_width (f, arg, oldval)
   if (XINT (arg) == f->display.x->border_width)
     return;
 
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     error ("Cannot change the border width of a window");
 
   f->display.x->border_width = XINT (arg);
@@ -1151,7 +1159,7 @@ x_set_internal_border_width (f, arg, oldval)
   if (f->display.x->internal_border_width == old)
     return;
 
-  if (f->display.x->window_desc != 0)
+  if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
       x_set_window_size (f, f->width, f->height);
@@ -1211,11 +1219,27 @@ x_set_name (f, name, explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  if (f->display.x->window_desc)
+  if (FRAME_X_WINDOW (f))
     {
       BLOCK_INPUT;
-      x_set_text_property (f, XA_WM_NAME, name);
-      x_set_text_property (f, XA_WM_ICON_NAME, name);
+
+#ifdef HAVE_X11R4
+      {
+	XTextProperty text;
+	text.value = XSTRING (name)->data;
+	text.encoding = XA_STRING;
+	text.format = 8;
+	text.nitems = XSTRING (name)->size;
+	XSetWMName (x_current_display, FRAME_X_WINDOW (f), &text);
+	XSetWMIconName (x_current_display, FRAME_X_WINDOW (f), &text);
+      }
+#else
+      XSetIconName (XDISPLAY FRAME_X_WINDOW (f),
+		    XSTRING (name)->data);
+      XStoreName (XDISPLAY FRAME_X_WINDOW (f),
+		  XSTRING (name)->data);
+#endif
+
       UNBLOCK_INPUT;
     }
 
@@ -1292,7 +1316,7 @@ x_set_face (scr, font, background, foreground, stipple)
       gc_mask |= GCStipple;
     }
 
-  temp_gc = XCreateGC (x_current_display, scr->display.x->window_desc,
+  temp_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (scr),
 		       gc_mask, &gc_values);
   if (!temp_gc)
     return 1;
@@ -1337,7 +1361,7 @@ DEFUN ("x-set-face-font", Fx_set_face_font, Sx_set_face_font, 4, 2, 0,
   XGCValues gc_values;
 
   /* Need to do something about this. */
-  Drawable drawable = selected_frame->display.x->window_desc;
+  Drawable drawable = FRAME_X_WINDOW (selected_frame);
 
   CHECK_NUMBER (face_code, 1);
   CHECK_STRING (font_name,  2);
@@ -1836,7 +1860,7 @@ x_window (f)
 		    | CWEventMask);
 
   BLOCK_INPUT;
-  f->display.x->window_desc
+  FRAME_X_WINDOW (f)
     = XCreateWindow (x_current_display, ROOT_WINDOW,
 		     f->display.x->left_pos,
 		     f->display.x->top_pos,
@@ -1849,7 +1873,7 @@ x_window (f)
 
   class_hints.res_name = (char *) XSTRING (f->name)->data;
   class_hints.res_class = EMACS_CLASS;
-  XSetClassHint (x_current_display, f->display.x->window_desc, &class_hints);
+  XSetClassHint (x_current_display, FRAME_X_WINDOW (f), &class_hints);
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
@@ -1862,11 +1886,11 @@ x_window (f)
     x_implicitly_set_name (f, name, Qnil);
   }
 
-  XDefineCursor (XDISPLAY f->display.x->window_desc,
+  XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
   UNBLOCK_INPUT;
 
-  if (f->display.x->window_desc == 0)
+  if (FRAME_X_WINDOW (f) == 0)
     error ("Unable to create window.");
 }
 
@@ -1892,15 +1916,11 @@ x_icon (f, parms)
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
-  else
-    {
-      XSET (icon_x, Lisp_Int, f->display.x->left_pos);
-      XSET (icon_y, Lisp_Int, f->display.x->top_pos);
-    }
 
   BLOCK_INPUT;
 
-  x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
+  if (! EQ (icon_x, Qunbound))
+    x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
   /* Start up iconic or window? */
   x_wm_set_window_state (f,
@@ -1941,7 +1961,7 @@ x_make_gc (f)
   gc_values.background = f->display.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm. */
   f->display.x->normal_gc = XCreateGC (x_current_display,
-				       f->display.x->window_desc,
+				       FRAME_X_WINDOW (f),
 				       GCLineWidth | GCFont
 				       | GCForeground | GCBackground,
 				       &gc_values);
@@ -1950,7 +1970,7 @@ x_make_gc (f)
   gc_values.foreground = f->display.x->background_pixel;
   gc_values.background = f->display.x->foreground_pixel;
   f->display.x->reverse_gc = XCreateGC (x_current_display,
-					f->display.x->window_desc,
+					FRAME_X_WINDOW (f),
 					GCFont | GCForeground | GCBackground
 					| GCLineWidth,
 					&gc_values);
@@ -1963,7 +1983,7 @@ x_make_gc (f)
     = XCreateBitmapFromData (x_current_display, ROOT_WINDOW,
 			     cursor_bits, 16, 16);
   f->display.x->cursor_gc
-    = XCreateGC (x_current_display, f->display.x->window_desc,
+    = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
 		 (GCFont | GCForeground | GCBackground
 		  | GCFillStyle | GCStipple | GCLineWidth),
 		 &gc_values);
@@ -2220,11 +2240,11 @@ be shared by the new frame.")
       Window *children, root;
 
       CHECK_NUMBER (tem, 0);
-      f->display.x->window_desc = (Window) XINT (tem);
+      FRAME_X_WINDOW (f) = (Window) XINT (tem);
 
       BLOCK_INPUT;
-      XGetWindowInfo (f->display.x->window_desc, &wininfo);
-      XQueryTree (f->display.x->window_desc, &parent, &nchildren, &children);
+      XGetWindowInfo (FRAME_X_WINDOW (f), &wininfo);
+      XQueryTree (FRAME_X_WINDOW (f), &parent, &nchildren, &children);
       free (children);
       UNBLOCK_INPUT;
 
@@ -2308,7 +2328,7 @@ be shared by the new frame.")
 		     + (!NILP (hscroll) ? HSCROLL_HEIGHT : 0));
       
       BLOCK_INPUT;
-      f->display.x->window_desc
+      FRAME_X_WINDOW (f)
 	= XCreateWindow (parent,
 			 f->display.x->left_pos,   /* Absolute horizontal offset */
 			 f->display.x->top_pos,    /* Absolute Vertical offset */
@@ -2316,20 +2336,20 @@ be shared by the new frame.")
 			 f->display.x->border_width,
 			 BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
       UNBLOCK_INPUT;
-      if (f->display.x->window_desc == 0)
+      if (FRAME_X_WINDOW (f) == 0)
 	error ("Unable to create window.");
     }
 
   /* Install the now determined height and width
      in the windows and in phys_lines and desired_lines.  */
   change_frame_size (f, height, width, 1, 0);
-  XSelectInput (f->display.x->window_desc, KeyPressed | ExposeWindow
+  XSelectInput (FRAME_X_WINDOW (f), KeyPressed | ExposeWindow
 		| ButtonPressed | ButtonReleased | ExposeRegion | ExposeCopy
 		| EnterWindow | LeaveWindow | UnmapWindow );
   x_set_resize_hint (f);
 
   /* Tell the server the window's default name.  */
-  XStoreName (XDISPLAY f->display.x->window_desc, XSTRING (f->name)->data);
+  XStoreName (XDISPLAY FRAME_X_WINDOW (f), XSTRING (f->name)->data);
 
   /* Now override the defaults with all the rest of the specified
      parms.  */
@@ -2349,7 +2369,7 @@ be shared by the new frame.")
      background, border and mouse colors; also create the mouse cursor.  */
   BLOCK_INPUT;
   temp = XMakeTile (f->display.x->background_pixel);
-  XChangeBackground (f->display.x->window_desc, temp);
+  XChangeBackground (FRAME_X_WINDOW (f), temp);
   XFreePixmap (temp);
   UNBLOCK_INPUT;
   x_set_border_pixel (f, f->display.x->border_pixel);
@@ -2495,7 +2515,7 @@ x_set_horizontal_scrollbar (f, val, oldval)
 {
   if (!NILP (val))
     {
-      if (f->display.x->window_desc != 0)
+      if (FRAME_X_WINDOW (f) != 0)
 	{
 	  BLOCK_INPUT;
 	  f->display.x->h_scrollbar_height = HSCROLL_HEIGHT;
@@ -2529,7 +2549,7 @@ x_set_vertical_scrollbar (f, val, oldval)
 {
   if (!NILP (val))
     {
-      if (f->display.x->window_desc != 0)
+      if (FRAME_X_WINDOW (f) != 0)
 	{
 	  BLOCK_INPUT;
 	  f->display.x->v_scrollbar_width = VSCROLL_WIDTH;
@@ -2573,7 +2593,7 @@ install_vertical_scrollbar (f)
 
 #ifdef HAVE_X11
   up_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 up_arrow_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2581,7 +2601,7 @@ install_vertical_scrollbar (f)
 					       XDefaultScreen (x_current_display)));
 
   down_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 down_arrow_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2589,7 +2609,7 @@ install_vertical_scrollbar (f)
 					       XDefaultScreen (x_current_display)));
 
   slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 gray_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2604,7 +2624,7 @@ install_vertical_scrollbar (f)
   v_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
 
   f->display.x->v_scrollbar =
-    XCreateSimpleWindow (x_current_display, f->display.x->window_desc,
+    XCreateSimpleWindow (x_current_display, FRAME_X_WINDOW (f),
 			 pix_x, pix_y, width, height, border,
 			 f->display.x->foreground_pixel,
 			 f->display.x->background_pixel);
@@ -2719,7 +2739,7 @@ install_vertical_scrollbar (f)
 
   ibw = f->display.x->internal_border_width;
 
-  f->display.x->v_scrollbar = XCreateWindow (f->display.x->window_desc,
+  f->display.x->v_scrollbar = XCreateWindow (FRAME_X_WINDOW (f),
 					     width - VSCROLL_WIDTH - ibw/2,
 					     ibw/2,
 					     VSCROLL_WIDTH - 2,
@@ -2787,7 +2807,7 @@ install_horizontal_scrollbar (f)
 
 #ifdef HAVE_X11
   left_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 left_arrow_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2795,7 +2815,7 @@ install_horizontal_scrollbar (f)
 					       XDefaultScreen (x_current_display)));
 
   right_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 right_arrow_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2803,7 +2823,7 @@ install_horizontal_scrollbar (f)
 					       XDefaultScreen (x_current_display)));
 
   slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
 				 gray_bits, 16, 16,
 				 f->display.x->foreground_pixel,
 				 f->display.x->background_pixel,
@@ -2815,7 +2835,7 @@ install_horizontal_scrollbar (f)
   h_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_h_double_arrow);
 
   f->display.x->h_scrollbar =
-    XCreateSimpleWindow (x_current_display, f->display.x->window_desc,
+    XCreateSimpleWindow (x_current_display, FRAME_X_WINDOW (f),
 			 pix_x, pix_y,
 			 width - ibw - 2, HSCROLL_HEIGHT - 2, 1,
 			 f->display.x->foreground_pixel,
@@ -3121,7 +3141,7 @@ x_rectangle (f, gc, left_char, top_char, chars, lines)
   else
     height = FONT_HEIGHT (f->display.x->font) * lines;
 
-  XDrawRectangle (x_current_display, f->display.x->window_desc,
+  XDrawRectangle (x_current_display, FRAME_X_WINDOW (f),
 		  gc, left, top, width, height);
 }
 
@@ -3302,7 +3322,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
   this_point->x = pixel_points->x;
   this_point->y = pixel_points->y;
 
-  XDrawLines (x_current_display, f->display.x->window_desc,
+  XDrawLines (x_current_display, FRAME_X_WINDOW (f),
 	      gc, pixel_points,
 	      (this_point - pixel_points + 1), CoordModeOrigin);
 }
@@ -3592,14 +3612,14 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
   gc_values.cap_style = CapRound;
   gc_values.join_style = JoinRound;
 
-  line_gc = XCreateGC (x_current_display, f->display.x->window_desc,
+  line_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
   XSetDashes (x_current_display, line_gc, 0, dash_list, dashes);
   gc_values.foreground = f->display.x->background_pixel;
   gc_values.background = f->display.x->foreground_pixel;
-  erase_gc = XCreateGC (x_current_display, f->display.x->window_desc,
+  erase_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
@@ -3615,7 +3635,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	  previous_y = x_mouse_y;
 	  line = (x_mouse_y + 1) * FONT_HEIGHT (f->display.x->font)
 	    + f->display.x->internal_border_width;
-	  XDrawLine (x_current_display, f->display.x->window_desc,
+	  XDrawLine (x_current_display, FRAME_X_WINDOW (f),
 		     line_gc, left, line, right, line);
 	}
       XFlushQueue ();
@@ -3630,7 +3650,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	      || x_mouse_grabbed)
 	    {
 	      BLOCK_INPUT;
-	      XDrawLine (x_current_display, f->display.x->window_desc,
+	      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
 			 erase_gc, left, line, right, line);
 	      UNBLOCK_INPUT;
 	      unread_command_char = obj;
@@ -3644,7 +3664,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
       while (x_mouse_y == previous_y);
 
       BLOCK_INPUT;
-      XDrawLine (x_current_display, f->display.x->window_desc,
+      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
 		 erase_gc, left, line, right, line);
       UNBLOCK_INPUT;
     }
@@ -3674,7 +3694,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
 
       current_pointer_shape = f->display.x->nontext_cursor;
       XDefineCursor (x_current_display,
-		     f->display.x->window_desc,
+		     FRAME_X_WINDOW (f),
 		     current_pointer_shape);
 
       buf = XBUFFER (XWINDOW (Vmouse_window)->buffer);
@@ -3685,7 +3705,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
     {
       current_pointer_shape = f->display.x->modeline_cursor;
       XDefineCursor (x_current_display,
-		     f->display.x->window_desc,
+		     FRAME_X_WINDOW (f),
 		     current_pointer_shape);
     }
 
@@ -3820,7 +3840,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  if (mouse_track_width) /* Over text; use text pointer shape. */
 	    {
 	      XDefineCursor (x_current_display,
-			     f->display.x->window_desc,
+			     FRAME_X_WINDOW (f),
 			     f->display.x->text_cursor);
 	      x_rectangle (f, f->display.x->cursor_gc,
 			   mouse_track_left, mouse_track_top,
@@ -3828,11 +3848,11 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	    }
 	  else if (in_mode_line)
 	    XDefineCursor (x_current_display,
-			   f->display.x->window_desc,
+			   FRAME_X_WINDOW (f),
 			   f->display.x->modeline_cursor);
 	  else
 	    XDefineCursor (x_current_display,
-			   f->display.x->window_desc,
+			   FRAME_X_WINDOW (f),
 			   f->display.x->nontext_cursor);
 	}
 
@@ -3864,7 +3884,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	}
     }
   XDefineCursor (x_current_display,
-		 f->display.x->window_desc,
+		 FRAME_X_WINDOW (f),
 		 f->display.x->nontext_cursor);
   XFlush (x_current_display);
   UNBLOCK_INPUT;
@@ -3887,9 +3907,9 @@ x_draw_pixmap (f, x, y, image_data, width, height)
   Pixmap image;
 
   image = XCreateBitmapFromData (x_current_display,
-				 f->display.x->window_desc, image_data,
+				 FRAME_X_WINDOW (f), image_data,
 				 width, height);
-  XCopyPlane (x_current_display, image, f->display.x->window_desc,
+  XCopyPlane (x_current_display, image, FRAME_X_WINDOW (f),
 	      f->display.x->normal_gc, 0, 0, width, height, x, y);
 }
 #endif
@@ -4318,10 +4338,13 @@ select_visual (screen, depth)
   int n_visuals;
 
   v = DefaultVisualOfScreen (screen);
-  /* It may be a bad idea to fetch the visualid directly from the structure,
-     rather than using XVisualIDFromVisual, but I'll bet this is pretty
-     portable for the revisions of X we care about.  */
-  vinfo_template.visualid = v->visualid;
+
+#ifdef HAVE_X11R4
+  vinfo_template.visualid = XVisualIDFromVisual (v);
+#else
+  vinfo_template.visualid = x->visualid;
+#endif
+
   vinfo = XGetVisualInfo (x_current_display, VisualIDMask, &vinfo_template,
 			  &n_visuals);
   if (n_visuals != 1)
