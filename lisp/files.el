@@ -2238,11 +2238,13 @@ we do not remove backup version numbers, only true file version numbers."
 
 (defun file-name-sans-extension (filename)
   "Return FILENAME sans final \"extension\".
-The extension, in a file name, is the part that follows the last `.'."
+The extension, in a file name, is the part that follows the last `.',
+except that a leading `.', if any, doesn't count."
   (save-match-data
     (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
 	  directory)
-      (if (string-match "\\.[^.]*\\'" file)
+      (if (and (string-match "\\.[^.]*\\'" file)
+	       (not (eq 0 (match-beginning 0))))
 	  (if (setq directory (file-name-directory filename))
 	      (expand-file-name (substring file 0 (match-beginning 0))
 				directory)
@@ -2251,7 +2253,8 @@ The extension, in a file name, is the part that follows the last `.'."
 
 (defun file-name-extension (filename &optional period)
   "Return FILENAME's final \"extension\".
-The extension, in a file name, is the part that follows the last `.'.
+The extension, in a file name, is the part that follows the last `.',
+except that a leading `.', if any, doesn't count.
 Return nil for extensionless file names such as `foo'.
 Return the empty string for file names such as `foo.'.
 
@@ -2260,7 +2263,8 @@ that delimits the extension, and if FILENAME has no extension,
 the value is \"\"."
   (save-match-data
     (let ((file (file-name-sans-versions (file-name-nondirectory filename))))
-      (if (string-match "\\.[^.]*\\'" file)
+      (if (and (string-match "\\.[^.]*\\'" file)
+	       (not (eq 0 (match-beginning 0))))
           (substring file (+ (match-beginning 0) (if period 0 1)))
         (if period
             "")))))
