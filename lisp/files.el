@@ -2956,6 +2956,9 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			;; in the return value.
 			;; So just avoid stripping it in the first place.
 			'((expand-file-name . nil)
+			  ;; `identity' means just return the first arg
+			  ;; as stripped of its quoting.
+			  (substitute-in-file-name . identity)
 			  (file-name-directory . nil)
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
@@ -2970,13 +2973,15 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(arguments (copy-sequence arguments)))
     ;; Strip off the /: from the file names that have this handler.
     (save-match-data
-      (while file-arg-indices
+      (while (consp file-arg-indices)
 	(and (nth (car file-arg-indices) arguments)
 	     (string-match "\\`/:" (nth (car file-arg-indices) arguments))
 	     (setcar (nthcdr (car file-arg-indices) arguments)
 		     (substring (nth (car file-arg-indices) arguments) 2)))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (apply operation arguments)))
+    (if (eq file-arg-indices 'identity)
+	(car arguments)
+      (apply operation arguments))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-q" 'toggle-read-only)
