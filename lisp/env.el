@@ -63,12 +63,14 @@ If it is also not t, RET does not exit if it does non-null completion."
 `$FOO' where FOO is an environment variable name means to substitute
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
-the entire variable name in braces.  Use `$$' to insert a single
-dollar sign."
+the entire variable name in braces.  For instance, in `ab$cd-x',
+`$cd' is treated as an environment variable.
+
+Use `$$' to insert a single dollar sign."
   (let ((start 0))
     (while (string-match
 	    (eval-when-compile
-	      (rx (or (and "$" (submatch (1+ (regexp "[:alnum:]_"))))
+	      (rx (or (and "$" (submatch (1+ (regexp "[[:alnum:]_]"))))
 		      (and "${" (submatch (minimal-match (0+ anything))) "}")
 		      "$$")))
 	    string start)
