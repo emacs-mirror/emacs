@@ -234,6 +234,16 @@ An emulator for Macintosh graphics calls on top of X Windows.
 A music playing and editing system.
 
 @item
+High-quality music compression software.
+(Talk with phr@@netcom.com for relevant suggestions.)
+
+@item
+A program to play sound distributed in ``Real Audio'' format.
+
+@item
+A program to generate ``Real Audio'' format from audio input.
+
+@item
 A program to edit dance notation (such as labanotation) and display
 dancers moving on the screen.
 
@@ -272,15 +282,30 @@ A free program for public-key encryption.
 This program should use the Diffie-Helman algorithm for public key
 encryption, not the RSA algorithm, because the Diffie-Helman patent in
 the US will expire in 1997.  It should use triple-DES, not IDEA, for
-block encryption because IDEA is patented in many countries and the
+block encryption, because IDEA is patented in many countries and the
 patents will not expire soon.  In other respects, it should be like PGP.
 
 This program needs to be written by someone who is not a US citizen,
 outside the US, to avoid problems with US export control law.
 
 Many people believe that PGP is free software, but that is not actually
-true.  The distribution terms set by the copyright holders do not allow
-everyone to use and redistribute it.
+true.  The distribution terms do not allow everyone to use and
+redistribute it.  We used to think that these restrictions had been
+imposed by the patent holders for the RSA and IDEA algorithms, and that
+PGP could be free software if these algorithms were replaced by
+alternatives.  But we have since learned that the owners of PGP are
+themselves unwilling to make it free software.  Writing a new program is
+the only way to get free software for this job.
+
+@item
+A free secure telnet program more or less like ssh/sshd.  Since this
+requires a public key encryption algorithm, it is closely related to the
+preceding item.
+
+This program should follow the draft standard for ssh.  As always, it
+cannot implement the RSA algorithm, but must instead support the
+alternatives that will be patent-free in late 1997.  It cannot support
+IDEA, but can use triple-DES and some other alternatives.
 
 @item
 A program to convert compiled programs represented in OSF ANDF
@@ -326,12 +351,6 @@ could improve).
 
 @item
 Speech-recognition programs (single-speaker, disconnected speech is sufficient).
-
-@item
-A program to play sound distributed in ``Real Audio'' format.
-
-@item
-A program to generate ``Real Audio'' format from audio input.
 
 @item
 More scientific mathematical subroutines.
