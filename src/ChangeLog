@@ -1,3 +1,10 @@
+2001-03-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_update_window_end): Handle overwritten mouse face
+	also for tool bar windows.
+	(show_mouse_face): Set the glyph row's mouse_face_p flag also when
+	DRAW is DRAW_IMAGE_RAISED.
+
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* print.c (syms_of_print): Doc fixes.
