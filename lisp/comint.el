@@ -2059,7 +2059,7 @@ Sets mark to the value of point when this command is run."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (interrupt-process nil comint-ptyp))
 
 (defun comint-kill-subjob ()
@@ -2067,7 +2067,7 @@ between the process-mark and point."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (kill-process nil comint-ptyp))
 
 (defun comint-quit-subjob ()
@@ -2075,7 +2075,7 @@ between the process-mark and point."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (quit-process nil comint-ptyp))
 
 (defun comint-stop-subjob ()
@@ -2088,7 +2088,7 @@ the top-level process running in the buffer. If you accidentally do
 this, use \\[comint-continue-subjob] to resume the process. (This
 is not a problem with most shells, since they ignore this signal.)"
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (stop-process nil comint-ptyp))
 
 (defun comint-continue-subjob ()
@@ -2096,6 +2096,19 @@ is not a problem with most shells, since they ignore this signal.)"
 Useful if you accidentally suspend the top-level process."
   (interactive)
   (continue-process nil comint-ptyp))
+
+(defun comint-skip-input ()
+  "Skip all pending input, from last stuff output by interpreter to point.
+This means mark it as if it had been sent as input, without sending it."
+  (let ((comint-input-sender 'ignore)
+	(comint-input-filter-functions nil))
+    (comint-send-input t))
+  (end-of-line)
+  (let ((pos (point))
+	(marker (process-mark (get-buffer-process (current-buffer)))))
+    (insert "  " (key-description (this-command-keys)))
+    (if (= marker pos)
+	(set-marker marker (point)))))
 
 (defun comint-kill-input ()
   "Kill all text from last stuff output by interpreter to point."
