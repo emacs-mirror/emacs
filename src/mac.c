@@ -344,7 +344,7 @@ cfnumber_to_lisp (number)
      CFNumberRef number;
 {
   Lisp_Object result = Qnil;
-#if BITS_PER_EMACS_INT > 32      
+#if BITS_PER_EMACS_INT > 32
   SInt64 int_val;
   CFNumberType emacs_int_type = kCFNumberSInt64Type;
 #else
@@ -667,7 +667,7 @@ parse_resource_name (p)
   if (NILP (component))
     return Qnil;
 
-  result = Fcons (component, result);  
+  result = Fcons (component, result);
   while (binding = parse_binding (p))
     {
       if (binding == '*')
@@ -678,7 +678,7 @@ parse_resource_name (p)
       else
 	result = Fcons (component, result);
     }
-  
+
   /* The final component should not be '?'.  */
   if (EQ (component, SINGLE_COMPONENT))
     return Qnil;
@@ -766,7 +766,7 @@ parse_value (p)
       q = buf + total_len;
       for (; CONSP (seq); seq = XCDR (seq))
 	{
-	  len = SBYTES (XCAR (seq)); 
+	  len = SBYTES (XCAR (seq));
 	  q -= len;
 	  memcpy (q, SDATA (XCAR (seq)), len);
 	}
@@ -812,20 +812,27 @@ parse_resource_line (p)
    An X Resource Database acts as a collection of resource names and
    associated values.  It is implemented as a trie on quarks.  Namely,
    each edge is labeled by either a string, LOOSE_BINDING, or
-   SINGLE_COMPONENT.  Nodes of the trie are implemented as Lisp hash
-   tables, and a value associated with a resource name is recorded as
-   a value for HASHKEY_TERMINAL at the hash table whose path from the
-   root is the quarks of the resource name. */
+   SINGLE_COMPONENT.  Each node has a node id, which is a unique
+   nonnegative integer, and the root node id is 0.  A database is
+   implemented as a hash table that maps a pair (SRC-NODE-ID .
+   EDGE-LABEL) to DEST-NODE-ID.  It also holds a maximum node id used
+   in the table as a value for HASHKEY_MAX_NID.  A value associated to
+   a node is recorded as a value for the node id.  */
 
-#define HASHKEY_TERMINAL Qt /* "T"erminal */
+#define HASHKEY_MAX_NID (make_number (0))
 
 static XrmDatabase
 xrm_create_database ()
 {
-  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
-			  make_float (DEFAULT_REHASH_SIZE),
-			  make_float (DEFAULT_REHASH_THRESHOLD),
-			  Qnil, Qnil, Qnil);  
+  XrmDatabase database;
+
+  database = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			      make_float (DEFAULT_REHASH_SIZE),
+			      make_float (DEFAULT_REHASH_THRESHOLD),
+			      Qnil, Qnil, Qnil);
+  Fputhash (HASHKEY_MAX_NID, make_number (0), database);
+
+  return database;
 }
 
 static void
@@ -833,24 +840,30 @@ xrm_q_put_resource (database, quarks, value)
      XrmDatabase database;
      Lisp_Object quarks, value;
 {
-  struct Lisp_Hash_Table *h;
+  struct Lisp_Hash_Table *h = XHASH_TABLE (database);
   unsigned hash_code;
-  int i;
+  int max_nid, i;
+  Lisp_Object node_id, key;
 
+  max_nid = XINT (Fgethash (HASHKEY_MAX_NID, database, Qnil));
+
+  XSETINT (node_id, 0);
   for (; CONSP (quarks); quarks = XCDR (quarks))
     {
-      h = XHASH_TABLE (database);
-      i = hash_lookup (h, XCAR (quarks), &hash_code);
+      key = Fcons (node_id, XCAR (quarks));
+      i = hash_lookup (h, key, &hash_code);
       if (i < 0)
 	{
-	  database = xrm_create_database ();
-	  hash_put (h, XCAR (quarks), database, hash_code);
+	  max_nid++;
+	  XSETINT (node_id, max_nid); 
+	  hash_put (h, key, node_id, hash_code);
 	}
       else
-	database = HASH_VALUE (h, i);
+	node_id = HASH_VALUE (h, i);
     }
+  Fputhash (node_id, value, database);
 
-  Fputhash (HASHKEY_TERMINAL, value, database);
+  Fputhash (HASHKEY_MAX_NID, make_number (max_nid), database);
 }
 
 /* Merge multiple resource entries specified by DATA into a resource
@@ -875,47 +888,60 @@ xrm_merge_string_database (database, data)
 }
 
 static Lisp_Object
-xrm_q_get_resource (database, quark_name, quark_class)
+xrm_q_get_resource_1 (database, node_id, quark_name, quark_class)
      XrmDatabase database;
-     Lisp_Object quark_name, quark_class;
+     Lisp_Object node_id, quark_name, quark_class;
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (database);
-  Lisp_Object keys[3], value;
+  Lisp_Object key, labels[3], value;
   int i, k;
-  
-  if (!CONSP (quark_name))
-    return Fgethash (HASHKEY_TERMINAL, database, Qnil);
-  
-  /* First, try tight bindings */
-  keys[0] = XCAR (quark_name);
-  keys[1] = XCAR (quark_class);
-  keys[2] = SINGLE_COMPONENT;
 
-  for (k = 0; k < sizeof (keys) / sizeof (*keys); k++)
+  if (!CONSP (quark_name))
+    return Fgethash (node_id, database, Qnil);
+
+  /* First, try tight bindings */
+  labels[0] = XCAR (quark_name);
+  labels[1] = XCAR (quark_class);
+  labels[2] = SINGLE_COMPONENT;
+
+  key = Fcons (node_id, Qnil);
+  for (k = 0; k < sizeof (labels) / sizeof (*labels); k++)
     {
-      i = hash_lookup (h, keys[k], NULL);
+      XSETCDR (key, labels[k]);
+      i = hash_lookup (h, key, NULL);
       if (i >= 0)
 	{
-	  value = xrm_q_get_resource (HASH_VALUE (h, i),
-				      XCDR (quark_name), XCDR (quark_class));
+	  value = xrm_q_get_resource_1 (database, HASH_VALUE (h, i),
+					XCDR (quark_name), XCDR (quark_class));
 	  if (!NILP (value))
 	    return value;
 	}
     }
 
   /* Then, try loose bindings */
-  i = hash_lookup (h, LOOSE_BINDING, NULL);
+  XSETCDR (key, LOOSE_BINDING);
+  i = hash_lookup (h, key, NULL);
   if (i >= 0)
     {
-      value = xrm_q_get_resource (HASH_VALUE (h, i), quark_name, quark_class);
+      value = xrm_q_get_resource_1 (database, HASH_VALUE (h, i),
+				    quark_name, quark_class);
       if (!NILP (value))
 	return value;
       else
-	return xrm_q_get_resource (database,
-				   XCDR (quark_name), XCDR (quark_class));
+	return xrm_q_get_resource_1 (database, node_id,
+				     XCDR (quark_name), XCDR (quark_class));
     }
   else
     return Qnil;
+}
+
+static Lisp_Object
+xrm_q_get_resource (database, quark_name, quark_class)
+     XrmDatabase database;
+     Lisp_Object quark_name, quark_class;
+{
+  return xrm_q_get_resource_1 (database, make_number (0),
+			       quark_name, quark_class);
 }
 
 /* Retrieve a resource value for the specified NAME and CLASS from the
@@ -972,16 +998,7 @@ xrm_cfproperty_list_to_value (plist)
       return result;
     }
   else if (type_id == CFBooleanGetTypeID ())
-    {
-      static value_true = NULL, value_false = NULL;
-
-      if (value_true == NULL)
-	{
-	  value_true = build_string ("true");
-	  value_false = build_string ("false");
-	}
-      return CFBooleanGetValue (plist) ? value_true : value_false;
-    }
+    return build_string (CFBooleanGetValue (plist) ? "true" : "false");
   else if (type_id == CFDataGetTypeID ())
     return cfdata_to_lisp (plist);
   else
