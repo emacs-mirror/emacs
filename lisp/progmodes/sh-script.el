@@ -647,7 +647,8 @@ with your script for an edit-interpret-debug cycle."
 	     sh-font-lock-keywords-1
 	     sh-font-lock-keywords-2)
 	    nil nil
-	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")))
+	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+	    (font-lock-comment-start-regexp . "#"))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -730,8 +731,9 @@ Calls the value of `sh-set-shell-hook' if set."
 				  no-query-flag insert-flag)))
   (setq require-final-newline (sh-feature sh-require-final-newline)
 ;;;	local-abbrev-table (sh-feature sh-abbrevs)
-	font-lock-keywords nil		; force resetting
-	font-lock-syntax-table nil
+;; Packages should not need to set these variables directly.  sm.
+;	font-lock-keywords nil		; force resetting
+;	font-lock-syntax-table nil
 	comment-start-skip "#+[\t ]*"
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
@@ -741,9 +743,10 @@ Calls the value of `sh-set-shell-hook' if set."
   (while shell
     (sh-remember-variable (car shell))
     (setq shell (cdr shell)))
-  (and (boundp 'font-lock-mode)
-       font-lock-mode
-       (font-lock-mode (font-lock-mode 0)))
+;; Packages should not need to toggle Font Lock mode.  sm.
+;  (and (boundp 'font-lock-mode)
+;       font-lock-mode
+;       (font-lock-mode (font-lock-mode 0)))
   (run-hooks 'sh-set-shell-hook))
 
 
