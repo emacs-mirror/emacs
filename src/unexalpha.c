@@ -59,6 +59,7 @@ static struct scnhdr *text_section;
 static struct scnhdr *init_section;
 static struct scnhdr *finit_section;
 static struct scnhdr *rdata_section;
+static struct scnhdr *rconst_section;
 static struct scnhdr *data_section;
 static struct scnhdr *pdata_section;
 static struct scnhdr *xdata_section;
@@ -69,7 +70,7 @@ static struct scnhdr *sdata_section;
 static struct scnhdr *sbss_section;
 static struct scnhdr *bss_section;
 
-static unsigned int Brk;
+static unsigned long Brk;
 
 struct headers {
     struct filehdr fhdr;
@@ -169,6 +170,9 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   CHECK_SCNHDR (finit_section, _FINI,  STYP_FINI);
 #endif /* _FINI */
   CHECK_SCNHDR (rdata_section, _RDATA, STYP_RDATA);
+#ifdef _RCONST
+  CHECK_SCNHDR (rconst_section, _RCONST, STYP_RCONST);
+#endif
 #ifdef _PDATA
   CHECK_SCNHDR (pdata_section, _PDATA, STYP_PDATA);
 #endif _PDATA
@@ -186,12 +190,6 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   CHECK_SCNHDR (sdata_section, _SDATA, STYP_SDATA);
   CHECK_SCNHDR (sbss_section,  _SBSS,  STYP_SBSS);
   CHECK_SCNHDR (bss_section,   _BSS,   STYP_BSS);
-#if 0 /* Apparently this error check goes off on irix 3.3,
-	 but it doesn't indicate a real problem.  */
-  if (i != nhdr.fhdr.f_nscns)
-    fprintf (stderr, "unexec: %d sections found instead of %d.\n",
-	     i, nhdr.fhdr.f_nscns);
-#endif
 
 
   pagesize = getpagesize ();
@@ -212,17 +210,26 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
     nhdr.aout.entry = entry_address;
 
   nhdr.aout.bss_start = nhdr.aout.data_start + nhdr.aout.dsize;
-  rdata_section->s_size = data_start - DATA_START;
 
-  /* Adjust start and virtual addresses of rdata_section, too.  */
-  rdata_section->s_vaddr = DATA_START;
-  rdata_section->s_paddr = DATA_START;
-  rdata_section->s_scnptr = text_section->s_scnptr + nhdr.aout.tsize;
+  if (rdata_section != NULL)
+    {
+      rdata_section->s_size = data_start - DATA_START;
+
+      /* Adjust start and virtual addresses of rdata_section, too.  */
+      rdata_section->s_vaddr = DATA_START;
+      rdata_section->s_paddr = DATA_START;
+      rdata_section->s_scnptr = text_section->s_scnptr + nhdr.aout.tsize;
+    }
 
   data_section->s_vaddr = data_start;
   data_section->s_paddr = data_start;
   data_section->s_size = brk - data_start;
-  data_section->s_scnptr = rdata_section->s_scnptr + rdata_section->s_size;
+
+  if (rdata_section != NULL)
+    {
+      data_section->s_scnptr = rdata_section->s_scnptr + rdata_section->s_size;
+    }
+
   vaddr = data_section->s_vaddr + data_section->s_size;
   scnptr = data_section->s_scnptr + data_section->s_size;
   if (lit8_section != NULL)
@@ -320,7 +327,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
 /* Not needed for now */
 
-  update_dynamic_symbols (oldptr, new, newsyms,
+  update_dynamic_symbols (oldptr, new_name, new, newsyms,
 			  ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->issExtMax,
                           ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->cbExtOffset,
                           ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->cbSsExtOffset);
@@ -352,13 +359,14 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 */
 
 
-update_dynamic_symbols (old, new, newsyms, nsyms, symoff, stroff)
-char *old;			/* Pointer to old executable */
-int new;			/* File descriptor for new executable */
-long newsyms;			/* Offset of Symbol table in new executable */
-int nsyms;			/* Number of symbol table entries */
-long symoff;			/* Offset of External Symbols in old file */
-long stroff;			/* Offset of string table in old file */
+update_dynamic_symbols (old, new_name, new, newsyms, nsyms, symoff, stroff)
+     char *old;			/* Pointer to old executable */
+     char *new_name;            /* Name of new executable */
+     int new;			/* File descriptor for new executable */
+     long newsyms;		/* Offset of Symbol table in new executable */
+     int nsyms;			/* Number of symbol table entries */
+     long symoff;		/* Offset of External Symbols in old file */
+     long stroff;		/* Offset of string table in old file */
 {
   long i;
   int found = 0;
@@ -383,7 +391,7 @@ long stroff;			/* Offset of string table in old file */
 	  n_edata.asym.value = Brk;
 	  SEEK (new, newsyms + cbHDRR + i,
 		"seeking to symbol _edata in %s", new_name);
-	  WRITE (new, n_edata, cbEXTR,
+	  WRITE (new, &n_edata, cbEXTR,
 		 "writing symbol table entry for _edata into %s", new_name);
 	}
       else if (!strcmp(s,"_end"))
@@ -393,7 +401,7 @@ long stroff;			/* Offset of string table in old file */
 	  n_end.asym.value = Brk;
 	  SEEK (new, newsyms + cbHDRR + i,
 		"seeking to symbol _end in %s", new_name);
-	  WRITE (new, n_end, cbEXTR,
+	  WRITE (new, &n_end, cbEXTR,
 		 "writing symbol table entry for _end into %s", new_name);
 	}
     }
@@ -425,6 +433,7 @@ mark_x (name)
 
 static void
 fatal_unexec (s, va_alist)
+    char *s;
     va_dcl
 {
   va_list ap;
@@ -437,4 +446,3 @@ fatal_unexec (s, va_alist)
   fputs (".\n", stderr);
   exit (1);
 }
-
