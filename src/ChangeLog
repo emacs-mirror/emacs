@@ -1,3 +1,14 @@
+2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (wait_reading_process_input) [SYNC_INPUT]:
+	Check interrupt_input_pending explicitly.
+
+	* lisp.h (QUIT) [SYNC_INPUT]: Check interrupt_input_pending as well.
+
+	* keyboard.c (handle_async_input): New fun,
+	extracted from input_available_signal.
+	(input_available_signal, reinvoke_input_signal): Use it.
+
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (buffer_defaults, buffer_local_symbols): Use DECL_ALIGN.
