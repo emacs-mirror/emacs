@@ -1,5 +1,7 @@
 2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (magic-mode-alist): Reduce backtracking in the HTML regexp.
+
 	* textmodes/sgml-mode.el (sgml-tag-text-p): New fun.
 	(sgml-parse-tag-backward): Use it to skip spurious < or >.
 
@@ -11,8 +13,7 @@
 2004-11-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el: Don't require cl, comint, gud, gdb-ui for
-	compilation. The resulting compiler warnings appear to be
-	harmless.
+	compilation. The resulting compiler warnings appear to be harmless.
 
 2004-11-10  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -69,7 +70,7 @@
 	(diary-from-outlook-gnus, diary-from-outlook-rmail): Do not use
 	interactive-p; but rather new optional argument NOCONFIRM.
 
-2004-11-09  Stefan  <monnier@iro.umontreal.ca>
+2004-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-intern): Revert to no-downcasing.
 	(easy-menu-name-match): Revert correspondingly.
@@ -232,7 +233,7 @@
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map): Fix last change.
 
-2004-11-06  Stefan  <monnier@iro.umontreal.ca>
+2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map-look-for-name): Remove.
 	(easy-menu-lookup-name): New fun to replace it.

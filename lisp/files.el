@@ -1866,10 +1866,14 @@ regular expression.  The mode is then determined as the mode associated
 with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  '(;; The < comes before the groups (but the first) to reduce backtracking.
-    ;; Is there a nicer way of getting . including \n like Perl's //s?
+  `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
-    ("\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\)?\\s *\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*[Hh][Tt][Mm][Ll]" . html-mode)
+    (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
+	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
+		comment-re "*"
+		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
+		"[Hh][Tt][Mm][Ll]")) . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
