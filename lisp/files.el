@@ -938,7 +938,7 @@ If the current buffer now contains an empty file that you just visited
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
-	(odir (bound-and-true-p dired-directory))
+	(odir dired-directory)
 	(otrue buffer-file-truename)
 	(oname (buffer-name)))
     (if (get-buffer " **lose**")
