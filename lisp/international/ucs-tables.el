@@ -1249,7 +1249,7 @@ Interactively, prompts for a hex string giving the code."
   (interactive "sUnicode (hex): ")
   (or (integerp arg)
       (setq arg (string-to-number arg 16)))
-  (let ((c (decode-char 'ucs arg )))
+  (let ((c (decode-char 'ucs arg)))
     (if c
 	(insert c)
       (if (or (< arg 0) (> arg #x10FFFF))
