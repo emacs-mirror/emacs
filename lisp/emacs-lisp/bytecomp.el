@@ -3966,27 +3966,29 @@ already up-to-date."
     (kill-emacs (if error 1 0))))
 
 (defun batch-byte-compile-file (file)
-  (condition-case err
+  (if debug-on-error
       (byte-compile-file file)
-    (file-error
-     (message (if (cdr err)
-		  ">>Error occurred processing %s: %s (%s)"
+    (condition-case err
+	(byte-compile-file file)
+      (file-error
+       (message (if (cdr err)
+		    ">>Error occurred processing %s: %s (%s)"
 		  ">>Error occurred processing %s: %s")
-	      file
-	      (get (car err) 'error-message)
-	      (prin1-to-string (cdr err)))
-     (let ((destfile (byte-compile-dest-file file)))
-       (if (file-exists-p destfile)
-	   (delete-file destfile)))
-     nil)
-    (error
-     (message (if (cdr err)
-		  ">>Error occurred processing %s: %s (%s)"
+		file
+		(get (car err) 'error-message)
+		(prin1-to-string (cdr err)))
+       (let ((destfile (byte-compile-dest-file file)))
+	 (if (file-exists-p destfile)
+	     (delete-file destfile)))
+       nil)
+      (error
+       (message (if (cdr err)
+		    ">>Error occurred processing %s: %s (%s)"
 		  ">>Error occurred processing %s: %s")
-	      file
-	      (get (car err) 'error-message)
-	      (prin1-to-string (cdr err)))
-     nil)))
+		file
+		(get (car err) 'error-message)
+		(prin1-to-string (cdr err)))
+       nil))))
 
 ;;;###autoload
 (defun batch-byte-recompile-directory ()
