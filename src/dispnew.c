@@ -2145,6 +2145,13 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
       && newwidth == FRAME_WIDTH (frame))
     return;
 
+#ifdef MSDOS
+  /* We only can set screen dimensions to certain values supported
+     by our video hardware.  Try to find the smallest size greater
+     or equal to the requested dimensions.  */
+  dos_set_window_size (&newheight, &newwidth);
+#endif
+
   if (newheight != FRAME_HEIGHT (frame))
     {
       if (FRAME_HAS_MINIBUF_P (frame)
