@@ -338,7 +338,8 @@
 ;;   in the buffer.  You can safely assume that point is placed at the
 ;;   beginning of each line, starting at `point-min'.  The buffer that
 ;;   point is placed in is the Annotate output, as defined by the
-;;   relevant backend.
+;;   relevant backend.  This function also affects how much of the line
+;;   is fontified; where it leaves point is where fontification begins.
 ;;
 ;; - annotate-current-time ()
 ;;
@@ -2896,7 +2897,7 @@ if present.  The current time is used as the offset."
   (message "Redisplaying annotation...done"))
 
 (defun vc-annotate-display-autoscale (&optional full)
-  "Highlight the output of \\[vc-annotate]] using an autoscaled color map.
+  "Highlight the output of \\[vc-annotate] using an autoscaled color map.
 Autoscaling means that the map is scaled from the current time to the
 oldest annotation in the buffer, or, with argument FULL non-nil, to
 cover the range from the oldest annotation to the newest."

@@ -63,7 +63,7 @@ it will be killed sometime later."
   "*Non-nil means that Gnus will try to build threads by grabbing old headers.
 If an unread article in the group refers to an older, already read (or
 just marked as read) article, the old article will not normally be
-displayed in the Summary buffer.  If this variable is non-nil, Gnus
+displayed in the Summary buffer.  If this variable is t, Gnus
 will attempt to grab the headers to the old articles, and thereby
 build complete threads.  If it has the value `some', only enough
 headers to connect otherwise loose threads will be displayed.  This
@@ -74,7 +74,9 @@ old headers will be fetched, but none will be displayed.
 The server has to support NOV for any of this to work."
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
 		 (const some)
+		 (const invisible)
 		 number
 		 (sexp :menu-tag "other" t)))
 
