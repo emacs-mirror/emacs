@@ -80,6 +80,7 @@
 ;;   ispell-region
 ;;   ispell-buffer
 ;;   ispell-message
+;;   ispell-comments-and-strings
 ;;   ispell-continue
 ;;   ispell-complete-word
 ;;   ispell-complete-word-interior-frag
@@ -1980,6 +1981,25 @@ With prefix argument, set the default directory."
       (ispell-pdict-save ispell-silently-savep)
       (message "Spell-checking done"))))
 
+
+;;;###autoload
+(defun ispell-comments-and-strings ()
+  "Check comments and strings in the current buffer for spelling errors."
+  (interactive)
+  (goto-char (point-min))
+  (let (state done)
+    (while (not done)
+      (setq done t)
+      (setq state (parse-partial-sexp (point) (point-max)
+				      nil nil state 'syntax-table))
+      (when (or (nth 3 state) (nth 4 state))
+	(let ((start (point)))
+	  (setq state (parse-partial-sexp start (point-max)
+					  nil nil state 'syntax-table))
+	  (when (or (nth 3 state) (nth 4 state))
+	    (error "Unterminated string or comment."))
+	  (save-excursion
+	    (setq done (not (ispell-region start (point))))))))))
 
 
 ;;;###autoload
