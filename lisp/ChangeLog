@@ -1,3 +1,8 @@
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* loadhist.el (unload-feature): Doc fix.  Rename flist to
+	unload-hook-features-list.
+
 2004-02-16  Jay Belanger  <belanger@truman.edu>  (tiny change).
 
 	* calc/calc-embed.el (calc-do-embedded-activate): Add autoload
