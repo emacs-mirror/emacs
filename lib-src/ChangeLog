@@ -1,3 +1,8 @@
+2002-04-23  Colin Walters  <walters@verbum.org>
+
+	* update-game-score.c (read_score) [HAVE_GETDELIM]: Trim trailing
+	space.
+
 2002-04-22  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: (last_node): Make it a global variable.

@@ -1,5 +1,40 @@
 2002-04-23  Colin Walters  <walters@verbum.org>
 
+	* replace.el (toplevel): Require `cl' while compiling.
+	(occur-buffer, occur-nlines): Delete.
+	(occur-revert-properties): Rename to `occur-revert-properties'.
+	(occur-mode): Handle it.  Set up font lock.
+	(occur-revert-function): Simply apply `occur-1'.
+	(occur-mode-find-occurence, occur-mode-mouse-goto)
+	(occur-mode-goto-occurrence-other-window)
+	(occur-mode-display-occurrence): Handle buffer property.
+	(list-matching-lines-face): Use defcustom.
+	(list-matching-lines-buffer-name-face): New variable.
+	(occur-accumulate-lines): Renamed from `ibuffer-accumulate-lines',
+	in ibuffer.el.
+	(occur-read-primary-args): Move out of `occur'.
+	(occur): Delete.  Now simply call `occur-1'.
+	(multi-occur, multi-occur-by-filename-regexp): New functions.
+	(occur-1): New function.
+	(occur-engine): Renamed from `ibuffer-occur-engine' to replace the
+	previous implementation of `occur'; taken from ibuf-ext.el.
+	(occur-fontify-on-property): New function.
+	(occur-fontify-region-function, occur-unfontify-region-function):
+	New functions.
+	
+	* ibuffer.el (ibuffer-accumulate-lines): Moved to replace.el.
+	
+	* ibuf-ext.el (ibuffer-depropertize-string): Delete.
+	(ibuffer-occur-match-face): Delete.
+	(ibuffer-occur-props, ibuffer-occur-mode): Delete.
+	(ibuffer-occur-mouse-display-occurence): Delete.
+	(ibuffer-occur-goto-occurence, ibuffer-occur-display-occurence):
+	Delete.
+	(ibuffer-do-occur-1, ibuffer-occur-revert-buffer-function):
+	Delete.
+	(ibuffer-occur-engine): Moved to replace.el.
+	(ibuffer-do-occur): Simply call `occur-1'.	
+
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
 	Handle the case where we're already viewing the score file.
 
