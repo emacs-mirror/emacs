@@ -1,5 +1,9 @@
 2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* trouble.texi (Quitting): Fix last change.
+
+2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* trouble.texi (Quitting): Add findex entry for keyboard-quit.
 
 2000-07-24  Gerd Moellmann  <gerd@gnu.org>
