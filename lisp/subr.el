@@ -1547,11 +1547,9 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
     (let ((existing (assq toggle minor-mode-alist)))
       (when (and (stringp name) (not (get-text-property 0 'local-map name)))
 	(setq name
-	      (apply 'propertize name
-		     'local-map (make-mode-line-mouse2-map toggle-fun)
-		     (unless (get-text-property 0 'help-echo name)
-		       (list 'help-echo
-			     (format "mouse-2: turn off %S" toggle))))))
+	      (propertize name
+			  'local-map mode-line-minor-mode-keymap
+			  'help-echo "mouse-3: minor mode menu")))
       (if existing
 	  (setcdr existing (list name))
 	(let ((tail minor-mode-alist) found)
