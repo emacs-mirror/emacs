@@ -2,6 +2,8 @@
 
 	* language/czech.el ("Czech"): Fix the documentation.
 
+	* language/slovak.el ("Slovak"): Likewise.
+
 2002-03-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* xml.el (xml-parse-attlist): Accept empty strings.
