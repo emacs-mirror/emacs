@@ -408,6 +408,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Look in each dir in load-path for a subdirs.el file.
     ;; If we find one, load it, which will add the appropriate subdirs
     ;; of that dir into load-path,
+    ;; Look for a leim-list.el file too.  Loading it will register
+    ;; available input methods.
     (let ((tail load-path)
 	  new)
       (while tail
@@ -415,6 +417,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(condition-case nil
 	    (let ((default-directory (car tail)))
 	      (load (expand-file-name "subdirs.el" (car tail)) t t t)))
+	(condition-case nil
+	    (let ((default-directory (car tail)))
+	      (load (expand-file-name "leim-list.el" (car tail)) t t t)))
 	(setq tail (cdr tail))))
     (if (not (eq system-type 'vax-vms))
 	(progn
@@ -661,9 +666,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; .emacs; that is useless.
   (if site-run-file 
       (load site-run-file t t))
-
-  ;; Register available input methods by loading LEIM list file.
-  (load "leim-list.el" 'noerror 'nomessage 'nosuffix)
 
   ;; Sites should not disable this.  Only individuals should disable
   ;; the startup message.
