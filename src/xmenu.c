@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "keymap.h"
 #include "frame.h"
 #include "window.h"
 #include "blockinput.h"
@@ -380,7 +381,7 @@ keymap_panes (keymaps, nmaps, notreal)
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
     single_keymap_panes (keymaps[mapno],
-			 map_prompt (keymaps[mapno]), Qnil, notreal, 10);
+			 Fkeymap_prompt (keymaps[mapno]), Qnil, notreal, 10);
 
   finish_menu_items ();
 }
@@ -798,7 +799,7 @@ cached information about equivalent key sequences.")
 
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
-      prompt = map_prompt (keymap);
+      prompt = Fkeymap_prompt (keymap);
       if (NILP (title) && !NILP (prompt))
 	title = prompt;
 
@@ -826,7 +827,7 @@ cached information about equivalent key sequences.")
 
 	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
 
-	  prompt = map_prompt (keymap);
+	  prompt = Fkeymap_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
 	    title = prompt;
 	}
