@@ -1172,10 +1172,14 @@ internal_condition_case (bfun, handlers, hfun)
   struct catchtag c;
   struct handler h;
 
+#if 0 /* Can't do this check anymore because realize_basic_faces has
+	 to BLOCK_INPUT, and can call Lisp.  What's really needed is a
+	 flag indicating that we're currently handling a signal.  */
   /* Since Fsignal resets this to 0, it had better be 0 now
      or else we have a potential bug.  */
   if (interrupt_input_blocked != 0)
     abort ();
+#endif
 
   c.tag = Qnil;
   c.val = Qnil;
