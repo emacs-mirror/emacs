@@ -125,6 +125,8 @@ Called with region narrowed to the message, including headers.")
 (defvar rmail-message-vector nil)
 (defvar rmail-deleted-vector nil)
 
+(defvar rmail-overlay-list nil)
+
 ;; These are used by autoloaded rmail-summary.
 
 (defvar rmail-summary-buffer nil)
@@ -575,6 +577,8 @@ Instead, these commands are available:
   (make-local-variable 'rmail-total-messages)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline nil)
+  (make-local-variable 'rmail-overlay-list)
+  (setq rmail-overlay-list nil)
   (make-local-variable 'version-control)
   (setq version-control 'never)
   (make-local-variable 'file-precious-flag)
@@ -1403,18 +1407,32 @@ If summary buffer is currently displayed, update current message there also."
 		  ;; Highlight with boldface if that is available.
 		  ;; Otherwise use the `highlight' face.
 		  (face (if (face-differs-from-default-p 'bold)
-			    'bold 'highlight)))
+			    'bold 'highlight))
+		  ;; List of overlays to reuse.
+		  (overlays rmail-overlay-list))
 	      (goto-char (point-min))
 	      (while (re-search-forward rmail-highlighted-headers nil t)
 		(skip-syntax-forward " ")
-		(let ((beg (point)))
+		(let ((beg (point))
+		      overlay)
 		  (while (progn (forward-line 1)
 				(looking-at "[ \t]")))
 		  ;; Back up over newline, then trailing spaces or tabs
 		  (forward-char -1)
 		  (while (member (preceding-char) '(?  ?\t))
 		    (forward-char -1))
-		  (put-text-property beg (point) 'face face))))))
+		  (if overlays
+		      ;; Reuse an overlay we already have.
+		      (progn
+			(setq overlay (car overlays)
+			      overlays (cdr overlays))
+			(move-overlay overlay beg (point)))
+		    ;; Make a new overlay and add it to
+		    ;; rmail-overlay-list.
+		    (setq overlay (make-overlay beg beg))
+		    (overlay-put overlay 'face face)
+		    (setq rmail-overlay-list
+			  (cons overlay rmail-overlay-list))))))))
 	(run-hooks 'rmail-show-message-hook)
 	;; If there is a summary buffer, try to move to this message
 	;; in that buffer.  But don't complain if this message
