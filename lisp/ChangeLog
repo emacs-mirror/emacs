@@ -1,3 +1,9 @@
+2000-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule-cmds.el (set-language-info-alist): Call
+	define-prefix-command with 3 arguments, to make the map suitable
+	for a menu.
+
 2000-05-07  Dave Love  <fx@gnu.org>
 
 	* time.el: Small doc fixes from Pavel Janic.
