@@ -904,7 +904,17 @@ command_loop_1 ()
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
   if (!NILP (Vpost_command_hook))
-    call1 (Vrun_hooks, Qpost_command_hook);
+    {
+      Lisp_Object tem;
+      /* If we get an error during the post-command-hook,
+	 cause post-command-hook to be nil.  */
+      tem = Vpost_command_hook;
+      Vpost_command_hook = Qnil;
+
+      call1 (Vrun_hooks, Qpost_command_hook);
+      
+      Vpost_command_hook = tem;
+    }
 
   while (1)
     {
@@ -1047,7 +1057,17 @@ command_loop_1 ()
 
       this_command = cmd;
       if (!NILP (Vpre_command_hook))
-	call1 (Vrun_hooks, Qpre_command_hook);
+	{
+	  Lisp_Object tem;
+	  /* If we get an error during the pre-command-hook,
+	     cause pre-command-hook to be nil.  */
+	  tem = Vpre_command_hook;
+	  Vpre_command_hook = Qnil;
+
+	  call1 (Vrun_hooks, Qpre_command_hook);
+
+	  Vpre_command_hook = tem;
+	}
 
       if (NILP (this_command))
 	{
