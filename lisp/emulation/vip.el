@@ -38,34 +38,34 @@
 ;; external variables
 
 (defvar vip-emacs-local-map nil
-  "Local map used in emacs mode. \(buffer specific\)")
+  "Local map used in emacs mode.  (Buffer-specific.)")
 
 (defvar vip-insert-local-map nil
-  "Local map used in insert command mode. \(buffer specific\)")
+  "Local map used in insert command mode.  (Buffer-specific.)")
   
 (make-variable-buffer-local 'vip-emacs-local-map)
 (make-variable-buffer-local 'vip-insert-local-map)
 
 (defvar vip-insert-point nil
-  "Remember insert point as a marker. \(buffer specific\)")
+  "Remember insert point as a marker.  (Buffer-specific.)")
 
 (set-default 'vip-insert-point (make-marker))
 (make-variable-buffer-local 'vip-insert-point)
 
 (defvar vip-com-point nil
-  "Remember com point as a marker. \(buffer specific\)")
+  "Remember com point as a marker.  (Buffer-specific.)")
 
 (set-default 'vip-com-point (make-marker))
 (make-variable-buffer-local 'vip-com-point)
 
 (defvar vip-current-mode nil
-  "Current mode.  One of emacs-mode, vi-mode, insert-mode.")
+  "Current mode.  One of `emacs-mode', `vi-mode', `insert-mode'.")
 
 (make-variable-buffer-local 'vip-current-mode)
 (setq-default vip-current-mode 'emacs-mode)
 
 (defvar vip-emacs-mode-line-buffer-identification nil
-  "value of mode-line-buffer-identification in emacs-mode.")
+  "Value of mode-line-buffer-identification in Emacs mode within vip.")
 (make-variable-buffer-local 'vip-emacs-mode-line-buffer-identification)
 (setq-default vip-emacs-mode-line-buffer-identification
 	      '("Emacs: %17b"))
@@ -77,14 +77,13 @@
 (make-variable-buffer-local 'vip-current-major-mode)
 
 (defvar vip-last-shell-com nil
-  "last shell command executed by ! command")
+  "Last shell command executed by ! command.")
 
 (defvar vip-use-register nil
-  "name of register to store deleted or yanked strings.")
+  "Name of register to store deleted or yanked strings.")
 
 (defvar vip-d-com nil
-  "If non-nil, it's value is a list (M-COM VAL COM), and is used to
-re-execute last destructive command")
+  "How to reexecute last destructive command.  Value is list (M-COM VAL COM).")
 
 (defconst vip-shift-width 8
   "*The number of columns shifted by > and < command.")
@@ -93,54 +92,54 @@ re-execute last destructive command")
   "*If t then do regexp replace, if nil then do string replace.")
 
 (defvar vip-d-char nil
-  "The character remembered by the vi \"r\" command")
+  "The character remembered by the vi \"r\" command.")
 
 (defvar vip-f-char nil
-  "for use by \";\" command")
+  "For use by \";\" command.")
 
 (defvar vip-F-char nil
-  "for use by \".\" command")
+  "For use by \".\" command.")
 
 (defvar vip-f-forward nil
-  "for use by \";\" command")
+  "For use by \";\" command.")
   
 (defvar vip-f-offset nil
-  "for use by \";\" command")
+  "For use by \";\" command.")
 
 (defconst vip-search-wrap-around t
-  "*if t, search wraps around")
+  "*if t, search wraps around.")
 
 (defconst vip-re-search nil
   "*if t, search is reg-exp search, otherwise vanilla search.")
 
 (defvar vip-s-string nil
-  "last search string")
+  "Last vip search string.")
 
 (defvar vip-s-forward nil
-  "if t, search is forward.")
+  "If t, search is forward.")
 
 (defconst vip-case-fold-search nil
-  "*if t, search ignores cases.")
+  "*If t, search ignores cases.")
 
 (defconst vip-re-query-replace nil
   "*If t then do regexp replace, if nil then do string replace.")
 
 (defconst vip-open-with-indent nil
-  "*if t, indent when open a new line.")
+  "*If t, indent when open a new line.")
 
 (defconst vip-help-in-insert-mode nil
-  "*if t then C-h is bound to help-command in insert mode, if nil then it is
-bound to delete-backward-char.")
+  "*If t then C-h is bound to help-command in insert mode.
+If nil then it is bound to `delete-backward-char'.")
 
 (defvar vip-quote-string "> "
-  "string inserted at the beginning of region")
+  "String inserted at the beginning of region.")
 
 (defvar vip-tags-file-name "TAGS")
 
 (defvar vip-inhibit-startup-message nil)
 
 (defvar vip-startup-file (convert-standard-filename "~/.vip")
-  "filename used as strtup file for `vip-mode'.")
+  "Filename used as startup file for vip.")
 
 ;; basic set up
 
