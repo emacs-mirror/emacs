@@ -879,6 +879,33 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 		 inherit, prepare, before_markers);
 }
 
+/* See if the byte sequence at STR1 of length LEN1 combine with the
+   byte sequence at STR2 of length LEN2 to form a single composite
+   character.  If so, return the number of bytes at the start of STR2
+   which combine in this way.  Otherwise, return 0.  If STR3 is not
+   NULL, it is a byte sequence of length LEN3 to be appended to STR1
+   before checking the combining.  */
+int
+count_combining_composition (str1, len1, str2, len2, str3, len3)
+     unsigned char *str1, *str2, *str3;
+     int len1, len2, len3;
+{
+  int len = len1 + len2 + len3;
+  unsigned char *buf = (unsigned char *) alloca (len + 1);
+  int bytes;
+
+  bcopy (str1, buf, len1);
+  if (str3)
+    {
+      bcopy (str3, buf + len1, len3);
+      len1 += len3;
+    }
+  bcopy (str2, buf + len1 , len2);
+  buf[len] = 0;
+  PARSE_MULTIBYTE_SEQ (buf, len, bytes);
+  return (bytes <= len1 ? 0 : bytes - len1);
+}
+
 /* See if the bytes before POS/POS_BYTE combine with bytes
    at the start of STRING to form a single character.
    If so, return the number of bytes at the start of STRING
@@ -890,30 +917,44 @@ count_combining_before (string, length, pos, pos_byte)
      int length;
      int pos, pos_byte;
 {
-  int opos = pos, opos_byte = pos_byte;
-  int c;
-  unsigned char *p = string;
+  int len, combining_bytes;
+  unsigned char *p;
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
-  if (length == 0 || CHAR_HEAD_P (*string))
+
+  /* At first, we can exclude the following cases:
+	(1) STRING[0] can't be a following byte of multibyte sequence.
+	(2) POS is the start of the current buffer.
+	(3) A character before POS is not a multibyte character.  */
+  if (length == 0 || CHAR_HEAD_P (*string)) /* case (1) */
     return 0;
-  if (pos == BEG)
+  if (pos_byte == BEG_BYTE)	/* case (2) */
     return 0;
-  c = FETCH_BYTE (pos_byte - 1);
-  if (ASCII_BYTE_P (c))
-    return 0;
-  DEC_BOTH (pos, pos_byte);
-  c = FETCH_BYTE (pos_byte);
-  if (! BASE_LEADING_CODE_P (c))
+  len = 1;
+  p = BYTE_POS_ADDR (pos_byte - 1);
+  while (! CHAR_HEAD_P (*p)) p--, len++;
+  if (! BASE_LEADING_CODE_P (*p)) /* case (3) */
     return 0;
 
-  /* We have a combination situation.
-     Count the bytes at STRING that will combine.  */
+  /* A sequence of a composite character requires a special handling.  */
+  if (*p == LEADING_CODE_COMPOSITION)
+    return count_combining_composition (p, len, string, length, NULL, 0);
+
+  combining_bytes = BYTES_BY_CHAR_HEAD (*p) - len;
+  if (combining_bytes <= 0)
+    /* The character preceding POS is, complete and no room for
+       combining bytes (combining_bytes == 0), or an independent 8-bit
+       character (combining_bytes < 0).  */
+    return 0;
+
+  /* We have a combination situation.  Count the bytes at STRING that
+     may combine.  */
+  p = string + 1;
   while (!CHAR_HEAD_P (*p) && p < string + length)
     p++;
 
-  return p - string;
+  return (combining_bytes < p - string ? combining_bytes : p - string);
 }
 
 /* See if the bytes after POS/POS_BYTE combine with bytes
@@ -929,12 +970,25 @@ count_combining_after (string, length, pos, pos_byte)
 {
   int opos = pos, opos_byte = pos_byte;
   int i;
-  int c;
+  int c, bytes;
+  unsigned char *bufp;
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
-  if (length > 0 && ASCII_BYTE_P (string[length - 1]))
+
+  /* At first, we can exclude the following cases:
+	(1) The last byte of STRING is an ASCII.
+	(2) POS is the last of the current buffer.
+	(3) A character at POS can't be a following byte of multibyte
+	    character.  */
+  if (length > 0 && ASCII_BYTE_P (string[length - 1])) /* case (1) */
     return 0;
+  if (pos_byte == Z_BYTE)	/* case (2) */
+    return 0;
+  bufp = BYTE_POS_ADDR (pos_byte);
+  if (CHAR_HEAD_P (*bufp))	/* case (3) */
+    return 0;
+
   i = length - 1;
   while (i >= 0 && ! CHAR_HEAD_P (string[i]))
     {
@@ -942,33 +996,37 @@ count_combining_after (string, length, pos, pos_byte)
     }
   if (i < 0)
     {
-      /* All characters in `string' are not character head.
-	 We must check also preceding bytes at POS.
-	 We are sure that the gap is at POS.  */
-      string = BEG_ADDR;
+      /* All characters in STRING are not character head.  We must
+	 check also preceding bytes at POS.  We are sure that the gap
+	 is at POS.  */
+      unsigned char *p = BEG_ADDR;
       i = pos_byte - 2;
-      while (i >= 0 && ! CHAR_HEAD_P (string[i]))
+      while (i >= 0 && ! CHAR_HEAD_P (p[i]))
 	i--;
-      if (i < 0 || !BASE_LEADING_CODE_P (string[i]))
+      if (i < 0 || !BASE_LEADING_CODE_P (p[i]))
 	return 0;
+      /* A sequence of a composite character requires a special handling.  */
+      if (p[i] == LEADING_CODE_COMPOSITION)
+	return count_combining_composition (p + i, pos_byte - 1 - i,
+					    bufp, Z_BYTE - pos_byte,
+					    string, length);
+      bytes = BYTES_BY_CHAR_HEAD (p[i]);
+      return (bytes <= pos_byte - 1 - i + length
+	      ? 0
+	      : bytes - (pos_byte - 1 - i + length));
     }
-  else if (!BASE_LEADING_CODE_P (string[i]))
+  if (!BASE_LEADING_CODE_P (string[i]))
     return 0;
+  /* A sequence of a composite character requires a special handling.  */
+  if (string[i] == LEADING_CODE_COMPOSITION)
+    return count_combining_composition (string + i, length - i,
+					bufp, Z_BYTE - pos_byte, NULL, 0);
 
-  if (pos == Z)
-    return 0;
-  c = FETCH_BYTE (pos_byte);
-  if (CHAR_HEAD_P (c))
-    return 0;
-  while (pos_byte < Z_BYTE)
-    {
-      c = FETCH_BYTE (pos_byte);
-      if (CHAR_HEAD_P (c))
-	break;
-      pos_byte++;
-    }
+  bytes = BYTES_BY_CHAR_HEAD (string[i]) - (length - i);
+  bufp++, pos_byte++;
+  while (!CHAR_HEAD_P (*bufp)) bufp++, pos_byte++;
 
-  return pos_byte - opos_byte;
+  return (bytes <= pos_byte - opos_byte ? bytes : pos_byte - opos_byte);
 }
 
 /* Adjust the position TARGET/TARGET_BYTE for the combining of NBYTES
