@@ -70,6 +70,8 @@
 ;; Ignore non-file non-dired buffers. Colin Rafferty <craffert@ml.com> 3 Mar 97
 ;; Use last component, not "", for file name of directories.  mernst 27 Jun 97
 ;; Use directory-file-name; code cleanup.  mernst 6 Sep 97
+;; Add uniquify-ignore-buffers-re.
+;;  Andre Srinivasan <andre@visigenic.com> 9 Sep 97
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,
@@ -121,6 +123,14 @@ names (rather than keeping pointers to the buffers themselves)."
   "*If non-nil, permit user to choose names for buffers with same base file.
 If the user chooses to name a buffer, uniquification is preempted and no
 other buffer names are changed."
+  :type 'boolean
+  :group 'uniquify)
+
+(defcustom uniquify-ignore-buffers-re nil
+  "*Regular expression matching buffer names that should not be uniqified.
+For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
+draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
+visited file name isn't the same as that of the buffer."
   :type 'boolean
   :group 'uniquify)
 
@@ -196,6 +206,9 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 		      (uniquify-buffer-file-name buffer)))
 	       (rawname (and bfn (uniquify-file-name-nondirectory bfn)))
 	       (deserving (and rawname
+			       (not (and uniquify-ignore-buffers-re
+					 (string-match uniquify-ignore-buffers-re
+						       (buffer-name buffer))))
 			       (or (not newbuffile)
 				   (equal rawname
 					  (uniquify-file-name-nondirectory newbuffile))))))
