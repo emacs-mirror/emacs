@@ -1,3 +1,7 @@
+2000-02-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Enlarge to 60000.
+
 2000-02-03  Ken Raeburn  <raeburn@raeburn.org>
 
 	* search.c (compile_pattern): If a cache entry has a nil regexp,
