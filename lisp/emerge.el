@@ -251,7 +251,9 @@ depend on the flags."
 displaying a difference.")
 
 (defvar emerge-temp-file-prefix
-  (let ((env (getenv "TMPDIR"))
+  (let ((env (or (getenv "TMPDIR")
+		 (getenv "TMP")
+		 (getenv "TEMP")))
 	d)
     (setq d (if (and env (> (length env) 0))
 		env
