@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98 Free Software
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -80,23 +80,12 @@ The Lisp code is executed when the node is selected.")
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
-	;; This is for older Emacs versions
-	;; which might get this info.el from the Texinfo distribution.
-	(path-separator (if (boundp 'path-separator) path-separator
-			  (if (eq system-type 'ms-dos) ";" ":")))
 	(source (expand-file-name "info/" source-directory))
 	(sibling (if installation-directory
 		     (expand-file-name "info/" installation-directory)))
 	alternative)
     (if path
-	(let ((list nil)
-	      idx)
-	  (while (> (length path) 0)
-	    (setq idx (or (string-match path-separator path) (length path))
-		  list (cons (substring path 0 idx) list)
-		  path (substring path (min (1+ idx)
-					    (length path)))))
-	  (nreverse list))
+	(split-string path (regexp-quote path-separator))
       (if (and sibling (file-exists-p sibling))
 	  (setq alternative sibling)
 	(setq alternative source))
@@ -112,8 +101,16 @@ The Lisp code is executed when the node is selected.")
 			      (expand-file-name "lib-src/"
 						installation-directory)))))
 	  Info-default-directory-list
-	(reverse (cons alternative
-		       (cdr (reverse Info-default-directory-list)))))))
+	;; Substitute the alternative for occurences of the
+	;; installation directory.  The latter occurs last, but maybe
+	;; more than once, so that it overrides /usr/info in
+	;; particular.
+	(let ((instdir (car (last Info-default-directory-list))))
+	  (mapcar (lambda (dir)
+		    (if (string= dir instdir)
+			alternative
+		      dir))
+		  Info-default-directory-list)))))
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
