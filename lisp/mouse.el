@@ -1333,6 +1333,7 @@ and selects that window."
 (global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
 (global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
+(global-set-key [vertical-scroll-bar C-mouse-2] 'mouse-split-window-vertically)
 
 (provide 'mouse)
 
