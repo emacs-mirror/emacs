@@ -295,7 +295,7 @@ handle_USR1_signal (sig)
   struct input_event buf;
 
   bzero (&buf, sizeof buf);
-  buf.kind = user_signal;
+  buf.kind = USER_SIGNAL_EVENT;
   buf.frame_or_window = selected_frame;
 
   kbd_buffer_store_event (&buf);
@@ -310,7 +310,7 @@ handle_USR2_signal (sig)
   struct input_event buf;
 
   bzero (&buf, sizeof buf);
-  buf.kind = user_signal;
+  buf.kind = USER_SIGNAL_EVENT;
   buf.code = 1;
   buf.frame_or_window = selected_frame;
 
