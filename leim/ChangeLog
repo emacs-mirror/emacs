@@ -1,3 +1,8 @@
+2001-04-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* quail/latin-ltx.el: Add more translations.  From
+	jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+
 2001-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/hangul.el <korean-hangul>: Doc fix.

@@ -1,3 +1,15 @@
+2001-04-23  Alex Schroeder  <alex@gnu.org>
+
+	* goto-addr.el: Instead of defining line-beginning-position and
+	line-end-position a defalias is used for point-at-bol and
+	point-at-eol.
+	
+2001-04-23  Alex Schroeder  <alex@gnu.org>
+
+	* goto-addr.el: Added XEmacs compatibility code.
+	(goto-address-highlight-keymap): Made keybindings XEmacs
+	compatible.
+
 2001-04-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/paragraphs.el (sentence-end): Doc fix.
