@@ -2226,12 +2226,16 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 	      (while bufs
 		(save-excursion
 		  (set-buffer (car bufs))
-		  (and (boundp 'rmail-send-actions-rmail-buffer)
-		       (eq rmail-send-actions-rmail-buffer rmailbuf)
-		       (setq rmail-send-actions-rmail-msg-number
-			     (rmail-msg-number-after-expunge
-			      deleted
-			      rmail-send-actions-rmail-msg-number))))
+		  (let ((tail mail-send-actions) action)
+		    (while tail
+		      (setq action (car tail)
+			    tail (cdr tail))
+		      (and (eq (car action) 'rmail-mark-message)
+			   (eq (nth 1 action) rmailbuf)
+			   (setcar (nthcdr 2 action)
+				   (rmail-msg-number-after-expunge
+				    deleted
+				    (nth 2 action)))))))
 		(setq bufs (cdr bufs))))
 
 	    (while (<= number total)
@@ -2314,9 +2318,6 @@ original message into it."
   (interactive)
   (rmail-start-mail t))
 
-(put 'rmail-send-actions-rmail-buffer 'permanent-local t)
-(put 'rmail-send-actions-rmail-msg-number 'permanent-local t)
-
 (defun rmail-reply (just-sender)
   "Reply to the current message.
 Normally include CC: to all other recipients of original message;
@@ -2387,22 +2388,21 @@ use \\[mail-yank-original] to yank the original message into it."
 			    (if (null cc) to (concat to ", " cc))))))
 	  (if (string= cc-list "") nil cc-list)))
       rmail-view-buffer
-      (list (list '(lambda ()
-		     (let ((msgnum rmail-send-actions-rmail-msg-number))
-		       (save-excursion
-			 (set-buffer rmail-send-actions-rmail-buffer)
-			 (if msgnum
-			     (rmail-set-attribute "answered" t msgnum)))))))
+      (list (list 'rmail-mark-message
+		  rmail-view-buffer
+		  msgnum
+		  "answered"))
       nil
       (list (cons "References" (concat (mapconcat 'identity references " ")
-				       " " message-id))))
-    ;; We keep the rmail buffer and message number in these 
-    ;; buffer-local vars in the sendmail buffer,
-    ;; so that rmail-only-expunge can relocate the message number.
-    (make-local-variable 'rmail-send-actions-rmail-buffer)
-    (make-local-variable 'rmail-send-actions-rmail-msg-number)
-    (setq rmail-send-actions-rmail-buffer rmail-view-buffer)
-    (setq rmail-send-actions-rmail-msg-number msgnum)))
+				       " " message-id))))))
+
+(defun rmail-mark-message (buffer msgnum attribute)
+  "Give BUFFER's message number MSGNUM the attribute ATTRIBUTE.
+This is use in the send-actions for message buffers."
+  (save-excursion
+    (set-buffer buffer)
+    (if msgnum
+	(rmail-set-attribute attribute t msgnum))))
 
 (defun rmail-make-in-reply-to-field (from date message-id)
   (cond ((not from)
@@ -2480,15 +2480,9 @@ see the documentation of `rmail-resend'."
 			   "]")))
       (if (rmail-start-mail
 	   nil nil subject nil nil nil
-	   (list (list (function
-			(lambda ()
-			  (let ((msgnum
-				 rmail-send-actions-rmail-msg-number))
-			    (save-excursion
-			      (set-buffer rmail-send-actions-rmail-buffer)
-			      (if msgnum
-				  (rmail-set-attribute
-				   "forwarded" t msgnum))))))))
+	   (list (list 'rmail-mark-message
+		       forward-buffer msgnum
+		       "forwarded"))
 	   ;; If only one window, use it for the mail buffer.
 	   ;; Otherwise, use another window for the mail buffer
 	   ;; so that the Rmail buffer remains visible
@@ -2496,13 +2490,6 @@ see the documentation of `rmail-resend'."
 	   (and (not rmail-mail-new-frame) (one-window-p t)))
 	  ;; The mail buffer is now current.
 	  (save-excursion
-	    ;; We keep the rmail buffer and message number in these 
-	    ;; buffer-local vars in the sendmail buffer,
-	    ;; so that rmail-only-expunge can relocate the message number.
-	    (make-local-variable 'rmail-send-actions-rmail-buffer)
-	    (make-local-variable 'rmail-send-actions-rmail-msg-number)
-	    (setq rmail-send-actions-rmail-buffer forward-buffer)
-	    (setq rmail-send-actions-rmail-msg-number msgnum)
 	    ;; Insert after header separator--before signature if any.
 	    (goto-char (point-min))
 	    (search-forward-regexp
@@ -2710,29 +2697,14 @@ specifying headers which should not be copied into the new message."
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
-    (let ((action
-	   ;; This function will be called when the user sends the retry.
-	   ;; It will mark the bounce message as "retried".
-	   (function (lambda ()
-		       (let ((msgnum rmail-send-actions-rmail-msg-number))
-			 (save-excursion
-			   (set-buffer rmail-send-actions-rmail-buffer)
-			   (if msgnum
-			       (rmail-set-attribute "retried" t msgnum)))))))
-	  mail-signature mail-setup-hook)
+    (let (mail-signature mail-setup-hook)
       (if (rmail-start-mail nil nil nil nil nil rmail-buffer
-			    (list (list action)))
+			    (list (list 'rmail-mark-message
+					rmail-buffer msgnum "retried")))
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
 	  (let ((inhibit-read-only t))
-	    ;; We keep the rmail buffer and message number in these 
-	    ;; buffer-local vars in the sendmail buffer,
-	    ;; so that the rmail-only-expunge can relocate the message number.
-	    (make-local-variable 'rmail-send-actions-rmail-buffer)
-	    (make-local-variable 'rmail-send-actions-rmail-msg-number)
-	    (setq rmail-send-actions-rmail-buffer rmail-buffer)
-	    (setq rmail-send-actions-rmail-msg-number msgnum)
 	    (erase-buffer)
 	    (insert-buffer-substring rmail-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
