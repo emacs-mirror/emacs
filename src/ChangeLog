@@ -1,3 +1,47 @@
+2000-01-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32inevt.c (get_frame, w32_console_mouse_position, mouse_moved_to):
+	Change selected_frame to SELECTED_FRAME ().
+	(w32_console_mouse_position): Remove #ifndef MULE from around
+	`insist' parameter.
+
+	* makefile.nt: Remove dosfns.obj.
+
+	* term.c (term_init) [WINDOWSNT]: Initialize TN_max_colors.
+
+	* w32fns.c (w32_defined_color): Check for valid frame before
+	applying gamma correction. Eliminate dependency on frame elsewhere.
+	(w32_load_system_font): Switch FIXED_PITCH and VARIABLE_PITCH.
+	(w32_to_x_font): Use resx and resy not height_in and width_in.
+	(x_to_w32_font): Doc fix.
+	(xlfd_strip_height): New function to strip and return font height.
+	(w32_font_match): Compare height separately from rest of xlfd
+	spec, using xlfd_strip_height.
+
+	* w32term.c (w32_term_init): Swap resx and height_in, resy and
+	width_in. Use w32_defined_color in place of defined_color.
+
+	* w32faces.c: Merge more of DOS and X specifics in preparation for
+	merge with xfaces.c.
+	(defined_color): Remove FIXME comment.
+	(tty_color_name): Provide w32-specific function.
+	(realize_tty_face): Handle FACE_TTY_DEFAULT*_COLOR specially.
+
+	* w32console.c (turn_on_face, turn_off_face): Removed.
+	(w32_face_attributes): New function.
+	(Global_variables): Reduce scope where possible.
+	(clear_frame, ins_del_lines, scroll_line): Use char_attr_normal as
+	fill attribute.
+	(hl_mode): Don't modify text attributes.
+	(write_glyphs): Don't do anything if len <= 0. Use
+	w32_face_attributes to get attributes for drawing. Write
+	terminating codes using char_attr_normal.
+	(reset_terminal_modes, set_terminal_modes): Turn off highlight.
+	(update_begin, update_end): Likewise.
+	(vga_stdcolor_name): New function.
+	(initialize_w32_display): Remove char_attr_reverse and char_attr.
+	(Fset_screen_color): Remove char_attr_reverse.
+
 2000-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (xic_set_preeditarea): Take window parameter and

@@ -1,3 +1,10 @@
+2000-01-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el: Define w32-tty-standard-colors.
+
+	* startup.el (command-line): Use w32-tty-standard-colors when in
+	w32 console mode.
+
 2000-01-30  Dave Love  <fx@gnu.org>
 
 	* jka-compr.el (jka-compr-load): Fix up load-history.
