@@ -505,17 +505,26 @@ These symbols are processed in the order specified.
 If a hook symbol has a non-nil value, that value may be a function
 or a list of functions to be called to run the hook.
 If the value is a function, it is called with no arguments.
-If it is a list, the elements are called, in order, with no arguments."
+If it is a list, the elements are called, in order, with no arguments.
+
+To make a hook variable buffer-local, use `make-local-hook', not
+`make-local-variable'."
   (while hooklist
     (let ((sym (car hooklist)))
       (and (boundp sym)
 	   (symbol-value sym)
 	   (let ((value (symbol-value sym)))
 	     (if (and (listp value) (not (eq (car value) 'lambda)))
-		 (let ((functions value))
-		   (while value
-		     (funcall (car value))
-		     (setq value (cdr value))))
+		 (while value
+		   (if (eq (car value) t)
+		       ;; t indicates this hook has a local binding;
+		       ;; it means to run the global binding too.
+		       (let ((functions (default-value sym)))
+			 (while functions
+			   (funcall (car functions))
+			   (setq functions (cdr functions))))
+		     (funcall (car value)))
+		   (setq value (cdr value)))
 	       (funcall value)))))
     (setq hooklist (cdr hooklist))))
 
@@ -528,59 +537,171 @@ the given arguments and its return value is returned.  If it is a list
 of functions, those functions are called, in order,
 with the given arguments ARGS.
 It is best not to depend on the value return by `run-hook-with-args',
-as that may change."
+as that may change.
+
+To make a hook variable buffer-local, use `make-local-hook', not
+`make-local-variable'."
   (and (boundp hook)
        (symbol-value hook)
        (let ((value (symbol-value hook)))
 	 (if (and (listp value) (not (eq (car value) 'lambda)))
-	     (mapcar '(lambda (foo) (apply foo args))
-		     value)
+	     (while value
+	       (if (eq (car value) t)
+		   ;; t indicates this hook has a local binding;
+		   ;; it means to run the global binding too.
+		   (let ((functions (default-value hook)))
+		     (while functions
+		       (apply (car functions) args)
+		       (setq functions (cdr functions))))
+		 (apply (car value) args))
+	       (setq value (cdr value)))
 	   (apply value args)))))
+
+(defun run-hook-with-args-until-success (hook &rest args)
+  "Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  Its value should
+be a list of functions.  We call those functions, one by one,
+passing arguments ARGS to each of them, until one of them
+returns a non-nil value.  Then we return that value.
+If all the functions return nil, we return nil.
+
+To make a hook variable buffer-local, use `make-local-hook', not
+`make-local-variable'."
+  (and (boundp hook)
+       (symbol-value hook)
+       (let ((value (symbol-value hook))
+	     success)
+	 (while (and value (not success))
+	   (if (eq (car value) t)
+	       ;; t indicates this hook has a local binding;
+	       ;; it means to run the global binding too.
+	       (let ((functions (default-value hook)))
+		 (while (and functions (not success))
+		   (setq success (apply (car functions) args))
+		   (setq functions (cdr functions))))
+	     (setq success (apply (car value) args)))
+	   (setq value (cdr value)))
+	 success)))
+
+(defun run-hook-with-args-until-failure (hook &rest args)
+  "Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  Its value should
+be a list of functions.  We call those functions, one by one,
+passing arguments ARGS to each of them, until one of them
+returns nil.  Then we return nil.
+If all the functions return non-nil, we return non-nil.
+
+To make a hook variable buffer-local, use `make-local-hook', not
+`make-local-variable'."
+  (and (boundp hook)
+       (symbol-value hook)
+       (let ((value (symbol-value hook))
+	     (success t))
+	 (while (and value success)
+	   (if (eq (car value) t)
+	       ;; t indicates this hook has a local binding;
+	       ;; it means to run the global binding too.
+	       (let ((functions (default-value hook)))
+		 (while (and functions success)
+		   (setq success (apply (car functions) args))
+		   (setq functions (cdr functions))))
+	     (setq success (apply (car value) args)))
+	   (setq value (cdr value)))
+	 success)))
 
 ;; Tell C code how to call this function.
 (defconst run-hooks 'run-hooks
   "Variable by which C primitives find the function `run-hooks'.
 Don't change it.")
 
-(defun add-hook (hook function &optional append)
+(defun make-local-hook (hook)
+  "Make the hook HOOK local to the current buffer.
+When a hook is local, its local and global values
+work in concert: running the hook actually runs all the hook
+functions listed in *either* the local value *or* the global value
+of the hook variable.
+
+This function does nothing if HOOK is already local in the current buffer.
+
+Do not use `make-local-variable' to make a hook variable buffer-local."
+  (if (local-variable-p hook)
+      nil
+    (or (boundp hook) (set hook nil))
+    (make-local-variable hook)
+    (set hook (list t))))
+
+(defun add-hook (hook function &optional append local)
   "Add to the value of HOOK the function FUNCTION.
 FUNCTION is not added if already present.
 FUNCTION is added (if necessary) at the beginning of the hook list
 unless the optional argument APPEND is non-nil, in which case
 FUNCTION is added at the end.
 
+The optional fourth argument, LOCAL, if non-nil, says to modify
+the hook's buffer-local value rather than its default value.
+This makes no difference if the hook is not buffer-local.
+To make a hook variable buffer-local, always use
+`make-local-hook', not `make-local-variable'.
+
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
 function, it is changed to a list of functions."
   (or (boundp hook) (set hook nil))
+  (or (default-boundp hook) (set-default hook nil))
   ;; If the hook value is a single function, turn it into a list.
   (let ((old (symbol-value hook)))
     (if (or (not (listp old)) (eq (car old) 'lambda))
 	(set hook (list old))))
-  (or (if (consp function)
-	  (member function (symbol-value hook))
-	(memq function (symbol-value hook)))
-      (set hook 
-	   (if append
-	       (append (symbol-value hook) (list function))
-	     (cons function (symbol-value hook))))))
+  (if local
+      ;; Alter the local value only.
+      (or (if (consp function)
+	      (member function (symbol-value hook))
+	    (memq function (symbol-value hook)))
+	  (set hook 
+	       (if append
+		   (append (symbol-value hook) (list function))
+		 (cons function (symbol-value hook)))))
+    ;; Alter the global value (which is also the only value,
+    ;; if the hook doesn't have a local value).
+    (or (if (consp function)
+	    (member function (default-value hook))
+	  (memq function (default-value hook)))
+	(set-default hook 
+		     (if append
+			 (append (default-value hook) (list function))
+		       (cons function (default-value hook)))))))
 
-(defun remove-hook (hook function)
+(defun remove-hook (hook function &optional local)
   "Remove from the value of HOOK the function FUNCTION.
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
-list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
+list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
+
+The optional third argument, LOCAL, if non-nil, says to modify
+the hook's buffer-local value rather than its default value.
+This makes no difference if the hook is not buffer-local.
+To make a hook variable buffer-local, always use
+`make-local-hook', not `make-local-variable'."
   (if (or (not (boundp hook))		;unbound symbol, or
+	  (not (default-boundp 'hook))
 	  (null (symbol-value hook))	;value is nil, or
 	  (null function))		;function is nil, then
       nil				;Do nothing.
-    (let ((hook-value (symbol-value hook)))
-      (if (consp hook-value)
-	  (if (member function hook-value)
-	      (setq hook-value (delete function (copy-sequence hook-value))))
-	(if (equal hook-value function)
-	    (setq hook-value nil)))
-      (set hook hook-value))))
+    (if local
+	(let ((hook-value (symbol-value hook)))
+	  (if (consp hook-value)
+	      (if (member function hook-value)
+		  (setq hook-value (delete function (copy-sequence hook-value))))
+	    (if (equal hook-value function)
+		(setq hook-value nil)))
+	  (set hook hook-value))
+      (let ((hook-value (default-value hook)))
+	(if (consp hook-value)
+	    (if (member function hook-value)
+		(setq hook-value (delete function (copy-sequence hook-value))))
+	  (if (equal hook-value function)
+	      (setq hook-value nil)))
+	(set-default hook hook-value)))))
 
 ;;;; Specifying things to do after certain files are loaded.
 
