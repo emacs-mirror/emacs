@@ -1,5 +1,7 @@
 1999-11-22  Andrew Innes  <andrewi@gnu.org>
 
+	* install.bat: Pass on command line arguments to make.
+
 	* makefile.nt (fast_install): Bring commands up-to-date, and fix
 	typo.
 
