@@ -34,7 +34,7 @@
 (load "quail/Punct-b5")
 
 (quail-define-package
- "chinese-py-punct-b5" "Chinese-BIG5" "$AF47{(B"
+ "chinese-py-punct-b5" "Chinese-BIG5" "$(03<>K(B"
  t
  "$(0&d'GTT&,!J3<5x!K(B and `v' for $(0O:X5>KHATT&,(B
 
