@@ -172,20 +172,17 @@ if necessary."
 	     (global-set-key (vector char) 'thai-self-insert-command))
 	    ((memq ptype '(vowel-upper vowel-lower))
 	     (modify-category-entry char ?v thai-category-table)
-	     (if (or (= char ?,TT(B) (= char ?$,1C4(B))
+	     (if (= char ?,TT(B)
 		 ;; Give category `I' to "SARA I".
-		 (modify-category-entry char ?I thai-category-table))
-	     (global-set-key (vector char) 'thai-self-insert-command))
+		 (modify-category-entry char ?I thai-category-table)))
 	    ((eq ptype 'tone)
 	     (modify-category-entry char ?t thai-category-table)
-	     (modify-category-entry char ?u thai-category-table)
-	     (global-set-key (vector char) 'thai-self-insert-command))
+	     (modify-category-entry char ?u thai-category-table))
 	    ((eq ptype 'sign-upper)
 	     (modify-category-entry char ?u thai-category-table)
-	     (if (or (= char ?,Tl(B) (= char ?$,1CL(B))
+	     (if (= char ?,Tl(B)
 		 ;; Give category `U' to "THANTHAKHAT".
-		 (modify-category-entry char ?U thai-category-table))
-	     (global-set-key (vector char) 'thai-self-insert-command)))
+		 (modify-category-entry char ?U thai-category-table))))
       (put-char-code-property char 'name (nth 2 elm)))))
 
 (defun thai-compose-syllable (beg end &optional category-set string)
@@ -243,18 +240,18 @@ positions (integers or markers) specifying the region."
 ;;;###autoload
 (defun thai-composition-function (pos &optional string)
   (setq pos (1- pos))
-  (let ((pattern "[,T!(B-,TCEG(B-,TN!(B-,TCEG(B-,TN(B][,TQT(B-,TWgnX(B-,TZQT(B-,TWgnX(B-,TZ(B]?[,Th(B-,Tmh(B-,Tm(B]?"))
+  (with-category-table thai-category-table
     (if string
 	(if (and (>= pos 0)
-		 (eq (string-match pattern string pos) pos))
+		 (eq (string-match thai-composition-pattern string pos) pos))
 	    (prog1 (match-end 0)
-	      (compose-string string pos (match-end 0))))
+	      (thai-compose-syllable pos (match-end 0) nil string)))
       (if (>= pos (point-min))
 	  (progn
 	    (goto-char pos)
-	    (if (looking-at pattern)
+	    (if (looking-at thai-composition-pattern)
 		(prog1 (match-end 0)
-		  (compose-region pos (match-end 0)))))))))
+		  (thai-compose-syllable pos (match-end 0)))))))))
 
 ;;
 (provide 'thai-util)
