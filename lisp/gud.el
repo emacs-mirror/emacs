@@ -944,4 +944,6 @@ Link exprs of the form:
 	 )
      (t nil))))
 
+(provide 'gud)
+
 ;;; gud.el ends here
