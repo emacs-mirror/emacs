@@ -371,8 +371,8 @@ mkdir: FRC.mkdir
 	  `echo ${locallisppath} | sed 's/:/ /'`
 	chmod 777 ${COPYDESTS} ${lockdir}
 
-/* Some makes seem to remember that they've built something called FRC,
-   so you can only use a given FRC once per makefile.  */
+### Some makes seem to remember that they've built something called FRC,
+### so you can only use a given FRC once per makefile.
 FRC FRC.src.paths.h FRC.src FRC.lib-src FRC.mkdir:
 
 
