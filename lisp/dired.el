@@ -1410,14 +1410,11 @@ DIR must be a directory name, not a file name."
 			  s "\\(" HH:MM "\\|" s "?" yyyy "\\|" yyyy s
 "\\)"))
 	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
-	 ;; The "[0-9]" below requires the previous column to end in a
-digit.
+	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
-	 ;; The ".*" below finds the last match if there are multiple
-matches.
-	 ;; This avoids recognizing `jservice  10  1024' as a date in the
-line:
+	 ;; The ".*" below finds the last match if there are multiple matches.
+	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
 	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
     (concat ".*[0-9]" s "\\(" western "\\|" japanese "\\)" s))
   "Regular expression to match up to the file name in a directory listing.
