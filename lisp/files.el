@@ -1429,6 +1429,19 @@ we do not remove backup version numbers, only true file version numbers."
 			 (string-match "~\\'" name)
 			 (length name))))))))
 
+(defun file-name-sans-extension (filename)
+  "Return FILENAME sans final \"extension\".
+The extension, in a file name, is the part that follows the last `.'."
+  (save-match-data
+    (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
+	  directory)
+      (if (string-match "\\.[^.]*\\'" file)
+	  (if (setq directory (file-name-directory filename))
+	      (expand-file-name (substring file 0 (match-beginning 0))
+				directory)
+	    (substring file 0 (match-beginning 0)))
+	filename))))
+
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
 This is a separate function so you can redefine it for customization."
