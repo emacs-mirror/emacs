@@ -397,9 +397,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `setsockopt' function. */
 #undef HAVE_SETSOCKOPT
 
-/* Define to the name of the shared game directory. */
-#undef HAVE_SHARED_GAME_DIR
-
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
 
