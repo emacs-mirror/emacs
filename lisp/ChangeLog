@@ -1,3 +1,8 @@
+2004-11-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): handle .gtkrc, and under /etc
+	passwd, group, shadow, default/* and pam.d/*.
+
 2004-11-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el (pr-menu-spec): Adjust menu specification.
