@@ -1,5 +1,11 @@
 2002-03-01  Kim F. Storm  <storm@cua.dk>
 
+	* lisp.h (GCPRO6): New macro.
+
+	* process.c (Fopen_network_stream): Use GCPRO6.
+
+2002-03-01  Kim F. Storm  <storm@cua.dk>
+
 	* process.c (Qconnect, Qfailed): New variables.
 	(syms_of_process): Intern and staticpro them.
 	(Fprocess_status): Document connect and failed return values.
