@@ -447,6 +447,7 @@ child_setup_tty (out)
 				   input */
   s.main.c_oflag &= ~OLCUC;	/* Disable map of lower case to upper on
 				   output */
+  s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
 #if 0
   /* Said to be unnecessary:  */
   s.main.c_cc[VMIN] = 1;	/* minimum number of characters to accept  */
@@ -497,6 +498,7 @@ child_setup_tty (out)
 		       | CBREAK | TANDEM);
   s.main.sg_erase = 0377;
   s.main.sg_kill = 0377;
+  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
 
 #endif /* not HAVE_TERMIO */
 
