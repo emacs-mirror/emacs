@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.48) $
+ * $HopeName: MMsrc!poolams.c(trunk.49) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
@@ -18,12 +18,11 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.48) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.49) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
-
 
 
 /* AMSSegCheck -- check an AMS segment */
@@ -39,7 +38,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
 
   CHECKL(amsseg->grains == AMSGrains(amsseg->ams, SegSize(seg)));
   CHECKL(amsseg->grains > 0);
-  CHECKL(amsseg->grains >= amsseg->free);
+  CHECKL(amsseg->grains >= amsseg->free + amsseg->newAlloc);
 
   if(SegWhite(seg) != TraceSetEMPTY)
     /* design.mps.poolams.colour.single */
@@ -141,6 +140,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   amsseg->grains = size >> ams->grainShift;
   amsseg->free = amsseg->grains;
+  amsseg->newAlloc = (Count)0;
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   amsseg->ambiguousFixes = FALSE;
 
@@ -292,6 +292,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
 
   amsseg->grains = allGrains;
   amsseg->free = amsseg->free + amssegHi->free;
+  amsseg->newAlloc = amsseg->newAlloc + amssegHi->newAlloc;
   /* other fields in amsseg are unaffected */
 
   RingRemove(&amssegHi->segRing);
@@ -385,6 +386,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->grains = hiGrains;
   amsseg->free -= hiGrains;
   amssegHi->free = hiGrains;
+  amssegHi->newAlloc = (Count)0;
   amssegHi->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   amssegHi->ambiguousFixes = FALSE;
 
@@ -781,6 +783,7 @@ static Bool AMSSegAlloc(Index *baseReturn, Index *limitReturn,
   }
 
   amsseg->free -= limit - base;
+  amsseg->newAlloc += limit - base;
   *baseReturn = base;
   *limitReturn = limit;
   return TRUE;
@@ -913,12 +916,12 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
     }
   }
   amsseg->free += limitIndex - initIndex;
+  /* The unused portion of the buffer must be new, since it's not condemned. */
+  AVER(amsseg->newAlloc >= limitIndex - initIndex);
+  amsseg->newAlloc -= limitIndex - initIndex;
   size = AddrOffset(init, limit);
   ams->pgen.totalSize -= size;
-  if (ams->pgen.newSize < size) /* can happen after GC zeroes newSize */
-    ams->pgen.newSize = 0;
-  else
-    ams->pgen.newSize -= size;
+  ams->pgen.newSize -= size;
 }
 
 
@@ -959,6 +962,7 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AMS ams;
   AMSSeg amsseg;
   Buffer buffer;                /* the seg's buffer, if it has one */
+  Count uncondemned;
 
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
@@ -986,14 +990,16 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
       AMSRangeBlacken(seg, scanLimitIndex, limitIndex);
     AMSRangeCondemn(seg, limitIndex, amsseg->grains);
     /* We didn't condemn the buffer, subtract it from the count. */
-    trace->condemned -= AddrOffset(BufferScanLimit(buffer),
-                                   BufferLimit(buffer));
+    uncondemned = limitIndex - scanLimitIndex;
   } else { /* condemn whole seg */
     AMSRangeCondemn(seg, 0, amsseg->grains);
+    uncondemned = (Count)0;
   }
 
-  trace->condemned += SegSize(seg);
-  ams->pgen.newSize -= SegSize(seg);
+  trace->condemned += SegSize(seg) - AMSGrains2Size(ams, uncondemned);
+  /* The unused part of the buffer is new allocation by definition. */
+  ams->pgen.newSize -= AMSGrains2Size(ams, amsseg->newAlloc - uncondemned);
+  amsseg->newAlloc = uncondemned;
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   amsseg->ambiguousFixes = FALSE;
 
