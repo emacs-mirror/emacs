@@ -1,6 +1,6 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.32) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.33) $
 #
 # Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
 #
@@ -19,7 +19,7 @@ SW  = <assert> <ring> <mpm> <bt> \
       <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
-      <than> <ssan> <mpsi> <mpsiw3> <ld> \
+      <than> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <poolmrg> <message> <mpsioan> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version>
