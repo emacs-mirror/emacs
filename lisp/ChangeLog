@@ -1,3 +1,7 @@
+2001-04-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el (mode-line-modified): Unify help messages.
+
 2001-04-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dos-fns.el (dos-8+3-filename): Rename from dos-truncate-to-8+3.
