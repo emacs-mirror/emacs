@@ -74,6 +74,9 @@ Lisp_Object Vsystem_type;
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
 
+/* If nonzero, set Emacs to run at this priority.  */
+int emacs_priority;
+
 #ifdef HAVE_X_WINDOWS
 /* If non-zero, -d was specified, meaning we're using some window system. */
 int display_arg;
@@ -298,10 +301,11 @@ main (argc, argv, envp)
     malloc_init (0, malloc_warning);
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef HIGHPRI
-  setpriority (PRIO_PROCESS, getpid (), HIGHPRI);
+#ifdef PRIO_PROCESS
+  if (emacs_priority)
+    setpriority (PRIO_PROCESS, getpid (), emacs_priority);
   setuid (getuid ());
-#endif /* HIGHPRI */
+#endif /* PRIO_PROCESS */
 
 #ifdef BSD
   /* interrupt_input has trouble if we aren't in a separate process group.  */
@@ -521,8 +525,10 @@ main (argc, argv, envp)
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
-#ifdef HAVE_X_MENU
+#ifdef HAVE_X_WINDOW
+#ifndef NO_X_MENU
       syms_of_xmenu ();
+#endif /* not NO_X_MENU */
 #endif /* HAVE_X_MENU */
 #endif /* HAVE_X_WINDOWS */
 
@@ -791,4 +797,11 @@ Since kill-emacs may be invoked when the terminal is disconnected (or\n\
 in other similar situations), functions placed on this hook should not\n\
 not expect to be able to interact with the user.");
   Vkill_emacs_hook = Qnil;
+
+  DEFVAR_INT ("emacs-priority", &emacs_priority,
+    "Priority for Emacs to run at.\n\
+This value is effective only if set before Emacs is dumped,\n\
+and only if the Emacs executable is installed with setuid to permit\n\
+it to change priority.  (Emacs sets its uid back to the real uid.)");
+  emacs_priority = 0;
 }
