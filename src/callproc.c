@@ -121,11 +121,6 @@ If you quit, the process is killed with SIGKILL.")
 #if 0
   int mask;
 #endif
-  struct gcpro gcpro1;
-
-  GCPRO1 (*args);
-  gcpro1.nvars = nargs;
-
   CHECK_STRING (args[0], 0);
 
   if (nargs <= 1 || NULL (args[1]))
@@ -246,8 +241,6 @@ If you quit, the process is killed with SIGKILL.")
 #ifndef subprocesses
       wait_without_blocking ();
 #endif /* subprocesses */
-
-      UNGCPRO;
       return Qnil;
     }
 
@@ -285,8 +278,6 @@ If you quit, the process is killed with SIGKILL.")
 
   unbind_to (count, Qnil);
 
-  UNGCPRO;
-
   if (synch_process_death)
     return build_string (synch_process_death);
   return make_number (synch_process_retcode);
@@ -319,10 +310,6 @@ If you quit, the process is killed with SIGKILL.")
   register Lisp_Object filename_string, start, end;
   char tempfile[20];
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1;
-
-  GCPRO1 (*args);
-  gcpro1.nvars = 2;
 
 #ifdef VMS
   strcpy (tempfile, "tmp:emacsXXXXXX.");
@@ -343,7 +330,6 @@ If you quit, the process is killed with SIGKILL.")
   args[3] = filename_string;
   Fcall_process (nargs - 2, args + 2);
 
-  UNGCPRO;
   return unbind_to (count, Qnil);
 }
 
