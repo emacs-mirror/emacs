@@ -1,3 +1,16 @@
+2003-03-22  Peter Breton  <pbreton@cs.umb.edu>
+
+	* filecache.el (file-cache-add-directory-recursively): New
+	function.
+	(file-cache-complete): New function.
+	(file-cache-display): New function.
+
+	* generic-x.el (etc-modules-conf-generic-mode): New generic mode.
+	(rul-generic-mode): Bugfixes by Rolf.Sandau@marconi.com. 
+
+	* dirtrack.el (dirtrack-cygwin-directory-function): New function.
+	Remove timestamp.
+
 2003-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode): Remove unused NOBIND arg. Fix doc string
