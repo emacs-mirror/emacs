@@ -35,9 +35,7 @@
 ;;;###autoload
 (defun setup-tibetan-environment ()
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Tibetan")
-  (setq default-input-method  "tibetan-wylie"))
+  (set-language-environment "Tibetan"))
 
 ;;; This function makes a transcription string for
 ;;; re-composing a character.
@@ -106,7 +104,7 @@
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "h'uM"
 ;;;
-;;;            $(7"72%q`"U1"7"G(B         2$(7"H`#A`"U0"_1(B        
+;;;            $(7"7(B2$(7%q`"U(B1$(7"7"G(B         2$(7"H`#A`"U0"_(B1        
 ;;;
 ;;;                             M
 ;;;             b s b s         h

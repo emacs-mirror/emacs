@@ -30,12 +30,13 @@
 (defun setup-japanese-environment ()
   "Setup multilingual environment (MULE) for Japanese."
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Japanese")
+  (set-language-environment "Japanese"))
+
+;;;###autoload
+(defun setup-japanese-environment-internal ()
   (if (eq system-type 'ms-dos)
-      (prefer-coding-system 'japanese-shift-jis))
-  (setq default-file-name-coding-system 'japanese-iso-8bit)
-  (setq default-input-method "japanese")
+      (prefer-coding-system 'japanese-shift-jis)
+    (setq default-file-name-coding-system 'japanese-iso-8bit))
   (setq sentence-end-save sentence-end)
   (setq sentence-end (concat sentence-end "\\|[。？！]")))
 

@@ -32,10 +32,10 @@
 ;;;###autoload
 (defun setup-ethiopic-environment ()
   "Setup multilingual environment for Ethiopic."
-  (interactive)
-  (setup-english-environment)
-  (setq default-input-method "ethiopic")
+  (set-language-environment "Ethiopic"))
 
+;;;###autoload
+(defun setup-ethiopic-environment-internal ()
   (let ((key-bindings '((" " . ethio-insert-space)
 			([?\S- ] . ethio-insert-ethio-space)
 			([?\C-'] . ethio-gemination)

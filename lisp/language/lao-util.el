@@ -28,7 +28,7 @@
 (defun setup-lao-environment ()
   "Setup multilingual environment (MULE) for Lao."
   (interactive)
-  (setup-8-bit-environment "Lao" 'lao "lao"))
+  (set-language-environment "Lao"))
 
 (let ((l '((?(1!(B consonant "LETTER KOR  KAI'" "CHICKEN")
 	   (?(1"(B consonant "LETTER KHOR KHAI'" "EGG")

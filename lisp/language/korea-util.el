@@ -90,11 +90,10 @@
 (defun setup-korean-environment ()
   "Setup multilingual environment (MULE) for Korean."
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Korean")
+  (set-language-environment "Korean"))
 
-  (setq default-input-method "korean-hangul")
-
+;;;###autoload
+(defun setup-korean-environment-internal ()
   (let ((key-bindings korean-key-bindings))
     (while key-bindings
       (let* ((this (car key-bindings))

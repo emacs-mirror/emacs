@@ -28,25 +28,19 @@
 (defun setup-chinese-gb-environment ()
   "Setup multilingual environment (MULE) for Chinese GB2312 users."
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Chinese-GB")
-  (setq default-input-method  "chinese-py-punct"))
+  (set-language-environment "Chinese-GB"))
 
 ;;;###autoload
 (defun setup-chinese-big5-environment ()
   "Setup multilingual environment (MULE) for Chinese Big5 users."
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Chinese-BIG5")
-  (setq default-input-method "chinese-py-punct-b5"))
+  (set-language-environment "Chinese-BIG5"))
 
 ;;;###autoload
 (defun setup-chinese-cns-environment ()
   "Setup multilingual environment (MULE) for Chinese CNS11643 family users."
   (interactive)
-  (setup-english-environment)
-  (set-language-environment-coding-systems "Chinese-CNS")
-  (setq default-input-method "chinese-cns-quick"))
+  (set-language-environment "Chinese-CNS"))
 
 ;; Hz/ZW encoding stuffs
 
