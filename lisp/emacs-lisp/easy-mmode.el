@@ -374,11 +374,10 @@ ARGS is a list of additional keyword arguments."
 ;;;###autoload
 (defmacro easy-mmode-defsyntax (st css doc &rest args)
   "Define variable ST as a syntax-table.
-CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
-"
+CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
   `(progn
      (autoload 'easy-mmode-define-syntax "easy-mmode")
-     (defconst ,st (easy-mmode-define-syntax ,css ,(cons 'list args)) doc)))
+     (defconst ,st (easy-mmode-define-syntax ,css ,(cons 'list args)) ,doc)))
 
 
 
