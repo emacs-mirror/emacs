@@ -95,9 +95,9 @@ char_string (c, p)
 
   if (c & CHAR_MODIFIER_MASK)
     {
-      /* As a character not less than 256 can't have modifier bits, we
-	 just ignore the bits.  */
-      if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+      /* As an non-ASCII character can't have modifier bits, we just
+	 ignore the bits.  */
+      if (ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
 	{
 	  /* For Meta, Shift, and Control modifiers, we need special care.  */
 	  if (c & CHAR_META)
