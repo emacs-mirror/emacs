@@ -35,7 +35,7 @@
 
 (make-coding-system
  'iso-2022-cn 2 ?C
- "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN)"
+ "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN)."
  '(ascii
    (nil chinese-gb2312 chinese-cns11643-1)
    (nil chinese-cns11643-2)
@@ -49,7 +49,7 @@
 
 (make-coding-system
  'iso-2022-cn-ext 2 ?C
- "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN-EXT)"
+ "ISO 2022 based 7bit encoding for Chinese GB and CNS (MIME:ISO-2022-CN-EXT)."
  '(ascii
    (nil chinese-gb2312 chinese-cns11643-1)
    (nil chinese-cns11643-2)
@@ -69,7 +69,7 @@
 
 (make-coding-system
  'chinese-iso-8bit 2 ?c
- "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:GB2312)"
+ "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:GB2312)."
  '(ascii chinese-gb2312 nil nil
    nil ascii-eol ascii-cntl nil nil nil nil)
  '((safe-charsets ascii chinese-gb2312)
@@ -83,7 +83,7 @@
 
 (make-coding-system
  'chinese-hz 0 ?z
- "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)"
+ "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)."
  nil
  '((safe-charsets ascii chinese-gb2312)
    (mime-charset . hz-gb-2312)
@@ -126,7 +126,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system
- 'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:Big5)"
+ 'chinese-big5 3 ?B
+ "BIG5 8-bit encoding for Chinese (MIME:Big5)."
  nil
  '((safe-charsets ascii chinese-big5-1 chinese-big5-2)
    (mime-charset . big5)
@@ -168,16 +169,160 @@
 ;; Chinese CNS11643 (traditional)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar big5-to-cns (make-translation-table)
+  "Translation table for encoding to `euc-tw'.")
+;; Could have been done by china-util loaded before.
+(unless (get 'big5-to-cns 'translation-table)
+  (define-translation-table 'big5-to-cns big5-to-cns))
+
+(define-ccl-program ccl-decode-euc-tw
+  ;; CNS plane 1 needs either two or four bytes in EUC-TW encoding;
+  ;; CNS planes 2 to 7 always need four bytes.  In internal encoding of
+  ;; Emacs, CNS planes 1 and 2 need three bytes, and planes 3 to 7 need
+  ;; four bytes.  Thus a buffer magnification value of 2 (for both
+  ;; encoding and decoding) is sufficient.
+  `(2
+    ;; we don't have enough registers to hold all charset-ids
+    ((r4 = ,(charset-id 'chinese-cns11643-1))
+     (r5 = ,(charset-id 'chinese-cns11643-2))
+     (r6 = ,(charset-id 'chinese-cns11643-3))
+     (loop
+      (read-if (r0 < #x80)
+	  ;; ASCII
+	  (write-repeat r0)
+	;; not ASCII
+	(if (r0 == #x8E)
+	    ;; single shift
+	    (read-if (r1 < #xA1)
+		;; invalid byte
+		((write r0)
+		 (write-repeat r1))
+	      (if (r1 > #xA7)
+		  ;; invalid plane
+		  ((write r0)
+		   (write-repeat r1))
+		;; OK, we have a plane
+		(read-if (r2 < #xA1)
+		    ;; invalid first byte
+		    ((write r0 r1)
+		     (write-repeat r2))
+		  (read-if (r3 < #xA1)
+		      ;; invalid second byte
+		      ((write r0 r1 r2)
+		       (write-repeat r3))
+		    ;; CNS 1-7, finally
+		    ((branch (r1 - #xA1)
+		      (r1 = r4)
+		      (r1 = r5)
+		      (r1 = r6)
+		      (r1 = ,(charset-id 'chinese-cns11643-4))
+		      (r1 = ,(charset-id 'chinese-cns11643-5))
+		      (r1 = ,(charset-id 'chinese-cns11643-6))
+		      (r1 = ,(charset-id 'chinese-cns11643-7)))
+		     (r2 = ((((r2 - #x80) << 7) + r3) - #x80))
+		     (write-multibyte-character r1 r2)
+		     (repeat))))))
+	  ;; standard EUC
+	  (if (r0 < #xA1)
+	      ;; invalid first byte
+	      (write-repeat r0)
+	    (read-if (r1 < #xA1)
+		;; invalid second byte
+		((write r0)
+		 (write-repeat r1))
+	      ;; CNS 1, finally
+	      ((r1 = ((((r0 - #x80) << 7) + r1) - #x80))
+	       (write-multibyte-character r4 r1)
+	       (repeat)))))))))
+  "CCL program to decode EUC-TW encoding."
+)
+
+(define-ccl-program ccl-encode-euc-tw
+  `(2
+    ;; we don't have enough registers to hold all charset-ids
+    ((r2 = ,(charset-id 'ascii))
+     (r3 = ,(charset-id 'chinese-big5-1))
+     (r4 = ,(charset-id 'chinese-big5-2))
+     (r5 = ,(charset-id 'chinese-cns11643-1))
+     (r6 = ,(charset-id 'chinese-cns11643-2))
+     (loop
+      (read-multibyte-character r0 r1)
+      (if (r0 == r2)
+	  (write-repeat r1)
+	(;; Big 5 encoded characters are first translated to CNS
+	 (if (r0 == r3)
+	     (translate-character big5-to-cns r0 r1)
+	   (if (r0 == r4)
+	       (translate-character big5-to-cns r0 r1)))
+	 (if (r0 == r5)
+	     (r0 = #xA1)
+	   (if (r0 == r6)
+	       (r0 = #xA2)
+	     (if (r0 == ,(charset-id 'chinese-cns11643-3))
+		 (r0 = #xA3)
+	       (if (r0 == ,(charset-id 'chinese-cns11643-4))
+		   (r0 = #xA4)
+		 (if (r0 == ,(charset-id 'chinese-cns11643-5))
+		     (r0 = #xA5)
+		   (if (r0 == ,(charset-id 'chinese-cns11643-6))
+		       (r0 = #xA6)
+		     (if (r0 == ,(charset-id 'chinese-cns11643-7))
+			 (r0 = #xA7)
+		       ;; not CNS.  We use a dummy character which
+		       ;; can't occur in EUC-TW encoding to indicate
+		       ;; this.
+		       (write-repeat #xFF))))))))))
+      (if (r0 != #xA1)
+	  ;; single shift and CNS plane
+	  ((write #x8E)
+	   (write r0)))
+      (write ((r1 >> 7) + #x80))
+      (write ((r1 % #x80) + #x80))
+      (repeat))))
+  "CCL program to encode EUC-TW encoding."
+)
+
+(defun euc-tw-pre-write-conversion (beg end)
+  "Semi-dummy pre-write function effectively to autoload china-util."
+  ;; Ensure translation table is loaded.
+  (require 'china-util)
+  ;; Don't do this again.
+  (coding-system-put 'euc-tw 'pre-write-conversion nil)
+  nil)
+
+(make-coding-system
+  'euc-tw 4 ?Z
+  "ISO 2022 based EUC encoding for Chinese CNS11643.
+Big5 encoding is accepted for input also (which is then converted to CNS)."
+  '(ccl-decode-euc-tw . ccl-encode-euc-tw)
+  '((safe-charsets ascii
+		   chinese-big5-1
+		   chinese-big5-2
+		   chinese-cns11643-1
+		   chinese-cns11643-2
+		   chinese-cns11643-3
+		   chinese-cns11643-4
+		   chinese-cns11643-5
+		   chinese-cns11643-6
+		   chinese-cns11643-7)
+    (valid-codes (0 . 255))
+    (pre-write-conversion . euc-tw-pre-write-conversion)))
+
+(define-coding-system-alias 'euc-taiwan 'euc-tw)
+
 (set-language-info-alist
  "Chinese-CNS" '((charset chinese-cns11643-1 chinese-cns11643-2
 			  chinese-cns11643-3 chinese-cns11643-4
 			  chinese-cns11643-5 chinese-cns11643-6
 			  chinese-cns11643-7)
-		 (coding-system iso-2022-cn)
-		 (coding-priority iso-2022-cn chinese-big5 chinese-iso-8bit)
+		 (coding-system iso-2022-cn euc-tw)
+		 (coding-priority iso-2022-cn euc-tw chinese-big5
+				  chinese-iso-8bit)
 		 (features china-util)
 		 (input-method . "chinese-cns-quick")
-		 (documentation . "Support for Chinese CNS character sets."))
+		 (documentation . "\
+Support for Chinese CNS character sets.  Note that EUC-TW coding system
+accepts Big5 for input also (which is then converted to CNS)."))
  '("Chinese"))
 
 (provide 'chinese)
