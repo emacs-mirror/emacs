@@ -241,12 +241,16 @@ the user from the mailer."
 	;; Now perform actions on successful sending.
 	(while mail-send-actions
 	  (condition-case nil
-	      (apply (car (car mail-send-actions)) (cdr (car mail-send-actions)))
+	      (apply (car (car mail-send-actions))
+		     (cdr (car mail-send-actions)))
 	    (error))
 	  (setq mail-send-actions (cdr mail-send-actions)))
-	(set-buffer-modified-p nil)
-	(delete-auto-save-file-if-necessary t)
-	(message "Sending...done"))))
+	(message "Sending...done")
+	;; If buffer has no file, mark it as unmodified and delete autosave.
+	(if (not buffer-file-name)
+	    (progn
+	      (set-buffer-modified-p nil)
+	      (delete-auto-save-file-if-necessary t))))))
 
 (defun sendmail-send-it ()
   (let ((errbuf (if mail-interactive
