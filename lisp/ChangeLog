@@ -5,6 +5,9 @@
 	to `element-common-end' at the end of loop.
 	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel
 	list.
+	(completions-common-part): Rename from completion-de-emphasis.
+	(completions-first-difference): Rename from completion-emphasis.
+	Suggested by RMS.
 
 2004-04-16  Juanma Barranquero  <lektu@terra.es>
 

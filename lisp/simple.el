@@ -4116,12 +4116,12 @@ The completion list buffer is available as the value of `standard-output'.")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
-(defface completion-emphasis
+(defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completion-de-emphasis
+(defface completions-common-part
   '((t (:inherit default)))
   "Face put on the common prefix substring in completions in *Completions* buffer."
   :group 'completion)
@@ -4154,7 +4154,7 @@ The completion list buffer is available as the value of `standard-output'.")
 	(save-match-data
 	  (if (minibufferp mainbuf)
 	      (setq completion-base-size 0))))
-       ;; Put emphasis and de-emphasis faces on completions.
+       ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
 	(let* ((common-string-length (length
 				      (substring mbuf-contents
@@ -4168,9 +4168,9 @@ The completion list buffer is available as the value of `standard-output'.")
 	    (when (and (get-char-property element-start 'mouse-face)
 		       (get-char-property element-common-end 'mouse-face))
 	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completion-de-emphasis)
+				 'font-lock-face 'completions-common-part)
 	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completion-emphasis))
+				 'font-lock-face 'completions-first-difference))
 	    (setq element-start (next-single-property-change
 				 element-start
 				 'mouse-face))
