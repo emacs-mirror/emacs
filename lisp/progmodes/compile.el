@@ -38,15 +38,16 @@
 (defvar compilation-window-height nil
   "*Number of lines in a compilation window.  If nil, use Emacs default.")
 
-(defvar compile-highlight-display-limit nil
+(defvar compile-auto-highlight nil
   "*Specify how many compiler errors to highlight (and parse) initially.
+\(Highlighting applies to ean error message when the mouse is over it.)
 If this is a number N, all compiler error messages in the first N lines
 are highlighted and parsed as soon as they arrive in Emacs.
-If t, highlight and parse the whole compilation buffer as soon as possible.
+If t, highlight and parse the whole compilation output as soon as it arrives.
 If nil, don't highlight or parse any of the buffer until you try to
 move to the error messages.
 
-Those which are not parsed and highlighted initially
+Those messages which are not parsed and highlighted initially
 will be parsed and highlighted as soon as you try to move to them.")
 
 (defvar compilation-error-list nil
@@ -629,14 +630,14 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
-    ;; Automatically parse (and highlight) error messages:
-    (cond ((eq compile-highlight-display-limit t)
+    ;; Automatically parse (and mouse-highlight) error messages:
+    (cond ((eq compile-auto-highlight t)
 	   (compile-reinitialize-errors nil (point-max)))
-	  ((numberp compile-highlight-display-limit)
-	   (compile-reinitialize-errors nil (save-excursion
-					      (goto-line
-					       compile-highlight-display-limit)
-					      (point)))))
+	  ((numberp compile-auto-highlight)
+	   (compile-reinitialize-errors nil
+					(save-excursion
+					  (goto-line compile-auto-highlight)
+					  (point)))))
     (if compilation-finish-function
 	(funcall compilation-finish-function (current-buffer) msg))
     (let ((functions compilation-finish-functions))
@@ -866,7 +867,7 @@ Does NOT find the source line like \\[next-error]."
 		;; We started in the middle of an existing list of parsed
 		;; errors before parsing more; restore that position.
 		(setq compilation-error-list error-list-pos))
-	    ;; Highlight (the first line of) each error message when the
+	    ;; Mouse-Highlight (the first line of) each error message when the
 	    ;; mouse pointer moves over it:
 	    (let ((inhibit-read-only t)
 		  (error-list compilation-error-list))
