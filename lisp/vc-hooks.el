@@ -70,7 +70,7 @@ If nil (the default), files covered by version control don't get backups.")
 Otherwise, not displayed.")
 
 (defvar vc-consult-headers t
-  "*Identify work files by searching for version headers.")
+  "*If non-nil, identify work files by searching for version headers.")
 
 (defvar vc-keep-workfiles t
   "*If non-nil, don't delete working files after registering changes.
@@ -78,7 +78,9 @@ If the back-end is CVS, workfiles are always kept, regardless of the
 value of this flag.")
 
 (defvar vc-mistrust-permissions nil
-  "*Don't assume that permissions and ownership track version-control status.")
+  "*If non-nil, don't assume that permissions and ownership track 
+version-control status.  If nil, do rely on the permissions.
+See also variable `vc-consult-headers'.")
 
 (defun vc-mistrust-permissions (file)
   ;; Access function to the above.
