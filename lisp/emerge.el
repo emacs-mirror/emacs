@@ -1,4 +1,5 @@
 ;;; emerge.el --- merge diffs under Emacs control
+;;; The author has placed this file in the public domain.
 
 ;; Author: Dale R. Worley <drw@math.mit.edu>
 ;; Version: 4

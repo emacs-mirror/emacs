@@ -1,4 +1,6 @@
 ;; meese.el --- protect the impressionable young minds of America
+;; This is in the public domain on account of being distributed since
+;; 1985 or 1986 without a copyright notice.
 
 ;; Maintainer: FSF
 ;; Keywords: games
