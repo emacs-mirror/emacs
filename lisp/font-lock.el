@@ -636,6 +636,7 @@ Major/minor modes can set this variable if they know which option applies.")
 (defun font-lock-mode (&optional arg)
   "Toggle Font Lock mode.
 With arg, turn Font Lock mode on if and only if arg is positive.
+(Font Lock is also known as \"syntax highlighting\".)
 
 When Font Lock mode is enabled, text is fontified as you type it:
 
@@ -643,6 +644,9 @@ When Font Lock mode is enabled, text is fontified as you type it:
  - Strings are displayed in `font-lock-string-face';
  - Certain other expressions are displayed in other faces according to the
    value of the variable `font-lock-keywords'.
+
+To customize the faces (colors, fonts, etc.) used by Font Lock for
+fontifying different parts of buffer text, use \\[customize-face].
 
 You can enable Font Lock mode in any major mode automatically by turning on in
 the major mode's hook.  For example, put in your ~/.emacs:
@@ -924,12 +928,16 @@ or nil.  If nil, highlighting keywords are removed for the current buffer."
 ;;;###autoload
 (defun global-font-lock-mode (&optional arg message)
   "Toggle Global Font Lock mode.
+(Font Lock is also known as \"syntax highlighting\".)
 With prefix ARG, turn Global Font Lock mode on if and only if ARG is positive.
 Displays a message saying whether the mode is on or off if MESSAGE is non-nil.
 Returns the new status of Global Font Lock mode (non-nil means on).
 
 When Global Font Lock mode is enabled, Font Lock mode is automagically
-turned on in a buffer if its major mode is one of `font-lock-global-modes'."
+turned on in a buffer if its major mode is one of `font-lock-global-modes'.
+
+To customize the faces (colors, fonts, etc.) used by Font Lock for
+highlighting different parts of buffer text, use \\[customize-face]."
   (interactive "P\np")
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
