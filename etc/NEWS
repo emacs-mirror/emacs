@@ -5875,7 +5875,7 @@ itself owns its terminal, no signal is sent.
 ** There are new widget types `plist' and `alist' which can
 be used for customizing variables whose values are plists or alists.
 
-** easymenu.el Now understands `:key-sequence' and `:style button'.
+** easymenu.el now understands `:key-sequence' and `:style button'.
 :included is an alias for :visible.
 
 easy-menu-add-item now understands the values returned by
