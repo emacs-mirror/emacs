@@ -162,6 +162,7 @@ extern short ospeed;		/* Output speed (from sg_ospeed) */
 extern int cost;
 extern int evalcost ();
 
+extern void cmcheckmagic ();
 extern int cmputc ();
 extern int cmcostinit ();
 extern int cmgoto ();
