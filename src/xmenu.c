@@ -940,14 +940,21 @@ xmenu_show (f, val, x, y, menubarp, vw)
 	  process_expose_from_menu (event);
       else 
 	if (event.type == MotionNotify 
-	        && menubarp
-	        && ((event.xmotion.y_root 
-		      >= (f->display.x->widget->core.y 
-			       + f->display.x->widget->core.border_width))
-		    && (event.xmotion.y_root
-			< (f->display.x->widget->core.y
-			   + f->display.x->widget->core.border_width
-			   + f->display.x->menubar_widget->core.height)))
+	    && menubarp
+	    && ((event.xmotion.y_root 
+		 >= (f->display.x->widget->core.y 
+		     + f->display.x->widget->core.border_width))
+		&& (event.xmotion.y_root
+		    < (f->display.x->widget->core.y
+		       + f->display.x->widget->core.border_width
+		       + f->display.x->menubar_widget->core.height)))
+	    && ((event.xmotion.x_root
+		 >= (f->display.x->widget->core.x
+		     + f->display.x->widget->core.border_width))
+		&& (event.xmotion.x_root
+		    < (f->display.x->widget->core.x
+		       + f->display.x->widget->core.border_width
+		       + f->display.x->widget->core.width)))
 	    && (event.xmotion.x_root >= item_length
 		|| event.xmotion.x_root < (x - 4)))
 	  {
