@@ -7022,9 +7022,7 @@ display that character.  It will display an empty box instead.
 
 The fontset height and width are determined by the ASCII characters
 (that is, by the font in the fontset which is used for ASCII
-characters).  If another font in the fontset has a different height,
-or the wrong width, then characters assigned to that font are clipped,
-and displayed within a box if highlight-wrong-size-font is non-nil.
+characters).
 
 *** Defining fontsets.
 
