@@ -1,3 +1,8 @@
+2001-06-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* composite.c (Ffind_composition_internal): Accept ZV
+	and a string's end position as POS.
+
 2001-06-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* composite.c (Ffind_composition_internal): Check POS
