@@ -1,13 +1,14 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.16) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.17) $
 #
-# Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
+# Copyright (C) 1996, 1998, 1999 Harlequin Group plc.  All rights reserved.
 #
 
-# This only knows about making the mmsw libraries for MM/EP-core.
+# .limit.epcore: This only knows about making the mmsw libraries for
+# MM/EP-core.
 # 
-# To invoke:
+# .usage: To invoke:
 #
 #  directory {...}s7ppac
 #  BuildProgram -d Variety mmsw
@@ -119,7 +120,6 @@ mmsw_{Variety}.o  Ä  ¶
                 mpm{OSffx} ¶
                 bt{OSffx} ¶
                 arenacl{OSffx} ¶
-                arenavmx{OSffx} ¶
                 arena{OSffx} ¶
                 pool{OSffx} ¶
                 poolmfs{OSffx} ¶
