@@ -1,6 +1,6 @@
 ;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*- coding: emacs-mule -*-
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -26,7 +26,7 @@
 
 ;; This package sets up display of ISO 8859-n for n>1 by substituting
 ;; Latin-1 characters and sequences of them for characters which can't
-;; be displayed, either beacuse we're on a tty or beacuse we don't
+;; be displayed, either because we're on a tty or because we don't
 ;; have the relevant window system fonts available.  For instance,
 ;; Latin-9 is very similar to Latin-1, so we can display most Latin-9
 ;; characters using the Latin-1 characters at the same code point and
@@ -34,12 +34,12 @@
 
 ;; For the Latin charsets the ASCII sequences are mostly consistent
 ;; with the Quail prefix input sequences.  Latin-4 uses the Quail
-;; postfix sequences as a prefix method isn't defined for Latin-4.
+;; postfix sequences since a prefix method isn't defined for Latin-4.
 
-;; A different approach is taken in the DOS display tables in
+;; [A different approach is taken in the DOS display tables in
 ;; term/internal.el, and the relevant ASCII sequences from there are
 ;; available as an alternative; see `latin1-display-mnemonic'.  Only
-;; these sequences are used for Cyrillic, Greek and Hebrew.
+;; these sequences are used for Arabic, Cyrillic, Greek and Hebrew.]
 
 ;; If you don't even have Latin-1, see iso-ascii.el and use the
 ;; complete tables from internal.el.  The ASCII sequences used here
@@ -49,9 +49,10 @@
 
 ;; Ensure `standard-display-table' is set up:
 (require 'disp-table)
+(require 'ucs-tables)
 
 (defconst latin1-display-sets '(latin-2 latin-3 latin-4 latin-5 latin-8
-		                latin-9 cyrillic greek hebrew)
+		                latin-9 arabic cyrillic greek hebrew)
   "The ISO8859 character sets with defined Latin-1 display sequences.
 These are the nicknames for the sets and correspond to Emacs language
 environments.")
@@ -59,6 +60,7 @@ environments.")
 (defgroup latin1-display ()
   "Set up display tables for ISO8859 characters using Latin-1."
   :version "21.1"
+  :link '(emacs-commentary-link "latin1-disp")
   :group 'i18n)
 
 (defcustom latin1-display-format "{%s}"
@@ -78,6 +80,9 @@ ASCII sequences are used, mostly following the Latin prefix input
 methods.  Some different ASCII sequences are used if
 `latin1-display-mnemonic' is non-nil.
 
+This option also treats some characters in the `mule-unicode-...'
+charsets if you don't have a Unicode font with which to display them.
+
 Setting this variable directly does not take effect;
 use either M-x customize of the function `latin1-display'."
   :group 'latin1-display
@@ -85,22 +90,60 @@ use either M-x customize of the function `latin1-display'."
   :require 'latin1-disp
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
-	 (set-default symbol value)
-	 (mapc (if value
-		   #'latin1-display-setup
-		 #'latin1-display-reset)
-	       latin1-display-sets)
-	 (redraw-display)))
+	 (if value
+	     (apply #'latin1-display latin1-display-sets)
+	   (latin1-display))))
 
 ;;;###autoload
 (defun latin1-display (&rest sets)
   "Set up Latin-1/ASCII display for the arguments character SETS.
 See option `latin1-display' for the method.  The members of the list
 must be in `latin1-display-sets'.  With no arguments, reset the
-display for all of `latin1-display-sets'. See also `latin1-display-setup'."
+display for all of `latin1-display-sets'. See also
+`latin1-display-setup'.  As well as iso-8859 characters, this treats
+some characters in the `mule-unicode-...' charsets if you don't have
+a Unicode font with which to display them.
+"
   (if sets
-      (mapc #'latin1-display-setup sets)
-    (mapc #'latin1-display-reset latin1-display-sets)))
+      (progn
+	(mapc #'latin1-display-setup sets)
+	(unless (latin1-char-displayable-p
+		 (make-char 'mule-unicode-0100-24ff 32 33))
+	  ;; It doesn't look as though we have a Unicode font.
+	  (map-char-table
+	   (lambda (c uc)
+	     (when (and (char-valid-p c)
+			(char-valid-p uc)
+			(not (aref standard-display-table uc)))
+	       (aset standard-display-table uc
+		     (or (aref standard-display-table c)
+			 (vector c)))))
+	   ucs-mule-8859-to-mule-unicode)
+	  ;; Extra stuff for windows-1252, in particular.
+	  (mapc
+	   (lambda (l)
+	     (apply 'latin1-display-char l))
+	   '((?\úÙÚ˙ ",") ;; SINGLE LOW-9 QUOTATION MARK
+	     (?\úÙÚ˛ ",,")	;; DOUBLE LOW-9 QUOTATION MARK
+	     (?\úÙÛ¶ "...") ;; HORIZONTAL ELLIPSIS
+	     (?\úÙÛ∞ "o/oo") ;; PER MILLE SIGN
+	     (?\úÙÛπ "<") ;; SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+	     (?\úÙÚ¸ "``")	;; LEFT DOUBLE QUOTATION MARK
+	     (?\úÙÚ˝ "''")	;; RIGHT DOUBLE QUOTATION MARK
+	     (?\úÙÚÛ "-") ;; EN DASH
+	     (?\úÙÚÙ "--")	;; EM DASH
+	     (?\úÙı‚ "TM")	;; TRADE MARK SIGN
+	     (?\úÙÛ∫ ">")))) ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	  (setq latin1-display t))
+    (mapc #'latin1-display-reset latin1-display-sets)
+    (aset standard-display-table
+	  (make-char 'mule-unicode-0100-24ff) nil)
+    (aset standard-display-table
+	  (make-char 'mule-unicode-2500-33ff) nil)
+    (aset standard-display-table
+	  (make-char 'mule-unicode-e000-ffff) nil)
+    (setq latin1-display nil)
+    (redraw-display)))
 
 (defcustom latin1-display-mnemonic nil
   "Non-nil means to display potentially more mnemonic sequences.
@@ -123,8 +166,8 @@ formatted using `latin1-display-format'."
 
 (defun latin1-display-identities (charset)
   "Display each character in CHARSET as the corresponding Latin-1 character.
-CHARSET is a symbol naming a language environment using an ISO8859
-character set."
+CHARSET is a symbol which is the nickname of a language environment
+using an ISO8859 character set."
   (if (eq charset 'cyrillic)
       (setq charset 'cyrillic-iso))
   (let ((i 32)
@@ -137,7 +180,7 @@ character set."
 
 (defun latin1-display-reset (language)
   "Set up the default display for each character of LANGUAGE's charset.
-CHARSET is a symbol naming a language environment using an ISO8859
+LANGUAGE is a symbol naming a language environment using an ISO8859
 character set."
   (if (eq language 'cyrillic)
       (setq language 'cyrillic-iso))
@@ -154,8 +197,8 @@ character set: `latin-2', `hebrew' etc."
   (if (eq language 'cyrillic)
       (setq language 'cyrillic-iso))
   (let* ((info (get-language-info language 'charset))
-	 (char (make-char (car (remq 'ascii info)) ?\ )))
-    (latin1-char-displayable-p char)))
+	 (char (and info (make-char (car (remq 'ascii info)) ?\ ))))
+    (and char (latin1-char-displayable-p char))))
 
 ;; This should be moved into mule-utils or somewhere after 21.1.
 (defun latin1-char-displayable-p (char)
@@ -557,6 +600,66 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?à¯ "R+")
 	 (?à˘ "Sh")
 	 (?à˙ "T+")))))
+
+   ;; Arabic probably isn't so useful in the absence of Arabic
+   ;; language support...
+   ((eq set 'arabic)
+    (setq set 'arabic)
+    (when (or force
+	      (not (latin1-display-check-font set)))
+      (aset standard-display-table ?á† "Å†")
+      (aset standard-display-table ?á§ "Å§")
+      (aset standard-display-table ?á≠ "Å≠")
+      (mapc (lambda (l)
+	      (apply  'latin1-display-char l))
+	    '((?á¨ ",+")
+	      (?áª ";+")
+	      (?áø "?+")
+	      (?á¡ "H'")
+	      (?á¬ "aM")
+	      (?á√ "aH")
+	      (?áƒ "wH")
+	      (?á≈ "ah")
+	      (?á∆ "yH")
+	      (?á« "a+")
+	      (?á» "b+")
+	      (?á… "tm")
+	      (?á  "t+")
+	      (?áÀ "tk")
+	      (?áÃ "g+")
+	      (?áÕ "hk")
+	      (?áŒ "x+")
+	      (?áœ "d+")
+	      (?á– "dk")
+	      (?á— "r+")
+	      (?á“ "z+")
+	      (?á” "s+")
+	      (?á‘ "sn")
+	      (?á’ "c+")
+	      (?á÷ "dd")
+	      (?á◊ "tj")
+	      (?áÿ "zH")
+	      (?áŸ "e+")
+	      (?á⁄ "i+")
+	      (?á‡ "++")
+	      (?á· "f+")
+	      (?á‚ "q+")
+	      (?á„ "k+")
+	      (?á‰ "l+")
+	      (?áÂ "m+")
+	      (?áÊ "n+")
+	      (?áÁ "h+")
+	      (?áË "w+")
+	      (?áÈ "j+")
+	      (?áÍ "y+")
+	      (?áÎ ":+")
+	      (?áÏ "\"+")
+	      (?áÌ "=+")
+	      (?áÓ "/+")
+	      (?áÔ "'+")
+	      (?á "1+")
+	      (?áÒ "3+")
+	      (?áÚ "0+")))))
 
    ((eq set 'cyrillic)
     (setq set 'cyrillic-iso)
