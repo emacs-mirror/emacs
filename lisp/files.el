@@ -1269,6 +1269,7 @@ run `normal-mode' explicitly."
     ("\\.lex\\'" . c-mode)
     ("\\.oak\\'" . scheme-mode)
     ("\\.sgml?\\'" . sgml-mode)
+    ("\\.xml\\'" . sgml-mode)
     ("\\.dtd\\'" . sgml-mode)
     ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
     ;; .emacs following a directory delimiter
