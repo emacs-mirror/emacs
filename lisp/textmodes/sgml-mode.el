@@ -460,6 +460,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
 
 ;; Some programs (such as Glade 2) generate XML which has
 ;; -*- mode: xml -*-.
+;;;###autoload
 (defalias 'xml-mode 'sgml-mode)
 
 (defun sgml-comment-indent ()
