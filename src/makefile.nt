@@ -118,7 +118,12 @@ OBJ2 =  $(BLD)\w32.obj           \
 	$(BLD)\textprop.obj     \
 	$(BLD)\vm-limit.obj	\
 	$(BLD)\region-cache.obj	\
-	$(BLD)\strftime.obj
+	$(BLD)\strftime.obj	\
+	$(BLD)\charset.obj	\
+	$(BLD)\coding.obj	\
+	$(BLD)\category.obj	\
+	$(BLD)\ccl.obj		\
+	$(BLD)\fontset.obj
 
 WIN32OBJ = $(BLD)\w32term.obj	\
 	   $(BLD)\w32xfns.obj	\
