@@ -628,11 +628,11 @@ characters; for example, there are three coding systems for the Cyrillic
 conversion, but some of them leave the choice unspecified---to be chosen
 heuristically for each file, based on the data.
 
-In general, a coding system doesn't guarantee roundtrip identity:
-decoding text then encoding the result in the same coding system can
-produce a different byte sequence from the one you originally decoded.
-However, the following coding systems do guarantee that the result
-will be the same as what you originally decoded:
+  In general, a coding system doesn't guarantee roundtrip identity:
+decoding a byte sequence using coding system, then encoding the
+resulting text in the same coding system, can produce a different byte
+sequence.  However, the following coding systems do guarantee that the
+byte sequence will be the same as what you originally decoded:
 
 @quotation
 chinese-big5 chinese-iso-8bit cyrillic-iso-8bit emacs-mule
@@ -641,13 +641,13 @@ iso-latin-4 iso-latin-5 iso-latin-8 iso-latin-9 iso-safe
 japanese-iso-8bit japanese-shift-jis korean-iso-8bit raw-text
 @end quotation
 
-Encoding buffer text and then decoding the result can also fail to
-reproduce the original text.  For instance, when you encode Latin-2
+  Encoding buffer text and then decoding the result can also fail to
+reproduce the original text.  For instance, if you encode Latin-2
 characters with @code{utf-8} and decode the result using the same
 coding system, you'll get Unicode characters (of charset
-@code{mule-unicode-0100-24ff}).  When you encode Unicode characters
-with @code{iso-latin-2} and decode them back with the same coding
-system, you'll get Latin-2 characters.
+@code{mule-unicode-0100-24ff}).  If you encode Unicode characters with
+@code{iso-latin-2} and decode the result with the same coding system,
+you'll get Latin-2 characters.
 
 @cindex end of line conversion
   @dfn{End of line conversion} handles three different conventions used
