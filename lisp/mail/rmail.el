@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,1998
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000
 ;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3038,9 +3038,9 @@ specifying headers which should not be copied into the new message."
 	bounce-start bounce-end bounce-indent resending)
     (save-excursion
       ;; Narrow down to just the quoted original message
+      (rmail-beginning-of-message)
       (if pruned
 	  (rmail-toggle-header 0))
-      (rmail-beginning-of-message)
       (let* ((case-fold-search t)
 	     (top (point))
 	     (content-type
