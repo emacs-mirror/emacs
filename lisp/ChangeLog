@@ -1,3 +1,8 @@
+2002-01-05  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Require fontset unconditionally.
+	(w32-handle-scroll-bar-event): Remove.
+
 2002-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): Allow multi-line

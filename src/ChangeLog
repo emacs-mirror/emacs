@@ -1,5 +1,8 @@
 2002-01-05  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
+	OVERLAPS_P.
+
 	* w32menu.c (w32_menu_display_help): Hide any tooltip window.
 
 	* w32fns.c (compute_tip_xy): If tooltip won't fit on the screen
