@@ -48,6 +48,10 @@ version.  They are:  auto-show, c-mode, hscroll, ooutline.  Their
 implementations have been moved to lisp/obsolete.
 
 +++
+** The new Custom option `keyboard-coding-system' specifies a coding
+system for keyboard input.
+
++++
 ** The new user-option `even-window-heights' can be set to nil
 to prevent `display-buffer' from evening out window heights.
 

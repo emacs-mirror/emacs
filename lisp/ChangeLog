@@ -12,6 +12,12 @@
 
 2000-12-18  Dave Love  <fx@gnu.org>
 
+	* simple.el (mail-user-agent): Doc fix.
+	(input-mode-8-bit): Removed.
+
+	* international/mule.el (set-keyboard-coding-system): Doc fix.
+	(keyboard-coding-system): New option.
+
 	* mail/sendmail.el (send-mail-function): Customize.
 
 2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
