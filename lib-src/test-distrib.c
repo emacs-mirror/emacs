@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_FCNTL
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
