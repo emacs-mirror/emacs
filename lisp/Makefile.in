@@ -80,7 +80,7 @@ DONTCOMPILE = \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
-	$(lisp)/loaddefs-boot.el \
+	$(lisp)/ldefs-boot.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
 	$(lisp)/patcomp.el \
@@ -293,7 +293,7 @@ bootstrap-clean:
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	else							\
 	  if test ! -r $(lisp)/loaddefs.el; then		\
-	    cp $(lisp)/loaddefs-boot.el $(lisp)/loaddefs.el;	\
+	    cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;	\
 	  fi							\
 	fi
 	cd $(lisp); rm -f *.elc */*.elc
