@@ -206,22 +206,6 @@ This variable is set by the master function.")
 (defvar elp-master nil
   "Master function symbol.")
 
-
-;; Emacs/XEmacs compatibility.
-(if (fboundp 'functionp)
-    (defalias 'elp-functionp 'functionp)
-  ;; Lift XEmacs 19.13's functionp from subr.el
-  (defun elp-functionp (obj)
-    "Returns t if OBJ is a function, nil otherwise."
-    (cond
-     ((symbolp obj) (fboundp obj))
-     ((subrp obj))
-     ((compiled-function-p obj))
-     ((consp obj)
-      (if (eq (car obj) 'lambda) (listp (car (cdr obj)))))
-     (t nil))))
-
-
 ;;;###autoload
 (defun elp-instrument-function (funsym)
   "Instrument FUNSYM for profiling.
@@ -321,7 +305,7 @@ Argument FUNSYM is the symbol of a defined function."
     ;; we don't want to destroy the new definition.  can it ever be
     ;; the case that a lisp function can be compiled instrumented?
     (and info
-	 (elp-functionp funsym)
+	 (functionp funsym)
 	 (not (compiled-function-p (symbol-function funsym)))
 	 (assq 'elp-wrapper (symbol-function funsym))
 	 (fset funsym (aref info 2)))))
