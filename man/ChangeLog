@@ -1,3 +1,25 @@
+2005-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi (HTTP language/coding): Improve last change.
+
+	* search.texi: Delete explicit node pointers.
+	(Incremental Search): New menu.
+	(Basic Isearch, Repeat Isearch, Error in Isearch)
+	(Non-Ascii Isearch, Isearch Yank, Highlight Isearch, Isearch Scroll)
+	(Slow Isearch): New subnodes.
+	(Configuring Scrolling): Node deleted.
+	(Search Case): Doc default-case-fold-search.
+	(Regexp Replace): Move replace-regexp doc here.
+
+	* rmail.texi (Movemail): Put commas inside closequotes.
+
+	* picture.texi (Insert in Picture): Document C-c arrow combos.
+	(Basic Picture): Clarify erasure.
+
+	* display.texi (Font Lock): Put commas inside closequotes.
+
+	* cmdargs.texi (General Variables): Put commas inside closequotes.
+
 2005-03-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Stack Buffer): Mention reverse contrast for
