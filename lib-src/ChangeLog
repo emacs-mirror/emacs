@@ -1,3 +1,9 @@
+2002-03-22  Paul Eggert  <eggert@twinsun.com>
+
+	* etags.c (main): Use `sort -o TAGFILE TAGFILE' instead of
+	`sort TAGFILE -o TAGFILE', as POSIX 1003.1-2001 disallows
+	the latter usage.
+
 2002-03-12  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (Python_functions): Skip spaces at beginning of lines.
