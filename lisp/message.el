@@ -260,7 +260,10 @@ The function `message-setup' runs this hook.")
 It is run after the headers have been inserted and before 
 the signature is inserted.")
 
-(defvar message-mode-hook nil
+(defvar message-mode-hook
+  (if (fboundp 'mail-abbrevs-setup)
+      '(mail-abbrevs-setup)
+    (list (intern "mail-aliases-setup")))
   "Hook run in message mode buffers.")
 
 (defvar message-header-hook nil
@@ -853,10 +856,6 @@ C-c C-r  message-ceasar-buffer-body (rot13 the message body)."
   (when (string-match "XEmacs\\|Lucid" emacs-version)
     (message-setup-toolbar))
   (easy-menu-add message-mode-menu message-mode-map)
-  ;; Allow mail alias things.
-  (if (fboundp 'mail-abbrevs-setup)
-      (mail-abbrevs-setup)
-    (funcall (intern "mail-aliases-setup")))
   (run-hooks 'text-mode-hook 'message-mode-hook))
 
 
