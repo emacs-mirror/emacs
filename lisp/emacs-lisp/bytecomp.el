@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.57 $")
+(defconst byte-compile-version "$Revision: 2.58 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -389,8 +389,8 @@ specify different fields to sort on."
 (defvar byte-compile-variables nil
   "list of all variables encountered during compilation of this form")
 (defvar byte-compile-bound-variables nil
-  "list of variables bound in the context of the current form; this list
-lives partly on the stack.")
+  "List of variables bound in the context of the current form.
+This list lives partly on the stack.")
 (defvar byte-compile-free-references)
 (defvar byte-compile-free-assignments)
 
@@ -466,9 +466,8 @@ Each element is (INDEX . VALUE)")
 		     (get 'byte-code-vector 'tmp-compile-time-value)
 		     'byte-stack+-info
 		     (get 'byte-stack+-info 'tmp-compile-time-value))
-    ;; emacs-18 has no REMPROP.
-    (put 'byte-code-vector 'tmp-compile-time-value nil)
-    (put 'byte-stack+-info 'tmp-compile-time-value nil)))
+    (remprop 'byte-code-vector 'tmp-compile-time-value)
+    (remprop 'byte-stack+-info 'tmp-compile-time-value)))
 
 
 ;; unused: 0-7
@@ -1013,8 +1012,10 @@ otherwise pop it")
 		  "accepts only")
 	      (byte-compile-arglist-signature-string sig)))
       (or (fboundp (car form)) ; might be a subr or autoload.
-	  (eq (car form) byte-compile-current-form) ; ## this doesn't work with recursion.
-	  ;; It's a currently-undefined function.  Remember number of args in call.
+	  (eq (car form) byte-compile-current-form) ; ## this doesn't work
+						    ; with recursion.
+	  ;; It's a currently-undefined function.
+	  ;; Remember number of args in call.
 	  (let ((cons (assq (car form) byte-compile-unresolved-functions))
 		(n (length (cdr form))))
 	    (if cons
@@ -1284,7 +1285,7 @@ The value is t if there were no errors, nil if errors."
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
-      ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-x
+      ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-
       (set-buffer-multibyte t)
       (insert-file-contents filename)
       ;; Mimic the way after-insert-file-set-buffer-file-coding-system
@@ -2038,6 +2039,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;; The value is usually a compiled function but may be the original
 ;; lambda-expression.
 (defun byte-compile-lambda (fun)
+  (unless (eq 'lambda (car-safe fun))
+    (error "Not a lambda list: %S" fun))
   (let* ((arglist (nth 1 fun))
 	 (byte-compile-bound-variables
 	  (nconc (and (memq 'free-vars byte-compile-warnings)
