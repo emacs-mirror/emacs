@@ -16886,6 +16886,7 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 
       if (SYMBOLP (car))
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (valid_image_p (prop))
 	    {
 	      int id = lookup_image (it->f, prop);
@@ -16893,7 +16894,7 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 
 	      return OK_PIXELS (width_p ? img->width : img->height);
 	    }
-
+#endif
 	  if (EQ (car, Qplus) || EQ (car, Qminus))
 	    {
 	      int first = 1;
