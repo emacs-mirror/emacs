@@ -1,6 +1,6 @@
 /* impl.h.chain: GENERATION CHAINS
  *
- * $HopeName$
+ * $HopeName: MMsrc!chain.h(trunk.1) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -20,20 +20,20 @@ typedef struct GenParamStruct {
 } GenParamStruct;
 
 
-/* ChainGen -- descriptor of a generation in a chain */
+/* GenDesc -- descriptor of a generation in a chain */
 
-typedef struct ChainGenStruct *ChainGen;
+typedef struct GenDescStruct *GenDesc;
 
-#define ChainGenSig ((Sig)0x519C8A9E)  /* SIGnature CHAin GEn */
+#define GenDescSig ((Sig)0x5199E4DE)  /* SIGnature GEN DEsc */
 
-typedef struct ChainGenStruct {
+typedef struct GenDescStruct {
   Sig sig;
   ZoneSet zones; /* zoneset for this generation */
   Size capacity; /* capacity in kB */
   double mortality;
   double proflow; /* predicted proportion of survivors promoted */
   RingStruct locusRing; /* this generation in all the pools using the chain */
-} ChainGenStruct;
+} GenDescStruct;
 
 
 /* PoolGen -- descriptor of a generation in a pool */
@@ -63,7 +63,7 @@ typedef struct ChainStruct {
   RingStruct chainRing; /* list of chains in the arena */
   TraceSet activeTraces; /* set of traces collecting this chain */
   size_t genCount; /* number of generations */
-  ChainGenStruct *gens; /* the array of generations */
+  GenDescStruct *gens; /* the array of generations */
 } ChainStruct;
 
 
