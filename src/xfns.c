@@ -3982,7 +3982,7 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   x_term_init (XSTRING (display)->data, xrm_option,
 	       XSTRING (Vx_resource_name)->data);
 
-  XFASTINT (Vwindow_system_version) = 11;
+  XSETFASTINT (Vwindow_system_version, 11);
 
   BLOCK_INPUT;
   xrdb = x_load_resources (x_current_display, xrm_option,
