@@ -39,18 +39,24 @@
    for the rename function, but some people say ISC's rename doesn't
    work correctly with Emacs so we use Emacs' emulation instead. */
 #if defined (__GNUC__)
-#  define LIB_STANDARD -lcposix -lc
+#  define LIB_STANDARD_1 -lcposix
 #else /* !__GNUC__ */
-#  define LIB_STANDARD -lPW -lc
+#  define LIB_STANDARD_1 -lPW
 #endif /* !__GNUC__ */
+
+/* LIB_STANDARD_1 is used both here and in LIBS_SYSTEM
+   (the latter for the sake of configure).  */
+#define LIB_STANDARD LIB_STANDARD_1 -lc
 
 #define NO_X_DESTROY_DATABASE
 
-/* May be needed to avoid undefined symbols such as gethostname,
+/* -linet may be needed to avoid undefined symbols such as gethostname,
    inet_addr, gethostbyname, socket, connect, ...  But if we are not
    compiling with X support, it's not needed.  */
 #ifdef HAVE_X_WINDOWS
-#define LIBS_SYSTEM -linet
+#define LIBS_SYSTEM -linet LIBS_STANDARD_1
+#else
+#define LIBS_SYSTEM LIBS_STANDARD_1
 #endif
 
 /* This system has job control.  */
