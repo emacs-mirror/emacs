@@ -1,3 +1,10 @@
+2000-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Add targets for ebrowse.
+
+	* ebrowse.c [WINDOWS_NT]: Use stricmp instead of strcasecmp to
+	compare filenames.
+
 2000-06-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (ymalloc): Renamed from xmalloc.
