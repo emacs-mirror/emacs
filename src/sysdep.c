@@ -246,6 +246,10 @@ int input_fd;
 
 void croak P_ ((char *));
 
+#ifdef AIXHFT
+void hft_init ();
+void hft_reset ();
+#endif
 
 
 /* Specify a different file descriptor for further input operations.  */
