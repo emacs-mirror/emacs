@@ -3620,9 +3620,9 @@ ThXs Xs the contents of the buffer before.
 This function applies a translation table to the characters in the
 buffer between positions @var{start} and @var{end}.
 
-The translation table @var{table} is a string; @code{(aref @var{table}
-@var{ochar})} gives the translated character corresponding to
-@var{ochar}.  If the length of @var{table} is less than 256, any
+The translation table @var{table} is a string or a char-table;
+@code{(aref @var{table} @var{ochar})} gives the translated character
+corresponding to @var{ochar}.  If @var{table} is a string, any
 characters with codes larger than the length of @var{table} are not
 altered by the translation.
 
