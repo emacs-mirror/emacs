@@ -56,6 +56,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "xterm.h"
 #endif
 
+#ifdef HAVE_NTGUI
+#include "w32term.h"
+#endif /* HAVE_NTGUI */
+
 /* Include systime.h after xterm.h to avoid double inclusion of time.h. */
 #include "systime.h"
 
@@ -74,7 +78,7 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #define KBD_BUFFER_SIZE 4096
 #else	/* No X-windows, character input */
@@ -496,9 +500,9 @@ int flow_control;
 #endif
 #endif
 
-/* If we support X Windows, turn on the code to poll periodically
+/* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 #define POLL_FOR_INPUT
 #endif
 
@@ -1102,13 +1106,13 @@ command_loop_1 ()
      throw to top level.  */
   /* Note that the value cell will never directly contain nil
      if the symbol is a local variable.  */
-  if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
+  if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
     safe_run_hooks (Qpost_command_hook);
 
   if (!NILP (Vdeferred_action_list))
     call0 (Vdeferred_action_function);
 
-  if (!NILP (XSYMBOL (Qpost_command_idle_hook)->value) && !NILP (Vrun_hooks))
+  if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
     {
       if (NILP (Vunread_command_events)
 	  && NILP (Vexecuting_macro)
@@ -1245,7 +1249,7 @@ command_loop_1 ()
       this_command = cmd;
       /* Note that the value cell will never directly contain nil
 	 if the symbol is a local variable.  */
-      if (!NILP (XSYMBOL (Qpre_command_hook)->value) && !NILP (Vrun_hooks))
+      if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpre_command_hook);
 
       if (NILP (this_command))
@@ -1393,14 +1397,13 @@ command_loop_1 ()
 
       /* Note that the value cell will never directly contain nil
 	 if the symbol is a local variable.  */
-      if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
+      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpost_command_hook);
 
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
 
-      if (!NILP (XSYMBOL (Qpost_command_idle_hook)->value)
-	  && !NILP (Vrun_hooks))
+      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
 	{
 	  if (NILP (Vunread_command_events)
 	      && NILP (Vexecuting_macro)
@@ -2649,7 +2652,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  abort ();
 #endif
 	}
-#ifdef HAVE_X11
+#if defined (HAVE_X11) || defined (HAVE_NTGUI)
       else if (event->kind == delete_window_event)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
@@ -2725,7 +2728,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  if (NILP (obj))
 	    {
 	      obj = make_lispy_event (event);
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
@@ -2961,6 +2964,160 @@ static char *lispy_accent_keys[] =
   "dead-abovedot",
 };
 
+#ifdef HAVE_NTGUI
+#define FUNCTION_KEY_OFFSET 0x0
+
+char *lispy_function_keys[] =
+  {
+    0,                /* 0                      */
+    
+    0,                /* VK_LBUTTON        0x01 */
+    0,                /* VK_RBUTTON        0x02 */
+    "cancel",         /* VK_CANCEL         0x03 */
+    0,                /* VK_MBUTTON        0x04 */
+    
+    0, 0, 0,          /*    0x05 .. 0x07        */
+    
+    "backspace",      /* VK_BACK           0x08 */
+    "tab",            /* VK_TAB            0x09 */
+    
+    0, 0,             /*    0x0A .. 0x0B        */
+    
+    "clear",          /* VK_CLEAR          0x0C */
+    "return",         /* VK_RETURN         0x0D */
+    
+    0, 0,             /*    0x0E .. 0x0F        */
+  
+    "shift",          /* VK_SHIFT          0x10 */
+    "control",        /* VK_CONTROL        0x11 */
+    "menu",           /* VK_MENU           0x12 */
+    "pause",          /* VK_PAUSE          0x13 */
+    "capital",        /* VK_CAPITAL        0x14 */
+    
+    0, 0, 0, 0, 0, 0, /*    0x15 .. 0x1A        */
+    
+    0,                /* VK_ESCAPE         0x1B */
+    
+    0, 0, 0, 0,       /*    0x1C .. 0x1F        */
+    
+    0,                /* VK_SPACE          0x20 */
+    "prior",          /* VK_PRIOR          0x21 */
+    "next",           /* VK_NEXT           0x22 */
+    "end",            /* VK_END            0x23 */
+    "home",           /* VK_HOME           0x24 */
+    "left",           /* VK_LEFT           0x25 */
+    "up",             /* VK_UP             0x26 */
+    "right",          /* VK_RIGHT          0x27 */
+    "down",           /* VK_DOWN           0x28 */
+    "select",         /* VK_SELECT         0x29 */
+    "print",          /* VK_PRINT          0x2A */
+    "execute",        /* VK_EXECUTE        0x2B */
+    "snapshot",       /* VK_SNAPSHOT       0x2C */
+    "insert",         /* VK_INSERT         0x2D */
+    "delete",         /* VK_DELETE         0x2E */
+    "help",           /* VK_HELP           0x2F */
+  
+    /* VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) */
+    
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    
+    0, 0, 0, 0, 0, 0, 0, /* 0x3A .. 0x40       */
+    
+    /* VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
+    
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0,
+    
+    0,               /* VK_LWIN           0x5B */
+    0,               /* VK_RWIN           0x5C */
+    0,               /* VK_APPS           0x5D */
+    
+    0, 0,            /*    0x5E .. 0x5F        */
+    
+    "kp-0",          /* VK_NUMPAD0        0x60 */
+    "kp-1",          /* VK_NUMPAD1        0x61 */
+    "kp-2",          /* VK_NUMPAD2        0x62 */
+    "kp-3",          /* VK_NUMPAD3        0x63 */
+    "kp-4",          /* VK_NUMPAD4        0x64 */
+    "kp-5",          /* VK_NUMPAD5        0x65 */
+    "kp-6",          /* VK_NUMPAD6        0x66 */
+    "kp-7",          /* VK_NUMPAD7        0x67 */
+    "kp-8",          /* VK_NUMPAD8        0x68 */
+    "kp-9",          /* VK_NUMPAD9        0x69 */
+    "kp-multiply",   /* VK_MULTIPLY       0x6A */
+    "kp-add",        /* VK_ADD            0x6B */
+    "kp-separator",  /* VK_SEPARATOR      0x6C */
+    "kp-subtract",   /* VK_SUBTRACT       0x6D */
+    "kp-decimal",    /* VK_DECIMAL        0x6E */
+    "kp-divide",     /* VK_DIVIDE         0x6F */
+    "f1",            /* VK_F1             0x70 */
+    "f2",            /* VK_F2             0x71 */
+    "f3",            /* VK_F3             0x72 */
+    "f4",            /* VK_F4             0x73 */
+    "f5",            /* VK_F5             0x74 */
+    "f6",            /* VK_F6             0x75 */
+    "f7",            /* VK_F7             0x76 */
+    "f8",            /* VK_F8             0x77 */
+    "f9",            /* VK_F9             0x78 */
+    "f10",           /* VK_F10            0x79 */
+    "f11",           /* VK_F11            0x7A */
+    "f12",           /* VK_F12            0x7B */
+    "f13",           /* VK_F13            0x7C */
+    "f14",           /* VK_F14            0x7D */
+    "f15",           /* VK_F15            0x7E */
+    "f16",           /* VK_F16            0x7F */
+    "f17",           /* VK_F17            0x80 */
+    "f18",           /* VK_F18            0x81 */
+    "f19",           /* VK_F19            0x82 */
+    "f20",           /* VK_F20            0x83 */
+    "f21",           /* VK_F21            0x84 */
+    "f22",           /* VK_F22            0x85 */
+    "f23",           /* VK_F23            0x86 */
+    "f24",           /* VK_F24            0x87 */
+    
+    0, 0, 0, 0,      /*    0x88 .. 0x8B        */
+    0, 0, 0, 0,      /*    0x8C .. 0x8F        */
+    
+    "kp-numlock",    /* VK_NUMLOCK        0x90 */
+    "scroll",        /* VK_SCROLL         0x91 */
+    
+    0, 0, 0, 0, 0,   /*    0x92 .. 0x96        */
+    0, 0, 0, 0, 0,   /*    0x97 .. 0x9B        */
+    0, 0, 0, 0,      /*    0x9C .. 0x9F        */
+    
+    /*
+     * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
+     * Used only as parameters to GetAsyncKeyState() and GetKeyState().
+     * No other API or message will distinguish left and right keys this way.
+     */
+    /* 0xA0 .. 0xEF */
+    
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    
+    /* 0xF0 .. 0xF5 */
+    
+    0, 0, 0, 0, 0, 0,
+    
+    "attn",          /* VK_ATTN           0xF6 */
+    "crsel",         /* VK_CRSEL          0xF7 */
+    "exsel",         /* VK_EXSEL          0xF8 */
+    "ereof",         /* VK_EREOF          0xF9 */
+    "play",          /* VK_PLAY           0xFA */
+    "zoom",          /* VK_ZOOM           0xFB */
+    "noname",        /* VK_NONAME         0xFC */
+    "pa1",           /* VK_PA1            0xFD */
+    "oem_clear",     /* VK_OEM_CLEAR      0xFE */
+  };
+
+#else
+
+#define FUNCTION_KEY_OFFSET 0xff00
+
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
 static char *lispy_function_keys[] =
@@ -3056,6 +3213,8 @@ static char *lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0, 0,     /* 0xfff0 */
     0, 0, 0, 0, 0, 0, 0, "delete"
     };
+
+#endif /* HAVE_NTGUI */
 
 static char *lispy_mouse_names[] =
 {
@@ -3167,7 +3326,7 @@ make_lispy_event (event)
 				      (unsigned)-1);
 	}
 
-      return modify_event_symbol (event->code - 0xff00,
+      return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
 				  event->modifiers,
 				  Qfunction_key, Qnil,
 				  lispy_function_keys, &func_key_syms,
@@ -3420,7 +3579,7 @@ make_lispy_event (event)
       }
 #endif /* HAVE_MOUSE */
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
     case menu_bar_event:
       /* The event value is in the cdr of the frame_or_window slot.  */
       if (!CONSP (event->frame_or_window))
@@ -3924,7 +4083,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
       else if (name_table[symbol_num])
 	value = intern (name_table[symbol_num]);
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
       if (NILP (value))
 	{
 	  char *name = x_get_keysym_name (symbol_num);
@@ -4804,7 +4963,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   if (mapno >= nmaps)
     return Qnil;
 
-#if (defined (HAVE_X_WINDOWS) && defined (HAVE_X_MENU)) || defined (MSDOS)
+#if (defined (HAVE_X_WINDOWS) && defined (HAVE_X_MENU)) || defined (MSDOS) || defined (HAVE_NTGUI)
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event)
@@ -4854,7 +5013,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	*used_mouse_menu = 1;
       return value;
     }
-#endif /* (HAVE_X_WINDOWS && HAVE_X_MENU) || MSDOS */
+#endif /* (HAVE_X_WINDOWS && HAVE_X_MENU) || MSDOS || HAVE_NTGUI */
   return Qnil ;
 }
 
