@@ -1,7 +1,7 @@
 /* Definitions for data structures and routines for the regular
    expression library, version 0.12.
 
-   Copyright (C) 1985, 89, 90, 91, 92, 93, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985,89,90,91,92,93,95,2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -135,9 +135,12 @@ typedef unsigned reg_syntax_t;
    without further backtracking.  */
 #define RE_NO_POSIX_BACKTRACKING (RE_NO_EMPTY_RANGES << 1)
 
+/* If this bit is set, then (?:...) is treated as a shy group.  */
+#define RE_SHY_GROUPS (RE_NO_POSIX_BACKTRACKING << 1)
+
 /* If this bit is set, then an unmatched ) is ordinary.
    If not set, then an unmatched ) is invalid.  */
-#define RE_UNMATCHED_RIGHT_PAREN_ORD (RE_NO_POSIX_BACKTRACKING << 1)
+#define RE_UNMATCHED_RIGHT_PAREN_ORD (RE_SHY_GROUPS << 1)
 
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
@@ -156,7 +159,7 @@ extern Lisp_Object re_match_object;
    (The [[[ comments delimit what gets put into the Texinfo file, so
    don't delete them!)  */
 /* [[[begin syntaxes]]] */
-#define RE_SYNTAX_EMACS (RE_CHAR_CLASSES | RE_INTERVALS)
+#define RE_SYNTAX_EMACS (RE_CHAR_CLASSES | RE_INTERVALS | RE_SHY_GROUPS)
 
 #define RE_SYNTAX_AWK							\
   (RE_BACKSLASH_ESCAPE_IN_LISTS | RE_DOT_NOT_NULL			\
@@ -331,8 +334,7 @@ struct re_pattern_buffer
         /* Zero if this pattern cannot match the empty string, one else.
            Well, in truth it's used only in `re_search_2', to see
            whether or not we should use the fastmap, so we don't set
-           this absolutely perfectly; see `re_compile_fastmap' (the
-           `duplicate' case).  */
+           this absolutely perfectly; see `re_compile_fastmap'.  */
   unsigned can_be_null : 1;
 
         /* If REGS_UNALLOCATED, allocate space in the `regs' structure
