@@ -687,7 +687,7 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 		cpp-branch-list))))
 
 (defun cpp-choose-face (prompt default)
-  ;; Choose a face from cpp-face-defalt-list.
+  ;; Choose a face from cpp-face-default-list.
   ;; PROMPT is what to say to the user.
   ;; DEFAULT is the default face.
   (or (if cpp-button-event
