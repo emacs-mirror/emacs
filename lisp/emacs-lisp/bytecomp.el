@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.63 $")
+(defconst byte-compile-version "$Revision: 1.1 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -766,7 +766,7 @@ otherwise pop it")
   (let ((hist-orig load-history)
 	(hist-nil-orig current-load-list))
     (prog1 (eval x)
-      (when (memq 'noruntime byte-compile-warnings)
+      (when (and nil (memq 'noruntime byte-compile-warnings))
 	(let ((hist-new load-history)
 	      (hist-nil-new current-load-list))
 	  (while (not (eq hist-new hist-orig))
