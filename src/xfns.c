@@ -2325,6 +2325,99 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
+extern int face_name_id_number ();
+
+/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+   We assume that they're both character-cell fonts.  */
+int
+same_size_fonts (font1, font2)
+     XFontStruct *font1, *font2;
+{
+  XCharStruct *bounds1 = &font1->min_bounds;
+  XCharStruct *bounds2 = &font2->min_bounds;
+
+  return (bounds1->width == bounds2->width
+	  && bounds1->ascent == bounds2->ascent
+	  && bounds1->descent == bounds2->descent);
+}
+
+
+DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 3, 0,
+  "Return a list of the names of available fonts matching PATTERN.\n\
+If optional arguments FACE and FRAME are specified, return only fonts\n\
+the same size as FACE on FRAME.\n\
+\n\
+PATTERN is a string, perhaps with wildcard characters;\n\
+  the * character matches any substring, and\n\
+  the ? character matches any single character.\n\
+  PATTERN is case-insensitive.\n\
+FACE is a face name - a symbol.\n\
+\n\
+The return value is a list of strings, suitable as arguments to\n\
+set-face-font.\n\
+\n\
+The list does not include fonts Emacs can't use (i.e.  proportional\n\
+fonts), even if they match PATTERN and FACE.")
+  (pattern, face, frame)
+    Lisp_Object pattern, face, frame;
+{
+  int num_fonts;
+  char **names;
+  XFontStruct *info;
+  XFontStruct *size_ref;
+  Lisp_Object list;
+
+  CHECK_STRING (pattern, 0);
+  if (!NILP (face))
+    CHECK_SYMBOL (face, 1);
+  if (!NILP (frame))
+    CHECK_SYMBOL (frame, 2);
+
+  if (NILP (face))
+    size_ref = 0;
+  else
+    {
+      FRAME_PTR f = NILP (frame) ? selected_frame : XFRAME (frame);
+      int face_id = face_name_id_number (f, face);
+
+      if (face_id < 0 || face_id > FRAME_N_FACES (f))
+	face_id = 0;
+      size_ref = FRAME_FACES (f) [face_id]->font;
+      if (size_ref == (XFontStruct *) (~0))
+	size_ref = FRAME_DEFAULT_FACE (f)->font;
+    }
+
+  BLOCK_INPUT;
+  names = XListFontsWithInfo (x_current_display,
+			      XSTRING (pattern)->data,
+			      30000, /* maxnames */
+			      &num_fonts, /* count_return */
+			      &info); /* info_return */
+  UNBLOCK_INPUT;
+
+  {
+    Lisp_Object *tail;
+    int i;
+
+    list = Qnil;
+    tail = &list;
+    for (i = 0; i < num_fonts; i++)
+      /* Is this an acceptable font?  */
+      if (! info[i].per_char
+	  && (! size_ref 
+	      || same_size_fonts (&info[i], size_ref)))
+	{
+	  *tail = Fcons (build_string (names[i]), Qnil);
+	  tail = &XCONS (*tail)->cdr;
+	}
+
+    XFreeFontInfo (names, info, num_fonts);
+  }
+
+  return list;
+}
+
+
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
   "Return t if the current X display supports the color named COLOR.")
   (color)
@@ -3577,7 +3670,10 @@ select_visual (screen, depth)
   vinfo_template.visualid = v->visualid;
 #endif
 
-  vinfo = XGetVisualInfo (x_current_display, VisualIDMask, &vinfo_template,
+  vinfo_template.screen = XScreenNumberOfScreen (screen);
+
+  vinfo = XGetVisualInfo (x_current_display,
+			  VisualIDMask | VisualScreenMask, &vinfo_template,
 			  &n_visuals);
   if (n_visuals != 1)
     fatal ("Can't get proper X visual info");
@@ -3820,6 +3916,7 @@ unless you set the mouse color.");
   defsubr (&Sx_uncontour_region);
 #endif
   defsubr (&Sx_display_color_p);
+  defsubr (&Sx_list_fonts);
   defsubr (&Sx_color_defined_p);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
