@@ -1,3 +1,8 @@
+1999-10-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* lread.c (Fload): Calculate bytes of filename correctly.
+	(openp): Likewise.
+
 1999-10-18  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* print.c (print_preprocess): In case print-circle is nil,
