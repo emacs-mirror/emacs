@@ -3837,7 +3837,7 @@ pure_alloc (size, type)
 }
 
 
-/* Signal an error if PURESIZE is too small.  */
+/* Print a warning if PURESIZE is too small.  */
 
 void
 check_pure_size ()
