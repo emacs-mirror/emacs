@@ -1,3 +1,9 @@
+2000-11-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-text, fancy-splash-text): Use a single
+	tab character.
+	(fancy-splash-screens): Set tab-width to 20.
+
 2000-11-03  Dave Love  <fx@gnu.org>
 
 	* comint.el (comint-completion-addsuffix): Fix custom type.
