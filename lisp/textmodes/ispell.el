@@ -1399,13 +1399,14 @@ scrolling the current window.  Leave the new window selected."
 				      "\\|")
 			   "\\)\\b")
 		   nil t))
-	     (error "version mismatch: ispell.el is for %s, %s is %s"
-		    (car ispell-required-versions)
+	     (error "%s version %s is required: try renaming ispell4.el to ispell.el"
 		    ispell-program-name
-		    (if (re-search-forward "version \\([0-9][0-9.]+\\)\\b"
-					   nil t)
-			(buffer-substring (match-beginning 1) (match-end 1))
-		      "an unknown version"))))
+		    (car ispell-required-versions)
+		    ;(if (re-search-forward "version \\([0-9][0-9.]+\\)\\b"
+		    ;			   nil t)
+		    ;	(buffer-substring (match-beginning 1) (match-end 1))
+		    ; "an unknown version")
+		    )))
       (kill-buffer (current-buffer)))))
 
 
