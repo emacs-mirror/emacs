@@ -749,7 +749,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      }
 	    /* if the `invisible' property is set, we can skip to
 	       the next property change */
-	    prop = Fget_char_property (position, Qinvisible, window);
+	    if (EQ (win->buffer, buffer))
+	      prop = Fget_char_property (position, Qinvisible, window);
+	    else
+	      prop = Fget_char_property (position, Qinvisible, buffer);
 	    if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	      pos = next_boundary;
 	  }
@@ -985,9 +988,10 @@ TAB-OFFSET is the number of columns of the first tab that aren't\n\
 being displayed, perhaps because the line was continued within it.\n\
 If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.\n\
 \n\
-WINDOW is the window to operate on.  Currently this is used only to\n\
-find the display table.  It does not matter what buffer WINDOW displays;\n\
-`compute-motion' always operates on the current buffer.\n\
+WINDOW is the window to operate on.  It is used to choose the display table;\n\
+if it is showing the current buffer, it is used also for\n\
+deciding which overlay properties apply.\n\
+Note that `compute-motion' always operates on the current buffer.\n\
 \n\
 The value is a list of five elements:\n\
   (POS HPOS VPOS PREVHPOS CONTIN)\n\
