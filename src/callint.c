@@ -409,7 +409,9 @@ supply if the command inquires which events were used to invoke it.  */)
 	{
 	  Lisp_Object event;
 
-	  event = XVECTOR (keys)->contents[next_event];
+	  event = (next_event < key_count
+		   ? XVECTOR (keys)->contents[next_event]
+		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (event = XCDR (event), CONSP (event))
 	      && (event = XCAR (event), CONSP (event))
