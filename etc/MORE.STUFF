@@ -47,8 +47,8 @@ engine) or retrievable from general Usenet archive services.
 
 You might find bug-fixes or enhancements in these places.
 
- * Autorevert:
-   <URL:ftp://ftp.csd.uu.se/pub/users/andersl/emacs/autorevert.el>
+ * Autorevert and Follow:
+   <URL:http://www.andersl.com/emacs/>
 
  * Battery and Info Look: <URL:ftp://ftp.ul.bawue.de/pub/purple/emacs>
 
@@ -81,8 +81,6 @@ You might find bug-fixes or enhancements in these places.
 
  * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
    (And some addons for it.)
-
- * Follow: <URL:http://meryl.csd.uu.se/%7eandersl/follow.shtml>
 
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
 
