@@ -1486,10 +1486,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      (setq thsize (- neh p))))
 	(if (= hdrlvl 0)  ;total header size
 	    (setq thsize hsize))
-	(setq fiddle  (string= efnname (upcase efnname)))
+	(setq fiddle  (if efnname (string= efnname (upcase efnname))))
 	(setq ifnname (if fiddle (downcase efnname) efnname))
 	(setq prname (if dir (concat dir ifnname) ifnname))
-	(setq width (string-width prname))
+	(setq width (if prname (string-width prname) 0))
 	(setq modestr (if mode (archive-int-to-mode mode) "??????????"))
 	(setq moddate (if (= hdrlvl 2)
 			  (archive-unixdate time1 time2) ;level 2 header in UNIX format
