@@ -1,3 +1,7 @@
+2002-07-16  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (SDATA): Produce rvalue.
+
 2002-07-16  Richard M. Stallman  <rms@gnu.org>
 
 	* s/hpux11.h (USG_SUBTTY_WORKS): Defined.
