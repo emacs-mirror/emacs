@@ -215,10 +215,14 @@ unexec (new_name, a_name, bndry, bss_start, entry)
     unsigned long daddr = N_DATADDR (ohdr);
     unsigned long rel, erel;
 #ifdef SUNOS4
+#ifdef SUNOS4_SHARED_LIBRARIES
     extern struct link_dynamic _DYNAMIC;
 
     /*  SunOS4.x's ld_rel is relative to N_TXTADDR. */
-    if (_DYNAMIC.ld_version < 2)
+    if (!ohdr.a_dynamic)
+      /* This was statically linked.  */
+      rel = erel = 0;
+    else if (_DYNAMIC.ld_version < 2)
       {
 	rel = _DYNAMIC.ld_un.ld_1->ld_rel + N_TXTADDR (ohdr);
 	erel = _DYNAMIC.ld_un.ld_1->ld_hash + N_TXTADDR (ohdr);
@@ -228,6 +232,9 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 	rel = _DYNAMIC.ld_un.ld_2->ld_rel + N_TXTADDR (ohdr);
 	erel = _DYNAMIC.ld_un.ld_2->ld_hash + N_TXTADDR (ohdr);
       }
+#else /* not SUNOS4_SHARED_LIBRARIES */
+    rel = erel = 0;
+#endif /* not SUNOS4_SHARED_LIBRARIES */
 #ifdef sparc
 #define REL_INFO_TYPE		struct reloc_info_sparc
 #else
