@@ -3121,30 +3121,33 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
     element))
 
 (define-mail-user-agent 'sendmail-user-agent
-  '(lambda (&optional to subject other-headers continue
-		      switch-function yank-action send-actions)
-     (if switch-function
-	 (let ((special-display-buffer-names nil)
-	       (special-display-regexps nil)
-	       (same-window-buffer-names nil)
-	       (same-window-regexps nil))
-	   (funcall switch-function "*mail*")))
-     (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
-	   (in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
-       (or (mail continue to subject in-reply-to cc yank-action send-actions)
-	   continue
-	   (error "Message aborted"))
-       (save-excursion
-	 (goto-char (point-min))
-	 (search-forward mail-header-separator)
-	 (beginning-of-line)
-	 (while other-headers
-	   (if (not (member (car (car other-headers)) '("in-reply-to" "cc")))
-	       (insert (car (car other-headers)) ": "
-		       (cdr (car other-headers)) "\n"))
-	   (setq other-headers (cdr other-headers)))
-	 t)))
+  'sendmail-user-agent-compose
   'mail-send-and-exit)
+
+(defun sendmail-user-agent-compose (&optional to subject other-headers continue
+					      switch-function yank-action
+					      send-actions)
+  (if switch-function
+      (let ((special-display-buffer-names nil)
+	    (special-display-regexps nil)
+	    (same-window-buffer-names nil)
+	    (same-window-regexps nil))
+	(funcall switch-function "*mail*")))
+  (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
+	(in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
+    (or (mail continue to subject in-reply-to cc yank-action send-actions)
+	continue
+	(error "Message aborted"))
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward mail-header-separator)
+      (beginning-of-line)
+      (while other-headers
+	(if (not (member (car (car other-headers)) '("in-reply-to" "cc")))
+	    (insert (car (car other-headers)) ": "
+		    (cdr (car other-headers)) "\n"))
+	(setq other-headers (cdr other-headers)))
+      t)))
 
 (define-mail-user-agent 'mh-e-user-agent
   'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
