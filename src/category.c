@@ -110,8 +110,6 @@ DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
   (category, table)
      Lisp_Object category, table;
 {
-  Lisp_Object doc;
-
   CHECK_CATEGORY (category, 0);
   table = check_category_table (table);
 
@@ -128,7 +126,6 @@ to modify; it defaults to the current buffer's category table.")
      Lisp_Object table;
 {
   int i;
-  Lisp_Object docstring_vector;
 
   table = check_category_table (table);
 
@@ -287,10 +284,6 @@ DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
   (ch)
      Lisp_Object ch;
 {
-  Lisp_Object val;
-  int charset;
-  unsigned char c1, c2;
-
   CHECK_NUMBER (ch, 0);
   return CATEGORY_SET (XFASTINT (ch));
 }
