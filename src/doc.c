@@ -81,6 +81,7 @@ static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
+Lisp_Object Fsnarf_documentation P_ ((Lisp_Object));
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
@@ -134,11 +135,12 @@ get_doc_string (filepos, unibyte, definition)
     {
       file = XCAR (filepos);
       position = XINT (XCDR (filepos));
-      if (position < 0)
-	position = - position;
     }
   else
     return Qnil;
+
+  if (position < 0)
+    position = - position;
 
   if (!STRINGP (Vdoc_directory))
     return Qnil;
@@ -329,18 +331,17 @@ string is passed through `substitute-command-keys'.  */)
       else if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc),
-			      0, 0);
+	doc = make_number ((EMACS_INT) XSUBR (fun)->doc);
     }
   else if (COMPILEDP (fun))
     {
-      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
+      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
 	return Qnil;
-      tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
+      tem = AREF (fun, COMPILED_DOC_STRING);
       if (STRINGP (tem))
 	doc = tem;
       else if (NATNUMP (tem) || CONSP (tem))
-	doc = get_doc_string (tem, 0, 0);
+	doc = tem;
       else
 	return Qnil;
     }
@@ -365,9 +366,9 @@ string is passed through `substitute-command-keys'.  */)
 	    doc = tem;
 	  /* Handle a doc reference--but these never come last
 	     in the function body, so reject them if they are last.  */
-	  else if ((NATNUMP (tem) || CONSP (tem))
-		   && ! NILP (XCDR (tem1)))
-	    doc = get_doc_string (tem, 0, 0);
+	  else if ((NATNUMP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
+		   && !NILP (XCDR (tem1)))
+	    doc = tem;
 	  else
 	    return Qnil;
 	}
@@ -383,6 +384,9 @@ string is passed through `substitute-command-keys'.  */)
     oops:
       Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
+
+  if (INTEGERP (doc) || CONSP (doc))
+    doc = get_doc_string (doc, 0, 0);
 
   if (NILP (raw))
     doc = Fsubstitute_command_keys (doc);
@@ -404,9 +408,7 @@ aren't strings.  */)
   Lisp_Object tem;
 
   tem = Fget (symbol, prop);
-  if (INTEGERP (tem))
-    tem = get_doc_string (XINT (tem) > 0 ? tem : make_number (- XINT (tem)), 0, 0);
-  else if (CONSP (tem) && INTEGERP (XCDR (tem)))
+  if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
     tem = get_doc_string (tem, 0, 0);
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
@@ -454,8 +456,8 @@ store_function_docstring (fun, offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
-	XSETFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING], offset);
+      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
+	XSETFASTINT (AREF (fun, COMPILED_DOC_STRING), offset);
     }
 }
 
