@@ -237,6 +237,7 @@ extern INLINE void copy_intervals_to_string P_ ((Lisp_Object, struct buffer *,
 						 int, int));
 extern INTERVAL copy_intervals P_ ((INTERVAL, int, int));
 extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object lookup_char_property P_ ((Lisp_Object, Lisp_Object, int));
 extern void move_if_not_intangible P_ ((int));
 extern int get_property_and_range P_ ((int, Lisp_Object, Lisp_Object *,
 				       int *, int *, Lisp_Object));
@@ -267,6 +268,7 @@ extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
 extern Lisp_Object Vdefault_text_properties;
+extern Lisp_Object Vchar_property_alias_alist;
 extern Lisp_Object Vtext_property_default_nonsticky;
 
 /* Sticky properties */
