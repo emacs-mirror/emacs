@@ -187,9 +187,18 @@ removed from alias expansions."
 ;;;###autoload
 (defcustom mail-signature nil
   "*Text inserted at end of mail buffer when a message is initialized.
-If t, it means to insert the contents of the file `mail-signature-file'."
-  :type '(choice (const nil) (const t) string)
+If t, it means to insert the contents of the file `mail-signature-file'.
+If a string, that string is inserted.
+ (To make a proper signature, the string should begin with \\n\\n-- \\n,
+  which is the standard way to delimit a signature in a message.)
+Otherwise, it should be an expression; it is evaluated
+and should insert whatever you want to insert."
+  :type '(choice (const "None" nil)
+		 (const :tag "Use `.signature' file" t)
+		 (string :tag "String to insert")
+		 (sexp :tag "Expression to evaluate"))
   :group 'sendmail)
+(put 'mail-signature 'risky-local-variable t)
 
 (defcustom mail-signature-file "~/.signature"
   "*File containing the text inserted at end of mail buffer."
@@ -359,8 +368,10 @@ actually occur.")
 	       (progn
 		 (insert "\n\n-- \n")
 		 (insert-file-contents mail-signature-file))))
-	  (mail-signature
-	   (insert mail-signature)))
+	  ((stringp mail-signature)
+	   (insert mail-signature))
+	  (t
+	   (eval mail-signature)))
     (goto-char (point-max))
     (or (bolp) (newline)))
   (if to (goto-char to))
