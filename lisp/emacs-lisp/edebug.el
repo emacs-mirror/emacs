@@ -398,7 +398,7 @@ value printed by edebug-defun is not just the function name."
 
 (defun eval-region (edebug-e-r-start edebug-e-r-end
 				      &optional edebug-e-r-output)
-  "Edebug replacement for eval-defun.
+  "Edebug replacement for eval-region.
 Like eval-region, but call edebug-defun for defuns or defmacros.
 Also, this eval-region does not narrow to the region and
 if an error occurs, point is left at the error."
@@ -463,25 +463,18 @@ if an error occurs, point is left at the error."
     ))
 
 
-(defun edebug-eval-current-buffer (&optional edebug-e-c-b-output)
-  "Call eval-region on the whole buffer."
-  (interactive)
-  (eval-region (point-min) (point-max) edebug-e-c-b-output))
-
 (defun edebug-eval-buffer (&optional buffer edebug-e-c-b-output)
-  "Call eval-region on the whole buffer."
-  (interactive "bEval buffer: ")
+  "Edebug replacement for eval-buffer.
+Execute the current buffer as Lisp code using eval-region.  See
+eval-region for reasons why this function is redefined by edebug."
+  (interactive)
+  (or buffer
+      (setq buffer (current-buffer)))
   (save-excursion
     (set-buffer buffer)
     (eval-region (point-min) (point-max) edebug-e-c-b-output)))
 
-;; The standard eval-current-buffer doesn't use eval-region.
-(if (and (fboundp 'eval-current-buffer)
-	 (not (fboundp 'edebug-emacs-eval-current-buffer)))
-    (progn
-      (fset 'edebug-emacs-eval-current-buffer
-	    (symbol-function 'eval-current-buffer))
-      (fset 'eval-current-buffer 'edebug-eval-current-buffer)))
+;; The standard eval-buffer doesn't use eval-region.
 (if (and (fboundp 'eval-buffer)
 	 (not (fboundp 'edebug-emacs-eval-buffer)))
     (progn
