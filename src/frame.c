@@ -51,6 +51,8 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* The name we're using in resource queries.  Most often "emacs".  */
 
 Lisp_Object Vx_resource_name;
@@ -60,6 +62,7 @@ Lisp_Object Vx_resource_name;
 
 Lisp_Object Vx_resource_class;
 
+#endif
 
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
@@ -3987,6 +3990,7 @@ syms_of_frame ()
       }
   }
 
+#ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
     doc: /* The name Emacs uses to look up X resources.
 `x-get-resource' uses this as the first component of the instance name
@@ -4010,6 +4014,7 @@ Setting this variable permanently is not a reasonable thing to do,
 but binding this variable locally around a call to `x-get-resource'
 is a reasonable practice.  See also the variable `x-resource-name'.  */);
   Vx_resource_class = build_string (EMACS_CLASS);
+#endif
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
