@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(MMdevel_restr.4) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.10) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -55,7 +55,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(MMdevel_restr.4) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.10) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -89,7 +89,7 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, size_t size)
+Res VMCreate(Space *spaceReturn, Size size)
 {
   LPVOID base;
   Align align;
