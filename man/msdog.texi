@@ -172,9 +172,10 @@ specifying the @code{cursor-type} parameter in the variable
 @code{default-frame-alist} (@pxref{Creating Frames}).  The MS-DOS
 terminal doesn't support a vertical-bar cursor, so the bar cursor is
 horizontal, and the @code{@var{width}} parameter, if specified by the
-frame parameters, actually determines its height.  As an extension,
-the bar cursor specification can include the starting scan line of the
-cursor as well as its width, like this:
+frame parameters, actually determines its height.  For this reason,
+the @code{bar} and @code{hbar} cursor types produce the same effect on
+MS-DOS.  As an extension, the bar cursor specification can include the
+starting scan line of the cursor as well as its width, like this:
 
 @example
  '(cursor-type bar @var{width} . @var{start})
