@@ -42,6 +42,8 @@ copy w3i3mv\we\mpsplcb.lib release\lib\w3i3\we
 copy w3i3mv\ce\mpsplcb.lib release\lib\w3i3\ce
 copy w3i3mv\we\mpsdy.dll release\lib\w3i3\we
 copy w3i3mv\ce\mpsdy.dll release\lib\w3i3\ce
+copy w3i3mv\we\mpsdy.lib release\lib\w3i3\we
+copy w3i3mv\ce\mpsdy.lib release\lib\w3i3\ce
 copy w3i3mv\wi\mps.lib release\lib\w3i3\wi
 copy w3i3mv\ci\mps.lib release\lib\w3i3\ci
 copy w3i3mv\wi\mpsplan.lib release\lib\w3i3\wi
@@ -50,5 +52,7 @@ copy w3i3mv\wi\mpsplcb.lib release\lib\w3i3\wi
 copy w3i3mv\ci\mpsplcb.lib release\lib\w3i3\ci
 copy w3i3mv\wi\mpsdy.dll release\lib\w3i3\wi
 copy w3i3mv\ci\mpsdy.dll release\lib\w3i3\ci
+copy w3i3mv\wi\mpsdy.lib release\lib\w3i3\wi
+copy w3i3mv\ci\mpsdy.lib release\lib\w3i3\ci
 copy mpsliban.c release\src
 copy mpsioan.c release\src
