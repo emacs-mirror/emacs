@@ -1303,10 +1303,10 @@ It returns t if it got any new messages."
 		       (message "movemail: %s"
 				(buffer-substring (point-min)
 						  (point-max)))
-
+		       ;; If we just read the password, most likely it is
+		       ;; wrong.  Otherwise, see if there is a specific
+		       ;; reason to think that the problem is a wrong passwd.
 		       (if (or got-password
-			       ;; If the error was  for an incorrect password,
-			       ;; arrange to try again to read the password.
 			       (re-search-forward rmail-pop-password-error
 						  nil t))
 			   (setq rmail-pop-password nil))
