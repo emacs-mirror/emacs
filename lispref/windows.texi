@@ -170,7 +170,7 @@ If splitting would result in making a window that is smaller than
 signals an error and does not split the window at all.
 
 The following example starts with one window on a screen that is 50
-lines high by 80 columns wide; then the window is split.
+lines high by 80 columns wide; then it splits the window.
 
 @smallexample
 @group
@@ -212,7 +212,7 @@ The screen looks like this:
 @end group
 @end smallexample
 
-Next, the top window is split horizontally:
+Next, split the top window horizontally:
 
 @smallexample
 @group
@@ -234,7 +234,7 @@ Next, the top window is split horizontally:
 @end smallexample
 
 @need 3000
-Now, the screen looks like this:
+Now the screen looks like this:
 
 @smallexample
 @group
@@ -1881,25 +1881,27 @@ fixed-size window, if there is no other alternative.
 @end defvar
 
 @cindex minimum window size
-  The following two variables constrain the window-size-changing
+  The following two variables constrain the window-structure-changing
 functions to a minimum height and width.
 
 @defopt window-min-height
 The value of this variable determines how short a window may become
 before it is automatically deleted.  Making a window smaller than
-@code{window-min-height} automatically deletes it, and no window may be
-created shorter than this.  The absolute minimum height is two (allowing
-one line for the mode line, and one line for the buffer display).
-Actions that change window sizes reset this variable to two if it is
-less than two.  The default value is 4.
+@code{window-min-height} automatically deletes it, and no window may
+be created shorter than this.  The default value is 4.
+
+The absolute minimum window height is one; actions that change window
+sizes reset this variable to one if it is less than one.
 @end defopt
 
 @defopt window-min-width
 The value of this variable determines how narrow a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-width} automatically deletes it, and no window may be
-created narrower than this.  The absolute minimum width is one; any
-value below that is ignored.  The default value is 10.
+created narrower than this.  The default value is 10.
+
+The absolute minimum window width is two; actions that change window
+sizes reset this variable to two if it is less than two.
 @end defopt
 
 @node Coordinates and Windows
