@@ -260,6 +260,7 @@ make_window ()
   bzero (&p->last_cursor, sizeof (p->last_cursor));
   bzero (&p->phys_cursor, sizeof (p->phys_cursor));
   p->desired_matrix = p->current_matrix = 0;
+  p->nrows_scale_factor = p->ncols_scale_factor = 1;
   p->phys_cursor_type = -1;
   p->phys_cursor_width = -1;
   p->must_be_updated_p = 0;
