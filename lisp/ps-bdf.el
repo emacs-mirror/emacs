@@ -359,8 +359,11 @@ The value is a list of DWIDTH, BBX, and BITMAP-STRING.
 DWIDTH is a pixel width of a glyph.
 BBX is a bounding box of the glyph.
 BITMAP-STRING is a string representing bits by hexadecimal digits."
-  (let ((coding-system-for-read 'no-conversion)
-	dwidth bbx height yoff bitmap-string)
+  (let* ((coding-system-for-read 'no-conversion)
+	 (bbx (elt (bdf-get-font-info bdfname) 4))
+	 (dwidth (elt bbx 0))
+	 (bitmap-string "")
+	 height yoff)
     (condition-case nil
 	(with-temp-buffer
 	  (insert-file-contents bdfname nil offset (+ offset maxlen))
