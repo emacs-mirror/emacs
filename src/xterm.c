@@ -1817,8 +1817,7 @@ x_produce_glyphs (it)
 	 struct glyph because the character code itself tells if or
 	 not the character is multibyte.  Thus, in the future, we must
 	 consider eliminating the field `multibyte_p' in the struct
-	 glyph.
-      */
+	 glyph.  */
       int saved_multibyte_p = it->multibyte_p;
 
       /* Maybe translate single-byte characters to multibyte, or the
@@ -1839,8 +1838,7 @@ x_produce_glyphs (it)
 	  else if (!SINGLE_BYTE_CHAR_P (it->c)
 		   && !it->multibyte_p)
 	    {
-	      it->char_to_display = multibyte_char_to_unibyte (it->c, Qnil);
-	      it->multibyte_p = 0;
+	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
