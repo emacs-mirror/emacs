@@ -1,5 +1,7 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* lisp.h (init_window): Add prototype.
+
 	* editfns.c: Include ctype.h.
 
 	* xterm.c: USE_LUCID can be defined iff USE_X_TOOLKIT is defined.
