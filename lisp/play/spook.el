@@ -45,7 +45,7 @@
   :prefix "spook-"
   :group 'games)
 
-(defcustom spook-phrases-file (concat data-directory "spook.lines")
+(defcustom spook-phrases-file (expand-file-name "spook.lines" data-directory)
   "Keep your favorite phrases here."
   :type 'file
   :group 'spook)
