@@ -1182,7 +1182,7 @@ xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h termhooks.h
+  blockinput.h window.h atimer.h termhooks.h coding.h
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
