@@ -626,21 +626,28 @@ which will run faster and probably do exactly what you want."
 			 (sit-for 1)))
 		      ((eq def 'act)
 		       (or replaced
-			   (replace-match next-replacement nocasify literal))
+			   (progn
+			     (replace-match next-replacement nocasify literal)
+			     (setq replace-count (1+ replace-count))))
 		       (setq done t replaced t))
 		      ((eq def 'act-and-exit)
 		       (or replaced
-			   (replace-match next-replacement nocasify literal))
+			   (progn
+			     (replace-match next-replacement nocasify literal)
+			     (setq replace-count (1+ replace-count))))
 		       (setq keep-going nil)
 		       (setq done t replaced t))
 		      ((eq def 'act-and-show)
 		       (if (not replaced)
 			   (progn
 			     (replace-match next-replacement nocasify literal)
+			     (setq replace-count (1+ replace-count))
 			     (setq replaced t))))
 		      ((eq def 'automatic)
 		       (or replaced
-			   (replace-match next-replacement nocasify literal))
+			   (progn
+			     (replace-match next-replacement nocasify literal)
+			     (setq replace-count (1+ replace-count))))
 		       (setq done t query-flag nil replaced t))
 		      ((eq def 'skip)
 		       (setq done t))
@@ -682,8 +689,7 @@ which will run faster and probably do exactly what you want."
 						   (prog1 (marker-position elt)
 						     (set-marker elt nil))))
 				     (match-data))))
-			  stack))
-	      (if replaced (setq replace-count (1+ replace-count)))))
+			  stack))))
 	  (setq lastrepl (point)))
       (replace-dehighlight))
     (or unread-command-events
