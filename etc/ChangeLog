@@ -1,3 +1,8 @@
+2001-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* HELLO: Fix the Italian and Maltese entries.  From Trevor Spiteri
+	<tbspit@eng.um.edu.mt>.
+
 2001-08-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* HELLO: Slovak language name added to be compatible with other
