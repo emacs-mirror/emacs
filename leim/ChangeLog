@@ -1,3 +1,8 @@
+2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* quail/greek.el ("greek-babel"): New input method.  From David
+	Kastrup <David.Kastrup@neuroinformatik.ruhr-uni-bochum.de>.
+
 2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/greek.el ("greek-mizuochi"): Doc fix.  From David Kastrup
