@@ -8950,14 +8950,23 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = -1;
 	    }
-	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row)
-		   && window_box_height (w) > row->height)
+	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
 	    {
 	      /* If we end up in a partially visible line, let's make it
 		 fully visible, except when it's taller than the window,
 		 in which case we can't do much about it.  */
-	      *scroll_step = 1;
-	      rc = -1;
+	      if (row->height > window_box_height (w))
+		{
+		  *scroll_step = 1;
+		  rc = -1;
+		}
+	      else
+		{
+		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+		  try_window (window, startp);
+		  make_cursor_line_fully_visible (w);
+		  rc = 1;
+		}
 	    }
 	  else if (scroll_p)
 	    rc = -1;
