@@ -94,33 +94,33 @@
 (defvar sun-esc-bracket nil
   "*If non-nil, rebind ESC [ as prefix for Sun function keys.")
 
-(define-prefix-command 'sun-raw-prefix 'sun-raw-map)
+(define-prefix-command 'sun-raw-prefix)
 (define-key function-key-map "\e[" 'sun-raw-prefix)
 
-(define-key sun-raw-map "210z" [r3])
-(define-key sun-raw-map "213z" [r6])
-(define-key sun-raw-map "214z" [r7])
-(define-key sun-raw-map "216z" [r9])
-(define-key sun-raw-map "218z" [r11])
-(define-key sun-raw-map "220z" [r13])
-(define-key sun-raw-map "222z" [r15])
-(define-key sun-raw-map "193z" [again])
-(define-key sun-raw-map "194z" [props])
-(define-key sun-raw-map "195z" [undo])
-; (define-key sun-raw-map "196z" 'ignore-key)		; Expose-down
-; (define-key sun-raw-map "197z" [put])
-; (define-key sun-raw-map "198z" 'ignore-key)		; Open-down
-; (define-key sun-raw-map "199z" [get])
-(define-key sun-raw-map "200z" [find])
-; (define-key sun-raw-map "201z" 'kill-region-and-unmark)	; Delete
-(define-key sun-raw-map "226z" [t3])
-(define-key sun-raw-map "227z" [t4])
-(define-key sun-raw-map "229z" [t6])
-(define-key sun-raw-map "230z" [t7])
-(define-key sun-raw-map "A" [up])			; R8
-(define-key sun-raw-map "B" [down])			; R14
-(define-key sun-raw-map "C" [right])			; R12
-(define-key sun-raw-map "D" [left])			; R10
+(define-key sun-raw-prefix "210z" [r3])
+(define-key sun-raw-prefix "213z" [r6])
+(define-key sun-raw-prefix "214z" [r7])
+(define-key sun-raw-prefix "216z" [r9])
+(define-key sun-raw-prefix "218z" [r11])
+(define-key sun-raw-prefix "220z" [r13])
+(define-key sun-raw-prefix "222z" [r15])
+(define-key sun-raw-prefix "193z" [again])
+(define-key sun-raw-prefix "194z" [props])
+(define-key sun-raw-prefix "195z" [undo])
+; (define-key sun-raw-prefix "196z" 'ignore-key)		; Expose-down
+; (define-key sun-raw-prefix "197z" [put])
+; (define-key sun-raw-prefix "198z" 'ignore-key)		; Open-down
+; (define-key sun-raw-prefix "199z" [get])
+(define-key sun-raw-prefix "200z" [find])
+; (define-key sun-raw-prefix "201z" 'kill-region-and-unmark)	; Delete
+(define-key sun-raw-prefix "226z" [t3])
+(define-key sun-raw-prefix "227z" [t4])
+(define-key sun-raw-prefix "229z" [t6])
+(define-key sun-raw-prefix "230z" [t7])
+(define-key sun-raw-prefix "A" [up])			; R8
+(define-key sun-raw-prefix "B" [down])			; R14
+(define-key sun-raw-prefix "C" [right])			; R12
+(define-key sun-raw-prefix "D" [left])			; R10
 
 (global-set-key [r3]	'backward-page)
 (global-set-key [r6]	'forward-page)
@@ -146,10 +146,10 @@
 ;;; Since .emacs gets loaded before this file, a hook is supplied
 ;;; for you to put your own bindings in.
 
-(defvar sun-raw-map-hooks nil
-  "List of forms to evaluate after setting sun-raw-map.")
+(defvar sun-raw-prefix-hooks nil
+  "List of forms to evaluate after setting sun-raw-prefix.")
 
-(let ((hooks sun-raw-map-hooks))
+(let ((hooks sun-raw-prefix-hooks))
   (while hooks
     (eval (car hooks))
     (setq hooks (cdr hooks))
