@@ -1,3 +1,11 @@
+2000-02-05  INOUE Seiichiro <inoue@ainet.or.jp>
+
+	* xterm.c (x_display_and_set_cursor) [HAVE_X_I18N]: Set pre-edit
+	area.
+	(x_display_cursor) [HAVE_X_I18N]: Don't set it here.
+	(XTread_socket) [HAVE_X_I18N]: <KeyPress, KeyRelease>: Don't
+	dispatch the event.
+
 2000-02-04  Dave Love  <fx@gnu.org>
 
 	* fileio.c: Remove some unused vars.
