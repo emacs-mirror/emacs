@@ -7474,7 +7474,7 @@ x_bitmap_icon (f, file)
 #ifdef USE_GTK
       /* Use gtk_window_set_icon_from_file() if available,
 	 It's not restricted to bitmaps */
-      if (!xg_set_icon(f, file))
+      if (xg_set_icon(f, file))
 	return 0;
 #endif /* USE_GTK */
       bitmap_id = x_create_bitmap_from_file (f, file);

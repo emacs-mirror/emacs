@@ -1,3 +1,9 @@
+2003-07-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (xg_set_icon): Rewrite to compile with GTK 2.0 and 2.2.
+
+	* xterm.c (x_bitmap_icon): Return if xg_set_icon succeeds.
+
 2003-07-31  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (read_process_output): Return the actually read bytes

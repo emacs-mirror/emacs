@@ -1092,36 +1092,51 @@ x_set_wait_for_wm (f, new_value, old_value)
 
 #ifdef USE_GTK
 
-/* Wrapper for gtk_window_icon_from_file() */
+static Lisp_Object x_find_image_file P_ ((Lisp_Object file));
+
+/* Set icon from FILE for frame F.  By using GTK functions the icon
+   may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
 
 int
 xg_set_icon(f, file)
-    struct frame *f;
+    FRAME_PTR f;
     Lisp_Object file;
 {
-    struct gcpro gcpro1, gcpro2, gcpro3;
-    int fd;
-    int result = 1;
-    Lisp_Object found, search_path;
-    char *filename;
+  struct gcpro gcpro1;
+  int result = 0;
+  Lisp_Object found;
 
-    search_path = Fcons (Vdata_directory, Vx_bitmap_file_path);
+  GCPRO1 (found);
 
-    GCPRO3 (found, search_path, file);
-    fd = openp (search_path, file, Qnil, &found, Qnil);
-    if (fd > 0)
-      {
-	filename = (char *) SDATA (found);
-	BLOCK_INPUT;
-	result =
-	  gtk_window_set_icon_from_file (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-					 filename,
-					 NULL);
-	UNBLOCK_INPUT;
-      }
-    emacs_close (fd);
-    UNGCPRO;
-    return result;
+  found = x_find_image_file (file);
+
+  if (! NILP (found))
+    {
+      GdkPixbuf *pixbuf;
+      GError *err = NULL;
+      char *filename;
+
+      filename = SDATA (found);
+      BLOCK_INPUT;
+
+      pixbuf = gdk_pixbuf_new_from_file (filename, &err);
+
+      if (pixbuf)
+	{
+	  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			       pixbuf);
+	  g_object_unref (pixbuf);
+
+	  result = 1;
+	}
+      else
+	g_error_free (err);
+
+      UNBLOCK_INPUT;
+    }
+
+  UNGCPRO;
+  return result;
 }
 #endif /* USE_GTK */
 
