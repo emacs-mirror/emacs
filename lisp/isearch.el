@@ -1030,42 +1030,58 @@ But only if `search-exit-option' is non-nil, the default.
 If it is the symbol `edit', the search string is edited in the minibuffer
 and the meta character is unread so that it applies to editing the string."
   (interactive)
-  (cond ((eq search-exit-option 'edit)
-	 (let ((key (this-command-keys)))
-	   (apply 'isearch-unread (listify-key-sequence key)))
-	 (isearch-edit-string))
-	(search-exit-option
-	 (let* ((key (this-command-keys))
-		(main-event (aref key 0))
-		window)
-	   (apply 'isearch-unread (listify-key-sequence key))
-	   ;; Properly handle scroll-bar and mode-line clicks
-	   ;; for which a dummy prefix event was generated as (aref key 0).
-	   (and (> (length key) 1)
-		(symbolp (aref key 0))
-		(listp (aref key 1))
-		(not (numberp (posn-point (event-start (aref key 1)))))
-		;; Convert the event back into its raw form,
-		;; with the dummy prefix implicit in the mouse event,
-		;; so it will get split up once again.
-		(progn (setq unread-command-events
-			     (cdr unread-command-events))
-		       (setq main-event (car unread-command-events))
-		       (setcar (cdr (event-start main-event))
-			       (car (nth 1 (event-start main-event))))))
-	   ;; If we got a mouse click, maybe it was read with the buffer
-	   ;; it was clicked on.  If so, that buffer, not the current one,
-	   ;; is in isearch mode.  So end the search in that buffer.
-	   (if (and (listp main-event)
-		    (setq window (posn-window (event-start main-event)))
-		    (windowp window))
-	       (save-excursion
-		 (set-buffer (window-buffer window))
-		 (isearch-done))
-	     (isearch-done))))
-	(t;; otherwise nil
-	 (isearch-process-search-string (this-command-keys)
-					(this-command-keys)))))
+  (let* ((key (this-command-keys))
+	 (main-event (aref key 0))
+	 (keylist (listify-key-sequence key)))
+    (cond (
+	   ;; Handle an undefined shifted control character
+	   ;; by downshifting it if that makes it defined.
+	   ;; (As read-key-sequence would normally do,
+	   ;; if we didn't have a default definition.)
+	   (let ((mods (event-modifiers main-event)))
+	     (and (integerp main-event)
+		  (memq 'shift mods)
+		  (memq 'control mods)
+		  (lookup-key isearch-mode-map
+			      (let ((copy (copy-sequence key)))
+				(aset copy 0
+				      (- main-event (- ?\C-\S-a ?\C-a)))
+				copy)
+			      nil)))
+	   (setcar keylist (- main-event (- ?\C-\S-a ?\C-a)))
+	   (apply 'isearch-unread keylist))
+	  ((eq search-exit-option 'edit)
+	   (apply 'isearch-unread keylist)
+	   (isearch-edit-string))
+	  (search-exit-option
+	   (let (window)
+	     (apply 'isearch-unread keylist)
+	     ;; Properly handle scroll-bar and mode-line clicks
+	     ;; for which a dummy prefix event was generated as (aref key 0).
+	     (and (> (length key) 1)
+		  (symbolp (aref key 0))
+		  (listp (aref key 1))
+		  (not (numberp (posn-point (event-start (aref key 1)))))
+		  ;; Convert the event back into its raw form,
+		  ;; with the dummy prefix implicit in the mouse event,
+		  ;; so it will get split up once again.
+		  (progn (setq unread-command-events
+			       (cdr unread-command-events))
+			 (setq main-event (car unread-command-events))
+			 (setcar (cdr (event-start main-event))
+				 (car (nth 1 (event-start main-event))))))
+	     ;; If we got a mouse click, maybe it was read with the buffer
+	     ;; it was clicked on.  If so, that buffer, not the current one,
+	     ;; is in isearch mode.  So end the search in that buffer.
+	     (if (and (listp main-event)
+		      (setq window (posn-window (event-start main-event)))
+		      (windowp window))
+		 (save-excursion
+		   (set-buffer (window-buffer window))
+		   (isearch-done))
+	       (isearch-done))))
+	  (t;; otherwise nil
+	   (isearch-process-search-string key key)))))
 
 (defun isearch-quote-char ()
   "Quote special characters for incremental search."
