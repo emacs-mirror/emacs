@@ -1034,8 +1034,8 @@ See also the function `signal' for more info.")
   if (_setjmp (c.jmp))
     {
       if (!NILP (h.var))
-        specbind (h.var, Fcdr (c.val));
-      val = Fprogn (Fcdr (Fcar (c.val)));
+        specbind (h.var, c.val);
+      val = Fprogn (Fcdr (h.chosen_clause));
 
       /* Note that this just undoes the binding of h.var; whoever
 	 longjumped to us unwound the stack to c.pdlcount before
@@ -1078,7 +1078,7 @@ internal_condition_case (bfun, handlers, hfun)
   c.gcpro = gcprolist;
   if (_setjmp (c.jmp))
     {
-      return (*hfun) (Fcdr (c.val));
+      return (*hfun) (c.val);
     }
   c.next = catchlist;
   catchlist = &c;
@@ -1115,7 +1115,7 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   c.gcpro = gcprolist;
   if (_setjmp (c.jmp))
     {
-      return (*hfun) (Fcdr (c.val));
+      return (*hfun) (c.val);
     }
   c.next = catchlist;
   catchlist = &c;
@@ -1190,9 +1190,16 @@ See also the function `condition-case'.")
 
       if (!NILP (clause))
 	{
+	  Lisp_Object unwind_data;
 	  struct handler *h = handlerlist;
+
 	  handlerlist = allhandlers;
-	  unwind_to_catch (h->tag, Fcons (clause, Fcons (error_symbol, data)));
+	  if (data == memory_signal_data)
+	    unwind_data = memory_signal_data;
+	  else
+	    unwind_data = Fcons (error_symbol, data);
+	  h->chosen_clause = clause;
+	  unwind_to_catch (h->tag, unwind_data);
 	}
     }
 
