@@ -1,3 +1,7 @@
+2004-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/bytecomp.el (forward-word): Allow 0 args.
+
 2004-08-11  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* speedbar.el (speedbar-scan-subdirs): New option.
