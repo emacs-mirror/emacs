@@ -93,7 +93,6 @@ extern Lisp_Object Qmenu_bar;
 extern void process_expose_from_menu ();
 extern XtAppContext Xt_app_con;
 
-static int string_width ();
 static Lisp_Object xdialog_show ();
 #endif
 
@@ -984,18 +983,6 @@ dispatch_dummy_expose (w, x, y)
   dummy.y = y;
 
   XtDispatchEvent ((XEvent *) &dummy);
-}
-
-static int
-string_width (mw, s)
-     XlwMenuWidget mw;
-     char* s;
-{
-  XCharStruct xcs;
-  int drop;
-  
-  XTextExtents (mw->menu.font, s, strlen (s), &drop, &drop, &drop, &xcs);
-  return xcs.width;
 }
 
 static int
