@@ -1992,7 +1992,7 @@ See the documentation of `define-ccl-program' for the detail of CCL program.")
 		  ? XINT (XVECTOR (reg)->contents[i])
 		  : 0);
 
-  ccl_driver (&ccl, (char *)0, (char *)0, 0, 0, (int *)0);
+  ccl_driver (&ccl, (unsigned char *)0, (unsigned char *)0, 0, 0, (int *)0);
   QUIT;
   if (ccl.status != CCL_STAT_SUCCESS)
     error ("Error in CCL program at %dth code", ccl.ic);
