@@ -1946,78 +1946,93 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
       (forward-line 1)
       (= (following-char) ?1))))
 
+(defun rmail-msg-restore-non-pruned-header ()
+  (save-excursion
+    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+    (let (new-start)
+      (goto-char (point-min))
+      (forward-line 1)
+      ;; Change 1 to 0.
+      (delete-char 1)
+      (insert ?0)
+      ;; Insert new EOOH line at the proper place.
+      (forward-line 1)
+      (let ((case-fold-search t))
+	(while (looking-at "Summary-Line:\\|Mail-From:")
+	  (forward-line 1)))
+      (insert "*** EOOH ***\n")
+      (setq new-start (point))
+      ;; Delete the old reformatted header.
+      (forward-char -1)
+      (search-forward "\n*** EOOH ***\n")
+      (forward-line -1)
+      (let ((start (point)))
+	(search-forward "\n\n")
+	(delete-region start (point)))
+      ;; Narrow to after the new EOOH line.
+      (narrow-to-region new-start (point-max)))))
+
+(defun rmail-msg-prune-header ()
+  (save-excursion
+    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+    (rmail-reformat-message (point-min) (point-max))))
+
 (defun rmail-toggle-header (&optional arg)
   "Show original message header if pruned header currently shown, or vice versa.
 With argument ARG, show the message header pruned if ARG is greater than zero;
 otherwise, show it in full."
   (interactive "P")
-  (switch-to-buffer rmail-buffer)
-  (let* ((buffer-read-only nil)
-	 (pruned (rmail-msg-is-pruned))
+  (let* ((pruned (with-current-buffer rmail-buffer
+		   (rmail-msg-is-pruned)))
 	 (prune (if arg
 		    (> (prefix-numeric-value arg) 0)
 		  (not pruned))))
     (if (eq pruned prune)
 	t
+      (set-buffer rmail-buffer)
       (rmail-maybe-set-message-counters)
-      (let* ((window (get-buffer-window (current-buffer)))
-	     (at-point-min (= (point) (point-min)))
-	     (all-headers-visible (= (window-start window) (point-min)))
-	     (on-header (save-excursion
-			  (and (not (search-backward "\n\n" nil t))
-			       (progn
-				 (end-of-line)
-				 (re-search-backward "^[-A-Za-z0-9]+:" nil t))
-			       (match-string 0))))
-	     (old-screen-line
-	      (rmail-count-screen-lines (window-start window) (point))))
-        (save-excursion
-	  (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (if rmail-enable-mime
+	  (let ((buffer-read-only nil))
+	    (if pruned
+		(rmail-msg-restore-non-pruned-header)
+	      (rmail-msg-prune-header))
+	    (funcall rmail-show-mime-function))
+	(let* ((buffer-read-only nil)
+	       (window (get-buffer-window (current-buffer)))
+	       (at-point-min (= (point) (point-min)))
+	       (all-headers-visible (= (window-start window) (point-min)))
+	       (on-header
+		(save-excursion
+		  (and (not (search-backward "\n\n" nil t))
+		       (progn
+			 (end-of-line)
+			 (re-search-backward "^[-A-Za-z0-9]+:" nil t))
+		       (match-string 0))))
+	       (old-screen-line
+		(rmail-count-screen-lines (window-start window) (point))))
 	  (if pruned
-	      (let (new-start)
-		(goto-char (point-min))
-		(forward-line 1)
-		;; Change 1 to 0.
-		(delete-char 1)
-		(insert ?0)
-		;; Insert new EOOH line at the proper place.
-		(forward-line 1)
-		(let ((case-fold-search t))
-		  (while (looking-at "Summary-Line:\\|Mail-From:")
-		    (forward-line 1)))
-		(insert "*** EOOH ***\n")
-		(setq new-start (point))
-		;; Delete the old reformatted header.
-		(forward-char -1)
-		(search-forward "\n*** EOOH ***\n")
-		(forward-line -1)
-		(let ((start (point)))
-		  (search-forward "\n\n")
-		  (delete-region start (point)))
-		;; Narrow to after the new EOOH line.
-		(narrow-to-region new-start (point-max)))
-	    (rmail-reformat-message (point-min) (point-max))))
-	(cond (rmail-enable-mime
-	       (funcall rmail-show-mime-function))
-	      (at-point-min
-	       (goto-char (point-min)))
-	      (on-header
-	       (goto-char (point-min))
-	       (search-forward "\n\n")
-	       (or (re-search-backward (concat "^" (regexp-quote on-header)) nil t)
-		   (goto-char (point-min))))
-	      (t
-	       (save-selected-window
-		 (select-window window)
-		 (recenter old-screen-line)
-		 (if (and all-headers-visible
-			  (not (= (window-start) (point-min))))
-		     (let ((lines-offscreen (rmail-count-screen-lines
-					     (point-min)
-					     (window-start window))))
-		       (recenter (min (+ old-screen-line lines-offscreen)
-				      ;; last line of window
-				      (- (window-height) 2)))))))))
+	      (rmail-msg-restore-non-pruned-header)
+	    (rmail-msg-prune-header))
+	  (cond (at-point-min
+		 (goto-char (point-min)))
+		(on-header
+		 (goto-char (point-min))
+		 (search-forward "\n\n")
+		 (or (re-search-backward
+		      (concat "^" (regexp-quote on-header)) nil t)
+		     (goto-char (point-min))))
+		(t
+		 (save-selected-window
+		   (select-window window)
+		   (recenter old-screen-line)
+		   (if (and all-headers-visible
+			    (not (= (window-start) (point-min))))
+		       (let ((lines-offscreen (rmail-count-screen-lines
+					       (point-min)
+					       (window-start window))))
+			 (recenter (min (+ old-screen-line lines-offscreen)
+					;; last line of window
+					(- (window-height) 2))))))))))
       (rmail-highlight-headers))))
 
 ;; Lifted from repos-count-screen-lines.
