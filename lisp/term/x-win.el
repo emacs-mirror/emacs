@@ -521,6 +521,14 @@ This returns ARGS with the arguments that have been processed removed."
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
+;; Apply a geometry resource to the initial frame.  Put it at the end
+;; of the alist, so that anything specified on the command line takes
+;; precedence.
+(let ((res-geometry (x-get-resource "geometry" "Geometry")))
+  (if res-geometry
+      (setq initial-frame-alist (append initial-frame-alist
+					(x-parse-geometry res-geometry)))))
+
 (defun x-win-suspend-error ()
   (error "Suspending an emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
