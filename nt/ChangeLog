@@ -1,3 +1,8 @@
+2001-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* README: Update the address of the mailing list and subscription
+	instructions.  From Geoff Voelker <voelker@cs.ucsd.edu>.
+
 2001-09-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Suggest to avoid using WinZip.
