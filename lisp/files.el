@@ -1691,8 +1691,12 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	   (file-error nil))
 	 (set-buffer-auto-saved))))
 
+(defvar after-save-hook nil
+  "Normal hook that is run after a buffer is saved to its file.")
+
 (defun basic-save-buffer ()
-  "Save the current buffer in its visited file, if it has been modified."
+  "Save the current buffer in its visited file, if it has been modified.
+After saving the buffer, run `after-save-hook'."
   (interactive)
   (save-excursion
     ;; In an indirect buffer, save its base buffer instead.
