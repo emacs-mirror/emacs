@@ -217,7 +217,9 @@ FUNCTION-LIST is a list of functions to call to do some
 additional setup.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
-  (declare (debug (sexp def-form def-form def-form form def-form &optional stringp)))
+  (declare (debug (sexp def-form def-form def-form form def-form
+			&optional stringp))
+	   (indent 1))
 
   ;; Backward compatibility.
   (when (eq (car-safe mode) 'quote)
