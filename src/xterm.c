@@ -6647,6 +6647,8 @@ note_mouse_movement (frame, event)
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
+#if 0 /* Lisp must not be called asynchronously, so this must
+	 not be done.  */
   if (x_autoselect_window_p)
     {
       int area;
@@ -6666,6 +6668,7 @@ note_mouse_movement (frame, event)
 
       last_window=window;
     }
+#endif
 
   if (event->window != FRAME_X_WINDOW (frame))
     {
