@@ -1,3 +1,9 @@
+2000-09-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecomp.el (byte-compile-defvar): Only cons onto
+	current-load-list in top-level forms.  Else this leaks a cons cell
+	every time a defun is called.
+
 2000-09-11  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* diff-mode.el (diff-apply-hunk): Function basically rewritten.
