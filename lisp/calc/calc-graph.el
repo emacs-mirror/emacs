@@ -289,12 +289,8 @@
 	 (tty-output nil)
 	 cache-env is-splot device output resolution precision samples-pos)
      (or (boundp 'calc-graph-prev-kill-hook)
-	 (if calc-emacs-type-19
-	     (progn
-	       (setq calc-graph-prev-kill-hook nil)
-	       (add-hook 'kill-emacs-hook 'calc-graph-kill-hook))
-	   (setq calc-graph-prev-kill-hook kill-emacs-hook)
-	   (setq kill-emacs-hook 'calc-graph-kill-hook)))
+         (setq calc-graph-prev-kill-hook nil)
+         (add-hook 'kill-emacs-hook 'calc-graph-kill-hook))
      (save-excursion
        (calc-graph-init)
        (set-buffer tempbuf)
