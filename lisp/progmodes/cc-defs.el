@@ -105,7 +105,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.6"
+(defconst c-version "5.30.7"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -115,10 +115,10 @@
   "Non-nil for all buffers with a major mode derived from CC Mode.
 Otherwise, this variable is nil.  I.e. this variable is non-nil for
 `c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode',
-`pike-mode', and any other non-CC Mode mode that calls
-`c-initialize-cc-mode' (e.g. `awk-mode').  The value is the mode
-symbol itself (i.e. `c-mode' etc) of the original CC Mode mode, or
-just t if it's not known.")
+`pike-mode', `awk-mode', and any other non-CC Mode mode that calls
+`c-initialize-cc-mode'.  The value is the mode symbol itself
+\(i.e. `c-mode' etc) of the original CC Mode mode, or just t if it's
+not known.")
 (make-variable-buffer-local 'c-buffer-is-cc-mode)
 
 ;; Have to make `c-buffer-is-cc-mode' permanently local so that it
