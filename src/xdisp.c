@@ -4309,7 +4309,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 
     case 'F':
       /* %F displays the frame name.  */
-      if (!NILP (f->title))
+      /* Systems that can only display a single frame at a time should
+	 NOT replace the frame name with the (constant) frame title,
+	 since then they won't be able to tell which frame is that.  */
+      if (FRAME_WINDOW_P (f) && !NILP (f->title))
 	return (char *) XSTRING (f->title)->data;
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
 	return (char *) XSTRING (f->name)->data;
