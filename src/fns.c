@@ -2950,7 +2950,7 @@ Normally the return value is FEATURE.")
    bottleneck of Widget operation.  Here is their translation to C,
    for the sole reason of efficiency.  */
 
-DEFUN ("widget-plist-member", Fwidget_plist_member, Swidget_plist_member, 2, 2, 0,
+DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
   "Return non-nil if PLIST has the property PROP.\n\
 PLIST is a property list, which is a list of the form\n\
 \(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol.\n\
@@ -2994,7 +2994,7 @@ later with `widget-put'.")
       if (NILP (widget))
 	return Qnil;
       CHECK_CONS (widget, 1);
-      tmp = Fwidget_plist_member (XCDR (widget), property);
+      tmp = Fplist_member (XCDR (widget), property);
       if (CONSP (tmp))
 	{
 	  tmp = XCDR (tmp);
@@ -4907,7 +4907,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sfeaturep);
   defsubr (&Srequire);
   defsubr (&Sprovide);
-  defsubr (&Swidget_plist_member);
+  defsubr (&Splist_member);
   defsubr (&Swidget_put);
   defsubr (&Swidget_get);
   defsubr (&Swidget_apply);
