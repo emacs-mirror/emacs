@@ -1,3 +1,8 @@
+2001-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/ucs-tables.el (ucs-8859-8-alist): Add Hebrew
+	points and directional formatting control characters.
+
 2001-12-07  Dave Love  <fx@gnu.org>
 
 	* international/iso-transl.el: Insert Latin-1 characters, not
