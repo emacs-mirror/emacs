@@ -1,3 +1,8 @@
+2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/text-mode.el (text-mode): Use define-derived-mode.
+	(toggle-text-mode-auto-fill): Use derived-mode-p.
+
 2001-10-27  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Call fix-name-func for
@@ -45,7 +50,7 @@
 
 	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
 	Protect the /= test by checking that the args are non-nil.
-	(sh-font-lock-close-heredoc): check eof for being non-nil.
+	(sh-font-lock-close-heredoc): Check eof for being non-nil.
 
 2001-10-26  Tomas Abrahamsson  <tab@lysator.liu.se>
 
@@ -70,8 +75,7 @@
 	(ps-mode-print-buffer, ps-mode-print-region): Use `funcall'
 	instead of `eval'.
 	(ps-mode-print-region): Use `with-temp-buffer'.
-	(ps-run-start): Use of `mapconcat'.  Use `apply' instead of
-	`eval'.
+	(ps-run-start): Use of `mapconcat'.  Use `apply' instead of `eval'.
 	(numerous places): Add back-tick and tick around names in
 	docstrings, fix punctuation in docstrings, remove trailing spaces.
 
