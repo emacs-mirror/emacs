@@ -209,12 +209,12 @@ Sexp is inserted into the buffer at point (where the text cursor is)."
 			   (looking-at "[`'\"\\]\\|\\s(")))
       nil)
      (t
-      (insert-string " ")))
-    (insert-string moused-text)
+      (insert " ")))
+    (insert moused-text)
     (or (eolp)
 	(looking-at "\\s.\\|\\s)")
 	(and (looking-at "'") (looking-at "\\sw")) ;hack for text mode
-	(save-excursion (insert-string " ")))))
+	(save-excursion (insert " ")))))
 
 ;;; Utility functions:
 
