@@ -102,7 +102,7 @@ extern char *sys_errlist[];
 #endif /* DGUX */
 
 #include <sys/ioctl.h>
-#include "systerm.h"
+#include "systty.h"
 
 #ifdef BSD
 #ifdef BSD4_1
@@ -264,27 +264,31 @@ init_baud_rate ()
 		&sg.class, 12, 0, 0, 0, 0 );
       ospeed = sg.xmit_baud;
 #else /* not VMS */
-#ifdef HAVE_TERMIO
-      struct termio sg;
-
-      sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
-      tcgetattr (0, &sg);
-      ospeed = sg.c_cflag & CBAUD;
-#else /* neither VMS nor TERMIO */
 #ifdef HAVE_TERMIOS
       struct termios sg;
 
       sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
       tcgetattr (0, &sg);
       ospeed = sg.c_cflag & CBAUD;
-#else /* neither VMS nor TERMIO nor TERMIOS */
+#else /* neither VMS nor TERMIOS */
+#ifdef HAVE_TERMIO
+      struct termio sg;
+
+      sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
+#ifdef HAVE_TCATTR
+      tcgetattr (0, &sg);
+#else
+      ioctl (fd, TIOCGETP, &sg);
+#endif
+      ospeed = sg.c_cflag & CBAUD;
+#else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
       
       sg.sg_ospeed = B9600;
       ioctl (0, TIOCGETP, &sg);
       ospeed = sg.sg_ospeed;
-#endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
+#endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
     }
    
