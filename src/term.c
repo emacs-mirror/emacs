@@ -423,18 +423,6 @@ char *tparam ();
 extern char *tgetstr ();
 
 
-#ifdef WINDOWSNT
-
-/* We aren't X windows, but we aren't termcap either.  This makes me
-   uncertain as to what value to use for frame.output_method.  For
-   this file, we'll define FRAME_TERMCAP_P to be zero so that our
-   output hooks get called instead of the termcap functions.  Probably
-   the best long-term solution is to define an output_windows_nt...  */
-
-#undef FRAME_TERMCAP_P
-#define FRAME_TERMCAP_P(_f_) 0
-#endif /* WINDOWSNT */
-
 void
 ring_bell ()
 {
