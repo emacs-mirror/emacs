@@ -1,3 +1,8 @@
+2004-10-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_iso_2022): Fix handling of charset
+	annotation.
+
 2004-10-12  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): If coding_system is nil, use
