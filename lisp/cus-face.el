@@ -86,12 +86,12 @@ Control whether the text should be in inverse video.")
 		set-face-inverse-video-p
 		face-inverse-video-p)
     (:foreground (color :tag "Foreground"
-			:value "black"
+			:value ""
 			:help-echo "Set foreground color.")
 		 set-face-foreground
 		 face-foreground)
     (:background (color :tag "Background"
-			:value "white"
+			:value ""
 			:help-echo "Set background color.")
 		 set-face-background
 		 face-background)
