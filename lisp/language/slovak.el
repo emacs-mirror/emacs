@@ -38,6 +38,7 @@
 	    (input-method . "slovak")
 	    (unibyte-syntax . "latin-2")
 	    (unibyte-display . iso-8859-2)
+	    (tutorial . "TUTORIAL.sk")
 	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
 	    (documentation . "\
 This language environment is almost the same as Latin-2,
