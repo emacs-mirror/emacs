@@ -3144,7 +3144,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 #ifdef HAVE_X11
 	case KeyPress:
-	  f = x_window_to_frame (event.xkey.window);
+	  f = x_any_window_to_frame (event.xkey.window);
 
 	  if (f != 0)
 	    {
@@ -3337,7 +3337,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	     then a mere LeaveNotify is enough to free you.  */
 
 	case EnterNotify:
-	  f = x_window_to_frame (event.xcrossing.window);
+	  f = x_any_window_to_frame (event.xcrossing.window);
 
 	  if (event.xcrossing.focus)		/* Entered Window */
 	    {
@@ -3358,7 +3358,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case FocusIn:
-	  f = x_window_to_frame (event.xfocus.window);
+	  f = x_any_window_to_frame (event.xfocus.window);
 	  if (event.xfocus.detail != NotifyPointer) 
 	    x_focus_event_frame = f;
 	  if (f)
@@ -3370,7 +3370,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 
 	case LeaveNotify:
-	  f = x_window_to_frame (event.xcrossing.window);
+	  f = x_any_window_to_frame (event.xcrossing.window);
 
 	  if (event.xcrossing.focus)
 	    {
@@ -3392,7 +3392,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case FocusOut:
-	  f = x_window_to_frame (event.xfocus.window);
+	  f = x_any_window_to_frame (event.xfocus.window);
 	  if (event.xfocus.detail != NotifyPointer
 	      && f == x_focus_event_frame)
 	    x_focus_event_frame = 0;
