@@ -1,6 +1,6 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.5) $
+ * $HopeName: MMsrc!mpsliban.c(trunk.6) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * PURPOSE
@@ -88,4 +88,15 @@ void *mps_lib_memcpy(void *s1, const void *s2, size_t n)
 mps_clock_t mps_clock(void)
 {
   return (unsigned long)clock();
+}
+
+unsigned long mps_lib_telemetry_control(void)
+{
+  char *s;
+
+  s = getenv("MPS_TELEMETRY_CONTROL");
+  if(s != NULL)
+    return strtoul(s, (char **)NULL, 0);
+  else
+    return 0;
 }
