@@ -214,7 +214,7 @@ glyph_to_str_cpy (glyphs, str)
      insert (print_buffer, print_buffer_pos);		\
    if (free_print_buffer)				\
      {							\
-       free (print_buffer);				\
+       xfree (print_buffer);				\
        print_buffer = 0;				\
      }							\
    unbind_to (specpdl_count, Qnil);			\
