@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.20 2003/08/14 04:53:30 kfogel Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.21 2003/09/01 15:45:46 miles Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -477,7 +477,7 @@ although it has not been @samp{cvs remove}d.
 
 Many of the commands work on the current set of @dfn{selected} files
 which can be either the set of marked files (if any file is marked and
-marks are no ignored) or whichever file or directory the cursor is on.
+marks are not ignored) or whichever file or directory the cursor is on.
 
 If a directory is selected but the command cannot be applied to a
 directory, then it will be applied to the set of files under this
