@@ -47,6 +47,11 @@ static Lisp_Object preserved_fns;
 /* Marker used within call-interactively to refer to point.  */
 static Lisp_Object point_marker;
 
+/* Buffer for the prompt text used in Fcall_interactively.  */
+static char *callint_message;
+
+/* Allocated length of that buffer.  */
+static int callint_message_size;
 
 /* This comment supplies the doc string for interactive,
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -197,7 +202,6 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   register int i, j;
   int count, foo;
-  char prompt[100];
   char prompt1[100];
   char *tem1;
   int arg_from_tty = 0;
@@ -413,13 +417,26 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    ? (unsigned char *) ""
 	      : XSTRING (visargs[j])->data;
 
-      doprnt (prompt, sizeof prompt, prompt1, (char *)0,
-	      j - 1, argstrings + 1);
+      /* Process the format-string in prompt1, putting the output
+	 into callint_message.  Make callint_message bigger if necessary.
+	 We don't use a buffer on the stack, because the contents
+	 need to stay stable for a while.  */
+      while (1)
+	{
+	  int nchars = doprnt (callint_message, callint_message_size,
+			       prompt1, (char *)0,
+			       j - 1, argstrings + 1);
+	  if (nchars < callint_message_size)
+	    break;
+	  callint_message_size *= 2;
+	  callint_message
+	    = (char *) xrealloc (callint_message, callint_message_size);
+	}
 
       switch (*tem)
 	{
 	case 'a':		/* Symbol defined as a function */
-	  visargs[i] = Fcompleting_read (build_string (prompt),
+	  visargs[i] = Fcompleting_read (build_string (callint_message),
 					 Vobarray, Qfboundp, Qt, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
@@ -430,17 +447,17 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  args[i] = Fcurrent_buffer ();
 	  if (EQ (selected_window, minibuf_window))
 	    args[i] = Fother_buffer (args[i], Qnil);
-	  args[i] = Fread_buffer (build_string (prompt), args[i], Qt);
+	  args[i] = Fread_buffer (build_string (callint_message), args[i], Qt);
 	  break;
 
 	case 'B':		/* Name of buffer, possibly nonexistent */
-	  args[i] = Fread_buffer (build_string (prompt),
+	  args[i] = Fread_buffer (build_string (callint_message),
 				  Fother_buffer (Fcurrent_buffer (), Qnil),
 				  Qnil);
 	  break;
 
         case 'c':		/* Character */
-	  message1 (prompt);
+	  message1 (callint_message);
 	  args[i] = Fread_char ();
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
@@ -448,7 +465,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'C':		/* Command: symbol with interactive function */
-	  visargs[i] = Fcompleting_read (build_string (prompt),
+	  visargs[i] = Fcompleting_read (build_string (callint_message),
 					 Vobarray, Qcommandp, Qt, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
@@ -463,28 +480,30 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'D':		/* Directory name. */
-	  args[i] = Fread_file_name (build_string (prompt), Qnil,
+	  args[i] = Fread_file_name (build_string (callint_message), Qnil,
 				     current_buffer->directory, Qlambda, Qnil);
 	  break;
 
 	case 'f':		/* Existing file name. */
-	  args[i] = Fread_file_name (build_string (prompt),
+	  args[i] = Fread_file_name (build_string (callint_message),
 				     Qnil, Qnil, Qlambda, Qnil);
 	  break;
 
 	case 'F':		/* Possibly nonexistent file name. */
-	  args[i] = Fread_file_name (build_string (prompt),
+	  args[i] = Fread_file_name (build_string (callint_message),
 				     Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'k':		/* Key sequence. */
-	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qnil, Qnil);
+	  args[i] = Fread_key_sequence (build_string (callint_message),
+					Qnil, Qnil, Qnil);
 	  teml = args[i];
 	  visargs[i] = Fkey_description (teml);
 	  break;
 
 	case 'K':		/* Key sequence to be defined. */
-	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qt, Qnil);
+	  args[i] = Fread_key_sequence (build_string (callint_message),
+					Qnil, Qt, Qnil);
 	  teml = args[i];
 	  visargs[i] = Fkey_description (teml);
 	  break;
@@ -518,7 +537,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  do
-	    args[i] = Fread_minibuffer (build_string (prompt), Qnil);
+	    args[i] = Fread_minibuffer (build_string (callint_message), Qnil);
 	  while (! NUMBERP (args[i]));
 	  visargs[i] = last_minibuf_string;
 	  break;
@@ -549,11 +568,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 's':		/* String read via minibuffer.  */
-	  args[i] = Fread_string (build_string (prompt), Qnil, Qnil);
+	  args[i] = Fread_string (build_string (callint_message), Qnil, Qnil);
 	  break;
 
 	case 'S':		/* Any symbol.  */
-	  visargs[i] = Fread_string (build_string (prompt), Qnil, Qnil);
+	  visargs[i] = Fread_string (build_string (callint_message),
+				     Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
@@ -561,17 +581,17 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	case 'v':		/* Variable name: symbol that is
 				   user-variable-p. */
-	  args[i] = Fread_variable (build_string (prompt));
+	  args[i] = Fread_variable (build_string (callint_message));
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated */
-	  args[i] = Fread_minibuffer (build_string (prompt), Qnil);
+	  args[i] = Fread_minibuffer (build_string (callint_message), Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated */
-	  args[i] = Feval_minibuffer (build_string (prompt), Qnil);
+	  args[i] = Feval_minibuffer (build_string (callint_message), Qnil);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -686,6 +706,10 @@ syms_of_callint ()
 
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
+
+  callint_message_size = 100;
+  callint_message = (char *) xmalloc (callint_message_size);
+
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
