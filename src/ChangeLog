@@ -1,3 +1,9 @@
+2000-11-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (Fkill_buffer): Notice if the buffer to kill is the
+	sole visible buffer when we're currently in the mini-buffer, and
+	give up if so.
+	
 2000-11-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Save a copy of what is
