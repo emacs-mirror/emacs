@@ -646,6 +646,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 			  (if line
 			      "mouse-2: visit this file and line"
 			    "mouse-2: visit this file"))
+	     keymap compilation-button-map
 	     mouse-face highlight))))
 
 (defun compilation-mode-font-lock-keywords ()
@@ -998,7 +999,6 @@ exited abnormally with code %d\n"
 
 (defvar compilation-shell-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'compile-goto-error)
     (define-key map "\M-\C-m" 'compile-goto-error)
     (define-key map "\M-\C-n" 'compilation-next-error)
     (define-key map "\M-\C-p" 'compilation-previous-error)
@@ -1009,6 +1009,14 @@ exited abnormally with code %d\n"
       (cons "Errors" compilation-menu-map))
     map)
   "Keymap for `compilation-shell-minor-mode'.")
+
+(defvar compilation-button-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'compile-goto-error)
+    (define-key map "\C-m" 'compile-goto-error)
+    map)
+  "Keymap for compilation-message buttons.")
+(fset 'compilation-button-map compilation-button-map)
 
 (defvar compilation-mode-map
   (let ((map (make-sparse-keymap)))
