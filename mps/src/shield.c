@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.9) $
+ * $HopeName: MMsrc!shield.c(trunk.10) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.9) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.10) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -100,8 +100,10 @@ void (ShieldResume)(Arena arena)
 /* This ensures actual prot mode does not include mode */
 static void protLower(Arena arena, Seg seg, AccessSet mode)
 {
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
+  /* design.mps.trace.fix.noaver */
+  AVERT_CRITICAL(Arena, arena);
+  UNUSED(arena);
+  AVERT_CRITICAL(Seg, seg);
 
   if(SegPM(seg) & mode) {
     SegSetPM(seg, SegPM(seg) & ~mode);
@@ -147,8 +149,9 @@ static void flush(Arena arena, Size i)
  */
 static void cache(Arena arena, Seg seg)
 {
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
+  /* design.mps.trace.fix.noaver */
+  AVERT_CRITICAL(Arena, arena);
+  AVERT_CRITICAL(Seg, seg);
 
   if(SegSM(seg) == SegPM(seg)) return;
   if(SegDepth(seg) > 0) {
@@ -249,13 +252,14 @@ void (ShieldLeave)(Arena arena)
 void (ShieldExpose)(Arena arena, Seg seg)
 {
   AccessSet mode = AccessREAD | AccessWRITE;
-  AVERT(Arena, arena);
-  AVER(arena->insideShield);
+  /* design.mps.trace.fix.noaver */
+  AVERT_CRITICAL(Arena, arena);
+  AVER_CRITICAL(arena->insideShield);
 
   SegSetDepth(seg, SegDepth(seg) + 1);
   ++arena->shDepth;
-  AVER(arena->shDepth > 0);
-  AVER(SegDepth(seg) > 0);
+  AVER_CRITICAL(arena->shDepth > 0);
+  AVER_CRITICAL(SegDepth(seg) > 0);
   if(SegPM(seg) & mode)
     ShieldSuspend(arena);
 
@@ -265,12 +269,13 @@ void (ShieldExpose)(Arena arena, Seg seg)
 
 void (ShieldCover)(Arena arena, Seg seg)
 {
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-  AVER(SegPM(seg) == AccessSetEMPTY);
+  /* design.mps.trace.fix.noaver */
+  AVERT_CRITICAL(Arena, arena);
+  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(SegPM(seg) == AccessSetEMPTY);
 
-  AVER(arena->shDepth > 0);
-  AVER(SegDepth(seg) > 0);
+  AVER_CRITICAL(arena->shDepth > 0);
+  AVER_CRITICAL(SegDepth(seg) > 0);
   SegSetDepth(seg, SegDepth(seg) - 1);
   --arena->shDepth;
 
