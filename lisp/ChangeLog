@@ -1,3 +1,56 @@
+2002-10-01  Juanma Barranquero  <lektu@terra.es>
+
+	* eshell/esh-module.el (eshell-load-defgroups): Add "no-byte-compile: t"
+	to subdirs.el.
+
+	* makefile.w32-in (update-subdirs-CMD): Likewise.
+
+	* forms-d2.el:
+	* forms-pass.el:
+	* generic-x.el:
+	* patcomp.el:
+	* paths.el:
+	* version.el:
+	* international/mule-conf.el:
+	* language/czech.el:
+	* language/devanagari.el:
+	* language/english.el:
+	* language/georgian.el:
+	* language/greek.el:
+	* language/hebrew.el:
+	* language/japanese.el:
+	* language/korean.el:
+	* language/lao.el:
+	* language/misc-lang.el:
+	* language/romanian.el:
+	* language/slovak.el:
+	* language/thai.el:
+	* language/utf-8-lang.el:
+	* emacs-lisp/cl-specs.el:
+	* eshell/esh-maint.el:
+	* mail/blessmail.el:
+	* play/bruce.el:
+	* term/apollo.el:
+	* term/AT386.el:
+	* term/bobcat.el:
+	* term/internal.el:
+	* term/iris-ansi.el:
+	* term/keyswap.el:
+	* term/linux.el:
+	* term/lk201.el:
+	* term/news.el:
+	* term/vt102.el:
+	* term/vt125.el:
+	* term/vt200.el:
+	* term/vt201.el:
+	* term/vt220.el:
+	* term/vt240.el:
+	* term/vt300.el:
+	* term/vt320.el:
+	* term/vt400.el:
+	* term/vt420.el:
+	* term/wyse50.el: Add "no-byte-compile: t" in first line.
+
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-16.el: Don't provide utf-16.
@@ -382,11 +435,6 @@
 	iswitchb-common-match-string is a string, before printing common
 	completions.
 
-2002-09-24  Simon Josefsson  <jas@extundo.com>
-
-	* mail/mail-extr.el (mail-extr-ignore-single-names): Change default.
-	(mail-extract-address-components): Doc fix.
-
 2002-09-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* server.el: Use built-in network primitives.
@@ -428,6 +476,11 @@
 	(sort-listed-character-sets): Don't alter the region showing
 	indirectly supported charsets.
 
+2002-09-24  Simon Josefsson  <jas@extundo.com>
+
+	* mail/mail-extr.el (mail-extr-ignore-single-names): Change default.
+	(mail-extract-address-components): Doc fix.
+
 2002-09-24  Markus Rost  <rost@math.ohio-state.edu>
 
 	* simple.el (edit-and-eval-command):  Protect command-history.
@@ -463,6 +516,14 @@
 
 	* ielm.el (*1): Fix previous change.
 
+2002-09-23  Juanma Barranquero  <lektu@terra.es>
+
+	* net/tramp.el (tramp-unified-filenames): Autoload it.
+
+2002-09-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-init.el (ediff-get-next-window): Bug fix.
+
 2002-09-22  Oliver Scholz  <alkibiades@gmx.de>
 
 	* play/gamegrid.el (gamegrid-face): New variable to emulate a
@@ -493,14 +554,6 @@
 	(gamegrid-init-buffer): If `gamegrid-display-mode' is 'glyph, put
 	the face held by `gamegrid-face' in an overlay over the whole
 	buffer to emulate a buffer-local default-face.
-
-2002-09-23  Juanma Barranquero  <lektu@terra.es>
-
-	* net/tramp.el (tramp-unified-filenames): Autoload it.
-
-2002-09-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-
-	* ediff-init.el (ediff-get-next-window): Bug fix.
 
 2002-09-22  Richard M. Stallman  <rms@gnu.org>
 

@@ -1,3 +1,7 @@
+2002-10-01  Juanma Barranquero  <lektu@terra.es>
+
+	* update-subdirs: Add "no-byte-compile: t" to subdirs.el.
+
 2002-09-19  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in: Fix the LessTif-directory-finder for real.
