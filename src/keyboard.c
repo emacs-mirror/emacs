@@ -603,6 +603,17 @@ int flow_control;
 #ifdef HAVE_WINDOW_SYSTEM
 #define POLL_FOR_INPUT
 #endif
+
+/* After a command is executed, if point is moved into a region that
+   has specific properties (e.g. composition, display), we adjust
+   point to the boundary of the region.  But, if a command sets this
+   valiable to non-nil, we suppress this point adjustment.  This
+   variable is set to nil before reading a command.  */
+Lisp_Object Vdisable_point_adjustment;
+
+/* If non-nil, always disable point adjustment.  */
+Lisp_Object Vglobal_disable_point_adjustment;
+
 
 /* Global variable declarations.  */
 
@@ -1182,6 +1193,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 Lisp_Object Fcommand_execute ();
 static int read_key_sequence ();
 void safe_run_hooks ();
+static void adjust_point_for_property ();
 
 Lisp_Object
 command_loop_1 ()
@@ -1368,6 +1380,12 @@ command_loop_1 ()
       prev_modiff = MODIFF;
       last_point_position = PT;
       XSETBUFFER (last_point_position_buffer, prev_buffer);
+
+      /* By default, we adjust point to a boundary of a region that
+         has such a property that should be treated intangible
+         (e.g. composition, display).  But, some commands will set
+         this variable differently.  */
+      Vdisable_point_adjustment = Qnil;
 
       /* Execute the command.  */
 
@@ -1571,6 +1589,13 @@ command_loop_1 ()
 	}
 
     finalize:
+
+      if (current_buffer == prev_buffer
+	  && last_point_position != PT
+	  && NILP (Vdisable_point_adjustment)
+	  && NILP (Vglobal_disable_point_adjustment))
+	adjust_point_for_property (last_point_position);
+
       /* Install chars successfully executed in kbd macro.  */
 
       if (!NILP (current_kboard->defining_kbd_macro)
@@ -1581,6 +1606,53 @@ command_loop_1 ()
       if (!was_locked)
 	any_kboard_state ();
 #endif
+    }
+}
+
+extern Lisp_Object Qcomposition, Qdisplay;
+
+/* Adjust point to a boundary of a region that has such a property
+   that should be treated intangible.  For the moment, we check
+   `composition' and `display' property.  LAST_PT is the last position
+   of point.  */
+
+static void
+adjust_point_for_property (last_pt)
+     int last_pt;
+{
+  int start, end;
+  Lisp_Object val;
+  int check_composition = 1, check_display = 1;
+
+  while (check_composition || check_display)
+    {
+      if (check_composition
+	  && PT > BEGV && PT < ZV
+	  && get_property_and_range (PT, Qcomposition, &val, &start, &end, Qnil)
+	  && COMPOSITION_VALID_P (start, end, val)
+	  && start < PT && end > PT
+	  && (last_pt <= start || last_pt >= end))
+	{
+	  if (PT < last_pt)
+	    SET_PT (start);
+	  else
+	    SET_PT (end);
+	  check_display = 1;
+	}
+      check_composition = 0;
+      if (check_display
+	  && PT > BEGV && PT < ZV
+	  && get_property_and_range (PT, Qdisplay, &val, &start, &end, Qnil)
+	  && start < PT && end > PT
+	  && (last_pt <= start || last_pt >= end))
+	{
+	  if (PT < last_pt)
+	    SET_PT (start);
+	  else
+	    SET_PT (end);
+	  check_composition = 1;
+	}
+      check_display = 0;
     }
 }
 
@@ -10085,6 +10157,27 @@ before running the input method.  It is nil if there was no message.");
     "If non-nil, the function that implements the display of help.\n\
 It's called with one argument, the help string to display.");
   Vshow_help_function = Qnil;
+
+  DEFVAR_LISP ("disable-point-adjustment", &Vdisable_point_adjustment,
+    "If non-nil, suppress point adjustment after executing a command.\n\
+\n\
+After a command is executed, if point is moved into a region that has\n\
+special properties (e.g. composition, display), we adjust point to\n\
+the boundary of the region.  But, several special commands sets this\n\
+variable to non-nil, then we suppress the point adjustment.\n\
+\n\
+This variable is set to nil before reading a command, and is checked\n\
+just after executing the command");
+  Vdisable_point_adjustment = Qnil;
+
+  DEFVAR_LISP ("global-disable-point-adjustment",
+	       &Vglobal_disable_point_adjustment,
+    "*If non-nil, always suppress point adjustment.\n\
+\n\
+The default value is nil, in which case, point adjustment are\n\
+suppressed only after special commands that set\n\
+`disable-point-adjustment' (which see) to non-nil.");
+  Vglobal_disable_point_adjustment = Qnil;
 }
 
 void
