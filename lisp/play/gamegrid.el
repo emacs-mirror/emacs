@@ -406,25 +406,35 @@ static char *noname[] = {
 
 (defun gamegrid-add-score (file score)
   "Add the current score to the high score file."
+  (let ((result nil)
+	(errbuf (generate-new-buffer " *update-game-score loss*")))
+    (let ((default-directory "/"))
+      (apply
+       'call-process
+       (append
+	(list
+	 (expand-file-name "update-game-score" exec-directory)
+	 nil errbuf nil
+	 "-m" (int-to-string gamegrid-score-file-length) file
+	 (int-to-string score)
+	 (concat
+	  (user-full-name)
+	  " <"
+	  (cond ((fboundp 'user-mail-address)
+		 (user-mail-address))
+		((boundp 'user-mail-address)
+		 user-mail-address)
+		(t ""))
+	  ">  "
+	  (current-time-string)))))
+      (if (buffer-modified-p errbuf)
+	  (progn
+	    (display-buffer errbuf)
+	    (error "Failed to update game score file"))
+	(kill-buffer errbuf))))
   (save-excursion
-  (find-file-other-window file)
-  (setq buffer-read-only nil)
-  (goto-char (point-max))
-  (insert (format "%05d\t%s\t%s <%s>\n"
-		  score
-		  (current-time-string)
-		  (user-full-name)
-		  (cond ((fboundp 'user-mail-address)
-			 (user-mail-address))
-			((boundp 'user-mail-address)
-			 user-mail-address)
-			(t ""))))
-  (sort-numeric-fields 1 (point-min) (point-max))
-    (reverse-region (point-min) (point-max))
-  (goto-line (1+ gamegrid-score-file-length))
-  (delete-region (point) (point-max))
-  (setq buffer-read-only t)
-    (save-buffer)))
+    (find-file-read-only-other-window (expand-file-name file game-score-directory))))
+	
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
