@@ -1016,6 +1016,7 @@ Repeating \\[universal-argument] without digits or minus sign
   (interactive "P")
   (setq prefix-arg arg)
   (setq unread-command-events (list last-input-event))
+  (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
 
 (defun forward-to-indentation (arg)
