@@ -1,3 +1,9 @@
+2000-05-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (fs_load_font): By default, use 0x00..0x7f for ASCII.
+	Check Vfont_encoding_alist against the full name of the opened
+	font.
+
 2000-04-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (make_cursor_line_fully_visible): Handle case of rows
