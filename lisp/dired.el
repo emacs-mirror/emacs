@@ -2632,9 +2632,45 @@ With a prefix argument you can edit the current listing switches instead."
   ;; `dired-sort-by-date-regexp' or `dired-sort-by-name-regexp' set the
   ;; minor mode accordingly, others appear literally in the mode line.
   ;; With optional second arg NO-REVERT, don't refresh the listing afterwards.
+  (dired-sort-R-check switches)
   (setq dired-actual-switches switches)
   (if (eq major-mode 'dired-mode) (dired-sort-set-modeline))
   (or no-revert (revert-buffer)))
+
+(make-variable-buffer-local
+ (defvar dired-subdir-alist-pre-R nil
+   "Value of `dired-subdir-alist' before -R switch added."))
+
+(defun dired-sort-R-check (switches)
+  "Additional processing of -R in ls option string SWITCHES.
+Saves `dired-subdir-alist' when R is set and restores saved value
+minus any directories explicitly deleted when R is cleared.
+To be called first in body of `dired-sort-other', etc."
+  (cond
+   ((and (string-match "R" switches)
+	 (not (string-match "R" dired-actual-switches)))
+    ;; Adding -R to ls switches -- save `dired-subdir-alist':
+    (setq dired-subdir-alist-pre-R dired-subdir-alist))
+   ((and (string-match "R" dired-actual-switches)
+	 (not (string-match "R" switches)))
+    ;; Deleting -R from ls switches -- revert to pre-R subdirs
+    ;; that are still present:
+    (setq dired-subdir-alist
+	  (if dired-subdir-alist-pre-R
+	      (let (subdirs)
+		(while dired-subdir-alist-pre-R
+		  (if (assoc (caar dired-subdir-alist-pre-R)
+			     dired-subdir-alist)
+		      ;; subdir still present...
+		      (setq subdirs
+			    (cons (car dired-subdir-alist-pre-R)
+				  subdirs)))
+		  (setq dired-subdir-alist-pre-R
+			(cdr dired-subdir-alist-pre-R)))
+		(reverse subdirs))
+	    ;; No pre-R subdir alist, so revert to main directory
+	    ;; listing:
+	    (list (car (reverse dired-subdir-alist))))))))
 
 ;; To make this file smaller, the less common commands
 ;; go in a separate file.  But autoload them here
