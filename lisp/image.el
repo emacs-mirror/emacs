@@ -34,7 +34,8 @@
   '(("\\`/\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]" . pbm)
     ("\\`GIF8" . gif)
-    ("JFIF" . jpeg)
+    ;; The following is from JPEG File Interchange Format, Version 1.02.
+    ("\\`\xff\xd8\xff\xe0..JFIF\0" . jpeg)
     ("\\`\211PNG\r\n" . png)
     ("\\`#define" . xbm)
     ("\\`\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
