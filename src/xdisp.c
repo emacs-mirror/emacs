@@ -2993,6 +2993,16 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   next_boundary = pos;
   p1prev = p1;
   prevpos = pos;
+
+  /* If the window is hscrolled and point is in the invisible part of the
+     current line beyond the left margin we can record the cursor location
+     right away.  */
+  if (hscroll && start <= PT && PT < pos && cursor_vpos < 0)
+    {
+      cursor_vpos = vpos;
+      cursor_hpos = p1 - leftmargin;
+    }
+
   while (p1 < endp)
     {
       if (pos >= pause)
