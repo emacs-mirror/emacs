@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.12"
+(defconst tramp-version "2.0.13"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -731,12 +731,26 @@ The regexp should match at end of buffer."
   :type 'regexp)
 
 (defcustom tramp-yesno-prompt-regexp
-  "Are you sure you want to continue connecting (yes/no)\\? *"
-  "Regular expression matching all queries which need to be confirmed.
+  (concat
+   (regexp-opt '("Are you sure you want to continue connecting (yes/no)?") t)
+   "\\s-*")
+  "Regular expression matching all yes/no queries which need to be confirmed.
 The confirmation should be done with yes or no.
-The regexp should match at end of buffer."
+The regexp should match at end of buffer.
+See also `tramp-yn-prompt-regexp'."
   :group 'tramp
   :type 'regexp)
+
+(defcustom tramp-yn-prompt-regexp
+  (concat (regexp-opt '("Store key in cache? (y/n)") t)
+	  "\\s-*")
+  "Regular expression matching all y/n queries which need to be confirmed.
+The confirmation should be done with y or n.
+The regexp should match at end of buffer.
+See also `tramp-yesno-prompt-regexp'."
+  :group 'tramp
+  :type 'regexp)
+  
 
 (defcustom tramp-temp-name-prefix "tramp."
   "*Prefix to use for temporary files.
@@ -1057,7 +1071,8 @@ but it might be slow on large directories."
     (tramp-login-prompt-regexp tramp-action-login)
     (shell-prompt-pattern tramp-action-succeed)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
-    (tramp-yesno-prompt-regexp tramp-action-yesno))
+    (tramp-yesno-prompt-regexp tramp-action-yesno)
+    (tramp-yn-prompt-regexp tramp-action-yn))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
 Each item looks like (PATTERN ACTION).
@@ -1383,6 +1398,13 @@ This is used to map a mode number to a permission string.")
   "Internal Tramp variable recording the time when the last cmd was sent.
 This variable is buffer-local in every buffer.")
 (make-variable-buffer-local 'tramp-last-cmd-time)
+
+(defvar tramp-feature-write-region-fix
+  (let ((file-coding-system-alist '(("test" emacs-mule))))
+    (find-operation-coding-system 'write-region 0 0 "" nil "test"))
+  "Internal variable to say if `write-region' chooses the right coding.
+Older versions of Emacs chose the coding system for `write-region' based
+on the FILENAME argument, even if VISIT was a string.")
 
 ;; New handlers should be added here.  The following operations can be
 ;; handled using the normal primitives: file-name-as-directory,
@@ -3059,7 +3081,7 @@ This will break if COMMAND prints a newline, followed by the value of
 		  multi-method method user host
 		  6 "Sending end of data token...")
 		 (tramp-send-command
-		  multi-method method user host "EOF")
+		  multi-method method user host "EOF" nil t)
 		 (tramp-message-for-buffer
 		  multi-method method user host 6
 		  "Waiting for remote host to process data...")
@@ -3627,7 +3649,9 @@ Returns nil if none was found, else the command is returned."
   (throw 'tramp-action 'permission-denied))
 
 (defun tramp-action-yesno (p multi-method method user host)
-  "Ask the user if he is sure."
+  "Ask the user for confirmation using `yes-or-no-p'.
+Send \"yes\" to remote process on confirmation, abort otherwise.
+See also `tramp-action-yn'."
   (save-window-excursion
     (pop-to-buffer (tramp-get-buffer multi-method method user host))
     (unless (yes-or-no-p (match-string 0))
@@ -3636,6 +3660,18 @@ Returns nil if none was found, else the command is returned."
       (throw 'tramp-action 'permission-denied))
     (process-send-string p (concat "yes" tramp-rsh-end-of-line))
     (erase-buffer)))
+
+(defun tramp-action-yn (p multi-method method user host)
+  "Ask the user for confirmation using `y-or-n-p'.
+Send \"y\" to remote process on confirmation, abort otherwise.
+See also `tramp-action-yesno'."
+  (save-window-excursion
+    (pop-to-buffer (tramp-get-buffer multi-method method user host))
+    (unless (y-or-n-p (match-string 0))
+      (kill-process p)
+      (erase-buffer)
+      (throw 'tramp-action 'permission-denied))
+    (process-send-string p (concat "y" tramp-rsh-end-of-line))))
 
 ;; The following functions are specifically for multi connections.
 
@@ -4738,7 +4774,7 @@ connection if a previous connection has died for some reason."
     (save-excursion
       (set-buffer (tramp-get-buffer multi-method method user host))
       (when (and tramp-last-cmd-time
-		 (> (tramp-time-diff tramp-last-cmd-time (current-time)) 60))
+		 (> (tramp-time-diff (current-time) tramp-last-cmd-time) 60))
 	(tramp-send-command
 	 multi-method method user host "echo are you awake" nil t)
 	(unless (tramp-wait-for-output 10)
@@ -5661,6 +5697,7 @@ Only works for Bourne-like shells."
        tramp-password-prompt-regexp
        tramp-wrong-passwd-regexp
        tramp-yesno-prompt-regexp
+       tramp-yn-prompt-regexp
        tramp-temp-name-prefix
        tramp-file-name-structure
        tramp-file-name-regexp
@@ -5811,6 +5848,7 @@ report.
 ;;   there is one.  But since ange-ftp, for instance, does not know
 ;;   about Tramp, it does not do the right thing if the target file
 ;;   name is a Tramp name.
+;; * Username and hostname completion.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

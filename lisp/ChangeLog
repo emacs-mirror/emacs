@@ -1,3 +1,15 @@
+2002-08-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* tramp.el: Version 2.0.13 released.
+	(tramp-handle-write-region): Don't check to see if remote end is
+	awake after sending data to remote host: we want to send "EOF" not
+	"echo are you awake"...
+	(tramp-maybe-open-connection): Swap args for tramp-time-diff.
+	(tramp-yn-prompt-regexp): New variable.
+	(tramp-action-yn): New function, using it.
+	(tramp-feature-write-region-fix): New internal variable.  Not yet
+	used.  Should be used in `tramp-handle-write-region'.
+
 2002-08-21  Kim F. Storm  <storm@cua.dk>
 
 	* bindings.el (mode-line-format): Moved global-mode-string last.
