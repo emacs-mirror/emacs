@@ -314,13 +314,13 @@ command extensions.")
   "Alist of (NAME . MARK), marks are local to each buffer.")
 
 (defvar vi-scroll-amount (/ (window-height) 2)
-  "Default amount of lines for scrolling (used by "^D"/"^U").")
+  "Default amount of lines for scrolling (used by \"^D\"/\"^U\").")
 
 (defvar vi-shift-width 4
-  "Shift amount for "<"/">" operators.")
+  "Shift amount for \"<\"/\">\" operators.")
 
 (defvar vi-ins-point nil		; integer
-  "Last insertion point.  Should use 'mark' instead.")
+  "Last insertion point.  Should use `mark' instead.")
 
 (defvar vi-ins-length nil		; integer
   "Length of last insertion.")
@@ -339,13 +339,13 @@ command extensions.")
 
 (defvar vi-last-change-command nil	; cons cell
   "Save commands for redoing last changes.  Each command is in (FUNC . ARGS)
-form that is ready to be 'apply'ed.")
+form that is ready to be `apply'ed.")
 
 (defvar vi-last-shell-command nil	; last shell op command line
   "Save last shell command given for \"!\" operator.")
 
 (defvar vi-insert-state nil             ; boolean
-  "T if it is in insert state.")
+  "Non-nil if it is in insert state.")
 
 ; in "loaddefs.el"
 ;(defvar search-last-string "" 
