@@ -61,7 +61,7 @@
 calendar and Coordinated Universal (Greenwich) Time.  Default is for Beijing.
 This is an expression in `year' since it changed at 1928-01-01 00:00:00 from
 UT+7:45:40 to UT+8."
-  :type 'number
+  :type 'sexp
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-location-name "Beijing"
@@ -82,8 +82,10 @@ for Chinese calendar.  Default is for no daylight savings time."
   '(if (< year 1928)
        "PMT"
      "CST")
-  "*Abbreviated name of standard time zone used for Chinese calendar."
-  :type 'string
+  "*Abbreviated name of standard time zone used for Chinese calendar.
+This is an expression depending on `year' because it changed
+at 1928-01-01 00:00:00 from `PMT' to `CST'."
+  :type 'sexp
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-time-zone-name "CDT"
