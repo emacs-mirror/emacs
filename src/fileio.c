@@ -2436,11 +2436,11 @@ Optional fourth argument APPEND if non-nil means\n\
 Optional fifth argument VISIT if t means\n\
   set the last-save-file-modtime of buffer to this file's modtime\n\
   and mark buffer not modified.\n\
-If VISIT is neither t nor nil, it means do not print\n\
-  the \"Wrote file\" message.\n\
 If VISIT is a string, it is a second file name;\n\
   the output goes to FILENAME, but the buffer is marked as visiting VISIT.\n\
   VISIT is also the file name to lock and unlock for clash detection.\n\
+If VISIT is neither t nor nil nor a string,\n\
+  that means do not print the \"Wrote file\" message.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
   (start, end, filename, append, visit)
