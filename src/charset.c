@@ -115,7 +115,7 @@ void
 invalid_character (c)
      int c;
 {
-  error ("Invalid character: %o, %d, 0x%x", c);
+  error ("Invalid character: 0%o, %d, 0x%x", c, c, c);
 }
 
 
