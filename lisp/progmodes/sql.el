@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1998, 1999  Free Software Foundation, Inc.
 
-;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.4.0
+;; Author: Alex Schroeder <alex@gnu.org>
+;; Maintainer: Alex Schroeder <alex@gnu.org>
+;; Version: 1.4.1
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -26,8 +26,10 @@
 
 ;;; Commentary:
 
-;; Please send me bug reports and bug fixes so that I can merge them
-;; into the master source.
+;; Please send bug reports and bug fixes to the mailing list at
+;; sql.el@gnu.org so that I can merge them into the master source.  If
+;; you want to subscribe to the mailing list, send mail to
+;; sql.el-request@gnu.org with 'subscribe' in the subject line.
 
 ;; You can get the latest version of this file from my homepage
 ;; <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>.
@@ -173,10 +175,13 @@ the input ring is initialized from a history file.
 
 This variable used to locally set `comint-input-ring-separator' when
 reading or writing the history file.  `comint-input-ring-separator' is
-new in Emacs 20.4; if your Emacs does not have it, setting
+not yet part of Emacs; if your Emacs does not have it, setting
 `sql-input-ring-separator' will have no effect.  In that case multiline
 commands will be split into several commands when the input history is
-read, as if you had set `sql-input-ring-separator' to \"\\n\"."
+read, as if you had set `sql-input-ring-separator' to \"\\n\".
+
+The source code contains a link to a homepage that might have a patch
+for comint.el to download."
   :type 'string
   :group 'SQL)
 
@@ -411,7 +416,9 @@ Used by `sql-rename-buffer'.")
     (modify-syntax-entry ?/ ". 14" table)
     (modify-syntax-entry ?* ". 23" table)
     ;; double-dash starts comment
-    (modify-syntax-entry ?- ". 12b" table)
+    (if (string-match "XEmacs\\|Lucid" emacs-version)
+	(modify-syntax-entry ?- ". 56" table)
+      (modify-syntax-entry ?- ". 12b" table))
     ;; newline and formfeed end coments
     (modify-syntax-entry ?\n "> b" table)
     (modify-syntax-entry ?\f "> b" table)
@@ -710,7 +717,7 @@ If you call it from anywhere else, it sets the global copy of
     (if new-buffer
 	(progn 
 	  (setq sql-buffer new-buffer)
-	  (run-hooks sql-set-sqli-hook)))))
+	  (run-hooks 'sql-set-sqli-hook)))))
 
 (defun sql-show-sqli-buffer ()
   "Show the name of current SQLi buffer.
@@ -931,9 +938,7 @@ run.
 
 Variable `sql-input-ring-file-name' controls the initialisation of the
 input ring history.  `comint-input-ring-file-name' is temporarily bound
-to `sql-input-ring-file-name' and `comint-input-ring-separator' is
-temporarily bound to `sql-input-ring-separator' when reading the input
-history.
+to `sql-input-ring-file-name' when reading the input history.
 
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and
@@ -1001,8 +1006,7 @@ you entered, right above the output it created.
 Writes the input history to a history file using
 `comint-write-input-ring' and inserts a short message in the SQL buffer.
 `comint-comint-input-ring-file-name' is temporarily bound to
-`sql-input-ring-file-name' and `comint-input-ring-separator' is
-temporarily bound to `sql-input-ring-separator'.
+`sql-input-ring-file-name'.
 
 This function is a sentinel watching the SQL interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
@@ -1359,7 +1363,7 @@ If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-postgres-program'.  Login uses
-the variable `sql-database' as default, if set.
+the variables `sql-database' and `sql-server' as default, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -1380,12 +1384,16 @@ Try to set `comint-output-filter-functions' like this:
   (interactive)
   (if (comint-check-proc "*SQL*")
       (pop-to-buffer "*SQL*")
-    (sql-get-login 'database)
+    (sql-get-login 'database 'server)
     (message "Login...")
     ;; username and password are ignored.
-    (if (string= "" sql-database)
-	(set-buffer (make-comint "SQL" sql-postgres-program nil))
-      (set-buffer (make-comint "SQL" sql-postgres-program nil sql-database)))
+    (let ((params))
+      (if (not (string= "" sql-database))
+	  (setq params (append (list sql-database) params)))
+      (if (not (string= "" sql-server))
+	  (setq params (append (list "-h" sql-server) params)))
+      (set-buffer (apply 'make-comint "SQL" sql-postgres-program 
+			 nil params)))
     (setq sql-prompt-regexp "^.*> *")
     (setq sql-prompt-length 5)
     ;; This is a lousy hack to prevent psql from truncating it's output
