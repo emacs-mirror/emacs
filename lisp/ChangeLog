@@ -1,5 +1,7 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (eval-expression-print-level): Fix last change.
+
 	* bindings.el (mode-line-coding-system-map): New variable.
 	(mode-line-mule-info): Give the "%Z" a local-map keymap.
 
