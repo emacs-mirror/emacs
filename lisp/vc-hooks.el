@@ -154,8 +154,8 @@ visiting FILE."
 	 (require 'vc)
 	 (not (string-equal (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
-    ;; force update of mode line
-    (set-buffer-modified-p (buffer-modified-p))
+    (force-mode-line-update)
+    ;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
     vc-type))
 
 (defun vc-rcs-status (file)
