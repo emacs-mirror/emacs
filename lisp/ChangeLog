@@ -1,3 +1,8 @@
+2001-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/ada-mode.el (ada-add-extensions): Quote regexp special
+	characters and append anchor to pattern added to auto-mode-alist.
+
 2001-11-15  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el: Documentation fixes.
