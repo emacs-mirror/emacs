@@ -462,7 +462,7 @@ as well as widgets, buttons, overlays, and text properties."
 			    (char-to-string char))
 			  char char char))))
 
-      (if (or (< (char-after) 256)
+      (if (or (< char 256)
 	      (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
 	      (get-char-property pos 'untranslated-utf-8))
 	  (setq unicode (or (get-char-property pos 'untranslated-utf-8)
@@ -474,7 +474,7 @@ as well as widgets, buttons, overlays, and text properties."
 					       (char-to-string char))
 			char char char
 			(if unicode
-			    (format ", U+%04X" (encode-char char 'ucs))
+			    (format ", U+%04X" unicode)
 			  "")))
 	      ("charset"
 	       ,(symbol-name charset)
