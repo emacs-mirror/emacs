@@ -1,3 +1,16 @@
+2005-03-10  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-entry-code): Delete it.
+	(implement-debug-on-entry): New function to replace
+	debug-entry-code.
+	(debug-on-entry-1): Use implement-debug-on-entry.  Delete the
+	second argument as the 2005-03-07 change makes it obsolete.
+	(debug-on-entry, cancel-debug-on-entry): Update call to
+	debug-on-entry-1.
+	(debug, debugger-setup-buffer): Comment update.
+	(debugger-frame-number): Update to work with
+	implement-debug-on-entry.
+
 2005-03-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (math-ms-args): Declare it.
@@ -19,7 +32,7 @@
 	(gdb-tooltip-print): Remove newline for tooltip-use-echo-area.
 
 	* bindings.el (mode-line-mode-menu): Add tooltip-mode to mode-line.
-	
+
 2005-03-09  Kim F. Storm  <storm@cua.dk>
 
 	* play/animate.el (animate-place-char): Use forward-line instead
@@ -40,7 +53,7 @@
 	set-case-syntax-set-multibyte is nil.
 
 	* textmodes/ispell.el (ispell-insert-word): New function.
-	(ispell-word): Use ispell-insert-word to isnert a new word.
+	(ispell-word): Use ispell-insert-word to insert a new word.
 	(ispell-process-line): Likewise
 	(ispell-complete-word): Likewise.
 
