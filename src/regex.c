@@ -3036,7 +3036,7 @@ re_compile_fastmap (bufp)
 	case at_dot:
 	case after_dot:
           continue;
-#endif /* not emacs */
+#endif /* emacs */
 
 
         case no_op:
@@ -3274,6 +3274,17 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
       else
 	range = 1;
     }
+
+#ifdef emacs
+  /* In a forward search for something that starts with \=.
+     don't keep searching past point.  */
+  if (bufp->used > 0 && (re_opcode_t) bufp->buffer[0] == at_dot && range > 0)
+    {
+      range = PT - startpos;
+      if (range <= 0)
+	return -1;
+    }
+#endif /* emacs */
 
   /* Update the fastmap now if not correct already.  */
   if (fastmap && !bufp->fastmap_accurate)
@@ -4678,13 +4689,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
           if (PTR_CHAR_POS ((unsigned char *) d) <= point)
   	    goto fail;
   	  break;
-#if 0 /* not emacs19 */
-	case at_dot:
-          DEBUG_PRINT1 ("EXECUTING at_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) + 1 != point)
-	    goto fail;
-	  break;
-#endif /* not emacs19 */
 
 	case syntaxspec:
           DEBUG_PRINT2 ("EXECUTING syntaxspec %d.\n", mcnt);
