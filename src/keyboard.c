@@ -3726,7 +3726,8 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
 
 DEFUN ("open-dribble-file", Fopen_dribble_file, Sopen_dribble_file, 1, 1,
   "FOpen dribble file: ",
-  "Start writing all keyboard characters to FILE.")
+  "Start writing all keyboard characters to a dribble file called FILE.\n\
+If FILE is nil, close any open dribble file.")
   (file)
      Lisp_Object file;
 {
