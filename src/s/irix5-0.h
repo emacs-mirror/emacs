@@ -92,3 +92,6 @@ char *_getpty();
 
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000
+
+/* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
+#define PREFER_VSUSP

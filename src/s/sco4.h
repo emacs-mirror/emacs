@@ -123,3 +123,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define bcopy(b1,b2,len) memmove (b2, b1, len)
 #define bzero(b,len) memset (b, 0, len)
 #define bcmp(b1,b2,len) memcmp (b1, b2, len)
+
+/* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
+#define PREFER_VSUSP
