@@ -1626,10 +1626,12 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       /* The mouse moved into a different menu bar item. 
 	 We should bring up that item's menu instead.
 	 First pop down this menu.  */
+#if 0 /* xlwmenu.c now does this.  */
       XtUngrabPointer ((Widget)
 		       ((XlwMenuWidget)
 			((CompositeWidget)menu)->composite.children[0]),
 		       CurrentTime);
+#endif
       lw_destroy_all_widgets (menu_id); 
       goto pop_down;
     }
@@ -1702,10 +1704,12 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	      /* The mouse moved into a different menu bar item. 
 		 We should bring up that item's menu instead.
 		 First pop down this menu.  */
+#if 0 /* xlwmenu.c now does this.  */
 	      XtUngrabPointer ((Widget)
 			       ((XlwMenuWidget)
 				((CompositeWidget)menu)->composite.children[0]),
 			       event.xbutton.time);
+#endif
 	      lw_destroy_all_widgets (menu_id); 
 
 	      /* Put back an event that will bring up the other item's menu.  */
