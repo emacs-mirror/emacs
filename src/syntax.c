@@ -565,8 +565,8 @@ and nil is returned.")
 
 DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
   "Move forward across up to N comments.  If N is negative, move backward.\n\
-Set point to the far end of the last comment found.\n\
 Stop scanning if we find something other than a comment or whitespace.\n\
+Set point to where scanning stops.\n\
 If N comments are found as expected, with nothing except whitespace\n\
 between them, return t; otherwise return nil.")
   (count)
@@ -587,11 +587,9 @@ between them, return t; otherwise return nil.")
   QUIT;
 
   from = PT;
-  found = from;
 
   while (count1 > 0)
     {
-      found = from;
       stop = ZV;
       while (from < stop)
 	{
@@ -619,7 +617,7 @@ between them, return t; otherwise return nil.")
 		  if (from == stop)
 		    {
 		      immediate_quit = 0;
-		      SET_PT (found);
+		      SET_PT (from);
 		      return Qnil;
 		    }
 		  c = FETCH_CHAR (from);
@@ -641,10 +639,10 @@ between them, return t; otherwise return nil.")
 	      /* We have skipped one comment.  */
 	      break;
 	    }
-	  else if (code != Swhitespace)
+	  else if (code != Swhitespace && code != Sendcomment)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (found);
+	      SET_PT (from - 1);
 	      return Qnil;
 	    }
 	}
@@ -655,8 +653,6 @@ between them, return t; otherwise return nil.")
 
   while (count1 < 0)
     {
-      found = from;
-
       stop = BEGV;
       while (from > stop)
 	{
@@ -696,7 +692,7 @@ between them, return t; otherwise return nil.")
 		      if (from == stop)
 			{
 			  immediate_quit = 0;
-			  SET_PT (found);
+			  SET_PT (from);
 			  return Qnil;
 			}
 		      from--;
@@ -817,10 +813,10 @@ between them, return t; otherwise return nil.")
 		  }
 	      }
 	    }
-	  else if (code != Swhitespace || quoted)
+	  else if ((code != Swhitespace && code != Scomment) || quoted)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (found);
+	      SET_PT (from + 1);
 	      return Qnil;
 	    }
 	}
@@ -1321,13 +1317,16 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
 /* Parse forward from FROM to END,
    assuming that FROM has state OLDSTATE (nil means FROM is start of function),
    and return a description of the state of the parse at END.
-   If STOPBEFORE is nonzero, stop at the start of an atom.  */
+   If STOPBEFORE is nonzero, stop at the start of an atom.
+   If COMMENTSTOP is nonzero, stop at the start of a comment.  */
 
-scan_sexps_forward (stateptr, from, end, targetdepth, stopbefore, oldstate)
+scan_sexps_forward (stateptr, from, end, targetdepth,
+		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
      register int from;
      int end, targetdepth, stopbefore;
      Lisp_Object oldstate;
+     int commentstop;
 {
   struct lisp_parse_state state;
 
@@ -1467,6 +1466,8 @@ scan_sexps_forward (stateptr, from, end, targetdepth, stopbefore, oldstate)
 	  state.incomment = 1;
 	  state.comstart = from;
 	startincomment:
+	  if (commentstop)
+	    goto done;
 	  while (1)
 	    {
 	      if (from == end) goto done;
@@ -1568,7 +1569,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth, stopbefore, oldstate)
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("parse-partial-sexp", Ffoo, Sfoo, 2, 5, 0,
+DEFUN ("parse-partial-sexp", Ffoo, Sfoo, 2, 6, 0,
   "Parse Lisp syntax starting at FROM until TO; return status of parse at TO.\n\
 Parsing stops at TO or when certain criteria are met;\n\
  point is set to where parsing stops.\n\
@@ -1590,14 +1591,15 @@ Fourth arg STOPBEFORE non-nil means stop when come to\n\
  any character that starts a sexp.\n\
 Fifth arg STATE is a seven-list like what this function returns.\n\
 It is used to initialize the state of the parse.  Its second and third
-elements are ignored.")
-  (from, to, targetdepth, stopbefore, state)
+elements are ignored.
+Sixth args COMMENTSTOP non-nil means stop at the start of a comment.")
+  (from, to, targetdepth, stopbefore, state, commentstop)
 */
 
-DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 5, 0,
+DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
   0 /* See immediately above */)
-  (from, to, targetdepth, stopbefore, oldstate)
-     Lisp_Object from, to, targetdepth, stopbefore, oldstate;
+  (from, to, targetdepth, stopbefore, oldstate, commentstop)
+     Lisp_Object from, to, targetdepth, stopbefore, oldstate, commentstop;
 {
   struct lisp_parse_state state;
   int target;
@@ -1612,7 +1614,8 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 5, 0,
 
   validate_region (&from, &to);
   scan_sexps_forward (&state, XINT (from), XINT (to),
-		      target, !NILP (stopbefore), oldstate);
+		      target, !NILP (stopbefore), oldstate,
+		      !NILP (commentstop));
 
   SET_PT (state.location);
   
