@@ -2639,9 +2639,9 @@ The variable `selective-display' has a separate value for each buffer."
   (prin1 selective-display t)
   (princ "." t))
 
-(defconst overwrite-mode-textual " Ovwrt"
+(defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")
-(defconst overwrite-mode-binary " Bin Ovwrt"
+(defvar overwrite-mode-binary " Bin Ovwrt"
   "The string displayed in the mode line when in binary overwrite mode.")
 
 (defun overwrite-mode (arg)
