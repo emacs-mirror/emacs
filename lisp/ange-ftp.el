@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.7 $")
+(defconst ange-ftp-version "$Revision: 1.8 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3780,6 +3780,14 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-name-sans-versions 'ange-ftp 'ange-ftp-file-name-sans-versions)
 (put 'dired-uncache 'ange-ftp 'ange-ftp-dired-uncache)
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
+
+;; Turn off truename processing to save time.
+;; Treat each name as its own truename.
+(put 'file-truename 'ange-ftp 'identity)
+
+;; Turn off RCS/SCCS processing to save time.
+;; This returns nil for any file name as argument.
+(put 'vc-registered 'ange-ftp 'null)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
