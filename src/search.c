@@ -610,7 +610,11 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
   int s1, s2;
 
   /* Null string is found at starting position.  */
-  if (!len)
+  if (len == 0)
+    return pos;
+
+  /* Searching 0 times means don't move.  */
+  if (n == 0)
     return pos;
 
   if (RE)
