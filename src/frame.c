@@ -401,10 +401,10 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 #ifdef MULTI_FRAME
 
 /* Return the next frame in the frame list after FRAME.
-   If MINIBUF is non-nil, include all frames.
    If MINIBUF is nil, exclude minibuffer-only frames.
    If MINIBUF is a window, include only frames using that window for
-   their minibuffer.  */
+   their minibuffer.
+   If MINIBUF is non-nil, and not a window, include all frames.  */
 Lisp_Object
 next_frame (frame, minibuf)
      Lisp_Object frame;
@@ -420,29 +420,45 @@ next_frame (frame, minibuf)
   while (1)
     for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
       {
+	Lisp_Object f = XCONS (tail)->car;
+
 	if (passed)
 	  {
-	    Lisp_Object f = XCONS (tail)->car;
+	    /* Decide whether this frame is eligible to be returned.  */
 
-	    /* Decide whether this frame is eligible to be returned,
-	       according to minibuf.  */
-	    if ((NILP (minibuf) && ! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
-		|| XTYPE (minibuf) != Lisp_Window
-		|| EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		|| EQ (f, frame))
+	    /* If we've looped all the way around without finding any
+	       eligible frames, return the original frame.  */
+	    if (EQ (f, frame))
+	      return f;
+
+	    /* Let minibuf decide if this frame is acceptable.  */
+	    if (NILP (minibuf))
+	      {
+		if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
+		  return f;
+	      }
+	    else if (XTYPE (minibuf) == Lisp_Window)
+	      {
+		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
+		  return f;
+	      }
+	    else
 	      return f;
 	  }
 
-	if (EQ (frame, XCONS (tail)->car))
+	if (EQ (frame, f))
 	  passed++;
       }
 }
 
+#if 0
+/* Nobody seems to be using this code right now.  */
+
 /* Return the previous frame in the frame list before FRAME.
-   If MINIBUF is non-nil, include all frames.
    If MINIBUF is nil, exclude minibuffer-only frames.
    If MINIBUF is a window, include only frames using that window for
-   their minibuffer.  */
+   their minibuffer.
+   If MINIBUF is non-nil and not a window, include all frames.  */
 Lisp_Object
 prev_frame (frame, minibuf)
      Lisp_Object frame;
@@ -456,40 +472,52 @@ prev_frame (frame, minibuf)
     abort ();
 
   prev = Qnil;
-  while (1)
+  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      Lisp_Object f = XCONS (tail)->car;
+
+      if (XTYPE (f) != Lisp_Frame)
+	abort ();
+
+      if (EQ (frame, f) && !NILP (prev))
+	return prev;
+
+      /* Decide whether this frame is eligible to be returned,
+	 according to minibuf.  */
+      if (NILP (minibuf))
 	{
-	  Lisp_Object scr = XCONS (tail)->car;
-
-	  if (XTYPE (scr) != Lisp_Frame)
-	    abort ();
-
-	  if (EQ (frame, scr) && !NILP (prev))
-	    return prev;
-
-	  /* Decide whether this frame is eligible to be returned,
-	     according to minibuf.  */
-	  if ((NILP (minibuf) && ! FRAME_MINIBUF_ONLY_P (XFRAME (scr)))
-	      || XTYPE (minibuf) != Lisp_Window
-	      || EQ (FRAME_MINIBUF_WINDOW (XFRAME (scr)), minibuf))
-	    prev = scr;
+	  if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
+	    prev = f;
 	}
-
-      if (NILP (prev))
-	/* We went through the whole frame list without finding a single
-	   acceptable frame.  Return the original frame.  */
-	prev = frame;
+      else if (XTYPE (minibuf) == Lisp_Window)
+	{
+	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
+	    prev = f;
+	}
+      else
+	prev = f;
     }
-	  
+
+  /* We've scanned the entire list.  */
+  if (NILP (prev))
+    /* We went through the whole frame list without finding a single
+       acceptable frame.  Return the original frame.  */
+    return frame;
+  else
+    /* There were no acceptable frames in the list before FRAME; otherwise,
+       we would have returned directly from the loop.  Since PREV is the last
+       acceptable frame in the list, return it.  */
+    return prev;
 }
+#endif
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
-If optional argument MINIBUF is non-nil, include all frames.  If\n\
-MINIBUF is nil or omitted, exclude minibuffer-only frames.  If\n\
-MINIBUF is a window, include only frames using that window for their\n\
-minibuffer.")
+If omitted, FRAME defaults to the selected frame.\n\
+If optional argument MINIBUF is nil or omitted, exclude minibuffer-only frames.\n\
+If MINIBUF is a window, include only frames using that window for their\n\
+minibuffer.\n\
+If MINIBUF is non-nil and not a window, include all frames.")
   (frame, miniframe)
 Lisp_Object frame, miniframe;
 {
@@ -1213,11 +1241,16 @@ choose_minibuf_frame ()
 {
   /* For lowest-level minibuf, put it on currently selected frame
      if frame has a minibuffer.  */
+
   if (minibuf_level == 0
       && selected_frame != 0
-      && !EQ (minibuf_window, selected_frame->minibuffer_window)
-      && !EQ (Qnil, selected_frame->minibuffer_window))
+      && !EQ (minibuf_window, selected_frame->minibuffer_window))
     {
+      /* I don't think that any frames may validly have a null minibuffer
+	 window anymore.  */
+      if (NILP (selected_frame->minibuffer_window))
+	abort ();
+
       Fset_window_buffer (selected_frame->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
       minibuf_window = selected_frame->minibuffer_window;
@@ -1325,7 +1358,7 @@ For values specific to the separate minibuffer frame, see\n\
 #endif	/* HAVE_X11 */
 }
 
-#else /* not MULTI_SCREEN */
+#else /* not MULTI_FRAME */
 
 /* If we're not using multi-frame stuff, we still need to provide some
    support functions.  */
