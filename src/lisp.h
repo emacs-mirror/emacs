@@ -360,7 +360,7 @@ enum pvec_type
 #ifndef XPNTR
 #ifdef HAVE_SHM
 /* In this representation, data is found in two widely separated segments.  */
-extern int pure_size;
+extern size_t pure_size;
 #define XPNTR(a) \
   (XUINT (a) | (XUINT (a) > pure_size ? DATA_SEG_BITS : PURE_SEG_BITS))
 #else /* not HAVE_SHM */
@@ -2259,6 +2259,7 @@ extern int pos_visible_p P_ ((struct window *, int, int *, int));
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
 
 /* Defined in alloc.c */
+extern void check_pure_size P_ ((void));
 extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
 extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
