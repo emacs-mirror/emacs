@@ -375,8 +375,9 @@ after a sequence character events."
   "Convert CHAR to string.
 
 If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted string, list of CHAR, or
-vector of CHAR respectively."
+`vector'.  In this case, CHAR is converted to string, list of CHAR, or
+vector of CHAR respectively.
+Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
   (cond ((or (null type) (eq type 'string)) (char-to-string char))
 	((eq type 'list) (list char))
 	(t (vector char))))
