@@ -2127,15 +2127,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   XRectangle clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
-      if (s->area != RIGHT_MARGIN_AREA
-	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -4329,7 +4323,7 @@ xg_scroll_callback (widget, data)
     }
 
   if (part >= 0)
-    { 
+    {
       window_being_scrolled = bar->window;
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
