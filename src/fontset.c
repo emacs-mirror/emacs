@@ -764,6 +764,23 @@ fs_load_font (f, c, fontname, id, face)
 #pragma optimize("", on)
 #endif
 
+/* Set the ASCII font of the default fontset to FONTNAME if that is
+   not yet set.  */
+void
+set_default_ascii_font (fontname)
+     Lisp_Object fontname;
+{
+  if (! CONSP (FONTSET_ASCII (Vdefault_fontset)))
+    {
+      int id = fs_query_fontset (fontname, 2);
+
+      if (id >= 0)
+	fontname = XCDR (FONTSET_ASCII (FONTSET_FROM_ID (id)));
+      FONTSET_ASCII (Vdefault_fontset)
+	= Fcons (make_number (0), fontname);
+    }
+}
+
 
 /* Cache data used by fontset_pattern_regexp.  The car part is a
    pattern string containing at least one wild card, the cdr part is
@@ -1627,19 +1644,6 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-#if defined (MAC_OS)
-  FONTSET_ASCII (Vdefault_fontset)
-    = Fcons (make_number (0),
-	     build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman"));
-#elif defined (WINDOWSNT)
-  FONTSET_ASCII (Vdefault_fontset)
-    = Fcons (make_number (0),
-	     build_string ("-*-courier new-normal-r-*-*-*-100-*-*-*-*-iso8859-1"));
-#else
-  FONTSET_ASCII (Vdefault_fontset)
-    = Fcons (make_number (0),
-	     build_string ("-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1"));
-#endif
   AREF (Vfontset_table, 0) = Vdefault_fontset;
   next_fontset_id = 1;
 
