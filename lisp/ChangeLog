@@ -1,3 +1,13 @@
+2005-03-21  Richard M. Stallman  <rms@gnu.org>
+
+	* jka-compr.el (jka-compr-really-do-compress):
+	Make variable buffer-local.
+
+	* image-mode.el: Handle .xpm files too.
+	(image-toggle-display): Preserve modification flag.
+
+	* help.el (where-is): Don't mention aliases with no key bindings.
+
 2005-03-21  Lute Kamstra  <lute@gnu.org>
 
 	* generic.el: Fix commentary section.  Don't require cl for

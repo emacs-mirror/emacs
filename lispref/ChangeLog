@@ -1,3 +1,19 @@
+2005-03-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Invisible Text): State default value of
+	line-move-ignore-invisible.
+	(Managing Overlays): Document remove-overlays.
+	(Standard Faces): Document escape-glyph face.
+
+	* minibuf.texi (Reading File Names): Document
+	read-file-name-function.
+
+	* modes.texi (Other Font Lock Variables): Document
+	font-lock-lines-before.
+
+	* positions.texi (Skipping Characters): skip-chars-forward allows
+	character classes.
+
 2005-03-18  Lute Kamstra  <lute@gnu.org>
 
 	* edebug.texi (Instrumenting Macro Calls): Fix another typo.
