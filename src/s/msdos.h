@@ -225,6 +225,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define BCOPY_UPWARD_SAFE 1
 #define BCOPY_DOWNWARD_SAFE 1
 
+/* Mode line description of a buffer's type.  */
+#define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
+
 /* We need a little extra space, see ../../lisp/loadup.el */
 #define PURESIZE 240000
 
