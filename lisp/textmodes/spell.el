@@ -39,6 +39,9 @@ This function might remove text-processor commands.
 nil means don't alter the text before checking it.")
 
 ;;;###autoload
+(put 'spell-filter 'risky-local-variable t)
+
+;;;###autoload
 (defun spell-buffer ()
   "Check spelling of every word in the buffer.
 For each incorrect word, you are asked for the correct spelling
