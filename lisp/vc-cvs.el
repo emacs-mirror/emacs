@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.35 2002/03/05 13:30:50 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.36 2002/03/18 17:19:45 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -163,7 +163,8 @@ See also variable `vc-cvs-sticky-date-format-string'."
           (goto-char (point-min))
 	  (cond
 	   ((re-search-forward
-	     (concat "^/" (regexp-quote basename) "/") nil t)
+	     ;; CVS-removed files are not taken under VC control.
+	     (concat "^/" (regexp-quote basename) "/[^/-]") nil t)
 	    (beginning-of-line)
 	    (vc-cvs-parse-entry file)
 	    t)
@@ -778,7 +779,8 @@ essential information."
     (vc-insert-file (expand-file-name "CVS/Entries" dir))
     (goto-char (point-min))
     (while (not (eobp))
-      (when (looking-at "/\\([^/]*\\)/")
+      ;; CVS-removed files are not taken under VC control.
+      (when (looking-at "/\\([^/]*\\)/[^/-]")
 	(let ((file (expand-file-name (match-string 1) dir)))
 	  (unless (vc-file-getprop file 'vc-state)
 	    (vc-cvs-parse-entry file t))))
@@ -871,7 +873,7 @@ is non-nil."
 	     "\\(.\\|\\)" ;Sticky tag type (date or tag name, could be empty)
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
-    (vc-file-setprop file 'vc-cvs-sticky-tag 
+    (vc-file-setprop file 'vc-cvs-sticky-tag
 		     (vc-cvs-parse-sticky-tag (match-string 5) (match-string 6)))
     ;; compare checkout time and modification time
     (let ((mtime (nth 5 (file-attributes file)))
