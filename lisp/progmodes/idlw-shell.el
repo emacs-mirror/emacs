@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/12/01 13:14:33 $
+;; Date: $Date: 2002/05/16 16:07:25 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -2375,7 +2375,7 @@ The breakpoint will be placed at the beginning of the statement on the
 line specified by BP or at the next IDL statement if that line is not
 a statement.
 Determines IDL's internal representation for the breakpoint which may
-have occured at a different line then used with the breakpoint
+have occurred at a different line then used with the breakpoint
 command."
   
   ;; Get and save the old breakpoints
