@@ -44,6 +44,8 @@ Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qmodification_hooks;
+Lisp_Object Qcategory;
+Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have. */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
@@ -467,14 +469,7 @@ If POSITION is at the end of OBJECT, the value is nil.")
   if (XINT (pos) == LENGTH (i) + i->position)
     return Qnil;
 
-  for (tail = i->plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
-    {
-      register Lisp_Object tem;
-      tem = Fcar (tail);
-      if (EQ (prop, tem))
-	return Fcar (Fcdr (tail));
-    }
-  return Qnil;
+  return textget (i->plist, prop);
 }
 
 DEFUN ("next-property-change", Fnext_property_change,
@@ -529,9 +524,9 @@ If the value is non-nil, it is a position greater than POS, never equal.")
   if (NULL_INTERVAL_P (i))
     return Qnil;
 
-  here_val = Fget (prop, i->plist);
+  here_val = textget (prop, i->plist);
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) && EQ (here_val, Fget (prop, next->plist)))
+  while (! NULL_INTERVAL_P (next) && EQ (here_val, textget (prop, next->plist)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
@@ -591,10 +586,10 @@ If the value is non-nil, it is a position less than POS, never equal.")
   if (NULL_INTERVAL_P (i))
     return Qnil;
 
-  here_val = Fget (prop, i->plist);
+  here_val = textget (prop, i->plist);
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous)
-	 && EQ (here_val, Fget (prop, previous->plist)))
+	 && EQ (here_val, textget (prop, previous->plist)))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return Qnil;
@@ -1012,6 +1007,10 @@ percentage by which the left interval tree should not differ from the right.");
   Qread_only = intern ("read-only");
   staticpro (&Qinvisible);
   Qinvisible = intern ("invisible");
+  staticpro (&Qcategory);
+  Qcategory = intern ("category");
+  staticpro (&Qlocal_map);
+  Qlocal_map = intern ("local-map");
 
   /* Properties that text might use to specify certain actions */
 
