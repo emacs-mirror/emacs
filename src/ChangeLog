@@ -1,3 +1,7 @@
+2004-06-08  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (push_named_merge_point): Return 0 when a cycle is detected.
+
 2004-06-07  Juanma Barranquero  <lektu@terra.es>
 
 	* editfns.c (Fuser_login_name, Ffloat_time, Fencode_time)
