@@ -40,7 +40,11 @@ shortnamesdir = $(dot)$(dot)/shortnames/
 cppdir = $(dot)$(dot)/cpp/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
 lwlibdir = $(dot)$(dot)/lwlib/
-config_h = config.h
+
+/* Configuration files for .o files to depend on.  */
+M_FILE = ${srcdir}/@machfile@
+S_FILE = ${srcdir}/@opsysfile@
+config_h = config.h $(M_FILE) $(S_FILE)
 
 CPPFLAGS=
 LDFLAGS=
@@ -704,7 +708,7 @@ alloca.o : alloca.c
 	$(ALL_CFLAGS) ${srcdir}/alloca.c
 #else
 #ifndef HAVE_ALLOCA
-alloca.o : alloca.s config.h
+alloca.o : alloca.s $(config_h)
 /* $(CPP) is cc -E, which may get confused by filenames
    that do not end in .c.  So copy file to a safe name.  */
 	cp ${srcdir}/alloca.s allocatem.c
