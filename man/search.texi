@@ -385,7 +385,9 @@ character is a simple regular expression which matches that same
 character and nothing else.  The special characters are @samp{$},
 @samp{^}, @samp{.}, @samp{*}, @samp{+}, @samp{?}, @samp{[}, @samp{]} and
 @samp{\}.  Any other character appearing in a regular expression is
-ordinary, unless a @samp{\} precedes it.
+ordinary, unless a @samp{\} precedes it.  (When you use regular
+expressions in a Lisp program, each @samp{\} must be doubled, see the
+example near the end of this section.)
 
   For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
