@@ -368,6 +368,15 @@ The function is called from the article buffer."
   :group 'gnus-article-mime
   :type 'function)
 
+(defcustom gnus-show-traditional-method
+  (if (featurep 'mule)
+      'gnus-mule-decode-article
+    (lambda ()))
+  "Function to decode ``localized RFC 822 messages''.
+The function is called from the article buffer."
+  :group 'gnus-article-mime
+  :type 'function)
+
 (defcustom gnus-page-delimiter "^\^L"
   "*Regexp describing what to use as article page delimiters.
 The default value is \"^\^L\", which is a form linefeed at the
@@ -2004,11 +2013,12 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 		(run-hooks 'internal-hook)
 		(run-hooks 'gnus-article-prepare-hook)
 		;; Decode MIME message.
-		(when gnus-show-mime
-		  (if (or (not gnus-strict-mime)
-			  (gnus-fetch-field "Mime-Version"))
-		      (funcall gnus-show-mime-method)
-		    (funcall gnus-decode-encoded-word-method)))
+		(if gnus-show-mime
+		    (if (or (not gnus-strict-mime)
+			    (gnus-fetch-field "Mime-Version"))
+			(funcall gnus-show-mime-method)
+		      (funcall gnus-decode-encoded-word-method))
+		  (funcall gnus-show-traditional-method))
 		;; Perform the article display hooks.
 		(run-hooks 'gnus-article-display-hook))
 	      ;; Do page break.
