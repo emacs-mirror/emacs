@@ -1,5 +1,7 @@
 2002-01-22  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/sh-script.el (sh-set-shell): Doc fix.
+
 	* net/ange-ftp.el (ange-ftp-canonize-filename): Avoid duplicate
 	slash if DIR is just slash.
 

@@ -1,3 +1,10 @@
+2002-01-22  Richard M. Stallman  <rms@gnu.org>
+
+	* unexelf.c (unexec): Define n so as to cause compilation error
+	for the code where people have often written n instead of nn.
+
+	* .gdbinit (hookpost-run): Defined.
+
 2002-01-22  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Typo in previous fix corrected.
