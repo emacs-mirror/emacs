@@ -1,3 +1,9 @@
+2004-09-12  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-start): Parse command to see
+	if it starts with a cd, and if so perform it for the *compilation*
+	buffer.  Change the header to reflect this.
+
 2004-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-enable-dot-prefix): Doc fix.
