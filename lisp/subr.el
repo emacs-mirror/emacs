@@ -1534,11 +1534,16 @@ configuration."
 
 (defun functionp (object)
   "Non-nil iff OBJECT is a type of object that can be called as a function."
-  (or (and (symbolp object) (setq object (indirect-function object))
+  (or (and (symbolp object)
+	   (fboundp object)
+	   (setq object (indirect-function object))
 	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
+	   (not (eq (car-safe
+		     (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))
+		    'keymap)))
       (subrp object) (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
+      (eq (car-safe object) 'lambda)
+      (eq (car-safe object) 'macro)))
 
 (defun interactive-form (function)
   "Return the interactive form of FUNCTION.
