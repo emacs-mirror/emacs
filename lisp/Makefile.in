@@ -131,6 +131,8 @@ TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
 
+.SUFFIXES: .elc .el
+
 .el.elc: subdirs.el
 	-$(emacs) -f batch-byte-compile $<
 
