@@ -82,9 +82,15 @@ mode (@pxref{Transient Mark}).
 
 @table @kbd
 @item C-d
-Delete next character (@code{delete-char}).
+@itemx @key{Delete}
+Delete next character (@code{delete-char}).  If your keyboard has a
+@key{Delete} function key (usually located in the edit keypad), Emacs
+binds it to @code{delete-char} as well.
 @item @key{DEL}
-Delete previous character (@code{delete-backward-char}).
+@itemx @key{BS}
+Delete previous character (@code{delete-backward-char}).  Some keyboards
+refer to this key as a ``backspace key'' and label it with a left arrow:
+@key{<-}.
 @item M-\
 Delete spaces and tabs around point (@code{delete-horizontal-space}).
 @item M-@key{SPC}
@@ -105,6 +111,38 @@ and moves point back.  You can delete newlines like any other characters
 in the buffer; deleting a newline joins two lines.  Actually, @kbd{C-d}
 and @key{DEL} aren't always delete commands; when given arguments, they
 kill instead, since they can erase more than one character this way.
+
+@findex delete-key-deletes-forward-mode
+  Some keyboards have both @key{Delete} and @key{DEL} keys, while others
+have just @key{DEL}.  (The former variety usually labels the @key{DEL}
+key as @key{BS} or @key{<-} and refers to it as a ``backspace key''.)
+When Emacs starts, it tries to detect keyboards with both @key{BS} and
+@key{Delete} keys, and if so, binds them to the commands users expect:
+@key{Delete} deletes forward, like @kbd{C-d} does, and @key{BS} deletes
+backwards.  However, some systems don't report the keyboard
+configuration.  If your keyboard has these two keys, and if they are
+both reported to Emacs, but Emacs is unable to establish that, you can
+use the @code{delete-key-deletes-forward-mode} command to force Emacs to
+treat @key{BS} and @key{Delete} differently.  Either type @kbd{C-u 1 M-x
+delete-key-deletes-forward-mode @key{RET}} or put the following line
+into your @file{.emacs} init file (@pxref{Init File}):
+
+@lisp
+ (delete-key-deletes-forward-mode 1)
+@end lisp
+
+@noindent
+@vindex delete-key-deletes-forward
+The variable @code{delete-key-deletes-forward}, if set to @code{t},
+tells Emacs that the @key{Delete} key deletes the character after the
+cursor.
+
+@noindent
+To find out whether the @key{BS} and @key{Delete} keys are reported to
+Emacs, type @kbd{C-h c @key{BS} C-h c @key{Delete}}, and then type
+@kbd{C-h l}.  If the text in the window popped up by Emacs after the
+last command includes ``C-h c backspace'' and ``C-h c delete'', you know
+that these keys are reported to Emacs.
 
 @kindex M-\
 @findex delete-horizontal-space
