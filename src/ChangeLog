@@ -1,3 +1,11 @@
+2001-08-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_mode_element): Use string_byte_to_char to
+	determine character positions in strings, use chars_in_text
+	instead of strwidth.
+	(dump_glyph_row) [GLYPH_DEBUG]: Take a glyph row instead of
+	a matrix as parameter; this is easier to use from GDB.
+
 2001-08-28  Miles Bader  <miles@gnu.org>
 
 	* textprop.c (Fprevious_single_char_property_change) 
