@@ -1,9 +1,8 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.78) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(trunk.79) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .readership: MM developers.
  * .design: design.mps.type
  *
  * .rationale: Types and type constants are almost all defined
@@ -295,6 +294,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
 #define FormatVarietyA  ((FormatVariety)0)
 #define FormatVarietyB  ((FormatVariety)1)
+#define FormatVarietyAutoHeader ((FormatVariety)2)
 #define SegPrefHigh     ((SegPrefKind)0)
 #define SegPrefLow      ((SegPrefKind)1)
 #define SegPrefRefSet   ((SegPrefKind)2)
