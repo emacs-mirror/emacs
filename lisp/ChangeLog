@@ -1,11 +1,18 @@
+2005-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Don't fiddle with latin-1 non-break space any more since it's now
+	special cased in the C code.
+	Don't "do&undo" setting for 160 (especially, don't undo incorrectly).
+
 2005-01-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Add `undo-outer-limit'.
 
 2005-01-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-format-entry): Use
-	`bibtex-empty-field-re' only on the text of fields, not on entire
+	* textmodes/bibtex.el (bibtex-format-entry):
+	Use `bibtex-empty-field-re' only on the text of fields, not on entire
 	field lines.
 	(bibtex-autofill-entry): Use `bibtex-empty-field-re' on a string,
 	not on part of a buffer.
@@ -18,8 +25,7 @@
 	(bibtex-sort-entry-class, bibtex-autokey-titleword-ignore)
 	(bibtex-entry-offset, bibtex-parse-association)
 	(bibtex-parse-field-name): Fix typos in docstrings.
-	(bibtex-field-list, bibtex-find-crossref): Fix typos in error
-	messages.
+	(bibtex-field-list, bibtex-find-crossref): Fix typos in error messages.
 
 2005-01-24  Carsten Dominik <dominik@science.uva.nl>
 
@@ -120,7 +126,7 @@
 
 2005-01-20  Steven Tamm  <steventamm@mac.com>
 
-	* term/mac-win.el (process-connection-type): Removed.
+	* term/mac-win.el (process-connection-type): Remove.
 	Controlled now by s/darwin.h:PTY_ITERATION.
 
 2005-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
