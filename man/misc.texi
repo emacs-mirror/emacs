@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -319,6 +319,10 @@ optionally replace the region with the output
 @item M-x shell
 Run a subshell with input and output through an Emacs buffer.
 You can then give commands interactively.
+@item M-x term
+Run a subshell with input and output through an Emacs buffer.
+You can then give commands interactively.
+Full terminal emulation is available.
 @end table
 
 @menu
@@ -327,6 +331,9 @@ You can then give commands interactively.
 * Shell Mode::             Special Emacs commands used with permanent shell.
 * History: Shell History.  Repeating previous commands in a shell buffer.
 * Options: Shell Options.  Options for customizing Shell mode.
+* Terminal emulator::      An Emacs window as a terminal emulator.
+* Term Mode::              Special Emacs commands used in Term mode.
+* Paging in Term::         Paging in the terminal emulator.
 * Remote Host::            Connecting to another computer.
 @end menu
 
@@ -898,6 +905,109 @@ directory stack if they are not already on it
 (@code{shell-pushd-dunique}).  The values you choose should match the
 underlying shell, of course.
 
+@node Terminal emulator
+@subsection Interactive Inferior Shell with Terminal Emulator
+@findex term
+
+  To run a subshell in a terminal emulator, putting its typescript in an Emacs
+buffer, use @kbd{M-x term}.  This creates (or reuses) a buffer named
+@samp{*term*} and runs a subshell with input coming from your keyboard and
+output going to that buffer.
+
+All the normal keys that you type are sent without any interpretation
+by Emacs directly to the subshell, as ``terminal input''.
+Any ``echo'' of your input is the responsibility of the subshell.
+(The exception is the terminal escape character,
+which by default is @kbd{C-c}.  @xref{Term Mode}.)
+Any ``terminal output'' from the subshell goes into the buffer,
+advancing point.
+
+  Some programs (such as Emacs itself) need to control the
+appearance on the terminal screen in detail.  They do this by
+sending special control codes.  The exact control
+codes needed vary from terminal to terminal, but nowadays
+most terminals and terminal emulators (including @code{xterm})
+understand the ANSI-standard (VT100-style) escape sequences.
+Term mode also understands these escape sequences,
+and for each control code does the appropriate thing
+to change the buffer so that the appearance of the window
+matches what it would be on a real terminal.
+Thus you can actually run Emacs inside an Emacs Term window!
+
+   Emacs does not wait for the subshell to do anything.  You can switch
+windows or buffers and edit them while the shell is waiting, or while
+it is running a command.  Output from the subshell waits until Emacs
+has time to process it; this happens whenever Emacs is waiting for
+keyboard input or for time to elapse.
+
+   To make multiple terminal emulators, rename the buffer @samp{*term*}
+to something different using @kbd{M-x rename-uniquely},
+just as with Shell mode.
+
+   The file name used to load the subshell is determined
+the same way as for Shell mode.
+
+Unlike Shell mode, Term mode does not track the current directory
+by examining your input.  Instead, if you use a programmable
+shell, you can have it tell Term what the current directory is.
+This is done automatically by @code{bash} version 1.15 and later.
+
+@node Term Mode
+@subsection Term Mode
+@cindex Term mode
+@cindex mode, Term
+
+  Term uses Term mode, which has two input modes:
+In line mode, Term basically acts like Shell mode.  @xref{Shell Mode}.
+In Char mode, each character is sent directly to the inferior subshell,
+except for the Term escape character, normally @kbd{C-c}.
+
+To switch between line and char mode, use these commands:
+@table @kbd
+@kindex C-c C-k @r{(Term mode)}
+@findex term-char-mode
+@item C-c C-k
+Switch to line mode.  Do nothing if already in line mode.
+
+@kindex C-c C-j @r{(Term mode)}
+@findex term-line-mode
+@item C-c C-j
+Switch to char mode.  Do nothing if already in char mode.
+@end table
+
+The following commands are only available in Char mode:
+@table @kbd
+@item C-c C-c
+Send a literal @key{C-c} to the sub-shell.
+
+@item C-c C-x
+A prefix command to access the global @key{C-x} commands conveniently.
+For example, @kbd{C-c C-x o} invokes the global binding of
+@kbd{C-x o}, which is normally @samp{other-window}.
+@end table
+
+@node Paging in Term
+@subsection Paging in the terminal emulator
+
+Term mode has a pager feature.  When the pager is enabled,
+term mode will pause at the end of each screenful.
+
+@table @kbd
+@kindex C-c C-q @r{(Term mode)}
+@findex term-pager-toggle
+@item C-c C-q
+Toggles the pager feature:  Disables the pager if it is enabled,
+and vice versa.  This works in both line and char modes.
+If the pager enabled, the mode-line contains the word @samp{page}.
+@end table
+
+If the pager is enabled, and Term receives more than a screenful
+of output since your last input, Term will enter More break mode.
+This is indicated by @samp{**MORE**} in the mode-line.
+Type a @kbd{Space} to display the next screenful of output.
+Type @kbd{?} to see your other options.  The interface is similar
+to the Unix @code{more} program.
+
 @node Remote Host
 @subsection Remote Host Shell
 @cindex remote host
@@ -905,7 +1015,37 @@ underlying shell, of course.
 @cindex Telnet
 @cindex Rlogin
 
-  Emacs provides two commands for logging in to another computer
+  You can login to a remote computer, using whatever commands you
+would from a regular terminal (e.g.@: using the @code{telnet} or
+@code{rlogin} commands), from a Term window.
+
+A program that asks you for a password will normally suppress
+echoing of the password, so the password will not show up in the buffer.
+This will happen just as if you were using a real terminal, if
+the buffer is in char mode.  If it is in line mode, the password
+will be temporarily visible, but will be erased when you hit return.
+(This happens automatically; there is no special password processing.)
+
+When you log in to a different machine, you need to specify the
+type of terminal your using.  Terminal types @samp{ansi}
+or @samp{vt100} will work on most systems.
+
+@c   If you are talking to a Bourne-compatible
+@c shell, and your system understands the @code{TERMCAP} variable,
+@c you can use the command @kbd{M-x shell-send-termcap}, which
+@c sends a string specifying the terminal type and size.
+@c (This command is also useful after the window has changed size.)
+
+@c You can of course run @samp{gdb} on that remote computer.  One useful
+@c trick:  If you invoke gdb with the @code{--fullname} option,
+@c it will send special commands to Emacs that will cause Emacs to
+@c pop up the source files you're debugging.  This will work
+@c whether or not gdb is running on a different computer than Emacs,
+@c as long as Emacs can access the source files specified by gdb.
+
+You cannot log into to a remove comuter using the Shell mode.
+@c (This will change when Shell is re-written to use Term.)
+Instead, Emacs provides two commands for logging in to another computer
 and communicating with it through an Emacs buffer.
 
 @table @kbd
@@ -1063,7 +1203,7 @@ But if you use the option @samp{-n} or @samp{--no-wait} when running
 as you like to edit the files in Emacs.)
 
 
-@node Hardcopy, Postscript, Emacs Server, Top
+@node Hardcopy, PostScript, Emacs Server, Top
 @section Hardcopy Output
 @cindex hardcopy
 
@@ -1117,43 +1257,45 @@ whether to supply @samp{-T} and @samp{-J} options (suitable for
 @code{lpr-add-switches} should be @code{nil} if your printer program is
 not compatible with @code{lpr}.
 
-@node Postscript, Postscript Variables, Hardcopy, Top
-@section Postscript Hardcopy
+@node PostScript, PostScript Variables, Hardcopy, Top
+@section PostScript Hardcopy
 
-  These commands convert buffer contents to Postscript,
+  These commands convert buffer contents to PostScript,
 either printing it or leaving it in another Emacs buffer.
 
 @table @kbd
 @item M-x ps-print-buffer
-Print hardcopy of the current buffer in Postscript form.
+Print hardcopy of the current buffer in PostScript form.
 @item M-x ps-print-region
-Print hardcopy of the current region in Postscript form.
+Print hardcopy of the current region in PostScript form.
 @item M-x ps-print-buffer-with-faces
-Print hardcopy of the current buffer in Postscript form, showing the
-faces used in the text by means of Postscript features.
+Print hardcopy of the current buffer in PostScript form, showing the
+faces used in the text by means of PostScript features.
 @item M-x ps-print-region-with-faces
-Print hardcopy of the current region in Postscript form, showing the
+Print hardcopy of the current region in PostScript form, showing the
 faces used in the text.
 @item M-x ps-spool-buffer
-Generate Postscript for the current buffer text.
+Generate PostScript for the current buffer text.
 @item M-x ps-spool-region
-Generate Postscript for the current region.
+Generate PostScript for the current region.
 @item M-x ps-spool-buffer-with-faces
-Generate Postscript for the current buffer, showing the faces used.
+Generate PostScript for the current buffer, showing the faces used.
 @item M-x ps-spool-region-with-faces
-Generate Postscript for the current region, showing the faces used.
+Generate PostScript for the current region, showing the faces used.
+@item M-x handwrite
+Generates/prints PostScript for the current buffer as if handwritten.
 @end table
 
 @findex ps-print-region
 @findex ps-print-buffer
 @findex ps-print-region-with-faces
 @findex ps-print-buffer-with-faces
-  The Postscript commands, @code{ps-print-buffer} and
-@code{ps-print-region}, print buffer contents in Postscript form.  One
+  The PostScript commands, @code{ps-print-buffer} and
+@code{ps-print-region}, print buffer contents in PostScript form.  One
 command prints the entire buffer; the other, just the region.  The
 corresponding @samp{-with-faces} commands,
 @code{ps-print-buffer-with-faces} and @code{ps-print-region-with-faces},
-use Postscript features to show the faces (fonts and colors) in the text
+use PostScript features to show the faces (fonts and colors) in the text
 properties of the text being printed.
 
   If you are using a color display, you can print a buffer of program
@@ -1165,20 +1307,26 @@ buffer, and using @code{ps-print-buffer-with-faces}.
 @findex ps-spool-region-with-faces
 @findex ps-spool-buffer-with-faces
   The commands whose names have @samp{spool} instead of @samp{print}
-generate the Postscript output in an Emacs buffer instead of sending
+generate the PostScript output in an Emacs buffer instead of sending
 it to the printer.
+
+@findex handwrite
+@cindex handwriting
+@kbd{M-x handwrite} is more frivolous.  It generates a PostScript
+rendition of the current buffer as a cursive handwritten document.  It
+can be customized in group @code{handwrite}.
 
 @ifinfo
   The following section describes variables for customizing these commands.
 @end ifinfo
 
-@node Postscript Variables, Sorting, Postscript, Top
-@section Variables for Postscript Hardcopy
+@node PostScript Variables, Sorting, PostScript, Top
+@section Variables for PostScript Hardcopy
 
 @vindex ps-lpr-command
 @vindex ps-lpr-switches
 @vindex ps-printer-name
-  All the Postscript hardcopy commands use the variables
+  All the PostScript hardcopy commands use the variables
 @code{ps-lpr-command} and @code{ps-lpr-switches} to specify how to print
 the output.  @code{ps-lpr-command} specifies the command name to run,
 @code{ps-lpr-switches} specifies command line options to use, and
@@ -1227,7 +1375,7 @@ the font for ordinary text.  It defaults to 8.5 points.
   Many other customization variables for these commands are defined and
 described in the Lisp file @file{ps-print.el}.
 
-@node Sorting, Narrowing, Postscript Variables, Top
+@node Sorting, Narrowing, PostScript Variables, Top
 @section Sorting Text
 @cindex sorting
 
@@ -1683,11 +1831,31 @@ the order you choose.
 @cindex other editors
 @cindex EDT
 @cindex vi
+@cindex CRiSP
+@cindex Brief
+@cindex PC keybindings
+@cindex scrolling all windows
+@cindex PC selecion
+@cindex Motif keybindings
+@cindex Macintosh keybindings
+@cindex WordStar
 
   GNU Emacs can be programmed to emulate (more or less) most other
 editors.  Standard facilities can emulate these:
 
 @table @asis
+@item CRiSP/Brief (PC editor)
+@findex crisp-mode
+@vindex crisp-override-meta-x
+@findex scroll-all-mode
+Turn on keybindings to emulate the CRiSP/Brief editor with @kbd{M-x
+crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs unless you
+change the user option @code{crisp-override-meta-x}.  You can also load
+the @code{scroll-all} package to emulate CRiSP's scroll-all feature
+(scrolling all windows together).  Do thsi either with @kbd{M-x
+scroll-all-mode} or set the user option @code{crisp-load-scroll-all} to
+load it along with @code{crisp-mode}.
+
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
 @findex edt-emulation-off
@@ -1698,6 +1866,37 @@ Most of the EDT emulation commands are keypad keys, and most standard
 Emacs key bindings are still available.  The EDT emulation rebindings
 are done in the global keymap, so there is no problem switching
 buffers or major modes while in EDT emulation.
+
+@item `PC' bindings
+@findex pc-bindings-mode
+@kbd{M-x pc-bindings-mode} sets up certain key bindings for `PC
+compatibility'---what people are often used to on PCs---as follows:
+@kbd{Delete} and its variants) delete forward instead of backward,
+@kbd{C-Backspace} kills backward a word (as @kbd{C-Delete} normally
+would), @kbd{M-Backspace} does undo, @kbd{Home} and @kbd{End} move to
+beginning and end of line, @kbd{C-Home} and @kbd{C-End} move to
+beginning and end of buffer and @kbd{C-Escape} does @code{list-buffers}.
+
+@item PC selection mode
+@findex pc-selection-mode
+@kbd{M-x pc-selction-mode} emulates the mark, copy, cut and paste
+look-and-feel of Motif programs (which is the same as the Macintosh GUI
+and MS-Windows).  It makes the keybindings of PC mode and also modifies
+the bindings of the cursor keys and the @kbd{next}, @kbd{prior},
+@kbd{home} and @kbd{end} keys.  It does not provide the full set of CUA
+keybindings---the fundamental Emacs keys @kbd{C-c}, @kbd{C-v} and
+@kbd{C-x} are not rebound.
+
+The standard keys for moving around (@kbd{right}, @kbd{left}, @kbd{up},
+@kbd{down}, @kbd{home}, @kbd{end}, @kbd{prior}, @kbd{next}, called
+``move-keys'') will always de-activate the mark.  Using @kbd{Shift}
+together with the ``move keys'' activates the region over which they
+move.  The copy, cut and paste functions (as in many other programs)
+operate on the active region, bound to @kbd{C-insert}, @kbd{S-delete}
+and @kbd{S-insert} respectively.
+
+The @code{s-region} package provides similar, but less complete,
+facilities.
 
 @item vi (Berkeley editor)
 @findex viper-mode
@@ -1736,6 +1935,11 @@ it is with @code{vi-mode} because terminating insert mode does
 not use it.
 
 @inforef{Top, VIP, vip}, for full information.
+
+@item WordStar (old wordprocessor)
+@findex wordstar-mode
+@kbd{M-x wordstar-mode} provides a major mode with WordStar-like
+keybindings.
 @end table
 
 @node Dissociated Press, Amusements, Emulation, Top
@@ -1802,7 +2006,6 @@ userenced and properbose.  Have fun.  Your buggestions are welcome.
 @findex hanoi
 @findex yow
 @findex gomoku
-@findex mpuz
 @cindex tower of Hanoi
 
   If you are a little bit bored, you can try @kbd{M-x hanoi}.  If you are
@@ -1815,17 +2018,40 @@ which plays the game Go Moku with you.
 
 @findex blackbox
 @findex mpuz
+@findex 5x5
 @cindex puzzles
-  @kbd{M-x blackbox} and @kbd{M-x mpuz} are two kinds of puzzles.
+  @kbd{M-x blackbox}, @kbd{M-x mpuz} and @kbd{M-x 5x5} are kinds of puzzles.
 @code{blackbox} challenges you to determine the location of objects
 inside a box by tomography.  @code{mpuz} displays a multiplication
 puzzle with letters standing for digits in a code that you must
 guess---to guess a value, type a letter and then the digit you think it
-stands for.
+stands for.  The aim of @code{5x5} is to fill in all the squares.
 
 @findex dunnet
   @kbd{M-x dunnet} runs an adventure-style exploration game, which is
 a bigger sort of puzzle.
+
+@findex lm
+@cindex landmark game
+@kbd{M-x lm} runs a relatively non-participatory game in which a robot
+attempts to maneuver towards a tree at the center of the window based on
+unique olfactory cues from each of the four directions.
+
+@findex life
+@cindex Life
+@kbd{M-x life} runs Conway's `Life' cellular automaton.
+
+@findex solitaire
+@cindex solitaire
+@kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
+across other pegs.
+
+@findex tetris
+@cindex Tetris
+@kbd{M-x tetris} runs an implementation of the well-known Tetris game.
+@findex snake
+@cindex Snake
+Likewise, @kbd{M-x snake} provides an implementation of Snake.
 
   When you are frustrated, try the famous Eliza program.  Just do
 @kbd{M-x doctor}.  End each input by typing @key{RET} twice.
