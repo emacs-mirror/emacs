@@ -99,7 +99,15 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Control characters and escape glyphs are now shown in the new
+escape-glyph face.
+
+** Non-breaking space and hyphens are now prefixed with an escape
+character, unless the new user variable `show-nonbreak-escape' is set
+to nil.
+
 ** display-battery has been replaced by display-battery-mode.
+
 ** calculator.el now has radix grouping mode, which is available when
 `calculator-output-radix' is non-nil.  In this mode a separator
 character is used every few digits, making it easier to see byte

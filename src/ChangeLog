@@ -1,3 +1,26 @@
+2005-01-09  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member dpvec_face_id.
+	(merge_into_realized_face): Add prototype.
+
+	* xfaces.c (merge_into_realized_face): New function.  Used to
+	merge escape-glyph face or face from display table into current	face.
+
+	* xdisp.c (Vshow_nonbreak_escape): New lisp var.
+	(syms_of_xdisp): DEFVAR_LISP it.
+	(escape_glyph_face): Remove var.
+	(redisplay_window): Don't initialize it.
+	(setup_for_ellipsis, get_next_display_element):
+	Set it->dpvec_face_id to -1.
+	(get_next_display_element): Test Vshow_nonbreak_escape.
+	Do not setup escape_glyph_face.
+	Properly merge escape-glyph face or face from display table with
+	current face for escape and control characters.  Set
+	it->dpvec_face_id to relevant face id instead of adding it to each
+	element of display vector.
+	(next_element_from_display_vector): If it->dpvec_face_id is set,
+	use that instead of lface_id from glyph itself.
+
 2005-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): New member, toolbar_detached.
@@ -21,7 +44,7 @@
 	warning.
 
 	* xselect.c (x_get_foreign_selection, x_fill_property_data)
-	(Fx_get_atom_name, Fx_send_client_event): Replace XFLOAT with 
+	(Fx_get_atom_name, Fx_send_client_event): Replace XFLOAT with
 	XFLOAT_DATA to get extract number from Lisp object.
 
 2005-01-07  Kim F. Storm  <storm@cua.dk>
