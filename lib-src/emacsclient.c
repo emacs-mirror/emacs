@@ -99,14 +99,16 @@ main (argc, argv)
       {
 	if (errno == ENOENT)
 	  fprintf (stderr,
-		   "Can't find socket; have you started the server?\n");
+		   "%s: can't find socket; have you started the server?\n",
+		   argv[0]);
 	else
-	  perror ("stat");
+	  fprintf (stderr, "%s: can't stat %s: %s\n",
+		   argv[0], server.sun_path, strerror (errno));
 	exit (1);
       }
     if (statbfr.st_uid != geteuid ())
       {
-	fprintf (stderr, "Invalid socket owner\n");
+	fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
 	exit (1);
       }
   }
@@ -302,7 +304,7 @@ main (argc, argv)
 #ifdef HPUX /* HPUX has a bug.  */
   if (strlen (msgp->mtext) >= 512)
     {
-      fprintf (stderr, "emacsclient: args too long for msgsnd\n");
+      fprintf (stderr, "%s: args too long for msgsnd\n", progname);
       exit (1);
     }
 #endif
