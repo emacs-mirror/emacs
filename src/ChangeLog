@@ -1,3 +1,7 @@
+2005-01-16  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (syms_of_macterm) <mac-allow-anti-aliasing>: Doc fix.
+
 2005-01-16  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_to_x_fontname): Removed spurious argument.
@@ -14,9 +18,9 @@
 2005-01-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (READABLE_EVENTS_DO_TIMERS_NOW)
-	(READABLE_EVENTS_FILTER_EVENTS)
-	(READABLE_EVENTS_IGNORE_SQUEEZABLES): New flags for readable_events.
-	get_filtered_input_pending, readable_filtered_events): Removed.
+	(READABLE_EVENTS_FILTER_EVENTS, READABLE_EVENTS_IGNORE_SQUEEZABLES):
+	New flags for readable_events.
+	(get_filtered_input_pending, readable_filtered_events): Removed.
 	(tracking_off): Call readable_events and get_input_pending with
 	flag READABLE_EVENTS_DO_TIMERS_NOW.
 	(readable_events): Move code from old readable_filtered_events here,
@@ -26,7 +30,7 @@
 	READABLE_EVENTS_IGNORE_SQUEEZABLES is not set in flags.
 	(swallow_events): Call get_input_pending with flag
 	READABLE_EVENTS_DO_TIMERS_NOW.
-	(get_input_pending): Move code from old   get_filtered_input_pending
+	(get_input_pending): Move code from old get_filtered_input_pending
 	here.  Replace boolean arguments do_timers_now, filter_events with
 	flags, and pass flags to readable_events.  Document new
 	READABLE_EVENTS_* flags.
@@ -38,16 +42,16 @@
 
 	* dispnew.c (update_window, update_frame_1): Replace calls to
 	detect_input_pending with detect_input_pending_ignore_squeezables
-	so that redisplay is not paused if the event queue contains only 
+	so that redisplay is not paused if the event queue contains only
 	mouse movements.
 
 	* lisp.h: Declare detect_input_pending_ignore_squeezables.
 
 2005-01-15  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (Vmac_use_core_graphics): defined for
-	mac-allow-anti-aliasing
-	(syms_of_macterm): Added mac-allow-anti-aliasing
+	* macterm.c (Vmac_use_core_graphics): Declare variable for
+	mac-allow-anti-aliasing.
+	(syms_of_macterm): DEFVAR_LISP and initialize it.
 	(mac_draw_string_common): Use core graphics text rendering if
 	mac-allow-anti-aliasing is enabled.
 
