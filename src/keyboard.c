@@ -2877,18 +2877,19 @@ make_lispy_event (event)
 		if (EQ (event->x, XCONS (down)->car)
 		    && EQ (event->y, XCONS (down)->cdr))
 		  {
-		    if (is_double && double_click_count > 1)
-		      event->modifiers |= ((double_click_count > 2)
-					   ? triple_modifier
-					   : double_modifier);
-		    else
-		      event->modifiers |= click_modifier;
+		    event->modifiers |= click_modifier;
 		  }
 		else
 		  {
 		    button_down_time = 0;
 		    event->modifiers |= drag_modifier;
 		  }
+		/* Don't check is_double; treat this as multiple
+		   if the down-event was multiple.  */
+		if (double_click_count > 1)
+		  event->modifiers |= ((double_click_count > 2)
+				       ? triple_modifier
+				       : double_modifier);
 	      }
 	  }
 	else
@@ -3591,6 +3592,9 @@ read_avail_input (expected)
       int n_to_read;
 
       /* Determine how many characters we should *try* to read.  */
+#ifdef WINDOWSNT
+      return 0;
+#else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
@@ -3620,6 +3624,7 @@ read_avail_input (expected)
 #endif
 #endif
 #endif /* not MSDOS */
+#endif /* not WINDOWSNT */
 
       /* Now read; for one reason or another, this will not block.
 	 NREAD is set to the number of chars read.  */
@@ -4518,6 +4523,9 @@ read_key_sequence (keybuf, bufsize, prompt)
   Lisp_Object first_event;
 #endif
 
+  /* Gets around Microsoft compiler limitations.  */
+  int dummyFlag = 0;
+
   struct buffer *starting_buffer;
 
   /* Nonzero if we seem to have got the beginning of a binding
@@ -4710,7 +4718,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  if (INTEGERP (key) && XINT (key) == -1)
 	    {
 	      t = 0;
-	      goto done;
+	      /* The Microsoft C compiler can't handle the goto that
+		 would go here.  */
+	      dummyFlag = 1;
+	      break;
 	    }
 	  
 	  /* If the current buffer has been changed from under us, the
@@ -4887,7 +4898,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      read_key_sequence_cmd = Vprefix_help_command;
 	      keybuf[t++] = key;
 	      last_nonmenu_event = key;
-	      goto done;
+	      /* The Microsoft C compiler can't handle the goto that
+		 would go here.  */
+	      dummyFlag = 1;
 	    }
 
 	  if (SYMBOLP (head))
@@ -4915,8 +4928,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      Lisp_Object new_head, new_click;
 		      if (modifiers & triple_modifier)
 			modifiers ^= (double_modifier | triple_modifier);
-		      else if (modifiers & (drag_modifier | double_modifier))
-			modifiers &= ~(drag_modifier | double_modifier);
+		      else if (modifiers & double_modifier)
+			modifiers &= ~double_modifier;
+		      else if (modifiers & drag_modifier)
+			modifiers &= ~drag_modifier;
 		      else
 			{
 			  /* Dispose of this `down' event by simply jumping
@@ -5238,11 +5253,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 	}
     }
 
-  read_key_sequence_cmd = (first_binding < nmaps
-			   ? defs[first_binding]
-			   : Qnil);
+  if (!dummyFlag)
+    read_key_sequence_cmd = (first_binding < nmaps
+			     ? defs[first_binding]
+			     : Qnil);
 
- done:
   unread_switch_frame = delayed_switch_frame;
   unbind_to (count, Qnil);
 
