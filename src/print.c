@@ -630,6 +630,81 @@ debug_print (arg)
   fprintf (stderr, "\r\n");
 }
 
+DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
+       1, 1, 0,
+  "Convert an error value (ERROR-SYMBOL . DATA) to an error message.")
+  (obj)
+     Lisp_Object obj;
+{
+  struct buffer *old = current_buffer;
+  Lisp_Object original, printcharfun, value;
+  struct gcpro gcpro1;
+
+  print_error_message (obj, Vprin1_to_string_buffer, NULL);
+
+  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
+  value = Fbuffer_string ();
+
+  GCPRO1 (value);
+  Ferase_buffer ();
+  set_buffer_internal (old);
+  UNGCPRO;
+
+  return value;
+}
+
+/* Print an error message for the error DATA
+   onto Lisp output stream STREAM (suitable for the print functions).  */
+
+print_error_message (data, stream)
+     Lisp_Object data, stream;
+{
+  Lisp_Object errname, errmsg, file_error, tail;
+  struct gcpro gcpro1;
+  int i;
+
+  errname = Fcar (data);
+
+  if (EQ (errname, Qerror))
+    {
+      data = Fcdr (data);
+      if (!CONSP (data)) data = Qnil;
+      errmsg = Fcar (data);
+      file_error = Qnil;
+    }
+  else
+    {
+      errmsg = Fget (errname, Qerror_message);
+      file_error = Fmemq (Qfile_error,
+			  Fget (errname, Qerror_conditions));
+    }
+
+  /* Print an error message including the data items.  */
+
+  tail = Fcdr_safe (data);
+  GCPRO1 (tail);
+
+  /* For file-error, make error message by concatenating
+     all the data items.  They are all strings.  */
+  if (!NILP (file_error) && !NILP (tail))
+    errmsg = XCONS (tail)->car, tail = XCONS (tail)->cdr;
+
+  if (STRINGP (errmsg))
+    Fprinc (errmsg, stream);
+  else
+    write_string_1 ("peculiar error", -1, stream);
+
+  for (i = 0; CONSP (tail); tail = Fcdr (tail), i++)
+    {
+      write_string_1 (i ? ", " : ": ", 2, stream);
+      if (!NILP (file_error))
+	Fprinc (Fcar (tail), stream);
+      else
+	Fprin1 (Fcar (tail), stream);
+    }
+  UNGCPRO;
+}
+
 #ifdef LISP_FLOAT_TYPE
 
 /*
@@ -1204,7 +1279,7 @@ syms_of_print ()
 This may be any function of one argument.\n\
 It may also be a buffer (output is inserted before point)\n\
 or a marker (output is inserted and the marker is advanced)\n\
-or the symbol t (output appears in the minibuffer line).");
+or the symbol t (output appears in the echo area).");
   Vstandard_output = Qt;
   Qstandard_output = intern ("standard-output");
   staticpro (&Qstandard_output);
@@ -1249,6 +1324,7 @@ Also print formfeeds as backslash-f.");
 
   defsubr (&Sprin1);
   defsubr (&Sprin1_to_string);
+  defsubr (&Serror_message_string);
   defsubr (&Sprinc);
   defsubr (&Sprint);
   defsubr (&Sterpri);
