@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate September 13, 1998
+@set lastupdate September 15, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -347,9 +347,6 @@ Make sure the Vibrant toolkit works with LessTif instead of Motif.
 
 @item
 A program to display and edit Hypercard stacks.
-
-@item
-An interactive 3D modeling utility with rendering/raytracing capabilities.
 
 @item
 A program for graphic morphing of scanned photographs.
