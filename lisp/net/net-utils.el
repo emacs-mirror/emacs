@@ -624,7 +624,13 @@ If your system's ping continues until interrupted, you can try setting
     (cons 'rlogin	513)
     )
   "Alist of services and associated TCP port numbers.
-This list in not complete.")
+This list is not complete.")
+
+(defvar network-connection-service-abbrev-alist nil
+  "Alist of (SERVICE . ABBREVTABLE) for various network services.
+SERVICE can be either a symbol or a number appearing in
+`network-connection-service-alist'.  ABBREVTABLE is the abbrev table
+to use in buffers that talk to that network service.")
 
 ;; Workhorse macro
 (defmacro run-network-program (process-name host port
@@ -804,10 +810,10 @@ from SEARCH-STRING.  With argument, prompt for whois server."
   (let ((network-abbrev-table
 	 (or
 	  (assoc service network-connection-service-abbrev-alist)
-	 (and (rassoc service network-connection-service-alist)
-	      (assoc
-	       (elt (rassoc service network-connection-service-alist) 0)
-	       network-connection-service-abbrev-alist)))))
+	  (and (rassoc service network-connection-service-alist)
+	       (assoc
+		(elt (rassoc service network-connection-service-alist) 0)
+		network-connection-service-abbrev-alist)))))
     (make-local-variable 'network-connection-host)
     (setq network-connection-host host)
     (make-local-variable 'network-connection-service)
