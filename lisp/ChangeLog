@@ -1,3 +1,7 @@
+2000-12-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/iso-cvt.el: Docstrings fix.
+
 2000-12-20  Dave Love  <fx@gnu.org>
 
 	* subr.el (eval-after-load): Doc fix.
