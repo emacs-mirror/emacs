@@ -1,3 +1,8 @@
+2004-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Avoid potential realloc
+	of GlobalAlloc'ed memory.
+
 2003-12-29  Kenichi Handa  <handa@m17n.org>
 
 	* ccl.c (Fccl_execute_on_string): Fix the condition of loop.
