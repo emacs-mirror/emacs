@@ -185,3 +185,12 @@
 
 #define GC_SETJMP_WORKS 1
 
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
+   stack.  */
+
+#define GC_MARK_STACK 	1
+
+/* Define REL_ALLOC_MMAP to use an ralloc implementation based on
+   mmap(2)  */
+
+#define REL_ALLOC_MMAP	1
