@@ -99,6 +99,7 @@ be determined."
     (setq file (expand-file-name file data-directory)))
   (setq file (expand-file-name file))
   (let ((header (with-temp-buffer
+		  (set-buffer-multibyte nil)
 		  (insert-file-contents-literally file nil 0 256)
 		  (buffer-string))))
     (image-type-from-data header)))
