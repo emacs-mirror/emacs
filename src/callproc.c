@@ -228,7 +228,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
   if (nargs >= 3 
-      && (INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2])
+      && (INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2])))
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
 
