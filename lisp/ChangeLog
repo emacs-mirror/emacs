@@ -1,3 +1,8 @@
+2004-01-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange
+	code point (register r1) only for charset mule-unicode-0100-24ff.
+
 2004-01-21  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Avoid deleting
