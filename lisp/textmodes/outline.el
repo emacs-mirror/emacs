@@ -1,6 +1,7 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 93, 94, 95, 97, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -165,12 +166,11 @@ in the file it applies to."
   (let ((count 1))
     (save-excursion
       (outline-back-to-heading t)
-      (condition-case nil
-	  (while (not (bobp))
-	    (outline-up-heading-all 1)
-	    (setq count (1+ count)))
-	(error)))
-    count))
+      (while (and (not (bobp))
+		  (not (eq (funcall outline-level) 1)))
+	(outline-up-heading-all 1)
+	(setq count (1+ count)))
+      count)))
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
