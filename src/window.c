@@ -4530,6 +4530,9 @@ and redisplay normally--don't erase and redraw the frame.  */)
   int center_p = 0;
   int charpos, bytepos;
 
+  /* If redisplay is suppressed due to an error, try again.  */
+  obuf->display_error_modiff = 0;
+
   if (NILP (arg))
     {
       int i;
