@@ -1602,7 +1602,8 @@ typically for purposes of moderating a list."
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
 	  "^ *---+ +Returned message +---+ *$\\|"
-	  "^ *---+ +Original message +---+ *$"))
+	  "^ *---+ +Original message +---+ *$\\|"
+	  "^|? *---+ +Message text follows: +---+ *|?$"))
 
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
