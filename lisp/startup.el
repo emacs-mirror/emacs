@@ -989,6 +989,7 @@ where FACE is a valid face specification, as it can be used with
     (unless (current-message)
       (message fancy-splash-help-echo))
     (set-buffer-modified-p nil)
+    (goto-char (point-min))
     (force-mode-line-update)
     (setq fancy-current-text (cdr fancy-current-text))))
 
@@ -998,16 +999,6 @@ where FACE is a valid face specification, as it can be used with
   (interactive)
   (push last-command-event unread-command-events)
   (throw 'exit nil))
-
-
-(defvar fancy-splash-pending-command nil
-  "If non-nil, a command to be executed after the splash screen display.")
-
-(defun fancy-splash-pre-command ()
-  (unless (memq this-command
-		'(ignore fancy-splash-default-action browse-url))
-    (setq fancy-splash-pending-command this-command)
-    (throw 'exit nil)))
 
 
 (defun fancy-splash-screens ()
@@ -1029,7 +1020,6 @@ where FACE is a valid face specification, as it can be used with
 		(propertize "---- %b %-" 'face '(:weight bold))
 		timer (run-with-timer 0 5 #'fancy-splash-screens-1
 				      splash-buffer))
-	  (add-hook 'pre-command-hook 'fancy-splash-pre-command)
 	  (recursive-edit))
       (cancel-timer timer)
       (remove-hook 'pre-command-hook 'fancy-splash-pre-command)
@@ -1237,10 +1227,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		     (erase-buffer)
 		     (when initial-scratch-message
 		       (insert initial-scratch-message))
-		     (set-buffer-modified-p nil))
-
-		   (when fancy-splash-pending-command
-		     (call-interactively fancy-splash-pending-command)))))))
+		     (set-buffer-modified-p nil)))))))
     
     ;; Delay 2 seconds after the init file error message
     ;; was displayed, so user can read it.
