@@ -109,9 +109,42 @@ ARG columns.  No arg means split equally."
   (interactive "p")
   (shrink-window arg t))
 
+(defun shrink-window-if-larger-than-buffer (&optional window)
+  "Shrink the WINDOW to be as small as possible to display its contents.  Do
+nothing if only one window is displayed or if the buffer contains more lines
+than the present window height."
+  (save-excursion
+    (set-buffer (window-buffer window))
+    (let ((w (selected-window)) ;save-window-excursion can't win
+	  (buffer-file-name buffer-file-name)
+	  (p (point))
+	  (n 0)
+	  (window-min-height 0)
+	  (buffer-read-only nil)
+	  (modified (buffer-modified-p))
+	  (buffer (current-buffer)))
+      (unwind-protect
+	  (progn
+	    (select-window (or window w))
+	    (goto-char (point-min))
+	    (while (pos-visible-in-window-p (point-max))
+	      ;; defeat file locking... don't try this at home, kids!
+	      (setq buffer-file-name nil)
+	      (insert ?\n) (setq n (1+ n)))
+	    (if (> n 0) (shrink-window (1- n))))
+	(delete-region (point-min) (point))
+	(set-buffer-modified-p modified)
+	(goto-char p)
+	(select-window w)
+	;; Make sure we unbind buffer-read-only
+	;; with the proper current buffer.
+	(set-buffer buffer)))))
+      
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
 (define-key ctl-x-map "{" 'shrink-window-horizontally)
+(define-key ctl-x-map "-" 'shrink-window-if-larger-than-buffer)
+(define-key ctl-x-map "+" 'balance-windows)
 
 ;;; windows.el ends here
