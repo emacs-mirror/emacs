@@ -2206,7 +2206,7 @@ stat (const char * path, struct stat * buf)
     {
       /* Don't bother to make this information more accurate.  */
       buf->st_mode = (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
-	_S_IFREG : _S_IFDIR;
+	_S_IFDIR : _S_IFREG;
       buf->st_nlink = 1;
       fake_inode = 0;
     }
