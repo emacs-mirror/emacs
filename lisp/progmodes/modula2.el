@@ -166,7 +166,7 @@ followed by the first character of the construct.
   (m2-tab))
 
 (defun m2-case ()
-  "Build skeleton CASE statment, prompting for the <expression>."
+  "Build skeleton CASE statement, prompting for the <expression>."
   (interactive)
   (let ((name (read-string "Case-Expression: ")))
     (insert "CASE " name " OF")
@@ -194,7 +194,7 @@ followed by the first character of the construct.
   (m2-tab))
 
 (defun m2-for ()
-  "Build skeleton FOR loop statment, prompting for the loop parameters."
+  "Build skeleton FOR loop statement, prompting for the loop parameters."
   (interactive)
   (insert "FOR ")
   (let ((name (read-string "Loop Initialiser: ")) limit by)
@@ -224,7 +224,7 @@ followed by the first character of the construct.
   (insert "*)\n\n"))
 
 (defun m2-if ()
-  "Insert skeleton IF statment, prompting for <boolean-expression>."
+  "Insert skeleton IF statement, prompting for <boolean-expression>."
   (interactive)
   (insert "IF ")
   (let ((thecondition (read-string "<boolean-expression>: ")))
