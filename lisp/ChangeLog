@@ -1,3 +1,8 @@
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-keypd.el (calc-keypad-mode): Unbind unused mouse events.
+	(calc-keypad-left-click): Set buffer to calc-keymap-buffer.
+
 2004-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* faces.el: Delete code to set display table.

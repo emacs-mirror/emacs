@@ -1,3 +1,8 @@
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Starting Calc): Remove comment about installation.
+	(Keypad Mode Overview): Remove comment about Emacs 19 support.
+
 2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* url.texi: Update @setfilename.
