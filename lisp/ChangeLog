@@ -20,6 +20,9 @@
 
 2000-11-28  Dave Love  <fx@gnu.org>
 
+	* progmodes/ps-mode.el (ps-mode): Set comment-start and
+	comment-start-skip locally.
+
 	* progmodes/fortran.el (fortran-mode): Don't set
 	fortran-comment-line-start-skip.  Set comment-start to
 	fortran-comment-line-start.
