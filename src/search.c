@@ -1174,7 +1174,7 @@ Leaves point at end of replacement text.")
   register int pos, last;
   int some_multiletter_word;
   int some_lowercase;
-  int some_uppercase_initial;
+  int some_lowercase_initial;
   register int c, prevc;
   int inslen;
 
@@ -1204,7 +1204,7 @@ Leaves point at end of replacement text.")
 	 is more than one letter long. */
       some_multiletter_word = 0;
       some_lowercase = 0;
-      some_uppercase_initial = 0;
+      some_lowercase_initial = 0;
 
       for (pos = search_regs.start[0]; pos < last; pos++)
 	{
@@ -1215,14 +1215,14 @@ Leaves point at end of replacement text.")
 
 	      some_lowercase = 1;
 	      if (SYNTAX (prevc) != Sword)
-		;
+		some_lowercase_initial = 1;
 	      else
 		some_multiletter_word = 1;
 	    }
 	  else if (!NOCASEP (c))
 	    {
 	      if (SYNTAX (prevc) != Sword)
-		some_uppercase_initial = 1;
+		;
 	      else
 		some_multiletter_word = 1;
 	    }
@@ -1234,8 +1234,8 @@ Leaves point at end of replacement text.")
 	 and has at least one multiletter word.  */
       if (! some_lowercase && some_multiletter_word)
 	case_action = all_caps;
-      /* Capitalize each word, if the old text has a capitalized word.  */
-      else if (some_uppercase_initial)
+      /* Capitalize each word, if the old text has all capitalized words.  */
+      else if (!some_lowercase_initial && some_multiletter_word)
 	case_action = cap_initial;
       else
 	case_action = nochange;
