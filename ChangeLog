@@ -1,3 +1,7 @@
+2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* make-dist: lwlib/Imakefile is removed.
+
 2002-04-26  Andrew Choi  <akochoi@shaw.ca>
 
 	* configure.in: Add support for powerpc-apple-darwin*.

@@ -1,3 +1,11 @@
+2002-04-29  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
+
+	* language/vietnamese.el (viet-tcvn-decode-table, ccl-decode-tcvn)
+	(ccl-encode-tcvn, ccl-encode-tcvn-font, vietnamese-tcvn): New
+	Vietnamese coding system.
+
+	* language/viet-util.el: Update Commentary section.
+
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-data): Doc fix.
