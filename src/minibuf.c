@@ -503,13 +503,16 @@ is a string to insert in the minibuffer before reading.")
 
 /* Functions that use the minibuffer to read various things. */
 
-DEFUN ("read-string", Fread_string, Sread_string, 1, 2, 0,
+DEFUN ("read-string", Fread_string, Sread_string, 1, 3, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
-If non-nil second arg INITIAL-INPUT is a string to insert before reading.")
-  (prompt, initial_input)
-     Lisp_Object prompt, initial_input;
+If non-nil, second arg INITIAL-INPUT is a string to insert before reading.\n\
+The third arg HISTORY, if non-nil, specifies a history list\n\
+  and optionally the initial position in the list.\n\
+See `read-from-minibuffer' for details of HISTORY argument.")
+  (prompt, initial_input, history)
+     Lisp_Object prompt, initial_input, history;
 {
-  return Fread_from_minibuffer (prompt, initial_input, Qnil, Qnil, Qnil);
+  return Fread_from_minibuffer (prompt, initial_input, Qnil, Qnil, history);
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 2, 0,

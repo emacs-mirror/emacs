@@ -533,11 +533,11 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 's':		/* String read via minibuffer.  */
-	  args[i] = Fread_string (build_string (prompt), Qnil);
+	  args[i] = Fread_string (build_string (prompt), Qnil, Qnil);
 	  break;
 
 	case 'S':		/* Any symbol.  */
-	  visargs[i] = Fread_string (build_string (prompt), Qnil);
+	  visargs[i] = Fread_string (build_string (prompt), Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
