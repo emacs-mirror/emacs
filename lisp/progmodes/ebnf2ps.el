@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/28 19:06:58 vinicius>
+;; Time-stamp: <2004/02/28 19:18:57 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -2091,7 +2091,7 @@ See also `ebnf-syntax-buffer'."
   "Does a syntactic analysis of the FILE.
 
 If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
-killed after SYNTAX generation.
+killed after syntax checking.
 
 See also `ebnf-syntax-buffer'."
   (interactive "fEBNF file to check syntax: ")
