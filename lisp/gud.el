@@ -114,6 +114,11 @@ we're in the GUD buffer)."
 ;; indications of the current program counter.
 (defvar gud-last-frame nil)
 
+;; Used by gud-refresh, which should cause gud-display-frame to redisplay
+;; the last frame, even if it's been called before and gud-last-frame has
+;; been set to nil.
+(defvar gud-last-last-frame)
+
 ;; All debugger-specific information is collected here.
 ;; Here's how it works, in case you ever need to add a debugger to the mode.
 ;;
@@ -540,7 +545,8 @@ Obeying it means displaying in another window the specified file and line."
    (progn
      (gud-set-buffer)
      (gud-display-line (car gud-last-frame) (cdr gud-last-frame))
-     (setq gud-last-frame nil))))
+     (setq gud-last-last-frame gud-last-frame
+	   gud-last-frame nil))))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
@@ -665,6 +671,7 @@ Obeying it means displaying in another window the specified file and line."
   "Fix up a possibly garbled display, and redraw the arrow."
   (interactive "P")
   (recenter arg)
+  (or gud-last-frame (setq gud-last-frame gud-last-last-frame))
   (gud-display-frame))
 
 ;;; Code for parsing expressions out of C code.  The single entry point is
