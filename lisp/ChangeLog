@@ -1,3 +1,8 @@
+2001-01-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (decode-char): Fix conditions.
+	(encode-char): Handle eight-bit-control too.
+
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/etags.el (find-tag-noselect): Save the value of
