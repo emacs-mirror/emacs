@@ -3746,6 +3746,7 @@ make_lispy_event (event)
 				     / sizeof (lispy_kana_keys[0])));
 #endif /* XK_kana_A */
 
+#ifdef ISO_FUNCTION_KEY_OFFSET
       if (event->code < FUNCTION_KEY_OFFSET
 	  && event->code >= ISO_FUNCTION_KEY_OFFSET)
 	return modify_event_symbol (event->code - ISO_FUNCTION_KEY_OFFSET,
@@ -3755,6 +3756,7 @@ make_lispy_event (event)
 				    (sizeof (iso_lispy_function_keys)
 				     / sizeof (iso_lispy_function_keys[0])));
       else
+#endif
 	return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
 				    event->modifiers,
 				    Qfunction_key, Qnil,
