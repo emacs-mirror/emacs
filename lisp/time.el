@@ -31,6 +31,10 @@ Default is system-dependent, and is the same as used by Rmail.")
 (defvar display-time-interval 60
   "*Seconds between updates of time in the mode line.")
 
+(defvar display-time-24hr-format nil
+  "Non-nill indicates time should be displayed as hh:mm, 0 <= hh <= 23.
+Nil means 1 <= hh <= 12, and an AM/PM suffix is used.")
+
 (defvar display-time-string nil)
 
 (defvar display-time-hook nil
@@ -75,7 +79,8 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (let ((time (current-time-string))
 	(load (condition-case ()
 		  (if (zerop (car (load-average))) ""
-		    (format "%03d" (car (load-average))))
+		    (let ((str (format " %03d" (car (load-average)))))
+		      (concat (substring str 0 -2) "." (substring str -2))))
 		(error "")))
 	(mail-spool-file (or display-time-mail-file
 			     (getenv "MAIL")
@@ -83,17 +88,20 @@ After each update, `display-time-hook' is run with `run-hooks'."
 				     (or (getenv "LOGNAME")
 					 (getenv "USER")
 					 (user-login-name)))))
-	hour pm)
+	hour am-pm-flag)
     (setq hour (read (substring time 11 13)))
-    (setq pm (>= hour 12))
-    (if (> hour 12)
-	(setq hour (- hour 12))
-      (if (= hour 0)
-	  (setq hour 12)))
+    (if (not display-time-24hr-format)
+	(progn
+	  (setq am-pm-flag (if (>= hour 12) "pm" "am"))
+	  (if (> hour 12)
+	      (setq hour (- hour 12))
+	    (if (= hour 0)
+		(setq hour 12))))
+      (setq am-pm-flag ""))
     (setq display-time-string
 	  (concat (format "%d" hour) (substring time 13 16)
-		  (if pm "pm " "am ")
-		  (substring load 0 -2) "." (substring load -2)
+		  am-pm-flag
+		  load
 		  (if (and (file-exists-p mail-spool-file)
 			   ;; file not empty?
 			   (display-time-file-nonempty-p mail-spool-file))
