@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "indent.h"
 #include "termchar.h"
 #include "disptab.h"
+#include "keyboard.h"
 
 Lisp_Object Qwindowp;
 
@@ -1930,9 +1931,10 @@ window_internal_height (w)
 /* Scroll contents of window WINDOW up N lines.  */
 
 void
-window_scroll (window, n)
+window_scroll (window, n, noerror)
      Lisp_Object window;
      int n;
+     int noerror;
 {
   register struct window *w = XWINDOW (window);
   register int opoint = point;
@@ -1961,14 +1963,14 @@ window_scroll (window, n)
   SET_PT (opoint);
 
   if (lose)
-    Fsignal (Qbeginning_of_buffer, Qnil);
+    {
+      if (noerror)
+	return;
+      else
+	Fsignal (Qbeginning_of_buffer, Qnil);
+    }
 
   if (pos < ZV)
-#if 0
-      /* Allow scrolling to an empty screen (end of buffer)
-	 if that is exactly how far we wanted to go.  */
-      || XINT (nmoved) == n)
-#endif
     {
       set_marker_restricted (w->start, make_number (pos), w->buffer);
       w->start_at_line_beg = bolp;
@@ -1987,7 +1989,12 @@ window_scroll (window, n)
 	}
     }
   else
-    Fsignal (Qend_of_buffer, Qnil);
+    {
+      if (noerror)
+	return;
+      else
+	Fsignal (Qend_of_buffer, Qnil);
+    }
 }
 
 /* This is the guts of Fscroll_up and Fscroll_down.  */
@@ -2000,29 +2007,27 @@ scroll_command (n, direction)
   register int defalt;
   int count = specpdl_ptr - specpdl;
 
-  /* If selected window's buffer isn't current, make it current for the moment.
-     But don't screw up if window_scroll gets an error.  */
+  /* Code here used to set the current buffer to the selected window's
+     buffer, but since this command always operates on the selected
+     window, the current buffer should always be the selected window's
+     buffer already.  Verify this assumption, so we won't be screwed
+     if we're guessing wrong.  */
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-    {
-      record_unwind_protect (save_excursion_restore, save_excursion_save ());
-      Fset_buffer (XWINDOW (selected_window)->buffer);
-    }
+    abort ();
 
   defalt = (window_internal_height (XWINDOW (selected_window))
 	    - next_screen_context_lines);
   defalt = direction * (defalt < 1 ? 1 : defalt);
 
   if (NILP (n))
-    window_scroll (selected_window, defalt);
+    window_scroll (selected_window, defalt, 0);
   else if (EQ (n, Qminus))
-    window_scroll (selected_window, - defalt);
+    window_scroll (selected_window, - defalt, 0);
   else
     {
       n = Fprefix_numeric_value (n);
-      window_scroll (selected_window, XINT (n) * direction);
+      window_scroll (selected_window, XINT (n) * direction, 0);
     }
-
-  unbind_to (count, Qnil);
 }
 
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
@@ -2093,15 +2098,15 @@ showing that buffer, popping the buffer up if necessary.")
   SET_PT (marker_position (w->pointm));
 
   if (NILP (n))
-    window_scroll (window, ht - next_screen_context_lines);
+    window_scroll (window, ht - next_screen_context_lines, 1);
   else if (EQ (n, Qminus))
-    window_scroll (window, next_screen_context_lines - ht);
+    window_scroll (window, next_screen_context_lines - ht, 1);
   else
     {
       if (XTYPE (n) == Lisp_Cons)
 	n = Fcar (n);
       CHECK_NUMBER (n, 0);
-      window_scroll (window, XINT (n));
+      window_scroll (window, XINT (n), 1);
     }
 
   Fset_marker (w->pointm, make_number (point), Qnil);

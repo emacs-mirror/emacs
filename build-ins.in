@@ -1,4 +1,4 @@
-#!/bin/csh -fx
+#!/bin/sh -x
 #
 #Shell script for building and installing Emacs.
 
@@ -7,58 +7,55 @@
 # libaries.  The default definitions for the variables below are
 # expressed in terms of this one, so you may not need to change them.
 # set LIBROOT=/usr/local/lib/emacs-19.0
-set LIBROOT=/u/emacs
+LIBROOT=/u/src/emacs/19.0
 
 # Emacs will search this path to find its elisp files.  This should be
 # a colon-separated list of directories.  Strictly speaking, all the
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-set LISPPATH=/u/emacs/lisp
+LISPPATH=/u/src/emacs/19.0/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-set DATADIR=/u/emacs/share-lib
+DATADIR=/u/src/emacs/19.0/share-lib
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-set LIBDIR=/u/emacs/arch-lib
+LIBDIR=/u/src/emacs/19.0/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
 # set LOCKDIR=${LIBROOT}/lock
-set LOCKDIR=/u/emacs/lock
+LOCKDIR=/u/src/emacs/19.0/lock
 
 # This is where build-install should place the binaries people will
 # want to run directly (like etags and Emacs itself).
-set BINDIR=/usr/local/bin
+BINDIR=/usr/local/bin
 
 /bin/sed < src/paths.h-dist > src/paths.h			\
--e 's;/usr/local/emacs;'${LIBDIR}';g'				\
--e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'${LISPPATH}'";'		\
--e 's;\(#.*PATH_EXEC\).*$$;\1 "'${LIBDIR}'";'			\
--e 's;\(#.*PATH_DATA\).*$$;\1 "'${DATADIR}'";'			\
--e 's;\(#.*LOCK\).*$$;\1 "'${LOCKDIR}'/";'
-
-exit 1
+-e 's;\(#.*PATH_LOADSEARCH\).*$;\1 "'${LISPPATH}'";'		\
+-e 's;\(#.*PATH_EXEC\).*$;\1 "'${LIBDIR}'";'			\
+-e 's;\(#.*PATH_DATA\).*$;\1 "'${DATADIR}'";'			\
+-e 's;\(#.*LOCK\).*$;\1 "'${LOCKDIR}'/";'
 
 (cd lib-src; make) || exit 1
 (cd src; make) || exit 1
 
-if (`pwd` != `(cd ${LIBROOT}; pwd)`) then
+if [ `pwd` != `(cd ${LIBROOT}; pwd)` ]; then
   mv `pwd` ${LIBROOT}
-  if ($status) then
+  if [ $? != '0' ]; then
     mkdir ${LIBROOT}
     echo mv `pwd` to ${LIBROOT} failed--using tar to copy.
     tar cf - . | (cd ${LIBROOT}; umask 0; tar xf -)
-    if ($status) then
+    if [ $? != '0' ]; then
       echo tar-copying `pwd` to ${LIBROOT} failed.
       exit 1
-    endif
-  endif
-endif
+    fi
+  fi
+fi
 
-cp ${LIBROOT}/etc/{ctags,etags} ${BINDIR}
+cp ${LIBROOT}/etc/[ce]tags ${BINDIR}
 mv ${LIBROOT}/src/xemacs ${BINDIR}/emacs
 rm ${LIBROOT}/src/temacs
-chmod 777 ${BINDIR}/{ctags,etags,emacs}
+chmod 777 ${BINDIR}/[ce]tags ${BINDIR}/emacs

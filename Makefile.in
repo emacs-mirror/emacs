@@ -23,7 +23,7 @@ SHELL = /bin/sh
 # already, the `install' targets will move or copy it there.  The
 # default definitions for the variables below are expressed in terms
 # of this one, so you may not need to change them.
-LIBROOT=/u/emacs
+LIBROOT=/u/src/emacs/19.0
 
 # This is where the `install' make target should place the binaries
 # people will want to run directly (like etags and Emacs itself).
@@ -34,19 +34,19 @@ INSTALLBIN=/usr/local/bin
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/u/emacs/lisp
+LISPPATH=/u/src/emacs/19.0/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/u/emacs/share-lib
+DATADIR=/u/src/emacs/19.0/share-lib
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/u/emacs/arch-lib
+LIBDIR=/u/src/emacs/19.0/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
-LOCKDIR=/u/emacs/lock
+LOCKDIR=/u/src/emacs/19.0/lock
 
 # This is where the `install' make target should place the man pages
 # for the binaries it installs.
@@ -72,7 +72,6 @@ all:	src/paths.h ${SUBDIR}
 
 src/paths.h: Makefile src/paths.h-dist
 	/bin/sed < src/paths.h-dist > src/paths.h			\
-	-e 's;/usr/local/lib/emacs;${LIBROOT};g'			\
 	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "$(LISPPATH)";'		\
 	-e 's;\(#.*PATH_EXEC\).*$$;\1 "$(LIBDIR)";'			\
 	-e 's;\(#.*PATH_DATA\).*$$;\1 "$(DATADIR)";'			\
@@ -87,7 +86,7 @@ ${SUBDIR}: FRC
 
 install: all mkdir lockdir
 	-if [ `/bin/pwd` != `(cd ${LIBROOT}; /bin/pwd)` ] ; then \
-		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xBf - ) ;\
+		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xf - ) ;\
 		for i in ${CLEANDIR}; do \
 			(rm -rf ${LIBROOT}/$$i/RCS; \
 			 rm -f ${LIBROOT}/$$i/\#*; \
