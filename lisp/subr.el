@@ -51,6 +51,21 @@ BODY should be a list of lisp expressions."
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+(defmacro push (value listname)
+  "Add VALUE to the list which is the value of LISTNAME.
+This is equivalent to (setq LISTNAME (cons VALUE LISTNAME)).
+LISTNAME must be a symbol."
+  (list 'setq list
+	(list 'cons value list)))
+
+(defmacro pop (listname)
+  "Return the first element of LISTNAME's value, and remove it from the list.
+LISTNAME must be a symbol whose value is a list.
+If the value is nil, `pop' returns nil but does not actually
+change the list."
+  (list 'prog1 (list 'car listname)
+	(list 'setq listname (list 'cdr listname))))
+
 (defmacro when (cond &rest body)
   "(when COND BODY...): if COND yields non-nil, do BODY, else return nil."
   (list 'if cond (cons 'progn body)))
