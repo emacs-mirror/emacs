@@ -356,8 +356,8 @@ One annotation each for foreground color, background color, italic, etc."
 	 (list (list "x-color" (substring (symbol-name face) 3))))
 	((string-match "^bg:" (symbol-name face))
 	 (list (list "x-bg-color" (substring (symbol-name face) 3))))
-	((let* ((fg (face-foreground face))
-		(bg (face-background face))
+	((let* ((fg (face-attribute face :foreground))
+		(bg (face-attribute face :background))
 		(props (face-font face t))
 		(ans (cdr (format-annotate-single-property-change
 			   'face nil props enriched-translations))))
