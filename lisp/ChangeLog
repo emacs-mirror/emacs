@@ -1,3 +1,7 @@
+2000-11-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mh-e.el, mail/mh-comp.el: Change maintainer.
+
 2000-11-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Extension for even/odd printing.  Doc Fix.

@@ -148,10 +148,10 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
 * Processes::               Running and communicating with subprocesses.
-* System Interface::        Getting the user id, system type, environment
-                              variables, and other such things.
 * Display::	            Features for controlling the screen display.
 * Calendar::		    Customizing the calendar and diary.
+* System Interface::        Getting the user id, system type, environment
+                              variables, and other such things.
 
 Appendices
 
