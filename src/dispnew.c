@@ -517,36 +517,6 @@ safe_bcopy (from, to, size)
     }
 }     
 
-#if 0
-void
-safe_bcopy (from, to, size)
-     char *from, *to;
-     int size;
-{
-  register char *endf;
-  register char *endt;
-
-  if (size == 0)
-    return;
-
-  /* If destination is higher in memory, and overlaps source zone,
-     copy from the end. */
-  if (from < to && from + size > to)
-    {
-      endf = from + size;
-      endt = to + size;
-
-      do
-	*--endt = *--endf;
-      while (endf != from);
-
-      return;
-    }
-
-  bcopy (from, to, size);
-}
-#endif
-
 /* Rotate a vector of SIZE bytes right, by DISTANCE bytes.
    DISTANCE may be negative.  */
 
