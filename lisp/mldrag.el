@@ -112,7 +112,7 @@ window taller or shorter."
 		     (if should-enlarge-minibuffer
 			 (progn
 			   ;; yes.  briefly select minibuffer so
-			   ;; ealarge-window will affect the
+			   ;; enlarge-window will affect the
 			   ;; correct window.
 			   (select-window minibuffer)
 			   ;; scale back shrinkage if it would
