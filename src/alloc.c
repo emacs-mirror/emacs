@@ -111,6 +111,10 @@ int stack_copy_size;
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.  */
 int ignore_warnings;
+
+static void mark_object (), mark_buffer ();
+static void clear_marks (), gc_sweep ();
+static void compact_strings ();
 
 Lisp_Object
 malloc_warning_1 (str)
@@ -1122,10 +1126,6 @@ int total_free_conses, total_free_markers, total_free_symbols;
 #ifdef LISP_FLOAT_TYPE
 int total_free_floats, total_floats;
 #endif /* LISP_FLOAT_TYPE */
-
-static void mark_object (), mark_buffer ();
-static void clear_marks (), gc_sweep ();
-static void compact_strings ();
 
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
   "Reclaim storage for Lisp objects no longer needed.\n\
