@@ -234,7 +234,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		 (if (re-search-forward (car (car tail)) nil t)
 		     (setq answer (eval (cdr (car tail)))))
 		 (setq tail (cdr tail))))
-	     ;; If not suggestions, use same file as last time.
+	     ;; If no suggestion, use same file as last time.
 	     (or answer rmail-default-file))))
      (list (setq rmail-default-file
 		 (let ((read-file
@@ -242,13 +242,13 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			 (concat "Output message to Unix mail file: (default "
 				 (file-name-nondirectory default-file)
 				 ") ")
-			 (file-name-directory default-file)
-			 default-file)))
+			 (file-name-directory (expand-file-name default-file))
+			 (expand-file-name default-file))))
 		   (if (file-directory-p read-file)
 		       (expand-file-name (file-name-nondirectory default-file)
 					 read-file)
 		     (expand-file-name
-		      (or read-file default-file)
+		      (or read-file (file-name-nondirectory default-file))
 		      (file-name-directory default-file)))))
 	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
