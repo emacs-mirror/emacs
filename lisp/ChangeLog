@@ -1,3 +1,9 @@
+1999-10-16  Dave Love  <d.love@dl.ac.uk>
+
+	* emacs-lisp/edebug.el (edebug-install-read-eval-functions)
+	(edebug-uninstall-read-eval-functions): Use load-read-function,
+	avoiding elisp-eval.
+
 1999-10-16  Sam Steingold  <sds@ksp.com>
 
 	* emacs-lisp/cl-indent.el (common-lisp-indent-function): Use `eq'
