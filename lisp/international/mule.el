@@ -993,7 +993,8 @@ See also the command `set-keyboard-coding-system'.")
 (defun set-keyboard-coding-system (coding-system)
   "Set coding system for keyboard input to CODING-SYSTEM.
 In addition, this command enables Encoded-kbd minor mode.
-\(If CODING-SYSTEM is nil, Encoded-kbd mode is turned off.)
+\(If CODING-SYSTEM is nil, Encoded-kbd mode is turned off -- see
+`encoded-kbd-mode'.)
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command."
@@ -1012,6 +1013,26 @@ or by the previous use of this command."
       (setq default-keyboard-coding-system coding-system))
   (set-keyboard-coding-system-internal coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
+
+(defcustom keyboard-coding-system nil
+  "Specify coding system for keyboard input.
+If you set this on a terminal which can't distinguish Meta keys from
+8-bit characters, you will have to use ESC to type Meta characters.
+See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
+
+Setting this variable directly does not take effect;
+use either M-x customize or \\[set-keyboard-coding-system]."
+  :type '(coding-system :tag "Coding system")
+  :link '(info-link "(emacs)Specify Coding")
+  :link '(info-link "(emacs)Single-Byte Character Support")
+  :set (lambda (symbol value)
+	 ;; Don't load encoded-kbd-mode unnecessarily.
+	 (if (or value (boundp 'encoded-kbd-mode))
+	     (set-keyboard-coding-system value)
+	   (set-default 'keyboard-coding-system nil))) ; must initialize
+  :version "21.1"
+  :group 'keyboard
+  :group 'mule)
 
 (defun set-buffer-process-coding-system (decoding encoding)
   "Set coding systems for the process associated with the current buffer.
