@@ -110,7 +110,7 @@ This command can also be an abbrev expansion (3rd and 4th columns in
 	  (setq function (nth 1 (backtrace-frame 2)))))
     (if (not (setq function (funcall skeleton-filter (symbol-value function))))
 	(if (or (eq this-command 'self-insert-command)
-		(eq this-command 'pair-insert-maybe)
+		(eq this-command 'skeleton-pair-insert-maybe)
 		(eq this-command 'expand-abbrev))
 	    (setq buffer-undo-list
 		  (primitive-undo 1 buffer-undo-list)))
@@ -118,7 +118,7 @@ This command can also be an abbrev expansion (3rd and 4th columns in
 		       nil
 		       (if (setq skeleton-abbrev-cleanup
 				 (or (eq this-command 'self-insert-command)
-				     (eq this-command 'pair-insert-maybe)))
+				     (eq this-command 'skeleton-pair-insert-maybe)))
 			   ()
 			 ;; Pretend  C-x a e  passed the prefix arg to us
 			 (if (or arg current-prefix-arg)
@@ -345,7 +345,6 @@ automatically, and you are prompted to fill in the variable parts."))))
 
 ;; Maybe belongs into simple.el or elsewhere
 
-;;;###autoload
 (define-skeleton local-variables-section
   "Insert a local variables section.  Use current comment syntax if any."
   ()
@@ -373,54 +372,53 @@ automatically, and you are prompted to fill in the variable parts."))))
   resume:
   comment-start "End:" comment-end)
 
-;; variables and command for automatically inserting pairs like () or ""
+;; Variables and command for automatically inserting pairs like () or "".
 
-(defvar pair nil
+(defvar skeleton-pair nil
   "*If this is nil pairing is turned off, no matter what else is set.
-Otherwise modes with `pair-insert-maybe' on some keys will attempt this.")
+Otherwise modes with `skeleton-pair-insert-maybe' on some keys
+will attempt to insert pairs of matching characters.")
 
 
-(defvar pair-on-word nil
-  "*If this is nil pairing is not attempted before or inside a word.")
+(defvar skeleton-pair-on-word nil
+  "*If this is nil, paired insertion is inhibited before or inside a word.")
 
 
-(defvar pair-filter (lambda ())
-  "Attempt pairing if this function returns nil, before inserting.
+(defvar skeleton-pair-filter (lambda ())
+  "Attempt paired insertion if this function returns nil, before inserting.
 This allows for context-sensitive checking whether pairing is appropriate.")
 
 
-(defvar pair-alist ()
-  "An override alist of pairing partners matched against
-`last-command-char'.  Each alist element, which looks like (ELEMENT
-...), is passed to `skeleton-insert' with no interactor.  Variable `str'
-does nothing.
+(defvar skeleton-pair-alist ()
+  "An override alist of pairing partners matched against `last-command-char'.
+Each alist element, which looks like (ELEMENT ...), is passed to
+`skeleton-insert' with no interactor.  Variable `str' does nothing.
 
 Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
 
-
 ;;;###autoload
-(defun pair-insert-maybe (arg)
+(defun skeleton-pair-insert-maybe (arg)
   "Insert the character you type ARG times.
 
-With no ARG, if `pair' is non-nil, and if
-`pair-on-word' is non-nil or we are not before or inside a
-word, and if `pair-filter' returns nil, pairing is performed.
+With no ARG, if `skeleton-pair' is non-nil, and if
+`skeleton-pair-on-word' is non-nil or we are not before or inside a
+word, and if `skeleton-pair-filter' returns nil, pairing is performed.
 
-If a match is found in `pair-alist', that is inserted, else
+If a match is found in `skeleton-pair-alist', that is inserted, else
 the defaults are used.  These are (), [], {}, <> and `' for the
 symmetrical ones, and the same character twice for the others."
   (interactive "*P")
   (if (or arg
-	  (not pair)
-	  (if (not pair-on-word) (looking-at "\\w"))
-	  (funcall pair-filter))
+	  (not skeleton-pair)
+	  (if (not skeleton-pair-on-word) (looking-at "\\w"))
+	  (funcall skeleton-pair-filter))
       (self-insert-command (prefix-numeric-value arg))
     (self-insert-command 1)
     (if skeleton-abbrev-cleanup
 	()
       ;; (preceding-char) is stripped of any Meta-stuff in last-command-char
-      (if (setq arg (assq (preceding-char) pair-alist))
+      (if (setq arg (assq (preceding-char) skeleton-pair-alist))
 	  ;; typed char is inserted, and car means no interactor
 	  (skeleton-insert arg t)
 	(save-excursion
@@ -433,48 +431,48 @@ symmetrical ones, and the same character twice for the others."
 		      last-command-char)))))))
 
 
-;; A more serious example can be found in sh-script.el
-;; The quote before (defun prevents this from being byte-compiled.
-'(defun mirror-mode ()
-  "This major mode is an amusing little example of paired insertion.
-All printable characters do a paired self insert, while the other commands
-work normally."
-  (interactive)
-  (kill-all-local-variables)
-  (make-local-variable 'pair)
-  (make-local-variable 'pair-on-word)
-  (make-local-variable 'pair-filter)
-  (make-local-variable 'pair-alist)
-  (setq major-mode 'mirror-mode
-	mode-name "Mirror"
-	pair-on-word t
-	;; in the middle column insert one or none if odd window-width
-	pair-filter (lambda ()
-		      (if (>= (current-column)
-			      (/ (window-width) 2))
-			  ;; insert both on next line
-			  (next-line 1)
-			;; insert one or both?
-			(= (* 2 (1+ (current-column)))
-			   (window-width))))
-	;; mirror these the other way round as well
-	pair-alist '((?) _ ?()
-		     (?] _ ?[)
-		     (?} _ ?{)
-		     (?> _ ?<)
-		     (?/ _ ?\\)
-		     (?\\ _ ?/)
-		     (?` ?` _ "''")
-		     (?' ?' _ "``"))
-	;; in this mode we exceptionally ignore the user, else it's no fun
-	pair t)
-  (let ((map (make-keymap))
-	(i ? ))
-    (use-local-map map)
-    (setq map (car (cdr map)))
-    (while (< i ?\^?)
-      (aset map i 'pair-insert-maybe)
-      (setq i (1+ i))))
-  (run-hooks 'mirror-mode-hook))
+;;; ;; A more serious example can be found in sh-script.el
+;;; ;; The quote before (defun prevents this from being byte-compiled.
+;;;(defun mirror-mode ()
+;;;  "This major mode is an amusing little example of paired insertion.
+;;;All printable characters do a paired self insert, while the other commands
+;;;work normally."
+;;;  (interactive)
+;;;  (kill-all-local-variables)
+;;;  (make-local-variable 'pair)
+;;;  (make-local-variable 'pair-on-word)
+;;;  (make-local-variable 'pair-filter)
+;;;  (make-local-variable 'pair-alist)
+;;;  (setq major-mode 'mirror-mode
+;;;	mode-name "Mirror"
+;;;	pair-on-word t
+;;;	;; in the middle column insert one or none if odd window-width
+;;;	pair-filter (lambda ()
+;;;		      (if (>= (current-column)
+;;;			      (/ (window-width) 2))
+;;;			  ;; insert both on next line
+;;;			  (next-line 1)
+;;;			;; insert one or both?
+;;;			(= (* 2 (1+ (current-column)))
+;;;			   (window-width))))
+;;;	;; mirror these the other way round as well
+;;;	pair-alist '((?) _ ?()
+;;;		     (?] _ ?[)
+;;;		     (?} _ ?{)
+;;;		     (?> _ ?<)
+;;;		     (?/ _ ?\\)
+;;;		     (?\\ _ ?/)
+;;;		     (?` ?` _ "''")
+;;;		     (?' ?' _ "``"))
+;;;	;; in this mode we exceptionally ignore the user, else it's no fun
+;;;	pair t)
+;;;  (let ((map (make-keymap))
+;;;	(i ? ))
+;;;    (use-local-map map)
+;;;    (setq map (car (cdr map)))
+;;;    (while (< i ?\^?)
+;;;      (aset map i 'skeleton-pair-insert-maybe)
+;;;      (setq i (1+ i))))
+;;;  (run-hooks 'mirror-mode-hook))
 
 ;; skeleton.el ends here
