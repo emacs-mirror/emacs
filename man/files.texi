@@ -434,6 +434,7 @@ every time a file is saved or written.  The default is @code{nil}.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
 * Shadowing: File Shadowing. Copying files to `shadows' automatically.
+* Time Stamps::         Emacs can update time stamps on saved files.
 @end menu
 
 @node Backup
@@ -761,6 +762,31 @@ If you do not want to copy a particular file, you can answer "no" and be
 asked again next time you hit @kbd{C-x 4 s} or exit Emacs.  If you do
 not want to be asked again, use @kbd{M-x shadow-cancel}, and you will
 not be asked until you change the file and save it again.
+
+@node Time Stamps
+@subsection Updating Time Stamps Automatically
+@findex time-stamp
+@cindex time stamps
+@cindex modification dates
+
+You can arrange to have time stamp text in a file updated
+automatically to reflect the modification time when you save the
+file.  To do this, include in the first eight lines a template like
+@example
+Time-stamp: <>
+@end example
+@noindent
+or
+@example
+Time-stamp: ""
+@end example
+@noindent
+and customize the value of the hook @code{write-file-hooks} to add
+@code{time-stamp}.  Such a template is updated with the current time
+and date when the file is written.
+
+You can customize the form of the template and the time string used
+along with other parameters in the Custom group @code{time-stamp}.
 
 @node Reverting
 @section Reverting a Buffer
