@@ -138,12 +138,6 @@ Use this where the name of the executable doesn't correspond to the type of
 shell it really is.")
 
 
-(defvar sh-shells
-  '(("ash") ("bash") ("csh") ("dtksh") ("es") ("itcsh") ("jsh") ("ksh")
-    ("oash") ("pdksh") ("rc") ("sh") ("tcsh") ("wksh") ("wsh") ("zsh"))
-  "*Alist of shells available for completing read in `sh-set-shell'.")
-
-
 (defvar sh-shell-path (or (getenv "SHELL") "/bin/sh")
   "*The executable of the shell being programmed.")
 
@@ -347,13 +341,13 @@ That command is also used for setting this variable.")
 
 
 (defvar sh-beginning-of-command
-  "\\([;({`|&]\\|^\\)[ \t]*\\([/~:a-zA-Z0-9]\\)"
+  "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~a-zA-Z0-9:]\\)"
   "*Regexp to determine the beginning of a shell command.
 The actual command starts at the beginning of the second \\(grouping\\).")
 
 
 (defvar sh-end-of-command
-  "\\([/~:a-zA-Z0-9]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
+  "\\([/~a-zA-Z0-9:]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
   "*Regexp to determine the end of a shell command.
 The actual command ends at the end of the first \\(grouping\\).")
 
@@ -369,28 +363,24 @@ The actual command ends at the end of the first \\(grouping\\).")
 
 
 (defvar sh-builtins
-  '((bash eval sh-append sh
-	  "alias" "bg" "bind" "builtin" "bye" "command" "declare" "dirs"
-	  "enable" "fc" "fg" "function" "help" "history" "jobs" "kill" "let"
-	  "local" "logout" "popd" "pushd" "source" "suspend" "typeset"
-	  "unalias")
+  '((bash eval sh-append posix
+	  "alias" "bg" "bind" "builtin" "declare" "dirs" "enable" "fc" "fg"
+	  "help" "history" "jobs" "kill" "let" "local" "popd" "pushd" "source"
+	  "suspend" "typeset" "unalias")
 
     ;; The next entry is only used for defining the others
     (bourne eval sh-append shell
-	    "do" "done" "elif" "esac" "export" "fi" "for" "getopts" "in"
-	    "newgrp" "pwd" "read" "readonly" "return" "times" "trap" "ulimit"
-	    "until")
+	    "eval" "export" "getopts" "newgrp" "pwd" "read" "readonly"
+	    "times" "ulimit")
 
     (csh eval sh-append shell
-	 "alias" "breaksw" "chdir" "default:" "end" "endif" "endsw" "foreach"
-	 "glob" "goto" "history" "limit" "logout" "nice" "nohup" "onintr"
-	 "rehash" "repeat" "setenv" "source" "switch" "time" "unalias"
-	 "unhash")
+	 "alias" "chdir" "glob" "history" "limit" "nice" "nohup" "rehash"
+	 "setenv" "source" "time" "unalias" "unhash")
 
-    (es "access" "apids" "break" "catch" "cd" "echo" "eval" "exec" "exit"
-	"false" "fn" "for" "forever" "fork" "if" "let" "limit" "local"
-	"newpgrp" "result" "return" "throw" "time" "true" "umask"
-	"unwind-protect" "var" "vars" "wait" "whatis" "while")
+    (dtksh eval identity wksh)
+
+    (es "access" "apids" "cd" "echo" "eval" "false" "let" "limit" "local"
+	"newpgrp" "result" "time" "umask" "var" "vars" "wait" "whatis")
 
     (jsh eval sh-append sh
 	 "bg" "fg" "jobs" "kill" "stop" "suspend")
@@ -399,8 +389,8 @@ The actual command ends at the end of the first \\(grouping\\).")
 	 "bg" "fg" "jobs" "kill" "notify" "stop" "suspend")
 
     (ksh88 eval sh-append bourne
-	   "alias" "bg" "false" "fc" "fg" "function" "jobs" "kill" "let"
-	   "print" "select" "time" "typeset" "unalias" "whence")
+	   "alias" "bg" "false" "fc" "fg" "jobs" "kill" "let" "print" "time"
+	   "typeset" "unalias" "whence")
 
     (oash eval sh-append sh
 	  "checkwin" "dateline" "error" "form" "menu" "newwin" "oadeinit"
@@ -414,55 +404,72 @@ The actual command ends at the end of the first \\(grouping\\).")
     (posix eval sh-append sh
 	   "command")
 
-    (rc "break" "builtin" "case" "cd" "echo" "else" "eval" "exec" "exit" "fn"
-	"for" "if" "in" "limit" "newpgrp" "return" "shift" "switch" "umask"
-	"wait" "whatis" "while")
+    (rc "builtin" "cd" "echo" "eval" "limit" "newpgrp" "shift" "umask" "wait"
+	"whatis")
 
     (sh eval sh-append bourne
 	"hash" "test" "type")
 
     ;; The next entry is only used for defining the others
-    (shell "break" "case" "cd" "continue" "echo" "else" "eval" "exec" "exit"
-	   "if" "set" "shift" "then" "umask" "unset" "wait" "while")
+    (shell "cd" "echo" "eval" "set" "shift" "umask" "unset" "wait")
+
+    (wksh eval sh-append ksh88
+	  "Xt[A-Z][A-Za-z]*")
 
     (zsh eval sh-append ksh88
-	 "autoload" "bindkey" "builtin" "bye" "chdir" "compctl" "declare"
-	 "dirs" "disable" "disown" "echotc" "enable" "functions" "getln"
-	 "hash" "history" "integer" "limit" "local" "log" "logout" "popd"
-	 "pushd" "r" "readonly" "rehash" "sched" "setopt" "source" "suspend"
-	 "true" "ttyctl" "type" "unfunction" "unhash" "unlimit" "unsetopt"
-	 "vared" "which"))
+	 "autoload" "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
+	 "disable" "disown" "echotc" "enable" "functions" "getln" "hash"
+	 "history" "integer" "limit" "local" "log" "popd" "pushd" "r"
+	 "readonly" "rehash" "sched" "setopt" "source" "suspend" "true"
+	 "ttyctl" "type" "unfunction" "unhash" "unlimit" "unsetopt" "vared"
+	 "which"))
   "*List of all shell builtins for completing read and fontification.
 Note that on some systems not all builtins are available or some are
 implemented as aliases.  See `sh-feature'.")
 
 
+
 (defvar sh-leading-keywords
-  '((bash eval sh-append sh
-	  "builtin" "command" "enable")
+  '((csh "else")
+
+    (es "true" "unwind-protect" "whatis")
+
+    (rc "else")
+
+    (sh "do" "elif" "else" "if" "then" "trap" "type" "until" "while"))
+  "*List of keywords that may be immediately followed by a builtin or keyword.
+Given some confusion between keywords and builtins depending on shell and
+system, the distinction here has been based on whether they influence the
+flow of control or syntax.  See `sh-feature'.")
+
+
+(defvar sh-other-keywords
+  '((bash eval sh-append bourne
+	  "bye" "logout")
 
     ;; The next entry is only used for defining the others
-    (bourne "do" "elif" "else" "eval" "if" "then" "trap" "until" "while")
+    (bourne eval sh-append shell
+	    "done" "esac" "fi" "for" "function" "in" "return")
 
-    (csh "else")
+    (csh eval sh-append shell
+	 "breaksw" "default" "end" "endif" "endsw" "foreach" "goto"
+	 "if" "logout" "onintr" "repeat" "switch" "then" "while")
 
-    (es "eval" "time" "true" "umask"
-	"unwind-protect" "whatis")
+    (es "break" "catch" "exec" "exit" "fn" "for" "forever" "fork" "if"
+	"return" "throw" "while")
 
     (ksh88 eval sh-append bourne
-	   "time" "whence")
+	   "select")
 
-    (posix eval sh-append sh
-	   "command")
+    (rc "break" "case" "exec" "exit" "fn" "for" "if" "in" "return" "switch"
+	"while")
 
-    (rc "builtin" "else" "eval" "whatis")
+    ;; The next entry is only used for defining the others
+    (shell "break" "case" "continue" "exec" "exit")
 
-    (sh eval sh-append bourne
-	"type")
-
-    (zsh eval sh-append ksh88
-	 "builtin" "disable" "enable" "type" "unhash" "which"))
-  "*List of keywords that may be immediately followed by a command(-name).
+    (zsh eval sh-append bash
+	 "select"))
+  "*List of keywords not in `sh-leading-keywords'.
 See `sh-feature'.")
 
 
@@ -540,30 +547,29 @@ See `sh-feature'.")
 	 '("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
 	   font-lock-variable-name-face))
 
-    (dtksh eval identity wksh)
-
     (es eval sh-append executable-font-lock-keywords
 	'("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
 	  font-lock-variable-name-face))
 
-    (rc eval sh-append es
-	'("\\(^\\|[ \t]\\)\\(else\\( if\\)?\\)\\>" 2
-	  font-lock-keyword-face t))
+    (rc eval identity es)
 
     (sh eval sh-append shell
 	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
-	  font-lock-variable-name-face)
-	" in\\([ \t]\\|$\\)")
+	  font-lock-variable-name-face))
 
     ;; The next entry is only used for defining the others
     (shell eval sh-append executable-font-lock-keywords
 	   '("\\\\." 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
-	     font-lock-variable-name-face))
-
-    (wksh eval sh-append ksh88
-	  '("\\(^\\|[^-._A-Za-z0-9]\\)\\(Xt[A-Z][A-Za-z]*\\)\\($\\|[^-._A-Za-z0-9]\\)" 2 font-lock-keyword-face)))
+	     font-lock-variable-name-face)))
   "*Rules for highlighting shell scripts.  See `sh-feature'.")
+
+(defvar sh-font-lock-keywords-1
+  '((sh "[ \t]in[ \t]"))
+  "*Additional rules for highlighting shell scripts.  See `sh-feature'.")
+
+(defvar sh-font-lock-keywords-2 ()
+  "*Yet more rules for highlighting shell scripts.  See `sh-feature'.")
 
 
 ;; mode-command and utility functions
@@ -618,6 +624,7 @@ with your script for an edit-interpret-debug cycle."
   (use-local-map sh-mode-map)
   (make-local-variable 'indent-line-function)
   (make-local-variable 'indent-region-function)
+  (make-local-variable 'skeleton-end-hook)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'comment-start)
@@ -628,10 +635,10 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell)
   (make-local-variable 'skeleton-pair-alist)
   (make-local-variable 'skeleton-pair-filter)
-  (make-local-variable 'font-lock-keywords)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
-  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (make-local-variable 'font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
   (make-local-variable 'skeleton-filter)
   (make-local-variable 'skeleton-newline-indent-rigidly)
   (make-local-variable 'process-environment)
@@ -640,14 +647,27 @@ with your script for an edit-interpret-debug cycle."
 	indent-line-function 'sh-indent-line
 	;; not very clever, but enables wrapping skeletons around regions
 	indent-region-function (lambda (b e)
-				 (indent-rigidly b e sh-indentation))
+				 (save-excursion
+				   (goto-char b)
+				   (skip-syntax-backward "-")
+				   (setq b (point))
+				   (goto-char e)
+				   (skip-syntax-backward "-")
+				   (indent-rigidly b (point) sh-indentation)))
+	skeleton-end-hook (lambda ()
+			    (or (eolp) (newline) (indent-relative)))
 	paragraph-start "^$\\|^"
 	paragraph-separate paragraph-start
 	comment-start "# "
-	font-lock-keywords-case-fold-search nil
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
+	font-lock-defaults
+	  '((sh-font-lock-keywords
+	     sh-font-lock-keywords-1
+	     sh-font-lock-keywords-2)
+	    nil nil
+	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -659,19 +679,61 @@ with your script for an edit-interpret-debug cycle."
   (goto-char (point-min))
   (sh-set-shell
    (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
-       (buffer-substring (match-beginning 1) (match-end 1))
+       (match-string 1)
      sh-shell-path))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
 
 
+(defun sh-font-lock-keywords (&optional keywords)
+  "Function to get simple fontification based on `sh-font-lock-keywords'.
+This adds rules for comments and assignments."
+  (sh-feature sh-font-lock-keywords
+	      (lambda (list)
+		`((,(concat (sh-feature sh-comment-prefix) "\\(#.*\\)")
+		   2 font-lock-comment-face t)
+		  (,(sh-feature sh-assignment-regexp)
+		   1 font-lock-variable-name-face)
+		  ,@keywords
+		  ,@list))))
+
+(defun sh-font-lock-keywords-1 (&optional builtins)
+  "Function to get better fontification including keywords."
+  (let ((keywords (concat "\\([;(){}`|&]\\|^\\)[ \t]*\\(\\(\\("
+			  (mapconcat 'identity
+				     (sh-feature sh-leading-keywords)
+				     "\\|")
+			  "\\)[ \t]+\\)?\\("
+			  (mapconcat 'identity
+				     (append (sh-feature sh-leading-keywords)
+					     (sh-feature sh-other-keywords))
+				     "\\|")
+			  "\\)")))
+    (sh-font-lock-keywords
+     `(,@(if builtins
+	     `((,(concat keywords "[ \t]+\\)?\\("
+			 (mapconcat 'identity (sh-feature sh-builtins) "\\|")
+			 "\\)\\>")
+		(2 font-lock-keyword-face nil t)
+		(6 font-lock-function-name-face))
+	       ,@(sh-feature sh-font-lock-keywords-2)))
+	 (,(concat keywords "\\)\\>")
+	  2 font-lock-keyword-face)
+	 ,@(sh-feature sh-font-lock-keywords-1)))))
+
+(defun sh-font-lock-keywords-2 ()
+  "Function to get better fontification including keywords and builtins."
+  (sh-font-lock-keywords-1 t))
+
 
 (defun sh-set-shell (shell)
   "Set this buffer's shell to SHELL (a string).
 Makes this script executable via `executable-set-magic'.
 Calls the value of `sh-set-shell-hook' if set."
-  (interactive (list (completing-read "Name or path of shell: " sh-shells)))
+  (interactive (list (completing-read "Name or path of shell: "
+				      interpreter-mode-alist
+				      (lambda (x) (eq (cdr x) 'sh-mode)))))
   (if (eq this-command 'sh-set-shell)
       ;; prevent querying
       (setq this-command 'executable-set-magic))
@@ -681,32 +743,13 @@ Calls the value of `sh-set-shell-hook' if set."
 	sh-shell-path (executable-set-magic shell (sh-feature sh-shell-arg))
 	local-abbrev-table (sh-feature sh-abbrevs)
 	require-final-newline (sh-feature sh-require-final-newline)
-	font-lock-keywords
-	  (sh-feature
-	   sh-font-lock-keywords
-	   (lambda (list)
-	     `((,(concat (sh-feature sh-comment-prefix) "\\(#.*\\)")
-		2 font-lock-comment-face t)
-	       (,(sh-feature sh-assignment-regexp)
-		1 font-lock-variable-name-face)
-	       ,@(if font-lock-maximum-decoration
-		     `((,(concat "\\(^\\|[|&;()`!]\\)[ \t]*\\(\\(\\("
-				 (mapconcat 'identity
-					    (sh-feature sh-leading-keywords)
-					    "\\|")
-				 "\\)[ \t]+\\)?\\("
-				 (mapconcat 'identity
-					    (sh-feature sh-builtins)
-					    "\\|")
-				 "\\)\\)\\($\\|[ \t|&;()]\\)")
-			2 font-lock-keyword-face 'keep)
-		       ,@list)
-		   list))))
+	font-lock-keywords nil		; force resetting
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	mode-line-process (format "[%s]" sh-shell)
 	process-environment (default-value 'process-environment)
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
+  (setq font-lock-syntax-table)
   (save-excursion
     (while (search-forward "=" nil t)
       (sh-assignment 0)))
@@ -941,6 +984,7 @@ region, clear header."
       > _ \n
       resume:
       < < "esac"))
+(put 'sh-case 'menu-enable '(sh-feature sh-case))
 
 
 
@@ -1159,15 +1203,15 @@ region, clear header."
 (define-skeleton sh-while
   "Insert a while loop.  See `sh-feature'."
   (csh eval sh-modify sh
-       1 "while( "
-       3 " )"
-       9 "end")
+       2 "while( "
+       4 " )"
+       10 "end")
   (es eval sh-modify rc
-      1 "while { "
-      3 " } {")
+      2 "while { "
+      4 " } {")
   (rc eval sh-modify csh
-      3 " ) {"
-      9 ?})
+      4 " ) {"
+      10 ?})
   (sh "condition: "
       '(setq input (sh-feature sh-test))
       "while " str "; do" \n
@@ -1252,7 +1296,7 @@ option followed by a colon `:' if the option accepts an argument."
 				(prog1 (point)
 				  (beginning-of-line 1))
 				t)
-	     (buffer-substring (match-beginning 1) (match-end 1)))))))
+	     (match-string 1))))))
 
 
 
