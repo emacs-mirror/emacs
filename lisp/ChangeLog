@@ -1,3 +1,9 @@
+2002-07-31  John Wiegley  <johnw@gnu.org>
+
+	* pcomplete.el (pcomplete-comint-setup): Use `add-to-list', to
+	prevent adding the symbol `pcomplete' to
+	shell-dynamic-complete-functions to many times.
+
 2002-07-31  Markus Rost  <rost@math.ohio-state.edu>
 
 	* help-fns.el (describe-function-1): Test function for
