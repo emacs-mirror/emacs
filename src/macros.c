@@ -1,5 +1,5 @@
 /* Keyboard macros.
-   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -183,17 +183,20 @@ store_kbd_macro_char (c)
 	   - current_kboard->kbd_macro_buffer)
 	  == current_kboard->kbd_macro_bufsize)
 	{
-	  register Lisp_Object *new;
+	  int offset = (current_kboard->kbd_macro_ptr
+			- current_kboard->kbd_macro_buffer);
 	  current_kboard->kbd_macro_bufsize *= 2;
-	  new = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-					 (current_kboard->kbd_macro_bufsize
-					  * sizeof (Lisp_Object)));
+	  current_kboard->kbd_macro_buffer
+	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
+				       (current_kboard->kbd_macro_bufsize
+					* sizeof (Lisp_Object)));
 	  current_kboard->kbd_macro_ptr
-	    += new - current_kboard->kbd_macro_buffer;
+	    = current_kboard->kbd_macro_buffer + offset;
 	  current_kboard->kbd_macro_end
-	    += new - current_kboard->kbd_macro_buffer;
-	  current_kboard->kbd_macro_buffer = new;
+	    = (current_kboard->kbd_macro_buffer
+	       + current_kboard->kbd_macro_bufsize);
 	}
+      
       *current_kboard->kbd_macro_ptr++ = c;
     }
 }
