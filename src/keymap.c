@@ -89,10 +89,13 @@ Lisp_Object Vkey_translation_map;
    when Emacs starts up.   t means don't record anything here.  */
 Lisp_Object Vdefine_key_rebound_commands;
 
-Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item;
+Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
+
+/* Pre-allocated 2-element vector for Fremap_command to use.  */
+static Lisp_Object remap_command_vector;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
@@ -973,10 +976,7 @@ DEF is anything that can be a key's definition:
  or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
 
 If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at
-the front of KEYMAP.  
-
-KEY may also be a command name which is remapped to DEF.  In this case,
-DEF must be a symbol or nil (to remove a previous binding of KEY).  */)
+the front of KEYMAP.  */)
      (keymap, key, def)
      Lisp_Object keymap;
      Lisp_Object key;
@@ -992,28 +992,17 @@ DEF must be a symbol or nil (to remove a previous binding of KEY).  */)
 
   keymap = get_keymap (keymap, 1, 1);
 
-  if (SYMBOLP (key))
-    {
-      /* A command may only be remapped to another command.  */
-
-      /* I thought of using is_command_symbol above and below instead
-	 of SYMBOLP, since remapping only works for sych symbols.
-	 However, to make that a requirement would make it impossible
-	 to remap a command before it has been defined, e.g. if a minor
-	 mode were to remap a command of another minor mode which has
-	 not yet been loaded, it would fail.  So just use the least
-	 restrictive sanity check here.  */
-      if (!SYMBOLP (def))
-	key = wrong_type_argument (Qsymbolp, def);
-      else
-	key = Fmake_vector (make_number (1), key);
-    }
-  else if (!VECTORP (key) && !STRINGP (key))
+  if (!VECTORP (key) && !STRINGP (key))
       key = wrong_type_argument (Qarrayp, key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
     return Qnil;
+
+  /* Check for valid [remap COMMAND] bindings.  */
+  if (VECTORP (key) && EQ (AREF (key, 0), Qremap)
+      && (length != 2 || !SYMBOLP (AREF (key, 1))))
+    wrong_type_argument (Qvectorp, key);
 
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
@@ -1073,6 +1062,19 @@ DEF must be a symbol or nil (to remove a previous binding of KEY).  */)
     }
 }
 
+/* This function may GC (it calls Fkey_binding).  */
+
+DEFUN ("remap-command", Fremap_command, Sremap_command, 1, 1, 0,
+       doc: /* Return the remapping for command COMMAND in current keymaps.
+Returns nil if COMMAND is not remapped.  */)
+     (command)
+     Lisp_Object command;
+{
+  /* This will GCPRO the command argument.  */
+  ASET (remap_command_vector, 1, command);
+  return Fkey_binding (remap_command_vector, Qnil, Qt);
+}
+
 /* Value is number if KEY is too long; nil if valid but has no definition. */
 /* GC is possible in this function if it autoloads a keymap.  */
 
@@ -1105,9 +1107,19 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 
   keymap = get_keymap (keymap, 1, 1);
 
-  /* Command remapping is simple.  */
-  if (SYMBOLP (key))
-    return access_keymap (keymap, key, t_ok, 0, 1);
+  /* Perform command remapping initiated by Fremap_command directly.
+     This is strictly not necessary, but it is faster and it returns
+     nil instead of 1 if KEYMAP doesn't contain command remappings.  */
+  if (EQ (key, remap_command_vector))
+    {
+      /* KEY has format [remap COMMAND]. 
+	 Lookup `remap' in KEYMAP; result is nil or a keymap containing
+	 command remappings.  Then lookup COMMAND in that keymap.  */
+      if ((keymap = access_keymap (keymap, Qremap, t_ok, 0, 1), !NILP (keymap))
+	  && (keymap = get_keymap (keymap, 0, 1), CONSP (keymap)))
+	return access_keymap (keymap, AREF (key, 1), t_ok, 0, 1);
+      return Qnil;
+    }
 
   if (!VECTORP (key) && !STRINGP (key))
     key = wrong_type_argument (Qarrayp, key);
@@ -1386,41 +1398,6 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
   return keymaps;
 }
 
-/* Like Fcommandp, but looks specifically for a command symbol, and
-   doesn't signal errors.  Returns 1 if FUNCTION is a command symbol.  */
-int
-is_command_symbol (function)
-     Lisp_Object function;
-{
-  if (!SYMBOLP (function) || EQ (function, Qunbound))
-    return 0;
-
-  function = indirect_function (function);
-  if (SYMBOLP (function) && EQ (function, Qunbound))
-    return 0;
-
-  if (SUBRP (function))
-    return (XSUBR (function)->prompt != 0);
-
-  if (COMPILEDP (function))
-    return ((ASIZE (function) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE);
-  
-  if (CONSP (function))
-    {
-      Lisp_Object funcar;
-
-      funcar = Fcar (function);
-      if (SYMBOLP (funcar))
-	{
-	  if (EQ (funcar, Qlambda))
-	    return !NILP (Fassq (Qinteractive, Fcdr (Fcdr (function))));
-	  if (EQ (funcar, Qautoload))
-	    return !NILP (Fcar (Fcdr (Fcdr (Fcdr (function)))));
-	}
-    }
-  return 0;
-}
-
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 3, 0,
@@ -1503,12 +1480,10 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   /* If the result of the ordinary keymap lookup is an interactive
      command, look for a key binding (ie. remapping) for that command.  */
      
-  if (NILP (no_remap) && is_command_symbol (value))
+  if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-
-      value1 = Fkey_binding (value, accept_default, Qt);
-      if (!NILP (value1) && is_command_symbol (value1))
+      if (value1 = Fremap_command (value), !NILP (value1))
 	value = value1;
     }
   
@@ -2272,9 +2247,12 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
   /* If this command is remapped, then it has no key bindings
      of its own.  */
-  if (NILP (no_remap) && is_command_symbol (definition)
-      && !NILP (Fkey_binding (definition, Qnil, Qt)))
-    return Qnil;
+  if (NILP (no_remap) && SYMBOLP (definition))
+    {
+      Lisp_Object tem;
+      if (tem = Fremap_command (definition), !NILP (tem))
+	return Qnil;
+    }
 
   found = keymaps;
   while (CONSP (found))
@@ -2383,37 +2361,32 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
 	  while (!NILP (sequences))
 	    {
-	      Lisp_Object sequence;
-	      Lisp_Object remapped;
+	      Lisp_Object sequence, remapped, function;
 
 	      sequence = XCAR (sequences);
 	      sequences = XCDR (sequences);
 
-	      /* If the current sequence is of the form [command],
-		 this may be a remapped command, so look for the key
-		 sequences which run that command, and return those
-		 sequences instead.  */
+	      /* If the current sequence is a command remapping with
+		 format [remap COMMAND], find the key sequences
+		 which run COMMAND, and use those sequences instead.  */
 	      remapped = Qnil;
 	      if (NILP (no_remap)
-		  && VECTORP (sequence) && XVECTOR (sequence)->size == 1)
+		  && VECTORP (sequence) && XVECTOR (sequence)->size == 2
+		  && EQ (AREF (sequence, 0), Qremap)
+		  && (function = AREF (sequence, 1), SYMBOLP (function)))
 		{
-		  Lisp_Object function;
+		  Lisp_Object remapped1;
 
-		  function = AREF (sequence, 0);
-		  if (is_command_symbol (function))
+		  remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
+		  if (CONSP (remapped1))
 		    {
-		      Lisp_Object remapped1;
-		      remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
-		      if (CONSP (remapped1))
-			{
-			  /* Verify that this key binding actually maps to the
-			     remapped command (see below).  */
-			  if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
-			    continue;
-			  sequence = XCAR (remapped1);
-			  remapped = XCDR (remapped1);
-			  goto record_sequence;
-			}
+		      /* Verify that this key binding actually maps to the
+			 remapped command (see below).  */
+		      if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
+			continue;
+		      sequence = XCAR (remapped1);
+		      remapped = XCDR (remapped1);
+		      goto record_sequence;
 		    }
 		}
 
@@ -3646,6 +3619,12 @@ and applies even for keys that have ordinary bindings.  */);
   Qmenu_item = intern ("menu-item");
   staticpro (&Qmenu_item);
 
+  Qremap = intern ("remap");
+  staticpro (&Qremap);
+
+  remap_command_vector = Fmake_vector (make_number (2), Qremap);
+  staticpro (&remap_command_vector);
+
   where_is_cache_keymaps = Qt;
   where_is_cache = Qnil;
   staticpro (&where_is_cache);
@@ -3658,6 +3637,7 @@ and applies even for keys that have ordinary bindings.  */);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
   defsubr (&Scopy_keymap);
+  defsubr (&Sremap_command);
   defsubr (&Skey_binding);
   defsubr (&Slocal_key_binding);
   defsubr (&Sglobal_key_binding);
