@@ -1,3 +1,9 @@
+2004-11-06  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode
+	-o /dev/stdout" before trying "uudecode -o -".  Suggested by Han
+	Boetes.
+
 2004-11-06  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-menu-path): Use menu item name.

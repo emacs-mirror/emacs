@@ -5970,6 +5970,8 @@ locale to C and sets up the remote shell search path."
      base64-encode-region base64-decode-region)
     ("recode data..base64" "recode base64..data"
      base64-encode-region base64-decode-region)
+    ("uuencode xxx" "uudecode -o /dev/stdout"
+     tramp-uuencode-region uudecode-decode-region)
     ("uuencode xxx" "uudecode -o -"
      tramp-uuencode-region uudecode-decode-region)
     ("uuencode xxx" "uudecode -p"
