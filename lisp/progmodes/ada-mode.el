@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Authors: Rolf Ebert      <ebert@inf.enst.fr>
+;; Authors: Rolf Ebert      <re@waporo.muc.de>
 ;;          Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;; Keywords: languages oop ada
 ;; Rolf Ebert's version: 2.27
