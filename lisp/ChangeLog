@@ -1,5 +1,10 @@
 2000-09-18  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* diff-mode.el (diff-hunk-text): Add new optional arg LINE-OFFSET,
+	and return a cons if it's non-nil.
+	(diff-apply-hunk): Try to jump to the line in the source text
+	corresponding to the position of point in the in the hunk.
+
 	* info.el (Info-title-3-face, Info-title-2-face) 
 	(Info-title-1-face): Use face inheritance and relative sizes
 	instead of hard-wiring things.
