@@ -1364,7 +1364,7 @@ DIR must be a directory name, not a file name."
 	 (dd "[ 0-3][0-9]")
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
-			  s "\\(" HH:MM "\\|" s yyyy "\\)"))
+			  s "\\(" HH:MM "\\|" s yyyy "\\|" yyyy s "\\)"))
 	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
 	 ;; Require the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
