@@ -1,3 +1,11 @@
+2000-03-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (select_visual): Don't set dpyinfo->n_planes to the
+	number of bits per RGB because it's everywhere used as the depth
+	of the visual.
+
+	* term.c (calculate_costs): Remove code dealing with X frames.
+
 2000-03-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* lread.c (syms_of_lread): Doc fix for load-convert-to-unibyte.
