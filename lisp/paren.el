@@ -42,6 +42,8 @@
 
 (defvar show-paren-idle-timer nil)
 
+(defvar show-paren-mode)  ;; Real definition comes later.
+
 ;;;###autoload
 (defun show-paren-mode (&optional arg)
   "Toggle Show Paren mode.
