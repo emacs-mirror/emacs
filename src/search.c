@@ -1504,7 +1504,7 @@ Use `store-match-data' to reinstate the data in this list.")
 	      XFASTINT (data[2 * i]) = start;
 	      XFASTINT (data[2 * i + 1]) = search_regs.end[i];
 	    }
-	  else if (XTYPE (last_thing_searched) == Lisp_Buffer)
+	  else if (BUFFERP (last_thing_searched))
 	    {
 	      data[2 * i] = Fmake_marker ();
 	      Fset_marker (data[2 * i],
@@ -1584,7 +1584,7 @@ LIST should have been created by calling `match-data' previously.")
 	}
       else
 	{
-	  if (XTYPE (marker) == Lisp_Marker)
+	  if (MARKERP (marker))
 	    {
 	      if (XMARKER (marker)->buffer == 0)
 		XFASTINT (marker) = 0;
@@ -1598,8 +1598,7 @@ LIST should have been created by calling `match-data' previously.")
 	  list = Fcdr (list);
 
 	  marker = Fcar (list);
-	  if (XTYPE (marker) == Lisp_Marker
-	      && XMARKER (marker)->buffer == 0)
+	  if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
 	    XFASTINT (marker) = 0;
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
