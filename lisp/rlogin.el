@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id: rlogin.el,v 1.28 1995/05/12 17:51:12 roland Exp roland $
+;; $Id: rlogin.el,v 1.29 1995/06/08 13:03:15 roland Exp friedman $
 
 ;;; Commentary:
 
@@ -114,7 +114,7 @@ Communication with the remote host is recorded in a buffer `*rlogin-HOST*'
 If a prefix argument is given and the buffer `*rlogin-HOST*' already exists,
 a new buffer with a different connection will be made.
 
-When called from a program, if the optional second argument is a string or 
+When called from a program, if the optional second argument is a string or
 buffer, it names the buffer to use.
 
 The variable `rlogin-program' contains the name of the actual program to
@@ -157,19 +157,23 @@ variable."
 	 proc)
 
     (cond ((null buffer))
-	  ((or (stringp buffer) (bufferp buffer))
+	  ((stringp buffer)
 	   (setq buffer-name buffer))
+          ((bufferp buffer)
+           (setq buffer-name (buffer-name buffer)))
           ((numberp buffer)
            (setq buffer-name (format "%s<%d>" buffer-name buffer)))
           (t
            (setq buffer-name (generate-new-buffer-name buffer-name))))
 
+    (setq buffer (get-buffer-create buffer-name))
     (pop-to-buffer buffer-name)
+
     (cond
      ((comint-check-proc buffer-name))
      (t
-      (comint-exec (current-buffer) buffer-name rlogin-program nil args)
-      (setq proc (get-process buffer-name))
+      (comint-exec buffer buffer-name rlogin-program nil args)
+      (setq proc (get-buffer-process buffer))
       ;; Set process-mark to point-max in case there is text in the
       ;; buffer from a previous exited process.
       (set-marker (process-mark proc) (point-max))
