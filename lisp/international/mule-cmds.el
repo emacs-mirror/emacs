@@ -461,6 +461,7 @@ CHARSETS is a list of character sets."
 	   (append codings
 		   (char-table-extra-slot char-coding-system-table 0))))))
 
+;; Fixme: is this doing the right thing now, at least with eight-bit?
 (defun find-multibyte-characters (from to &optional maxcount excludes)
   "Find multibyte characters in the region specified by FROM and TO.
 If FROM is a string, find multibyte characters in the string.
@@ -471,9 +472,7 @@ where
   COUNT is a number of characters,
   CHARs are found characters of the character set.
 Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
-Optional 4th arg EXCLUDE is a list of character sets to be ignored.
-
-For invalid characters, CHARs are actually strings."
+Optional 4th arg EXCLUDE is a list of character sets to be ignored."
   (let ((chars nil)
 	charset char)
     (if (stringp from)
@@ -481,10 +480,7 @@ For invalid characters, CHARs are actually strings."
 	  (while (setq idx (string-match "[^\000-\177]" from idx))
 	    (setq char (aref from idx)
 		  charset (char-charset char))
-	    (if (eq charset 'unknown)
-		(setq char (match-string 0)))
-	    (if (or (memq charset '(unknown
-				    eight-bit-control eight-bit-graphic))
+	    (if (or (memq charset '(eight-bit-control eight-bit-graphic))
 		    (not (or (eq excludes t) (memq charset excludes))))
 		(let ((slot (assq charset chars)))
 		  (if slot
@@ -500,9 +496,7 @@ For invalid characters, CHARs are actually strings."
 	(while (re-search-forward "[^\000-\177]" to t)
 	  (setq char (preceding-char)
 		charset (char-charset char))
-	  (if (eq charset 'unknown)
-	      (setq char (match-string 0)))
-	  (if (or (memq charset '(unknown eight-bit-control eight-bit-graphic))
+	  (if (or (memq charset '(eight-bit-control eight-bit-graphic))
 		  (not (or (eq excludes t) (memq charset excludes))))
 	      (let ((slot (assq charset chars)))
 		(if slot
@@ -1641,17 +1635,18 @@ of buffer-file-coding-system set by this function."
     ; ay Aymara
     ; az Azerbaijani
     ; ba Bashkir
-    ("be" . "Belarussian") ; Belarussian [Byelorussian]
+    ("be" . "Belarusian") ; Belarusian [Byelorussian until early 1990s]
     ("bg" . "Bulgarian") ; Bulgarian
     ; bh Bihari
     ; bi Bislama
     ; bn Bengali, Bangla
     ("bo" . "Tibetan")
     ("br" . "Latin-1") ; Breton
+    ("bs" . "Latin-2") ; Bosnian
     ("ca" . "Latin-1") ; Catalan
     ; co Corsican
     ("cs" . "Czech")
-    ("cy" . "Latin-8") ; Welsh
+    ("cy" . "Welsh") ; Welsh
     ("da" . "Latin-1") ; Danish
     ("de" . "German")
     ; dz Bhutani
@@ -1662,7 +1657,7 @@ of buffer-file-coding-system set by this function."
     ("es" . "Spanish")
     ("et" . "Latin-4") ; Estonian
     ("eu" . "Latin-1") ; Basque
-    ; fa Persian
+    ; fa Persian glibc uses utf-8
     ("fi" . "Latin-1") ; Finnish
     ; fj Fiji
     ("fo" . "Latin-1") ; Faroese
@@ -1673,7 +1668,7 @@ of buffer-file-coding-system set by this function."
     ("gl" . "Latin-1") ; Galician
     ; gn Guarani
     ; gu Gujarati
-    ("gv" . "Latin-8") ; Manx Gaelic
+    ("gv" . "Latin-8") ; Manx Gaelic  glibc uses 8859-1
     ; ha Hausa
     ("he" . "Hebrew")
     ("hi" . "Devanagari") ; Hindi  glibc uses utf-8
@@ -1707,7 +1702,7 @@ of buffer-file-coding-system set by this function."
     ("lv" . "Latvian") ; Latvian, Lettish
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
-    ("mk" . "Latin-5") ; Macedonian
+    ("mk" . "Cyrillic-ISO") ; Macedonian
     ; ml Malayalam
     ; mn Mongolian
     ; mo Moldavian
@@ -1730,8 +1725,8 @@ of buffer-file-coding-system set by this function."
     ("rm" . "Latin-1") ; Rhaeto-Romanic
     ; rn Kirundi
     ("ro" . "Romanian")
-    ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
-    ("ru" . "Latin-5") ; Russian
+    ("ru.*[_.]koi8\\(?:-r\\)?\\'" . "Cyrillic-KOI8") ; Russian
+    ("ru" . "Cyrillic-ISO") ; Russian
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
@@ -1746,6 +1741,7 @@ of buffer-file-coding-system set by this function."
     ; so Somali
     ("sq" . "Latin-1") ; Albanian
     ("sr" . "Latin-2") ; Serbian (Latin alphabet)
+    ("sr.*@cyrillic" . "Cyrillic-ISO")	; per glibc
     ; ss Siswati
     ; st Sesotho
     ; su Sundanese
@@ -1753,7 +1749,7 @@ of buffer-file-coding-system set by this function."
     ("sw" . "Latin-1") ; Swahili
     ; ta Tamil  glibc uses utf-8
     ; te Telugu  glibc uses utf-8
-    ("tg" . "Cyrillic-KOI8-T") ; Tajik
+    ("tg" . "Tajik")
     ("th" . "Thai")
     ; ti Tigrinya
     ; tk Turkmen
@@ -1770,6 +1766,7 @@ of buffer-file-coding-system set by this function."
     ("uz" . "Latin-1") ; Uzbek
     ("vi" . "Vietnamese") ;  glibc uses utf-8
     ; vo Volapuk
+    ("wa" . "Latin-1") ; Walloon
     ; wo Wolof
     ; xh Xhosa
     ("yi" . "Windows-1255") ; Yiddish
@@ -1778,13 +1775,11 @@ of buffer-file-coding-system set by this function."
 
     ; glibc:
     ; zh_CN.GB18030/GB18030 \
-    ; zh_CN.GBK/GBK \
     ; zh_HK/BIG5-HKSCS \
-    ; zh_TW/BIG5 \
-    ; zh_TW.EUC-TW/EUC-TW \
 
     ("zh.*[._]big5" . "Chinese-BIG5")
-    ("zh.*[._]gbk" . nil) ; Solaris 2.7; has gbk-0 as well as GB 2312.1980-0
+    ("zh.*[._].gbk" . "Chinese-GBK")
+    ;; glibc has zh_TW.EUC-TW, with zh_TW defaulting to Big5
     ("zh_tw" . "Chinese-CNS")
     ("zh" . "Chinese-GB")
     ; zu Zulu
@@ -1801,7 +1796,7 @@ of buffer-file-coding-system set by this function."
     ("cz" . "Czech") ; e.g. Solaris 2.6
     ("ee" . "Latin-4") ; Estonian, e.g. X11R6.4
     ("iw" . "Hebrew") ; e.g. X11R6.4
-    ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
+    ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
@@ -1821,8 +1816,8 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*@euro\\>" . "Latin-9")
-     (".*utf\\(-?8\\)\\>" . "UTF-8")))
+     (".*utf\\(-?8\\)\\>" . "UTF-8")
+     (".*@euro\\>" . "Latin-9"))) ; utf-8@euro exists, so put this last
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
