@@ -167,6 +167,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_VFORK
 #define HAVE_SYS_SIGLIST
 #define HAVE_GETWD            /* cure conflict with getcwd? */
+#define HAVE_TCATTR	      /* faith@cs.unc.edu says this is needed.  */
 
 #define USE_UTIME             /* don't have utimes */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
