@@ -592,8 +592,10 @@ SECTION SUBJECT when prompted for a manual entry."
 	    ;; But don't prevent decoding of the outside.
 	    (coding-system-for-write 'raw-text-unix)
 	    ;; We must decode the output by a coding system that the
-	    ;; systen locale suggests.
-	    (coding-system-for-read locale-coding-system)
+	    ;; systen locale suggests in multibyte mode.
+	    (coding-system-for-read
+	     (if default-enable-multibyte-characters
+		 locale-coding-system 'raw-text-unix))
 	    ;; Avoid possible error by using a directory that always exists.
 	    (default-directory "/"))
 	;; Prevent any attempt to use display terminal fanciness.
