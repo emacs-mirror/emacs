@@ -1,3 +1,8 @@
+2004-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (find_safe_codings): Check NILP (safe_codings) only at
+	the necessary places.
+
 2004-06-07  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fdelete_process): Undo 2004-05-28 change.
