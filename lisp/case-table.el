@@ -103,6 +103,9 @@ This sets the entries for characters UC and LC in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
+  (unless (= (charset-bytes (char-charset uc))
+	     (charset-bytes (char-charset lc)))
+    (error "Can't casify chars with different `charset-bytes' values"))
   (setq uc (set-case-syntax-1 uc))
   (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
