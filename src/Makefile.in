@@ -1056,7 +1056,7 @@ relock:
    which includes ../lisp/TAGS by reference.  */
 ctagsfiles = [a-zA-Z]*.[hc]
 lisptagsfiles = ../lisp/[a-zA-Z]*.el
-TAGS: $(ctagsfiles)
+TAGS: $(srcdir)/$(ctagsfiles)
 	export DIR; DIR=`pwd`; cd ${srcdir}; \
 	$$DIR/../lib-src/etags --include=../lisp/TAGS \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
