@@ -339,20 +339,23 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 	       (car scan)))))
       (setq scan (cdr scan)))))
 
-(defun define-key-after (keymap key definition after)
+(defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
 just after the binding for the event AFTER, instead of at the beginning
 of the map.  Note that AFTER must be an event type (like KEY), NOT a command
 \(like DEFINITION).
 
-If AFTER is t, the new binding goes at the end of the keymap.
+If AFTER is t or omitted, the new binding goes at the end of the keymap.
 
-KEY must contain just one event type--that is to say, it must be
-a string or vector of length 1.
+KEY must contain just one event type--that is to say, it must be a
+string or vector of length 1, but AFTER should be a single event
+type--a symbol or a character, not a sequence.
+
+Bindings are always added before any inherited map.
 
 The order of bindings in a keymap matters when it is used as a menu."
-
+  (unless after (setq after t))
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
   (if (> (length key) 1)
