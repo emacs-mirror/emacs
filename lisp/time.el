@@ -18,6 +18,10 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+(defvar display-time-mail-file nil
+  "*File name of mail inbox file, for indicating existence of new mail.
+Default is system-dependent, and is the same as used by Rmail.")
+
 (defvar display-time-process nil)
 
 (defvar display-time-interval 60
@@ -65,10 +69,12 @@ After each update, `display-time-hook' is run with `run-hooks'."
 (defun display-time-filter (proc string)
   (let ((time (current-time-string))
 	(load (format "%03d" (car (load-average))))
-	(mail-spool-file (concat rmail-spool-directory
-				 (or (getenv "LOGNAME")
-				     (getenv "USER")
-				     (user-login-name))))
+	(mail-spool-file (or display-time-mail-file
+			     (getenv "MAIL")
+			     (concat rmail-spool-directory
+				     (or (getenv "LOGNAME")
+					 (getenv "USER")
+					 (user-login-name)))))
 	hour pm)
     (setq hour (read (substring time 11 13)))
     (setq pm (>= hour 12))
