@@ -1593,7 +1593,8 @@ typically for purposes of moderating a list."
 	    (sendmail-send-it)))
       (kill-buffer tembuf))))
 
-(defvar mail-unsent-separator "^   ----- Unsent message follows -----$")
+(defvar mail-unsent-separator
+  "^ *----- Unsent message follows ----- *$\\|^ *--- Returned message --- *$")
 
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
