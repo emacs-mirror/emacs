@@ -1,5 +1,7 @@
 2001-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* indent.el (indent-relative-maybe, indent-relative): Doc fix.
+
 	* menu-bar.el (toggle-debug-on-quit, toggle-debug-on-error): Doc
 	fix.
 
