@@ -9,6 +9,7 @@
 	(calc): Remove reference to it.
 	(calc): Ditto.
 	(calc-quit): Ditto.
+	(calc-init-base): Ditto.
 
 	* calc/calc-misc.el (calc-delete-windows-keep): Function deleted.
 
