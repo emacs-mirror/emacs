@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.276 2000/10/03 12:24:15 spiegel Exp $
+;; $Id: vc.el,v 1.277 2000/10/04 09:48:37 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -479,18 +479,18 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
   (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
 
 (defmacro with-vc-properties (file form settings)
-  "Execute FORM, then set per-file properties for FILE, but only those
-that have not been set during the execution of FORM.  SETTINGS is a list 
-of two-element lists, each of which has the form (PROPERTY VALUE)."
+  "Execute FORM, then set per-file properties for FILE,
+but only those that have not been set during the execution of FORM.
+SETTINGS is a list of two-element lists, each of which has the
+  form (PROPERTY . VALUE)."
   `(let ((vc-touched-properties (list t))
 	 (filename ,file))
      ,form
      (mapcar (lambda (setting)
-	       (let ((property (nth 0 setting))
-		     (value (nth 1 setting)))
+	       (let ((property (car setting)))
 		 (unless (memq property vc-touched-properties)
 		   (put (intern filename vc-file-prop-obarray) 
-			property value))))
+			property (cdr setting)))))
 	     ,settings)))
 
 ;; Random helper functions
@@ -1224,13 +1224,13 @@ REV defaults to the latest revision."
 	(let ((buf (get-file-buffer file)))
 	  (when buf (with-current-buffer buf (toggle-read-only -1)))))
       (signal (car err) (cdr err))))
-   `((vc-state ,(if (or (eq (vc-checkout-model file) 'implicit)
-			(not writable))
-		    (if (vc-call latest-on-branch-p file)
-			'up-to-date
-		      'needs-patch)
-		  'edited))
-     (vc-checkout-time ,(nth 5 (file-attributes file)))))
+   `((vc-state . ,(if (or (eq (vc-checkout-model file) 'implicit)
+			  (not writable))
+		      (if (vc-call latest-on-branch-p file)
+			  'up-to-date
+			'needs-patch)
+		    'edited))
+     (vc-checkout-time . ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
 
 (defun vc-steal-lock (file rev owner)
@@ -1259,7 +1259,7 @@ REV defaults to the latest revision."
   (with-vc-properties 
    file
    (vc-call steal-lock file version)
-   `((vc-state edited)))
+   `((vc-state . edited)))
   (vc-resynch-buffer file t t)
   (message "Stealing lock on %s...done" file))
 
@@ -1291,9 +1291,9 @@ Runs the normal hook `vc-checkin-hook'."
 	(let ((backup-file (vc-version-backup-file file)))
 	  (vc-call checkin file rev comment)
 	  (if backup-file (delete-file backup-file))))
-      `((vc-state up-to-date)
-	(vc-checkout-time ,(nth 5 (file-attributes file)))
-	(vc-workfile-version nil)))
+      `((vc-state . up-to-date)
+	(vc-checkout-time . ,(nth 5 (file-attributes file)))
+	(vc-workfile-version . nil)))
      (message "Checking in %s...done" file))
    'vc-checkin-hook))
 
@@ -1425,7 +1425,7 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
   (vc-previous-comment (- arg)))
 
 (defun vc-comment-search-reverse (str &optional stride)
-  "Searches backwards through comment history for substring match."
+  "Search backwards through comment history for substring match."
   ;; Why substring rather than regexp ?   -sm
   (interactive
    (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
@@ -1443,7 +1443,7 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     (vc-previous-comment 0)))
 
 (defun vc-comment-search-forward (str)
-  "Searches forwards through comment history for substring match."
+  "Search forwards through comment history for substring match."
   (interactive
    (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
   (vc-comment-search-reverse str -1))
@@ -2180,16 +2180,21 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
 	(obuf (current-buffer))
 	status)
     (unless (vc-workfile-unchanged-p file)
-      (setq status (vc-diff nil t))
-      (vc-exec-after `(message nil))
-      (when status
-	(unwind-protect
-	    (if (not (yes-or-no-p "Discard changes? "))
+      ;; vc-diff selects the new window, which is not what we want:
+      ;; if the new window is on another frame, that'd require the user
+      ;; moving her mouse to answer the yes-or-no-p question.
+      (let ((win (save-selected-window
+		   (setq status (vc-diff nil t)) (selected-window))))
+	(vc-exec-after `(message nil))
+	(when status
+	  (unwind-protect
+	      (unless (yes-or-no-p "Discard changes? ")
 		(error "Revert canceled"))
-	  (if (and (window-dedicated-p (selected-window))
-		   (one-window-p t))
-	      (make-frame-invisible)
-	    (delete-window)))))
+	    (select-window win)
+	    (if (one-window-p t)
+		(if (window-dedicated-p (selected-window))
+		    (make-frame-invisible))
+	      (delete-window))))))
     (set-buffer obuf)
     ;; Do the reverting
     (message "Reverting %s..." file)
@@ -2214,8 +2219,8 @@ return the name of it; otherwise return nil."
 	 (vc-call revert file)
        (copy-file backup-file file 'ok-if-already-exists 'keep-date)
        (delete-file backup-file)))
-   `((vc-state up-to-date)
-     (vc-checkout-time ,(nth 5 (file-attributes file)))))
+   `((vc-state . up-to-date)
+     (vc-checkout-time . ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
@@ -2244,11 +2249,11 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
       (with-vc-properties
        file
        (vc-call cancel-version file norevert)
-       `((vc-state ,(if norevert 'edited 'up-to-date))
-	 (vc-checkout-time ,(if norevert 
+       `((vc-state . ,(if norevert 'edited 'up-to-date))
+	 (vc-checkout-time . ,(if norevert 
 				0 
 			      (nth 5 (file-attributes file))))
-	 (vc-workfile-version nil)))
+	 (vc-workfile-version . nil)))
       (message "Removing last change from %s...done" file)
 
       (cond
@@ -2297,12 +2302,12 @@ To get a prompt, use a prefix argument."
 	     nil t nil nil (downcase (symbol-name def))))))
        (t def))))))
   (unless (eq backend (vc-backend file))
-    (unless (vc-call-backend backend 'registered file)
-      (error "%s is not registered in %s" file backend))
     (vc-file-clearprops file)
     (vc-file-setprop file 'vc-backend backend)
     ;; Force recomputation of the state
-    (vc-call-backend backend 'registered file)
+    (unless (vc-call-backend backend 'registered file)
+      (vc-file-clearprops file)
+      (error "%s is not registered in %s" file backend))
     (vc-mode-line file)))
 
 ;;;autoload
