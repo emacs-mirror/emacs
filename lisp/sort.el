@@ -29,6 +29,9 @@
 
 ;;; Code:
 
+(defvar sort-fold-case nil
+  "*Non-nil if the buffer sort functions should ignore case.")
+
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
   "General text sorting routine to divide buffer into records and sort them.
 Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
@@ -69,7 +72,8 @@ same as ENDRECFUN."
       (if messages (message "Finding sort keys..."))
       (let* ((sort-lists (sort-build-lists nextrecfun endrecfun
 					   startkeyfun endkeyfun))
-	     (old (reverse sort-lists)))
+	     (old (reverse sort-lists))
+	     (case-fold-search sort-fold-case))
 	(if (null sort-lists)
 	    ()
 	  (or reverse (setq sort-lists (nreverse sort-lists)))
