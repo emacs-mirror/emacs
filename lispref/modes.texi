@@ -69,6 +69,11 @@ it is convenient to use @code{define-derived-mode} with a @code{nil}
 parent argument, since it automatically enforces the most important
 coding conventions for you.
 
+@findex define-generic-mode
+  For a very simple programming language major mode that handles
+comments and fontification, you can use @code{define-generic-mode}
+in @file{generic.el}.
+
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
 ordinary Emacs commands rather than Rmail commands).  In such cases, the
