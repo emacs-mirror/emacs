@@ -1,3 +1,8 @@
+2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
+
+	* xfns.c (xic_set_preeditarea): Add the left fringe width to
+	spot.x.
+
 2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xfns.c: Don't check HAVE_PNG_H: autoconf doesn't seem to find it.
