@@ -1,3 +1,12 @@
+2002-02-23  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-output): Properly advance
+	to next message, by calling rmail-summary-goto-msg.
+
+	* net/browse-url.el (browse-url-galeon): Specify --existing
+	for an existing window.  Use --noraise rather than --no-raise.
+	Don't use -x.
+
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/etags.el (find-tag-noselect, find-tag) 
