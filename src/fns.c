@@ -4979,12 +4979,23 @@ The two optional arguments START and END are character positions\n\
 specifying for which part of OBJECT the message digest should be computed.\n\
 If nil or omitted, the digest is computed for the whole OBJECT.\n\
 \n\
-Third optional argument CODING-SYSTEM specifies the coding system text\n\
-should be converted to before computing the digest.  If nil or omitted,\n\
-the current format is used or a format is guessed.\n\
+The MD5 message digest is computed from the result of encoding the\n\
+text in a coding system, not directly from the internal Emacs form\n\
+of the text.  The optional fourth argument CODING-SYSTEM specifies\n\
+which coding system to encode the text with.  It should be the same\n\
+coding system that you used or will use when actually writing the text\n\
+into a file.\n\
 \n\
-Fourth optional argument NOERROR is there for compatability with other\n\
-Emacsen and is ignored.")
+If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.\n\
+If OBJECT is a buffer, the default for CODING-SYSTEM is whatever\n\
+coding system would be chosen by default for writing this text\n\
+into a file.\n\
+\n\
+If OBJECT is a string, the most preferred coding system (see the\n\
+command `prefer-coding-system') is used.\n\
+\n\
+The optional fifth argument NOERROR exists for compatibility with\n\
+other Emacs versions, and is ignored.")
   (object, start, end, coding_system, noerror)
      Lisp_Object object, start, end, coding_system, noerror;
 {
