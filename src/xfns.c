@@ -10630,11 +10630,24 @@ x_create_tip_frame (dpyinfo, parms)
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Set up faces after all frame parameters are known.  This call
-     also merges in face attributes specified for new frames.  If we
-     don't do this, the `menu' face for instance won't have the right
-     colors, and the menu bar won't appear in the specified colors for
-     new frames.  */
-  call1 (Qface_set_after_frame_default, frame);
+     also merges in face attributes specified for new frames.
+
+     Frame parameters may be changed if .Xdefaults contains
+     specifications for the default font.  For example, if there is an
+     `Emacs.default.attributeBackground: pink', the `background-color'
+     attribute of the frame get's set, which let's the internal border
+     of the tooltip frame appear in pink.  Prevent this.  */
+  {
+    Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
+
+    /* Set tip_frame here, so that */
+    tip_frame = frame;
+    call1 (Qface_set_after_frame_default, frame);
+    
+    if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
+					      Qnil));
+  }
   
   f->no_split = 1;
 
@@ -10644,7 +10657,6 @@ x_create_tip_frame (dpyinfo, parms)
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-  tip_frame = frame;
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
