@@ -4,7 +4,7 @@
 	(Keymap Terminology): `kbd' uses same syntax as Edit Macro mode.
 	Give more varied examples for `kbd'.
 	(Creating Keymaps): Char tables have slots for all characters
-	without modifiers,
+	without modifiers.
 	(Active Keymaps): `overriding-local-map' and
 	`overriding-terminal-local-map' also override text property and
 	overlay keymaps.
