@@ -54,9 +54,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 extern char *getenv ();
+
+/* This does cause trouble on AIX.  I'm going to take the comment at
+   face value.  */
+#if 0
 extern short getuid ();		/* If this causes portability problems,
 				   I think we should just delete it; it'll
 				   default to `int' anyway.  */
+#endif
+
 extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 
