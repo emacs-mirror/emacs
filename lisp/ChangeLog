@@ -1,3 +1,37 @@
+2003-02-04  Richard M. Stallman  <rms@gnu.org>
+
+	* term.el (term-raw-map): Set it up at load time.
+	(term-char-mode): Don't set up term-raw-map here.
+	(term-set-escape-char): Don't set up C-x subcommand.
+	(term-ansi-face-already-done): Renamed from
+	term-ansi-face-alredy-done.
+	(term-command-hook): Avoid error if STRING is empty.
+	(term, term-mode): Doc fixes.
+
+	* term.el: Redesign handling of colors and faces.
+	Delete all the faces that this mode used to make.
+	(ansi-term-color-vector): New variable.
+	(ansi-term-fg-faces-vector, ansi-term-bg-faces-vector)
+	(ansi-term-inv-bg-faces-vector, ansi-term-inv-fg-faces-vector):
+	Variables deleted.
+	(term-default-fg-color, term-default-bg-color): Use defcustom.
+	(term-handle-colors-array): Use ansi-term-color-vector,
+	and specify face attributes rather than faces in `face' property.
+
+	* term.el (term-ansi-fg-faces-vector, term-ansi-bg-faces-vector)
+	(term-ansi-inv-fg-faces-vector, term-ansi-inv-bg-faces-vector)
+	(term-ansi-reverse-faces-vector): Unused variables deleted.
+	(term-ignore-error): Macro deleted.
+
+	* simple.el (back-to-indentation): Skip all whitespace
+	except for newlines.
+
+	* files.el (find-alternate-file): Handle dired-directory
+	like buffer-file-name.
+
+	* dired.el (dired-find-buffer-nocreate): Avoid error if
+	dired-directory is nil.
+
 2003-02-04  Juanma Barranquero  <lektu@terra.es>
 
 	* image.el (image-type-regexps): Fix typo.

@@ -1,3 +1,18 @@
+2003-02-04  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (echo_now): Update before_command_echo_length.
+	(Freset_this_command_lengths): Reset this_command_key_count etc.
+	immediately rather than arranging to do it later.
+	(before_command_key_count_1, before_command_echo_length_1)
+	(before_command_restore_flag): Vars deleted.
+	(add_command_key): Don't handle before_command_restore_flag.
+	(read_char, record_menu_key): Don't update before_command_key_count or
+	before_command_echo_length.
+	(read_char): Don't handle before_command_restore_flag.
+
+	* keyboard.c (command_loop_1): Don't call adjust_point_for_property
+	in direct-output clauses if it wouldn't be called in the ordinary case.
+
 2003-02-04  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (syms_of_keyboard) <this-original-command>: Doc fix.

@@ -1,3 +1,9 @@
+2003-02-04  Richard M. Stallman  <rms@gnu.org>
+
+	* update-game-score.c (push_score, read_scores): Cast values
+	of malloc and realloc.
+	(main, lock_file): Avoid assignment inside if.
+
 2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
 
 	* Makefile.in: Use @EXEEXT@ for Cygwin.
