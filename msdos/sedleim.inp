@@ -1,0 +1,35 @@
+# -sedleim.inp-----------------------------------------------------------
+# Configuration script for leim/Makefile under DJGPP v2.x
+# ----------------------------------------------------------------------
+/^SHELL *=/c\
+SHELL=/dos/command\
+MAKESHELL=/dos/command
+
+/^version=/d
+/^prefix=/d
+/^datadir=/s|@datadir@|../..|
+/^srcdir=/s|@srcdir@|.|
+
+/^INSTALLDIR=/c\
+INSTALLDIR=.
+
+/^	cd ../c\
+	${MAKE} -C ../src ${MFLAGS} emacs
+
+/else make quail/c\
+	if not exist quail\\nul make quail
+
+/^leim-list.el:/,/^$/ {
+	/^	if/d
+	/^	else/,/^	fi/d
+	s|	 *|	|
+	/^	--eval/,/; \\$/s|\; \\||
+}
+
+/^install:/,/^$/c\
+install: all\
+
+/^	ELC=/,/^	rm -f/c\
+	rm -f ${TIT} $(shell echo ${TIT} | sed 's/\.el/.elc/g') leim-list.elc
+
+/^	if test -f/d
