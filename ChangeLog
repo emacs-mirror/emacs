@@ -34,7 +34,7 @@
 
 	* INSTALL.CVS: Add info about ssh/cvs related problems and work-around.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* make-dist: Don't link index.*perm and permute-index into tempdir.
 
@@ -59,7 +59,7 @@
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
 	clashes with install-sh on 8+3 filesystems.

@@ -831,7 +831,7 @@
 	* woman.el (woman-man.conf-path): Doc fix.
 	(woman-parse-man.conf): Also parse OPTIONAL_MANPATH.
 
-2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
+2004-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* sort.el (sort-columns): Remove ms-dos from the list of systems
 	where the external `sort' command is not used.
@@ -1339,7 +1339,7 @@
 	(yank-pop): Make its argument optional.
 	(yank): Make ARG `-' equivalent to `-1'.
 
-2004-02-17  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-get-new-mail): Don't reference
 	rmail-use-spam-filter if rmail-spam-filter is not loaded.
@@ -1350,7 +1350,7 @@
 	if one of global-auto-revert-non-file-buffers or autorevert-mode
 	is non-nil.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (delete-dups): A better implementation from Karl Heuer
 	<kwzh@gnu.org>.
@@ -1362,7 +1362,7 @@
 	* progmodes/icon.el (icon-indent-command): Ditto.
 	* textmodes/paragraphs.el (repunctuate-sentences): Ditto.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (grep-compute-defaults): Undo change from
 	2004-01-29: don't use executable-command-find-posix-p.
@@ -1401,7 +1401,7 @@
 	Change prefixes of all variables and functions from
 	rmail-spam-filter- or spam-filter- or rmail-spam- to rsf-.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* loadhist.el (unload-hook-features-list): New defvar.
 
@@ -1419,7 +1419,7 @@
 
 	* subr.el (match-string-no-properties): Use substring-no-properties.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/rx.el (rx-check, rx-check-any, rx-check-not)
 	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string):
@@ -1477,7 +1477,7 @@
 	* Makefile.in (TAGS, TAGS-LISP): Filter out of `els' only
 	loaddefs* and ldefs-boot*.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/mail-utils.el (rmail-dont-reply-to): Anchor user login name
 	and email address at the beginning and end of the address.
@@ -2283,7 +2283,7 @@
 	`Info node'.
 	(help-make-xrefs): Adapt to new value of `help-xref-info-regexp'.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Fix off-by-one
 	error in arguments to base64-decode-region.  Remove ^M characters
@@ -2296,7 +2296,7 @@
 	have only been distributed with Emacs for some years.
 	(texinfo-mode-hook): Customize.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Make the code
 	cleaner (suggested by Richard Stallman).
@@ -2392,7 +2392,7 @@
 
 	* generic.el (define-generic-mode): Doc fix.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (kill-some-buffers): Doc fix.
 
@@ -2410,7 +2410,7 @@
 	"@", as required by some ISP hosting service.  Fix defcustom
 	argument syntax errors that prevented use of customization.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xml.el (xml-get-attribute-or-nil): Doc fix.
 
@@ -2430,7 +2430,7 @@
 	(xml-get-attribute): Convert to defsubst, uses
 	xml-get-attribute-or-nil.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix.
 
@@ -2455,7 +2455,7 @@
 	* generic-x.el (etc-modules-conf-generic-mode): A more complete
 	set of keywords.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (reset-language-environment)
 	(set-language-environment): Don't invoke fontset-related functions
@@ -3031,7 +3031,7 @@
 
 	* subr.el (add-hook): Fix last change.
 
-2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
+2003-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	If base64-decode-region signals an error, catch it and silently
@@ -3281,7 +3281,7 @@
 	(breakpoint-disabled-pbm-data): Make breakpoint icons 10x10
 	instead of 12x12.
 
-2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+2003-10-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Display a
 	message while converting to Babyl.
@@ -3381,7 +3381,7 @@
 	Rename from loadhist-hook-functions.
 	(loadhist-hook-functions): Now an alias.
 
-2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
+2003-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
 	file-name clashes on 8+3 filesystems.
@@ -3582,7 +3582,7 @@
 	* info.el (Info-find-index-name): Remove any "<n>" suffixes which
 	makeinfo appends to duplicate index entries.
 
-2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired-x.el (dired-clean-tex): Doc fix.
 
@@ -3995,7 +3995,7 @@
 	the number of files.  Bind the number of files to a local
 	variable.  Suggested by Kevin Rodgers <ihs_4664@yahoo.com>.
 
-2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc-hooks.el (vc-make-version-backup): Fix the change made on
 	2003-07-26: msdos-long-file-names is a function, not a variable.
@@ -4033,7 +4033,7 @@
 	category "|".
 	(kinsoku-longer): Test for end of buffer.
 
-2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	Detect quoted-printable- and base64-encoded messages and decode them

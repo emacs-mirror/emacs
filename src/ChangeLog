@@ -125,7 +125,7 @@
 
 	* xfns.c (x_find_image_file): Remove prototype.
 
-2004-03-13  Eli Zaretskii  <eliz@elta.co.il>
+2004-03-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is defined.
 
@@ -787,7 +787,7 @@
 	* w32term.c (w32_draw_fringe_bitmap): Draw overlaid bitmaps
 	correctly over other bitmaps.
 
-2004-02-21  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (USAGE1): Split into two halves.
 	(USAGE2): Second half of the old USAGE1.
@@ -865,7 +865,7 @@
 	(read_avail_input): Use it to zero out only those slots in buf[]
 	that were used last time we were called.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (obj): Move fringe.o from here...
 	(XOBJ, MAC_OBJ): ...to here.
@@ -1152,7 +1152,7 @@
 	if vector_ret_p is true.
 	(syms_of_xfns): Sx_send_client_message moved to xselect.c.
 
-2004-02-02  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fcopy_file): If NEWNAME is a directory, expand the
 	basename of FILE relative to it, not FILE itself.
@@ -1171,7 +1171,7 @@
 	(syms_of_fileio): Adapt the docstring of insert-default-directory
 	to the change in Fread_file_name.
 
-2004-01-29  Eli Zaretskii  <eliz@elta.co.il>
+2004-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloca.c [!alloca]: Fix the prototype for xfree.
 
@@ -2246,7 +2246,7 @@
 	* fontset.c (Finternal_char_font): Change return value to
 	cons (FONT-NAME . GLYPH-CODE).
 
-2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (tty_setup_colors): Treat any negative argument as -1.
 
@@ -2278,7 +2278,7 @@
 
 	* process.c (Fnetwork_interface_info): Use HAVE_STRUCT_IFREQ... macros.
 
-2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (set_tty_color_mode): Use INTEGERP to test whether a
 	color mode is an integer number (it could be -1).
@@ -2410,7 +2410,7 @@
 	* alloc.c: Use long instead of int when casting ABLOCKS_BUSY to
 	avoid warning.
 
-2003-09-07  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (region_limit): Support any non-zero value of BEGINNINGP.
 
@@ -2497,7 +2497,7 @@
 	* xfns.c (Vgtk_version_string): New variable.
 	(syms_of_xfns): DEFVAR_LISP it.  Provide gtk.
 
-2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (term_init): Remove `const' from buffer_size's declaration.
 
