@@ -1,3 +1,13 @@
+2002-08-29  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (C_entries): Corrected a problem with const C++ funcs.
+	(ignoreindent): Renamed from noindentypedefs.
+	(cjava, cplpl): They are now macros instead of local vars.
+
+2002-08-28  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (HTML_labels): Tag ID= also.
+
 2002-08-27  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (Ada_funcs): Do not tag "use type Xxxx;".
