@@ -1,3 +1,8 @@
+2000-11-01  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/elp.el (elp-restore-function): Remove autoload
+	cookie.
+
 2000-11-01  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* calendar/calendar.el (diary-face, holiday-face): Add
