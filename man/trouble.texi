@@ -462,8 +462,10 @@ well.
 
 @cindex reporting bugs
   The best way to send a bug report is to mail it electronically to the
-Emacs maintainers at @samp{bug-gnu-emacs@@gnu.org}.  (If you
-want to suggest a change as an improvement, use the same address.)
+Emacs maintainers at @samp{bug-gnu-emacs@@gnu.org}, or to
+@samp{emacs-pretest-bug@@gnu.org} if you are pretesting an Emacs beta
+release.  (If you want to suggest a change as an improvement, use the
+same address.)
 
   If you'd like to read the bug reports, you can find them on the
 newsgroup @samp{gnu.emacs.bug}; keep in mind, however, that as a
