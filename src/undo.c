@@ -28,7 +28,8 @@ Boston, MA 02111-1307, USA.  */
 
 EMACS_INT undo_limit;
 EMACS_INT undo_strong_limit;
-EMACS_INT undo_outer_limit;
+
+Lisp_Object Vundo_outer_limit;
 
 /* Function to call when undo_outer_limit is exceeded.  */
 
@@ -368,7 +369,8 @@ truncate_undo_list (b)
 
   /* If by the first boundary we have already passed undo_outer_limit,
      we're heading for memory full, so offer to clear out the list.  */
-  if (size_so_far > undo_outer_limit
+  if (INTEGERP (Vundo_outer_limit)
+      && size_so_far > XINT (Vundo_outer_limit)
       && !NILP (Vundo_outer_limit_function))
     {
       Lisp_Object temp = last_undo_buffer;
@@ -622,7 +624,7 @@ The size is counted as the number of bytes occupied,
 which includes both saved text and other data.  */);
   undo_strong_limit = 30000;
 
-  DEFVAR_INT ("undo-outer-limit", &undo_outer_limit,
+  DEFVAR_LISP ("undo-outer-limit", &Vundo_outer_limit,
 	      doc: /* Outer limit on size of undo information for one command.
 At garbage collection time, if the current command has produced
 more than this much undo information, it asks you whether to delete
@@ -635,7 +637,7 @@ In fact, this calls the function which is the value of
 `undo-outer-limit-function' with one argument, the size.
 The text above describes the behavior of the function
 that variable usually specifies.  */);
-  undo_outer_limit = 300000;
+  Vundo_outer_limit = make_number (300000);
 
   DEFVAR_LISP ("undo-outer-limit-function", &Vundo_outer_limit_function,
 	       doc: /* Function to call when an undo list exceeds `undo-outer-limit'.
