@@ -2137,7 +2137,7 @@ Reference Manual}.
 file your @dfn{init file} because it specifies how to initialize Emacs
 for you.  You can use the command line switch @samp{-q} to prevent
 loading your init file, and @samp{-u} (or @samp{--user}) to specify a
-different user's init file (@pxref{Entering Emacs}).
+different user's init file (@pxref{Initial Options}).
 
 @cindex @file{default.el}, the default init file
   There can also be a @dfn{default init file}, which is the library
