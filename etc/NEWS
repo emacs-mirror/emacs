@@ -3711,6 +3711,9 @@ display.  Lisp programs should call these functions instead of testing
 the value of the variables `window-system' or `system-type', or calling
 platform-specific functions such as `x-display-pixel-width'.
 
+The new function `display-images-p' returns non-nil if a particular
+display can display image files.
+
 +++
 ** The minibuffer prompt is now actually inserted in the minibuffer.
 
