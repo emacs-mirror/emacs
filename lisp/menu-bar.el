@@ -337,8 +337,6 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize]
   '("Browse Hierarchy of User Options" . customize))
 
-(define-key menu-bar-help-menu [customize-menu]
-  (cons "Customize" menu-bar-custom-menu))
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
@@ -364,6 +362,8 @@ Do the same for the keys of the same name."
 (define-key menu-bar-help-menu [info] '("Browse Manuals" . info))
 (define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
+(define-key menu-bar-help-menu [customize-menu]
+  (cons "Customize" menu-bar-custom-menu))
 
 (defun kill-this-buffer ()	; for the menubar
   "Kills the current buffer."
