@@ -1,6 +1,8 @@
 2001-09-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* dos-fns.el (original-make-auto-save-file-name): New.
+	* dos-fns.el (convert-standard-filename): Replace invalid
+	characters only after converting dash/underscore to a period.
+	(original-make-auto-save-file-name): New.
 	(make-auto-save-file-name): New function, overrides the definition
 	on files.el and calls the original function via
 	original-make-auto-save-file-name.
