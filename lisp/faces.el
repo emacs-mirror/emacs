@@ -370,7 +370,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
 Use `face-attribute' for finer control."
   (let ((bold (face-attribute face :weight frame)))
-    (not (memq bold '(normal unspecified)))))
+    (memq bold '(semi-bold bold extra-bold ultra-bold))))
 
 
 (defun face-italic-p (face &optional frame)
