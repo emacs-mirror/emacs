@@ -997,8 +997,8 @@ saved table is restored, even in case of an abnormal exit.  Value is
 what BODY returns.
 
 +++
-** Regular expressions now support Perl's non-greedy *? +? and ??
-operators.
+** Regular expressions now support intervals \{n,m\} as well as
+Perl's non-greedy *? +? and ?? operators.
 
 +++
 ** The optional argument BUFFER of function file-local-copy has been
