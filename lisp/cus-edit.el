@@ -2487,7 +2487,7 @@ and so forth.  The remaining group tags are shown with
 		      symbol)
 		     buttons)
 	     (push (widget-create-child-and-convert 
-		    widget 'visibility
+		    widget 'group-visibility
 		    :help-echo "Show members of this group."
 		    :action 'custom-toggle-parent
 		    (not (eq state 'hidden)))
