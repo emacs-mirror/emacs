@@ -688,7 +688,7 @@ get_emacs_configuration (void)
   /* Let oem be "*" until we figure out how to decode the OEM field.  */
   oem = "*";
 
-  os = (GetVersion () & 0x80000000) ? "win95" : "nt";
+  os = (GetVersion () & 0x80000000) ? "windows95" : "nt";
 
   sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
 	   get_w32_major_version (), get_w32_minor_version ());
