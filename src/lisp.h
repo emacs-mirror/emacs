@@ -2808,7 +2808,7 @@ extern void syms_of_search P_ ((void));
 extern Lisp_Object last_minibuf_string;
 extern void choose_minibuf_frame P_ ((void));
 EXFUN (Fcompleting_read, 8);
-EXFUN (Fread_from_minibuffer, 7);
+EXFUN (Fread_from_minibuffer, 8);
 EXFUN (Fread_variable, 2);
 EXFUN (Fread_buffer, 3);
 EXFUN (Fread_minibuffer, 2);
