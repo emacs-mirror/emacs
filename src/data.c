@@ -445,7 +445,7 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
 /* Extract and set components of lists */
 
 DEFUN ("car", Fcar, Scar, 1, 1, 0,
-  "Return the car of CONSCELL.  If arg is nil, return nil.\n\
+  "Return the car of LIST.  If arg is nil, return nil.\n\
 Error if arg is not nil and not a cons cell.  See also `car-safe'.")
   (list)
      register Lisp_Object list;
@@ -473,7 +473,7 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
 }
 
 DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
-  "Return the cdr of CONSCELL.  If arg is nil, return nil.\n\
+  "Return the cdr of LIST.  If arg is nil, return nil.\n\
 Error if arg is not nil and not a cons cell.  See also `cdr-safe'.")
 
   (list)
@@ -502,7 +502,7 @@ DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
 }
 
 DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
-  "Set the car of CONSCELL to be NEWCAR.  Returns NEWCAR.")
+  "Set the car of CELL to be NEWCAR.  Returns NEWCAR.")
   (cell, newcar)
      register Lisp_Object cell, newcar;
 {
@@ -515,7 +515,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
 }
 
 DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
-  "Set the cdr of CONSCELL to be NEWCDR.  Returns NEWCDR.")
+  "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR.")
   (cell, newcdr)
      register Lisp_Object cell, newcdr;
 {
