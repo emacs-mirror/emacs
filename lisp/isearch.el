@@ -944,55 +944,49 @@ If no previous match was done, just beep."
   (isearch-update))
 
 
-(defun isearch-yank (chunk)
-  ;; Helper for isearch-yank-word and isearch-yank-line
-  ;; CHUNK should be word, line, kill, or x-sel.
-  (let ((string (cond
-                 ((eq chunk 'kill)
-                  (current-kill 0))
-                 ((eq chunk 'x-sel)
-                  (x-get-selection))
-                 (t
-		  (save-excursion
-		    (and (not isearch-forward) isearch-other-end
-			 (goto-char isearch-other-end))
-		    (buffer-substring
-		     (point)
-		     (save-excursion
-		       (cond
-			((eq chunk 'word)
-			 (forward-word 1))
-			((eq chunk 'line)
-			 (end-of-line)))
-		       (point))))))))
-    ;; Downcase the string if not supposed to case-fold yanked strings.
-    (if (and isearch-case-fold-search
-	     (eq 'not-yanks search-upper-case))
-	(setq string (downcase string)))
-    (if isearch-regexp (setq string (regexp-quote string)))
-    (setq isearch-string (concat isearch-string string)
-	  isearch-message
-	  (concat isearch-message
-		  (mapconcat 'isearch-text-char-description
-			     string ""))
-	  ;; Don't move cursor in reverse search.
-	  isearch-yank-flag t))
+(defun isearch-yank-string (string)
+  "Pull STRING into search string."
+  ;; Downcase the string if not supposed to case-fold yanked strings.
+  (if (and isearch-case-fold-search
+	   (eq 'not-yanks search-upper-case))
+      (setq string (downcase string)))
+  (if isearch-regexp (setq string (regexp-quote string)))
+  (setq isearch-string (concat isearch-string string)
+	isearch-message
+	(concat isearch-message
+		(mapconcat 'isearch-text-char-description
+			   string ""))
+	;; Don't move cursor in reverse search.
+	isearch-yank-flag t)
   (isearch-search-and-update))
 
 (defun isearch-yank-kill ()
   "Pull string from kill ring into search string."
   (interactive)
-  (isearch-yank 'kill))
+  (isearch-yank-string (current-kill 0)))
+
+(defun isearch-yank-x-selection ()
+  "Pull current X selection into search string."
+  (interactive)
+  (isearch-yank-string (x-get-selection)))
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."
   (interactive)
-  (isearch-yank 'word))
+  (isearch-yank-string
+   (save-excursion
+     (and (not isearch-forward) isearch-other-end
+	  (goto-char isearch-other-end))
+     (buffer-substring (point) (progn (forward-word 1) (point))))))
 
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
   (interactive)
-  (isearch-yank 'line))
+  (isearch-yank-string
+   (save-excursion
+     (and (not isearch-forward) isearch-other-end
+	  (goto-char isearch-other-end))
+     (buffer-substring (point) (line-end-position)))))
 
 
 (defun isearch-search-and-update ()
