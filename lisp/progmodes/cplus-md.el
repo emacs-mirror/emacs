@@ -239,7 +239,6 @@ list.  Nil indicates to just after the paren.")
     ))
   "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
 
-;;;###autoload
 (defun c++-mode ()
   "Major mode for editing C++ code.  Very much like editing C code.
 Expression and list commands understand all C++ brackets.
