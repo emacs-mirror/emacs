@@ -378,6 +378,10 @@ x_window_to_frame (dpyinfo, wdesc)
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
+      if (f->output_data.w32->busy_window == wdesc)
+        return f;
+
+      /* NTEMACS_TODO: Check tooltips when supported.  */
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
     }
@@ -11597,109 +11601,156 @@ value.")
 				Busy cursor
  ***********************************************************************/
 
-/* The implementation partly follows a patch from
-   F.Pierresteguy@frcl.bull.fr dated 1994.  */
+/* If non-null, an asynchronous timer that, when it expires, displays
+   a busy cursor on all frames.  */
 
-/* Setting inhibit_busy_cursor to 2 inhibits busy-cursor display until
-   the next X event is read and we enter XTread_socket again.  Setting
-   it to 1 inhibits busy-cursor display for direct commands.  */
+static struct atimer *busy_cursor_atimer;
 
-int inhibit_busy_cursor;
+/* Non-zero means a busy cursor is currently shown.  */
 
-/* Incremented with each call to x-display-busy-cursor.
-   Decremented in x-undisplay-busy-cursor.  */
+static int busy_cursor_shown_p;
 
-static int busy_count;
+/* Number of seconds to wait before displaying a busy cursor.  */
+
+static Lisp_Object Vbusy_cursor_delay;
+
+/* Default number of seconds to wait before displaying a busy
+   cursor.  */
+
+#define DEFAULT_BUSY_CURSOR_DELAY 1
+
+/* Function prototypes.  */
+
+static void show_busy_cursor P_ ((struct atimer *));
+static void hide_busy_cursor P_ ((void));
 
 
-DEFUN ("x-show-busy-cursor", Fx_show_busy_cursor,
-       Sx_show_busy_cursor, 0, 0, 0,
-  "Show a busy cursor, if not already shown.\n\
-Each call to this function must be matched by a call to\n\
-x-undisplay-busy-cursor to make the busy pointer disappear again.")
-  ()
+/* Cancel a currently active busy-cursor timer, and start a new one.  */
+
+void
+start_busy_cursor ()
 {
-  ++busy_count;
-  if (busy_count == 1)
+#if 0 /* NTEMACS_TODO: cursor shape changes.  */
+  EMACS_TIME delay;
+  int secs;
+  
+  cancel_busy_cursor ();
+
+  if (INTEGERP (Vbusy_cursor_delay)
+      && XINT (Vbusy_cursor_delay) > 0)
+    secs = XFASTINT (Vbusy_cursor_delay);
+  else
+    secs = DEFAULT_BUSY_CURSOR_DELAY;
+  
+  EMACS_SET_SECS_USECS (delay, secs, 0);
+  busy_cursor_atimer = start_atimer (ATIMER_RELATIVE, delay,
+				     show_busy_cursor, NULL);
+#endif
+}
+
+
+/* Cancel the busy cursor timer if active, hide a busy cursor if
+   shown.  */
+
+void
+cancel_busy_cursor ()
+{
+  if (busy_cursor_atimer)
+    cancel_atimer (busy_cursor_atimer);
+  if (busy_cursor_shown_p)
+    hide_busy_cursor ();
+}
+
+
+/* Timer function of busy_cursor_atimer.  TIMER is equal to
+   busy_cursor_atimer.
+
+   Display a busy cursor on all frames by mapping the frames'
+   busy_window.  Set the busy_p flag in the frames' output_data.x
+   structure to indicate that a busy cursor is shown on the
+   frames.  */
+
+static void
+show_busy_cursor (timer)
+     struct atimer *timer;
+{
+#if 0  /* NTEMACS_TODO: cursor shape changes.  */
+  /* The timer implementation will cancel this timer automatically
+     after this function has run.  Set busy_cursor_atimer to null
+     so that we know the timer doesn't have to be canceled.  */
+  busy_cursor_atimer = NULL;
+
+  if (!busy_cursor_shown_p)
     {
       Lisp_Object rest, frame;
-
+  
+      BLOCK_INPUT;
+  
       FOR_EACH_FRAME (rest, frame)
 	if (FRAME_X_P (XFRAME (frame)))
 	  {
 	    struct frame *f = XFRAME (frame);
-#if 0 /* NTEMACS_TODO : busy cursor */
-	    
-	    BLOCK_INPUT;
+	
 	    f->output_data.w32->busy_p = 1;
-	    
+	
 	    if (!f->output_data.w32->busy_window)
 	      {
 		unsigned long mask = CWCursor;
 		XSetWindowAttributes attrs;
-
+	    
 		attrs.cursor = f->output_data.w32->busy_cursor;
+	    
 		f->output_data.w32->busy_window
-		  = XCreateWindow (FRAME_W32_DISPLAY (f),
+		  = XCreateWindow (FRAME_X_DISPLAY (f),
 				   FRAME_OUTER_WINDOW (f),
 				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly, CopyFromParent,
+				   InputOnly,
+				   CopyFromParent,
 				   mask, &attrs);
 	      }
-
-	    XMapRaised (FRAME_W32_DISPLAY (f), f->output_data.w32->busy_window);
-	    UNBLOCK_INPUT;
-#endif
+	
+	    XMapRaised (FRAME_X_DISPLAY (f), f->output_data.w32->busy_window);
+	    XFlush (FRAME_X_DISPLAY (f));
 	  }
-    }
 
-  return Qnil;
+      busy_cursor_shown_p = 1;
+      UNBLOCK_INPUT;
+    }
+#endif
 }
 
 
-DEFUN ("x-hide-busy-cursor", Fx_hide_busy_cursor,
-       Sx_hide_busy_cursor, 0, 1, 0,
-  "Hide a busy-cursor.\n\
-A busy-cursor will actually be undisplayed when a matching\n\
-`x-undisplay-busy-cursor' is called for each `x-display-busy-cursor'\n\
-issued.  FORCE non-nil means undisplay the busy-cursor forcibly,\n\
-not counting calls.")
-  (force)
-     Lisp_Object force;
+/* Hide the busy cursor on all frames, if it is currently shown.  */
+
+static void
+hide_busy_cursor ()
 {
-  Lisp_Object rest, frame;
-
-  if (busy_count == 0)
-    return Qnil;
-
-  if (!NILP (force) && busy_count != 0)
-    busy_count = 1;
-
-  --busy_count;
-  if (busy_count != 0)
-    return Qnil;
-
-  FOR_EACH_FRAME (rest, frame)
+#if 0 /* NTEMACS_TODO: cursor shape changes.  */
+  if (busy_cursor_shown_p)
     {
-      struct frame *f = XFRAME (frame);
-      
-      if (FRAME_X_P (f)
-	  /* Watch out for newly created frames.  */
-	  && f->output_data.w32->busy_window)
-	{
-#if 0 /* NTEMACS_TODO : busy cursor */	  
-	  BLOCK_INPUT;
-	  XUnmapWindow (FRAME_W32_DISPLAY (f), f->output_data.w32->busy_window);
-	  /* Sync here because XTread_socket looks at the busy_p flag
-	     that is reset to zero below.  */
-	  XSync (FRAME_W32_DISPLAY (f), False);
-	  UNBLOCK_INPUT;
-	  f->output_data.w32->busy_p = 0;
-#endif
-	}
-    }
+      Lisp_Object rest, frame;
 
-  return Qnil;
+      BLOCK_INPUT;
+      FOR_EACH_FRAME (rest, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+      
+	  if (FRAME_X_P (f)
+	      /* Watch out for newly created frames.  */
+	      && f->output_data.x->busy_window)
+	    {
+	      XUnmapWindow (FRAME_X_DISPLAY (f), f->output_data.x->busy_window);
+	      /* Sync here because XTread_socket looks at the busy_p flag
+		 that is reset to zero below.  */
+	      XSync (FRAME_X_DISPLAY (f), False);
+	      f->output_data.x->busy_p = 0;
+	    }
+	}
+
+      busy_cursor_shown_p = 0;
+      UNBLOCK_INPUT;
+    }
+#endif
 }
 
 
@@ -12864,6 +12915,11 @@ or when you set the mouse color.");
     "Non-zero means Emacs displays a busy cursor on window systems.");
   display_busy_cursor_p = 1;
   
+  DEFVAR_LISP ("busy-cursor-delay", &Vbusy_cursor_delay,
+     "*Seconds to wait before displaying a busy-cursor.\n\
+Value must be an integer.");
+  Vbusy_cursor_delay = make_number (DEFAULT_BUSY_CURSOR_DELAY);
+
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	      &Vx_sensitive_text_pointer_shape,
 	      "The shape of the pointer when over mouse-sensitive text.\n\
@@ -13059,12 +13115,6 @@ only be necessary if the default setting causes problems.");
   defsubr (&Slookup_image);
 #endif
 #endif /* NTEMACS_TODO */
-
-  /* Busy-cursor.  */
-  defsubr (&Sx_show_busy_cursor);
-  defsubr (&Sx_hide_busy_cursor);
-  busy_count = 0;
-  inhibit_busy_cursor = 0;
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
