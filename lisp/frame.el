@@ -391,10 +391,12 @@ where
 			 (current-window-configuration frame))))
 		(frame-list))))
 
-(defun set-frame-configuration (configuration)
+(defun set-frame-configuration (configuration &optional nodelete)
   "Restore the frames to the state described by CONFIGURATION.
 Each frame listed in CONFIGURATION has its position, size, window
-configuration, and other parameters set as specified in CONFIGURATION."
+configuration, and other parameters set as specified in CONFIGURATION.
+Unless optional second argument NODELETE is given and non-nil, deletes
+all existing frames not listed in CONFIGURATION."
   (or (frame-configuration-p configuration)
       (signal 'wrong-type-argument
 	      (list 'frame-configuration-p configuration)))
@@ -416,7 +418,8 @@ configuration, and other parameters set as specified in CONFIGURATION."
 		       (set-window-configuration (nth 2 parameters)))
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
 	    (frame-list))
-    (mapcar 'delete-frame frames-to-delete)))
+    (or nodelete
+	(mapcar 'delete-frame frames-to-delete))))
 
 (defun frame-configuration-p (object)
   "Return non-nil if OBJECT seems to be a frame configuration.
