@@ -440,7 +440,7 @@ end of the buffer."
     (define-key map [mouse-2] 'occur-mode-mouse-goto)
     (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
     (define-key map "\C-m" 'occur-mode-goto-occurrence)
-    (define-key map "\o" 'occur-mode-goto-occurrence-other-window)
+    (define-key map "o" 'occur-mode-goto-occurrence-other-window)
     (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
@@ -452,6 +452,11 @@ end of the buffer."
 (defvar occur-revert-arguments nil
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
+
+(defcustom occur-mode-hook '(turn-on-font-lock)
+  "Hooks run when `occur' is called."
+  :type 'hook
+  :group 'matching)
 
 (put 'occur-mode 'mode-class 'special)
 (defun occur-mode ()
@@ -466,10 +471,9 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq major-mode 'occur-mode)
   (setq mode-name "Occur")
   (make-local-variable 'revert-buffer-function)
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil
-	     (font-lock-fontify-region-function . occur-fontify-region-function)))
-  (setq revert-buffer-function 'occur-revert-function)
+  (set (make-local-variable 'font-lock-category-alist)
+       `((,(make-symbol "occur-match") . bold)
+	 (,(make-symbol "occur-title") . underline)))
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
   (run-hooks 'occur-mode-hook))
@@ -763,7 +767,6 @@ See also `multi-occur'."
 		  (setq origpt (point))
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
-		    (setq globalcount (1+ globalcount))
 		    (setq matchbeg (match-beginning 0)
 			  matchend (match-end 0))
 		    (setq begpt (save-excursion
@@ -777,6 +780,8 @@ See also `multi-occur'."
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
 		    (let ((len (length curstring))
+			  (match-category (with-current-buffer out-buf
+					    (car (nth 0 font-lock-category-alist))))
 			  (start 0))
 		      (unless keep-props
 			(set-text-properties 0 len nil curstring))
@@ -785,7 +790,7 @@ See also `multi-occur'."
 			(add-text-properties (match-beginning 0)
 					     (match-end 0)
 					     (append
-					      '(occur-match t)
+					      `(occur-match t category ,match-category)
 					      (when match-face
 						`(face ,match-face)))
 					     curstring)
@@ -831,6 +836,7 @@ See also `multi-occur'."
 			(forward-line 1))
 		    (goto-char (point-max))))))
 	    (when (not (zerop matches)) ;; is the count zero?
+	      (setq globalcount (+ globalcount matches))
 	      (with-current-buffer out-buf
 		(goto-char headerpt)
 		(let ((beg (point))
@@ -842,35 +848,12 @@ See also `multi-occur'."
 				       (append
 					(when title-face
 					  `(face ,title-face))
-					`(occur-title ,buf))))
+					`(occur-title
+					  ,buf category
+					  ,(car (nth 1 font-lock-category-alist))))))
 		(goto-char (point-min)))))))
       ;; Return the number of matches
       globalcount)))
-
-(defun occur-fontify-on-property (prop face beg end)
-  (let ((prop-beg (or (and (get-text-property (point) prop) (point))
-		      (next-single-property-change (point) prop nil end))))
-    (when (and prop-beg (not (= prop-beg end)))
-      (let ((prop-end (next-single-property-change beg prop nil end)))
-	(when (and prop-end (not (= prop-end end)))
-	  (put-text-property prop-beg prop-end 'face face)
-	  prop-end)))))
-
-(defun occur-fontify-region-function (beg end &optional verbose)
-  (when verbose (message "Fontifying..."))
-  (let ((inhibit-read-only t))
-    (save-excursion
-      (dolist (e `((occur-title . ,list-matching-lines-buffer-name-face)
-		   (occur-match . ,list-matching-lines-face)))
-		   ; (occur-prefix . ,list-matching-lines-prefix-face)))
-	(goto-char beg)
-	(let ((change-end nil))
-	  (while (setq change-end (occur-fontify-on-property (car e)
-							     (cdr e)
-							     (point)
-							     end))
-	    (goto-char change-end))))))
-  (when verbose (message "Fontifying...done")))
 
 
 ;; It would be nice to use \\[...], but there is no reasonable way
