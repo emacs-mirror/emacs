@@ -1769,6 +1769,7 @@ scan_lists (from, count, depth, sexpflag)
   int found;
   int from_byte = CHAR_TO_BYTE (from);
   int out_bytepos, out_charpos;
+  int temp;
 
   if (depth > 0) min_depth = 0;
 
@@ -1819,7 +1820,10 @@ scan_lists (from, count, depth, sexpflag)
 	      while (from < stop)
 		{
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
-		  switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from_byte))))
+
+		  /* Some compilers can't handle this inside the switch.  */
+		  temp = SYNTAX (FETCH_CHAR (from_byte));
+		  switch (temp)
 		    {
 		    case Scharquote:
 		    case Sescape:
@@ -1913,7 +1917,10 @@ scan_lists (from, count, depth, sexpflag)
 		      ? (FETCH_CHAR (from_byte) == stringterm)
 		      : SYNTAX (FETCH_CHAR (from_byte)) == Sstring_fence) 
 		    break;
-		  switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from_byte))))
+
+		  /* Some compilers can't handle this inside the switch.  */
+		  temp = SYNTAX (FETCH_CHAR (from_byte));
+		  switch (temp)
 		    {
 		    case Scharquote:
 		    case Sescape:
@@ -2228,6 +2235,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int prev_from_syntax;
   int boundary_stop = commentstop == -1;
   int nofence;
+  int temp;
 
   prev_from = from;
   prev_from_byte = from_byte;
@@ -2372,7 +2380,9 @@ do { prev_from = from;				\
 	symstarted:
 	  while (from < end)
 	    {
-	      switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from_byte))))
+	      /* Some compilers can't handle this inside the switch.  */
+	      temp = SYNTAX (FETCH_CHAR (from_byte));
+	      switch (temp)
 		{
 		case Scharquote:
 		case Sescape:
@@ -2481,7 +2491,10 @@ do { prev_from = from;				\
 		if (from >= end) goto done;
 		c = FETCH_CHAR (from_byte);
 		if (nofence && c == state.instring) break;
-		switch (SWITCH_ENUM_CAST (SYNTAX (c)))
+
+		/* Some compilers can't handle this inside the switch.  */
+		temp = SYNTAX (c);
+		switch (temp)
 		  {
 		  case Sstring_fence:
 		    if (!nofence) goto string_end;
