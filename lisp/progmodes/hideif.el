@@ -184,7 +184,7 @@
 ;;;###autoload
 (defun hide-ifdef-mode (arg)
   "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
-With ARG, turn Hide-Ifdef mode on iff arg is positive.
+With ARG, turn Hide-Ifdef mode on if arg is positive, off otherwise.
 In Hide-Ifdef mode, code within #ifdef constructs that the C preprocessor
 would eliminate may be hidden from view.  Several variables affect
 how the hiding is done:
