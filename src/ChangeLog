@@ -7,6 +7,12 @@
 	(make_number): Define as a function if it's not defined as a
 	macro.
 
+	* editfns.c (text_property_stickiness, Fmessage_or_box): Use NILP
+	to test Lisp_Object boolean value.
+	(Fformat): Use a temporary variable to avoid ENABLE_CHECKING
+	problems reading from and changing the same lisp value in an
+	XSETSTRING call.
+
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (TN_no_color_video): New variable.

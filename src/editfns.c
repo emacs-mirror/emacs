@@ -315,7 +315,7 @@ text_property_stickiness (prop, pos)
 
       if (EQ (rear_non_sticky, Qnil)
 	  || (CONSP (rear_non_sticky)
-	      && !Fmemq (prop, rear_non_sticky)))
+	      && NILP (Fmemq (prop, rear_non_sticky))))
 	/* PROP is not rear-non-sticky, and since this takes precedence over
 	   any front-stickiness, PROP is inherited from before.  */
 	return -1;
@@ -326,7 +326,7 @@ text_property_stickiness (prop, pos)
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
-	  && Fmemq (prop, front_sticky)))
+	  && !NILP (Fmemq (prop, front_sticky))))
     /* PROP is inherited from after.  */
     return 1;
 
@@ -2781,7 +2781,7 @@ minibuffer contents show.")
 {
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && NILP (use_dialog_box))
+      && use_dialog_box)
     return Fmessage_box (nargs, args);
 #endif
   return Fmessage (nargs, args);
@@ -2949,7 +2949,10 @@ Use %% to put a single % into the output.")
 	  }
 	else if (SYMBOLP (args[n]))
 	  {
-	    XSETSTRING (args[n], XSYMBOL (args[n])->name);
+	    /* Use a temp var to avoid problems when ENABLE_CHECKING
+	       is turned on.  */
+	    struct Lisp_String *t = XSYMBOL (args[n])->name;
+	    XSETSTRING (args[n], t);
 	    if (STRING_MULTIBYTE (args[n]) && ! multibyte)
 	      {
 		multibyte = 1;
