@@ -2816,8 +2816,8 @@ of each directory."
 
     ;; At last, write out LEIM list file.
     (with-current-buffer list-buf
-      (setq buffer-file-coding-system 'iso-2022-7bit)
-      (save-buffer 0))
+      (let ((coding-system-for-write 'iso-2022-7bit))
+	(save-buffer 0)))
     (kill-buffer list-buf)
     (message "Updating %s ... done" leim-list)))
 
