@@ -1487,83 +1487,89 @@ This variable is permanent-local.")
     ;; First check for killed buffer or no input.
     (when (and string oprocbuf (buffer-name oprocbuf))
       (with-current-buffer oprocbuf
+	;; Run preoutput filters
 	(let ((functions comint-preoutput-filter-functions))
 	  (while (and functions string)
 	    (setq string (funcall (car functions) string))
 	    (setq functions (cdr functions))))
-	(let (opoint obeg oend)
-	  (setq opoint (point))
-	  (setq obeg (point-min))
-	  (setq oend (point-max))
-	  (let ((buffer-read-only nil)
-		(nchars (length string))
-		(ostart nil))
-	    (widen)
-	    (goto-char (process-mark process))
-	    (setq ostart (point))
-	    (if (<= (point) opoint)
-		(setq opoint (+ opoint nchars)))
-	    ;; Insert after old_begv, but before old_zv.
-	    (if (< (point) obeg)
-		(setq obeg (+ obeg nchars)))
-	    (if (<= (point) oend)
-		(setq oend (+ oend nchars)))
 
-	    (insert string)
+	;; Do insertion.  We don't use save-restriction because it has a
+	;; bug, so we fake it by saving any current restriction, and
+	;; then later restoring it.
+	(let ((opoint (point))
+	      (obeg (point-min))
+	      (oend (point-max))
+	      (buffer-read-only nil)
+	      (nchars (length string))
+	      (ostart (process-mark process)))
+	  (widen)
+	  (goto-char ostart)
 
-	    (unless comint-use-prompt-regexp-instead-of-fields
-	      ;; We check to see if the last overlay used for output has
-	      ;; already been extended to include STRING (because it was
-	      ;; inserted with insert-before-markers?), and only make
-	      ;; a new overlay if it hasn't.
-	      (if (and comint-last-output-overlay
-		       (equal (overlay-end comint-last-output-overlay) ostart))
-		  ;; Extend comint-last-output-overlay to include the
-		  ;; most recent output
-		  (move-overlay comint-last-output-overlay
-				(overlay-start comint-last-output-overlay)
-				(point))
-		;; Create a new overlay
-		(let ((over (make-overlay ostart (point))))
-		  (overlay-put over 'field 'output)
-		  (overlay-put over 'rear-nonsticky t)
-		  (overlay-put over 'inhibit-line-move-field-capture t)
-		  (overlay-put over 'evaporate t)
-		  (setq comint-last-output-overlay over))))
+	  ;; Adjust buffer positions to account for about-to-be-inserted text
+	  (if (<= (point) opoint)
+	      (setq opoint (+ opoint nchars)))
+	  ;; Insert after old_begv, but before old_zv.
+	  (if (< (point) obeg)
+	      (setq obeg (+ obeg nchars)))
+	  (if (<= (point) oend)
+	      (setq oend (+ oend nchars)))
 
-	    (when comint-highlight-prompt
-	      ;; Highlight the prompt, where we define `prompt' to mean
-	      ;; the most recent output that doesn't end with a newline.
-	      (unless (and (bolp) (null comint-last-prompt-overlay))
-		;; Need to create or move the prompt overlay (in the
-		;; case where's no prompt ((bolp) == t), we still do
-		;; this if there's already an existing overlay.
-		(let ((prompt-start (save-excursion (forward-line 0) (point))))
-		  (if comint-last-prompt-overlay
-		      ;; Just move an existing overlay
-		      (move-overlay comint-last-prompt-overlay
-				    prompt-start (point))
-		    ;; Need to create the overlay
-		    (setq comint-last-prompt-overlay
-			  (make-overlay prompt-start (point)))
-		    (overlay-put comint-last-prompt-overlay
-				 'rear-nonsticky t)
-		    (overlay-put comint-last-prompt-overlay
-				 'face 'comint-highlight-prompt-face)))))
+	  (insert string)
 
-	    ;; Don't insert initial prompt outside the top of the window.
-	    (if (= (window-start (selected-window)) (point))
-		(set-window-start (selected-window) (- (point) (length string))))
-	    (if (and comint-last-input-end
-		     (marker-buffer comint-last-input-end)
-		     (= (point) comint-last-input-end))
-		(set-marker comint-last-input-end (- comint-last-input-end nchars)))
-	    (set-marker comint-last-output-start ostart)
-	    (set-marker (process-mark process) (point))
-	    (force-mode-line-update))
+	  (unless comint-use-prompt-regexp-instead-of-fields
+	    ;; We check to see if the last overlay used for output is
+	    ;; adjacent to the new input, and if so, just extend it.
+	    (if (and comint-last-output-overlay
+		     (equal (overlay-end comint-last-output-overlay) ostart))
+		;; Extend comint-last-output-overlay to include the
+		;; most recent output
+		(move-overlay comint-last-output-overlay
+			      (overlay-start comint-last-output-overlay)
+			      (point))
+	      ;; Create a new overlay
+	      (let ((over (make-overlay ostart (point))))
+		(overlay-put over 'field 'output)
+		(overlay-put over 'rear-nonsticky t)
+		(overlay-put over 'inhibit-line-move-field-capture t)
+		(overlay-put over 'evaporate t)
+		(setq comint-last-output-overlay over))))
 
+	  (when comint-highlight-prompt
+	    ;; Highlight the prompt, where we define `prompt' to mean
+	    ;; the most recent output that doesn't end with a newline.
+	    (unless (and (bolp) (null comint-last-prompt-overlay))
+	      ;; Need to create or move the prompt overlay (in the
+	      ;; case where's no prompt ((bolp) == t), we still do
+	      ;; this if there's already an existing overlay.
+	      (let ((prompt-start (save-excursion (forward-line 0) (point))))
+		(if comint-last-prompt-overlay
+		    ;; Just move an existing overlay
+		    (move-overlay comint-last-prompt-overlay
+				  prompt-start (point))
+		  ;; Need to create the overlay
+		  (setq comint-last-prompt-overlay
+			(make-overlay prompt-start (point)))
+		  (overlay-put comint-last-prompt-overlay
+			       'rear-nonsticky t)
+		  (overlay-put comint-last-prompt-overlay
+			       'face 'comint-highlight-prompt-face)))))
+
+	  ;; Don't insert initial prompt outside the top of the window.
+	  (if (= (window-start (selected-window)) (point))
+	      (set-window-start (selected-window) (- (point) (length string))))
+	  (if (and comint-last-input-end
+		   (marker-buffer comint-last-input-end)
+		   (= (point) comint-last-input-end))
+	      (set-marker comint-last-input-end
+			  (- comint-last-input-end nchars)))
+	  (set-marker comint-last-output-start ostart)
+	  (set-marker (process-mark process) (point))
+	  (force-mode-line-update)
+
+	  ;; Restore our saved restriction, and the point
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
+
 	  (run-hook-with-args 'comint-output-filter-functions string))))))
 
 (defun comint-preinput-scroll-to-bottom ()
