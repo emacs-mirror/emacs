@@ -43,6 +43,10 @@
 ;;   2. Calling bibtex-find-text in a string entry results in the
 ;;      error message "Can't find enclosing Bibtex field" instead of
 ;;      moving to the empty string. [reported by gernot@cs.unsw.oz.au]
+;;   3. Quotes inside quote-parenthesized fields (like
+;;      `author = "Stefan Sch{\"o}f"') break bibtex-validate-buffer.
+;;      Further, you must use braces here, if you want to set
+;;      bibtex-maintain-sorted-entries to a non-nil value.
 
 ;; (current keeper: schoef@informatik.uni-oldenburg.de
 ;;  previous: alarson@src.honeywell.com)
@@ -78,19 +82,24 @@ name of the field, second element = comment to appear in the echo area).")
   "*If non-nil, bibtex-clean-entry will delete all empty optional fields.")
 
 (defvar bibtex-sort-ignore-string-entries t
-  "*If true, BibTeX @STRING entries are not sort-significant.
+  "*If non-nil, BibTeX @STRING entries are not sort-significant.
 That means they are ignored when determining ordering of the buffer
-(e.g. sorting, locating alphabetical position for new entries, etc.).")
+(e.g. sorting, locating alphabetical position for new entries, etc.).
+This variable is buffer local.")
+(make-variable-buffer-local 'bibtex-sort-ignore-string-entries)
 
 (defvar bibtex-maintain-sorted-entries nil
-  "*If true, bibtex-mode maintains all BibTeX entries in sorted order.
+  "*If non-nil, bibtex-mode maintains all BibTeX entries in sorted order.
 Setting this variable to nil will strip off some comfort (e.g. TAB
-completion for reference keys) from bibtex-mode.")
+completion for reference keys in minibuffer, automatic detection of
+duplicates) from bibtex-mode. See also bibtex-sort-ignore-string-entries.
+This variable is buffer local.")
+(make-variable-buffer-local 'bibtex-maintain-sorted-entries)
 
 (defvar bibtex-entry-field-alist
   '(
     ("Article" . (((("author" "Author1 [and Author2 ...] [and others]")
-                    ("title" "Title of the article (will be converted to lowercase)")
+                    ("title" "Title of the article (BibTeX converts it to lowercase)")
                     ("journal" "Name of the journal (use string, remove braces)")
                     ("year" "Year of publication"))
 		   (("volume" "Volume of the journal")
@@ -99,7 +108,7 @@ completion for reference keys) from bibtex-mode.")
                     ("pages" "Pages in the journal")
                     ("note" "Remarks to be put at the end of the \\bibitem")))
 		  ((("author" "Author1 [and Author2 ...] [and others]")
-                    ("title" "Title of the article (will be converted to lowercase)"))
+                    ("title" "Title of the article (BibTeX converts it to lowercase)"))
 		   (("journal" "Name of the journal (use string, remove braces)") 
                     ("year" "Year of publication")
                     ("volume" "Volume of the journal")
@@ -119,7 +128,7 @@ completion for reference keys) from bibtex-mode.")
 		 ("edition" "Edition of the book as a capitalized English word")
                  ("month" "Month of the publication as a string (remove braces)")
                  ("note" "Remarks to be put at the end of the \\bibitem")))))
-    ("Booklet" . (((("title" "Title of the booklet (will be converted to lowercase)"))
+    ("Booklet" . (((("title" "Title of the booklet (BibTeX converts it to lowercase)"))
 		   (("author" "Author1 [and Author2 ...] [and others]")
                     ("howpublished" "The way in which the booklet was published")
                     ("address" "Address of the publisher")
@@ -157,7 +166,7 @@ completion for reference keys) from bibtex-mode.")
                    ("type" "Word to use instead of \"chapter\"")
                    ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("InCollection" . (((("author" "Author1 [and Author2 ...] [and others]")
-                         ("title" "Title of the article in book (will be converted to lowercase)")
+                         ("title" "Title of the article in book (BibTeX converts it to lowercase)")
 			 ("booktitle" "Name of the book")
                          ("publisher" "Publishing company")
                          ("year" "Year of publication"))
@@ -173,7 +182,7 @@ completion for reference keys) from bibtex-mode.")
 			 ("pages" "Pages in the book")
                          ("note" "Remarks to be put at the end of the \\bibitem")))
 		       ((("author" "Author1 [and Author2 ...] [and others]")
-                         ("title" "Title of the article in book (will be converted to lowercase)")
+                         ("title" "Title of the article in book (BibTeX converts it to lowercase)")
                          ("booktitle" "Name of the book"))
 			(("publisher" "Publishing company")
                          ("year" "Year of publication")
@@ -189,7 +198,7 @@ completion for reference keys) from bibtex-mode.")
 			 ("pages" "Pages in the book")
                          ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("InProceedings" . (((("author" "Author1 [and Author2 ...] [and others]")
-                          ("title" "Title of the article in proceedings (will be converted to lowercase)")
+                          ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)")
                           ("booktitle" "Name of the conference proceedings")
                           ("year" "Year of publication"))
 			 (("editor" "Editor1 [and Editor2 ...] [and others]")
@@ -203,7 +212,7 @@ completion for reference keys) from bibtex-mode.")
                           ("pages" "Pages in the conference proceedings")
                           ("note" "Remarks to be put at the end of the \\bibitem")))
 			((("author" "Author1 [and Author2 ...] [and others]")
-                          ("title" "Title of the article in proceedings (will be converted to lowercase)")
+                          ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)")
 			  ("booktitle" "Name of the conference proceedings"))
 			 (("editor" "Editor1 [and Editor2 ...] [and others]")
                           ("volume" "Volume of the conference proceedings in the series")
@@ -226,7 +235,7 @@ completion for reference keys) from bibtex-mode.")
                    ("note" "Remarks to be put at the end of the \\bibitem")))))
 
     ("MastersThesis" . (((("author" "Author1 [and Author2 ...] [and others]")
-                          ("title" "Title of the master\'s thesis (will be converted to lowercase)")
+                          ("title" "Title of the master\'s thesis (BibTeX converts it to lowercase)")
                           ("school" "School where the master\'s thesis was written")
                           ("year" "Year of publication"))
 			 (("address" "Address of the school (if not part of field \"school\") or country")
@@ -235,7 +244,7 @@ completion for reference keys) from bibtex-mode.")
                           ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("Misc" . ((()
 		(("author" "Author1 [and Author2 ...] [and others]")
-                 ("title" "Title of the reference (will be converted to lowercase)")
+                 ("title" "Title of the reference (BibTeX converts it to lowercase)")
                  ("howpublished" "The way in which the reference was published")
                  ("year" "Year of publication")
                  ("month" "Month of the publication as a string (remove braces)")
@@ -260,7 +269,7 @@ completion for reference keys) from bibtex-mode.")
                         ("month" "Month of the publication as a string (remove braces)")
                         ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("TechReport" . (((("author" "Author1 [and Author2 ...] [and others]")
-                       ("title" "Title of the technical report (will be converted to lowercase)")
+                       ("title" "Title of the technical report (BibTeX converts it to lowercase)")
                        ("institution" "Sponsoring institution of the report")
                        ("year" "Year of publication"))
 		      (("type" "Type of the report (if other than \"technical report\")")
@@ -269,7 +278,7 @@ completion for reference keys) from bibtex-mode.")
                        ("month" "Month of the publication as a string (remove braces)")
                        ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("Unpublished" . (((("author" "Author1 [and Author2 ...] [and others]")
-                        ("title" "Title of the unpublished reference (will be converted to lowercase)")
+                        ("title" "Title of the unpublished reference (BibTeX converts it to lowercase)")
                         ("note" "Remarks to be put at the end of the \\bibitem"))
 		       (("year" "Year of publication")
                         ("month" "Month of the publication as a string (remove braces)")))))
@@ -397,6 +406,21 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defvar bibtex-autokey-edit-before-use t
   "*If non-nil, user is allowed to edit the generated key before it is used.")
 
+(defvar bibtex-font-lock-keywords
+  (list
+   "^@[A-Za-z]*[({]"
+   ;; reference type
+   '("^\\([ \t]*OPT[A-Za-z_-][A-Za-z0-9_-]*\\)[ \t]*="
+     1 font-lock-comment-face)
+   ;; optional field names
+   '("^\\([ \t]*[A-Za-z_-][A-Za-z0-9_-]*\\)[ \t]*="
+     1 font-lock-function-name-face)
+   ;; field names
+   '("^@[A-Za-z]*[({]\\([^\n,]*\\),"
+     1 font-lock-string-face)
+   ;; reference labels
+   )
+  "*Fonts to use in BibTeX mode")
 
 
 ;; Syntax Table, Keybindings and BibTeX Entry List
@@ -434,7 +458,6 @@ See the documentation of function bibtex-generate-autokey for further detail.")
     (define-key km "\M-\C-e"   'bibtex-end-of-entry)
     (define-key km "\C-c\C-b"   'bibtex-entry)
     (define-key km "\C-c\C-q" 'bibtex-hide-entry-bodies)
-    (define-key km "\C-c\C-a" 'show-all)
     (define-key km "\C-c\C-rn" 'bibtex-narrow-to-entry)
     (define-key km "\C-c\C-rw" 'widen)
     (define-key km "\C-c\C-o" 'bibtex-remove-OPT)
@@ -459,29 +482,29 @@ See the documentation of function bibtex-generate-autokey for further detail.")
     (define-key km "\C-c\C-e\C-u" 'bibtex-Unpublished)
     km))
 
-(define-key bibtex-mode-map [menu-bar move/edit]
+(define-key bibtex-mode-map [menu-bar bibtex-edit]
   (cons "BibTeX-Edit" (make-sparse-keymap "BibTeX-Edit")))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-print-help-message]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-print-help-message]
   '("Help about Current Field" . bibtex-print-help-message))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-complete-string]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-complete-string]
   '("String Complete" . bibtex-complete-string))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-next-field]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-next-field]
   '("Next Field" . bibtex-next-field))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-find-text]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-find-text]
   '("End of Field" . bibtex-find-text))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-pop-previous]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-pop-previous]
   '("Snatch from Similar Preceding Field" . bibtex-pop-previous))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-pop-next]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-pop-next]
   '("Snatch from Similar Following Field" . bibtex-pop-next))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-OPT]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-remove-OPT]
   '("Remove OPT" . bibtex-remove-OPT))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-double-quotes-or-braces]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-remove-double-quotes-or-braces]
   '("Remove Quotes or Braces" . bibtex-remove-double-quotes-or-braces))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-clean-entry]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-clean-entry]
   '("Clean Up Entry" . bibtex-clean-entry))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-sort-entries]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-sort-entries]
   '("Sort Entries" . bibtex-sort-entries))
-(define-key bibtex-mode-map [menu-bar move/edit bibtex-validate-buffer]
+(define-key bibtex-mode-map [menu-bar bibtex-edit bibtex-validate-buffer]
   '("Validate Entries" . bibtex-validate-buffer))
 
 (define-key bibtex-mode-map [menu-bar entry-types]
@@ -534,6 +557,18 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 ;; buffer-local.
 (make-variable-buffer-local 'bibtex-completion-candidates)
 
+(defvar bibtex-keys nil)
+;; Candidates for TAB completion when entering a reference key using
+;; the minibuffer. Initialized in bibtex-mode and updated for each
+;; new entry. This variable is buffer-local.
+(make-variable-buffer-local 'bibtex-keys)
+
+(defvar bibtex-buffer-last-parsed-for-keys-tick nil)
+;; Remembers the value returned by buffer-modified-tick when buffer
+;; was parsed for keys the last time.
+(make-variable-buffer-local 'bibtex-keys)
+
+
 
 ;; Functions to Parse the BibTeX Entries
 
@@ -550,7 +585,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defconst bibtex-text-in-cfield 2)
 ;; The regexp subexpression number of the text part in bibtex-cfield.
 
-(defconst bibtex-field-name "[A-Za-z][]A-Za-z0-9.:;?!`'()/*@_+=-]*")
+(defconst bibtex-field-name "[A-Za-z_-][A-Za-z0-9_-]*")
 ;; Regexp defining the name part of a BibTeX field.
 
 (defconst bibtex-field-const "[0-9A-Za-z][A-Za-z0-9:_+-]*"
@@ -562,7 +597,8 @@ See the documentation of function bibtex-generate-autokey for further detail.")
    "{\\(\\({\\(\\({[^}]*}\\)\\|\\([^{}]\\)\\)*}\\)\\|\\([^{}]\\)\\)*}"
    ;; maximal twice nested {}
    "\\)\\|\\("
-   "\"[^\"]*[^\\\\]\"\\|\"\"\\)"))
+   "\"[^\"]*[^\\\\]\"\\|\"\""
+   "\\)"))
 ;; Match either a string or an empty string.
 
 (defconst bibtex-field-string-or-const
@@ -572,11 +608,10 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defconst bibtex-field-text
   (concat
     "\\(" bibtex-field-string-or-const "\\)"
-        "\\([ \t\n]+#[ \t\n]+\\(" bibtex-field-string-or-const "\\)\\)*\\|"
-    "{[^{}]*[^\\\\]}"))
+        "\\([ \t\n]+#[ \t\n]+\\(" bibtex-field-string-or-const "\\)\\)*"))
 ;; Regexp defining the text part of a BibTeX field: either a string,
 ;; or an empty string, or a constant followed by one or more # /
-;; constant pairs. Also matches simple {...} patterns.
+;; constant pairs.
 
 (defconst bibtex-field
   (bibtex-cfield bibtex-field-name bibtex-field-text))
@@ -588,18 +623,25 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defconst bibtex-text-in-field bibtex-text-in-cfield)
 ;; The regexp subexpression number of the text part in BibTeX-field.
 
-(defconst bibtex-reference-type
-  "@[A-Za-z]+")
+(defconst bibtex-reference-type "@[A-Za-z]+")
 ;; Regexp defining the type part of a BibTeX reference entry.
+
+(defconst bibtex-reference-key "[A-Za-z][A-Za-z0-9.:;?!`'/*@_+-]*")
+;; Regexp defining the label part of a BibTeX reference entry.
 
 (defconst bibtex-reference-head
   (concat "^\\( \\|\t\\)*\\("
 	  bibtex-reference-type
 	  "\\)[ \t]*[({]\\("
-	  bibtex-field-name
+	  bibtex-reference-key
 	  "\\)"))
 ;; Regexp defining format of the header line of a BibTeX reference
 ;; entry.
+
+(defconst bibtex-reference-maybe-empty-head
+  (concat bibtex-reference-head "?"))
+;; Regexp defining format of the header line of a maybe empty
+;; BibTeX reference entry (without reference key).
 
 (defconst bibtex-type-in-head 2)
 ;; The regexp subexpression number of the type part in
@@ -612,7 +654,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defconst bibtex-reference
   (concat bibtex-reference-head
 	  "\\([ \t\n]*" bibtex-field "\\)*"
-	  "[ \t\n]*[})]"))
+	  "[ \t\n]*,?[ \t\n]*[})]"))
 ;; Regexp defining the format of a BibTeX reference entry.
 
 (defconst bibtex-type-in-reference bibtex-type-in-head)
@@ -625,13 +667,13 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 (defconst bibtex-string
   (concat "^[ \t]*@[sS][tT][rR][iI][nN][gG][ \t\n]*[({][ \t\n]*\\("
-	  bibtex-field-name
+	  bibtex-reference-key
 	  "\\)[ \t\n]*=[ \t\n]*\\("
 	  bibtex-field-text
 	  "\\)[ \t\n]*[})]"))
 ;; Regexp defining the format of a BibTeX string entry.
 
-(defconst bibtex-name-in-string 1)
+(defconst bibtex-key-in-string 1)
 ;; The regexp subexpression of the name part in bibtex-string.
 
 (defconst bibtex-text-in-string 2)
@@ -709,18 +751,19 @@ See the documentation of function bibtex-generate-autokey for further detail.")
   ;; Call FUN for each BibTeX entry starting with the current. Do this
   ;; to the end of the file. FUN is called with one argument, the key
   ;; of the entry, and with point inside the entry. If
-  ;; bibtex-sort-ignore-string-entries is true, FUN will not be called
+  ;; bibtex-sort-ignore-string-entries is non-nil, FUN will not be called
   ;; for @string entries.
   (bibtex-beginning-of-entry)
-  (while (re-search-forward "^@[^{]*{[ \t]*\\([^, ]*\\)" nil t)
+  (while (re-search-forward bibtex-reference-head nil t)
     (if (and bibtex-sort-ignore-string-entries
-	     (string-equal "@string{"
+	     (string-equal "@string"
                            (downcase (buffer-substring-no-properties
-                                      (match-beginning 0)
-                                      (match-beginning 1)))))
+                                      (match-beginning bibtex-type-in-head)
+                                      (match-end bibtex-type-in-head)))))
 	nil
       (funcall fun (buffer-substring-no-properties
-                    (match-beginning 1) (match-end 1))))))
+                    (match-beginning bibtex-key-in-head)
+                    (match-end bibtex-key-in-head))))))
 
 (defun bibtex-flash-head ()
   ;; Flash at BibTeX reference head before point, if exists.
@@ -755,22 +798,24 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (defun beginning-of-first-bibtex-entry ()
   ;; Go to the beginning of the first BibTeX entry in buffer.
   (goto-char (point-min))
-  (cond
-   ((re-search-forward "^@" nil 'move)
-    (beginning-of-line))
-   ((and (bobp) (eobp))
-    nil)
-   (t
-    (message "Warning: No BibTeX entries found!"))))
+   (cond
+    ((re-search-forward "^@" nil 'move)
+     (beginning-of-line))
+    ((and (bobp) (eobp))
+     nil)
+    (t
+     (message "Warning: No BibTeX entries found!"))))
 
 (defun bibtex-inside-field ()
   ;; Try to avoid point being at end of a BibTeX field.
   (end-of-line)
-  (skip-chars-backward " \t")		;MON - maybe delete these chars?
+  (skip-chars-backward " \t")
   (cond ((= (preceding-char) ?,)
-	 (forward-char -2))) ; -1 --> -2 sct@dcs.edinburgh.ac.uk
-  (cond ((= (preceding-char) (aref bibtex-field-right-delimiter 0))
-	 (forward-char -1))))		;MON - only go back if quote
+	 (forward-char -2)))
+  (cond ((or
+          (= (preceding-char) ?})
+          (= (preceding-char) ?\"))
+         (forward-char -1))))
 
 (defun bibtex-enclosing-field ()
   ;; Search for BibTeX field enclosing point. Point moves to end of
@@ -784,22 +829,44 @@ See the documentation of function bibtex-generate-autokey for further detail.")
        (error "Can't find enclosing BibTeX field.")))))
 
 (defun bibtex-enclosing-reference ()
-  ;; Search for BibTeX reference enclosing point. Point moves to begin
-  ;; of reference. (match-end 0) denotes end of reference.
-  ;; Hacked up for speed. Parsing isn't guaranteed any more.
-  ;; schoef@informatik.uni-oldenburg.de
-  ;; sct@dcs.edinburgh.ac.uk
+  ;; Search for BibTeX reference enclosing point. Point moves to
+  ;; beginning of reference. Beginning/end of reference is given by
+  ;; (match-beginning/match-end 0).
   (let ((old-point (point)))
     (if (not
-         (re-search-backward
-          "^@[A-Za-z]+[ \t\n]*[{(][^, \t\n]*[ \t\n]*,"
-          (point-min) t))
+         (re-search-backward bibtex-reference-head (point-min) t))
         (progn
           (error "Can't find enclosing BibTeX reference.")
           (goto-char old-point)))
+    (goto-char (match-beginning bibtex-type-in-head))
     (let ((pnt (point)))
       (if (not
-           (re-search-forward "^[)}]$" (point-max) t))
+           (re-search-forward bibtex-reference (point-max) t))
+          (progn
+            (error "Can't find enclosing BibTeX reference.")
+            (goto-char old-point))
+        (goto-char pnt)))))
+
+(defun bibtex-enclosing-reference-maybe-empty-head ()
+  ;; Search for BibTeX reference enclosing point. Point moves to
+  ;; beginning of reference. Beginning/end of reference is given by
+  ;; (match-beginning/match-end 0).
+  (let ((old-point (point)))
+    (if (not
+         (re-search-backward
+          bibtex-reference-maybe-empty-head (point-min) t))
+        (progn
+          (error "Can't find enclosing BibTeX reference.")
+          (goto-char old-point)))
+    (goto-char (match-beginning bibtex-type-in-head))
+    (let ((pnt (point)))
+      (if (not
+           (re-search-forward
+            (concat
+             bibtex-reference-maybe-empty-head
+             "\\([ \t\n]*" bibtex-field "\\)*"
+             "[ \t\n]*,?[ \t\n]*[})]")
+            (point-max) t))
           (progn
             (error "Can't find enclosing BibTeX reference.")
             (goto-char old-point))
@@ -939,8 +1006,8 @@ The generation algorithm works as follows:
           (progn
             (goto-char min)
             (if (or
-                 (search-forward-regexp "^[ \t]*author[ \t]*=" max t)
-                 (search-forward-regexp "^[ \t]*editor[ \t]*=" max t))
+                 (re-search-forward "^[ \t]*author[ \t]*=" max t)
+                 (re-search-forward "^[ \t]*editor[ \t]*=" max t))
                 (let* (bibtex-help-message
                        (start (progn
                                 (bibtex-find-text t)
@@ -995,7 +1062,7 @@ The generation algorithm works as follows:
          (yearfield
           (progn
             (goto-char min)
-            (if (search-forward-regexp
+            (if (re-search-forward
                  "^[ \t]*year[ \t]*=[ \t]*\\([0-9]*\\)" max t)
                 (buffer-substring-no-properties
                  (match-beginning 1) (match-end 1))
@@ -1011,7 +1078,7 @@ The generation algorithm works as follows:
                 (titlefield
                  (progn
                    (goto-char min)
-                   (if (search-forward-regexp
+                   (if (re-search-forward
                         "^[ \t]*title[ \t]*=" max t)
                        (let* (bibtex-help-message
                               (start (progn
@@ -1111,6 +1178,62 @@ The generation algorithm works as follows:
            titlepart)))
     (goto-char pnt)
     autokey))
+
+(defun bibtex-parse-keys (add &optional abortable)
+  ;; Sets bibtex-keys to the keys used in the whole (possibly
+  ;; restricted) buffer (either as entry keys or as crossref entries).
+  ;; If ADD is non-nil adds the new keys to bibtex-keys instead of
+  ;; simply resetting it. If ABORTABLE is non-nil abort on user input.
+  (if bibtex-maintain-sorted-entries
+      (let ((labels (if add
+                        bibtex-keys))
+            label
+            (case-fold-search t))
+        (save-excursion
+          (goto-char (point-min))
+          (if (not add)
+              (message "Parsing reference keys..."))
+
+          (if (not
+               (catch 'userkey
+                 (while
+                     (re-search-forward
+                      (concat
+                       "\\("
+                       bibtex-reference-head
+                       "\\)\\|\\("
+                       "^[ \t\n]*crossref[ \t\n]*=[ \t\n]*[{\"]\\([A-Za-z][]A-Za-z0-9.:;?!`'()/*@_+-]*\\)[}\"],?$"
+                       "\\)")
+                      nil t)
+                   (if (and
+                        abortable
+                        (input-pending-p))
+                       (throw 'userkey t))
+                   (if (match-beginning (1+ bibtex-key-in-head))
+                       (setq
+                        label
+                        (buffer-substring-no-properties 
+                         (match-beginning (1+ bibtex-key-in-head))
+                         (match-end (1+ bibtex-key-in-head))))
+                     (setq
+                      label
+                      (buffer-substring-no-properties
+                       (match-beginning (+ 3 bibtex-key-in-head))
+                       (match-end (+ 3 bibtex-key-in-head)))))
+                   (if (not (assoc label labels))
+                       (setq labels
+                             (cons (list label) labels))))))
+              (progn
+                (setq
+                 bibtex-buffer-last-parsed-for-keys-tick
+                 (buffer-modified-tick))
+                (if (not add)
+                    (message "Parsing reference keys... done"))
+                (setq bibtex-keys labels)))))))
+
+(defun bibtex-auto-fill-function ()
+  (let ((fill-prefix (make-string (+ bibtex-text-alignment 1) ? )))
+    (do-auto-fill)))
 
 
 
@@ -1226,29 +1349,45 @@ non-nil."
               (set-buffer bufname)
               (insert-file-contents fullfilename)
               (goto-char (point-min))
-              (while (search-forward-regexp bibtex-string nil t)
+              (while (re-search-forward bibtex-string nil t)
                 (setq
                  compl
                  (append
                   compl
                   (list
                    (list (buffer-substring-no-properties
-                          (match-beginning bibtex-name-in-string)
-                          (match-end bibtex-name-in-string)))))))
+                          (match-beginning bibtex-key-in-string)
+                          (match-end bibtex-key-in-string)))))))
               (kill-buffer bufname)
               (set-buffer curbuf)
               (setq bibtex-completion-candidates compl))
           (error "File %s not in $BIBINPUTS paths" filename)))))
    bibtex-string-files)
+  (add-hook
+   'auto-save-hook
+   (function
+    (lambda ()
+      (if (and
+           bibtex-maintain-sorted-entries
+           (eq major-mode 'bibtex-mode)
+           (not
+            (eq (buffer-modified-tick)
+                bibtex-buffer-last-parsed-for-keys-tick)))
+          (bibtex-parse-keys nil t)))))
+  (bibtex-parse-keys nil)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start "[ \f\n\t]*$")
   (make-local-variable 'comment-start)
   (setq comment-start "%")
-  (auto-fill-mode 1)			; nice alignments
-  (setq left-margin (+ bibtex-text-alignment 1))
+  (auto-fill-mode 1)
+  (setq auto-fill-function 'bibtex-auto-fill-function)
+  (set (make-local-variable 'font-lock-defaults)
+       '(bibtex-font-lock-keywords nil t ((?$ . "\""))))
   (run-hooks 'bibtex-mode-hook))
 
 (defun bibtex-entry (entry-type &optional required optional)
+  "Inserts a new BibTeX entry.
+Calls the value of bibtex-add-entry-hook if that value is non-nil."
   (interactive (let* ((completion-ignore-case t)
 		      (e-t (completing-read
                             "Entry Type: "
@@ -1268,33 +1407,14 @@ non-nil."
 		  optional (elt c-ref 1))
 	  (setq required (elt r-n-o 0)
 		optional (elt r-n-o 1)))))
-  (let*
-      (labels
-       label
-       (case-fold-search t)
-       (key
-        (if bibtex-maintain-sorted-entries
-            (progn
-              (save-excursion
-                (goto-char (point-min))
-                (while
-                    (re-search-forward
-                     "\\(^@[a-z]+[ \t\n]*[{(][ \t\n]*\\([^ ,\t\n]+\\)[ \t\n]*,\\)\\|\\(^[ \t\n]*crossref[ \t\n]*=[ \t\n]*[{\"]\\([^ ,\t\n]*\\)[}\"],$\\)"
-                     nil t)
-                  (if (match-beginning 2)
-                      (setq label (buffer-substring-no-properties 
-                                   (match-beginning 2) (match-end 2)))
-                    (setq label (buffer-substring-no-properties
-                                 (match-beginning 4) (match-end 4))))
-                  (if (not (assoc label labels))
-                      (setq labels
-                            (cons (list label) labels)))))
-              (completing-read
-               (format "%s key: " entry-type)
-               labels)))))
-    (if key
-	(bibtex-find-entry-location key))	
-    (bibtex-move-outside-of-entry)
+  (let ((key
+         (if bibtex-maintain-sorted-entries
+             (completing-read
+              (format "%s key: " entry-type)
+              bibtex-keys))))
+    (if bibtex-maintain-sorted-entries
+	(bibtex-find-entry-location key)
+      (bibtex-move-outside-of-entry))
     (insert "@" entry-type "{")
     (if key
 	(insert key))
@@ -1310,8 +1430,7 @@ non-nil."
       (if bibtex-include-OPTannote
 	  (bibtex-make-optional-field '("annote")))
       (insert "\n}\n\n"))
-    (if key
-	(bibtex-next-field t))
+    (bibtex-next-field t)
     (run-hooks 'bibtex-add-entry-hook)))
 
 (defun bibtex-print-help-message ()
@@ -1326,21 +1445,21 @@ non-nil."
               (search-failed
                (goto-char pnt)
                (error "Not on BibTeX field")))
-            (re-search-backward
-             "^[ \t]*\\([A-Za-z]+\\)[ \t\n]*=" nil t)
-            (let ((mb (match-beginning 1))
-                  (me (match-end 1)))
+            (let ((mb (match-beginning bibtex-name-in-field))
+                  (me (match-end bibtex-name-in-field)))
+              (goto-char mb)
               (buffer-substring-no-properties
-               (if (looking-at "^[ \t]*OPT")
+               (if (looking-at "OPT")
                    (+ 3 mb)
                  mb)
                me))))
          (reference-type
           (progn
             (re-search-backward
-             "^@\\([A-Za-z]+\\)[ \t\n]*[{(][^, \t\n]*[ \t\n]*," nil t)
+             bibtex-reference-maybe-empty-head nil t)
             (buffer-substring-no-properties
-             (match-beginning 1) (match-end 1))))
+             (1+ (match-beginning bibtex-type-in-head))
+             (match-end bibtex-type-in-head))))
          (entry-list
           (assoc-ignore-case reference-type
                                bibtex-entry-field-alist))
@@ -1373,21 +1492,25 @@ non-nil."
 
 (defun bibtex-make-field (e-t)
   "Makes a field named E-T in current BibTeX entry."
-  (interactive "sBibTeX entry type: ")
+  (interactive "sBibTeX field name: ")
   (let ((name (if (consp e-t)
                   (elt e-t 0)
                 e-t)))
-    (bibtex-find-text nil)
-    (forward-char 1)
+    (if (interactive-p)
+        (progn
+          (bibtex-find-text nil)
+          (if (looking-at "[}\"]")
+              (forward-char 1))))
     (insert ",\n")
     (indent-to-column bibtex-name-alignment)
     (insert name " = ")
     (indent-to-column bibtex-text-alignment)
-    (insert bibtex-field-left-delimiter bibtex-field-right-delimiter)))
+    (insert bibtex-field-left-delimiter bibtex-field-right-delimiter)
+    (if (interactive-p)
+        (forward-char -1))))
 
 (defun bibtex-make-optional-field (e-t)
   "Makes an optional field named E-T in current BibTeX entry."
-  (interactive "sOptional BibTeX entry type: ")
   (if (consp e-t)
       (setq e-t (cons (concat "OPT" (car e-t)) (cdr e-t)))
     (setq e-t (concat "OPT" e-t)))
@@ -1459,13 +1582,9 @@ With argument, show all text."
 
 (defun bibtex-sort-entries ()
   "Sort BibTeX entries alphabetically by key.
-Text before the first BibTeX entry, and following the last is not affected.
-If bibtex-sort-ignore-string-entries is true, @string entries will be ignored.
-
-Bugs:
-  1. Text between the closing brace ending one BibTeX entry, and the @ starting
-     the next, is considered part of the PRECEDING entry.  Perhaps it should be
-     part of the following entry."
+Text outside of BibTeX entries is not affected. If
+bibtex-sort-ignore-string-entries is non-nil, @string entries will be
+ignored."
   (interactive)
   (save-restriction
     (beginning-of-first-bibtex-entry)
@@ -1475,104 +1594,114 @@ Bugs:
        (goto-char (point-max))
        (bibtex-end-of-entry)
        (point)))
+    (if bibtex-sort-ignore-string-entries
+        (if (re-search-forward bibtex-reference nil 'move)
+            (goto-char (match-beginning 0))))
     (sort-subr
      nil
      ;; NEXTREC function
-     'forward-line
+     (function
+      (lambda ()
+        (if bibtex-sort-ignore-string-entries
+            (if (re-search-forward bibtex-reference nil 'move)
+                (goto-char (match-beginning 0)))
+          (if (re-search-forward bibtex-reference-head nil 'move)
+              (goto-char (match-beginning 0))))))
      ;; ENDREC function
-     (function
-      (lambda ()
-        (and
-         (re-search-forward "}\\s-*\n[\n \t]*@" nil 'move)
-         (forward-char -2))))
+     'bibtex-end-of-entry
      ;; STARTKEY function
-     (if bibtex-sort-ignore-string-entries
-         (function
-          (lambda ()
-            (while
-                (and
-                 (re-search-forward "^\\s-*\\([@a-zA-Z]*\\)\\s-*{\\s-*")
-                 (string-equal
-                  "@string"
-                  (downcase
-                   (buffer-substring-no-properties
-                    (match-beginning 1)
-                    (match-end 1))))))
-            nil))
-       (function
-        (lambda ()
-          (re-search-forward "{\\s-*"))))
-     ;; ENDKEY function
      (function
       (lambda ()
-        (search-forward ","))))))
+        (if bibtex-sort-ignore-string-entries
+            (progn
+              (re-search-forward bibtex-reference)
+              (buffer-substring-no-properties
+               (match-beginning bibtex-key-in-reference)
+               (match-end bibtex-key-in-reference)))
+          (re-search-forward bibtex-reference-head)
+          (buffer-substring-no-properties
+           (match-beginning bibtex-key-in-head)
+           (match-end bibtex-key-in-head)))))
+     ;; ENDKEY function
+     nil)))
   
-(defun bibtex-find-entry-location (entry-name &optional ignore-errors)
+(defun bibtex-find-entry-location (entry-name &optional ignore-dups)
   "Looking for place to put the BibTeX entry named ENTRY-NAME.
-Searches from beginning of buffer. Buffer is assumed to be in sorted
-order, without duplicates (see \\[bibtex-sort-entries]), if it is not,
-an error will be signalled. However, if optional argument
-IGNORE-ERRORS is non-nil, no error messages about duplicate entries or
-sort order violences are signalled, but the error handling is assumed
-to be made in the calling function. Nil is returned, if any error
-occured during search for location of the new entry, and t in all
-other cases. If an error occured, point is not moved."
-  (interactive "sBibtex entry key: ")
-  (let ((noerr t)
-        (previous nil)
-        (pnt (point))
-	point)
-    (beginning-of-first-bibtex-entry)
-    (or
-     (catch 'done
-       (map-bibtex-entries
-        (function
-         (lambda (current)
-           (cond ((string-equal entry-name current)
-                  (setq noerr nil)
-                  (bibtex-beginning-of-entry)
-                  (if ignore-errors
-                      (throw 'done t)
-                    (error "Entry duplicates existing!")))
-                 ((or (null previous)
-                      (string< previous current))
-                  (setq previous current
-                        point (point))
-                  (if (string< entry-name current)
-                      (progn
-                        (bibtex-beginning-of-entry)
-                        ;; Many schemes append strings to
-                        ;; existing entries to resolve them,
-                        ;; so initial substring matches may
-                        ;; indicate a duplicate entry.  
-                        (let ((idx
-                               (string-match
-                                (regexp-quote entry-name) current)))
-                          (if (and
-                               (integerp idx)
-                               (zerop idx)
-;;                               (not ignore-errors)
-                               (not (equal entry-name "")))
-                              (progn
-                                (message
-                                 "Warning: Entry %s may be a duplicate of %s!"
-                                 entry-name current)
-                                (ding t))))
-                        (throw 'done t))))
-                 ((string-equal previous current)
-                  (setq noerr nil)
-                  (if ignore-errors
-                      (throw 'done t)
-                    (error "Duplicate here with previous!")))
-                 (t
-                  (setq noerr nil)
-                  (if ignore-errors
-                      (throw 'done t)
-                    (error "Entries out of order here!"))))))))
-     (goto-char (point-max)))
-    (if (not noerr)
-        (goto-char pnt))
-    noerr))
+Performs a binary search (therefore, buffer is assumed to be in sorted
+order, without duplicates (see \\[bibtex-validate-buffer]), if it is
+not, bibtex-find-entry-location will fail). If entry-name is already
+used as a reference key, an error is signalled. However, if optional
+variable IGNORE-DUPS is non-nil, no error messages about duplicate
+entries are signalled, but the error handling is assumed to be made in
+the calling function. Nil is returned, if an duplicate entry error
+occured, and t in all other cases."
+  (let* ((left
+          (progn
+            (beginning-of-first-bibtex-entry)
+            (if bibtex-sort-ignore-string-entries
+                (re-search-forward bibtex-reference nil `move)
+              (bibtex-end-of-entry))
+            (point)))
+         (right
+          (progn
+            (goto-char (point-max))
+            (if bibtex-sort-ignore-string-entries
+                (re-search-backward bibtex-reference nil `move)
+              (bibtex-beginning-of-entry))
+            (point)))
+         actual-point
+         actual-key
+         (done (>= left right))
+         new
+         dup)
+    (while (not done)
+      (setq actual-point (/ (+ left right) 2))
+      (goto-char actual-point)
+      (bibtex-beginning-of-entry)
+      (setq actual-key
+            (if bibtex-sort-ignore-string-entries
+                (progn
+                  (re-search-forward bibtex-reference)
+                  (buffer-substring-no-properties
+                   (match-beginning bibtex-key-in-reference)
+                   (match-end bibtex-key-in-reference)))
+              (re-search-forward bibtex-reference-head)
+              (buffer-substring-no-properties
+               (match-beginning bibtex-key-in-head)
+               (match-end bibtex-key-in-head))))
+      (cond
+       ((string-lessp entry-name actual-key)
+        (setq new (match-beginning 0))
+        (if (equal right new)
+            (setq done t)
+          (setq right new)))
+       ((string-lessp actual-key entry-name)
+        (setq new (match-end 0))
+        (if (equal left new)
+            (setq done t)
+          (setq left new)))
+       ((string-equal actual-key entry-name)
+        (setq dup t
+              done t)
+        (if (not ignore-dups)
+            (error "Entry with key `%s' already exists!" entry-name)))))
+    (if dup
+        nil
+      (goto-char right)
+      (if (re-search-forward bibtex-reference nil t)
+          (progn
+            (setq actual-key
+                  (buffer-substring-no-properties
+                   (match-beginning bibtex-key-in-reference)
+                   (match-end bibtex-key-in-reference)))
+            (if (string-lessp actual-key entry-name)
+                ;; even greater than last entry --> we must append
+                (progn
+                  (goto-char (match-end 0))
+                  (newline (forward-line 2))
+                  (beginning-of-line))
+              (goto-char right))))
+      t)))    
 
 (defun bibtex-validate-buffer ()
   "Validate if the current BibTeX buffer is syntactically correct.
@@ -1581,11 +1710,14 @@ you can put comments here)."
   (interactive)
   (let ((pnt (point))
         (max (point-max)))
+    ;; looking if entries fit syntactical structure
     (goto-char (point-min))
     (while (< (re-search-forward "@\\|\\'") max)
       (forward-char -1)
       (let ((p (point)))
-        (if (looking-at "@string")
+        (if (or
+             (looking-at "@string")
+             (looking-at "@preamble"))
             (forward-char)
           (if (not (and
                     (re-search-forward bibtex-reference nil t)
@@ -1593,8 +1725,32 @@ you can put comments here)."
               (progn
                 (goto-char p)
                 (error "Bad entry begins here"))))))
-    (bibtex-find-entry-location (make-string 10 255))
-    ;; find duplicates
+    ;; looking if entries are balanced (a single non-escaped quote
+    ;; inside braces is not detected by the former check, but
+    ;; bibtex-sort-entries stumbles about it
+    (goto-char (point-min))
+    (map-bibtex-entries
+     (function
+      (lambda (current)
+        (bibtex-beginning-of-entry)
+        (forward-sexp 2))))
+    ;; looking for correct sort order and duplicates
+    (if bibtex-maintain-sorted-entries
+        (let ((entry-name (make-string 10 255))
+              (previous nil)
+              point)
+          (beginning-of-first-bibtex-entry)
+          (map-bibtex-entries
+           (function
+            (lambda (current)
+              (cond ((or (null previous)
+                         (string< previous current))
+                     (setq previous current
+                           point (point)))
+                    ((string-equal previous current)
+                     (error "Duplicate here with previous!"))
+                    (t
+                     (error "Entries out of order here!"))))))))
     (goto-char pnt)
     (message "BibTeX buffer is syntactically correct")))
 
@@ -1720,7 +1876,7 @@ intermixed with \\[bibtex-pop-next] (bibtex-pop-next)."
 	       t
 	       )
 	      (t
-	       (bibtex-enclosing-reference)
+	       (bibtex-enclosing-reference-maybe-empty-head)
 	       (setq bibtex-pop-previous-search-point (point))
 	       (setq bibtex-pop-next-search-point (match-end 0))))
 	(goto-char bibtex-pop-previous-search-point)
@@ -1797,7 +1953,7 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
 	       t
 	       )
 	      (t
-	       (bibtex-enclosing-reference)
+	       (bibtex-enclosing-reference-maybe-empty-head)
 	       (setq bibtex-pop-previous-search-point (point))
 	       (setq bibtex-pop-next-search-point (match-end 0))))
 	(goto-char bibtex-pop-next-search-point)
@@ -1871,7 +2027,7 @@ given, calculate a new entry label."
                            bibtex-field-left-delimiter
                            bibtex-field-right-delimiter)))
                     (setq crossref-there t))))))
-      (bibtex-enclosing-reference)
+      (bibtex-enclosing-reference-maybe-empty-head)
       (re-search-forward bibtex-reference-type)
       (let ((begin-type (1+ (match-beginning 0)))
             (end-type (match-end 0)))
@@ -1965,19 +2121,13 @@ given, calculate a new entry label."
                          (t
                           (goto-char end-field)))))))))
     (goto-char start)
-    (bibtex-end-of-entry)
-    ;; sct@dcs.edinburgh.ac.uk
-    (save-excursion
-      (forward-line -1)
-      (end-of-line)
-      (if (eq (preceding-char) ?,)
- 	  (backward-delete-char 1))))
+    (bibtex-end-of-entry))
   (let* ((eob (progn
                 (bibtex-end-of-entry)
                 (point)))
          (key (progn
                 (bibtex-beginning-of-entry)
-                (if (search-forward-regexp
+                (if (re-search-forward
                      bibtex-reference-head eob t)
                     (buffer-substring-no-properties
                      (match-beginning bibtex-key-in-head)
@@ -1992,30 +2142,39 @@ given, calculate a new entry label."
                                            (bibtex-generate-autokey))
                    (bibtex-generate-autokey))))
             (bibtex-beginning-of-entry)
-            (search-forward-regexp "^@[A-Za-z]+[ \t]*[({]\\([^,]*\\)")
-            (delete-region (match-beginning 1)
-                           (match-end 1))
+            (re-search-forward bibtex-reference-maybe-empty-head)
+            (if (match-beginning bibtex-key-in-head)
+                (delete-region (match-beginning bibtex-key-in-head)
+                               (match-end bibtex-key-in-head)))
             (insert autokey)
             (let ((start (progn
                            (bibtex-beginning-of-entry)
                            (point)))
                   (end (progn
                          (bibtex-end-of-entry)
-                         (search-forward-regexp "^@" nil 'move)
+                         (re-search-forward "^@" nil 'move)
                          (beginning-of-line)
                          (point)))
                   last-command)
               (kill-region start end)
-              (let ((success (bibtex-find-entry-location autokey t)))
+              (let ((success
+                     (or
+                      (not bibtex-maintain-sorted-entries)
+                      (bibtex-find-entry-location autokey t))))
                 (yank)
                 (setq kill-ring (cdr kill-ring))
-                (if success
-                    (bibtex-beginning-of-entry)
-                  (goto-char start))
-                (search-forward-regexp bibtex-reference-head)
+                (forward-char -1)
+                (bibtex-beginning-of-entry)
+                (re-search-forward bibtex-reference-head)
                 (if (not success)
                     (error
-                     "BibTeX buffer was or has become invalid (call `bibtex-validate-buffer')")))))))))
+                     "New inserted reference may be a duplicate."))))))))
+  (save-excursion
+    (let ((start (progn (bibtex-beginning-of-entry) (point)))
+          (end (progn (bibtex-end-of-entry) (point))))
+      (save-restriction
+        (narrow-to-region start end)
+        (bibtex-parse-keys t)))))
 
 (defun bibtex-complete-string ()
   "Complete word fragment before point to longest prefix of a defined string.
@@ -2032,20 +2191,14 @@ If point is not after the part of a word, all strings are listed."
          (completion (save-excursion
                        (progn
                          (while (re-search-backward
-                                 "@string[ \t\n]*{" (point-min) t)
-                           (goto-char (match-end 0))
-                           (let ((pnt (point))
-                                 (strt (match-beginning 0)))
-                             (re-search-forward "[ \t\n]*="
-                                                (point-max) t)
-                             (goto-char (match-beginning 0))
-                             (setq string-list
-                                   (cons
-                                    (list
-                                     (buffer-substring-no-properties
-                                      pnt (point)))
-                                    string-list))
-                             (goto-char strt)))
+                                 bibtex-string (point-min) t)
+                           (setq string-list
+                                 (cons
+                                  (list
+                                   (buffer-substring-no-properties
+                                   (match-beginning bibtex-key-in-string)
+                                   (match-end bibtex-key-in-string)))
+                                  string-list)))
                          (setq string-list
                                (sort string-list
                                      (lambda(x y)
