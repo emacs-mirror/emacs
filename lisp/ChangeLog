@@ -1,3 +1,7 @@
+2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* language/european.el ("Dutch"): Doc fix.
+
 2002-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* language/japanese.el (iso-2022-jp-2): Add init-bol flag.
