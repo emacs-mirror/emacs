@@ -163,7 +163,7 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-files-menu [kill-buffer]
   '(menu-item "Close (current buffer)" kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
-	      :help "Discard contents of current buffer"))
+	      :help "Discard current buffer"))
 (define-key menu-bar-files-menu [insert-file]
   '(menu-item "Insert File..." insert-file
 	      :enable (not (window-minibuffer-p
@@ -379,7 +379,7 @@ A large number or nil slows down menu responsiveness."
 			   (not buffer-read-only)
 			   (not (mouse-region-match)))
 	      :help
-	      "Delete the text in region between mark and current pos"))
+	      "Delete the text in region between mark and current position"))
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [select-paste]
@@ -393,11 +393,12 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-edit-menu [copy]
   '(menu-item "Copy" menu-bar-kill-ring-save
 	      :enable mark-active
-	      :help "Copy text in region between mark and current pos"))
+	      :help "Copy text in region between mark and current position"))
 (define-key menu-bar-edit-menu [cut]
   '(menu-item "Cut" kill-region
 	      :enable (and mark-active (not buffer-read-only))
-	      :help "Cut (kill) text in region between mark and current pos"))
+	      :help
+	      "Cut (kill) text in region between mark and current position"))
 (define-key menu-bar-edit-menu [undo]
   '(menu-item "Undo" undo
 	      :enable (and (not buffer-read-only)
@@ -863,6 +864,15 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [describe-distribution]
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
+(define-key menu-bar-help-menu [more]
+  '(menu-item "Find Extra Packages"
+	      (lambda ()
+		(interactive)
+		(let (enable-local-variables)
+		  (view-file (expand-file-name "MORE.STUFF"
+					       data-directory))
+		  (goto-address)))
+	      :help "Where to find some extra packages and possible updates"))
 (define-key menu-bar-help-menu [emacs-version]
   '(menu-item "Show Emacs Version" emacs-version))
 (define-key menu-bar-help-menu [sep2]
