@@ -175,22 +175,50 @@ VECTOR is a 128-element vector of bindings for ASCII characters.")
   (object)
      Lisp_Object object;
 {
-  return (NILP (get_keymap_1 (object, 0)) ? Qnil : Qt);
+  return (NILP (get_keymap_1 (object, 0, 0)) ? Qnil : Qt);
 }
 
 /* Check that OBJECT is a keymap (after dereferencing through any
-   symbols).  If it is, return it; otherwise, return nil, or signal an
-   error if ERROR != 0.  */
-Lisp_Object
-get_keymap_1 (object, error)
-     Lisp_Object object;
-     int error;
-{
-  register Lisp_Object tem;
+   symbols).  If it is, return it.
 
+   If AUTOLOAD is non-zero and OBJECT is a symbol whose function value
+   is an autoload form, do the autoload and try again.
+
+   ERROR controls how we respond if OBJECT isn't a keymap.
+   If ERROR is non-zero, signal an error; otherwise, just return Qnil.
+
+   Note that most of the time, we don't want to pursue autoloads.
+   Functions like Faccessible_keymaps which scan entire keymap trees
+   shouldn't load every autoloaded keymap.  I'm not sure about this,
+   but it seems to me that only read_key_sequence, Flookup_key, and
+   Fdefine_key should cause keymaps to be autoloaded.  */
+
+Lisp_Object
+get_keymap_1 (object, error, autoload)
+     Lisp_Object object;
+     int error, autoload;
+{
+  Lisp_Object tem;
+
+ autoload_retry:
   tem = indirect_function (object);
   if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
     return tem;
+
+  /* Should we do an autoload?  */
+  if (autoload
+      && XTYPE (object) == Lisp_Symbol
+      && CONSP (tem)
+      && EQ (XCONS (tem)->car, Qautoload))
+    {
+      struct gcpro gcpro1, gcpro2;
+
+      GCPRO2 (tem, object)
+      do_autoload (tem, object);
+      UNGCPRO;
+
+      goto autoload_retry;
+    }
 
   if (error)
     wrong_type_argument (Qkeymapp, object);
@@ -198,11 +226,14 @@ get_keymap_1 (object, error)
     return Qnil;
 }
 
+
+/* Follow any symbol chaining, and return the keymap denoted by OBJECT.
+   If OBJECT doesn't denote a keymap at all, signal an error.  */
 Lisp_Object
 get_keymap (object)
      Lisp_Object object;
 {
-  return get_keymap_1 (object, 1);
+  return get_keymap_1 (object, 0, 0);
 }
 
 
@@ -285,7 +316,7 @@ get_keyelt (object)
       register Lisp_Object map, tem;
 
       /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-      map = get_keymap_1 (Fcar_safe (object), 0);
+      map = get_keymap_1 (Fcar_safe (object), 0, 0);
       tem = Fkeymapp (map);
       if (!NILP (tem))
 	object = access_keymap (map, Fcdr (object), 0);
@@ -459,7 +490,7 @@ DEF is anything that can be a key's definition:\n\
 If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at\n\
 the front of KEYMAP.")
   (keymap, key, def)
-     register Lisp_Object keymap;
+     Lisp_Object keymap;
      Lisp_Object key;
      Lisp_Object def;
 {
@@ -469,6 +500,7 @@ the front of KEYMAP.")
   register Lisp_Object cmd;
   int metized = 0;
   int length;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   keymap = get_keymap (keymap);
 
@@ -476,9 +508,11 @@ the front of KEYMAP.")
       && XTYPE (key) != Lisp_String)
     key = wrong_type_argument (Qarrayp, key);
 
-  length = Flength (key);
+  length = XFASTINT (Flength (key));
   if (length == 0)
     return Qnil;
+
+  GCPRO3 (keymap, key, def);
 
   idx = 0;
   while (1)
@@ -502,7 +536,7 @@ the front of KEYMAP.")
 	}
 
       if (idx == length)
-	return store_in_keymap (keymap, c, def);
+	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
 
       cmd = get_keyelt (access_keymap (keymap, c, 0));
 
@@ -512,12 +546,10 @@ the front of KEYMAP.")
 	  store_in_keymap (keymap, c, cmd);
 	}
 
-      tem = Fkeymapp (cmd);
-      if (NILP (tem))
+      keymap = get_keymap_1 (cmd, 0, 1);
+      if (NILP (keymap))
 	error ("Key sequence %s uses invalid prefix characters",
 	       XSTRING (key)->data);
-
-      keymap = get_keymap (cmd);
     }
 }
 
@@ -548,7 +580,7 @@ it takes to reach a non-prefix command.")
       && XTYPE (key) != Lisp_String)
     key = wrong_type_argument (Qarrayp, key);
 
-  length = Flength (key);
+  length = XFASTINT (Flength (key));
   if (length == 0)
     return keymap;
 
@@ -577,11 +609,10 @@ it takes to reach a non-prefix command.")
       if (idx == length)
 	return cmd;
 
-      tem = Fkeymapp (cmd);
-      if (NILP (tem))
+      keymap = get_keymap_1 (cmd, 0, 0);
+      if (NILP (keymap))
 	return make_number (idx);
 
-      keymap = get_keymap (cmd);
       QUIT;
     }
 }
@@ -765,7 +796,7 @@ that come after prefix bindings.")
 	&& ! NILP (binding = Flookup_key (maps[i], key))
 	&& XTYPE (binding) != Lisp_Int)
       {
-	if (! NILP (get_keymap_1 (binding, 0)))
+	if (! NILP (get_keymap (binding)))
 	  maps[j++] = Fcons (modes[i], binding);
 	else if (j == 0)
 	  return Fcons (Fcons (modes[i], binding), Qnil);
@@ -1582,7 +1613,7 @@ describe_map (map, keys, partial, shadow)
 {
   register Lisp_Object keysdesc;
 
-  if (!NILP (keys) && Flength (keys) > 0)
+  if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
     keysdesc = concat2 (Fkey_description (keys),
 			build_string (" "));
   else
