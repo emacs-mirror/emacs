@@ -2130,8 +2130,9 @@ list5 (arg1, arg2, arg3, arg4, arg5)
 
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
-       doc: /* Return a newly created list with specified arguments as elements.
-Any number of arguments, even zero arguments, are allowed.  */)
+  doc: /* Return a newly created list with specified arguments as elements.
+Any number of arguments, even zero arguments, are allowed.
+usage: (list &rest OBJECTS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2402,8 +2403,9 @@ make_sub_char_table (defalt)
 
 
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
-       doc: /* Return a newly created vector with specified arguments as elements.
-Any number of arguments, even zero arguments, are allowed.  */)
+  doc: /* Return a newly created vector with specified arguments as elements.
+Any number of arguments, even zero arguments, are allowed.
+usage: (vector &rest OBJECTS)  */)
      (nargs, args)
      register int nargs;
      Lisp_Object *args;
@@ -2426,7 +2428,8 @@ DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
 The arguments should be the arglist, bytecode-string, constant vector,
 stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
-significance.  */)
+significance.
+usage: (make-byte-code &rest ELEMENTS)  */)
      (nargs, args)
      register int nargs;
      Lisp_Object *args;
