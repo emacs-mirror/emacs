@@ -2065,6 +2065,30 @@ Otherwise returns NIL.")
 #endif /* not S_IFLNK */
 }
 
+#ifdef SOLARIS_BROKEN_ACCESS
+/* In Solaris 2.1, the readonly-ness of the filesystem is not
+   considered by the access system call.  This is Sun's bug, but we
+   still have to make Emacs work.  */
+
+#include <sys/statvfs.h>
+
+static int
+ro_fsys (path)
+    char *path;
+{
+    struct statvfs statvfsb;
+
+    if (statvfs(path, &statvfsb))
+      return 1;  /* error from statvfs, be conservative and say not wrtable */
+    else
+      /* Otherwise, fsys is ro if bit is set.  */
+      return statvfsb.f_flag & ST_RDONLY;
+}
+#else
+/* But on every other os, access has already done the right thing.  */
+#define ro_fsys(path) 0
+#endif
+
 /* Having this before file-symlink-p mysteriously caused it to be forgotten
    on the RT/PC.  */
 DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
@@ -2085,13 +2109,16 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return call2 (handler, Qfile_writable_p, abspath);
 
   if (access (XSTRING (abspath)->data, 0) >= 0)
-    return (access (XSTRING (abspath)->data, 2) >= 0) ? Qt : Qnil;
+    return ((access (XSTRING (abspath)->data, 2) >= 0
+	     && ! ro_fsys (XSTRING (abspath)))
+	    ? Qt : Qnil);
   dir = Ffile_name_directory (abspath);
 #ifdef VMS
   if (!NILP (dir))
     dir = Fdirectory_file_name (dir);
 #endif /* VMS */
-  return (access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
+  return ((access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
+	   && ! ro_fsys ((char *) XSTRING (dir)))
 	  ? Qt : Qnil);
 }
 
