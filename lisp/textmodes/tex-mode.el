@@ -262,7 +262,8 @@ says which mode to use."
 				    (search-forward "%" search-end t))))))
       (if (and slash (not comment))
 	  (setq mode (if (looking-at "documentstyle\\|documentclass")
-                         (if (looking-at "documentstyle{slides}\\|documentclass{slides}")
+                         (if (looking-at
+			      "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
                              'slitex-mode
                            'latex-mode)
 		       'plain-tex-mode))))
