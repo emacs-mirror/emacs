@@ -1502,6 +1502,10 @@ Gregorian date Sunday, December 31, 1 BC.")
   "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
   t)
 
+(autoload 'calendar-print-julian-date "cal-julian"
+  "Show the Julian calendar equivalent of the date under the cursor."
+  t)
+
 (autoload 'calendar-julian-date-string "cal-julian"
   "String of Julian date of Gregorian DATE.
 Defaults to today's date if DATE is not given.
