@@ -1412,13 +1412,18 @@ create_process (process, new_argv, current_dir)
 	      close (xforkin);
 	    xforkout = xforkin = open (pty_name, O_RDWR, 0);
 
+	    if (xforkin < 0)
+	      {
+		write (1, "Couldn't open the pty terminal ", 31);
+		write (1, pty_name, strlen (pty_name));
+		write (1, "\n", 1);
+		_exit (1);
+	      }
+
 #ifdef SET_CHILD_PTY_PGRP
 	    ioctl (xforkin, TIOCSPGRP, &pgrp);
 	    ioctl (xforkout, TIOCSPGRP, &pgrp);
 #endif
-
-	    if (xforkin < 0)
-	      abort ();
 	  }
 #endif /* not UNIPLUS and not RTU */
 #ifdef SETUP_SLAVE_PTY
