@@ -192,6 +192,23 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   (define-key keymap "\C-c\C-q" 'tex-show-print-queue)
   (define-key keymap "\C-c\C-p" 'tex-print)
   (define-key keymap "\C-c\C-v" 'tex-view)
+
+  (define-key keymap [menu-bar tex] (cons "TeX" (make-sparse-keymap "TeX")))
+
+  (define-key keymap [menu-bar tex tex-kill-job] '("Tex Kill" . tex-kill-job))
+  (define-key keymap [menu-bar tex tex-validate-region]
+    '("Validate Region" . tex-validate-region))
+  (define-key keymap [menu-bar tex validate-tex-buffer]
+    '("Validate Buffer" . validate-tex-buffer))
+  (define-key keymap [menu-bar tex tex-show-print-queue]
+    '("Show Print Queue" . tex-show-print-queue))
+  (define-key keymap [menu-bar tex tex-view] '("Tex View" . tex-view))
+  (define-key keymap [menu-bar tex tex-print] '("Tex Print" . tex-print))
+  (define-key keymap [menu-bar tex tex-recenter-output-buffer]
+    '("Tex Recenter" . tex-recenter-output-buffer))
+  (define-key keymap [menu-bar tex tex-file] '("Tex File" . tex-file))
+  (define-key keymap [menu-bar tex tex-region] '("Tex Region" . tex-region))
+  (define-key keymap [menu-bar tex tex-buffer] '("Tex Buffer" . tex-buffer))
   )
 
 (defvar tex-mode-map nil "Keymap for TeX mode.")
