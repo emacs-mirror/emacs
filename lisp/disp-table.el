@@ -184,7 +184,9 @@ With prefix argument, enable European character display iff arg is positive."
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
 	       (char-table-p standard-display-table)
-	       (equal (aref standard-display-table 160) [160])))
+	       ;; Test 161, because sometimes people need to make
+	       ;; 160 display as a space.
+	       (equal (aref standard-display-table 161) [161])))
       (standard-display-default 160 255)
     (standard-display-8bit 160 255)))
 
