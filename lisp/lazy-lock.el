@@ -130,9 +130,6 @@
 ;; point in making this version of lazy-lock.el work with it.  Anyway, that's
 ;; Lit 30 of my humble opinion.
 ;;
-;; Steve Baur reverted to a non-hacked version 1 lazy-lock.el for XEmacs 19.15
-;; and 20.0.  Obviously, the above `post-command-hook' problems still apply.)
-;;
 ;; - Version 1 stealth fontification is also implemented by placing a function
 ;; on `post-command-hook'.  This function waits for a given amount of time,
 ;; and, if Emacs remains idle, fontifies where necessary.  Again, there are a
