@@ -30,7 +30,7 @@
 
 
 extern int errno;
-extern char *sys_errlist[], *malloc ();
+extern char *strerror (), *malloc ();
 extern time_t time ();
 
 /*
@@ -116,7 +116,7 @@ schedule (str)
   if (! ep->token)
     {
       fprintf (stderr, "%s: malloc %s: %s%c%s\n",
-	       pname, sys_errlist[errno], str, FS, p);
+	       pname, strerror (errno), str, FS, p);
       return;
     }
 
@@ -282,13 +282,13 @@ main (argc, argv)
   if (fcntl (0, F_SETOWN, getpid ()) == -1)
     {
       fprintf (stderr, "%s: can't set ownership of stdin\n", pname);
-      fprintf (stderr, "%s\n", sys_errlist[errno]);
+      fprintf (stderr, "%s\n", strerror (errno));
       exit (1);
     }
   if (fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) | FASYNC) == -1)
     {
       fprintf (stderr, "%s: can't request asynchronous I/O on stdin\n", pname);
-      fprintf (stderr, "%s\n", sys_errlist[errno]);
+      fprintf (stderr, "%s\n", strerror (errno));
       exit (1);
     }
 #endif /* USG */
