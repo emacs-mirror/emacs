@@ -112,7 +112,6 @@
 		  arabic-1-column
 		  arabic-2-column)))
   (while charsets
-;;     (modify-syntax-entry (make-char (car charsets)) "w")
     (map-charset-chars #'modify-category-entry (car charsets) ?b)
     (setq charsets (cdr charsets))))
 (modify-category-entry '(#x600 . #x6ff) ?b)
@@ -121,10 +120,30 @@
 
 ;; Chinese character set (GB2312)
 
-;; (modify-syntax-entry (make-char 'chinese-gb2312) "w")
-;; (modify-syntax-entry (make-char 'chinese-gb2312 33) "_")
-;; (modify-syntax-entry (make-char 'chinese-gb2312 34) "_")
-;; (modify-syntax-entry (make-char 'chinese-gb2312 41) "_")
+(modify-syntax-entry (cons (make-char 'chinese-gb2312 33 33)
+			   (make-char 'chinese-gb2312 33 126))
+		     "_")
+(modify-syntax-entry (cons (make-char 'chinese-gb2312 34 33)
+			   (make-char 'chinese-gb2312 34 126))
+		     "_")
+(modify-syntax-entry (cons (make-char 'chinese-gb2312 41 33)
+			   (make-char 'chinese-gb2312 41 126))
+		     "_")
+(modify-category-entry (cons (make-char 'chinese-gb2312 35 33)
+			     (make-char 'chinese-gb2312 35 126))
+		       ?A)
+(modify-category-entry (cons (make-char 'chinese-gb2312 36 33)
+			     (make-char 'chinese-gb2312 36 126))
+		       ?H)
+(modify-category-entry (cons (make-char 'chinese-gb2312 37 33)
+			     (make-char 'chinese-gb2312 37 126))
+		       ?K)
+(modify-category-entry (cons (make-char 'chinese-gb2312 38 33)
+			     (make-char 'chinese-gb2312 38 126))
+		       ?G)
+(modify-category-entry (cons (make-char 'chinese-gb2312 39 33)
+			     (make-char 'chinese-gb2312 39 126))
+		       ?Y)
 (modify-syntax-entry ?\〔 "(〕")
 (modify-syntax-entry ?\〈 "(〉")
 (modify-syntax-entry ?\《 "(》")
@@ -140,54 +159,32 @@
 (modify-syntax-entry ?\〗 ")〖")
 (modify-syntax-entry ?\】 ")【")
 
-;; Fixme: should any Chinese stuff be re-instated?
-
-;; (modify-category-entry (make-char 'chinese-gb2312) ?c)
-;; (modify-category-entry (make-char 'chinese-gb2312) ?\|)
-;; (modify-category-entry (make-char 'chinese-gb2312 35) ?A)
-;; (modify-category-entry (make-char 'chinese-gb2312 36) ?H)
-;; (modify-category-entry (make-char 'chinese-gb2312 37) ?K)
-;; (modify-category-entry (make-char 'chinese-gb2312 38) ?G)
-;; (modify-category-entry (make-char 'chinese-gb2312 39) ?Y)
-;; (let ((row 48))
-;;   (while (< row 127)
-;;     (modify-category-entry (make-char 'chinese-gb2312 row) ?C)
-;;     (setq row (1+ row))))
+(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)
+(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?|)
+(let ((row 48))
+  (while (< row 127)
+    (modify-category-entry (cons (make-char 'chinese-gb2312 row 33)
+				 (make-char 'chinese-gb2312 row 126))
+			   ?C)
+    (setq row (1+ row))))
 
 ;; Chinese character set (BIG5)
 
-;; (let ((generic-big5-1-char (make-char 'chinese-big5-1))
-;;       (generic-big5-2-char (make-char 'chinese-big5-2)))
-;;   (modify-syntax-entry generic-big5-1-char "w")
-;;   (modify-syntax-entry generic-big5-2-char "w")
-
-;;   (modify-category-entry generic-big5-1-char ?c)
-;;   (modify-category-entry generic-big5-2-char ?c)
-
-;;   (modify-category-entry generic-big5-1-char ?C)
-;;   (modify-category-entry generic-big5-2-char ?C)
-
-;;   (modify-category-entry generic-big5-1-char ?\|)
-;;   (modify-category-entry generic-big5-2-char ?\|))
-
+(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?c)
+(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?c)
+(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?C)
+(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?C)
+(map-charset-chars #'modify-category-entry 'chinese-big5-1 ?|)
+(map-charset-chars #'modify-category-entry 'chinese-big5-2 ?|)
 
 ;; Chinese character set (CNS11643)
 
-;; (let ((cns-list '(chinese-cns11643-1
-;; 		  chinese-cns11643-2
-;; 		  chinese-cns11643-3
-;; 		  chinese-cns11643-4
-;; 		  chinese-cns11643-5
-;; 		  chinese-cns11643-6
-;; 		  chinese-cns11643-7))
-;;       generic-char)
-;;   (while cns-list
-;;     (setq generic-char (make-char (car cns-list)))
-;;     (modify-syntax-entry generic-char "w")
-;;     (modify-category-entry generic-char ?c)
-;;     (modify-category-entry generic-char ?C)
-;;     (modify-category-entry generic-char ?|)
-;;     (setq cns-list (cdr cns-list))))
+(dolist (c '(chinese-cns11643-1 chinese-cns11643-2 chinese-cns11643-3
+	     chinese-cns11643-4 chinese-cns11643-5 chinese-cns11643-6
+	     chinese-cns11643-7))
+  (map-charset-chars #'modify-category-entry c ?c)
+  (map-charset-chars #'modify-category-entry c ?C)
+  (map-charset-chars #'modify-category-entry c ?|))
 
 ;; Cyrillic character set (ISO-8859-5)
 
@@ -240,46 +237,6 @@
   (set-case-syntax-pair ?Ю ?ю tbl)
   (set-case-syntax-pair ?Я ?я tbl))
 
-;; Devanagari character set
-
-;;; Commented out since the categories appear not to be used anywhere
-;;; and word syntax is the default.
-;; (let ((deflist	'(;; chars	syntax	category
-;; 		  ("������������"	"w"	?7) ; vowel-modifying diacritical mark
-;; 					    ; chandrabindu, anuswar, visarga
-;; 		  ("����-����"	"w"	?1) ; independent vowel
-;; 		  ("����-����"	"w"	?0) ; consonant
-;; 		  ("����-����"	"w"	?8) ; matra
-;; 		  ("����-����"	"w"	?6) ; digit
-;; 		  ;; Unicode equivalents
-;; 		  ("ँंः"	"w"	?7) ; vowel-modifying diacritical mark
-;; 					    ; chandrabindu, anuswar, visarga
-;; 		  ("अ-ऍ"	"w"	?1) ; independent vowel
-;; 		  ("क-ह"	"w"	?0) ; consonant
-;; 		  ("ा-ॉ"	"w"	?8) ; matra
-;; 		  ("०-९"	"w"	?6) ; digit
-;; 		  ))
-;;       elm chars len syntax category to ch i)
-;;   (while deflist
-;;     (setq elm (car deflist))
-;;     (setq chars (car elm)
-;; 	  len (length chars)
-;; 	  syntax (nth 1 elm)
-;; 	  category (nth 2 elm)
-;; 	  i 0)
-;;     (while (< i len)
-;;       (if (= (aref chars i) ?-)
-;; 	  (setq i (1+ i)
-;; 		to (aref chars i))
-;; 	(setq ch (aref chars i)
-;; 	      to ch))
-;;       (while (<= ch to)
-;; 	(modify-syntax-entry ch syntax)
-;; 	(modify-category-entry ch category)
-;; 	(setq ch (1+ ch)))
-;;       (setq i (1+ i)))
-;;     (setq deflist (cdr deflist))))
-
 ;; Ethiopic character set
 
 (modify-category-entry '(#x1200 . #x137b) ?e)
@@ -293,31 +250,7 @@
 
 (modify-category-entry '(#x370 . #x3ff) ?g)
 
-;; (let ((c 182))
-;;   (while (< c 255)
-;;     (modify-syntax-entry (make-char 'greek-iso8859-7 c) "w")
-;;     (setq c (1+ c))))
-;; (modify-syntax-entry (make-char 'greek-iso8859-7 160) "w") ; NBSP
-;; (modify-syntax-entry ?· ".")
-;; (modify-syntax-entry ?» ".")
-;; (modify-syntax-entry ?½ ".")
 (let ((tbl (standard-case-table)))
-  ;; Fixme: non-letter syntax copied from latin-1, but that's dubious
-  ;; in several cases.
-  (set-case-syntax ?‘ "." tbl)
-  (set-case-syntax ?’ "." tbl)
-  (set-case-syntax ?¦ "." tbl)
-  (set-case-syntax ?¦ "_" tbl)
-  (set-case-syntax ?§ "." tbl)
-  (set-case-syntax ?© "_" tbl)
-  (set-case-syntax ?\« "." tbl)
-  (set-case-syntax ?¬ "_" tbl)
-  (set-case-syntax ?­ "_" tbl)
-  (set-case-syntax ?― "." tbl)
-  (set-case-syntax ?° "_" tbl)
-  (set-case-syntax ?± "_" tbl)
-;;  (set-case-syntax ?· "_" tbl)
-;;  (set-case-syntax ?½ "_" tbl)
   (set-case-syntax-pair ?Α ?α tbl)
   (set-case-syntax-pair ?Β ?β tbl)
   (set-case-syntax-pair ?Γ ?γ tbl)
@@ -354,63 +287,17 @@
 
 ;; Hebrew character set (ISO-8859-8)
 
-(modify-category-entry '(#x590 . #x5f4) ?w)
-
-;; (modify-syntax-entry (make-char 'hebrew-iso8859-8 208) ".") ; PASEQ
-;; (modify-syntax-entry (make-char 'hebrew-iso8859-8 211) ".") ; SOF PASUQ
 (modify-syntax-entry #x5be ".") ; MAQAF
 (modify-syntax-entry #x5c0 ".") ; PASEQ
 (modify-syntax-entry #x5c3 ".") ; SOF PASUQ
 (modify-syntax-entry #x5f3 ".") ; GERESH
 (modify-syntax-entry #x5f4 ".") ; GERSHAYIM
 
-;; (let ((c 224))
-;;   (while (< c 251)
-;;     (modify-syntax-entry (make-char 'hebrew-iso8859-8 c) "w")
-;;     (setq c (1+ c))))
-;; (modify-syntax-entry (make-char 'hebrew-iso8859-8 160) "w") ; NBSP
-
 ;; Indian character set (IS 13194 and other Emacs original Indian charsets)
 
-;; (modify-category-entry (make-char 'indian-is13194) ?i)
-;; (modify-category-entry (make-char 'indian-2-column) ?I)
-;; (modify-category-entry (make-char 'indian-glyph) ?I)
-;; Unicode Devanagari block
 (modify-category-entry '(#x901 . #x970) ?i)
 (map-charset-chars #'modify-category-entry 'indian-is13194 ?i)
 (map-charset-chars #'modify-category-entry 'indian-2-column ?i)
-
-;;; Commented out since the categories appear not to be used anywhere
-;;; and word syntax is the default.
-;; (let ((deflist				;
-;; 	'(;; chars	syntax	category
-;; 	  ("ँंः"	"w"	?7) ; vowel-modifying diacritical mark
-;; 				    ; chandrabindu, anuswar, visarga
-;; 	  ("अ-ऍ"	"w"	?1) ; base (independent) vowel
-;; 	  ("क-ह"	"w"	?0) ; consonant
-;; 	  ("ा-ॉ"	"w"	?8) ; matra
-;; 	  ("०-९"	"w"	?6) ; digit
-;; 	  ))
-;;       elm chars len syntax category to ch i)
-;;   (while deflist
-;;     (setq elm (car deflist))
-;;     (setq chars (car elm)
-;; 	  len (length chars)
-;; 	  syntax (nth 1 elm)
-;; 	  category (nth 2 elm)
-;; 	  i 0)
-;;     (while (< i len)
-;;       (if (= (aref chars i) ?-)
-;; 	  (setq i (1+ i)
-;; 		to (aref chars i))
-;; 	(setq ch (aref chars i)
-;; 	      to ch))
-;;       (while (<= ch to)
-;; 	(modify-syntax-entry ch syntax)
-;; 	(modify-category-entry ch category)
-;; 	(setq ch (1+ ch)))
-;;       (setq i (1+ i)))
-;;     (setq deflist (cdr deflist))))
 
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
@@ -463,7 +350,6 @@
   (while (<= c #x30ff)
     ;; ?K is double width, ?k isn't specified
     (modify-category-entry c ?K)
-    ;;(modify-category-entry (decode-char 'ucs c) ?j)
     (modify-category-entry c ?\|) 
     (setq c (1+ c))))
 
@@ -472,7 +358,6 @@
   (while (<= c #x309f)
     ;; ?H is actually defined to be double width
     (modify-category-entry c ?H)
-    ;;(modify-category-entry (decode-char 'ucs c) ?j)
     (modify-category-entry c ?\|) 
     (setq c (1+ c))))
 
@@ -519,17 +404,23 @@
     (setq chars (cdr chars))))
 
 ;; JISX0212
-;; (modify-syntax-entry (make-char 'japanese-jisx0212) "w")
-;; (modify-syntax-entry (make-char 'japanese-jisx0212 33) "_")
-;; (modify-syntax-entry (make-char 'japanese-jisx0212 34) "_")
-;; (modify-syntax-entry (make-char 'japanese-jisx0212 35) "_")
+
+(modify-syntax-entry (cons (make-char 'japanese-jisx0212 33 33)
+			   (make-char 'japanese-jisx0212 33 126))
+		     "_")
+(modify-syntax-entry (cons (make-char 'japanese-jisx0212 34 33)
+			   (make-char 'japanese-jisx0212 34 126))
+		     "_")
+(modify-syntax-entry (cons (make-char 'japanese-jisx0212 35 33)
+			   (make-char 'japanese-jisx0212 35 126))
+		     "_")
  
 (modify-syntax-entry (cons (decode-char 'japanese-jisx0212 #x2121)
 			   (decode-char 'japanese-jisx0212 #x237E))
 		     "_")
 
 ;; JISX0201-Kana
-;; (modify-syntax-entry (make-char 'katakana-jisx0201) "w")
+
 (let ((chars '(?｡ ?､ ?･)))
   (while chars
     (modify-syntax-entry (car chars) ".")
@@ -540,22 +431,42 @@
 
 ;; Korean character set (KSC5601)
 
-;; Fixme: re-instate these
-
-;; (modify-syntax-entry (make-char 'korean-ksc5601) "w")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 33) "_")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 34) "_")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 38) "_")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 39) "_")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 40) "_")
-;; (modify-syntax-entry (make-char 'korean-ksc5601 41) "_")
-
-;; (modify-category-entry (make-char 'korean-ksc5601) ?h)
-;; (modify-category-entry (make-char 'korean-ksc5601 35) ?A)
-;; (modify-category-entry (make-char 'korean-ksc5601 37) ?G)
-;; (modify-category-entry (make-char 'korean-ksc5601 42) ?H)
-;; (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
-;; (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
+(map-charset-chars #'modify-category-entry 'korean-ksc5601 ?h)
+(modify-syntax-entry (cons (make-char 'korean-ksc5601 33 33)
+			   (make-char 'korean-ksc5601 33 126))
+		     "_")
+;; Fixme: Giving `invalid code' because the charset has holes --
+;; presumably map should be used just for unification.
+;; (modify-syntax-entry (cons (make-char 'korean-ksc5601 34 33)
+;; 			   (make-char 'korean-ksc5601 34 126))
+;; 		     "_")
+;; (modify-syntax-entry (cons (make-char 'korean-ksc5601 38 33)
+;; 			   (make-char 'korean-ksc5601 38 126))
+;; 		     "_")
+;; (modify-syntax-entry (cons (make-char 'korean-ksc5601 39 33)
+;; 			   (make-char 'korean-ksc5601 39 126))
+;; 		     "_")
+(modify-syntax-entry (cons (make-char 'korean-ksc5601 40 33)
+			   (make-char 'korean-ksc5601 40 126))
+		     "_")
+(modify-syntax-entry (cons (make-char 'korean-ksc5601 41 33)
+			   (make-char 'korean-ksc5601 41 126))
+		     "_")
+(modify-category-entry (cons (make-char 'korean-ksc5601 35 33)
+			     (make-char 'korean-ksc5601 35 126))
+		       ?A)
+;; (modify-category-entry (cons (make-char 'korean-ksc5601 37 33)
+;; 			     (make-char 'korean-ksc5601 37 126))
+;; 		       ?G)
+;; (modify-category-entry (cons (make-char 'korean-ksc5601 42 33)
+;; 			     (make-char 'korean-ksc5601 42 126))
+;; 		       ?H)
+;; (modify-category-entry (cons (make-char 'korean-ksc5601 43 33)
+;; 			     (make-char 'korean-ksc5601 43 126))
+;; 		       ?K)
+;; (modify-category-entry (cons (make-char 'korean-ksc5601 44 33)
+;; 			     (make-char 'korean-ksc5601 44 126))
+;; 		       ?Y)
 
 ;; Latin
 
@@ -699,8 +610,6 @@
       (if uc (modify-category-entry uc ?v))
       (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
-
-;; Unicode (mule-unicode-0100-24ff)
 
 (let ((tbl (standard-case-table)) c)
 
@@ -950,12 +859,6 @@
     (modify-category-entry (+ c #x20) ?l)
     (setq c (1+ c)))
 
-  ;; Ohm, Kelvin, Angstrom
-;;;  (set-case-syntax-pair ?Ω ?ω tbl)
-;;;  These mess up the case conversion of k and å.
-;;;  (set-case-syntax-pair ?K ?k tbl)
-;;;  (set-case-syntax-pair ?Å ?å tbl)
-
   ;; Combining diacritics
   (modify-category-entry '(#x300 . #x362) ?^)
   ;; Combining marks
@@ -1086,6 +989,11 @@
 (map-charset-chars
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
+
+(optimize-char-table (standard-case-table))
+(optimize-char-table char-width-table)
+(optimize-char-table (standard-category-table))
+(optimize-char-table (standard-syntax-table))
 
 ;;; Local Variables:
 ;;; coding: utf-8-emacs
