@@ -43,11 +43,6 @@
 ;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
 ;; and InfoDock is available from the maintainer.
 
-;; Doesn't work under NT when backslash is used as a path separator (forward
-;;   slash path separator works fine).  To fix, check system-type against
-;;   'windows-nt, write a routine that breaks paths down into components.
-;;   (Surprisingly, there isn't one built in.)
-
 ;;; Change Log:
 
 ;; Originally by Dick King <king@reasoning.com> 15 May 86
@@ -259,59 +254,61 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 					      old-proposed depth)))
 
 (defun uniquify-get-proposed-name (base filename depth)
-  (let (index
-	(extra-string "")
-	(fn filename)
+  (assert (equal base (uniquify-file-name-nondirectory filename)))
+  (assert (equal (directory-file-name filename) filename))
+
+  ;; Distinguish directories by adding extra separator.
+  (if (and uniquify-trailing-separator-p
+	   (file-directory-p filename)
+	   (not (string-equal base "")))
+      (cond ((eq uniquify-buffer-name-style 'forward)
+	     (setq base (file-name-as-directory base)))
+	    ;; (setq base (concat base "/")))
+	    ((eq uniquify-buffer-name-style 'reverse)
+	     (setq base (concat (or uniquify-separator "\\") base)))))
+
+  (let ((extra-string nil)
 	(n depth))
-    (while (and (> n 0)
-		(setq index (string-match
-			     (concat "\\(^\\|/[^/]*\\)/"
-				     (regexp-quote extra-string)
-				     (regexp-quote base)
-				     "\\'")
-			     fn)))
-      (setq extra-string (substring fn
-				    (if (zerop index) 0 (1+ index))
-				    ;; (- (length base)) fails for base = "".
-				    ;; Equivalently, we could have used
-				    ;; (apply 'substring ...
-				    ;;        (and (not (string= "" base))
-				    ;;             (list (- (length base)))))
-				    (- (length fn) (length base)))
-	    n (1- n)))
-    (if (zerop n) (setq uniquify-possibly-resolvable t))
+    (while (and (> n 0) filename
+		(setq filename (file-name-directory filename))
+		(setq filename (directory-file-name filename)))
+      (let ((file (file-name-nondirectory filename)))
+	(setq n (1- n))
+	(push (if (zerop (length file)) ;nil or "".
+		  (prog1 "" (setq filename nil)) ;Could be `filename' iso "".
+		file)
+	      extra-string)))
+    (when (zerop n)
+      (if (and filename
+	       (setq filename (file-name-directory filename))
+	       (equal filename
+		      (file-name-directory (directory-file-name filename))))
+	  ;; We're just before the root.  Let's add the leading / already.
+	  ;; With "/a/b"+"/c/d/b" this leads to "/a/b" and "d/b" but with
+	  ;; "/a/b"+"/c/a/b" this leads to "/a/b" and "a/b".
+	  (push "" extra-string))
+      (setq uniquify-possibly-resolvable t))
 
-
-    ;; Distinguish directories by adding extra separator.
-    (if (and uniquify-trailing-separator-p
-	     (file-directory-p fn)
-	     (not (string-equal base "")))
-	(cond ((eq uniquify-buffer-name-style 'forward)
-	       (setq base (concat base "/")))
-	      ((eq uniquify-buffer-name-style 'reverse)
-	       (setq base (concat (or uniquify-separator "\\") base)))))
-
-    ;; Trim trailing separator on directory part
-    (if (and (not (string-equal extra-string ""))
-	     (or (eq uniquify-buffer-name-style 'post-forward)
-		 (eq uniquify-buffer-name-style 'post-forward-angle-brackets)))
-	(setq extra-string (substring extra-string 0
-				      (- (length extra-string) 1))))
-
-    (cond ((string-equal extra-string "")
-	   base)
-	  ((string-equal base "")
-	   extra-string)
-	  ((eq uniquify-buffer-name-style 'forward)
-	   (concat extra-string base))
-	  ((eq uniquify-buffer-name-style 'reverse)
-	   (concat base (uniquify-reverse-components extra-string)))
-	  ((eq uniquify-buffer-name-style 'post-forward)
-	   (concat base (or uniquify-separator "|") extra-string))
-	  ((eq uniquify-buffer-name-style 'post-forward-angle-brackets)
-	   (concat base "<" extra-string ">"))
-	  (t (error "Bad value for uniquify-buffer-name-style: %s"
-		    uniquify-buffer-name-style)))))
+    (cond
+     ((null extra-string) base)
+     ((string-equal base "") ;Happens for dired buffers on the root directory.
+      (mapconcat 'identity extra-string (string directory-sep-char)))
+     ((eq uniquify-buffer-name-style 'reverse)
+      (let ((dirsep (string directory-sep-char)))
+	(mapconcat 'identity
+		   (cons base (nreverse extra-string))
+		   (or uniquify-separator "\\"))))
+     ((eq uniquify-buffer-name-style 'forward)
+      (mapconcat 'identity (nconc extra-string (list base))
+		 (string directory-sep-char)))
+     ((eq uniquify-buffer-name-style 'post-forward)
+      (concat base (or uniquify-separator "|")
+	      (mapconcat 'identity extra-string (string directory-sep-char))))
+     ((eq uniquify-buffer-name-style 'post-forward-angle-brackets)
+      (concat base "<" (mapconcat 'identity extra-string
+				  (string directory-sep-char)) ">"))
+     (t (error "Bad value for uniquify-buffer-name-style: %s"
+	       uniquify-buffer-name-style)))))
 
 
 ;; Deal with conflicting-sublist, all of whose elements have identical
@@ -342,21 +339,6 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	(set-buffer buffer)
 	(rename-buffer newname)
 	(set-buffer unset)))))
-
-(defun uniquify-reverse-components (instring)
-  (let ((sofar '())
-	(cursor 0)
-	(len (length instring))
-	(sep (or uniquify-separator "\\")))
-    (while (< cursor len)
-      (if (= (aref instring cursor) ?/)
-          (setq sofar (cons sep sofar)
-                cursor (1+ cursor))
-        (let ((first-slash (or (string-match "/" instring cursor) len)))
-          (setq sofar (cons (substring instring cursor first-slash) sofar)
-                cursor first-slash))))
-    (apply (function concat) sofar)))
-
 
 ;;; Hooks from the rest of Emacs
 
