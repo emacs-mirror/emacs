@@ -55,11 +55,6 @@ NOTE-END  */
 #define HAVE_ALLOCA
 #endif
 
-#ifndef OSF1
-/* Ultrix saves the time zone in core; must clear it.  */
-#define LOCALTIME_CACHE
-#endif
-
 /* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.  */
 #ifdef HAVE_LIBDNET
 #define LIBS_MACHINE -ldnet

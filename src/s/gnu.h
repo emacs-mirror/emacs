@@ -48,9 +48,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef BSD_PGRPS
 #define GETPGRP_NO_ARG
 
-/* Reread the time zone on startup.  */
-#define LOCALTIME_CACHE
-
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
 #define HAVE_UNION_WAIT

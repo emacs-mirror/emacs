@@ -36,9 +36,6 @@
 #define LIBS_TERMCAP -ltermcap
 #define LIB_GCC -lgcc
 
-/* Reread the time zone on startup. */
-#define LOCALTIME_CACHE
-
 #define SYSV_SYSTEM_DIR
 
 /* freebsd has POSIX-style pgrp behavior. */

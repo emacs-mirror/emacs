@@ -55,9 +55,6 @@
 #endif
 #endif /* not NO_SHARED_LIBS */
 
-/* Reread the time zone on startup.  */
-#define LOCALTIME_CACHE
-
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
 

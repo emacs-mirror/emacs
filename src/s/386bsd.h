@@ -22,6 +22,3 @@
 
 /* This affects a declaration in xrdb.c.  */
 #define DECLARE_GETPWUID_WITH_UID_T
-
-/* Reread the time zone on startup.  */
-#define LOCALTIME_CACHE
