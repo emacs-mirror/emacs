@@ -2538,6 +2538,118 @@ adjust_window_margins (w)
   return 1;
 }
 
+/* Calculate new sizes for windows in the list FORWARD when the window size
+   goes from TOTAL to SIZE.  TOTAL must be greater than SIZE.
+   The number of windows in FORWARD is NCHILDREN, and the number that
+   can shrink is SHRINKABLE.
+   The minimum size a window can have is MIN_SIZE.
+   If we are shrinking fixed windows, RESIZE_FIXED_P is non-zero.
+   If we are shrinking columns, WIDTH_P is non-zero, otherwise we are
+   shrinking rows.
+
+   This function returns an allocated array of new sizes that the caller
+   must free.  The size -1 means the window is fixed and RESIZE_FIXED_P
+   is zero.  Array index 0 refers to the first window in FORWARD, 1 to
+   the second, and so on.
+
+   This function tries to keep windows at least at the minimum size
+   and resize other windows before it resizes any window to zero (i.e.
+   delete that window).
+
+   Windows are resized proportional to their size, so bigger windows
+   shrink more than smaller windows.  */
+static int *
+shrink_windows (total, size, nchildren, shrinkable,
+                min_size, resize_fixed_p, forward, width_p)
+     int total, size, nchildren, shrinkable, min_size;
+     int resize_fixed_p, width_p;
+     Lisp_Object forward;
+{
+  int available_resize = 0;
+  int *new_sizes;
+  struct window *c;
+  Lisp_Object child;
+  int smallest = total;
+  int total_removed = 0;
+  int total_shrink = total - size;
+  int i;
+
+  new_sizes = xmalloc (sizeof (*new_sizes) * nchildren);
+
+  for (i = 0, child = forward; !NILP (child); child = c->next, ++i)
+    {
+      int child_size;
+
+      c = XWINDOW (child);
+      child_size = width_p ? XINT (c->total_cols) : XINT (c->total_lines);
+
+      if (! resize_fixed_p && window_fixed_size_p (c, width_p, 0))
+        new_sizes[i] = -1;
+      else
+        {
+          new_sizes[i] = child_size;
+          if (child_size > min_size)
+            available_resize += child_size - min_size;
+        }
+    }
+  /* We might need to shrink some windows to zero.  Find the smallest
+     windows and set them to 0 until we can fulfil the new size.  */
+
+  while (shrinkable > 1 && size + available_resize < total)
+    {
+      for (i = 0; i < nchildren; ++i)
+        if (new_sizes[i] > 0 && smallest > new_sizes[i])
+          smallest = new_sizes[i];
+
+      for (i = 0; i < nchildren; ++i)
+        if (new_sizes[i] == smallest)
+          {
+            /* Resize this window down to zero.  */
+            new_sizes[i] = 0;
+            if (smallest > min_size)
+              available_resize -= smallest - min_size;
+            available_resize += smallest;
+            --shrinkable;
+            total_removed += smallest;
+
+            /* Out of for, just remove one window at the time and
+               check again if we have enough space.  */
+            break;
+          }
+    }
+
+  /* Now, calculate the new sizes.  Try to shrink each window
+     proportional to its size.  */
+  for (i = 0; i < nchildren; ++i)
+    {
+      if (new_sizes[i] > min_size)
+        {
+          int to_shrink = total_shrink*new_sizes[i]/total;
+          if (new_sizes[i] - to_shrink < min_size)
+            to_shrink = new_sizes[i] - min_size;
+          new_sizes[i] -= to_shrink;
+          total_removed += to_shrink;
+        }
+    }
+
+  /* Any reminder due to rounding, we just subtract from windows
+     that are left and still can be shrunk.  */
+  while (total_shrink > total_removed)
+    {
+      for (i = 0; i < nchildren; ++i)
+        if (new_sizes[i] > min_size)
+          {
+            --new_sizes[i];
+            ++total_removed;
+
+            /* Out of for, just shrink one window at the time and
+               check again if we have enough space.  */
+            break;
+          }
+    }
+
+  return new_sizes;
+}
 
 /* Set WINDOW's height or width to SIZE.  WIDTH_P non-zero means set
    WINDOW's width.  Resize WINDOW's children, if any, so that they
@@ -2641,6 +2753,7 @@ size_window (window, size, width_p, nodelete_p)
       int fixed_size, each, extra, n;
       int resize_fixed_p, nfixed;
       int last_pos, first_pos, nchildren, total;
+      int *new_sizes = NULL;
 
       /* Determine the fixed-size portion of the this window, and the
 	 number of child windows.  */
@@ -2665,16 +2778,22 @@ size_window (window, size, width_p, nodelete_p)
 	 windows.  */
       resize_fixed_p = nfixed == nchildren || size < fixed_size;
 
-      /* Compute how many lines/columns to add to each child.  The
+      /* Compute how many lines/columns to add/remove to each child.  The
 	 value of extra takes care of rounding errors.  */
       n = resize_fixed_p ? nchildren : nchildren - nfixed;
-      each = (size - total) / n;
-      extra = (size - total) - n * each;
+      if (size < total && n > 1)
+        new_sizes = shrink_windows (total, size, nchildren, n, min_size,
+                                    resize_fixed_p, *forward, width_p);
+      else
+        {
+          each = (size - total) / n;
+          extra = (size - total) - n * each;
+        }
 
       /* Compute new children heights and edge positions.  */
       first_pos = width_p ? XINT (w->left_col) : XINT (w->top_line);
       last_pos = first_pos;
-      for (child = *forward; !NILP (child); child = c->next)
+      for (n = 0, child = *forward; !NILP (child); child = c->next, ++n)
 	{
 	  int new_size, old_size;
 
@@ -2692,7 +2811,7 @@ size_window (window, size, width_p, nodelete_p)
 	  /* If this child can be resized, do it.  */
 	  if (resize_fixed_p || !window_fixed_size_p (c, width_p, 0))
 	    {
-	      new_size = old_size + each + extra;
+	      new_size = new_sizes ? new_sizes[n] : old_size + each + extra;
 	      extra = 0;
 	    }
 
@@ -2703,8 +2822,10 @@ size_window (window, size, width_p, nodelete_p)
 
 	  /* Remember the bottom/right edge position of this child; it
 	     will be used to set the top/left edge of the next child.  */
-	  last_pos += new_size;
+          last_pos += new_size;
 	}
+
+      if (new_sizes) xfree (new_sizes);
 
       /* We should have covered the parent exactly with child windows.  */
       xassert (size == last_pos - first_pos);

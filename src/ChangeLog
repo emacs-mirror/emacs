@@ -1,3 +1,9 @@
+2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (shrink_windows): New function.
+	(size_window): Call shrink_windows to calculate window sizes when
+	shrinking frame with more than one window.
+
 2003-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (compute_fringe_widths): Doc fix.
