@@ -110,7 +110,7 @@ fill_queue (BOOL block)
 static FRAME_PTR 
 get_frame (void)
 {
-  return selected_frame;
+  return SELECTED_FRAME ();
 }
 
 /* Translate console modifiers to emacs modifiers.  
@@ -519,7 +519,7 @@ w32_console_mouse_position (FRAME_PTR *f,
   *f = get_frame ();
   *bar_window = Qnil;
   *part = 0;
-  selected_frame->mouse_moved = 0;
+  SELECTED_FRAME ()->mouse_moved = 0;
   
   *x = movement_pos.X;
   *y = movement_pos.Y;
@@ -535,7 +535,7 @@ mouse_moved_to (int x, int y)
   /* If we're in the same place, ignore it */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
-      selected_frame->mouse_moved = 1;
+      SELECTED_FRAME ()->mouse_moved = 1;
       movement_pos.X = x;
       movement_pos.Y = y;
       movement_time = GetTickCount ();
