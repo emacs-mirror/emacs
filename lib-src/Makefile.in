@@ -301,8 +301,13 @@ getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 alloca.o: ${srcdir}/alloca.c
 	${CC} -c ${ALLOCA_CFLAGS} ${srcdir}/alloca.c
 
-etags: ${srcdir}/etags.c $(GETOPTDEPS) ../src/config.h
-	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
+REGEXPOBJ = regex.o
+REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
+regex.o: ../src/regex.c ../src/regex.h
+	${CC} -c ${CPP_CFLAGS} -Uemacs -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ../src/regex.c
+
+etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
+	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
 
 /* We depend on etags to assure that parallel makes don't write two
    etags.o files on top of each other.  */
