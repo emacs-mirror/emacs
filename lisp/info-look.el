@@ -230,13 +230,6 @@ REFER-MODES is a list of other help modes to use.")
 (defsubst info-lookup->all-modes (topic mode)
   (cons mode (info-lookup->refer-modes topic mode)))
 
-(defvar info-lookup-file-alist
-  '((c-mode
-     "[_a-zA-Z0-9./+-]+" nil
-     (("(libc)File Index"))))
-  "*Alist of help specifications for file names.
-See the documentation of the variable `info-lookup-alist' for more details.")
-
 ;;;###autoload
 (defun info-lookup-reset ()
   "Throw away all cached data.
@@ -533,12 +526,13 @@ Return nil if there is nothing appropriate."
 ;;;###autoload
 (defun info-complete-file (&optional mode)
   "Perform completion on file preceding point."
-  (interactive
-   (list (if (info-lookup->mode-value
-	      'file (or info-lookup-mode major-mode))
-	     (or info-lookup-mode major-mode)
-	   (info-lookup-change-mode 'file))))
-  (info-complete 'file mode))
+  (interactive)
+  (info-complete 'file
+		 (or mode
+		     (if (info-lookup->mode-value
+			  'file (or info-lookup-mode major-mode))
+			 (or info-lookup-mode major-mode)
+		       (info-lookup-change-mode 'file)))))
 
 (defun info-complete (topic mode)
   "Try to complete a help item."
@@ -750,7 +744,15 @@ Special commands:
  :mode 'emacs-lisp-mode
  :regexp "[^()' \t\n]+"
  :doc-spec '(("(emacs)Command Index")
-	     ("(emacs)Variable Index")))
+	     ("(emacs)Variable Index")
+	     ("(elisp)Index"
+	      (lambda (item)
+		(let ((sym (intern-soft item)))
+		  (cond ((null sym)
+			 (if (string-equal item "nil") item))
+			((or (boundp sym) (fboundp sym))
+			 item))))
+	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
