@@ -1,3 +1,9 @@
+2003-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fmapconcat): Signal an error if SEQUENCE is a char table.
+	(Fmapcar): Likewise.
+	(Fmapc): Likewise.
+
 2003-11-15  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Be sure to alloca char_ranges when
