@@ -67,7 +67,7 @@ These are the special commands of this mode:
     (switch-to-buffer (get-buffer-create "*EUDC Servers*"))
     (setq buffer-read-only nil)
     (erase-buffer)
-    (mapcar (function 
+    (mapcar (function
 	     (lambda (entry)
 	       (setq proto-col (max (length (car entry)) proto-col))))
 	    eudc-server-hotlist)
@@ -113,7 +113,7 @@ These are the special commands of this mode:
   (let ((buffer-read-only nil))
     (save-excursion
       (beginning-of-line)
-      (if (and (>= (point) eudc-hotlist-list-beginning)     
+      (if (and (>= (point) eudc-hotlist-list-beginning)
 	       (looking-at "^\\([-.a-zA-Z:0-9]+\\)[ \t]+\\([a-zA-Z]+\\)"))
 	  (kill-line 1)
 	(error "No server on this line")))))
@@ -131,7 +131,7 @@ These are the special commands of this mode:
 			  hotlist))
       (forward-line 1))
     (if (not (looking-at "^[ \t]*$"))
-	(error "Malformed entry in hotlist, discarding edits")) 
+	(error "Malformed entry in hotlist, discarding edits"))
     (setq eudc-server-hotlist (nreverse hotlist))
     (eudc-install-menu)
     (eudc-save-options)
@@ -150,7 +150,7 @@ These are the special commands of this mode:
 	  (eudc-set-server (match-string 1) (intern (match-string 2)))
 	  (message "Current directory server is %s (%s)" eudc-server eudc-protocol))
       (error "No server on this line"))))
-      
+
 (defun eudc-hotlist-transpose-servers ()
   "Swap the order of the server with the previous one in the list."
   (interactive)
@@ -161,13 +161,13 @@ These are the special commands of this mode:
       (beginning-of-line)
       (if (and (>= (point) eudc-hotlist-list-beginning)
 	       (looking-at "^\\([-.a-zA-Z:0-9]+\\)[ \t]+\\([a-zA-Z]+\\)")
-	       (progn 
+	       (progn
 		 (forward-line -1)
 		 (looking-at "^\\([-.a-zA-Z:0-9]+\\)[ \t]+\\([a-zA-Z]+\\)")))
 	  (progn
 	    (forward-line 1)
 	    (transpose-lines 1))))))
-  
+
 (setq eudc-hotlist-mode-map
       (let ((map (make-sparse-keymap)))
 	(define-key map "a" 'eudc-hotlist-add-server)
@@ -189,7 +189,7 @@ These are the special commands of this mode:
     ["Exit without Saving" kill-this-buffer t]))
 
 (if eudc-emacs-p
-    (easy-menu-define eudc-hotlist-emacs-menu 
+    (easy-menu-define eudc-hotlist-emacs-menu
 		      eudc-hotlist-mode-map
 		      ""
 		      eudc-hotlist-menu))

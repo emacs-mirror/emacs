@@ -24,7 +24,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;    This library provides specific CCSO PH/QI protocol support for the 
+;;    This library provides specific CCSO PH/QI protocol support for the
 ;;    Emacs Unified Directory Client package
 
 ;;; Code:
@@ -50,8 +50,8 @@
 
 (defun eudc-ph-query-internal (query &optional return-fields)
   "Query the PH/QI server with QUERY.
-QUERY can be a string NAME or a list made of strings NAME 
-and/or cons cells (KEY . VALUE) where KEYs should be valid 
+QUERY can be a string NAME or a list made of strings NAME
+and/or cons cells (KEY . VALUE) where KEYs should be valid
 CCSO database keys.  NAME is equivalent to (DEFAULT . NAME),
 where DEFAULT is the default key of the database.
 RETURN-FIELDS is a list of database fields to return,
@@ -61,7 +61,7 @@ defaulting to `eudc-default-return-attributes'."
 	(setq return-fields eudc-default-return-attributes))
     (if (eq 'all return-fields)
 	(setq return-fields '(all)))
-    (setq request 
+    (setq request
 	  (concat "query "
 		  (if (stringp query)
 		      query
@@ -88,9 +88,9 @@ are returned"
 
 
 (defun eudc-ph-parse-query-result (&optional fields)
-  "Return a list of alists of key/values from in `eudc-ph-process-buffer'. 
+  "Return a list of alists of key/values from in `eudc-ph-process-buffer'.
 Fields not in FIELDS are discarded."
-  (let (record 
+  (let (record
 	records
 	line-regexp
 	current-key
@@ -122,7 +122,7 @@ Fields not in FIELDS are discarded."
 			       (intern (match-string 2)))
 		    value (match-string 3))
 	      (if (and current-key
-		       (eq key current-key)) 
+		       (eq key current-key))
 		  (setq key nil)
 		(setq current-key key))
 	      (if (or (null fields)
@@ -156,7 +156,7 @@ Wait for response and return the buffer containing it."
 	  (message "Contacting server...")
 	  (setq process (eudc-ph-open-session))
 	  (if process
-	      (save-excursion 
+	      (save-excursion
 		(set-buffer (setq buffer (process-buffer process)))
 		(eudc-ph-send-command process request)
 		(message "Request sent, waiting for reply...")
@@ -164,7 +164,7 @@ Wait for response and return the buffer containing it."
       (if process
 	  (eudc-ph-close-session process)))
     buffer))
-        
+
 (defun eudc-ph-open-session (&optional server)
   "Open a connection to the given CCSO/QI SERVER.
 SERVER is either a string naming the server or a list (NAME PORT)."
@@ -232,7 +232,7 @@ depending on RETURN-RESPONSE."
 	  (buffer-substring (point) match-end)
 	return-code))))
 
-;;}}}        
+;;}}}
 
 ;;{{{      High-level interfaces (interactive functions)
 

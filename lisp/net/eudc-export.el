@@ -44,7 +44,7 @@ symbol and VALUE is the corresponding value for the record.
 If SILENT is non-nil then the created BBDB record is not displayed."
   ;; This function runs in a special context where lisp symbols corresponding
   ;; to field names in record are bound to the corresponding values
-  (eval 
+  (eval
    `(let* (,@(mapcar '(lambda (c)
 			(list (car c) (if (listp (cdr c))
 					  (list 'quote (cdr c))
@@ -86,8 +86,8 @@ If SILENT is non-nil then the created BBDB record is not displayed."
 					      (cons (car mapping) value))))
 				       conversion-alist)))
       (setq bbdb-notes (delq nil bbdb-notes))
-      (setq bbdb-record (bbdb-create-internal bbdb-name 
-					      bbdb-company 
+      (setq bbdb-record (bbdb-create-internal bbdb-name
+					      bbdb-company
 					      bbdb-net
 					      bbdb-address
 					      bbdb-phones
@@ -98,7 +98,7 @@ If SILENT is non-nil then the created BBDB record is not displayed."
 (defun eudc-parse-spec (spec record recurse)
   "Parse the conversion SPEC using RECORD.
 If RECURSE is non-nil then SPEC may be a list of atomic specs."
-  (cond 
+  (cond
    ((or (stringp spec)
 	(symbolp spec)
 	(and (listp spec)
@@ -149,7 +149,7 @@ LOCATION is used as the address location for bbdb."
 	      zip (string-to-number (match-string 1 last1))))
        (t
 	(error "Cannot parse the address"))))
-    (vector location 
+    (vector location
 	    (or (nth 0 addr-components) "")
 	    (or (nth 1 addr-components) "")
 	    (or (nth 2 addr-components) "")
@@ -162,7 +162,7 @@ LOCATION is used as the address location for bbdb."
 PHONE is either a string supposedly containing a phone number or
 a list of such strings which are concatenated.
 LOCATION is used as the phone location for BBDB."
-  (cond 
+  (cond
    ((stringp phone)
     (let (phone-list)
       (condition-case err
@@ -180,7 +180,7 @@ LOCATION is used as the phone location for BBDB."
     (vector location (mapconcat 'identity phone ", ")))
    (t
     (error "Invalid phone specification"))))
-      
+
 (defun eudc-batch-export-records-to-bbdb ()
   "Insert all the records returned by a directory query into BBDB."
   (interactive)

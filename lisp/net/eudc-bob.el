@@ -56,14 +56,14 @@
     ["Toggle inline display" eudc-bob-toggle-inline-display
      (eudc-bob-can-display-inline-images)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
- 
+
 (defconst eudc-bob-sound-menu
   `("EUDC Sound Menu"
     ["---" nil nil]
     ["Play sound" eudc-bob-play-sound-at-point
      (fboundp 'play-sound)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
- 
+
 (defun eudc-jump-to-event (event)
   "Jump to the window and point where EVENT occurred."
   (if eudc-xemacs-p
@@ -270,7 +270,7 @@ display a button."
 (defun eudc-bob-menu ()
   "Retrieve the menu attached to a binary object."
   (eudc-bob-get-overlay-prop 'menu))
-  
+
 (defun eudc-bob-popup-menu (event)
   "Pop-up a menu of EUDC multimedia commands."
   (interactive "@e")
@@ -321,7 +321,6 @@ display a button."
 (set-keymap-parent eudc-bob-image-keymap eudc-bob-generic-keymap)
 (set-keymap-parent eudc-bob-sound-keymap eudc-bob-generic-keymap)
 
-    
 (if eudc-emacs-p
     (progn
       (easy-menu-define eudc-bob-generic-menu
@@ -362,5 +361,5 @@ display a button."
 (defun eudc-display-jpeg-as-button (data)
   "Display a button for the JPEG DATA."
   (eudc-bob-display-jpeg data nil))
-    
+
 ;;; eudc-bob.el ends here

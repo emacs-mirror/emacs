@@ -24,7 +24,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;    This library provides an interface to use BBDB as a backend of 
+;;    This library provides an interface to use BBDB as a backend of
 ;;    the Emacs Unified Directory Client.
 
 ;;; Code:
@@ -214,7 +214,7 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 					records)))))
     result))
 
-;;}}}        
+;;}}}
 
 ;;{{{      High-level interfaces (interactive functions)
 
@@ -224,7 +224,7 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
   (eudc-set-server dummy 'bbdb)
   (message "BBDB server selected"))
 
-;;;}}}
+;;}}}
 
 
 (eudc-register-protocol 'bbdb)
