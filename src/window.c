@@ -4324,19 +4324,35 @@ displayed_window_lines (w)
   struct it it;
   struct text_pos start;
   int height = window_box_height (w);
+  struct buffer *old_buffer;
+  int bottom_y;
+
+  if (XBUFFER (w->buffer) != current_buffer)
+    {
+      old_buffer = current_buffer;
+      set_buffer_internal (XBUFFER (w->buffer));
+    }
+  else
+    old_buffer = NULL;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   start_display (&it, w, start);
   move_it_vertically (&it, height);
 
+  if (old_buffer)
+    set_buffer_internal (old_buffer);
+
   /* Add in empty lines at the bottom of the window.  */
-  if (it.current_y < height)
+  bottom_y = it.current_y + it.max_ascent + it.max_descent;
+  if (bottom_y < height)
     {
       struct frame *f = XFRAME (w->frame);
-      int rest = height - it.current_y;
+      int rest = height - bottom_y;
       int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
       it.vpos += lines;
     }
+  else if (bottom_y > height)
+    ++it.vpos;
   
   return it.vpos;
 }
