@@ -527,11 +527,20 @@ run_msdos_command (argv, dir, tempin, tempout)
   if (msshell)
     {
       saveargv1 = argv[1];
+      saveargv2 = argv[2];
       argv[1] = "/c";
       if (argv[2])
 	{
-	  saveargv2 = argv[2];
-	  unixtodos_filename (argv[2] = strdup (argv[2]));
+	  char *p = alloca (strlen (argv[2]) + 1);
+
+	  strcpy (argv[2] = p, saveargv2);
+	  while (*p && isspace (*p))
+	    p++;
+	  while (*p && !isspace (*p))
+	    if (*p == '/')
+	      *p++ = '\\';
+	    else
+	      p++;
 	}
     }
 
@@ -578,11 +587,7 @@ run_msdos_command (argv, dir, tempin, tempout)
   if (msshell)
     {
       argv[1] = saveargv1;
-      if (argv[2])
-	{
-	  free (argv[2]);
-	  argv[2] = saveargv2;
-	}
+      argv[2] = saveargv2;
     }
   return result;
 }
