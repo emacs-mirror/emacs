@@ -1073,7 +1073,7 @@ fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   buffer.h charset.h fontset.h msdos.h $(config_h)
+   buffer.h charset.h fontset.h msdos.h dosfns.h $(config_h)
 fontset.o: fontset.h fontset.c ccl.h charset.h frame.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
@@ -1112,7 +1112,7 @@ syntax.o: syntax.c syntax.h buffer.h commands.h category.h charset.h \
    $(config_h)
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h \
-   msdos.h
+   msdos.h dosfns.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h keyboard.h charset.h coding.h ccl.h msdos.h
 termcap.o: termcap.c $(config_h)
@@ -1133,7 +1133,7 @@ xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
    msdos.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
-   window.h charset.h msdos.h $(config_h)
+   window.h charset.h msdos.h dosfns.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
    $(srcdir)/../lwlib/lwlib.h blockinput.h epaths.h charset.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h keyboard.h \
