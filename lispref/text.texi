@@ -42,7 +42,7 @@ buffer, together with their properties (when relevant).
 			How to control how much information is kept.
 * Filling::          Functions for explicit filling.
 * Margins::          How to specify margins for filling commands.
-* Adaptive Fill:     Adaptive Fill mode chooses a fill prefix from context.
+* Adaptive Fill::    Adaptive Fill mode chooses a fill prefix from context.
 * Auto Filling::     How auto-fill mode is implemented to break lines.
 * Sorting::          Functions for sorting parts of the buffer.
 * Columns::          Computing horizontal positions, and using them.

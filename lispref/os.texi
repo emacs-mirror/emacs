@@ -19,7 +19,6 @@ pertaining to the terminal and the screen.
 * Getting Out::         How exiting works (permanent or temporary).
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
-* Reading a Password::  Reading a password from the terminal.
 * Time of Day::		Getting the current time.
 * Time Conversion::     Converting a time from numeric form to a string, or
                           to calendrical data (or vice versa).
@@ -868,29 +867,6 @@ This function returns the real @sc{uid} of the user.
 
 @defun user-uid
 This function returns the effective @sc{uid} of the user.  
-@end defun
-
-@node Reading a Password
-@section Reading a Password
-@cindex passwords, reading
-
-  To read a password to pass to another program, you can use the
-function @code{read-passwd}.
-
-@tindex read-passwd
-@defun read-passwd prompt &optional confirm default
-This function reads a password, prompting with @var{prompt}.  It does
-not echo the password as the user types it; instead, it echoes @samp{.}
-for each character in the password.
-
-The optional argument @var{confirm}, if non-@code{nil}, says to read the
-password twice and insist it must be the same both times.  If it isn't
-the same, the user has to type it over and over until the last two
-times match.
-
-The optional argument @var{default} specifies the default password to
-return if the user enters empty input.  If @var{default} is @code{nil},
-then @code{read-passwd} returns the null string in that case.
 @end defun
 
 @node Time of Day
