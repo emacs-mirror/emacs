@@ -1278,7 +1278,7 @@ Optional arg GLOBAL means to replace all matches."
   (concat (or dir default-directory) file))
 
 (defun dired-make-relative (file &optional dir no-error)
-  ;;"Convert FILE (an absolute pathname) to a pathname relative to DIR.
+  ;;"Convert FILE (an absolute file name) to a name relative to DIR.
   ;; Else error (unless NO-ERROR is non-nil, then FILE is returned unchanged)
   ;;DIR defaults to default-directory."
   ;; DIR must be file-name-as-directory, as with all directory args in
@@ -1300,6 +1300,10 @@ Optional arg GLOBAL means to replace all matches."
   " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
  [ 0-9][0-9][:0-9][0-9][ 0-9] "
   "Regular expression to match a month abbreviation followed date/time.")
+
+(defvar dired-permission-flags-regexp
+  "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
+  "Regular expression to match the permission flags in `ls -l'.")
 
 ;; Move to first char of filename on this line.
 ;; Returns position (point) or nil if no filename on this line."
@@ -1334,8 +1338,7 @@ Optional arg GLOBAL means to replace all matches."
 	;; "l---------" (some systems make symlinks that way)
 	;; "----------" (plain file with zero perms)
 	(if (re-search-backward
-	     "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
-	     nil t)
+	     dired-permission-flags-regexp nil t)
 	    (setq file-type (char-after (match-beginning 1))
 		  symlink (eq file-type ?l)
 		  ;; Only with -F we need to know whether it's an executable
