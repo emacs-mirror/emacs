@@ -38,7 +38,11 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "window.h"
 
-#ifdef HAVE_TERMCAP_H
+/* For now, don't try to include termcap.h.  On some systems,
+   configure finds a non-standard termcap.h that the main build
+   won't find.  */
+
+#if defined HAVE_TERMCAP_H && 0
 #include <termcap.h>
 #else
 extern void tputs P_ ((const char *, int, int (*)(int)));
