@@ -20,9 +20,20 @@
 
 */
 
+#define WIN32
+
 #include <pwd.h>
 #include <malloc.h>
 
+/* Include these headers now so we don't have to worry about include
+   order dependencies in common source files.  */
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+
+#ifdef sleep
+#undef sleep
+#endif
 void sleep(int seconds);
 char *getwd (char *dir);
 int getppid(void);
@@ -38,9 +49,66 @@ int fchown (int fd, int uid, int gid);
 #define bzero(b, l) memset(b, 0, l)
 #define bcopy(s, d, l) memcpy(d, s, l)
 #define bcmp(a, b, l) memcmp(a, b, l)
-
-#define index   strchr
-#define rindex  strrchr
 #endif
+
+/* redirect or undo interceptions by config.h */
+#undef access
+#define access  _access
+#undef chdir
+#define chdir   _chdir
+#undef chmod
+#define chmod   _chmod
+#undef close
+#define close   _close
+#undef creat
+#define creat   _creat
+#undef ctime
+#undef dup
+#define dup     _dup
+#undef dup2
+#define dup2    _dup2
+#undef fopen
+#undef mkdir
+#define mkdir   _mkdir
+#undef mktemp
+#define mktemp  _mktemp
+#undef open
+#define open    _open
+#undef pipe
+#define pipe    _pipe
+#undef read
+#define read    _read
+#undef rename
+#undef rmdir
+#define rmdir   _rmdir
+#undef unlink
+#define unlink  _unlink
+#undef write
+#define write   _write
+
+/* map to MSVC names */
+#define execlp    _execlp
+#define execvp    _execvp
+#define fcloseall _fcloseall
+#define fdopen	  _fdopen
+#define fgetchar  _fgetchar
+#define fileno	  _fileno
+#define flushall  _flushall
+#define fputchar  _fputchar
+#define getcwd	  _getcwd
+#define getw	  _getw
+#define getpid    _getpid
+#define isatty    _isatty
+#define locking   _locking
+#define logb      _logb
+#define _longjmp  longjmp
+#define lseek     _lseek
+#define popen     _popen
+#define pclose    _pclose
+#define putw	  _putw
+#define umask	  _umask
+#define utime	  _utime
+#define index     strchr
+#define rindex    strrchr
 
 /* end of ntlib.h */
