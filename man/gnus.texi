@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-  -*- coding: iso-latin-1 -*-
 
-@setfilename gnus
+@setfilename ../info/gnus
 @settitle Gnus Manual
 @synindex fn cp
 @synindex vr cp
