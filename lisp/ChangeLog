@@ -1,3 +1,7 @@
+2001-01-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ccl.el (define-ccl-program): Fix docstring.
+
 2001-01-11  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (standard-display-european-internal):
