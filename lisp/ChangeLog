@@ -1,3 +1,8 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* rect.el (replace-rectangle): Don't call string-rectangle-line
+	with too many arguments.
+
 2000-11-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* ediff-util.el: (ediff-file-checked-out-p,
@@ -39,7 +44,7 @@
 	* find-lisp.el (find-lisp-find-files-internal):
 	Use dolist, when and file-name-as-directory.
 
-	* emacs-lisp/edebug.el (edebug-form-spec prop): use dolist.
+	* emacs-lisp/edebug.el (edebug-form-spec prop): Use dolist.
 	(define-derived-mode, define-minor-mode): Add specs.
 
 	* window.el: General comment and spacing fixes.
