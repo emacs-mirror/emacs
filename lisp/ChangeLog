@@ -251,7 +251,7 @@
 
 2001-01-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* ediff-ve.el (noninteractive): Don't load generic-sc on MS-DOS
+	* ediff-vers.el (noninteractive): Don't load generic-sc on MS-DOS
 	systems without long file-name support.
 
 2001-01-06  Andrew Innes  <andrewi@gnu.org>
