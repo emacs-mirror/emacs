@@ -700,14 +700,14 @@ DESCRIPTION (string) is the description string of the charset.  */)
       || !STRINGP (vec[7])
       || !STRINGP (vec[8]))
     error ("Invalid info-vector argument for defining charset %s",
-	   XSYMBOL (charset_symbol)->name->data);
+	   XSTRING (SYMBOL_NAME (charset_symbol))->data);
 
   if (NILP (charset_id))
     {
       charset_id = get_new_private_charset_id (XINT (vec[0]), XINT (vec[2]));
       if (XINT (charset_id) == 0)
 	error ("There's no room for a new private charset %s",
-	       XSYMBOL (charset_symbol)->name->data);
+	       XSTRING (SYMBOL_NAME (charset_symbol))->data);
     }
 
   update_charset_table (charset_id, vec[0], vec[1], vec[2], vec[3],
@@ -779,7 +779,7 @@ CHARSET should be defined by `defined-charset' in advance.  */)
   if (XINT (final_char) < '0' || XFASTINT (final_char) > '~')
     error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
   if ((charset = get_charset_id (charset_symbol)) < 0)
-    error ("Invalid charset %s", XSYMBOL (charset_symbol)->name->data);
+    error ("Invalid charset %s", XSTRING (SYMBOL_NAME (charset_symbol))->data);
 
   ISO_CHARSET_TABLE (dimension, chars, final_char) = charset;
   return Qnil;
