@@ -1,6 +1,6 @@
 ;;; paren.el --- highlight matching paren.
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996 Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.ai.mit.edu
 ;; Maintainer: FSF
@@ -32,18 +32,47 @@
 
 ;; This is the overlay used to highlight the matching paren.
 (defvar show-paren-overlay nil)
-;; This is the overlay used to highlight the closeparen
-;; right before point.
+;; This is the overlay used to highlight the closeparen right before point.
 (defvar show-paren-overlay-1 nil)
+
+(defvar show-paren-mode nil)
+(defvar show-paren-idle-timer nil)
 
 (defvar show-paren-mismatch-face nil)
 
+(defvar show-paren-delay (if (featurep 'lisp-float-type) 0.125 1)
+  "*Time in seconds to delay before showing the matching paren.")
+
 (defvar show-paren-face 'region
-  "*Name of face to use for showing the matching paren.")
+  "*Name of the face to use for showing the matching paren.")
+
+;;;###autoload
+(defun show-paren-mode (&optional arg)
+  "Toggle Show Paren mode.
+With prefix ARG, turn Show Paren mode on if and only if ARG is positive.
+Returns the new status of Show Paren mode (non-nil means on).
+
+When Show Paren mode is enabled, any matching parenthesis is highlighted
+after `show-paren-delay' seconds of Emacs idle time."
+  (interactive "P")
+  (if window-system
+      (let ((on-p (if arg
+		      (> (prefix-numeric-value arg) 0)
+		    (not show-paren-mode))))
+	(setq blink-matching-paren-on-screen (not on-p))
+	(and show-paren-idle-timer (cancel-timer show-paren-idle-timer))
+	(if on-p
+	    (setq show-paren-idle-timer (run-with-idle-timer show-paren-delay t
+					 'show-paren-function))
+	  (and show-paren-overlay (overlay-buffer show-paren-overlay)
+	       (delete-overlay show-paren-overlay))
+	  (and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
+	       (delete-overlay show-paren-overlay-1)))
+	(setq show-paren-mode on-p))))
 
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
-(defun show-paren-command-hook ()
+(defun show-paren-function ()
   ;; Do nothing if no window system to display results with.
   ;; Do nothing if executing keyboard macro.
   ;; Do nothing if input is pending.
@@ -130,17 +159,10 @@
 	       (and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
 		    (delete-overlay show-paren-overlay-1)))))))
 
-(if window-system
-    (progn
-      (setq blink-matching-paren-on-screen nil)
-      (run-with-idle-timer .1 t 'show-paren-command-hook)))
-;;; This is in case paren.el is preloaded.
-(add-hook 'window-setup-hook
-	  (function (lambda ()
-		      (if window-system
-			  (progn
-			    (setq blink-matching-paren-on-screen nil)
-			    (run-with-idle-timer .1 t 'show-paren-command-hook))))))
+;;; For back compatibility we turn ourselves on if we're dumped or loaded.
+(add-hook 'window-setup-hook 'show-paren-mode)
+(show-paren-mode t)
+
 (provide 'paren)
 
 ;;; paren.el ends here
