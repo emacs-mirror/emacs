@@ -4037,16 +4037,26 @@ For more details, see `delete-key-deletes-forward'."
 
   (cond ((or (memq window-system '(x w32 mac pc))
 	     (memq system-type '(ms-dos windows-nt)))
-	 (if delete-key-deletes-forward
-	     (progn
-	       (define-key global-map [delete] 'delete-char)
-	       (define-key global-map [C-delete] 'kill-word)
-	       (define-key esc-map [C-delete] 'kill-sexp)
-	       (define-key global-map [C-M-delete] 'kill-sexp))
-	   (define-key esc-map [C-delete] 'backward-kill-sexp)
-	   (define-key global-map [C-M-delete] 'backward-kill-sexp)
-	   (define-key global-map [C-delete] 'backward-kill-word)
-	   (define-key global-map [delete] 'delete-backward-char)))
+	 (let ((bindings 
+		`(([delete] [backspace] delete-char delete-backward-char)
+		  ([C-delete] [C-backspace] kill-word backward-kill-word)
+		  ([M-delete] [M-backspace] kill-word backward-kill-word)
+		  ([C-M-delete] [C-M-backspace] kill-sexp backward-kill-sexp)
+		  (,esc-map
+		   [C-delete] [C-backspace] kill-sexp backward-kill-sexp))))
+	   (dolist (binding bindings)
+	     (let ((map global-map))
+	       (when (keymapp (car binding))
+		 (setq map (car binding) binding (cdr binding)))
+	       (let ((key1 (nth 0 binding))
+		     (key2 (nth 1 binding))
+		     (binding1 (nth 2 binding))
+		     (binding2 (nth 3 binding)))
+		 (unless delete-key-deletes-forward
+		   (let ((temp binding1))
+		     (setq binding1 binding2 binding2 temp)))
+		 (define-key map key1 binding1)
+		 (define-key map key2 binding2))))))
 	 (t
 	  (if delete-key-deletes-forward
 	      (progn
