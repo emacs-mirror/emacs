@@ -1,5 +1,7 @@
 2000-04-19  Dave Love  <fx@gnu.org>
 
+	* configure.in: Don't use AC_FUNC_GETLOADAVG.
+
 	* aclocal.m4 (AC_FUNC_MKTIME): Use AC_SUBST.
 
 2000-04-16  Dave Love  <fx@gnu.org>
