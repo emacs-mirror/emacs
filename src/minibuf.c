@@ -29,6 +29,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
+extern int quit_char;
+
 /* List of buffers for use as minibuffers.
   The first element of the list is used for the outermost minibuffer invocation,
   the next element is used for a recursive minibuffer invocation, etc.
@@ -969,7 +971,7 @@ temp_echo_area_glyphs (m)
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
-      unread_command_events = Fcons (make_number (Ctl ('g')), Qnil);
+      unread_command_events = Fcons (make_number (quit_char), Qnil);
     }
   Vinhibit_quit = oinhibit;
 }
