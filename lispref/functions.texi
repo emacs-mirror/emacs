@@ -113,9 +113,14 @@ byte compiler.  @xref{Byte-Code Type}.
 @end table
 
 @defun functionp object
-This function returns @code{t} if @var{object} is any kind of function,
-or a special form or macro.
+This function returns @code{t} if @var{object} is any kind of
+function, or a special form, or, recursively, a symbol whose function
+definition is a function or special form.  (This does not include
+macros.)
 @end defun
+
+Unlike @code{functionp}, the next three functions do @emph{not}
+treat a symbol as its function definition.
 
 @defun subrp object
 This function returns @code{t} if @var{object} is a built-in function
@@ -428,13 +433,14 @@ conventions different from the actual function arguments.  Write
 text like this:
 
 @example
-(fn @var{arglist})
+\(fn @var{arglist})
 @end example
 
 @noindent
-following a blank line, with no newline following it inside the
-documentation string.  This feature is particularly useful for
-macro definitions.
+following a blank line, at the beginning of the line, with no newline
+following it inside the documentation string.  This feature is
+particularly useful for macro definitions.  The @samp{\} is used to
+avoid confusing the Emacs motion commands.
 
 @node Function Names
 @section Naming a Function
@@ -571,9 +577,15 @@ defined is often done deliberately, and there is no way to distinguish
 deliberate redefinition from unintentional redefinition.
 @end defspec
 
-@defun defalias name definition
+@anchor{Definition of defalias}
+@defun defalias name definition &optional docstring
 This special form defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
+It returns @var{definition}.
+
+If @var{docstring} is non-@code{nil}, it becomes the function
+documentation of @var{name}.  Otherwise, any documentation provided by
+@var{definition} is used.
 
 The proper place to use @code{defalias} is where a specific function
 name is being defined---especially where that name appears explicitly in
@@ -587,7 +599,7 @@ records.
 @end defun
 
   You cannot create a new primitive function with @code{defun} or
-@code{defalias}, but you use them to change the function definition of
+@code{defalias}, but you can use them to change the function definition of
 any symbol, even one such as @code{car} or @code{x-popup-menu} whose
 normal definition is a primitive.  However, this is risky: for
 instance, it is next to impossible to redefine @code{car} without
@@ -700,8 +712,8 @@ primitive function; special forms and macros do not make sense in
 @end group
 @end example
 
-For an interesting example of using @code{apply}, see the description of
-@code{mapcar}, in @ref{Mapping Functions}.
+For an interesting example of using @code{apply}, see @ref{Definition
+of mapcar}.
 @end defun
 
 @cindex functionals
@@ -726,19 +738,21 @@ This function ignores any arguments and returns @code{nil}.
 @section Mapping Functions
 @cindex mapping functions
 
-  A @dfn{mapping function} applies a given function to each element of a
-list or other collection.  Emacs Lisp has several such functions;
-@code{mapcar} and @code{mapconcat}, which scan a list, are described
-here.  @xref{Creating Symbols}, for the function @code{mapatoms} which
-maps over the symbols in an obarray.  @xref{Hash Access}, for the
-function @code{maphash} which maps over key/value associations in a
-hash table.
+  A @dfn{mapping function} applies a given function (@emph{not} a
+special form or macro) to each element of a list or other collection.
+Emacs Lisp has several such functions; @code{mapcar} and
+@code{mapconcat}, which scan a list, are described here.
+@xref{Definition of mapatoms}, for the function @code{mapatoms} which
+maps over the symbols in an obarray.  @xref{Definition of maphash},
+for the function @code{maphash} which maps over key/value associations
+in a hash table.
 
   These mapping functions do not allow char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
 over a char-table in a way that deals properly with its sparse nature,
 use the function @code{map-char-table} (@pxref{Char-Tables}).
 
+@anchor{Definition of mapcar}
 @defun mapcar function sequence
 @code{mapcar} applies @var{function} to each element of @var{sequence}
 in turn, and returns a list of the results.
@@ -770,7 +784,7 @@ length of @var{sequence}.
   "Apply FUNCTION to successive cars of all ARGS.
 Return the list of results."
   ;; @r{If no list is exhausted,}
-  (if (not (memq 'nil args))
+  (if (not (memq nil args))
       ;; @r{apply function to @sc{car}s.}
       (cons (apply function (mapcar 'car args))
             (apply 'mapcar* function
@@ -961,8 +975,8 @@ to be used only as a function, and therefore can safely be compiled.
 Contrast this with @code{quote}, in @ref{Quoting}.
 @end defspec
 
-  See @code{documentation} in @ref{Accessing Documentation}, for a
-realistic example using @code{function} and an anonymous function.
+  @xref{describe-symbols example}, for a realistic example using
+@code{function} and an anonymous function.
 
 @node Function Cells
 @section Accessing Function Cell Contents
@@ -971,8 +985,8 @@ realistic example using @code{function} and an anonymous function.
 function cell of the symbol.  The functions described here access, test,
 and set the function cell of symbols.
 
-  See also the function @code{indirect-function} in @ref{Function
-Indirection}.
+  See also the function @code{indirect-function}.  @xref{Definition of
+indirect-function}.
 
 @defun symbol-function symbol
 @kindex void-function
@@ -1027,8 +1041,9 @@ is a legitimate function.
 
 @defun fmakunbound symbol
 This function makes @var{symbol}'s function cell void, so that a
-subsequent attempt to access this cell will cause a @code{void-function}
-error.  (See also @code{makunbound}, in @ref{Void Variables}.)
+subsequent attempt to access this cell will cause a
+@code{void-function} error.  It returns @var{symbol}.  (See also
+@code{makunbound}, in @ref{Void Variables}.)
 
 @example
 @group
@@ -1064,7 +1079,7 @@ There are three normal uses of this function:
 Copying one symbol's function definition to another---in other words,
 making an alternate name for a function.  (If you think of this as the
 definition of the new name, you should use @code{defalias} instead of
-@code{fset}; see @ref{Defining Functions}.)
+@code{fset}; see @ref{Definition of defalias}.)
 
 @item
 Giving a symbol a function definition that is not a list and therefore
@@ -1305,7 +1320,7 @@ See @ref{Anonymous Functions}.
 See @ref{Calling Functions}.
 
 @item indirect-function
-See @ref{Function Indirection}.
+See @ref{Definition of indirect-function}.
 
 @item interactive
 See @ref{Using Interactive}.
