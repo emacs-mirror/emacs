@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1085,6 +1085,25 @@ suggest to customized that face, if it's customizable."
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Customized*"))))
 
+;;;###autoload
+(defun customize-rogue ()
+  "Customize all user variable modified outside customize."
+  (interactive)
+  (let ((found nil))
+    (mapatoms (lambda (symbol)
+		(let ((cval (or (get symbol 'customized-value)
+				(get symbol 'saved-value)
+				(get symbol 'standard-value))))
+		  (when (and cval 	;Declared with defcustom.
+			     (default-boundp symbol) ;Has a value.
+			     (not (equal (eval (car cval)) 
+					 ;; Which does not match customize.
+					 (default-value symbol))))
+		    (push (list symbol 'custom-variable) found)))))
+    (if (not found)
+	(error "No rogue user options")
+      (custom-buffer-create (custom-sort-items found t nil)
+			    "*Customize Rogue*"))))
 ;;;###autoload
 (defun customize-saved ()
   "Customize all already saved user options."
