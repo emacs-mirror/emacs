@@ -731,12 +731,28 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (progn
 	      (funcall inner)
 	      (setq init-file-had-error nil))
-	  (error (message "Error in init file: %s%s%s"
-			  (get (car error) 'error-message)
-			  (if (cdr error) ": " "")
-			  (mapconcat 'prin1-to-string (cdr error) ", "))
-		 (pop-to-buffer "*Messages*")
-		 (setq init-file-had-error t))))
+	  (error
+	   (let ((message-log-max nil))
+	     (save-excursion
+	       (set-buffer (get-buffer-create "*Messages*"))
+	       (insert "\n\n"
+		       (format "An error has occurred while loading `%s':\n\n"
+			       user-init-file)
+		       (format "%s%s%s"
+			       (get (car error) 'error-message)
+			       (if (cdr error) ": " "")
+			       (mapconcat 'prin1-to-string (cdr error) ", "))
+		       "\n\n"
+		       "To ensure normal operation, you should investigate the cause\n"
+		       "of the error in your initialization file and remove it.  Start\n"
+		       "Emacs with the `--debug-init' option to view a complete error\n"
+		       "backtrace\n"))
+	     (message "Error in init file: %s%s%s"
+		      (get (car error) 'error-message)
+		      (if (cdr error) ": " "")
+		      (mapconcat 'prin1-to-string (cdr error) ", "))
+	     (pop-to-buffer "*Messages*")
+	     (setq init-file-had-error t)))))
       ;; If we can tell that the init file altered debug-on-error,
       ;; arrange to preserve the value that it set up.
       (or (eq debug-on-error debug-on-error-initial)
