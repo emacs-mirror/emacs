@@ -565,16 +565,20 @@ and don't delete any header fields."
 	(insert-buffer mail-reply-buffer)
 	(if (consp arg)
 	    nil
-	  (mail-yank-clear-headers start (mark))
+	  (mail-yank-clear-headers start (mark t))
 	  (if (null mail-yank-prefix)
-	      (indent-rigidly start (mark)
+	      (indent-rigidly start (mark t)
 			      (if arg (prefix-numeric-value arg) 3))
 	    (save-excursion
 	      (goto-char start)
-	      (while (< (point) (mark))
+	      (while (< (point) (mark t))
 		(insert mail-yank-prefix)
 		(forward-line 1)))))
-	(exchange-point-and-mark)
+	;; This is like exchange-point-and-mark, but doesn't activate the mark.
+	;; It is cleaner to avoid activation, even though the command
+	;; loop would deactivate the mark because we inserted text.
+	(goto-char (prog1 (mark t)
+		     (set-marker (mark-marker) (point) (current-buffer))))
 	(if (not (eolp)) (insert ?\n)))))
 
 (defun mail-yank-clear-headers (start end)
