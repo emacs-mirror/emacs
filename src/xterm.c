@@ -3354,7 +3354,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			      XSetCommand (FRAME_X_DISPLAY (f),
 					   event.xclient.window,
 					   initial_argv, initial_argc);
-			    else
+			    else if (f)
 			      XSetCommand (FRAME_X_DISPLAY (f),
 					   event.xclient.window,
 					   0, 0);
