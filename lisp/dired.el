@@ -2175,7 +2175,7 @@ A prefix argument means to unmark them instead.
 			      (goto-char (point-min))
 			      (re-search-forward regexp nil t)))
 			(with-temp-buffer
-			  (insert-buffer-contents fn)
+			  (insert-file-contents fn)
 			  (goto-char (point-min))
 			  (re-search-forward regexp nil t))))
 		      )))
