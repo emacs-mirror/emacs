@@ -1,5 +1,8 @@
 2002-04-01  Richard M. Stallman  <rms@gnu.org>
 
+	* help-fns.el (help-with-tutorial): Allow various ways
+	to specify the text in the [...] line, in handling the <...> line.
+
 	* progmodes/idlw-rinfo.el (idlwave-system-routines): 
 	WOLRDTITLE => WORLDTITLE.  SUPRESS_VALUE => SUPPRESS_VALUE.
 
