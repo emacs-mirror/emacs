@@ -1,3 +1,7 @@
+2000-09-24  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (NO_RETURN): Define it.
+
 2000-09-17  Andrew Innes  <andrewi@gnu.org>
 
 	* gmake.defs: Revert to Unix line endings.
@@ -642,5 +646,5 @@
 	* _emacs: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
