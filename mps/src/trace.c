@@ -1,14 +1,16 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.93) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.94) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
+#include "chain.h"
 #include "mpm.h"
+#include <limits.h> /* for LONG_MAX */
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.93) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.94) $");
 
 
 /* Types
@@ -127,6 +129,7 @@ static void TraceMessageInit(Arena arena, TraceMessage traceMessage)
 Bool ScanStateCheck(ScanState ss)
 {
   TraceId ti;
+  Trace trace;
   RefSet white;
 
   CHECKS(ScanState, ss);
@@ -134,9 +137,9 @@ Bool ScanStateCheck(ScanState ss)
   CHECKL(ss->zoneShift == ss->arena->zoneShift);
   CHECKL(RefSetCheck(ss->white));
   white = RefSetEMPTY;
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(TraceSetIsMember(ss->traces, ti))
-      white = RefSetUnion(white, ss->arena->trace[ti].white);
+  TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
+    white = RefSetUnion(white, ss->arena->trace[ti].white);
+  TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
   CHECKL(ss->white == white);
   CHECKL(RefSetCheck(ss->unfixedSummary));
   CHECKU(Arena, ss->arena);
@@ -149,12 +152,14 @@ Bool ScanStateCheck(ScanState ss)
   return TRUE;
 }
 
+
 /* ScanStateInit -- Initialize a ScanState object */
 
 void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
                    Rank rank, RefSet white)
 {
   TraceId ti;
+  Trace trace;
 
   /* we are initing it, so we can't check ss */
   AVERT(Arena, arena);
@@ -162,12 +167,10 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   /* white is arbitrary and can't be checked */
 
   ss->fix = TraceFix;
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti) &&
-       ArenaTrace(arena, ti)->emergency) {
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    if (trace->emergency)
       ss->fix = TraceFixEmergency;
-    }
-  }
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
   ss->rank = rank;
   ss->traces = ts;
   ss->zoneShift = arena->zoneShift;
@@ -206,7 +209,7 @@ void ScanStateFinish(ScanState ss)
 
 Bool TraceIdCheck(TraceId ti)
 {
-  CHECKL(ti == TraceIdNONE || ti < TRACE_MAX);
+  CHECKL(ti < TRACE_MAX);
   UNUSED(ti); /* impl.c.mpm.check.unused */
   return TRUE;
 }
@@ -230,7 +233,7 @@ Bool TraceCheck(Trace trace)
   CHECKU(Arena, trace->arena);
   CHECKL(TraceIdCheck(trace->ti));
   CHECKL(trace == &trace->arena->trace[trace->ti]);
-  CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace->ti));
+  CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace));
   CHECKL(RefSetCheck(trace->white));
   CHECKL(RefSetCheck(trace->mayMove));
   CHECKL(RefSetSub(trace->mayMove, trace->white));
@@ -241,22 +244,22 @@ Bool TraceCheck(Trace trace)
     break;
 
   case TraceUNFLIPPED:
-    CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
+    CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
     /* @@@@ Assert that mutator is grey for trace. */
     break;
 
   case TraceFLIPPED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
     /* @@@@ Assert that mutator is black for trace. */
     break;
 
   case TraceRECLAIM:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
     /* @@@@ Assert that grey set is empty for trace. */
     break;
 
   case TraceFINISHED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
+    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
     /* @@@@ Assert that grey and white sets is empty for trace. */
     break;
 
@@ -264,6 +267,8 @@ Bool TraceCheck(Trace trace)
     NOTREACHED;
   }
   CHECKL(BoolCheck(trace->emergency));
+  if (trace->chain != NULL)
+    CHECKU(Chain, trace->chain);
   /* @@@@ checks for counts missing */
   return TRUE;
 }
@@ -336,15 +341,14 @@ static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
 static void TraceSetSignalEmergency(TraceSet ts, Arena arena)
 {
   TraceId ti;
-  
+  Trace trace;
+
   AVER(TraceSetCheck(ts));
   AVERT(Arena, arena);
 
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      ArenaTrace(arena, ti)->emergency = TRUE;
-    }
-  }
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    trace->emergency = TRUE;
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
 
   return;
 }
@@ -381,15 +385,14 @@ double TraceWorkFactor = 0.25;
 static RefSet TraceSetWhiteUnion(TraceSet ts, Arena arena)
 {
   TraceId ti;
+  Trace trace;
   RefSet white = RefSetEMPTY;
 
   /* static function used internally, no checking */
 
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
-    }
-  }
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    white = RefSetUnion(white, trace->white);
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
 
   return white;
 }
@@ -404,7 +407,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
-  AVER(!TraceSetIsMember(SegWhite(seg), trace->ti)); /* .start.black */
+  AVER(!TraceSetIsMember(SegWhite(seg), trace)); /* .start.black */
 
   pool = SegPool(seg);
   AVERT(Pool, pool);
@@ -417,7 +420,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
 
   /* Add the segment to the approximation of the white set the */
   /* pool made it white. */
-  if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
+  if(TraceSetIsMember(SegWhite(seg), trace)) {
     trace->white = RefSetUnion(trace->white,
                                RefSetOfSeg(trace->arena, seg));
     /* if the pool is a moving GC, then condemned objects may move */
@@ -464,8 +467,8 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
     do {
       base = SegBase(seg);
       /* Segment should be black now. */
-      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
-      AVER(!TraceSetIsMember(SegWhite(seg), trace->ti));
+      AVER(!TraceSetIsMember(SegGrey(seg), trace));
+      AVER(!TraceSetIsMember(SegWhite(seg), trace));
 
       /* A segment can only be white if it is GC-able. */
       /* This is indicated by the pool having the GC attribute */
@@ -585,13 +588,13 @@ static void TraceFlip(Trace trace)
   TraceSet traceSingleton;
 
   AVERT(Trace, trace);
-  traceSingleton = TraceSetSingle(trace->ti);
+  traceSingleton = TraceSetSingle(trace);
 
   arena = trace->arena;
   ShieldSuspend(arena);
 
   AVER(trace->state == TraceUNFLIPPED);
-  AVER(!TraceSetIsMember(arena->flippedTraces, trace->ti));
+  AVER(!TraceSetIsMember(arena->flippedTraces, trace));
 
   EVENT_PP(TraceFlipBegin, trace, arena);
 
@@ -638,9 +641,8 @@ static void TraceFlip(Trace trace)
   for(rank = 0; rank < RankMAX; ++rank)
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
-      if(TraceSetInter(SegGrey(seg),
-                       arena->flippedTraces) == TraceSetEMPTY &&
-         TraceSetIsMember(SegGrey(seg), trace->ti))
+      if (TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
+          && TraceSetIsMember(SegGrey(seg), trace))
         ShieldRaise(arena, seg, AccessREAD);
     }
 
@@ -651,7 +653,7 @@ static void TraceFlip(Trace trace)
 
   /* Mark the trace as flipped. */
   trace->state = TraceFLIPPED;
-  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
 
   EVENT_PP(TraceFlipEnd, trace, arena);
 
@@ -701,8 +703,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     do {
       base = SegBase(seg);
       size = SegSize(seg);
-      /* Segment should be either black or white by now. */
-      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
+      AVER(!TraceSetIsMember(SegGrey(seg), trace));
 
       /* A segment can only be grey if it contains some references. */
       /* This is indicated by the rankSet begin non-empty.  Such */
@@ -717,12 +718,12 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         /* approximation to the white set. */
         if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY) {
           PoolGrey(SegPool(seg), trace, seg);
-          if(TraceSetIsMember(SegGrey(seg), trace->ti))
+          if(TraceSetIsMember(SegGrey(seg), trace))
             trace->foundation += size;
         }
         
-        if((SegPool(seg)->class->attr & AttrGC) &&
-           !TraceSetIsMember(SegWhite(seg), trace->ti))
+        if ((SegPool(seg)->class->attr & AttrGC)
+            && !TraceSetIsMember(SegWhite(seg), trace))
           trace->notCondemned += size;
       }
     } while(SegNext(&seg, arena, base));
@@ -792,22 +793,18 @@ Res TraceCreate(Trace *traceReturn, Arena arena)
   TraceId ti;
   Trace trace;
 
-  AVER(TRACE_MAX == 1);         /* .single-collection */
-
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
 
   /* Find a free trace ID */
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(!TraceSetIsMember(arena->busyTraces, ti))
-      goto found;
-
+  TRACE_SET_ITER(ti, trace, TraceSetComp(arena->busyTraces), arena)
+    goto found;
+  TRACE_SET_ITER_END(ti, trace, TraceSetComp(arena->busyTraces), arena);
   return ResLIMIT;              /* no trace IDs available */
 
 found:
   trace = ArenaTrace(arena, ti);
   AVER(trace->sig == SigInvalid);       /* design.mps.arena.trace.invalid */
-  arena->busyTraces = TraceSetAdd(arena->busyTraces, ti);
 
   trace->arena = arena;
   trace->white = RefSetEMPTY;
@@ -815,6 +812,7 @@ found:
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->emergency = FALSE;
+  trace->chain = NULL;
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0; 
   trace->foundation = (Size)0;  /* nothing grey yet */
@@ -844,15 +842,13 @@ found:
   STATISTIC(trace->reclaimCount = (Count)0);
   STATISTIC(trace->reclaimSize = (Size)0);
   trace->sig = TraceSig;
+  arena->busyTraces = TraceSetAdd(arena->busyTraces, trace);
   AVERT(Trace, trace);
 
   /* We suspend the mutator threads so that the PoolWhiten methods */
   /* can calculate white sets without the mutator allocating in */
   /* buffers under our feet. */
-
-  /* @@@@ This is a short-term fix for change.dylan.crow.160098, */
-  /* and should receive a long-term fix in change.dylan.dove.160098. */
-
+  /* @@@@ This is a short-term fix for request.dylan.160098. */
   ShieldSuspend(arena);
 
   *traceReturn = trace;
@@ -866,13 +862,27 @@ found:
  *
  * This code does not allow a Trace to be destroyed while it is
  * active.  It would be possible to allow this, but the colours
- * of segments etc. would need to be reset to black.
+ * of segments etc. would need to be reset to black.  This also
+ * means the error paths in this file don't work.  @@@@
  */
 
 void TraceDestroy(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
+
+  if (trace->chain == NULL) {
+    Ring chainNode, nextChainNode;
+
+    /* Notify all the chains. */
+    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
+      Chain chain = RING_ELT(Chain, chainRing, chainNode);
+      
+      ChainEndGC(chain, trace);
+    }
+  } else {
+    ChainEndGC(trace->chain, trace);
+  }
 
   STATISTIC_STAT(EVENT_PWWWWWWWWWWWW
                   (TraceStatScan, trace,
@@ -897,10 +907,8 @@ void TraceDestroy(Trace trace)
                    trace->reclaimCount, trace->reclaimSize));
 
   trace->sig = SigInvalid;
-  trace->arena->busyTraces =
-    TraceSetDel(trace->arena->busyTraces, trace->ti);
-  trace->arena->flippedTraces =
-    TraceSetDel(trace->arena->flippedTraces, trace->ti);
+  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+  trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
   EVENT_P(TraceDestroy, trace);
 }
 
@@ -953,9 +961,9 @@ static void TraceReclaim(Trace trace)
     do {
       base = SegBase(seg);
       /* There shouldn't be any grey stuff left for this trace. */
-      AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace->ti));
+      AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
-      if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
+      if(TraceSetIsMember(SegWhite(seg), trace)) {
         AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
         STATISTIC(++trace->reclaimCount);
         PoolReclaim(SegPool(seg), trace, seg);
@@ -970,8 +978,7 @@ static void TraceReclaim(Trace trace)
         {
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
           AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
-                          && TraceSetIsMember(SegWhite(nonWhiteSeg),
-                                              trace->ti)));
+                          && TraceSetIsMember(SegWhite(nonWhiteSeg), trace)));
         }
       }
     } while(SegNext(&seg, arena, base));
@@ -1014,9 +1021,8 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
       AVERT(Seg, seg);
       AVER(SegGrey(seg) != TraceSetEMPTY);
       AVER(RankSetIsMember(SegRankSet(seg), rank));
-      if(TraceSetIsMember(SegGrey(seg), ti)) {
-        *segReturn = seg;
-        *rankReturn = rank;
+      if(TraceSetIsMember(SegGrey(seg), trace)) {
+        *segReturn = seg; *rankReturn = rank;
         return TRUE;
       }
     }
@@ -1183,8 +1189,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
   AVER((mode & SegSM(seg) & AccessREAD) == 0
-       || TraceSetInter(SegGrey(seg), arena->flippedTraces)
-          != TraceSetEMPTY);
+       || TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
 
   /* If it's a write acess, then the segment must have a summary that */
   /* is smaller than the mutator's summary (which is assumed to be */
@@ -1208,9 +1213,13 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     /* can go ahead and access it. */
     AVER(TraceSetInter(SegGrey(seg), traces) == TraceSetEMPTY);
 
-    STATISTIC_STAT(for(ti = 0; ti < TRACE_MAX; ++ti)
-                     if(TraceSetIsMember(traces, ti))
-                       ++ArenaTrace(arena, ti)->readBarrierHitCount);
+    STATISTIC_STAT({
+      Trace trace;
+
+      TRACE_SET_ITER(ti, trace, traces, arena)
+        ++trace->readBarrierHitCount;
+      TRACE_SET_ITER_END(ti, trace, traces, arena);
+    });
   } else { /* write barrier */
     STATISTIC(++arena->writeBarrierHitCount);
   }
@@ -1239,7 +1248,7 @@ static Res TraceRun(Trace trace)
 
   if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
     AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-    res = TraceScanSegRes(TraceSetSingle(trace->ti), rank, arena, seg);
+    res = TraceScanSegRes(TraceSetSingle(trace), rank, arena, seg);
     if(res != ResOK)
       return res;
   } else
@@ -1260,64 +1269,37 @@ static Size TraceWorkClock(Trace trace)
 }
 
 
-/* TraceExpedite -- signals an emergency on the trace and */
-/* moves it to the Finished state. */
-static void TraceExpedite(Trace trace)
-{
-  AVERT(Trace, trace);
-
-  trace->emergency = TRUE;
-
-  while(trace->state != TraceFINISHED) {
-    Res res = TraceStep(trace);
-    /* because we are using emergencyFix the trace shouldn't */
-    /* raise any error conditions */
-    AVER(res == ResOK);
-  }
-}
-
-
 /* TraceStep -- progresses a trace by some small amount */
 
 Res TraceStep(Trace trace)
 {
-  Arena arena;
-  Res res;
+  Res res = ResOK;
 
   AVERT(Trace, trace);
-
-  arena = trace->arena;
-
-  EVENT_PP(TraceStep, trace, arena);
 
   switch(trace->state) {
   case TraceUNFLIPPED:
     /* all traces are flipped in TraceStart at the moment */
     NOTREACHED;
     break;
-
   case TraceFLIPPED:
     res = TraceRun(trace);
-    if(res != ResOK)
-      return res;
     break;
-
   case TraceRECLAIM:
     TraceReclaim(trace);
     break;
-
   default:
     NOTREACHED;
     break;
   }
 
-  return ResOK;
+  return res;
 }
 
 
-/* TracePoll -- progresses a trace, without returning errors */
+/* TraceQuantum -- progresses a trace, without returning errors */
 
-void TracePoll(Trace trace)
+static void TraceQuantum(Trace trace)
 {
   Res res;
   Size pollEnd;
@@ -1327,14 +1309,19 @@ void TracePoll(Trace trace)
   pollEnd = TraceWorkClock(trace) + trace->rate;
   do {
     res = TraceStep(trace);
-    if(res != ResOK) {
+    if (res != ResOK) {
       AVER(ResIsAllocFailure(res));
-      TraceExpedite(trace);
-      AVER(trace->state == TraceFINISHED);
+      /* Signal an emergency on the trace and push it through. */
+      trace->emergency = TRUE;
+      while(trace->state != TraceFINISHED) {
+        res = TraceStep(trace);
+        /* Because we are using emergencyFix the trace shouldn't */
+        /* raise any error conditions. */
+        AVER(res == ResOK);
+      }
       return;
     }
-  } while(trace->state != TraceFINISHED
-          && TraceWorkClock(trace) < pollEnd);
+  } while(trace->state != TraceFINISHED && TraceWorkClock(trace) < pollEnd);
 }
 
 
@@ -1628,4 +1615,210 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   } TRACE_SCAN_END(ss);
 
   return ResOK;
+}
+
+
+/* traceCondemnAll -- condemn everything and notify all the chains */
+
+static Res traceCondemnAll(Trace trace)
+{
+  Res res;
+  Arena arena;
+  Ring chainNode, nextChainNode;
+  Bool haveWhiteSegs = FALSE;
+
+  arena = trace->arena;
+  AVERT(Arena, arena);
+  /* Condemn all the chains. */
+  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
+    Chain chain = RING_ELT(Chain, chainRing, chainNode);
+
+    AVERT(Chain, chain);
+    res = ChainCondemnAll(chain, trace);
+    if (res != ResOK)
+      goto failBegin;
+    haveWhiteSegs = TRUE;
+  }
+  /* Notify all the chains. */
+  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
+    Chain chain = RING_ELT(Chain, chainRing, chainNode);
+
+    ChainStartGC(chain, trace);
+  }
+  return ResOK;
+
+failBegin:
+  AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
+  return res;
+}
+
+
+/* ArenaAvail -- return available memory in the arena
+ *
+ * Eventually, this will be an arena service.
+ */
+
+static Size ArenaAvail(Arena arena)
+{
+  Size sSwap;
+
+  sSwap = ArenaReserved(arena);
+  if (sSwap > ArenaCommitLimit(arena)) sSwap = ArenaCommitLimit(arena);
+  /* @@@@ sSwap should take actual paging file size into account */
+  return sSwap - ArenaCommitted(arena) + ArenaSpareCommitted(arena);
+}
+
+
+/* TracePoll -- Check if there's any tracing work to be done */
+
+void TracePoll(Arena arena)
+{
+  Trace trace;
+  Res res;
+
+  AVERT(Arena, arena);
+
+  if (arena->busyTraces == TraceSetEMPTY) {
+    /* If no traces are going on, see if we need to start one. */
+    Size sFoundation, sCondemned, sSurvivors, sConsTrace;
+    double tTracePerScan; /* tTrace/cScan */
+    double dynamicDeferral;
+
+    /* Compute dynamic criterion.  See strategy.lisp-machine. */
+    AVER(TraceTopGenMortality >= 0.0);
+    AVER(TraceTopGenMortality <= 1.0);
+    sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+    /* @@@@ sCondemned should be scannable only */
+    sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+    sSurvivors = (Size)(sCondemned * (1 - TraceTopGenMortality));
+    tTracePerScan = sFoundation + (sSurvivors * (1 + TRACE_COPY_SCAN_RATIO));
+    AVER(TraceWorkFactor >= 0);
+    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
+    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+    dynamicDeferral = (double)sConsTrace - (double)ArenaAvail(arena);
+
+    if (dynamicDeferral > 0.0) { /* start full GC */
+      double finishingTime;
+
+      res = TraceCreate(&trace, arena);
+      AVER(res == ResOK); /* succeeds because no other trace is busy */
+      traceCondemnAll(trace);
+      finishingTime = ArenaAvail(arena)
+                      - trace->condemned * (1.0 - TraceTopGenMortality);
+      if (finishingTime < 0)
+        /* Run out of time, should really try a smaller collection. @@@@ */
+        finishingTime = 0.0;
+      TraceStart(trace, TraceTopGenMortality, finishingTime);
+    } else { /* Find the nursery most over its capacity. */
+      Ring node, nextNode;
+      double firstTime = 0.0;
+      Chain firstChain = NULL;
+
+      RING_FOR(node, &arena->chainRing, nextNode) {
+        Chain chain = RING_ELT(Chain, chainRing, node);
+        double time;
+
+        AVERT(Chain, chain);
+        time = ChainDeferral(chain);
+        if (time < firstTime) {
+          firstTime = time; firstChain = chain;
+        }
+      }
+
+      /* If one was found, start collection on that chain. */
+      if (firstTime < 0) {
+        double mortality;
+
+        res = TraceCreate(&trace, arena);
+        AVER(res == ResOK);
+        res = ChainCondemnAuto(&mortality, firstChain, trace);
+        if (res != ResOK)
+          goto failCondemn;
+        trace->chain = firstChain;
+        ChainStartGC(firstChain, trace);
+        TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+      }
+    } /* (dynamicDeferral > 0.0) */
+  } /* (arena->busyTraces == TraceSetEMPTY) */
+
+  /* If there is a trace, do one quantum of work. */
+  if (arena->busyTraces != TraceSetEMPTY) {
+    trace = ArenaTrace(arena, (TraceId)0);
+    AVER(arena->busyTraces == TraceSetSingle(trace));
+    TraceQuantum(trace);
+    if (trace->state == TraceFINISHED)
+      TraceDestroy(trace);
+  }
+  return;
+
+failCondemn:
+  TraceDestroy(trace);
+}
+
+
+/* ArenaClamp -- clamp the arena (no new collections) */
+
+void ArenaClamp(Arena arena)
+{
+  AVERT(Arena, arena);
+  arena->clamped = TRUE;
+}
+
+
+/* ArenaRelease -- release the arena (allow new collections) */
+
+void ArenaRelease(Arena arena)
+{
+  AVERT(Arena, arena);
+  arena->clamped = FALSE;
+  TracePoll(arena);
+}
+
+
+/* ArenaClamp -- finish all collections and clamp the arena */
+ 
+void ArenaPark(Arena arena)
+{
+  TraceId ti;
+  Trace trace;
+ 
+  AVERT(Arena, arena);
+ 
+  arena->clamped = TRUE;
+ 
+  while(arena->busyTraces != TraceSetEMPTY) {
+    /* Poll active traces to make progress. */
+    TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
+      TraceQuantum(trace);
+      if (trace->state == TraceFINISHED)
+        TraceDestroy(trace);
+    TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
+  }
+}
+
+
+/* ArenaCollect -- collect everything */
+
+Res ArenaCollect(Arena arena)
+{
+  Trace trace;
+  Res res;
+
+  AVERT(Arena, arena);
+  ArenaPark(arena);
+
+  res = TraceCreate(&trace, arena);
+  AVER(res == ResOK); /* should be a trace available -- we're parked */
+
+  res = traceCondemnAll(trace);
+  if (res != ResOK)
+    goto failBegin;
+
+  TraceStart(trace, 0.0, 0.0);
+  ArenaPark(arena);
+  return ResOK;
+
+failBegin:
+  TraceDestroy(trace);
+  return res;
 }
