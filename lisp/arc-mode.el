@@ -690,6 +690,7 @@ is visible (and the real data of the buffer is hidden).
 Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
+  (set-buffer-multibyte nil)
   (let (buffer-read-only)
     (or shut-up
 	(message "Parsing archive file..."))
@@ -827,6 +828,41 @@ using `make-temp-name', and the generated name is returned."
 ;; -------------------------------------------------------------------------
 ;; Section: Member extraction
 
+(defun archive-file-name-handler (op &rest args)
+  (or (eq op 'file-exists-p)
+      (let ((file-name-handler-alist nil))
+	(apply op args))))
+
+(defun archive-set-buffer-as-visiting-file (filename)
+  "Set the current buffer as if it were visiting FILENAME."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((coding
+	   (or coding-system-for-read
+	       (and set-auto-coding-function
+		    (funcall set-auto-coding-function
+			     (- (point-max) (point-min))))
+	       ;; dos-w32.el defines find-operation-coding-system for
+	       ;; DOS/Windows systems which preserves the coding-system
+	       ;; of existing files.  We want it to act here as if the
+	       ;; extracted file existed.
+	       (let ((file-name-handler-alist
+		      '(("" . archive-file-name-handler))))
+		 (car (find-operation-coding-system 'insert-file-contents
+						    filename t))))))
+      (if (and (not coding-system-for-read)
+	       (not enable-multibyte-characters))
+	  (setq coding
+		(coding-system-change-text-conversion coding 'raw-text)))
+      (if (and coding
+	       (not (eq coding 'no-conversion)))
+	  (decode-coding-region (point-min) (point-max) coding)
+	(setq last-coding-system-used coding))
+      (set-buffer-modified-p nil)
+      (kill-local-variable 'buffer-file-coding-system)
+      (after-insert-file-set-buffer-file-coding-system (- (point-max)
+							  (point-min))))))
+
 (defun archive-mouse-extract (event)
   "Extract a file whose name you click on."
   (interactive "e")
@@ -876,27 +912,26 @@ using `make-temp-name', and the generated name is returned."
           (setq archive-subfile-mode descr)
 	  (if (and
 	       (null
-		(condition-case err
-		    (if (fboundp extractor)
-			(funcall extractor archive ename)
-		      (archive-*-extract archive ename
-					 (symbol-value extractor)))
-		  (error
-		   (ding (message "%s" (error-message-string err)))
-		   nil)))
+		(let (;; We may have to encode file name arguement for
+		      ;; external programs.
+		      (coding-system-for-write file-name-coding-system)
+		      ;; We read an archive member by no-conversion at
+		      ;; first, then decode appropriately by calling
+		      ;; archive-set-buffer-as-visiting-file later.
+		      (coding-system-for-read 'no-conversion))
+		  (condition-case err
+		      (if (fboundp extractor)
+			  (funcall extractor archive ename)
+			(archive-*-extract archive ename
+					   (symbol-value extractor)))
+		    (error
+		     (ding (message "%s" (error-message-string err)))
+		     nil))))
 	       just-created)
 	      (progn
 		(set-buffer-modified-p nil)
 		(kill-buffer buffer))
-	    ;; If Emacs were to visit the file we've extracted, it would make
-	    ;; the buffer be unibyte if the detected coding-system is
-	    ;; no-conversion or raw-text-*.  We want the same behavior here
-	    ;; as if we were visiting the file, even though some extractors
-	    ;; read the file's contents from a pipe.
-	    (if (or (eq last-coding-system-used 'no-conversion)
-		    ;; type 5 is raw-text
-		    (eq (coding-system-type last-coding-system-used) 5))
-		(set-buffer-multibyte nil))
+	    (archive-set-buffer-as-visiting-file ename)
 	    (goto-char (point-min))
 	    (rename-buffer bufname)
 	    (setq buffer-read-only read-only-p)
@@ -955,17 +990,12 @@ using `make-temp-name', and the generated name is returned."
     success))
 
 (defun archive-extract-by-stdout (archive name command)
-  ;; We need the coding system of the output of the extract program,
-  ;; including the EOL encoding, be decoded dynamically, since what
-  ;; the extract program outputs is the contents of some file.
-  (let ((coding-system-for-read (or coding-system-for-read 'undecided))
-	(inherit-process-coding-system t))
-    (apply 'call-process
-	   (car command)
-	   nil
-	   t
-	   nil
-	   (append (cdr command) (list archive name)))))
+  (apply 'call-process
+	 (car command)
+	 nil
+	 t
+	 nil
+	 (append (cdr command) (list archive name))))
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."
@@ -1068,6 +1098,7 @@ using `make-temp-name', and the generated name is returned."
 	  (if (aref descr 3)
 	      ;; Set the file modes, but make sure we can read it.
 	      (set-file-modes tmpfile (logior ?\400 (aref descr 3))))
+	  (setq ename (encode-coding-string ename file-name-coding-system))
           (let ((exitcode (apply 'call-process
                                  (car command)
                                  nil
@@ -1245,7 +1276,9 @@ as a relative change like \"g+rw\" as for chmod(2)"
 	(descr (archive-get-descr)))
     (if (fboundp func)
         (progn
-	  (funcall func (buffer-file-name) newname descr)
+	  (funcall func (buffer-file-name)
+		   (encode-coding-string newname file-name-coding-system)
+		   descr)
 	  (archive-resummarize))
       (error "Renaming is not supported for this archive type"))))
 
@@ -1255,6 +1288,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
     (setq archive-files nil)
     (let ((revert-buffer-function nil)
 	  (coding-system-for-read 'no-conversion))
+      (set-buffer-multibyte nil)
       (revert-buffer t t))
     (archive-mode)
     (goto-char archive-file-list-start)
@@ -1327,6 +1361,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-restriction
       (save-excursion
 	(widen)
+	(set-buffer-multibyte nil)
 	(goto-char (+ archive-proper-file-start (aref descr 4) 2))
 	(delete-char 13)
 	(insert name)))))
@@ -1348,9 +1383,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (moddate (archive-l-e (+ p 17) 2))
 	     (hdrlvl  (char-after (+ p 20)))
 	     (fnlen   (char-after (+ p 21)))
-	     (efnname (buffer-substring (+ p 22) (+ p 22 fnlen)))
+	     (efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))
+			(if file-name-coding-system
+			    (decode-coding-string str file-name-coding-system)
+			  (string-as-multibyte str))))
 	     (fiddle  (string= efnname (upcase efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
+	     (width (string-width ifnname))
 	     (p2      (+ p 22 fnlen))
 	     (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
 	     mode modestr uid gid text path prname
@@ -1395,7 +1434,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				(archive-dosdate moddate)
 				(archive-dostime modtime)
 				ifnname)))
-        (setq maxlen (max maxlen fnlen)
+        (setq maxlen (max maxlen width)
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
@@ -1405,6 +1444,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                           files)
               p (+ p hsize 2 csize))))
     (goto-char (point-min))
+    (set-buffer-multibyte default-enable-multibyte-characters)
     (let ((dash (concat (if archive-alternate-display
 			    "- --------  -----  -----  "
 			  "- ----------  --------  -----------  --------  ")
@@ -1443,6 +1483,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (save-restriction
     (save-excursion
       (widen)
+      (set-buffer-multibyte nil)
       (let* ((p        (+ archive-proper-file-start (aref descr 4)))
 	     (oldhsize (char-after p))
 	     (oldfnlen (char-after (+ p 21)))
@@ -1462,6 +1503,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (save-restriction
     (save-excursion
       (widen)
+      (set-buffer-multibyte nil)
       (while files
 	(let* ((fil (car files))
 	       (p (+ archive-proper-file-start (aref fil 4)))
@@ -1516,7 +1558,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (exlen   (archive-l-e (+ p 30) 2))
              (fclen   (archive-l-e (+ p 32) 2))
              (lheader (archive-l-e (+ p 42) 4))
-             (efnname (buffer-substring (+ p 46) (+ p 46 fnlen)))
+             (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
+			(if file-name-coding-system
+			    (decode-coding-string str file-name-coding-system)
+			  (string-as-multibyte str))))
 	     (isdir   (and (= ucsize 0)
 			   (string= (file-name-nondirectory efnname) "")))
 	     (mode    (cond ((memq creator '(2 3)) ; Unix + VMS
@@ -1533,13 +1578,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   (not (not (memq creator '(0 2 4 5 9))))
 			   (string= (upcase efnname) efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
+	     (width (string-width ifnname))
              (text    (format "  %10s  %8d  %-11s  %-8s  %s"
 			      modestr
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
                               ifnname)))
-        (setq maxlen (max maxlen fnlen)
+        (setq maxlen (max maxlen width)
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
@@ -1581,6 +1627,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (save-restriction
     (save-excursion
       (widen)
+      (set-buffer-multibyte nil)
       (while files
 	(let* ((fil (car files))
 	       (p (+ archive-proper-file-start (car (aref fil 4))))
@@ -1619,23 +1666,30 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (lfnlen  (if (= dirtype 2) (char-after (+ p 56)) 0))
 	     (ldirlen (if (= dirtype 2) (char-after (+ p 57)) 0))
 	     (fnlen   (or (string-match "\0" namefld) 13))
-	     (efnname (concat
-		       (if (> ldirlen 0)
-			   (concat (buffer-substring
-				    (+ p 58 lfnlen) (+ p 58 lfnlen ldirlen -1))
-				   "/")
-			 "")
-		       (if (> lfnlen 0)
-			   (buffer-substring (+ p 58) (+ p 58 lfnlen -1))
-			 (substring namefld 0 fnlen))))
+	     (efnname (let ((str
+			     (concat
+			      (if (> ldirlen 0)
+				  (concat (buffer-substring
+					   (+ p 58 lfnlen)
+					   (+ p 58 lfnlen ldirlen -1))
+					  "/")
+				"")
+			      (if (> lfnlen 0)
+				  (buffer-substring (+ p 58)
+						    (+ p 58 lfnlen -1))
+				(substring namefld 0 fnlen)))))
+			(if file-name-coding-system
+			    (decode-coding-string str file-name-coding-system)
+			  (string-as-multibyte str))))
 	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
              (ifnname (if fiddle (downcase efnname) efnname))
+	     (width (string-width ifnname))
              (text    (format "  %8d  %-11s  %-8s  %s"
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
                               ifnname)))
-        (setq maxlen (max maxlen (length ifnname))
+        (setq maxlen (max maxlen (length width))
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
