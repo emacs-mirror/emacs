@@ -385,12 +385,10 @@ Note that the style variables are always made local to the buffer."
        (c-set-style c-file-style))
   (and c-file-offsets
        (mapcar
-	(function
-	 (lambda (langentry)
-	   (let ((langelem (car langentry))
-		 (offset (cdr langentry)))
-	     (c-set-offset langelem offset)
-	     )))
+        (lambda (langentry)
+          (let ((langelem (car langentry))
+                (offset (cdr langentry)))
+            (c-set-offset langelem offset)))
 	c-file-offsets)))
 
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
@@ -893,13 +891,10 @@ CC Mode by making sure the proper entries are present on
 		  filladapt-mode
 		  defun-prompt-regexp))
 	vars)
-      (function
-       (lambda ()
-	 (run-hooks 'c-prepare-bug-report-hooks)
-	 (insert
-	  "Buffer Style: " style "\n\n"
-	  (format "c-emacs-features: %s\n" c-features)
-	  )))))))
+      (lambda ()
+        (run-hooks 'c-prepare-bug-report-hooks)
+        (insert (format "Buffer Style: %s\n\nc-emacs-features: %s\n"
+                        style c-features)))))))
 
 
 (cc-provide 'cc-mode)

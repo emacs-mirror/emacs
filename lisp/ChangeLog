@@ -1,3 +1,8 @@
+2001-11-26  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-mode.el (c-submit-bug-report): Make sure that the
+	arguments to `insert' are strings.
+
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (command-line-1): Call kill-buffer only in non-fancy case.
