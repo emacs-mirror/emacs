@@ -1021,8 +1021,7 @@ stamp-oldxmenu:
    They should define HAVE_ALLOCA.
    Some use the C version in alloca.c (these define C_ALLOCA in config.h).
    */
-alloca.o : alloca.c blockinput.h atimer.h
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) ${srcdir}/alloca.c
+alloca.o: alloca.c blockinput.h atimer.h
 
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
@@ -1045,7 +1044,7 @@ category.o: category.c category.h buffer.h charset.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
 charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
 	$(config_h)
-coding.o: coding.c coding.h ccl.h buffer.h charset.h $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h window.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
 	msdos.h dispextern.h
@@ -1065,7 +1064,8 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h dispextern.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h)
+   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
+   window.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h ccl.h msdos.h dispextern.h $(config_h)
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
@@ -1156,7 +1156,7 @@ xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h termhooks.h
+  blockinput.h window.h atimer.h termhooks.h keyboard.h charset.h coding.h
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
@@ -1166,7 +1166,7 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h atimer.h systime.h charset.h dispextern.h $(config_h) $(INTERVAL_SRC)
-bytecode.o: bytecode.c buffer.h syntax.h charset.h $(config_h)
+bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   $(config_h)
