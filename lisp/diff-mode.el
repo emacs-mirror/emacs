@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.21 2000/09/21 16:15:32 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.22 2000/09/21 16:52:23 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -41,7 +41,6 @@
 ;; Bugs:
 
 ;; - Reverse doesn't work with normal diffs.
-;; - (nitpick) The mark is not always quite right in diff-goto-source.
 
 ;; Todo:
 
@@ -63,7 +62,7 @@
 
 
 (defgroup diff-mode ()
-  "Major-mode for viewing/editing diffs"
+  "Major mode for viewing/editing diffs"
   :version "21.1"
   :group 'tools
   :group 'diff)
@@ -132,8 +131,8 @@ when editing big diffs)."
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; Misc operations.
-    ("\C-cda" . diff-apply-hunk)
-    ("\C-cdt" . diff-test-hunk))
+    ("\C-c\C-a" . diff-apply-hunk)
+    ("\C-c\C-t" . diff-test-hunk))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
 (easy-menu-define diff-mode-menu diff-mode-map
@@ -148,10 +147,10 @@ when editing big diffs)."
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     ))
 
-(defcustom diff-minor-mode-prefix "\C-cd"
+(defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
   :group 'diff-mode
-  :type '(choice (string "\e") (string "C-cd") string))
+  :type '(choice (string "\e") (string "C-c=") string))
 
 (easy-mmode-defmap diff-minor-mode-map
   `((,diff-minor-mode-prefix . ,diff-mode-shared-map))
@@ -163,7 +162,9 @@ when editing big diffs)."
 ;;;; 
 
 (defface diff-header-face
-  '((t (:inherit highlight)))
+  '((((class color) (background light))
+     (:background "grey85"))
+    (t (:bold t)))
   "`diff-mode' face inherited by hunk, file and index header faces."
   :group 'diff-mode)
 (defvar diff-header-face 'diff-header-face)
@@ -826,10 +827,8 @@ This mode runs `diff-mode-hook'.
   (if (not diff-update-on-the-fly-flag)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
-    (add-hook (make-local-hook 'after-change-functions)
-	      'diff-after-change-function nil t)
-    (add-hook (make-local-hook 'post-command-hook)
-	      'diff-post-command-hook nil t))
+    (add-hook 'after-change-functions 'diff-after-change-function nil t)
+    (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
   (add-to-list (make-local-variable 'minor-mode-overriding-map-alist)
   	       (cons 'buffer-read-only diff-mode-shared-map))
@@ -849,10 +848,8 @@ This mode runs `diff-mode-hook'.
   (if (not diff-update-on-the-fly-flag)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
-    (add-hook (make-local-hook 'after-change-functions)
-	      'diff-after-change-function nil t)
-    (add-hook (make-local-hook 'post-command-hook)
-	      'diff-post-command-hook nil t)))
+    (add-hook 'after-change-functions 'diff-after-change-function nil t)
+    (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
 
 
 ;;;
