@@ -334,6 +334,9 @@ XTupdate_begin (f)
 
   BLOCK_INPUT;
 
+  curs_x = FRAME_CURSOR_X (f);
+  curs_y = FRAME_CURSOR_Y (f);
+
   if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
@@ -386,7 +389,7 @@ XTupdate_end (f)
   BLOCK_INPUT;
 
   do_line_dance ();
-  x_display_cursor (f, 1);
+  x_display_cursor (f, 1, curs_x, curs_y);
 
   if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
@@ -482,7 +485,7 @@ XTcursor_to (row, col)
   if (updating_frame == 0)
     {
       BLOCK_INPUT;
-      x_display_cursor (selected_frame, 1);
+      x_display_cursor (selected_frame, 1, curs_x, curs_y);
       XFlush (FRAME_X_DISPLAY (selected_frame));
       UNBLOCK_INPUT;
     }
@@ -803,11 +806,7 @@ XTwrite_glyphs (start, len)
     f->phys_cursor_x = -1;
 
   if (updating_frame == 0)
-    {
-      f->cursor_x += len;
-      x_display_cursor (f, 1);
-      f->cursor_x -= len;
-    }
+    x_display_cursor (f, 1, FRAME_CURSOR_X (f) + len, FRAME_CURSOR_Y (f));
   else
     curs_x += len;
 
@@ -1305,7 +1304,7 @@ do_line_dance ()
   ht = f->height;
   intborder = f->output_data.x->internal_border_width;
 
-  x_display_cursor (updating_frame, 0);
+  x_update_cursor (updating_frame, 0);
 
   for (i = 0; i < ht; ++i)
     if (line_dance[i] != -1 && (distance = line_dance[i]-i) > 0)
@@ -1432,7 +1431,7 @@ dumprectangle (f, left, top, cols, rows)
   /* Turn the cursor on if we turned it off.  */
 
   if (cursor_cleared)
-    x_display_cursor (f, 1);
+    x_update_cursor (f, 1);
 }
 
 static void
@@ -2144,14 +2143,6 @@ show_mouse_face (dpyinfo, hl)
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
   int cursor_off = 0;
-  int old_curs_x = curs_x;
-  int old_curs_y = curs_y;
-
-  /* Set these variables temporarily
-     so that if we have to turn the cursor off and on again
-     we will put it back at the same place.  */
-  curs_x = f->phys_cursor_x;
-  curs_y = f->phys_cursor_y;
 
   for (i = FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row;
        i <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row; i++)
@@ -2170,7 +2161,7 @@ show_mouse_face (dpyinfo, hl)
 	  && curs_x >= column - 1
 	  && curs_x <= endcolumn)
 	{
-	  x_display_cursor (f, 0);
+	  x_update_cursor (f, 0);
 	  cursor_off = 1;
 	}
 
@@ -2185,10 +2176,7 @@ show_mouse_face (dpyinfo, hl)
 
   /* If we turned the cursor off, turn it back on.  */
   if (cursor_off)
-    x_display_cursor (f, 1);
-
-  curs_x = old_curs_x;
-  curs_y = old_curs_y;
+    x_update_cursor (f, 1);
 
   /* Change the mouse cursor according to the value of HL.  */
   if (hl > 0)
@@ -3325,10 +3313,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  XNextEvent (dpyinfo->display, &event);
 #endif
 #ifdef HAVE_X_I18N
-	  /* The necessity of the following line took me
-	     a full work-day to decipher from the docs!!  */
-	  if (FRAME_XIC (f) && XFilterEvent (&event, None))
-	    break;
+	  {
+	    struct frame *f1 = x_any_window_to_frame (dpyinfo,
+						      &event.xclient.window);
+	    /* The necessity of the following line took me
+	       a full work-day to decipher from the docs!!  */
+	    if (f1 != 0 && FRAME_XIC (f1) && XFilterEvent (&event, None))
+	      break;
+	  }
 #endif
 	  event_found = 1;
 
@@ -4186,7 +4178,7 @@ clear_cursor (f)
       || f->phys_cursor_x < 0)
     return;
 
-  x_display_cursor (f, 0);
+  x_update_cursor (f, 0);
   f->phys_cursor_x = -1;
 }
 
@@ -4369,29 +4361,19 @@ x_display_box_cursor (f, on, x, y)
 }
 
 /* Display the cursor on frame F, or clear it, according to ON.
-   Use the position specified by curs_x and curs_y
-   if we are doing an update of frame F now.
-   Otherwise use the position in the FRAME_CURSOR_X and FRAME_CURSOR_Y fields
-   of F.  */
+   Also set the frame's cursor position to X and Y.  */
 
-x_display_cursor (f, on)
+x_display_cursor (f, on, x, y)
      struct frame *f;
      int on;
+     int x, y;
 {
   BLOCK_INPUT;
 
-  /* If we're not updating, then don't change the physical cursor
-     position.  Just change (if appropriate) the style of display.  */
-  if (f != updating_frame)
-    {
-      curs_x = FRAME_CURSOR_X (f);
-      curs_y = FRAME_CURSOR_Y (f);
-    }
-
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
-    x_display_box_cursor (f, on, curs_x, curs_y);
+    x_display_box_cursor (f, on, x, y);
   else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
-    x_display_bar_cursor (f, on, curs_x, curs_y);
+    x_display_bar_cursor (f, on, x, y);
   else
     /* Those are the only two we have implemented!  */
     abort ();
