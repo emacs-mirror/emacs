@@ -49,6 +49,7 @@
 	(opoint (point)))
     (unwind-protect
     (progn
+      (widen)
       (goto-char (point-min))
       (if (search-forward "\^_\nIndirect:\n" nil t)
           (message
@@ -82,14 +83,14 @@
                 "\\|"
 
                 "\\("
-                "\n\^_"
+                "\n\^_\\(\^L\\)?"
                 "\\)"
 
                 "\\("
-                "\nFile:[ \t]*\\([^,\n\t]*\\)[,\t\n]+[ \t\n]*"
+                "\n\\(File:[ \t]*\\([^,\n\t]*\\)[,\t\n]+[ \t\n]*\\)?"
                 "Node:[ \t]*"
                 "\\("
-                "[^,\n\t]*"      ; match-string 11 matches arg to node name
+                "[^,\n\t]*"      ; match-string 13 matches arg to node name
                 "\\)"
                 "[,\t\n]"
                 "\\)"
@@ -116,8 +117,8 @@
               ;; else this is a Node
               (setq tag-list
                     (cons (list 
-                           (concat "Node: " (match-string 11))
-                           (match-beginning 0))
+                           (concat "Node: " (match-string-no-properties 13))
+                           (1+ (match-beginning 10)))
                           tag-list))))
 
 	      (goto-char (point-max))
@@ -129,7 +130,9 @@
 		      (beginning-of-line)
 		      (delete-region (point) end)))
 		(goto-char (point-max))
-		(insert "\n\^_\f\nTag table:\n")
+		(or (bolp)
+		    (newline))
+		(insert "\^_\f\nTag table:\n")
 		(if (eq major-mode 'info-mode)
 		    (move-marker Info-tag-table-marker (point)))
 		(setq tag-list (nreverse tag-list))
@@ -143,9 +146,9 @@
       (narrow-to-region omin (if nomax (1+ (buffer-size))
 			       (min omax (point-max))))))
   (if input-buffer-name
-      (message "Tagifying region in %s ..." input-buffer-name)
+      (message "Tagifying region in %s done" input-buffer-name)
       (message
-       "Tagifying %s ..."  (file-name-nondirectory (buffer-file-name)))))
+       "Tagifying %s done"  (file-name-nondirectory (buffer-file-name)))))
 
 
 ;;;###autoload
@@ -274,8 +277,10 @@ Check that every node pointer points to an existing node."
 	    (forward-line 1)
 	    (if (re-search-backward regexp beg t)
 		(save-restriction
-		  (search-forward "\n\^_" nil 'move)
-		  (narrow-to-region beg (point))
+		  (let ((md (match-data)))
+		    (search-forward "\n\^_" nil 'move)
+		    (narrow-to-region beg (point))
+		    (set-match-data md))
 		  (setq Info-validate-thisnode (downcase
 						(buffer-substring-no-properties
 						 (match-beginning 1)
