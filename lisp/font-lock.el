@@ -1899,18 +1899,27 @@ The value of this variable is used when Font Lock mode is turned on."
   :group 'font-lock-extra-types)
 
 (defcustom c++-font-lock-extra-types
-  '("\\sw+_t"
-    "\\([iof]\\|str\\)+stream\\(buf\\)?" "ios"
+  '("\\sw+_t\\(?:ype\\)?"
+
     "string" "rope"
+
     "list" "slist"
     "deque" "vector" "bit_vector"
+
     "set" "multiset"
     "map" "multimap"
-    "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
     "stack" "queue" "priority_queue"
     "type_info"
-    "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator"
-    "reference" "const_reference")
+
+    ;; (regexp-opt '("ios_base" "ios" "istream" "ostream" "istringstream" "ifstream" "iostream" "ofstream" "ostringstream" "fstream" "stringstream"))
+    "fstream\\|i\\(?:fstream\\|os\\(?:_base\\|tream\\)?\\|str\\(?:\\(?:ingstr\\)?eam\\)\\)\\|\\(?:o\\(?:f\\|string\\)?\\|string\\)stream"
+
+    ;; (regexp-opt '("hash" "hash_set" "hash_map" "hash_multiset" "hash_multimap"))
+    "hash\\(?:_\\(?:m\\(?:ap\\|ulti\\(?:map\\|set\\)\\)\\|set\\)\\)?"
+
+    ;; (regexp-opt '("pointer" "const_pointer" "reference" "const_reference" "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator" "size_type" "difference_type" "allocator_type"))
+    "allocator_type\\|const_\\(?:iterator\\|pointer\\|re\\(?:ference\\|verse_iterator\\)\\)\\|difference_type\\|iterator\\|pointer\\|re\\(?:ference\\|verse_iterator\\)\\|size_type"
+    )
   "*List of extra types to fontify in C++ mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"string\") means the word string is treated as a type
