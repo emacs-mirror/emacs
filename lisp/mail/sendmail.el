@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -170,7 +170,11 @@ is non-nil.")
 		   (let ((case-fold-search nil))
 		     (re-search-forward "^OR\\>" nil t)))
 	       (kill-buffer buffer))))
-      '(looking-at "[ \t]\\|[-a-zA-Z]+:"))
+      ;; According to RFC822, "The field-name must be composed of printable
+      ;; ASCII characters (i.e. characters that have decimal values between
+      ;; 33 and 126, except colon)", i.e. any chars except ctl chars,
+      ;; space, or colon.
+      '(looking-at "[ \t]\\|[][!\"#$%&'()*+,-./0-9;<=>?@A-Z\\\\^_`a-z{|}~]+:"))
   "Set this non-nil if the system's mailer runs the header and body together.
 \(This problem exists on Sunos 4 when sendmail is run in remote mode.)
 The value should be an expression to test whether the problem will
