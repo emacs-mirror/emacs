@@ -1049,10 +1049,10 @@ print (obj, printcharfun, escapeflag)
 	  PRINTCHAR ('>');
 	  break;
 
-	case Lisp_Misc_Display_Objfwd:
-	  strout (buf, "#<display_objfwd to ", -1, printcharfun);
-	  print (*(Lisp_Object *)((char *) current_perdisplay
-				  + XDISPLAY_OBJFWD (obj)->offset),
+	case Lisp_Misc_Kboard_Objfwd:
+	  strout (buf, "#<kboard_objfwd to ", -1, printcharfun);
+	  print (*(Lisp_Object *)((char *) current_kboard
+				  + XKBOARD_OBJFWD (obj)->offset),
 		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
