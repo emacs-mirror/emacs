@@ -5,6 +5,10 @@
 	with keyboard macro related commands.  The original binding on
 	C-x C-k is moved to C-x C-k e.
 
+	* binding.el: Remove macro related bindings (now in kmacro.el).
+
+	* edmacro.el: Remove C-x C-k binding (now in kmacro.el).
+
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (sgml-xml-auto-coding-function): Call
