@@ -1,3 +1,8 @@
+2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (Fx_send_client_event, x_handle_dnd_message): Handle
+	the longs in a XClientMessageEvent correctly when long is 64 bits.
+
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfaces.c (face_color_supported_p): Use HAVE_WINDOW_SYSTEM

@@ -2536,7 +2536,7 @@ x_property_data_to_lisp (f, data, type, format, size)
                                       data, size*format/8, type, format);
 }
 
-/* Get the mouse position frame relative coordinates.  */
+/* Get the mouse position in frame relative coordinates.  */
 
 static void
 mouse_position_for_drop (f, x, y)
@@ -2635,8 +2635,23 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
   Lisp_Object frame;
   unsigned long size = (8*sizeof (event->data))/event->format;
   int x, y;
+  unsigned char *data = (unsigned char *) event->data.b;
+  int idata[5];
 
   XSETFRAME (frame, f);
+
+  /* On a 64 bit machine, the event->data.l array members are 64 bits (long),
+     but the x_property_data_to_lisp (or rather selection_data_to_lisp_data)
+     function expects them to be of size int (i.e. 32).  So to be able to
+     use that function, put the data in the form it expects if format is 32. */
+
+  if (event->format == 32 && event->format < BITS_PER_LONG)
+    {
+      int i;
+      for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
+        idata[i] = (int) event->data.l[i];
+      data = (unsigned char *) idata;
+    }
 
   vec = Fmake_vector (make_number (4), Qnil);
   AREF (vec, 0) = SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
@@ -2644,7 +2659,7 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
   AREF (vec, 1) = frame;
   AREF (vec, 2) = make_number (event->format);
   AREF (vec, 3) = x_property_data_to_lisp (f,
-                                           event->data.b,
+                                           data,
                                            event->message_type,
                                            event->format,
                                            size);
@@ -2697,6 +2712,8 @@ are ignored.  */)
   struct frame *f = check_x_frame (from);
   int count;
   int to_root;
+  int idata[5];
+  void *data;
 
   CHECK_STRING (message_type);
   CHECK_NUMBER (format);
@@ -2756,10 +2773,31 @@ are ignored.  */)
      when sending to the root window.  */
   event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
 
-  memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
-  x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
-                        event.xclient.format);
+  
+  if (event.xclient.format == 32 && event.xclient.format < BITS_PER_LONG)
+    {
+      /* x_fill_property_data expects data to hold 32 bit values when
+         format == 32, but on a 64 bit machine long is 64 bits.
+         event.xclient.l is an array of long, so we must compensate. */
 
+      memset (idata, 0, sizeof (idata));
+      data = idata;
+    }
+  else
+    {
+      memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
+      data = event.xclient.data.b;
+    }
+
+  x_fill_property_data (dpyinfo->display, values, data, event.xclient.format);
+
+  if (data == idata)
+    {
+      int i;
+      for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
+        event.xclient.data.l[i] = (long) idata[i];
+    }
+  
   /* If event mask is 0 the event is sent to the client that created
      the destination window.  But if we are sending to the root window,
      there is no such client.  Then we set the event mask to 0xffff.  The
