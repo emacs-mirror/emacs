@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.16) $
+ * $HopeName: MMsrc!seg.c(trunk.17) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -12,7 +12,7 @@
  * .purpose.class.seg: Class Seg is a class which is as simple
  * as efficiency demands permit. (It includes fields for storing colour
  * for efficiency). It may be subclassed by clients of the module.
- * .purpose.class.seg-gc: Class SegGC is a concrete class support all
+ * .purpose.class.seg-gc: Class GCSeg is a concrete class support all
  * all current GC features, and providing full backwards compatibility
  * with "old-style" segments. It may be subclassed by clients of the
  *  module. 
@@ -28,12 +28,12 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName$");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.17) $");
 
 
-/* SegSegGC -- convert generic Seg to SegGC */
+/* SegGCSeg -- convert generic Seg to GCSeg */
 
-#define SegSegGC(seg)             ((SegGC)(seg))
+#define SegGCSeg(seg)             ((GCSeg)(seg))
 
 /* SegPoolRing -- Pool ring accessor */
 
@@ -46,14 +46,14 @@ SRCID(seg, "$HopeName$");
 
 /* SegAlloc -- allocate a segment from the arena
  *
- * The allocated segment is of class SegGC - and is fully
+ * The allocated segment is of class GCSeg - and is fully
  * compatible with "historic" segments.
  */
 
 Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
              Bool withReservoirPermit)
 {
-  return SegOfClassAlloc(segReturn, EnsureSegGCClass(), pref,
+  return SegOfClassAlloc(segReturn, EnsureGCSegClass(), pref,
                          size, pool, withReservoirPermit);
 }
 
@@ -348,8 +348,14 @@ void SegSetP(Seg seg, void *p)
 Res SegDescribe(Seg seg, mps_lib_FILE *stream)
 {
   Res res;
-  Pool pool = SegPool(seg);
-  AVERT(Seg, seg);
+  Pool pool;
+
+  if(!CHECKT(Seg, seg)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
+
+  pool = SegPool(seg);
 
   res = WriteF(stream,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
@@ -688,7 +694,10 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
 {
   Res res;
 
-  AVERT(Seg, seg);
+  if(!CHECKT(Seg, seg)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
 
   res = WriteF(stream,
                "  shield depth $U\n", (WriteFU)seg->depth,
@@ -750,16 +759,16 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
 }
 
 
-/* Class SegGC -- Segment class with GC support
+/* Class GCSeg -- Segment class with GC support
  */
 
 
-/* SegGCCheck -- check the integrity of a SegGC */
+/* GCSegCheck -- check the integrity of a GCSeg */
 
-Bool SegGCCheck(SegGC gcseg)
+Bool GCSegCheck(GCSeg gcseg)
 {
   Seg seg;
-  CHECKS(SegGC, gcseg);
+  CHECKS(GCSeg, gcseg);
   seg = &gcseg->segStruct;
   CHECKL(SegCheck(seg));
 
@@ -791,12 +800,12 @@ Bool SegGCCheck(SegGC gcseg)
 }
 
 
-/* segGCInit -- method to initialize a GC segment */
+/* gcSegInit -- method to initialize a GC segment */
 
-static void segGCInit(Seg seg, Pool pool, Addr base, Size size)
+static void gcSegInit(Seg seg, Pool pool, Addr base, Size size)
 {
   SegClass super;
-  SegGC gcseg;
+  GCSeg gcseg;
   Arena arena;
   Align align;
 
@@ -806,7 +815,7 @@ static void segGCInit(Seg seg, Pool pool, Addr base, Size size)
   align = ArenaAlign(arena);
   AVER(AddrIsAligned(base, align));
   AVER(SizeIsAligned(size, align));
-  gcseg = SegSegGC(seg);
+  gcseg = SegGCSeg(seg);
   AVER(&gcseg->segStruct == seg);
 
   /* Initialize the superclass fields first via next-method call */
@@ -818,23 +827,23 @@ static void segGCInit(Seg seg, Pool pool, Addr base, Size size)
   RingInit(&gcseg->poolRing);
   RingInit(&gcseg->greyRing);
   gcseg->p = NULL;
-  gcseg->sig = SegGCSig;
+  gcseg->sig = GCSegSig;
 
-  AVERT(SegGC, gcseg);
+  AVERT(GCSeg, gcseg);
   RingAppend(&pool->segRing, SegPoolRing(gcseg));
 }
 
 
-/* segGCFinish -- finish a GC segment */
+/* gcSegFinish -- finish a GC segment */
 
-static void segGCFinish(Seg seg)
+static void gcSegFinish(Seg seg)
 {
   SegClass super;
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT(Seg, seg);
-  gcseg = SegSegGC(seg);
-  AVERT(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT(GCSeg, gcseg);
   AVER(&gcseg->segStruct == seg);
 
   if(SegGrey(seg) != TraceSetEMPTY) {
@@ -858,15 +867,15 @@ static void segGCFinish(Seg seg)
 }
 
 
-/* segGCSetGrey -- SegGC method to change the greyness of a segment
+/* gcSegSetGrey -- GCSeg method to change the greyness of a segment
  *
  * Sets the segment greyness to the trace set grey and adjusts
  * the shielding on the segment appropriately.
  */
 
-static void segGCSetGrey(Seg seg, TraceSet grey)
+static void gcSegSetGrey(Seg seg, TraceSet grey)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
   Arena arena;
   TraceSet oldGrey, flippedTraces;
   Rank rank;
@@ -874,8 +883,8 @@ static void segGCSetGrey(Seg seg, TraceSet grey)
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
   AVER_CRITICAL(TraceSetCheck(grey));  /* .seg.method.check */
   AVER(seg->rankSet != RankSetEMPTY);
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
@@ -935,22 +944,22 @@ static void segGCSetGrey(Seg seg, TraceSet grey)
 }
 
 
-/* segGCSetWhite -- SegGC method to change whiteness of a segment
+/* gcSegSetWhite -- GCSeg method to change whiteness of a segment
  *
  * Sets the segment whiteness to the trace set ts.
  */
 
-static void segGCSetWhite(Seg seg, TraceSet white)
+static void gcSegSetWhite(Seg seg, TraceSet white)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
   Tract tract;
   Arena arena;
   Addr addr, limit;
 
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
   AVER_CRITICAL(TraceSetCheck(white)); /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
@@ -968,7 +977,7 @@ static void segGCSetWhite(Seg seg, TraceSet white)
 }
 
 
-/* segGCSetRankSet -- SegGC method to set the rank set of a segment
+/* gcSegSetRankSet -- GCSeg method to set the rank set of a segment
  *
  * If the rank set is made non-empty then the segment's summary is
  * now a subset of the mutator's (which is assumed to be RefSetUNIV)
@@ -981,9 +990,9 @@ static void segGCSetWhite(Seg seg, TraceSet white)
  * setting the summary to non-empty.
  */
 
-static void segGCSetRankSet(Seg seg, RankSet rankSet)
+static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
   RankSet oldRankSet;
   Arena arena;
 
@@ -991,8 +1000,8 @@ static void segGCSetRankSet(Seg seg, RankSet rankSet)
   AVER_CRITICAL(RankSetCheck(rankSet));    /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY ||
                 RankSetIsSingle(rankSet)); /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
@@ -1013,21 +1022,21 @@ static void segGCSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
-/* segGCSummary -- SegGC method to return the summary of a segment */
+/* gcSegSummary -- GCSeg method to return the summary of a segment */
 
-static RefSet segGCSummary(Seg seg)
+static RefSet gcSegSummary(Seg seg)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);             /* .seg.method.check */
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);             /* .seg.method.check */
   AVER_CRITICAL(&gcseg->segStruct == seg);  /* .seg.method.check */
 
   return gcseg->summary;
 }
 
-/* segGCSetSummary -- SegGC method to change the summary on a segment
+/* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
  * segment contains references, and its summary is strictly smaller 
@@ -1036,15 +1045,15 @@ static RefSet segGCSummary(Seg seg)
  * access all references, so its summary is RefSetUNIV.
  */
 
-static void segGCSetSummary(Seg seg, RefSet summary)
+static void gcSegSetSummary(Seg seg, RefSet summary)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
   RefSet oldSummary;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
@@ -1064,13 +1073,13 @@ static void segGCSetSummary(Seg seg, RefSet summary)
 }
 
 
-/* segGCSetRankSummary -- SegGC method to set the rank set 
+/* gcSegSetRankSummary -- GCSeg method to set the rank set 
  * and summary together 
  */
 
-static void segGCSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
+static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
   Bool wasShielded, willbeShielded;
   Arena arena;
 
@@ -1078,8 +1087,8 @@ static void segGCSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVER_CRITICAL(RankSetCheck(rankSet));        /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY || 
                 RankSetIsSingle(rankSet));     /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   /* rankSet == RankSetEMPTY implies summary == RefSetEMPTY */
@@ -1110,81 +1119,84 @@ static void segGCSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 }
 
 
-/* segGCBuffer -- SegGC method to return the buffer of a segment */
+/* gcSegBuffer -- GCSeg method to return the buffer of a segment */
 
-static Buffer segGCBuffer(Seg seg)
+static Buffer gcSegBuffer(Seg seg)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);               /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);           /* .seg.method.check */
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);           /* .seg.method.check */
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   return gcseg->buffer;
 }
 
 
-/* segGCSetBuffer -- SegGC method to change the buffer of a segment */
+/* gcSegSetBuffer -- GCSeg method to change the buffer of a segment */
 
-static void segGCSetBuffer(Seg seg, Buffer buffer)
+static void gcSegSetBuffer(Seg seg, Buffer buffer)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);              /* .seg.method.check */
   if (buffer != NULL) {
     AVERT_CRITICAL(Buffer, buffer);
   }
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   gcseg->buffer = buffer;
 }
 
 
-/* segGCP -- SegGC method to return the P field of a segment */
+/* gcSegP -- GCSeg method to return the P field of a segment */
 
-static void *segGCP(Seg seg)
+static void *gcSegP(Seg seg)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);             /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   return gcseg->p;
 }
 
 
-/* segGCSetP -- SegGC method to set the P field of a segment */
+/* gcSegSetP -- GCSeg method to set the P field of a segment */
 
-static void segGCSetP(Seg seg, void *p)
+static void gcSegSetP(Seg seg, void *p)
 {
-  SegGC gcseg;
+  GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);             /* .seg.method.check */
-  gcseg = SegSegGC(seg);
-  AVERT_CRITICAL(SegGC, gcseg);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   gcseg->p = p;
 }
 
 
-/* segGCDescribe -- SegGC  description method */
+/* gcSegDescribe -- GCSeg  description method */
 
-static Res segGCDescribe(Seg seg, mps_lib_FILE *stream)
+static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
 {
   Res res;
   SegClass super;
-  SegGC gcseg;
+  GCSeg gcseg;
 
-  AVERT(Seg, seg);
-  gcseg = SegSegGC(seg);
-  AVERT(SegGC, gcseg);
-  AVER(&gcseg->segStruct == seg);
+  if(!CHECKT(Seg, seg)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
+  gcseg = SegGCSeg(seg);
+  if(!CHECKT(GCSeg, gcseg)) 
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = EnsureSegClass();
@@ -1247,27 +1259,27 @@ DEFINE_CLASS(SegClass, class)
   class->sig = SegClassSig;
 }
 
-/* SegGCClass -- GC-supporting segment class definition */
+/* GCSegClass -- GC-supporting segment class definition */
  
-typedef SegClassStruct SegGCClassStruct;
+typedef SegClassStruct GCSegClassStruct;
 
-DEFINE_CLASS(SegGCClass, class)
+DEFINE_CLASS(GCSegClass, class)
 {
   INHERIT_CLASS(class, SegClass);
-  class->name = "SEGGC";
-  class->size = sizeof(SegGCStruct);
-  class->init = segGCInit;
-  class->finish = segGCFinish;
-  class->summary = segGCSummary;  
-  class->setSummary = segGCSetSummary;  
-  class->buffer = segGCBuffer;  
-  class->setBuffer = segGCSetBuffer;  
-  class->setGrey = segGCSetGrey;
-  class->setWhite = segGCSetWhite;
-  class->setRankSet = segGCSetRankSet;
-  class->setRankSummary = segGCSetRankSummary;
-  class->describe = segGCDescribe;
-  class->p = segGCP;
-  class->setP = segGCSetP;
+  class->name = "GCSEG";
+  class->size = sizeof(GCSegStruct);
+  class->init = gcSegInit;
+  class->finish = gcSegFinish;
+  class->summary = gcSegSummary;  
+  class->setSummary = gcSegSetSummary;  
+  class->buffer = gcSegBuffer;  
+  class->setBuffer = gcSegSetBuffer;  
+  class->setGrey = gcSegSetGrey;
+  class->setWhite = gcSegSetWhite;
+  class->setRankSet = gcSegSetRankSet;
+  class->setRankSummary = gcSegSetRankSummary;
+  class->describe = gcSegDescribe;
+  class->p = gcSegP;
+  class->setP = gcSegSetP;
 }
 
