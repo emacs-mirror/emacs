@@ -13,9 +13,9 @@
 /* Here is how to find X Windows.  The -R option says where
    to find X windows at run time.  */
 #ifndef __GNUC__
-#define LD_SWITCH_SYSTEM -R/usr/openwin/lib
+#define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
 #else /* GCC */
-#define LD_SWITCH_SYSTEM -Xlinker -R/usr/openwin/lib
+#define LD_SWITCH_SYSTEM -Xlinker LD_SWITCH_X_SITE_AUX
 #endif /* GCC */
 
 /* Compile in non-ansi fashion to work around bugs in system header files.  */
