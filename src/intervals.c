@@ -1458,7 +1458,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      
   while (! NULL_INTERVAL_P (over))
     {
-      if (LENGTH (over) + 1 < LENGTH (under))
+      if (LENGTH (over) < LENGTH (under))
 	{
 	  this = split_interval_left (under, LENGTH (over));
 	  copy_properties (under, this);
