@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate May 19, 1999
+@set lastupdate May 21, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -590,7 +590,7 @@ A simulator for heating and air conditioning systems for buildings.
 @item
 A package for editing genealogical records conveniently.
 This could perhaps be done as a Gnome program, or perhaps
-as an Emacs extentsion.
+as an Emacs extension.
 
 @item
 A project-scheduling package that accepts a list of project sub-tasks
