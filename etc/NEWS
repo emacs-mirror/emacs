@@ -427,6 +427,8 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 'sql-sqlite'.
 
 ** BibTeX mode:
+*** The new command bibtex-entry-update (bound to C-c C-u) updates
+an existing BibTeX entry.
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 *** bibtex-maintain-sorted-entries can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
