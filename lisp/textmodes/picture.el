@@ -34,6 +34,7 @@
   "Move to column COLUMN in current line.
 Differs from `move-to-column' in that it creates or modifies whitespace
 if necessary to attain exactly the specified column."
+  (or (natnump column) (setq column 0))
   (move-to-column column)
   (let ((col (current-column)))
     (if (< col column)
