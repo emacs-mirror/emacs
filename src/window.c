@@ -43,7 +43,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qfixed_window_size;
+Lisp_Object Qfixed_window_size, Qleft_bitmap_area, Qright_bitmap_area;
 extern Lisp_Object Qheight, Qwidth;
 
 static struct window *decode_window P_ ((Lisp_Object));
@@ -423,7 +423,7 @@ and BOTTOM is one more than the bottommost row used by WINDOW\n\
 			 Qnil))));
 }
 
-/* Test if the character at column *x, row *y is within window *w.
+/* Test if the character at column *X, row *Y is within window W.
    If it is not, return 0;
    if it is in the window's text area,
       set *x and *y to its location relative to the upper left corner
@@ -433,6 +433,8 @@ and BOTTOM is one more than the bottommost row used by WINDOW\n\
    if it is on the border between the window and its right sibling,
       return 3.
    if it is on the window's top line, return 4;
+   if it is in the bitmap area to the left/right of the window,
+   return 5 or 6, and convert *X and *Y to window-relative corrdinates.
 
    X and Y are frame relative pixel coordinates.  */
 
@@ -478,9 +480,15 @@ coordinates_in_window (w, x, y)
     /* On the top line.  */
     return 4;
   else if (*x < left_x || *x >= right_x)
-    /* Other lines than the mode line don't include flags areas and
-       scroll bars on the left.  */
-    return 0;
+    {
+      /* Other lines than the mode line don't include flags areas and
+	 scroll bars on the left.  */
+      
+      /* Convert X and Y to window-relative pixel coordinates.  */
+      *x -= left_x;
+      *y -= top_y;
+      return *x < left_x ? 5 : 6;
+    }
   else if (!w->pseudo_window_p
 	   && !WINDOW_RIGHTMOST_P (w)
 	   && *x >= right_x - CANON_X_UNIT (f))
@@ -507,6 +515,9 @@ If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
 If they are in the mode line of WINDOW, `mode-line' is returned.\n\
 If they are in the top mode line of WINDOW, `top-line' is returned.\n\
+If they are in the bitmap-area to the left of the window,\n\
+   `left-bitmap-area' is returned, if they are in the area on the right of\n\
+   the window, `right-bitmap-area' is returned.\n\
 If they are on the border between WINDOW and its right sibling,\n\
    `vertical-line' is returned.")
   (coordinates, window)
@@ -548,6 +559,12 @@ If they are on the border between WINDOW and its right sibling,\n\
 
     case 4:
       return Qtop_line;
+
+    case 5:
+      return Qleft_bitmap_area;
+      
+    case 6:
+      return Qright_bitmap_area;
 
     default:
       abort ();
@@ -4801,6 +4818,11 @@ init_window_once ()
 void
 syms_of_window ()
 {
+  Qleft_bitmap_area = intern ("left-bitmap-area");
+  staticpro (&Qleft_bitmap_area);
+  Qright_bitmap_area = intern ("right-bitmap-area");
+  staticpro (&Qright_bitmap_area);
+  
   Qfixed_window_size = intern ("fixed-window-size");
   staticpro (&Qfixed_window_size);
   
