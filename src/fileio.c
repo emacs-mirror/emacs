@@ -4892,11 +4892,14 @@ This does code conversion according to the value of
       return val;
     }
 
+  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
     {
       XSETFASTINT (start, BEG);
       XSETFASTINT (end, Z);
+      Fwiden ();
     }
 
   record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
