@@ -379,7 +379,8 @@ Paragraphs are separated only by blank lines.
 Semicolons start comments.
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil.")
+if that value is non-nil."
+  (setq local-abbrev-table lisp-mode-abbrev-table))
 
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer.
