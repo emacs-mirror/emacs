@@ -181,6 +181,13 @@ be on a single line."
   :type  'function
   )
 
+(defcustom dirtrack-directory-change-hook nil
+  "Hook that is called when a directory change is made."
+  :group 'dirtrack
+  :type 'function
+  )
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -277,8 +284,8 @@ forward ones."
 	      (and dirtrack-debug
 		   (dirtrack-debug-message 
 		    (format 
-		     "Failed to match regexp: %s" 
-		    dirtrack-regexp)))
+		     "Input `%s' failed to match regexp: %s" 
+		    input dirtrack-regexp)))
 	    (setq prompt-path 
 		  (buffer-substring-no-properties
 		   (match-beginning match-num) (match-end match-num)))
@@ -308,6 +315,7 @@ forward ones."
 		(if (file-accessible-directory-p prompt-path)
 		    ;; Change directory
 		    (and (shell-process-cd prompt-path)
+			 (run-hooks dirtrack-directory-change-hook)
 			 dirtrack-debug
 			 (dirtrack-debug-message 
 			  (format "Changing directory to %s" prompt-path)))
