@@ -699,7 +699,7 @@ as returned by the `event-start' and `event-end' functions."
 
 (defalias 'sref 'aref)
 (make-obsolete 'sref 'aref "20.4")
-(make-obsolete 'char-bytes "Now this function always returns 1" "20.4")
+(make-obsolete 'char-bytes "now always returns 1 (maintained for backward compatibility)." "20.4")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -712,8 +712,7 @@ is converted into a string by expressing it in decimal."
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
-  "Obsolete function returning the value of the `baud-rate' variable.
-Please convert your programs to use the variable `baud-rate' directly."
+  "Return the value of the `baud-rate' variable."
   baud-rate)
 
 (defalias 'focus-frame 'ignore)
@@ -772,7 +771,7 @@ Do not use `make-local-variable' to make a hook variable buffer-local."
     (make-local-variable hook)
     (set hook (list t)))
   hook)
-(make-obsolete 'make-local-hook "Not necessary any more." "21.1")
+(make-obsolete 'make-local-hook "not necessary any more." "21.1")
 
 (defun add-hook (hook function &optional append local)
   "Add to the value of HOOK the function FUNCTION.
