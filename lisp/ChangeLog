@@ -1,3 +1,19 @@
+2002-12-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gdb-ui.el (gdb-inferior-io-mode-map): Remove (unused).
+	(gdb-inferior-io-mode): Use define-minor-mode.
+	(gdb-source-info): Don't burp if there's no source file.
+	(gdb-inferior-io-interrupt, gdb-inferior-io-quit)
+	(gdb-inferior-io-stop, gdb-inferior-io-eof)
+	(gdb-display-breakpoints-buffer, gdb-frame-breakpoints-buffer)
+	(gdb-display-stack-buffer, gdb-frame-stack-buffer)
+	(gdb-display-registers-buffer, gdb-frame-registers-buffer)
+	(gdb-display-locals-buffer, gdb-frame-locals-buffer)
+	(gdb-display-display-buffer, gdb-frame-display-buffer)
+	(gdb-display-gdb-buffer, gdb-frame-gdb-buffer)
+	(gdb-display-assembler-buffer, gdb-frame-assembler-buffer):
+	Remove the spurious left over arg from the "big reorg".
+
 2002-12-04  Richard M. Stallman  <rms@gnu.org>
 
 	* gud.el (gud-menu-map): Delete CVS conflict markers.
@@ -14,6 +30,35 @@
 	Add an else-clause to the if to avoid confused compiler warning.
 
 	* tooltip.el (tooltip-gud-tips-p): Undo previous change.
+
+2002-12-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gdb-ui.el: Get rid of (quote ..); use match-string and ignore.
+
+	* gdb-ui.el (gdba, gdb-starting, gdb-stopped, gdb-quit):
+	Update gdb-running -> gud-running.
+	(gdba): Use the default for gud-find-file.
+	(def-gdb-variable): Remove: fold into def-gdb-var.
+	(def-gdb-var): Use buffer-local-value and with-current-buffer.
+
+	* gud.el (gud-running): Rename from gdb-running.  Update uses.
+	(gud-tool-bar-map): Use tool-bar-local-item-from-menu rather than
+	tool-bar-add-item-from-menu to avoid let binding tool-bar-map
+	which fails if tool-bar.el is loaded in the mean time.
+	(gud-file-name): New fun.
+	(gud-find-file): Use it as default value for gud-find-file.
+	(gud-speedbar-buttons): Discriminate on gud-minor-mode rather than
+	on gud-find-file.
+	(gud-gdb-find-file, gud-dbx-file-name, gud-dbx-find-file)
+	(gud-xdb-file-name, gud-xdb-find-file, gud-perldb-find-file)
+	(gud-pdb-find-file, gud-jdb-find-file): Remove.
+	(gud-query-cmdline): Don't stuff the whole cwd in the command.
+	(gdb, dbx, xdb, perldb, pdb, jdb): Use the default for gud-find-file.
+	(gud-mipsdbx-massage-args): Remove.
+	(gud-dbx-command-name): New var.  Do what gud-mipsdbx-massage-args did.
+	(gud-irixdbx-marker-filter): Use match-string and gud-file-name.
+	(gud-jdb-command-name): New var.
+	(gud-common-init): Re-instate RMS code of 11/13.
 
 2002-12-03  Dave Love  <fx@gnu.org>
 
