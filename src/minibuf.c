@@ -163,7 +163,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
 #ifdef MULTI_FRAME
-  XSET (mini_frame, Lisp_Frame, WINDOW_FRAME (XWINDOW (minibuf_window)));
+  mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   if (XFRAME (mini_frame) != selected_frame)
     record_unwind_protect (Fset_window_configuration,
 			   Fcurrent_window_configuration (mini_frame));
