@@ -896,11 +896,8 @@ direct_output_for_insert (g)
 #ifdef HAVE_X_WINDOWS
     int dummy;
     int face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
-#else
-    int face = 0;
 #endif
-				  
-    current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (g, face);
+    current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
   }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
@@ -2230,4 +2227,3 @@ See `buffer-display-table' for more information.");
       Vwindow_system_version = Qnil;
     }
 }
-
