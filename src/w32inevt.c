@@ -524,7 +524,7 @@ win32_read_socket (int sd, struct input_event *bufp, int numchars,
   
   for (;;)
     {
-      nev = fill_queue (waitp != 0);
+      nev = fill_queue (0);
       if (nev <= 0)
         {
 	  /* If nev == -1, there was some kind of error
