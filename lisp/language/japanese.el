@@ -64,7 +64,7 @@
 	      (charset . (japanese-jisx0208 japanese-jisx0208-1978
 			  japanese-jisx0212 latin-jisx0201
 			  katakana-jisx0201))
-	      (coding-system . (japanese-iso-7bit japanese-iso-8bit
+	      (coding-system . (iso-2022-7bit japanese-iso-8bit
 				japanese-shift-jis japanese-iso-7bit-1978-irv))
 	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
