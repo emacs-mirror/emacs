@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.5 1992/09/27 01:51:04 roland Exp roland $	
+;;	$Id: vc.el,v 1.6 1992/09/27 02:42:08 roland Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -746,7 +746,8 @@ to that version."
 	(if (vc-locking-user old)
 	    (error "Please check in files before moving them."))
 	(if (or (file-symlink-p oldmaster)
-		(file-symlink-p (vc-backend-subdirectory-name file)))
+		;; This had FILE, I changed it to OLD. -- rms.
+		(file-symlink-p (vc-backend-subdirectory-name old)))
 	    (error "This is not a safe thing to do in the presence of symbolic links."))
 	(rename-file oldmaster (vc-name new)))
       (if (or (not oldmaster) (file-exists-p old))
@@ -759,7 +760,8 @@ to that version."
 	  (set-buffer oldbuf)
 	  (set-visited-file-name new)
 	  (set-buffer-modified-p nil))))
-  (vc-backend-dispatch file
+  ;; This had FILE, I changed it to OLD. -- rms.
+  (vc-backend-dispatch old
 		       (vc-record-rename old new)
 		       nil)
   )
