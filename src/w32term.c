@@ -8535,12 +8535,6 @@ x_scroll_bar_clear (f)
 
 /* The main W32 event-reading loop - w32_read_socket.  */
 
-/* Time stamp of enter window event.  This is only used by w32_read_socket,
-   but we have to put it out here, since static variables within functions
-   sometimes don't work.  */
-
-static Time enter_timestamp;
-
 /* Record the last 100 characters stored
    to help debug the loss-of-chars-during-GC problem.  */
 
