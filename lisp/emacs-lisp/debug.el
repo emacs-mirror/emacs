@@ -94,7 +94,8 @@ This is to optimize `debugger-make-xrefs'.")
 
 (defvar debugger-jumping-flag nil
   "Non-nil means that debug-on-entry is disabled.
-This variable is used by `debugger-jump' and `debugger-reenable'.")
+This variable is used by `debugger-jump', `debugger-step-through',
+and `debugger-reenable' to temporarily disable debug-on-entry.")
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.
@@ -384,6 +385,8 @@ That buffer should be current already."
 Enter another debugger on next entry to eval, apply or funcall."
   (interactive)
   (setq debugger-step-after-exit t)
+  (setq debugger-jumping-flag t)
+  (add-hook 'post-command-hook 'debugger-reenable)
   (message "Proceeding, will debug on next eval or call.")
   (exit-recursive-edit))
 
