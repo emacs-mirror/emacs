@@ -154,7 +154,7 @@ void scroll_glyph_matrix_range P_ ((struct glyph_matrix *, int, int,
 static void clear_window_matrices P_ ((struct window *, int));
 static void fill_up_glyph_row_area_with_spaces P_ ((struct glyph_row *, int));
 static int scrolling_window P_ ((struct window *, int));
-static int update_window_line P_ ((struct window *, int));
+static int update_window_line P_ ((struct window *, int, int *));
 static void update_marginal_area P_ ((struct window *, int, int));
 static int update_text_area P_ ((struct window *, int));
 static void make_current P_ ((struct glyph_matrix *, struct glyph_matrix *,
@@ -2625,6 +2625,7 @@ make_current (desired_matrix, current_matrix, row)
 {
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, row);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, row);
+  int mouse_face_p = current_row->mouse_face_p;
 
   /* Do current_row = desired_row.  This exchanges glyph pointers
      between both rows, and does a structure assignment otherwise.  */
@@ -2632,6 +2633,7 @@ make_current (desired_matrix, current_matrix, row)
 
   /* Enable current_row to mark it as valid.  */
   current_row->enabled_p = 1;
+  current_row->mouse_face_p = mouse_face_p;
 
   /* If we are called on frame matrices, perform analogous operations
      for window matrices.  */
@@ -3134,6 +3136,7 @@ direct_output_for_insert (g)
   int added_width;
   struct text_pos pos;
   int delta, delta_bytes;
+  int mouse_face_overwritten_p;
 
   /* Not done directly.  */
   redisplay_performed_directly_p = 0;
@@ -3187,6 +3190,8 @@ direct_output_for_insert (g)
 		 DEFAULT_FACE_ID);
 
   glyph_row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+  if (glyph_row->mouse_face_p)
+    return 0;
   
   /* Give up if highlighting trailing whitespace and we have trailing
      whitespace in glyph_row.  We would have to remove the trailing
@@ -3360,7 +3365,7 @@ direct_output_for_insert (g)
     }
 
   if (rif)
-    rif->update_window_end_hook (w, 1);
+    rif->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
   fflush (stdout);
@@ -3633,9 +3638,6 @@ redraw_overlapped_rows (w, yb)
      struct window *w;
      int yb;
 {
-  int i, bottom_y;
-  struct glyph_row *row;
-  
   /* If rows overlapping others have been changed, the rows being
      overlapped have to be redrawn.  This won't draw lines that have
      already been drawn in update_window_line because overlapped_p in
@@ -3643,7 +3645,7 @@ redraw_overlapped_rows (w, yb)
      current rows is 0.  */
   for (i = 0; i < w->current_matrix->nrows; ++i)
     {
-      row = w->current_matrix->rows + i;
+      struct glyph_row *row = w->current_matrix->rows + i;
 
       if (!row->enabled_p)
 	break;
@@ -3667,8 +3669,7 @@ redraw_overlapped_rows (w, yb)
 	  row->overlapped_p = 0;
 	}
 
-      bottom_y = MATRIX_ROW_BOTTOM_Y (row);
-      if (bottom_y >= yb)
+      if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
 	break;
     }
 }
@@ -3757,7 +3758,7 @@ update_window (w, force_p)
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
       struct glyph_row *header_line_row = NULL;
-      int yb, changed_p = 0;
+      int yb, changed_p = 0, mouse_face_overwritten_p = 0;
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
@@ -3775,7 +3776,8 @@ update_window (w, force_p)
 	{
 	  mode_line_row->y = yb;
 	  update_window_line (w, MATRIX_ROW_VPOS (mode_line_row,
-						  desired_matrix));
+						  desired_matrix),
+			      &mouse_face_overwritten_p);
 	  changed_p = 1;
 	}
 
@@ -3806,7 +3808,7 @@ update_window (w, force_p)
       if (header_line_row && header_line_row->enabled_p)
 	{
 	  header_line_row->y = 0;
-	  update_window_line (w, 0);
+	  update_window_line (w, 0, &mouse_face_overwritten_p);
 	  changed_p = 1;
 	}
 
@@ -3828,7 +3830,8 @@ update_window (w, force_p)
 	    if (!force_p && vpos % preempt_count == 0)
 	      detect_input_pending ();
 
-	    changed_p |= update_window_line (w, vpos);
+	    changed_p |= update_window_line (w, vpos,
+					     &mouse_face_overwritten_p);
 
 	    /* Mark all rows below the last visible one in the current
 	       matrix as invalid.  This is necessary because of
@@ -3850,24 +3853,19 @@ update_window (w, force_p)
     set_cursor:
       
       /* Fix the appearance of overlapping(overlapped rows.  */
-      if (rif->fix_overlapping_area
-	  && !w->pseudo_window_p
-	  && changed_p
-	  && !paused_p)
-	{
-	  redraw_overlapped_rows (w, yb);
-	  redraw_overlapping_rows (w, yb);
-	}
-      
       if (!paused_p && !w->pseudo_window_p)
 	{
+	  if (changed_p && rif->fix_overlapping_area)
+	    {
+	      redraw_overlapped_rows (w, yb);
+	      redraw_overlapping_rows (w, yb);
+	    }
+      
 	  /* Make cursor visible at cursor position of W.  */
 	  set_window_cursor_after_update (w);
 
-#if 0
-	  /* Check that current matrix invariants are satisfied.  This
-	     is for debugging only.  See the comment around
-	     check_matrix_invariants.  */
+#if 0 /* Check that current matrix invariants are satisfied.  This is
+	 for debugging only.  See the comment of check_matrix_invariants.  */
 	  IF_DEBUG (check_matrix_invariants (w));
 #endif
 	}
@@ -3878,8 +3876,7 @@ update_window (w, force_p)
 #endif
 
       /* End of update of window W.  */
-      rif->update_window_end_hook (w, 1);
-
+      rif->update_window_end_hook (w, 1, mouse_face_overwritten_p);
     }
   else
     paused_p = 1;
@@ -4098,9 +4095,9 @@ update_text_area (w, vpos)
    changed.  */
 
 static int
-update_window_line (w, vpos)
+update_window_line (w, vpos, mouse_face_overwritten_p)
      struct window *w;
-     int vpos;
+     int vpos, *mouse_face_overwritten_p;
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
@@ -4116,12 +4113,17 @@ update_window_line (w, vpos)
   if (!desired_row->full_width_p
       && !NILP (w->left_margin_width))
     {
-      update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
       changed_p = 1;
+      update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
     }
   
   /* Update the display of the text area.  */
-  changed_p |= update_text_area (w, vpos);
+  if (update_text_area (w, vpos))
+    {
+      changed_p = 1;
+      if (current_row->mouse_face_p)
+	*mouse_face_overwritten_p = 1;
+    }
   
   /* Update display of the right margin area, if there is one.  */
   if (!desired_row->full_width_p
@@ -4632,10 +4634,11 @@ scrolling_window (w, header_line_p)
 	  {
 	    struct glyph_row *from, *to;
 	    int to_overlapped_p;
-	    
+
 	    to = MATRIX_ROW (current_matrix, r->desired_vpos + j);
-	    to_overlapped_p = to->overlapped_p;
 	    from = MATRIX_ROW (desired_matrix, r->desired_vpos + j);
+	    to_overlapped_p = to->overlapped_p;
+	    xassert (!to->mouse_face_p);
 	    assign_row (to, from);
 	    to->enabled_p = 1, from->enabled_p = 0;
 	    to->overlapped_p = to_overlapped_p;
