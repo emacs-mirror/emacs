@@ -430,6 +430,10 @@ x_decline_selection_request (event)
    It is set to zero when the request is fully processed.  */
 static struct input_event *x_selection_current_request;
 
+/* Display info in x_selection_request.  */
+
+static struct x_display_info *selection_request_dpyinfo;
+
 /* Used as an unwind-protect clause so that, if a selection-converter signals
    an error, we tell the requester that we were unable to do what they wanted
    before we throw to top-level or go into the debugger or whatever.  */
@@ -438,7 +442,8 @@ static Lisp_Object
 x_selection_request_lisp_error (ignore)
      Lisp_Object ignore;
 {
-  if (x_selection_current_request != 0)
+  if (x_selection_current_request != 0
+      && selection_request_dpyinfo->display)
     x_decline_selection_request (x_selection_current_request);
   return Qnil;
 }
@@ -707,8 +712,9 @@ x_handle_selection_request (event)
       goto DONE;
     }
 
-  count = specpdl_ptr - specpdl;
   x_selection_current_request = event;
+  count = BINDING_STACK_SIZE ();
+  selection_request_dpyinfo = dpyinfo;
   record_unwind_protect (x_selection_request_lisp_error, Qnil);
 
   target_symbol = x_atom_to_symbol (dpyinfo, SELECTION_EVENT_DISPLAY (event),
