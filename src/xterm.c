@@ -3517,14 +3517,38 @@ x_wm_set_size_hint (f, prompting)
     (x_screen_height - ((2 * f->display.x->internal_border_width)
 			+ f->display.x->h_scrollbar_height));
   {
-    int min_rows = 0, min_cols = 0;
-    check_frame_size (f, &min_rows, &min_cols);
-    size_hints.min_width  = ((2 * f->display.x->internal_border_width)
-			     + min_cols * size_hints.width_inc
-			     + f->display.x->v_scrollbar_width);
-    size_hints.min_height = ((2 * f->display.x->internal_border_width)
-			     + min_rows * size_hints.height_inc
-			     + f->display.x->h_scrollbar_height);
+    int base_width, base_height;
+
+    base_width = ((2 * f->display.x->internal_border_width)
+		  + f->display.x->v_scrollbar_width);
+    base_height = ((2 * f->display.x->internal_border_width)
+		   + f->display.x->h_scrollbar_height);
+
+    {
+      int min_rows = 0, min_cols = 0;
+      check_frame_size (f, &min_rows, &min_cols);
+
+      /* The window manager uses the base width hints to calculate the
+	 current number of rows and columns in the frame while
+	 resizing; min_width and min_height aren't useful for this
+	 purpose, since they might not give the dimensions for a
+	 zero-row, zero-column frame.
+
+	 We use the base_width and base_height members if we have
+	 them; otherwise, we set the min_width and min_height members
+	 to the size for a zero x zero frame.  */
+
+#ifdef HAVE_X11R4
+      size_hints.flags |= PBaseSize;
+      size_hints.base_width = base_width;
+      size_hints.base_height = base_height;
+      size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
+      size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+#else
+      size_hints.min_width = base_width;
+      size_hints.min_height = base_height;
+#endif
+    }
 
   }
 
@@ -3545,7 +3569,11 @@ x_wm_set_size_hint (f, prompting)
 	size_hints.flags |= USSize;
     }
 
+#ifdef HAVE_X11R4
+  XSetWMNormalHints (x_current_display, window, &size_hints);
+#else
   XSetNormalHints (x_current_display, window, &size_hints);
+#endif
 }
 
 /* Used for IconicState or NormalState */
