@@ -1861,7 +1861,7 @@ window_loop (type, obj, mini, frames)
 	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (w))
 	      break;
 	    /* Ignore dedicated windows and minibuffers.  */
-	    if (MINI_WINDOW_P (w) || !NILP (w->dedicated))
+	    if (MINI_WINDOW_P (w) || EQ (w->dedicated, Qt))
 	      break;
 	    if (NILP (best_window)
 		|| (XFASTINT (XWINDOW (best_window)->use_time)
@@ -1914,7 +1914,7 @@ window_loop (type, obj, mini, frames)
 	  case GET_LARGEST_WINDOW:
 	    {
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || !NILP (w->dedicated))
+	      if (MINI_WINDOW_P (w) || EQ (w->dedicated, Qt))
 		break;
 	      
 	      if (NILP (best_window))
@@ -1953,6 +1953,14 @@ window_loop (type, obj, mini, frames)
 		    
 		    /* Now we can safely delete the frame.  */
 		    Fdelete_frame (w->frame, Qnil);
+		  }
+		else if (!NILP (w->dedicated) && !NILP (w->parent))
+		  {
+		    Lisp_Object window;
+		    XSETWINDOW (window, w);
+		    /* If this window is dedicated and not the only window
+		       in its frame, then kill it.  */
+		    Fdelete_window (window);
 		  }
 		else
 		  {
@@ -3032,7 +3040,7 @@ displayed.  */)
       frames = Qnil;
       if (FRAME_MINIBUF_ONLY_P (f))
 	XSETFRAME (frames, last_nonminibuf_frame);
-      /* Don't try to create a window if would get an error */
+      /* Don't try to create a window if we would get an error.  */
       if (split_height_threshold < window_min_height << 1)
 	split_height_threshold = window_min_height << 1;
 
@@ -3160,7 +3168,7 @@ temp_output_buffer_show (buf)
       set_marker_restricted_both (w->pointm, buf, 1, 1);
 
       /* Run temp-buffer-show-hook, with the chosen window selected
-	 and it sbuffer current.  */
+	 and its buffer current.  */
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object tem;
@@ -3175,6 +3183,9 @@ temp_output_buffer_show (buf)
 		  prev_window = selected_window;
 
 		  /* Select the window that was chosen, for running the hook.  */
+		  /* Both this Fselect_window and the select_window_1
+		     below will (may) incorrectly set-buffer to the buffer
+		     displayed in the window.  --stef  */
 		  record_unwind_protect (Fselect_window, prev_window);
 		  select_window_1 (window, 0);
 		  Fset_buffer (w->buffer);
@@ -3362,15 +3373,20 @@ siblings to the right or below are changed.  */)
   return Qnil;
 }
 
-DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
+DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 3, "p",
        doc: /* Make current window ARG lines smaller.
 From program, optional second arg non-nil means shrink sideways arg columns.
-Interactively, if an argument is not given, make the window one line smaller.  */)
-     (arg, side)
-     register Lisp_Object arg, side;
+Interactively, if an argument is not given, make the window one line smaller.
+
+Optional third arg PRESERVE-BEFORE, if non-nil, means do not change the size
+of the siblings above or to the left of the selected window.  Only
+siblings to the right or below are changed.  */)
+     (arg, side, preserve_before)
+     register Lisp_Object arg, side, preserve_before;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, -XINT (arg), !NILP (side), 0);
+  enlarge_window (selected_window, -XINT (arg), !NILP (side),
+		  !NILP (preserve_before));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3650,7 +3666,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	     delta1/n = delta
 	     delta1 = n * delta.
 
-	     The number of children n rquals the number of resizable
+	     The number of children n equals the number of resizable
 	     children of this window + 1 because we know window itself
 	     is resizable (otherwise we would have signalled an error.  */
 
@@ -5956,10 +5972,14 @@ Those variables take precedence over this one.  */);
 	       doc: /* Function to call to make a new frame for a special buffer.
 It is called with two arguments, the buffer and optional buffer specific
 data, and should return a window displaying that buffer.
-The default value makes a separate frame for the buffer,
-using `special-display-frame-alist' to specify the frame parameters.
+The default value normally makes a separate frame for the buffer,
+  using `special-display-frame-alist' to specify the frame parameters.
+But if the buffer specific data includes (same-buffer . t) then the
+  buffer is displayed in the current selected window.
+Otherwise if it includes (same-frame . t) then the buffer is displayed in
+  a new window in the currently selected frame.
 
-A buffer is special if its is listed in `special-display-buffer-names'
+A buffer is special if it is listed in `special-display-buffer-names'
 or matches a regexp in `special-display-regexps'.  */);
   Vspecial_display_function = Qnil;
 
