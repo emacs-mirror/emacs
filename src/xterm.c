@@ -11996,7 +11996,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 
 #ifdef USE_X_TOOLKIT
   
-  if (f->output_data.x->widget != None)
+  if (f->output_data.x->widget != NULL)
     {
       /* The x and y position of the widget is clobbered by the
 	 call to XtSetValues within EmacsFrameSetCharSize.
