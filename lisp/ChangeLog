@@ -1,3 +1,12 @@
+2003-02-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-define-mode-map): Remap viper delete char/word
+	commands to their ido specific equivalents.  Disable ESC in
+	viper mode (to avoid exiting insert mode), since ido doesn't
+	work in viper command mode.
+	(ido-delete-backward-updir, ido-delete-backward-word-updir):
+	Handle remapped viper commands.
+
 2003-02-03  Juanma Barranquero  <lektu@terra.es>
 
 	* calculator.el (calculator): Don't use the minibuffer even in

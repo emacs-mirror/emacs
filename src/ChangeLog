@@ -1,3 +1,7 @@
+2003-02-04  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (syms_of_keyboard) <this-original-command>: Doc fix.
+
 2003-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (remove_from_container): Copying list is not needed.
