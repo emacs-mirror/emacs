@@ -18,6 +18,7 @@ in the larger process of developing and maintaining programs.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
 * Grep Searching::      Searching with grep.
+* Flymake::             Finding syntax errors on the fly.
 * Debuggers::	        Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
@@ -336,6 +337,31 @@ find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
 initial default for the command---one that runs both @code{find} and
 @code{grep}, so as to search every file in a directory tree.  See also
 the @code{find-grep-dired} command, in @ref{Dired and Find}.
+
+@node Flymake
+@section Finding Syntax Errors On The Fly
+@cindex checking syntax
+
+  Flymake mode is a minor mode that performs on-the-fly syntax
+checking for many programming and markup languages, including C, C++,
+Perl, HTML, and @TeX{}/La@TeX{}.  It is somewhat analogous to Flyspell
+mode, which performs spell checking for ordinary human languages in a
+similar fashion (@pxref{Spelling}).  As you edit a file, Flymake mode
+runs an appropriate syntax checking tool in the background, using a
+temporary copy of the buffer.  It then parses the error and warning
+messages, and highlights the erroneous lines in the buffer.  The
+syntax checking tool used depends on the language; for example, for
+C/C++ files this is usually the C compiler.  Flymake can also use
+build tools such as @code{make} for checking complicated projects.
+
+  To activate Flymake mode, type @kbd{M-x flymake-mode}.  You can move
+to the errors spotted by Flymake mode with @kbd{M-x
+flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.  To
+display any error messages associated with the current line, use
+@kbd{M-x flymake-display-err-menu-for-current-line}.
+
+  For more details about using Flymake, see @ref{Top, Flymake,
+Flymake, flymake, The Flymake Manual}.
 
 @node Debuggers
 @section Running Debuggers Under Emacs

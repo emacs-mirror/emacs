@@ -1004,10 +1004,11 @@ Alist of major modes and their notion of @code{default-directory}, as a
 Lisp expression to evaluate.  A resulting value of @code{nil} is ignored
 in favor of @code{default-directory}.
 
-@item default-directory
-@findex default-directory
-Function with usage like variable @code{default-directory}, but knows about the
-special cases in variable @code{default-directory-alist}.
+@item dired-default-directory
+@findex dired-default-directory
+Use this function like you would use the variable
+@code{default-directory}, except that @code{dired-default-directory}
+also consults the variable @code{default-directory-alist}.
 @end table
 
 @node Find File At Point, Miscellaneous Commands, Multiple Dired Directories, Top

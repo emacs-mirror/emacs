@@ -928,20 +928,31 @@ documentation for additional customization information."
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
 
+(defmacro minibuffer-with-setup-hook (fun &rest body)
+  "Add FUN to `minibuffer-setup-hook' while executing BODY.
+BODY should use the minibuffer at most once.
+Recursive uses of the minibuffer will not be affected."
+  (declare (indent 1) (debug t))
+  (let ((hook (make-symbol "setup-hook")))
+    `(let ((,hook
+	    (lambda ()
+	      ;; Clear out this hook so it does not interfere
+	      ;; with any recursive minibuffer usage.
+	      (remove-hook 'minibuffer-setup-hook ,hook)
+	      (,fun))))
+       (unwind-protect
+	   (progn
+	     (add-hook 'minibuffer-setup-hook ,hook)
+	     ,@body)
+	 (remove-hook 'minibuffer-setup-hook ,hook)))))
+
 (defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
-		    (abbreviate-file-name buffer-file-name)))
-	      (munge-default-fun
-	       (lambda ()
-		 (setq minibuffer-default find-file-default)
-		 ;; Clear out this hook so it does not interfere
-		 ;; with any recursive minibuffer usage.
-		 (pop minibuffer-setup-hook)))
-	      (minibuffer-setup-hook
-	       minibuffer-setup-hook))
-	  (add-hook 'minibuffer-setup-hook munge-default-fun)
-	  (read-file-name prompt nil default-directory mustmatch))
+		    (abbreviate-file-name buffer-file-name))))
+	  (minibuffer-with-setup-hook
+	      (lambda () (setq minibuffer-default find-file-default))
+	    (read-file-name prompt nil default-directory mustmatch)))
 	t))
 
 (defun find-file (filename &optional wildcards)
@@ -1777,8 +1788,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . archive-mode)
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
      ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message

@@ -403,13 +403,13 @@ Text}).
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Longlines::           Editing text with very long lines.
 @end menu
 
 @node Auto Fill
 @subsection Auto Fill Mode
 @cindex Auto Fill mode
 @cindex mode, Auto Fill
-@cindex word wrap
 
   @dfn{Auto Fill} mode is a minor mode in which lines are broken
 automatically when they become too wide.  Breaking happens only when
@@ -474,16 +474,19 @@ you type or modify them in other ways.  It provides an effect similar
 to typical word processor behavior.  This works by running a
 paragraph-filling command at suitable times.
 
-  When you are typing text, only characters which normally trigger
-auto filling, like the space character, will trigger refilling.  This
-is to avoid making it too slow.  Apart from self-inserting characters,
-other commands which modify the text cause refilling.
-
-  The current implementation is preliminary and probably not robust.
-We expect to improve on it.
-
   To toggle the use of Refill mode in the current buffer, type
-@kbd{M-x refill-mode}.
+@kbd{M-x refill-mode}.  When you are typing text, only characters
+which normally trigger auto filling, like the space character, will
+trigger refilling.  This is to avoid making it too slow.  Apart from
+self-inserting characters, other commands which modify the text cause
+refilling.
+
+  The current implementation is preliminary and not robust.  You can
+get better ``line wrapping'' behavior using Longlines mode.
+@xref{Longlines}.  However, Longlines mode has an important
+side-effect: the newlines that it inserts for you are not saved to
+disk, so the files that you make with Longlines mode will appear to be
+completely unfilled if you edit them without Longlines mode.
 
 @node Fill Commands
 @subsection Explicit Fill Commands
@@ -744,6 +747,56 @@ function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, that means it sees no fill prefix in
 that line.
+
+@node Longlines
+@subsection Long Lines Mode
+@cindex refilling text, word processor style
+@cindex modes, Long Lines
+@cindex word wrap
+@cindex Long Lines minor mode
+
+  Long Lines mode is a minor mode for @dfn{word wrapping}; it lets you
+edit ``unfilled'' text files, which Emacs would normally display as a
+bunch of extremely long lines.  Many text editors, such as those built
+into many web browsers, normally do word wrapping.
+
+@findex longlines-mode
+  To enable Long Lines mode, type @kbd{M-x longlines-mode}.  If the
+text is full of long lines, this will ``wrap'' them
+immediately---i.e., break up to fit in the window.  As you edit the
+text, Long Lines mode automatically re-wraps lines by inserting or
+deleting @dfn{soft newlines} as necessary (@pxref{Hard and Soft
+Newlines}.)  These soft newlines won't show up when you save the
+buffer into a file, or when you copy the text into the kill ring,
+clipboard, or a register.
+
+@findex longlines-auto-wrap
+  Word wrapping is @emph{not} the same as ordinary filling
+(@pxref{Fill Commands}).  It does not contract multiple spaces into a
+single space, recognize fill prefixes (@pxref{Fill Prefix}), or
+perform adaptive filling (@pxref{Adaptive Fill}).  The reason for this
+is that a wrapped line is still, conceptually, a single line.  Each
+soft newline is equivalent to exactly one space in that long line, and
+vice versa.  However, you can still call filling functions such as
+@kbd{M-q}, and these will work as expected, inserting soft newlines
+that won't show up on disk or when the text is copied.  You can even
+rely entirely on the normal fill commands by turning off automatic
+line wrapping, with @kbd{C-u M-x longlines-auto-wrap}.  To turn
+automatic line wrapping back on, type @kbd{M-x longlines-auto-wrap}.
+
+@findex longlines-show-hard-newlines
+  Whenever you type @kbd{RET}, you are inserting a hard newline.  If
+you want to see where all the hard newlines are, type @kbd{M-x
+longlines-show-hard-newlines}.  This will mark each hard newline with
+a special symbol.  The same command with a prefix argument turns this
+display off.
+
+  Long Lines mode does not change normal text files that are already
+filled, since the existing newlines are considered hard newlines.
+Before Long Lines can do anything, you need to transform each
+paragraph into a long line.  One way is to set @code{fill-column} to a
+large number (e.g., @kbd{C-u 9999 C-x f}), re-fill all the paragraphs,
+and then set @code{fill-column} back to its original value.
 
 @node Case
 @section Case Conversion Commands
@@ -1053,30 +1106,35 @@ Most of them fall into pairs of opposites.  They are not undoable; instead,
 you can undo right past them.  Making lines visible or invisible is simply
 not recorded by the undo mechanism.
 
+  Many of these commands act on the ``current'' heading line.  If
+point is on a heading line, that is the current heading line; if point
+is on a body line, the current heading line is the nearest preceding
+header line.
+
 @table @kbd
+@item C-c C-c
+Make the current heading line's body invisible (@code{hide-entry}).
+@item C-c C-e
+Make the current heading line's body visible (@code{show-entry}).
+@item C-c C-d
+Make everything under the current heading invisible, not including the
+heading itself (@code{hide-subtree}).
+@item C-c C-s
+Make everything under the current heading visible, including body,
+subheadings, and their bodies (@code{show-subtree}).
+@item C-c C-l
+Make the body of the current heading line, and of all its subheadings,
+invisible (@code{hide-leaves}).
+@item C-c C-k
+Make all subheadings of the current heading line, at all levels,
+visible (@code{show-branches}).
+@item C-c C-i
+Make immediate subheadings (one level down) of the current heading
+line visible (@code{show-children}).
 @item C-c C-t
 Make all body lines in the buffer invisible (@code{hide-body}).
 @item C-c C-a
 Make all lines in the buffer visible (@code{show-all}).
-@item C-c C-d
-Make everything under this heading invisible, not including this
-heading itself (@code{hide-subtree}).
-@item C-c C-s
-Make everything under this heading visible, including body,
-subheadings, and their bodies (@code{show-subtree}).
-@item C-c C-l
-Make the body of this heading line, and of all its subheadings,
-invisible (@code{hide-leaves}).
-@item C-c C-k
-Make all subheadings of this heading line, at all levels, visible
-(@code{show-branches}).
-@item C-c C-i
-Make immediate subheadings (one level down) of this heading line
-visible (@code{show-children}).
-@item C-c C-c
-Make this heading line's body invisible (@code{hide-entry}).
-@item C-c C-e
-Make this heading line's body visible (@code{show-entry}).
 @item C-c C-q
 Hide everything except the top @var{n} levels of heading lines
 (@code{hide-sublevels}).
@@ -1091,22 +1149,21 @@ the headings leading up from there to the top level of the outline
 @kindex C-c C-c @r{(Outline mode)}
 @kindex C-c C-e @r{(Outline mode)}
   Two commands that are exact opposites are @kbd{C-c C-c}
-(@code{hide-entry}) and @kbd{C-c C-e} (@code{show-entry}).  They are
-used with point on a heading line, and apply only to the body lines of
-that heading.  Subheadings and their bodies are not affected.
+(@code{hide-entry}) and @kbd{C-c C-e} (@code{show-entry}).  They apply
+to the body lines directly following the current heading line.
+Subheadings and their bodies are not affected.
 
 @findex hide-subtree
 @findex show-subtree
 @kindex C-c C-s @r{(Outline mode)}
 @kindex C-c C-d @r{(Outline mode)}
 @cindex subtree (Outline mode)
-  Two more powerful opposites are @kbd{C-c C-d} (@code{hide-subtree}) and
-@kbd{C-c C-s} (@code{show-subtree}).  Both expect to be used when point is
-on a heading line, and both apply to all the lines of that heading's
-@dfn{subtree}: its body, all its subheadings, both direct and indirect, and
-all of their bodies.  In other words, the subtree contains everything
-following this heading line, up to and not including the next heading of
-the same or higher rank.@refill
+  Two more powerful opposites are @kbd{C-c C-d} (@code{hide-subtree})
+and @kbd{C-c C-s} (@code{show-subtree}).  Both apply to the current
+heading line's @dfn{subtree}: its body, all its subheadings, both
+direct and indirect, and all of their bodies.  In other words, the
+subtree contains everything following the current heading line, up to
+and not including the next heading of the same or higher rank.@refill
 
 @findex hide-leaves
 @findex show-branches
@@ -1131,9 +1188,12 @@ they were invisible.@refill
 @kindex C-c C-a @r{(Outline mode)}
   Two commands have a blanket effect on the whole file.  @kbd{C-c C-t}
 (@code{hide-body}) makes all body lines invisible, so that you see just
-the outline structure.  @kbd{C-c C-a} (@code{show-all}) makes all lines
-visible.  These commands can be thought of as a pair of opposites even
-though @kbd{C-c C-a} applies to more than just body lines.
+the outline structure (as a special exception, it will not hide lines
+at the top of the file, preceding the first header line, even though
+these are technically body lines).  @kbd{C-c C-a} (@code{show-all})
+makes all lines visible.  These commands can be thought of as a pair
+of opposites even though @kbd{C-c C-a} applies to more than just body
+lines.
 
 @findex hide-sublevels
 @kindex C-c C-q @r{(Outline mode)}
@@ -1284,39 +1344,45 @@ automatically by putting this in your @file{.emacs} file:
 @cindex @TeX{} mode
 @cindex La@TeX{} mode
 @cindex Sli@TeX{} mode
+@cindex Doc@TeX{} mode
 @cindex mode, @TeX{}
 @cindex mode, La@TeX{}
 @cindex mode, Sli@TeX{}
+@cindex mode, Doc@TeX{}
 @findex tex-mode
 @findex plain-tex-mode
 @findex latex-mode
 @findex slitex-mode
+@findex doctex-mode
 
   @TeX{} is a powerful text formatter written by Donald Knuth; it is also
 free, like GNU Emacs.  La@TeX{} is a simplified input format for @TeX{},
 implemented by @TeX{} macros; it comes with @TeX{}.  Sli@TeX{} is a special
 form of La@TeX{}.@footnote{Sli@TeX{} is obsoleted by the @samp{slides}
-document class in recent La@TeX{} versions.}
+document class in recent La@TeX{} versions.}  Doc@TeX{} (@file{.dtx})
+is a special file format in which the La@TeX{} sources are written,
+combining sources with documentation.
 
   Emacs has a special @TeX{} mode for editing @TeX{} input files.
 It provides facilities for checking the balance of delimiters and for
 invoking @TeX{} on all or part of the file.
 
 @vindex tex-default-mode
-  @TeX{} mode has three variants, Plain @TeX{} mode, La@TeX{} mode, and
-Sli@TeX{} mode (these three distinct major modes differ only slightly).
-They are designed for editing the three different formats.  The command
-@kbd{M-x tex-mode} looks at the contents of the buffer to determine
-whether the contents appear to be either La@TeX{} input or Sli@TeX{}
-input; if so, it selects the appropriate mode.  If the file contents do
-not appear to be La@TeX{} or Sli@TeX{}, it selects Plain @TeX{} mode.
-If the contents are insufficient to determine this, the variable
+  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
+Sli@TeX{} mode, and Doc@TeX{} mode (these distinct major modes differ
+only slightly).  They are designed for editing the four different
+formats.  The command @kbd{M-x tex-mode} looks at the contents of the
+buffer to determine whether the contents appear to be either La@TeX{}
+input, Sli@TeX{}, or Doc@TeX{} input; if so, it selects the
+appropriate mode.  If the file contents do not appear to be La@TeX{},
+Sli@TeX{} or Doc@TeX{}, it selects Plain @TeX{} mode.  If the contents
+are insufficient to determine this, the variable
 @code{tex-default-mode} controls which mode is used.
 
   When @kbd{M-x tex-mode} does not guess right, you can use the commands
-@kbd{M-x plain-tex-mode}, @kbd{M-x latex-mode}, and @kbd{M-x
-slitex-mode} to select explicitly the particular variants of @TeX{}
-mode.
+@kbd{M-x plain-tex-mode}, @kbd{M-x latex-mode}, @kbd{M-x slitex-mode},
+and @kbd{doctex-mode} to select explicitly the particular variants of
+@TeX{} mode.
 
 @menu
 * Editing: TeX Editing.   Special commands for editing in TeX mode.

@@ -1613,6 +1613,8 @@ and overlay is highlighted between MK and END-MK."
     (compilation-set-window-height w)
 
     (when highlight-regexp
+      (if (timerp next-error-highlight-timer)
+	  (cancel-timer next-error-highlight-timer))
       (unless compilation-highlight-overlay
 	(setq compilation-highlight-overlay
 	      (make-overlay (point-min) (point-min)))
@@ -1632,8 +1634,11 @@ and overlay is highlighted between MK and END-MK."
 	      (move-overlay compilation-highlight-overlay
 			    (point) end (current-buffer)))
 	    (if (numberp next-error-highlight)
-		(sit-for next-error-highlight))
-	    (if (not (eq next-error-highlight t))
+		(setq next-error-highlight-timer
+		      (run-at-time next-error-highlight nil 'delete-overlay
+				   compilation-highlight-overlay)))
+	    (if (not (or (eq next-error-highlight t)
+			 (numberp next-error-highlight)))
 		(delete-overlay compilation-highlight-overlay))))))
     (when (and (eq next-error-highlight 'fringe-arrow))
       (set (make-local-variable 'overlay-arrow-position)

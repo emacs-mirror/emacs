@@ -276,8 +276,25 @@ struct x_output
 {
   PIX_TYPE background_pixel;
   PIX_TYPE foreground_pixel;
+
+  /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
+     frame, or IMPLICIT if we received an EnterNotify.
+     FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
+  int focus_state;
+
 };
 
+enum
+{
+  /* Values for focus_state, used as bit mask.
+     EXPLICIT means we received a FocusIn for the frame and know it has
+     the focus.  IMPLICIT means we recevied an EnterNotify and the frame
+     may have the focus if no window manager is running.
+     FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
+  FOCUS_NONE     = 0,
+  FOCUS_IMPLICIT = 1,
+  FOCUS_EXPLICIT = 2
+};
 
 struct w32_output
 {

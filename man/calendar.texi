@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c               2005  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary, Gnus, Dired, Top
 @chapter The Calendar and the Diary
@@ -19,11 +20,13 @@ calendar.  The calendar uses its own buffer, whose major mode is
 Calendar mode.
 
   @kbd{Mouse-2} in the calendar brings up a menu of operations on a
-particular date; @kbd{C-Mouse-3} brings up a menu of commonly used
+particular date; @kbd{Mouse-3} brings up a menu of commonly used
 calendar features that are independent of any particular date.  To exit
-the calendar, type @kbd{q}.  @xref{Calendar, Customizing the Calendar
-and Diary,, elisp, The Emacs Lisp Reference Manual}, for customization
-information about the calendar and diary.
+the calendar, type @kbd{q}.
+
+The basic features of the Calendar/Diary are described here.
+@inforef{Advanced Calendar/Diary Usage,, emacs-xtra}, for information
+about more specialized features.
 
 @menu
 * Calendar Motion::     Moving through the calendar; selecting a date.
@@ -423,24 +426,31 @@ List holidays in another window for a specified range of years.
 
 @kindex h @r{(Calendar mode)}
 @findex calendar-cursor-holidays
+@vindex view-calendar-holidays-initially
   To see if any holidays fall on a given date, position point on that
 date in the calendar window and use the @kbd{h} command.  Alternatively,
 click on that date with @kbd{Mouse-2} and then choose @kbd{Holidays}
 from the menu that appears.  Either way, this displays the holidays for
 that date, in the echo area if they fit there, otherwise in a separate
-window.
+window.  If the variable @code{view-calendar-holidays-initially} is
+non-@code{nil}, creating the calendar displays holidays in this way.
 
 @kindex x @r{(Calendar mode)}
 @findex mark-calendar-holidays
 @kindex u @r{(Calendar mode)}
 @findex calendar-unmark
+@vindex mark-holidays-in-calendar
   To view the distribution of holidays for all the dates shown in the
 calendar, use the @kbd{x} command.  This displays the dates that are
 holidays in a different face (or places a @samp{*} after these dates, if
-display with multiple faces is not available).  The command applies both
-to the currently visible months and to other months that subsequently
-become visible by scrolling.  To turn marking off and erase the current
-marks, type @kbd{u}, which also erases any diary marks (@pxref{Diary}).
+display with multiple faces is not available).  @inforef{Calendar
+Customizing, calendar-holiday-marker, emacs-xtra}.  The command applies
+both to the currently visible months and to other months that
+subsequently become visible by scrolling.  To turn marking off and erase
+the current marks, type @kbd{u}, which also erases any diary marks
+(@pxref{Diary}).  If the variable @code{mark-holidays-in-calendar} is
+non-@code{nil}, creating or updating the calendar marks holidays
+automatically.
 
 @kindex a @r{(Calendar mode)}
 @findex list-calendar-holidays
@@ -924,9 +934,9 @@ their dates.  Then Emacs can automatically pick out and display the
 events for today, for the immediate future, or for any specified
 date.
 
-  By default, Emacs uses @file{~/diary} as the diary file.  This is the
-same file that the @code{calendar} utility uses.  A sample
-@file{~/diary} file is:
+  The name of the diary file is specified by the variable
+@code{diary-file}; @file{~/diary} is the default.  A sample diary file
+is:
 
 @example
 12/22/1988  Twentieth wedding anniversary!!
@@ -951,18 +961,18 @@ provides a number of commands to let you view, add, and change diary
 entries.
 
 @menu
-* Diary Commands::         Viewing diary entries and associated calendar dates.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
 * Date Formats::	   Various ways you can specify dates.
 * Adding to Diary::	   Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 @end menu
 
-@node Diary Commands
-@subsection Commands Displaying Diary Entries
+@node Displaying the Diary
+@subsection Displaying the Diary
 
-  Once you have created a @file{~/diary} file, you can use the calendar
-to view it.  You can also view today's events outside of Calendar mode.
+  Once you have created a diary file, you can use the calendar to view
+it.  You can also view today's events outside of Calendar mode.
 
 @table @kbd
 @item d
@@ -987,6 +997,7 @@ Mail yourself email reminders about upcoming diary entries.
 
 @kindex d @r{(Calendar mode)}
 @findex view-diary-entries
+@vindex view-diary-entries-initially
   Displaying the diary entries with @kbd{d} shows in a separate window
 the diary entries for the selected date in the calendar.  The mode line
 of the new window shows the date of the diary entries and any holidays
@@ -997,18 +1008,25 @@ following day.
 
   Another way to display the diary entries for a date is to click
 @kbd{Mouse-2} on the date, and then choose @kbd{Diary entries} from
-the menu that appears.
+the menu that appears.  If the variable
+@code{view-diary-entries-initially} is non-@code{nil}, creating the
+calendar also lists diary entries for the current date (provided the
+current date is visible).
 
 @kindex m @r{(Calendar mode)}
 @findex mark-diary-entries
+@vindex mark-diary-entries-in-calendar
   To get a broader view of which days are mentioned in the diary, use
-the @kbd{m} command.  This displays the dates that have diary entries
-in a different face (or places a @samp{+} after these dates, if
-display with multiple faces is not available).  The command applies both
-to the currently visible months and to other months that subsequently
-become visible by scrolling.  To turn marking off and erase the current
-marks, type @kbd{u}, which also turns off holiday marks
-(@pxref{Holidays}).
+the @kbd{m} command.  This displays the dates that have diary entries in
+a different face (or places a @samp{+} after these dates, if display
+with multiple faces is not available).  @inforef{Calendar Customizing,
+diary-entry-marker, emacs-xtra}.  The command applies both to the
+currently visible months and to other months that subsequently become
+visible by scrolling.  To turn marking off and erase the current marks,
+type @kbd{u}, which also turns off holiday marks (@pxref{Holidays}).
+If the variable @code{mark-diary-entries-in-calendar} is
+non-@code{nil}, creating or updating the calendar marks diary dates
+automatically.
 
 @kindex s @r{(Calendar mode)}
 @findex show-all-diary-entries
@@ -1016,21 +1034,18 @@ marks, type @kbd{u}, which also turns off holiday marks
 the @kbd{s} command.
 
   Display of selected diary entries uses the selective display feature
-to hide entries that don't apply.
-
-  The diary buffer as you see it is an illusion, so simply printing the
-buffer does not print what you see on your screen.  There is a special
-command to print hard copy of the diary buffer @emph{as it appears};
-this command is @kbd{M-x print-diary-entries}.  It sends the data
-directly to the printer.  You can customize it like @code{lpr-region}
-(@pxref{Hardcopy}).
+to hide entries that don't apply.  The diary buffer as you see it is
+an illusion, so simply printing the buffer does not print what you see
+on your screen.  There is a special command to print hard copy of the
+diary buffer @emph{as it appears}; this command is @kbd{M-x
+print-diary-entries}.  It sends the data directly to the printer.  You
+can customize it like @code{lpr-region} (@pxref{Hardcopy}).
 
 @findex diary
   The command @kbd{M-x diary} displays the diary entries for the current
 date, independently of the calendar display, and optionally for the next
 few days as well; the variable @code{number-of-diary-entries} specifies
-how many days to include.  @xref{Calendar, Customizing the Calendar
-and Diary,, elisp, The Emacs Lisp Reference Manual}.
+how many days to include.  @inforef{Diary Customizing,, emacs-xtra}.
 
   If you put @code{(diary)} in your @file{.emacs} file, this
 automatically displays a window with the day's diary entries, when you
@@ -1335,8 +1350,7 @@ entry applies to all months of the year.@refill
 specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries
 can perform arbitrary computations to determine when they apply.
-@xref{Sexp Diary Entries,, Sexp Diary Entries, elisp, The Emacs Lisp
-Reference Manual}.
+@inforef{Sexp Diary Entries,, emacs-xtra}.
 
 @node Appointments
 @section Appointments
@@ -1344,16 +1358,30 @@ Reference Manual}.
 
 @vindex appt-display-format
 @vindex appt-audible
+@vindex appt-display-mode-line
   If you have a diary entry for an appointment, and that diary entry
 begins with a recognizable time of day, Emacs can warn you several
 minutes beforehand that that appointment is pending.  Emacs alerts you
 to the appointment by displaying a message in your chosen format, as
-specified by the variable @code{appt-display-format}.  If the value
-of @code{appt-audible} is non-@code{nil}, an audible reminder is also given.
+specified by the variable @code{appt-display-format}.  If the value of
+@code{appt-audible} is non-@code{nil}, an audible reminder is also
+given.  In addition, if @code{appt-display-mode-line} is non-@code{nil},
+Emacs displays the number of minutes to the appointment on the mode
+line.
+
+@vindex appt-display-duration
+@vindex appt-disp-window-function
+@vindex appt-delete-window-function
+  If @code{appt-display-format} has the value @code{window}, then the
+variable @code{appt-display-duration} controls how long the reminder
+window is visible for; and the variables
+@code{appt-disp-window-function} and @code{appt-delete-window-function}
+give the names of functions used to create and destroy the window,
+respectively.
 
 @findex appt-activate
   To enable appointment notification, call the function
-@code{appt-activate} with a positive argument. This sets up an
+@code{appt-activate} with a positive argument.  This sets up an
 appointment list for today from the diary file, giving all diary entries
 found with recognizable times of day, and reminds you just before each
 of them. Calling @code{appt-activate} with a negative argument disables
@@ -1370,7 +1398,7 @@ Monday
 @vindex appt-message-warning-time
 @noindent
 Then on Mondays, you will be reminded at around 9:20am about your coffee
-break and at around 11:50am about lunch. How many minutes in advance you
+break and at around 11:50am about lunch.  How many minutes in advance you
 are first warned is determined by the value of
 @code{appt-message-warning-time}.
 
@@ -1441,8 +1469,8 @@ and adds the results to an Emacs diary file.  For example:
 
 @noindent
 You can use an @code{#include} directive to add the import file contents
-to the main diary file, if these are distinct.  @xref{Fancy Diary
-Display,,, elisp, The Emacs Lisp Reference Manual}.
+to the main diary file, if these are distinct.  @inforef{Fancy Diary
+Display,, emacs-xtra}.
 
 @findex icalendar-export-file, icalendar-export-region
   Use @code{icalendar-export-file} to interactively export an entire

@@ -597,41 +597,32 @@ characters long.")
 
 ;; Hideshow support.
 (defconst f90-end-block-re
-  (concat "^[ \t0-9]*\\<end\\>[ \t]*"
+  (concat "^[ \t0-9]*\\<end[ \t]*"
           (regexp-opt '("do" "if" "forall" "function" "interface"
-                        "module" "program" "select"  "subroutine"
+                        "module" "program" "select" "subroutine"
                         "type" "where" ) t)
           "[ \t]*\\sw*")
-  "Regexp matching the end of a \"block\" of F90 code.
+  "Regexp matching the end of an F90 \"block\", from the line start.
 Used in the F90 entry in `hs-special-modes-alist'.")
 
 ;; Ignore the fact that FUNCTION, SUBROUTINE, WHERE, FORALL have a
-;; following "(".  DO, CASE, IF can have labels; IF must be
-;; accompanied by THEN.
-;; A big problem is that many of these statements can be broken over
-;; lines, even with embedded comments. We only try to handle this for
-;; IF ... THEN statements, assuming and hoping it will be less common
-;; for other constructs. We match up to one new-line, provided ")
-;; THEN" appears on one line. Matching on just ") THEN" is no good,
-;; since that includes ELSE branches.
-;; For a fully accurate solution, hideshow would probably have to be
-;; modified to allow functions as well as regexps to be used to
-;; specify block start and end positions.
+;; following "(".  DO, CASE, IF can have labels.
 (defconst f90-start-block-re
   (concat
    "^[ \t0-9]*"                         ; statement number
    "\\(\\("
    "\\(\\sw+[ \t]*:[ \t]*\\)?"          ; structure label
-   "\\(do\\|select[ \t]*case\\|if[ \t]*(.*\n?.*)[ \t]*then\\|"
+   "\\(do\\|select[ \t]*case\\|"
+   ;; See comments in fortran-start-block-re for the problems of IF.
+   "if[ \t]*(\\(.*\\|"
+   ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"
    ;; Distinguish WHERE block from isolated WHERE.
    "\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)\\)\\)"
    "\\|"
    "program\\|interface\\|module\\|type\\|function\\|subroutine"
-   ;; ") THEN" at line end. Problem - also does ELSE.
-;;;   "\\|.*)[ \t]*then[ \t]*\\($\\|!\\)"
    "\\)"
    "[ \t]*")
-  "Regexp matching the start of a \"block\" of F90 code.
+  "Regexp matching the start of an F90 \"block\", from the line start.
 A simple regexp cannot do this in fully correct fashion, so this
 tries to strike a compromise between complexity and flexibility.
 Used in the F90 entry in `hs-special-modes-alist'.")
@@ -1305,12 +1296,12 @@ Checks for consistency of block types and labels (if present).
 Does not check the outermost block, because it may be incomplete.
 Interactively, pushes mark before moving point."
   (interactive "p")
+  (if (interactive-p) (push-mark (point) t))
   (and num (< num 0) (f90-end-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1))
         end-list end-this end-type end-label
         start-this start-type start-label)
-    (if (interactive-p) (push-mark (point) t))
     (beginning-of-line)                 ; probably want this
     (while (and (> count 0) (re-search-backward f90-blocks-re nil 'move))
       (beginning-of-line)

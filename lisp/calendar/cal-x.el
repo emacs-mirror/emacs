@@ -1,9 +1,10 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in X
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2005  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, dedicated frames, X Window System
 
@@ -88,7 +89,7 @@ This function requires a display capable of multiple frames, else
                                      (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
-          (set-window-dedicated-p (selected-window) 'calendar)
+          (set-window-dedicated-p (selected-window) t)
           (set-window-dedicated-p
            (display-buffer
             (if (not (memq 'fancy-diary-display diary-display-hook))
@@ -96,7 +97,7 @@ This function requires a display capable of multiple frames, else
               (if (not (bufferp (get-buffer fancy-diary-buffer)))
                   (make-fancy-diary-buffer))
               fancy-diary-buffer))
-           'diary))))))
+           t))))))
 
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame.
@@ -117,7 +118,7 @@ This function requires a display capable of multiple frames, else
                                      (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
-          (set-window-dedicated-p (selected-window) 'calendar))))))
+          (set-window-dedicated-p (selected-window) t))))))
 
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames.
@@ -139,7 +140,7 @@ This function requires a display capable of multiple frames, else
                                   (frame-parameters calendar-frame))))
             (iconify-or-deiconify-frame))
         (display-buffer calendar-buffer)
-        (set-window-dedicated-p (selected-window) 'calendar)
+        (set-window-dedicated-p (selected-window) t)
         (setq diary-frame (make-frame diary-frame-parameters))
         (run-hooks 'calendar-after-frame-setup-hooks)
         (select-frame diary-frame)
@@ -154,7 +155,7 @@ This function requires a display capable of multiple frames, else
             (if (not (bufferp (get-buffer fancy-diary-buffer)))
                 (make-fancy-diary-buffer))
             fancy-diary-buffer))
-         'diary)))))
+         t)))))
 
 ;; Formerly (get-file-buffer diary-file) was added to the list here,
 ;; but that isn't clean, and the value could even be nil.

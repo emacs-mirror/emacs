@@ -330,7 +330,8 @@ See `wdired-mode'."
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (run-hooks 'wdired-mode-hook)
-  (message (substitute-command-keys "Press \\[wdired-finish-edit] when finished")))
+  (message (substitute-command-keys "Press \\[wdired-finish-edit] when finished \
+or \\[wdired-abort-changes] to abort changes")))
 
 
 ;; Protect the buffer so only the filenames can be changed, and put

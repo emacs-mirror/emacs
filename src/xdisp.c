@@ -462,7 +462,7 @@ static Lisp_Object Vwindow_size_change_functions;
 
 Lisp_Object Qmenu_bar_update_hook, Vmenu_bar_update_hook;
 
-/* Nonzero if overlay arrow has been displayed once in this window.  */
+/* Nonzero if an overlay arrow has been displayed in this window.  */
 
 static int overlay_arrow_seen;
 
@@ -15261,10 +15261,9 @@ display_line (it)
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
-  if (! overlay_arrow_seen
-      && (overlay_arrow_string
-	    = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
-	  !NILP (overlay_arrow_string)))
+  if ((overlay_arrow_string
+       = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
+       !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (STRINGP (overlay_arrow_string))

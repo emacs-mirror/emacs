@@ -30,8 +30,8 @@
 ;; in calendar.el.
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; An earlier version of the technical details appeared in
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,

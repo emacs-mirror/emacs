@@ -937,12 +937,11 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	 ((not completion-table) nil)
 	 ((eq action nil) (try-completion str2 completion-table nil))
 	 ((eq action t) (all-completions str2 completion-table nil))
-	 ((eq action 'lambda)
-	  (eq (try-completion str2 completion-table nil) t))))
+	 ((eq action 'lambda) (test-completion str2 completion-table nil))))
     (funcall PC-old-read-file-name-internal string dir action)))
 
 
 (provide 'complete)
 
-;;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
+;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
 ;;; complete.el ends here

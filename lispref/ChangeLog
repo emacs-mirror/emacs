@@ -1,3 +1,53 @@
+2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Buffer Contents): Add filter-buffer-substring and
+	buffer-substring-filters.
+
+2005-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Mention `G' interactive code.
+
+	* tips.texi (Compilation Tips): Mention benchmark.el.
+
+2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Other Font Lock Variables): `font-lock-fontify-block'
+	is now bound to M-o M-o.
+
+	* keymaps.texi (Prefix Keys): `facemenu-keymap' is now on M-o.
+
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi: Delete file (and move contents to emacs-xtra.texi
+	in the Emacs Manual).
+	* Makefile.in (srcs): Remove calendar.texi.
+	* makefile.w32-in (srcs): Remove calendar.texi.
+	* display.texi (Display): Change name of next node.
+	* os.texi (System In): Change name of previous node.
+	* elisp.texi (Top): Remove Calendar references.
+	* vol1.texi (Top): Remove Calendar references.
+	* vol2.texi (Top): Remove Calendar references.
+
+2005-03-25  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Standard Faces, Fringe Bitmaps, Customizing Bitmaps):
+	Cleanup previous change.
+
+2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Face Attributes): Faces earlier in an :inherit
+	list take precedence.
+	(Scroll Bars): Fix description of vertical-scroll-bars.
+	Document frame-current-scroll-bars and window-current-scroll-bars.
+
+	* markers.texi (The Mark): Document temporary Transient Mark mode.
+
+	* minibuf.texi (Reading File Names): Document
+	read-file-name-completion-ignore-case.
+
+	* positions.texi (Screen Lines): Document nil for width argument
+	to compute-motion.
+
 2005-03-23  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Standard Faces): Other faces used in the fringe

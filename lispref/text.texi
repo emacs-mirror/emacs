@@ -207,6 +207,41 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
+@defun filter-buffer-substring start end &optional delete
+This function passes the buffer text between @var{start} and @var{end}
+through the filter functions specified by the variable
+@code{buffer-substring-filters}, and returns the value from the last
+filter function.  If @code{buffer-substring-filters} is @code{nil},
+the value is the unaltered text from the buffer, what
+@code{buffer-substring} would return.
+
+If @var{delete} is non-@code{nil}, this function deletes the text
+between @var{start} and @var{end} after copying it, like
+@code{delete-and-extract-region}.
+
+Lisp code should use this function instead of @code{buffer-substring}
+or @code{delete-and-extract-region} when copying into user-accessible
+data structures such as the kill-ring, X clipboard, and registers.
+Major and minor modes can add functions to
+@code{buffer-substring-filters} to alter such text as it is copied out
+of the buffer.
+@end defun
+
+@defvar buffer-substring-filters
+This variable should be a list of functions that accept a single
+argument, a string, and return a string.
+@code{filter-buffer-substring} passes the buffer substring to the
+first function in this list, and the return value of each function is
+passed to the next function.  The return value of the last function is
+used as the return value of @code{filter-buffer-substring}.
+
+As a special convention, point is set to the start of the buffer text
+being operated on (i.e., the @var{start} argument for
+@code{filter-buffer-substring}) before these functions are called.
+
+If this variable is @code{nil}, no filtering is performed.
+@end defvar
+
 @defun buffer-string
 This function returns the contents of the entire accessible portion of
 the current buffer as a string.  It is equivalent to

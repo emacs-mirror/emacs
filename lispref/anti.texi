@@ -238,6 +238,10 @@ alists, obarrays, and functions.)  In addition, the function
 @code{test-completion} is no longer available.
 
 @item
+The @samp{G} interactive code character is no longer supported.
+Use @samp{F} instead.
+
+@item
 Arbitrary Lisp functions can no longer be recorded into
 @code{buffer-undo-list}.  As a consequence, @code{yank-undo-function}
 is obsolete, and has been removed.

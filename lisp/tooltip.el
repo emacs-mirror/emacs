@@ -130,7 +130,7 @@ position to pop up the tooltip."
 
 (defcustom tooltip-gud-display
   '((eq (tooltip-event-buffer tooltip-gud-event)
-	(marker-buffer overlay-arrow-position)))
+	(marker-buffer gud-overlay-arrow-position)))
   "List of forms determining where GUD tooltips are displayed.
 
 Forms in the list are combined with AND.  The default is to display

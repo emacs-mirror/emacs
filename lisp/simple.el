@@ -35,6 +35,13 @@
   (autoload 'widget-convert "wid-edit")
   (autoload 'shell-mode "shell"))
 
+(defcustom idle-update-delay 0.5
+  "*Idle time delay before updating various things on the screen.
+Various Emacs features that update auxiliary information when point moves
+wait this many seconds after Emacs becomes idle before doing an update."
+  :type 'number
+  :group 'display
+  :version "22.1")
 
 (defgroup killing nil
   "Killing and yanking commands."
@@ -104,6 +111,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
                  (const :tag "Fringe arrow" 'fringe-arrow))
   :group 'next-error
   :version "22.1")
+
+(defvar next-error-highlight-timer nil)
 
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
@@ -2216,6 +2225,42 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (reset-this-command-lengths)
   (restore-overriding-map))
 
+(defvar buffer-substring-filters nil
+  "List of filter functions for `filter-buffer-substring'.
+Each function must accept a single argument, a string, and return
+a string.  The buffer substring is passed to the first function
+in the list, and the return value of each function is passed to
+the next.  The return value of the last function is used as the
+return value of `filter-buffer-substring'.
+
+If this variable is nil, no filtering is performed.")
+
+(defun filter-buffer-substring (beg end &optional delete)
+  "Return the buffer substring between BEG and END, after filtering.
+The buffer substring is passed through each of the filter
+functions in `buffer-substring-filters', and the value from the
+last filter function is returned.  If `buffer-substring-filters'
+is nil, the buffer substring is returned unaltered.
+
+If DELETE is non-nil, the text between BEG and END is deleted
+from the buffer.
+
+Point is temporarily set to BEG before caling
+`buffer-substring-filters', in case the functions need to know
+where the text came from.
+
+This function should be used instead of `buffer-substring' or
+`delete-and-extract-region' when you want to allow filtering to
+take place.  For example, major or minor modes can use
+`buffer-substring-filters' to extract characters that are special
+to a buffer, and should not be copied into other buffers."
+  (save-excursion
+    (goto-char beg)
+    (let ((string (if delete (delete-and-extract-region beg end)
+                    (buffer-substring beg end))))
+      (dolist (filter buffer-substring-filters string)
+        (setq string (funcall filter string))))))
+
 ;;;; Window system cut and paste hooks.
 
 (defvar interprogram-cut-function nil
@@ -2392,7 +2437,7 @@ specifies the yank-handler text property to be set on the killed
 text.  See `insert-for-yank'."
   (interactive "r")
   (condition-case nil
-      (let ((string (delete-and-extract-region beg end)))
+      (let ((string (filter-buffer-substring beg end t)))
 	(when string			;STRING is nil if BEG = END
 	  ;; Add that string to the kill ring, one way or another.
 	  (if (eq last-command 'kill-region)
@@ -2428,8 +2473,8 @@ If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste."
   (interactive "r")
   (if (eq last-command 'kill-region)
-      (kill-append (buffer-substring beg end) (< end beg))
-    (kill-new (buffer-substring beg end)))
+      (kill-append (filter-buffer-substring beg end) (< end beg))
+    (kill-new (filter-buffer-substring beg end)))
   (if transient-mark-mode
       (setq deactivate-mark t))
   nil)
@@ -2954,7 +2999,7 @@ the user to see that the mark has moved, and you want the previous
 mark position to be lost.
 
 Normally, when a new mark is set, the old one should go on the stack.
-This is why most applications should use push-mark, not set-mark.
+This is why most applications should use `push-mark', not `set-mark'.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  The mark saves a location for the user's convenience.
@@ -5181,14 +5226,6 @@ See also `normal-erase-is-backspace'."
   (if (interactive-p)
       (message "Delete key deletes %s"
 	       (if normal-erase-is-backspace "forward" "backward"))))
-
-(defcustom idle-update-delay 0.5
-  "*Idle time delay before updating various things on the screen.
-Various Emacs features that update auxiliary information when point moves
-wait this many seconds after Emacs becomes idle before doing an update."
-  :type 'number
-  :group 'display
-  :version "22.1")
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")

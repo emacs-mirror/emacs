@@ -277,7 +277,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
-  (set-register register (buffer-substring start end))
+  (set-register register (filter-buffer-substring start end))
   (if delete-flag (delete-region start end)))
 
 (defun append-to-register (register start end &optional delete-flag)
@@ -289,7 +289,7 @@ START and END are buffer positions indicating what to append."
   (or (stringp (get-register register))
       (error "Register does not contain text"))
   (set-register register (concat (get-register register)
-			    (buffer-substring start end)))
+			    (filter-buffer-substring start end)))
   (if delete-flag (delete-region start end)))
 
 (defun prepend-to-register (register start end &optional delete-flag)
@@ -300,7 +300,7 @@ START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (or (stringp (get-register register))
       (error "Register does not contain text"))
-  (set-register register (concat (buffer-substring start end)
+  (set-register register (concat (filter-buffer-substring start end)
 			    (get-register register)))
   (if delete-flag (delete-region start end)))
 

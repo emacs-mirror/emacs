@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -52,7 +52,6 @@
 
 (defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
 (define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
-(define-key calendar-mode-map [C-down-mouse-3] calendar-mouse-3-map)
 
 (define-key calendar-mode-map [menu-bar moon]
   (cons "Moon" (make-sparse-keymap "Moon")))
