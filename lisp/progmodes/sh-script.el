@@ -45,39 +45,6 @@
 
 (require 'executable)
 
-
-
-;; Autoload cookie deleted here because it made loaddefs.el fail to load.
-;; -rms
-(or (assoc "sh" interpreter-mode-alist)
-    (setq auto-mode-alist
-	  ;; matches files
-	  ;;	- that have a suffix .sh, .csh or .shar (shell archive)
-	  ;;	- that contain resources for the various shells
-	  ;;	- startup files for X11
-	  (cons '("\\.c?sh\\'\\|\\.shar\\'\\|/\\.\\(z?profile\\|bash_profile\\|z?login\\|bash_login\\|z?logout\\|bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\|rcrc\\|[kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
-		auto-mode-alist)
-	  interpreter-mode-alist
-	  (nconc '(("ash" . sh-mode)
-		   ("bash" . sh-mode)
-		   ("csh" . sh-mode)
-		   ("dtksh" . sh-mode)
-		   ("es" . sh-mode)
-		   ("itcsh" . sh-mode)
-		   ("jsh" . sh-mode)
-		   ("ksh" . sh-mode)
-		   ("oash" . sh-mode)
-		   ("pdksh" . sh-mode)
-		   ("rc" . sh-mode)
-		   ("sh" . sh-mode)
-		   ("sh5" . sh-mode)
-		   ("tcsh" . sh-mode)
-		   ("wksh" . sh-mode)
-		   ("wsh" . sh-mode)
-		   ("zsh" . sh-mode))
-		 interpreter-mode-alist)))
-
-
 (defvar sh-ancestor-alist
   '((ash . sh)
     (bash . jsh)
