@@ -109,6 +109,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "dispextern.h"
 #include "composite.h"
+#include "atimer.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -1237,17 +1238,13 @@ start_process_unwind (proc)
   return Qnil;
 }
 
-
-SIGTYPE
-create_process_1 (signo)
-     int signo;
+void
+create_process_1 (timer)
+     struct atimer *timer;
 {
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signo, create_process_1);
-#endif /* USG */
+  /* Nothing to do.  */
 }
+
 
 #if 0  /* This doesn't work; see the note before sigchld_handler.  */
 #ifdef USG
@@ -1685,14 +1682,22 @@ create_process (process, new_argv, current_dir)
       /* If the subfork execv fails, and it exits,
 	 this close hangs.  I don't know why.
 	 So have an interrupt jar it loose.  */
-      stop_polling ();
-      signal (SIGALRM, create_process_1);
-      alarm (1);
-      XPROCESS (process)->subtty = Qnil;
-      if (forkin >= 0)
-	emacs_close (forkin);
-      alarm (0);
-      start_polling ();
+      {
+	struct atimer *timer;
+	EMACS_TIME offset;
+	
+	stop_polling ();
+	EMACS_SET_SECS_USECS (offset, 1, 0);
+	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
+	
+	XPROCESS (process)->subtty = Qnil;
+	if (forkin >= 0)
+	  emacs_close (forkin);
+
+	cancel_atimer (timer);
+	start_polling ();
+      }
+      
       if (forkin != forkout && forkout >= 0)
 	emacs_close (forkout);
 
@@ -2369,7 +2374,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      Causes "poll: interrupted system call" messages when Emacs is run
      in an X window
      Turn off periodic alarms (in case they are in use) */
-  stop_polling ();
+  turn_on_atimers (0);
 #endif
 
   while (1)
@@ -4745,7 +4750,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
-  stop_polling ();
+  turn_on_atimers (0);
 
   while (1)
     {
