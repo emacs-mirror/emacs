@@ -1885,7 +1885,7 @@ created."
 
 (defface highlight
   '((((type tty) (class color))
-     :background "green")
+     :background "green" :foreground "black")
     (((class color) (background light))
      :background "darkseagreen2")
     (((class color) (background dark))
