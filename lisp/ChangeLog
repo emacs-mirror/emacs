@@ -1,3 +1,10 @@
+2002-09-07  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* emacs-lisp/cl-indent.el (extended-loop-p): Doc fix.
+
+	* emacs-lisp/find-func.el (find-function-recenter-line): Add
+	custom type.  Doc fix.
+
 2002-09-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* menu-bar.el (menu-bar-make-mm-toggle): New macro.

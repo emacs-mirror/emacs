@@ -108,7 +108,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 
 
 (defun extended-loop-p (loop-start)
-  "True if an extended loop form starta at LOOP-START."
+  "True if an extended loop form starts at LOOP-START."
   (condition-case ()
       (save-excursion
 	(goto-char loop-start)

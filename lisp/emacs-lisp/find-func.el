@@ -97,8 +97,9 @@ default."
 (defcustom find-function-recenter-line 1
   "The window line-number from which to start displaying a symbol definition.
 A value of nil implies center the beginning of the definition.
-See the function `center-to-window-line' for more information, and
-`find-function' and `find-variable'."
+See `find-function' and `find-variable'."
+  :type '(choice (const :tag "Center" nil)
+		 integer)
   :group 'find-function
   :version "20.3")
 
