@@ -1,6 +1,6 @@
 /*  impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thw3i3.c(trunk.18) $
+ *  $HopeName: MMsrc!thw3i3.c(trunk.19) $
  *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  *  Implements thread registration, suspension, and stack
@@ -61,9 +61,9 @@
 #error "Compiling thnti3 when MPS_OS_W3 or MPS_ARCH_I3 not defined."
 #endif
 
-#include <windows.h>
+#include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.18) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.19) $");
 
 
 Bool ThreadCheck(Thread thread)
