@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -164,13 +164,16 @@
   (let* (re-list first-re rest-re
                  (buffer-list (if (listp buffers) buffers (list buffers)))
                  found-list entry buffer1 buffer alist
-                 key-point start-point end-point)
+                 key-point start-point end-point default)
 
     ;; Read a regexp, completing on known citation keys.
+    (setq default (regexp-quote (reftex-get-bibkey-default)))
     (setq re-list 
 	  (split-string 
 	   (completing-read 
-	    "RegExp [ && RegExp...]: "
+	    (concat
+	     "Regex { && Regex...}: "
+	     "[" default "]: ")
 	    (if reftex-mode
 		(if (fboundp 'LaTeX-bibitem-list)
 		    (LaTeX-bibitem-list)
@@ -179,6 +182,9 @@
 	      nil)
 	    nil nil nil 'reftex-cite-regexp-hist)
 	   "[ \t]*&&[ \t]*"))
+
+    (if (or (null re-list ) (equal re-list '("")))
+	(setq re-list (list default)))
 
     (setq first-re (car re-list)    ; We'll use the first re to find things,
           rest-re  (cdr re-list))   ; the others to narrow down.
@@ -315,7 +321,7 @@
   ;; Parsing is not as good as for the BibTeX database stuff.
   ;; The environment should be located in file FILE.
 
-  (let* (start end buf entries re re-list file)
+  (let* (start end buf entries re re-list file default)
     (unless files
       (error "Need file name to find thebibliography environment"))
     (while (setq file (pop files))
@@ -351,10 +357,26 @@
     (unless entries
       (error "No bibitems found"))
 
-    (setq re-list (split-string 
-		   (read-string "RegExp [ && RegExp...]: "
-				nil 'reftex-cite-regexp-hist)
-		   "[ \t]*&&[ \t]*"))
+    ;; Read a regexp, completing on known citation keys.
+    (setq default (regexp-quote (reftex-get-bibkey-default)))
+    (setq re-list 
+	  (split-string 
+	   (completing-read 
+	    (concat
+	     "Regex { && Regex...}: "
+	     "[" default "]: ")
+	    (if reftex-mode
+		(if (fboundp 'LaTeX-bibitem-list)
+		    (LaTeX-bibitem-list)
+		  (cdr (assoc 'bibview-cache 
+			      (symbol-value reftex-docstruct-symbol))))
+	      nil)
+	    nil nil nil 'reftex-cite-regexp-hist)
+	   "[ \t]*&&[ \t]*"))
+
+    (if (or (null re-list ) (equal re-list '("")))
+	(setq re-list (list default)))
+
     (if (string-match "\\`[ \t]*\\'" (car re-list))
         (error "Empty regular expression"))
 
@@ -374,6 +396,16 @@
 	   entries))
 
     entries))
+
+(defun reftex-get-bibkey-default ()
+  ;; Return the word before the cursor.  If the cursor is in a
+  ;; citation macro, return the word before the macro.
+  (let* ((macro (reftex-what-macro 1)))
+    (save-excursion
+      (if (and macro (string-match "cite" (car macro)))
+	  (goto-char (cdr macro)))
+      (skip-chars-backward "^a-zA-Z0-9")
+      (reftex-this-word))))
 
 ;; Parse and format individual entries
 

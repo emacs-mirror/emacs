@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -646,7 +646,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	      selection-buffers)
       (reftex-kill-temporary-buffers))
     ;; Add the prefixes, put together the relevant information in the form
-    ;; (LABEL TYPEKEY SEPERATOR) and return a list of those.
+    ;; (LABEL TYPEKEY SEPARATOR) and return a list of those.
     (mapcar (lambda (x)
 	      (if (listp x)
 		  (list (concat prefix (car (car x)))

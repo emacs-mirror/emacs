@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -335,7 +335,8 @@ of master file."
       (goto-char (point-min))
       (if (re-search-forward
 	   (concat
-	    "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+;	    "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+	    "\\(^\\)[^%]*\\\\\\("
 	    (mapconcat 'identity reftex-bibliography-commands "\\|")
 	    "\\){[ \t]*\\([^}]+\\)") nil t)
 	  (setq files 

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -62,6 +62,10 @@ Here are all local bindings.
 	      "  T<" 'reftex-toc-max-level-indicator ">"
 	      " -%-"))
   (setq truncate-lines t)
+  (when (featurep 'xemacs)
+    ;; XEmacs needs the call to make-local-hook
+    (make-local-hook 'post-command-hook)
+    (make-local-hook 'pre-command-hook))
   (make-local-variable 'reftex-last-follow-point)
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)

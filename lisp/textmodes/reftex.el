@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.17"
+(defconst reftex-version "RefTeX version 4.18"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1101,7 +1101,8 @@ This enforces rescanning the buffer on next use."
     ;; Calculate the regular expressions
     (let* (
 ;	   (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-	   (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+	   (wbol "\\(^\\)[ \t]*")  ; Need to keep the empty group because
+	                          ;;; because match number are hard coded  
 	   (label-re "\\\\label{\\([^}]*\\)}")
 	   (include-re (concat wbol 
 			       "\\\\\\("

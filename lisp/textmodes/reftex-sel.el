@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.17
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +49,10 @@ During a selection process, these are the local bindings.
 
   (interactive)
   (kill-all-local-variables)
+  (when (featurep 'xemacs)
+    ;; XEmacs needs the call to make-local-hook
+    (make-local-hook 'pre-command-hook)
+    (make-local-hook 'post-command-hook))
   (setq major-mode 'reftex-select-label-mode
 	mode-name "LSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
@@ -75,6 +79,10 @@ During a selection process, these are the local bindings.
 \\{reftex-select-label-map}"
   (interactive)
   (kill-all-local-variables)
+  (when (featurep 'xemacs)
+    ;; XEmacs needs the call to make-local-hook
+    (make-local-hook 'pre-command-hook)
+    (make-local-hook 'post-command-hook))
   (setq major-mode 'reftex-select-bib-mode
 	mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
