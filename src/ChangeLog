@@ -1,3 +1,9 @@
+2002-05-25  Dave Love  <fx@gnu.org>
+
+	* fontset.c (Ffontset_info): Doc fix.  Return charset names, not
+	ids.
+	(font-encoding-alist): Doc fix.
+
 2002-05-24  Dave Love  <fx@gnu.org>
 
 	* term.c (costs_set): Declare static, non-initialized for pcc.
