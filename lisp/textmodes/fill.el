@@ -295,13 +295,15 @@ space does not end a sentence, so don't break a line there."
 				(eq (char-after (- (point) 2)) ?\.))
 		      (forward-char -2)
 		      (skip-chars-backward "^ \n" linebeg)))
+		;; If the left margin and fill prefix by themselves
+		;; pass the fill-column, keep at least one word.
+		;; This handles ALL BUT the first line of the paragraph.
 		(if (if (zerop prefixcol)
 			(save-excursion
 			  (skip-chars-backward " " linebeg)
 			  (bolp))
 		      (>= prefixcol (current-column)))
-		    ;; Keep at least one word even if fill prefix exceeds margin.
-		    ;; This handles all but the first line of the paragraph.
+		    ;; Ok, skip at least one word.
 		    ;; Meanwhile, don't stop at a period followed by one space.
 		    (let ((first t))
 		      (move-to-column prefixcol)
@@ -317,13 +319,21 @@ space does not end a sentence, so don't break a line there."
 			(setq first nil)))
 		  ;; Normally, move back over the single space between the words.
 		  (forward-char -1))
-		(if (and fill-prefix (zerop prefixcol)
-			 (< (- (point) (point-min)) (length fill-prefix))
-			 (string= (buffer-substring (point-min) (point))
-				  (substring fill-prefix 0 (- (point) (point-min)))))
-		    ;; Keep at least one word even if fill prefix exceeds margin.
-		    ;; This handles the first line of the paragraph.
-		    ;; Don't stop at a period followed by just one space.
+		;; If the left margin and fill prefix by themselves
+		;; pass the fill-column, keep at least one word.
+		;; This handles the first line of the paragraph.
+		(if (and (zerop prefixcol)
+			 (let ((fill-point (point)) nchars)
+			   (save-excursion
+			     (move-to-left-margin)
+			     (setq nchars (- fill-point (point)))
+			     (or (< nchars 0)
+				 (and fill-prefix
+				      (< nchars (length fill-prefix))
+				      (string= (buffer-substring (point) fill-point)
+					       (substring fill-prefix 0 nchars)))))))
+		    ;; Ok, skip at least one word.  But
+		    ;; don't stop at a period followed by just one space.
 		    (let ((first t))
 		      (while (and (not (eobp))
 				  (or first
