@@ -1,5 +1,5 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -555,7 +555,7 @@ The following commands are available:
        ["Read" gnus-browse-read-group t]
        ["Select" gnus-browse-select-group t]
        ["Next" gnus-browse-next-group t]
-       ["Prev" gnus-browse-next-group t]
+       ["Prev" gnus-browse-prev-group t]
        ["Exit" gnus-browse-exit t]))
     (gnus-run-hooks 'gnus-browse-menu-hook)))
 
