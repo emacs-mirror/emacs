@@ -1,3 +1,8 @@
+2002-04-14  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el (sgml-parse-tag-backward): Fix to work at
+	beginning of buffer.
+
 2002-04-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* speedbar.el (speedbar-generic-item-info)
