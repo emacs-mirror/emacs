@@ -1,5 +1,13 @@
 2005-04-05  Lute Kamstra  <lute@gnu.org>
 
+	* generic.el (generic-mode-internal): Fix 2005-03-31 change.
+	(define-generic-mode): Ditto.  Fix debug declaration.
+	
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Put
+	them in the generic-x group.
+
+	* calendar/timeclock.el (timeclock): Docstring fix.
+
 	* generic.el (define-generic-mode): Don't use custom-current-group.
 	Document default :group value.
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Ditto.
