@@ -1112,7 +1112,7 @@ JUSTIFY to justify paragraphs (prefix arg),
 When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.
-Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
+Also, if CITATION-REGEXP is non-nil, don't fill header lines."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning) (region-end)
@@ -1142,7 +1142,7 @@ JUSTIFY to justify paragraphs (prefix arg),
 When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.
-Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
+Also, if CITATION-REGEXP is non-nil, don't fill header lines."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning) (region-end)
