@@ -1,3 +1,9 @@
+2004-01-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (edit-and-eval-command): Bind print-level and
+	minibuffer-history-sexp-flag around call to read-from-minibuffer.
+	Correct initial position in command-history.
+
 2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (read-directory-name): Adapt the docstring to recent
