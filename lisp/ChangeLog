@@ -1,3 +1,9 @@
+2000-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (set-buffer-file-coding-system): If
+	CODING-SYSTEM is nil, set buffer-file-coding-system to nil
+	unconditionally.
+
 2000-06-12  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-specify-button): Really suppress the face if

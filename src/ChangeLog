@@ -1,3 +1,15 @@
+2000-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.h (EMACS_CCL_H): Renamed from _CCL_H.
+
+	* charset.h (EMACS_CHARSET_H): Renamed from _CHARSET_H.
+
+	* coding.h (EMASC_CODING_H): Renamed from _CODING_H.
+
+	* composite.h (EMACS_COMPOSITE_H): Renamed from _COMPOSITE_H.
+
+	* fontset.h (EMACS_FONTSET_H): Renamed from _FONTSET_H.
+
 2000-06-11  Dave Love  <fx@gnu.org>
 
 	* systime.h (EMACS_SYSTIME_H): Renamed from _SYSTIME_H.
