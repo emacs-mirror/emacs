@@ -257,17 +257,21 @@ See `PC-complete' for details."
 (defvar PC-ndelims-regex nil)
 (defvar PC-delims-list nil)
 
-(defvar PC-do-completion-filename-completers
-  '(read-file-name-internal read-directory-name-internal)
-  "Completion functions that do file-name style completion.
-The elements are compared with the value of `minibuffer-completion-table'.")
+(defvar PC-completion-as-file-name-predicate
+  (function
+   (lambda ()
+     (memq minibuffer-completion-table
+	   '(read-file-name-internal read-directory-name-internal))))
+   "A function testing whether a minibuffer completion now will work filename-style.
+The function takes no arguments, and typically looks at the value
+of `minibuffer-completion-table' and the minibuffer contents.")
 
 (defun PC-do-completion (&optional mode beg end)
   (or beg (setq beg (point-min)))
   (or end (setq end (point-max)))
   (let* ((table minibuffer-completion-table)
 	 (pred minibuffer-completion-predicate)
-	 (filename (memq table PC-do-completion-filename-completers))
+	 (filename (funcall PC-completion-as-file-name-predicate))
 	 (dirname nil)
 	 dirlength
 	 (str (buffer-substring beg end))
