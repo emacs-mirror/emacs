@@ -557,8 +557,9 @@ to a function that generates a unique name."
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
-While grep runs asynchronously, you can use the \\[next-error] command
-to find the text that grep hits refer to.
+While grep runs asynchronously, you can use \\[next-error] \
+or \\<compilation-minor-mode-map>\\[compile-goto-error]
+to go to the lines where grep found matches.
 
 This command uses a special history list for its arguments, so you can
 easily repeat a grep command.
@@ -1344,7 +1345,7 @@ other kinds of prefix arguments are ignored."
 ;;;###autoload
 (defun next-error (&optional argp)
   "Visit next compilation error message and corresponding source code.
-This operates on the output from the \\[compile] command.
+This operates on the output from the \\[compile] and \\[grep] commands.
 If all preparsed error messages have been processed,
 the error message buffer is checked for new ones.
 
