@@ -2416,12 +2416,19 @@ Interactively, prompts for a hex string giving the code."
 	 (?(1x(B . ?$,1Dx(B)
 	 (?(1y(B . ?$,1Dy(B)
 	 (?(1|(B . ?$,1D|(B)
-	 (?(1}(B . ?$,1D}(B))))
+	 (?(1}(B . ?$,1D}(B))
+       
+       (other
+	;; latin-jisx0201 is mostly decoded to ascii, with these
+	;; exceptions, so we don't bother with tables for the whole
+	;; thing.
+	(?(J\(B . ?,A%(B)
+	(?(J~(B . ?$,1s>(B))))
   (let ((table (make-char-table 'safe-chars))
 	safe-charsets)
     (dolist (cs '(vietnamese-viscii lao chinese-sisheng ipa
 		  katakana-jisx0201 thai-tis620 tibetan-iso-8bit
-		  indian-is13194 ethiopic))
+		  indian-is13194 ethiopic other))
       ;; These tables could be used as translation-table-for-encode by
       ;; the relevant coding systems.
       (let ((encode-translator
@@ -2447,7 +2454,8 @@ Interactively, prompts for a hex string giving the code."
 				  'translation-table-for-input
 				  encode-translator))
 	      ((memq cs '(lao thai-tis620 tibetan-iso-8bit))
-	       (coding-system-put cs 'translation-table-for-input cs)))))
+	       (coding-system-put cs 'translation-table-for-input
+				  encode-translator)))))
     (dolist (c safe-charsets)
       (aset table (make-char c) t))))
 
