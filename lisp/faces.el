@@ -77,11 +77,15 @@ ALTERNATIVE2 etc."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
-  '(("muletibetan-2" "muletibetan-0"))
+  '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk*")
+    ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
+    ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
+    ("muletibetan-2" "muletibetan-0"))
   "*Alist of alternative font registry names.
 Each element has the the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
-If fonts of registry REGISTRY can't be loaded, try ALTERNATIVE1, then
-ALTERNATIVE2 etc."
+If fonts of registry REGISTRY can be loaded, font selection
+tries to find a best matching font among all fonts of registry
+REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
   :tag "Alternative font registries to try."
   :type '(repeat (repeat string))
   :version "21.1"
