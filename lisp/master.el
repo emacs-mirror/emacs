@@ -161,4 +161,3 @@ See `recenter'."
 (provide 'master)
 
 ;;; master.el ends here
-
