@@ -1,3 +1,14 @@
+2002-04-25  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (define column process): Use `ibuffer-aif'.
+
+	* ibuf-ext.el (ibuffer-saved-filter-groups): Don't include broken
+	defaults.
+	(ibuffer-yank): Be sure to `setq' after we use `nconc'.
+	(ibuffer-save-filter-groups): Correctly structure filter groups.
+	(ibuffer-switch-to-saved-filter-groups): Correctly extract filter
+	groups.
+
 2002-04-25  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-use-dsn): New variable to request
