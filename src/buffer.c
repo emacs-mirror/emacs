@@ -1403,19 +1403,22 @@ set_buffer_internal_1 (b)
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->pt_marker, BUF_PT (old_buf), obuf);
+	  Fset_marker (old_buf->pt_marker, make_number (BUF_PT (old_buf)),
+		       obuf);
 	}
       if (! NILP (old_buf->begv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->begv_marker, BUF_BEGV (old_buf), obuf);
+	  Fset_marker (old_buf->begv_marker, make_number (BUF_BEGV (old_buf)),
+		       obuf);
 	}
       if (! NILP (old_buf->zv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->zv_marker, BUF_ZV (old_buf), obuf);
+	  Fset_marker (old_buf->zv_marker, make_number (BUF_ZV (old_buf)),
+		       obuf);
 	}
     }
 
@@ -1487,19 +1490,22 @@ set_buffer_temp (b)
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->pt_marker, BUF_PT (old_buf), obuf);
+	  Fset_marker (old_buf->pt_marker, make_number (BUF_PT (old_buf)),
+		       obuf);
 	}
       if (! NILP (old_buf->begv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->begv_marker, BUF_BEGV (old_buf), obuf);
+	  Fset_marker (old_buf->begv_marker, make_number (BUF_BEGV (old_buf)),
+		       obuf);
 	}
       if (! NILP (old_buf->zv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->zv_marker, BUF_ZV (old_buf), obuf);
+	  Fset_marker (old_buf->zv_marker, make_number (BUF_ZV (old_buf)),
+		       obuf);
 	}
     }
 
@@ -2525,8 +2531,10 @@ fix_overlays_in_range (start, end)
 	  if (startpos > endpos)
 	    {
 	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), endpos, Qnil);
-	      Fset_marker (OVERLAY_END (overlay), startpos, Qnil);
+	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
+			   Qnil);
+	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
+			   Qnil);
 	      tem = startpos; startpos = endpos; endpos = tem;
 	    }
 	  /* Add it to the end of the wrong list.  Later on,
@@ -2559,8 +2567,10 @@ fix_overlays_in_range (start, end)
 	  if (startpos > endpos)
 	    {
 	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), endpos, Qnil);
-	      Fset_marker (OVERLAY_END (overlay), startpos, Qnil);
+	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
+			   Qnil);
+	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
+			   Qnil);
 	      tem = startpos; startpos = endpos; endpos = tem;
 	    }
 	  if (endpos < XINT (current_buffer->overlay_center))
