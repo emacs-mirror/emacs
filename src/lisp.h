@@ -2498,6 +2498,7 @@ EXFUN (Fmatch_data, 2);
 EXFUN (Fset_match_data, 1);
 EXFUN (Fmatch_beginning, 1);
 EXFUN (Fmatch_end, 1);
+EXFUN (Flooking_at, 1);
 extern int fast_string_match P_ ((Lisp_Object, Lisp_Object));
 extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, char *));
 extern int scan_buffer P_ ((int, int, int, int, int *, int));
