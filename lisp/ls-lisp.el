@@ -129,7 +129,8 @@ if emulation is GNU then default is `(links uid gid)'."
 	      (const :tag "Show Group" gid))
   :group 'ls-lisp)
 
-(defcustom ls-lisp-use-insert-directory-program nil
+(defcustom ls-lisp-use-insert-directory-program
+  (not (memq system-type '(macos ms-dos windows-nt)))
   "*Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
 This is useful on platforms where ls-lisp is dumped into Emacs, such as
 Microsoft Windows, but you would still like to use a program to list
@@ -137,6 +138,8 @@ the contents of a directory."
   :type 'boolean
   :group 'ls-lisp)
 
+;;; Autoloaded because it is let-bound in `recover-session', `mail-recover-1'.
+;;;###autoload
 (defcustom ls-lisp-support-shell-wildcards t
   "*Non-nil means ls-lisp treats file patterns as shell wildcards.
 Otherwise they are treated as Emacs regexps (for backward compatibility)."
