@@ -1112,6 +1112,10 @@ Also accepts Space to mean yes, or Delete to mean no.")
       cursor_in_echo_area = 1;
 
       obj = read_char (0, 0, 0, Qnil, 0);
+      cursor_in_echo_area = 0;
+      /* If we need to quit, quit with cursor_in_echo_area = 0.  */
+      QUIT;
+
       key = Fmake_vector (make_number (1), obj);
       def = Flookup_key (map, key);
       answer_string = Fsingle_key_description (obj);
