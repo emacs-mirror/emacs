@@ -2605,7 +2605,7 @@ redraws with point in the center of the current window.")
 DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
   1, 1, "P",
   "Position point relative to window.\n\
-With no argument, position text at center of window.\n\
+With no argument, position point at center of window.\n\
 An argument specifies frame line; zero means top of window,\n\
 negative means relative to bottom of window.")
   (arg)
