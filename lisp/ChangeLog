@@ -1,3 +1,8 @@
+2002-02-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* menu-bar.el (menu-bar-showhide-menu): Rename functions for
+	toggling.
+
 2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-options-save): Take care of
