@@ -1277,12 +1277,10 @@ Optional arg GLOBAL means to replace all matches."
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
 
-(defun dired-make-relative (file &optional dir no-error)
-  ;;"Convert FILE (an absolute file name) to a name relative to DIR.
-  ;; Else error (unless NO-ERROR is non-nil, then FILE is returned unchanged)
-  ;;DIR defaults to default-directory."
-  ;; DIR must be file-name-as-directory, as with all directory args in
-  ;; Emacs Lisp code.
+(defun dired-make-relative (file &optional dir ignore)
+  "Convert FILE (an absolute file name) to a name relative to DIR.
+If this is impossible, return FILE unchanged.
+DIR must be a directory name, not a file name."
   (or dir (setq dir default-directory))
   ;; This case comes into play if default-directory is set to
   ;; use ~.
@@ -1290,9 +1288,9 @@ Optional arg GLOBAL means to replace all matches."
       (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
-    (if no-error
-	file
-      (error "%s: not in directory tree growing at %s" file dir))))
+;;; (or no-error
+;;;	(error "%s: not in directory tree growing at %s" file dir))
+    file))
 
 ;;; Functions for finding the file name in a dired buffer line.
 
