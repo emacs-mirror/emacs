@@ -122,6 +122,7 @@
 
 (defgroup align nil
   "Align text to a specific column, by regexp."
+  :version "21.1"
   :group 'fill)
 
 ;;; User Variables:
