@@ -3,6 +3,8 @@
 	* info.el (Info-extract-menu-node-name): Fix 2003-01-24 change.
 	Don't search for next colon if current colon is followed by
 	one of ".", ",", ";", or ")".
+	(info-insert-file-contents) [!MSDOS]: Avoid byte-compiler warning.
+	(Info-find-node) [!MSDOS]: Avoid byte-compiler warning.
 
 2003-01-26  Richard M. Stallman  <rms@gnu.org>
 
