@@ -8768,7 +8768,7 @@ x_make_frame_visible (f)
 	  (raise-frame f))
 
        the frame is not raised with various window managers on
-       FreeBSD, Linux and Solaris.  It turns out that, for some
+       FreeBSD, GNU/Linux and Solaris.  It turns out that, for some
        unknown reason, the call to XtMapWidget is completely ignored.
        Mapping the widget a second time works.  */
 

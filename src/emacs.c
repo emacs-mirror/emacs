@@ -602,7 +602,7 @@ void __do_global_ctors_aux ()
 {}
 void __do_global_dtors ()
 {}
-/* Linux has a bug in its library; avoid an error.  */
+/* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif

@@ -821,7 +821,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
       PERROR (new_name);
     }
 
-#if 0 /* This #ifndef caused a bug on Linux when using QMAGIC.  */
+#if 0 /* This #ifndef caused a bug on GNU/Linux when using QMAGIC.  */
   /* This adjustment was done above only #ifndef NO_REMAP,
      so only undo it now #ifndef NO_REMAP.  */
   /* #ifndef NO_REMAP  */
