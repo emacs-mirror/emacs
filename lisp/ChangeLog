@@ -1,3 +1,36 @@
+2002-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-1.el: Bind set-case-syntax-charset to
+	iso-8859-1.  Never provide latin-1.
+
+	* international/latin-2.el: Bind set-case-syntax-charset to
+	iso-8859-2.  Never provide latin-2.
+
+	* international/latin-3.el: Bind set-case-syntax-charset to
+	iso-8859-3.  Never provide latin-3.
+
+	* international/latin-4.el: Bind set-case-syntax-charset to
+	iso-8859-4.  Never provide latin-4.
+
+	* international/latin-5.el: Bind set-case-syntax-charset to
+	iso-8859-9.  Never provide latin-5.
+
+	* international/latin-8.el: Bind set-case-syntax-charset to
+	iso-8859-14.  Never provide latin-8.
+
+	* international/latin-9.el: Bind set-case-syntax-charset to
+	iso-8859-15.  Never provide latin-9.
+
+	* case-table.el (set-case-syntax-set-multibyte): This variable
+	deleted.
+	(set-case-syntax-charset): New variable.
+	(set-case-syntax-1): New function.
+	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
+	Call set-case-syntax-1 on arguments.
+
+	* international/mule-cmds.el (set-language-environment): Delete
+	unnecessary setup of syntax/case for unibyte case.
+
 2002-09-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (generate-fontset-menu): Exclude the
