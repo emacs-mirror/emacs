@@ -1752,7 +1752,6 @@ A prefix arg makes KEEP-TIME non-nil.")
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object args[6];
   int input_file_statable_p;
 
   GCPRO2 (filename, newname);
