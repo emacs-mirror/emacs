@@ -1174,7 +1174,7 @@
   (let ((var (car-safe (cdr-safe form))))
     (cond
      ((and (eq (car-safe var) 'quote) (consp (cdr var)))
-      (list* 'setq (cadr var) (cddr form)))
+      `(setq ,(cadr var) ,@(cddr form)))
      ((and (eq (car-safe var) 'make-local-variable)
 	   (eq (car-safe (setq var (car-safe (cdr var)))) 'quote)
 	   (consp (cdr var)))
