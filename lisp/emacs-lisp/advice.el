@@ -3068,11 +3068,15 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 	     (interactive-form
 	      (cond (orig-macro-p nil)
 		    (advised-interactive-form)
-		    ((ad-interactive-form origdef))
+		    ((ad-interactive-form origdef)
+		     (if (and (symbolp function) (get function 'elp-info))
+			 (interactive-form (aref (get function 'elp-info) 2))
+		       (ad-interactive-form origdef)))		       
 		    ;; Otherwise we must have a subr: make it interactive if
 		    ;; we have to and initialize required arguments in case
 		    ;; it is called interactively:
-		    (orig-interactive-p (interactive-form origdef))))
+		    (orig-interactive-p 
+		     (interactive-form origdef))))
 	     (orig-form
 	      (cond ((or orig-special-form-p orig-macro-p)
 		     ;; Special forms and macros will be advised into macros.
