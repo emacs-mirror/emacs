@@ -402,7 +402,7 @@ extern Bool MessageTypeCheck(MessageType type);
 extern MessageClass MessageGetClass(Message message);
 extern Arena MessageArena(Message message);
 extern void MessageInit(Arena arena, Message message,
-                        MessageClass class);
+                        MessageClass class, MessageType type);
 extern void MessageFinish(Message message);
 extern void MessagePost(Arena arena, Message message);
 extern Bool MessagePoll(Arena arena);
