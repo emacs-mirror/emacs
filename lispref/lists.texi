@@ -32,9 +32,10 @@ the whole list.
 
   Lists in Lisp are not a primitive data type; they are built up from
 @dfn{cons cells}.  A cons cell is a data object that represents an
-ordered pair.  It records two Lisp objects, one labeled as the @sc{car},
-and the other labeled as the @sc{cdr}.  These names are traditional; see
-@ref{Cons Cell Type}.  @sc{cdr} is pronounced ``could-er.''
+ordered pair.  It holds, or ``points to,'' two Lisp objects, one labeled
+as the @sc{car}, and the other labeled as the @sc{cdr}.  These names are
+traditional; see @ref{Cons Cell Type}.  @sc{cdr} is pronounced
+``could-er.''
 
   A list is a series of cons cells chained together, one cons cell per
 element of the list.  By convention, the @sc{car}s of the cons cells are
@@ -82,10 +83,10 @@ made from two cons cells:
 
   Each pair of boxes represents a cons cell.  Each box ``refers to'',
 ``points to'' or ``contains'' a Lisp object.  (These terms are
-synonymous.)  The first box, which is the @sc{car} of the first cons
-cell, contains the symbol @code{tulip}.  The arrow from the @sc{cdr} of
-the first cons cell to the second cons cell indicates that the @sc{cdr}
-of the first cons cell points to the second cons cell.
+synonymous.)  The first box, which describes the @sc{car} of the first
+cons cell, contains the symbol @code{tulip}.  The arrow from the
+@sc{cdr} box of the first cons cell to the second cons cell indicates
+that the @sc{cdr} of the first cons cell is the second cons cell.
 
   The same list can be illustrated in a different sort of box notation
 like this:
@@ -668,8 +669,9 @@ different element.
 
 @defun setcar cons object
 This function stores @var{object} as the new @sc{car} of @var{cons},
-replacing its previous @sc{car}.  It returns the value @var{object}.
-For example:
+replacing its previous @sc{car}.  In other words, it changes the
+@sc{car} slot of @var{cons} to point to @var{object}.  It returns the
+value @var{object}.  For example:
 
 @example
 @group
@@ -770,7 +772,9 @@ x2:              |
 
 @defun setcdr cons object
 This function stores @var{object} as the new @sc{cdr} of @var{cons},
-replacing its previous @sc{cdr}.  It returns the value @var{object}.
+replacing its previous @sc{cdr}.  In other words, it changes the
+@sc{cdr} slot of @var{cons} to point to @var{object}.  It returns the
+value @var{object}.
 @end defun
 
   Here is an example of replacing the @sc{cdr} of a list with a
@@ -797,7 +801,7 @@ x
   You can delete elements from the middle of a list by altering the
 @sc{cdr}s of the cons cells in the list.  For example, here we delete
 the second element, @code{b}, from the list @code{(a b c)}, by changing
-the @sc{cdr} of the first cell:
+the @sc{cdr} of the first cons cell:
 
 @example
 @group
@@ -968,7 +972,7 @@ each time you run it!  Here is what happens:
   This function reverses the order of the elements of @var{list}.
 Unlike @code{reverse}, @code{nreverse} alters its argument by reversing
 the @sc{cdr}s in the cons cells forming the list.  The cons cell that
-used to be the last one in @var{list} becomes the first cell of the
+used to be the last one in @var{list} becomes the first cons cell of the
 value.
 
   For example:
@@ -985,7 +989,7 @@ x
      @result{} (4 3 2 1)
 @end group
 @group
-;; @r{The cell that was first is now last.}
+;; @r{The cons cell that was first is now last.}
 x
      @result{} (1)
 @end group
@@ -1249,7 +1253,7 @@ for another way to add an element to a list stored in a variable.
 
   An @dfn{association list}, or @dfn{alist} for short, records a mapping
 from keys to values.  It is a list of cons cells called
-@dfn{associations}: the @sc{car} of each cell is the @dfn{key}, and the
+@dfn{associations}: the @sc{car} of each cons cell is the @dfn{key}, and the
 @sc{cdr} is the @dfn{associated value}.@footnote{This usage of ``key''
 is not related to the term ``key sequence''; it means a value used to
 look up an item in a table.  In this case, the table is the alist, and
