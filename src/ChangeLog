@@ -1,5 +1,15 @@
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fmove_to_window_line): Undo last change.
+	(displayed_window_lines): Call line_bottom_y to determine
+	the line's bottom position.
+
+	* dispextern.h (line_bottom_y): Add prototype.
+
+	* xdisp.c (line_bottom_y): New function extracted from
+	pos_visible_p.
+	(pos_visible_p): Use it.
+
 	* keyboard.c (recursive_edit_1): Bind `inhibit-redisplay' and
 	set redisplaying_p to 0 here instead of in Frecursive_edit.
 	(Frecursive_edit): Don't bind `inhibit-redisplay' and don't
