@@ -5,6 +5,9 @@
 
 1999-11-30  Dave Love  <fx@gnu.org>
 
+	* autoinsert.el: Minor doc fixes.
+	(auto-insert): Return nil.
+
 	* faces.el (set-face-documentation): Purecopy STRING.
 
 1999-11-29  Dave Love  <fx@gnu.org>
