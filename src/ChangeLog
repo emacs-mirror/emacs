@@ -1,5 +1,11 @@
 2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xfns.c (x_encode_text): Return stringp non-NULL if coding_system
+	is Qcompound_text_with_extensions.
+
+	* xselect.c (lisp_data_to_selection_data): Always set selection
+	type as string if x_encode_text returns streingp non-NULL.
+
 	* s/netbsd.h: Include /usr/pkg in the run time shared library path.
 
 2002-05-30  Richard M. Stallman  <rms@gnu.org>
