@@ -1,3 +1,21 @@
+2000-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-buffers): Remove.
+	(font-lock-global-modes): Define with easy-mmode-define-global-mode.
+	(font-lock-change-major-mode): Remove.
+	(turn-on-font-lock-if-enabled): Only apply to the current buffer.
+	(font-lock-default-fontify-region): Extend the multiline
+	fontification to whole lines.
+	(font-lock-fontify-anchored-keywords)
+	(font-lock-fontify-keywords-region): If matching just one
+	line (with \n) only mark the \n as multiline.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Remove :toggle arg.
+	Correctly handle the case where several :group args are supplied.
+	Allow :extra-args.
+	(easy-mmode-define-global-mode): Allow :extra-args.
+	Correctly handle the case where several :group args are supplied.
+
 2000-11-02  Miles Bader  <miles@gnu.org>
 
 	* calendar/calendar.el (diary-face, calendar-today-face) 
