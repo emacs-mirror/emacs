@@ -910,43 +910,41 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-put-char (char)
   "Draw CHAR on the Gomoku screen."
-  (if buffer-read-only (toggle-read-only))
-  (insert char)
-  (delete-char 1)
-  (backward-char 1)
-  (toggle-read-only))
+  (let ((inhibit-read-only t))
+    (insert char)
+    (delete-char 1)
+    (backward-char 1)))
 
 (defun gomoku-init-display (n m)
   "Display an N by M Gomoku board."
   (buffer-disable-undo (current-buffer))
-  (if buffer-read-only (toggle-read-only))
-  (erase-buffer)
-  (let (string1 string2 string3 string4)
-    ;; We do not use gomoku-plot-square which would be too slow for
-    ;; initializing the display. Rather we build STRING1 for lines where
-    ;; board squares are to be found, and STRING2 for empty lines. STRING1 is
-    ;; like STRING2 except for dots every DX squares. Empty lines are filled
-    ;; with spaces so that cursor moving up and down remains on the same
-    ;; column.
-    (setq string1 (concat (make-string (1- gomoku-square-width) ? ) ".")
-	  string1 (apply 'concat
-		    (make-list (1- n) string1))
-	  string1 (concat (make-string gomoku-x-offset ? ) "." string1 "\n")
-	  string2 (make-string (+ 1 gomoku-x-offset
-				  (* (1- n) gomoku-square-width))
-			       ? )
-	  string2 (concat string2 "\n")
-	  string3 (apply 'concat
-		    (make-list (1- gomoku-square-height) string2))
-	  string3 (concat string3 string1)
-	  string3 (apply 'concat
-		    (make-list (1- m) string3))
-	  string4 (apply 'concat
-		    (make-list gomoku-y-offset string2)))
-    (insert string4 string1 string3))
-  (toggle-read-only)
-  (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
-  (sit-for 0))				; Display NOW
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (let (string1 string2 string3 string4)
+      ;; We do not use gomoku-plot-square which would be too slow for
+      ;; initializing the display. Rather we build STRING1 for lines where
+      ;; board squares are to be found, and STRING2 for empty lines. STRING1 is
+      ;; like STRING2 except for dots every DX squares. Empty lines are filled
+      ;; with spaces so that cursor moving up and down remains on the same
+      ;; column.
+      (setq string1 (concat (make-string (1- gomoku-square-width) ? ) ".")
+	    string1 (apply 'concat
+			   (make-list (1- n) string1))
+	    string1 (concat (make-string gomoku-x-offset ? ) "." string1 "\n")
+	    string2 (make-string (+ 1 gomoku-x-offset
+				    (* (1- n) gomoku-square-width))
+				 ? )
+	    string2 (concat string2 "\n")
+	    string3 (apply 'concat
+			   (make-list (1- gomoku-square-height) string2))
+	    string3 (concat string3 string1)
+	    string3 (apply 'concat
+			   (make-list (1- m) string3))
+	    string4 (apply 'concat
+			   (make-list gomoku-y-offset string2)))
+      (insert string4 string1 string3))
+    (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
+    (sit-for 0)))			; Display NOW
 
 (defun gomoku-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
