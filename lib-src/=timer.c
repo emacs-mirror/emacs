@@ -45,7 +45,7 @@ schedule(str)
   }
   *p++ = 0;
   
-  if ((e.reply_at = getdate(str, NULL)) - time(&now) < 0) {
+  if ((e.reply_at = get_date(str, NULL)) - time(&now) < 0) {
     (void)fprintf(stderr, "%s: bad time spec: %s%c%s", pname, str, FS, p);
     return((struct event *)NULL);
   }
