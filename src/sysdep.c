@@ -1814,10 +1814,10 @@ reset_sys_modes ()
     return;
 #endif
   sf = SELECTED_FRAME ();
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
-  clear_end_of_line (FRAME_WIDTH (sf));
+  cursor_to (FRAME_LINES (sf) - 1, 0);
+  clear_end_of_line (FRAME_COLS (sf));
   /* clear_end_of_line may move the cursor */
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
+  cursor_to (FRAME_LINES (sf) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to
