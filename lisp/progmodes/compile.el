@@ -312,10 +312,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
      1 2 3)
-
-    ;; MIPS Pro 7.3 compiler on SGI's
-    ;; cc-1020 CC: ERROR File = /home/deb/toolsopt/menv/src/bin/fizt/processPgp.cpp, Line = 12
-    ("^.*File\\s-+=\\s-+\\(.*\\),\\s-+Line\\s-+=\\s-+\\([0-9]+\\)" 1 2)
     )
 
   "Alist that specifies how to match errors in compiler output.
