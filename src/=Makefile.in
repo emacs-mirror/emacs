@@ -8,6 +8,7 @@ MAKE = make
 # ==================== Things `configure' might edit ====================
 
 CC=cc
+CPP=cc -E
 CFLAGS=-g
 srcdir=@srcdir@/src
 VPATH=@srcdir@/src
