@@ -518,6 +518,7 @@ Returns non-nil iff it is a valid table."
     ;; Set tags-file-name to the name from the list.  It is already expanded.
     (setq tags-file-name (car tags-table-list-pointer))))
 
+;;;###autoload
 (defun visit-tags-table-buffer (&optional cont)
   "Select the buffer containing the current tags table.
 If optional arg is a string, visit that file as a tags table.
