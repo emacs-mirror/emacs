@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.17 2001/01/25 21:02:37 sds Exp $
+;; $Id: vc-cvs.el,v 1.18 2001/01/29 19:12:40 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -34,6 +34,7 @@
  (defvar vc-register-switches)  ; defined in "vc.el", used in `vc-cvs-register'
  (defvar vc-checkin-switches)   ; defined in "vc.el", used in `vc-cvs-checkin'
  (defvar vc-checkout-switches)  ; defined in "vc.el", used in `vc-cvs-checkout'
+ (autoload 'vc-diff-switches-list "vc") ; used in `vc-cvs-diff'
  (autoload 'vc-do-command "vc") ; used all over the place
  (autoload 'vc-trunk-p "vc")    ; used in `vc-cvs-checkin'
  (autoload 'vc-resynch-buffer "vc")) ; used in `vc-cvs-retrieve-snapshot'
@@ -47,6 +48,16 @@
 A string or list of strings passed to the checkin program by
 \\[vc-register]."
   :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "21.1"
+  :group 'vc)
+
+(defcustom vc-cvs-diff-switches nil
+  "*A string or list of strings specifying extra switches for cvs diff under VC."
+    :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
@@ -494,10 +505,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
   "Get a difference report using CVS between two versions of FILE."
-  (let (options status
-        (diff-switches-list (if (listp diff-switches)
-                                diff-switches
-                              (list diff-switches))))
+  (let (options status (diff-switches-list (vc-diff-switches-list cvs)))
     (if (string= (vc-workfile-version file) "0")
 	;; This file is added but not yet committed; there is no master file.
 	(if (or oldvers newvers)
