@@ -455,7 +455,7 @@ t if it is locked by you, else a string of the name of the locker.")
 
 init_filelock ()
 {
-  char *new_name
+  char *new_name;
 
   lock_dir = egetenv ("EMACSLOCKDIR");
   if (! lock_dir)
