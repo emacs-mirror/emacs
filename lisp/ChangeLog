@@ -1,3 +1,34 @@
+2004-05-28  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (eval-expression-print-format): New fun.
+
+	* simple.el (eval-expression):
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-print-value):
+	* emacs-lisp/edebug.el (edebug-compute-previous-result)
+	(edebug-eval-expression): Print additionally the value returned by
+	`eval-expression-print-format'.
+
+	* emacs-lisp/lisp.el (insert-pair-alist): New var.
+	(insert-pair): Make arguments optional.  Find character pair
+	from `insert-pair-alist' according to the last input event.
+	(insert-parentheses): Make arguments optional.
+	(raise-sexp, delete-pair): New funs.
+
+	* emacs-lisp/lisp-mode.el (indent-pp-sexp): New fun.
+	(emacs-lisp-mode-map, lisp-interaction-mode-map):
+	Bind C-M-q to `indent-pp-sexp'.
+
+	* emacs-lisp/pp.el (pp-buffer): New fun created from the code in
+	`pp-to-string' modified to be able to format text with newlines.
+	(pp-to-string): Move the buffer-formatting part of the code to
+	`pp-buffer'.  Call `pp-buffer'.
+
+	* info.el (Info-desktop-buffer-misc-data): Don't save information
+	about virtual files.
+	(Info-restore-desktop-buffer): Restore Info buffers in prepared
+	buffers with names obtained from the desktop file instead of the
+	default *info* buffer.
+
 2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
