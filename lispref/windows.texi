@@ -850,6 +850,16 @@ Precisely how @code{display-buffer} finds or creates a window depends on
 the variables described below.
 @end deffn
 
+@defopt display-buffer-reuse-frames
+If this variable is non-@code{nil}, @code{display-buffer} searches
+existing frames for a window displaying the buffer.  If the buffer is
+already displayed in a window in some frame, @code{display-buffer} makes
+the frame visible and raises it, to use that window.  If the buffer is
+not already displayed, or if @code{display-buffer-reuse-frames} is
+@code{nil}, @code{display-buffer}'s behavior is determined by other
+variables, described below.
+@end defopt
+
 @defopt pop-up-windows
 This variable controls whether @code{display-buffer} makes new windows.
 If it is non-@code{nil} and there is only one window, then that window
