@@ -169,6 +169,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Here we assume that signal.h is already included.  */
 #ifdef emacs
 #undef SIGIO
+/* Some versions of Linux define SIGURG and SIGPOLL as aliases for SIGIO.
+   This prevents lossage in process.c.  */
+#undef SIGURG
+#undef SIGPOLL
 #endif
 
 /* This is needed for sysdep.c */
