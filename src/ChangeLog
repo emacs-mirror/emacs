@@ -1,3 +1,37 @@
+2002-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c: (Vmouse_highlight): New variable.
+	(syms_of_frame): DEFVAR_LISP it.
+
+	* frame.h: (Vmouse_highlight): Declare extern.
+
+	* xterm.h (struct x_display_info): Add mouse_face_hidden.
+
+	* xterm.c (disable_mouse_highlight): Removed variable.
+	(note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(XTread_socket): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+	(x_term_init): Initialize mouse_face_hidden.
+
+	* msdos.h (struct display_info): Add mouse_face_hidden.
+
+	* msdos.c (disable_mouse_highlight): Removed variable.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(IT_note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
+	(internal_terminal_init): Initialize mouse_face_hidden.
+	(dos_rawgetc): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+
+	* w32term.h (struct w32_display_info): Add mouse_face_hidden.
+
+	* w32term.c (disable_mouse_highlight): Removed variable.
+	(note_mouse_highlight): Disable highlight if Vmouse_highlight is nil.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(w32_read_socket): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+	(w32_initialize_display_info): Initialize mouse_face_hidden.
+
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (last_mouse_window): New variable.
