@@ -14034,7 +14034,7 @@ x_load_font (f, fontname, size)
        before, or if the font loaded has a smalle>r height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
-    fonts_changed_p = x_compute_min_glyph_bounds (f);
+    fonts_changed_p |= x_compute_min_glyph_bounds (f);
     UNBLOCK_INPUT;
     return fontp;
   }

@@ -1,3 +1,7 @@
+2002-01-13  Andreas Schwab  <schwab@suse.de>
+
+	* xterm.c (x_load_font): Never set fonts_changed_p to zero.
+
 2002-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* process.c (send_process): Set src_multibyte to 1 after the call
