@@ -1,3 +1,8 @@
+2002-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-enable-cua-keys) 
+	(cua-enable-register-prefix): Added value for `other' choice.
+
 2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu) 
