@@ -1,3 +1,13 @@
+2005-01-09  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-allow-async-revert): New user option.
+	(vc-disable-async-diff): New internal variable.
+	(vc-revert-buffer): Use them to disable asynchronous diff.
+
+	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff,
+	vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
+	asynchronously if vc-disable-async-diff is t.
+
 2005-01-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (defcalcmodevar): New macro.
