@@ -184,7 +184,7 @@ Buttons inherit them by setting their `category' property to that symbol."
 	 (point-max))
      prop val)))
 
-(defsubst button-activate (button use-mouse-action)
+(defsubst button-activate (button &optional use-mouse-action)
   "Call BUTTON's action property.
 If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
