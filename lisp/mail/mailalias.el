@@ -134,7 +134,7 @@ Three types of values are possible:
   - nil means to gather each line as one name
   - regexp means first \\(grouping\\) in successive matches is name
   - function called at beginning of buffer that returns an alist of names"
-  :type '(choice (cosnt nil) regexp function)
+  :type '(choice (const nil) regexp function)
   :group 'mailalias)
 (put 'mail-directory-parser 'risky-local-variable t)
 
