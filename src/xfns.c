@@ -1076,7 +1076,8 @@ x_set_menu_bar_lines (f, value, oldval)
     FRAME_EXTERNAL_MENU_BAR (f) = 1;
   else
     {
-      if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
+      if (FRAME_EXTERNAL_MENU_BAR (f) == 1 
+	  && f->display.x->menubar_widget)
 	XtDestroyWidget (f->display.x->menubar_widget);
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
       f->display.x->menubar_widget = 0;
