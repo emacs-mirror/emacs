@@ -5,7 +5,6 @@
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
-;; Author's Update Number: see variable `bookmark-version'.
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;; This file is part of GNU Emacs.
@@ -81,11 +80,6 @@
 ;;;; Code:
 
 (require 'pp)
-
-(defconst bookmark-version "2.6.4"
-  "Version number of bookmark.el.  This is not related to the version
-of Emacs bookmark comes with; it is used solely by bookmark's
-maintainers to avoid version confusion.")
 
 ;;; Misc comments:
 ;;
@@ -379,7 +373,9 @@ That is, all information but the name."
 
 (defun bookmark-set-name (bookmark newname)
   "Set BOOKMARK's name to NEWNAME."
-  (setcar (bookmark-get-bookmark bookmark) newname))
+  (setcar
+   (if (stringp bookmark) (bookmark-get-bookmark bookmark) bookmark)
+   newname))
 
 
 (defun bookmark-get-annotation (bookmark)
@@ -571,6 +567,11 @@ INFO-NODE, so record this fact in the bookmark's entry."
              ))))
 
     ;; Now fill in the optional parts:
+
+    ;; Take no chances with text properties
+    (set-text-properties 0 (length annotation) nil annotation)
+    (set-text-properties 0 (length info-node) nil info-node)
+
     (if annotation
         (nconc the-record (list (cons 'annotation annotation))))
     (if info-node
@@ -782,21 +783,18 @@ the list of bookmarks.\)"
                (format "Set bookmark (%s): " default)
                nil
                (let ((now-map (copy-keymap minibuffer-local-map)))
-                 (progn (define-key now-map  "\C-w" 
-                          'bookmark-yank-word)
-                        (define-key now-map  "\C-u" 
-                          'bookmark-insert-current-bookmark))
+                 (define-key now-map "\C-w" 'bookmark-yank-word)
+                 (define-key now-map "\C-u" 'bookmark-insert-current-bookmark)
                  now-map))))
 	 (annotation nil))
     (and (string-equal str "") (setq str default))
     ;; Ask for an annotation buffer for this bookmark 
     (if bookmark-use-annotations
 	(bookmark-read-annotation parg str)
-      (progn
-	(bookmark-make str annotation parg (bookmark-info-current-node))
-	(setq bookmark-current-bookmark str)
-	(bookmark-bmenu-surreptitiously-rebuild-list)
-	(goto-char bookmark-current-point)))))
+      (bookmark-make str annotation parg (bookmark-info-current-node))
+      (setq bookmark-current-bookmark str)
+      (bookmark-bmenu-surreptitiously-rebuild-list)
+      (goto-char bookmark-current-point))))
 
 
 (defun bookmark-info-current-node ()
@@ -836,7 +834,7 @@ the bookmark (and file, and point) specified in buffer local variables."
     (if (looking-at "^#")
         (bookmark-kill-line t)
       (forward-line 1)))
-  (let ((annotation (buffer-substring (point-min) (point-max)))
+  (let ((annotation (buffer-string))
 	(parg bookmark-annotation-paragraph)
 	(bookmark bookmark-annotation-name)
 	(pt bookmark-annotation-point)
@@ -926,8 +924,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
   (setq major-mode 'bookmark-edit-annotation-mode)
   (insert (funcall bookmark-read-annotation-text-func bookmark))
   (let ((annotation (bookmark-get-annotation bookmark)))
-    (if (and (not (eq annotation nil))
-	     (not (string-equal annotation "")))
+    (if (and annotation (not (string-equal annotation "")))
 	(insert annotation)))
   (run-hooks 'text-mode-hook))
 
@@ -942,7 +939,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
     (if (looking-at "^#")
         (bookmark-kill-line t)
       (forward-line 1)))
-  (let ((annotation (buffer-substring (point-min) (point-max)))
+  (let ((annotation (buffer-string))
 	(bookmark bookmark-annotation-name))
     (bookmark-set-annotation bookmark annotation)
     (bookmark-bmenu-surreptitiously-rebuild-list)
@@ -1013,7 +1010,7 @@ In Info, return the current node."
                     (goto-char bookmark-yank-point)
                     (buffer-substring-no-properties
                      (point)
-                     (save-excursion
+                     (progn
                        (forward-word 1)
                        (setq bookmark-yank-point (point)))))))
     (insert string)))
@@ -1047,9 +1044,8 @@ For example, if this is a Info buffer, return the Info file's name."
            t)
        
        (file-readable-p (expand-file-name bookmark-default-file))
-       (progn
-         (bookmark-load bookmark-default-file t t)
-         (setq bookmarks-already-loaded t))))
+       (bookmark-load bookmark-default-file t t)
+       (setq bookmarks-already-loaded t)))
 
 
 (defun bookmark-maybe-sort-alist ()
@@ -1139,19 +1135,20 @@ of the old one in the permanent bookmark record."
           ;; added by db
           (setq bookmark-current-bookmark str)
           (cons (current-buffer) (point)))
-      (progn
-        (ding)
-        (if (y-or-n-p (concat (file-name-nondirectory orig-file)
-                              " nonexistent.  Relocate \""
-                              str
-                              "\"? "))
-            (progn
-              (bookmark-relocate str)
-              ;; gasp!  It's a recursive function call in Emacs Lisp!
-              (bookmark-jump-noselect str))
-          (message 
-           "Bookmark not relocated; consider removing it \(%s\)." str)
-          nil)))))
+      ;; Else unable to find the marked file, so ask if user wants to
+      ;; relocate the bookmark, else remind them to consider deletion.
+      (ding)
+      (if (y-or-n-p (concat (file-name-nondirectory orig-file)
+                            " nonexistent.  Relocate \""
+                            str
+                            "\"? "))
+          (progn
+            (bookmark-relocate str)
+            ;; gasp!  It's a recursive function call in Emacs Lisp!
+            (bookmark-jump-noselect str))
+        (message 
+         "Bookmark not relocated; consider removing it \(%s\)." str)
+        nil))))
 
 
 ;;;###autoload
@@ -1168,7 +1165,8 @@ after a bookmark was set in it."
                   (read-file-name
                    (format "Relocate %s to: " bookmark)
                    (file-name-directory bmrk-filename)))))
-    (bookmark-set-filename bookmark newloc)))
+    (bookmark-set-filename bookmark newloc)
+    (bookmark-bmenu-surreptitiously-rebuild-list)))
 
 
 ;;;###autoload
@@ -1213,28 +1211,27 @@ name."
   (interactive (bookmark-completing-read "Old bookmark name"))
   (bookmark-maybe-historicize-string old)
   (bookmark-maybe-load-default-file)
-  (progn
-    (setq bookmark-current-point (point))
-    (setq bookmark-yank-point (point))
-    (setq bookmark-current-buffer (current-buffer))
-    (let ((newname
-           (or new   ; use second arg, if non-nil
-               (read-from-minibuffer
-                "New name: "
-                nil
-                (let ((now-map (copy-keymap minibuffer-local-map)))
-                  (define-key now-map  "\C-w" 'bookmark-yank-word)
-                  now-map)
-                nil
-                'bookmark-history))))
-      (progn
-	(bookmark-set-name old newname)
-	(setq bookmark-current-bookmark newname)
-        (bookmark-bmenu-surreptitiously-rebuild-list)
-	(setq bookmark-alist-modification-count
-	      (1+ bookmark-alist-modification-count))
-	(if (bookmark-time-to-save-p)
-	    (bookmark-save))))))
+
+  (setq bookmark-current-point (point))
+  (setq bookmark-yank-point (point))
+  (setq bookmark-current-buffer (current-buffer))
+  (let ((newname
+         (or new   ; use second arg, if non-nil
+             (read-from-minibuffer
+              "New name: "
+              nil
+              (let ((now-map (copy-keymap minibuffer-local-map)))
+                (define-key now-map  "\C-w" 'bookmark-yank-word)
+                now-map)
+              nil
+              'bookmark-history))))
+    (bookmark-set-name old newname)
+    (setq bookmark-current-bookmark newname)
+    (bookmark-bmenu-surreptitiously-rebuild-list)
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (if (bookmark-time-to-save-p)
+        (bookmark-save))))
 
 
 ;;;###autoload
@@ -1251,7 +1248,7 @@ this."
         (str-to-insert
          (save-excursion
            (set-buffer (car (bookmark-jump-noselect bookmark)))
-           (buffer-substring (point-min) (point-max)))))
+           (buffer-string))))
     (insert str-to-insert)
     (push-mark)
     (goto-char orig-point)))
@@ -1375,11 +1372,43 @@ for a file, defaulting to the file defined by variable
         ))))
 
 
+(defun bookmark-import-new-list (new-list)
+  ;; Walk over the new list, adding each individual bookmark
+  ;; carefully.  "Carefully" means checking against the existing
+  ;; bookmark-alist and renaming the new bookmarks with <N> extensions
+  ;; as necessary.
+  (let ((lst new-list)
+        (names (bookmark-all-names)))
+    (while lst
+      (let* ((full-record (car lst)))
+        (bookmark-maybe-rename full-record names)
+        (setq bookmark-alist (nconc bookmark-alist (list full-record)))
+        (setq names (cons (bookmark-name-from-full-record full-record) names))
+        (setq lst (cdr lst))))))
+
+
+(defun bookmark-maybe-rename (full-record names)
+  ;; just a helper for bookmark-import-new-list; it is only for
+  ;; readability that this is not inlined.
+  ;;
+  ;; Once this has found a free name, it sets full-record to that
+  ;; name.
+  (let ((found-name (bookmark-name-from-full-record full-record)))
+    (if (member found-name names)
+        ;; We've got a conflict, so generate a new name
+        (let ((count 2)
+              (new-name found-name))
+          (while (member new-name names)
+            (setq new-name (concat found-name (format "<%d>" count)))
+            (setq count (1+ count)))
+          (bookmark-set-name full-record new-name)))))
+
+
 ;;;###autoload
-(defun bookmark-load (file &optional revert no-msg)
+(defun bookmark-load (file &optional overwrite no-msg)
   "Load bookmarks from FILE (which must be in bookmark format).
 Appends loaded bookmarks to the front of the list of bookmarks.  If
-optional second argument REVERT is non-nil, existing bookmarks are
+optional second argument OVERWRITE is non-nil, existing bookmarks are
 destroyed.  Optional third arg NO-MSG means don't display any messages
 while loading.
 
@@ -1388,7 +1417,12 @@ will corrupt Emacs's bookmark list.  Generally, you should only load
 in files that were created with the bookmark functions in the first
 place.  Your own personal bookmark file, `~/.emacs.bmk', is
 maintained automatically by Emacs; you shouldn't need to load it
-explicitly."
+explicitly.
+
+If you load a file containing bookmarks with the same names as
+bookmarks already present in your Emacs, the new bookmarks will get
+unique numeric suffixes \"<2>\", \"<3>\", ... following the same
+method buffers use to resolve name collisions."
   (interactive
    (list (read-file-name
           (format "Load bookmarks from: (%s) "
@@ -1410,12 +1444,18 @@ explicitly."
           (let ((blist (bookmark-alist-from-buffer)))
             (if (listp blist)
                 (progn
-                  (if (not revert)
-                      (setq bookmark-alist-modification-count
-                            (1+ bookmark-alist-modification-count))
-                    (setq bookmark-alist-modification-count 0))
-                  (setq bookmark-alist
-                        (append blist (if (not revert) bookmark-alist)))
+                  (if overwrite
+                      (progn
+                        (setq bookmark-alist blist)
+                        (setq bookmark-alist-modification-count 0))
+                    ;; else
+                    (bookmark-import-new-list blist)
+                    (setq bookmark-alist-modification-count
+                          (1+ bookmark-alist-modification-count)))
+                  (if (string-equal
+                       (expand-file-name bookmark-default-file)
+                       file)
+                      (setq bookmarks-already-loaded t))
                   (bookmark-bmenu-surreptitiously-rebuild-list)) 
               (error "Invalid bookmark list in %s" file)))
           (kill-buffer (current-buffer)))
@@ -1519,8 +1559,7 @@ deletion, or > if it is flagged for displaying."
        ;; in the list of bookmarks.
        (let ((annotation (bookmark-get-annotation
                           (bookmark-name-from-full-record full-record))))
-         (if (and (not (eq annotation nil))
-                  (not (string-equal annotation "")))
+         (if (and annotation (not (string-equal annotation "")))
              (insert " *")
            (insert "  "))
 	 (let ((start (point)))
@@ -1663,22 +1702,19 @@ Optional argument SHOW means show them unconditionally."
                 (forward-line 1))))))))
 
 
-;; if you look at this next function from far away, it resembles a
-;; gun.  But only with this comment above... 
 (defun bookmark-bmenu-check-position ()
-  ;; Returns t if on a line with a bookmark.
-  ;; Otherwise, repositions and returns t.
-  ;; written by David Hughes <djh@harston.cv.com>
-  ;; Mucho thanks, David!  -karl
+  ;; Returns non-nil if on a line with a bookmark.
+  ;; (The actual value returned is bookmark-alist).
+  ;; Else reposition and try again, else return nil.
   (cond ((< (count-lines (point-min) (point)) 2)
          (goto-char (point-min))
          (forward-line 2)
-         t)
+         bookmark-alist)
         ((and (bolp) (eobp))
          (beginning-of-line 0)
-         t)
+         bookmark-alist)
         (t
-         t)))
+         bookmark-alist)))
 
 
 (defun bookmark-bmenu-bookmark ()
@@ -1710,17 +1746,15 @@ Optional argument SHOW means show them unconditionally."
   "Display the annotation for bookmark named BOOKMARK in a buffer,
 if an annotation exists."
   (let ((annotation (bookmark-get-annotation bookmark)))
-    (if (and (not (eq annotation nil))
-	     (not (string-equal annotation "")))
-	(progn
-          (save-excursion
-	    (let ((old-buf (current-buffer)))
-	      (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
-	      (delete-region (point-min) (point-max))
-	      ; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
-	      (insert annotation)
-	      (goto-char (point-min))
-	      (pop-to-buffer old-buf)))))))
+    (if (and annotation (not (string-equal annotation "")))
+        (save-excursion
+          (let ((old-buf (current-buffer)))
+            (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
+            (delete-region (point-min) (point-max))
+            ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
+            (insert annotation)
+            (goto-char (point-min))
+            (pop-to-buffer old-buf))))))
 
 
 (defun bookmark-show-all-annotations ()
@@ -1733,7 +1767,7 @@ if an annotation exists."
        (let* ((name (bookmark-name-from-full-record full-record))
               (ann  (bookmark-get-annotation name)))
          (insert (concat name ":\n"))
-         (if (and (not (eq ann nil)) (not (string-equal ann "")))
+         (if (and ann (not (string-equal ann "")))
              ;; insert the annotation, indented by 4 spaces.
              (progn
                (save-excursion (insert ann))
@@ -1755,7 +1789,8 @@ if an annotation exists."
       (let ((buffer-read-only nil))
         (delete-char 1)
         (insert ?>)
-        (forward-line 1))))
+        (forward-line 1)
+        (bookmark-bmenu-check-position))))
 
 
 (defun bookmark-bmenu-select ()
@@ -1928,7 +1963,8 @@ Optional BACKUP means move up."
           ;; flag indicating whether this bookmark is being visited?
           ;; well, we don't have this now, so maybe later.
           (insert " "))
-        (forward-line (if backup -1 1)))))
+        (forward-line (if backup -1 1))
+        (bookmark-bmenu-check-position))))
 
 
 (defun bookmark-bmenu-backup-unmark ()
@@ -1938,7 +1974,8 @@ Optional BACKUP means move up."
   (if (bookmark-bmenu-check-position)
       (progn
         (bookmark-bmenu-unmark)
-        (forward-line -1))))
+        (forward-line -1)
+        (bookmark-bmenu-check-position))))
 
 
 (defun bookmark-bmenu-delete ()
@@ -1950,7 +1987,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
       (let ((buffer-read-only nil))
         (delete-char 1)
         (insert ?D)
-        (forward-line 1))))
+        (forward-line 1)
+        (bookmark-bmenu-check-position))))
 
 
 (defun bookmark-bmenu-delete-backwards ()
@@ -1960,7 +1998,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (bookmark-bmenu-delete)
   (forward-line -2)
   (if (bookmark-bmenu-check-position)
-      (forward-line 1)))
+      (forward-line 1))
+  (bookmark-bmenu-check-position))
 
 
 (defun bookmark-bmenu-execute-deletions ()
@@ -2061,33 +2100,6 @@ strings returned are not."
 
     ;; Return the menu:
     (cons (concat "-*- " name " -*-") pane-list)))
-
-
-(defun bookmark-build-xemacs-menu (name entries function)
-  "Build a menu named NAME from the strings in ENTRIES.
-That is, ENTRIES is a list of strings that appear as the choices
-in the menu.
-The visible entries are truncated to `bookmark-menu-length', but the
-strings returned are not."
-  (let* (lst 
-	 (pane-list
-	  (progn
-	    (while entries
-	      (let ((str (car entries)))
-		(setq lst (cons
-			   (vector
-			    (if (> (length str) bookmark-menu-length)
-				(substring str 0 bookmark-menu-length)
-			      str)
-			    (list function str)
-			    t)
-			   lst))
-		(setq entries (cdr entries))))
-	    (nreverse lst))))
-
-    ;; Return the menu:
-    (append (if popup-menu-titles (list (concat "-*- " name " -*-")))
- 	    pane-list)))
 
 
 (defun bookmark-menu-popup-paned-menu (event name entries)
