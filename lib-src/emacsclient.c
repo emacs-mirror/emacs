@@ -32,6 +32,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef STDC_HEADERS
 #include <stdlib.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 char *getenv (), *getwd ();
 char *getcwd ();
@@ -182,9 +185,6 @@ main (argc, argv)
 #include <sys/un.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 extern char *strerror ();
 extern int errno;
