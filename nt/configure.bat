@@ -88,6 +88,7 @@ if "%1" == "--ldflags" goto userldflags
 if "%1" == "--without-png" goto withoutpng
 if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
+if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -103,6 +104,7 @@ echo.   --ldflags FLAG          pass FLAG to compiler when linking
 echo.   --without-png           do not use libpng even if it is installed
 echo.   --without-jpeg          do not use jpeglib even if it is installed
 echo.   --without-gif           do not use giflib even if it is installed
+echo.   --without-tiff          do not use tifflib even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -170,6 +172,14 @@ rem ----------------------------------------------------------------------
 :withoutgif
 set gifsupport=N
 set HAVE_GIF=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withouttiff
+set tiffsupport=N
+set HAVE_TIFF=
 shift
 goto again
 
@@ -334,6 +344,26 @@ set HAVE_GIF=1
 :gifDone
 rm -f junk.c junk.obj
 
+if (%tiffsupport%) == (N) goto tiffDone
+
+echo Checking for tiff...
+echo #include "tiffio.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj
+if exist junk.obj goto haveTiff
+
+echo ...building without TIFF support.
+set HAVE_TIFF=
+goto :tiffDone
+
+:haveTiff
+echo ...TIFF header available, building with TIFF support.
+set HAVE_TIFF=1
+
+:tiffDone
+rm -f junk.c junk.obj
+
 rem ----------------------------------------------------------------------
 :genmakefiles
 echo Generating makefiles
@@ -363,6 +393,7 @@ if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
+if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>..\src\config.h
 echo /* End of settings from configure.bat.  */ >>..\src\config.h
 
 copy paths.h ..\src\epaths.h
