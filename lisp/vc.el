@@ -995,14 +995,15 @@ on a buffer attached to the file named in the current Dired buffer line."
 
 ;; Named-configuration entry points
 
-(defun vc-quiescent-p ()
-  ;; Is the current directory ready to be snapshot?
-  (catch 'quiet
+(defun vc-locked-example ()
+  ;; Return an example of why the current directory is not ready to be snapshot
+  ;; or nil if no such example exists.
+  (catch 'vc-locked-example
     (vc-file-tree-walk
      (function (lambda (f)
 		 (if (and (vc-registered f) (vc-locking-user f))
-		     (throw 'quiet nil)))))
-    t))
+		     (throw 'vc-locked-example f)))))
+    nil))
 
 ;;;###autoload
 (defun vc-create-snapshot (name)
@@ -1011,13 +1012,14 @@ The snapshot is made from all registered files at or below the current
 directory.  For each file, the version level of its latest
 version becomes part of the named configuration."
   (interactive "sNew snapshot name: ")
-  (if (not (vc-quiescent-p))
-      (error "Can't make a snapshot since some files are locked")
-    (vc-file-tree-walk
-     (function (lambda (f) (and
-		   (vc-name f)
-		   (vc-backend-assign-name f name)))))
-    ))
+  (let ((locked (vc-locked-example)))
+    (if locked
+	(error "File %s is locked" locked)
+      (vc-file-tree-walk
+       (function (lambda (f) (and
+			      (vc-name f)
+			      (vc-backend-assign-name f name)))))
+      )))
 
 ;;;###autoload
 (defun vc-retrieve-snapshot (name)
@@ -1026,13 +1028,15 @@ This function fails if any files are locked at or below the current directory
 Otherwise, all registered files are checked out (unlocked) at their version
 levels in the snapshot."
   (interactive "sSnapshot name to retrieve: ")
-  (if (not (vc-quiescent-p))
-      (error "Can't retrieve snapshot sine some files are locked")
-    (vc-file-tree-walk
-     (function (lambda (f) (and
-		   (vc-name f)
-		   (vc-error-occurred (vc-backend-checkout f nil name))))))
-    ))
+  (let ((locked (vc-locked-example)))
+    (if locked
+	(error "File %s is locked" locked)
+      (vc-file-tree-walk
+       (function (lambda (f) (and
+			      (vc-name f)
+			      (vc-error-occurred
+			       (vc-backend-checkout f nil name))))))
+      )))
 
 ;; Miscellaneous other entry points
 
