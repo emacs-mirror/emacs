@@ -15,9 +15,6 @@ to the FSF.
   ought to be possible to omit text which is invisible (due to a
   text-property, overlay, or selective display) from the kill-ring.
 
-** Redefine define-generic-mode as a macro, so the compiler
-  sees the definitions it generates.
-
 ** Change the way define-minor-mode handles autoloading.
   It should not generate :require.  Or :require in defcustom
   should not be recorded in the user's custom-set-variables call.
