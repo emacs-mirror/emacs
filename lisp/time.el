@@ -131,7 +131,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 	(format-time-string "%a %b %e " now)
       "")
     (format-time-string (or display-time-format
-			    (if display-time-24hr-format "%H:%m" "%-I:%M%p"))
+			    (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			now)
     load
     (if mail " Mail" ""))
