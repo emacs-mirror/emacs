@@ -345,7 +345,7 @@ LIBXTR6 = -lSM -lICE
 /* We assume the config files have defined STATIC_OPTION
    since that might depend on the operating system.
    (Don't forget you need different definitions with and without __GNUC__.)  */
-LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext STATIC_OPTION 
+LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION 
 #else /* not LIBXT_STATIC */
 LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #endif /* not LIBXT_STATIC */
