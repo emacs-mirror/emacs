@@ -12713,6 +12713,12 @@ Returns whether the updating was successful."
       (while (and dormant (< (car dormant) (car active)))
 	(setq dormant (cdr dormant)))
       (setq unread (sort (append unselected unread) '<))
+      ;; Weed out duplicates.
+      (let ((un unread))
+	(while (cdr un)
+	  (if (eq (car un) (car (cdr un)))
+	      (setcdr un (cdr (cdr un)))
+	    (setq un (cdr un)))))
       ;; Compute the ranges of read articles by looking at the list of
       ;; unread articles.  
       (while unread
