@@ -345,11 +345,13 @@ through a file easier.")
 
 
 (defun bookmark-get-bookmark (bookmark)
-  "Return the full entry for BOOKMARK in bookmark-alist."
-  (apply (if bookmark-completion-ignore-case
-             #'assoc-ignore-case
-           #'assoc)
-         (list bookmark bookmark-alist)))
+  "Return the full entry for BOOKMARK in bookmark-alist.
+If BOOKMARK is not a string, return nil."
+  (when (stringp bookmark)
+    (apply (if bookmark-completion-ignore-case
+	       #'assoc-ignore-case
+	     #'assoc)
+	   (list bookmark bookmark-alist))))
 
 
 (defun bookmark-get-bookmark-record (bookmark)
