@@ -516,8 +516,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (when (and ctype
 	       (string-match iso-8859-n-locale-regexp ctype))
       (let (charset (which (match-string 1 ctype)))
-	(if (equal "5" which)
-	    (setq which "9"))
+	(if (equal "9" which)
+	    (setq which "5"))
 	(setq charset (concat "latin-" which))
 	(when (string-match "latin-[12345]" charset)
 	  ;; Set up for this character set.
@@ -829,7 +829,7 @@ If this is nil, no message will be displayed."
 		       (if (assq 'display (frame-parameters))
 			   (progn
 			     (insert "\
-The menu bar above is sufficient for basic editing with the mouse.
+The menu bar and scroll bar are sufficient for basic editing with the mouse.
 
 Useful Files menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
