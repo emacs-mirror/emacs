@@ -288,7 +288,7 @@ since it could result in memory overflow and make Emacs crash."
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")
 	     (x-stretch-cursor display boolean "21.1")))
-      this symbol group type native-p version
+      this symbol group type standard version native-p
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -297,8 +297,6 @@ since it could result in memory overflow and make Emacs crash."
 			(and (listp sexp)
 			     (memq (car sexp) '(lambda)))
 			(stringp sexp)
-;; 			(and (fboundp 'characterp)
-;; 			     (characterp sexp))
 			(numberp sexp))
 		    sexp
 		  (list 'quote sexp)))))
@@ -309,6 +307,11 @@ since it could result in memory overflow and make Emacs crash."
 	  group (nth 1 this)
 	  type (nth 2 this)
 	  version (nth 3 this)
+	  ;; If we did not specify any standard value expression above,
+	  ;; use the current value as the standard value.
+	  standard (if (nthcdr 4 this)
+		       (nth 4 this)
+		     (funcall quoter (default-value symbol)))
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
@@ -326,8 +329,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (message "Note, built-in variable `%S' not bound" symbol))
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
-	  (put symbol 'standard-value
-	       (list (funcall quoter (default-value symbol)))))
+	  (put symbol 'standard-value (list standard)))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.
       (unless purify-flag
