@@ -1,3 +1,18 @@
+2000-08-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/ia64.h: New file.
+
+	* widget.c (set_frame_size, update_wm_hints, EmacsFrameSetValues):
+	Use NULL instead of 0 at the end of variable argument list of
+	XtVaGetValues and XtVaSetValues, because 0 fails on systems where
+	sizeof (int) < sizeof (void *).
+
+	* xmenu.c (update_frame_menubar): Use NULL instead of 0 at the end
+	of variable argument lists of XtVaGetValues and XtVaSetValues.
+
+	* xfns.c (Fx_file_dialog): Use NULL instead of 0 at the end of
+	variable argument lists of XtVaGetValues and XtVaSetValues.
+
 2000-08-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (lisp_malloc, lisp_free): Use size_t and POINTER_TYPE.

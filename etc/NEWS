@@ -8,6 +8,8 @@ For older news, see the file ONEWS.
 
 * Installation Changes in Emacs 21.1
 
+** Support for GNU/Linux on IA64 machines has been added.
+
 ** `movemail' defaults to supporting POP.  You can turn this off using
 the --without-pop configure option, should that be necessary.
 
@@ -23,6 +25,7 @@ Unix-98-style support for large files if that is available.
 
 ** You can build a 64-bit Emacs for SPARC/Solaris systems which
 support 64-bit executables.  See etc/MACHINES for instructions.
+
 
 * Changes in Emacs 21.1
 

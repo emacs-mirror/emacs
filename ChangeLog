@@ -1,3 +1,7 @@
+2000-08-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for ia64*-*-linux*.
+
 2000-07-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist (aclocal.m4): Include in distribution.

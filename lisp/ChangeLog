@@ -1,3 +1,9 @@
+2000-08-03  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Get around a bug on skip-chars-forward.
+	(ebnf-8-bit-chars): New var for bug fix.
+	(ebnf-string): Bug fix.
+
 2000-08-03  Sam Steingold  <sds@gnu.org>
 
 	* pcvs.el (cvs-do-commit): Use `buffer-substring-no-properties'
