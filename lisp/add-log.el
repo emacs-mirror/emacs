@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Keywords: maint
 
@@ -287,6 +287,7 @@ Prefix arg means justify as well."
   "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
 
+;;;###autoload
 (defun add-log-current-defun ()
   "Return name of function definition point is in, or nil.
 
