@@ -4,7 +4,7 @@
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Created: 27 Jan 1994
-;; Version: foldout.el 1.8 dated 94/03/15 at 13:30:59
+;; Version: foldout.el 1.9 dated 94/03/15 at 14:10:40
 ;; Keywords: folding, outline
 
 ;; This file is part of GNU Emacs.
@@ -120,7 +120,12 @@
 
 ;;; ChangeLog:
 
-;; 1.8 15-Mar-94
+;; 1.9    15-Mar-94
+;; Didn't test that very well, did I?  The change to foldout-zoom-subtree
+;; affected foldout-mouse-zoom: if the heading under the `level n' one clicked
+;; on was at `level n+2' then it didn't get exposed.  Sorry about that!
+
+;; 1.8	  15-Mar-94
 ;; Changed meaning of prefix arg to foldout-zoom-subtree.  arg > 0 now means
 ;; "expose that many children" instead of just "expose children" so it is more
 ;; like `show-children' (C-c C-i).  Arg of C-u on its own only shows one level
@@ -420,7 +425,7 @@ How much is exposed by the zoom depends on the number of mouse clicks:-
    (let ((nclicks (event-click-count event)))
      (cond
       ((= nclicks 1) -1)		; body only
-      ((= nclicks 2) +1)		; subheadings only
+      ((= nclicks 2) '(1))		; subheadings only
       ((= nclicks 3) nil)		; body and subheadings
       (t 0)))))				; entire subtree
 
@@ -548,3 +553,4 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
 (provide 'foldout)
 
 ;;; foldout.el ends here
+
