@@ -1,3 +1,21 @@
+2002-12-07  Steven Tamm  <steventamm@mac.com>
+
+	* sysdep.c (emacs_read): Have emacs_read use sys_read.
+
+	* eval.c (Feval): Calls mac_check_for_quit_char at each stack
+	frame.  This may change as it could be time consuming.
+	
+	* macterm.c (mac_check_for_quit_char, quit_char_comp) 
+	(init_quit_char_handler, mac_determine_quit_char_modifiers) 
+	(mac_initialize):  Added code to check for pressing of quit_char
+	in the OS event queue
+
+	* mac.c (sys_select): Call mac_check_for_quit_char every second
+	while blocking on select.
+	
+	* mac.c (sys_read): Use sys_select to test for input first
+	before calling read to allow C-g to break
+
 2002-12-07  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fcompleting_read): Doc fix.
