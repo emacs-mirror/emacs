@@ -18412,8 +18412,8 @@ x_insert_glyphs (start, len)
   frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
 
-  rif->shift_glyphs_for_insert (f, frame_x, frame_y, line_height,
-				shifted_region_width, shift_by_width);
+  rif->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
+				line_height, shift_by_width);
 
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
