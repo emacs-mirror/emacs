@@ -95,6 +95,7 @@ if [ "${bogosities}" != "" ]; then
   echo "The following .elc files have no corresponding .el files:"
   echo "${bogosities}"
 fi
+rm -f /tmp/el /tmp/elc
 
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
