@@ -31,7 +31,7 @@
  'lao 2 ?L
  "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)."
  '(ascii lao nil nil
-   nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii lao)
    (post-read-conversion . lao-post-read-conversion)))
 
