@@ -42,6 +42,9 @@
  "Thai" '("quail-thai" quail-use-package "quail/thai"))
 
 (defun setup-thai-environment ()
+  "Setup multilingual environment (MULE) for Thai."
+  (interactive)
+  (setup-english-environment)
   (setq coding-category-iso-8-1 'th-tis620)
 
   (set-coding-priority
@@ -53,12 +56,18 @@
   (setq default-input-method '("Thai" . "quail-thai"))
   )
 
+(defun describe-thai-support ()
+  "Describe how Emacs supports Thai."
+  (interactive)
+  (describe-language-support-internal "Thai"))
+
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)
+	  (describe-function . describe-thai-support)
 	  (charset . (thai-tis620))
 	  (coding-system . (th-tis620))
-	  (documentation . t)
-	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
+	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")
+	  (documentation . nil)))
 
 ;;; thai.el ends here

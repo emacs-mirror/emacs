@@ -37,6 +37,9 @@
  "Hebrew" '("quail-hebrew" quail-use-package "quail/hebrew"))
 
 (defun setup-hebrew-environment ()
+  "Setup multilingual environment (MULE) for Hebrew.
+But, please note that right-to-left writing is not yet supported."
+  (interactive)
   (setq coding-category-iso-8-1 'iso-8859-8)
 
   (set-coding-priority
@@ -51,11 +54,17 @@
   (setq default-input-method '("Hebrew" . "quail-hebrew"))
   )
 
+(defun describe-hebrew-support ()
+  "Describe how Emacs supports Hebrew."
+  (interactive)
+  (describe-language-support-internal "Hebrew"))
+
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
+	    (describe-function . describe-hebrew-support)
 	    (charset . (hebrew-iso8859-8))
 	    (coding-system . (iso-8859-8))
-	    (documentation . "Right-to-left writing is Not yet supported")
-	    (sample-text . "Hebrew	,Hylem(B")))
+	    (sample-text . "Hebrew	,Hylem(B")
+	    (documentation . "Right-to-left writing is not yet supported.")))
 
 ;;; hebew.el ends here

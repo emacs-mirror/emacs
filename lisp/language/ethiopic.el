@@ -51,7 +51,9 @@
 (register-input-method
  "Ethiopic" '("quail-ethio" quail-use-package "quail/ethiopic"))
 
-(defun setup-ethio-environment ()
+(defun setup-ethiopic-environment ()
+  "Setup multilingual environment for Ethiopic."
+  (interactive)
   (setq primary-language "Ethiopic")
 
   (setq default-input-method '("Ethiopic" . "quail-ethio"))
@@ -83,10 +85,16 @@
       (define-key mail-mode-map [C-f5] 'fidel-to-sera-mail)))
   )
 
+(defun describe-ethiopic-support ()
+  "Describe how Emacs supports Ethiopic."
+  (interactive)
+  (describe-language-support-internal "Ethiopic"))
+
 (set-language-info-alist
- "Ethiopic" '((setup-function . setup-ethio-environment)
+ "Ethiopic" '((setup-function . setup-ethiopic-environment)
+	      (describe-function . describe-ethiopic-support)
 	      (charset . (ethiopic))
-	      (documentation . t)
-	      (sample-text . "$(3$O#U!.(B")))
+	      (sample-text . "$(3$O#U!.(B")
+	      (documentation . nil)))
 
 ;;; ethiopic.el ends here

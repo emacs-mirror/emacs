@@ -187,6 +187,8 @@
  "Cyrillic" '("quail-yawerty" quail-use-package "quail/cyrillic"))
 
 (defun setup-cyrillic-environment ()
+  "Setup multilingual environment for Cyrillic users."
+  (interactive)
   (setq primary-language "Cyrillic")
 
   (setq coding-category-iso-8-1 'iso-8859-5)
@@ -202,11 +204,17 @@
   (setq default-input-method '("Cyrillic" . "quail-yawerty"))
   )
 
+(defun describe-cyrillic-support ()
+  "Describe how Emacs support Cyrillic."
+  (interactive)
+  (describe-language-support-internal "Cyrillic"))
+
 (set-language-info-alist
  "Cyrillic" '((setup-function . setup-cyrillic-environment)
+	      (describe-function . describe-cyrillic-support)
 	      (charset . (cyrillic-iso8859-5))
 	      (coding-system . (iso-8859-5 koi8 alternativnyj))
-	      (documentation . t)
-	      (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")))
+	      (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+	      (documentation . nil)))
 
 ;;; cyrillic.el ends here

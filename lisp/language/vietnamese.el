@@ -226,7 +226,9 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (register-input-method
  "Vietnamese" '("quail-viqr" quail-use-package "quail/viqr"))
 
-(defun setup-viet-environment ()
+(defun setup-vietnamese-environment ()
+  "Setup multilingual environment (MULE) for Vietnamese."
+  (interactive)
   ;; for VISCII users
   (setq coding-category-binary 'viscii)
 
@@ -242,12 +244,18 @@ Both tables are indexed by the position code of Vietnamese characters.")
   (setq default-input-method '("Vietnamese" . "quail-viqr"))
   )
 
+(defun describe-vietnamese-support ()
+  "Describe how Emacs supports Vietnamese."
+  (interactive)
+  (describe-language-support-internal "Vietnamese"))
+
 (set-language-info-alist
- "Vietnamese" '((setup-function . setup-viet-environment)
+ "Vietnamese" '((setup-function . setup-vietnamese-environment)
+		(describe-function . describe-vietnamese-support)
 		(charset . (vietnamese-viscii-lower
 			    vietnamese-viscii-upper))
 		(coding-system . (viscii vscii viqr))
-		(documentation . t)
-		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")))
+		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
+		(documentation . nil)))
 
 ;;; vietnamese.el ends here

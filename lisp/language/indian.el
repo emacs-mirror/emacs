@@ -51,6 +51,20 @@
 
 ;;; Code:
 
+(defun describe-indian-support ()
+  "Describe how Emacs support Indian languages."
+  (interactive)
+  (describe-language-support-internal "Indian"))
+
+(set-language-info-alist
+ "Indian" '((describe-function . describe-indian-support)
+	    (charset . (indian-is13194))
+	    (documentation . "\
+Among Indian languages, such languages using Devanagari scripts as
+Hindi and Marathi are supproted.  For them, please specify Devanagari
+for more detail.")
+	    ))
+
 ;;  Followings are what you see when you refer to the Emacs
 ;;  representations of IS 13194 charcters.  However, this is merely
 ;;  tentative apperance, and you must convert them by

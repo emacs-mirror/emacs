@@ -37,6 +37,8 @@
  "Greek" '("quail-greek" quail-use-package "quail/greek"))
 
 (defun setup-greek-environment ()
+  "Setup multilingual environment (MULE) for Greek."
+  (interactive)
   (setq coding-category-iso-8-1 'iso-8859-7)
 
   (set-coding-priority
@@ -50,11 +52,17 @@
   (setq default-input-method '("Greek" . "quail-greek"))
   )
 
+(defun describe-greek-support ()
+  "Describe how Emacs supports Greek."
+  (interactive)
+  (describe-language-support-internal "Greek"))
+
 (set-language-info-alist
  "Greek" '((setup-function . setup-greek-environment)
+	   (describe-function. describe-greek-support)
 	   (charset . (greek-iso8859-7))
 	   (coding-system . (iso-8859-7))
-	   (documentation . t)
-	   (sample-text . "Greek (,FGkk]mija(B)	,FCei\(B ,Fsar(B")))
+	   (sample-text . "Greek (,FGkk]mija(B)	,FCei\(B ,Fsar(B")
+	   (documentation . nil)))
 
 ;;; greek.el ends here
