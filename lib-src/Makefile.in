@@ -233,14 +233,15 @@ emacsclient: ${srcdir}/emacsclient.c ../src/config.h
 hexl: ${srcdir}/hexl.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
+TIMEROBJS=getdate.o timer.o $(ALLOCA)
 getdate.o: ${srcdir}/getdate.y ../src/config.h
 	${YACC} ${YFLAGS} ${srcdir}/getdate.y
 	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) -c y.tab.c
 	mv y.tab.o getdate.o
 timer.o: ${srcdir}/timer.c ../src/config.h
 	$(CC) -c -I${srcdir}/../src $(ALL_CFLAGS) ${srcdir}/timer.c
-timer: getdate.o timer.o
-	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) getdate.o timer.o -o timer
+timer: ${TIMEROBJS}
+	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) ${TIMEROBJS} -o timer
 
 make-path: ${srcdir}/make-path.c
 	$(CC) $(ALL_CFLAGS) ${srcdir}/make-path.c -o make-path
