@@ -2384,8 +2384,10 @@ comint mode, which see."
 		    (if (file-name-directory file-subst)
 			(expand-file-name file-subst)
 		      file-subst)))
-	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
+	 (filepart (and file-word (concat "-" (file-name-nondirectory file))))
+	 (existing-buffer (get-buffer (concat "*gud" filepart "*"))))
     (pop-to-buffer (concat "*gud" filepart "*"))
+    (if existing-buffer (error "This program is already running under gdb"))
     ;; Set the dir, in case the buffer already existed with a different dir.
     (setq default-directory dir)
     ;; Set default-directory to the file's directory.

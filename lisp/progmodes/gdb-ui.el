@@ -1152,7 +1152,7 @@ static char *magick[] = {
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1274,7 +1274,7 @@ current line."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-stack-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1351,7 +1351,7 @@ the source buffer."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-threads-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1433,7 +1433,7 @@ the source buffer."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-registers-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 ;;
 ;; Locals buffer.
@@ -1505,7 +1505,7 @@ the source buffer."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-locals-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 
 ;;;; Window management
@@ -1604,7 +1604,7 @@ the source buffer."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdba))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 (defun gdb-display-gdb-buffer ()
   (interactive)
@@ -1935,7 +1935,7 @@ BUFFER nil or omitted means use the current buffer."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
-  (set-window-dedicated-p (get-buffer-window (current-buffer)) t))
+  (set-window-dedicated-p (selected-window) t))
 
 ;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output

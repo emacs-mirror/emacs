@@ -1,3 +1,46 @@
+2004-04-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-prompt-read-only): New variable.
+	(comint-output-filter): Implement it.
+
+	* ielm.el (ielm-prompt-read-only, ielm-prompt): Update docstring.
+	(ielm-prompt-internal): New variable.
+	(ielm-font-lock-keywords): Remove irrelevant ielm-prompt keyword.
+	(ielm-send-input): Delete unused variable `buf'.
+	(ielm-eval-input): Use `ielm-prompt-internal'.
+	(inferior-emacs-lisp-mode): Use new variables
+	`comint-prompt-read-only' and `ielm-prompt-internal'.
+	Get rid of obsolete variable `directory-sep-char'.
+	(ielm): Use `zerop'.
+
+2004-04-29  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (toplevel): Require cl at compile time.
+	Remove conditional definitions of `ignore-errors' and `caddar'
+	because they occur at run time.
+
+2004-04-28  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-frame-breakpoints-buffer)
+	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
+	(gdb-frame-gdb-buffer, gdb-frame-assembler-buffer): Use
+	selected-window.
+
+	* progmodes/gud.el (gud-common-init): Throw an error if program is
+	already running under gdb.
+
+2004-04-28  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (thumbs-delete-images): Fix formatting of prompt.
+	(thumbs-show-image-num): Move assignment of
+	`thumbs-current-image-filename' within scope of `i'.
+	(thumbs-emboss-image): Don't use `evenp'.
+
+2004-04-28  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-context-lines): Default now 0.
+
 2004-04-28  Juanma Barranquero  <lektu@terra.es>
 
 	Use `time-less-p' from calendar/time-date.el instead of defining
