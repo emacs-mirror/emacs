@@ -4415,8 +4415,8 @@ x_update_menu_appearance (f)
 	  sprintf (line, "%s.pane.menubar*font%s: %s",
 		   myname, suffix, face->font_name);
 	  XrmPutLineResource (&rdb, line);
-	  sprintf (line, "%s.popup_menu*font%s: %s",
-		   myname, suffix, face->font_name);
+	  sprintf (line, "%s.%s*font%s: %s",
+		   myname, popup_path, suffix, face->font_name);
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
