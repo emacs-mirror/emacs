@@ -1058,7 +1058,6 @@ write_glyphs (string, len)
       return;
     }
 
-  highlight_if_desired ();
   turn_off_insert ();
 
   /* Don't dare write in last column of bottom line, if Auto-Wrap,
@@ -1088,6 +1087,7 @@ write_glyphs (string, len)
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
+      highlight_if_desired ();
       turn_on_face (f, face_id);
 
       while (n > 0)
@@ -2082,6 +2082,9 @@ turn_off_face (f, face_id)
 
       if (face->tty_alt_charset_p)
 	OUTPUT_IF (TS_exit_alt_charset_mode);
+
+      if (standout_mode)
+	standout_mode = 0;
     }
   else
     {
