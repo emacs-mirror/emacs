@@ -197,7 +197,7 @@ way.
 
 @item
 When a package provides a modification of ordinary Emacs behavior, it is
-good to include a command to enable and disable the feature, Provide a
+good to include a command to enable and disable the feature, provide a
 command named @code{@var{whatever}-mode} which turns the feature on or
 off, and make it autoload (@pxref{Autoload}).  Design the package so
 that simply loading it has no visible effect---that should not enable
