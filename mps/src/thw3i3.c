@@ -1,58 +1,65 @@
-/*  impl.c.thw3i3: WIN32 THREAD MANAGER
+/* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thw3i3.c(trunk.19) $
- *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!thw3i3.c(MM_dylan_salamander.2) $
+ * Copyright (C) 1995,1998.  Harlequin Group plc.  All rights reserved.
  *
- *  Implements thread registration, suspension, and stack
- *  scanning.  See design.mps.thread-manager
+ * Implements thread registration, suspension, and stack
+ * scanning.  See design.mps.thread-manager
  *
- *  This supports the impl.h.th
+ * This supports the impl.h.th
  *
- *  .thread.id: The thread id is used to identify the current thread.
- *  .thread.handle: The thread handle needs the enough access to
- *  be able to suspend threads and to get their context.  i.e.
- *  .thread.handle.susp-res: THREAD_SUSPEND_RESUME access
- *  .thread.handle.get-context: THREAD_GET_CONTEXT access
- *  An appropriate handle is created on registration.
+ * .thread.id: The thread id is used to identify the current thread.
+ * .thread.handle: The thread handle needs the enough access to
+ * be able to suspend threads and to get their context.  i.e.
+ * .thread.handle.susp-res: THREAD_SUSPEND_RESUME access
+ * .thread.handle.get-context: THREAD_GET_CONTEXT access
+ * An appropriate handle is created on registration.
  *
- *  ASSUMPTIONS
  *
- *  .error: some major errors are assumed not to happen.
- *  .error.close-handle: CloseHandle is assumed to succeed.
- *  .error.resume: ResumeThread is assumed to succeed.
- *  .error.suspend: SuspendThread is assumed to succeed.
- *  .error.get-context: GetThreadContext is assumed to succeed
+ * ASSUMPTIONS
  *
- *  .stack.full-descend:  assumes full descending stack.
- *  i.e. stack pointer points to the last allocated location;
- *  stack grows downwards.
+ * .error: some major errors are assumed not to happen.
+ * .error.close-handle: CloseHandle is assumed to succeed.
  *
- *  .i3: assumes MPS_ARCH_I3
- *  .i3.sp: The sp in the context is Esp
- *  .i3.context: Esp is in control context so .context.sp holds
- *  The root registers are Edi, Esi, Ebx, Edx, Ecx, Eax
- *  these are given by CONTEXT_INTEGER, so .context.regroots holds.
+ * Other errors are assumed to only happen in certain circumstances.
+ * .error.resume: ResumeThread is assumed to succeed unless the thread
+ * has been destroyed (in fact, perversely, it appears to succeeed even
+ * when the thread has been destroyed).
+ * .error.suspend: SuspendThread is assumed to succeed unless the thread
+ * has been destroyed.
+ * .error.get-context: GetThreadContext is assumed to succeed unless the
+ * thread has been destroyed.
  *
- *  .nt: uses Win32 specific stuff
- *  HANDLE
- *  DWORD
- *  GetCurrentProcess
- *  DuplicateHandle
- *  THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT
- *  GetCurrentThreadId
- *  CloseHandle
- *  SuspendThread
- *  ResumeThread
- *  CONTEXT
- *  CONTEXT_CONTROL | CONTEXT_INTEGER
- *  GetThreadContext
+ * .stack.full-descend:  assumes full descending stack.
+ * i.e. stack pointer points to the last allocated location;
+ * stack grows downwards.
  *
- *  .context: ContextFlags determine what is recorded by
- *  GetThreadContext.  This should be set to whichever bits of the
- *  context that need to be recorded.  This should include:
- *  .context.sp: sp assumed to be recorded by CONTEXT_CONTROL.
- *  .context.regroots: assumed to be recorded by CONTEXT_INTEGER.
- *  see winnt.h for description of CONTEXT and ContextFlags.
+ * .i3: assumes MPS_ARCH_I3
+ * .i3.sp: The sp in the context is Esp
+ * .i3.context: Esp is in control context so .context.sp holds
+ * The root registers are Edi, Esi, Ebx, Edx, Ecx, Eax
+ * these are given by CONTEXT_INTEGER, so .context.regroots holds.
+ *
+ * .nt: uses Win32 specific stuff
+ * HANDLE
+ * DWORD
+ * GetCurrentProcess
+ * DuplicateHandle
+ * THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT
+ * GetCurrentThreadId
+ * CloseHandle
+ * SuspendThread
+ * ResumeThread
+ * CONTEXT
+ * CONTEXT_CONTROL | CONTEXT_INTEGER
+ * GetThreadContext
+ *
+ * .context: ContextFlags determine what is recorded by
+ * GetThreadContext.  This should be set to whichever bits of the
+ * context that need to be recorded.  This should include:
+ * .context.sp: sp assumed to be recorded by CONTEXT_CONTROL.
+ * .context.regroots: assumed to be recorded by CONTEXT_INTEGER.
+ * see winnt.h for description of CONTEXT and ContextFlags.
  */
 
 #include "mpm.h"
@@ -63,7 +70,7 @@
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.19) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.20) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -166,10 +173,15 @@ static void mapThreadRing(Ring ring, void (*f)(Thread thread))
 
 static void suspend(Thread thread)
 {
-  DWORD c;
   /* .thread.handle.susp-res */
-  c = SuspendThread(thread->handle);
-  AVER(0xFFFFFFFF != c); /* .error.suspend */
+  /* .error.suspend */
+  /* In the error case (SuspendThread returning 0xFFFFFFFF), we */
+  /* assume the thread has been destroyed (as part of process shutdown). */
+  /* In which case we simply continue. */
+  /* [GetLastError appears to return 5 when SuspendThread is called */
+  /* on a destroyed thread, but I'm not sufficiently confident of this */
+  /* to check -- drj 1998-04-09] */
+  (void)SuspendThread(thread->handle);
 }
 
 void ThreadRingSuspend(Ring ring)
@@ -179,10 +191,12 @@ void ThreadRingSuspend(Ring ring)
 
 static void resume(Thread thread)
 {
-  DWORD c;
   /* .thread.handle.susp-res */
-  c = ResumeThread(thread->handle);
-  AVER(0xFFFFFFFF != c); /* .error.resume */
+  /* .error.resume */
+  /* In the error case (ResumeThread returning 0xFFFFFFFF), we */
+  /* assume the thread has been destroyed (as part of process shutdown). */
+  /* In which case we simply continue. */
+  (void)ResumeThread(thread->handle);
 }
 
 void ThreadRingResume(Ring ring)
@@ -208,7 +222,12 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
     /* .thread.handle.get-context */
     success = GetThreadContext(thread->handle, &context);
-    AVER(success); /* .error.get-context */
+    if(!success) {
+      /* .error.get-context */
+      /* We assume that the thread must have been destroyed. */
+      /* We ignore the situation by returning immediately. */
+      return ResOK;
+    }
 
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
@@ -257,7 +276,8 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   return ResOK;
 }
