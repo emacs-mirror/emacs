@@ -285,6 +285,8 @@ FRAME_PTR updating_frame;
 static int system_uses_terminfo;
 
 char *tparam ();
+
+extern char *tgetstr ();
 
 ring_bell ()
 {
@@ -1261,7 +1263,6 @@ term_get_fkeys (address)
 static Lisp_Object
 term_get_fkeys_1 ()
 {
-  extern char *tgetstr ();
   int i;
 
   char **address = term_get_fkeys_arg;
@@ -1361,8 +1362,6 @@ term_init (terminal_type)
   char buffer[2044];
   register char *p;
   int status;
-
-  extern char *tgetstr ();
 
   Wcm_clear ();
   dont_calculate_costs = 0;
@@ -1512,7 +1511,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
      If that fails, we can't use standout mode at all.  */
   if (TS_end_standout_mode == 0)
     {
-      char *s = tgetstr ("me");
+      char *s = tgetstr ("me", address);
       if (s != 0)
 	TS_end_standout_mode = s;
       else
