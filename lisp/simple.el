@@ -1157,28 +1157,32 @@ when given no argument at the beginning of a line."
 		 (point))))
 
 (defun forward-visible-line (arg)
-  "Move forward by ARG lines, ignoring currently invisible newlines only."
+  "Move forward by ARG lines, ignoring currently invisible newlines only.
+If ARG is negative, move backward -ARG lines.
+If ARG is zero, move to the beginning of the current line."
   (condition-case nil
-      (progn
-	(while (> arg 0)
-	  (or (zerop (forward-line 1))
-	      (signal 'end-of-buffer nil))
-	  ;; If the following character is currently invisible,
-	  ;; skip all characters with that same `invisible' property value,
-	  ;; then find the next newline.
-	  (while (and (not (eobp))
-		      (let ((prop
-			     (get-char-property (point) 'invisible)))
-			(if (eq buffer-invisibility-spec t)
-			    prop
-			  (or (memq prop buffer-invisibility-spec)
-			      (assq prop buffer-invisibility-spec)))))
-	    (if (get-text-property (point) 'invisible)
-		(goto-char (next-single-property-change (point) 'invisible))
-	      (goto-char (next-overlay-change (point))))
-	    (or (zerop (forward-line 1))
-		(signal 'end-of-buffer nil)))
-	  (setq arg (1- arg)))
+      (if (>= arg 0)
+	  (while (>= arg 0)
+	    (if (zerop arg)
+		(beginning-of-line)
+	      (or (zerop (forward-line 1))
+		  (signal 'end-of-buffer nil)))
+	    ;; If the following character is currently invisible,
+	    ;; skip all characters with that same `invisible' property value,
+	    ;; then find the next newline.
+	    (while (and (not (eobp))
+			(let ((prop
+			       (get-char-property (point) 'invisible)))
+			  (if (eq buffer-invisibility-spec t)
+			      prop
+			    (or (memq prop buffer-invisibility-spec)
+				(assq prop buffer-invisibility-spec)))))
+	      (if (get-text-property (point) 'invisible)
+		  (goto-char (next-single-property-change (point) 'invisible))
+		(goto-char (next-overlay-change (point))))
+	      (or (zerop (forward-line 1))
+		  (signal 'end-of-buffer nil)))
+	    (setq arg (1- arg)))
 	(while (< arg 0)
 	  (or (zerop (vertical-motion -1))
 	      (signal 'beginning-of-buffer nil))
