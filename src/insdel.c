@@ -1072,6 +1072,34 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 			       current_buffer, inherit);
 }
 
+void
+adjust_before_replace (from, from_byte, to, to_byte)
+     int from, from_byte, to, to_byte;
+{
+  adjust_markers_for_delete (from, from_byte, to, to_byte);
+  record_delete (from, to - from);
+}
+
+void
+adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
+     int from, from_byte, to, to_byte, len, len_byte;
+{
+  record_insert (from, len);
+  if (from < PT)
+    adjust_point (len, len_byte);
+#ifdef USE_TEXT_PROPERTIES
+  offset_intervals (current_buffer, PT, len - (to - from));
+#endif
+  adjust_overlays_for_delete (from, to - from);
+  adjust_overlays_for_insert (from, len);
+  adjust_markers_for_insert (from, from_byte,
+			     from + len, from_byte + len_byte, 0);
+  if (len == 0)
+    evaporate_overlays (from);
+  MODIFF++;
+  signal_after_change (from, to - from, len);
+}
+
 /* Replace the text from character positions FROM to TO with NEW,
    If PREPARE is nonzero, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
