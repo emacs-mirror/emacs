@@ -303,15 +303,15 @@ simply inserts a newline."
 	      (if (ielm-is-whitespace (substring ielm-string ielm-pos))
 		  ;; need this awful let convolution to work around
 		  ;; an Emacs bug involving local vbls and let binding
-		  (let ((:save :)
-			(::save ::)
-			(:::save :::))
+		  (let ((*save *)
+			(**save **)
+			(***save ***))
 		    (save-excursion
 		      (set-buffer ielm-working-buffer)
 		      (condition-case err
-			  (let ((: :save)
-				(:: ::save)
-				(::: :::save)
+			  (let ((* *save)
+				(** **save)
+				(*** ***save)
 				(ielm-obuf (current-buffer)))
 			    (setq ielm-result (eval ielm-form))
 			    (setq ielm-wbuf (current-buffer))
@@ -388,7 +388,7 @@ Uses the interface provided by `comint-mode' (which see).
 * \\[comint-dynamic-complete] completes Lisp symbols (or filenames, within strings), 
   or indents the line if there is nothing to complete.
 
-During evaluations, the values of the variables `:', `::', and `:::'
+During evaluations, the values of the variables `*', `**', and `***'
 are the results of the previous, second previous and third previous
 evaluations respectively.
 
@@ -438,12 +438,12 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq fill-paragraph-function 'lisp-fill-paragraph)
 
   ;; Value holders
-  (setq : nil)
-  (make-local-variable ':)
-  (setq :: nil)
-  (make-local-variable '::)
-  (setq ::: nil)
-  (make-local-variable ':::)
+  (setq * nil)
+  (make-local-variable '*)
+  (setq ** nil)
+  (make-local-variable '**)
+  (setq *** nil)
+  (make-local-variable '***)
 
   ;; font-lock support
   (make-local-variable 'font-lock-defaults)
