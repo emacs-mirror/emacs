@@ -2402,8 +2402,6 @@ int line_hash_code P_ ((struct glyph_row *));
 void set_window_update_flags P_ ((struct window *, int));
 void write_glyphs P_ ((struct glyph *, int));
 void insert_glyphs P_ ((struct glyph *, int));
-void redraw_frame P_ ((struct frame *));
-void redraw_garbaged_frames P_ ((void));
 int scroll_cost P_ ((struct frame *, int, int, int));
 int direct_output_for_insert P_ ((int));
 int direct_output_forward_char P_ ((int));
