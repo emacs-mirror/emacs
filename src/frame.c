@@ -1197,6 +1197,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	}
 
       do_switch_frame (frame1, Qnil, 0);
+      sf = SELECTED_FRAME ();
     }
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
