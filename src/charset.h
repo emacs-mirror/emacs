@@ -791,7 +791,7 @@ extern int n_cmpchars;
 
 extern void invalid_character P_ ((int));
 
-extern int unify_char P_ ((Lisp_Object, int, int, int, int));
+extern int translate_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_non_ascii_string P_ ((const unsigned char *, int, int *,
 				       unsigned char *, unsigned char *));
 extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *));
@@ -803,9 +803,11 @@ extern int cmpchar_component P_ ((unsigned int, unsigned int));
 extern int find_charset_in_str P_ ((unsigned char *, int, int *, Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
 
-extern Lisp_Object Vcharacter_unification_table_vector;
-#define UNIFICATION_ID_TABLE(id) \
-  (XCONS(XVECTOR(Vcharacter_unification_table_vector)->contents[(id)])->cdr)
+extern Lisp_Object Vcharacter_translation_table_vector;
+
+/* Return a character translation table of id number ID.  */
+#define GET_TRANSLATION_TABLE(id) \
+  (XCONS(XVECTOR(Vcharacter_translation_table_vector)->contents[(id)])->cdr)
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
