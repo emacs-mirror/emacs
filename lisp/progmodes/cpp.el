@@ -54,7 +54,7 @@
   "*Face used for known cpp symbols.")
 
 (defvar cpp-unknown-face 'highlight
-  "*Face used for unknown cpp cymbols.")
+  "*Face used for unknown cpp symbols.")
 
 (defvar cpp-face-type 'light 
   "*Indicate what background face type you prefer.
@@ -133,7 +133,7 @@ Each entry is a list with the following elements:
     ("bold-italic" . 'bold-italic)
     ("italic" . 'italic)
     ("underline" . 'underline))
-  "Alist of names and faces to be used for monocrome screens.")
+  "Alist of names and faces to be used for monochrome screens.")
 
 (defvar cpp-face-none-list
    '(("default" . default)
@@ -145,7 +145,7 @@ Each entry is a list with the following elements:
 	  cpp-face-dark-list
 	  cpp-face-mono-list
 	  cpp-face-none-list)
-  "All faces used for highligting text inside cpp conditionals.")
+  "All faces used for highlighting text inside cpp conditionals.")
 
 ;;; Parse Buffer:
 
