@@ -905,6 +905,9 @@ struct handler
     /* The handler clauses and variable from the condition-case form.  */
     Lisp_Object handler;
     Lisp_Object var;
+    /* Fsignal stores here the condition-case clause that applies,
+       and Fcondition_case thus knows which clause to run.  */
+    Lisp_Object chosen_clause;
 
     /* Used to effect the longjump out to the handler.  */
     struct catchtag *tag;
@@ -917,6 +920,8 @@ extern struct handler *handlerlist;
 
 extern struct catchtag *catchlist;
 extern struct backtrace *backtrace_list;
+
+extern Lisp_Object memory_signal_data;
 
 /* An address near the bottom of the stack.
    Tells GC how to save a copy of the stack.  */
