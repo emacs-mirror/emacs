@@ -36,6 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "syntax.h"
 #include "indent.h"
+#include "blockinput.h"
 
 struct buffer *current_buffer;		/* the current buffer */
 
