@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_test_function!97.c(trunk.3) $
 TEST_HEADER
  summary = test of mps_arena_formatted_objects_walk
  language = c
@@ -103,18 +103,21 @@ static void test(void) {
 */
 
  mycell *a[4], *b[4], *f[4];
+ mps_addr_t addr;
  int i, j, k;
 
  cdie(mps_space_create(&space), "create space");
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
+ addr = &a[0];
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, &a[0], 4),
+  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, addr, 4),
   "create a root table");
 
+ addr = &b[0];
  cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, &b[0], 4),
+  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, addr, 4),
   "create b root table");
 
  cdie(
@@ -148,10 +151,13 @@ static void test(void) {
  newstamp = 0;
 
  for (i=0; i<4; i++) {
-  die(allocrdumb(&a[i], aplo, 64, MPS_RANK_EXACT), "alloc failed");
-  die(allocrone(&b[i], apawl, 5, MPS_RANK_EXACT), "alloc failed");
+  addr = &a[i];
+  die(allocrdumb(addr, aplo, 64, MPS_RANK_EXACT), "alloc failed");
+  addr = &b[i];
+  die(allocrone(addr, apawl, 5, MPS_RANK_EXACT), "alloc failed");
   b[i]->data.ref[0].addr = a[i];
-  die(allocrone(&a[i], apamc, 5, MPS_RANK_EXACT), "alloc failed");
+  addr = &a[i];
+  die(allocrone(addr, apamc, 5, MPS_RANK_EXACT), "alloc failed");
   a[i]->data.ref[0].addr = b[i];
  }
 
@@ -162,12 +168,15 @@ static void test(void) {
 
   for (i=0; i<10000; i++) {
    k = ranint(4);
-   die(allocrdumb(&a[k], aplo, 64, MPS_RANK_EXACT), "alloc failed");
+   addr = &a[k];
+   die(allocrdumb(addr, aplo, 64, MPS_RANK_EXACT), "alloc failed");
    k = ranint(4);
-   die(allocrone(&b[k], apawl, 5, MPS_RANK_EXACT), "alloc failed");
+   addr = &b[k];
+   die(allocrone(addr, apawl, 5, MPS_RANK_EXACT), "alloc failed");
    b[k]->data.ref[0].addr = a[ranint(4)];
    b[k]->data.ref[1].addr = b[ranint(4)];
-   die(allocrone(&a[k], apamc, 5, MPS_RANK_EXACT), "alloc failed");
+   addr = &a[k];
+   die(allocrone(addr, apamc, 5, MPS_RANK_EXACT), "alloc failed");
    a[k]->data.ref[2].addr = b[ranint(4)];
   }
 
