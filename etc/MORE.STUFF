@@ -19,7 +19,8 @@ listed here fail.
 
 There is a large collection of Emacs Lisp code available for FTP at
 ftp.cis.ohio-state.edu and various mirrors.  Unfortunately its
-maintenance is currently very slow.
+maintenance is currently very slow.  A project to replace it is
+underway; see <URL:http://www.emacs.org/>.
 
 To get started using this archive, do:
 
@@ -39,6 +40,10 @@ and exit.  Then do:
 The lispdir.el package will help you search for useful packages in the
 LCD-datafile, which is a list of the archive constants.  It will even
 fetch them for you on command.
+
+* The `Emacs Lisp List' at
+  <URL:http://www.anc.ed.ac.uk/~stephen/emacs/ell.html> has pointers
+  to sources of a large number of packages.
 
 * gnu.emacs.sources
 
@@ -60,6 +65,8 @@ You might find bug-fixes or enhancements in these places.
  * BibTeX:
    <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
 
+ * BS: <URL:http://home.netsurf.de/olaf.sylvester/emacs>
+
  * CC Mode, ELP, Reporter, Supercite: <URL:http://www.python.org/emacs/>
    Also home of Python Mode and possibly other good hacks.
 
@@ -69,6 +76,8 @@ You might find bug-fixes or enhancements in these places.
 
  * Eldoc, Rlogin and Rsz-mini:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
+
+ * EUDC: <URL:http://lspwww.epfl.ch/~figueire/Software/eudc/>
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
 
@@ -85,6 +94,8 @@ You might find bug-fixes or enhancements in these places.
  * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
    (And some addons for it.)
 
+ * Hideshow: <URL:http://www.glug.org/people/ttn/software/hideshow/>
+
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
 
  * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
@@ -92,6 +103,8 @@ You might find bug-fixes or enhancements in these places.
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
  * PS mode: <URL:http://odur.let.rug.nl/~kleiweg/postscript/>
+
+ * QuickURL: <URL:http://www.acemake.com/hagbard/archives/quickurl.el>
 
  * RefTeX: <URL:http://www.strw.leidenuniv.nl/%7Edominik/Tools/>
 
@@ -103,7 +116,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
 
-*Auxilliary files
+* Auxilliary files
 
  * (Tex)info files for use with Info-look that don't come from GNU
    packages:
@@ -155,8 +168,6 @@ the future.
  * Emacspeak -- A Speech Output Subsystem For Emacs:
    <URL:http://simon.cs.cornell.edu/info/people/raman/emacspeak/emacspeak.html>
 
- * Erik Naggum's hacks: <URL:ftp://ftp.naggum.no/emacs/>
-
  * Gnuserv:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz>
    Enhanced emacsclient/emacsserver.  See also
@@ -179,7 +190,7 @@ the future.
    Wrapper around Java development tools.
 
  * MULE-UCS: Universal enCoding System
-   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/elisp/mule-ucs/himi/>: 
+   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/mule/Mule-UCS/>: 
    Extended coding systems for MULE, specifically for reading and
    writing UTF-8 encoded Unicode.
 
@@ -192,6 +203,9 @@ the future.
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
    Privacy Guard, is under development as a free replacement
    <URL:http://www.gnupg.org/>.
+
+ * PCL-CVS: <URL:ftp://rum.cs.yale.edu/pub/monnier/pcl-cvs>
+   Interface to CVS providing extended `vc-dired'-style functionality.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
@@ -213,5 +227,5 @@ the future.
 
 * Unpacked Emacs sources
 
-An unpacked current source tree is available from
+An unpacked current source tree may be available from
 <URL:ftp://ftp.emacs.org/pub/>.
