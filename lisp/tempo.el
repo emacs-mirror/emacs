@@ -3,8 +3,9 @@
 
 ;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
-;; Version: 1.2
+;; Version: 1.2.1
 ;; Keywords: extensions, languages, tools
+;; $Revision: 1.29 $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,9 +29,9 @@
 ;; macros, if you wish. It is mainly intended for, but not limited to,
 ;; other programmers to be used for creating shortcuts for editing
 ;; certain kind of documents. It was originally written to be used by
-;; a HTML editing mode written by Nelson Minar <nelson@reed.edu>, and
-;; his html-helper-mode.el is probably the best example of how to use
-;; this program.
+;; a HTML editing mode written by Nelson Minar <nelson@santafe.edu>,
+;; and his html-helper-mode.el is probably the best example of how to
+;; use this program.
 
 ;; A template is defined as a list of items to be inserted in the
 ;; current buffer at point. Some of the items can be simple strings,
@@ -89,6 +90,16 @@
 ;; There is a bug in some emacs versions that prevents completion from
 ;; working. If it doesn't work for you, send me a note indicating your
 ;; emacs version and your problems.
+
+;;; Contributors:
+
+;; These people have given me importand feedback and new ideas for
+;; tempo.el. Thanks.
+
+;; Nelson Minar <nelson@santafe.edu>
+;; Richard Stallman <rms@gnu.ai.mit.edu>
+;; Lars Lindberg <Lars.Lindberg@sypro.cap.se>
+;; Glen Whitney <Glen.Whitney@math.lsa.umich.edu>
 
 ;;; Code:
 
@@ -187,6 +198,23 @@ it recognizes the argument, and NIL otherwise")
 (make-variable-buffer-local 'tempo-dirty-collection)
 
 ;;; Functions
+
+;;; First some useful functions and macros
+
+(defun tempo-mapc (fun lst)
+  (if (null lst) nil
+    (funcall fun (car lst))
+    (tempo-mapc fun (cdr lst))))
+
+(defmacro tempo-dolist (il &rest forms)
+  (let ((i (car il))
+	(l (car (cdr il))))
+    (list 'tempo-mapc
+	  (list 'function (append (list 'lambda
+					(list (car il)))
+				  forms))
+	  (cadr il))))
+(put 'tempo-dolist 'lisp-indent-function 1)
 
 ;;
 ;; tempo-define-template
@@ -294,14 +322,15 @@ possible."
   (cond ((stringp element) (tempo-process-and-insert-string element))
 	((and (consp element) (eq (car element) 'p))
 	 (tempo-insert-prompt (cdr element)))
+	((and (consp element) (eq (car element) 'P))
+	 (let ((tempo-interactive t))
+	   (tempo-insert-prompt (cdr element))))
 	((and (consp element) (eq (car element) 'r))
 	 (if on-region
 	     (goto-char tempo-region-stop)
 	   (tempo-insert-prompt (cdr element))))
 	((and (consp element) (eq (car element) 's))
-	 (if tempo-interactive
-	     (tempo-insert-named (cdr element))
-	   (tempo-insert-mark (point-marker))))
+	 (tempo-insert-named (car (cdr element))))
 	((and (consp element) (eq (car element) 'l))
 	 (mapcar (function (lambda (elt) (tempo-insert elt on-region)))
 		 (cdr element)))
@@ -399,14 +428,13 @@ a name to save the inserted text under."
 ;;;
 ;;; tempo-insert-named
 
-(defun tempo-insert-named (elt)
-  "Insert the previous insertion saved under a named specified in ELT.
-The name is in the car of ELT."
-  (let* ((name (car elt))
-	 (insertion (cdr (assq name tempo-named-insertions))))
+(defun tempo-insert-named (name)
+  "Insert the previous insertion saved under a named specified in NAME.
+If there is no such name saved, a tempo mark is inserted."
+  (let* ((insertion (cdr (assq name tempo-named-insertions))))
     (if insertion
 	(insert insertion)
-      (error "Named insertion not found"))))
+      (tempo-insert-mark (point-marker)))))
 
 ;;;
 ;;; tempo-process-and-insert-string
@@ -419,11 +447,10 @@ and insert the results."
 	 nil)
 	((symbolp tempo-insert-string-functions)
 	 (setq string
-	       (apply tempo-insert-string-functions (list string))))
+	       (funcall tempo-insert-string-functions string)))
 	((listp tempo-insert-string-functions)
-	 (mapcar (function (lambda (fn)
-			     (setq string (apply fn string))))
-		 tempo-insert-string-functions))
+	 (tempo-dolist (fn tempo-insert-string-functions)
+	   (setq string (funcall fn string))))
 	(t
 	 (error "Bogus value in tempo-insert-string-functions: %s"
 		tempo-insert-string-functions)))
@@ -548,15 +575,19 @@ If `tempo-dirty-collection' is NIL, the old collection is reused."
 
 (defun tempo-find-match-string (finder)
   "Find a string to be matched against a tag list.
-FINDER is a function or a string. Returns (STRING . POS)."
+FINDER is a function or a string. Returns (STRING . POS), or nil
+if no reasonable string is found."
   (cond ((stringp finder)
-	 (save-excursion
-	   (or (re-search-backward finder nil t)
-	       0))
-	 (cons (buffer-substring (match-beginning 1)
-				 (match-end 1)) ; This seems to be a
-						; bug in emacs
-	       (match-beginning 1)))
+	 (let (successful)
+	   (save-excursion
+	     (or (setq successful (re-search-backward finder nil t))
+		 0))
+	   (if successful
+	       (cons (buffer-substring (match-beginning 1)
+				       (match-end 1)) ; This seems to be a
+					; bug in emacs
+		     (match-beginning 1))
+	     nil)))
 	(t
 	 (funcall finder))))
 
@@ -565,10 +596,12 @@ FINDER is a function or a string. Returns (STRING . POS)."
 
 (defun tempo-complete-tag (&optional silent)
   "Look for a tag and expand it.
-All the tags in the tag lists in `tempo-local-tags' (this includes
-`tempo-tags') are searched for a match for the text before the point.
-The way the string to match for is determined can be altered with the
-variable `tempo-match-finder'
+All the tags in the tag lists in `tempo-local-tags'
+(this includes `tempo-tags') are searched for a match for the text
+before the point.  The way the string to match for is determined can
+be altered with the variable `tempo-match-finder'. If
+`tempo-match-finder' returns nil, then the results are the same as
+no match at all.
 
 If a single match is found, the corresponding template is expanded in
 place of the matching string.
@@ -588,9 +621,10 @@ non-NIL, a buffer containing possible completions is displayed."
 	 (match-start (cdr match-info))
 	 (exact (assoc match-string collection))
 	 (compl (or (car exact)
-		    (try-completion match-string collection))))
+		    (and match-info (try-completion match-string collection)))))
     (if compl (delete-region match-start (point)))
-    (cond ((null compl) (or silent (ding)))
+    (cond ((null match-info) (or silent (ding)))
+	  ((null compl) (or silent (ding)))
 	  ((eq compl t) (tempo-insert-template
 			 (cdr (assoc match-string
 				     collection))
@@ -618,6 +652,34 @@ non-NIL, a buffer containing possible completions is displayed."
 	(display-completion-list
 	 (all-completions string tag-list)))
       (sit-for 32767))))
+
+;;;
+;;; tempo-expand-if-complete
+
+(defun tempo-expand-if-complete ()
+  "Expand the tag before point if it is complete.
+Returns non-nil if an expansion was made and nil otherwise.
+
+This could as an example be used in a command that is bound to the
+space bar, and looks something like this:
+
+(defun tempo-space ()
+  (interactive \"*\")
+  (or (tempo-expand-if-complete)
+      (insert \" \")))"
+
+  (interactive "*")
+  (let* ((collection (tempo-build-collection))
+	 (match-info (tempo-find-match-string tempo-match-finder))
+	 (match-string (car match-info))
+	 (match-start (cdr match-info))
+	 (exact (assoc match-string collection)))
+    (if exact
+	(progn
+	  (delete-region match-start (point))
+	  (tempo-insert-template (cdr exact) nil)
+	  t)
+      nil)))
 
 (provide 'tempo)
 
