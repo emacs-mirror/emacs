@@ -167,7 +167,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 ;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
 (defun frame-initialize ()
-  "Create an in initial frame if necessary."
+  "Create an initial frame if necessary."
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive) (not (eq window-system 'pc)))
       (progn
