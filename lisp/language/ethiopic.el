@@ -18,15 +18,16 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
 
 ;;; Code:
 
 (define-ccl-program ccl-encode-ethio-font
   '(0
-    ;; In:  R0:ethio (not checked)
+    ;; In:  R0:ethiopic (not checked)
     ;;      R1:position code 1
     ;;      R2:position code 2
     ;; Out: R1:font code point 1
@@ -35,14 +36,19 @@
      (r2 -= 33)
      (r1 *= 94)
      (r2 += r1)
-     (if (r2 < 256) (r1 = 0) ((r2 -= 256) (r1 = 1)))))
+     (if (r2 < 256)
+	 (r1 = ?\x12)
+       (if (r2 < 448)
+	   ((r1 = ?\x13) (r2 -= 256))
+	 ((r1 = ?\xfd) (r2 -= 208))
+	 ))))
   "CCL program to encode an Ehitopic code to code point of Ehitopic font.")
 
 (setq font-ccl-encoder-alist
-      (cons (cons "ethio" ccl-encode-ethio-font) font-ccl-encoder-alist))
+      (cons (cons "ethiopic" ccl-encode-ethio-font) font-ccl-encoder-alist))
 
 (register-input-method
- "Ethiopic" '("quail-ethio" quail-use-package "quail/ethio"))
+ "Ethiopic" '("quail-ethio" quail-use-package "quail/ethiopic"))
 
 (defun setup-ethio-environment ()
   (setq primary-language "Ethiopic")
@@ -60,8 +66,8 @@
   (define-key global-map [C-f5] 'fidel-to-sera-marker)
   (define-key global-map [f6] 'ethio-modify-vowel)
   (define-key global-map [f7] 'ethio-replace-space)
-  (define-key global-map [S-f2] 'ethio-replace-space) ; as requested
   (define-key global-map [f8] 'ethio-input-special-character)
+  (define-key global-map [S-f2] 'ethio-replace-space) ; as requested
 
   (add-hook
    'rmail-mode-hook
@@ -80,7 +86,6 @@
  "Ethiopic" '((setup-function . setup-ethio-environment)
 	      (charset . (ethiopic))
 	      (documentation . t)
-	      (sample-text
-	       . "Amharic ($(2"S!,!6!l(B) $(2#Q!$!.(B, Tigrigna ($(2!V#>!6!l(B) $(2"C!$!,!V(B")))
+	      (sample-text . "$(3$O#U!.(B")))
 
 ;;; ethiopic.el ends here
