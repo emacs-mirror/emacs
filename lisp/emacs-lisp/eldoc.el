@@ -1,13 +1,13 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
 
-;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
-;; Maintainer: friedman@prep.ai.mit.edu
+;; Author: Noah Friedman <friedman@splode.com>
+;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.13 1997/05/22 06:47:41 friedman Exp $
+;; $Id: eldoc.el,v 1.14 1997/07/09 12:44:15 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -123,10 +123,12 @@ returns another string is acceptable."
 ;; Remember to keep it a prime number to improve hash performance.
 (defvar eldoc-message-commands-table-size 31)
 
-;; Bookkeeping; the car contains the last symbol read from the buffer.
-;; The cdr contains the string last displayed in the echo area, so it can
-;; be printed again if necessary without reconsing.
-(defvar eldoc-last-data (cons nil nil))
+;; Bookkeeping; elements are as follows:
+;;   0 - contains the last symbol read from the buffer.
+;;   1 - contains the string last displayed in the echo area for that
+;;       symbol, so it can be printed again if necessary without reconsing.
+;;   2 - 'function if function args, 'variable if variable documentation.
+(defvar eldoc-last-data (make-vector 3 nil))
 (defvar eldoc-last-message nil)
 
 ;; Idle timers are supported in Emacs 19.31 and later.
@@ -182,6 +184,7 @@ the mode, respectively."
   (interactive)
   (eldoc-mode 1))
 
+
 ;; Idle timers are part of Emacs 19.31 and later.
 (defun eldoc-schedule-timer ()
   (or (and eldoc-timer
@@ -195,6 +198,37 @@ the mode, respectively."
          (setq eldoc-current-idle-delay eldoc-idle-delay)
          (timer-set-idle-time eldoc-timer eldoc-idle-delay t))))
 
+(defun eldoc-message (&rest args)
+  (let ((omessage eldoc-last-message))
+    (cond ((eq (car args) eldoc-last-message))
+          ((or (null args)
+               (null (car args)))
+           (setq eldoc-last-message nil))
+          ;; If only one arg, no formatting to do so put it in
+          ;; eldoc-last-message so eq test above might succeed on
+          ;; subsequent calls.
+          ((null (cdr args))
+           (setq eldoc-last-message (car args)))
+          (t
+           (setq eldoc-last-message (apply 'format args))))
+    ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
+    ;; are recorded in a log.  Do not put eldoc messages in that log since
+    ;; they are Legion.
+    (cond ((fboundp 'display-message)
+           ;; XEmacs 19.13 way of preventing log messages.
+           (cond (eldoc-last-message
+                  (display-message 'no-log eldoc-last-message))
+                 (omessage
+                  (clear-message 'no-log))))
+          (t
+           ;; Emacs way of preventing log messages.
+           (let ((message-log-max nil))
+             (cond (eldoc-last-message
+                    (message "%s" eldoc-last-message))
+                   (omessage
+                    (message nil)))))))
+  eldoc-last-message)
+
 ;; This function goes on pre-command-hook for XEmacs or when using idle
 ;; timers in Emacs.  Motion commands clear the echo area for some reason,
 ;; which make eldoc messages flicker or disappear just before motion
@@ -206,43 +240,6 @@ the mode, respectively."
        (if (eldoc-display-message-no-interference-p)
            (eldoc-message eldoc-last-message)
          (setq eldoc-last-message nil))))
-
-(defun eldoc-message (&rest args)
-  (let ((omessage eldoc-last-message))
-    (cond ((eq (car args) eldoc-last-message))
-          ((or (null args)
-               (null (car args)))
-           (setq eldoc-last-message nil))
-          (t
-           (setq eldoc-last-message (apply 'format args))))
-    ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
-    ;; are recorded in a log.  Do not put eldoc messages in that log since
-    ;; they are Legion.
-    (if (fboundp 'display-message)
-        ;; XEmacs 19.13 way of preventing log messages.
-        (if eldoc-last-message
-            (display-message 'no-log eldoc-last-message)
-          (and omessage
-               (clear-message 'no-log)))
-      (let ((message-log-max nil))
-        (if eldoc-last-message
-            (message "%s" eldoc-last-message)
-          (and omessage
-               (message nil))))))
-  eldoc-last-message)
-
-
-(defun eldoc-print-current-symbol-info ()
-  (and (eldoc-display-message-p)
-       (let ((current-symbol (eldoc-current-symbol))
-             (current-fnsym  (eldoc-fnsym-in-current-sexp)))
-         (or (cond ((eq current-symbol current-fnsym)
-                    (or (eldoc-print-fnsym-args current-fnsym)
-                        (eldoc-print-var-docstring current-symbol)))
-                   (t
-                    (or (eldoc-print-var-docstring current-symbol)
-                        (eldoc-print-fnsym-args current-fnsym))))
-             (eldoc-message nil)))))
 
 ;; Decide whether now is a good time to display a message.
 (defun eldoc-display-message-p ()
@@ -274,26 +271,98 @@ the mode, respectively."
        (not cursor-in-echo-area)
        (not (eq (selected-window) (minibuffer-window)))))
 
-(defun eldoc-print-fnsym-args (sym)
-  (interactive)
-  (let ((args nil))
+
+(defun eldoc-print-current-symbol-info ()
+  (and (eldoc-display-message-p)
+       (let* ((current-symbol (eldoc-current-symbol))
+              (current-fnsym  (eldoc-fnsym-in-current-sexp))
+              (doc (cond ((eq current-symbol current-fnsym)
+                          (or (eldoc-get-fnsym-args-string current-fnsym)
+                              (eldoc-get-var-docstring current-symbol)))
+                         (t
+                          (or (eldoc-get-var-docstring current-symbol)
+                              (eldoc-get-fnsym-args-string current-fnsym))))))
+         (eldoc-message doc))))
+
+;; Return a string containing the function parameter list, or 1-line
+;; docstring if function is a subr and no arglist is obtainable from the
+;; docstring or elsewhere.
+(defun eldoc-get-fnsym-args-string (sym)
+  (let ((args nil)
+        (doc nil))
     (cond ((not (and sym
                      (symbolp sym)
                      (fboundp sym))))
-          ((eq sym (car eldoc-last-data))
-           (setq args (cdr eldoc-last-data)))
+          ((and (eq sym (aref eldoc-last-data 0))
+                (eq 'function (aref eldoc-last-data 2)))
+           (setq doc (aref eldoc-last-data 1)))
           ((subrp (eldoc-symbol-function sym))
            (setq args (or (eldoc-function-argstring-from-docstring sym)
-                          (eldoc-docstring-first-line (documentation sym t))))
-           (setcar eldoc-last-data sym)
-           (setcdr eldoc-last-data args))
+                          (eldoc-docstring-first-line (documentation sym t)))))
           (t
-           (setq args (eldoc-function-argstring sym))
-           (setcar eldoc-last-data sym)
-           (setcdr eldoc-last-data args)))
-    (and args
-         (eldoc-message "%s: %s" sym args))))
+           (setq args (eldoc-function-argstring sym))))
+    (cond (args
+           (setq doc (eldoc-docstring-format-sym-doc sym args))
+           (eldoc-last-data-store sym doc 'function)))
+    doc))
 
+;; Return a string containing a brief (one-line) documentation string for
+;; the variable.
+(defun eldoc-get-var-docstring (sym)
+  (cond ((and (eq sym (aref eldoc-last-data 0))
+              (eq 'variable (aref eldoc-last-data 2)))
+         (aref eldoc-last-data 1))
+        (t
+         (let ((doc (documentation-property sym 'variable-documentation t)))
+           (cond (doc
+                  (setq doc (eldoc-docstring-format-sym-doc
+                             sym (eldoc-docstring-first-line doc)))
+                  (eldoc-last-data-store sym doc 'variable)))
+           doc))))
+
+(defun eldoc-last-data-store (symbol doc type)
+  (aset eldoc-last-data 0 symbol)
+  (aset eldoc-last-data 1 doc)
+  (aset eldoc-last-data 2 type))
+
+;; Note that any leading `*' in the docstring (which indicates the variable
+;; is a user option) is removed.
+(defun eldoc-docstring-first-line (doc)
+  (and (stringp doc)
+       (substitute-command-keys
+        (save-match-data
+          (let ((start (if (string-match "^\\*" doc) (match-end 0) 0)))
+            (cond ((string-match "\n" doc)
+                   (substring doc start (match-beginning 0)))
+                  ((zerop start) doc)
+                  (t (substring doc start))))))))
+
+;; If the entire line cannot fit in the echo area, the symbol name may be
+;; truncated or eliminated entirely from the output to make room for the
+;; description.
+(defun eldoc-docstring-format-sym-doc (sym doc)
+  (save-match-data
+    (let* ((name (symbol-name sym))
+           (doclen (+ (length name) (length ": ") (length doc)))
+           ;; Subtract 1 from window width since emacs seems not to write
+           ;; any chars to the last column, at least for some terminal types.
+           (strip (- doclen (1- (window-width (minibuffer-window))))))
+      (cond ((> strip 0)
+             (let* ((len (length name)))
+               (cond ((>= strip len)
+                      (format "%s" doc))
+                     (t
+                      ;;(setq name (substring name 0 (- len strip)))
+                      ;;
+                      ;; Show the end of the partial symbol name, rather
+                      ;; than the beginning, since the former is more likely
+                      ;; to be unique given package namespace conventions.
+                      (setq name (substring name strip))
+                      (format "%s: %s" name doc)))))
+            (t
+             (format "%s: %s" sym doc))))))
+
+
 (defun eldoc-fnsym-in-current-sexp ()
   (let ((p (point)))
     (eldoc-beginning-of-sexp)
@@ -364,54 +433,6 @@ the mode, respectively."
                                      (funcall eldoc-argument-case s))))
                        arglist))))
   (concat "(" (mapconcat 'identity arglist " ") ")"))
-
-
-(defun eldoc-print-var-docstring (sym)
-  (eldoc-print-docstring sym (documentation-property
-                              sym 'variable-documentation t)))
-
-;; Print the brief (one-line) documentation string for the symbol.
-(defun eldoc-print-docstring (symbol doc)
-  (and doc
-       (eldoc-message "%s" (eldoc-docstring-message symbol doc))))
-
-;; If the entire line cannot fit in the echo area, the variable name may be
-;; truncated or eliminated entirely from the output to make room.
-;; Any leading `*' in the docstring (which indicates the variable is a user
-;; option) is not printed."
-(defun eldoc-docstring-message (symbol doc)
-  (and doc
-       (let ((name (symbol-name symbol)))
-         (setq doc (eldoc-docstring-first-line doc))
-         (save-match-data
-           (let* ((doclen (+ (length name) (length ": ") (length doc)))
-                  ;; Subtract 1 from window width since emacs seems not to
-                  ;; write any chars to the last column, at least for some
-                  ;; terminal types.
-                  (strip (- doclen (1- (window-width (minibuffer-window))))))
-             (cond ((> strip 0)
-                    (let* ((len (length name)))
-                      (cond ((>= strip len)
-                             (format "%s" doc))
-                            (t
-                             ;;(setq name (substring name 0 (- len strip)))
-                             ;;
-                             ;; Show the end of the partial variable name,
-                             ;; rather than the beginning, since the former
-                             ;; is more likely to be unique given package
-                             ;; namespace conventions.
-                             (setq name (substring name strip))
-                             (format "%s: %s" name doc)))))
-                   (t
-                    (format "%s: %s" symbol doc))))))))
-
-(defun eldoc-docstring-first-line (doc)
-  (save-match-data
-    (and (string-match "\n" doc)
-         (setq doc (substring doc 0 (match-beginning 0))))
-    (and (string-match "^\\*" doc)
-         (setq doc (substring doc 1))))
-  doc)
 
 
 ;; Alist of predicate/action pairs.
@@ -598,6 +619,7 @@ the mode, respectively."
            (all-completions (car names) eldoc-message-commands))
     (setq names (cdr names))))
 
+
 ;; Prime the command list.
 (eldoc-add-command-completions
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
