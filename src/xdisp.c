@@ -3063,11 +3063,11 @@ decode_mode_spec (w, c, maxwidth)
       break;
 
     case 't':			/* indicate TEXT or BINARY */
-#ifdef MSDOS
-      return NILP (b->buffer_file_type) ? "T" : "B";
-#else /* not MSDOS */
+#ifdef MODE_LINE_BINARY_TEXT
+      return MODE_LINE_BINARY_TEXT (b);
+#else
       return "T";
-#endif /* not MSDOS */
+#endif
 
     case 'p':
       {
