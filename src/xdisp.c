@@ -2034,6 +2034,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
+  /* Do we need multibyte processing?  */
+  it->bidi_p = !NILP (current_buffer->enable_bidi_display);
+
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
     = (!NILP (Vtransient_mark_mode)
@@ -4644,6 +4647,16 @@ reseat_1 (it, pos, set_stop_p)
   it->sp = 0;
   it->face_before_selective_p = 0;
 
+  if (it->bidi_p)
+    {
+      bidi_init_it (pos.charpos, L2R, &it->bidi_it);
+      bidi_get_next_char_visually (&it->bidi_it);
+
+      pos.charpos = it->bidi_it.charpos;
+      pos.bytepos = it->bidi_it.bytepos;
+      it->current.pos = it->position = pos;
+    }
+
   if (set_stop_p)
     it->stop_charpos = CHARPOS (pos);
 }
@@ -4988,8 +5001,18 @@ set_iterator_to_next (it, reseat_p)
       else
 	{
 	  xassert (it->len != 0);
-	  IT_BYTEPOS (*it) += it->len;
-	  IT_CHARPOS (*it) += 1;
+
+	  if (! it->bidi_p)
+	    {
+	      IT_BYTEPOS (*it) += it->len;
+	      IT_CHARPOS (*it) += 1;
+	    }
+	  else
+	    {
+	      bidi_get_next_char_visually (&it->bidi_it);
+	      IT_BYTEPOS (*it) = it->bidi_it.charpos;
+	      IT_CHARPOS (*it) = it->bidi_it.bytepos;
+	    }
 	  xassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
 	}
     }
