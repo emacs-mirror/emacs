@@ -1,3 +1,10 @@
+2000-07-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (inhibit_iso_escape_detection): New variable.
+	(syms_of_coding): Make it a Lisp variable.
+	(detect_coding_iso2022): If inhibit_iso_escape_detection is
+	nonzero, ignore ISO2022's escape sequence.
+
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (construct_mouse_click, x_scroll_bar_to_input_event)

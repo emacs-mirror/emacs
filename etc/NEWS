@@ -42,7 +42,7 @@ Previously you would be prompted for a safe coding system.
 ** New variable `inhibit-iso-eacape-detection' determines if the
 coding system detector pays attention to ISO2022's escape sequences.
 If this variable is non-nil, the detector ignores such escape
-sequences.  The default value is nil, and it is not recommended to
+sequences.  The default value is nil, and it is recommended not to
 change it except for such a special case that you always want to read
 any escape code verbatimly.  If you just want to read a specific file
 without decoding escape codes, use C-x RET c
