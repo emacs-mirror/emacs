@@ -79,7 +79,7 @@ void LockInit(Lock lock)
   lock->claims = 0;
   res = pthread_mutexattr_init(&attr);
   AVER(res == 0);
-  res = pthread_mutexattr_settype(attrptr, PTHREAD_MUTEX_ERRORCHECK);
+  res = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
   AVER(res == 0);
   res = pthread_mutex_init(&lock->mut, &attr);
   AVER(res == 0);

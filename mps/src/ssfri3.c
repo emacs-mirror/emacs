@@ -1,9 +1,9 @@
-/* impl.c.sslii3: LINUX/INTEL STACK SCANNING
+/* impl.c.ssfri3: FREEBSD/INTEL STACK SCANNING
  *
  * $HopeName: MMsrc!sslii3.c(trunk.1) $
  * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
  *
- *  This scans the stack and fixes the registers which may contain 
+ *  This scans the stack and fixes the registers which may contain
  *  roots.  See design.mps.thread-manager
  *
  *  The registers edi, esi, ebx are the registers defined to be preserved
@@ -32,7 +32,7 @@
 
 #include "mpm.h"
 
-SRCID(sslii3, "$HopeName: MMsrc!sslii3.c(trunk.1) $");
+SRCID(ssfri3, "$HopeName: MMsrc!sslii3.c(trunk.1) $");
 
 /* .assume.asm.order */
 #define ASMV(x) __asm__ volatile (x)

@@ -21,11 +21,6 @@
  * get from mmap.  The others are either caused by invalid params
  * or features we don't use.  See mmap(2) for details.
  *
- * .assume.off_t: We assume that the Size type (defined by the MM) fits
- * in the off_t type (define by the system (POSIX?)).  In fact we test
- * the more stringent requirement that they are the same size.  This
- * assumption is made in VMUnmap.
- *
  * .remap: Possibly this should use mremap to reduce the number of
  * distinct mappings.  According to our current testing, it doesn't
  * seem to be a problem.
@@ -116,7 +111,7 @@ Res VMCreate(VM *vmReturn, Size size)
   /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE,
-              MAP_ANONYMOUS | MAP_PRIVATE,
+              MAP_ANON | MAP_PRIVATE,
               -1, 0);
   if(addr == MAP_FAILED) {
     int e = errno;
@@ -129,7 +124,7 @@ Res VMCreate(VM *vmReturn, Size size)
 
   /* See .assume.not-last. */
   addr = mmap(0, (size_t)size,
-              PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
   if(addr == MAP_FAILED) {
     int e = errno;
@@ -241,7 +236,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   if(mmap((void *)base, (size_t)size,
           PROT_READ | PROT_WRITE | PROT_EXEC,
-          MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
+          MAP_ANON | MAP_PRIVATE | MAP_FIXED,
           -1, 0)
      == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
@@ -268,13 +263,12 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
-  AVER(sizeof(off_t) == sizeof(Size));  /* .assume.off_t */
 
   size = AddrOffset(base, limit);
 
   /* see design.mps.vmo1.fun.unmap.offset */
   addr = mmap((void *)base, (size_t)size,
-              PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE | MAP_FIXED,
               -1, 0);
   AVER(addr == (void *)base);
 
