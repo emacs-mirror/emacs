@@ -1,3 +1,12 @@
+2002-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (make-auto-save-file-name): Make sure the produced file
+	name does not contain characters that are invalid for DOS/Windows
+	filesystems.
+
+	* dos-fns.el, w32-fns.el: (make-auto-save-file-name): Remove
+	replacement functions.
+
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Highlight keywords of
