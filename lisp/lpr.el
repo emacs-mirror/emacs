@@ -27,9 +27,9 @@
 (defconst lpr-switches nil "\
 *List of strings to pass as extra switch args to lpr when it is invoked.")
 
-(defvar lpr-command (if (eq system-type 'usg-unix-v)
-			"lp" "lpr")
-  "*Shell command for printing a file")
+;;;###autoload
+(defconst lpr-command (if (eq system-type 'usg-unix-v) "lp" "lpr") "\
+*Shell command for printing a file")
 
 (defvar print-region-function nil
   "Function to call to print the region on a printer.
