@@ -1,3 +1,7 @@
+2003-02-25  Kenichi Handa  <handa@m17n.org>
+
+	* env.el (setenv): Fix previous change.
+
 2003-02-25  Ramakrishnan M  <rama@gnu.org>  (tiny change)
 
 	* language/mlm-util.el (mlm-char-glyph): Fix more rules.
