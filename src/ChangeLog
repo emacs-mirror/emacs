@@ -1,3 +1,17 @@
+2002-06-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: (mode_line_string_list, mode_line_string_face)
+	(mode_line_string_face_prop): New variables.
+	(store_mode_line_string): New function.
+	(display_mode_element): Use store_mode_line_string to
+	add mode-line string elements to mode_line_string_list
+	when mode_line_string_list is non-nil.
+	(Fformat_mode_line): Now returns propertized string by
+	default.  New arg NO-PROPS to ignore properties.
+	(decode_mode_spec): Only add two dashes for %- in propertized
+	mode-line string.
+	(syms_of_xdisp): Init and staticpro mode_line_string_list.
+	
 2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* minibuf.c (minibuffer_completion_contents): Add return type.
