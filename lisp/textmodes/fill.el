@@ -697,6 +697,12 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 	    ;; Fill prefix used for filling the paragraph.
 	    fill-pfx)
 	(save-excursion
+	  ;; To make sure the return value of forward-paragraph is meaningful,
+	  ;; we have to start from the beginning of line, otherwise skipping
+	  ;; past the last few chars of a paragraph-separator would count as
+	  ;; a paragraph (and not skipping any chars at EOB would not count
+	  ;; as a paragraph even if it is).
+	  (move-to-left-margin)
 	  (if (not (zerop (forward-paragraph)))
 	      ;; There's no paragraph at or after point: give up.
 	      (setq fill-pfx "")
