@@ -1,3 +1,9 @@
+2000-10-27  Dave Love  <fx@gnu.org>
+
+	* textmodes/refill.el (refill-late-fill-paragraph-function): New
+	variable.
+	(refill-mode): Use it.
+
 2000-10-27  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-version-backup-file-name): Use file.~<rev>~ for 

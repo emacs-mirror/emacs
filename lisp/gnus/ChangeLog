@@ -1,4 +1,19 @@
+2000-09-24  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-group.el (gnus-group-nnimap-edit-acl): Check if server
+	support ACL's.
+
 2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nnkiboze.el (nnkiboze-generate-group): Use it. Inhibit list groups.
+	(nnkiboze-enter-nov): Fix it when there is no xref.
+	(nnkiboze-generate-groups): List groups.	
+	(nnkiboze-request-article): Use
+	gnus-cache-request-article.
+
+	* gnus-group.el (gnus-group-make-kiboze-group): Use 
+	nnkiboze-score-file.
+	(gnus-group-make-kiboze-group): Fix prompt.
 
 	* message.el (message-send-mail-partially): Replace the header
 	delimiter with a blank line.
