@@ -2841,7 +2841,12 @@ read_process_output (proc, channel)
 
   /* At this point, NBYTES holds number of characters just received
      (including the one in proc_buffered_char[channel]).  */
-  if (nbytes <= 0) return nbytes;
+  if (nbytes <= 0)
+    {
+      if (nbytes < 0 || coding->mode & CODING_MODE_LAST_BLOCK)
+	return nbytes;
+      coding->mode |= CODING_MODE_LAST_BLOCK;
+    }
 
   /* Now set NBYTES how many bytes we must decode.  */
   nbytes += carryover;
@@ -3846,14 +3851,22 @@ text to PROCESS after you call this function.")
      Lisp_Object process;
 {
   Lisp_Object proc;
+  struct coding_system *coding;
 
   proc = get_process (process);
+  coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
 
   /* Make sure the process is really alive.  */
   if (! NILP (XPROCESS (proc)->raw_status_low))
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
     error ("Process %s not running", XSTRING (XPROCESS (proc)->name)->data);
+
+  if (CODING_REQUIRE_FLUSHING (coding))
+    {
+      coding->mode |= CODING_MODE_LAST_BLOCK;
+      send_process (proc, "", 0, Qnil);
+    }
 
 #ifdef VMS
   send_process (proc, "\032", 1, Qnil); 	/* ^z */
