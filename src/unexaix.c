@@ -164,10 +164,6 @@ pointer looks like an int) but not on all machines.
 #define PERROR(file) report_error (file, new)
 #endif
 
-#ifndef CANNOT_DUMP  /* all rest of file!  */
-
-#ifndef CANNOT_UNEXEC /* most of rest of file */
-
 #include <a.out.h>
 /* Define getpagesize () if the system does not.
    Note that this may depend on symbols defined in a.out.h
@@ -867,7 +863,3 @@ unrelocate_symbols (new, a_out, a_name, new_name)
     }
 }
 #endif /* XCOFF */
-
-#endif /* not CANNOT_UNEXEC */
-
-#endif /* not CANNOT_DUMP */
