@@ -3101,7 +3101,10 @@ Leave point at the location of the call, or after the last expression."
   (let ((default-major-mode))
     (set-buffer (find-file-noselect (custom-file))))
   (goto-char (point-min))
-  (save-excursion (forward-sexp (buffer-size)))	; Test for scan errors.
+  ;; Skip all whitespace and comments.
+  (while (forward-comment 1))
+  (or (eobp)
+      (save-excursion (forward-sexp (buffer-size)))) ; Test for scan errors.
   (catch 'found
     (while t
       ;; Skip all whitespace and comments.
