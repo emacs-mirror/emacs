@@ -735,72 +735,54 @@ Wildcards and redirection are handled as usual in the shell."
 
 (defmacro with-current-buffer (buffer &rest body)
   "Execute the forms in BODY with BUFFER as the current buffer.
-The value returned is the value of the last form in BODY."
+The value returned is the value of the last form in BODY.
+See also `with-temp-buffer'."
   `(save-current-buffer
     (set-buffer ,buffer)
-    . ,body))
+    ,@body))
 
 (defmacro with-temp-file (file &rest forms)
   "Create a new buffer, evaluate FORMS there, and write the buffer to FILE.
-Return the value of FORMS.
-If FILE is nil, just evaluate FORMS and don't save anything.
-If FILE is t, return the buffer contents as a string."
+The value of the last form in FORMS is returned, like `progn'.
+See also `with-temp-buffer'."
   (let ((temp-file (make-symbol "temp-file"))
-	(temp-buffer (make-symbol "temp-buffer"))
-	(temp-results (make-symbol "temp-results")))
-    `(save-excursion
-       (let* ((,temp-file ,file)
-	      (default-major-mode 'fundamental-mode)
-	      (,temp-buffer
-	       (progn
-		 (set-buffer
-		  (get-buffer-create
-		   (generate-new-buffer-name " *temp file*")))
-		 (buffer-disable-undo (current-buffer))
-		 (current-buffer)))
-	      ,temp-results)
-	 (unwind-protect
-	     (progn
-	       (setq ,temp-results (progn ,@forms))
-	       (cond
-		;; Don't save anything.
-		((null ,temp-file)
-		 ,temp-results)
-		;; Return the buffer contents.
-		((eq ,temp-file t)
-		 (set-buffer ,temp-buffer)
-		 (buffer-string))
-		;; Save a file.
-		(t
-		 (set-buffer ,temp-buffer)
-		 ;; Make sure the directory where this file is
-		 ;; to be saved exists.
-		 (when (not (file-directory-p
-			     (file-name-directory ,temp-file)))
-		   (make-directory (file-name-directory ,temp-file) t))
-		 ;; Save the file.
-		 (write-region (point-min) (point-max)
-			       ,temp-file nil 'nomesg)
-		 ,temp-results)))
-	   ;; Kill the buffer.
-	   (when (buffer-name ,temp-buffer)
-	     (kill-buffer ,temp-buffer)))))))
-
+	(temp-buffer (make-symbol "temp-buffer")))
+    `(let ((,temp-file ,file)
+	   (,temp-buffer
+	    (get-buffer-create (generate-new-buffer-name " *temp file*"))))
+       (unwind-protect
+	   (prog1
+	       (with-current-buffer ,temp-buffer
+		 ,@forms)
+	     (with-current-buffer ,temp-buffer
+	       (widen)
+	       (write-region (point-min) (point-max) ,temp-file nil 0)))
+	 (and (buffer-name ,temp-buffer)
+	      (kill-buffer ,temp-buffer))))))
+
+(defmacro with-temp-buffer (&rest forms)
+  "Create a temporary buffer, and evaluate FORMS there like `progn'.
+See also `with-temp-file' and `with-output-to-string'."
+  (let ((temp-buffer (make-symbol "temp-buffer")))
+    `(let ((,temp-buffer
+	    (get-buffer-create (generate-new-buffer-name " *temp*"))))
+       (unwind-protect
+	   (with-current-buffer ,temp-buffer
+	     ,@forms)
+	 (and (buffer-name ,temp-buffer)
+	      (kill-buffer ,temp-buffer))))))
+
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
-  `(let ((standard-output (get-buffer-create " *string-output*")))
-     (save-excursion
-       (set-buffer standard-output)
-       (buffer-disable-undo (current-buffer))
-       (let ((inhibit-read-only t))
-	 (erase-buffer))
-       (setq buffer-read-only nil))
+  `(let ((standard-output
+	  (get-buffer-create (generate-new-buffer-name " *string-output*"))))
      (let ((standard-output standard-output))
        ,@body)
-     (save-excursion
-       (set-buffer standard-output)
-       (buffer-string))))
-
+     (with-current-buffer standard-output
+       (prog1
+	   (buffer-string)
+	 (kill-buffer nil)))))
+
 (defvar save-match-data-internal)
 
 ;; We use save-match-data-internal as the local variable because
