@@ -350,8 +350,12 @@ displayed it pops up a menu containing the items which would be on the
 menu bar.  If the menu bar is displayed, it pops up the major mode
 menu or the Edit menu if there is no major mode menu.
 
-** Variable `load-path' is no longer customizable because it contains
-a version-dependent component.
+** Variable `load-path' is no longer customizable throuh Customize.
+
+You can lo noger use `M-x customize-variable' to customize `load-path'
+because it now contains a version-dependent component.  You can still
+use `add-to-list' and `setq' to customize this variable in your
+`~/.emacs' init file or to modify it from any Lisp program in general.
 
 ** The new user-option `normal-erase-is-backspace' can be set to
 determine the effect of the Delete and Backspace function keys.
