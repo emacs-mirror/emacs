@@ -261,7 +261,12 @@ enum pvec_type
   PVEC_BUFFER = 0x20000,
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TYPE_MASK = 0x7fe00,
+
+#if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available
+	 to GDB.  It doesn't work on OS Alpha.  Moved to a variable in
+	 emacs.c */
   PVEC_FLAG = PSEUDOVECTOR_FLAG
+#endi
 };
 
 /* For convenience, we also store the number of elements in these bits.  */
