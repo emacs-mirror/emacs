@@ -898,7 +898,7 @@ Getting New Versions	How to obtain the latest version of Emacs.
 ")
 			     (insert "\n\n" (emacs-version)
 				     "
-Copyright (C) 1999 Free Software Foundation, Inc."))
+Copyright (C) 2000 Free Software Foundation, Inc."))
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
 			 (if (and (eq (key-binding "\C-h") 'help-command)
@@ -960,7 +960,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 			 (insert "\n\n" (emacs-version)
 				 "
-Copyright (C) 1999 Free Software Foundation, Inc.")
+Copyright (C) 2000 Free Software Foundation, Inc.")
 			 (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 				  (eq (key-binding "\C-h\C-d") 'describe-distribution)
 				  (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
