@@ -5186,7 +5186,12 @@ x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   for (s = head; s; s = s->next)
     x_draw_glyph_string (s);
 
-  if (area == TEXT_AREA && !row->full_width_p)
+  if (area == TEXT_AREA
+      && !row->full_width_p
+      /* When drawing overlapping rows, only the glyph strings'
+	 foreground is drawn, which doesn't erase a cursor
+	 completely. */
+      && !overlaps_p)
     {
       int x0 = head ? head->x : x;
       int x1 = tail ? tail->x + tail->background_width : x;
@@ -5194,7 +5199,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       x0 = FRAME_TO_WINDOW_PIXEL_X (w, x0);
       x1 = FRAME_TO_WINDOW_PIXEL_X (w, x1);
       
-      if (!row->full_width_p && XFASTINT (w->left_margin_width) != 0)
+      if (XFASTINT (w->left_margin_width) != 0)
 	{
 	  int left_area_width = window_box_width (w, LEFT_MARGIN_AREA);
 	  x0 -= left_area_width;
