@@ -119,6 +119,11 @@ typedef struct _widget_value
 #define FALSE 0
 #endif /* no TRUE */
 
+static HMENU current_popup_menu;
+
+FARPROC get_menu_item_info;
+FARPROC set_menu_item_info;
+
 Lisp_Object Vmenu_updating_frame;
 
 Lisp_Object Qdebug_on_next_call;
@@ -1416,7 +1421,10 @@ set_frame_menubar (f, first_time, deep_p)
 	}
 
       /* Now GC cannot happen during the lifetime of the widget_value,
-	 so it's safe to store data from a Lisp_String.  */
+	 so it's safe to store data from a Lisp_String, as long as
+	 local copies are made when the actual menu is created.
+	 Windows takes care of this for normal string items, but
+	 not for owner-drawn items or additional item-info.  */
       wv = first_wv->contents;
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
@@ -1752,7 +1760,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
     }
 
   /* Actually create the menu.  */
-  menu = CreatePopupMenu ();
+  current_popup_menu = menu = CreatePopupMenu ();
   fill_in_menu (menu, first_wv->contents);
 
   /* Adjust coordinates to be root-window-relative.  */
@@ -1836,6 +1844,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 }
 
 
+#ifdef HAVE_DIALOGS
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
@@ -1959,13 +1968,11 @@ w32_dialog_show (f, keymaps, title, error)
   }
 
   /* Actually create the dialog.  */
-#ifdef HAVE_DIALOGS
   dialog_id = widget_id_tick++;
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
 			   f->output_data.w32->widget, 1, 0,
 			   dialog_selection_callback, 0);
   lw_modify_all_widgets (dialog_id, first_wv->contents, TRUE);
-#endif
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -1974,7 +1981,6 @@ w32_dialog_show (f, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Display the menu.  */
-#ifdef HAVE_DIALOGS
   lw_pop_up_all_widgets (dialog_id);
   popup_activated_flag = 1;
 
@@ -1982,7 +1988,6 @@ w32_dialog_show (f, keymaps, title, error)
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
 
   lw_destroy_all_widgets (dialog_id); 
-#endif
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2023,6 +2028,7 @@ w32_dialog_show (f, keymaps, title, error)
 
   return Qnil;
 }
+#endif  /* HAVE_DIALOGS  */
 
 
 /* Is this item a separator? */
@@ -2077,16 +2083,19 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title)
+      if (wv->title || wv->call_data == 0)
 	{
-#if 0  /* no GC while popup menu is active */
-	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
-	  strcpy (out_string, wv->name);
-#endif
-	  fuFlags = MF_OWNERDRAW | MF_DISABLED;
+	  /* Only use MF_OWNERDRAW if GetMenuItemInfo is usable, since
+	     we can't deallocate the memory otherwise.  */
+	  if (get_menu_item_info)
+	    {
+	      out_string = LocalAlloc (LPTR, strlen (wv->name) + 1);
+	      strcpy (out_string, wv->name);
+	      fuFlags = MF_OWNERDRAW | MF_DISABLED;
+	    }
+	  else
+	    fuFlags = MF_DISABLED;
 	}
-      else if (wv->call_data == 0)
-	fuFlags |= MF_DISABLED;
 
       /* Draw radio buttons and tickboxes. */
       else if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
@@ -2108,9 +2117,6 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
   /* This must be done after the menu item is created.  */
   if (!wv->title && wv->call_data != 0)
     {
-      HMODULE user32 = GetModuleHandle ("user32.dll");
-      FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
-
       if (set_menu_item_info)
 	{
 	  MENUITEMINFO info;
@@ -2118,8 +2124,15 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 
-	  /* Set help string for menu item.  */
-	  info.dwItemData = (DWORD)wv->help;
+	  /* Set help string for menu item.  Allocate new memory
+	     from the heap for it, since garbage collection can
+	     occur while menus are active.  */
+	  if (wv->help)
+	    {
+	      info.dwItemData
+		= (DWORD) LocalAlloc (LPTR, strlen(wv->help) + 1);
+	      strcpy (info.dwItemData, wv->help);
+	    }
 
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
@@ -2183,21 +2196,25 @@ popup_activated ()
 void
 w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 {
-  HMODULE user32 = GetModuleHandle ("user32.dll");
-  FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
-
   if (get_menu_item_info)
     {
-      MENUITEMINFO info;
       struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
       Lisp_Object frame, help;
 
-      bzero (&info, sizeof (info));
-      info.cbSize = sizeof (info);
-      info.fMask = MIIM_DATA;
-      get_menu_item_info (menu, item, FALSE, &info);
+      // No help echo on owner-draw menu items.
+      if (flags & MF_OWNERDRAW || flags & MF_POPUP)
+	help = Qnil;
+      else
+	{
+	  MENUITEMINFO info;
 
-      help = info.dwItemData ? build_string ((char *)info.dwItemData) : Qnil;
+	  bzero (&info, sizeof (info));
+	  info.cbSize = sizeof (info);
+	  info.fMask = MIIM_DATA;
+	  get_menu_item_info (menu, item, FALSE, &info);
+
+	  help = info.dwItemData ? build_string ((char *)info.dwItemData) : Qnil;
+	}
 
       /* Store the help echo in the keyboard buffer as the X toolkit
 	 version does, rather than directly showing it. This seems to
@@ -2215,14 +2232,65 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
     }
 }
 
+/* Free memory used by owner-drawn and help_echo strings.  */
+static void
+w32_free_submenu_strings (menu)
+     HMENU menu;
+{
+  int i, num = GetMenuItemCount (menu);
+  for (i = 0; i < num; i++)
+    {
+      MENUITEMINFO info;
 
+      info.cbSize = sizeof (info);
+      info.fMask = MIIM_DATA | MIIM_SUBMENU;
+
+      get_menu_item_info (menu, i, TRUE, &info);
+
+      /* Both owner-drawn names and help strings are held in dwItemData.  */
+      if (info.dwItemData)
+	LocalFree (info.dwItemData);
+
+      /* Recurse down submenus.  */
+      if (info.hSubMenu)
+	w32_free_submenu_strings (info.hSubMenu);
+    }
+}
+
+void
+w32_free_menu_strings (hwnd)
+     HWND hwnd;
+{
+  HMENU menu = current_popup_menu;
+
+  if (get_menu_item_info)
+    {
+      /* If there is no popup menu active, free the strings from the frame's
+	 menubar.  */
+      if (!menu)
+	menu = GetMenu (hwnd);
+
+      if (menu)
+	w32_free_submenu_strings (menu);
+    }
+
+  current_popup_menu = NULL;
+}
 
 #endif /* HAVE_MENUS */
+
 
 syms_of_w32menu ()
 {
+  /* See if Get/SetMenuItemInfo functions are available.  */
+  HMODULE user32 = GetModuleHandle ("user32.dll");
+  get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
+  set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
+
   staticpro (&menu_items);
   menu_items = Qnil;
+
+  current_popup_menu = NULL;
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
