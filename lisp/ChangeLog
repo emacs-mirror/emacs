@@ -1,3 +1,8 @@
+2003-03-10  John Paul Wallington  <jpw@gnu.org>
+
+	* ebuff-menu.el (electric-buffer-update-highlight): Do nothing
+	if major mode isn't `Electric-buffer-menu-mode'.
+
 2003-03-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* man.el (Man-getpage-in-background): Always use `setenv' for
