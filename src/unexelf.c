@@ -926,9 +926,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #else
-	  if (round_up (NEW_SECTION_H (nn).sh_offset,
+	  /* The idea of this is that the bss section's sh_offset
+	     may need rounding up to compare with new_data2_offset.
+	     So we cannot simply compare the sh_offset.
+	     However, another small section could exist just before
+	     the bss section, and we need to know that is before.  */
+	  if (round_up (NEW_SECTION_H (nn).sh_offset
+			+ NEW_SECTION_H (nn).sh_size,
 			OLD_SECTION_H (old_bss_index).sh_addralign)
-	      >= new_data2_offset)
+	      > new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #endif
 	  /* Any section that was originally placed after the section
