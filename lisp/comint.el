@@ -1037,11 +1037,11 @@ Useful if you accidentally suspend the top-level process."
 (defun comint-match-partial-pathname ()
   "Returns the filename at point or causes an error."
   (save-excursion
-    (if (re-search-backward "[^~/A-Za-z0-9---_.$#,=]" nil 'move)
+    (if (re-search-backward "[^~/A-Za-z0-9_.$#,=-]" nil 'move)
 	(forward-char 1))
     ;; Anchor the search forwards.
-    (if (not (looking-at "[~/A-Za-z0-9---_.$#,=]")) (error ""))
-    (re-search-forward "[~/A-Za-z0-9---_.$#,=]+")
+    (if (not (looking-at "[~/A-Za-z0-9_.$#,=-]")) (error ""))
+    (re-search-forward "[~/A-Za-z0-9_.$#,=-]+")
     (substitute-in-file-name
      (buffer-substring (match-beginning 0) (match-end 0)))))
 
