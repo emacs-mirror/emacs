@@ -406,8 +406,8 @@ alternative printed representations that can be displayed."
   (interactive)
   (let ((value (get-text-property (point) 'printed-value)))
     (when value
-      (let ((beg (previous-single-property-change (point) 'printed-value))
-	    (end (next-single-char-property-change (point) 'printed-value))
+      (let ((beg (or (previous-single-property-change (point) 'printed-value) (point)))
+	    (end (or (next-single-char-property-change (point) 'printed-value) (point)))
 	    (standard-output (current-buffer))
 	    (point (point)))
 	(delete-region beg end)
