@@ -326,7 +326,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 
 (defun tmm-add-prompt ()
   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-  (make-local-hook 'minibuffer-exit-hook)
   (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (let ((win (selected-window)))
     (setq tmm-old-mb-map (tmm-define-keys t))
