@@ -3386,10 +3386,15 @@ even if they match PATTERN and FACE.")
 	{
 	  XFontStruct *thisinfo;
 
-          thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f),
+	  x_catch_errors (FRAME_X_DISPLAY (f));
+
+	  thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f),
 				     XSTRING (XCONS (tem)->car)->data);
 
-          if (thisinfo && same_size_fonts (thisinfo, size_ref))
+	  x_check_errors (FRAME_X_DISPLAY (f), "XLoadQueryFont failure: %s");
+	  x_uncatch_errors (FRAME_X_DISPLAY (f));
+
+	  if (thisinfo && same_size_fonts (thisinfo, size_ref))
 	    newlist = Fcons (XCONS (tem)->car, newlist);
 
 	  if (thisinfo != 0)
@@ -3402,6 +3407,8 @@ even if they match PATTERN and FACE.")
     }
 
   BLOCK_INPUT;
+
+  x_catch_errors (FRAME_X_DISPLAY (f));
 
   /* Solaris 2.3 has a bug in XListFontsWithInfo.  */
 #ifndef BROKEN_XLISTFONTSWITHINFO
@@ -3417,6 +3424,9 @@ even if they match PATTERN and FACE.")
 			XSTRING (pattern)->data,
 			2000, /* maxnames */
 			&num_fonts); /* count_return */
+
+  x_check_errors (FRAME_X_DISPLAY (f), "XListFonts failure: %s");
+  x_uncatch_errors (FRAME_X_DISPLAY (f));
 
   UNBLOCK_INPUT;
 
@@ -3450,7 +3460,13 @@ even if they match PATTERN and FACE.")
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
+
+	      x_catch_errors (FRAME_X_DISPLAY (f));
 	      thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f), names[i]);
+	      x_check_errors (FRAME_X_DISPLAY (f),
+			      "XLoadQueryFont failure: %s");
+	      x_uncatch_errors (FRAME_X_DISPLAY (f));
+
 	      UNBLOCK_INPUT;
 
 	      keeper = thisinfo && same_size_fonts (thisinfo, size_ref);
