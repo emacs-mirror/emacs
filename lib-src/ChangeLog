@@ -1,3 +1,7 @@
+2001-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (matching_regexp): Escape '\\'.
+
 2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in: Add support for --program-prefix, --program-suffix
