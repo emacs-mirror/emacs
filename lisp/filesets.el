@@ -2346,7 +2346,8 @@ bottom up, set `filesets-submenus' to nil, first.)"
        filesets-menu-in-menu)
       (setq filesets-updated-buffers
 	    (cons cb filesets-updated-buffers))
-      (message nil)
+      ;; This wipes out other messages in the echo area.
+      ;; (message nil)
       ;;(message "Filesets updated: %s" cb)
       )))
 
