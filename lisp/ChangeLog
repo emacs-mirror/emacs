@@ -1,5 +1,13 @@
 2000-11-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (byte-compiling-files-p): New function.
+
+	* textmodes/ispell.el (toplevel): Use byte-compiling-files-p
+	if it is there.
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-file): Bind it to
+	nil again.
+
 	* textmodes/ispell.el (ispell-library-path): Don't call
 	check-ispell-version when byte-compiling because that starts
 	an ispell process, and ispell might not be installed.
