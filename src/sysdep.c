@@ -2754,7 +2754,7 @@ sys_write (fildes, buf, nbyte)
 	  if (errno == EINTR)
 	    continue;
 	  else
-	    return (-1);
+	    return (bytes_written ? bytes_written : -1);
 	}
 
       buf += rtnval;
