@@ -1,3 +1,7 @@
+2002-01-16  Andreas Schwab  <schwab@suse.de>
+
+	* mail/feedmail.el (feedmail): Fix :link spec.
+
 2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-ldapsearch-prog): Default to OpenLDAP version
