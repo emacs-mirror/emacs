@@ -803,7 +803,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 		       (insert "\n\n" (emacs-version)
 			       "
-Copyright (C) 1996 Free Software Foundation, Inc.")
+Copyright (C) 1997 Free Software Foundation, Inc.")
 		       (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 				(eq (key-binding "\C-h\C-d") 'describe-distribution)
 				(eq (key-binding "\C-h\C-w") 'describe-no-warranty))
