@@ -1,3 +1,8 @@
+2004-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (re_match_2_internal) <symend, wordend>:
+	Fix calls to UPDATE_SYNTAX_TABLE_FORWARD.
+
 2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (endif, x_font_name_to_mac_font_name): Use
