@@ -598,14 +598,15 @@ in a Lisp string you could precede the paren with a backslash.
 * When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
 
-For examlpe, you could see background you set for Emacs only in the
+For example, you could see background you set for Emacs only in the
 empty portions of the Emacs display, while characters have some other
 background.
 
 This happens because KDE's defaults apply its color and font
 definitions even to applications that weren't compiled for KDE.  The
 solution is to uncheck the "Apply fonts and colors to non-KDE apps"
-option in Preferences->Look&Feel->Style.
+option in Preferences->Look&Feel->Style (KDE 2).  In KDE 3, this option
+is in the "Colors" section, rather than "Style".
 
 Alternatively, if you do want the KDE defaults to apply to other
 applications, but not to Emacs, you could modify the file `Emacs.ad'
