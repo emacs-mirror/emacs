@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
 
-Id='$Id: rcs2log,v 1.37 1997/03/21 22:12:24 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.38 1997/03/23 18:46:03 eggert Exp eggert $'
 
 # Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -545,7 +545,7 @@ $AWK '
 		logTZ = "'"$logTZ"'"
 		revision = "'"$revision"'"
 
-		# Some awk variants do not understand "\r" or "\013", so we have to
+		# Some awk variants do not understand "\r" or "\015", so we have to
 		# put a carriage return directly in the file.
 		CR="" # <-- There is a single CR between the " chars here.
 
