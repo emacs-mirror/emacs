@@ -1408,7 +1408,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   EVENT_0(AMCFix);
 
   /* For the moment, assume that the object was already marked. */
-  /* (See design.mps.fix.protocol.was-marked.) */
+  /* (See <design/fix/#protocol.was-marked>.) */
   ss->wasMarked = TRUE;
 
   /* If the reference is ambiguous, set up the datastructures for */
@@ -1467,7 +1467,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding */
     EVENT_A(AMCFixForward, newRef);
-    /* design.mps.fix.protocol.was-marked */
+    /* <design/fix/#protocol.was-marked> */
     ss->wasMarked = FALSE;
 
     /* Get the forwarding buffer from the object's generation. */
@@ -1555,7 +1555,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   EVENT_0(AMCFix);
 
   /* For the moment, assume that the object was already marked. */
-  /* (See design.mps.fix.protocol.was-marked.) */
+  /* (See <design/fix/#protocol.was-marked>.) */
   ss->wasMarked = TRUE;
 
   /* If the reference is ambiguous, set up the datastructures for */
@@ -1613,7 +1613,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding */
     EVENT_A(AMCFixForward, newRef);
-    /* design.mps.fix.protocol.was-marked */
+    /* <design/fix/#protocol.was-marked> */
     ss->wasMarked = FALSE;
 
     /* Get the forwarding buffer from the object's generation. */

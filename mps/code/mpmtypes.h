@@ -252,7 +252,7 @@ typedef void (*FormatPadMethod)(Addr base, Size size);
 typedef Addr (*FormatClassMethod)(Addr object);
 
 
-/* Root*Method -- see <design/root/>-interface */
+/* Root*Method -- see design.mps.root-interface */
 /* .root-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See <code/mps.h#root-methods>.) */
 

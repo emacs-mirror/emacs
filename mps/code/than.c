@@ -5,7 +5,7 @@
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
- *  See design.mps.thread-manager.
+ *  See <design/thread-manager/>.
  *
  *  .single: We only expect at most one thread on the ring.
  *

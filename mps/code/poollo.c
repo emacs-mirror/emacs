@@ -713,7 +713,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   loseg = SegLOSeg(seg);
   AVERT_CRITICAL(LOSeg, loseg);
 
-  ss->wasMarked = TRUE;         /* design.mps.fix.protocol.was-marked */
+  ss->wasMarked = TRUE;         /* <design/fix/#protocol.was-marked> */
 
   clientRef = *refIO;
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
@@ -738,7 +738,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     Size i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
 
     if(!BTGet(loseg->mark, i)) {
-      ss->wasMarked = FALSE;  /* design.mps.fix.protocol.was-marked */
+      ss->wasMarked = FALSE;  /* <design/fix/#protocol.was-marked> */
       if(ss->rank == RankWEAK) {
         *refIO = (Addr)0;
       } else {

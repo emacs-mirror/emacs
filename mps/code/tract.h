@@ -249,7 +249,7 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 /* TRACT_TRACT_FOR -- iterate over a range of tracts
  *
- * See <design/arena/#tract-iter.if.macro>.
+ * See <design/arena-tract-iter/#if.macro>.
  * Parameters arena & limit are evaluated multiple times.
  * Check first tract & last tract lie with the same chunk.
  */

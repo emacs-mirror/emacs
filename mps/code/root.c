@@ -6,7 +6,7 @@
  * .purpose: This is the implementation of the root datatype.
  *
  * .design: For design, see <design/root/> and
- * <design/root/>-interface. */
+ * design.mps.root-interface. */
 
 #include "mpm.h"
 

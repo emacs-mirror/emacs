@@ -152,7 +152,7 @@ extern size_t StringLength(const char *s);
 
 /* Version Determination
  *
- * See <design/version/>-library.  */
+ * See <design/version-library/>.  */
 
 extern char *MPSVersion(void);
 

@@ -6,7 +6,7 @@
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements <code/th.h>.
  *
- * .design: See design.mps.thread-manager.
+ * .design: See <design/thread-manager/>.
  *
  * .thread.id: The thread id is used to identify the current thread.
  *
