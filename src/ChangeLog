@@ -1,3 +1,12 @@
+2001-01-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding): Set a flag for inhibiting
+	inconsistent eol.
+	(code_convert_region): Always set saved_coding_symbol.
+	(decode_coding_string): Likewise.  Update coding->symbol when we
+	encounter a inconsistent eol by the same way as
+	code_convert_region.
+
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_tool_bar_lines): Use x_clear_area instead of
