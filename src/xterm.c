@@ -7838,7 +7838,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
@@ -9782,6 +9783,43 @@ x_load_font (f, fontname, size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = x_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	fontp->average_width
+	  = (XGetFontProperty (font, dpyinfo->Xatom_AVERAGE_WIDTH, &value)
+	     ? (long) value / 10 : 0);
+	if (fontp->average_width < 0)
+	  fontp->average_width = - fontp->average_width;
+	if (fontp->average_width == 0)
+	  {
+	    if (pcm)
+	      {
+		int width = pcm->width;
+		for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+		  if ((pcm = x_per_char_metric (font, &char2b, 0)) != NULL)
+		    width += pcm->width;
+		fontp->average_width = width / 95;
+	      }
+	    else
+	      fontp->average_width = FONT_WIDTH (font);
+	  }
+      }
+
     /* Try to get the full name of FONT.  Put it in FULL_NAME.  */
     full_name = 0;
     if (XGetFontProperty (font, XA_FONT, &value))
@@ -10409,6 +10447,8 @@ x_term_init (display_name, xrm_option, resource_name)
   /* For properties of font.  */
   dpyinfo->Xatom_PIXEL_SIZE
     = XInternAtom (dpyinfo->display, "PIXEL_SIZE", False);
+  dpyinfo->Xatom_AVERAGE_WIDTH
+    = XInternAtom (dpyinfo->display, "AVERAGE_WIDTH", False);
   dpyinfo->Xatom_MULE_BASELINE_OFFSET
     = XInternAtom (dpyinfo->display, "_MULE_BASELINE_OFFSET", False);
   dpyinfo->Xatom_MULE_RELATIVE_COMPOSE
