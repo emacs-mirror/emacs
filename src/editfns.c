@@ -3850,7 +3850,7 @@ transpose_markers (start1, end1, start2, end2,
   amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
   for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
-       marker = XMARKER (marker)->chain)
+       marker = MARKER_CHAIN (XMARKER (marker)))
     {
       mpos = marker_byte_position (marker);
       if (mpos >= start1_byte && mpos < end2_byte)
