@@ -168,7 +168,7 @@ with the colon on the first line."
   :type 'boolean
   :group 'old-c++)
 (defcustom c++-empty-arglist-indent nil
-  "*Indicates how far to indent an line following an empty argument
+  "*Indicates how far to indent a line following an empty argument
 list.  nil indicates to just after the paren."
   :type '(choice (const nil) integer)
   :group 'old-c++)
