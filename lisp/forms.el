@@ -1,8 +1,7 @@
 ;;; forms.el -- Forms mode: edit a file as a form to fill in.
-;;; Copyright (C) 1991, 1995 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.12 $
 
 ;; This file is part of GNU Emacs.
 
@@ -155,6 +154,8 @@
 ;;;			modified (using text-property `read-only').
 ;;;			Also, the read-write fields are shown using a
 ;;;			distinct face, if possible.
+;;;			As of emacs 19.29, the `intangible' text property
+;;;			is used to prevent moving into read-only fields.
 ;;;			This variable defaults to t if running Emacs 19
 ;;;			with text properties.
 ;;;			The default face to show read-write fields is
@@ -281,10 +282,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.12 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.14 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.12 1995/01/05 12:32:28 jvromans Exp jvromans $")
+  $Id: forms.el,v 2.14 1995/04/16 14:02:14 jv Exp $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -884,7 +885,7 @@ Commands:                        Equivalent keys in read-only mode:
 		(,@ (if (numberp (car forms-format-list))
 			nil
 		      '((add-text-properties (point-min) (1+ (point-min))
-					     '(front-sticky (read-only))))))
+					     '(front-sticky (read-only intangible))))))
 		;; Prevent insertion after the last text.
 		(remove-text-properties (1- (point)) (point)
 					'(rear-nonsticky)))
@@ -968,8 +969,10 @@ Commands:                        Equivalent keys in read-only mode:
 	   (point))
 	 (list 'face forms--ro-face	; read-only appearance
 	       'read-only (,@ (list (1+ forms--marker)))
+	       'intangible t
 	       'insert-in-front-hooks '(forms--iif-hook)
-	       'rear-nonsticky '(face read-only insert-in-front-hooks))))))
+	       'rear-nonsticky '(face read-only insert-in-front-hooks
+				 intangible))))))
     
    ((numberp el)
     (` ((let ((here (point)))
@@ -995,8 +998,10 @@ Commands:                        Equivalent keys in read-only mode:
 	   (point))
 	 (list 'face forms--ro-face
 	       'read-only (,@ (list (1+ forms--marker)))
+	       'intangible t
 	       'insert-in-front-hooks '(forms--iif-hook)
-	       'rear-nonsticky '(read-only face insert-in-front-hooks))))))
+	       'rear-nonsticky '(read-only face insert-in-front-hooks
+				 intangible))))))
 
    ;; end of cond
    ))
@@ -1891,7 +1896,8 @@ Calls `forms-write-file-filter' before writing out the data."
   (let ((i 0)
 	(here (point))
 	there
-	(cnt 0))
+	(cnt 0)
+	(inhibit-point-motion-hooks t))
 
     (if (zerop arg)
 	(setq cnt 1)
@@ -1917,7 +1923,8 @@ Calls `forms-write-file-filter' before writing out the data."
   (let ((i (length forms--markers))
 	(here (point))
 	there
-	(cnt 0))
+	(cnt 0)
+	(inhibit-point-motion-hooks t))
 
     (if (zerop arg)
 	(setq cnt 1)
