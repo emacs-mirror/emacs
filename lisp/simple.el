@@ -1606,75 +1606,81 @@ Outline mode sets this.")
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
 (defun line-move (arg)
-  (let (new)
-    ;; Don't run any point-motion hooks, and disregard intangibility,
-    ;; for intermediate positions.
-    (let ((inhibit-point-motion-hooks t))
-      (save-excursion
-	(if (not (or (eq last-command 'next-line)
-		     (eq last-command 'previous-line)))
-	    (setq temporary-goal-column
-		  (if (and track-eol (eolp)
-			   ;; Don't count beg of empty line as end of line
-			   ;; unless we just did explicit end-of-line.
-			   (or (not (bolp)) (eq last-command 'end-of-line)))
-		      9999
-		    (current-column))))
-	(if (and (not (integerp selective-display))
-		 (not line-move-ignore-invisible))
-	    ;; Use just newline characters.
-	    (or (if (> arg 0)
-		    (progn (if (> arg 1) (forward-line (1- arg)))
-			   ;; This way of moving forward ARG lines
-			   ;; verifies that we have a newline after the last one.
-			   ;; It doesn't get confused by intangible text.
-			   (end-of-line)
-			   (zerop (forward-line 1)))
-		  (and (zerop (forward-line arg))
-		       (bolp)))
-		(signal (if (< arg 0)
-			    'beginning-of-buffer
-			  'end-of-buffer)
-			nil))
-	  ;; Move by arg lines, but ignore invisible ones.
-	  (while (> arg 0)
-	    (end-of-line)
-	    (and (zerop (vertical-motion 1))
-		 (signal 'end-of-buffer nil))
-	    ;; If the following character is currently invisible,
-	    ;; skip all characters with that same `invisible' property value.
-	    (while (and (not (eobp))
-			(let ((prop
-			       (get-char-property (point) 'invisible)))
-			  (if (eq buffer-invisibility-spec t)
-			      prop
-			    (or (memq prop buffer-invisibility-spec)
-				(assq prop buffer-invisibility-spec)))))
-	      (if (get-text-property (point) 'invisible)
-		  (goto-char (next-single-property-change (point) 'invisible))
-		(goto-char (next-overlay-change (point)))))
-	    (setq arg (1- arg)))
-	  (while (< arg 0)
-	    (beginning-of-line)
-	    (and (zerop (vertical-motion -1))
-		 (signal 'beginning-of-buffer nil))
-	    (while (and (not (bobp))
-			(let ((prop
-			       (get-char-property (1- (point)) 'invisible)))
-			  (if (eq buffer-invisibility-spec t)
-			      prop
-			    (or (memq prop buffer-invisibility-spec)
-				(assq prop buffer-invisibility-spec)))))
-	      (if (get-text-property (1- (point)) 'invisible)
-		  (goto-char (previous-single-property-change (point) 'invisible))
-		(goto-char (previous-overlay-change (point)))))
-	    (setq arg (1+ arg))))
-	(move-to-column (or goal-column temporary-goal-column))
-	(setq new (point))))
-    ;; Run any point-motion hooks, deal with intangible text, etc.,
-    ;; once and for all, for the entire motion we did.
-    (goto-char new)
-    nil))
+  ;; Don't run any point-motion hooks, and disregard intangibility,
+  ;; for intermediate positions.
+  (let ((inhibit-point-motion-hooks t)
+	(opoint (point))
+	new)
+    (unwind-protect
+	(progn
+	  (if (not (or (eq last-command 'next-line)
+		       (eq last-command 'previous-line)))
+	      (setq temporary-goal-column
+		    (if (and track-eol (eolp)
+			     ;; Don't count beg of empty line as end of line
+			     ;; unless we just did explicit end-of-line.
+			     (or (not (bolp)) (eq last-command 'end-of-line)))
+			9999
+		      (current-column))))
+	  (if (and (not (integerp selective-display))
+		   (not line-move-ignore-invisible))
+	      ;; Use just newline characters.
+	      (or (if (> arg 0)
+		      (progn (if (> arg 1) (forward-line (1- arg)))
+			     ;; This way of moving forward ARG lines
+			     ;; verifies that we have a newline after the last one.
+			     ;; It doesn't get confused by intangible text.
+			     (end-of-line)
+			     (zerop (forward-line 1)))
+		    (and (zerop (forward-line arg))
+			 (bolp)))
+		  (signal (if (< arg 0)
+			      'beginning-of-buffer
+			    'end-of-buffer)
+			  nil))
+	    ;; Move by arg lines, but ignore invisible ones.
+	    (while (> arg 0)
+	      (end-of-line)
+	      (and (zerop (vertical-motion 1))
+		   (signal 'end-of-buffer nil))
+	      ;; If the following character is currently invisible,
+	      ;; skip all characters with that same `invisible' property value.
+	      (while (and (not (eobp))
+			  (let ((prop
+				 (get-char-property (point) 'invisible)))
+			    (if (eq buffer-invisibility-spec t)
+				prop
+			      (or (memq prop buffer-invisibility-spec)
+				  (assq prop buffer-invisibility-spec)))))
+		(if (get-text-property (point) 'invisible)
+		    (goto-char (next-single-property-change (point) 'invisible))
+		  (goto-char (next-overlay-change (point)))))
+	      (setq arg (1- arg)))
+	    (while (< arg 0)
+	      (beginning-of-line)
+	      (and (zerop (vertical-motion -1))
+		   (signal 'beginning-of-buffer nil))
+	      (while (and (not (bobp))
+			  (let ((prop
+				 (get-char-property (1- (point)) 'invisible)))
+			    (if (eq buffer-invisibility-spec t)
+				prop
+			      (or (memq prop buffer-invisibility-spec)
+				  (assq prop buffer-invisibility-spec)))))
+		(if (get-text-property (1- (point)) 'invisible)
+		    (goto-char (previous-single-property-change (point) 'invisible))
+		  (goto-char (previous-overlay-change (point)))))
+	      (setq arg (1+ arg))))
+	  (move-to-column (or goal-column temporary-goal-column)))
+      ;; Remember where we moved to, go back home,
+      ;; then do the motion over again
+      ;; in just one step, with intangibility and point-motion hooks
+      ;; enabled this time.
+      (setq new (point))
+      (goto-char opoint)
+      (setq inhibit-point-motion-hooks nil)
+      (goto-char new)))
+  nil)
 
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
