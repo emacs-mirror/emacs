@@ -439,7 +439,7 @@ line and the beginning of the second so that each line is a separate
 comment; the variable @code{comment-multi-line} controls the choice
 (@pxref{Comments}).
 
-  Adaptive filling (see the following section) works for Auto Filling as
+  Adaptive filling (@pxref{Adaptive Fill}) works for Auto Filling as
 well as for explicit fill commands.  It takes a fill prefix
 automatically from the second or first line of a paragraph.
 
