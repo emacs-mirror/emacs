@@ -1417,8 +1417,7 @@ aligner would have dealt with are."
 			      (if (and symbol (symbolp symbol))
 				  (message
 				   "Aligning `%s' (rule %d of %d) %d%%..."
-				   (symbol-name symbol)
-				   name rule-index rule-count
+				   (symbol-name symbol) rule-index rule-count
 				   (/ (* (- (point) real-beg) 100)
 				      (- end-mark real-beg)))
 				(message
