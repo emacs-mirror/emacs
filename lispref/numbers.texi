@@ -360,21 +360,56 @@ also, and return such arguments unchanged.
 @defun truncate number
 This returns @var{number}, converted to an integer by rounding towards
 zero.
+
+@example
+(truncate 1.2)
+     @result{} 1
+(truncate 1.7)
+     @result{} 1
+(truncate -1.2)
+     @result{} -1
+(truncate -1.7)
+     @result{} -1
+@end example
 @end defun
 
 @defun floor number &optional divisor
 This returns @var{number}, converted to an integer by rounding downward
 (towards negative infinity).
 
-If @var{divisor} is specified, @var{number} is divided by @var{divisor}
-before the floor is taken; this uses the kind of division operation that
-corresponds to @code{mod}, rounding downward.  An @code{arith-error}
-results if @var{divisor} is 0.
+If @var{divisor} is specified, @code{floor} divides @var{number} by
+@var{divisor} and then converts to an integer; this uses the kind of
+division operation that corresponds to @code{mod}, rounding downward.
+An @code{arith-error} results if @var{divisor} is 0.
+
+@example
+(floor 1.2)
+     @result{} 1
+(floor 1.7)
+     @result{} 1
+(floor -1.2)
+     @result{} -2
+(floor -1.7)
+     @result{} -2
+(floor 5.99 3)
+     @result{} 1
+@end example
 @end defun
 
 @defun ceiling number
 This returns @var{number}, converted to an integer by rounding upward
 (towards positive infinity).
+
+@example
+(ceiling 1.2)
+     @result{} 2
+(ceiling 1.7)
+     @result{} 2
+(ceiling -1.2)
+     @result{} -1
+(ceiling -1.7)
+     @result{} -1
+@end example
 @end defun
 
 @defun round number
@@ -382,6 +417,17 @@ This returns @var{number}, converted to an integer by rounding towards the
 nearest integer.  Rounding a value equidistant between two integers
 may choose the integer closer to zero, or it may prefer an even integer,
 depending on your machine.
+
+@example
+(round 1.2)
+     @result{} 1
+(round 1.7)
+     @result{} 2
+(round -1.2)
+     @result{} -1
+(round -1.7)
+     @result{} -2
+@end example
 @end defun
 
 @node Arithmetic Operations
