@@ -4704,7 +4704,7 @@ make_lispy_event (event)
 
 		if (part == 1 || part == 3)
 		  {
-		    /* Mode line or top line.  Look for a string under
+		    /* Mode line or header line.  Look for a string under
 		       the mouse that may have a `local-map' property.  */
 		    Lisp_Object string;
 		    int charpos;
@@ -5822,6 +5822,12 @@ lucid_event_type_list_p (object)
   Lisp_Object tail;
 
   if (! CONSP (object))
+    return 0;
+
+  if (EQ (XCAR (object), Qhelp_echo)
+      || EQ (XCAR (object), Qvertical_line)
+      || EQ (XCAR (object), Qmode_line)
+      || EQ (XCAR (object), Qheader_line))
     return 0;
 
   for (tail = object; CONSP (tail); tail = XCDR (tail))
