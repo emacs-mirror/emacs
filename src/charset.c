@@ -197,9 +197,11 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 	  int cmpchar_id = str_cmpchar_id (str, bytes);
 
 	  if (cmpchar_id >= 0)
-	    c = MAKE_COMPOSITE_CHAR (cmpchar_id);
-	  if (exclude_tail_garbage)
-	    bytes = cmpchar_table[cmpchar_id]->len;
+	    {
+	      c = MAKE_COMPOSITE_CHAR (cmpchar_id);
+	      if (exclude_tail_garbage)
+		bytes = cmpchar_table[cmpchar_id]->len;
+	    }
 	}
       else
 	{
