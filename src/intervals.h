@@ -247,7 +247,8 @@ extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
 extern void move_if_not_intangible P_ ((int));
 extern int get_property_and_range P_ ((int, Lisp_Object, Lisp_Object *,
 				       int *, int *, Lisp_Object));
-extern Lisp_Object get_local_map P_ ((int, struct buffer *));
+enum map_property {local_map, keymap};
+extern Lisp_Object get_local_map P_ ((int, struct buffer *, enum map_property));
 extern INTERVAL update_interval P_ ((INTERVAL, int));
 extern void set_intervals_multibyte P_ ((int));
 extern INTERVAL validate_interval_range P_ ((Lisp_Object, Lisp_Object *,
@@ -266,6 +267,7 @@ extern Lisp_Object Qpoint_entered;
 extern Lisp_Object Qmodification_hooks;
 extern Lisp_Object Qcategory;
 extern Lisp_Object Qlocal_map;
+extern Lisp_Object Qkeymap;
 
 /* Visual properties text (including strings) may have. */
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
