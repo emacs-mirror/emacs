@@ -89,15 +89,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		  ;; So x and no-x builds won't differ.
 		  (setq members
 			(sort (copy-sequence members) 
-			      (lambda (x y)
-				(cond ((and (stringp x) (stringp y))
-				       (string< x y))
-				      ;; Put all non-strings before strings.
-				      ((stringp y) t)
-				      ((stringp x) nil)
-				      ;; For two non-strings,
-				      ;; use the order they appear in MEMBERS.
-				      (t (member y (member x members)))))))
+			      (lambda (x y) (string< (car x) (car y)))))
 		  (while members
 		    (setq item (car (car members))
 			  members (cdr members)
