@@ -558,11 +558,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(if (memq 'file-error (get (car error) 'error-conditions))
 	    (format "%s: %s"
 		     (nth 1 error)
-		     (mapconcat '(lambda (obj) (prin1-to-string obj t))
+		     (mapconcat (lambda (obj) (prin1-to-string obj t))
 				(cdr (cdr error)) ", "))
 	  (format "%s: %s"
 		   (get (car error) 'error-message)
-		   (mapconcat '(lambda (obj) (prin1-to-string obj t))
+		   (mapconcat (lambda (obj) (prin1-to-string obj t))
 			      (cdr error) ", "))))
       'external-debugging-output)
      (setq window-system nil)
@@ -642,8 +642,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (if (fboundp 'frame-initialize)
       (frame-initialize))
   ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (if (or (not (memq window-system '(x w32)))
-	  (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
+  (if (and (not noninteractive)
+	   (or (not (memq window-system '(x w32)))
+	       (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0)))
       (menu-bar-mode t))
 
   (run-hooks 'before-init-hook)
@@ -999,8 +1000,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	   (append '(("--funcall") ("--load") ("--insert") ("--kill")
 		     ("--directory") ("--eval") ("--execute")
 		     ("--find-file") ("--visit") ("--file"))
-		   (mapcar '(lambda (elt)
-			      (list (concat "-" (car elt))))
+		   (mapcar (lambda (elt)
+			     (list (concat "-" (car elt))))
 			   command-switch-alist)))
 	  (line 0))
 
