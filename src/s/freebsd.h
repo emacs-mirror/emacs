@@ -92,3 +92,8 @@
 /* Needed to avoid hanging when child process writes an error message
    and exits -- enami tsugutomo <enami@ba2.so-net.or.jp>.  */
 #define vfork fork
+
+/* Don't close pty in process.c to make it as controlling terminal.
+   It is already a controlling terminal of subprocess, because we did
+   ioctl TIOCSCTTY.  */
+#define DONT_REOPEN_PTY
