@@ -130,6 +130,7 @@ so you can edit or delete these lines.")
 ;; options -t, and -v if not interactive.
 (defvar mail-mailer-swallows-blank-line
   (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)" system-configuration)
+	   (file-exists-p "/etc/sendmail.cf")
 	   (let ((buffer (get-buffer-create " *temp*")))
 	     (unwind-protect
 		 (save-excursion
