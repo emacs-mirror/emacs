@@ -37,16 +37,16 @@ exact; they have a fixed, limited amount of precision.
 
   The range of values for an integer depends on the machine.  The
 minimum range is @minus{}134217728 to 134217727 (28 bits; i.e.,
-@ifinfo 
+@ifnottex
 -2**27
-@end ifinfo
+@end ifnottex
 @tex 
 @math{-2^{27}}
 @end tex
 to 
-@ifinfo 
+@ifnottex
 2**27 - 1),
-@end ifinfo
+@end ifnottex
 @tex 
 @math{2^{27}-1}),
 @end tex
@@ -959,16 +959,16 @@ in radians.
 
 @defun asin arg
 The value of @code{(asin @var{arg})} is a number between
-@ifinfo
+@ifnottex
 @minus{}pi/2
-@end ifinfo
+@end ifnottex
 @tex
 @math{-\pi/2}
 @end tex
 and
-@ifinfo
+@ifnottex
 pi/2
-@end ifinfo
+@end ifnottex
 @tex
 @math{\pi/2}
 @end tex
@@ -978,9 +978,9 @@ is out of range (outside [-1, 1]), then the result is a NaN.
 
 @defun acos arg
 The value of @code{(acos @var{arg})} is a number between 0 and
-@ifinfo
+@ifnottex
 pi
-@end ifinfo
+@end ifnottex
 @tex
 @math{\pi}
 @end tex
@@ -990,16 +990,16 @@ is out of range (outside [-1, 1]), then the result is a NaN.
 
 @defun atan arg
 The value of @code{(atan @var{arg})} is a number between
-@ifinfo
+@ifnottex
 @minus{}pi/2
-@end ifinfo
+@end ifnottex
 @tex
 @math{-\pi/2}
 @end tex
 and
-@ifinfo
+@ifnottex
 pi/2
-@end ifinfo
+@end ifnottex
 @tex
 @math{\pi/2}
 @end tex
@@ -1011,16 +1011,16 @@ This is the exponential function; it returns
 @tex
 @math{e}
 @end tex
-@ifinfo
+@ifnottex
 @i{e}
-@end ifinfo
+@end ifnottex
 to the power @var{arg}.
 @tex
 @math{e}
 @end tex
-@ifinfo
+@ifnottex
 @i{e}
-@end ifinfo
+@end ifnottex
 is a fundamental mathematical constant also called the base of natural
 logarithms.
 @end defun
@@ -1031,9 +1031,9 @@ If you don't specify @var{base}, the base
 @tex
 @math{e}
 @end tex
-@ifinfo
+@ifnottex
 @i{e}
-@end ifinfo
+@end ifnottex
 is used.  If @var{arg}
 is negative, the result is a NaN.
 @end defun

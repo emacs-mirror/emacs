@@ -70,9 +70,9 @@ modification follow.
 @iftex
 @unnumberedsec TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 @end iftex
-@ifinfo
+@ifnottex
 @center TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-@end ifinfo
+@end ifnottex
 
 @enumerate 0
 @item
@@ -295,9 +295,9 @@ of promoting the sharing and reuse of software generally.
 @iftex
 @heading NO WARRANTY
 @end iftex
-@ifinfo
+@ifnottex
 @center NO WARRANTY
-@end ifinfo
+@end ifnottex
 
 @item
 BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
@@ -325,9 +325,9 @@ POSSIBILITY OF SUCH DAMAGES.
 @iftex
 @heading END OF TERMS AND CONDITIONS
 @end iftex
-@ifinfo
+@ifnottex
 @center END OF TERMS AND CONDITIONS
-@end ifinfo
+@end ifnottex
 
 @page
 @unnumberedsec How to Apply These Terms to Your New Programs
@@ -467,7 +467,7 @@ page numbers and chapter and section numbers will change and we may have
 trouble finding the text you are talking about.  Also state the number
 of the edition you are criticizing.
 @end iftex
-@ifinfo
+@ifnottex
 
 As you use this manual, we ask that you send corrections as soon as you
 find them.  If you think of a simple, real life example for a function
@@ -475,7 +475,7 @@ or group of functions, please make an effort to write it up and send it
 in.  Please reference any comments to the node name and function or
 variable name, as appropriate.  Also state the number of the edition
 you are criticizing.
-@end ifinfo
+@end ifnottex
 
 Please mail comments and corrections to
 
@@ -711,10 +711,10 @@ This is the changed @point{}contents of foo.
 forms are described in this manual in a uniform format.  The first
 line of a description contains the name of the item followed by its
 arguments, if any.
-@ifinfo
+@ifnottex
 The category---function, variable, or whatever---appears at the
 beginning of the line.
-@end ifinfo
+@end ifnottex
 @iftex
 The category---function, variable, or whatever---is printed next to the
 right margin.

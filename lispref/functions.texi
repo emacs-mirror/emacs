@@ -64,9 +64,9 @@ the editor.  See @ref{Writing Emacs Primitives}.
 @item lambda expression
 A @dfn{lambda expression} is a function written in Lisp.
 These are described in the following section.
-@ifinfo
+@ifnottex
 @xref{Lambda Expressions}.
-@end ifinfo
+@end ifnottex
 
 @item special form
 A @dfn{special form} is a primitive that is like a function but does not
@@ -174,7 +174,7 @@ expression, but to be called as a function.
 @node Lambda Components
 @subsection Components of a Lambda Expression
 
-@ifinfo
+@ifnottex
 
   A function written in Lisp (a ``lambda expression'') is a list that
 looks like this:
@@ -185,7 +185,7 @@ looks like this:
   [@var{interactive-declaration}]
   @var{body-forms}@dots{})
 @end example
-@end ifinfo
+@end ifnottex
 
 @cindex lambda list
   The first element of a lambda expression is always the symbol

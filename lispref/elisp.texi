@@ -11,7 +11,7 @@
 
 @smallbook
 
-@ifinfo
+@ifnottex
 This Info file contains edition 2.6 of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version 21.1.
 @c Please REMEMBER to update edition number in *four* places in this file
@@ -57,7 +57,7 @@ into another language, under the above conditions for modified versions,
 except that the section entitled ``GNU General Public License'' may be
 included in a translation approved by the Free Software Foundation
 instead of in the original English.
-@end ifinfo
+@end ifnottex
 
 @c Combine indices.
 @synindex cp fn
@@ -119,10 +119,10 @@ Cover art by Etienne Suvasa.
 
 @node Top, Copying, (dir), (dir)
 
-@ifinfo
+@ifnottex
 This Info file contains edition 2.6 of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version 21.1.
-@end ifinfo
+@end ifnottex
 
 @menu
 * Copying::                 Conditions for copying and changing GNU Emacs.

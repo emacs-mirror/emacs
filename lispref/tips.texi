@@ -545,13 +545,13 @@ would be printed (which usually means in lower case), with single-quotes
 around it.  For example: @samp{`lambda'}.  There are two exceptions:
 write @code{t} and @code{nil} without single-quotes.
 @end iftex
-@ifinfo
+@ifnottex
 When a documentation string refers to a Lisp symbol, write it as it
 would be printed (which usually means in lower case), with single-quotes
 around it.  For example: @samp{lambda}.  There are two exceptions: write
 t and nil without single-quotes.  (In this manual, we use a different
 convention, with single-quotes for all symbols.)
-@end ifinfo
+@end ifnottex
 
 Help mode automatically creates a hyperlink when a documentation string
 uses a symbol name inside single quotes, if the symbol has either a

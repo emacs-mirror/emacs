@@ -434,7 +434,7 @@ described in the following section.
 @node Surprising Local Vars
 @subsection Local Variables in Macro Expansions
 
-@ifinfo
+@ifnottex
   In the previous section, the definition of @code{for} was fixed as
 follows to make the expansion evaluate the macro arguments the proper
 number of times:
@@ -452,7 +452,7 @@ number of times:
        (inc ,var))))
 @end group
 @end smallexample
-@end ifinfo
+@end ifnottex
 
   The new definition of @code{for} has a new problem: it introduces a
 local variable named @code{max} which the user does not expect.  This

@@ -229,7 +229,7 @@ words.  Otherwise, they do not.
 @tindex inhibit-field-text-motion
 If this variable is non-@code{nil}, certain motion functions including
 @code{forward-word}, @code{forward-sentence}, and
-@codef{forward-paragraph} ignore field boundaries.
+@code{forward-paragraph} ignore field boundaries.
 @end defvar
 
 @node Buffer End Motion

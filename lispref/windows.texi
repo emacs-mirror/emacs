@@ -592,9 +592,9 @@ display buffers in windows in a precisely controlled fashion.
 @iftex
 See the following section for
 @end iftex
-@ifinfo
+@ifnottex
 @xref{Displaying Buffers}, for
-@end ifinfo
+@end ifnottex
 related functions that find a window to use and specify a buffer for it.
 The functions described there are easier to use than these, but they
 employ heuristics in choosing or creating a window; use these functions
@@ -698,9 +698,9 @@ window.
 @iftex
 See the preceding section for
 @end iftex
-@ifinfo
+@ifnottex
 @xref{Buffers and Windows}, for
-@end ifinfo
+@end ifnottex
 low-level functions that give you more precise control.  All of these
 functions work by calling @code{set-window-buffer}.
 

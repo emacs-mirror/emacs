@@ -37,7 +37,7 @@ not be displayed in any windows.
 @comment  node-name,  next,  previous,  up
 @section Buffer Basics
 
-@ifinfo
+@ifnottex
   A @dfn{buffer} is a Lisp object containing text to be edited.  Buffers
 are used to hold the contents of files that are being visited; there may
 also be buffers that are not visiting files.  Although several buffers
@@ -45,7 +45,7 @@ normally exist, only one buffer is designated the @dfn{current
 buffer} at any time.  Most editing commands act on the contents of the
 current buffer.  Each buffer, including the current buffer, may or may
 not be displayed in any windows.
-@end ifinfo
+@end ifnottex
 
   Buffers in Emacs editing are objects that have distinct names and hold
 text that can be edited.  Buffers appear to Lisp programs as a special

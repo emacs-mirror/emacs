@@ -926,9 +926,9 @@ This function returns the system's time value as a list of three
 integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
 @var{high} and @var{low} combine to give the number of seconds since
 0:00 January 1, 1970 (local time), which is
-@ifinfo
+@ifnottex
 @var{high} * 2**16 + @var{low}.
-@end ifinfo
+@end ifnottex
 @tex
 $high*2^{16}+low$.
 @end tex
@@ -1742,9 +1742,9 @@ This variable's value should be an alist with one element for each
 system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
 including the ``vendor specific'' bit, 
-@ifinfo 
+@ifnottex
 -2**28),
-@end ifinfo
+@end ifnottex
 @tex 
 $-2^{28}$),
 @end tex
@@ -1752,9 +1752,9 @@ and @var{symbol} is the name for the function key.
 
 For example @code{(168 . mute-acute)} defines a system-specific key (used
 by HP X servers) whose numeric code is
-@ifinfo 
+@ifnottex
 -2**28
-@end ifinfo
+@end ifnottex
 @tex 
 $-2^{28}$
 @end tex

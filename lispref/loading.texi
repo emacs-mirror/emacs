@@ -537,9 +537,9 @@ has been loaded before:
 If the library uses @code{provide} to provide a named feature, you can
 use @code{featurep} earlier in the file to test whether the
 @code{provide} call has been executed before.
-@ifinfo
+@ifnottex
 @xref{Named Features}.
-@end ifinfo
+@end ifnottex
 
 @node Named Features
 @section Features

@@ -34,7 +34,7 @@ functions in this chapter.
 @node Syntax Basics
 @section Syntax Table Concepts
 
-@ifinfo
+@ifnottex
   A @dfn{syntax table} provides Emacs with the information that
 determines the syntactic use of each character in a buffer.  This
 information is used by the parsing commands, the complex movement
@@ -43,7 +43,7 @@ syntactic constructs begin and end.  The current syntax table controls
 the meaning of the word motion functions (@pxref{Word Motion}) and the
 list motion functions (@pxref{List Motion}) as well as the functions in
 this chapter.
-@end ifinfo
+@end ifnottex
 
   A syntax table is a char-table (@pxref{Char-Tables}).  The element at
 index @var{c} describes the character with code @var{c}.  The element's

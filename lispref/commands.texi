@@ -870,9 +870,9 @@ The
 @tex
 @math{2^{27}}
 @end tex
-@ifinfo
+@ifnottex
 2**27
-@end ifinfo
+@end ifnottex
 bit in the character code indicates a character
 typed with the meta key held down.
 
@@ -881,9 +881,9 @@ The
 @tex
 @math{2^{26}}
 @end tex
-@ifinfo
+@ifnottex
 2**26
-@end ifinfo
+@end ifnottex
 bit in the character code indicates a non-@sc{ascii}
 control character.
 
@@ -897,9 +897,9 @@ for @kbd{%} plus
 @tex
 @math{2^{26}}
 @end tex
-@ifinfo
+@ifnottex
 2**26
-@end ifinfo
+@end ifnottex
 (assuming the terminal supports non-@sc{ascii}
 control characters).
 
@@ -908,9 +908,9 @@ The
 @tex
 @math{2^{25}}
 @end tex
-@ifinfo
+@ifnottex
 2**25
-@end ifinfo
+@end ifnottex
 bit in the character code indicates an @sc{ascii} control
 character typed with the shift key held down.
 
@@ -921,9 +921,9 @@ character with a different basic code.  In order to keep within the
 @tex
 @math{2^{25}}
 @end tex
-@ifinfo
+@ifnottex
 2**25
-@end ifinfo
+@end ifnottex
 bit for those characters.
 
 However, @sc{ascii} provides no way to distinguish @kbd{C-A} from
@@ -931,9 +931,9 @@ However, @sc{ascii} provides no way to distinguish @kbd{C-A} from
 @tex
 @math{2^{25}}
 @end tex
-@ifinfo
+@ifnottex
 2**25
-@end ifinfo
+@end ifnottex
 bit in @kbd{C-A} and not in
 @kbd{C-a}.
 
@@ -942,9 +942,9 @@ The
 @tex
 @math{2^{24}}
 @end tex
-@ifinfo
+@ifnottex
 2**24
-@end ifinfo
+@end ifnottex
 bit in the character code indicates a character
 typed with the hyper key held down.
 
@@ -953,9 +953,9 @@ The
 @tex
 @math{2^{23}}
 @end tex
-@ifinfo
+@ifnottex
 2**23
-@end ifinfo
+@end ifnottex
 bit in the character code indicates a character
 typed with the super key held down.
 
@@ -964,9 +964,9 @@ The
 @tex
 @math{2^{22}}
 @end tex
-@ifinfo
+@ifnottex
 2**22
-@end ifinfo
+@end ifnottex
 bit in the character code indicates a character typed with
 the alt key held down.  (On some terminals, the key labeled @key{ALT}
 is actually the meta key.)
@@ -1702,9 +1702,9 @@ character is
 @tex
 @math{2^{27}}
 @end tex
-@ifinfo
+@ifnottex
 2**27
-@end ifinfo
+@end ifnottex
 and such numbers cannot be included in a string.
 
   To support programs with @samp{\M-} in string constants, there are
@@ -1722,31 +1722,31 @@ The meta variants of those characters, with codes in the range of
 @tex
 @math{2^{27}}
 @end tex
-@ifinfo
+@ifnottex
 2**27
-@end ifinfo
+@end ifnottex
 to
 @tex
 @math{2^{27} + 127},
 @end tex
-@ifinfo
+@ifnottex
 2**27+127,
-@end ifinfo
+@end ifnottex
 can also go in the string, but you must change their
 numeric values.  You must set the
 @tex
 @math{2^{7}}
 @end tex
-@ifinfo
+@ifnottex
 2**7
-@end ifinfo
+@end ifnottex
 bit instead of the
 @tex
 @math{2^{27}}
 @end tex
-@ifinfo
+@ifnottex
 2**27
-@end ifinfo
+@end ifnottex
 bit, resulting in a value between 128 and 255.  Only a unibyte string
 can include these codes.
 

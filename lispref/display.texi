@@ -3092,9 +3092,9 @@ This glyph is simple.  On an ordinary terminal, the glyph code mod
 mod 524288 is the character to output, and the glyph code divided by
 524288 specifies the face number (@pxref{Face Functions}) to use while
 outputting it.  (524288 is
-@ifinfo
+@ifnottex
 2**19.)
-@end ifinfo
+@end ifnottex
 @tex
 $2^{19}$.)
 @end tex

@@ -1329,17 +1329,17 @@ position of the beginning of the match for the whole expression; element
 one is the position of the end of the match for the expression.  The
 next two elements are the positions of the beginning and end of the
 match for the first subexpression, and so on.  In general, element
-@ifinfo
+@ifnottex
 number 2@var{n}
-@end ifinfo
+@end ifnottex
 @tex
 number {\mathsurround=0pt $2n$}
 @end tex
 corresponds to @code{(match-beginning @var{n})}; and
 element
-@ifinfo
+@ifnottex
 number 2@var{n} + 1
-@end ifinfo
+@end ifnottex
 @tex
 number {\mathsurround=0pt $2n+1$}
 @end tex

@@ -907,10 +907,10 @@ functions ``destructive'' because they chew up the original lists passed
 to them as arguments, relinking their cons cells to form a new list that
 is the returned value.
 
-@ifinfo
+@ifnottex
   See @code{delq}, in @ref{Sets And Lists}, for another function
 that modifies cons cells.
-@end ifinfo
+@end ifnottex
 @iftex
    The function @code{delq} in the following section is another example
 of destructive list manipulation.

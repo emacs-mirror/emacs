@@ -2169,7 +2169,7 @@ called like this:
 
 Here are the operations that a magic file name handler gets to handle:
 
-@ifinfo
+@ifnottex
 @noindent
 @code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
 @code{delete-file},
@@ -2204,7 +2204,7 @@ Here are the operations that a magic file name handler gets to handle:
 @code{vc-registered},
 @code{verify-visited-file-modtime},@*
 @code{write-region}.
-@end ifinfo
+@end ifnottex
 @iftex
 @noindent
 @flushleft

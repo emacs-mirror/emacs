@@ -163,16 +163,16 @@ latter are unique to Emacs Lisp.
 
   The range of values for integers in Emacs Lisp is @minus{}134217728 to
 134217727 (28 bits; i.e.,
-@ifinfo
+@ifnottex
 -2**27
-@end ifinfo
+@end ifnottex
 @tex
 @math{-2^{27}}
 @end tex
 to
-@ifinfo
+@ifnottex
 2**27 - 1)
-@end ifinfo
+@end ifnottex
 @tex
 @math{2^{28}-1})
 @end tex
@@ -322,9 +322,9 @@ codes for these non-@sc{ascii} control characters include the
 @tex
 @math{2^{26}}
 @end tex
-@ifinfo
+@ifnottex
 2**26
-@end ifinfo
+@end ifnottex
 bit as well as the code for the corresponding non-control
 character.  Ordinary terminals have no way of generating non-@sc{ascii}
 control characters, but you can generate them straightforwardly using X
@@ -355,9 +355,9 @@ modifier key.  The integer that represents such a character has the
 @tex
 @math{2^{27}}
 @end tex
-@ifinfo
+@ifnottex
 2**27
-@end ifinfo
+@end ifnottex
 bit set (which on most machines makes it a negative number).  We
 use high bits for this and other modifiers to make possible a wide range
 of basic character codes.
@@ -366,9 +366,9 @@ of basic character codes.
 @tex
 @math{2^{7}}
 @end tex
-@ifinfo
+@ifnottex
 2**7
-@end ifinfo
+@end ifnottex
 bit attached to an ASCII character indicates a meta character; thus, the
 meta characters that can fit in a string have codes in the range from
 128 to 255, and are the meta versions of the ordinary @sc{ascii}
@@ -389,9 +389,9 @@ character is upper case or lower case.  Emacs uses the
 @tex
 @math{2^{25}}
 @end tex
-@ifinfo
+@ifnottex
 2**25
-@end ifinfo
+@end ifnottex
 bit to indicate that the shift key was used in typing a control
 character.  This distinction is possible only when you use X terminals
 or other special terminals; ordinary terminals do not report the
@@ -411,10 +411,10 @@ significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
 Numerically, the
 bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
 @end tex
-@ifinfo
+@ifnottex
 Numerically, the
 bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
-@end ifinfo
+@end ifnottex
 
 @cindex @samp{\} in character constant
 @cindex backslash in character constant
@@ -443,9 +443,9 @@ character @kbd{C-a}, and @code{?\x8e0} for the character
 @iftex
 @samp{@`a}.
 @end iftex
-@ifinfo
+@ifnottex
 @samp{a} with grave accent.
-@end ifinfo
+@end ifnottex
 
   A backslash is allowed, and harmless, preceding any character without
 a special escape meaning; thus, @samp{?\+} is equivalent to @samp{?+}.
@@ -769,7 +769,7 @@ and looks like this:
 
   Similarly, the three-element list @code{(rose violet buttercup)}
 is equivalent to @code{(rose . (violet . (buttercup)))}.
-@ifinfo
+@ifnottex
 It looks like this:
 
 @example
@@ -782,7 +782,7 @@ It looks like this:
       --> rose     --> violet   --> buttercup
 @end group
 @end example
-@end ifinfo
+@end ifnottex
 
 @node Association List Type
 @comment  node-name,  next,  previous,  up
@@ -951,9 +951,9 @@ in a string constant, this sets the
 @tex
 @math{2^{7}}
 @end tex
-@ifinfo
+@ifnottex
 2**7
-@end ifinfo
+@end ifnottex
 bit of the character in the string.  If the string is used in
 @code{define-key} or @code{lookup-key}, this numeric code is translated
 into the equivalent meta character.  @xref{Character Type}.

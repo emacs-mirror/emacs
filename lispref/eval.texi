@@ -18,7 +18,7 @@ chapter.  The interpreter runs automatically to evaluate portions of
 your program, but can also be called explicitly via the Lisp primitive
 function @code{eval}.
 
-@ifinfo
+@ifnottex
 @menu
 * Intro Eval::  Evaluation in the scheme of things.
 * Forms::       How various sorts of objects are evaluated.
@@ -37,7 +37,7 @@ running any Lisp program really means running the Lisp interpreter.
 
   How the evaluator handles an object depends primarily on the data
 type of the object.
-@end ifinfo
+@end ifnottex
 
 @cindex forms
 @cindex expression
