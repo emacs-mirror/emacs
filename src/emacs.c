@@ -136,6 +136,8 @@ int noninteractive1;
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
+
+static void sort_args ();
 
 /* Signal code for the fatal signal that was received */
 int fatal_error_code;
@@ -341,6 +343,7 @@ __main ()
 
    Too bad we can't just use getopt for all of this, but we don't have
    enough information to do it right.  */
+
 static int
 argmatch (argv, sstr, lstr, minlen, valptr, skipptr)
      char **argv;
@@ -404,6 +407,8 @@ main (argc, argv, envp)
   extern int errno;
   extern sys_nerr;
 
+  sort_args (argc, argv);
+
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
   if (argmatch (argv, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
@@ -428,22 +433,6 @@ main (argc, argv, envp)
     if (malloc_jumpstart (malloc_cookie) != 0)
       printf ("malloc jumpstart failed!\n");
 #endif /* NeXT */
-
-#ifdef HAVE_X_WINDOWS
-  /* Stupid kludge to catch command-line display spec.  We can't
-     handle this argument entirely in window system dependent code
-     because we don't even know which window system dependent code
-     to run until we've recognized this argument.  */
-  {
-    int i;
-
-    /* We don't check for a long option --display here, since the X code
-       won't be able to recognize that form anyway.  */
-    for (i = 1; (i < argc && ! display_arg); i++)
-      if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "-display"))
-	display_arg = 1;
-  }
-#endif
 
 #ifdef VMS
   /* If -map specified, map the data file in */
@@ -571,6 +560,46 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       file-to-visit  [--kill]\n", argv[0]);
       exit (0);
     }
+
+#ifdef HAVE_X_WINDOWS
+  /* Stupid kludge to catch command-line display spec.  We can't
+     handle this argument entirely in window system dependent code
+     because we don't even know which window system dependent code
+     to run until we've recognized this argument.  */
+  {
+    char *displayname;
+    int i;
+    int count_before = skip_args;
+
+    if (argmatch (argv, "-d", "--display", 3, &displayname, &skip_args))
+      display_arg = 1;
+    else if (argmatch (argv, "-display", 0, 3, &displayname, &skip_args))
+      display_arg = 1;
+
+    /* If we have the form --display=NAME,
+       convert it into  -d name.
+       This requires inserting a new element into argv.  */
+    if (displayname != 0 && skip_args - count_before == 1)
+      {
+	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
+	int j;
+
+	for (j = 0; j < count_before + 1; j++)
+	  new[j] = argv[j];
+	new[count_before + 1] = "-d";
+	new[count_before + 2] = displayname;
+	for (j = count_before + 2; j <argc; j++)
+	  new[j + 1] = argv[j];
+	argv = new;
+	argc++;
+      }
+    else if (displayname != 0 && argv[count_before + 1][1] == '-')
+      argv[count_before] = "-d";
+
+    /* Don't actually discard this arg.  */
+    skip_args = count_before;
+  }
+#endif
 
   if (! noninteractive)
     {
@@ -850,6 +879,182 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
   /* NOTREACHED */
+}
+
+/* Sort the args so we can find the most important ones
+   at the beginning of argv.  */
+
+/* First, here's a table of all the standard options.  */
+
+struct standard_args
+{
+  char *name;
+  char *longname;
+  int priority;
+  int nargs;
+};
+
+struct standard_args standard_args[] =
+{
+  { "-nl", "--no-shared-memory", 100, 0 },
+  { "-map", "--map-data", 100, 0 },
+  { "-t", "--terminal", 90, 1 },
+  { "-d", "--display", 80, 1 },
+  { "-display", 0, 80, 1 },
+  { "-nw", "--no-windows", 70, 0 },
+  { "-batch", "--batch", 60, 0 },
+  { "-q", "--no-init-file", 50, 0 },
+  { "-no-init-file", 0, 50, 0 },
+  { "-no-site-file", "--no-site-file", 40, 0 },
+  { "-u", "--user", 30, 1 },
+  { "-user", 0, 30, 1 },
+  { "-debug-init", "--debug-init", 20, 0 },
+  { "-l", "--load", 10, 1 },
+  { "-load", 0, 10, 1 },
+  { "-f", "--funcall", 10, 1 },
+  { "-funcall", 0, 10, 1 },
+  { "-insert", "--insert", 10, 1 },
+  { "-bg", "--background-color", 10, 1 },
+  { "-background", 0, 10, 1 },
+  { "-fg", "--foreground-color", 10, 1 },
+  { "-foreground", 0, 10, 1 },
+  { "-bd", "--border-color", 10, 1 },
+  { "-bw", "--border-width", 10, 1 },
+  { "-ib", "--internal-border", 10, 1 },
+  { "-ms", "--mouse-color", 10, 1 },
+  { "-cr", "--cursor-color", 10, 1 },
+  { "-fn", "--font", 10, 1 },
+  { "-font", 0, 10, 1 },
+  { "-g", "--geometry", 10, 1 },
+  { "-geometry", 0, 10, 1 },
+  { "-T", "--title", 10, 1 },
+  { "-i", "--icon-type", 10, 1 },
+  { "-itype", 0, 10, 1 },
+  { "-name", "--name", 10, 1 },
+  { "-xrm", "--xrm", 10, 1 },
+  { "-r", "--reverse-video", 0, 0 },
+  { "-rv", 0, 0, 0 },
+  { "-reverse", 0, 0, 0 },
+  { "-vb", "--vertical-scroll-bars", 0, 0 },
+  { "-iconic", "--iconic", 0, 0 },
+  { "-kill", "--kill", 0, 0 },
+};
+
+/* Reorder the elements of ARGV (assumed to have ARGC elements)
+   so that the highest priority ones come first.
+   Do not change the order of elements of equal priority.
+   If an option takes an argument, keep it and its argument together.  */
+
+static void
+sort_args (argc, argv)
+     int argc;
+     char **argv;
+{
+  char **new = (char **) xmalloc (sizeof (char *) * argc);
+  /* For each element of argv,
+     the corresponding element of options is:
+     0 for an option that takes no arguments,
+     1 for an option that takes one argument, etc.
+     -1 for an ordinary non-option argument.  */
+  char *options = (char *) xmalloc (argc);
+  int *priority = (int *) xmalloc (sizeof (int) * argc);
+  int to = 1;
+  int from;
+  int i;
+
+  /* Categorize all the options,
+     and figure out which argv elts are option arguments.  */
+  for (from = 1; from < argc; from++)
+    {
+      options[from] = -1;
+      priority[from] = -1;
+      if (argv[from][0] == '-')
+	{
+	  int match, thislen;
+	  char *equals;
+
+	  /* Look for a match with a known old-fashioned option.  */
+	  for (i = 0; i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
+	    if (!strcmp (argv[from], standard_args[i].name))
+	      {
+		options[from] = standard_args[i].nargs;
+		priority[from] = standard_args[i].priority;
+		from += standard_args[i].nargs;
+		goto done;
+	      }
+
+	  /* Look for a match with a known long option.
+	     MATCH is -1 if no match so far, -2 if two or more matches so far,
+	     >= 0 (the table index of the match) if just one match so far.  */
+	  if (argv[from][1] == '-')
+	    {
+	      match = -1;
+	      thislen = strlen (argv[from]);
+	      equals = index (argv[from], '=');
+	      if (equals != 0)
+		thislen = equals - argv[from];
+
+	      for (i = 0; i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
+		if (!strncmp (argv[from], standard_args[i].longname, thislen))
+		  {
+		    if (match == -1)
+		      match = i;
+		    else
+		      match = -2;
+		  }
+
+	      /* If we found exactly one match, use that.  */
+	      if (match >= 0)
+		{
+		  options[from] = standard_args[match].nargs;
+		  priority[from] = standard_args[match].priority;
+		  /* If --OPTION=VALUE syntax is used,
+		     this option uses just one argv element.  */
+		  if (equals != 0)
+		    options[from] = 0;
+		  from += options[from];
+		}
+	    }
+	done: ;
+	}
+    }
+
+  /* Copy the arguments, in order of decreasing priority, to NEW.  */
+  new[0] = argv[0];
+  while (to < argc)
+    {
+      int best = -1;
+      int best_priority = -2;
+
+      /* Find the highest priority remaining option.
+	 If several have equal priority, take the first of them.  */
+      for (from = 1; from < argc; from++)
+	{
+	  if (argv[from] != 0 && priority[from] > best_priority)
+	    {
+	      best_priority = priority[from];
+	      best = from;
+	    }
+	  /* Skip option arguments--they are tied to the options.  */
+	  if (options[from] > 0)
+	    from += options[from];
+	}
+	    
+      if (best < 0)
+	abort ();
+
+      /* Copy the highest priority remaining option, with its args, to NEW.  */
+      new[to++] = argv[best];
+      for (i = 0; i < options[best]; i++)
+	new[to++] = argv[best + i + 1];
+
+      /* Clear out this option in ARGV.  */
+      argv[best] = 0;
+      for (i = 0; i < options[best]; i++)
+	argv[best + i + 1] = 0;
+    }
+
+  bcopy (new, argv, sizeof (char *) * (argc + 1));
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
