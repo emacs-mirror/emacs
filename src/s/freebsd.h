@@ -99,3 +99,9 @@
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
+
+/* CLASH_DETECTION is defined in bsd4-3.h.
+   In FreeBSD 2.1.5 (and other 2.1.x), this results useless symbolic links
+   remaining in /tmp or other directories with +t bit.
+   To avoid this problem, you could #undef it to use no file lock. */
+/* #undef CLASH_DETECTION */
