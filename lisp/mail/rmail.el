@@ -219,6 +219,15 @@ and the value of the environment variable MAIL overrides it)."
   :group 'rmail-files)
 
 ;;;###autoload
+(defcustom rmail-confirm-expunge 'yes-or-no-p
+  "*Whether and how to ask for confirmation before expunging deleted messages."
+  :type '(choice (const :tag "No confirmation" nil)
+		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
+		 (const :tag "Confirm with yes-or-no-p" yes-or-no-p))
+  :version "21.1"
+  :group 'rmail-files)
+
+;;;###autoload
 (defvar rmail-mode-hook nil
   "List of functions to call when Rmail is invoked.")
 
@@ -2674,10 +2683,13 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."
   (interactive)
-  (rmail-only-expunge)
-  (if (rmail-summary-exists)
-      (rmail-select-summary
-	(rmail-update-summary))))
+  (when (or (null rmail-confirm-expunge)
+	    (funcall rmail-confirm-expunge
+		     "Erase deleted messages from Rmail file? "))
+    (rmail-only-expunge)
+    (if (rmail-summary-exists)
+	(rmail-select-summary
+	 (rmail-update-summary)))))
 
 ;;;; *** Rmail Mailing Commands ***
 
