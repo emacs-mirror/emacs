@@ -56,7 +56,7 @@ The supported characters and potential disadvantages are:
   ?'	Makes ' in text start a string.
   ?-	Makes -- in text start a comment.
 
-When only one of ?\\\" or ?' are included, \"'\" or '\"' as it can be found in
+When only one of ?\\\" or ?' are included, \"'\" or '\"', as can be found in
 DTDs, start a string.  To partially avoid this problem this also makes these
 self insert as named entities depending on `sgml-quick-keys'.
 
@@ -207,10 +207,10 @@ Any terminating `>' or `/' is not matched.")
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  '(("<\\([!?][a-zA-Z0-9]+\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[a-zA-Z0-9]+\\)" 1 font-lock-function-name-face)
-    ("[&%][-.A-Za-z0-9]+;?" . font-lock-variable-name-face)
-    ("<!--[^<>]*-->" . font-lock-comment-face)))
+  '(("<\\([!?][a-z][-.a-z0-9]+\\)" 1 font-lock-keyword-face)
+    ("<\\(/?[a-z][-.a-z0-9]+\\)" 1 font-lock-function-name-face)
+    ("[&%][a-z][-.a-z0-9]+;?" . font-lock-variable-name-face)
+    ("<! *--.*-- *>" . font-lock-comment-face)))
 
 (defconst sgml-font-lock-keywords-2 ())
 
