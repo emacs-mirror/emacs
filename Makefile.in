@@ -609,7 +609,7 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 dist:
-	cd ${srcdir}; make-dist
+	cd ${srcdir}; ./make-dist
 
 .PHONY: info dvi dist check
 force-info:
