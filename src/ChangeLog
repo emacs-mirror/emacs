@@ -1,3 +1,8 @@
+2000-12-11  Miles Bader  <miles@gnu.org>
+
+	* window.c (displayed_window_lines): Don't round up when
+	converting empty space at bottom to lines.
+
 2000-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (scan_lists): Check that the right quote char has the
