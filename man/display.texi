@@ -571,7 +571,7 @@ argument will restore the normal display.
 
   If you scroll a window horizontally by hand, that sets a lower bound
 for automatic horizontal scrolling.  Automatic scrolling will continue
-to scroll the window, but never further to the right than the amount
+to scroll the window, but never farther to the right than the amount
 you previously set by @code{scroll-left}.
 
 @vindex automatic-hscrolling
