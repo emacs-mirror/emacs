@@ -1,3 +1,8 @@
+2003-05-21  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* ansi-color.el: Do not instruct the user to autoload
+	`ansi-color-for-comint-mode-on'.
+
 2003-05-21  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-view-source, gdb-selected-view): New variables.
