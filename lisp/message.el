@@ -805,7 +805,7 @@ C-c C-i  message-goto-signature (move to the beginning of the signature).
 C-c C-w  message-insert-signature (insert `message-signature-file' file).
 C-c C-y  message-yank-original (insert current message, if any).
 C-c C-q  message-fill-yanked-message (fill what was yanked).
-C-c C-r  message-ceasar-buffer-body (rot13 the message body)."
+C-c C-r  message-caesar-buffer-body (rot13 the message body)."
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'message-reply-buffer)
