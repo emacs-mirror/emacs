@@ -987,10 +987,20 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
    children to be created without a corresponding pipe handle from which
    to read output, we wait separately on the process handles as well as
    the char_avail events for each process pipe.  We only call
-   wait/reap_process when the process actually terminates.  */
+   wait/reap_process when the process actually terminates.
+
+   To reduce the number of places in which Emacs can be hung such that
+   C-g is not able to interrupt it, we always wait on interrupt_handle
+   (which is signalled by the input thread when C-g is detected).  If we
+   detect that we were woken up by C-g, we return -1 with errno set to
+   EINTR as on Unix.  */
 
 /* From ntterm.c */
 extern HANDLE keyboard_handle;
+
+/* From w32xfns.c */
+extern HANDLE interrupt_handle;
+
 /* From process.c */
 extern int proc_buffered_char[];
 
@@ -1025,9 +1035,13 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   orfds = *rfds;
   FD_ZERO (rfds);
   nr = 0;
+
+  /* Always wait on interrupt_handle, to detect C-g (quit).  */
+  wait_hnd[0] = interrupt_handle;
+  fdindex[0] = -1;
   
   /* Build a list of pipe handles to wait on.  */
-  nh = 0;
+  nh = 1;
   for (i = 0; i < nfds; i++)
     if (FD_ISSET (i, &orfds))
       {
@@ -1211,6 +1225,12 @@ count_children:
 	      sig_handlers[SIGCHLD] (SIGCHLD);
 	      dead_child = NULL;
 	    }
+	}
+      else if (fdindex[active] == -1)
+	{
+	  /* Quit (C-g) was detected.  */
+	  errno = EINTR;
+	  return -1;
 	}
       else if (fdindex[active] == 0)
 	{
