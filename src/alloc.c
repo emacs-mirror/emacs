@@ -925,6 +925,7 @@ DEFUN ("rope-elt", Frope_elt, Srope_elt, 2, 2, 0,
 A rope is a string in which each pair of bytes is considered an element.\n\
 See variable `buffer-display-table' for the uses of ropes.")
   (r, n)
+    Lisp_Object r, n;
 {
   CHECK_STRING (r, 0);
   CHECK_NUMBER (n, 1);
