@@ -3910,10 +3910,12 @@ to the file, instead of any buffer contents, and END is ignored.")
 #ifdef CLASH_DETECTION
   if (!auto_saving)
     {
+#if 0  /* This causes trouble for GNUS.  */
       /* If we've locked this file for some other buffer,
 	 query before proceeding.  */
       if (!visiting && EQ (Ffile_locked_p (lockname), Qt))
 	call2 (intern ("ask-user-about-lock"), filename, Vuser_login_name);
+#endif
 
       lock_file (lockname);
     }
