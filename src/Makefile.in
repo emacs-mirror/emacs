@@ -1171,7 +1171,7 @@ alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h key
 bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
-  $(config_h)
+  dispextern.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
  frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h
