@@ -1147,7 +1147,8 @@ Leaves point at end of replacement text.")
   enum { nochange, all_caps, cap_initial } case_action;
   register int pos, last;
   int some_multiletter_word;
-  int some_letter = 0;
+  int some_lowercase;
+  int some_uppercase_initial;
   register int c, prevc;
   int inslen;
 
@@ -1162,8 +1163,8 @@ Leaves point at end of replacement text.")
   if (search_regs.start[0] < BEGV
       || search_regs.start[0] > search_regs.end[0]
       || search_regs.end[0] > ZV)
-    args_out_of_range(make_number (search_regs.start[0]),
-		      make_number (search_regs.end[0]));
+    args_out_of_range (make_number (search_regs.start[0]),
+		       make_number (search_regs.end[0]));
 
   if (NILP (fixedcase))
     {
@@ -1176,6 +1177,8 @@ Leaves point at end of replacement text.")
       /* some_multiletter_word is set nonzero if any original word
 	 is more than one letter long. */
       some_multiletter_word = 0;
+      some_lowercase = 0;
+      some_uppercase_initial = 0;
 
       for (pos = search_regs.start[0]; pos < last; pos++)
 	{
@@ -1184,33 +1187,32 @@ Leaves point at end of replacement text.")
 	    {
 	      /* Cannot be all caps if any original char is lower case */
 
-	      case_action = cap_initial;
+	      some_lowercase = 1;
 	      if (SYNTAX (prevc) != Sword)
-		{
-		  /* Cannot even be cap initials
-		     if some original initial is lower case */
-		  case_action = nochange;
-		  break;
-		}
+		;
 	      else
 		some_multiletter_word = 1;
 	    }
 	  else if (!NOCASEP (c))
 	    {
-	      some_letter = 1;
-	      if (!some_multiletter_word && SYNTAX (prevc) == Sword)
+	      if (SYNTAX (prevc) != Sword)
+		some_uppercase_initial = 1;
+	      else
 		some_multiletter_word = 1;
 	    }
 
 	  prevc = c;
 	}
 
-      /* Do not make new text all caps
-	 if the original text contained only single letter words. */
-      if (case_action == all_caps && !some_multiletter_word)
+      /* Convert to all caps if the old text is all caps
+	 and has at least one multiletter word.  */
+      if (! some_lowercase && some_multiletter_word)
+	case_action = all_caps;
+      /* Capitalize each word, if the old text has a capitalized word.  */
+      else if (some_uppercase_initial)
 	case_action = cap_initial;
-
-      if (!some_letter) case_action = nochange;
+      else
+	case_action = nochange;
     }
 
   SET_PT (search_regs.end[0]);
