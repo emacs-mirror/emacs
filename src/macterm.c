@@ -8840,10 +8840,16 @@ mac_initialize_display_info ()
   dpyinfo->resx = 75.0;
   dpyinfo->resy = 75.0;
   dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
+#ifdef MAC_OSX
+  /* HasDepth returns true if it is possible to have a 32 bit display,
+     but this may not be what is actually used.  Mac OSX can do better.  */
+  dpyinfo->n_planes = CGDisplayBitsPerPixel (CGMainDisplayID ());
+#else
   for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
     if (HasDepth (main_device_handle, dpyinfo->n_planes,
 		  gdDevType, dpyinfo->color_p))
       break;
+#endif
   dpyinfo->height = (**main_device_handle).gdRect.bottom;
   dpyinfo->width = (**main_device_handle).gdRect.right;
   dpyinfo->grabbed = 0;

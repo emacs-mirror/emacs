@@ -2939,8 +2939,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
 
-  /* MAC_TODO: check whether this is right */
-  return make_number (dpyinfo->n_planes >= 8 ? 256 : 1 << dpyinfo->n_planes - 1);
+  /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
+  return make_number (1 << min (dpyinfo->n_planes, 24));
 }
 
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,

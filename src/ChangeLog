@@ -1,3 +1,10 @@
+2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
+
+	* macterm.c (mac_initialize_display_info): Initialize n_planes correctly
+	on Mac OSX.
+
 2004-06-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (syms_of_buffer): Clarify `fill-column' docstring.
