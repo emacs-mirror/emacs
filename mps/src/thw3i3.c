@@ -2,7 +2,7 @@
  *
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.15) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.16) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -67,7 +67,7 @@
 
 #include <windows.h>
 
-SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.15) $");
+SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.16) $");
 
 Bool ThreadCheck(Thread thread)
 {
@@ -243,6 +243,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
 Space ThreadSpace(Thread thread)
 {
+  /* Can't AVER thread as that would not be thread-safe */
+  /* AVERT(Thread, thread); */
   return thread->space;
 }
 
