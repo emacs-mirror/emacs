@@ -56,8 +56,7 @@ Setting this variable to nil disables highlighting."
   "Overlay object used for highlighting.")
 
 (defcustom info-lookup-file-name-alist
-  '(("\\`configure\\.in\\'" . autoconf-mode) ;already covered by auto-mode-alist
-    ("\\`ac\\(local\\|site\\|include\\)\\.m4\\'" . autoconf-mode))
+  '(("\\`ac\\(local\\|site\\|include\\)\\.m4\\'" . autoconf-mode))
   "Alist of file names handled specially.
 List elements are cons cells of the form
 
@@ -672,7 +671,12 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(("(autoconf)Macro Index" "AC_"
+ :doc-spec '(("(autoconf)Autoconf Macro Index" "AC_"
+	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	     ("(automake)Macro and Variable Index" nil
+	      "^[ \t]*`" "'")
+	     ;; These are for older versions (probably pre autoconf 2.5x):
+	     ("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
 	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
