@@ -21,6 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* SCO is sort of like SVR3.  */
 #include "usg5-3.h"
+#define SCO_R4
 
 #if 0 /* Turned off rather than make the Lisp code check for this. -- rms.
 	 I am assuming that (at least most of) the tests for usg-unix-v
