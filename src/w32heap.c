@@ -66,6 +66,13 @@ cache_system_info (void)
   syspage_mask = sysinfo_cache.dwPageSize - 1;
 }
 
+/* Emulate getpagesize.  */
+int
+getpagesize (void)
+{
+  return sysinfo_cache.dwPageSize;
+}
+
 /* Round ADDRESS up to be aligned with ALIGN.  */
 unsigned char *
 round_to_next (unsigned char *address, unsigned long align)
@@ -77,6 +84,10 @@ round_to_next (unsigned char *address, unsigned long align)
 
   return (unsigned char *) (tmp * align);
 }
+
+/* Force zero initialized variables to be placed in the .data segment;
+   MSVC 5.0 otherwise places them in .bss, which breaks the dumping code.  */
+#pragma data_seg(".data")
 
 /* Info for keeping track of our heap.  */
 unsigned char *data_region_base = NULL;

@@ -39,6 +39,10 @@ typedef struct file_data {
     unsigned char *file_base;
 } file_data;
 
+/* Force zero initialized variables to be placed in the .data segment;
+   MSVC 5.0 otherwise places them in .bss, which breaks the dumping code.  */
+#pragma data_seg(".data")
+
 /* Basically, our "initialized" flag.  */
 BOOL need_to_recreate_heap = FALSE;
 
