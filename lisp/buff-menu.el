@@ -177,7 +177,17 @@ Letters do not insert themselves; instead, they are commands.
   "Make a menu of buffers so you can save, delete or select them.
 With argument, show only buffers that are visiting files.
 Type ? after invocation to get help on commands available.
-Type q immediately to make the buffer menu go away."
+Type q to remove the buffer menu from the display.
+
+The first column shows `>' for a buffer you have
+marked to be displayed, `D' for one you have marked for
+deletion, and `.' for the current buffer.
+
+The M column has a `*' if it is modified,
+or `S' if you have marked it for saving.
+The R column has a `%' if the buffer is read-only.
+After this come the buffer name, its size in characters,
+its major mode, and the visited file name (if any)."
   (interactive "P")
 ;;;  (setq Buffer-menu-window-config (current-window-configuration))
   (switch-to-buffer (list-buffers-noselect arg))
@@ -189,7 +199,8 @@ Type q immediately to make the buffer menu go away."
 With the buffer list buffer, you can save, delete or select the buffers.
 With argument, show only buffers that are visiting files.
 Type ? after invocation to get help on commands available.
-Type q immediately to make the buffer menu go away."
+Type q to remove the buffer menu from the display.
+For more information, see the function `buffer-menu'."
   (interactive "P")
 ;;;  (setq Buffer-menu-window-config (current-window-configuration))
   (switch-to-buffer-other-window (list-buffers-noselect arg))
@@ -469,8 +480,7 @@ The list is displayed in a buffer named `*Buffer List*'.
 Note that buffers with names starting with spaces are omitted.
 Non-null optional arg FILES-ONLY means mention only file buffers.
 
-The M column contains a * for buffers that are modified.
-The R column contains a % for buffers that are read-only."
+For more information, see the function `buffer-menu'."
   (interactive "P")
   (display-buffer (list-buffers-noselect files-only)))
 
@@ -480,8 +490,7 @@ The buffer is named `*Buffer List*'.
 Note that buffers with names starting with spaces are omitted.
 Non-null optional arg FILES-ONLY means mention only file buffers.
 
-The M column contains a * for buffers that are modified.
-The R column contains a % for buffers that are read-only."
+For more information, see the function `buffer-menu'."
   (let ((old-buffer (current-buffer))
 	(standard-output standard-output)
 	desired-point)
