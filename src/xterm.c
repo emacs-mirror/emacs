@@ -3532,6 +3532,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      count++;
 		      numchars--;
 		    }
+		  else
+		    /* Force a redisplay sooner or later
+		       to update the frame titles
+		       in case this is the second frame.  */
+		    record_asynch_buffer_change ();
 		}
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
