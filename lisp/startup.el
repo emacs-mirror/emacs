@@ -888,6 +888,7 @@ Recover Session		recover files you were editing before a crash
 
 Important Help menu items:
 Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+Emacs FAQ		Frequently asked questions and answers
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
 Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
