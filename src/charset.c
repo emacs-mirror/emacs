@@ -2007,6 +2007,15 @@ usage: (set-charset-priority &rest charsets)  */)
   arglist[1] = old_list;
   Vcharset_ordered_list = Fnconc (2, arglist);
   charset_ordered_list_tick++;
+
+  for (old_list = Vcharset_ordered_list, new_head = Qnil;
+       CONSP (old_list); old_list = XCDR (old_list))
+    {
+      if (Fmemq (XCAR (old_list), Viso_2022_charset_list))
+	new_head = Fcons (XCAR (old_list), new_head);
+    }
+  Viso_2022_charset_list = Fnreverse (new_head);
+
   return Qnil;
 }
 
