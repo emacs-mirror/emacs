@@ -281,6 +281,9 @@ int specified_window;
 
 FRAME_PTR updating_frame;
 
+/* Provided for lisp packages.  */
+static int system_uses_terminfo;
+
 char *tparam ();
 
 ring_bell ()
@@ -1650,4 +1653,16 @@ fatal (str, arg1, arg2)
   fprintf (stderr, str, arg1, arg2);
   fflush (stderr);
   exit (1);
+}
+
+syms_of_term ()
+{
+  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+    "Non-nil means the system uses terminfo rather than termcap.\n\
+This variable can be used by terminal emulator packages.");
+#ifdef TERMINFO
+  system_uses_terminfo = 1;
+#else
+  system_uses_terminfo = 0;
+#endif
 }
