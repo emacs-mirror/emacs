@@ -13478,7 +13478,8 @@ display_mode_element (it, depth, field_width, precision, elt)
 		    int bytepos = last - lisp_string;
 		    int charpos = string_byte_to_char (elt, bytepos);
 		    n += display_string (NULL, elt, Qnil, 0, charpos,
-					 it, 0, prec, 0, -1);
+					 it, 0, prec, 0,
+					 STRING_MULTIBYTE (elt));
 		  }
 	      }
 	    else /* c == '%' */
