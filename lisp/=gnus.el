@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.16 1993/05/30 23:56:49 rms Exp rms $
+;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.17 1993/06/04 05:33:32 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -571,9 +571,14 @@ This hook is called before saving the `.newsrc' file.")
 ;;  site-init.el, default.el or your .emacs.
 
 (defvar gnus-local-timezone nil
-  "*Local time zone. Both styles, \"JST\" and +0900 are acceptable.
-If its value is non-nil, valid Date: field will be generated in terms
-of RFC822.  In this case, timezone package must be installed.")
+  "*Local time zone.
+This value is used only if `current-time-zone' does not work in your Emacs.
+It specifies the GMT offset, i.e. a decimal integer
+of the form +-HHMM giving the hours and minutes ahead of (i.e. east of) GMT.
+For example, +0900 should be used in Japan, since it is 9 hours ahead of GMT.
+
+For backwards compatibility, it may also be a string like \"JST\",
+but strings are obsolescent: you should use numeric offsets instead.")
 
 (defvar gnus-local-domain nil
   "*Local domain name without a host name like: \"stars.flab.Fujitsu.CO.JP\"
