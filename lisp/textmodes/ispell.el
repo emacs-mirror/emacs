@@ -2801,7 +2801,7 @@ Returns the sum shift due to changes in word replacements."
 
 ;;;###autoload
 (defun ispell-complete-word (&optional interior-frag)
-  "Try to complete the word before or under point (see `lookup-words')
+  "Try to complete the word before or under point (see `lookup-words').
 If optional INTERIOR-FRAG is non-nil then the word may be a character
 sequence inside of a word.
 
