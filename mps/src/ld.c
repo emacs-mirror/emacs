@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.5) $
+ * $HopeName: MMsrc!ld.c(trunk.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -48,7 +48,7 @@
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.5) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.6) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -157,6 +157,11 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
  *
  * This stores the fact that a set of references has changed in
  * the history in the space structure, and increments the epoch.
+ * 
+ * This is only called during a 'flip', because it must be atomic
+ * w.r.t. the mutator (and therefore w.r.t. LdIsStale). This is
+ * because it updates the notion of the 'current' and 'oldest' history
+ * entries.
  */
 
 void LDAge(Space space, RefSet rs)
