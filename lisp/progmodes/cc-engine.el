@@ -155,12 +155,13 @@
 
 (defmacro c-declare-lang-variables ()
   `(progn
-     ,@(mapcan (lambda (init)
-		 `(,(if (elt init 2)
-			`(defvar ,(car init) nil ,(elt init 2))
-		      `(defvar ,(car init) nil))
-		   (make-variable-buffer-local ',(car init))))
-	       (cdr c-lang-variable-inits))))
+     ,@(apply 'nconc
+	      (mapcar (lambda (init)
+			`(,(if (elt init 2)
+			       `(defvar ,(car init) nil ,(elt init 2))
+			     `(defvar ,(car init) nil))
+			  (make-variable-buffer-local ',(car init))))
+		      (cdr c-lang-variable-inits)))))
 (c-declare-lang-variables)
 
 
