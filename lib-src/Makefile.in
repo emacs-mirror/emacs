@@ -182,23 +182,35 @@ MOVE_FLAGS=
 #endif
 
 #ifdef KERBEROS
-#ifdef HAVE_LIBKRB
-  /* For krb5, use -lkrb5 */
-  KRBLIB=-lkrb
-#endif
-#ifdef HAVE_LIBDES
-  /* For krb4, use -lcrypto */
-  DESLIB=-ldes
-#endif
-#ifdef HAVE_LIBCOM_ERR
-  COM_ERRLIB=-lcom_err
-#endif
-#endif /* KERBEROS */
+# ifdef HAVE_LIBKRB
+	KRB4LIB = -lkrb
+# else
+#  ifdef HAVE_LIBKRB4
+	KRB4LIB = -lkrb4
+#  endif
+# endif
+# ifdef HAVE_LIBDES
+	DESLIB = -ldes
+# else
+#  ifdef HAVE_LIBDES425
+	DESLIB = -ldes425
+#  endif
+# endif
+# ifdef HAVE_LIBKRB5
+	KRB5LIB = -lkrb5
+# endif
+# ifdef HAVE_LIBCRYPTO
+	CRYPTOLIB = -lcrypto
+# endif
+# ifdef HAVE_LIBCOM_ERR
+	COM_ERRLIB = -lcom_err
+# endif
+#endif /* KERBEROS
 
 /* If HESIOD is defined, set this to "-lhesiod". */
 HESIODLIB=
 
-MOVE_LIBS=$(KRBLIB) $(DESLIB) $(COM_ERRLIB) $(HESIODLIB)
+MOVE_LIBS=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
 #ifdef HAVE_LIBMAIL
 LIBMAIL=-lmail
