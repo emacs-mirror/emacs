@@ -1242,7 +1242,7 @@ init_callproc ()
   register char * sh;
   Lisp_Object tempdir;
 
-  if (initialized && !NILP (Vinstallation_directory))
+  if (!NILP (Vinstallation_directory))
     {
       /* Add to the path the lib-src subdir of the installation dir.  */
       Lisp_Object tem;
