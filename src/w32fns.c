@@ -704,32 +704,31 @@ static void x_edge_detection P_ ((struct frame *, struct image *, Lisp_Object,
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
-  "auto-raise", x_set_autoraise,
-  "auto-lower", x_set_autolower,
-  "background-color", x_set_background_color,
-  "border-color", x_set_border_color,
-  "border-width", x_set_border_width,
-  "cursor-color", x_set_cursor_color,
-  "cursor-type", x_set_cursor_type,
-  "font", x_set_font,
-  "foreground-color", x_set_foreground_color,
-  "icon-name", x_set_icon_name,
-  "icon-type", x_set_icon_type,
-  "internal-border-width", x_set_internal_border_width,
-  "menu-bar-lines", x_set_menu_bar_lines,
-  "mouse-color", x_set_mouse_color,
-  "name", x_explicitly_set_name,
-  "scroll-bar-width", x_set_scroll_bar_width,
-  "title", x_set_title,
-  "unsplittable", x_set_unsplittable,
-  "vertical-scroll-bars", x_set_vertical_scroll_bars,
-  "visibility", x_set_visibility,
-  "tool-bar-lines", x_set_tool_bar_lines,
-  "screen-gamma", x_set_screen_gamma,
-  "line-spacing", x_set_line_spacing,
-  "left-fringe", x_set_fringe_width,
-  "right-fringe", x_set_fringe_width
-
+  {"auto-raise", x_set_autoraise},
+  {"auto-lower", x_set_autolower},
+  {"background-color", x_set_background_color},
+  {"border-color", x_set_border_color},
+  {"border-width", x_set_border_width},
+  {"cursor-color", x_set_cursor_color},
+  {"cursor-type", x_set_cursor_type},
+  {"font", x_set_font},
+  {"foreground-color", x_set_foreground_color},
+  {"icon-name", x_set_icon_name},
+  {"icon-type", x_set_icon_type},
+  {"internal-border-width", x_set_internal_border_width},
+  {"menu-bar-lines", x_set_menu_bar_lines},
+  {"mouse-color", x_set_mouse_color},
+  {"name", x_explicitly_set_name},
+  {"scroll-bar-width", x_set_scroll_bar_width},
+  {"title", x_set_title},
+  {"unsplittable", x_set_unsplittable},
+  {"vertical-scroll-bars", x_set_vertical_scroll_bars},
+  {"visibility", x_set_visibility},
+  {"tool-bar-lines", x_set_tool_bar_lines},
+  {"screen-gamma", x_set_screen_gamma},
+  {"line-spacing", x_set_line_spacing},
+  {"left-fringe", x_set_fringe_width},
+  {"right-fringe", x_set_fringe_width}
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -13432,10 +13431,15 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) + width > FRAME_W32_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width <= FRAME_W32_DISPLAY_INFO (f)->width)
+    /* It fits to the right of the pointer.  */
+    *root_x += XINT (dx);
+  else if (width + XINT (dx) <= *root_x)
+    /* It fits to the left of the pointer.  */
     *root_x -= width + XINT (dx);
   else
-    *root_x += XINT (dx);
+    /* Put it left justified on the screen -- it ought to fit that way.  */
+    *root_x = 0;
 }
 
 
