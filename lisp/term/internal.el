@@ -714,6 +714,9 @@ list.  You can (and should) also run it whenever the value of
 ;; until after the terminal is set and user's .emacs is processed,
 ;; because people might define their `dos-codepage-setup-hook' there.
 (add-hook 'term-setup-hook 'dos-codepage-setup)
+;; It's time: too many input methods in leim/quail produce
+;; Unicode characters.  Let the user see them.
+(add-hook 'term-setup-hook 'IT-setup-unicode-display t)
 
 ;; In multibyte mode, we want unibyte buffers to be displayed using
 ;; the terminal coding system, so that they display correctly on the
