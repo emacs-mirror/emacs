@@ -117,6 +117,10 @@ i.e., there is always a closing tag.
 When not customized, it becomes buffer-local when it can be inferred
 from the file name or buffer contents.
 
+** New user option `isearch-resume-enabled'.
+This option can be disabled, to avoid the normal behaviour of isearch
+which puts calls to `isearch-resume' in the command history.
+
 ** When the *scratch* buffer is recreated, its mode is set from
 initial-major-mode, which normally is lisp-interaction-mode,
 instead of using default-major-mode.
