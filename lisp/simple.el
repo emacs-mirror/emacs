@@ -1985,7 +1985,10 @@ If ARG is zero, move to the beginning of the current line."
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
 Puts mark after the inserted text.
-BUFFER may be a buffer or a buffer name."
+BUFFER may be a buffer or a buffer name.
+
+This function is meant for the user to run interactively.
+Don't call it from programs!"
   (interactive
    (list
     (progn
