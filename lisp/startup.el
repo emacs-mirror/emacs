@@ -828,24 +828,31 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		    ;; into user-init-file.
 		    (setq user-init-file t)
 		    (load user-init-file-1 t t)
+
 		    ;; If we did not find the user's init file,
 		    ;; set user-init-file conclusively to nil;
 		    ;; don't let it be set from default.el.
 		    (if (eq user-init-file t)
 			(setq user-init-file nil))
+
 		    ;; If we loaded a compiled file, set
 		    ;; `user-init-file' to the source version if that
 		    ;; exists.
 		    (when (and user-init-file
 			       (equal (file-name-extension user-init-file)
-				      "elc")
-			       (file-exists-p user-init-file-1))
-		      (when (file-newer-than-file-p
-			     user-init-file-1 user-init-file)
-			(message "Warning: %s is newer than %s"
-				 user-init-file-1 user-init-file)
-			(sit-for 1))
-		      (setq user-init-file user-init-file-1))
+				      "elc"))
+		      (let* ((source (file-name-sans-extension user-init-file))
+			     (alt (concat source ".el")))
+			(setq source (cond ((file-exists-p alt) alt)
+					   ((file-exists-p source) source)
+					   (t nil)))
+			(when source
+			  (when (file-newer-than-file-p source user-init-file)
+			    (message "Warning: %s is newer than %s"
+				     source user-init-file)
+			    (sit-for 1))
+			  (setq user-init-file source))))
+
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
