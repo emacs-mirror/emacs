@@ -88,6 +88,9 @@ int gc_cons_threshold;
 /* Nonzero during gc */
 int gc_in_progress;
 
+/* Nonzero means display messages at beginning and end of GC.  */
+int garbage_collection_messages;
+
 #ifndef VIRT_ADDR_VARIES
 extern
 #endif /* VIRT_ADDR_VARIES */
@@ -1490,7 +1493,7 @@ Garbage collection happens automatically if you cons more than\n\
     }
 #endif /* MAX_SAVE_STACK > 0 */
 
-  if (!noninteractive)
+  if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
   /* Don't keep command history around forever */
@@ -1606,10 +1609,13 @@ Garbage collection happens automatically if you cons more than\n\
   if (gc_cons_threshold < 10000)
     gc_cons_threshold = 10000;
 
-  if (omessage || minibuf_level > 0)
-    message2_nolog (omessage, omessage_length);
-  else if (!noninteractive)
-    message1_nolog ("Garbage collecting...done");
+  if (garbage_collection_messages)
+    {
+      if (omessage || minibuf_level > 0)
+	message2_nolog (omessage, omessage_length);
+      else
+	message1_nolog ("Garbage collecting...done");
+    }
 
   return Fcons (Fcons (make_number (total_conses),
 		       make_number (total_free_conses)),
@@ -2610,6 +2616,10 @@ This limit is applied when garbage collection happens.\n\
 The size is counted as the number of bytes occupied,\n\
 which includes both saved text and other data.");
   undo_strong_limit = 30000;
+
+  DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
+    "Non-nil means display messages at start and end of garbage collection.");
+  garbage_collection_messages = 0;
 
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
