@@ -701,4 +701,8 @@ This is in addition to the primary selection.")
 ;; Don't show the frame name; that's redundant with X.
 (setq-default mode-line-buffer-identification '("Emacs: %12b"))
 
+;; Motif normally handles f10 itself, so don't try to handle it a second time.
+(if (featurep 'motif)
+    (global-set-key [f10] 'ignore))
+
 ;;; x-win.el ends here
