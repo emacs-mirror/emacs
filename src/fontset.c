@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 Lisp_Object Vglobal_fontset_alist;
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
+Lisp_Object Vignore_relative_composition;
 Lisp_Object Valternative_fontname_alist;
 Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vhighlight_wrong_size_font;
@@ -834,7 +835,18 @@ ENCODING is one of the following integer values:\n\
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
      "Char table of characters whose ascent values should be ignored.\n\
 If an entry for a character is non-nil, the ascent value of the glyph\n\
-is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
+is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.\n\
+\n\
+This affects how a composite character which contains\n\
+such a character is displayed on screen.");
+  Vuse_default_ascent = Qnil;
+
+  DEFVAR_LISP ("ignore-relative-composition", &Vignore_relative_composition,
+     "Char table of characters which is not composed relatively.\n\
+If an entry for a character is non-nil, a composite character\n\
+which contains that character is displayed so that\n\
+the glyph of that character is put without considering\n\
+an ascent and descent value of a previous character.");
   Vuse_default_ascent = Qnil;
 
   DEFVAR_LISP ("alternative-fontname-alist", &Valternative_fontname_alist,
