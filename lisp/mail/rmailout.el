@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
-;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -29,7 +29,10 @@
 
 (defvar rmail-output-file-alist nil
   "*Alist matching regexps to suggested output Rmail files.
-This is a list of elements of the form (REGEXP . FILENAME).")
+This is a list of elements of the form (REGEXP . NAME-EXP).
+NAME-EXP may be a string constant giving the file name to use,
+or more generally it may be any kind of expression that returns
+a file name as a string.")
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
@@ -38,6 +41,9 @@ This is a list of elements of the form (REGEXP . FILENAME).")
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
+If the file exists and is not an Rmail file, 
+the message is appended in inbox format.
+
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
   (interactive
@@ -49,7 +55,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	       (save-excursion
 		 (goto-char (point-min))
 		 (if (re-search-forward (car (car tail)) nil t)
-		     (setq answer (cdr (car tail))))
+		     (setq answer (eval (cdr (car tail)))))
 		 (setq tail (cdr tail))))
 	     ;; If not suggestions, use same file as last time.
 	     (or answer rmail-last-rmail-file))))
@@ -64,69 +70,81 @@ starting with the current one.  Deleted messages are skipped and don't count."
   (setq file-name
 	(expand-file-name file-name
 			  (file-name-directory rmail-last-rmail-file)))
-  (setq rmail-last-rmail-file file-name)
-  (rmail-maybe-set-message-counters)
-  (setq file-name (abbreviate-file-name file-name))
-  (or (get-file-buffer file-name)
-      (file-exists-p file-name)
-      (if (yes-or-no-p
-	   (concat "\"" file-name "\" does not exist, create it? "))
-	  (let ((file-buffer (create-file-buffer file-name)))
-	    (save-excursion
-	      (set-buffer file-buffer)
-	      (rmail-insert-rmail-file-header)
-	      (let ((require-final-newline nil))
-		(write-region (point-min) (point-max) file-name t 1)))
-	    (kill-buffer file-buffer))
-	(error "Output file does not exist")))
-  (while (> count 0)
-    (let (redelete)
-      (unwind-protect
-	  (progn
-	    (save-restriction
-	      (widen)
-	      (if (rmail-message-deleted-p rmail-current-message)
-		  (progn (setq redelete t)
-			 (rmail-set-attribute "deleted" nil)))
-	      ;; Decide whether to append to a file or to an Emacs buffer.
+  (if (and (file-readable-p file-name) (not (rmail-file-p file-name)))
+      (rmail-output file-name count)
+    (setq rmail-last-rmail-file file-name)
+    (rmail-maybe-set-message-counters)
+    (setq file-name (abbreviate-file-name file-name))
+    (or (get-file-buffer file-name)
+	(file-exists-p file-name)
+	(if (yes-or-no-p
+	     (concat "\"" file-name "\" does not exist, create it? "))
+	    (let ((file-buffer (create-file-buffer file-name)))
 	      (save-excursion
-		(let ((buf (get-file-buffer file-name))
-		      (cur (current-buffer))
-		      (beg (1+ (rmail-msgbeg rmail-current-message)))
-		      (end (1+ (rmail-msgend rmail-current-message))))
-		  (if (not buf)
-		      (append-to-file beg end file-name)
-		    (if (eq buf (current-buffer))
-			(error "Can't output message to same file it's already in"))
-		    ;; File has been visited, in buffer BUF.
-		    (set-buffer buf)
-		    (let ((buffer-read-only nil)
-			  (msg (and (boundp 'rmail-current-message)
-				    rmail-current-message)))
-		      ;; If MSG is non-nil, buffer is in RMAIL mode.
-		      (if msg
-			  (progn
-			    (rmail-maybe-set-message-counters)
-			    (widen)
-			    (narrow-to-region (point-max) (point-max))
-			    (insert-buffer-substring cur beg end)
-			    (goto-char (point-min))
-			    (widen)
-			    (search-backward "\n\^_")
-			    (narrow-to-region (point) (point-max))
-			    (rmail-count-new-messages t)
-			    (rmail-show-message msg))
-	      ;; Output file not in rmail mode => just insert at the end.
-	      (narrow-to-region (point-min) (1+ (buffer-size)))
-	      (goto-char (point-max))
-	      (insert-buffer-substring cur beg end)))))))
-	    (rmail-set-attribute "filed" t))
-	(if redelete (rmail-set-attribute "deleted" t))))
-    (setq count (1- count))
-    (if rmail-delete-after-output
-	(rmail-delete-forward)
-      (if (> count 0)
-	  (rmail-next-undeleted-message 1)))))
+		(set-buffer file-buffer)
+		(rmail-insert-rmail-file-header)
+		(let ((require-final-newline nil))
+		  (write-region (point-min) (point-max) file-name t 1)))
+	      (kill-buffer file-buffer))
+	  (error "Output file does not exist")))
+    (while (> count 0)
+      (let (redelete)
+	(unwind-protect
+	    (progn
+	      (save-restriction
+		(widen)
+		(if (rmail-message-deleted-p rmail-current-message)
+		    (progn (setq redelete t)
+			   (rmail-set-attribute "deleted" nil)))
+		;; Decide whether to append to a file or to an Emacs buffer.
+		(save-excursion
+		  (let ((buf (get-file-buffer file-name))
+			(cur (current-buffer))
+			(beg (1+ (rmail-msgbeg rmail-current-message)))
+			(end (1+ (rmail-msgend rmail-current-message))))
+		    (if (not buf)
+			(append-to-file beg end file-name)
+		      (if (eq buf (current-buffer))
+			  (error "Can't output message to same file it's already in"))
+		      ;; File has been visited, in buffer BUF.
+		      (set-buffer buf)
+		      (let ((buffer-read-only nil)
+			    (msg (and (boundp 'rmail-current-message)
+				      rmail-current-message)))
+			;; If MSG is non-nil, buffer is in RMAIL mode.
+			(if msg
+			    (progn
+			      (rmail-maybe-set-message-counters)
+			      (widen)
+			      (narrow-to-region (point-max) (point-max))
+			      (insert-buffer-substring cur beg end)
+			      (goto-char (point-min))
+			      (widen)
+			      (search-backward "\n\^_")
+			      (narrow-to-region (point) (point-max))
+			      (rmail-count-new-messages t)
+			      (rmail-show-message msg))
+		;; Output file not in rmail mode => just insert at the end.
+		(narrow-to-region (point-min) (1+ (buffer-size)))
+		(goto-char (point-max))
+		(insert-buffer-substring cur beg end)))))))
+	      (rmail-set-attribute "filed" t))
+	  (if redelete (rmail-set-attribute "deleted" t))))
+      (setq count (1- count))
+      (if rmail-delete-after-output
+	  (rmail-delete-forward)
+	(if (> count 0)
+	    (rmail-next-undeleted-message 1))))))
+
+;; Returns t if file FILE is an Rmail file.
+(defun rmail-file-p (file)
+  (let ((buf (generate-new-buffer " *rmail-file-p*")))
+    (unwind-protect
+	(save-excursion
+	  (set-buffer buf)
+	  (insert-file-contents file nil 0 100)
+	  (looking-at "BABYL OPTIONS:"))
+      (kill-buffer buf))))
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
@@ -151,49 +169,39 @@ When called from lisp code, N may be omitted."
 	(expand-file-name file-name
 			  (and rmail-last-file
 			       (file-name-directory rmail-last-file))))
-  (setq rmail-last-file file-name)
-  (while (> count 0)
-    (let ((rmailbuf (current-buffer))
-	  (tembuf (get-buffer-create " rmail-output"))
-	  (case-fold-search t))
-      (save-excursion
-	(set-buffer tembuf)
-	(erase-buffer)
-	;; If we can do it, read a little of the file
-	;; to check whether it is an RMAIL file.
-	;; If it is, don't mess it up.
-	(and (file-readable-p file-name)
-	     (progn (insert-file-contents file-name nil 0 20)
-		    (looking-at "BABYL OPTIONS:\n"))
-	     (error (save-excursion
-		      (set-buffer rmailbuf)
-		      (substitute-command-keys
-		       "Use \\[rmail-output-to-rmail-file] to output to Rmail file `%s'"))
-		    (file-name-nondirectory file-name)))
-	(erase-buffer)
-	(insert-buffer-substring rmailbuf)
-	(insert "\n")
-	(goto-char (point-min))
-	(insert "From "
-		(mail-strip-quoted-names (or (mail-fetch-field "from")
-					     (mail-fetch-field "really-from")
-					     (mail-fetch-field "sender")
-					     "unknown"))
-		" " (current-time-string) "\n")
-	;; ``Quote'' "\nFrom " as "\n>From "
-	;;  (note that this isn't really quoting, as there is no requirement
-	;;   that "\n[>]+From " be quoted in the same transparent way.)
-	(while (search-forward "\nFrom " nil t)
-	  (forward-char -5)
-	  (insert ?>))
-	(append-to-file (point-min) (point-max) file-name))
-      (kill-buffer tembuf))
-    (if (equal major-mode 'rmail-mode)
-	(rmail-set-attribute "filed" t))
-    (setq count (1- count))
-    (if rmail-delete-after-output
-	(rmail-delete-forward)
-      (if (> count 0)
-	  (rmail-next-undeleted-message 1)))))
+  (if (and (file-readable-p file) (rmail-file-p file-name))
+      (rmail-output-to-rmail-file file-name count)
+    (setq rmail-last-file file-name)
+    (while (> count 0)
+      (let ((rmailbuf (current-buffer))
+	    (tembuf (get-buffer-create " rmail-output"))
+	    (case-fold-search t))
+	(save-excursion
+	  (set-buffer tembuf)
+	  (erase-buffer)
+	  (insert-buffer-substring rmailbuf)
+	  (insert "\n")
+	  (goto-char (point-min))
+	  (insert "From "
+		  (mail-strip-quoted-names (or (mail-fetch-field "from")
+					       (mail-fetch-field "really-from")
+					       (mail-fetch-field "sender")
+					       "unknown"))
+		  " " (current-time-string) "\n")
+	  ;; ``Quote'' "\nFrom " as "\n>From "
+	  ;;  (note that this isn't really quoting, as there is no requirement
+	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
+	  (while (search-forward "\nFrom " nil t)
+	    (forward-char -5)
+	    (insert ?>))
+	  (append-to-file (point-min) (point-max) file-name))
+	(kill-buffer tembuf))
+      (if (equal major-mode 'rmail-mode)
+	  (rmail-set-attribute "filed" t))
+      (setq count (1- count))
+      (if rmail-delete-after-output
+	  (rmail-delete-forward)
+	(if (> count 0)
+	    (rmail-next-undeleted-message 1)))))
 
 ;;; rmailout.el ends here
