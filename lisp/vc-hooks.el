@@ -188,7 +188,7 @@ visiting FILE."
         (save-excursion
 
           ;; Create work buffer.
-          (set-buffer (get-buffer-create "*vc-rcs-status*"))
+          (set-buffer (get-buffer-create " *vc-rcs-status*"))
           (setq buffer-read-only nil
                 default-directory (file-name-directory master))
           (erase-buffer)
