@@ -1,5 +1,9 @@
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (expose_window_tree, expose_window, expose_line): Return
+	1 when overwriting mouse-face.
+	(expose_frame): If mouse-face was overwritten, redo it.
+
 	* xfaces.c (x_update_menu_appearance): Don't call
 	set_frame_menubar, let the next redisplay do it.
 
