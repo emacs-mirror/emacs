@@ -31,7 +31,9 @@ NOTE-END  */
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
+#if ! (defined (__MIPSEL__) || defined (MIPSEL) || defined (_MIPSEL))
 #define WORDS_BIG_ENDIAN
+#endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
