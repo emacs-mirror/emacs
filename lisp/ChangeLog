@@ -1,3 +1,20 @@
+2002-05-07  Colin Walters  <walters@gnu.org>
+
+	* ibuf-ext.el (ibuffer-pop-filter-group): Doc fix.
+	(ibuffer-clear-filter-groups): Likewise.
+	(ibuffer-kill-filter-group): Likewise.
+	(ibuffer-kill-line): Likewise.
+	(ibuffer-read-filter-group-name): New function.
+	(ibuffer-jump-to-filter-group): Use it.
+	(ibuffer-kill-filter-group): Likewise.
+	(ibuffer-yank-filter-group): Likewise.
+	(ibuffer-decompose-filter-group): New function.
+
+	* ibuffer.el (ibuffer-mode-map): Bind it.  Add :enable guard
+	around `ibuffer-filters-to-filter-group' menu item.  Fix :enable
+	guards for `ibuffer-pop-filter-group' and
+	`ibuffer-clear-filter-groups'.
+
 2002-05-06  Markus Rost  <rost@math.ohio-state.edu>
 
 	* emacs-lisp/find-func.el (find-function-search-for-symbol): Use
