@@ -1,3 +1,11 @@
+2003-09-01  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (alloca.o): Remove commands.
+	(coding.o): Depend on intervals.h composite.h window.h.
+	(emacs.o): Depend on window.h keyboard.h keymap.h.
+	(gtkutil.o): Depend on keyboard.h charset.h coding.h.
+	(bytecode.o): Depend on window.h.
+
 2003-08-31  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_per_char_metric): Allow cached metrics to be
