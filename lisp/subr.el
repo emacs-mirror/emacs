@@ -817,6 +817,10 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'post-command-idle-delay
   "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
+(defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
+(make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "21.4")
+(defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
+(make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "21.4")
 
 ;;;; Alternate names for functions - these are not being phased out.
 
