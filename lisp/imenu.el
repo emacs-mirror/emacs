@@ -713,6 +713,9 @@ Returns t for rescan and otherwise a position number."
 					    (if (< 1 (length (cdr menu)))
 						(cdr menu)
 					      (cdr (cadr menu))))))
+
+    (or imenu-use-keymap-menu
+	(setq menu (list "Imenu" (delq nil menu))))
     (setq position (x-popup-menu event menu))
     (if imenu-use-keymap-menu
 	(progn
