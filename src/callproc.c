@@ -246,6 +246,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	int must_encode = 0;
 
 	for (i = 4; i < nargs; i++)
+	  CHECK_STRING (args[i], i);
+
+	for (i = 4; i < nargs; i++)
 	  if (STRING_MULTIBYTE (args[i]))
 	    must_encode = 1;
 
@@ -400,8 +403,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (nargs > 4)
     {
       register int i;
-
-      for (i = 4; i < nargs; i++) CHECK_STRING (args[i], i);
 
       if (! CODING_REQUIRE_ENCODING (&argument_coding))
 	{
