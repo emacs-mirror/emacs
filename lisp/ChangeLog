@@ -1,3 +1,10 @@
+2000-10-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-header-face, diff-file-header-face):
+	Add specific setting for dark background.
+	(diff-context-face): Renamed from diff-comment-face.
+	Set explicitly rather than inheriting from font-lock-comment-face.
+
 2000-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (command-line): Move the code which sets the default
