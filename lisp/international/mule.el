@@ -615,7 +615,6 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				   ((eq coding-type 'utf-16)
 				    '(:bom
 				      :endian))
-				   ;; Fixme: CCL definition is broken.
 				   ((eq coding-type 'ccl)
 				    '(:ccl-decoder
 				      :ccl-encoder
@@ -928,28 +927,14 @@ This setting is effective for the next communication only."
 
   (setq next-selection-coding-system coding-system))
 
-;; Fixme: Should this just go?
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to ARG.
 ARG is a list of coding categories ordered by priority.
 
 This function is provided for backward compatibility.
 Now we have more convenient function `set-coding-system-priority'."
-  (let ((l arg)
-	(current-list (copy-sequence coding-category-list)))
-    ;; Check the validity of ARG while deleting coding categories in
-    ;; ARG from CURRENT-LIST.  We assume that CODING-CATEGORY-LIST
-    ;; contains all coding categories.
-    (while l
-      (if (or (null (get (car l) 'coding-category-index))
-	      (null (memq (car l) current-list)))
-	  (error "Invalid or duplicated element in argument: %s" arg))
-      (setq current-list (delq (car l) current-list))
-      (setq l (cdr l)))
-    ;; Update `coding-category-list' and return it.
-    (setq coding-category-list (append arg current-list))
-    ;; Fixme: not defined.
-    (set-coding-priority-internal)))
+  (apply 'set-coding-system-priority
+	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
 (make-obsolete 'set-coding-priority 'set-coding-system-priority "22.1")
 
 ;;; X selections
@@ -1418,48 +1403,31 @@ order, and if a previous form already translates TO to some other
 character, say TO-ALT, FROM is also translated to TO-ALT."
   (let ((table (make-char-table 'translation-table))
 	revlist)
-    (while args
-      (let ((elts (car args)))
-	(while elts
-	  (let* ((from (car (car elts)))
-		 (from-i 0)		; degree of freedom of FROM
-		 (from-rev (nreverse (split-char from)))
-		 (to (cdr (car elts)))
-		 (to-i 0)		; degree of freedom of TO
-		 (to-rev (nreverse (split-char to))))
-	    ;; Check numbers of heading 0s in FROM-REV and TO-REV.
-	    (while (eq (car from-rev) 0)
-	      (setq from-i (1+ from-i) from-rev (cdr from-rev)))
-	    (while (eq (car to-rev) 0)
-	      (setq to-i (1+ to-i) to-rev (cdr to-rev)))
-	    (if (and (/= from-i to-i) (/= to-i 0))
-		(error "Invalid character pair (%d . %d)" from to))
-	    ;; If we have already translated TO to TO-ALT, FROM should
-	    ;; also be translated to TO-ALT.
-	    (let ((to-alt (aref table to)))
-	      (if (and to-alt (> to-i 0))
-		  (setq to to-alt)))
-	    ;; Fixme: set-char-table-default is now a no-op.
-	    (if (> from-i 0)
-		(set-char-table-default table from to)
-	      (aset table from to))
-	    ;; If we have already translated some chars to FROM, they
-	    ;; should also be translated to TO.
-	    (let ((l (assq from revlist)))
-	      (if l
-		  (let ((ch (car l)))
-		    (setcar l to)
-		    (setq l (cdr l))
-		    (while l
-		      (aset table ch to)
-		      (setq l (cdr l)) ))))
-	    ;; Now update REVLIST.
-	    (let ((l (assq to revlist)))
-	      (if l
-		  (setcdr l (cons from (cdr l)))
-		(setq revlist (cons (list to from) revlist)))))
-	  (setq elts (cdr elts))))
-      (setq args (cdr args)))
+    (dolist (elts args)
+      (dolist (elt elts)
+	(let ((from (car elt))
+	      (to (cdr elt))
+	      to-alt rev-from rev-to)
+	  ;; If we have already translated TO to TO-ALT, FROM should
+	  ;; also be translated to TO-ALT.
+	  (if (setq to-alt (aref table to))
+	      (setq to to-alt))
+	  (aset table from to)
+	  ;; If we have already translated some chars to FROM, they
+	  ;; should also be translated to TO.
+	  (when (setq rev-from (assq from revlist))
+	    (dolist (elt (cdr rev-from))
+	      (aset table elt to))
+	    (setq revlist (delq rev-from revlist)
+		  rev-from (cdr rev-from)))
+	  ;; Now update REVLIST.
+	  (setq rev-to (assq to revlist))
+	  (if rev-to
+	      (setcdr rev-to (cons from (cdr rev-to)))
+	    (setq rev-to (list to from)
+		  revlist (cons rev-to revlist)))
+	  (if rev-from
+	      (setcdr rev-to (append rev-from (cdr rev-to)))))))
     ;; Return TABLE just created.
     table))
 
