@@ -1,3 +1,8 @@
+2003-04-14  Andrew Choi  <akochoi@shaw.ca>
+
+	* term/mac-win.el: Unconditionally set process-connection-type to
+	nil.
+
 2003-04-14  Richard M. Stallman  <rms@gnu.org>
 
 	* derived.el (define-derived-mode): Make generated code work in
@@ -3823,7 +3828,7 @@
 	Update custom-type of `current-language-environment'.
 	(current-language-environment): Fix custom type.
 
-2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* progmodes/antlr-mode.el (antlr): New URL.
 

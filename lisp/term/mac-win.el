@@ -232,11 +232,10 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 (if (string= default-directory "/")
     (cd "~"))
 
-(unless (eq system-type 'darwin)
-  ;; Tell Emacs to use pipes instead of pty's for processes because the
-  ;; latter sometimes lose characters.  Pty support is compiled in since
-  ;; ange-ftp will not work without it.
-  (setq process-connection-type nil))
+;; Tell Emacs to use pipes instead of pty's for processes because the
+;; latter sometimes lose characters.  Pty support is compiled in since
+;; ange-ftp will not work without it.
+(setq process-connection-type nil)
 
 ;; Assume that fonts are always scalable on the Mac.  This sometimes
 ;; results in characters with jagged edges.  However, without it,
