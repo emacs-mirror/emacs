@@ -99,7 +99,7 @@ should set up the keymap, syntax table, and local variables in an
 existing buffer without changing the buffer's text.
 
 @item
-Write a documentation string for this command which describes the
+Write a documentation string for this command that describes the
 special commands available in this mode.  @kbd{C-h m}
 (@code{describe-mode}) in your mode will display this string.
 
@@ -140,16 +140,13 @@ should call @code{use-local-map} to install this local map.
 
 This keymap should be kept in a global variable named
 @code{@var{modename}-mode-map}.  Normally the library that defines the
-mode sets this variable.  Use @code{defvar} to set the variable, so that
-it is not reinitialized if it already has a value.  (Such
-reinitialization could discard customizations made by the user.)
+mode sets this variable.
 
 @item
 @cindex syntax tables in modes
 The mode may have its own syntax table or may share one with other
 related modes.  If it has its own syntax table, it should store this in
-a variable named @code{@var{modename}-mode-syntax-table}.  The reasons
-for this are the same as for using a keymap variable.  @xref{Syntax
+a variable named @code{@var{modename}-mode-syntax-table}.  @xref{Syntax
 Tables}.
 
 @item
@@ -158,6 +155,11 @@ The mode may have its own abbrev table or may share one with other
 related modes.  If it has its own abbrev table, it should store this in
 a variable named @code{@var{modename}-mode-abbrev-table}.  @xref{Abbrev
 Tables}.
+
+@item
+Use @code{defvar} to set mode-related variables, so that they are not
+reinitialized if they already have a value.  (Such reinitialization
+could discard customizations made by the user.)
 
 @item
 @cindex buffer-local variables in modes
@@ -223,7 +225,7 @@ include in their @file{.emacs} files.
 
 @item
 @cindex mode loading
-The top level forms in the file defining the mode should be written so
+The top-level forms in the file defining the mode should be written so
 that they may be evaluated more than once without adverse consequences.
 Even if you never load the file more than once, someone else will.
 @end itemize
@@ -234,7 +236,7 @@ does anything else.  This gives major modes a way to arrange for
 something special to be done if the user switches to a different major
 mode.  For best results, make this variable buffer-local, so that it
 will disappear after doing its job and will not interfere with the
-subsequent major mode.
+subsequent major mode.  @xref{Hooks}.
 @end defvar
 
 @node Example Major Modes
@@ -424,8 +426,7 @@ variable with @code{defvar} to hold the mode-specific keymap.  When this
 void.  Then we set up the keymap if the variable is @code{nil}.
 
   This code avoids changing the keymap or the variable if it is already
-set up.  This lets the user customize the keymap if he or she so
-wishes.
+set up.  This lets the user customize the keymap.
 
 @smallexample
 @group
@@ -461,7 +462,7 @@ Entry to this mode runs the hook `emacs-lisp-mode-hook'."
   (setq major-mode 'emacs-lisp-mode)     ; @r{This is how @code{describe-mode}}
                                          ;   @r{finds out what to describe.}
   (setq mode-name "Emacs-Lisp")          ; @r{This goes into the mode line.}
-  (lisp-mode-variables nil)              ; @r{This define various variables.}
+  (lisp-mode-variables nil)              ; @r{This defines various variables.}
   (run-hooks 'emacs-lisp-mode-hook))     ; @r{This permits the user to use a}
                                          ;   @r{hook to customize the mode.}
 @end group
@@ -527,7 +528,7 @@ the user what to do for each file.  The default value is @code{maybe}.
   This function selects the major mode that is appropriate for the
 current buffer.  It may base its decision on the value of the @w{@samp{-*-}}
 line, on the visited file name (using @code{auto-mode-alist}), or on the
-value of a local variable).  However, this function does not look for
+value of a local variable.  However, this function does not look for
 the @samp{mode:} local variable near the end of a file; the
 @code{hack-local-variables} function does that.  @xref{Choosing Modes, ,
 How Major Modes are Chosen, emacs, The GNU Emacs Manual}.
@@ -600,10 +601,11 @@ Here is an example of how to prepend several pattern pairs to
 @group
 (setq auto-mode-alist
   (append 
-   ;; @r{Filename starts with a dot.}
+   ;; @r{File name starts with a dot.}
    '(("/\\.[^/]*$" . fundamental-mode)  
-     ;; @r{Filename has no dot.}
+     ;; @r{File name has no dot.}
      ("[^\\./]*$" . fundamental-mode)   
+     ;; @r{File name ends in @samp{.C}.}
      ("\\.C$" . c++-mode))
    auto-mode-alist))
 @end group
@@ -618,8 +620,8 @@ example, @code{("perl" . perl-mode)} is one element present by default.
 The element says to use mode @var{mode} if the file specifies
 @var{interpreter}.
 
-This variable is applicable only when the file name doesn't indicate
-which major mode to use.
+This variable is applicable only when the @code{auto-mode-alist} does
+not indicate which major mode to use.
 @end defvar
 
 @defun hack-local-variables &optional force
@@ -628,7 +630,8 @@ variables for the current buffer.
 
   The handling of @code{enable-local-variables} documented for
 @code{normal-mode} actually takes place here.  The argument @var{force}
-reflects the argument @var{find-file} given to @code{normal-mode}.
+usually comes from the argument @var{find-file} given to
+@code{normal-mode}.
 @end defun
 
 @node Mode Help
@@ -654,9 +657,9 @@ displays the documentation string of the major mode function.
 
 @defvar major-mode
 This variable holds the symbol for the current buffer's major mode.
-This symbol should have a function definition which is the command to
+This symbol should have a function definition that is the command to
 switch to that major mode.  The @code{describe-mode} function uses the
-documentation string of this symbol as the documentation of the major
+documentation string of the function as the documentation of the major
 mode.
 @end defvar
 
@@ -666,12 +669,12 @@ mode.
   It's often useful to define a new major mode in terms of an existing
 one.  An easy way to do this is to use @code{define-derived-mode}.
 
-@defmac define-derived-mode variant parent name doc body@dots{}
+@defmac define-derived-mode variant parent name docstring body@dots{}
 This construct defines @var{variant} as a major mode command, using
-@var{name} as the string form of the mode which.
+@var{name} as the string form of the mode name.
 
-The definition of the command is to call the function @var{parent}, then
-override certain aspects of that parent mode:
+The new command @var{variant} is defined to call the function
+@var{parent}, then override certain aspects of that parent mode:
 
 @itemize @bullet 
 @item
@@ -680,13 +683,13 @@ The new mode has its own keymap, named @code{@var{variant}-map}.
 @code{@var{parent}-map}, if it is not already set.
 
 @item
-The new mode has its own syntax table, taken from the variable
+The new mode has its own syntax table, kept in the variable
 @code{@var{variant}-syntax-table}.
 @code{define-derived-mode} initializes this variable by copying 
 @code{@var{parent}-syntax-table}, if it is not already set.
 
 @item
-The new mode has its own abbrev table, taken from the variable
+The new mode has its own abbrev table, kept in the variable
 @code{@var{variant}-abbrev-table}.
 @code{define-derived-mode} initializes this variable by copying 
 @code{@var{parent}-abbrev-table}, if it is not already set.
@@ -699,7 +702,7 @@ of calling @var{parent}.)
 @end itemize
 
 In addition, you can specify how to override other aspects of
-@var{parent-mode} with @var{body}.  The command @var{variant}
+@var{parent} with @var{body}.  The command @var{variant}
 evaluates the forms in @var{body} after setting up all its usual 
 overrides, just before running @code{@var{variant}-hook}.
 
@@ -738,10 +741,9 @@ of the things major modes do.
 
   A minor mode is often much more difficult to implement than a major
 mode.  One reason is that you should be able to activate and deactivate
-minor modes in any order.
-
-and restore the environment of the major mode to the state it was in
-before the minor mode was activated.
+minor modes in any order.  A minor mode should be able to have its
+desired effect regardless of the major mode and regardless of the other
+minor modes in effect.
 
   Often the biggest problem in implementing a minor mode is finding a
 way to insert the necessary hook into the rest of Emacs.  Minor mode
@@ -794,8 +796,9 @@ list whose @sc{car} is such an integer or symbol; it should turn the
 mode off otherwise.
 
 Here is an example taken from the definition of @code{overwrite-mode}.
-It shows the use of @code{overwrite-mode} as a variable which enables or
-disables the mode's behavior.
+It shows the use of @code{overwrite-mode} as a variable that enables or
+disables the mode's behavior, and also shows the proper way to toggle,
+enable or disable the minor mode based on the raw prefix argument value.
 
 @smallexample
 @group
@@ -814,7 +817,7 @@ following form:
 (@var{mode-variable} @var{string})
 @end smallexample
 
-Here @var{mode-variable} is the variable that controls enablement of the
+Here @var{mode-variable} is the variable that controls enabling of the
 minor mode, and @var{string} is a short string, starting with a space,
 to represent the mode in the mode line.  These strings must be short so
 that there is room for several of them at once.
@@ -834,7 +837,7 @@ check for an existing element, to avoid duplication.  For example:
 @node Keymaps and Minor Modes
 @subsection Keymaps and Minor Modes
 
-As of Emacs version 19, each minor mode can have its own keymap which is
+As of Emacs version 19, each minor mode can have its own keymap, which is
 active when the mode is enabled.  @xref{Active Keymaps}.  To set up a
 keymap for a minor mode, add an element to the alist
 @code{minor-mode-map-alist}.
@@ -856,7 +859,7 @@ This variable is an alist of elements that look like this:
 @end example
 
 @noindent
-where @var{variable} is the variable which indicates whether the minor
+where @var{variable} is the variable that indicates whether the minor
 mode is enabled, and @var{keymap} is the keymap.  The keymap
 @var{keymap} is active whenever @var{variable} has a non-@code{nil}
 value.
@@ -880,11 +883,11 @@ this properly, the order will not matter.
 @section Mode Line Format
 @cindex mode line
 
-  Each Emacs window (aside from minibuffer windows) includes a mode line
+  Each Emacs window (aside from minibuffer windows) includes a mode line,
 which displays status information about the buffer displayed in the
-window.  The mode line contains information about the buffer such as its
+window.  The mode line contains information about the buffer, such as its
 name, associated file, depth of recursive editing, and the major and
-minor modes of the buffer.
+minor modes.
 
   This section describes how the contents of the mode line are
 controlled.  It is in the chapter on modes because much of the
@@ -900,8 +903,9 @@ line numbers).
   The mode line of a window is normally updated whenever a different
 buffer is shown in the window, or when the buffer's modified-status
 changes from @code{nil} to @code{t} or vice-versa.  If you modify any of
-the variables referenced by @code{mode-line-format}, you may want to
-force an update of the mode line so as to display the new information.
+the variables referenced by @code{mode-line-format} (@pxref{Mode Line
+Variables}), you may want to force an update of the mode line so as to
+display the new information.
 
 @c Emacs 19 feature
 @defun force-mode-line-update
@@ -922,7 +926,7 @@ Force redisplay of the current buffer's mode line.
 @cindex mode line construct
 
   The mode line contents are controlled by a data structure of lists,
-strings, symbols and numbers kept in the buffer-local variable
+strings, symbols, and numbers kept in the buffer-local variable
 @code{mode-line-format}.  The data structure is called a @dfn{mode line
 construct}, and it is built in recursive fashion out of simpler mode line
 constructs.
@@ -945,9 +949,8 @@ Because of this, very few modes need to alter @code{mode-line-format}.
 For most purposes, it is sufficient to alter the variables referenced by
 @code{mode-line-format}.
 
-  A mode line construct may be a list, cons cell, symbol, or string.  If
-the value is a list, each element may be a list, a cons cell, a symbol,
-or a string.
+  A mode line construct may be a list, a symbol, or a string.  If the
+value is a list, each element may be a list, a symbol, or a string.
 
 @table @code
 @cindex percent symbol in mode line
@@ -959,24 +962,26 @@ is left justified).  @xref{%-Constructs}.
 
 @item @var{symbol}
 A symbol as a mode line construct stands for its value.  The value of
-@var{symbol} is used in place of @var{symbol} unless @var{symbol} is
-@code{t} or @code{nil}, or is void, in which case @var{symbol} is
-ignored.
+@var{symbol} is used as a mode line construct, in place of @var{symbol}.
+However, the symbols @code{t} and @code{nil} are ignored; so is any
+symbol whose value is void.
 
 There is one exception: if the value of @var{symbol} is a string, it is
-processed verbatim in that the @code{%}-constructs are not recognized.
+displayed verbatim: the @code{%}-constructs are not recognized.
 
 @item (@var{string} @var{rest}@dots{}) @r{or} (@var{list} @var{rest}@dots{})
-A list whose first element is a string or list, means to concatenate all
-the elements.  This is the most common form of mode line construct.
+A list whose first element is a string or list means to process all the
+elements recursively and concatenate the results.  This is the most
+common form of mode line construct.
 
 @item (@var{symbol} @var{then} @var{else})
 A list whose first element is a symbol is a conditional.  Its meaning
 depends on the value of @var{symbol}.  If the value is non-@code{nil},
-the second element of the list (@var{then}) is processed recursively as
-a mode line element.  But if the value of @var{symbol} is @code{nil},
-the third element of the list (if there is one) is processed
-recursively.
+the second element, @var{then}, is processed recursively as a mode line
+element.  But if the value of @var{symbol} is @code{nil}, the third
+element, @var{else}, is processed recursively.  You may omit @var{else};
+then the mode line element displays nothing if the value of @var{symbol}
+is @code{nil}.
 
 @item (@var{width} @var{rest}@dots{})
 A list whose first element is an integer specifies truncation or
@@ -987,19 +992,19 @@ concatenated together.  Then the result is space filled (if
 if @var{width} is negative) on the right.
 
 For example, the usual way to show what percentage of a buffer is above
-the top of the window is to use a list like this: @code{(-3 .  "%p")}.
+the top of the window is to use a list like this: @code{(-3 "%p")}.
 @end table
 
   If you do alter @code{mode-line-format} itself, the new value should
-use all the same variables that are used by the default value, rather
-than duplicating their contents or displaying the information in another
-fashion.  This way, customizations made by the user, by libraries (such
-as @code{display-time}) and by major modes via changes to those
-variables remain effective.
+use the same variables that appear in the default value (@pxref{Mode
+Line Variables}), rather than duplicating their contents or displaying
+the information in another fashion.  This way, customizations made by
+the user, by libraries (such as @code{display-time}) and by major modes
+via changes to those variables remain effective.
 
 @cindex Shell mode @code{mode-line-format}
   Here is an example of a @code{mode-line-format} that might be
-useful for @code{shell-mode} since it contains the hostname and default
+useful for @code{shell-mode}, since it contains the hostname and default
 directory.
 
 @example
@@ -1014,10 +1019,11 @@ directory.
    'default-directory
    "   "
    'global-mode-string
-   "   %[(" 'mode-name 
+   "   %[("
+   'mode-name 
+   'mode-line-process  
    'minor-mode-alist 
    "%n" 
-   'mode-line-process  
    ")%]----"
 @group
    (line-number-mode "L%l--")
@@ -1036,10 +1042,10 @@ other variables could have the same effects on the mode line if
 @code{mode-line-format} were changed to use them.
 
 @defvar mode-line-modified
-  This variable holds the value of the mode-line construct that displays
+This variable holds the value of the mode-line construct that displays
 whether the current buffer is modified.
 
-  The default value of @code{mode-line-modified} is
+The default value of @code{mode-line-modified} is
 @code{("--%1*%1*-")}.  This means that the mode line displays
 @samp{--**-} if the buffer is modified, @samp{-----} if the buffer is
 not modified, and @samp{--%%-} if the buffer is read only.
@@ -1048,10 +1054,11 @@ Changing this variable does not force an update of the mode line.
 @end defvar
 
 @defvar mode-line-buffer-identification
-  This variable identifies the buffer being displayed in the window.
-Its default value is @samp{Emacs: %17b}, which means that it displays
-@samp{Emacs:} followed by the buffer name.  You may want to change this
-in modes such as Rmail that do not behave like a ``normal'' Emacs.
+This variable identifies the buffer being displayed in the window.  Its
+default value is @samp{Emacs: %17b}, which means that it displays
+@samp{Emacs:} followed by seventeen characters of the buffer name.  You
+may want to change this in modes such as Rmail that do not behave like a
+``normal'' Emacs.
 @end defvar
 
 @defvar global-mode-string
@@ -1067,13 +1074,13 @@ included directly in the mode line.
 @end defvar
 
 @defvar mode-name
-  This buffer-local variable holds the ``pretty'' name of the current
+This buffer-local variable holds the ``pretty'' name of the current
 buffer's major mode.  Each major mode should set this variable so that the
 mode name will appear in the mode line.
 @end defvar
 
 @defvar minor-mode-alist
-  This variable holds an association list whose elements specify how the
+This variable holds an association list whose elements specify how the
 mode line should indicate that a minor mode is active.  Each element of
 the @code{minor-mode-alist} should be a two-element list:
 
@@ -1120,11 +1127,11 @@ is @code{nil}.
 @end defvar
 
 @defvar default-mode-line-format
-  This variable holds the default @code{mode-line-format} for buffers
+This variable holds the default @code{mode-line-format} for buffers
 that do not override it.  This is the same as @code{(default-value
 'mode-line-format)}.
 
-  The default value of @code{default-mode-line-format} is:
+The default value of @code{default-mode-line-format} is:
 
 @example
 @group
@@ -1147,11 +1154,19 @@ that do not override it.  This is the same as @code{(default-value
 @end example
 @end defvar
 
+@defvar vc-mode
+The variable @code{vc-mode}, local in each buffer, records whether the
+buffer's visited file is maintained with version control, and, if so,
+which kind.  Its value is @code{nil} for no version control, or a string
+that appears in the mode line.
+@end defvar
+
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
 
   The following table lists the recognized @code{%}-constructs and what
-they mean.
+they mean.  In any construct except @samp{%%}, you can add a decimal
+integer after the @samp{%} to specify how many characters to display.
 
 @table @code
 @item %b
@@ -1168,7 +1183,7 @@ function.  @xref{Buffer File Name}.
 @samp{-} otherwise.  @xref{Buffer Modification}.
 
 @item %+
-@samp{*} if the buffer is modified, and otherwise @samp{-}.
+@samp{*} if the buffer is modified, and @samp{-} otherwise.
 
 @item %s
 The status of the subprocess belonging to the current buffer, obtained with
@@ -1241,8 +1256,8 @@ a Function}).  Most normal hook variables are initially void;
 @code{add-hook} knows how to deal with this.
 
   As for abnormal hooks, those whose names end in @samp{-function} have
-a value which is a single function.  Those whose names end in
-@samp{-hooks} have a value which is a list of functions.  Any hook which
+a value that is a single function.  Those whose names end in
+@samp{-hooks} have a value that is a list of functions.  Any hook that
 is abnormal is abnormal because a normal hook won't do the job; either
 the functions are called with arguments, or their values are meaningful.
 The name shows you that the hook is abnormal and that you should look at
@@ -1340,7 +1355,8 @@ For example, here's how @code{emacs-lisp-hooks} runs its mode hook:
 
 @defun add-hook hook function &optional append
 This function is the handy way to add function @var{function} to hook
-variable @var{hook}.  For example,
+variable @var{hook}.  The argument @var{function} may be any valid Lisp
+function with the proper number of arguments.  For example,
 
 @example
 (add-hook 'text-mode-hook 'my-text-hook-function)
@@ -1348,6 +1364,9 @@ variable @var{hook}.  For example,
 
 @noindent
 adds @code{my-text-hook-function} to the hook called @code{text-mode-hook}.
+
+You can use @code{add-hook} for abnormal hooks as well as for normal
+hooks.
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
