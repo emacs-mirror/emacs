@@ -99,7 +99,7 @@ Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
 Remaining arguments are strings passed as command arguments to PROGRAM.\n\
 If BUFFER is nil or 0, returns immediately with value nil.\n\
 Otherwise waits for PROGRAM to terminate\n\
-and returns a numeric exit status or a signal name as a string.\n\
+and returns a numeric exit status or a signal description string.\n\
 If you quit, the process is killed with SIGKILL.")
   (nargs, args)
      int nargs;
@@ -311,7 +311,7 @@ Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
 Remaining args are passed to PROGRAM at startup as command args.\n\
 If BUFFER is nil, returns immediately with value nil.\n\
 Otherwise waits for PROGRAM to terminate\n\
-and returns a numeric exit status or a signal name as a string.\n\
+and returns a numeric exit status or a signal description string.\n\
 If you quit, the process is killed with SIGKILL.")
   (nargs, args)
      int nargs;
