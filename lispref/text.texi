@@ -965,12 +965,22 @@ This function places a boundary element in the undo list.  The undo
 command stops at such a boundary, and successive undo commands undo
 to earlier and earlier boundaries.  This function returns @code{nil}.
 
-The editor command loop automatically creates an undo boundary between
-keystroke commands.  Thus, each undo normally undoes the effects of one
-command.  Calling this function explicitly is useful for splitting the
-effects of a command into more than one unit.  For example,
-@code{query-replace} calls this function after each replacement so that
-the user can undo individual replacements one by one.
+The editor command loop automatically creates an undo boundary before
+each key sequence is executed.  Thus, each undo normally undoes the
+effects of one command.  Self-inserting input characters are an
+exception.  The command loop makes a boundary for the first such
+character; the next 19 consecutive self-inserting input characters do
+not make boundaries, and then the 20th does, and so on as long as
+self-inserting characters continue.
+
+All buffer modifications add a boundary whenever the previous undoable
+change was made in some other buffer.  This way, a command that modifies
+several buffers makes a boundary in each buffer it changes.
+
+Calling this function explicitly is useful for splitting the effects of
+a command into more than one unit.  For example, @code{query-replace}
+calls @code{undo-boundary} after each replacement, so that the user can
+undo individual replacements one by one.
 @end defun
 
 @defun primitive-undo count list
