@@ -2472,7 +2472,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if ((XINT (read_kbd) != 0)
+      if (XINT (read_kbd) != 0
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
@@ -2485,13 +2485,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  && requeued_events_pending_p ())
 	break;
 
-      /* If wait_for_cell. check for keyboard input
-	 but don't run any timers.
-	 The reason for this is so that X events will be processed.
+      /* If we are not checking for keyboard input now,
+	 do process events (but don't run any timers).
+	 This is so that X events will be processed.
 	 Otherwise they may have to wait until polling takes place.
-	 That would causes delays in pasting selections, for example.  */
-      if (wait_for_cell
-	  && detect_input_pending ())
+	 That would causes delays in pasting selections, for example.
+
+	 (We used to do this only if wait_for_cell.)  */
+      if (XINT (read_kbd) == 0 && detect_input_pending ())
 	{
 	  swallow_events (do_display);
 #if 0  /* Exiting when read_kbd doesn't request that seems wrong, though.  */
@@ -2763,8 +2764,11 @@ read_process_output (proc, channel)
       if (!EQ (p->decode_coding_system, coding->symbol))
 	{
 	  p->decode_coding_system = coding->symbol;
-	  setup_coding_system (coding->symbol,
-			       proc_decode_coding_system[channel]);
+
+	  /* Don't call setup_coding_system for
+             proc_decode_coding_system[channel] here.  It is done in
+             detect_coding called via decode_coding above.  */
+
 	  /* If coding-system for encoding is not yet decided, we set it
 	     as the same as coding-system for decoding.  */
 	  if (NILP (p->encode_coding_system))
