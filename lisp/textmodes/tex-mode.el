@@ -6,7 +6,7 @@
 ;; Keywords: tex
 
 ;; Contributions over the years by William F. Schelter, Dick King,
-;; Stephen Gildea, Michael Prange, and Edward M. Reingold.
+;; Stephen Gildea, Michael Prange, and Jacob Gore.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +28,7 @@
 
 ;; This was a pain.  Now, make-comint should autoload comint.
 ;; (require 'comint)
+(require 'compile)
 
 ;;;###autoload
 (defvar tex-shell-file-name nil
@@ -607,6 +608,81 @@ Puts point on a blank line between them."
     (indent-to indentation)
     (insert "\\end" text)
     (if new-line-needed (insert ?\n))))
+
+(defun tex-compilation-parse-errors ()
+  "Parse the current buffer as error messages.
+This makes a list of error descriptors, compilation-error-list.
+For each source-file, line-number pair in the buffer,
+the source file is read in, and the text location is saved in
+compilation-error-list.  The function next-error, assigned to
+\\[next-error], takes the next error off the list and visits its location.
+
+This function works on TeX compilations only.  It is necessary for
+that purpose, since TeX does not put file names on the same line as
+line numbers for the errors."
+  (setq compilation-error-list nil)
+  (message "Parsing error messages...")
+  (modify-syntax-entry ?\{ "_")
+  (modify-syntax-entry ?\} "_")
+  (modify-syntax-entry ?\[ "_")
+  (modify-syntax-entry ?\] "_")
+  (make-variable-buffer-local 'compilation-error-regexp)
+  (setq compilation-error-regexp "^l\.[0-9]+ ")
+  (let (text-buffer
+	last-filename last-linenum)
+    ;; Don't reparse messages already seen at last parse.
+    (goto-char compilation-parsing-end)
+    ;; Don't parse the first two lines as error messages.
+    ;; This matters for grep.
+    (if (bobp)
+	(forward-line 2))
+    (while (re-search-forward compilation-error-regexp nil t)
+      (let (linenum filename
+	    error-marker text-marker)
+	;; Extract file name and line number from error message.
+	;; Line number is 2 away from beginning of line: "l.23"
+	(beginning-of-line)
+	(goto-char (+ (point) 2))
+	(setq linenum (read (current-buffer)))
+	;; The file is the one that was opened last and is still open.
+	;; We need to find the last open parenthesis.
+	(insert ?\))
+	(backward-sexp)
+	(forward-char)
+	(setq filename (compilation-grab-filename))
+	;; Locate the erring file and line.
+	(if (and (equal filename last-filename)
+		 (= linenum last-linenum))
+	    nil
+	  (skip-chars-backward "^(")
+	  (backward-char)
+	  (forward-sexp)
+	  (backward-delete-char 1)
+	  (setq error-marker (point-marker))
+	  ;; text-buffer gets the buffer containing this error's file.
+	  (if (not (equal filename last-filename))
+	      (setq text-buffer
+		    (and (file-exists-p (setq last-filename filename))
+			 (find-file-noselect filename))
+		    last-linenum 0))
+	  (if text-buffer
+	      ;; Go to that buffer and find the erring line.
+	      (save-excursion
+		(set-buffer text-buffer)
+		(if (zerop last-linenum)
+		    (progn
+		      (goto-char 1)
+		      (setq last-linenum 1)))
+		(forward-line (- linenum last-linenum))
+		(setq last-linenum linenum)
+		(setq text-marker (point-marker))
+		(setq compilation-error-list
+		      (cons (list error-marker text-marker)
+			    compilation-error-list)))))
+	(forward-line 1)))
+    (setq compilation-parsing-end (point-max)))
+  (message "Parsing error messages...done")
+  (setq compilation-error-list (nreverse compilation-error-list)))
 
 ;;; Invoking TeX in an inferior shell.
 
