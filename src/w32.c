@@ -628,13 +628,27 @@ request_sigio (void)
 int 
 getuid () 
 { 
-  return 0; 
+  char buffer[256];
+  int size = 256;
+
+  if (!GetUserName (buffer, &size))
+    /* Assume all powers upon failure.  */
+    return 0;
+
+  if (!stricmp ("administrator", buffer))
+    return 0;
+  else
+    /* A complete fabrication...is there anything to base it on? */
+    return 123;
 }
 
 int 
 geteuid () 
 { 
-  return 0; 
+  /* I could imagine arguing for checking to see whether the user is
+     in the Administrators group and returning a UID of 0 for that
+     case, but I don't know how wise that would be in the long run.  */
+  return getuid (); 
 }
 
 /* Remove all CR's that are followed by a LF.
