@@ -1,5 +1,7 @@
 2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* glossary.texi (Glossary): Fix syntax.
+
 	* xresources.texi (X Resources): Fix typo and syntax.
 
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
