@@ -304,9 +304,9 @@
 ;;   ;; Defining label environments
 ;;		reftex-default-label-alist-entries
 ;;		reftex-label-alist
-;;		reftex-use-text-after-label-as-context
 ;;		reftex-section-levels
 ;;		reftex-default-context-regexps
+;;		reftex-use-text-after-label-as-context
 ;;   ;; Label insertion
 ;;		reftex-insert-label-flags
 ;;		reftex-derive-label-parameters
@@ -424,7 +424,7 @@
 ;;
 ;; The default settings of RefTeX ensure a safe ride for beginners and
 ;; casual users.  However, when using RefTeX for a large project and/or on
-;; a small computer, there are ways to improve speed and memory usage.
+;; a small computer, there are ways to improve speed or memory usage.
 ;;
 ;; o RefTeX will load other parts of a multifile document as well as BibTeX
 ;;   database files for lookup purposes.  These buffers are kept, so that
@@ -451,7 +451,7 @@
 ;; o Even with partial scans enabled, RefTeX still has to make one full
 ;;   scan, when you start working with a document.  To avoid this, parsing
 ;;   information can stored in a file.  The file `MASTER.rel' is used for
-;;   storing information about a document with master file MASTER.tex.
+;;   storing information about a document with master file `MASTER.tex'.
 ;;   It is written each time RefTeX parses (part of) the document, and
 ;;   restored when you begin working with a document in a new editing
 ;;   session.  To use this feature, put into .emacs:
@@ -940,7 +940,7 @@ one of its arguments.  The elements of each list entry are:
       1000 means to get text after the last macro argument.
     - If a string, use as regexp to search *backward* from the label.  Context
       is then the text following the end of the match.  E.g. putting this to
-      \"\\\\\\\\caption{\" will use the caption in a figure or table
+      \"\\\\\\\\caption[[{]\" will use the caption in a figure or table
       environment.
       \"\\\\\\\\begin{eqnarray}\\\\|\\\\\\\\\\\\\\\\\" works for eqnarrays.
     - If any of `caption', `item', `eqnarray-like', `alignat-like', this
@@ -1022,6 +1022,39 @@ variable `reftex-default-label-alist-entries."
                   (nth 0 x))))
          reftex-label-alist-builtin)))))
 
+;; LaTeX section commands and level numbers
+(defcustom reftex-section-levels
+  '(
+    ("part"            . 0)
+    ("chapter"         . 1)
+    ("section"         . 2)
+    ("subsection"      . 3)
+    ("subsubsection"   . 4)
+    ("paragraph"       . 5)
+    ("subparagraph"    . 6)
+    ("subsubparagraph" . 7)
+    )
+  "Commands and levels used for defining sections in the document.
+The car of each cons cell is the name of the section macro.  The cdr is a
+number indicating its level."
+  :group 'reftex-defining-label-environments
+  :set 'reftex-set-dirty
+  :type '(repeat
+          (cons (string :tag "sectioning macro" "")
+                (number :tag "level           " 0))))
+
+(defcustom reftex-default-context-regexps
+  '((caption       . "\\\\\\(rot\\)?caption\\*?[[{]")
+    (item          . "\\\\item\\(\\[[^]]*\\]\\)?")
+    (eqnarray-like . "\\\\begin{%s}\\|\\\\\\\\")
+    (alignat-like  . "\\\\begin{%s}{[0-9]*}\\|\\\\\\\\"))
+"Alist with default regular expressions for finding context.
+The form (format regexp (regexp-quote environment)) is used to calculate
+the final regular expression - so %s will be replaced with the environment
+or macro."
+  :group 'reftex-defining-label-environments
+  :type '(repeat (cons (symbol) (regexp))))
+  
 (defcustom reftex-use-text-after-label-as-context nil
   "*t means, grab context from directly after the \\label{..} macro.
 This is the fastest method for obtaining context of the label definition, but
@@ -1477,6 +1510,8 @@ context to a temporary buffer (value 'copy)."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
+;; This file corresponds to RefTeX version 3.7
+
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
 (make-variable-buffer-local 'reftex-mode)
@@ -1922,27 +1957,6 @@ This works also without an active TAGS table."
 (defvar reftex-everything-regexp nil)
 (defvar reftex-find-label-regexp-format nil)
 (defvar reftex-find-label-regexp-format2 nil)
-
-;; LaTeX section commands and level numbers
-(defcustom reftex-section-levels
-  '(
-    ("part"            . 0)
-    ("chapter"         . 1)
-    ("section"         . 2)
-    ("subsection"      . 3)
-    ("subsubsection"   . 4)
-    ("paragraph"       . 5)
-    ("subparagraph"    . 6)
-    ("subsubparagraph" . 7)
-    )
-  "Commands and levels used for defining sections in the document.
-The car of each cons cell is the name of the section macro.  The cdr is a
-number indicating its level."
-  :group 'reftex-defining-label-environments
-  :set 'reftex-set-dirty
-  :type '(repeat
-          (cons (string :tag "sectioning macro" "")
-                (number :tag "level           " 0))))
 
 ;; The parser functions ----------------------------------
 
@@ -2728,7 +2742,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 		(setq xr-index (reftex-select-external-document
 				xr-alist xr-index))
 		(setq buf (or (reftex-get-file-buffer-force
-			       (cdr (nth xr-index xr-alist)) t)
+			       (cdr (nth xr-index xr-alist)))
 			      (error "Cannot switch document"))
 		      prefix (or (car (nth xr-index xr-alist)) "")
 		      offset nil))
@@ -2752,6 +2766,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
   ;; Return index of an external document.
   (cond
    ((= (length xr-alist) 1)
+    (message "No external douments available")
     (ding) 0)
    ((= (length xr-alist) 2)
     (- 1 xr-index))
@@ -3380,6 +3395,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
   (reftex-access-scan-info t)
 
   (let ((master (reftex-TeX-master-file))
+	(cnt 0)
         (dlist
          (mapcar
           '(lambda(x)
@@ -3398,6 +3414,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                                         (abbreviate-file-name (nth 3 x))) x1))
                    (list nil))))))
           (reftex-uniquify (symbol-value reftex-docstruct-symbol)))))
+
     (setq dlist (reftex-uniquify dlist))
     (if (null dlist) (error "No duplicate labels in document"))
     (switch-to-buffer-other-window "*Duplicate Labels*")
@@ -3405,16 +3422,26 @@ When called with 2 C-u prefix args, disable magic word recognition."
     (setq TeX-master master)
     (erase-buffer)
     (insert "                MULTIPLE LABELS IN CURRENT DOCUMENT:\n")
-    (insert " Move point to label and type `M-x reftex-change-label'\n"
-            " This will run a query-replace on the label and its references\n")
+    (insert 
+     " Move point to label and type `r' to run a query-replace on the label\n"
+     " and its references.  Type `q' to exit this buffer.\n\n")
     (insert " LABEL               FILE\n")
     (insert " -------------------------------------------------------------\n")
+    (use-local-map (make-sparse-keymap))
+    (local-set-key [?q] '(lambda () (interactive)
+			 (kill-buffer (current-buffer)) (delete-window)))
+    (local-set-key [?r] 'reftex-change-label)
     (while dlist
       (when (and (car (car dlist))
                  (cdr (car dlist)))
+	(incf cnt)
         (insert (mapconcat '(lambda(x) x) (car dlist) "\n    ") "\n"))
       (pop dlist))
-    (goto-char (point-min))))
+    (goto-char (point-min))
+    (when (= cnt 0)
+      (kill-buffer (current-buffer))
+      (delete-window)
+      (message "Document does not contain duplicate labels."))))
 
 (defun reftex-all-assq (key list)
   ;; Return a list of all associations of KEY in LIST.  Comparison with string=
@@ -4555,10 +4582,10 @@ bibliography statement (e.g. if it was changed)."
                 (setq last-key key)
                 (setq key (car
                            (cond
-                            ((fboundp 'listify-key-sequence) ; Emacs
-                             (listify-key-sequence key-sq))
                             ((fboundp 'event-to-character)   ; XEmacs
                              (mapcar 'event-to-character key-sq))
+                            ((fboundp 'listify-key-sequence) ; Emacs
+                             (listify-key-sequence key-sq))
                             (t (error "Please report this problem to dominik@strw.leidenuniv.nl")))))
 
                 (setq cmd (key-binding key-sq))
@@ -4939,6 +4966,7 @@ With argument, actually select the window showing the cross reference."
      (progn (skip-chars-backward class) (point))
      (progn (skip-chars-forward  class) (point)))))
 
+(defvar enable-multibyte-characters)
 (defun reftex-truncate (string ncols &optional ellipses padding)
   ;; Truncate a string to NCHAR characters.  
   ;; Works fast with ASCII and correctly with Mule characters.
@@ -5099,11 +5127,11 @@ With argument, actually select the window showing the cross reference."
 (defun reftex-get-buffer-visiting (file)
   ;; return a buffer visiting FILE
   (cond
-   ((fboundp 'find-buffer-visiting)       ; Emacs
-    (find-buffer-visiting file))
    ((boundp 'find-file-compare-truenames) ; XEmacs
     (let ((find-file-compare-truenames t))
       (get-file-buffer file)))
+   ((fboundp 'find-buffer-visiting)       ; Emacs
+    (find-buffer-visiting file))
    (t (error "Please report this problem to dominik@strw.leidenuniv.nl"))))
 
 (defun reftex-get-file-buffer-force (file &optional mark-to-kill)
@@ -5283,18 +5311,6 @@ This enforces rescanning the buffer on next use."
                (not (null (symbol-value symbol))))
           (set (symbol-value symbol) nil)))))
 
-(defcustom reftex-default-context-regexps
-  '((caption       . "\\\\\\(rot\\)?caption\\*?\\(\\[[^]]*\\]\\)?{")
-    (item          . "\\\\item\\(\\[[^]]*\\]\\)?")
-    (eqnarray-like . "\\\\begin{%s}\\|\\\\\\\\")
-    (alignat-like  . "\\\\begin{%s}{[0-9]*}\\|\\\\\\\\"))
-"Alist with default regular expressions for finding context.
-The form (format regexp (regexp-quote environment)) is used to calculate
-the final regular expression - so %s will be replaced with the environment
-or macro."
-  :group 'reftex-defining-label-environments
-  :type '(repeat (cons (symbol) (regexp))))
-  
 (defun reftex-compute-ref-cite-tables ()
   ;; Update ref and cite tables
 
@@ -5490,6 +5506,22 @@ or macro."
    ["\\cite"                  reftex-citation t]
    ["View Crossref"           reftex-view-crossref t]
    "----"
+   ("Parse Document"
+    ["Only this File"         reftex-parse-one t]
+    ["Entire Document"        reftex-parse-all (reftex-is-multi)]
+    ["Save to File"           (reftex-access-parse-file 'write)
+     (> (length (symbol-value reftex-docstruct-symbol)) 0)]
+    ["Restore from File"      (reftex-access-parse-file 'restore)
+     (reftex-access-parse-file 'readable)]
+    "----"
+    ["Enable Partial Scans" 
+     (setq reftex-enable-partial-scans (not reftex-enable-partial-scans))
+     :style toggle :selected reftex-enable-partial-scans]
+    ["Auto-Save Parse Info"
+     (setq reftex-save-parse-info (not reftex-save-parse-info))
+     :style toggle :selected reftex-save-parse-info]
+    "---"
+    ["Reset RefTeX Mode"       reftex-reset-mode t])
    ("Multifile"
     ["Search Whole Document"  reftex-search-document t]
     ["Replace in Document"    reftex-query-replace-document t]
@@ -5499,37 +5531,34 @@ or macro."
     "----"
     ["Find Duplicate Labels"  reftex-find-duplicate-labels t]
     ["Change Label and Refs"  reftex-change-label t])
-   ("Parse Document"
-    ["Only this File"         reftex-parse-one t]
-    ["Entire Document"        reftex-parse-all (reftex-is-multi)]
-    ["Save to file"           (reftex-access-parse-file 'write)
-     (> (length (symbol-value reftex-docstruct-symbol)) 0)]
-    ["Restore from File"      (reftex-access-parse-file 'restore)
-     (reftex-access-parse-file 'readable)]
-    "----"
-    ["Turn Auto-Save On"      (setq reftex-save-parse-info t)
-     (not reftex-save-parse-info)]
-    ["Turn Auto-Save Off"     (setq reftex-save-parse-info nil)
-     reftex-save-parse-info]
-    "---"
-    ["Reset RefTeX Mode"       reftex-reset-mode t])
-   "----"
-   ["Customize RefTeX"        reftex-customize t]
-   ("Set Citation Format"
+   ("Citation Options"
+    "Citation Style"
     ,@(mapcar
        (function
 	(lambda (x)
 	  (vector
 	   (symbol-name (car x))
 	   (list 'setq 'reftex-cite-format (list 'quote (car x)))
-	   (list 'not (list 'eq 'reftex-cite-format
-			    (list 'quote (car x)))))))
-       reftex-cite-format-builtin)
+	   :style 'radio :selected
+	   (list 'eq 'reftex-cite-format (list 'quote (car x))))))
+	reftex-cite-format-builtin)
     "----"
-    ["Turn Comments On"      (setq reftex-comment-citations t)
-     (not reftex-comment-citations)]
-    ["Turn Comments Off"     (setq reftex-comment-citations nil)
-     reftex-comment-citations])
+    "Bibinfo in Comments"
+    ["Attach Comments"
+     (setq reftex-comment-citations (not reftex-comment-citations))
+     :style toggle :selected reftex-comment-citations]
+    "---"
+    "Sort Database Matches"
+    ["by Author" (setq reftex-sort-bibtex-matches 'author)
+     :style radio :selected (eq reftex-sort-bibtex-matches 'author)]
+    ["by Year" (setq reftex-sort-bibtex-matches 'year)
+     :style radio :selected (eq reftex-sort-bibtex-matches 'year)]
+    ["by Year, reversed" (setq reftex-sort-bibtex-matches 'reverse-year)
+     :style radio :selected (eq reftex-sort-bibtex-matches 'reverse-year)]
+    ["Not" (setq reftex-sort-bibtex-matches nil)
+     :style radio :selected (eq reftex-sort-bibtex-matches nil)])
+   "----"
+   ["Customize RefTeX"        reftex-customize t]
    "----"
    ["Show Documentation"      reftex-show-commentary t]))
 
