@@ -131,6 +131,7 @@ real_install:
 		- mkdir $(INSTALL_DIR)\info
 		- mkdir $(INSTALL_DIR)\lock
 		- mkdir $(INSTALL_DIR)\data
+		- mkdir $(INSTALL_DIR)\site-lisp
 		if not exist ..\same-dir.tst $(CP_DIR) ..\etc $(INSTALL_DIR)\etc
 		if not exist ..\same-dir.tst $(CP_DIR) ..\info $(INSTALL_DIR)\info
 		- $(DEL) ..\same-dir.tst
