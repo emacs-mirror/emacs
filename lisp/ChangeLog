@@ -1,5 +1,8 @@
 2002-11-07  Kenichi Handa  <handa@m17n.org>
 
+	The following changes are to make character composition happen
+	automatically on displaying.
+
 	* composite.el: Remove all autoload cookies.
 	(composition-function-table): Variable declaration moved from
 	composite.c.  Format changed.
@@ -62,7 +65,7 @@
 	* language/tibet-util.el (tibetan-composition-function): Change
 	arguments to conform to composition-function-table.
 
-	* loadup.el: Load composite
+	* loadup.el: Load composite.
 
 2002-11-01  Dave Love  <fx@gnu.org>
 

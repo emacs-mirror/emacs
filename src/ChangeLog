@@ -1,5 +1,8 @@
 2002-11-07  Kenichi Handa  <handa@m17n.org>
 
+	The following changes are to make character composition happen
+	automatically on displaying.
+
 	* Makefile.in (lisp, shortlisp): Add composite.elc
 
 	* composite.h (Qauto_composed, Vauto_composition_function,
