@@ -1,5 +1,15 @@
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_highlight) <help-echo>: When looking for
+	help-echo for a string which doesn't have help-echo itself, use
+	get-char-property to obtain the help-echo from the string's buffer
+	(note_mouse_highlight) <mouse-face>: When on a string that doesn't
+	have mouse-face, look ``under'' the string for mouse-face from an
+	overlay.
+	(fast_find_position): Add parameter STOP.  In the final row, stop
+	before glyphs having STOP as object.  Don't consider glyphs that
+	are not from a buffer.
+
 	* buffer.c (syms_of_buffer) <default-directory>: Doc fix.
 
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
