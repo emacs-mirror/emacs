@@ -3719,18 +3719,38 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	}
       return 0;
     case WM_PAINT:
-      {
-	PAINTSTRUCT paintStruct;
+        {
+  	PAINTSTRUCT paintStruct;
+        RECT update_rect;
 
-	enter_crit ();
-	BeginPaint (hwnd, &paintStruct);
-	wmsg.rect = paintStruct.rcPaint;
-	EndPaint (hwnd, &paintStruct);
-	leave_crit ();
+        /* MSDN Docs say not to call BeginPaint if GetUpdateRect
+           fails.  Apparently this can happen under some
+           circumstances.  */
+        if (GetUpdateRect (hwnd, &update_rect, FALSE))
+          {
+            enter_crit ();
+            BeginPaint (hwnd, &paintStruct);
 
-	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-      
-	return (0);
+            /* The rectangles returned by GetUpdateRect and BeginPaint
+               do not always match.  GetUpdateRect seems to be the
+               more reliable of the two.  */
+            wmsg.rect = update_rect;
+
+#if defined (W32_DEBUG_DISPLAY)
+            DebPrint (("WM_PAINT: painting %d,%d-%d,%d\n", wmsg.rect.left,
+                       wmsg.rect.top, wmsg.rect.right, wmsg.rect.bottom));
+            DebPrint (("WM_PAINT: update region is %d,%d-%d,%d\n",
+                       update_rect.left, update_rect.top,
+                       update_rect.right, update_rect.bottom));
+#endif
+            EndPaint (hwnd, &paintStruct);
+            leave_crit ();
+
+            my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+          
+            return 0;
+          }
+        return 1;
       }
 
     case WM_INPUTLANGCHANGE:
@@ -4960,9 +4980,9 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
 
 struct font_info *
 w32_load_system_font (f,fontname,size)
-struct frame *f;
-char * fontname;
-int size;
+     struct frame *f;
+     char * fontname;
+     int size;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   Lisp_Object font_names;
@@ -5046,6 +5066,21 @@ int size;
 	ok = GetTextMetrics (hdc, &font->tm);
 	SelectObject (hdc, oldobj);
 	ReleaseDC (dpyinfo->root_window, hdc);
+
+	/* [andrewi, 25-Apr-99] A number of fixed pitch fonts,
+           eg. Courier New and perhaps others, report a max width which
+           is larger than the average character width, at least on some
+           NT systems (I don't understand why - my best guess is that it
+           results from installing the CJK language packs for NT4).
+           Unfortunately, this forces the redisplay code in dumpglyphs
+           to draw text character by character.
+
+	   I don't like this hack, but it seems better to force the max
+	   width to match the average width if the font is marked as
+	   fixed pitch, for the sake of redisplay performance.  */
+
+	if ((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH) == 0)
+	  font->tm.tmMaxCharWidth = font->tm.tmAveCharWidth;
       }
 
     UNBLOCK_INPUT;
@@ -5799,7 +5834,7 @@ Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
 {
   char *fontname, *ptnstr;
   Lisp_Object list, tem, newlist = Qnil;
-  int n_fonts;
+  int n_fonts = 0;
 
   list = Vw32_bdf_filename_alist;
   ptnstr = XSTRING (pattern)->data;
@@ -6957,6 +6992,49 @@ If optional parameter FRAME is not specified, use selected frame.")
   return Qnil;
 }
 
+DEFUN ("w32-shell-execute", Fw32_shell_execute, Sw32_shell_execute, 2, 4, 0,
+  "Get Windows to perform OPERATION on DOCUMENT.\n\
+This is a wrapper around the ShellExecute system function, which\n\
+invokes the application registered to handle OPERATION for DOCUMENT.\n\
+OPERATION is typically \"open\", \"print\" or \"explore\", and DOCUMENT\n\
+is typically the name of a document file or URL, but can also be a\n\
+program executable to run or a directory to open in the Windows Explorer.\n\
+\n\
+If DOCUMENT is a program executable, PARAMETERS can be a list of command\n\
+line parameters, but otherwise should be nil.\n\
+\n\
+SHOW-FLAG can be used to control whether the invoked application is hidden\n\
+or minimized.  If SHOw-FLAG is nil, the application is displayed normally,\n\
+otherwise it is an integer representing a ShowWindow flag:\n\
+\n\
+  0 - start hidden\n\
+  1 - start normally\n\
+  3 - start maximized\n\
+  6 - start minimized")
+  (operation, document, parameters, show_flag)
+     Lisp_Object operation, document, parameters, show_flag;
+{
+  Lisp_Object current_dir;
+
+  CHECK_STRING (operation, 0);
+  CHECK_STRING (document, 0);
+
+  /* Encode filename and current directory.  */
+  current_dir = ENCODE_FILE (current_buffer->directory);
+  document = ENCODE_FILE (document);
+  if ((int) ShellExecute (NULL,
+			  XSTRING (operation)->data,
+			  XSTRING (document)->data,
+			  (STRINGP (parameters) ?
+			   XSTRING (parameters)->data : NULL),
+			  XSTRING (current_dir)->data,
+			  (INTEGERP (show_flag) ?
+			   XINT (show_flag) : SW_SHOWDEFAULT))
+      > 32)
+    return Qt;
+  error ("ShellExecute failed");
+}
+
 /* Lookup virtual keycode from string representing the name of a
    non-ascii keystroke into the corresponding virtual key, using
    lispy_function_keys.  */
@@ -7501,6 +7579,7 @@ fontsets are automatically created.");
   defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_load_color_file);
   defsubr (&Sw32_send_sys_command);
+  defsubr (&Sw32_shell_execute);
   defsubr (&Sw32_register_hot_key);
   defsubr (&Sw32_unregister_hot_key);
   defsubr (&Sw32_registered_hot_keys);
