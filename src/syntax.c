@@ -673,7 +673,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
     {
       from = comstart_pos;
       from_byte = comstart_byte;
-      /* Globals are correct now.  */
+      UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
   else
     {
