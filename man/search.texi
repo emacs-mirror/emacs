@@ -977,7 +977,7 @@ letters and @code{case-fold-search} is non-@code{nil}.
 
 @findex list-matching-lines
 @findex occur
-@findex count-matches
+@findex how-many
 @findex delete-non-matching-lines
 @findex delete-matching-lines
 @findex flush-lines
@@ -1001,16 +1001,18 @@ moves point to the original of the chosen occurrence.
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
 
-@item M-x count-matches @key{RET} @var{regexp} @key{RET}
-Print the number of matches for @var{regexp} after point.
+@item M-x how-many @key{RET} @var{regexp} @key{RET}
+Print the number of matches for @var{regexp} after point, or in the
+active region in Transient Mark mode.
 
 @item M-x flush-lines @key{RET} @var{regexp} @key{RET}
-Delete each line that follows point and contains a match for
-@var{regexp}.
+Delete each line after point, or in the active region in Transient Mark
+mode, that contains a match for @var{regexp}.
 
 @item M-x keep-lines @key{RET} @var{regexp} @key{RET}
-Delete each line that follows point and @emph{does not} contain a match
-for @var{regexp}.
+Delete each line that follows point, or is in the active region in
+Transient Mark mode, and @emph{does not} contain a match for
+@var{regexp}.
 @end table
 
   Searching and replacing can be performed under the control of tags
