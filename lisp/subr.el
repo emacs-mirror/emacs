@@ -960,10 +960,12 @@ See also `with-temp-buffer'."
 	      (kill-buffer ,temp-buffer))))))
 
 (defmacro with-temp-message (message &rest body)
-  "Display MESSAGE temporarily while BODY is evaluated.
+  "Display MESSAGE temporarily if non-nil while BODY is evaluated.
 The original message is restored to the echo area after BODY has finished.
 The value returned is the value of the last form in BODY.
-MESSAGE is written to the message log buffer if `message-log-max' is non-nil."
+MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
+If MESSAGE is nil, the echo area and message log buffer are unchanged.
+Use a MESSAGE of \"\" to temporarily clear the echo area."
   (let ((current-message (make-symbol "current-message"))
 	(temp-message (make-symbol "with-temp-message")))
     `(let ((,temp-message ,message)
