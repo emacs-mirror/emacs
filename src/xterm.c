@@ -93,6 +93,27 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /*#include <X/Xproto.h>	*/
 #endif /* ! defined (HAVE_X11) */
 
+#ifdef FD_SET
+/* We could get this from param.h, but better not to depend on finding that.
+   And better not to risk that it might define other symbols used in this
+   file.  */
+#ifdef FD_SETSIZE
+#define MAXDESC FD_SETSIZE
+#else
+#define MAXDESC 64
+#endif
+#define SELECT_TYPE fd_set
+#else /* no FD_SET */
+#define MAXDESC 32
+#define SELECT_TYPE int
+
+/* Define the macros to access a single-int bitmap of descriptors.  */
+#define FD_SET(n, p) (*(p) |= (1 << (n)))
+#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
+#define FD_ISSET(n, p) (*(p) & (1 << (n)))
+#define FD_ZERO(p) (*(p) = 0)
+#endif /* no FD_SET */
+
 /* For sending Meta-characters.  Do we need this? */
 #define METABIT 0200
 
@@ -3274,12 +3295,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       /* AOJ 880406: if select returns true but XPending doesn't, it means that
 	 there is an EOF condition; in other words, that X has died.
 	 Act as if there had been a hangup. */
-
       int fd = ConnectionNumber (x_current_display);
-      int mask = 1 << fd;
+      SELECT_TYPE mask;
 
+      FD_SET(fd, &mask);
       if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0,
-		       (EMACS_TIME) 0)
+		       (EMACS_TIME *) 0)
 	  && !XStuffPending ())
 	kill (getpid (), SIGHUP);
     }
