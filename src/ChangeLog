@@ -1,3 +1,7 @@
+2005-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* term.c (encode_terminal_code): Fix buffer size computation.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (Fformat_mode_line): Doc fix.
