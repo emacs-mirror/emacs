@@ -1,5 +1,8 @@
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (describe_buffer_bindings): Add `\f\n' in front
+	of titles.
+
 	* dispnew.c (update_frame_1): Handle case that cursor vpos is 
 	out of bounds.
 

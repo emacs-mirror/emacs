@@ -13,6 +13,7 @@ the --without-pop configure option, should that be necessary.
 
 ** There are new configure options associated with the support for
 images and toolkit scrollbars.  Use the --help option to list them.
+
 
 * Changes in Emacs 21.1
 
@@ -1080,6 +1081,8 @@ paragraphs in the same style as `paragraph-indent-text-mode'.
 list-buffers or electric-buffer-list.  Use M-x bs-show to display a
 buffer menu with this package.  You can use M-x bs-customize to
 customize the package.
+
+*** find-lisp.el is a package emulating the Unix find command in Lisp.
 
 *** calculator.el is a small calculator package that is intended to
 replace desktop calculators such as xcalc and calc.exe.  Actually, it

@@ -24,9 +24,6 @@
 * Save undo information in files, and reload it when needed
   for undoing.
 
-* modify comint.el so that input appears in a special font.
-  I can add a simple Emacs feature to help.
-
 * Implement other text formatting properties.
 ** Footnotes that can appear either in place
   or at the end of the page.
@@ -48,3 +45,6 @@
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Make Emacs work as a Java Bean.
+
+* Make keymaps a first-class Lisp object (this means a rewrite of 
+keymap.c).
