@@ -32,7 +32,7 @@
 Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-enable-edit nil
-  "*Non-nil means the \\<info-mode-map>\\[Info-edit] command in Info can edit the current node.
+  "*Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
 This is convenient if you want to write info files by hand.
 However, we recommend that you not do this.
 It is better to write a Texinfo file and generate the Info file from that,
@@ -496,7 +496,7 @@ to read a file name from the minibuffer."
 	(Info-restore-point (cdr hl)))))
 
 (defvar Info-last-search nil
-  "Default regexp for \\<info-mode-map>\\[Info-search] command to search for.")
+  "Default regexp for \\<Info-mode-map>\\[Info-search] command to search for.")
 
 (defun Info-search (regexp)
   "Search for REGEXP, starting from point, and select node it's found in."
@@ -1228,7 +1228,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   ;; Make mode line update.
   (set-buffer-modified-p (buffer-modified-p))
   (message (substitute-command-keys
-	     "Editing: Type \\<info-mode-map>\\[Info-cease-edit] to return to info")))
+	     "Editing: Type \\<Info-mode-map>\\[Info-cease-edit] to return to info")))
 
 (defun Info-cease-edit ()
   "Finish editing Info node; switch back to Info proper."
