@@ -34,10 +34,13 @@
 ;; (define-key function-key-map "\eOB" [down])
 ;; (define-key function-key-map "\eOC" [right])
 ;; (define-key function-key-map "\eOD" [left])
-;; (define-key function-key-map "\eOP" [kp-f1])
-;; (define-key function-key-map "\eOQ" [kp-f2])
-;; (define-key function-key-map "\eOR" [kp-f3])
-;; (define-key function-key-map "\eOS" [kp-f4])
+
+;; Termcap or terminfo should set these, but doesn't properly.
+;; Termcap sets these to k1-k4, which get mapped to f1-f4 in term.c
+(define-key function-key-map "\eOP" [kp-f1])
+(define-key function-key-map "\eOQ" [kp-f2])
+(define-key function-key-map "\eOR" [kp-f3])
+(define-key function-key-map "\eOS" [kp-f4])
 
 (define-key function-key-map "\eOM" [kp-enter])
 (define-key function-key-map "\eOl" [kp-separator])
