@@ -717,18 +717,7 @@ copy_text (from_addr, to_addr, nbytes,
 	  int thislen, c, c_save;
 	  c = c_save = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
 	  if (!SINGLE_BYTE_CHAR_P (c))
-	    {
-	      if (!NILP (tbl))
-		{
-		  temp = Faref (tbl, make_number (c));
-		  if (INTEGERP (temp))
-		    c = XINT (temp);
-		}
-	      else if (nonascii_insert_offset > 0)
-		c -= nonascii_insert_offset;
-	      if (c < 128 || c >= 256)
-		c = (c_save & 0177) + 0200;
-	    }
+	    c = multibyte_char_to_unibyte (c, tbl);
 	  *to_addr++ = c;
 	  from_addr += thislen;
 	  bytes_left -= thislen;
