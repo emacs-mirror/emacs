@@ -323,9 +323,14 @@ Lisp_Object Vlucid_menu_bar_dirty_flag;
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 /* Hooks to run before and after each command.  */
-Lisp_Object Qpre_command_hook, Qpost_command_hook;
-Lisp_Object Vpre_command_hook, Vpost_command_hook;
+Lisp_Object Qpre_command_hook, Vpre_command_hook;
+Lisp_Object Qpost_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
+/* Hook run after a command if there's no more input soon.  */
+Lisp_Object Qpost_command_idle_hook, Vpost_command_idle_hook;
+
+/* Delay time in microseconds before running post-command-idle-hook.  */
+int post_command_idle_delay;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
@@ -1089,6 +1094,14 @@ command_loop_1 ()
   if (!NILP (Vdeferred_action_list))
     call0 (Vdeferred_action_function);
 
+  if (!NILP (XSYMBOL (Qpost_command_idle_hook)->value) && !NILP (Vrun_hooks))
+    {
+      if (NILP (Vunread_command_events)
+	  && NILP (Vexecuting_macro)
+	  && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
+	safe_run_hooks (Qpost_command_idle_hook);
+    }
+
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = this_command;
 
@@ -1366,6 +1379,15 @@ command_loop_1 ()
 
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
+
+      if (!NILP (XSYMBOL (Qpost_command_idle_hook)->value)
+	  && !NILP (Vrun_hooks))
+	{
+	  if (NILP (Vunread_command_events)
+	      && NILP (Vexecuting_macro)
+	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
+	    safe_run_hooks (Qpost_command_idle_hook);
+	}
 
       /* If there is a prefix argument,
 	 1) We don't want Vlast_command to be ``universal-argument''
@@ -6996,6 +7018,9 @@ syms_of_keyboard ()
   Qpost_command_hook = intern ("post-command-hook");
   staticpro (&Qpost_command_hook);
 
+  Qpost_command_idle_hook = intern ("post-command-idle-hook");
+  staticpro (&Qpost_command_idle_hook);
+
   Qdeferred_action_function = intern ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
@@ -7290,21 +7315,23 @@ Buffer modification stores t in this variable.");
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
     "Normal hook run before each command is executed.\n\
-While the hook is run, its value is temporarily set to nil\n\
-to avoid an unbreakable infinite loop if a hook function gets an error.\n\
-As a result, a hook function cannot straightforwardly alter the value of\n\
-`pre-command-hook'.  See the Emacs Lisp manual for a way of\n\
-implementing hook functions that alter the set of hook functions.");
+Errors running the hook are caught and ignored.");
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
     "Normal hook run after each command is executed.\n\
-While the hook is run, its value is temporarily set to nil\n\
-to avoid an unbreakable infinite loop if a hook function gets an error.\n\
-As a result, a hook function cannot straightforwardly alter the value of\n\
-`post-command-hook'.  See the Emacs Lisp manual for a way of\n\
-implementing hook functions that alter the set of hook functions.");
+Errors running the hook are caught and ignored.");
   Vpost_command_hook = Qnil;
+
+  DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
+    "Normal hook run after each command is executed, if idle.\n\
+Errors running the hook are caught and ignored.");
+  Vpost_command_idle_hook = Qnil;
+
+  DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
+    "Delay time before running `post-command-idle-delay'.\n\
+This is measured in microseconds.");
+  post_command_idle_delay = 100000;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
     "t means menu bar, specified Lucid style, needs to be recomputed.");
