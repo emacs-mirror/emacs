@@ -1,3 +1,8 @@
+2005-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-file-menu): Add the same :enable to
+	"Open Directory" as for "Open File".
+
 2005-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (activate-mark-hook, deactivate-mark-hook): Add defvars.

@@ -184,6 +184,8 @@ A large number or nil slows down menu responsiveness."
 	      :help "Insert another file into current buffer"))
 (define-key menu-bar-file-menu [dired]
   '(menu-item "Open Directory..." dired
+	      :enable (not (window-minibuffer-p
+			    (frame-selected-window menu-updating-frame)))
 	      :help "Read a directory, operate on its files"))
 (define-key menu-bar-file-menu [open-file]
   '(menu-item "Open File..." find-file-existing
