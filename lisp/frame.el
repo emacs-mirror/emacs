@@ -228,13 +228,13 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; when we first made the frame.
 	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
 	      (if (assq 'height frame-initial-geometry-arguments)
-		  (setq parms (delq (assq 'height parms) parms)))
+		  (setq parms (frame-delete-all 'height parms)))
 	      (if (assq 'width frame-initial-geometry-arguments)
-		  (setq parms (delq (assq 'width parms) parms)))
+		  (setq parms (frame-delete-all 'width parms)))
 	      (if (assq 'left frame-initial-geometry-arguments)
-		  (setq parms (delq (assq 'left parms) parms)))
+		  (setq parms (frame-delete-all 'left parms)))
 	      (if (assq 'top frame-initial-geometry-arguments)
-		  (setq parms (delq (assq 'top parms) parms)))
+		  (setq parms (frame-delete-all 'top parms)))
 	      (setq new
 		    (make-frame
 		     ;; Use the geometry args that created the existing
@@ -298,6 +298,14 @@ These supersede the values given in `default-frame-alist'.")
 	  (let (newparms allparms tail)
 	    (setq allparms (append initial-frame-alist
 				   default-frame-alist))
+	    (if (assq 'height frame-initial-geometry-arguments)
+		(setq allparms (frame-delete-all 'height allparms)))
+	    (if (assq 'width frame-initial-geometry-arguments)
+		(setq allparms (frame-delete-all 'width allparms)))
+	    (if (assq 'left frame-initial-geometry-arguments)
+		(setq allparms (frame-delete-all 'left allparms)))
+	    (if (assq 'top frame-initial-geometry-arguments)
+		(setq allparms (frame-delete-all 'top allparms)))
 	    (setq tail allparms)
 	    ;; Find just the parms that have changed since we first
 	    ;; made this frame.  Those are the ones actually set by
@@ -325,6 +333,15 @@ These supersede the values given in `default-frame-alist'.")
     ;; Make sure frame-notice-user-settings does nothing if called twice.
     (setq frame-initial-frame nil)))
 
+;; Delete from ALIST all elements whose car is KEY.
+;; Return the modified alist.
+(defun frame-delete-all (key alist)
+  (let ((tail alist))
+    (while tail
+      (if (eq (car (car tail)) key)
+	  (setq alist (delq (car tail) alist)))
+      (setq tail (cdr tail)))
+    alist))
 
 ;;;; Creation of additional frames, and other frame miscellanea
 
