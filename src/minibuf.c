@@ -634,7 +634,7 @@ Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
  the empty string.\n\
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
  the current input method and the setting of enable-multibyte-characters.\n\
-If the variable `minibuffer-allow-text-properties is non-nil,\n\
+If the variable `minibuffer-allow-text-properties' is non-nil,\n\
  then the string which is returned includes whatever text properties\n\
  were present in the minibuffer.  Otherwise the value has no text properties.")
   (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
@@ -736,7 +736,10 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading.\n\
 The third arg HISTORY, if non-nil, specifies a history list\n\
   and optionally the initial position in the list.\n\
 See `read-from-minibuffer' for details of HISTORY argument.\n\
-Fourth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
+Fourth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
+ for history commands, and as the value to return if the user enters\n\
+ the empty string.\n\
+Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
  the current input method and the setting of enable-multibyte-characters.")
   (prompt, initial_input, history, default_value, inherit_input_method)
      Lisp_Object prompt, initial_input, history, default_value;
