@@ -1141,8 +1141,13 @@ paste (in addition to the normal Emacs bindings)."
 (define-key menu-bar-describe-menu [describe-function]
   '(menu-item "Describe Function..." describe-function
 	      :help "Display documentation of function/command"))
-(define-key menu-bar-describe-menu [describe-key]
+(define-key menu-bar-describe-menu [describe-key-1]
   '(menu-item "Describe Key..." describe-key
+	      ;; Users typically don't identify keys and menu items...
+	      :help "Display documentation of command bound to a \
+key (or menu-item)"))
+(define-key menu-bar-describe-menu [describe-key]
+  '(menu-item "What's This? " describe-key
 	      ;; Users typically don't identify keys and menu items...
 	      :help "Display documentation of command bound to a \
 key (or menu-item)"))
