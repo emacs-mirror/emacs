@@ -1248,6 +1248,7 @@ dnl checks for programs
 AC_PROG_LN_S
 AC_PROG_CPP
 AC_PROG_INSTALL
+AC_PROG_GNU_LD
 if test "x$RANLIB" = x; then
   AC_PROG_RANLIB
 fi
@@ -2066,14 +2067,24 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   fi
 fi
 
-dnl Don't use X11 input methods if user specifies he doesn't want it
-dnl with `--with-xim=no'.
+dnl See if XIM is available.
+AC_TRY_COMPILE([
+	  #include <X11/Xlib.h>
+	  #include <X11/Xresource.h>],
+	 [XIMProc  callback;],
+	 HAVE_XIM=yes
+	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available]),
+	 HAVE_XIM=no)
+
+dnl `--with-xim' now controls only the initial value of use_xim at run time.
 
 if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
 	    [Define to 1 if we should use XIM, if it is available.])
 fi
-if test "${HAVE_X11}" = "yes"; then
+ 
+
+if test "${HAVE_XIM}" != "no"; then
   late_CFLAGS=$CFLAGS
   if test "$GCC" = yes; then
     CFLAGS="$CFLAGS --pedantic-errors"
