@@ -2352,6 +2352,7 @@ Advanced commands:
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 
