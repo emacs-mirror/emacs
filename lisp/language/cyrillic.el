@@ -314,7 +314,7 @@ This works whether or not the table is Unicode-based or
 
 ;; Fixme: It's unclear what's the correct table.  I've found
 ;; statements both that it's the same as cp866 and somewhat different,
-;; but nothing that looks definitive.
+;; but nothing that looks really definitive.
 (defvar cyrillic-alternativnyj-decode-table
   [
    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
@@ -332,7 +332,7 @@ This works whether or not the table is Unicode-based or
 ;;    ?$,2 4(B  ?$,2 T(B  ?$,2 L(B  ?$,2 <(B  ?$,2  (B  ?$,2 \(B  ?$,2 ~(B  ?$,2 (B  ?$,2 z(B  ?$,2 t(B  ?$,2!)(B  ?$,2!&(B  ?$,2! (B  ?$,2 p(B  ?$,2!,(B  ?$,2!'(B
 ;;    ?$,2!((B  ?$,2!$(B  ?$,2!%(B  ?$,2 y(B  ?$,2 x(B  ?$,2 r(B  ?$,2 s(B  ?$,2!+(B  ?$,2!*(B  ?$,2 8(B  ?$,2 ,(B  ?$,2!H(B  ?$,2!D(B  ?$,2!L(B  ?$,2!P(B  ?$,2!@(B
 ;;    ?$,1(`(B  ?$,1(a(B  ?$,1(b(B  ?$,1(c(B  ?$,1(d(B  ?$,1(e(B  ?$,1(f(B  ?$,1(g(B  ?$,1(h(B  ?$,1(i(B  ?$,1(j(B  ?$,1(k(B  ?$,1(l(B  ?$,1(m(B  ?$,1(n(B  ?$,1(o(B
-;;    ?$,1(!(B  ?$,1(q(B  ?$,1($(B  ?$,1(t(B  ?$,1('(B  ?$,1(w(B  ?$,1(.(B  ?$,1(~(B  ?,A0(B  ?$,1s"(B  ?,A7(B  ?$,1x:(B  ?$,1uV(B  ?,A$(B  ?$,2!`(B  ?,A (B ;
+;;    ?$,1(!(B  ?$,1(q(B  ?$,1ry(B  ?$,1rx(B  ?$,1%A(B  ?$,1%@(B  ?$,1s:(B  ?$,1s9(B  ?$,1vq(B  ?$,1vs(B  ?,A1(B  ?,Aw(B  ?$,1uV(B  ?,A$(B  ?$,2!`(B  ?,A (B ;
 ;; 8859+Unicode
    ?,L0(B  ?,L1(B  ?,L2(B  ?,L3(B  ?,L4(B  ?,L5(B  ?,L6(B  ?,L7(B  ?,L8(B  ?,L9(B  ?,L:(B  ?,L;(B  ?,L<(B  ?,L=(B  ?,L>(B  ?,L?(B
    ?,L@(B  ?,LA(B  ?,LB(B  ?,LC(B  ?,LD(B  ?,LE(B  ?,LF(B  ?,LG(B  ?,LH(B  ?,LI(B  ?,LJ(B  ?,LK(B  ?,LL(B  ?,LM(B  ?,LN(B  ?,LO(B
@@ -341,7 +341,10 @@ This works whether or not the table is Unicode-based or
    ?$,2 4(B  ?$,2 T(B  ?$,2 L(B  ?$,2 <(B  ?$,2  (B  ?$,2 \(B  ?$,2 ~(B  ?$,2 (B  ?$,2 z(B  ?$,2 t(B  ?$,2!)(B  ?$,2!&(B  ?$,2! (B  ?$,2 p(B  ?$,2!,(B  ?$,2!'(B
    ?$,2!((B  ?$,2!$(B  ?$,2!%(B  ?$,2 y(B  ?$,2 x(B  ?$,2 r(B  ?$,2 s(B  ?$,2!+(B  ?$,2!*(B  ?$,2 8(B  ?$,2 ,(B  ?$,2!H(B  ?$,2!D(B  ?$,2!L(B  ?$,2!P(B  ?$,2!@(B
    ?,L`(B  ?,La(B  ?,Lb(B  ?,Lc(B  ?,Ld(B  ?,Le(B  ?,Lf(B  ?,Lg(B  ?,Lh(B  ?,Li(B  ?,Lj(B  ?,Lk(B  ?,Ll(B  ?,Lm(B  ?,Ln(B  ?,Lo(B
-   ?,L!(B  ?,Lq(B  ?,L$(B  ?,Lt(B  ?,L'(B  ?,Lw(B  ?,L.(B  ?,L~(B  ?,A0(B  ?$,1s"(B  ?,A7(B  ?$,1x:(B  ?,Lp(B  ?,A$(B  ?$,2!`(B  ?,L (B]
+   ;; Taken from http://www.cyrillic.com/ref/cyrillic/koi-8alt.html
+   ;; with guesses for the Unicodes of the glyphs in the absence of a
+   ;; table.
+   ?,L!(B  ?,Lq(B  ?$,1ry(B  ?$,1rx(B  ?$,1%A(B  ?$,1%@(B  ?$,1s:(B  ?$,1s9(B  ?$,1vq(B  ?$,1vs(B  ?,A1(B  ?,Aw(B  ?,Lp(B  ?,A$(B  ?$,2!`(B  ?,L (B]
   "Cyrillic ALTERNATIVNYJ decoding table.")
 
 (let ((table (make-translation-table-from-vector
@@ -377,19 +380,15 @@ This works whether or not the table is Unicode-based or
 
 (cyrillic-unify-encoding 'cyrillic-alternativnyj-encode-table)
 
-;; Fixme: Check the cp866 here and in alias below.  See comment on the
-;; decode table above.
 (make-coding-system
  'cyrillic-alternativnyj 4 ?A
- "ALTERNATIVNYJ (CP866) 8-bit encoding for Cyrillic."
+ "ALTERNATIVNYJ 8-bit encoding for Cyrillic."
  '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
  `((safe-chars . cyrillic-alternativnyj-encode-table)
    (valid-codes (0 . 255))
-   (mime-charset . cp866)
    (dependency unify-8859-on-encoding-mode unify-8859-on-decoding-mode)))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
-(define-coding-system-alias 'cp866 'cyrillic-alternativnyj)
 
 (define-ccl-program ccl-encode-alternativnyj-font
   `(0
@@ -438,7 +437,7 @@ This works whether or not the table is Unicode-based or
 		  (coding-priority windows-1251)
 	       (nonascii-translation
 		. ,(get 'decode-windows-1251 'translation-table))
-	       (input-method . "bulgarian-standard")
+	       (input-method . "bulgarian-bds")
 		  (features code-pages)
 	       (documentation
 		. "Support for Bulgrian with windows-1251 character set."))
