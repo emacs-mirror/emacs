@@ -144,7 +144,9 @@ of[ \t]+\"?\\([^\"\n]+\\)\"?:" 3 2)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
-    ("rror: \\([^,\" \n\t]+\\), line \\([0-9]+\\):" 1 2)
+    ;; DEC AXP OSF/1 cc
+    ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah 
+    ("rror: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
