@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line
 
-;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-13
@@ -81,11 +81,10 @@
 
 ;;;###autoload
 (define-minor-mode hl-line-mode
-  "Global minor mode to highlight the line about point in the current window.
+  "Minor mode to highlight the line about point in the current window.
 With ARG, turn Hl-Line mode on if ARG is positive, off otherwise.
 Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
 `pre-command-hook' and `post-command-hook'."
-  :global t
   (if hl-line-mode
       (progn
 	(add-hook 'pre-command-hook #'hl-line-unhighlight)
@@ -93,6 +92,11 @@ Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
     (hl-line-unhighlight)
     (remove-hook 'pre-command-hook #'hl-line-unhighlight)
     (remove-hook 'post-command-hook #'hl-line-highlight)))
+
+;;;###autoload
+(easy-mmode-define-global-mode
+ global-hl-line-mode hl-line-mode hl-line-mode
+ :group 'hl-line)
 
 (provide 'hl-line)
 
