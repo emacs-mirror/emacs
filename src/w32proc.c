@@ -1712,7 +1712,7 @@ All path elements in FILENAME are converted to their short names.")
 {
   char shortname[MAX_PATH];
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
@@ -1737,7 +1737,7 @@ All path elements in FILENAME are converted to their long names.")
 {
   char longname[ MAX_PATH ];
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
@@ -1766,14 +1766,14 @@ If successful, the return value is t, otherwise nil.")
   DWORD  priority_class = NORMAL_PRIORITY_CLASS;
   Lisp_Object result = Qnil;
 
-  CHECK_SYMBOL (priority, 0);
+  CHECK_SYMBOL (priority);
 
   if (!NILP (process))
     {
       DWORD pid;
       child_process *cp;
 
-      CHECK_NUMBER (process, 0);
+      CHECK_NUMBER (process);
 
       /* Allow pid to be an internally generated one, or one obtained
 	 externally.  This is necessary because real pids on Win95 are
@@ -1825,7 +1825,7 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.")
   char abbrev_name[32] = { 0 };
   char full_name[256] = { 0 };
 
-  CHECK_NUMBER (lcid, 0);
+  CHECK_NUMBER (lcid);
 
   if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
     return Qnil;
@@ -1932,7 +1932,7 @@ If successful, the new locale id is returned, otherwise nil.")
      (lcid)
      Lisp_Object lcid;
 {
-  CHECK_NUMBER (lcid, 0);
+  CHECK_NUMBER (lcid);
 
   if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
     return Qnil;
@@ -1988,7 +1988,7 @@ If successful, the new CP is returned, otherwise nil.")
      (cp)
      Lisp_Object cp;
 {
-  CHECK_NUMBER (cp, 0);
+  CHECK_NUMBER (cp);
 
   if (!IsValidCodePage (XINT (cp)))
     return Qnil;
@@ -2015,7 +2015,7 @@ If successful, the new CP is returned, otherwise nil.")
      (cp)
      Lisp_Object cp;
 {
-  CHECK_NUMBER (cp, 0);
+  CHECK_NUMBER (cp);
 
   if (!IsValidCodePage (XINT (cp)))
     return Qnil;
@@ -2035,7 +2035,7 @@ Returns nil if the codepage is not valid.")
 {
   CHARSETINFO info;
 
-  CHECK_NUMBER (cp, 0);
+  CHECK_NUMBER (cp);
 
   if (!IsValidCodePage (XINT (cp)))
     return Qnil;
@@ -2093,9 +2093,9 @@ If successful, the new layout id is returned, otherwise nil.")
 {
   DWORD kl;
 
-  CHECK_CONS (layout, 0);
-  CHECK_NUMBER (XCAR (layout), 0);
-  CHECK_NUMBER (XCDR (layout), 0);
+  CHECK_CONS (layout);
+  CHECK_NUMBER (XCAR (layout));
+  CHECK_NUMBER (XCDR (layout));
 
   kl = (XINT (XCAR (layout)) & 0xffff)
     | (XINT (XCDR (layout)) << 16);

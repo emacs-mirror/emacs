@@ -223,7 +223,7 @@ supply if the command inquires which events were used to invoke it.  */)
     keys = this_command_keys, key_count = this_command_key_count;
   else
     {
-      CHECK_VECTOR (keys, 3);
+      CHECK_VECTOR (keys);
       key_count = XVECTOR (keys)->size;
     }
 

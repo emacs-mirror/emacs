@@ -207,7 +207,7 @@ If STRING is a multibyte string, this is greater than the length of STRING. */)
      (string)
      Lisp_Object string;
 {
-  CHECK_STRING (string, 1);
+  CHECK_STRING (string);
   return make_number (STRING_BYTES (XSTRING (string)));
 }
 
@@ -222,8 +222,8 @@ Symbols are also allowed; their print names are used instead. */)
     XSETSTRING (s1, XSYMBOL (s1)->name);
   if (SYMBOLP (s2))
     XSETSTRING (s2, XSYMBOL (s2)->name);
-  CHECK_STRING (s1, 0);
-  CHECK_STRING (s2, 1);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
 
   if (XSTRING (s1)->size != XSTRING (s2)->size
       || STRING_BYTES (XSTRING (s1)) != STRING_BYTES (XSTRING (s2))
@@ -253,18 +253,18 @@ If string STR1 is greater, the value is a positive number N;
   register int end1_char, end2_char;
   register int i1, i1_byte, i2, i2_byte;
 
-  CHECK_STRING (str1, 0);
-  CHECK_STRING (str2, 1);
+  CHECK_STRING (str1);
+  CHECK_STRING (str2);
   if (NILP (start1))
     start1 = make_number (0);
   if (NILP (start2))
     start2 = make_number (0);
-  CHECK_NATNUM (start1, 2);
-  CHECK_NATNUM (start2, 3);
+  CHECK_NATNUM (start1);
+  CHECK_NATNUM (start2);
   if (! NILP (end1))
-    CHECK_NATNUM (end1, 4);
+    CHECK_NATNUM (end1);
   if (! NILP (end2))
-    CHECK_NATNUM (end2, 4);
+    CHECK_NATNUM (end2);
 
   i1 = XINT (start1);
   i2 = XINT (start2);
@@ -349,8 +349,8 @@ Symbols are also allowed; their print names are used instead. */)
     XSETSTRING (s1, XSYMBOL (s1)->name);
   if (SYMBOLP (s2))
     XSETSTRING (s2, XSYMBOL (s2)->name);
-  CHECK_STRING (s1, 0);
-  CHECK_STRING (s2, 1);
+  CHECK_STRING (s1);
+  CHECK_STRING (s2);
 
   i1 = i1_byte = i2 = i2_byte = 0;
 
@@ -791,7 +791,7 @@ concat (nargs, args, target_type, last_special)
 	      XVECTOR (val)->contents[toindex++] = elt;
 	    else
 	      {
-		CHECK_NUMBER (elt, 0);
+		CHECK_NUMBER (elt);
 		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
 		  {
 		    if (some_multibyte)
@@ -1061,7 +1061,7 @@ each unibyte character to a multibyte character. */)
      (string)
      Lisp_Object string;
 {
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   return string_make_multibyte (string);
 }
@@ -1074,7 +1074,7 @@ by using just the low 8 bits. */)
      (string)
      Lisp_Object string;
 {
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   return string_make_unibyte (string);
 }
@@ -1090,7 +1090,7 @@ corresponding single byte.  */)
      (string)
      Lisp_Object string;
 {
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   if (STRING_MULTIBYTE (string))
     {
@@ -1116,7 +1116,7 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
      (string)
      Lisp_Object string;
 {
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   if (! STRING_MULTIBYTE (string))
     {
@@ -1150,7 +1150,7 @@ Elements of ALIST that are not conses are also shared.  */)
 {
   register Lisp_Object tem;
 
-  CHECK_LIST (alist, 0);
+  CHECK_LIST (alist);
   if (NILP (alist))
     return alist;
   alist = concat (1, &alist, Lisp_Cons, 0);
@@ -1185,7 +1185,7 @@ This function allows vectors as well as strings.  */)
   if (! (STRINGP (string) || VECTORP (string)))
     wrong_type_argument (Qarrayp, string);
 
-  CHECK_NUMBER (from, 1);
+  CHECK_NUMBER (from);
 
   if (STRINGP (string))
     {
@@ -1202,7 +1202,7 @@ This function allows vectors as well as strings.  */)
     }
   else
     {
-      CHECK_NUMBER (to, 2);
+      CHECK_NUMBER (to);
 
       to_char = XINT (to);
       if (to_char < 0)
@@ -1285,7 +1285,7 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
      register Lisp_Object list;
 {
   register int i, num;
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   num = XINT (n);
   for (i = 0; i < num && !NILP (list); i++)
     {
@@ -1311,7 +1311,7 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
      (sequence, n)
      register Lisp_Object sequence, n;
 {
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   while (1)
     {
       if (CONSP (sequence) || NILP (sequence))
@@ -1891,7 +1891,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
      (symbol, propname)
      Lisp_Object symbol, propname;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
@@ -1937,7 +1937,7 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
      (symbol, propname, value)
      Lisp_Object symbol, propname, value;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   XSYMBOL (symbol)->plist
     = Fplist_put (XSYMBOL (symbol)->plist, propname, value);
   return value;
@@ -2098,7 +2098,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (STRINGP (array))
     {
       register unsigned char *p = XSTRING (array)->data;
-      CHECK_NUMBER (item, 1);
+      CHECK_NUMBER (item);
       charval = XINT (item);
       size = XSTRING (array)->size;
       if (STRING_MULTIBYTE (array))
@@ -2148,7 +2148,7 @@ DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
      (char_table)
      Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_CHAR_TABLE (char_table);
 
   return XCHAR_TABLE (char_table)->purpose;
 }
@@ -2163,7 +2163,7 @@ then the actual applicable value is inherited from the parent char-table
      (char_table)
      Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_CHAR_TABLE (char_table);
 
   return XCHAR_TABLE (char_table)->parent;
 }
@@ -2177,11 +2177,11 @@ PARENT must be either nil or another char-table.  */)
 {
   Lisp_Object temp;
 
-  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_CHAR_TABLE (char_table);
 
   if (!NILP (parent))
     {
-      CHECK_CHAR_TABLE (parent, 0);
+      CHECK_CHAR_TABLE (parent);
 
       for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
 	if (EQ (temp, char_table))
@@ -2199,8 +2199,8 @@ DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
      (char_table, n)
      Lisp_Object char_table, n;
 {
-  CHECK_CHAR_TABLE (char_table, 1);
-  CHECK_NUMBER (n, 2);
+  CHECK_CHAR_TABLE (char_table);
+  CHECK_NUMBER (n);
   if (XINT (n) < 0
       || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
     args_out_of_range (char_table, n);
@@ -2215,8 +2215,8 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
      (char_table, n, value)
      Lisp_Object char_table, n, value;
 {
-  CHECK_CHAR_TABLE (char_table, 1);
-  CHECK_NUMBER (n, 2);
+  CHECK_CHAR_TABLE (char_table);
+  CHECK_NUMBER (n);
   if (XINT (n) < 0
       || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
     args_out_of_range (char_table, n);
@@ -2233,7 +2233,7 @@ a character set name, or a character code.  */)
      (char_table, range)
      Lisp_Object char_table, range;
 {
-  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_CHAR_TABLE (char_table);
 
   if (EQ (range, Qnil))
     return XCHAR_TABLE (char_table)->defalt;
@@ -2244,7 +2244,7 @@ a character set name, or a character code.  */)
       Lisp_Object charset_info;
 
       charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info, 0);
+      CHECK_VECTOR (charset_info);
 
       return Faref (char_table,
 		    make_number (XINT (XVECTOR (charset_info)->contents[0])
@@ -2281,7 +2281,7 @@ a coding system, or a character code.  */)
 {
   int i;
 
-  CHECK_CHAR_TABLE (char_table, 0);
+  CHECK_CHAR_TABLE (char_table);
 
   if (EQ (range, Qt))
     for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
@@ -2293,7 +2293,7 @@ a coding system, or a character code.  */)
       Lisp_Object charset_info;
 
       charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info, 0);
+      CHECK_VECTOR (charset_info);
 
       return Faset (char_table,
 		    make_number (XINT (XVECTOR (charset_info)->contents[0])
@@ -2335,8 +2335,8 @@ See also the documentation of make-char.  */)
   int c, charset, code1, code2;
   Lisp_Object temp;
 
-  CHECK_CHAR_TABLE (char_table, 0);
-  CHECK_NUMBER (ch, 1);
+  CHECK_CHAR_TABLE (char_table);
+  CHECK_NUMBER (ch);
 
   c = XINT (ch);
   SPLIT_CHAR (c, charset, code1, code2);
@@ -2424,7 +2424,7 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
   int dim;
   int i, j;
 
-  CHECK_CHAR_TABLE (table, 0);
+  CHECK_CHAR_TABLE (table);
 
   for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
     {
@@ -2533,7 +2533,7 @@ The key is always a possible IDX argument to `aref'.  */)
   /* The depth of char table is at most 3. */
   Lisp_Object indices[3];
 
-  CHECK_CHAR_TABLE (char_table, 1);
+  CHECK_CHAR_TABLE (char_table);
 
   map_char_table (NULL, function, char_table, char_table, 0, indices);
   return Qnil;
@@ -2817,7 +2817,7 @@ is nil and `use-dialog-box' is non-nil.  */)
 
   map = Fsymbol_value (intern ("query-replace-map"));
 
-  CHECK_STRING (prompt, 0);
+  CHECK_STRING (prompt);
   xprompt = prompt;
   GCPRO2 (prompt, xprompt);
 
@@ -2947,7 +2947,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
   Lisp_Object args[2];
   struct gcpro gcpro1;
 
-  CHECK_STRING (prompt, 0);
+  CHECK_STRING (prompt);
 
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
@@ -3043,7 +3043,7 @@ SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
      Lisp_Object feature, subfeature;
 {
   register Lisp_Object tem;
-  CHECK_SYMBOL (feature, 0);
+  CHECK_SYMBOL (feature);
   tem = Fmemq (feature, Vfeatures);
   if (!NILP (tem) && !NILP (subfeature))
     tem = Fmemq (subfeature, Fget (feature, Qsubfeatures));
@@ -3058,7 +3058,7 @@ particular subfeatures supported in this version of FEATURE.  */)
      Lisp_Object feature, subfeatures;
 {
   register Lisp_Object tem;
-  CHECK_SYMBOL (feature, 0);
+  CHECK_SYMBOL (feature);
   if (!NILP (Vautoload_queue))
     Vautoload_queue = Fcons (Fcons (Vfeatures, Qnil), Vautoload_queue);
   tem = Fmemq (feature, Vfeatures);
@@ -3106,7 +3106,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   register Lisp_Object tem;
   struct gcpro gcpro1, gcpro2;
 
-  CHECK_SYMBOL (feature, 0);
+  CHECK_SYMBOL (feature);
 
   tem = Fmemq (feature, Vfeatures);
 
@@ -3194,7 +3194,7 @@ The value can later be retrieved with `widget-get'.  */)
      (widget, property, value)
      Lisp_Object widget, property, value;
 {
-  CHECK_CONS (widget, 1);
+  CHECK_CONS (widget);
   XSETCDR (widget, Fplist_put (XCDR (widget), property, value));
   return value;
 }
@@ -3212,7 +3212,7 @@ later with `widget-put'.  */)
     {
       if (NILP (widget))
 	return Qnil;
-      CHECK_CONS (widget, 1);
+      CHECK_CONS (widget);
       tmp = Fplist_member (XCDR (widget), property);
       if (CONSP (tmp))
 	{
@@ -3410,7 +3410,7 @@ into shorter lines.  */)
   char *encoded;
   Lisp_Object encoded_string;
 
-  CHECK_STRING (string, 1);
+  CHECK_STRING (string);
 
   /* We need to allocate enough room for encoding the text.
      We need 33 1/3% more space, plus a newline every 76
@@ -3616,7 +3616,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   int length, decoded_length;
   Lisp_Object decoded_string;
 
-  CHECK_STRING (string, 1);
+  CHECK_STRING (string);
 
   length = STRING_BYTES (XSTRING (string));
   /* We need to allocate enough room for decoding the text. */
@@ -3825,7 +3825,7 @@ static struct Lisp_Hash_Table *
 check_hash_table (obj)
      Lisp_Object obj;
 {
-  CHECK_HASH_TABLE (obj, 0);
+  CHECK_HASH_TABLE (obj);
   return XHASH_TABLE (obj);
 }
 
@@ -5109,7 +5109,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 
       if (!NILP (start))
 	{
-	  CHECK_NUMBER (start, 1);
+	  CHECK_NUMBER (start);
 
 	  start_char = XINT (start);
 
@@ -5126,7 +5126,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
       else
 	{
-	  CHECK_NUMBER (end, 2);
+	  CHECK_NUMBER (end);
 	  
 	  end_char = XINT (end);
 
@@ -5142,7 +5142,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
     }
   else
     {
-      CHECK_BUFFER (object, 0);
+      CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
 	  
@@ -5150,7 +5150,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	b = BUF_BEGV (bp);
       else
 	{
-	  CHECK_NUMBER_COERCE_MARKER (start, 0);
+	  CHECK_NUMBER_COERCE_MARKER (start);
 	  b = XINT (start);
 	}
 
@@ -5158,7 +5158,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	e = BUF_ZV (bp);
       else
 	{
-	  CHECK_NUMBER_COERCE_MARKER (end, 1);
+	  CHECK_NUMBER_COERCE_MARKER (end);
 	  e = XINT (end);
 	}
       

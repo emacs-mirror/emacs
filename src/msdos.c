@@ -198,7 +198,7 @@ them.  This happens with wheeled mice on Windows 9X, for example.")
 {
   int n;
 
-  CHECK_NUMBER (nbuttons, 0);
+  CHECK_NUMBER (nbuttons);
   n = XINT (nbuttons);
   if (n < 2 || n > 3)
     Fsignal (Qargs_out_of_range,
@@ -2286,7 +2286,7 @@ DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
 {
   struct frame *f;
 
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f= XFRAME (frame);
 
   /* This function is called after applying default-frame-alist to the
@@ -2355,7 +2355,7 @@ IT_set_frame_parameters (f, alist)
 
       elt = Fcar (tail);
       parms[i] = Fcar (elt);
-      CHECK_SYMBOL (parms[i], 1);
+      CHECK_SYMBOL (parms[i]);
       values[i] = Fcdr (elt);
       i++;
     }

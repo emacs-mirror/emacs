@@ -730,7 +730,7 @@ for the composition.   See `compose-region' for more detial.")
       && !INTEGERP (components)
       && !CONSP (components)
       && !STRINGP (components))
-    CHECK_VECTOR (components, 2);
+    CHECK_VECTOR (components);
 
   compose_text (XINT (start), XINT (end), components, mod_func, Qnil);
   return Qnil;
@@ -746,9 +746,9 @@ for the composition.   See `compose-string' for more detial.")
   (string, start, end, components, mod_func)
      Lisp_Object string, start, end, components, mod_func;
 {
-  CHECK_STRING (string, 0);
-  CHECK_NUMBER (start, 1);
-  CHECK_NUMBER (end, 2);
+  CHECK_STRING (string);
+  CHECK_NUMBER (start);
+  CHECK_NUMBER (end);
 
   if (XINT (start) < 0 ||
       XINT (start) > XINT (end)
@@ -772,11 +772,11 @@ See `find-composition' for more detail.")
   int start, end;
   int id;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
   start = XINT (pos);
   if (!NILP (limit))
     {
-      CHECK_NUMBER_COERCE_MARKER (limit, 1);
+      CHECK_NUMBER_COERCE_MARKER (limit);
       end = XINT (limit);
     }
   else
@@ -784,7 +784,7 @@ See `find-composition' for more detail.")
   
   if (!NILP (string))
     {
-      CHECK_STRING (string, 2);
+      CHECK_STRING (string);
       if (XINT (pos) < 0 || XINT (pos) > XSTRING (string)->size)
 	args_out_of_range (string, pos);
     }

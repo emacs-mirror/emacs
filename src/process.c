@@ -493,7 +493,7 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
 {
   if (PROCESSP (name))
     return name;
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
   return Fcdr (Fassoc (name, Vprocess_alist));
 }
 
@@ -551,7 +551,7 @@ get_process (name)
     }
   else
     {
-      CHECK_PROCESS (obj, 0);
+      CHECK_PROCESS (obj);
       proc = obj;
     }
   return proc;
@@ -634,7 +634,7 @@ If PROCESS has not yet exited or died, return 0.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   if (!NILP (XPROCESS (process)->raw_status_low))
     update_status (XPROCESS (process));
   if (CONSP (XPROCESS (process)->status))
@@ -649,7 +649,7 @@ For a network connection, this value is nil.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->pid;
 }
 
@@ -660,7 +660,7 @@ possibly modified to make it unique among process names.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->name;
 }
 
@@ -672,7 +672,7 @@ For a non-child channel, this is nil.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->command;
 }
 
@@ -683,7 +683,7 @@ not the name of the pty that Emacs uses to talk with that terminal.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->tty_name;
 }
 
@@ -693,9 +693,9 @@ DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
      (process, buffer)
      register Lisp_Object process, buffer;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   if (!NILP (buffer))
-    CHECK_BUFFER (buffer, 1);
+    CHECK_BUFFER (buffer);
   XPROCESS (process)->buffer = buffer;
   return buffer;
 }
@@ -707,7 +707,7 @@ Output from PROCESS is inserted in this buffer unless PROCESS has a filter.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->buffer;
 }
 
@@ -717,7 +717,7 @@ DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->mark;
 }
 
@@ -734,7 +734,7 @@ If the process has a filter, its buffer is not used for output.  */)
 {
   struct Lisp_Process *p;
   
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   p = XPROCESS (process);
 
   /* Don't signal an error if the process' input file descriptor
@@ -770,7 +770,7 @@ See `set-process-filter' for more info on filter functions.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->filter;
 }
 
@@ -782,7 +782,7 @@ It gets two arguments: the process, and a string describing the change.  */)
      (process, sentinel)
      register Lisp_Object process, sentinel;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   XPROCESS (process)->sentinel = sentinel;
   return sentinel;
 }
@@ -794,7 +794,7 @@ See `set-process-sentinel' for more info on sentinels.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->sentinel;
 }
 
@@ -804,9 +804,9 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
      (process, height, width)
      register Lisp_Object process, height, width;
 {
-  CHECK_PROCESS (process, 0);
-  CHECK_NATNUM (height, 0);
-  CHECK_NATNUM (width, 0);
+  CHECK_PROCESS (process);
+  CHECK_NATNUM (height);
+  CHECK_NATNUM (width);
   
   if (XINT (XPROCESS (process)->infd) < 0
       || set_window_size (XINT (XPROCESS (process)->infd),
@@ -836,7 +836,7 @@ for the process which will run.  */)
      (process, flag)
      register Lisp_Object process, flag;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   XPROCESS (process)->inherit_coding_system_flag = flag;
   return flag;
 }
@@ -851,7 +851,7 @@ the process output.  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->inherit_coding_system_flag;
 }
 
@@ -865,7 +865,7 @@ Value is t if a query was formerly required.  */)
 {
   Lisp_Object tem;
 
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   tem = XPROCESS (process)->kill_without_query;
   XPROCESS (process)->kill_without_query = Fnull (value);
 
@@ -879,7 +879,7 @@ For a net connection, the value is a cons cell of the form (HOST SERVICE).  */)
      (process)
      register Lisp_Object process;
 {
-  CHECK_PROCESS (process, 0);
+  CHECK_PROCESS (process);
   return XPROCESS (process)->childp;
 }
 
@@ -1090,11 +1090,11 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   }
 
   name = args[0];
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   program = args[2];
 
-  CHECK_STRING (program, 2);
+  CHECK_STRING (program);
 
   proc = make_process (name);
   /* If an error occurs and we can't start the process, we want to
@@ -1169,7 +1169,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
-      CHECK_STRING (tem, i);
+      CHECK_STRING (tem);
       len += STRING_BYTES (XSTRING (tem)) + 1;	/* count the blank */
     }
   new_argv = (unsigned char *) alloca (len);
@@ -1177,7 +1177,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
-      CHECK_STRING (tem, i);
+      CHECK_STRING (tem);
       strcat (new_argv, " ");
       strcat (new_argv, XSTRING (tem)->data);
     }
@@ -1220,7 +1220,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
-      CHECK_STRING (tem, i);
+      CHECK_STRING (tem);
       if (STRING_MULTIBYTE (tem))
 	tem = (code_convert_string_norecord
 	       (tem, XPROCESS (proc)->encode_coding_system, 1));
@@ -1784,8 +1784,8 @@ specifying a port number to connect to.  */)
 #endif
 
   GCPRO4 (name, buffer, host, service);
-  CHECK_STRING (name, 0);
-  CHECK_STRING (host, 0);
+  CHECK_STRING (name);
+  CHECK_STRING (host);
 
 #ifdef HAVE_GETADDRINFO
   /* SERVICE can either be a string or int.
@@ -1797,7 +1797,7 @@ specifying a port number to connect to.  */)
     }
   else
     {
-      CHECK_STRING (service, 0);
+      CHECK_STRING (service);
       portstring = XSTRING (service)->data;
     }
 #else /* HAVE_GETADDRINFO */
@@ -1805,7 +1805,7 @@ specifying a port number to connect to.  */)
     port = htons ((unsigned short) XINT (service));
   else
     {
-      CHECK_STRING (service, 0);
+      CHECK_STRING (service);
       svc_info = getservbyname (XSTRING (service)->data, "tcp");
       if (svc_info == 0)
 	error ("Unknown service \"%s\"", XSTRING (service)->data);
@@ -2250,11 +2250,11 @@ Return non-nil iff we received any output before the timeout expired.  */)
   int useconds;
 
   if (! NILP (process))
-    CHECK_PROCESS (process, 0);
+    CHECK_PROCESS (process);
 
   if (! NILP (timeout_msecs))
     {
-      CHECK_NUMBER (timeout_msecs, 2);
+      CHECK_NUMBER (timeout_msecs);
       useconds = XINT (timeout_msecs);
       if (!INTEGERP (timeout))
 	XSETINT (timeout, 0);
@@ -2280,7 +2280,7 @@ Return non-nil iff we received any output before the timeout expired.  */)
 
   if (! NILP (timeout))
     {
-      CHECK_NUMBER (timeout, 1);
+      CHECK_NUMBER (timeout);
       seconds = XINT (timeout);
       if (seconds < 0 || (seconds == 0 && useconds == 0))
 	seconds = -1;
@@ -3561,7 +3561,7 @@ Output from processes can arrive in between bunches.  */)
      Lisp_Object process, string;
 {
   Lisp_Object proc;
-  CHECK_STRING (string, 1);
+  CHECK_STRING (string);
   proc = get_process (process);
   send_process (proc, XSTRING (string)->data,
 		STRING_BYTES (XSTRING (string)), string);
@@ -3904,7 +3904,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
      (pid, sigcode)
      Lisp_Object pid, sigcode;
 {
-  CHECK_NUMBER (pid, 0);
+  CHECK_NUMBER (pid);
 
 #define handle_signal(NAME, VALUE)		\
   else if (!strcmp (name, NAME))		\
@@ -3916,7 +3916,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
     {
       unsigned char *name;
 
-      CHECK_SYMBOL (sigcode, 1);
+      CHECK_SYMBOL (sigcode);
       name = XSYMBOL (sigcode)->name->data;
 
       if (0)
@@ -4516,7 +4516,7 @@ encode subprocess input.  */)
 {
   register struct Lisp_Process *p;
 
-  CHECK_PROCESS (proc, 0);
+  CHECK_PROCESS (proc);
   p = XPROCESS (proc);
   if (XINT (p->infd) < 0)
     error ("Input file descriptor of %s closed", XSTRING (p->name)->data);
@@ -4539,7 +4539,7 @@ DEFUN ("process-coding-system",
      (proc)
      register Lisp_Object proc;
 {
-  CHECK_PROCESS (proc, 0);
+  CHECK_PROCESS (proc);
   return Fcons (XPROCESS (proc)->decode_coding_system,
 		XPROCESS (proc)->encode_coding_system);
 }

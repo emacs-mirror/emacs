@@ -434,7 +434,7 @@ Returns nil if MARKER points into a dead buffer.  */)
      register Lisp_Object marker;
 {
   register Lisp_Object buf;
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
   if (XMARKER (marker)->buffer)
     {
       XSETBUFFER (buf, XMARKER (marker)->buffer);
@@ -450,7 +450,7 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
      (marker)
      Lisp_Object marker;
 {
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
   if (XMARKER (marker)->buffer)
     return make_number (XMARKER (marker)->charpos);
 
@@ -470,7 +470,7 @@ Returns MARKER.  */)
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
   /* If position is nil or a marker that points nowhere,
      make this marker point nowhere.  */
   if (NILP (position)
@@ -484,7 +484,7 @@ Returns MARKER.  */)
     b = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 1);
+      CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
@@ -506,7 +506,7 @@ Returns MARKER.  */)
       return marker;
     }
 
-  CHECK_NUMBER_COERCE_MARKER (position, 1);
+  CHECK_NUMBER_COERCE_MARKER (position);
 
   charno = XINT (position);
 
@@ -546,7 +546,7 @@ set_marker_restricted (marker, pos, buffer)
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
   /* If position is nil or a marker that points nowhere,
      make this marker point nowhere.  */
   if (NILP (pos)
@@ -560,7 +560,7 @@ set_marker_restricted (marker, pos, buffer)
     b = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 1);
+      CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
@@ -582,7 +582,7 @@ set_marker_restricted (marker, pos, buffer)
       return marker;
     }
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 1);
+  CHECK_NUMBER_COERCE_MARKER (pos);
 
   charno = XINT (pos);
 
@@ -622,13 +622,13 @@ set_marker_both (marker, buffer, charpos, bytepos)
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
 
   if (NILP (buffer))
     b = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 1);
+      CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
@@ -673,13 +673,13 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
 
   if (NILP (buffer))
     b = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 1);
+      CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
@@ -843,7 +843,7 @@ nil means the marker stays before text inserted there.  */)
      (marker)
      register Lisp_Object marker;
 {
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
   return XMARKER (marker)->insertion_type ? Qt : Qnil;
 }
 
@@ -855,7 +855,7 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
      (marker, type)
      Lisp_Object marker, type;
 {
-  CHECK_MARKER (marker, 0);
+  CHECK_MARKER (marker);
 
   XMARKER (marker)->insertion_type = ! NILP (type);
   return type;

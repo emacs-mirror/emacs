@@ -875,7 +875,7 @@ frame_or_selected_frame (frame, nparam)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_LIVE_FRAME (frame, nparam);
+  CHECK_LIVE_FRAME (frame);
   return XFRAME (frame);
 }
 
@@ -1490,8 +1490,8 @@ If FRAME is nil or omitted, use the selected frame.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame, 0);
-  CHECK_STRING (color, 0);
+  CHECK_FRAME (frame);
+  CHECK_STRING (color);
   f = XFRAME (frame);
   return face_color_gray_p (f, XSTRING (color)->data) ? Qt : Qnil;
 }
@@ -1508,8 +1508,8 @@ COLOR must be a valid color name.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame, 0);
-  CHECK_STRING (color, 0);
+  CHECK_FRAME (frame);
+  CHECK_STRING (color);
   f = XFRAME (frame);
   if (face_color_supported_p (f, XSTRING (color)->data, !NILP (background_p)))
     return Qt;
@@ -2720,7 +2720,7 @@ the face font sort order.  */)
   struct gcpro gcpro1;
 
   if (!NILP (family))
-    CHECK_STRING (family, 1);
+    CHECK_STRING (family);
 
   result = Qnil;
   GCPRO1 (result);
@@ -2829,18 +2829,18 @@ the WIDTH times as wide as FACE on FRAME.  */)
   int maxnames;
 
   check_x ();
-  CHECK_STRING (pattern, 0);
+  CHECK_STRING (pattern);
 
   if (NILP (maximum))
     maxnames = 2000;
   else
     {
-      CHECK_NATNUM (maximum, 0);
+      CHECK_NATNUM (maximum);
       maxnames = XINT (maximum);
     }
 
   if (!NILP (width))
-    CHECK_NUMBER (width, 4);
+    CHECK_NUMBER (width);
 
   /* We can't simply call check_x_frame because this function may be
      called before any frame is created.  */
@@ -3626,12 +3626,12 @@ Value is a vector of face attributes.  */)
   struct frame *f;
   int i;
 
-  CHECK_SYMBOL (face, 0);
+  CHECK_SYMBOL (face);
   global_lface = lface_from_face_name (NULL, face, 0);
 
   if (!NILP (frame))
     {
-      CHECK_LIVE_FRAME (frame, 1);
+      CHECK_LIVE_FRAME (frame);
       f = XFRAME (frame);
       lface = lface_from_face_name (f, face, 0);
     }
@@ -3703,7 +3703,7 @@ Otherwise check for the existence of a global face.  */)
 
   if (!NILP (frame))
     {
-      CHECK_LIVE_FRAME (frame, 1);
+      CHECK_LIVE_FRAME (frame);
       lface = lface_from_face_name (XFRAME (frame), face, 0);
     }
   else
@@ -3727,8 +3727,8 @@ Value is TO.  */)
 {
   Lisp_Object lface, copy;
 
-  CHECK_SYMBOL (from, 0);
-  CHECK_SYMBOL (to, 1);
+  CHECK_SYMBOL (from);
+  CHECK_SYMBOL (to);
   if (NILP (new_frame))
     new_frame = frame;
 
@@ -3742,8 +3742,8 @@ Value is TO.  */)
   else
     {
       /* Copy frame-local definition of FROM.  */
-      CHECK_LIVE_FRAME (frame, 2);
-      CHECK_LIVE_FRAME (new_frame, 3);
+      CHECK_LIVE_FRAME (frame);
+      CHECK_LIVE_FRAME (new_frame);
       lface = lface_from_face_name (XFRAME (frame), from, 1);
       copy = Finternal_make_lisp_face (to, new_frame);
     }
@@ -3773,8 +3773,8 @@ FRAME 0 means change the face on all frames, and change the default
   /* Set 1 if ATTR is one of font-related attributes other than QCfont.  */
   int font_related_attr_p = 0;
 
-  CHECK_SYMBOL (face, 0);
-  CHECK_SYMBOL (attr, 1);
+  CHECK_SYMBOL (face);
+  CHECK_SYMBOL (attr);
 
   face = resolve_face_name (face);
 
@@ -3797,7 +3797,7 @@ FRAME 0 means change the face on all frames, and change the default
       if (NILP (frame))
 	frame = selected_frame;
 
-      CHECK_LIVE_FRAME (frame, 3);
+      CHECK_LIVE_FRAME (frame);
       lface = lface_from_face_name (XFRAME (frame), face, 0);
 
       /* If a frame-local face doesn't exist yet, create one.  */
@@ -3809,7 +3809,7 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_STRING (value, 3);
+	  CHECK_STRING (value);
 	  if (XSTRING (value)->size == 0)
 	    signal_error ("Invalid face family", value);
 	}
@@ -3842,7 +3842,7 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_SYMBOL (value, 3);
+	  CHECK_SYMBOL (value);
 	  if (face_numeric_weight (value) < 0)
 	    signal_error ("Invalid face weight", value);
 	}
@@ -3854,7 +3854,7 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_SYMBOL (value, 3);
+	  CHECK_SYMBOL (value);
 	  if (face_numeric_slant (value) < 0)
 	    signal_error ("Invalid face slant", value);
 	}
@@ -3972,7 +3972,7 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_SYMBOL (value, 3);
+	  CHECK_SYMBOL (value);
 	  if (!EQ (value, Qt) && !NILP (value))
 	    signal_error ("Invalid inverse-video face attribute value", value);
 	}
@@ -3986,7 +3986,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
 	     when the face is realized.  */
-	  CHECK_STRING (value, 3);
+	  CHECK_STRING (value);
 	  if (XSTRING (value)->size == 0)
 	    signal_error ("Empty foreground color value", value);
 	}
@@ -4000,7 +4000,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
 	     when the face is realized.  */
-	  CHECK_STRING (value, 3);
+	  CHECK_STRING (value);
 	  if (XSTRING (value)->size == 0)
 	    signal_error ("Empty background color value", value);
 	}
@@ -4022,7 +4022,7 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_SYMBOL (value, 3);
+	  CHECK_SYMBOL (value);
 	  if (face_numeric_swidth (value) < 0)
 	    signal_error ("Invalid face width", value);
 	}
@@ -4040,7 +4040,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  struct frame *f;
 	  Lisp_Object tmp;
 
-	  CHECK_STRING (value, 3);
+	  CHECK_STRING (value);
 	  if (EQ (frame, Qt))
 	    f = SELECTED_FRAME ();
 	  else
@@ -4314,9 +4314,9 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   Lisp_Object value = Qnil;
 #ifndef WINDOWSNT
 #ifndef macintosh
-  CHECK_STRING (resource, 0);
-  CHECK_STRING (class, 1);
-  CHECK_LIVE_FRAME (frame, 2);
+  CHECK_STRING (resource);
+  CHECK_STRING (class);
+  CHECK_LIVE_FRAME (frame);
   BLOCK_INPUT;
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
@@ -4363,9 +4363,9 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
      (face, attr, value, frame)
      Lisp_Object face, attr, value, frame;
 {
-  CHECK_SYMBOL (face, 0);
-  CHECK_SYMBOL (attr, 1);
-  CHECK_STRING (value, 2);
+  CHECK_SYMBOL (face);
+  CHECK_SYMBOL (attr);
+  CHECK_STRING (value);
 
   if (xstricmp (XSTRING (value)->data, "unspecified") == 0)
     value = Qunspecified;
@@ -4532,8 +4532,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
 {
   Lisp_Object lface, value = Qnil;
 
-  CHECK_SYMBOL (symbol, 0);
-  CHECK_SYMBOL (keyword, 1);
+  CHECK_SYMBOL (symbol);
+  CHECK_SYMBOL (keyword);
 
   if (EQ (frame, Qt))
     lface = lface_from_face_name (NULL, symbol, 1);
@@ -4541,7 +4541,7 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     {
       if (NILP (frame))
 	frame = selected_frame;
-      CHECK_LIVE_FRAME (frame, 2);
+      CHECK_LIVE_FRAME (frame);
       lface = lface_from_face_name (XFRAME (frame), symbol, 1);
     }
 
@@ -4593,7 +4593,7 @@ Value is nil if ATTR doesn't have a discrete set of valid values.  */)
 {
   Lisp_Object result = Qnil;
 
-  CHECK_SYMBOL (attr, 0);
+  CHECK_SYMBOL (attr);
 
   if (EQ (attr, QCweight)
       || EQ (attr, QCslant)
@@ -4646,7 +4646,7 @@ Default face attributes override any local face attributes.  */)
   int i;
   Lisp_Object global_lface, local_lface, *gvec, *lvec;
 
-  CHECK_LIVE_FRAME (frame, 1);
+  CHECK_LIVE_FRAME (frame);
   global_lface = lface_from_face_name (NULL, face, 1);
   local_lface = lface_from_face_name (XFRAME (frame), face, 0);
   if (NILP (local_lface))
@@ -4800,7 +4800,7 @@ If FRAME is omitted or nil, use the selected frame.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   if (EQ (frame, Qt))
@@ -5526,7 +5526,7 @@ Value is ORDER.  */)
   int i;
   int indices[DIM (font_sort_order)];
 
-  CHECK_LIST (order, 0);
+  CHECK_LIST (order);
   bzero (indices, sizeof indices);
   i = 0;
 
@@ -5579,7 +5579,7 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  CHECK_LIST (alist, 0);
+  CHECK_LIST (alist);
   Vface_alternative_font_family_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -5596,7 +5596,7 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  CHECK_LIST (alist, 0);
+  CHECK_LIST (alist);
   Vface_alternative_font_registry_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -7039,7 +7039,7 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
   else
     {
       struct face *face;
-      CHECK_NUMBER (n, 0);
+      CHECK_NUMBER (n);
       face = FACE_FROM_ID (SELECTED_FRAME (), XINT (n));
       if (face == NULL)
 	error ("Not a valid face");

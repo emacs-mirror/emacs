@@ -218,7 +218,7 @@ double
 extract_float (num)
      Lisp_Object num;
 {
-  CHECK_NUMBER_OR_FLOAT (num, 0);
+  CHECK_NUMBER_OR_FLOAT (num);
 
   if (FLOATP (num))
     return XFLOAT_DATA (num);
@@ -445,8 +445,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 {
   double f1, f2;
 
-  CHECK_NUMBER_OR_FLOAT (arg1, 0);
-  CHECK_NUMBER_OR_FLOAT (arg2, 0);
+  CHECK_NUMBER_OR_FLOAT (arg1);
+  CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
       && INTEGERP (arg2)) /* don't promote, if both are ints */
     {				/* this can be improved by pre-calculating */
@@ -646,7 +646,7 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
   (arg)
      register Lisp_Object arg;
 {
-  CHECK_NUMBER_OR_FLOAT (arg, 0);
+  CHECK_NUMBER_OR_FLOAT (arg);
 
   if (FLOATP (arg))
     IN_FLOAT (arg = make_float (fabs (XFLOAT_DATA (arg))), "abs", arg);
@@ -661,7 +661,7 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
   (arg)
      register Lisp_Object arg;
 {
-  CHECK_NUMBER_OR_FLOAT (arg, 0);
+  CHECK_NUMBER_OR_FLOAT (arg);
 
   if (INTEGERP (arg))
     return make_float ((double) XINT (arg));
@@ -727,13 +727,13 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
      EMACS_INT (*int_round2) ();
      char *name;
 {
-  CHECK_NUMBER_OR_FLOAT (arg, 0);
+  CHECK_NUMBER_OR_FLOAT (arg);
 
   if (! NILP (divisor))
     {
       EMACS_INT i1, i2;
 
-      CHECK_NUMBER_OR_FLOAT (divisor, 1);
+      CHECK_NUMBER_OR_FLOAT (divisor);
 
       if (FLOATP (arg) || FLOATP (divisor))
 	{

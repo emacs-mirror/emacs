@@ -97,7 +97,7 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
 {
   int i, size;
 
-  CHECK_VECTOR (table, 0);
+  CHECK_VECTOR (table);
   size = XVECTOR (table)->size;
   abbrevs_changed = 1;
   for (i = 0; i < size; i++)
@@ -120,13 +120,13 @@ which is incremented each time the abbrev is used.  */)
      Lisp_Object table, name, expansion, hook, count;
 {
   Lisp_Object sym, oexp, ohook, tem;
-  CHECK_VECTOR (table, 0);
-  CHECK_STRING (name, 1);
+  CHECK_VECTOR (table);
+  CHECK_STRING (name);
 
   if (NILP (count))
     count = make_number (0);
   else
-    CHECK_NUMBER (count, 0);
+    CHECK_NUMBER (count);
 
   sym = Fintern (name, table);
 
@@ -183,7 +183,7 @@ The default is to try buffer's mode-specific abbrev table, then global table.  *
      Lisp_Object abbrev, table;
 {
   Lisp_Object sym;
-  CHECK_STRING (abbrev, 0);
+  CHECK_STRING (abbrev);
   if (!NILP (table))
     sym = Fintern_soft (abbrev, table);
   else
@@ -244,7 +244,7 @@ Returns the abbrev symbol, if expansion took place.  */)
   if (!NILP (Vabbrev_start_location))
     {
       tem = Vabbrev_start_location;
-      CHECK_NUMBER_COERCE_MARKER (tem, 0);
+      CHECK_NUMBER_COERCE_MARKER (tem);
       wordstart = XINT (tem);
       Vabbrev_start_location = Qnil;
       if (wordstart < BEGV || wordstart > ZV)
@@ -479,9 +479,9 @@ define the abbrev table NAME exactly as it is currently defined.  */)
   Lisp_Object table;
   Lisp_Object stream;
 
-  CHECK_SYMBOL (name, 0);
+  CHECK_SYMBOL (name);
   table = Fsymbol_value (name);
-  CHECK_VECTOR (table, 0);
+  CHECK_VECTOR (table);
 
   XSETBUFFER (stream, current_buffer);
 
@@ -516,7 +516,7 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */)
   Lisp_Object name, exp, hook, count;
   Lisp_Object table, elt;
 
-  CHECK_SYMBOL (tablename, 0);
+  CHECK_SYMBOL (tablename);
   table = Fboundp (tablename);
   if (NILP (table) || (table = Fsymbol_value (tablename), NILP (table)))
     {
@@ -524,7 +524,7 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */)
       Fset (tablename, table);
       Vabbrev_table_name_list = Fcons (tablename, Vabbrev_table_name_list);
     }
-  CHECK_VECTOR (table, 0);
+  CHECK_VECTOR (table);
 
   for (; !NILP (definitions); definitions = Fcdr (definitions))
     {

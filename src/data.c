@@ -616,7 +616,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
      register Lisp_Object symbol;
 {
   Lisp_Object valcontents;
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
 
   valcontents = SYMBOL_VALUE (symbol);
 
@@ -632,7 +632,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
      (symbol)
      register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   return (EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt);
 }
 
@@ -641,7 +641,7 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
      (symbol)
      register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (XSYMBOL (symbol)->constant)
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   Fset (symbol, Qunbound);
@@ -653,7 +653,7 @@ DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
      (symbol)
      register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   XSYMBOL (symbol)->function = Qunbound;
@@ -665,7 +665,7 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
      (symbol)
      register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (EQ (XSYMBOL (symbol)->function, Qunbound))
     return Fsignal (Qvoid_function, Fcons (symbol, Qnil));
   return XSYMBOL (symbol)->function;
@@ -676,7 +676,7 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
      (symbol)
      register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   return XSYMBOL (symbol)->plist;
 }
 
@@ -687,7 +687,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
 {
   register Lisp_Object name;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   XSETSTRING (name, XSYMBOL (symbol)->name);
   return name;
 }
@@ -697,7 +697,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
      (symbol, definition)
      register Lisp_Object symbol, definition;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
@@ -729,7 +729,7 @@ DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
      (symbol, newplist)
      register Lisp_Object symbol, newplist;
 {
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   XSYMBOL (symbol)->plist = newplist;
   return newplist;
 }
@@ -874,7 +874,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       switch (XMISCTYPE (valcontents))
 	{
 	case Lisp_Misc_Intfwd:
-	  CHECK_NUMBER (newval, 1);
+	  CHECK_NUMBER (newval);
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
 	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
 	    error ("Value out of range for variable `%s'",
@@ -1029,7 +1029,7 @@ find_symbol_value (symbol)
   register Lisp_Object valcontents;
   register Lisp_Object val;
   
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1134,7 +1134,7 @@ set_internal (symbol, newval, buf, bindflag)
   if (NILP (buf->name))
     return newval;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (SYMBOL_CONSTANT_P (symbol)
       && (NILP (Fkeywordp (symbol))
 	  || !EQ (newval, SYMBOL_VALUE (symbol))))
@@ -1275,7 +1275,7 @@ default_value (symbol)
 {
   register Lisp_Object valcontents;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
   /* For a built-in buffer-local variable, get the default value
@@ -1346,7 +1346,7 @@ for this variable.  */)
 {
   register Lisp_Object valcontents, current_alist_element, alist_element_buffer;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
   /* Handle variables like case-fold-search that have special slots
@@ -1448,7 +1448,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   register Lisp_Object tem, valcontents, newval;
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1501,7 +1501,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 {
   register Lisp_Object tem, valcontents;
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1580,7 +1580,7 @@ From now on the default value will apply in this buffer.  */)
 {
   register Lisp_Object tem, valcontents;
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
@@ -1643,7 +1643,7 @@ See `modify-frame-parameters'.  */)
 {
   register Lisp_Object tem, valcontents, newval;
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
@@ -1688,11 +1688,11 @@ BUFFER defaults to the current buffer.  */)
     buf = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1732,11 +1732,11 @@ BUFFER defaults to the current buffer.  */)
     buf = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
 
-  CHECK_SYMBOL (variable, 0);
+  CHECK_SYMBOL (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
@@ -1826,7 +1826,7 @@ or a byte-code object.  IDX starts at 0.  */)
 {
   register int idxval;
 
-  CHECK_NUMBER (idx, 1);
+  CHECK_NUMBER (idx);
   idxval = XINT (idx);
   if (STRINGP (array))
     {
@@ -1957,7 +1957,7 @@ IDX starts at 0.  */)
 {
   register int idxval;
 
-  CHECK_NUMBER (idx, 1);
+  CHECK_NUMBER (idx);
   idxval = XINT (idx);
   if (!VECTORP (array) && !STRINGP (array) && !BOOL_VECTOR_P (array)
       && ! CHAR_TABLE_P (array))
@@ -2033,7 +2033,7 @@ IDX starts at 0.  */)
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt, 2);
+      CHECK_NUMBER (newelt);
 
       idxval_byte = string_char_to_byte (array, idxval);
       p1 = &XSTRING (array)->data[idxval_byte];
@@ -2067,7 +2067,7 @@ IDX starts at 0.  */)
     {
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt, 2);
+      CHECK_NUMBER (newelt);
 
       if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
 	XSTRING (array)->data[idxval] = XINT (newelt);
@@ -2120,8 +2120,8 @@ arithcompare (num1, num2, comparison)
   double f1 = 0, f2 = 0;
   int floatp = 0;
 
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2, 0);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2);
 
   if (FLOATP (num1) || FLOATP (num2))
     {
@@ -2222,7 +2222,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
      (number)
      register Lisp_Object number;
 {
-  CHECK_NUMBER_OR_FLOAT (number, 0);
+  CHECK_NUMBER_OR_FLOAT (number);
 
   if (FLOATP (number))
     {
@@ -2274,7 +2274,7 @@ NUMBER may be an integer or a floating point number.  */)
 {
   char buffer[VALBITS];
 
-  CHECK_NUMBER_OR_FLOAT (number, 0);
+  CHECK_NUMBER_OR_FLOAT (number);
 
   if (FLOATP (number))
     {
@@ -2330,13 +2330,13 @@ If the base used is not 10, floating point is not recognized.  */)
   int sign = 1;
   Lisp_Object val;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   if (NILP (base))
     b = 10;
   else
     {
-      CHECK_NUMBER (base, 1);
+      CHECK_NUMBER (base);
       b = XINT (base);
       if (b < 2 || b > 16)
 	Fsignal (Qargs_out_of_range, Fcons (base, Qnil));
@@ -2427,7 +2427,7 @@ arith_driver (code, nargs, args)
     {
       /* Using args[argnum] as argument to CHECK_NUMBER_... */
       val = args[argnum];
-      CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val, argnum);
+      CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val);
 
       if (FLOATP (val))
 	return float_arith_driver ((double) accum, argnum, code,
@@ -2496,7 +2496,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
   for (; argnum < nargs; argnum++)
     {
       val = args[argnum];    /* using args[argnum] as argument to CHECK_NUMBER_... */
-      CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val, argnum);
+      CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val);
 
       if (FLOATP (val))
 	{
@@ -2598,8 +2598,8 @@ Both must be integers or markers.  */)
 {
   Lisp_Object val;
 
-  CHECK_NUMBER_COERCE_MARKER (x, 0);
-  CHECK_NUMBER_COERCE_MARKER (y, 1);
+  CHECK_NUMBER_COERCE_MARKER (x);
+  CHECK_NUMBER_COERCE_MARKER (y);
 
   if (XFASTINT (y) == 0)
     Fsignal (Qarith_error, Qnil);
@@ -2641,8 +2641,8 @@ Both X and Y must be numbers or markers.  */)
   Lisp_Object val;
   EMACS_INT i1, i2;
 
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (x, 0);
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (y, 1);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (x);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (y);
 
   if (FLOATP (x) || FLOATP (y))
     return fmod_float (x, y);
@@ -2727,8 +2727,8 @@ In this case, the sign bit is duplicated.  */)
 {
   register Lisp_Object val;
 
-  CHECK_NUMBER (value, 0);
-  CHECK_NUMBER (count, 1);
+  CHECK_NUMBER (value);
+  CHECK_NUMBER (count);
 
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
@@ -2750,8 +2750,8 @@ In this case,  zeros are shifted in on the left.  */)
 {
   register Lisp_Object val;
 
-  CHECK_NUMBER (value, 0);
-  CHECK_NUMBER (count, 1);
+  CHECK_NUMBER (value);
+  CHECK_NUMBER (count);
 
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
@@ -2770,7 +2770,7 @@ Markers are converted to integers.  */)
      (number)
      register Lisp_Object number;
 {
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number);
 
   if (FLOATP (number))
     return (make_float (1.0 + XFLOAT_DATA (number)));
@@ -2785,7 +2785,7 @@ Markers are converted to integers.  */)
      (number)
      register Lisp_Object number;
 {
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
+  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number);
 
   if (FLOATP (number))
     return (make_float (-1.0 + XFLOAT_DATA (number)));
@@ -2799,7 +2799,7 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
      (number)
      register Lisp_Object number;
 {
-  CHECK_NUMBER (number, 0);
+  CHECK_NUMBER (number);
   XSETINT (number, ~XINT (number));
   return number;
 }

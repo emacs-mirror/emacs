@@ -342,7 +342,7 @@ check_x_frame (frame)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
   if (! FRAME_W32_P (f))
     error ("non-w32 frame used");
@@ -372,7 +372,7 @@ check_x_display_info (frame)
     {
       FRAME_PTR f;
 
-      CHECK_LIVE_FRAME (frame, 0);
+      CHECK_LIVE_FRAME (frame);
       f = XFRAME (frame);
       if (! FRAME_W32_P (f))
 	error ("non-w32 frame used");
@@ -1079,10 +1079,10 @@ The original entry's RGB ref is returned, or nil if the entry is new.")
   Lisp_Object oldrgb = Qnil;
   Lisp_Object entry;
 
-  CHECK_NUMBER (red, 0);
-  CHECK_NUMBER (green, 0);
-  CHECK_NUMBER (blue, 0);
-  CHECK_STRING (name, 0);
+  CHECK_NUMBER (red);
+  CHECK_NUMBER (green);
+  CHECK_NUMBER (blue);
+  CHECK_STRING (name);
 
   XSET (rgb, Lisp_Int, RGB(XUINT (red), XUINT (green), XUINT (blue)));
 
@@ -1120,7 +1120,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.")
   Lisp_Object cmap = Qnil;
   Lisp_Object abspath;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
   fp = fopen (XSTRING (filename)->data, "rt");
@@ -1432,7 +1432,7 @@ w32_to_x_color (rgb)
 {
   Lisp_Object color;
   
-  CHECK_NUMBER (rgb, 0);
+  CHECK_NUMBER (rgb);
   
   BLOCK_INPUT;
   
@@ -1891,7 +1891,7 @@ x_decode_color (f, arg, def)
 {
   XColor cdef;
 
-  CHECK_STRING (arg, 0);
+  CHECK_STRING (arg);
 
   if (strcmp (XSTRING (arg)->data, "black") == 0)
     return BLACK_PIX_DEFAULT (f);
@@ -2029,7 +2029,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
-      CHECK_NUMBER (Vx_pointer_shape, 0);
+      CHECK_NUMBER (Vx_pointer_shape);
       cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XINT (Vx_pointer_shape));
     }
   else
@@ -2038,7 +2038,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!EQ (Qnil, Vx_nontext_pointer_shape))
     {
-      CHECK_NUMBER (Vx_nontext_pointer_shape, 0);
+      CHECK_NUMBER (Vx_nontext_pointer_shape);
       nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
 					  XINT (Vx_nontext_pointer_shape));
     }
@@ -2048,7 +2048,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!EQ (Qnil, Vx_hourglass_pointer_shape))
     {
-      CHECK_NUMBER (Vx_hourglass_pointer_shape, 0);
+      CHECK_NUMBER (Vx_hourglass_pointer_shape);
       hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
 					    XINT (Vx_hourglass_pointer_shape));
     }
@@ -2059,7 +2059,7 @@ x_set_mouse_color (f, arg, oldval)
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
   if (!EQ (Qnil, Vx_mode_pointer_shape))
     {
-      CHECK_NUMBER (Vx_mode_pointer_shape, 0);
+      CHECK_NUMBER (Vx_mode_pointer_shape);
       mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
 				       XINT (Vx_mode_pointer_shape));
     }
@@ -2069,7 +2069,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
-      CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
+      CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
       cross_cursor
 	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
 			     XINT (Vx_sensitive_text_pointer_shape));
@@ -2079,7 +2079,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
-      CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
+      CHECK_NUMBER (Vx_window_horizontal_drag_shape);
       horizontal_drag_cursor
 	= XCreateFontCursor (FRAME_X_DISPLAY (f),
 			     XINT (Vx_window_horizontal_drag_shape));
@@ -2222,7 +2222,7 @@ x_set_border_color (f, arg, oldval)
 {
   int pix;
 
-  CHECK_STRING (arg, 0);
+  CHECK_STRING (arg);
   pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   x_set_border_pixel (f, pix);
   update_face_from_frame_parameter (f, Qborder_color, arg);
@@ -2384,7 +2384,7 @@ x_set_font (f, arg, oldval)
   Lisp_Object frame;
   int old_fontset = FRAME_FONTSET(f);
 
-  CHECK_STRING (arg, 1);
+  CHECK_STRING (arg);
 
   fontset_name = Fquery_fontset (arg, Qnil);
 
@@ -2435,7 +2435,7 @@ x_set_border_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
 
   if (XINT (arg) == f->output_data.w32->border_width)
     return;
@@ -2453,7 +2453,7 @@ x_set_internal_border_width (f, arg, oldval)
 {
   int old = f->output_data.w32->internal_border_width;
 
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   f->output_data.w32->internal_border_width = XINT (arg);
   if (f->output_data.w32->internal_border_width < 0)
     f->output_data.w32->internal_border_width = 0;
@@ -2675,7 +2675,7 @@ x_set_name (f, name, explicit)
       name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
     }
   else
-    CHECK_STRING (name, 0);
+    CHECK_STRING (name);
 
   /* Don't change the name if it's already NAME.  */
   if (! NILP (Fstring_equal (name, f->name)))
@@ -2931,13 +2931,13 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   char *name_key;
   char *class_key;
 
-  CHECK_STRING (attribute, 0);
-  CHECK_STRING (class, 0);
+  CHECK_STRING (attribute);
+  CHECK_STRING (class);
 
   if (!NILP (component))
-    CHECK_STRING (component, 1);
+    CHECK_STRING (component);
   if (!NILP (subclass))
-    CHECK_STRING (subclass, 2);
+    CHECK_STRING (subclass);
   if (NILP (component) != NILP (subclass))
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
@@ -3140,7 +3140,7 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.")
   unsigned int width, height;
   Lisp_Object result;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
 			     &x, &y, &width, &height);
@@ -3218,12 +3218,12 @@ x_figure_window_size (f, parms)
     {
       if (!EQ (tem0, Qunbound))
 	{
-	  CHECK_NUMBER (tem0, 0);
+	  CHECK_NUMBER (tem0);
 	  f->height = XINT (tem0);
 	}
       if (!EQ (tem1, Qunbound))
 	{
-	  CHECK_NUMBER (tem1, 0);
+	  CHECK_NUMBER (tem1);
 	  SET_FRAME_WIDTH (f, XINT (tem1));
 	}
       if (!NILP (tem2) && !EQ (tem2, Qunbound))
@@ -3270,7 +3270,7 @@ x_figure_window_size (f, parms)
 	f->output_data.w32->top_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem0, 0);
+	  CHECK_NUMBER (tem0);
 	  f->output_data.w32->top_pos = XINT (tem0);
 	  if (f->output_data.w32->top_pos < 0)
 	    window_prompting |= YNegative;
@@ -3298,7 +3298,7 @@ x_figure_window_size (f, parms)
 	f->output_data.w32->left_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem1, 0);
+	  CHECK_NUMBER (tem1);
 	  f->output_data.w32->left_pos = XINT (tem1);
 	  if (f->output_data.w32->left_pos < 0)
 	    window_prompting |= XNegative;
@@ -5095,8 +5095,8 @@ x_icon (f, parms)
   icon_y = w32_get_arg (parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x, 0);
-      CHECK_NUMBER (icon_y, 0);
+      CHECK_NUMBER (icon_x);
+      CHECK_NUMBER (icon_y);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -5239,7 +5239,7 @@ This function is an internal primitive--use `make-frame' instead.")
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
-    CHECK_NUMBER (parent, 0);
+    CHECK_NUMBER (parent);
 
   /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
   /* No need to protect DISPLAY because that's not used after passing
@@ -7208,7 +7208,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
 
-  CHECK_STRING (color, 1);
+  CHECK_STRING (color);
 
   if (w32_defined_color (f, XSTRING (color)->data, &foo, 0))
     return Qt;
@@ -7224,7 +7224,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
 
-  CHECK_STRING (color, 1);
+  CHECK_STRING (color);
 
   if (w32_defined_color (f, XSTRING (color)->data, &foo, 0))
     {
@@ -7534,7 +7534,7 @@ x_display_info_for_name (name)
   Lisp_Object names;
   struct w32_display_info *dpyinfo;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   for (dpyinfo = &one_w32_display_info, names = w32_display_name_list;
        dpyinfo;
@@ -7575,9 +7575,9 @@ terminate Emacs if we can't open the connection.")
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
 
-  CHECK_STRING (display, 0);
+  CHECK_STRING (display);
   if (! NILP (xrm_string))
-    CHECK_STRING (xrm_string, 1);
+    CHECK_STRING (xrm_string);
 
   if (! EQ (Vwindow_system, intern ("w32")))
     error ("Not using Microsoft Windows");
@@ -12465,8 +12465,8 @@ selected frame.  Value is VALUE.")
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
-  CHECK_STRING (prop, 1);
-  CHECK_STRING (value, 2);
+  CHECK_STRING (prop);
+  CHECK_STRING (value);
 
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
@@ -12496,7 +12496,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.")
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
-  CHECK_STRING (prop, 1);
+  CHECK_STRING (prop);
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
   XDeleteProperty (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f), prop_atom);
@@ -12530,7 +12530,7 @@ value.")
   int actual_format;
   unsigned long actual_size, bytes_remaining;
 
-  CHECK_STRING (prop, 1);
+  CHECK_STRING (prop);
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_W32_DISPLAY (f), XSTRING (prop)->data, False);
   rc = XGetWindowProperty (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
@@ -13177,22 +13177,22 @@ Text larger than the specified size is clipped.")
 
   GCPRO4 (string, parms, frame, timeout);
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   f = check_x_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
   else
-    CHECK_NATNUM (timeout, 2);
+    CHECK_NATNUM (timeout);
 
   if (NILP (dx))
     dx = make_number (5);
   else
-    CHECK_NUMBER (dx, 5);
+    CHECK_NUMBER (dx);
   
   if (NILP (dy))
     dy = make_number (-10);
   else
-    CHECK_NUMBER (dy, 6);
+    CHECK_NUMBER (dy);
 
   if (NILP (last_show_tip_args))
     last_show_tip_args = Fmake_vector (make_number (3), Qnil);
@@ -13406,8 +13406,8 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.")
   int use_dialog_p = 1;
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
-  CHECK_STRING (prompt, 0);
-  CHECK_STRING (dir, 1);
+  CHECK_STRING (prompt);
+  CHECK_STRING (dir);
 
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
@@ -13589,7 +13589,7 @@ If optional parameter FRAME is not specified, use selected frame.")
 {
   FRAME_PTR f = check_x_frame (frame);
 
-  CHECK_NUMBER (command, 0);
+  CHECK_NUMBER (command);
 
   PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
 
@@ -13621,7 +13621,7 @@ otherwise it is an integer representing a ShowWindow flag:\n\
 {
   Lisp_Object current_dir;
 
-  CHECK_STRING (document, 0);
+  CHECK_STRING (document);
 
   /* Encode filename and current directory.  */
   current_dir = ENCODE_FILE (current_buffer->directory);
@@ -13669,7 +13669,7 @@ w32_parse_hot_key (key)
   int w32_modifiers;
   struct gcpro gcpro1;
 
-  CHECK_VECTOR (key, 0);
+  CHECK_VECTOR (key);
 
   if (XFASTINT (Flength (key)) != 1)
     return Qnil;
@@ -13807,7 +13807,7 @@ DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot
   int vk_code, w32_modifiers;
   Lisp_Object key;
 
-  CHECK_NUMBER (hotkeyid, 0);
+  CHECK_NUMBER (hotkeyid);
 
   vk_code = HOTKEY_VK_CODE (hotkeyid);
   w32_modifiers = HOTKEY_MODIFIERS (hotkeyid);
@@ -13873,7 +13873,7 @@ If the underlying system call fails, value is nil.")
 {
   Lisp_Object encoded, value;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
   encoded = ENCODE_FILE (filename);
 

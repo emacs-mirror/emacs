@@ -338,7 +338,7 @@ use the standard functions without calling themselves recursively.  */)
   /* This function must not munge the match data.  */
   Lisp_Object chain, inhibited_handlers;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   if (EQ (operation, Vinhibit_file_name_operation))
     inhibited_handlers = Vinhibit_file_name_handlers;
@@ -384,7 +384,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
   register unsigned char *p;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -459,7 +459,7 @@ or the entire name if it contains no slash.  */)
   register unsigned char *beg, *p, *end;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -614,7 +614,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.  */)
   char *buf;
   Lisp_Object handler;
 
-  CHECK_STRING (file, 0);
+  CHECK_STRING (file);
   if (NILP (file))
     return Qnil;
 
@@ -805,7 +805,7 @@ it returns a file name such as \"[X]Y.DIR.1\".  */)
   char *buf;
   Lisp_Object handler;
 
-  CHECK_STRING (directory, 0);
+  CHECK_STRING (directory);
 
   if (NILP (directory))
     return Qnil;
@@ -870,7 +870,7 @@ make_temp_name (prefix, base64_p)
   char pidbuf[20];
   int pidlen;
      
-  CHECK_STRING (prefix, 0);
+  CHECK_STRING (prefix);
 
   /* VAL is created by adding 6 characters to PREFIX.  The first
      three are the PID of this process, in base 64, and the second
@@ -1019,7 +1019,7 @@ See also the function `substitute-in-file-name'.  */)
   int length;
   Lisp_Object handler;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -1686,7 +1686,7 @@ See also the function `substitute-in-file-name'.")
   int dots = 0;
 #endif /* VMS */
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
 #ifdef VMS
   /* Filenames on VMS are always upper case.  */
@@ -1862,7 +1862,7 @@ See also the function `substitute-in-file-name'.")
     {
       if (NILP (defalt))
 	defalt = current_buffer->directory;
-      CHECK_STRING (defalt, 1);
+      CHECK_STRING (defalt);
       newdir = XSTRING (defalt)->data;
     }
 
@@ -2004,7 +2004,7 @@ duplicates what `expand-file-name' does.  */)
   unsigned char *xnm;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2318,8 +2318,8 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 
   encoded_file = encoded_newname = Qnil;
   GCPRO4 (file, newname, encoded_file, encoded_newname);
-  CHECK_STRING (file, 0);
-  CHECK_STRING (newname, 1);
+  CHECK_STRING (file);
+  CHECK_STRING (newname);
 
   if (!NILP (Ffile_directory_p (newname)))
     newname = Fexpand_file_name (file, newname);
@@ -2472,7 +2472,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
-  CHECK_STRING (directory, 0);
+  CHECK_STRING (directory);
   directory = Fexpand_file_name (directory, Qnil);
 
   handler = Ffind_file_name_handler (directory, Qmake_directory_internal);
@@ -2502,7 +2502,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
-  CHECK_STRING (directory, 0);
+  CHECK_STRING (directory);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
 
   handler = Ffind_file_name_handler (directory, Qdelete_directory);
@@ -2528,7 +2528,7 @@ If file has multiple names, it continues to exist with the other names.  */)
   Lisp_Object handler;
   Lisp_Object encoded_file;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
   handler = Ffind_file_name_handler (filename, Qdelete_file);
@@ -2579,8 +2579,8 @@ This is what happens in interactive use with M-x.  */)
 
   encoded_file = encoded_newname = Qnil;
   GCPRO4 (file, newname, encoded_file, encoded_newname);
-  CHECK_STRING (file, 0);
-  CHECK_STRING (newname, 1);
+  CHECK_STRING (file);
+  CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
@@ -2655,8 +2655,8 @@ This is what happens in interactive use with M-x.  */)
 
   GCPRO4 (file, newname, encoded_file, encoded_newname);
   encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file, 0);
-  CHECK_STRING (newname, 1);
+  CHECK_STRING (file);
+  CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
@@ -2718,8 +2718,8 @@ This happens for interactive use with M-x.  */)
 
   GCPRO4 (filename, linkname, encoded_filename, encoded_linkname);
   encoded_filename = encoded_linkname = Qnil;
-  CHECK_STRING (filename, 0);
-  CHECK_STRING (linkname, 1);
+  CHECK_STRING (filename);
+  CHECK_STRING (linkname);
   /* If the link target has a ~, we must expand it to get
      a truly valid file name.  Otherwise, do not expand;
      we want to permit links to relative file names.  */
@@ -2786,12 +2786,12 @@ If STRING is nil or a null string, the logical name NAME is deleted.  */)
      Lisp_Object name;
      Lisp_Object string;
 {
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
   if (NILP (string))
     delete_logical_name (XSTRING (name)->data);
   else
     {
-      CHECK_STRING (string, 1);
+      CHECK_STRING (string);
 
       if (XSTRING (string)->size == 0)
 	delete_logical_name (XSTRING (name)->data);
@@ -2812,8 +2812,8 @@ DEFUN ("sysnetunam", Fsysnetunam, Ssysnetunam, 2, 2, 0,
 {
   int netresult;
 
-  CHECK_STRING (path, 0);
-  CHECK_STRING (login, 0);
+  CHECK_STRING (path);
+  CHECK_STRING (login);
 
   netresult = netunam (XSTRING (path)->data, XSTRING (login)->data);
 
@@ -2833,7 +2833,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
 {
   unsigned char *ptr;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   ptr = XSTRING (filename)->data;
   if (IS_DIRECTORY_SEP (*ptr) || *ptr == '~'
 #ifdef VMS
@@ -2920,7 +2920,7 @@ See also `file-readable-p' and `file-attributes'.  */)
   Lisp_Object handler;
   struct stat statbuf;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -2943,7 +2943,7 @@ For a directory, this means you can access files in that directory.  */)
   Lisp_Object absname;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -2969,7 +2969,7 @@ See also `file-exists-p' and `file-attributes'.  */)
   int flags;
   struct stat statbuf;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -3017,7 +3017,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   Lisp_Object handler;
   struct stat statbuf;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -3065,10 +3065,10 @@ If there is no error, we return nil.  */)
   Lisp_Object handler, encoded_filename, absname;
   int fd;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
 
-  CHECK_STRING (string, 1);
+  CHECK_STRING (string);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -3100,7 +3100,7 @@ Otherwise returns nil.  */)
   Lisp_Object val;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -3287,7 +3287,7 @@ Only the 12 low bits of MODE are used.  */)
   Lisp_Object handler;
 
   absname = Fexpand_file_name (filename, current_buffer->directory);
-  CHECK_NUMBER (mode, 1);
+  CHECK_NUMBER (mode);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -3310,7 +3310,7 @@ This setting is inherited by subprocesses.  */)
      (mode)
      Lisp_Object mode;
 {
-  CHECK_NUMBER (mode, 0);
+  CHECK_NUMBER (mode);
 
   umask ((~ XINT (mode)) & 0777);
 
@@ -3361,8 +3361,8 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
-  CHECK_STRING (file1, 0);
-  CHECK_STRING (file2, 0);
+  CHECK_STRING (file1);
+  CHECK_STRING (file2);
 
   absname1 = Qnil;
   GCPRO2 (absname1, file2);
@@ -3542,7 +3542,7 @@ actually used.  */)
 
   GCPRO4 (filename, val, p, orig_filename);
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -3636,12 +3636,12 @@ actually used.  */)
     }
 
   if (!NILP (beg))
-    CHECK_NUMBER (beg, 0);
+    CHECK_NUMBER (beg);
   else
     XSETFASTINT (beg, 0);
 
   if (!NILP (end))
-    CHECK_NUMBER (end, 0);
+    CHECK_NUMBER (end);
   else
     {
       if (! not_regular)
@@ -4458,7 +4458,7 @@ actually used.  */)
 	  
       insval = call3 (Qformat_decode,
 		      Qnil, make_number (inserted), visit);
-      CHECK_NUMBER (insval, 0);
+      CHECK_NUMBER (insval);
       inserted = XFASTINT (insval);
       
       if (!NILP (visit))
@@ -4484,7 +4484,7 @@ actually used.  */)
       insval = call1 (Fcar (p), make_number (inserted));
       if (!NILP (insval))
 	{
-	  CHECK_NUMBER (insval, 0);
+	  CHECK_NUMBER (insval);
 	  inserted = XFASTINT (insval);
 	}
       QUIT;
@@ -5290,7 +5290,7 @@ This means that the file has not been changed since it was visited or saved.  */
   Lisp_Object handler;
   Lisp_Object filename;
 
-  CHECK_BUFFER (buf, 0);
+  CHECK_BUFFER (buf);
   b = XBUFFER (buf);
 
   if (!STRINGP (b->filename)) return Qt;
@@ -5723,7 +5723,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   int changed;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   realdir = dir;
   name = string;
@@ -5853,7 +5853,7 @@ provides a file dialog box.  */)
     }
   if (!NILP (default_filename))
     {
-      CHECK_STRING (default_filename, 3);
+      CHECK_STRING (default_filename);
       default_filename = double_dollars (default_filename);
     }
 

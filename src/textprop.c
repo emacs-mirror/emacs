@@ -123,9 +123,9 @@ validate_interval_range (object, begin, end, force)
   register INTERVAL i;
   int searchpos;
 
-  CHECK_STRING_OR_BUFFER (object, 0);
-  CHECK_NUMBER_COERCE_MARKER (*begin, 0);
-  CHECK_NUMBER_COERCE_MARKER (*end, 0);
+  CHECK_STRING_OR_BUFFER (object);
+  CHECK_NUMBER_COERCE_MARKER (*begin);
+  CHECK_NUMBER_COERCE_MARKER (*end);
 
   /* If we are asked for a point, but from a subr which operates
      on a range, then return nothing.  */
@@ -505,7 +505,7 @@ interval_of (position, object)
   else if (EQ (object, Qt))
     return NULL_INTERVAL;
 
-  CHECK_STRING_OR_BUFFER (object, 0);
+  CHECK_STRING_OR_BUFFER (object);
 
   if (BUFFERP (object))
     {
@@ -589,7 +589,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
 {
   struct window *w = 0;
 
-  CHECK_NUMBER_COERCE_MARKER (position, 0);
+  CHECK_NUMBER_COERCE_MARKER (position);
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -687,7 +687,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fnext_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit, 2);
+      CHECK_NUMBER (limit);
       if (XINT (limit) < XINT (temp))
 	temp = limit;
     }
@@ -712,7 +712,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fprevious_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit, 2);
+      CHECK_NUMBER (limit);
       if (XINT (limit) > XINT (temp))
 	temp = limit;
     }
@@ -751,7 +751,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       int count = specpdl_ptr - specpdl;
 
       if (! NILP (object))
-	CHECK_BUFFER (object, 0);
+	CHECK_BUFFER (object);
       
       if (BUFFERP (object) && current_buffer != XBUFFER (object))
 	{
@@ -764,7 +764,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       if (NILP (limit))
 	XSETFASTINT (limit, BUF_ZV (current_buffer));
       else
-	CHECK_NUMBER_COERCE_MARKER (limit, 0);
+	CHECK_NUMBER_COERCE_MARKER (limit);
 
       for (;;)
 	{
@@ -816,7 +816,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       int count = specpdl_ptr - specpdl;
 
       if (! NILP (object))
-	CHECK_BUFFER (object, 0);
+	CHECK_BUFFER (object);
       
       if (BUFFERP (object) && current_buffer != XBUFFER (object))
 	{
@@ -827,7 +827,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       if (NILP (limit))
 	XSETFASTINT (limit, BUF_BEGV (current_buffer));
       else
-	CHECK_NUMBER_COERCE_MARKER (limit, 0);
+	CHECK_NUMBER_COERCE_MARKER (limit);
 
       if (XFASTINT (position) <= XFASTINT (limit))
 	position = limit;
@@ -884,7 +884,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     XSETBUFFER (object, current_buffer);
 
   if (! NILP (limit) && ! EQ (limit, Qt))
-    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+    CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
 
@@ -978,7 +978,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
-    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+    CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
   if (NULL_INTERVAL_P (i))
@@ -1019,7 +1019,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
-    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+    CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
   if (NULL_INTERVAL_P (i))
@@ -1065,7 +1065,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
-    CHECK_NUMBER_COERCE_MARKER (limit, 0);
+    CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
 
@@ -1562,7 +1562,7 @@ copy_text_properties (start, end, src, pos, dest, prop)
   if (NULL_INTERVAL_P (i))
     return Qnil;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
   {
     Lisp_Object dest_start, dest_end;
 

@@ -619,10 +619,10 @@ list_of_panes (menu)
       Lisp_Object elt, pane_name, pane_data;
       elt = Fcar (tail);
       pane_name = Fcar (elt);
-      CHECK_STRING (pane_name, 0);
+      CHECK_STRING (pane_name);
       push_menu_pane (pane_name, Qnil);
       pane_data = Fcdr (elt);
-      CHECK_CONS (pane_data, 0);
+      CHECK_CONS (pane_data);
       list_of_items (pane_data);
     }
 
@@ -646,9 +646,9 @@ list_of_items (pane)
 	push_left_right_boundary ();
       else
 	{
-	  CHECK_CONS (item, 0);
+	  CHECK_CONS (item);
 	  item1 = Fcar (item);
-	  CHECK_STRING (item1, 1);
+	  CHECK_STRING (item1);
 	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil, Qnil);
 	}
     }
@@ -750,8 +750,8 @@ cached information about equivalent key sequences.  */)
 	    }
 	}
 
-      CHECK_NUMBER (x, 0);
-      CHECK_NUMBER (y, 0);
+      CHECK_NUMBER (x);
+      CHECK_NUMBER (y);
 
       /* Decode where to put the menu.  */
 
@@ -763,7 +763,7 @@ cached information about equivalent key sequences.  */)
 	}
       else if (WINDOWP (window))
 	{
-	  CHECK_LIVE_WINDOW (window, 0);
+	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
 	  xpos = (FONT_WIDTH (FRAME_FONT (f))
@@ -774,7 +774,7 @@ cached information about equivalent key sequences.  */)
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
 	   but I don't want to make one now.  */
-	CHECK_WINDOW (window, 0);
+	CHECK_WINDOW (window);
 
       xpos += XINT (x);
       ypos += XINT (y);
@@ -846,7 +846,7 @@ cached information about equivalent key sequences.  */)
     {
       /* We were given an old-fashioned menu.  */
       title = Fcar (menu);
-      CHECK_STRING (title, 1);
+      CHECK_STRING (title);
 
       list_of_panes (Fcdr (menu));
 
@@ -948,13 +948,13 @@ on the left of the dialog box and all following items on the right.
     f = XFRAME (window);
   else if (WINDOWP (window))
     {
-      CHECK_LIVE_WINDOW (window, 0);
+      CHECK_LIVE_WINDOW (window);
       f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
     }
   else
     /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
        but I don't want to make one now.  */
-    CHECK_WINDOW (window, 0);
+    CHECK_WINDOW (window);
 
 #ifndef USE_X_TOOLKIT
   /* Display a menu with these alternatives
@@ -977,7 +977,7 @@ on the left of the dialog box and all following items on the right.
 
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
-    CHECK_STRING (title, 1);
+    CHECK_STRING (title);
 
     list_of_panes (Fcons (contents, Qnil));
 

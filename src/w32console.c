@@ -428,7 +428,7 @@ SOUND is nil to use the normal beep.")
      (sound)
      Lisp_Object sound;
 {
-  CHECK_SYMBOL (sound, 0);
+  CHECK_SYMBOL (sound);
 
   if (NILP (sound)) 
       sound_type = 0xFFFFFFFF;

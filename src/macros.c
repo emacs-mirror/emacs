@@ -147,7 +147,7 @@ An argument of zero means repeat until error.")
   if (NILP (repeat))
     XSETFASTINT (repeat, 1);
   else
-    CHECK_NUMBER (repeat, 0);
+    CHECK_NUMBER (repeat);
 
   if (!NILP (current_kboard->defining_kbd_macro))
     {

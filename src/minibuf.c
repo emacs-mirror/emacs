@@ -199,7 +199,7 @@ without invoking the usual minibuffer commands.  */)
      (window)
      Lisp_Object window;
 {
-  CHECK_WINDOW (window, 1);
+  CHECK_WINDOW (window);
   if (! MINI_WINDOW_P (XWINDOW (window)))
     error ("Window is not a minibuffer window");
 
@@ -848,7 +848,7 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
 
   position = Qnil;
 
-  CHECK_STRING (prompt, 0);
+  CHECK_STRING (prompt);
   if (!NILP (initial_contents))
     {
       if (CONSP (initial_contents))
@@ -856,10 +856,10 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
 	  position = Fcdr (initial_contents);
 	  initial_contents = Fcar (initial_contents);
 	}
-      CHECK_STRING (initial_contents, 1);
+      CHECK_STRING (initial_contents);
       if (!NILP (position))
 	{
-	  CHECK_NUMBER (position, 0);
+	  CHECK_NUMBER (position);
 	  /* Convert to distance from end of input.  */
 	  if (XINT (position) < 1)
 	    /* A number too small means the beginning of the string.  */
@@ -906,9 +906,9 @@ is a string to insert in the minibuffer before reading.  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
-  CHECK_STRING (prompt, 0);
+  CHECK_STRING (prompt);
   if (!NILP (initial_contents))
-    CHECK_STRING (initial_contents, 1);
+    CHECK_STRING (initial_contents);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
 		       make_number (0), Qnil, 0, 0);
@@ -958,9 +958,9 @@ the current input method and the setting of enable-multibyte-characters.  */)
      (prompt, initial, inherit_input_method)
      Lisp_Object prompt, initial, inherit_input_method;
 {
-  CHECK_STRING (prompt, 0);
+  CHECK_STRING (prompt);
   if (! NILP (initial))
-    CHECK_STRING (initial, 1);
+    CHECK_STRING (initial);
 
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
 		       0, Qminibuffer_history, make_number (0), Qnil, 0,
@@ -1111,7 +1111,7 @@ is used to further constrain the set of candidates.  */)
   Lisp_Object bucket, zero, end, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   if (!list && !VECTORP (alist))
     return call3 (alist, string, predicate, Qnil);
 
@@ -1359,7 +1359,7 @@ are ignored unless STRING itself starts with a space.  */)
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   if (!list && !VECTORP (alist))
     {
       return call3 (alist, string, predicate, Qt);
@@ -1532,10 +1532,10 @@ Completion ignores case if the ambient value of
 	  position = Fcdr (init);
 	  init = Fcar (init);
 	}
-      CHECK_STRING (init, 0);
+      CHECK_STRING (init);
       if (!NILP (position))
 	{
-	  CHECK_NUMBER (position, 0);
+	  CHECK_NUMBER (position);
 	  /* Convert to distance from end of input.  */
 	  pos = XINT (position) - XSTRING (init)->size;
 	}
@@ -1911,7 +1911,7 @@ Return nil if there is no valid completion, else t.  */)
   {
     int buffer_nchars, completion_nchars;
 
-    CHECK_STRING (completion, 0);
+    CHECK_STRING (completion);
     tem = Fminibuffer_contents ();
     GCPRO2 (completion, tem);
     /* If reading a file name,
@@ -2085,16 +2085,16 @@ It can find the completion buffer in `standard-output'.  */)
 	  if (CONSP (elt))
 	    {
 	      tem = XCAR (elt);
-	      CHECK_STRING (tem, 0);
+	      CHECK_STRING (tem);
 	      length = XSTRING (tem)->size;
 
 	      tem = Fcar (XCDR (elt));
-	      CHECK_STRING (tem, 0);
+	      CHECK_STRING (tem);
 	      length += XSTRING (tem)->size;
 	    }
 	  else
 	    {
-	      CHECK_STRING (elt, 0);
+	      CHECK_STRING (elt);
 	      length = XSTRING (elt)->size;
 	    }
 

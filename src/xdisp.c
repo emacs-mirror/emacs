@@ -7816,7 +7816,7 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
   if (NILP (frame))
     frame = selected_frame;
   else
-    CHECK_FRAME (frame, 0);
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   
   if (WINDOWP (f->tool_bar_window)
@@ -12203,7 +12203,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
   struct glyph_matrix *matrix;
   int vpos;
   
-  CHECK_NUMBER (row, 0);
+  CHECK_NUMBER (row);
   matrix = XWINDOW (selected_window)->current_matrix;
   vpos = XINT (row);
   if (vpos >= 0 && vpos < matrix->nrows)
@@ -12226,7 +12226,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
   struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
   int vpos;
   
-  CHECK_NUMBER (row, 0);
+  CHECK_NUMBER (row);
   vpos = XINT (row);
   if (vpos >= 0 && vpos < m->nrows)
     dump_glyph_row (MATRIX_ROW (m, vpos), vpos,

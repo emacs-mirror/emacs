@@ -2056,7 +2056,7 @@ programs.  */)
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
 
-  CHECK_VECTOR (reg, 1);
+  CHECK_VECTOR (reg);
   if (XVECTOR (reg)->size != 8)
     error ("Length of vector REGISTERS is not 8");
 
@@ -2114,10 +2114,10 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
 
-  CHECK_VECTOR (status, 1);
+  CHECK_VECTOR (status);
   if (XVECTOR (status)->size != 9)
     error ("Length of vector STATUS is not 9");
-  CHECK_STRING (str, 2);
+  CHECK_STRING (str);
 
   GCPRO2 (status, str);
 
@@ -2178,11 +2178,11 @@ Return index number of the registered CCL program.  */)
   int idx;
   Lisp_Object resolved;
 
-  CHECK_SYMBOL (name, 0);
+  CHECK_SYMBOL (name);
   resolved = Qnil;
   if (!NILP (ccl_prog))
     {
-      CHECK_VECTOR (ccl_prog, 1);
+      CHECK_VECTOR (ccl_prog);
       resolved = resolve_symbol_ccl_program (ccl_prog);
       if (NILP (resolved))
 	error ("Error in CCL program");
@@ -2261,8 +2261,8 @@ Return index number of the registered map.  */)
   int i;
   Lisp_Object index;
 
-  CHECK_SYMBOL (symbol, 0);
-  CHECK_VECTOR (map, 1);
+  CHECK_SYMBOL (symbol);
+  CHECK_VECTOR (map);
   
   for (i = 0; i < len; i++)
     {

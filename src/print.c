@@ -532,7 +532,7 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).  */)
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
   PRINTPREPARE;
   PRINTCHAR (XINT (character));
   PRINTFINISH;
@@ -663,7 +663,7 @@ usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
 
   GCPRO1(args);
   name = Feval (Fcar (args));
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
   temp_output_buffer_setup (XSTRING (name)->data);
   buf = Vstandard_output;
   UNGCPRO;
@@ -875,7 +875,7 @@ to make it write to the debugging output.  */)
      (character)
      Lisp_Object character;
 {
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
   putc (XINT (character), stderr);
 
 #ifdef WINDOWSNT

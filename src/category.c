@@ -63,7 +63,7 @@ those categories.  */)
   Lisp_Object val;
   int len;
 
-  CHECK_STRING (categories, 0);
+  CHECK_STRING (categories);
   val = MAKE_CATEGORY_SET;
 
   if (STRING_MULTIBYTE (categories))
@@ -75,7 +75,7 @@ those categories.  */)
       Lisp_Object category;
 
       XSETFASTINT (category, XSTRING (categories)->data[len]);
-      CHECK_CATEGORY (category, 0);
+      CHECK_CATEGORY (category);
       SET_CATEGORY_SET (val, category, Qt);
     }
   return val;
@@ -95,8 +95,8 @@ The category is defined only in category table TABLE, which defaults to
      (category, docstring, table)
      Lisp_Object category, docstring, table;
 {
-  CHECK_CATEGORY (category, 0);
-  CHECK_STRING (docstring, 1);
+  CHECK_CATEGORY (category);
+  CHECK_STRING (docstring);
   table = check_category_table (table);
 
   if (!NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
@@ -111,7 +111,7 @@ DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
      (category, table)
      Lisp_Object category, table;
 {
-  CHECK_CATEGORY (category, 0);
+  CHECK_CATEGORY (category);
   table = check_category_table (table);
 
   return CATEGORY_DOCSTRING (table, XFASTINT (category));
@@ -285,7 +285,7 @@ DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
      (ch)
      Lisp_Object ch;
 {
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   return CATEGORY_SET (XFASTINT (ch));
 }
 
@@ -301,7 +301,7 @@ The return value is a string containing those same categories.  */)
   int i, j;
   char str[96];
 
-  CHECK_CATEGORY_SET (category_set, 0);
+  CHECK_CATEGORY_SET (category_set);
 
   j = 0;
   for (i = 32; i < 127; i++)
@@ -369,9 +369,9 @@ then delete CATEGORY from the category set instead of adding it.  */)
   Lisp_Object set_value;	/* Actual value to be set in category sets.  */
   Lisp_Object val, category_set;
 
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
   c = XINT (character);
-  CHECK_CATEGORY (category, 1);
+  CHECK_CATEGORY (category);
   table = check_category_table (table);
 
   if (NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))

@@ -5444,7 +5444,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   int i;
   int modifiers;
 
-  CHECK_SYMBOL (symbol, 1);
+  CHECK_SYMBOL (symbol);
 
   modifiers = 0;
   name = XSYMBOL (symbol)->name;
@@ -9035,7 +9035,7 @@ will read just one key sequence.  */)
   int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
-    CHECK_STRING (prompt, 0);
+    CHECK_STRING (prompt);
   QUIT;
 
   specbind (Qinput_method_exit_on_first_char,
@@ -9094,7 +9094,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
   int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
-    CHECK_STRING (prompt, 0);
+    CHECK_STRING (prompt);
   QUIT;
 
   specbind (Qinput_method_exit_on_first_char,
@@ -9677,7 +9677,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   struct gcpro gcpro1;
 
   if (!NILP (stuffstring))
-    CHECK_STRING (stuffstring, 0);
+    CHECK_STRING (stuffstring);
 
   /* Run the functions in suspend-hook.  */
   if (!NILP (Vrun_hooks))

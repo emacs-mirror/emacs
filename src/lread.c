@@ -644,7 +644,7 @@ Return t if file exists.")
   fmode = "rt";
 #endif /* DOS_NT */
 
-  CHECK_STRING (file, 0);
+  CHECK_STRING (file);
 
   /* If file name is magic, call the handler.  */
   /* This shouldn't be necessary any more now that `openp' handles it right.
@@ -966,7 +966,7 @@ openp (path, str, suffixes, storeptr, exec_only)
 
   for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
     {
-      CHECK_STRING (XCAR (tail), 0);
+      CHECK_STRING (XCAR (tail));
       max_suffix_len = max (max_suffix_len,
 			    STRING_BYTES (XSTRING (XCAR (tail))));
     }
@@ -1450,13 +1450,13 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   int startval, endval;
   Lisp_Object tem;
 
-  CHECK_STRING (string,0);
+  CHECK_STRING (string);
 
   if (NILP (end))
     endval = XSTRING (string)->size;
   else
     {
-      CHECK_NUMBER (end, 2);
+      CHECK_NUMBER (end);
       endval = XINT (end);
       if (endval < 0 || endval > XSTRING (string)->size)
 	args_out_of_range (string, end);
@@ -1466,7 +1466,7 @@ START and END optionally delimit a substring of STRING from which to read;\n\
     startval = 0;
   else
     {
-      CHECK_NUMBER (start, 1);
+      CHECK_NUMBER (start);
       startval = XINT (start);
       if (startval < 0 || startval > endval)
 	args_out_of_range (string, start);
@@ -2938,7 +2938,7 @@ it defaults to the value of `obarray'.")
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   tem = oblookup (obarray, XSTRING (string)->data,
 		  XSTRING (string)->size,
@@ -2988,7 +2988,7 @@ it defaults to the value of `obarray'.")
 
   if (!SYMBOLP (name))
     {
-      CHECK_STRING (name, 0);
+      CHECK_STRING (name);
       string = XSTRING (name);
     }
   else
@@ -3020,7 +3020,7 @@ OBARRAY defaults to the value of the variable `obarray'.")
     XSETSTRING (string, XSYMBOL (name)->name);
   else
     {
-      CHECK_STRING (name, 0);
+      CHECK_STRING (name);
       string = name;
     }
 
@@ -3141,7 +3141,7 @@ map_obarray (obarray, fn, arg)
 {
   register int i;
   register Lisp_Object tail;
-  CHECK_VECTOR (obarray, 1);
+  CHECK_VECTOR (obarray);
   for (i = XVECTOR (obarray)->size - 1; i >= 0; i--)
     {
       tail = XVECTOR (obarray)->contents[i];

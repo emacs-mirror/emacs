@@ -220,7 +220,7 @@ If the optional arg FRAME is a frame, we return that frame's buffer list.  */)
     {
       Lisp_Object tail;
 
-      CHECK_FRAME (frame, 1);
+      CHECK_FRAME (frame);
 
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
 
@@ -267,7 +267,7 @@ NAME may also be a buffer; if so, the value is that buffer.  */)
 {
   if (BUFFERP (name))
     return name;
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   return Fcdr (assoc_ignore_text_properties (name, Vbuffer_alist));
 }
@@ -283,7 +283,7 @@ See also `find-buffer-visiting'.  */)
   register Lisp_Object tail, buf, tem;
   Lisp_Object handler;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -739,7 +739,7 @@ even if a buffer with that name exists.  */)
   int count;
   char number[10];
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   tem = Fget_buffer (name);
   if (NILP (tem))
@@ -768,7 +768,7 @@ With no argument or nil as argument, return the name of the current buffer.  */)
 {
   if (NILP (buffer))
     return current_buffer->name;
-  CHECK_BUFFER (buffer, 0);
+  CHECK_BUFFER (buffer);
   return XBUFFER (buffer)->name;
 }
 
@@ -780,7 +780,7 @@ No argument or nil as argument means use the current buffer.  */)
 {
   if (NILP (buffer))
     return current_buffer->filename;
-  CHECK_BUFFER (buffer, 0);
+  CHECK_BUFFER (buffer);
   return XBUFFER (buffer)->filename;
 }
 
@@ -798,7 +798,7 @@ If BUFFER is not indirect, return nil.  */)
     base = current_buffer->base_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       base = XBUFFER (buffer)->base_buffer;
     }
 
@@ -825,7 +825,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
     buf = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
 
@@ -892,7 +892,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
     buf = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
 
@@ -994,7 +994,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
     buf = current_buffer;
   else
     {
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
 
@@ -1016,7 +1016,7 @@ This does not change the name of the visited file (if any).  */)
 {
   register Lisp_Object tem, buf;
 
-  CHECK_STRING (newname, 0);
+  CHECK_STRING (newname);
 
   if (XSTRING (newname)->size == 0)
     error ("Empty string is invalid as a buffer name");
@@ -1903,8 +1903,8 @@ void
 validate_region (b, e)
      register Lisp_Object *b, *e;
 {
-  CHECK_NUMBER_COERCE_MARKER (*b, 0);
-  CHECK_NUMBER_COERCE_MARKER (*e, 1);
+  CHECK_NUMBER_COERCE_MARKER (*b);
+  CHECK_NUMBER_COERCE_MARKER (*e);
 
   if (XINT (*b) > XINT (*e))
     {
@@ -3371,7 +3371,7 @@ rear delimiter advance when text is inserted there.  */)
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
   else
-    CHECK_BUFFER (buffer, 2);
+    CHECK_BUFFER (buffer);
   if (MARKERP (beg)
       && ! EQ (Fmarker_buffer (beg), buffer))
     error ("Marker points into wrong buffer");
@@ -3379,8 +3379,8 @@ rear delimiter advance when text is inserted there.  */)
       && ! EQ (Fmarker_buffer (end), buffer))
     error ("Marker points into wrong buffer");
 
-  CHECK_NUMBER_COERCE_MARKER (beg, 1);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
+  CHECK_NUMBER_COERCE_MARKER (beg);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   if (XINT (beg) > XINT (end))
     {
@@ -3462,12 +3462,12 @@ buffer.  */)
   Lisp_Object obuffer;
   int count = specpdl_ptr - specpdl;
 
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
   if (NILP (buffer))
     buffer = Fmarker_buffer (OVERLAY_START (overlay));
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
-  CHECK_BUFFER (buffer, 3);
+  CHECK_BUFFER (buffer);
 
   if (MARKERP (beg)
       && ! EQ (Fmarker_buffer (beg), buffer))
@@ -3476,8 +3476,8 @@ buffer.  */)
       && ! EQ (Fmarker_buffer (end), buffer))
     error ("Marker points into wrong buffer");
 
-  CHECK_NUMBER_COERCE_MARKER (beg, 1);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
+  CHECK_NUMBER_COERCE_MARKER (beg);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   if (XINT (beg) == XINT (end) && ! NILP (Foverlay_get (overlay, Qevaporate)))
     return Fdelete_overlay (overlay);
@@ -3563,7 +3563,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   struct buffer *b;
   int count = specpdl_ptr - specpdl;
 
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
   if (NILP (buffer))
@@ -3599,7 +3599,7 @@ DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
      (overlay)
      Lisp_Object overlay;
 {
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   return (Fmarker_position (OVERLAY_START (overlay)));
 }
@@ -3609,7 +3609,7 @@ DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
      (overlay)
      Lisp_Object overlay;
 {
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   return (Fmarker_position (OVERLAY_END (overlay)));
 }
@@ -3619,7 +3619,7 @@ DEFUN ("overlay-buffer", Foverlay_buffer, Soverlay_buffer, 1, 1, 0,
      (overlay)
        Lisp_Object overlay;
 {
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   return Fmarker_buffer (OVERLAY_START (overlay));
 }
@@ -3631,7 +3631,7 @@ OVERLAY.  */)
      (overlay)
     Lisp_Object overlay;
 {
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   return Fcopy_sequence (XOVERLAY (overlay)->plist);
 }
@@ -3647,7 +3647,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   int len;
   Lisp_Object result;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
@@ -3679,8 +3679,8 @@ or between BEG and END.  */)
   int len;
   Lisp_Object result;
 
-  CHECK_NUMBER_COERCE_MARKER (beg, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 0);
+  CHECK_NUMBER_COERCE_MARKER (beg);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   len = 10;
   overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
@@ -3710,7 +3710,7 @@ If there are no more overlay boundaries after POS, return (point-max).  */)
   int len;
   int i;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
   overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
@@ -3750,7 +3750,7 @@ If there are no more overlay boundaries before POS, return (point-min).  */)
   Lisp_Object *overlay_vec;
   int len;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
 
   /* At beginning of buffer, we know the answer;
      avoid bug subtracting 1 below.  */
@@ -3797,7 +3797,7 @@ DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
      (pos)
      Lisp_Object pos;
 {
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  CHECK_NUMBER_COERCE_MARKER (pos);
 
   recenter_overlay_lists (current_buffer, XINT (pos));
   return Qnil;
@@ -3810,7 +3810,7 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
 {
   Lisp_Object plist, fallback;
 
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   fallback = Qnil;
 
@@ -3840,7 +3840,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   Lisp_Object tail, buffer;
   int changed;
 
-  CHECK_OVERLAY (overlay, 0);
+  CHECK_OVERLAY (overlay);
 
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
 

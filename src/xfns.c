@@ -261,7 +261,7 @@ check_x_frame (frame)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
@@ -295,7 +295,7 @@ check_x_display_info (frame)
     {
       FRAME_PTR f;
 
-      CHECK_LIVE_FRAME (frame, 0);
+      CHECK_LIVE_FRAME (frame);
       f = XFRAME (frame);
       if (! FRAME_X_P (f))
 	error ("Non-X frame used");
@@ -1264,7 +1264,7 @@ x_decode_color (f, color_name, mono_color)
 {
   XColor cdef;
 
-  CHECK_STRING (color_name, 0);
+  CHECK_STRING (color_name);
 
 #if 0 /* Don't do this.  It's wrong when we're not using the default
 	 colormap, it makes freeing difficult, and it's probably not
@@ -1466,7 +1466,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_pointer_shape))
     {
-      CHECK_NUMBER (Vx_pointer_shape, 0);
+      CHECK_NUMBER (Vx_pointer_shape);
       cursor = XCreateFontCursor (dpy, XINT (Vx_pointer_shape));
     }
   else
@@ -1475,7 +1475,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_nontext_pointer_shape))
     {
-      CHECK_NUMBER (Vx_nontext_pointer_shape, 0);
+      CHECK_NUMBER (Vx_nontext_pointer_shape);
       nontext_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_nontext_pointer_shape));
     }
@@ -1485,7 +1485,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_hourglass_pointer_shape))
     {
-      CHECK_NUMBER (Vx_hourglass_pointer_shape, 0);
+      CHECK_NUMBER (Vx_hourglass_pointer_shape);
       hourglass_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_hourglass_pointer_shape));
     }
@@ -1496,7 +1496,7 @@ x_set_mouse_color (f, arg, oldval)
   x_check_errors (dpy, "bad nontext pointer cursor: %s");
   if (!NILP (Vx_mode_pointer_shape))
     {
-      CHECK_NUMBER (Vx_mode_pointer_shape, 0);
+      CHECK_NUMBER (Vx_mode_pointer_shape);
       mode_cursor = XCreateFontCursor (dpy, XINT (Vx_mode_pointer_shape));
     }
   else
@@ -1505,7 +1505,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_sensitive_text_pointer_shape))
     {
-      CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
+      CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
       cross_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_sensitive_text_pointer_shape));
     }
@@ -1514,7 +1514,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
-      CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
+      CHECK_NUMBER (Vx_window_horizontal_drag_shape);
       horizontal_drag_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_window_horizontal_drag_shape));
     }
@@ -1668,7 +1668,7 @@ x_set_border_color (f, arg, oldval)
 {
   int pix;
 
-  CHECK_STRING (arg, 0);
+  CHECK_STRING (arg);
   pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   x_set_border_pixel (f, pix);
   update_face_from_frame_parameter (f, Qborder_color, arg);
@@ -1847,7 +1847,7 @@ x_set_font (f, arg, oldval)
   Lisp_Object frame;
   int old_fontset = f->output_data.x->fontset;
 
-  CHECK_STRING (arg, 1);
+  CHECK_STRING (arg);
 
   fontset_name = Fquery_fontset (arg, Qnil);
 
@@ -1898,7 +1898,7 @@ x_set_border_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
 
   if (XINT (arg) == f->output_data.x->border_width)
     return;
@@ -1916,7 +1916,7 @@ x_set_internal_border_width (f, arg, oldval)
 {
   int old = f->output_data.x->internal_border_width;
 
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   f->output_data.x->internal_border_width = XINT (arg);
   if (f->output_data.x->internal_border_width < 0)
     f->output_data.x->internal_border_width = 0;
@@ -2291,7 +2291,7 @@ x_set_name (f, name, explicit)
       name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
     }
   else
-    CHECK_STRING (name, 0);
+    CHECK_STRING (name);
 
   /* Don't change the name if it's already NAME.  */
   if (! NILP (Fstring_equal (name, f->name)))
@@ -2409,7 +2409,7 @@ x_set_title (f, name, old_name)
   if (NILP (name))
     name = f->name;
   else
-    CHECK_STRING (name, 0);
+    CHECK_STRING (name);
 
   if (FRAME_X_WINDOW (f))
     {
@@ -2659,13 +2659,13 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 
   check_x ();
 
-  CHECK_STRING (attribute, 0);
-  CHECK_STRING (class, 0);
+  CHECK_STRING (attribute);
+  CHECK_STRING (class);
 
   if (!NILP (component))
-    CHECK_STRING (component, 1);
+    CHECK_STRING (component);
   if (!NILP (subclass))
-    CHECK_STRING (subclass, 2);
+    CHECK_STRING (subclass);
   if (NILP (component) != NILP (subclass))
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
@@ -2725,13 +2725,13 @@ display_x_get_resource (dpyinfo, attribute, class, component, subclass)
   char *name_key;
   char *class_key;
 
-  CHECK_STRING (attribute, 0);
-  CHECK_STRING (class, 0);
+  CHECK_STRING (attribute);
+  CHECK_STRING (class);
 
   if (!NILP (component))
-    CHECK_STRING (component, 1);
+    CHECK_STRING (component);
   if (!NILP (subclass))
-    CHECK_STRING (subclass, 2);
+    CHECK_STRING (subclass);
   if (NILP (component) != NILP (subclass))
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
@@ -3012,7 +3012,7 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
   unsigned int width, height;
   Lisp_Object result;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
 			     &x, &y, &width, &height);
@@ -3091,12 +3091,12 @@ x_figure_window_size (f, parms)
     {
       if (!EQ (tem0, Qunbound))
 	{
-	  CHECK_NUMBER (tem0, 0);
+	  CHECK_NUMBER (tem0);
 	  f->height = XINT (tem0);
 	}
       if (!EQ (tem1, Qunbound))
 	{
-	  CHECK_NUMBER (tem1, 0);
+	  CHECK_NUMBER (tem1);
 	  SET_FRAME_WIDTH (f, XINT (tem1));
 	}
       if (!NILP (tem2) && !EQ (tem2, Qunbound))
@@ -3141,7 +3141,7 @@ x_figure_window_size (f, parms)
 	f->output_data.x->top_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem0, 0);
+	  CHECK_NUMBER (tem0);
 	  f->output_data.x->top_pos = XINT (tem0);
 	  if (f->output_data.x->top_pos < 0)
 	    window_prompting |= YNegative;
@@ -3169,7 +3169,7 @@ x_figure_window_size (f, parms)
 	f->output_data.x->left_pos = 0;
       else
 	{
-	  CHECK_NUMBER (tem1, 0);
+	  CHECK_NUMBER (tem1);
 	  f->output_data.x->left_pos = XINT (tem1);
 	  if (f->output_data.x->left_pos < 0)
 	    window_prompting |= XNegative;
@@ -3922,8 +3922,8 @@ x_icon (f, parms)
   icon_y = x_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x, 0);
-      CHECK_NUMBER (icon_y, 0);
+      CHECK_NUMBER (icon_x);
+      CHECK_NUMBER (icon_y);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -4147,7 +4147,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
-    CHECK_NUMBER (parent, 0);
+    CHECK_NUMBER (parent);
 
   /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
   /* No need to protect DISPLAY because that's not used after passing
@@ -4583,7 +4583,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
 
-  CHECK_STRING (color, 1);
+  CHECK_STRING (color);
 
   if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
     return Qt;
@@ -4599,7 +4599,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
 
-  CHECK_STRING (color, 1);
+  CHECK_STRING (color);
 
   if (x_defined_color (f, XSTRING (color)->data, &foo, 0))
     {
@@ -5079,7 +5079,7 @@ x_display_info_for_name (name)
   Lisp_Object names;
   struct x_display_info *dpyinfo;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   if (! EQ (Vwindow_system, intern ("x")))
     error ("Not using X Windows");
@@ -5125,9 +5125,9 @@ terminate Emacs if we can't open the connection.  */)
   unsigned char *xrm_option;
   struct x_display_info *dpyinfo;
 
-  CHECK_STRING (display, 0);
+  CHECK_STRING (display);
   if (! NILP (xrm_string))
-    CHECK_STRING (xrm_string, 1);
+    CHECK_STRING (xrm_string);
 
   if (! EQ (Vwindow_system, intern ("x")))
     error ("Not using X Windows");
@@ -10409,8 +10409,8 @@ selected frame.  Value is VALUE.  */)
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
-  CHECK_STRING (prop, 1);
-  CHECK_STRING (value, 2);
+  CHECK_STRING (prop);
+  CHECK_STRING (value);
 
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
@@ -10436,7 +10436,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
-  CHECK_STRING (prop, 1);
+  CHECK_STRING (prop);
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
   XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), prop_atom);
@@ -10467,7 +10467,7 @@ value.  */)
   int actual_format;
   unsigned long actual_size, bytes_remaining;
 
-  CHECK_STRING (prop, 1);
+  CHECK_STRING (prop);
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), XSTRING (prop)->data, False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -11132,22 +11132,22 @@ Text larger than the specified size is clipped.  */)
 
   GCPRO4 (string, parms, frame, timeout);
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   f = check_x_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
   else
-    CHECK_NATNUM (timeout, 2);
+    CHECK_NATNUM (timeout);
   
   if (NILP (dx))
     dx = make_number (5);
   else
-    CHECK_NUMBER (dx, 5);
+    CHECK_NUMBER (dx);
   
   if (NILP (dy))
     dy = make_number (-10);
   else
-    CHECK_NUMBER (dy, 6);
+    CHECK_NUMBER (dy);
 
   if (NILP (last_show_tip_args))
     last_show_tip_args = Fmake_vector (make_number (3), Qnil);
@@ -11412,8 +11412,8 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
-  CHECK_STRING (prompt, 0);
-  CHECK_STRING (dir, 1);
+  CHECK_STRING (prompt);
+  CHECK_STRING (dir);
 
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);

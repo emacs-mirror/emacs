@@ -690,8 +690,8 @@ ALIASED nil means remove the alias; SYMBOL is unbound after that.  */)
 {
   struct Lisp_Symbol *sym;
   
-  CHECK_SYMBOL (symbol, 0);
-  CHECK_SYMBOL (aliased, 1);
+  CHECK_SYMBOL (symbol);
+  CHECK_SYMBOL (aliased);
 
   if (SYMBOL_CONSTANT_P (symbol))
     error ("Cannot make a constant an alias");
@@ -1215,7 +1215,7 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
   var      = Fcar (args);
   bodyform = Fcar (Fcdr (args));
   handlers = Fcdr (Fcdr (args));
-  CHECK_SYMBOL (var, 0);
+  CHECK_SYMBOL (var);
 
   for (val = handlers; ! NILP (val); val = Fcdr (val))
     {
@@ -1825,8 +1825,8 @@ this does nothing and returns nil.  */)
   Lisp_Object args[4];
 #endif
 
-  CHECK_SYMBOL (function, 0);
-  CHECK_STRING (file, 1);
+  CHECK_SYMBOL (function);
+  CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override */
   if (!EQ (XSYMBOL (function)->function, Qunbound)
@@ -1888,7 +1888,7 @@ do_autoload (fundef, funname)
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   fun = funname;
-  CHECK_SYMBOL (funname, 0);
+  CHECK_SYMBOL (funname);
   GCPRO3 (fun, funname, fundef);
 
   /* Preserve the match data.  */
@@ -2158,7 +2158,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   fun = args [0];
   funcall_args = 0;
   spread_arg = args [nargs - 1];
-  CHECK_LIST (spread_arg, nargs);
+  CHECK_LIST (spread_arg);
   
   numargs = XINT (Flength (spread_arg));
 
@@ -2960,7 +2960,7 @@ specbind (symbol, value)
   Lisp_Object ovalue;
   Lisp_Object valcontents;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
 
@@ -3117,7 +3117,7 @@ top_level_value (symbol)
 {
   register struct specbinding *ptr = specpdl;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   for (; ptr != specpdl_ptr; ptr++)
     {
       if (EQ (ptr->symbol, symbol))
@@ -3132,7 +3132,7 @@ top_level_set (symbol, newval)
 {
   register struct specbinding *ptr = specpdl;
 
-  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (symbol);
   for (; ptr != specpdl_ptr; ptr++)
     {
       if (EQ (ptr->symbol, symbol))
@@ -3155,7 +3155,7 @@ The debugger is entered when that frame exits, if the flag is non-nil.  */)
   register struct backtrace *backlist = backtrace_list;
   register int i;
 
-  CHECK_NUMBER (level, 0);
+  CHECK_NUMBER (level);
 
   for (i = 0; backlist && i < XINT (level); i++)
     {
@@ -3243,7 +3243,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
   register int i;
   Lisp_Object tem;
 
-  CHECK_NATNUM (nframes, 0);
+  CHECK_NATNUM (nframes);
 
   /* Find the frame requested.  */
   for (i = 0; backlist && i < XFASTINT (nframes); i++)

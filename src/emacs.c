@@ -1998,7 +1998,7 @@ This function exists on systems that use HAVE_SHM.  */)
   Lisp_Object tem;
 
   check_pure_size ();
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
   tem = Vpurify_flag;
@@ -2044,11 +2044,11 @@ You must run Emacs in batch mode in order to dump it.  */)
   symbol = intern ("command-line-process");
   specbind (symbol, Qnil);
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
   if (!NILP (symfile))
     {
-      CHECK_STRING (symfile, 0);
+      CHECK_STRING (symfile);
       if (XSTRING (symfile)->size)
 	symfile = Fexpand_file_name (symfile, Qnil);
     }

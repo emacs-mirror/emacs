@@ -1668,8 +1668,8 @@ Both LENGTH and INIT must be numbers.  */)
   register unsigned char *p, *end;
   int c, nbytes;
 
-  CHECK_NATNUM (length, 0);
-  CHECK_NUMBER (init, 1);
+  CHECK_NATNUM (length);
+  CHECK_NUMBER (init);
 
   c = XINT (init);
   if (SINGLE_BYTE_CHAR_P (c))
@@ -1713,7 +1713,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   int real_init, i;
   int length_in_chars, length_in_elts, bits_per_value;
 
-  CHECK_NATNUM (length, 0);
+  CHECK_NATNUM (length);
 
   bits_per_value = sizeof (EMACS_INT) * BITS_PER_CHAR;
 
@@ -2157,7 +2157,7 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   register Lisp_Object val;
   register int size;
 
-  CHECK_NATNUM (length, 0);
+  CHECK_NATNUM (length);
   size = XFASTINT (length);
 
   val = Qnil;
@@ -2347,7 +2347,7 @@ See also the function `vector'.  */)
   register int index;
   register struct Lisp_Vector *p;
 
-  CHECK_NATNUM (length, 0);
+  CHECK_NATNUM (length);
   sizei = XFASTINT (length);
 
   p = allocate_vector (sizei);
@@ -2369,9 +2369,9 @@ The property's value should be an integer between 0 and 10.  */)
 {
   Lisp_Object vector;
   Lisp_Object n;
-  CHECK_SYMBOL (purpose, 1);
+  CHECK_SYMBOL (purpose);
   n = Fget (purpose, Qchar_table_extra_slots);
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   if (XINT (n) < 0 || XINT (n) > 10)
     args_out_of_range (n, Qnil);
   /* Add 2 to the size for the defalt and parent slots.  */
@@ -2521,7 +2521,7 @@ Its value and function definition are void, and its property list is nil.  */)
   register Lisp_Object val;
   register struct Lisp_Symbol *p;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
 
   if (symbol_free_list)
     {

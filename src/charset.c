@@ -667,9 +667,9 @@ DESCRIPTION (string) is the description string of the charset.  */)
   Lisp_Object *vec;
 
   if (!NILP (charset_id))
-    CHECK_NUMBER (charset_id, 0);
-  CHECK_SYMBOL (charset_symbol, 1);
-  CHECK_VECTOR (info_vector, 2);
+    CHECK_NUMBER (charset_id);
+  CHECK_SYMBOL (charset_symbol);
+  CHECK_VECTOR (info_vector);
 
   if (! NILP (charset_id))
     {
@@ -734,8 +734,8 @@ return nil.  */)
 {
   int final_char;
 
-  CHECK_NUMBER (dimension, 0);
-  CHECK_NUMBER (chars, 1);
+  CHECK_NUMBER (dimension);
+  CHECK_NUMBER (chars);
   if (XINT (dimension) != 1 && XINT (dimension) != 2)
     error ("Invalid charset dimension %d, it should be 1 or 2",
 	   XINT (dimension));
@@ -759,10 +759,10 @@ CHARSET should be defined by `defined-charset' in advance.  */)
 {
   int charset;
 
-  CHECK_NUMBER (dimension, 0);
-  CHECK_NUMBER (chars, 1);
-  CHECK_NUMBER (final_char, 2);
-  CHECK_SYMBOL (charset_symbol, 3);
+  CHECK_NUMBER (dimension);
+  CHECK_NUMBER (chars);
+  CHECK_NUMBER (final_char);
+  CHECK_SYMBOL (charset_symbol);
 
   if (XINT (dimension) != 1 && XINT (dimension) != 2)
     error ("Invalid DIMENSION %d, it should be 1 or 2", XINT (dimension));
@@ -932,7 +932,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   int i;
   Lisp_Object val;
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (str);
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   find_charset_in_text (XSTRING (str)->data, XSTRING (str)->size,
@@ -958,7 +958,7 @@ Internal use only.  */)
 {
   int charset_id, c1, c2;
 
-  CHECK_NUMBER (charset, 0);
+  CHECK_NUMBER (charset);
   charset_id = XINT (charset);
   if (!CHARSET_DEFINED_P (charset_id))
     error ("Invalid charset ID: %d", XINT (charset));
@@ -967,14 +967,14 @@ Internal use only.  */)
     c1 = 0;
   else
     {
-      CHECK_NUMBER (code1, 1);
+      CHECK_NUMBER (code1);
       c1 = XINT (code1);
     }
   if (NILP (code2))
     c2 = 0;
   else
     {
-      CHECK_NUMBER (code2, 2);
+      CHECK_NUMBER (code2);
       c2 = XINT (code2);
     }
 
@@ -1025,7 +1025,7 @@ return a list of symbol `unknown' and CHAR.  */)
 {
   int c, charset, c1, c2;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   c = XFASTINT (ch);
   if (!CHAR_VALID_P (c, 1))
     return Fcons (Qunknown, Fcons (ch, Qnil));
@@ -1041,7 +1041,7 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
      (ch)
      Lisp_Object ch;
 {
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
 
   return CHARSET_SYMBOL (CHAR_CHARSET (XINT (ch)));
 }
@@ -1076,9 +1076,9 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
 {
   int charset;
 
-  CHECK_NUMBER (dimension, 0);
-  CHECK_NUMBER (chars, 1);
-  CHECK_NUMBER (final_char, 2);
+  CHECK_NUMBER (dimension);
+  CHECK_NUMBER (chars);
+  CHECK_NUMBER (final_char);
 
   if ((charset = ISO_CHARSET_TABLE (dimension, chars, final_char)) < 0)
     return Qnil;
@@ -1137,7 +1137,7 @@ The conversion is done based on `nonascii-translation-table' (which see)
 {
   int c;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   c = XINT (ch);
   if (c < 0 || c >= 0400)
     error ("Invalid unibyte character: %d", c);
@@ -1157,7 +1157,7 @@ The conversion is done based on `nonascii-translation-table' (which see)
 {
   int c;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   c = XINT (ch);
   if (! CHAR_VALID_P (c, 0))
     error ("Invalid multibyte character: %d", c);
@@ -1173,7 +1173,7 @@ This is now an obsolete function.  We keep it just for backward compatibility.  
      (ch)
      Lisp_Object ch;
 {
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   return make_number (1);
 }
 
@@ -1223,7 +1223,7 @@ Tab is taken to occupy `tab-width' columns.  */)
   int c;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
 
   c = XINT (ch);
 
@@ -1401,7 +1401,7 @@ taken to occupy `tab-width' columns.  */)
 {
   Lisp_Object val;
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (str);
   XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
   return val;
 }
@@ -1414,7 +1414,7 @@ The returned value is 0 for left-to-right and 1 for right-to-left.  */)
 {
   int charset;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   charset = CHAR_CHARSET (XFASTINT (ch));
   if (!CHARSET_DEFINED_P (charset))
     invalid_character (XINT (ch));
@@ -1428,8 +1428,8 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
 {
   int from, to;
 
-  CHECK_NUMBER_COERCE_MARKER (beg, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
+  CHECK_NUMBER_COERCE_MARKER (beg);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   from = min (XFASTINT (beg), XFASTINT (end));
   to = max (XFASTINT (beg), XFASTINT (end));
@@ -1643,7 +1643,7 @@ usage: (string &rest CHARACTERS)  */)
 
   for (i = 0; i < n; i++)
     {
-      CHECK_NUMBER (args[i], 0);
+      CHECK_NUMBER (args[i]);
       if (!multibyte && !SINGLE_BYTE_CHAR_P (XFASTINT (args[i])))
 	multibyte = 1;
     }

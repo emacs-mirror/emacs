@@ -1958,7 +1958,7 @@ around function keys and event symbols.")
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
 	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
-	  CHECK_STRING (name, 0);
+	  CHECK_STRING (name);
 	  return concat2 (build_string ("Character set "), name);
 	}
       else
@@ -2037,7 +2037,7 @@ Control characters turn into \"^char\", etc.")
   unsigned char str[6];
   int c;
 
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
 
   c = XINT (character);
   if (!SINGLE_BYTE_CHAR_P (c))
@@ -2941,7 +2941,7 @@ This is text showing the elements of vector matched against indices.")
   int count = specpdl_ptr - specpdl;
 
   specbind (Qstandard_output, Fcurrent_buffer ());
-  CHECK_VECTOR_OR_CHAR_TABLE (vector, 0);
+  CHECK_VECTOR_OR_CHAR_TABLE (vector);
   describe_vector (vector, Qnil, describe_vector_princ, 0,
 		   Qnil, Qnil, (int *)0, 0);
 
@@ -3306,7 +3306,7 @@ Return list of symbols found.")
      Lisp_Object regexp, predicate;
 {
   struct gcpro gcpro1, gcpro2;
-  CHECK_STRING (regexp, 0);
+  CHECK_STRING (regexp);
   apropos_predicate = predicate;
   GCPRO2 (apropos_predicate, apropos_accumulate);
   apropos_accumulate = Qnil;

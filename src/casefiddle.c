@@ -354,7 +354,7 @@ operate_on_word (arg, newpoint)
   int farend;
   int iarg;
 
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   iarg = XINT (arg);
   farend = scan_words (PT, iarg);
   if (!farend)

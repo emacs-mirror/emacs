@@ -304,7 +304,7 @@ x_own_selection (selection_name, selection_value)
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   int count;
 
-  CHECK_SYMBOL (selection_name, 0);
+  CHECK_SYMBOL (selection_name);
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
   BLOCK_INPUT;
@@ -415,7 +415,7 @@ x_get_local_selection (selection_symbol, target_type)
       count = specpdl_ptr - specpdl;
       specbind (Qinhibit_quit, Qt);
 
-      CHECK_SYMBOL (target_type, 0);
+      CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
@@ -1173,12 +1173,12 @@ copy_multiple_data (obj)
   if (CONSP (obj))
     return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
     
-  CHECK_VECTOR (obj, 0);
+  CHECK_VECTOR (obj);
   vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
   for (i = 0; i < size; i++)
     {
       Lisp_Object vec2 = XVECTOR (obj)->contents [i];
-      CHECK_VECTOR (vec2, 0);
+      CHECK_VECTOR (vec2);
       if (XVECTOR (vec2)->size != 2)
 	/* ??? Confusing error message */
 	Fsignal (Qerror, Fcons (build_string ("vectors must be of length 2"),
@@ -1958,7 +1958,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
      Lisp_Object selection_name, selection_value;
 {
   check_x ();
-  CHECK_SYMBOL (selection_name, 0);
+  CHECK_SYMBOL (selection_name);
   if (NILP (selection_value)) error ("selection-value may not be nil");
   x_own_selection (selection_name, selection_value);
   return selection_value;
@@ -1982,19 +1982,19 @@ TYPE is the type of data desired, typically `STRING'.  */)
   struct gcpro gcpro1, gcpro2;
   GCPRO2 (target_type, val); /* we store newly consed data into these */
   check_x ();
-  CHECK_SYMBOL (selection_symbol, 0);
+  CHECK_SYMBOL (selection_symbol);
 
 #if 0 /* #### MULTIPLE doesn't work yet */
   if (CONSP (target_type)
       && XCAR (target_type) == QMULTIPLE)
     {
-      CHECK_VECTOR (XCDR (target_type), 0);
+      CHECK_VECTOR (XCDR (target_type));
       /* So we don't destructively modify this...  */
       target_type = copy_multiple_data (target_type);
     }
   else
 #endif
-    CHECK_SYMBOL (target_type, 0);
+    CHECK_SYMBOL (target_type);
 
   val = x_get_local_selection (selection_symbol, target_type);
 
@@ -2035,7 +2035,7 @@ Disowning it means there is no such selection.  */)
   check_x ();
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
   if (NILP (time))
     timestamp = last_event_timestamp;
   else
@@ -2096,7 +2096,7 @@ and t is the same as `SECONDARY'.  */)
      Lisp_Object selection;
 {
   check_x ();
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
   
@@ -2126,7 +2126,7 @@ and t is the same as `SECONDARY'.  */)
     return Qnil;
 
   dpy = FRAME_X_DISPLAY (sf);
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
   if (!NILP (Fx_selection_owner_p (selection)))
     return Qt;
   if (EQ (selection, Qnil)) selection = QPRIMARY;
@@ -2166,8 +2166,8 @@ initialize_cut_buffers (display, window)
 }
 
 
-#define CHECK_CUT_BUFFER(symbol,n)					\
-  { CHECK_SYMBOL ((symbol), (n));					\
+#define CHECK_CUT_BUFFER(symbol)					\
+  { CHECK_SYMBOL ((symbol));					\
     if (!EQ((symbol), QCUT_BUFFER0) && !EQ((symbol), QCUT_BUFFER1)	\
 	&& !EQ((symbol), QCUT_BUFFER2) && !EQ((symbol), QCUT_BUFFER3)	\
 	&& !EQ((symbol), QCUT_BUFFER4) && !EQ((symbol), QCUT_BUFFER5)	\
@@ -2199,7 +2199,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-  CHECK_CUT_BUFFER (buffer, 0);
+  CHECK_CUT_BUFFER (buffer);
   buffer_atom = symbol_to_x_atom (dpyinfo, display, buffer);
 
   x_get_window_property (display, window, buffer_atom, &data, &bytes,
@@ -2244,8 +2244,8 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   if (max_bytes > MAX_SELECTION_QUANTUM)
     max_bytes = MAX_SELECTION_QUANTUM;
 
-  CHECK_CUT_BUFFER (buffer, 0);
-  CHECK_STRING (string, 0);
+  CHECK_CUT_BUFFER (buffer);
+  CHECK_STRING (string);
   buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (sf),
 				  display, buffer);
   data = (unsigned char *) XSTRING (string)->data;
@@ -2297,7 +2297,7 @@ Positive means shift the values forward, negative means backward.  */)
   check_x ();
   display = FRAME_X_DISPLAY (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   if (XINT (n) == 0)
     return n;
   if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)

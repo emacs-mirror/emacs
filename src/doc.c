@@ -484,13 +484,13 @@ when doc strings are referred to later in the dumped Emacs.")
     error ("Snarf-documentation can only be called in an undumped Emacs");
 #endif
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
 
 #ifndef CANNOT_DUMP
   name = (char *) alloca (XSTRING (filename)->size + 14);
   strcpy (name, "../etc/");
 #else /* CANNOT_DUMP */
-  CHECK_STRING (Vdoc_directory, 0);
+  CHECK_STRING (Vdoc_directory);
   name = (char *) alloca (XSTRING (filename)->size +
 			  XSTRING (Vdoc_directory)->size + 1);
   strcpy (name, XSTRING (Vdoc_directory)->data);
@@ -600,7 +600,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   if (NILP (string))
     return Qnil;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   tem = Qnil;
   keymap = Qnil;
   name = Qnil;

@@ -683,7 +683,7 @@ or else nothing is done if current buffer isn't visiting a file.")
   if (NILP (file))
     file = current_buffer->file_truename;
   else
-    CHECK_STRING (file, 0);
+    CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
       && !NILP (file))
     lock_file (file);

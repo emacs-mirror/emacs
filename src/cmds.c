@@ -48,7 +48,7 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   (n)
      Lisp_Object n;
 {
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
 
   return make_number (PT + XINT (n));
 }
@@ -62,7 +62,7 @@ On reaching end of buffer, stop and signal error.")
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   /* This used to just set point to point + XINT (n), and then check
      to see if it was within boundaries.  But now that SET_PT can
@@ -98,7 +98,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.")
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   XSETINT (n, - XINT (n));
   return Fforward_char (n);
@@ -123,7 +123,7 @@ With positive N, a non-empty line at the end counts as one line\n\
     count = 1;
   else
     {
-      CHECK_NUMBER (n, 0);
+      CHECK_NUMBER (n);
       count = XINT (n);
     }
 
@@ -168,7 +168,7 @@ boundaries.  */)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   SET_PT (XINT (Fline_beginning_position (n)));
   
@@ -190,7 +190,7 @@ boundaries bind `inhibit-field-text-motion' to t.  */)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   SET_PT (XINT (Fline_end_position (n)));
 
@@ -207,7 +207,7 @@ N was explicitly specified.")
 {
   int pos;
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
 
   pos = PT + XINT (n);
   if (NILP (killflag))
@@ -247,7 +247,7 @@ N was explicitly specified.")
   int deleted_special = 0;
   int pos, pos_byte, i;
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
 
   /* See if we are about to delete a tab or newline backwards.  */
   pos = PT;
@@ -294,7 +294,7 @@ Whichever character you type to run this command is inserted.")
 {
   int character = XINT (last_command_char);
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!INTEGERP (last_command_char))

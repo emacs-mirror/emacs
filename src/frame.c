@@ -337,7 +337,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
   struct gcpro gcpro1;
 
   if (!NILP (mini_window))
-    CHECK_LIVE_WINDOW (mini_window, 0);
+    CHECK_LIVE_WINDOW (mini_window);
 
 #ifdef MULTI_KBOARD
   if (!NILP (mini_window)
@@ -579,7 +579,7 @@ do_switch_frame (frame, track, for_deletion)
   /* This used to say CHECK_LIVE_FRAME, but apparently it's possible for
      a switch-frame event to arrive after a frame is no longer live,
      especially when deleting the initial frame during startup.  */
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   if (! FRAME_LIVE_P (XFRAME (frame)))
     return Qnil;
 
@@ -703,7 +703,7 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
      (window)
      Lisp_Object window;
 {
-  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window);
   return XWINDOW (window)->frame;
 }
 
@@ -719,7 +719,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     w = SELECTED_FRAME ()->root_window;
   else
     {
-      CHECK_LIVE_FRAME (frame, 0);
+      CHECK_LIVE_FRAME (frame);
       w = XFRAME (frame)->root_window;
     }
   while (NILP (XWINDOW (w)->buffer))
@@ -754,7 +754,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     window = SELECTED_FRAME ()->root_window;
   else
     {
-      CHECK_LIVE_FRAME (frame, 0);
+      CHECK_LIVE_FRAME (frame);
       window = XFRAME (frame)->root_window;
     }
   
@@ -774,7 +774,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     window = SELECTED_FRAME ()->selected_window;
   else
     {
-      CHECK_LIVE_FRAME (frame, 0);
+      CHECK_LIVE_FRAME (frame);
       window = XFRAME (frame)->selected_window;
     }
 
@@ -792,8 +792,8 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
   if (NILP (frame))
     frame = selected_frame;
   
-  CHECK_LIVE_FRAME (frame, 0);
-  CHECK_LIVE_WINDOW (window, 1);
+  CHECK_LIVE_FRAME (frame);
+  CHECK_LIVE_WINDOW (window);
 
   if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
     error ("In `set-frame-selected-window', WINDOW is not on FRAME");
@@ -840,7 +840,7 @@ next_frame (frame, minibuf)
 
   /* If this frame is dead, it won't be in Vframe_list, and we'll loop
      forever.  Forestall that.  */
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   while (1)
     for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
@@ -992,7 +992,7 @@ Otherwise, include all frames.  */)
   if (NILP (frame))
     frame = selected_frame;
   
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   return next_frame (frame, miniframe);
 }
 
@@ -1012,7 +1012,7 @@ Otherwise, include all frames.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   return prev_frame (frame, miniframe);
 }
 
@@ -1084,7 +1084,7 @@ frame.  The hook is called with one argument FRAME.  */)
     }
   else
     {
-      CHECK_FRAME (frame, 0);
+      CHECK_FRAME (frame);
       f = XFRAME (frame);
     }
 
@@ -1404,9 +1404,9 @@ before calling this function on it, like this.
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-  CHECK_NUMBER (x, 2);
-  CHECK_NUMBER (y, 1);
+  CHECK_LIVE_FRAME (frame);
+  CHECK_NUMBER (x);
+  CHECK_NUMBER (y);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1436,9 +1436,9 @@ before calling this function on it, like this.
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-  CHECK_NUMBER (x, 2);
-  CHECK_NUMBER (y, 1);
+  CHECK_LIVE_FRAME (frame);
+  CHECK_NUMBER (x);
+  CHECK_NUMBER (y);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1470,7 +1470,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1524,7 +1524,7 @@ but if the second optional argument FORCE is non-nil, you may do so.  */)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   if (NILP (force) && !other_visible_frames (XFRAME (frame)))
     error ("Attempt to make invisible the sole visible or iconified frame");
@@ -1566,7 +1566,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   if (NILP (frame))
     frame = selected_frame;
   
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
@@ -1604,7 +1604,7 @@ Return the symbol `icon' if frame is visible only as an icon.  */)
      (frame)
      Lisp_Object frame;
 {
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
 
@@ -1650,7 +1650,7 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   /* Do like the documentation says. */
   Fmake_frame_visible (frame);
@@ -1673,7 +1673,7 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   
   if (frame_raise_lower_hook)
     (*frame_raise_lower_hook) (XFRAME (frame), 0);
@@ -1713,10 +1713,10 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
   /* Note that we don't check for a live frame here.  It's reasonable
      to redirect the focus of a frame you're about to delete, if you
      know what other frame should receive those keystrokes.  */
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
 
   if (! NILP (focus_frame))
-    CHECK_LIVE_FRAME (focus_frame, 1);
+    CHECK_LIVE_FRAME (focus_frame);
 
   XFRAME (frame)->focus_frame = focus_frame;
 
@@ -1734,7 +1734,7 @@ See `redirect-frame-focus'.  */)
      (frame)
      Lisp_Object frame;
 {
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
 
   return FRAME_FOCUS_FRAME (XFRAME (frame));
 }
@@ -1879,7 +1879,7 @@ set_term_frame_name (f, name)
     }
   else
     {
-      CHECK_STRING (name, 0);
+      CHECK_STRING (name);
 
       /* Don't change the name if it's already NAME.  */
       if (! NILP (Fstring_equal (name, f->name)))
@@ -1976,7 +1976,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
   if (NILP (frame))
     frame = selected_frame;
 
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f = XFRAME (frame);
 
   if (!FRAME_LIVE_P (f))
@@ -2071,8 +2071,8 @@ If FRAME is nil, describe the currently selected frame.  */)
   if (NILP (frame))
     frame = selected_frame;
   else
-    CHECK_FRAME (frame, 0);
-  CHECK_SYMBOL (parameter, 1);
+    CHECK_FRAME (frame);
+  CHECK_SYMBOL (parameter);
   
   f = XFRAME (frame);
   value = Qnil;
@@ -2166,7 +2166,7 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 
   if (EQ (frame, Qnil))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2226,7 +2226,7 @@ For a terminal frame, the value is always 1.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2252,7 +2252,7 @@ For a terminal screen, the value is always 1.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2277,7 +2277,7 @@ If FRAME is omitted, the selected frame is used.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2300,7 +2300,7 @@ If FRAME is omitted, the selected frame is used.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_FRAME (frame, 0);
+  CHECK_FRAME (frame);
   f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2320,10 +2320,10 @@ but that the idea of the actual height of the frame should not be changed.  */)
 {
   register struct frame *f;
 
-  CHECK_NUMBER (lines, 0);
+  CHECK_NUMBER (lines);
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2348,10 +2348,10 @@ but that the idea of the actual width of the frame should not be changed.  */)
      Lisp_Object frame, cols, pretend;
 {
   register struct frame *f;
-  CHECK_NUMBER (cols, 0);
+  CHECK_NUMBER (cols);
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2375,9 +2375,9 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 {
   register struct frame *f;
 
-  CHECK_LIVE_FRAME (frame, 0);
-  CHECK_NUMBER (cols, 2);
-  CHECK_NUMBER (rows, 1);
+  CHECK_LIVE_FRAME (frame);
+  CHECK_NUMBER (cols);
+  CHECK_NUMBER (rows);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
@@ -2407,9 +2407,9 @@ the rightmost or bottommost possible position (that stays within the screen).  *
 {
   register struct frame *f;
 
-  CHECK_LIVE_FRAME (frame, 0);
-  CHECK_NUMBER (xoffset, 1);
-  CHECK_NUMBER (yoffset, 2);
+  CHECK_LIVE_FRAME (frame);
+  CHECK_NUMBER (xoffset);
+  CHECK_NUMBER (yoffset);
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */

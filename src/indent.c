@@ -655,7 +655,7 @@ string_display_width (string, beg, end)
     e = XSTRING (string)->size;
   else
     {
-      CHECK_NUMBER (end, 0);
+      CHECK_NUMBER (end);
       e = XINT (end);
     }
 
@@ -663,7 +663,7 @@ string_display_width (string, beg, end)
     b = 0;
   else
     {
-      CHECK_NUMBER (beg, 0);
+      CHECK_NUMBER (beg);
       b = XINT (beg);
     }
 
@@ -725,10 +725,10 @@ even if that goes past COLUMN; by default, MININUM is zero.  */)
   register int fromcol;
   register int tab_width = XINT (current_buffer->tab_width);
 
-  CHECK_NUMBER (column, 0);
+  CHECK_NUMBER (column);
   if (NILP (minimum))
     XSETFASTINT (minimum, 0);
-  CHECK_NUMBER (minimum, 1);
+  CHECK_NUMBER (minimum);
 
   fromcol = current_column ();
   mincol = fromcol + XINT (minimum);
@@ -925,7 +925,7 @@ The return value is the current column.  */)
   int pos_byte, end_byte, next_boundary_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  CHECK_NATNUM (column, 0);
+  CHECK_NATNUM (column);
   goal = XINT (column);
 
   pos = PT;
@@ -1747,20 +1747,20 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   struct position *pos;
   int hscroll, tab_offset;
 
-  CHECK_NUMBER_COERCE_MARKER (from, 0);
-  CHECK_CONS (frompos, 0);
-  CHECK_NUMBER_CAR (frompos, 0);
-  CHECK_NUMBER_CDR (frompos, 0);
-  CHECK_NUMBER_COERCE_MARKER (to, 0);
-  CHECK_CONS (topos, 0);
-  CHECK_NUMBER_CAR (topos, 0);
-  CHECK_NUMBER_CDR (topos, 0);
-  CHECK_NUMBER (width, 0);
+  CHECK_NUMBER_COERCE_MARKER (from);
+  CHECK_CONS (frompos);
+  CHECK_NUMBER_CAR (frompos);
+  CHECK_NUMBER_CDR (frompos);
+  CHECK_NUMBER_COERCE_MARKER (to);
+  CHECK_CONS (topos);
+  CHECK_NUMBER_CAR (topos);
+  CHECK_NUMBER_CDR (topos);
+  CHECK_NUMBER (width);
   if (!NILP (offsets))
     {
-      CHECK_CONS (offsets, 0);
-      CHECK_NUMBER_CAR (offsets, 0);
-      CHECK_NUMBER_CDR (offsets, 0);
+      CHECK_CONS (offsets);
+      CHECK_NUMBER_CAR (offsets);
+      CHECK_NUMBER_CDR (offsets);
       hscroll = XINT (XCAR (offsets));
       tab_offset = XINT (XCDR (offsets));
     }
@@ -1770,7 +1770,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   if (NILP (window))
     window = Fselected_window ();
   else
-    CHECK_LIVE_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window);
 
   if (XINT (from) < BEGV || XINT (from) > ZV)
     args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
@@ -1976,9 +1976,9 @@ whether or not it is currently displayed in some window.  */)
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
 
-  CHECK_NUMBER (lines, 0);
+  CHECK_NUMBER (lines);
   if (! NILP (window))
-    CHECK_WINDOW (window, 0);
+    CHECK_WINDOW (window);
   else
     window = selected_window;
   w = XWINDOW (window);

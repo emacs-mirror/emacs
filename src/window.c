@@ -294,7 +294,7 @@ used by that frame.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
@@ -331,7 +331,7 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.  */)
 
   if (!NILP (pos))
     {
-      CHECK_NUMBER_COERCE_MARKER (pos, 0);
+      CHECK_NUMBER_COERCE_MARKER (pos);
       posint = XINT (pos);
     }
   else if (w == XWINDOW (selected_window))
@@ -382,7 +382,7 @@ decode_window (window)
   if (NILP (window))
     return XWINDOW (selected_window);
 
-  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window);
   return XWINDOW (window);
 }
 
@@ -430,7 +430,7 @@ NCOL should be zero or positive.  */)
   struct window *w = decode_window (window);
   int hscroll;
 
-  CHECK_NUMBER (ncol, 1);
+  CHECK_NUMBER (ncol);
   hscroll = max (0, XINT (ncol));
   
   /* Prevent redisplay shortcuts when changing the hscroll.  */
@@ -678,14 +678,14 @@ If they are on the border between WINDOW and its right sibling,
   int x, y;
   Lisp_Object lx, ly;
 
-  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
-  CHECK_CONS (coordinates, 1);
+  CHECK_CONS (coordinates);
   lx = Fcar (coordinates);
   ly = Fcdr (coordinates);
-  CHECK_NUMBER_OR_FLOAT (lx, 1);
-  CHECK_NUMBER_OR_FLOAT (ly, 1);
+  CHECK_NUMBER_OR_FLOAT (lx);
+  CHECK_NUMBER_OR_FLOAT (ly);
   x = PIXEL_X_FROM_CANON_X (f, lx);
   y = PIXEL_Y_FROM_CANON_Y (f, ly);
 
@@ -816,12 +816,12 @@ column 0.  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 2);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* Check that arguments are integers or floats.  */
-  CHECK_NUMBER_OR_FLOAT (x, 0);
-  CHECK_NUMBER_OR_FLOAT (y, 1);
+  CHECK_NUMBER_OR_FLOAT (x);
+  CHECK_NUMBER_OR_FLOAT (y);
 
   return window_from_coordinates (f, 
 				  PIXEL_X_FROM_CANON_X (f, x),
@@ -885,7 +885,7 @@ if it isn't already recorded.  */)
   Lisp_Object buf;
 
   buf = w->buffer;
-  CHECK_BUFFER (buf, 0);
+  CHECK_BUFFER (buf);
 
 #if 0 /* This change broke some things.  We should make it later.  */
   /* If we don't know the end position, return nil.
@@ -946,7 +946,7 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
 {
   register struct window *w = decode_window (window);
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 1);
+  CHECK_NUMBER_COERCE_MARKER (pos);
   if (w == XWINDOW (selected_window)
       && XBUFFER (w->buffer) == current_buffer)
     Fgoto_char (pos);
@@ -970,7 +970,7 @@ from overriding motion of point in order to display at this exact start.  */)
 {
   register struct window *w = decode_window (window);
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 1);
+  CHECK_NUMBER_COERCE_MARKER (pos);
   set_marker_restricted (w->start, pos, w->buffer);
   /* this is not right, but much easier than doing what is right. */
   w->start_at_line_beg = Qnil;
@@ -1195,7 +1195,7 @@ delete_window (window)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_WINDOW (window);
   p = XWINDOW (window);
 
   /* It's okay to delete an already-deleted window.  */
@@ -1448,7 +1448,7 @@ decode_next_window_args (window, minibuf, all_frames)
   if (NILP (*window))
     *window = selected_window;
   else
-    CHECK_LIVE_WINDOW (*window, 0);
+    CHECK_LIVE_WINDOW (*window);
   
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
@@ -1632,7 +1632,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.  */)
   Lisp_Object window;
   int i;
 
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   window = selected_window;
   
   for (i = XINT (arg); i > 0; --i)
@@ -1990,7 +1990,7 @@ value is reasonable when this function is called.  */)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_LIVE_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window);
   w = XWINDOW (window);
 
   startpos = marker_position (w->start);
@@ -2056,7 +2056,7 @@ If FRAME is a frame, search only that frame.  */)
   if (!NILP (buffer))
     {
       buffer = Fget_buffer (buffer);
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
     }
   
@@ -2073,7 +2073,7 @@ DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
   if (!NILP (buffer))
     {
       buffer = Fget_buffer (buffer);
-      CHECK_BUFFER (buffer, 0);
+      CHECK_BUFFER (buffer);
       window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
     }
   return Qnil;
@@ -2660,7 +2660,7 @@ BUFFER can be a buffer or buffer name.  */)
 
   XSETWINDOW (window, w);
   buffer = Fget_buffer (buffer);
-  CHECK_BUFFER (buffer, 1);
+  CHECK_BUFFER (buffer);
 
   if (NILP (XBUFFER (buffer)->name))
     error ("Attempt to display deleted buffer");
@@ -2705,7 +2705,7 @@ select_window_1 (window, recordflag)
   register struct window *ow;
   struct frame *sf;
 
-  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window);
 
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
@@ -2802,7 +2802,7 @@ See `special-display-buffer-names', and `special-display-regexps'.  */)
 {
   Lisp_Object tem;
 
-  CHECK_STRING (buffer_name, 1);
+  CHECK_STRING (buffer_name);
 
   tem = Fmember (buffer_name, Vspecial_display_buffer_names);
   if (!NILP (tem))
@@ -2834,7 +2834,7 @@ See `same-window-buffer-names' and `same-window-regexps'.  */)
 {
   Lisp_Object tem;
 
-  CHECK_STRING (buffer_name, 1);
+  CHECK_STRING (buffer_name);
 
   tem = Fmember (buffer_name, Vsame_window_buffer_names);
   if (!NILP (tem))
@@ -2895,7 +2895,7 @@ displayed.  */)
 
   swp = Qnil;
   buffer = Fget_buffer (buffer);
-  CHECK_BUFFER (buffer, 0);
+  CHECK_BUFFER (buffer);
 
   if (!NILP (Vdisplay_buffer_function))
     return call2 (Vdisplay_buffer_function, buffer, not_this_window);
@@ -3165,7 +3165,7 @@ SIZE includes that window's scroll bar, or the divider column to its right.  */)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_LIVE_WINDOW (window, 0);
+    CHECK_LIVE_WINDOW (window);
 
   o = XWINDOW (window);
   fo = XFRAME (WINDOW_FRAME (o));
@@ -3183,7 +3183,7 @@ SIZE includes that window's scroll bar, or the divider column to its right.  */)
     }
   else
     {
-      CHECK_NUMBER (size, 1);
+      CHECK_NUMBER (size);
       size_int = XINT (size);
     }
 
@@ -3278,7 +3278,7 @@ Interactively, if an argument is not given, make the window one line bigger.  */
      (arg, side)
      register Lisp_Object arg, side;
 {
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   enlarge_window (selected_window, XINT (arg), !NILP (side));
 
   if (! NILP (Vwindow_configuration_change_hook))
@@ -3294,7 +3294,7 @@ Interactively, if an argument is not given, make the window one line smaller.  *
      (arg, side)
      register Lisp_Object arg, side;
 {
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (arg);
   enlarge_window (selected_window, -XINT (arg), !NILP (side));
 
   if (! NILP (Vwindow_configuration_change_hook))
@@ -4349,7 +4349,7 @@ showing that buffer is used.  */)
 	       && ! EQ (window, selected_window));
     }
 
-  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window);
 
   if (EQ (window, selected_window))
     error ("There is no other window");
@@ -4394,7 +4394,7 @@ showing that buffer, popping the buffer up if necessary.  */)
     {
       if (CONSP (arg))
 	arg = Fcar (arg);
-      CHECK_NUMBER (arg, 0);
+      CHECK_NUMBER (arg);
       window_scroll (window, XINT (arg), 0, 1);
     }
 
@@ -4549,7 +4549,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   else
     {
       arg = Fprefix_numeric_value (arg);
-      CHECK_NUMBER (arg, 0);
+      CHECK_NUMBER (arg);
     }
 
   set_buffer_internal (buf);
@@ -5271,7 +5271,7 @@ redirection (see `redirect-frame-focus').  */)
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -5340,9 +5340,9 @@ A nil width parameter means no margin.  */)
   struct window *w = decode_window (window);
 
   if (!NILP (left))
-    CHECK_NUMBER_OR_FLOAT (left, 1);
+    CHECK_NUMBER_OR_FLOAT (left);
   if (!NILP (right))
-    CHECK_NUMBER_OR_FLOAT (right, 2);
+    CHECK_NUMBER_OR_FLOAT (right);
 
   /* Check widths < 0 and translate a zero width to nil.
      Margins that are too wide have to be checked elsewhere.  */
@@ -5401,7 +5401,7 @@ Value is a multiple of the canonical character height of WINDOW.  */)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
+    CHECK_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
   
@@ -5427,8 +5427,8 @@ non-negative multiple of the canonical character height of WINDOW.  */)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 0);
-  CHECK_NUMBER_OR_FLOAT (vscroll, 1);
+    CHECK_WINDOW (window);
+  CHECK_NUMBER_OR_FLOAT (vscroll);
   
   w = XWINDOW (window);
   f = XFRAME (w->frame);

@@ -58,7 +58,7 @@ DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
   BOOL ok = FALSE;
   
   if (!NILP (frame))
-    CHECK_LIVE_FRAME (frame, 0);
+    CHECK_LIVE_FRAME (frame);
   
   BLOCK_INPUT;
   
@@ -113,10 +113,10 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
   unsigned char *src;
   unsigned char *dst;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   
   if (!NILP (frame))
-    CHECK_LIVE_FRAME (frame, 0);
+    CHECK_LIVE_FRAME (frame);
   
   BLOCK_INPUT;
 
@@ -257,7 +257,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
   Lisp_Object ret = Qnil;
   
   if (!NILP (frame))
-    CHECK_LIVE_FRAME (frame, 0);
+    CHECK_LIVE_FRAME (frame);
   
   BLOCK_INPUT;
   
@@ -404,7 +404,7 @@ and t is the same as `SECONDARY'.")
   (selection)
      Lisp_Object selection;
 {
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
 
   /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
      if the clipboard currently has valid text format contents. */

@@ -816,7 +816,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.")
 
   (*check_window_system_func) ();
 
-  CHECK_STRING (pattern, 0);
+  CHECK_STRING (pattern);
 
   if (XSTRING (pattern)->size == 0)
     return Qnil;
@@ -888,8 +888,8 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.")
 
   (*check_window_system_func) ();
 
-  CHECK_STRING (name, 0);
-  CHECK_LIST (fontlist, 1);
+  CHECK_STRING (name);
+  CHECK_LIST (fontlist);
 
   name = Fdowncase (name);
   tem = Fquery_fontset (name, Qnil);
@@ -969,7 +969,7 @@ check_fontset_name (name)
   if (EQ (name, Qt))
     return Vdefault_fontset;
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
   id = fs_query_fontset (name, 0);
   if (id < 0)
     error ("Fontset `%s' does not exist", XSTRING (name)->data);
@@ -1002,8 +1002,8 @@ name of a font, REGSITRY is a registry name of a font.")
     {
       /* CH should be (FROM . TO) where FROM and TO are non-generic
 	 characters.  */
-      CHECK_NUMBER_CAR (character, 1);
-      CHECK_NUMBER_CDR (character, 1);
+      CHECK_NUMBER_CAR (character);
+      CHECK_NUMBER_CDR (character);
       from = XINT (XCAR (character));
       to = XINT (XCDR (character));
       if (!char_valid_p (from, 0) || !char_valid_p (to, 0))
@@ -1022,7 +1022,7 @@ name of a font, REGSITRY is a registry name of a font.")
     }
   else
     {
-      CHECK_NUMBER (character, 1);
+      CHECK_NUMBER (character);
       from = XINT (character);
       to = from;
     }
@@ -1045,17 +1045,17 @@ name of a font, REGSITRY is a registry name of a font.")
     }
   else
     {
-      CHECK_CONS (fontname, 2);
+      CHECK_CONS (fontname);
       family = XCAR (fontname);
       registry = XCDR (fontname);
       if (!NILP (family))
 	{
-	  CHECK_STRING (family, 2);
+	  CHECK_STRING (family);
 	  family = Fdowncase (family);
 	}
       if (!NILP (registry))
 	{
-	  CHECK_STRING (registry, 2);
+	  CHECK_STRING (registry);
 	  registry = Fdowncase (registry);
 	}
       elt = Fcons (make_number (from), Fcons (family, registry));
@@ -1064,7 +1064,7 @@ name of a font, REGSITRY is a registry name of a font.")
   /* The arg FRAME is kept for backward compatibility.  We only check
      the validity.  */
   if (!NILP (frame))
-    CHECK_LIVE_FRAME (frame, 3);
+    CHECK_LIVE_FRAME (frame);
 
   for (; from <= to; from++)
     FONTSET_SET (fontset, from, elt);
@@ -1113,11 +1113,11 @@ If the named font is not yet loaded, return nil.")
 
   (*check_window_system_func) ();
 
-  CHECK_STRING (name, 0);
+  CHECK_STRING (name);
   name = Fdowncase (name);
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 1);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   if (!query_font_func)
@@ -1170,7 +1170,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
   struct frame *f;
   struct face *face;
 
-  CHECK_NUMBER_COERCE_MARKER (position, 0);
+  CHECK_NUMBER_COERCE_MARKER (position);
   pos = XINT (position);
   if (pos < BEGV || pos >= ZV)
     args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
@@ -1274,7 +1274,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 
   if (NILP (frame))
     frame = selected_frame;
-  CHECK_LIVE_FRAME (frame, 1);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* Recode realized fontsets whose base is FONTSET in the table
@@ -1360,7 +1360,7 @@ If NAME is t, find a font name pattern in the default fontset.")
 
   fontset = check_fontset_name (name);
 
-  CHECK_NUMBER (ch, 1);
+  CHECK_NUMBER (ch);
   c = XINT (ch);
   if (!char_valid_p (c, 1))
     invalid_character (c);

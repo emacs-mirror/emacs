@@ -491,12 +491,12 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   int charset_info;
   int no_crlf_conversion;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   
   if (NILP (frame))
     frame = Fselected_frame ();
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
   
@@ -605,7 +605,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   if (NILP (frame))
     frame = Fselected_frame ();
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
   
@@ -701,7 +701,7 @@ and t is the same as `SECONDARY'.")
   (selection)
      Lisp_Object selection;
 {
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
 
   /* Return nil for SECONDARY selection.  For PRIMARY (or nil)
      selection, check if there is some text on the kill-ring;

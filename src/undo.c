@@ -407,7 +407,7 @@ Return what remains of the list.  */)
     list = Fcdr (list);
 #endif
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   arg = XINT (n);
   next = Qnil;
   GCPRO2 (next, list);

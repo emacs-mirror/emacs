@@ -159,7 +159,7 @@ Redisplay does not happen if input is available before it starts.  */)
   struct timeval Timeout;
   int waitmask = 1;
   
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   Timeout.tv_sec = XINT(n) / 1000;
   Timeout.tv_usec = (XINT(n) - (Timeout.tv_sec * 1000)) * 1000;
 
@@ -187,7 +187,7 @@ DEFUN ("sleep-for-millisecs",
 {
   unsigned useconds;
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   useconds = XINT(n) * 1000;
   usleep(useconds);
   return(Qt);
@@ -230,15 +230,15 @@ expressed as a string.  If ICON is nil then the original arrow cursor is used.  
     /*
      *	extract the data from the vector
      */
-    CHECK_VECTOR (Icon, 0);
+    CHECK_VECTOR (Icon);
     if (XVECTOR(Icon)->size < 3) return(Qnil);
     X_Hot = XVECTOR(Icon)->contents[0];
     Y_Hot = XVECTOR(Icon)->contents[1];
     Data = XVECTOR(Icon)->contents[2];
     
-    CHECK_NUMBER (X_Hot, 0);
-    CHECK_NUMBER (Y_Hot, 0);
-    CHECK_STRING (Data, 0);
+    CHECK_NUMBER (X_Hot);
+    CHECK_NUMBER (Y_Hot);
+    CHECK_STRING (Data);
     if (XSTRING(Data)->size != 32) return(Qnil);
     /*
      *	Setup the new cursor
@@ -324,7 +324,7 @@ DEFUN ("sun-set-selection", Fsun_set_selection, Ssun_set_selection, 1, 1,
 {
   struct selection selection;
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (str);
   Current_Selection = str;
 
   CHECK_GFX (Qnil);
@@ -363,7 +363,7 @@ sun_item_create (Pair)
 
   if (!CONSP(Pair)) wrong_type_argument(Qlistp, Pair);
   String = Fcar(Pair);
-  CHECK_STRING(String, 0);
+  CHECK_STRING(String);
   Value = Fcdr(Pair);
   if (SYMBOLP (Value))
     Value = SYMBOL_VALUE (Value);
@@ -384,7 +384,7 @@ sun_menu_create (Vector)
 {
   Menu menu;
   int i;
-  CHECK_VECTOR(Vector,0);
+  CHECK_VECTOR(Vector);
   menu=menu_create(0); 
   for(i = 0; i < XVECTOR(Vector)->size; i++) {
     menu_set (menu, MENU_APPEND_ITEM, 
@@ -445,11 +445,11 @@ as a menu label.  */)
   Event *event = &event0;
   Lisp_Object Value, Pair;
   
-  CHECK_NUMBER(X_Position, 0);
-  CHECK_NUMBER(Y_Position, 1);
-  CHECK_LIVE_WINDOW(window, 2);
-  CHECK_NUMBER(Button, 3);
-  CHECK_VECTOR(MEnu, 4);
+  CHECK_NUMBER(X_Position);
+  CHECK_NUMBER(Y_Position);
+  CHECK_LIVE_WINDOW(window);
+  CHECK_NUMBER(Button);
+  CHECK_VECTOR(MEnu);
 
   CHECK_GFX (Qnil);
 

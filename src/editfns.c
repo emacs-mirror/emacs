@@ -172,7 +172,7 @@ usage: (char-to-string CHAR)  */)
   int len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
 
   len = (SINGLE_BYTE_CHAR_P (XFASTINT (character))
 	 ? (*str = (unsigned char)(XFASTINT (character)), 1)
@@ -188,7 +188,7 @@ A multibyte character is handled correctly.  */)
 {
   register Lisp_Object val;
   register struct Lisp_String *p;
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   p = XSTRING (string);
   if (p->size)
     {
@@ -266,7 +266,7 @@ except in the case that `enable-multibyte-characters' is nil.  */)
       return position;
     }
 
-  CHECK_NUMBER_COERCE_MARKER (position, 0);
+  CHECK_NUMBER_COERCE_MARKER (position);
 
   pos = clip_to_bounds (BEGV, XINT (position), ZV);
   SET_PT (pos);
@@ -435,7 +435,7 @@ find_field (pos, merge_at_boundary, beg, end)
   if (NILP (pos))
     XSETFASTINT (pos, PT);
   else
-    CHECK_NUMBER_COERCE_MARKER (pos, 0);
+    CHECK_NUMBER_COERCE_MARKER (pos);
 
   after_field
     = get_char_property_and_overlay (pos, Qfield, Qnil, &after_overlay);
@@ -689,8 +689,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
       int fwd, shortage;
       Lisp_Object field_bound;
 
-      CHECK_NUMBER_COERCE_MARKER (new_pos, 0);
-      CHECK_NUMBER_COERCE_MARKER (old_pos, 0);
+      CHECK_NUMBER_COERCE_MARKER (new_pos);
+      CHECK_NUMBER_COERCE_MARKER (old_pos);
 
       fwd = (XFASTINT (new_pos) > XFASTINT (old_pos));
 
@@ -748,7 +748,7 @@ This function does not move point.  */)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   orig = PT;
   orig_byte = PT_BYTE;
@@ -783,7 +783,7 @@ This function does not move point.  */)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (n);
 
   end_pos = find_before_next_newline (orig, 0, XINT (n) - (XINT (n) <= 0));
 
@@ -942,7 +942,7 @@ If BUFFER, return the number of characters in that buffer instead.  */)
     return make_number (Z - BEG);
   else
     {
-      CHECK_BUFFER (buffer, 1);
+      CHECK_BUFFER (buffer);
       return make_number (BUF_Z (XBUFFER (buffer))
 			  - BUF_BEG (XBUFFER (buffer)));
     }
@@ -1012,7 +1012,7 @@ If POSITION is out of range, the value is nil.  */)
      (position)
      Lisp_Object position;
 {
-  CHECK_NUMBER_COERCE_MARKER (position, 1);
+  CHECK_NUMBER_COERCE_MARKER (position);
   if (XINT (position) < BEG || XINT (position) > Z)
     return Qnil;
   return make_number (CHAR_TO_BYTE (XINT (position)));
@@ -1024,7 +1024,7 @@ If BYTEPOS is out of range, the value is nil.  */)
      (bytepos)
      Lisp_Object bytepos;
 {
-  CHECK_NUMBER (bytepos, 1);
+  CHECK_NUMBER (bytepos);
   if (XINT (bytepos) < BEG_BYTE || XINT (bytepos) > Z_BYTE)
     return Qnil;
   return make_number (BYTE_TO_CHAR (XINT (bytepos)));
@@ -1124,7 +1124,7 @@ If POS is out of range, the value is nil.  */)
     }
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (pos, 0);
+      CHECK_NUMBER_COERCE_MARKER (pos);
       if (XINT (pos) < BEGV || XINT (pos) >= ZV)
 	return Qnil;
 
@@ -1159,7 +1159,7 @@ If POS is out of range, the value is nil.  */)
     }
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (pos, 0);
+      CHECK_NUMBER_COERCE_MARKER (pos);
 
       if (XINT (pos) <= BEGV || XINT (pos) > ZV)
 	return Qnil;
@@ -1202,7 +1202,7 @@ with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  CHECK_NUMBER (uid, 0);
+  CHECK_NUMBER (uid);
   pw = (struct passwd *) getpwuid (XINT (uid));
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
@@ -1366,7 +1366,7 @@ lisp_time_argument (specified_time, result, usec)
     {
       Lisp_Object high, low;
       high = Fcar (specified_time);
-      CHECK_NUMBER (high, 0);
+      CHECK_NUMBER (high);
       low = Fcdr (specified_time);
       if (CONSP (low))
         {
@@ -1379,7 +1379,7 @@ lisp_time_argument (specified_time, result, usec)
                 *usec = 0;
               else
                 {
-                  CHECK_NUMBER (usec_l, 0);
+                  CHECK_NUMBER (usec_l);
                   *usec = XINT (usec_l);
                 }
             }
@@ -1387,7 +1387,7 @@ lisp_time_argument (specified_time, result, usec)
         }
       else if (usec)
         *usec = 0;
-      CHECK_NUMBER (low, 0);
+      CHECK_NUMBER (low);
       *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
       return *result >> 16 == XINT (high);
     }
@@ -1527,7 +1527,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   struct tm *tm;
   int ut = ! NILP (universal);
 
-  CHECK_STRING (format_string, 1);
+  CHECK_STRING (format_string);
 
   if (! lisp_time_argument (time, &value, NULL))
     error ("Invalid time specification");
@@ -1639,12 +1639,12 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   struct tm tm;
   Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
-  CHECK_NUMBER (args[0], 0);	/* second */
-  CHECK_NUMBER (args[1], 1);	/* minute */
-  CHECK_NUMBER (args[2], 2);	/* hour */
-  CHECK_NUMBER (args[3], 3);	/* day */
-  CHECK_NUMBER (args[4], 4);	/* month */
-  CHECK_NUMBER (args[5], 5);	/* year */
+  CHECK_NUMBER (args[0]);	/* second */
+  CHECK_NUMBER (args[1]);	/* minute */
+  CHECK_NUMBER (args[2]);	/* hour */
+  CHECK_NUMBER (args[3]);	/* day */
+  CHECK_NUMBER (args[4]);	/* month */
+  CHECK_NUMBER (args[5]);	/* year */
 
   tm.tm_sec = XINT (args[0]);
   tm.tm_min = XINT (args[1]);
@@ -1844,7 +1844,7 @@ If TZ is t, use Universal Time.  */)
     tzstring = "UTC0";
   else
     {
-      CHECK_STRING (tz, 0);
+      CHECK_STRING (tz);
       tzstring = (char *) XSTRING (tz)->data;
     }
 
@@ -2114,8 +2114,8 @@ from adjoining text, if those properties are sticky.  */)
   int len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character, 0);
-  CHECK_NUMBER (count, 1);
+  CHECK_NUMBER (character);
+  CHECK_NUMBER (count);
 
   if (!NILP (current_buffer->enable_multibyte_characters))
     len = CHAR_STRING (XFASTINT (character), str);
@@ -2326,14 +2326,14 @@ They default to the beginning and the end of BUFFER.  */)
     b = BUF_BEGV (bp);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (start, 0);
+      CHECK_NUMBER_COERCE_MARKER (start);
       b = XINT (start);
     }
   if (NILP (end))
     e = BUF_ZV (bp);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (end, 1);
+      CHECK_NUMBER_COERCE_MARKER (end);
       e = XINT (end);
     }
 
@@ -2392,14 +2392,14 @@ determines whether case is significant or ignored.  */)
     begp1 = BUF_BEGV (bp1);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (start1, 1);
+      CHECK_NUMBER_COERCE_MARKER (start1);
       begp1 = XINT (start1);
     }
   if (NILP (end1))
     endp1 = BUF_ZV (bp1);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (end1, 2);
+      CHECK_NUMBER_COERCE_MARKER (end1);
       endp1 = XINT (end1);
     }
 
@@ -2430,14 +2430,14 @@ determines whether case is significant or ignored.  */)
     begp2 = BUF_BEGV (bp2);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (start2, 4);
+      CHECK_NUMBER_COERCE_MARKER (start2);
       begp2 = XINT (start2);
     }
   if (NILP (end2))
     endp2 = BUF_ZV (bp2);
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (end2, 5);
+      CHECK_NUMBER_COERCE_MARKER (end2);
       endp2 = XINT (end2);
     }
 
@@ -2547,8 +2547,8 @@ Both characters must have the same length of multi-byte form.  */)
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&start, &end);
-  CHECK_NUMBER (fromchar, 2);
-  CHECK_NUMBER (tochar, 3);
+  CHECK_NUMBER (fromchar);
+  CHECK_NUMBER (tochar);
 
   if (multibyte_p)
     {
@@ -2712,7 +2712,7 @@ It returns the number of characters changed.  */)
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&start, &end);
-  CHECK_STRING (table, 2);
+  CHECK_STRING (table);
 
   size = STRING_BYTES (XSTRING (table));
   tt = XSTRING (table)->data;
@@ -2830,8 +2830,8 @@ or markers) bounding the text that should remain visible.  */)
      (start, end)
      register Lisp_Object start, end;
 {
-  CHECK_NUMBER_COERCE_MARKER (start, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
+  CHECK_NUMBER_COERCE_MARKER (start);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   if (XINT (start) > XINT (end))
     {
@@ -3103,12 +3103,12 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   GCPRO2 (properties, string);
 
   /* First argument must be a string.  */
-  CHECK_STRING (args[0], 0);
+  CHECK_STRING (args[0]);
   string = Fcopy_sequence (args[0]);
 
   for (i = 1; i < nargs; i += 2)
     {
-      CHECK_SYMBOL (args[i], i);
+      CHECK_SYMBOL (args[i]);
       properties = Fcons (args[i], Fcons (args[i + 1], properties));
     }
 
@@ -3182,7 +3182,7 @@ usage: (format STRING &rest OBJECTS)  */)
     if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
       multibyte = 1;
 
-  CHECK_STRING (args[0], 0);
+  CHECK_STRING (args[0]);
 
   /* If we start out planning a unibyte result,
      and later find it has to be multibyte, we jump back to retry.  */
@@ -3577,8 +3577,8 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
      register Lisp_Object c1, c2;
 {
   int i1, i2;
-  CHECK_NUMBER (c1, 0);
-  CHECK_NUMBER (c2, 1);
+  CHECK_NUMBER (c1);
+  CHECK_NUMBER (c2);
 
   if (XINT (c1) == XINT (c2))
     return Qt;

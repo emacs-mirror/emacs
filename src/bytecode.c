@@ -447,10 +447,10 @@ If the third argument is incorrect, Emacs may crash.  */)
  }
 #endif
 
-  CHECK_STRING (bytestr, 0);
+  CHECK_STRING (bytestr);
   if (!VECTORP (vector))
     vector = wrong_type_argument (Qvectorp, vector);
-  CHECK_NUMBER (maxdepth, 2);
+  CHECK_NUMBER (maxdepth);
 
   if (STRING_MULTIBYTE (bytestr))
     /* BYTESTR must have been produced by Emacs 20.2 or the earlier
@@ -895,7 +895,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
-	  CHECK_STRING (TOP, 0);
+	  CHECK_STRING (TOP);
 	  temp_output_buffer_setup (XSTRING (TOP)->data);
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
@@ -920,7 +920,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    v2 = TOP;
-	    CHECK_NUMBER (v2, 0);
+	    CHECK_NUMBER (v2);
 	    AFTER_POTENTIAL_GC ();
 	    op = XINT (v2);
 	    immediate_quit = 1;
@@ -1152,8 +1152,8 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
 	    v2 = POP; v1 = TOP;
-	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
-	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
+	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1);
+	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2);
 	    AFTER_POTENTIAL_GC ();
 	    if (FLOATP (v1) || FLOATP (v2))
 	      {
@@ -1434,7 +1434,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 
 	case Bchar_syntax:
 	  BEFORE_POTENTIAL_GC ();
-	  CHECK_NUMBER (TOP, 0);
+	  CHECK_NUMBER (TOP);
 	  AFTER_POTENTIAL_GC ();
 	  XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (XINT (TOP))]);
 	  break;
@@ -1563,7 +1563,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		BEFORE_POTENTIAL_GC ();
 		v2 = POP;
 		v1 = TOP;
-		CHECK_NUMBER (v2, 0);
+		CHECK_NUMBER (v2);
 		AFTER_POTENTIAL_GC ();
 		op = XINT (v2);
 		immediate_quit = 1;

@@ -156,7 +156,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 
   if (!NILP (match))
     {
-      CHECK_STRING (match, 3);
+      CHECK_STRING (match);
 
       /* MATCH might be a flawed regular expression.  Rather than
 	 catching and signaling our own errors, we just call
@@ -488,7 +488,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
     readfunc = readdirver;
   file = Fupcase (file);
 #else  /* not VMS */
-  CHECK_STRING (file, 0);
+  CHECK_STRING (file);
 #endif /* not VMS */
 
 #ifdef FILE_SYSTEM_CASE

@@ -3300,7 +3300,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 {
   struct frame *f;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
   /* Ignore redraw requests, if frame has no glyphs yet.
@@ -6023,7 +6023,7 @@ Control characters in STRING will have terminal-dependent effects.  */)
      Lisp_Object string;
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   fwrite (XSTRING (string)->data, 1, STRING_BYTES (XSTRING (string)), stdout);
   fflush (stdout);
   if (termscript)
@@ -6090,7 +6090,7 @@ Emacs was built without floating point support.
   if (NILP (milliseconds))
     XSETINT (milliseconds, 0);
   else
-    CHECK_NUMBER (milliseconds, 1);
+    CHECK_NUMBER (milliseconds);
   usec = XINT (milliseconds) * 1000;
 
   {
@@ -6217,7 +6217,7 @@ Value is t if waited the full time with no input arriving.  */)
   if (NILP (milliseconds))
     XSETINT (milliseconds, 0);
   else
-    CHECK_NUMBER (milliseconds, 1);
+    CHECK_NUMBER (milliseconds);
   usec = XINT (milliseconds) * 1000;
 
   {
@@ -6536,7 +6536,7 @@ don't show a cursor.  */)
       if (NILP (window))
 	window = selected_window;
       else
-	CHECK_WINDOW (window, 2);
+	CHECK_WINDOW (window);
       
       XWINDOW (window)->cursor_off_p = NILP (show);
     }
@@ -6557,7 +6557,7 @@ WINDOW nil or omitted means report on the selected window.  */)
   if (NILP (window))
     window = selected_window;
   else
-    CHECK_WINDOW (window, 2);
+    CHECK_WINDOW (window);
   
   w = XWINDOW (window);
   return w->cursor_off_p ? Qnil : Qt;    

@@ -5741,7 +5741,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       inhibit_pre_post_conversion = 0;
       /* Discard the unwind protect.  */
       specpdl_ptr--;
-      CHECK_NUMBER (val, 0);
+      CHECK_NUMBER (val);
       inserted += Z - prev_Z;
     }
 
@@ -6148,7 +6148,7 @@ The value of property should be a vector of length 5.")
   (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system, 0);
+  CHECK_SYMBOL (coding_system);
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
   while (1)
@@ -6236,8 +6236,8 @@ highest priority.")
   int from_byte, to_byte;
   int include_anchor_byte = 0;
 
-  CHECK_NUMBER_COERCE_MARKER (start, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
+  CHECK_NUMBER_COERCE_MARKER (start);
+  CHECK_NUMBER_COERCE_MARKER (end);
 
   validate_region (&start, &end);
   from = XINT (start), to = XINT (end);
@@ -6276,7 +6276,7 @@ highest priority.")
   (string, highest)
      Lisp_Object string, highest;
 {
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   return detect_coding_system (XSTRING (string)->data,
 			       /* "+ 1" is to include the anchor byte
@@ -6386,8 +6386,8 @@ DEFUN ("find-coding-systems-region-internal",
     {
       int from, to, stop;
 
-      CHECK_NUMBER_COERCE_MARKER (start, 0);
-      CHECK_NUMBER_COERCE_MARKER (end, 1);
+      CHECK_NUMBER_COERCE_MARKER (start);
+      CHECK_NUMBER_COERCE_MARKER (end);
       if (XINT (start) < BEG || XINT (end) > Z || XINT (start) > XINT (end))
 	args_out_of_range (start, end);
       if (NILP (current_buffer->enable_multibyte_characters))
@@ -6453,9 +6453,9 @@ code_convert_region1 (start, end, coding_system, encodep)
   struct coding_system coding;
   int from, to;
 
-  CHECK_NUMBER_COERCE_MARKER (start, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
-  CHECK_SYMBOL (coding_system, 2);
+  CHECK_NUMBER_COERCE_MARKER (start);
+  CHECK_NUMBER_COERCE_MARKER (end);
+  CHECK_SYMBOL (coding_system);
 
   validate_region (&start, &end);
   from = XFASTINT (start);
@@ -6513,8 +6513,8 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
 {
   struct coding_system coding;
 
-  CHECK_STRING (string, 0);
-  CHECK_SYMBOL (coding_system, 1);
+  CHECK_STRING (string);
+  CHECK_SYMBOL (coding_system);
 
   if (NILP (coding_system))
     return (NILP (nocopy) ? Fcopy_sequence (string) : string);
@@ -6572,8 +6572,8 @@ code_convert_string_norecord (string, coding_system, encodep)
 {
   struct coding_system coding;
 
-  CHECK_STRING (string, 0);
-  CHECK_SYMBOL (coding_system, 1);
+  CHECK_STRING (string);
+  CHECK_SYMBOL (coding_system);
 
   if (NILP (coding_system))
     return string;
@@ -6597,7 +6597,7 @@ Return the corresponding character.")
   unsigned char c1, c2, s1, s2;
   Lisp_Object val;
 
-  CHECK_NUMBER (code, 0);
+  CHECK_NUMBER (code);
   s1 = (XFASTINT (code)) >> 8, s2 = (XFASTINT (code)) & 0xFF;
   if (s1 == 0)
     {
@@ -6628,7 +6628,7 @@ Return the corresponding code in SJIS.")
   int charset, c1, c2, s1, s2;
   Lisp_Object val;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
   if (charset == CHARSET_ASCII)
     {
@@ -6660,7 +6660,7 @@ Return the corresponding character.")
   unsigned char b1, b2, c1, c2;
   Lisp_Object val;
 
-  CHECK_NUMBER (code, 0);
+  CHECK_NUMBER (code);
   b1 = (XFASTINT (code)) >> 8, b2 = (XFASTINT (code)) & 0xFF;
   if (b1 == 0)
     {
@@ -6688,7 +6688,7 @@ Return the corresponding character code in Big5.")
   int charset, c1, c2, b1, b2;
   Lisp_Object val;
 
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (ch);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
   if (charset == CHARSET_ASCII)
     {
@@ -6713,7 +6713,7 @@ DEFUN ("set-terminal-coding-system-internal",
   (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system, 0);
+  CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
   terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
@@ -6732,7 +6732,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
   (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system, 0);
+  CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system),
 		       &safe_terminal_coding);
   /* Character composition should be disabled.  */
@@ -6758,7 +6758,7 @@ DEFUN ("set-keyboard-coding-system-internal",
   (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system, 0);
+  CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), &keyboard_coding);
   /* Character composition should be disabled.  */
   keyboard_coding.composing = COMPOSITION_DISABLED;

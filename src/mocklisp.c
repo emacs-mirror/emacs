@@ -125,7 +125,7 @@ DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
 {
   if (EQ (Vmocklisp_arguments, Qinteractive))
     return Fread_string (prompt, Qnil, Qnil, Qnil, Qnil);
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (n);
   XSETINT (n, XINT (n) - 1);	/* Mocklisp likes to be origin-1 */
   return Fcar (Fnthcdr (n, Vmocklisp_arguments));
 }
@@ -189,9 +189,9 @@ If either FROM or LENGTH is negative, the length of STRING is added to it.  */)
      (string, from, to)
      Lisp_Object string, from, to;
 {
-  CHECK_STRING (string, 0);
-  CHECK_NUMBER (from, 1);
-  CHECK_NUMBER (to, 2);
+  CHECK_STRING (string);
+  CHECK_NUMBER (from);
+  CHECK_NUMBER (to);
 
   if (XINT (from) < 0)
     XSETINT (from, XINT (from) + XSTRING (string)->size);

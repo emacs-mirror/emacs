@@ -65,13 +65,13 @@ REGISTERS should be a vector produced by `make-register' and\n\
   union REGS inregs, outregs;
   Lisp_Object val;
 
-  CHECK_NUMBER (interrupt, 0);
+  CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
-  CHECK_VECTOR (registers, 1);
+  CHECK_VECTOR (registers);
   if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8) 
     return Qnil;
   for (i = 0; i < 8; i++)
-    CHECK_NUMBER (XVECTOR (registers)->contents[i], 1);
+    CHECK_NUMBER (XVECTOR (registers)->contents[i]);
 
   inregs.x.ax    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[0]);
   inregs.x.bx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[1]);
@@ -107,9 +107,9 @@ Return the updated VECTOR.")
   char *buf;
   Lisp_Object val;
 
-  CHECK_NUMBER (address, 0);
+  CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
-  CHECK_VECTOR (vector, 1);
+  CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
   if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
     return Qnil;
@@ -132,9 +132,9 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   char *buf;
   Lisp_Object val;
 
-  CHECK_NUMBER (address, 0);
+  CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
-  CHECK_VECTOR (vector, 1);
+  CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
   if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
     return Qnil;
@@ -142,7 +142,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 
   for (i = 0; i < len; i++)
     {
-      CHECK_NUMBER (XVECTOR (vector)->contents[i], 1);
+      CHECK_NUMBER (XVECTOR (vector)->contents[i]);
       buf[i] = (unsigned char) XFASTINT (XVECTOR (vector)->contents[i]) & 0xFF;
     }
 
@@ -158,7 +158,7 @@ The current keyboard layout is available in dos-keyboard-code.")
   (country_code, allkeys)
   Lisp_Object country_code;
 {
-  CHECK_NUMBER (country_code, 0);
+  CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
     return Qnil;
   return Qt;
@@ -524,7 +524,7 @@ If the underlying system call fails, value is nil.")
   struct statfs stfs;
   Lisp_Object encoded, value;
 
-  CHECK_STRING (filename, 0);
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
   encoded = ENCODE_FILE (filename);
 

@@ -276,7 +276,7 @@ looking_at_1 (string, posix)
   if (running_asynch_code)
     save_search_regs ();
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
 			   ? DOWNCASE_TABLE : Qnil),
@@ -365,8 +365,8 @@ string_match_1 (regexp, string, start, posix)
   if (running_asynch_code)
     save_search_regs ();
 
-  CHECK_STRING (regexp, 0);
-  CHECK_STRING (string, 1);
+  CHECK_STRING (regexp);
+  CHECK_STRING (string);
 
   if (NILP (start))
     pos = 0, pos_byte = 0;
@@ -374,7 +374,7 @@ string_match_1 (regexp, string, start, posix)
     {
       int len = XSTRING (string)->size;
 
-      CHECK_NUMBER (start, 2);
+      CHECK_NUMBER (start);
       pos = XINT (start);
       if (pos < 0 && -pos <= len)
 	pos = len + pos;
@@ -872,11 +872,11 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 
   if (!NILP (count))
     {
-      CHECK_NUMBER (count, 3);
+      CHECK_NUMBER (count);
       n *= XINT (count);
     }
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   if (NILP (bound))
     {
       if (n > 0)
@@ -886,7 +886,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
     }
   else
     {
-      CHECK_NUMBER_COERCE_MARKER (bound, 1);
+      CHECK_NUMBER_COERCE_MARKER (bound);
       lim = XINT (bound);
       if (n > 0 ? lim < PT : lim > PT)
 	error ("Invalid search bound (wrong side of point)");
@@ -1943,7 +1943,7 @@ wordify (string)
   int prev_c = 0;
   int adjust;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   p = XSTRING (string)->data;
   len = XSTRING (string)->size;
 
@@ -2203,10 +2203,10 @@ since only regular expressions have distinguished subexpressions.  */)
   int sub;
   int opoint, newpoint;
 
-  CHECK_STRING (newtext, 0);
+  CHECK_STRING (newtext);
 
   if (! NILP (string))
-    CHECK_STRING (string, 4);
+    CHECK_STRING (string);
 
   case_action = nochange;	/* We tried an initialization */
 				/* but some C compilers blew it */
@@ -2218,7 +2218,7 @@ since only regular expressions have distinguished subexpressions.  */)
     sub = 0;
   else
     {
-      CHECK_NUMBER (subexp, 3);
+      CHECK_NUMBER (subexp);
       sub = XINT (subexp);
       if (sub < 0 || sub >= search_regs.num_regs)
 	args_out_of_range (subexp, make_number (search_regs.num_regs));
@@ -2581,7 +2581,7 @@ match_limit (num, beginningp)
 {
   register int n;
 
-  CHECK_NUMBER (num, 0);
+  CHECK_NUMBER (num);
   n = XINT (num);
   if (n < 0 || n >= search_regs.num_regs)
     args_out_of_range (num, make_number (search_regs.num_regs));
@@ -2771,7 +2771,7 @@ LIST should have been created by calling `match-data' previously.  */)
 		XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
 	    }
 
-	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
+	  CHECK_NUMBER_COERCE_MARKER (marker);
 	  from = XINT (marker);
 	  list = Fcdr (list);
 
@@ -2779,7 +2779,7 @@ LIST should have been created by calling `match-data' previously.  */)
 	  if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
 	    XSETFASTINT (marker, 0);
 
-	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
+	  CHECK_NUMBER_COERCE_MARKER (marker);
 	  search_regs.start[i] = from;
 	  search_regs.end[i] = XINT (marker);
 	}
@@ -2842,7 +2842,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
   register unsigned char *temp;
   int backslashes_added = 0;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   temp = (unsigned char *) alloca (STRING_BYTES (XSTRING (string)) * 2);
 

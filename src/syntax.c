@@ -871,7 +871,7 @@ are listed in the documentation of `modify-syntax-entry'.  */)
   gl_state.current_syntax_table = current_buffer->syntax_table;
 
   gl_state.use_global = 0;
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
   char_int = XINT (character);
   return make_number (syntax_code_spec[(int) SYNTAX (char_int)]);
 }
@@ -884,7 +884,7 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
   int char_int, code;
   gl_state.current_syntax_table = current_buffer->syntax_table;
   gl_state.use_global = 0;
-  CHECK_NUMBER (character, 0);
+  CHECK_NUMBER (character);
   char_int = XINT (character);
   code = SYNTAX (char_int);
   if (code == Sopen || code == Sclose)
@@ -906,7 +906,7 @@ text property.  */)
   int val;
   Lisp_Object match;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
 
   p = XSTRING (string)->data;
   code = (enum syntaxcode) syntax_spec_code[*p++];
@@ -1012,7 +1012,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
      (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
-  CHECK_NUMBER (c, 0);
+  CHECK_NUMBER (c);
 
   if (NILP (syntax_table))
     syntax_table = current_buffer->syntax_table;
@@ -1315,7 +1315,7 @@ and the function returns nil.  Field boundaries are not noticed if
      Lisp_Object count;
 {
   int orig_val, val;
-  CHECK_NUMBER (count, 0);
+  CHECK_NUMBER (count);
 
   val = orig_val = scan_words (PT, XINT (count));
   if (! orig_val)
@@ -1399,7 +1399,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   unsigned char *str;
   int len;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (string);
   char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
   string_multibyte = STRING_MULTIBYTE (string);
   str = XSTRING (string)->data;
@@ -1427,7 +1427,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
   else
-    CHECK_NUMBER_COERCE_MARKER (lim, 0);
+    CHECK_NUMBER_COERCE_MARKER (lim);
 
   /* In any case, don't allow scan outside bounds of buffer.  */
   if (XINT (lim) > ZV)
@@ -1822,7 +1822,7 @@ between them, return t; otherwise return nil.  */)
   int out_charpos, out_bytepos;
   int dummy;
 
-  CHECK_NUMBER (count, 0);
+  CHECK_NUMBER (count);
   count1 = XINT (count);
   stop = count1 > 0 ? ZV : BEGV;
 
@@ -2406,9 +2406,9 @@ If the depth is right but the count is not used up, nil is returned.  */)
      (from, count, depth)
      Lisp_Object from, count, depth;
 {
-  CHECK_NUMBER (from, 0);
-  CHECK_NUMBER (count, 1);
-  CHECK_NUMBER (depth, 2);
+  CHECK_NUMBER (from);
+  CHECK_NUMBER (count);
+  CHECK_NUMBER (depth);
 
   return scan_lists (XINT (from), XINT (count), XINT (depth), 0);
 }
@@ -2427,8 +2427,8 @@ but before count is used up, nil is returned.  */)
      (from, count)
      Lisp_Object from, count;
 {
-  CHECK_NUMBER (from, 0);
-  CHECK_NUMBER (count, 1);
+  CHECK_NUMBER (from);
+  CHECK_NUMBER (count);
 
   return scan_lists (XINT (from), XINT (count), 0, 1);
 }
@@ -2866,7 +2866,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
 
   if (!NILP (targetdepth))
     {
-      CHECK_NUMBER (targetdepth, 3);
+      CHECK_NUMBER (targetdepth);
       target = XINT (targetdepth);
     }
   else

@@ -247,7 +247,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Qt denotes that Ffind_operation_coding_system is not yet called.  */
   coding_systems = Qt;
 
-  CHECK_STRING (args[0], 0);
+  CHECK_STRING (args[0]);
 
   error_file = Qt;
 
@@ -269,7 +269,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	int must_encode = 0;
 
 	for (i = 4; i < nargs; i++)
-	  CHECK_STRING (args[i], i);
+	  CHECK_STRING (args[i]);
 
 	for (i = 4; i < nargs; i++)
 	  if (STRING_MULTIBYTE (args[i]))
@@ -299,7 +299,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   if (nargs >= 2 && ! NILP (args[1]))
     {
       infile = Fexpand_file_name (args[1], current_buffer->directory);
-      CHECK_STRING (infile, 1);
+      CHECK_STRING (infile);
     }
   else
     infile = build_string (NULL_DEVICE);
@@ -335,8 +335,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  buffer = Fget_buffer_create (buffer);
 	  /* Mention the buffer name for a better error message.  */
 	  if (NILP (buffer))
-	    CHECK_BUFFER (spec_buffer, 2);
-	  CHECK_BUFFER (buffer, 2);
+	    CHECK_BUFFER (spec_buffer);
+	  CHECK_BUFFER (buffer);
 	}
     }
   else 
@@ -1419,7 +1419,7 @@ This function consults the variable ``process-environment'' for its value.  */)
   char *value;
   int valuelen;
 
-  CHECK_STRING (var, 0);
+  CHECK_STRING (var);
   if (getenv_internal (XSTRING (var)->data, STRING_BYTES (XSTRING (var)),
 		       &value, &valuelen))
     return make_string (value, valuelen);
