@@ -4,7 +4,7 @@
 
 ;; Author: RMS
 ;; Maintainer: FSF
-;; Keywords: internal
+;; Keywords: internal, mouse
 
 ;; This file is part of GNU Emacs.
 
@@ -634,7 +634,7 @@ Do the same for the keys of the same name."
 			"Highlight Syntax (Global Font Lock)"
 			"Syntax Highlighting %s"
 			"Highlights text based on language syntax"
-			global-font-lock-mode))
+			(global-font-lock-mode)))
 
 
 ;; The "Tools" menu items
@@ -855,7 +855,7 @@ key (or menu-item)"))
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
 (define-key menu-bar-help-menu [emacs-manual]
-  '(menu-item "Read the Emacs manual"
+  '(menu-item "Read the Emacs Manual"
 	      (lambda () (interactive) (info "emacs"))))
 (define-key menu-bar-help-menu [emacs-problems]
   '(menu-item "Emacs Known Problems" view-emacs-problems))
