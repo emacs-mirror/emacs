@@ -1,3 +1,12 @@
+2001-10-08  Miles Bader  <miles@gnu.org>
+
+	* button.el (next-button, previous-button): Remove N and WRAP
+	parameters.  Don't pay attention to `skip' properties.
+	(forward-button): Implement wrapping, iterating, and skipping here
+	instead.
+	* apropos.el (apropos-next-label-button): Update arguments to
+	`next-button'.
+
 2001-10-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* help.el (help-mode): Use define-derived-mode.
@@ -15,7 +24,6 @@
 2001-10-08  Miles Bader  <miles@gnu.org>
 
 	* button.el (next-button, previous-button): Respect `skip' property.
-	(push-button, button-activate): Add USE-MOUSE-ACTION argument.
 
 2001-10-07  Miles Bader  <miles@gnu.org>
 
