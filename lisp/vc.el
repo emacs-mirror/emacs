@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.359 2003/07/06 19:08:13 jpw Exp $
+;; $Id: vc.el,v 1.360 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2144,7 +2144,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	;; We cannot remove the top level directory.
 	;; Just make it look a little nicer.
 	(forward-line 1)
-	(kill-line)
+	(or (eobp) (kill-line))
 	(if (not (dired-next-subdir 1 t))
 	    (goto-char (point-max))))))
   (goto-char (point-min)))
