@@ -1,3 +1,7 @@
+2000-10-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* gnus-mule.el: Revived.
+
 2000-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* nnimap.el: require 'cl when compiling.
