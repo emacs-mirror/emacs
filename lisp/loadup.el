@@ -116,12 +116,14 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
-      (delete-file (concat (expand-file-name "../etc/DOC-") name))
+      (setq name (concat (expand-file-name "../etc/DOC-") name))
+      (if (file-exists-p name)
+	  (delete-file name))
       (copy-file (expand-file-name "../etc/DOC")
-		 (concat (expand-file-name "../etc/DOC-") name)
+		 name
 		 t)
-      (Snarf-documentation (concat "DOC-" name)))
-    (Snarf-documentation "DOC"))
+      (Snarf-documentation (file-name-nondirectory name)))
+  (Snarf-documentation "DOC"))
 (message "Finding pointers to doc strings...done")
 
 ;Note: You can cause additional libraries to be preloaded
