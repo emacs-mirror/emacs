@@ -477,7 +477,11 @@ static void x_draw_vertical_border P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
 static INLINE void take_vertical_position_into_account P_ ((struct it *));
 static void x_produce_stretch_glyph P_ ((struct it *));
-
+static struct scroll_bar *x_window_to_scroll_bar P_ ((Window));
+static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
+					    enum scroll_bar_part *,
+					    Lisp_Object *, Lisp_Object *,
+					    unsigned long *));
 
 /* Flush display of frame F, or of all frames if F is null.  */
 
@@ -7385,23 +7389,71 @@ cancel_mouse_face (f)
       dpyinfo->mouse_face_window = Qnil;
     }
 }
+
 
-static struct scroll_bar *x_window_to_scroll_bar ();
-static void x_scroll_bar_report_motion ();
+static int glyph_rect P_ ((struct frame *f, int, int, XRectangle *));
+
+
+/* Try to determine frame pixel position and size of the glyph under
+   frame pixel coordinates X/Y on frame F .  Return the position and
+   size in *RECT.  Value is non-zero if we could compute these
+   values.  */
+
+static int
+glyph_rect (f, x, y, rect)
+     struct frame *f;
+     int x, y;
+     XRectangle *rect;
+{
+  Lisp_Object window;
+  int part, found = 0;
+
+  window = window_from_coordinates (f, x, y, &part, 0);
+  if (!NILP (window))
+    {
+      struct window *w = XWINDOW (window);
+      struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+      struct glyph_row *end = r + w->current_matrix->nrows - 1;
+      int area;
+
+      frame_to_window_pixel_xy (w, &x, &y);
+      
+      for (; !found && r < end && r->enabled_p; ++r)
+	if (r->y >= y)
+	  {
+	    struct glyph *g = r->glyphs[TEXT_AREA];
+	    struct glyph *end = g + r->used[TEXT_AREA];
+	    int gx;
+	      
+	    for (gx = r->x; !found && g < end; gx += g->pixel_width, ++g)
+	      if (gx >= x)
+		{
+		  rect->width = g->pixel_width;
+		  rect->height = r->height;
+		  rect->x = WINDOW_TO_FRAME_PIXEL_X (w, gx);
+		  rect->y = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
+		  found = 1;
+		}
+	  }
+    }
+
+  return found;
+}
+
 
 /* Return the current position of the mouse.
-   *fp should be a frame which indicates which display to ask about.
+   *FP should be a frame which indicates which display to ask about.
 
-   If the mouse movement started in a scroll bar, set *fp, *bar_window,
-   and *part to the frame, window, and scroll bar part that the mouse
-   is over.  Set *x and *y to the portion and whole of the mouse's
+   If the mouse movement started in a scroll bar, set *FP, *BAR_WINDOW,
+   and *PART to the frame, window, and scroll bar part that the mouse
+   is over.  Set *X and *Y to the portion and whole of the mouse's
    position on the scroll bar.
 
-   If the mouse movement started elsewhere, set *fp to the frame the
-   mouse is on, *bar_window to nil, and *x and *y to the character cell
+   If the mouse movement started elsewhere, set *FP to the frame the
+   mouse is on, *BAR_WINDOW to nil, and *X and *Y to the character cell
    the mouse is over.
 
-   Set *time to the server time-stamp for the time at which the mouse
+   Set *TIME to the server time-stamp for the time at which the mouse
    was at this position.
 
    Don't store anything if we don't have a valid set of values to report.
@@ -7573,32 +7625,32 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-#if OLD_REDISPLAY_CODE
-	    int ignore1, ignore2;
-	    pixel_to_glyph_coords (f1, win_x, win_y, &ignore1, &ignore2,
-				   &last_mouse_glyph,
-				   FRAME_X_DISPLAY_INFO (f1)->grabbed
-				   || insist);
-#else
-	    {
-	      int width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-	      int height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-	      int x = win_x;
-	      int y = win_y;
+	    int width, height, gx, gy;
+	    XRectangle rect;
+	    
+	    if (glyph_rect (f1, win_x, win_y, &rect))
+	      last_mouse_glyph = rect;
+	    else
+	      {
+		width = FRAME_SMALLEST_CHAR_WIDTH (f1);
+		height = FRAME_SMALLEST_FONT_HEIGHT (f1);
+		gx = win_x;
+		gy = win_y;
 	      
-	      /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to
-		 round down even for negative values.  */
-	      if (x < 0)
-		x -= width - 1;
-	      if (y < 0)
-		y -= height - 1;
-	      
-	      last_mouse_glyph.width  = width;
-	      last_mouse_glyph.height = height;
-	      last_mouse_glyph.x = (x + width - 1) / width * width;
-	      last_mouse_glyph.y = (y + height - 1) / height * height;
-	    }
-#endif
+		/* Arrange for the division in PIXEL_TO_CHAR_COL etc. to
+		   round down even for negative values.  */
+		if (gx < 0)
+		  gx -= width - 1;
+		if (y < 0)
+		  gy -= height - 1;
+		gx = (gx + width - 1) / width * width;
+		gy = (gy + height - 1) / height * height;
+	    
+		last_mouse_glyph.width  = width;
+		last_mouse_glyph.height = height;
+		last_mouse_glyph.x = gx;
+		last_mouse_glyph.y = gy;
+	      }
 
 	    *bar_window = Qnil;
 	    *part = 0;
