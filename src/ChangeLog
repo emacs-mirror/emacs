@@ -1,5 +1,9 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* atimer.h (struct atimer): Fix typos in a comment.
+
+	* atimer.c: Fix typo.
+
 	* Makefile.in: Fix typo.
 
 	* README: Remove obsolete part mentioning removed VMS file.
