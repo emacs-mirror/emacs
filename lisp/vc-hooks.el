@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc-hooks.el,v 1.134.4.1 2001/11/09 15:11:14 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -304,21 +304,25 @@ If the file is not registered, or the master name is not known, return nil."
 (defun vc-checkout-model (file)
   "Indicate how FILE is checked out.
 
-Possible values:
+If FILE is not registered, this function always returns nil.
+For registered files, the possible values are:
 
-  'implicit   File is always writeable, and checked out `implicitly'
+  'implicit   FILE is always writeable, and checked out `implicitly'
               when the user saves the first changes to the file.
 
-  'locking    File is read-only if up-to-date; user must type
+  'locking    FILE is read-only if up-to-date; user must type
               \\[vc-toggle-read-only] before editing.  Strict locking
               is assumed.
 
-  'announce   File is read-only if up-to-date; user must type
+  'announce   FILE is read-only if up-to-date; user must type
               \\[vc-toggle-read-only] before editing.  But other users
-              may be editing at the same time."
+              may be editing at the same time.
+
+If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-checkout-model)
-      (vc-file-setprop file 'vc-checkout-model
-                       (vc-call checkout-model file))))
+      (if (vc-backend file)
+          (vc-file-setprop file 'vc-checkout-model
+                           (vc-call checkout-model file)))))
 
 (defun vc-user-login-name (&optional uid)
   "Return the name under which the user is logged in, as a string.
@@ -332,7 +336,8 @@ UID is returned as a string."
 (defun vc-state (file)
   "Return the version control state of FILE.
 
-The value returned is one of:
+If FILE is not registered, this function always returns nil.
+For registered files, the value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -360,8 +365,9 @@ The value returned is one of:
                      should be resolved by the user (vc-next-action will
                      prompt the user to do it)."
   (or (vc-file-getprop file 'vc-state)
-      (vc-file-setprop file 'vc-state
-		       (vc-call state-heuristic file))))
+      (if (vc-backend file)
+          (vc-file-setprop file 'vc-state
+                           (vc-call state-heuristic file)))))
 
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
@@ -374,10 +380,12 @@ and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
 
 (defun vc-workfile-version (file)
-  "Return version level of the current workfile FILE."
+  "Return the version level of the current workfile FILE.
+If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-workfile-version)
-      (vc-file-setprop file 'vc-workfile-version
-                       (vc-call workfile-version file))))
+      (if (vc-backend file)
+          (vc-file-setprop file 'vc-workfile-version
+                           (vc-call workfile-version file)))))
 
 ;;; actual version-control code starts here
 
@@ -412,8 +420,7 @@ and does not employ any heuristic at all."
       (if (consp result) (car result) result)))))
 
 (defun vc-check-master-templates (file templates)
-  "Return non-nil if there is a master corresponding to FILE,
-according to any of the elements in TEMPLATES.
+  "Return non-nil if there is a master corresponding to FILE.
 
 TEMPLATES is a list of strings or functions.  If an element is a
 string, it must be a control string as required by `format', with two
@@ -463,8 +470,8 @@ to do that, use this command a second time with no argument."
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
 (defun vc-default-make-version-backups-p (backend file)
-  "Return non-nil if unmodified repository versions should 
-be backed up locally.  The default is to switch off this feature."
+  "Return non-nil if unmodified versions should be backed up locally.
+The default is to switch off this feature."
   nil)
 
 (defun vc-version-backup-file-name (file &optional rev manual regexp)
