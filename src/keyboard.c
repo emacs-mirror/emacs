@@ -3782,7 +3782,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
   (stuffstring)
      Lisp_Object stuffstring;
 {
-  register Lisp_Object tem;
+  Lisp_Object tem;
   int count = specpdl_ptr - specpdl;
   int old_height, old_width;
   int width, height;
