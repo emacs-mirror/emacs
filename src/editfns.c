@@ -3208,10 +3208,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  }
 	else if (SYMBOLP (args[n]))
 	  {
-	    /* Use a temp var to avoid problems when ENABLE_CHECKING
-	       is turned on.  */
-	    struct Lisp_String *t = XSTRING (SYMBOL_NAME (args[n]));
-	    XSETSTRING (args[n], t);
+	    args[n] = SYMBOL_NAME (args[n]);
 	    if (STRING_MULTIBYTE (args[n]) && ! multibyte)
 	      {
 		multibyte = 1;
