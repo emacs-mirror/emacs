@@ -1,3 +1,13 @@
+2002-08-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+        * files.el (find-buffer-visiting): Compare file attributes
+	using buffer-file-truename.
+
+2002-08-28  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (make-auto-save-file-name, make-backup-file-name-1): 
+	Don't use directory-sep-char.
+
 2002-08-28  Juanma Barranquero  <lektu@terra.es>
 
 	* replace.el (occur-hook): Renamed from `occur-mode-hook'.
