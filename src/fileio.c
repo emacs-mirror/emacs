@@ -4697,12 +4697,7 @@ This does code conversion according to the value of
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
-  GCPRO4 (start, filename, visit, lockname);
-
-  /* Decide the coding-system to encode the data with.  */
-  choose_write_coding_system (start, end, filename,
-			      append, visit, lockname, &coding);
-  Vlast_coding_system_used = coding.symbol;
+  GCPRO5 (start, filename, visit, visit_file, lockname);
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -4713,14 +4708,11 @@ This does code conversion according to the value of
     visit_file = Fexpand_file_name (visit, Qnil);
   else
     visit_file = filename;
-  UNGCPRO;
 
   if (NILP (lockname))
     lockname = visit_file;
 
   annotations = Qnil;
-
-  GCPRO5 (start, filename, annotations, visit_file, lockname);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -4766,6 +4758,14 @@ This does code conversion according to the value of
   UNGCPRO;
 
   GCPRO5 (start, filename, annotations, visit_file, lockname);
+
+  /* Decide the coding-system to encode the data with.
+     We used to make this choice before calling build_annotations, but that
+     leads to problems when a write-annotate-function takes care of
+     unsavable chars (as was the case with X-Symbol).  */
+  choose_write_coding_system (start, end, filename,
+			      append, visit, lockname, &coding);
+  Vlast_coding_system_used = coding.symbol;
 
   given_buffer = current_buffer;
   annotations = build_annotations_2 (start, end,
