@@ -3027,14 +3027,17 @@ check_windows_init_file ()
   if (!noninteractive && !inhibit_window_system) 
     {
       extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
+      Lisp_Object full_load_path;
       Lisp_Object init_file;
       int fd;
 
       init_file = build_string ("term/w32-win");
-      fd = openp (Vload_path, init_file, ".el:.elc", NULL, 0);
+      full_load_path = Fcons (build_string (getenv ("EMACSLOADPATH")),
+			      Vload_path);
+      fd = openp (full_load_path, init_file, ".el:.elc", NULL, 0);
       if (fd < 0) 
 	{
-	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
+	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
 	  char *init_file_name = XSTRING (init_file)->data;
 	  char *load_path = XSTRING (load_path_print)->data;
 	  char *buffer = alloca (1024);
