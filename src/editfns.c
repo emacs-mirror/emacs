@@ -2844,6 +2844,8 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
      Lisp_Object start, end;
 {
   validate_region (&start, &end);
+  if (XINT (start) == XINT (end))
+    return build_string ("");
   return del_range_1 (XINT (start), XINT (end), 1, 1);
 }
 
