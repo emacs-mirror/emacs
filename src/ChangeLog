@@ -1,5 +1,9 @@
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Revert to Unix line endings.
+
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
 	* makefile.w32-in: Standardize indentation somewhat.
 	(bootstrap-temacs): Use $(ARGQUOTE) instead of literal quotes, to
 	cater for differences between shells.

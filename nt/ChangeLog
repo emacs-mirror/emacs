@@ -1,5 +1,9 @@
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Revert to Unix line endings.
+
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
 	* INSTALL: Add note about expected error messages when configure
 	is run.
 

@@ -1,3 +1,11 @@
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (clean mostlyclean): Ignore errors when deleting
+	leim-list.el.
+	(distclean maintainer-clean): Ditto for stamp-subdir.
+
+	* makefile.nt: Rename skkdic to ja-dic.
+
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/thai.el ("thai-kesmanee", "thai-pattachote"): Use keyboard

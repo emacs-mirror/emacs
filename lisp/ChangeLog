@@ -1,5 +1,9 @@
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Revert to Unix line endings.
+
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
 	* makefile.w32-in: Add bootstrap support.  Also copy lisp source
 	when installing.
 
