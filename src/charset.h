@@ -22,6 +22,8 @@ Boston, MA 02111-1307, USA.  */
 #ifndef _CHARSET_H
 #define _CHARSET_H
 
+/* #define BYTE_COMBINING_DEBUG */
+
 /*** GENERAL NOTE on CHARACTER SET (CHARSET) ***
 
   A character set ("charset" hereafter) is a meaningful collection
@@ -45,8 +47,8 @@ Boston, MA 02111-1307, USA.  */
 	charset_id: Emacs Lisp integer of an identification number of a charset
 	charset: C integer of an identification number of a charset
 
-  Each charset (except for ASCII) is assigned a base leading-code
-  (range 0x80..0x9D).  In addition, a charset of greater than 0xA0
+  Each charset (except for ascii) is assigned a base leading-code
+  (range 0x80..0x9E).  In addition, a charset of greater than 0xA0
   (whose base leading-code is 0x9A..0x9D) is assigned an extended
   leading-code (range 0xA0..0xFE).  In this case, each base
   leading-code specify the allowable range of extended leading-code as
@@ -67,7 +69,11 @@ Boston, MA 02111-1307, USA.  */
   0x80		--never used--
   0x81..0x8F	official dim1    same as charset	-- none --
   0x90..0x99	official dim2	 same as charset	-- none --
-  0x9A..0x9F	--never used--
+  0x9A..0x9D	--never used--
+  0x9E		official dim1	 same as charset	-- none --
+		(eight-bit-control)
+  0x9F		official dim1	 -- none --		-- none --
+		(eight-bit-graphic)
   0xA0..0xDF	private dim1	    0x9A		same as charset
 		of 1-column width
   0xE0..0xEF	private dim1	    0x9B		same as charset
@@ -87,6 +93,8 @@ Boston, MA 02111-1307, USA.  */
 #define LEADING_CODE_PRIVATE_12	0x9B /* for private DIMENSION1 of 2-column */
 #define LEADING_CODE_PRIVATE_21	0x9C /* for private DIMENSION2 of 1-column */
 #define LEADING_CODE_PRIVATE_22	0x9D /* for private DIMENSION2 of 2-column */
+
+#define LEADING_CODE_8_BIT_CONTROL 0x9E /* for `eight-bit-control' */
 
 /* Extended leading-code.  */
 /* Start of each extended leading-codes.  */
@@ -109,9 +117,10 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_CHARSET 0xFE
 
 /* Definition of special charsets.  */
-#define CHARSET_ASCII		0
+#define CHARSET_ASCII		0	/* 0x00..0x7F */
+#define CHARSET_8_BIT_CONTROL	0x9E	/* 0x80..0x9F */
+#define CHARSET_8_BIT_GRAPHIC	0x9F	/* 0xA0..0xFF */
 
-extern int charset_ascii;	/* ASCII */
 extern int charset_latin_iso8859_1; /* ISO8859-1 (Latin-1) */
 extern int charset_jisx0208_1978; /* JISX0208.1978 (Japanese Kanji old set) */
 extern int charset_jisx0208;	/* JISX0208.1983 (Japanese Kanji) */
@@ -120,8 +129,9 @@ extern int charset_latin_jisx0201; /* JISX0201.Roman (Japanese Roman) */
 extern int charset_big5_1;	/* Big5 Level 1 (Chinese Traditional) */
 extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
-/* Check if CH is the head of multi-byte form, i.e.,
-   an ASCII character or a base leading-code.  */
+/* Check if CH is an ASCII character or a base leading-code.
+   Nowadays, any byte can be the first byte of a character in a
+   multibyte buffer/string.  So this macro name is not appropriate.  */
 #define CHAR_HEAD_P(ch) ((unsigned char) (ch) < 0xA0)
 
 /*** GENERAL NOTE on CHARACTER REPRESENTATION ***
@@ -158,26 +168,28 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
   More precisely...
 
-  FIELD2 of DIMENSION1 character (except for ASCII) is "charset - 0x70".
-  This is to make all character codes except for ASCII greater than
-  256 (ASCII's FIELD2 is 0).  So, the range of FIELD2 of DIMENSION1
-  character is 0 or 0x11..0x7F.
+  FIELD2 of DIMENSION1 character (except for ascii, eight-bit-control,
+  and eight-bit-graphic) is "charset - 0x70".  This is to make all
+  character codes except for ASCII and 8-bit codes greater than 256.
+  So, the range of FIELD2 of DIMENSION1 character is 0, 1, or
+  0x11..0x7F.
 
   FIELD1 of DIMENSION2 character is "charset - 0x8F" for official
   charset and "charset - 0xE0" for private charset.  So, the range of
   FIELD1 of DIMENSION2 character is 0x01..0x1E.
 
-  -----------------------------------------------------------------------
-  charset	FIELD1 (5-bit)	    FIELD2 (7-bit)	FIELD3 (7-bit)
-  -----------------------------------------------------------------------
-  ASCII		0		    0			POSITION-CODE-1
-  DIMENSION1	0		    charset - 0x70	POSITION-CODE-1
-  DIMENSION2(o)	charset - 0x8F	    POSITION-CODE-1	POSITION-CODE-2
-  DIMENSION2(p)	charset - 0xE0	    POSITION-CODE-1	POSITION-CODE-2
-  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  charset		FIELD1 (5-bit)	    FIELD2 (7-bit)	FIELD3 (7-bit)
+  -----------------------------------------------------------------------------
+  ascii			0		    0			0x00..0x7F
+  eight-bit-control	0		    1			0x00..0x1F
+  eight-bit-graphic	0		    1			0x20..0x7F
+  DIMENSION1		0		    charset - 0x70	POSITION-CODE-1
+  DIMENSION2(o)		charset - 0x8F	    POSITION-CODE-1	POSITION-CODE-2
+  DIMENSION2(p)		charset - 0xE0	    POSITION-CODE-1	POSITION-CODE-2
+  -----------------------------------------------------------------------------
   "(o)": official, "(p)": private
-  -----------------------------------------------------------------------
-
+  -----------------------------------------------------------------------------
 */
 
 /* Masks of each field of character code.  */
@@ -202,10 +214,10 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 /* Maximum character code currently used plus 1.  */
 #define MAX_CHAR (0x1F << 14)
 
-/* 1 if C is an ASCII character, else 0.  */
-#define SINGLE_BYTE_CHAR_P(c) ((c) >= 0 && (c) < 0x100)
+/* 1 if C is a single byte character, else 0.  */
+#define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
 
-/* 1 if BYTE is a character in itself, in multibyte mode.  */
+/* 1 if BYTE is an ASCII character in itself, in multibyte mode.  */
 #define ASCII_BYTE_P(byte) ((byte) < 0x80)
 
 /* A char-table containing information of each character set.
@@ -229,7 +241,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    CHARS (integer) is the number of characters in a dimension: 94 or 96.
 
    WIDTH (integer) is the number of columns a character in the charset
-   occupies on the screen: one of 0, 1, and 2.
+   occupies on the screen: one of 0, 1, and 2..
 
    DIRECTION (integer) is the rendering direction of characters in the
    charset when rendering.  If 0, render from left to right, else
@@ -242,11 +254,14 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    charset.  All charsets of less than 0xA0 has the value 0.
 
    ISO-FINAL-CHAR (character) is the final character of the
-   corresponding ISO 2022 charset.
+   corresponding ISO 2022 charset.  It is -1 for such a character
+   that is used only internally (e.g. `eight-bit-control').
 
    ISO-GRAPHIC-PLANE (integer) is the graphic plane to be invoked
    while encoding to variants of ISO 2022 coding system, one of the
-   following: 0/graphic-plane-left(GL), 1/graphic-plane-right(GR).
+   following: 0/graphic-plane-left(GL), 1/graphic-plane-right(GR).  It
+   is -1 for such a character that is used only internally
+   (e.g. `eight-bit-control').
 
    REVERSE-CHARSET (integer) is the charset which differs only in
    LEFT-TO-RIGHT value from the charset.  If there's no such a
@@ -309,9 +324,9 @@ extern Lisp_Object Vcharset_table;
 #define CHARSET_LEADING_CODE_EXT(charset) \
   XFASTINT (CHARSET_TABLE_INFO (charset, CHARSET_LEADING_CODE_EXT_IDX))
 #define CHARSET_ISO_FINAL_CHAR(charset) \
-  XFASTINT (CHARSET_TABLE_INFO (charset, CHARSET_ISO_FINAL_CHAR_IDX))
+  XINT (CHARSET_TABLE_INFO (charset, CHARSET_ISO_FINAL_CHAR_IDX))
 #define CHARSET_ISO_GRAPHIC_PLANE(charset) \
-  XFASTINT (CHARSET_TABLE_INFO (charset, CHARSET_ISO_GRAPHIC_PLANE_IDX))
+  XINT (CHARSET_TABLE_INFO (charset, CHARSET_ISO_GRAPHIC_PLANE_IDX))
 #define CHARSET_REVERSE_CHARSET(charset) \
   XINT (CHARSET_TABLE_INFO (charset, CHARSET_REVERSE_CHARSET_IDX))
 
@@ -331,7 +346,10 @@ extern Lisp_Object Vcharset_symbol_table;
 #define CHARSET_VALID_P(charset)					 \
   ((charset) == 0							 \
    || ((charset) > 0x80 && (charset) <= MAX_CHARSET_OFFICIAL_DIMENSION2) \
-   || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1 && (charset) <= MAX_CHARSET))
+   || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1			 \
+       && (charset) <= MAX_CHARSET)					 \
+   || ((charset) == CHARSET_8_BIT_CONTROL)				 \
+   || ((charset) == CHARSET_8_BIT_GRAPHIC))
 
 /* 1 if CHARSET is already defined, else 0.  */
 #define CHARSET_DEFINED_P(charset)			\
@@ -339,72 +357,52 @@ extern Lisp_Object Vcharset_symbol_table;
    && !NILP (CHARSET_TABLE_ENTRY (charset)))
 
 /* Since the information CHARSET-BYTES and CHARSET-WIDTH of
-   Vcharset_table can be retrieved only the first byte of
+   Vcharset_table can be retrieved only by the first byte of
    multi-byte form (an ASCII code or a base leading-code), we provide
    here tables to be used by macros BYTES_BY_CHAR_HEAD and
    WIDTH_BY_CHAR_HEAD for faster information retrieval.  */
 extern int bytes_by_char_head[256];
 extern int width_by_char_head[256];
 
-#define BYTES_BY_CHAR_HEAD(char_head) bytes_by_char_head[char_head]
-#define WIDTH_BY_CHAR_HEAD(char_head) width_by_char_head[char_head]
+#define BYTES_BY_CHAR_HEAD(char_head)	\
+  (ASCII_BYTE_P (char_head) ? 1 : bytes_by_char_head[char_head])
+#define WIDTH_BY_CHAR_HEAD(char_head)	\
+  (ASCII_BYTE_P (char_head) ? 1 : width_by_char_head[char_head])
 
 /* Charset of the character C.  */
-#define CHAR_CHARSET(c)			 	\
-  (SINGLE_BYTE_CHAR_P (c)		 	\
-   ? CHARSET_ASCII			 	\
-   : ((c) < MIN_CHAR_OFFICIAL_DIMENSION2 	\
-      ? CHAR_FIELD2 (c) + 0x70		 	\
-      : ((c) < MIN_CHAR_PRIVATE_DIMENSION2	\
-	 ? CHAR_FIELD1 (c) + 0x8F	 	\
+#define CHAR_CHARSET(c)							\
+  (SINGLE_BYTE_CHAR_P (c)						\
+   ? (ASCII_BYTE_P (c)							\
+      ? CHARSET_ASCII							\
+      : (c) < 0xA0 ? CHARSET_8_BIT_CONTROL : CHARSET_8_BIT_GRAPHIC)	\
+   : ((c) < MIN_CHAR_OFFICIAL_DIMENSION2				\
+      ? CHAR_FIELD2 (c) + 0x70						\
+      : ((c) < MIN_CHAR_PRIVATE_DIMENSION2				\
+	 ? CHAR_FIELD1 (c) + 0x8F					\
 	 : CHAR_FIELD1 (c) + 0xE0)))
 
-/* Return charset at the place pointed by P.  */
-#define CHARSET_AT(p)				\
-  (*(p) < 0x80					\
-   ? CHARSET_ASCII				\
-   : (*(p) < LEADING_CODE_PRIVATE_11		\
-      ? (int)*(p)				\
-      : (*(p) <= LEADING_CODE_PRIVATE_22	\
-	 ? (int)*((p) + 1)			\
-	 : -1)))
-
-/* Same as `CHARSET_AT ()' but perhaps runs faster because of an
-   additional argument C which is the code (byte) at P.  */
-#define FIRST_CHARSET_AT(p, c)		\
-  ((c) < 0x80				\
-   ? CHARSET_ASCII			\
-   : ((c) < LEADING_CODE_PRIVATE_11	\
-      ? (int)(c)			\
-      : ((c) <= LEADING_CODE_PRIVATE_22	\
-	 ? (int)*((p) + 1)		\
-	 : -1)))
-
 /* Check if two characters C1 and C2 belong to the same charset.  */
-#define SAME_CHARSET_P(c1, c2)					\
-  (SINGLE_BYTE_CHAR_P (c1)					\
-   ? SINGLE_BYTE_CHAR_P (c2)					\
-   : (c1 < MIN_CHAR_OFFICIAL_DIMENSION2				\
-      ? (c1 & CHAR_FIELD2_MASK) == (c2 & CHAR_FIELD2_MASK)	\
-      : (c1 & CHAR_FIELD1_MASK) == (c2 & CHAR_FIELD1_MASK)))
-
-/* Return a non-ASCII character of which charset is CHARSET and
-   position-codes are C1 and C2.  DIMENSION1 character ignores C2.  */
-#define MAKE_NON_ASCII_CHAR(charset, c1, c2)				\
-  (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1	\
-   ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))			\
-   : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2			\
-      ? ((((charset) - 0x8F) << 14)					\
-	 | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))	\
-      : ((((charset) - 0xE0) << 14)					\
-	 | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))))
+#define SAME_CHARSET_P(c1, c2)				\
+  (c1 < MIN_CHAR_OFFICIAL_DIMENSION2			\
+   ? (c1 & CHAR_FIELD2_MASK) == (c2 & CHAR_FIELD2_MASK)	\
+   : (c1 & CHAR_FIELD1_MASK) == (c2 & CHAR_FIELD1_MASK))
 
 /* Return a character of which charset is CHARSET and position-codes
    are C1 and C2.  DIMENSION1 character ignores C2.  */
-#define MAKE_CHAR(charset, c1, c2)	\
-  ((charset) == CHARSET_ASCII		\
-   ? (c1)				\
-   : MAKE_NON_ASCII_CHAR ((charset), (c1), (c2)))
+#define MAKE_CHAR(charset, c1, c2)					    \
+  ((charset) == CHARSET_ASCII						    \
+   ? (c1) & 0x7F							    \
+   : (((charset) == CHARSET_8_BIT_CONTROL				    \
+       || (charset) == CHARSET_8_BIT_GRAPHIC)				    \
+      ? ((c1) & 0x7F) | 0x80						    \
+      : (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1  \
+	 ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))		    \
+	 : ((((charset)							    \
+	      - ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
+	     << 14)							    \
+	    | ((c2) <= 0 ? 0 : ((c2) & 0x7F))				    \
+	    | ((c1) <= 0 ? 0 : (((c1) & 0x7F) << 7))))))
+
 
 /* If GENERICP is nonzero, return nonzero iff C is a valid normal or
    generic character.  If GENERICP is zero, return nonzero iff C is a
@@ -419,53 +417,70 @@ extern int width_by_char_head[256];
 
 #define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
-/* Parse string STR of length LENGTH and check if a multibyte
-   characters is at STR.  If so, set BYTES for that character, else
-   set BYTES to 1.  */
+/* Parse multibyte string STR of length LENGTH and set BYTES to the
+   byte length of a character at STR.  */
+
+#ifdef BYTE_COMBINING_DEBUG
 
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)			\
   do {								\
     int i = 1;							\
     while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
-    if (i == 1)							\
-      (bytes) = 1;						\
-    else							\
-      {								\
-	(bytes) = BYTES_BY_CHAR_HEAD ((str)[0]);		\
-	if ((bytes) > (length))					\
-	  (bytes) = (length);					\
-      }								\
+    (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]);			\
+    if ((bytes) > i)						\
+      abort ();							\
   } while (0)
 
-/* The charset of non-ASCII character C is stored in CHARSET, and the
-   position-codes of C are stored in C1 and C2.
-   We store -1 in C2 if the character is just 2 bytes.
+#else  /* not BYTE_COMBINING_DEBUG */
 
-   Do not use this macro for an ASCII character.  */
+#define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
+  (bytes) = BYTES_BY_CHAR_HEAD ((str)[0])
 
-#define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			\
-  ((c) & CHAR_FIELD1_MASK						\
-   ? (charset = (CHAR_FIELD1 (c)					\
-		 + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)),	\
-      c1 = CHAR_FIELD2 (c),						\
-      c2 = CHAR_FIELD3 (c))						\
-   : (charset = CHAR_FIELD2 (c) + 0x70,					\
-      c1 = CHAR_FIELD3 (c),						\
-      c2 = -1))
+#endif /* not BYTE_COMBINING_DEBUG */
+
+/* Return 1 iff the byte sequence at unibyte string STR (LENGTH bytes)
+   is valid as a multibyte form.  If valid, by a side effect, BYTES is
+   set to the byte length of the multibyte form.  */
+
+#define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)	\
+  (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])) == 1	\
+   || ((str)[0] != LEADING_CODE_8_BIT_CONTROL		\
+       && (bytes) <= (length)				\
+       && !CHAR_HEAD_P ((str)[1])			\
+       && ((bytes) == 2					\
+	   || (!CHAR_HEAD_P ((str)[2])			\
+	       && ((bytes) == 3				\
+		   || !CHAR_HEAD_P ((str)[3]))))))
+
+/* Return 1 iff the byte sequence at multibyte string STR is valid as
+   a unibyte form.  By a side effect, BYTES is set to the byte length
+   of one character at STR.  */
+
+#define MULTIBYTE_STR_AS_UNIBYTE_P(str, bytes)	\
+  ((bytes) = BYTES_BY_CHAR_HEAD ((str)[0]),	\
+   (str)[0] != LEADING_CODE_8_BIT_CONTROL)
 
 /* The charset of character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
    We store -1 in C2 if the dimension of the charset is 1.  */
 
-#define SPLIT_CHAR(c, charset, c1, c2)		 	\
-  (SINGLE_BYTE_CHAR_P (c)			 	\
-   ? charset = CHARSET_ASCII, c1 = (c), c2 = -1	 	\
-   : SPLIT_NON_ASCII_CHAR (c, charset, c1, c2))
+#define SPLIT_CHAR(c, charset, c1, c2)					  \
+  (SINGLE_BYTE_CHAR_P (c)						  \
+   ? ((charset = ASCII_BYTE_P (c)					  \
+       ? CHARSET_ASCII							  \
+       : (c) < 0xA0 ? CHARSET_8_BIT_CONTROL : CHARSET_8_BIT_GRAPHIC),	  \
+      c1 = (c), c2 = -1)						  \
+   : ((c) & CHAR_FIELD1_MASK						  \
+      ? (charset = (CHAR_FIELD1 (c)					  \
+		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)), \
+	 c1 = CHAR_FIELD2 (c),						  \
+	 c2 = CHAR_FIELD3 (c))						  \
+      : (charset = CHAR_FIELD2 (c) + 0x70,				  \
+	 c1 = CHAR_FIELD3 (c),						  \
+	 c2 = -1)))
 
 /* Return 1 iff character C has valid printable glyph.  */
-#define CHAR_PRINTABLE_P(c)	\
-  (SINGLE_BYTE_CHAR_P (c)	\
-   || char_printable_p (c))
+#define CHAR_PRINTABLE_P(c) (ASCII_BYTE_P (c) || char_printable_p (c))
 
 /* The charset of the character at STR is stored in CHARSET, and the
    position-codes are stored in C1 and C2.
@@ -489,9 +504,10 @@ extern int iso_charset_table[2][2][128];
 #define BASE_LEADING_CODE_P(c) (BYTES_BY_CHAR_HEAD ((unsigned char) (c)) > 1)
 
 /* Return how many bytes C will occupy in a multibyte buffer.  */
-#define CHAR_BYTES(c)							\
-  ((SINGLE_BYTE_CHAR_P ((c)) || ((c) & ~((1 << CHARACTERBITS) - 1)))	\
-   ? 1 : char_bytes (c))
+#define CHAR_BYTES(c)					\
+  (SINGLE_BYTE_CHAR_P (c)				\
+   ? ((ASCII_BYTE_P (c) || (c) >= 0xA0) ? 1 : 2)	\
+   : char_bytes (c))
 
 /* The following two macros CHAR_STRING and STRING_CHAR are the main
    entry points to convert between Emacs two types of character
@@ -499,14 +515,14 @@ extern int iso_charset_table[2][2][128];
    code).  */
 
 /* Store multi-byte form of the character C in STR.  The caller should
-   allocate at least 4-byte area at STR in advance.  Returns the
-   length of the multi-byte form.  If C is an invalid character code,
-   signal an error.  */
+   allocate at least MAX_MULTIBYTE_LENGTH bytes area at STR in
+   advance.  Returns the length of the multi-byte form.  If C is an
+   invalid character code, signal an error.  */
 
 #define CHAR_STRING(c, str)		\
-  (SINGLE_BYTE_CHAR_P (c)		\
-   ? *(str) = (unsigned char)(c), 1	\
-   : char_to_string (c, (unsigned char *)str))
+  (ASCII_BYTE_P (c)			\
+   ? (*(str) = (unsigned char)(c), 1)	\
+   : char_to_string (c, (unsigned char *) str))
 
 /* Return a character code of the character of which multi-byte form
    is at STR and the length is LEN.  If STR doesn't contain valid
@@ -526,15 +542,34 @@ extern int iso_charset_table[2][2][128];
    ? ((actual_len) = 1), (unsigned char) *(str)		\
    : string_to_char (str, len, &(actual_len)))
 
-/* Fetch the "next" multibyte character from Lisp string STRING
-   at byte position BYTEIDX, character position CHARIDX.
-   Store it into OUTPUT.
+/* Fetch the "next" character from Lisp string STRING at byte position
+   BYTEIDX, character position CHARIDX.  Store it into OUTPUT.
 
    All the args must be side-effect-free.
    BYTEIDX and CHARIDX must be lvalues;
    we increment them past the character fetched.  */
 
-#define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	      \
+#define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	   \
+if (1)									   \
+  {									   \
+    CHARIDX++;								   \
+    if (STRING_MULTIBYTE (STRING))					   \
+      {									   \
+	unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		   \
+	int space_left = XSTRING (STRING)->size_byte - BYTEIDX;		   \
+	int actual_len;							   \
+									   \
+	OUTPUT = STRING_CHAR_AND_LENGTH (ptr, space_left, actual_len);	   \
+	BYTEIDX += actual_len;						   \
+      }									   \
+    else								   \
+      OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			   \
+  }									   \
+else
+
+/* Like FETCH_STRING_CHAR_ADVANCE but assume STRING is multibyte.  */
+
+#define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX)  \
 if (1)									      \
   {									      \
     unsigned char *fetch_string_char_ptr = &XSTRING (STRING)->data[BYTEIDX];  \
@@ -550,23 +585,27 @@ if (1)									      \
   }									      \
 else
 
-/* Like FETCH_STRING_CHAR_SPACE_LEFT but fetch character from the
-   current buffer.  */
+/* Like FETCH_STRING_CHAR_ADVANCE but fetch character from the current
+   buffer.  */
 
 #define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)			  \
 if (1)									  \
   {									  \
-    unsigned char *fetch_buf_char_ptr = BYTE_POS_ADDR (BYTEIDX);	  \
-    int fetch_buf_char_space_left = ((CHARIDX < GPT ? GPT_BYTE : Z_BYTE)  \
-  				       - BYTEIDX);			  \
-    int actual_len;							  \
-    									  \
-    OUTPUT								  \
-  	= STRING_CHAR_AND_LENGTH (fetch_buf_char_ptr,			  \
-  				  fetch_buf_char_space_left, actual_len); \
-    									  \
-    BYTEIDX += actual_len;						  \
     CHARIDX++;								  \
+    if (!NILP (current_buffer->enable_multibyte_characters))		  \
+      {									  \
+	unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);			  \
+	int space_left = ((CHARIDX < GPT ? GPT_BYTE : Z_BYTE) - BYTEIDX); \
+	int actual_len;							  \
+									  \
+	OUTPUT= STRING_CHAR_AND_LENGTH (ptr, space_left, actual_len);	  \
+	BYTEIDX += actual_len;						  \
+      }									  \
+    else								  \
+      {									  \
+	OUTPUT = *(BYTE_POS_ADDR (BYTEIDX));				  \
+	BYTEIDX++;							  \
+      }									  \
   }									  \
 else
 
@@ -583,6 +622,9 @@ else
    the next character boundary.  This macro relies on the fact that
    *GPT_ADDR and *Z_ADDR are always accessible and the values are
    '\0'.  No range checking of POS.  */
+
+#ifdef BYTE_COMBINING_DEBUG
+
 #define INC_POS(pos_byte)				\
   do {							\
     unsigned char *p = BYTE_POS_ADDR (pos_byte);	\
@@ -596,6 +638,16 @@ else
     else						\
       pos_byte++;					\
   } while (0)
+
+#else  /* not BYTE_COMBINING_DEBUG */
+
+#define INC_POS(pos_byte)				\
+  do {							\
+    unsigned char *p = BYTE_POS_ADDR (pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*p);		\
+  } while (0)
+
+#endif /* not BYTE_COMBINING_DEBUG */
 
 /* Decrease the buffer byte position POS_BYTE of the current buffer to
    the previous character boundary.  No range checking of POS.  */
@@ -650,6 +702,9 @@ while (0)
    the next character boundary.  This macro relies on the fact that
    *GPT_ADDR and *Z_ADDR are always accessible and the values are
    '\0'.  No range checking of POS_BYTE.  */
+
+#ifdef BYTE_COMBINING_DEBUG
+
 #define BUF_INC_POS(buf, pos_byte)				\
   do {								\
     unsigned char *p = BUF_BYTE_ADDRESS (buf, pos_byte);	\
@@ -663,6 +718,16 @@ while (0)
     else							\
       pos_byte++;						\
   } while (0)
+
+#else  /* not BYTE_COMBINING_DEBUG */
+
+#define BUF_INC_POS(buf, pos_byte)				\
+  do {								\
+    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*p);			\
+  } while (0)
+
+#endif /* not BYTE_COMBINING_DEBUG */
 
 /* Decrease the buffer byte position POS_BYTE of the current buffer to
    the previous character boundary.  No range checking of POS_BYTE.  */
@@ -706,9 +771,13 @@ extern int char_to_string P_ ((int, unsigned char *));
 extern int string_to_char P_ ((const unsigned char *, int, int *));
 extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
+extern void parse_str_as_multibyte P_ ((unsigned char *, int, int *, int *));
+extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
+extern int str_to_multibyte P_ ((unsigned char *, int, int));
+extern int str_as_unibyte P_ ((unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
-extern int find_charset_in_str P_ ((unsigned char *, int, int *,
-				    Lisp_Object, int));
+extern int find_charset_in_text P_ ((unsigned char *, int, int, int *,
+				    Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
@@ -724,17 +793,14 @@ extern Lisp_Object Vauto_fill_chars;
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
-   faster than calling bcopy which has some overhead.  */
+   faster than calling bcopy which has some overhead.  Copying a
+   multibyte sequence of a multibyte character is the typical case.  */
 
 #define BCOPY_SHORT(from, to, len)		\
   do {						\
     int i = len;				\
     unsigned char *from_p = from, *to_p = to;	\
-    while (i--) *from_p++ = *to_p++;		\
+    while (i--) *to_p++ = *from_p++;		\
   } while (0)
-
-/* Length of C in bytes.  */
-
-#define CHAR_LEN(C) CHARSET_BYTES (CHAR_CHARSET ((C)))
 
 #endif /* _CHARSET_H */
