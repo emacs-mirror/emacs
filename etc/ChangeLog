@@ -1,3 +1,7 @@
+2000-08-24  Wlodzimierz Bzyl <matwb@univ.gda.pl>
+
+	* survival.tex: New file.
+
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* de-refcard.ps, de-refcard.tex: Renamed from refcard-de.*.
