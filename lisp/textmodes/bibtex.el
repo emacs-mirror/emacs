@@ -3017,12 +3017,10 @@ The predicate depends on the variable `bibtex-maintain-sorted-entries'."
 (defun bibtex-sort-buffer ()
   "Sort BibTeX buffer alphabetically by key.
 The predicate for sorting is defined via `bibtex-maintain-sorted-entries'.
-Text outside of BibTeX entries is not affected.  If
-`bibtex-sort-ignore-string-entries' is non-nil, @String entries will be
-ignored."
+If its value is nil use plain sorting. Text outside of BibTeX entries is not
+affected. If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
+will be ignored."
   (interactive)
-  (unless bibtex-maintain-sorted-entries
-    (error "You must choose a sorting scheme"))
   (save-restriction
     (narrow-to-region (bibtex-beginning-of-first-entry)
                       (save-excursion (goto-char (point-max))
@@ -3523,27 +3521,30 @@ At end of the cleaning process, the functions in
                          (match-end bibtex-key-in-head)))
       (insert key))
     ;; sorting
-    (let* ((start (bibtex-beginning-of-entry))
-           (end (progn (bibtex-end-of-entry)
-                       (if (re-search-forward
-                            bibtex-entry-maybe-empty-head nil 'move)
-                           (goto-char (match-beginning 0)))
-                       (point)))
-           (entry (buffer-substring start end))
-           (index (progn (goto-char start)
-                         (bibtex-entry-index))))
-      (delete-region start end)
-      (unless (prog1 (or called-by-reformat
-                         (if (and bibtex-maintain-sorted-entries
-                                  (not (and bibtex-sort-ignore-string-entries
-                                            (equal entry-type "string"))))
-                             (bibtex-prepare-new-entry index)
-                           (not (bibtex-find-entry (car index)))))
-                (insert entry)
-                (forward-char -1)
-                (bibtex-beginning-of-entry) ; moves backward
-                (re-search-forward bibtex-entry-head))
-        (error "New inserted entry yields duplicate key")))
+    (unless called-by-reformat
+      (let* ((start (bibtex-beginning-of-entry))
+             (end (progn (bibtex-end-of-entry)
+                         (if (re-search-forward
+                              bibtex-entry-maybe-empty-head nil 'move)
+                             (goto-char (match-beginning 0)))
+                         (point)))
+             (entry (buffer-substring start end))
+             (index (progn (goto-char start)
+                           (bibtex-entry-index)))
+             no-error)
+        (if (and bibtex-maintain-sorted-entries
+                 (not (and bibtex-sort-ignore-string-entries
+                           (equal entry-type "string"))))
+            (progn
+              (delete-region start end)
+              (setq no-error (bibtex-prepare-new-entry index))
+              (insert entry)
+              (forward-char -1)
+              (bibtex-beginning-of-entry) ; moves backward
+              (re-search-forward bibtex-entry-head))
+          (setq no-error (bibtex-find-entry (car index))))
+        (unless no-error
+          (error "New inserted entry yields duplicate key"))))
     ;; final clean up
     (unless called-by-reformat
       (save-excursion
@@ -3621,91 +3622,89 @@ If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
     (indent-to-column bibtex-entry-offset)
     (goto-char pnt)))
 
-(defun bibtex-reformat (&optional additional-options called-by-convert-alien)
+(defun bibtex-realign ()
+  "Realign BibTeX entries such that they are separated by one blank line."
+  (goto-char (point-min))
+  (let ((case-fold-search t))
+    (when (looking-at bibtex-valid-entry-whitespace-re)
+      (replace-match "\\1"))
+    (while (re-search-forward bibtex-valid-entry-whitespace-re nil t)
+      (replace-match "\n\n\\1"))))
+
+(defun bibtex-reformat (&optional read-options)
   "Reformat all BibTeX entries in buffer or region.
 With prefix argument, read options for reformatting from minibuffer.
 With \\[universal-argument] \\[universal-argument] prefix argument, reuse previous answers (if any) again.
-If mark is active it reformats entries in region, if not in whole buffer."
+If mark is active reformat entries in region, if not in whole buffer."
   (interactive "*P")
   (let* ((pnt (point))
          (use-previous-options
-          (and (equal (prefix-numeric-value additional-options) 16)
+          (and (equal (prefix-numeric-value read-options) 16)
                (or bibtex-reformat-previous-options
                    bibtex-reformat-previous-reference-keys)))
          (bibtex-entry-format
-          (if additional-options
+          (if read-options
               (if use-previous-options
                   bibtex-reformat-previous-options
                 (setq bibtex-reformat-previous-options
-                      (delq nil (list
-                                 (if (or called-by-convert-alien
-                                         (y-or-n-p "Realign entries (recommended)? "))
-                                     'realign)
-                                 (if (y-or-n-p "Remove empty optional and alternative fields? ")
-                                     'opts-or-alts)
-                                 (if (y-or-n-p "Remove delimiters around pure numerical fields? ")
-                                     'numerical-fields)
-                                 (if (y-or-n-p (concat (if bibtex-comma-after-last-field "Insert" "Remove")
-                                                       " comma at end of entry? "))
-                                     'last-comma)
-                                 (if (y-or-n-p "Replace double page dashes by single ones? ")
-                                     'page-dashes)
-                                 (if (y-or-n-p "Force delimiters? ")
-                                     'delimiters)
-                                 (if (y-or-n-p "Unify case of entry types and field names? ")
-                                     'unify-case)))))
+                      (mapcar (lambda (option)
+                                (if (y-or-n-p (car option)) (cdr option)))
+                              `(("Realign entries (recommended)? " . 'realign)
+                                ("Remove empty optional and alternative fields? " . 'opts-or-alts)
+                                ("Remove delimiters around pure numerical fields? " . 'numerical-fields)
+                                (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
+                                         " comma at end of entry? ") . 'last-comma)
+                                ("Replace double page dashes by single ones? " . 'page-dashes)
+                                ("Force delimiters? " . 'delimiters)
+                                ("Unify case of entry types and field names? " . 'unify-case)))))
             '(realign)))
-         (reformat-reference-keys (if additional-options
-                                      (if use-previous-options
-                                          bibtex-reformat-previous-reference-keys
-                                        (setq bibtex-reformat-previous-reference-keys
-                                              (y-or-n-p "Generate new reference keys automatically? ")))))
-         bibtex-autokey-edit-before-use
-         (bibtex-sort-ignore-string-entries t)
+         (reformat-reference-keys
+          (if read-options
+              (if use-previous-options
+                  bibtex-reformat-previous-reference-keys
+                (setq bibtex-reformat-previous-reference-keys
+                      (y-or-n-p "Generate new reference keys automatically? ")))))
          (start-point (if (bibtex-mark-active)
                           (region-beginning)
-                        (bibtex-beginning-of-first-entry)
-                        (bibtex-skip-to-valid-entry)
-                        (point)))
+                        (point-min)))
          (end-point (if (bibtex-mark-active)
                         (region-end)
-                      (point-max))))
+                      (point-max)))
+         (bibtex-sort-ignore-string-entries t)
+         bibtex-autokey-edit-before-use)
+
     (save-restriction
       (narrow-to-region start-point end-point)
-      (when (memq 'realign bibtex-entry-format)
-        (goto-char (point-min))
-        (while (re-search-forward bibtex-valid-entry-whitespace-re nil t)
-          (replace-match "\n\\1")))
+      (if (memq 'realign bibtex-entry-format)
+        (bibtex-realign))
       (goto-char start-point)
       (bibtex-progress-message "Formatting" 1)
       (bibtex-map-entries (lambda (key beg end)
                             (bibtex-progress-message)
-                            (bibtex-clean-entry reformat-reference-keys t)
-                            (when (memq 'realign bibtex-entry-format)
-                              (goto-char end)
-                              (bibtex-delete-whitespace)
-                              (open-line 2))))
+                            (bibtex-clean-entry reformat-reference-keys t)))
+      (when (memq 'realign bibtex-entry-format)
+        (bibtex-delete-whitespace)
+        (open-line (if (eobp) 1 2)))
       (bibtex-progress-message 'done))
     (when (and reformat-reference-keys
-               bibtex-maintain-sorted-entries
-               (not called-by-convert-alien))
+               bibtex-maintain-sorted-entries)
+      (bibtex-progress-message "Sorting" 1)
       (bibtex-sort-buffer)
-      (kill-local-variable 'bibtex-reference-keys))
+      (kill-local-variable 'bibtex-reference-keys)
+      (bibtex-progress-message 'done))
     (goto-char pnt)))
 
-(defun bibtex-convert-alien (&optional do-additional-reformatting)
+(defun bibtex-convert-alien (&optional read-options)
   "Convert an alien BibTeX buffer to be fully usable by BibTeX mode.
-If a file does not conform with some standards used by BibTeX mode,
+If a file does not conform with all standards used by BibTeX mode,
 some of the high-level features of BibTeX mode will not be available.
 This function tries to convert current buffer to conform with these standards.
-With prefix argument DO-ADDITIONAL-REFORMATTING
-non-nil, read options for reformatting entries from minibuffer."
+With prefix argument READ-OPTIONS non-nil, read options for reformatting
+entries from minibuffer."
   (interactive "*P")
   (message "Starting to validate buffer...")
   (sit-for 1 nil t)
-  (goto-char (point-min))
-  (while (re-search-forward "[ \t\n]+@" nil t)
-    (replace-match "\n@"))
+  (bibtex-realign)
   (message
    "If errors occur, correct them and call `bibtex-convert-alien' again")
   (sit-for 5 nil t)
@@ -3714,10 +3713,7 @@ non-nil, read options for reformatting entries from minibuffer."
           (bibtex-validate))
     (message "Starting to reformat entries...")
     (sit-for 2 nil t)
-    (bibtex-reformat do-additional-reformatting t)
-    (when bibtex-maintain-sorted-entries
-      (message "Starting to sort buffer...")
-      (bibtex-sort-buffer))
+    (bibtex-reformat read-options)
     (goto-char (point-max))
     (message "Buffer is now parsable. Please save it.")))
 
