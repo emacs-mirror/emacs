@@ -79,8 +79,10 @@ NOTE-END  */
 
 /* CDC EP/IX 1.4.3 uses /unix */
 
+#ifndef __linux__
 #undef KERNEL_FILE
 #define KERNEL_FILE "/unix"
+#endif /* not __linux__ */
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
@@ -120,17 +122,25 @@ NOTE-END  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
+#ifndef __linux__
 #undef UNEXEC
 #define UNEXEC unexmips.o
+#endif /* not __linux__ */
 
 /* Describe layout of the address space in an executing process.  */
 
+#ifdef __linux__
+#define TEXT_START      0x00400000
+#define DATA_START      0x10000000
+#define DATA_SEG_BITS	0x10000000
+#else /* not __linux__ */
 #define TEXT_START 0x400000
 #define DATA_START 0x800000
+#endif /* __linux__ */
 
 /* Alter some of the options used when linking.  */
 
-#ifndef NEWSOS5
+#if !defined(NEWSOS5) && !defined(__linux__)
 #ifdef BSD_SYSTEM
 
 /* DECstations don't have this library.
@@ -162,7 +172,7 @@ NOTE-END  */
 #endif
 
 #endif /* not BSD_SYSTEM */
-#endif /* not NEWSOS5 */
+#endif /* not NEWSOS5 && not __linux__ */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
@@ -179,7 +189,7 @@ NOTE-END  */
    (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
     >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
 
-#ifndef NEWSOS5
+#if !defined (NEWSOS5) && !defined (__linux__)
 #ifdef USG
 
 /* Cancel certain parts of standard sysV support.  */
@@ -222,4 +232,4 @@ NOTE-END  */
 #undef HAVE_UNION_WAIT
 #endif /* BSD_SYSTEM */
 
-#endif /* not NEWSOS5 */
+#endif /* not NEWSOS5 && not __linux__ */
