@@ -488,8 +488,8 @@ parameter.  It should return nil, `warn' or `delete'."
 	;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
 	(let ((coding-system-for-read nnmail-file-coding-system)
 	      ;; 1997/8/12 by MORIOKA Tomohiko
-	      ;;	for XEmacs/mule.
-	      (pathname-coding-system 'binary))
+	      (file-name-coding-system 'binary) ; for Emacs 20
+	      (pathname-coding-system 'binary)) ; for XEmacs/mule
 	  (insert-file-contents file)
 	  t)
       (file-error nil))))
@@ -1650,8 +1650,8 @@ If ARGS, PROMPT is used as an argument to `format'."
   ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
   (let ((coding-system-for-write nnmail-file-coding-system)
 	;; 1997/8/12 by MORIOKA Tomohiko
-	;;	for XEmacs/mule.
-	(pathname-coding-system 'binary))
+	(file-name-coding-system 'binary) ; for Emacs 20
+	(pathname-coding-system 'binary)) ; for XEmacs/mule
     (write-region start end filename append visit lockname)
     (set-file-modes filename nnmail-default-file-modes)))
 
