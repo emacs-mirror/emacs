@@ -132,7 +132,8 @@ EVENT should be a scroll bar click or drag event."
   "Scroll the window by dragging the scroll bar slider.
 If you click outside the slider, the window scrolls to bring the slider there."
   (interactive "e")
-  (let* (done)
+  (let* (done
+	 (echo-keystrokes 0))
     (or point-before-scroll
 	(setq point-before-scroll (point)))
     (scroll-bar-drag-1 event)
