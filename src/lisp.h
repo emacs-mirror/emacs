@@ -1587,6 +1587,9 @@ EXFUN (Fread_coding_system, 1);
 EXFUN (Fread_non_nil_coding_system, 1);
 EXFUN (Ffind_operation_coding_system, MANY);
 
+/* Defined in charset.c */
+EXFUN (Fchar_bytes, 1);
+
 /* Defined in syntax.c */
 EXFUN (Fforward_word, 1);
 EXFUN (Fskip_chars_forward, 2);
