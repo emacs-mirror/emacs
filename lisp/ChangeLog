@@ -1,10 +1,19 @@
+2002-09-14  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (charset): Move.
+	(language-info-custom-alist): Move.  Alter :set.
+	(find-coding-systems-for-charsets): Check charset type before
+	getting :charset-list.
+
+	* language/ind-util.el (iscii-to-ucs-region): Fix typo.
+
 2002-09-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
 	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
 	(compound-text, ctext-no-compositions): Cancel provious change.
 
-2002-09-09  Dave Love  <d.love@dl.ac.uk>
+2002-09-09  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-string-complete): New.
 	(widget-coding-system-prompt-value-history): Deleted.
