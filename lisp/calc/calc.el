@@ -1615,7 +1615,7 @@ See calc-keypad for details."
 		  stack (cdr stack))))))
   (and calc-embedded-info (calc-embedded-stack-change)))
 
-(defvar calc-any-evaltos)
+(defvar calc-any-evaltos nil)
 (defun calc-refresh (&optional align)
   (interactive)
   (and (eq major-mode 'calc-mode)
