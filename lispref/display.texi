@@ -3136,7 +3136,7 @@ with a @dfn{pixel ascent} specification (@pxref{Pixel Specification}).
 
   Don't use both @code{:height} and @code{:relative-height} together.
 
-  The @code{:height} and @code{:align-to} properties are supported on
+  The @code{:width} and @code{:align-to} properties are supported on
 non-graphic terminals, but the other space properties in this section
 are not.
 
