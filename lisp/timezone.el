@@ -66,9 +66,9 @@ Use `current-time-zone' instead.")
 
 (defun timezone-make-date-arpa-standard (date &optional local timezone)
   "Convert DATE to an arpanet standard date.
-Optional 1st argument LOCAL specifies the default local timezone of the DATE;
+Optional 2nd argument LOCAL specifies the default local timezone of the DATE;
 if nil, GMT is assumed.
-Optional 2nd argument TIMEZONE specifies a time zone to be represented in;
+Optional 3rd argument TIMEZONE specifies a time zone to be represented in;
 if nil, the local time zone is assumed."
   (let ((new (timezone-fix-time date local timezone)))
     (timezone-make-arpa-date (aref new 0) (aref new 1) (aref new 2)
@@ -79,9 +79,9 @@ if nil, the local time zone is assumed."
 
 (defun timezone-make-date-sortable (date &optional local timezone)
   "Convert DATE to a sortable date string.
-Optional 1st argument LOCAL specifies the default local timezone of the DATE;
+Optional 2nd argument LOCAL specifies the default local timezone of the DATE;
 if nil, GMT is assumed.
-Optional 2nd argument TIMEZONE specifies a timezone to be represented in;
+Optional 3rd argument TIMEZONE specifies a timezone to be represented in;
 if nil, the local time zone is assumed."
   (let ((new (timezone-fix-time date local timezone)))
     (timezone-make-sortable-date (aref new 0) (aref new 1) (aref new 2)
