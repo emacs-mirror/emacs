@@ -1,3 +1,8 @@
+2002-10-31  Dave Love  <fx@gnu.org>
+
+	* international/fontset.el: Doc fixes.
+	("fontset-default"): Add iso8859-15.
+
 2002-10-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el ("fontset-default"): Add an entry for
