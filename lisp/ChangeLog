@@ -1,3 +1,8 @@
+2004-11-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-pow-of-zero): Take into account different
+	cases of the base and exponent.
+
 2004-11-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* simple.el (next-error-buffer-p): allow for inclusive and
