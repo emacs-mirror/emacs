@@ -157,6 +157,45 @@ Boston, MA 02111-1307, USA.  */
 
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
+
+#define BUF_UNCHANGED_MODIFIED(buf) \
+  ((buf)->text->unchanged_modified)
+
+#define BUF_OVERLAY_UNCHANGED_MODIFIED(buf) \
+  ((buf)->text->overlay_unchanged_modified)
+#define BUF_BEG_UNCHANGED(buf) ((buf)->text->beg_unchanged)
+#define BUF_END_UNCHANGED(buf) ((buf)->text->end_unchanged)
+
+#define UNCHANGED_MODIFIED \
+  BUF_UNCHANGED_MODIFIED (current_buffer)
+#define OVERLAY_UNCHANGED_MODIFIED \
+  BUF_OVERLAY_UNCHANGED_MODIFIED (current_buffer)
+#define BEG_UNCHANGED BUF_BEG_UNCHANGED (current_buffer)
+#define END_UNCHANGED BUF_END_UNCHANGED (current_buffer)
+
+/* Compute how many characters at the top and bottom of BUF are
+   unchanged when the range START..END is modified.  This computation
+   must be done each time BUF is modified.  */
+
+#define BUF_COMPUTE_UNCHANGED(buf, start, end)				\
+  do									\
+    {									\
+      if (BUF_UNCHANGED_MODIFIED (buf) == MODIFF			\
+	  && BUF_OVERLAY_UNCHANGED_MODIFIED (buf) == OVERLAY_MODIFF)	\
+	{								\
+	  BUF_BEG_UNCHANGED (buf) = (start) - BUF_BEG (buf);		\
+	  BUF_END_UNCHANGED (buf) = BUF_Z (buf) - (end);		\
+	}								\
+      else								\
+	{								\
+	  if (BUF_Z (buf) - (end) < BUF_END_UNCHANGED (buf))		\
+	    BUF_END_UNCHANGED (buf) = BUF_Z (buf) - (end);		\
+	  if ((start) - BUF_BEG (buf) < BUF_BEG_UNCHANGED (buf))	\
+	    BUF_BEG_UNCHANGED (buf) = (start) - BUF_BEG (buf);		\
+	}								\
+    }									\
+  while (0)
+     
 
 /* Macros to set PT in the current buffer, or another buffer..  */
 
@@ -381,6 +420,21 @@ struct buffer_text
 
     int overlay_modiff;		/* Counts modifications to overlays.  */
 
+    /* Minimum value of GPT - BEG since last redisplay that finished.  */
+    int beg_unchanged;
+
+    /* Minimum value of Z - GPT since last redisplay that finished.  */
+    int end_unchanged;
+
+    /* MODIFF as of last redisplay that finished; if it matches MODIFF,
+       beg_unchanged and end_unchanged contain no useful information.  */
+    int unchanged_modified;
+
+    /* BUF_OVERLAY_MODIFF of current buffer, as of last redisplay that
+       finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
+       end_unchanged contain no useful information.  */
+    int overlay_unchanged_modified;
+
     /* Properties of this buffer's text -- conditionally compiled.  */
     DECLARE_INTERVALS
 
@@ -473,6 +527,10 @@ struct buffer
        each character.   See also width_table, below.  */
     struct region_cache *newline_cache;
     struct region_cache *width_run_cache;
+
+    /* Non-zero means don't use redisplay optimizations for
+       displaying this buffer.  */
+    unsigned prevent_redisplay_optimizations_p : 1;
 
     /* Changes in the buffer are recorded here for undo.
        t means don't record anything.
