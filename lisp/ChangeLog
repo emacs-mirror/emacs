@@ -1,3 +1,8 @@
+2004-05-24  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
+
+	* net/browse-url.el (browse-url-interactive-arg): Enable user to
+	explicitly select the text to be taken as URL.
+
 2004-05-23  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-index-nodes): New var and fun.
@@ -69,7 +74,7 @@
 	* progmodes/gud.el (gud-menu-map, gud-speedbar-menu-items)
 	(gud-speedbar-buttons, gud-sentinel, gud-display-line)
 	(gud-basic-call): Handle new value for gud-minor-mode (gdbmi) for
-	a new mode. The file (gdb-mi.el) for this mode will be included
+	a new mode.  The file (gdb-mi.el) for this mode will be included
 	with the GDB distribution (6.2 onwards) and will use GDB/MI as its
 	primary interface.
 
