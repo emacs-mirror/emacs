@@ -174,9 +174,9 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
   (let ((menu (make-sparse-keymap menu-name))
 	prop keyword arg label enable filter visible help)
     ;; Look for keywords.
-    (while (and menu-items (cdr menu-items)
-		(symbolp (setq keyword (car menu-items)))
-		(= ?: (aref (symbol-name keyword) 0)))
+    (while (and menu-items
+		(cdr menu-items)
+		(keywordp (setq keyword (car menu-items))))
       (setq arg (cadr menu-items))
       (setq menu-items (cddr menu-items))
       (cond
@@ -240,7 +240,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 	     cache cache-specified)
 	(setq label (setq name (aref item 0)))
 	(if no-name (setq command (easy-menu-make-symbol command)))
-	(if (and (symbolp active) (= ?: (aref (symbol-name active) 0)))
+	(if (keywordp active)
 	    (let ((count 2)
 		  keyword arg suffix visible style selected keys)
 	      (setq active nil)
