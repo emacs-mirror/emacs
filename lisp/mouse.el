@@ -732,14 +732,16 @@ If DIR is positive skip forward; if negative, skip backward."
 	 (last (nthcdr index events))
 	 (event (car last))
 	 (basic (event-basic-type event))
-	 (modifiers (delq 'double (delq 'triple (copy-sequence (event-modifiers event)))))
+	 (old-modifiers (event-modifiers event))
+	 (modifiers (delq 'double (delq 'triple (copy-sequence old-modifiers))))
 	 (new
 	  (if (consp event)
-	      (cons (event-convert-list (nreverse (cons basic modifiers)))
+	      (cons (event-convert-list (nreverse (cons basic old-modifiers)))
 		    (cdr event))
 	    event)))
     (setcar last new)
-    (if (key-binding (apply 'vector events))
+    (if (and (not (equal modifiers old-modifiers))
+	     (key-binding (apply 'vector events)))
 	t
       (setcar last event)
       nil)))
@@ -765,13 +767,27 @@ If DIR is positive skip forward; if negative, skip backward."
 				  (throw 'mouse-show-mark t)))))
 	  (move-overlay mouse-drag-overlay (point) (mark t))
 	  (catch 'mouse-show-mark
+	    ;; In this loop, read and execute scroll bar events.
+	    ;; Otherwise, if we 
 	    (while (progn (setq event (read-event))
 			  (setq events (append events (list event)))
 			  (setq key (apply 'vector events))
-			  (and (memq 'down (event-modifiers event))
-			       (not (key-binding key))
-			       (not (member key mouse-region-delete-keys))
-			       (not (mouse-undouble-last-event events))))))
+			  (or (and (consp event)
+				   (eq (posn-point (event-end event))
+				       'vertical-scroll-bar))
+			      (and (memq 'down (event-modifiers event))
+				   (not (key-binding key))
+				   (not (mouse-undouble-last-event events))
+				   (not (member key mouse-region-delete-keys)))))
+	      (and (consp event)
+		   (eq (posn-point (event-end event))
+		       'vertical-scroll-bar)
+		   (let ((keys (vector 'vertical-scroll-bar event)))
+		     (and (key-binding keys)
+			  (progn
+			    (call-interactively (key-binding keys)
+						nil keys)
+			    (setq events nil)))))))
 	  ;; If we lost the selection, just turn off the highlighting.
 	  (if ignore
 	      nil
