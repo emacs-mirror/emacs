@@ -1461,6 +1461,7 @@ See also variable `dired-vm-read-only-folders'."
 
 
 ;; Does anyone use this? - lrd 6/29/93.
+;; Apparently people do use it. - lrd 12/22/97.
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unflag those files instead.
@@ -1522,7 +1523,8 @@ to mark all zero length files."
               (setq mode (buffer-substring (point) (+ mode-len (point))))
               (forward-char mode-len)
               (setq nlink (read (current-buffer)))
-              (setq uid (buffer-substring (point) (progn (forward-word 1) (point))))
+              ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
+              (setq uid (buffer-substring (+ (point) 1) (progn (forward-word 1) (point))))
               (re-search-forward "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)")
               (goto-char (match-beginning 1))
               (forward-char -1)
