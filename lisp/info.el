@@ -1034,7 +1034,10 @@ Bind this in case the user sets it to nil."
     (set (make-local-variable 'Info-header-line)
 	 (buffer-substring header-beg header-end))
     (setq header-line-format 'Info-header-line)
-    (narrow-to-region (1+ header-end) (point-max))))
+;;; It is useful to be able to copy the links line out of the buffer
+;;; with M-w.
+;;;    (narrow-to-region (1+ header-end) (point-max))
+    ))
 
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
