@@ -168,7 +168,7 @@ or if the window is the only window of its frame."
 	  (mini (cdr (assq 'minibuffer (frame-parameters))))
 	  (edges (window-edges (selected-window))))
       (if (and (< 1 (count-windows))
-	       (= (window-width) (screen-width))
+	       (= (window-width) (frame-width))
 	       (pos-visible-in-window-p (point-min) window)
 	       (or (not mini)
 		   (< (nth 3 edges)
