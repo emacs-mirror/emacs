@@ -1185,13 +1185,26 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-history nil)
 
 (defun gud-perldb-massage-args (file args)
-  (cond ((equal (car args) "-e")
-	 (cons "-d"
-	       (cons (car args)
-		     (cons (nth 1 args)
-			   (cons "--" (cons "-emacs" (cdr (cdr args))))))))
-	(t
-	 (cons "-d" (cons (car args) (cons "-emacs" (cdr args)))))))
+  (let (new-args)
+
+    (while (and args
+		(string-match "^-[^-]" (car args)))
+      (setq new-args (cons (car args) new-args))
+      (setq args (cdr args)))
+
+    (if args
+	(progn
+	  (setq new-args (cons (car args) new-args))
+	  (setq args (cdr args)))
+      (setq new-args (cons "--" new-args)))
+
+    (setq new-args (cons "-emacs" new-args))
+
+    (while args
+      (setq new-args (cons (car args) new-args))
+      (setq args (cdr args)))
+
+    (cons "-d" (nreverse new-args))))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
