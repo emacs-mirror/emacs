@@ -3,6 +3,7 @@
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
@@ -664,8 +665,10 @@ Valid valued are `unique' and `unsent'."
   :type '(choice (const :tag "unique" unique)
 		 (const :tag "unsent" unsent)))
 
-(defcustom message-default-charset nil
-  "Default charset used in non-MULE XEmacsen."
+(defcustom message-default-charset 
+  (and (not (mm-multibyte-p)) 'iso-8859-1)
+  "Default charset used in non-MULE Emacsen.
+If nil, you might be asked to input the charset."
   :group 'message
   :type 'symbol)
 
@@ -900,8 +903,16 @@ should be sent in several parts. If it is nil, the size is unlimited."
   :type '(choice (const :tag "unlimited" nil)
 		 (integer 1000000)))
 
+(defcustom message-alternative-emails nil
+  "A regexp to match the alternative email addresses.
+The first matched address (not primary one) is used in the From field."
+  :group 'message-headers
+  :type '(choice (const :tag "Always use primary" nil)
+		 regexp))
+
 ;;; Internal variables.
 
+(defvar message-sending-message "Sending...")
 (defvar message-buffer-list nil)
 (defvar message-this-is-news nil)
 (defvar message-this-is-mail nil)
@@ -2108,21 +2119,21 @@ It should typically alter the sending method in some way or other."
     (put-text-property (point-min) (point-max) 'read-only nil))
   (message-fix-before-sending)
   (run-hooks 'message-send-hook)
-  (message "Sending...")
+  (message message-sending-message)
   (let ((alist message-send-method-alist)
 	(success t)
 	elem sent)
     (while (and success
 		(setq elem (pop alist)))
-      (when (or (not (funcall (cadr elem)))
-		(and (or (not (memq (car elem)
-				    message-sent-message-via))
-			 (y-or-n-p
-			  (format
-			   "Already sent message via %s; resend? "
-			   (car elem))))
-		     (setq success (funcall (caddr elem) arg))))
-	(setq sent t)))
+      (when (funcall (cadr elem))
+	(when (and (or (not (memq (car elem)
+				  message-sent-message-via))
+		       (y-or-n-p
+			(format
+			 "Already sent message via %s; resend? "
+			 (car elem))))
+		   (setq success (funcall (caddr elem) arg)))
+	  (setq sent t))))
     (unless (or sent (not success))
       (error "No methods specified to send by"))
     (when (and success sent)
@@ -2194,6 +2205,12 @@ It should typically alter the sending method in some way or other."
 
 (defun message-send-mail-partially ()
   "Sendmail as message/partial."
+  ;; replace the header delimiter with a blank line
+  (goto-char (point-min))
+  (re-search-forward
+   (concat "^" (regexp-quote mail-header-separator) "\n"))
+  (replace-match "\n")
+  (run-hooks 'message-send-mail-hook)
   (let ((p (goto-char (point-min)))
 	(tembuf (message-generate-new-buffer-clone-locals " message temp"))
 	(curbuf (current-buffer))
@@ -3032,18 +3049,7 @@ If NOW, use that time instead."
 (defun message-make-in-reply-to ()
   "Return the In-Reply-To header for this message."
   (when message-reply-headers
-    (let ((from (mail-header-from message-reply-headers))
-	  (date (mail-header-date message-reply-headers)))
-      (when from
-	(let ((stop-pos
-	       (string-match "  *at \\|  *@ \\| *(\\| *<" from)))
-	  (concat (if (and stop-pos
-			   (not (zerop stop-pos)))
-		      (substring from 0 stop-pos) from)
-		  "'s message of \""
-		  (if (or (not date) (string= date ""))
-		      "(unknown date)" date)
-		  "\""))))))
+    (mail-header-message-id message-reply-headers)))
 
 (defun message-make-distribution ()
   "Make a Distribution header."
@@ -3586,6 +3592,8 @@ than 988 characters long, and if they are not, trim them until they are."
   (message-insert-signature)
   (save-restriction
     (message-narrow-to-headers)
+    (if message-alternative-emails
+	(message-use-alternative-email-as-from))
     (run-hooks 'message-header-setup-hook))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
@@ -4108,8 +4116,7 @@ Optional DIGEST will use digest to forward."
 	    (mml-insert-buffer cur))
 	(if message-forward-show-mml
 	    (insert-buffer-substring cur)
-	  (mm-with-unibyte-current-buffer
-	    (mml-insert-buffer cur))))
+	  (mml-insert-buffer cur)))
       (setq e (point))
       (if message-forward-as-mime
 	  (if digest
@@ -4529,6 +4536,24 @@ regexp varstr."
 	(read-from-minibuffer prompt))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook))
       (read-string prompt))))
+
+(defun message-use-alternative-email-as-from ()
+  (require 'mail-utils)
+  (let* ((fields '("To" "Cc")) 
+	 (emails
+	  (split-string
+	   (mail-strip-quoted-names
+	    (mapconcat 'message-fetch-reply-field fields ","))
+	   "[ \f\t\n\r\v,]+"))
+	 email)
+    (while emails
+      (if (string-match message-alternative-emails (car emails))
+	  (setq email (car emails)
+		emails nil))
+      (pop emails))
+    (unless (or (not email) (equal email user-mail-address))
+      (goto-char (point-max))
+      (insert "From: " email "\n"))))
 
 (provide 'message)
 
