@@ -145,7 +145,10 @@ mesasge up instead of moving forward to the next non-deleted message."
 	      (save-excursion
 		(set-buffer file-buffer)
 		(rmail-insert-rmail-file-header)
-		(let ((require-final-newline nil))
+		(let ((require-final-newline nil)
+		      (coding-system-for-write
+		       (or rmail-file-coding-system
+			   'emacs-mule-unix)))
 		  (write-region (point-min) (point-max) file-name t 1)))
 	      (kill-buffer file-buffer))
 	  (error "Output file does not exist")))
