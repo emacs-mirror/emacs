@@ -227,7 +227,7 @@ put the output in."
 	     ";; no-update-autoloads: t\n"
 	     ";; End:\n"
 	     ";;; " (file-name-nondirectory file)
-	     "ends here\n")
+	     " ends here\n")
      nil file))
   file)
 
