@@ -55,14 +55,15 @@
 #include <sys/uio.h>
 #include <sys/tty.h>
 /* #include <sys/pty.h> */
+
+#include <config.h>
+
 #define REMOTE 0x01
 
 #undef ioctl
 static char     SCCSid[] = "com/gnuemacs/src,3.1,9021-90/05/03-5/3/90";
 
 /*************** LOCAL DEFINES **********************************/
-
-typedef int    (*FUNC)();     /* pointer to a function        */
 
 #define QDEV   ((HFQPDEVCH<<8)|HFQPDEVCL)
 #define QLOC   ((HFQLOCCH<<8)|HFQLOCCL)
@@ -84,7 +85,7 @@ static int              hfskbd();
 extern int              errno;
 static jmp_buf          hftenv;
 static int              is_ack_vtd;
-static FUNC             sav_alrm;
+static SIGTYPE             (*sav_alrm) ();
 static struct hfctlreq  req =
 			{ 0x1b,'[','x',0,0,0,21,HFCTLREQCH,HFCTLREQCL};
 static struct hfctlack  ACK =
