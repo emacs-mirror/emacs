@@ -4894,6 +4894,7 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   return result;
 }
 
+void
 croak (badfunc)
      char *badfunc;
 {
