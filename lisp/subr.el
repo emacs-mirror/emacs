@@ -1709,7 +1709,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
     parent))
 
 (defmacro with-syntax-table (table &rest body)
-  "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
+  "Evaluate BODY with syntax table of current buffer set to TABLE.
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
@@ -1719,7 +1719,7 @@ Value is what BODY returns."
 	   (,old-buffer (current-buffer)))
        (unwind-protect
 	   (progn
-	     (set-syntax-table (copy-syntax-table ,table))
+	     (set-syntax-table ,table)
 	     ,@body)
 	 (save-current-buffer
 	   (set-buffer ,old-buffer)
