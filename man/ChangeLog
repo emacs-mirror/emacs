@@ -1,3 +1,8 @@
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Basic Tutorial, Programming Tutorial): Remove caveats
+	for Lucid Emacs.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Saving Customizations): Minor improvement.
