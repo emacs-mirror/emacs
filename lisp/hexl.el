@@ -3,6 +3,7 @@
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
+;; Keywords: non-text
 
 ;; This file is part of GNU Emacs.
 
