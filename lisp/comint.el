@@ -115,23 +115,22 @@
 ;;;     comint-input-autoexpand - symbol           ...
 ;;;     comint-input-ignoredups - boolean          ...
 ;;;     comint-last-input-match - string           ...
+;;;     comint-dynamic-complete-functions - hook   For the completion mechanism
 ;;;     comint-get-old-input    - function     Hooks for specific 
-;;;     comint-get-current-command - function      process-in-a-buffer
-;;;     comint-dynamic-complete-command-command -  function modes.
-;;;     comint-after-partial-filename-command -
-;;;     comint-input-sentinel   - function         ...
+;;;     comint-input-sentinel-functions - hook     process-in-a-buffer
+;;;     comint-output-sentinel-functions - hook    function modes.
 ;;;     comint-input-filter     - function         ...
 ;;;     comint-input-send	- function         ...
 ;;;     comint-eol-on-send	- boolean          ...
 ;;;     comint-process-echoes   - boolean          ...
 ;;;     comint-scroll-to-bottom-on-input - symbol For scroll behavior
-;;;     comint-scroll-to-bottom-on-output - symbol    ...
-;;;     comint-scroll-show-maximum-output - boolean   ...
+;;;     comint-scroll-to-bottom-on-output - symbol ...
+;;;     comint-scroll-show-maximum-output - boolean...
 ;;;
 ;;; Comint mode non-buffer local variables:
-;;;     comint-completion-addsuffix - boolean   For file name completion
-;;;     comint-completion-autolist  - boolean       behavior
-;;;     comint-completion-recexact  - boolean       ...
+;;;     comint-completion-addsuffix - boolean  For file name completion
+;;;     comint-completion-autolist  - boolean      behavior
+;;;     comint-completion-recexact  - boolean      ...
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
@@ -226,36 +225,13 @@ It returns the text to be submitted as process input.  The default is
 `comint-get-old-input-default', which grabs the current line, and strips off
 leading text matching `comint-prompt-regexp'.")
 
-(defvar comint-after-partial-filename-command 'comint-after-partial-filename
-  "Function that returns non-nil if point is after a file name.
-By default this is `comint-after-partial-filename'.
+(defvar comint-dynamic-complete-functions
+  '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
+  "List of functions called to perform completion.
+Functions should return non-nil if completion was performed.
+See also `comint-dynamic-complete'.
 
 This is a good thing to set in mode hooks.")
-
-(defvar comint-dynamic-complete-filename-command
-  'comint-dynamic-complete-filename
-  "Function that dynamically completes the file name at point.
-By default this is `comint-dynamic-complete-filename', though an alternative is
-`comint-replace-by-expanded-filename'.
-
-This is a good thing to set in mode hooks.")
-
-(defvar comint-dynamic-complete-command-command
-  'comint-dynamic-complete-filename
-  "Function that dynamically completes the command at point.
-By default this is `comint-dynamic-complete-filename'.
-
-This is a good thing to set in mode hooks.")
-
-(defvar comint-get-current-command 'comint-get-old-input-default
-  "Function that returns the current command including arguments.
-By default this is `comint-get-old-input-default', meaning the whole line.
-
-This is a good thing to set in mode hooks.")
-
-(defvar comint-input-sentinel (function ignore)
-  "Called on each input submitted to comint mode process by `comint-send-input'.
-Thus it can, for instance, track cd/pushd/popd commands issued to a shell.")
 
 (defvar comint-input-filter
   (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
@@ -263,7 +239,13 @@ Thus it can, for instance, track cd/pushd/popd commands issued to a shell.")
 Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
-(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom) 
+(defvar comint-input-sentinel-functions '()
+  "Functions to call before input is sent to the process.
+These functions get one argument, a string containing the text to send.
+
+This variable is buffer-local.")
+
+(defvar comint-output-sentinel-functions '(comint-postoutput-scroll-to-bottom) 
   "Functions to call after output is inserted into the buffer.
 One possible function is `comint-postoutput-scroll-to-bottom'.
 These functions get one argument, a string containing the text just inserted.
@@ -309,7 +291,8 @@ This is to work around a bug in Emacs process signalling.")
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
-(put 'comint-output-filter-functions 'permanent-local t)
+(put 'comint-input-sentinel-functions 'permanent-local t)
+(put 'comint-output-sentinel-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
@@ -325,7 +308,7 @@ before submitting new input.
 
 This mode is customised to create major modes such as Inferior Lisp
 mode, Shell mode, etc.  This can be done by setting the hooks
-`comint-input-sentinel', `comint-input-filter', `comint-input-sender'
+`comint-input-sentinel-functions', `comint-input-filter', `comint-input-sender'
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
@@ -341,7 +324,7 @@ Commands with no default key bindings include `send-invisible',
 `comint-magic-space'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
-the end of the buffer.  See variables `comint-output-filter-functions',
+the end of the buffer.  See variables `comint-output-sentinel-functions',
 `comint-scroll-to-bottom-on-input', and `comint-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
@@ -376,12 +359,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
-  (make-local-variable 'comint-after-partial-filename-command)
-  (make-local-variable 'comint-dynamic-complete-filename-command)
-  (make-local-variable 'comint-dynamic-complete-command-command)
-  (make-local-variable 'comint-get-current-command)
+  (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-get-old-input)
-  (make-local-variable 'comint-input-sentinel)
+  (make-local-variable 'comint-input-sentinel-functions)
   (make-local-variable 'comint-input-filter)
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
@@ -390,7 +370,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-show-maximum-output)
   (make-local-variable 'pre-command-hook)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom)
-  (make-local-variable 'comint-output-filter-functions)
+  (make-local-variable 'comint-output-sentinel-functions)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
@@ -415,7 +395,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-c" 'comint-interrupt-subjob)
   (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
   (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
-  ;; " ; Stops emacs-19.19's hilit getting confused.
   (define-key comint-mode-map "\C-c\C-m" 'comint-copy-old-input)
   (define-key comint-mode-map "\C-c\C-o" 'comint-kill-output)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
@@ -432,12 +411,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
     '("Expand File Name" . comint-replace-by-expanded-filename))
   (define-key comint-mode-map [menu-bar completion complete-listing]
     '("File Completion Listing" . comint-dynamic-list-filename-completions))
-  (define-key comint-mode-map [menu-bar completion complete-variable]
-    '("Complete Variable Name" . comint-dynamic-complete-variable))
-  (define-key comint-mode-map [menu-bar completion complete-command]
-    '("Complete Command Name" . (lambda () (interactive)
-				  (funcall
-				   comint-dynamic-complete-command-command))))
   (define-key comint-mode-map [menu-bar completion complete-file]
     '("Complete File Name" . comint-dynamic-complete-filename))
   (define-key comint-mode-map [menu-bar completion complete]
@@ -562,10 +535,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 ;;; the appropriate environment.
 
 (defun comint-exec-1 (name buffer command switches)
-  (let ((process-environment (copy-sequence process-environment)))
-    (setenv "TERMCAP" (format "emacs:co#%d:tc=unknown" (frame-width)))
-    (setenv "TERM" "emacs")
-    (setenv "EMACS" "t")
+  (let ((process-environment
+	 (nconc (list "EMACS=t" "TERM=emacs"
+		      (format "TERMCAP=emacs:co#%d:tc=unknown" (frame-width)))
+		process-environment)))
     (apply 'start-process name buffer command switches)))
 
 ;;; Input history processing in a buffer
@@ -586,9 +559,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 ;;;					replace with expanded history.
 ;;; comint-magic-space			Expand history and insert space.
 ;;;
-;;; Two functions:
+;;; Three functions:
 ;;; comint-read-input-ring              Read into comint-input-ring...
 ;;; comint-write-input-ring             Write to comint-input-ring-file-name.
+;;; comint-replace-by-expanded-history-before-point Workhorse function.
 
 (defun comint-read-input-ring (&optional silent)
   "Sets the buffer's `comint-input-ring' from a history file.
@@ -842,6 +816,8 @@ If N is negative, search backwards for the -Nth previous match."
 
 (defun comint-replace-by-expanded-history (&optional silent)
   "Expand input command history references before point.
+Expansion is dependent on the value of `comint-input-autoexpand'.
+
 This function depends on the buffer's idea of the input history, which may not
 match the command interpreter's idea, assuming it has one.
 
@@ -852,8 +828,22 @@ it cannot expand absolute input line number references.
 If the optional argument SILENT is non-nil, never complain
 even if history reference seems erroneous.
 
-See also `comint-magic-space'."
+See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
+
+Returns t if successful."
   (interactive)
+  (if (and comint-input-autoexpand
+	   (string-match "[!^]" (funcall comint-get-old-input)))
+      ;; Looks like there might be history references in the command.
+      (let ((previous-modified-tick (buffer-modified-tick)))
+	(message "Expanding history references...")
+	(comint-replace-by-expanded-history-before-point)
+	(/= previous-modified-tick (buffer-modified-tick)))))
+
+
+(defun comint-replace-by-expanded-history-before-point ()
+  "Expand directory stack reference before point.
+See `comint-replace-by-expanded-history'.  Returns t if successful."
   (save-excursion
     (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
 	  (start (progn (comint-bol nil) (point))))
@@ -897,7 +887,8 @@ See also `comint-magic-space'."
 	       ;; Just a number of args from the previous input line.
 	       (replace-match
 		(comint-args (comint-previous-input-string 0)
-			     (match-beginning 1) (match-end 1)) t t))
+			     (match-beginning 1) (match-end 1)) t t)
+	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
@@ -915,11 +906,10 @@ See also `comint-magic-space'."
 				(goto-char (match-end 0))
 				(ding)))
 		   (setq comint-input-ring-index pos)
-		   (message "History item: %d" (1+ pos))
 		   (replace-match
 		    (comint-args (ring-ref comint-input-ring pos)
-				 (match-beginning 4) (match-end 4))
-		    t t))))
+				 (match-beginning 4) (match-end 4)) t t)
+		   (message "History item: %d" (1+ pos)))))
 	      ((looking-at "\\^\\([^^]+\\)\\^?\\([^^]*\\)\\^?")
 	       ;; Quick substitution on the previous input line.
 	       (let ((old (buffer-substring (match-beginning 1) (match-end 1)))
@@ -928,12 +918,11 @@ See also `comint-magic-space'."
 		 (replace-match (comint-previous-input-string 0) t t)
 		 (setq pos (point))
 		 (goto-char (match-beginning 0))
-		 (if (search-forward old pos t)
-		     (replace-match new t t)
-		   (or silent
-		       (progn
-			 (message "Not found")
-			 (ding))))))
+		 (if (not (search-forward old pos t))
+		     (or silent
+			 (error "Not found"))
+		   (replace-match new t t)
+		   (message "History item: substituted"))))
 	      (t
 	       (goto-char (match-end 0))))))))
 
@@ -1040,27 +1029,29 @@ a terminal newline is also inserted into the buffer and sent to the process
 since it is assumed the remote process will re-echo it).
 
 Any history reference may be expanded depending on the value of the variable
-`comint-input-autoexpand'.  The value of variable `comint-input-sentinel' is
-called on the input before sending it.  The input is entered into the input
-history ring, if the value of variable `comint-input-filter' returns non-nil
-when called on the input.
+`comint-input-autoexpand'.  The list of function names contained in the value
+of `comint-input-sentinel-functions' is called on the input before sending it.
+The input is entered into the input history ring, if the value of variable
+`comint-input-filter' returns non-nil when called on the input.
 
 If variable `comint-eol-on-send' is non-nil, then point is moved to the
 end of line before sending the input.
 
-`comint-get-old-input', `comint-input-sentinel', and `comint-input-filter'
-are chosen according to the command interpreter running in the buffer.  E.g.,
+The values of `comint-get-old-input', `comint-input-sentinel-functions', and
+`comint-input-filter' are chosen according to the command interpreter running
+in the buffer.  E.g.,
+
 If the interpreter is the csh,
     comint-get-old-input is the default: take the current line, discard any
         initial string matching regexp comint-prompt-regexp.
-    comint-input-sentinel monitors input for \"cd\", \"pushd\", and \"popd\" 
-        commands. When it sees one, it cd's the buffer.
+    comint-input-sentinel-functions monitors input for \"cd\", \"pushd\", and
+        \"popd\" commands. When it sees one, it cd's the buffer.
     comint-input-filter is the default: returns t if the input isn't all white
 	space.
 
 If the comint is Lucid Common Lisp, 
     comint-get-old-input snarfs the sexp ending at point.
-    comint-input-sentinel does nothing.
+    comint-input-sentinel-functions does nothing.
     comint-input-filter returns nil if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
@@ -1103,7 +1094,10 @@ Similarly for Soar, Scheme, etc."
 		       (not (string-equal (ring-ref comint-input-ring 0)
 					  history))))
 	      (ring-insert comint-input-ring history))
-	  (funcall comint-input-sentinel input)
+	  (let ((functions comint-input-sentinel-functions))
+	    (while functions
+	      (funcall (car functions) (concat input "\n"))
+	      (setq functions (cdr functions))))
 	  (funcall comint-input-sender proc input)
 	  (setq comint-input-ring-index nil)
 	  (set-marker comint-last-input-start pmark)
@@ -1112,7 +1106,7 @@ Similarly for Soar, Scheme, etc."
 	  ;; A kludge to prevent the delay between insert and process output
 	  ;; affecting the display.  A case for a comint-send-input-hook?
 	  (if (eq (process-filter proc) 'comint-output-filter)
-	      (let ((functions comint-output-filter-functions))
+	      (let ((functions comint-output-sentinel-functions))
 		(while functions
 		  (funcall (car functions) (concat input "\n"))
 		  (setq functions (cdr functions)))))))))
@@ -1157,7 +1151,7 @@ Similarly for Soar, Scheme, etc."
 
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
-	  (let ((functions comint-output-filter-functions))
+	  (let ((functions comint-output-sentinel-functions))
 	    (while functions
 	      (funcall (car functions) string)
 	      (setq functions (cdr functions))))
@@ -1197,7 +1191,7 @@ Does not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-scroll-to-bottom-on-output' and
 `comint-scroll-show-maximum-output'.
 
-This function should be in the list `comint-output-filter-functions'."
+This function should be in the list `comint-output-sentinel-functions'."
   (let* ((selected (selected-window))
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
@@ -1697,21 +1691,14 @@ See `comint-prompt-regexp'."
 ;;; ===========================================================================
 ;;; Useful completion functions, courtesy of the Ergo group.
 
-;;; Six functions:
+;;; Six commands:
 ;;; comint-dynamic-complete		Complete or expand command, filename,
 ;;;                                     history at point.
 ;;; comint-dynamic-complete-filename	Complete filename at point.
-;;; comint-dynamic-complete-variable    Complete variable at point.
 ;;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;;; comint-replace-by-expanded-filename	Expand and complete filename at point;
 ;;;					replace with expanded/completed name.
 ;;; comint-dynamic-simple-complete	Complete stub given candidates.
-
-;;; Four hooks (defined above):
-;;; comint-dynamic-complete-filename-command Complete file name at point.
-;;; comint-dynamic-complete-command-command Complete command at point.
-;;; comint-get-current-command          Return command at point.
-;;; comint-after-partial-filename-command Return non-nil if after file.
 
 ;;; These are not installed in the comint-mode keymap. But they are
 ;;; available for people who want them. Shell-mode installs them:
@@ -1749,71 +1736,45 @@ directory tracking functions.")
 		      directory)))
 
 
+(defun comint-word (word-chars)
+  "Return the word of WORD-CHARS at point, or nil if non is found.
+Word constituents are considered to be those in WORD-CHARS, which is like the
+inside of a \"[...]\" (see `skip-chars-forward')."
+  (save-excursion
+    (let ((limit (point))
+	  (word (concat "[" word-chars "]"))
+	  (non-word (concat "[^" word-chars "]")))
+      (if (re-search-backward non-word nil 'move)
+	  (forward-char 1))
+      ;; Anchor the search forwards.
+      (if (or (eolp) (looking-at non-word))
+	  nil
+	(re-search-forward (concat word "+") limit)
+	(buffer-substring (match-beginning 0) (match-end 0))))))
+
+
 (defun comint-match-partial-filename ()
-  "Return the filename at point, or signal an error.
-Environment variables are substituted."
-  (save-excursion
-    (if (re-search-backward "[^~/A-Za-z0-9+@:_.$#,={}-]" nil 'move)
-	(forward-char 1))
-    ;; Anchor the search forwards.
-    (if (not (looking-at "[~/A-Za-z0-9+@:_.$#,={}-]")) (error ""))
-    (re-search-forward "[~/A-Za-z0-9+@:_.$#,={}-]+")
-    (substitute-in-file-name
-     (buffer-substring (match-beginning 0) (match-end 0)))))
-
-
-(defun comint-match-partial-variable ()
-  "Return the variable at point, or signal an error."
-  (save-excursion
-    (if (re-search-backward "[^A-Za-z0-9_${}]" nil 'move)
-	(forward-char 1))
-    ;; Anchor the search forwards.
-    (if (not (looking-at "\\$")) (error ""))
-    (re-search-forward "\\${?[A-Za-z0-9_]+}?")
-    (buffer-substring (match-beginning 0) (match-end 0))))
-
-
-(defun comint-after-partial-filename ()
-  "Returns t if point is after a file name.
-File names are assumed to contain `/'s or not be the first item in the input.
-
-See also `comint-bol'."
-  (let ((filename (comint-match-partial-filename)))
-    (or (save-match-data (string-match "/" filename))
-	(not (eq (match-beginning 0)
-		 (save-excursion (comint-bol nil) (point)))))))
+  "Return the filename at point, or nil if non is found.
+Environment variables are substituted.  See `comint-word'."
+  (let ((filename (comint-word "~/A-Za-z0-9+@:_.$#,={}-")))
+    (and filename (substitute-in-file-name filename))))
 
 
 (defun comint-dynamic-complete ()
-  "Dynamically complete/expand the command/filename/history at point.
-If the text contains (a non-absolute line reference) `!' or `^' and
-`comint-input-autoexpand' is non-nil, then an attempt is made to complete the
-history.  The value of the variable `comint-after-partial-filename-command' is
-used to match file names.  Otherwise, an attempt is made to complete the
-command.
-
-See also the variables `comint-after-partial-filename-command',
-`comint-dynamic-complete-filename-command', and
-`comint-dynamic-complete-command-command', and functions
-`comint-replace-by-expanded-history' and `comint-magic-space'."
+  "Dynamically perform completion at point.
+Calls the functions in `comint-dynamic-complete-functions' to perform
+completion until a function returns non-nil, at which point completion is
+assumed to have occurred."
   (interactive)
-  (let ((previous-modified-tick (buffer-modified-tick)))
-    (if (and comint-input-autoexpand
-	     (string-match "[!^]" (funcall comint-get-current-command)))
-	;; Looks like there might be history references in the command.
-	(comint-replace-by-expanded-history))
-    (if (= previous-modified-tick (buffer-modified-tick))
-	;; No references were expanded, so maybe they were none after all.
-	(cond ((funcall comint-after-partial-filename-command)
-	       ;; It's a file name.
-	       (funcall comint-dynamic-complete-filename-command))
-	      (t
-	       ;; Assume it's a command.
-	       (funcall comint-dynamic-complete-command-command))))))
+  (let ((functions comint-dynamic-complete-functions))
+    (while (and functions (null (funcall (car functions))))
+      (setq functions (cdr functions)))))
 
 
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
+Completes if after a filename.  See `comint-match-partial-filename' and
+`comint-dynamic-complete-as-filename'.
 This function is similar to `comint-replace-by-expanded-filename', except that
 it won't change parts of the filename already entered in the buffer; it just
 adds completion characters to the end of the filename.  A completions listing
@@ -1821,19 +1782,30 @@ may be shown in a help buffer if completion is ambiguous.
 
 Completion is dependent on the value of `comint-completion-addsuffix' and
 `comint-completion-recexact', and the timing of completions listing is
-dependent on the value of `comint-completion-autolist'."
+dependent on the value of `comint-completion-autolist'.
+
+Returns t if successful."
   (interactive)
+  (if (comint-match-partial-filename)
+      (prog2 (message "Completing file name...")
+	  (comint-dynamic-complete-as-filename))))
+
+
+(defun comint-dynamic-complete-as-filename ()
+  "Dynamically complete at point as a filename.
+See `comint-dynamic-complete-filename'.  Returns t if successful."
   (let* ((completion-ignore-case nil)
+	 (success t)
 	 ;; For shell completion, treat all files as equally interesting.
 	 (completion-ignored-extensions nil)
-	 (filename (comint-match-partial-filename))
+	 (filename (or (comint-match-partial-filename) ""))
          (pathdir (file-name-directory filename))
          (pathnondir (file-name-nondirectory filename))
          (directory (if pathdir (comint-directory pathdir) default-directory))
 	 (completion (file-name-completion pathnondir directory)))
     (cond ((null completion)
            (message "No completions of %s" filename)
-           (ding))
+	   (setq success nil))
           ((eq completion t)            ; Means already completed "file".
            (if comint-completion-addsuffix (insert " "))
            (message "Sole completion"))
@@ -1860,7 +1832,8 @@ dependent on the value of `comint-completion-autolist'."
                     ;; It's not unique, list possible completions.
                     (comint-dynamic-list-filename-completions))
                    (t
-                    (message "Partially completed"))))))))
+                    (message "Partially completed"))))))
+    success))
 
 
 (defun comint-replace-by-expanded-filename ()
@@ -1876,71 +1849,17 @@ see `expand-file-name' and `substitute-in-file-name'.  For completion see
   (comint-dynamic-complete-filename))
 
 
-(defun comint-dynamic-complete-variable ()
-  "Dynamically complete the environment variable at point.
-This function is similar to `comint-dynamic-complete-filename', except that it
-searches `process-environment' for completion candidates.  Note that this may
-not be the same as the interpreter's idea of variable names.  The main
-problem with this type of completion is that `process-environment' is the
-environment which Emacs started with.  Emacs does not track changes to the
-environment made by the interpreter.  Perhaps it would be more accurate if this
-function was called `comint-dynamic-complete-process-environment-variable'.
-
-See also `comint-dynamic-complete-filename'."
-  (interactive)
-  (let* ((completion-ignore-case nil)
-	 (variable (comint-match-partial-variable))
-	 (varname (substring variable (string-match "[^$({]" variable)))
-	 (protection (cond ((string-match "{" variable) "}")
-			   ((string-match "(" variable) ")")
-			   (t "")))
-	 (variables (mapcar (function (lambda (x)
-				(list (substring x 0 (string-match "=" x)))))
-			    process-environment))
-	 (var-directory-p
-	  (function (lambda (var)
-	    (file-directory-p
-	     (comint-directory (substitute-in-file-name (concat "$" var)))))))
-	 (completions (all-completions varname variables)))
-    ;; Complete variable as if its value were a filename (which it might be).
-    (cond ((null completions)
- 	   (message "No completions of %s" varname)
- 	   (ding))
- 	  ((= 1 (length completions))	; Gotcha!
- 	   (let ((completion (car completions)))
- 	     (if (string-equal completion varname)
- 		 (message "Sole completion")
- 	       (insert (substring (directory-file-name completion)
- 				  (length varname)))
- 	       (message "Completed"))
-	     (insert protection)
- 	     (if comint-completion-addsuffix
- 		 (insert (if (funcall var-directory-p completion) "/" " ")))))
- 	  (t				; There's no unique completion.
- 	   (let ((completion (try-completion varname variables)))
- 	     ;; Insert the longest substring.
- 	     (insert (substring (directory-file-name completion)
- 				(length varname)))
- 	     (cond ((and comint-completion-recexact comint-completion-addsuffix
- 			 (string-equal varname completion)
- 			 (member completion completions))
- 		    ;; It's not unique, but user wants shortest match.
- 		    (insert protection
-			    (if (funcall var-directory-p completion) "/" " "))
- 		    (message "Completed shortest"))
- 		   ((or comint-completion-autolist
- 			(string-equal varname completion))
- 		    ;; It's not unique, list possible completions.
- 		    (comint-dynamic-list-completions completions))
- 		   (t
- 		    (message "Partially completed"))))))))
-
-
 (defun comint-dynamic-simple-complete (stub candidates)
   "Dynamically complete STUB from CANDIDATES list.
 This function inserts completion characters at point by completing STUB from
 the strings in CANDIDATES.  A completions listing may be shown in a help buffer
 if completion is ambiguous.
+
+Returns nil if no completion was inserted.
+Returns `sole' if completed with the only completion match.
+Returns `shortest' if completed with the shortest of the completion matches.
+Returns `partial' if completed as far as possible with the completion matches.
+Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case nil)
@@ -1948,14 +1867,15 @@ See also `comint-dynamic-complete-filename'."
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
  	   (message "No completions of %s" stub)
- 	   (ding))
+	   nil)
  	  ((= 1 (length completions))	; Gotcha!
  	   (let ((completion (car completions)))
  	     (if (string-equal completion stub)
  		 (message "Sole completion")
  	       (insert (substring completion (length stub)))
  	       (message "Completed"))
-	     (if comint-completion-addsuffix (insert " "))))
+	     (if comint-completion-addsuffix (insert " "))
+	     'sole))
  	  (t				; There's no unique completion.
  	   (let ((completion (try-completion stub candidates)))
  	     ;; Insert the longest substring.
@@ -1965,13 +1885,16 @@ See also `comint-dynamic-complete-filename'."
  			 (member completion completions))
  		    ;; It's not unique, but user wants shortest match.
  		    (insert " ")
- 		    (message "Completed shortest"))
+ 		    (message "Completed shortest")
+		    'shortest)
  		   ((or comint-completion-autolist
  			(string-equal stub completion))
  		    ;; It's not unique, list possible completions.
- 		    (comint-dynamic-list-completions completions))
+ 		    (comint-dynamic-list-completions completions)
+		    'listed)
  		   (t
- 		    (message "Partially completed"))))))))
+		    (message "Partially completed")
+		    'partial)))))))
 
 
 (defun comint-dynamic-list-filename-completions ()
@@ -1980,15 +1903,14 @@ See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case nil)
 	 ;; For shell completion, treat all files as equally interesting.
 	 (completion-ignored-extensions nil)
-	 (filename (comint-match-partial-filename))
+	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
 	 (directory (if pathdir (comint-directory pathdir) default-directory))
 	 (completions (file-name-all-completions pathnondir directory)))
     (if completions
 	(comint-dynamic-list-completions completions)
-      (message "No completions of %s" filename)
-      (ding))))
+      (message "No completions of %s" filename))))
 
 
 (defun comint-dynamic-list-completions (completions)
@@ -2046,7 +1968,7 @@ Typing SPC flushes the help buffer."
 ;;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
 ;;;
 ;;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
-;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-sentinel.
+;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-sentinel-functions.
 ;;; Comint mode does not provide functionality equivalent to
 ;;; shell-set-directory-error-hook; it is gone.
 ;;;
@@ -2063,8 +1985,8 @@ Typing SPC flushes the help buffer."
 ;;; necessary comint-specific local variables. Then create the
 ;;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
 ;;; be foo-mode-map, and its mode to be foo-mode.  Set the comint-mode hooks
-;;; (comint-prompt-regexp, comint-input-filter, comint-input-sentinel,
-;;; comint-get-old-input) that need to be different from the defaults.  Call
+;;; (comint-{prompt-regexp, input-filter, input-sentinel-functions,
+;;; get-old-input) that need to be different from the defaults.  Call
 ;;; foo-mode-hook, and you're done. Don't run the comint-mode hook yourself;
 ;;; comint-mode will take care of it. The following example, from shell.el,
 ;;; is typical:
@@ -2087,7 +2009,7 @@ Typing SPC flushes the help buffer."
 ;;;   (use-local-map shell-mode-map)
 ;;;   (make-local-variable 'shell-directory-stack)
 ;;;   (setq shell-directory-stack nil)
-;;;   (setq comint-input-sentinel 'shell-directory-tracker)
+;;;   (add-hook 'comint-input-sentinel-functions 'shell-directory-tracker)
 ;;;   (run-hooks 'shell-mode-hook))
 ;;;
 ;;;
@@ -2099,24 +2021,12 @@ Typing SPC flushes the help buffer."
 ;;;
 ;;; Completion for comint-mode users
 ;;; 
-;;; For modes that use comint-mode, comint-after-partial-filename-command
-;;; should be set to a function that returns t if the stub before point is to
-;;; be treated as a filename.  By default, if the stub contains a `/', or does
-;;; not follow the prompt, comint-dynamic-complete-filename-command is called.
-;;; Otherwise, comint-dynamic-complete-command-command is called.  This should
-;;; also be set to a function that completes whatever the mode calls commands.
+;;; For modes that use comint-mode, comint-dynamic-complete-functions is the
+;;; hook to add completion functions to.  Functions on this list should return
+;;; non-nil if completion occurs (i.e., further completion should not occur).
 ;;; You could use comint-dynamic-simple-complete to do the bulk of the
 ;;; completion job.
 
-;;; Do the user's customisation...
-;;;
-;;; Isn't this what eval-after-load is for?
-;;;(defvar comint-load-hook nil
-;;;  "This hook is run when comint is loaded in.
-;;;This is a good place to put keybindings.")
-;;;	
-;;;(run-hooks 'comint-load-hook)
-
 (provide 'comint)
 
 ;;; comint.el ends here
