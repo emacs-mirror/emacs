@@ -10,8 +10,9 @@
 @footnotestyle end
 
 @ifinfo
+@dircategory Editors
 @direntry
-* EUDC::   A client for directory servers (LDAP, PH)
+* EUDC: (eudc).   A client for directory servers (LDAP, PH)
 @end direntry
 
 This file documents EUDC v1.30b
