@@ -994,6 +994,20 @@
   :map "ibm850")
 (define-charset-alias 'cp850 'ibm850)
 
+(define-charset 'mik
+  "Bulgarian DOS codepage"
+  :short-name "MIK"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "mik")
+
+(define-charset 'pt154
+  "`Paratype' codepage (Asian Cyrillic)"
+  :short-name "PT154"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "pt154")
+
 (define-charset 'gb18030-2-byte
   "GB18030 2-byte (0x814E..0xFEFE)"
   :code-space [#x40 #xFE #x81 #xFE]
