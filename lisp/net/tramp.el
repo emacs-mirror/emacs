@@ -1296,7 +1296,7 @@ while (my $data = <STDIN>) {
 '"
   "Perl program to use for encoding a file.
 Escape sequence %s is replaced with name of Perl binary.
-This string is passwd to `format', so percent characters need to be doubled.")
+This string is passed to `format', so percent characters need to be doubled.")
 
 (defvar tramp-perl-decode
   "%s -e '
@@ -1340,7 +1340,7 @@ while (my $data = <STDIN>) {
 '"
   "Perl program to use for decoding a file.
 Escape sequence %s is replaced with name of Perl binary.
-This string is passwd to `format', so percent characters need to be doubled.")
+This string is passed to `format', so percent characters need to be doubled.")
 
 ; These values conform to `file-attributes' from XEmacs 21.2.
 ; GNU Emacs and other tools not checked.
