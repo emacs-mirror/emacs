@@ -65,9 +65,7 @@ use overstrike as your normal editing mode, you can use this function
 to insert characters when necessary."
   (interactive "*p")
   (let ((char (read-quoted-char)))
-    (while (> arg 0)
-      (insert char)
-      (setq arg (1- arg)))))
+    (insert-char char arg)))
 
 (defun delete-indentation (&optional arg)
   "Join this line to previous and fix up whitespace at join.
@@ -988,7 +986,8 @@ to make one entry in the kill ring."
    ;; the region's text in the kill ring, anyway.
    (buffer-read-only
     (copy-region-as-kill beg end)
-    (ding))
+    ;; This should always barf, and give us the correct error.
+    (barf-if-buffer-read-only))
 
    ;; In certain cases, we can arrange for the undo list and the kill
    ;; ring to share the same string object.  This code does that.
@@ -1109,7 +1108,8 @@ BUFFER may be a buffer or a buffer name."
 	(setq start (point-min) end (point-max)))
       (insert-buffer-substring buffer start end)
       (setq newmark (point)))
-    (push-mark newmark)))
+    (push-mark newmark))
+  nil)
 
 (defun append-to-buffer (buffer start end)
   "Append to specified buffer the text of the region.
