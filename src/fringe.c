@@ -722,19 +722,35 @@ draw_row_fringe_bitmaps (w, row)
 }
 
 /* Draw the fringes of window W.  Only fringes for rows marked for
-   update in redraw_fringe_bitmaps_p are drawn.  */
+   update in redraw_fringe_bitmaps_p are drawn.
 
-void
-draw_window_fringes (w)
+   Return >0 if left or right fringe was redrawn in any way.
+
+   If NO_FRINGE is non-zero, also return >0 if either fringe has zero width.
+
+   A return value >0 indicates that the vertical line between windows
+   needs update (as it may be drawn in the fringe).
+*/
+
+int
+draw_window_fringes (w, no_fringe)
      struct window *w;
+     int no_fringe;
 {
   struct glyph_row *row;
   int yb = window_text_bottom_y (w);
   int nrows = w->current_matrix->nrows;
   int y = 0, rn;
+  int updated = 0;
 
   if (w->pseudo_window_p)
-    return;
+    return 0;
+
+  /* Must draw line if no fringe */
+  if (no_fringe
+      && (WINDOW_LEFT_FRINGE_WIDTH (w) == 0
+	  || WINDOW_RIGHT_FRINGE_WIDTH (w) == 0))
+    updated++;
 
   for (y = 0, rn = 0, row = w->current_matrix->rows;
        y < yb && rn < nrows;
@@ -744,7 +760,10 @@ draw_window_fringes (w)
 	continue;
       draw_row_fringe_bitmaps (w, row);
       row->redraw_fringe_bitmaps_p = 0;
+      updated++;
     }
+
+  return updated;
 }
 
 
@@ -950,11 +969,7 @@ update_window_fringes (w, force_p)
    Typically, we add an equal amount (+/- 1 pixel) to each fringe,
    but a negative width value is taken literally (after negating it).
 
-   We never make the fringes narrower than specified.  It is planned
-   to make fringe bitmaps customizable and expandable, and at that
-   time, the user will typically specify the minimum number of pixels
-   needed for his bitmaps, so we shouldn't select anything less than
-   what is specified.
+   We never make the fringes narrower than specified.
 */
 
 void
