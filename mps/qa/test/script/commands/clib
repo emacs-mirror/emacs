@@ -16,7 +16,11 @@ print "Compiling test libraries from $testlib_dir.\n";
 
 require "compile";
 
-while ($tlfile = <$testlib_dir/*.c>) {
+open(MANIFEST, "$testlib_dir/manifest");
+
+while ($tlfile = <MANIFEST>) {
+ chop($tlfile);
+ $tlfile = $testlib_dir."/".$tlfile;
  $tlobj = $tlfile;
  $tlobj =~ s/\.c/\.o/;
  $tlobj =~ s/$testlib_dir/$obj_dir/;
@@ -28,3 +32,6 @@ while ($tlfile = <$testlib_dir/*.c>) {
   print " failed\n";
  }
 }
+
+close(MANIFEST);
+
