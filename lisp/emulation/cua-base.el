@@ -30,7 +30,10 @@
 ;; manipulating the region where S-<movement> is used to highlight &
 ;; extend the region.
 
-;; This package allow the C-z, C-x, C-c, and C-v keys to be
+;; CUA style key bindings for cut and paste
+;; ----------------------------------------
+
+;; This package allows the C-z, C-x, C-c, and C-v keys to be
 ;; bound appropriately according to the Motif/Windows GUI, i.e.
 ;;	C-z	-> undo
 ;;	C-x	-> cut
@@ -70,6 +73,35 @@
 
 ;; If you prefer to use the standard emacs cut, copy, paste, and undo
 ;; bindings, customize cua-enable-cua-keys to nil.
+
+
+;; Typing text replaces the region
+;; -------------------------------
+
+;; When the region is active, i.e. highlighted, the text in region is
+;; replaced by the text you type.
+
+;; The replaced text is saved in register 0 which can be inserted using
+;; the key sequence M-0 C-v (see the section on register support below).
+
+;; If you have just replaced a highlighted region with typed text,
+;; you can repeat the replace with M-v.  This will search forward
+;; for a streach of text identical to the previous contents of the
+;; region (i.e. the contents of register 0) and replace it with the
+;; text you typed to replace the original region.  Repeating M-v will
+;; replace the next matching region and so on.
+;;
+;; Example:  Suppose you have a line like this
+;;   The redo operation will redo the last redoable command
+;; which you want to change into
+;;   The repeat operation will repeat the last repeatable command
+;; This is done by highlighting the first occurrence of "redo"
+;; and type "repeat" M-v M-v.
+
+;; Note: Since CUA-mode duplicates the functionality of the
+;; delete-selection-mode, that mode is automatically disabled when
+;; CUA-mode is enabled.
+
 
 ;; CUA mode indications
 ;; --------------------
@@ -775,6 +807,27 @@ Activates the mark if a prefix argument is given."
       (if cua--rectangle
 	  (cua--rectangle-corner 0)))))
 
+;; Typed text that replaced the highlighted region.
+(defvar cua--repeat-replace-text nil)
+
+(defun cua-repeat-replace-region (arg)
+  "Repeat replacing text of highlighted region with typed text.
+Searches for the next streach of text identical to the region last
+replaced by typing text over it and replaces it with the same streach
+of text.  Note: Works reliable only when repeated immediately after
+typing the last character."
+  (interactive "P")
+  (unless (eq this-command last-command)
+    (setq cua--repeat-replace-text
+	  (and (mark t)
+	       (/= (point) (mark t))
+	       (buffer-substring-no-properties (point) (mark t)))))
+  (let ((old (get-register ?0)))
+    (if (and old
+	     cua--repeat-replace-text
+	     (search-forward old nil t nil))
+	(replace-match cua--repeat-replace-text arg t))))
+
 (defun cua-help-for-region (&optional help)
   "Show region specific help in echo area."
   (interactive)
@@ -1038,6 +1091,7 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua--cua-keys-keymap [(shift control c)] 'mode-specific-command-prefix)
   (define-key cua--cua-keys-keymap [(control z)] 'undo)
   (define-key cua--cua-keys-keymap [(control v)] 'yank)
+  (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region)
   (define-key cua--cua-keys-keymap [remap exchange-point-and-mark] 'cua-exchange-point-and-mark)
 
   (define-key cua--prefix-override-keymap [(control x)] 'cua--prefix-override-handler)
