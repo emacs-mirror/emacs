@@ -1,5 +1,9 @@
 2000-05-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* net/net-utils.el (finger-X.500-host-regexps): New user-option.
+	(finger): If HOST matches a regexp from finger-X.500-host-regexps,
+	send a query containing USER only, not USER@HOST.
+
 	* mail/rmail.el (rmail-widen-to-current-msgbeg): Use rmail-msgbeg
 	and rmail-msgend to compute the restriction at the end, instead of
 	computing it.
