@@ -4451,7 +4451,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
           goto fail;
 
 #ifdef emacs
-#ifdef emacs19
   	case before_dot:
           DEBUG_PRINT1 ("EXECUTING before_dot.\n");
  	  if (PTR_CHAR_POS ((unsigned char *) d) >= point)
@@ -4469,7 +4468,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
           if (PTR_CHAR_POS ((unsigned char *) d) <= point)
   	    goto fail;
   	  break;
-#else /* not emacs19 */
+#if 0 /* not emacs19 */
 	case at_dot:
           DEBUG_PRINT1 ("EXECUTING at_dot.\n");
 	  if (PTR_CHAR_POS ((unsigned char *) d) + 1 != point)
