@@ -2177,19 +2177,7 @@ check_executable (filename)
      char *filename;
 {
 #ifdef __HURD__
-  mach_port_t file;
-  int access_mode;
-
-  file = path_lookup (filename, 0, 0);
-  if (file == MACH_PORT_NULL)
-    /* File can't be opened.  */
-    access_mode = 0;
-  else
-    {
-      file_access (file, &access_mode);
-      mach_port_deallocate (mach_task_self (), file);
-    }
-  return !!(access_mode & O_EXEC);
+  return (eaccess (filename, 1) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
      and we really want to test with the effective uid.
@@ -2205,19 +2193,7 @@ check_writable (filename)
      char *filename;
 {
 #ifdef __HURD__
-  mach_port_t file;
-  int access_mode;
-
-  file = path_lookup (filename, 0, 0);
-  if (file == MACH_PORT_NULL)
-    /* File can't be opened.  */
-    access_mode = 0;
-  else
-    {
-      file_access (file, &access_mode);
-      mach_port_deallocate (mach_task_self (), file);
-    }
-  return !!(access_mode & O_WRITE);
+  return (eaccess (filename, 2) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
      and we really want to test with the effective uid.
