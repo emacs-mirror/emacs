@@ -32,10 +32,7 @@
 
 ;;; Bugs:
 
-;; - VC-dired is either not working or (really) dog slow.
-;; - vc-print-log does not always jump to the proper log entry because
-;;   it tries to jump to version 1234 even if there's only an entry
-;;   for 1232 (because the file hasn't changed since).
+;; - VC-dired is (really) slow.
 
 ;;; Code:
 
@@ -198,15 +195,12 @@ committed and support display of sticky tags."
 
 (defun vc-svn-dired-state-info (file)
   "SVN-specific version of `vc-dired-state-info'."
-  (let* ((svn-state (vc-state file))
-	 (state (cond ((eq svn-state 'edited)	"modified")
-		      ((eq svn-state 'needs-patch)	"patch")
-		      ((eq svn-state 'needs-merge)	"merge")
-		      ;; FIXME: those two states cannot occur right now
-		      ((eq svn-state 'unlocked-changes)	"conflict")
-		      ((eq svn-state 'locally-added)	"added")
-		      )))
-    (if state (concat "(" state ")"))))
+  (let ((svn-state (vc-state file)))
+    (cond ((eq svn-state 'edited)
+	   (if (equal (vc-workfile-version file) "0")
+	       "(added)" "(modified)"))
+	  ((eq svn-state 'needs-patch) "(patch)")
+	  ((eq svn-state 'needs-merge) "(merge)"))))
 
 
 ;;;
@@ -219,19 +213,11 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-svn-register-switches' are passed to
 the SVN command (in that order)."
-  (let ((switches (append
-		   (if (stringp vc-register-switches)
-		       (list vc-register-switches)
-		     vc-register-switches)
-		   (if (stringp vc-svn-register-switches)
-		       (list vc-svn-register-switches)
-		     vc-svn-register-switches))))
-
-    (apply 'vc-svn-command nil 0 file
-	   "add"
-	   ;; (and comment (string-match "[^\t\n ]" comment)
-	   ;; 	(concat "-m" comment))
-	   switches)))
+  (apply 'vc-svn-command nil 0 file
+	 "add"
+	 ;; (and comment (string-match "[^\t\n ]" comment)
+	 ;; 	(concat "-m" comment))
+	 (vc-switches 'SVN 'register)))
 
 (defun vc-svn-responsible-p (file)
   "Return non-nil if SVN thinks it is responsible for FILE."
@@ -246,18 +232,14 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-checkin (file rev comment)
   "SVN-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches))
-	status)
-    (setq status (apply 'vc-svn-command nil 1 file
-			"ci" (list* "-m" comment switches)))
+  (let ((status (apply 'vc-svn-command nil 1 file
+		       "ci" (list* "-m" comment (vc-switches 'SVN 'checkin)))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (unless (equal status 0)
       ;; Check checkin problem.
       (cond
-       ((re-search-forward "Up-to-date check failed" nil t)
+       ((search-forward "Transaction is out of date" nil t)
         (vc-file-setprop file 'vc-state 'needs-merge)
         (error (substitute-command-keys
                 (concat "Up-to-date check failed: "
@@ -279,17 +261,12 @@ This is only possible if SVN is responsible for FILE's directory.")
 	 "cat"
 	 (and rev (not (string= rev ""))
 	      (concat "-r" rev))
-	 (if (stringp vc-checkout-switches)
-	     (list vc-checkout-switches)
-	   vc-checkout-switches)))
+	 (vc-switches 'SVN 'checkout)))
 
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (let ((switches (if (stringp vc-checkout-switches)
-			(list vc-checkout-switches)
-		      vc-checkout-switches)))
-      (vc-call update file editable rev switches)))
+    (vc-call update file editable rev (vc-switches 'SVN 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 
@@ -403,34 +380,36 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-svn-diff (file &optional oldvers newvers)
   "Get a difference report using SVN between two versions of FILE."
-  (let (status (diff-switches-list (vc-diff-switches-list 'SVN)))
-    (if (string= (vc-workfile-version file) "0")
-	;; This file is added but not yet committed; there is no master file.
-	(if (or oldvers newvers)
-	    (error "No revisions of %s exist" file)
-	  ;; We regard this as "changed".
-	  ;; Diff it against /dev/null.
-          ;; Note: this is NOT a "svn diff".
-          (apply 'vc-do-command "*vc-diff*"
-                 1 "diff" file
-                 (append diff-switches-list '("/dev/null"))))
-      (setq status
-            (apply 'vc-svn-command "*vc-diff*"
-                   (if (and (vc-svn-stay-local-p file)
-			    (or oldvers newvers) ; Svn diffs those locally.
-			    (fboundp 'start-process))
-		       'async
-		     1)
-                   file "diff"
+  (if (string= (vc-workfile-version file) "0")
+      ;; This file is added but not yet committed; there is no master file.
+      (if (or oldvers newvers)
+	  (error "No revisions of %s exist" file)
+	;; We regard this as "changed".
+	;; Diff it against /dev/null.
+	;; Note: this is NOT a "svn diff".
+	(apply 'vc-do-command "*vc-diff*"
+	       1 "diff" file
+	       (append (vc-switches nil 'diff) '("/dev/null")))
+	;; Even if it's empty, it's locally modified.
+	1)
+    (let* ((switches (vc-switches 'SVN 'diff))
+	   (async (and (vc-svn-stay-local-p file)
+		       (or oldvers newvers) ; Svn diffs those locally.
+		       (fboundp 'start-process)))
+	   (status
+	    (apply 'vc-svn-command "*vc-diff*"
+		   (if async 'async 1)
+		   file "diff"
 		   (append
+		    (when switches
+		      (list "-x" (mapconcat 'identity switches " ")))
 		    (when oldvers
-		      (list "-r"
-			    (if newvers (concat oldvers ":" newvers) oldvers)))
-		    (when diff-switches-list
-		      (list "-x" (mapconcat 'identity diff-switches-list " "))))))
-      (if (vc-svn-stay-local-p file)
-          1 ;; async diff, pessimistic assumption
-        status))))
+		      (list "-r" (if newvers (concat oldvers ":" newvers)
+				   oldvers)))))))
+      (if async 1		      ; async diff => pessimistic assumption
+	;; For some reason `svn diff' does not return a useful
+	;; status w.r.t whether the diff was empty or not.
+	(buffer-size (get-buffer "*vc-diff*"))))))
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
@@ -450,14 +429,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                  (vc-diff-internal ',f ',rev1 ',rev2))))))
       ;; svn diff: use a single call for the entire tree
       (let ((coding-system-for-read (or coding-system-for-read 'undecided))
-	    (diff-switches-list (vc-diff-switches-list 'SVN)))
+	    (switches (vc-switches 'SVN 'diff)))
         (apply 'vc-svn-command "*vc-diff*" 1 nil "diff"
 	       (append
 		(when rev1
-		  (list "-r"
-			(if rev2 (concat rev1 ":" rev2) rev1)))
-		(when diff-switches-list
-		  (list "-x" (mapconcat 'identity diff-switches-list " ")))))))))
+		  (list "-r" (if rev2 (concat rev1 ":" rev2) rev1)))
+		(when switches
+		  (list "-x" (mapconcat 'identity switches " ")))))))))
 
 ;;;
 ;;; Snapshot system
@@ -586,7 +564,9 @@ See `vc-svn-stay-local'."
 				     (setq stay-local (not stay-local)))
 				 (if stay-local
 				     'yes
-				   'no))))))))))))))
+				   'no))))))))
+		    ;; vc-svn-stay-local is neither nil nor list nor string.
+		    (t 'yes)))))))
       (if (eq prop 'yes) t nil))))
 
 (defun vc-svn-parse-status (localp)
@@ -596,13 +576,15 @@ essential information."
   (let (file status)
     (goto-char (point-min))
     (while (re-search-forward
-	    "^[ ADMCI?!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
+	    "^[ ADMCI?!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
       (setq file (expand-file-name
 		  (buffer-substring (point) (line-end-position))))
       (setq status (char-after (line-beginning-position)))
       (unless (eq status ??)
 	(vc-file-setprop file 'vc-backend 'SVN)
-	(vc-file-setprop file 'vc-workfile-version (match-string 2))
+	;; Use the last-modified revision, so that searching in vc-print-log
+	;; output works.
+	(vc-file-setprop file 'vc-workfile-version (match-string 3))
 	(vc-file-setprop
 	 file 'vc-state
 	 (cond
@@ -613,6 +595,8 @@ essential information."
                               (nth 5 (file-attributes file)))
 	     'up-to-date))
 	  ((eq status ?A)
+	   ;; If the file was actually copied, (match-string 2) is "-".
+	   (vc-file-setprop file 'vc-workfile-version "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'edited)
 	  ((memq status '(?M ?C))
