@@ -1,3 +1,8 @@
+2001-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/ada-mode.el (ada-add-extensions): Quote regexp special
+	characters and append anchor to pattern added to auto-mode-alist.
+
 2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* server.el (server-process-filter): Run pore/post-comment-hook
