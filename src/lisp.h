@@ -226,10 +226,6 @@ enum pvec_type
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0xff
 
-#if ARRAY_MARK_FLAG == MARKBIT || PSEUDOVECTOR_FLAG == ARRAY_MARK_FLAG || PSEUDOVECTOR_FLAG == MARKBIT
-you lose
-#endif
-
 #endif /* NO_UNION_TYPE */
 
 /* These macros extract various sorts of values from a Lisp_Object.
