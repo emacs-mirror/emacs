@@ -27,13 +27,11 @@
 ;;; Commentary:
 ;;
 ;; This package provides a simple method of inserting an URL based on the
-;; text at point in the current buffer.  This is part of an on-going
-;; effort to increase the information I provide people while reducing the
-;; ammount of typing I need to do (see also handyurl.el which is available
-;; from <URL:http://www.hagbard.demon.co.uk/archives/handyurl.el>), no-doubt
-;; there are undiscovered Emacs packages out there that do all of this and
-;; do it better, feel free to point me to them, in the mean time I'm having
-;; fun playing with Emacs Lisp.
+;; text at point in the current buffer. This is part of an on-going effort
+;; to increase the information I provide people while reducing the ammount
+;; of typing I need to do. No-doubt there are undiscovered Emacs packages
+;; out there that do all of this and do it better, feel free to point me to
+;; them, in the mean time I'm having fun playing with Emacs Lisp.
 ;;
 ;; The URLs are stored in an external file as a list of either cons cells,
 ;; or lists. A cons cell entry looks like this:
@@ -69,7 +67,7 @@
 ;; backward compatibility with existing URL lists.
 ;;
 ;; The name and location of the file is up to you, the default name used by
-;; the `quickurl' is stored in `quickurl-url-file'.
+;; `quickurl' is stored in `quickurl-url-file'.
 ;;
 ;; quickurl is always available from:
 ;;
@@ -81,10 +79,6 @@
 ;; o The quickurl-browse-url* functions pretty much duplicate their non
 ;;   browsing friends. It would feel better if a more generic solution could
 ;;   be found.
-;;
-;; o Merge quickurl.el and handyurl.el to provide a fuller URL management
-;;   facility that would allow for the pulling, inserting and browsing of
-;;   URLs.
 
 ;;; Code:
 
@@ -107,15 +101,13 @@
 ;; `caddr' is a function in cl and so might not always be available
 ;; (remembering the general rule that says cl functions should not be used,
 ;; only cl macros). So, to make use of `caddr' without forcing the load of
-;; cl-seq we'll define out own.
+;; cl-seq we'll define our own.
 
 (eval-when (load eval)
   (unless (fboundp 'caddr)
     (defun caddr (l)
       "Return the `car' of the `cddr' of L."
       (car (cddr l)))))
-
-;; Create a version constant.
 
 ;; Customize options.
 
@@ -315,8 +307,8 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
 (defun* quickurl (&optional (lookup (funcall quickurl-grab-lookup-function)))
   "Insert an URL based on LOOKUP.
 
-If not supplied LOOKUP is taken to be the word at point in the
-current buffer, this default action can be modifed via
+If not supplied LOOKUP is taken to be the word at point in the current
+buffer, this default action can be modifed via
 `quickurl-grab-lookup-function'."
   (interactive)
   (when lookup
@@ -363,7 +355,7 @@ It is assumed that the URL is either \"unguarded\" or is wrapped inside an
         (let ((word (funcall quickurl-grab-lookup-function)))
           (when word
             (quickurl-make-url
-             ;; `thing-at-point' returns the word with properties. I don't
+             ;; The grab function may return the word with properties. I don't
              ;; want the properties. I couldn't find a method of stripping
              ;; them from a "string" so this will have to do. If you know of
              ;; a better method of doing this I'd love to know.
