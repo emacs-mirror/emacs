@@ -179,6 +179,102 @@ regardless of where in the line point is when the TAB command is used.")
 ;;; statements.
 (defconst c-switch-label-regexp "case[ \t'/(]\\|default[ \t]*:")
 
+;; This is actually the expression for C++ mode, but it's used for C too.
+(defvar c-imenu-generic-expression
+  (` 
+   ((nil
+     (, 
+      (concat
+       "^"				  ; beginning of line is required
+       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
+       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
+       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
+       
+       "\\("				  ; last type spec including */&
+       "[a-zA-Z0-9_:]+"
+       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
+       "\\)?"				  ; if there is a last type spec
+       "\\("			      ; name; take that into the imenu entry
+       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
+					; (may not contain * because then 
+					; "a::operator char*" would become "char*"!)
+       "\\|"
+       "\\([a-zA-Z0-9_:~]*::\\)?operator"
+       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
+       " \\)"
+       "[ \t]*([^)]*)[ \t\n]*[^	      ;]" ; require something other than a ; after
+					; the (...) to avoid prototypes.  Can't
+					; catch cases with () inside the parentheses
+					; surrounding the parameters
+					; (like "int foo(int a=bar()) {...}"
+       
+       )) 6)    
+    ("Class" 
+     (, (concat 
+	 "^"				   ; beginning of line is required
+	 "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
+	 "class[ \t]+"
+	 "\\([a-zA-Z0-9_]+\\)"                ; this is the string we want to get
+	 "[ \t]*[:{]"
+	 )) 2)
+;; Example of generic expression for finding prototypes, structs, unions, enums.
+;; Uncomment if you want to find these too.  It will be a bit slower gathering
+;; the indexes.
+;    ("Prototypes"
+;     (, 
+;      (concat
+;       "^"				  ; beginning of line is required
+;       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
+;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
+;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
+       
+;       "\\("				  ; last type spec including */&
+;       "[a-zA-Z0-9_:]+"
+;       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
+;       "\\)?"				  ; if there is a last type spec
+;       "\\("			      ; name; take that into the imenu entry
+;       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
+;					; (may not contain * because then 
+;					; "a::operator char*" would become "char*"!)
+;       "\\|"
+;       "\\([a-zA-Z0-9_:~]*::\\)?operator"
+;       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
+;       " \\)"
+;       "[ \t]*([^)]*)[ \t\n]*;" 	; require ';' after
+;					; the (...) Can't
+;					; catch cases with () inside the parentheses
+;					; surrounding the parameters
+;					; (like "int foo(int a=bar());"       
+;       )) 6)    
+;    ("Struct"
+;     (, (concat
+;	 "^"				; beginning of line is required
+;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+;	 "\\(const[ \t]+\\)?"
+;	 "struct[ \t]+"
+;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+;	 "[ \t]*[{]"
+;	 )) 3)
+;    ("Enum"
+;     (, (concat
+;	 "^"				; beginning of line is required
+;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+;	 "\\(const[ \t]+\\)?"
+;	 "enum[ \t]+"
+;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+;	 "[ \t]*[{]"
+;	 )) 3)
+;    ("Union"
+;     (, (concat
+;	 "^"				; beginning of line is required
+;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+;	 "\\(const[ \t]+\\)?"
+;	 "union[ \t]+"
+;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+;	 "[ \t]*[{]"
+;	 )) 3)
+    ))
+  "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
 
 (defun c-mode ()
   "Major mode for editing C code.
@@ -263,6 +359,8 @@ if that value is non-nil."
   (setq comment-multi-line t)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression c-imenu-generic-expression)
   (run-hooks 'c-mode-hook))
 
 (defun c-outline-level ()
