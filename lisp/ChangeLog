@@ -15,6 +15,12 @@
 
 	* info-look.el (emacs-lisp-mode): Add prefix/suffix matching regexps.
 
+2003-04-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-get-entries): New function that uses the
+	right coding system for accessing CVS/Entries.
+	(vc-cvs-registered, vc-cvs-dir-state-heuristic): Use it.
+
 2003-04-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (number-sequence): Adjust code.
