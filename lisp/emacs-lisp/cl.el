@@ -207,7 +207,7 @@ Keywords supported:  :test :test-not :key"
   "Return multiple values, Common Lisp style.
 The arguments of `values' are the values
 that the containing function should return."
-  (apply 'list values))
+  values)
 
 (defsubst values-list (list)
   "Return multiple values, Common Lisp style, taken from a list.
