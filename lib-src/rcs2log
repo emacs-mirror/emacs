@@ -2,7 +2,8 @@
 
 # RCS to ChangeLog generator
 
-# Generate a change log prefix from RCS files and the ChangeLog (if any).
+# Generate a change log prefix from RCS files (perhaps in the CVS repository)
+# and the ChangeLog (if any).
 # Output the new prefix to standard output.
 # You can edit this prefix by hand, and then prepend it to ChangeLog.
 
@@ -10,11 +11,26 @@
 # Clump together log entries that start with `{topic} ',
 # where `topic' contains neither white space nor `}'.
 
-# Author: Paul Eggert <eggert@twinsun.com>
+Help='The default FILEs are the files registered under the working directory.
+Options:
 
-# $Id: rcs2log,v 1.34 1996/10/13 05:59:42 eggert Exp eggert $
+  -c CHANGELOG  Output a change log prefix to CHANGELOG (default ChangeLog).
+  -h HOSTNAME  Use HOSTNAME in change log entries (default current host).
+  -i INDENT  Indent change log lines by INDENT spaces (default 8).
+  -l LENGTH  Try to limit log lines to LENGTH characters (default 79).
+  -R  If no FILEs are given and RCS is used, recurse through working directory.
+  -r OPTION  Pass OPTION to subsidiary log command.
+  -t TABWIDTH  Tab stops are every TABWIDTH characters (default 8).
+  -u "LOGIN<tab>FULLNAME<tab>MAILADDR"  Assume LOGIN has FULLNAME and MAILADDR.
+  -v  Append RCS revision to file names in log lines.
+  --help  Output help.
+  --version  Output version number.
 
-# Copyright 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
+
+Id='$Id: rcs2log,v 1.35 1996/11/03 17:09:27 eggert Exp eggert $'
+
+# Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,6 +46,13 @@
 # along with this program; see the file COPYING.  If not, write to the
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
+
+Copyright='Copyright 1997 Free Software Foundation, Inc.
+This program comes with NO WARRANTY, to the extent permitted by law.
+You may redistribute copies of this program
+under the terms of the GNU General Public License.
+For more information about these matters, see the files named COPYING.
+Author: Paul Eggert <eggert@twinsun.com>'
 
 tab='	'
 nl='
@@ -99,12 +122,16 @@ do
 	-R)	recursive=t;;
 	-t)	tabwidth=${2?}; shift;;
 	-v)	revision=t;;
-	-*)	echo >&2 "$0: usage: $0 [options] [file ...]
-Options:
-	[-c changelog] [-h hostname] [-i indent] [-l length] [-R]
-	[-r rlog_option] [-t tabwidth] [-v]
-	[-u 'login<TAB>fullname<TAB>mailaddr']..."
-		exit 1;;
+	--version)
+		set $Id
+		rcs2logVersion=$3
+		echo >&2 "rcs2log (GNU Emacs) $rcs2logVersion$nl$Copyright"
+		exit 0;;
+	-*)	echo >&2 "Usage: $0 [OPTION]... [FILE ...]$nl$Help"
+		case $1 in
+		--help) exit 0;;
+		*) exit 1
+		esac;;
 	*)	break
 	esac
 	shift
@@ -174,7 +201,7 @@ then
 	rlog=rlog
 	repository=
 else
-	rlog='cvs log'
+	rlog='cvs -q log'
 	repository=`sed 1q <CVS/Repository` || exit
 	test ! -f CVS/Root || CVSROOT=`cat <CVS/Root` || exit
 	case $CVSROOT in
@@ -488,6 +515,9 @@ $AWK <$rlogout '
 		}
 		if ($0 ~ /^branches: /) { next }
 		if ($0 ~ /^(-----------*|===========*)$/) { print ""; next }
+		if ($0 == "Initial revision" || $0 ~ /^file .+ was initially added on branch .+\.$/) {
+			$0 = "New file."
+        }
 		printf "%s%c", $0, 13
 	}
 ' |
