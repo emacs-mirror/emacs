@@ -363,7 +363,7 @@ if that value is non-nil."
     (when (stringp default)
       (if (string-match ":+" default)
           (substring default (match-end 0))
-          default))))
+	default))))
 
 ;; Used in old LispM code.
 (defalias 'common-lisp-mode 'lisp-mode)
