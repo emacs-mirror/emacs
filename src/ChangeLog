@@ -1,3 +1,9 @@
+2004-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_scrollbar_pos): Change XClearWindow to
+	gdk_window_clear and move gdk_window_process_all_updates after
+	clear so events are sent to the X server in correct order.
+
 2004-10-18  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fs_load_font): Use fast_string_match_ignore_case for

@@ -2888,9 +2888,6 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
       gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
       gtk_widget_set_size_request (wscroll, width, height);
 
-      /* Must force out update so changed scroll bars gets redrawn.  */
-      gdk_window_process_all_updates ();
-      
       /* Scroll bars in GTK has a fixed width, so if we say width 16, it
          will only be its fixed width (14 is default) anyway, the rest is
          blank.  We are drawing the mode line across scroll bars when
@@ -2917,9 +2914,11 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
          scroll bar so that there is some space (typically 1 pixel) between
          the scroll bar and the edge of the window and between the scroll
          bar and the fringe.  */
+      gdk_window_clear (wscroll->window);
 
-      XClearWindow (FRAME_X_DISPLAY (f), GTK_WIDGET_TO_X_WIN (wscroll));
-
+      /* Must force out update so changed scroll bars gets redrawn.  */
+      gdk_window_process_all_updates ();
+      
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
     }
