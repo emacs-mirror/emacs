@@ -1,3 +1,9 @@
+2003-04-27  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Don't count a "//("
+	which appears inside a character set.
+	(regexp-opt-not-groupie*-re): New constant.
+
 2003-04-26  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-name-map, ibuffer-mode-name-map)
