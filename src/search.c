@@ -2199,7 +2199,6 @@ since only regular expressions have distinguished subexpressions.  */)
   int some_uppercase;
   int some_nonuppercase_initial;
   register int c, prevc;
-  int inslen;
   int sub;
   int opoint, newpoint;
 
