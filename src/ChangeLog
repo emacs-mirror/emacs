@@ -1,5 +1,18 @@
 2000-03-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (tags): Include ../lwlib/TAGS in TAGS.
+
+	* xfns.c (QCdata): Moved to xdisp.c.
+
+	* xdisp.c (QCdata): Moved here from xfns.c.
+	(syms_of_xdisp): Initialize QCdata.
+
+	* frame.h (FRAME_INTERNAL_BORDER_WIDTH) [!HAVE_X_WINDOWS]: Define.
+
+	* window.c (coordinates_in_window): Use
+	FRAME_INTERNAL_BORDER_WIDTH_SAFE instead of
+	FRAME_INTERNAL_BORDER_WIDTH.
+
 	* xdisp.c (try_window_id): Recompute unchanged information if
 	it is invalid.
 
