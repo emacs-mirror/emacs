@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.11 2000/10/03 12:08:40 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.12 2000/11/16 18:13:16 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -126,7 +126,9 @@ For a description of possible values, see `vc-check-master-templates'."
     (if (eq state 'up-to-date)
         (if (vc-workfile-unchanged-p file)
             'up-to-date
-          'unlocked-changes)
+          (if (eq (vc-checkout-model file) 'locking)
+              'unlocked-changes
+            'edited))
       state)))
 
 (defun vc-rcs-state-heuristic (file)
@@ -688,12 +690,7 @@ file."
           (if (or workfile-is-latest
                   (vc-rcs-latest-on-branch-p file workfile-version))
               ;; workfile version is latest on branch
-              (if (eq (vc-checkout-model file) 'locking)
-		  'up-to-date
-		(require 'vc)
-		(if (vc-workfile-unchanged-p file)
-		    'up-to-date
-		  'edited))
+              'up-to-date
             ;; workfile version is not latest on branch
             'needs-patch))
 	 ;; locked by the calling user
