@@ -1,3 +1,9 @@
+2001-06-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (clear_mouse_face): Reset dpyinfo->mouse_face_overlay as
+	well otherwise note_mouse_highlight might optimize away highlighting
+	if we pass over that same overlay again.
+
 2001-06-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* lread.c (Fload): Document that the argument is run via
