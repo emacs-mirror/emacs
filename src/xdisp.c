@@ -2313,7 +2313,7 @@ try_window_id (window)
 		   XFASTINT (w->window_end_vpos) + scroll_amount);
 
       /* Before doing any scrolling, verify that point will be on frame. */
-      if (PT > ep.bufpos && !(PT <= xp.bufpos && xp.bufpos < height))
+      if (PT > ep.bufpos && !(PT <= xp.bufpos && xp.vpos < height))
 	{
 	  if (PT <= xp.bufpos)
 	    {
@@ -2490,7 +2490,11 @@ try_window_id (window)
       val.hpos = xp.hpos;
       val.tab_offset = xp.tab_offset;
       if (pos == ZV)
-	vpos = height + scroll_amount;
+	{ /* Display from next line */
+	  vpos = height + scroll_amount;
+	  val.hpos = lmargin;
+	  val.tab_offset = 0;
+	}
       else if (xp.contin && xp.hpos != lmargin)
 	{
 	  val.hpos = xp.prevhpos - width + lmargin;
@@ -2850,7 +2854,9 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
           || left_edge->hpos > 0)
         {
           pos = left_edge->bufpos;
-	  DEC_POS (pos);	/* MULE: It may be a multi-byte character */
+	  /* Since this should not be a valid multibyte character, we
+             can decrease POS by 1.  */
+	  pos--;
           hpos = left_edge->prevhpos;
         }
       else
@@ -3645,6 +3651,7 @@ display_mode_line (w)
 	  ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1) | padding;
 	}
     }
+  else
 #endif
 
   /* Make the mode line inverse video if the entire line
@@ -3653,8 +3660,8 @@ display_mode_line (w)
      or if it is the child of a full width window
      (which implies that that window is split side-by-side
      and the rest of this line is mode lines of the sibling windows).  */
-  else if (WINDOW_FULL_WIDTH_P (w)
-	   || WINDOW_FULL_WIDTH_P (XWINDOW (w->parent)))
+  if (WINDOW_FULL_WIDTH_P (w)
+      || WINDOW_FULL_WIDTH_P (XWINDOW (w->parent)))
     FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
 }
 
