@@ -40,6 +40,10 @@ Lisp_Object last_undo_buffer;
 
 Lisp_Object Qinhibit_read_only;
 
+/* Marker for function call undo list elements.  */
+
+Lisp_Object Qapply;
+
 /* The first time a command records something for undo.
    it also allocates the undo-boundary object
    which will be added to the list at the end of the command.
@@ -543,10 +547,18 @@ Return what remains of the list.  */)
 		  Fgoto_char (car);
 		  Fdelete_region (car, cdr);
 		}
-	      else if (SYMBOLP (car))
+	      else if (EQ (car, Qapply))
 		{
 		  Lisp_Object oldlist = current_buffer->undo_list;
-		  /* Element (FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  /* Element (apply FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  car = Fcar (cdr);
+		  if (INTEGERP (car))
+		    {
+		      /* Long format: (apply DELTA START END FUNNAME . ARGS).  */
+		      cdr = Fcdr (Fcdr (Fcdr (cdr)));
+		      car = Fcar (cdr);
+		    }
+		  cdr = Fcdr (cdr);
 		  apply1 (car, cdr);
 		  /* Make sure this produces at least one undo entry,
 		     so the test in `undo' for continuing an undo series
@@ -607,6 +619,9 @@ syms_of_undo ()
 {
   Qinhibit_read_only = intern ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);
+
+  Qapply = intern ("apply");
+  staticpro (&Qapply);
 
   pending_boundary = Qnil;
   staticpro (&pending_boundary);
