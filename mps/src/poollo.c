@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.12) $
+ * $HopeName: MMsrc!poollo.c(trunk.13) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.12) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.13) $");
 
 
 /* MACROS */
@@ -142,6 +142,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
+  super->finish(seg);
   return res;
 }
 
@@ -183,6 +184,7 @@ static void loSegFinish(Seg seg)
 DEFINE_SEG_CLASS(LOSegClass, class)
 {
   INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);
   class->name = "LOSEG";
   class->size = sizeof(LOSegStruct);
   class->init = loSegInit;
