@@ -1,16 +1,23 @@
+2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (XTread_socket): Fix int/Lisp_Object confusion.
+
+	* process.c (DATAGRAM_CONN_P, list_processes_1)
+	(Fprocess_datagram_address, Fset_process_datagram_address)
+	(Fset_network_process_options, server_accept_connection):
+	Fix some int/Lisp_Object confusions (thank you union types).
+
 2002-04-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* msdos.c: Rename x_autoselect_window_p to autoselect_window_p.
 
 	* w32term.c: Likewise.
-	(note_mouse_movement): Put code for x_autoselect_window_p in #if 0.	
+	(note_mouse_movement): Put code for x_autoselect_window_p in #if 0.
 
 	* keyboard.c (Qselect_window): New symbol.
 	(head_table): Use it.
-	(keys_of_keyboard): Bound select-window event to
-	handle-select-window.
-	(kbd_buffer_get_event): Make a Lisp event from
-	SELECT_WINDOW_EVENT.
+	(keys_of_keyboard): Bound select-window event to handle-select-window.
+	(kbd_buffer_get_event): Make a Lisp event from SELECT_WINDOW_EVENT.
 
 	* xterm.c: Rename x_autoselect_window_p to autoselect_window_p.
 	(last_window): New variable.
@@ -19,8 +26,7 @@
 	(XTread_socket): Generate SELECT_WINDOW_EVENTs only for
 	Emacs windows.
 
-	* termhooks.h (enum event_kind): New event type
-	`SELECT_WINDOW_EVENT'.
+	* termhooks.h (enum event_kind): New event type `SELECT_WINDOW_EVENT'.
 
 2002-03-31  Gerd Moellmann  <gerd@gnu.org>
 
@@ -36,8 +42,8 @@
 
 2002-03-30  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (direct_output_for_insert): Call
-	mark_window_display_accurate.
+	* dispnew.c (direct_output_for_insert):
+	Call mark_window_display_accurate.
 
 2002-03-29  Jason Rumney  <jasonr@gnu.org>
 
