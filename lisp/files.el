@@ -1952,6 +1952,20 @@ which are the arguments that `revert-buffer' received.")
 Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.")
 
+(defvar before-revert-hook nil
+  "Normal hook for `revert-buffer' to run before reverting.
+If `revert-buffer-function' is used to override the normal revert
+mechanism, this hook is not used.")
+
+(defvar after-revert-hook nil
+  "Normal hook for `revert-buffer' to run after reverting.
+Note that the hook value that it runs is the value that was in effect
+before reverting; that makes a difference if you have buffer-local
+hook functions.
+
+If `revert-buffer-function' is used to override the normal revert
+mechanism, this hook is not used.")
+
 (defun revert-buffer (&optional ignore-auto noconfirm)
   "Replace the buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
