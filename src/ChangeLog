@@ -1,3 +1,21 @@
+2001-01-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.h (FRAME_RIGHT_SCROLL_BAR_WIDTH): New define.
+
+	* window.c (enum window_part): New enumeration.
+	(Qleft_fringe, Qright_fringe): Replace Qleft_bitmap_area and
+	Qright_bitmap_area.
+	(coordinates_in_window): Return an enumerator from enum
+	window_part.  Fix handling of right scroll bar.
+	(Fcoordinates_in_window_p): Doc fix.  Return `left-fringe' and
+	`right-fringe' instead of `left-bitmap-area' and
+	`right-bitmap-area'.  Use enumerators from enum window_part
+	instead of hard-coded integers.
+	(check_window_containing, window_from_coordinates): Use
+	enumerators from enum window_part instead of hard-coded integers.
+	(syms_of_window): Replace Qleft_bitmap_area and
+	Qright_bitmap_area.with Qleft_fringe and Qright_fringe.
+
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* editfns.c (Fformat_time_string): Doc fix.
