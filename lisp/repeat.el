@@ -207,8 +207,8 @@ this function is always whether the value of `this-command' would've been
 ;;;###autoload
 (defun repeat (repeat-arg)
   "Repeat most recently executed command.
-With prefix arg, apply new prefix arg to that command; otherwise, maintain
-prefix arg of most recently executed command if it had one.
+With prefix arg, apply new prefix arg to that command; otherwise, use
+the prefix arg that was used before (if any).
 This command is like the `.' command in the vi editor.
 
 If this command is invoked by a multi-character key sequence, it can then
