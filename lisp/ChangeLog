@@ -1,3 +1,9 @@
+2003-09-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-builtins): Add bash `shopt' builtin.
+	(sh-font-lock-keywords, sh-feature): Fix previous change of
+	sh-feature to avoid infloop with sh-font-lock-keywords.
+
 2003-09-25  Kim F. Storm  <storm@cua.dk>
 
 	* frame.el (frame-current-scroll-bars): New defun.
