@@ -24,7 +24,10 @@
 ;;; Code:
 
 ;;;###autoload
-(defvar default-korean-keyboard ""
+(defvar default-korean-keyboard
+  (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
+      "3"
+    "")
   "*The kind of Korean keyboard for Korean input method.
 \"\" for 2, \"3\" for 3.")
 
