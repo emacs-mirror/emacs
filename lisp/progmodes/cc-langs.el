@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -44,384 +44,585 @@
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
 
-
-(defvar c-buffer-is-cc-mode nil
-  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
-Otherwise, this variable is nil. I.e. this variable is non-nil for
-`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode',
-`pike-mode', and any other non-CC Mode mode that calls
-`c-initialize-cc-mode' (e.g. `awk-mode').")
-(make-variable-buffer-local 'c-buffer-is-cc-mode)
-(put 'c-buffer-is-cc-mode 'permanent-local t)
+(require 'cl)
 
 
-;; Regular expressions and other values which must be parameterized on
-;; a per-language basis.
+;; Some support functions that are used when the language specific
+;; constants are built.  Since the constants are built during compile
+;; time, these need to be defined then too.
 
-;; Regex describing a `symbol' in all languages.  We cannot use just
-;; `word' syntax class since `_' cannot be in word class.  Putting
-;; underscore in word class breaks forward word movement behavior that
-;; users are familiar with.  Besides, this runs counter to Emacs
-;; convention.
+(eval-and-compile
+  ;; `require' in XEmacs doesn't have the third NOERROR argument.
+  (condition-case nil (require 'regexp-opt) (file-error nil))
+
+  (if (fboundp 'regexp-opt)
+      (fset 'c-regexp-opt (symbol-function 'regexp-opt))
+    ;; Emacs 19.34 doesn't have the regexp-opt package.
+    (defun c-regexp-opt (strings &optional paren)
+      (if paren
+	  (concat "\\(" (mapconcat 'regexp-quote strings "\\|") "\\)")
+	(mapconcat 'regexp-quote strings "\\|"))))
+
+  (if (fboundp 'regexp-opt-depth)
+      (fset 'c-regexp-opt-depth (symbol-function 'regexp-opt-depth))
+    ;; Emacs 19.34 doesn't have the regexp-opt package.
+    (defun c-regexp-opt-depth (regexp)
+      ;; This is the definition of `regexp-opt-depth' in Emacs 20.
+      (save-match-data
+	;; Hack to signal an error if REGEXP does not have balanced
+	;; parentheses.
+	(string-match regexp "")
+	;; Count the number of open parentheses in REGEXP.
+	(let ((count 0) start)
+	  (while (string-match "\\\\(" regexp start)
+	    (setq count (1+ count) start (match-end 0)))
+	  count))))
+
+  (defun c-make-keywords-re (adorn &rest lists)
+    "Make a regexp that matches all the strings in all the lists.
+Duplicates in the lists are removed.  The regexp may contain zero or
+more submatch expressions.  If ADORN is non-nil there will be at least
+one submatch which matches the whole keyword, and the regexp will also
+not match a prefix of any identifier.  Adorned regexps cannot be
+appended."
+    (setq lists (delete-duplicates (apply 'append (nconc lists '(nil)))
+				   :test 'string-equal))
+    (if lists
+	(let ((re (c-regexp-opt lists)))
+	  ;; Add our own grouping parenthesis around re instead of
+	  ;; passing adorn to regexp-opt, since it in XEmacs makes the
+	  ;; top level grouping "shy".
+	  (if adorn
+	      (concat "\\(" re "\\)\\>\\([^_]\\|$\\)")
+	    re))
+      "\\<\\>"				; Matches nothing.
+      ))
+  (put 'c-make-keywords-re 'lisp-indent-function 1)
+  )
+
+
+;; Building of constants that are parameterized on a per-language
+;; basis.
+
+(eval-and-compile
+  (defvar c-macroexpand-mode nil
+    ;; Dynamically bound to the mode symbol during `c-lang-defconst'
+    ;; so that `c-lang-var' can do the right expansion.
+    )
+
+  (defmacro c-lang-defconst (var &rest args)
+    ;; Sets the mode specific values of the constant VAR.  The rest of
+    ;; the arguments are one or more repetitions of MODE VAL.  MODE is
+    ;; the mode name without the "-mode" suffix, or a list of such
+    ;; mode names, or `all' as a shortcut for a list of all modes.
+    ;; VAL is evaluated (during compilation) for each mode with
+    ;; `c-macroexpand-mode' temporarily bound, so `c-lang-var' without
+    ;; an explicit mode may be used within it.  The assignments in
+    ;; ARGS are processed in sequence, similar to `setq'.
+    (let* ((res (list 'progn))
+	   (res-tail res))
+      (while args
+	(let ((mode (car args)))
+	  (cond ((eq mode 'all)
+		 (setq mode '(c c++ objc java idl pike)))
+		((symbolp mode)
+		 (setq mode (list mode))))
+	  (while mode
+	    (let* ((c-macroexpand-mode
+		    (intern (concat (symbol-name (car mode)) "-mode")))
+		   (val (eval (car (cdr args)))))
+	      ;; Need to install the value also during compilation,
+	      ;; since val might refer to earlier mode specific
+	      ;; values.
+	      (put var c-macroexpand-mode val)
+	      (setcdr res-tail (list `(put ',var ',c-macroexpand-mode ',val)))
+	      (setq res-tail (cdr res-tail)))
+	    (setq mode (cdr mode))))
+	(setq args (cdr (cdr args))))
+      res))
+  (put 'c-lang-defconst 'lisp-indent-function 1)
+
+  (defmacro c-lang-var (var &optional mode)
+    ;; Get the mode specific value of the variable VAR in mode MODE.
+    ;; MODE is the mode name without the "-mode" suffix.  It may also
+    ;; be nil to use the current value of `c-macroexpand-mode' (which
+    ;; is useful inside `c-lang-defconst') or `c-buffer-is-cc-mode'
+    ;; (which is useful inside `c-lang-defvar').
+    `(get ',var ,(if (eq mode 'nil)
+		     (if c-macroexpand-mode
+			 ;; In the macro expansion of c-lang-defconst.
+			 `(quote ,c-macroexpand-mode)
+		       `c-buffer-is-cc-mode)
+		   `(quote ,(intern (concat (symbol-name mode) "-mode"))))))
+
+  ;; These are used to collect the init forms from the subsequent
+  ;; `c-lang-defvar'.  They become a big setq in the
+  ;; `c-init-lang-defvars' lambda below.
+  (defconst c-lang-defvar-init-form (list 'setq))
+  (defconst c-lang-defvar-init-form-tail c-lang-defvar-init-form)
+
+  (defmacro c-lang-defvar (var val)
+    ;; Declares the buffer local variable VAR to get the value VAL at
+    ;; mode initialization, at which point VAL is evaluated.
+    ;; `c-lang-var' is typically used in VAL to get the right value
+    ;; according to `c-buffer-is-cc-mode'.
+    (setcdr c-lang-defvar-init-form-tail (list var val))
+    (setq c-lang-defvar-init-form-tail
+	  (cdr (cdr c-lang-defvar-init-form-tail)))
+    `(progn
+       (defvar ,var nil)
+       (make-variable-buffer-local ',var)))
+  (put 'c-lang-defvar 'lisp-indent-function 1)
+  )
+
+;; Regexp describing a `symbol' in all languages, not excluding
+;; keywords.  We cannot use just `word' syntax class since `_' cannot
+;; be in word class.  Putting underscore in word class breaks forward
+;; word movement behavior that users are familiar with.  Besides, it
+;; runs counter to Emacs convention.
 ;;
-;; I suspect this definition isn't correct in light of Java's
-;; definition of a symbol as being Unicode.  I know so little about
-;; I18N (except how to sound cool and say I18N :-) that I'm willing to
-;; punt on this for now.
-(defconst c-symbol-key "[_a-zA-Z]\\(\\w\\|\\s_\\)*")
+;; This definition isn't correct for the first character in the
+;; languages that accept the full range of Unicode word constituents
+;; in identifiers (e.g. Java and Pike).  For that we'd need to make a
+;; regexp that matches all characters in the word constituent class
+;; except 0-9, and the regexp engine currently can't do that.
+(c-lang-defconst c-symbol-key
+  (c c++ objc java idl) "[_a-zA-Z]\\(\\w\\|\\s_\\)*"
+  pike (concat "\\(" (c-lang-var c-symbol-key c) "\\|"
+	       (c-make-keywords-re nil
+		 '("`+" "`-" "`&" "`|" "`^" "`<<" "`>>" "`*" "`/" "`%" "`~"
+		   "`==" "`<" "`>" "`!" "`[]" "`[]=" "`->" "`->=" "`()" "``+"
+		   "``-" "``&" "``|" "``^" "``<<" "``>>" "``*" "``/" "``%"
+		   "`+="))
+	       "\\)"))
+(c-lang-defvar c-symbol-key (c-lang-var c-symbol-key))
+
+;; Number of regexp grouping parens in c-symbol-key.
+(c-lang-defvar c-symbol-key-depth (c-regexp-opt-depth c-symbol-key))
+
+(defvar c-stmt-delim-chars "^;{}?:")
+;; The characters that should be considered to bound statements.  To
+;; optimize c-crosses-statement-barrier-p somewhat, it's assumed to
+;; begin with "^" to negate the set.  If ? : operators should be
+;; detected then the string must end with "?:".
+
+(defvar c-stmt-delim-chars-with-comma "^;,{}?:")
+;; Variant of c-stmt-delim-chars that additionally contains ','.
 
 ;; HELPME: Many of the following keyword lists are more or less bogus
 ;; for some languages (notably ObjC and IDL).  The effects of the
-;; erroneous values in the language handling is miniscule since these
-;; constants are not used very much (yet, anyway) in the actual syntax
-;; detection code, but I'd still appreciate help to get them correct.
+;; erroneous values in the language handling are mostly negligible
+;; since the constants that actually matter in the syntax detection
+;; code are mostly correct in the situations they are used, but I'd
+;; still appreciate help to get them correct for other uses.
 
 ;; Primitive type keywords.
-(defconst c-C-primitive-type-kwds
-  "char\\|double\\|float\\|int\\|long\\|short\\|signed\\|unsigned\\|void")
-(defconst c-C++-primitive-type-kwds c-C-primitive-type-kwds)
-(defconst c-ObjC-primitive-type-kwds c-C-primitive-type-kwds)
-(defconst c-Java-primitive-type-kwds
-  "boolean\\|byte\\|char\\|double\\|float\\|int\\|long\\|short\\|void")
-(defconst c-IDL-primitive-type-kwds c-C-primitive-type-kwds)
-(defconst c-Pike-primitive-type-kwds
-  (concat "constant\\|float\\|int\\|mapping\\|multiset\\|object\\|"
-	  "program\\|string\\|void"))
+(c-lang-defconst c-primitive-type-kwds
+  (c c++ objc idl) '("char" "double" "float" "int" "long" "short"
+		     "signed" "unsigned" "void")
+  java '("boolean" "byte" "char" "double" "float" "int" "long" "short" "void")
+  pike '("constant" "float" "int" "mapping" "multiset" "object" "program"
+	 "string" "void"))
 
 ;; Declaration specifier keywords.
-(defconst c-C-specifier-kwds
-  "auto\\|const\\|extern\\|register\\|static\\|volatile")
-(defconst c-C++-specifier-kwds
-  (concat c-C-specifier-kwds "\\|friend\\|inline\\|virtual"))
-(defconst c-ObjC-specifier-kwds c-C++-specifier-kwds)
-(defconst c-Java-specifier-kwds
-  ;; Note: `const' is not used, but it's still a reserved keyword.
-  (concat "abstract\\|const\\|final\\|native\\|private\\|protected\\|"
-	  "public\\|static\\|synchronized\\|transient\\|volatile"))
-(defconst c-IDL-specifier-kwds c-C++-specifier-kwds)
-(defconst c-Pike-specifier-kwds
-  (concat "final\\|inline\\|local\\|nomask\\|optional\\|private\\|"
-	  "protected\\|static\\|variant"))
+(c-lang-defconst c-specifier-kwds
+  c '("auto" "const" "extern" "register" "static" "volatile")
+  (c++ objc idl) (append '("friend" "inline" "virtual")
+			 (c-lang-var c-specifier-kwds c))
+  ;; Note: `const' is not used in Java, but it's still a reserved keyword.
+  java '("abstract" "const" "final" "native" "private" "protected"
+	 "public" "static" "synchronized" "transient" "volatile")
+  pike '("final" "inline" "local" "nomask" "optional" "private"
+	 "protected" "static" "variant"))
 
 ;; Class/struct declaration keywords.
-(defconst c-C-class-kwds "struct\\|union")
-(defconst c-C++-class-kwds (concat c-C-class-kwds "\\|class"))
-(defconst c-ObjC-class-kwds "interface\\|implementation")
-(defconst c-Java-class-kwds "class\\|interface")
-(defconst c-IDL-class-kwds
-  (concat c-C++-class-kwds "\\|interface\\|valuetype"))
-(defconst c-Pike-class-kwds "class")
+(c-lang-defconst c-class-kwds
+  c '("struct" "union")
+  c++ '("class" "struct" "union")
+  objc '("interface" "implementation")
+  java '("class" "interface")
+  idl '("interface" "valuetype" "class" "struct" "union")
+  pike '("class"))
 
-;; Keywords introducing other declaration-level blocks.
-(defconst c-C-extra-toplevel-kwds "extern")
-(defconst c-C++-extra-toplevel-kwds
-  (concat c-C-extra-toplevel-kwds "\\|namespace"))
-;;(defconst c-ObjC-extra-toplevel-kwds nil)
-;;(defconst c-Java-extra-toplevel-kwds nil)
-(defconst c-IDL-extra-toplevel-kwds "module")
-;;(defconst c-Pike-extra-toplevel-kwds nil)
+;; Regexp matching the start of a class.
+(c-lang-defconst c-class-key
+  all (c-make-keywords-re t (c-lang-var c-class-kwds)))
+(c-lang-defconst c-class-key		; ObjC needs some tuning of the regexp.
+   objc (concat "@" (c-lang-var c-class-key)))
+(c-lang-defvar c-class-key (c-lang-var c-class-key))
 
-;; Keywords introducing other declaration-level constructs.
-(defconst c-C-other-decl-kwds "enum\\|typedef")
-(defconst c-C++-other-decl-kwds (concat c-C-other-decl-kwds "\\|template"))
-;;(defconst c-ObjC-other-decl-kwds nil)
-(defconst c-Java-other-decl-kwds "import\\|package")
-;;(defconst c-IDL-other-decl-kwds nil)
-(defconst c-Pike-other-decl-kwds "import\\|inherit")
+;; Keywords introducing blocks besides classes that contain another
+;; declaration level.
+(c-lang-defconst c-other-decl-block-kwds
+  c '("extern")
+  c++ '("namespace" "extern")
+  idl '("module"))
 
-;; Keywords that occur in declaration-level constructs.
-;;(defconst c-C-decl-level-kwds nil)
-;;(defconst c-C++-decl-level-kwds nil)
-;;(defconst c-ObjC-decl-level-kwds nil)
-(defconst c-Java-decl-level-kwds "extends\\|implements\\|throws")
-;;(defconst c-IDL-decl-level-kwds nil)
-;;(defconst c-Pike-decl-level-kwds nil)
+;; Regexp matching the start of blocks besides classes that contain
+;; another declaration level.
+(c-lang-defconst c-other-decl-block-key
+  all (c-make-keywords-re t (c-lang-var c-other-decl-block-kwds)))
+(c-lang-defvar c-other-decl-block-key (c-lang-var c-other-decl-block-key))
+
+;; Keywords introducing declarations that can contain a block which
+;; might be followed by variable declarations, e.g. like "foo" in
+;; "class Foo { ... } foo;".  So if there is a block in a declaration
+;; like that, it ends with the following ';' and not right away.
+(c-lang-defconst c-block-decls-with-vars
+  c '("struct" "union" "enum" "typedef")
+  c++ '("class" "struct" "union" "enum" "typedef"))
+
+;; Regexp matching the `c-block-decls-with-vars' keywords, or nil in
+;; languages without such constructs.
+(c-lang-defconst c-opt-block-decls-with-vars-key
+  all (and (c-lang-var c-block-decls-with-vars)
+	   (c-make-keywords-re t (c-lang-var c-block-decls-with-vars))))
+(c-lang-defvar c-opt-block-decls-with-vars-key
+  (c-lang-var c-opt-block-decls-with-vars-key))
+
+;; Keywords introducing declarations that has not been accounted for
+;; by any of the above.
+(c-lang-defconst c-other-decl-kwds
+  ;; FIXME: Shouldn't "template" be moved to c-specifier-kwds for C++?
+  c++ '("template")
+  java '("import" "package")
+  pike '("import" "inherit"))
+
+;; Keywords introducing extra declaration specifiers in the region
+;; between the header and the body (i.e. the "K&R-region") in
+;; declarations.
+(c-lang-defconst c-decl-spec-kwds java '("extends" "implements" "throws"))
 
 ;; Protection label keywords in classes.
-;;(defconst c-C-protection-kwds nil)
-(defconst c-C++-protection-kwds "private\\|protected\\|public")
-(defconst c-ObjC-protection-kwds c-C++-protection-kwds)
-;;(defconst c-Java-protection-kwds nil)
-;;(defconst c-IDL-protection-kwds nil)
-;;(defconst c-Pike-protection-kwds nil)
+(c-lang-defconst c-protection-kwds
+  (c++ objc) '("private" "protected" "public"))
 
-;; Statement keywords followed directly by a block.
-(defconst c-C-block-stmt-1-kwds "do\\|else")
-(defconst c-C++-block-stmt-1-kwds
-  (concat c-C-block-stmt-1-kwds "\\|asm\\|try"))
-(defconst c-ObjC-block-stmt-1-kwds c-C++-block-stmt-1-kwds)
-(defconst c-Java-block-stmt-1-kwds
-  (concat c-C-block-stmt-1-kwds "\\|finally\\|try"))
-;;(defconst c-IDL-block-stmt-1-kwds nil)
-(defconst c-Pike-block-stmt-1-kwds c-C-block-stmt-1-kwds)
+;; Statement keywords followed directly by a substatement.
+(c-lang-defconst c-block-stmt-1-kwds
+  (c pike) '("do" "else")
+  (c++ objc) '("do" "else" "asm" "try")
+  java '("do" "else" "finally" "try"))
 
-;; Statement keywords followed by a paren sexp and then by a block.
-(defconst c-C-block-stmt-2-kwds "for\\|if\\|switch\\|while")
-(defconst c-C++-block-stmt-2-kwds (concat c-C-block-stmt-2-kwds "\\|catch"))
-(defconst c-ObjC-block-stmt-2-kwds c-C++-block-stmt-2-kwds)
-(defconst c-Java-block-stmt-2-kwds
-  (concat c-C++-block-stmt-2-kwds "\\|synchronized"))
-;;(defconst c-IDL-block-stmt-2-kwds nil)
-(defconst c-Pike-block-stmt-2-kwds c-C-block-stmt-2-kwds)
+;; Regexp matching the start of any statement followed directly by a
+;; substatement (doesn't match a bare block, however).
+(c-lang-defconst c-block-stmt-1-key
+  all (c-make-keywords-re t (c-lang-var c-block-stmt-1-kwds)))
+(c-lang-defvar c-block-stmt-1-key (c-lang-var c-block-stmt-1-key))
+
+;; Statement keywords followed by a paren sexp and then by a substatement.
+(c-lang-defconst c-block-stmt-2-kwds
+  c '("for" "if" "switch" "while")
+  (c++ objc) '("for" "if" "switch" "while" "catch")
+  java '("for" "if" "switch" "while" "catch" "synchronized")
+  pike '("for" "if" "switch" "while" "foreach"))
+
+;; Regexp matching the start of any statement followed by a paren sexp
+;; and then by a substatement.
+(c-lang-defconst c-block-stmt-2-key
+  all (c-make-keywords-re t (c-lang-var c-block-stmt-2-kwds)))
+(c-lang-defvar c-block-stmt-2-key (c-lang-var c-block-stmt-2-key))
+
+;; Regexp matching the start of any statement that has a substatement
+;; (except a bare block).  Nil in languages that doesn't have such
+;; constructs.
+(c-lang-defconst c-opt-block-stmt-key
+  all (if (or (c-lang-var c-block-stmt-1-kwds)
+	      (c-lang-var c-block-stmt-2-kwds))
+	  (c-make-keywords-re t
+	    (c-lang-var c-block-stmt-1-kwds)
+	    (c-lang-var c-block-stmt-2-kwds))))
+(c-lang-defvar c-opt-block-stmt-key (c-lang-var c-opt-block-stmt-key))
 
 ;; Statement keywords followed by an expression or nothing.
-(defconst c-C-simple-stmt-kwds "break\\|continue\\|goto\\|return")
-(defconst c-C++-simple-stmt-kwds c-C-simple-stmt-kwds)
-(defconst c-ObjC-simple-stmt-kwds c-C-simple-stmt-kwds)
-(defconst c-Java-simple-stmt-kwds
-  ;; Note: `goto' is not a valid statement, but the keyword is still reserved.
-  (concat c-C-simple-stmt-kwds "\\|throw"))
-;;(defconst c-IDL-simple-stmt-kwds nil)
-(defconst c-Pike-simple-stmt-kwds "break\\|continue\\|return")
+(c-lang-defconst c-simple-stmt-kwds
+  (c c++ objc) '("break" "continue" "goto" "return")
+  ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
+  java '("break" "continue" "goto" "return" "throw")
+  pike '("break" "continue" "return"))
+
+;; Statement keywords followed by an assembler expression.
+(c-lang-defconst c-asm-stmt-kwds
+  (c c++) '("asm" "__asm__"))
+
+;; Regexp matching the start of an assembler statement.  Nil in
+;; languages that doesn't support that.
+(c-lang-defconst c-opt-asm-stmt-key
+  all (if (c-lang-var c-asm-stmt-kwds)
+	  (c-make-keywords-re t (c-lang-var c-asm-stmt-kwds))))
+(c-lang-defvar c-opt-asm-stmt-key (c-lang-var c-opt-asm-stmt-key))
 
 ;; Keywords introducing labels in blocks.
-(defconst c-C-label-kwds "case\\|default")
-(defconst c-C++-label-kwds c-C-label-kwds)
-(defconst c-ObjC-label-kwds c-C-label-kwds)
-(defconst c-Java-label-kwds c-C-label-kwds)
-;;(defconst c-IDL-label-kwds nil)
-(defconst c-Pike-label-kwds c-C-label-kwds)
+(c-lang-defconst c-label-kwds (c c++ objc java pike) '("case" "default"))
+
+;; Regexp matching any keyword that introduces a label.
+(c-lang-defconst c-label-kwds-regexp
+  all (c-make-keywords-re t (c-lang-var c-label-kwds)))
+(c-lang-defvar c-label-kwds-regexp (c-lang-var c-label-kwds-regexp))
 
 ;; Keywords that can occur anywhere in expressions.
-(defconst c-C-expr-kwds "sizeof")
-(defconst c-C++-expr-kwds
-  (concat c-C-expr-kwds "\\|delete\\|new\\|operator\\|this\\|throw"))
-(defconst c-ObjC-expr-kwds c-C-expr-kwds)
-(defconst c-Java-expr-kwds "instanceof\\|new\\|super\\|this")
-;;(defconst c-IDL-expr-kwds nil)
-(defconst c-Pike-expr-kwds
-  (concat c-C-expr-kwds "\\|catch\\|class\\|gauge\\|lambda\\|predef"))
+(c-lang-defconst c-expr-kwds
+  (c objc) '("sizeof")
+  c++ '("sizeof" "delete" "new" "operator" "this" "throw")
+  java '("instanceof" "new" "super" "this")
+  pike '("sizeof" "catch" "class" "gauge" "lambda" "predef"))
 
-;; All keywords.
-(defconst c-C-keywords
-  (concat c-C-primitive-type-kwds "\\|" c-C-specifier-kwds
-	  "\\|" c-C-class-kwds "\\|" c-C-extra-toplevel-kwds
-	  "\\|" c-C-other-decl-kwds
-	  ;; "\\|" c-C-decl-level-kwds "\\|" c-C-protection-kwds
-	  "\\|" c-C-block-stmt-1-kwds "\\|" c-C-block-stmt-2-kwds
-	  "\\|" c-C-simple-stmt-kwds "\\|" c-C-label-kwds
-	  "\\|" c-C-expr-kwds))
-(defconst c-C++-keywords
-  (concat c-C++-primitive-type-kwds "\\|" c-C++-specifier-kwds
-	  "\\|" c-C++-class-kwds "\\|" c-C++-extra-toplevel-kwds
-	  "\\|" c-C++-other-decl-kwds
-	  ;; "\\|" c-C++-decl-level-kwds
-	  "\\|" c-C++-protection-kwds
-	  "\\|" c-C++-block-stmt-1-kwds "\\|" c-C++-block-stmt-2-kwds
-	  "\\|" c-C++-simple-stmt-kwds "\\|" c-C++-label-kwds
-	  "\\|" c-C++-expr-kwds))
-(defconst c-ObjC-keywords
-  (concat c-ObjC-primitive-type-kwds "\\|" c-ObjC-specifier-kwds
-	  "\\|" c-ObjC-class-kwds
-	  ;; "\\|" c-ObjC-extra-toplevel-kwds
-	  ;; "\\|" c-ObjC-other-decl-kwds "\\|" c-ObjC-decl-level-kwds
-	  "\\|" c-ObjC-protection-kwds
-	  "\\|" c-ObjC-block-stmt-1-kwds "\\|" c-ObjC-block-stmt-2-kwds
-	  "\\|" c-ObjC-simple-stmt-kwds "\\|" c-ObjC-label-kwds
-	  "\\|" c-ObjC-expr-kwds))
-(defconst c-Java-keywords
-  (concat c-Java-primitive-type-kwds "\\|" c-Java-specifier-kwds
-	  "\\|" c-Java-class-kwds
-	  ;; "\\|" c-Java-extra-toplevel-kwds
-	  "\\|" c-Java-other-decl-kwds "\\|" c-Java-decl-level-kwds
-	  ;; "\\|" c-Java-protection-kwds
-	  "\\|" c-Java-block-stmt-1-kwds "\\|" c-Java-block-stmt-2-kwds
-	  "\\|" c-Java-simple-stmt-kwds "\\|" c-Java-label-kwds
-	  "\\|" c-Java-expr-kwds))
-(defconst c-IDL-keywords
-  (concat c-IDL-primitive-type-kwds "\\|" c-IDL-specifier-kwds
-	  "\\|" c-IDL-class-kwds "\\|" c-IDL-extra-toplevel-kwds
-	  ;; "\\|" c-IDL-other-decl-kwds "\\|" c-IDL-decl-level-kwds
-	  ;; "\\|" c-IDL-protection-kwds
-	  ;; "\\|" c-IDL-block-stmt-1-kwds "\\|" c-IDL-block-stmt-2-kwds
-	  ;; "\\|" c-IDL-simple-stmt-kwds "\\|" c-IDL-label-kwds
-	  ;; "\\|" c-IDL-expr-kwds)
-	  ))
-(defconst c-Pike-keywords
-  (concat c-Pike-primitive-type-kwds "\\|" c-Pike-specifier-kwds
-	  "\\|" c-Pike-class-kwds
-	  ;; "\\|" c-Pike-extra-toplevel-kwds
-	  "\\|" c-Pike-other-decl-kwds
-	  ;; "\\|" c-Pike-decl-level-kwds "\\|" c-Pike-protection-kwds
-	  "\\|" c-Pike-block-stmt-1-kwds "\\|" c-Pike-block-stmt-2-kwds
-	  "\\|" c-Pike-simple-stmt-kwds "\\|" c-Pike-label-kwds
-	  "\\|" c-Pike-expr-kwds))
+;; Keywords that start lambda constructs, i.e. function definitions in
+;; expressions.
+(c-lang-defconst c-lambda-kwds pike '("lambda"))
 
-(defvar c-keywords nil)
-(make-variable-buffer-local 'c-keywords)
+;; Regexp matching the start of lambda constructs, or nil in languages
+;; that doesn't have such things.
+(c-lang-defconst c-opt-lambda-key
+  pike (c-make-keywords-re t (c-lang-var c-lambda-kwds)))
+(c-lang-defvar c-opt-lambda-key (c-lang-var c-opt-lambda-key))
 
-;; Keywords defining protection levels
-(defconst c-protection-key "\\<\\(public\\|protected\\|private\\)\\>")
+;; Keywords that start constructs followed by statement blocks which
+;; can be used in expressions (the gcc extension for this in C and C++
+;; is handled separately).
+(c-lang-defconst c-inexpr-block-kwds pike '("catch" "gauge"))
 
-;; Regexps introducing class definitions.
-(defconst c-C-class-key (c-paren-re c-C-class-kwds))
-(defconst c-C++-class-key (c-paren-re c-C++-class-kwds))
-(defconst c-IDL-class-key (c-paren-re c-IDL-class-kwds))
-(defconst c-ObjC-class-key
-  (concat
-   "@\\(" c-ObjC-class-kwds "\\)\\s +"
-   c-symbol-key				;name of the class
-   "\\(\\s *:\\s *" c-symbol-key "\\)?"	;maybe followed by the superclass
-   "\\(\\s *<[^>]+>\\)?"		;and maybe the adopted protocols list
-   ))
-(defconst c-Java-class-key
-  (concat
-   "\\(" c-protection-key "\\s +\\)?"
-   "\\(" c-Java-class-kwds "\\)\\s +"
-   c-symbol-key				      ;name of the class
-   "\\(\\s *extends\\s *" c-symbol-key "\\)?" ;maybe followed by superclass
-   ;;"\\(\\s *implements *[^{]+{\\)?"	      ;maybe the adopted protocols list
-   ))
-(defconst c-Pike-class-key (c-paren-re c-Pike-class-kwds))
+;; Regexp matching the start of in-expression statements, or nil in
+;; languages that doesn't have such things.
+(c-lang-defconst c-opt-inexpr-block-key
+  pike (c-make-keywords-re t (c-lang-var c-inexpr-block-kwds)))
+(c-lang-defvar c-opt-inexpr-block-key (c-lang-var c-opt-inexpr-block-key))
 
-(defvar c-class-key c-C-class-key)
-(make-variable-buffer-local 'c-class-key)
+;; Keywords that start classes in expressions.
+(c-lang-defconst c-inexpr-class-kwds
+  java '("new")
+  pike '("class"))
 
-(defconst c-C-extra-toplevel-key (c-paren-re c-C-extra-toplevel-kwds))
-(defconst c-C++-extra-toplevel-key (c-paren-re c-C++-extra-toplevel-kwds))
-(defconst c-IDL-extra-toplevel-key (c-paren-re c-IDL-extra-toplevel-kwds))
+;; Regexp matching the start of a class in an expression, or nil in
+;; languages that doesn't have such things.
+(c-lang-defconst c-opt-inexpr-class-key
+  (java pike) (c-make-keywords-re t (c-lang-var c-inexpr-class-kwds)))
+(c-lang-defvar c-opt-inexpr-class-key (c-lang-var c-opt-inexpr-class-key))
 
-(defvar c-extra-toplevel-key c-C-extra-toplevel-key)
-(make-variable-buffer-local 'c-extra-toplevel-key)
+;; Regexp matching the start of any class, both at top level and in
+;; expressions.
+(c-lang-defconst c-any-class-key
+  all (c-make-keywords-re t
+	(c-lang-var c-class-kwds)
+	(c-lang-var c-inexpr-class-kwds)))
+(c-lang-defconst c-any-class-key	; ObjC needs some tuning of the regexp.
+  objc (concat "@" (c-lang-var c-any-class-key)))
+(c-lang-defvar c-any-class-key (c-lang-var c-any-class-key))
 
-;; Keywords that can introduce bitfields in the languages that supports that.
-(defconst c-C-bitfield-key "\\(char\\|int\\|long\\|signed\\|unsigned\\)")
+;; Regexp matching the start of any declaration-level block that
+;; contain another declaration level, i.e. that isn't a function
+;; block.
+(c-lang-defconst c-decl-block-key
+  all (c-make-keywords-re t
+	(c-lang-var c-class-kwds)
+	(c-lang-var c-other-decl-block-kwds)
+	(c-lang-var c-inexpr-class-kwds)))
+(c-lang-defconst c-decl-block-key	; ObjC needs some tuning of the regexp.
+  objc (concat "@" (c-lang-var c-decl-block-key)))
+(c-lang-defvar c-decl-block-key (c-lang-var c-decl-block-key))
 
-(defvar c-bitfield-key nil)
-(make-variable-buffer-local 'c-bitfield-key)
+;; Keywords that can introduce bitfields.
+(c-lang-defconst c-bitfield-kwds
+  (c c++) '("char" "int" "long" "signed" "unsigned"))
 
-;; regexp describing access protection clauses.  language specific
-(defvar c-access-key nil)
-(make-variable-buffer-local 'c-access-key)
-(defconst c-C++-access-key
-  (concat "\\<\\(" c-C++-protection-kwds "\\)\\>[ \t]*:"))
-;;(defconst c-IDL-access-key nil)
-(defconst c-ObjC-access-key (concat "@" c-protection-key))
-;;(defconst c-Java-access-key nil)
-;;(defconst c-Pike-access-key nil)
+;; Regexp matching the start of a bitfield (not uniquely), or nil in
+;; languages without bitfield support.
+(c-lang-defconst c-opt-bitfield-key
+  (c c++) (c-make-keywords-re t (c-lang-var c-bitfield-kwds)))
+(c-lang-defvar c-opt-bitfield-key (c-lang-var c-opt-bitfield-key))
 
-;; keywords introducing conditional blocks
-(defconst c-C-conditional-key nil)
-(defconst c-C++-conditional-key nil)
-(defconst c-IDL-conditional-key nil)
-(defconst c-ObjC-conditional-key nil)
-(defconst c-Java-conditional-key nil)
-(defconst c-Pike-conditional-key nil)
+;; All keywords as a list.
+(c-lang-defconst c-keywords
+  all (delete-duplicates (append (c-lang-var c-primitive-type-kwds)
+				 (c-lang-var c-specifier-kwds)
+				 (c-lang-var c-class-kwds)
+				 (c-lang-var c-other-decl-block-kwds)
+				 (c-lang-var c-block-decls-with-vars)
+				 (c-lang-var c-other-decl-kwds)
+				 (c-lang-var c-decl-spec-kwds)
+				 (c-lang-var c-protection-kwds)
+				 (c-lang-var c-block-stmt-1-kwds)
+				 (c-lang-var c-block-stmt-2-kwds)
+				 (c-lang-var c-simple-stmt-kwds)
+				 (c-lang-var c-asm-stmt-kwds)
+				 (c-lang-var c-label-kwds)
+				 (c-lang-var c-expr-kwds)
+				 (c-lang-var c-lambda-kwds)
+				 (c-lang-var c-inexpr-block-kwds)
+				 (c-lang-var c-inexpr-class-kwds)
+				 (c-lang-var c-bitfield-kwds)
+				 nil)
+			 :test 'string-equal))
+(c-lang-defvar c-keywords (c-lang-var c-keywords))
 
-(let ((all-kws "for\\|if\\|do\\|else\\|while\\|switch")
-      (exc-kws "\\|try\\|catch")
-      (thr-kws "\\|finally\\|synchronized")
-      (front   "\\<\\(")
-      (back    "\\)\\>[^_]"))
-  (setq c-C-conditional-key (concat front all-kws back)
-	c-C++-conditional-key (concat front all-kws exc-kws back)
-	;; c-IDL-conditional-key is nil.
-	c-ObjC-conditional-key c-C-conditional-key
-	c-Java-conditional-key (concat front all-kws exc-kws thr-kws back)
-	c-Pike-conditional-key (concat front all-kws "\\|foreach" back)))
+;; All keywords as an adorned regexp.
+(c-lang-defconst c-keywords-regexp
+  all (c-make-keywords-re t (c-lang-var c-keywords)))
+(c-lang-defvar c-keywords-regexp (c-lang-var c-keywords-regexp))
 
-(defvar c-conditional-key c-C-conditional-key)
-(make-variable-buffer-local 'c-conditional-key)
+;; Regexp matching an access protection label in a class, or nil in
+;; languages that doesn't have such things.
+(c-lang-defconst c-opt-access-key
+  c++ (concat "\\("
+	      (c-make-keywords-re nil (c-lang-var c-protection-kwds))
+	      "\\)[ \t\n\r]*:"))
+(c-lang-defconst c-opt-access-key
+  objc (concat "@" (c-make-keywords-re t (c-lang-var c-protection-kwds))))
+(c-lang-defvar c-opt-access-key (c-lang-var c-opt-access-key))
 
-;; keywords describing method definition introductions
-(defvar c-method-key nil)
-(make-variable-buffer-local 'c-method-key)
+;; Regexp matching a normal label, i.e. not a label that's recognized
+;; with a keyword, like switch labels.  It's only used at the
+;; beginning of a statement.
+(c-lang-defconst c-label-key
+  all (concat (c-lang-var c-symbol-key) "[ \t\n\r]*:\\([^:]\\|$\\)"))
+(c-lang-defvar c-label-key (c-lang-var c-label-key))
 
-(defconst c-ObjC-method-key
-  (concat
-   "^\\s *[+-]\\s *"
-   "\\(([^)]*)\\)?"			; return type
-   ;; \\s- in objc syntax table does not include \n
-   ;; since it is considered the end of //-comments.
-   "[ \t\n]*" c-symbol-key))
+;; Regexp matching the beginning of a declaration specifier in the
+;; region between the header and the body of a declaration.
+;;
+;; FIXME: This is currently not used in a uniformly; c++-mode and
+;; java-mode each have their own ways of using it.
+(c-lang-defconst c-opt-decl-spec-key
+  c++ (concat ":?[ \t\n\r]*\\(virtual[ \t\n\r]+\\)?\\("
+	      (c-make-keywords-re nil (c-lang-var c-protection-kwds))
+	      "\\)[ \t\n\r]+"
+	      (c-lang-var c-symbol-key))
+  java (c-make-keywords-re t (c-lang-var c-decl-spec-kwds)))
+(c-lang-defvar c-opt-decl-spec-key (c-lang-var c-opt-decl-spec-key))
 
-;; comment starter definitions for various languages.  language specific
-(defconst c-C++-comment-start-regexp "/[/*]")
-(defconst c-C-comment-start-regexp c-C++-comment-start-regexp)
-(defconst c-IDL-comment-start-regexp c-C++-comment-start-regexp)
-(defconst c-ObjC-comment-start-regexp c-C++-comment-start-regexp)
-(defconst c-Pike-comment-start-regexp c-C++-comment-start-regexp)
-;; We need to match all 3 Java style comments
-;; 1) Traditional C block; 2) javadoc /** ...; 3) C++ style
-(defconst c-Java-comment-start-regexp "/\\(/\\|[*][*]?\\)")
-(defvar c-comment-start-regexp c-C++-comment-start-regexp)
-(make-variable-buffer-local 'c-comment-start-regexp)
+;; Regexp describing friend declarations classes, or nil in languages
+;; that doesn't have such things.
+(c-lang-defconst c-opt-friend-key
+  ;; FIXME: Ought to use c-specifier-kwds or similar, and the template
+  ;; skipping isn't done properly.
+  c++ "friend[ \t]+\\|template[ \t]*<.+>[ \t]*friend[ \t]+")
+(c-lang-defvar c-opt-friend-key (c-lang-var c-opt-friend-key))
 
-;; Regexp describing a switch's case or default label for all languages
-(defconst c-switch-label-key "\\(\\(case[( \t]+\\S .*\\)\\|default[ \t]*\\):")
-;; Regexp describing any label.
-(defconst c-label-key (concat c-symbol-key ":\\([^:]\\|$\\)"))
+;; Special regexp to match the start of methods.
+(c-lang-defconst c-opt-method-key
+  objc (concat
+	"^\\s *[+-]\\s *"
+	"\\(([^)]*)\\)?"		; return type
+	;; \\s- in objc syntax table does not include \n
+	;; since it is considered the end of //-comments.
+	"[ \t\n]*" (c-lang-var c-symbol-key)))
+(c-lang-defvar c-opt-method-key (c-lang-var c-opt-method-key))
 
-;; Regexp describing class inheritance declarations.  TBD: this should
-;; be language specific, and only makes sense for C++
-(defconst c-inher-key
-  (concat "\\(\\<static\\>\\s +\\)?"
-	  c-C++-class-key "[ \t]+" c-symbol-key
-	  "\\([ \t]*:[ \t]*\\)\\s *[^;]"))
-
-;; Regexp describing C++ base classes in a derived class definition.
-;; TBD: this should be language specific, and only makes sense for C++
-(defvar c-baseclass-key
-  (concat
-   ":?[ \t]*\\(virtual[ \t]+\\)?\\("
-   c-protection-key "[ \t]+\\)" c-symbol-key))
-(make-variable-buffer-local 'c-baseclass-key)
-
-;; Regexp describing friend declarations in C++ classes.
-(defconst c-C++-friend-key
-  "friend[ \t]+\\|template[ \t]*<.+>[ \t]*friend[ \t]+")
-
-;; Regexp describing Java inheritance and throws clauses.
-(defconst c-Java-special-key "\\(implements\\|extends\\|throws\\)[^_]")
-
-;; Regexp describing the beginning of a Java top-level definition.
-(defconst c-Java-defun-prompt-regexp
-  "^[ \t]*\\(\\(\\(public\\|protected\\|private\\|const\\|abstract\\|synchronized\\|final\\|static\\|threadsafe\\|transient\\|native\\|volatile\\)\\s-+\\)*\\(\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*[][_$.a-zA-Z0-9]+\\|[[a-zA-Z]\\)\\s-*\\)\\s-+\\)\\)?\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*\\s-+\\)\\s-*\\)?\\([_a-zA-Z][^][ \t:;.,{}()=]*\\|\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)\\)\\s-*\\(([^);{}]*)\\)?\\([] \t]*\\)\\(\\s-*\\<throws\\>\\s-*\\(\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)[, \t\n\r\f]*\\)+\\)?\\s-*")
-
-;; Regexp to append to paragraph-start.
-(defvar c-append-paragraph-start "$")
-(make-variable-buffer-local 'c-append-paragraph-start)
-(defconst c-Java-javadoc-paragraph-start
-  "\\(@[a-zA-Z]+\\>\\|$\\)")
-(defconst c-Pike-pikedoc-paragraph-start
-  "\\(@[a-zA-Z]+\\>\\([^{]\\|$\\)\\|$\\)")
-
-;; Regexp to append to paragraph-separate.
-(defvar c-append-paragraph-separate "$")
-(make-variable-buffer-local 'c-append-paragraph-separate)
-(defconst c-Pike-pikedoc-paragraph-separate c-Pike-pikedoc-paragraph-start)
-
-;; Regexp that starts lambda constructs.
-(defvar c-lambda-key nil)
-(make-variable-buffer-local 'c-lambda-key)
-(defconst c-Pike-lambda-key "\\<lambda\\>")
-
-;; Regexp that are followed by a statement block in expressions.
-(defvar c-inexpr-block-key nil)
-(make-variable-buffer-local 'c-inexpr-block-key)
-(defconst c-Pike-inexpr-block-key "\\<\\(catch\\|gauge\\)\\>")
-
-;; Regexp that may be followed by an anonymous class in expressions.
-(defvar c-inexpr-class-key nil)
-(make-variable-buffer-local 'c-inexpr-class-key)
-(defconst c-Java-inexpr-class-key "\\<new\\>")
-(defconst c-Pike-inexpr-class-key "\\<class\\>")
+;; Name of functions in cpp expressions that take an identifier as the
+;; argument.
+(c-lang-defconst c-cpp-defined-fns
+  (c c++) '("defined")
+  pike '("defined" "efun" "constant"))
 
 ;; List of open- and close-chars that makes up a pike-style brace
-;; list, ie for a `([ ])' list there should be a cons (?\[ . ?\]) in
+;; list, i.e. for a `([ ])' list there should be a cons (?\[ . ?\]) in
 ;; this list.
-(defvar c-special-brace-lists nil)
-(make-variable-buffer-local 'c-special-brace-lists)
-(defconst c-Pike-special-brace-lists '((?{ . ?})
-				       (?\[ . ?\])
-				       (?< . ?>)))
+(c-lang-defconst c-special-brace-lists pike '((?{ . ?})
+					      (?\[ . ?\])
+					      (?< . ?>)))
+(c-lang-defvar c-special-brace-lists (c-lang-var c-special-brace-lists))
+
+;; Non-nil means K&R style argument declarations are valid.
+(c-lang-defconst c-recognize-knr-p c t)
+(c-lang-defvar c-recognize-knr-p (c-lang-var c-recognize-knr-p))
+
+;; Regexp to match the start of any type of comment.
+;;
+;; FIXME: Ought to use c-comment-prefix-regexp with some modifications
+;; instead of this.
+(c-lang-defconst c-comment-start-regexp
+  (c c++ objc idl pike) "/[/*]"
+  ;; We need to match all 3 Java style comments
+  ;; 1) Traditional C block; 2) javadoc /** ...; 3) C++ style
+  java "/\\(/\\|[*][*]?\\)")
+(c-lang-defvar c-comment-start-regexp (c-lang-var c-comment-start-regexp))
+
+;; Strings that starts and ends comments inserted with M-; etc.
+;; comment-start and comment-end are initialized from these.
+(c-lang-defconst comment-start
+  c "/* "
+  (c++ objc java idl pike) "// ")
+(c-lang-defvar comment-start (c-lang-var comment-start))
+(c-lang-defconst comment-end
+  c "*/"
+  (c++ objc java idl pike) "")
+(c-lang-defvar comment-end (c-lang-var comment-end))
+
+;; Regexp that matches when there is no syntactically significant text
+;; before eol.  Macros are regarded as syntactically significant text
+;; here.
+(c-lang-defvar c-syntactic-eol
+  (concat (concat
+	   ;; Match horizontal whitespace and block comments that
+	   ;; doesn't contain newlines.
+	   "\\(\\s \\|"
+	   (concat "/\\*"
+		   "\\([^*\n\r]\\|\\*[^/\n\r]\\)*"
+		   "\\*/")
+	   "\\)*")
+	  (concat
+	   ;; Match eol (possibly inside a block comment), or the
+	   ;; beginning of a line comment.  Note: This has to be
+	   ;; modified for awk where line comments start with '#'.
+	   "\\("
+	   (concat "\\("
+		   "/\\*\\([^*\n\r]\\|\\*[^/\n\r]\\)*"
+		   "\\)?"
+		   "$")
+	   "\\|//\\)")))
+
+;; Regexp to append to paragraph-start.
+(c-lang-defconst paragraph-start
+  (c c++ objc idl) "$"
+  java "\\(@[a-zA-Z]+\\>\\|$\\)"	; For Javadoc.
+  pike "\\(@[a-zA-Z]+\\>\\([^{]\\|$\\)\\|$\\)") ; For Pike refdoc.
+
+;; Regexp to append to paragraph-separate.
+(c-lang-defconst paragraph-separate
+  (c c++ objc java idl) "$"
+  pike (c-lang-var paragraph-start))
+
+;; Prefix added to `c-current-comment-prefix' to set
+;; `c-opt-in-comment-lc', or nil if it should be nil.
+(c-lang-defconst c-in-comment-lc-prefix pike "@[\n\r]\\s *")
+
+;; Regexp to match in-comment line continuations, or nil in languages
+;; where that isn't applicable.  It's assumed that it only might match
+;; from and including the last character on a line.  Built from
+;; *-in-comment-lc-prefix and the current value of
+;; c-current-comment-prefix.
+(c-lang-defvar c-opt-in-comment-lc
+  (if (c-lang-var c-in-comment-lc-prefix)
+      (concat (c-lang-var c-in-comment-lc-prefix)
+	      c-current-comment-prefix)))
+
+(defconst c-init-lang-defvars
+  ;; Make a lambda of the collected `c-lang-defvar' initializations.
+  (cc-eval-when-compile
+    (if (cc-bytecomp-is-compiling)
+	(byte-compile-lambda `(lambda () ,c-lang-defvar-init-form))
+      `(lambda () ,c-lang-defvar-init-form))))
+
+(defun c-init-language-vars ()
+  ;; Initialize all `c-lang-defvar' variables according to
+  ;; `c-buffer-is-cc-mode'.
+  (if (not (memq c-buffer-is-cc-mode
+		 '(c-mode c++-mode objc-mode java-mode idl-mode pike-mode)))
+      (error "Cannot initialize language variables for unknown mode %s"
+	     c-buffer-is-cc-mode))
+  (funcall c-init-lang-defvars))
+
+;; Regexp trying to describe the beginning of a Java top-level
+;; definition.  This is not used by CC Mode, nor is it maintained
+;; since it's practically impossible to write a regexp that reliably
+;; matches such a construct.  Other tools are necessary.
+(defconst c-Java-defun-prompt-regexp
+  "^[ \t]*\\(\\(\\(public\\|protected\\|private\\|const\\|abstract\\|synchronized\\|final\\|static\\|threadsafe\\|transient\\|native\\|volatile\\)\\s-+\\)*\\(\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*[][_$.a-zA-Z0-9]+\\|[[a-zA-Z]\\)\\s-*\\)\\s-+\\)\\)?\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*\\s-+\\)\\s-*\\)?\\([_a-zA-Z][^][ \t:;.,{}()=]*\\|\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)\\)\\s-*\\(([^);{}]*)\\)?\\([] \t]*\\)\\(\\s-*\\<throws\\>\\s-*\\(\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)[, \t\n\r\f]*\\)+\\)?\\s-*")
 
 
 ;; Syntax tables.
 
 (defun c-populate-syntax-table (table)
   ;; Populate the syntax TABLE
-  ;; DO NOT TRY TO SET _ (UNDERSCORE) TO WORD CLASS!
   (modify-syntax-entry ?_  "_"     table)
   (modify-syntax-entry ?\\ "\\"    table)
   (modify-syntax-entry ?+  "."     table)
@@ -466,15 +667,7 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (if c++-mode-syntax-table
     ()
   (setq c++-mode-syntax-table (make-syntax-table))
-  (c-populate-syntax-table c++-mode-syntax-table)
-  ;; TBD: does it make sense for colon to be symbol class in C++?
-  ;; I'm not so sure, since c-label-key is busted on lines like:
-  ;; Foo::bar( i );
-  ;; maybe c-label-key should be fixed instead of commenting this out,
-  ;; but it also bothers me that this only seems appropriate for C++
-  ;; and not C.
-  ;;(modify-syntax-entry ?: "_" c++-mode-syntax-table)
-  )
+  (c-populate-syntax-table c++-mode-syntax-table))
 
 (defvar c++-template-syntax-table nil
   "A variant of `c++-mode-syntax-table' that defines `<' and `>' as
@@ -536,10 +729,6 @@ are parsed.")
 ;; Internal auto-newline/hungry-delete designation string for mode line.
 (defvar c-auto-hungry-string nil)
 (make-variable-buffer-local 'c-auto-hungry-string)
-
-;; Non-nil means K&R style argument declarations are valid.
-(defvar c-recognize-knr-p t)
-(make-variable-buffer-local 'c-recognize-knr-p)
 
 
 (cc-provide 'cc-langs)

@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -42,7 +42,14 @@
     (require 'cc-bytecomp)))
 
 (cc-require 'cc-defs)
+(cc-require 'cc-langs)
 (cc-require 'cc-vars)
+(cc-require 'cc-align)
+;; cc-align is only indirectly required: Styles added with
+;; `c-add-style' often contains references to functions defined there.
+
+;; Silence the compiler.
+(cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 
 
 ;; Warning: don't eval-defun this constant or you'll break style inheritance.
@@ -53,6 +60,7 @@
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro . 5)
 			 (substatement-open . +)
+			 (substatement-label . 0)
 			 (label . 0)
 			 (statement-case-open . +)
 			 (statement-cont . +)
@@ -70,6 +78,7 @@
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro . 0)
 			 (substatement-open . 0)
+			 (substatement-label . 0)
 			 (label . 0)
 			 (statement-cont . +)
 			 ))
@@ -80,6 +89,7 @@
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro . +)
 			 (substatement-open . 0)
+			 (substatement-label . 0)
 			 (label . 0)
 			 (statement-cont . +)
 			 (inline-open . 0)
@@ -91,6 +101,7 @@
      (c-comment-only-line-offset . 0)
      (c-offsets-alist . ((statement-block-intro . +)
 			 (substatement-open . 0)
+			 (substatement-label . 0)
 			 (label . 0)
 			 (statement-cont . +)
 			 ))
@@ -102,6 +113,7 @@
 			 (label . 0)
 			 (statement-cont . +)
 			 (substatement-open . +)
+			 (substatement-label . +)
 			 (block-open . +)
 			 (statement-block-intro . c-lineup-whitesmith-in-block)
 			 (block-close . c-lineup-whitesmith-in-block)
@@ -130,8 +142,7 @@
      (c-comment-only-line-offset . 0)
      (c-hanging-braces-alist     . ((substatement-open before after)))
      (c-offsets-alist . ((topmost-intro        . 0)
-                         (topmost-intro-cont   . 0)
-                         (substatement         . +)
+			 (substatement         . +)
 			 (substatement-open    . 0)
                          (case-label           . +)
                          (access-label         . -)
@@ -150,6 +161,7 @@
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro     . 0)
 			 (substatement-open     . 0)
+			 (substatement-label    . 0)
 			 (label                 . 0)
 			 (statement-cont        . +)
 			 ))
@@ -180,7 +192,8 @@
 			 (topmost-intro-cont    . +)
 			 (statement-block-intro . +)
  			 (knr-argdecl-intro     . 5)
- 			 (substatement-open     . +)
+			 (substatement-open     . +)
+			 (substatement-label    . +)
  			 (label                 . +)
  			 (statement-case-open   . +)
  			 (statement-cont        . +)
@@ -225,7 +238,6 @@ to add new styles or modify existing styles (it is not a good idea to
 modify existing styles -- you should create a new style that inherits
 the existing style.")
 
-
 
 ;; Functions that manipulate styles
 (defun c-set-style-1 (conscell dont-override)
@@ -257,29 +269,33 @@ the existing style.")
 	    (mapcar add-func (if dont-override (reverse val) val))
 	  (funcall add-func val))))
      ;; all other variables
-     (t (if (or (not dont-override)
-		(not (memq attr c-style-variables))
-		(eq (symbol-value attr) 'set-from-style))
-	    (set attr val))))
-    ))
+     (t (when (or (not dont-override)
+		  (not (memq attr c-style-variables))
+		  (eq (symbol-value attr) 'set-from-style))
+	  (set attr val)
+	  ;; Must update a number of other variables if
+	  ;; c-comment-prefix-regexp is set.
+	  (if (eq attr 'c-comment-prefix-regexp)
+	      (c-setup-paragraph-variables)))))))
 
 (defun c-get-style-variables (style basestyles)
   ;; Return all variables in a style by resolving inheritances.
-  (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
-		       (assoc (upcase style) c-style-alist)
-		       (assoc style c-style-alist)
-		       (error "Undefined style: %s" style)))))
-    (if (string-equal style "user")
-	(copy-alist vars)
-      (let ((base (if (stringp (car vars))
-		      (prog1
-			  (downcase (car vars))
-			(setq vars (cdr vars)))
-		    "user")))
+  (if (not style)
+      (copy-alist c-fallback-style)
+    (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
+			 (assoc (upcase style) c-style-alist)
+			 (assoc style c-style-alist)
+			 (progn
+			   (c-benign-error "Undefined style: %s" style)
+			   nil)))))
+      (let ((base (and (stringp (car-safe vars))
+		       (prog1
+			   (downcase (car vars))
+			 (setq vars (cdr vars))))))
 	(if (memq base basestyles)
-	    (error "Style loop detected: %s in %s" base basestyles))
-	(nconc (c-get-style-variables base (cons base basestyles))
-	       (copy-alist vars))))))
+	    (c-benign-error "Style loop detected: %s in %s" base basestyles)
+	  (nconc (c-get-style-variables base (cons base basestyles))
+		 (copy-alist vars)))))))
 
 (defvar c-set-style-history nil)
 
@@ -302,15 +318,33 @@ will be reassigned.
 Obviously, specifying DONT-OVERRIDE is useful mainly when the initial
 style is chosen for a CC Mode buffer by a major mode.  Since this is
 done internally by CC Mode, there's hardly ever a reason to use it."
-  (interactive (list (let ((completion-ignore-case t)
-			   (prompt (format "Which %s indentation style? "
-					   mode-name)))
-		       (completing-read prompt c-style-alist nil t
-					nil
-					'c-set-style-history
-					c-indentation-style))))
+  (interactive
+   (list (let ((completion-ignore-case t)
+	       (prompt (format "Which %s indentation style? "
+			       mode-name)))
+	   (condition-case nil
+	       ;; The default argument is preferred over
+	       ;; initial-contents, but it only exists in Emacs >= 20
+	       ;; and XEmacs >= 21.
+	       (completing-read prompt c-style-alist nil t nil
+				'c-set-style-history
+				c-indentation-style)
+	     (wrong-number-of-arguments
+	      ;; If the call above failed, we fall back to the old way
+	      ;; of specifying the default value.
+	      (completing-read prompt c-style-alist nil t
+			       (cons c-indentation-style 0)
+			       'c-set-style-history))))))
   (c-initialize-builtin-style)
   (let ((vars (c-get-style-variables stylename nil)))
+    (unless dont-override
+      ;; Since we always add to c-special-indent-hook we must reset it
+      ;; first, or else the hooks from the preceding style will
+      ;; remain.  This is not necessary for c-offsets-alist, since
+      ;; c-get-style-variables contains every valid offset type in the
+      ;; fallback entry.
+      (setq c-special-indent-hook
+	    (default-value 'c-special-indent-hook)))
     (mapcar (lambda (elem)
 	      (c-set-style-1 elem dont-override))
 	    ;; Need to go through the variables backwards when we
@@ -343,7 +377,6 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
       (setq c-style-alist (cons (cons style descrip) c-style-alist))))
   (and set-p (c-set-style style)))
 
-
 
 (defvar c-read-offset-history nil)
 
@@ -359,35 +392,24 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 			  "or [+,-,++,--,*,/] "
 			  defstr))
 	 (prompt (concat symname " offset " defstr))
-	 offset input interned raw)
+	 (keymap (make-sparse-keymap))
+	 (minibuffer-completion-table obarray)
+	 (minibuffer-completion-predicate 'fboundp)
+	 offset input)
+    ;; In principle completing-read is used here, but SPC is unbound
+    ;; to make it less annoying to enter lists.
+    (set-keymap-parent keymap minibuffer-local-completion-map)
+    (define-key keymap " " 'self-insert-command)
     (while (not offset)
-      (setq input (completing-read prompt obarray 'fboundp nil nil
-				   'c-read-offset-history)
-	    offset (cond ((string-equal "" input) oldoff)  ; default
-			 ((string-equal "+" input) '+)
-			 ((string-equal "-" input) '-)
-			 ((string-equal "++" input) '++)
-			 ((string-equal "--" input) '--)
-			 ((string-equal "*" input) '*)
-			 ((string-equal "/" input) '/)
-			 ((string-match "^-?[0-9]+$" input)
-			  (string-to-int input))
-			 ;; a symbol with a function binding
-			 ((fboundp (setq interned (intern input)))
-			  interned)
-			 ;; a symbol with variable binding
-			 ((boundp interned) interned)
-			 ;; a lambda function or a vector
-			 ((progn
-			    (c-safe (setq raw (read input)))
-			    (or (functionp raw)
-				(vectorp raw)))
-			  raw)
-			 ;; error, but don't signal one, keep trying
-			 ;; to read an input value
-			 (t (ding)
-			    (setq prompt errmsg)
-			    nil))))
+      (setq input (read-from-minibuffer prompt nil keymap t
+					'c-read-offset-history
+					(format "%s" oldoff)))
+      (if (c-valid-offset input)
+	  (setq offset input)
+	;; error, but don't signal one, keep trying
+	;; to read an input value
+	(ding)
+	(setq prompt errmsg)))
     offset))
 
 ;;;###autoload
@@ -418,18 +440,94 @@ and exists only for compatibility reasons."
 	  (offset (c-read-offset langelem)))
      (list langelem offset current-prefix-arg)))
   ;; sanity check offset
-  (unless (c-valid-offset offset)
-    (error (concat "Offset must be int, func, var, vector, list, "
-		   "or in [+,-,++,--,*,/]: %s")
-	   offset))
-  (let ((entry (assq symbol c-offsets-alist)))
-    (if entry
-	(setcdr entry offset)
-      (if (assq symbol (get 'c-offsets-alist 'c-stylevar-fallback))
-	  (setq c-offsets-alist (cons (cons symbol offset) c-offsets-alist))
-	(error "%s is not a valid syntactic symbol" symbol))))
+  (if (c-valid-offset offset)
+      (let ((entry (assq symbol c-offsets-alist)))
+	(if entry
+	    (setcdr entry offset)
+	  (if (assq symbol (get 'c-offsets-alist 'c-stylevar-fallback))
+	      (setq c-offsets-alist (cons (cons symbol offset)
+					  c-offsets-alist))
+	    (c-benign-error "%s is not a valid syntactic symbol" symbol))))
+    (c-benign-error "Invalid indentation setting for symbol %s: %s"
+		    symbol offset))
   (c-keep-region-active))
 
+
+(defun c-setup-paragraph-variables ()
+  "Fix things up for paragraph recognition and filling inside comments by
+incorporating the value of `c-comment-prefix-regexp' in the relevant
+variables."
+  (setq c-current-comment-prefix
+	(if (listp c-comment-prefix-regexp)
+	    (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
+			  (assoc 'other c-comment-prefix-regexp)))
+	  c-comment-prefix-regexp))
+  (let ((comment-line-prefix
+	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
+    (setq paragraph-start (concat comment-line-prefix
+				  (c-lang-var paragraph-start)
+				  "\\|"
+				  page-delimiter)
+	  paragraph-separate (concat comment-line-prefix
+				     (c-lang-var paragraph-separate)
+				     "\\|"
+				     page-delimiter)
+	  paragraph-ignore-fill-prefix t
+	  adaptive-fill-mode t
+	  adaptive-fill-regexp
+	  (concat comment-line-prefix
+		  (if (default-value 'adaptive-fill-regexp)
+		      (concat "\\("
+			      (default-value 'adaptive-fill-regexp)
+			      "\\)")
+		    "")))
+    (when (boundp 'adaptive-fill-first-line-regexp)
+      ;; XEmacs (20.x) adaptive fill mode doesn't have this.
+      (make-local-variable 'adaptive-fill-first-line-regexp)
+      (setq adaptive-fill-first-line-regexp
+	    (concat "\\`" comment-line-prefix
+		    ;; Maybe we should incorporate the old value here,
+		    ;; but then we have to do all sorts of kludges to
+		    ;; deal with the \` and \' it probably contains.
+		    "\\'")))))
+
+
+;; Helper for setting up Filladapt mode.  It's not used by CC Mode itself.
+
+(cc-bytecomp-defvar filladapt-token-table)
+(cc-bytecomp-defvar filladapt-token-match-table)
+(cc-bytecomp-defvar filladapt-token-conversion-table)
+
+(defun c-setup-filladapt ()
+  "Convenience function to configure Kyle E. Jones' Filladapt mode for
+CC Mode by making sure the proper entries are present on
+`filladapt-token-table', `filladapt-token-match-table', and
+`filladapt-token-conversion-table'.  This is intended to be used on
+`c-mode-common-hook' or similar."
+  ;; This function is intended to be used explicitly by the end user
+  ;; only.
+  ;;
+  ;; The default configuration already handles C++ comments, but we
+  ;; need to add handling of C block comments.  A new filladapt token
+  ;; `c-comment' is added for that.
+  (let (p)
+    (setq p filladapt-token-table)
+    (while (and p (not (eq (car-safe (cdr-safe (car-safe p))) 'c-comment)))
+      (setq p (cdr-safe p)))
+    (if p
+	(setcar (car p) c-current-comment-prefix)
+      (setq filladapt-token-table
+	    (append (list (car filladapt-token-table)
+			  (list c-current-comment-prefix 'c-comment))
+		    (cdr filladapt-token-table)))))
+  (unless (assq 'c-comment filladapt-token-match-table)
+    (setq filladapt-token-match-table
+	  (append '((c-comment c-comment))
+		  filladapt-token-match-table)))
+  (unless (assq 'c-comment filladapt-token-conversion-table)
+    (setq filladapt-token-conversion-table
+	  (append '((c-comment . exact))
+		  filladapt-token-conversion-table))))
 
 
 (defun c-initialize-builtin-style ()
@@ -440,31 +538,22 @@ and exists only for compatibility reasons."
   (unless (get 'c-initialize-builtin-style 'is-run)
     (put 'c-initialize-builtin-style 'is-run t)
     ;;(c-initialize-cc-mode)
-    (or (assoc "cc-mode" c-style-alist)
-	(assoc "user" c-style-alist)
-	(progn
-	  (c-add-style
-	   "user"
-	   (mapcar
-	    (lambda (var)
-	      (let ((val (symbol-value var)))
-		(cons var
-		      (cond ((eq var 'c-offsets-alist)
-			     (mapcar
-			      (lambda (langentry)
-				(setq langentry (or (assq (car langentry) val)
-						    langentry))
-				(cons (car langentry)
-				      (cdr langentry)))
-			      (get var 'c-stylevar-fallback)))
-			    ((eq var 'c-special-indent-hook)
-			     val)
-			    (t
-			     (if (eq val 'set-from-style)
-				 (get var 'c-stylevar-fallback)
-			       val))))))
-	    c-style-variables))
-	  (c-add-style "cc-mode" '("user"))))
+    (unless (assoc "user" c-style-alist)
+      (let ((vars c-style-variables) var val uservars)
+	(while vars
+	  (setq var (car vars)
+		val (symbol-value var)
+		vars (cdr vars))
+	  (cond ((eq var 'c-offsets-alist)
+		 (or (null val)
+		     (setq uservars (cons (cons 'c-offsets-alist val)
+					  uservars))))
+		((not (eq val 'set-from-style))
+		 (setq uservars (cons (cons var val)
+				      uservars)))))
+	(c-add-style "user" uservars)))
+    (unless (assoc "cc-mode" c-style-alist)
+      (c-add-style "cc-mode" '("user")))
     (if c-style-variables-are-local-p
 	(c-make-styles-buffer-local))))
 

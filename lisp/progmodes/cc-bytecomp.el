@@ -21,8 +21,8 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
@@ -31,6 +31,10 @@
 ;; compiled regardless the environment (e.g. if an older CC Mode with
 ;; outdated macros are loaded during compilation).  It also provides
 ;; features to defeat the compiler warnings for selected symbols.
+;;
+;; There's really nothing CC Mode specific here; this functionality
+;; ought to be provided by the byte compilers or some accompanying
+;; library.
 
 
 ;;; Code:

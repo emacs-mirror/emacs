@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -57,6 +57,7 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
+(cc-bytecomp-defvar c-buffer-is-cc-mode) ; In cc-vars.el
 (cc-bytecomp-defun buffer-syntactic-context-depth) ; XEmacs
 (cc-bytecomp-defun region-active-p)	; XEmacs
 (cc-bytecomp-defvar zmacs-region-stays)	; XEmacs
@@ -83,13 +84,17 @@
   ;; eol  -- end of line
   ;; bod  -- beginning of defun
   ;; eod  -- end of defun
-  ;; boi  -- back to indentation
+  ;; boi  -- beginning of indentation
   ;; ionl -- indentation of next line
   ;; iopl -- indentation of previous line
   ;; bonl -- beginning of next line
+  ;; eonl -- end of next line
   ;; bopl -- beginning of previous line
+  ;; eopl -- end of previous line
   ;; 
-  ;; This function does not modify point or mark.
+  ;; If the referenced position doesn't exist, the closest accessible
+  ;; point to it is returned.  This function does not modify point or
+  ;; mark.
   `(save-excursion
      ,(if point `(goto-char ,point))
      ,(if (and (eq (car-safe position) 'quote)
@@ -99,10 +104,16 @@
 	     ((eq position 'bol)  `(beginning-of-line))
 	     ((eq position 'eol)  `(end-of-line))
 	     ((eq position 'boi)  `(back-to-indentation))
+	     ((eq position 'bod)  `(c-beginning-of-defun-1))
 	     ((eq position 'bonl) `(forward-line 1))
 	     ((eq position 'bopl) `(forward-line -1))
-	     ((eq position 'bod)  `(c-beginning-of-defun-1))
 	     ((eq position 'eod)  `(c-end-of-defun-1))
+	     ((eq position 'eopl) `(progn
+				     (beginning-of-line)
+				     (or (bobp) (backward-char))))
+	     ((eq position 'eonl) `(progn
+				     (forward-line 1)
+				     (end-of-line)))
 	     ((eq position 'iopl) `(progn
 				     (forward-line -1)
 				     (back-to-indentation)))
@@ -116,10 +127,16 @@
 	    ((eq position 'bol)  (beginning-of-line))
 	    ((eq position 'eol)  (end-of-line))
 	    ((eq position 'boi)  (back-to-indentation))
+	    ((eq position 'bod)  (c-beginning-of-defun-1))
 	    ((eq position 'bonl) (forward-line 1))
 	    ((eq position 'bopl) (forward-line -1))
-	    ((eq position 'bod)  (c-beginning-of-defun-1))
 	    ((eq position 'eod)  (c-end-of-defun-1))
+	    ((eq position 'eopl) (progn
+				   (beginning-of-line)
+				   (or (bobp) (backward-char))))
+	    ((eq position 'eonl) (progn
+				   (forward-line 1)
+				   (end-of-line)))
 	    ((eq position 'iopl) (progn
 				   (forward-line -1)
 				   (back-to-indentation)))
@@ -134,6 +151,7 @@
   `(condition-case nil
        (progn ,@body)
      (error nil)))
+(put 'c-safe 'lisp-indent-function 0)
 
 (defmacro c-forward-sexp (&optional arg)
   ;; like forward-sexp except
@@ -153,29 +171,30 @@
   (or arg (setq arg 1))
   `(c-forward-sexp ,(if (numberp arg) (- arg) `(- ,arg))))
 
+;; Wrappers for common scan-lists cases, mainly because it's almost
+;; impossible to get a feel for how that function works.
+(defmacro c-up-list-forward (pos)
+  `(c-safe (scan-lists ,pos 1 1)))
+(defmacro c-up-list-backward (pos)
+  `(c-safe (scan-lists ,pos -1 1)))
+(defmacro c-down-list-forward (pos)
+  `(c-safe (scan-lists ,pos 1 -1)))
+(defmacro c-down-list-backward (pos)
+  `(c-safe (scan-lists ,pos -1 -1)))
+
 (defmacro c-add-syntax (symbol &optional relpos)
   ;; a simple macro to append the syntax in symbol to the syntax list.
   ;; try to increase performance by using this macro
-  `(setq syntax (cons (cons ,symbol ,relpos) syntax)))
+  `(let ((relpos-tmp ,relpos))
+     (if relpos-tmp (setq syntactic-relpos relpos-tmp))
+     (setq syntax (cons (cons ,symbol relpos-tmp) syntax))))
 
-(defmacro c-add-class-syntax (symbol classkey)
-  ;; The inclass and class-close syntactic symbols are added in
-  ;; several places and some work is needed to fix everything.
-  ;; Therefore it's collected here.  This is a macro mostly because
-  ;; c-add-syntax doesn't work otherwise.
-  `(save-restriction
-     (widen)
-     (let ((symbol ,symbol)
-	   (classkey ,classkey)
-	   inexpr)
-       (goto-char (aref classkey 1))
-       (if (and (eq symbol 'inclass) (= (point) (c-point 'boi)))
-	   (c-add-syntax symbol (point))
-	 (c-add-syntax symbol (aref classkey 0))
-	 (if (and c-inexpr-class-key
-		  (setq inexpr (c-looking-at-inexpr-block))
-		  (/= (cdr inexpr) (c-point 'boi (cdr inexpr))))
-	     (c-add-syntax 'inexpr-class))))))
+(defmacro c-benign-error (format &rest args)
+  ;; Formats an error message for the echo area and dings, i.e. like
+  ;; `error' but doesn't abort.
+  `(progn
+     (message ,format ,@args)
+     (ding)))
 
 (defmacro c-update-modeline ()
   ;; set the c-auto-hungry-string for the correct designation on the modeline
@@ -196,6 +215,66 @@
 	   ,@code)
        (set-syntax-table c-with-syntax-table-orig-table))))
 (put 'c-with-syntax-table 'lisp-indent-function 1)
+
+(defmacro c-skip-ws-forward (&optional limit)
+  "Skip over any whitespace following point.
+This function skips over horizontal and vertical whitespace and line
+continuations."
+  (if limit
+      `(let ((-limit- (or ,limit (point-max))))
+	 (while (progn
+		  ;; skip-syntax-* doesn't count \n as whitespace..
+		  (skip-chars-forward " \t\n\r\f" -limit-)
+		  (when (and (eq (char-after) ?\\)
+			     (< (point) -limit-))
+		    (forward-char)
+		    (or (eolp)
+			(progn (backward-char) nil))))))
+    '(while (progn
+	      (skip-chars-forward " \t\n\r\f")
+	      (when (eq (char-after) ?\\)
+		(forward-char)
+		(or (eolp)
+		    (progn (backward-char) nil)))))))
+
+(defmacro c-skip-ws-backward (&optional limit)
+  "Skip over any whitespace preceding point.
+This function skips over horizontal and vertical whitespace and line
+continuations."
+  (if limit
+      `(let ((-limit- (or ,limit (point-min))))
+	 (while (progn
+		  ;; skip-syntax-* doesn't count \n as whitespace..
+		  (skip-chars-backward " \t\n\r\f" -limit-)
+		  (and (eolp)
+		       (eq (char-before) ?\\)
+		       (> (point) -limit-)))
+	   (backward-char)))
+    '(while (progn
+	      (skip-chars-backward " \t\n\r\f")
+	      (and (eolp)
+		   (eq (char-before) ?\\)))
+       (backward-char))))
+
+;; Make edebug understand the macros.
+(eval-after-load "edebug"
+  '(progn
+     (def-edebug-spec c-paren-re t)
+     (def-edebug-spec c-identifier-re t)
+     (def-edebug-spec c-point ([&or symbolp form] &optional form))
+     (def-edebug-spec c-safe t)
+     (def-edebug-spec c-forward-sexp (&optional [&or numberp form]))
+     (def-edebug-spec c-backward-sexp (&optional [&or numberp form]))
+     (def-edebug-spec c-up-list-forward t)
+     (def-edebug-spec c-up-list-backward t)
+     (def-edebug-spec c-down-list-forward t)
+     (def-edebug-spec c-down-list-backward t)
+     (def-edebug-spec c-add-syntax t)
+     (def-edebug-spec c-add-class-syntax t)
+     (def-edebug-spec c-benign-error t)
+     (def-edebug-spec c-with-syntax-table t)
+     (def-edebug-spec c-skip-ws-forward t)
+     (def-edebug-spec c-skip-ws-backward t)))
 
 ;;; Inline functions.
 
@@ -262,43 +341,6 @@
     (if (< (point) start)
 	(goto-char (point-max)))))
 
-(defsubst c-forward-comment (count)
-  ;; Insulation from various idiosyncrasies in implementations of
-  ;; `forward-comment'.
-  ;;
-  ;; Note: Some emacsen considers incorrectly that any line comment
-  ;; ending with a backslash continues to the next line.  I can't
-  ;; think of any way to work around that in a reliable way without
-  ;; changing the buffer though.  Suggestions welcome. ;)
-  ;;
-  ;; Another note: When moving backwards over a block comment, there's
-  ;; a bug in forward-comment that can make it stop at "/*" inside a
-  ;; line comment.  Haven't yet found a reasonably cheap way to kludge
-  ;; around that one either. :\
-  (let ((here (point)))
-    (if (>= count 0)
-	(when (forward-comment count)
-	  ;; Emacs includes the ending newline in a b-style (c++)
-	  ;; comment, but XEmacs doesn't.  We depend on the Emacs
-	  ;; behavior (which also is symmetric).
-	  (if (and (eolp) (nth 7 (parse-partial-sexp here (point))))
-	      (condition-case nil (forward-char 1)))
-	  t)
-      ;; When we got newline terminated comments,
-      ;; forward-comment in all supported emacsen so far will
-      ;; stop at eol of each line not ending with a comment when
-      ;; moving backwards.  The following corrects for it when
-      ;; count is -1.  The other common case, when count is
-      ;; large and negative, works regardless.  It's too much
-      ;; work to correct for the rest of the cases.
-      (skip-chars-backward " \t\n\r\f")
-      (if (bobp)
-	  ;; Some emacsen return t when moving backwards at bob.
-	  nil
-	(re-search-forward "[\n\r]" here t)
-	(if (forward-comment count)
-	    (if (eolp) (forward-comment -1) t))))))
-
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
   ;; in LIST.  Uses assq.
@@ -346,7 +388,7 @@
    (t (mark t))))
 
 (defsubst c-major-mode-is (mode)
-  (eq (derived-mode-class major-mode) mode))
+  (eq c-buffer-is-cc-mode mode))
 
 
 (cc-provide 'cc-defs)

@@ -24,11 +24,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst c-version "5.28"
+(defconst c-version "5.29"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -115,7 +115,13 @@
 ;; use:
 ;;
 ;; (require 'cc-mode)
+;;
+;; And in the major mode function:
+;;
 ;; (c-initialize-cc-mode)
+
+(defun c-leave-cc-mode-mode ()
+  (setq c-buffer-is-cc-mode nil))
 
 ;;;###autoload
 (defun c-initialize-cc-mode ()
@@ -131,6 +137,7 @@
 	    ;; Fix obsolete variables.
 	    (if (boundp 'c-comment-continuation-stars)
 		(setq c-block-comment-prefix c-comment-continuation-stars))
+	    (add-hook 'change-major-mode-hook 'c-leave-cc-mode-mode)
 	    (setq c-initialization-ok t))
 	;; Will try initialization hooks again if they failed.
 	(put 'c-initialize-cc-mode initprop c-initialization-ok)))
@@ -153,6 +160,19 @@
      ;; incompatible
      (t (error "CC Mode is incompatible with this version of Emacs")))
     map))
+
+(defun c-define-abbrev-table (name defs)
+  ;; Compatibility wrapper for `define-abbrev' which passes a non-nil
+  ;; sixth argument for SYSTEM-FLAG in emacsen that support it
+  ;; (currently only Emacs 21.2).
+  (define-abbrev-table name nil)
+  (let ((table (symbol-value name)))
+    (while defs
+      (condition-case nil
+	  (apply 'define-abbrev table (append (car defs) '(t)))
+	(wrong-number-of-arguments
+	 (apply 'define-abbrev table (car defs))))
+      (setq defs (cdr defs)))))
 
 (if c-mode-base-map
     nil
@@ -181,6 +201,12 @@
   (substitute-key-definition 'indent-new-comment-line
 			     'c-indent-new-comment-line
 			     c-mode-base-map global-map)
+  (when (fboundp 'comment-indent-new-line)
+    ;; indent-new-comment-line has changed name to
+    ;; comment-indent-new-line in Emacs 21.
+    (substitute-key-definition 'comment-indent-new-line
+			       'c-indent-new-comment-line
+			       c-mode-base-map global-map))
   ;; RMS says don't make these the default.
 ;;  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
 ;;  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
@@ -243,7 +269,7 @@
 	    (comment-region (region-beginning) (region-end) '(4))
 	    (c-fn-region-is-active-p)]
 	   ["Fill Comment Paragraph" c-fill-paragraph t]
-	   "---"
+	   "----"
 	   ["Indent Expression"      c-indent-exp
 	    (memq (char-after) '(?\( ?\[ ?\{))]
 	   ["Indent Line or Region"  c-indent-line-or-region t]
@@ -252,18 +278,25 @@
 	   ["Forward Conditional"    c-forward-conditional t]
 	   ["Backward Statement"     c-beginning-of-statement t]
 	   ["Forward Statement"      c-end-of-statement t]
-	   "---"
+	   "----"
 	   ["Macro Expand Region"    c-macro-expand (c-fn-region-is-active-p)]
 	   ["Backslashify"	     c-backslash-region
 	    (c-fn-region-is-active-p)]
+	   "----"
+	   ("Toggle..."
+	    ["Syntactic indentation" c-toggle-syntactic-indentation t]
+	    ["Auto newline"          c-toggle-auto-state t]
+	    ["Hungry delete"         c-toggle-hungry-state t])
 	   )))
     (cons modestr m)))
 
 ;; We don't require the outline package, but we configure it a bit anyway.
 (cc-bytecomp-defvar outline-level)
 
-(defun c-common-init ()
+(defun c-common-init (mode)
   ;; Common initializations for all modes.
+  (setq c-buffer-is-cc-mode mode)
+
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
   (make-local-variable 'require-final-newline)
@@ -284,12 +317,14 @@
   (make-local-variable 'adaptive-fill-mode)
   (make-local-variable 'adaptive-fill-regexp)
   (make-local-variable 'imenu-generic-expression) ;set in the mode functions
+
   ;; X/Emacs 20 only
   (and (boundp 'comment-line-break-function)
        (progn
 	 (make-local-variable 'comment-line-break-function)
 	 (setq comment-line-break-function
 	       'c-indent-new-comment-line)))
+
   ;; now set their values
   (setq require-final-newline t
 	parse-sexp-ignore-comments t
@@ -301,10 +336,14 @@
 	comment-column 32
 	comment-start-skip "/\\*+ *\\|//+ *"
 	comment-multi-line t)
+
+  ;; Fix keyword regexps.
+  (c-init-language-vars)
+
   ;; now set the mode style based on c-default-style
   (let ((style (if (stringp c-default-style)
 		   c-default-style
-		 (or (cdr (assq major-mode c-default-style))
+		 (or (cdr (assq mode c-default-style))
 		     (cdr (assq 'other c-default-style))
 		     "gnu"))))
     ;; Override style variables if `c-old-style-variable-behavior' is
@@ -319,56 +358,29 @@
 				     c-indentation-style
 				     (not (string-equal c-indentation-style
 							style)))))))
-  ;; Fix things up for paragraph recognition and filling inside
-  ;; comments by using c-current-comment-prefix in the relevant
-  ;; places.  We use adaptive filling for this to make it possible to
-  ;; use filladapt or some other fancy package.
-  (setq c-current-comment-prefix
-	(if (listp c-comment-prefix-regexp)
-	    (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
-			  (assoc 'other c-comment-prefix-regexp)))
-	  c-comment-prefix-regexp))
-  (let ((comment-line-prefix
-	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
-    (setq paragraph-start (concat comment-line-prefix
-				  c-append-paragraph-start
-				  "\\|"
-				  page-delimiter)
-	  paragraph-separate (concat comment-line-prefix
-				     c-append-paragraph-separate
-				     "\\|"
-				     page-delimiter)
-	  paragraph-ignore-fill-prefix t
-	  adaptive-fill-mode t
-	  adaptive-fill-regexp
-	  (concat comment-line-prefix
-		  (if adaptive-fill-regexp
-		      (concat "\\(" adaptive-fill-regexp "\\)")
-		    "")))
-    (when (boundp 'adaptive-fill-first-line-regexp)
-      ;; XEmacs (20.x) adaptive fill mode doesn't have this.
-      (make-local-variable 'adaptive-fill-first-line-regexp)
-      (setq adaptive-fill-first-line-regexp
-	    (concat "\\`" comment-line-prefix
-		    ;; Maybe we should incorporate the old value here,
-		    ;; but then we have to do all sorts of kludges to
-		    ;; deal with the \` and \' it probably contains.
-		    "\\'"))))
+  (c-setup-paragraph-variables)
+
   ;; we have to do something special for c-offsets-alist so that the
   ;; buffer local value has its own alist structure.
   (setq c-offsets-alist (copy-alist c-offsets-alist))
+
   ;; setup the comment indent variable in a Emacs version portable way
-  ;; ignore any byte compiler warnings you might get here
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'c-comment-indent)
+
   ;; add menus to menubar
   (easy-menu-add (c-mode-menu mode-name))
+
   ;; put auto-hungry designators onto minor-mode-alist, but only once
   (or (assq 'c-auto-hungry-string minor-mode-alist)
       (setq minor-mode-alist
 	    (cons '(c-auto-hungry-string c-auto-hungry-string)
 		  minor-mode-alist)))
-  )
+
+  ;; Install the function that ensures `c-state-cache' doesn't become
+  ;; invalid.
+  (make-local-variable 'after-change-functions)
+  (add-hook 'after-change-functions 'c-check-state-cache))
 
 (defun c-postprocess-file-styles ()
   "Function that post processes relevant file local variables.
@@ -385,10 +397,10 @@ Note that the style variables are always made local to the buffer."
        (c-set-style c-file-style))
   (and c-file-offsets
        (mapcar
-        (lambda (langentry)
-          (let ((langelem (car langentry))
-                (offset (cdr langentry)))
-            (c-set-offset langelem offset)))
+	(lambda (langentry)
+	  (let ((langelem (car langentry))
+		(offset (cdr langentry)))
+	    (c-set-offset langelem offset)))
 	c-file-offsets)))
 
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
@@ -398,9 +410,9 @@ Note that the style variables are always made local to the buffer."
 
 (defvar c-mode-abbrev-table nil
   "Abbreviation table used in c-mode buffers.")
-(define-abbrev-table 'c-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0 t)
-    ("while" "while" c-electric-continued-statement 0 t)))
+(c-define-abbrev-table 'c-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)))
 
 (defvar c-mode-map ()
   "Keymap used in c-mode buffers.")
@@ -431,24 +443,15 @@ run first.
 Key bindings:
 \\{c-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table c-mode-syntax-table)
   (setq major-mode 'c-mode
 	mode-name "C"
 	local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c-mode-map)
-  (c-common-init)
-  (setq comment-start "/* "
-	comment-end   " */"
-	c-keywords (c-identifier-re c-C-keywords)
-	c-conditional-key c-C-conditional-key
-	c-class-key c-C-class-key
-	c-baseclass-key nil
-	c-comment-start-regexp c-C-comment-start-regexp
-	c-bitfield-key c-C-bitfield-key
-	)
+  (c-common-init 'c-mode)
   (cc-imenu-init cc-imenu-c-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
@@ -459,10 +462,10 @@ Key bindings:
 
 (defvar c++-mode-abbrev-table nil
   "Abbreviation table used in c++-mode buffers.")
-(define-abbrev-table 'c++-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0 t)
-    ("while" "while" c-electric-continued-statement 0 t)
-    ("catch" "catch" c-electric-continued-statement 0 t)))
+(c-define-abbrev-table 'c++-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)
+    ("catch" "catch" c-electric-continued-statement 0)))
 
 (defvar c++-mode-map ()
   "Keymap used in c++-mode buffers.")
@@ -496,26 +499,15 @@ variable is bound and has a non-nil value.  Also the hook
 Key bindings:
 \\{c++-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table c++-mode-syntax-table)
   (setq major-mode 'c++-mode
 	mode-name "C++"
 	local-abbrev-table c++-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c++-mode-map)
-  (c-common-init)
-  (setq comment-start "// "
-	comment-end ""
-	c-keywords (c-identifier-re c-C++-keywords)
-	c-conditional-key c-C++-conditional-key
-	c-comment-start-regexp c-C++-comment-start-regexp
-	c-class-key c-C++-class-key
-	c-extra-toplevel-key c-C++-extra-toplevel-key
-	c-access-key c-C++-access-key
-	c-recognize-knr-p nil
-	c-bitfield-key c-C-bitfield-key
-	)
+  (c-common-init 'c++-mode)
   (cc-imenu-init cc-imenu-c++-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c++-mode-hook)
@@ -526,9 +518,9 @@ Key bindings:
 
 (defvar objc-mode-abbrev-table nil
   "Abbreviation table used in objc-mode buffers.")
-(define-abbrev-table 'objc-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0 t)
-    ("while" "while" c-electric-continued-statement 0 t)))
+(c-define-abbrev-table 'objc-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)))
 
 (defvar objc-mode-map ()
   "Keymap used in objc-mode buffers.")
@@ -559,25 +551,15 @@ is run first.
 Key bindings:
 \\{objc-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table objc-mode-syntax-table)
   (setq major-mode 'objc-mode
 	mode-name "ObjC"
 	local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map objc-mode-map)
-  (c-common-init)
-  (setq comment-start "// "
-	comment-end   ""
-	c-keywords (c-identifier-re c-ObjC-keywords)
-	c-conditional-key c-ObjC-conditional-key
-	c-comment-start-regexp c-ObjC-comment-start-regexp
- 	c-class-key c-ObjC-class-key
-	c-baseclass-key nil
-	c-access-key c-ObjC-access-key
-	c-method-key c-ObjC-method-key
-	)
+  (c-common-init 'objc-mode)
   (cc-imenu-init cc-imenu-objc-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'objc-mode-hook)
@@ -588,11 +570,11 @@ Key bindings:
 
 (defvar java-mode-abbrev-table nil
   "Abbreviation table used in java-mode buffers.")
-(define-abbrev-table 'java-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0 t)
-    ("while" "while" c-electric-continued-statement 0 t)
-    ("catch" "catch" c-electric-continued-statement 0 t)
-    ("finally" "finally" c-electric-continued-statement 0 t)))
+(c-define-abbrev-table 'java-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)
+    ("catch" "catch" c-electric-continued-statement 0)
+    ("finally" "finally" c-electric-continued-statement 0)))
 
 (defvar java-mode-map ()
   "Keymap used in java-mode buffers.")
@@ -625,28 +607,15 @@ set styles in `c-mode-common-hook'.
 Key bindings:
 \\{java-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table java-mode-syntax-table)
   (setq major-mode 'java-mode
  	mode-name "Java"
  	local-abbrev-table java-mode-abbrev-table
-	abbrev-mode t
-	c-append-paragraph-start c-Java-javadoc-paragraph-start)
+	abbrev-mode t)
   (use-local-map java-mode-map)
-  (c-common-init)
-  (setq comment-start "// "
- 	comment-end   ""
-	c-keywords (c-identifier-re c-Java-keywords)
- 	c-conditional-key c-Java-conditional-key
- 	c-comment-start-regexp c-Java-comment-start-regexp
-  	c-class-key c-Java-class-key
-	c-method-key nil
- 	c-baseclass-key nil
-	c-recognize-knr-p nil
-	c-inexpr-class-key c-Java-inexpr-class-key
-	;defun-prompt-regexp c-Java-defun-prompt-regexp
-	)
+  (c-common-init 'java-mode)
   (cc-imenu-init cc-imenu-java-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'java-mode-hook)
@@ -657,7 +626,7 @@ Key bindings:
 
 (defvar idl-mode-abbrev-table nil
   "Abbreviation table used in idl-mode buffers.")
-(define-abbrev-table 'idl-mode-abbrev-table ())
+(c-define-abbrev-table 'idl-mode-abbrev-table nil)
 
 (defvar idl-mode-map ()
   "Keymap used in idl-mode buffers.")
@@ -688,25 +657,14 @@ variable is bound and has a non-nil value.  Also the hook
 Key bindings:
 \\{idl-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table idl-mode-syntax-table)
   (setq major-mode 'idl-mode
 	mode-name "IDL"
 	local-abbrev-table idl-mode-abbrev-table)
   (use-local-map idl-mode-map)
-  (c-common-init)
-  (setq comment-start "// "
-	comment-end ""
-	c-keywords (c-identifier-re c-IDL-keywords)
-	c-conditional-key c-IDL-conditional-key
-	c-comment-start-regexp c-IDL-comment-start-regexp
-	c-class-key c-IDL-class-key
-	c-method-key nil
-	c-baseclass-key nil
-	c-extra-toplevel-key c-IDL-extra-toplevel-key
-	c-recognize-knr-p nil
-	)
+  (c-common-init 'idl-mode)
   ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;FIXME
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'idl-mode-hook)
@@ -717,9 +675,9 @@ Key bindings:
 
 (defvar pike-mode-abbrev-table nil
   "Abbreviation table used in pike-mode buffers.")
-(define-abbrev-table 'pike-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0 t)
-    ("while" "while" c-electric-continued-statement 0 t)))
+(c-define-abbrev-table 'pike-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)))
 
 (defvar pike-mode-map ()
   "Keymap used in pike-mode buffers.")
@@ -735,8 +693,8 @@ Key bindings:
 ;;;###autoload
 (defun pike-mode ()
   "Major mode for editing Pike code.
-To submit a problem report, enter `\\[c-submit-bug-report]' from an
-idl-mode buffer.  This automatically sets up a mail buffer with
+To submit a problem report, enter `\\[c-submit-bug-report]' from a
+pike-mode buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
 of the problem, including a reproducible test case, and send the
 message.
@@ -750,80 +708,26 @@ is bound and has a non-nil value.  Also the common hook
 Key bindings:
 \\{pike-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)
   (kill-all-local-variables)
+  (c-initialize-cc-mode)
   (set-syntax-table pike-mode-syntax-table)
   (setq major-mode 'pike-mode
  	mode-name "Pike"
  	local-abbrev-table pike-mode-abbrev-table
-	abbrev-mode t
-	c-append-paragraph-start c-Pike-pikedoc-paragraph-start
-	c-append-paragraph-separate c-Pike-pikedoc-paragraph-separate)
+	abbrev-mode t)
   (use-local-map pike-mode-map)
-  (c-common-init)
-  (setq comment-start "// "
- 	comment-end   ""
-	c-keywords (c-identifier-re c-Pike-keywords)
- 	c-conditional-key c-Pike-conditional-key
-	c-comment-start-regexp c-Pike-comment-start-regexp
-  	c-class-key c-Pike-class-key
-	c-method-key nil
- 	c-baseclass-key nil
-	c-recognize-knr-p nil
-	c-lambda-key c-Pike-lambda-key
-	c-inexpr-block-key c-Pike-inexpr-block-key
-	c-inexpr-class-key c-Pike-inexpr-class-key
-	c-special-brace-lists c-Pike-special-brace-lists
-	)
+  (c-common-init 'pike-mode)
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;FIXME
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'pike-mode-hook)
   (c-update-modeline))
 
 
-;; Helper for setting up Filladapt mode.  It's not used by CC Mode itself.
-
-(cc-bytecomp-defvar filladapt-token-table)
-(cc-bytecomp-defvar filladapt-token-match-table)
-(cc-bytecomp-defvar filladapt-token-conversion-table)
-
-(defun c-setup-filladapt ()
-  "Convenience function to configure Kyle E. Jones' Filladapt mode for
-CC Mode by making sure the proper entries are present on
-`filladapt-token-table', `filladapt-token-match-table', and
-`filladapt-token-conversion-table'.  This is intended to be used on
-`c-mode-common-hook' or similar."
-  ;; This function is intended to be used explicitly by the end user
-  ;; only.
-  ;;
-  ;; The default configuration already handles C++ comments, but we
-  ;; need to add handling of C block comments.  A new filladapt token
-  ;; `c-comment' is added for that.
-  (let (p)
-    (setq p filladapt-token-table)
-    (while (and p (not (eq (car-safe (cdr-safe (car-safe p))) 'c-comment)))
-      (setq p (cdr-safe p)))
-    (if p
-	(setcar (car p) c-current-comment-prefix)
-      (setq filladapt-token-table
-	    (append (list (car filladapt-token-table)
-			  (list c-current-comment-prefix 'c-comment))
-		    (cdr filladapt-token-table)))))
-  (unless (assq 'c-comment filladapt-token-match-table)
-    (setq filladapt-token-match-table
-	  (append '((c-comment c-comment))
-		  filladapt-token-match-table)))
-  (unless (assq 'c-comment filladapt-token-conversion-table)
-    (setq filladapt-token-conversion-table
-	  (append '((c-comment . exact))
-		  filladapt-token-conversion-table))))
-
-
 ;; bug reporting
 
 (defconst c-mode-help-address
-  "bug-gnu-emacs@gnu.org, bug-cc-mode@gnu.org"
-  "Addresses for CC Mode bug reports.")
+  "bug-cc-mode@gnu.org"
+  "Address(es) for CC Mode bug reports.")
 
 (defun c-version ()
   "Echo the current version of CC Mode in the minibuffer."
@@ -892,9 +796,9 @@ CC Mode by making sure the proper entries are present on
 		  defun-prompt-regexp))
 	vars)
       (lambda ()
-        (run-hooks 'c-prepare-bug-report-hooks)
-        (insert (format "Buffer Style: %s\n\nc-emacs-features: %s\n"
-                        style c-features)))))))
+	(run-hooks 'c-prepare-bug-report-hooks)
+	(insert (format "Buffer Style: %s\n\nc-emacs-features: %s\n"
+			style c-features)))))))
 
 
 (cc-provide 'cc-mode)

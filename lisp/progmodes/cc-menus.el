@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -110,9 +110,9 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        "[^()]*"                               ; no parentheses before
        "[^a-zA-Z0-9_:<>~]"                    ; match any non-identifier char
        "\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)"     ; match function name
-       "[ \t]*("			      ; see above, BUT
-       "[ \t]*\\([^ \t(*][^)]*\\)?)"          ; the arg list must not start
-       "[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
+       "\\([ \t\n]\\|\\\\\n\\)*("	      ; see above, BUT the arg list
+       "\\([ \t\n]\\|\\\\\n\\)*\\([^ \t\n(*][^)]*\\)?)" ; must not start
+       "\\([ \t\n]\\|\\\\\n\\)*[^ \t\n;(]"    ; with an asterisk or parentheses
        ) 1)
     ;; Special case for definitions using phony prototype macros like:
     ;; `int main _PROTO( (int argc,char *argv[]) )'.
@@ -139,7 +139,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
          "[a-zA-Z0-9_]+"                      ; class name
          "\\(<[^>]+>\\)?"                     ; possibly explicitly specialized
          "\\)"
-         "[ \t\n]*[:{]"
+         "\\([ \t\n]\\|\\\\\n\\)*[:{]"
          ) 3))
   "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
  
