@@ -2795,7 +2795,7 @@ It returns the number of characters changed.  */)
   modify_region (current_buffer, XINT (start), XINT (end));
 
   cnt = 0;
-  for (; pos < end; )
+  for (; pos < XINT (end); )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str, buf[MAX_MULTIBYTE_LENGTH];
