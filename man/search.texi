@@ -432,6 +432,17 @@ are non-greedy variants of the operators above.  The normal operators
 as they can, while if you append a @samp{?} after them, it makes them
 non-greedy: they will match as little as possible.
 
+@item \@{n,m\@}
+is another postfix operator that specifies an interval of iteration:
+the preceding regular expression must match between @samp{n} and
+@samp{m} times.  If @samp{m} is omitted, then there is no upper bound
+and if @samp{,m} is omitted, then the regular expression must match
+exactly @samp{n} times.				@*
+@samp{\@{0,1\@}} is equivalent to @samp{?}.	@*
+@samp{\@{0,\@}} is equivalent to @samp{*}.	@*
+@samp{\@{1,\@}} is equivalent to @samp{+}.	@*
+@samp{\@{n\@}} is equivalent to @samp{\@{n,n\@}}.
+
 @item [ @dots{} ]
 is a @dfn{character set}, which begins with @samp{[} and is terminated
 by @samp{]}.  In the simplest case, the characters between the two
