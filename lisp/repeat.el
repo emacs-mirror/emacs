@@ -280,6 +280,8 @@ can be modified by the global variable `repeat-on-final-keystroke'."
       ;; can iterate indefinitely here around a single level of recursion.
       (let (repeat-on-final-keystroke)
         (while (eq (read-event) repeat-repeat-char)
+	  ;; Make each repetition undo separately.
+	  (undo-boundary)
           (repeat repeat-arg))
         (setq unread-command-events (list last-input-event))))))
 
