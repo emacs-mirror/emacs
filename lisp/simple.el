@@ -4480,8 +4480,31 @@ wait this many seconds after Emacs becomes idle before doing an update."
   :type 'number
   :group 'display
   :version "21.4")
+
+(make-variable-buffer-local 'saved-buffer-invisibility-spec)
 
+(defvar saved-buffer-invisibility-spec nil
+  "Saved value of buffer-invisibility-spec when `vis-mode' is on.")
 
+(define-minor-mode vis-mode
+  "Toggle vis-mode.
+With argument ARG turn vis-mode on iff ARG is positive..
+
+Enabling vis-mode sets `buffer-invisibility-spec' to nil, after
+saving the old value in the variable
+`saved-buffer-invisibility-spec', making all invisible text in
+the buffer visible.
+
+Disabling vis-mode restores the saved value of
+`buffer-invisibility-spec'."
+  :lighter " Vis"
+  (if vis-mode
+      (progn
+	(setq saved-buffer-invisibility-spec buffer-invisibility-spec
+	      buffer-invisibility-spec nil))
+    (setq buffer-invisibility-spec saved-buffer-invisibility-spec
+	  saved-buffer-invisibility-spec nil)))
+
 ;; Minibuffer prompt stuff.
 
 ;(defun minibuffer-prompt-modification (start end)
