@@ -1657,7 +1657,8 @@ Value is the new frame created."
 	(progn
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
+	  ;; No need to call `face-set-after-frame-default'
+	  ;; since x-create-frame does that.
 	  (if (or (null frame-list) (null visibility-spec))
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
@@ -1670,8 +1671,21 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
-  ;; Don't let frame creation fail because of an invalid face spec.
+  (if (face-attribute 'default :font t)
+      (set-face-attribute 'default frame :font
+			  (face-attribute 'default :font t))
+    (set-face-attribute 'default frame :family
+			(face-attribute 'default :family t))
+    (set-face-attribute 'default frame :height
+			(face-attribute 'default :height t))
+    (set-face-attribute 'default frame :slant
+			(face-attribute 'default :slant t))
+    (set-face-attribute 'default frame :weight
+			(face-attribute 'default :weight t))
+    (set-face-attribute 'default frame :width
+			(face-attribute 'default :width t)))
   (dolist (face (face-list))
+    ;; Don't let frame creation fail because of an invalid face spec.
     (condition-case ()
 	(when (not (equal face 'default))
 	  (face-spec-set face (face-user-default-spec face) frame)
