@@ -1567,21 +1567,29 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
   "Edit the files listed in the drag-n-drop EVENT.
 Switch to a buffer editing the last file dropped."
   (interactive "e")
-  (save-excursion
-    ;; Make sure the drop target has positive co-ords
-    ;; before setting the selected frame - otherwise it
-    ;; won't work.  <skx@tardis.ed.ac.uk>
-    (let* ((window (posn-window (event-start event)))
-	   (coords (posn-x-y (event-start event)))
-	   (x (car coords))
-	   (y (cdr coords)))
-      (if (and (> x 0) (> y 0))
-	  (set-frame-selected-window nil window))
-      (mapcar (lambda (file-name) 
-		(x-dnd-handle-one-url window 'private 
-				      (concat "file:" file-name)))
-	      (car (cdr (cdr event)))))
-    (raise-frame)))
+  ;; Make sure the drop target has positive co-ords
+  ;; before setting the selected frame - otherwise it
+  ;; won't work.  <skx@tardis.ed.ac.uk>
+  (let* ((window (posn-window (event-start event)))
+	 (coords (posn-x-y (event-start event)))
+	 (x (car coords))
+	 (y (cdr coords)))
+    (if (and (> x 0) (> y 0))
+	(set-frame-selected-window nil window))
+    (mapcar (lambda (file-name)
+	      (if (listp file-name)
+		  (let ((line (car file-name))
+			(start (car (cdr file-name)))
+			(end (car (cdr (cdr file-name)))))
+		    (if (> line 0)
+			(goto-line line)
+		      (if (and (> start 0) (> end 0))
+			  (progn (set-mark start)
+				 (goto-char end)))))
+		(x-dnd-handle-one-url window 'private
+				      (concat "file:" file-name))))
+	    (car (cdr (cdr event)))))
+  (raise-frame))
 
 (global-set-key [drag-n-drop] 'mac-drag-n-drop)
 

@@ -7928,6 +7928,17 @@ path_from_vol_dir_name (char *, int, short, long, char *);
 /* Called when we receive an AppleEvent with an ID of
    "kAEOpenDocuments".  This routine gets the direct parameter,
    extracts the FSSpecs in it, and puts their names on a list.  */
+#pragma options align=mac68k
+typedef struct SelectionRange {
+  short unused1; // 0 (not used)
+  short lineNum; // line to select (<0 to specify range)
+  long startRange; // start of selection range (if line < 0)
+  long endRange; // end of selection range (if line < 0)
+  long unused2; // 0 (not used)
+  long theDate; // modification date/time
+} SelectionRange;
+#pragma options align=reset
+
 static pascal OSErr
 do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 {
@@ -7936,10 +7947,18 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
   AEKeyword keyword;
   DescType actual_type;
   Size actual_size;
+  SelectionRange position;
 
   err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
   if (err != noErr)
     goto descriptor_error_exit;
+
+  err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
+  if (err == noErr)
+    drag_and_drop_file_list = Fcons (list3 (make_number (position.lineNum + 1),
+					    make_number (position.startRange + 1),
+					    make_number (position.endRange + 1)),
+				     drag_and_drop_file_list);
 
   /* Check to see that we got all of the required parameters from the
      event descriptor.  For an 'odoc' event this should just be the

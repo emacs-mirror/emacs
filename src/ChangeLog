@@ -1,3 +1,9 @@
+2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
+
+	* macterm.c (SelectionRange): Add Xcode position apple event struct.
+	(do_ae_open_documents): Handle Xcode-style file position open
+	events.
+
 2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Correct typo.
