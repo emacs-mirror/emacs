@@ -5,7 +5,6 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.23 1999/06/04 18:22:55 kwzh Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -32,33 +31,16 @@
 ;;
 ;; Starting Speedbar:
 ;;
-;;   If speedbar came to you as a part of Emacs, simply type
-;; `M-x speedbar', and it will be autoloaded for you.
-;;
-;;   If speedbar is not a part of your distribution, then add
-;; this to your .emacs file:
-;;
-;;   (autoload 'speedbar-frame-mode "speedbar" "Popup a speedbar frame" t)
-;;   (autoload 'speedbar-get-focus "speedbar" "Jump to speedbar frame" t)
-;;
+;;   Simply type `M-x speedbar', and it will be autoloaded for you.
+
 ;;   If you want to choose it from a menu, such as "Tools", you can do this:
 ;;
-;;   Emacs:
 ;;   (define-key-after (lookup-key global-map [menu-bar tools])
 ;;      [speedbar] '("Speedbar" . speedbar-frame-mode) [calendar])
 ;;
-;;   XEmacs:
-;;   (add-menu-button '("Tools")
-;;		      ["Speedbar" speedbar-frame-mode
-;;		       :style toggle
-;;		       :selected (and (boundp 'speedbar-frame)
-;;				      (frame-live-p speedbar-frame)
-;;				      (frame-visible-p speedbar-frame))]
-;;		      "--")
-;;
 ;;   If you want to access speedbar using only the keyboard, do this:
 ;;
-;;   (global-set-key [(f4)] 'speedbar-get-focus)
+;;   (global-set-key [f4] 'speedbar-get-focus)
 ;;
 ;;   This will let you hit f4 (or whatever key you choose) to jump
 ;; focus to the speedbar frame.  Pressing it again will bring you back
@@ -110,22 +92,8 @@
 ;; into sub-lists.  A long flat list can be used instead if needed.
 ;; Other filters could be easily added.
 ;;
-;;    Users of XEmacs previous to 20 may want to change the default
-;; timeouts for `speedbar-update-speed' to something longer as XEmacs
-;; doesn't have idle timers, the speedbar timer keeps going off
-;; arbitrarily while you're typing.  It's quite pesky.
-;;
-;;    Users of really old emacsen without the needed timers will not
-;; have speedbar updating automatically.  Use "r" to refresh the
-;; display after changing directories.  Remember, do not interrupt the
-;; stealthy updates or your display may not be completely refreshed.
-;;
 ;;    AUC-TEX users: The imenu tags for AUC-TEX mode don't work very
 ;; well.  Use the imenu keywords from tex-mode.el for better results.
-;;
-;; This file requires the library package assoc (association lists)
-;; and the package custom (for easy configuration of speedbar)
-;;     http://www.dina.kvl.dk/~abraham/custom/
 ;;
 ;;; Developing for speedbar
 ;;
