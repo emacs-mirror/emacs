@@ -1275,8 +1275,6 @@ union Lisp_Misc
 /* Lisp floating point type */
 struct Lisp_Float
   {
-    Lisp_Object type;		/* essentially used for mark-bit
-				   and chaining when on free-list */
 #ifdef HIDE_LISP_IMPLEMENTATION
     double data_;
 #else
