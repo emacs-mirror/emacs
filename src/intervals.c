@@ -47,6 +47,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The rest of the file is within this conditional.  */
 #ifdef USE_TEXT_PROPERTIES
 
+/* Test for membership, allowing for t (actually any non-cons) to mean the
+   universal set.  */
+
+#define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
+
 /* Factor for weight-balancing interval trees.  */
 Lisp_Object interval_balance_threshold;
 
@@ -846,61 +851,105 @@ adjust_intervals_for_insertion (tree, position, length)
   return tree;
 }
 
+/* Any property might be front-sticky on the left, rear-sticky on the left,
+   front-sticky on the right, or rear-sticky on the right; the 16 combinations
+   can be arranged in a matrix with rows denoting the left conditions and
+   columns denoting the right conditions:
+      _  __  _
+_     FR FR FR FR
+FR__   0  1  2  3
+ _FR   4  5  6  7
+FR     8  9  A  B
+  FR   C  D  E  F
+
+   left-props  = '(front-sticky (p8 p9 pa pb pc pd pe pf)
+		   rear-nonsticky (p4 p5 p6 p7 p8 p9 pa pb)
+		   p0 L p1 L p2 L p3 L p4 L p5 L p6 L p7 L
+		   p8 L p9 L pa L pb L pc L pd L pe L pf L)
+   right-props = '(front-sticky (p2 p3 p6 p7 pa pb pe pf)
+		   rear-nonsticky (p1 p2 p5 p6 p9 pa pd pe)
+		   p0 R p1 R p2 R p3 R p4 R p5 R p6 R p7 R
+		   p8 R p9 R pa R pb R pc R pd R pe R pf R)
+
+   We inherit from whoever has a sticky side facing us.  If both sides
+   do (cases 2, 3, E, and F), then we inherit from whichever side has a
+   non-nil value for the current property.  If both sides do, then we take
+   from the left.
+
+   When we inherit a property, we get its stickiness as well as its value.
+   So, when we merge the above two lists, we expect to get this:
+
+   result      = '(front-sticky (p6 p7 pa pb pc pd pe pf)
+		   rear-nonsticky (p6 pa)
+		   p0 L p1 L p2 L p3 L p6 R p7 R
+		   pa R pb R pc L pd L pe L pf L)
+
+   The optimizable special cases are:
+       left rear-nonsticky = nil, right front-sticky = nil (inherit left)
+       left rear-nonsticky = t,   right front-sticky = t   (inherit right)
+       left rear-nonsticky = t,   right front-sticky = nil (inherit none)
+*/
+
 Lisp_Object
 merge_properties_sticky (pleft, pright)
      Lisp_Object pleft, pright;
 {
   register Lisp_Object props = Qnil, front = Qnil, rear = Qnil;
-  
+
   Lisp_Object lfront = textget (pleft, Qfront_sticky);
   Lisp_Object lrear = textget (pleft, Qrear_nonsticky);
   Lisp_Object rfront = textget (pright, Qfront_sticky);
   Lisp_Object rrear = textget (pright, Qrear_nonsticky);
 
-  register Lisp_Object tail1, tail2, sym;
+  register Lisp_Object tail1, tail2, sym, lval, rval;
+  int use_left, use_right;
 
-  /* Go through each element of PLEFT.  */
-  for (tail1 = pleft; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+  /* Go through each element of PRIGHT.  */
+  for (tail1 = pright; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
     {
       sym = Fcar (tail1);
 
       /* Sticky properties get special treatment.  */
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
-      
-      if (CONSP (lrear) ? NILP (Fmemq (sym, lrear)) : NILP (lrear))
+
+      rval = Fcar (Fcdr (tail1));
+      for (tail2 = pleft; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+	if (EQ (sym, Fcar (tail2)))
+	  break;
+      lval = (NILP (tail2) ? Qnil : Fcar( Fcdr (tail2)));
+
+      use_left = ! TMEM (sym, lrear);
+      use_right = TMEM (sym, rfront);
+      if (use_left && use_right)
 	{
-	  /* rear-sticky is dominant, we needn't search in PRIGHT.  */
-	  
-	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail1)), props));
-	  if ((CONSP (lfront) || NILP (lfront))
-	      && ! NILP (Fmemq (sym, lfront)))
-	    front = Fcons (sym, front);
+	  use_left = ! NILP (lval);
+	  use_right = ! NILP (rval);
 	}
-      else
+      if (use_left)
 	{
-	  /* Go through PRIGHT, looking for sym.  */
-	  for (tail2 = pright; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
-	    if (EQ (sym, Fcar (tail2)))
-	      {
-		
-		if (CONSP (rfront)
-		    ? ! NILP (Fmemq (sym, rfront)) : ! NILP (rfront))
-		  {
-		    /* Nonsticky at the left and sticky at the right,
-		       so take the right one.  */
-		    props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
-		    front = Fcons (sym, front);
-		    if ((CONSP (rrear) || NILP (rrear))
-			&& ! NILP (Fmemq (sym, rrear)))
-		      rear = Fcons (sym, rear);
-		  }
-		break;
-	      }
+	  /* We build props as (value sym ...) rather than (sym value ...)
+	     because we plan to nreverse it when we're done.  */
+	  if (! NILP (lval))
+	    props = Fcons (lval, Fcons (sym, props));
+	  if (TMEM (sym, lfront))
+	    front = Fcons (sym, front);
+	  if (TMEM (sym, lrear))
+	    rear = Fcons (sym, rear);
+	}
+      else if (use_right)
+	{
+	  if (! NILP (rval))
+	    props = Fcons (rval, Fcons (sym, props));
+	  if (TMEM (sym, rfront))
+	    front = Fcons (sym, front);
+	  if (TMEM (sym, rrear))
+	    rear = Fcons (sym, rear);
 	}
     }
-  /* Now let's see what to keep from PRIGHT.  */
-  for (tail2 = pright; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+
+  /* Now go through each element of PLEFT.  */
+  for (tail2 = pleft; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
     {
       sym = Fcar (tail2);
 
@@ -908,30 +957,37 @@ merge_properties_sticky (pleft, pright)
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
 
-      /* If it ain't sticky, we don't take it.  */
-      if (CONSP (rfront)
-	  ? NILP (Fmemq (sym, rfront)) : NILP (rfront))
-	continue;
-      
-      /* If sym is in PLEFT we already got it.  */
-      for (tail1 = pleft; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+      /* If sym is in PRIGHT, we've already considered it.  */
+      for (tail1 = pright; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
 	if (EQ (sym, Fcar (tail1)))
 	  break;
-      
-      if (NILP (tail1))
+      if (! NILP (tail1))
+	continue;
+
+      lval = Fcar (Fcdr (tail2));
+
+      /* Since rval is known to be nil in this loop, the test simplifies.  */
+      if (! TMEM (sym, lrear))
 	{
-	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
+	  if (! NILP (lval))
+	    props = Fcons (lval, Fcons (sym, props));
+	  if (TMEM (sym, lfront))
+	    front = Fcons (sym, front);
+	}
+      else if (TMEM (sym, rfront))
+	{
+	  /* The value is nil, but we still inherit the stickiness
+	     from the right.  */
 	  front = Fcons (sym, front);
-	  if ((CONSP (rrear) || NILP (rrear))
-	      && ! NILP (Fmemq (sym, rrear)))
+	  if (TMEM (sym, rrear))
 	    rear = Fcons (sym, rear);
 	}
     }
   props = Fnreverse (props);
-  if (! NILP (front))
-    props = Fcons (Qfront_sticky, Fcons (Fnreverse (front), props));
   if (! NILP (rear))
     props = Fcons (Qrear_nonsticky, Fcons (Fnreverse (rear), props));
+  if (! NILP (front))
+    props = Fcons (Qfront_sticky, Fcons (Fnreverse (front), props));
   return props;
 }
 
