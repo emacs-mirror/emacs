@@ -1,3 +1,15 @@
+2002-06-06  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (TeX_commands): Skip comments.
+	(TEX_defenv): Now contains more contructs.
+	(TEX_cmt): Make it a static char and move it before TeX_commands.
+	(TeX_commands): Shorten the tag to the brace after the name.
+	(TeX_commands): Names now include the initial backslash.
+	(TeX_commands): Names do not include numeric args #n.
+	(TeX_commands): Correct line char number in tags.
+	(TEX_tabent, TEX_token): Deleted.
+	(TeX_commands, TEX_decode_env): Streamlined.
+
 2002-06-05  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (main): Avoid a buffer overrun with sprintf.
