@@ -228,13 +228,11 @@
 ;; Define support mode groups here to impose `font-lock' group order.
 (defgroup fast-lock nil
   "Font Lock support mode to cache fontification."
-  :link '(custom-manual "(emacs)Support Modes")
   :load 'fast-lock
   :group 'font-lock)
 
 (defgroup lazy-lock nil
   "Font Lock support mode to fontify lazily."
-  :link '(custom-manual "(emacs)Support Modes")
   :load 'lazy-lock
   :group 'font-lock)
 
