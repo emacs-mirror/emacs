@@ -1,3 +1,8 @@
+2002-12-30  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm): Set mac-wheel-button-is-mouse-2 
+	to default to t.
+
 2002-12-29  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* data.c (Fstring_to_number, Fminus): Better English in doc strings.

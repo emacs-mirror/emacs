@@ -13760,7 +13760,7 @@ Otherwise the option key is used.  */);
    doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
 the right click will be mouse-3.
 Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
-  Vmac_wheel_button_is_mouse_2 = Qnil;
+  Vmac_wheel_button_is_mouse_2 = Qt;
 
   DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
    doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
