@@ -3759,7 +3759,7 @@ x_connection_closed ()
   if (_Xdebug)
     abort ();
 
-  shut_down_emacs (0);
+  shut_down_emacs (0, 1);
 
   exit (70);
 }
