@@ -686,8 +686,8 @@ substituted for the first empty-string component, if there is one."
   ;; any empty string entry.
   (if (or empty (getenv env))		; should return something
       (let ((start 0) match dir ret)
-	(setq env (concat (getenv env) ":")) ; note undefined --> ":"
-	(while (setq match (string-match ":" env start))
+	(setq env (concat (getenv env) path-separator)) ; note undefined -> ":"
+	(while (setq match (string-match path-separator env start))
 	  (setq dir (substring env start match) start (1+ match))
 	  ;;(and (file-directory-p dir) (not (member dir ret)) ...)
 	  (setq ret (cons dir ret)))
