@@ -1,5 +1,7 @@
 2004-05-08  Andreas Schwab  <schwab@suse.de>
 
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fix.
+
 	* international/subst-ksc.el: Fix references to utf-translate-cjk
 	into utf-translate-cjk-mode.
 	* international/subst-big5.el: Likewise.
