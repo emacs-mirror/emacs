@@ -1,3 +1,7 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Saving Customizations): Minor improvement.
+
 2005-01-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Rewrite rules): Remove an exercise (on 0^0) which is
@@ -6,8 +10,8 @@
 2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Saving Customizations): Emacs no longer loads
-	`custom-file' after .emacs in 21.4.  (It never did in prior
-	versions.)  No longer mention customizing through Custom.
+	`custom-file' after .emacs.  No longer mention customizing through
+	Custom.
 
 2005-01-01  Jay Belanger  <belanger@truman.edu>
 
