@@ -863,17 +863,16 @@ and move to the line in the SGML document that caused it."
 START is the location of the start of the lexical element.
 TYPE is one of `string', `comment', `tag', `cdata', or `text'.
 
-If non-nil LIMIT is a nearby position before point outside of any tag."
-  ;; As usual, it's difficult to get a reliable answer without parsing the
-  ;; whole buffer.  We'll assume that a tag at indentation is outside of
-  ;; any string or tag or comment or ...
+Optional argument LIMIT is the position to start parsing from.
+If nil, start from a preceding tag at indentation."
   (save-excursion
     (let ((pos (point))
 	  text-start state)
-      (if limit (goto-char limit)
-	;; Hopefully this regexp will match something that's not inside
-	;; a tag and also hopefully the match is nearby.
-	(re-search-backward "^[ \t]*<[_:[:alpha:]/%!?#]" nil 'move))
+      (if limit
+          (goto-char limit)
+        ;; Skip tags backwards until we find one at indentation
+        (while (and (ignore-errors (sgml-parse-tag-backward))
+                    (not (sgml-at-indentation-p)))))
       (with-syntax-table sgml-tag-syntax-table
 	(while (< (point) pos)
 	  ;; When entering this loop we're inside text.
@@ -966,10 +965,11 @@ With prefix argument, unquote the region."
   (buffer-substring-no-properties
    (point) (progn (skip-syntax-forward "w_") (point))))
 
-(defsubst sgml-looking-back-at (s)
-  (let ((start (- (point) (length s))))
+(defsubst sgml-looking-back-at (str)
+  "Return t if the test before point matches STR."
+  (let ((start (- (point) (length str))))
     (and (>= start (point-min))
-         (equal s (buffer-substring-no-properties start (point))))))
+         (equal str (buffer-substring-no-properties start (point))))))
 
 (defun sgml-parse-tag-backward ()
   "Parse an SGML tag backward, and return information about the tag.
