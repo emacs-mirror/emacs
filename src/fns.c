@@ -2418,6 +2418,8 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   struct gcpro gcpro1;
 
   len = Flength (sequence);
+  if (CHAR_TABLE_P (sequence))
+    wrong_type_argument (Qlistp, sequence);
   leni = XINT (len);
   nargs = leni + leni - 1;
   if (nargs < 0) return build_string ("");
@@ -2449,6 +2451,8 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object *args;
 
   len = Flength (sequence);
+  if (CHAR_TABLE_P (sequence))
+    wrong_type_argument (Qlistp, sequence);
   leni = XFASTINT (len);
   args = (Lisp_Object *) alloca (leni * sizeof (Lisp_Object));
 
@@ -2467,6 +2471,8 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register int leni;
 
   leni = XFASTINT (Flength (sequence));
+  if (CHAR_TABLE_P (sequence))
+    wrong_type_argument (Qlistp, sequence);
   mapcar1 (leni, 0, function, sequence);
 
   return sequence;
