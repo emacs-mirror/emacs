@@ -1,3 +1,9 @@
+2002-09-21  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (select_window_1): Don't select frame.
+	Set frame's selected window only when frame itself is selected.
+	(Fselect_window): Doc fix.
+
 2002-09-18  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (make-network-process): Doc fix (there is no
