@@ -31,6 +31,9 @@
 (garbage-collect)
 (load "indent")
 (load "window")
+(garbage-collect)
+(if (fboundp 'delete-screen)
+    (load "screen"))
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (garbage-collect)
 (load "startup")
