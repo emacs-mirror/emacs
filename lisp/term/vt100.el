@@ -39,7 +39,7 @@
 (load "term/lk201" nil t)
 
 ;;; Controlling the screen width.
-(defconst vt100-wide-mode (= (frame-width) 132)
+(defvar vt100-wide-mode (= (frame-width) 132)
   "t if vt100 is in 132-column mode.")
 
 (defun vt100-wide-mode (&optional arg)
