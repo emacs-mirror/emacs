@@ -36,7 +36,9 @@
 ;; provide an easy hook to tell if we are running with floats or not.
 ;; define pi and e via math-lib calls. (much less prone to killer typos.)
 (defconst pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
-(defconst e (exp 1) "The value of e (2.7182818...).")
+;; It's too inconvenient to make `e' a constant because it's used as
+;; a temporary variable all the time.
+(defvar e (exp 1) "The value of e (2.7182818...).")
 
 ;; Careful when editing this file ... typos here will be hard to spot.
 ;; (defconst pi       3.14159265358979323846264338327
