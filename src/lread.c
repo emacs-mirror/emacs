@@ -47,6 +47,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef STDC_HEADERS
 #include <stdlib.h>
 #endif
+
+#if 0 /* That is untrue--XINT is used below, and it uses INTBITS.
+	 What in the world is values.h, anyway?  */
+#ifdef MSDOS
+/* These are redefined in <values.h> and not used here */
+#undef INTBITS
+#undef LONGBITS
+#undef SHORTBITS
+#endif
+#endif
+
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
@@ -319,6 +330,9 @@ Return t if file exists.")
   /* 1 means inhibit the message at the beginning.  */
   int nomessage1 = 0;
   Lisp_Object handler;
+#ifdef MSDOS
+  char *dosmode = "rt";
+#endif
 
   CHECK_STRING (str, 0);
   str = Fsubstitute_in_file_name (str);
@@ -352,6 +366,9 @@ Return t if file exists.")
       struct stat s1, s2;
       int result;
 
+#ifdef MSDOS
+      dosmode = "rb";
+#endif
       stat (XSTRING (found)->data, &s1);
       XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
       result = stat (XSTRING (found)->data, &s2);
@@ -366,7 +383,12 @@ Return t if file exists.")
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
     }
 
+#ifdef MSDOS
+  close (fd);
+  stream = fopen ((char *) XSTRING (found)->data, dosmode);
+#else
   stream = fdopen (fd, "r");
+#endif
   if (stream == 0)
     {
       close (fd);
@@ -422,6 +444,9 @@ complete_filename_p (pathname)
 #ifdef VMS
 	  || index (s, ':')
 #endif /* VMS */
+#ifdef MSDOS	/* MW, May 1993 */
+	  || (s[0] != '\0' && s[1] == ':' && s[2] == '/')
+#endif
 	  );
 }
 
