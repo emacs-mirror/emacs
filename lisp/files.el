@@ -442,8 +442,7 @@ and ignores this variable."
 (or (fboundp 'file-locked-p)
     (defalias 'file-locked-p 'ignore))
 
-(defvar view-read-only nil
-  "*Non-nil means buffers visiting files read-only, do it in view mode.")
+(defvar view-read-only)			;Declared in view.el.
 
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
@@ -501,7 +500,7 @@ Not actually set up until the first time you use it.")
 \(For values of `colon' equal to `path-separator'.)"
   ;; We could use split-string here.
   (and cd-path
-       (let (cd-prefix cd-list (cd-start 0) cd-colon)
+       (let (cd-list (cd-start 0) cd-colon)
 	 (setq cd-path (concat cd-path path-separator))
 	 (while (setq cd-colon (string-match path-separator cd-path cd-start))
 	   (setq cd-list
@@ -928,6 +927,7 @@ expand wildcards (if any) and visit multiple files."
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only: " t))
+  (unless (file-exists-p filename) (error "%s does not exist" filename))
   (find-file filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -937,6 +937,7 @@ Use \\[toggle-read-only] to permit editing."
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only other window: " t))
+  (unless (file-exists-p filename) (error "%s does not exist" filename))
   (find-file-other-window filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -946,6 +947,7 @@ Use \\[toggle-read-only] to permit editing."
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only other frame: " t))
+  (unless (file-exists-p filename) (error "%s does not exist" filename))
   (find-file-other-frame filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -1163,6 +1165,10 @@ suppresses this warning."
   :version "21.1"
   :type 'boolean)
 
+(defcustom large-file-warning-threshold 10000000
+  "Maximum size of file above which a confirmation is requested."
+  :type 'integer)
+
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -1198,7 +1204,8 @@ that are visiting the various files."
 	    (mapcar #'find-file-noselect files)))
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
-	     (number (nthcdr 10 (file-attributes truename)))
+	     (attributes (file-attributes truename))
+	     (number (nthcdr 10 attributes))
 	     ;; Find any buffer for a file which has same truename.
 	     (other (and (not buf) (find-buffer-visiting filename))))
 	;; Let user know if there is a buffer with the same truename.
@@ -1212,6 +1219,17 @@ that are visiting the various files."
 	      ;; Optionally also find that buffer.
 	      (if (or find-file-existing-other-name find-file-visit-truename)
 		  (setq buf other))))
+	;; Check to see if the file looks uncommonly large.
+	(when (and large-file-warning-threshold (nth 7 attributes)
+		   ;; Don't ask again if we already have the file or
+		   ;; if we're asked to be quiet.
+		   (not (or buf nowarn))
+		   (> (nth 7 attributes) large-file-warning-threshold)
+		   (not (y-or-n-p
+			 (format "File %s is large (%sMB), really open? "
+				 (file-name-nondirectory filename)
+				   (/ (nth 7 attributes) 1048576)))))
+	  (error "Aborted"))
 	(if buf
 	    ;; We are using an existing buffer.
 	    (progn
@@ -1521,6 +1539,19 @@ unless NOMODES is non-nil."
       (view-mode-enter))
     (run-hooks 'find-file-hook)))
 
+(defmacro report-errors (format &rest body)
+  "Eval BODY and turn any error into a FORMAT message.
+FORMAT can have a %s escape which will be replaced with the actual error.
+If `debug-on-error' is set, errors are not caught, so that you can
+debug them.
+Avoid using a large BODY since it is duplicated."
+  (declare (debug t) (indent 1))
+  `(if debug-on-error
+       (progn . ,body)
+     (condition-case err
+	 (progn . ,body)
+       (error (message ,format (prin1-to-string err))))))
+
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
 Also sets up any specified local variables of the file.
@@ -1538,16 +1569,11 @@ or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (or find-file (funcall (or default-major-mode 'fundamental-mode)))
-  (condition-case err
-      (set-auto-mode)
-    (error (message "File mode specification error: %s"
-		    (prin1-to-string err))))
-  (condition-case err
-      (let ((enable-local-variables (or (not find-file)
-					enable-local-variables)))
-	(hack-local-variables))
-    (error (message "File local-variables error: %s"
-		    (prin1-to-string err))))
+  (report-errors "File mode specification error: %s"
+    (set-auto-mode))
+  (report-errors "File local-variables error: %s"
+    (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+      (hack-local-variables)))
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
@@ -2677,7 +2703,7 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory failed)
+	elt backup-directory)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
@@ -2994,7 +3020,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	(set-buffer (buffer-base-buffer)))
     (if (buffer-modified-p)
 	(let ((recent-save (recent-auto-save-p))
-	      setmodes tempsetmodes)
+	      setmodes)
 	  ;; On VMS, rename file and buffer to get rid of version number.
 	  (if (and (eq system-type 'vax-vms)
 		   (not (string= buffer-file-name
@@ -3104,7 +3130,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
 	  (let ((realname buffer-file-name)
-		tempname temp nogood i succeed
+		tempname nogood i succeed
 		(old-modtime (visited-file-modtime)))
 	    (setq i 0)
 	    (setq nogood t)
@@ -3289,6 +3315,8 @@ If visiting file read-only and `view-read-only' is non-nil, enter view mode."
       (make-local-variable 'view-read-only)
       (setq view-read-only t))		; Must leave view mode.
      ((and (not buffer-read-only) view-read-only
+	   ;; If view-mode is already active, `view-mode-enter' is a nop.
+	   (not view-mode)
            (not (eq (get major-mode 'mode-class) 'special)))
       (view-mode-enter))
      (t (setq buffer-read-only (not buffer-read-only))
@@ -4164,7 +4192,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
 	  (vms-read-directory file switches (current-buffer))
-	(let (result available (beg (point)))
+	(let (result (beg (point)))
 
 	  ;; Read the actual directory using `insert-directory-program'.
 	  ;; RESULT gets the status code.
