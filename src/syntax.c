@@ -1696,7 +1696,8 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
       code = syntax & 0xff;
       if (code == Sendcomment
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
-	  && --nesting <= 0)
+	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
+	      (nesting > 0 && --nesting == 0) : nesting < 0))
 	/* we have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section */
@@ -1709,6 +1710,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	break;
       if (nesting > 0
 	  && code == Scomment
+	  && SYNTAX_FLAGS_COMMENT_NESTED (syntax)
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style)
 	/* we have encountered a nested comment of the same style
 	   as the comment sequence which began this comment section */
@@ -1720,7 +1722,9 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
       if (from < stop && SYNTAX_FLAGS_COMEND_FIRST (syntax)
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
 	  && (c1 = FETCH_CHAR (from_byte),
-	      SYNTAX_COMEND_SECOND (c1)))
+	      SYNTAX_COMEND_SECOND (c1))
+	  && ((SYNTAX_FLAGS_COMMENT_NESTED (syntax) ||
+	       SYNTAX_COMMENT_NESTED (c1)) ? nesting > 0 : nesting < 0))
 	{
 	  if (--nesting <= 0)
 	    /* we have encountered a comment end of the same style
@@ -1738,7 +1742,9 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	  && SYNTAX_FLAGS_COMSTART_FIRST (syntax)
 	  && (c1 = FETCH_CHAR (from_byte),
 	      SYNTAX_COMMENT_STYLE (c1) == style
-	      && SYNTAX_COMSTART_SECOND (c1)))
+	      && SYNTAX_COMSTART_SECOND (c1))
+	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ||
+	      SYNTAX_COMMENT_NESTED (c1)))
 	/* we have encountered a nested comment of the same style
 	   as the comment sequence which began this comment
 	   section */
@@ -1819,10 +1825,8 @@ between them, return t; otherwise return nil.")
 	      INC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
-	  /* FIXME: here we ignore 2-char endcomments while we don't
-	     when going backwards.  */
 	}
-      while (code == Swhitespace || code == Sendcomment);
+      while (code == Swhitespace || (code == Sendcomment && c == '\n'));
 
       if (code == Scomment_fence)
 	comstyle = ST_COMMENT_STYLE;
@@ -1876,7 +1880,6 @@ between them, return t; otherwise return nil.")
 	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
-	  comstart_second = SYNTAX_COMSTART_SECOND (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && prev_char_comend_first (from, from_byte)
 	      && !char_quoted (from - 1, dec_bytepos (from_byte)))
@@ -1891,13 +1894,6 @@ between them, return t; otherwise return nil.")
 	      c1 = FETCH_CHAR (from_byte);
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
-	    }
-	  if (from > stop && comstart_second
-	      && prev_char_comstart_first (from, from_byte)
-	      && !char_quoted (from - 1, dec_bytepos (from_byte)))
-	    {
-	      code = Scomment;
-	      DEC_BOTH (from, from_byte);
 	    }
 
 	  if (code == Scomment_fence)
@@ -1932,21 +1928,29 @@ between them, return t; otherwise return nil.")
 				    &out_charpos, &out_bytepos);
 	      if (found == -1)
 		{
-#if 0	/* cc-mode (and maybe others) relies on the bogus behavior.  */
-		  /* Failure: we should go back to the end of this
-		     not-quite-endcomment.  */
-		  if (SYNTAX(c) != code)
-		    /* It was a two-char Sendcomment.  */
-		    INC_BOTH (from, from_byte);
-		  goto leave;
-#endif
+		  if (c == '\n')
+		    /* This end-of-line is not an end-of-comment.
+		       Treat it like a whitespace.
+		       CC-mode (and maybe others) relies on this behavior.  */
+		    ;
+		  else
+		    {
+		      /* Failure: we should go back to the end of this
+			 not-quite-endcomment.  */
+		      if (SYNTAX(c) != code)
+			/* It was a two-char Sendcomment.  */
+			INC_BOTH (from, from_byte);
+		      goto leave;
+		    }
 		}
 	      else
-		/* We have skipped one comment.  */
-		from = out_charpos, from_byte = out_bytepos;
-	      break;
+		{
+		  /* We have skipped one comment.  */
+		  from = out_charpos, from_byte = out_bytepos;
+		  break;
+		}
 	    }
-	  else if (code != Swhitespace && code != Scomment)
+	  else if (code != Swhitespace)
 	    {
 	    leave:
 	      immediate_quit = 0;
