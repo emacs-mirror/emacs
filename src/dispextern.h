@@ -1112,20 +1112,22 @@ extern struct glyph_row scratch_glyph_row;
 /* Value is non-zero if window W wants a mode line.  */
 
 #define WINDOW_WANTS_MODELINE_P(W)					\
-     (!MINI_WINDOW_P (W)						\
+     (!MINI_WINDOW_P ((W))						\
       && !(W)->pseudo_window_p						\
-      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
+      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
-      && !NILP (XBUFFER ((W)->buffer)->mode_line_format))
+      && !NILP (XBUFFER ((W)->buffer)->mode_line_format)		\
+      && (W)->height > 1)
 
 /* Value is non-zero if window W wants a header line.  */
 
 #define WINDOW_WANTS_HEADER_LINE_P(W)					\
-     (!MINI_WINDOW_P (W)						\
+     (!MINI_WINDOW_P ((W))						\
       && !(W)->pseudo_window_p						\
-      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
+      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
-      && !NILP (XBUFFER ((W)->buffer)->header_line_format))
+      && !NILP (XBUFFER ((W)->buffer)->header_line_format)		\
+      && (W)->height > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
 
      
 /***********************************************************************
