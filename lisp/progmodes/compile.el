@@ -153,11 +153,16 @@ of[ \t]+\"?\\([^\"\n]+\\)\"?:" 3 2)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
 
+    ;; Lucid Compiler, lcc 3.x
+    ;; E, file.cc(35,52) Illegal operation on pointers
+    ("[A-Z], \\([^(]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
+
     )
   "Alist that specifies how to match errors in compiler output.
-Each element has the form (REGEXP FILE-IDX LINE-IDX).
-If REGEXP matches, the FILE-IDX'th subexpression gives the file
-name, and the LINE-IDX'th subexpression gives the line number.")
+Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
+If REGEXP matches, the FILE-IDX'th subexpression gives the file name, and
+the LINE-IDX'th subexpression gives the line number.  If COLUMN-IDX is
+given, the COLUMN-IDX'th subexpression gives the column number on that line."
 
 (defvar compilation-read-command t
   "If not nil, M-x compile reads the compilation command to use.
@@ -835,23 +840,29 @@ See variables `compilation-parse-errors-function' and
 			;; variable, so we must be careful to extract its value
 			;; before switching to the source file buffer.
 			(let ((errors compilation-old-error-list)
-			      (last-line (cdr (cdr next-error))))
+			      (last-line (nth 1 (cdr next-error)))
+			      (column (nth 2 (cdr next-error))))
 			  (set-buffer buffer)
 			  (save-excursion
 			    (save-restriction
 			      (widen)
 			      (goto-line last-line)
-			      (beginning-of-line)
+			      (if column
+				  (move-to-column column)
+				(beginning-of-line))
 			      (setcdr next-error (point-marker))
 			      ;; Make all the other error messages referring
 			      ;; to the same file have markers into the buffer.
 			      (while errors
 				(and (consp (cdr (car errors)))
 				     (equal (car (cdr (car errors))) fileinfo)
-				     (let ((this (cdr (cdr (car errors))))
-					   (lines (- (cdr (cdr (car errors)))
-						     last-line)))
+				     (let* ((this (nth 1 (cdr (car errors))))
+					    (column (nth 2 (cdr (car errors))))
+					    (lines (- this last-line)))
 				       (if (eq selective-display t)
+					   ;; When selective-display is t,
+					   ;; each C-m is a line boundary,
+					   ;; as well as each newline.
 					   (if (< lines 0)
 					       (re-search-backward "[\n\C-m]"
 								   nil 'end
@@ -860,6 +871,8 @@ See variables `compilation-parse-errors-function' and
 								nil 'end
 								lines))
 					 (forward-line lines))
+				       (if column
+					   (move-to-column column))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
 				(setq errors (cdr errors)))))))))
@@ -1014,17 +1027,21 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			  compilation-leave-directory-regexp)
 			 1))
 
-    ;; Compile an alist (IDX FILE LINE), where IDX is the number of the
-    ;; subexpression for an entire error-regexp, and FILE and LINE are the
-    ;; numbers for the subexpressions giving the file name and line number.
+    ;; Compile an alist (IDX FILE LINE [COL]), where IDX is the number of
+    ;; the subexpression for an entire error-regexp, and FILE and LINE (and
+    ;; possibly COL) are the numbers for the subexpressions giving the file
+    ;; name and line number (and possibly column number).
     (setq alist (or compilation-error-regexp-alist
 		    (error "compilation-error-regexp-alist is empty!"))
 	  subexpr (1+ error-group))
     (while alist
-      (setq error-regexp-groups (cons (list subexpr
-					    (+ subexpr (nth 1 (car alist)))
-					    (+ subexpr (nth 2 (car alist))))
-				      error-regexp-groups))
+      (setq error-regexp-groups
+	    (cons (list subexpr
+			(+ subexpr (nth 1 (car alist)))
+			(+ subexpr (nth 2 (car alist)))
+			(and (nth 2 (car alist))
+			     (+ subexpr (nth 2 (car alist)))))
+		  error-regexp-groups))
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
 
@@ -1116,13 +1133,16 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
 		   (filename (buffer-substring (match-beginning (nth 1 alist))
 					       (match-end (nth 1 alist))))
-		   (linenum (save-restriction
-			      (narrow-to-region
-			       (match-beginning (nth 2 alist))
-			       (match-end (nth 2 alist)))
-			      (goto-char (point-min))
-			      (if (looking-at "[0-9]")
-				  (read (current-buffer))))))
+		   (linenum (string-to-int
+			     (buffer-substring
+			      (match-beginning (nth 2 alist))
+			      (match-end (nth 2 alist)))))
+		   (column (and (nth 3 alist)
+				(string-to-int
+				 (buffer-substring
+				  (match-beginning (nth 3 alist))
+				  (match-end (nth 3 alist)))))))
+
 	       ;; Check for a comint-file-name-prefix and prepend it if
 	       ;; appropriate.  (This is very useful for
 	       ;; compilation-minor-mode in an rlogin-mode buffer.)
@@ -1141,7 +1161,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (save-excursion
 		 (beginning-of-line 1)
 		 (let ((this (cons (point-marker)
-				   (cons filename linenum))))
+				   (cons filename linenum column))))
 		   ;; Don't add the same source line more than once.
 		   (if (equal (cdr this) (cdr (car compilation-error-list)))
 		       nil
