@@ -204,8 +204,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	   CONSP (buf_list);
 	   buf_list = XCONS (buf_list)->cdr)
 	{
-	  Lisp_Object other_buf = XCONS (XCONS (buf_list)->car)->cdr;
+	  Lisp_Object other_buf;
 
+	  other_buf = XCONS (XCONS (buf_list)->car)->cdr;
 	  if (XTYPE (XBUFFER (other_buf)->directory) == Lisp_String)
 	    {
 	      current_buffer->directory = XBUFFER (other_buf)->directory;
