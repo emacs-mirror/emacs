@@ -20,9 +20,8 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-# Where to find the source code.  The source code for Emacs's C kernel is
-# expected to be in ${srcdir}/src, and the source code for Emacs's
-# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# Where to find the source code.  $(srcdir) will be the man
+# subdirectory of the source tree.  This is
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 top_srcdir=@top_srcdir@
