@@ -106,10 +106,10 @@ See the documentation for `list-load-path-shadows' for further information."
 	  (setq file (substring
 		      file 0 (if (string= (substring file -1) "c") -4 -3)))
 
-	  ;; 'file' now contains the current file name, with no suffix.
-	  (if (member file files-seen-this-dir)
-	      nil
-	  	    
+	  ;; FILE now contains the current file name, with no suffix.
+	  (unless (or (member file files-seen-this-dir)
+		      ;; Ignore these files.
+		      (member file '("subdirs")))
 	    ;; File has not been seen yet in this directory.
 	    ;; This test prevents us declaring that XXX.el shadows
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.
@@ -134,7 +134,6 @@ See the documentation for `list-load-path-shadows' for further information."
 
 ;;;###autoload
 (defun list-load-path-shadows ()
-  
   "Display a list of Emacs Lisp files that shadow other files.
 
 This function lists potential load-path problems.  Directories in the
@@ -193,6 +192,11 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 	      (setq shadows (cdr (cdr shadows))))
 	    (insert msg "\n")))
       ;; We are non-interactive, print shadows via message.
+      (when shadows
+	(message "This site has duplicate Lisp libraries with the same name.
+If a locally-installed Lisp library overrides a library in the Emacs release,
+that can cause trouble, and you should probably remove the locally-installed
+version unless you know what you are doing.\n"))
       (while shadows
 	(message "%s hides %s" (car shadows) (car (cdr shadows)))
 	(setq shadows (cdr (cdr shadows))))
