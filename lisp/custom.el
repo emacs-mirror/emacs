@@ -203,23 +203,26 @@ The remaining arguments should have the form
 
    [KEYWORD VALUE]...
 
-The following KEYWORD's are defined:
+The following KEYWORDs are defined:
 
 :group  VALUE should be a customization group.
         Add FACE to that group.
 
 SPEC should be an alist of the form ((DISPLAY ATTS)...).
 
-ATTS is a list of face attributes and their values.  The possible
-attributes are defined in the variable `custom-face-attributes'.
+The first element of SPEC where the DISPLAY matches the frame
+is the one that takes effect in that frame.  The ATTRs in this
+element take effect; the other elements are ignored, on that frame.
 
-The ATTS of the first entry in SPEC where the DISPLAY matches the
-frame should take effect in that frame.  DISPLAY can either be the
-symbol t, which will match all frames, or an alist of the form
-\((REQ ITEM...)...)
+ATTS is a list of face attributes followed by their values:
+  (ATTR VALUE ATTR VALUE...)
+The possible attributes are `:bold', `:italic', `:underline',
+`:foreground', `:background', `:stipple' and `:inverse-video'.
 
-For the DISPLAY to match a FRAME, the REQ property of the frame must
-match one of the ITEM.  The following REQ are defined:
+DISPLAY can either be the symbol t, which will match all frames, or an
+alist of the form \((REQ ITEM...)...).  For the DISPLAY to match a
+FRAME, the REQ property of the frame must match one of the ITEM.  The
+following REQ are defined:
 
 `type' (the value of `window-system')
   Should be one of `x' or `tty'.
