@@ -4267,6 +4267,16 @@ update_text_area (w, vpos)
       /* Clear to end of window.  */
       rif->clear_end_of_line (-1);
       changed_p = 1;
+
+      /* This erases the cursor.  We do this here because
+         notice_overwritten_cursor cannot easily check this, which
+         might indicate that the whole functionality of
+         notice_overwritten_cursor would better be implemented here.
+         On the other hand, we need notice_overwritten_cursor as long
+         as mouse highlighting is done asynchronously outside of
+         redisplay.  */
+      if (vpos == w->phys_cursor.vpos)
+	w->phys_cursor_on_p = 0;
     }
   else
     {
