@@ -1,3 +1,7 @@
+2001-10-24  Richard M. Stallman  <rms@gnu.org>
+
+	* env.el (substitute-env-vars): Quote the arg to rx.
+
 2001-10-24  Sam Steingold  <sds@gnu.org>
 
 	* mouse.el (mouse-buffer-menu-mode-groups): Added "Version
