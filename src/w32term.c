@@ -2347,7 +2347,6 @@ is_dead_key (int wparam)
    We return the number of characters stored into the buffer,
    thus pretending to be `read'.
 
-   WAITP is nonzero if we should block until input arrives.
    EXPECTED is nonzero if the caller knows input is available.  
 
    Some of these messages are reposted back to the message queue since the
@@ -2360,11 +2359,10 @@ is_dead_key (int wparam)
 */
 
 int
-w32_read_socket (sd, bufp, numchars, waitp, expected)
+w32_read_socket (sd, bufp, numchars, expected)
      register int sd;
      register struct input_event *bufp;
      register int numchars;
-     int waitp;
      int expected;
 {
   int count = 0;
