@@ -220,6 +220,19 @@ With prefix arg, prompt for diff switches."
 				  "No more differences" "Diff"
 				  'diff-parse-differences))
 	  (pop-to-buffer buf)
+	  ;; Avoid frightening people with "abnormally terminated"
+	  ;; if diff finds differences.
+	  (set (make-local-variable 'compilation-exit-message-function)
+	       (lambda (proc msg)
+		 (let ((code (process-exit-status proc)))
+		   (if (eq (process-status proc) 'exit)
+		       (cond ((zerop code)
+			      '("finished (no differences)\n" . "finished"))
+			     ((= code 1)
+			      '("finished\n" . "finished"))
+			     (t
+			      (cons msg code)))
+		     (cons msg code)))))
 	  (set (make-local-variable 'diff-old-file) old)
 	  (set (make-local-variable 'diff-new-file) new)
 	  (set (make-local-variable 'diff-old-temp-file) old-alt)
