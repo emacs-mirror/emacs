@@ -1,9 +1,9 @@
-;;; diff-mode.el --- A mode for viewing/editing context diffs
+;;; diff-mode.el --- a mode for viewing/editing context diffs
 
 ;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
-;; Keywords: patch diff
+;; Keywords: convenience patch diff
 
 ;; This file is part of GNU Emacs.
 
@@ -28,14 +28,9 @@
 ;; commands, editing and various conversions as well as jumping
 ;; to the corresponding source file.
 
-;; inspired by Pavel Machek's patch-mode.el (<pavel@atrey.karlin.mff.cuni.cz>)
-;; some efforts were spent to have it somewhat compatible with XEmacs'
+;; Inspired by Pavel Machek's patch-mode.el (<pavel@atrey.karlin.mff.cuni.cz>)
+;; Some efforts were spent to have it somewhat compatible with XEmacs'
 ;; diff-mode as well as with compilation-minor-mode
-
-;; to use it, simply add to your .emacs the following lines:
-;; 
-;; (autoload 'diff-mode "diff-mode" "Diff major mode" t)
-;; (add-to-list 'auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode))
 
 ;; Bugs:
 
