@@ -100,7 +100,8 @@ will be parsed and highlighted as soon as you try to move to them."
 			 (error nil))
 		       1)
 		(format "%s %s -e " grep-program required-options)
-	      (format "%s %s " grep-program required-options)))))
+	      (format "%s %s " grep-program required-options))))
+   (put 'grep-command 'standard-value (list (custom-quote grep-command))))
   (unless grep-find-use-xargs
     (setq grep-find-use-xargs
 	  (if (and
@@ -110,7 +111,9 @@ will be parsed and highlighted as soon as you try to move to them."
                (equal (call-process "xargs" nil nil nil
                                     "-0" "-e" "echo")
 		     0))
-	      'gnu)))
+	      'gnu))
+    (put 'grep-find-use-xargs 'standard-value
+	 (list (custom-quote grep-find-use-xargs))))
   (unless grep-find-command
     (setq grep-find-command
 	  (cond ((eq grep-find-use-xargs 'gnu)
@@ -121,7 +124,9 @@ will be parsed and highlighted as soon as you try to move to them."
                          find-program grep-command))
 		(t (cons (format "%s . -type f -exec %s {} %s \\;"
 				 find-program grep-command null-device)
-			 (+ 22 (length grep-command)))))))
+			 (+ 22 (length grep-command))))))
+    (put 'grep-find-command 'standard-value
+	 (list (custom-quote grep-find-command))))
   (unless grep-tree-command
     (setq grep-tree-command
 	  (let* ((glen (length grep-program))
@@ -133,7 +138,9 @@ will be parsed and highlighted as soon as you try to move to them."
 		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
 			   find-program gcmd))
 		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
-			     find-program gcmd null-device)))))))
+			     find-program gcmd null-device)))))
+    (put 'grep-tree-command 'standard-value
+	 (list (custom-quote grep-tree-command)))))
 
 (defcustom grep-command nil
   "The default grep command for \\[grep].
