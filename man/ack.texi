@@ -1154,6 +1154,10 @@ buffers.
 Tibor @v{S}imko and Milan Zamzal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
+@item 
+Naoto Takahashi wrote @file{utf-8.el}, support for encoding and
+decoding UTF-8 data.
+
 @item
 Taichi Kawabata wrote support for Devanagari script and the Indian
 languages.
