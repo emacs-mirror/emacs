@@ -1,3 +1,8 @@
+2003-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Use save-excursion.
+	(map-query-replace-regexp): Use prefix-numeric-value.
+
 2003-03-05  Juanma Barranquero  <lektu@terra.es>
 
 	* term/w32-win.el (x-handle-geometry): Put sizes on
