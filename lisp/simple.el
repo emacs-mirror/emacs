@@ -1042,7 +1042,7 @@ to make one entry in the kill ring."
    ;; If the buffer is read-only, we should beep, in case the person
    ;; just isn't aware of this.  However, there's no harm in putting
    ;; the region's text in the kill ring, anyway.
-   (buffer-read-only
+   ((and buffer-read-only (not inhibit-read-only))
     (copy-region-as-kill beg end)
     ;; This should always barf, and give us the correct error.
     (barf-if-buffer-read-only))
