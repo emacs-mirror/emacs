@@ -1276,7 +1276,9 @@ In an interactive call, this function prompts for @var{filename} and
 
 @deffn Command copy-file oldname newname &optional ok-if-exists time
 This command copies the file @var{oldname} to @var{newname}.  An
-error is signaled if @var{oldname} does not exist.
+error is signaled if @var{oldname} does not exist.  If @var{newname}
+names a directory, it copies @var{oldname} into that directory,
+preserving its final name component.
 
 If @var{time} is non-@code{nil}, then this function gives the new file
 the same last-modified time that the old one has.  (This works on only
@@ -2294,6 +2296,11 @@ this:
 @noindent
 The @var{handler} then needs to figure out whether to handle
 @var{filename} or @var{dirname}.
+
+If the specified file name matches more than one handler, the one
+whose match starts last in the file name gets precedence.  This rule
+is chosen so that handlers for jobs such as uncompression are handled
+first, before handlers for jobs such as remote file access.
 
 Here are the operations that a magic file name handler gets to handle:
 
