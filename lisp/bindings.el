@@ -120,6 +120,21 @@ corresponding to the mode line clicked."
 	  (describe-current-input-method))))
     (purecopy map)))
 
+
+(defvar mode-line-coding-system-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-3]
+      (lambda (e)
+	(interactive "e")
+	(save-selected-window
+	  (select-window (posn-window (event-start e)))
+	  (when (and enable-multibyte-characters
+		     buffer-file-coding-system)
+	    (describe-coding-system buffer-file-coding-system)))))
+    (purecopy map))
+  "Local keymap for the coding-system part of the mode line.")
+
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -129,7 +144,7 @@ corresponding to the mode line clicked."
 		     'help-echo (concat
 				 "Input method: "
 				 current-input-method
-				 ".  mouse-2 disables, mouse-3 describes")
+				 ".  mouse-2: disable, mouse-3: describe")
 		     'local-map mode-line-input-method-map))))
     ,(propertize
       "%Z"
@@ -142,10 +157,11 @@ corresponding to the mode line clicked."
 		    (when buffer-file-coding-system
 		      (if enable-multibyte-characters
 			  (concat (symbol-name buffer-file-coding-system)
-				  " buffer; see M-x describe-coding-system")
+				  " buffer; mouse-3: describe coding system")
 			(concat "Unibyte "
 				(symbol-name buffer-file-coding-system)
-				" buffer"))))))))
+				" buffer"))))))
+      'local-map mode-line-coding-system-map))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
