@@ -1,3 +1,9 @@
+1999-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* data.c (Qhash_table): New.
+	(Ftype_of): Return it for hash tables.
+	(syms_of_data): Initialize Qhash_table.
+
 1999-10-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* regex.c (POP_FAILURE_POINT): Extract failure_id as an integer.
