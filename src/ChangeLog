@@ -1,3 +1,9 @@
+2002-08-13  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (Fminibufferp): New function.
+	(syms_of_minibuf): Defsubr it.
+	(Fminibuffer_prompt_end): Handle non-minibuffers specially.
+
 2002-08-13  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* coding.c (Funencodable_char_position): Lisp_Object/int mixup.

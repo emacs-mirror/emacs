@@ -1004,6 +1004,9 @@ with Custom.
 ** New CCL functions `lookup-character' and `lookup-integer' access
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
+** The new function `minibufferp' returns non-nil if the current buffer
+is a minibuffer.
+
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
 
