@@ -820,6 +820,7 @@ AC_LN_S
 AC_PROG_CPP
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_STDC_HEADERS
+AC_TIME_WITH_SYS_TIME
 AC_RETSIGTYPE
 AC_ALLOCA
 AC_HAVE_FUNCS(gettimeofday gethostname dup2)
