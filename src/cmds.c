@@ -235,18 +235,19 @@ N was explicitly specified.")
 {
   Lisp_Object value;
   int deleted_special = 0;
-  int pos, i;
+  int pos, pos_byte, i;
 
   CHECK_NUMBER (n, 0);
 
   /* See if we are about to delete a tab or newline backwards.  */
-  pos = PT_BYTE;
-  for (i = 0; i < XINT (n) && pos > BEGV_BYTE; i++)
+  pos = PT;
+  pos_byte = PT_BYTE;
+  for (i = 0; i < XINT (n) && pos_byte > BEGV_BYTE; i++)
     {
       int c;
 
-      DEC_POS (pos);
-      c = FETCH_BYTE (pos);
+      DEC_BOTH (pos, pos_byte);
+      c = FETCH_BYTE (pos_byte);
       if (c == '\t' || c == '\n')
 	{
 	  deleted_special = 1;
