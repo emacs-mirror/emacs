@@ -764,7 +764,7 @@ Returns the compilation buffer created."
       (if (eq outbuf (current-buffer))
 	  (goto-char (point-max)))
       ;; Pop up the compilation buffer.
-      (setq outwin (display-buffer outbuf))
+      (setq outwin (display-buffer outbuf nil t))
       (save-excursion
 	(set-buffer outbuf)
 	(compilation-mode name-of-mode)
