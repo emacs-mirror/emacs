@@ -93,7 +93,7 @@ This command must be bound to a mouse click."
 	  (first-line window-min-height)
 	  (last-line (- (window-height) window-min-height)))
       (if (< last-line first-line)
-	  (error "window too short to split")
+	  (error "Window too short to split")
 	(split-window-vertically
 	 (min (max new-height first-line) last-line))))))
 
@@ -109,7 +109,7 @@ This command must be bound to a mouse click."
 	  (first-col window-min-width)
 	  (last-col (- (window-width) window-min-width)))
       (if (< last-col first-col)
-	  (error "window too narrow to split")
+	  (error "Window too narrow to split")
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
@@ -121,6 +121,8 @@ This should be bound to a mouse click event type."
   ;; Use event-end in case called from mouse-drag-region.
   ;; If EVENT is a click, event-end and event-start give same value.
   (let ((posn (event-end event)))
+    (if (not (windowp (posn-window posn)))
+	(error "Cursor not in text area of window"))
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))))
