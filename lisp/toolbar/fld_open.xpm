@@ -4,7 +4,7 @@ static char *magick[] = {
 "24 24 5 1",
 "  c Gray0",
 ". c #909090",
-"X c Gray74",
+"X c None",
 "o c #fefefe",
 "O c Gray100",
 /* pixels */
