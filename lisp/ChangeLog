@@ -1,3 +1,7 @@
+2004-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-state): Don't assume the file exists.
+
 2004-05-31  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-save): Don't save minor modes without a
@@ -5,8 +9,7 @@
 
 2004-05-30  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* replace.el (query-replace-interactive): Convert defvar into
-	defcustom.
+	* replace.el (query-replace-interactive): Convert defvar -> defcustom.
 
 	* autorevert.el: Update `Commentary' section.
 
@@ -22,8 +25,8 @@
 	Sync with Tramp.
 
 	* net/tramp.el (tramp-let-maybe): Reverse args of `get'.
-	(tramp-let-maybe): Move to an earlier spot in the file.  Patch by
-	Andreas Schwab.
+	(tramp-let-maybe): Move to an earlier spot in the file.
+	Patch by Andreas Schwab.
 
 2004-05-30  Andreas Schwab  <schwab@suse.de>
 
@@ -52,21 +55,20 @@
 
 	* ange-ftp.el (ange-ftp-file-remote-p): New defun.
 	(top): Remove setting of `file-remote-p' property for
-	`ange-ftp-hook-function'.  Add `ange-ftp' property to
-	`file-remote-p'.
+	`ange-ftp-hook-function'.  Add `ange-ftp' property to `file-remote-p'.
 
 2004-05-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.0.41 of Tramp released.
 
-	* tramp.el (tramp-wait-for-regexp, tramp-wait-for-output): Throw
-	away if process has died.  Reported by Luc Teirlinck
-	<teirllm@dms.auburn.edu>.
-	(tramp-out-of-band-prompt-regexp): Renamed to
+	* tramp.el (tramp-wait-for-regexp, tramp-wait-for-output):
+	Throw away if process has died.
+	Reported by Luc Teirlinck <teirllm@dms.auburn.edu>.
+	(tramp-out-of-band-prompt-regexp): Rename to
 	`tramp-process-alive-regexp', because its usage is widen.
 	(tramp-actions-copy-out-of-band): Apply it.
-	(tramp-actions-before-shell, tramp-multi-actions): Add
-	`tramp-action-process-alive' action.
+	(tramp-actions-before-shell, tramp-multi-actions):
+	Add `tramp-action-process-alive' action.
 	(tramp-action-process-alive): New defun.
 	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
 	Add entry for `file-remote-p'.
@@ -78,8 +80,8 @@
 	`file-remote-p'.
 
 	* tramp-uu.el (tramp-uuencode-region): Padding characters aren't
-	counted for (last) line.  Reported by Aaron Ucko
-	<ucko@ncbi.nlm.nih.gov>.
+	counted for (last) line.  [They should or they shouldn't?  --Stef]
+	Reported by Aaron Ucko <ucko@ncbi.nlm.nih.gov>.
 
 2004-05-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
@@ -102,8 +104,8 @@
 	filenames starting with "/:" -- those are reserved for
 	file-name-non-special.
 
-	* tramp-smb.el (tramp-smb-open-connection): Use
-	tramp-set-process-query-on-exit-flag compat function.
+	* tramp-smb.el (tramp-smb-open-connection):
+	Use tramp-set-process-query-on-exit-flag compat function.
 
 2004-05-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -113,7 +115,7 @@
 	(eval-last-sexp-print-value): Print char equivalent regardless
 	of standard-output value.
 
-	* thumbs.el (thumbs-subst-char-in-string): Deleted.
+	* thumbs.el (thumbs-subst-char-in-string): Delete.
 	(thumbs-thumbname): Use subst-char-in-string.
 	(thumbs-resize-image): Use condition-case, not ignore-errors.
 	(thumbs-kill-buffer): Likewise.
