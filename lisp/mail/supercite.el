@@ -1322,18 +1322,20 @@ to the auto-selected attribution string."
 	  (setq sc-attrib-or-cite nil)	; nil==attribution, t==citation
 	  (while
 	      (catch 'sc-reconfirm
-		(string= "" (setq choice
-				  (if sc-attrib-or-cite
-				      (sc-read-string
-				       "Enter citation prefix: "
-				       citation
-				       'sc-citation-confirmation-history)
-				    (sc-completing-read
-				     "Complete attribution name: "
-				     query-alist nil nil
-				     (cons initial 0)
-				     'sc-attribution-confirmation-history)
-				    )))))
+		(progn
+		  (setq choice
+			(if sc-attrib-or-cite
+			    (sc-read-string
+			     "Enter citation prefix: "
+			     citation
+			     'sc-citation-confirmation-history)
+			  (sc-completing-read
+			   "Complete attribution name: "
+			   query-alist nil nil
+			   (cons initial 0)
+			   'sc-attribution-confirmation-history)
+			  ))
+		  nil)))
 	  (if sc-attrib-or-cite
 	      ;; since the citation was chosen, we have to guess at
 	      ;; the attribution
