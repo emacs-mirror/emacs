@@ -1,3 +1,7 @@
+2003-08-24  Masatake YAMATO  <jet@gyve.org>
+	
+	* progmodes/ld-script.el: New file.
+
 2003-08-23  Markus Rost  <rost@math.ohio-state.edu>
 
 	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Doc fix.
