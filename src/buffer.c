@@ -1047,7 +1047,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	}
 
       if (NILP (visible_ok))
-	tem = Fget_buffer_window (buf, Qt);
+	tem = Fget_buffer_window (buf, Qvisible);
       else
 	tem = Qnil;
       if (NILP (tem))
