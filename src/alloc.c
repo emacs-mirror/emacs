@@ -101,6 +101,9 @@ static char *spare_memory;
 /* Number of extra blocks malloc should get when it needs more core.  */
 static int malloc_hysteresis;
 
+/* Nonzero when malloc is called for allocating Lisp object space.  */
+int allocating_for_lisp;
+
 /* Non-nil means defun should do purecopy on the function definition */
 Lisp_Object Vpurify_flag;
 
@@ -402,8 +405,10 @@ INTERVAL interval_free_list;
 static void
 init_intervals ()
 {
+  allocating_for_lisp = 1;
   interval_block
     = (struct interval_block *) malloc (sizeof (struct interval_block));
+  allocating_for_lisp = 0;
   interval_block->next = 0;
   bzero (interval_block->intervals, sizeof interval_block->intervals);
   interval_block_index = 0;
@@ -426,9 +431,12 @@ make_interval ()
     {
       if (interval_block_index == INTERVAL_BLOCK_SIZE)
 	{
-	  register struct interval_block *newi
-	    = (struct interval_block *) xmalloc (sizeof (struct interval_block));
+	  register struct interval_block *newi;
 
+	  allocating_for_lisp = 1;
+	  newi = (struct interval_block *) xmalloc (sizeof (struct interval_block));
+
+	  allocating_for_lisp = 0;
 	  VALIDATE_LISP_STORAGE (newi, sizeof *newi);
 	  newi->next = interval_block;
 	  interval_block = newi;
@@ -529,7 +537,9 @@ struct Lisp_Float *float_free_list;
 void
 init_float ()
 {
+  allocating_for_lisp = 1;
   float_block = (struct float_block *) malloc (sizeof (struct float_block));
+  allocating_for_lisp = 0;
   float_block->next = 0;
   bzero (float_block->floats, sizeof float_block->floats);
   float_block_index = 0;
@@ -559,7 +569,11 @@ make_float (float_value)
     {
       if (float_block_index == FLOAT_BLOCK_SIZE)
 	{
-	  register struct float_block *new = (struct float_block *) xmalloc (sizeof (struct float_block));
+	  register struct float_block *new;
+
+	  allocating_for_lisp = 1;
+	  new = (struct float_block *) xmalloc (sizeof (struct float_block));
+	  allocating_for_lisp = 0;
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = float_block;
 	  float_block = new;
@@ -602,7 +616,9 @@ struct Lisp_Cons *cons_free_list;
 void
 init_cons ()
 {
+  allocating_for_lisp = 1;
   cons_block = (struct cons_block *) malloc (sizeof (struct cons_block));
+  allocating_for_lisp = 0;
   cons_block->next = 0;
   bzero (cons_block->conses, sizeof cons_block->conses);
   cons_block_index = 0;
@@ -633,7 +649,10 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
     {
       if (cons_block_index == CONS_BLOCK_SIZE)
 	{
-	  register struct cons_block *new = (struct cons_block *) xmalloc (sizeof (struct cons_block));
+	  register struct cons_block *new;
+	  allocating_for_lisp = 1;
+	  new = (struct cons_block *) xmalloc (sizeof (struct cons_block));
+	  allocating_for_lisp = 0;
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = cons_block;
 	  cons_block = new;
@@ -654,16 +673,10 @@ Any number of arguments, even zero arguments, are allowed.")
      int nargs;
      register Lisp_Object *args;
 {
-  register Lisp_Object len, val, val_tail;
+  register Lisp_Object val = Qnil;
 
-  XSETFASTINT (len, nargs);
-  val = Fmake_list (len, Qnil);
-  val_tail = val;
-  while (!NILP (val_tail))
-    {
-      XCONS (val_tail)->car = *args++;
-      val_tail = XCONS (val_tail)->cdr;
-    }
+  while (nargs--)
+    val = Fcons (args[nargs], val);
   return val;
 }
 
@@ -694,8 +707,10 @@ allocate_vectorlike (len)
 {
   struct Lisp_Vector *p;
 
+  allocating_for_lisp = 1;
   p = (struct Lisp_Vector *)xmalloc (sizeof (struct Lisp_Vector)
 				     + (len - 1) * sizeof (Lisp_Object));
+  allocating_for_lisp = 0;
   VALIDATE_LISP_STORAGE (p, 0);
   consing_since_gc += (sizeof (struct Lisp_Vector)
 		       + (len - 1) * sizeof (Lisp_Object));
@@ -801,7 +816,9 @@ struct Lisp_Symbol *symbol_free_list;
 void
 init_symbol ()
 {
+  allocating_for_lisp = 1;
   symbol_block = (struct symbol_block *) malloc (sizeof (struct symbol_block));
+  allocating_for_lisp = 0;
   symbol_block->next = 0;
   bzero (symbol_block->symbols, sizeof symbol_block->symbols);
   symbol_block_index = 0;
@@ -828,7 +845,10 @@ Its value and function definition are void, and its property list is nil.")
     {
       if (symbol_block_index == SYMBOL_BLOCK_SIZE)
 	{
-	  struct symbol_block *new = (struct symbol_block *) xmalloc (sizeof (struct symbol_block));
+	  struct symbol_block *new;
+	  allocating_for_lisp = 1;
+	  new = (struct symbol_block *) xmalloc (sizeof (struct symbol_block));
+	  allocating_for_lisp = 0;
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = symbol_block;
 	  symbol_block = new;
@@ -866,7 +886,9 @@ union Lisp_Misc *marker_free_list;
 void
 init_marker ()
 {
+  allocating_for_lisp = 1;
   marker_block = (struct marker_block *) malloc (sizeof (struct marker_block));
+  allocating_for_lisp = 0;
   marker_block->next = 0;
   bzero (marker_block->markers, sizeof marker_block->markers);
   marker_block_index = 0;
@@ -888,8 +910,10 @@ allocate_misc ()
     {
       if (marker_block_index == MARKER_BLOCK_SIZE)
 	{
-	  struct marker_block *new
-	    = (struct marker_block *) xmalloc (sizeof (struct marker_block));
+	  struct marker_block *new;
+	  allocating_for_lisp = 1;
+	  new = (struct marker_block *) xmalloc (sizeof (struct marker_block));
+	  allocating_for_lisp = 0;
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = marker_block;
 	  marker_block = new;
@@ -981,7 +1005,9 @@ struct string_block *large_string_blocks;
 void
 init_strings ()
 {
+  allocating_for_lisp = 1;
   current_string_block = (struct string_block *) malloc (sizeof (struct string_block));
+  allocating_for_lisp = 0;
   first_string_block = current_string_block;
   consing_since_gc += sizeof (struct string_block);
   current_string_block->next = 0;
@@ -1049,8 +1075,10 @@ make_uninit_string (length)
   else if (fullsize > STRING_BLOCK_OUTSIZE)
     /* This string gets its own string block */
     {
-      register struct string_block *new
-	= (struct string_block *) xmalloc (sizeof (struct string_block_head) + fullsize);
+      register struct string_block *new;
+      allocating_for_lisp = 1;
+      new = (struct string_block *) xmalloc (sizeof (struct string_block_head) + fullsize);
+      allocating_for_lisp = 0;
       VALIDATE_LISP_STORAGE (new, 0);
       consing_since_gc += sizeof (struct string_block_head) + fullsize;
       new->pos = fullsize;
@@ -1063,8 +1091,10 @@ make_uninit_string (length)
   else
     /* Make a new current string block and start it off with this string */
     {
-      register struct string_block *new
-	= (struct string_block *) xmalloc (sizeof (struct string_block));
+      register struct string_block *new;
+      allocating_for_lisp = 1;
+      new = (struct string_block *) xmalloc (sizeof (struct string_block));
+      allocating_for_lisp = 0;
       VALIDATE_LISP_STORAGE (new, sizeof *new);
       consing_since_gc += sizeof (struct string_block);
       current_string_block->next = new;
