@@ -1214,34 +1214,49 @@ delete_window (window)
 
   /* Are we trying to delete any frame's selected window?  */
   {
-    Lisp_Object pwindow;
+    Lisp_Object swindow, pwindow;
 
     /* See if the frame's selected window is either WINDOW
        or any subwindow of it, by finding all that window's parents
        and comparing each one with WINDOW.  */
-    pwindow = FRAME_SELECTED_WINDOW (f);
+    swindow = FRAME_SELECTED_WINDOW (f);
 
-    while (!NILP (pwindow))
+    while (1)
       {
-	if (EQ (window, pwindow))
+	pwindow = swindow;
+	while (!NILP (pwindow))
+	  {
+	    if (EQ (window, pwindow))
+	      break;
+	    pwindow = XWINDOW (pwindow)->parent;
+	  }
+
+	/* If the window being deleted is not a parent of SWINDOW,
+	   then SWINDOW is ok as the new selected window.  */
+	if (!EQ (window, pwindow))
 	  break;
-	pwindow = XWINDOW (pwindow)->parent;
+	/* Otherwise, try another window for SWINDOW.  */
+	swindow = Fnext_window (swindow, Qlambda, Qnil);;
+
+	/* If we get back to the frame's selected window,
+	   it means there was no acceptable alternative,
+	   so we cannot delete.  */
+	if (EQ (swindow, FRAME_SELECTED_WINDOW (f)))
+	  error ("Cannot delete window");
       }
 
-    if (EQ (window, pwindow))
+    /* If we need to change SWINDOW, do it.  */
+    if (! EQ (swindow, FRAME_SELECTED_WINDOW (f)))
       {
-	Lisp_Object alternative;
-	alternative = Fnext_window (window, Qlambda, Qnil);
-
 	/* If we're about to delete the selected window on the
 	   selected frame, then we should use Fselect_window to select
 	   the new window.  On the other hand, if we're about to
 	   delete the selected window on any other frame, we shouldn't do
 	   anything but set the frame's selected_window slot.  */
-	if (EQ (window, selected_window))
-	  Fselect_window (alternative);
+	if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
+	  Fselect_window (swindow);
 	else
-	  FRAME_SELECTED_WINDOW (f) = alternative;
+	  FRAME_SELECTED_WINDOW (f) = swindow;
       }
   }
 
@@ -2372,7 +2387,10 @@ window_min_size (w, width_p, ignore_fixed_p, fixed)
    WINDOW's width.  Resize WINDOW's children, if any, so that they
    keep their proportionate size relative to WINDOW.  Propagate
    WINDOW's top or left edge position to children.  Delete windows
-   that become too small unless NODELETE_P is non-zero.  */
+   that become too small unless NODELETE_P is non-zero.
+
+   If NODELETE_P is 2, that means we do delete windows that are
+   too small, even if they were too small before!  */
 
 static void
 size_window (window, size, width_p, nodelete_p)
@@ -2383,6 +2401,9 @@ size_window (window, size, width_p, nodelete_p)
   struct window *c;
   Lisp_Object child, *forward, *sideward;
   int old_size, min_size;
+
+  if (nodelete_p == 2)
+    nodelete_p = 0;
 
   check_min_window_sizes ();
   size = max (0, size);
@@ -2400,12 +2421,12 @@ size_window (window, size, width_p, nodelete_p)
       old_size = XINT (w->height);
       min_size = window_min_height;
     }
-  
-  if (old_size < min_size)
+
+  if (old_size < min_size && nodelete_p != 2)
     w->too_small_ok = Qt;
 
   /* Maybe delete WINDOW if it's too small.  */
-  if (!nodelete_p && !NILP (w->parent))
+  if (nodelete_p != 1 && !NILP (w->parent))
     {
       if (!MINI_WINDOW_P (w) && !NILP (w->too_small_ok))
 	min_size = width_p ? MIN_SAFE_WINDOW_WIDTH : MIN_SAFE_WINDOW_HEIGHT;
@@ -2531,7 +2552,7 @@ size_window (window, size, width_p, nodelete_p)
 	    int child_size;
 	    c = XWINDOW (child);
 	    child_size = width_p ? XINT (c->width) : XINT (c->height);
-	    size_window (child, child_size, width_p, 0);
+	    size_window (child, child_size, width_p, 2);
 	  }
     }
 }
