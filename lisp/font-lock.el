@@ -58,8 +58,6 @@
 
 ;;; Code:
 
-(or window-system (error "Can't fontify on an ASCII terminal"))
-
 (defvar font-lock-comment-face 'font-lock-comment-face
   "Face to use for comments.")
 
