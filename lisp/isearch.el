@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1992/09/21 08:28:43 $|$Revision: 1.10 $|~/modes/isearch-mode.el
+;; |$Date: 1992/10/11 05:25:11 $|$Revision: 1.11 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.10 1992/09/21 08:28:43 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.11 1992/10/11 05:25:11 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.11  1992/10/11  05:25:11  rms
+; (isearch-ring-advance-edit): Delete spurious `)'.
+;
 ; Revision 1.10  1992/09/21  08:28:43  rms
 ; entered into RCS
 ;
@@ -222,13 +225,18 @@ Default value, nil, means edit the string instead.")
     (let* ((i 0)
 	   (map (make-keymap)))
 
+      ;; Make function keys, etc, exit the search.
+      (define-key map [t] 'isearch-other-control-char)
       ;; Control chars, by default, end isearch mode transparently.
+      ;; We need these explicit definitions because, in a dense keymap, 
+      ;; the binding for t does not affect characters.
+      ;; We use a dense keymap to save space.
       (while (< i ?\ )
 	(define-key map (make-string 1 i) 'isearch-other-control-char)
 	(setq i (1+ i)))
 
       ;; Printing chars extend the selection by default.
-      ;; This assumes that all remaining chars are printable.
+      (setq i ?\ )
       (while (< i 128)
 	(define-key map (make-string 1 i) 'isearch-printing-char)
 	(setq i (1+ i)))
@@ -274,12 +282,13 @@ Default value, nil, means edit the string instead.")
       ;; keys as well, one full keymap per char of the prefix key.  It
       ;; would be simpler to disable the global keymap, and/or have a
       ;; default local key binding for any key not otherwise bound.
-      (define-key map (char-to-string meta-prefix-char) (make-keymap))
-      (setq i 0)
-      (while (< i 128)
-	(define-key map (char-to-string (+ 128 i));; Needs to be generalized.
-	  'isearch-other-meta-char)
-	(setq i (1+ i)))
+      (define-key map (char-to-string meta-prefix-char) (make-sparse-keymap))
+      (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
+;;;      (setq i 0)
+;;;      (while (< i 128)
+;;;	(define-key map (char-to-string (+ 128 i));; Needs to be generalized.
+;;;	  'isearch-other-meta-char)
+;;;	(setq i (1+ i)))
 
       (define-key map "\M-n" 'isearch-ring-advance)
       (define-key map "\M-p" 'isearch-ring-retreat)
