@@ -809,7 +809,7 @@ documentation for additional customization information."
 	       minibuffer-setup-hook))
 	  (add-hook 'minibuffer-setup-hook munge-default-fun)
 	  (read-file-name prompt nil default-directory mustmatch))
-	current-prefix-arg))
+	t))
 
 (defun find-file (filename &optional wildcards)
   "Edit file FILENAME.
