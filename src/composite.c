@@ -336,7 +336,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref;
+	  int rule, gref, nref, xoff, yoff;
 	  int this_width;
 	  float this_left;
 
@@ -358,7 +358,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref);
+	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);
