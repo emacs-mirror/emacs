@@ -47,7 +47,9 @@ NOTE-END  */
 
 /* One CRT0 Dummy variable */
 
+#if 0 /* larry@mitra.com says Sony's as doesn't like this.  */
 #define CRT0_DUMMIES one_dummy,
+#endif
 
 /* Use type int rather than a union, to represent Lisp_Object */
 
