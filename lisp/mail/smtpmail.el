@@ -354,6 +354,8 @@ This is relative to `smtpmail-queue-dir'.")
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
+	      (unless (file-exists-p smtpmail-queue-dir)
+		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
 		(insert-buffer tembuf)
