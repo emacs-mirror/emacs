@@ -8,6 +8,9 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** When pure storage overflows while dumping, Emacs now prints how
+much pure storage it will approximately need.
+
 
 * Lisp Changes in Emacs 21.2
 
