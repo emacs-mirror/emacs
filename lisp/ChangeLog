@@ -1,3 +1,17 @@
+2004-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Now it uses call-process instead of
+	shell-command for low command execution.
+	(pr-version): New version number (6.8).
+	(pr-shell-file-name): Option removed.
+	(pr-shell-command): Fun removed.
+	(pr-call-process): New fun.  Replace pr-shell-command.
+	(pr-standard-path, pr-remove-nil-from-list): New funs.
+	(zmacs-region-stays, current-mouse-event, current-menubar): New var.
+	(pr-ps-file-preview, pr-ps-file-using-ghostscript, pr-ps-file-print)
+	(pr-setup, pr-ps-set-printer, pr-txt-set-printer)
+	(pr-ps-utility-process, pr-txt-print): Code fix.
+
 2004-07-10  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* ediff-mult.el (ediff-meta-truncate-filenames): Change type to
