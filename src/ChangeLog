@@ -1,3 +1,11 @@
+2001-05-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfaces.c (try_alternative_families): First try the FAMILY.
+	And if nothing is found in the end, try again with scalable fonts.
+	(try_font_list): Let try_alternative_families do a bit more of
+	the work.  Only use FAMILY if it is not nil.
+	(syms_of_xfaces) <scalable-fonts-allowed>: Fix docstring.
+
 2001-05-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyphs): Fix compuation of rightmost x for
@@ -5,15 +13,14 @@
 
 	* xfaces.c (split_font_name): Make sure to leave the loop
 	with the right value of `i'.
-	
+
 	* xfaces.c (split_font_name): Handle matrix transformations
 	in the pixel and point size fields of XLFD font names.
 	(xlfd_point_size): Likewise.
 
 2001-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* w32fns.c (w32_to_x_font): Change prototype to fit the
-	declaration.
+	* w32fns.c (w32_to_x_font): Change prototype to fit the declaration.
 	(x_to_w32_font): Add prototype.
 
 	* regex.c (malloc, realloc, free) [emacs]: Undefine before
