@@ -110,6 +110,13 @@ extern int errno;
 #define	intoken(arg)	(_itk[arg])	/* T if char can be in token	*/
 #define	endtoken(arg)	(_etk[arg])	/* T if char ends tokens	*/
 
+#ifdef DOS_NT
+# define absolutefn(fn) (fn[0] == '/' || (isalpha (fn[0]) && fn[1] == ':'))
+#else
+# define absolutefn(fn) (fn[0] == '/')
+#endif
+
+
 /*
  *	xnew -- allocate storage
  *
@@ -392,7 +399,7 @@ struct lang_entry lang_extensions[] =
   { "cs", Cstar_entries },
   { "hs", Cstar_entries },
 
-  /* .f and .for are FORTRAN. */
+  /* .F, .f and .for are FORTRAN. */
   { "F", Fortran_functions },
   { "f", Fortran_functions },
   { "for", Fortran_functions },
@@ -1033,11 +1040,7 @@ process_file (file)
     {
       char *filename;
 
-#ifdef DOS_NT
-      if (file[0] == '/' || (isalpha (file[0]) && file[1] == ':'))
-#else
-      if (file[0] == '/')
-#endif
+      if (absolutefn (file))
 	{
 	  /* file is an absolute filename.  Canonicalise it. */
 	  filename = absolute_filename (file, cwd);
@@ -1131,7 +1134,10 @@ find_entries (file, inf)
 
   /* No Fortran entries found.  Try C. */
   if (old_last_node == last_node)
-    default_C_entries (inf);
+    {
+      rewind (inf);
+      default_C_entries (inf);
+    }
   fclose (inf);
 }
 
@@ -3751,11 +3757,7 @@ absolute_filename (file, cwd)
 {
   char *slashp, *cp, *res;
 
-#ifdef DOS_NT
-  if (file[0] == '/' || (isalpha (file[0]) && file[1] == ':'))
-#else
-  if (file[0] == '/')
-#endif
+  if (absolutefn (file))
     res = concat (file, "", "");
   else
     res = concat (cwd, file, "");
