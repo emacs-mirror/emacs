@@ -143,6 +143,11 @@
     ;; `gnus-article-dumbquotes-map'.
     ,(unless (mm-coding-system-p 'windows-1252) ; should be defined eventually
        '(windows-1252 . iso-8859-1))
+    ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
+    ;; Outlook users in Czech republic. Use this to allow reading of their
+    ;; e-mails. cp1250 should be defined by M-x codepage-setup.
+    ,(unless (mm-coding-system-p 'windows-1250)	; should be defined eventually
+       '(windows-1250 . cp1250))
     (x-ctext . ctext))
   "A mapping from invalid charset names to the real charset names.")
 
