@@ -1913,7 +1913,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
-		   "\\(class\\|group\\|struct\\|type\\)"
+		   "\\(class\\|group\\|package\\|struct\\|type\\)"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and defined object.
 		   "[ \t'\(]*"
@@ -1957,7 +1957,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "(" (regexp-opt
 		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
 		    "loop" "do" "do*" "dotimes" "dolist"
-		    "proclaim" "declaim" "declare" "defpackage"
+		    "proclaim" "declaim" "declare"
 		    "lexical-let" "lexical-let*" "flet" "labels"
 		    "return" "return-from") t)
 	     "\\>")
