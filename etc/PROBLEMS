@@ -250,6 +250,29 @@ recommended way of turning on Font-lock is by typing "M-x
 global-font-lock-mode RET" or by customizing the variable
 `global-font-lock-mode'.
 
+* Emacs on a tty switches the cursor to large blinking block.
+
+This was reported to happen on some GNU/Linux systems which use
+ncurses version 5.0, but could be relevant for other versions as well.
+These versions of ncurses come with a `linux' terminfo entry, where
+the "cvvis" capability (termcap "vs") is defined as "\E[?25h\E[?8c"
+(show cursor, change size).  This escape sequence switches on a
+blinking hardware text-mode cursor whose size is a full character
+cell.  This blinking cannot be stopped, since a hardware cursor
+always blinks.
+
+A work-around is to redefine the "cvvis" capability so that it
+enables a *software* cursor.  The software cursor works by inverting
+the colors of the character at point, so what you see is a block
+cursor that doesn't blink.  For this to work, you need to redefine
+the "cnorm" capability as well, so that it operates on the software
+cursor instead of the hardware cursor.
+
+To this end, run "infocmp linux > linux-term", edit the file
+`linux-term' to make both the "cnorm" and "cvvis" capabilities send
+the sequence "\E[?25h\E[?17;0;64c", and then run "tic linux-term" to
+produce a modified terminfo entry.
+
 * Problems in Emacs built with LessTif.
 
 The problems seem to depend on the version of LessTif and the Motif
