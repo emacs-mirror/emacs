@@ -1409,12 +1409,16 @@ check_frame_size (frame, rows, cols)
      FRAME_PTR frame;
      int *rows, *cols;
 {
-  /* For height, we have to see whether the frame has a minibuffer, and
-     whether it wants a mode line.  */
+  /* For height, we have to see:
+     whether the frame has a minibuffer, 
+     whether it wants a mode line, and
+     whether it has a menu bar.  */
   int min_height =
     (FRAME_MINIBUF_ONLY_P (frame) ? MIN_SAFE_WINDOW_HEIGHT - 1
      : (! FRAME_HAS_MINIBUF_P (frame)) ? MIN_SAFE_WINDOW_HEIGHT
      : 2 * MIN_SAFE_WINDOW_HEIGHT - 1);
+  if (FRAME_MENU_BAR_LINES (frame) > 0)
+    min_height += FRAME_MENU_BAR_LINES (frame);
 
   if (*rows < min_height)
     *rows = min_height;
