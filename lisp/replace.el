@@ -43,10 +43,12 @@ what to do with it.  For directions, type \\[help-command] at that time.
 Preserves case in each replacement if  case-replace  and  case-fold-search
 are non-nil and FROM-STRING has no uppercase letters.
 Third arg DELIMITED (prefix arg if interactive) non-nil means replace
-only matches surrounded by word boundaries."
+only matches surrounded by word boundaries.
+
+To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace"))
   (perform-replace from-string to-string t nil arg)
-  (message "Done"))
+  (or unread-command-events (message "Done")))
 (define-key esc-map "%" 'query-replace)
 
 (defun query-replace-regexp (regexp to-string &optional arg)
@@ -62,7 +64,7 @@ In TO-STRING, \\& means insert what matched REGEXP,
 and \\=\\<n> means insert what matched <n>th \\(...\\) in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp"))
   (perform-replace regexp to-string t t arg)
-  (message "Done"))
+  (or unread-command-events (message "Done")))
 
 (defun map-query-replace-regexp (regexp to-strings &optional arg)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -100,7 +102,7 @@ before rotating to the next."
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
     (perform-replace regexp replacements t t nil arg))
-  (message "Done"))
+  (or unread-command-events (message "Done")))
 
 (defun replace-string (from-string to-string &optional delimited)
   "Replace occurrences of FROM-STRING with TO-STRING.
@@ -116,7 +118,7 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace string"))
   (perform-replace from-string to-string nil nil delimited)
-  (message "Done"))
+  (or unread-command-events (message "Done")))
 
 (defun replace-regexp (regexp to-string &optional delimited)
   "Replace things after point matching REGEXP with TO-STRING.
@@ -134,7 +136,7 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp"))
   (perform-replace regexp to-string nil t delimited)
-  (message "Done"))
+  (or unread-command-events (message "Done")))
 
 (fset 'delete-non-matching-lines 'keep-lines)
 (defun keep-lines (regexp)
@@ -346,6 +348,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(if (interactive-p)
 	    (message "%d matching lines." (length occur-pos-list)))))))
 
+;; It would be nice to use \\[...], but there is no reasonable way
+;; to make that display both SPC and Y.
 (defconst query-replace-help
   "Type Space or `y' to replace one match, Delete or `n' to skip to next,
 ESC or `q' to exit, Period to replace one match and exit,
@@ -357,15 +361,43 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 ^ to move point back to previous match."
   "Help message while in query-replace")
 
+(defvar query-replace-map (make-sparse-keymap)
+  "Keymap that defines the responses to questions in `query-replace'.
+The \"bindings\" in this map are not commands; they are answers.
+The valid answers include `act', `skip', `act-and-show',
+`exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
+`automatic', `backup', and `help'.")
+
+(define-key query-replace-map " " 'act)
+(define-key query-replace-map "\d" 'skip)
+(define-key query-replace-map [delete] 'skip)
+(define-key query-replace-map "y" 'act)
+(define-key query-replace-map "n" 'skip)
+(define-key query-replace-map "," 'act-and-show)
+(define-key query-replace-map "\e" 'exit)
+(define-key query-replace-map "q" 'exit)
+(define-key query-replace-map "." 'act-and-exit)
+(define-key query-replace-map "\C-r" 'edit)
+(define-key query-replace-map "\C-w" 'delete-and-edit)
+(define-key query-replace-map "\C-l" 'recenter)
+(define-key query-replace-map "!" 'automatic)
+(define-key query-replace-map "^" 'backup)
+(define-key query-replace-map "\C-h" 'help)
+(define-key query-replace-map "?" 'help)
+;; Cause all other types of events to be unread immediately,
+;; without regard to the global map.
+(define-key query-replace-map [t] 'ignore)
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
-			&optional repeat-count)
+			&optional repeat-count map)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
 Don't use this in your own program unless you want to query and set the mark
 just as `query-replace' does.  Instead, write a simple loop like this:
   (while (re-search-forward \"foo[ \t]+bar\" nil t)
     (replace-match \"foobar\" nil nil))
 which will run faster and do exactly what you probably want."
+  (or map (setq map query-replace-map))
   (let ((nocasify (not (and case-fold-search case-replace
 			    (string-equal from-string
 					  (downcase from-string)))))
@@ -392,6 +424,7 @@ which will run faster and do exactly what you probably want."
 				    "\\b")))
     (push-mark)
     (undo-boundary)
+    ;; Loop finding occurrences that perhaps should be replaced.
     (while (and keep-going
 		(not (eobp))
 		(funcall search-function search-string nil t)
@@ -431,58 +464,58 @@ which will run faster and do exactly what you probably want."
 	    (replace-match next-replacement nocasify literal)
 	    (setq replace-count (1+ replace-count)))
 	(undo-boundary)
-	(let (done replaced char)
+	(let (done replaced key)
+	  ;; Loop reading commands until one of them sets done,
+	  ;; which means it has finished handling this occurrence.
 	  (while (not done)
-	    (let ((help-form
-		   '(concat "Query replacing "
-			    (if regexp-flag "regexp " "")
-			    from-string " with " next-replacement ".\n\n"
-			    (substitute-command-keys query-replace-help))))
-	      (setq char help-char)
-	      (while (or (not (numberp char)) (= char help-char))
-		(message "Query replacing %s with %s: " from-string next-replacement)
-		(setq char (read-event))
-		(if (and (numberp char) (= char ??))
-		    (setq unread-command-events (list help-char)
-			  char help-char))))
+	    (message "Query replacing %s with %s: "
+		     from-string next-replacement)
+	    (setq key (vector (read-event)))
+	    (setq def (lookup-key map key))
 	    ;; Restore the match data while we process the command.
 	    (store-match-data real-match-data)
-	    (cond ((or (= char ?\e)
-		       (= char ?q))
+	    (cond ((eq def 'help)
+		   (with-output-to-temp-buffer "*Help*"
+		     (princ
+		      (concat "Query replacing "
+			      (if regexp-flag "regexp " "")
+			      from-string " with "
+			      next-replacement ".\n\n"
+			      (substitute-command-keys
+			       query-replace-help)))))
+		  ((eq def 'exit)
 		   (setq keep-going nil)
 		   (setq done t))
-		  ((= char ?^)
+		  ((eq def 'backup)
 		   (let ((elt (car stack)))
 		     (goto-char (car elt))
 		     (setq replaced (eq t (cdr elt)))
 		     (or replaced
 			 (store-match-data (cdr elt)))
 		     (setq stack (cdr stack))))		     
-		  ((or (= char ?\ )
-		       (= char ?y))
+		  ((eq def 'act)
 		   (or replaced
 		       (replace-match next-replacement nocasify literal))
 		   (setq done t replaced t))
-		  ((= char ?\.)
+		  ((eq def 'act-and-exit)
 		   (or replaced
 		       (replace-match next-replacement nocasify literal))
 		   (setq keep-going nil)
 		   (setq done t replaced t))
-		  ((= char ?\,)
+		  ((eq def 'act-and-show)
 		   (if (not replaced)
 		       (progn
 			 (replace-match next-replacement nocasify literal)
 			 (setq replaced t))))
-		  ((= char ?!)
+		  ((eq def 'automatic)
 		   (or replaced
 		       (replace-match next-replacement nocasify literal))
 		   (setq done t query-flag nil replaced t))
-		  ((or (= char ?\177)
-		       (= char ?n))
+		  ((eq def 'skip)
 		   (setq done t))
-		  ((= char ?\C-l)
+		  ((eq def 'recenter)
 		   (recenter nil))
-		  ((= char ?\C-r)
+		  ((eq def 'edit)
 		   (store-match-data
 		    (prog1 (match-data)
 		      (save-excursion (recursive-edit))))
@@ -491,7 +524,7 @@ which will run faster and do exactly what you probably want."
 		   ;; can match again just after this match.
 		   (if regexp-flag
 		       (setq match-again (looking-at search-string))))
-		  ((= char ?\C-w)
+		  ((eq def 'delete-and-edit)
 		   (delete-region (match-beginning 0) (match-end 0))
 		   (store-match-data
 		    (prog1 (match-data)
@@ -499,7 +532,9 @@ which will run faster and do exactly what you probably want."
 		   (setq replaced t))
 		  (t
 		   (setq keep-going nil)
-		   (setq unread-command-events (list char))
+		   (setq unread-command-events
+			 (append (listify-key-sequence key)
+				 unread-command-events))
 		   (setq done t))))
 	  ;; Record previous position for ^ when we move on.
 	  ;; Change markers to numbers in the match data
@@ -515,6 +550,6 @@ which will run faster and do exactly what you probably want."
 		      stack))
 	  (if replaced (setq replace-count (1+ replace-count)))))
       (setq lastrepl (point)))
-    (and keep-going stack)))
+  (and keep-going stack)))
 
 ;;; replace.el ends here
