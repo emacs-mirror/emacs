@@ -191,6 +191,7 @@ Advanced Features
 * Text::	        Commands and modes for editing English.
 * Programs::	        Commands and modes for editing programs.
 * Building::	        Compiling, running and debugging programs.
+* Maintaining::         Features for maintaining large programs.
 * Abbrevs::	        How to define text abbreviations to reduce
 			  the number of characters you must type.
 * Picture::	        Editing pictures made up of characters
@@ -480,52 +481,74 @@ Filling Text
 Editing Programs
 
 * Program Modes::       Major modes for editing programs.
-* Lists::	        Expressions with balanced parentheses.
-* List Commands::       The commands for working with list and sexps.
-* Defuns::	        Each program is made up of separate functions.
-			  There are editing commands to operate on them.
+* Defuns::              Commands to operate on major top-level parts
+                          of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
-* Matching::	        Insertion of a close-delimiter flashes matching open.
 * Comments::	        Inserting, killing, and aligning comments.
-* Balanced Editing::    Inserting two matching parentheses at once, etc.
-* Symbol Completion::   Completion on symbol names of your program or language.
+* Parentheses::         Commands that operate on parentheses.
 * Documentation::       Getting documentation of functions you plan to call.
-* Change Log::	        Maintaining a change history for your program.
-* Tags::	        Go directly to any function in your program in one
-			  command.  Tags remembers which file it is in.
-* Emerge::	        A convenient way of merging two versions of a program.
-* C Modes::             Special commands of C, C++, Objective-C and Java modes.
-* Fortran::	        Fortran mode and its special features.
-* Asm Mode::	        Asm mode and its special features.
+* Hideshow::            Displaying blocks selectively.
+* Symbol Completion::   Completion on symbol names of your program or language.
+* Glasses::             Making identifiersLikeThis more readable.
+* Misc for Programs::   Other Emacs features useful for editing programs.
+* C Modes::             Special commands of C, C++, Objective-C,
+                          Java, and Pike modes.
+* Fortran::             Fortran mode and its special features.
+* Asm Mode::            Asm mode and its special features.
+
+Top-Level Definitions, or Defuns
+
+* Left Margin Paren::   An open-paren or similar opening delimiter
+                          starts a defun if it is at the left margin.
+* Moving by Defuns::    Commands to move over or mark a major definition.
+* Imenu::               Making buffer indexes as menus.
+* Which Function::      Which Function mode shows which function you are in.
 
 Indentation for Programs
 
 * Basic Indent::	Indenting a single line.
-* Multi-line Indent::	Commands to reindent many lines at once.
+* Multi-line Indent::   Commands to reindent many lines at once.
 * Lisp Indent::		Specifying how each Lisp function should be indented.
-* C Indent::		Choosing an indentation style for C code.
+* C Indent::		Extra features for indenting C and related modes.
+* Custom C Indent::	Controlling indentation style for C and related modes.
 
-Tags Tables
+Commands for Editing with Parentheses
 
-* Tag Syntax::		Tag syntax for various types of code and text files.  
-* Create Tags Table::	Creating a tags table with @code{etags}.
-* Select Tags Table::	How to visit a tags table.
-* Find Tag::		Commands to find the definition of a specific tag. 
-* Tags Search::		Using a tags table for searching and replacing.
-* List Tags::		Listing and finding tags defined in a file.
+* Expressions::         Expressions with balanced parentheses.
+* Moving by Parens::    Commands for moving up, down and across
+                          in the structure of parentheses.
+* Matching::	        Insertion of a close-delimiter flashes matching open.
 
-Merging Files with Emerge
+Manipulating Comments
 
-* Overview of Emerge::	How to start Emerge.  Basic concepts.
-* Submodes of Emerge::	Fast mode vs. Edit mode.
-			  Skip Prefers mode and Auto Advance mode.
-* State of Difference::	You do the merge by specifying state A or B
-			  for each difference.
-* Merge Commands::	Commands for selecting a difference,
-			  changing states of differences, etc.
-* Exiting Emerge::	What to do when you've finished the merge.
-* Combining in Emerge::	    How to keep both alternatives for a difference.
-* Fine Points of Emerge::   Misc.
+* Comment Commands::    Inserting, killing, and indenting comments.
+* Multi-Line Comments:: Commands for adding and editing multi-line comments.
+* Options for Comments::Customizing the comment features.
+
+Documentation Lookup
+
+* Info Lookup::         Looking up library functions and commands
+                          in Info files.
+* Man Page::            Looking up man pages of library functions and commands.
+* Lisp Doc::            Looking up Emacs Lisp functions, etc.
+
+C and Related Modes
+
+* Motion in C::         Commands to move by C statements, etc.
+* Electric C::          Colon and other chars can automatically reindent.
+* Hungry Delete::       A more powerful DEL command.
+* Other C Commands::    Filling comments, viewing expansion of macros,
+                          and other neat features.
+* Comments in C::       Options for customizing comment style.
+
+Fortran Mode
+
+* Motion: Fortran Motion.	 Moving point by statements or subprograms.
+* Indent: Fortran Indent.	 Indentation commands for Fortran.
+* Comments: Fortran Comments.	 Inserting and aligning comments.
+* Autofill: Fortran Autofill.	 Auto fill minor mode for Fortran.
+* Columns: Fortran Columns.	 Measuring columns for valid Fortran.
+* Abbrev: Fortran Abbrev.	 Built-in abbrevs for Fortran keywords.
 
 Compiling and Testing Programs
 
@@ -549,6 +572,36 @@ Running Debuggers Under Emacs
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
+
+Maintaining Programs
+
+* Change Log::	        Maintaining a change history for your program.
+* Authors::             Maintaining an @file{AUTHORS} file.
+* Tags::	        Go direct to any function in your program in one
+			  command.  Tags remembers which file it is in.
+* Emerge::	        A convenient way of merging two versions of a program.
+
+Tags Tables
+
+* Tag Syntax::		Tag syntax for various types of code and text files.  
+* Create Tags Table::	Creating a tags table with @code{etags}.
+* Select Tags Table::	How to visit a tags table.
+* Find Tag::		Commands to find the definition of a specific tag. 
+* Tags Search::		Using a tags table for searching and replacing.
+* List Tags::		Listing and finding tags defined in a file.
+
+Merging Files with Emerge
+
+* Overview of Emerge::	How to start Emerge.  Basic concepts.
+* Submodes of Emerge::	Fast mode vs. Edit mode.
+			  Skip Prefers mode and Auto Advance mode.
+* State of Difference::	You do the merge by specifying state A or B
+			  for each difference.
+* Merge Commands::	Commands for selecting a difference,
+			  changing states of differences, etc.
+* Exiting Emerge::	What to do when you've finished the merge.
+* Combining in Emerge::	    How to keep both alternatives for a difference.
+* Fine Points of Emerge::   Misc.
 
 Abbrevs
 
@@ -1424,6 +1477,7 @@ edit files while running shell commands.
 @include text.texi
 @include programs.texi
 @include building.texi
+@include maintaining.texi
 @include abbrevs.texi
 @include picture.texi
 @include sending.texi
