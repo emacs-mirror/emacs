@@ -480,9 +480,19 @@ of colors that the current display can handle."
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (defined-colors))
     ;; Delete duplicate colors.
+
+    ;; Identify duplicate colors by the name rather than the color
+    ;; value.  For example, on MS-Windows, logical colors are added to
+    ;; the list that might have the same value but have different
+    ;; names and meanings.  For example, `SystemMenuText' (the color
+    ;; w32 uses for the text in menu entries) and `SystemWindowText'
+    ;; (the default color w32 uses for the text in windows and
+    ;; dialogs) may be the same display color and be adjacent in the
+    ;; list.  Detecting duplicates by name insures that both of these
+    ;; colors remain despite identical color values.
     (let ((l list))
       (while (cdr l)
-	(if (facemenu-color-equal (car l) (car (cdr l)))
+	(if (facemenu-color-name-equal (car l) (car (cdr l)))
 	    (setcdr l (cdr (cdr l)))
 	  (setq l (cdr l)))))
     (when (memq (display-visual-class) '(gray-scale pseudo-color direct-color))
@@ -514,6 +524,22 @@ names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
 	((equal (color-values a) (color-values b)))))
+
+(defun facemenu-color-name-equal (a b)
+  "Return t if colors A and B are the same color.
+A and B should be strings naming colors.  These names are
+downcased, stripped of spaces and the string `grey' is turned
+into `gray'.  This accommodates alternative spellings of colors
+found commonly in the list.  It returns nil if the colors differ."
+  (progn
+    (setq a (replace-regexp-in-string "grey" "gray"
+            (replace-regexp-in-string " " ""
+             (downcase a)))
+         b (replace-regexp-in-string "grey" "gray"
+            (replace-regexp-in-string " " ""
+             (downcase b))))
+
+    (equal a b)))
 
 (defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.
