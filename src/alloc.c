@@ -1805,7 +1805,7 @@ make_multibyte_string (contents, nchars, nbytes)
 
 Lisp_Object
 make_string_from_bytes (contents, nchars, nbytes)
-     char *contents;
+     const char *contents;
      int nchars, nbytes;
 {
   register Lisp_Object val;
@@ -1824,7 +1824,7 @@ make_string_from_bytes (contents, nchars, nbytes)
 
 Lisp_Object
 make_specified_string (contents, nchars, nbytes, multibyte)
-     char *contents;
+     const char *contents;
      int nchars, nbytes;
      int multibyte;
 {
