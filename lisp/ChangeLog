@@ -1,3 +1,10 @@
+2003-07-23  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gud.el (gdb-script-font-lock-keywords): 
+	Put `font-lock-function-name-face' on a symbol which includes
+	`-' like `hook-run'. Put font-lock-variable-name-face 
+	on a symbol starting with $.
+
 2003-07-27  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (set-visited-file-name): Use truename for buffer-file-name.

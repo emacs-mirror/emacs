@@ -2892,7 +2892,8 @@ class of the file (using s to separate nested class ids)."
     st))
 
 (defvar gdb-script-font-lock-keywords
-  '(("^define\\s-+\\(\\w+\\)" (1 font-lock-function-name-face))
+  '(("^define\\s-+\\(\\(\\w\\|\\s_\\)+\\)" (1 font-lock-function-name-face))
+    ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\([a-z]+\\)" (1 font-lock-keyword-face))))
 
 (defvar gdb-script-font-lock-syntactic-keywords
