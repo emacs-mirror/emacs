@@ -1,3 +1,7 @@
+2004-08-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help): Fix Texinfo usage.
+
 2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-mode.texi: Various updates for CC Mode 5.30.9.
