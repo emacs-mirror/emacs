@@ -75,6 +75,10 @@ extern int h_errno;
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SETPGID
+#define setpgrp setpgid
+#endif
+
 /* Get SI_SRPC_DOMAIN, if it is available.  */
 #ifdef HAVE_SYS_SYSTEMINFO_H
 #include <sys/systeminfo.h>

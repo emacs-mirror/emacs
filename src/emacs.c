@@ -64,6 +64,10 @@ Boston, MA 02111-1307, USA.  */
 #define O_RDWR 2
 #endif
 
+#ifdef HAVE_SETPGID
+#define setpgrp setpgid
+#endif
+
 extern void malloc_warning ();
 extern void set_time_zone_rule ();
 extern char *index ();
