@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000,01,02,03,2004
-     Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
+   2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -451,7 +451,7 @@ enum pvec_type
 #define make_number(N) \
   (__extension__ ({ Lisp_Object _l; _l.s.val = (N); _l.s.type = Lisp_Int; _l; }))
 #else
-extern Lisp_Object make_number ();
+extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
 #define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
