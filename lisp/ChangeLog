@@ -1,3 +1,8 @@
+2001-11-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* smerge-mode.el (smerge-match-conflict): Fix typo.
+	(smerge-diff): Be careful to read match-data early enough.
+
 2001-11-14  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-internal, vc-coding-system-for-diff)
