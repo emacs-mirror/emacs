@@ -35,7 +35,7 @@ Boston, MA 02111-1307, USA.
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
 void
-sleep(int seconds)
+sleep(unsigned long seconds)
 {
   Sleep (seconds * 1000);
 }
