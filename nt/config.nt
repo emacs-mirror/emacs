@@ -25,7 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
 
-
 /* These are all defined in the top-level Makefile by configure.
    They're here only for reference.  */
 
@@ -34,14 +33,14 @@ Boston, MA 02111-1307, USA.  */
 #undef LISP_FLOAT_TYPE
 
 /* Define GNU_MALLOC if you want to use the GNU memory allocator. */
-#undef GNU_MALLOC
+#define GNU_MALLOC
 
 /* Define if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
 
 /* Define REL_ALLOC if you want to use the relocating allocator for
    buffer space. */
-#undef REL_ALLOC
+#define REL_ALLOC
   
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
 #undef HAVE_X_WINDOWS
@@ -107,6 +106,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to support Kerberos-authenticated POP mail retrieval.  */
 #undef KERBEROS
+/* Define to use Kerberos 5 instead of Kerberos 4 */
+#undef KERBEROS5
+/* Define to support GSS-API in addition to (or instead of) Kerberos */
+#undef GSSAPI
 
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
@@ -125,6 +128,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SYS_SYSTEMINFO_H
 #undef HAVE_TERMIOS_H
 #undef HAVE_LIMITS_H
+#undef HAVE_STRING_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
 
@@ -133,8 +137,31 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
 #undef HAVE_LIBNCURSES
+#undef HAVE_LIBINTL
+
+/* movemail Kerberos support */
+/* libraries */
 #undef HAVE_LIBKRB
+#undef HAVE_LIBKRB4
 #undef HAVE_LIBDES
+#undef HAVE_LIBDES425
+#undef HAVE_LIBKRB5
+#undef HAVE_LIBCRYPTO
+#undef HAVE_LIBCOM_ERR
+/* header files */
+#undef HAVE_KRB5_H
+#undef HAVE_DES_H
+#undef HAVE_KRB_H
+#undef HAVE_KERBEROSIV_DES_H
+#undef HAVE_KERBEROSIV_KRB_H
+#undef HAVE_KERBEROS_DES_H
+#undef HAVE_KERBEROS_KRB_H
+#undef HAVE_COM_ERR_H
+
+/* GSS-API libraries and headers */
+#undef HAVE_LIBGSSAPI_KRB5
+#undef HAVE_LIBGSSAPI
+#undef HAVE_GSSAPI_H
 
 /* Mail-file locking */
 #undef HAVE_LIBMAIL
@@ -201,6 +228,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SETPGID
 #undef HAVE_GETCWD
 #undef HAVE_SHUTDOWN
+#undef HAVE_STRFTIME
 
 #undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
@@ -322,8 +350,8 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
-#define RE_TRANSLATE_TYPE Lisp_Object *
-#define RE_TRANSLATE(TBL, C) XINT ((TBL)[C])
+#define RE_TRANSLATE_TYPE Lisp_Object
+#define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */
@@ -378,4 +406,11 @@ extern char *getenv ();
 
 #ifndef BITS_PER_LONG
 #define BITS_PER_LONG 32
+#endif
+
+/* Don't include <string.h> during configure.  */
+#ifndef NOT_C_CODE
+#ifdef HAVE_STRING_H
+#include "string.h"
+#endif
 #endif
