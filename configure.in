@@ -823,7 +823,7 @@ case "${canonical}" in
 		RANLIB="ar -ts"
 		;;
       *-sunos5* | *-solaris* )
-		opsys=sol2-4
+		opsys=sol2-5
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
