@@ -183,14 +183,16 @@ This variable used in TAB format mode.")
 ;; Comments are real pain in Fortran because there is no way to represent the
 ;; standard comment syntax in an Emacs syntax table (we can for VAX-style).
 ;; Therefore an unmatched quote in a standard comment will throw fontification
-;; off on the wrong track.  But to make it clear(er) to the programmer what is
-;; happening, we don't override string fontification when fontifying, by the
-;; keyword regexp, a standard comment.
+;; off on the wrong track.  To make it clear(er) to the programmer what is
+;; happening, we could override string fontification when fontifying, by the
+;; keyword regexp, a standard comment.  But by default we turn off syntax
+;; fontification, and we don't put `!'  as a comment-in-any-column in the
+;; regexp keywords as it would be recognised inside a string.
 
 (defconst fortran-font-lock-keywords-1
   '(;; Fontify comments.
-;    ("^[Cc*].*$" 0 font-lock-comment-face t)
-    ("^[Cc*].*$" . font-lock-comment-face)
+;    ("^[Cc!*].*$" 0 font-lock-comment-face t)
+    ("^[Cc!*].*$" . font-lock-comment-face)
     ;; Program, subroutine and function declarations, plus calls.
     ("\\<\\(call\\|function\\|program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
@@ -420,7 +422,7 @@ with no args, if that value is non-nil."
   (setq local-abbrev-table fortran-mode-abbrev-table)
   (set-syntax-table fortran-mode-syntax-table)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(fortran-font-lock-keywords nil t))
+  (setq font-lock-defaults '(fortran-font-lock-keywords t t))
   (make-local-variable 'fortran-break-before-delimiters)
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
