@@ -128,7 +128,8 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/subr.el \
 	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-vars.el
+	$(lisp)/progmodes/cc-vars.el \
+	$(lisp)/vc-arch.el
 
 # The actual Emacs command run in the targets below.
 
