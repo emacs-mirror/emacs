@@ -3590,7 +3590,7 @@ With argument, do this that many times."
 The place mark goes is the same place \\[forward-word] would
 move to with the same argument.
 Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active, 
+or (in Transient Mark mode) if the mark is active,
 it marks the next ARG words after the ones already marked."
   (interactive "P\np")
   (cond ((and allow-extend
@@ -4328,6 +4328,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
+      (define-key map [follow-link] 'mouse-face)
       (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
       (define-key map "\e\e\e" 'delete-completion-window)
