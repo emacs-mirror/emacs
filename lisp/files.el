@@ -197,6 +197,10 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
   "Non-nil means that buffer-file-number uniquely identifies files.")
 
+(defvar buffer-file-read-only nil
+  "Non-nil if visited file was read-only when visited.")
+(make-variable-buffer-local 'buffer-file-read-only)
+
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
@@ -1071,16 +1075,19 @@ that are visiting the various files."
 	      (with-current-buffer buf
 
 		;; Check if a formerly read-only file has become
-		;; writable and vice versa.
+		;; writable and vice versa, but if the buffer agrees
+		;; with the new state of the file, that is ok too.
 		(let ((read-only (not (file-writable-p buffer-file-name))))
-		  (unless (eq read-only buffer-read-only)
+		  (unless (or (eq read-only buffer-file-read-only)
+			      (eq read-only buffer-read-only))
 		    (when (or nowarn
 			      (let ((question 
 				     (format "File %s is %s on disk.  Change buffer mode? "
 					     buffer-file-name
 					     (if read-only "read-only" "writable"))))
 				(y-or-n-p question)))
-		      (setq buffer-read-only read-only))))
+		      (setq buffer-read-only read-only)))
+		  (setq buffer-file-read-only read-only))
 
 		(when (not (eq (not (null rawfile))
 			       (not (null find-file-literally))))
