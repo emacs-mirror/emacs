@@ -50,7 +50,7 @@ int noninteractive_need_newline;
 
 /* Nonzero means print newline to message log before next message.  */
 
-int message_log_need_newline;
+static int message_log_need_newline;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -212,6 +212,14 @@ int line_number_display_limit;
    t means infinite.  nil means don't log at all.  */
 Lisp_Object Vmessage_log_max;
 
+void
+message_log_maybe_newline ()
+{
+  if (message_log_need_newline)
+    message_dolog ("", 0, 1);
+}
+
+
 /* Add a string to the message log, optionally terminated with a newline.
    This function calls low-level routines in order to bypass text property
    hooks, etc. which might not be safe to run.  */
@@ -227,7 +235,7 @@ message_dolog (m, len, nlflag)
       int oldpoint, oldbegv, oldzv;
 
       oldbuf = current_buffer;
-      Fset_buffer (Fget_buffer_create (build_string (" *Messages*")));
+      Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
       oldpoint = PT;
       oldbegv = BEGV;
       oldzv = ZV;
@@ -255,6 +263,7 @@ message_dolog (m, len, nlflag)
       ZV = oldzv;
       TEMP_SET_PT (oldpoint);
       set_buffer_internal (oldbuf);
+      message_log_need_newline = !nlflag;
     }
 }
 
@@ -270,9 +279,7 @@ message2 (m, len)
      int len;
 {
   /* First flush out any partial line written with print.  */
-  if (message_log_need_newline)
-    message_dolog ("", 0, 1);
-  message_log_need_newline = 0;
+  message_log_maybe_newline ();
   if (m)
     message_dolog (m, len, 1);
   message2_nolog (m, len);
