@@ -834,7 +834,7 @@ otherwise pop it")
 (defun byte-compile-fdefinition (name macro-p)
   (let* ((list (if macro-p
 		   byte-compile-macro-environment
-		   byte-compile-function-environment))
+		 byte-compile-function-environment))
 	 (env (cdr (assq name list))))
     (or env
 	(let ((fn name))
@@ -899,7 +899,9 @@ otherwise pop it")
 	 (sig (and def (byte-compile-arglist-signature
 			 (if (eq 'lambda (car-safe def))
 			     (nth 1 def)
-			     (aref def 0)))))
+			   (if (compiled-function-p def)
+			       (aref def 0)
+			     '(&rest def))))))
 	 (ncall (length (cdr form))))
     (if sig
 	(if (or (< ncall (car sig))
@@ -932,7 +934,9 @@ otherwise pop it")
 	(let ((sig1 (byte-compile-arglist-signature
 		      (if (eq 'lambda (car-safe old))
 			  (nth 1 old)
-			  (aref old 0))))
+			(if (compiled-function-p old)
+			    (aref old 0)
+			  '(&rest def)))))
 	      (sig2 (byte-compile-arglist-signature (nth 2 form))))
 	  (or (byte-compile-arglist-signatures-congruent-p sig1 sig2)
 	      (byte-compile-warn "%s %s used to take %s %s, now takes %s"
@@ -2771,6 +2775,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 defconst byte-compile-defvar)
 (byte-defop-compiler-1 autoload)
 (byte-defop-compiler-1 lambda byte-compile-lambda-form)
+(byte-defop-compiler-1 defalias)
 
 (defun byte-compile-defun (form)
   ;; This is not used for file-level defuns with doc strings.
@@ -2827,6 +2832,34 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (defun byte-compile-lambda-form (form)
   (error "`lambda' used as function name is invalid"))
 
+;; Compile normally, but deal with warnings for the function being defined.
+(defun byte-compile-defalias (form)
+  (if (and (consp (cdr form)) (consp (nth 1 form))
+	   (eq (car (nth 1 form)) 'quote)
+	   (consp (cdr (nth 1 form)))
+	   (symbolp (nth 1 (nth 1 form)))
+	   (consp (nthcdr 2 form))
+	   (consp (nth 2 form))
+	   (eq (car (nth 2 form)) 'quote)
+	   (consp (cdr (nth 2 form)))
+	   (symbolp (nth 1 (nth 2 form))))
+      (progn
+	(byte-compile-defalias-warn (nth 1 (nth 1 form))
+				    (nth 1 (nth 2 form)))
+	(setq byte-compile-function-environment
+	      (cons (cons (nth 1 (nth 1 form))
+			  (nth 1 (nth 2 form)))
+		    byte-compile-function-environment))))
+  (byte-compile-normal-call form)))
+
+;; Turn off warnings about prior calls to the function being defalias'd.
+;; This could be smarter and compare those calls with
+;; the function it is being aliased to.
+(defun byte-compile-defalias-warn (new alias)
+  (let ((calls (assq new byte-compile-unresolved-functions)))
+    (if calls
+	(setq byte-compile-unresolved-functions
+	      (delq calls byte-compile-unresolved-functions)))))
 
 ;;; tags
 
