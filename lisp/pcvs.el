@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.42 2002/10/01 18:48:35 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.43 2002/10/26 22:27:15 kfstorm Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1745,6 +1745,12 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
     ;; Save the relevant buffers
     (save-some-buffers nil (lambda () (cvs-is-within-p fis def-dir))))
   (unless (listp flags) (error "flags should be a list of strings"))
+  ;; Some w32 versions of CVS don't like an explicit . too much.
+  (when (and (car fis) (null (cdr fis))
+	     (eq (cvs-fileinfo->type (car fis)) 'DIRCHANGE)
+	     ;; (equal (cvs-fileinfo->file (car fis)) ".")
+	     (equal (cvs-fileinfo->dir (car fis)) ""))
+    (setq fis nil))
   (let* ((cvs-buf (current-buffer))
 	 (single-dir (or (not (listp cvs-execute-single-dir))
 			 (member cmd cvs-execute-single-dir)))
