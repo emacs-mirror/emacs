@@ -1796,6 +1796,21 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (interactive)
   (rmail-delete-forward t))
 
+;; Compute the message number a given message would have after expunging.
+;; The present number of the message is OLDNUM.
+;; DELETEDVEC should be rmail-deleted-vector.
+;; The value is nil for a message that would be deleted.
+(defun rmail-msg-number-after-expunge (deletedvec oldnum)
+  (if (or (null oldnum) (= (aref deletedvec oldnum) ?D))
+      nil
+    (let ((i 0)
+	  (newnum 0))
+      (while (< i oldnum)
+	(if (/= (aref deletedvec i) ?D)
+	    (setq newnum (1+ newnum)))
+	(setq i (1+ i)))
+      newnum)))
+
 (defun rmail-only-expunge ()
   "Actually erase all deleted messages in the file."
   (interactive)
@@ -1824,6 +1839,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 		(total rmail-total-messages)
 		(new-message-number rmail-current-message)
 		(new-summary nil)
+		(rmailbuf (current-buffer))
 		(buffer-read-only nil)
 		(messages rmail-message-vector)
 		(deleted rmail-deleted-vector)
@@ -1833,6 +1849,22 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 		  rmail-message-vector nil
 		  rmail-deleted-vector nil
 		  rmail-summary-vector nil)
+
+	    ;; Find each sendmail buffer that is set to reply
+	    ;; to a message in this buffer, and update its
+	    ;; message number.
+	    (let ((bufs (buffer-list)))
+	      (while bufs
+		(save-excursion
+		  (set-buffer (car bufs))
+		  (and (boundp 'rmail-send-actions-rmail-buffer)
+		       (eq rmail-send-actions-rmail-buffer rmailbuf)
+		       (setq rmail-send-actions-rmail-msg-number
+			     (rmail-msg-number-after-expunge
+			      deleted
+			      rmail-send-actions-rmail-msg-number))))
+		(setq bufs (cdr bufs))))
+
 	    (while (<= number total)
 	      (if (= (aref deleted number) ?D)
 		  (progn
@@ -1903,7 +1935,9 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let (from reply-to cc subject date to message-id resent-reply-to)
+  (let (from reply-to cc subject date to message-id resent-reply-to
+	     (msgnum rmail-current-message)
+	     (rmail-buffer (current-buffer)))
     (save-excursion
       (save-restriction
 	(widen)
@@ -1956,11 +1990,19 @@ use \\[mail-yank-original] to yank the original message into it."
 			    (if (null cc) to (concat to ", " cc))))))
 	  (if (string= cc-list "") nil cc-list)))
       (current-buffer)
-      (list (list '(lambda (buf msgnum)
-		     (save-excursion
-		       (set-buffer buf)
-		       (rmail-set-attribute "answered" t msgnum)))
-		  (current-buffer) rmail-current-message)))))
+      (list (list '(lambda ()
+		     (let ((msgnum rmail-send-actions-rmail-msg-number))
+		       (save-excursion
+			 (set-buffer rmail-send-actions-rmail-buffer)
+			 (if msgnum
+			     (rmail-set-attribute "answered" t msgnum))))))))
+    ;; We keep the rmail buffer and message number in these 
+    ;; buffer-local vars in the sendmail buffer,
+    ;; so that rmail-only-expunge can relocate the message number.
+    (make-local-variable 'rmail-send-actions-rmail-buffer)
+    (make-local-variable 'rmail-send-actions-rmail-msg-number)
+    (setq rmail-send-actions-rmail-buffer rmail-buffer)
+    (setq rmail-send-actions-rmail-msg-number msgnum)))
 
 (defun rmail-make-in-reply-to-field (from date message-id)
   (cond ((not from)
@@ -2027,6 +2069,7 @@ see the documentation of `rmail-resend'."
   (if resend
       (call-interactively 'rmail-resend)
     (let ((forward-buffer (current-buffer))
+	  (msgnum rmail-current-message)
 	  (subject (concat "["
 			   (let ((from (or (mail-fetch-field "From")
 					   (mail-fetch-field ">From"))))
@@ -2043,26 +2086,33 @@ see the documentation of `rmail-resend'."
 		       (function mail)
 		     (function rmail-start-mail))
 		   nil nil subject nil nil nil
-		   (list (list (function (lambda (buf msgnum)
-					   (save-excursion
-					     (set-buffer buf)
-					     (rmail-set-attribute
-					      "forwarded" t msgnum))))
-			       (current-buffer)
-			       rmail-current-message)))
+		   (list (list (function
+				(lambda ()
+				  (let ((msgnum
+					 rmail-send-actions-rmail-msg-number))
+				    (save-excursion
+				      (set-buffer rmail-send-actions-rmail-buffer)
+				      (if msgnum
+					  (rmail-set-attribute
+					   "forwarded" t msgnum)))))))))
+	  ;; The mail buffer is now current.
 	  (save-excursion
+	    ;; We keep the rmail buffer and message number in these 
+	    ;; buffer-local vars in the sendmail buffer,
+	    ;; so that rmail-only-expunge can relocate the message number.
+	    (make-local-variable 'rmail-send-actions-rmail-buffer)
+	    (make-local-variable 'rmail-send-actions-rmail-msg-number)
+	    (setq rmail-send-actions-rmail-buffer forward-buffer)
+	    (setq rmail-send-actions-rmail-msg-number msgnum)
 	    ;; Insert after header separator--before signature if any.
 	    (goto-char (point-min))
 	    (search-forward-regexp
 	     (concat "^" (regexp-quote mail-header-separator) "$"))
 	    (forward-line 1)
 	    (insert "------- Start of forwarded message -------\n")
-	    (insert-buffer forward-buffer)
-	    (forward-line -1)
-	    (exchange-point-and-mark)
+	    (insert-buffer-substring forward-buffer)
 	    (insert "------- End of forwarded message -------\n")
-	    (forward-line -1)
-            (exchange-point-and-mark))))))
+	    (push-mark))))))
 
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
