@@ -1,3 +1,9 @@
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-protocol-alist): Document update.
+	(x-dnd-known-types): Defcustom it.
+	(x-dnd-handle-motif): Print message-atom in error message.
+
 2004-08-30  John Paul Wallington  <jpw@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Use distinct
