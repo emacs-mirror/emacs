@@ -178,18 +178,22 @@ before obeying `rmail-ignored-headers'.")
 
 (defvar rmail-font-lock-keywords
   (eval-when-compile
-    (let* ((cite-prefix "A-Za-z") (cite-suffix (concat cite-prefix "0-9_.@-")))
-      (list
-       '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
-       '("^Reply-To:.*$" . font-lock-function-name-face)
-       '("^Subject:" . font-lock-comment-face)
-       '("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
-       (cons (concat "^[ \t]*"
-		     "\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-		     "[>|}].*")
-	     'font-lock-reference-face)
-       '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
-	 . font-lock-string-face))))
+    (let* ((cite-chars "[>|}]")
+	   (cite-prefix "A-Za-z")
+	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
+      (list '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
+	    '("^Reply-To:.*$" . font-lock-function-name-face)
+	    '("^Subject:" . font-lock-comment-face)
+	    '("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
+	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
+	    `(,cite-chars
+	      (,(concat "\\=[ \t]*"
+			"\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			cite-chars ".*")
+	       (beginning-of-line) (end-of-line)
+	       (0 font-lock-reference-face)))       
+	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
+	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
 
 ;; These are used by autoloaded rmail-summary.
