@@ -807,7 +807,8 @@ A non-nil FLAG means mark the buffer modified.")
      If buffer becoming unmodified, unlock the file.  */
 
   fn = current_buffer->file_truename;
-  if (!NILP (fn))
+  /* Test buffer-file-name so that binding it to nil is effective.  */
+  if (!NILP (fn) && ! NILP (current_buffer->filename))
     {
       already = SAVE_MODIFF < MODIFF;
       if (!already && !NILP (flag))
