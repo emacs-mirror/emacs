@@ -1164,7 +1164,7 @@ that can be added."
 
 (defun remove-from-invisibility-spec (arg)
   "Remove elements from `buffer-invisibility-spec'."
-  (if buffer-invisibility-spec
+  (if (consp buffer-invisibility-spec)
     (setq buffer-invisibility-spec (delete arg buffer-invisibility-spec))))
 
 (defun global-set-key (key command)
