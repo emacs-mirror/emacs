@@ -864,17 +864,20 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
-  ;; Quote everything except POSIX filename characters.
-  ;; This should be safe enough even for really weird shells.
-  (if (eq system-type 'windows-nt)
-      (concat "\"" argument "\"")
-    (let ((result "") (start 0) end)
-      (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-	(setq end (match-beginning 0)
-	      result (concat result (substring argument start end)
-			     "\\" (substring argument end (1+ end)))
-	      start (1+ end)))
-      (concat result (substring argument start)))))
+  (if (eq system-type 'ms-dos)
+      ;; MS-DOS shells don't have quoting, so don't do any.
+      argument
+    (if (eq system-type 'windows-nt)
+	(concat "\"" argument "\"")
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "") (start 0) end)
+	(while (string-match "[^-0-9a-zA-Z_./]" argument start)
+	  (setq end (match-beginning 0)
+		result (concat result (substring argument start end)
+			       "\\" (substring argument end (1+ end)))
+		start (1+ end)))
+	(concat result (substring argument start))))))
 
 (defun make-syntax-table (&optional oldtable)
   "Return a new syntax table.
