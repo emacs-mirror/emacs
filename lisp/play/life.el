@@ -1,6 +1,6 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
 ;; Keywords: games
@@ -106,14 +106,13 @@ generations (this defaults to 1)."
   (setq life-initialized t)
   (or sleeptime (setq sleeptime 1))
   (life-setup)
-  (life-display-generation sleeptime)
   (catch 'life-exit
     (while t
       (let ((inhibit-quit t))
+	(life-display-generation sleeptime)
 	(life-grim-reaper)
 	(life-expand-plane-if-needed)
-	(life-increment-generation)
-	(life-display-generation sleeptime)))))
+	(life-increment-generation)))))
 
 (defalias 'life-mode 'life)
 (put 'life-mode 'mode-class 'special)
