@@ -486,7 +486,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
      int nargs;
      register Lisp_Object *args;
 {
-  register Lisp_Object filename_string, start, end;
+  struct gcpro gcpro1;
+  Lisp_Object filename_string;
+  register Lisp_Object start, end;
 #ifdef MSDOS
   char *tempfile;
 #else
@@ -519,6 +521,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   mktemp (tempfile);
 
   filename_string = build_string (tempfile);
+  GCPRO1 (filename_string);
   start = args[0];
   end = args[1];
 #ifdef MSDOS
@@ -536,7 +539,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   args[3] = filename_string;
 
-  return unbind_to (count, Fcall_process (nargs - 2, args + 2));
+  RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs - 2, args + 2)));
 }
 
 #ifndef VMS /* VMS version is in vmsproc.c.  */
