@@ -1618,13 +1618,12 @@ to be sure of changing the value of `foo'.")
 
       if (n != ASIZE (seq))
 	{
-	  struct Lisp_Vector *p = allocate_vectorlike (n);
+	  struct Lisp_Vector *p = allocate_vector (n);
 
 	  for (i = n = 0; i < ASIZE (seq); ++i)
 	    if (NILP (Fequal (AREF (seq, i), elt)))
 	      p->contents[n++] = AREF (seq, i);
 
-	  p->size = n;
 	  XSETVECTOR (seq, p);
 	}
     }
@@ -3824,8 +3823,7 @@ larger_vector (vec, new_size, init)
   old_size = XVECTOR (vec)->size;
   xassert (new_size >= old_size);
 
-  v = allocate_vectorlike (new_size);
-  v->size = new_size;
+  v = allocate_vector (new_size);
   bcopy (XVECTOR (vec)->contents, v->contents,
 	 old_size * sizeof *v->contents);
   for (i = old_size; i < new_size; ++i)
@@ -3994,9 +3992,8 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
      Lisp_Object user_test, user_hash;
 {
   struct Lisp_Hash_Table *h;
-  struct Lisp_Vector *v;
   Lisp_Object table;
-  int index_size, i, len, sz;
+  int index_size, i, sz;
 
   /* Preconditions.  */
   xassert (SYMBOLP (test));
@@ -4010,16 +4007,11 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
   if (XFASTINT (size) == 0)
     size = make_number (1);
 
-  /* Allocate a vector, and initialize it.  */
-  len = VECSIZE (struct Lisp_Hash_Table);
-  v = allocate_vectorlike (len);
-  v->size = len;
-  for (i = 0; i < len; ++i)
-    v->contents[i] = Qnil;
+  /* Allocate a table and initialize it.  */
+  h = allocate_hash_table ();
 
   /* Initialize hash table slots.  */
   sz = XFASTINT (size);
-  h = (struct Lisp_Hash_Table *) v;
 
   h->test = test;
   if (EQ (test, Qeql))
@@ -4088,11 +4080,8 @@ copy_hash_table (h1)
   Lisp_Object table;
   struct Lisp_Hash_Table *h2;
   struct Lisp_Vector *v, *next;
-  int len;
 
-  len = VECSIZE (struct Lisp_Hash_Table);
-  v = allocate_vectorlike (len);
-  h2 = (struct Lisp_Hash_Table *) v;
+  h2 = allocate_hash_table ();
   next = h2->vec_next;
   bcopy (h1, h2, sizeof *h2);
   h2->vec_next = next;
