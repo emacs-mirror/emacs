@@ -759,8 +759,30 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
   "Make CODING-SYSTEM used for communicating with other X clients .
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by CODING-SYSTEM."
+  (interactive "zCoding system for X selection: ")
   (check-coding-system coding-system)
   (setq selection-coding-system coding-system))
+
+;; Coding system lastly specfied by the command
+;; set-next-selection-coding-system.
+(defvar last-next-selection-coding-system nil)
+
+(defun set-next-selection-coding-system (coding-system)
+  "Make CODING-SYSTEM used for the next communication with other X clients.
+This setting is effective for the next communication only."
+  (interactive
+   (list (read-coding-system
+	  (if last-next-selection-coding-system
+	      (format "Coding system for the next X selection (default, %S): "
+		      last-next-selection-coding-system)
+	    "Coding system for the next X selection: ")
+	  last-next-selection-coding-system)))
+  (if coding-system
+      (setq last-next-selection-coding-system coding-system)
+    (setq coding-system last-next-selection-coding-system))
+  (check-coding-system coding-system)
+
+  (setq next-selection-coding-system coding-system))
 
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to LIST.
