@@ -3,6 +3,7 @@
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
+;; Keywords: languages
 ;; Version: 1.4
 ;; X-URL: http://www.fmi.uni-passau.de/~wedler/antlr-mode/
 
