@@ -1372,11 +1372,17 @@ the file on the branch you are editing."
     (if (and changed (or vc-suppress-confirm
 			 (not (yes-or-no-p "Discard changes? "))))
 	(progn
-	  (delete-window)
+	  (if (and (window-dedicated-p (selected-window))
+		   (one-window-p t 'selected-frame))
+	      (make-frame-invisible (selected-frame))
+	    (delete-window))
 	  (error "Revert cancelled"))
       (set-buffer obuf))
     (if changed
-	(delete-window))
+	(if (and (window-dedicated-p (selected-window))
+		 (one-window-p t 'selected-frame))
+	    (make-frame-invisible (selected-frame))
+	  (delete-window)))
     (vc-backend-revert file)
     (vc-resynch-window file t t)
     )
