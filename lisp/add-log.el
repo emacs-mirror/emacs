@@ -373,6 +373,25 @@ Has a preference of looking backwards."
 		 (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
+                ((eq major-mode 'fortran-mode)
+                 ;; must be inside function body for this to work
+                 (beginning-of-fortran-subprogram)
+                 (let ((case-fold-search t)) ; case-insensitive
+                   ;; search for fortran subprogram start
+                   (if (re-search-forward
+			 "^[ \t]*\\(program\\|subroutine\\|function\
+\\|[ \ta-z0-9*]*[ \t]+function\\)"
+			 string nil t)
+                       (progn
+                         ;; move to EOL or before first left paren
+                         (if (re-search-forward "[(\n]" nil t)
+			     (progn (forward-char -1)
+				    (skip-chars-backward " \t"))
+			   (end-of-line))
+			 ;; Use the name preceding that.
+                         (buffer-substring (point)
+                                           (progn (forward-sexp -1)
+                                                  (point)))))))
 		(t
 		 ;; If all else fails, try heuristics
 		 (let (case-fold-search)
