@@ -1,3 +1,9 @@
+2001-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/idlwave.el, progmodes/idlw-rinfo.el:
+	* progmodes/idlw-shell.el, progmodes/idlw-toolbar.el:
+	Update maintainer.
+
 2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* man.el (Man-build-section-alist): Remove last Man-match-substring.
