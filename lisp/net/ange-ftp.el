@@ -3712,6 +3712,32 @@ Value is (0 0) if the modification time cannot be determined."
 			       nil
 			       nil
 			       (interactive-p)))
+
+(defun ange-ftp-copy-files-async (okay-p line verbose-p files)
+  "Copy some files in the background.
+Arguments: (OKAY-P LINE VERBOSE-P FILES)
+OKAY-P must be T, and LINE does not matter.  They are here to make this
+ function a valid CONT argument for `ange-ftp-raw-send-cmd'.
+If VERBOSE-P is non-nil, print progress report in the echo area.
+ When all the files have been copied already, a message is shown anyway.
+FILES is a list of files to copy in the form
+  (from-file to-file ok-if-already-exists keep-date)
+E.g.,
+  (ange-ftp-copy-files-async t nil t '((\"a\" \"b\" t t) (\"c\" \"d\" t t)))"
+  (unless okay-p (error "%s: %s" 'ange-ftp-copy-files-async line))
+  (if files
+      (let* ((ff (car files))
+             (from-file    (nth 0 ff))
+             (to-file      (nth 1 ff))
+             (ok-if-exists (nth 2 ff))
+             (keep-date    (nth 3 ff)))
+        (ange-ftp-copy-file-internal
+         from-file to-file ok-if-exists keep-date
+         (and verbose-p (format "%s --> %s" from-file to-file))
+         (list 'ange-ftp-copy-files-async verbose-p (cdr files))
+         t))
+      (message "%s: done" 'ange-ftp-copy-files-async)))
+
 
 ;;;; ------------------------------------------------------------
 ;;;; File renaming support.

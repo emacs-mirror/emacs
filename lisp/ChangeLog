@@ -1,3 +1,8 @@
+2001-10-12  Sam Steingold  <sds@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-copy-files-async): New function for
+	asynchronous multiple file copying.
+
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): New
