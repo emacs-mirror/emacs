@@ -1,3 +1,12 @@
+2003-11-16  Kevin Ryde <user42@zip.com.au>
+
+	* emacs-lisp-intro.texi: [CVS commitment by <bob@rattlesnake.com>]
+	Corrections to cross references,
+	(Interactive Options): elisp "interactive" -> "Using Interactive".
+	(defvar and asterisk): Remove emacs "Edit Options" reference,
+	edit-options is no longer described in the emacs manual.
+	(Lists diagrammed): elisp "List Type" -> "Cons Cell Type".
+
 2003-09-03  Peter Runestig  <peter@runestig.com>
 
 	* makefile.w32-in: New file.
