@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.55 $
+;; Version: $Revision: 1.56 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1999/07/18 05:21:33 $|$Revision: 1.55 $|~/modes/tcl.el.Z|
+;; $Date: 1999/07/18 18:40:27 $|$Revision: 1.56 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.56  1999/07/18 18:40:27  tromey
+;; (tcl-mode): Set font-lock-defaults, not font-lock-keywords.
+;;
 ;; Revision 1.55  1999/07/18 05:21:33  tromey
 ;; (tcl-proc-list): Reverted; already had `body'.
 ;;
@@ -388,7 +391,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.55 $")
+(defconst tcl-version "$Revision: 1.56 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -691,7 +694,7 @@ Call `tcl-set-font-lock-keywords' after changing this list.")
   '("if" "then" "else" "elseif" "for" "foreach" "break" "continue" "while"
     "eval" "case" "in" "switch" "default" "exit" "error" "proc" "return"
     "uplevel" "constructor" "destructor" "itcl_class" "loop" "for_array_keys"
-    "for_recursive_glob" "for_file")
+    "for_recursive_glob" "for_file" "method" "body" "configbody" "class")
   "List of Tcl keywords.  Used only for highlighting.
 Default list includes some TclX keywords.
 Call `tcl-set-font-lock-keywords' after changing this list.")
