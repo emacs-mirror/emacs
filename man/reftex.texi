@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../info/reftex
+@setfilename ../reftex
 @settitle RefTeX User Manual
 @dircategory Editors
 @direntry
@@ -9,13 +9,13 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.11
-@set EDITION 4.11
-@set DATE February 2000
+@set VERSION 4.12
+@set EDITION 4.12
+@set DATE March 2000
 @set AUTHOR Carsten Dominik
-@set AUTHOR-EMAIL dominik@@strw.leidenuniv.nl
+@set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER Carsten Dominik
-@set MAINTAINER-EMAIL dominik@@strw.leidenuniv.nl
+@set MAINTAINER-EMAIL dominik@@astro.uva.nl
 @c %**end of header
 @finalout
 
@@ -99,7 +99,7 @@ translation approved by the Free Software Foundation.
 @end titlepage
 @page
 
-@ifinfo
+@ifnottex
 @node Top,,,(dir)
 
 @b{Ref@TeX{}} is a package for managing Labels, References,
@@ -213,7 +213,7 @@ Options, Keymaps, Hooks
 @end detailmenu
 @end menu
 
-@end ifinfo
+@end ifnottex
 
 @node Introduction, Table of Contents, , Top
 @chapter Introduction
@@ -2663,11 +2663,31 @@ document.@refill
 @item
 @vindex tex-main-file
 @vindex TeX-master
-All files belonging to a multifile document should have a File Variable
-(@code{TeX-master} for AUCTeX or @code{tex-main-file} for the
-standard Emacs LaTeX mode) set to the name of the master file.  See the
-documentation of your (La)TeX mode and @ref{File Variables,,,emacs, The
-GNU Emacs Manual}.@refill
+All files belonging to a multifile document should define a File
+Variable (@code{TeX-master} for AUCTeX or @code{tex-main-file} for the
+standard Emacs LaTeX mode) containing the name of the master file.  For
+example, to set the file variable @code{TeX-master}, include something
+like the following at the end of each TeX file:@refill
+
+@example
+%%% Local Variables: ***
+%%% mode:latex ***
+%%% TeX-master: "thesis.tex"  ***
+%%% End: ***
+@end example
+
+AUCTeX with the setting
+
+@lisp
+(setq-default TeX-master nil)
+@end lisp
+
+will actually ask you for each new file about the master file and insert
+this comment automatically.  For more details see the documentation of
+the AUCTeX (@pxref{Multifile,,,auctex, The AUC TeX User Manual}), the
+documentation about the Emacs (La)TeX mode (@pxref{TeX Print,,,emacs,
+The GNU Emacs Manual}) and the Emacs documentation on File Variables
+(@pxref{File Variables,,,emacs, The GNU Emacs Manual}).@refill
 
 @item
 The context of a label definition must be found in the same file as the
@@ -2924,9 +2944,10 @@ with the @kbd{g} key.  To get this behavior, use instead@refill
 @cindex Emacs packages, @code{AUCTeX}
 
 AUCTeX is without doubt the best major mode for editing TeX and LaTeX
-files with Emacs.  If AUCTeX is not part of you Emacs distribution, you
-can get it@footnote{XEmacs 21.x users may
-want to install the corresponding XEmacs package.} by ftp from the
+files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
+If AUCTeX is not part of you Emacs distribution, you can get
+it@footnote{XEmacs 21.x users may want to install the corresponding
+XEmacs package.} by ftp from the
 @uref{http://www.sunsite.auc.dk/auctex/,AUCTeX distribution site}.
 
 @menu
@@ -3025,11 +3046,12 @@ Labels}).@refill
 @findex TeX-add-style-hook, @r{AUCTeX}
 Style files are Emacs Lisp files which are evaluated by AUCTeX in
 association with the @code{\documentclass} and @code{\usepackage}
-commands of a document. Support for @b{Ref@TeX{}} in such a style file
-is useful when the LaTeX style defines macros or environments connected
-with labels, citations, or the index.  Many style files
-(e.g. @file{amsmath.el} or @file{natbib.el}) distributed with AUCTeX
-already support @b{Ref@TeX{}} in this way.@refill
+commands of a document (@pxref{Style Files,,,auctex}). Support for
+@b{Ref@TeX{}} in such a style file is useful when the LaTeX style
+defines macros or environments connected with labels, citations, or the
+index.  Many style files (e.g. @file{amsmath.el} or @file{natbib.el})
+distributed with AUCTeX already support @b{Ref@TeX{}} in this
+way.@refill
 
 Before calling a @b{Ref@TeX{}} function, the style hook should always
 test for the availability of the function, so that the style file will
@@ -5402,12 +5424,16 @@ New options @code{reftex-parse-file-extension} and
 @item
 Fixed bug which would parse @samp{\Section} just like @samp{\section}.
 @end itemize
+@noindent @b{Version 4.12}
+@itemize @bullet
+@item
+Support for @file{bibentry} citation style.
+@end itemize
 
 @node Index,  , , Top
 @unnumbered Index
 @printindex cp
 
-@setchapternewpage odd
 @summarycontents
 @contents
 @bye
