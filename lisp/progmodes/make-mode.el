@@ -223,7 +223,7 @@ not be enclosed in { } or ( ).")
 
    ;; Highlight shell comments that Make treats as commands,
    ;; since these can fool people.
-   '("^\t+#" makefile-space-face t)
+   '("^\t+#" 0 makefile-space-face t)
 
    ;; Highlight spaces that precede tabs.
    ;; They can make a tab fail to be effective.
