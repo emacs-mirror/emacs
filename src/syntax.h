@@ -118,7 +118,8 @@ extern Lisp_Object syntax_parent_lookup ();
      = RAW_SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
    (NILP (syntax_temp)							\
     ? (syntax_temp							\
-       = syntax_parent_lookup (current_buffer->syntax_table, (c)))	\
+       = syntax_parent_lookup (current_buffer->syntax_table,		\
+			       (unsigned char) (c)))			\
     : syntax_temp))
 
 #define SYNTAX(c)							\
