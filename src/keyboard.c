@@ -2531,7 +2531,7 @@ apply_modifiers (modifiers, base)
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
-  if (index & ~((1<<VALBITS) - 1))
+  if (modifiers & ~((1<<VALBITS) - 1))
     abort ();
   XFASTINT (index) = (modifiers & ~click_modifier);
   entry = Fassq (index, cache);
