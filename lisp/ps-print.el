@@ -4666,43 +4666,9 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
     (goto-char (point-max))
     (insert-file fname)))
 
-;; These functions are used in `ps-mule' to get charset of header and footer.
-;; To avoid unnecessary calls to functions in `ps-left-header',
-;; `ps-right-header', `ps-left-footer' and `ps-right-footer'.
-
-(defun ps-generate-string-list (content)
-  (let (str)
-    (while content
-      (setq str (cons (cond
-		       ((stringp (car content))
-			(car content))
-		       ((and (symbolp (car content)) (fboundp (car content)))
-			(concat "(" (funcall (car content)) ")"))
-		       ((and (symbolp (car content)) (boundp (car content)))
-			(concat "(" (symbol-value (car content)) ")"))
-		       (t
-			""))
-		      str)
-	    content (cdr content)))
-    (nreverse str)))
-
-(defvar ps-lh-cache nil)
-(defvar ps-rh-cache nil)
-(defvar ps-lf-cache nil)
-(defvar ps-rf-cache nil)
-
-(defun ps-header-footer-string ()
-  (and ps-print-header
-       (setq ps-lh-cache (ps-generate-string-list ps-left-header)
-	     ps-rh-cache (ps-generate-string-list ps-right-header)))
-  (and ps-print-footer
-       (setq ps-lf-cache (ps-generate-string-list ps-left-footer)
-	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
-  (mapconcat 'identity
-	     (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache)
-	     ""))
-
 ;; These functions insert the arrays that define the contents of the headers.
+
+(defvar ps-encode-header-string-function nil)
 
 (defun ps-generate-header-line (fonttag &optional content)
   (ps-output " [" fonttag " ")
@@ -4710,19 +4676,25 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
    ;; Literal strings should be output as is -- the string must contain its own
    ;; PS string delimiters, '(' and ')', if necessary.
    ((stringp content)
-    (ps-output (ps-mule-encode-header-string content fonttag)))
+    (ps-output content))
 
    ;; Functions are called -- they should return strings; they will be inserted
    ;; as strings and the PS string delimiters added.
    ((and (symbolp content) (fboundp content))
-    (ps-output-string (ps-mule-encode-header-string (funcall content)
-						    fonttag)))
+     (if (fboundp ps-encode-header-string-function)
+	 (dolist (l (funcall ps-encode-header-string-function
+			     (funcall content) fonttag))
+	   (ps-output-string l))
+    (ps-output-string (funcall content))))
 
    ;; Variables will have their contents inserted.  They should contain
    ;; strings, and will be inserted as strings.
    ((and (symbolp content) (boundp content))
-    (ps-output-string (ps-mule-encode-header-string (symbol-value content)
-						    fonttag)))
+    (if (fboundp ps-encode-header-string-function)
+	(dolist (l (funcall ps-encode-header-string-function
+			     (symbol-value content) fonttag))
+	  (ps-output-string l))
+      (ps-output-string (symbol-value content))))
 
    ;; Anything else will get turned into an empty string.
    (t
@@ -5676,6 +5648,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	(t (list default default default))
 	))
 
+(defvar ps-basic-plot-string-function 'ps-basic-plot-string)
 
 (defun ps-begin-job ()
   ;; prologue files
@@ -5764,7 +5737,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-color-p           (and ps-print-color-p (ps-color-device))
 	ps-print-color-scale (if ps-color-p
 				 (float (car (ps-color-values "white")))
-			       1.0))
+			       1.0)
+	;; Set up default functions.  They may be overridden by
+	;; ps-mule-begin-job.
+	ps-basic-plot-string-function 'ps-basic-plot-string
+	ps-encode-header-string-function nil)
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
@@ -5845,28 +5822,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	     (format "/PageNumber %d def\n" (ps-page-number)))
 
   (when ps-print-header
-    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1"
-			(or ps-lh-cache ps-left-header))
-    (ps-generate-header "HeaderLinesRight" "/h0" "/h1"
-			(or ps-rh-cache ps-right-header))
-    (ps-output (format "%d SetHeaderLines\n" ps-header-lines))
-    (setq ps-lh-cache nil
-	  ps-rh-cache nil))
+    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1" ps-left-header)
+    (ps-generate-header "HeaderLinesRight" "/h0" "/h1" ps-right-header)
+    (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
 
   (when ps-print-footer
-    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0"
-			(or ps-lf-cache ps-left-footer))
-    (ps-generate-header "FooterLinesRight" "/H0" "/H0"
-			(or ps-rf-cache ps-right-footer))
-    (ps-output (format "%d SetFooterLines\n" ps-footer-lines))
-    (setq ps-lf-cache nil
-	  ps-rf-cache nil))
+    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0" ps-left-footer)
+    (ps-generate-header "FooterLinesRight" "/H0" "/H0" ps-right-footer)
+    (ps-output (format "%d SetFooterLines\n" ps-footer-lines)))
 
   (ps-output (number-to-string ps-lines-printed) " BeginPage\n")
   (ps-set-font  ps-current-font)
   (ps-set-bg    ps-current-bg)
-  (ps-set-color ps-current-color)
-  (ps-mule-begin-page))
+  (ps-set-color ps-current-color))
 
 (defsubst ps-skip-newline (limit)
   (setq ps-showline-count (1+ ps-showline-count)
@@ -5910,7 +5878,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
 	 (str (substring string from to)))
-    (ps-mule-prepare-ascii-font str)
     (ps-output-string str)
     (ps-output " S\n")
     wrappoint))
@@ -5920,7 +5887,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
 	 (string (buffer-substring-no-properties from to)))
-    (ps-mule-prepare-ascii-font string)
     (ps-output-string string)
     (ps-output " S\n")
     wrappoint))
@@ -6024,26 +5990,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
-		 (match       (char-after match-point))
-		 (composition (ps-e-find-composition from (1+ match-point))))
-	    (if composition
-		(if (and (nth 2 composition)
-			 (<= (car composition) match-point))
-		    (progn
-		      (setq match-point (car composition)
-			    match 0)
-		      (goto-char (nth 1 composition)))
-		  (setq composition nil)))
+		 (match       (char-after match-point)))
 	    (when (< from match-point)
-	      (ps-mule-set-ascii-font)
-	      (ps-plot 'ps-basic-plot-string from match-point bg-color))
+	      (ps-plot ps-basic-plot-string-function
+		       from match-point bg-color))
 	    (cond
 	     ((= match ?\t)		; tab
 	      (let ((linestart (line-beginning-position)))
 		(forward-char -1)
 		(setq from (+ linestart (current-column)))
 		(when (re-search-forward "[ \t]+" to t)
-		  (ps-mule-set-ascii-font)
 		  (ps-plot 'ps-basic-plot-whitespace
 			   from (+ linestart (current-column))
 			   bg-color))))
@@ -6068,24 +6024,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		     (ps-skip-newline to))
 		(ps-next-page)))
 
-	     (composition		; a composite sequence
-	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
-
-	     ((> match 255)		; a multi-byte character
-	      (let* ((charset (char-charset match))
-		     (composition (ps-e-find-composition match-point to))
-		     (stop (if (nth 2 composition) (car composition) to)))
-		(or (eq charset 'composition)
-		    (while (and (< (point) stop) (eq (charset-after) charset))
-		      (forward-char 1)))
-		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
-					; characters from ^@ to ^_ and
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
-	;; region without control characters nor multi-byte characters
-	(ps-mule-set-ascii-font)
-	(ps-plot 'ps-basic-plot-string from to bg-color)
+	;; region without control characters
+	(ps-plot ps-basic-plot-string-function from to bg-color)
 	(setq from to)))))
 
 (defvar ps-string-control-codes
@@ -6117,7 +6060,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (if (< (car wrappoint) to)
 	(ps-continue-line))
     (setq ps-width-remaining (- ps-width-remaining (* len char-width)))
-    (ps-mule-prepare-ascii-font str)
     (ps-output-string str)
     (ps-output " S\n")))
 
@@ -6480,6 +6422,7 @@ If FACE is not a valid face name, it is used default face."
 		(ps-begin-page)
 		(funcall genfunc from to)
 		(ps-end-page)
+		(ps-mule-end-job)
 		(ps-end-job needs-begin-file)
 
 		;; Setting this variable tells the unwind form that the
@@ -6831,27 +6774,6 @@ If FACE is not a valid face name, it is used default face."
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
 
-(autoload 'ps-mule-prepare-ascii-font "ps-mule"
-  "Setup special ASCII font for STRING.
-STRING should contain only ASCII characters.")
-
-(autoload 'ps-mule-set-ascii-font     "ps-mule"
-  "Adjust current font if current charset is not ASCII.")
-
-(autoload 'ps-mule-plot-string        "ps-mule"
-  "Generate PostScript code for plotting characters in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same charset.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.")
-
 (autoload 'ps-mule-initialize         "ps-mule"
   "Initialize global data for printing multi-byte characters.")
 
@@ -6862,10 +6784,8 @@ This checks if all multi-byte characters in the region are printable or not.")
 (autoload 'ps-mule-begin-page         "ps-mule"
   "Initialize multi-byte charset for printing current page.")
 
-(autoload 'ps-mule-encode-header-string "ps-mule"
-  "Generate PostScript code for plotting characters in header STRING.
-
-It is assumed that the length of STRING is not zero.")
+(autoload 'ps-mule-end-job         "ps-mule"
+  "Finish printing job for multi-byte chars.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
