@@ -39,6 +39,8 @@
 	     (pre-abbrev-expand-hook abbrev-mode hook)
 	     ;; alloc.c
 	     (gc-cons-threshold alloc integer)
+	     (garbage-collection-messages alloc boolean)
+	     ;; undo.c
 	     (undo-limit undo integer)
 	     (undo-strong-limit undo integer)
 	     (undo-outer-limit undo
@@ -52,7 +54,6 @@ This should only be chosen under exceptional circumstances,
 since it could result in memory overflow and make Emacs crash."
 					      nil))
 			       "22.1")
-	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
 	     (default-major-mode internal function)
