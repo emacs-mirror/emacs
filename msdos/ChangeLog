@@ -1,3 +1,9 @@
+2003-08-31  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sed3v2.inp (srcdir): Use "command.com /c cd" to produce an
+	absolute file name of the current working directory.  This avoids
+	the warning from Make about circular dependencies.
+
 2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* sedlisp.inp: Set FNCASE=y for all targets in the lisp directory,
