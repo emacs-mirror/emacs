@@ -140,7 +140,6 @@ variable @code{file-name-coding-system} to a non-@code{nil} value.
 @section Visiting Files
 @cindex visiting files
 
-@c WideCommands
 @table @kbd
 @item C-x C-f
 Visit a file (@code{find-file}).
@@ -803,7 +802,7 @@ A @dfn{shadow cluster} is a group of hosts that share directories, so
 that copying to or from one of them is sufficient to update the file
 on all of them.  Each shadow cluster has a name, and specifies the
 network address of a primary host (the one we copy files to), and a
-regular expression that matches the hostnames of all the other hosts
+regular expression that matches the host names of all the other hosts
 in the cluster.  You can define a shadow cluster with @kbd{M-x
 shadow-define-cluster}.
 
@@ -1927,7 +1926,7 @@ the repository, and picking up changes from other users into one's own
 working area, then works by direct interactions with the CVS server.
 
   One difficulty is that access to the CVS server is often slow, and
-that developers might need to work offline as well.  VC is designed
+that developers might need to work off-line as well.  VC is designed
 to reduce the amount of network interaction necessary.
 
 @menu
@@ -2049,7 +2048,7 @@ that you can refer to it later if you wish.)
 While using local RCS, you can pick up recent changes from the CVS
 repository into your local file, or commit some of your changes back
 to CVS, without terminating local RCS version control.  To do this,
-switch to the CVS backend temporarily, with the @kbd{C-x v b} command:
+switch to the CVS back end temporarily, with the @kbd{C-x v b} command:
 
 @table @kbd
 @item C-x v b
@@ -2518,7 +2517,7 @@ automatically.
 users, but there is a mode called @dfn{non-strict locking} in which
 you can check-in changes without locking the file first.  Use
 @samp{rcs -U} to switch to non-strict locking for a particular file,
-see the @code{rcs} manpage for details.
+see the @code{rcs} manual page for details.
 
   When deducing the version control state of an RCS file, VC first
 looks for an RCS version header string in the file (@pxref{Version
@@ -2566,9 +2565,9 @@ locking.
   For one thing, you can set the @env{CVSREAD} environment variable
 (the value you use makes no difference).  If this variable is defined,
 CVS makes your work files read-only by default.  In Emacs, you must
-type @kbd{C-x C-q} to make the file writeable, so that editing works
+type @kbd{C-x C-q} to make the file writable, so that editing works
 in fact similar as if locking was used.  Note however, that no actual
-locking is performed, so several users can make their files writeable
+locking is performed, so several users can make their files writable
 at the same time.  When setting @env{CVSREAD} for the first time, make
 sure to check out all your modules anew, so that the file protections
 are set correctly.
@@ -2578,7 +2577,7 @@ are set correctly.
   Another way to achieve something similar to locking is to use the
 @dfn{watch} feature of CVS.  If a file is being watched, CVS makes it
 read-only by default, and you must also use @kbd{C-x C-q} in Emacs to
-make it writable.  VC calls @code{cvs edit} to make the file writeable,
+make it writable.  VC calls @code{cvs edit} to make the file writable,
 and CVS takes care to notify other developers of the fact that you
 intend to change the file.  See the CVS documentation for details on
 using the watch feature.
@@ -2606,7 +2605,7 @@ do in @code{vc-next-action} (@kbd{C-x v v}), just as it does for local
 repositories.  It also does not make any version backups.
 
   You can also set @code{vc-cvs-stay-local} to a regular expression
-that is matched against the repository hostname; VC then stays local
+that is matched against the repository host name; VC then stays local
 only for repositories from hosts that match the pattern.
 
 @node Directories
@@ -2898,7 +2897,7 @@ requires the appropriate uncompression program.
 the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
 @code{zoo}, which have extensions corresponding to the program names.
 
-  The keybindings of Archive mode are similar to those in Tar mode,
+  The key bindings of Archive mode are similar to those in Tar mode,
 with the addition of the @kbd{m} key which marks a file for subsequent
 operations, and @kbd{M-@key{DEL}} which unmarks all the marked files.
 Also, the @kbd{a} key toggles the display of detailed file

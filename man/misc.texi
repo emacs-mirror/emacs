@@ -1643,7 +1643,6 @@ any time is called the buffer's @dfn{restriction}.
 paragraph by eliminating clutter.  It can also be used to restrict the
 range of operation of a replace command or repeating keyboard macro.
 
-@c WideCommands
 @table @kbd
 @item C-x n n
 Narrow down to between point and mark (@code{narrow-to-region}).
@@ -1969,11 +1968,11 @@ the order you choose.
 @cindex other editors
 @cindex EDT
 @cindex vi
-@cindex PC keybindings
+@cindex PC key bindings
 @cindex scrolling all windows
-@cindex PC selecion
-@cindex Motif keybindings
-@cindex Macintosh keybindings
+@cindex PC selection
+@cindex Motif key bindings
+@cindex Macintosh key bindings
 @cindex WordStar
 
   GNU Emacs can be programmed to emulate (more or less) most other
@@ -1988,7 +1987,7 @@ editors.  Standard facilities can emulate these:
 @cindex Brief emulation
 @cindex emulation of Brief
 @cindex mode, CRiSP
-You can turn on keybindings to emulate the CRiSP/Brief editor with
+You can turn on key bindings to emulate the CRiSP/Brief editor with
 @kbd{M-x crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs
 unless you change the user option @code{crisp-override-meta-x}.  You can
 also use the command @kbd{M-x scroll-all-mode} or set the user option
@@ -2025,10 +2024,10 @@ to beginning and end of buffer and @kbd{C-Escape} does
 @cindex selection, PC
 The command @kbd{M-x pc-selection-mode} enables a global minor mode
 that emulates the mark, copy, cut and paste commands of various other
-systems---an interface known as CUA.  It establishes the keybindings
+systems---an interface known as CUA.  It establishes the key bindings
 of PC mode, and also modifies the bindings of the cursor keys and the
 @kbd{next}, @kbd{prior}, @kbd{home} and @kbd{end} keys.  It does not
-provide the full set of CUA keybindings---the fundamental Emacs keys
+provide the full set of CUA key bindings---the fundamental Emacs keys
 @kbd{C-c}, @kbd{C-v} and @kbd{C-x} are not changed.
 
 The standard keys for moving around (@kbd{right}, @kbd{left},
@@ -2089,7 +2088,7 @@ not use it.
 @item WordStar (old wordprocessor)
 @findex wordstar-mode
 @kbd{M-x wordstar-mode} provides a major mode with WordStar-like
-keybindings.
+key bindings.
 @end table
 
 @node Hyperlinking, Dissociated Press, Emulation, Top

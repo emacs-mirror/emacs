@@ -923,7 +923,7 @@ the first line as well.
 
 @cindex shell scripts, and local file variables
   In shell scripts, the first line is used to identify the script
-interpreter, so you cannot put any local variables there.  To accomodate
+interpreter, so you cannot put any local variables there.  To accommodate
 for this, when Emacs visits a shell script, it looks for local variable
 specifications in the @emph{second} line.
 
@@ -1030,7 +1030,6 @@ about to type @kbd{C-n C-d} forty times, you can speed your work by
 defining a keyboard macro to do @kbd{C-n C-d} and calling it with a
 repeat count of forty.
 
-@c widecommands
 @table @kbd
 @item C-x (
 Start defining a keyboard macro (@code{start-kbd-macro}).
