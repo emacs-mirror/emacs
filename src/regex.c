@@ -260,7 +260,8 @@ char *alloca ();
 
 /* Define how to allocate the failure stack.  */
 
-#ifdef REL_ALLOC
+#if defined (REL_ALLOC) && !defined (REGEX_MALLOC)
+
 #define REGEX_ALLOCATE_STACK(size)				\
   r_alloc (&failure_stack_ptr, (size))
 #define REGEX_REALLOCATE_STACK(source, osize, nsize)		\
@@ -268,7 +269,7 @@ char *alloca ();
 #define REGEX_FREE_STACK(ptr)					\
   r_alloc_free (&failure_stack_ptr)
 
-#else /* not REL_ALLOC */
+#else /* not using relocating allocator */
 
 #ifdef REGEX_MALLOC
 
@@ -286,7 +287,7 @@ char *alloca ();
 #define REGEX_FREE_STACK(arg)
 
 #endif /* not REGEX_MALLOC */
-#endif /* not REL_ALLOC */
+#endif /* not using relocating allocator */
 
 
 /* True if `size1' is non-NULL and PTR is pointing anywhere inside
