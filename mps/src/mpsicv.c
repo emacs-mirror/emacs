@@ -1,7 +1,7 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.16) $
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpsicv.c(trunk.17) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #include "testlib.h"
@@ -36,6 +36,8 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
+/* make -- allocate an object */
+
 static mps_addr_t make(void)
 {
   size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
@@ -44,13 +46,35 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if(res) die(res, "MPS_RESERVE_BLOCK");
+    if (res != MPS_RES_OK) die(res, "MPS_RESERVE_BLOCK");
     res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
-    if(res) die(res, "dylan_init");
+    if (res != MPS_RES_OK) die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
   return p;
 }
+
+
+/* make_with_permit -- allocate an object, with reservoir permit */
+
+static mps_addr_t make_with_permit(void)
+{
+  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
+  mps_addr_t p;
+  mps_res_t res;
+
+  do {
+    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, p, ap, size);
+    if (res != MPS_RES_OK) die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
+    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    if (res != MPS_RES_OK) die(res, "dylan_init");
+  } while(!mps_commit(ap, p, size));
+
+  return p;
+}
+
+
+/* make_no_inline -- allocate an object, using non-inlined interface */
 
 static mps_addr_t make_no_inline(void)
 {
@@ -60,9 +84,9 @@ static mps_addr_t make_no_inline(void)
 
   do {
     res = (mps_reserve)(&p, ap, size);
-    if(res) die(res, "(mps_reserve)");
+    if (res != MPS_RES_OK) die(res, "(mps_reserve)");
     res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
-    if(res) die(res, "dylan_init");
+    if (res != MPS_RES_OK) die(res, "dylan_init");
   } while(!(mps_commit)(ap, p, size));
 
   return p;
@@ -111,7 +135,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 }
 
 
-/* == arena_commit_test ==
+/* arena_commit_test
  *
  * intended to test:
  *   MPS_RES_COMMIT_LIMIT
@@ -125,6 +149,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_pool_create
  *   mps_pool_destroy
  */
+
 static void arena_commit_test(mps_arena_t arena)
 {
   mps_pool_t pool;
@@ -134,30 +159,45 @@ static void arena_commit_test(mps_arena_t arena)
   void *p;
   mps_res_t res;
 
-  reserved = mps_arena_reserved(arena);
   committed = mps_arena_committed(arena);
-  if(reserved < committed) {
-    fprintf(stderr, "Error: amount returned by mps_arena_reserved is\n"
-		    "less than amount returned by mps_arena_committed.\n");
-    abort();
-  }
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-		      0x1000, 1024, 16384), "commit pool create");
+  reserved = mps_arena_reserved(arena);
+  cdie(reserved >= committed, "reserved < committed");
+  die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
+      "commit pool create");
   limit = mps_arena_commit_limit(arena);
   mps_arena_commit_limit_set(arena, committed);
-  while((res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE)) == MPS_RES_OK)
-    ;
-  if(res != MPS_RES_COMMIT_LIMIT) {
-    fprintf(stderr, "Unexpected: Allocation failed for reason other than "
-		    "MPS_RES_COMMIT_LIMIT, res = %d\n", res);
-  }
+  do {
+    res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
+  } while (res == MPS_RES_OK);
+  die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
   mps_arena_commit_limit_set(arena, limit);
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
-  if(res != MPS_RES_OK) {
-    fprintf(stderr, "Unexpected: Allocation failed after raising "
-		    " commit_limit, res = %d\n", res);
-  }
+  die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
   mps_pool_destroy(pool);
+}
+
+
+/* reservoir_test -- Test the reservoir interface
+ *
+ * This has not been tuned to actually dip into the reservoir.  See
+ * QA test 132 for that.
+ */
+
+#define reservoirSIZE ((size_t)128 * 1024)
+
+static void reservoir_test(mps_arena_t arena)
+{
+  (void)make_with_permit();
+  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
+  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
+  mps_reservoir_limit_set(arena, reservoirSIZE);
+  cdie(mps_reservoir_limit(arena) >= reservoirSIZE, "reservoir limit set");
+  cdie(mps_reservoir_available(arena) >= reservoirSIZE, "got reservoir");
+  (void)make_with_permit();
+  mps_reservoir_limit_set(arena, 0);
+  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
+  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
+  (void)make_with_permit();
 }
 
 
@@ -229,7 +269,7 @@ static void *test(void *arg, size_t s)
   mps_ld_reset(&ld, arena);
   mps_ld_add(&ld, arena, obj);
 
-  if(mps_ld_isstale(&ld, arena, obj)) {
+  if (mps_ld_isstale(&ld, arena, obj)) {
     mps_ld_reset(&ld, arena);
     mps_ld_add(&ld, arena, obj);
   }
@@ -242,7 +282,7 @@ static void *test(void *arg, size_t s)
 
     c = mps_collections(arena);
 
-    if(collections != c) {
+    if (collections != c) {
       collections = c;
       printf("\nCollection %u, %lu objects.\n", c, i);
       for(r = 0; r < exactRootsCOUNT; ++r)
@@ -250,24 +290,25 @@ static void *test(void *arg, size_t s)
              "all roots check");
     }
 
-    if(rnd() % patternFREQ == 0)
+    if (rnd() % patternFREQ == 0)
       switch(rnd() % 4) {
       case 0: case 1: mps_ap_alloc_pattern_begin(ap, ramp); break;
       case 2: mps_ap_alloc_pattern_end(ap, ramp); break;
       case 3: mps_ap_alloc_pattern_reset(ap); break;
       }
 
-    if(rnd() & 1)
+    if (rnd() & 1)
       exactRoots[rnd() % exactRootsCOUNT] = make();
     else
       ambigRoots[rnd() % ambigRootsCOUNT] = make();
 
     r = rnd() % exactRootsCOUNT;
-    if(exactRoots[r] != objNULL)
+    if (exactRoots[r] != objNULL)
       cdie(dylan_check(exactRoots[r]), "random root check");
   }
 
   arena_commit_test(arena);
+  reservoir_test(arena);
 
   mps_arena_collect(arena);
 
