@@ -204,7 +204,7 @@ mouse event, and the number of elements in items is less than
 `widget-menu-max-size', a popup menu will be used, otherwise the
 minibuffer."
   (cond ((and (< (length items) widget-menu-max-size)
-	      event (display-mouse-p))
+	      event (display-popup-menus-p))
 	 ;; Mouse click.
 	 (x-popup-menu event
 		       (list title (cons "" items))))
