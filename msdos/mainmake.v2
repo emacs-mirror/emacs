@@ -70,7 +70,10 @@ install: all
 
 FRC:
 
-TAGS tags:	lib-src
+TAGS tags:	lib-src FRC
+	cd lib-src
+	if exist etags.exe mv -f etags.exe ../bin
+	cd ..
 	cd lisp
 	../bin/etags [a-zA-Z]*.el term/[a-zA-Z]*.el
 	cd ..
