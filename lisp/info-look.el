@@ -400,7 +400,9 @@ The default file name is the one found at point."
 	  (setq refer-modes (nreverse refer-modes))
 	  ;; Build the full completion alist.
 	  (setq completions
-		(nconc (info-lookup-make-completions topic mode)
+		(nconc (condition-case nil
+			   (info-lookup-make-completions topic mode)
+			 (error nil))
 		       (apply 'append
 			      (mapcar (lambda (arg)
 					(info-lookup->completions topic arg))
@@ -712,7 +714,7 @@ Return nil if there is nothing appropriate."
 (info-lookup-maybe-add-help
  :mode 'latex-mode
  :regexp "\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
- :doc-spec '(("(latex2e)Command Index" nil
+ :doc-spec '(("(latex)Command Index" nil
 	      "`" "\\({[^}]*}\\)?'")))
 
 (info-lookup-maybe-add-help
