@@ -1,3 +1,13 @@
+2001-09-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Make
+	`gnus-current-select-method' buffer-local.
+	From TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>.
+
+	* gnus-art.el (gnus-request-article-this-buffer): Refer to
+	`gnus-current-select-method' in the current summary buffer.
+	From TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>.
+
 2001-09-18  Miles Bader  <miles@gnu.org>
 
 	* gnus-srvr.el (gnus-server-insert-server-line): Don't let an

@@ -1,5 +1,11 @@
 2001-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (modify_overlay): Don't do nothing if START == END;
+	This can still be a modification, for example when an overlay has
+	a before-string or after-string.
+	(Fdelete_overlay): Prevent redisplay optimizations when deleting
+	an overlay with before-string or after-string.
+
 	* s/netbsd.h (C_SWITCH_SYSTEM): Add.
 	(LD_SWITCH_SYSTEM): Include /usr/local/lib.
 
