@@ -95,7 +95,7 @@ use this command, and then save the file."
 		 (insert "\\M-C-?"))))))
     (insert ")\n")
     (if keys
-	(let ((keys (where-is-internal macroname nil)))
+	(let ((keys (where-is-internal macroname '(keymap))))
 	  (while keys
 	    (insert "(global-set-key ")
 	    (prin1 (car keys) (current-buffer))
