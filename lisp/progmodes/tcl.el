@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.23 $
+;; Version: $Revision: 1.24 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/08/21 03:54:45 $|$Revision: 1.23 $|~/modes/tcl.el.Z|
+;; $Date: 1994/08/21 20:33:05 $|$Revision: 1.24 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.24  1994/08/21  20:33:05  tromey
+;; Fixed bug in tcl-guess-application.
+;;
 ;; Revision 1.23  1994/08/21  03:54:45  tromey
 ;; Keybindings don't overshadown comint bindings.
 ;;
@@ -270,7 +273,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.23 $")
+(defconst tcl-version "$Revision: 1.24 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -1724,7 +1727,11 @@ Prefix argument means switch to the Tcl buffer afterwards."
    (list
     ;; car because comint-get-source returns a list holding the
     ;; filename.
-    (car (comint-get-source "Load Tcl file: " tcl-previous-dir/file
+    (car (comint-get-source "Load Tcl file: "
+			    (or (and
+				 (eq major-mode 'tcl-mode)
+				 (buffer-file-name))
+				tcl-previous-dir/file)
 			    '(tcl-mode) t))
     current-prefix-arg))
   (comint-check-source file)
@@ -1734,8 +1741,6 @@ Prefix argument means switch to the Tcl buffer afterwards."
 		   (format inferior-tcl-source-command (tcl-quote file)))
   (if and-go (switch-to-tcl t)))
 
-;; Maybe this should work just like tcl-load-file.  But I think what
-;; I've implemented will turn out to be more useful.
 (defun tcl-restart-with-file (file &optional and-go)
   "Restart inferior Tcl with file.
 If an inferior Tcl process exists, it is killed first.
