@@ -445,7 +445,7 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file, and add an entry for today and an item for this file.
 Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
-name and site.
+name and email (stored in `add-log-full-name' and `add-log-mailing-address').
 
 Second arg FILE-NAME is file name of the change log.
 If nil, use the value of `change-log-default-name'.
