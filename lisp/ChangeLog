@@ -1,5 +1,9 @@
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/etags.el (tags-loop-continue): Don't change point in a
+	file that isn't interesting.  In an interesting file, push the old
+	value of point on the mark ring.
+
 	* mail/rmailsum.el (rmail-summary-override-mail-send-and-exit):
 	New function.
 	(rmail-summary-mail, rmail-summary-reply, rmail-summary-forward):
