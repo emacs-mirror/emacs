@@ -3568,7 +3568,7 @@ parse_modifiers (symbol)
   else
     {
       int end;
-      EMACS_INT modifiers = parse_modifiers_uncached (symbol, &end);
+      int modifiers = parse_modifiers_uncached (symbol, &end);
       Lisp_Object unmodified;
       Lisp_Object mask;
 
@@ -3576,7 +3576,7 @@ parse_modifiers (symbol)
 					 XSYMBOL (symbol)->name->size - end),
 			    Qnil);
 
-      if (modifiers & ~((1<<VALBITS) - 1))
+      if (modifiers & ~(((EMACS_INT)1 << VALBITS) - 1))
 	abort ();
       XSETFASTINT (mask, modifiers);
       elements = Fcons (unmodified, Fcons (mask, Qnil));
@@ -3613,7 +3613,7 @@ apply_modifiers (modifiers, base)
   Lisp_Object cache, index, entry, new_symbol;
 
   /* Mask out upper bits.  We don't know where this value's been.  */
-  modifiers &= (1<<VALBITS) - 1;
+  modifiers &= ((EMACS_INT)1 << VALBITS) - 1;
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
@@ -5845,7 +5845,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (modifiers & shift_modifier)
 	    {
 	      modifiers &= ~shift_modifier;
-	      key = apply_modifiers (make_number (modifiers),
+	      key = apply_modifiers (modifiers,
 				     XCONS (breakdown)->car);
 
 	      keybuf[t - 1] = key;
