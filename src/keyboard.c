@@ -1256,7 +1256,7 @@ command_loop_1 ()
 		 do them directly.  */
 	      if (EQ (this_command, Qforward_char) && PT < ZV)
 		{
-                  struct Lisp_Vector *dp
+                  struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
 		  lose = FETCH_CHAR (PT);
 		  SET_PT (PT + 1);
@@ -1279,7 +1279,7 @@ command_loop_1 ()
 		}
 	      else if (EQ (this_command, Qbackward_char) && PT > BEGV)
 		{
-                  struct Lisp_Vector *dp
+                  struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
 		  SET_PT (PT - 1);
 		  lose = FETCH_CHAR (PT);
@@ -1335,7 +1335,7 @@ command_loop_1 ()
 		  if (!lose
 		      && (PT == ZV || FETCH_CHAR (PT) == '\n'))
 		    {
-		      struct Lisp_Vector *dp
+		      struct Lisp_Char_Table *dp
 			= window_display_table (XWINDOW (selected_window));
 		      int lose = c;
 
