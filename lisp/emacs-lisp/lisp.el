@@ -135,7 +135,15 @@ Returns t unless search stops due to beginning or end of buffer.
 Normally a defun starts when there is an char with open-parenthesis
 syntax at the beginning of a line.  If `defun-prompt-regexp' is
 non-nil, then a string which matches that regexp may precede the
-open-parenthesis."
+open-parenthesis, and point ends up at the beginning of the line."
+  (interactive "p")
+  (and (beginning-of-defun-raw arg)
+       (progn (beginning-of-line) t)))
+
+(defun beginning-of-defun-raw (&optional arg)
+  "Move point to the character that starts a defun.
+This is identical to beginning-of-defun, except that point does not move
+to the beginning of the line when `defun-prompt-regexp' is non-nil."
   (interactive "p")
   (and arg (< arg 0) (forward-char 1))
   (and (re-search-backward (if defun-prompt-regexp
@@ -143,7 +151,7 @@ open-parenthesis."
 				       "\\(" defun-prompt-regexp "\\)\\s(")
 			     "^\\s(")
 			   nil 'move (or arg 1))
-       (progn (beginning-of-line) t)))
+       (progn (goto-char (1- (match-end 0)))) t))
 
 (defun buffer-end (arg)
   (if (> arg 0) (point-max) (point-min)))
@@ -162,11 +170,11 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 	(while (progn
 		(if (and first
 			 (progn
-			  (forward-char 1)
-			  (beginning-of-defun 1)))
+			  (end-of-line 1)
+			  (beginning-of-defun-raw 1)))
 		    nil
 		  (or (bobp) (forward-char -1))
-		  (beginning-of-defun -1))
+		  (beginning-of-defun-raw -1))
 		(setq first nil)
 		(forward-list 1)
 		(skip-chars-forward " \t")
@@ -176,11 +184,11 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
       (setq arg (1- arg)))
     (while (< arg 0)
       (let ((pos (point)))
-	(beginning-of-defun 1)
+	(beginning-of-defun-raw 1)
 	(forward-sexp 1)
 	(forward-line 1)
 	(if (>= (point) pos)
-	    (if (beginning-of-defun 2)
+	    (if (beginning-of-defun-raw 2)
 		(progn
 		  (forward-list 1)
 		  (skip-chars-forward " \t")
