@@ -246,6 +246,13 @@ The following keywords are meaningful:
 	Specifies that SYMBOL should be set after the list of variables
         VARIABLES when both have been customized.
 
+If SYMBOL has a local binding, then this form affects the local
+binding.  This is normally not what you want.  Thus, if you need
+to load a file defining variables with this form, or with
+`defvar' or `defconst', you should always load that file
+_outside_ any bindings for these variables.  \(`defvar' and
+`defconst' behave similarly in this respect.)
+
 Read the section about customization in the Emacs Lisp manual for more
 information."
   ;; It is better not to use backquote in this file,
