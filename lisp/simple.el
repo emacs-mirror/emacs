@@ -2887,7 +2887,17 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 	   (in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
        (or (mail continue to subject in-reply-to cc yank-action send-actions)
 	   continue
-	   (error "Message aborted"))))
+	   (error "Message aborted"))
+       (save-excursion
+	 (goto-char (point-min))
+	 (search-forward mail-header-separator)
+	 (beginning-of-line)
+	 (while other-headers
+	   (if (not (member (car (car other-headers)) '("in-reply-to" "cc")))
+	       (insert (car (car other-headers)) ": "
+		       (cdr (car other-headers)) "\n"))
+	   (setq other-headers (cdr other-headers)))
+	 t)))
   'mail-send-and-exit)
 
 (define-mail-user-agent 'mh-e-user-agent
