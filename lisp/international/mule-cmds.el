@@ -176,6 +176,14 @@ With arg, make them enable iff arg is positive."
       (message "")
       (call-interactively cmd))))
 
+(defun set-default-coding-systems (coding-system)
+  "Set default value of various coding systems to CODING-SYSTEM."
+  (check-coding-system coding-system)
+  (setq-default buffer-file-coding-system coding-system)
+  (setq default-terminal-coding-system coding-system)
+  (setq default-keyboard-coding-system coding-system)
+  (setq default-process-coding-system (cons coding-system coding-system)))
+
 
 ;;; Language support staffs.
 
