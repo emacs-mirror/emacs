@@ -10839,15 +10839,14 @@ find_last_row_displaying_text (matrix, it, start)
 
 
 /* Return the last row in the current matrix of W that is not affected
-   by changes at the start of current_buffer that occurred since the
-   last time W was redisplayed.  Value is null if no such row exists.
+   by changes at the start of current_buffer that occurred since W's
+   current matrix was built.  Value is null if no such row exists.
 
-   The global variable beg_unchanged has to contain the number of
-   bytes unchanged at the start of current_buffer.  BEG +
-   beg_unchanged is the buffer position of the first changed byte in
-   current_buffer.  Characters at positions < BEG + beg_unchanged are
-   at the same buffer positions as they were when the current matrix
-   was built.  */
+   BEG_UNCHANGED us the number of characters unchanged at the start of
+   current_buffer.  BEG + BEG_UNCHANGED is the buffer position of the
+   first changed character in current_buffer.  Characters at positions <
+   BEG + BEG_UNCHANGED are at the same buffer positions as they were
+   when the current matrix was built.  */
 
 static struct glyph_row *
 find_last_unchanged_at_beg_row (w)
@@ -10888,12 +10887,16 @@ find_last_unchanged_at_beg_row (w)
 
 
 /* Find the first glyph row in the current matrix of W that is not
-   affected by changes at the end of current_buffer since the last
-   time the window was redisplayed.  Return in *DELTA the number of
-   chars by which buffer positions in unchanged text at the end of
-   current_buffer must be adjusted.  Return in *DELTA_BYTES the
-   corresponding number of bytes.  Value is null if no such row
-   exists, i.e. all rows are affected by changes.  */
+   affected by changes at the end of current_buffer since the 
+   time W's current matrix was built.
+
+   Return in *DELTA the number of chars by which buffer positions in
+   unchanged text at the end of current_buffer must be adjusted.
+   
+   Return in *DELTA_BYTES the corresponding number of bytes.
+
+   Value is null if no such row exists, i.e. all rows are affected by
+   changes.  */
    
 static struct glyph_row *
 find_first_unchanged_at_end_row (w, delta, delta_bytes)
@@ -10938,8 +10941,8 @@ find_first_unchanged_at_end_row (w, delta, delta_bytes)
 
       /* Set last_unchanged_pos to the buffer position of the last
 	 character in the buffer that has not been changed.  Z is the
-	 index + 1 of the last byte in current_buffer, i.e. by
-	 subtracting end_unchanged we get the index of the last
+	 index + 1 of the last character in current_buffer, i.e. by
+	 subtracting END_UNCHANGED we get the index of the last
 	 unchanged character, and we have to add BEG to get its buffer
 	 position.  */
       last_unchanged_pos = Z - END_UNCHANGED + BEG;
@@ -11086,8 +11089,6 @@ row_containing_pos (w, charpos, start, end)
 
    7. Update W's window end information.  */
 
-  /* Check that window end is what we expect it to be.  */
-
 static int
 try_window_id (w)
      struct window *w;
@@ -11143,12 +11144,11 @@ try_window_id (w)
     {
       struct glyph_row *r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
       int delta = CHARPOS (start) - MATRIX_ROW_START_CHARPOS (r0);
+      int delta_bytes = BYTEPOS (start) - MATRIX_ROW_START_BYTEPOS (r0);
 
-      if (delta)
+      if (delta || delta_bytes)
 	{
 	  struct glyph_row *r1 = MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
-	  int delta_bytes = BYTEPOS (start) - MATRIX_ROW_START_BYTEPOS (r0);
-
 	  increment_matrix_positions (w->current_matrix,
 				      MATRIX_ROW_VPOS (r0, current_matrix),
 				      MATRIX_ROW_VPOS (r1, current_matrix),
