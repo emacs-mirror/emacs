@@ -657,7 +657,7 @@ groups after non-groups, if nil do not order groups at all."
 (defvar custom-reset-menu
   '(("Current" . Custom-reset-current)
     ("Saved" . Custom-reset-saved)
-    ("Standard Settings" . Custom-reset-standard))
+    ("Erase Customization (use standard settings)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
 lisp function taking the widget as an element which will be called
@@ -695,7 +695,10 @@ when the action is chosen.")
 	    children)))
 
 (defun Custom-reset-standard (&rest ignore)
-  "Reset all modified, set, or saved group members to their standard settings."
+  "Erase all customization (either current or saved) for the group members.
+The immediate result is to restore them to their standard settings.
+This operation eliminates any saved settings for the group members,
+making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
     (mapcar (lambda (widget)
@@ -1279,9 +1282,9 @@ Reset all values in this buffer to their saved settings."
 		   :action 'Custom-reset-saved)
     (widget-insert " ")
     (widget-create 'push-button
-		   :tag "Reset to Standard"
+		   :tag "Erase Customization"
 		   :help-echo "\
-Reset all values in this buffer to their standard settings."
+Un-customize all values in this buffer.  They get their standard settings."
 		   :action 'Custom-reset-standard))
   (widget-insert "   ")
   (widget-create 'push-button
@@ -2253,7 +2256,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		(get (widget-value widget) 'saved-variable-comment))
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed rogue)))))
-    ("Reset to Standard Settings" custom-variable-reset-standard
+    ("Erase Customization" custom-variable-reset-standard
      (lambda (widget)
        (and (get (widget-value widget) 'standard-value)
 	    (memq (widget-get widget :custom-state)
@@ -2272,7 +2275,7 @@ Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
 menu is selected, and FILTER is a predicate which takes a `custom-variable'
 widget as an argument, and returns non-nil if ACTION is valid on that
-widget. If FILTER is nil, ACTION is always valid.")
+widget.  If FILTER is nil, ACTION is always valid.")
 
 (defun custom-variable-action (widget &optional event)
   "Show the menu for `custom-variable' WIDGET.
@@ -2401,7 +2404,9 @@ Optional EVENT is the location for the menu."
     (custom-redraw widget)))
 
 (defun custom-variable-reset-standard (widget)
-  "Restore the standard setting for the variable being edited by WIDGET."
+  "Restore the standard setting for the variable being edited by WIDGET.
+This operation eliminates any saved setting for the variable,
+restoring it to the state of a variable that has never been customized."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
 	 (comment-widget (widget-get widget :comment-widget)))
@@ -2682,7 +2687,7 @@ Match frames with dark backgrounds.")
      (lambda (widget)
        (or (get (widget-value widget) 'saved-face)
 	   (get (widget-value widget) 'saved-face-comment))))
-    ("Reset to Standard Setting" custom-face-reset-standard
+    ("Erase Customization" custom-face-reset-standard
      (lambda (widget)
        (get (widget-value widget) 'face-defface-spec)))
     ("---" ignore ignore)
@@ -2702,7 +2707,7 @@ Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
 menu is selected, and FILTER is a predicate which takes a `custom-face'
 widget as an argument, and returns non-nil if ACTION is valid on that
-widget. If FILTER is nil, ACTION is always valid.")
+widget.  If FILTER is nil, ACTION is always valid.")
 
 (defun custom-face-edit-selected (widget)
   "Edit selected attributes of the value of WIDGET."
@@ -2828,7 +2833,9 @@ Optional EVENT is the location for the menu."
     (custom-redraw-magic widget)))
 
 (defun custom-face-reset-standard (widget)
-  "Restore WIDGET to the face's standard settings."
+  "Restore WIDGET to the face's standard settings.
+This operation eliminates any saved setting for the face,
+restoring it to the state of a face that has never been customized."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
 	 (value (get symbol 'face-defface-spec))
