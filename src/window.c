@@ -2113,7 +2113,7 @@ When calling from a program, supply a number as argument or nil.")
 }
 
 DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
-  "Scroll text of next window upward ARG lines; or near full screen if no ARG.\n\
+  "Scroll next window upward ARG lines; or near full screen if no ARG.\n\
 The next window is the one below the current one; or the one at the top\n\
 if the current one is at the bottom.\n\
 When calling from a program, supply a number as argument or nil.\n\
