@@ -90,8 +90,6 @@
   "Switch to *dungeon* buffer and start game."
   (interactive)
   (switch-to-buffer "*dungeon*")
-  (insert "This version of Dunnet has been censored for your protection
-in accord with the Communications Decency Act.\n\n")
   (dun-mode)
   (setq dun-dead nil)
   (setq room 0)
@@ -948,7 +946,7 @@ My home page is http://www.driver-aces.com/ronnie.html
     (dun-put-objs-in-treas (nth urinal dun-room-objects))
     (dun-replace dun-room-objects urinal nil)))
 
-(defun dun-urinate (args)
+(defun dun-piss (args)
   (if (not (= dun-current-room bathroom))
       (dun-mprincl "You can't do that here, don't even bother trying.")
     (if (not dun-gottago)
@@ -1945,7 +1943,7 @@ A hole leads north."
 		     (type . dun-type)  (insert . dun-put)
 		     (score . dun-score) (help . dun-help) (quit . dun-quit) 
 		     (read . dun-examine) (verbose . dun-long) 
-		     (urinate . dun-urinate)
+		     (urinate . dun-piss) (piss . dun-piss)
 		     (flush . dun-flush) (sleep . dun-sleep) (lie . dun-sleep) 
 		     (x . dun-examine) (break . dun-break) (drive . dun-drive)
 		     (board . dun-in) (enter . dun-in) (turn . dun-turn)
