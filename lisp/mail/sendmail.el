@@ -814,8 +814,11 @@ is inserted.
 If `mail-setup-hook' is bound, its value is called with no arguments
 after the message is initialized.  It can add more default fields.
 
-When calling from a program, the second through fifth arguments
- TO, SUBJECT, IN-REPLY-TO and CC specify if non-nil
+When calling from a program, the first argument if non-nil says
+not to erase the existing contents of the `*mail*' buffer.
+
+The second through fifth arguments,
+ TO, SUBJECT, IN-REPLY-TO and CC, specify if non-nil
  the initial contents of those header fields.
  These arguments should not have final newlines.
 The sixth argument REPLYBUFFER is a buffer whose contents
