@@ -152,8 +152,15 @@ If the element is a function or a list of a function and a number,
     (set-window-point (selected-window) wp)
     (sit-for 0 500)
     (let ((pgm (elt zone-programs (random (length zone-programs))))
-          (ct (and f (frame-parameter f 'cursor-type))))
-      (when ct (modify-frame-parameters f '((cursor-type . (bar . 0)))))
+          (ct (and f (frame-parameter f 'cursor-type)))
+          (restore (list '(kill-buffer outbuf))))
+      (when ct
+        (modify-frame-parameters f '((cursor-type . (bar . 0))))
+        (setq restore (cons '(modify-frame-parameters
+                              f (list (cons 'cursor-type ct)))
+                            restore)))
+      ;; Make `restore' a self-disabling one-shot thunk.
+      (setq restore `(lambda () ,@restore (setq restore nil)))
       (condition-case nil
           (progn
             (message "Zoning... (%s)" pgm)
@@ -167,14 +174,17 @@ If the element is a function or a list of a function and a number,
             (zone-call pgm)
             (message "Zoning...sorry"))
         (error
+         (funcall restore)
          (while (not (input-pending-p))
            (message (format "We were zoning when we wrote %s..." pgm))
            (sit-for 3)
            (message "...here's hoping we didn't hose your buffer!")
            (sit-for 3)))
-        (quit (ding) (message "Zoning...sorry")))
-      (when ct (modify-frame-parameters f (list (cons 'cursor-type ct)))))
-    (kill-buffer outbuf)))
+        (quit
+         (funcall restore)
+         (ding)
+         (message "Zoning...sorry")))
+      (when restore (funcall restore)))))
 
 ;;;; Zone when idle, or not.
 
@@ -659,7 +669,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
       (end-of-line 0)
       (forward-char -10))
     (let ((life-patterns (vector
-                          (if (and col (re-search-forward "[^ ]" max t))
+                          (if (and col (search-forward "@" max t))
                               (cons (make-string (length (car col)) 32) col)
                             (list (mapconcat 'identity
                                              (make-list (/ (- rtc 11) 15)
