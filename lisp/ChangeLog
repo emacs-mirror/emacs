@@ -1,3 +1,8 @@
+2002-09-24  Markus Rost  <rost@math.ohio-state.edu>
+
+	* simple.el (edit-and-eval-command):  Protect command-history.
+	(repeat-complex-command):  Protect command-history.
+
 2002-09-24  Juanma Barranquero  <lektu@terra.es>
 
 	* replace.el (occur-find-match): New function.
