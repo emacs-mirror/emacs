@@ -180,8 +180,8 @@ Leading comment characters and whitespace should be in regexp group 1."
 If called with optional MODE and with value `section',
 return section regexp instead."
   (if (eq mode 'section)
-      (concat "^;;;;* " header ":[ \t]*$")
-    (concat lm-header-prefix header "[ \t]*:[ \t]*")))
+      (concat "^;;;;* \\(" header "\\):[ \t]*$")
+    (concat lm-header-prefix "\\(" header "\\)[ \t]*:[ \t]*")))
 
 (defun lm-get-package-name ()
   "Return package name by looking at the first line."
@@ -296,15 +296,14 @@ The returned value is a list of strings, one per line."
 ;; These give us smart access to the header fields and commentary
 
 (defmacro lm-with-file (file &rest body)
-  "Make a buffer with FILE current, and execute BODY.
-If FILE isn't in a buffer, load it in, and kill it after BODY is executed."
+  "Execute BODY in a buffer containing the contents of FILE.
+If FILE is nil, just return nil."
   (let ((filesym (make-symbol "file")))
-    `(save-excursion
-       (let ((,filesym ,file))
-	 (if ,filesym (set-buffer (find-file-noselect ,filesym)))
-	 (prog1 (progn ,@body)
-	   (if (and ,filesym (not (get-buffer-window (current-buffer) t)))
-	       (kill-buffer (current-buffer))))))))
+    `(let ((,filesym ,file))
+       (when ,filesym 
+	 (with-temp-buffer
+	   (insert-file-contents ,filesym)
+	   ,@body)))))
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
 
