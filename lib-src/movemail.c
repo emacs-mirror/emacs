@@ -121,6 +121,17 @@ Boston, MA 02111-1307, USA.  */
 extern int lk_open (), lk_close ();
 #endif
 
+#if !defined (MAIL_USE_SYSTEM_LOCK) && !defined (MAIL_USE_MMDF) && \
+	defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H)
+#include <maillock.h>
+/* We can't use maillock unless we know what directory system mail
+   files appear in. */
+#ifdef MAILDIR
+#define MAIL_USE_MAILLOCK
+static char *mail_spool_name ();
+#endif
+#endif
+
 /* Cancel substitutions made by config.h for Emacs.  */
 #undef open
 #undef read
@@ -166,12 +177,16 @@ main (argc, argv)
   int desc;
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
+#ifdef MAIL_USE_MAILLOCK
+  char *spool_name;
+#endif
+
   delete_lockname = 0;
 
   if (argc < 3)
     {
       fprintf (stderr, "Usage: movemail inbox destfile [POP-password]\n");
-      exit(1);
+      exit (1);
     }
 
   inname = argv[1];
@@ -223,80 +238,89 @@ main (argc, argv)
 
 #ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_SYSTEM_LOCK
-  /* Use a lock file named after our first argument with .lock appended:
-     If it exists, the mail file is locked.  */
-  /* Note: this locking mechanism is *required* by the mailer
-     (on systems which use it) to prevent loss of mail.
-
-     On systems that use a lock file, extracting the mail without locking
-     WILL occasionally cause loss of mail due to timing errors!
-
-     So, if creation of the lock file fails
-     due to access permission on the mail spool directory,
-     you simply MUST change the permission
-     and/or make movemail a setgid program
-     so it can create lock files properly.
-
-     You might also wish to verify that your system is one
-     which uses lock files for this purpose.  Some systems use other methods.
-
-     If your system uses the `flock' system call for mail locking,
-     define MAIL_USE_SYSTEM_LOCK in config.h or the s-*.h file
-     and recompile movemail.  If the s- file for your system
-     should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
-     to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
-
-  lockname = concat (inname, ".lock", "");
-  tempname = (char *) xmalloc (strlen (inname) + strlen ("EXXXXXX") + 1);
-  strcpy (tempname, inname);
-  p = tempname + strlen (tempname);
-  while (p != tempname && !IS_DIRECTORY_SEP (p[-1]))
-    p--;
-  *p = 0;
-  strcpy (p, "EXXXXXX");
-  mktemp (tempname);
-  unlink (tempname);
-
-  while (1)
+#ifdef MAIL_USE_MAILLOCK
+  spool_name = mail_spool_name (inname);
+  if (! spool_name)
+#endif
     {
-      /* Create the lock file, but not under the lock file name.  */
-      /* Give up if cannot do that.  */
-      desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
-      if (desc < 0)
-	{
-	  char *message = (char *) xmalloc (strlen (tempname) + 50);
-	  sprintf (message, "%s--see source file lib-src/movemail.c",
-		   tempname);
-	  pfatal_with_name (message);
-	}
-      close (desc);
+      /* Use a lock file named after our first argument with .lock appended:
+	 If it exists, the mail file is locked.  */
+      /* Note: this locking mechanism is *required* by the mailer
+	 (on systems which use it) to prevent loss of mail.
 
-      tem = link (tempname, lockname);
+	 On systems that use a lock file, extracting the mail without locking
+	 WILL occasionally cause loss of mail due to timing errors!
+
+	 So, if creation of the lock file fails
+	 due to access permission on the mail spool directory,
+	 you simply MUST change the permission
+	 and/or make movemail a setgid program
+	 so it can create lock files properly.
+
+	 You might also wish to verify that your system is one
+	 which uses lock files for this purpose.  Some systems use other methods.
+
+	 If your system uses the `flock' system call for mail locking,
+	 define MAIL_USE_SYSTEM_LOCK in config.h or the s-*.h file
+	 and recompile movemail.  If the s- file for your system
+	 should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
+	 to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
+
+      lockname = concat (inname, ".lock", "");
+      tempname = (char *) xmalloc (strlen (inname) + strlen ("EXXXXXX") + 1);
+      strcpy (tempname, inname);
+      p = tempname + strlen (tempname);
+      while (p != tempname && !IS_DIRECTORY_SEP (p[-1]))
+	p--;
+      *p = 0;
+      strcpy (p, "EXXXXXX");
+      mktemp (tempname);
       unlink (tempname);
-      if (tem >= 0)
-	break;
-      sleep (1);
 
-      /* If lock file is five minutes old, unlock it.
-	 Five minutes should be good enough to cope with crashes
-	 and wedgitude, and long enough to avoid being fooled
-	 by time differences between machines.  */
-      if (stat (lockname, &st) >= 0)
+      while (1)
 	{
-	  now = time (0);
-	  if (st.st_ctime < now - 300)
-	    unlink (lockname);
-	}
-    }
+	  /* Create the lock file, but not under the lock file name.  */
+	  /* Give up if cannot do that.  */
+	  desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
+	  if (desc < 0)
+	    {
+	      char *message = (char *) xmalloc (strlen (tempname) + 50);
+	      sprintf (message, "%s--see source file lib-src/movemail.c",
+		       tempname);
+	      pfatal_with_name (message);
+	    }
+	  close (desc);
 
-  delete_lockname = lockname;
+	  tem = link (tempname, lockname);
+	  unlink (tempname);
+	  if (tem >= 0)
+	    break;
+	  sleep (1);
+
+	  /* If lock file is five minutes old, unlock it.
+	     Five minutes should be good enough to cope with crashes
+	     and wedgitude, and long enough to avoid being fooled
+	     by time differences between machines.  */
+	  if (stat (lockname, &st) >= 0)
+	    {
+	      now = time (0);
+	      if (st.st_ctime < now - 300)
+		unlink (lockname);
+	    }
+	}
+
+      delete_lockname = lockname;
+    }
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 #endif /* not MAIL_USE_MMDF */
 
   if (fork () == 0)
     {
       int lockcount = 0;
-      int status;
+      int status = 0;
+#if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
+      long touched_lock, now;
+#endif
 
       setuid (getuid ());
 
@@ -329,21 +353,36 @@ main (argc, argv)
     retry_lock:
 
       /* Try to lock it.  */
+#ifdef MAIL_USE_MAILLOCK
+      if (spool_name)
+	{
+	  /* The "0 - " is to make it a negative number if maillock returns
+	     non-zero. */
+	  status = 0 - maillock (spool_name, 1);
+#ifdef HAVE_TOUCHLOCK
+	  touched_lock = time (0);
+#endif
+	  lockcount = 5;
+	}
+      else
+#endif /* MAIL_USE_MAILLOCK */
+	{
 #ifdef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_LOCKF
-      status = lockf (indesc, F_LOCK, 0);
+	  status = lockf (indesc, F_LOCK, 0);
 #else /* not MAIL_USE_LOCKF */
 #ifdef XENIX
-      status = locking (indesc, LK_RLCK, 0L);
+	  status = locking (indesc, LK_RLCK, 0L);
 #else
 #ifdef WINDOWSNT
-      status = locking (indesc, LK_RLCK, -1L);
+	  status = locking (indesc, LK_RLCK, -1L);
 #else
-      status = flock (indesc, LOCK_EX);
+	  status = flock (indesc, LOCK_EX);
 #endif
 #endif
 #endif /* not MAIL_USE_LOCKF */
 #endif /* MAIL_USE_SYSTEM_LOCK */
+	}
 
       /* If it fails, retry up to 5 times
 	 for certain failure codes.  */
@@ -385,6 +424,17 @@ main (argc, argv)
 	      }
 	    if (nread < sizeof buf)
 	      break;
+#if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
+	    if (spool_name)
+	      {
+		now = time (0);
+		if (now - touched_lock > 60)
+		  {
+		    touchlock ();
+		    touched_lock = now;
+		  }
+	      }
+#endif /* MAIL_USE_MAILLOCK */
 	  }
       }
 
@@ -423,6 +473,12 @@ main (argc, argv)
 	creat (inname, 0600);
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
+#ifdef MAIL_USE_MAILLOCK
+      /* This has to occur in the child, i.e., in the process that
+         acquired the lock! */
+      if (spool_name)
+	mailunlock ();
+#endif
       exit (0);
     }
 
@@ -433,13 +489,57 @@ main (argc, argv)
     exit (WRETCODE (status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
-  unlink (lockname);
+#ifdef MAIL_USE_MAILLOCK
+  if (! spool_name)
+#endif /* MAIL_USE_MAILLOCK */
+    unlink (lockname);
 #endif /* not MAIL_USE_MMDF and not MAIL_USE_SYSTEM_LOCK */
 
 #endif /* ! DISABLE_DIRECT_ACCESS */
 
   return 0;
 }
+
+#ifdef MAIL_USE_MAILLOCK
+/* This function uses stat to confirm that the mail directory is
+   identical to the directory of the input file, rather than just
+   string-comparing the two paths, because one or both of them might
+   be symbolic links pointing to some other directory. */
+static char *
+mail_spool_name (inname)
+     char *inname;
+{
+  struct stat stat1, stat2;
+  char *indir, *fname;
+  int status;
+
+  if (! (fname = rindex (inname, '/')))
+    return NULL;
+
+  fname++;
+
+  if (stat (MAILDIR, &stat1) < 0)
+    return NULL;
+
+  indir = (char *) xmalloc (fname - inname + 1);
+  strncpy (indir, inname, fname - inname);
+  indir[fname-inname] = '\0';
+
+
+  status = stat (indir, &stat2);
+
+  free (indir);
+
+  if (status < 0)
+    return NULL;
+
+  if ((stat1.st_dev == stat2.st_dev) &&
+      (stat1.st_ino == stat2.st_ino))
+    return fname;
+
+  return NULL;
+}
+#endif /* MAIL_USE_MAILLOCK */
 
 /* Print error message and exit.  */
 
@@ -522,7 +622,6 @@ xmalloc (size)
 #undef _WINSOCKAPI_
 #include <winsock.h>
 #endif
-#include <stdio.h>
 #include <pwd.h>
 
 #ifdef USG
@@ -657,7 +756,7 @@ popmail (user, outfile, password)
 
 pop_retr (server, msgno, action, arg)
      popserver server;
-     int (*action)();
+     int (*action) ();
 {
   extern char *strerror ();
   char *line;
