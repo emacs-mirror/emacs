@@ -1,7 +1,7 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName$
- * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!event.c(trunk.11) $
+ * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers.
  * .sources: mps.design.event
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName$");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.11) $");
 
 
 #ifdef EVENT /* .trans.ifdef */
@@ -38,7 +38,7 @@ static char eventBuffer[EVENT_BUFFER_SIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-EventUnion Event; /* Used by macros in impl.h.event */
+EventUnion EventMould; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
 Word EventKindControl; /* Bit set used to control output. */
 
@@ -49,8 +49,7 @@ Res EventFlush(void)
   
   AVER(eventInited);
 
-  res = (Res)mps_io_write(eventIO,
-                          (void *)eventBuffer,
+  res = (Res)mps_io_write(eventIO, (void *)eventBuffer,
                           EventNext - eventBuffer);
   EventNext = eventBuffer;
   if(res != ResOK) return res;
@@ -83,13 +82,14 @@ Res (EventInit)(void)
     if(res != ResOK) return res;
     EventNext = eventBuffer;
     EventLimit = &eventBuffer[EVENT_BUFFER_SIZE];
-    eventUserCount = (Count)0;
+    eventUserCount = (Count)1;
     eventInited = TRUE;
     EventKindControl = (Word)mps_lib_telemetry_control();
+    EventInternSerial = (Serial)1; /* 0 is reserved */
+    (void)EventInternString(MPSVersion()); /* emit version */
+  } else {
+    ++eventUserCount;
   }
-
-  ++eventUserCount;
-  EventInternSerial = (Serial)0;
 
   return ResOK;
 }
