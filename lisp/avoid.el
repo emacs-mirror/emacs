@@ -131,8 +131,9 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 
 (defsubst mouse-avoidance-set-pointer-shape (shape)
   "Set the shape of the mouse pointer to SHAPE."
-  (setq x-pointer-shape shape)
-  (set-mouse-color nil))
+  (when (boundp 'x-pointer-shape)
+    (setq x-pointer-shape shape)
+    (set-mouse-color nil)))
 
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
@@ -179,6 +180,8 @@ Acceptable distance is defined by `mouse-avoidance-threshold'."
   (let* ((frame (car mouse))
 	 (mouse-y (cdr (cdr mouse)))
 	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines)))
+    (or tool-bar-lines
+	(setq tool-bar-lines 0))
     (if (and mouse-y (< mouse-y tool-bar-lines))
 	nil
       (let ((point (mouse-avoidance-point-position))
@@ -386,7 +389,8 @@ definition of \"random distance\".)"
 	       (run-with-idle-timer 0.1 t 'mouse-avoidance-fancy-hook))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state (cons 0 0)
-	       mouse-avoidance-old-pointer-shape x-pointer-shape))
+	       mouse-avoidance-old-pointer-shape
+	       (and (boundp 'x-pointer-shape) x-pointer-shape)))
 	((eq mode 'exile)
 	 (setq mouse-avoidance-timer
 	       (run-with-idle-timer 0.1 t 'mouse-avoidance-exile-hook))
