@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.9) $
+# $HopeName: MMQA_harness!script:logging(trunk.10) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -110,6 +110,7 @@ sub describe_test {
  }
  if ($report eq "summary") {
   $~ = "LOGSUMM";
+  $testconcchar = ($testconclusion eq "PASS") ? " " : "X";
   write;
  } else {
   $~ = "LOGHEAD";
@@ -269,8 +270,8 @@ $testconclusion, $testconcreason
 .
 
 format LOGSUMM = 
-@<<< @<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-$testconclusion, $testfile, $testtimeline
+@ @<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconcchar, $testconclusion, $testid
 .
 
 format TESTTAB =
