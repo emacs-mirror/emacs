@@ -237,16 +237,14 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defface help-argument-name '((t (:slant italic)))
-  "Face to highlight function arguments in *Help* buffers.
-You can customize this face.  For more extensive customization,
-see variable `help-arg-highlighting-function'.")
-
-(defvar help-arg-highlighting-function
-  #'(lambda (arg) (propertize (downcase arg) 'face 'help-argument-name))
-  "Function to call to highlight function arguments in *Help* buffers.
-The function receives the argument to highlight, as a string.
-It must return the string with the desired highlighting (properties).")
+(defun help-default-arg-highlight (arg)
+  "Default function to highlight arguments in *Help* buffers.
+It returns ARG in lowercase italics, if the display supports it;
+else ARG is returned in uppercase normal."
+  (let ((attrs '(:slant italic)))
+    (if (display-supports-face-attributes-p attrs)
+        (propertize (downcase arg) 'face attrs)
+      arg)))
 
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
@@ -264,7 +262,7 @@ It must return the string with the desired highlighting (properties).")
                            "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
                            "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx
                            "\\>")                  ; end of word
-                   (funcall help-arg-highlighting-function arg)
+                   (help-default-arg-highlight arg)
                    doc t t 1))))
     doc))
 
