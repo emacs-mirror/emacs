@@ -33,7 +33,7 @@
 (defvar lpr-switches nil 
   "*List of strings to pass as extra switch args to `lpr' when it is invoked.")
 
-(defvar lpr-add-options (eq system-type 'berkeley-unix)
+(defvar lpr-add-switches (eq system-type 'berkeley-unix)
   "*Non-nil means construct -T and -J options for the `lpr'.")
 
 ;;;###autoload
@@ -114,14 +114,20 @@ See definition of `print-region-1' for calling conventions.")
 				     switches))
 	    ;; Run a separate program to get page headers.
 	    (print-region-new-buffer start end)
-	    (call-process-region start end lpr-page-header-program
-				 t t lpr-page-header-switches)
+	    (apply 'call-process-region start end lpr-page-header-program
+				 t t nil
+				 (nconc (and lpr-add-switches
+					     (list "-h" title))
+					lpr-page-header-switches))
 	    (setq start (point-min) end (point-max))))
       (apply (or print-region-function 'call-process-region)
 	     (nconc (list start end lpr-command
 			  nil nil nil)
-		    (nconc (and lpr-add-options
-				(list "-J" name "-T" title))
+		    (nconc (and lpr-add-switches
+				(list "-J" name))
+			   ;; These belong in pr if we are using that.
+			   (and lpr-add-switches lpr-headers-switches
+				(list "-T" title))
 			   switches)))
       (if (markerp end)
 	  (set-marker end nil))
