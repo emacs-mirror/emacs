@@ -1676,10 +1676,9 @@ struct it
      line, if the window has one.  */
   int last_visible_y;
 
-  /* Width of a prompt in front of the line.  Used to perform tab
-     calculations.  The x on which tab calculations are based is
-     current_x - prompt_width + continuation_lines_width.  */
-  int prompt_width;
+  /* Additional space in pixels between lines (for window systems
+     only.).  */
+  int extra_line_spacing;
 
   /* If non-null, glyphs are produced in glyph_row with each call to
      produce_glyphs.  */
