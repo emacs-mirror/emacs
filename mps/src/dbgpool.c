@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.6) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.7) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -276,7 +276,7 @@ static void FenceFree(PoolDebugMixin debug,
   /* Can't check old */
   AVER(size > 0);
 
-  AVER(FenceCheck(debug, pool, old, size));
+  ASSERT(FenceCheck(debug, pool, old, size), "fencepost check on free");
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
   SuperclassOfPool(pool)->free(pool, AddrSub(old, debug->fenceSize),
@@ -430,7 +430,8 @@ static void FenceCheckingStep(Addr addr, Size size, Format fmt,
 {
   /* no need to check arguments checked in the caller */
   UNUSED(fmt); UNUSED(tagData);
-  FenceCheck((PoolDebugMixin)p, pool, addr, size);
+  ASSERT(FenceCheck((PoolDebugMixin)p, pool, addr, size),
+         "fencepost check requested by client");
 }
 
 
