@@ -74,6 +74,7 @@ Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qcdr;
+Lisp_Object Qadvice_info, Qactivate_advice;
 
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
@@ -554,6 +555,12 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
+  /* Handle automatic advice activation */
+  if (!NILP (Fget (sym, Qadvice_info)))
+    {
+      call2 (Qactivate_advice, sym, Fbyte_code_function_p (newdef));
+      newdef = XSYMBOL (sym)->function;
+    }
   return newdef;
 }
 
@@ -2050,6 +2057,10 @@ syms_of_data ()
 
   Qcdr = intern ("cdr");
 
+  /* Handle automatic advice activation */
+  Qadvice_info = intern ("advice-info");
+  Qactivate_advice = intern ("ad-activate");
+
   error_tail = Fcons (Qerror, Qnil);
 
   /* ERROR is used as a signaler for random errors for which nothing else is right */
@@ -2232,6 +2243,8 @@ syms_of_data ()
   staticpro (&Qboundp);
   staticpro (&Qfboundp);
   staticpro (&Qcdr);
+  staticpro (&Qadvice_info);
+  staticpro (&Qactivate_advice);
 
   defsubr (&Seq);
   defsubr (&Snull);
