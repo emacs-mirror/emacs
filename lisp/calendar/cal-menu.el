@@ -395,7 +395,7 @@ The output is in landscape format, one month to a page."
              (list (format "Julian date: %s"
                            (calendar-julian-date-string date)))
              (list
-              (format "Astronomical (Julian) day number (after noon UTC): %s"
+              (format "Astronomical (Julian) day number (at noon UTC): %s.0"
                            (calendar-astro-date-string date)))
              (list (format "Hebrew date (before sunset): %s"
                            (calendar-hebrew-date-string date)))
