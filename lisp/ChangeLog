@@ -1,3 +1,8 @@
+2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* files.el (abbreviate-file-name): Document removal of
+	automounter prefixes.  Reported by Lars Hansen.
+
 2003-02-21  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Add run-time check to catch users trying
