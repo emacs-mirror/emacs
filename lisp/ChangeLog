@@ -1,3 +1,8 @@
+2000-07-23  Noah Friedman  <friedman@splode.com>
+
+	* menu-bar.el (menu-bar-files-menu [recover-session]): Make sure
+	auto save directory exists before calling directory-files.
+
 2000-07-23  Dave Love  <fx@gnu.org>
 
 	* international/iso-transl.el (iso-transl-char-map): Fix ^e, ^i,
@@ -31,7 +36,7 @@
 
 	* timer.el (run-with-idle-timer): Doc fix.
 
-	* mail/mail-utils.el (mail-strip-quoted-names): 
+	* mail/mail-utils.el (mail-strip-quoted-names):
 	Handle case where <...> appears inside "...".
 	Use replace-match to edit the string more simply.
 	(rmail-dont-reply-to): Cope with an unmatched ".
@@ -59,8 +64,8 @@
 	* gnus/parse-time.el: Correct author's mail address.
 
 2000-07-19  Colin Walters <walters@cis.ohio-state.edu>
-	
-	* comint.el (comint-highlight-input, comint-highlight-face): 
+
+	* comint.el (comint-highlight-input, comint-highlight-face):
 	New user options.
 	(comint-input-ring-file-name): Change custom type.
 	(comint-mode-map): Bind mouse-2.
@@ -81,7 +86,7 @@
 
 	* faces.el (face-font-selection-order)
 	(face-font-family-alternatives): Add custom type.
-	
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (custom-variable-reset-saved)
@@ -111,7 +116,7 @@
 	* recentf.el: Update from author.
 
 	* info.el (Info-title-face-alist): Removed.
-	
+
 2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/eshell.el (eshell): Replace links to eshell.info with
