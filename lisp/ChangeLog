@@ -1,3 +1,14 @@
+2002-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* play/pong.el (pong-height): Don't use height that exceeds the
+	frame height.
+
+	* play/gamegrid.el (gamegrid-display-type): Treat any
+	color-capable display as color-x, if display-color-p is fboundp.
+	(gamegrid-make-color-x-face): Don't call gamegrid-color twice.
+	(gamegrid-make-color-tty-face): Use the value of color, not the
+	symbol itself.  Don't call gamegrid-color.
+
 2002-02-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gud.el (gud-refresh): Call recenter only after we are sure we
@@ -53,6 +64,7 @@
 	(showhide-date-time): New function.
 	(menu-bar-showhide-menu): New menu-item "Date and time".
 
+>>>>>>> 1.3409
 2002-02-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/rmail.el (rmail): Use find-buffer-visiting instead of
@@ -75,6 +87,7 @@
 	* dabbrev.el (dabbrev--goto-start-of-abbrev):
 	Exit loop on beginning of field rather than bobp.
 
+>>>>>>> 1.3400
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/uce.el (uce-reply-to-uce): Prune the headers before copying
@@ -132,6 +145,7 @@
 
 	* hi-lock.el (hi-lock-find-patterns): Save restriction.
 
+>>>>>>> 1.3396
 2002-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/time-date.el: Moved from lisp/gnus.
@@ -188,6 +202,7 @@
 	New functions (separated from command-line-1).
 	(command-line-1): Use them.
 
+>>>>>>> 1.3390
 2002-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (generate-calendar-month): Doc fix.
