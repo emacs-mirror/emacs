@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.97) $
+ * $HopeName: MMsrc!mpmst.h(trunk.98) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -578,8 +578,16 @@ typedef struct GlobalsStruct {
   /* general fields (impl.c.global) */
   RingStruct globalRing;        /* node in global ring of arenas */
   Lock lock;                    /* arena's lock */
+
+  /* polling fields (impl.c.global) */
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;
+  Bool clamped;                 /* prevent background activity */
+  double fillMutatorSize;       /* total bytes filled, mutator buffers */
+  double emptyMutatorSize;      /* total bytes emptied, mutator buffers */
+  double allocMutatorSize;      /* fill-empty, only asymptotically accurate */
+  double fillInternalSize;      /* total bytes filled, internal buffers */
+  double emptyInternalSize;     /* total bytes emptied, internal buffers */
 
   /* version field (impl.c.version) */
   const char *mpsVersionString; /* MPSVersion() */
@@ -613,12 +621,6 @@ typedef struct ArenaStruct {
   MVStruct controlPoolStruct;   /* design.mps.arena.pool */
 
   ReservoirStruct reservoirStruct; /* design.mps.reservoir */
-
-  double fillMutatorSize;       /* total bytes filled, mutator buffers */
-  double emptyMutatorSize;      /* total bytes emptied, mutator buffers */
-  double allocMutatorSize;      /* fill-empty, only asymptotically accurate */
-  double fillInternalSize;      /* total bytes filled, internal buffers */
-  double emptyInternalSize;     /* total bytes emptied, internal buffers */
 
   Size committed;               /* amount of committed RAM */
   Size commitLimit;             /* client-configurable commit limit */
@@ -671,7 +673,6 @@ typedef struct ArenaStruct {
                                    design.mps.trace.intance.limit */
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
-  Bool clamped;                 /* prevent background activity */
   RingStruct chainRing;         /* ring of chains */
 
   /* location dependency fields (impl.c.ld) */
