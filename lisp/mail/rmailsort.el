@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.22 1994/05/03 22:46:37 kwzh Exp kwzh $
+;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.23 1996/01/14 14:30:11 kwzh Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -26,6 +26,9 @@
 ;;; Code:
 
 (require 'sort)
+
+;; For rmail-select-summary
+(require 'rmail)
 
 (autoload 'timezone-make-date-sortable "timezone")
 
