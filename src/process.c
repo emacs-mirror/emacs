@@ -1282,7 +1282,7 @@ create_process (process, new_argv, current_dir)
 	    int j = open ("/dev/tty", O_RDWR, 0);
 	    ioctl (j, TIOCNOTTY, 0);
 	    close (j);
-#if !defined (USG) || defined (IRIX)
+#ifndef USG
 	    /* In order to get a controlling terminal on some versions
 	       of BSD, it is necessary to put the process in pgrp 0
 	       before it opens the terminal.  */

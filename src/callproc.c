@@ -255,7 +255,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       {
 	if (fd[0] >= 0)
 	  close (fd[0]);
-#if defined (USG) && !defined (IRIX)
+#ifdef USG
         setpgrp ();
 #else
         setpgrp (pid, pid);

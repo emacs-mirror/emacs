@@ -50,10 +50,6 @@
   strcpy (pty_name, name);					\
 }
 
-/* Use the BSD versions of the getpgrp and setpgrp functions.  */
-#define setpgrp(pid, pgrp) BSDsetpgrp((pid), (pgrp))
-#define getpgrp(pid)       BSDgetpgrp(pid)
-
 /* jpff@maths.bath.ac.uk reports `struct exception' is not defined
    on this system, so inhibit use of matherr.  */
 #define NO_MATHERR
