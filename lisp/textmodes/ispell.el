@@ -772,6 +772,7 @@ many times.
 ;;; a value or a list, whose value is the state of whether the
 ;;; dictionary needs to be saved.
 
+;;;###autoload
 (defun ispell-pdict-save (&optional no-query force-save)
   "Check to see if the personal dictionary has been modified.
   If so, ask if it needs to be saved."
@@ -982,6 +983,7 @@ used."
   (if (not ispell-keep-choices-win) (bury-buffer ispell-choices-buffer))))
 
 
+;;;###autoload
 (defun ispell-help ()
   "This gives a list of the options available when a misspelling is encountered.
 
@@ -1348,6 +1350,7 @@ window selected."
     (process-kill-without-query ispell-process)))
 
 
+;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
   "Kill current ispell process (so that you may start a fresh one).
 With NO-ERROR, just return non-nil if there was no ispell running."
@@ -1618,7 +1621,7 @@ With prefix argument, set the default directory."
   (interactive)
   (ispell-region (point-min) (point-max)))
 
-
+;;;###autoload
 (defun ispell-continue ()
   (interactive)
   "Continue a spelling session after making some changes."
