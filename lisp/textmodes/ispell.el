@@ -1618,10 +1618,11 @@ Global `ispell-quit' set to start location to continue spell session."
       (set-buffer (get-buffer-create ispell-choices-buffer))
       (setq mode-line-format (concat "--  %b  --  word: " word))
       ;; XEmacs: no need for horizontal scrollbar in choices window
-      (and (fboundp 'set-specifier)
-	   (boundp 'horizontal-scrollbar-visible-p)
-           (set-specifier horizontal-scrollbar-visible-p nil
-			  (cons (current-buffer) nil)))
+      (with-no-warnings
+       (and (fboundp 'set-specifier)
+	    (boundp 'horizontal-scrollbar-visible-p)
+	    (set-specifier horizontal-scrollbar-visible-p nil
+			   (cons (current-buffer) nil))))
       (erase-buffer)
       (if guess
 	  (progn
@@ -1871,7 +1872,7 @@ Global `ispell-quit' set to start location to continue spell session."
   (if (and ispell-use-framepop-p (fboundp 'framepop-display-buffer))
       (progn
 	(framepop-display-buffer (get-buffer ispell-choices-buffer))
-	(get-buffer-window ispell-choices-buffer t)
+;;;	(get-buffer-window ispell-choices-buffer t)
 	(select-window (previous-window))) ; *Choices* window
     ;; standard selection by splitting a small buffer out of this window.
     (let ((choices-window (get-buffer-window ispell-choices-buffer)))
@@ -2355,7 +2356,7 @@ Keeps argument list for future ispell invocations for no async support."
       (if extended-char-mode		; ~ extended character mode
 	  (ispell-send-string (concat extended-char-mode "\n"))))
     (if ispell-async-processp
-	(process-kill-without-query ispell-process))))
+	(set-process-query-on-exit-flag ispell-process nil))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
@@ -3286,19 +3287,23 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
 	      (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-		      (ispell-non-empty-string sc-reference-tag-string)))
+		      (with-no-warnings
+		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
-		      (ispell-non-empty-string sc-reference-tag-string)))
+		      (with-no-warnings
+		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((or (equal major-mode 'news-reply-mode) ;GNUS 4 & below
 		  (equal major-mode 'message-mode))   ;GNUS 5
 	      (concat "In article <" "\\|"
 		      "[^,;&+=\n]+ <[^,;&+=]+> writes:" "\\|"
-                      message-cite-prefix-regexp "\\|"
+		      (with-no-warnings message-cite-prefix-regexp)
+		      "\\|"
 		      default-prefix))
 	     ((equal major-mode 'mh-letter-mode) ; mh mail message
 	      (concat "[^,;&+=\n]+ writes:" "\\|"
-		      (ispell-non-empty-string mh-ins-buf-prefix)))
+		      (with-no-warnings
+		       (ispell-non-empty-string mh-ins-buf-prefix))))
 	     ((not internal-messagep)	; Assume nn sent us this message.
 	      (concat "In [a-zA-Z.]+ you write:" "\\|"
 		      "In <[^,;&+=]+> [^,;&+=]+ writes:" "\\|"
