@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.15 2000/09/19 02:43:33 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.16 2000/09/19 16:24:30 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -446,27 +446,6 @@ Non-nil OLD means that we want the old file."
 	 (set (make-local-variable 'diff-remembered-files-alist)
 	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
-
-(defun diff-find-source-location (&optional other-file)
-  "Find out (FILE LINE)."
-  (save-excursion
-    (diff-beginning-of-hunk)
-    (let* ((old (if (not other-file) diff-jump-to-old-file-flag
-		  (not diff-jump-to-old-file-flag)))
-	   ;; Find the location specification.
-	   (loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
-		    (error "Can't find the hunk header")
-		  (if old (match-string 1)
-		    (if (match-end 3) (match-string 3)
-		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
-			(error "Can't find the hunk separator"))
-		      (match-string 1)))))
-	   (file (diff-find-file-name old)))
-      ;; Update the user preference if he so wished.
-      (when (> (prefix-numeric-value other-file) 8)
-	(setq diff-jump-to-old-file-flag old))
-      (if (null file) (error "Can't find the file")
-	(list file (string-to-number loc))))))
 
 (defun diff-mouse-goto-source (event)
   "Run `diff-goto-source' for the diff at a mouse click."
@@ -972,6 +951,27 @@ If TEXT isn't found, nil is returned."
     (if (and forw back)
 	(if (> (- forw orig) (- orig back)) back forw)
       (or back forw))))
+
+(defun diff-find-source-location (&optional other-file)
+  "Find out (FILE LINE)."
+  (save-excursion
+    (diff-beginning-of-hunk)
+    (let* ((old (if (not other-file) diff-jump-to-old-file-flag
+		  (not diff-jump-to-old-file-flag)))
+	   ;; Find the location specification.
+	   (loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
+		    (error "Can't find the hunk header")
+		  (if old (match-string 1)
+		    (if (match-end 3) (match-string 3)
+		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
+			(error "Can't find the hunk separator"))
+		      (match-string 1)))))
+	   (file (diff-find-file-name old)))
+      ;; Update the user preference if he so wished.
+      (when (> (prefix-numeric-value other-file) 8)
+	(setq diff-jump-to-old-file-flag old))
+      (if (null file) (error "Can't find the file")
+	(list file (string-to-number loc))))))
 
 (defun diff-apply-hunk (&optional reverse other-file dry-run popup noerror)
   "Apply the current hunk to the source file.
