@@ -1,3 +1,11 @@
+2002-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keyboard.c (read_char): If the event was Qselect_window,
+	restore timer_idleness_start_time to its previous value.
+
+	* msdos.c (dos_rawgetc): Generate SELECT_WINDOW_EVENTs when
+	required.
+
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* region-cache.c (new_region_cache): Use BEG.
