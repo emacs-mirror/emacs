@@ -335,7 +335,11 @@ LIBXTR6 = -lSM -lICE
 #endif
 #endif
 
-LIBXT= $(LIBW) -lXmu -lXt $(LIBXTR6) -lXext
+#ifndef LIBXMU
+#define LIBXMU -lXmu
+#endif
+
+LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #else
 LIBXT=
 #endif
