@@ -22,3 +22,7 @@
 #define LINKER cc
 
 #undef LD_SWITCH_SYSTEM
+
+#undef	SYSTEM_MALLOC
+#define	GNU_MALLOC
+#define	REL_ALLOC
