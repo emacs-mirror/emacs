@@ -276,7 +276,7 @@ value of texinfo-mode-hook."
 
 ;; This is also defined in `texnfo-upd.el'.
 (defvar texinfo-section-types-regexp
-  "^@\\(chapter \\|sect\\|sub\\|unnum\\|major\\|heading \\|appendix\\)"
+  "^@\\(chapter \\|sect\\|sub\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
   "Regexp matching chapter, section, other headings (but not the top node).")
 
 (defun texinfo-show-structure (&optional nodes-too) 
