@@ -370,7 +370,7 @@ code-point in CCS.  Currently not supported and just ignored."
 		     (setq split (split-char trans)
 			   charset (car split)))
 		 (cond ((eq charset 'ascii)
-			char)
+			(or trans char))
 		       ((eq charset 'latin-iso8859-1)
 			(+ (nth 1 split) 128))
 		       ((eq charset 'mule-unicode-0100-24ff)
