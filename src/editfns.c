@@ -38,8 +38,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+extern char **environ;
+extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static long difftm ();
+static void set_time_zone_rule ();
 
 /* Some static data, and a function to initialize it for each run */
 
@@ -691,102 +694,79 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   return Flist (9, list_args);
 }
 
-static char days_per_month[11]
-  = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
-
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
   "Convert SEC, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
 This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
-to the current time zone and daylight savings time if not specified; if\n\
-specified, it can be either a list (as from `current-time-zone') or an\n\
-integer (as from `decode-time'), and is applied without consideration for\n\
-daylight savings time.\n\
+to the current time zone rule if not specified; if specified, it can\n\
+be a string (as from `set-time-zone-rule'), or it can be a list\n\
+(as from `current-time-zone') or an integer (as from `decode-time')\n\
+applied without consideration for daylight savings time.\n\
+Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;\n\
+for example, a DAY of 0 means the day preceding the given month.\n\
 Year numbers less than 100 are treated just like other year numbers.\n\
-If you want them to stand for years above 1900, you must do that yourself.")
+If you want them to stand for years in this century, you must do that yourself.")
   (sec, minute, hour, day, month, year, zone)
      Lisp_Object sec, minute, hour, day, month, year, zone;
 {
   time_t time;
-  int fullyear, mon, days, seconds, tz = 0;
+  struct tm tm;
 
-  CHECK_NATNUM (sec, 0);
-  CHECK_NATNUM (minute, 1);
-  CHECK_NATNUM (hour, 2);
-  CHECK_NATNUM (day, 3);
-  CHECK_NATNUM (month, 4);
-  CHECK_NATNUM (year, 5);
+  CHECK_NUMBER (sec, 0);
+  CHECK_NUMBER (minute, 1);
+  CHECK_NUMBER (hour, 2);
+  CHECK_NUMBER (day, 3);
+  CHECK_NUMBER (month, 4);
+  CHECK_NUMBER (year, 5);
 
-  fullyear = XINT (year);
+  tm.tm_sec = XINT (sec);
+  tm.tm_min = XINT (minute);
+  tm.tm_hour = XINT (hour);
+  tm.tm_mday = XINT (day);
+  tm.tm_mon = XINT (month) - 1;
+  tm.tm_year = XINT (year) - 1900;
+  tm.tm_isdst = -1;
 
-  /* Adjust incoming datespec to epoch = March 1, year 0.
-     The "date" March 1, year 0, is an abstraction used purely for its
-     computational convenience; year 0 never existed.  */
-  mon = XINT (month) - 1 + 10;
-  fullyear += mon/12 - 1;
-  mon %= 12;
-
-  days = XINT (day) - 1;		/* day of month */
-  while (mon-- > 0)			/* day of year */
-    days += days_per_month[mon];
-  days += 146097 * (fullyear/400);	/* 400 years = 146097 days */
-  fullyear %= 400;
-  days += 36524 * (fullyear/100);	/* 100 years = 36524 days */
-  fullyear %= 100;
-  days += 1461 * (fullyear/4);		/* 4 years = 1461 days */
-  fullyear %= 4;
-  days += 365 * fullyear;		/* 1 year = 365 days */
-
-  /* Adjust computed datespec to epoch = January 1, 1970.  */
-  days += 59;				/* March 1 is 59th day.  */
-  days -= 719527;			/* 1970 years = 719527 days */
-
-  seconds = XINT (sec) + 60 * XINT (minute) + 3600 * XINT (hour);
-
-  if (sizeof (time_t) == 4
-      && ((days+(seconds/86400) > 24854) || (days+(seconds/86400) < -24854)))
-    error ("the specified time is outside the representable range");
-
-  time = days * 86400 + seconds;
-
-  /* We have the correct value for UTC.  Adjust for timezones.  */
+  if (CONSP (zone))
+    zone = Fcar (zone);
   if (NILP (zone))
+    time = mktime (&tm);
+  else
     {
-      struct tm gmt, *t;
-      time_t adjusted_time;
-      int adjusted_tz;
-      /* If the system does not use timezones, gmtime returns 0, and we
-	 already have the correct value, by definition.  */
-      if ((t = gmtime (&time)) != 0)
+      char tzbuf[100];
+      char *tzstring;
+      char **oldenv = environ, **newenv;
+      
+      if (STRINGP (zone))
+	tzstring = XSTRING (zone)->data;
+      else if (INTEGERP (zone))
 	{
-	  gmt = *t;
-	  t = localtime (&time);
-	  tz = difftm (t, &gmt);
-	  /* The timezone returned is that at the specified Universal Time,
-	     not the local time, which is what we want.  Adjust, repeat.  */
-	  adjusted_time = time - tz;
-	  gmt = *gmtime (&adjusted_time); /* this is safe now */
-	  t = localtime (&adjusted_time);
-	  adjusted_tz = difftm (t, &gmt);
-	  /* In case of discrepancy, adjust again for extra accuracy.  */
-	  if (adjusted_tz != tz)
-	    {
-	      adjusted_time = time - adjusted_tz;
-	      gmt = *gmtime (&adjusted_time);
-	      t = localtime (&adjusted_time);
-	      adjusted_tz = difftm (t, &gmt);
-	    }
-	  tz = adjusted_tz;
+	  int abszone = abs (XINT (zone));
+	  sprintf (tzbuf, "XXX%s%d:%02d:%02d", "-" + (XINT (zone) < 0),
+		   abszone / (60*60), (abszone/60) % 60, abszone % 60);
+	  tzstring = tzbuf;
 	}
-    }
-  else 
-    {
-      if (CONSP (zone))
-	zone = Fcar (zone);
-      CHECK_NUMBER (zone, 6);
-      tz = XINT (zone);
+      else
+	error ("Invalid time zone specification");
+
+      /* Set TZ before calling mktime; merely adjusting mktime's returned 
+	 value doesn't suffice, since that would mishandle leap seconds.  */
+      set_time_zone_rule (tzstring);
+
+      time = mktime (&tm);
+
+      /* Restore TZ to previous value.  */
+      newenv = environ;
+      environ = oldenv;
+      free (newenv);
+#ifdef LOCALTIME_CACHE
+      tzset ();
+#endif
     }
 
-  return make_time (time - tz);
+  if (time == (time_t) -1)
+    error ("Specified time is not representable");
+
+  return make_time (time);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
@@ -905,10 +885,7 @@ If TZ is nil, use implementation-defined default time zone information.")
   (tz)
      Lisp_Object tz;
 {
-  extern char **environ;
   static char **environbuf;
-  int envptrs;
-  char **from, **to, **newenv;
   char *tzstring;
 
   if (NILP (tz))
@@ -918,6 +895,24 @@ If TZ is nil, use implementation-defined default time zone information.")
       CHECK_STRING (tz, 0);
       tzstring = XSTRING (tz)->data;
     }
+
+  set_time_zone_rule (tzstring);
+  if (environbuf)
+    free (environbuf);
+  environbuf = environ;
+
+  return Qnil;
+}
+
+/* Set the local time zone rule to TZSTRING.
+   This allocates memory into `environ', which it is the caller's
+   responsibility to free.  */
+static void
+set_time_zone_rule (tzstring)
+     char *tzstring;
+{
+  int envptrs;
+  char **from, **to, **newenv;
 
   for (from = environ; *from; from++)
     continue;
@@ -938,15 +933,10 @@ If TZ is nil, use implementation-defined default time zone information.")
   *to = 0;
 
   environ = newenv;
-  if (environbuf)
-    free (environbuf);
-  environbuf = newenv;
 
 #ifdef LOCALTIME_CACHE
   tzset ();
 #endif
-
-  return Qnil;
 }
 
 void
