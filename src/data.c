@@ -1360,7 +1360,7 @@ BUFFER defaults to the current buffer.")
 
   valcontents = XSYMBOL (sym)->value;
   if (BUFFER_LOCAL_VALUEP (valcontents)
-      && SOME_BUFFER_LOCAL_VALUEP (valcontents))
+      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object tail, elt;
       for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
