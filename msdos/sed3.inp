@@ -4,7 +4,7 @@
 /^# DIST: /d
 /^SHELL *=/s/^/# /
 /^CC *=/s/=.*$/=gcc/
-/^version *=/s/=.*$/="19.23"/
+/-DVERSION=/s/"\\"\${version}\\""/\\"${version}\\"/
 /^configname *=/s/=.*$/=msdos/
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
