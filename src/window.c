@@ -3268,9 +3268,10 @@ Returns the window displaying BUFFER.
 If `display-buffer-reuse-frames' is non-nil, and another frame is currently
 displaying BUFFER, then simply raise that frame.
 
-The variables `special-display-buffer-names', `special-display-regexps',
-`same-window-buffer-names', and `same-window-regexps' customize how certain
-buffer names are handled.
+The variables `special-display-buffer-names',
+`special-display-regexps', `same-window-buffer-names', and
+`same-window-regexps' customize how certain buffer names are handled.
+The latter two take effect only if NOT-THIS-WINDOW is t.
 
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
