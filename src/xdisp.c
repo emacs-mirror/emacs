@@ -306,6 +306,7 @@ Lisp_Object Qline_height, Qtotal;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
+extern Lisp_Object Qcursor;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -10647,6 +10648,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 {
   struct glyph *glyph = row->glyphs[TEXT_AREA];
   struct glyph *end = glyph + row->used[TEXT_AREA];
+  struct glyph *cursor = NULL;
   /* The first glyph that starts a sequence of glyphs from string.  */
   struct glyph *string_start;
   /* The X coordinate of string_start.  */
@@ -10656,6 +10658,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* The last known character position before string_start.  */
   int string_before_pos;
   int x = row->x;
+  int cursor_x = x;
   int pt_old = PT - delta;
 
   /* Skip over glyphs not having an object at the start of the row.
@@ -10688,12 +10691,29 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  string_start = glyph;
 	  string_start_x = x;
 	  /* Skip all glyphs from string.  */
-	  SKIP_GLYPHS (glyph, end, x, STRINGP (glyph->object));
+	  do
+	    {
+	      if ((cursor == NULL || glyph > cursor)
+		  && !NILP (Fget_char_property (make_number ((glyph)->charpos),
+						Qcursor, (glyph)->object)))
+		{
+		  cursor = glyph;
+		  cursor_x = x;
+		}
+	      x += glyph->pixel_width;
+	      ++glyph;
+	    }
+	  while (glyph < end && STRINGP (glyph->object));
 	}
     }
 
-  if (string_start
-      && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
+  if (cursor != NULL)
+    {
+      glyph = cursor;
+      x = cursor_x;
+    }
+  else if (string_start
+	   && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
     {
       /* We may have skipped over point because the previous glyphs
 	 are from string.  As there's no easy way to know the
