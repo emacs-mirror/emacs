@@ -3,9 +3,13 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
-;; Version: 1.0
 ;; Adapted-By: ESR
 ;; Keywords: extensions
+
+;; LCD Archive Entry:
+;; cust-print|Daniel LaLiberte|liberte@cs.uiuc.edu
+;; |Handle print-level, print-circle and more.
+;; |$Date: 1994/03/23 20:34:29 $|$Revision: 1.4 $|
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +27,42 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; ===============================
+;;; $Header: /import/kaplan/kaplan/liberte/Edebug/RCS/cust-print.el,v 1.4 1994/03/23 20:34:29 liberte Exp liberte $
+;;; $Log: cust-print.el,v $
+;;; Revision 1.4  1994/03/23  20:34:29  liberte
+;;; * Change "emacs" to "original" - I just can't decide. 
+;;;
+;;; Revision 1.3  1994/02/21  21:25:36  liberte
+;;; * Make custom-prin1-to-string more robust when errors occur.
+;;; * Change "internal" to "emacs".
+;;;
+;;; Revision 1.2  1993/11/22  22:36:36  liberte
+;;; * Simplified and generalized printer customization.
+;;;     custom-printers is an alist of (PREDICATE . PRINTER) pairs
+;;;     for any data types.  The PRINTER function should print to
+;;;     `standard-output'  add-custom-printer and delete-custom-printer
+;;;     change custom-printers.
+;;;
+;;; * Installation function now called install-custom-print.  The
+;;;     old name is still around for now.
+;;;
+;;; * New macro with-custom-print (added earlier) - executes like
+;;;     progn but with custom-print activated temporarily.
+;;;
+;;; * Cleaned up comments for replacements of standardard printers.
+;;;
+;;; * Changed custom-prin1-to-string to use a temporary buffer.
+;;;
+;;; * Option custom-print-vectors (added earlier) - controls whether
+;;;     vectors should be printed according to print-length and
+;;;     print-length.  Emacs doesnt do this, but cust-print would
+;;;     otherwise do it only if custom printing is required.
+;;;
+;;; * Uninterned symbols are treated as non-read-equivalent.
+;;;
+
+
 ;;; Commentary:
 
 ;; This package provides a general print handler for prin1 and princ
@@ -39,27 +79,35 @@
 ;; circular lists (where cdrs of lists point back; what is the right
 ;; term here?), you can limit the length of printing with
 ;; print-length.  But car circular lists and circular vectors generate
-;; the above mentioned untrappable error in Emacs version 18.  Version
-;; 19 will support print-level, but it is often useful to get a better
-;; print representation of circular structures; the print-circle
+;; the above mentioned error in Emacs version 18.  Version
+;; 19 supports print-level, but it is often useful to get a better
+;; print representation of circular and shared structures; the print-circle
 ;; option may be used to print more concise representations.
 
-;; There are two main ways to use this package.  First, you may
+;; There are three main ways to use this package.  First, you may
 ;; replace prin1, princ, and some subroutines that use them by calling
-;; install-custom-print-funcs so that any use of these functions in
-;; lisp code will be affected.  Second, you could call the custom
-;; routines directly, thus only affecting the printing that requires
-;; them.
+;; install-custom-print so that any use of these functions in
+;; Lisp code will be affected; you can later reset with
+;; uninstall-custom-print.  Second, you may temporarily install
+;; these functions with the macro with-custom-print.  Third, you
+;; could call the custom routines directly, thus only affecting the
+;; printing that requires them.
 
-;; Note that subroutines which call print subroutines directly will not
-;; use the custom print functions.  In particular, the evaluation
+;; Note that subroutines which call print subroutines directly will
+;; not use the custom print functions.  In particular, the evaluation
 ;; functions like eval-region call the print subroutines directly.
-;; Therefore, evaluating (aref circ-list 0), which calls error
-;; directly (because circ-list is not an array), will jump to the top
-;; level instead of printing the circular list.
+;; Therefore, if you evaluate (aref circ-list 0), where circ-list is a
+;; circular list rather than an array, aref calls error directly which
+;; will jump to the top level instead of printing the circular list.
 
-;; Obviously the right way to implement this custom-print facility
-;; is in C.  Please volunteer since I don't have the time or need.
+;; Uninterned symbols are recognized when print-circle is non-nil,
+;; but they are not printed specially here.  Use the cl-packages package
+;; to print according to print-gensym.
+
+;; Obviously the right way to implement this custom-print facility is
+;; in C or with hooks into the standard printer.  Please volunteer
+;; since I don't have the time or need.  More CL-like printing
+;; capabilities could be added in the future.
 
 ;; Implementation design: we want to use the same list and vector
 ;; processing algorithm for all versions of prin1 and princ, since how
@@ -68,31 +116,49 @@
 ;; required before the final printing.  Thanks to Jamie Zawinski
 ;; for motivation and algorithms.
 
-;;=========================================================
-;; export list:
-
-;; print-level
-;; print-circle
-
-;; custom-print-list
-;; custom-print-vector
-;; add-custom-print-list
-;; add-custom-print-vector
-
-;; install-custom-print-funcs
-;; uninstall-custom-print-funcs
-
-;; custom-prin1
-;; custom-princ
-;; custom-prin1-to-string
-;; custom-print
-;; custom-format
-;; custom-message
-;; custom-error
-
+
 ;;; Code:
+;;=========================================================
 
-(provide 'custom-print)
+;; If using cl-packages:
+
+'(defpackage "cust-print"
+   (:nicknames "CP" "custom-print")
+   (:use "el")
+   (:export
+    print-level
+    print-circle
+
+    install-custom-print
+    uninstall-custom-print
+    custom-print-installed-p
+    with-custom-print
+
+    custom-prin1
+    custom-princ
+    custom-prin1-to-string
+    custom-print
+    custom-format
+    custom-message
+    custom-error
+
+    custom-printers
+    add-custom-printer
+    ))
+
+'(in-package cust-print)
+
+(require 'backquote)
+
+;; Emacs 18 doesnt have defalias.
+;; Provide def for byte compiler.
+(defun defalias (symbol func) (fset symbol func))
+;; Better def when loaded.
+(or (fboundp 'defalias) (fset 'defalias 'fset))
+
+
+;; Variables:
+;;=========================================================
 
 ;;(defvar print-length nil
 ;;  "*Controls how many elements of a list, at each level, are printed.
@@ -102,7 +168,7 @@
   "*Controls how many levels deep a nested data object will print.  
 
 If nil, printing proceeds recursively and may lead to
-max-lisp-eval-depth being exceeded or an untrappable error may occur:
+max-lisp-eval-depth being exceeded or an error may occur:
 `Apparently circular structure being printed.'
 Also see `print-length' and `print-circle'.
 
@@ -116,7 +182,7 @@ level 1.")
   "*Controls the printing of recursive structures.  
 
 If nil, printing proceeds recursively and may lead to
-`max-lisp-eval-depth' being exceeded or an untrappable error may occur:
+`max-lisp-eval-depth' being exceeded or an error may occur:
 \"Apparently circular structure being printed.\"  Also see
 `print-length' and `print-level'.
 
@@ -125,67 +191,101 @@ with `#N=' before the first occurrence (in the order of the print
 representation) and `#N#' in place of each subsequent occurrence,
 where N is a positive decimal integer.
 
-Currently, there is no way to read this representation in Emacs.")
+There is no way to read this representation in standard Emacs,
+but if you need to do so, try the cl-read.el package.")
 
 
-(defconst custom-print-list
-  nil
-  ;; e.g.  '((floatp . float-to-string))
-  "An alist for custom printing of lists.  
-Pairs are of the form (PRED . CONVERTER).  If PREDICATE is true
-for an object, then CONVERTER is called with the object and should
-return a string to be printed with `princ'.  
-Also see `custom-print-vector'.")
+(defvar custom-print-vectors nil
+  "*Non-nil if printing of vectors should obey print-level and print-length.
 
-(defconst custom-print-vector
-  nil
-  "An alist for custom printing of vectors.  
-Pairs are of the form (PRED . CONVERTER).  If PREDICATE is true
-for an object, then CONVERTER is called with the object and should
-return a string to be printed with `princ'.  
-Also see `custom-print-list'.")
+For Emacs 18, setting print-level, or adding custom print list or
+vector handling will make this happen anyway.  Emacs 19 obeys
+print-level, but not for vectors.")
 
+
+;; Custom printers
+;;==========================================================
 
-(defun add-custom-print-list (pred converter)
-  "Add a pair of PREDICATE and CONVERTER to `custom-print-list'.
+(defconst custom-printers nil
+  ;; e.g. '((symbolp . pkg::print-symbol))
+  "An alist for custom printing of any type.
+Pairs are of the form (PREDICATE . PRINTER).  If PREDICATE is true
+for an object, then PRINTER is called with the object.
+PRINTER should print to `standard-output' using cust-print-original-princ
+if the standard printer is sufficient, or cust-print-prin for complex things.
+The PRINTER should return the object being printed.
+
+Don't modify this variable directly.  Use `add-custom-printer' and
+`delete-custom-printer'")
+;; Should cust-print-original-princ and cust-print-prin be exported symbols?
+;; Or should the standard printers functions be replaced by
+;; CP ones in elisp so that CP internal functions need not be called?
+
+(defun add-custom-printer (pred printer)
+  "Add a pair of PREDICATE and PRINTER to `custom-printers'.
 Any pair that has the same PREDICATE is first removed."
-  (setq custom-print-list (cons (cons pred converter) 
-				(delq (assq pred custom-print-list)
-				      custom-print-list))))
-;; e.g. (add-custom-print-list 'floatp 'float-to-string)
+  (setq custom-printers (cons (cons pred printer) 
+			      (delq (assq pred custom-printers)
+				    custom-printers)))
+  ;; Rather than updating here, we could wait until cust-print-top-level is called.
+  (cust-print-update-custom-printers))
+
+(defun delete-custom-printer (pred)
+  "Delete the custom printer associated with PREDICATE."
+  (setq custom-printers (delq (assq pred custom-printers)
+			      custom-printers))
+  (cust-print-update-custom-printers))
 
 
-(defun add-custom-print-vector (pred converter)
-  "Add a pair of PREDICATE and CONVERTER to `custom-print-vector'.
-Any pair that has the same PREDICATE is first removed."
-  (setq custom-print-vector (cons (cons pred converter) 
-				  (delq (assq pred custom-print-vector)
-					custom-print-vector))))
+(defun cust-print-use-custom-printer (object)
+  ;; Default function returns nil.
+  nil)
 
+(defun cust-print-update-custom-printers ()
+  ;; Modify the definition of cust-print-use-custom-printer
+  (defalias 'cust-print-use-custom-printer
+    ;; We dont really want to require the byte-compiler.
+    ;; (byte-compile
+     (` (lambda (object)
+	  (cond
+	   (,@ (mapcar (function 
+			(lambda (pair)
+			  (` (((, (car pair)) object) 
+			      ((, (cdr pair)) object)))))
+		       custom-printers))
+	   ;; Otherwise return nil.
+	   (t nil)
+	   )))
+     ;; )
+  ))
 
+
+;; Saving and restoring emacs printing routines.
 ;;====================================================
-;; Saving and restoring internal printing routines.
 
 (defun cust-print-set-function-cell (symbol-pair)
   (defalias (car symbol-pair) 
-	(symbol-function (car (cdr symbol-pair)))))
+    (symbol-function (car (cdr symbol-pair)))))
 
+(defun cust-print-original-princ (object &optional stream)) ; dummy def
 
-(if (not (fboundp 'cust-print-internal-prin1))
+;; Save emacs routines.
+(if (not (fboundp 'cust-print-original-prin1))
     (mapcar 'cust-print-set-function-cell
-	    '((cust-print-internal-prin1 prin1)
-	      (cust-print-internal-princ princ)
-	      (cust-print-internal-print print)
-	      (cust-print-internal-prin1-to-string prin1-to-string)
-	      (cust-print-internal-format format)
-	      (cust-print-internal-message message)
-	      (cust-print-internal-error error))))
+	    '((cust-print-original-prin1 prin1)
+	      (cust-print-original-princ princ)
+	      (cust-print-original-print print)
+	      (cust-print-original-prin1-to-string prin1-to-string)
+	      (cust-print-original-format format)
+	      (cust-print-original-message message)
+	      (cust-print-original-error error))))
 
 
-(defun install-custom-print-funcs ()
+(defalias 'install-custom-print-funcs 'install-custom-print)
+(defun install-custom-print ()
   "Replace print functions with general, customizable, Lisp versions.
-The internal subroutines are saved away, and you can reinstall them
-by running `uninstall-custom-print-funcs'."
+The emacs subroutines are saved away, and you can reinstall them
+by running `uninstall-custom-print'."
   (interactive)
   (mapcar 'cust-print-set-function-cell
 	  '((prin1 custom-prin1)
@@ -195,193 +295,227 @@ by running `uninstall-custom-print-funcs'."
 	    (format custom-format)
 	    (message custom-message)
 	    (error custom-error)
-	    )))
+	    ))
+  t)
   
-(defun uninstall-custom-print-funcs ()
-  "Reset print functions to their internal subroutines."
+(defalias 'uninstall-custom-print-funcs 'uninstall-custom-print)
+(defun uninstall-custom-print ()
+  "Reset print functions to their emacs subroutines."
   (interactive)
   (mapcar 'cust-print-set-function-cell
-	  '((prin1 cust-print-internal-prin1)
-	    (princ cust-print-internal-princ)
-	    (print cust-print-internal-print)
-	    (prin1-to-string cust-print-internal-prin1-to-string)
-	    (format cust-print-internal-format)
-	    (message cust-print-internal-message)
-	    (error cust-print-internal-error)
-	    )))
+	  '((prin1 cust-print-original-prin1)
+	    (princ cust-print-original-princ)
+	    (print cust-print-original-print)
+	    (prin1-to-string cust-print-original-prin1-to-string)
+	    (format cust-print-original-format)
+	    (message cust-print-original-message)
+	    (error cust-print-original-error)
+	    ))
+  t)
 
+(defalias 'custom-print-funcs-installed-p 'custom-print-installed-p)
+(defun custom-print-installed-p ()
+  "Return t if custom-print is currently installed, nil otherwise."
+  (eq (symbol-function 'custom-prin1) (symbol-function 'prin1)))
 
+(put 'with-custom-print-funcs 'edebug-form-spec '(body))
+(put 'with-custom-print 'edebug-form-spec '(body))
+
+(defalias 'with-custom-print-funcs 'with-custom-print)
+(defmacro with-custom-print (&rest body)
+  "Temporarily install the custom print package while executing BODY."
+  (` (unwind-protect
+	 (progn
+	   (install-custom-print)
+	   (,@ body))
+       (uninstall-custom-print))))
+
+
+;; Lisp replacements for prin1 and princ, and for some subrs that use them
 ;;===============================================================
-;; Lisp replacements for prin1 and princ and for subrs that use prin1 
-;; (or princ) -- so far only the printing and formatting subrs.
+;; - so far only the printing and formatting subrs.
 
 (defun custom-prin1 (object &optional stream)
-  "Replacement for standard `prin1'.
-Uses the appropriate printer depending on the values of `print-level'
-and `print-circle' (which see).
-
-Output the printed representation of OBJECT, any Lisp object.
+  "Output the printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
 can handle, whenever this is possible.
-Output stream is STREAM, or value of `standard-output' (which see)."
-  (cust-print-top-level object stream 'cust-print-internal-prin1))
+Output stream is STREAM, or value of `standard-output' (which see).
+
+This is the custom-print replacement for the standard `prin1'.  It
+uses the appropriate printer depending on the values of `print-level'
+and `print-circle' (which see)."
+  (cust-print-top-level object stream 'cust-print-original-prin1))
 
 
 (defun custom-princ (object &optional stream)
-  "Same as `custom-prin1' except no quoting."
-  (cust-print-top-level object stream 'cust-print-internal-princ))
+  "Output the printed representation of OBJECT, any Lisp object.
+No quoting characters are used; no delimiters are printed around
+the contents of strings.
+Output stream is STREAM, or value of `standard-output' (which see).
 
-(defvar custom-prin1-chars)
+This is the custom-print replacement for the standard `princ'."
+  (cust-print-top-level object stream 'cust-print-original-princ))
 
-(defun custom-prin1-to-string-func (c)
-  "Stream function for `custom-prin1-to-string'."
-  (setq custom-prin1-chars (cons c custom-prin1-chars)))
 
 (defun custom-prin1-to-string (object)
-  "Replacement for standard `prin1-to-string'."
-  (let ((custom-prin1-chars nil))
-    (custom-prin1 object 'custom-prin1-to-string-func)
-    (concat (nreverse custom-prin1-chars))))
+  "Return a string containing the printed representation of OBJECT,
+any Lisp object.  Quoting characters are used when needed to make output
+that `read' can handle, whenever this is possible.
+
+This is the custom-print replacement for the standard `prin1-to-string'."
+  (let ((buf (get-buffer-create " *custom-print-temp*")))
+    ;; We must erase the buffer before printing in case an error 
+    ;; occured during the last prin1-to-string and we are in debugger.
+    (save-excursion
+      (set-buffer buf)
+      (erase-buffer))
+    ;; We must be in the current-buffer when the print occurs.
+    (custom-prin1 object buf)
+    (save-excursion
+      (set-buffer buf)
+      (buffer-string)
+      ;; We could erase the buffer again, but why bother?
+      )))
 
 
 (defun custom-print (object &optional stream)
-  "Replacement for standard `print'."
-  (cust-print-internal-princ "\n")
+  "Output the printed representation of OBJECT, with newlines around it.
+Quoting characters are printed when needed to make output that `read'
+can handle, whenever this is possible.
+Output stream is STREAM, or value of `standard-output' (which see).
+
+This is the custom-print replacement for the standard `print'."
+  (cust-print-original-princ "\n" stream)
   (custom-prin1 object stream)
-  (cust-print-internal-princ "\n"))
+  (cust-print-original-princ "\n" stream))
 
 
 (defun custom-format (fmt &rest args)
-  "Replacement for standard `format'.
+  "Format a string out of a control-string and arguments.  
+The first argument is a control string.  It, and subsequent arguments
+substituted into it, become the value, which is a string.
+It may contain %s or %d or %c to substitute successive following arguments.
+%s means print an argument as a string, %d means print as number in decimal,
+%c means print a number as a single character.
+The argument used by %s must be a string or a symbol;
+the argument used by %d, %b, %o, %x or %c must be a number.
 
-Calls format after first making strings for list or vector args.
-The format specification for such args should be `%s' in any case, so a
-string argument will also work.  The string is generated with
-`custom-prin1-to-string', which quotes quotable characters."
-  (apply 'cust-print-internal-format fmt
+This is the custom-print replacement for the standard `format'.  It
+calls the emacs `format' after first making strings for list,
+vector, or symbol args.  The format specification for such args should
+be `%s' in any case, so a string argument will also work.  The string
+is generated with `custom-prin1-to-string', which quotes quotable
+characters."
+  (apply 'cust-print-original-format fmt
 	 (mapcar (function (lambda (arg)
-			     (if (or (listp arg) (vectorp arg))
+			     (if (or (listp arg) (vectorp arg) (symbolp arg))
 				 (custom-prin1-to-string arg)
 			       arg)))
 		 args)))
 	    
   
-
 (defun custom-message (fmt &rest args)
-  "Replacement for standard `message' that works like `custom-format'."
-  ;; It doesn't work to princ the result of custom-format
+  "Print a one-line message at the bottom of the screen.
+The first argument is a control string.
+It may contain %s or %d or %c to print successive following arguments.
+%s means print an argument as a string, %d means print as number in decimal,
+%c means print a number as a single character.
+The argument used by %s must be a string or a symbol;
+the argument used by %d or %c must be a number.
+
+This is the custom-print replacement for the standard `message'.
+See `custom-format' for the details."
+  ;; It doesn't work to princ the result of custom-format as in:
+  ;; (cust-print-original-princ (apply 'custom-format fmt args))
   ;; because the echo area requires special handling
-  ;; to avoid duplicating the output.  cust-print-internal-message does it right.
-  ;; (cust-print-internal-princ (apply 'custom-format fmt args))
-  (apply 'cust-print-internal-message  fmt
+  ;; to avoid duplicating the output.  
+  ;; cust-print-original-message does it right.
+  (apply 'cust-print-original-message  fmt
 	 (mapcar (function (lambda (arg)
-			     (if (or (listp arg) (vectorp arg))
+			     (if (or (listp arg) (vectorp arg) (symbolp arg))
 				 (custom-prin1-to-string arg)
 			       arg)))
 		 args)))
 	    
 
 (defun custom-error (fmt &rest args)
-  "Replacement for standard `error' that uses `custom-format'"
+  "Signal an error, making error message by passing all args to `format'.
+
+This is the custom-print replacement for the standard `error'.
+See `custom-format' for the details."
   (signal 'error (list (apply 'custom-format fmt args))))
 
 
-;;=========================================
+
 ;; Support for custom prin1 and princ
+;;=========================================
 
+;; Defs to quiet byte-compiler.
 (defvar circle-table)
-(defvar circle-tree)
-(defvar circle-level)
+(defvar cust-print-current-level)
 
-(defun cust-print-top-level (object stream internal-printer)
-  "Set up for printing."
+(defun cust-print-original-printer (object))  ; One of the standard printers.
+(defun cust-print-low-level-prin (object))    ; Used internally.
+(defun cust-print-prin (object))              ; Call this to print recursively.
+
+(defun cust-print-top-level (object stream emacs-printer)
+  ;; Set up for printing.
   (let ((standard-output (or stream standard-output))
-	(circle-table (and print-circle (cust-print-preprocess-circle-tree object)))
-	(circle-level (or print-level -1))
-	)
+	;; circle-table will be non-nil if anything is circular.
+	(circle-table (and print-circle 
+			   (cust-print-preprocess-circle-tree object)))
+	(cust-print-current-level (or print-level -1)))
 
-    (defalias 'cust-print-internal-printer internal-printer)
+    (defalias 'cust-print-original-printer emacs-printer)
     (defalias 'cust-print-low-level-prin 
-	  (cond
-	   ((or custom-print-list
-		custom-print-vector
-		print-level ; comment out for version 19
-		)
-	    'cust-print-custom-object)
-	   (circle-table
-	    'cust-print-object)
-	   (t 'cust-print-internal-printer)))
-    (defalias 'cust-print-prin (if circle-table 'cust-print-circular 'cust-print-low-level-prin))
+      (cond
+       ((or custom-printers
+	    circle-table
+	    print-level			; comment out for version 19
+	    ;; Emacs doesn't use print-level or print-length
+	    ;; for vectors, but custom-print can.
+	    (if custom-print-vectors
+		(or print-level print-length)))
+	'cust-print-print-object)
+       (t 'cust-print-original-printer)))
+    (defalias 'cust-print-prin 
+      (if circle-table 'cust-print-print-circular 'cust-print-low-level-prin))
 
     (cust-print-prin object)
     object))
 
 
-;; Test object type and print accordingly.
-(defun cust-print-object (object)
+(defun cust-print-print-object (object)
+  ;; Test object type and print accordingly.
   ;; Could be called as either cust-print-low-level-prin or cust-print-prin.
   (cond 
-   ((null object) (cust-print-internal-printer object))
+   ((null object) (cust-print-original-printer object))
+   ((cust-print-use-custom-printer object) object)
    ((consp object) (cust-print-list object))
    ((vectorp object) (cust-print-vector object))
    ;; All other types, just print.
-   (t (cust-print-internal-printer object))))
+   (t (cust-print-original-printer object))))
 
 
-;; Test object type and print accordingly.
-(defun cust-print-custom-object (object)
-  ;; Could be called as either cust-print-low-level-prin or cust-print-prin.
-  (cond 
-   ((null object) (cust-print-internal-printer object))
-
-   ((consp object) 
-    (or (and custom-print-list
-	     (cust-print-custom-object1 object custom-print-list))
-	(cust-print-list object)))
-
-   ((vectorp object) 
-    (or (and custom-print-vector
-	     (cust-print-custom-object1 object custom-print-vector))
-	(cust-print-vector object)))
-
-   ;; All other types, just print.
-   (t (cust-print-internal-printer object))))
-
-
-;; Helper for cust-print-custom-object.
-;; Print the custom OBJECT using the custom type ALIST.
-;; For the first predicate that matches the object, the corresponding
-;; converter is evaluated with the object and the string that results is
-;; printed with princ.  Return nil if no predicate matches the object.
-(defun cust-print-custom-object1 (object alist)
-  (while (and alist (not (funcall (car (car alist)) object)))
-    (setq alist (cdr alist)))
-  ;; If alist is not null, then something matched.
-  (if alist
-      (cust-print-internal-princ
-       (funcall (cdr (car alist)) object) ; returns string
-       )))
-
-
-(defun cust-print-circular (object)
-  "Printer for `prin1' and `princ' that handles circular structures.
-If OBJECT appears multiply, and has not yet been printed,
-prefix with label; if it has been printed, use `#N#' instead.
-Otherwise, print normally."
+(defun cust-print-print-circular (object)
+  ;; Printer for `prin1' and `princ' that handles circular structures.
+  ;; If OBJECT appears multiply, and has not yet been printed,
+  ;; prefix with label; if it has been printed, use `#N#' instead.
+  ;; Otherwise, print normally.
   (let ((tag (assq object circle-table)))
     (if tag
 	(let ((id (cdr tag)))
 	  (if (> id 0)
 	      (progn
 		;; Already printed, so just print id.
-		(cust-print-internal-princ "#")
-		(cust-print-internal-princ id)
-		(cust-print-internal-princ "#"))
+		(cust-print-original-princ "#")
+		(cust-print-original-princ id)
+		(cust-print-original-princ "#"))
 	    ;; Not printed yet, so label with id and print object.
 	    (setcdr tag (- id)) ; mark it as printed
-	    (cust-print-internal-princ "#")
-	    (cust-print-internal-princ (- id))
-	    (cust-print-internal-princ "=")
+	    (cust-print-original-princ "#")
+	    (cust-print-original-princ (- id))
+	    (cust-print-original-princ "=")
 	    (cust-print-low-level-prin object)
 	    ))
       ;; Not repeated in structure.
@@ -391,18 +525,18 @@ Otherwise, print normally."
 ;;================================================
 ;; List and vector processing for print functions.
 
-;; Print a list using print-length, print-level, and print-circle.
 (defun cust-print-list (list)
-  (if (= circle-level 0)
-      (cust-print-internal-princ "#")
-    (let ((circle-level (1- circle-level)))
-      (cust-print-internal-princ "(")
+  ;; Print a list using print-length, print-level, and print-circle.
+  (if (= cust-print-current-level 0)
+      (cust-print-original-princ "#")
+    (let ((cust-print-current-level (1- cust-print-current-level)))
+      (cust-print-original-princ "(")
       (let ((length (or print-length 0)))
 
 	;; Print the first element always (even if length = 0).
 	(cust-print-prin (car list))
 	(setq list (cdr list))
-	(if list (cust-print-internal-princ " "))
+	(if list (cust-print-original-princ " "))
 	(setq length (1- length))
 
 	;; Print the rest of the elements.
@@ -414,26 +548,26 @@ Otherwise, print normally."
 		(setq list (cdr list)))
 
 	    ;; cdr is not a list, or it is in circle-table.
-	    (cust-print-internal-princ ". ")
+	    (cust-print-original-princ ". ")
 	    (cust-print-prin list)
 	    (setq list nil))
 
 	  (setq length (1- length))
-	  (if list (cust-print-internal-princ " ")))
+	  (if list (cust-print-original-princ " ")))
 
-	(if (and list (= length 0)) (cust-print-internal-princ "..."))
-	(cust-print-internal-princ ")"))))
+	(if (and list (= length 0)) (cust-print-original-princ "..."))
+	(cust-print-original-princ ")"))))
   list)
 
 
-;; Print a vector according to print-length, print-level, and print-circle.
 (defun cust-print-vector (vector)
-  (if (= circle-level 0)
-      (cust-print-internal-princ "#")
-    (let ((circle-level (1- circle-level))
+  ;; Print a vector according to print-length, print-level, and print-circle.
+  (if (= cust-print-current-level 0)
+      (cust-print-original-princ "#")
+    (let ((cust-print-current-level (1- cust-print-current-level))
 	  (i 0)
 	  (len (length vector)))
-      (cust-print-internal-princ "[")
+      (cust-print-original-princ "[")
 
       (if print-length
 	  (setq len (min print-length len)))
@@ -441,16 +575,17 @@ Otherwise, print normally."
       (while (< i len)
 	(cust-print-prin (aref vector i))
 	(setq i (1+ i))
-	(if (< i (length vector)) (cust-print-internal-princ " ")))
+	(if (< i (length vector)) (cust-print-original-princ " ")))
 
-      (if (< i (length vector)) (cust-print-internal-princ "..."))
-      (cust-print-internal-princ "]")
+      (if (< i (length vector)) (cust-print-original-princ "..."))
+      (cust-print-original-princ "]")
       ))
   vector)
 
 
-;;==================================
+
 ;; Circular structure preprocessing
+;;==================================
 
 (defun cust-print-preprocess-circle-tree (object)
   ;; Fill up the table.  
@@ -492,7 +627,11 @@ Otherwise, print normally."
 (defun cust-print-walk-circle-tree (object)
   (let (read-equivalent-p tag)
     (while object
-      (setq read-equivalent-p (or (numberp object) (symbolp object))
+      (setq read-equivalent-p 
+	    (or (numberp object) 
+		(and (symbolp object)
+		     ;; Check if it is uninterned.
+		     (eq object (intern-soft (symbol-name object)))))
 	    tag (and (not read-equivalent-p)
 		     (assq object (cdr circle-table))))
       (cond (tag
@@ -525,49 +664,55 @@ Otherwise, print normally."
 		  (cust-print-walk-circle-tree (aref object j))
 		  (setq j (1+ j))))))))))
 
-
-
+
+;; Example.
 ;;=======================================
 
-;; Example.
+'(progn
+   (progn
+     ;; Create some circular structures.
+     (setq circ-sym (let ((x (make-symbol "FOO"))) (list x x)))
+     (setq circ-list (list 'a 'b (vector 1 2 3 4) 'd 'e 'f))
+     (setcar (nthcdr 3 circ-list) circ-list)
+     (aset (nth 2 circ-list) 2 circ-list)
+     (setq dotted-circ-list (list 'a 'b 'c))
+     (setcdr (cdr (cdr dotted-circ-list)) dotted-circ-list)
+     (setq circ-vector (vector 1 2 3 4 (list 'a 'b 'c 'd) 6 7))
+     (aset circ-vector 5 (make-symbol "-gensym-"))
+     (setcar (cdr (aref circ-vector 4)) (aref circ-vector 5))
+     nil)
 
-;;;; Create some circular structures.
-;;(setq circ-sym (let ((x (make-symbol "FOO"))) (list x x)))
-;;(setq circ-list (list 'a 'b (vector 1 2 3 4) 'd 'e 'f))
-;;(setcar (nthcdr 3 circ-list) circ-list)
-;;(aset (nth 2 circ-list) 2 circ-list)
-;;(setq dotted-circ-list (list 'a 'b 'c))
-;;(setcdr (cdr (cdr dotted-circ-list)) dotted-circ-list)
-;;(setq circ-vector (vector 1 2 3 4 (list 'a 'b 'c 'd) 6 7))
-;;(aset circ-vector 5 (make-symbol "-gensym-"))
-;;(setcar (cdr (aref circ-vector 4)) (aref circ-vector 5))
+   (install-custom-print)
+   ;; (setq print-circle t)
 
-;;(install-custom-print-funcs)
-;;;; (setq print-circle t)
+   (let ((print-circle t))
+     (or (equal (prin1-to-string circ-list) "#1=(a b [1 2 #1# 4] #1# e f)")
+	 (error "circular object with array printing")))
 
-;;(let ((print-circle t))
-;;  (or (equal (prin1-to-string circ-list) "#1=(a b [1 2 #1# 4] #1# e f)")
-;;      (error "circular object with array printing")))
+   (let ((print-circle t))
+     (or (equal (prin1-to-string dotted-circ-list) "#1=(a b c . #1#)")
+	 (error "circular object with array printing")))
 
-;;(let ((print-circle t))
-;;  (or (equal (prin1-to-string dotted-circ-list) "#1=(a b c . #1#)")
-;;      (error "circular object with array printing")))
+   (let* ((print-circle t)
+	  (x (list 'p 'q))
+	  (y (list (list 'a 'b) x 'foo x)))
+     (setcdr (cdr (cdr (cdr y))) (cdr y))
+     (or (equal (prin1-to-string y) "((a b) . #1=(#2=(p q) foo #2# . #1#))"
+		)
+	 (error "circular list example from CL manual")))
 
-;;(let* ((print-circle t)
-;;       (x (list 'p 'q))
-;;       (y (list (list 'a 'b) x 'foo x)))
-;;  (setcdr (cdr (cdr (cdr y))) (cdr y))
-;;  (or (equal (prin1-to-string y) "((a b) . #1=(#2=(p q) foo #2# . #1#))"
-;;	     )
-;;      (error "circular list example from CL manual")))
+   (let ((print-circle nil))
+     ;; cl-packages.el is required to print uninterned symbols like #:FOO.
+     ;; (require 'cl-packages)
+     (or (equal (prin1-to-string circ-sym) "(#:FOO #:FOO)")
+	 (error "uninterned symbols in list")))
+   (let ((print-circle t))
+     (or (equal (prin1-to-string circ-sym) "(#1=FOO #1#)")
+	 (error "circular uninterned symbols in list")))
 
-;;;; There's no special handling of uninterned symbols in custom-print.
-;;(let ((print-circle nil))
-;;  (or (equal (prin1-to-string circ-sym) "(#:FOO #:FOO)")
-;;      (error "uninterned symbols in list")))
-;;(let ((print-circle t))
-;;  (or (equal (prin1-to-string circ-sym) "(#1=FOO #1#)")
-;;      (error "circular uninterned symbols in list")))
-;;(uninstall-custom-print-funcs)
+   (uninstall-custom-print)
+   )
+
+(provide 'cust-print)
 
 ;;; cust-print.el ends here
