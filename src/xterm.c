@@ -830,6 +830,9 @@ XTflash (f)
 
 XTring_bell ()
 {
+  if (x_current_display == 0)
+    return;
+
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
   if (visible_bell)
     XTflash (selected_frame);
