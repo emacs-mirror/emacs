@@ -246,7 +246,10 @@ Not actually set up until the first time you you use it.")
 	 (setq cd-path (concat cd-path ":"))
 	 (while (setq cd-colon (string-match ":" cd-path cd-start))
 	   (setq cd-list
-		 (nconc cd-list (list (substitute-in-file-name (file-name-as-directory (substring cd-path cd-start cd-colon))))))
+		 (nconc cd-list
+			(list (substitute-in-file-name
+			       (file-name-as-directory
+				(substring cd-path cd-start cd-colon))))))
 	   (setq cd-start (+ cd-colon 1)))
 	 cd-list)))
 
@@ -260,8 +263,7 @@ Not actually set up until the first time you you use it.")
       (error "%s is not a directory" dir)
     (if (file-executable-p dir)
 	(setq default-directory dir)
-      (error "Cannot cd to %s:  Permission denied" dir)))
-)
+      (error "Cannot cd to %s:  Permission denied" dir))))
 
 (defun cd (dir)
   "Make DIR become the current buffer's default directory.
@@ -273,7 +275,7 @@ colon-separated list of directories when resolving a relative cd."
 	(cd-absolute (expand-file-name dir))
       (if (null cd-path)
 	  (let ((trypath (parse-colon-path (getenv "CDPATH"))))
-	    (setq cd-path (or trypath "./"))))
+	    (setq cd-path (or trypath (list "./")))))
       (if (not (catch 'found
 		 (mapcar
 		  (function (lambda (x)
