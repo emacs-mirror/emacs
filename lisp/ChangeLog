@@ -1,3 +1,7 @@
+2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* hl-line.el: Fixed a typo in commentary.
+
 2000-06-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/tibet-util.el (tibetan-tibetan-to-transcription): Typo
