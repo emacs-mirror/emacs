@@ -1,5 +1,9 @@
 2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* textmodes/paragraphs.el (forward-paragraph): Avoid
+	args-out-of-range error when point winds up at the beginning of
+	the buffer and hard newlines are enabled.
+
 	* newcomment.el (comment-multi-line): Doc fix.
 
 2004-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
