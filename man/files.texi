@@ -2395,6 +2395,44 @@ compiling it.
 @section File Archives
 @cindex mode, tar
 @cindex Tar mode
+@pindex tar
+
+  If you visit a file with extension @samp{.tar}, it is assumed to be an
+@dfn{archive} made by the @code{tar} program and it is viewed in a Tar
+mode buffer.  This provides a Dired-like listing of the contents.
+@xref{Dired}.  You can move around the component files as in Dired to
+visit and manipulate them.
+
+  The keys @kbd{e}, @kbd{f} and @kbd{RET} all extract a component file
+into its own buffer.  You can edit it there and when you save the buffer
+the edited version will replace the version in the Tar buffer.  @kbd{v}
+extracts a file into a buffer in View mode.  @kbd{o} extracts the file
+and displays it in another window, so you could edit the file and
+operate on the archive simultaneously.  @kbd{d} marks a file for
+deletion when you later use @kbd{x}, and @kbd{u} unmarks a file, as in
+Dired.  @kbd{C} copies a file from the archive to disk and @kbd{R}
+renames a file.  @kbd{g} reverts the buffer from the archive on disk.
+
+  The keys @kbd{M}, @kbd{G}, and @kbd{O} change the file's permission
+bits, group, and owner, respectively.
+
+  If your display supports colors and the mouse, moving the mouse
+pointer across a file name highlights that file name, indicating that
+you can click on it.  Clicking @kbd{Mouse-2} on the highlighted file
+name extracts the file into a buffer and displays that buffer.
+
+  Saving the Tar buffer writes a new version of the archive to disk with
+the changes you made to the components.
+
+  If you enable Auto Compression mode (@pxref{Compressed Files}), then
+Tar mode will be used also for compressed archives in files with
+extensions @samp{.tgz}, @code{.tar.Z} and @code{.tar.gz}.
+
+  It is not necessary to have the @code{tar} program available to use
+Tar mode or Archive mode---Emacs reads the archives directly.  For
+compressed archives such as @code{.tar.gz}, you need the appropriate
+uncompress program to be available to Emacs.
+
 @cindex Archive mode
 @cindex mode, archive
 @cindex @code{arc}
@@ -2402,58 +2440,32 @@ compiling it.
 @cindex @code{zip}
 @cindex @code{lzh}
 @cindex @code{zoo}
-@pindex tar
-@pindex arc
-@pindex jar
-@pindex zip
-@pindex lzh
-@pindex zoo
-
-If you visit a file with extension @samp{.tar}, it is assumed to be an
-`archive' made by the @code{tar} program and it is viewed in a Tar mode
-buffer.  This provides a Dired-like listing of the contents.
-@xref{Dired}.  You can move around the component files as in Dired to
-visit and manipulate them.
-
-The keys @kbd{e}, @kbd{f} and @kbd{RET} all extract a component file
-into its own buffer.  You can edit it there and when you save the buffer
-the edited version will replace the version in the Tar buffer.  @var{v}
-extracts a file into a buffer in View mode.  @kbd{d} marks a file for
-deletion when you later use @kbd{x}, as in Dired.  @kbd{C} copies a file
-from the archive to disk and @kbd{R} renames a file.
-
-Saving the Tar buffer writes a new version of the archive to disk with
-the changes you made to the components.
-
-If you enable Auto Compression mode (@pxref{Compressed Files}), then Tar
-mode will be used also for compressed archives in files with extensions
-@samp{.tgz}, @code{.tar.Z} and @code{.tar.gz}.
-
-It is not necessary to have the @code{tar} program available to use Tar
-mode or Archive mode---Emacs reads the archives directly.
-
-@cindex @code{arc}
-@cindex @code{jar}
-@cindex @code{zip}
-@cindex @code{lzh}
-@cindex @code{zoo}
-@pindex tar
 @pindex arc
 @pindex jar
 @pindex zip
 @pindex lzh
 @pindex zoo
 @cindex Java class archives
-A separate but similar Archive mode, is used for archives produced by
+@cindex unzip archives
+  A separate but similar Archive mode is used for archives produced by
 the programs @code{arc}, @code{zip}, @code{lzh} and @code{zoo} which
 have extensions corresponding to the program names.  These archiving
 programs are typically used on MS-DOS and MS-Windows systems.  Java
-class archives with extension @samp{.jar} are also recognized.  The
-keybindings in Archive mode are similar to those in Tar mode.
+class archives with extension @samp{.jar} are also recognized.
 
-Unlike Tar mode, Archive mode runs the appropriate program to unpack and
-repack archives.  Details of the program names and their options can be
-set in the `Archive' Customize group.
+  The keybindings in Archive mode are similar to those in Tar mode, with
+the addition of the @kbd{m} key which marks a file for subsequent
+operations, and @kbd{M-@key{DEL}} which unmarks all the marked files.
+Also, the @kbd{a} key toggles the display of file information in those
+archive types where all of of the info is too long to be displayed on a
+single line.  Operations such as @samp{change mode}, @samp{change owner}
+and @samp{rename} are supported only for some of the archive formats.
+
+  Unlike Tar mode, Archive mode runs the appropriate program to unpack
+and repack archives.  Details of the program names and their options can
+be set in the @samp{Archive} Customize group.  However, you don't need
+these programs to @emph{view} the archive contents, only to extract and
+delete archived files.
 
 @node Remote Files
 @section Remote Files
