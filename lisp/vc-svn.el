@@ -372,7 +372,8 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
 	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
-	   (async (and (vc-stay-local-p file)
+	   (async (and (not vc-disable-async-diff)
+                       (vc-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
       (apply 'vc-svn-command buffer
