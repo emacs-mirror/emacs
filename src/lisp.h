@@ -1404,6 +1404,7 @@ extern Lisp_Object Vfundamental_mode_abbrev_table;
 /* defined in search.c */
 extern Lisp_Object Fstring_match ();
 extern Lisp_Object Fscan_buffer ();
+extern void restore_match_data ();
 
 /* defined in minibuf.c */
 
@@ -1499,6 +1500,8 @@ void shut_down_emacs ( /* int signal, int no_x, Lisp_Object stuff */ );
 extern int noninteractive;
 /* Nonzero means don't do use window-system-specific display code */
 extern int inhibit_window_system;
+/* Nonzero means that a filter or a sentinel is running. */
+extern int running_asynch_code;
 
 /* defined in process.c */
 extern Lisp_Object Fget_process (), Fget_buffer_process (), Fprocessp ();

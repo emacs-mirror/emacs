@@ -98,6 +98,10 @@ int inhibit_window_system;
    priority; Those functions have their own extern declaration.  */
 int emacs_priority;
 
+/* If non-zero a filter or a sentinel is running.  Tested to save the match
+   data on the first attempt to change it inside asynchronous code. */
+int running_asynch_code;
+
 #ifdef BSD_PGRPS
 /* See sysdep.c.  */
 extern int inherited_pgroup;
@@ -697,6 +701,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   init_alloc ();
   init_eval ();
   init_data ();
+  running_asynch_code = 0;
 
 #ifdef MSDOS
   /* Call early 'cause init_environment needs it.  */

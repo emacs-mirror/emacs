@@ -2350,13 +2350,17 @@ read_process_output (proc, channel)
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
 
+      running_asynch_code = 1;
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
 					Fcons (proc,
-					       Fcons (make_string (chars, nchars),
+					       Fcons (make_string (chars,
+								   nchars),
 						      Qnil))),
 				 !NILP (Vdebug_on_error) ? Qnil : Qerror,
 				 read_process_output_error_handler);
+      running_asynch_code = 0;
+      restore_match_data ();
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
@@ -3233,11 +3237,14 @@ exec_sentinel (proc, reason)
   specbind (Qinhibit_quit, Qt);
   specbind (Qlast_nonmenu_event, Qt);
 
+  running_asynch_code = 1;
   internal_condition_case_1 (read_process_output_call,
 			     Fcons (sentinel,
 				    Fcons (proc, Fcons (reason, Qnil))),
 			     !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			     exec_sentinel_error_handler);
+  running_asynch_code = 0;
+  restore_match_data ();
 
   Vdeactivate_mark = odeactivate;
   if (! EQ (Fcurrent_buffer (), obuffer))

@@ -206,6 +206,9 @@ looking_at_1 (string, posix)
   register int i;
   struct re_pattern_buffer *bufp;
 
+  if (running_asynch_code)
+    save_search_regs ();
+
   CHECK_STRING (string, 0);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
@@ -283,6 +286,9 @@ string_match_1 (regexp, string, start, posix)
   int val;
   int s;
   struct re_pattern_buffer *bufp;
+
+  if (running_asynch_code)
+    save_search_regs ();
 
   CHECK_STRING (regexp, 0);
   CHECK_STRING (string, 1);
@@ -927,6 +933,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
   register int i, j;
   unsigned char *p1, *p2;
   int s1, s2;
+
+  if (running_asynch_code)
+    save_search_regs ();
 
   /* Null string is found at starting position.  */
   if (len == 0)
@@ -1845,6 +1854,9 @@ LIST should have been created by calling `match-data' previously.")
   register int i;
   register Lisp_Object marker;
 
+  if (running_asynch_code)
+    save_search_regs ();
+
   if (!CONSP (list) && !NILP (list))
     list = wrong_type_argument (Qconsp, list);
 
@@ -1912,6 +1924,46 @@ LIST should have been created by calling `match-data' previously.")
     }
 
   return Qnil;  
+}
+
+/* If non-zero the match data have been saved in saved_search_regs
+   during the execution of a sentinel or filter. */
+static int search_regs_saved = 0;
+static struct re_registers saved_search_regs;
+
+/* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
+   if asynchronous code (filter or sentinel) is running. */
+static void
+save_search_regs ()
+{
+  if (!search_regs_saved)
+    {
+      saved_search_regs.num_regs = search_regs.num_regs;
+      saved_search_regs.start = search_regs.start;
+      saved_search_regs.end = search_regs.end;
+      search_regs.num_regs = 0;
+
+      search_regs_saved = 1;
+    }
+}
+
+/* Called upon exit from filters and sentinels. */
+void
+restore_match_data ()
+{
+  if (search_regs_saved)
+    {
+      if (search_regs.num_regs > 0)
+	{
+	  xfree (search_regs.start);
+	  xfree (search_regs.end);
+	}
+      search_regs.num_regs = saved_search_regs.num_regs;
+      search_regs.start = saved_search_regs.start;
+      search_regs.end = saved_search_regs.end;
+
+      search_regs_saved = 0;
+    }
 }
 
 /* Quote a string to inactivate reg-expr chars */
