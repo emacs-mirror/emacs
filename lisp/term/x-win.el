@@ -65,7 +65,7 @@
 ;; ../startup.el.
 
 (if (not (eq window-system 'x))
-    (error "Loading x-win.el but not compiled for X"))
+    (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
 	 
 (require 'frame)
 (require 'mouse)
@@ -82,7 +82,8 @@
       (append '(("-bw" .	x-handle-numeric-switch)
 		("-d" .		x-handle-display)
 		("-display" .	x-handle-display)
-		("-name" .	x-handle-switch)
+		("-name" .	x-handle-name-rn-switch)
+		("-rn" .	x-handle-name-rn-switch)
 		("-T" .		x-handle-switch)
 		("-r" .		x-handle-switch)
 		("-rv" .	x-handle-switch)
@@ -100,7 +101,7 @@
 		("-itype" .	x-handle-switch)
 		("-i" 	.	x-handle-switch)
 		("-iconic" .	x-handle-switch)
-		("-rn" .        x-handle-rn-switch)
+		("-xrm" .       x-handle-xrm-switch)
 		("-cr" .	x-handle-switch)
 		("-vb" .	x-handle-switch)
 		("-hb" .	x-handle-switch)
@@ -155,8 +156,10 @@
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
 
-;; Handle the -rn option.
-(defun x-handle-rn-switch (switch)
+;; Handle the -xrm option.
+(defun x-handle-xrm-switch (switch)
+  (or (consp x-invocation-args)
+      (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-command-line-resources (car x-invocation-args))
   (setq x-invocation-args (cdr x-invocation-args)))
 
@@ -166,6 +169,18 @@
 	(append initial-frame-alist
 		(x-parse-geometry (car x-invocation-args)))
 	x-invocation-args (cdr x-invocation-args)))
+
+;; Handle the -name and -rn options.  Set the variable x-resource-name
+;; to the option's operand; if the switch was `-name', set the name of
+;; the initial frame, too.
+(defun x-handle-name-rn-switch (switch)
+  (or (consp x-invocation-args)
+      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+  (setq x-resource-name (car x-invocation-args)
+	x-invocation-args (cdr x-invocation-args))
+  (if (string= switch "-name")
+      (setq initial-frame-alist (cons (cons 'name x-resource-name)
+				      initial-frame-alist))))
 
 (defvar x-display-name nil
   "The X display name specifying server and X frame.")
@@ -515,6 +530,17 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; functions and variables that we use now.
 
 (setq command-line-args (x-handle-args command-line-args))
+
+;;; Make sure we have a valid resource name.
+(or (stringp x-resource-name)
+    (let (i)
+      (setq x-resource-name (invocation-name))
+
+      ;; Change any . or * characters in x-resource-name to hyphens,
+      ;; so as not to choke when we use it in X resource queries.
+      (while (setq i (string-match "[.*]" x-resource-name))
+	(aset x-resource-name i ?-))))
+
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY")))
 		   x-command-line-resources)
@@ -530,11 +556,12 @@ This returns ARGS with the arguments that have been processed removed."
 					(x-parse-geometry res-geometry)))))
 
 ;; Check the reverseVideo resource.
-(if (assoc
-     (x-get-resource "reverseVideo"
-		     "ReverseVideo")
-     '("True" "true" "Yes" "yes"))
-    (setq default-frame-alist (cons '(reverse . t) default-frame-alist)))
+(let ((case-fold-search t))
+  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+    (if (and rv
+	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
+	(setq default-frame-alist
+	      (cons '(reverse . t) default-frame-alist)))))
 
 ;; Set x-selection-timeout, measured in milliseconds.
 (let ((res-selection-timeout
