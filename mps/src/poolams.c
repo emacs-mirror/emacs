@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.37) $
+ * $HopeName: MMsrc!poolams.c(trunk.38) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.37) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.38) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -58,7 +58,7 @@ Bool AMSGroupCheck(AMSGroup group)
 }
 
 
-/* AMSGroupCreate -- create a single group
+/* AMSGroupInit -- initialize a group
  *
  * .group.class: Eventually this will evolve into a more general group
  * subclassing mechanism, so I've split the AMS-specific initialization
@@ -125,7 +125,9 @@ failAlloc:
 /* AMSSegSizePolicy
  *
  * Picks a segment size.  This policy simply rounds the size
- * up to the arena alignment. */
+ * up to the arena alignment.
+ */
+
 static Res AMSSegSizePolicy(Size *sizeReturn,
                             Pool pool, Size size, RankSet rankSet)
 {
@@ -147,6 +149,9 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
   return ResOK;
 }
 
+
+/* AMSGroupCreate -- create a single group */
+
 static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
                           SegPref segPref, RankSet rankSet,
                           Bool withReservoirPermit)
@@ -156,6 +161,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   Res res;
   Arena arena;
   Seg seg;
+  Size prefSize;
   void *p;                      /* for allocating the group structure */
 
   AVER(groupReturn != NULL);
@@ -169,7 +175,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   AVERT(AMS,ams);
   arena = PoolArena(pool);
 
-  res = ams->segSize(&size, pool, size, rankSet);
+  res = ams->segSize(&prefSize, pool, size, rankSet);
   if(res != ResOK)
     goto failSize;
 
@@ -181,9 +187,16 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   /* instance by using the offset information from the class. */
   group = (AMSGroup)PointerAdd(p, ams->groupOffset);
 
-  res = SegAlloc(&seg, segPref, size, pool, withReservoirPermit);
-  if(res != ResOK)
-    goto failSeg;
+  res = SegAlloc(&seg, segPref, prefSize, pool, withReservoirPermit);
+  if(res != ResOK) { /* try to allocate one that's just large enough */
+    Size minSize = SizeAlignUp(size, ArenaAlign(arena));
+
+    if(minSize == prefSize)
+      goto failSeg;
+    res = SegAlloc(&seg, segPref, minSize, pool, withReservoirPermit);
+    if(res != ResOK)
+      goto failSeg;
+  }
 
   group->seg = seg;
   SegSetP(seg, (void*)group);
