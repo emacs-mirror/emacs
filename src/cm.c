@@ -25,10 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #include "cm.h"
 #include "termhooks.h"
 
-#ifdef HAVE_TERMCAP_H
-#include <termcap.h>
-#endif
-
 #define	BIG	9999		/* 9999 good on VAXen.  For 16 bit machines
 				   use about 2000.... */
 
