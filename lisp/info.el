@@ -371,7 +371,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	       (save-buffers-kill-emacs)))
     (info)))
 
-;; See if the the accessible portion of the buffer begins with a node
+;; See if the accessible portion of the buffer begins with a node
 ;; delimiter, and the node header line which follows matches REGEXP.
 ;; Typically, this test will be followed by a loop that examines the
 ;; rest of the buffer with (search-forward "\n\^_"), and it's a pity
@@ -381,7 +381,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; want to use the results of re-search-backward.
 
 ;; The return value is the value of point at the beginning of matching
-;; REGERXP, if the function succeeds, nil otherwise.
+;; REGEXP, if the function succeeds, nil otherwise.
 (defun Info-node-at-bob-matching (regexp)
   (and (bobp)				; are we at beginning of buffer?
        (looking-at "\^_")		; does it begin with node delimiter?
@@ -1144,8 +1144,10 @@ Bind this in case the user sets it to nil."
 	(goto-char (point-min))
 	(when Info-header-line
 	  ;; expose the header line in the buffer
-	  (widen)
-	  (forward-line -1))
+	  (let ((end (point-max)))
+	    (widen)
+	    (forward-line -1)
+	    (narrow-to-region (point) end)))
 	(let ((bound (point)))
 	  (forward-line 1)
 	  (cond ((re-search-backward (concat name ":") nil bound)
@@ -1736,13 +1738,12 @@ Give a blank topic name to go to the Index node itself."
 	      (progn
 		(goto-char (point-min))
 		(while (re-search-forward pattern nil t)
-		  (setq matches
-			(cons (list (match-string-no-properties 1)
-				    (match-string-no-properties 2)
-				    Info-current-node
-				    (string-to-int (concat "0"
-							   (match-string 3))))
-			      matches)))
+		  (push (list (match-string-no-properties 1)
+			      (match-string-no-properties 2)
+			      Info-current-node
+			      (string-to-int (concat "0"
+						     (match-string 3))))
+			matches))
 		(and (setq node (Info-extract-pointer "next" t))
 		     (string-match "\\<Index\\>" node)))
 	    (Info-goto-node node))
