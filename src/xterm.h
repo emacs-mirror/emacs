@@ -209,40 +209,43 @@ extern struct frame *x_top_window_to_frame ();
 extern struct frame *x_focus_frame;
 
 #ifdef HAVE_X11
-/* Variables associated with the X display screen this emacs is using. */
+/* Variables associated with the X display screen this emacs is using.  */
 
-/* How many screens this X display has. */
+/* How many screens this X display has.  */
 extern int x_screen_count;
 
-/* The vendor supporting this X server. */
+/* The vendor supporting this X server.  */
 extern Lisp_Object Vx_vendor;
 
-/* The vendor's release number for this X server. */
+/* The vendor's release number for this X server.  */
 extern int x_release;
 
-/* Height of this X screen in pixels. */
+/* Height of this X screen in pixels.  */
 extern int x_screen_height;
 
-/* Height of this X screen in millimeters. */
+/* Height of this X screen in millimeters.  */
 extern int x_screen_height_mm;
 
-/* Width of this X screen in pixels. */
+/* Width of this X screen in pixels.  */
 extern int x_screen_width;
 
-/* Width of this X screen in millimeters. */
+/* Width of this X screen in millimeters.  */
 extern int x_screen_width_mm;
 
-/* Does this X screen do backing store? */
+/* Does this X screen do backing store?  */
 extern Lisp_Object Vx_backing_store;
 
-/* Does this X screen do save-unders? */
+/* Does this X screen do save-unders?  */
 extern int x_save_under;
 
-/* Number of planes for this screen. */
+/* Number of planes for this screen.  */
 extern int x_screen_planes;
 
-/* X Visual type of this screen. */
+/* X Visual type of this screen.  */
 extern Lisp_Object Vx_screen_visual;
+
+/* Mask of which mouse buttons are currently held down.  */
+extern unsigned int x_mouse_grabbed;
 
 #endif /* HAVE_X11 */
 
@@ -263,17 +266,17 @@ struct x_display
   /* Border width of the X window as known by the X window system.  */
   int border_width;
 
-  /* Size of the X window in pixels. */
+  /* Size of the X window in pixels.  */
   int pixel_height, pixel_width;
 
   /* Height of a line, in pixels.  */
   int line_height;
 
 #ifdef HAVE_X11
-  /* The tiled border used when the mouse is out of the frame. */
+  /* The tiled border used when the mouse is out of the frame.  */
   Pixmap border_tile;
 
-  /* Here are the Graphics Contexts for the default font. */
+  /* Here are the Graphics Contexts for the default font.  */
   GC normal_gc;				/* Normal video */
   GC reverse_gc;			/* Reverse video */
   GC cursor_gc;				/* cursor drawing */
@@ -338,7 +341,7 @@ struct x_display
      buffer in the currently selected window in the frame */
   char *icon_label;
 
-  /* Flag to set when the X window needs to be completely repainted. */
+  /* Flag to set when the X window needs to be completely repainted.  */
   int needs_exposure;
 
   /* What kind of text cursor is drawn in this window right now?
@@ -383,6 +386,9 @@ struct x_display
 
   /* This is the gravity value for the specified window position.  */
   int win_gravity;
+
+  /* The geometry flags for this window.  */
+  int size_hint_flags;
 };
 
 /* Get at the computed faces of an X window frame.  */
@@ -415,7 +421,7 @@ struct x_display
    For highlighting, the two colors are exchanged.
    Face number 0 is unused.  The low order byte of a glyph gives
    the character within the font.  All fonts are assumed to be
-   fixed width, and to have the same height and width. */
+   fixed width, and to have the same height and width.  */
 
 #ifdef HAVE_X11
 
@@ -425,9 +431,9 @@ struct x_display
 
 struct face
 {
-  FONT_TYPE *font;	/* Font info for specified font. */
-  int  fg;		/* Unhighlighted foreground. */
-  int  bg;		/* Unhighlighted background. */
+  FONT_TYPE *font;	/* Font info for specified font.  */
+  int  fg;		/* Unhighlighted foreground.  */
+  int  bg;		/* Unhighlighted background.  */
 };
 #endif	/* X10 */
 
