@@ -131,8 +131,6 @@ struct cm Wcm;		/* Structure for info on cursor positioning */
 
 extern short ospeed;	/* Output speed (from sg_ospeed) */
 
-int in_display;		/* 1 if in redisplay: can't handle SIGWINCH now.  */
-
 int delayed_size_change;  /* 1 means SIGWINCH happened when not safe.  */
 
 #ifdef MULTI_FRAME
@@ -149,9 +147,9 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   update_begin (f);
   /*  set_terminal_modes (); */
   clear_frame ();
+  clear_frame_records (f);
   update_end (f);
   fflush (stdout);
-  clear_frame_records (f);
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
@@ -226,7 +224,7 @@ make_frame_glyphs (frame, empty)
   new->bufp = (int *) xmalloc (height * sizeof (int));
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (frame))
+  if (FRAME_X_P (frame))
     {
       new->nruns = (int *) xmalloc (height * sizeof (int));
       new->face_list
@@ -275,7 +273,7 @@ free_frame_glyphs (frame, glyphs)
   free (glyphs->bufp);
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (frame))
+  if (FRAME_X_P (frame))
     {
       free (glyphs->nruns);
       free (glyphs->face_list);
@@ -625,7 +623,7 @@ scroll_frame_lines (frame, from, end, amount)
 		  (end - from) * sizeof current_frame->bufp[0]);
 
 #ifdef HAVE_X_WINDOWS
-      if (FRAME_IS_X (frame))
+      if (FRAME_X_P (frame))
 	{
 	  safe_bcopy (current_frame->nruns + from,
 		      current_frame->nruns + from + amount,
@@ -697,7 +695,7 @@ scroll_frame_lines (frame, from, end, amount)
 		  (end - from) * sizeof current_frame->bufp[0]);
 
 #ifdef HAVE_X_WINDOWS
-      if (FRAME_IS_X (frame))
+      if (FRAME_X_P (frame))
 	{
 	  safe_bcopy (current_frame->nruns + from,
 		      current_frame->nruns + from + amount,
@@ -982,7 +980,7 @@ update_frame (f, force, inhibit_hairy_id)
     update_line (f, FRAME_HEIGHT (f) - 1);
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (f))
+  if (FRAME_X_P (f))
     {
       leftmost = downto = f->display.x->internal_border_width;
       if (desired_frame->enable[0])
@@ -1002,7 +1000,7 @@ update_frame (f, force, inhibit_hairy_id)
     {
       if (desired_frame->enable[i])
 	{
-	  if (FRAME_IS_TERMCAP (f))
+	  if (FRAME_TERMCAP_P (f))
 	    {
 	      /* Flush out every so many lines.
 		 Also flush out if likely to have more than 1k buffered
@@ -1031,7 +1029,7 @@ update_frame (f, force, inhibit_hairy_id)
 
 	  update_line (f, i);
 #ifdef HAVE_X_WINDOWS
-	  if (FRAME_IS_X (f))
+	  if (FRAME_X_P (f))
 	    {
 	      current_frame->top_left_y[i] = downto;
 	      current_frame->top_left_x[i] = leftmost;
@@ -1040,7 +1038,7 @@ update_frame (f, force, inhibit_hairy_id)
 	}
 
 #ifdef HAVE_X_WINDOWS
-      if (FRAME_IS_X (f))
+      if (FRAME_X_P (f))
 	downto += LINE_HEIGHT(f, i);
 #endif
     }
@@ -1303,7 +1301,7 @@ update_line (frame, vpos)
   current_frame->bufp[vpos] = desired_frame->bufp[vpos];
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (frame))
+  if (FRAME_X_P (frame))
     {
       current_frame->pix_width[vpos]
 	= current_frame->used[vpos]
@@ -1599,11 +1597,9 @@ window_change_signal ()
 
     FOR_EACH_FRAME (tail, f)
       {
-	if (FRAME_IS_TERMCAP (f))
+	if (FRAME_TERMCAP_P (f))
 	  {
-	    ++in_display;
-	    change_frame_size (f, height, width, 0);
-	    --in_display;
+	    change_frame_size (f, height, width, 0, 1);
 	    break;
 	  }
       }
@@ -1636,23 +1632,28 @@ do_pending_window_change ()
 	  FRAME_NEW_WIDTH (f) = 0;
 
 	  if (height != 0)
-	    change_frame_size (f, height, width, 0);
+	    change_frame_size (f, height, width, 0, 0);
 	}
     }
 }
 
 
 /* Change the frame height and/or width.  Values may be given as zero to
-   indicate no change is to take place. */
+   indicate no change is to take place. 
 
-change_frame_size (frame, newlength, newwidth, pretend)
+   If DELAY is non-zero, then assume we're being called from a signal
+   handler, and queue the change for later - perhaps the next
+   redisplay.  Since this tries to resize windows, we can't call it
+   from a signal handler.  */
+
+change_frame_size (frame, newheight, newwidth, pretend, delay)
      register FRAME_PTR frame;
-     register int newlength, newwidth, pretend;
+     int newheight, newwidth, pretend;
 {
   /* If we can't deal with the change now, queue it for later.  */
-  if (in_display)
+  if (delay)
     {
-      FRAME_NEW_HEIGHT (frame) = newlength;
+      FRAME_NEW_HEIGHT (frame) = newheight;
       FRAME_NEW_WIDTH (frame) = newwidth;
       delayed_size_change = 1;
       return;
@@ -1660,49 +1661,56 @@ change_frame_size (frame, newlength, newwidth, pretend)
 
   /* This size-change overrides any pending one for this frame.  */
   FRAME_NEW_HEIGHT (frame) = 0;
-  FRAME_NEW_WIDTH (frame) = 0;
+  FRAME_NEW_WIDTH  (frame) = 0;
 
-  if ((newlength == 0 || newlength == FRAME_HEIGHT (frame))
-      && (newwidth == 0 || newwidth == FRAME_WIDTH (frame)))
+  /* If an arguments is zero, set it to the current value.  */
+  newheight || (newheight = FRAME_HEIGHT (frame));
+  newwidth  || (newwidth  = FRAME_WIDTH  (frame));
+
+  /* Round up to the smallest acceptable size.  */
+  check_frame_size (frame, &newheight, &newwidth);
+
+  /* If we're not changing the frame size, quit now.  */
+  if (newheight == FRAME_HEIGHT (frame)
+      && newwidth == FRAME_WIDTH (frame))
     return;
 
-  if (newlength && newlength != FRAME_HEIGHT (frame))
+  if (newheight != FRAME_HEIGHT (frame))
     {
-      if (FRAME_HAS_MINIBUF (frame)
+      if (FRAME_HAS_MINIBUF_P (frame)
 	  && ! FRAME_MINIBUF_ONLY_P (frame))
 	{
 	  /* Frame has both root and minibuffer.  */
 	  set_window_height (FRAME_ROOT_WINDOW (frame),
-			     newlength - 1, 0);
+			     newheight - 1, 0);
 	  XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (frame))->top)
-	    = newlength - 1;
+	    = newheight - 1;
 	  set_window_height (FRAME_MINIBUF_WINDOW (frame), 1, 0);
 	}
       else
 	/* Frame has just one top-level window.  */
-	set_window_height (FRAME_ROOT_WINDOW (frame), newlength, 0);
-	
-      if (FRAME_IS_TERMCAP (frame) && !pretend)
-	FrameRows = newlength;
+	set_window_height (FRAME_ROOT_WINDOW (frame), newheight, 0);
+
+      if (FRAME_TERMCAP_P (frame) && !pretend)
+	FrameRows = newheight;
 
 #if 0
       if (frame->output_method == output_termcap)
 	{
-	  frame_height = newlength;
+	  frame_height = newheight;
 	  if (!pretend)
-	    FrameRows = newlength;
+	    FrameRows = newheight;
 	}
 #endif
     }
 
-  if (newwidth && newwidth != FRAME_WIDTH (frame))
+  if (newwidth != FRAME_WIDTH (frame))
     {
       set_window_width (FRAME_ROOT_WINDOW (frame), newwidth, 0);
-      if (FRAME_HAS_MINIBUF (frame))
+      if (FRAME_HAS_MINIBUF_P (frame))
 	set_window_width (FRAME_MINIBUF_WINDOW (frame), newwidth, 0);
-      FRAME_WIDTH (frame) = newwidth;
 
-      if (FRAME_IS_TERMCAP (frame) && !pretend)
+      if (FRAME_TERMCAP_P (frame) && !pretend)
 	FrameCols = newwidth;
 #if 0
       if (frame->output_method == output_termcap)
@@ -1714,9 +1722,9 @@ change_frame_size (frame, newlength, newwidth, pretend)
 #endif
     }
 
-  if (newlength)
-    FRAME_HEIGHT (frame) = newlength;
-
+  FRAME_HEIGHT (frame) = newheight;
+  FRAME_WIDTH (frame)  = newwidth;
+	
   remake_frame_glyphs (frame);
   calculate_costs (frame);
 }
