@@ -463,7 +463,7 @@ indented_beyond_p (pos, column)
 }
 
 
-DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, 0,
+DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
   "Move point to column COLUMN in the current line.\n\
 The column of a character is calculated by adding together the widths\n\
 as displayed of the previous characters in the line.\n\
