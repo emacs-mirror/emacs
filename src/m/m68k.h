@@ -81,8 +81,3 @@ Boston, MA 02111-1307, USA.  */
 #define NO_REMAP
 #define TEXT_START 0
 #endif
-
-/* If compiling with GCC, let GCC implement alloca.  */
-#if defined(__GNUC__) && !defined(alloca)
-#define alloca(n) __builtin_alloca(n)
-#endif
