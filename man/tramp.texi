@@ -1310,6 +1310,51 @@ The other approach is to teach @tramp{} about these questions.  See
 the variables @code{tramp-actions-before-shell} and
 @code{tramp-multi-actions} (for multi-hop connections).
 
+@item Non-Bourne commands in @file{.profile}
+
+After logging in to the remote host, @tramp{} issues the command
+@code{exec /bin/sh}.  (Actually, the command is slightly different.)
+When @code{/bin/sh} is executed, it reads some init files, such as
+@file{~/.shrc} or @file{~/.profile}.
+
+Now, some people have a login shell which is not @code{/bin/sh} but a
+Bourne-ish shell such as bash or ksh.  Some of these people might put
+their shell setup into the files @code{~/.shrc} or @code{~/.profile}.
+This way, it is possible for non-Bourne constructs to end up in those
+files.  Then, @code{exec /bin/sh} might cause the Bourne shell to barf
+on those constructs.
+
+As an example, imagine somebody putting @code{export FOO=bar} into the
+file @file{~/.profile}.  The standard Bourne shell does not understand
+this syntax and will emit a syntax error when it reaches this line.
+
+Another example is the tilde (@code{~}) character, say when adding
+@file{~/bin} to @code{$PATH}.  Many Bourne shells will not expand this
+character, and since there is usually no directory whose name consists
+of the single character tilde, strange things will happen.
+
+What can you do about this?
+
+Well, one possibility is to make sure that everything in @file{~/.shrc}
+and @file{~/.profile} on all remote hosts is Bourne-compatible.  In the
+above example, instead of @code{export FOO=bar}, you might use
+@code{FOO=bar; export FOO} instead.
+
+The other possibility is to put your non-Bourne shell setup into some
+other files.  For example, bash reads the file @file{~/.bash_profile}
+instead of @file{~/.profile}, if the former exists.  So bash
+aficionados just rename their @file{~/.profile} to
+@file{~/.bash_profile} on all remote hosts, and Bob's your uncle.
+
+The @tramp{} developers would like to circumvent this problem, so if you
+have an idea about it, please tell us.  However, we are afraid it is not
+that simple: before saying @code{exec /bin/sh}, @tramp{} does not know
+which kind of shell it might be talking to.  It could be a Bourne-ish
+shell like ksh or bash, or it could be a csh derivative like tcsh, or
+it could be zsh, or even rc.  If the shell is Bourne-ish already, then
+it might be prudent to omit the @code{exec /bin/sh} step.  But how to
+find out if the shell is Bourne-ish?
+
 @end table
 
 
