@@ -48,8 +48,8 @@ main ()
 #if ! defined (HAVE_SYSVIPC)
 /* BSD code is very different from SYSV IPC code */
 
-#include <sys/file.h>
 #include <sys/types.h>
+#include <sys/file.h>
 #include <sys/socket.h>
 #include <sys/signal.h>
 #include <sys/un.h>
