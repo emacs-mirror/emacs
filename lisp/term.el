@@ -82,7 +82,7 @@
 
 ;;; This is passed to the inferior in the EMACS environment variable,
 ;;; so it is important to increase it if there are protocol-relevant changes.
-(defconst term-version "0.94")
+(defconst term-version "0.95")
 
 (require 'ring)
 (require 'ehelp)
@@ -94,8 +94,10 @@
 ;;;     term-delimiter-argument-list - list  For delimiters and arguments
 ;;;     term-last-input-start - marker       Handy if inferior always echoes
 ;;;     term-last-input-end   - marker       For term-kill-output command
-;;;     term-input-ring-size  - integer      For the input history
-;;;     term-input-ring       - ring             mechanism
+;; For the input history mechanism:
+(defvar term-input-ring-size 32 "Size of input history ring.")
+;;;     term-input-ring-size  - integer
+;;;     term-input-ring       - ring
 ;;;     term-input-ring-index - number           ...
 ;;;     term-input-autoexpand - symbol           ...
 ;;;     term-input-ignoredups - boolean          ...
@@ -108,6 +110,49 @@
 ;;;     term-input-send	- function
 ;;;     term-scroll-to-bottom-on-output - symbol ...
 ;;;     term-scroll-show-maximum-output - boolean...
+(defvar term-height) ;; Number of lines in window.
+(defvar term-width) ;; Number of columns in window.
+(defvar term-home-marker) ;; Marks the "home" position for cursor addressing.
+(defvar term-saved-home-marker nil) ;; When using alternate sub-buffer,
+;;		contains saved term-home-marker from original sub-buffer .
+(defvar term-start-line-column 0) ;; (current-column) at start of screen line,
+;;		or nil if unknown.
+(defvar term-current-column 0) ;; If non-nil, is cache for (current-column).
+(defvar term-current-row 0) ;; Current vertical row (relative to home-marker)
+;;		or nil if unknown.
+(defvar term-insert-mode nil)
+(defvar term-vertical-motion)
+(defvar term-terminal-state 0) ;; State of the terminal emulator:
+;;		state 0: Normal state
+;;		state 1: Last character was a graphic in the last column.
+;;		If next char is graphic, first move one column right
+;;		(and line warp) before displaying it.
+;;		This emulates (more or less) the behavior of xterm.
+;;		state 2: seen ESC
+;;		state 3: seen ESC [ (or ESC [ ?)
+;;		state 4: term-terminal-parameter contains pending output.
+(defvar term-kill-echo-list nil) ;; A queue of strings whose echo
+;;		we want suppressed.
+(defvar term-terminal-parameter)
+(defvar term-terminal-previous-parameter)
+(defvar term-current-face 'default)
+(defvar term-scroll-start 0) ;; Top-most line (inclusive) of scrolling region.
+(defvar term-scroll-end) ;; Number of line (zero-based) after scrolling region.
+(defvar term-pager-count nil) ;; If nil, paging is disabled.
+;;		Otherwise, number of lines before we need to page.
+(defvar term-saved-cursor nil)
+(defvar term-command-hook)
+(defvar term-log-buffer nil)
+(defvar term-scroll-with-delete nil) ;; term-scroll-with-delete is t if
+;;		forward scrolling should be implemented by delete to
+;;		top-most line(s); and nil if scrolling should be implemented
+;;		by moving term-home-marker.  It is set to t iff there is a
+;;		(non-default) scroll-region OR the alternate buffer is used.
+(defvar term-pending-delete-marker)
+(defvar term-old-mode-map nil) ;; Saves the old keymap when in char mode.
+(defvar term-old-mode-line-format) ;; Saves old mode-line-format while paging.
+(defvar term-pager-old-local-map nil) ;; Saves old keymap while paging.
+(defvar term-pager-old-filter) ;; Saved process-filter while paging.
 
 (defvar explicit-shell-file-name nil
   "*If non-nil, is file name to use for explicitly requested inferior shell.")
@@ -177,9 +222,6 @@ If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `term-scroll-to-bottom-on-output'.
 This variable is buffer-local.")
-
-(defvar term-input-ring-size 32
-  "Size of input history ring.")
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
@@ -282,6 +324,13 @@ Buffer local variable.")
 
 (defmacro term-in-char-mode () '(eq (current-local-map) term-raw-map))
 (defmacro term-in-line-mode () '(not (term-in-char-mode)))
+;; True if currently doing PAGER handling.
+(defmacro term-pager-enabled () 'term-pager-count)
+(defmacro term-handling-pager () 'term-pager-old-local-map)
+(defmacro term-using-alternate-sub-buffer () 'term-saved-home-marker)
+
+(defvar term-signals-menu)
+(defvar term-terminal-menu)
 
 (term-if-xemacs
  (defvar term-terminal-menu
@@ -327,19 +376,16 @@ Entry to this mode runs the hooks on term-mode-hook"
     (kill-all-local-variables)
     (setq major-mode 'term-mode)
     (setq mode-name "Term")
-    (setq mode-line-process '(": line %s"))
     (use-local-map term-mode-map)
     (make-local-variable 'term-home-marker)
     (setq term-home-marker (copy-marker 0))
     (make-local-variable 'term-saved-home-marker)
-    (setq term-saved-home-marker nil)
     (make-local-variable 'term-height)
     (make-local-variable 'term-width)
     (setq term-width (1- (window-width)))
     (setq term-height (1- (window-height)))
     (make-local-variable 'term-terminal-parameter)
     (make-local-variable 'term-saved-cursor)
-    (setq term-saved-cursor nil)
     (make-local-variable 'term-last-input-start)
     (setq term-last-input-start (make-marker))
     (make-local-variable 'term-last-input-end)
@@ -359,54 +405,20 @@ Entry to this mode runs the hooks on term-mode-hook"
     (make-local-variable 'term-command-hook)
     (setq term-command-hook (symbol-function 'term-command-hook))
 
-    ;; state 0: Normal state
-    ;; state 1: Last character was a graphic in the last column.
-    ;;          If next char is graphic, first move one column right
-    ;;          (and line warp) before displaying it.
-    ;;          This emulates (more or less) the behavior of xterm.
-    ;; state 2: seen ESC
-    ;; state 3: seen ESC [ (or ESC [ ?)
-    ;; state 4: term-terminal-parameter contains pending output.
     (make-local-variable 'term-terminal-state)
-    (setq term-terminal-state 0)
-
-    ;; A queue of strings whose echo we want suppressed.
     (make-local-variable 'term-kill-echo-list)
-    (setq term-kill-echo-list nil)
-
-    ;; (current-column) at start of screen line, or nil if unknown.
     (make-local-variable 'term-start-line-column)
-    (setq term-start-line-column 0)
-    ;; Cache for (current-column), or nil if unknown.
     (make-local-variable 'term-current-column)
-    (setq term-current-column 0)
-    ;; Current vertical row (from home-marker) or nil if unknown.
     (make-local-variable 'term-current-row)
-    (setq term-current-row 0)
     (make-local-variable 'term-log-buffer)
-    (setq term-log-buffer nil)
     (make-local-variable 'term-scroll-start)
-    (setq term-scroll-start 0)
     (make-local-variable 'term-scroll-end)
     (setq term-scroll-end term-height)
-    ;; term-scroll-with-delete is t if forward scrolling should
-    ;; be implemented by delete to top-most line(s); and nil if
-    ;; scrolling should be implemented by moving term-home-marker.
-    ;; It is set to t iff there is a (non-default) scroll-region
-    ;; OR the alternate buffer is used.
     (make-local-variable 'term-scroll-with-delete)
-    (setq term-scroll-with-delete nil)
     (make-local-variable 'term-pager-count)
-    ;;(setq term-pager-count 0)
-    (setq term-pager-count nil)
-    ;; Used to save the old keymap when doing PAGER processing.
     (make-local-variable 'term-pager-old-local-map)
-    (setq term-pager-old-local-map nil)
-    ;; Used to save the old keymap when in char mode.
     (make-local-variable 'term-old-mode-map)
-    (setq term-old-mode-map nil)
     (make-local-variable 'term-insert-mode)
-    (setq term-insert-mode nil)
     (make-local-variable 'term-dynamic-complete-functions)
     (make-local-variable 'term-completion-fignore)
     (make-local-variable 'term-get-old-input)
@@ -425,17 +437,15 @@ Entry to this mode runs the hooks on term-mode-hook"
     (make-local-variable 'term-pending-delete-marker)
     (setq term-pending-delete-marker (make-marker))
     (make-local-variable 'term-current-face)
-    (setq term-current-face 'default)
     (make-local-variable 'term-pending-frame)
     (setq term-pending-frame nil)
-    (make-local-variable 'term-chars-mode)
-    (setq term-chars-mode nil)
     (run-hooks 'term-mode-hook)
     (term-if-xemacs
      (set-buffer-menubar
       (append current-menubar (list term-terminal-menu))))
     (or term-input-ring
-	(setq term-input-ring (make-ring term-input-ring-size))))
+	(setq term-input-ring (make-ring term-input-ring-size)))
+    (term-update-mode-line))
 
 (if term-mode-map
     nil
@@ -490,82 +500,84 @@ Entry to this mode runs the hooks on term-mode-hook"
 ;; Menu bars:
 (term-ifnot-xemacs
  (term-if-emacs19
-      ;; terminal:
-      (defvar term-terminal-menu (make-sparse-keymap "Terminal"))
-      (define-key term-terminal-menu [terminal-pager-enable]
-	'("Enable paging" . term-fake-pager-enable))
-      (define-key term-terminal-menu [terminal-pager-disable]
-	'("Disable paging" . term-fake-pager-disable))
-      (define-key term-terminal-menu [terminal-char-mode]
-	'("Character mode" . term-char-mode))
-      (define-key term-terminal-menu [terminal-line-mode]
-	'("Line mode" . term-line-mode))
-      (define-key term-mode-map [menu-bar terminal] 
-	(setq term-terminal-menu (cons "Terminal" term-terminal-menu)))
 
-      ;; completion:  (line mode only)
-      (defvar term-completion-menu (make-sparse-keymap "Complete"))
-      (define-key term-mode-map [menu-bar completion] 
-	(cons "Complete" term-completion-menu))
-      (define-key term-completion-menu [complete-expand]
-	'("Expand File Name" . term-replace-by-expanded-filename))
-      (define-key term-completion-menu [complete-listing]
-	'("File Completion Listing" . term-dynamic-list-filename-completions))
-      (define-key term-completion-menu [menu-bar completion complete-file]
-	'("Complete File Name" . term-dynamic-complete-filename))
-      (define-key term-completion-menu [menu-bar completion complete]
-	'("Complete Before Point" . term-dynamic-complete))
+  ;; terminal:
+  (let (newmap)
+    (setq newmap (make-sparse-keymap "Terminal"))
+    (define-key newmap [terminal-pager-enable]
+      '("Enable paging" . term-fake-pager-enable))
+    (define-key newmap [terminal-pager-disable]
+      '("Disable paging" . term-fake-pager-disable))
+    (define-key newmap [terminal-char-mode]
+      '("Character mode" . term-char-mode))
+    (define-key newmap [terminal-line-mode]
+      '("Line mode" . term-line-mode))
+    (define-key newmap [menu-bar terminal] 
+      (setq term-terminal-menu (cons "Terminal" newmap)))
 
-      ;; Input history: (line mode only)
-      (defvar term-inout-menu (make-sparse-keymap "In/Out"))
-      (define-key term-mode-map [menu-bar inout] 
-	(cons "In/Out" term-inout-menu))
-      (define-key term-inout-menu [kill-output]
-	'("Kill Current Output Group" . term-kill-output))
-      (define-key term-inout-menu [next-prompt]
-	'("Forward Output Group" . term-next-prompt))
-      (define-key term-inout-menu [previous-prompt]
-	'("Backward Output Group" . term-previous-prompt))
-      (define-key term-inout-menu [show-maximum-output]
-	'("Show Maximum Output" . term-show-maximum-output))
-      (define-key term-inout-menu [show-output]
-	'("Show Current Output Group" . term-show-output))
-      (define-key term-inout-menu [kill-input]
-	'("Kill Current Input" . term-kill-input))
-      (define-key term-inout-menu [copy-input]
-	'("Copy Old Input" . term-copy-old-input))
-      (define-key term-inout-menu [forward-matching-history]
-	'("Forward Matching Input..." . term-forward-matching-input))
-      (define-key term-inout-menu [backward-matching-history]
-	'("Backward Matching Input..." . term-backward-matching-input))
-      (define-key term-inout-menu [next-matching-history]
-	'("Next Matching Input..." . term-next-matching-input))
-      (define-key term-inout-menu [previous-matching-history]
-	'("Previous Matching Input..." . term-previous-matching-input))
-      (define-key term-inout-menu [next-matching-history-from-input]
-	'("Next Matching Current Input" . term-next-matching-input-from-input))
-      (define-key term-inout-menu [previous-matching-history-from-input]
-	'("Previous Matching Current Input" . term-previous-matching-input-from-input))
-      (define-key term-inout-menu [next-history]
-	'("Next Input" . term-next-input))
-      (define-key term-inout-menu [previous-history]
-	'("Previous Input" . term-previous-input))
-      (define-key term-inout-menu [list-history]
-	'("List Input History" . term-dynamic-list-input-ring))
-      (define-key term-inout-menu [expand-history]
-	'("Expand History Before Point" . term-replace-by-expanded-history))
+    ;; completion:  (line mode only)
+    (defvar term-completion-menu (make-sparse-keymap "Complete"))
+    (define-key term-mode-map [menu-bar completion] 
+      (cons "Complete" term-completion-menu))
+    (define-key term-completion-menu [complete-expand]
+      '("Expand File Name" . term-replace-by-expanded-filename))
+    (define-key term-completion-menu [complete-listing]
+      '("File Completion Listing" . term-dynamic-list-filename-completions))
+    (define-key term-completion-menu [menu-bar completion complete-file]
+      '("Complete File Name" . term-dynamic-complete-filename))
+    (define-key term-completion-menu [menu-bar completion complete]
+      '("Complete Before Point" . term-dynamic-complete))
 
-      ;; Signals
-      (defvar term-signals-menu (make-sparse-keymap "Signals"))
-      (define-key term-signals-menu [eof] '("EOF" . term-send-eof))
-      (define-key term-signals-menu [kill] '("KILL" . term-kill-subjob))
-      (define-key term-signals-menu [quit] '("QUIT" . term-quit-subjob))
-      (define-key term-signals-menu [cont] '("CONT" . term-continue-subjob))
-      (define-key term-signals-menu [stop] '("STOP" . term-stop-subjob))
-      (define-key term-signals-menu [] '("BREAK" . term-interrupt-subjob))
-      (define-key term-mode-map [menu-bar signals]
-	(setq term-signals-menu (cons "Signals" term-signals-menu)))
-      ))
+    ;; Input history: (line mode only)
+    (defvar term-inout-menu (make-sparse-keymap "In/Out"))
+    (define-key term-mode-map [menu-bar inout] 
+      (cons "In/Out" term-inout-menu))
+    (define-key term-inout-menu [kill-output]
+      '("Kill Current Output Group" . term-kill-output))
+    (define-key term-inout-menu [next-prompt]
+      '("Forward Output Group" . term-next-prompt))
+    (define-key term-inout-menu [previous-prompt]
+      '("Backward Output Group" . term-previous-prompt))
+    (define-key term-inout-menu [show-maximum-output]
+      '("Show Maximum Output" . term-show-maximum-output))
+    (define-key term-inout-menu [show-output]
+      '("Show Current Output Group" . term-show-output))
+    (define-key term-inout-menu [kill-input]
+      '("Kill Current Input" . term-kill-input))
+    (define-key term-inout-menu [copy-input]
+      '("Copy Old Input" . term-copy-old-input))
+    (define-key term-inout-menu [forward-matching-history]
+      '("Forward Matching Input..." . term-forward-matching-input))
+    (define-key term-inout-menu [backward-matching-history]
+      '("Backward Matching Input..." . term-backward-matching-input))
+    (define-key term-inout-menu [next-matching-history]
+      '("Next Matching Input..." . term-next-matching-input))
+    (define-key term-inout-menu [previous-matching-history]
+      '("Previous Matching Input..." . term-previous-matching-input))
+    (define-key term-inout-menu [next-matching-history-from-input]
+      '("Next Matching Current Input" . term-next-matching-input-from-input))
+    (define-key term-inout-menu [previous-matching-history-from-input]
+      '("Previous Matching Current Input" . term-previous-matching-input-from-input))
+    (define-key term-inout-menu [next-history]
+      '("Next Input" . term-next-input))
+    (define-key term-inout-menu [previous-history]
+      '("Previous Input" . term-previous-input))
+    (define-key term-inout-menu [list-history]
+      '("List Input History" . term-dynamic-list-input-ring))
+    (define-key term-inout-menu [expand-history]
+      '("Expand History Before Point" . term-replace-by-expanded-history))
+
+    ;; Signals
+    (setq newmap (make-sparse-keymap "Signals"))
+    (define-key newmap [eof] '("EOF" . term-send-eof))
+    (define-key newmap [kill] '("KILL" . term-kill-subjob))
+    (define-key newmap [quit] '("QUIT" . term-quit-subjob))
+    (define-key newmap [cont] '("CONT" . term-continue-subjob))
+    (define-key newmap [stop] '("STOP" . term-stop-subjob))
+    (define-key newmap [] '("BREAK" . term-interrupt-subjob))
+    (define-key term-mode-map [menu-bar signals]
+      (setq term-signals-menu (cons "Signals" newmap)))
+    )))
 
 (defun term-reset-size (height width)
   (setq term-height height)
@@ -617,7 +629,7 @@ Entry to this mode runs the hooks on term-mode-hook"
       ;; Note that (term-current-row) must be called *after*
       ;; (point) has been updated to (process-mark proc).
       (goto-char (process-mark proc))
-      (if term-pager-count
+      (if (term-pager-enabled)
 	  (setq term-pager-count (term-current-row)))
       (send-string proc chars))))
 
@@ -633,11 +645,18 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
-  ;; Convert `return' to C-m, etc.
-  (if (and (symbolp last-input-char)
-	   (get last-input-char 'ascii-character))
-      (setq last-input-char (get last-input-char 'ascii-character)))
-  (term-send-raw-string (if (> last-input-char 127)
+  (if (symbolp last-input-char)
+      ;; Convert `return' to C-m, etc.
+      (let ((tmp (get last-input-char 'event-symbol-elements)))
+	(if tmp
+	    (setq last-input-char (car tmp)))
+	(if (symbolp last-input-char)
+	    (progn
+	      (setq tmp (get last-input-char 'ascii-character))
+	      (if tmp (setq last-input-char tmp))))))
+  (term-send-raw-string (if (and (numberp last-input-char)
+				 (> last-input-char 127)
+				 (< last-input-char 256))
 			    (make-string 1 last-input-char)
 			  (format "\e%c" last-input-char))))
 
@@ -721,9 +740,7 @@ intervention from emacs, except for the escape character (usually C-c)."
 		    (end-of-line)
 		    (term-send-input))
 		(setq term-input-sender save-input-sender))))
-
-	(setq mode-line-process '(": char %s"))
-	(set-buffer-modified-p (buffer-modified-p))))) ;; Updates mode line.
+	(term-update-mode-line))))
 
 (defun term-line-mode  ()
   "Switch to line (\"cooked\") sub-mode of term mode.
@@ -733,8 +750,14 @@ you type \\[term-send-input] which sends the current line to the inferior."
   (if (term-in-char-mode)
       (progn
 	(use-local-map term-old-mode-map)
-	(setq mode-line-process '(": line %s"))
-	(set-buffer-modified-p (buffer-modified-p))))) ;; Updates mode line.
+	(term-update-mode-line))))
+
+(defun term-update-mode-line ()
+  (setq mode-line-process
+	(if (term-in-char-mode)
+	    (if (term-pager-enabled) '(": char page %s") '(": char %s"))
+	  (if (term-pager-enabled) '(": line page %s") '(": line %s"))))
+  (set-buffer-modified-p (buffer-modified-p))) ;; Force mode line update.
 
 (defun term-check-proc (buffer)
   "True if there is a process associated w/buffer BUFFER, and
@@ -1434,7 +1457,7 @@ Similarly for Soar, Scheme, etc."
 			  (delete-region pmark (point))
 			  (insert input)
 			  copy))))
-	(if term-pager-count
+	(if (term-pager-enabled)
 	    (save-excursion
 	      (goto-char (process-mark proc))
 	      (setq term-pager-count (term-current-row))))
@@ -1574,7 +1597,6 @@ Then send it to the process running in the current buffer. A new-line
 is additionally sent. String is not saved on term input history list.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
- (interactive (list (term-read-noecho "Enter non-echoed text")))
   (interactive "P") ; Defeat snooping via C-x esc
   (if (not (stringp str))
       (setq str (term-read-noecho "Non-echoed text: " t)))
@@ -2007,15 +2029,10 @@ See `term-prompt-regexp'."
   (if term-current-row
       (setq term-current-row (+ term-current-row delta))))
 
-;; True if currently doing PAGER handling.
-(defmacro term-handling-pager () 'term-pager-old-local-map)
-
-(defmacro term-using-alternate-sub-buffer () 'term-saved-home-marker)
-
 (defun term-terminal-pos ()
   (save-excursion ;    save-restriction
     (let ((save-col (term-current-column))
-	  (x))
+	  x y)
       (term-vertical-motion 0)
       (setq x (- save-col (current-column)))
       (setq y (term-vertical-motion term-height))
@@ -2190,7 +2207,7 @@ See `term-prompt-regexp'."
 			    (setq term-terminal-parameter 0))
 			   ((eq char ??)) ; Ignore ? 
 			   (t
-			    (term-handle-ansi-escape char)
+			    (term-handle-ansi-escape proc char)
 			    (setq term-terminal-state 0)))))
 	      (if (term-handling-pager)
 		  ;; Finish stuff to get ready to handle PAGER.
@@ -2266,13 +2283,17 @@ See `term-prompt-regexp'."
 ;;; Handle a character assuming (eq terminal-state 2) -
 ;;; i.e. we have previousely seen Escape followed by ?[.
 
-(defun term-handle-ansi-escape (char)
+(defun term-handle-ansi-escape (proc char)
   (cond
    ((eq char ?H) ; cursor motion
     (if (<= term-terminal-parameter 0)
 	(setq term-terminal-parameter 1))
     (if (<= term-terminal-previous-parameter 0)
 	(setq term-terminal-previous-parameter 1))
+    (if (> term-terminal-previous-parameter term-height)
+	(setq term-terminal-previous-parameter term-height))
+    (if (> term-terminal-parameter term-width)
+	(setq term-terminal-parameter term-width))
     (term-goto
      (1- term-terminal-previous-parameter)
      (1- term-terminal-parameter)))
@@ -2327,6 +2348,12 @@ See `term-prompt-regexp'."
 	  ((eq term-terminal-parameter 1)
 	   (setq term-current-face 'bold))
 	  (t (setq term-current-face 'default))))
+   ;; \E[6n - Report cursor position
+   ((eq char ?n)
+    (process-send-string proc
+			 (format "\e[%s;%sR"
+				 (1+ (term-current-row))
+				 (1+ (term-horizontal-column)))))
    ;; \E[r - Set scrolling region
    ((eq char ?r)
     (term-scroll-region
@@ -2344,7 +2371,7 @@ The top-most line is line 0."
 	    0
 	  top))
   (setq term-scroll-end
-	(if (or (< bottom term-scroll-start) (> bottom term-height))
+	(if (or (<= bottom term-scroll-start) (> bottom term-height))
 	    term-height
 	  bottom))
   (setq term-scroll-with-delete
@@ -2375,7 +2402,6 @@ The top-most line is line 0."
 	       (setq term-saved-home-marker nil)
 	       (goto-char term-home-marker)))
 	(setq term-current-column nil)
-	(setq term-line-start-column nil)
 	(setq term-current-row 0)
 	(term-goto row col))))
 
@@ -2558,17 +2584,19 @@ The top-most line is line 0."
   (interactive)
   (if (term-handling-pager)
       (term-pager-continue nil)
-    (setq term-pager-count nil)))
+    (setq term-pager-count nil))
+  (term-update-mode-line))
     
 ; Enable pager processing.
 (defun term-pager-enable ()
   (interactive)
-  (or term-pager-count
-      (setq term-pager-count 0))) ;; Or maybe set to (term-current-row) ??
+  (or (term-pager-enabled)
+      (setq term-pager-count 0)) ;; Or maybe set to (term-current-row) ??
+  (term-update-mode-line))
 
 (defun term-pager-toggle ()
   (interactive)
-  (if term-pager-count (term-pager-disable) (term-pager-enable)))
+  (if (term-pager-enabled) (term-pager-disable) (term-pager-enable)))
 
 (term-ifnot-xemacs
  (defalias 'term-fake-pager-enable 'term-pager-toggle)
@@ -2645,7 +2673,6 @@ all pending output has been dealt with."))
 	  (goto-char save-point)
 	  (set-marker save-point nil)
 	  (setq term-current-column nil)
-	  (setq term-line-start-column nil)
 	  (setq term-current-row nil))))
   down)
 
@@ -2670,10 +2697,10 @@ all pending output has been dealt with."))
 
 (defun term-erase-in-line (kind)
   (if (> kind 1) ;; erase left of point
-      (let ((cols (term-horizontal-column)) (saved-point (point))
-	    (term-vertical-motion 0)
-	    (delete-region (point) saved-point)
-	    (term-insert-char ?\n cols))))
+      (let ((cols (term-horizontal-column)) (saved-point (point)))
+	(term-vertical-motion 0)
+	(delete-region (point) saved-point)
+	(term-insert-char ?\n cols)))
   (if (not (eq kind 1)) ;; erase right of point
       (let ((saved-point (point))
 	    (wrapped (and (zerop (term-horizontal-column))
@@ -2710,9 +2737,8 @@ Should only be called when point is at the start of a screen line."
 	   (delete-region start-region end-region)
 	   (term-unwrap-line)
 	   (if (eq kind 1)
-	       (term-insert-char \?n row))
+	       (term-insert-char ?\n row))
 	   (setq term-current-column nil)
-	   (setq term-line-start-column nil)
 	   (setq term-current-row nil)
 	   (term-goto row col)))))
 
