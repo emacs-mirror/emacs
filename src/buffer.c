@@ -153,6 +153,9 @@ Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
 
+/* If nonzero, all modification hooks are suppressed.  */
+int inhibit_modification_hooks;
+
 Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
 
 Lisp_Object Qprotected_field;
@@ -3943,6 +3946,8 @@ init_buffer_once ()
   Vbuffer_alist = Qnil;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
+
+  inhibit_modification_hooks = 0;
 }
 
 void
