@@ -1,3 +1,43 @@
+2002-10-30  Dave Love  <fx@gnu.org>
+
+	* process.c [HAVE_SYS_WAIT]: Include sys/wait.h.
+	[HAVE_PTY_H]; Include pty.h.
+
+	* lread.c (Fload) <!load_dangerous_libraries>: Close fd.
+
+	* xterm.c (Qeql): Declare.
+	(Vx_keysym_table): New.
+	(syms_of_xterm): Initialize it.
+	(XTread_socket): Use it.  Deal with ASCII keysyms.
+	(XSetIMValues) [HAVE_X11R6]: Prototype.
+
+	* keyboard.c (lispy_accent_codes, lispy_accent_keys): Extended.
+	(lispy_kana_keys): Comment out.
+	(make_lispy_event) [XK_kana_A]: Comment out.
+	(modify_event_symbol) <sizeof (long) == sizeof (EMACS_INT)>: Fix
+	sprintf call.
+
+	* s/osf5-0.h (C_SWITCH_SYSTEM): Revert last change (fixed by
+	regexp.h change).
+	(TERMINFO, LIBS_TERMCAP): Define.
+
+	* s/usg5-4.h (bcopy, bzero): Define conditional on HAVE_BCOPY.
+	(bcmp): Define conditional on HAVE_BCMP.
+	(NO_SIOCTL_H): Don't define.
+	(TIOCSIGSEND): Don't make conditional on IRIX6.
+
+	* s/sol2-5.h: Don't include strings.h.
+	(bcopy, bzero, bcmp) [HAVE_BCOPY]: Don't undef.
+
+	* s/irix6-0.h (IRIX6): Don't define.
+	(bcopy, bcmp, bzero): Don't undef.
+
+	* s/irix6-5.h: Don't include strings.h.
+	(IRIX6): Don't define.
+	(bcopy, bcmp, bzero): Don't undef.
+
+	* syntax.c (Fforward_comment): Doc fix.
+
 2002-10-29  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fsignal_process): Allow PROCESS to be specified by

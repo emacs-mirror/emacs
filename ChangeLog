@@ -1,3 +1,13 @@
+2002-10-30  Dave Love  <fx@gnu.org>
+
+	* configure.in:  Require autoconf 2.53.  Test for pty.h,
+	sys/mman.h, sys/param.h, mremap, memmove.
+	(AH_BOTTOM): Maybe include strings.h.  Add local variables for
+	mode.
+	(AC_PROG_YACC): Deleted.
+	(size_t): Use AC_CHECK_TYPES.
+	(AH_TOP): Up-date copyright.
+
 2002-10-01  Juanma Barranquero  <lektu@terra.es>
 
 	* update-subdirs: Add "no-byte-compile: t" to subdirs.el.
@@ -518,15 +528,9 @@
 	* mkinstalldirs (errstatus): Chmod a+rx directories we create.
 
 	* Makefile.in (uninstall): Ignore exit code of `rm'.
-<<<<<<< ChangeLog
-
-	* Makefile.in (uninstall): Remove more info files.
-	Remove ${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
-=======
 
 	* Makefile.in (uninstall): Remove more info files.  Remove
 	${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
->>>>>>> 1.214
 
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
