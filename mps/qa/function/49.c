@@ -158,7 +158,7 @@ static void test(void) {
  for (j=0; j<1000; j++) {
   a = allocone(apamc, 2, MPS_RANK_EXACT);
   c = allocone(apawl, 2, MPS_RANK_WEAK);
-  d = allocdumb(aplo, 32, MPS_RANK_EXACT); /* rank irrelevant here! */
+  d = allocone(aplo, 2, MPS_RANK_EXACT); /* rank irrelevant here! */
   mps_finalize(space, &a);
   mps_finalize(space, &c);
   mps_finalize(space, &d);
@@ -194,14 +194,16 @@ static void test(void) {
  for (j=0; j<1000; j++) {
   comment("%d of 1000", j);
   a = allocone(apamc, 10000, MPS_RANK_EXACT);
-  comment("alloc");
   mps_finalize(space, &a);
+  final_count +=1;
   comment("finalize");
   finalpoll(&z, FINAL_QUEUE);
-  comment("poll");
  }
 
+ comment("reregister");
+
  for (j=0; j<500; j++) {
+  comment("%d of 500", j);
   qpoll(&z, FINAL_REREGISTER);
  }
 
@@ -209,6 +211,7 @@ static void test(void) {
  z = a;
 
  for (j=0; j<1000; j++) {
+  comment("%d of 1000", j);
   finalpoll(&z, FINAL_QUEUE);
   qpoll(&z, FINAL_STORE);
   a = allocone(apamc, 2, MPS_RANK_EXACT);
@@ -226,17 +229,24 @@ static void test(void) {
   b = a;
  }
 
- /* Lots of allocation to force old objects to be killed */
-
-/*
- while (mps_poll(space)) {
-  finalpoll(&z, FINAL_DISCARD);
- }
-*/
+ /* Force old objects to be killed */
 
  while (qmt() == 0) {
   qpoll(&z, FINAL_DISCARD);
  }
+
+ mps_root_destroy(root0);
+ mps_root_destroy(root1);
+ comment("Destroyed roots.");
+
+ mps_arena_collect(space);
+ comment("Collected space.");
+
+ while (mps_message_poll(space)) {
+  finalpoll(&z, FINAL_DISCARD);
+ }
+
+ report("count2", "%d", final_count);
 
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
@@ -250,10 +260,6 @@ static void test(void) {
 
  mps_fmt_destroy(format);
  comment("Destroyed format.");
-
- mps_root_destroy(root0);
- mps_root_destroy(root1);
- comment("Destroyed root.");
 
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
