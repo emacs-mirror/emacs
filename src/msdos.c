@@ -2769,6 +2769,38 @@ init_environment (argc, argv, skip_args)
 {
   char *s, *t, *root;
   int len;
+  static const char * const tempdirs[] = {
+    "$TMPDIR", "$TEMP", "$TMP", "c:/"
+  };
+  int i;
+  const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+
+  /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
+     temporary files and assume "/tmp" if $TMPDIR is unset, which
+     will break on DOS/Windows.  Refuse to work if we cannot find
+     a directory, not even "c:/", usable for that purpose.  */
+  for (i = 0; i < imax ; i++)
+    {
+      const char *tmp = tempdirs[i];
+
+      if (*tmp == '$')
+	tmp = getenv (tmp + 1);
+      /* Note that `access' can lie to us if the directory resides on a
+	 read-only filesystem, like CD-ROM or a write-protected floppy.
+	 The only way to be really sure is to actually create a file and
+	 see if it succeeds.  But I think that's too much to ask.  */
+      if (tmp && access (tmp, D_OK) == 0)
+	{
+	  setenv ("TMPDIR", tmp, 1);
+	  break;
+	}
+    }
+  if (i >= imax)
+    cmd_error_internal
+      (Fcons (Qerror,
+	      Fcons (build_string ("no usable temporary directories found!!"),
+		     Qnil)),
+       "While setting TMPDIR: ");
 
   /* Find our root from argv[0].  Assuming argv[0] is, say,
      "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
