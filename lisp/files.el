@@ -914,8 +914,13 @@ The car of each element is compared with
 the name of the interpreter specified in the first line.
 If it matches, mode MODE is selected.")
 
-(defconst inhibit-first-line-modes-regexps '("\\.tar$")
+(defconst inhibit-first-line-modes-regexps '("\\.tar\\'")
   "List of regexps; if one matches a file name, don't look for `-*-'.")
+
+(defconst inhibit-first-line-modes-suffixes nil
+  "List of regexps for what to ignore, for `inhibit-first-line-modes-regexps'.
+When checking `inhibit-first-line-modes-regexps', we first discard
+from the end of the file name anything that matches one of these regexps.")
 
 (defvar user-init-file
   "" ; set by command-line
@@ -943,9 +948,10 @@ If `enable-local-variables' is nil, this function does not check for a
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
 	   (let ((temp inhibit-first-line-modes-regexps)
 		 (name (file-name-sans-versions buffer-file-name)))
+	     (if (string-match inhibit-first-line-modes-suffixes name)
+		 (setq name (substring name 0 (match-beginning 0))))
 	     (while (and temp
-			 (not (string-match (car temp)
-					    name)))
+			 (not (string-match (car temp) name)))
 	       (setq temp (cdr temp)))
 	     (not temp))
 	   (search-forward "-*-" (save-excursion
