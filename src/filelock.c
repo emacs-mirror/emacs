@@ -165,7 +165,7 @@ get_boot_time ()
   }
 #endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
 
-#ifdef BOOT_TIME
+#if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
   /* Try to get boot time from the current wtmp file.  */
   get_boot_time_1 (WTMP_FILE);
 
