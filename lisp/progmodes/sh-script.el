@@ -2644,7 +2644,10 @@ so that `occur-next' and `occur-prev' will work."
 	  (setq occur-point (point)))
       (insert message)
       (if point
-	  (put-text-property start (point) 'mouse-face 'highlight))
+	  (add-text-properties
+	   start (point)
+	   '(mouse-face highlight
+	     help-echo "mouse-2: go to the line where I learned this")))
       (insert "\n")
       (if point
 	  (progn
