@@ -569,7 +569,7 @@ static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
 static void free_realized_faces P_ ((struct face_cache *));
 static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
-				     struct font_name *, int));
+				     struct font_name *, int, int));
 static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
 static void uncache_face P_ ((struct face_cache *, struct face *));
 static int xlfd_numeric_slant P_ ((struct font_name *));
@@ -5827,17 +5827,21 @@ may_use_scalable_font_p (font, name)
 
 
 
-/* Return the name of the best matching font for face attributes
-   ATTRS in the array of font_name structures FONTS which contains
-   NFONTS elements.  Value is a font name which is allocated from
-   the heap.  FONTS is freed by this function.  */
+/* Return the name of the best matching font for face attributes ATTRS
+   in the array of font_name structures FONTS which contains NFONTS
+   elements.  WIDTH_RATIO is a factor with which to multiply average
+   widths if ATTRS specifies such a width.
+
+   Value is a font name which is allocated from the heap.  FONTS is
+   freed by this function.  */
 
 static char *
-best_matching_font (f, attrs, fonts, nfonts)
+best_matching_font (f, attrs, fonts, nfonts, width_ratio)
      struct frame *f;
      Lisp_Object *attrs;
      struct font_name *fonts;
      int nfonts;
+     int width_ratio;
 {
   char *font_name;
   struct font_name *best;
@@ -5868,7 +5872,7 @@ best_matching_font (f, attrs, fonts, nfonts)
 
   avgwidth = (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
 	      ? 0
-	      : XFASTINT (attrs[LFACE_AVGWIDTH_INDEX]));
+	      : XFASTINT (attrs[LFACE_AVGWIDTH_INDEX]) * width_ratio);
 
   exact_p = 0;
 
@@ -6027,7 +6031,7 @@ choose_face_font (f, attrs, fontset, c)
   Lisp_Object pattern;
   char *font_name = NULL;
   struct font_name *fonts;
-  int nfonts;
+  int nfonts, width_ratio;
 
   /* Get (foundry and) family name and registry (and encoding) name of
      a font for C.  */
@@ -6052,7 +6056,10 @@ choose_face_font (f, attrs, fontset, c)
      best match for the specified face attributes from it.  */
   nfonts = try_font_list (f, attrs, Qnil, XCAR (pattern), XCDR (pattern),
 			  &fonts);
-  font_name = best_matching_font (f, attrs, fonts, nfonts);
+  width_ratio = (SINGLE_BYTE_CHAR_P (c)
+		 ? 1
+		 : CHARSET_WIDTH (CHAR_CHARSET (c)));
+  font_name = best_matching_font (f, attrs, fonts, nfonts, width_ratio);
   return font_name;
 }
 
