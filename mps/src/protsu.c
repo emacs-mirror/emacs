@@ -1,8 +1,8 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(MMdevel_restr.6) $
+ * $HopeName: MMsrc!protsu.c(trunk.6) $
  *
- * Copyright (C) 1995 Harlequin Group, all rights reserved
+ * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  * .hack.sigdfl: GCC 2.5.8 produces a warning when we use SIG_DFL with
  * -Wstrict-prototypes, which we want.  SIG_DFL is just zero, so we
@@ -19,7 +19,7 @@
 #error "protsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(MMdevel_restr.6) $");
+SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.6) $");
 
 
 /* .hack.sigdfl */
@@ -35,9 +35,11 @@ SRCID(protsu, "$HopeName: MMsrc!protsu.c(MMdevel_restr.6) $");
 /* Note that these are not fixed up by std.h because that only fixes */
 /* up discrepancies with ANSI. */
 
-extern int mprotect(caddr_t addr, int len, int prot);
 extern int getpagesize(void);
 extern int getpid(void);
+extern int mprotect(caddr_t addr, int len, int prot);
+extern int sigblock(int);
+extern int sigsetmask(int);
 typedef void (*handler_t)(int sig, int code,
                           struct sigcontext *scp, char *addr);
 
@@ -107,8 +109,11 @@ static void sigDefault(int sig, int code,
   UNUSED(scp);
   UNUSED(addr);
 
+  AVER(sig == SIGSEGV);
+
+  (void)sigsetmask(sigblock(0) & ~sigmask(SIGSEGV));
   (void)signal(SIGSEGV, SIG_DFL);
-  kill(getpid(), SIGSEGV);
+  (void)kill(getpid(), SIGSEGV);
   NOTREACHED;
   abort();
 }
