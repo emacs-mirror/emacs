@@ -1,3 +1,7 @@
+1999-10-12  Emmanuel Briot  <briot@gnat.com>
+
+	* ada-stmt.el: Doc-string fixes.
+
 1999-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* recentf.el: New file.
