@@ -937,9 +937,13 @@ detect_coding_iso2022 (src, src_end)
 /* Set designation state into CODING.  */
 #define DECODE_DESIGNATION(reg, dimension, chars, final_char)		   \
   do {									   \
-    int charset = ISO_CHARSET_TABLE (make_number (dimension),		   \
-				     make_number (chars),		   \
-				     make_number (final_char));		   \
+    int charset;							   \
+    									   \
+    if (final_char < '0' || final_char >= 128)				   \
+      goto label_invalid_code;						   \
+    charset = ISO_CHARSET_TABLE (make_number (dimension),		   \
+				 make_number (chars),			   \
+				 make_number (final_char));		   \
     if (charset >= 0							   \
 	&& (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) == reg \
 	    || coding->safe_charsets[charset]))				   \
@@ -3694,6 +3698,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
   int result;
 
   if (src_bytes <= 0
+      && coding->type != coding_type_ccl
       && ! (coding->mode & CODING_MODE_LAST_BLOCK
 	    && CODING_REQUIRE_FLUSHING (coding)))
     {
@@ -4310,6 +4315,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       move_gap_both (from, from_byte);
     SHRINK_CONVERSION_REGION (&from_byte, &to_byte, coding, NULL, encodep);
     if (from_byte == to_byte
+	&& coding->type != coding_type_ccl
 	&& ! (coding->mode & CODING_MODE_LAST_BLOCK
 	      && CODING_REQUIRE_FLUSHING (coding)))
       {
@@ -4452,7 +4458,13 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  continue;
 	}
       if (len_byte <= 0)
-	break;
+	{
+	  if (coding->type != coding_type_ccl
+	      || coding->mode & CODING_MODE_LAST_BLOCK)
+	    break;
+	  coding->mode |= CODING_MODE_LAST_BLOCK;
+	  continue;
+	}
       if (result == CODING_FINISH_INSUFFICIENT_SRC)
 	{
 	  /* The source text ends in invalid codes.  Let's just
@@ -4547,7 +4559,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       prev_Z = Z;
       val = call1 (coding->post_read_conversion, make_number (inserted));
       CHECK_NUMBER (val, 0);
-      inserted = Z - prev_Z;
+      inserted += Z - prev_Z;
     }
 
   if (orig_point >= from)
