@@ -205,6 +205,8 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :group 'view)
 
 (add-to-list 'facemenu-unlisted-faces 'diary-face)
+(defvar diary-face 'diary-face
+  "Face name to use for diary entries.")
 (defface diary-face
   '((((class color) (background light))
      :foreground "red")
@@ -605,7 +607,7 @@ a portion of the first word of the diary entry."
 (defcustom european-calendar-display-form
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "*Pseudo-pattern governing the way a date appears in the European style.
-See the documentation of calendar-date-display-form for an explanation."
+See the documentation of `calendar-date-display-form' for an explanation."
   :type 'sexp
   :group 'calendar)
 
@@ -1808,6 +1810,8 @@ Or, for optional MON, YR."
       ;; Adjust the window to exactly fit the displayed calendar
       (fit-window-to-buffer))
     (sit-for 0)
+    (if font-lock-mode
+	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
          (mark-calendar-holidays)
          (sit-for 0))
@@ -2021,7 +2025,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "tY" 'cal-tex-cursor-year-landscape))
 
 (defun describe-calendar-mode ()
-  "Create a help buffer with a brief description of the calendar-mode."
+  "Create a help buffer with a brief description of the `calendar-mode'."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (princ
@@ -2135,6 +2139,8 @@ with respect to the calendar as well as possible."
 	(info))
       (Info-find-node (car (car where)) (car (cdr (car where)))))))
 
+
+
 (defun calendar-mode ()
   "A major mode for the calendar window.
 
@@ -2153,7 +2159,9 @@ For a complete description, type \
   (add-hook 'activate-menubar-hook 'cal-menu-update nil t)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month);;  Month in middle of window.
-  (make-local-variable 'displayed-year));;  Year in middle of window.
+  (make-local-variable 'displayed-year)	;;  Year in middle of window.
+  (set (make-local-variable 'font-lock-defaults)
+       '(calendar-font-lock-keywords t)))
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
@@ -2467,6 +2475,23 @@ rather than a date."
    "July"    "August"   "September" "October" "November" "December"]
   "Array of capitalized strings giving, in order, the month names.")
 
+(defvar calendar-font-lock-keywords
+  (list
+   '("[A-Z][a-z]+ -?[0-9]+" . font-lock-function-name-face) ; month and year
+   (cons
+    (concat (substring (aref calendar-day-name-array 6) 0 2)
+	    "\\|"
+	    (substring (aref calendar-day-name-array 0) 0 2))
+    'font-lock-comment-face)
+   (cons
+    (mapconcat 'identity
+	       (mapcar '(lambda (x) (substring x 0 2))
+		       calendar-day-name-array)
+	       "\\|")
+    'font-lock-reference-face))
+  "Default keywords to highlight in Calendar mode.")
+
+
 (defun calendar-make-alist (sequence &optional start-index filter)
   "Make an assoc list corresponding to SEQUENCE.
 Start at index 1, unless optional START-INDEX is provided.
@@ -2530,7 +2555,7 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
 (defun mark-visible-calendar-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
 MARK is either a single-character string or a face.
-MARK defaults to diary-entry-marker."
+MARK defaults to `diary-entry-marker'."
   (if (calendar-date-is-legal-p date)
       (save-excursion
         (set-buffer calendar-buffer)
@@ -2562,7 +2587,7 @@ calendar window has been prepared."
 
 (defun calendar-mark-today ()
   "Mark the date under the cursor in the calendar window.
-The date is marked with calendar-today-marker.  This function can be used with
+The date is marked with `calendar-today-marker'.  This function can be used with
 the `today-visible-calendar-hook' run after the calendar window has been
 prepared."
   (mark-visible-calendar-date
