@@ -938,8 +938,10 @@ column 0.  */)
   CHECK_NUMBER_OR_FLOAT (y);
 
   return window_from_coordinates (f,
-				  FRAME_PIXEL_X_FROM_CANON_X (f, x),
-				  FRAME_PIXEL_Y_FROM_CANON_Y (f, y),
+				  (FRAME_PIXEL_X_FROM_CANON_X (f, x)
+				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
+				  (FRAME_PIXEL_Y_FROM_CANON_Y (f, y)
+				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
 				  0, 0, 0, 0);
 }
 
