@@ -2,6 +2,8 @@
 
 	* w32fns.c (enum_font_cb2): Don't let charsets unknown to Windows
 	match each other.
+	(w32_load_system_font): Prevent Cleartype fonts from loading.
+	(Fx_show_tip): Ensure tip frames are above other topmost windows.
 
 2002-02-09  Kim F. Storm  <storm@cua.dk>
 
