@@ -339,16 +339,18 @@ static int
 reread_doc_file (file)
      Lisp_Object file;
 {
+#if 0
   Lisp_Object reply, prompt[3];
   struct gcpro gcpro1;
   GCPRO1 (file);
   prompt[0] = build_string ("File ");
   prompt[1] = NILP (file) ? Vdoc_file_name : file;
-  prompt[2] = build_string (" is out-of-sync.  Reload? ");
+  prompt[2] = build_string (" is out of sync.  Reload? ");
   reply = Fy_or_n_p (Fconcat (3, prompt));
   UNGCPRO;
   if (NILP (reply))
     return 0;
+#endif
 
   if (NILP (file))
     Fsnarf_documentation (Vdoc_file_name);
