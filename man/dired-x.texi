@@ -520,7 +520,7 @@ pathname relative to the buffer's top-level directory.
 @cindex Omitting additional files
 Default: @kbd{C-o}
 
-Temporary marker used by by Dired to implement omitting.  Should never be used
+Temporary marker used by Dired to implement omitting.  Should never be used
 as marker by the user or other packages.  There is one exception to this rule:
 by doing
 
