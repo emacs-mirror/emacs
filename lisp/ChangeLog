@@ -1,3 +1,7 @@
+2003-08-23  Markus Rost  <rost@math.ohio-state.edu>
+
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Doc fix.
+
 2003-08-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Better 
