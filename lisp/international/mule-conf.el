@@ -360,4 +360,6 @@
 ;;; Miscellaneous settings.
 (aset latin-extra-code-table ?\222 t)
 
+(update-coding-systems-internal)
+
 ;;; mule-conf.el ends here
