@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.101.1.1 1998/02/27 18:29:46 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.102 1998/02/27 18:44:41 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -62,11 +62,11 @@ to use --brief and sets this variable to remember whether it worked."
   :type '(repeat directory)
   :group 'vc)
 
-
 (defcustom vc-master-templates
   '(("%sRCS/%s,v" . RCS) ("%s%s,v" . RCS) ("%sRCS/%s" . RCS)
     ("%sSCCS/s.%s" . SCCS) ("%ss.%s". SCCS)
-    vc-find-cvs-master)
+    vc-find-cvs-master
+    vc-search-sccs-project-dir)
   "*Where to look for version-control master files.
 The first pair corresponding to a given back end is used as a template
 when creating new masters.
@@ -806,9 +806,50 @@ For CVS, the full name of CVS/Entries is returned."
 	   vc-master-templates)
 	  nil)))))
 
+(defun vc-sccs-project-dir () 
+  ;; Return the full pathname of the SCCS PROJECTDIR, if it exists,
+  ;; otherwise nil.  The PROJECTDIR is indicated by the environment
+  ;; variable of the same name.  If its value starts with a slash,
+  ;; it must be an absolute path name that points to the 
+  ;; directory where SCCS history files reside.  If it does not
+  ;; begin with a slash, it is taken as the name of a user,
+  ;; and history files reside in an "src" or "source" subdirectory
+  ;; of that user's home directory.
+  (let ((project-dir (getenv "PROJECTDIR")))
+    (and project-dir
+         (if (eq (elt project-dir 0) ?/)
+             (if (file-exists-p (concat project-dir "/SCCS"))
+                 (concat project-dir "/SCCS/")
+               (if (file-exists-p project-dir)
+                   project-dir))
+           (setq project-dir (expand-file-name (concat "~" project-dir)))
+           (let (trial)
+             (setq trial (concat project-dir "/src/SCCS"))
+             (if (file-exists-p trial)
+                 (concat trial "/")
+               (setq trial (concat project-dir "/src"))
+               (if (file-exists-p trial)
+                   (concat trial "/")
+                 (setq trial (concat project-dir "/source/SCCS"))
+                 (if (file-exists-p trial)
+                     (concat trial "/")
+                   (setq trial (concat project-dir "/source/"))
+                   (if (file-exists-p trial)
+                       (concat trial "/"))))))))))
+
+(defun vc-search-sccs-project-dir (dirname basename)
+  ;; Check if there is a master file for BASENAME in the 
+  ;; SCCS project directory.  If yes, throw `found' as
+  ;; expected by vc-registered.  If not, return nil.
+  (let* ((project-dir (vc-sccs-project-dir))
+         (master-file (and project-dir (concat project-dir "s." basename))))
+    (and master-file
+         (file-exists-p master-file)
+         (throw 'found (cons master-file 'SCCS)))))
+
 (defun vc-find-cvs-master (dirname basename)
   ;; Check if DIRNAME/BASENAME is handled by CVS.
-  ;; If it is, do a (throw 'found (cons MASTER 'CVS)).
+  ;; If it is, do a (throw 'found (cons MASTER-FILE 'CVS)).
   ;; Note: This function throws the name of CVS/Entries
   ;; NOT that of the RCS master file (because we wouldn't be able
   ;; to access it under remote CVS).
