@@ -1,5 +1,8 @@
 2000-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info.el (Info-goto-emacs-key-command-node): Leave a space after
+	the prompt.
+
 	* mouse.el (popup-menu): Run the keymap through indirect-function,
 	in case it was defined with define-prefix-key.  If the menu is a
 	list of keymaps, look up the binding of user's choice in each one

@@ -1,3 +1,8 @@
+2000-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xmenu.c (keymap_panes): Pass the keymap's prompt as the pane
+	name to single_keymap_panes.
+
 2000-07-24  Andreas Schwab  <schwab@suse.de>
 
 	* fns.c (Fmakehash): Pass Qeql to Fmake_hash_table if TEST is nil.
