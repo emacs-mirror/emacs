@@ -1202,6 +1202,10 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	}
       else if (EQ (def, intern ("quit")))
 	Vquit_flag = Qt;
+      /* We want to exit this command for exit-prefix,
+	 and this is the only way to do it.  */
+      else if (EQ (def, intern ("exit-prefix")))
+	Vquit_flag = Qt;
 
       QUIT;
 
