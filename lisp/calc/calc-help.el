@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
@@ -409,10 +409,10 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-full-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (princ (format "GNU Emacs Calculator version %s of %s.\n"
-		   calc-version calc-version-date))
+    (princ (format "GNU Emacs Calculator version %s.\n"
+		   calc-version))
     (princ "  By Dave Gillespie, daveg@synaptics.com.\n")
-    (princ "  Copyright (C) 1990, 1993 Free Software Foundation, Inc.\n\n")
+    (princ "  Copyright (C) 2005 Free Software Foundation, Inc.\n\n")
     (princ "Type `h s' for a more detailed summary.\n")
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
     (princ "Basic keys:\n")
