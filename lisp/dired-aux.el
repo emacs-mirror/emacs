@@ -628,15 +628,12 @@ and use this command with a prefix argument (the value does not matter)."
 (defun dired-byte-compile ()
   ;; Return nil for success, offending file name else.
   (let* ((filename (dired-get-filename))
-	 (elc-file
-	  (if (eq system-type 'vax-vms)
-	      (concat (substring filename 0 (string-match ";" filename)) "c")
-	    (concat filename "c")))
-	 buffer-read-only failure)
+	 elc-file buffer-read-only failure)
     (condition-case err
 	(save-excursion (byte-compile-file filename))
       (error
        (setq failure err)))
+    (setq elc-file (byte-compile-dest-file filename))
     (if failure
 	(progn
 	  (dired-log "Byte compile error for %s:\n%s\n" filename failure)
