@@ -1729,7 +1729,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0
       /* Maybe highlight only in selected window.  */
       && (highlight_nonselected_windows
-	  || w == XWINDOW (FRAME_SELECTED_WINDOW (f))))
+	  || w == XWINDOW (selected_window)))
     {
       region_beg = marker_position (current_buffer->mark);
       if (PT < region_beg)
