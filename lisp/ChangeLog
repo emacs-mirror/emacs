@@ -1,3 +1,8 @@
+2004-09-04  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (thumbs-view-image-mode-map): Fix command name typo.
+	(thumbs-view-image-mode): Make buffer read-only.
+
 2004-09-04  Christopher J. Madsen  <cjm@pobox.com>
 
 	* textmodes/ispell.el (ispell-really-aspell): New defvar.
