@@ -48,6 +48,9 @@ Lisp_Object meta_map;		/* The keymap used for globally bound
 Lisp_Object control_x_map;	/* The keymap used for globally bound
 				   C-x-prefixed default commands */
 
+/* Alist of elements like (DEL . "\d").  */
+Lisp_Object exclude_keys;
+
 /* was MinibufLocalMap */
 Lisp_Object Vminibuffer_local_map;
 				/* The keymap used by the minibuf for local
@@ -1008,6 +1011,12 @@ the front of KEYMAP.  */)
       if (CONSP (c) && lucid_event_type_list_p (c))
 	c = Fevent_convert_list (c);
 
+      if (SYMBOLP (c) && ! NILP (Fassoc (Fsymbol_name (c), exclude_keys)))
+	error ("To bind the key %s, use; use \"%s\", not [%s]",
+	       XSYMBOL (c)->name->data,
+	       XSTRING (XCDR (Fassoc (Fsymbol_name (c), exclude_keys)))->data,
+	       XSYMBOL (c)->name->data);
+
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
 	  && !metized)
@@ -1025,7 +1034,7 @@ the front of KEYMAP.  */)
 	}
 
       if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c))
-	error ("Key sequence contains invalid events");
+	error ("Key sequence contains invalid event");
 
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
@@ -1097,6 +1106,9 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       /* Turn the 8th bit of string chars into a meta modifier.  */
       if (XINT (c) & 0x80 && STRINGP (key))
 	XSETINT (c, (XINT (c) | meta_modifier) & ~0x80);
+
+      if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c))
+	error ("Key sequence contains invalid event");
 
       cmd = access_keymap (keymap, c, t_ok, 0, 1);
       if (idx == length)
@@ -3369,6 +3381,15 @@ syms_of_keymap ()
   control_x_map = Fmake_keymap (Qnil);
   Fset (intern ("ctl-x-map"), control_x_map);
   Ffset (intern ("Control-X-prefix"), control_x_map);
+
+  exclude_keys
+    = Fcons (Fcons (build_string ("DEL"), build_string ("\\d")),
+	     Fcons (Fcons (build_string ("TAB"), build_string ("\\t")),
+		    Fcons (Fcons (build_string ("RET"), build_string ("\\r")),
+			   Fcons (Fcons (build_string ("ESC"), build_string ("\\e")),
+				  Fcons (Fcons (build_string ("SPC"), build_string (" ")),
+					 Qnil)))));
+  staticpro (&exclude_keys);
 
   DEFVAR_LISP ("define-key-rebound-commands", &Vdefine_key_rebound_commands,
 	       doc: /* List of commands given new key bindings recently.
