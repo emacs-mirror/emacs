@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -58,9 +58,17 @@
 (defvar command-line-processed nil "t once command line has been processed")
 
 (defconst inhibit-startup-message nil
-  "*Non-nil inhibits the initial startup messages.
+  "*Non-nil inhibits the initial startup message.
 This is for use in your personal init file, once you are familiar
 with the contents of the startup message.")
+
+(defconst inhibit-startup-echo-area-message nil
+  "*Non-nil inhibits the initial startup echo area message.
+Inhibition takes effect only if your `.emacs' file contains
+a line of the form
+ (setq inhibit-startup-echo-area-message "YOUR-USER-NAME")
+Thus, someone else using a copy of your `.emacs' file will see
+the startup message unless he personally acts to inhibit it.")
 
 (defconst inhibit-default-init nil
   "*Non-nil inhibits loading the `default' library.")
@@ -327,8 +335,28 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
-      (if (eq (key-binding "\C-h\C-p") 'describe-project)
-	  (message "For more about the GNU Project, of which GNU Emacs is part, type C-h C-p.")))
+      (and inhibit-startup-echo-area-message
+	   (let ((buffer (get-buffer-create " *temp*")))
+	     (prog1
+		 (condition-case nil
+		     (save-excursion
+		       (set-buffer buffer)
+		       (insert-file-contents user-init-file)
+		       (re-search-forward
+			(concat
+			 "(setq inhibit-startup-echo-area-message[ \t]+"
+			 (prin1-to-string
+			  (if (string= init-file-user "")
+			      (user-login-name)
+			    init-file-user))
+			 "[ \t]*)")
+			nil t))
+		   (error nil))
+	       (kill-buffer buffer))))
+      (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
+		   "For information about the GNU Project and its goals, type C-h C-p."
+		 (substitute-command-keys
+		  "For information about the GNU Project and its goals, type \\[describe-project]."))))
   (if (null command-line-args-left)
       (cond ((and (not inhibit-startup-message) (not noninteractive)
 		  ;; Don't clobber a non-scratch buffer if init file
@@ -357,7 +385,7 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 		 (progn
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1993 Free Software Foundation, Inc.\n\n")
+Copyright (C) 1994 Free Software Foundation, Inc.\n\n")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
