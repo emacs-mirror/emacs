@@ -118,7 +118,7 @@ If this contains a %s, that will be replaced by the matching rule."
     (latex-mode
      ;; should try to offer completing read for these
      "options, RET: "
-     "\\documentstyle[" str & ?\] | -1
+     "\\documentclass[" str & ?\] | -1
      ?{ (read-string "class: ") "}\n"
      ("package, %s: "
       "\\usepackage[" (read-string "options, RET: ") & ?\] | -1 ?{ str "}\n")
