@@ -1,6 +1,6 @@
 # impl.nmk.commpost: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.42) $
+# $HopeName: MMsrc!commpost.nmk(trunk.43) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -17,7 +17,7 @@
 all: mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
-     thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
      locbwcss.exe locusss.exe \
      eventcnv.exe
 
@@ -32,7 +32,7 @@ swall: mmsw.lib epvmss.exe replaysw.exe
 mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe epvmss.exe \
-     thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
      locbwcss.exe locusss.exe \
      replay.exe replaysw.exe eventcnv.exe \
      mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
@@ -97,8 +97,9 @@ FORCE:
 !IFDEF VARIETY
 
 # .special.version: version.obj has a special rule so that it is always
-# built. This rule has no commands, meaning that the commands from
-# other rules (the implicit .c -> .obj rule in particular) will be used
+# built.  This rule has no commands, meaning that the commands from
+# other rules (the implicit .c -> .obj rule in particular) will be used.
+# (Actually, there's a MS bug that causes this to randomly fail to build.)
 $(PFM)\$(VARIETY)\version.obj: FORCE
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
@@ -122,10 +123,10 @@ $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) 
@@ -133,8 +134,6 @@ $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\thw3susp.exe: $(PFM)\$(VARIETY)\thw3susp.obj
 
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
