@@ -1,11 +1,11 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1e, 11 Nov 1999
+;; Version:    1.1f, 25 Oct 2001
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1e, 11 Nov 1999")
+(defconst ps-mode-version "1.1f, 25 Oct 2001")
 (defconst ps-mode-maintainer-address "Peter Kleiweg <kleiweg@let.rug.nl>")
 
 (require 'easymenu)
@@ -104,8 +104,8 @@ When the figure is finished these values should be replaced."
 	  (const :tag "dsheet"      (1584 2448))
 	  (const :tag "esheet"      (2448 3168))))
 
-(defcustom ps-mode-print-function 
-  '(lambda ()
+(defcustom ps-mode-print-function
+  (lambda ()
      (let ((lpr-switches nil)
 	   (lpr-command (if (memq system-type '(usg-unix-v dgux hpux irix))
 			    "lp" "lpr")))
@@ -129,7 +129,7 @@ When the figure is finished these values should be replaced."
 	     (0 font-lock-keyword-face nil nil))
 	    ("^\\(Error\\|Can't\\).*"
 	     (0 font-lock-warning-face nil nil))
-	    ("^\\(Current file position is\\) \\([0-9]+\\)" 
+	    ("^\\(Current file position is\\) \\([0-9]+\\)"
 	     (1 font-lock-comment-face nil nil)
 	     (2 font-lock-warning-face nil nil))))
   "*Medium level highlighting of messages from the PostScript interpreter.
@@ -162,8 +162,7 @@ See documentation on font-lock for details."
 
 Example: \"executive\"
 
-You won't need to set this option for Ghostscript.
-"
+You won't need to set this option for Ghostscript."
   :group 'PostScript-interaction
   :type '(choice (const nil) string))
 
@@ -180,8 +179,7 @@ If nil, the following are tried in turn, until success:
   1. \"$TEMP\"
   2. \"$TMP\"
   3. \"$HOME/tmp\"
-  4. \"/tmp\"
-"
+  4. \"/tmp\""
   :group 'PostScript-interaction
   :type '(choice (const nil) directory))
 
@@ -204,7 +202,7 @@ If nil, the following are tried in turn, until success:
 	       "gsave" "grestore" "grestoreall"
 	       "showpage")))
     (concat "\\<" (regexp-opt ops t) "\\>"))
-  "Regexp of PostScript operators that will be fontified")
+  "Regexp of PostScript operators that will be fontified.")
 
 ;; Level 1 font-lock:
 ;;  - Special comments (reference face)
@@ -214,7 +212,7 @@ If nil, the following are tried in turn, until success:
 ;; Multiline strings are not supported. Strings with nested brackets are.
 (defconst ps-mode-font-lock-keywords-1
   '(("\\`%!PS.*" . font-lock-reference-face)
-    ("^%%BoundingBox:[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]*$" 
+    ("^%%BoundingBox:[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]*$"
      . font-lock-reference-face)
     (ps-mode-match-string-or-comment
      (1 font-lock-comment-face nil t)
@@ -258,7 +256,7 @@ If nil, the following are tried in turn, until success:
    ps-mode-font-lock-keywords-1
    (list
     '("//\\w+" . font-lock-type-face)
-    '("^\\(/\\w+\\)\\>[[ \t]*\\(%.*\\)?\r?$" 
+    '("^\\(/\\w+\\)\\>[[ \t]*\\(%.*\\)?\r?$"
       . (1 font-lock-function-name-face))
     '("^\\(/\\w+\\)\\>\\([ \t]*{\\|[ \t]*<<\\|.*\\<def\\>\\|[ \t]+[0-9]+[ \t]+dict\\>\\)"
       . (1 font-lock-function-name-face))
@@ -361,9 +359,8 @@ If nil, the following are tried in turn, until success:
     ["8-bit to Octal Buffer" ps-mode-octal-buffer t]
     ["8-bit to Octal Region" ps-mode-octal-region (mark t)]
     "---"
-    ("Auto Indent"
-     ["On" (setq ps-mode-auto-indent t) (not ps-mode-auto-indent)]
-     ["Off" (setq ps-mode-auto-indent nil) ps-mode-auto-indent])
+    ["Auto Indent" (setq ps-mode-auto-indent (not ps-mode-auto-indent))
+     :style toggle :selected ps-mode-auto-indent]
     "---"
     ["Start PostScript"
      ps-run-start
@@ -442,14 +439,14 @@ If nil, the following are tried in turn, until success:
 
 (unless ps-mode-syntax-table
   (setq ps-mode-syntax-table (make-syntax-table))
-    
+
   (modify-syntax-entry ?\% "< " ps-mode-syntax-table)
   (modify-syntax-entry ?\n "> " ps-mode-syntax-table)
   (modify-syntax-entry ?\r "> " ps-mode-syntax-table)
   (modify-syntax-entry ?\f "> " ps-mode-syntax-table)
   (modify-syntax-entry ?\< "(>" ps-mode-syntax-table)
   (modify-syntax-entry ?\> ")<" ps-mode-syntax-table)
-    
+
   (modify-syntax-entry ?\! "w " ps-mode-syntax-table)
   (modify-syntax-entry ?\" "w " ps-mode-syntax-table)
   (modify-syntax-entry ?\# "w " ps-mode-syntax-table)
@@ -472,7 +469,7 @@ If nil, the following are tried in turn, until success:
   (modify-syntax-entry ?\` "w " ps-mode-syntax-table)
   (modify-syntax-entry ?\| "w " ps-mode-syntax-table)
   (modify-syntax-entry ?\~ "w " ps-mode-syntax-table)
-    
+
   (let ((i 128))
     (while (< i 256)
       (modify-syntax-entry i "w " ps-mode-syntax-table)
@@ -481,8 +478,9 @@ If nil, the following are tried in turn, until success:
 
 ;; PostScript mode.
 
-;;;###autoload
-(defun ps-mode ()
+;;;###autoload (autoload (quote ps-mode) "ps-mode" "Major mode for editing PostScript with GNU Emacs.\n" t)
+
+(define-derived-mode ps-mode fundamental-mode "PostScript"
   "Major mode for editing PostScript with GNU Emacs.
 
 Entry to this mode calls `ps-mode-hook'.
@@ -490,17 +488,17 @@ Entry to this mode calls `ps-mode-hook'.
 The following variables hold user options, and can
 be set through the `customize' command:
 
-  ps-mode-auto-indent
-  ps-mode-tab
-  ps-mode-paper-size
-  ps-mode-print-function
-  ps-run-prompt
-  ps-run-font-lock-keywords-2
-  ps-run-x
-  ps-run-dumb
-  ps-run-init
-  ps-run-error-line-numbers
-  ps-run-tmp-dir
+  `ps-mode-auto-indent'
+  `ps-mode-tab'
+  `ps-mode-paper-size'
+  `ps-mode-print-function'
+  `ps-run-prompt'
+  `ps-run-font-lock-keywords-2'
+  `ps-run-x'
+  `ps-run-dumb'
+  `ps-run-init'
+  `ps-run-error-line-numbers'
+  `ps-run-tmp-dir'
 
 Type \\[describe-variable] for documentation on these options.
 
@@ -519,34 +517,23 @@ When Ghostscript encounters an error it displays an error message
 with a file position. Clicking mouse-2 on this number will bring
 point to the corresponding spot in the PostScript window, if input
 to the interpreter was sent from that window.
-Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect.
-"
-  (interactive)
-  (kill-all-local-variables)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '((ps-mode-font-lock-keywords
-                              ps-mode-font-lock-keywords-1
-                              ps-mode-font-lock-keywords-2
-                              ps-mode-font-lock-keywords-3)
-                             t)
-        major-mode 'ps-mode
-        mode-name  "PostScript")
-  (use-local-map ps-mode-map)
-  (set-syntax-table ps-mode-syntax-table)
-  (set (make-local-variable 'comment-start) "%")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
-  (run-hooks 'ps-mode-hook))
+Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect."
+  (set (make-local-variable 'font-lock-defaults)
+       '((ps-mode-font-lock-keywords
+ 	  ps-mode-font-lock-keywords-1
+ 	  ps-mode-font-lock-keywords-2
+ 	  ps-mode-font-lock-keywords-3)
+ 	 t)))
 
 (defun ps-mode-show-version ()
-  "Show current version of PostScript mode"
+  "Show current version of PostScript mode."
   (interactive)
   (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
 
 (defun ps-mode-submit-bug-report ()
-  "Submit via mail a bug report on PostScript mode"
+  "Submit via mail a bug report on PostScript mode."
   (interactive)
-  (when (y-or-n-p "Submit bug report on PostScript mode? ")  
+  (when (y-or-n-p "Submit bug report on PostScript mode? ")
     (let ((reporter-prompt-for-summary-p nil)
 	  (reporter-dont-compact-list '(ps-mode-print-function
 					ps-run-font-lock-keywords-2)))
@@ -604,9 +591,8 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   (if (not (re-search-forward "[%(]" limit t))
       ;; Nothing found: return failure.
       nil
-    (let (end)
+    (let ((end (match-end 0)))
       (goto-char (match-beginning 0))
-      (setq end (match-end 0))
       (cond ((looking-at "\\(%.*\\)\\|\\((\\([^()\\\n]\\|\\\\.\\)*)\\)")
 	     ;; It's a comment or string without nested, unescaped brackets.
 	     (goto-char (match-end 0))
@@ -615,7 +601,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 	     ;; It's a string with nested brackets.
 	     (point))
 	    (t
-	     ;; Try next match. 
+	     ;; Try next match.
 	     (goto-char end)
 	     (ps-mode-match-string-or-comment limit))))))
 
@@ -664,7 +650,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
       (indent-to (ps-mode-target-column))))
 
 (defun ps-mode-tabkey ()
-  "Indent/reindent current line, or insert tab"
+  "Indent/reindent current line, or insert tab."
   (interactive)
   (let ((column (current-column))
 	target)
@@ -675,11 +661,10 @@ defines the beginning of a group. These tokens are:  {  [  <<"
       (setq target (ps-mode-target-column))
       (while (<= target column)
 	(setq target (+ target ps-mode-tab)))
-      (delete-horizontal-space)
-      (indent-to target))))
+      (indent-line-to target))))
 
 (defun ps-mode-backward-delete-char ()
-  "Delete backward indentation, or delete backward character"
+  "Delete backward indentation, or delete backward character."
   (interactive)
   (let ((column (current-column))
 	target)
@@ -694,8 +679,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
 	(setq target (- target ps-mode-tab)))
       (if (< target 0)
 	  (setq target 0))
-      (delete-horizontal-space)
-      (indent-to target))))
+      (indent-line-to target))))
 
 (defun ps-mode-r-brace ()
   "Insert `}' and perform balance."
@@ -720,12 +704,11 @@ defines the beginning of a group. These tokens are:  {  [  <<"
   (if ps-mode-auto-indent
       (save-excursion
 	(when (re-search-backward (concat "^[ \t]*" (regexp-quote right) "\\=") nil t)
-	  (delete-horizontal-space)
-	  (indent-to (ps-mode-target-column)))))
+	  (indent-line-to (ps-mode-target-column)))))
   (blink-matching-open))
 
 (defun ps-mode-other-newline ()
-  "Perform newline in `*ps run*' buffer"
+  "Perform newline in `*ps run*' buffer."
   (interactive)
   (let ((buf (current-buffer)))
     (set-buffer "*ps run*")
@@ -736,29 +719,23 @@ defines the beginning of a group. These tokens are:  {  [  <<"
 ;; Print PostScript.
 
 (defun ps-mode-print-buffer ()
-  "Print buffer as PostScript"
+  "Print buffer as PostScript."
   (interactive)
-  (eval (list ps-mode-print-function)))
+  (funcall ps-mode-print-function))
 
 (defun ps-mode-print-region (begin end)
   "Print region as PostScript, adding minimal header and footer lines:
 
 %!PS
 <region>
-showpage
-"
+showpage"
   (interactive "r")
-  (let ((oldbuf (current-buffer))
-        (tmpbuf (get-buffer-create "*ps print*")))
-    (copy-to-buffer tmpbuf begin end)
-    (set-buffer tmpbuf)
-    (goto-char 1)
-    (insert "%!PS\n")
-    (goto-char (point-max))
-    (insert "\nshowpage\n")
-    (eval (list ps-mode-print-function))
-    (set-buffer oldbuf)
-    (kill-buffer tmpbuf)))
+  (let ((buf (current-buffer)))
+    (with-temp-buffer
+      (insert "%!PS\n")
+      (insert-buffer-substring buf begin end)
+      (insert "\nshowpage\n")
+      (funcall ps-mode-print-function))))
 
 
 ;; Comment Out / Uncomment.
@@ -870,8 +847,7 @@ Only one `%' is removed, and it has to be in the first column."
   "Insert array /ISOLatin1Extended.
 
 This encoding vector contains all the entries from ISOLatin1Encoding
-plus the usually uncoded characters inserted on positions 1 through 28.
-"
+plus the usually uncoded characters inserted on positions 1 through 28."
   (interactive)
   (insert "
 % ISOLatin1Encoding, extended with remaining uncoded glyphs
@@ -994,26 +970,20 @@ plus the usually uncoded characters inserted on positions 1 through 28.
 
 ;; Interactive PostScript interpreter.
 
-(defun ps-run-mode ()
+(define-derived-mode ps-run-mode fundamental-mode "Interactive PS"
   "Major mode in interactive PostScript window.
-This mode is invoked from ps-mode and should not be called directly.
+This mode is invoked from `ps-mode' and should not be called directly.
 
-\\{ps-run-mode-map}
-"
-  (kill-all-local-variables)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '((ps-run-font-lock-keywords
-			      ps-run-font-lock-keywords-1
-			      ps-run-font-lock-keywords-2)
-			     t)
-	major-mode 'ps-run-mode
-	mode-name  "Interactive PS"
-	mode-line-process '(":%s"))
-  (use-local-map ps-run-mode-map)
-  (run-hooks 'ps-run-mode-hook))
+\\{ps-run-mode-map}"
+  (set (make-local-variable 'font-lock-defaults)
+       '((ps-run-font-lock-keywords
+	  ps-run-font-lock-keywords-1
+	  ps-run-font-lock-keywords-2)
+	 t))
+  (setq mode-line-process '(":%s")))
 
 (defun ps-run-running ()
-  "Error if not in ps-mode or not running PostScript."
+  "Error if not in `ps-mode' or not running PostScript."
   (unless (equal major-mode 'ps-mode)
     (error "This function can only be called from PostScript mode"))
   (unless (equal (process-status "ps-run") 'run)
@@ -1022,11 +992,10 @@ This mode is invoked from ps-mode and should not be called directly.
 (defun ps-run-start ()
   "Start interactive PostScript."
   (interactive)
-  (let ((command (if (and window-system ps-run-x) ps-run-x ps-run-dumb))
+  (let ((command (or (and window-system ps-run-x) ps-run-dumb))
 	(init-file nil)
 	(process-connection-type nil)
-	(oldwin (selected-window))
-	i)
+	(oldwin (selected-window)))
     (unless command
       (error "No command specified to run interactive PostScript"))
     (unless (and ps-run-mark (markerp ps-run-mark))
@@ -1040,11 +1009,9 @@ This mode is invoked from ps-mode and should not be called directly.
     (when (process-status "ps-run")
       (delete-process "ps-run"))
     (erase-buffer)
-    (setq i (append command init-file))
-    (while i
-      (insert (car i) (if (cdr i) " " "\n"))
-      (setq i (cdr i)))
-    (eval (append '(start-process "ps-run" "*ps run*") command init-file))
+    (setq command (append command init-file))
+    (insert (mapconcat 'identity command " ") "\n")
+    (apply 'start-process "ps-run" "*ps run*" command)
     (select-window oldwin)))
 
 (defun ps-run-quit ()
@@ -1082,7 +1049,7 @@ This mode is invoked from ps-mode and should not be called directly.
     (ps-run-send-string (format "(%s) run" f) t)))
 
 (defun ps-run-boundingbox ()
-  "View BoundingBox"
+  "View BoundingBox."
   (interactive)
   (ps-run-running)
   (let (x1 y1 x2 y2 f
@@ -1172,7 +1139,7 @@ grestore
 	(delete-file i)))))
 
 (defun ps-run-mouse-goto-error (event)
-  "Set point at mouse click, then call ps-run-goto-error."
+  "Set point at mouse click, then call `ps-run-goto-error'."
   (interactive "e")
   (mouse-set-point event)
   (ps-run-goto-error))
@@ -1191,7 +1158,7 @@ grestore
 
 (defun ps-run-goto-error ()
   "Jump to buffer position read as integer at point.
-Use line numbers if ps-run-error-line-numbers is not nil"
+Use line numbers if `ps-run-error-line-numbers' is not nil"
   (interactive)
   (let ((p (point)))
     (unless (looking-at "[0-9]")
