@@ -1769,7 +1769,11 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
 
    When converting an object to C, it may be of the form (SYMBOL . <data>)
    where SYMBOL is what we should claim that the type is.  Format and
-   representation are as above.  */
+   representation are as above.
+
+   Important: When format is 32, data should contain an array of int,
+   not an array of long as the X library returns.  This makes a difference
+   when sizeof(long) != sizeof(int).  */
 
 
 
@@ -1811,15 +1815,21 @@ selection_data_to_lisp_data (display, data, size, type, format)
   else if (type == XA_ATOM)
     {
       int i;
-      if (size == sizeof (Atom))
-	return x_atom_to_symbol (display, *((Atom *) data));
+      /* On a 64 bit machine sizeof(Atom) == sizeof(long) == 8.
+         But the callers of these function has made sure the data for
+         format == 32 is an array of int.  Thus, use int instead
+         of Atom.  */
+      int *idata = (int *) data;
+
+      if (size == sizeof (int))
+	return x_atom_to_symbol (display, (Atom) idata[0]);
       else
 	{
-	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (Atom)),
+	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (int)),
 					make_number (0));
-	  for (i = 0; i < size / sizeof (Atom); i++)
+	  for (i = 0; i < size / sizeof (int); i++)
 	    Faset (v, make_number (i),
-		   x_atom_to_symbol (display, ((Atom *) data) [i]));
+                   x_atom_to_symbol (display, (Atom) idata[i]));
 	  return v;
 	}
     }
@@ -2559,6 +2569,10 @@ x_fill_property_data (dpy, data, ret, format)
    FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
    be stored in RET.
    SIZE is the number of elements in DATA.
+
+   Important: When format is 32, data should contain an array of int,
+   not an array of long as the X library returns.  This makes a difference
+   when sizeof(long) != sizeof(int).
 
    Also see comment for selection_data_to_lisp_data above.  */
 

@@ -1,3 +1,10 @@
+2005-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (selection_data_to_lisp_data): For the special case
+	type == XA_ATOM, data contains array of int, not array of Atom.
+	(x_property_data_to_lisp, selection_data_to_lisp_data): Comment
+	update: data must be array of int for format == 32.
+
 2005-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* undo.c (Fprimitive_undo): Check veracity of delta,start,end.
