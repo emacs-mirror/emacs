@@ -22,6 +22,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
+#include "keyboard.h"
 #include "window.h"
 #include "mocklisp.h"
 

@@ -849,7 +849,7 @@ extern Lisp_Object Fsetcar (), Fsetcdr ();
 extern Lisp_Object Fboundp (), Ffboundp (), Fmakunbound (), Ffmakunbound ();
 extern Lisp_Object Fsymbol_function (), Fsymbol_plist (), Fsymbol_name ();
 extern Lisp_Object Ffset (), Fsetplist ();
-extern Lisp_Object Fsymbol_value (), Fset ();
+extern Lisp_Object Fsymbol_value (), find_symbol_value (), Fset ();
 extern Lisp_Object Fdefault_value (), Fset_default ();
 
 extern Lisp_Object Faref (), Faset (), Farray_length ();
@@ -943,7 +943,8 @@ extern Lisp_Object Fgoto_char ();
 extern Lisp_Object Fpoint_min_marker (), Fpoint_max_marker ();
 extern Lisp_Object Fpoint_min (), Fpoint_max ();
 extern Lisp_Object Fpoint (), Fpoint_marker (), Fmark_marker ();
-extern Lisp_Object Ffollchar (), Fprevchar (), Fchar_after (), Finsert ();
+extern Lisp_Object Ffollowing_char (), Fprevious_char (), Fchar_after ();
+extern Lisp_Object Finsert ();
 extern Lisp_Object Feolp (), Feobp (), Fbolp (), Fbobp ();
 extern Lisp_Object Fformat (), format1 ();
 extern Lisp_Object Fbuffer_substring (), Fbuffer_string ();
@@ -1005,12 +1006,9 @@ extern Lisp_Object Fdowncase (), Fupcase (), Fcapitalize ();
 /* defined in keyboard.c */
 
 extern Lisp_Object Qdisabled;
-extern Lisp_Object Qmode_line, Qvertical_split;
 extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
-extern int num_input_chars;
-extern int poll_suppress_count;
 
 /* defined in keymap.c */
 
