@@ -579,7 +579,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	    break;
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < FRAME_WIDTH (selected_frame))
+		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline.  */
