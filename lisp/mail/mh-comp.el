@@ -582,10 +582,10 @@ invoked with no args, if those values are non-nil."
   (or mh-user-path (mh-find-path))
   (kill-all-local-variables)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^[ \t]*[-_][-_][-_]+$\\|" paragraph-start))
+  (setq paragraph-start (concat "[ \t]*[-_][-_][-_]+$\\|" paragraph-start))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate
-	(concat "^[ \t]*[-_][-_][-_]+$\\|" paragraph-separate))
+	(concat "[ \t]*[-_][-_][-_]+$\\|" paragraph-separate))
   (make-local-variable 'mh-send-args)
   (make-local-variable 'mh-annotate-char)
   (make-local-variable 'mh-annotate-field)
