@@ -810,7 +810,9 @@ When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
   (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'background-color color-name))))
+			   (list (cons 'background-color color-name)))
+  (or window-system
+      (face-set-after-frame-default (selected-frame))))
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR-NAME.
@@ -818,7 +820,9 @@ When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
   (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'foreground-color color-name))))
+			   (list (cons 'foreground-color color-name)))
+  (or window-system
+      (face-set-after-frame-default (selected-frame))))
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR-NAME.
