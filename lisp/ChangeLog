@@ -1,3 +1,15 @@
+2000-03-29  Dave Love  <fx@gnu.org>
+
+	* calendar/appt.el: Doc fixes.
+	(appt-check): Convert min-to-app to a string before passing to
+	appt-disp-window-function or concat.
+	(appt-delete-window): Remove test for frame-root-window.
+	(appt-select-lowest-window, appt-convert-time): Simplify.
+
+	* emacs-lisp/bytecomp.el: Doc fixes.
+	(byte-compile-file-form-autoload): Update
+	byte-compile-function-environment.
+
 2000-03-29  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/autoload.el: Also print defsubst doc string
