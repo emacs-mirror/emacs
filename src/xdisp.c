@@ -7025,9 +7025,8 @@ update_tool_bar (f, save_match_data)
 	    }
 
 	  /* Build desired tool-bar items from keymaps.  */
-	  f->desired_tool_bar_items
-	    = tool_bar_items (f->desired_tool_bar_items,
-			      &f->n_desired_tool_bar_items);
+	  f->tool_bar_items
+	    = tool_bar_items (f->tool_bar_items, &f->n_tool_bar_items);
 	  
 	  /* Redisplay the tool-bar in case we changed it.  */
 	  w->update_mode_line = Qt;
@@ -7040,7 +7039,7 @@ update_tool_bar (f, save_match_data)
 
 
 /* Set F->desired_tool_bar_string to a Lisp string representing frame
-   F's desired tool-bar contents.  F->desired_tool_bar_items must have
+   F's desired tool-bar contents.  F->tool_bar_items must have
    been set up previously by calling prepare_menu_bars.  */
 
 static void
@@ -7064,7 +7063,7 @@ build_desired_tool_bar_string (f)
 
   /* Each image in the string we build is preceded by a space,
      and there is a space at the end.  */
-  size_needed = f->n_desired_tool_bar_items + 1;
+  size_needed = f->n_tool_bar_items + 1;
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
   if (size < size_needed)
@@ -7081,12 +7080,10 @@ build_desired_tool_bar_string (f)
      put a `menu_item' property on tool-bar items with a value that
      is the index of the item in F's tool-bar item vector.  */
   for (i = 0, string_idx = 0;
-       i < f->n_desired_tool_bar_items;
+       i < f->n_tool_bar_items;
        ++i, string_idx += 1)
     {
-#define PROP(IDX)					\
-      (XVECTOR (f->desired_tool_bar_items)		\
-       ->contents[i * TOOL_BAR_ITEM_NSLOTS + (IDX)])
+#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
@@ -7367,7 +7364,7 @@ redisplay_tool_bar (f)
 
 /* Get information about the tool-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tool-bar item
-   properties start in F->current_tool_bar_items.  Value is zero if
+   properties start in F->tool_bar_items.  Value is zero if
    GLYPH doesn't display a tool-bar item.  */
 
 int
@@ -7381,7 +7378,7 @@ tool_bar_item_info (f, glyph, prop_idx)
   
   /* Get the text property `menu-item' at pos. The value of that
      property is the start index of this item's properties in
-     F->current_tool_bar_items.  */
+     F->tool_bar_items.  */
   prop = Fget_text_property (make_number (glyph->charpos),
 			     Qmenu_item, f->current_tool_bar_string);
   if (INTEGERP (prop))
