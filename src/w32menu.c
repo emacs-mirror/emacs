@@ -1152,16 +1152,18 @@ cached information about equivalent key sequences.")
   if (! NILP (position))
     {
       /* Decode the first argument: find the window and the coordinates.  */
-      if (EQ (position, Qt))
+      if (EQ (position, Qt)
+	  || (CONSP (position) && EQ (XCONS (position)->car, Qmenu_bar)))
 	{
 	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = 0;
+	  FRAME_PTR new_f = selected_frame;
 	  Lisp_Object bar_window;
 	  int part;
 	  unsigned long time;
 	  
 	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
+	    (*mouse_position_hook) (&new_f, 1, &bar_window, 
+				    &part, &x, &y, &time);
 	  if (new_f != 0)
 	    XSETFRAME (window, new_f);
 	  else
@@ -1517,7 +1519,7 @@ check_mouse_other_menu_bar (f)
   Lisp_Object x, y;
   unsigned long time;
 
-  (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
+  (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
 
   if (f == new_f && other_menu_bar_item_p (f, x, y))
     {
