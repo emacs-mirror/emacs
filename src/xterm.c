@@ -5626,6 +5626,11 @@ x_term_init (display_name, xrm_option, resource_name)
 	init_kboard (dpyinfo->kboard);
 	dpyinfo->kboard->next_kboard = all_kboards;
 	all_kboards = dpyinfo->kboard;
+	/* Don't let the initial kboard remain current longer than necessary.
+	   That would cause problems if a file loaded on startup tries to
+	   prompt in the minibuffer.  */
+	if (current_kboard == initial_kboard)
+	  current_kboard = dpyinfo->kboard;
       }
     dpyinfo->kboard->reference_count++;
   }
