@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, latin, input method
 
