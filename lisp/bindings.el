@@ -135,6 +135,38 @@ corresponding to the mode line clicked."
   "Local keymap for the coding-system part of the mode line.")
 
 
+(defun mode-line-change-eol ()
+  "Cycle through the various possible kinds of end-of-line styles."
+  (interactive)
+  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+    (set-buffer-file-coding-system
+     (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix)))))
+
+(defvar mode-line-eol-desc-cache nil)
+
+(defun mode-line-eol-desc ()
+  (let* ((eol (coding-system-eol-type buffer-file-coding-system))
+	 (mnemonic (coding-system-eol-type-mnemonic buffer-file-coding-system))
+	 (desc (assq eol mode-line-eol-desc-cache)))
+    (if (and desc (eq (cadr desc) mnemonic))
+	(cddr desc)
+      (if desc (setq mode-line-eol-desc-cache nil)) ;Flush the cache if stale.
+      (setq desc
+	    (propertize
+	     mnemonic
+	     'help-echo (format "%s end-of-line; mouse-3 to cycle"
+				(if (eq eol 0) "Unix-style LF"
+				  (if (eq eol 1) "Dos-style CRLF"
+				    (if (eq eol 2) "Mac-style CR"
+				      "Undecided"))))
+	     'keymap
+	     (eval-when-compile
+	       (let ((map (make-sparse-keymap)))
+		 (define-key map [mode-line mouse-3] 'mode-line-change-eol)
+		 map))))
+      (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
+      desc)))
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -145,7 +177,7 @@ corresponding to the mode line clicked."
 			     ".  mouse-2: disable, mouse-3: describe")
 		  local-map ,mode-line-input-method-map))
     ,(propertize
-      "%Z"
+      "%z"
       'help-echo
       #'(lambda (window object point)
 	  (with-current-buffer (window-buffer window)
@@ -157,16 +189,17 @@ corresponding to the mode line clicked."
 			  " buffer; mouse-3: describe coding system")
 		(concat "Unibyte " (symbol-name buffer-file-coding-system)
 			" buffer")))))
-      'local-map mode-line-coding-system-map))
+      'local-map mode-line-coding-system-map)
+    (:eval (mode-line-eol-desc)))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
   coding system for keyboard input (if Emacs is running on terminal)
   coding system for terminal output (if Emacs is running on terminal)"
-;;; Currently not:
-;;;  coding system for decoding output of buffer process (if any)
-;;;  coding system for encoding text to send to buffer process (if any)."
+  ;; Currently not:
+  ;;  coding system for decoding output of buffer process (if any)
+  ;;  coding system for encoding text to send to buffer process (if any)."
 )
 
 (make-variable-buffer-local 'mode-line-mule-info)
