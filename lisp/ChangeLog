@@ -6,8 +6,7 @@
 
 	* textfile/reftex-ref.el (reftex-goto-label): New command.
 
-	* textfile/reftex-vars.el (reftex-part-resets-chapter): New
-	option.
+	* textfile/reftex-vars.el (reftex-part-resets-chapter): New option.
 
 	* textfile/reftex-parse.el (reftex-roman-number): New function.
 	(reftex-section-number): Better handling of parts: No chapter
@@ -15,19 +14,19 @@
 
 	* textfile/reftex.el (reftex-highlight-overlays): Added a third
 	overlay.
-	(reftex-mode-menu): Added entry for `reftex-toc-recenter.  Also
-	moved `reftex-reset-mode' to top level.
+	(reftex-mode-menu): Added entry for `reftex-toc-recenter.
+	Also moved `reftex-reset-mode' to top level.
 
 	* textfile/reftex-toc.el (reftex-toc-recenter): New command.
 	(reftex-toc-pre-command-hook): Don't remove highlight overlay.
 	(reftex-toc-post-command-hook): Use overlay no 2 for highlighting.
 
-	* textfile/reftex-sel.el (reftex-get-offset): get offset of
+	* textfile/reftex-sel.el (reftex-get-offset): Get offset of
 	document pointer *before* position, not after.
-	(reftex-insert-docstruct): get offset of document pointer *before*
+	(reftex-insert-docstruct): Get offset of document pointer *before*
 	position, not after.
 
-	* textfiles/reftex-parse.el (reftex-where-am-I): prefer marker
+	* textfiles/reftex-parse.el (reftex-where-am-I): Prefer marker
 	match over section title match.
 
 	* textfiles/reftex-cite.el (reftex-bib-or-thebib): New function
@@ -38,8 +37,8 @@
 	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
 	better cooperation with chapterbib.
 
-	* textfiles/reftex-dcr.el (reftex-view-cr-cite): Use
-	`reftex-bib-or-thebib' for better cooperation with chapterbib.
+	* textfiles/reftex-dcr.el (reftex-view-cr-cite):
+	Use `reftex-bib-or-thebib' for better cooperation with chapterbib.
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
@@ -49,6 +48,11 @@
 2002-08-26  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (WINS): Add calc and obsolete.
+
+2002-08-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use customize-mark-as-set for global minor modes.
 
 2002-08-25  Miles Bader  <miles@gnu.org>
 
@@ -79,7 +83,7 @@
 	* progmodes/simula.el (simula-abbrev-keyword-default)
 	(simula-abbrev-keyword, simula-abbrev-stdproc-default)
 	(simula-abbrev-stdproc): Doc fix - escape open parens in column 0.
-	
+
 	* apropos.el (command-apropos): Use `defalias' instead of `fset'.
 
 	* mail/rmail.el (rmail-speedbar-match-folder-regexp): Doc fix.
@@ -106,13 +110,13 @@
 
 	* progmodes/f90.el (f90-xemacs-flag, f90-xemacs-menu)
 	(f90-menu-bar-menu, f90-change-case-menu, f90-font-lock-on)
-	(f90-font-lock-off, f90-font-lock-menu):  Deleted.  Use
-	easy-menu-define instead.
+	(f90-font-lock-off, f90-font-lock-menu):  Delete.
+	Use easy-menu-define instead.
 	(f90-mode): Use easy-menu-add.
 	No longer (require 'imenu) when compiling.
 	(f90-mark-subprogram, f90-indent-region, f90-fill-region)
 	(f90-abbrev-start): Use fboundp.
-	(f90-imenu-flag): Deleted - use imenu--index-alist instead.
+	(f90-imenu-flag): Delete - use imenu--index-alist instead.
 
 2002-08-23  Andre Spiegel  <spiegel@gnu.org>
 
@@ -129,9 +133,9 @@
 	(tramp-open-connection-su): Mention `tramp-shell-prompt-pattern'
 	in the docstring.
 	(tramp-bug): Report `tramp-shell-prompt-pattern'.
-	(tramp-process-one-multi-action, tramp-process-one-action): Make
-	message clearer so people don't confuse it with Emacs asking them
-	a question if the regexp happens to end with "?".
+	(tramp-process-one-multi-action, tramp-process-one-action):
+	Make message clearer so people don't confuse it with Emacs asking
+	them a question if the regexp happens to end with "?".
 	(tramp-verbose): Change default value from 10 to 9.  Also change
 	some logging levels so that 10 is reserved for stuff which is
 	needed for debugging only, but 9 catches everything that people
@@ -147,8 +151,7 @@
 	* progmodes/f90.el: eval-when-compile a few defvars.
 	(f90-xemacs-flag): Wrap in eval-and-compile.
 	(f90-font-lock-keywords): Doc fix.
-	(f90-mode-abbrev-table): Work with or without 6th arg of
-	define-abbrev.
+	(f90-mode-abbrev-table): Work with or without 6th arg of define-abbrev.
 	(f90-mark-subprogram-overlay): Variable deleted.
 	(f90-mark-subprogram): Remove overlay bit.  Don't be silent about
 	pushing mark.
@@ -207,8 +210,8 @@
 	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
 	better cooperation with chapterbib.
 
-	* textfiles/reftex-dcr.el (reftex-view-cr-cite): Use
-	`reftex-bib-or-thebib' for better cooperation with chapterbib.
+	* textfiles/reftex-dcr.el (reftex-view-cr-cite):
+	Use `reftex-bib-or-thebib' for better cooperation with chapterbib.
 
 2002-08-20  Kim F. Storm  <storm@cua.dk>
 
@@ -221,10 +224,18 @@
 
 	* edmacro.el: Remove C-x C-k binding (now in kmacro.el).
 
+2002-08-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help-fns.el (help-split-fundoc): Replace the function name
+	from the docstring with the one that should be displayed.
+	(help-make-usage): Understand CL style arglists.
+	(describe-function-1): Adapt to the new behavior of help-split-fundoc.
+	(describe-variable): Use delete-region.
+
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule.el (sgml-xml-auto-coding-function): Call
-	re-search-forward with NOERROR t.
+	* international/mule.el (sgml-xml-auto-coding-function):
+	Call re-search-forward with NOERROR t.
 
 2002-08-19  Miles Bader  <miles@gnu.org>
 
@@ -235,8 +246,8 @@
 	than using special comint state.
 	(comint-output-filter): Call `comint-carriage-motion'.
 	(comint-output-filter-functions): Don't add `comint-carriage-motion'.
-	* ielm.el (inferior-emacs-lisp-mode): Give
-	`comint-inhibit-carriage-motion' a local value of t.
+	* ielm.el (inferior-emacs-lisp-mode):
+	Give `comint-inhibit-carriage-motion' a local value of t.
 
 2002-08-18  Richard M. Stallman  <rms@gnu.org>
 
@@ -258,9 +269,8 @@
 
 2002-08-17  Richard M. Stallman  <rms@gnu.org>
 
-	* tar-mode.el (tar-subfile-mode): Use add-hook and
-	remove-hook, and use write-file-functions instead of
-	local-write-file-hooks.
+	* tar-mode.el (tar-subfile-mode): Use add-hook and remove-hook,
+	and use write-file-functions instead of local-write-file-hooks.
 	(tar-untar-buffer): Don't try to extract directories.
 
 	* menu-bar.el (fringe-mode): Set to nil.
@@ -278,7 +288,7 @@
 	(server-goto-line-column): New function.
 	(server-visit-files): Use server-goto-line-column.
 	Offer to revert only if file has changed.
-	
+
 2002-08-15  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (recover-this-file): New function.
