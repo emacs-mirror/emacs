@@ -2395,21 +2395,34 @@ should be made by `quail-build-decode-map' (which see)."
 	(insert ?\n))
       (insert ?\n))))
 
+(define-button-type 'quail-keyboard-layout-button
+  :supertype 'help-xref
+  'help-function '(lambda (layout) 
+		    (help-setup-xref `(quail-keyboard-layout-button ,layout) nil)
+		    (quail-show-keyboard-layout layout))
+  'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
+
+(define-button-type 'quail-keyboard-customize-button
+  :supertype 'help-customize-variable
+  'help-echo (purecopy "mouse-2, RET: customize keyboard layout"))
+
 (defun quail-help (&optional package)
   "Show brief description of the current Quail package.
 Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
   (interactive)
-  (if package
-      (setq package (assoc package quail-package-alist))
-    (setq package quail-current-package))
+  (require 'help-mode)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
-	(default-enable-multibyte-characters enable-multibyte-characters))
+	(default-enable-multibyte-characters enable-multibyte-characters)
+	(package-def
+	 (if package
+	     (assoc package quail-package-alist)
+	   quail-current-package)))
     ;; At first, make sure that the help buffer has window.
     (help-setup-xref (list #'quail-help package) (interactive-p))
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
-	(setq quail-current-package package)))
+	(setq quail-current-package package-def)))
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the frame in which the buffer displayed.
     (with-current-buffer (help-buffer)
@@ -2445,8 +2458,8 @@ This input method works by translating individual input characters.
 Assuming that your actual keyboard has the `")
 	  (help-insert-xref-button
 	   quail-keyboard-layout-type
-	   #'quail-show-keyboard-layout quail-keyboard-layout-type
-	   "mouse-2, RET: show this layout")
+	   'quail-keyboard-layout-button
+	   quail-keyboard-layout-type)
 	  (insert "' layout,
 translation results in the following \"virtual\" keyboard layout:
 ")
@@ -2456,8 +2469,7 @@ translation results in the following \"virtual\" keyboard layout:
 `")
 	  (help-insert-xref-button
 	   "standard"
-	   #'quail-show-keyboard-layout "standard"
-	   "mouse-2, RET: show this layout")
+	   'quail-keyboard-layout-button "standard")
 	  (insert "', the \"virtual\" keyboard you get with this input method
 will be rearranged in the same way.
 
@@ -2468,8 +2480,7 @@ physical keyboard layout as specified with that variable.
 ")
 	  (help-insert-xref-button
 	   "[customize keyboard layout]"
-	   #'customize-variable 'quail-keyboard-layout-type
-	   "mouse-2, RET: set keyboard layout type")
+	   'quail-keyboard-customize-button 'quail-keyboard-layout-type)
 	  (insert "\n"))
 
 	;; Show key sequences.
