@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.40) $
+ * $HopeName: MMsrc!mpmst.h(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -230,6 +230,7 @@ typedef struct SegStruct {      /* segment structure */
   AccessSet _sm : AccessMAX;    /* shield mode, impl.c.shield */
   TraceSet _grey : TRACE_MAX;   /* traces for which seg is grey */
   TraceSet _white : TRACE_MAX;  /* traces for which seg is white */
+  TraceSet _nailed : TRACE_MAX; /* traces for which seg has nailed objects */
   unsigned int _single : 1;     /* is a single page segment? */
   unsigned nailCount : 16;      /* false fixes to this seg */
   RankSet _rankSet : RankMAX;   /* ranks of references in this seg */
