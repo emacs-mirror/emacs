@@ -9070,6 +9070,8 @@ a special event, so ignore the prefix argument and don't clear it.")
     }
   return Qnil;
 }
+
+
 
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
   1, 1, "P",
@@ -9192,7 +9194,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  Lisp_Object binding;
 	  char *newmessage;
 	  int message_p = push_message ();
+	  int count = BINDING_STACK_SIZE ();
 
+	  record_unwind_protect (push_message_unwind, Qnil);
 	  binding = Fkey_description (bindings);
 
 	  newmessage
@@ -9211,7 +9215,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	      && message_p)
 	    restore_message ();
 
-	  pop_message ();
+	  unbind_to (count, Qnil);
 	}
     }
 
