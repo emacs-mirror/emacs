@@ -368,6 +368,9 @@ equivalent to @code{(string)}.
 * Type Keywords::
 @end menu
 
+All customization types are implemented as widgets; see @ref{Top, ,
+Introduction, widget, The Emacs Widget Library} for details.
+
 @node Simple Types
 @subsection Simple Types
 
