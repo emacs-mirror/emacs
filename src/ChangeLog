@@ -1,3 +1,9 @@
+2000-05-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (update_charset_table): Accept nil in LONG_NAME and
+	DESCRIPTION.
+	(syms_of_charset): Avoid building same strings.
+
 2000-05-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (Fload): Add a comment about the meaning of

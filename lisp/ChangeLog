@@ -1,7 +1,8 @@
 2000-05-24  Kenichi Handa  <handa@etl.go.jp>
 
-	* language/japanese.el (iso-2022-jp): Exclude katakana-jisx0201
-	to conform to RFC1468.
+	* language/japanese.el (iso-2022-jp): Exclude katakana-jisx0201 to
+	conform to RFC1468.
+	(iso-2022-jp-2): Exclude katakana-jisx0201 to conform to RFC1554.
 
 2000-05-23  Eric M. Ludlam  <zappo@ballista.ultranet.com>
 
