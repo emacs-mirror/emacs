@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.13
+;; Version:    5.14
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -128,6 +128,8 @@
     ("java"
      (c-basic-offset . 2)
      (c-comment-only-line-offset . (0 . 0))
+     ;; the following preserves Javadoc starter lines
+     (c-hanging-comment-starter-p . nil)
      (c-offsets-alist . ((topmost-intro-cont    . +)
 			 (statement-block-intro . +)
  			 (knr-argdecl-intro     . 5)
@@ -209,17 +211,19 @@ the existing style.")
   ;; Recursively set the base style.  If no base style is given, the
   ;; default base style is "cc-mode" and the recursion stops.  Be sure
   ;; to detect loops.
-  (if (not (string-equal style "cc-mode"))
-      (let ((base (if (stringp (car basestyles))
-		      (downcase (car basestyles))
-		    "cc-mode")))
-	(if (memq base basestyles)
-	    (error "Style loop detected: %s in %s" base basestyles))
-	(c-set-style-2 base (cons base basestyles))))
   (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
 		       (assoc (upcase style) c-style-alist)
 		       (assoc style c-style-alist)
 		       (error "Undefined style: %s" style)))))
+    (if (not (string-equal style "cc-mode"))
+	(let ((base (if (stringp (car vars))
+			(prog1
+			    (downcase (car vars))
+			  (setq vars (cdr vars)))
+		      "cc-mode")))
+	  (if (memq base basestyles)
+	      (error "Style loop detected: %s in %s" base basestyles))
+	  (c-set-style-2 base (cons base basestyles))))
     (mapcar 'c-set-style-1 vars)))
     
 (defvar c-set-style-history nil)
@@ -239,6 +243,7 @@ style name."
 		       (completing-read prompt c-style-alist nil t
 					(cons c-indentation-style 0)
 					'c-set-style-history))))
+  (c-initialize-builtin-style)
   (c-set-style-2 stylename nil)
   (setq c-indentation-style stylename)
   (c-keep-region-active))
@@ -577,7 +582,10 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 			)))
 	;; the default style is now GNU.  This can be overridden in
 	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
-	(c-set-style c-site-default-style))))
+	(c-set-style c-site-default-style)))
+  (if c-style-variables-are-local-p
+      (c-make-styles-buffer-local)))
+
 
 (defun c-make-styles-buffer-local ()
   "Make all CC Mode style variables buffer local.
