@@ -1005,6 +1005,7 @@ socket_connection (host, flags)
   CREDENTIALS cred;
   Key_schedule schedule;
   int rem;
+  char *realhost;
 #endif /* KRB5 */
 #endif /* KERBEROS */
 
@@ -1175,8 +1176,9 @@ socket_connection (host, flags)
 	}
 #else  /* ! KRB5 */	  
       ticket = (KTEXT) malloc (sizeof (KTEXT_ST));
-      rem = krb_sendauth (0L, sock, ticket, "pop", hostent->h_name,
-			  (char *) krb_realmofhost (hostent->h_name),
+      realhost = strdup (hostent->h_name);
+      rem = krb_sendauth (0L, sock, ticket, "pop", realhost,
+			  (char *) krb_realmofhost (realhost),
 			  (unsigned long) 0, &msg_data, &cred, schedule,
 			  (struct sockaddr_in *) 0,
 			  (struct sockaddr_in *) 0,
