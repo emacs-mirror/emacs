@@ -1,3 +1,8 @@
+2001-11-07  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_display_and_set_cursor): Do not move system caret
+	if cursor_glyph is NULL.
+
 2001-11-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* keymap.c (access_keymap): Fix compilation error.
