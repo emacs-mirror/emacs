@@ -416,12 +416,14 @@ NAME should be a string which is not the name of an existing buffer.")
       b->base_buffer->zv_marker = Fmake_marker ();
       Fset_marker (b->base_buffer->zv_marker,
 		   make_number (BUF_ZV (b->base_buffer)), base_buffer);
+      XMARKER (b->base_buffer->zv_marker)->insertion_type = 1;
     }
 
   /* Give the indirect buffer markers for its narrowing.  */
   b->pt_marker = Fpoint_marker ();
   b->begv_marker = Fpoint_min_marker ();
   b->zv_marker = Fpoint_max_marker ();
+  XMARKER (b->zv_marker)->insertion_type = 1;
 
   return buf;
 }
