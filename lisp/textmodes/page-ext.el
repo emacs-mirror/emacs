@@ -341,7 +341,10 @@ With arg (prefix if interactive), move that many pages."
         nil
       (goto-char (point-max)))
     (setq count (1- count)))
-  (while (and (< count 0) (not (bobp)))
+  ;; If COUNT is negative, we want to go back -COUNT + 1 page boundaries.
+  ;; The first page boundary we reach is the top of the current page,
+  ;; which doesn't count.
+  (while (and (< count 1) (not (bobp)))
     (if (re-search-backward page-delimiter nil t)
 	(goto-char (match-beginning 0))
       (goto-char (point-min)))
