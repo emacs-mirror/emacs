@@ -141,14 +141,14 @@ Checks for files in `temporary-file-directory' or
 					name 0 nil)))
 	     ;; Directory is under temporary-file-directory.
 	     (and (not (eq comp t))
-		  (< comp -1)))
+		  (< comp (- (length temporary-file-directory)))))
 	   (if small-temporary-file-directory
 	       (let ((comp (compare-strings small-temporary-file-directory
 					    0 nil
 					    name 0 nil)))
 		 ;; Directory is under small-temporary-file-directory.
 		 (and (not (eq comp t))
-		      (< comp -1)))))))
+		      (< comp (- (length small-temporary-file-directory)))))))))
 
 (defvar backup-enable-predicate 'normal-backup-enable-predicate
   "Predicate that looks at a file name and decides whether to make backups.
