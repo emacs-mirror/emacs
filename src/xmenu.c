@@ -42,7 +42,7 @@ static char *rcsid_GXMenu_c = "$Header: xmenu.c,v 1.6 86/08/26 17:23:26 rlk Exp 
 #include <signal.h>
 #include "config.h"
 #include "lisp.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -96,7 +96,7 @@ DEFUN ("x-popup-menu",Fx_popup_menu, Sx_popup_menu, 1, 2, 0,
   "Pop up a deck-of-cards menu and return user's selection.\n\
 ARG is a position specification: a list ((XOFFSET YOFFSET) WINDOW)\n\
 where XOFFSET and YOFFSET are positions in characters from the top left\n\
-corner of WINDOW's screen.  A mouse-event list will serve for this.\n\
+corner of WINDOW's frame.  A mouse-event list will serve for this.\n\
 This controls the position of the center of the first line\n\
 in the first pane of the menu, not the top left of the menu as a whole.\n\
 \n\
@@ -118,7 +118,7 @@ be the return value for that line (i.e. if it is selected.")
   char *error_name;
   Lisp_Object ltitle, selection;
   int i, j;
-  SCREEN_PTR s;
+  FRAME_PTR f;
   Lisp_Object x, y, window;
 
   window = Fcar (Fcdr (arg));
@@ -127,12 +127,12 @@ be the return value for that line (i.e. if it is selected.")
   CHECK_WINDOW (window, 0);
   CHECK_NUMBER (x, 0);
   CHECK_NUMBER (y, 0);
-  s = XSCREEN (WINDOW_SCREEN (XWINDOW (window)));
+  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-  XMenu_xpos = FONT_WIDTH (s->display.x->font) * XINT (x);
-  XMenu_ypos = FONT_HEIGHT (s->display.x->font) * XINT (y);
-  XMenu_xpos += s->display.x->left_pos;
-  XMenu_ypos += s->display.x->top_pos;
+  XMenu_xpos = FONT_WIDTH (f->display.x->font) * XINT (x);
+  XMenu_ypos = FONT_HEIGHT (f->display.x->font) * XINT (y);
+  XMenu_xpos += f->display.x->left_pos;
+  XMenu_ypos += f->display.x->top_pos;
 
   ltitle = Fcar (menu);
   CHECK_STRING (ltitle, 1);
