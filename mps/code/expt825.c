@@ -254,7 +254,7 @@ static void *test(void *arg, size_t s)
 }
 
 
-int main(int argc, char **argv)
+int main(void)
 {
   mps_arena_t arena;
   mps_thr_t thread;

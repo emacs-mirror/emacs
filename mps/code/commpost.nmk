@@ -32,6 +32,7 @@ swall: mmsw.lib replaysw.exe
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
+     expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe \
@@ -109,6 +110,10 @@ $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
