@@ -3460,11 +3460,6 @@ If DISPLAY is omitted or nil, that stands for the selected frame's display.  */)
 
 static struct image_type *image_types;
 
-/* The symbol `image' which is the car of the lists used to represent
-   images in Lisp.  */
-
-extern Lisp_Object Qimage;
-
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
 Lisp_Object Qxbm;
@@ -3543,7 +3538,7 @@ valid_image_p (object)
 {
   int valid_p = 0;
 
-  if (CONSP (object) && EQ (XCAR (object), Qimage))
+  if (IMAGEP (object))
     {
       Lisp_Object symbol = Fplist_get (XCDR (object), QCtype);
       struct image_type *type = lookup_image_type (symbol);
@@ -3633,7 +3628,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
   int i;
   Lisp_Object plist;
 
-  if (!CONSP (spec) || !EQ (XCAR (spec), Qimage))
+  if (!IMAGEP (spec))
     return 0;
 
   plist = XCDR (spec);
