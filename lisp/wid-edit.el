@@ -3059,7 +3059,7 @@ It will read a directory name from the minibuffer when invoked."
 (defvar widget-function-prompt-value-history nil
   "History of input to `widget-function-prompt-value'.")
 
-(define-widget 'function 'sexp
+(define-widget 'function 'restricted-sexp
   "A Lisp function."
   :complete-function (lambda ()
 		       (interactive)
