@@ -381,6 +381,11 @@ Shell script mode (sh-script) can now indent scripts for shells
 derived from sh and rc.  The indentation style is customizeable, and
 sh-script can attempt to "learn" the current buffer's style.
 
+** New language environments `Latin-8' and `Latin-9'.
+These correspond respectively to the ISO character sets 8859-14
+(Celtic) and 8859-15 (updated Latin-1, with the Euro sign).  There is
+currently no specific input method support for them.
+
 ** New modes and packages
 
 *** 5x5.el is a simple puzzle game.
