@@ -5,6 +5,7 @@
 
 	* frame.el (frame-notice-user-settings): Only adjust frame height
 	for no tool-bar case if tool-bar was originally switched on.
+	From E. Jay Berkenbilt.
 
 2001-02-22  Stefan Monnier  <monnier@cs.yale.edu>
 

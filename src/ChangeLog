@@ -1,3 +1,17 @@
+2001-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Don't add FRAME_TOOL_BAR_LINES
+	to height unconditionally.
+
+	* w32term.c (x_set_glyph_string_background_width): Extend the
+	background face to the end of the drawing area in the text area,
+	only.
+	(x_insert_glyphs): Call window_box_left to obtain the left
+	x-coordinate of the area to shift.
+
+	* w32menu.c (set_frame_menubar): Run activate-menu-bar-hook with
+	safe_run_hooks.
+
 2001-02-22  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt ($(BLD)\dired.obj): Remove reference to VMS header
