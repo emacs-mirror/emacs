@@ -1,6 +1,6 @@
 ;;; gnusmail.el --- mail reply commands for GNUS newsreader
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
@@ -46,34 +46,48 @@
 (autoload 'mh-find-path "mh-e")
 (autoload 'mh-yank-cur-msg "mh-e")
 
-;;; Mail reply commands of GNUS Subject Mode
+;;; Mail reply commands of GNUS Summary Mode
 
-(defun gnus-Subject-mail-reply (yank)
+(defun gnus-summary-reply (yank)
   "Reply mail to news author.
-If prefix arg YANK is non-nil, original article is yanked automatically.
-Customize the variable `gnus-mail-reply-method' to use another mailer."
+If prefix argument YANK is non-nil, original article is yanked automatically.
+Customize the variable gnus-mail-reply-method to use another mailer."
   (interactive "P")
-  (gnus-Subject-select-article)
-  (switch-to-buffer gnus-Article-buffer)
+  ;; Bug fix by jbw@bigbird.bu.edu (Joe Wells)
+  ;; Stripping headers should be specified with mail-yank-ignored-headers.
+  (gnus-summary-select-article t t)
+  (switch-to-buffer gnus-article-buffer)
   (widen)
   (delete-other-windows)
-  (bury-buffer gnus-Article-buffer)
+  (bury-buffer gnus-article-buffer)
   (funcall gnus-mail-reply-method yank))
 
-(defun gnus-Subject-mail-reply-with-original ()
-  "Reply mail to news author with original article."
+(defun gnus-summary-reply-with-original ()
+  "Reply mail to news author with original article.
+Customize the variable gnus-mail-reply-method to use another mailer."
   (interactive)
-  (gnus-Subject-mail-reply t))
+  (gnus-summary-reply t))
 
-(defun gnus-Subject-mail-other-window ()
-  "Compose mail in other window.
-Customize the variable `gnus-mail-other-window-method' to use another mailer."
+(defun gnus-summary-mail-forward ()
+  "Forward the current message to another user.
+Customize the variable gnus-mail-forward-method to use another mailer."
   (interactive)
-  (gnus-Subject-select-article)
-  (switch-to-buffer gnus-Article-buffer)
+  (gnus-summary-select-article)
+  (switch-to-buffer gnus-article-buffer)
   (widen)
   (delete-other-windows)
-  (bury-buffer gnus-Article-buffer)
+  (bury-buffer gnus-article-buffer)
+  (funcall gnus-mail-forward-method))
+
+(defun gnus-summary-mail-other-window ()
+  "Compose mail in other window.
+Customize the variable gnus-mail-other-window-method to use another mailer."
+  (interactive)
+  (gnus-summary-select-article)
+  (switch-to-buffer gnus-article-buffer)
+  (widen)
+  (delete-other-windows)
+  (bury-buffer gnus-article-buffer)
   (funcall gnus-mail-other-window-method))
 
 
@@ -91,6 +105,31 @@ Optional argument YANK means yank original article."
 	(goto-char last)
 	)))
 
+(defun gnus-mail-forward-using-mail ()
+  "Forward the current message to another user using mail."
+  ;; This is almost a carbon copy of rmail-forward in rmail.el.
+  (let ((forward-buffer (current-buffer))
+	(subject
+	 (concat "[" gnus-newsgroup-name "] "
+		 ;;(mail-strip-quoted-names (gnus-fetch-field "From")) ": "
+		 (or (gnus-fetch-field "Subject") ""))))
+    ;; If only one window, use it for the mail buffer.
+    ;; Otherwise, use another window for the mail buffer
+    ;; so that the Rmail buffer remains visible
+    ;; and sending the mail will get back to it.
+    (if (if (one-window-p t)
+	    (mail nil nil subject)
+	  (mail-other-window nil nil subject))
+	(save-excursion
+	  (goto-char (point-max))
+	  (insert "------- Start of forwarded message -------\n")
+	  (insert-buffer forward-buffer)
+	  (goto-char (point-max))
+	  (insert "------- End of forwarded message -------\n")
+	  ;; You have a chance to arrange the message.
+	  (run-hooks 'gnus-mail-forward-hook)
+	  ))))
+
 (defun gnus-mail-other-window-using-mail ()
   "Compose mail other window using mail."
   (news-mail-other-window)
@@ -107,11 +146,11 @@ Optional argument YANK means yank original article."
 (defun gnus-mail-reply-using-mhe (&optional yank)
   "Compose reply mail using mh-e.
 Optional argument YANK means yank original article.
-The command \\[mh-yank-cur-msg] yanks the original message into current buffer."
+The command \\[mh-yank-cur-msg] yank the original message into current buffer."
   ;; First of all, prepare mhe mail buffer.
   (let (from cc subject date to reply-to (buffer (current-buffer)))
     (save-restriction
-      (gnus-Article-show-all-headers)	;I don't think this is really needed.
+      (gnus-article-show-all-headers)	;I don't think this is really needed.
       (setq from (gnus-fetch-field "from")
 	    subject (let ((subject (gnus-fetch-field "subject")))
 		      (if (and subject
@@ -140,12 +179,39 @@ The command \\[mh-yank-cur-msg] yanks the original message into current buffer."
 	(goto-char last)
 	)))
 
+;; gnus-mail-forward-using-mhe is contributed by Jun-ichiro Itoh
+;; <itojun@ingram.mt.cs.keio.ac.jp>
+
+(defun gnus-mail-forward-using-mhe ()
+  "Forward the current message to another user using mh-e."
+  ;; First of all, prepare mhe mail buffer.
+  (let ((to (read-string "To: "))
+ 	(cc (read-string "Cc: "))
+ 	(buffer (current-buffer))
+ 	subject)
+    ;;(gnus-article-show-all-headers)
+    (setq subject
+	  (concat "[" gnus-newsgroup-name "] "
+		  ;;(mail-strip-quoted-names (gnus-fetch-field "From")) ": "
+		  (or (gnus-fetch-field "subject") "")))
+    (setq mh-show-buffer buffer)
+    (mh-find-path)
+    (mh-send to (or cc "") subject)
+    (save-excursion
+      (goto-char (point-max))
+      (insert "\n------- Forwarded Message\n\n")
+      (insert-buffer buffer)
+      (goto-char (point-max))
+      (insert "\n------- End of Forwarded Message\n")
+      (setq mh-sent-from-folder buffer)
+      (setq mh-sent-from-msg 1))))
+
 (defun gnus-mail-other-window-using-mhe ()
-  "Compose mail other window using MH-E Mail."
+  "Compose mail other window using mh-e."
   (let ((to (read-string "To: "))
 	(cc (read-string "Cc: "))
 	(subject (read-string "Subject: " (gnus-fetch-field "subject"))))
-    (gnus-Article-show-all-headers)	;I don't think this is really needed.
+    (gnus-article-show-all-headers)	;I don't think this is really needed.
     (setq mh-show-buffer (current-buffer))
     (mh-find-path)
     (mh-send-other-window to cc subject)

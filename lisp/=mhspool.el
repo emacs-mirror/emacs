@@ -1,6 +1,6 @@
 ;;; mhspool.el --- MH folder access using NNTP for GNU Emacs
 
-;; Copyright (C) 1988, 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Maintainer: FSF
@@ -39,13 +39,22 @@
 
 (require 'nntp)
 
+(defvar mhspool-list-folders-method
+  (function mhspool-list-folders-using-sh)
+  "*Function to list files in folders.
+The function should accept a directory as its argument, and fill the
+current buffer with file and directory names.  The output format must
+be the same as that of 'ls -R1'.  Two functions
+mhspool-list-folders-using-ls and mhspool-list-folders-using-sh are
+provided now.  I suppose the later is faster.")
+
 (defvar mhspool-list-directory-switches '("-R")
-  "*Switches for `nntp-request-list' to pass to `ls' for gettting file lists.
+  "*Switches for mhspool-list-folders-using-ls to pass to `ls' for gettting file lists.
 One entry should appear on one line. You may need to add `-1' option.")
 
 
 
-(defconst mhspool-version "MHSPOOL 1.5"
+(defconst mhspool-version "MHSPOOL 1.8"
   "Version numbers of this version of MHSPOOL.")
 
 (defvar mhspool-spool-directory "~/Mail"
@@ -62,9 +71,10 @@ One entry should appear on one line. You may need to add `-1' option.")
   "Return list of article headers specified by SEQUENCE of article id.
 The format of list is
  `([NUMBER SUBJECT FROM XREF LINES DATE MESSAGE-ID REFERENCES] ...)'.
+If there is no References: field, In-Reply-To: field is used instead.
 Reader macros for the vector are defined as `nntp-header-FIELD'.
 Writer macros for the vector are defined as `nntp-set-header-FIELD'.
-News group must be selected before calling me."
+Newsgroup must be selected before calling this."
   (save-excursion
     (set-buffer nntp-server-buffer)
     ;;(erase-buffer)
@@ -136,7 +146,12 @@ News group must be selected before calling me."
 			       (buffer-substring
 				(point)
 				(save-excursion (end-of-line) (point)))))
-		(setq lines 0))
+		;; Count lines since there is no lines field in most cases.
+		(setq lines
+		      (save-restriction
+			(goto-char (point-max))
+			(widen)
+			(count-lines (point) (point-max)))))
 	      ;; Extract Xref:
 	      (goto-char (point-min))
 	      (if (search-forward "\nXref: " nil t)
@@ -154,22 +169,25 @@ News group must be selected before calling me."
 				    (point)
 				    (save-excursion (end-of-line) (point))))
 		(setq references nil))
-	      (setq headers
-		    (cons (vector article subject from
-				  xref lines date
-				  message-id references) headers))
+	      ;; Collect valid article only.
+	      (and article
+		   message-id
+		   (setq headers
+			 (cons (vector article subject from
+				       xref lines date
+				       message-id references) headers)))
 	      ))
 	(setq sequence (cdr sequence))
 	(setq count (1+ count))
 	(and (numberp nntp-large-newsgroup)
 	     (> number nntp-large-newsgroup)
 	     (zerop (% count 20))
-	     (message "MHSPOOL: %d%% of headers received."
+	     (message "MHSPOOL: Receiving headers... %d%%"
 		      (/ (* count 100) number)))
 	)
       (and (numberp nntp-large-newsgroup)
 	   (> number nntp-large-newsgroup)
-	   (message "MHSPOOL: 100%% of headers received."))
+	   (message "MHSPOOL: Receiving headers... done"))
       (nreverse headers)
       )))
 
@@ -194,20 +212,20 @@ If optional argument SERVICE is non-nil, open by the service name."
 		  (expand-file-name "~/" nil))))
 	  (setq host (system-name)))
       (setq mhspool-spool-directory nil))
-    (setq nntp-status-message-string "")
+    (setq nntp-status-string "")
     (cond ((and (stringp host)
 		(stringp mhspool-spool-directory)
 		(file-directory-p mhspool-spool-directory)
 		(string-equal host (system-name)))
 	   (setq status (mhspool-open-server-internal host service)))
 	  ((string-equal host (system-name))
-	   (setq nntp-status-message-string
+	   (setq nntp-status-string
 		 (format "No such directory: %s.  Goodbye."
 			 mhspool-spool-directory)))
 	  ((null host)
-	   (setq nntp-status-message-string "NNTP server is not specified."))
+	   (setq nntp-status-string "NNTP server is not specified."))
 	  (t
-	   (setq nntp-status-message-string
+	   (setq nntp-status-string
 		 (format "MHSPOOL: cannot talk to %s." host)))
 	  )
     status
@@ -227,7 +245,7 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun mhspool-status-message ()
   "Return server status response as string."
-  nntp-status-message-string
+  nntp-status-string
   )
 
 (defun mhspool-request-article (id)
@@ -266,7 +284,9 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun mhspool-request-stat (id)
   "Select article by message ID (or number)."
-  (error "MHSPOOL: STAT is not implemented."))
+  (setq nntp-status-string "MHSPOOL: STAT is not implemented.")
+  nil
+  )
 
 (defun mhspool-request-group (group)
   "Select news GROUP."
@@ -285,21 +305,22 @@ If the stream is opened, return T, otherwise return NIL."
 	))
 
 (defun mhspool-request-list ()
-  "List valid newsgoups."
+  "List active newsgoups."
   (save-excursion
     (let* ((newsgroup nil)
 	   (articles nil)
 	   (directory (file-name-as-directory
 		       (expand-file-name mhspool-spool-directory nil)))
 	   (folder-regexp (concat "^" (regexp-quote directory) "\\(.+\\):$"))
-	   (buffer (get-buffer-create " *GNUS file listing*")))
+	   (buffer (get-buffer-create " *MHSPOOL File List*")))
       (set-buffer nntp-server-buffer)
       (erase-buffer)
       (set-buffer buffer)
       (erase-buffer)
-      (apply 'call-process
-	     "ls" nil t nil
-	     (append mhspool-list-directory-switches (list directory)))
+;;      (apply 'call-process
+;;	     "ls" nil t nil
+;;	     (append mhspool-list-directory-switches (list directory)))
+      (funcall mhspool-list-folders-method directory)
       (goto-char (point-min))
       (while (re-search-forward folder-regexp nil t)
 	(setq newsgroup
@@ -328,17 +349,34 @@ If the stream is opened, return T, otherwise return NIL."
       (buffer-size)
       )))
 
+(defun mhspool-request-list-newsgroups ()
+  "List newsgoups (defined in NNTP2)."
+  (setq nntp-status-string "MHSPOOL: LIST NEWSGROUPS is not implemented.")
+  nil
+  )
+
+(defun mhspool-request-list-distributions ()
+  "List distributions (defined in NNTP2)."
+  (setq nntp-status-string "MHSPOOL: LIST DISTRIBUTIONS is not implemented.")
+  nil
+  )
+
 (defun mhspool-request-last ()
-  "Set current article pointer to the previous article in the current newsgroup."
-  (error "MHSPOOL: LAST is not implemented."))
+  "Set current article pointer to the previous article
+in the current news group."
+  (setq nntp-status-string "MHSPOOL: LAST is not implemented.")
+  nil
+  )
 
 (defun mhspool-request-next ()
   "Advance current article pointer."
-  (error "MHSPOOL: NEXT is not implemented."))
+  (setq nntp-status-string "MHSPOOL: NEXT is not implemented.")
+  nil
+  )
 
 (defun mhspool-request-post ()
   "Post a new news in current buffer."
-  (setq nntp-status-message-string "MHSPOOL: what do you mean post?")
+  (setq nntp-status-string "MHSPOOL: POST: what do you mean?")
   nil
   )
 
@@ -406,6 +444,45 @@ If the stream is opened, return T, otherwise return NIL."
 	  (aset string idx to))
       (setq idx (1+ idx)))
     string
+    ))
+
+
+;; Methods for listing files in folders.
+
+(defun mhspool-list-folders-using-ls (directory)
+  "List files in folders under DIRECTORY using 'ls'."
+  (apply 'call-process
+	 "ls" nil t nil
+	 (append mhspool-list-directory-switches (list directory))))
+
+;; Basic ideas by tanaka@flab.fujitsu.co.jp (Hiroshi TANAKA)
+
+(defun mhspool-list-folders-using-sh (directory)
+  "List files in folders under DIRECTORY using '/bin/sh'."
+  (let ((buffer (current-buffer))
+	(script (get-buffer-create " *MHSPOOL Shell Script Buffer*")))
+    (save-excursion
+      (save-restriction
+	(set-buffer script)
+	(erase-buffer)
+	;; /bin/sh script which does 'ls -R'.
+	(insert
+	 "PS2=
+          ffind() {
+		cd $1; echo $1:
+		ls -1
+		echo
+		for j in `echo *[a-zA-Z]*`
+		do
+		  if [ -d $1/$j ]; then
+			ffind $1/$j
+		  fi
+		done
+	  }
+	  cd " directory "; ffind `pwd`; exit 0\n")
+	(call-process-region (point-min) (point-max) "sh" nil buffer nil)
+	))
+    (kill-buffer script)
     ))
 
 (provide 'mhspool)

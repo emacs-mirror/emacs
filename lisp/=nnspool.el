@@ -1,6 +1,6 @@
 ;;; nnspool.el --- spool access using NNTP for GNU Emacs
 
-;; Copyright (C) 1988, 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
@@ -37,12 +37,18 @@
 (defvar nnspool-active-file "/usr/lib/news/active"
   "*Local news active file.")
 
+(defvar nnspool-newsgroups-file "/usr/lib/news/newsgroups"
+  "*Local news newsgroups file.")
+
+(defvar nnspool-distributions-file "/usr/lib/news/distributions"
+  "*Local news distributions file.")
+
 (defvar nnspool-history-file "/usr/lib/news/history"
   "*Local news history file.")
 
 
 
-(defconst nnspool-version "NNSPOOL 1.10"
+(defconst nnspool-version "NNSPOOL 1.12"
   "Version numbers of this version of NNSPOOL.")
 
 (defvar nnspool-current-directory nil
@@ -56,9 +62,10 @@
   "Return list of article headers specified by SEQUENCE of article id.
 The format of list is
  `([NUMBER SUBJECT FROM XREF LINES DATE MESSAGE-ID REFERENCES] ...)'.
+If there is no References: field, In-Reply-To: field is used instead.
 Reader macros for the vector are defined as `nntp-header-FIELD'.
 Writer macros for the vector are defined as `nntp-set-header-FIELD'.
-News group must be selected before calling me."
+Newsgroup must be selected before calling this."
   (save-excursion
     (set-buffer nntp-server-buffer)
     ;;(erase-buffer)
@@ -139,28 +146,33 @@ News group must be selected before calling me."
 			      (save-excursion (end-of-line) (point))))
 		(setq xref nil))
 	      ;; Extract References:
+	      ;; If no References: field, use In-Reply-To: field instead.
 	      (goto-char (point-min))
-	      (if (search-forward "\nReferences: " nil t)
+	      (if (or (search-forward "\nReferences: " nil t)
+		      (search-forward "\nIn-Reply-To: " nil t))
 		  (setq references (buffer-substring
 				    (point)
 				    (save-excursion (end-of-line) (point))))
 		(setq references nil))
-	      (setq headers
-		    (cons (vector article subject from
-				  xref lines date
-				  message-id references) headers))
+	      ;; Collect valid article only.
+	      (and article
+		   message-id
+		   (setq headers
+			 (cons (vector article subject from
+				       xref lines date
+				       message-id references) headers)))
 	      ))
 	(setq sequence (cdr sequence))
 	(setq count (1+ count))
 	(and (numberp nntp-large-newsgroup)
 	     (> number nntp-large-newsgroup)
 	     (zerop (% count 20))
-	     (message "NNSPOOL: %d%% of headers received."
+	     (message "NNSPOOL: Receiving headers... %d%%"
 		      (/ (* count 100) number)))
 	)
       (and (numberp nntp-large-newsgroup)
 	   (> number nntp-large-newsgroup)
-	   (message "NNSPOOL: 100%% of headers received."))
+	   (message "NNSPOOL: Receiving headers... done"))
       (nreverse headers)
       )))
 
@@ -175,18 +187,18 @@ If HOST is nil, use value of environment variable `NNTPSERVER'.
 If optional argument SERVICE is non-nil, open by the service name."
   (let ((host (or host (getenv "NNTPSERVER")))
 	(status nil))
-    (setq nntp-status-message-string "")
+    (setq nntp-status-string "")
     (cond ((and (file-directory-p nnspool-spool-directory)
 		(file-exists-p nnspool-active-file)
 		(string-equal host (system-name)))
 	   (setq status (nnspool-open-server-internal host service)))
 	  ((string-equal host (system-name))
-	   (setq nntp-status-message-string
+	   (setq nntp-status-string
 		 (format "%s has no news spool.  Goodbye." host)))
 	  ((null host)
-	   (setq nntp-status-message-string "NNTP server is not specified."))
+	   (setq nntp-status-string "NNTP server is not specified."))
 	  (t
-	   (setq nntp-status-message-string
+	   (setq nntp-status-string
 		 (format "NNSPOOL: cannot talk to %s." host)))
 	  )
     status
@@ -206,7 +218,7 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun nnspool-status-message ()
   "Return server status response as string."
-  nntp-status-message-string
+  nntp-status-string
   )
 
 (defun nnspool-request-article (id)
@@ -247,7 +259,9 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun nnspool-request-stat (id)
   "Select article by message ID (or number)."
-  (error "NNSPOOL: STAT is not implemented."))
+  (setq nntp-status-string "NNSPOOL: STAT is not implemented.")
+  nil
+  )
 
 (defun nnspool-request-group (group)
   "Select news GROUP."
@@ -258,17 +272,32 @@ If the stream is opened, return T, otherwise return NIL."
     ))
 
 (defun nnspool-request-list ()
-  "List valid newsgoups."
+  "List active newsgoups."
   (save-excursion
     (nnspool-find-file nnspool-active-file)))
 
+(defun nnspool-request-list-newsgroups ()
+  "List newsgroups (defined in NNTP2)."
+  (save-excursion
+    (nnspool-find-file nnspool-newsgroups-file)))
+
+(defun nnspool-request-list-distributions ()
+  "List distributions (defined in NNTP2)."
+  (save-excursion
+    (nnspool-find-file nnspool-distributions-file)))
+
 (defun nnspool-request-last ()
-  "Set current article pointer to the previous article in the current news group."
-  (error "NNSPOOL: LAST is not implemented."))
+  "Set current article pointer to the previous article
+in the current news group."
+  (setq nntp-status-string "NNSPOOL: LAST is not implemented.")
+  nil
+  )
 
 (defun nnspool-request-next ()
   "Advance current article pointer."
-  (error "NNSPOOL: NEXT is not implemented."))
+  (setq nntp-status-string "NNSPOOL: NEXT is not implemented.")
+  nil
+  )
 
 (defun nnspool-request-post ()
   "Post a new news in current buffer."
@@ -276,7 +305,7 @@ If the stream is opened, return T, otherwise return NIL."
     ;; We have to work in the server buffer because of NEmacs hack.
     (copy-to-buffer nntp-server-buffer (point-min) (point-max))
     (set-buffer nntp-server-buffer)
-    (apply 'call-process-region
+    (apply (function call-process-region)
 	   (point-min) (point-max)
 	   nnspool-inews-program 'delete t nil nnspool-inews-switches)
     (prog1
@@ -289,7 +318,7 @@ If the stream is opened, return T, otherwise return NIL."
 	    (string-match "spooled" (buffer-string)))
       ;; Make status message by unfolding lines.
       (subst-char-in-region (point-min) (point-max) ?\n ?\\ 'noundo)
-      (setq nntp-status-message-string (buffer-string))
+      (setq nntp-status-string (buffer-string))
       (erase-buffer))
     ))
 
@@ -327,7 +356,7 @@ If the stream is opened, return T, otherwise return NIL."
   (setq nntp-server-process nil))
 
 (defun nnspool-find-article-by-message-id (id)
-  "Return full pathname of an article identified by message-ID."
+  "Return full pathname of an artilce identified by message-ID."
   (save-excursion
     (let ((buffer (get-file-buffer nnspool-history-file)))
       (if buffer

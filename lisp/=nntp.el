@@ -1,6 +1,6 @@
 ;;; nntp.el --- NNTP (RFC977) Interface for GNU Emacs
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
@@ -55,13 +55,19 @@ code, the correct kanji code of the buffer associated with the NNTP
 server must be specified as follows:
 
 (setq nntp-server-hook
-      '(lambda ()
+      (function
+       (lambda ()
 	 ;; Server's Kanji code is EUC (NEmacs hack).
 	 (make-local-variable 'kanji-fileio-code)
-	 (setq kanji-fileio-code 0)))
+	 (setq kanji-fileio-code 0))))
 
 If you'd like to change something depending on the server in this
 hook, use the variable `nntp-server-name'.")
+
+(defvar nntp-large-newsgroup 50
+  "*The number of the articles which indicates a large newsgroup.
+If the number of the articles is greater than the value, verbose
+messages will be shown to indicate the current status.")
 
 (defvar nntp-buggy-select (memq system-type '(usg-unix-v fujitsu-uts))
   "*T if your select routine is buggy.
@@ -75,13 +81,12 @@ doesn't work properly.")
 If Emacs hangs up while retrieving headers, set the variable to a
 lower value.")
 
-(defvar nntp-large-newsgroup 50
-  "*The number of the articles which indicates a large newsgroup.
-If the number of the articles is greater than the value, verbose
-messages will be shown to indicate the current status.")
+(defvar nntp-debug-read 10000
+  "*Display '...' every 10Kbytes of a message being received if it is non-nil.
+If it is a number, dots are displayed per the number.")
 
 
-(defconst nntp-version "NNTP 3.10"
+(defconst nntp-version "NNTP 3.12"
   "Version numbers of this version of NNTP.")
 
 (defvar nntp-server-name nil
@@ -95,7 +100,7 @@ messages will be shown to indicate the current status.")
 You'd better not use this variable in NNTP front-end program but
 instead use `nntp-server-buffer'.")
 
-(defvar nntp-status-message-string nil
+(defvar nntp-status-string nil
   "Save the server response message.
 You'd better not use this variable in NNTP front-end program but
 instead call function `nntp-status-message' to get status message.")
@@ -163,7 +168,7 @@ instead call function `nntp-status-message' to get status message.")
   (` (aset (, header) 6 (, id))))
 
 (defmacro nntp-header-references (header)
-  "Return references in HEADER."
+  "Return references (or in-reply-to) in HEADER."
   (` (aref (, header) 7)))
 
 (defmacro nntp-set-header-references (header ref)
@@ -174,9 +179,10 @@ instead call function `nntp-status-message' to get status message.")
   "Return list of article headers specified by SEQUENCE of article id.
 The format of list is
  `([NUMBER SUBJECT FROM XREF LINES DATE MESSAGE-ID REFERENCES] ...)'.
+If there is no References: field, In-Reply-To: field is used instead.
 Reader macros for the vector are defined as `nntp-header-FIELD'.
 Writer macros for the vector are defined as `nntp-set-header-FIELD'.
-News group must be selected before calling me."
+Newsgroup must be selected before calling this."
   (save-excursion
     (set-buffer nntp-server-buffer)
     (erase-buffer)
@@ -216,7 +222,7 @@ News group must be selected before calling me."
 		(and (numberp nntp-large-newsgroup)
 		     (> number nntp-large-newsgroup)
 		     (zerop (% received 20))
-		     (message "NNTP: %d%% of headers received."
+		     (message "NNTP: Receiving headers... %d%%"
 			      (/ (* received 100) number)))
 		(nntp-accept-response))
 	      ))
@@ -231,7 +237,7 @@ News group must be selected before calling me."
 	    (nntp-accept-response)))
       (and (numberp nntp-large-newsgroup)
 	   (> number nntp-large-newsgroup)
-	   (message "NNTP: 100%% of headers received."))
+	   (message "NNTP: Receiving headers... done"))
       ;; Now all of replies are received.
       (setq received number)
       ;; First, fold continuation lines.
@@ -263,7 +269,7 @@ News group must be selected before calling me."
 	       ;; Thanks go to mly@AI.MIT.EDU (Richard Mlynarik)
 	       (while (and (not (eobp))
 			   (not (memq (following-char) '(?2 ?3))))
-		 (if (looking-at "\\(From\\|Subject\\|Date\\|Lines\\|Xref\\|References\\):[ \t]+\\([^ \t\n]+.*\\)\r$")
+		 (if (looking-at "\\(From\\|Subject\\|Date\\|Lines\\|Xref\\|References\\|In-Reply-To\\):[ \t]+\\([^ \t\n]+.*\\)\r$")
 		     (let ((s (buffer-substring
 			       (match-beginning 2) (match-end 2)))
 			   (c (char-after (match-beginning 0))))
@@ -280,6 +286,11 @@ News group must be selected before calling me."
 			      (setq xref s))
 			     ((char-equal c ?R)	;References:
 			      (setq references s))
+			     ;; In-Reply-To: should be used only when
+			     ;; there is no References: field.
+			     ((and (char-equal c ?I) ;In-Reply-To:
+				   (null references))
+			      (setq references s))
 			     )))
 		 (forward-line 1))
 	       ;; Finished to parse one header.
@@ -287,10 +298,13 @@ News group must be selected before calling me."
 		   (setq subject "(None)"))
 	       (if (null from)
 		   (setq from "(Unknown User)"))
-	       (setq headers
-		     (cons (vector article subject from
-				   xref lines date
-				   message-id references) headers))
+	       ;; Collect valid article only.
+	       (and article
+		    message-id
+		    (setq headers
+			  (cons (vector article subject from
+					xref lines date
+					message-id references) headers)))
 	       )
 	      (t (forward-line 1))
 	      )
@@ -318,7 +332,7 @@ If HOST is nil, use value of environment variable `NNTPSERVER'.
 If optional argument SERVICE is non-nil, open by the service name."
   (let ((host (or host (getenv "NNTPSERVER")))
 	(status nil))
-    (setq nntp-status-message-string "")
+    (setq nntp-status-string "")
     (cond ((and host (nntp-open-server-internal host service))
 	   (setq status (nntp-wait-for-response "^[23].*\r$"))
 	   ;; Do check unexpected close of connection.
@@ -331,7 +345,7 @@ If optional argument SERVICE is non-nil, open by the service name."
 	     (nntp-close-server-internal)
 	     ))
 	  ((null host)
-	   (setq nntp-status-message-string "NNTP server is not specified."))
+	   (setq nntp-status-string "NNTP server is not specified."))
 	  )
     status
     ))
@@ -362,11 +376,11 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun nntp-status-message ()
   "Return server status response as string."
-  (if (and nntp-status-message-string
+  (if (and nntp-status-string
 	   ;; NNN MESSAGE
 	   (string-match "[0-9][0-9][0-9][ \t]+\\([^\r]*\\).*$"
-			 nntp-status-message-string))
-      (substring nntp-status-message-string (match-beginning 1) (match-end 1))
+			 nntp-status-string))
+      (substring nntp-status-string (match-beginning 1) (match-end 1))
     ;; Empty message if nothing.
     ""
     ))
@@ -405,14 +419,29 @@ If the stream is opened, return T, otherwise return NIL."
   (nntp-send-command "^[23].*$" "GROUP" group))
 
 (defun nntp-request-list ()
-  "List valid newsgoups."
+  "List active newsgroups."
   (prog1
       (nntp-send-command "^\\.\r$" "LIST")
     (nntp-decode-text)
     ))
 
+(defun nntp-request-list-newsgroups ()
+  "List newsgroups (defined in NNTP2)."
+  (prog1
+      (nntp-send-command "^\\.\r$" "LIST NEWSGROUPS")
+    (nntp-decode-text)
+    ))
+
+(defun nntp-request-list-distributions ()
+  "List distributions (defined in NNTP2)."
+  (prog1
+      (nntp-send-command "^\\.\r$" "LIST DISTRIBUTIONS")
+    (nntp-decode-text)
+    ))
+
 (defun nntp-request-last ()
-  "Set current article pointer to the previous article in the current news group."
+  "Set current article pointer to the previous article
+in the current news group."
   (nntp-send-command "^[23].*\r$" "LAST"))
 
 (defun nntp-request-next ()
@@ -514,7 +543,10 @@ If the stream is opened, return T, otherwise return NIL."
   "Wait for server response which matches REGEXP."
   (save-excursion
     (let ((status t)
-	  (wait t))
+	  (wait t)
+	  (dotnum 0)			;Number of "." being displayed.
+	  (dotsize			;How often "." displayed.
+	   (if (numberp nntp-debug-read) nntp-debug-read 10000)))
       (set-buffer nntp-server-buffer)
       ;; Wait for status response (RFC977).
       ;; 1xx - Informative message.
@@ -536,7 +568,7 @@ If the stream is opened, return T, otherwise return NIL."
 	      ))
       ;; Save status message.
       (end-of-line)
-      (setq nntp-status-message-string
+      (setq nntp-status-string
 	    (buffer-substring (point-min) (point)))
       (if status
 	  (progn
@@ -549,10 +581,19 @@ If the stream is opened, return T, otherwise return NIL."
 	      ;;	 (save-excursion (end-of-line) (point))))
 	      (if (looking-at regexp)
 		  (setq wait nil)
-		(message "NNTP: Reading...")
+		(if nntp-debug-read
+		    (let ((newnum (/ (buffer-size) dotsize)))
+		      (if (not (= dotnum newnum))
+			  (progn
+			    (setq dotnum newnum)
+			    (message "NNTP: Reading %s"
+				     (make-string dotnum ?.))))))
 		(nntp-accept-response)
-		(message "")
+		;;(if nntp-debug-read (message ""))
 		))
+	    ;; Remove "...".
+	    (if (and nntp-debug-read (> dotnum 0))
+		(message ""))
 	    ;; Successfully received server response.
 	    t
 	    ))
@@ -572,7 +613,7 @@ If the stream is opened, return T, otherwise return NIL."
       (setq cmd (concat cmd " " (car strings)))
       (setq strings (cdr strings)))
     ;; Command line must be terminated by a CR-LF.
-    (process-send-string nntp-server-process (concat cmd "\n"))
+    (process-send-string nntp-server-process (concat cmd "\r\n"))
     ))
 
 (defun nntp-send-region-to-server (begin end)
