@@ -1,3 +1,7 @@
+2003-01-15  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
+
+	* term/mac-win.el: Setup the fontset "fontset-mac" correctly.
+
 2003-01-14  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el: Improve commentary.
