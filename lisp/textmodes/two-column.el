@@ -325,7 +325,7 @@ When called the first time, associates a buffer with the current
 buffer in two-column minor mode (see  \\[describe-mode] ).
 Runs `2C-other-buffer-hook' in the new buffer.
 When called again, restores the screen layout with the current buffer
-first and the associated buffer to it's right."
+first and the associated buffer to its right."
   (interactive "P")
   ;; first go to full width, so that we can certainly split into two windows
   (if (< (window-width) (frame-width))
