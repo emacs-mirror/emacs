@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 
 #include <commdlg.h>
+#include <shellapi.h>
 
 extern void abort ();
 extern void free_frame_menubar ();
@@ -2891,6 +2892,9 @@ w32_createwindow (f)
       SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, f->output_data.w32->vertical_scroll_bar_extra);
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, f->output_data.w32->background_pixel);
 
+      /* Enable drag-n-drop.  */
+      DragAcceptFiles (hwnd, TRUE);
+      
       /* Do this to discard the default setting specified by our parent. */
       ShowWindow (hwnd, SW_HIDE);
     }
@@ -3583,6 +3587,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
+    case WM_DROPFILES:
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 0;
+
     case WM_TIMER:
       /* Flush out saved messages if necessary. */
       if (wParam == mouse_button_timer)
@@ -3862,6 +3871,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       }
 
     case WM_EMACS_DESTROYWINDOW:
+      DragAcceptFiles ((HWND) wParam, FALSE);
       return DestroyWindow ((HWND) wParam);
 
     case WM_EMACS_TRACKPOPUPMENU:
