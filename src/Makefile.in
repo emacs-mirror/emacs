@@ -456,7 +456,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
-	doprnt.o GETLOADAVG_OBJ
+	doprnt.o strftime.o GETLOADAVG_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -823,8 +823,9 @@ process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h 
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h $(config_h)
-scroll.o: scroll.c termchar.h $(config_h) dispextern.h frame.h
+scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h syntax.h blockinput.h $(config_h) 
+strftime.o: strftime.c $(config_h)
 syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h) 
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h
