@@ -248,13 +248,19 @@ nodes in the buffer before updating the menus."
             (sleep-for 2)
             (push-mark (point-max) t)
             (goto-char (point-min))
-            (texinfo-update-node t)))
+	    ;; Using the mark to pass bounds this way
+	    ;; is kludgy, but it's not worth fixing. -- rms.
+	    (let ((mark-active t))
+	      (texinfo-update-node t))))
       
       (message "Updating all menus in %s ... " (buffer-name))        
       (sleep-for 2)
       (push-mark (point-max) t)
       (goto-char (point-min))
-      (texinfo-make-menu t)
+      ;; Using the mark to pass bounds this way
+      ;; is kludgy, but it's not worth fixing. -- rms.
+      (let ((mark-active t))
+	(texinfo-make-menu t))
       
       (if master-menu-p
           (progn
@@ -1270,7 +1276,10 @@ which menu descriptions are indented. Its default value is 32."
   (save-excursion
     (push-mark (point-max) t)
     (goto-char (point-min))
-    (texinfo-update-node t)
+    ;; Using the mark to pass bounds this way
+    ;; is kludgy, but it's not worth fixing. -- rms.
+    (let ((mark-active t))
+      (texinfo-update-node t))
     (message "Done...updated every node.       You may save the buffer.")))
 
 (defun texinfo-update-the-node ()
