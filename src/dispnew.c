@@ -525,7 +525,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   int header_line_changed_p = 0;
   int header_line_p = 0;
   int left = -1, right = -1;
-  int window_x, window_y, window_width, window_height;
+  int window_x, window_y, window_width = -1, window_height;
 
   /* See if W had a top line that has disappeared now, or vice versa.  */
   if (w)
@@ -679,12 +679,15 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
      when this function runs.  */
   if (w && matrix == w->current_matrix)
     {
+      if (window_width < 0)
+	window_width = window_box_width (w, -1);
+      
       /* Optimize the case that only the height has changed (C-x 2,
          upper window).  Invalidate all rows that are no longer part
          of the window.  */
       if (!marginal_areas_changed_p
 	  && matrix->window_top_y == XFASTINT (w->top)
-	  && matrix->window_width == window_width)
+	  && matrix->window_width == window_box_width (w, -1))
 	{
 	  i = 0;
 	  while (matrix->rows[i].enabled_p
@@ -1317,7 +1320,7 @@ line_draw_cost (matrix, vpos)
   if (!must_write_spaces)
     {
       /* Skip from the end over trailing spaces.  */
-      while (end != beg && CHAR_GLYPH_SPACE_P (*end))
+      while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
 	--end;
 
       /* All blank line.  */      
@@ -4641,7 +4644,7 @@ scrolling_window (w, header_line_p)
 	   case.  */
 	for (j = 0; j < nruns && runs[j]->height > run->height; ++j)
 	  ;
-	for (k = nruns; k >= j; --k)
+	for (k = nruns; k > j; --k)
 	  runs[k] = runs[k - 1];
 	runs[j] = run;
 	++nruns;
