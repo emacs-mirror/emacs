@@ -1,3 +1,9 @@
+2003-05-01  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny patch)
+
+	* ls-lisp.el (ls-lisp-format-file-size): New function to implement
+	"-h" switch.
+	(ls-lisp-format): Use it.
+
 2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map): Correctly handle
