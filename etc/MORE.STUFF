@@ -213,6 +213,14 @@ the future.
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
    DTD-aware serious SGML/XML editing.
 
+ * Tamago: Chinese/Japanese/Korean input method
+   <URL:ftp://m17n.org/pub/tamago/>
+   Emacs Lisp package to provide input methods for CJK characters.
+   It can use these background conversion servers:
+	FreeWnn (jserver, cserver, tserver),
+	Wnn6,
+	SJ3 Ver.2
+
  * Todo mode:
    <URL:http://www.cl.cam.ac.uk/users/os10000/stuff/todo.html>
    Todo list maintenance, interfacing to Diary mode.
