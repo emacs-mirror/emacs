@@ -325,7 +325,7 @@ case "${canonical}" in
   ## R this shouldn't conflict with older versions of the OS (which I
   ## think were named like dgux4.*). In addition, DG new AViiONs series
   ## uses either Motorola M88k or Intel Pentium CPUs.
-  i586-dg-dguxR4.* | m88k-dg-dguxR4.* | m88k-dg-dgux4* )
+  m88k-dg-dguxR4.* | m88k-dg-dgux4* )
     machine=aviion opsys=dgux4
   ;;
   m88k-dg-dgux5.4R3* | m88k-dg-dgux5.4.3* )
@@ -343,7 +343,7 @@ case "${canonical}" in
   ## Data General AViiON Intel (x86) Machines
   ## Exists from 5.4.3 (current i586-dg-dguxR4.11)
   ## Ehud Karni, 1998-may-30, ehud@unix.simonwiesel.co.il
-  i[345]86-dg-dguxR4.1* )
+  i[345]86-dg-dguxR4* )
     machine=aviion-intel opsys=dgux4
   ;;
 
