@@ -325,10 +325,10 @@ print_string (string, printcharfun)
 }
 
 DEFUN ("write-char", Fwrite_char, Swrite_char, 1, 2, 0,
-  "Output character CHAR to stream PRINTCHARFUN.\n\
+  "Output character CHARACTER to stream PRINTCHARFUN.\n\
 PRINTCHARFUN defaults to the value of `standard-output' (which see).")
-  (ch, printcharfun)
-     Lisp_Object ch, printcharfun;
+  (character, printcharfun)
+     Lisp_Object character, printcharfun;
 {
   struct buffer *old = current_buffer;
   int old_point = -1;
@@ -337,11 +337,11 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).")
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  CHECK_NUMBER (ch, 0);
+  CHECK_NUMBER (character, 0);
   PRINTPREPARE;
-  PRINTCHAR (XINT (ch));
+  PRINTCHAR (XINT (character));
   PRINTFINISH;
-  return ch;
+  return character;
 }
 
 /* Used from outside of print.c to print a block of SIZE chars at DATA
@@ -491,8 +491,8 @@ DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
 Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
-  (obj, printcharfun)
-     Lisp_Object obj, printcharfun;
+  (object, printcharfun)
+     Lisp_Object object, printcharfun;
 {
   struct buffer *old = current_buffer;
   int old_point = -1;
@@ -506,9 +506,9 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
     printcharfun = Vstandard_output;
   PRINTPREPARE;
   print_depth = 0;
-  print (obj, printcharfun, 1);
+  print (object, printcharfun, 1);
   PRINTFINISH;
-  return obj;
+  return object;
 }
 
 /* a buffer which is used to hold output being built by prin1-to-string */
@@ -519,8 +519,8 @@ DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
 any Lisp object.  Quoting characters are used when needed to make output\n\
 that `read' can handle, whenever this is possible, unless the optional\n\
 second argument NOESCAPE is non-nil.")
-  (obj, noescape)
-     Lisp_Object obj, noescape;
+  (object, noescape)
+     Lisp_Object object, noescape;
 {
   struct buffer *old = current_buffer;
   int old_point = -1;
@@ -531,18 +531,18 @@ second argument NOESCAPE is non-nil.")
   printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
   print_depth = 0;
-  print (obj, printcharfun, NILP (noescape));
+  print (object, printcharfun, NILP (noescape));
   /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
   PRINTFINISH;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
-  obj = Fbuffer_string ();
+  object = Fbuffer_string ();
 
-  GCPRO1 (obj);
+  GCPRO1 (object);
   Ferase_buffer ();
   set_buffer_internal (old);
   UNGCPRO;
 
-  return obj;
+  return object;
 }
 
 DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
@@ -550,8 +550,8 @@ DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
 No quoting characters are used; no delimiters are printed around\n\
 the contents of strings.\n\
 Output stream is PRINTCHARFUN, or value of standard-output (which see).")
-  (obj, printcharfun)
-     Lisp_Object obj, printcharfun;
+  (object, printcharfun)
+     Lisp_Object object, printcharfun;
 {
   struct buffer *old = current_buffer;
   int old_point = -1;
@@ -562,9 +562,9 @@ Output stream is PRINTCHARFUN, or value of standard-output (which see).")
     printcharfun = Vstandard_output;
   PRINTPREPARE;
   print_depth = 0;
-  print (obj, printcharfun, 0);
+  print (object, printcharfun, 0);
   PRINTFINISH;
-  return obj;
+  return object;
 }
 
 DEFUN ("print", Fprint, Sprint, 1, 2, 0,
@@ -572,8 +572,8 @@ DEFUN ("print", Fprint, Sprint, 1, 2, 0,
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
 Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
-  (obj, printcharfun)
-     Lisp_Object obj, printcharfun;
+  (object, printcharfun)
+     Lisp_Object object, printcharfun;
 {
   struct buffer *old = current_buffer;
   int old_point = -1;
@@ -587,11 +587,11 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
 #endif /* MAX_PRINT_CHARS */
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  GCPRO1 (obj);
+  GCPRO1 (object);
   PRINTPREPARE;
   print_depth = 0;
   PRINTCHAR ('\n');
-  print (obj, printcharfun, 1);
+  print (object, printcharfun, 1);
   PRINTCHAR ('\n');
   PRINTFINISH;
 #ifdef MAX_PRINT_CHARS
@@ -599,7 +599,7 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   print_chars = 0;
 #endif /* MAX_PRINT_CHARS */
   UNGCPRO;
-  return obj;
+  return object;
 }
 
 /* The subroutine object for external-debugging-output is kept here
