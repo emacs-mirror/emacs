@@ -1048,7 +1048,7 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    ../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
-xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h \
+xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h)
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h $(config_h)
