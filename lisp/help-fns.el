@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -165,8 +165,7 @@ and the file name is displayed in the echo area."
 	 file-name string
 	 (beg (if (commandp def) "an interactive " "a ")))
     (setq string
-	  (cond ((or (stringp def)
-		     (vectorp def))
+	  (cond ((or (stringp def) (vectorp def))
 		 "a keyboard macro")
 		((subrp def)
 		 (if (eq 'unevalled (cdr (subr-arity def)))
@@ -182,6 +181,8 @@ and the file name is displayed in the echo area."
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
+		((eq (car-safe def) 'closure)
+		 (concat beg "Lisp closure"))
 		((eq (car-safe def) 'autoload)
 		 (setq file-name (nth 1 def))
 		 (format "%s autoloaded %s"
@@ -257,6 +258,9 @@ and the file name is displayed in the echo area."
     ;; If definition is a macro, find the function inside it.
     (if (eq (car-safe def) 'macro)
 	(setq def (cdr def)))
+    ;; and do the same for interpreted closures
+    (if (eq (car-safe def) 'closure)
+	(setq def (cddr def)))
     (let ((arglist (cond ((byte-code-function-p def)
 			  (car (append def nil)))
 			 ((eq (car-safe def) 'lambda)
