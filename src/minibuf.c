@@ -1506,6 +1506,7 @@ It can find the completion buffer in `standard-output'.")
 	{
 	  Lisp_Object tem;
 	  int length;
+	  Lisp_Object startpos, endpos;
 
 	  elt = Fcar (tail);
 	  /* Compute the length of this element.  */
@@ -1529,6 +1530,9 @@ It can find the completion buffer in `standard-output'.")
 	     Sadly, the window it will appear in is not known
 	     until after the text has been made.  */
 
+	  if (BUFFERP (Vstandard_output))
+	    XSETINT (startpos, BUF_PT (XBUFFER (Vstandard_output)));
+
 	  /* If the previous completion was very wide,
 	     or we have two on this line already,
 	     don't put another on the same line.  */
@@ -1545,6 +1549,7 @@ It can find the completion buffer in `standard-output'.")
 	      if (BUFFERP (Vstandard_output))
 		{
 		  tem = Findent_to (make_number (35), make_number (2));
+		  
 		  column = XINT (tem);
 		}
 	      else
@@ -1556,6 +1561,13 @@ It can find the completion buffer in `standard-output'.")
 		    }
 		  while (column < 35);
 		}
+	    }
+
+	  if (BUFFERP (Vstandard_output))
+	    {
+	      XSETINT (endpos, BUF_PT (XBUFFER (Vstandard_output)));
+	      Fset_text_properties (startpos, endpos,
+				    Qnil, Vstandard_output);
 	    }
 
 	  /* Output this element and update COLUMN.  */
