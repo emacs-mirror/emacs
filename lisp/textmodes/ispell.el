@@ -810,8 +810,9 @@ and added as a submenu of the \"Edit\" menu.")
        (not xemacsp)
        'reload))
 
-(defvar ispell-library-path (unless (boundp 'byte-compile-current-file)
-			      (check-ispell-version))
+(defvar ispell-library-path (if (or (not (fboundp 'byte-compiling-files-p))
+				    (not (byte-compiling-files-p)))
+				(check-ispell-version))
   "The directory where ispell dictionaries reside.")
 
 (defvar ispell-process nil
@@ -828,7 +829,8 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;;;###autoload
 (if (and ispell-menu-map-needed
-	 (not (boundp 'byte-compile-current-file)))
+	 (or (not (fboundp 'byte-compiling-files-p))
+	     (not (byte-compiling-files-p))))
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  ;; `ispell-library-path' intentionally not defined in autoload
 	  (path (and (boundp 'ispell-library-path) ispell-library-path))
@@ -861,7 +863,8 @@ and added as a submenu of the \"Edit\" menu.")
 ;;; define commands in menu in opposite order you want them to appear.
 ;;;###autoload
 (if (and ispell-menu-map-needed
-	 (not (boundp 'byte-compile-current-file)))
+	 (or (not (fboundp 'byte-compiling-files-p))
+	     (not (byte-compiling-files-p))))
     (progn
       (define-key ispell-menu-map [ispell-change-dictionary]
 	'(menu-item "Change Dictionary..." ispell-change-dictionary
@@ -889,7 +892,8 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;;;###autoload
 (if (and ispell-menu-map-needed
-	 (not (boundp 'byte-compile-current-file)))
+	 (or (not (fboundp 'byte-compiling-files-p))
+	     (not (byte-compiling-files-p))))
     (progn
       (define-key ispell-menu-map [ispell-continue]
 	'(menu-item "Continue Spell-Checking" ispell-continue
@@ -907,7 +911,8 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;;;###autoload
 (if (and ispell-menu-map-needed
-	 (not (boundp 'byte-compile-current-file)))
+	 (or (not (fboundp 'byte-compiling-files-p))
+	     (not (byte-compiling-files-p))))
     (progn
       (define-key ispell-menu-map [ispell-region]
 	'(menu-item "Spell-Check Region" ispell-region
