@@ -1,3 +1,12 @@
+2000-06-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/codepage.el (cp-coding-system-for-codepage-1): Doc
+        fix.
+	(cp864-decode-table): Doc fix.
+	(cp720-decode-table): New variable, supports the Arabic OEM
+	codepage used by Windows.
+	(cp737-decode-table): New, Greek OEM codepage used by Windows.
+
 2000-06-23  Dave Love  <fx@gnu.org>
 
 	* font-lock.el (font-lock-support-mode) <defgroup>: Add :version.
