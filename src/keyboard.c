@@ -1200,6 +1200,9 @@ command_loop_1 ()
 
   while (1)
     {
+      if (! FRAME_LIVE_P (selected_frame))
+	Fkill_emacs (Qnil);
+
       /* Make sure the current window's buffer is selected.  */
       if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
 	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
@@ -1271,6 +1274,8 @@ command_loop_1 ()
 			     Qnil, 0, 1, 1);
 
       /* A filter may have run while we were reading the input.  */
+      if (! FRAME_LIVE_P (selected_frame))
+	Fkill_emacs (Qnil);
       if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
 	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
 
@@ -6993,8 +6998,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		 This is to be more consistent with the behavior
 		 of the command_loop_1.  */
 	      if (fix_current_buffer)
-		if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-		  Fset_buffer (XWINDOW (selected_window)->buffer);
+		{
+		  if (! FRAME_LIVE_P (selected_frame))
+		    Fkill_emacs (Qnil);
+		  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+		    Fset_buffer (XWINDOW (selected_window)->buffer);
+		}
 
 	      orig_local_map = get_local_map (PT, current_buffer);
 	      goto replay_sequence;
@@ -7092,6 +7101,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		     emacsclient).  */
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
+		  if (! FRAME_LIVE_P (selected_frame))
+		    Fkill_emacs (Qnil);
 		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 		  orig_local_map = get_local_map (PT, current_buffer);
 		  goto replay_sequence;
