@@ -957,10 +957,10 @@ If within a string or comment, move by sentences instead of statements."
   (beginning-of-defun)
   (backward-paragraph))
 
+;; Idea of ENDPOS is, indent each line, stopping when
+;; ENDPOS is encountered.  But it's too much of a pain to make that work.
 (defun indent-c-exp (&optional endpos)
-  "Indent each line of the C grouping following point.
-If optional arg ENDPOS is given, indent each line, stopping when
-ENDPOS is encountered."
+  "Indent each line of the C grouping following point."
   (interactive)
   (let* ((indent-stack (list nil))
 	 (opoint (point))  ;; May be altered below.
@@ -1184,10 +1184,35 @@ ENDPOS is encountered."
 (defun c-indent-region (start end)
   (save-excursion
     (goto-char start)
-    (let ((endmark (copy-marker end)))
-      (and (bolp) (not (eolp))
-	   (c-indent-line))
-      (indent-c-exp endmark)
+    (let ((endmark (copy-marker end))
+	  (c-tab-always-indent t))
+      (while (and (bolp) (not (eolp)))
+	;; Indent one line as with TAB.
+	(let ((shift-amt (c-indent-line))
+	      nextline sexpend)
+	  (save-excursion
+	    ;; Find beginning of following line.
+	    (save-excursion
+	      (forward-line 1) (setq nextline (point)))
+	    ;; Find first beginning-of-sexp for sexp extending past this line.
+	    (beginning-of-line)
+	    (while (< (point) nextline)
+	      (condition-case nil
+		  (progn
+		    (forward-sexp 1)
+		    (setq sexpend (point-marker)))
+		(error (setq sexpend nil)
+		       (goto-char nextline)))
+	      (skip-chars-forward " \t\n")))
+	  ;; If that sexp ends within the region,
+	  ;; indent it all at once, fast.
+	  (if (and sexpend (> sexpend nextline) (<= sexpend endmark))
+	      (progn
+		(indent-c-exp)
+		(goto-char sexpend)))
+	  ;; Move to following line and try again.
+	  (and sexpend (set-marker sexpend nil))
+	  (forward-line 1)))
       (set-marker endmark nil))))
 
 (defun set-c-style (style &optional global)
