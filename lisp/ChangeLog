@@ -1,3 +1,8 @@
+2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/timeclock.el (timeclock-file): Run .timelog through
+	convert-standard-filename.
+
 2000-08-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/authors.el: New file.
