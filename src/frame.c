@@ -37,7 +37,6 @@ Boston, MA 02111-1307, USA.  */
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
 #include "keyboard.h"
-#include "keymap.h"
 #include "frame.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
@@ -2564,13 +2563,4 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
   defsubr (&Sset_frame_position);
-}
-
-void
-keys_of_frame ()
-{
-  initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
-  initial_define_lispy_key (global_map, "delete-frame", "handle-delete-frame");
-  initial_define_lispy_key (global_map, "iconify-frame", "ignore-event");
-  initial_define_lispy_key (global_map, "make-frame-visible", "ignore-event");
 }
