@@ -23,7 +23,7 @@
 # Extract entries from ChangeLogs matching specified criteria.
 # Optionally format the resulting output to a form suitable for RCS
 # logs, like they are used in Emacs, for example.  In this format,
-# author lines leading spaces, and file names are removed.
+# author lines, leading spaces, and file names are removed.
 
 require 5;
 use strict;
@@ -31,7 +31,8 @@ use strict;
 # Parse command line options.
 
 use vars qw($author $regexp $exclude $from_date $to_date
-            $rcs_log $with_date $version $help);
+            $rcs_log $with_date $version $help $reverse
+            @entries);
 
 use Getopt::Long;
 my $result = GetOptions ("author=s" => \$author,
@@ -41,6 +42,7 @@ my $result = GetOptions ("author=s" => \$author,
                          "to-date=s" => \$to_date,
                          "rcs-log" => \$rcs_log,
                          "with-date" => \$with_date,
+                         "reverse!" => \$reverse,
                          "version" => \$version,
                          "help"    => \$help);
 
@@ -67,6 +69,7 @@ are
   --to-date=YYYY-MM-DD    match entries not younger than given date
   --rcs-log		  format output suitable for RCS log entries.
   --with-date		  print short date line in RCS log
+  --reverse               show entries in reverse (chronological) order
   --version		  print version info
   --help		  print this help
 
@@ -142,6 +145,7 @@ sub entry_match_p ($) {
 
 sub print_log ($$) {
     my ($header, $entry) = @_;
+    my $output = '';
 
     if ($rcs_log) {
 	# Remove leading whitespace from entry.
@@ -152,11 +156,17 @@ sub print_log ($$) {
 	$entry =~ s/^\*.*://mg;
         if ($with_date) {
 	    $header =~ /(\d\d\d\d-\d\d-\d\d)/;
-	    print "!changelog-date $1\n";
+	    $output = "!changelog-date $1\n";
 	}
-	print $entry;
+	$output .= $entry;
     } else {
-	print $header, $entry;
+	$output .= $header . $entry;
+    }
+
+    if ($reverse) {
+        push @entries, $output;
+    } else {
+        print $output;
     }
 }
 
@@ -166,7 +176,8 @@ sub parse_changelog ($) {
     my $log = shift;
     my $entry = undef;
     my $header = undef;
-    my $match;
+
+    @entries = () if $reverse;
 
     # Open the ChangeLog.
     open (IN, "< $log") || die "Cannot open $log: $!";
@@ -206,24 +217,27 @@ sub parse_changelog ($) {
 	if header_match_p ($header) && entry_match_p ($entry);
 
     close IN;
+
+    if ($reverse) {
+        while (defined (my $entry = pop @entries)) {
+            print $entry;
+        }
+    }
 }
 
 
 # Main program.  Process ChangeLogs.
 
-if (@ARGV > 0) {
-    # If files were specified on the command line, parse those files.
-    while (defined(my $log = shift @ARGV)) {
-	parse_changelog ($log);
-    }
-} else {
-    # Parse default files ChangeLog and ChangeLog.9...ChangeLog.1 in
-    # that order.
-    parse_changelog ("ChangeLog");
-    for (my $i = 9; $i >= 1; --$i) {
-	my $log = "ChangeLog.$i";
-	parse_changelog ($log) if -f $log;
-    }
+# If files were specified on the command line, parse those files in the
+# order supplied by the user; otherwise parse default files ChangeLog and
+# ChangeLog.9...ChangeLog.1 according to $reverse.
+unless (@ARGV > 0) {
+    @ARGV = ("ChangeLog", map {"ChangeLog.$_"} reverse 1..9);
+    @ARGV = reverse @ARGV if $reverse;
+}
+
+while (defined (my $log = shift @ARGV)) {
+    parse_changelog ($log) if -f $log;
 }
 
 
