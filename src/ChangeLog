@@ -1,3 +1,8 @@
+2003-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (make_conversion_work_buffer): Change the work buffer
+	name to the same one as that of Emacs 21.
+
 2003-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (make_conversion_work_buffer): Prototype adjusted.
