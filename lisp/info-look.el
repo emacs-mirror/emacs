@@ -454,12 +454,17 @@ The default file name is the one found at point."
 		     (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
 		       (setq entry (match-string 1)
 			     item (funcall trans entry))
-		       (and (info-lookup->ignore-case topic mode)
-			    (setq item (downcase item)))
-		       (and (string-equal entry item)
-			    (setq entry nil))
-		       (or (assoc item result)
-			   (setq result (cons (cons item entry) result))))))
+		       ;; `trans' can return nil if the regexp doesn't match.
+		       (when (and item
+				  ;; Sometimes there's more than one Menu:
+				  (not (string= entry "Menu"))) 
+			 (and (info-lookup->ignore-case topic mode)
+			      (setq item (downcase item)))
+			 (and (string-equal entry item)
+			      (setq entry nil))
+			 (and (or (assoc item result)
+				  (setq result (cons (cons item entry)
+						     result))))))))
 	    (error nil))))
       (message "Processing Info node `%s'...done" node)
       (setq doc-spec (cdr doc-spec)))
@@ -712,14 +717,6 @@ Return nil if there is nothing appropriate."
 	      "`" "\\({[^}]*}\\)?'")))
 
 (info-lookup-maybe-add-help
- :mode 'scheme-mode
- :regexp ;; "\\(\\sw\\|\\s_\\)+"
- "[^()' \t\n]+"
- :ignore-case t
- ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
- :doc-spec '(("(r5rs)Index")))
-
-(info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
  :regexp "[^()' \t\n]+"
  :doc-spec '(("(emacs)Command Index")
@@ -749,6 +746,7 @@ Return nil if there is nothing appropriate."
  :mode 'scheme-mode
  :regexp "[^()' \t\n]+"
  :ignore-case t
+ ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
 	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
 
