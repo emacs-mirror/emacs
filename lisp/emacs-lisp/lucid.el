@@ -99,6 +99,27 @@ type that you get.  That will work in both versions of Emacs."
 		(setq i (1- i))))))
       (setq keymap (cdr keymap)))))
 
+(defun read-number (prompt &optional integers-only)
+  "Read a number from the minibuffer.
+Keep reentering the minibuffer until we get suitable input.
+If optional argument INTEGERS-ONLY is non-nil, insist on an integer."
+  (interactive)
+  (let (success
+	(number nil)
+	(predicate (if integers-only 'integerp 'numberp)))
+    (while (not success)
+      (let ((input-string (read-string prompt)))
+	(condition-case ()
+	    (setq number (read input-string))
+	  (error))
+	(if (funcall predicate number)
+	    (setq success t)
+	  (let ((cursor-in-echo-area t))
+	    (message "Please type %s"
+		     (if integers-only "an integer" "a number"))
+	    (sit-for 1)))))
+    number))
+
 (defun real-path-name (name &optional default)
   (file-truename (expand-file-name name default)))
 
