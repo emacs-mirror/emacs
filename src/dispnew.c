@@ -3013,7 +3013,7 @@ sync_window_with_frame_matrix_rows (w)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph_row *window_row, *window_row_end, *frame_row;
-  int area, left, right, x, width;
+  int left, right, x, width;
 
   /* Preconditions: W must be a leaf window on a tty frame.  */
   xassert (NILP (w->hchild) && NILP (w->vchild));
