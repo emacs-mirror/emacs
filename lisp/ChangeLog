@@ -1,5 +1,8 @@
 2000-09-12  Dave Love  <fx@gnu.org>
 
+	* simple.el (read-mail-command): Doc fix.
+	(mail-user-agent): Add gnus-user-agent option for upcoming Gnus.
+
 	* vc.el (vc-dired-listing-switches): Fix :version.
 
 	* vc-hooks.el: Doc fixes.
