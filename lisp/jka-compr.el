@@ -142,7 +142,7 @@ for `jka-compr-compression-info-list')."
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
      t nil "\037\213"]
-    ["\\.gz\\(~\\|\\.~[0-9]+~\\)?\\'"
+    ["\\.g?z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
      t t "\037\213"])
