@@ -5687,6 +5687,10 @@ x_make_frame_visible (f)
   {
     Lisp_Object frame;
     int count = input_signal_count;
+    /* This must be before UNBLOCK_INPUT
+       since events that arrive in response to the actions above
+       will set it when they are handled.  */
+    int previously_visible = f->output_data.x->has_been_visible;
 
     original_left = f->output_data.x->left_pos;
     original_top = f->output_data.x->top_pos;
@@ -5699,11 +5703,15 @@ x_make_frame_visible (f)
     /* Now move the window back to where it was "supposed to be".
        But don't do it if the gravity is negative.
        When the gravity is negative, this uses a position
-       that is 3 pixels too low.  Perhaps that's really the border width.  */
+       that is 3 pixels too low.  Perhaps that's really the border width.
+
+       Don't do this if the window has never been visible before,
+       because the window manager may choose the position
+       and we don't want to override it.  */
 
     if (! FRAME_VISIBLE_P (f)
 	&& f->output_data.x->win_gravity == NorthWestGravity
-	&& f->output_data.x->has_been_visible)
+	&& previously_visible)
       {
 	BLOCK_INPUT;
 
