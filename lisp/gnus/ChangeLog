@@ -1,3 +1,8 @@
+2003-02-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* nntp.el (nntp-accept-process-output): Don't use point-max to get
+	the buffer's size.
+
 2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
 
 	* nnheader.el: Added cygwin to system-type comparisons.
