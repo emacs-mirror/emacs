@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/12/26 05:09:07 $|$Revision: 1.82 $
+;; |$Date: 1995/01/11 02:24:09 $|$Revision: 1.83 $
 
 ;; This file is part of GNU Emacs.
 
@@ -797,12 +797,12 @@ Use `isearch-exit' to quit without signalling."
       ;; If search is successful, move back to starting point
       ;; and really do quit.
       (progn (goto-char isearch-opoint)
+	     (setq isearch-success nil)
 	     (isearch-done t)   ; exit isearch
 	     (signal 'quit nil))  ; and pass on quit signal
     ;; If search is failing, rub out until it is once more successful.
     (while (not isearch-success) (isearch-pop-state))
     (isearch-update)))
-
 
 (defun isearch-repeat (direction)
   ;; Utility for isearch-repeat-forward and -backward.
