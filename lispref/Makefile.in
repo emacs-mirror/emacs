@@ -7,6 +7,7 @@
 
 TEX=tex
 MAKE=make
+SHELL=/bin/sh
 
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
@@ -25,8 +26,8 @@ infodir = ${prefix}/info
 
 # The name of the manual:
 
-VERSION=2.4.2
-manual = elisp-manual-19-$(VERSION)
+VERSION=2.5
+manual = elisp-manual-20-$(VERSION)
 
 # Uncomment this line for permuted index.
 # permuted_index = 1 
@@ -34,13 +35,13 @@ manual = elisp-manual-19-$(VERSION)
 # List of all the texinfo files in the manual:
 
 srcs = elisp.texi back.texi \
-  abbrevs.texi anti.texi backups.texi locals.texi buffers.texi \
-  calendar.texi commands.texi compile.texi control.texi debugging.texi \
-  display.texi edebug.texi errors.texi eval.texi files.texi \
+  abbrevs.texi advice.texi anti.texi backups.texi locals.texi buffers.texi \
+  calendar.texi commands.texi compile.texi control.texi customize.texi \
+  debugging.texi display.texi edebug.texi errors.texi eval.texi files.texi \
   frames.texi functions.texi help.texi hooks.texi \
   internals.texi intro.texi keymaps.texi lists.texi \
   loading.texi macros.texi maps.texi markers.texi \
-  minibuf.texi modes.texi numbers.texi objects.texi \
+  minibuf.texi modes.texi nonascii.texi numbers.texi objects.texi \
   os.texi positions.texi processes.texi searching.texi \
   sequences.texi streams.texi strings.texi symbols.texi \
   syntax.texi text.texi tips.texi variables.texi \
@@ -50,15 +51,12 @@ srcs = elisp.texi back.texi \
 .PHONY: elisp.dvi clean
 
 # The info file is named `elisp'.
-# We depend on makeinfo.c rather than makeinfo -- there's no need to rebuild
-# everything just because makeinfo isn't part of the distribution.
 
-elisp: $(srcs) index.texi makeinfo.c
-	$(MAKE) makeinfo
+elisp: $(srcs) index.texi
 	rm -f elisp-*
-	./makeinfo elisp.texi
+	makeinfo elisp.texi
 
-elisp.dvi: $(srcs) index.texi texindex
+elisp.dvi: $(srcs) index.texi elisp.tps texindex
 	# Avoid losing old contents of aux file entirely.
 	-mv elisp.aux elisp.oaux
 	# First shot to define xrefs:
@@ -71,6 +69,9 @@ elisp.dvi: $(srcs) index.texi texindex
 	  ./texindex elisp.??; \
 	fi
 	$(TEX) elisp.texi
+
+elisp.tps: texindex
+	./texindex elisp.tp
 
 index.texi:
 	if [ a${permuted_index} != a ]; \
@@ -92,38 +93,19 @@ clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys
 	rm -f make.out core 
-	rm -f makeinfo.o makeinfo getopt.o getopt1.o
-	rm -f texindex.o texindex index.texi
+	rm -f index.texi
 
 maintainer-clean: clean
 	rm -f elisp elisp-*
 
 dist:
+	-rm -rf temp
 	-mkdir temp
 	-mkdir temp/$(manual)
-	-ln README Makefile permute-index $(srcs) \
-   texinfo.tex getopt.c getopt1.c getopt.h \
+	-ln README Makefile permute-index $(srcs) texinfo.tex \
    elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] temp/$(manual)
-	-(cd temp/$(manual); rm -f texindex.c makeinfo.c mkinstalldirs)
-	cp texindex.c makeinfo.c mkinstalldirs temp/$(manual)
+	-(cd temp/$(manual); rm -f mkinstalldirs)
+	cp mkinstalldirs temp/$(manual)
 	(cd temp/$(manual); rm -f *~)
 	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
 	-rm -rf temp
-
-# Make two programs used in generating output from texinfo.
-
-CFLAGS = -g
-
-texindex: texindex.o
-	$(CC) -o $@ $(LDFLAGS) $(CFLAGS) $?
-texindex.o: texindex.c
-
-MAKEINFO_MAJOR = 1
-MAKEINFO_MINOR = 0
-MAKEINFO_FLAGS = -DMAKEINFO_MAJOR=$(MAKEINFO_MAJOR) -DMAKEINFO_MINOR=$(MAKEINFO_MINOR)
-
-makeinfo: makeinfo.o getopt.o getopt1.o
-	$(CC) $(LDFLAGS) -o makeinfo makeinfo.o getopt.o getopt1.o
-
-makeinfo.o: makeinfo.c
-	$(CC) -c $(CFLAGS) $(MAKEINFO_FLAGS) makeinfo.c
