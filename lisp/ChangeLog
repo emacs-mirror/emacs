@@ -1,3 +1,8 @@
+2001-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (mouse-set-font): Make it a no-op if multiple fonts
+	aren't supported.  Print a message to that effect if invoked.
+
 2001-11-27  Stephen Eglen  <stephen@gnu.org>
 
 	* locate.el (locate): Put point at first matching file rather
