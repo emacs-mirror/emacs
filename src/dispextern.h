@@ -260,61 +260,38 @@ struct glyph
      glyphs above or below it.  */
   unsigned overlaps_vertically_p : 1;
 
+  /* 1 means glyph is a padding glyph.  Padding glyphs are used for
+     characters whose visual shape consists of more than one glyph
+     (e.g. Asian characters).  All but the first glyph of such a glyph
+     sequence have the padding_p flag set.  Only used for terminal
+     frames, and there only to minimize code changes.  A better way
+     would probably be to use the width field of glyphs to express
+     padding. */
+  unsigned padding_p : 1;
+
+  /* Face of the glyph.  */
+  unsigned face_id : 23;
+
   /* A union of sub-structures for different glyph types.  */
   union
   {
-    /* Sub-structure for character glyphs (type == CHAR_GLYPH).  */
-    struct 
-    {
-      /* Character code.  */
-      unsigned code : 19;
+    /* Character code for character glyphs (type == CHAR_GLYPH).  */
+    unsigned ch;
 
-      /* Character's face.  */
-      unsigned face_id : 11;
+    /* Composition ID for composition glyphs (type == COMPOSITION_GLYPH)  */
+    unsigned cmp_id;
 
-      /* 1 means glyph is a padding glyph.  Padding glyphs are used
-	 for characters whose visual shape consists of more than one
-	 glyph (e.g. Asian characters).  All but the first glyph of
-	 such a glyph sequence have the padding_p flag set.  Only used
-	 for terminal frames, and there only to minimize code changes.
-	 A better way would probably be to use the width field of
-	 glyphs to express padding.  */
-      unsigned padding_p : 1;
-    }
-    ch;
-
-    /* Sub-struct for composition (type == COMPOSITION_GLYPH)  */
-    struct
-    {
-      /* Composition identification number.  */
-      unsigned id : 21;
-
-      /* This composition's face.  */
-      unsigned face_id : 11;
-    }
-    cmp;
-    /* Sub-structure for image glyphs (type == IMAGE_GLYPH).  */
-    struct
-    {
-      /* Image id.  */
-      unsigned id : 20;
-
-      /* Face under the image.  */
-      unsigned face_id : 12;
-    }
-    img;
+    /* Image ID for image glyphs (type == IMAGE_GLYPH).  */
+    unsigned img_id;
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
     struct
     {
       /* The height of the glyph.  */
-      unsigned height  : 11;
+      unsigned height  : 16;
 
       /* The ascent of the glyph.  */
-      unsigned ascent  : 10;
-
-      /* The face of the stretch glyph.  */
-      unsigned face_id : 11;
+      unsigned ascent  : 16;
     }
     stretch;
     
@@ -334,9 +311,18 @@ struct glyph
 #define GLYPH_EQUAL_P(X, Y)					\
      ((X)->type == (Y)->type					\
       && (X)->u.val == (Y)->u.val				\
+      && (X)->face_id == (Y)->face_id				\
+      && (X)->padding_p == (Y)->padding_p			\
       && (X)->left_box_line_p == (Y)->left_box_line_p		\
       && (X)->right_box_line_p == (Y)->right_box_line_p		\
       && (X)->voffset == (Y)->voffset)
+
+/* Are character codes, faces, padding_ps of glyphs *X and *Y equal?  */
+
+#define GLYPH_CHAR_AND_FACE_EQUAL_P(X, Y)	\
+  ((X)->u.ch == (Y)->u.ch			\
+   && (X)->face_id == (Y)->face_id		\
+   && (X)->padding_p == (Y)->padding_p)
 
 /* Fill a character glyph GLYPH.  CODE, FACE_ID, PADDING_P correspond
    to the bits defined for the typedef `GLYPH' in lisp.h.  */
@@ -344,9 +330,9 @@ struct glyph
 #define SET_CHAR_GLYPH(GLYPH, CODE, FACE_ID, PADDING_P)	\
      do							\
        {						\
-         (GLYPH).u.ch.code = (CODE);			\
-         (GLYPH).u.ch.face_id = (FACE_ID);		\
-         (GLYPH).u.ch.padding_p = (PADDING_P);		\
+         (GLYPH).u.ch = (CODE);				\
+         (GLYPH).face_id = (FACE_ID);			\
+         (GLYPH).padding_p = (PADDING_P);		\
        }						\
      while (0)
 
@@ -357,18 +343,20 @@ struct glyph
      SET_CHAR_GLYPH ((GLYPH),					\
 	 	     FAST_GLYPH_CHAR ((FROM)),			\
 		     FAST_GLYPH_FACE ((FROM)),			\
-		     ((FROM) & GLYPH_MASK_PADDING) != 0)
+		     0)
 
-/* Construct a typedef'd GLYPH value from a character glyph GLYPH.  */
+/* Construct a glyph code from a character glyph GLYPH.  If the
+   character is multibyte, return -1 as we can't use glyph table for a
+   multibyte character. */
      
-#define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
-     ((GLYPH).u.ch.code						\
-       | ((GLYPH).u.ch.face_id << CHARACTERBITS)		\
-       | ((GLYPH).u.ch.padding_p ? GLYPH_MASK_PADDING : 0))
+#define GLYPH_FROM_CHAR_GLYPH(GLYPH)		\
+  ((GLYPH).u.ch < 256				\
+   ? ((GLYPH).u.ch | ((GLYPH).face_id << 8))	\
+   : -1)
 
 /* Is GLYPH a padding glyph?  */
      
-#define CHAR_GLYPH_PADDING_P(GLYPH) (GLYPH).u.ch.padding_p
+#define CHAR_GLYPH_PADDING_P(GLYPH) (GLYPH).padding_p
 
 
 
