@@ -478,7 +478,6 @@ Return what remains of the list.")
 	      else if (INTEGERP (car) && INTEGERP (cdr))
 		{
 		  /* Element (BEG . END) means range was inserted.  */
-		  Lisp_Object end;
 
 		  if (XINT (car) < BEGV
 		      || XINT (cdr) > ZV)
