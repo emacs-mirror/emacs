@@ -3375,9 +3375,12 @@ system TYPE.")
 	      (progn
 		(and temp1 (ange-ftp-del-tmp-name temp1))
 		(or cont
-		    (signal 'ftp-error (list "Opening input file"
-					     (format "FTP Error: \"%s\"" line)
-					     filename)))))
+		    (if ange-ftp-waiting-flag
+			(throw 'ftp-error t)
+		      (signal 'ftp-error
+			      (list "Opening input file"
+				    (format "FTP Error: \"%s\"" line)
+				    filename))))))
 	;; cleanup
 	(if binary
 	    (ange-ftp-set-ascii-mode f-host f-user))))
@@ -3438,10 +3441,12 @@ system TYPE.")
 	      (progn
 		(or result
 		    (or cont
-			(signal 'ftp-error
-				(list "Opening output file"
-				      (format "FTP Error: \"%s\"" line)
-				      newname))))
+			(if ange-ftp-waiting-flag
+			    (throw 'ftp-error t)
+			  (signal 'ftp-error
+				  (list "Opening output file"
+					(format "FTP Error: \"%s\"" line)
+					newname)))))
 		
 		(ange-ftp-add-file-entry newname))
 	    
@@ -3747,6 +3752,8 @@ system TYPE.")
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
+(defvar ange-ftp-waiting-flag nil)
+
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)
       (let ((tryfiles (if nosuffix
@@ -3754,9 +3761,11 @@ system TYPE.")
 			(list (concat file ".elc") (concat file ".el") file)))
 	    copy)
 	(while (and tryfiles (not copy))
-	  (condition-case error
-	      (setq copy (ange-ftp-file-local-copy (car tryfiles)))
-	    (ftp-error nil))
+	  (catch 'ftp-error
+	    (let ((ange-ftp-waiting-flag t))
+	      (condition-case error
+		  (setq copy (ange-ftp-file-local-copy (car tryfiles)))
+		(ftp-error nil))))
 	  (setq tryfiles (cdr tryfiles)))
 	(if copy
 	    (unwind-protect
