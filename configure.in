@@ -92,7 +92,7 @@ case "${srcdir}" in
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
     ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
-    CDPATH=
+    unset CDPATH
     if test "${PWD}" != "" && test "`(cd ${PWD} ; sh -c pwd)`" = "`pwd`"  ;
     then
       srcdir="$PWD"
