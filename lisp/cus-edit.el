@@ -4069,23 +4069,23 @@ The format is suitable for use with `easy-menu-define'."
 
 ;;; The Custom Mode.
 
-(defvar custom-mode-map nil
-  "Keymap for `custom-mode'.")
-
-(unless custom-mode-map
+(defvar custom-mode-map
   ;; This keymap should be dense, but a dense keymap would prevent inheriting
   ;; "\r" bindings from the parent map.
-  (setq custom-mode-map (make-sparse-keymap))
-  (set-keymap-parent custom-mode-map widget-keymap)
-  (suppress-keymap custom-mode-map)
-  (define-key custom-mode-map " " 'scroll-up)
-  (define-key custom-mode-map "\177" 'scroll-down)
-  (define-key custom-mode-map "\C-x\C-s" 'Custom-save)
-  (define-key custom-mode-map "q" 'Custom-buffer-done)
-  (define-key custom-mode-map "u" 'Custom-goto-parent)
-  (define-key custom-mode-map "n" 'widget-forward)
-  (define-key custom-mode-map "p" 'widget-backward)
-  (define-key custom-mode-map [mouse-1] 'Custom-move-and-invoke))
+  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (suppress-keymap map)
+    (define-key map " " 'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "q" 'Custom-buffer-done)
+    (define-key map "u" 'Custom-goto-parent)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    (define-key map [mouse-1] 'Custom-move-and-invoke)
+    map)
+  "Keymap for `custom-mode'.")
 
 (defun Custom-move-and-invoke (event)
   "Move to where you click, and if it is an active field, invoke it."
