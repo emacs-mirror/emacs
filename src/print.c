@@ -200,7 +200,11 @@ glyph_to_str_cpy (glyphs, str)
 #define PRINTFINISH					\
    if (NILP (printcharfun))				\
      insert (print_buffer, print_buffer_pos);		\
-   if (print_buffer) free (print_buffer);		\
+   if (print_buffer)					\
+     {							\
+       free (print_buffer);				\
+       print_buffer = 0;				\
+     }							\
    if (MARKERP (original))				\
      Fset_marker (original, make_number (PT), Qnil);	\
    if (old_point >= 0)					\
@@ -212,7 +216,14 @@ glyph_to_str_cpy (glyphs, str)
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
-/* Index of first unused element of FRAME_MESSAGE_BUF(mini_frame). */
+/* Nonzero if there is no room to print any more characters
+   so print might as well return right away.  */
+
+#define PRINTFULLP()					\
+ (EQ (printcharfun, Qt) && !noninteractive		\
+  && printbufidx >= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))))
+
+/* Index of first unused element of FRAME_MESSAGE_BUF (mini_frame). */
 static int printbufidx;
 
 static void
@@ -241,6 +252,8 @@ printchar (ch, fun)
     {
       FRAME_PTR mini_frame
 	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+
+      QUIT;
 
       if (noninteractive)
 	{
@@ -305,6 +318,8 @@ strout (ptr, size, printcharfun)
     {
       FRAME_PTR mini_frame
 	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+
+      QUIT;
 
       i = size >= 0 ? size : strlen (ptr);
 #ifdef MAX_PRINT_CHARS
@@ -841,6 +856,8 @@ print (obj, printcharfun, escapeflag)
   char buf[30];
 
   QUIT;
+  if (PRINTFULLP ())
+    return;
 
 #if 1  /* I'm not sure this is really worth doing.  */
   /* Detect circularities and truncate them.
@@ -956,6 +973,7 @@ print (obj, printcharfun, escapeflag)
 	register unsigned char *p = XSYMBOL (obj)->name->data;
 	register unsigned char *end = p + XSYMBOL (obj)->name->size;
 	register unsigned char c;
+	int i;
 
 	if (p != end && (*p == '-' || *p == '+')) p++;
 	if (p == end)
@@ -1000,16 +1018,18 @@ print (obj, printcharfun, escapeflag)
 	    PRINTCHAR (':');
 	  }
 
-	p = XSYMBOL (obj)->name->data;
-	while (p != end)
+	for (i = 0; i < XSYMBOL (obj)->name->size; i++)
 	  {
 	    QUIT;
-	    c = *p++;
+	    c = XSYMBOL (obj)->name->data[i];
+
 	    if (escapeflag)
 	      {
-		if (c == '\"' || c == '\\' || c == '\'' || c == ';' || c == '#' ||
-		    c == '(' || c == ')' || c == ',' || c =='.' || c == '`' ||
-		    c == '[' || c == ']' || c == '?' || c <= 040 || confusing)
+		if (c == '\"' || c == '\\' || c == '\''
+		    || c == ';' || c == '#' || c == '(' || c == ')'
+		    || c == ',' || c =='.' || c == '`'
+		    || c == '[' || c == ']' || c == '?' || c <= 040
+		    || confusing)
 		  PRINTCHAR ('\\'), confusing = 0;
 	      }
 	    PRINTCHAR (c);
