@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/17 16:44:50 $|$Revision: 1.25 $
+;; |$Date: 1993/03/17 17:17:05 $|$Revision: 1.26 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.25 1993/03/17 16:44:50 eric Exp eric $
+;;; $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.26 1993/03/17 17:17:05 eric Exp jimb $
 ;;; $Log: isearch.el,v $
+; Revision 1.26  1993/03/17  17:17:05  eric
+; Add standard library headers.
+;
 ; Revision 1.25  1993/03/17  16:44:50  eric
 ; Add standard library headers.
 ;
@@ -702,7 +705,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive) ;; Is this necessary?
   ;; First terminate isearch-mode.
   (isearch-done)
-  (select-frame (car (cdr (isearch-last-command-char)))))
+  (handle-switch-frame (car (cdr (isearch-last-command-char)))))
 
 ;;;========================================================
 
