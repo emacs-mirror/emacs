@@ -32,82 +32,13 @@
 
 (defun setup-english-environment ()
   "Reset multilingual environment of Emacs to the default status.
-This function is called by all the `setup-function's for
-the various supported language environments.
-
-The default status is as follows:
-
-  The default value of buffer-file-coding-system is nil.
-  The coding system for terminal output is nil.
-  The coding system for keyboard input is nil.
-
-  The order of priorities of coding categories and the coding system
-  bound to each category are as follows
-	coding category			coding system
-	--------------------------------------------------
-	coding-category-iso-7-tight	iso-2022-jp
-	coding-category-iso-7		iso-2022-7bit
-	coding-category-iso-8-1		iso-latin-1
-	coding-category-iso-8-2		iso-latin-1
-	coding-category-iso-7-else	iso-2022-7bit-lock
-	coding-category-iso-8-else	iso-2022-8bit-ss2
-	coding-category-emacs-mule 	emacs-mule
-	coding-category-raw-text	raw-text
-	coding-category-sjis		japanese-shift-jis
-	coding-category-big5		chinese-big5
-	coding-category-binarry		no-conversion
-"
+See the function `reset-language-environment' for more detail."
   (interactive)
-  ;; This function formerly set default-enable-multibyte-characters to t,
-  ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
-
-  (setq coding-category-iso-7-tight	'iso-2022-jp
-	coding-category-iso-7		'iso-2022-7bit
-	coding-category-iso-8-1		'iso-latin-1
-	coding-category-iso-8-2		'iso-latin-1
-	coding-category-iso-7-else	'iso-2022-7bit-lock
-	coding-category-iso-8-else	'iso-2022-8bit-ss2
-	coding-category-emacs-mule	'emacs-mule
-	coding-category-raw-text	'raw-text
-	coding-category-sjis		'japanese-shift-jis
-	coding-category-big5		'chinese-big5
-	coding-category-binary		'no-conversion)
-
-  (set-coding-priority
-   '(coding-category-iso-7-tight
-     coding-category-iso-7
-     coding-category-iso-8-2
-     coding-category-iso-8-1
-     coding-category-iso-7-else
-     coding-category-iso-8-else
-     coding-category-emacs-mule 
-     coding-category-raw-text
-     coding-category-sjis
-     coding-category-big5
-     coding-category-binary))
-
-  (set-default-coding-systems nil)
-  ;; Don't alter the terminal and keyboard coding systems here.
-  ;; The terminal still supports the same coding system
-  ;; that it supported a minute ago.
-;;;  (set-terminal-coding-system-internal nil)
-;;;  (set-keyboard-coding-system-internal nil)
-
-  (setq nonascii-insert-offset 0))
+  (reset-language-environment))
 
 (set-language-info-alist
- "English" '((setup-function . setup-english-environment)
-	     (tutorial . "TUTORIAL")
+ "English" '((tutorial . "TUTORIAL")
 	     (charset ascii)
-	     (coding-priority iso-2022-7bit
-			      iso-latin-1
-			      iso-2022-7bit-lock
-			      iso-2022-8bit-ss2
-			      emacs-mule
-			      raw-text
-			      japanese-shift-jis
-			      chinese-big5
-			      no-conversion)
 	     (sample-text . "Hello!, Hi!, How are you?")
 	     (documentation . "\
 Nothing special is needed to handle English.")
