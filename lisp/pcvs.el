@@ -1861,24 +1861,27 @@ With a prefix argument, prompt for cvs flags."
 This command ignores files that are not flagged as `Unknown'."
   (interactive)
   (dolist (fi (cvs-mode-marked 'ignore))
-    (cvs-append-to-ignore (cvs-fileinfo->dir fi) (cvs-fileinfo->file fi))
+    (cvs-append-to-ignore (cvs-fileinfo->dir fi) (cvs-fileinfo->file fi)
+			  (eq (cvs-fileinfo->subtype fi) 'NEW-DIR))
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))
 
 
-(defun cvs-append-to-ignore (dir str)
-  "Add STR to the .cvsignore file in DIR."
-  (save-window-excursion
-    (set-buffer (find-file-noselect (expand-file-name ".cvsignore" dir)))
+(defun cvs-append-to-ignore (dir str &optional old-dir)
+  "Add STR to the .cvsignore file in DIR.
+If OLD-DIR is non-nil, then this is a directory that we don't want
+to hear about anymore."
+  (with-current-buffer
+      (find-file-noselect (expand-file-name ".cvsignore" dir))
     (when (ignore-errors
 	    (and buffer-read-only
 		 (eq 'CVS (vc-backend buffer-file-name))
 		 (not (vc-editable-p buffer-file-name))))
       ;; CVSREAD=on special case
-      (vc-toggle-read-only))
+      (vc-checkout buffer-file-name t))
     (goto-char (point-max))
-    (unless (zerop (current-column)) (insert "\n"))
-    (insert str "\n")
+    (unless (bolp) (insert "\n"))
+    (insert str (if old-dir "/\n" "\n"))
     (if cvs-sort-ignore-file (sort-lines nil (point-min) (point-max)))
     (save-buffer)))
 
