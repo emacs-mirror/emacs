@@ -440,11 +440,8 @@ of a mail alias.")
     (and ;;
          ;; we are on an appropriate header line...
      (save-excursion
-       (beginning-of-line)
-       ;; skip backwards over continuation lines.
-       (while (and (looking-at "^[ \t]")
-		   (not (= (point) (point-min))))
-	 (forward-line -1))
+       (unless (eobp) (forward-char 1))
+       (re-search-backward "^[^ \t]" nil 'move)
        ;; are we at the front of an appropriate header line?
        (looking-at mail-abbrev-mode-regexp))
      ;;
