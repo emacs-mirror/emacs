@@ -1783,9 +1783,8 @@ characters on the line."
     indent t)
    (calendar-insert-indented "" indent);; Go to proper spot
    (calendar-for-loop i from 0 to 6 do
-      (insert (substring (aref calendar-day-name-array 
-                               (mod (+ calendar-week-start-day i) 7))
-                         0 2))
+      (insert (calendar-day-name (mod (+ calendar-week-start-day i) 7)
+				 2 t))
       (insert " "))
    (calendar-insert-indented "" 0 t);; Force onto following line
    (calendar-insert-indented "" indent);; Go to proper spot
@@ -2263,8 +2262,8 @@ is a string to insert in the minibuffer before reading."
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Returns a list (month day year).
 If optional NODAY is t, does not ask for day, but just returns
-(month nil year); if NODAY is any other non-nil value the value returned is
-(month year) "
+\(month nil year); if NODAY is any other non-nil value the value returned is
+\(month year) "
   (let* ((year (calendar-read
                 "Year (>0): "
                 '(lambda (x) (> x 0))
@@ -2294,9 +2293,22 @@ If optional NODAY is t, does not ask for day, but just returns
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defun calendar-day-name (date)
-  "Returns a string with the name of the day of the week of DATE."
-  (aref calendar-day-name-array (calendar-day-of-week date)))
+(defun calendar-day-name (date &optional width absolute)
+  "Returns a string with the name of the day of the week of DATE.
+If WIDTH is non-nil, return just the first WIDTH characters of the name.
+If ABSOLUTE is non-nil, then DATE is actual the day-of-the-week
+rather than a date."
+  (let ((string (aref calendar-day-name-array
+		      (if absolute date (calendar-day-of-week date)))))
+    (if width
+	(let ((i 0) (result "") (pos 0))
+	  (while (< i width)
+	    (let ((chartext (char-to-string (sref string pos))))
+	      (setq pos (+ pos (length chartext)))
+	      (setq result (concat result chartext)))
+	    (setq i (1+ i)))
+	  result)
+      string)))
 
 (defvar calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
@@ -2317,9 +2329,19 @@ If FILTER is provided, apply it to each item in the list."
               index))
      (append sequence nil))))
 
-(defun calendar-month-name (month)
-  "The name of MONTH."
-  (aref calendar-month-name-array (1- month)))
+(defun calendar-month-name (month &optional width)
+  "The name of MONTH.
+If WIDTH is non-nil, return just the first WIDTH characters of the name."
+  (let ((string (aref calendar-month-name-array (1- month))))
+    (if width
+	(let ((i 0) (result "") (pos 0))
+	  (while (< i width)
+	    (let ((chartext (char-to-string (sref string pos))))
+	      (setq pos (+ pos (length chartext)))
+	      (setq result (concat result chartext)))
+	    (setq i (1+ i)))
+	  result)
+      string)))
 
 (defun calendar-day-of-week (date)
   "Returns the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
@@ -2412,13 +2434,12 @@ omits the name of the day of the week."
           (if nodayname
               nil
             (if abbreviate
-                (substring (calendar-day-name date) 0 3)
+                (calendar-day-name date 3)
               (calendar-day-name date))))
          (month (extract-calendar-month date))
          (monthname
           (if abbreviate
-              (substring
-               (calendar-month-name month) 0 3)
+              (calendar-month-name month 3)
             (calendar-month-name month)))
          (day (int-to-string (extract-calendar-day date)))
          (month (int-to-string month))
