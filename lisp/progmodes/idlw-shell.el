@@ -1,5 +1,5 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
-;; Copyright (c) 1999,2000,2001,2002,2003,2004 Free Software Foundation
+;; Copyright (c) 1999,2000,2001,2002,2003,2004,2005 Free Software Foundation
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -437,7 +437,7 @@ end"
 
 (defcustom idlwave-shell-mark-stop-line t
   "*Non-nil means, mark the source code line where IDL is currently stopped.
-Value decides about the method which is used to mark the line.  Legal values
+Value decides about the method which is used to mark the line.  Valid values
 are:
 
 nil       Do not mark the line
@@ -494,7 +494,7 @@ where IDL is stopped, when in Electric Debug Mode."
 
 (defcustom idlwave-shell-mark-breakpoints t
   "*Non-nil means, mark breakpoints in the source files.
-Legal values are:
+Valid values are:
 nil        Do not mark breakpoints.
 'face      Highlight line with `idlwave-shell-breakpoint-face'.
 'glyph     Red dot at the beginning of line.  If the display does not

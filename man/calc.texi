@@ -83,7 +83,7 @@
 @copying
 This file documents Calc, the GNU Emacs calculator.
 
-Copyright (C) 1990, 1991, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1990, 1991, 2001, 2002, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -111,14 +111,15 @@ Software Foundation raise funds for GNU development.''
 @center GNU Emacs Calc Version 2.02g
 @c [volume]
 @sp 1
-@center January 2002
+@center March 2005
 @sp 5
 @center Dave Gillespie
 @center daveg@@synaptics.com
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1990, 1991, 2001, 2002, 2005
+Free Software Foundation, Inc.
 @insertcopying
 @end titlepage
 
@@ -476,10 +477,9 @@ large and might be intimidating to the first-time user.  If you plan to
 use Calc only as a traditional desk calculator, all you really need to
 read is the ``Getting Started'' chapter of this manual and possibly the
 first few sections of the tutorial.  As you become more comfortable with
-the program you can learn its additional features.  In terms of efficiency,
-scope and depth, Calc cannot replace a powerful tool like Mathematica.
-But Calc has the advantages of convenience, portability, and availability
-of the source code.  And, of course, it's free!
+the program you can learn its additional features.  Calc does not
+have the scope and depth of a fully-functional symbolic math package,
+but Calc has the advantages of convenience, portability, and freedom.
 
 @node About This Manual, Notations Used in This Manual, What is Calc, Getting Started
 @section About This Manual
@@ -1365,13 +1365,13 @@ to look around for other data types that might be worth having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
-numerical quantities, and it could also operate on matrices.  I decided
-that these would be good for Calc to have, too.  And once things had
-gone this far, I figured I might as well take a look at serious algebra
-systems like Mathematica, Macsyma, and Maple for further ideas.  Since
-these systems did far more than I could ever hope to implement, I decided
-to focus on rewrite rules and other programming features so that users
-could implement what they needed for themselves.
+numerical quantities, and it could also operate on matrices.  I
+decided that these would be good for Calc to have, too.  And once
+things had gone this far, I figured I might as well take a look at
+serious algebra systems for further ideas.  Since these systems did
+far more than I could ever hope to implement, I decided to focus on
+rewrite rules and other programming features so that users could
+implement what they needed for themselves.
 
 Rick complained that matrices were hard to read, so I put in code to
 format them in a 2D style.  Once these routines were in place, Big mode
@@ -1412,16 +1412,14 @@ parts.  Bob Weiner helped immensely with the Lucid Emacs port.
 Among the books used in the development of Calc were Knuth's @emph{Art
 of Computer Programming} (especially volume II, @emph{Seminumerical
 Algorithms}); @emph{Numerical Recipes} by Press, Flannery, Teukolsky,
-and Vetterling; Bevington's @emph{Data Reduction and Error Analysis for
-the Physical Sciences}; @emph{Concrete Mathematics} by Graham, Knuth,
-and Patashnik; Steele's @emph{Common Lisp, the Language}; the @emph{CRC
-Standard Math Tables} (William H. Beyer, ed.); and Abramowitz and
-Stegun's venerable @emph{Handbook of Mathematical Functions}.  I
-consulted the user's manuals for the HP-28 and HP-48 calculators, as
-well as for the programs Mathematica, SMP, Macsyma, Maple, MathCAD,
-Gnuplot, and others.  Also, of course, Calc could not have been written
-without the excellent @emph{GNU Emacs Lisp Reference Manual}, by Bil
-Lewis and Dan LaLiberte.
+and Vetterling; Bevington's @emph{Data Reduction and Error Analysis
+for the Physical Sciences}; @emph{Concrete Mathematics} by Graham,
+Knuth, and Patashnik; Steele's @emph{Common Lisp, the Language}; the
+@emph{CRC Standard Math Tables} (William H. Beyer, ed.); and
+Abramowitz and Stegun's venerable @emph{Handbook of Mathematical
+Functions}.  Also, of course, Calc could not have been written without
+the excellent @emph{GNU Emacs Lisp Reference Manual}, by Bil Lewis and
+Dan LaLiberte.
 
 Final thanks go to Richard Stallman, without whose fine implementations
 of the Emacs editor, language, and environment, Calc would have been
@@ -12262,9 +12260,13 @@ appended to the end of the file.
 @kindex m R
 @pindex calc-mode-record-mode
 The @kbd{m R} (@code{calc-mode-record-mode}) command tells Calc to
-record the new mode settings (as if by pressing @kbd{m m}) every
-time a mode setting changes.  If Embedded mode is enabled, other
-options are available; @pxref{Mode Settings in Embedded Mode}.
+record all the mode settings (as if by pressing @kbd{m m}) every
+time a mode setting changes.  If the modes are saved this way, then this
+``automatic mode recording'' mode is also saved.
+Type @kbd{m R} again to disable this method of recording the mode
+settings.  To turn it off permanently, the @kbd{m m} command will also be
+necessary.   (If Embedded mode is enabled, other options for recording
+the modes are available; @pxref{Mode Settings in Embedded Mode}.)
 
 @kindex m F
 @pindex calc-settings-file-name
@@ -13940,7 +13942,7 @@ Without being switched into C mode first, Calc would have misinterpreted
 the brackets in @samp{a[1]} and @samp{a[2]}, would not have known that
 @code{atan} was equivalent to Calc's built-in @code{arctan} function,
 and would have written the formula back with notations (like implicit
-multiplication) which would not have been legal for a C program.
+multiplication) which would not have been valid for a C program.
 
 As another example, suppose you are maintaining a C program and a La@TeX{}
 document, each of which needs a copy of the same formula.  You can grab the
@@ -14641,8 +14643,7 @@ if the matrix justification mode so specifies.
 @pindex calc-mathematica-language
 @cindex Mathematica language
 The @kbd{d M} (@code{calc-mathematica-language}) command selects the
-conventions of Mathematica, a powerful and popular mathematical tool
-from Wolfram Research, Inc.  Notable differences in Mathematica mode
+conventions of Mathematica.  Notable differences in Mathematica mode
 are that the names of built-in functions are capitalized, and function
 calls use square brackets instead of parentheses.  Thus the Calc
 formula @samp{sin(2 x)} is entered and displayed @w{@samp{Sin[2 x]}} in
@@ -14665,8 +14666,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.
 @pindex calc-maple-language
 @cindex Maple language
 The @kbd{d W} (@code{calc-maple-language}) command selects the
-conventions of Maple, another mathematical tool from the University
-of Waterloo.
+conventions of Maple.
 
 Maple's language is much like C.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
@@ -15472,7 +15472,7 @@ backslashes in tokens.)
 This will parse @samp{3 bad token 4 /"\ 5} to @samp{silly(3,4,5)}.
 
 The token @kbd{#} has a predefined meaning in Calc's formula parser;
-it is not legal to use @samp{"#"} in a syntax rule.  However, longer
+it is not valid to use @samp{"#"} in a syntax rule.  However, longer
 tokens that include the @samp{#} character are allowed.  Also, while
 @samp{"$"} and @samp{"\""} are allowed as tokens, their presence in
 the syntax table will prevent those characters from working in their
@@ -16038,7 +16038,7 @@ commands work by removing the top one or two values from the stack,
 performing the desired operation, and pushing the result back onto the
 stack.  If the operation cannot be performed, the result pushed is a
 formula instead of a number, such as @samp{2/0} (because division by zero
-is illegal) or @samp{sqrt(x)} (because the argument @samp{x} is a formula).
+is invalid) or @samp{sqrt(x)} (because the argument @samp{x} is a formula).
 
 Most of the commands described here can be invoked by a single keystroke.
 Some of the more obscure ones are two-letter sequences beginning with
@@ -17965,14 +17965,6 @@ and the depreciation is zero for all subsequent periods.  The @code{ddb}
 function returns the amount the book value decreased in the specified
 period.
 
-The Calc financial function names were borrowed mostly from Microsoft
-Excel and Borland's Quattro.  The @code{ratel} function corresponds to
-@samp{@@CGR} in Borland's Reflex.  The @code{nper} and @code{nperl}
-functions correspond to @samp{@@TERM} and @samp{@@CTERM} in Quattro,
-respectively.  Beware that the Calc functions may take their arguments
-in a different order than the corresponding functions in your favorite
-spreadsheet.
-
 @node Binary Functions, , Financial Functions, Arithmetic
 @section Binary Number Functions
 
@@ -19536,7 +19528,7 @@ packing mode (an integer or a vector of integers) and @var{items}
 is a vector of objects to be packed (re-packed, really) according
 to that mode.  For example, @samp{pack([3, -4], [a,b,c,d,e,f])}
 yields @samp{[a +/- b, @w{c +/- d}, e +/- f]}.  The function is
-left in symbolic form if the packing mode is illegal, or if the
+left in symbolic form if the packing mode is invalid, or if the
 number of data items does not match the number of items required
 by the mode.
 
@@ -23434,7 +23426,7 @@ is allowed only within @code{IntegRules}; it means ``integrate this
 with respect to the same integration variable.''  If Calc is unable
 to integrate @code{u}, the integration that invoked @code{IntegRules}
 also fails.  Thus integrating @samp{twice(f(x))} fails, returning the
-unevaluated integral @samp{integ(twice(f(x)), x)}.  It is still legal
+unevaluated integral @samp{integ(twice(f(x)), x)}.  It is still valid
 to call @code{integ} with two or more arguments, however; in this case,
 if @code{u} is not integrable, @code{twice} itself will still be
 integrated:  If the above rule is changed to @samp{... := twice(integ(u,x))},
@@ -25281,7 +25273,7 @@ As a special feature, if the limits are infinite (or omitted, as
 described above) but the formula includes vectors subscripted by
 expressions that involve the iteration variable, Calc narrows
 the limits to include only the range of integers which result in
-legal subscripts for the vector.  For example, the sum
+valid subscripts for the vector.  For example, the sum
 @samp{sum(k [a,b,c,d,e,f,g]_(2k),k)} evaluates to @samp{b + 2 d + 3 f}.
 
 The limits of a sum do not need to be integers.  For example,
@@ -25291,7 +25283,7 @@ Calc computes the number of iterations using the formula
 after simplification as if by @kbd{a s}, evaluate to an integer.
 
 If the number of iterations according to the above formula does
-not come out to an integer, the sum is illegal and will be left
+not come out to an integer, the sum is invalid and will be left
 in symbolic form.  However, closed forms are still supplied, and
 you are on your honor not to misuse the resulting formulas by
 substituting mismatched bounds into them.  For example,
@@ -28746,7 +28738,7 @@ command.
 @kindex g A
 @pindex calc-graph-add-3d
 The @kbd{g A} (@code{calc-graph-add-3d}) command adds a 3D curve
-to the graph.  It is not legal to intermix 2D and 3D curves in a
+to the graph.  It is not valid to intermix 2D and 3D curves in a
 single graph.  This command takes three arguments, ``x'', ``y'',
 and ``z'', from the stack.  With a positive prefix @expr{n}, it
 takes @expr{n+2} arguments (common ``x'' and ``y'', plus @expr{n}
@@ -30451,8 +30443,8 @@ use @kbd{M-# u} to update the buffer by hand.
 @noindent
 The mode settings can be changed while Calc is in embedded mode, but
 will revert to their original values when embedded mode is ended
-(except for the modes changed while the mode-setting mode was
-@code{Save}). 
+(except for the modes saved when the mode-recording mode is
+@code{Save}; see below).
 
 Embedded mode has a rather complicated mechanism for handling mode
 settings in Embedded formulas.  It is possible to put annotations
@@ -30511,7 +30503,7 @@ of mode setting, the second is a name for the mode itself, and
 the third is the value in the form of a Lisp symbol, number,
 or list.  Annotations with unrecognizable text in the first or
 second parts are ignored.  The third part is not checked to make
-sure the value is of a legal type or range; if you write an
+sure the value is of a valid type or range; if you write an
 annotation by hand, be sure to give a proper value or results
 will be unpredictable.  Mode-setting annotations are case-sensitive.
 
@@ -30572,10 +30564,11 @@ rules of reading annotations the @samp{(sci 0)} applies to it, too.
 We would have to go down to the other formula and press @kbd{M-# u}
 on it in order to get it to notice the new annotation.
 
-Two more mode-recording modes selectable by @kbd{m R} are @code{Save}
-(which works even outside of Embedded mode), in which mode settings
-are recorded permanently in your Calc init file (the file given by the
-variable @code{calc-settings-file}, typically @file{~/.calc.el})
+Two more mode-recording modes selectable by @kbd{m R} are available
+which are also available outside of Embedded mode.  
+(@pxref{General Mode Commands}.) They are @code{Save},  in which mode
+settings are recorded permanently in your Calc init file (the file given
+by the variable @code{calc-settings-file}, typically @file{~/.calc.el})
 rather than by annotating the current document, and no-recording
 mode (where there is no symbol like @code{Save} or @code{Local} in
 the mode line), in which mode-changing commands do not leave any
@@ -31799,7 +31792,7 @@ to pop @var{num} values off the stack, resimplify them by calling
 @code{calc-normalize}, and hand them to your function according to the
 function's argument list.  Your function may include @code{&optional} and
 @code{&rest} parameters, so long as calling the function with @var{num}
-parameters is legal.
+parameters is valid.
 
 Your function must return either a number or a formula in a form
 acceptable to Calc, or a list of such numbers or formulas.  These value(s)
@@ -32829,7 +32822,7 @@ this function returns the selected portions rather than the entire
 stack elements.  It can be given a third ``selection-mode'' argument
 which selects other behaviors.  If it is the symbol @code{t}, then
 a selection in any of the requested stack elements produces an
-``illegal operation on selections'' error.  If it is the symbol @code{full},
+``invalid operation on selections'' error.  If it is the symbol @code{full},
 the whole stack entry is always returned regardless of selections.
 If it is the symbol @code{sel}, the selected portion is always returned,
 or @code{nil} if there is no selection.  (This mode ignores the @kbd{j e}

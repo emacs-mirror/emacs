@@ -2388,7 +2388,7 @@ Optional parameter DEPTH (usually 1) says how many to look for."
 (defun sh-var-value (var &optional ignore-error)
   "Return the value of variable VAR, interpreting symbols.
 It can also return t or nil.
-If an illegal value is found, throw an error unless Optional argument
+If an invalid value is found, throw an error unless Optional argument
 IGNORE-ERROR is non-nil."
   (let ((val (symbol-value var)))
     (cond

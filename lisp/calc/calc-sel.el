@@ -1,6 +1,7 @@
 ;;; calc-sel.el --- data selection functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -490,7 +491,7 @@
 	       (mapcar 'calc-replace-sub-formula-rec (cdr expr))))))
 
 (defun calc-sel-error ()
-  (error "Illegal operation on sub-formulas"))
+  (error "Invalid operation on sub-formulas"))
 
 (defun calc-replace-selections (n vals m)
   (if (calc-top-selected n m)

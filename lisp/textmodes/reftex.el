@@ -1,5 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -1416,7 +1417,7 @@ Valid actions are: readable, restore, read, kill, write."
            ((= key ?\C-i)
             (setq prefix (completing-read "Prefix: " xr-alist nil t))
             (- len (length (memq (assoc prefix xr-alist) xr-alist))))
-           (t (error "Illegal document selection [%c]" key)))))))))
+           (t (error "Invalid document selection [%c]" key)))))))))
 
 ;;; =========================================================================
 ;;;
@@ -1424,7 +1425,7 @@ Valid actions are: readable, restore, read, kill, write."
 
 (defun reftex-locate-file (file type master-dir &optional die)
   "Find FILE of type TYPE in MASTER-DIR or on the path associcted with TYPE.
-If the file does not have any of the legal extensions for TYPE,
+If the file does not have any of the valid extensions for TYPE,
 try first the default extension and only then the naked file name.
 When DIE is non-nil, throw an error if file not found."
   (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
@@ -2167,17 +2168,17 @@ Works on both Emacs and XEmacs."
   (reftex-convert-string string "[-~ \t\n\r,;]" nil t t
                          5 40 nil 1 " " (nth 5 reftex-derive-label-parameters)))
 
-(defun reftex-convert-string (string split-re illegal-re dot keep-fp
-                                     nwords maxchar illegal abbrev sep
+(defun reftex-convert-string (string split-re invalid-re dot keep-fp
+                                     nwords maxchar invalid abbrev sep
                                      ignore-words &optional downcase)
   "Convert a string (a sentence) to something shorter.
 SPLIT-RE     is the regular expression used to split the string into words.
-ILLEGAL-RE   matches characters which are illegal in the final string.
+INVALID-RE   matches characters which are invalid in the final string.
 DOT          t means add dots to abbreviated words.
 KEEP-FP      t means to keep a final punctuation when applicable.
 NWORDS       Number of words to use.
 MAXCHAR      Maximum number of characters in the final string.
-ILLEGAL      nil: Throw away any words containing stuff matched with ILLEGAL-RE.
+INVALID      nil: Throw away any words containing stuff matched with INVALID-RE.
              t:   Throw away only the matched part, not the whole word.
 ABBREV       nil: Never abbreviate words.
              t:   Always abbreviate words (see `reftex-abbrev-parameters').
@@ -2187,7 +2188,7 @@ SEP          String separating different words in the output string.
 IGNORE-WORDS List of words which should be removed from the string."
 
   (let* ((words0 (split-string string (or split-re "[ \t\n\r]")))
-         (reftex-label-illegal-re (or illegal-re "\000"))
+         (reftex-label-illegal-re (or invalid-re "\000"))
          (abbrev-re (concat
                      "\\`\\("
                      (make-string (nth 0 reftex-abbrev-parameters) ?.)
@@ -2203,7 +2204,7 @@ IGNORE-WORDS List of words which should be removed from the string."
       (cond
        ((member (downcase word) ignore-words))
        ((string-match reftex-label-illegal-re word)
-        (when illegal
+        (when invalid
           (while (string-match reftex-label-illegal-re word)
             (setq word (replace-match "" nil nil word)))
           (push word words)))

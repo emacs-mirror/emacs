@@ -1,6 +1,6 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;; Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -112,7 +112,7 @@
 ;;
 ;; ISO EBNF accepts the characters given by <character> production above,
 ;; HORIZONTAL TAB (^I), VERTICAL TAB (^K), NEWLINE (^J or ^M) and FORM FEED
-;; (^L), any other characters are illegal.  But ebnf2ps accepts also the
+;; (^L), any other characters are invalid.  But ebnf2ps accepts also the
 ;; european 8-bit accentuated characters (from \240 to \377) and underscore
 ;; (_).
 ;;
@@ -427,7 +427,7 @@ See documentation for variable `ebnf-iso-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; integer
        ((eq token 'integer)
 	(setq ebnf-iso-lex (ebnf-buffer-substring "0-9"))
@@ -527,7 +527,7 @@ See documentation for variable `ebnf-iso-lex'."
 	       (forward-char)
 	       (setq pair (1+ pair))))
 	    (t
-	     (error "Illegal character"))
+	     (error "Invalid character"))
 	    ))))
 
 

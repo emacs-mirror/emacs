@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,99, 2000,01,02,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
+     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -130,10 +130,6 @@ int synch_process_termsig;
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
-
-extern Lisp_Object Vdoc_file_name;
-
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.

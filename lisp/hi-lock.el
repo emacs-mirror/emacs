@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2005  Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman, koppel@ee.lsu.edu
 ;; Keywords: faces, minor-mode, matching, display
@@ -292,7 +292,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
             (> (prefix-numeric-value arg) 0)))
     ;; Turned on.
     (when (and (not hi-lock-mode-prev) hi-lock-mode)
-      (add-hook 'find-file-hooks 'hi-lock-find-file-hook)
+      (add-hook 'find-file-hook 'hi-lock-find-file-hook)
       (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook)
       (when (eq nil font-lock-defaults)
 	(setq font-lock-defaults '(nil)))
@@ -313,7 +313,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
                   hi-lock-file-patterns nil)
             (when font-lock-mode (hi-lock-refontify)))))
       (define-key-after menu-bar-edit-menu [hi-lock] nil)
-      (remove-hook 'find-file-hooks 'hi-lock-find-file-hook)
+      (remove-hook 'find-file-hook 'hi-lock-find-file-hook)
       (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook))))
 
 
@@ -568,5 +568,5 @@ Optional argument END is maximum excursion."
 
 (provide 'hi-lock)
 
-;;; arch-tag: d2e8fd07-4cc9-4c6f-a200-1e729bc54066
+;; arch-tag: d2e8fd07-4cc9-4c6f-a200-1e729bc54066
 ;;; hi-lock.el ends here

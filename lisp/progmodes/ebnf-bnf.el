@@ -1,6 +1,6 @@
 ;;; ebnf-bnf.el --- parser for EBNF
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;; Free Sofware Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -461,7 +461,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; default
        ((eq token 'default)
 	(forward-char)
@@ -470,7 +470,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	    (prog1
 		(ebnf-bnf-lex)
 	      (setq ebnf-default-p t))
-	  (error "Illegal `default' element")))
+	  (error "Invalid `default' element")))
        ;; integer
        ((eq token 'integer)
 	(setq ebnf-bnf-lex (ebnf-buffer-substring "0-9"))
@@ -550,7 +550,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	 (forward-char)
 	 t)
 	(t
-	 (error "Illegal character"))
+	 (error "Invalid character"))
 	))
 
 

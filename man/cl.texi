@@ -5,7 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright (C) 1993, 2002 Free Software Foundation, Inc.
+Copyright (C) 1993, 2002, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -991,7 +991,7 @@ just as with @code{setq}.  @code{setf} returns the value of the last
 @var{form}.
 
 The following Lisp forms will work as generalized variables, and
-so may legally appear in the @var{place} argument of @code{setf}:
+so may appear in the @var{place} argument of @code{setf}:
 
 @itemize @bullet
 @item
@@ -1073,7 +1073,7 @@ x (point-max))} in this case).
 
 @item
 A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
-where @var{subplace} is itself a legal generalized variable whose
+where @var{subplace} is itself a valid generalized variable whose
 current value is a string, and where the value stored is also a
 string.  The new string is spliced into the specified part of the
 destination string.  For example:
@@ -2379,7 +2379,7 @@ that they are exclusive rather than inclusive limits:
 
 The @code{by} value is always positive, even for downward-counting
 loops.  Some sort of @code{from} value is required for downward
-loops; @samp{for x downto 5} is not a legal loop clause all by
+loops; @samp{for x downto 5} is not a valid loop clause all by
 itself.
 
 @item for @var{var} in @var{list} by @var{function}
@@ -2481,7 +2481,7 @@ are also recognized but are equivalent to @code{symbols} in Emacs Lisp.
 Due to a minor implementation restriction, it will not work to have
 more than one @code{for} clause iterating over symbols, hash tables,
 keymaps, overlays, or intervals in a given @code{loop}.  Fortunately,
-it would rarely if ever be useful to do so.  It @emph{is} legal to mix
+it would rarely if ever be useful to do so.  It @emph{is} valid to mix
 one of these types of clauses with other clauses like @code{for ... to}
 or @code{while}.
 
@@ -2727,7 +2727,7 @@ not automatically imply a return value.  The loop must use some
 explicit mechanism, such as @code{finally return}, to return
 the accumulated result.
 
-It is legal for several accumulation clauses of the same type to
+It is valid for several accumulation clauses of the same type to
 accumulate into the same place.  From Steele:
 
 @example
@@ -3248,8 +3248,8 @@ In particular,
 (get sym prop)  @equiv{}  (getf (symbol-plist sym) prop)
 @end example
 
-It is legal to use @code{getf} as a @code{setf} place, in which case
-its @var{place} argument must itself be a legal @code{setf} place.
+It is valid to use @code{getf} as a @code{setf} place, in which case
+its @var{place} argument must itself be a valid @code{setf} place.
 The @var{default} argument, if any, is ignored in this context.
 The effect is to change (via @code{setcar}) the value cell in the
 list that corresponds to @var{property}, or to cons a new property-value
@@ -3535,7 +3535,7 @@ be an integer in which case the new object is seeded from that
 integer; each different integer seed will result in a completely
 different sequence of random numbers.
 
-It is legal to print a @code{random-state} object to a buffer or
+It is valid to print a @code{random-state} object to a buffer or
 file and later read it back with @code{read}.  If a program wishes
 to use a sequence of pseudo-random numbers which can be reproduced
 later for debugging, it can call @code{(make-random-state t)} to
@@ -4575,7 +4575,7 @@ initialized from the corresponding argument.  Slots whose names
 do not appear in the argument list are initialized based on the
 @var{default-value} in their slot descriptor.  Also, @code{&optional}
 and @code{&key} arguments which don't specify defaults take their
-defaults from the slot descriptor.  It is legal to include arguments
+defaults from the slot descriptor.  It is valid to include arguments
 which don't correspond to slot names; these are useful if they are
 referred to in the defaults for optional, keyword, or @code{&aux}
 arguments which @emph{do} correspond to slots.

@@ -1,6 +1,7 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995,98,99,2000,2001,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,2001,02,2003, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -745,7 +746,7 @@ is `local'.
 The default METHOD for a CVS root of the form
   [USER@]HOSTNAME:/path/to/repository
 is `ext'.
-For an empty string, nil is returned (illegal CVS root)."
+For an empty string, nil is returned (invalid CVS root)."
   ;; Split CVS root into colon separated fields (0-4).
   ;; The `x:' makes sure, that leading colons are not lost;
   ;; `HOST:/PATH' is then different from `:METHOD:/PATH'.

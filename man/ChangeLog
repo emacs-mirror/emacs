@@ -1,3 +1,54 @@
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi: Replace
+	`legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, reftex.texi: Replace `illegal' with `invalid'.
+
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (General Mode Commands)
+	(Mode Settings in Embedded Mode): Added some explanation of
+	recording mode settings.
+
+2005-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mule.texi (Single-Byte Character Support): Delete mention
+	of iso-acc.el and iso-transl.el.
+
+	* calc.texi: Remove praise of non-free software.
+
+	* idlwave.texi: Don't say where to get IDL or its non-free manual.
+	(Installation): Node deleted.
+
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Rename from Non-Ascii Isearch.
+
+2005-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi (HTTP language/coding): Improve last change.
+
+	* search.texi: Delete explicit node pointers.
+	(Incremental Search): New menu.
+	(Basic Isearch, Repeat Isearch, Error in Isearch)
+	(Non-Ascii Isearch, Isearch Yank, Highlight Isearch, Isearch Scroll)
+	(Slow Isearch): New subnodes.
+	(Configuring Scrolling): Node deleted.
+	(Search Case): Doc default-case-fold-search.
+	(Regexp Replace): Move replace-regexp doc here.
+
+	* rmail.texi (Movemail): Put commas inside closequotes.
+
+	* picture.texi (Insert in Picture): Document C-c arrow combos.
+	(Basic Picture): Clarify erasure.
+
+	* display.texi (Font Lock): Put commas inside closequotes.
+
+	* cmdargs.texi (General Variables): Put commas inside closequotes.
+
 2005-03-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Stack Buffer): Mention reverse contrast for

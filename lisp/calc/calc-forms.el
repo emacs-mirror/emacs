@@ -1,6 +1,7 @@
 ;;; calc-forms.el --- data format conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -1434,7 +1435,7 @@ and ends on the last Sunday of October at 2 a.m."
 (defun calcFunc-badd (a b)
   (if (eq (car-safe b) 'date)
       (if (eq (car-safe a) 'date)
-	  (math-reject-arg nil "*Illegal combination in date arithmetic")
+	  (math-reject-arg nil "*Invalid combination in date arithmetic")
 	(calcFunc-badd b a))
     (if (eq (car-safe a) 'date)
 	(if (Math-realp b)
@@ -1452,7 +1453,7 @@ and ends on the last Sunday of October at 2 a.m."
 		(if hours
 		    (setq b (math-div b (cdr hours))))
 		(calcFunc-badd a b))
-	    (math-reject-arg nil "*Illegal combination in date arithmetic")))
+	    (math-reject-arg nil "*Invalid combination in date arithmetic")))
       (math-reject-arg a 'datep))))
 
 (defun calcFunc-holiday (a)

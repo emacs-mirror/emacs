@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- Multiple identify support for MH-E.
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -122,7 +122,7 @@ Return t if anything is deleted."
   "Return the handler for a FIELD or nil if none set.
 The field name is downcased. If the FIELD begins with the character
 `:', then it must have a special handler defined in
-`mh-identity-handlers', else return an error since it is not a legal
+`mh-identity-handlers', else return an error since it is not a valid
 message header."
   (or (cdr (assoc (downcase field) mh-identity-handlers))
       (and (eq (aref field 0) ?:)

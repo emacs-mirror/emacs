@@ -2884,20 +2884,20 @@ interpreted as BC; -1 being 1 BC, and so on."
   (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
-  "Return t if DATE is legal and is visible in the calendar window."
+  "Return t if DATE is valid and is visible in the calendar window."
   (let ((gap (calendar-interval
               displayed-month displayed-year
               (extract-calendar-month date) (extract-calendar-year date))))
     (and (calendar-date-is-legal-p date) (> 2 gap) (< -2 gap))))
 
 (defun calendar-date-is-legal-p (date)
-  "Return t if DATE is a legal date."
+  "Return t if DATE is a valid date."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
          (<= 1 day) (<= day (calendar-last-day-of-month month year))
-         ;; BC dates left as non-legal, to suppress errors from
+         ;; BC dates left as non-valid, to suppress errors from
          ;; complex holiday algorithms not suitable for years BC.
          ;; Note there are side effects on calendar navigation.
          (<= 1 year))))

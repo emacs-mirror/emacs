@@ -1697,6 +1697,8 @@ font.  (This works only on certain systems.)
 @kindex fringe @r{(face name)}
 This face controls the default colors of window fringes, the thin areas on
 either side that are used to display continuation and truncation glyphs.
+Other faces used to display bitmaps in the fringe implicitly inherits from
+this face.
 
 @item minibuffer-prompt
 @kindex minibuffer-prompt @r{(face name)}
@@ -2833,7 +2835,10 @@ the form @code{(left-fringe @var{bitmap} [@var{face}])} or
 @code{(right-fringe @var{bitmap} [@var{face}])} (@pxref{Display
 Property}).  Here, @var{bitmap} is a symbol identifying the bitmap
 you want, and @var{face} (which is optional) is the name of the face
-whose colors should be used for displaying the bitmap.
+whose colors should be used for displaying the bitmap, instead of the
+default @code{fringe} face.  When specified, @var{face} implicitly
+inherits from the @code{fringe} face, so normally @var{face} only
+specifies the foreground color for the bitmap.
 
   These are the symbols identify the standard fringe bitmaps.
 Evaluate @code{(require 'fringe)} to define them.  Fringe bitmap
@@ -2923,8 +2928,8 @@ This sets the face for the fringe bitmap @var{bitmap} to @var{face}.
 If @var{face} is @code{nil}, it selects the @code{fringe} face.  The
 bitmap's face controls the color to draw it in.
 
-The face you use here should be derived from @code{fringe}, and should
-specify only the foreground color.
+The @var{face} implicitly inherits from the @code{fringe} face,
+so normally @var{face} should specifu only the foreground color.
 @end defun
 
 @node Overlay Arrow
