@@ -345,7 +345,8 @@ matches anything."
 (defun rx-not (form)
   "Parse and produce code from FORM.  FORM is `(not ...)'."
   (rx-check form)
-  (let ((result (rx-to-string (cadr form) 'no-group)))
+  (let ((result (rx-to-string (cadr form) 'no-group))
+	case-fold-search)
     (cond ((string-match "\\`\\[^" result)
 	   (if (= (length result) 4)
 	       (substring result 2 3)
