@@ -1,8 +1,8 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Maintainer: FSF
+;; Author: Henry Kautz <kautz@research.att.com>
 ;; Last-Modified: 16 Mar 1992
-;; Keywords: bib
+;; Keywords: bib, tex
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
@@ -32,7 +32,7 @@
 ;;; Change Log:
 
 ; HISTORY
-; 9/88, created
+; 9/88, created H.Kautz
 ; modified 1/19/89, allow books with editor but no author;
 ;                   added %O ordering field;
 ;                   appended illegal multiple fields, instead of 
@@ -706,7 +706,11 @@ If you don't want to see this help message when you load this utility,
 then include the following line in your .emacs file:
 	(setq r2b-load-quietly t)
 To see this message again, perform 
-         M-x r2b-help")
+         M-x r2b-help
+Please send bug reports and suggestions to
+	Henry Kautz
+        kautz@research.att.com
+	allegra!kautz")
 
 
 (defun r2b-help ()
