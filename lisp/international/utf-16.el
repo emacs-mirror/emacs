@@ -248,7 +248,6 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (mime-charset . utf-16le)
      (coding-category . coding-category-utf-16-le)
      (valid-codes (0 . 255))
-     (pre-write-conversion . utf-16-le-pre-write-conversion)
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
@@ -271,7 +270,6 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (mime-charset . utf-16be)
      (coding-category . coding-category-utf-16-be)
      (valid-codes (0 . 255))
-     (pre-write-conversion . utf-16-be-pre-write-conversion)
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
