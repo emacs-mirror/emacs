@@ -1457,7 +1457,7 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
     {
       Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
 
-      indices[depth] = i;
+      XSETFASTINT (indices[depth], i);
 
       if (SUB_CHAR_TABLE_P (elt))
 	{
