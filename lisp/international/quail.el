@@ -232,6 +232,14 @@ LEIM is available from the same ftp directory as Emacs."))
     (setq minor-mode-map-alist
 	  (cons (cons 'quail-mode quail-mode-map) minor-mode-map-alist)))
 
+;; Since some Emacs Lisp programs (e.g. viper.el) make
+;; minor-mode-map-alist buffer-local, we must be sure to register
+;; quail-mode-map in default-value of minor-mode-map-alist.
+(if (local-variable-p 'minor-mode-map-alist)
+    (let ((map (default-value 'minor-mode-map-alist)))
+      (or (assq 'quail-mode map)
+	  (set-default 'minor-mode-map-alist (cons 'quail-mode map)))))
+
 (defvar quail-translation-keymap
   (let ((map (make-keymap))
 	(i 0))
@@ -1462,14 +1470,14 @@ key		binding
       (setq ch (aref quail-keyboard-layout i))
       (if (= ch ?\ )
 	  (insert ch)
-	(let ((map (cdr (assq ch (cdr (quail-map))))))
-	  (if map
-	      (let ((translation
-		     (quail-get-translation map (char-to-string ch) 1)))
-		(if (integerp translation)
-		    (insert translation)
-		  (insert (aref (cdr translation) (car translation)))))
-	    (insert ch))))
+	(let* ((map (cdr (assq ch (cdr (quail-map)))))
+	       (translation (and map (quail-get-translation 
+				      map (char-to-string ch) 1))))
+	  (if (integerp translation)
+	      (insert translation)
+	    (if (consp translation)
+		(insert (aref (cdr translation) (car translation)))
+	      (insert ch)))))
       (setq i (1+ i))))
   (newline))
 
