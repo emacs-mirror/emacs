@@ -240,7 +240,6 @@
       (append
        (list
         (concat (calendar-date-string date) " (Gregorian)")
-        (list (calendar-iso-date-string date))
         (list (format "ISO date: %s" (calendar-iso-date-string date)))
         (list (format "Julian date: %s" (calendar-julian-date-string date)))
         (list (format "Astronomical (Julian) date (before noon): %s"
@@ -249,12 +248,13 @@
                       (calendar-hebrew-date-string date))))
        (let ((i (calendar-islamic-date-string date)))
          (if (not (string-equal i ""))
-             (list (format "Islamic date (before sunset): %s" i))))
+             (list (list (format "Islamic date (before sunset): %s" i)))))
        (let ((f (calendar-french-date-string date)))
          (if (not (string-equal f ""))
-             (list (format "French Revolutionary date: %s" f))))
+             (list (list (format "French Revolutionary date: %s" f)))))
        (list
-         (format "Mayan date: %s" (calendar-mayan-date-string date))))))))
+	(list
+         (format "Mayan date: %s" (calendar-mayan-date-string date)))))))))
 
 (defun calendar-mouse-date-menu (event)
   "Pop up menu for selected date."
