@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.24 1996/01/20 07:41:37 kwzh Exp rms $
+;; Maintainer: FSF
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -154,11 +154,12 @@ KEYWORDS is a comma-separated list of labels."
   "Sort messages of current Rmail file.
 If 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUN is called with a message number, and should return a key."
-  (save-excursion
+  (save-current-buffer
     ;; If we are in a summary buffer, operate on the Rmail buffer.
     (if (eq major-mode 'rmail-summary-mode)
 	(set-buffer rmail-buffer))
     (let ((buffer-read-only nil)
+	  (point-offset (- (point) (point-min)))
 	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
       (message "Finding sort keys...")
@@ -217,6 +218,7 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	(buffer-enable-undo)
 	(rmail-set-message-counters)
 	(rmail-show-message current-message)
+	(goto-char (+ point-offset (point-min)))
 	(if (rmail-summary-exists)
 	    (rmail-select-summary
 	     (rmail-update-summary)))))))
