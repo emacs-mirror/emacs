@@ -933,10 +933,6 @@ selected window.
   Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
 
-@defun frame-root-window frame
-This function returns the window at the top left corner of @var{frame}.
-@end defun
-
   Another function that (usually) returns one of the windows in a given
 frame is @code{minibuffer-window}.  @xref{Minibuffer Misc}.
 
