@@ -639,8 +639,11 @@ case "${canonical}" in
       *-sunos4.1.3*	  ) opsys=sunos4-1-3
 		NON_GCC_TEST_OPTIONS=-Bstatic
 		GCC_TEST_OPTIONS=-static
+		NON_GNU_CPP=/usr/lib/cpp
 		;;
-      *-sunos4shr*	  ) opsys=sunos4shr ;;
+      *-sunos4shr*	  ) opsys=sunos4shr
+		NON_GNU_CPP=/usr/lib/cpp
+		;;
       *-sunos4* | *-sunos ) opsys=sunos4-1
 		NON_GCC_TEST_OPTIONS=-Bstatic
 		GCC_TEST_OPTIONS=-static
@@ -739,6 +742,7 @@ case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;
       *-isc4.0* )		opsys=isc4-0 ;;
+      *-isc4.* )		opsys=isc4-1 ;;
       *-isc* )			opsys=isc3-0 ;;
       *-esix5* )		opsys=esix5r4; NON_GNU_CPP=/usr/lib/cpp ;;
       *-esix* )			opsys=esix ;;
