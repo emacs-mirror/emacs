@@ -1,3 +1,36 @@
+2003-09-04  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add blink-cursor-alist.
+
+	* ruler-mode.el (ruler-mode-fill-column-char)
+	(ruler-mode-current-column-char): Use char-displayable-p, not
+	window-system.
+
+	* international/codepage.el ("mule-diag"): Add eval-after-load
+	clause.
+
+	* language/european.el (windows-1252): Moved from code-pages.
+
+	* language/cyrillic.el ("Windows-1251"): Deleted.
+	("Bulgarian", "Belarusian"): Remove `features'.
+	(windows-1251): Moved from code-pages.
+
+	* international/mule-diag.el (non-iso-charset-alist): Define as
+	nil.
+	(top-level): Append to non-iso-charset-alist (without `codepage'
+	stuff).
+	(print-designation, list-coding-systems-1): Output fixes.
+
+	* international/code-pages.el (cp-make-translation-table)
+	(cp-valid-codes): Made defsubsts.
+	(cp-fix-safe-chars): Deleted.
+	(mule-diag): Don't require.
+	(windows-1251, windows-1252): Removed to cyrillic.el/european.el.
+	(top-level): Check for defined coding system when defining
+	cp... aliases.  Change w32-add-charset-info test to avoid warning.
+	(non-iso-charset-alist): Defvar when compiling.
+	(cp-make-coding-system): Doc fix.
+
 2003-09-02  Jason Rumney  <jasonr@gnu.org>
 
 	* international/titdic-cnv.el (tsang-quick-converter): Fix broken
