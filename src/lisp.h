@@ -1225,6 +1225,7 @@ struct Lisp_Overlay
     int type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
     int spacer : 15;
+    struct Lisp_Overlay *next;
     Lisp_Object start, end, plist;
   };
 
