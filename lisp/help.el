@@ -250,21 +250,18 @@ If that doesn't give a function, return nil."
 (defun describe-distribution ()
   "Display info on how to obtain the latest version of GNU Emacs."
   (interactive)
-  (find-file-read-only
-   (expand-file-name "DISTRIB" data-directory)))
+  (view-find (expand-file-name "DISTRIB" data-directory)))
 
 (defun describe-copying ()
   "Display info on how you may redistribute copies of GNU Emacs."
   (interactive)
-  (find-file-read-only
-   (expand-file-name "COPYING" data-directory))
+  (view-file (expand-file-name "COPYING" data-directory))
   (goto-char (point-min)))
 
 (defun describe-project ()
   "Display info on the GNU project."
   (interactive)
-  (find-file-read-only
-   (expand-file-name "THE-GNU-PROJECT" data-directory))
+  (view-file (expand-file-name "THE-GNU-PROJECT" data-directory))
   (goto-char (point-min)))
 
 (defun describe-no-warranty ()
@@ -307,13 +304,13 @@ With numeric argument, display information on correspondingly older changes."
 						      nil "^ONEWS\\.[0-9]+$"
 						      nil)))))))
     (if file
-	(find-file-read-only (expand-file-name file data-directory))
+	(view-file (expand-file-name file data-directory))
       (error "No such old news"))))
 
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."
   (interactive)
-  (find-file-read-only (expand-file-name "ORDERS" data-directory))
+  (view-file (expand-file-name "ORDERS" data-directory))
   (goto-address))
 
 (defun view-emacs-FAQ ()
