@@ -1,3 +1,38 @@
+2004-11-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el, calc/calc-alg.el, calc/calc-arith.el
+	* calc/calc-bin.el, calc/calc-comb.el, calc/calc-cplx.el
+	* calc/calc-embed.el, calc/calc-fin.el, calc/calc-forms.el
+	* calc/calc-frac.el, calc/calc-funcs.el, calc/calc-graph.el
+	* calc/calc-help.el, calc/calc-incom.el, calc/calc-keypd.el
+	* calc/calc-lang.el, calc/calc-map.el, calc/calc-math.el
+	* calc/calc-misc.el, calc/calc-mode.el, calc/calc-mtx.el
+	* calc/calc-poly.el, calc/calc-prog.el, calc/calc-rewr.el
+	* calc/calc-rules.el, calc/calc-sel.el, calc/calc-stat.el
+	* calc/calc-store.el, calc/calc-stuff.el, calc/calc-trail.el
+	* calc/calc-undo.el, calc/calc-units.el, calc/calc-vec.el
+	* calc/calc-yank.el, calc/calcalg2.el, calc/calcalg3.el
+	* calc/calccomp.el, calc/calcsel2.el: Replace dummy autoloaded functions
+	with provide statements.
+
+	* calc/calc-alg.el (math-defsimplify): Move from calc-ext.el.
+
+	* calc/calc-embed.el (calc-do-embedded-activate): Remove from autoloads.
+
+	* calc/calc-ext.el: Remove dummy autoloading functions from autoloads.
+	(calc-load-everything, math-defsimplify): Replace dummy autoloading
+	functions by require statements.
+	(math-defsimplify): Move to calc-alg.el, add to autoloads.
+
+	* calc/calc-graph.el (calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print): Give them values.
+
+	* calc/calc.el: Remove calc-Need-calc-aent and calc-Need-calc-misc from
+	autoloads.
+	Add calc-do-embedded-activate to autoloads.
+	(calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print-command): Move them to calc-graph.el.
+
 2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (ccl-encode-mac-roman-font)
