@@ -629,11 +629,6 @@ struct Lisp_Cons
 #define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr)
 #endif
 
-/* Okay, we're not quite ready to turn this on yet.  A few files still
-   need to be updated and tested.  */
-#undef LISP_MAKE_RVALUE
-#define LISP_MAKE_RVALUE(x) (x)
-
 /* Use these from normal code.  */
 #define XCAR(c)	LISP_MAKE_RVALUE(XCAR_AS_LVALUE(c))
 #define XCDR(c) LISP_MAKE_RVALUE(XCDR_AS_LVALUE(c))
