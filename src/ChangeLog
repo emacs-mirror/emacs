@@ -1,5 +1,9 @@
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fwindow_live_p): Use WINDOW_LIVE_P.
+
+	* window.h (WINDOW_LIVE_P): New macro.
+
 	* window.c (window_size_fixed): New variable.
 	(syms_of_window): Add a DEFVAR_BOOL for window-size-fixed, for
 	the doc string.
