@@ -1,3 +1,10 @@
+2001-11-19  Andrew Innes  <andrewi@gnu.org>
+
+	* ftime-nostartup.bat: New file.
+
+	* ftime.bat: Don't include libc.lib for profiling - the profiler
+	corrupts part of memcpy.
+
 2001-11-17  Jason Rumney  <jasonr@gnu.org>
 
 	* nmake.defs (SYS_LDFLAGS): Add setargv.obj for wildcard
