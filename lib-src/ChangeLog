@@ -1,3 +1,7 @@
+2002-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* getopt.c: Comment out include of libintl.h or gettext.h.
+
 2002-12-04  Richard M. Stallman  <rms@gnu.org>
 
 	* Update getopt from gnulib version; changes described below.
