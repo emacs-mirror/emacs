@@ -173,34 +173,39 @@
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
      (lambda (real-value)
-       (let ((lwidth
-	      (or (and (consp real-value) (plist-get real-value :line-width))
-		  (and (integerp real-value) real-value)
-		  1))
-	     (color
-	      (or (and (consp real-value) (plist-get real-value :color))
-		  (and (stringp real-value) real-value)
-		  nil))
-	     (style
-	      (and (consp real-value) (plist-get real-value :style))))
-	 (list :line-width lwidth :color color :style style)))
+       (if (null real-value)
+	   'off
+	 (let ((lwidth
+		(or (and (consp real-value) (plist-get real-value :line-width))
+		    (and (integerp real-value) real-value)
+		    1))
+	       (color
+		(or (and (consp real-value) (plist-get real-value :color))
+		    (and (stringp real-value) real-value)
+		    nil))
+	       (style
+		(and (consp real-value) (plist-get real-value :style))))
+	   (list :line-width lwidth :color color :style style))))
      ;; filter to make customized-value suitable for storing
      (lambda (cus-value)
-       (if (consp cus-value)
-	   (let ((lwidth (plist-get cus-value :line-width))
-		 (color (plist-get cus-value :color))
-		 (style (plist-get cus-value :style)))
-	     (cond ((and (null color) (null style))
-		    lwidth)
-		   ((and (null lwidth) (null style))
-		    ;; actually can't happen, because LWIDTH is always an int
-		    color)
-		   (t
-		    ;; Keep as a plist, but remove null entries
-		    (nconc (and lwidth `(:line-width ,lwidth))
-			   (and color  `(:color ,color))
-			   (and style  `(:style ,style))))))
-	 cus-value)))
+       (cond ((null cus-value)
+	      'unspecified)
+	     ((eq cus-value 'off)
+	      nil)
+	     (t
+	      (let ((lwidth (plist-get cus-value :line-width))
+		    (color (plist-get cus-value :color))
+		    (style (plist-get cus-value :style)))
+		(cond ((and (null color) (null style))
+		       lwidth)
+		      ((and (null lwidth) (null style))
+		       ;; actually can't happen, because LWIDTH is always an int
+		       color)
+		      (t
+		       ;; Keep as a plist, but remove null entries
+		       (nconc (and lwidth `(:line-width ,lwidth))
+			      (and color  `(:color ,color))
+			      (and style  `(:style ,style))))))))))
     
     (:inverse-video
      (choice :tag "Inverse-video"
