@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Oscar Figueiredo <oscar@xemacs.org>
-;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
+;; Author: Oscar Figueiredo <oscar@cpe.fr>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
