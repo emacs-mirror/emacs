@@ -245,7 +245,7 @@ with a prefix argument."
 
 (defun dired-map-dired-file-lines (fun)
   ;; Perform FUN with point at the end of each non-directory line.
-  ;; FUN takes one argument, the filename (complete pathname).
+  ;; FUN takes one argument, the absolute filename.
   (save-excursion
     (let (file buffer-read-only)
       (goto-char (point-min))
@@ -906,7 +906,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 
 (defun dired-relist-entry (file)
   ;; Relist the line for FILE, or just add it if it did not exist.
-  ;; FILE must be an absolute pathname.
+  ;; FILE must be an absolute file name.
   (let (buffer-read-only marker)
     ;; If cursor is already on FILE's line delete-region will cause
     ;; save-excursion to fail because of floating makers,
@@ -1062,7 +1062,7 @@ Special value `always' suppresses confirmation."
 ;; OPERATION (a capitalized string, e.g. `Copy') describes the
 ;; operation performed.  It is used for error logging.
 
-;; FN-LIST is the list of files to copy (full absolute pathnames).
+;; FN-LIST is the list of files to copy (full absolute file names).
 
 ;; NAME-CONSTRUCTOR returns a newfile for every oldfile, or nil to
 ;; skip.  If it skips files for other reasons than a direct user
@@ -1299,7 +1299,7 @@ When renaming multiple or marked files, you specify a directory."
   ;; ARG as in dired-get-marked-files.
   ;; Matches each marked file against REGEXP and constructs the new
   ;;   filename from NEWNAME (like in function replace-match).
-  ;; Optional arg WHOLE-PATH means match/replace the whole pathname
+  ;; Optional arg WHOLE-PATH means match/replace the whole file name
   ;;   instead of only the non-directory part of the file.
   ;; Optional arg MARKER-CHAR as in dired-create-files.
   (let* ((fn-list (dired-get-marked-files nil arg))
@@ -1370,9 +1370,9 @@ As each match is found, the user must type a character saying
   what to do with it.  For directions, type \\[help-command] at that time.
 NEWNAME may contain \\=\\<n> or \\& as in `query-replace-regexp'.
 REGEXP defaults to the last regexp used.
-With a zero prefix arg, renaming by regexp affects the complete
-  pathname - usually only the non-directory part of file names is used
-  and changed."
+
+With a zero prefix arg, renaming by regexp affects the absolute file name.
+Normally, only the non-directory part of the file name is used and changed."
   (interactive (dired-mark-read-regexp "Rename"))
   (dired-do-create-files-regexp
    (function dired-rename-file)
@@ -1645,7 +1645,7 @@ This function takes some pains to conform to `ls -lR' output."
 	    (run-hooks 'dired-after-readin-hook))))))
 
 (defun dired-tree-lessp (dir1 dir2)
-  ;; Lexicographic order on pathname components, like `ls -lR':
+  ;; Lexicographic order on file name components, like `ls -lR':
   ;; DIR1 < DIR2 iff DIR1 comes *before* DIR2 in an `ls -lR' listing,
   ;;   i.e., iff DIR1 is a (grand)parent dir of DIR2,
   ;;   or DIR1 and DIR2 are in the same parentdir and their last
