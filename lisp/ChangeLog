@@ -1,3 +1,37 @@
+2004-01-27  Eli Tziperman  <eli@deas.harvard.edu>
+
+	* rmail-spam-filter.el: Change rmail-spam-filter- or spam-filter-
+	or rmail-spam- to rsf- in all function and variable names.
+	(rsf-min-region-to-spam-list): New variable.
+	(rsf-bbdb-auto-delete-spam-entries): Renamed from
+	rmail-bbdb-auto-delete-spam-bbdb-entries.  The cc: field is
+	scanned together with the recipients field for spam testing; Don't
+	delete spam message if rmail-delete-after-output is non-nil;
+	(check-field) New function, extracted from code in
+	rmail-spam-filter to ease addition of header fields like
+	content-type:;
+	(message-content-type) New variable.  The content-type: field was
+	added also in defcustom of rsf-definitions-alist;
+	(rmail-spam-filter): Replace repeated test code for header fields
+	by calls to check-field; change the call to
+	rmail-output-to-rmail-file such that rmail-current-message stays
+	the same to avoid wrong deletion of unseen flags.
+	(rmail-use-spam-filter): Add autoload cookie.
+
+2004-01-27 Sat  Jari Aalto  <jari.aalto@poboxes.com>
+
+        * filecache.el
+        (file-cache-find-posix-p): New function. Detect Cygwin.
+        (file-cache-add-directory-using-find): Added Cygwin support.
+        (file-cache-find-command-posix-flag): New user variable.
+
+        * filecache.el (file-cache-add-directory): Check for
+        directories an remove them from dir-files.
+
+2004-01-27  Richard M. Stallman  <rms@gnu.org>
+
+	* man.el (Man-fontify-manpage): Clean up message.
+
 2004-01-27  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/paragraphs.el (sentence-end-without-space): New variable.
