@@ -2234,7 +2234,7 @@ swap_out_buffer_local_variables (b)
 	  /* Store the current value into any forwarding in the symbol.  */
 	  store_symval_forwarding (sym,
 				   XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue,
-				   XCDR (tem));
+				   XCDR (tem), NULL);
 	}
     }
 }
