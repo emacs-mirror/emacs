@@ -40,8 +40,8 @@
 		       latin-jisx0201 japanese-jisx0212)
 		nil nil nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
-  :charset-list '(ascii japanese-jisx0208-1978 japanese-jisx0208
-			   latin-jisx0201 japanese-jisx0212)
+  :charset-list '(ascii japanese-jisx0208 japanese-jisx0212
+			japanese-jisx0208-1978 latin-jisx0201)
   :mime-charset 'iso-2022-jp)
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
@@ -58,8 +58,8 @@
 		nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation single-shift
 		 init-at-bol)
-  :charset-list '(ascii japanese-jisx0208-1978 japanese-jisx0208
-			latin-jisx0201 japanese-jisx0212
+  :charset-list '(ascii japanese-jisx0208 japanese-jisx0212
+			latin-jisx0201 japanese-jisx0208-1978
 			chinese-gb2312 korean-ksc5601
 			latin-iso8859-1 greek-iso8859-7)
   :mime-charset 'iso-2022-jp-2)
@@ -100,8 +100,8 @@
   :designation [ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212]
   :flags '(short ascii-at-eol ascii-at-cntl single-shift)
   :charset-list '(ascii latin-jisx0201 japanese-jisx0208
-			   japanese-jisx0208-1978
-			   katakana-jisx0201 japanese-jisx0212)
+			japanese-jisx0208-1978
+			katakana-jisx0201 japanese-jisx0212)
   :mime-charset 'euc-jp)
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
