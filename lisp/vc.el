@@ -217,7 +217,7 @@ If nil, VC itself computes this value when it is first needed.")
   (cond
    ((eq backend 'RCS)
     (or vc-rcs-release
-	(and (zerop (vc-do-command nil 2 "rcs" nil nil "-V"))
+	(and (zerop (vc-do-command nil nil "rcs" nil nil "-V"))
 	     (save-excursion
 	       (set-buffer (get-buffer "*vc*"))
 	       (setq vc-rcs-release
@@ -377,6 +377,7 @@ If nil, VC itself computes this value when it is first needed.")
   "Execute a version-control command, notifying user and checking for errors.
 Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil.  
 The command is successful if its exit status does not exceed OKSTATUS.
+ (If OKSTATUS is nil, that means to ignore errors.)
 The last argument of the command is the master name of FILE if LAST is 
 `MASTER', or the workfile of FILE if LAST is `WORKFILE'; this is appended 
 to an optional list of FLAGS."
@@ -421,7 +422,7 @@ to an optional list of FLAGS."
     (goto-char (point-max))
     (set-buffer-modified-p nil)
     (forward-line -1)
-    (if (or (not (integerp status)) (< okstatus status))
+    (if (or (not (integerp status)) (and okstatus (< okstatus status)))
 	(progn
 	  (pop-to-buffer buffer)
 	  (goto-char (point-min))
