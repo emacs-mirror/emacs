@@ -341,7 +341,8 @@ sequence of the text in buffers and strings.  An exception is made for
 eight-bit-control characters.  Each of them is encoded into a single
 byte."
  nil
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (make-coding-system
  'raw-text 5 ?t
