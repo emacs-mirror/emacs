@@ -15,9 +15,10 @@ MAKEINFO = makeinfo
 INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl ../info/dired-x \
 	       ../info/ediff ../info/forms ../info/gnus ../info/info \
 	       ../info/mh-e ../info/sc ../info/vip ../info/viper \
-	       ../info/message
+	       ../info/message ../info/custom ../info/widget
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi ediff.dvi forms.dvi \
-		 gnus.dvi mh-e.dvi sc.dvi vip.dvi viper.dvi message.dvi
+		 gnus.dvi mh-e.dvi sc.dvi vip.dvi viper.dvi message.dvi \
+		 customize.dvi widget.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -136,6 +137,16 @@ gnus.dvi: gnus.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
 message.dvi: message.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/message.texi
+
+../info/widget: widget.texi
+	cd $(srcdir); $(MAKEINFO) widget.texi
+widget.dvi: widget.texi
+	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/widget.texi
+
+../info/custom: customize.texi
+	cd $(srcdir); $(MAKEINFO) customize.texi
+customize.dvi: customize.texi
+	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/customize.texi
 
 ../etc/GNU: gnu1.texi gnu.texi
 	makeinfo --no-headers -o ../etc/GNU gnu1.texi
