@@ -1540,15 +1540,15 @@ struct face_cache
    with id ID but is suitable for displaying character CHAR.
    This macro is only meaningful for multibyte character CHAR.  */
 
-#define FACE_FOR_CHAR(F, FACE, CHAR)	\
-  (ASCII_CHAR_P (CHAR)			\
-   ? (FACE)->ascii_face->id		\
-   : face_for_char ((F), (FACE), (CHAR)))
+#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
+  (ASCII_CHAR_P (CHAR)					\
+   ? (FACE)->ascii_face->id				\
+   : face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT)))
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR) 1
-#define FACE_FOR_CHAR(F, FACE, CHAR) ((FACE)->id)
+#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
 
 #endif /* not HAVE_WINDOW_SYSTEM */
 
