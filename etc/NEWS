@@ -2812,6 +2812,9 @@ formerly used for that purpose is now an alias for locale-coding-system.
 display a prompt but don't use the minibuffer, now display the prompt
 using the text properties (esp. the face) of the prompt string.
 
+** New function x-send-client-message sends a client message when
+running under X.
+
 ** New packages:
 
 *** The new package gdb-ui.el provides an enhanced graphical interface to
