@@ -1,9 +1,9 @@
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.c: Declare Qdisabled_command_function instead of
-	Qdisabled_command_command.
+	Qdisabled_command_hook.
 	(Fcommand_execute): Use Qdisabled_command_function instead of
-	Qdisabled_command_command.
+	Qdisabled_command_hook.
 	(syms_of_keyboard): Ditto.
 
 2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
