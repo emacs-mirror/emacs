@@ -1,3 +1,8 @@
+2002-08-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el (next-word-boundary-han): Don't
+	treat katakana following han characters as a part of a word.
+
 2002-08-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Call map-charset-chars on big5
