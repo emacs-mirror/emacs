@@ -1110,42 +1110,47 @@ print_preprocess (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj) && NILP (XSYMBOL (obj)->obarray)))
     {
-      for (i = 0; i < print_number_index; i++)
-	if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
-	  {
-	    /* OBJ appears more than once.  Let's remember that.  */
-	    PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-	    return;
-	  }
-
-      /* OBJ is not yet recorded.  Let's add to the table.  */
-      if (print_number_index == 0)
+      /* In case print-circle is nil and print-gensym is t,
+	 add OBJ to Vprint_number_table only when OBJ is a symbol.  */
+      if (! NILP (Vprint_circle) || SYMBOLP (obj))
 	{
-	  /* Initialize the table.  */
-	  Vprint_number_table = Fmake_vector (make_number (40), Qnil);
-	}
-      else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
-	{
-	  /* Reallocate the table.  */
-	  int i = print_number_index * 4;
-	  Lisp_Object old_table = Vprint_number_table;
-	  Vprint_number_table = Fmake_vector (make_number (i), Qnil);
 	  for (i = 0; i < print_number_index; i++)
+	    if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+	      {
+		/* OBJ appears more than once.  Let's remember that.  */
+		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
+		return;
+	      }
+
+	  /* OBJ is not yet recorded.  Let's add to the table.  */
+	  if (print_number_index == 0)
 	    {
-	      PRINT_NUMBER_OBJECT (Vprint_number_table, i)
-		= PRINT_NUMBER_OBJECT (old_table, i);
-	      PRINT_NUMBER_STATUS (Vprint_number_table, i)
-		= PRINT_NUMBER_STATUS (old_table, i);
+	      /* Initialize the table.  */
+	      Vprint_number_table = Fmake_vector (make_number (40), Qnil);
 	    }
+	  else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
+	    {
+	      /* Reallocate the table.  */
+	      int i = print_number_index * 4;
+	      Lisp_Object old_table = Vprint_number_table;
+	      Vprint_number_table = Fmake_vector (make_number (i), Qnil);
+	      for (i = 0; i < print_number_index; i++)
+		{
+		  PRINT_NUMBER_OBJECT (Vprint_number_table, i)
+		    = PRINT_NUMBER_OBJECT (old_table, i);
+		  PRINT_NUMBER_STATUS (Vprint_number_table, i)
+		    = PRINT_NUMBER_STATUS (old_table, i);
+		}
+	    }
+	  PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
+	  /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
+	     always print the gensym with a number.  This is a special for
+	     the lisp function byte-compile-output-docform.  */
+	  if (! NILP (Vprint_continuous_numbering) && SYMBOLP (obj)
+	      && NILP (XSYMBOL (obj)->obarray))
+	    PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
+	  print_number_index++;
 	}
-      PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
-      /* If Vprint_continuous_numbering is non-nil and OBJ is a gensym,
-	 always print the gensym with a number.  This is a special for
-	 the lisp function byte-compile-output-docform.  */
-      if (! NILP (Vprint_continuous_numbering) && SYMBOLP (obj)
-	  && NILP (XSYMBOL (obj)->obarray))
-	PRINT_NUMBER_STATUS (Vprint_number_table, print_number_index) = Qt;
-      print_number_index++;
 
       switch (XGCTYPE (obj))
 	{
