@@ -1,3 +1,14 @@
+2000-05-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* isearch.el (isearch-printing-char): If keyboard coding system is
+	being used, call isearch-process-search-multibyte-characters.
+
+	* international/isearch-x.el: Mostly rewritten.
+
+	* international/quail.el (quail-start-conversion): Don't include
+	unhandled events in the returned events, but set them in
+	unread-command-events.  Exit if all inputs are deleted.
+
 2000-05-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Add each charset separately.
