@@ -2,8 +2,8 @@
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
 
-(defconst dired-lisp-version (substring "$Revision: 1.7 $" 11 -2)
-  "$Id: dired-lisp.el,v 1.7 1992/04/30 10:37:15 sk Exp sk $")
+(defconst dired-lisp-version (substring "$Revision: 1.8 $" 11 -2)
+  "$Id: dired-lisp.el,v 1.8 1992/05/01 17:50:56 sk Exp sk $")
 
 ;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
@@ -25,7 +25,7 @@
 ;;    LCD Archive Entry:
 ;;    dired-lisp|Sebastian Kremer|sk@thp.uni-koeln.de
 ;;    |emulate Tree Dired's ls completely in Emacs Lisp 
-;;    |$Date: 1992/04/30 10:37:15 $|$Revision: 1.7 $|
+;;    |$Date: 1992/05/01 17:50:56 $|$Revision: 1.8 $|
 
 ;; INSTALLATION =======================================================
 ;; 
@@ -129,6 +129,7 @@ SWITCHES default to dired-listing-switches."
 	     (default-directory dir);; so that file-attributes works
 	     (sum 0)
 	     elt
+	     short
 	     (file-list (directory-files dir nil wildcard))
 	     file-alist 
 	     ;; do all bindings here for speed
