@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.18
+;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -107,6 +107,7 @@
 				     (and lim
 					  (<= lim (point))
 					  (not (c-in-literal lim))
+					  (not (eq (char-before) ?_))
 					  (looking-at c-conditional-key)
 					  ))))
 		       ;; did we find a conditional?
@@ -1181,7 +1182,7 @@
 	   ;; CASE 5F: extern-lang-close?
 	   ((and inextern-p
 		 (eq char-after-ip ?}))
-	    (c-add-syntax 'extern-lang-close (aref inclass-p 1)))
+	    (c-add-syntax 'extern-lang-close (aref inclass-p 0)))
 	   ;; CASE 5G: we are looking at the brace which closes the
 	   ;; enclosing nested class decl
 	   ((and inclass-p
