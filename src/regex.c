@@ -3,7 +3,7 @@
    (Implements POSIX draft P10003.2/D11.2, except for
    internationalization features.)
 
-   Copyright (C) 1985, 89, 90, 91, 92 Free Software Foundation, Inc.
+   Copyright (C) 1993 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -4869,9 +4869,18 @@ regerror (errcode, preg, errbuf, errbuf_size)
     char *errbuf;
     size_t errbuf_size;
 {
-  const char *msg
-    = re_error_msg[errcode] == NULL ? "Success" : re_error_msg[errcode];
-  size_t msg_size = strlen (msg) + 1; /* Includes the null.  */
+  const char *msg;
+  size_t msg_size;
+
+  if (errcode < 0
+      || errcode >= (sizeof (re_error_msg) / sizeof (re_error_msg[0])))
+    /* Only error codes returned by the rest of the code should be passed 
+       to this routine.  If we are given anything else, or if other regex
+       code generates an invalid error code, then the program has a bug.
+       Dump core so we can fix it.  */
+    abort ();
+
+  msg_size = strlen (msg) + 1; /* Includes the null.  */
   
   if (errbuf_size != 0)
     {
