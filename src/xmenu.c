@@ -154,6 +154,7 @@ With this form of menu, the return value is VALUE from the chosen item.")
   widget_value *val, *vw = 0;
 #endif /* USE_X_TOOLKIT */
 
+  check_x ();
   /* Decode the first argument: find the window and the coordinates.  */
   tem = Fcar (position);
   if (XTYPE (tem) == Lisp_Cons)
