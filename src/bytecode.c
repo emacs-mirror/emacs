@@ -251,6 +251,13 @@ Lisp_Object Qbytecode;
 
 #define TOP (*stackp)
 
+/* Garbage collect if we have consed enough since the last time.
+   We do this at every branch, to avoid loops that never GC.  */
+
+#define MAYBE_GC()				\
+  if (consing_since_gc > gc_cons_threshold)	\
+    Fgarbage_collect ();
+
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
   "Function used internally in byte-compiled code.\n\
 The first argument, BYTESTR, is a string of byte code;\n\
@@ -431,12 +438,14 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bgoto:
+	  MAYBE_GC ();
 	  QUIT;
 	  op = FETCH2;    /* pc = FETCH2 loses since FETCH2 contains pc++ */
 	  pc = XSTRING (string_saved)->data + op;
 	  break;
 
 	case Bgotoifnil:
+	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (NILP (POP))
 	    {
@@ -446,6 +455,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bgotoifnonnil:
+	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (!NILP (POP))
 	    {
@@ -455,6 +465,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bgotoifnilelsepop:
+	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (NILP (TOP))
 	    {
@@ -465,6 +476,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bgotoifnonnilelsepop:
+	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (!NILP (TOP))
 	    {
@@ -475,11 +487,13 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgoto:
+	  MAYBE_GC ();
 	  QUIT;
 	  pc += (int) *pc - 127;
 	  break;
 
 	case BRgotoifnil:
+	  MAYBE_GC ();
 	  if (NILP (POP))
 	    {
 	      QUIT;
@@ -489,6 +503,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgotoifnonnil:
+	  MAYBE_GC ();
 	  if (!NILP (POP))
 	    {
 	      QUIT;
@@ -498,6 +513,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgotoifnilelsepop:
+	  MAYBE_GC ();
 	  op = *pc++;
 	  if (NILP (TOP))
 	    {
@@ -508,6 +524,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgotoifnonnilelsepop:
+	  MAYBE_GC ();
 	  op = *pc++;
 	  if (!NILP (TOP))
 	    {
