@@ -121,7 +121,8 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'string
   )
 
-(defcustom netstat-program-options nil
+(defcustom netstat-program-options 
+  (list "-a")
   "Options for netstat-program."
   :group 'net-utils
   :type  '(repeat 'string)
