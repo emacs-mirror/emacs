@@ -1,3 +1,8 @@
+2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* Makefile.in (install-arch-indep): Use `${manext}' instead of
+	`.1'.
+
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist: Add lispref/index.*perm files to the distribution.
