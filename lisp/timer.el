@@ -221,6 +221,7 @@ fire repeatedly that many seconds apart."
   (setq timer-idle-list (delq timer timer-idle-list))
   nil)
 
+;;;###autoload
 (defun cancel-function-timers (function)
   "Cancel all timers scheduled by `run-at-time' which would run FUNCTION."
   (interactive "aCancel timers of function: ")
