@@ -418,10 +418,6 @@ that run cpp to construct `Makefile'.
 from the corresponding `Makefile.in' files.  This isn't so hard,
 just a matter of substitution.
 
-5) If you're going to use the build-install script to build Emacs,
-copy `./build-ins.in' to `./build-install', and edit the
-definitions found at the top of the script.
-
 The `configure' script is built from `configure.in' by the `autoconf'
 program.  However, since Emacs has configuration requirements that
 autoconf can't meet, `configure.in' uses an marriage of custom-baked
@@ -432,8 +428,8 @@ rebuilding `configure' from `configure.in' when possible.
 
 BUILDING GNU EMACS BY HAND
 
-Once Emacs is configured, running `make' or running the shell script
-`build-install' in the top directory performs the following steps.
+Once Emacs is configured, running `make' in the top directory performs
+the following steps.
 
 1) Run `make src/paths.h' in the top directory.  This produces
 `./src/paths.h' from the template file `./src/paths.h.in', changing
@@ -461,9 +457,8 @@ version.
 
 INSTALLATION BY HAND
 
-The steps below are done by the shell script `build-install' or by
-running `make install' in the main directory of the Emacs
-distribution.
+The steps below are done by running `make install' in the main
+directory of the Emacs distribution.
 
 1) Copy `./lisp' and its subdirectories, `./etc', and the executables
 in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
