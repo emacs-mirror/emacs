@@ -158,6 +158,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define ORDINARY_LINK
 
 #ifndef USG5_4
+#ifndef __GNUC__
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
    linker error for updated X11R5 libraries, which references pthread library
@@ -173,6 +174,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
 #endif
 #endif /* not AIX4 */
+#endif /* not __GNUC__ */
 
 /* AIX supposedly doesn't use this interface, but on the RS/6000
    it apparently does.  */
