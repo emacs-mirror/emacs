@@ -240,25 +240,6 @@ primary selection and region."
     [M-down-mouse-3] [M-mouse-3])
   "A list of events that mouse-sel binds.")
 
-(defun mouse-sel-save-original-bindings ()
-  "Save the current bindings for `mouse-sel-bound-events'."
-  (setq mouse-sel-original-bindings nil)
-  (mapc (function 
-         (lambda (event)
-           (setq mouse-sel-original-bindings
-                 (cons (cons event (lookup-key global-map event))
-                       mouse-sel-original-bindings))))
-        mouse-sel-bound-events))
-
-(defun mouse-sel-restore-original-bindings ()
-  "Restore the original bindings for `mouse-sel-bound-events'."
-  (mapc (function 
-         (lambda (binding)
-           (if (cdr binding)
-               (global-set-key (car binding) (cdr binding))
-             (global-unset-key (car binding)))))
-        mouse-sel-original-bindings))
-
 (defun mouse-sel-bindings (bind)
   (cond 
 
@@ -266,8 +247,18 @@ primary selection and region."
    ((and bind mouse-sel-default-bindings) 
 
     ;; Save original bindings
-    (mouse-sel-save-original-bindings)
-
+    (setq mouse-sel-original-bindings nil)
+    (mapc (function 
+           (lambda (event)
+             (setq mouse-sel-original-bindings
+                   (cons (cons event (lookup-key global-map event))
+                         mouse-sel-original-bindings))))
+          mouse-sel-bound-events)
+    (setq mouse-sel-original-interprogram-cut-function 
+          interprogram-cut-function
+          mouse-sel-original-interprogram-paste-function
+          interprogram-paste-function)
+    
     ;; Primary selection bindings.
     ;;
     ;; Bind keys to `ignore' instead of unsetting them because
@@ -295,8 +286,17 @@ primary selection and region."
    
    ((not bind)
     ;; Restore original bindings
-    (mouse-sel-restore-original-bindings))
-
+    (mapc (function 
+           (lambda (binding)
+             (if (cdr binding)
+                 (global-set-key (car binding) (cdr binding))
+               (global-unset-key (car binding)))))
+          mouse-sel-original-bindings)
+    (setq interprogram-cut-function 
+          mouse-sel-original-interprogram-cut-function
+          interprogram-paste-function
+          mouse-sel-original-interprogram-paste-function))
+   
    ))
 
 ;;=== Command Variable ====================================================
