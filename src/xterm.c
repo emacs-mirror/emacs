@@ -414,8 +414,16 @@ dumpglyphs (s, left, top, gp, n, hl, font)
 		             : (hl ? s->display.x->reverse_gc
 				   : s->display.x->normal_gc));
 
-  XDrawImageString16 (x_current_display, window, drawing_gc,
-		      left, top + FONT_BASE (font), (XChar2b *) gp, n);
+  if (sizeof (GLYPH) == sizeof (XChar2b))
+    XDrawImageString16 (x_current_display, window, drawing_gc,
+			left, top + FONT_BASE (font), (XChar2b *) gp, n);
+  else if (sizeof (GLYPH) == sizeof (unsigned char))
+    XDrawImageString (x_current_display, window, drawing_gc,
+		      left, top + FONT_BASE (font), (char *) gp, n);
+  else
+    /* What size of glyph ARE you using?  And does X have a function to
+       draw them?  */
+    abort ();
 }
 
 #if 0
@@ -1051,7 +1059,6 @@ dumprectangle (s, left, top, cols, rows)
 
   if (cursor_cleared)
     x_display_cursor (s, 1);
-  XFlushQueue ();
 }
 
 #ifndef HAVE_X11
@@ -1252,7 +1259,7 @@ x_new_focus_screen (screen, bufp, buf_free)
       screen_highlight (x_focus_screen);
 
       /* Enqueue an event.  It's kind of important not to drop these
-	 events, but the event queue's fixed size is a real pain in the butt
+	 events, but the event queue's fixed size is a real pain
 	 anyway.  */
       if (buf_free > 0)
 	{
@@ -1897,6 +1904,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		{
 		  int n = x_new_focus_screen (s, bufp, numchars);
 		  bufp += n;
+		  count += n;
 		  numchars -= n;
 		  enter_timestamp = event.xcrossing.time;
 		}
@@ -1934,6 +1942,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      int n = x_new_focus_screen (s, bufp, numchars);
 	      bufp += n;
+	      count += n;
 	      numchars -= n;
 	    }
 	  break;
@@ -1943,12 +1952,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      && event.xcrossing.subwindow == None
 	      && event.xcrossing.mode == NotifyNormal)
 	    {
-	      if (event.xcrossing.focus
-		  && (x_focus_screen
-		      == x_window_to_screen (event.xcrossing.window)))
+	      if (event.xcrossing.focus)
 		{
-		  int n = x_new_focus_screen (0, bufp, numchars);
+		  int n;
+		  s = x_window_to_screen (event.xcrossing.window);
+		  n = x_new_focus_screen (s, bufp, numchars);
 		  bufp += n;
+		  count += n;
 		  numchars -= n;
 		}
 	    }
@@ -1960,6 +1970,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      int n = x_new_focus_screen (0, bufp, numchars);
 	      bufp += n;
+	      count += n;
 	      numchars -= n;
 	    }
 	  break;
@@ -2518,127 +2529,6 @@ x_display_box_cursor (s, on)
   if (updating_screen != s)
     XFlushQueue ();
 }
-
-#if 0
-This code has been rewritten to use x_draw_single_glyph and draw
-box cursors successfully.  Once that code is working, this can go away.
-
-/* Turn the displayed cursor of screen S on or off according to ON.
-   If ON is nonzero, where to put the cursor is specified
-   by S->cursor_x and S->cursor_y.  */
-
-static void
-x_display_box_cursor (s, on)
-     struct screen *s;
-     int on;
-{
-  register struct screen_glyphs *current_screen = SCREEN_CURRENT_GLYPHS (s);
-
-  if (! s->visible)
-    return;
-
-  /* If cursor is off and we want it off, return quickly.  */
-
-  if (!on && s->phys_cursor_x < 0)
-    return;
-
-  /* If cursor is currently being shown and we don't want it to be
-     or it is in the wrong place, erase it.  */
-
-  if (s->phys_cursor_x >= 0
-      && (!on || s->phys_cursor_x != s->cursor_x
-	  || s->phys_cursor_y != s->cursor_y))
-    {
-      /* If there is supposed to be a character there, redraw it
-	 in that line's normal video.  */
-      if (current_screen->enable[s->phys_cursor_y]
-	  && s->phys_cursor_x < current_screen->used[s->phys_cursor_y])
-	dumpglyphs (s,
-		    (s->phys_cursor_x * FONT_WIDTH (s->display.x->font)
-		     + s->display.x->internal_border_width),
-		    (s->phys_cursor_y * FONT_HEIGHT (s->display.x->font)
-		     + s->display.x->internal_border_width),
-		    &current_screen->glyphs[s->phys_cursor_y][s->phys_cursor_x],
-		    1, current_screen->highlight[s->phys_cursor_y],
-		    s->display.x->font);
-      /* Otherwise just erase the space.  */
-      else
-#ifdef HAVE_X11
-	XClearArea (x_current_display, s->display.x->window_desc,
-		    s->phys_cursor_x * FONT_WIDTH (s->display.x->font)
-		    + s->display.x->internal_border_width,
-		    s->phys_cursor_y * FONT_HEIGHT (s->display.x->font)
-		    + s->display.x->internal_border_width,
-		    FONT_WIDTH (s->display.x->font),
-		    FONT_HEIGHT (s->display.x->font), False);
-#else
-	XPixSet (s->display.x->window_desc,
-		 s->phys_cursor_x * FONT_WIDTH (s->display.x->font)
-		 + s->display.x->internal_border_width,
-		 s->phys_cursor_y * FONT_HEIGHT (s->display.x->font)
-		 + s->display.x->internal_border_width,
-		 FONT_WIDTH (s->display.x->font),
-		 FONT_HEIGHT (s->display.x->font),
-		 s->display.x->background_pixel);
-#endif /* HAVE_X11 */
-
-      s->phys_cursor_x = -1;
-    }
-
-  /* If we want to show a cursor, write it in the right place.  */
-
-  if (on && s->phys_cursor_x < 0)
-    {
-      if (s != selected_screen || s != x_input_screen)
-	x_draw_box (s);
-      else if (current_screen->enable[s->cursor_y]
-	       && s->cursor_x < current_screen->used[s->cursor_y])
-	/* There is a character there: draw the character with
-	   cursor coloration.  */
-	dumpglyphs (s,
-		   (s->cursor_x * FONT_WIDTH (s->display.x->font)
-		    + s->display.x->internal_border_width),
-		   (s->cursor_y * FONT_HEIGHT (s->display.x->font)
-		    + s->display.x->internal_border_width),
-		    &current_screen->glyphs[s->cursor_y][s->cursor_x],
-		    1, 2, s->display.x->font);
-      else
-#ifdef HAVE_X11
-	{
-	  GLYPH space = SPACEGLYPH;
-	  dumpglyphs (s,
-		     (s->cursor_x * FONT_WIDTH (s->display.x->font)
-		      + s->display.x->internal_border_width),
-		     (s->cursor_y * FONT_HEIGHT (s->display.x->font)
-		      + s->display.x->internal_border_width),
-		     &space, 1,
-		     2, s->display.x->font);
-	}
-#if 0
-	/* This kills the HP-BSD X11R3 server...  */
-	XFillRectangle (x_current_display, s->display.x->window_desc,
-			s->display.x->cursor_gc,
-			s->cursor_x * FONT_WIDTH (s->display.x->font)
-			+ s->display.x->internal_border_width,
-			s->cursor_y * FONT_HEIGHT (s->display.x->font)
-			+ s->display.x->internal_border_width,
-			FONT_WIDTH (s->display.x->font), FONT_HEIGHT (s->display.x->font));
-#endif
-#else
-	XPixSet (s->display.x->window_desc,
-		 s->cursor_x * FONT_WIDTH (s->display.x->font)+s->display.x->internal_border_width,
-		 s->cursor_y * FONT_HEIGHT (s->display.x->font)+s->display.x->internal_border_width,
-		 FONT_WIDTH (s->display.x->font), FONT_HEIGHT (s->display.x->font), s->display.x->cursor_pixel);
-#endif /* HAVE_X11 */
-
-      s->phys_cursor_x = s->cursor_x;
-      s->phys_cursor_y = s->cursor_y;
-    }
-
-  if (updating_screen != s)
-    XFlushQueue ();
-}
-#endif
 
 extern Lisp_Object Vbar_cursor;
 
