@@ -1,3 +1,8 @@
+2000-03-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-version): Variable and function
+	removed.
+
 2000-03-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to allow
