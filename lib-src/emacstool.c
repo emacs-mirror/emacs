@@ -464,10 +464,10 @@ int interpose_on_window (argc, argv)
 			   0);
 
     /* Create a tty with emacs in it */
-    tty_win = window_create (frame, TTY, 
-			     TTY_QUIT_ON_CHILD_DEATH, TRUE, 
+    tty_win = window_create (frame, TTY,
+			     TTY_QUIT_ON_CHILD_DEATH, TRUE,
 			     TTY_BOLDSTYLE, TTYSW_BOLD_INVERT,
-			     TTY_ARGV, argv, 
+			     TTY_ARGV, argv,
 			     0);
 
     if (bold_name) {
