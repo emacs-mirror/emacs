@@ -911,6 +911,14 @@ to make it write to the debugging output.  */)
   return character;
 }
 
+
+#if defined(GNU_LINUX)
+
+/* This functionality is not vitally important in general, so we rely on
+   non-portable ability to use stderr as lvalue.  */
+
+#define WITH_REDIRECT_DEBUGGING_OUTPUT 1
+
 FILE *initial_stderr_stream = NULL;
 
 DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
@@ -943,6 +951,8 @@ append to existing target file.  */)
     }
   return Qnil;
 }
+#endif /* GNU_LINUX */
+
 
 /* This is the interface for debugging printing.  */
 
@@ -2197,7 +2207,9 @@ that need to be recorded in the table.  */);
   defsubr (&Sterpri);
   defsubr (&Swrite_char);
   defsubr (&Sexternal_debugging_output);
+#ifdef WITH_REDIRECT_DEBUGGING_OUTPUT
   defsubr (&Sredirect_debugging_output);
+#endif
 
   Qexternal_debugging_output = intern ("external-debugging-output");
   staticpro (&Qexternal_debugging_output);
