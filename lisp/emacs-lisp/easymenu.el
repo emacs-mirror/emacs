@@ -212,15 +212,9 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
   ;; MENU, just change it, otherwise put it last in MENU.
   (let (name command label prop remove)
     (cond
-     ((stringp item)			; An unselectable string.
-      (setq label
-	    (if (string-match	; If an XEmacs separator
-		 "^\\(-+\\|\
---:\\(\\(no\\|\\(sing\\|doub\\)le\\(Dashed\\)?\\)Line\\|\
-shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
-		 item) ""		; use a single line separator.
-	      item)))
-     ((consp item)			; A sub-menu.
+     ((stringp item)			; An item or separator.
+      (setq label item))
+     ((consp item)			; A sub-menu
       (setq label (setq name (car item)))
       (setq command (cdr item))
       (if (not (keymapp command))
