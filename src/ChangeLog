@@ -1,3 +1,8 @@
+2001-01-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_file_dialog): Remove a workaround for Lesstif
+	which doesn't seem necessary anymore with Lesstif 0.92.
+
 2001-01-25  Dave Love  <fx@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Up to 720000.

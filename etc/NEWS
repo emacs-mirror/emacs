@@ -587,8 +587,10 @@ and its use is deprecated.
 
 ** LessTif support.
 
-Emacs now runs with the LessTif toolkit (see <http://www.lesstif.org>).
-You will need a version 0.88.1 or later.
+Emacs now runs with the Lesstif toolkit (see
+<http://www.lesstif.org>).  You will need version 0.92 or later.
+Please use Lesstif's Motif 1.2 emulation; it's Motif 2.0 and 2.1
+emulation are known not to work with Emacs.
 
 ** Toolkit scroll bars.
 
