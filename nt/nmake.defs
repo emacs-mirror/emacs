@@ -22,6 +22,8 @@ all:
 THE_SHELL = $(COMSPEC)
 SHELLTYPE=CMD
 
+MAKETYPE=nmake
+
 ALL_DEPS	= $**
 
 SUBSYSTEM_WINDOWS=-subsystem:windows
@@ -140,6 +142,8 @@ BLD             = $(OBJDIR)/$(ARCH)
 $(BLD):         $(OBJDIR)
 		-mkdir "$(BLD)"
 
+COMPILER_TEMP_FILES = *.pdb
+
 CP		= cp -f
 CP_DIR		= cp -rf
 IFNOTSAMEDIR	= if not exist ..\same-dir.tst
@@ -152,9 +156,6 @@ ARGQUOTE	= "
 DQUOTE		= \"
 DEL		= rm
 DEL_TREE	= rm -r
-
-# The location of the icon file
-EMACS_ICON_PATH = ../nt/emacs.ico
 
 !ifdef NODEBUG
 DEBUG_FLAG = 
