@@ -49,3 +49,7 @@ NOTE-END  */
 #undef C_ALLOCA
 #define HAVE_ALLOCA
 #endif
+
+/* I *think* this is what mcc@timessqr.gc.cuny.edu says is needed.
+   But I'm not sure; this might not even be the right file.  */
+#define LIBS_MACHINE -ldnet
