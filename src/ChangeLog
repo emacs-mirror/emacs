@@ -1,3 +1,14 @@
+2001-07-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x-show-tip): Doc fix.
+	
+	* xfns.c (Vx_max_tooltip_size): New variable.
+	(syms_of_xfns): DEFVAR_LISP it.
+	(Fx_show_tip): Set frame's window_width to the width of the
+	window.  Use a maximum tooltip size specified by
+	Vx_max_tooltip_size, if that has valid contents.
+	(x_create_tip_frame): Set tooltip buffer's truncate-lines to nil.
+	
 2001-07-26  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (x_display_list): New variable.
