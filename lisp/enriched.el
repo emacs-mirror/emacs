@@ -73,7 +73,7 @@ in text/enriched files."
 (defface excerpt
   '((t (:italic t)))
   "Face used for text that is an excerpt from another document.
-This is used in `enriched-mode' for text explicitly marked as an excerpt."
+This is used in Enriched mode for text explicitly marked as an excerpt."
   :group 'enriched)
 
 (defconst enriched-display-table (or (copy-sequence standard-display-table)
