@@ -1195,6 +1195,9 @@ update_frame (f, force, inhibit_hairy_id)
   register int downto, leftmost;
 #endif
 
+  if (baud_rate != FRAME_COST_BAUD_RATE (f))
+    calculate_costs (f);
+
   if (preempt_count <= 0)
     preempt_count = 1;
 
