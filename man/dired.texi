@@ -392,9 +392,9 @@ Move up to the previous marked file (@code{dired-prev-marked-file})
 
 @item * t
 @kindex * t @r{(Dired)}
-@findex dired-do-toggle
+@findex dired-toggle-marks
 @cindex toggling marks (in Dired)
-Toggle all marks (@code{dired-do-toggle}): files marked with @samp{*}
+Toggle all marks (@code{dired-toggle-marks}): files marked with @samp{*}
 become unmarked, and unmarked files are marked with @samp{*}.  Files
 marked in any other way are not affected.
 
