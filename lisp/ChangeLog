@@ -1,3 +1,8 @@
+1999-11-01  John Tobey  <jtobey@epsilondev.com>
+
+	* gud.el: (gud-perldb-massage-args): Massage correctly in the
+	presence of perl switches other than "-e".
+
 1999-11-01  Markus Rost  <rost@ias.edu>
 
 	* dired-x.el (dired-smart-shell-command): Use

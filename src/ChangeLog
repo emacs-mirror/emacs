@@ -1,5 +1,8 @@
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (png_load) [PNG_READ_sRGB_SUPPORTED]: Put code using 
+	png_get_sRGB in #ifdef.
+
 	* dispnew.c (Finternal_show_cursor): Renamed from Fshow_cursor.
 	(syms_of_display): Use the new name.
 
