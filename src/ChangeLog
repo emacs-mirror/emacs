@@ -1,3 +1,18 @@
+2004-10-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix flicker on vertical line between
+	windows.  Update vertical line after drawing window fringes, but
+	only if actually drawing any bitmaps--or there is no fringe.
+
+	* xterm.c (x_update_window_end): Likewise.
+	* macterm.c (x_update_window_end): Likewise.
+	* w32term.c (x_update_window_end): Likewise.
+
+	* fringe.c (draw_window_fringes): Return value now indicates if
+	any fringe bitmaps were redrawn (or there are no fringes).
+
+	* dispextern.h (draw_window_fringes): Update prototype.
+
 2004-10-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_get_window_bounds): Add extern.
@@ -5,7 +20,7 @@
 
 	* macmenu.c (update_submenu_strings): Apply 2004-09-07 change for
 	xmenu.c (YAILOM).
-	
+
 	* macterm.c [!MAC_OSX]: Include Windows.h.
 	(front_emacs_window): Rename from mac_front_window.  All uses
 	changed.  Return the frontmost non-tooltip emacs window.
