@@ -686,6 +686,10 @@ case "${configuration}" in
   ## the BSD world."  I'll assume that these are instructions for
   ## handling two odd situations, and that every other situation
   ## should use mips.h and usg5-2-2, they being listed first.
+  mips-mips-usg* )
+    machine=mips4
+    ## Fall through to the general code at the bottom to decide on the OS.
+  ;;
   mips-mips-riscos4* )
     machine=mips4 opsys=bsd4-3
   ;;
