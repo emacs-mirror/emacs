@@ -1,3 +1,15 @@
+2004-08-28  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/grep.el (grep-default-command): Use find-tag-default.
+	(grep-tag-default): Function deleted.
+
+	* subr.el (find-tag-default): Moved from etags.el.
+
+	* progmodes/etags.el (find-tag-default): Moved to subr.el.
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Put `shift' modifier
+	into the basic character if it has an uppercase form.
+
 2004-08-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-8-post-read-conversion): If the
