@@ -565,6 +565,7 @@ To make a hook variable buffer-local, always use
 
 (defun add-to-list (list-var element)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+The test for presence of ELEMENT is done with `equal'.
 If you want to use `add-to-list' on a variable that is not defined
 until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
@@ -748,12 +749,6 @@ STRING should be given if the last search was by `string-match' on STRING."
       (if string
 	  (substring string (match-beginning num) (match-end num))
 	(buffer-substring (match-beginning num) (match-end num)))))
-
-(defun buffer-substring-no-properties (beg end)
-  "Return the text from BEG to END, without text properties, as a string."
-  (let ((string (buffer-substring beg end)))
-    (set-text-properties 0 (length string) nil string)
-    string))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
