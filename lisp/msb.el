@@ -3,7 +3,7 @@
 ;;
 ;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 8 Oct 1993
-;; Lindberg's last update version: 3.28
+;; Lindberg's last update version: 3.31
 ;; Keywords: mouse buffer menu 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -53,31 +53,27 @@
 
 ;; Known bugs:
 ;; - Files-by-directory
-;;   + No possibility to show client/changed buffers separately
+;;   + No possibility to show client/changed buffers separately.
+;;   + All file buffers only appear in in a file sub-menu, they will
+;;     for instance not appear in the Mail sub-menu.
+
 ;; Future enhancements:
-;; - [Mattes] had a suggestion about sorting files by extension.
-;;   I (Lars Lindberg) think this case could be solved if msb.el was
-;;   rewritten to handle more dynamic splitting.  It's now completely
-;;   static, depending on the menu-cond.  If the splitting could also
-;;   be done by a user-defined function a lot of cases would be
-;;   solved.
-;; - [Jim] suggested that the Frame menu became a part of the buffer menu.
 
 ;;; Thanks goes to
-;;  [msb] - Mark Brader <msb@sq.com>
-;;  [Chalupsky] - Hans Chalupsky <hans@cs.Buffalo.EDU>
-;;  [jim] - Jim Berry <m1jhb00@FRB.GOV>
-;;  [larry] - Larry Rosenberg <ljr@ictv.com>
-;;  [will] - Will Henney <will@astroscu.unam.mx>
-;;  [jaalto] - Jari Aalto <jaalto@tre.tele.nokia.fi>
-;;  [kifer] - Michael Kifer <kifer@sbkifer.cs.sunysb.edu>
-;;  [Gael] - Gael Marziou <gael@gnlab030.grenoble.hp.com>
-;;  [Gillespie] - Dave Gillespie <daveg@thymus.synaptics.com>
-;;  [Alon] - Alon Albert <alon@milcse.rtsg.mot.com>
-;;  [KevinB] - Kevin Broadey, <KevinB@bartley.demon.co.uk>
-;;  [Ake] - Ake Stenhof <ake@cadpoint.se>
-;;  [RMS] - Richard Stallman <rms@gnu.ai.mit.edu>
-;;  [Fisk] - Steve Fisk <fisk@medved.bowdoin.edu>
+;;  Mark Brader <msb@sq.com>
+;;  Jim Berry <m1jhb00@FRB.GOV>
+;;  Hans Chalupsky <hans@cs.Buffalo.EDU>
+;;  Larry Rosenberg <ljr@ictv.com>
+;;  Will Henney <will@astroscu.unam.mx>
+;;  Jari Aalto <jaalto@tre.tele.nokia.fi>
+;;  Michael Kifer <kifer@sbkifer.cs.sunysb.edu>
+;;  Gael Marziou <gael@gnlab030.grenoble.hp.com>
+;;  Dave Gillespie <daveg@thymus.synaptics.com>
+;;  Alon Albert <alon@milcse.rtsg.mot.com>
+;;  Kevin Broadey, <KevinB@bartley.demon.co.uk>
+;;  Ake Stenhof <ake@cadpoint.se>
+;;  Richard Stallman <rms@gnu.ai.mit.edu>
+;;  Steve Fisk <fisk@medved.bowdoin.edu>
 
 ;;; Code:
 
@@ -110,7 +106,7 @@
     ((eq major-mode 'w3-mode)
      4020
      "WWW (%d)")
-    ((or (memq major-mode '(rmail-mode vm-summary-mode vm-mode mail-mode))
+    ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
 			    mh-folder-mode))	 
@@ -165,7 +161,7 @@
     ((eq major-mode 'w3-mode)
      4020
      "WWW (%d)")
-    ((or (memq major-mode '(rmail-mode vm-summary-mode vm-mode mail-mode))
+    ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
 			    mh-folder-mode))	 
@@ -421,11 +417,13 @@ selects that window.
 See the function `mouse-select-buffer' and the variable
 `msb-menu-cond' for more information about how the menus are split."
   (interactive "e")
-  (let ((buffer (mouse-select-buffer event))
+  (let ((old-window (selected-window))
 	(window (posn-window (event-start event))))
-    (when buffer
-      (unless (framep window) (select-window window))
-      (switch-to-buffer buffer)))
+    (unless (framep window) (select-window window))
+    (let ((buffer (mouse-select-buffer event)))
+      (if buffer
+	  (switch-to-buffer buffer)
+	(select-window old-window))))
   nil)
 
 ;;;
@@ -683,9 +681,10 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--most-recently-used-menu (max-buffer-name-length)
   (when (and (numberp msb-display-most-recently-used)
  	     (> msb-display-most-recently-used 0))
-    (let* ((most-recently-used
+    (let* ((buffers (cdr (buffer-list)))
+	   (most-recently-used
 	    (loop with n = 0
-		  for buffer in (cdr (buffer-list))
+		  for buffer in buffers
 		  if (save-excursion
 		       (set-buffer buffer)
 		       (and (not (msb-invisible-buffer-p))
@@ -939,40 +938,41 @@ variable `msb-menu-cond'."
 	     (or (not (fboundp 'frame-or-buffer-changed-p))
 		 (frame-or-buffer-changed-p)
 		 arg))
-    (let ((buffers (buffer-list))
-	  (frames (frame-list))
+    (let ((frames (frame-list))
 	  buffers-menu frames-menu)
-      ;; If requested, list only the N most recently selected buffers.
-      (when (and (integerp buffers-menu-max-size)
-		 (> buffers-menu-max-size 1)
-		 (> (length buffers) buffers-menu-max-size))
-	(setcdr (nthcdr buffers-menu-max-size buffers) nil))
       ;; Make the menu of buffers proper.
       (setq msb--last-buffer-menu (msb--create-buffer-menu))
       (setq buffers-menu msb--last-buffer-menu)
       ;; Make a Frames menu if we have more than one frame.
-      (if (cdr frames)
+      (when (cdr frames)
+	(let* ((frame-length (length frames))
+	       (f-title  (format "Frames (%d)" frame-length)))
+	  ;; List only the N most recently selected frames
+	  (when (and (integerp msb-max-menu-items)
+		     (>  msb-max-menu-items 1)
+		     (> frame-length msb-max-menu-items))
+	    (setcdr (nthcdr msb-max-menu-items frames) nil))
 	  (setq frames-menu
-		(cons "Select Frame"
-		      (mapcar
-		       (function
-			(lambda (frame)
-			  (nconc
-			   (list frame
-				 (cdr (assq 'name
-					    (frame-parameters frame)))
-				 (cons nil nil))
-			   'menu-bar-select-frame)))
-		       frames))))
-      (when frames-menu
-	(setq frames-menu (cons 'keymap frames-menu)))
+		(nconc
+		 (list 'frame f-title '(nil) 'keymap f-title)
+		 (mapcar
+		  (function
+		   (lambda (frame)
+		     (nconc
+		      (list frame
+			    (cdr (assq 'name
+				       (frame-parameters frame)))
+			    (cons nil nil))
+		      'menu-bar-select-frame)))
+		  frames)))))
       (define-key (current-global-map) [menu-bar buffer]
 	(cons "Buffers"
 	      (if (and buffers-menu frames-menu)
-		  (list 'keymap "Buffers and Frames"
-			(cons 'buffers (cons "Buffers" buffers-menu))
-			(cons 'frames (cons "Frames" frames-menu)))
-		(or buffers-menu frames-menu 'undefined)))))))
+		  ;; Combine Frame and Buffers menus with separator between
+		  (nconc (list 'keymap "Buffers and Frames" frames-menu
+			       (and msb-separator-diff '(separator "---")))
+			 (cddr buffers-menu))
+		(or buffers-menu 'undefined)))))))
 
 (when (and (boundp 'menu-bar-update-hook)
 	   (not (fboundp 'frame-or-buffer-changed-p)))
