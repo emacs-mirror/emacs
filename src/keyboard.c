@@ -354,7 +354,6 @@ int mouse_moved;
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
 Lisp_Object Qscroll_bar_movement;
-
 Lisp_Object Qswitch_frame;
 
 /* Symbols to denote kinds of events.  */
@@ -365,6 +364,8 @@ Lisp_Object Qmouse_click;
 /* Properties of event headers.  */
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
+
+Lisp_Object Qmenu_enable;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -945,7 +946,16 @@ command_loop_1 ()
 	{
 	  struct frame *f = XFRAME (XCONS (tem)->car);
 	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+
+	  /* If the user has switched buffers or windows, we need to
+	     recompute to reflect the new bindings.  But we'll
+	     recompute when update_mode_lines is set too; that means
+	     that people can use force-mode-line-update to request
+	     that the menu bar be recomputed.  The adverse effect on
+	     the rest of the redisplay algorithm is about the same as
+	     windows_or_buffers_changed anyway.  */
 	  if (windows_or_buffers_changed
+	      || update_mode_lines
 	      || (XFASTINT (w->last_modified) < MODIFF
 		  && (XFASTINT (w->last_modified)
 		      <= XBUFFER (w->buffer)->save_modified)))
@@ -1781,16 +1791,28 @@ kbd_buffer_get_event ()
 	 and don't actually appear to the command loop.  */
       if (event->kind == selection_request_event)
 	{
+#ifdef HAVE_X11
 	  x_handle_selection_request (event);
 	  kbd_fetch_ptr = event + 1;
 	  goto retry;
+#else
+	  /* We're getting selection request events, but we don't have
+             a window system.  */
+	  abort ();
+#endif
 	}
 
       if (event->kind == selection_clear_event)
 	{
+#ifdef HAVE_X11
 	  x_handle_selection_clear (event);
 	  kbd_fetch_ptr = event + 1;
 	  goto retry;
+#else
+	  /* We're getting selection request events, but we don't have
+             a window system.  */
+	  abort ();
+#endif
 	}
 
 #ifdef MULTI_FRAME
@@ -2076,7 +2098,7 @@ make_lispy_event (event)
 	if (event->kind == mouse_click)
 	  {
 	    int part;
-	    struct frame *f = XFRAME (event->frame_or_window);
+	    FRAME_PTR f = XFRAME (event->frame_or_window);
 	    Lisp_Object window
 	      = window_from_coordinates (f, XINT (event->x), XINT (event->y),
 					 &part);
@@ -4544,6 +4566,9 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
+
+  Qmenu_enable = intern ("menu-enable");
+  staticpro (&Qmenu_enable);
 
   Qmode_line = intern ("mode-line");
   staticpro (&Qmode_line);
