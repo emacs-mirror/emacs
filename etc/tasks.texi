@@ -312,6 +312,11 @@ Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
 
 @item
+A free program that does the same job as Kermit.  Actual compatibility
+with Kermit is not necessary, and you could make the job easier by using
+@code{sz} and @code{rz} to do the actual file transfer.
+
+@item
 An imitation of Page Maker or Ventura Publisher.
 
 @item
