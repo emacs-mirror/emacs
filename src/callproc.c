@@ -418,31 +418,42 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
   new_argv[0] = XSTRING (path)->data;
-  {
-    register int i;
-    for (i = 4; i < nargs; i++)
-      {
-	CHECK_STRING (args[i], i);
-	if (argument_coding.type == coding_type_no_conversion)
-	  new_argv[i - 3] = XSTRING (args[i])->data;
-	else
-	  {
-	    /* We must encode the arguments.  */
-	    int size = encoding_buffer_size (&argument_coding,
-					     XSTRING (args[i])->size);
-	    int produced, dummy;
-	    unsigned char *dummy1 = (unsigned char *) alloca (size);
+  if (nargs > 4)
+    {
+      register int i;
 
-	    /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
-	    new_argv[i - 3] = dummy1;
-	    produced = encode_coding (&argument_coding,
-				      XSTRING (args[i])->data, new_argv[i - 3],
-				      XSTRING (args[i])->size, size, &dummy);
-	    new_argv[i - 3][produced] = 0;
-	  }
-      }
-    new_argv[i - 3] = 0;
-  }
+      for (i = 4; i < nargs; i++) CHECK_STRING (args[i], i);
+
+      if (! CODING_REQUIRE_ENCODING (&argument_coding))
+	{
+	  for (i = 4; i < nargs; i++)
+	    new_argv[i - 3] = XSTRING (args[i])->data;
+	}
+      else
+	{
+	  /* We must encode the arguments.  */
+	  struct gcpro gcpro1, gcpro2, gcpro3;
+
+	  GCPRO3 (infile, buffer, current_dir);
+	  for (i = 4; i < nargs; i++)
+	    {
+	      int size = encoding_buffer_size (&argument_coding,
+					       XSTRING (args[i])->size);
+	      unsigned char *dummy1 = (unsigned char *) alloca (size);
+	      int produced, dummy;
+
+	      /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
+	      new_argv[i - 3] = dummy1;
+	      produced = encode_coding (&argument_coding,
+					XSTRING (args[i])->data,
+					new_argv[i - 3],
+					XSTRING (args[i])->size, size, &dummy);
+	      new_argv[i - 3][produced] = 0;
+	    }
+	  UNGCPRO;
+	}
+    }
+  new_argv[nargs - 3] = 0;
 
 #ifdef MSDOS /* MW, July 1993 */
   if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
