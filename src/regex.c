@@ -1540,7 +1540,7 @@ static reg_errcode_t compile_range ();
 #define PATFETCH(c)							\
   do {if (p == pend) return REG_EEND;					\
     c = (unsigned char) *p++;						\
-    if (translate) c = RE_TRANSLATE (translate, c);			\
+    if (RE_TRANSLATE_P (translate)) c = RE_TRANSLATE (translate, c);	\
   } while (0)
 #endif
 
@@ -1561,7 +1561,8 @@ static reg_errcode_t compile_range ();
    when we use a character as a subscript we must make it unsigned.  */
 #ifndef TRANSLATE
 #define TRANSLATE(d) \
-  (translate ? (unsigned) RE_TRANSLATE (translate, (unsigned) (d)) : (d))
+  (RE_TRANSLATE_P (translate) \
+   ? (unsigned) RE_TRANSLATE (translate, (unsigned) (d)) : (d))
 #endif
 
 
@@ -3785,8 +3786,8 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 
 	      /* Written out as an if-else to avoid testing `translate'
 		 inside the loop.  */
-	      if (translate)
-		{
+	            if (RE_TRANSLATE_P (translate))
+{
 		  if (multibyte)
 		    while (range > lim)
 		      {
@@ -3822,7 +3823,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 			  : size1 - startpos);
 
 	      buf_ch = STRING_CHAR (d, room);
-	      if (translate)
+	      if (RE_TRANSLATE_P (translate))
 		buf_ch = RE_TRANSLATE (translate, buf_ch);
 
 	      if (! (buf_ch >= 0400
@@ -4498,7 +4499,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	  /* This is written out as an if-else so we don't waste time
 	     testing `translate' inside the loop.  */
-	  if (translate)
+	  if (RE_TRANSLATE_P (translate))
 	    {
 #ifdef emacs
 	      if (multibyte)
@@ -4873,7 +4874,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 		/* Compare that many; failure if mismatch, else move
 		   past them.  */
-		if (translate
+		if (RE_TRANSLATE_P (translate)
 		    ? bcmp_translate (d, d2, mcnt, translate)
 		    : bcmp (d, d2, mcnt))
 		  goto fail;
