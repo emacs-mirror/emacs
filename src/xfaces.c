@@ -548,20 +548,30 @@ x_free_colors (f, pixels, npixels)
   if (class != StaticColor && class != StaticGray && class != TrueColor)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
-      Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-      int screen_no = XScreenNumberOfScreen (FRAME_X_SCREEN (f));
-      unsigned long black = BlackPixel (dpy, screen_no);
-      unsigned long white = WhitePixel (dpy, screen_no);
-      unsigned long *px;
-      int i, j;
+      Colormap cmap = FRAME_X_COLORMAP (f);
+      Screen *screen = FRAME_X_SCREEN (f);
+      int default_cmap_p = cmap == DefaultColormapOfScreen (screen);
 
-      px = (unsigned long *) alloca (npixels * sizeof *px);
-      for (i = j = 0; i < npixels; ++i)
-	if (pixels[i] != black && pixels[i] != white)
-	  px[j++] = pixels[i];
+      if (default_cmap_p)
+	{
+	  /* Be paranoid.  If using the default color map, don't ever
+	     try to free the default black and white colors.  */
+	  int screen_no = XScreenNumberOfScreen (screen);
+	  unsigned long black = BlackPixel (dpy, screen_no);
+	  unsigned long white = WhitePixel (dpy, screen_no);
+	  unsigned long *px;
+	  int i, j;
+	  
+	  px = (unsigned long *) alloca (npixels * sizeof *px);
+	  for (i = j = 0; i < npixels; ++i)
+	    if (pixels[i] != black && pixels[i] != white)
+	      px[j++] = pixels[i];
 
-      if (j)
-	XFreeColors (dpy, cmap, px, j, 0);
+	  if (j)
+	    XFreeColors (dpy, cmap, px, j, 0);
+	}
+      else
+	XFreeColors (dpy, cmap, pixels, npixels, 0);
     }
 }
 
