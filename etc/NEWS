@@ -82,6 +82,8 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** A French translation of the Emacs Tutorial is available.
+** Building with -DENABLE_CHECKING does not automatically build with union
+types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 
 * Changes in Emacs 21.4

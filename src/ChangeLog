@@ -1,5 +1,23 @@
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buffer.c (buffer_defaults, buffer_local_symbols): Use DECL_ALIGN.
+
+	* lisp.h [USE_LSB_TAG]: Add definitions for Lisp_Object value
+	manipulation macros for when tags are in the lower bits.
+	(struct Lisp_Free) [USE_LSB_TAG]: Add padding.
+	(DECL_ALIGN): New macro.
+	(DEFUN): Use it.
+
+	* lisp.h [ENABLE_CHECKING]: Don't force union type.
+
+	* s/darwin.h (__attribute__): Remove outdated workaround.
+
+	* macterm.c (main) [USE_LSB_TAG]: Don't range check the ram.
+
+	* alloc.c (lisp_malloc, lisp_align_malloc) [USE_LSB_TAG]:
+	Don't check range of malloc address.
+	(pure_alloc) [USE_LSB_TAG]: Enforce alignment.
+
 	* process.c (wait_reading_process_input): Lisp_Object/int mixup.
 
 	* dired.c (Ffile_attributes): Lisp_Object/int mixup.
@@ -28,7 +46,7 @@
 
 	* dispextern.h (struct glyph_row): New members left_fringe_bitmap,
 	right_fringe_bitmap, redraw_fringe_bitmaps_p for new fringe handling.
-	New members exact_window_width_line_p and cursor_in_fringe_p for 
+	New members exact_window_width_line_p and cursor_in_fringe_p for
 	overflowing newlines into right fringe.
 	New members indicate_bob_p, indicate_top_line_p, indicate_eob_p,
 	and indicate_bottom_line_p for buffer boundaries and scrolling.
@@ -73,14 +91,14 @@
 	continued lines.
 	(display_line): Overflow newline into fringe for rows that are
 	exactly as wide as the window.  Don't append space for newline
-	in this case.  
+	in this case.
 	(notice_overwritten_cursor): Explicitly clear cursor bitmap
 	in fringe as if it had been overwritten.
 	(erase_phys_cursor): Erase cursor bitmap in fringe.
-	(syms_of_xdisp): Mark show-trailing-whitespace and 
+	(syms_of_xdisp): Mark show-trailing-whitespace and
 	void-text-area-pointer as user options.
 	DEFVAR_LISP Voverflow_newline_into_fringe.  Enable by default.
-	
+
 	* xterm.c (x_update_window_end): Call draw_window_fringes.
 	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
 	in row instead of actually drawing fringe bitmaps.
@@ -185,7 +203,7 @@
 	* xdisp.c (note_mode_line_or_margin_highlight): Use modified
 	mode_line_string and marginal_area_string functions to handle
 	both string object and image object properties.
-	
+
 2004-01-06  Andreas Schwab  <schwab@suse.de>
 
 	* syntax.c (skip_chars): Treat '-' at end of string as ordinary
@@ -193,8 +211,8 @@
 
 2004-01-02  Andreas Schwab  <schwab@suse.de>
 
-	* macterm.c (emacs_options, x_initialized, same_x_server): Remove
-	unused (and duplicated) definitions.
+	* macterm.c (emacs_options, x_initialized, same_x_server):
+	Remove unused (and duplicated) definitions.
 
 2004-01-02  Kim F. Storm  <storm@cua.dk>
 
@@ -224,8 +242,7 @@
 
 2004-01-01  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.c (w32_text_out): Use s->font, for consistency with
-	callers.
+	* w32term.c (w32_text_out): Use s->font, for consistency with callers.
 
 2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -256,15 +273,13 @@
 
 	* fontset.c (Voverriding_fontspec_alist): New variable.
 	(lookup_overriding_fontspec): New function.
-	(fontset_ref_via_base): Call lookup_overriding_fontspec if
-	necessary.
+	(fontset_ref_via_base): Call lookup_overriding_fontspec if necessary.
 	(fontset_font_pattern): Likewise.
 	(regulalize_fontname): New function.
 	(Fset_fontset_font): Call regulalize_fontname.
 	(Fset_overriding_fontspec_internal): New function.
-	(syms_of_fontset): Initialize and staticprop
-	Voverriding_fontspec_alist. Defsubr
-	Sset_overriding_fontspec_internal.
+	(syms_of_fontset): Initialize and staticpro Voverriding_fontspec_alist.
+	Defsubr Sset_overriding_fontspec_internal.
 
 	* xfaces.c (face_font_available_p): New function.
 
@@ -321,7 +336,7 @@
 	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
 	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
 	image maps.
-	(x_y_to_hpos_vpos): Return glyph relative coordinates through 
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through
 	new dx and dy args.
 	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
 	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
@@ -331,9 +346,9 @@
 	(produce_image_glyph): Adjust it.ascent to minimum row ascent if
 	image glyph is alone on the last line.
 	(append_glyph, append_composite_glyph, produce_image_glyph)
-	(append_stretch_glyph): Set glyph's ascent and descent. 
+	(append_stretch_glyph): Set glyph's ascent and descent.
 	(on_hot_spot_p): New function to check if position is inside an
-	rectangular, circular, or polygon-shaped image hot-spot, 
+	rectangular, circular, or polygon-shaped image hot-spot,
 	(find_hot_spot): New function to search for image hot-spot.
 	(Flookup_image_map): New defun to search for image hot-spot.
 	(define_frame_cursor1): New aux function to determine frame pointer.
@@ -401,8 +416,7 @@
 	(Fread_minibuffer, Fread_no_blanks_input): Adapt to changes in
 	read_minibuf.
 	(Fcompleting_read): Delete code moved into read_minibuf.
-	(Ftest_completion): Make it handle obarrays and hash tables
-	correctly.
+	(Ftest_completion): Make it handle obarrays and hash tables correctly.
 
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 
@@ -553,10 +567,8 @@
 
 2003-11-22  Lars Hansen <larsh@math.ku.dk>
 
-	* w32.c (struct the_group): Added.
-	(getgrgid): Added.
-	* mac.c (struct my_group): Added.
-	(getgrgid): Added.
+	* w32.c (struct the_group, getgrgid): Add.
+	* mac.c (struct my_group, getgrgid): Add.
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -564,18 +576,19 @@
 
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
 
-	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
-	included in call to file name handler. Numeric UID and GID
-	optionally translated to strings. Docstring updated.
-	(directory_files_internal): Parameter ID-FORMAT added.
-	(Fdirectory_files_and_attributes): Parameter ID-FORMAT added and
-	included in call to file name handler and call to
-	directory_files_internal. Docstring updated.  (Fdirectory_files):
-	Dummy parameter added in call to directory_files_internal.
-	* lisp.h (Qinteger): Added.  (Qinteger_or_floatp,
-	Qinteger_or_float_or_marker_p): Removed.  (Ffile_attributes):
-	Parameter added.
-	* data.c (Qinteger): Exported.
+	* dired.c (Ffile_attributes): Add parameter ID-FORMAT and
+	include in call to file name handler.  Optionally translate numeric
+	UID and GID to strings.  Update docstring.
+	(directory_files_internal): Add parameter ID-FORMAT.
+	(Fdirectory_files_and_attributes): Add parameter ID-FORMAT and
+	include in call to file name handler and call to
+	directory_files_internal.  Update Docstring.
+	(Fdirectory_files): Add dummy parameter in call to
+	directory_files_internal.
+	* lisp.h (Qinteger): Add.
+	(Qinteger_or_floatp, Qinteger_or_float_or_marker_p): Remove.
+	(Ffile_attributes): Add parameter.
+	* data.c (Qinteger): Export.
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -1912,7 +1925,7 @@
 	* gtkutil.c: Include keyboard.h, charset.h, coding.h.
 	(xg_create_frame_widgets): Use ENCODE_UTF_8.
 
-	* xterm.c (Qutf_8): Moved to coding.c
+	* xterm.c (Qutf_8): Move to coding.c
 
 	* xmenu.c (ENCODE_MENU_STRING): New.
 	(list_of_panes, list_of_items, digest_single_submenu, xmenu_show):
