@@ -109,8 +109,8 @@ static void describe_map ();
 /* Keymap object support - constructors and predicates.			*/
 
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
-  "Construct and return a new keymap, of the form (keymap VECTOR . ALIST).\n\
-VECTOR is a vector which holds the bindings for the ASCII\n\
+  "Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).\n\
+CHARTABLE is a char-table that holds the bindings for the ASCII\n\
 characters.  ALIST is an assoc-list which holds bindings for function keys,\n\
 mouse events, and any other things that appear in the input stream.\n\
 All entries in it are initially nil, meaning \"command undefined\".\n\n\
