@@ -1780,42 +1780,65 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 With argument ARG, show the message header pruned if ARG is greater than zero;
 otherwise, show it in full."
   (interactive "P")
+  (let* ((buffer-read-only nil)
+	 (pruned (rmail-msg-is-pruned))
+	 (prune (if arg
+		    (> (prefix-numeric-value arg) 0)
+		  (not pruned))))
+    (if (eq pruned prune)
+	t
+      (rmail-maybe-set-message-counters)
+      (let ((at-point-min (= (point) (point-min)))
+            (all-headers-visible (= (window-start) (point-min)))
+            (on-header (save-excursion
+                         (and (not (search-backward "\n\n" nil t))
+                              (progn
+                                (end-of-line)
+                                (re-search-backward "^[-A-Za-z0-9]+:" nil t))
+                              (match-string 0))))
+            (old-screen-line (rmail-count-screen-lines (window-start) (point))))
+        (save-excursion
+      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (if pruned
+	  (progn (goto-char (point-min))
+		 (forward-line 1)
+		 (delete-char 1)
+		 (insert ?0)
+		 (forward-line 1)
+		 (let ((case-fold-search t))
+		   (while (looking-at "Summary-Line:\\|Mail-From:")
+		     (forward-line 1)))
+		 (insert "*** EOOH ***\n")
+		 (forward-char -1)
+		     (search-forward "\n*** EOOH ***\n")
+		     (narrow-to-region (point) (point-max)))
+	    (rmail-reformat-message (point-min) (point-max))))
+	(cond (at-point-min
+	       (goto-char (point-min)))
+	      (on-header
+	       (goto-char (point-min))
+	       (search-forward "\n\n")
+	       (or (re-search-backward (concat "^" (regexp-quote on-header)) nil t)
+		   (goto-char (point-min))))
+	      (t
+	       (recenter old-screen-line)
+	       (if (and all-headers-visible
+			(not (= (window-start) (point-min))))
+		   (let ((lines-offscreen (rmail-count-screen-lines
+					   (point-min) (window-start))))
+		     (recenter (min (+ old-screen-line lines-offscreen)
+				    ;; last line of window
+				    (- (window-height) 2))))))))
+      (rmail-highlight-headers))))
+
+;; Lifted from repos-count-screen-lines.
+;; Return number of screen lines between START and END.
+(defun rmail-count-screen-lines (start end)
   (save-excursion
-    (let* ((buffer-read-only nil)
-	   (pruned (rmail-msg-is-pruned))
-	   (prune (if arg
-		      (> (prefix-numeric-value arg) 0)
-		    (not pruned))))
-      (if (eq pruned prune)
-	  t
-	(rmail-maybe-set-message-counters)
-	(narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-	(if pruned
-	    (let (window-at-top)
-	      (goto-char (point-min))
-	      (forward-line 1)
-	      (delete-char 1)
-	      (insert ?0)
-	      (forward-line 1)
-	      (let ((case-fold-search t))
-		(while (looking-at "Summary-Line:\\|Mail-From:")
-		  (forward-line 1)))
-	      (insert "*** EOOH ***\n")
-	      (forward-char -1)
-	      (search-forward "\n*** EOOH ***\n")
-	      (forward-line -1)
-	      (let ((temp (point)))
-		(when (search-forward "\n\n" nil t)
-		  (if (< (window-start) (point))
-		      (setq window-at-top t))
-		  (delete-region temp (point))))
-	      (goto-char (point-min))
-	      (search-forward "\n*** EOOH ***\n")
-	      (if window-at-top
-		  (set-window-start (selected-window) (point) t))
-	      (narrow-to-region (point) (point-max)))
-	  (rmail-reformat-message (point-min) (point-max)))
-	(rmail-highlight-headers)))))
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char (point-min))
+      (vertical-motion (- (point-max) (point-min))))))
 
 ;;;; *** Rmail Attributes and Keywords ***
 
