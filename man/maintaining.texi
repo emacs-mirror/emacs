@@ -474,12 +474,9 @@ expressions, @samp{\} quotes the next character, and @samp{\t} stands
 for the tab character.  Note that @code{etags} does not handle the other
 C escape sequences for special characters.
 
-@cindex interval operator (in regexps)
   The syntax of regular expressions in @code{etags} is the same as in
-Emacs, augmented with the @dfn{interval operator}, which works as in
-@code{grep} and @code{ed}.  The syntax of an interval operator is
-@samp{\@{@var{m},@var{n}\@}}, and its meaning is to match the preceding
-expression at least @var{m} times and up to @var{n} times.
+Emacs.  However, non-greedy operators and shy groups are not
+available.
 
   You should not match more characters with @var{tagregexp} than that
 needed to recognize what you want to tag.  If the match is such that
