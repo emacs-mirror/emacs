@@ -1,8 +1,9 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2000 Free Software Foundation, Inc.
 
-;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    2000- Martin Stjernholm
+;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -153,15 +154,41 @@ Works with: stream-op."
       (- (current-column) langelem-col))))
 
 (defun c-lineup-multi-inher (langelem)
-  "Line up the classes in C++ multiple inheritance clauses under each other.
+  "Line up the classes in C++ multiple inheritance clauses and member
+initializers under each other.  E.g:
 
-Works with: inher-cont."
+class Foo:                Foo::Foo (int a, int b):
+    public Cyphr,             Cyphr (a),
+    public Bar       <->      Bar (b)               <- c-lineup-multi-inher
+
+class Foo                 Foo::Foo (int a, int b)
+    : public Cyphr,           : Cyphr (a),
+      public Bar     <->        Bar (b)             <- c-lineup-multi-inher
+
+class Foo                 Foo::Foo (int a, int b)
+    : public Cyphr            : Cyphr (a)
+    , public Bar     <->      , Bar (b)             <- c-lineup-multi-inher
+
+Works with: inher-cont, member-init-cont."
   (save-excursion
-    (let ((eol (c-point 'eol))
-	  (here (point))
-	  (langelem-col (c-langelem-col langelem)))
+    (let* ((eol (c-point 'eol))
+	   (here (point))
+	   (char-after-ip (progn
+			    (skip-chars-forward " \t")
+			    (char-after)))
+	   (langelem-col (c-langelem-col langelem)))
+
+      ;; This kludge is necessary to support both inher-cont and
+      ;; member-init-cont, since they have different anchor positions.
+      (c-backward-syntactic-ws)
+      (when (eq (char-before) ?:)
+	(backward-char)
+	(c-backward-syntactic-ws))
+
       (skip-chars-forward "^:" eol)
-      (skip-chars-forward " \t:" eol)
+      (if (eq char-after-ip ?,)
+	  (skip-chars-forward " \t" eol)
+	(skip-chars-forward " \t:" eol))
       (if (or (eolp)
 	      (looking-at c-comment-start-regexp))
 	  (c-forward-syntactic-ws here))
@@ -624,8 +651,8 @@ indentation amount."
     (while syntax
       (setq langelem (car (car syntax))
 	    syntax (cdr syntax))
-      ;; don't adjust comment-only lines
-      (cond ((eq langelem 'comment-intro)
+      ;; don't adjust macro or comment-only lines
+      (cond ((memq langelem '(cpp-macro comment-intro))
 	     (setq syntax nil))
 	    ((memq langelem non-top-levels)
 	     (save-excursion
