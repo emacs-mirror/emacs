@@ -1,5 +1,10 @@
 2001-05-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Fdo_auto_save): Don't try to create the directory of
+	auto-save-list-file-name when shutting down Emacs, because
+	creating the directory might signal an error, and leaves
+	Emacs in a strange state.
+
 	* term.c: (tty_cursor_hidden): New variable.
 	(update_begin): Don't call tty_hide_cursor.  Clean up.
 	(update_end, set_terminal_window, set_scroll_region): Clean up.
