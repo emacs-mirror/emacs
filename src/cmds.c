@@ -455,7 +455,7 @@ internal_self_insert (c, noautofill)
 	  string = concat2 (tem, string);
 	}
 
-      replace_range (PT, PT + chars_to_delete, string, 1, 1);
+      replace_range (PT, PT + chars_to_delete, string, 1, 1, 0);
       Fforward_char (make_number (1 + spaces_to_insert));
     }
   else
