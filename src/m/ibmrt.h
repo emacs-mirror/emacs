@@ -125,7 +125,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Special switches to give the C compiler.  */
 
+#ifndef __GNUC__
 #define C_SWITCH_MACHINE -Dalloca=_Alloca
+#endif
 
 /* Don't attempt to relabel some of the data as text when dumping.
    It does not work because their virtual addresses are not consecutive.
