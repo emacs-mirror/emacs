@@ -6258,7 +6258,7 @@ construct_drag_n_drop (result, msg, f)
 	continue;
       name = alloca (len + 1);
       DragQueryFile (hdrop, i, name, len + 1);
-      files = Fcons (build_string (name), files);
+      files = Fcons (DECODE_FILE (build_string (name)), files);
     }
 
   DragFinish (hdrop);
