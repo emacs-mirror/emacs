@@ -1,3 +1,11 @@
+2001-09-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (shortlisp): Resync with loadup.el: add backquote,
+	utf-8, menu-bar, and latin-N.
+	(SOME_MACHINE_LISP): Remove menu-bar, since it's loaded
+	unconditionally now.
+	(lisp): Add latin-N, since they are preloaded.
+
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_relief_rect): Draw bottom relief 1 pixel more
