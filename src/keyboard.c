@@ -1778,7 +1778,10 @@ static jmp_buf wrong_kboard_jmpbuf;
    MAPS is an array of keymaps;  NMAPS is the length of MAPS.
 
    PREV_EVENT is the previous input event, or nil if we are reading
-   the first event of a key sequence.
+   the first event of a key sequence (or not reading a key sequence).
+   If PREV_EVENT is t, that is a "magic" value that says
+   not to run input methods, but in other respects to act as if
+   not reading a key sequence.
 
    If USED_MOUSE_MENU is non-null, then we set *USED_MOUSE_MENU to 1
    if we used a mouse menu to read the input, or zero otherwise.  If
@@ -2359,12 +2362,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Pass this to the input method, if appropriate.  */
   if (INTEGERP (c)
       && ! NILP (Vinput_method_function)
+      /* Don't run the input method within a key sequence,
+	 after the first event of the key sequence.  */
+      && NILP (prev_event)
       && (unsigned) XINT (c) >= ' '
       && (unsigned) XINT (c) < 127)
     {
       Lisp_Object keys; 
       int key_count;
       struct gcpro gcpro1;
+      int count = specpdl_ptr - specpdl;
 
       /* Save the echo status.  */
       int saved_immediate_echo = current_kboard->immediate_echo;
@@ -2398,9 +2405,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       echo_area_glyphs = 0;
       echo_truncate (0);
 
+      /* If we are not reading a key sequence,
+	 never use the echo area.  */
+      if (maps == 0)
+	{
+	  specbind (Qinput_method_exit_on_first_char, Qt);
+	  specbind (Qinput_method_use_echo_area, Qt);
+	}
+
       /* Call the input method.  */
       tem = call1 (Vinput_method_function, c);
-      
+
+      tem = unbind_to (count, tem);
+
       /* Restore the saved echoing state
 	 and this_command_keys state.  */
       this_command_key_count = key_count;
@@ -6773,10 +6790,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   orig_local_map = get_local_map (PT, current_buffer);
 
-  /* Bind input-method-function so that we can set it to nil
-     temporarily after the first input event.  */
-  specbind (Qinput_method_function, Vinput_method_function);
-
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
      keybuf[0..mock_input] holds the sequence we should reread.  */
@@ -6948,9 +6961,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif
 	    key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
 			     &used_mouse_menu);
-
-	    /* Turn off input methods after a prefix character.  */
-	    Vinput_method_function = Qnil;
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -7692,7 +7702,7 @@ The optional fifth argument COMMAND-LOOP, if non-nil, means\n\
 that this key sequence is being read by something that will\n\
 read commands one after another.  It should be nil if the caller\n\
 will read just one key sequence.")
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame, command-loop)
 #endif
 
 DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
