@@ -1932,11 +1932,14 @@ Returns the window displaying BUFFER.")
 
 #ifdef MULTI_FRAME
   /* If pop_up_frames,
-     look for a window showing BUFFER on any visible or iconified frame.  */
-  window = Fget_buffer_window (buffer, pop_up_frames ? make_number (0) : Qnil);
-#else
-  window = Fget_buffer_window (buffer, Qnil);
+     look for a window showing BUFFER on any visible or iconified frame.
+     Otherwise search only the current frame.  */
+  if (pop_up_frames || last_nonminibuf_frame == 0)
+    XSETFASTINT (tem, 0);
+  else
 #endif
+    XSETFRAME (tem, last_nonminibuf_frame);
+  window = Fget_buffer_window (buffer, tem);
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     {
