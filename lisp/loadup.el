@@ -157,6 +157,7 @@
       (load "ls-lisp")
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
       (load "dos-w32")
+      (load "w32-vars")
       (load "w32-fns")))
 (if (eq system-type 'ms-dos)
     (progn
