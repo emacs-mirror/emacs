@@ -3780,10 +3780,10 @@ This does code conversion according to the value of\n\
 	current_buffer->buffer_file_type = Qt;
 #endif
 
-      record_insert (PT, inserted_chars);
+      record_insert (PT, inserted);
 
       /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-      offset_intervals (current_buffer, PT, inserted_chars);
+      offset_intervals (current_buffer, PT, inserted);
       MODIFF++;
 
       if (! NILP (coding.post_read_conversion))
