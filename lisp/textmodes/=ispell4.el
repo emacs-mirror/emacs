@@ -2,6 +2,8 @@
 
 ;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 
+;; Keywords: wp
+
 ;;This file is part of GNU Emacs.
 ;;
 ;;GNU Emacs is free software; you can redistribute it and/or modify

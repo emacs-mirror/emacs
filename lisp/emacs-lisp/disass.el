@@ -5,7 +5,7 @@
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: Jamie Zawinski <jwz@lucid.com>
-;; Keyword: internal
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

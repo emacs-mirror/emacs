@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <talos!kjones@uunet.uu.net>
-;; Keyword: games
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 

@@ -4,7 +4,7 @@
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
-;; Keyword: tools, processes
+;; Keywords: tools, processes
 
 ;; This file is part of GNU Emacs.
 

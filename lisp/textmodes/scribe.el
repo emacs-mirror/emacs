@@ -3,6 +3,7 @@
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Keywords: wp
 
 ;; This file might become part of GNU Emacs.
 

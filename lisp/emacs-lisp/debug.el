@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keyword: lisp, tools
+;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.
 

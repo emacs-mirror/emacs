@@ -5,6 +5,7 @@
 ;; Author: Dave Gillespie <daveg@csvax.caltech.edu>
 ;; Maintainer: FSF
 ;; Version: 1.02
+;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
-;; Keywords: lisp, tools
+;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.
 

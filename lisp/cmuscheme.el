@@ -3,7 +3,7 @@
 ;;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
-;; Keyword: processes, lisp
+;; Keywords: processes, lisp
 
 ;; This file is part of GNU Emacs.
 

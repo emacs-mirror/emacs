@@ -4,7 +4,7 @@
 
 ;; Author David M. Brown
 ;; Maintainer: FSF
-;; Keyword: extensions
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

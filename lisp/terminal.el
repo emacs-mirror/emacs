@@ -4,6 +4,7 @@
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
+;; Keywords: comm, terminals
 
 ;; This file is part of GNU Emacs.
 

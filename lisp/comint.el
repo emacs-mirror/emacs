@@ -2,7 +2,7 @@
 ;; Copyright (C) 1988, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Keyword: processes
+;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
 

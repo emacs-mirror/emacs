@@ -3,7 +3,8 @@
 ;; Copyright (C) 1988, 1989, 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: French Revolutionary calendar, calendar, diary
+;; Keywords: calendar
+;; Human-Keywords: French Revolutionary calendar, calendar, diary
 
 ;; This file is part of GNU Emacs.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: diary, calendar
+;; Keywords: calendar
 
 ;; This file is part of GNU Emacs.
 

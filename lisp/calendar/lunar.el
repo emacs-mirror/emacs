@@ -3,7 +3,8 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: moon, lunar phases, calendar, diary
+;; Keywords: calendar
+;; Human-Keywords: moon, lunar phases, calendar, diary
 
 ;; This file is part of GNU Emacs.
 

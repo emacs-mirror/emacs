@@ -3,6 +3,7 @@
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Chris Hanson <cph@zurich.ai.mit.edu>
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,7 @@
 ;;; completion.el --- dynamic word-completion code
 
 ;; Maintainer: bug-completion@think.com
+;; Keywords: abbrev
 
 ;;; Commentary:
 

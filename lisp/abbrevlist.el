@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1986, 1992 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
-;; Maintainer: FSF
 
+;; Maintainer: FSF
+;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.
 

@@ -4,6 +4,7 @@
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
+;; Keywords: maint
 
 ;; Not fully installed because it can work only on Internet hosts.
 ;; This file is part of GNU Emacs.

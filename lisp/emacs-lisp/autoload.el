@@ -3,7 +3,7 @@
 ;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
 ;;;
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
-;; Keyword: internal
+;; Keywords: maint
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by

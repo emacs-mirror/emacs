@@ -3,8 +3,10 @@
 ;;; Copyright (C) 1988, 1989, 1990, 1991, 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: calendar, Gregorian calendar, Julian calendar, Hebrew calendar,
-;;	Islamic calendar, ISO calendar, Julian day number, diary, holidays
+;; Keywords: calendar
+;; Human-Keywords: calendar, Gregorian calendar, Julian calendar, 
+;;	Hebrew calendar, Islamic calendar, ISO calendar, Julian day number,
+;;	diary, holidays
 
 (defconst calendar-version "Version 5, released August 10, 1992")
 

@@ -4,7 +4,8 @@
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: Mayan calendar, Maya, calendar, diary
+;; Keywords: calendar
+;; Human-Keywords: Mayan calendar, Maya, calendar, diary
 
 ;; This file is part of GNU Emacs.
 

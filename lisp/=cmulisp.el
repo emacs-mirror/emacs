@@ -1,6 +1,9 @@
 ;;; cmulisp.el --- improved version of standard inferior-lisp mode
 
 ;;; Copyright Olin Shivers (1988).
+
+;; Keywords: processes, lisp
+
 ;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
 ;;; notice appearing here to the effect that you may use this code any
 ;;; way you like, as long as you don't charge money for it, remove this

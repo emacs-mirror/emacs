@@ -3,6 +3,7 @@
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
+;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
 

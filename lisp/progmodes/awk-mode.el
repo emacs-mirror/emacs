@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keyword: unix, languages
+;; Keywords: unix, languages
 
 ;; This file is part of GNU Emacs.
 

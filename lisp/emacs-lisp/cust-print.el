@@ -5,7 +5,7 @@
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Version: 1.0
 ;; Adapted-By: ESR
-;; Keyword: extensions
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

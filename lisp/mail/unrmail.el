@@ -2,6 +2,8 @@
 
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
 
+;; Keywords: mail
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

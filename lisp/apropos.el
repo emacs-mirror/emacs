@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
-;; Keyword: help
+;; Keywords: help
 
 ;; This file is part of GNU Emacs.
 
