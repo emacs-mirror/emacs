@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: faces files
-;; Version: 2.09.01
+;; Version: 2.10
 
 ;;; This file is part of GNU Emacs.
 
@@ -258,6 +258,9 @@
 ;; - Made `lazy-lock-fontify-after-defer' paranoid about deferred buffers
 ;; 2.09--2.10:
 ;; - Use `window-end' UPDATE arg for Emacs 20.3 and later.
+;; - Made deferral `widen' before unfontifying (Dan Nicolaescu report)
+;; - Use `lazy-lock-fontify-after-visage' for hideshow.el (Dan Nicolaescu hint)
+;; - Use `other' widget where possible (Andreas Schwab fix)
 
 ;;; Code:
 
@@ -314,7 +317,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.09.01"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.10"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -634,7 +637,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;;
   ;; Add package-specific hook.
   (make-local-hook 'outline-view-change-hook)
-  (add-hook 'outline-view-change-hook 'lazy-lock-fontify-after-outline nil t))
+  (add-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage nil t)
+  (make-local-hook 'hs-hide-hook)
+  (add-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage nil t))
 
 (defun lazy-lock-install-timers (dtime stime)
   ;; Schedule or re-schedule the deferral and stealth timers.
@@ -684,7 +689,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   (remove-hook 'after-change-functions 'lazy-lock-fontify-rest-after-change t)
   (remove-hook 'after-change-functions 'lazy-lock-defer-line-after-change t)
   (remove-hook 'after-change-functions 'lazy-lock-defer-rest-after-change t)
-  (remove-hook 'outline-view-change-hook 'lazy-lock-fontify-after-outline t))
+  (remove-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage t)
+  (remove-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage t))
 
 ;; Hook functions.
 
@@ -791,7 +797,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   (save-buffer-state nil
     (unless (memq (current-buffer) lazy-lock-buffers)
       (push (current-buffer) lazy-lock-buffers))
-    (remove-text-properties end (point-max) '(lazy-lock nil))))
+    (save-restriction
+      (widen)
+      (remove-text-properties end (point-max) '(lazy-lock nil)))))
 
 (defun lazy-lock-defer-line-after-change (beg end old-len)
   ;; Called from `after-change-functions'.
@@ -811,9 +819,11 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   (save-buffer-state nil
     (unless (memq (current-buffer) lazy-lock-buffers)
       (push (current-buffer) lazy-lock-buffers))
-    (remove-text-properties (max (1- beg) (point-min))
-			    (point-max)
-			    '(lazy-lock nil))))
+    (save-restriction
+      (widen)
+      (remove-text-properties (max (1- beg) (point-min))
+			      (point-max)
+			      '(lazy-lock nil)))))
 
 ;; 3.  Deferred fontification and stealth fontification are done from these two
 ;;     functions.  They are set up as Idle Timers.
@@ -877,10 +887,11 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 ;; 4.  Special circumstances.
 
-(defun lazy-lock-fontify-after-outline ()
-  ;; Called from `outline-view-change-hook'.
+(defun lazy-lock-fontify-after-visage ()
+  ;; Called from `outline-view-change-hook' and `hs-hide-hook'.
   ;; Fontify windows showing the current buffer, as its visibility has changed.
-  ;; This is a conspiracy hack between lazy-lock.el and noutline.el.
+  ;; This is a conspiracy hack between lazy-lock.el, outline.el and
+  ;; hideshow.el.
   (let ((windows (get-buffer-window-list (current-buffer) 'nomini t)))
     (while windows
       (lazy-lock-fontify-conservatively (car windows))
