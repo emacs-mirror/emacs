@@ -159,6 +159,14 @@ Each element has the form (REGEXP FILE-IDX LINE-IDX).
 If REGEXP matches, the FILE-IDX'th subexpression gives the file
 name, and the LINE-IDX'th subexpression gives the line number.")
 
+(defvar compilation-read-command t
+  "If not nil, M-x compile reads the compilation command to use.
+Otherwise, M-x compile just uses the value of `compile-command'.")
+
+(defvar compilation-ask-about-save t
+  "If not nil, M-x compile asks which buffers to save before compiling.
+Otherwise, it saves all modified buffers without asking.")
+
 (defvar grep-regexp-alist
   '(("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
@@ -226,11 +234,14 @@ Then start the next one.
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
-  (interactive (list (read-from-minibuffer "Compile command: "
-					   compile-command nil nil
-					   '(compile-history . 1))))
+  (interactive
+   (if compilation-read-command
+       (list (read-from-minibuffer "Compile command: "
+                                 compile-command nil nil
+                                 '(compile-history . 1)))
+     (list compile-command)))
   (setq compile-command command)
-  (save-some-buffers nil nil)
+  (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
 
 ;;;###autoload
