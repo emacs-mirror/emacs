@@ -28,8 +28,7 @@
 /*
  * Heap related stuff.
  */
-#define get_data_region_base()		(char *) 0x00030000
-#define get_reserved_heap_size()	(0x00d00000 - 0x00030000)
+#define get_reserved_heap_size()	reserved_heap_size
 #define get_committed_heap_size()	(get_data_end () - get_data_start ())
 #define get_heap_start()		get_data_start ()
 #define get_heap_end()			get_data_end ()
@@ -42,6 +41,7 @@
 extern unsigned char *get_data_start();
 extern unsigned char *get_data_end();
 extern unsigned long  data_region_size;
+extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
 extern BOOL   	      need_to_recreate_heap;
 extern int    	      nt_major_version;
