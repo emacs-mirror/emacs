@@ -497,7 +497,7 @@ and BOTTOM is one more than the bottommost row used by WINDOW
    if it is on the border between the window and its right sibling,
       return 3.
    if it is on the window's top line, return 4;
-   if it is in the bitmap area to the left/right of the window,
+   if it is in left or right fringe of the window,
    return 5 or 6, and convert *X and *Y to window-relative corrdinates.
 
    X and Y are frame relative pixel coordinates.  */
@@ -511,7 +511,7 @@ coordinates_in_window (w, x, y)
      everywhere.  */
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int left_x, right_x, top_y, bottom_y;
-  int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
+  int fringe_width = FRAME_LEFT_FRINGE_WIDTH (f);
   enum window_part part;
   int ux = CANON_X_UNIT (f);
   int x0 = XFASTINT (w->left) * ux;
@@ -584,10 +584,10 @@ coordinates_in_window (w, x, y)
   else if (*y < top_y
 	   || *y >= bottom_y
 	   || *x < (left_x
-		    - flags_area_width
+		    - fringe_width
 		    - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * ux)
 	   || *x > (right_x
-		    + flags_area_width
+		    + fringe_width
 		    + FRAME_RIGHT_SCROLL_BAR_WIDTH (f) * ux))
     {
       part = ON_NOTHING;
@@ -597,13 +597,13 @@ coordinates_in_window (w, x, y)
       if (!w->pseudo_window_p
 	  && !FRAME_HAS_VERTICAL_SCROLL_BARS (f)
 	  && !WINDOW_RIGHTMOST_P (w)
-	  && (abs (*x - right_x - flags_area_width) < grabbable_width))
+	  && (abs (*x - right_x - fringe_width) < grabbable_width))
 	{
 	  part = ON_VERTICAL_BORDER;
 	}
       else if (*x < left_x || *x > right_x)
 	{
-	  /* Other lines than the mode line don't include flags areas and
+	  /* Other lines than the mode line don't include fringes and
 	     scroll bars on the left.  */
       
 	  /* Convert X and Y to window-relative pixel coordinates.  */
@@ -624,7 +624,7 @@ coordinates_in_window (w, x, y)
 	 terminals, the vertical line's x coordinate is right_x.  */
       if (*x < left_x || *x > right_x)
 	{
-	  /* Other lines than the mode line don't include flags areas and
+	  /* Other lines than the mode line don't include fringes and
 	     scroll bars on the left.  */
       
 	  /* Convert X and Y to window-relative pixel coordinates.  */
@@ -665,9 +665,8 @@ If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
 If they are in the mode line of WINDOW, `mode-line' is returned.
 If they are in the top mode line of WINDOW, `header-line' is returned.
-If they are in the fringe to the left of the window,
-   `left-fringe' is returned, if they are in the area on the right of
-   the window, `right-fringe' is returned.
+If they are in the left fringe of WINDOW, `left-fringe' is returned.
+If they are in the right fringe of WINDOW, `right-fringe' is returned.
 If they are on the border between WINDOW and its right sibling,
   `vertical-line' is returned.  */)
      (coordinates, window)
@@ -3876,9 +3875,9 @@ window_internal_width (w)
     width -= 1;
 
   /* On window-systems, areas to the left and right of the window
-     are used to display bitmaps there.  */
+     are used as fringes.  */
   if (FRAME_WINDOW_P (f))
-    width -= FRAME_FLAGS_AREA_COLS (f);
+    width -= FRAME_FRINGE_COLS (f);
 
   return width;
 }
