@@ -300,9 +300,10 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  ;; ``Quote'' "\nFrom " as "\n>From "
 	  ;;  (note that this isn't really quoting, as there is no requirement
 	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
-	  (while (search-forward "\nFrom " nil t)
-	    (forward-char -5)
-	    (insert ?>))
+	  (let ((case-fold-search nil))
+	    (while (search-forward "\nFrom " nil t)
+	      (forward-char -5)
+	      (insert ?>)))
 	  (write-region (point-min) (point-max) file-name t
 			(if noattribute 'nomsg)))
 	(or noattribute
