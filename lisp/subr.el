@@ -1799,6 +1799,12 @@ See also `with-temp-buffer'."
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
 This does not alter the buffer list ordering.
+This function saves and restores the selected window, as well as
+the selected window in each frame.  If the previously selected
+window of some frame is no longer live at the end of BODY, that
+frame's selected window is left alone.  If the selected window is
+no longer live, then whatever window is selected at the end of
+BODY remains selected.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
