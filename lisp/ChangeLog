@@ -1,5 +1,11 @@
 2002-01-22  Richard M. Stallman  <rms@gnu.org>
 
+	* bindings.el (mode-line-copied-mode-name): New variable.
+	(mode-line-mode-name): Don't modify mode-name itself!
+	Instead, make a copy and reuse it.
+
+	* subr.el (copy-without-properties): New function.
+
 	* progmodes/sh-script.el (sh-set-shell): Doc fix.
 
 	* net/ange-ftp.el (ange-ftp-canonize-filename): Avoid duplicate
