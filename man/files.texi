@@ -2625,15 +2625,56 @@ name @var{user}.  It may ask you for a password from time to time; this
 is used for logging in on @var{host}.  The form using @var{port} allows
 you to access servers running on a non-default TCP port.
 
+@cindex backups for remote files
+@vindex ange-ftp-make-backup-files
+  If you want to disable backups for remote files, set the variable
+@code{ange-ftp-make-backup-files} to @code{nil}.
+
 @cindex ange-ftp
 @vindex ange-ftp-default-user
+@cindex user name for remote file access
   Normally, if you do not specify a user name in a remote file name,
 that means to use your own user name.  But if you set the variable
 @code{ange-ftp-default-user} to a string, that string is used instead.
 (The Emacs package that implements FTP file access is called
 @code{ange-ftp}.)
 
+@cindex anonymous FTP
+@vindex ange-ftp-generate-anonymous-password
+  To visit files accessible by anonymous FTP, you use special user
+names ``anonymous'' or ``ftp''.  Passwords for these user names are
+handled specially.  The variable
+@code{ange-ftp-generate-anonymous-password} controls what happens: if
+the value of this variable is a string, then that string is used as
+the password; if non-@code{nil} (the default), then the value of
+@code{user-mail-address} is used; if @code{nil}, the user is prompted
+for a password as normal.
+
+@cindex firewall, and accessing remote files
+@cindex gateway, and remote file access with @code{ange-ftp}
+@vindex ange-ftp-smart-gateway
+@vindex ange-ftp-gateway-host
+  Sometimes you may be unable to access files on a remote machine
+because some machine in between (usually called a @dfn{firewall})
+blocks the connection for security reasons.  However, you might have
+account on another machine, called a @dfn{gateway}, from which the
+target files @strong{are} accessible.  Instead of logging into the
+gateway, downloading the files, then copying them to your local
+machine, you can set the variable @code{ange-ftp-smart-gateway} to a
+non-@code{nil} value, and Emacs will use advanced FTP features to
+access the remote machine.  If this doesn't work, try setting the
+variable @code{ange-ftp-gateway-host} to the name of the gateway
+machine (which is the name you use to log into the gateway).  Then
+Emacs will try to run the FTP process on the gateway for you.  If that
+doesn't work either (because the FTP program on your machine doesn't
+support some of the required features), read the instructions in the
+@file{ange-ftp.el} file about working with gateways.  You can read
+these instructions by typing @kbd{M-x finder-commentary @key{RET}
+ange-ftp @key{RET}}.  Those instructions include various additional
+tips for using @code{ange-ftp}.
+
 @vindex file-name-handler-alist
+@cindex disabling ange-ftp
   You can entirely turn off the FTP file name feature by removing the
 entries @var{ange-ftp-completion-hook-function} and
 @var{ange-ftp-hook-function} from the variable
