@@ -87,6 +87,7 @@ JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 KOREAN=	${srcdir}/quail/hangul.elc	\
 	${srcdir}/quail/hangul3.elc	\
 	${srcdir}/quail/hanja.elc	\
+	${srcdir}/quail/hanja3.elc	\
 	${srcdir}/quail/hanja-jis.elc	\
 	${srcdir}/quail/symbol-ksc.elc
 
