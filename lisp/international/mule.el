@@ -138,10 +138,12 @@ LEADING-CODE-BASE (integer) is the base leading-code for the
 LEADING-CODE-EXT (integer) is the extended leading-code for the
   charset.  All charsets of less than 0xA0 has the value 0.
 ISO-FINAL-CHAR (character) is the final character of the
-  corresponding ISO 2022 charset.
+  corresponding ISO 2022 charset.  If the charset is not assigned
+  any final character, the value is -1.
 ISO-GRAPHIC-PLANE (integer) is the graphic plane to be invoked
   while encoding to variants of ISO 2022 coding system, one of the
   following: 0/graphic-plane-left(GL), 1/graphic-plane-right(GR).
+  If the charset is not assigned any final character, the value is -1.
 REVERSE-CHARSET (integer) is the charset which differs only in
   LEFT-TO-RIGHT value from the charset.  If there's no such a
   charset, the value is -1.
