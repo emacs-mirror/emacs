@@ -995,15 +995,14 @@ The value of `tex-command' specifies the command to use to run TeX."
     (tex-start-shell))
   (or tex-zap-file
       (setq tex-zap-file (tex-generate-zap-file-name)))
-  (let* ((temp-buffer (get-buffer-create " TeX-Output-Buffer"))
-         ; Temp file will be written and TeX will be run in zap-directory.
-         ; If the TEXINPUTS file has relative directories or if the region has
-         ; \input of files, this must be the same directory as the file for
-         ; TeX to access the correct inputs.  That's why it's safest if
-         ; tex-directory is ".".
-         (zap-directory
+  ;; Temp file will be written and TeX will be run in zap-directory.
+  ;; If the TEXINPUTS file has relative directories or if the region has
+  ;; \input of files, this must be the same directory as the file for
+  ;; TeX to access the correct inputs.  That's why it's safest if
+  ;; tex-directory is ".".
+  (let* ((zap-directory
           (file-name-as-directory (expand-file-name tex-directory)))
-         (tex-out-file (concat zap-directory tex-zap-file)))
+         (tex-out-file (concat zap-directory tex-zap-file ".tex")))
     ;; Don't delete temp files if we do the same buffer twice in a row.
     (or (eq (current-buffer) tex-last-buffer-texed)
 	(tex-delete-last-temp-files t))
@@ -1014,38 +1013,46 @@ The value of `tex-command' specifies the command to use to run TeX."
 	(goto-char (point-min))
 	(forward-line 100)
 	(let ((search-end (point))
-	      (hbeg (point-min)) (hend (point-min))
-	      (default-directory zap-directory))
+	      (default-directory zap-directory)
+	      (already-output 0))
 	  (goto-char (point-min))
-          
+
           ;; Maybe copy first line, such as `\input texinfo', to temp file.
 	  (and tex-first-line-header-regexp
 	       (looking-at tex-first-line-header-regexp)
 	       (write-region (point) 
-			     (progn (forward-line 1) (point))
+			     (progn (forward-line 1)
+				    (setq already-output (point)))
 			     tex-out-file nil nil))
 
-	  ;; Initialize the temp file with either the header or nothing
+	  ;; Write out the header, if there is one,
+	  ;; and any of the specified region which extends before it.
+	  ;; But don't repeat anything already written.
 	  (if (re-search-forward tex-start-of-header search-end t)
-	      (progn
+	      (let (hbeg)
 		(beginning-of-line)
 		(setq hbeg (point))	;mark beginning of header
 		(if (re-search-forward tex-end-of-header nil t)
-		    (progn (forward-line 1)
-			   (setq hend (point)))	;mark end of header
-		  (setq hbeg (point-min))))) ;no header
-	  (write-region (min hbeg beg) hend
-                        (concat tex-out-file ".tex") nil nil)
-	  (write-region (max beg hend) end (concat tex-out-file ".tex") t nil))
-	(let ((local-tex-trailer tex-trailer))
-	  (set-buffer temp-buffer)
-	  (erase-buffer)
-	  ;; make sure trailer isn't hidden by a comment
-	  (insert-string "\n")
-	  (if local-tex-trailer (insert-string local-tex-trailer))
-	  (tex-set-buffer-directory temp-buffer zap-directory)
-	  (write-region (point-min) (point-max)
-                        (concat tex-out-file ".tex") t nil))))
+		    (let (hend)
+		      (forward-line 1)
+		      (setq hend (point))	;mark end of header
+		      (write-region (max (min hbeg beg) already-output)
+				    hend
+				    tex-out-file
+				    (not (zerop already-output)) nil)
+		      (setq already-output hend)))))
+
+	  ;; Write out the specified region
+	  ;; (but don't repeat anything already written).
+	  (write-region (max beg already-output) end
+			tex-out-file
+			(not (zerop already-output)) nil))
+	;; Write the trailer, if any.
+	;; Precede it with a newline to make sure it
+	;; is not hidden in a comment.
+	(if tex-trailer
+	    (write-region (concat "\n" tex-trailer) nil
+			  tex-out-file t nil))))
     ;; Record the file name to be deleted afterward.
     (setq tex-last-temp-file tex-out-file)
     (tex-send-command tex-shell-cd-command zap-directory)
