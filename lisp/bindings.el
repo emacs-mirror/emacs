@@ -568,6 +568,8 @@ for \\[find-tag] (which see)."
 (define-key ctl-x-map "ri" 'insert-register)
 (define-key ctl-x-map "rg" 'insert-register)
 (define-key ctl-x-map "rr" 'copy-rectangle-to-register)
+(define-key ctl-x-map "rn" 'number-to-register)
+(define-key ctl-x-map "r+" 'increment-register)
 (define-key ctl-x-map "rc" 'clear-rectangle)
 (define-key ctl-x-map "rk" 'kill-rectangle)
 (define-key ctl-x-map "rd" 'delete-rectangle)
