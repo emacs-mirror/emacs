@@ -5,9 +5,9 @@
 ;; Maintainer: FSF (unless Dodd can be found)
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
-;; Keywords: dired extensions
+;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,9 +29,9 @@
 ;;; Commentary:
 
 ;; This is Sebastian Kremer's excellent dired-x.el (Dired Extra), version
-;; 1.191, hacked up for GNU Emacs 19.  Redundant or conflicting material
-;; has been removed or renamed in order to work properly with dired of
-;; GNU Emacs 19.  All suggestions or comments are most welcomed.
+;; 1.191, hacked up for GNU Emacs.  Redundant or conflicting material has
+;; been removed or renamed in order to work properly with dired of GNU
+;; Emacs.  All suggestions or comments are most welcomed.
 
 ;;  
 ;; Please, PLEASE, *PLEASE* see the info pages.
