@@ -1,3 +1,17 @@
+2003-04-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* play/gomoku.el (gomoku-buffer-name): New constant.
+	(gomoku-mode): Doc fix.  Add call to kill-all-local-variables.
+	(gomoku): Do not call gomoku-switch-to-window directly.
+	(gomoku-prompt-for-other-game): Throw an error if no new game.
+	(gomoku-switch-to-window): Use gomoku-buffer-name.
+
+	* progmodes/f90.el (f90-abbrev-start): Only offer help if
+	abbrev-mode is active.
+
+	* progmodes/fortran.el (fortran-abbrev-start): Only offer help if
+	abbrev-mode is active.
+
 2003-04-12  John Paul Wallington  <jpw@gnu.org>
 
 	* help-fns.el (help-add-fundoc-usage): Pass an empty string to
