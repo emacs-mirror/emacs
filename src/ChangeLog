@@ -1,3 +1,7 @@
+2004-01-28  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in, w32fns.c: Add `default-printer-name' function.
+
 2004-01-27  Steven Tamm <steventamm@mac.com>
 
 	* unexmacosx.c (unexec_copy): Do not copy more than was

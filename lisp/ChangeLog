@@ -1,3 +1,7 @@
+2004-01-28  Peter 'Luna' Runestig  <peter@runestig.com>
+
+	* dos-w32.el: Added support for the `default-printer-name' function.
+
 2004-01-27  Eli Tziperman  <eli@deas.harvard.edu>
 
 	* rmail-spam-filter.el: Change rmail-spam-filter- or spam-filter-
