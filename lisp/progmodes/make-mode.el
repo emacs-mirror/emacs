@@ -368,12 +368,6 @@ The function must satisfy this calling convention:
     ()
   (define-abbrev-table 'makefile-mode-abbrev-table ()))
 
-(defvar makefile-mode-abbrev-table nil
-  "Abbrev table in use in Makefile buffers.")
-(if makefile-mode-abbrev-table
-    ()
-  (define-abbrev-table 'makefile-mode-abbrev-table ()))
-
 (defvar makefile-mode-map nil
   "The keymap that is used in Makefile mode.")
 
@@ -606,9 +600,6 @@ makefile-special-targets-list:
   ;; Dabbrev.
   (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
   (setq dabbrev-abbrev-skip-leading-regexp "\\$")
-
-  ;; Other abbrevs.
-  (setq local-abbrev-table makefile-mode-abbrev-table)
 
   ;; Other abbrevs.
   (setq local-abbrev-table makefile-mode-abbrev-table)
