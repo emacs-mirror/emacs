@@ -896,7 +896,7 @@ argument causes us to read a file name and use that file as the inbox."
 	       ;; skip to the end of the contents.
 	       (let* ((header-end (save-excursion
 				    (and (re-search-forward "\n\n" nil t)
-					 (point))))
+					 (1- (point)))))
 		      (case-fold-search t)
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
