@@ -41,7 +41,7 @@
 ;; in X Windows and console layouts for GNU/Linux.  [See
 ;; `russian-computer' below.]
 (quail-define-package
- "cyrillic-typewriter" "Russian" ",L69(B" nil
+ "russian-typewriter" "Russian" ",L69(B" nil
  ",L9FC:5=(B Russian typewriter layout."
  nil t t t t nil nil nil nil nil t)
 
@@ -109,6 +109,119 @@
  ("*" ?\;)
  ("(" ?\()
  (")" ?\))
+ ("_" ?_)
+ ("+" ?+)
+ ("~" ?,L!(B)
+ ("Q" ?,L9(B)
+ ("W" ?,LF(B)
+ ("E" ?,LC(B)
+ ("R" ?,L:(B)
+ ("T" ?,L5(B)
+ ("Y" ?,L=(B)
+ ("U" ?,L3(B)
+ ("I" ?,LH(B)
+ ("O" ?,LI(B)
+ ("P" ?,L7(B)
+ ("{" ?,LE(B)
+ ("}" ?,LJ(B)
+ ("A" ?,LD(B)
+ ("S" ?,LK(B)
+ ("D" ?,L2(B)
+ ("F" ?,L0(B)
+ ("G" ?,L?(B)
+ ("H" ?,L@(B)
+ ("J" ?,L>(B)
+ ("K" ?,L;(B)
+ ("L" ?,L4(B)
+ (":" ?,L6(B)
+ ("\"" ?,LM(B)
+ ("|" ?|)
+ ("Z" ?,LO(B)
+ ("X" ?,LG(B)
+ ("C" ?,LA(B)
+ ("V" ?,L<(B)
+ ("B" ?,L8(B)
+ ("N" ?,LB(B)
+ ("M" ?,LL(B)
+ ("<" ?,L1(B)
+ (">" ?,LN(B)
+ ("?" ??)
+ )
+
+;; Maintain the obsolete name for now.
+(push (cons "cyrillic-jcuken"
+	    (cdr (assoc "russian-typewriter" input-method-alist)))
+      input-method-alist)
+
+;; See comment above.  This is the variant `winkeys' from `ru' in XKB.
+(quail-define-package
+ "russian-computer" "Russian" "RU" nil
+ ",L9FC:5=(B Russian computer layout"
+ nil t t t t nil nil nil nil nil t)
+
+;;  1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+ ,Lq!(B
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
+;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
+
+(quail-define-rules
+ ("1" ?1)
+ ("2" ?2)
+ ("3" ?3)
+ ("4" ?4)
+ ("5" ?5)
+ ("6" ?6)
+ ("7" ?7)
+ ("8" ?8)
+ ("9" ?9)
+ ("0" ?0)
+ ("-" ?-)
+ ("=" ?=)
+ ("`" ?,Lq(B)
+ ("q" ?,LY(B)
+ ("w" ?,Lf(B)
+ ("e" ?,Lc(B)
+ ("r" ?,LZ(B)
+ ("t" ?,LU(B)
+ ("y" ?,L](B)
+ ("u" ?,LS(B)
+ ("i" ?,Lh(B)
+ ("o" ?,Li(B)
+ ("p" ?,LW(B)
+ ("[" ?,Le(B)
+ ("]" ?,Lj(B)
+ ("a" ?,Ld(B)
+ ("s" ?,Lk(B)
+ ("d" ?,LR(B)
+ ("f" ?,LP(B)
+ ("g" ?,L_(B)
+ ("h" ?,L`(B)
+ ("j" ?,L^(B)
+ ("k" ?,L[(B)
+ ("l" ?,LT(B)
+ (";" ?,LV(B)
+ ("'" ?,Lm(B)
+ ("\\" ?\\)
+ ("z" ?,Lo(B)
+ ("x" ?,Lg(B)
+ ("c" ?,La(B)
+ ("v" ?,L\(B)
+ ("b" ?,LX(B)
+ ("n" ?,Lb(B)
+ ("m" ?,Ll(B)
+ ("," ?,LQ(B)
+ ("." ?,Ln(B)
+ ("/" ?.)
+ ("!" ?!)
+ ("@" ?\")
+ ("#" ?,Lp(B)
+ ("$" ?\;)
+ ("%" ?%)
+ ("^" ?:)
+ ("&" ??)
+ ("*" ?*)
+ ("(" ?()
+ (")" ?))
  ("_" ?_)
  ("+" ?+)
  ("~" ?,L!(B)
@@ -641,7 +754,7 @@
  ("l" ?,LT(B)
  (";" ?,LV(B)
  ("'" ?,Lt(B)
-;;  ("\\" ?\\)
+ ("\\" ?\\)
  ("z" ?,Lo(B)
  ("x" ?,Lg(B)
  ("c" ?,La(B)
@@ -652,18 +765,18 @@
  ("," ?,LQ(B)
  ("." ?,Ln(B)
  ("/" ?.)
-;;  ("!" ?!)
+ ("!" ?!)
  ("@" ?\")
  ("#" ?,Lp(B)
  ("$" ?\;)
-;;  ("%" ?%)
+ ("%" ?%)
  ("^" ?:)
  ("&" ??)
-;;  ("*" ?*)
-;;  ("(" ?()
-;;  (")" ?))
-;;  ("_" ?_)
-;;  ("+" ?+)
+ ("*" ?*)
+ ("(" ?()
+ (")" ?))
+ ("_" ?_)
+ ("+" ?+)
  ("~" ?')
  ("Q" ?,L9(B)
  ("W" ?,LF(B)
@@ -864,6 +977,10 @@ as follows.
 ;; method is not so obvious as translit input method but each letter
 ;; is one keypress and a *lot* of people know it).
 
+;; Anton Zinoviev <anton@lml.bas.bg> wrote:
+;; I would say that the main idea for cyrillic-translit is to be
+;; language-independent and universal.  It should be able to generate all
+;; Cyrillic symbols.
 (quail-define-package
  "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
  "Intuitively transliterated keyboard layout.
@@ -931,7 +1048,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
 )
 
 ;; Originally from Yudit's `Belarusian input table according to
-;; STB955-94 belarusian standard' by Alexander Mikhailian
+;; STB955-94 belarusian standard' (not all) by Alexander Mikhailian
 ;; <mikhailian@altern.org>, subsequently amended by AM.
 (quail-define-package
  "belarusian" "Belarusian" "BE" nil
@@ -987,18 +1104,6 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("?" ?,)
 
  ("`" ?,Lq(B)
- ("1" ?1)
- ("2" ?2)
- ("3" ?3)
- ("4" ?4)
- ("5" ?5)
- ("6" ?6)
- ("7" ?7)
- ("8" ?8)
- ("9" ?9)
- ("0" ?0)
- ("-" ?-)
- ("=" ?=)
  ("q" ?,LY(B)
  ("w" ?,Lf(B)
  ("e" ?,Lc(B)
@@ -1022,7 +1127,6 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("l" ?,LT(B)
  (";" ?,LV(B)
  ("'" ?,Lm(B)
- ("\\" ?\\)
  ("z" ?,Lo(B)
  ("x" ?,Lg(B)
  ("c" ?,La(B)
@@ -1039,9 +1143,10 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
 
 ;; Extra commentary and the indicator from an independent
 ;; (cyrillic-iso8859-5) implementation by Ognyan Kulev
-;; <ogi@fmi.uni-sofia.bg>.
+;; <ogi@fmi.uni-sofia.bg> and name changes from Anton Zinoviev
+;; <anton@lml.bas.bg>.
 (quail-define-package
- "bulgarian-pho" "Bulgarian" ",L61D(B"
+ "bulgarian-phonetic" "Bulgarian" "$,1(6(1(D(B"
  nil
  "Bulgarian Phonetic keyboard layout.
 
@@ -1124,7 +1229,7 @@ Use /& for ,A'(B (Cyrillic paragraph) and /# for ,Lp(B."
 ;; This follows XKB bg.
 
 (quail-define-package
- "bulgarian-standard" "Bulgarian" ",L14A(B" nil
+ "bulgarian-bds" "Bulgarian" "$,1(1(4(A(B" nil
  "Bulgarian standard keyboard layout (BDS)
 
 This keyboard layout is standard for Bulgarian typewriters."
