@@ -711,7 +711,7 @@ struct ablocks
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
-  (1 & (int) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+  (1 & (long) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
 #endif
 
 /* The list of free ablock.   */
@@ -792,17 +792,17 @@ lisp_align_malloc (nbytes, type)
 	  abase->blocks[i].x.next_free = free_ablock;
 	  free_ablock = &abase->blocks[i];
 	}
-      ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
+      ABLOCKS_BUSY (abase) = (struct ablocks *) (long) aligned;
 
       eassert (0 == ((EMACS_UINT)abase) % BLOCK_ALIGN);
       eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
       eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
       eassert (ABLOCKS_BASE (abase) == base);
-      eassert (aligned == (int)ABLOCKS_BUSY (abase));
+      eassert (aligned == (long) ABLOCKS_BUSY (abase));
     }
 
   abase = ABLOCK_ABASE (free_ablock);
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (int) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (long) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
 
@@ -834,11 +834,11 @@ lisp_align_free (block)
   ablock->x.next_free = free_ablock;
   free_ablock = ablock;
   /* Update busy count.  */
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (int) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
   
-  if (2 > (int) ABLOCKS_BUSY (abase))
+  if (2 > (long) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
-      int i = 0, aligned = (int) ABLOCKS_BUSY (abase);
+      int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
       struct ablock **tem = &free_ablock;
       struct ablock *atop = &abase->blocks[aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1];
 
