@@ -1280,7 +1280,7 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
               (m2 (extract-calendar-month last))
               (d2 (extract-calendar-day last))
               (y2 (extract-calendar-year last)))
-	 (if (or (and (= m1 m2)		; only possible base dates in one month
+	 (if (or (and (= m1 m2)	; only possible base dates in one month
 		      (or (and (listp month) (memq m1 month))
 			  (eq month t)
 			  (= m1 month))
@@ -1289,9 +1289,9 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 					 (calendar-last-day-of-month m1 y1)))))
 			(and (<= d1 d) (<= d d2))))
 		 ;; only possible base dates straddle two months
-		 (and (< m1 m2)
+		 (and (/= m1 m2)
 		      (or
-		       ;; m1, d1 works is a base date
+		       ;; m1, d1 works as a base date
 		       (and
 			(or (and (listp month) (memq m1 month))
 			    (eq month t)
@@ -1299,7 +1299,7 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 			(<= d1 (or day (if (> n 0)
 					   1
 					 (calendar-last-day-of-month m1 y1)))))
-		       ;; m2, d2 works is a base date
+		       ;; m2, d2 works as a base date
 		       (and (or (and (listp month) (memq m2 month))
 				(eq month t)
 				(= m2 month))
