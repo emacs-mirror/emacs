@@ -3355,6 +3355,27 @@ specification for `play-sound'."
     (push 'sound sound)
     (play-sound sound)))
 
+(defun play-sound (sound)
+  "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
+The following keywords are recognized:
+
+  :file FILE - read sound data from FILE.  If FILE isn't an
+absolute file name, it is searched in `data-directory'.
+
+  :data DATA - read sound data from string DATA.
+
+Exactly one of :file or :data must be present.
+
+  :volume VOL - set volume to VOL.  VOL must an integer in the
+range 0..100 or a float in the range 0..1.0.  If not specified,
+don't change the volume setting of the sound device.
+
+  :device DEVICE - play sound on DEVICE.  If not specified,
+a system-dependent default device name is used."
+  (unless (fboundp 'play-sound-internal)
+    (error "This Emacs binary lacks sound support."))
+  (play-sound-internal sound))
+
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
 (defcustom read-mail-command 'rmail
