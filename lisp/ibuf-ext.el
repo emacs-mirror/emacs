@@ -133,6 +133,20 @@ displaying information to the user.  FUNCTION is given a buffer and
 the value of the qualifier, and returns non-nil if and only if the
 buffer should be displayed.")
 
+(defcustom ibuffer-filter-format-alist nil
+  "An alist which has special formats used when a filter is active.
+The contents of this variable should look like:
+ ((FILTER (FORMAT FORMAT ...)) (FILTER (FORMAT FORMAT ...)) ...)
+
+For example, suppose that when you add a filter for buffers whose
+major mode is `emacs-lisp-mode', you only want to see the mark and the
+name of the buffer.  You could accomplish that by adding:
+ (mode ((mark \" \" name)))
+to this variable.")
+
+(defvar ibuffer-cached-filter-formats nil)
+(defvar ibuffer-compiled-filter-formats nil)  
+
 (defcustom ibuffer-old-time 3
   "The number of days before a buffer is considered \"old\"."
   :type 'integer
