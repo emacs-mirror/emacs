@@ -81,8 +81,8 @@ is a privileged operation."
 If this is nil while `mail-specify-envelope-from' is non-nil, the
 content of `user-mail-address' is used."
   :version "21.1"
-  :type '(choice (const :tag "Use `user-mail-address'" nil)
-		 string)
+  :type '(choice (string :tag "From-name")
+		 (const :tag "Use `user-mail-address'" nil))
   :group 'sendmail)
 
 ;;;###autoload
@@ -798,7 +798,11 @@ external program defined by `sendmail-program'."
 	(program (if (boundp 'sendmail-program)
 		     sendmail-program
 		   "/usr/lib/sendmail"))
-	(mail-envelope-from mail-envelope-from))
+	;; Examine these variables now, so that
+	;; local binding in the mail buffer will take effect.
+	(envelope-from
+	 (and mail-specify-envelope-from
+	      (or mail-envelope-from user-mail-address))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
@@ -964,9 +968,8 @@ external program defined by `sendmail-program'."
 		      (append (list (point-min) (point-max)
 				    program
 				    nil errbuf nil "-oi")
-			      (and mail-specify-envelope-from
-				   (list "-f" (or mail-envelope-from
-						  user-mail-address)))
+			      (and envelope-from
+				   (list "-f" envelope-from))
 ;;; 			      ;; Don't say "from root" if running under su.
 ;;; 			      (and (equal (user-real-login-name) "root")
 ;;; 				   (list "-f" (user-login-name)))
