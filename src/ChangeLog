@@ -1,3 +1,7 @@
+2001-10-01  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Freplace_match): Doc fix.
+
 2001-09-28  Andrew Innes  <andrewi@gnu.org>
 
 	* w32menu.c (set_frame_menubar): Take into account that
