@@ -1826,6 +1826,8 @@ struct gcpro
   (((void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
 #define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
   (((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
+#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
+  (((void) gcpro6, (void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
 #define UNGCPRO ((void) 0)
 
 #else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
@@ -1861,6 +1863,15 @@ struct gcpro
   gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
   gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
   gcprolist = &gcpro5; }
+
+#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
+  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
+  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
+  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
+  gcprolist = &gcpro6; }
 
 #define UNGCPRO (gcprolist = gcpro1.next)
 
@@ -1906,6 +1917,17 @@ extern int gcpro_level;
   gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
   gcpro5.level = gcpro_level++; \
   gcprolist = &gcpro5; }
+
+#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
+  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
+  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
+  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
+  gcpro6.level = gcpro_level++; \
+  gcprolist = &gcpro6; }
 
 #define UNGCPRO					\
  ((--gcpro_level != gcpro1.level)		\
