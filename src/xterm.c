@@ -3448,13 +3448,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	 there is an EOF condition; in other words, that X has died.
 	 Act as if there had been a hangup. */
       int fd = ConnectionNumber (x_current_display);
-      SELECT_TYPE mask;
+      SELECT_TYPE mask, junk1, junk2;
       EMACS_TIME timeout;
 
       FD_ZERO (&mask);
       FD_SET (fd, &mask);
       EMACS_SET_SECS_USECS (timeout, 0, 0);
-      if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0, &timeout)
+      FD_ZERO (&junk1);
+      FD_ZERO (&junk2);
+      if (0 != select (fd + 1, &mask, &junk1, &junk2, &timeout)
 	  && !XStuffPending ())
 	kill (getpid (), SIGHUP);
     }
