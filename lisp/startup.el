@@ -185,7 +185,7 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
-  (if (fboundp 'x-popup-menu)
+  (if (eq window-system 'x)
       (let ((submap (lookup-key global-map [menu-bar])))
 	(while submap
 	  (and (consp (car submap))
