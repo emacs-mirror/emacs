@@ -306,7 +306,10 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	   (symbolp (car (car submap)))
 	   (stringp (car-safe (cdr (car submap))))
 	   (keymapp (cdr (cdr (car submap))))
-	   (x-popup-menu nil (cdr (cdr (car submap)))))
+	   (progn
+	     (x-popup-menu nil (cdr (cdr (car submap))))
+	     (if purify-flag
+		 (garbage-collect))))
       (setq submap (cdr submap))))
   (setq define-key-rebound-commands t))
 
