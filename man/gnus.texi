@@ -9208,7 +9208,9 @@ slightly, but you may have guessed that already, you smart & handsome
 devil!  You can also set this variable to @code{pop}, and Gnus will try
 to figure out the POP mail string by itself.  In any case, Gnus will
 call @code{movemail} which will contact the POP server named in the
-@code{MAILHOST} environment variable.  If the POP server needs a
+@code{MAILHOST} environment variable.  You may also specify the POP
+server host name in @code{nnmail-spool-file} using the syntax
+@samp{po:larsi:@var{pop-server-host-name}}.  If the POP server needs a
 password, you can either set @code{nnmail-pop-password-required} to
 @code{t} and be prompted for the password, or set
 @code{nnmail-pop-password} to the password itself.
