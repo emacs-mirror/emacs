@@ -891,7 +891,14 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 (defun dired-do-redisplay (&optional arg test-for-subdir)
   "Redisplay all marked (or next ARG) files.
 If on a subdir line, redisplay that subdirectory.  In that case,
-a prefix arg lets you edit the `ls' switches used for the new listing."
+a prefix arg lets you edit the `ls' switches used for the new listing.
+
+Dired remembers switches specified with a prefix arg, so that reverting
+the buffer will not reset them.  However, using `dired-undo' to re-insert
+or delete subdirectories can bypass this machinery.  Hence, you sometimes
+may have to reset some subdirectory switches after a `dired-undo'.
+You can reset all subdirectory switches to the default using
+\\<dired-mode-map>\\[dired-reset-subdir-switches]."
   ;; Moves point if the next ARG files are redisplayed.
   (interactive "P\np")
   (if (and test-for-subdir (dired-get-subdir))
@@ -914,6 +921,12 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 			  arg)
     (dired-move-to-filename)
     (message "Redisplaying...done")))
+
+(defun dired-reset-subdir-switches ()
+  "Set `dired-switches-alist' to nil and revert dired buffer."
+  (interactive)
+  (setq dired-switches-alist nil)
+  (revert-buffer))
 
 (defun dired-update-file-line (file)
   ;; Delete the current line, and insert an entry for FILE.
@@ -1727,7 +1740,14 @@ If it is already present, just move to it (type \\[dired-do-redisplay] to refres
 With a prefix arg, you may edit the ls switches used for this listing.
   You can add `R' to the switches to expand the whole tree starting at
   this subdirectory.
-This function takes some pains to conform to `ls -lR' output."
+This function takes some pains to conform to `ls -lR' output.
+
+Dired remembers switches specified with a prefix arg, so that reverting
+the buffer will not reset them.  However, using `dired-undo' to re-insert
+or delete subdirectories can bypass this machinery.  Hence, you sometimes
+may have to reset some subdirectory switches after a `dired-undo'.
+You can reset all subdirectory switches to the default using
+\\<dired-mode-map>\\[dired-reset-subdir-switches]."
   (interactive
    (list (dired-get-filename)
 	 (if current-prefix-arg
