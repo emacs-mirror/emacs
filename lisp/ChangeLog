@@ -1,3 +1,7 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Don't match just "From".
+
 2005-01-04  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (insert-directory): Only look for error lines in

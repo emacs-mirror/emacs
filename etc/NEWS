@@ -625,11 +625,6 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
-+++
-*** Dired's v command now runs external viewers to view certain
-types of files.  The variable `dired-view-command-alist' controls
-what external viewers to use and when.
-
 *** In Dired, the w command now copies the current line's file name
 into the kill ring.  With a zero prefix arg, copies absolute file names.
 
@@ -2429,6 +2424,13 @@ timing measurements of code (including the garbage collection component).
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
 
+* Incompatible Lisp Changes in Emacs 21.4
+
++++
+** Mode line display ignores text properties as well as the
+:propertize and :eval forms in the value of a variable whose
+`risky-local-variable' property is nil.
+
 * Lisp Changes in Emacs 21.4
 
 +++
@@ -3851,11 +3853,6 @@ Reference manual for more detailed documentation.
 +++
 ** The new mode-line construct `(:propertize ELT PROPS...)' can be
 used to add text properties to mode-line elements.
-
-+++
-** Mode line display ignores text properties as well as the
-:propertize and :eval forms in the value of a variable whose
-`risky-local-variable' property is nil.
 
 +++
 ** The new `%i' and `%I' constructs for `mode-line-format' can be used
