@@ -1024,7 +1024,7 @@ Should be set in paths.el, and shouldn't be touched by the user.")
 (defcustom gnus-local-domain nil
   "Local domain name without a host name.
 The DOMAINNAME environment variable is used instead if it is defined.
-If the `system-name' function returns the full Internet name, there is
+If the function `system-name' returns the full Internet name, there is
 no need to set this variable."
   :group 'gnus-message
   :type '(choice (const :tag "default" nil)
