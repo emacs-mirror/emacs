@@ -295,7 +295,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  (erase-buffer)
 	  (insert-buffer-substring rmailbuf)
 	  (rmail-delete-unwanted-fields t)
-	  (insert "\n")
+	  (or (bolp) (insert "\n"))
 	  (goto-char (point-min))
 	  (if mail-from
 	      (insert mail-from "\n")
