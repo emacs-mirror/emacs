@@ -2,10 +2,6 @@
 
 	* subr.el (substring-no-properties): Function deleted (now in C).
 
-2002-03-26  Juanma Barranquero  <lektu@terra.es>
-
-	* toolbar/tool-bar.el: Fix typo in commentary.
-
 2002-03-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mwheel.el (mouse-wheel-mode): Use global-set-key and
