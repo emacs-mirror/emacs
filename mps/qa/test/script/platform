@@ -40,12 +40,14 @@ sub platform_settings {
 sub settings_nt {
  $dirsep = "\\";
  $cc_command = "cl";
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /MD /DMMQA_VERS_$MPS_INTERFACE_VERSION /DMMQA_PROD_$MPS_PRODUCT";
+# following line used to include /DMMQA_VERS_$MPS_INTERFACE_VERSION
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /MD /DMMQA_PROD_$MPS_PRODUCT";
  $cc_link = "$obj_dir/platform.obj";
  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:both /pdb:none /debug:full";
- $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
+ $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR /I$obj_dir";
  $cc_def = "/D";
  $cc_defeq = "=";
+ $cc_preonly = "/EP";
  $cc_conly = "/c";
  $cc_obj = "/Fo";
  $cc_exe = "/Fe";
@@ -59,9 +61,11 @@ sub settings_nt {
  $err_red = "2>";
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
+ $stderr_merge = "2>&1";
  $quotestring = \&nt_quotestring;
  $platmailfile = \&nt_mailfile;
  $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c 2>&1";
+ $preprocommand = "$cc_command $cc_preonly 2>&1";
  $exesuff = ".exe";
 }
 
@@ -83,10 +87,13 @@ sub settings_unix {
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
   "-Wshadow -Wmissing-prototypes -Wcast-align ".
-  "-O -g -ggdb3 -DMMQA_VERS_$MPS_INTERFACE_VERSION -DMMQA_PROD_$MPS_PRODUCT";
- $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+  "-O -g -ggdb3 ".
+# used to have here: "-DMMQA_VERS_$MPS_INTERFACE_VERSION ".
+  "-DMMQA_PROD_$MPS_PRODUCT";
+ $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR -I$obj_dir";
  $cc_def = "-D";
  $cc_defeq = "=";
+ $cc_preonly = "-E";
  $cc_conly = "-c";
  $cc_obj = "-o ";
  $cc_exe = "-o ";
@@ -100,9 +107,11 @@ sub settings_unix {
  $err_red = "2>";
  $stdout_dup = "| tee";
  $stdin_red = "<";
+ $stderr_merge = "2>&1";
  $quotestring = \&unix_quotestring;
  $platmailfile = \&unix_mailfile;
  $stringscommand = "strings 2>&1";
+ $preprocommand = "$cc_command $cc_preonly 2>&1";
  $exesuff = "";
 }
 
@@ -194,7 +203,10 @@ sub identify_nt {
 
 sub identify_unix {
  &comvar("machine", "uname -n", "");
- &comvar("user", "whoami", "");
+ &comvar("user", "who am i", "");
+ if (exists $identify{"user"}) {
+  $identify{"user"} =~ s/\s.*//;
+ }
  &comvar("c_version", "gcc -v", "version");
  &comvar("OS", "uname", "");
  &comvar("arch", "arch", "");
