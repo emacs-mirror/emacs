@@ -61,5 +61,5 @@ s/bootstrap-doc/b-doc/
 /^	mv -f emacs/a\
 	stubify b-emacs\
 	stubedit b-emacs.exe minstack=1024k\
-	rm -f emacs.exe temacs.exe
+	rm -f emacs.exe temacs.exe emacs
 /^	rm -f/s/\\#/#/
