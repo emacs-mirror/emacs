@@ -2545,8 +2545,8 @@ regex_compile (pattern, size, syntax, bufp)
 	    re_char *p1 = p;
 
 	    /* If there's no special whitespace regexp, treat
-	       spaces normally.  */
-	    if (!whitespace_regexp)
+	       spaces normally.  And don't try to do this recursively.  */
+	    if (!whitespace_regexp || in_subpattern)
 	      goto normal_char;
 
 	    /* Peek past following spaces.  */
