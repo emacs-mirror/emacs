@@ -1,3 +1,7 @@
+2000-11-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/sol2-5.h (USE_MMAP_FOR_BUFFERS): Undefine.
+
 2000-11-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (get_new_private_charset_id): Don't limit CHARSET_ID
