@@ -441,7 +441,7 @@ string is passed through `substitute-command-keys'.  */)
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (EQ (tem, make_number (0))
+  if (EQ (tem, make_number (0)))
       tem = Qnil;
   if (INTEGERP (doc) || CONSP (doc))
     {
@@ -487,7 +487,7 @@ aren't strings.  */)
  documentation_property:
   
   tem = Fget (symbol, prop);
-  if (EQ (tem, make_number (0))
+  if (EQ (tem, make_number (0)))
       tem = Qnil;
   if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
     {
