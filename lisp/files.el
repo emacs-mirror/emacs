@@ -590,7 +590,7 @@ If there is no such live buffer, return nil."
 		  (setq found (car list))))
 	    (setq list (cdr list)))
 	  found)
-	(let ((number (nthcdr 10 (file-attributes )))
+	(let ((number (nthcdr 10 (file-attributes truename)))
 	      (list (buffer-list)) found)
 	  (while (and (not found) list)
 	    (save-excursion
