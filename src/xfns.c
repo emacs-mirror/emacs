@@ -510,7 +510,7 @@ x_set_frame_parameters (f, alist)
 	  param_index = Fget (prop, Qx_frame_parameter);
 	  old_value = get_frame_param (f, prop);
 	  store_frame_param (f, prop, val);
-	  if (XTYPE (param_index) == Lisp_Int
+ 	  if (INTEGERP (param_index)
 	      && XINT (param_index) >= 0
 	      && (XINT (param_index)
 		  < sizeof (x_frame_parms)/sizeof (x_frame_parms[0])))
@@ -1227,7 +1227,7 @@ x_set_menu_bar_lines (f, value, oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (XTYPE (value) == Lisp_Int)
+  if (INTEGERP (value))
     nlines = XINT (value);
   else
     nlines = 0;
@@ -2285,7 +2285,7 @@ be shared by the new frame.")
   check_x ();
 
   name = x_get_arg (parms, Qname, "title", "Title", string);
-  if (XTYPE (name) != Lisp_String
+  if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
     error ("x-create-frame: name parameter must be a string");
@@ -2298,7 +2298,7 @@ be shared by the new frame.")
       f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
-  else if (XTYPE (tem) == Lisp_Window)
+  else if (WINDOWP (tem))
     f = make_frame_without_minibuffer (tem);
   else
     f = make_frame (1);
@@ -3366,7 +3366,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
  while (1)
    {
      obj = read_char (-1, 0, 0, Qnil, 0);
-     if (XTYPE (obj) != Lisp_Cons)
+     if (!CONSP (obj))
        break;
 
      if (mouse_below_point)
@@ -3498,9 +3498,9 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
       do
 	{
 	  obj = read_char (-1, 0, 0, Qnil, 0);
-	  if ((XTYPE (obj) != Lisp_Cons)
+	  if (!CONSP (obj)
 	      || (! EQ (Fcar (Fcdr (Fcdr (obj))),
-		       Qvertical_scroll_bar))
+			Qvertical_scroll_bar))
 	      || x_mouse_grabbed)
 	    {
 	      BLOCK_INPUT;
@@ -3716,7 +3716,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
       obj = read_char (-1, 0, 0, Qnil, 0);
       BLOCK_INPUT;
     }
-  while (XTYPE (obj) == Lisp_Cons		   /* Mouse event */
+  while (CONSP (obj)		   /* Mouse event */
 	 && EQ (Fcar (Fcdr (Fcdr (obj))), Qnil)	   /* Not scroll bar */
 	 && EQ (Vmouse_depressed, Qnil)              /* Only motion events */
 	 && EQ (Vmouse_window, selected_window)	   /* In this window */
