@@ -3156,7 +3156,7 @@ apply_modifiers (modifiers, base)
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
   XFASTINT (index) = (modifiers & ~click_modifier);
-  entry = Fassq (index, cache);
+  entry = assq_no_quit (index, cache);
 
   if (CONSP (entry))
     new_symbol = XCONS (entry)->cdr;
