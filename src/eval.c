@@ -87,7 +87,7 @@ struct catchtag *catchlist;
 int gcpro_level;
 #endif
 
-Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
+Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun, Qdefvar;
 Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
@@ -731,7 +731,7 @@ Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.  */)
   sym->indirect_variable = 1;
   sym->value = aliased;
   sym->constant = SYMBOL_CONSTANT_P (aliased);
-  LOADHIST_ATTACH (symbol);
+  LOADHIST_ATTACH (Fcons (Qdefvar, symbol));
   if (!NILP (docstring))
     Fput (symbol, Qvariable_documentation, docstring);
 
@@ -777,14 +777,12 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	    tem = Fpurecopy (tem);
 	  Fput (sym, Qvariable_documentation, tem);
 	}
-      LOADHIST_ATTACH (sym);
+      LOADHIST_ATTACH (Fcons (Qdefvar, sym));
     }
   else
-    /* A (defvar <var>) should not take precedence in the load-history over
-       an earlier (defvar <var> <val>), so only add to history if the default
-       value is still unbound.  */
-    if (NILP (tem))
-      LOADHIST_ATTACH (sym);
+    /* Simple (defvar <var>) should not count as a definition at all.
+       It could get in the way of other definitions, and unloading this
+       package could try to make the variable unbound.  */
     
   return sym;
 }
@@ -817,7 +815,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
 	tem = Fpurecopy (tem);
       Fput (sym, Qvariable_documentation, tem);
     }
-  LOADHIST_ATTACH (sym);
+  LOADHIST_ATTACH (Fcons (Qdefvar, sym));
   return sym;
 }
 
@@ -3308,6 +3306,9 @@ before making `inhibit-quit' nil.  */);
 
   Qdefun = intern ("defun");
   staticpro (&Qdefun);
+
+  Qdefvar = intern ("defvar");
+  staticpro (&Qdefvar);
 
   Qand_rest = intern ("&rest");
   staticpro (&Qand_rest);
