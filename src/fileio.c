@@ -4304,6 +4304,8 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   int changed;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
+  CHECK_STRING (string, 0);
+
   realdir = dir;
   name = string;
   orig_string = Qnil;
@@ -4409,7 +4411,7 @@ DIR defaults to current buffer's directory default.")
       XSTRING (dir)->data[0] = '~';
     }
 
-  if (insert_default_directory)
+  if (insert_default_directory && STRINGP (dir))
     {
       insdef = dir;
       if (!NILP (initial))
@@ -4425,7 +4427,7 @@ DIR defaults to current buffer's directory default.")
       else
 	insdef1 = double_dollars (insdef);
     }
-  else if (!NILP (initial))
+  else if (STRINGP (initial))
     {
       insdef = initial;
       insdef1 = Fcons (double_dollars (insdef), 0);
