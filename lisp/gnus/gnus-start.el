@@ -1084,7 +1084,9 @@ for new groups."
 	    (gnus-group-change-level
 	     (car groups) gnus-level-default-subscribed gnus-level-killed))
 	  (setq groups (cdr groups)))
-	(gnus-group-make-help-group)
+	(save-excursion
+	  (set-buffer gnus-group-buffer)
+	  (gnus-group-make-help-group))
 	(when gnus-novice-user
 	  (gnus-message 7 "`A k' to list killed groups"))))))
 
@@ -2208,7 +2210,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Saving %s.eld..." gnus-current-startup-file)
 	  (gnus-gnus-to-quick-newsrc-format)
 	  (run-hooks 'gnus-save-quick-newsrc-hook)
-	  (save-buffer)
+	  (let ((coding-system-for-write gnus-startup-file-coding-system))
+	    (save-buffer))
 	  (kill-buffer (current-buffer))
 	  (gnus-message
 	   5 "Saving %s.eld...done" gnus-current-startup-file))
