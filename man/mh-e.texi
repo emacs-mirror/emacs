@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.8 2001/02/19 19:13:47 wohler Exp $
+@c $Id: mh-e.texi,v 1.9 2001/02/23 12:31:08 gerd Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -389,7 +389,7 @@ out the menubar in all of the example screens.}
 
 
 
------Emacs: *scratch*         (Lisp Interaction)--All---------------------
+-----Emacs: *scratch*         (Lisp Interaction)--All-------------------
 To: wohler
 cc:
 Subject: Test
@@ -397,7 +397,7 @@ Subject: Test
   This is a test message to get the wheels churning...#
 
 
---**-@{draft@}      (MH-Letter)--All----------------------------------------
+--**-@{draft@}      (MH-Letter)--All-------------------------------------
 
 @end cartouche
 @i{mh-e message composition window}
@@ -451,10 +451,10 @@ You should see the scan line for your message, and perhaps others.  Use
 @example
 @group
 @cartouche
-   3  24Aug  root       received fax files on Wed Aug 24 11:00:13 PDT 1994
-#  4+ 24Aug  To:wohler  Test<<This is a test message to get the wheels chu
+  3  24Aug root      received fax files on Wed Aug 24 11:00:13 PDT 1994
+# 4+ 24Aug To:wohler Test<<This is a test message to get the wheels chu
 
---%%-@{+inbox@} 4 msgs (1-4)      (MH-Folder Show)--Bot---------------------
+--%%-@{+inbox@} 4 msgs (1-4)      (MH-Folder Show)--Bot------------------
 To: wohler
 Subject: Test
 Date: Wed, 24 Aug 1994 13:01:13 -0700
@@ -466,7 +466,7 @@ From: Bill Wohler <wohler@@newt.com>
 
 
 
------@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+-----@{show-+inbox@} 4      (MH-Show)--Bot-------------------------------
 
 @end cartouche
 @i{After incorporating new messages}
@@ -502,7 +502,7 @@ In-reply-to: Bill Wohler's message of Wed, 24 Aug 1994 13:01:13 -0700
 --------
 #
 
---**-@{draft@}      (MH-Letter)--All----------------------------------------
+--**-@{draft@}      (MH-Letter)--All-------------------------------------
 To: wohler
 Subject: Test
 Date: Wed, 24 Aug 1994 13:01:13 -0700
@@ -510,7 +510,7 @@ From: Bill Wohler <wohler@@newt.com>
 
   This is a test message to get the wheels churning...
 
------@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+-----@{show-+inbox@} 4      (MH-Show)--Bot-------------------------------
 Composing a reply...done
 @end cartouche
 @i{Composition window during reply}
@@ -1768,7 +1768,7 @@ Subject:
 
 
 
---**-Emacs: pick-pattern    (MH-Pick)------All----------------------------
+--**-Emacs: pick-pattern    (MH-Pick)------All--------------------------
 
 @end cartouche
 @i{Pick window}
@@ -2394,7 +2394,7 @@ somewhere in the string in that order.  The default value of
 @samp{"@{show-%s@} %d"} yields a mode line of
 
 @example
------@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+-----@{show-+inbox@} 4      (MH-Show)--Bot--------------------------------
 @end example
 
 @node Customizing Moving Around,  , Customizing Viewing, Customizing Reading
@@ -2454,9 +2454,11 @@ Format string for forwarded message subject (default: @samp{"%s: %s"}).
 @code{send} requires entire message (default: @code{nil}).
 
 @item mh-new-draft-cleaned-headers
-Remove these header fields from re-edited draft (default:
-@samp{"^Date:\\| ^Received:\\| ^Message-Id:\\| ^From:\\| ^Sender:\\|
-^Delivery-Date:\\| ^Return-Path:"}).
+Remove these header fields from re-edited draft.  The default is:
+@example
+"^Date:\\| ^Received:\\| ^Message-Id:\\| ^From:\\|
+^Sender:\\| ^Delivery-Date:\\| ^Return-Path:".
+@end example
 @end table
 
 @cindex @code{comp}
@@ -2779,13 +2781,14 @@ Emacs macros can be used to insert enriched text directives like
 @samp{<bold>}.  The following code will make, for example, @kbd{C-c t
 b} insert the @samp{<bold>} directive.
 
-@lisp
+@smallexample
 @group
 @i{Emacs macros for entering enriched text}
 
-(defvar enriched-text-types '(("b" . "bold") ("i" . "italic") ("f" . "fixed")
-                              ("s" . "smaller") ("B" . "bigger")
-                              ("u" . "underline") ("c" . "center"))
+(defvar enriched-text-types '(("b" . "bold") ("i" . "italic")
+                              ("f" . "fixed") ("s" . "smaller")
+                              ("B" . "bigger") ("u" . "underline")
+                              ("c" . "center"))
   "Alist of (final-character . directive) choices for add-enriched-text.
 Additional types can be found in RFC 1563.")
 
@@ -2805,7 +2808,7 @@ arguments are BEGIN and END@."
       (goto-char (point-max))      ; @r{move to end of text}
       (insert "</" type ">"))))    ; @r{insert terminating directive}
 @end group
-@end lisp
+@end smallexample
 
 To use the function @code{add-enriched-text}, first create keybindings
 for it (@pxref{Customizing Sending}).  Then, set the mark with
@@ -3024,15 +3027,15 @@ symbol @samp{+}.
 @vindex @code{mh-default-folder-for-message-function}, example
 @vindex @code{mh-user-path}, example
 
-@lisp
+@smallexample
 @group
 @i{Creating useful default folder for refiling via mh-default-folder-for-message-function}
 
 (defun my-mh-folder-from-address ()
   "Determine folder name from address.
-Takes the address in the From: header field, and returns its corresponding
-alias from the user's personal aliases file. Returns @code{nil} if the address
-was not found."
+Takes the address in the From: header field, and returns its
+corresponding alias from the user's personal aliases file. Returns
+@code{nil} if the address was not found."
   (require 'rfc822)                         ; @r{for the rfc822 functions}
   (search-forward-regexp "^From: \\(.*\\)") ; @r{grab header field contents}
   (save-excursion                     ; @r{save state}
@@ -3050,21 +3053,22 @@ was not found."
             (setq folder
                   ;; @r{Search for the given address, even commented-out}
                   ;; @r{addresses are found!}
-                  ;; @r{The function search-forward-regexp sets values that are}
-                  ;; @r{later used by match-beginning and match-end.}
+                  ;; @r{The function search-forward-regexp sets values that}
+                  ;; @r{are later used by match-beginning and match-end.}
                   (if (search-forward-regexp (format "^;*\\(.*\\):.*%s"
                                                      addr) nil t)
-                      ;; @r{NOTE WELL: this is what the return value looks like.}
-                      ;; @r{You can modify the format string to match your own}
-                      ;; @r{Mail hierarchy.}
-                      (format "+%s" (buffer-substring (match-beginning 1)
-                                                      (match-end 1))))))
+                      ;; @r{NOTE WELL: this is what the return value looks}
+                      ;; @r{like. You can modify the format string to match}
+                      ;; @r{your own Mail hierarchy.}
+                      (format "+%s" (buffer-substring
+                                      (match-beginning 1)
+                                      (match-end 1))))))
         (kill-buffer buffer))          ; @r{get rid of our temporary buffer}
       folder)))                        ; @r{function's return value}
 
 (setq mh-default-folder-for-message-function 'my-mh-folder-from-address)
 @end group
-@end lisp
+@end smallexample
 
 @vindex @code{mh-refile-msg-hook}
 
@@ -3369,7 +3373,8 @@ The version of mh-e in the current version of Emacs should be up to
 date. It is most likely to be more up to date than the copy that comes
 with the MH distribution in @file{miscellany/mh-e}.
 
-New mh-e releases will appear at
+@c intentionally wordy to avoid overfull hbox
+New mh-e releases are almost available for downloading at
 @uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
 SourceForge} before they appear in an Emacs release. You can read the
 release notes on that page to determine if the given release of mh-e
@@ -3378,14 +3383,14 @@ is already installed in your version of Emacs.
 If you go this route, I suggest that you extract the files from
 @file{mh-e-@var{m.n}.tgz} in the following fashion:
 
-@example
+@smallexample
 @group
 % @kbd{cd}                                  # @r{Start in your home directory}
 % @kbd{mkdir lib lib/emacs}                 # @r{Create directory for mh-e}
 % @kbd{cd lib/emacs}
 % @kbd{zcat @var{path/to/}mh-e-@var{m.n}.tgz | tar xvf -}    # @r{Extract files}
 @end group
-@end example
+@end smallexample
 
 @cindex @file{.emacs}
 @cindex files, @file{.emacs}
