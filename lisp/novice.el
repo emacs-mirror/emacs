@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1994, 2002 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -77,19 +77,19 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 	     (indent-rigidly start (point) 3))))
        (princ "\n\nDo you want to use this command anyway?\n\n")
        (princ "You can now type
-Y   to try it and enable it (no questions if you use it again).
-N   to cancel--don't try the command, and it remains disabled.
+y   to try it and enable it (no questions if you use it again).
+n   to cancel--don't try the command, and it remains disabled.
 SPC to try the command just this once, but leave it disabled.
 !   to try it, and enable all disabled commands for this session only.")
        (save-excursion
 	(set-buffer standard-output)
 	(help-mode)))
-     (message "Type y, n, ! or Space: ")
+     (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
        (while (not (memq (setq char (downcase (read-char)))
 			 '(?! ?  ?y ?n)))
 	 (ding)
-	 (message "Please type y, n, ! or Space: "))))
+	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (if (= char ?!)
 	(setq disabled-command-hook nil))
     (if (= char ?y)
