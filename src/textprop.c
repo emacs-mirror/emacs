@@ -150,11 +150,9 @@ validate_interval_range (object, begin, end, force)
       if (! (0 <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	     && XINT (*end) <= s->size))
 	args_out_of_range (*begin, *end);
-      /* User-level Positions in strings start with 0,
-	 but the interval code always wants positions starting with 1.  */
-      XSETFASTINT (*begin, XFASTINT (*begin) + 1);
+      XSETFASTINT (*begin, XFASTINT (*begin));
       if (begin != end)
-	XSETFASTINT (*end, XFASTINT (*end) + 1);
+	XSETFASTINT (*end, XFASTINT (*end));
       i = s->intervals;
 
       if (s->size == 0)
@@ -479,7 +477,7 @@ erase_properties (i)
 }
 #endif
 
-/* Returns the interval of the POSITION in OBJECT. 
+/* Returns the interval of POSITION in OBJECT. 
    POSITION is BEG-based.  */
 
 INTERVAL
@@ -509,9 +507,8 @@ interval_of (position, object)
     {
       register struct Lisp_String *s = XSTRING (object);
 
-      /* We expect position to be 1-based.  */
-      beg = BEG;
-      end = s->size + BEG;
+      beg = 0;
+      end = s->size;
       i = s->intervals;
     }
 
@@ -716,7 +713,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 				? XSTRING (object)->size
 				: BUF_ZV (XBUFFER (object))));
       else
-	XSETFASTINT (position, next->position - (STRINGP (object)));
+	XSETFASTINT (position, next->position);
       return position;
     }
 
@@ -726,17 +723,15 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   next = next_interval (i);
 
   while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
-	 && (NILP (limit)
-	     || next->position - (STRINGP (object)) < XFASTINT (limit)))
+	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit)
-      && !(next->position - (STRINGP (object)) < XFASTINT (limit)))
+  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XSETFASTINT (position, next->position - (STRINGP (object)));
+  XSETFASTINT (position, next->position);
   return position;
 }
 
@@ -762,7 +757,7 @@ property_change_between_p (beg, end)
       next = next_interval (next);
       if (NULL_INTERVAL_P (next))
 	return 0;
-      if (next->position - (STRINGP (object)) >= end)
+      if (next->position >= end)
 	return 0;
     }
 
@@ -803,17 +798,15 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   next = next_interval (i);
   while (! NULL_INTERVAL_P (next) 
 	 && EQ (here_val, textget (next->plist, prop))
-	 && (NILP (limit) || next->position - (STRINGP (object)) < XFASTINT (limit)))
+	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit)
-      && !(next->position - (STRINGP (object)) < XFASTINT (limit)))
+  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XSETFASTINT (position, next->position - (STRINGP (object)));
-  return position;
+  return make_number (next->position);
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
@@ -848,19 +841,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
 	 && (NILP (limit)
-	     || (previous->position + LENGTH (previous) - (STRINGP (object))
-		 > XFASTINT (limit))))
+	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
   if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) - (STRINGP (object))
-	   > XFASTINT (limit)))
+      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  XSETFASTINT (position, (previous->position + LENGTH (previous)
-			  - (STRINGP (object))));
-  return position;
+  return make_number (previous->position + LENGTH (previous));
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
@@ -900,19 +889,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   while (! NULL_INTERVAL_P (previous)
 	 && EQ (here_val, textget (previous->plist, prop))
 	 && (NILP (limit)
-	     || (previous->position + LENGTH (previous) - (STRINGP (object))
-		 > XFASTINT (limit))))
+	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
   if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) - (STRINGP (object))
-	   > XFASTINT (limit)))
+      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  XSETFASTINT (position, (previous->position + LENGTH (previous)
-			  - (STRINGP (object))));
-  return position;
+  return make_number (previous->position + LENGTH (previous));
 }
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
@@ -1294,7 +1279,7 @@ containing the text.")
 	  pos = i->position;
 	  if (pos < XINT (start))
 	    pos = XINT (start);
-	  return make_number (pos - (STRINGP (object)));
+	  return make_number (pos);
 	}
       i = next_interval (i);
     }
@@ -1330,121 +1315,13 @@ containing the text.")
 	{
 	  if (i->position > s)
 	    s = i->position;
-	  return make_number (s - (STRINGP (object)));
+	  return make_number (s);
 	}
       i = next_interval (i);
     }
   return Qnil;
 }
 
-#if 0 /* You can use set-text-properties for this.  */
-
-DEFUN ("erase-text-properties", Ferase_text_properties,
-       Serase_text_properties, 2, 3, 0,
-  "Remove all properties from the text from START to END.\n\
-The optional third argument, OBJECT,\n\
-is the string or buffer containing the text.")
-  (start, end, object)
-     Lisp_Object start, end, object;
-{
-  register INTERVAL i;
-  register INTERVAL prev_changed = NULL_INTERVAL;
-  register int s, len, modified;
-
-  if (NILP (object))
-    XSETBUFFER (object, current_buffer);
-
-  i = validate_interval_range (object, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
-    return Qnil;
-
-  s = XINT (start);
-  len = XINT (end) - s;
-
-  if (i->position != s)
-    {
-      register int got;
-      register INTERVAL unchanged = i;
-
-      /* If there are properties here, then this text will be modified.  */
-      if (! NILP (i->plist))
-	{
-	  i = split_interval_right (unchanged, s - unchanged->position);
-	  i->plist = Qnil;
-	  modified++;
-
-	  if (LENGTH (i) > len)
-	    {
-	      i = split_interval_right (i, len);
-	      copy_properties (unchanged, i);
-	      return Qt;
-	    }
-
-	  if (LENGTH (i) == len)
-	    return Qt;
-
-	  got = LENGTH (i);
-	}
-      /* If the text of I is without any properties, and contains
-         LEN or more characters, then we may return without changing
-	 anything.*/
-      else if (LENGTH (i) - (s - i->position) <= len)
-	return Qnil;
-      /* The amount of text to change extends past I, so just note
-	 how much we've gotten.  */
-      else
-	got = LENGTH (i) - (s - i->position);
-
-      len -= got;
-      prev_changed = i;
-      i = next_interval (i);
-    }
-
-  /* We are starting at the beginning of an interval, I.  */
-  while (len > 0)
-    {
-      if (LENGTH (i) >= len)
-	{
-	  /* If I has no properties, simply merge it if possible.  */
-	  if (NILP (i->plist))
-	    {
-	      if (! NULL_INTERVAL_P (prev_changed))
-		merge_interval_left (i);
-
-	      return modified ? Qt : Qnil;
-	    }
-
-          if (LENGTH (i) > len)
-            i = split_interval_left (i, len);
-	  if (! NULL_INTERVAL_P (prev_changed))
-	    merge_interval_left (i);
-	  else
-	    i->plist = Qnil;
-
-	  return Qt;
-	}
-
-      /* Here if we still need to erase past the end of I */
-      len -= LENGTH (i);
-      if (NULL_INTERVAL_P (prev_changed))
-	{
-	  modified += erase_properties (i);
-	  prev_changed = i;
-	}
-      else
-	{
-	  modified += ! NILP (i->plist);
-	  /* Merging I will give it the properties of PREV_CHANGED.  */
-	  prev_changed = i = merge_interval_left (i);
-	}
-
-      i = next_interval (i);
-    }
-
-  return modified ? Qt : Qnil;
-}
-#endif /* 0 */
-
 /* I don't think this is the right interface to export; how often do you
    want to do something like this, other than when you're copying objects
    around?
@@ -1460,7 +1337,7 @@ is the string or buffer containing the text.")
    Return t if any property value actually changed, nil otherwise.  */
 
 /* Note this can GC when DEST is a buffer.  */
-
+
 Lisp_Object
 copy_text_properties (start, end, src, pos, dest, prop)
        Lisp_Object start, end, src, pos, dest, prop;
