@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1988,90,92,93,94,95,96,97,98,99,2000,01,02,2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -682,8 +682,7 @@ See `make-comint' and `comint-exec'."
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same comint
 buffer.  The hook `comint-exec-hook' is run after each exec."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
       (if proc (delete-process proc)))
     ;; Crank up a new process
@@ -1562,7 +1561,7 @@ Make backspaces delete the previous character."
 	(save-restriction
 	  (widen)
 	  (let ((inhibit-field-text-motion t)
-		(buffer-read-only nil))
+		(inhibit-read-only t))
 	    ;; CR LF -> LF
 	    ;; Note that this won't work properly when the CR and LF
 	    ;; are in different output chunks, but this is probably an
@@ -1601,7 +1600,7 @@ Make backspaces delete the previous character."
 	    (setq functions (cdr functions))))
 
 	;; Insert STRING
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      ;; Avoid the overhead of save-excursion, since we just
 	      ;; fiddle with the point
 	      (saved-point (point-marker)))
@@ -1772,7 +1771,8 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (goto-char (process-mark (get-buffer-process (current-buffer))))
     (forward-line (- comint-buffer-maximum-size))
     (beginning-of-line)
-    (delete-region (point-min) (point))))
+    (let ((inhibit-read-only t))
+      (delete-region (point-min) (point)))))
 
 (defun comint-strip-ctrl-m (&optional string)
   "Strip trailing `^M' characters from the current output group.
