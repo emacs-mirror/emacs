@@ -86,6 +86,7 @@
 
 (put 'comment-region 'menu-enable 'mark-active)
 (put 'c-macro-expand 'menu-enable 'mark-active)
+(put 'c-backslash-region 'menu-enable 'mark-active)
 
 (autoload 'c-macro-expand "cmacexp"
   "Display the result of expanding all C macros occurring in the region.
