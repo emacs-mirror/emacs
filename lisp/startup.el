@@ -134,7 +134,7 @@ with the contents of the startup message."
   "*Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
-or it your `.emacs' file contains a line of this form:
+or if your `.emacs' file contains a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
 If your `.emacs' file is byte-compiled, use the following form instead:
  (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
@@ -249,7 +249,7 @@ Emacs never sets this variable itself.")
   "The brand of keyboard you are using.
 This variable is used to define
 the proper function and keypad keys for use under X.  It is used in a
-fashion analogous to the environment value TERM.")
+fashion analogous to the environment variable TERM.")
 
 (defvar window-setup-hook nil
   "Normal hook run to initialize window system display.

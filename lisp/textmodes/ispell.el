@@ -774,13 +774,13 @@ The last occurring definition in the buffer will be used.")
     ;; identification of the computer name, e.g.:
     ;; "\\(\\w\\|-\\)+[.:@]\\(\\w\\|-\\)*\\([.:/@]+\\(\\w\\|-\\|~\\)+\\)+"
     )
-  "A-list expressing begining and end of regions not to spell check.
+  "Alist expressing beginning and end of regions not to spell check.
 The alist key must be a regular expression.
 Valid forms include:
   (KEY) - just skip the key.
-  (KEY . REGEXP) - skip to the end REGEXP.  REGEXP may be string or symbol.
+  (KEY . REGEXP) - skip to the end of REGEXP.  REGEXP may be string or symbol.
   (KEY REGEXP) - skip to end of REGEXP.  REGEXP must be a string.
-  (KEY FUNCTION ARGS) - function called with args returns end of region.")
+  (KEY FUNCTION ARGS) - FUNCTION called with ARGS returns end of region.")
 
 
 
@@ -1984,7 +1984,7 @@ Return non-nil if not aborted."
 
 
 ;;; Creates the regexp for skipping a region.
-;;; Makes the skip-regxp local for tex buffers adding in the
+;;; Makes the skip-regexp local for tex buffers adding in the
 ;;; tex expressions to skip as well.
 ;;; Call AFTER ispell-buffer-local-parsing.
 (defun ispell-begin-skip-region-regexp ()
@@ -2780,7 +2780,7 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  pgp NZST Vignaux autoloaded loaddefs aff Francais Nederlands SPC
 ; LocalWords:  popup nonmenu regexp herr num pers dict unhighlight ccept uit NB
 ; LocalWords:  buf grep sync prev inc hilight olddot AIX ersion msg read's op
-; LocalWords:  bufs pt regxp multibyte cmd Quinlan uuencoded esp unidiff eg sc
+; LocalWords:  bufs pt multibyte cmd Quinlan uuencoded esp unidiff eg sc
 ; LocalWords:  VM lns HTML eval american IspellPersDict
 
 ;;; ispell.el ends here

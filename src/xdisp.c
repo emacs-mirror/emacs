@@ -3797,7 +3797,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       else
 	{
 	  /* C is a multibyte character or a character to be displayed
-             by octral form.  */
+             by octal form.  */
 	  int remaining_bytes = len;
 
 	  if (c >= 0400)

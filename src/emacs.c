@@ -599,7 +599,7 @@ main (argc, argv, envp)
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
 	  printf ("For more information about these matters, ");
-	  printf ("see the files named COPYING.\n");
+	  printf ("see the file named COPYING.\n");
 	  exit (0);
 	}
     }

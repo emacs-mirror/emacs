@@ -54,13 +54,13 @@
 
 ;; For each group (row) of 2-byte character sets.
 
-(define-category ?A "Alpha numeric characters of 2-byte character sets")
+(define-category ?A "Alpha-numeric characters of 2-byte character sets")
 (define-category ?C "Chinese (Han) characters of 2-byte character sets")
-(define-category ?G "Greek characters of 2-byte characters sets")
+(define-category ?G "Greek characters of 2-byte character sets")
 (define-category ?H "Japanese Hiragana characters of 2-byte character sets")
 (define-category ?K "Japanese Katakana characters of 2-byte character sets")
 (define-category ?N "Korean Hangul characters of 2-byte character sets")
-(define-category ?Y "Cyrillic character of 2-byte character sets")
+(define-category ?Y "Cyrillic characters of 2-byte character sets")
 (define-category ?I "Indian Glyphs")
 
 ;; For phonetic classifications.
@@ -83,7 +83,7 @@
 (define-category ? 
   "This character counts as a space for indentation purposes.")
 
-;; Keep the followings for `kinsoku' processing.  See comments in
+;; Keep the following for `kinsoku' processing.  See comments in
 ;; kinsoku.el.
 (define-category ?> "A character which can't be placed at beginning of line.")
 (define-category ?< "A character which can't be placed at end of line.")

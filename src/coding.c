@@ -315,7 +315,7 @@ Lisp_Object Vcoding_system_for_write;
 Lisp_Object Vlast_coding_system_used;
 
 /* A vector of length 256 which contains information about special
-   Latin codes (espepcially for dealing with Microsoft code).  */
+   Latin codes (especially for dealing with Microsoft codes).  */
 Lisp_Object Vlatin_extra_code_table;
 
 /* Flag to inhibit code conversion of end-of-line format.  */

@@ -155,7 +155,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
   Emacs has two kinds of representation of a character: multi-byte
   form (for buffer and string) and single-word form (for character
   object in Emacs Lisp).  The latter is called "character code" here
-  after.  Both representation encode the information of charset and
+  after.  Both representations encode the information of charset and
   POSITION-CODE but in a different way (for instance, MSB of
   POSITION-CODE is set in multi-byte form).
 
@@ -197,7 +197,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 /*** GENERAL NOTE on COMPOSITE CHARACTER ***
 
   A composite character is a character composed from several (up to
-  16) non-composite characters (components).  Although each components
+  16) non-composite characters (components).  Although each component
   can belong to any charset, a composite character itself belongs to
   the charset `charset-composition' and is assigned a special
   leading-code `LEADING_CODE_COMPOSITION' for multi-byte form.  See
