@@ -523,7 +523,7 @@ static struct input_event * volatile kbd_store_ptr;
 /* If this flag is non-nil, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.
    Otherwise, mouse motion is ignored.  */
-static Lisp_Object do_mouse_tracking;
+Lisp_Object do_mouse_tracking;
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
