@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;; Copyright (C) 1992, 1994, 1995, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1995, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -159,7 +159,7 @@ The command run (after changing into DIR) is
     find . -name 'PATTERN' -ls"
   (interactive
    "DFind-name (directory): \nsFind-name (filename wildcard): ")
-  (find-dired dir (concat "-name '" (shell-quote-argument pattern) "'")))
+  (find-dired dir (concat "-name " (shell-quote-argument pattern))))
 
 ;; This functionality suggested by
 ;; From: oblanc@watcgl.waterloo.edu (Olivier Blanc)
