@@ -1,3 +1,8 @@
+2002-07-21  Ken Raeburn  <raeburn@gnu.org>
+
+	* buffer.c (mmap_realloc): When shrinking, make sure number of
+	pages is rounded towards zero.
+
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print_error_message): New args CONTEXT and CALLER.
