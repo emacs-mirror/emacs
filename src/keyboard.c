@@ -8093,45 +8093,50 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      keybuf with its symbol, or if the sequence starts with a mouse
      click and we need to switch buffers, we jump back here to rebuild
      the initial keymaps from the current buffer.  */
-  {
-    Lisp_Object *maps;
+  nmaps = 0;
 
-    if (!NILP (current_kboard->Voverriding_terminal_local_map)
-	|| !NILP (Voverriding_local_map))
-      {
-	if (3 > nmaps_allocated)
-	  {
-	    submaps = (Lisp_Object *) alloca (3 * sizeof (submaps[0]));
-	    defs    = (Lisp_Object *) alloca (3 * sizeof (defs[0]));
-	    nmaps_allocated = 3;
-	  }
-	nmaps = 0;
-	if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	  submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
-	if (!NILP (Voverriding_local_map))
-	  submaps[nmaps++] = Voverriding_local_map;
-      }
-    else
-      {
-	int extra_maps = 2;
-	nmaps = current_minor_maps (0, &maps);
-	if (!NILP (orig_keymap))
-	  extra_maps = 3;
-	if (nmaps + extra_maps > nmaps_allocated)
-	  {
-	    submaps = (Lisp_Object *) alloca ((nmaps+extra_maps)
-					      * sizeof (submaps[0]));
-	    defs    = (Lisp_Object *) alloca ((nmaps+extra_maps)
-					      * sizeof (defs[0]));
-	    nmaps_allocated = nmaps + extra_maps;
-	  }
-	bcopy (maps, (void *) submaps, nmaps * sizeof (submaps[0]));
-	if (!NILP (orig_keymap))
-	  submaps[nmaps++] = orig_keymap;
-	submaps[nmaps++] = orig_local_map;
-      }
-    submaps[nmaps++] = current_global_map;
-  }
+  if (!NILP (current_kboard->Voverriding_terminal_local_map)
+      || !NILP (Voverriding_local_map))
+    {
+      if (3 > nmaps_allocated)
+	{
+	  submaps = (Lisp_Object *) alloca (3 * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (3 * sizeof (defs[0]));
+	  nmaps_allocated = 3;
+	}
+      if (!NILP (current_kboard->Voverriding_terminal_local_map))
+	submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+      if (!NILP (Voverriding_local_map))
+	submaps[nmaps++] = Voverriding_local_map;
+    }
+  else
+    {
+      int extra_maps = 2;
+      int nminor;
+      int total;
+      Lisp_Object *maps;
+
+      nminor = current_minor_maps (0, &maps);
+      total = nminor + (!NILP (orig_keymap) ? 3 : 2);
+
+      if (total > nmaps_allocated)
+	{
+	  submaps = (Lisp_Object *) alloca (total * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (total * sizeof (defs[0]));
+	  nmaps_allocated = total;
+	}
+
+      if (!NILP (orig_keymap))
+	submaps[nmaps++] = orig_keymap;
+
+      bcopy (maps, (void *) submaps + nmaps,
+	     nminor * sizeof (submaps[0]));
+
+      nmaps += nminor;
+
+      submaps[nmaps++] = orig_local_map;
+    }
+  submaps[nmaps++] = current_global_map;
 
   /* Find an accurate initial value for first_binding.  */
   for (first_binding = 0; first_binding < nmaps; first_binding++)
