@@ -229,6 +229,7 @@
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
   :prefix "browse-url-"
+  :link '(emacs-commentary-link "browse-url")
   :group 'hypermedia)
 
 ;;;###autoload
@@ -241,29 +242,31 @@ This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
 
 If the value is not a function it should be a list of pairs
-(REGEXP . FUNCTION).  In this case the function called will be the one
+\(REGEXP . FUNCTION).  In this case the function called will be the one
 associated with the first REGEXP which matches the current URL.  The
 function is passed the URL and any other args of `browse-url'.  The last
 regexp should probably be \".\" to specify a default browser."
   :type '(choice
-           (function-item :tag "Emacs W3" :value  browse-url-w3)
-           (function-item :tag "W3 in another Emacs via `gnudoit'"
-                          :value  browse-url-w3-gnudoit)
-           (function-item :tag "Netscape" :value  browse-url-netscape)
-           (function-item :tag "Mosaic" :value  browse-url-mosaic)
-           (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
-           (function-item :tag "IXI Mosaic" :value  browse-url-iximosaic)
-           (function-item :tag "Lynx in an xterm window"
-                          :value browse-url-lynx-xterm)
-           (function-item :tag "Lynx in an Emacs window"
-                          :value browse-url-lynx-emacs)
-           (function-item :tag "Grail" :value  browse-url-grail)
-           (function-item :tag "MMM" :value  browse-url-mmm)
-           (function-item :tag "Specified by `Browse Url Generic Program'"
-                          :value browse-url-generic)
-           (function-item :tag "Default Windows browser"
-                          :value  browse-url-default-windows-browser)
-           (function :tag "Your own function"))
+	  (function-item :tag "Emacs W3" :value  browse-url-w3)
+	  (function-item :tag "W3 in another Emacs via `gnudoit'"
+			 :value  browse-url-w3-gnudoit)
+	  (function-item :tag "Netscape" :value  browse-url-netscape)
+	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
+	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
+	  (function-item :tag "IXI Mosaic" :value  browse-url-iximosaic)
+	  (function-item :tag "Lynx in an xterm window"
+			 :value browse-url-lynx-xterm)
+	  (function-item :tag "Lynx in an Emacs window"
+			 :value browse-url-lynx-emacs)
+	  (function-item :tag "Grail" :value  browse-url-grail)
+	  (function-item :tag "MMM" :value  browse-url-mmm)
+	  (function-item :tag "Specified by `Browse Url Generic Program'"
+			 :value browse-url-generic)
+	  (function-item :tag "Default Windows browser"
+			 :value  browse-url-default-windows-browser)
+	  (function :tag "Your own function")
+	  (alist :tag "Regexp/function association list"
+		 :key-type regexp :value-type function))
   :version "20.4"
   :group 'browse-url)
 
