@@ -1932,10 +1932,9 @@ If in the calendar buffer, also sets the current date local variables."
          (month
           (cdr (assoc 
                 (substring date (match-beginning 2) (match-end 2))
-                (calendar-make-alist
-                 calendar-month-name-array
-                 1
-                 '(lambda (x) (substring x 0 3))))))
+                '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4)
+                  ("May" . 5) ("Jun" . 6) ("Jul" . 7) ("Aug" . 8)
+                  ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12)))))
          (day
           (string-to-int (substring date (match-beginning 3) (match-end 3))))
          (year
