@@ -207,9 +207,12 @@ xfree (block)
    GNU malloc.  */
 
 #ifndef SYSTEM_MALLOC
-static void (*__malloc_hook) (),  (*old_malloc_hook) ();
-static void (*__realloc_hook) (), (*old_realloc_hook) ();
-static void (*__free_hook) (),    (*old_free_hook) ();
+extern void * (*__malloc_hook) ();
+static void * (*old_malloc_hook) ();
+extern void * (*__realloc_hook) ();
+static void * (*old_realloc_hook) ();
+extern void (*__free_hook) ();
+static void (*old_free_hook) ();
 
 static void
 emacs_blocked_free (ptr)
@@ -218,7 +221,7 @@ emacs_blocked_free (ptr)
   BLOCK_INPUT;
   __free_hook = old_free_hook;
   free (ptr);
-  __free_hook = &emacs_blocked_free;
+  __free_hook = emacs_blocked_free;
   UNBLOCK_INPUT;
 }
 
@@ -231,7 +234,7 @@ emacs_blocked_malloc (size)
   BLOCK_INPUT;
   __malloc_hook = old_malloc_hook;
   value = malloc (size);
-  __malloc_hook = &emacs_blocked_malloc;
+  __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
 
   return value;
@@ -247,7 +250,7 @@ emacs_blocked_realloc (ptr, size)
   BLOCK_INPUT;
   __realloc_hook = old_realloc_hook;
   value = realloc (ptr, size);
-  __realloc_hook = &emacs_blocked_realloc;
+  __realloc_hook = emacs_blocked_realloc;
   UNBLOCK_INPUT;
 
   return value;
@@ -257,13 +260,13 @@ void
 uninterrupt_malloc ()
 {
   old_free_hook = __free_hook;
-  __free_hook = &emacs_blocked_free;
+  __free_hook = emacs_blocked_free;
 
   old_malloc_hook = __malloc_hook;
-  __malloc_hook = &emacs_blocked_malloc;
+  __malloc_hook = emacs_blocked_malloc;
 
   old_realloc_hook = __realloc_hook;
-  __realloc_hook = &emacs_blocked_realloc;
+  __realloc_hook = emacs_blocked_realloc;
 }
 #endif
 
@@ -1589,7 +1592,7 @@ mark_object (objptr)
 	ptr = ptr->next;
 	if (ptr)
 	  {
-	    ptrx = ptr;		/* Use pf ptrx avoids compiler bug on Sun */
+	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun */
 	    XSETSYMBOL (obj, ptrx);
 	    goto loop;
 	  }
