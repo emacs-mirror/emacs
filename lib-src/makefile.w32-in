@@ -133,86 +133,86 @@ obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefid
 #
 lispsource = ../lisp/
 
-FACE_SUPPORT = $(lispsource)facemenu.elc
-MOUSE_SUPPORT = $(lispsource)select.elc $(lispsource)scroll-bar.elc $(lispsource)mouse.elc
-FLOAT_SUPPORT = $(lispsource)float-sup.elc
-WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)w32-fns.elc $(lispsource)dos-w32.elc
+FACE_SUPPORT = $(lispsource)facemenu.el
+MOUSE_SUPPORT = $(lispsource)select.el $(lispsource)scroll-bar.el $(lispsource)mouse.el
+FLOAT_SUPPORT = $(lispsource)float-sup.el
+WINNT_SUPPORT = $(lispsource)ls-lisp.el $(lispsource)w32-fns.el $(lispsource)dos-w32.el
 
 lisp= \
-	$(lispsource)abbrev.elc \
-	$(lispsource)buff-menu.elc \
-	$(lispsource)byte-run.elc \
+	$(lispsource)abbrev.el \
+	$(lispsource)buff-menu.el \
+	$(lispsource)byte-run.el \
 	$(lispsource)cus-start.el \
-	$(lispsource)custom.elc \
-	$(lispsource)disp-table.elc \
-	$(lispsource)faces.elc \
-	$(lispsource)files.elc \
-	$(lispsource)textmodes/fill.elc \
-	$(lispsource)format.elc \
+	$(lispsource)custom.el \
+	$(lispsource)disp-table.el \
+	$(lispsource)faces.el \
+	$(lispsource)files.el \
+	$(lispsource)textmodes/fill.el \
+	$(lispsource)format.el \
 	$(FACE_SUPPORT) \
 	$(MOUSE_SUPPORT) \
 	$(FLOAT_SUPPORT) \
-	$(lispsource)frame.elc\
+	$(lispsource)frame.el\
 	$(X_WINDOWS_SUPPORT) \
-	$(lispsource)help.elc \
-	$(lispsource)indent.elc \
-	$(lispsource)isearch.elc \
-	$(lispsource)emacs-lisp/lisp-mode.elc \
-	$(lispsource)emacs-lisp/lisp.elc \
+	$(lispsource)help.el \
+	$(lispsource)indent.el \
+	$(lispsource)isearch.el \
+	$(lispsource)emacs-lisp/lisp-mode.el \
+	$(lispsource)emacs-lisp/lisp.el \
 	$(lispsource)loadup.el \
 	$(lispsource)loaddefs.el \
 	$(lispsource)bindings.el \
-	$(lispsource)map-ynp.elc \
-	$(lispsource)menu-bar.elc \
-	$(lispsource)international/mule.elc \
+	$(lispsource)map-ynp.el \
+	$(lispsource)menu-bar.el \
+	$(lispsource)international/mule.el \
 	$(lispsource)international/mule-conf.el \
-	$(lispsource)international/mule-cmds.elc \
-	$(lispsource)international/characters.elc \
-	$(lispsource)international/ccl.elc \
-	$(lispsource)international/codepage.elc \
-	$(lispsource)international/utf-8.elc \
-	$(lispsource)case-table.elc \
-	$(lispsource)language/chinese.elc \
-	$(lispsource)language/cyrillic.elc \
-	$(lispsource)language/devanagari.elc \
-	$(lispsource)language/english.elc \
-	$(lispsource)language/ethiopic.elc \
-	$(lispsource)language/european.elc \
-	$(lispsource)language/czech.elc \
-	$(lispsource)language/slovak.elc \
-	$(lispsource)language/romanian.elc \
-	$(lispsource)language/greek.elc \
-	$(lispsource)language/hebrew.elc \
-	$(lispsource)language/indian.elc \
-	$(lispsource)language/japanese.elc \
-	$(lispsource)language/korean.elc \
-	$(lispsource)language/lao.elc \
-	$(lispsource)language/thai.elc \
-	$(lispsource)language/tibetan.elc \
-	$(lispsource)language/vietnamese.elc \
-	$(lispsource)language/misc-lang.elc \
-	$(lispsource)textmodes/page.elc \
-	$(lispsource)textmodes/paragraphs.elc \
+	$(lispsource)international/mule-cmds.el \
+	$(lispsource)international/characters.el \
+	$(lispsource)international/ccl.el \
+	$(lispsource)international/codepage.el \
+	$(lispsource)international/utf-8.el \
+	$(lispsource)case-table.el \
+	$(lispsource)language/chinese.el \
+	$(lispsource)language/cyrillic.el \
+	$(lispsource)language/devanagari.el \
+	$(lispsource)language/english.el \
+	$(lispsource)language/ethiopic.el \
+	$(lispsource)language/european.el \
+	$(lispsource)language/czech.el \
+	$(lispsource)language/slovak.el \
+	$(lispsource)language/romanian.el \
+	$(lispsource)language/greek.el \
+	$(lispsource)language/hebrew.el \
+	$(lispsource)language/indian.el \
+	$(lispsource)language/japanese.el \
+	$(lispsource)language/korean.el \
+	$(lispsource)language/lao.el \
+	$(lispsource)language/thai.el \
+	$(lispsource)language/tibetan.el \
+	$(lispsource)language/vietnamese.el \
+	$(lispsource)language/misc-lang.el \
+	$(lispsource)textmodes/page.el \
+	$(lispsource)textmodes/paragraphs.el \
 	$(lispsource)paths.el \
-	$(lispsource)register.elc \
-	$(lispsource)replace.elc \
-	$(lispsource)simple.elc \
-	$(lispsource)startup.elc \
-	$(lispsource)subr.elc \
-	$(lispsource)term/tty-colors.elc \
-	$(lispsource)textmodes/text-mode.elc \
-	$(lispsource)vc-hooks.elc \
-	$(lispsource)ediff-hook.elc \
+	$(lispsource)register.el \
+	$(lispsource)replace.el \
+	$(lispsource)simple.el \
+	$(lispsource)startup.el \
+	$(lispsource)subr.el \
+	$(lispsource)term/tty-colors.el \
+	$(lispsource)textmodes/text-mode.el \
+	$(lispsource)vc-hooks.el \
+	$(lispsource)ediff-hook.el \
 	$(VMS_SUPPORT) \
 	$(MSDOS_SUPPORT) \
 	$(WINNT_SUPPORT) \
-	$(lispsource)widget.elc \
-	$(lispsource)window.elc \
+	$(lispsource)widget.el \
+	$(lispsource)window.el \
 	$(lispsource)version.el
 
 
 DOC	      = DOC 
-$(DOC):		$(BLD)/make-docfile.exe
+$(DOC):		make-docfile
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(obj) > $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(lisp) >> $(DOC)
