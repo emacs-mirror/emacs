@@ -39,6 +39,10 @@ work on Macintosh.
 
 * Changes in Emacs 21.1
 
+** auto-compression mode is no longer enabled just by loading jka-compr.el.
+To control it, set `auto-compression-mode' via Custom or use the
+`auto-compression-mode' command.
+
 ** `browse-url-gnome-moz' is a new option for
 `browse-url-browser-function', invoking Mozilla in GNOME.
 
