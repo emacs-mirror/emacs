@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.86) $
+ * $HopeName: MMsrc!trace.c(trunk.87) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.86) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.87) $");
 
 
 /* Types
@@ -1370,14 +1370,13 @@ Res TraceFix(ScanState ss, Ref *refIO)
 
   /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
   if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
-    Seg seg;
-    if (TRACT_SEG(&seg, tract)) {
-      STATISTIC(++ss->segRefCount);
-      EVENT_P(TraceFixSeg, seg);
-      if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+    if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+      Seg seg;
+      if (TRACT_SEG(&seg, tract)) {
         Res res;
-        
+        STATISTIC(++ss->segRefCount);
         STATISTIC(++ss->whiteSegRefCount);
+        EVENT_P(TraceFixSeg, seg);
         EVENT_0(TraceFixWhite);
         pool = TractPool(tract);
         /* Could move the rank switch here from the class-specific */
@@ -1386,7 +1385,20 @@ Res TraceFix(ScanState ss, Ref *refIO)
         if(res != ResOK)
           return res;
       }
+
+    } else { 
+      /* Tract isn't white. Don't compute seg for non-statistical */
+      /* variety. See design.mps.trace.fix.tractofaddr */
+      STATISTIC_STAT
+        ({
+          Seg seg;
+          if (TRACT_SEG(&seg, tract)) {
+            ++ss->segRefCount;
+            EVENT_P(TraceFixSeg, seg);
+          }
+        });
     }
+
   } else {
     /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT
@@ -1416,17 +1428,30 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 
   /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
   if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
-    Seg seg;
-    if (TRACT_SEG(&seg, tract)) {
-      STATISTIC(++ss->segRefCount);
-      EVENT_P(TraceFixSeg, seg);
-      if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+    if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+      Seg seg;
+      if (TRACT_SEG(&seg, tract)) {
+        STATISTIC(++ss->segRefCount);
         STATISTIC(++ss->whiteSegRefCount);
+        EVENT_P(TraceFixSeg, seg);
         EVENT_0(TraceFixWhite);
         pool = TractPool(tract);
         PoolFixEmergency(pool, ss, seg, refIO);
       }
+
+    } else { 
+      /* Tract isn't white. Don't compute seg for non-statistical */
+      /* variety. See design.mps.trace.fix.tractofaddr */
+      STATISTIC_STAT
+        ({
+          Seg seg;
+          if (TRACT_SEG(&seg, tract)) {
+            ++ss->segRefCount;
+            EVENT_P(TraceFixSeg, seg);
+          }
+        });
     }
+
   } else {
     /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT ||
