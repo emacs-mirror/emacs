@@ -1,4 +1,4 @@
-;;; env.el --- functions to manipulate environment variables.
+;;; env.el --- functions to manipulate environment variables
 
 ;; Copyright (C) 1991, 1994 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
+;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
 ;; Copyright (C) 1985, 1994, 1997, 1998 Free Software Foundation, Inc.
 

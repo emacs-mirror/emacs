@@ -1,4 +1,4 @@
-;;; hexl.el --- edit a file in a hex dump format using the hexl filter.
+;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
 ;; Copyright (C) 1989, 1994, 1998, 2001 Free Software Foundation, Inc.
 

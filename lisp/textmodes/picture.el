@@ -1,4 +1,4 @@
-;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model.
+;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
 ;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
 
@@ -397,7 +397,7 @@ stops computed are displayed in the minibuffer with `:' at each stop."
 	      (skip-chars-forward " \t")
 	      (setq tabs (cons (current-column) tabs)))
 	    (if (null tabs)
-		(error "No characters in set %s on this line."
+		(error "No characters in set %s on this line"
 		       (regexp-quote picture-tab-chars))))))
       (setq tab-stop-list tabs)
       (let ((blurb (make-string (1+ (nth (1- (length tabs)) tabs)) ?\ )))
@@ -486,7 +486,7 @@ shifting existing text.  Leaves mark at one corner of rectangle and
 point at the other (diagonally opposed) corner."
   (interactive "P")
   (if (not (consp picture-killed-rectangle))
-      (error "No rectangle saved.")
+      (error "No rectangle saved")
     (picture-insert-rectangle picture-killed-rectangle insertp)))
 
 (defun picture-yank-at-click (click arg)
@@ -508,7 +508,7 @@ of rectangle and point at the other (diagonally opposed) corner."
   (interactive "cRectangle from register: \nP")
   (let ((rectangle (get-register register)))
     (if (not (consp rectangle))
-	(error "Register %c does not contain a rectangle." register)
+	(error "Register %c does not contain a rectangle" register)
       (picture-insert-rectangle rectangle insertp))))
 
 (defun picture-insert-rectangle (rectangle &optional insertp)
@@ -698,7 +698,7 @@ Note that Picture mode commands will work outside of Picture mode, but
 they are not defaultly assigned to keys."
   (interactive)
   (if (eq major-mode 'picture-mode)
-      (error "You are already editing a picture.")
+      (error "You are already editing a picture")
     (make-local-variable 'picture-mode-old-local-map)
     (setq picture-mode-old-local-map (current-local-map))
     (use-local-map picture-mode-map)
@@ -735,7 +735,7 @@ With no argument strips whitespace from end of every line in Picture buffer
   otherwise just return to previous mode."
   (interactive "P")
   (if (not (eq major-mode 'picture-mode))
-      (error "You aren't editing a Picture.")
+      (error "You aren't editing a Picture")
     (if (not nostrip) (delete-trailing-whitespace))
     (setq mode-name picture-mode-old-mode-name)
     (use-local-map picture-mode-old-local-map)

@@ -3,6 +3,8 @@
 ;; This is in the public domain on account of being distributed since
 ;; 1985 or 1986 without a copyright notice.
 
+;; This file is part of GNU Emacs.
+
 ;; Maintainer: FSF
 ;; Keywords: games
 

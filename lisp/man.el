@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
-;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
+;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
-;; Keywords:		help
-;; Adapted-By:		ESR, pot
+;; Keywords: help
+;; Adapted-By: ESR, pot
 
 ;; This file is part of GNU Emacs.
 

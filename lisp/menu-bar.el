@@ -1,4 +1,4 @@
-;;; menu-bar.el --- define a default menu bar.
+;;; menu-bar.el --- define a default menu bar
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001 Free Software Foundation, Inc.
 
@@ -24,6 +24,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; Avishai Yacobi suggested some menu rearrangements.
+
+;;; Commentary:
 
 ;;; Code:
 

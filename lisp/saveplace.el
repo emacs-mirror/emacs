@@ -1,4 +1,4 @@
-;;; saveplace.el --- automatically save place in files.
+;;; saveplace.el --- automatically save place in files
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
@@ -238,4 +238,3 @@ To save places automatically in all files, put this in your `.emacs' file:
 (provide 'saveplace) ; why not...
 
 ;;; saveplace.el ends here
-

@@ -29,7 +29,7 @@
 ;; The Soundex algorithm maps English words into representations of
 ;; how they sound.  Words with vaguely similar sound map to the same string.
 
-;;; Code: 
+;;; Code:
 
 (defvar soundex-alist
   '((?B . "1") (?F . "1") (?P . "1") (?V . "1")
@@ -73,4 +73,4 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
 
 (provide 'soundex)
 
-;; soundex.el ends here
+;;; soundex.el ends here

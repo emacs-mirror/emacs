@@ -1,4 +1,4 @@
-;;; terminal.el --- terminal emulator for GNU Emacs.
+;;; terminal.el --- terminal emulator for GNU Emacs
 
 ;; Copyright (C) 1986,87,88,89,93,94 Free Software Foundation, Inc.
 

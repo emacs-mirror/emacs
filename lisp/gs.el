@@ -173,4 +173,4 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 
 (provide 'gs)
 
-;; gs.el ends here.
+;;; gs.el ends here

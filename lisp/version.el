@@ -1,4 +1,4 @@
-;;; version.el --- record version number of Emacs.
+;;; version.el --- record version number of Emacs
 
 ;;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001
 ;;;   Free Software Foundation, Inc.
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

@@ -1,4 +1,4 @@
-;;; register.el --- register commands for Emacs.
+;;; register.el --- register commands for Emacs
 
 ;; Copyright (C) 1985, 1993, 1994 Free Software Foundation, Inc.
 

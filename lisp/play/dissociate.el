@@ -1,4 +1,4 @@
-;;; dissociate.el --- scramble text amusingly for Emacs.
+;;; dissociate.el --- scramble text amusingly for Emacs
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

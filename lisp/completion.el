@@ -1204,7 +1204,7 @@ Must be called after `find-exact-completion'."
 
 (defun locate-completion-db-error ()
   ;; recursive error: really scrod
-  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report."))
+  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report"))
 
 ;; WRITES
 (defun add-completion-to-tail-if-new (string)

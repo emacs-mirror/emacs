@@ -1,4 +1,4 @@
-;;; hide-ifdef-mode.el --- hides selected code within ifdef.
+;;; hideif.el --- hides selected code within ifdef
 
 ;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
@@ -1075,4 +1075,3 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 (provide 'hideif)
 
 ;;; hideif.el ends here
-

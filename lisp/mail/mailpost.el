@@ -3,6 +3,8 @@
 ;; This is in the public domain
 ;; since Delp distributed it without a copyright notice in 1986.
 
+;; This file is part of GNU Emacs.
+
 ;; Author: Gary Delp <delp@huey.Udel.Edu>
 ;; Maintainer: FSF
 ;; Created: 13 Jan 1986

@@ -1,4 +1,4 @@
-;;; spell.el --- spelling correction interface for Emacs.
+;;; spell.el --- spelling correction interface for Emacs
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

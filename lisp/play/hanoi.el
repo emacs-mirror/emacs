@@ -7,6 +7,7 @@
 ; Author (a) 1985, Damon Anton Permezel
 ; This is in the public domain
 ; since he distributed it without copyright notice in 1985.
+;; This file is part of GNU Emacs.
 ;
 ; Support for horizontal poles, large numbers of rings, real-time,
 ; faces, defcustom, and Towers of Unix added in 1999 by Alakazam

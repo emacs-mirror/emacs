@@ -1,4 +1,4 @@
-;;; msb.el --- Customizable buffer-selection with multiple menus.
+;;; msb.el --- customizable buffer-selection with multiple menus
 
 ;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001
 ;;  Free Software Foundation, Inc.

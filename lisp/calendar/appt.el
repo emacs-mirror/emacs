@@ -1,4 +1,4 @@
-;;; appt.el --- appointment notification functions.
+;;; appt.el --- appointment notification functions
 
 ;; Copyright (C) 1989, 1990, 1994, 1998 Free Software Foundation, Inc.
 

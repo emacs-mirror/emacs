@@ -239,4 +239,4 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
-;;; goto-addr.el ends here.
+;;; goto-addr.el ends here

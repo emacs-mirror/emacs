@@ -1,4 +1,4 @@
-;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
+;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 

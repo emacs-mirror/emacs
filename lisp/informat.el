@@ -439,7 +439,7 @@ Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
   (if (not noninteractive)
-      (error "batch-info-validate may only be used -batch."))
+      (error "batch-info-validate may only be used -batch"))
   (let ((version-control t)
 	(auto-save-default nil)
 	(find-file-run-dired nil)

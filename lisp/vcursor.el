@@ -1,4 +1,4 @@
-;;; vcursor.el --- manipulate an alternative ("virtual") cursor.
+;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
 ;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
 
@@ -808,7 +808,7 @@ out how much to copy."
    ((and (overlayp vcursor-overlay) (overlay-start vcursor-overlay))
     t)
    (arg nil)
-   (t (error "The virtual cursor is not active now.")))
+   (t (error "The virtual cursor is not active now")))
   )
 
 (defun vcursor-disable (&optional arg)
@@ -1161,4 +1161,4 @@ Disabling the vcursor automatically turns this off."
 
 (provide 'vcursor)
 
-;; vcursor.el ends here
+;;; vcursor.el ends here

@@ -1,4 +1,4 @@
-;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler.
+;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
 ;;; Copyright (c) 1991, 1994, 2000, 2001 Free Software Foundation, Inc.
 
@@ -188,7 +188,7 @@
 
 (defun byte-compile-log-lap-1 (format &rest args)
   (if (aref byte-code-vector 0)
-      (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well."))
+      (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
    (apply 'format format
      (let (c a)

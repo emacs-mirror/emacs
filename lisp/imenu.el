@@ -1,4 +1,4 @@
-;;; imenu.el --- Framework for mode-specific buffer indexes.
+;;; imenu.el --- framework for mode-specific buffer indexes
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
@@ -59,7 +59,7 @@
 ;;  [christian] - Christian Egli Christian.Egli@hcsd.hac.com
 ;;  [karl] - Karl Fogel kfogel@floss.life.uiuc.edu
 
-;;; Code
+;;; Code:
 
 (eval-when-compile (require 'cl))
 

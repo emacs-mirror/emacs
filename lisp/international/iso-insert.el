@@ -1,4 +1,4 @@
-;;; iso-insert.el --- insert functions for ISO 8859/1.
+;;; iso-insert.el --- insert functions for ISO 8859/1
 
 ;; Copyright (C) 1987, 1994 Free Software Foundation, Inc.
 

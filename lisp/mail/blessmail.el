@@ -1,4 +1,4 @@
-;;; blessmail.el --- Decide whether movemail needs special privileges.
+;;; blessmail.el --- decide whether movemail needs special privileges
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 

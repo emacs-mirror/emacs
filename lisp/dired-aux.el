@@ -123,7 +123,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
   "Change the group of the marked (or next ARG) files."
   (interactive "P")
   (if (memq system-type '(ms-dos windows-nt))
-      (error "chgrp not supported on this system."))
+      (error "chgrp not supported on this system"))
   (dired-do-chxxx "Group" "chgrp" 'chgrp arg))
 
 ;;;###autoload
@@ -131,7 +131,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
   "Change the owner of the marked (or next ARG) files."
   (interactive "P")
   (if (memq system-type '(ms-dos windows-nt))
-      (error "chown not supported on this system."))
+      (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
 
 ;; Process all the files in FILES in batches of a convenient size,
@@ -452,7 +452,7 @@ the list of file names explicitly with the FILE-LIST argument."
     (while (/= 0 arg)
       (setq file (dired-get-filename nil t))
       (if (not file)
-	  (error "Can only kill file lines.")
+	  (error "Can only kill file lines")
 	(save-excursion (and file
 			     (dired-goto-subdir file)
 			     (dired-kill-subdir)))
@@ -1902,7 +1902,7 @@ Lower levels are unaffected."
 	    dir (file-name-directory (directory-file-name dir))))
     ;;(setq dir (expand-file-name dir))
     (or (dired-goto-subdir dir)
-	(error "Cannot go up to %s - not in this tree." dir))))
+	(error "Cannot go up to %s - not in this tree" dir))))
 
 ;;;###autoload
 (defun dired-tree-down ()

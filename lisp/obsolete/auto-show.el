@@ -1,9 +1,11 @@
 ;;; auto-show.el --- perform automatic horizontal scrolling as point moves
 ;;; This file is in the public domain.
 
-;;; Keywords: scroll display convenience
-;;; Author: Pete Ware <ware@cis.ohio-state.edu>
-;;; Maintainer: FSF
+;; This file is part of GNU Emacs.
+
+;; Keywords: scroll display convenience
+;; Author: Pete Ware <ware@cis.ohio-state.edu>
+;; Maintainer: FSF
 
 ;;; Commentary:
 
@@ -46,5 +48,4 @@ to auto-show from your init file and code."
 
 (provide 'auto-show)
 
-;; auto-show.el ends here
-
+;;; auto-show.el ends here

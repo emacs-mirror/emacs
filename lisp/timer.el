@@ -1,4 +1,4 @@
-;;; timer.el --- run a function with args at some time in future.
+;;; timer.el --- run a function with args at some time in future
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

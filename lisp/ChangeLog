@@ -1,3 +1,42 @@
+2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* abbrevlist.el, array.el, buff-menu.el, calendar/appt.el,
+	case-table.el, cdl.el, cmuscheme.el, compare-w.el, completion.el,
+	custom.el, derived.el, dired-aux.el, disp-table.el, dos-vars.el,
+	echistory.el, electric.el, emacs-lisp/authors.el,
+	emacs-lisp/backquote.el, emacs-lisp/byte-opt.el,
+	emacs-lisp/bytecomp.el, emacs-lisp/float.el, emacs-lisp/gulp.el,
+	emacs-lisp/helper.el, emacs-lisp/lisp-mode.el,
+	emacs-lisp/regexp-opt.el, emulation/mlconvert.el,
+	emulation/mlsupport.el, env.el, fast-lock.el, find-dired.el,
+	float-sup.el, frame.el, gnus/gnus-mule.el, gnus/pop3.el, gs.el,
+	gud.el, help-macro.el, hexl.el, imenu.el, info.el, informat.el,
+	international/codepage.el, international/iso-ascii.el,
+	international/iso-insert.el, international/iso-transl.el,
+	international/swedish.el, isearch.el, jka-compr.el, kermit.el,
+	lazy-lock.el, ledit.el, loadup.el, lpr.el, ls-lisp.el, macros.el,
+	mail/blessmail.el, mail/emacsbug.el, mail/mail-extr.el,
+	mail/mailabbrev.el, mail/mailpost.el, mail/rmail.el,
+	mail/rmailedit.el, mail/rmailkwd.el, mail/rmailmsc.el,
+	mail/rmailout.el, mail/rmailsort.el, mail/rmailsum.el,
+	mail/vms-pmail.el, man.el, map-ynp.el, menu-bar.el, misc.el,
+	msb.el, net/ange-ftp.el, net/goto-addr.el, novice.el,
+	obsolete/auto-show.el, obsolete/hilit19.el, obsolete/ooutline.el,
+	obsolete/rnews.el, obsolete/rnewspost.el, options.el, paren.el,
+	paths.el, play/dissociate.el, play/doctor.el, play/hanoi.el,
+	play/meese.el, progmodes/compile.el, progmodes/ebrowse.el,
+	progmodes/hideif.el, progmodes/modula2.el, register.el, rot13.el,
+	saveplace.el, scroll-bar.el, server.el, sort.el, soundex.el,
+	term/bg-mouse.el, term/pc-win.el, term/sup-mouse.el,
+	term/tty-colors.el, terminal.el, textmodes/bib-mode.el,
+	textmodes/makeinfo.el, textmodes/page.el, textmodes/paragraphs.el,
+	textmodes/picture.el, textmodes/scribe.el, textmodes/spell.el,
+	textmodes/tex-mode.el, textmodes/text-mode.el,
+	textmodes/underline.el, thingatpt.el, time.el, timer.el,
+	unused.el, vcursor.el, version.el, vms-patch.el, vmsproc.el,
+	vt100-led.el, window.el: Some fixes to follow coding conventions in
+	files maintained by FSF.
+
 2001-07-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* arc-mode.el: A fix to follow coding conventions.

@@ -1,4 +1,4 @@
-;;; outline.el --- outline mode commands for Emacs
+;;; ooutline.el --- outline mode commands for Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1997 Free Software Foundation, Inc.
 
@@ -582,4 +582,4 @@ Stop at the first and last subheadings of a superior heading."
 
 (provide 'outline)
 
-;;; outline.el ends here
+;;; ooutline.el ends here

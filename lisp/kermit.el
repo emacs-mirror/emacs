@@ -1,4 +1,4 @@
-;;; kermit.el --- additions to shell mode for use with kermit, etc.
+;;; kermit.el --- additions to shell mode for use with kermit
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el.
+;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
 ;; Copyright (C) 1988, 1994, 1997 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; buff-menu.el --- buffer menu main function and support functions.
+;;; buff-menu.el --- buffer menu main function and support functions
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000 Free Software Foundation, Inc.
 

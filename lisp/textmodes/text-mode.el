@@ -1,4 +1,4 @@
-;;; text-mode.el --- text mode, and its idiosyncratic commands.
+;;; text-mode.el --- text mode, and its idiosyncratic commands
 
 ;; Copyright (C) 1985, 1992, 1994 Free Software Foundation, Inc.
 

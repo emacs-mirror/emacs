@@ -1,4 +1,4 @@
-;;; rnews.el --- USENET news reader for gnu emacs
+;;; rnews.el --- USENET news reader for GNU Emacs
 
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
@@ -50,6 +50,8 @@
 ;; added caesar-region, rename news-caesar-buffer-body, hacked accordingly
 ;;	tower@gnu.org Nov 21 1986
 ;; added tower@gnu.org 22 Apr 87
+
+;;; Commentary:
 
 ;;; Code:
 

@@ -105,7 +105,7 @@ Emacs will list the header line in the RMAIL-summary."
   (interactive "sRegexp to summarize by: ")
   (if (string= regexp "")
       (setq regexp (or rmail-last-regexp
-			 (error "No regexp specified."))))
+			 (error "No regexp specified"))))
   (setq rmail-last-regexp regexp)
   (rmail-new-summary (concat "regexp " regexp)
 		     (list 'rmail-summary-by-regexp regexp)

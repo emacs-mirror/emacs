@@ -1,4 +1,4 @@
-;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones.
+;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

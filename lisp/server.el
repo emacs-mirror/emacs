@@ -1,4 +1,4 @@
-;;; server.el --- Lisp code for GNU Emacs running as server process.
+;;; server.el --- Lisp code for GNU Emacs running as server process
 
 ;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;	 Free Software Foundation, Inc.

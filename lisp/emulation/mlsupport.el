@@ -1,4 +1,4 @@
-;;; mlsupport.el --- run-time support for mocklisp code.
+;;; mlsupport.el --- run-time support for mocklisp code
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

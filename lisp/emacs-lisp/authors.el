@@ -468,4 +468,4 @@ the Emacs source tree, from which to build the file."
     (authors root)
     (write-file file)))
 
-;; authors.el ends here
+;;; authors.el ends here

@@ -1,4 +1,4 @@
-;;; array.el --- array editing commands for Gnu Emacs
+;;; array.el --- array editing commands for GNU Emacs
 
 ;; Copyright (C) 1987, 2000 Free Software Foundation, Inc.
 

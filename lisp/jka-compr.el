@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary: 
+;;; Commentary:
 
 ;; This package implements low-level support for reading, writing,
 ;; and loading compressed files.  It hooks into the low-level file
@@ -917,4 +917,4 @@ Returns the new status of auto compression (non-nil means on)."
 
 (provide 'jka-compr)
 
-;; jka-compr.el ends here.
+;;; jka-compr.el ends here

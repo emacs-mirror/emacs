@@ -1,4 +1,4 @@
-;;; gulp.el --- Ask for updates for Lisp packages
+;;; gulp.el --- ask for updates for Lisp packages
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals.
+;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
 
 ;; Copyright (C) 1987, 1995 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; hilit19.el --- customizable highlighting for Emacs19
+;;; hilit19.el --- customizable highlighting for Emacs 19
 
 ;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
 
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; Hilit19.el is a customizable highlighting package for Emacs19.  It supports
+;; Hilit19.el is a customizable highlighting package for Emacs 19.  It supports
 ;; not only source code highlighting, but also Info, RMAIL, VM, gnus...
 ;; Hilit19 knows (or thinks it knows) how to highlight emacs buffers in
 ;; about 25 different modes.
@@ -1512,4 +1512,4 @@ number of backslashes."
 
 (provide 'hilit19)
 
-;;; hilit19 ends here.
+;;; hilit19.el ends here

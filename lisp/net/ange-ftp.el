@@ -4834,9 +4834,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   ;; think so, because expand-filename should have already short-circuited
   ;; them.
   (cond ((string-equal dir-name "/")
-	 (error "Cannot get listing for fictitious \"/\" directory."))
+	 (error "Cannot get listing for fictitious \"/\" directory"))
 	((string-match "^/[-A-Z0-9_$]+:/$" dir-name)
-	 (error "Cannot get listing for device."))
+	 (error "Cannot get listing for device"))
 	((ange-ftp-fix-name-for-vms dir-name))))
 
 (or (assq 'vms ange-ftp-fix-dir-name-func-alist)
@@ -5353,7 +5353,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;; Remember that there are no directories in MTS.
 (defun ange-ftp-fix-dir-name-for-mts (dir-name)
   (if (string-equal dir-name "/")
-      (error "Cannot get listing for fictitious \"/\" directory.")
+      (error "Cannot get listing for fictitious \"/\" directory")
     (let ((dir-name (ange-ftp-fix-name-for-mts dir-name)))
       (cond
        ((string-equal dir-name "")
@@ -5542,7 +5542,7 @@ Other orders of $ and _ seem to all work just fine.")
 (defun ange-ftp-fix-dir-name-for-cms (dir-name)
   (cond
    ((string-equal "/" dir-name)
-    (error "Cannot get listing for fictitious \"/\" directory."))
+    (error "Cannot get listing for fictitious \"/\" directory"))
    ((string-match "^/\\([-A-Z0-9$*._]+\\)/\\([-A-Z0-9$._]+\\)?$" dir-name)
     (let* ((minidisk (substring dir-name (match-beginning 1) (match-end 1)))
 	   ;; host and user are bound in the call to ange-ftp-send-cmd

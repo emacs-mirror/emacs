@@ -52,6 +52,8 @@
 ;;; >> Nuked by Mly to autoload those functions again, as the duplication of
 ;;; >>  code was making maintenance too difficult.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'sendmail)

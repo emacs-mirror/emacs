@@ -1,4 +1,4 @@
-;;; scribe.el --- scribe mode, and its idiosyncratic commands.
+;;; scribe.el --- scribe mode, and its idiosyncratic commands
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

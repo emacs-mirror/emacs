@@ -123,7 +123,7 @@ Used for APOP authentication.")
 	  ((equal 'pass pop3-authentication-scheme)
 	   (pop3-user process pop3-maildrop)
 	   (pop3-pass process))
-	  (t (error "Invalid POP3 authentication scheme.")))
+	  (t (error "Invalid POP3 authentication scheme")))
     (setq message-count (car (pop3-stat process)))
     (pop3-quit process)
     message-count))
@@ -293,7 +293,7 @@ If NOW, use that time instead."
   (pop3-send-command process (format "USER %s" user))
   (let ((response (pop3-read-response process t)))
     (if (not (and response (string-match "+OK" response)))
-	(error (format "USER %s not valid." user)))))
+	(error (format "USER %s not valid" user)))))
 
 (defun pop3-pass (process)
   "Send authentication information to the server."

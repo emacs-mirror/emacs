@@ -1,4 +1,4 @@
-;;; paren.el --- highlight matching paren.
+;;; paren.el --- highlight matching paren
 
 ;; Copyright (C) 1993, 1996 Free Software Foundation, Inc.
 

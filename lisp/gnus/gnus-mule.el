@@ -1,4 +1,4 @@
-;;; gnus-mule.el --- Provide backward compatibility function to GNUS
+;;; gnus-mule.el --- provide backward compatibility function to GNUS
 
 ;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
@@ -27,6 +27,8 @@
 
 ;; This file provides the function `gnus-mule-add-group' for backward
 ;; compatibility with old version of Gnus included in Emacs 20.
+
+;;; Code:
 
 (require 'gnus-sum)
 
@@ -69,4 +71,4 @@ rather than using this function."
 
 (provide 'gnus-mule)
 
-;; gnus-mule.el ends here
+;;; gnus-mule.el ends here

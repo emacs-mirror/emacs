@@ -1,4 +1,4 @@
-;;; isearch.el --- incremental search minor mode.
+;;; isearch.el --- incremental search minor mode
 
 ;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 2001
 ;;   Free Software Foundation, Inc.

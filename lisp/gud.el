@@ -289,13 +289,13 @@ off the specialized speedbar mode."
 				  'speedbar-highlight-face
 				  (cond ((eq ff 'gud-gdb-find-file)
 					 'gud-gdb-goto-stackframe)
-					(t (error "Should never be here.")))
+					(t (error "Should never be here")))
 				  (car frames) t))
 	(setq frames (cdr frames)))
 ;      (let ((selected-frame
 ;	     (cond ((eq ff 'gud-gdb-find-file)
 ;		    (gud-gdb-selected-frame-info buffer))
-;		   (t (error "Should never be here."))))))
+;		   (t (error "Should never be here"))))))
       )
     (setq gud-last-speedbar-stackframe gud-last-last-frame)))
 
@@ -464,7 +464,7 @@ available with older versions of GDB."
     (and gud-gdb-complete-list
 	 (string-match "^Undefined command: \"complete\""
 		       (car gud-gdb-complete-list))
-	 (error "This version of GDB doesn't support the `complete' command."))
+	 (error "This version of GDB doesn't support the `complete' command"))
     ;; Sort the list like readline.
     (setq gud-gdb-complete-list
 	  (sort gud-gdb-complete-list (function string-lessp)))
@@ -692,7 +692,7 @@ and source-file directory for your debugger."
 	   (not (and (boundp 'tags-file-name)
 		     (stringp tags-file-name)
 		     (file-exists-p tags-file-name))))
-      (error "The sdb support requires a valid tags table to work."))
+      (error "The sdb support requires a valid tags table to work"))
 
   (gud-common-init command-line 'gud-sdb-massage-args
 		   'gud-sdb-marker-filter 'gud-sdb-find-file)
@@ -1197,14 +1197,14 @@ directories if your program contains sources from more than one directory."
 	;; -e goes with the next arg, so shift one extra.
 	(or (funcall shift)
 	    ;; -e as the last arg is an error in Perl.
-	    (error "No code specified for -e."))
+	    (error "No code specified for -e"))
 	(setq seen-e t))
       (funcall shift))
 
     (unless seen-e
       (if (or (not args)
 	      (string-match "^-" (car args)))
-	  (error "Can't use stdin as the script to debug."))
+	  (error "Can't use stdin as the script to debug"))
       ;; This is the program name.
       (funcall shift))
 

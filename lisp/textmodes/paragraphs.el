@@ -1,4 +1,4 @@
-;;; paragraphs.el --- paragraph and sentence parsing.
+;;; paragraphs.el --- paragraph and sentence parsing
 
 ;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999, 2000, 2001
 ;;    Free Software Foundation, Inc.

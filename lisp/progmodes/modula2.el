@@ -5,6 +5,8 @@
 ;; Maintainer: FSF
 ;; Keywords: languages
 
+;; This file is part of GNU Emacs.
+
 ;; The authors distributed this without a copyright notice
 ;; back in 1988, so it is in the public domain.  The original included
 ;; the following credit:

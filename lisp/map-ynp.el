@@ -1,4 +1,4 @@
-;;; map-ynp.el --- General-purpose boolean question-asker.
+;;; map-ynp.el --- general-purpose boolean question-asker
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 

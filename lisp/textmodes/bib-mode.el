@@ -1,4 +1,4 @@
-;;; bib-mode.el --- bib-mode, major mode for editing bib files.
+;;; bib-mode.el --- major mode for editing bib files
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
@@ -30,6 +30,7 @@
 ;;   and appropriate keys are presented for various kinds of entries.
 
 ;;; Code:
+
 (defgroup bib nil
   "Major mode for editing bib files."
   :prefix "bib-"

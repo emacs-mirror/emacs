@@ -1,4 +1,4 @@
-;;; pc-win.el --- setup support for `PC windows' (whatever that is).
+;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
 ;; Copyright (C) 1994, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

@@ -1,4 +1,4 @@
-;;; abbrevlist.el --- list one abbrev table alphabetically ordered.
+;;; abbrevlist.el --- list one abbrev table alphabetically ordered
 
 ;; Copyright (C) 1986, 1992 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 

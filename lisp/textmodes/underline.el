@@ -1,4 +1,4 @@
-;;; underline.el --- insert/remove underlining (done by overstriking) in Emacs.
+;;; underline.el --- insert/remove underlining (done by overstriking) in Emacs
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

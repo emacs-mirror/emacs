@@ -1,4 +1,4 @@
-;;; thingatpt.el --- Get the `thing' at point
+;;; thingatpt.el --- get the `thing' at point
 
 ;; Copyright (C) 1991,92,93,94,95,96,97,1998,2000
 ;;  Free Software Foundation, Inc.
@@ -395,4 +395,4 @@ Signal an error if the entire string was not used."
 ;;;###autoload
 (defun list-at-point ()   (form-at-point 'list 'listp))
 
-;; thingatpt.el ends here.
+;;; thingatpt.el ends here

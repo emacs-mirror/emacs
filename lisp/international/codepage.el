@@ -1,4 +1,4 @@
-;;; codepage.el --- MS-DOS/MS-Windows specific coding systems.
+;;; codepage.el --- MS-DOS/MS-Windows specific coding systems
 
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
 
@@ -665,4 +665,4 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
 
 (provide 'codepage)
 
-;; codepage.el ends here
+;;; codepage.el ends here

@@ -1,4 +1,4 @@
-;;; bytecomp.el --- compilation of Lisp code into byte code.
+;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000
 ;;   Free Software Foundation, Inc.
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.82 $")
+(defconst byte-compile-version "$Revision: 2.83 $")
 
 ;; This file is part of GNU Emacs.
 

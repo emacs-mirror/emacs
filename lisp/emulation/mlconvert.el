@@ -1,4 +1,4 @@
-;;; mlconvert.el --- convert buffer of Mocklisp code to real lisp.
+;;; mlconvert.el --- convert buffer of Mocklisp code to real lisp
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

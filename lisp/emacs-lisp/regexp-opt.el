@@ -1,4 +1,4 @@
-;;; regexp-opt.el --- generate efficient regexps to match strings.
+;;; regexp-opt.el --- generate efficient regexps to match strings
 
 ;; Copyright (C) 1994,95,96,97,98,99,2000 Free Software Foundation, Inc.
 

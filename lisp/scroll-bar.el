@@ -1,4 +1,4 @@
-;;; scroll-bar.el --- window system-independent scroll bar support.
+;;; scroll-bar.el --- window system-independent scroll bar support
 
 ;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
 ;;  Free Software Foundation, Inc.

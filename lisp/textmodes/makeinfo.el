@@ -253,4 +253,3 @@ line LINE of the window, or centered if LINE is nil."
 (provide 'makeinfo)
 
 ;;; makeinfo.el ends here
-

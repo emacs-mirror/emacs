@@ -1,4 +1,4 @@
-;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
+;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
 ;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 2001
 ;;		Free Software Foundation, Inc.
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -1875,7 +1877,7 @@ It returns t if it got any new messages."
   (goto-char beg)
   (forward-line 1)
   (if (/= (following-char) ?0)
-      (error "Bad format in RMAIL file."))
+      (error "Bad format in RMAIL file"))
   (let ((inhibit-read-only t)
 	(delta (- (buffer-size) end)))
     (delete-char 1)

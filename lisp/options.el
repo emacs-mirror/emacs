@@ -1,4 +1,4 @@
-;;; options.el --- edit Options command for Emacs.
+;;; options.el --- edit Options command for Emacs
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

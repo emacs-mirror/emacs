@@ -1,6 +1,8 @@
-;;; unused.el --- editing commands in GNU Emacs that turned out not to be used.
+;;; unused.el --- editing commands in GNU Emacs that turned out not to be used
 ;;; This file is in the public domain, as it was distributed in
 ;;; 1985 or 1986 without a copyright notice.  Written by RMS.
+
+;; This file is part of GNU Emacs.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations

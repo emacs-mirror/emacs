@@ -1,4 +1,4 @@
-;;; mailabbrev.el --- abbrev-expansion of mail aliases.
+;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
 ;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997, 2000
 ;;	Free Software Foundation, Inc.
@@ -638,4 +638,4 @@ Don't use this command in Lisp programs!
 (if mail-abbrevs-mode
     (mail-abbrevs-enable))
 
-;;; mailabbrev.el ends here.
+;;; mailabbrev.el ends here

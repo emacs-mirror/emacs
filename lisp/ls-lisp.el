@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1992, 1994, 2000 Free Software Foundation, Inc.
 
-;; Author:		Sebastian Kremer <sk@thp.uni-koeln.de>
-;; Modified by:		Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
-;; Maintainer:		FSF
-;; Keywords:		unix, dired
+;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
+;; Maintainer: FSF
+;; Keywords: unix, dired
 
 ;; This file is part of GNU Emacs.
 

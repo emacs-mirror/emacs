@@ -1,10 +1,10 @@
-;;; help-macro.el --- Makes command line help such as help-for-help
+;;; help-macro.el --- makes command line help such as help-for-help
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Maintainer: FSF
-;; Created: : Mon Oct  1 11:42:39 1990
+;; Created: Mon Oct  1 11:42:39 1990
 ;; Adapted-By: ESR
 
 ;; This file is part of GNU Emacs.
@@ -29,7 +29,7 @@
 ;; This file supplies the macro make-help-screen which constructs
 ;; single character dispatching with browsable help such as that provided
 ;; by help-for-help. This can be used to make many modes easier to use; for
-;; example, the Gnu Emacs Empire Tool uses this for every "nested" mode map
+;; example, the GNU Emacs Empire Tool uses this for every "nested" mode map
 ;; called from the main mode map.
 
 ;;       The name of this package was changed from help-screen.el to

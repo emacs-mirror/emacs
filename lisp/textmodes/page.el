@@ -1,4 +1,4 @@
-;;; page.el --- page motion commands for emacs.
+;;; page.el --- page motion commands for Emacs
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

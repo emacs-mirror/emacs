@@ -1,4 +1,4 @@
-;;; custom.el -- Tools for declaring and initializing options.
+;;; custom.el --- tools for declaring and initializing options
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 ;;

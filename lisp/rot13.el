@@ -1,8 +1,8 @@
-;;; rot13.el --- display a buffer in rot13.
+;;; rot13.el --- display a buffer in rot13
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
-;; Author: Howard Gayle:
+;; Author: Howard Gayle
 ;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
