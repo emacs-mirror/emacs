@@ -4384,9 +4384,8 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	int eol_flag = (c == 'Z');
 	char *p;
 
-	p = decode_mode_spec_coding
-	  (find_symbol_value (Qbuffer_file_coding_system),
-	   decode_mode_spec_buf, eol_flag);
+	p = decode_mode_spec_coding (b->buffer_file_coding_system,
+				     decode_mode_spec_buf, eol_flag);
 	if (FRAME_TERMCAP_P (f))
 	  {
 	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, eol_flag);
