@@ -1,3 +1,8 @@
+1999-11-22  Paul Eggert  <eggert@twinsun.com>
+
+	* NEWS: Rename messages-locale to system-messages-locale
+	and time-locale to system-time-locale.
+
 1999-10-24  Noah Friedman  <friedman@splode.com>
 
 	* yow.lines: Add more quotes.  Correct a misquote.
@@ -6,7 +11,7 @@
 
 1999-10-23  Paul Eggert  <eggert@twinsun.com>
 
-	* etc/NEWS: Describe new functions and variables for locales.
+	* NEWS: Describe new functions and variables for locales.
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 

@@ -1,3 +1,57 @@
+1999-11-22  Paul Eggert  <eggert@twinsun.com>
+
+	Port to SunOS 4.1.x again.  Help out with Alpha port.
+	Rename messages-locale to system-messages-locale,
+	and likewise for time-locale.
+	
+	* callproc.c (strerror): Remove decl.
+	* fileio.c (strerror): Likewise.
+	* process.c (strerror): Likewise.
+	* emacs.c (strerror): Likewise.
+	(Vsystem_messages_locale): Renamed from Vmessages_locale.
+	All uses changed.
+	(Vprevious_system_messages_locale): Likewise, from
+	Vprevious_messages_locale.
+	(Vsystem_time_locale): Likewise, from Vtime_locale.
+	(Vprevious_system_time_locale): Likewise, from Vprevious_time_locale.
+	(ABORT_RETURN_TYPE): New macro.
+	(abort): Return type is now ABORT_RETURN_TYPE.
+	(main): Always invoke init_signals, even if POSIX_SIGNALS is not
+	defined.
+	(syms_of_emacs): messages-locale -> system-messages-locale,
+	previous-messages-locale -> previous-system-messages-locale,
+	time-locale -> system-time-locale,
+	previous-time-locale -> previous-system-time-locale.
+
+	* gmalloc.c (PP, __ptr_t): Assume ANSI C if STDC_HEADERS is defined.
+	(const): Do not define; that's config.h's job.
+	(<limits.h>): Include if HAVE_LIMITS_H is defined.
+	(CHAR_BIT): Move test for definedness outside of limits.h condition.
+	(<stddef.h>): Include if STDC_HEADERS is defined.
+	(FREE_RETURN_TYPE): New macro.
+	(free): Return type is now FREE_RETURN_TYPE.
+
+	* lisp.h (synchronize_system_time_locale): Renamed from
+	synchronize_time_locale.  All uses changed.
+	(synchronize_system_messages_locale): Likewise, from
+	synchronize_messages_locale.
+
+	* m/alpha.h (malloc, realloc, calloc): Remove decls;
+	stdlib.h now does this.
+
+	* process.c (sys_siglist): Remove.
+
+	* s/sunos4-0.h (ABORT_RETURN_TYPE, FREE_RETURN_TYPE):
+	New macros.
+
+	* syntax.c (scan_sexps_forward): Use abort, not assert.
+
+	* sysdep.c (my_sys_siglist): New var.
+	(sys_siglist): New macro.  Remove old initialized vars of same name.
+	(init_signals): Initialize sys_siglist.
+
+	* xfns.c (abort): Remove decl; stdlib.h now does this.
+
 1999-11-18  Dave Love  <fx@gnu.org>
 
 	* filelock.c: Add forward declaration for get_boot_time_1.
