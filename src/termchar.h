@@ -30,6 +30,8 @@ extern int line_ins_del_ok;	/* Terminal can insert and delete lines */
 extern int char_ins_del_ok;	/* Terminal can insert and delete chars */
 extern int scroll_region_ok;	/* Terminal supports setting the scroll
 				   window */
+extern int scroll_region_cost;	/* Cost of setting the scroll window,
+				   measured in characters */
 extern int memory_below_frame;	/* Terminal remembers lines scrolled
 				   off bottom */
 extern int fast_clear_end_of_line; /* Terminal has a `ce' string */
