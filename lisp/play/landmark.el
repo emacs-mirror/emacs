@@ -220,22 +220,22 @@
 (defvar lm-emacs-won ()
   "*For making font-lock use the winner's face for the line.")
 
-(defvar lm-font-lock-O-face
+(defvar lm-font-lock-face-O
   (if window-system
       (list (facemenu-get-face 'fg:red) 'bold))
   "*Face to use for Emacs' O.")
 
-(defvar lm-font-lock-X-face
+(defvar lm-font-lock-face-X
   (if window-system
       (list (facemenu-get-face 'fg:green) 'bold))
   "*Face to use for your X.")
 
 (defvar lm-font-lock-keywords
-  '(("O" . lm-font-lock-O-face)
-    ("X" . lm-font-lock-X-face)
+  '(("O" . lm-font-lock-face-O)
+    ("X" . lm-font-lock-face-X)
     ("[-|/\\]" 0 (if lm-emacs-won
-		     lm-font-lock-O-face
-		   lm-font-lock-X-face)))
+		     lm-font-lock-face-O
+		   lm-font-lock-face-X)))
   "*Font lock rules for Lm.")
 
 (put 'lm-mode 'front-sticky
