@@ -20,6 +20,7 @@ Dôle¾itá poznámka: prácu s Emacsom ukonèíte stlaèením C-x C-c (dva znaky).
 Znaky ">>" na µavom okraji oznaèujú miesta, kde si máte vyskú¹a» príkaz.
 Napríklad:
 <<Blank lines inserted here by startup of help-with-tutorial>>
+[Prostredná èas» obrazovky je prázdna zámerne. Text pokraèuje ni¾¹ie.]
 >>  Teraz stlaète C-v (view next screen) pre posun na ïal¹iu obrazovku.
         (Smelo do toho, spravte to pridr¾aním klávesy control a stlaèením v.)
 	Od tejto chvíle by ste toto mali robi» ak doèítate zobrazenú
