@@ -1,3 +1,12 @@
+2000-04-26  Ken Raeburn  <raeburn@gnu.org>
+
+	* window.c (freeze_window_start): Check that minibuffer scroll
+	window isn't nil before extracting the window structure pointer
+	from it.
+
+	* undo.c (record_delete): If we hit the end of the undo list, stop
+	picking elements apart.
+
 2000-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): If lines are continued, restore
