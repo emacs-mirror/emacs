@@ -1728,8 +1728,7 @@ Argument EVENT is the invoking mouse event."
   (woman (current-word t)))
 
 ;; WoMan menu bar and pop-up menu:
-(easy-menu-define			; (SYMBOL MAPS DOC MENU)
- woman-menu
+(easy-menu-define woman-menu		; (SYMBOL MAPS DOC MENU)
  woman-mode-map
  "WoMan Menu"
  `("WoMan"
