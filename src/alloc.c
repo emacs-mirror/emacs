@@ -778,7 +778,8 @@ The property's value should be an integer between 0 and 10.")
   Lisp_Object vector;
   Lisp_Object n;
   CHECK_SYMBOL (purpose, 1);
-  n = Fget (purpose, Qchar_table_extra_slots);
+  /* For a deeper char-table, PURPOSE can be nil.  */
+  n = NILP (purpose) ? 0 : Fget (purpose, Qchar_table_extra_slots);
   CHECK_NUMBER (n, 0);
   if (XINT (n) < 0 || XINT (n) > 10)
     args_out_of_range (n, Qnil);
@@ -1107,7 +1108,9 @@ Both LENGTH and INIT must be numbers.  INIT matters only in whether it is t or n
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
   length_in_chars = length_in_elts * sizeof (EMACS_INT);
 
-  val = Fmake_vector (make_number (length_in_elts), Qnil);
+  /* We must allocate one more elements than LENGTH_IN_ELTS for the
+     slot `size' of the struct Lisp_Bool_Vector.  */
+  val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
   p = XBOOL_VECTOR (val);
   /* Get rid of any bits that would cause confusion.  */
   p->vector_size = 0;
