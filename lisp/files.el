@@ -1527,39 +1527,47 @@ Optional second argument EXITING means ask about certain non-file buffers
  as well as about file buffers."
   (interactive "P")
   (save-window-excursion
-    (if (zerop (map-y-or-n-p
-		(function
-		 (lambda (buffer)
-		   (and (buffer-modified-p buffer)
-			(or
-			 (buffer-file-name buffer)
-			 (and exiting
-			      (progn
-				(set-buffer buffer)
-				(and buffer-offer-save (> (buffer-size) 0)))))
-			(if arg
-			    t
-			  (if (buffer-file-name buffer)
-			      (format "Save file %s? "
-				      (buffer-file-name buffer))
-			    (format "Save buffer %s? "
-				    (buffer-name buffer)))))))
-		(function
-		 (lambda (buffer)
-		   (set-buffer buffer)
-		   (save-buffer)))
-		(buffer-list)
-		'("buffer" "buffers" "save")
-		(list (list ?\C-r (lambda (buf)
-				    (view-buffer buf)
-				    (setq view-exit-action
-					  '(lambda (ignore)
-					     (exit-recursive-edit)))
-				    (recursive-edit)
-				    ;; Return nil to ask about BUF again.
-				    nil)
-			    "display the current buffer"))
-		))
+    (or (not (zerop (map-y-or-n-p
+		     (function
+		      (lambda (buffer)
+			(and (buffer-modified-p buffer)
+			     (or
+			      (buffer-file-name buffer)
+			      (and exiting
+				   (progn
+				     (set-buffer buffer)
+				     (and buffer-offer-save (> (buffer-size) 0)))))
+			     (if arg
+				 t
+			       (if (buffer-file-name buffer)
+				   (format "Save file %s? "
+					   (buffer-file-name buffer))
+				 (format "Save buffer %s? "
+					 (buffer-name buffer)))))))
+		     (function
+		      (lambda (buffer)
+			(set-buffer buffer)
+			(save-buffer)))
+		     (buffer-list)
+		     '("buffer" "buffers" "save")
+		     (list (list ?\C-r (lambda (buf)
+					 (view-buffer buf)
+					 (setq view-exit-action
+					       '(lambda (ignore)
+						  (exit-recursive-edit)))
+					 (recursive-edit)
+					 ;; Return nil to ask about BUF again.
+					 nil)
+				 "display the current buffer"))
+		     )))
+	(and save-abbrevs abbrevs-changed
+	     (progn
+	       (if (or arg
+		       (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
+		   (write-abbrev-file nil))
+	       ;; Don't keep bothering user if he says no.
+	       (setq abbrevs-changed nil)
+	       t))
 	(message "(No files need saving)"))))
 
 (defun not-modified (&optional arg)
