@@ -1,10 +1,20 @@
+2002-09-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el (define-derived-mode): Properly ignore unknown args.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add a :require arg.
+	Don't call the function during init if mode is on by default.
+
+	* simple.el: Provide `simple'.
+	(transient-mark-mode, line-number-mode, column-number-mode):
+	Pass an explicit `:require nil' argument.
+
 2002-09-13  Francesco Potorti`  <pot@gnu.org>
 
 	* play/tetris.el (tetris-blank-options, tetris-cell-options):
 	Remove various redundant `(t nil)'.
 
-	* play/snake.el (snake-border-options): Use color on tty if
-	available.
+	* play/snake.el (snake-border-options): Use color on tty if available.
 
 	* play/tetris.el (tetris-border-options): Likewise.
 
