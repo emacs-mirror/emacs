@@ -60,7 +60,7 @@ static void foreach_window_1 P_ ((struct window *, void (*fn) (), int, int,
 				  int, int));
 static void freeze_window_start P_ ((struct window *, int));
 static int window_fixed_size_p P_ ((struct window *, int, int));
-static void enlarge_window P_ ((int, int));
+static void enlarge_window P_ ((Lisp_Object, int, int));
 
 
 /* This is the window in which the terminal's cursor should
@@ -2789,14 +2789,9 @@ If FRAME is nil, search only the selected frame\n\
 	    {
 	      int total = (XFASTINT (XWINDOW (other)->height)
 			   + XFASTINT (XWINDOW (window)->height));
-	      Lisp_Object old_selected_window;
-	      old_selected_window = selected_window;
-
-	      selected_window = upper;
-	      enlarge_window ((total / 2
-			       - XFASTINT (XWINDOW (upper)->height)),
+	      enlarge_window (upper,
+			      total / 2 - XFASTINT (XWINDOW (upper)->height),
 			      0);
-	      selected_window = old_selected_window;
 	    }
 	}
     }
@@ -3030,7 +3025,7 @@ From program, optional second arg non-nil means grow sideways ARG columns.")
      register Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg, 0);
-  enlarge_window (XINT (arg), !NILP (side));
+  enlarge_window (selected_window, XINT (arg), !NILP (side));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3045,7 +3040,7 @@ From program, optional second arg non-nil means shrink sideways arg columns.")
      register Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg, 0);
-  enlarge_window (-XINT (arg), !NILP (side));
+  enlarge_window (selected_window, -XINT (arg), !NILP (side));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3083,10 +3078,11 @@ window_width (window)
    they will be deleted.  */
 
 static void
-enlarge_window (delta, widthflag)
+enlarge_window (window, delta, widthflag)
+     Lisp_Object window;
      int delta, widthflag;
 {
-  Lisp_Object parent, window, next, prev;
+  Lisp_Object parent, next, prev;
   struct window *p;
   int *sizep, maximum;
   int (*sizefun) P_ ((Lisp_Object))
@@ -3099,7 +3095,6 @@ enlarge_window (delta, widthflag)
   check_min_window_sizes ();
 
   /* Give up if this window cannot be resized.  */
-  window = selected_window;
   if (window_fixed_size_p (XWINDOW (window), widthflag, 1))
     error ("Window is not resizable");
 
@@ -3483,9 +3478,10 @@ grow_mini_window (w, delta)
 }
 
 
-/* Shrink mini-window W back to its original size before the first
-   call to grow_mini_window.  Resize other windows on the same frame
-   back to their original size.  */
+/* Shrink mini-window W.  If there is recorded info about window sizes
+   before a call to grow_mini_window, restore recorded window sizes.
+   Otherwise, if the mini-window is higher than 1 line, resize it to 1
+   line.  */
 
 void
 shrink_mini_window (w)
@@ -3500,6 +3496,12 @@ shrink_mini_window (w)
       adjust_glyphs (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       windows_or_buffers_changed = 1;
+    }
+  else if (XFASTINT (w->height) > 1)
+    {
+      Lisp_Object window;
+      XSETWINDOW (window, w);
+      enlarge_window (window, 1 - XFASTINT (w->height), 0);
     }
 }
 
