@@ -104,7 +104,7 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### the information in ../src/config.h.
 ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src ${CFLAGS}
 .c.o:
-      ${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
+	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
 
 all: ${EXECUTABLES}
 
