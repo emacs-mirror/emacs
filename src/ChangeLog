@@ -1,3 +1,8 @@
+2000-10-20  Jason Rumney  <jasonr@gnu.org>
+
+	* alloc.c (toplevel): Move #ifdef GC_MARK_STACK back to above
+	mem_init where it used to be. mem_z etc not defined otherwise.
+
 2000-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (toplevel) [SYSTEM_MALLOC || DOUG_LEA_MALLOC]: Undef
