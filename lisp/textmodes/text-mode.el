@@ -36,34 +36,26 @@
   :group 'data)
 
 (defvar text-mode-variant nil
-  "Non-nil if this buffer's major mode is a variant of Text mode.")
+  "Non-nil if this buffer's major mode is a variant of Text mode.
+Use (derived-mode-p 'text-mode) instead.")
 
-(defvar text-mode-syntax-table nil
-  "Syntax table used while in text mode.")
+(defvar text-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\" ".   " st)
+    (modify-syntax-entry ?\\ ".   " st)
+    (modify-syntax-entry ?' "w   " st)
+    st)
+  "Syntax table used while in `text-mode'.")
 
-(defvar text-mode-abbrev-table nil
-  "Abbrev table used while in text mode.")
-(define-abbrev-table 'text-mode-abbrev-table ())
-
-(if text-mode-syntax-table
-    ()
-  (setq text-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\" ".   " text-mode-syntax-table)
-  (modify-syntax-entry ?\\ ".   " text-mode-syntax-table)
-  (modify-syntax-entry ?' "w   " text-mode-syntax-table))
-
-(defvar text-mode-map nil
-  "Keymap for Text mode.
-Many other modes, such as Mail mode, Outline mode and Indented Text mode,
+(defvar text-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\e\t" 'ispell-complete-word)
+    (define-key map "\es" 'center-line)
+    (define-key map "\eS" 'center-paragraph)
+    map)
+  "Keymap for `text-mode'.
+Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
 inherit all the commands defined in this map.")
-
-(if text-mode-map
-    ()
-  (setq text-mode-map (make-sparse-keymap))
-  (define-key text-mode-map "\e\t" 'ispell-complete-word)
-  (define-key text-mode-map "\t" 'indent-relative)
-  (define-key text-mode-map "\es" 'center-line)
-  (define-key text-mode-map "\eS" 'center-paragraph))
 
 
 (define-derived-mode text-mode nil "Text"
@@ -73,14 +65,7 @@ You can thus get the full benefit of adaptive filling
  (see the variable `adaptive-fill-mode').
 \\{text-mode-map}
 Turning on Text mode runs the normal hook `text-mode-hook'."
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat page-delimiter "\\|[ \t]*$"))
-  (if (eq ?^ (aref paragraph-start 0))
-      (setq paragraph-start (substring paragraph-start 1)))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'indent-relative-maybe))
+  (set (make-local-variable 'indent-line-function) 'indent-relative))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
@@ -91,8 +76,7 @@ Special commands:
 \\{text-mode-map}
 Turning on Paragraph-Indent Text mode runs the normal hooks
 `text-mode-hook' and `paragraph-indent-text-mode-hook'."
-  (paragraph-indent-minor-mode)
-  (run-hooks 'text-mode-hook 'paragraph-indent-text-mode-hook))
+  (paragraph-indent-minor-mode))
 
 (defun paragraph-indent-minor-mode ()
   "Minor mode for editing text, with leading spaces starting a paragraph.
@@ -112,8 +96,7 @@ Turning on Paragraph-Indent minor mode runs the normal hook
 (defun text-mode-hook-identify ()
   "Mark that this mode has run `text-mode-hook'.
 This is how `toggle-text-mode-auto-fill' knows which buffers to operate on."
-  (make-local-variable 'text-mode-variant)
-  (setq text-mode-variant t))
+  (set (make-local-variable 'text-mode-variant) t))
 
 (add-hook 'text-mode-hook 'text-mode-hook-identify)
 
