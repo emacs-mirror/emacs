@@ -1,3 +1,7 @@
+2001-09-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el: Comment out change of 2001-09-13.
+
 2001-09-13  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-replace-char-subr, viper-envelop-ESC-key):

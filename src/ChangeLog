@@ -1,3 +1,9 @@
+2001-09-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Ffile_symlink_p): Fix last change.
+
+	* filelock.c (current_lock_owner): Fix last change.
+
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* filelock.c (current_lock_owner): If readlink returns ERANGE,
