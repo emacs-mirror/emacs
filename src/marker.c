@@ -31,6 +31,13 @@ static int cached_charpos;
 static int cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
+
+clear_charpos_cache (b)
+     struct buffer *b;
+{
+  if (cached_buffer == b)
+    cached_buffer = 0;
+}
 
 /* Converting between character positions and byte positions.  */
 
