@@ -1151,8 +1151,8 @@ for the error messages."
     ;; Single quotations may appear in errors
     (modify-syntax-entry ?\" "_" tex-error-parse-syntax-table)
     ;; Don't parse previous compilations.
-    (setq compilation-parsing-end
-	  (max compilation-parsing-end tex-start-tex-marker))
+    (set-marker compilation-parsing-end
+		(max compilation-parsing-end tex-start-tex-marker))
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
     ;; Parse messages.
@@ -1217,7 +1217,7 @@ for the error messages."
 		(cons (cons this-error error-location)
 		      compilation-error-list))
 	  (goto-char end-of-error)))))
-  (setq compilation-parsing-end (point))
+  (set-marker compilation-parsing-end (point))
   (setq compilation-error-list (nreverse compilation-error-list))
   (message "Parsing error messages...done"))
 
