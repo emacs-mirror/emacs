@@ -54,6 +54,7 @@ Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
+Lisp_Object Qkeymap;
 
 /* Visual properties text (including strings) may have.  */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
@@ -699,7 +700,6 @@ next_single_char_property_change (pos, prop, object, limit)
   else
     {
       Lisp_Object initial_value, value;
-      struct buffer *old_current_buffer = NULL;
       int count = specpdl_ptr - specpdl;
 
       if (!NILP (object))
@@ -1870,6 +1870,8 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.");
   Qcategory = intern ("category");
   staticpro (&Qlocal_map);
   Qlocal_map = intern ("local-map");
+  staticpro (&Qkeymap);
+  Qkeymap = intern ("keymap");
   staticpro (&Qfront_sticky);
   Qfront_sticky = intern ("front-sticky");
   staticpro (&Qrear_nonsticky);
