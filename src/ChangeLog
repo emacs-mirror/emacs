@@ -1,3 +1,7 @@
+2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* indent.c (Fvertical_motion): Fix last change.
+
 2002-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.c (Fvertical_motion): Move to the start of the line
