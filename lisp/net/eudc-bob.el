@@ -42,7 +42,7 @@
   "Keymap for inline sounds.")
 
 (defvar eudc-bob-url-keymap nil
-  "Keymap for inline images.")
+  "Keymap for inline urls.")
 
 (defconst eudc-bob-generic-menu
   '("EUDC Binary Object Menu"
