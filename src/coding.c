@@ -3165,22 +3165,12 @@ setup_coding_system (coding_system, coding)
       coding->common_flags
 	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       {
-	Lisp_Object val;
-	Lisp_Object decoder, encoder;
-
 	val = XVECTOR (coding_spec)->contents[4];
-	if (CONSP  (val)
-	    && SYMBOLP (XCONS (val)->car)
-	    && !NILP (decoder = Fget (XCONS (val)->car, Qccl_program_idx))
-	    && !NILP (decoder = Fcdr (Faref (Vccl_program_table, decoder)))
-	    && SYMBOLP (XCONS (val)->cdr)
-	    && !NILP (encoder = Fget (XCONS (val)->cdr, Qccl_program_idx))
-	    && !NILP (encoder = Fcdr (Faref (Vccl_program_table, encoder))))
-	  {
-	    setup_ccl_program (&(coding->spec.ccl.decoder), decoder);
-	    setup_ccl_program (&(coding->spec.ccl.encoder), encoder);
-	  }
-	else
+	if (! CONSP (val)
+	    || setup_ccl_program (&(coding->spec.ccl.decoder),
+				  XCONS (val)->car) < 0
+	    || setup_ccl_program (&(coding->spec.ccl.encoder),
+				  XCONS (val)->cdr) < 0)
 	  goto label_invalid_coding_system;
 
 	bzero (coding->spec.ccl.valid_codes, 256);
