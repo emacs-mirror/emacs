@@ -1,19 +1,21 @@
-/* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
+/* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName$
+ * $HopeName: MMsrc!vmo1.c(trunk.1) $
  * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
- * Design: design.mps.vm
+ * Readership: Any MPS developer
  *
- * Status: er, a bit hacky.
+ * Design: design.mps.vm, design.mps.vmo1
+ *
+ * Status: a bit hacky, but probably working.
  *
  * This is the implementation of the virtual memory mapping interface
  * (vm.h) for DEC UNIX / OSF1 (os.o1).
  *
  * mmap(2) is used to reserve address space by creating a mapping to
  * /etc/passwd with page access none.  mmap(2) is used to map pages
- * onto store by creating a copy-on-write mapping with the flag 
- * MAP_ANONYMOUS.
+ * onto store by creating a copy-on-write (MAP_PRIVATE) mapping with
+ * the flag MAP_ANONYMOUS.
  *
  * Experiments have shown that attempting to reserve address space
  * by mapping /dev/zero results in swap being reserved.  This
@@ -29,6 +31,11 @@
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
  *   or features we don't use.  See mmap(2) for details.
+ *
+ * .assume.off_t: We assume that the Size type (defined by the MM) fits
+ * in the off_t type (define by the system (POSIX?)).  In fact we test
+ * the more stringent requirement that they are the same size.  This
+ * assumption is made in VMUnmap.
  */
 
 #include "mpm.h"
@@ -55,7 +62,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName$");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.1) $");
 
 
 /* Fix unprototyped system calls
@@ -248,6 +255,7 @@ Res VMMap(Space space, Addr base, Addr limit)
 }
 
 
+/* see design.mps.vmo1.fun.unmap */
 void VMUnmap(Space space, Addr base, Addr limit)
 {
   VM vm = SpaceVM(space);
@@ -260,17 +268,14 @@ void VMUnmap(Space space, Addr base, Addr limit)
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
-
-  /* Map /etc/passwd onto the area, allowing no access.  This */
-  /* effectively depopulates the area from memory, but keeps */
-  /* it "busy" as far as the OS is concerned, so that it will not */
-  /* be re-used by other calls to mmap which do not specify MAP_FIXED. */
+  AVER(sizeof(off_t) == sizeof(Size));  /* .assume.off_t */
 
   size = AddrOffset(base, limit);
 
+  /* see design.mps.vmo1.fun.unmap.offset */
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_FILE | MAP_SHARED | MAP_FIXED,
-	      vm->none_fd, 0);
+	      vm->none_fd, (off_t)AddrOffset(vm->base, base));
   AVER(addr != (void *)-1);
 
   vm->mapped -= size;
