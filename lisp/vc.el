@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.219 1998/04/05 18:54:35 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.220 1998/04/09 13:45:44 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -733,18 +733,13 @@ before the filename."
 
 (defun vc-next-action-on-file (file verbose &optional comment)
   ;;; If comment is specified, it will be used as an admin or checkin comment.
-  (let ((vc-file (vc-name file))
-	(vc-type (vc-backend file))
+  (let ((vc-type (vc-backend file))
 	owner version buffer)
     (cond
 
-     ;; if there is no master file corresponding, create one
-     ((not vc-file)
-      (vc-register verbose comment)
-      (if vc-initial-comment
-	  (setq vc-log-after-operation-hook
-		'vc-checkout-writable-buffer-hook)
-	(vc-checkout-writable-buffer file)))
+     ;; If the file is not under version control, register it
+     ((not vc-type)
+      (vc-register verbose comment))
 
      ;; CVS: changes to the master file need to be 
      ;; merged back into the working file
@@ -915,7 +910,7 @@ lock steals will raise an error.
 
 For RCS and SCCS files:
    If the file is not already registered, this registers it for version
-control and then retrieves a writable, locked copy for editing.
+control.
    If the file is registered and not locked by anyone, this checks out
 a writable and locked file ready for editing.
    If the file is checked out and locked by the calling user, this
