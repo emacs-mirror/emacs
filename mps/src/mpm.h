@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.74) $
+ * $HopeName: MMsrc!mpm.h(trunk.75) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -93,8 +93,8 @@ extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
-#define AddrWord(a)             ((Word)(a))
-#define SizeWord(s)             ((Word)(s))
+#define AddrWord(a)             ((Word)a)
+#define SizeWord(s)             ((Word)s)
 #define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
@@ -284,7 +284,7 @@ extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->class->fix)((pool), (ss), (seg), (refIO)))
+  ((*(pool)->class->fix)(pool, ss, seg, refIO))
 extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolBenefit(Pool pool, Action action);
@@ -416,13 +416,13 @@ extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 /* Equivalent to impl.h.mps MPS_FIX2 */
 
 #define TRACE_FIX2(ss, refIO) \
-  ((*(ss)->fix)((ss), (refIO)))
+  ((*(ss)->fix)(ss, refIO))
 
 /* Equivalent to impl.h.mps MPS_FIX */
 
 #define TRACE_FIX(ss, refIO) \
-  (TRACE_FIX1((ss), *(refIO)) ? \
-   TRACE_FIX2((ss), (refIO)) : ResOK)
+  (TRACE_FIX1(ss, *(refIO)) ? \
+   TRACE_FIX2(ss, refIO) : ResOK)
 
 /* Equivalent to impl.h.mps MPS_SCAN_END */
 
@@ -545,7 +545,7 @@ extern Size SegSize(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 /* SegOfAddr macro, see design.mps.trace.fix.segofaddr */
 #define SEG_OF_ADDR(segReturn, arena, addr) \
-  ((*(arena)->class->segOfAddr)((segReturn), (arena), (addr)))
+  ((*(arena)->class->segOfAddr)(segReturn, arena, addr))
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
 
@@ -607,20 +607,20 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 /* macro equivalent for BufferReserve, keep in sync with 
  * impl.c.buffer */
 #define BUFFER_RESERVE(pReturn, buffer, size) \
-  (AddrAdd(BufferAlloc((buffer)), (size)) > BufferAlloc((buffer)) && \
-   AddrAdd(BufferAlloc((buffer)), (size)) <= BufferAP((buffer))->limit ? \
-     (*(pReturn) = BufferAlloc((buffer)), \
-      BufferAP((buffer))->alloc = AddrAdd(BufferAlloc((buffer)), (size)), \
+  (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
+   AddrAdd(BufferAlloc(buffer), size) <= BufferAP(buffer)->limit ? \
+     (*(pReturn) = BufferAlloc(buffer), \
+      BufferAP(buffer)->alloc = AddrAdd(BufferAlloc(buffer), size), \
       ResOK) : \
-   BufferFill((pReturn), (buffer), (size)))
+   BufferFill(pReturn, buffer, size))
 
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 /* macro equivalent for BufferCommit, keep in sync with
  * impl.c.buffer */
 #define BUFFER_COMMIT(buffer, p, size) \
-  (BufferAP((buffer))->init = BufferAlloc((buffer)), \
-   BufferAP((buffer))->limit != 0 || BufferTrip((buffer), (p), (size)))
+  (BufferAP(buffer)->init = BufferAlloc(buffer), \
+   BufferAP(buffer)->limit != 0 || BufferTrip(buffer, p, size))
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
 extern void BufferFinish(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
@@ -680,6 +680,7 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define RankSetUnion(rs1, rs2)  BS_UNION((rs1), (rs2))
 #define RankSetDel(rs, r)       BS_DEL(RankSet, (rs), (r))
 
+#define RefSetCheck(refset)     TRUE
 #define RefSetZone(arena, addr) \
   (((Word)(addr) >> (arena)->zoneShift) & (MPS_WORD_WIDTH - 1))
 #define RefSetUnion(rs1, rs2)   BS_UNION((rs1), (rs2))
