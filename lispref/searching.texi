@@ -1002,11 +1002,11 @@ If @var{fixedcase} is non-@code{nil}, then the case of the replacement
 text is not changed; otherwise, the replacement text is converted to a
 different case depending upon the capitalization of the text to be
 replaced.  If the original text is all upper case, the replacement text
-is converted to upper case, except when all of the words in the original
-text are only one character long.  In that event, the replacement text
-is capitalized.  If @emph{any} of the words in the original text is
-capitalized, then all of the words in the replacement text are
-capitalized.
+is converted to upper case.  If the first word of the original text is
+capitalized, then the first word of the replacement text is capitalized.
+If the original text contains just one word, and that word is a capital
+letter, @code{replace-match} considers this a capitalized first word
+rather than all upper case.
 
 If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
 exactly as it is, the only alterations being case changes as needed.

@@ -58,9 +58,9 @@ named @file{emacs}.
 
   Some operating systems don't support dumping.  On those systems, you
 must start Emacs with the @samp{temacs -l loadup} command each time you
-use it.  This takes a long time, but since you need to start Emacs once
-a day at most---or once a week if you never log out---the extra time is
-not too severe a problem.
+use it.  This takes a substantial time, but since you need to start
+Emacs once a day at most---or once a week if you never log out---the
+extra time is not too severe a problem.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
@@ -72,18 +72,18 @@ decreases as machines get faster.  On modern machines, it is usually not
 advisable.
 
 @cindex @file{site-init.el}
-  You can specify other things to be done in Lisp just before dumping by
-putting them in a library named @file{site-init.el}.  However, if these
-things might alter the behavior that users expect from an ordinary
-unmodified Emacs, it is better to do them in @file{default.el}, so that
+  You can specify other Lisp expressions to execute just before dumping
+by putting them in a library named @file{site-init.el}.  However, if
+they might alter the behavior that users expect from an ordinary
+unmodified Emacs, it is better to put them in @file{default.el}, so that
 users can override them if they wish.  @xref{Start-up Summary}.
 
-  Before @file{emacs} is dumped, the documentation strings for primitive
-and preloaded functions (and variables) need to be found in the file
-where they are stored.  This is done by calling
+  Before @file{loadup.el} dumps the new executable, it finds the
+documentation strings for primitive and preloaded functions (and
+variables) in the file where they are stored, by calling
 @code{Snarf-documentation} (@pxref{Accessing Documentation}).  These
-strings were moved out of @file{emacs} to make it smaller.
-@xref{Documentation Basics}.
+strings were moved out of the @file{emacs} executable to make it
+smaller.  @xref{Documentation Basics}.
 
 @defun dump-emacs to-file from-file
 @cindex unexec
@@ -129,16 +129,29 @@ The value of this variable is the version of Emacs being run.  It is a
 string such as @code{"19.22.1"}.
 @end defvar
 
+  The following two variables did not exist before Emacs version 19.23,
+which reduces their usefulness at present, but we hope they will be
+convenient in the future.
+
+@defvar emacs-major-version
+The major version number of Emacs, as an integer.
+@end defvar
+
+@defvar emacs-minor-version
+The minor version number of Emacs, as an integer.  For Emacs version
+19.23, the value is 23.
+@end defvar
+
 @node Pure Storage, Garbage Collection, Building Emacs, GNU Emacs Internals
 @appendixsec Pure Storage
 @cindex pure storage
 
-  There are two types of storage in GNU Emacs Lisp for user-created Lisp
-objects: @dfn{normal storage} and @dfn{pure storage}.  Normal storage is
-where all the new data which is created during an Emacs session is kept;
-see the following section for information on normal storage.  Pure
-storage is used for certain data in the preloaded standard Lisp files:
-data that should never change during actual use of Emacs.
+  Emacs Lisp uses two kinds of storage for user-created Lisp objects:
+@dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
+all the new data which is created during an Emacs session is kept; see
+the following section for information on normal storage.  Pure storage
+is used for certain data in the preloaded standard Lisp files---data
+that should never change during actual use of Emacs.
 
   Pure storage is allocated only while @file{temacs} is loading the
 standard preloaded Lisp libraries.  In the file @file{emacs}, it is
@@ -146,17 +159,17 @@ marked as read-only (on operating systems which permit this), so that
 the memory space can be shared by all the Emacs jobs running on the
 machine at once.  Pure storage is not expandable; a fixed amount is
 allocated when Emacs is compiled, and if that is not sufficient for the
-preloaded libraries, @file{temacs} crashes.  If that happens, you will
-have to increase the compilation parameter @code{PURESIZE} in the file
+preloaded libraries, @file{temacs} crashes.  If that happens, you must
+increase the compilation parameter @code{PURESIZE} in the file
 @file{src/puresize.h}.  This normally won't happen unless you try to
 preload additional libraries or add features to the standard ones.
 
 @defun purecopy object
-  This function makes a copy of @var{object} in pure storage and returns
+This function makes a copy of @var{object} in pure storage and returns
 it.  It copies strings by simply making a new string with the same
 characters in pure storage.  It recursively copies the contents of
-vectors and cons cells.  It does not make copies of symbols, or any
-other objects, but just returns them unchanged.  It signals an error if
+vectors and cons cells.  It does not make copies of other objects such
+as symbols, but just returns them unchanged.  It signals an error if
 asked to copy markers.
 
 This function is used only while Emacs is being built and dumped; it is
@@ -164,23 +177,24 @@ called only in the file @file{emacs/lisp/loaddefs.el}.
 @end defun
 
 @defvar pure-bytes-used
-  The value of this variable is the number of bytes of pure storage
+The value of this variable is the number of bytes of pure storage
 allocated so far.  Typically, in a dumped Emacs, this number is very
 close to the total amount of pure storage available---if it were not,
 we would preallocate less.
 @end defvar
 
 @defvar purify-flag
-  This variable determines whether @code{defun} should make a copy of the
+This variable determines whether @code{defun} should make a copy of the
 function definition in pure storage.  If it is non-@code{nil}, then the
 function definition is copied into pure storage.
 
-  This flag is @code{t} while loading all of the basic functions for
+This flag is @code{t} while loading all of the basic functions for
 building Emacs initially (allowing those functions to be sharable and
-non-collectible).  It is set to @code{nil} when Emacs is saved out
-as @file{emacs}.  The flag is set and reset in the C sources.
+non-collectible).  Dumping Emacs as an executable always writes
+@code{nil} in this variable, regardless of the value it actually has
+before and after dumping.
 
- You should not change this flag in a running Emacs.
+You should not change this flag in a running Emacs.
 @end defvar
 
 @node Garbage Collection, Writing Emacs Primitives, Pure Storage, GNU Emacs Internals
@@ -189,41 +203,40 @@ as @file{emacs}.  The flag is set and reset in the C sources.
 
 @cindex memory allocation
   When a program creates a list or the user defines a new function (such
-as by loading a library), then that data is placed in normal storage.
-If normal storage runs low, then Emacs asks the operating system to
+as by loading a library), that data is placed in normal storage.  If
+normal storage runs low, then Emacs asks the operating system to
 allocate more memory in blocks of 1k bytes.  Each block is used for one
-type of Lisp object, so symbols, cons cells, markers, etc.@: are
-segregated in distinct blocks in memory.  (Vectors, buffers and certain
-other editing types, which are fairly large, are allocated in individual
-blocks, one per object, while strings are packed into blocks of 8k
-bytes.)
+type of Lisp object, so symbols, cons cells, markers, etc., are
+segregated in distinct blocks in memory.  (Vectors, long strings,
+buffers and certain other editing types, which are fairly large, are
+allocated in individual blocks, one per object, while small strings are
+packed into blocks of 8k bytes.)
 
-  It is quite common to use some storage for a while, then release it
-by, for example, killing a buffer or deleting the last pointer to an
+  It is quite common to use some storage for a while, then release it by
+(for example) killing a buffer or deleting the last pointer to an
 object.  Emacs provides a @dfn{garbage collector} to reclaim this
 abandoned storage.  (This name is traditional, but ``garbage recycler''
 might be a more intuitive metaphor for this facility.)
 
-  The garbage collector operates by scanning all the objects that have
-been allocated and marking those that are still accessible to Lisp
-programs.  To begin with, all the symbols, their values and associated
-function definitions, and any data presently on the stack, are
-accessible.  Any objects which can be reached indirectly through other
-accessible objects are also accessible.
+  The garbage collector operates by finding and marking all Lisp objects
+that are still accessible to Lisp programs.  To begin with, it assumes
+all the symbols, their values and associated function definitions, and
+any data presently on the stack, are accessible.  Any objects which can
+be reached indirectly through other accessible objects are also
+accessible.
 
-  When this is finished, all inaccessible objects are garbage.  No
+  When marking is finished, all objects still unmarked are garbage.  No
 matter what the Lisp program or the user does, it is impossible to refer
-to them, since there is no longer a way to reach them.  Their
-space might as well be reused, since no one will notice.  That is what
-the garbage collector arranges to do.
+to them, since there is no longer a way to reach them.  Their space
+might as well be reused, since no one will miss them.  The second,
+``sweep'' phase of the garbage collector arranges to reuse them.
 
 @cindex free list
-  Unused cons cells are chained together onto a @dfn{free list} for
-future allocation; likewise for symbols and markers.  The accessible
-strings are compacted so they are contiguous in memory; then the rest of
-the space formerly occupied by strings is made available to the string
-creation functions.  Vectors, buffers, windows and other large objects
-are individually allocated and freed using @code{malloc}.
+  The sweep phase puts unused cons cells onto a @dfn{free list}
+for future allocation; likewise for symbols and markers.  It compacts
+the accessible strings so they occupy fewer 8k blocks; then it frees the
+other 8k blocks.  Vectors, buffers, windows and other large objects are
+individually allocated and freed using @code{malloc} and @code{free}.
 
 @cindex CL note---allocate more storage
 @quotation
@@ -241,28 +254,30 @@ collection).
 @end quotation
 
 @deffn Command garbage-collect
-  This command runs a garbage collection, and returns information on
+This command runs a garbage collection, and returns information on
 the amount of space in use.  (Garbage collection can also occur
 spontaneously if you use more than @code{gc-cons-threshold} bytes of
 Lisp data since the previous garbage collection.)
 
-  @code{garbage-collect} returns a list containing the following
+@code{garbage-collect} returns a list containing the following
 information:
 
-@smallexample
+@example
 @group
 ((@var{used-conses} . @var{free-conses})
  (@var{used-syms} . @var{free-syms})
+@end group
  (@var{used-markers} . @var{free-markers})
  @var{used-string-chars} 
  @var{used-vector-slots}
  (@var{used-floats} . @var{free-floats}))
 
+@group
 (garbage-collect)
      @result{} ((3435 . 2332) (1688 . 0)
            (57 . 417) 24510 3839 (4 . 1))
 @end group
-@end smallexample
+@end example
 
 Here is a table explaining each element:
 
@@ -306,22 +321,22 @@ operating system, but that are not currently being used.
 @end deffn
 
 @defopt gc-cons-threshold
-  The value of this variable is the number of bytes of storage that must
+The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
-request another garbage collection.  A cons cell counts as eight bytes,
+trigger another garbage collection.  A cons cell counts as eight bytes,
 a string as one byte per character plus a few bytes of overhead, and so
-on.  (Space allocated to the contents of buffers does not count.)  Note
-that the new garbage collection does not happen immediately when the
-threshold is exhausted, but only the next time the Lisp evaluator is
+on; space allocated to the contents of buffers does not count.  Note
+that the subsequent garbage collection does not happen immediately when
+the threshold is exhausted, but only the next time the Lisp evaluator is
 called.
 
-  The initial threshold value is 100,000.  If you specify a larger
+The initial threshold value is 100,000.  If you specify a larger
 value, garbage collection will happen less often.  This reduces the
 amount of time spent garbage collecting, but increases total memory use.
 You may want to do this when running a program which creates lots of
 Lisp data.
 
-  You can make collections more frequent by specifying a smaller value,
+You can make collections more frequent by specifying a smaller value,
 down to 10,000.  A value less than 10,000 will remain in effect only
 until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
@@ -354,11 +369,11 @@ appearance.)
 @smallexample
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
-  "Eval args until one of them yields non-NIL, then return that value.\n\
+  "Eval args until one of them yields non-nil, then return that value.\n\
 The remaining args are not evalled at all.\n\
 @end group
 @group
-If all args return NIL, return NIL.")
+If all args return nil, return nil.")
   (args)
      Lisp_Object args;
 @{
@@ -368,7 +383,7 @@ If all args return NIL, return NIL.")
 @end group
 
 @group
-  if (NULL(args))
+  if (NULL (args))
     return Qnil;
 
   args_left = args;
@@ -383,7 +398,7 @@ If all args return NIL, return NIL.")
         break;
       args_left = Fcdr (args_left);
     @}
-  while (!NULL(args_left));
+  while (!NULL (args_left));
 @end group
 
 @group
@@ -394,7 +409,7 @@ If all args return NIL, return NIL.")
 @end smallexample
 
   Let's start with a precise explanation of the arguments to the
-@code{DEFUN} macro.  Here are the general names for them:
+@code{DEFUN} macro.  Here is a template for them:
 
 @example
 DEFUN (@var{lname}, @var{fname}, @var{sname}, @var{min}, @var{max}, @var{interactive}, @var{doc})
@@ -402,8 +417,8 @@ DEFUN (@var{lname}, @var{fname}, @var{sname}, @var{min}, @var{max}, @var{interac
 
 @table @var
 @item lname
-This is the name of the Lisp symbol to define with this
-function; in the example above, it is @code{or}.
+This is the name of the Lisp symbol to define as the function name; in
+the example above, it is @code{or}.
 
 @item fname
 This is the C function name for this function.  This is
@@ -424,24 +439,24 @@ convention, this name is always @var{fname} with @samp{F} replaced with
 @samp{S}.
 
 @item min
-This is the minimum number of arguments that the function requires.  For
-@code{or}, no arguments are required.
+This is the minimum number of arguments that the function requires.  The
+function @code{or} allows a minimum of zero arguments.
 
 @item max
-This is the maximum number of arguments that the function accepts.
-Alternatively, it can be @code{UNEVALLED}, indicating a special form
-that receives unevaluated arguments.  A function with the equivalent of
-an @code{&rest} argument would have @code{MANY} in this position.  Both
-@code{UNEVALLED} and @code{MANY} are macros.  This argument must be one
-of these macros or a number at least as large as @var{min}.  It may not
-be greater than six.
+This is the maximum number of arguments that the function accepts, if
+there is a fixed maximum.  Alternatively, it can be @code{UNEVALLED},
+indicating a special form that receives unevaluated arguments, or
+@code{MANY}, indicating an unlimited number of evaluated arguments (the
+equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
+macros.  If @var{max} is a number, it may not be less than @var{min} and
+it may not be greater than seven.
 
 @item interactive
 This is an interactive specification, a string such as might be used as
 the argument of @code{interactive} in a Lisp function.  In the case of
 @code{or}, it is 0 (a null pointer), indicating that @code{or} cannot be
-called interactively.  A value of @code{""} indicates an interactive
-function taking no arguments.
+called interactively.  A value of @code{""} indicates a function that
+should receive no arguments when called interactively.
 
 @item doc
 This is the documentation string.  It is written just like a
@@ -450,13 +465,15 @@ write @samp{\n\} at the end of each line.  In particular, the first line
 should be a single sentence.
 @end table
 
-  After the call to the @code{DEFUN} macro, you must write the list
-of argument names that every C function must have, followed by
-ordinary C declarations for them.  Normally, all the arguments must
-be declared as @code{Lisp_Object}.  If the function has no upper limit
-on the number of arguments in Lisp, then in C it receives two arguments:
-the number of Lisp arguments, and the address of a block containing their
-values.  These have types @code{int} and @w{@code{Lisp_Object *}}.
+  After the call to the @code{DEFUN} macro, you must write the argument
+name list that every C function must have, followed by ordinary C
+declarations for the arguments.  For a function with a fixed maximum
+number of arguments, declare a C argument for each Lisp argument, and
+give them all type @code{Lisp_Object}.  If the function has no upper
+limit on the number of arguments in Lisp, then in C it receives two
+arguments: the first is the number of Lisp arguments, and the second is
+the address of a block containing their values.  They have types
+@code{int} and @w{@code{Lisp_Object *}}.
 
   Within the function @code{For} itself, note the use of the macros
 @code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to ``protect''
@@ -468,55 +485,56 @@ Lisp object that you intend to refer to again must be protected somehow.
 @code{UNGCPRO} cancels the protection of the variables that are
 protected in the current function.  It is necessary to do this explicitly.
 
-  For most data types, it suffices to know that one pointer to the
-object is protected; as long as the object is not recycled, all pointers
-to it remain valid.  This is not so for strings, because the garbage
-collector can move them.  When a string is moved, any pointers to it
-that the garbage collector does not know about will not be properly
-relocated.  Therefore, all pointers to strings must be protected across
-any point where garbage collection may be possible.
+  For most data types, it suffices to protect at least one pointer to
+the object; as long as the object is not recycled, all pointers to it
+remain valid.  This is not so for strings, because the garbage collector
+can move them.  When the garbage collector moves a string, it relocates
+all the pointers it knows about; any other pointers become invalid.
+Therefore, you must protect all pointers to strings across any point
+where garbage collection may be possible.
 
-  The macro @code{GCPRO1} protects just one local variable.  If you
-want to protect two, use @code{GCPRO2} instead; repeating @code{GCPRO1}
-will not work.  There are also @code{GCPRO3} and @code{GCPRO4}.
+  The macro @code{GCPRO1} protects just one local variable.  If you want
+to protect two, use @code{GCPRO2} instead; repeating @code{GCPRO1} will
+not work.  Macros @code{GCPRO3} and @code{GCPRO4} also exist.
 
-  In addition to using these macros, you must declare the local
-variables such as @code{gcpro1} which they implicitly use.  If you
-protect two variables, with @code{GCPRO2}, you must declare
-@code{gcpro1} and @code{gcpro2}, as it uses them both.  Alas, we can't
-explain all the tricky details here.
+  These macros implicitly use local variables such as @code{gcpro1}; you
+must declare these explicitly, with type @code{struct gcpro}.  Thus, if
+you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
+Alas, we can't explain all the tricky details here.
 
-  Defining the C function is not enough; you must also create the
-Lisp symbol for the primitive and store a suitable subr object
-in its function cell.  This is done by adding code to an initialization
-routine.  The code looks like this:
+  Defining the C function is not enough to make a Lisp primitive
+available; you must also create the Lisp symbol for the primitive and
+store a suitable subr object in its function cell.  The code looks like
+this:
 
 @example
 defsubr (&@var{subr-structure-name});
 @end example
 
 @noindent
-@var{subr-structure-name} is the name you used as the third argument to
-@code{DEFUN}.
+Here @var{subr-structure-name} is the name you used as the third
+argument to @code{DEFUN}.
 
-  If you are adding a primitive to a file that already has Lisp
-primitives defined in it, find the function (near the end of the file)
-named @code{syms_of_@var{something}}, and add that function call to it.
-If the file doesn't have this function, or if you create a new file, add
-to it a @code{syms_of_@var{filename}} (e.g., @code{syms_of_myfile}).
-Then find the spot in @file{emacs.c} where all of these functions are
-called, and add a call to @code{syms_of_@var{filename}} there.
+  If you add a new primitive to a file that already has Lisp primitives
+defined in it, find the function (near the end of the file) named
+@code{syms_of_@var{something}}, and add the call to @code{defsubr}
+there.  If the file doesn't have this function, or if you create a new
+file, add to it a @code{syms_of_@var{filename}} (e.g.,
+@code{syms_of_myfile}).  Then find the spot in @file{emacs.c} where all
+of these functions are called, and add a call to
+@code{syms_of_@var{filename}} there.
 
   This function @code{syms_of_@var{filename}} is also the place to
 define any C variables which are to be visible as Lisp variables.
-@code{DEFVAR_LISP} is used to make a C variable of type
-@code{Lisp_Object} visible in Lisp.  @code{DEFVAR_INT} is used to make a
-C variable of type @code{int} visible in Lisp with a value that is an
-integer.
+@code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
+in Lisp.  @code{DEFVAR_INT} makes a C variable of type @code{int}
+visible in Lisp with a value that is always an integer.
+@code{DEFVAR_BOOL} makes a C variable of type @code{int} visible in Lisp
+with a value that is either @code{t} or @code{nil}.
 
-  Here is another function, with more complicated arguments.  This comes
-from the code for the X Window System, and it demonstrates the use of
-macros and functions to manipulate Lisp objects.
+  Here is another example function, with more complicated arguments.
+This comes from the code for the X Window System, and it demonstrates
+the use of macros and functions to manipulate Lisp objects.
 
 @smallexample
 @group
@@ -547,9 +565,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   if ((XINT (xcoord) < XINT (XWINDOW (window)->left))
       || (XINT (xcoord) >= (XINT (XWINDOW (window)->left)
                             + XINT (XWINDOW (window)->width))))
-    @{
-      return Qnil;
-    @}
+    return Qnil;
   XFASTINT (xcoord) -= XFASTINT (XWINDOW (window)->left);
 @end group
 @group
@@ -560,9 +576,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   if ((XINT (ycoord) < XINT (XWINDOW (window)->top))
       || (XINT (ycoord) >= (XINT (XWINDOW (window)->top)
                             + XINT (XWINDOW (window)->height)) - 1))
-    @{
-      return Qnil;
-    @}
+    return Qnil;
 @end group
 @group
   XFASTINT (ycoord) -= XFASTINT (XWINDOW (window)->top);
@@ -571,10 +585,20 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
 @end group
 @end smallexample
 
-  Note that you cannot directly call functions defined in Lisp as, for
-example, the primitive function @code{Fcons} is called above.  You must
-create the appropriate Lisp form, protect everything from garbage
-collection, and @code{Feval} the form, as was done in @code{For} above.
+  Note that C code cannot call functions by name unless they are defined
+in C.  The way to call a function written in Lisp is to use
+@code{Ffuncall}, which embodies the Lisp function @code{funcall}.  Since
+the Lisp function @code{funcall} accepts an unlimited number of
+arguments, in C it takes two: the number of Lisp-level arguments, and a
+one-dimensional array containing their values.  The first Lisp-level
+argument is the Lisp function to call, and the rest are the arguments to
+pass to it.  Since @code{Ffuncall} can call the evaluator, you must
+protect pointers from garbage collection around the call to
+@code{Ffuncall}.
+
+  The C functions @code{call0}, @code{call1}, @code{call2}, and so on,
+provide handy ways to call a Lisp function conveniently with a fixed
+number of arguments.  They work by calling @code{Ffuncall}.
 
   @file{eval.c} is a very good file to look through for examples;
 @file{lisp.h} contains the definitions for some important macros and
@@ -592,12 +616,14 @@ for which you compile Emacs, twenty-four to twenty-six bits are used to
 address the object, and the remaining six to eight bits are used for a
 tag that identifies the object's type.
 
-  Because all access to data is through tagged pointers, it is always
-possible to determine the type of any object.  This allows variables to
-be untyped, and the values assigned to them to be changed without regard
-to type.  Function arguments also can be of any type; if you want a
-function to accept only a certain type of argument, you must check the
-type explicitly using a suitable predicate (@pxref{Type Predicates}).
+  Because Lisp objects are represented as tagged pointers, it is always
+possible to determine the Lisp data type of any object.  The C data type
+@code{Lisp_Object} can hold any Lisp object of any data type.  Ordinary
+variables have type @code{Lisp_Object}, which means they can hold any
+type of Lisp value; you can determine the actual data type only at run
+time.  The same is true for function arguments; if you want a function
+to accept only a certain type of argument, you must check the type
+explicitly using a suitable predicate (@pxref{Type Predicates}).
 @cindex type checking internals
 
 @menu
@@ -637,8 +663,8 @@ This field contains the time when the buffer was last auto-saved.
 This field contains the @code{window-start} position in the buffer as of
 the last time the buffer was displayed in a window.
 
-@item undodata
-This field points to the buffer's undo stack.  @xref{Undo}.
+@item undo_list
+This field points to the buffer's undo list.  @xref{Undo}.
 
 @item syntax_table_v
 This field contains the syntax table for the buffer.  @xref{Syntax Tables}.
@@ -664,9 +690,10 @@ This field contains the buffer's display table, or @code{nil} if it doesn't
 have one.  @xref{Display Tables}.
 
 @item markers
-This field contains the chain of all markers that point into the
-buffer.  At each deletion or motion of the buffer gap, all of these
-markers must be checked and perhaps updated.  @xref{Markers}.
+This field contains the chain of all markers that currently point into
+the buffer.  Deletion of text in the buffer, and motion of the buffer's
+gap, must check each of these markers and perhaps update it.
+@xref{Markers}.
 
 @item backed_up
 This field is a flag which tells whether a backup file has been made
@@ -676,15 +703,30 @@ for the visited file of this buffer.
 This field contains the mark for the buffer.  The mark is a marker,
 hence it is also included on the list @code{markers}.  @xref{The Mark}.
 
-@item local_var_alist
-This field contains the association list containing all of the variables
-local in this buffer, and their values.  The function
-@code{buffer-local-variables} returns a copy of this list.
-@xref{Buffer-Local Variables}.
+@item mark_active
+This field is non-@code{nil} if the buffer's mark is active.
 
-@item mode_line_format
-This field contains a Lisp object which controls how to display the mode
-line for this buffer.  @xref{Mode Line Format}.
+@item local_var_alist
+This field contains the association list describing the variables local
+in this buffer, and their values, with the exception of local variables
+that have special slots in the buffer object.  (Those slots are omitted
+from this table.)  @xref{Buffer-Local Variables}.
+
+@item keymap
+This field holds the buffer's local keymap.  @xref{Keymaps}.
+
+@item overlay_center
+This field holds the current overlay center position.  @xref{Overlays}.
+
+@item overlays_before
+This field holds a list of the overlays in this buffer that end at or
+before the current overlay center position.  They are sorted in order of
+decreasing end position.
+
+@item overlays_after
+This field holds a list of the overlays in this buffer that end after
+the current overlay center position.  They are sorted in order of
+increasing beginning position.
 @end table
 
 @node Window Internals, Process Internals, Buffer Internals, Object Internals
@@ -696,64 +738,102 @@ line for this buffer.  @xref{Mode Line Format}.
 
 @table @code
 @item frame
-  The frame that this window is on.
+The frame that this window is on.
 
 @item mini_p
-  Non-@code{nil} if this window is a minibuffer window.
-
-@item height
-  The height of the window, measured in lines.
-
-@item width
-  The width of the window, measured in columns.
+Non-@code{nil} if this window is a minibuffer window.
 
 @item buffer
-  The buffer which the window is displaying.  This may change often during
+The buffer which the window is displaying.  This may change often during
 the life of the window.
 
 @item dedicated
-  Non-@code{nil} if this window is dedicated to its buffer.
-
-@item start
- The position in the buffer which is the first character to be displayed
-in the window.
+Non-@code{nil} if this window is dedicated to its buffer.
 
 @item pointm
 @cindex window point internals
-  This is the value of point in the current buffer when this window is
+This is the value of point in the current buffer when this window is
 selected; when it is not selected, it retains its previous value.
 
+@item start
+he position in the buffer which is the first character to be displayed
+in the window.
+
+@item force_start
+If this flag is non-@code{nil}, it says that the window has been
+scrolled explicitly by the Lisp program.  This affects what the next
+redisplay does if point is off the screen: instead of scrolling the
+window to show the text around point, it moves point to a location that
+is on the screen.
+
+@item last_modified
+The @code{modified} field of the window's buffer, as of the last time
+a redisplay completed in this window.
+
+@item last_point
+The buffer's value of point, as of the last time
+a redisplay completed in this window.
+
 @item left
-  This is the left-hand edge of the window, measured in columns.  (The
+This is the left-hand edge of the window, measured in columns.  (The
 leftmost column on the screen is @w{column 0}.)
 
 @item top
-  This is the top edge of the window, measured in lines.  (The top line on
+This is the top edge of the window, measured in lines.  (The top line on
 the screen is @w{line 0}.)
 
+@item height
+The height of the window, measured in lines.
+
+@item width
+The width of the window, measured in columns.
+
 @item next
-  This is the window that is the next in the chain of siblings.
+This is the window that is the next in the chain of siblings.  It is
+@code{nil} in a window that is the rightmost or bottommost of a group of
+siblings.
 
 @item prev
-  This is the window that is the previous in the chain of siblings.
+This is the window that is the previous in the chain of siblings.  It is
+@code{nil} in a window that is the leftmost or topmost of a group of
+siblings.
 
-@item force_start
-  This is a flag which, if non-@code{nil}, says that the window has been
-scrolled explicitly by the Lisp program.  At the next redisplay, if
-point is off the screen, instead of scrolling the window to show the
-text around point, point will be moved to a location that is on the
-screen.
+@item parent
+Internally, Emacs arranges windows in a tree; each group of siblings has
+a parent window whose area includes all the siblings.  This field points
+to a window's parent.
+
+Parent windows do not display buffers, and play little role in display
+except to shape their child windows.  Emacs Lisp programs usually have
+no access to the parent windows; they operate on the windows at the
+leaves of the tree, that actually display buffers.
 
 @item hscroll
-  This is the number of columns that the display in the window is scrolled
+This is the number of columns that the display in the window is scrolled
 horizontally to the left.  Normally, this is 0.
 
 @item use_time
-  This is the last time that the window was selected.  The function
+This is the last time that the window was selected.  The function
 @code{get-lru-window} uses this field.
 
 @item display_table
-  The window's display table, or @code{nil} if none is specified for it.
+The window's display table, or @code{nil} if none is specified for it.
+
+@item update_mode_line
+Non-@code{nil} means this window's mode line needs to be updated.
+
+@item base_line_number
+The line number of a certain position in the buffer, or @code{nil}.
+This is used for displaying the line number of point in the mode line.
+
+@item base_line_pos
+The position in the buffer for which the line number is known, or
+@code{nil} meaning none is known.
+
+@item region_showing
+If the region (or part of it) is highlighted in this window, this field
+holds the mark position that made one end of that region.  Otherwise,
+this field is @code{nil}.
 @end table
 
 @node Process Internals,  , Window Internals, Object Internals
@@ -788,20 +868,40 @@ An integer, the Unix process @sc{id}.
 A flag, non-@code{nil} if this is really a child process.
 It is @code{nil} for a network connection.
 
-@item flags
-A symbol indicating the state of the process.  Possible values include
-@code{run}, @code{stop}, @code{closed}, etc.
-
-@item reason
-An integer, the Unix signal number that the process received that
-caused the process to terminate or stop.  If the process has exited,
-then this is the exit code it specified.
-
 @item mark
 A marker indicating the position of end of last output from this process
 inserted into the buffer.  This is usually the end of the buffer.
 
 @item kill_without_query
-A flag, non-@code{nil} meaning this process should not cause
-confirmation to be needed if Emacs is killed.
+If this is non-@code{nil}, killing Emacs while this process is still
+running does not ask for confirmation about killing the process.
+
+@item raw_status_low
+@itemx raw_status_high
+These two fields record 16 bits each of the process status returned by
+the @code{wait} system call.
+
+@item status
+The process status, as @code{process-status} should return it.
+
+@item tick
+@itemx update_tick
+If these two fields are not equal, a change in the status of the process
+needs to be reported, either by running the sentinel or by inserting a
+message in the process buffer.
+
+@item pty_flag
+Non-@code{nil} if communication with the subprocess uses a @sc{pty};
+@code{nil} if it uses a pipe.
+
+@item infd
+The file descriptor for input from the process.
+
+@item outfd
+The file descriptor for output to the process.
+
+@item subtty
+The file descriptor for the terminal that the subprocess is using.  (On
+some systems, there is no need to record this, so the value is
+@code{nil}.)
 @end table

@@ -159,7 +159,7 @@ message for someone else.
 contain Lisp code.  It is called your @dfn{init file}.  The command line
 switches @samp{-q} and @samp{-u} affect the use of the init file;
 @samp{-q} says not to load an init file, and @samp{-u} says to load a
-specified user's init file instead of yours.  @xref{Entering Emacs, , ,
+specified user's init file instead of yours.  @xref{Entering Emacs,,,
 emacs, The GNU Emacs Manual}.
 
 @cindex default init file
@@ -182,7 +182,7 @@ should move it into another file named @file{@var{something}.el},
 byte-compile it (@pxref{Byte Compilation}), and make your @file{.emacs}
 file load the other file using @code{load} (@pxref{Loading}).
 
-  @xref{Init File Examples, , , emacs, The GNU Emacs Manual}, for
+  @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
 @file{.emacs} file.
 
@@ -646,6 +646,23 @@ process-environment
     "HOME=/user/lewis")
 @end group
 @end smallexample
+@end defvar
+
+@defvar invocation-name
+This variable holds the program name under which Emacs was invoked.  The
+value is a string, and does not include a directory name.
+@end defvar
+
+@defvar invocation-directory
+This variable holds the directory from which the Emacs executable was
+invoked, or perhaps @code{nil} if that directory cannot be determined.
+@end defvar
+
+@defvar installation-directory
+If non-@code{nil}, this is a directory within which to look for the
+@file{lib-src} and @file{etc} subdirectories.  This is non-@code{nil}
+when Emacs can't find those directories in their standard installed
+locations, but can find them near where the Emacs executable was found.
 @end defvar
 
 @defun load-average
@@ -1321,6 +1338,7 @@ lowest level, Emacs never knows that the characters typed were anything
 but @kbd{C-s} and @kbd{C-q}, so you can in effect type them as @kbd{C-\}
 and @kbd{C-^} even when they are input for other commands.
 @xref{Translating Input}.
+@end enumerate
 
 If the terminal is the source of the flow control characters, then once
 you enable kernel flow control handling, you probably can make do with

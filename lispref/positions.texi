@@ -106,11 +106,6 @@ buffer.  In the absence of any narrowing (@pxref{Narrowing}),
 @end example
 @end defun
 
-@defvar buffer-saved-size
-  The value of this buffer-local variable is the former length of the
-current buffer, as of the last time it was read in, saved or auto-saved.
-@end defvar
-
 @node Motion
 @section Motion
 
@@ -447,14 +442,19 @@ in, and even on the selected window (because the width, the truncation
 flag, and display table may vary between windows).  @xref{Usual
 Display}.
 
-@defun vertical-motion count
+@defun vertical-motion count &optional window
 This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
 is negative, it moves up instead.
 
-This function returns the number of lines moved.  The value may be less
-in absolute value than @var{count} if the beginning or end of the buffer
-was reached.
+@code{vertical-motion} returns the number of lines moved.  The value may
+be less in absolute value than @var{count} if the beginning or end of
+the buffer was reached.
+
+The window @var{window} is used for obtaining parameters such as the
+width, the horizontal scrolling, and the display table.  But
+@code{vertical-motion} always operates on the current buffer, even if
+@var{window} currently displays some other buffer.
 @end defun
 
 @deffn Command move-to-window-line count
@@ -478,7 +478,7 @@ The value returned is the window line number, with the top line in the
 window numbered 0.
 @end deffn
 
-@defun compute-motion from frompos to topos width offsets
+@defun compute-motion from frompos to topos width offsets window
 This function scan through the current buffer, calculating screen
 position.  It scans the current buffer forward from position @var{from},
 assuming that is at screen coordinates @var{frompos}, to position
@@ -494,11 +494,16 @@ returned by @code{window-width} for the window of your choice.
 
 The argument @var{offsets} is either @code{nil} or a cons cell of the
 form @code{(@var{hscroll} . @var{tab-offset})}.  Here @var{hscroll} is
-the number of columns not being displayed at the left margin; in most
-calls, this comes from @code{window-hscroll}.  Meanwhile,
-@var{tab-offset} is the number of columns of an initial tab character
-(at @var{from}) that aren't included in the display, perhaps because the
-line was continued within that character.
+the number of columns not being displayed at the left margin; most
+callers get this from @code{window-hscroll}.  Meanwhile,
+@var{tab-offset} is the offset between column numbers on the screen and
+column numbers in the buffer.  This can be nonzero in a continuation
+line, when the previous screen lines' widths do not add up to a multiple
+of @code{tab-width}.  It is always zero in a non-continuation line.
+
+The window @var{window} serves to specify which display table to use;
+that is its only effect.  @code{compute-motion} always operates on the
+current buffer, regardless of what buffer is displayed in @var{window}.
 
 The return value is a list of five elements:
 
@@ -530,6 +535,10 @@ the end of the visible section of the buffer, and pass @var{line} and
                        (window-width)
                        (cons (window-hscroll) 0))))
 @end example
+
+When you use @code{compute-motion} for the minibuffer, you need to use
+@code{minibuffer-prompt-width} to get the horizontal position of the
+beginning of the first screen line.  @xref{Minibuffer Misc}.
 @end defun
 
 @node Vertical Motion
@@ -590,31 +599,32 @@ sexps.  For user-level commands, see @ref{Lists and Sexps,,, emacs, GNU
 Emacs Manual}.
 
 @deffn Command forward-list arg
-Move forward across @var{arg} balanced groups of parentheses.
-(Other syntactic entities such as words or paired string quotes
-are ignored.)
+This function moves forward across @var{arg} balanced groups of
+parentheses.  (Other syntactic entities such as words or paired string
+quotes are ignored.)
 @end deffn
 
 @deffn Command backward-list arg
-Move backward across @var{arg} balanced groups of parentheses.
-(Other syntactic entities such as words or paired string quotes
-are ignored.)
+This function moves backward across @var{arg} balanced groups of
+parentheses.  (Other syntactic entities such as words or paired string
+quotes are ignored.)
 @end deffn
 
 @deffn Command up-list arg
-Move forward out of @var{arg} levels of parentheses.
+This function moves forward out of @var{arg} levels of parentheses.
 A negative argument means move backward but still to a less deep spot.
 @end deffn
 
 @deffn Command down-list arg
-Move forward down @var{arg} levels of parentheses.  A negative argument
-means move backward but still go down @var{arg} levels.
+This function moves forward down @var{arg} levels of parentheses.  A
+negative argument means move backward but still go down @var{arg}
+levels.
 @end deffn
 
 @deffn Command forward-sexp arg
-Move forward across @var{arg} balanced expressions.
-Balanced expressions include both those delimited by parentheses
-and other kinds, such as words and string constants.  For example,
+This function moves forward across @var{arg} balanced expressions.
+Balanced expressions include both those delimited by parentheses and
+other kinds, such as words and string constants.  For example,
 
 @example
 @group
@@ -635,8 +645,28 @@ and other kinds, such as words and string constants.  For example,
 @end deffn
 
 @deffn Command backward-sexp arg
-Move backward across @var{arg} balanced expressions.
+This function moves backward across @var{arg} balanced expressions.
 @end deffn
+
+@deffn Command beginning-of-defun arg
+This function moves back to the @var{arg}th beginning of a defun.  If
+@var{arg} is negative, this actually moves forward, but it still moves
+to the beginning of a defun, not to the end of one.
+@end deffn
+
+@deffn Command end-of-defun arg
+Move forward to the @var{arg}th end of a defun.  If @var{arg} is
+negative, this actually moves backward, but it still moves to the end of
+a defun, not to the beginning of one.
+@end deffn
+
+@defopt defun-prompt-regexp
+If non-@code{nil}, this variable holds a regular expression that
+specifies what text can appear before the open-parenthesis that starts a
+defun.  That is to say, the a defun begins on a line which starts
+with a match for this regular expression, followed by a character
+with open-parenthesis syntax.
+@end defopt
 
 @node Skipping Characters
 @comment  node-name,  next,  previous,  up

@@ -136,7 +136,7 @@ text line are called @dfn{continuation} lines.  Normally, a @samp{$} in
 the rightmost column of the window indicates truncation; a @samp{\} on
 the rightmost column indicates a line that ``wraps'' or is continued
 onto the next line.  (The display table can specify alternative
-indicators; see @ref{Display Table}.)
+indicators; see @ref{Display Tables}.)
 
   Note that continuation is different from filling; continuation happens
 on the screen only, not in the buffer contents, and it breaks a line
@@ -538,8 +538,9 @@ the range of the overlay.  This feature may be temporary, like
 @kindex modification-hooks @r{(overlay property)}
 This property's value is a list of functions to be called if any
 character within the overlay is changed or if text is inserted strictly
-within the overlay.  Each function receives two arguments: the beginning
-and end of the part of the buffer being modified.
+within the overlay.  Each function receives three arguments: the
+overlay, and the beginning and end of the part of the buffer being
+modified.
 
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
