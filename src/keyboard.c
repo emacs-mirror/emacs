@@ -40,9 +40,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <setjmp.h>
 #include <errno.h>
 
+#ifdef MSDOS
+#include "msdos.h"
+#include <time.h>
+#else /* not MSDOS */
 #ifndef VMS
 #include <sys/ioctl.h>
 #endif
+#endif /* not MSDOS */
 
 #include "syssignal.h"
 #include "systty.h"
@@ -118,7 +123,7 @@ int waiting_for_input;
 /* True while displaying for echoing.   Delays C-g throwing.  */
 static int echoing;
 
-/* Nonzero means C-G should cause immediate error-signal.  */
+/* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
 
 /* Character to recognize as the help char.  */
@@ -1965,7 +1970,7 @@ kbd_buffer_get_event ()
 	    }
 
 	  if (! CONSP (tail))
-	    kill (getpid (), SIGHUP);
+	    Fkill_emacs (Qnil);
 
 	  Fdelete_frame (event->frame_or_window, Qt);
 	  kbd_fetch_ptr = event + 1;
@@ -2114,8 +2119,11 @@ swallow_events ()
 
 /* Caches for modify_event_symbol.  */
 static Lisp_Object accent_key_syms;
+static Lisp_Object vendor_key_syms;
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
+
+Lisp_Object Vvendor_key_alist;
 
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
@@ -2215,7 +2223,7 @@ static char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
-    "remove", 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
     "backspace",
     "tab",
     "linefeed",
@@ -2256,19 +2264,7 @@ static char *lispy_function_keys[] =
     "help",
     "break",			/* 0xff6b */
 
-    /* Here are some keys found mostly on HP keyboards.  The X event
-       handling code will strip bit 29, which flags vendor-specific
-       keysyms.  */
-    "reset",			/* 0x1000ff6c */
-    "system",
-    "user",
-    "clearline",
-    "insertline",
-    "deleteline",
-    "insertchar",
-    "deletechar",
-    "backtab",
-    "kp-backtab",		/* 0x1000ff75 */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0,				/* 0xff76 */
     0, 0, 0, 0, 0, 0, 0, 0, "kp-numlock",	/* 0xff7f */
     "kp-space",			/* 0xff80 */	/* IsKeypadKey */
@@ -2398,14 +2394,27 @@ make_lispy_event (event)
 	if (event->code == lispy_accent_codes[i])
 	  return modify_event_symbol (i,
 				      event->modifiers,
-				      Qfunction_key,
+				      Qfunction_key, Qnil,
 				      lispy_accent_keys, &accent_key_syms,
 				      (sizeof (lispy_accent_keys)
 				       / sizeof (lispy_accent_keys[0])));
 
+      /* Handle vendor-specific keysyms.  */
+      if (event->code & (1 << 28))
+	{
+	  /* We need to use an alist rather than a vector as the cache
+	     since we can't make a vector long enuf.  */
+	  if (NILP (vendor_key_syms))
+	    vendor_key_syms = Fcons (Qnil, Qnil);
+	  return modify_event_symbol (event->code & 0xffffff,
+				      event->modifiers,
+				      Qfunction_key, Vvendor_key_alist,
+				      0, &vendor_key_syms, 0xffffff);
+	}
+
       return modify_event_symbol (event->code - 0xff00,
 				  event->modifiers,
-				  Qfunction_key,
+				  Qfunction_key, Qnil,
 				  lispy_function_keys, &func_key_syms,
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
@@ -2590,7 +2599,7 @@ make_lispy_event (event)
 	  Lisp_Object head
 	    = modify_event_symbol (button,
 				   event->modifiers,
-				   Qmouse_click,
+				   Qmouse_click, Qnil,
 				   lispy_mouse_names, &mouse_syms,
 				   (sizeof (lispy_mouse_names)
 				    / sizeof (lispy_mouse_names[0])));
@@ -3028,10 +3037,13 @@ reorder_modifiers (symbol)
    is the name of the i'th symbol.  TABLE_SIZE is the number of elements
    in the table.
 
+   Alternatively, NAME_ALIST is an alist mapping codes into symbol names.
+   NAME_ALIST is used if it is non-nil; otherwise NAME_TABLE is used.
+
    SYMBOL_TABLE should be a pointer to a Lisp_Object whose value will
    persist between calls to modify_event_symbol that it can use to
    store a cache of the symbols it's generated for this NAME_TABLE
-   before.
+   before.  The object stored there may be a vector or an alist.
 
    SYMBOL_NUM is the number of the base name we want from NAME_TABLE.
    
@@ -3046,58 +3058,75 @@ reorder_modifiers (symbol)
    in the symbol's name.  */
 
 static Lisp_Object
-modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
-                     symbol_table, table_size)
+modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
+                     name_table, symbol_table, table_size)
      int symbol_num;
      unsigned modifiers;
      Lisp_Object symbol_kind;
+     Lisp_Object name_alist;
      char **name_table;
      Lisp_Object *symbol_table;
      int table_size;
 {
-  Lisp_Object *slot;
+  Lisp_Object value;
+  Lisp_Object symbol_int;
+
+  XSET (symbol_int, Lisp_Int, symbol_num);
 
   /* Is this a request for a valid symbol?  */
   if (symbol_num < 0 || symbol_num >= table_size)
     abort ();
 
+  if (CONSP (*symbol_table))
+    value = Fcdr (assq_no_quit (symbol_int, *symbol_table));
+
   /* If *symbol_table doesn't seem to be initialized properly, fix that.
      *symbol_table should be a lisp vector TABLE_SIZE elements long,
      where the Nth element is the symbol for NAME_TABLE[N], or nil if
      we've never used that symbol before.  */
-  if (XTYPE (*symbol_table) != Lisp_Vector
-      || XVECTOR (*symbol_table)->size != table_size)
+  else
     {
-      Lisp_Object size;
+      if (! VECTORP (*symbol_table)
+	  || XVECTOR (*symbol_table)->size != table_size)
+	{
+	  Lisp_Object size;
 
-      XFASTINT (size) = table_size;
-      *symbol_table = Fmake_vector (size, Qnil);
+	  XFASTINT (size) = table_size;
+	  *symbol_table = Fmake_vector (size, Qnil);
+	}
+
+      value = XVECTOR (*symbol_table)->contents[symbol_num];
     }
 
-  slot = & XVECTOR (*symbol_table)->contents[symbol_num];
-
   /* Have we already used this symbol before?  */
-  if (NILP (*slot))
+  if (NILP (value))
     {
       /* No; let's create it.  */
-      if (name_table[symbol_num])
-	*slot = intern (name_table[symbol_num]);
+      if (!NILP (name_alist))
+	value = Fassq (symbol_int, name_alist);
+      else if (name_table[symbol_num])
+	value = intern (name_table[symbol_num]);
       else
 	{
 	  char buf[20];
 	  sprintf (buf, "key-%d", symbol_num);
-	  *slot = intern (buf);
+	  value = intern (buf);
 	}
+
+      if (CONSP (*symbol_table))
+	*symbol_table = Fcons (value, *symbol_table);
+      else
+	XVECTOR (*symbol_table)->contents[symbol_num] = value;
 
       /* Fill in the cache entries for this symbol; this also 	
 	 builds the Qevent_symbol_elements property, which the user
 	 cares about.  */
-      apply_modifiers (modifiers & click_modifier, *slot);
-      Fput (*slot, Qevent_kind, symbol_kind);
+      apply_modifiers (modifiers & click_modifier, value);
+      Fput (value, Qevent_kind, symbol_kind);
     }
 
   /* Apply modifiers to that symbol.  */
-  return apply_modifiers (modifiers, *slot);
+  return apply_modifiers (modifiers, value);
 }
 
 
@@ -3175,6 +3204,10 @@ read_avail_input (expected)
 	 of characters on some systems when input is stuffed at us.  */
       unsigned char cbuf[KBD_BUFFER_SIZE - 1];
 
+#ifdef MSDOS
+      nread = dos_keysns ();
+      if (nread == 0) return 0;
+#else */ not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
       if (ioctl (0, FIONREAD, &nread) < 0)
@@ -3198,24 +3231,34 @@ read_avail_input (expected)
       you lose;
 #endif
 #endif
+#endif /* not MSDOS */
 
       /* Now read; for one reason or another, this will not block.  */
       while (1)
 	{
+#ifdef MSDOS
+	  cbuf[0] = dos_keyread();
+	  nread = 1;
+#else
 	  nread = read (fileno (stdin), cbuf, nread);
+#endif
 #ifdef AIX
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
 	     This looks incorrect, but it isn't, because _BSD causes
 	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
 	     and that causes a value other than 0 when there is no input.  */
 	  if (nread == 0)
-	    kill (SIGHUP, 0);
+	    kill (0, SIGHUP);
 #endif
 	  /* This code is wrong, but at least it gets the right results.
 	     Fix it for 19.23.  */
 	  /* Retry the read if it is interrupted.  */
 	  if (nread >= 0
+#ifdef EFAULT
 	      || ! (errno == EAGAIN || errno == EFAULT
+#else
+	      || ! (errno == EAGAIN 
+#endif
 #ifdef EBADSLT
 		    || errno == EBADSLT
 #endif
@@ -5107,24 +5150,41 @@ interrupt_signal ()
       printf ("you can continue or abort.\n");
 #endif /* not VMS */
 #endif /* not SIGTSTP */
+#ifdef MSDOS
+      /* We must remain inside the screen area when the internal terminal
+	 is used.  Note that [Enter] is not echoed by dos.  */
+      cursor_to (0, 0);
+#endif
       printf ("Auto-save? (y or n) ");
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
 	{
 	  Fdo_auto_save (Qt, Qnil);
+#ifdef MSDOS
+	  printf ("\r\nAuto-save done");
+#else /* not MSDOS */
 	  printf ("Auto-save done\n");
+#endif /* not MSDOS */
 	}
       while (c != '\n') c = getchar ();
+#ifdef MSDOS
+      printf ("\r\nAbort?  (y or n) ");
+#else /* not MSDOS */
 #ifdef VMS
       printf ("Abort (and enter debugger)? (y or n) ");
 #else /* not VMS */
       printf ("Abort (and dump core)? (y or n) ");
 #endif /* not VMS */
+#endif /* not MSDOS */
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
 	abort ();
       while (c != '\n') c = getchar ();
+#ifdef MSDOS
+      printf ("\r\nContinuing...\r\n");
+#else /* not MSDOS */
       printf ("Continuing...\n");
+#endif /* not MSDOS */
       fflush (stdout);
       init_sys_modes ();
     }
@@ -5652,6 +5712,13 @@ The elements of the list are event types that may have menu bar bindings.");
 
   DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
+
+  DEFVAR_LISP ("vendor-key-alist", &Vvendor_key_alist,
+    "Alist of vendor-specific X windows key symbols.\n\
+Each element should have the form (N . SYMBOL) where N is the\n\
+numeric keysym code (sans the \"vendor-specific\" bit 1<<28)\n\
+and SYMBOL is its name.");
+  Vmenu_bar_final_items = Qnil;
 }
 
 keys_of_keyboard ()
