@@ -1,3 +1,8 @@
+2005-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* isearch.el (isearch-forward): Document isearch-query-replace and
+	isearch-query-replace-regexp keybindings.
+	
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-token): Add local variable.
