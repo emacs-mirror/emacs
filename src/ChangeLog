@@ -1,3 +1,9 @@
+2004-03-01  Juanma Barranquero  <lektu@terra.es>
+
+	* fringe.c (Fdefine_fringe_bitmap): Fix typo in docstring.
+
+	* makefile.w32-in ($(BLD)/fringe.$(O)): Add dependencies.
+
 2004-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_display_color_cells): Use number of planes to calculate
@@ -49,7 +55,7 @@
 	* keyboard.h (kbd_buffer_store_event_hold): Add prototype.
 	(gen_help_event): Fix prototype.
 
-	* macterm.c (XTread_socket):  Remove bufp_r and
+	* macterm.c (XTread_socket): Remove bufp_r and
 	numcharsp args.  Add hold_quit arg.
 	Rework to use just one, local, inev input_event. Store inev
 	directly in fifo using kbd_buffer_store_event_hold.
@@ -61,7 +67,7 @@
 	initialize local hold_quit event to handle postponed quit event
 	(and store it if set by kbd_buffer_store_event_hold).
 
-	* term.c (read_socket_hook): Fix arg list. 
+	* term.c (read_socket_hook): Fix arg list.
 
 	* termhooks.h (read_socket_hook): Fix prototype.
 
@@ -116,15 +122,15 @@
 	* xterm.h (x_session_check_input): Fix prototype.
 
 2004-02-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-	
+
 	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add `-framework
 	QuickTime'.
-	
+
 	* dispextern.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
 	macgui.h).
-	
+
 	* emacs.c (main) [HAVE_CARBON]: Call init_xfns.
-	
+
 	* macgui.h [MAC_OSX]: Include Carbon/Carbon.h.
 	(mktime, DEBUG, Z, free, malloc, realloc, max, min)
 	(init_process) [MAC_OSX] : Avoid conflicts with Carbon/Carbon.h.
@@ -135,7 +141,7 @@
 
 	* macmenu.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
 	macgui.h).
-	
+
 	* macterm.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
 	macgui.h).
 	(RED16_FROM_ULONG, GREEN16_FROM_ULONG, BLUE16_FROM_ULONG): New
@@ -144,7 +150,7 @@
 	(PIX_MASK_DRAW, PIX_MASK_RETAIN): New #define to represent pixel
 	colors used for masks.
 	(struct mac_display_info): Add color_p.  Remove n_cbits.
-	
+
 	* macfns.c: Include sys/types.h and sys/stat.h.
 	[MAC_OSX]: Do not include Carbon/Carbon.h (now in macgui.h).
 	Include QuickTime/QuickTime.h.
@@ -266,7 +272,7 @@
 	HAVE_PNG.  Call EnterMovies to support animated gifs.  Call
 	init_image_func_pointer to bind a symbol
 	_CGImageCreateWithPNGDataProvider if it is defined.
-	
+
 	* macterm.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
 	macgui.h).
 	(x_draw_bar_cursor): Sync declaration with xterm.c.
@@ -355,7 +361,7 @@
 	* xfns.c (lookup_image): Remove xassert(!interrupt_input_blocked);
 	BLOCK_INPUT can be nested, so it doesn't make much sense.
 
-2004-02-24  Michael Mauger <mmaug@yahoo.com>
+2004-02-24  Michael Mauger  <mmaug@yahoo.com>
 
 	* w32fns.c (slurp_file, xbm_scan, xbm_load_image)
 	(xbm_read_bitmap_data): Use unsigned char for image data.
@@ -605,7 +611,7 @@
 	Add prototypes.
 
 	* macterm.c (mac_draw_bitmap): Add overlay_p arg.
-	(x_draw_fringe_bitmap):  Handle overlayed fringe bitmaps;
+	(x_draw_fringe_bitmap): Handle overlayed fringe bitmaps;
 	thanks to YAMAMOTO Mitsuharu for advice on how to do this.
 	Use cursor color for displaying cursor in fringe.
 	(x_redisplay_interface): Add null handlers for
@@ -766,7 +772,7 @@
 
 	* makefile.w32-in, w32fns.c: Add `default-printer-name' function.
 
-2004-01-27  Steven Tamm <steventamm@mac.com>
+2004-01-27  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (unexec_copy): Do not copy more than was
 	requested to prevent overwriting during unexec.
@@ -777,7 +783,7 @@
 
 	* process.h: Add extern to synch_process_termsig.
 
-2004-01-27  Steven Tamm <steventamm@mac.com>
+2004-01-27  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (make_mac_frame, make_mac_terminal_frame):
 	Move setting of scroll bars from make_mac_frame to
@@ -894,7 +900,7 @@
 
 	* buffer.h (struct buffer): New member indicate_buffer_boundaries.
 
-	* buffer.c (init_buffer_once):  Set buffer_defaults and
+	* buffer.c (init_buffer_once): Set buffer_defaults and
 	buffer_local_flags for indicate_buffer_boundaries.
 	(syms_of_buffer): Defvar_per_buffer it, and defvar_lisp_nopro
 	default- variable for it.
@@ -1105,7 +1111,7 @@
 	to the definition of `signal' in the Elisp manual.
 	* eval.c (Fsignal): Ditto.
 
-2003-12-29  James Clark <jjc@jclark.com>  (tiny change)
+2003-12-29  James Clark  <jjc@jclark.com>  (tiny change)
 
 	* fns.c (internal_equal): Return t for two NaN arguments.
 
@@ -1231,7 +1237,7 @@
 
 	* minibuf.c (Fcompleting_read): Undo previous change.
 
-2003-12-25  Lars Hansen <larsh@math.ku.dk>
+2003-12-25  Lars Hansen  <larsh@math.ku.dk>
 
 	* dired.c (Fdirectory_files, Fdirectory_files_and_attributes):
 	Arguments GCPRO'ed in call to file name handler.
@@ -1420,7 +1426,7 @@
 	* xdisp.c (note_mode_line_or_margin_highlight): Adapt to new
 	mode_line_string and marginal_area_string parameters.
 
-2003-11-22  Lars Hansen <larsh@math.ku.dk>
+2003-11-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* w32.c (struct the_group, getgrgid): Add.
 	* mac.c (struct my_group, getgrgid): Add.
@@ -1514,7 +1520,7 @@
 	* frame.c (store_frame_param):
 	* fontset.c (Fset_fontset_font):
 	* emacs.c (shut_down_emacs):
-	* ccl.c (ccl_driver):  Remove period at end of error message.
+	* ccl.c (ccl_driver): Remove period at end of error message.
 
 	* config.in: Regenerate.
 
@@ -1819,7 +1825,7 @@
 	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
 	Handle over_used when splitting UNDER.
 
-2003-09-30  YAMAMOTO  Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
+2003-09-30  YAMAMOTO  Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* regex.c (regex_compile): Free the stack when returning from function.
 
@@ -2074,7 +2080,7 @@
 
 	* w32term.c (w32_read_socket): Fix WM_MOUSEWHEEL assignment.
 
-2003-08-26  Terje Rosten <terjeros@phys.ntnu.no>
+2003-08-26  Terje Rosten  <terjeros@phys.ntnu.no>
 
 	* xfns.c (Vgtk_version_string): New variable.
 	(syms_of_xfns): DEFVAR_LISP it.  Provide gtk.
@@ -3368,11 +3374,11 @@
 	(draw_fringe_bitmap): Rework to handle per-window fringes and new
 	fringe vs. display margin position.
 	(hscroll_window_tree): Use window_box_width instead of window_box.
-	(redisplay_window):  Adapt to per-window scroll bars.
-	(draw_glyphs):  Rework to handle per-window fringes and scroll
+	(redisplay_window): Adapt to per-window scroll bars.
+	(draw_glyphs): Rework to handle per-window fringes and scroll
 	bars, and new fringe vs. display margin position.
 	Use WINDOW_LEFT_EDGE_X, WINDOW_TOTAL_WIDTH, and window_box_left.
-	(x_clear_end_of_line):  Adapt to per-window fringes and scroll
+	(x_clear_end_of_line): Adapt to per-window fringes and scroll
 	bars, and new fringe vs. display margin position.  Fix bug which
 	increased total width of full_width rows by width of scroll bars
 	although window's total width already includes that.
@@ -4439,7 +4445,7 @@
 	(w32_draw_window_cursor): New W32-specific functions for RIF.
 	(w32_redisplay_interface): Add new members.
 
-	* w32gui.h (No_Cursor):  Define as 0 for W32.
+	* w32gui.h (No_Cursor): Define as 0 for W32.
 	(XRectangle): Add X compatible rectangle type.
 	(NativeRectangle): Declare as RECT for W32.
 	(CONVERT_TO_XRECT, CONVERT_FROM_XRECT, STORE_NATIVE_RECT): New macros.
@@ -5527,7 +5533,7 @@
 
 	* lisp.h: Declare Vx_resource_name extern.
 
-	* keyboard.c (kbd_buffer_get_event):  Check MENU_BAR_ACTIVATE_EVENT
+	* keyboard.c (kbd_buffer_get_event): Check MENU_BAR_ACTIVATE_EVENT
 	for USE_GTK.
 	(make_lispy_event): Check MENU_BAR_EVENT for USE_GTK.
 
@@ -5914,12 +5920,12 @@
 	Its primary purpose at this time is to initialize the global variable
 	track_mouse_event_fn.
 
-	* w32fns.c (w32_wnd_proc):  Remove initialization of
+	* w32fns.c (w32_wnd_proc): Remove initialization of
 	track_mouse_event_fn from the handler for the WM_SETFOCUS message.
 
 	* w32fns.c (syms_of_w32fns): Call globals_of_w32fns.
 
-	* w32menu.c (globals_of_w32menu):  New function. Used to
+	* w32menu.c (globals_of_w32menu): New function. Used to
 	initialize those global variables that must always be initialized
 	on startup even when the global variable initialized is non zero.
 	Its primary purpose at this time is to initialize the global
@@ -11106,7 +11112,7 @@
 
 2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief` an option.
+	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief' an option.
 
 2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
