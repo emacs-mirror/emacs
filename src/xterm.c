@@ -5372,7 +5372,7 @@ x_make_frame_visible (f)
   if (! FRAME_VISIBLE_P (f))
     {
 #ifdef HAVE_X11
-      x_set_offset (f, f->display.x->top_pos, f->display.x->left_pos, 0);
+      x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
 
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
