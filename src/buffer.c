@@ -2529,15 +2529,14 @@ mouse_face_overlay_overlaps (overlay)
 {
   int start = OVERLAY_POSITION (OVERLAY_START (overlay));
   int end = OVERLAY_POSITION (OVERLAY_END (overlay));
-  int n, i;
+  int n, i, size;
   Lisp_Object *v, tem;
   
-  n = 10;
-  v = (Lisp_Object *) alloca (n * sizeof *v);
-  i = overlays_in (start, end, 0, &v, &n, NULL, NULL);
-  if (i > n)
+  size = 10;
+  v = (Lisp_Object *) alloca (size * sizeof *v);
+  n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
+  if (n > size)
     {
-      n = i;
       v = (Lisp_Object *) alloca (n * sizeof *v);
       overlays_in (start, end, 0, &v, &n, NULL, NULL);
     }
