@@ -1,11 +1,11 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.7) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved
+ * $HopeName$
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers
  * .coverage: At the moment, we're only trying to cover the new code
- * (partial mapping of the page table).
+ * (partial mapping of the page table and vm overflow).
  * .note.seg-size: If the page size is divisible by sizeof(SegStruct), many
  * test cases end up being essentially identical -- there just aren't that
  * many different cases then.
@@ -30,7 +30,7 @@
 #define segsSIZE 500
 
 
-static void testit(ArenaClass class, ...)
+static void testPageTable(ArenaClass class, ...)
 {
   Arena arena; Pool pool;
   Seg offsetSeg, gapSeg, newSeg, topSeg;
@@ -120,6 +120,41 @@ static void testit(ArenaClass class, ...)
 }
 
 
+static Res makeArena(Arena *arenaOut, ArenaClass class, ...)
+{
+  va_list args;
+  Res res;
+
+  va_start(args, class);
+  res = ArenaCreateV(arenaOut, class, args);
+  va_end(args);
+  return res;
+}
+
+
+/* testSize -- test arena size overflow
+ *
+ * Just try allocating larger arenas, doubling the size each time, until
+ * it fails, then check the error code.
+ */
+
+static void testSize(Size size)
+{
+  ArenaClass class = (ArenaClass)mps_arena_class_vm();
+  Arena arena;
+  Res res;
+
+  do {
+    res = makeArena(&arena, class, size);
+    if (res == ResOK)
+      ArenaDestroy(arena);
+    else
+      die((res == ResRESOURCE) ? ResOK : res, "right error code");
+    size *= 2;
+  } while (size == 0);
+}
+
+
 #define TEST_ARENA_SIZE              ((Size)16<<20)
 
 
@@ -127,14 +162,18 @@ int main(void)
 {
   void *block;
 
-  testit((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
+  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
 
-  testit((ArenaClass)mps_arena_class_an(), TEST_ARENA_SIZE);
+  testPageTable((ArenaClass)mps_arena_class_an(), TEST_ARENA_SIZE);
 
   block = malloc(TEST_ARENA_SIZE);
   die(block == NULL ? ResFAIL : ResOK, "malloc");
-  testit((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, (Addr)block);
+  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE,
+                (Addr)block);
 
+  testSize(TEST_ARENA_SIZE);
+
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
   return 0;
 }
