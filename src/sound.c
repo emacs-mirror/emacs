@@ -90,10 +90,10 @@ struct au_header
 {
   /* ASCII ".snd" */
   u_int32_t magic_number;
-  
+
   /* Offset of data part from start of file. Minimum value is 24.  */
   u_int32_t data_offset;
-  
+
   /* Size of data part, 0xffffffff if unknown.  */
   u_int32_t data_size;
 
@@ -148,7 +148,7 @@ struct sound_device
 
   /* 1 = mono, 2 = stereo, 0 = don't set.  */
   int channels;
-  
+
   /* Open device SD.  */
   void (* open) P_ ((struct sound_device *sd));
 
@@ -157,7 +157,7 @@ struct sound_device
 
   /* Configure SD accoring to device-dependent parameters.  */
   void (* configure) P_ ((struct sound_device *device));
-  
+
   /* Choose a device-dependent format for outputting sound S.  */
   void (* choose_format) P_ ((struct sound_device *sd,
 			      struct sound *s));
@@ -199,7 +199,7 @@ struct sound
   Lisp_Object data;
 
   /* Play sound file S on device SD.  */
-  void (* play) P_ ((struct sound *s, struct sound_device *sd)); 
+  void (* play) P_ ((struct sound *s, struct sound_device *sd));
 };
 
 /* Indices of attributes in a sound attributes vector.  */
@@ -447,8 +447,8 @@ a system-dependent default device name is used.  */)
   else
     {
       s.data = attrs[SOUND_DATA];
-      bcopy (XSTRING (s.data)->data, s.header,
-	     min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data))));
+      s.header_size = min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data)));
+      bcopy (XSTRING (s.data)->data, s.header, s.header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */
@@ -461,7 +461,7 @@ a system-dependent default device name is used.  */)
       sd.file = (char *) alloca (len + 1);
       strcpy (sd.file, XSTRING (attrs[SOUND_DEVICE])->data);
     }
-  
+
   if (INTEGERP (attrs[SOUND_VOLUME]))
     sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
   else if (FLOATP (attrs[SOUND_VOLUME]))
@@ -610,7 +610,7 @@ wav_init (s)
   s->play = wav_play;
 
   return 1;
-}  
+}
 
 
 /* Play RIFF-WAVE audio file S on sound device SD.  */
@@ -625,7 +625,7 @@ wav_play (s, sd)
   /* Let the device choose a suitable device-dependent format
      for the file.  */
   sd->choose_format (sd, s);
-  
+
   /* Configure the device.  */
   sd->sample_size = header->sample_size;
   sd->sample_rate = header->sample_rate;
@@ -645,10 +645,10 @@ wav_play (s, sd)
       char *buffer;
       int nbytes;
       int blksize = 2048;
-      
+
       buffer = (char *) alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
-  
+
       while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
 	sd->write (sd, buffer, nbytes);
 
@@ -663,7 +663,7 @@ wav_play (s, sd)
 			   Sun Audio (*.au)
  ***********************************************************************/
 
-/* Sun audio file encodings.  */ 
+/* Sun audio file encodings.  */
 
 enum au_encoding
 {
@@ -689,18 +689,18 @@ au_init (s)
      struct sound *s;
 {
   struct au_header *header = (struct au_header *) s->header;
-  
+
   if (s->header_size < sizeof *header
       || bcmp (s->header, ".snd", 4) != 0)
     return 0;
-  
+
   header->magic_number = be2hl (header->magic_number);
   header->data_offset = be2hl (header->data_offset);
   header->data_size = be2hl (header->data_size);
   header->encoding = be2hl (header->encoding);
   header->sample_rate = be2hl (header->sample_rate);
   header->channels = be2hl (header->channels);
-  
+
   /* Set up the interface functions for AU.  */
   s->type = SUN_AUDIO;
   s->play = au_play;
@@ -733,15 +733,15 @@ au_play (s, sd)
       int blksize = 2048;
       char *buffer;
       int nbytes;
-      
+
       /* Seek */
       lseek (s->fd, header->data_offset, SEEK_SET);
-  
+
       /* Copy sound data to the device.  */
       buffer = (char *) alloca (blksize);
       while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
 	sd->write (sd, buffer, nbytes);
-      
+
       if (nbytes < 0)
 	sound_perror ("Error reading sound file");
     }
@@ -765,13 +765,13 @@ vox_open (sd)
      struct sound_device *sd;
 {
   char *file;
-  
+
   /* Open the sound device.  Default is /dev/dsp.  */
   if (sd->file)
     file = sd->file;
   else
     file = DEFAULT_SOUND_DEVICE;
-  
+
   sd->fd = emacs_open (file, O_WRONLY, 0);
   if (sd->fd < 0)
     sound_perror (file);
@@ -785,7 +785,7 @@ vox_configure (sd)
      struct sound_device *sd;
 {
   int val;
-  
+
   xassert (sd->fd >= 0);
 
   /* On GNU/Linux, it seems that the device driver doesn't like to be
@@ -824,7 +824,7 @@ vox_configure (sd)
       /* This may fail if there is no mixer.  Ignore the failure.  */
       ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &volume);
     }
-  
+
   turn_on_atimers (1);
 #ifdef SIGIO
   sigunblock (sigmask (SIGIO));
@@ -847,10 +847,10 @@ vox_close (sd)
       sigblock (sigmask (SIGIO));
 #endif
       turn_on_atimers (0);
-      
+
       /* Flush sound data, and reset the device.  */
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
-      
+
       turn_on_atimers (1);
 #ifdef SIGIO
       sigunblock (sigmask (SIGIO));
@@ -890,7 +890,7 @@ vox_choose_format (sd, s)
 	case AU_ENCODING_IEEE64:
 	  sd->format = AFMT_MU_LAW;
 	  break;
-	  
+
 	case AU_ENCODING_8:
 	case AU_ENCODING_16:
 	case AU_ENCODING_24:
