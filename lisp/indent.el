@@ -84,9 +84,7 @@ The function actually called to indent is determined by the value of
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
 	(and (not tab-always-indent)
-	     (> (current-column) (current-indentation)))
-	(and (not (eq tab-always-indent 'always))
-	     (eq this-command last-command)))
+	     (> (current-column) (current-indentation))))
     (insert-tab arg))
    ;; Those functions are meant specifically for tabbing and not for
    ;; indenting, so we can't pass them to indent-according-to-mode.
