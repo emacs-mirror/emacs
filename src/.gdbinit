@@ -199,7 +199,7 @@ end
 define xstring
   xgetptr $
   print (struct Lisp_String *) $ptr
-  output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte < 0 ? $->size & ~gdb_array_mark_flag : $->size_byte)
+  xprintstr $
   echo \n
 end
 document xstring
@@ -372,12 +372,17 @@ document xscrollbar
 Print $ as a scrollbar pointer.
 end
 
+define xprintstr
+  set $data = $arg0->data
+  output ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~gdb_array_mark_flag : $arg0->size_byte)
+end
+
 define xprintsym
   xgetptr $arg0
   set $sym = (struct Lisp_Symbol *) $ptr
   xgetptr $sym->xname
   set $sym_name = (struct Lisp_String *) $ptr
-  output ($sym_name->data[0])@($sym_name->size_byte < 0 ? $sym_name->size & ~gdb_array_mark_flag : $sym_name->size_byte)
+  xprintstr $sym_name
 end
 document xprintsym
   Print argument as a symbol.
