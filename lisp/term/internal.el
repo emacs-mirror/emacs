@@ -416,7 +416,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
        nil nil "w*?" nil "O*!" "O*'" "W*!" "W*'" "W*J" "/*"
        ";;" nil nil nil "1N" "1M" "3M" "4M" "6M" nil          ; Gen Punct
        nil "1T" "1H" nil nil nil "LRM" "RLM" "-1" nil
-       nil "--" "---" "===" "!2" "=2" "'6" "'9" ".9" "9'"
+       nil "--" "---" "===" "!2" "=2" "6`" "'9" ".9" "9'"
        "``" "''" ":9" "9``" "/-" "/=" "sb" "3b" nil ".."
        "..." ".-" "LSep" "PSep" "LR[" "RL[" "PDF" "LRO" "RLO" 255
        "%o" "%oo" "'" "''" "\"'" "`" "``" "```" ".^" "<,"
