@@ -1540,7 +1540,7 @@ static reg_errcode_t compile_range ();
    when we use a character as a subscript we must make it unsigned.  */
 #ifndef TRANSLATE
 #define TRANSLATE(d) \
-  (translate ? (unsigned char) translate[(unsigned char) (d)] : (d))
+  (translate ? (unsigned char) RE_TRANSLATE (translate, (unsigned char) (d)) : (d))
 #endif
 
 
@@ -3810,7 +3810,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	      if (translate)
 		while (range > lim
 		       && !fastmap[(unsigned char)
-				   translate[(unsigned char) *d++]])
+				   RE_TRANSLATE (translate, (unsigned char) *d++)])
 		  range--;
 	      else
 		while (range > lim && !fastmap[(unsigned char) *d++])
@@ -4500,7 +4500,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      do
 		{
 		  PREFETCH ();
-		  if ((unsigned char) translate[(unsigned char) *d++]
+		  if ((unsigned char) RE_TRANSLATE (translate, (unsigned char) *d++)
 		      != (unsigned char) *p++)
 		    goto fail;
 		}
@@ -5895,7 +5895,8 @@ bcmp_translate (s1, s2, len, translate)
   register unsigned char *p1 = s1, *p2 = s2;
   while (len)
     {
-      if (translate[*p1++] != translate[*p2++]) return 1;
+      if (RE_TRANSLATE (translate, *p1++) != RE_TRANSLATE (translate, *p2++))
+	return 1;
       len--;
     }
   return 0;
