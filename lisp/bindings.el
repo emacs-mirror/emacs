@@ -440,6 +440,8 @@ is okay.  See `mode-line-format'.")
          ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
+	 ;; Gettext
+	 ".gmo" ".mo"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
