@@ -1089,12 +1089,12 @@ Remaining arguments are strings to give program as arguments.")
 #ifdef VMS
   /* Make a one member argv with all args concatenated
      together separated by a blank.  */
-  len = XSTRING (program)->size + 2;
+  len = XSTRING (program)->size_byte + 2;
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
       CHECK_STRING (tem, i);
-      len += XSTRING (tem)->size + 1;	/* count the blank */
+      len += XSTRING (tem)->size_byte + 1;	/* count the blank */
     }
   new_argv = (unsigned char *) alloca (len);
   strcpy (new_argv, XSTRING (program)->data);
@@ -2710,7 +2710,7 @@ read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
 {
-  register int nchars;
+  register int nchars, nbytes;
   char *chars;
 #ifdef VMS
   int chars_allocated = 0;	/* If 1, `chars' should be freed later.  */
@@ -2724,6 +2724,7 @@ read_process_output (proc, channel)
   struct coding_system *coding = proc_decode_coding_system[channel];
   int chars_in_decoding_buf = 0; /* If 1, `chars' points
 				    XSTRING (p->decoding_buf)->data.  */
+  int multibyte;
 
 #ifdef VMS
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
@@ -2739,8 +2740,8 @@ read_process_output (proc, channel)
   else
     error ("Could not get VMS process pointer");
   chars = vs->inputBuffer;
-  nchars = clean_vms_buffer (chars, vs->iosb[1]);
-  if (nchars <= 0)
+  nbytes = clean_vms_buffer (chars, vs->iosb[1]);
+  if (nbytes <= 0)
     {
       start_vms_process_read (vs); /* Crank up the next read on the process */
       return 1;			/* Nothing worth printing, say we got 1 */
@@ -2749,10 +2750,10 @@ read_process_output (proc, channel)
     {
       /* The data carried over in the previous decoding should be
          prepended to the new data read to decode all together.  */
-      char *buf = (char *) xmalloc (nchars + coding->carryover_size);
+      char *buf = (char *) xmalloc (nbytes + coding->carryover_size);
 
       bcopy (coding->carryover, buf, coding->carryover_size);
-      bcopy (chars, buf + coding->carryover_size, nchars);
+      bcopy (chars, buf + coding->carryover_size, nbytes);
       chars = buf;
       chars_allocated = 1;
     }
@@ -2764,39 +2765,39 @@ read_process_output (proc, channel)
     bcopy (coding->carryover, buf, coding->carryover_size);
 
   if (proc_buffered_char[channel] < 0)
-    nchars = read (channel, buf + coding->carryover_size,
+    nbytes = read (channel, buf + coding->carryover_size,
 		   (sizeof buf) - coding->carryover_size);
   else
     {
       buf[coding->carryover_size] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nchars = read (channel, buf + coding->carryover_size + 1,
+      nbytes = read (channel, buf + coding->carryover_size + 1,
 		     (sizeof buf) - coding->carryover_size - 1);
-      if (nchars < 0)
-	nchars = 1;
+      if (nbytes < 0)
+	nbytes = 1;
       else
-	nchars = nchars + 1;
+	nbytes = nbytes + 1;
     }
   chars = buf;
 #endif /* not VMS */
 
-  /* At this point, NCHARS holds number of characters just received
+  /* At this point, NBYTES holds number of characters just received
      (including the one in proc_buffered_char[channel]).  */
-  if (nchars <= 0) return nchars;
+  if (nbytes <= 0) return nbytes;
 
-  /* Now set NCHARS how many bytes we must decode.  */
-  nchars += coding->carryover_size;
+  /* Now set NBYTES how many bytes we must decode.  */
+  nbytes += coding->carryover_size;
 
   if (CODING_REQUIRE_DECODING (coding)
       || CODING_REQUIRE_DETECTION (coding))
     {
-      int require = decoding_buffer_size (coding, nchars);
+      int require = decoding_buffer_size (coding, nbytes);
       int consumed, produced;
       
-      if (XSTRING (p->decoding_buf)->size < require)
+      if (XSTRING (p->decoding_buf)->size_byte < require)
 	p->decoding_buf = make_uninit_string (require);
       produced = decode_coding (coding, chars, XSTRING (p->decoding_buf)->data,
-				nchars, XSTRING (p->decoding_buf)->size,
+				nbytes, XSTRING (p->decoding_buf)->size_byte,
 				&consumed);
 
       /* New coding-system might be found by `decode_coding'.  */
@@ -2823,6 +2824,7 @@ read_process_output (proc, channel)
 				   proc_encode_coding_system[p->outfd]);
 	    }
 	}
+
 #ifdef VMS
       /*  Now we don't need the contents of `chars'.  */
       if (chars_allocated)
@@ -2831,7 +2833,7 @@ read_process_output (proc, channel)
       if (produced == 0)
 	return 0;
       chars = (char *) XSTRING (p->decoding_buf)->data;
-      nchars = produced;
+      nbytes = produced;
       chars_in_decoding_buf = 1;
     }
 #ifdef VMS
@@ -2840,9 +2842,9 @@ read_process_output (proc, channel)
       /* Although we don't have to decode the received data, we must
          move it to an area which we don't have to free.  */
       if (! STRINGP (p->decoding_buf)
-	  || XSTRING (p->decoding_buf)->size < nchars)
-	p->decoding_buf = make_uninit_string (nchars);
-      bcopy (chars, XSTRING (p->decoding_buf)->data, nchars);
+	  || XSTRING (p->decoding_buf)->size < nbytes)
+	p->decoding_buf = make_uninit_string (nbytes);
+      bcopy (chars, XSTRING (p->decoding_buf)->data, nbytes);
       free (chars);
       chars = XSTRING (p->decoding_buf)->data;
       chars_in_decoding_buf = 1;
@@ -2850,6 +2852,17 @@ read_process_output (proc, channel)
 #endif
 
   Vlast_coding_system_used = coding->symbol;
+
+  multibyte = (coding->type != coding_type_emacs_mule
+	       && coding->type != coding_type_no_conversion
+	       && coding->type != coding_type_undecided
+	       && coding->type != coding_type_raw_text);
+
+  /* Read and dispose of the process output.  */
+  if (multibyte)
+    nchars = multibyte_chars_in_text (chars, nbytes);
+  else
+    nchars = nbytes;
 
   outstream = p->filter;
   if (!NILP (outstream))
@@ -2860,6 +2873,7 @@ read_process_output (proc, channel)
       int count = specpdl_ptr - specpdl;
       Lisp_Object odeactivate;
       Lisp_Object obuffer, okeymap;
+      Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
 
       /* No need to gcpro these, because all we do with them later
@@ -2888,13 +2902,10 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      /* Read and dispose of the process output.  */
+      text = make_multibyte_string (chars, nchars, nbytes);
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
-					Fcons (proc,
-					       Fcons (make_string (chars,
-								   nchars),
-						      Qnil))),
+					Fcons (proc, Fcons (text, Qnil))),
 				 !NILP (Vdebug_on_error) ? Qnil : Qerror,
 				 read_process_output_error_handler);
 
@@ -2967,9 +2978,10 @@ read_process_output (proc, channel)
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       if (chars_in_decoding_buf)
-	insert_from_string_before_markers (p->decoding_buf, 0, nchars, 0);
+	insert_from_string_before_markers (p->decoding_buf, 0, 0,
+					   nchars, nbytes, 0);
       else
-	insert_before_markers (chars, nchars);
+	insert_1_both (chars, nchars, nbytes, 0, 1, 1);
       set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
       update_mode_lines++;
@@ -3006,7 +3018,7 @@ read_process_output (proc, channel)
 #ifdef VMS
   start_vms_process_read (vs);
 #endif
-  return nchars;
+  return nbytes;
 }
 
 DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
@@ -3104,7 +3116,7 @@ send_process (proc, buf, len, object)
 	  buf = temp_buf;
 	}
 
-      if (XSTRING (XPROCESS (proc)->encoding_buf)->size < require)
+      if (XSTRING (XPROCESS (proc)->encoding_buf)->size_byte < require)
 	{
 	  XPROCESS (proc)->encoding_buf = make_uninit_string (require);
 
@@ -3118,7 +3130,7 @@ send_process (proc, buf, len, object)
 	}
       object = XPROCESS (proc)->encoding_buf;
       len = encode_coding (coding, buf, XSTRING (object)->data,
-			   len, XSTRING (object)->size, &dummy);
+			   len, XSTRING (object)->size_byte, &dummy);
       buf = XSTRING (object)->data;
       if (temp_buf)
 	xfree (temp_buf);
@@ -3301,7 +3313,8 @@ Output from processes can arrive in between bunches.")
   Lisp_Object proc;
   CHECK_STRING (string, 1);
   proc = get_process (process);
-  send_process (proc, XSTRING (string)->data, XSTRING (string)->size, string);
+  send_process (proc, XSTRING (string)->data,
+		XSTRING (string)->size_byte, string);
   return Qnil;
 }
 
