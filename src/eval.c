@@ -3285,7 +3285,7 @@ matched by `debug-ignored-errors'.\n\
 If the value is a list, an error only means to enter the debugger\n\
 if one of its condition symbols appears in the list.\n\
 When you evaluate an expression interactively, this variable\n\
-is normally bound to the value of `eval-expression-debug-on-error'.\n\
+is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.\n\
 See also variable `debug-on-quit'.");
   Vdebug_on_error = Qnil;
 
@@ -3302,7 +3302,7 @@ It does not apply to errors handled by `condition-case'.");
     "*Non-nil means enter debugger if quit is signaled (C-g, for example).\n\
 Does not apply if quit is handled by a `condition-case'.\n\
 When you evaluate an expression interactively, this variable\n\
-is normally bound to the value of `eval-expression-debug-on-quit'.");
+is temporarily non-nil if `eval-expression-debug-on-quit' is non-nil.");
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
