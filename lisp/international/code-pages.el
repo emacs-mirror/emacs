@@ -4488,18 +4488,11 @@ Return an updated `non-iso-charset-alist'."
     ;; Define cp125* as aliases for all windows-125*, so on Windows
     ;; we can just concat "cp" to the ANSI codepage we get from the system
     ;; and not have to worry about whether it should be "cp" or "windows-".
-    (define-coding-system-alias c w)
+    (if (coding-system-p w)
+	(define-coding-system-alias c w))
     ;; Compatibility with codepage.el, though cp... are not the
     ;; canonical names.
     (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
-
-;; DOS/Windows codepages that correspond to coding systems already supported
-;; by Emacs. Only codepages used as system codepages are listed here,
-;; to assist in finding the appropriate coding-system for clipboard etc.
-(define-coding-system-alias 'cp932 'japanese-shift-jis)
-(define-coding-system-alias 'cp936 'chinese-iso-8bit)
-(define-coding-system-alias 'cp949 'korean-iso-8bit)
-(define-coding-system-alias 'cp950 'chinese-big5)
 
 (provide 'code-pages)
 
