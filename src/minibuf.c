@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -198,8 +199,6 @@ without invoking the usual minibuffer commands.")
 
   return window;
 }
-
-#include <stdio.h>
 
 
 /* Actual minibuffer invocation. */
