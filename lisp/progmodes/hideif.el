@@ -192,7 +192,7 @@
 ;; Arrange to use the mode's map when the mode is enabled.
 (or (assq 'hide-ifdef-mode minor-mode-map-alist)
     (setq minor-mode-map-alist
-          (cons (cons hide-ifdef-mode hide-ifdef-mode-map)
+          (cons (cons 'hide-ifdef-mode hide-ifdef-mode-map)
                 minor-mode-map-alist)))
 
 (or (assq 'hide-ifdef-hiding minor-mode-alist)
