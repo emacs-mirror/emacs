@@ -3150,37 +3150,42 @@ With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
 
-(defun current-word (&optional strict)
-  "Return the word point is on (or a nearby word) as a string.
+(defun current-word (&optional strict really-word)
+  "Return the symbol or word that point is on (or a nearby one) as a string.
+The return value includes no text properties.
 If optional arg STRICT is non-nil, return nil unless point is within
-or adjacent to a word."
+or adjacent to a symbol or word.
+The function, belying its name, normally finds a symbol.
+If optional arg REALLY-WORD is non-nil, it finds just a word."
   (save-excursion
-    (let ((oldpoint (point)) (start (point)) (end (point)))
-      (skip-syntax-backward "w_") (setq start (point))
+    (let* ((oldpoint (point)) (start (point)) (end (point))
+	   (syntaxes (if really-word "w_" "w"))
+	   (not-syntaxes (concat "^" syntaxes)))
+      (skip-syntax-backward syntaxes) (setq start (point))
       (goto-char oldpoint)
-      (skip-syntax-forward "w_") (setq end (point))
-      (if (and (eq start oldpoint) (eq end oldpoint))
-	  ;; Point is neither within nor adjacent to a word.
-	  (and (not strict)
-	       (progn
-		 ;; Look for preceding word in same line.
-		 (skip-syntax-backward "^w_"
-				       (save-excursion (beginning-of-line)
-						       (point)))
-		 (if (bolp)
-		     ;; No preceding word in same line.
-		     ;; Look for following word in same line.
-		     (progn
-		       (skip-syntax-forward "^w_"
-					    (save-excursion (end-of-line)
-							    (point)))
-		       (setq start (point))
-		       (skip-syntax-forward "w_")
-		       (setq end (point)))
-		   (setq end (point))
-		   (skip-syntax-backward "w_")
-		   (setq start (point)))
-		 (buffer-substring-no-properties start end)))
+      (skip-syntax-forward syntaxes) (setq end (point))
+      (when (and (eq start oldpoint) (eq end oldpoint)
+		 ;; Point is neither within nor adjacent to a word.
+		 (not strict))
+	;; Look for preceding word in same line.
+	(skip-syntax-backward not-syntaxes
+			      (save-excursion (beginning-of-line)
+					      (point)))
+	(if (bolp)
+	    ;; No preceding word in same line.
+	    ;; Look for following word in same line.
+	    (progn
+	      (skip-syntax-forward not-syntaxes
+				   (save-excursion (end-of-line)
+						   (point)))
+	      (setq start (point))
+	      (skip-syntax-forward syntaxes)
+	      (setq end (point)))
+	  (setq end (point))
+	  (skip-syntax-backward syntaxes)
+	  (setq start (point))))
+      ;; If we found something nonempty, return it as a string.
+      (unless (= start end)
 	(buffer-substring-no-properties start end)))))
 
 (defcustom fill-prefix nil
@@ -4481,24 +4486,20 @@ wait this many seconds after Emacs becomes idle before doing an update."
   :version "21.4")
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
-  "Saved value of buffer-invisibility-spec when `vis-mode' is on.")
+  "Saved value of `buffer-invisibility-spec' when Visible mode is on.")
 
-(define-minor-mode vis-mode
-  "Toggle vis-mode.
-With argument ARG turn vis-mode on iff ARG is positive.
+(define-minor-mode visible-mode
+  "Toggle Visible mode.
+With argument ARG turn Visible mode on iff ARG is positive.
 
-Enabling vis-mode sets `buffer-invisibility-spec' to nil, after
-saving the old value in the variable
-`vis-mode-saved-buffer-invisibility-spec', making all invisible
-text in the buffer visible.
-
-Disabling vis-mode restores the saved value of
-`buffer-invisibility-spec'."
+Enabling Visible mode makes all invisible text temporarily visible.
+Disabling Visible mode turns off that effect.  Visible mode
+works by saving the value of `buffer-invisibility-spec' and setting it to nil."
   :lighter " Vis"
   (when (local-variable-p 'vis-mode-saved-buffer-invisibility-spec)
     (setq buffer-invisibility-spec vis-mode-saved-buffer-invisibility-spec)
     (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
-  (when vis-mode
+  (when visible-mode
     (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
