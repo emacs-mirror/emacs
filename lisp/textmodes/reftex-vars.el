@@ -784,7 +784,7 @@ get one interactively during selection from the label menu."
     (choice :tag "Hide short context              " ,@reftex-tmp)
     (choice :tag "Follow context in other window  " ,@reftex-tmp)
     (choice :tag "Show commented labels           " ,@reftex-tmp)
-    (choice :tag "Obsolete flag,  Don't use.      " ,@reftex-tmp)
+    (choice :tag "Obsolete flag.  Don't use.      " ,@reftex-tmp)
     (choice :tag "Show begin/end of included files" ,@reftex-tmp)))
 
 (defcustom reftex-multiref-punctuation '((?, . ", ") (?- . "--") (?+ . " and "))
