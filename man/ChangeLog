@@ -1,5 +1,9 @@
 2004-12-06  Jay Belanger  <belanger@truman.edu>
 
+	* calc.texi (Using Calc): Remove paragraph about installation.
+
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
 	* calc.texi: Use more Texinfo macros and less TeX defs.
 	Remove @refill's.
 
