@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.17) $
+ * $HopeName: MMsrc!poolawl.c(trunk.18) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.17) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.18) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -465,9 +465,9 @@ static Res awlScanObject(Arena arena, ScanState ss,
   }
 
   if(dependent) {
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependant.expose */
+    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.expose */
     ShieldExpose(arena, dependentSeg);
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependant.summary */
+    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.summary */
     SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
