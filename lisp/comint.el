@@ -56,34 +56,6 @@
 ;; For further information on the standard derived modes (shell,
 ;; inferior-lisp, inferior-scheme, ...), see the relevant source files.
 
-
-;; To give your mode support for the programmable, dynamic completion
-;; facility in "pcomplete.el", you should define two functions in the
-;; following form, replacing <MODE> with the prefix of your mode:
-
-;; (defvar <MODE>-pcomplete-setup-p nil)
-;; (defun <MODE>-pcomplete ()
-;;   "Cycle forwards through completions at point, using `pcomplete'.
-;; This function merely invokes `pcomplete', after ensuring this buffer
-;; is set up for it."
-;;   (interactive)
-;;   (unless (prog1 <MODE>-pcomplete-setup-p
-;; 	    (setq <MODE>-pcomplete-setup-p t))
-;;     (pcomplete-comint-setup '<MODE>-dynamic-complete-functions))
-;;   (setq this-command 'pcomplete)
-;;   (call-interactively #'pcomplete))
-
-;; (defun <MODE>-pcomplete-reverse ()
-;;   "Cycle backwards through completions at point, using `pcomplete'.
-;; This function merely invokes `pcomplete-reverse', after ensuring this
-;; buffer is set up for it."
-;;   (interactive)
-;;   (unless (prog1 <MODE>-pcomplete-setup-p
-;; 	    (setq <MODE>-pcomplete-setup-p t))
-;;     (pcomplete-comint-setup '<MODE>-dynamic-complete-functions))
-;;   (setq this-command 'pcomplete-reverse)
-;;   (call-interactively #'pcomplete-reverse))
-
 ;; For hints on converting existing process modes (e.g., tex-mode,
 ;; background, dbx, gdb, kermit, prolog, telnet) to use comint-mode
 ;; instead of shell-mode, see the notes at the end of this file.
