@@ -1,3 +1,8 @@
+2003-04-04  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Place libexec executables directly under the
+	Contents/MacOS/libexec if the application is self-contained
+
 2003-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* makefile.MPW (frame.c.x): Add dependency on BLOCKINPUT_H_GROUP.

@@ -313,13 +313,15 @@ if test "$with_app" == "yes"; then
   fi
 fi
 
+compver=powerpc-apple-darwin`uname -r`
+ 
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory
     mv $installprefix/share/emacs/$version/* $installprefix
     rm -rf $installprefix/share
     # These directories might remain in Resources
     mv $installprefix/bin $installprefix/../MacOS/bin
-    mv $installprefix/libexec $installprefix/../MacOS/libexec
+    mv $installprefix/libexec/emacs/$version/$compver $installprefix/../MacOS/libexec
     # Make the application binary a hard link
     rm $installprefix/../MacOS/Emacs
     ln $installprefix/../MacOS/bin/emacs $installprefix/../MacOS/Emacs
