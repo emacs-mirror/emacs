@@ -3259,7 +3259,7 @@ This does code conversion according to the value of\n\
   Lisp_Object p;
   int total;
   int not_regular = 0;
-  char read_buf[READ_BUF_SIZE];
+  unsigned char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
   unsigned char buffer[1 << 14];
   int replace_handled = 0;
@@ -3372,6 +3372,10 @@ This does code conversion according to the value of\n\
 
     if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
+    else if (! NILP (replace))
+      /* In REPLACE mode, we can use the same coding system
+	 that was used to visit the file.  */
+      val = current_buffer->buffer_file_coding_system;
     else
       {
 	if (! NILP (Vset_auto_coding_function))
@@ -3380,13 +3384,20 @@ This does code conversion according to the value of\n\
 	       or in the tailing several lines of the file.  We assume
 	       that the 1K-byte and 3K-byte for heading and tailing
 	       respectively are sufficient fot this purpose.  */
-	    int how_many, nread;
+	    int nread;
+	    int beginning_of_end, end_of_beginning;
 
 	    if (st.st_size <= (1024 * 4))
-	      nread = read (fd, read_buf, 1024 * 4);
+	      {
+		nread = read (fd, read_buf, 1024 * 4);
+		end_of_beginning = nread;
+		beginning_of_end = 0;
+	      }
 	    else
 	      {
 		nread = read (fd, read_buf, 1024);
+		end_of_beginning = nread;
+		beginning_of_end = nread;
 		if (nread >= 0)
 		  {
 		    if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
@@ -3395,17 +3406,83 @@ This does code conversion according to the value of\n\
 		    nread += read (fd, read_buf + nread, 1024 * 3);
 		  }
 	      }
-	 
+
 	    if (nread < 0)
 	      error ("IO error reading %s: %s",
 		     XSTRING (orig_filename)->data, strerror (errno));
 	    else if (nread > 0)
 	      {
+		int i;
+		int possible_spec = 0;
+		unsigned char *p, *p1;
 		Lisp_Object tem;
-		/* Always make this a unibyte string
-		   because we have not yet decoded it.  */
-		tem = make_unibyte_string (read_buf, nread);
-		val = call1 (Vset_auto_coding_function, tem);
+		unsigned char *copy = (unsigned char *) alloca (nread + 1);
+
+		/* Make a copy of the contents of read_buf in COPY, 
+		   and convert it to lower case so we can compare
+		   more efficiently.  */
+		bcopy (read_buf, copy, nread);
+		for (i = 0; i < nread; i++)
+		  copy[i] = DOWNCASE (copy[i]);
+		/* Ensure various comparisons fail at end of data.  */
+		copy[nread] = 0;
+
+		/* Now test quickly whether the file contains a -*- line.  */
+		p = copy;
+		while (*p != '\n' && p - copy < end_of_beginning)
+		  p++;
+		if (copy[0] == '#' && copy[1] == '!')
+		  while (*p != '\n' && p - copy < end_of_beginning)
+		    p++;
+		p1 = copy;
+		while (p - p1 >= 3)
+		  {
+		    if (p1[0] == '-' && p1[1] == '*' && p1[2] == '-')
+		      {
+			while (p - p1 >= 7)
+			  {
+			    if (! bcmp ("coding:", p1, 7))
+			      {
+				possible_spec = 1;
+				goto win;
+			      }
+			    p1++;
+			  }
+			break;
+		      }
+		    p1++;
+		  }
+
+		/* Test quickly whether the file
+		   contains a local variables list.  */
+		p = &copy[nread - 1];
+		p1 = &copy[beginning_of_end];
+		while (p > p1)
+		  {
+		    if (p[0] == '\n' && p[1] == '\f')
+		      break;
+		    p--;
+		  }
+		p1 = &copy[nread];
+		while (p1 - p >= 16)
+		  {
+		    if (! bcmp ("local variables:", p, 16))
+		      {
+			possible_spec = 1;
+			break;
+		      }
+		    p++;
+		  }
+	      win:
+
+		if (possible_spec)
+		  {
+		    /* Always make this a unibyte string
+		       because we have not yet decoded it.  */ 
+		    tem = make_unibyte_string (read_buf, nread);
+		    val = call1 (Vset_auto_coding_function, tem);
+		  }
+
 		/* Rewind the file for the actual read done later.  */
 		if (lseek (fd, 0, 0) < 0)
 		  report_file_error ("Setting file position",
