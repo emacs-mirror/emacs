@@ -1,3 +1,8 @@
+2002-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-completion-help): Changed xemacs specific code to
+	avoid byte compiler warning in GNU emacs.                                                                            
+
 2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* language/ind-util.el (indian-make-hash):
