@@ -114,7 +114,7 @@ int (*frame_up_to_date_hook) ();
 
    This should clear mouse_moved until the next motion
    event arrives.  */
-void (*mouse_position_hook) ( /* FRAME_PTR *f,
+void (*mouse_position_hook) ( /* FRAME_PTR *f, int insist,
 				 Lisp_Object *bar_window,
 				 enum scroll_bar_part *part,
 				 Lisp_Object *x,
