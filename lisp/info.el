@@ -609,7 +609,7 @@ a case-insensitive match is tried."
               (erase-buffer)
               (if (eq filename t)
                   (Info-insert-dir)
-                (info-insert-file-contents filename t)
+                (info-insert-file-contents filename nil)
                 (setq default-directory (file-name-directory filename)))
               (set-buffer-modified-p nil)
               ;; See whether file has a tag table.  Record the location if yes.
@@ -1393,12 +1393,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	      (buffer-substring-no-properties beg (1- (point)))
 	    (skip-chars-forward " \t\n")
 	    (Info-following-node-name (if multi-line "^.,\t" "^.,\t\n"))))
-    (while (setq i (string-match "\n" str i))
-      (aset str i ?\ ))
-    ;; Collapse multiple spaces.
-    (while (string-match "  +" str)
-      (setq str (replace-match " " t t str)))
-    str))
+    (replace-regexp-in-string "[ \n]+" " " str)))
 
 ;; No one calls this.
 ;;(defun Info-menu-item-sequence (list)
