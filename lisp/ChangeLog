@@ -1,3 +1,9 @@
+2001-05-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/browse-url.el (browse-url-filename-alist): Allow UNC file
+	names for MS-Windows and MS-DOS.  From Dan Holmsand
+	<dan@eyebee.com>.
+
 2001-05-09  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-util.el (eshell-convert-numeric-arguments): Annotated
