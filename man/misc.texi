@@ -1444,8 +1444,32 @@ for printing ordinary text.  Legitimate values include @code{Courier},
 @code{Times}.  The variable @code{ps-font-size} specifies the size of
 the font for ordinary text.  It defaults to 8.5 points.
 
+@vindex ps-multibyte-buffer
+@cindex Intlfonts for PostScript printing
+@cindex fonts for PostScript printing
+  Emacs supports more scripts and characters than a typical PostScript
+printer.  Thus, some of the characters in your buffer might not be
+printable using the fonts built into your printer.  You can augment
+the fonts supplied with the printer with those from the GNU Intlfonts
+package, or you can instruct Emacs to use Intlfonts exclusively.  The
+variable @code{ps-multibyte-buffer} controls this: the default value,
+@code{nil}, is appropriate for printing @sc{ascii} and Latin-1
+characters; a value of @code{non-latin-printer} is for printers which
+have the fonts for @sc{ascii}, Latin-1, Japanese, and Korean
+characters built into them.  A value of @code{bdf-font} arranges for
+the BDF fonts from the Intlfonts package to be used for @emph{all}
+characters.  Finally, a value of @code{bdf-font-except-latin}
+instructs the printer to use built-in fonts for @sc{ascii} and Latin-1
+characters, and Intlfonts BDF fonts for the rest.
+
+@vindex bdf-directory-list
+  To be able to use the BDF fonts, Emacs should know where to find
+them.  The variable @code{bdf-directory-list} holds the list of
+directories where Emacs should look for the fonts; the default value
+includes a single directory @file{/usr/local/share/emacs/fonts/bdf}.
+
   Many other customization variables for these commands are defined and
-described in the Lisp file @file{ps-print.el}.
+described in the Lisp files @file{ps-print.el} and @file{ps-mule.el}.
 
 @node Sorting, Narrowing, PostScript Variables, Top
 @section Sorting Text
