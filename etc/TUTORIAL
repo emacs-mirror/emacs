@@ -534,9 +534,9 @@ C-x C-f.  This way you can get quite a number of files inside Emacs.
    Finally, type C-x C-f TUTORIAL <Return>
    to come back to the tutorial.
 
-Emacs stores each file's text inside an object called a "buffer."
+Emacs stores each file's text inside an object called a "buffer".
 Finding a file makes a new buffer inside Emacs.  To see a list of the
-buffers that current exist in your Emacs job, type
+buffers that currently exist in your Emacs job, type
 
 	C-x C-b   List buffers
 
@@ -647,8 +647,8 @@ Emacs deletes its auto save file.
 
 If the computer crashes, you can recover your auto-saved editing by
 finding the file normally (the file you were editing, not the auto
-save file) and then typing M-x recover file<return>.  When it asks for
-confirmation, type yes<return> to go ahead and recover the auto-save
+save file) and then typing M-x recover file<Return>.  When it asks for
+confirmation, type yes<Return> to go ahead and recover the auto-save
 data.
 
 
@@ -656,7 +656,7 @@ data.
 -----------
 
 If Emacs sees that you are typing commands slowly it shows them to you
-at the bottom of the screen in an area called the "echo area."  The echo
+at the bottom of the screen in an area called the "echo area".  The echo
 area contains the bottom line of the screen.
 
 
@@ -703,7 +703,7 @@ switch to Fundamental mode.
 
 If you are going to be editing English text, such as this file, you
 should probably use Text Mode.
->> Type M-x text-mode<Return>.
+>> Type M-x text mode<Return>.
 
 Don't worry, none of the commands you have learned changes Emacs in
 any great way.  But you can observe that M-f and M-b now treat
