@@ -45,8 +45,14 @@
 
 #undef USE_DL_STUBS
 
+#ifndef HAVE_X11R6
+/* With X11R5 it was reported that linking -lXmu dynamically
+   did not work.  With X11R6, it does work; and since normally
+   only the dynamic libraries are available, we should use them.  */
 #ifdef __GNUC__
-#define LIBXMU -Xlinker -Bdynamic -lXmu -Xlinker -Bdynamic
+#define LIBXMU -Xlinker -Bstatic -lXmu -Xlinker -Bdynamic
 #else
-#define LIBXMU -Bdynamic -lXmu -Bdynamic
+#define LIBXMU -Bstatic -lXmu -Bdynamic
 #endif
+
+#endif  /* not HAVE_X11R6 */
