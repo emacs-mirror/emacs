@@ -1109,6 +1109,8 @@ When you do C-x C-f /user@host:/path/file RET and edit the file,
 and someone else modifies the file, you will be prompted to revert
 the buffer, just like for the local files.
 
+** The buffer menu (C-x C-b) no longer lists the *Buffer List* buffer.
+
 ** New modes and packages
 
 *** The new package timeclock.el is a mode is for keeping track of time

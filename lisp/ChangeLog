@@ -1,5 +1,13 @@
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* buff-menu.el (list-buffers-noselect): Set `buffer' as well as
+	'buffer-menu' property.
+	(Buffer-menu-buffer): Use `buffer' property if `buffer-name'
+	fails.
+	(Buffer-menu-execute): When deleting, test `(and buf (buffer-name
+	buf))', instead of `(Buffer-menu-buffer nil)', to see if buffer
+	wasn't killed.
+	
 	* buff-menu.el (list-buffers-noselect): Don't display the
 	*Buffer List* buffer.
 
