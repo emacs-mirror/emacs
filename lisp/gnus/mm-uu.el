@@ -153,7 +153,7 @@ To disable dissecting shar codes, for instance, add
 		       (looking-at "\\(.+\\)$"))
 		  (and (match-string 1)
 		       (let ((nnheader-file-name-translation-alist
-			      '((?/ . ?,) (? . ?_) (?* . ?_) (?$ . ?_))))
+			      '((?/ . ?,) (?\  . ?_) (?* . ?_) (?$ . ?_))))
 			 (nnheader-translate-file-chars (match-string 1))))))
 	(forward-line);; in case of failure
 	(setq start-char-1 (point))
