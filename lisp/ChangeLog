@@ -1,3 +1,26 @@
+2004-08-14  Davis Herring  <herring@lanl.gov>
+
+	* isearch.el: Remove accidental changes of March 4.  Fix backing
+	up when a regexp isearch is made more general.  Use symbolic
+	accessor functions for isearch stack frames to make usage clearer.
+	(search-whitespace-regexp): Made groups in documentation shy (as
+	is the group in the default value).
+	(isearch-fallback): New function, addresses problems with regexps
+	liberalized by `\|', adds support for liberalization by `\}' (the
+	general repetition construct), and incorporates behavior for
+	`*'/`?'.
+	(isearch-}-char): New command, calls `isearch-fallback' with
+	arguments appropriate to a typed `}'.
+	(isearch-*-char, isearch-|-char): Now just call `isearch-fallback'
+	appropriately.
+	(isearch-mode-map): Bind `}' to `isearch-}-char'.
+	(isearch-string, isearch-message,string, isearch-point,
+	isearch-success, isearch-forward-flag, isearch-other-end,
+	isearch-word, isearch-invalid-regexp, isearch-wrapped,
+	isearch-barrier, isearch-within-brackets,
+	isearch-case-fold-search):
+	New inline functions to read fields of a stack frame.
+
 2004-08-14  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>  (tiny change)
 
 	* battery.el (battery-linux-proc-acpi): Look into battery

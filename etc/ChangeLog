@@ -1,3 +1,7 @@
+2004-08-14  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Mention the thumbs.el package.
+
 2004-08-14  Eric Hanchrow  <offby1@blarg.net>
 
 	* TUTORIAL.es: Replace actual whitespace with the magic string
