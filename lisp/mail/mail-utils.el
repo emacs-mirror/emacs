@@ -60,7 +60,7 @@ from START (inclusive) to END (exclusive)."
 (defun mail-quote-printable (string &optional wrapper)
   "Convert a string to the \"quoted printable\" Q encoding.
 If the optional argument WRAPPER is non-nil,
-we add the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
+we add the wrapper characters =?ISO-8859-1?Q?....?=."
   (let ((i 0) (result ""))
     (save-match-data
       (while (string-match "[?=\"\200-\377]" string i)
@@ -70,9 +70,9 @@ we add the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
 				      (aref string (match-beginning 0))))))
 	(setq i (match-end 0)))
       (if wrapper
-	  (concat "=3D?ISO-8859-1?Q?"
+	  (concat "=?ISO-8859-1?Q?"
 		  result (substring string i)
-		  "?=3D")
+		  "?=")
 	(concat result (substring string i))))))
 
 (defun mail-unquote-printable-hexdigit (char)
@@ -83,10 +83,10 @@ we add the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
 (defun mail-unquote-printable (string &optional wrapper)
   "Undo the \"quoted printable\" encoding.
 If the optional argument WRAPPER is non-nil,
-we expect to find and remove the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
+we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
   (save-match-data
     (and wrapper
-	 (string-match "\\`=3D\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?" string)
+	 (string-match "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?" string)
 	 (setq string (match-string 1 string)))
     (let ((i 0) (result ""))
       (while (string-match "=\\(..\\)" string i)
