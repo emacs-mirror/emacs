@@ -197,6 +197,13 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  Vnext_selection_coding_system = Vselection_coding_system;
 	setup_coding_system
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+	if (SYMBOLP (coding.pre_write_conversion)
+	    && !NILP (Ffboundp (coding.pre_write_conversion)))
+	  {
+	    string = run_pre_post_conversion_on_str (string, &coding, 1);
+	    src = XSTRING (string)->data;
+	    nbytes = STRING_BYTES (XSTRING (string));
+	  }
 	coding.src_multibyte = 1;
 	coding.dst_multibyte = 0;
 	Vnext_selection_coding_system = Qnil;
@@ -294,28 +301,21 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
         && memcmp(last_clipboard_text, src, nbytes) == 0)
       goto closeclip;
 
-    if (
-#if 1
-	1
-#else
-	! NILP (buffer_defaults.enable_multibyte_characters)
-#endif
-	)
-      {
-	/* If the clipboard data contains any non-ascii code, we
-	   need to decode it.  */
-	int i;
+    {
+      /* If the clipboard data contains any non-ascii code, we
+	 need to decode it.  */
+      int i;
 
-	for (i = 0; i < nbytes; i++)
-	  {
-	    if (src[i] >= 0x80)
-	      {
-		require_decoding = 1;
-		break;
-	      }
-	  }
-      }
-    
+      for (i = 0; i < nbytes; i++)
+	{
+	  if (src[i] >= 0x80)
+	    {
+	      require_decoding = 1;
+	      break;
+	    }
+	}
+    }
+
     if (require_decoding)
       {
 	int bufsize;
@@ -337,6 +337,9 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
         ret = make_string_from_bytes ((char *) buf,
                                       coding.produced_char, coding.produced);
 	xfree (buf);
+	if (SYMBOLP (coding.post_read_conversion)
+	    && !NILP (Ffboundp (coding.post_read_conversion)))
+	  ret = run_pre_post_conversion_on_str (ret, &coding, 0);
       }
     else
       {
