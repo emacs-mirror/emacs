@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'button))
+(eval-when-compile (require 'button) (require 'quail))
 
 (defun describe-text-done ()
   "Delete the current window or bury the current buffer."
@@ -524,6 +524,13 @@ as well as widgets, buttons, overlays, and text properties."
 		    (push (format "%s:" (pop props)) ps)
 		    (push (format "%s;" (pop props)) ps))
 		  (list (cons "Properties" (nreverse ps)))))
+	    ("to input"
+	     ,@(let ((key-list (and current-input-method
+				    (quail-find-key char))))
+		 (if (consp key-list)
+		     (list "type"
+			   (mapconcat #'(lambda (x) (concat "\"" x "\""))
+				      key-list " or ")))))
 	    ("buffer code"
 	     ,(encoded-string-description
 	       (string-as-unibyte (char-to-string char)) nil))
