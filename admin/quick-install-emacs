@@ -131,7 +131,7 @@ fi
 
 CONFIG_STATUS="$BUILD/config.status"
 function get_config_var () {
-  if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | head -1 | grep ''
+  if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | sed q | grep ''
   then
     echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
     exit 4
@@ -164,15 +164,15 @@ maybe_mkdir "$DST_INFO"
 
 PRUNED=""
 if test x"$PRUNE" != xno; then
-  for D in `ls -1t $BUILD/etc/DOC-* | tail +2`; do
+  for D in `ls -1t $BUILD/etc/DOC-* | sed 1d`; do
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"
   done
-  for D in `ls -1t $BUILD/src/emacs-$VERSION.* | tail +2`; do
+  for D in `ls -1t $BUILD/src/emacs-$VERSION.* | sed 1d`; do
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"
   done
-  for D in `ls -1t $BUILD/lib-src/fns-* | tail +2`; do
+  for D in `ls -1t $BUILD/lib-src/fns-* | sed 1d`; do
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"
   done
