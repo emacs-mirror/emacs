@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.20 1995/10/26 03:14:40 rms Exp erik $
+;; Version: $Id: cmacexp.el,v 1.21 1996/01/14 07:34:30 erik Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -96,7 +96,9 @@
 (defvar c-macro-prompt-flag nil
   "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments.")
 
-(defvar c-macro-preprocessor "/lib/cpp -C"
+(defvar c-macro-preprocessor
+  ;; Cannot rely on standard directory on MS-DOS to find CPP.
+  (if (eq system-type 'ms-dos) "cpp -C" "/lib/cpp -C")
   "The preprocessor used by the cmacexp package.
 
 If you change this, be sure to preserve the `-C' (don't strip comments)
@@ -244,7 +246,8 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(startstat ())
 	(startmarker "")
 	(exit-status 0)
-	(tempname (make-temp-name "/tmp/")))
+	(tempname (make-temp-name (or (getenv "TMPDIR") (getenv "TEMP")
+				      (getenv "TMP") "/tmp/"))))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
@@ -306,8 +309,10 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	  ;; Call the preprocessor.
 	  (if display (message mymsg))
 	  (setq exit-status
-		(call-process-region 1 (point-max) "sh" t t nil "-c"
-				     (concat cppcommand " 2>" tempname)))
+		(call-process-region 1 (point-max)
+				     shell-file-name
+				     t (list t tempname) nil "-c"
+				     cppcommand))
 	  (if display (message (concat mymsg "done")))
 	  (if (= (buffer-size) 0)
 	      ;; Empty output is normal after a fatal error.
@@ -326,13 +331,25 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	      (delete-region beg (point))))
 
 	  ;; If CPP got errors, show them at the beginning.
-	  (or (eq exit-status 0)
+	  ;; MS-DOS shells don't return the exit code of their children.
+	  ;; Look at the size of the error message file instead, but
+	  ;; don't punish those MS-DOS users who have a shell that does
+	  ;; return an error code.
+	  (or (and (or (not (boundp 'msdos-shells))
+		       (not (member (file-name-nondirectory shell-file-name)
+				    msdos-shells)))
+		   (eq exit-status 0))
+	      (zerop (nth 7 (file-attributes (expand-file-name tempname))))
 	      (progn
 		(goto-char (point-min))
-		(insert (format "Preprocessor terminated with status %s\n"
-				exit-status))
-		(insert-file-contents tempname)
-		(insert "\n")))
+		;; Put the messages inside a comment, so they won't get in
+		;; the way of font-lock, highlighting etc.
+		(insert
+		 (format "/* Preprocessor terminated with status %s\n\n   Messages from `%s\':\n\n"
+			 exit-status cppcommand))
+		(goto-char (+ (point)
+			      (nth 1 (insert-file-contents tempname))))
+		(insert "\n\n*/\n")))
 	  (delete-file tempname)
 
 	  ;; Compute the return value, keeping in account the space
