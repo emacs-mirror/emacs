@@ -1161,6 +1161,35 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 	file
       (and file (concat (dired-current-directory localp) file)))))
 
+;; Cloning replace-match to work on strings instead of in buffer:
+;; The FIXEDCASE parameter of replace-match is not implemented.
+(defun dired-string-replace-match (regexp string newtext
+					  &optional literal global)
+  "Replace first match of REGEXP in STRING with NEWTEXT.
+If it does not match, nil is returned instead of the new string.
+Optional arg LITERAL means to take NEWTEXT literally.
+Optional arg GLOBAL means to replace all matches."
+  (if global
+        (let ((result "") (start 0) mb me)
+	  (while (string-match regexp string start)
+	    (setq mb (match-beginning 0)
+		  me (match-end 0)
+		  result (concat result
+				 (substring string start mb)
+				 (if literal
+				     newtext
+				   (dired-expand-newtext string newtext)))
+		  start me))
+	  (if mb			; matched at least once
+	      (concat result (substring string start))
+	    nil))
+    ;; not GLOBAL
+    (if (not (string-match regexp string 0))
+	nil
+      (concat (substring string 0 (match-beginning 0))
+	      (if literal newtext (dired-expand-newtext string newtext))
+	      (substring string (match-end 0))))))
+
 (defun dired-make-absolute (file &optional dir)
   ;;"Convert FILE (a pathname relative to DIR) to an absolute pathname."
   ;; We can't always use expand-file-name as this would get rid of `.'
