@@ -672,7 +672,7 @@ coordinates_in_window (w, x, y)
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
-    return ON_NOTHING;
+    return ON_VERTICAL_BORDER;
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
@@ -1801,7 +1801,7 @@ static Lisp_Object
 window_list_1 (window, minibuf, all_frames)
      Lisp_Object window, minibuf, all_frames;
 {
-  Lisp_Object tail, list;
+  Lisp_Object tail, list, rest;
 
   decode_next_window_args (&window, &minibuf, &all_frames);
   list = Qnil;
@@ -1810,7 +1810,17 @@ window_list_1 (window, minibuf, all_frames)
     if (candidate_window_p (XCAR (tail), window, minibuf, all_frames))
       list = Fcons (XCAR (tail), list);
 
-  return Fnreverse (list);
+  /* Rotate the list to start with WINDOW.  */
+  list = Fnreverse (list);
+  rest = Fmemq (window, list);
+  if (!NILP (rest) && !EQ (rest, list))
+    {
+      for (tail = list; XCDR (tail) != rest; tail = XCDR (tail))
+	;
+      XSETCDR (tail, Qnil);
+      list = nconc2 (rest, list);
+    }
+  return list;
 }
 
 

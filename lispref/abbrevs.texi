@@ -335,10 +335,9 @@ abbrev lookup happens.
 @end defvar
 
   The following sample code shows a simple use of
-@code{pre-abbrev-expand-hook}.  If the user terminates an abbrev with a
-punctuation character, the hook function asks for confirmation.  Thus,
-this hook allows the user to decide whether to expand the abbrev, and
-aborts expansion if it is not confirmed.
+@code{pre-abbrev-expand-hook}.  If the user terminates an abbrev with
+a punctuation character, the hook function asks for confirmation.  It
+aborts expansion if the user does not confirm.
 
 @smallexample
 (add-hook 'pre-abbrev-expand-hook 'query-if-not-space)
@@ -350,12 +349,10 @@ aborts expansion if it is not confirmed.
 ;; @r{user entered some other character, this function asks whether}
 ;; @r{expansion should continue.}
 
-;; @r{If the user answers the prompt with @kbd{y}, the function returns}
-;; @r{@code{nil} (because of the @code{not} function), but that is}
-;; @r{acceptable; the return value has no effect on expansion.}
+;; @r{The function's return value makes no difference.}
 
 (defun query-if-not-space ()
-  (if (/= ?\s  (preceding-char))
+  (if (/= ?\s last-command-char)
       (if (not (y-or-n-p "Do you want to expand this abbrev? "))
           (error "Not expanding this abbrev"))))
 @end smallexample

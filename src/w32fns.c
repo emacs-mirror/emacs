@@ -7735,14 +7735,14 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  strncpy (init_dir, SDATA (dir), MAX_PATH);
+  strncpy (init_dir, SDATA (ENCODE_SYSTEM (dir)), MAX_PATH);
   init_dir[MAX_PATH] = '\0';
   unixtodos_filename (init_dir);
 
   if (STRINGP (default_filename))
     {
       char *file_name_only;
-      char *full_path_name = SDATA (default_filename);
+      char *full_path_name = SDATA (ENCODE_SYSTEM (default_filename));
 
       unixtodos_filename (full_path_name);
 

@@ -791,6 +791,21 @@ echo_dash ()
       == SCHARS (current_kboard->echo_string))
     return;
 
+  /* Do nothing if we have already put a dash at the end.  */
+  if (SCHARS (current_kboard->echo_string) > 1)
+    {
+	  Lisp_Object last_char, prev_char, idx;
+
+	  idx = make_number (SCHARS (current_kboard->echo_string) - 2);
+	  prev_char = Faref (current_kboard->echo_string, idx);
+
+	  idx = make_number (SCHARS (current_kboard->echo_string) - 1);
+	  last_char = Faref (current_kboard->echo_string, idx);
+
+	  if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
+	    return;
+    }
+
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
   current_kboard->echo_string = concat2 (current_kboard->echo_string,
@@ -1060,6 +1075,19 @@ single_kboard_state ()
 {
 #ifdef MULTI_KBOARD
   single_kboard = 1;
+#endif
+}
+
+/* If we're in single_kboard state for kboard KBOARD,
+   get out of it.  */
+
+void
+not_single_kboard_state (kboard)
+     KBOARD *kboard;
+{
+#ifdef MULTI_KBOARD
+  if (kboard == current_kboard)
+    single_kboard = 0;
 #endif
 }
 
@@ -10238,9 +10266,7 @@ void
 stuff_buffered_input (stuffstring)
      Lisp_Object stuffstring;
 {
-/* stuff_char works only in BSD, versions 4.2 and up.  */
-#ifdef BSD_SYSTEM
-#ifndef BSD4_1
+#ifdef SIGTSTP  /* stuff_char is defined if SIGTSTP.  */
   register unsigned char *p;
 
   if (STRINGP (stuffstring))
@@ -10256,7 +10282,10 @@ stuff_buffered_input (stuffstring)
 
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
-     Should we ignore anything that was typed in at the "wrong" kboard?  */
+     Should we ignore anything that was typed in at the "wrong" kboard?
+
+     rms: we should stuff everything back into the kboard
+     it came from.  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
 
@@ -10269,8 +10298,7 @@ stuff_buffered_input (stuffstring)
     }
 
   input_pending = 0;
-#endif
-#endif /* BSD_SYSTEM and not BSD4_1 */
+#endif /* SIGTSTP */
 }
 
 void

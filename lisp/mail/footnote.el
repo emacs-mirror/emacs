@@ -87,8 +87,11 @@ If nil, no blank line will be inserted."
 
 ;;; Interface variables that probably shouldn't be changed
 
-(defconst footnote-section-tag "Footnotes: "
-  "*Tag inserted at beginning of footnote section.")
+(defcustom footnote-section-tag "Footnotes: "
+  "*Tag inserted at beginning of footnote section."
+  :version "21.4"
+  :type 'string
+  :group 'footnote)
 
 (defcustom footnote-section-tag-regexp "Footnotes\\(\\[.\\]\\)?: "
   "*Regexp which indicates the start of a footnote section.
