@@ -439,7 +439,10 @@ DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
        doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
-NCOL should be zero or positive.  */)
+NCOL should be zero or positive.
+
+Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
+window so that the location of point becomes invisible.  */)
      (window, ncol)
      Lisp_Object window, ncol;
 {
