@@ -442,7 +442,7 @@ contains expressions rather than strings.")
 	      ;; history commands which rms turned off since they seem to
 	      ;; do things he doesn't like.
 	      (if (and (cdr keymap-and-completionp) nil) ;XXX turned off
-		  (cdr command)
+		  (progn (error "EMACS BUG!") (cdr command))
 		(car command))
 	    command))))
     '((minibuffer-local-map . nil)
@@ -450,10 +450,10 @@ contains expressions rather than strings.")
       (minibuffer-local-completion-map . t)
       (minibuffer-local-must-match-map . t)
       (read-expression-map . nil))))
- '(("\en" . (next-history-element . next-history-element))
-   ([next] . (next-history-element . next-history-element))
-   ("\ep" . (previous-history-element . previous-history-element))
-   ([prior] . (previous-history-element . previous-history-element))
+ '(("\en" . (next-history-element . next-complete-history-element))
+   ([next] . (next-history-element . next-complete-history-element))
+   ("\ep" . (previous-history-element . previous-complete-history-element))
+   ([prior] . (previous-history-element . previous-complete-history-element))
    ("\er" . previous-matching-history-element)
    ("\es" . next-matching-history-element)))
 
