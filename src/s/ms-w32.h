@@ -436,7 +436,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 75000
+#define SYSTEM_PURESIZE_EXTRA 137500
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
    initialized data into a separate section from the CRT initialized
