@@ -1557,10 +1557,12 @@ created."
 
 
 (defface fringe
-  '((((class color))
-     (:background "grey95"))
-    (t
-     (:background "gray")))
+  '((((class color) (background light))
+       (:background "grey95"))
+      (((class color) (background dark))
+       (:background "grey10"))
+      (t
+       (:background "gray")))
   "Basic face for the fringes to the left and right of windows under X."
   :version "21.1"
   :group 'frames
