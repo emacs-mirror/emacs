@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 01, 02
      Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -9235,12 +9235,12 @@ png_load (f, img)
 #ifdef HAVE_STDLIB_H
 #  undef HAVE_STDLIB_H
 #  include <jpeglib.h>
-#  include <jerror.h>
+#  undef HAVE_STDLIB_H
 #  define HAVE_STDLIB_H 1
 #else
 #  include <jpeglib.h>
-#  include <jerror.h>
 #endif /* HAVE_STDLIB_H */
+#include <jerror.h>
 
 #include <setjmp.h>
 
