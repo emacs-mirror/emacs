@@ -935,6 +935,10 @@ adjust_window_charstarts (w, vpos, adjust)
     }
 }
 
+/* Check the charstarts values in the area of window W
+   for internal consistency.  We cannot check that they are "right";
+   we can only look for something nonsensical.  */
+
 verify_charstarts (w)
      struct window *w;
 {
@@ -945,17 +949,32 @@ verify_charstarts (w)
   int left = XFASTINT (w->left);
   int right = left + window_internal_width (w);
   int next_line;
+  int truncate = (XINT (w->hscroll)
+		  || (truncate_partial_width_windows
+		      && (XFASTINT (w->width) < FRAME_WIDTH (f)))
+		  || !NILP (XBUFFER (w->buffer)->truncate_lines));
 
   for (i = top; i < bottom; i++)
     {
       int j;
       int last;
-      int *charstart
-	= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[i];
+      int *charstart = FRAME_CURRENT_GLYPHS (f)->charstarts[i];
 
       if (i != top)
-	if (charstart[left] != next_line)
-	  abort ();
+	{
+	  if (truncate)
+	    {
+	      /* If we are truncating lines, allow a jump
+		 in charstarts from one line to the next.  */
+	      if (charstart[left] < next_line)
+		abort ();
+	    }
+	  else
+	    {
+	      if (charstart[left] != next_line)
+		abort ();
+	    }
+	}
 
       for (j = left; j < right; j++)
 	if (charstart[j] > 0)
