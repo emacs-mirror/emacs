@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-units () nil)
 
 ;;; Units operations.
 
@@ -1342,6 +1340,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (if enter-buffer
 	(pop-to-buffer (get-buffer "*Units Table*"))
       (display-buffer (get-buffer "*Units Table*")))))
+
+(provide 'calc-units)
 
 ;; Local Variables:
 ;; coding: iso-latin-1
