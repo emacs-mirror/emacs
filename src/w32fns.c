@@ -2045,46 +2045,28 @@ x_set_icon_type (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-#if 0
-  Lisp_Object tem;
   int result;
 
-  if (STRINGP (arg))
-    {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
-	return;
-    }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  if (NILP (arg) && NILP (oldval))
+    return;
+
+  if (STRINGP (arg) && STRINGP (oldval) 
+      && EQ (Fstring_equal (oldval, arg), Qt))
+    return;
+
+  if (SYMBOLP (arg) && SYMBOLP (oldval) && EQ (arg, oldval))
     return;
 
   BLOCK_INPUT;
-  if (NILP (arg))
-    result = x_text_icon (f,
-			  (char *) XSTRING ((!NILP (f->icon_name)
-					     ? f->icon_name
-					     : f->name))->data);
-  else
-    result = x_bitmap_icon (f, arg);
 
+  result = x_bitmap_icon (f, arg);
   if (result)
     {
       UNBLOCK_INPUT;
       error ("No icon window available");
     }
 
-  /* If the window was unmapped (and its icon was mapped),
-     the new icon is not mapped, so map the window in its stead.  */
-  if (FRAME_VISIBLE_P (f))
-    {
-#ifdef USE_X_TOOLKIT
-      XtPopup (f->output_data.w32->widget, XtGrabNone);
-#endif
-      XMapWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
-    }
-
-  XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
-#endif
 }
 
 /* Return non-nil if frame F wants a bitmap icon.  */
