@@ -48,7 +48,7 @@ may contain even `F', `b', `i' and `s'.  See also the variable
 
 ;;;###autoload
 (defvar dired-chown-program
-  (if (memq system-type '(hpux dgux usg-unix-v irix linux lignux))
+  (if (memq system-type '(hpux dgux usg-unix-v irix linux gnu/linux))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"
