@@ -2093,45 +2093,60 @@ select (nfds, rfds, wfds, efds, timeout)
 
 read_input_waiting ()
 {
-  char buf[256 * BUFFER_SIZE_FACTOR];
   struct input_event e;
   int nread, i;
   extern int quit_char;
 
   if (read_socket_hook)
     {
+      struct input_event buf[256];
+
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, buf, 256 * BUFFER_SIZE_FACTOR, 1, 0);
+	nread = (*read_socket_hook) (0, buf, 256, 1, 0);
       else
 	nread = -1;
+
+      /* Scan the chars for C-g and store them in kbd_buffer.  */
+      for (i = 0; i < nread; i++)
+	{
+	  kbd_buffer_store_event (&buf[i]);
+	  /* Don't look at input that follows a C-g too closely.
+	     This reduces lossage due to autorepeat on C-g.  */
+	  if (buf[i].kind == ascii_keystroke
+	      && XINT(buf[i].code) == quit_char)
+	    break;
+	}
     }
   else
-    nread = read (fileno (stdin), buf, 1);
-
-  /* Scan the chars for C-g and store them in kbd_buffer.  */
-  e.kind = ascii_keystroke;
-  e.frame_or_window = selected_frame;
-  e.modifiers = 0;
-  for (i = 0; i < nread; i++)
     {
-      /* Convert chars > 0177 to meta events if desired.
-	 We do this under the same conditions that read_avail_input does.  */
-      if (read_socket_hook == 0)
-	{
-	  /* If the user says she has a meta key, then believe her. */
-	  if (meta_key == 1 && (buf[i] & 0x80))
-	    e.modifiers = meta_modifier;
-	  if (meta_key != 2)
-	    buf[i] &= ~0x80;
-	}
+      char buf[3];
+      nread = read (fileno (stdin), buf, 1);
 
-      XSET (e.code, Lisp_Int, buf[i]);
-      kbd_buffer_store_event (&e);
-      /* Don't look at input that follows a C-g too closely.
-	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i] == quit_char)
-	break;
+      /* Scan the chars for C-g and store them in kbd_buffer.  */
+      e.kind = ascii_keystroke;
+      e.frame_or_window = selected_frame;
+      e.modifiers = 0;
+      for (i = 0; i < nread; i++)
+	{
+	  /* Convert chars > 0177 to meta events if desired.
+	     We do this under the same conditions that read_avail_input does.  */
+	  if (read_socket_hook == 0)
+	    {
+	      /* If the user says she has a meta key, then believe her. */
+	      if (meta_key == 1 && (buf[i] & 0x80))
+		e.modifiers = meta_modifier;
+	      if (meta_key != 2)
+		buf[i] &= ~0x80;
+	    }
+
+	  XSET (e.code, Lisp_Int, buf[i]);
+	  kbd_buffer_store_event (&e);
+	  /* Don't look at input that follows a C-g too closely.
+	     This reduces lossage due to autorepeat on C-g.  */
+	  if (buf[i] == quit_char)
+	    break;
+	}
     }
 }
 
@@ -2734,6 +2749,8 @@ getwd (pathname)
 
   BLOCK_INPUT;			/* getcwd uses malloc */
   spath = npath = getcwd ((char *) 0, MAXPATHLEN);
+  if (spath == 0)
+    return spath;
   /* On Altos 3068, getcwd can return @hostname/dir, so discard
      up to first slash.  Should be harmless on other systems.  */
   while (*npath && *npath != '/')
@@ -3613,13 +3630,18 @@ char *
 getwd (pathname)
      char *pathname;
 {
-  char *ptr;
+  char *ptr, *val;
   extern char *getcwd ();
 
 #define MAXPATHLEN 1024
 
   ptr = xmalloc (MAXPATHLEN);
-  getcwd (ptr, MAXPATHLEN);
+  val = getcwd (ptr, MAXPATHLEN);
+  if (val == 0)
+    {
+      xfree (ptr);
+      return val;
+    }
   strcpy (pathname, ptr);
   xfree (ptr);
   
