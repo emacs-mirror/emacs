@@ -1,3 +1,9 @@
+2001-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* isearch.el (isearch-highlight): Don't punt if the display
+	doesn't support colors, since isearch faces are defined for
+	monochrome displays as well.
+
 2001-01-27  Sam Steingold  <sds@gnu.org>
 
 	* shell.el (shell-write-history-on-exit): Make sure that we are in
