@@ -125,6 +125,10 @@ Boston, MA 02111-1307, USA.  */
    "next" value, and test the result to see if it's NULL_INTERVAL.  */
 #define INTERVAL_PARENT_OR_NULL(i) (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
 
+/* Abort if interval I's size is negative.  */
+#define CHECK_TOTAL_LENGTH(i) \
+  if ((int) (i)->total_length < 0) abort (); else
+
 /* Reset this interval to its vanilla, or no-property state. */
 #define RESET_INTERVAL(i) \
 { \
