@@ -5740,6 +5740,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
 
 #define TTY_SAME_COLOR_THRESHOLD  10000
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return non-zero if all the face attributes in ATTRS are supported
    on the window-system frame F.
@@ -5828,6 +5829,7 @@ x_supports_face_attributes_p (f, attrs)
   return 1;
 }
 
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Return non-zero if all the face attributes in ATTRS are supported
    on the tty frame F.
@@ -6042,8 +6044,10 @@ face for italic. */)
   /* Dispatch to the appropriate handler.  */
   if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
     supports = tty_supports_face_attributes_p (f, attrs);
+#ifdef HAVE_WINDOW_SYSTEM
   else
     supports = x_supports_face_attributes_p (f, attrs);
+#endif	/* HAVE_WINDOW_SYSTEM */
 
   return supports ? Qt : Qnil;
 }
