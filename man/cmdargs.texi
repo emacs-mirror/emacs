@@ -112,7 +112,10 @@ with @env{EMACSLOADPATH} (@pxref{General Variables}).
 @itemx --funcall=@var{function}
 @opindex --funcall
 @cindex call Lisp functions, command-line argument
-Call Lisp function @var{function} with no arguments.
+Call Lisp function @var{function}.  If it is an interactive function
+(a command), it reads the arguments interactively just as if you had
+called the same function with a key sequence.  Otherwise, it calls the
+function with no arguments.
 
 @item --eval=@var{expression}
 @opindex --eval
