@@ -2885,6 +2885,35 @@ decode_mode_spec (w, c, maxwidth)
 	  }
       }
 
+      /* Display percentage of size above the bottom of the screen.  */
+    case 'P':
+      {
+	int toppos = marker_position (w->start);
+	int botpos = Z - XFASTINT (w->window_end_pos);
+	int total = ZV - BEGV;
+
+	if (botpos >= ZV)
+	  {
+	    if (toppos <= BEGV)
+	      return "All";
+	    else
+	      return "Bottom";
+	  }
+	else
+	  {
+	    total = ((botpos - BEGV) * 100 + total - 1) / total;
+	    /* We can't normally display a 3-digit number,
+	       so get us a 2-digit number that is close.  */
+	    if (total == 100)
+	      total = 99;
+	    if (toppos <= BEGV)
+	      sprintf (decode_mode_spec_buf, "Top%2d%%", total);
+	    else
+	      sprintf (decode_mode_spec_buf, "%2d%%", total);
+	    return decode_mode_spec_buf;
+	  }
+      }
+
     case '%':
       return "%";
 
