@@ -745,7 +745,6 @@ redisplay ()
   int all_windows;
   register int tlbufpos, tlendpos;
   struct position pos;
-  extern int input_pending;
 
   if (noninteractive)
     return;
@@ -864,7 +863,6 @@ redisplay ()
 		  int left = XFASTINT (w->left);
 		  int *charstart_next_line
 		    = FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
-		  int i;
 		  int adjust;
 
 		  if (Z - tlendpos == ZV)
@@ -1013,6 +1011,8 @@ update:
     {
       if (FRAME_VISIBLE_P (selected_frame))
 	pause = update_frame (selected_frame, 0, 0);
+      else
+	pause = 0;
 
       /* We may have called echo_area_display at the top of this
 	 function.  If the echo area is on another frame, that may
@@ -1268,6 +1268,7 @@ redisplay_window (window, just_this_one)
     abort ();
   
   height = window_internal_height (w);
+  update_mode_line = (!NILP (w->update_mode_line) || update_mode_lines);
 
   if (MINI_WINDOW_P (w))
     {
@@ -1293,8 +1294,6 @@ redisplay_window (window, just_this_one)
 	  goto finish_scroll_bars;
 	}
     }
-
-  update_mode_line = (!NILP (w->update_mode_line) || update_mode_lines);
 
   /* Otherwise set up data on this window; select its buffer and point value */
 
@@ -1617,7 +1616,7 @@ done:
 	  || (w == XWINDOW (minibuf_window) && ! echo_area_glyphs))
 	{
 	  whole = ZV - BEGV;
-	  start = startp - BEGV;
+	  start = marker_position (w->start) - BEGV;
 	  /* I don't think this is guaranteed to be right.  For the
 	     moment, we'll pretend it is.  */
 	  end = (Z - XINT (w->window_end_pos)) - BEGV;
@@ -1771,7 +1770,7 @@ try_window_id (window)
 				width, hscroll, pos_tab_offset (w, start), w);
 	  XSETFASTINT (w->window_end_vpos, height);
 	  XSETFASTINT (w->window_end_pos, Z - bp.bufpos);
-	  return 1;
+	  goto findpoint;
 	}
       return 0;
     }
@@ -2078,6 +2077,7 @@ try_window_id (window)
   /* If point was not in a line that was displayed, find it */
   if (cursor_vpos < 0)
     {
+    findpoint:
       val = *compute_motion (start, 0, lmargin, PT, 10000, 10000,
 			     width, hscroll, pos_tab_offset (w, start), w);
       /* Admit failure if point is off frame now */
