@@ -897,7 +897,7 @@ displayed, by setting the variable @code{hourglass-delay}.
 @cindex cursor, locating visually
 @cindex cursor, blinking
   There are a number of ways to customize the display of the cursor.
-@kbd{M-x hl-line-mode} enables or disables a global minor mode which
+@kbd{M-x hl-line-mode} enables or disables a minor mode which
 highlights the line containing point.  On window systems, the command
 @kbd{M-x blink-cursor-mode} turns on or off the blinking of the
 cursor.  (On terminals, the terminal itself blinks the cursor, and
