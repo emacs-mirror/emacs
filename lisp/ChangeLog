@@ -1,7 +1,12 @@
+2001-09-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-default-read-only): New var.
+	(diff-mode): Use it.
+
 2001-09-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* hexl.el (hexl-mode-map): Fix the change of 2001-08-23: use
-	make-keymap instead of copy-keymap, since copying the global
+	* hexl.el (hexl-mode-map): Fix the change of 2001-08-23:
+	Use make-keymap instead of copy-keymap, since copying the global
 	keymap messes up the menu bar.
 
 	* info.el (Info-goto-node, Info-menu): Doc fix.  Suggested by
@@ -9,8 +14,7 @@
 
 2001-09-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* dired.el (dired-build-subdir-alist): Accept optional arg
-	SWITCHES.
+	* dired.el (dired-build-subdir-alist): Accept optional arg SWITCHES.
 
 	* dired-aux.el (dired-insert-subdir): Pass switches to
 	dired-build-subdir-alist.
@@ -33,8 +37,7 @@
 
 2001-09-19  Gerd Moellmann  <gerd@gnu.org>
 
-	* ps-bdf.el (bdf-read-bitmap): Initialize returned values to
-	defaults.
+	* ps-bdf.el (bdf-read-bitmap): Initialize returned values to defaults.
 
 2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -154,8 +157,8 @@
 2001-09-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* ediff-mult.el (ediff-get-meta-info): Take into account that data
-	from `ediff-meta-info' properties need not be an overlay.  From
-	David Ponce <dponce@voila.fr>.
+	from `ediff-meta-info' properties need not be an overlay.
+	From David Ponce <dponce@voila.fr>.
 
 	* isearch.el (isearch-intersects-p): Fix end checks.
 
@@ -199,13 +202,13 @@
 
 2001-09-09  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff-init.el (ediff-highest-priority): bug fix.
+	* ediff-init.el (ediff-highest-priority): Bug fix.
 
-	* viper-cmd.el (viper-special-read-and-insert-char): new function
+	* viper-cmd.el (viper-special-read-and-insert-char): New function
 	that reads a character and uses the current input method or
 	iso-accents when appropriate.
 
-	* viper.el and all others: corrections to the comment blocks at
+	* viper.el and all others: Corrections to the comment blocks at
 	the top.
 
 2001-09-09  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -232,29 +235,20 @@
 
 2001-09-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* locate.el (locate-insert-header): Remove unnecessary
-	whitespace.
+	* locate.el (locate-insert-header): Remove unnecessary whitespace.
 
 2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* arc-mode.el (archive-dostime): Fix a typo in minutes'
-	computation.
+	* arc-mode.el (archive-dostime): Fix a typo in minutes' computation.
 
 2001-09-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* server.el (server-switch-buffer): Use get-window-with-predicate.
-
-	* textmodes/refer.el (refer-find-entry-internal): Use
-	get-window-with-predicate.
-
-	* term/sup-mouse.el (sup-pos-to-window): Use
-	get-window-with-predicate.
-
-	* term/bg-mouse.el (bg-window-from-x-y): Use
-	get-window-with-predicate.
-
-	* emacs-lisp/edebug.el (edebug-window-live-p): Use
-	get-window-with-predicate.
+	* server.el (server-switch-buffer):
+	* textmodes/refer.el (refer-find-entry-internal):
+	* term/sup-mouse.el (sup-pos-to-window):
+	* term/bg-mouse.el (bg-window-from-x-y):
+	* emacs-lisp/edebug.el (edebug-window-live-p):
+	Use get-window-with-predicate.
 
 	* window.el (get-window-with-predicate): Renamed from some-window.
 	(some-window): Make it an alias.
