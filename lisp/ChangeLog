@@ -1,3 +1,14 @@
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-face.el (custom-face-attributes): Fix :help-echo strings
+	for :foreground and :background.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-view-command-alist): Variable deleted.
+	(dired-view-file, dired-mouse-find-file-other-window): 
+	Delete the code to use it.
+
 2005-01-01  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (insert-sliced-image): Use t for line-height property.
