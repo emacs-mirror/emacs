@@ -1,3 +1,8 @@
+2001-08-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Set coding's dest_multibyte
+	to 0 also in the REPLACE case.
+
 2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* fileio.c (Ffile_readable_p) [macintosh]: Call access instead of
