@@ -104,7 +104,7 @@
 
 ;;;  Revision Information
 
-(defconst tpu-extras-revision "$Revision: 1.4 $"
+(defconst tpu-extras-revision "$Revision: 1.5 $"
   "Revision number of the TPU-edt extras.")
 
 
@@ -428,6 +428,7 @@ version that respects the bottom scroll margin."
 
 ;;;  Function to set scroll margins
 
+;;;###autoload
 (defun tpu-set-scroll-margins (top bottom)
   "Set scroll margins."
   (interactive
@@ -452,12 +453,10 @@ version that respects the bottom scroll margin."
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
 		tpu-top-scroll-margin tpu-bottom-scroll-margin)))
 
-(fset 'set\ scroll\ margins 'tpu-set-scroll-margins)
-(fset 'SET\ SCROLL\ MARGINS 'tpu-set-scroll-margins)
-
 
 ;;;  Functions to set cursor bound or free
 
+;;;###autoload
 (defun tpu-set-cursor-free nil
   "Allow the cursor to move freely about the screen."
   (interactive)
@@ -467,6 +466,7 @@ version that respects the bottom scroll margin."
 			     GOLD-map)
   (message "The cursor will now move freely about the screen."))
 
+;;;###autoload
 (defun tpu-set-cursor-bound nil
   "Constrain the cursor to the flow of the text."
   (interactive)
@@ -476,16 +476,5 @@ version that respects the bottom scroll margin."
 			     'tpu-set-cursor-free
 			     GOLD-map)
   (message "The cursor is now bound to the flow of your text."))
-
-(fset 'set\ cursor\ bound 'tpu-set-cursor-bound)
-(fset 'SET\ CURSOR\ BOUND 'tpu-set-cursor-bound)
-(fset 'set\ cursor\ free 'tpu-set-cursor-free)
-(fset 'SET\ CURSOR\ FREE 'tpu-set-cursor-free)
-
-
-;;;  Keypad Mapping
-
-(define-key GOLD-map "F" 'tpu-set-cursor-free)			; F
-(define-key GOLD-map "f" 'tpu-set-cursor-free)			; f
 
 ;;; tpu-extras.el ends here
