@@ -918,6 +918,8 @@ run `normal-mode' explicitly."
     ("\\.texinfo\\'" . texinfo-mode)
     ("\\.texi\\'" . texinfo-mode)
     ("\\.s\\'" . asm-mode)
+    ("\\.S\\'" . asm-mode)
+    ("\\.asm\\'" . asm-mode)
     ("ChangeLog\\'" . change-log-mode)
     ("change.log\\'" . change-log-mode)
     ("changelo\\'" . change-log-mode)
