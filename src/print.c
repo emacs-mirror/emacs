@@ -294,7 +294,8 @@ strout (ptr, size, printcharfun)
 }
 
 /* Print the contents of a string STRING using PRINTCHARFUN.
-   It isn't safe to use strout, because printing one char can relocate.  */
+   It isn't safe to use strout in many cases,
+   because printing one char can relocate.  */
 
 print_string (string, printcharfun)
      Lisp_Object string;
@@ -926,6 +927,47 @@ print (obj, printcharfun, escapeflag)
 	  else
 	    print_string (XPROCESS (obj)->name, printcharfun);
 	}
+      else if (BOOL_VECTOR_P (obj))
+	{
+	  register int i;
+	  register unsigned char c;
+	  struct gcpro gcpro1;
+	  int bits_per_char = INTBITS / sizeof (int);
+	  int size_in_chars
+	    = (XBOOL_VECTOR (obj)->size + bits_per_char) / bits_per_char;
+
+	  GCPRO1 (obj);
+
+	  PRINTCHAR ('#');
+	  PRINTCHAR ('&');
+	  sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  strout (buf, -1, printcharfun);
+	  PRINTCHAR ('\"');
+	  for (i = 0; i < size_in_chars; i++)
+	    {
+	      QUIT;
+	      c = XBOOL_VECTOR (obj)->data[i];
+	      if (c == '\n' && print_escape_newlines)
+		{
+		  PRINTCHAR ('\\');
+		  PRINTCHAR ('n');
+		}
+	      else if (c == '\f' && print_escape_newlines)
+		{
+		  PRINTCHAR ('\\');
+		  PRINTCHAR ('f');
+		}
+	      else
+		{
+		  if (c == '\"' || c == '\\')
+		    PRINTCHAR ('\\');
+		  PRINTCHAR (c);
+		}
+	    }
+	  PRINTCHAR ('\"');
+
+	  UNGCPRO;
+	}
       else if (SUBRP (obj))
 	{
 	  strout ("#<subr ", -1, printcharfun);
@@ -981,6 +1023,15 @@ print (obj, printcharfun, escapeflag)
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
+	      size &= PSEUDOVECTOR_SIZE_MASK;
+	    }
+	  if (CHAR_TABLE_P (obj))
+	    {
+	      /* We print a char-table as if it were a vector,
+		 lumping the parent and default slots in with the
+		 character slots.  But we add #^ as a prefix.  */
+	      PRINTCHAR ('#');
+	      PRINTCHAR ('^');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
 	  if (size & PSEUDOVECTOR_FLAG)
