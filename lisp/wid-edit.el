@@ -2919,7 +2919,7 @@ link for that string."
   "Matches any value, but doesn't let the user edit the value.
 This is useful as last item in a `choice' widget.
 You should use this widget type with a default value,
-as in (other DEFAULT) or (other :tag "NAME" DEFAULT).
+as in (other DEFAULT) or (other :tag \"NAME\" DEFAULT).
 If the user selects this alternative, that specifies DEFAULT
 as the value."
   :tag "Other"
