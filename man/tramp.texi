@@ -1,0 +1,1626 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename tramp.info
+@settitle TRAMP User Manual
+@setchapternewpage odd
+@c %**end of header
+
+@c This is *so* much nicer :)
+@footnotestyle end
+
+@c Version values, for easy modification
+@c NOTE: The 'UPDATED' value is updated by the 'time-stamp' function.
+@c       If you change it by hand, the modifications will not stay.
+@set VERSION $Revision: 2.20 $
+@set UPDATED Friday, 14 June, 2002
+
+
+@c Entries for @command{install-info} to use
+@direntry
+* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
+                                 Emacs remote file access via rsh and rcp.
+@end direntry
+
+@c Macro to make formatting of the tramp program name consistent.
+@macro tramp
+@sc{tramp}
+@end macro
+
+@c Copying permissions, et al
+@ifinfo
+This file documents @tramp{}, a remote file editing package for Emacs and
+XEmacs.
+     
+Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
+     
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+     
+@ignore 
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries a copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+   
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+sections entitled ``Copying'' and ``GNU General Public License'' are
+included exactly as in the original, and provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+     
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end ifinfo
+
+@tex
+
+@titlepage
+@title @tramp{} User Manual
+@subtitle Last updated @value{UPDATED}
+
+@author by Daniel Pittman
+@author based on documentation by Kai Gro@ss{}johann
+@page
+
+@vskip 0pt plus 1filll
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+     
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+sections entitled ``Copying'' and ``GNU General Public License'' are
+included exactly as in the original, and provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+     
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+
+@end titlepage
+@page
+
+@end tex
+
+@ifnottex
+@node Top, Copying, (dir), (dir)
+@top @tramp{} User Manual
+
+@tramp{} stands for `Transparent Remote (file) Access, Multiple
+Protocol'.  This package provides remote file editing, similar to
+@cite{ange-ftp} and @cite{EFS}.
+
+The difference is that ange-ftp uses FTP to transfer files between the
+local and the remote host, whereas @tramp{} uses a combination of
+@command{rsh} and @command{rcp} or other work-alike programs, such as
+@command{ssh}/@command{scp}.
+
+This is version @value{VERSION} of the @tramp{} manual, last updated on
+@value{UPDATED}.
+
+You can find the latest version of this document on the web at
+@uref{http://www.freesoftware.fsf.org/tramp/}.
+
+@ifhtml
+This manual is also available as a @uref{tramp_ja.html, Japanese
+translation}.
+
+The latest release of @tramp{} is available for
+@uref{http://savannah.gnu.org/download/tramp/,
+download}, or you may see @ref{Obtaining @tramp{}} for more details,
+including the CVS server details.
+
+@tramp{} also has a @uref{https://savannah.gnu.org/projects/tramp/,
+Savannah Project Page}.
+@end ifhtml
+
+There is a mailing list for @tramp{}, available at
+@email{tramp-devel@@mail.freesoftware.fsf.org}, and archived at
+@uref{http://www.mail-archive.com/emacs-rcp@@ls6.cs.uni-dortmund.de/} as
+well as the usual Savannah archives.
+
+@end ifnottex
+
+@menu
+* Copying::                     @tramp{} Copying conditions.
+* Overview::                    What @tramp{} can and cannot do.
+
+For the end user:
+* Obtaining @tramp{}::          How to obtain @tramp{}.
+* History::                     History of @tramp{}
+* Installation::                Installing @tramp{} with your (X)Emacs.
+* Configuration::               Configuring @tramp{} for use.
+* Usage::                       An overview of the operation of @tramp{}.
+* Bug Reports::                 Reporting Bugs and Problems
+* Frequently Asked Questions::  Questions and answers from the mailing list.
+
+For the developer:
+* Version Control::             The inner workings of remote version control.
+* Files directories and paths::  How file names, directories and paths are mangled and managed.
+* Issues::                      
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Configuring @tramp{} for use
+
+* Connection types::            Types of connections made to remote machines.
+* Inline methods::              Inline methods.
+* External transfer methods::   External transfer methods.
+* Multi-hop Methods::           Connecting to a remote host using multiple hops.
+* Default Method::              Selecting a default method.
+* Customizing Methods::         Using Non-Standard Methods.
+* Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
+* Remote shell setup::          
+
+Using @tramp
+
+* Filename Syntax::             @tramp{} filename conventions.
+* Multi-hop filename syntax::   Multi-hop filename conventions
+* Dired::                       Dired and filename completion.
+
+The inner workings of remote version control
+
+* Version Controlled Files::    Determining if a file is under version control.
+* Remote Commands::             Executing the version control commands on the remote machine.
+* Changed workfiles::           Detecting if the working file has changed.
+* Checking out files::          Bringing the workfile out of the repository.
+* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere
+
+Things related to Version Control that don't fit elsewhere
+
+* Remote File Ownership::       How VC determines who owns a workfile.
+* Back-end Versions::           How VC determines what release your RCS is.
+
+How file names, directories and paths are mangled and managed.
+
+* Path deconstruction::         Breaking a path into its components.
+
+@end detailmenu
+@end menu
+
+@node Copying
+@chapter @tramp{} Copying conditions
+
+Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+
+tramp.el is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+tramp.el is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along
+with GNU Emacs; see the file COPYING. If not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+USA.
+
+
+@node Overview
+@chapter An overview of @tramp
+
+After the installation of @tramp{} into your Emacs, you will be able to
+access files on remote machines as though they were local. Access to the
+remote file system for editing files, version control, and
+@command{dired} are transparently enabled.
+
+Your access to the remote machine can be with the @command{rsh},
+@command{rlogin}, @command{telnet} programs or with any similar
+connection method. This connection must pass ASCII successfully to be
+usable but need not be 8-bit clean.
+
+The package provides support for @command{ssh} connections out of the
+box, one of the more common uses of the package. This allows relatively
+secure access to machines, especially if @command{ftp} access is
+disabled.
+
+The majority of activity carried out by @tramp{} requires only that the
+remote login is possible and is carried out at the terminal. In order to
+access remote files @tramp{} needs to transfer their content to the local
+machine temporarily.
+
+@tramp{} can transfer files between the machines in a variety of ways. The
+details are easy to select, depending on your needs and the machines in
+question.
+
+The fastest transfer methods rely on a remote file transfer package such
+as @command{rcp}, @command{scp} or @command{rsync}. The use of these
+methods is only possible if the file copy command does not ask for a
+password for the remote machine.
+
+If the remote copy methods are not suitable for you, @tramp{} also
+supports the use of encoded transfers directly through the shell. This
+requires that the @command{mimencode} or @command{uuencode} tools are
+available on the remote machine.
+
+Within these limitations, @tramp{} is quite powerful. It is worth noting
+that, as of the time of writing, it is far from a polished end-user
+product. For a while yet you should expect to run into rough edges and
+problems with the code now and then.
+
+It is finished enough that the developers use it for day to day work but
+the installation and setup can be a little difficult to master, as can
+the terminology.
+
+@tramp{} is still under active development and any problems you encounter,
+trivial or major, should be reported to the @tramp{} developers.
+@xref{Bug Reports}.
+
+
+@subsubheading Behind the scenes
+
+This section tries to explain what goes on behind the scenes when you
+access a remote file through @tramp{}.
+
+Suppose you type @kbd{C-x C-f} and enter part of an @tramp{} file name,
+then hit @kbd{@key{TAB}} for completion.  Suppose further that this is
+the first time that @tramp{} is invoked for the host in question.  Here's
+what happens:
+
+@itemize
+@item
+@tramp{} discovers that it needs a connection to the host. So it invokes
+@command{telnet HOST} or @command{rsh HOST -l USER} or a similar tool to
+connect to the remote host. Communication with this process happens
+through an Emacs buffer, that is, the output from the remote end goes
+into a buffer.
+
+@item
+The remote host may prompt for a login name (for @command{telnet}).  The
+login name is given in the file name, so @tramp{} sends the login name and
+a newline.
+
+@item
+The remote host may prompt for a password or pass phrase (for
+@command{rsh} or for @command{telnet} after sending the login name).
+@tramp{} displays the prompt in the minibuffer, asking you for the
+password or pass phrase.
+
+You enter the password or pass phrase.  @tramp{} sends it to the remote
+host, followed by a newline.
+
+@item
+@tramp{} now waits for the shell prompt or for a message that the login
+failed.
+
+If @tramp{} sees neither of them after a certain period of time (a minute,
+say), then it issues an error message saying that it couldn't find the
+remote shell prompt and shows you what the remote host has sent.
+
+If @tramp{} sees a `login failed' message, it tells you so, aborts the
+login attempt and allows you to try again.
+
+@item
+Suppose that the login was successful and @tramp{} sees the shell prompt
+from the remote host.  Now @tramp{} invokes @command{/bin/sh} because
+Bourne shells and C shells have different command
+syntaxes.@footnote{Invoking @command{/bin/sh} will fail if your login
+shell doesn't recognize @command{exec /bin/sh} as a valid command.
+Maybe you use the Scheme shell @command{scsh}@dots{}}
+
+After the Bourne shell has come up, @tramp{} sends a few commands to
+ensure a good working environment.  It turns off echoing, it sets the
+shell prompt, and a few other things.
+
+@item
+Now the remote shell is up and it good working order.  Remember, what
+was supposed to happen is that @tramp{} tries to find out what files exist
+on the remote host so that it can do filename completion.
+
+So, @tramp{} basically issues @command{cd} and @command{ls} commands and
+also sometimes @command{echo} with globbing.  Another command that is
+often used is @command{test} to find out whether a file is writable or a
+directory or the like.  The output of each command is parsed for the
+necessary operation.
+
+@item
+Suppose you are finished with filename completion, have entered @kbd{C-x
+C-f}, a full file name and hit @kbd{@key{RET}}.  Now comes the time to
+transfer the file contents from the remote host to the local host so
+that you can edit them.
+
+See above for an explanation of how @tramp{} transfers the file contents.
+
+For inline transfers, @tramp{} issues a command like @command{mimencode -b
+/path/to/remote/file}, waits until the output has accumulated in the
+buffer that's used for communication, then decodes that output to
+produce the file contents.
+
+For out-of-band transfers, @tramp{} issues a command like @command{rcp
+user@@host:/path/to/remote/file /tmp/tramp.4711} and then reads the local
+temporary file @file{/tmp/tramp.4711} into a buffer and deletes the
+temporary file.
+
+@item
+You now edit the buffer contents, blithely unaware of what has happened
+behind the scenes.  (Unless you have read this section, that is.)  When
+you are finished, you type @kbd{C-x C-s} to save the buffer.
+
+@item
+Again, @tramp{} transfers the file contents to the remote host either
+inline or out-of-band.  This is the reverse of what happens when reading
+the file.
+
+@end itemize
+
+I hope this has provided you with a basic overview of what happens
+behind the scenes when you open a file with @tramp{}.
+
+
+@c For the end user
+@node Obtaining @tramp{}
+@chapter Obtaining @tramp{}.
+
+@tramp{} is freely available on the Internet and the latest release may be
+downloaded from
+@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}. This
+release includes the full documentation and code for @tramp{}, suitable
+for installation.
+
+For the especially brave, @tramp{} is available from CVS. The CVS version
+is the latest version of the code and may contain incomplete features or
+new issues. Use these versions at your own risk.
+
+Instructions for obtaining the latest development version of @tramp{}
+from CVS can be found by going to the Savannah project page at
+@uref{http://savannah.gnu.org/projects/tramp/} and then clicking on the
+CVS link in the navigation bar at the top.  Or follow the example
+session below:
+
+@example
+] @strong{cd ~/lisp}
+] @strong{cvs -d:pserver:anoncvs@@subversions.gnu.org:/cvsroot/tramp login}
+
+(Logging in to anoncvs@@subversions.gnu.org)
+CVS password: @strong{(just hit RET here)}
+@dots{}
+
+] @strong{cvs -z3 -d:pserver:anoncvs@@subversions.gnu.org:/cvsroot/tramp co tramp}
+@end example
+
+You should now have a directory @file{~/lisp/tramp} containing the latest
+version of @tramp{}. You can fetch the latest updates from the repository
+by issuing the command:
+
+@example
+] @strong{cd ~/lisp/tramp}
+] @strong{cvs update -d}
+@end example
+
+
+@node History
+@chapter History of @tramp{}
+
+Development was started end of November 1998.  The package was called
+`rssh.el', back then.  It only provided one method to access a file,
+using @command{ssh} to log in to a remote host and using @command{scp}
+to transfer the file contents.  After a while, the name was changed to
+`rcp.el', and now it's @tramp{}.  Along the way, many more methods for
+getting a remote shell and for transferring the file contents were
+added.  Support for VC was added.
+
+The most recent addition of a major feature was the multi-hop methods
+added in April 2000.
+
+
+@node Installation
+@chapter Installing @tramp{} into Emacs or XEmacs
+
+Installing @tramp{} into your Emacs or XEmacs is a relatively easy
+process, at least compared to rebuilding your machine from scratch. ;)
+
+Seriously though, the installation should be a fairly simple matter.
+
+The easiest way to proceed is as follows:
+
+@itemize
+@item
+Choose a directory, say @file{~/emacs/}.  Change into that directory and
+unpack the tarball.  This will give you a directory
+@file{~/emacs/tramp/} which contains subdirectories @file{lisp} for the
+Lisp code and @file{texi} for the documentation.
+
+@item
+Optionally byte-compile all files in the Lisp directory,
+@file{~/emacs/tramp/lisp/}, by issuing a command like the following from
+the top level directory @file{~/emacs/tramp/}:
+@example
+make EMACS=emacs all            # for Emacs users
+make EMACS=xemacs all           # for XEmacs users
+@end example
+
+@item
+NOTE:
+@example
+If you run into problems running the example @command{make}
+commands, don't dispare.  You can still byte compile the
+@file{*.el} files by opening emacs in @command{dired}
+(@command{C-x d}) mode, at @file{~/tramp/lisp}.  Mark the lisp
+files with @command{m}, then press @command{B} to byte compile
+your selections.
+
+Something similar can be done to create the info manual.  
+Just cd to @file{~/emacs/tramp/texi} and load the @file{tramp.texi}
+file in emacs.  Then press @command{M-x makeinfo-buffer <RET>}
+to generate @file{tramp.info}.
+@end example     
+
+@item
+Tell Emacs about the new Lisp directory and the @tramp{} package 
+with the following lines in @file{~/.emacs}:
+@lisp
+(add-to-list 'load-path "~/emacs/tramp/lisp/")
+(require 'tramp)
+@end lisp
+
+@item
+To be able to read the Info documentation, create a file
+@file{~/emacs/tramp/texi/dir} using for example the
+@command{install-info} command, and add the directory to the search 
+path for Info.
+
+@item
+NOTE:
+@example
+On systems using `gnu' @command{install-info}, the
+@command{install-info} syntax is very direct and simple.  One can 
+cd to @file{~/emacs/tramp/texi} and type:
+    @command{install-info tramp.info dir}
+and a @file{dir} file will be created with the @tramp{}
+entry.  The info reader will know how to interpret it, but must
+be told where to find it (see below).  If you want anything fancier
+you'll need to look through @command{man install-info}.
+
+Debian gnu/linux doesn't default to `gnu' @command{install-info} and
+uses its own version.  This version does not create a @file{dir} file
+for you from scratch.  You must provide a skeleton dir file it
+recognizes.  One can be found in a default install at
+@file{/usr/info/dir}.  Copy the top of this file down to the first
+occurrence of `* Menu' including that line plus one more blank line,
+to your working directory @file{texi/dir}, or use the sample provided
+in the @file{texi} directroy of this distribution.  See
+@file{texi/dir_sample}
+
+Once a @file{dir} file is in place, this command will make the entry.
+     install-info --infodir=. tramp.info
+If you want it in a specific category
+   (see @command{man install-info} for further details)
+@end example
+
+If the environment variable @env{INFOPATH} is set, add the directory
+@file{~/emacs/tramp/texi/} to it.  Else, add the directory to
+@code{Info-default-directory-list}, as follows:
+@lisp
+(add-to-list 'Info-default-directory-list "~/emacs/tramp/texi/")
+@end lisp
+XEmacs 21 users should use @code{Info-directory-list} rather than
+@code{Info-default-directory-list}.
+
+@end itemize
+
+
+For XEmacs users, the package @command{fsf-compat} must be installed.
+For details on package installation, see @ref{Packages, , ,xemacs}.
+@ifhtml
+(If the previous link doesn't work, try the XEmacs documentation at
+@uref{http://www.xemacs.org/Documentation/packageGuide.html,the XEmacs
+site}.)
+@end ifhtml
+
+@node Configuration
+@chapter Configuring @tramp{} for use
+
+@tramp{} is (normally) fully functional when it is initially
+installed. It is initially configured to use the @command{rsh} and
+@command{rcp} programs to connect to the remote host.
+
+On some hosts, there are problems with opening a connection.  These are
+related to the behavior of the remote shell.  See @xref{Remote shell
+setup}, for details on this.
+
+If you do not wish to use these commands to connect to the remote host,
+you should change the default connection and transfer method that @tramp
+uses. There are several different methods that @tramp{} can use to
+connect to remote machines and transfer files (@pxref{Connection types}).
+
+
+@menu
+* Connection types::            Types of connections made to remote machines.
+* Inline methods::              Inline methods.
+* External transfer methods::   External transfer methods.
+* Multi-hop Methods::           Connecting to a remote host using multiple hops.
+* Default Method::              Selecting a default method.
+* Customizing Methods::         Using Non-Standard Methods.
+* Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
+* Remote shell setup::          Remote shell setup hints.
+* Windows setup hints::         Issues with Cygwin ssh.
+@end menu
+
+
+@node Connection types
+@section Types of connections made to remote machines.
+
+There are two basic types of transfer methods, each with its own
+advantages and limitations. Both types of connection make use of a
+remote shell access program such as @command{rsh}, @command{ssh} or
+@command{telnet} to connect to the remote machine.
+
+This connection is used to perform many of the operations that @tramp
+requires to make the remote file system transparently accessible from
+the local machine. It is only when visiting files that the methods
+differ.
+
+Loading or saving a remote file requires that the content of the file be
+transfered between the two machines. The content of the file can be
+transfered over the same connection used to log in to the remote machine
+or the file can be transfered through another connection using a remote
+copy program such as @command{rcp}, @command{scp} or @command{rsync}.
+The former are called @dfn{inline methods}, the latter are called
+@dfn{external transfer methods}.
+
+The performance of the external transfer methods is generally better
+than that of the inline methods.  This is caused by the need to encode
+and decode the data when transferring inline.
+
+The one exception to this rule are the @command{scp} based transfer
+methods.  While these methods do see better performance when actually
+transferring files, the overhead of the cryptographic negotiation at
+startup may drown out the improvement in file transfer times.
+
+External transfer methods do require that the remote copy command is not
+interactive --- that is, the command does not prompt you for a password.
+If you cannot perform remote copies without a password, you will need to
+use an inline transfer method to work with @tramp{}.
+
+A variant of the inline methods are the @dfn{multi-hop methods}.
+These methods allow you to connect a remote host using a number `hops',
+each of which connects to a different host.  This is useful if you are
+in a secured network where you need to go through a bastion host to
+connect to the outside world.
+
+
+@node Inline methods
+@section Inline methods
+
+The inline methods in @tramp{} are quite powerful and can work in
+situations where you cannot use an external transfer program to connect.
+Inline methods are the only methods that work when connecting to the
+remote machine via telnet.  (There are also strange inline methods which
+allow you to transfer files between @emph{user identities} rather than
+hosts, see below.)
+
+These methods depend on the existence of a suitable encoding and
+decoding command on remote machine. Locally, @tramp{} may be able to use
+features of Emacs to decode and encode the files or it may require
+access to external commands to perform that task.
+
+@tramp{} supports the use of @command{uuencode} to transfer files. This is
+@emph{not} recommended. The @command{uuencode} and @command{uudecode}
+commands are not well standardized and may not function correctly or at
+all on some machines, notably AIX and IRIX. These systems do not work
+with @command{uuencode} at all.  (But do see the note about AIX in the
+documentation for @var{tramp-methods}.)
+
+In summary, if possible use the @command{mimencode} methods to transfer
+the data base64 encoded. This has the advantage of using a built-in
+command in every modern Emacs, improving performance.
+
+@itemize
+@item @option{rm}  ---  @command{rsh} with @command{mimencode}
+
+Connect to the remote host with @command{rsh} and use base64 encoding to
+transfer files between the machines.
+
+This requires the @command{mimencode} command that is part of the
+@command{metamail} packages. This may not be installed on all remote
+machines.
+
+
+@item @option{sm}  ---  @command{ssh} with @command{mimencode}
+
+Connect to the remote host with @command{ssh} and use base64 encoding to
+transfer files between the machines.
+
+This is identical to the previous option except that the @command{ssh}
+package is used, making the connection more secure.
+
+There are also two variants, @option{sm1} and @option{sm2} that use the
+@command{ssh1} and @command{ssh2} commands explicitly. If you don't know
+what these are, you do not need these options.
+
+
+@item @option{tm}  ---  @command{telnet} with @command{mimencode}
+
+Connect to the remote host with @command{telnet} and use base64 encoding
+to transfer files between the machines.
+
+This requires the @command{mimencode} command that is part of the
+@command{metamail} packages.
+
+
+@item @option{ru}  ---  @command{rsh} with @command{uuencode}
+
+Connect to the remote host with @command{rsh} and use the
+@command{uuencode} and @command{uudecode} commands to transfer files
+between the machines.
+
+
+@item @option{su}  ---  @command{ssh} with @command{uuencode}
+
+Connect to the remote host with @command{ssh} and use the
+@command{uuencode} and @command{uudecode} commands to transfer files
+between the machines.
+
+As with the @command{ssh} and base64 option above, this provides the
+@option{su1} and @option{su2} methods to explicitly select an ssh
+version.
+
+Note that this method does not invoke the @command{su} program, see
+below for methods which use that.
+
+
+@item @option{tu}  ---  @command{telnet} with @command{uuencode}
+
+Connect to the remote host with @command{telnet} and use the
+@command{uuencode} and @command{uudecode} commands to transfer files
+between the machines.
+
+
+@item @option{sum} --- @command{su} with @command{mimencode}
+
+This method does not connect to a remote host at all, rather it uses the
+@command{su} program to allow you to edit files as another user.  Uses
+base64 encoding to transfer the file contents.
+
+
+@item @option{suu} --- @command{su} with @command{uuencode}
+
+Like @option{sum}, this uses the @command{su} program to allow you to
+edit files on the local host as another user.  Uses @command{uuencode}
+and @command{uudecode} to transfer the file contents.
+
+
+@item @option{sudm} --- @command{sudo} with @command{mimencode}
+
+This is similar to the @option{sum} method, but it uses @command{sudo}
+rather than @command{su} to become a different user.
+
+Note that @command{sudo} must be configured to allow you to start a
+shell as the user.  It would be nice if it was sufficient if
+@command{ls} and @command{mimencode} were allowed, but that is not easy
+to implement, so I haven't got around to it, yet.
+
+
+@item @option{sudu} --- @command{sudo} with @command{uuencode}
+
+This is similar to the @option{suu} method, but it uses @command{sudo}
+rather than @command{su} to become a different user.
+
+
+@item @option{smx} --- @command{ssh} with @command{mimencode}
+
+As you expect, this is similar to @option{sm}, only a little
+different.  Whereas @option{sm} opens a normal interactive shell on
+the remote host, this option uses @command{ssh -t -t HOST -l USER
+/bin/sh} tp open a connection.  This is useful for users where the
+normal login shell is set up to ask them a number of questions when
+logging in.  This procedure avoids these questions, and just gives
+@tramp{} a more-or-less `standard' login shell to work with.
+
+This is also useful for Windows users where @command{ssh}, when
+invoked from an Emacs buffer, tells them that it is not allocating a
+pseudo tty.  When this happens, the login shell is wont to not print
+any shell prompt, which confuses @tramp{} mightily.
+
+
+@item @option{km} --- @command{krlogin} with @command{mimencode}
+
+This method is also similar to @option{sm}.  It only uses the
+@command{krlogin -x} command to log in to the remote host.
+
+
+@item @option{plinku} --- @command{plink} with @command{uuencode}
+
+This method is mostly interesting for Windows users using the PuTTY
+implementation of SSH.  It uses @command{plink -ssh} to log in to the
+remote host.
+
+CCC: Do we have to connect to the remote host once from the command
+line to accept the SSH key?  Maybe this can be made automatic?
+
+@item @option{plinkm} --- @command{plink} with @command{mimencode}
+
+Like @option{plinku}, but uses base64 encoding instead of uu encoding.
+
+@end itemize
+
+
+
+@node External transfer methods
+@section External transfer methods
+
+The external transfer methods operate through multiple channels, using
+the remote shell connection for many actions while delegating file
+transfers to an external transfer utility.
+
+This saves the overhead of encoding and decoding that multiplexing the
+transfer through the one connection has with the inline methods.
+
+If you want to use an external transfer method you @emph{must} be able
+to execute the transfer utility to copy files to and from the remote
+machine without any interaction.
+
+This means that you will need to use @command{ssh-agent} if you use the
+@command{scp} program for transfers, or maybe your version of
+@command{scp} accepts a password on the command line.@footnote{PuTTY's
+@command{pscp} allows you to specify the password on the command line.}
+If you use @command{rsync} via @command{ssh} then the same rule must
+apply to that connection.
+
+If you cannot get @command{scp} to run without asking for a password but
+would still like to use @command{ssh} to secure your connection, have a
+look at the @command{ssh} based inline methods.
+
+
+@itemize
+@item @option{rcp}  ---  @command{rsh} and @command{rcp}
+
+This method uses the @command{rsh} and @command{rcp} commands to connect
+to the remote machine and transfer files. This is probably the fastest
+connection method available.
+
+
+@item @option{scp}  ---  @command{ssh} and @command{scp}
+
+Using @command{ssh} to connect to the remote host and @command{scp} to
+transfer files between the machines is the best method for securely
+connecting to a remote machine and accessing files.
+
+The performance of this option is also quite good. It may be slower than
+the inline methods when you often open and close small files however.
+The cost of the cryptographic handshake at the start of an @command{scp}
+session can begin to absorb the advantage that the lack of encoding and
+decoding presents.
+
+
+@item @option{rsync}  ---  @command{ssh} and @command{rsync}
+
+Using the @command{ssh} command to connect securely to the remote
+machine and the @command{rsync} command to transfer files is almost
+identical to the @option{scp} method.
+
+While @command{rsync} performs much better than @command{scp} when
+transferring files that exist on both hosts, this advantage is lost if
+the file exists only on one side of the connection.
+
+The @command{rsync} based method may be considerably faster than the
+@command{rcp} based methods when writing to the remote system. Reading
+files to the local machine is no faster than with a direct copy. 
+
+
+@item @option{scpx} --- @command{ssh} and @command{scp}
+
+As you expect, this is similar to @option{scp}, only a little
+different.  Whereas @option{scp} opens a normal interactive shell on the
+remote host, this option uses @command{ssh -t -t HOST -l USER /bin/sh} to
+open a connection.  This is useful for users where the normal login
+shell is set up to ask them a number of questions when logging in.  This
+procedure avoids these questions, and just gives @tramp{} a more-or-less
+`standard' login shell to work with. 
+
+This is also useful for Windows users where @command{ssh}, when
+invoked from an Emacs buffer, tells them that it is not allocating a
+pseudo tty.  When this happens, the login shell is wont to not print
+any shell prompt, which confuses @tramp{} mightily.
+
+
+@item @option{pscp} --- @command{plink} and @command{pscp}
+
+This method is similar to @option{scp}, but it uses the
+@command{plink} command to connect to the remote host, and it uses
+@command{pscp} for transferring the files.  These programs are part
+of PuTTY, an SSH implementation for Windows.
+
+
+@item @option{fcp} --- @command{fsh} and @command{fcp}
+
+This method is similar to @option{scp}, but it uses the @command{fsh}
+command to connect to the remote host, and it uses @command{fcp} for
+transferring the files.  @command{fsh/fcp} are a front-end for
+@command{ssh} which allow for reusing the same @command{ssh} session
+for submitting several commands.  This avoids the startup overhead of
+@command{scp} (which has to establish a secure connection whenever it
+is called).  Note, however, that you can also use one of the inline
+methods to achieve a similar effect.
+
+This method uses the command @command{fsh HOST -l USER /bin/sh -i} to
+establish the connection, it does not work to just say @command{fsh
+HOST -l USER}.
+
+@end itemize
+
+@node Multi-hop Methods
+@section Connecting to a remote host using multiple hops
+
+Sometimes, the methods described before are not sufficient.  Sometimes,
+it is not possible to connect to a remote host using a simple command.
+For example, if you are in a secured network, you might have to log in
+to a `bastion host' first before you can connect to the outside world.
+Of course, the target host may also require a bastion host.  The format
+of multi-hop filenames is slightly different than the format of normal
+@tramp{} methods.
+
+A multi-hop file name specifies a method, a number of hops, and a path
+name on the remote system.  The method specifies how the file is
+transferred through the inline connection.  The following two multi-hop
+methods are available:
+
+@itemize
+@item @option{multi} --- base64 encoding with @command{mimencode}
+
+The file is transferred through the connection in base64 encoding.  Uses
+the @command{mimencode} program for doing encoding and decoding, but
+uses an Emacs internal implementation on the local host if available.
+
+@item @option{multiu} --- use commands @command{uuencode} and @command{uudecode}
+
+The file is transferred through the connection in `uu' encoding.  Uses
+the @command{uuencode} and @command{uudecode} programs for encoding and
+decoding, but uses a Lisp implementation for decoding on the local host
+if available.
+
+@end itemize
+
+Each hop consists of a @dfn{hop method} specification, a user name and a
+host name.  The following hop methods are (currently) available:
+
+@itemize
+@item @option{telnet}
+
+Uses the well-known @command{telnet} program to connect to the host.
+Whereas user name and host name are supplied in the file name, the
+user is queried for the password.
+
+@item @option{rsh}
+
+This uses @command{rsh} to connect to the host.  You do not need to
+enter a password unless @command{rsh} explicitly asks for it.
+
+@item @option{ssh}
+
+This uses @command{ssh} to connect to the host.  You might have to enter
+a password or a pass phrase.
+
+@item @option{su}
+
+This method does not actually contact a different host, but it allows
+you to become a different user on the host you're currently on.  This
+might be useful if you want to edit files as root, but the remote host
+does not allow remote root logins.  In this case you can use
+@option{telnet}, @option{rsh} or @option{ssh} to connect to the
+remote host as a non-root user, then use an @option{su} hop to become
+root.  But @option{su} need not be the last hop in a sequence, you could
+also use it somewhere in the middle, if the need arises.
+
+Even though you @emph{must} specify both user and host with a
+@option{su} hop, the host name is ignored and only the user name is
+used.
+
+@item @option{sudo}
+
+This is similar to the @option{su} hop, except that it uses
+@command{sudo} rather than @command{su} to become a different user.
+
+@end itemize
+
+Some people might wish to use port forwarding with @code{ssh} or maybe
+they have to use a nonstandard port.  This can be accomplished by
+putting a stanza in @file{~/.ssh/config} for the account which specifies
+a different port number for a certain host name.  But it can also be
+accomplished within Tramp, by adding a multi-hop method.  For example:
+
+@lisp
+(add-to-list 'tramp-multi-connection-function-alist
+             '("sshf" tramp-multi-connect-rlogin "ssh %h -l %u -p 4400%n"))
+@end lisp
+
+Now you can use a @code{sshf} hop which connects to port 4400 instead of
+the standard port.
+
+
+@node Default Method
+@section Selecting a default method
+
+When you select an appropriate transfer method for your typical usage
+you should set the variable @var{tramp-default-method} to reflect that
+choice. This variable controls which method will be used when a method
+is not specified in the @tramp{} file path.  For example:
+
+@lisp
+(setq tramp-default-method "scp")
+@end lisp
+
+External transfer methods are normally preferable to inline transfer
+methods, giving better performance. They may not be useful if you use
+many remote machines where you cannot log in without a password.
+
+@xref{Inline methods}.
+@xref{External transfer methods}.
+@xref{Multi-hop Methods}.
+
+Another consideration with the selection of transfer methods is the
+environment you will use them in and, especially when used over the
+Internet, the security implications of your preferred method.
+
+The @command{rsh} and @command{telnet} methods send your password as
+plain text as you log in to the remote machine, as well as transferring
+the files in such a way that the content can easily be read from other
+machines.
+
+If you need to connect to remote systems that are accessible from the
+Internet, you should give serious thought to using @command{ssh} based
+methods to connect. These provide a much higher level of security,
+making it a non-trivial exercise for someone to obtain your password or
+read the content of the files you are editing.
+
+@node Customizing Methods
+@section Using Non-Standard Methods
+
+There is a variable @code{tramp-methods} which you can change if the
+predefined methods don't seem right.
+
+For the time being, I'll refer you to the Lisp documentation of that
+variable, accessible with @kbd{C-h v tramp-methods @key{RET}}.
+
+
+@node Remote Programs
+@section How @tramp{} finds and uses programs on the remote machine.
+
+@tramp{} depends on a number of programs on the remote host in order to
+function, including @command{ls}, @command{test}, @command{find} and
+@command{cat}.
+
+In addition to these required tools, there are various tools that may be
+required based on the connection method. See @ref{Inline methods} and
+@ref{External transfer methods} for details on these.
+
+Certain other tools, such as @command{perl} (or @command{perl5}) and
+@command{grep} will be used if they can be found. When they are
+available, they are used to improve the performance and accuracy of
+remote file access.
+
+When @tramp{} connects to the remote machine, it searches for the
+programs that it can use. The variable @var{tramp-remote-path} controls
+the directories searched on the remote machine.
+
+By default, this is set to a reasonable set of defaults for most
+machines. It is possible, however, that your local (or remote ;) system
+administrator has put the tools you want in some obscure local
+directory.
+
+In this case, you can still use them with @tramp{}. You simply need to
+add code to your @file{.emacs} to add the directory to the remote path.
+This will then be searched by @tramp{} when you connect and the software
+found.
+
+To add a directory to the remote search path, you could use code such
+as:
+
+@example
+(require 'tramp)                @i{; @tramp{} must be loaded before this}
+                                @i{; happens.}
+
+@i{; We have @command{perl} in "/usr/local/perl"}
+(add-to-list 'tramp-remote-path "/usr/local/perl")
+@end example
+
+@node Remote shell setup
+@comment  node-name,  next,  previous,  up
+@section Remote shell setup hints
+
+As explained in the @ref{Overview} section, @tramp{} connects to the
+remote host and talks to the shell it finds there.  Of course, when you
+log in, the shell executes its init files.  Suppose your init file
+requires you to enter the birthdate of your mother; clearly @tramp{}
+does not know this and hence fails to log you in to that host.
+
+There are different possible strategies for pursuing this problem.  One
+strategy is to enable @tramp{} to deal with all possible situations.
+This is a losing battle, since it is not possible to deal with
+@emph{all} situations.  The other strategy is to require you to set up
+the remote host such that it behaves like @tramp{} expect.  This might
+be inconvenient because you have to invest a lot of effort into shell
+setup before you can begin to use @tramp{}.
+
+The package, therefore, pursues a combined approach.  It tries to figure
+out some of the more common setups, and only requires you to avoid
+really exotic stuff.  For example, it looks through a list of
+directories to find some programs on the remote host.  And also, it
+knows that it is not obvious how to check whether a file exist, and
+therefore it tries different possibilities.  (On some hosts and shells,
+the command @code{test -e} does the trick, on some hosts the shell
+builtin doesn't work but the program @code{/usr/bin/test -e} or
+@code{/bin/test -e} works.  And on still other hosts, @code{ls -d} is
+the right way to do this.)
+
+Below you find a discussion of a few things that @tramp{} does not deal
+with, and that you therefore have to set up correctly.
+
+@itemize
+@item @code{shell-prompt-pattern}
+
+@vindex shell-prompt-pattern
+After logging in to the remote host, @tramp{} has to wait for the remote
+shell startup to finish before it can send commands to the remote
+shell.  The strategy here is to wait for the shell prompt.  In order to
+recognize the shell prompt, the variable @code{shell-prompt-pattern} has
+to be set correctly to recognize the shell prompt on the remote host.
+
+@item @code{tset} and other questions
+
+Some people invoke the @code{tset} program from their shell startup
+scripts which asks the user about the terminal type of the shell.  Maybe
+some shells ask other questions when they are started.  @tramp{} does
+not know how to answer these questions.  (A facility for enabling
+@tramp{} to answer these questions is planned for some future version,
+but don't hold your breath.)
+
+Therefore, you should take care that the shell does not ask any
+questions when invoked from @tramp{}.  You can do this by checking the
+@code{TERM} environment variable, it will be set to @code{dumb} when
+connecting.
+
+@vindex tramp-terminal-type
+The variable @code{tramp-terminal-type} can be used to change this value
+@code{dumb}.
+
+@end itemize
+
+
+@node Windows setup hints
+@section Issues with Cygwin ssh
+
+This section needs a lot of work!  Please help.
+
+If you use the Cygwin installation of ssh (you have to explicitly select
+it in the installer), then it should work out of the box to just select
+@code{smx} as the connection method.  You can find information about
+setting up Cygwin in their FAQ at @uref{http://cygwin.com/faq/}.
+
+
+@node Usage
+@chapter Using @tramp
+
+Once you have installed @tramp{} it will operate fairly transparently. You
+will be able to access files on any remote machine that you can log in
+to as though they were local.
+
+Files are specified to @tramp{} using a formalized syntax specifying the
+details of the system to connect to. This is similar to the syntax used
+by the @command{EFS} and @command{ange-ftp} packages.
+
+
+@menu
+* Filename Syntax::             @tramp{} filename conventions.
+* Multi-hop filename syntax::   Multi-hop filename conventions
+* Dired::                       Dired and filename completion.
+@end menu
+
+
+@node Filename Syntax
+@section @tramp{} filename conventions
+
+To access the file <path> on the remote machine <machine> you would
+specify the filename @file{/[<machine>]<path>}.  (The square brackets
+are part of the file name.)  This will connect to <machine> and transfer
+the file using the default method.  @xref{Default Method}.
+
+Some examples of @tramp{} filenames are:
+
+@table @file
+@item /[melancholia].emacs
+Edit the file @file{.emacs} in your home directory on the machine
+@code{melancholia}.
+
+@item /[melancholia.danann.net].emacs
+This edits the same file, using the fully qualified domain name of
+the machine.
+
+@item /[melancholia]~/.emacs
+This also edits the same file --- the @file{~} is expanded to your
+home directory on the remote machine, just like it is locally.
+
+@item /[melancholia]~daniel/.emacs
+This edits the file @file{.emacs} in the home directory of the user
+@code{daniel} on the machine @code{melancholia}. The @file{~<user>}
+construct is expanded to the home directory of that user on the remote
+machine.
+
+@item /[melancholia]/etc/squid.conf
+This edits the file @file{/etc/squid.conf} on the machine
+@code{melancholia}.
+
+@end table
+
+
+Unless you specify a different name to use, @tramp{} will use the current
+local user name as the remote user name to log in with. If you need to
+log in as a different user, you can specify the user name as part of the
+filename.
+
+To log in to the remote machine as a specific user, you use the syntax
+@file{/[<user>@@<machine>]/path/to.file}.  That means that connecting to
+@code{melancholia} as @code{daniel} and editing @file{.emacs} in your
+home directory you would specify @file{/[daniel@@melancholia].emacs}.
+
+
+It is also possible to specify other file transfer methods
+(@pxref{Default Method}) as part of the filename.  This is done by
+replacing the initial @file{/[} with @file{/[<method>/}.  (Note the
+trailing slash!)  The user, machine and file specification remain the
+same.
+
+So, to connect to the machine @code{melancholia} as @code{daniel}, using
+the @option{su} method to transfer files, and edit @file{.emacs} in my
+home directory I would specify the filename
+@file{/[su/daniel@@melancholia].emacs}.
+
+
+@node Multi-hop filename syntax
+@section Multi-hop filename conventions
+
+The syntax of multi-hop file names is necessarily slightly different
+than the syntax of other @tramp{} file names.  Here's an example multi-hop
+file name:
+
+@file{/[multi/rsh:out@@gate/telnet:kai@@real.host]/path/to.file}
+
+This is quite a mouthful.  So let's go through it step by step.  The
+file name consists of three parts, separated by slashes and square
+brackets.  The first part is @file{/[multi}, the method specification.
+The second part is @file{rsh:out@@gate/telnet:kai@@real.host} and
+specifies the hops.  (Yes, the second part may contain even more
+slashes, so that's why this file name has more than two colons in it.)
+The final part is @file{/path/to.file} and specifies the file name on
+the remote host.
+
+The first part and the final part should be clear.  @ref{Multi-hop
+Methods}, for a list of alternatives for the method specification.
+
+The second part can be subdivided again into components, so-called hops.
+In the above file name, there are two hops, @file{rsh:out@@gate} and
+@file{telnet:kai@@real.host}.
+
+Each hop can @emph{again} be subdivided into (three) components, the
+@dfn{hop method}, the @dfn{user name} and the @dfn{host name}.  The
+meaning of the second and third component should be clear, and the hop
+method says what program to use to perform that hop.
+
+The first hop, @file{rsh:out@@gate}, says to use @command{rsh} to log in
+as user @code{out} to the host @code{gate}.  Starting at that host, the
+second hop, @file{telnet:kai@@real.host}, says to use @command{telnet}
+to log in as user @code{kai} to host @code{real.host}.
+
+@xref{Multi-hop Methods}, for a list of possible hop method values.  The
+variable @var{tramp-multi-connection-function-alist} contains the list of
+possible hop methods and information on how to execute them, should you
+want to add your own.
+
+
+@node Dired
+@section Dired and filename completion
+
+@tramp{} works transparently with dired, enabling you to use this powerful
+file management tool to manage files on any machine you have access to
+over the Internet.
+
+Filename completion also works with @tramp{} for files on remote machines
+although there is no completion for user names or machine names at this
+stage.
+
+As filename completion needs to fetch the listing of files from the
+remote machine, this feature is sometimes fairly slow. As @tramp{} does not
+yet cache the results of directory listing, there is no gain in
+performance the second time you complete filenames.
+
+If you need to browse a directory tree, Dired is a better choice, at
+present, than filename completion. Dired has its own cache mechanism
+and will only fetch the directory listing once.
+
+
+@node Bug Reports
+@chapter Reporting Bugs and Problems
+
+Bugs and problems with @tramp{} are actively worked on by the development
+team. Feature requests and suggestions are also more than welcome.
+
+The @tramp{} mailing list is a great place to get information on working
+with @tramp{}, solving problems and general discussion and advice on topics
+relating to the package.
+
+The  mailing list is at @email{tramp-devel@@mail.freesoftware.fsf.org}.
+Messages sent to this address go to all the subscribers. This is
+@emph{not} the address to send subscription requests to.
+
+For help on subscribing to the list, send mail to the administrative
+address, @email{tramp-devel-request@@mail.freesoftware.fsf.org}, with the
+subject @samp{help}.
+
+To report a bug in @tramp{}, you should execute @kbd{M-x tramp-bug}. This
+will automatically generate a buffer with the details of your system and
+@tramp{} version.
+
+When submitting a bug report, please try to describe in excruciating
+detail the steps required to reproduce the problem, the setup of the
+remote machine and any special conditions that exist.
+
+If you can identify a minimal test case that reproduces the problem,
+include that with your bug report. This will make it much easier for the
+development team to analyze and correct the problem.
+
+@node Frequently Asked Questions
+@chapter Frequently Asked Questions
+
+@itemize @bullet
+@item Where can I get the latest @tramp{}?
+
+@tramp{} is available at
+@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}.
+There is also a Savannah project page, at
+@uref{https://savannah.gnu.org/projects/tramp/}.
+
+
+@item Which systems does it work on?
+
+The package has been used successfully on Emacs 20 and Emacs 21, as well
+as XEmacs 21.  XEmacs 20 is more problematic, see the notes in
+@file{tramp.el}.  I don't think anybody has really tried it on Emacs 19.
+
+The package was intended to work on Unix, and it really expects a
+Unix-like system on the remote end, but some people seemed to have some
+success getting it to work on NT Emacs.
+
+There are some informations on Tramp on NT at the following URL; many
+thanks to Joe Stoy for providing the information:
+@uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
+
+The above mostly contains patches to old ssh versions; Tom Roche has a
+Web page with instructions:
+@uref{http://www4.ncsu.edu/~tlroche/plinkTramp.html}
+
+??? Is the XEmacs info correct?
+
+??? Can somebody provide some information for getting it to work on NT
+Emacs?  I think there was some issue with @command{ssh}?
+
+
+@item I can't stop EFS starting with XEmacs
+
+Not all the older versions of @tramp{} supported XEmacs correctly. The
+first thing to do is to make sure that you have the latest version of
+@tramp{} installed.
+
+If you do, please try and find out exactly the conditions required for
+the @code{EFS} handlers to fire. If you can, putting a breakpoint on
+@code{efs-ftp-path} and sending in the stack trace along with your bug
+report would make it easier for the developers to work out what is going
+wrong.
+
+
+@item File name completion does not work with @tramp{}
+
+When you log in to the remote machine, do you see the output of
+@command{ls} in color? If so, this may be the cause of your problems.
+
+@command{ls} outputs @acronym{ANSI} escape sequences that your terminal
+emulator interprets to set the colors. These escape sequences will
+confuse @tramp{} however.
+
+In your @file{.bashrc}, @file{.profile} or equivalent on the remote
+machine you probably have an alias configured that adds the option
+@option{--color=yes} or @option{--color=auto}.
+
+You should remove that alias and ensure that a new login @emph{does not}
+display the output of @command{ls} in color. If you still cannot use
+filename completion, report a bug to the @tramp{} developers.
+
+
+@item File name completion does not work in large directories
+
+@tramp{} uses globbing for some operations.  (Globbing means to use the
+shell to expand wildcards such as `*.c'.)  This might create long
+command lines, especially in directories with many files.  Some shell
+choke on long command lines, or don't cope well with the globbing
+itself.
+
+If you have a large directory on the remote end, you may wish to execute
+a command like @command{ls -d * ..?* > /dev/null} and see if it hangs.
+Note that you must first start the right shell, which might be
+@command{/bin/sh}, @command{ksh} or @command{bash}, depending on which
+of those supports tilde expansion.
+
+
+@item What kinds of systems does @tramp{} work on
+
+@tramp{} really expects the remote system to be a Unix-like system.  The
+local system should preferably be Unix-like, as well, but @tramp{} might
+work on NT with some tweaking.
+
+
+@item How can I get notified when @tramp{} file transfers are complete?
+
+The following snippet can be put in your @file{~/.emacs} file.  It makes
+Emacs beep after reading from or writing to the remote host.
+
+@lisp
+(defadvice tramp-handle-write-region
+  (after tramp-write-beep-advice activate)
+ " make tramp beep after writing a file."
+ (interactive)
+ (beep))
+(defadvice tramp-handle-do-copy-or-rename-file
+  (after tramp-copy-beep-advice activate)
+ " make tramp beep after copying a file."
+ (interactive)
+ (beep))
+(defadvice tramp-handle-insert-file-contents
+  (after tramp-copy-beep-advice activate)
+ " make tramp beep after copying a file."
+ (interactive)
+ (beep))
+@end lisp
+
+
+@item There's this @file{~/.sh_history} file on the remote host which
+  keeps growing and growing.  What's that?
+
+Sometimes, @tramp{} starts @code{ksh} on the remote host for tilde
+expansion.  Maybe @code{ksh} saves the history by default.  @tramp{}
+tries to turn off saving the history, but maybe you have to help.  For
+example, you could put this in your @file{.kshrc}:
+
+@example
+if [ -f $HOME/.sh_history ] ; then
+   /bin/rm $HOME/.sh_history
+fi
+if [ "$@{HISTFILE-unset@}" != "unset" ] ; then
+   unset HISTFILE
+fi
+if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
+   unset HISTSIZE
+fi
+@end example
+
+@end itemize
+
+
+@c For the developer
+@node Version Control
+@chapter The inner workings of remote version control
+
+Unlike EFS and ange-ftp, @tramp{} has full shell access to the remote
+machine. This makes it possible to provide version control for files
+accessed under @tramp{}.
+
+The actual version control binaries must be installed on the remote
+machine, accessible in the directories specified in
+@var{tramp-remote-path}.
+
+This transparent integration with the version control systems is one of
+the most valuable features provided by @tramp{}, but it is far from perfect.
+Work is ongoing to improve the transparency of the system.
+
+@menu
+* Version Controlled Files::    Determining if a file is under version control.
+* Remote Commands::             Executing the version control commands on the remote machine.
+* Changed workfiles::           Detecting if the working file has changed.
+* Checking out files::          Bringing the workfile out of the repository.
+* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere
+@end menu
+
+
+@node Version Controlled Files
+@section Determining if a file is under version control
+
+The VC package uses the existence of on-disk revision control master
+files to determine if a given file is under revision control. These file
+tests happen on the remote machine through the standard @tramp{} mechanisms.
+
+
+@node Remote Commands
+@section Executing the version control commands on the remote machine
+
+There are no hooks provided by VC to allow intercepting of the version
+control command execution. The calls occur through the
+@code{call-process} mechanism, a function that is somewhat more
+efficient than the @code{shell-command} function but that does not
+provide hooks for remote execution of commands.
+
+To work around this, the functions @code{vc-do-command} and
+@code{vc-simple-command} have been advised to intercept requests for
+operations on files accessed via @tramp{}.
+
+In the case of a remote file, the @code{shell-command} interface is
+used, with some wrapper code, to provide the same functionality on the
+remote machine as would be seen on the local machine. 
+
+
+@node Changed workfiles
+@section Detecting if the working file has changed
+
+As there is currently no way to get access to the mtime of a file on a
+remote machine in a portable way, the @code{vc-workfile-unchanged-p}
+function is advised to call an @tramp{} specific function for remote files.
+
+The @code{tramp-vc-workfile-unchanged-p} function uses the functioning VC
+diff functionality to determine if any changes have occurred between the
+workfile and the version control master.
+
+This requires that a shell command be executed remotely, a process that
+is notably heavier-weight than the mtime comparison used for local
+files. Unfortunately, unless a portable solution to the issue is found,
+this will remain the cost of remote version control.
+
+
+@node Checking out files
+@section Bringing the workfile out of the repository
+
+VC will, by default, check for remote files and refuse to act on them
+when checking out files from the repository. To work around this
+problem, the function @code{vc-checkout} knows about @tramp{} files and
+allows version control to occur.
+
+
+@node Miscellaneous Version Control
+@section Things related to Version Control that don't fit elsewhere
+
+Minor implementation details, &c.
+
+@menu
+* Remote File Ownership::       How VC determines who owns a workfile.
+* Back-end Versions::           How VC determines what release your RCS is.
+@end menu
+
+
+@node Remote File Ownership
+@subsection How VC determines who owns a workfile
+
+Emacs provides the @code{user-full-name} function to return the login name
+of the current user as well as mapping from arbitrary user id values
+back to login names. The VC code uses this functionality to map from the
+uid of the owner of a workfile to the login name in some circumstances.
+
+This will not, for obvious reasons, work if the remote system has a
+different set of logins. As such, it is necessary to delegate to the
+remote machine the job of determining the login name associated with a
+uid.
+
+Unfortunately, with the profusion of distributed management systems such
+as @code{NIS}, @code{NIS+} and @code{NetInfo}, there is no simple,
+reliable and portable method for performing this mapping.
+
+Thankfully, the only place in the VC code that depends on the mapping of
+a uid to a login name is the @code{vc-file-owner} function. This returns
+the login of the owner of the file as a string.
+
+This function has been advised to use the output of @command{ls} on the
+remote machine to determine the login name, delegating the problem of
+mapping the uid to the login to the remote system which should know more
+about it than I do.
+
+
+@node Back-end Versions
+@subsection How VC determines what release your RCS is
+
+VC needs to know what release your revision control binaries you are
+running as not all features VC supports are available with older
+versions of @command{rcs(1)}, @command{cvs(1)} or @command{sccs(1)}.
+
+The default implementation of VC determines this value the first time it
+is needed and then stores the value globally to avoid the overhead of
+executing a process and parsing its output each time the information is
+needed.
+
+Unfortunately, life is not quite so easy when remote version control
+comes into the picture. Each remote machine may have a different version
+of the version control tools and, while this is painful, we need to
+ensure that unavailable features are not used remotely.
+
+To resolve this issue, @tramp{} currently takes the sledgehammer
+approach of making the release values of the revision control tools
+local to each @tramp{} buffer, forcing VC to determine these values
+again each time a new file is visited.
+
+This has, quite obviously, some performance implications. Thankfully,
+most of the common operations performed by VC do not actually require
+that the remote version be known. This makes the problem far less
+apparent.
+
+Eventually these values will be captured by @tramp{} on a system by
+system basis and the results cached to improve performance.
+
+
+@node Files directories and paths
+@chapter How file names, directories and paths are mangled and managed.
+
+@menu
+* Path deconstruction::         Breaking a path into its components.
+@end menu
+
+
+@node Path deconstruction
+@section Breaking a path into its components.
+
+@tramp{} filenames are somewhat different, obviously, to ordinary path
+names. As such, the lisp functions @code{file-name-directory} and
+@code{file-name-nondirectory} are overridden within the @tramp{} package.
+
+Their replacements are reasonably simplistic in their approach. They
+dissect the filename, call the original handler on the remote path and
+then rebuild the @tramp{} path with the result.
+
+This allows the platform specific hacks in the original handlers to take
+effect while preserving the @tramp{} path information.
+
+
+@node Issues
+@chapter Debatable Issues and What Was Decided
+
+@itemize @bullet
+@item The uuencode method does not always work.
+
+Due to the design of @tramp{}, the encoding and decoding programs need to
+read from stdin and write to stdout.  On some systems, @code{uudecode -o
+-} will read stdin and write the decoded file to stdout, on other
+systems @code{uudecode -p} does the same thing.  But some systems have
+uudecode implementations which cannot do this at all---it is not
+possible to call these uudecode implementations with suitable parameters
+so that they write to stdout.
+
+Of course, this could be circumvented: the @code{begin foo 644} line
+could be rewritten to put in some temporary file name, then
+@code{uudecode} could be called, then the temp file could be printed and
+deleted.
+
+But I have decided that this is too fragile to reliably work, so on some
+systems you'll have to do without the uuencode methods.
+
+@item @tramp{} does not work on XEmacs 20.
+
+This is because it requires the macro @code{with-timeout} which does not
+appear to exist in XEmacs 20.  I'm somewhat reluctant to add an
+emulation macro to @tramp{}, but if somebody who uses XEmacs 20 steps
+forward and wishes to implement and test it, please contact me or the
+mailing list.
+
+@end itemize
+
+
+@c End of tramp.texi - the TRAMP User Manual
+@bye
+
+@c TODO
+@c
+@c * Say something about the .login and .profile files of the remote
+@c   shells.
+@c * Explain how tramp.el works in principle: open a shell on a remote
+@c   host and then send commands to it.
+
+@c Local Variables:
+@c eval: (add-hook 'write-file-hooks 'time-stamp)
+@c time-stamp-start: "@set UPDATED "
+@c time-stamp-format: "%:a, %:d %:b, %:y"
+@c time-stamp-end: "$"
+@c time-stamp-line-limit: 50
+@c End:
