@@ -80,9 +80,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 					       - TOTAL_LENGTH ((i)->right) \
 					       - TOTAL_LENGTH ((i)->left)))
 
-/* The absolute index of the last character belonging to I.  Note that
+/* The position of the character just past the end of I.  Note that
    the position cache i->position must be valid for this to work. */
-#define INTERVAL_LAST_POS(i) ((i)->position + LENGTH ((i)) - 1)
+#define INTERVAL_LAST_POS(i) ((i)->position + LENGTH ((i)))
 
 /* The total size of the left subtree of this interval. */
 #define LEFT_TOTAL_LENGTH(i) ((i)->left ? (i)->left->total_length : 0)
