@@ -811,9 +811,13 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	      (save-excursion
 		(goto-char comstart)
 		(if has-code-and-comment
-		    (concat (make-string (/ (current-column) tab-width) ?\t)
-			    (make-string (% (current-column) tab-width) ?\ )
-			    (buffer-substring (point) comin))
+		    (concat
+		     (if (not indent-tabs-mode)
+			 (make-string (current-column) ?\ )
+		       (concat
+			(make-string (/ (current-column) tab-width) ?\t)
+			(make-string (% (current-column) tab-width) ?\ )))
+		     (buffer-substring (point) comin))
 		  (buffer-substring (line-beginning-position) comin))))
 	     beg end)
 	(save-excursion
