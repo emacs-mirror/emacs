@@ -2169,9 +2169,8 @@ extern struct frame *tip_frame;
 extern Window tip_window;
 EXFUN (Fx_show_tip, 4);
 EXFUN (Fx_hide_tip, 0);
-EXFUN (Fx_show_busy_cursor, 0);
-EXFUN (Fx_hide_busy_cursor, 1);
-extern int inhibit_busy_cursor;
+extern void start_busy_cursor P_ ((void));
+extern void cancel_busy_cursor P_ ((void));
 extern int display_busy_cursor_p;
 
 #endif /* HAVE_WINDOW_SYSTEM */
