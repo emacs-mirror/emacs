@@ -1,3 +1,7 @@
+2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info/dir: Change the category to "Emacs".
+
 2000-12-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist (tempdir): Remove epaths.h from the distribution

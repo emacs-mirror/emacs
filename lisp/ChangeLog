@@ -1,5 +1,7 @@
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/mule.el (make-char): Fix last change.
+
 	* textmode/texinfo.el (texinfo-open-quote, texinfo-close-quote):
 	New defcustoms.
 	(texinfo-insert-quote): Don't call tex-insert-quote, to avoid
