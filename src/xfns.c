@@ -39,6 +39,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
+#include "paths.h"
 
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
@@ -144,6 +145,9 @@ Lisp_Object Vx_no_window_manager;
 /* `t' if a mouse button is depressed. */
 
 Lisp_Object Vmouse_depressed;
+
+/* Search path for bitmap files.  */
+Lisp_Object Vx_bitmap_file_path;
 
 /* For now, we have just one x_display structure since we only support
    one X display.  */
@@ -386,6 +390,8 @@ struct x_bitmap_record
   Pixmap pixmap;
   char *file;
   int refcount;
+  /* Record some info about this pixmap.  */
+  int height, width, depth;
 };
 
 /* Pointer to bitmap records.  */
@@ -399,6 +405,33 @@ static int x_bitmaps_last;
 
 /* Count of free bitmaps before X_BITMAPS_LAST.  */
 static int x_bitmaps_free;
+
+/* Functions to access the contents of a bitmap, given an id.  */
+
+int
+x_bitmap_height (f, id)
+     FRAME_PTR f;
+     int id;
+{
+  return x_bitmaps[id - 1].height;
+}
+
+int
+x_bitmap_width (f, id)
+     FRAME_PTR f;
+     int id;
+{
+  return x_bitmaps[id - 1].width;
+}
+
+int
+x_bitmap_pixmap (f, id)
+     FRAME_PTR f;
+     int id;
+{
+  return x_bitmaps[id - 1].pixmap;
+}
+
 
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
@@ -438,7 +471,8 @@ x_allocate_bitmap_record ()
 /* Add one reference to the reference count of the bitmap with id ID.  */
 
 void
-x_reference_bitmap (id)
+x_reference_bitmap (f, id)
+     FRAME_PTR f;
      int id;
 {
   ++x_bitmaps[id - 1].refcount;
@@ -465,6 +499,9 @@ x_create_bitmap_from_data (f, bits, width, height)
   x_bitmaps[id - 1].pixmap = bitmap;
   x_bitmaps[id - 1].file = NULL;
   x_bitmaps[id - 1].refcount = 1;
+  x_bitmaps[id - 1].depth = 1;
+  x_bitmaps[id - 1].height = height;
+  x_bitmaps[id - 1].width = width;
 
   return id;
 }
@@ -474,34 +511,48 @@ x_create_bitmap_from_data (f, bits, width, height)
 int
 x_create_bitmap_from_file (f, file)
      struct frame *f;
-     char *file;
+     Lisp_Object file;
 {
   unsigned int width, height;
   Pixmap bitmap;
   int xhot, yhot, result, id;
+  Lisp_Object found;
+  int fd;
+  char *filename;
 
   /* Look for an existing bitmap with the same name.  */
   for (id = 0; id < x_bitmaps_last; ++id)
     {
       if (x_bitmaps[id].refcount
 	  && x_bitmaps[id].file
-	  && !strcmp (x_bitmaps[id].file, file))
+	  && !strcmp (x_bitmaps[id].file, (char *) XSTRING (file)->data))
 	{
 	  ++x_bitmaps[id].refcount;
 	  return id + 1;
 	}
     }
 
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  fd = openp (Vx_bitmap_file_path, file, "", &found, 0);
+  if (fd < 0)
+    return -1;
+  close (fd);
+
+  filename = (char *) XSTRING (found)->data;
+
   result = XReadBitmapFile (x_current_display, FRAME_X_WINDOW (f),
-			    file, &width, &height, &bitmap, &xhot, &yhot);
+			    filename, &width, &height, &bitmap, &xhot, &yhot);
   if (result != BitmapSuccess)
     return -1;
 
   id = x_allocate_bitmap_record ();
   x_bitmaps[id - 1].pixmap = bitmap;
   x_bitmaps[id - 1].refcount = 1;
-  x_bitmaps[id - 1].file = (char *) xmalloc ((strlen (file) + 1));
-  strcpy (x_bitmaps[id - 1].file, file);
+  x_bitmaps[id - 1].file = (char *) xmalloc (XSTRING (file)->size + 1);
+  x_bitmaps[id - 1].depth = 1;
+  x_bitmaps[id - 1].height = height;
+  x_bitmaps[id - 1].width = width;
+  strcpy (x_bitmaps[id - 1].file, XSTRING (file)->data);
 
   return id;
 }
@@ -509,7 +560,8 @@ x_create_bitmap_from_file (f, file)
 /* Remove reference to bitmap with id number ID.  */
 
 int
-x_destroy_bitmap (id)
+x_destroy_bitmap (f, id)
+     FRAME_PTR f;
      int id;
 {
   if (id > 0)
@@ -1265,10 +1317,8 @@ x_set_icon_type (f, arg, oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f, 0);
-  else if (STRINGP (arg))
-    result = x_bitmap_icon (f, XSTRING (arg)->data);
-  else 
-    result = x_bitmap_icon (f, 0);
+  else
+    result = x_bitmap_icon (f, arg);
 
   if (result)
     {
@@ -1288,16 +1338,19 @@ x_set_icon_type (f, arg, oldval)
   UNBLOCK_INPUT;
 }
 
-/* Return 1 if frame F wants a bitmap icon.  */
+/* Return non-nil if frame F wants a bitmap icon.  */
 
-int
+Lisp_Object
 x_icon_type (f)
      FRAME_PTR f;
 {
   Lisp_Object tem;
 
   tem = assq_no_quit (Qicon_type, f->param_alist);
-  return (CONSP (tem) && ! NILP (XCONS (tem)->cdr));
+  if (CONSP (tem))
+    return XCONS (tem)->cdr;
+  else
+    return Qnil;
 }
 
 extern Lisp_Object x_new_font ();
@@ -4356,6 +4409,10 @@ syms_of_xfns ()
 	build_string ("Undefined color"));
 
   init_x_parm_symbols ();
+
+  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
+    "List of directories to search for bitmap files for X.");
+  Vx_bitmap_file_path = Fcons (build_string (PATH_BITMAPS), Qnil);
 
   DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
     "The buffer offset of the character under the pointer.");
