@@ -2699,8 +2699,6 @@ static Lisp_Object system_key_syms;
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
 
-Lisp_Object Vsystem_key_alist;
-
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
 
@@ -2993,7 +2991,8 @@ make_lispy_event (event)
 	    system_key_syms = Fcons (Qnil, Qnil);
 	  return modify_event_symbol (event->code & 0xffffff,
 				      event->modifiers,
-				      Qfunction_key, Vsystem_key_alist,
+				      Qfunction_key,
+				      current_kboard->Vsystem_key_alist,
 				      0, &system_key_syms, 0xffffff);
 	}
 
@@ -6577,6 +6576,7 @@ init_kboard (kb)
   kb->defining_kbd_macro = Qnil;
   kb->Vlast_kbd_macro = Qnil;
   kb->reference_count = 0;
+  kb->Vsystem_key_alist = Qnil;
 }
 
 /*
@@ -7073,12 +7073,11 @@ and the minor mode maps regardless of `overriding-local-map'.");
 	       "*Non-nil means generate motion events for mouse motion.");
 #endif
 
-  DEFVAR_LISP ("system-key-alist", &Vsystem_key_alist,
+  DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
     "Alist of system-specific X windows key symbols.\n\
 Each element should have the form (N . SYMBOL) where N is the\n\
 numeric keysym code (sans the \"system-specific\" bit 1<<28)\n\
 and SYMBOL is its name.");
-  Vsystem_key_alist = Qnil;
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
     "List of deferred actions to be performed at a later time.\n\
