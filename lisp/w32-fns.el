@@ -345,4 +345,40 @@ CODING-SYSTEM, use \\[list-coding-systems]."
     ("black"          0     0     0     0))
 "A list of VGA console colors, their indices and 16-bit RGB values.")
 
+;; w32term.c sets this to nil, but if it has been overridden before we
+;; get here, we should not try to set it again.
+(if (not w32-charset-info-alist)
+    (progn (setq w32-charset-info-alist
+                 '(("iso8859-1" . (w32-charset-ansi . 1252))
+                   ("jisx0208-sjis" . (w32-charset-shiftjis . 932))
+                   ("jisx0201-latin" . (w32-charset-shiftjis . 932))
+                   ("jisx0201-katakana" . (w32-charset-shiftjis . 932))
+                   ("ksc5601.1987" . (w32-charset-hangul . 949))
+                   ("big5" . (w32-charset-chinesebig5 . 950))
+                   ("gb2312" . (w32-charset-gb2312 . 936))
+                   ("ms-symbol" . (w32-charset-symbol . nil))
+                   ("ms-oem" . (w32-charset-oem . 437))
+                   ("ms-oemlatin" . (w32-charset-oem . 850))))
+           (if (boundp 'w32-extra_charsets-defined)
+               (add-to-list
+                'w32-charset-info-alist
+                '(("iso8859-2" . (w32-charset-easteurope . 28592))
+                  ("iso8859-3" . (w32-charset-turkish . 28593))
+                  ("iso8859-4" . (w32-charset-baltic . 28594))
+                  ("iso8859-5" . (w32-charset-russian . 28595))
+                  ("iso8859-6" . (w32-charset-arabic . 28596))
+                  ("iso8859-7" . (w32-charset-greek . 28597))
+                  ("iso8859-8" . (w32-charset-hebrew . 1255))
+                  ("iso8859-9" . (w32-charset-turkish . 1254))
+                  ("iso8859-13" . (w32-charset-baltic . 1257))
+                  ("koi8-r" . (w32-charset-russian . 20866))
+                  ("tis620" . (w32-charset-thai . 874))
+                  ("ksc5601.1992" . (w32-charset-johab . 1361))
+                  ("mac" . (w32-charset-mac . nil)))))
+           (if (boundp 'w32-unicode-charset-defined)
+               (add-to-list
+                'w32-charset-info-alist
+                '(("iso10646" . (w32-charset-unicode . t))
+                  ("unicode" . (w32-charset-unicode . t)))))))
+
 ;;; w32-fns.el ends here
