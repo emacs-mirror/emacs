@@ -1021,7 +1021,7 @@ Show the buffer in another window, but don't select it."
   "Customize SYMBOL, which should be a face name or nil.
 If SYMBOL is nil, customize all faces."
   (interactive (list (completing-read "Customize face: (default all) "
-				      obarray 'custom-facep)))
+				      obarray 'custom-facep t)))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       (custom-buffer-create (custom-sort-items
 			     (mapcar (lambda (symbol)
@@ -1041,7 +1041,7 @@ If SYMBOL is nil, customize all faces."
 (defun customize-face-other-window (&optional symbol)
   "Show customization buffer for FACE in other window."
   (interactive (list (completing-read "Customize face: "
-				      obarray 'custom-facep)))
+				      obarray 'custom-facep t)))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       ()
     (if (stringp symbol)
@@ -1153,14 +1153,16 @@ links: groups have links to subgroups."
 		(const links))
   :group 'custom-buffer)
 
+;; If we pass BUFFER to `bury-buffer', the buffer isn't removed from
+;; the window.
 (defun custom-bury-buffer (buffer)
   (bury-buffer))
 
-(defcustom custom-buffer-done-function 'bury-buffer
+(defcustom custom-buffer-done-function 'custom-bury-buffer
   "*Function called to remove a Custom buffer when the user is done with it.
 Called with one argument, the buffer to remove."
-  :type '(choice (function-item custom-bury-buffer)
-		 (function-item kill-buffer)
+  :type '(choice (function-item :tag "Bury buffer" custom-bury-buffer)
+		 (function-item :tag "Kill buffer" kill-buffer)
 		 (function :tag "Other"))
   :version "21.1"
   :group 'custom-buffer)
@@ -3546,7 +3548,7 @@ Leave point at the location of the call, or after the last expression."
 				   ':style 'toggle
 				   ':selected symbol)))
 
-;; Fixme: sort out use of :filter in Emacs
+;; Fixme: sort out use of :filter in Emacs 21.
 (if nil ; (string-match "XEmacs" emacs-version)
     ;; XEmacs can create menus dynamically.
     (defun custom-group-menu-create (widget symbol)
@@ -3596,7 +3598,7 @@ Otherwise the menu will be named `Customize'.
 The format is suitable for use with `easy-menu-define'."
   (unless name
     (setq name "Customize"))
-  ;; Fixme: sort out use of :filter in Emacs
+  ;; Fixme: sort out use of :filter in Emacs 21.
   (if nil ;(string-match "XEmacs" emacs-version)
       ;; We can delay it under XEmacs.
       `(,name
