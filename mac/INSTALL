@@ -25,6 +25,10 @@ un-tarred.
 
 The last step must be performed as root.
 
+If you have X Window installed on your Mac and you are building Emacs
+to run under Carbon and not X Window, you need to type `./configure
+--without-x' instead of `./configure'.
+
 You can type `make bootstrap' instead of `make' to rebuild everything,
 including byte-compiling the Lisp files.
 
