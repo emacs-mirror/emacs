@@ -1907,7 +1907,7 @@ skip_syntaxes (forwardp, string, lim)
     XSETFASTINT (lim, BEGV);
 
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
-    return Qnil;
+    return make_number (0);
 
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
