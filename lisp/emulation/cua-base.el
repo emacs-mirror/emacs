@@ -1115,9 +1115,7 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua-global-keymap [remap advertised-undo]	'cua-undo)
 
   (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
-  (define-key cua--cua-keys-keymap [(shift control x)] 'Control-X-prefix)
   (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
-  (define-key cua--cua-keys-keymap [(shift control c)] 'mode-specific-command-prefix)
   (define-key cua--cua-keys-keymap [(control z)] 'undo)
   (define-key cua--cua-keys-keymap [(control v)] 'yank)
   (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region)
@@ -1137,6 +1135,9 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua--prefix-repeat-keymap [(control c) left]  'cua--prefix-copy-handler)
   (define-key cua--prefix-repeat-keymap [(control c) right] 'cua--prefix-copy-handler)
 
+  ;; Enable shifted fallbacks for C-x and C-c when region is active 
+  (define-key cua--region-keymap [(shift control x)] 'Control-X-prefix)
+  (define-key cua--region-keymap [(shift control c)] 'mode-specific-command-prefix)
   ;; replace current region
   (define-key cua--region-keymap [remap self-insert-command]	'cua-replace-region)
   (define-key cua--region-keymap [remap self-insert-iso]	'cua-replace-region)
