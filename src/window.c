@@ -898,6 +898,12 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
     Fgoto_char (pos);
   else
     set_marker_restricted (w->pointm, pos, w->buffer);
+
+  /* If displaying hollow box cursors in non-selected windows, we have
+     to make sure that redisplay updates the window to show the new
+     value of point.  */
+  if (cursor_in_non_selected_windows && !EQ (window, selected_window))
+    ++windows_or_buffers_changed;
   
   return pos;
 }
