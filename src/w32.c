@@ -1755,6 +1755,9 @@ sys_pipe (int * phandles)
   return rc;
 }
 
+/* From ntproc.c */
+extern Lisp_Object Vwin32_pipe_read_delay;
+
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */
 int
@@ -1781,8 +1784,30 @@ _sys_read_ahead (int fd)
   cp->status = STATUS_READ_IN_PROGRESS;
   
   if (fd_info[fd].flags & FILE_PIPE)
-    /* Use read to get CRLF translation */
-    rc = _read (fd, &cp->chr, sizeof (char));
+    {
+      /* Use read to get CRLF translation */
+      rc = _read (fd, &cp->chr, sizeof (char));
+
+      /* Give subprocess time to buffer some more output for us before
+	 reporting that input is available; we need this because Win95
+	 connects DOS programs to pipes by making the pipe appear to be
+	 the normal console stdout - as a result most DOS programs will
+	 write to stdout without buffering, ie.  one character at a
+	 time.  Even some Win32 programs do this - "dir" in a command
+	 shell on NT is very slow if we don't do this. */
+      if (rc > 0)
+	{
+	  int wait = XINT (Vwin32_pipe_read_delay);
+
+	  if (wait > 0)
+	    Sleep (wait);
+	  else if (wait < 0)
+	    while (++wait <= 0)
+	      /* Yield remainder of our time slice, effectively giving a
+		 temporary priority boost to the child process. */
+	      Sleep (0);
+	}
+    }
 #ifdef HAVE_SOCKETS
   else if (fd_info[fd].flags & FILE_SOCKET)
     rc = pfn_recv (SOCK_HANDLE (fd), &cp->chr, sizeof (char), 0);
@@ -1851,8 +1876,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      ResetEvent (cp->char_avail);
 
 	    case STATUS_READ_ACKNOWLEDGED:
-	      /* Give process time to buffer some more output for us */
-	      Sleep (50);
 	      break;
 
 	    default:
@@ -1958,6 +1981,9 @@ term_ntproc ()
 #endif
 }
 
+extern BOOL can_run_dos_process;
+extern BOOL dos_process_running;
+
 void
 init_ntproc ()
 {
@@ -2024,6 +2050,10 @@ init_ntproc ()
       open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     fdopen (2, "w");
   }
+
+  /* Only allow Emacs to run DOS programs on Win95. */
+  can_run_dos_process = (GetVersion () & 0x80000000);
+  dos_process_running = FALSE;
 
   /* unfortunately, atexit depends on implementation of malloc */
   /* atexit (term_ntproc); */
