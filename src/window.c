@@ -2439,6 +2439,7 @@ BUFFER can be a buffer or buffer name.")
   register Lisp_Object tem;
   register struct window *w = decode_window (window);
 
+  XSETWINDOW (window, w);
   buffer = Fget_buffer (buffer);
   CHECK_BUFFER (buffer, 1);
 
