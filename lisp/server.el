@@ -195,6 +195,10 @@ Prefix arg means just kill any existing server communications subprocess."
       (setq server-process (start-process "server" nil server-program)))
     (set-process-sentinel server-process 'server-sentinel)
     (set-process-filter server-process 'server-process-filter)
+    ;; We must receive file names without being decoded.  Those are
+    ;; decoded by server-process-filter accoding to
+    ;; file-name-coding-system.
+    (set-process-coding-system server-process 'raw-text 'raw-text)
     (process-kill-without-query server-process)))
 
 ;Process a request from the server to edit some files.
@@ -206,6 +210,9 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; process each line individually.
   (while (string-match "\n" string)
     (let ((request (substring string 0 (match-beginning 0)))
+	  (coding-system (and default-enable-multibyte-characters
+			      (or file-name-coding-system
+				  default-file-name-coding-system)))
 	  client nowait
 	  (files nil)
 	  (lineno 1))
@@ -242,6 +249,9 @@ Prefix arg means just kill any existing server communications subprocess."
 				 (setq arg (replace-match "-" t t arg)))
 				(t
 				 (setq arg (replace-match " " t t arg))))))
+		      ;; Now decode the file name if necessary.
+		      (if coding-system
+			  (setq arg (decode-coding-string arg coding-system)))
 		      (setq files
 			    (cons (list arg lineno)
 				  files))
