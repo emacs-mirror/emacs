@@ -2244,6 +2244,14 @@ and NOWAIT."
 	   (string-match "/$" cmd1)
 	   (not (string-match "R" cmd3))
 	   (setq cmd1 (concat cmd1 ".")))
+
+      ;; If the dir name contains a space, some ftp servers will
+      ;; refuse to list it.  We instead change directory to the
+      ;; directory in question and ls ".".
+      (when (string-match " " cmd1)
+	(ange-ftp-cd host user (nth 1 cmd))
+	(setq cmd1 "."))
+
       ;; If the remote ls can take switches, put them in
       (or (memq host-type ange-ftp-dumb-host-types)
 	  (setq cmd0 'ls
