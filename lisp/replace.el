@@ -396,7 +396,7 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map [escape] 'exit)
 (define-key query-replace-map "q" 'exit)
 (define-key query-replace-map "\r" 'exit)
-(define-key query-replace-map "[return]" 'exit)
+(define-key query-replace-map [return] 'exit)
 (define-key query-replace-map "." 'act-and-exit)
 (define-key query-replace-map "\C-r" 'edit)
 (define-key query-replace-map "\C-w" 'delete-and-edit)
