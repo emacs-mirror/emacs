@@ -1,5 +1,7 @@
 2000-06-20  Kenichi Handa  <handa@etl.go.jp>
 
+	* s/bsd386.h (HAVE_GETLOADAVG): Define it as 1.
+
 	* xfaces.c (font_list): Handle the case that REGISTRY doesn't
 	contain information about ENCODING.
 
