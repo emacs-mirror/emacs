@@ -18,6 +18,11 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#ifndef EMACS_ATIMER_H
+#define EMACS_ATIMER_H
+
+#include "systime.h"		/* for EMACS_TIME */
+
 /* Forward declaration.  */
 
 struct atimer;
@@ -76,3 +81,4 @@ void stop_other_atimers P_ ((struct atimer *));
 void run_all_atimers P_ ((void));
 Lisp_Object unwind_stop_other_atimers P_ ((Lisp_Object));
 
+#endif /* EMACS_ATIMER_H */
