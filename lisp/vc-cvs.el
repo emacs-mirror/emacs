@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.6 2000/10/22 15:31:11 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.7 2000/10/27 11:37:17 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -422,31 +422,33 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (vc-file-setprop file 'vc-workfile-version nil))
     ;; get file status
     (prog1
-	(if (re-search-forward
-	     (concat "^\\([CMUP] \\)?"
-		     (regexp-quote (file-name-nondirectory file))
-		     "\\( already contains the differences between \\)?")
-	     nil t)
-	    (cond
-	     ;; Merge successful, we are in sync with repository now
-	     ((or (match-string 2)
-		  (string= (match-string 1) "U ")
-		  (string= (match-string 1) "P "))
-	      (vc-file-setprop file 'vc-state 'up-to-date)
-	      (vc-file-setprop file 'vc-checkout-time
-			       (nth 5 (file-attributes file)))
-	      0);; indicate success to the caller
-	     ;; Merge successful, but our own changes are still in the file
-	     ((string= (match-string 1) "M ")
-	      (vc-file-setprop file 'vc-state 'edited)
-	      0);; indicate success to the caller
-	     ;; Conflicts detected!
-	     (t
-	      (vc-file-setprop file 'vc-state 'edited)
-	      1);; signal the error to the caller
-	     )
-	  (pop-to-buffer "*vc*")
-	  (error "Couldn't analyze cvs update result"))
+        (if (eq (buffer-size) 0)
+            0 ;; there were no news; indicate success
+          (if (re-search-forward
+               (concat "^\\([CMUP] \\)?"
+                       (regexp-quote (file-name-nondirectory file))
+                       "\\( already contains the differences between \\)?")
+               nil t)
+              (cond
+               ;; Merge successful, we are in sync with repository now
+               ((or (match-string 2)
+                    (string= (match-string 1) "U ")
+                    (string= (match-string 1) "P "))
+                (vc-file-setprop file 'vc-state 'up-to-date)
+                (vc-file-setprop file 'vc-checkout-time
+                                 (nth 5 (file-attributes file)))
+                0);; indicate success to the caller
+               ;; Merge successful, but our own changes are still in the file
+               ((string= (match-string 1) "M ")
+                (vc-file-setprop file 'vc-state 'edited)
+                0);; indicate success to the caller
+               ;; Conflicts detected!
+               (t
+                (vc-file-setprop file 'vc-state 'edited)
+                1);; signal the error to the caller
+               )
+            (pop-to-buffer "*vc*")
+            (error "Couldn't analyze cvs update result")))
       (message "Merging changes into %s...done" file))))
 
 (defun vc-cvs-check-headers ()

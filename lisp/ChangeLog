@@ -11,7 +11,8 @@
 	* vc-cvs.el (vc-cvs-checkin): Check both status and error message 
 	after command.  If there's an unexpected error, signal it instead 
 	of being silent.
-
+	(vc-cvs-merge-news): Be prepared for no news at all.
+	
 2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* shell.el (shell): Add BUFFER argument.
