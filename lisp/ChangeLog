@@ -2,6 +2,9 @@
 
 	* calc/calc-misc.el (calc-info): Don't perform voodoo, just
 	(info "Calc").
+	(report-calc-bug): Use reporter.el.
+	
+	* mail/reporter.el (reporter-submit-bug-report): Doc fixes.
 
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
