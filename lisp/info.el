@@ -911,10 +911,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (interactive)
   (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous")))
 
-(defun Info-up ()
-  "Go to the superior node of this node."
+(defun Info-up (&optional same-file)
+  "Go to the superior node of this node.
+If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
-  (Info-goto-node (Info-extract-pointer "up"))
+  (let ((node (Info-extract-pointer "up")))
+    (and same-file
+	 (string-match "^(" node)
+	 (error "Up node is in another Info file"))
+    (Info-goto-node node))
   (Info-restore-point Info-history))
 
 (defun Info-last ()
@@ -1277,7 +1282,7 @@ N is the digit argument used to invoke this command."
   (interactive)
   (cond ((Info-no-error (Info-next-menu-item)))
 	((Info-no-error (Info-next)))
-	((Info-no-error (Info-up))
+	((Info-no-error (Info-up t))
 	 ;; Since we have already gone thru all the items in this menu,
 	 ;; go up to the end of this node.
 	 (goto-char (point-max))
@@ -1302,7 +1307,9 @@ N is the digit argument used to invoke this command."
 		 ;; so we can scroll back through it.
 		 (goto-char (point-max))))
 	 (recenter -1))
-	((Info-no-error (Info-prev))
+	((and (not (equal (Info-extract-pointer "up")
+			  (Info-extract-pointer "prev"))))
+	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
 	 (while (Info-no-error
 		 (Info-last-menu-item)
@@ -1310,7 +1317,7 @@ N is the digit argument used to invoke this command."
 		 ;; so we can scroll back through it.
 		 (goto-char (point-max))))
 	 (recenter -1))
-	((Info-no-error (Info-up))
+	((Info-no-error (Info-up t))
 	 (goto-char (point-min))
 	 (or (search-forward "\n* Menu:" nil t)
 	     (goto-char (point-max))))
